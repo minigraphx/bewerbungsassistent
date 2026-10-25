@@ -1,0 +1,93 @@
+# Beispieldaten (frei erfunden). Schema: JSON Resume (https://jsonresume.org/schema)
+# plus Erweiterungen: basics.details, projects[].group, teaching, x-display, tags, text.
+basics:
+  name: Erika Beispiel
+  label: Software-Entwicklerin – Web und Daten
+  email: erika@example.ch
+  phone: 079 000 00 00
+  url: www.example.ch
+  location:
+    address: Musterweg 1
+    postalCode: "3000"
+    city: Bern
+  details: ["Schweiz"]
+  summary: >-
+    Software-Entwicklerin mit zehn Jahren Praxis in Python und TypeScript. Baut Webanwendungen
+    und Datenpipelines und gibt ihr Wissen in internen Schulungen weiter.
+  profiles:
+    - network: GitHub
+      url: https://github.com/example
+
+projects:
+  - name: datenatlas
+    description: Visualisierung offener Verkehrsdaten (Python, D3)
+    tags: [daten]
+  - name: kurs-tools
+    description: Werkzeuge für Online-Kurse (TypeScript, Vue)
+    tags: [web, bildung]
+  - name: Kleines Spiel in Godot
+    group: more
+
+skills:
+  - name: Sprachen
+    keywords: [Python, TypeScript, SQL]
+  - name: Web
+    keywords: [Vue.js, Django, REST-APIs]
+    tags: [web]
+  - name: Daten
+    keywords: [pandas, PostgreSQL, Airflow]
+    tags: [daten]
+
+work:
+  - position: Software-Entwicklerin
+    name: Beispiel AG
+    location: Bern
+    startDate: "2019-03"
+    endDate: null
+    highlights:
+      - Entwicklung einer Plattform für Kundendaten
+      - text: Aufbau von Datenpipelines mit Airflow
+        tags: [daten]
+      - text: Frontend mit Vue.js und TypeScript
+        tags: [web]
+  - position: Junior-Entwicklerin
+    name: Muster GmbH
+    location: Zürich
+    startDate: 2015
+    endDate: 2019
+    highlights:
+      - Wartung von Webshops
+      - text: Interne Schulungen zu Git
+        tags: [bildung]
+
+teaching:
+  - position: Kursleiterin Programmieren
+    name: Volkshochschule Bern
+    startDate: 2020
+    x-display: seit 2020
+    highlights:
+      - Einführungskurse in Python für Erwachsene
+    tags: [bildung]
+
+languages:
+  - language: Deutsch
+    fluency: Muttersprache
+  - language: Englisch
+    fluency: Fliessend
+
+interests:
+  - name: Wandern
+  - name: Fotografie
+
+education:
+  - studyType: Bachelor
+    area: Informatik
+    institution: Beispiel-Hochschule
+    startDate: 2011
+    endDate: 2015
+
+certificates:
+  - name: Machine Learning Grundlagen
+    issuer: Online-Kurs
+    date: "2023-05"
+    tags: [daten]
