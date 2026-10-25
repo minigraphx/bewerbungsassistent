@@ -1,5 +1,6 @@
 // Theme "zweispaltig": Kopf mit Name und rundem Foto, darunter zwei Spalten,
 // die unabhängig voneinander über die Seiten laufen.
+// Masse nach dem Canva-Lebenslauf (Schriftgrössen über Textbreiten, Abstände über Zeilenpositionen gemessen).
 #import "../common.typ": *
 
 #let standard-stil = (
@@ -8,11 +9,38 @@
   farbe-hintergrund: rgb("#fdfcfa"),
   schrift-titel: "Liberation Sans",
   schrift-text: "DM Sans",
+  // Schriftgrössen
   groesse-text: 8.8pt,
+  groesse-kontakt: 8.95pt,
+  groesse-name: 40.6pt,
+  groesse-label: 11.85pt,
+  groesse-titel: 13.35pt,
+  // Zeilenabstände (Typst: Abstand zwischen Zeilen zusätzlich zur Schrifthöhe)
+  zeilen-text: 0.665em,
+  zeilen-station-kopf: 0.81em,
+  zeilen-name: 0.347em,
+  zeilen-label: 0.7em,
+  zeilen-kontakt: 0.79em,
+  // Abstände zwischen Blöcken
+  abstand-absatz: 0.665em,
+  abstand-station: 1.76em,
+  abstand-abschnitt: 2.1em,
+  abstand-titel: 2.5em,
+  abstand-kopf: 4.16em,
+  // Seite, Kopf und Spalten
+  rand: (left: 50.5pt, right: 50.5pt, top: 2.2cm, bottom: 1.6cm),
+  fusszeile-abstand: 0.22cm,
+  groesse-fusszeile: 8.95pt,
+  breite-label: 9cm,
+  abstand-label: 1.12em,
+  foto-groesse: 4.65cm,
+  spaltenbreite-links: 47.5%,
+  spaltenabstand: 0.6cm,
+  listen-einzug: 0.6em,
+  listen-text-einzug: 0.8em,
   // Reihenfolge der Abschnitte je Spalte
   links: ("profil", "projekte", "faehigkeiten", "lehre", "sprachen", "weitere-projekte", "interessen"),
   rechts: ("erfahrung", "bildung"),
-  spaltenbreite-links: 41%,
 )
 
 #let lebenslauf(cv, sprache: "de", stand: none, stil: (:)) = {
@@ -24,25 +52,33 @@
   set document(title: name + " – " + basics.at("label", default: ""), author: name)
   set page(
     paper: "a4",
-    margin: (left: 1.6cm, right: 1.6cm, top: 1.3cm, bottom: 1.9cm),
+    margin: s.rand,
     fill: s.farbe-hintergrund,
+    footer-descent: s.fusszeile-abstand,
     footer: align(center, {
       line(length: 6.6cm, stroke: 0.9pt + s.farbe-linie)
       v(-4pt)
-      text(size: 7.5pt, fill: s.farbe-text, font: s.schrift-text, if stand != none { name + " - " + stand } else { name })
+      text(size: s.groesse-fusszeile, fill: s.farbe-text, font: s.schrift-text, if stand != none { name + " - " + stand } else { name })
     }),
   )
   set text(font: s.schrift-text, size: s.groesse-text, fill: s.farbe-text, lang: sprache)
-  set par(leading: 0.5em, spacing: 0.65em)
-  set list(marker: [•], indent: 0.5em, body-indent: 0.5em, spacing: 0.42em)
+  set par(leading: s.zeilen-text, spacing: s.abstand-absatz)
+  // Listenpunkte im Abstand normaler Zeilen
+  set list(marker: [•], indent: s.listen-einzug, body-indent: s.listen-text-einzug, spacing: s.zeilen-text)
 
-  let abschnitt(titel, inhalt) = block(breakable: true, below: 1.7em, {
-    block(below: 0.9em, sticky: true, {
-      text(font: s.schrift-titel, weight: 700, size: 12.5pt)[#upper(titel)]
-      v(-6pt)
-      line(length: 100%, stroke: 1.3pt + s.farbe-linie)
-    })
-    inhalt
+  // Titel in voller Grösse; ist er breiter als die Spalte, wird er auf Spaltenbreite verkleinert
+  let titel-block(titel) = block(below: s.abstand-titel, sticky: true, layout(platz => {
+    let t(groesse) = text(font: s.schrift-titel, weight: 700, size: groesse)[#upper(titel)]
+    let breite = measure(t(s.groesse-titel)).width
+    t(if breite > platz.width { s.groesse-titel * (platz.width / breite) } else { s.groesse-titel })
+    v(-6pt)
+    line(length: 100%, stroke: 1.3pt + s.farbe-linie)
+  }))
+
+  // Ein Abschnitt besteht aus Einträgen; läuft er auf die nächste Seite, wiederholt sich der Titel mit "(Fortsetzung)".
+  let abschnitt(id, titel, items, abstand) = block(breakable: true, below: s.abstand-abschnitt, {
+    titel-block(titel)
+    eintraege(id, items, titel-block(titel + " (" + b.fortsetzung + ")"), abstand: abstand)
   })
 
   let stichpunkte(e) = {
@@ -50,82 +86,63 @@
     if hs.len() > 0 { list(..hs.map(t => [#t])) }
   }
 
-  let station(e, org-key: "name") = block(breakable: false, below: 1em, {
-    let titel = feld(e, "position")
-    if titel != none { text(weight: 700)[#titel]; linebreak() }
-    let org = (feld(e, org-key), feld(e, "location")).filter(x => x != none).join(", ")
-    let z = zeitraum(e, b)
-    if nur-jahre(e) and z != none {
-      [#org · #z]
-    } else {
-      [#org]
-      if z != none { linebreak(); [#z] }
-    }
-    let hs = e.at("highlights", default: ())
-    if hs.len() > 0 { v(0.15em); stichpunkte(e) }
-  })
+  // Station: Kopfzeilen (Titel, Firma, Zeitraum) etwas luftiger als die Stichpunkte
+  let station(e, org-key: "name") = {
+    block(spacing: s.zeilen-station-kopf, {
+      set par(leading: s.zeilen-station-kopf)
+      let titel = feld(e, "position")
+      if titel != none { text(weight: 700)[#titel]; linebreak() }
+      let org = (feld(e, org-key), feld(e, "location")).filter(x => x != none).join(", ")
+      let z = zeitraum(e, b)
+      if nur-jahre(e) and z != none {
+        [#org · #z]
+      } else {
+        [#org]
+        if z != none { linebreak(); [#z] }
+      }
+    })
+    stichpunkte(e)
+  }
+
+  let punkte(xs) = (xs.map(x => list(x)), s.zeilen-text)
 
   let projekte(gruppe) = {
     let ps = cv.at("projects", default: ()).filter(p => p.at("group", default: "main") == gruppe)
-    if ps.len() == 0 { return none }
-    list(..ps.map(p => {
+    ps.map(p => {
       let d = feld(p, "description")
       [#p.name#if d != none [ — #d]]
-    }))
+    })
   }
 
+  // Jeder Abschnitt liefert (Einträge, Abstand); leere Einträge -> Abschnitt entfällt
   let abschnitte = (
     profil: () => {
       let t = feld(basics, "summary")
-      if t != none { [#t] }
+      (if t != none { ([#t],) } else { () }, s.abstand-station)
     },
     projekte: () => {
-      let l = projekte("main")
-      if l == none { return none }
-      l
+      let (items, abstand) = punkte(projekte("main"))
+      if items.len() == 0 { return ((), abstand) }
       let gh = basics.at("profiles", default: ()).filter(p => lower(p.at("network", default: "")) == "github")
-      if gh.len() > 0 { [#b.projekte-auf: #gh.first().url] }
+      if gh.len() > 0 { items.push((inhalt: [#b.projekte-auf: #gh.first().url], abstand: s.abstand-absatz)) }
+      (items, abstand)
     },
-    weitere-projekte: () => projekte("more"),
-    faehigkeiten: () => {
-      let sk = cv.at("skills", default: ())
-      if sk.len() == 0 { return none }
-      list(..sk.map(k => {
-        let kw = k.at("keywords", default: ())
-        if kw.len() > 0 [#k.name: #kw.join(", ")] else [#k.name]
-      }))
-    },
-    lehre: () => {
-      let t = cv.at("teaching", default: ())
-      if t.len() == 0 { return none }
-      for e in t { station(e) }
-    },
-    sprachen: () => {
-      let l = cv.at("languages", default: ())
-      if l.len() == 0 { return none }
-      list(..l.map(x => [#x.language – #x.at("fluency", default: "")]))
-    },
-    interessen: () => {
-      let l = cv.at("interests", default: ())
-      if l.len() == 0 { return none }
-      list(..l.map(x => [#x.name]))
-    },
-    erfahrung: () => {
-      let w = cv.at("work", default: ())
-      if w.len() == 0 { return none }
-      for e in w { station(e) }
-    },
-    bildung: () => {
-      let l = cv.at("education", default: ()) + cv.at("certificates", default: ())
-      if l.len() == 0 { return none }
-      list(..l.map(e => [#bildung-text(e, b)]))
-    },
+    weitere-projekte: () => punkte(projekte("more")),
+    faehigkeiten: () => punkte(cv.at("skills", default: ()).map(k => {
+      let kw = k.at("keywords", default: ())
+      if kw.len() > 0 [#k.name: #kw.join(", ")] else [#k.name]
+    })),
+    lehre: () => (cv.at("teaching", default: ()).map(e => station(e)), s.abstand-station),
+    sprachen: () => punkte(cv.at("languages", default: ()).map(x => [#x.language – #x.at("fluency", default: "")])),
+    interessen: () => punkte(cv.at("interests", default: ()).map(x => [#x.name])),
+    erfahrung: () => (cv.at("work", default: ()).map(e => station(e)), s.abstand-station),
+    bildung: () => punkte((cv.at("education", default: ()) + cv.at("certificates", default: ())).map(e => [#bildung-text(e, b)])),
   )
 
   let spalte(keys) = {
     for k in keys {
-      let inhalt = (abschnitte.at(k))()
-      if inhalt != none { abschnitt(b.at(k), inhalt) }
+      let (items, abstand) = (abschnitte.at(k))()
+      if items.len() > 0 { abschnitt(k, b.at(k), items, abstand) }
     }
   }
 
@@ -133,14 +150,17 @@
   let foto = feld(basics, "image")
   let teile = name.split(" ")
   let kopf-links = {
-    text(font: s.schrift-titel, weight: 700, size: 34pt)[
-      #set par(leading: 0.15em)
+    text(font: s.schrift-titel, weight: 700, size: s.groesse-name)[
+      #set par(leading: s.zeilen-name)
       #teile.first() \ #teile.slice(1).join(" ")
     ]
     v(0.9em)
     if feld(basics, "label") != none {
-      block(width: 9cm, text(weight: 700, size: 10pt)[#upper(basics.label)])
-      v(0.5em)
+      block(width: s.breite-label, text(weight: 700, size: s.groesse-label)[
+        #set par(leading: s.zeilen-label)
+        #upper(basics.label)
+      ])
+      v(s.abstand-label)
     }
     let ort = basics.at("location", default: (:))
     let zeilen = (
@@ -149,22 +169,24 @@
       feld(basics, "url"),
       (basics.at("details", default: ())).join(" · "),
     ).filter(x => x != none and x != "")
-    set par(leading: 0.55em)
-    for z in zeilen [#z \ ]
+    text(size: s.groesse-kontakt)[
+      #set par(leading: s.zeilen-kontakt)
+      #for z in zeilen [#z \ ]
+    ]
   }
   grid(
     columns: (1fr, auto),
     align: (left + top, right + horizon),
     kopf-links,
     if foto != none {
-      box(width: 4.1cm, height: 4.1cm, radius: 50%, clip: true, image(foto, width: 100%, height: 100%, fit: "cover"))
+      foto-rund(foto, s.foto-groesse, feld(basics, "x-image"))
     },
   )
-  v(1.6em)
+  v(s.abstand-kopf)
 
   grid(
     columns: (s.spaltenbreite-links, 1fr),
-    column-gutter: 1.1cm,
+    column-gutter: s.spaltenabstand,
     spalte(s.links),
     spalte(s.rechts),
   )

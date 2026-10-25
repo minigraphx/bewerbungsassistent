@@ -14,6 +14,7 @@
     interessen: "Interessen",
     bildung: "Bildung & Weiterbildung",
     projekte-auf: "Projekte auf",
+    fortsetzung: "Fortsetzung",
     heute: "heute",
     monate: ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
              "August", "September", "Oktober", "November", "Dezember"),
@@ -29,6 +30,7 @@
     interessen: "Interests",
     bildung: "Education & training",
     projekte-auf: "Projects on",
+    fortsetzung: "continued",
     heute: "present",
     monate: ("January", "February", "March", "April", "May", "June", "July",
              "August", "September", "October", "November", "December"),
@@ -81,4 +83,49 @@
   let z = zeitraum(e, b)
   if z != none { teile.push(z) } else if feld(e, "date") != none { teile.push(datum(feld(e, "date"), b)) }
   teile.join(", ")
+}
+
+// Rundes Foto. Optionen aus basics.x-image (geprüft in build.py):
+// mirror – an der senkrechten Achse spiegeln; zoom – Vergrösserung ab 1;
+// x, y – Bildausschnitt von 0 (links/oben) bis 1 (rechts/unten), Standard Mitte.
+#let foto-rund(pfad, groesse, optionen) = {
+  let o = if type(optionen) == dictionary { optionen } else { (:) }
+  let zoom = o.at("zoom", default: 1)
+  let x = o.at("x", default: 0.5)
+  let y = o.at("y", default: 0.5)
+  box(width: groesse, height: groesse, radius: 50%, clip: true, context {
+    // Bild so skalieren, dass es den Kreis in beiden Richtungen mindestens füllt
+    let probe = measure(image(pfad, width: groesse))
+    let m = if probe.height >= groesse {
+      measure(image(pfad, width: groesse * zoom))
+    } else {
+      measure(image(pfad, height: groesse * zoom))
+    }
+    // Feste Grösse und eigener Rahmen: sonst begrenzt Typst das Bild auf den Kreis,
+    // und das Spiegeln dreht um die Kreismitte statt um die Bildmitte.
+    let bild = image(pfad, width: m.width, height: m.height, fit: "stretch")
+    let inhalt = box(width: m.width, height: m.height, if o.at("mirror", default: false) { scale(x: -100%, bild) } else { bild })
+    place(top + left, dx: -(m.width - groesse) * x, dy: -(m.height - groesse) * y, inhalt)
+  })
+}
+
+// Einträge eines Abschnitts, die über Seiten laufen dürfen. Landet ein Eintrag auf einer
+// anderen Seite als sein Vorgänger, steht davor `fortsetzung` (z.B. "Berufserfahrung (Fortsetzung)").
+// Jeder Eintrag ist ein unteilbarer Block. Ein Eintrag kann statt Inhalt auch
+// (inhalt: ..., abstand: ...) sein, um den Abstand zum Vorgänger festzulegen.
+// Der erste Eintrag hat oben keinen eigenen Abstand, es gilt der des Titels.
+#let eintraege(id, items, fortsetzung, abstand: 0pt) = {
+  for (i, item) in items.enumerate() {
+    let (inhalt, oben) = if type(item) == dictionary { (item.inhalt, item.abstand) } else { (item, abstand) }
+    block(breakable: false, above: if i == 0 { 0pt } else { oben }, below: abstand, {
+      [#metadata((abschnitt: id, nr: i))<lebenslauf-eintrag>]
+      if i > 0 {
+        context {
+          let vorher = query(<lebenslauf-eintrag>).filter(m => m.value == (abschnitt: id, nr: i - 1))
+          if vorher.len() > 0 and vorher.first().location().page() != here().page() { fortsetzung }
+        }
+      }
+      inhalt
+    })
+  }
 }

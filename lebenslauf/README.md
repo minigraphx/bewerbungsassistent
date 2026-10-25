@@ -27,6 +27,7 @@ Erweiterungen:
 |---|---|
 | `basics.details` | Zusatzzeile im Kopf, z.B. Geburtsdatum, Nationalität |
 | `basics.image` | Foto, Pfad relativ zur Datendatei |
+| `basics.x-image` | Darstellung des Fotos im runden Ausschnitt: `mirror` (true/false, an der senkrechten Achse spiegeln), `zoom` (1–4), `x` und `y` (0–1, Bildausschnitt; 0 = links/oben, 0.5 = Mitte, 1 = rechts/unten). Beispiel: `{mirror: true, zoom: 1.3, x: 0.5, y: 0.2}` |
 | `teaching` | Abschnitt „Lehre & Training“, gleicher Aufbau wie `work` |
 | `projects[].group` | `main` (Standard) oder `more` für „Weitere Projekte“ |
 | `x-display` | eigener Text statt Zeitraum, z.B. `seit 2021` |
@@ -56,7 +57,9 @@ sections:                 # ganzen Abschnitt ersetzen (optional)
 2. In `theme.typ` die Funktion `lebenslauf(cv, sprache, stand, stil)` anpassen. Hilfsfunktionen (Datum, Beschriftungen DE/EN) liegen in `themes/common.typ`.
 3. `python build.py data/beispiel.yaml --theme meins`
 
-Farben, Schriften, Spaltenbreite und die Reihenfolge der Abschnitte stehen im Dictionary `standard-stil` am Anfang jedes Themes.
+Farben, Schriften, Schriftgrössen, Abstände, Ränder, Spaltenbreite und die Reihenfolge der Abschnitte stehen im Dictionary `standard-stil` am Anfang jedes Themes.
+
+Im Theme `zweispaltig` laufen beide Spalten unabhängig über die Seiten. Wird ein Abschnitt auf der nächsten Seite fortgesetzt, steht dort sein Titel mit „(Fortsetzung)“ bzw. „(continued)“; wandert ein Abschnitt ganz auf die neue Seite, bleibt es beim normalen Titel. Titel, die breiter als die Spalte sind, werden auf Spaltenbreite verkleinert. Die Hilfsfunktionen dafür (`eintraege`, `foto-rund`) liegen in `themes/common.typ` und lassen sich in eigenen Themes verwenden.
 
 ## Eigene Daten
 

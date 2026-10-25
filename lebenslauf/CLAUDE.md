@@ -18,7 +18,11 @@ Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema
 - Nach Änderungen an Themes: Beispiel in beiden Themes bauen, PDF ansehen und `pdftotext` prüfen (Text muss sauber extrahierbar sein).
 
 ## Bekannte offene Punkte (Stand 25.10.2026)
-- Abstände im Theme "zweispaltig" etwas enger als im Canva-Original; Überschrift "Berufserfahrung (Fortsetzung)" auf Seite 2 fehlt.
-- Englische Fassung (`--lang en`) noch nicht getestet.
+- Masse des Themes "zweispaltig" sind am Canva-Lebenslauf gemessen (Schriftgrössen über Textbreiten, Abstände über Zeilenpositionen mit `pdftotext -bbox-layout`); Abweichung meist unter 2 pt. Canva selbst ist bei Abschnittsabständen uneinheitlich, hier gilt ein fester Mittelwert.
+- `--lang en` übersetzt nur Beschriftungen und Datumsangaben; Inhalte (Stichpunkte, `x-display`) bleiben in der Sprache der Daten. Mehrsprachige Inhalte sind noch offen.
 - Einbindung in den Ablauf Stelle → Entwurf → Review (MIN-261).
-- CI: Beispiel-PDFs in GitHub Actions bauen.
+
+## Tests
+- `tests/test_foto.py` rendert `foto-rund` als PNG und prüft Pixel (Testbild `halbe.png`: links rot, rechts blau) – fängt Fehler beim Spiegeln und Ausschnitt ab, die Texttests nicht sehen.
+- Nach Layout-Änderungen zusätzlich vorher/nachher als PNG vergleichen (`pdftoppm`, `magick compare -metric AE`).
+- CI: `.github/workflows/lebenslauf.yml` (Tests, Beispiel-PDFs als Artefakt).

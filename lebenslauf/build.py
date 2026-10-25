@@ -17,6 +17,26 @@ import yaml
 from tailor import tailor
 
 ROOT = pathlib.Path(__file__).resolve().parent
+ZOOM_MIN, ZOOM_MAX = 1, 4
+
+
+def pruefe_foto_optionen(optionen: dict) -> dict:
+    """`basics.x-image` prüfen: mirror (ja/nein), zoom (1–4), x und y (0–1, Bildausschnitt)."""
+    if not isinstance(optionen, dict):
+        raise ValueError("basics.x-image muss eine Zuordnung sein, z.B. {mirror: true, zoom: 1.3}")
+    unbekannt = set(optionen) - {"mirror", "zoom", "x", "y"}
+    if unbekannt:
+        raise ValueError(f"basics.x-image: unbekannte Felder {sorted(unbekannt)}; erlaubt sind mirror, zoom, x, y")
+    if "mirror" in optionen and not isinstance(optionen["mirror"], bool):
+        raise ValueError("basics.x-image.mirror muss true oder false sein")
+    grenzen = {"zoom": (ZOOM_MIN, ZOOM_MAX), "x": (0, 1), "y": (0, 1)}
+    for key, (unten, oben) in grenzen.items():
+        wert = optionen.get(key)
+        if wert is None:
+            continue
+        if isinstance(wert, bool) or not isinstance(wert, (int, float)) or not unten <= wert <= oben:
+            raise ValueError(f"basics.x-image.{key} muss eine Zahl von {unten} bis {oben} sein, nicht {wert!r}")
+    return dict(optionen)
 
 
 def typst_pfad(pfad: pathlib.Path, wurzel: pathlib.Path) -> str:
@@ -38,6 +58,8 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     cv = yaml.safe_load(data_path.read_text(encoding="utf-8"))
     job = yaml.safe_load(pathlib.Path(args.job).read_text(encoding="utf-8")) if args.job else None
     cv = tailor(cv, job)
+    if "x-image" in cv.get("basics", {}):
+        cv["basics"]["x-image"] = pruefe_foto_optionen(cv["basics"]["x-image"])
 
     build = pathlib.Path(args.build_dir).resolve() if args.build_dir else ROOT / "build"
     build.mkdir(parents=True, exist_ok=True)
