@@ -29,6 +29,22 @@ def test_ganzer_abschnitt_auf_neuer_seite_ohne_fortsetzung(baue):
     assert "FORTSETZUNG" not in "".join(seiten)
 
 
+@pytest.mark.parametrize(
+    "label, zeile1, zeile2",
+    [
+        ("Senior-Entwickler – Qualitätssicherung und KI-Systeme", "SENIOR-ENTWICKLER –", "QUALITÄTSSICHERUNG UND KI-SYSTEME"),
+        ("Software-Entwickler – KI-Anwendungen und Qualitätssicherung", "SOFTWARE-ENTWICKLER –", "KI-ANWENDUNGEN UND QUALITÄTSSICHERUNG"),
+    ],
+)
+def test_label_umbruch_nach_gedankenstrich(baue, label, zeile1, zeile2):
+    cv = beispiel()
+    cv["basics"]["label"] = label
+
+    zeilen = [z.strip() for z in baue(cv)[0].splitlines()]
+
+    assert zeilen[zeilen.index(zeile1) + 1] == zeile2
+
+
 def test_englische_beschriftungen(baue):
     seiten = baue(lang(beispiel()), "--lang", "en")
 

@@ -31,7 +31,8 @@
   rand: (left: 50.5pt, right: 50.5pt, top: 2.2cm, bottom: 1.6cm),
   fusszeile-abstand: 0.22cm,
   groesse-fusszeile: 8.95pt,
-  breite-label: 9cm,
+  breite-label: 10cm,
+  label-umbruch-nach-strich: true,
   abstand-label: 1.12em,
   foto-groesse: 4.65cm,
   spaltenbreite-links: 47.5%,
@@ -158,7 +159,10 @@
     if feld(basics, "label") != none {
       block(width: s.breite-label, text(weight: 700, size: s.groesse-label)[
         #set par(leading: s.zeilen-label)
-        #upper(basics.label)
+        #let teile-label = basics.label.split(" – ")
+        #if s.label-umbruch-nach-strich and teile-label.len() > 1 [
+          #upper(teile-label.first() + " –") \ #upper(teile-label.slice(1).join(" – "))
+        ] else [#upper(basics.label)]
       ])
       v(s.abstand-label)
     }
