@@ -36,6 +36,7 @@ Eigene Fassung:
 ```bash
 python build.py ../../bewerbungsassistent-daten/cv.yaml \
   --job ../../bewerbungsassistent-daten/jobs/ki.yaml \
+  --build-dir ../../bewerbungsassistent-daten/.build \
   -o ../../bewerbungsassistent-daten/out/ki.pdf
 ```
 

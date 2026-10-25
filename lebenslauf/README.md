@@ -15,7 +15,7 @@ python build.py data/beispiel.yaml --theme einspaltig -o build/beispiel-einspalt
 python build.py data/beispiel.yaml --job jobs/beispiel-daten.yaml -o build/daten.pdf
 ```
 
-Optionen: `--theme` (Standard `zweispaltig`), `--lang de|en`, `-o` Ausgabedatei.
+Optionen: `--theme` (Standard `zweispaltig`), `--lang de|en`, `-o` Ausgabedatei, `--build-dir` Ordner für Zwischenstände (Standard `build/` in diesem Modul).
 
 ## Daten
 
@@ -60,7 +60,18 @@ Farben, Schriften, Spaltenbreite und die Reihenfolge der Abschnitte stehen im Di
 
 ## Eigene Daten
 
-Persönliche Daten gehören **nicht** in ein öffentliches Repo. `private/` und `build/` sind in `.gitignore`; besser ist ein separates privates Repo oder ein Ordner ausserhalb des Repos (`python build.py ../meine-daten/cv.yaml`).
+Persönliche Daten gehören **nicht** in ein öffentliches Repo. `private/` und `build/` sind in `.gitignore`; besser ist ein separates privates Repo oder ein Ordner ausserhalb des Repos. Mit `--build-dir` landet auch der Zwischenstand (`cv.json` mit allen Daten) dort statt in diesem Modul; das Foto wird direkt aus dem Datenordner gelesen, nicht kopiert:
+
+```bash
+python build.py ../../meine-daten/cv.yaml --build-dir ../../meine-daten/.build -o ../../meine-daten/out/cv.pdf
+```
+
+## Tests
+
+```bash
+pip install -r ../requirements-dev.txt
+python -m pytest
+```
 
 ## Schriften
 

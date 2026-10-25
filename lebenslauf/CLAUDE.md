@@ -3,7 +3,8 @@
 Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema) und Design (Typst-Themes) getrennt. Entstanden im Spike MIN-294.
 
 ## Aufbau
-- `build.py` – YAML → Zuschnitt (`tailor.py`) → `build/cv.json` → Typst → PDF.
+- `build.py` – YAML → Zuschnitt (`tailor.py`) → `<build-dir>/cv.json` → Typst → PDF. Typst-Stammordner ist der gemeinsame Oberordner von Modul, Build-Ordner und Foto; das Foto wird direkt referenziert.
+- `tests/` – pytest (`python -m pytest`), u.a. dass mit `--build-dir` nichts in `build/` des Moduls entsteht.
 - `tailor.py` – Zuschnitt pro Stelle über `tags`, `max_highlights`, `hide`, `basics`, `sections`.
 - `themes/common.typ` – Datumsformat, Beschriftungen DE/EN, Hilfsfunktionen.
 - `themes/zweispaltig/` – Kopf mit rundem Foto, zwei unabhängig laufende Spalten (Design des Canva-Lebenslaufs).
@@ -12,7 +13,7 @@ Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema
 - `fonts/` – DM Sans (statisch aus der Variable Font, Familienname "DM Sans") und Liberation Sans, beide OFL.
 
 ## Regeln
-- Keine persönlichen Daten in dieses Repo. Echte Daten liegen in einem separaten privaten Repo und werden per Pfad übergeben: `python build.py ../../bewerbungsassistent-daten/cv.yaml --job ../../bewerbungsassistent-daten/jobs/<firma>.yaml -o ../../bewerbungsassistent-daten/out/<firma>.pdf`.
+- Keine persönlichen Daten in dieses Repo. Echte Daten liegen in einem separaten privaten Repo und werden per Pfad übergeben: `python build.py ../../bewerbungsassistent-daten/cv.yaml --job ../../bewerbungsassistent-daten/jobs/<firma>.yaml --build-dir ../../bewerbungsassistent-daten/.build -o ../../bewerbungsassistent-daten/out/<firma>.pdf`. Bei echten Daten immer `--build-dir` setzen.
 - Strings aus den Daten werden in Typst als Text eingesetzt (`[#x]`), nie als Markup ausgewertet.
 - Nach Änderungen an Themes: Beispiel in beiden Themes bauen, PDF ansehen und `pdftotext` prüfen (Text muss sauber extrahierbar sein).
 
