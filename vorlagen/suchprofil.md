@@ -23,6 +23,8 @@ Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 |---|---|
 | job-room | automatisch |
 | jobs.ch | automatisch |
+| jobscout24 | automatisch |
+| ictjobs | automatisch |
 | LinkedIn | mit Nutzer |
 | Karriereseiten | automatisch |
 
@@ -35,6 +37,8 @@ Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 ## Region
 - Kantone (job-room): BE, SO
 - Orte (jobs.ch, LinkedIn): Bern, Solothurn
+- PLZ (jobscout24): 3000, 4500
+- Regionen (ictjobs): grossraum-bern, solothurn
 - Pendelgrenze: ausserhalb davon (z.B. Zürich, Basel, Genf) nur mit Remote
 - Remote: ja
 

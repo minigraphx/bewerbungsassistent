@@ -1,9 +1,9 @@
 ---
 name: "jobsuche"
-description: "Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten von Zielfirmen nach einem persönlichen Suchprofil: passende Stellen finden, ehrlich bewerten, auf den Portalen vormerken, eine Google-Sheet-Jobliste pflegen und gegen Doppelbewerbungen abgleichen."
+description: "Stellensuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, LinkedIn und Karriereseiten von Zielfirmen nach einem persönlichen Suchprofil: passende Stellen finden, ehrlich bewerten, auf den Portalen vormerken, eine Google-Sheet-Jobliste pflegen und gegen Doppelbewerbungen abgleichen."
 ---
 
-# Jobsuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten
+# Jobsuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, LinkedIn und Karriereseiten
 
 Ziel: neue, passende Stellen finden, auf dem Portal vormerken und in der zentralen Jobliste erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
 
@@ -56,6 +56,33 @@ const j = await r.json(); // j.num_pages, j.documents[]
 - Volltext: `GET /api/v1/public/search/job/{job_id}` → `template_text` (HTML; Tags mit `replace(/<[^>]+>/g,' ')` entfernen). Abschnitt ab "Das bringst du mit" / "Ihr Profil" / "Your profile" ausgeben.
 - Detailseite: `https://www.jobs.ch/de/stellenangebote/detail/<job_id>/`.
 
+## 2b2. Suche auf jobscout24.ch (Suchseiten im jobscout24-Tab, kein Login nötig)
+
+Die Trefferlisten sind serverseitig gerendert; per same-origin `fetch` holen und mit `DOMParser` lesen:
+
+```js
+const html = await (await fetch('/de/jobs/?ft=' + encodeURIComponent('<Keyword>') + '&psz=<PLZ>' + (p > 1 ? '&p=' + p : ''))).text();
+const doc = new DOMParser().parseFromString(html, 'text/html');
+// je Treffer: li.job-list-item (data-job-id, data-job-detail-url), a.job-title (title), p.job-attributes span (Firma, Ort)
+```
+
+- Ort über die Postleitzahl (`psz`, Werte aus dem Suchprofil), 20 Treffer pro Seite, `p=2` usw. bis eine Seite weniger als 20 liefert. Nach `data-job-id` deduplizieren.
+- Viele Inserate stammen von Vermittlern (z.B. ONE Agency, myitjob, Summit Recruitment, Rocken); Regeln aus 4 anwenden.
+- Volltext: Detailseite (`data-job-detail-url`) per `fetch` holen, `script`/`nav`/`header`/`footer` entfernen und den Text ab „Online bewerben“ nach dem Anforderungsabschnitt durchsuchen. Bei manchen Firmen steht der Text in einem iframe und ist so nicht lesbar; dann in der Antwort „Volltext nicht lesbar“ nennen.
+- Link für die Jobliste: `https://www.jobscout24.ch` + `data-job-detail-url`.
+
+## 2b3. Suche auf ictjobs.ch (Suchseiten im ictjobs-Tab, kein Login nötig)
+
+IT-Stellen; überschneidet sich stark mit job-room und jobs.ch, darum vor allem zum Abgleich und für Ergänzungen.
+
+```js
+const html = await (await fetch('/?fs=' + encodeURIComponent('<Keyword>') + '&fltr_location=<Region>')).text();
+// je Treffer: a.job-card__link (Titel, Link zur Detailseite), .job-card__company, .job-card__location, .job-card__time
+```
+
+- Regionen (`fltr_location`) aus dem Suchprofil, z.B. `grossraum-bern`, `solothurn`. Den Knopf „Speichern & suchen“ nicht verwenden (legt ein Job-Abo an), sondern die URL direkt abrufen.
+- Link für die Jobliste: das `href` von `a.job-card__link` ohne Suchparameter.
+
 ## 2c. Suche auf LinkedIn (Guest-API im LinkedIn-Tab)
 
 Im LinkedIn-Tab (z.B. `linkedin.com/jobs/`) per `javascript_tool`. Die Guest-Endpunkte liefern HTML-Fragmente:
@@ -89,7 +116,7 @@ Grosse IT-Dienstleister inserieren auf den Portalen nur einen Teil ihrer Stellen
 
 - Die Tool-Ausgabe wird nach ca. 1000 Zeichen abgeschnitten: Listen in Blöcken von 15–18 kurzen Zeilen (Titel ~34 Zeichen, Firma ~11, Ort ~8).
 - URLs, E-Mail-Adressen und alles mit `=`, `&`, `?`, `%` vor der Ausgabe entfernen, sonst wird die Ausgabe blockiert (auch Jobtitel können solche Zeichen enthalten).
-- Zwischenergebnisse in `window.__*`-Variablen halten, damit spätere Aufrufe darauf aufbauen.
+- Zwischenergebnisse in `window.__*`-Variablen halten, damit spätere Aufrufe darauf aufbauen. Jeder Seitenwechsel (auch auf ein anderes Portal) löscht sie: IDs, Links und Pensum der Kandidaten vorher in der Antwort oder in einer Datei festhalten.
 - Titel-Ausschluss und Titel-Positivliste: als Regex aus dem Suchprofil bilden. Hat das Suchprofil Richtungen mit eigenem Filter (z.B. Coaching nur mit IT-Bezug), diese getrennt anwenden: eigener Titelfilter, Pflicht-Bezug im Titel oder Volltext, eigene Ausschlüsse.
 - Stichwort-Flags im Volltext als grobe Vorauswahl: Studium (Bachelor/Master/FH/HF/Hochschul), EFZ, Sprachen, die geforderten Technologien, befristet, Sprache des Inserats. Kurze Teilstrings (z.B. `ki`) matchen überall. Den Anforderungsabschnitt ("Das bringst du mit", "Ihr Profil", "Anforderungen", "Requirements") danach im Wortlaut lesen.
 
@@ -124,11 +151,14 @@ job-room und jobs.ch: nur auf Wunsch. LinkedIn: alle Stellen, die in die Joblist
 
 - job-room: Detailseite öffnen, mit `find` den Button "Zur Merkliste hinzufügen" suchen und klicken; danach prüfen, dass er "Aus Merkliste entfernen" zeigt. Nicht klicken, wenn schon "Aus Merkliste entfernen" angezeigt wird.
 - jobs.ch (Login nötig, erkennbar an "Gespeicherte Jobs" und dem eigenen Namen in der Navigation): Detailseite öffnen, mit `find` den Button "Job speichern" suchen (erscheint zweimal, einen klicken); danach prüfen, dass sich die Beschriftung geändert hat bzw. die Stelle unter "Gespeicherte Jobs" auftaucht. Ist sie dort schon, nicht nochmals klicken (Toggle).
-- LinkedIn: Detailseite `/jobs/view/<id>/` öffnen, mit `find` den Button "Job speichern" suchen (aria-label `Job speichern`, nach dem Speichern `Job nicht mehr speichern`) und mit `computer` `left_click` auf die ref klicken. Ein Klick per JavaScript (`.click()` oder synthetische Mouse-Events) wirkt nicht. Zeigt der Button schon `Job nicht mehr speichern`, nicht klicken (Toggle).
-  - Ablauf je Stelle mit zwei Aufrufen: `find` auf der Detailseite, dann `browser_batch` mit [Klick auf ref, 1 s warten, `javascript_tool` liest das aria-label (muss `Job nicht mehr speichern` sein), `navigate` zur nächsten Detailseite].
+- LinkedIn: Detailseite `/jobs/view/<id>/` öffnen. Der Knopf neben „Bewerben“ heisst „Speichern“ (aria-label `Job speichern`), nach dem Speichern „Gespeichert“ (`Job nicht mehr speichern`). Zeigt er schon „Gespeichert“, nicht klicken (Toggle). Ein Klick per JavaScript (`.click()` oder synthetische Mouse-Events) wirkt nicht.
+  - Ablauf je Stelle: Screenshot der Detailseite, dann `browser_batch` mit [`left_click` auf den Knopf, 2 s warten, `zoom` auf den Knopf (muss „Gespeichert“ zeigen)]. Refs aus `find` verfallen oft, bevor geklickt wird; Koordinaten aus dem Screenshot sind verlässlicher.
   - Zum Schluss im Job-Tracker prüfen, dass die Zahl bei "Gespeichert" um die Anzahl neu gespeicherter Stellen gestiegen ist.
 
-## 6. In die Jobliste eintragen
+## 6. Ins Register und in die Jobliste eintragen
+
+Das **Register** `bewerbungen.yaml` im Datenordner ist führend (Modul `bewerbungen`). Neue Stellen zuerst dort anlegen, mit Entwurf vorher und nachher (siehe 0): `Register(daten).neu(firma=…, stelle=…, firma_schluessel=…, ort=…, pensum=…, vermittler=…, portal=…, link=…, status="Gemerkt", notiz=…)`. Die Zeilen für die Jobliste mit `register.als_jobliste([...])` aus denselben Einträgen erzeugen, damit beide übereinstimmen. Ohne Register (kein Modul `bewerbungen` im Einsatz) direkt in die Jobliste schreiben.
+
 
 Spalten: Firmen-Schlüssel | Arbeitgeber | Stelle | Ort | Pensum | Inserent/Vermittler | Portal(e) | Link | Status | Beworben am | Frist | Notiz | Duplikat-Check (Formel).
 
@@ -138,6 +168,7 @@ Spalten: Firmen-Schlüssel | Arbeitgeber | Stelle | Ort | Pensum | Inserent/Verm
 - Danach die Duplikat-Formel in Spalte M für die neuen Zeilen setzen (`update_formulas`). In deutschsprachigen Sheets ist das Trennzeichen ein Semikolon, mit Komma gibt es `#ERROR!`:
   `=IF(A<n>="";"";IF(COUNTIF($A$2:$A$200;A<n>)>1;"Firma mehrfach – prüfen";""))`
 - Mit `get_values` zurücklesen: Werte korrekt, Spalte M ohne `#ERROR!`; Treffer "Firma mehrfach – prüfen" in der Antwort erwähnen.
+- Google erlaubt nur wenige Schreibvorgänge pro Minute. Schreibvorgänge bündeln (alle neuen Zeilen in einem `update_values`); bei „Quota exceeded“ eine Minute warten und denselben Schreibvorgang wiederholen. Vorhandene Zeilen nur ändern, nachdem sie per `get_values` gelesen und über Firmen-Schlüssel **und** Stelle identifiziert sind, nie über die Zeilennummer allein.
 - Ohne Connector: die neuen Zeilen als Tabelle zum Einfügen ausgeben und sagen, dass der Sheets-Connector das direkte Eintragen erlaubt. Keine neue Datei anlegen.
 
 ## 6a. Bestehende Liste pflegen (bei jedem Lauf)
