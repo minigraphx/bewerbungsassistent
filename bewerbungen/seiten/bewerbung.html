@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<title>Bewerbung</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></nav>
+<main>
+  <h1 id="titel">Bewerbung</h1>
+  <p class="hilfe" id="untertitel"></p>
+  <div id="status-oben" class="status" role="status" aria-live="polite"></div>
+
+  <h2>Angaben</h2>
+  <div class="raster" id="angaben">
+    <div><label for="f-firma">Firma</label><input id="f-firma"></div>
+    <div><label for="f-stelle">Stelle</label><input id="f-stelle"></div>
+    <div><label for="f-firma_schluessel">Firmen-Schlüssel</label><input id="f-firma_schluessel"></div>
+    <div><label for="f-ort">Ort</label><input id="f-ort"></div>
+    <div><label for="f-pensum">Pensum</label><input id="f-pensum"></div>
+    <div><label for="f-vermittler">Inserent / Vermittler</label><input id="f-vermittler"></div>
+    <div><label for="f-portal">Portal</label><input id="f-portal"></div>
+    <div><label for="f-link">Link zum Inserat</label><input id="f-link" type="url"></div>
+    <div><label for="f-status">Status</label><select id="f-status"></select></div>
+    <div><label for="f-variante">Lebenslauf-Variante</label><select id="f-variante"></select></div>
+    <div><label for="f-beworben_am">Beworben am</label><input id="f-beworben_am" type="date"></div>
+    <div><label for="f-frist">Frist</label><input id="f-frist" type="date"></div>
+    <div><label for="f-gespraech_am">Gespräch am</label><input id="f-gespraech_am" type="date"></div>
+    <div><label for="f-absage_am">Absage am</label><input id="f-absage_am" type="date"></div>
+    <div class="breit"><label for="f-notiz">Notiz</label><textarea id="f-notiz"></textarea></div>
+  </div>
+  <div class="knoepfe"><button class="haupt" id="speichern">Angaben speichern</button></div>
+
+  <h2>Stellenausschreibung</h2>
+  <p class="hilfe">Text des Inserats einfügen. Er dient dem Vorschlag der Lebenslauf-Variante und der inhaltlichen Prüfung durch den Skill.</p>
+  <textarea id="stellentext" rows="8"></textarea>
+  <div class="knoepfe">
+    <button id="stelle-speichern">Stellentext speichern</button>
+    <button id="vorschlagen">Variante vorschlagen</button>
+  </div>
+  <div id="vorschlaege"></div>
+
+  <h2>Unterlagen und Prüfung</h2>
+  <p class="hilfe">Erstellt den Lebenslauf aus der gewählten Variante und das Anschreiben aus <code>bewerbungen/&lt;id&gt;/anschreiben.yaml</code>. Danach die PDFs ansehen; die automatische Prüfung steht darunter.</p>
+  <div class="knoepfe"><button class="haupt" id="erstellen">Unterlagen erstellen</button><button id="pruefen">Erneut prüfen</button></div>
+  <ul class="befunde" id="befunde"></ul>
+  <div class="pdfs" id="pdfs"></div>
+
+  <h2>Versand</h2>
+  <div id="versand-info"></div>
+  <div id="versand-form">
+    <p class="hilfe">Abschicken von Hand (Formular, E-Mail). Danach hier erfassen: Die Fassungen werden unter <code>versendet/</code> abgelegt (jede nur einmal), die Entwürfe als genutzt markiert und alles in Git eingefroren.</p>
+    <div class="raster">
+      <div><label for="v-datum">Versendet am</label><input id="v-datum" type="date"></div>
+      <div><label for="v-art">Art</label><select id="v-art"><option>elektronisch</option><option>schriftlich</option><option>persönlich</option><option>telefonisch</option></select></div>
+    </div>
+    <div class="knoepfe"><button class="haupt" id="versenden">Versand erfassen</button></div>
+  </div>
+
+  <h2>Job-Room (Arbeitsbemühungen)</h2>
+  <p class="hilfe">Vorschlag aus den Angaben; mit „Kopieren“ ins Formular im Job-Room übernehmen. Die Felder entsprechen voraussichtlich dem Formular „Arbeitsbemühungen“; bei Abweichungen bitte anpassen.</p>
+  <div class="raster" id="jobroom"></div>
+  <div class="knoepfe"><button id="jobroom-speichern">Job-Room-Angaben speichern</button></div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+</main>
+<script src="/app.js"></script>
+<script src="/bewerbung.js"></script>
+</body>
+</html>

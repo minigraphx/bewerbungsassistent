@@ -140,7 +140,7 @@ def test_vorschau_prueft_optionen(daten, tmp_path):
 def test_speichern_setzt_x_image_und_behaelt_den_rest(daten, tmp_path):
     optionen = {"mirror": True, "zoom": 1.3, "x": 0.5, "y": 0.2}
 
-    fotoausschnitt.speichere_optionen(daten, optionen, tmp_path / "build")
+    fotoausschnitt.speichere_optionen(daten, optionen)
 
     neu = daten.read_text(encoding="utf-8")
     zeilen_neu = [z for z in neu.splitlines() if "x-image: {mirror: true, zoom: 1.3" not in z]
@@ -150,8 +150,8 @@ def test_speichern_setzt_x_image_und_behaelt_den_rest(daten, tmp_path):
 
 
 def test_speichern_ersetzt_vorhandene_optionen(daten, tmp_path):
-    fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "zoom": 2}, tmp_path / "build")
-    fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "zoom": 3}, tmp_path / "build")
+    fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "zoom": 2})
+    fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "zoom": 3})
 
     zeilen = daten.read_text(encoding="utf-8").splitlines()
     assert sum(z.startswith("  x-image:") for z in zeilen) == 1
@@ -159,33 +159,20 @@ def test_speichern_ersetzt_vorhandene_optionen(daten, tmp_path):
 
 
 def test_speichern_rundet(daten, tmp_path):
-    fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "x": 0.123456789}, tmp_path / "build")
+    fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "x": 0.123456789})
 
     assert fotoausschnitt.lies_foto(daten)[1]["x"] == 0.123
 
 
-def sicherungen(build):
-    return sorted(build.glob("cv.yaml.*.bak"))
+def test_speichern_legt_keine_sicherungsdateien_an(daten):
+    """Sicherungen übernimmt die Ablage der Entwürfe (bewerbungen/ablage.py, MIN-303)."""
+    fotoausschnitt.speichere_optionen(daten, fotoausschnitt.STANDARD)
 
-
-def test_speichern_legt_sicherung_an(daten, tmp_path):
-    fotoausschnitt.speichere_optionen(daten, fotoausschnitt.STANDARD, tmp_path / "build")
-
-    assert [s.read_text(encoding="utf-8") for s in sicherungen(tmp_path / "build")] == [CV]
-
-
-def test_speichern_behaelt_das_original_ueber_mehrere_sicherungen(daten, tmp_path):
-    for zoom in (2, 3, 4):
-        fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "zoom": zoom}, tmp_path / "build")
-
-    alle = sicherungen(tmp_path / "build")
-    assert len(alle) == 3
-    assert alle[0].read_text(encoding="utf-8") == CV
+    assert sorted(p.name for p in daten.parent.iterdir()) == ["cv.yaml", "foto.png"]
 
 
 def test_speichern_ungueltig_laesst_datei_unveraendert(daten, tmp_path):
     with pytest.raises(ValueError, match="zoom"):
-        fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "zoom": 0}, tmp_path / "build")
+        fotoausschnitt.speichere_optionen(daten, {**fotoausschnitt.STANDARD, "zoom": 0})
 
     assert daten.read_text(encoding="utf-8") == CV
-    assert sicherungen(tmp_path / "build") == []

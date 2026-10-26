@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<title>Bewerbungen</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></nav>
+<main>
+  <h1>Bewerbungen</h1>
+  <p class="hilfe">Alle Bewerbungen aus <code>bewerbungen.yaml</code>. Ein Klick öffnet Angaben, Unterlagen, Prüfung, Versand und Job-Room-Daten.</p>
+
+  <div class="filter">
+    <input type="search" id="suche" placeholder="Firma oder Stelle suchen" aria-label="Suche">
+    <select id="statusfilter" aria-label="Status"><option value="">Alle Status</option></select>
+  </div>
+
+  <table>
+    <thead><tr><th>Firma</th><th>Stelle</th><th>Status</th><th>Beworben</th><th>Absage</th><th>Variante</th></tr></thead>
+    <tbody id="liste"></tbody>
+  </table>
+  <p id="leer" class="leer" hidden>Keine Bewerbungen gefunden.</p>
+
+  <h2>Neue Bewerbung</h2>
+  <div class="raster">
+    <div><label for="neu-firma">Firma</label><input id="neu-firma" autocomplete="off"></div>
+    <div><label for="neu-stelle">Stelle</label><input id="neu-stelle" autocomplete="off"></div>
+  </div>
+  <div class="knoepfe"><button class="haupt" id="anlegen">Anlegen</button></div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+</main>
+<script src="/app.js"></script>
+<script src="/uebersicht.js"></script>
+</body>
+</html>

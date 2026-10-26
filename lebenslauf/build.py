@@ -18,6 +18,18 @@ from tailor import tailor
 
 ROOT = pathlib.Path(__file__).resolve().parent
 ZOOM_MIN, ZOOM_MAX = 1, 4
+SPRACHEN = ("de", "en")
+
+
+def waehle_sprache(wert, sprache: str):
+    """Mehrsprachige Texte ({de: ..., en: ...}) auf eine Sprache reduzieren; fehlt sie, gilt Deutsch (MIN-300)."""
+    if isinstance(wert, dict):
+        if wert and set(wert) <= set(SPRACHEN) and all(isinstance(v, str) for v in wert.values()):
+            return wert.get(sprache) or wert.get("de") or next(iter(wert.values()))
+        return {k: waehle_sprache(v, sprache) for k, v in wert.items()}
+    if isinstance(wert, list):
+        return [waehle_sprache(v, sprache) for v in wert]
+    return wert
 
 
 def pruefe_foto_optionen(optionen: dict) -> dict:
@@ -49,7 +61,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     ap.add_argument("data", help="Stamm-Lebenslauf (YAML, JSON-Resume-Schema)")
     ap.add_argument("--job", help="Bewerbungsdatei mit Tags und Überschreibungen (YAML)")
     ap.add_argument("--theme", default="zweispaltig")
-    ap.add_argument("--lang", default="de")
+    ap.add_argument("--lang", default="de", choices=SPRACHEN)
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("-o", "--out", default="build/lebenslauf.pdf")
     args = ap.parse_args(argv)
@@ -57,7 +69,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     data_path = pathlib.Path(args.data).resolve()
     cv = yaml.safe_load(data_path.read_text(encoding="utf-8"))
     job = yaml.safe_load(pathlib.Path(args.job).read_text(encoding="utf-8")) if args.job else None
-    cv = tailor(cv, job)
+    cv = waehle_sprache(tailor(cv, job), args.lang)
     if "x-image" in cv.get("basics", {}):
         cv["basics"]["x-image"] = pruefe_foto_optionen(cv["basics"]["x-image"])
 

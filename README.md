@@ -4,13 +4,13 @@ Werkzeuge und Claude-Skills für den ganzen Bewerbungsablauf: passende Stellen f
 
 ## Module
 
-| Ordner | Inhalt | Stand |
-|---|---|---|
-| [`lebenslauf/`](lebenslauf/README.md) | Lebenslauf als PDF aus YAML (JSON Resume) und Typst-Themes, Zuschnitt pro Stelle über Tags | Prototyp |
-| [`skills/jobsuche/`](skills/jobsuche/SKILL.md) | Claude-Skill: Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten, Bewertung, Jobliste in Google Sheets | im Einsatz |
-| [`vorlagen/`](vorlagen/) | Vorlagen für die persönlichen Dateien (z.B. `suchprofil.md`) | |
-| `anschreiben/` | Bausteine und Ablauf fürs Anschreiben | geplant |
-| `pruefung/` | Prüfung vor dem Absenden | geplant |
+| Ordner | Inhalt |
+|---|---|
+| [`lebenslauf/`](lebenslauf/README.md) | Lebenslauf und Anschreiben als PDF aus YAML und Typst-Themes, Zuschnitt pro Stelle über Tags, mehrsprachige Inhalte |
+| [`bewerbungen/`](bewerbungen/README.md) | Lokale Oberfläche: Bewerbungsregister, Unterlagen erstellen und prüfen, Versand erfassen, Entwürfe und Versionen, Job-Room-Angaben, Fotoausschnitt |
+| [`skills/jobsuche/`](skills/jobsuche/SKILL.md) | Claude-Skill: Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten, Jobliste in Google Sheets |
+| [`skills/bewerbung/`](skills/bewerbung/SKILL.md) | Claude-Skill: von der Stelle zur fertigen Bewerbung – Variante wählen, Anschreiben im eigenen Stil, Prüfung, Versand |
+| [`vorlagen/`](vorlagen/) | Vorlagen für die persönlichen Dateien (Suchprofil, Stilprofil, Bausteine fürs Anschreiben) |
 
 ## Eigene Daten
 
@@ -19,7 +19,7 @@ Dieses Repo enthält nur Code, Themes, Skills und erfundene Beispieldaten. Pers�
 ```
 dev/
   bewerbungsassistent/          ← dieses Repo
-  bewerbungsassistent-daten/    ← privat: cv.yaml, foto.jpg, suchprofil.md, jobs/, out/
+  bewerbungsassistent-daten/    ← privat: cv.yaml, foto.jpg, suchprofil.md, jobs/, bewerbungen.yaml, …
 ```
 
 ## Schnellstart
@@ -40,9 +40,16 @@ python build.py ../../bewerbungsassistent-daten/cv.yaml \
   -o ../../bewerbungsassistent-daten/out/ki.pdf
 ```
 
-## Skill einrichten
+Lokale Oberfläche:
 
-`skills/jobsuche/` in Claude Code nach `~/.claude/skills/jobsuche/` kopieren oder verlinken; in claude.ai als Skill hochladen. Vorher `vorlagen/suchprofil.md` in den privaten Datenordner kopieren und ausfüllen. Der Skill braucht Claude in Chrome (Suche im eingeloggten Browser-Tab) und für die Jobliste den Google-Sheets-Connector.
+```bash
+cd bewerbungen
+python app.py ../../bewerbungsassistent-daten
+```
+
+## Skills einrichten
+
+`skills/jobsuche/` und `skills/bewerbung/` in Claude Code nach `~/.claude/skills/` kopieren oder verlinken; in claude.ai als Skill hochladen. Vorher die Vorlagen aus `vorlagen/` in den privaten Datenordner kopieren und ausfüllen (`suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`). Der Skill braucht Claude in Chrome (Suche im eingeloggten Browser-Tab) und für die Jobliste den Google-Sheets-Connector.
 
 ## Lizenz
 

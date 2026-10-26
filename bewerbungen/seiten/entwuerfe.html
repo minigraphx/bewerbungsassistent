@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<title>Entwürfe und Versionen</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></nav>
+<main>
+  <h1>Entwürfe und Versionen</h1>
+  <p class="hilfe">Jedes Speichern legt einen <strong>Entwurf</strong> mit Datum an (nicht in Git). Entwürfe lassen sich ansehen, vergleichen, wiederherstellen und löschen, solange sie nicht genutzt wurden. Beim Versand wird der genutzte Stand als <strong>Version</strong> in Git eingefroren und ist dann nicht mehr löschbar.</p>
+
+  <h2>Entwürfe</h2>
+  <div class="filter">
+    <select id="datei" aria-label="Datei"><option value="">Alle Dateien</option></select>
+  </div>
+  <table>
+    <thead><tr><th>Zeit</th><th>Datei</th><th>Beschreibung</th><th>Genutzt</th><th>Aktionen</th></tr></thead>
+    <tbody id="entwuerfe"></tbody>
+  </table>
+  <p id="leer" class="leer" hidden>Noch keine Entwürfe.</p>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <pre class="ansicht" id="ansicht" hidden></pre>
+
+  <h2>Versionen (versendet)</h2>
+  <p class="hilfe" id="versionen-hinweis"></p>
+  <div id="versionen"></div>
+</main>
+<script src="/app.js"></script>
+<script src="/entwuerfe.js"></script>
+</body>
+</html>

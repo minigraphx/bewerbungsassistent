@@ -1,98 +1,5 @@
-<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fotoausschnitt</title>
-<style>
-  :root {
-    --text: #38495d; --hintergrund: #fdfcfa; --flaeche: #ffffff; --linie: #d9dde3;
-    --akzent: #38495d; --akzent-text: #ffffff; --hinweis: #8a5a00; --fehler: #b3261e; --ok: #2e6b3a;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --text: #e3e7ec; --hintergrund: #16191d; --flaeche: #1f2328; --linie: #3a4048;
-      --akzent: #c9d4e2; --akzent-text: #16191d; --hinweis: #f0b552; --fehler: #ff8a80; --ok: #8fd19e;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 24px 16px; background: var(--hintergrund); color: var(--text);
-    font: 15px/1.5 "DM Sans", system-ui, sans-serif;
-  }
-  main { max-width: 860px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  p.hilfe { margin: 0 0 24px; opacity: .8; }
-  .raster { display: grid; grid-template-columns: minmax(0, 340px) 1fr; gap: 32px; align-items: start; }
-  @media (max-width: 680px) { .raster { grid-template-columns: 1fr; } }
-  #kreis {
-    width: 100%; max-width: 340px; aspect-ratio: 1; border-radius: 50%; overflow: hidden; position: relative;
-    background: var(--linie); cursor: grab; touch-action: none; outline-offset: 4px;
-  }
-  #kreis.zieht { cursor: grabbing; }
-  #kreis:focus-visible { outline: 3px solid var(--akzent); }
-  #kreis img { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
-  .klein { display: flex; align-items: center; gap: 12px; margin-top: 16px; font-size: 13px; opacity: .85; }
-  .klein img { width: 4.65cm; height: 4.65cm; border-radius: 50%; }
-  .feld { margin-bottom: 18px; }
-  .feld label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; }
-  .feld output { font-variant-numeric: tabular-nums; font-weight: 400; }
-  input[type=range] { width: 100%; accent-color: var(--akzent); }
-  .schalter { display: flex; gap: 8px; align-items: center; font-weight: 600; margin-bottom: 22px; }
-  .schalter input { width: 18px; height: 18px; accent-color: var(--akzent); }
-  code {
-    display: block; padding: 10px 12px; background: var(--flaeche); border: 1px solid var(--linie);
-    border-radius: 6px; font-size: 13px; overflow-x: auto; white-space: pre;
-  }
-  .knoepfe { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 10px; }
-  button {
-    font: inherit; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--akzent);
-    background: var(--flaeche); color: var(--text); cursor: pointer;
-  }
-  button.haupt { background: var(--akzent); color: var(--akzent-text); font-weight: 600; }
-  button:disabled { opacity: .45; cursor: default; }
-  #status { min-height: 1.5em; font-size: 14px; }
-  #status.hinweis { color: var(--hinweis); }
-  #status.fehler { color: var(--fehler); }
-  #status.ok { color: var(--ok); }
-</style>
-</head>
-<body>
-<main>
-  <h1>Fotoausschnitt</h1>
-  <p class="hilfe">Ziehen verschiebt den Ausschnitt, das Mausrad zoomt. Mit der Tastatur: Pfeiltasten verschieben, + und − zoomen, M spiegelt.</p>
-
-  <div class="raster">
-    <div>
-      <div id="kreis" tabindex="0" role="img" aria-label="Vorschau des Fotoausschnitts">
-        <img id="gross" alt="">
-      </div>
-      <div class="klein"><img id="klein" alt="Vorschau in etwa Druckgrösse"><span>etwa Druckgrösse (4,65 cm)</span></div>
-    </div>
-
-    <div>
-      <label class="schalter"><input type="checkbox" id="mirror"> Spiegeln</label>
-      <div class="feld"><label for="zoom">Zoom <output id="zoom-wert"></output></label>
-        <input type="range" id="zoom" min="1" max="4" step="0.01"></div>
-      <div class="feld"><label for="x">Ausschnitt waagrecht (x) <output id="x-wert"></output></label>
-        <input type="range" id="x" min="0" max="1" step="0.001"></div>
-      <div class="feld"><label for="y">Ausschnitt senkrecht (y) <output id="y-wert"></output></label>
-        <input type="range" id="y" min="0" max="1" step="0.001"></div>
-
-      <code id="yaml"></code>
-      <div class="knoepfe">
-        <button class="haupt" id="speichern">Speichern</button>
-        <button id="zuruecksetzen">Zurücksetzen</button>
-        <button id="standard">Standardwerte</button>
-      </div>
-      <div id="status" role="status" aria-live="polite"></div>
-    </div>
-  </div>
-</main>
-
-<script>
 "use strict";
-const TOKEN = "__TOKEN__";
+const TOKEN = document.querySelector('meta[name="token"]').content;
 const MIN_ABSTAND_MS = 50;           // höchstens ein Vorschaubild pro 50 ms
 const STANDARD = { mirror: false, zoom: 1, x: 0.5, y: 0.5 };
 const el = id => document.getElementById(id);
@@ -108,7 +15,7 @@ const begrenzt = (wert, unten, oben) => Math.min(oben, Math.max(unten, wert));
 function status(text, art = "") {
   const s = el("status");
   s.textContent = text;
-  s.className = art;
+  s.className = "status " + art;
 }
 
 // Überstand des Bildes über den Kreis, in Kreisdurchmessern (wie foto-rund in common.typ)
@@ -141,7 +48,7 @@ function zeige() {
   el("speichern").disabled = !ungespeichert;
   el("zuruecksetzen").disabled = !ungespeichert;
   if (ungespeichert) status("Nicht gespeichert", "hinweis");
-  else if (el("status").className === "hinweis") status("");
+  else if (el("status").className === "status hinweis") status("");
 }
 
 // Vorschau: immer nur eine Anfrage gleichzeitig; Änderungen währenddessen holt die nächste Runde
@@ -153,7 +60,7 @@ async function vorschauAnfordern() {
   try {
     const g = gerundet(stand);
     const q = new URLSearchParams({ t: TOKEN, mirror: g.mirror, zoom: g.zoom, x: g.x, y: g.y });
-    const antwort = await fetch("/vorschau.png?" + q);
+    const antwort = await fetch("/api/foto/vorschau.png?" + q);
     if (!antwort.ok) throw new Error((await antwort.json()).fehler);
     const url = URL.createObjectURL(await antwort.blob());
     el("gross").src = url;
@@ -218,7 +125,7 @@ el("standard").addEventListener("click", () => setze(STANDARD));
 el("speichern").addEventListener("click", async () => {
   el("speichern").disabled = true;
   try {
-    const antwort = await fetch("/speichern", {
+    const antwort = await fetch("/api/foto/speichern", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Token": TOKEN },
       body: JSON.stringify(gerundet(stand)),
@@ -227,7 +134,7 @@ el("speichern").addEventListener("click", async () => {
     if (!antwort.ok) throw new Error(daten.fehler);
     gespeichert = { ...daten };
     zeige();
-    status("Gespeichert. Sicherung der vorherigen Datei im Build-Ordner.", "ok");
+    status("Gespeichert. Der Stand davor liegt unter Entwürfe.", "ok");
   } catch (fehler) {
     zeige();
     status("Speichern fehlgeschlagen: " + fehler.message, "fehler");
@@ -238,12 +145,12 @@ window.addEventListener("beforeunload", e => { if (!gleich(stand, gespeichert)) 
 // Start: Werte aus der Datei und Seitenverhältnis des Originalfotos
 async function start() {
   try {
-    const antwort = await fetch("/optionen?t=" + encodeURIComponent(TOKEN));
+    const antwort = await fetch("/api/foto/optionen?t=" + encodeURIComponent(TOKEN));
     const daten = await antwort.json();
     if (!antwort.ok) throw new Error(daten.fehler);
     gespeichert = { ...daten };
     const bild = new Image();
-    bild.src = "/foto?t=" + encodeURIComponent(TOKEN);
+    bild.src = "/api/foto/bild?t=" + encodeURIComponent(TOKEN);
     await bild.decode();
     seitenverhaeltnis = bild.naturalHeight / bild.naturalWidth;
     setze(gespeichert);
@@ -252,6 +159,3 @@ async function start() {
   }
 }
 start();
-</script>
-</body>
-</html>

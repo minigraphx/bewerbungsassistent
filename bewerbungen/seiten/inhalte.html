@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<title>Inhalte</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></nav>
+<main>
+  <h1>Inhalte</h1>
+  <p class="hilfe">Lebenslauf, Zuschnitte, Anschreiben, Varianten, Register und Suchprofil als Text bearbeiten. Kommentare bleiben erhalten. „Prüfen“ baut für Lebenslauf und Anschreiben eine Vorschau; gespeichert wird nur Gültiges, jedes Mal mit Entwurf.</p>
+
+  <div class="filter">
+    <select id="datei" aria-label="Datei"></select>
+  </div>
+  <div class="inhalt-raster">
+    <div>
+      <textarea id="text" spellcheck="false" aria-label="Inhalt der Datei"></textarea>
+      <div class="knoepfe">
+        <button id="pruefen">Prüfen und Vorschau</button>
+        <button class="haupt" id="speichern" disabled>Speichern</button>
+        <button id="verwerfen" disabled>Änderungen verwerfen</button>
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </div>
+    <div class="pdfs" id="vorschau"></div>
+  </div>
+</main>
+<script src="/app.js"></script>
+<script src="/inhalte.js"></script>
+</body>
+</html>

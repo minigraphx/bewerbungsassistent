@@ -40,7 +40,8 @@ def _bereinigen(x, tags, hide, max_hl):
     if isinstance(x, dict):
         d = {k: _bereinigen(v, tags, hide, max_hl) for k, v in x.items() if k not in META}
         if "highlights" in d:
-            hl = [h["text"] if isinstance(h, dict) else h for h in d["highlights"]]
+            # {text:, tags:} wird zu Text; mehrsprachige Texte ({de:, en:}) bleiben für build.waehle_sprache
+            hl = [h["text"] if isinstance(h, dict) and "text" in h else h for h in d["highlights"]]
             if max_hl:
                 hl = hl[:max_hl]
             d["highlights"] = hl

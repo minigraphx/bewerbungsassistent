@@ -15,7 +15,7 @@ python build.py data/beispiel.yaml --theme einspaltig -o build/beispiel-einspalt
 python build.py data/beispiel.yaml --job jobs/beispiel-daten.yaml -o build/daten.pdf
 ```
 
-Optionen: `--theme` (Standard `zweispaltig`), `--lang de|en`, `-o` Ausgabedatei, `--build-dir` Ordner für Zwischenstände (Standard `build/` in diesem Modul).
+Optionen: `--theme` (Standard `zweispaltig`), `--lang de|en` (Beschriftungen, Datumsangaben und mehrsprachige Inhalte), `-o` Ausgabedatei, `--build-dir` Ordner für Zwischenstände (Standard `build/` in diesem Modul).
 
 ## Daten
 
@@ -58,13 +58,23 @@ Ein Anschreiben ist eine kleine YAML-Datei (Beispiel: [`data/anschreiben-beispie
 
 Das Layout steht in `themes/brief.typ`; jedes Theme setzt darin nur seinen Stil (`themes/<name>/anschreiben.typ`). Gruss und Unterschrift werden nie getrennt.
 
-## Fotoausschnitt im Browser einstellen
+## Fotoausschnitt einstellen
 
-```bash
-python foto_editor.py ../../meine-daten/cv.yaml --build-dir ../../meine-daten/.build
+Im Browser über die lokale Oberfläche des Moduls [`bewerbungen`](../bewerbungen/README.md), Seite „Foto“: Foto per Maus verschieben, mit dem Mausrad zoomen und spiegeln. Die Vorschau rendert Typst mit derselben Funktion wie das Theme. Gespeichert wird `basics.x-image`; Kommentare und Formatierung der Datendatei bleiben erhalten (`fotoausschnitt.py`).
+
+## Mehrsprachige Inhalte
+
+Jeder Text kann statt eines Strings eine Zuordnung nach Sprache sein; `--lang` wählt die Sprache, fehlt sie, gilt Deutsch:
+
+```yaml
+summary:
+  de: Software-Entwicklerin mit zehn Jahren Praxis …
+  en: Software developer with ten years of experience …
+highlights:
+  - {de: Aufbau von Datenpipelines, en: Built data pipelines}
+  - text: {de: Schulungen intern, en: Internal training}
+    tags: [bildung]
 ```
-
-Öffnet eine lokale Seite (nur `127.0.0.1`). Dort lässt sich das Foto per Maus verschieben, mit dem Mausrad zoomen und spiegeln. Die Vorschau rendert Typst mit derselben Funktion wie das Theme, sie entspricht also genau dem PDF. „Speichern“ schreibt `basics.x-image` in die Datendatei; Kommentare und Formatierung bleiben erhalten, vor jedem Speichern liegt eine Sicherung `<datei>.<zeitstempel>.bak` im Build-Ordner. Optionen: `--port`, `--kein-browser`.
 
 ## Zuschnitt pro Stelle
 

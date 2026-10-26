@@ -5,7 +5,7 @@ Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema
 ## Aufbau
 - `build.py` – YAML → Zuschnitt (`tailor.py`) → `<build-dir>/cv.json` → Typst → PDF. Typst-Stammordner ist der gemeinsame Oberordner von Modul, Build-Ordner und Foto; das Foto wird direkt referenziert.
 - `tests/` – pytest (`python -m pytest`), u.a. dass mit `--build-dir` nichts in `build/` des Moduls entsteht.
-- `foto_editor.py` + `editor/foto.html` – lokaler Editor für den Fotoausschnitt (MIN-301): Server nur auf 127.0.0.1, Token pro Start, Host-Prüfung gegen DNS-Rebinding. Logik in `fotoausschnitt.py` (Vorschau mit wiederverwendetem `typst.Compiler`, Speichern per ruamel.yaml ohne Verlust von Kommentaren, Sicherung im Build-Ordner).
+- `fotoausschnitt.py` – Fotoausschnitt lesen, prüfen, als Vorschau rendern (wiederverwendeter `typst.Compiler`) und per ruamel.yaml ohne Verlust von Kommentaren speichern. Die Oberfläche dazu liegt im Modul `bewerbungen` (Seite „Foto“), die Entwürfe legt dessen Ablage an.
 - `anschreiben.py` – Anschreiben (YAML) → PDF; Layout `themes/brief.typ`, Stil je Theme in `themes/<name>/anschreiben.typ`, Einstieg `anschreiben-main.typ` (MIN-260).
 - `tailor.py` – Zuschnitt pro Stelle über `tags`, `max_highlights`, `hide`, `basics`, `sections`.
 - `themes/common.typ` – Datumsformat, Beschriftungen DE/EN, Hilfsfunktionen.
@@ -21,8 +21,7 @@ Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema
 
 ## Bekannte offene Punkte (Stand 25.10.2026)
 - Masse des Themes "zweispaltig" sind am Canva-Lebenslauf gemessen (Schriftgrössen über Textbreiten, Abstände über Zeilenpositionen mit `pdftotext -bbox-layout`); Abweichung meist unter 2 pt. Canva selbst ist bei Abschnittsabständen uneinheitlich, hier gilt ein fester Mittelwert.
-- `--lang en` übersetzt nur Beschriftungen und Datumsangaben; Inhalte (Stichpunkte, `x-display`) bleiben in der Sprache der Daten. Mehrsprachige Inhalte sind noch offen.
-- Einbindung in den Ablauf Stelle → Entwurf → Review (MIN-261).
+- `--lang en` übersetzt Beschriftungen und Datumsangaben; Inhalte sind mehrsprachig, wenn sie als `{de: …, en: …}` erfasst sind (`build.waehle_sprache`, MIN-300). Einsprachige Texte bleiben, wie sie sind.
 
 ## Tests
 - `tests/test_foto.py` rendert `foto-rund` als PNG und prüft Pixel (Testbild `halbe.png`: links rot, rechts blau) – fängt Fehler beim Spiegeln und Ausschnitt ab, die Texttests nicht sehen.

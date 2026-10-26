@@ -5,7 +5,15 @@ description: "Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten
 
 # Jobsuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten
 
-Ziel: neue, passende Stellen finden, auf dem Portal vormerken und in der zentralen Jobliste erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle drei plus die Karriereseiten aus dem Suchprofil. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
+Ziel: neue, passende Stellen finden, auf dem Portal vormerken und in der zentralen Jobliste erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
+
+## 0. Portale und Lauf
+
+Das Suchprofil legt im Abschnitt „Portale und Rhythmus“ pro Portal einen Modus fest:
+
+- **Unbeaufsichtigter Lauf** (geplante Aufgabe, standardmässig wöchentlich): nur Portale mit Modus `automatisch` durchsuchen. Für Portale mit `mit Nutzer` (z.B. LinkedIn) nichts tun, sondern in der Antwort daran erinnern, die Suche dort gemeinsam nachzuholen. Abgelaufene Logins melden, statt still nichts zu finden. In diesem Lauf nichts auf Portalen speichern oder vormerken, ausser das Suchprofil erlaubt es ausdrücklich.
+- **Gemeinsamer Lauf** (in einer Sitzung mit der Person): alle Portale ausser `aus`.
+- Fehlt der Abschnitt im Suchprofil, gelten alle Portale als `automatisch`, LinkedIn als `mit Nutzer`.
 
 ## 1. Kontext laden
 

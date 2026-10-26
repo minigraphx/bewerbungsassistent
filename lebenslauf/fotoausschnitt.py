@@ -3,11 +3,9 @@
 Die Vorschau rendert Typst mit derselben Funktion `foto-rund` wie das Theme, damit sie exakt dem PDF entspricht.
 Beim Speichern bleiben Kommentare, Reihenfolge und Formatierung der YAML-Datei erhalten (ruamel.yaml).
 """
-import datetime
 import io
 import os
 import pathlib
-import shutil
 import tempfile
 import threading
 
@@ -105,14 +103,15 @@ def _gerundet(optionen: dict) -> CommentedMap:
     return werte
 
 
-def speichere_optionen(daten: pathlib.Path, optionen: dict, build: pathlib.Path) -> None:
-    """`basics.x-image` setzen. Vorher Sicherung `<build>/<datei>.<zeitstempel>.bak`; geschrieben wird atomar."""
+def speichere_optionen(daten: pathlib.Path, optionen: dict) -> None:
+    """`basics.x-image` setzen; geschrieben wird atomar. Entwürfe davor und danach legt der Aufrufer an
+    (bewerbungen/kontext.py, MIN-303)."""
     geprueft = {**STANDARD, **pruefe_foto_optionen(optionen)}
     with _SPEICHERN:
-        _schreibe_optionen(daten, geprueft, build)
+        _schreibe_optionen(daten, geprueft)
 
 
-def _schreibe_optionen(daten: pathlib.Path, geprueft: dict, build: pathlib.Path) -> None:
+def _schreibe_optionen(daten: pathlib.Path, geprueft: dict) -> None:
     text = daten.read_text(encoding="utf-8")
     y = _yaml()
     dokument = y.load(text)  # frisch geladenes Dokument, nur hier verändert
@@ -126,10 +125,6 @@ def _schreibe_optionen(daten: pathlib.Path, geprueft: dict, build: pathlib.Path)
     ausgabe = io.StringIO()
     y.dump(dokument, ausgabe)
 
-    build.mkdir(parents=True, exist_ok=True)
-    # Jede Sicherung einzeln, damit die Fassung vor dem ersten Speichern erhalten bleibt
-    zeitstempel = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-    shutil.copyfile(daten, build / f"{daten.name}.{zeitstempel}.bak")
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=daten.parent, delete=False, suffix=".tmp") as tmp:
         tmp.write(ausgabe.getvalue())
     os.replace(tmp.name, daten)

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<title>Fotoausschnitt</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></nav>
+<main>
+  <h1>Fotoausschnitt</h1>
+  <p class="hilfe">Ziehen verschiebt den Ausschnitt, das Mausrad zoomt. Mit der Tastatur: Pfeiltasten verschieben, + und − zoomen, M spiegelt.</p>
+
+  <div class="foto-raster">
+    <div>
+      <div id="kreis" tabindex="0" role="img" aria-label="Vorschau des Fotoausschnitts">
+        <img id="gross" alt="">
+      </div>
+      <div class="klein"><img id="klein" alt="Vorschau in etwa Druckgrösse"><span>etwa Druckgrösse (4,65 cm)</span></div>
+    </div>
+
+    <div>
+      <label class="schalter"><input type="checkbox" id="mirror"> Spiegeln</label>
+      <div class="feld"><label for="zoom">Zoom <output id="zoom-wert"></output></label>
+        <input type="range" id="zoom" min="1" max="4" step="0.01"></div>
+      <div class="feld"><label for="x">Ausschnitt waagrecht (x) <output id="x-wert"></output></label>
+        <input type="range" id="x" min="0" max="1" step="0.001"></div>
+      <div class="feld"><label for="y">Ausschnitt senkrecht (y) <output id="y-wert"></output></label>
+        <input type="range" id="y" min="0" max="1" step="0.001"></div>
+
+      <code class="yaml" id="yaml"></code>
+      <div class="knoepfe">
+        <button class="haupt" id="speichern">Speichern</button>
+        <button id="zuruecksetzen">Zurücksetzen</button>
+        <button id="standard">Standardwerte</button>
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+</main>
+<script src="/app.js"></script>
+<script src="/foto.js"></script>
+</body>
+</html>

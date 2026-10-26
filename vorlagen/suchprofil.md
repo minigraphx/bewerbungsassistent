@@ -10,6 +10,18 @@ Kopie in den privaten Datenordner legen (`suchprofil.md`) und ausfüllen. Der Sk
 - Jobliste: Google Sheet "Jobliste Bewerbungen", ID `<sheet-id>`, Tab `Stellen`
 - Weitere Kontextdateien: `notizen/bewerbungen.md`
 
+## Portale und Rhythmus
+Der regelmässige Lauf (geplante Aufgabe) sucht standardmässig **wöchentlich**. Pro Portal festlegen:
+`automatisch` (unbeaufsichtigter Lauf), `mit Nutzer` (nur gemeinsam in einer Sitzung, z.B. wegen Login oder
+Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
+
+| Portal | Modus |
+|---|---|
+| job-room | automatisch |
+| jobs.ch | automatisch |
+| LinkedIn | mit Nutzer |
+| Karriereseiten | automatisch |
+
 ## Suchrichtungen
 1. Software-Entwicklung, Web und Daten (Priorität 1)
 2. Interne Schulung und E-Learning mit IT-Bezug (Priorität 2, auch mit Lücken aufnehmen, Notiz-Präfix "Bildung IT:")
