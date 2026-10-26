@@ -1,2 +1,3 @@
 typst>=0.13
 pyyaml
+ruamel.yaml>=0.18

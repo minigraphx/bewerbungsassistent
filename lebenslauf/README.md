@@ -38,6 +38,14 @@ Daten: `"2022-06"` wird zu „Juni 2022“, `2018` bleibt eine Jahreszahl; fehle
 
 Stichpunkte (`highlights`) sind Text oder `{text: ..., tags: [...]}`.
 
+## Fotoausschnitt im Browser einstellen
+
+```bash
+python foto_editor.py ../../meine-daten/cv.yaml --build-dir ../../meine-daten/.build
+```
+
+Öffnet eine lokale Seite (nur `127.0.0.1`). Dort lässt sich das Foto per Maus verschieben, mit dem Mausrad zoomen und spiegeln. Die Vorschau rendert Typst mit derselben Funktion wie das Theme, sie entspricht also genau dem PDF. „Speichern“ schreibt `basics.x-image` in die Datendatei; Kommentare und Formatierung bleiben erhalten, vor jedem Speichern liegt eine Sicherung `<datei>.<zeitstempel>.bak` im Build-Ordner. Optionen: `--port`, `--kein-browser`.
+
 ## Zuschnitt pro Stelle
 
 ```yaml
