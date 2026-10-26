@@ -16,7 +16,7 @@ Der Assistent nimmt Routinearbeit ab, damit mehr Zeit für das bleibt, was eine 
 
 **Für Bewerbende** heisst das: weniger Zeit für die Suche nach passenden Stellen, für Formatierung und Verwaltung, mehr für die Auswahl und die Vorbereitung aufs Gespräch. Dazu Unterlagen in einem eigenen Design und ein sauberer Nachweis der Arbeitsbemühungen für den Job-Room.
 
-**Für Arbeitgeber** heisst das: Bewerbungen von Personen, die gezielt ausgewählt haben, statt breit zu streuen. Die Unterlagen beziehen sich auf die ausgeschriebene Stelle, sind übersichtlich gestaltet, und die Bewerbenden wissen, was sie eingereicht haben.
+**Für Arbeitgeber** heisst das: Der Assistent ist auf gezielte Auswahl statt Streuung ausgelegt. Die Unterlagen beziehen sich auf die ausgeschriebene Stelle, auf die Anforderungen des Inserats und auf die Firma, und sie sind übersichtlich gestaltet.
 
 ## Module
 
