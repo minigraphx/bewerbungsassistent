@@ -68,7 +68,7 @@ def _datum_im_text(text: str) -> datetime.date | None:
 
 
 def firmennamen(firma: str) -> list[str]:
-    """Namen, unter denen die Firma im Anschreiben stehen darf: "C5I (RUAG)" → C5I, RUAG;
+    """Namen, unter denen die Firma im Anschreiben stehen darf: "Tochter (Mutter AG)" → Tochter, Mutter;
     "unbekannt (über ONE Agency)" → ONE Agency. Rechtsformen fallen weg, "unbekannt" zählt nicht."""
     teile = [t.strip() for t in re.split(r"[()]", firma) if t.strip()]
     namen = [RECHTSFORMEN.sub("", re.sub(r"^über\s+", "", t)).strip(" ,-") for t in teile]

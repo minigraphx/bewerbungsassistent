@@ -105,8 +105,8 @@ def test_ohne_unterlagen(datenordner):
 
 
 @pytest.mark.parametrize("firma, im_brief", [
-    ("C5I (RUAG)", "RUAG AG"),
-    ("C5I (RUAG)", "C5I-Campus"),
+    ("Tochter (Mutter AG)", "Mutter AG"),
+    ("Tochter (Mutter AG)", "Tochter-Campus"),
     ("unbekannt (über ONE Agency)", "ONE Agency GmbH"),
 ])
 def test_firma_mit_zweitem_namen_in_klammern(firma, im_brief):
