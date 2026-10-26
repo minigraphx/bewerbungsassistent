@@ -58,6 +58,13 @@ Unterlagen erstellen: in der Oberfläche „Unterlagen erstellen“ oder `unterl
 
 Ergebnis als kurze Liste ausgeben; die Person sieht die PDFs in der Oberfläche (`python app.py <daten>`, Seite der Bewerbung). Fertig, wenn keine Fehler offen sind und die Person die PDFs freigibt.
 
+## 4a. Beilagen
+
+Jeder Bewerbung liegen **Arbeitszeugnisse und Zertifikate** bei, die Zertifikate passend zur Stelle ausgewählt (z.B. KI-Zertifikate für KI-Stellen, Kurs- und Didaktikzertifikate für Bildungsstellen), nie das ganze Archiv. Wo die Dateien liegen, steht in der `CLAUDE.md` des Datenordners; Kopien in `dokumente/` (nicht in Git).
+- Vor dem Hochladen die PDF-Metadaten prüfen (Titel aus früheren Fassungen, z.B. einem alten Lebenslauf) und in der Kopie für die Bewerbung korrigieren; Dateinamen mit Name und Inhalt („<Name> - Lebenslauf.pdf“).
+- Grenzen des Formulars beachten (Anzahl Dateien, MB); sonst Zertifikate zu einer Datei zusammenfassen.
+- Formulare füllt Claude auf Wunsch aus, schickt aber nie ab; Einwilligungen (Datenschutz, Datenverwendung) und Logins bleiben bei der Person.
+
 ## 5. Versand
 
 Die Person schickt ab (Online-Formular, E-Mail). Versenden durch Claude nur nach ausdrücklicher Freigabe genau dieser Bewerbung; E-Mails sonst als Entwurf anlegen. Vor dem Versand: Duplikat-Prüfung (läuft bei derselben Firma schon eine Bewerbung, direkt oder über Vermittler?).
