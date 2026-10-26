@@ -101,3 +101,7 @@ th button.sortieren:hover { color: var(--text); }
 th button.sortieren:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; border-radius: 3px; }
 th[aria-sort="ascending"] button.sortieren, th[aria-sort="descending"] button.sortieren { color: var(--text); }
 td.zahl { font-variant-numeric: tabular-nums; }
+/* Zurück */
+a.zurueck { display: inline-block; margin: 0 0 12px; color: var(--leise); text-decoration: none; font-size: 14px; }
+a.zurueck:hover { color: var(--text); text-decoration: underline; }
+a.zurueck:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; border-radius: 3px; }

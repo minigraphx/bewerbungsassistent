@@ -9,7 +9,8 @@
     ["beworben_am", "Beworben", "datum"], ["absage_am", "Absage", "datum"], ["variante", "Variante", "text"],
     ["link", "Inserat", "keine"],  // nicht sortierbar
   ];
-  const ANSICHT = "uebersicht.ansicht";  // Sortierung, Suche und Filter bleiben beim Seitenwechsel erhalten
+  const ANSICHT = "uebersicht.ansicht";  // Sortierung, Suche, Filter und Scrollposition bleiben beim Seitenwechsel erhalten
+  let wiederhergestellt = false;  // Scrollposition erst speichern, wenn die gemerkte gesetzt ist
   let alle = [];
   let statusReihe = [];
   let sortierung = { spalte: null, richtung: 1 };  // null = Reihenfolge des Servers (nach Status)
@@ -17,7 +18,8 @@
   // Browser-Speicher kann fehlen oder gesperrt sein (privates Fenster): dann gilt einfach die Standardansicht
   function merken() {
     try {
-      localStorage.setItem(ANSICHT, JSON.stringify({ sortierung, suche: $("suche").value, filter: $("statusfilter").value }));
+      const scroll = wiederhergestellt ? Math.round(window.scrollY) : gemerkt().scroll;
+      localStorage.setItem(ANSICHT, JSON.stringify({ sortierung, suche: $("suche").value, filter: $("statusfilter").value, scroll }));
     } catch { /* ohne Speicher keine Erinnerung */ }
   }
 
@@ -26,9 +28,10 @@
       const a = JSON.parse(localStorage.getItem(ANSICHT) || "{}");
       const gueltig = a.sortierung && SPALTEN.some(([s, , art]) => s === a.sortierung.spalte && art !== "keine") && [1, -1].includes(a.sortierung.richtung);
       return { sortierung: gueltig ? a.sortierung : { spalte: null, richtung: 1 },
-               suche: typeof a.suche === "string" ? a.suche : "", filter: typeof a.filter === "string" ? a.filter : "" };
+               suche: typeof a.suche === "string" ? a.suche : "", filter: typeof a.filter === "string" ? a.filter : "",
+               scroll: Number.isFinite(a.scroll) && a.scroll > 0 ? a.scroll : 0 };
     } catch {
-      return { sortierung: { spalte: null, richtung: 1 }, suche: "", filter: "" };
+      return { sortierung: { spalte: null, richtung: 1 }, suche: "", filter: "", scroll: 0 };
     }
   }
 
@@ -104,11 +107,17 @@
       $("suche").value = ansicht.suche;
       $("statusfilter").value = daten.status.includes(ansicht.filter) ? ansicht.filter : "";
       zeige();
+      requestAnimationFrame(() => { window.scrollTo(0, ansicht.scroll); wiederhergestellt = true; });
     } catch (fehler) {
       status($("status"), "Laden fehlgeschlagen: " + fehler.message, "fehler");
     }
   }
 
+  // Die Liste kommt erst nach dem Laden: Scrollposition selbst verwalten statt dem Browser zu überlassen
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  let scrollTimer = null;
+  window.addEventListener("scroll", () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(merken, 150); }, { passive: true });
+  window.addEventListener("pagehide", merken);
   $("suche").addEventListener("input", zeige);
   $("statusfilter").addEventListener("change", zeige);
   $("anlegen").addEventListener("click", async () => {

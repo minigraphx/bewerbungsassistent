@@ -94,5 +94,20 @@ window.App = (() => {
   }
   navigation();
 
+  // „Zurück“: zur vorherigen Seite der App (behält dort Sortierung und Scrollposition), sonst zur Übersicht
+  function zurueck() {
+    const knopf = document.getElementById("zurueck");
+    if (!knopf) return;
+    knopf.addEventListener("click", e => {
+      let intern = false;
+      try { intern = new URL(document.referrer).origin === location.origin; } catch { /* kein Referrer */ }
+      if (intern && history.length > 1) {
+        e.preventDefault();
+        history.back();
+      }
+    });
+  }
+  zurueck();
+
   return { url, holen, senden, el, status, datum, bestaetigen, pdfAdresse };
 })();
