@@ -1,0 +1,25 @@
+# Beispiel-Anschreiben (frei erfunden). Absender kommt aus dem Lebenslauf (`lebenslauf`, Pfad relativ zu dieser Datei)
+# oder aus `absender: {name, zeile}`. Absätze im Text durch Leerzeilen trennen.
+lebenslauf: beispiel.yaml
+sprache: de
+empfaenger:
+  - Beispiel AG
+  - Frau Petra Meier
+  - Musterstrasse 5
+  - 3011 Bern
+ort: Bern
+# datum: 2026-10-24   # ohne Angabe: heutiges Datum
+betreff: Bewerbung als Data Engineer (80–100 %)
+anrede: Sehr geehrte Frau Meier
+text: |
+  Aufgrund Ihrer Stellenausschreibung erhalten Sie hiermit meine Bewerbung als Data Engineer. Daten verständlich
+  aufzubereiten und zuverlässig weiterzugeben, beschäftigt mich seit vielen Jahren.
+
+  Die Fähigkeiten, die Sie suchen, decken sich in vielen Punkten mit meinen Kenntnissen. Seit zehn Jahren entwickle
+  ich Webanwendungen und Datenpipelines in Python und TypeScript, mit Tests und automatisierten Abläufen.
+
+  Bei der Beispiel GmbH habe ich eine Plattform für Kundendaten aufgebaut und Datenpipelines mit Airflow betrieben.
+  Mein Wissen gebe ich gern in internen Schulungen weiter.
+
+  Über ein persönliches Gespräch freue ich mich sehr.
+gruss: Freundliche Grüsse

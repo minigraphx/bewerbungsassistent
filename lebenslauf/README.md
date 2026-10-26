@@ -1,6 +1,6 @@
 # Lebenslauf
 
-Modul des [Bewerbungsassistenten](../README.md): Lebenslauf als PDF aus Daten erzeugen – Inhalt und Design getrennt.
+Modul des [Bewerbungsassistenten](../README.md): Lebenslauf und Anschreiben als PDF aus Daten erzeugen – Inhalt und Design getrennt.
 
 - **Inhalt:** eine YAML-Datei nach dem [JSON-Resume-Schema](https://jsonresume.org/schema) mit wenigen Erweiterungen.
 - **Design:** Themes in [Typst](https://typst.app) unter `themes/<name>/`.
@@ -37,6 +37,26 @@ Erweiterungen:
 Daten: `"2022-06"` wird zu „Juni 2022“, `2018` bleibt eine Jahreszahl; fehlendes `endDate` heisst „heute“.
 
 Stichpunkte (`highlights`) sind Text oder `{text: ..., tags: [...]}`.
+
+## Anschreiben
+
+```bash
+python anschreiben.py data/anschreiben-beispiel.yaml -o build/anschreiben.pdf
+python anschreiben.py ../../meine-daten/bewerbungen/firma/anschreiben.yaml --build-dir ../../meine-daten/.build -o ../../meine-daten/out/firma-anschreiben.pdf
+```
+
+Ein Anschreiben ist eine kleine YAML-Datei (Beispiel: [`data/anschreiben-beispiel.yaml`](data/anschreiben-beispiel.yaml)):
+
+| Feld | Zweck |
+|---|---|
+| `lebenslauf` | Pfad zum Lebenslauf (relativ zur Datei); daraus kommen Name und Kontaktzeile. Alternativ `--cv` oder `absender: {name, zeile}` |
+| `empfaenger` | Zeilen der Anschrift, z.B. `[Firma AG, Frau Petra Meier, Strasse 5, 3011 Bern]` |
+| `ort`, `datum` | Ort und Datum (`2026-10-24`); ohne Datum gilt heute |
+| `betreff`, `anrede`, `gruss` | Betreffzeile, Anrede, Grussformel |
+| `text` | Brieftext; Absätze durch Leerzeilen trennen |
+| `sprache` | `de` (Standard) oder `en`, für das Datumsformat |
+
+Das Layout steht in `themes/brief.typ`; jedes Theme setzt darin nur seinen Stil (`themes/<name>/anschreiben.typ`). Gruss und Unterschrift werden nie getrennt.
 
 ## Fotoausschnitt im Browser einstellen
 

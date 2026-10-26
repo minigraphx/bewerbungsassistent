@@ -6,6 +6,7 @@ Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema
 - `build.py` – YAML → Zuschnitt (`tailor.py`) → `<build-dir>/cv.json` → Typst → PDF. Typst-Stammordner ist der gemeinsame Oberordner von Modul, Build-Ordner und Foto; das Foto wird direkt referenziert.
 - `tests/` – pytest (`python -m pytest`), u.a. dass mit `--build-dir` nichts in `build/` des Moduls entsteht.
 - `foto_editor.py` + `editor/foto.html` – lokaler Editor für den Fotoausschnitt (MIN-301): Server nur auf 127.0.0.1, Token pro Start, Host-Prüfung gegen DNS-Rebinding. Logik in `fotoausschnitt.py` (Vorschau mit wiederverwendetem `typst.Compiler`, Speichern per ruamel.yaml ohne Verlust von Kommentaren, Sicherung im Build-Ordner).
+- `anschreiben.py` – Anschreiben (YAML) → PDF; Layout `themes/brief.typ`, Stil je Theme in `themes/<name>/anschreiben.typ`, Einstieg `anschreiben-main.typ` (MIN-260).
 - `tailor.py` – Zuschnitt pro Stelle über `tags`, `max_highlights`, `hide`, `basics`, `sections`.
 - `themes/common.typ` – Datumsformat, Beschriftungen DE/EN, Hilfsfunktionen.
 - `themes/zweispaltig/` – Kopf mit rundem Foto, zwei unabhängig laufende Spalten (Design des Canva-Lebenslaufs).
