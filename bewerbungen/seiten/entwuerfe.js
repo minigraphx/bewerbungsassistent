@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  const { holen, senden, el, status, url, bestaetigen } = window.App;
+  const { holen, senden, el, status, url, bestaetigen, pdfAdresse } = window.App;
   const $ = id => document.getElementById(id);
   const meldung = (text, art) => status($("status"), text, art);
 
@@ -10,18 +10,32 @@
   }
 
   function zeigeText(text) {
+    $("pdf-ansicht").hidden = true;
     $("ansicht").hidden = false;
     $("ansicht").textContent = text;
     $("ansicht").scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
-  async function ansehen(e) {
-    if (e.datei.endsWith(".pdf")) {
-      window.open(url("/api/entwurf/roh", { id: e.id }), "_blank", "noopener");
-      return;
-    }
+  async function alsText(e) {
     const daten = await holen("/api/entwurf", { id: e.id });
     zeigeText(daten.text ?? "Inhalt ist binär und lässt sich nicht als Text anzeigen.");
+  }
+
+  // Ansehen: als PDF, wenn der Dateityp eines hat (Lebenslauf, Anschreiben, Markdown); sonst als Text
+  async function ansehen(e) {
+    if (!e.pdf) return alsText(e);
+    meldung("PDF wird erstellt …");
+    try {
+      $("pdf").src = await pdfAdresse("/api/entwurf/pdf", { id: e.id });
+      $("pdf-titel").textContent = `${e.titel} · ${zeit(e.zeit)}`;
+      $("ansicht").hidden = true;
+      $("pdf-ansicht").hidden = false;
+      $("pdf-ansicht").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      meldung("");
+    } catch (fehler) {
+      meldung("Als PDF nicht möglich (" + fehler.message + "), daher als Text.", "hinweis");
+      await alsText(e);
+    }
   }
 
   async function vergleichen(e, vorher) {
@@ -48,6 +62,7 @@
     });
     const knoepfe = [
       el("button", { onclick: () => ansehen(e).catch(f => meldung(f.message, "fehler")) }, "Ansehen"),
+      e.pdf && !e.datei.endsWith(".pdf") ? el("button", { onclick: () => alsText(e).catch(f => meldung(f.message, "fehler")) }, "Als Text") : null,
       vorher ? el("button", { onclick: () => vergleichen(e, vorher).catch(f => meldung(f.message, "fehler")) }, "Vergleich mit vorher") : null,
       herstellen, loeschen,
     ];
@@ -58,7 +73,7 @@
     const zeilen = entwuerfe.map((e, i) => {
       const vorher = entwuerfe.slice(i + 1).find(x => x.datei === e.datei);
       return el("tr", {},
-        el("td", {}, zeit(e.zeit)), el("td", {}, e.datei), el("td", {}, e.beschreibung),
+        el("td", {}, zeit(e.zeit)), el("td", { title: e.datei }, e.titel), el("td", {}, e.beschreibung),
         el("td", {}, e.genutzt ? e.genutzt_fuer.join(", ") : "–"), el("td", {}, aktionen(e, vorher)));
     });
     $("entwuerfe").replaceChildren(...zeilen);

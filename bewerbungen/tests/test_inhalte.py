@@ -84,10 +84,44 @@ def test_varianten_ungueltig(datenordner, tmp_path):
         inhalte.pruefe_inhalt(datenordner, "varianten.yaml", "- id: x\n", tmp_path / "build")
 
 
-def test_markdown_ohne_pruefung(datenordner, tmp_path):
+def test_markdown_wird_als_pdf_gebaut(datenordner, tmp_path):
     (datenordner / "suchprofil.md").write_text("# alt\n", encoding="utf-8")
 
-    assert inhalte.pruefe_inhalt(datenordner, "suchprofil.md", "# neu\n", tmp_path / "build") is None
+    pdf = inhalte.pruefe_inhalt(datenordner, "suchprofil.md", "# neu\n", tmp_path / "build")
+
+    assert pdf.read_bytes().startswith(b"%PDF")
+    assert (datenordner / "suchprofil.md").read_text(encoding="utf-8") == "# alt\n"  # nichts gespeichert
+
+
+def test_datenlisten_ohne_pdf(datenordner, tmp_path):
+    text = (datenordner / "varianten.yaml").read_text(encoding="utf-8")
+
+    assert inhalte.pruefe_inhalt(datenordner, "varianten.yaml", text, tmp_path / "build") is None
+
+
+@pytest.mark.parametrize("datei, pdf", [
+    ("cv.yaml", True), ("jobs/daten.yaml", True), ("anschreiben/stil.md", True), ("suchprofil.md", True),
+    (f"bewerbungen/{BRIEF_ID}/anschreiben.yaml", True), (f"bewerbungen/{BRIEF_ID}/stelle.md", True),
+    ("bewerbungen.yaml", False), ("varianten.yaml", False), ("notiz.txt", False), ("versendet/x.pdf", False),
+])
+def test_hat_pdf_ansicht(datei, pdf):
+    assert inhalte.hat_pdf_ansicht(datei) is pdf
+
+
+@pytest.mark.parametrize("datei, titel", [
+    ("cv.yaml", "Lebenslauf"),
+    ("jobs/daten.yaml", "Lebenslauf-Zuschnitt daten"),
+    ("anschreiben/stil.md", "Anschreiben: Stilprofil"),
+    ("anschreiben/bausteine.md", "Anschreiben: Textbausteine"),
+    ("anschreiben/notizen.md", "Anschreiben: notizen"),
+    ("suchprofil.md", "Suchprofil"),
+    (f"bewerbungen/{BRIEF_ID}/anschreiben.yaml", f"Anschreiben {BRIEF_ID}"),
+    (f"bewerbungen/{BRIEF_ID}/stelle.md", f"Stellenausschreibung {BRIEF_ID}"),
+    ("bewerbungen.yaml", "Bewerbungsregister (Daten)"),
+    ("varianten.yaml", "Lebenslauf-Varianten (Daten)"),
+])
+def test_titel(datei, titel):
+    assert inhalte.titel(datei) == titel
 
 
 def test_fehler_beim_probebau_wird_verstaendlich(datenordner, tmp_path):

@@ -11,7 +11,8 @@ Verwaltung und lokale Oberfläche des Bewerbungsassistenten (MIN-261 Ablauf, MIN
 - `register.py` – `bewerbungen.yaml`, Prüfung, IDs, Job-Room-Vorschlag, Import/Export im Format der Jobliste.
 - `varianten.py` – `varianten.yaml`, Vorschlag per Stichwort-Abgleich.
 - `unterlagen.py` – Lebenslauf (Variante) und Anschreiben pro Bewerbung bauen.
-- `inhalte.py` – Text-Editor (MIN-302): erlaubte Dateien nach Muster, Prüfung je Dateityp mit Probebau im Build-Ordner.
+- `inhalte.py` – Inhalte (MIN-302): erlaubte Dateien nach Muster, Titel für die Oberfläche, Prüfung je Dateityp mit Probebau im Build-Ordner. Die Seiten zeigen standardmässig das PDF; der Text liegt hinter „Als Text“.
+- `textdokument.py` – Markdown als PDF: markdown-it zerlegt, `typst/dokument.typ` setzt alles als Text (HTML bleibt Text, keine Bilder, Links nur Web/Mail).
 - `pruefung.py` – formale Prüfung der PDFs und des Anschreibens.
 - `versand.py` – Versand erfassen: ablegen (dedupliziert), Entwürfe genutzt, Register, Git.
 - `dateien.py` – atomar schreiben, Pfade auf den Datenordner beschränken.

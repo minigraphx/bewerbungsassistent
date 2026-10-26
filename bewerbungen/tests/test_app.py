@@ -1,11 +1,13 @@
 """Tests der lokalen Oberfläche über HTTP: Zugriffsschutz, Bewerbungen, Unterlagen, Versand, Entwürfe, Foto."""
 import datetime
 import http.client
+import io
 import json
 import shutil
 import threading
 import urllib.parse
 
+import pypdf
 import pytest
 
 import app
@@ -221,6 +223,30 @@ def test_entwuerfe_ansehen_vergleichen_loeschen(server):
     assert zwei.id not in [e.id for e in k.ablage.liste()]
 
 
+def test_entwurf_als_pdf(server):
+    k = server.kontext
+    cv = k.daten / "cv.yaml"
+    alt = k.ablage.speichere(cv, "alt")
+    cv.write_text(cv.read_text(encoding="utf-8").replace("Erika Beispiel", "Erika Neu"), encoding="utf-8")
+
+    status, _, inhalt = get(server, "/api/entwuerfe")
+    assert json.loads(inhalt)["entwuerfe"][0]["pdf"] is True
+    assert json.loads(inhalt)["entwuerfe"][0]["titel"] == "Lebenslauf"
+
+    status, typ, pdf = get(server, "/api/entwurf/pdf", id=alt.id)
+    assert status == 200 and typ == "application/pdf"
+    assert "Erika Beispiel" in "".join(s.extract_text() for s in pypdf.PdfReader(io.BytesIO(pdf)).pages)
+
+
+def test_entwurf_ohne_pdf_ansicht(server):
+    k = server.kontext
+    e = k.ablage.speichere(k.daten / "varianten.yaml", "Varianten")
+
+    status, _, inhalt = get(server, "/api/entwuerfe")
+    assert [x["pdf"] for x in json.loads(inhalt)["entwuerfe"] if x["id"] == e.id] == [False]
+    assert get(server, "/api/entwurf/pdf", id=e.id)[0] == 400
+
+
 def test_entwuerfe_ausserhalb(server):
     assert get(server, "/api/entwuerfe", datei="../../etc/passwd")[0] == 400
 
@@ -253,7 +279,7 @@ def test_foto_ungueltig(server):
 
 def test_inhalte_lesen_pruefen_speichern(server):
     status, _, inhalt = get(server, "/api/inhalte")
-    assert "cv.yaml" in json.loads(inhalt)["dateien"]
+    assert {"datei": "cv.yaml", "titel": "Lebenslauf", "pdf": True} in json.loads(inhalt)["dateien"]
 
     status, _, inhalt = get(server, "/api/inhalt", datei="cv.yaml")
     text = json.loads(inhalt)["text"]
@@ -278,9 +304,24 @@ def test_inhalte_ungueltig_wird_nicht_gespeichert(server):
     assert (server.kontext.daten / "cv.yaml").read_text(encoding="utf-8") == vorher
 
 
+def test_inhalt_als_pdf(server):
+    (server.kontext.daten / "suchprofil.md").write_text("# Suchprofil\n\n| Portal | Modus |\n|---|---|\n| a | b |\n", encoding="utf-8")
+
+    for datei in ("cv.yaml", "suchprofil.md", f"bewerbungen/{BRIEF_ID}/anschreiben.yaml"):
+        status, typ, pdf = get(server, "/api/inhalt/pdf", datei=datei)
+        assert (status, typ) == (200, "application/pdf") and pdf.startswith(b"%PDF"), datei
+
+
+def test_inhalt_ohne_pdf_ansicht(server):
+    status, typ, inhalt = get(server, "/api/inhalt/pdf", datei="bewerbungen.yaml")
+
+    assert status == 400 and "PDF" in json.loads(inhalt)["fehler"]
+
+
 @pytest.mark.parametrize("datei", ["../cv.yaml", ".entwuerfe/index.yaml", "notiz.txt"])
 def test_inhalte_nur_erlaubte_dateien(server, datei):
     assert get(server, "/api/inhalt", datei=datei)[0] == 400
+    assert get(server, "/api/inhalt/pdf", datei=datei)[0] == 400
     assert post(server, "/api/inhalt", {"text": "x"}, datei=datei)[0] == 400
 
 

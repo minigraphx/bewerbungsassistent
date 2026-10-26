@@ -11,12 +11,19 @@
 <nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></nav>
 <main>
   <h1>Inhalte</h1>
-  <p class="hilfe">Lebenslauf, Zuschnitte, Anschreiben, Varianten, Register und Suchprofil als Text bearbeiten. Kommentare bleiben erhalten. „Prüfen“ baut für Lebenslauf und Anschreiben eine Vorschau; gespeichert wird nur Gültiges, jedes Mal mit Entwurf.</p>
+  <p class="hilfe">Lebenslauf, Zuschnitte, Anschreiben, Stilprofil, Bausteine und Suchprofil als PDF ansehen. Mit „Als Text“ lässt sich der Inhalt direkt bearbeiten, z.B. um etwas von anderswo wieder einzubauen; gespeichert wird nur Gültiges, jedes Mal mit Entwurf.</p>
 
   <div class="filter">
     <select id="datei" aria-label="Datei"></select>
+    <button id="umschalten" aria-pressed="false">Als Text</button>
   </div>
-  <div class="inhalt-raster">
+  <p class="hilfe" id="hinweis" hidden>Diese Datei enthält Daten ohne PDF-Ansicht. Bequemer bearbeiten lässt sie sich unter „Bewerbungen“.</p>
+
+  <section id="ansicht-pdf" class="pdfs einzeln">
+    <iframe id="pdf" title="PDF-Ansicht"></iframe>
+  </section>
+
+  <section id="ansicht-text" class="inhalt-raster" hidden>
     <div>
       <textarea id="text" spellcheck="false" aria-label="Inhalt der Datei"></textarea>
       <div class="knoepfe">
@@ -24,10 +31,10 @@
         <button class="haupt" id="speichern" disabled>Speichern</button>
         <button id="verwerfen" disabled>Änderungen verwerfen</button>
       </div>
-      <div id="status" class="status" role="status" aria-live="polite"></div>
     </div>
     <div class="pdfs" id="vorschau"></div>
-  </div>
+  </section>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
 </main>
 <script src="/app.js"></script>
 <script src="/inhalte.js"></script>

@@ -2,7 +2,8 @@
 
 Bearbeitet wird der Text der Datei, Kommentare und Formatierung bleiben also vollständig erhalten. Vor dem
 Speichern wird geprüft; für Lebenslauf, Zuschnitte und Anschreiben mit einem echten Probebau als PDF, das
-gleichzeitig als Vorschau dient. Gespeichert wird nur Gültiges, mit Entwurf davor und danach (kontext.py).
+gleichzeitig als Vorschau dient; Markdown-Dateien werden ebenfalls als PDF gesetzt (textdokument.py).
+Gespeichert wird nur Gültiges, mit Entwurf davor und danach (kontext.py).
 """
 import fnmatch
 import pathlib
@@ -14,15 +15,40 @@ import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
 from dateien import relativ
+import textdokument
 from register import pruefe_bewerbung
 from varianten import pruefe_variante
 
 MUSTER = ("cv.yaml", "suchprofil.md", "varianten.yaml", "bewerbungen.yaml", "jobs/*.yaml", "anschreiben/*.md",
           "bewerbungen/*/anschreiben.yaml", "bewerbungen/*/stelle.md")
 
+NUR_TEXT = ("bewerbungen.yaml", "varianten.yaml")  # Datenlisten: bearbeiten in der Oberfläche, hier nur als Text
+TITEL = {"cv.yaml": "Lebenslauf", "suchprofil.md": "Suchprofil", "anschreiben/stil.md": "Anschreiben: Stilprofil",
+         "anschreiben/bausteine.md": "Anschreiben: Textbausteine",
+         "bewerbungen.yaml": "Bewerbungsregister (Daten)", "varianten.yaml": "Lebenslauf-Varianten (Daten)"}
+
 
 def _erlaubt(rel: str) -> bool:
     return any(fnmatch.fnmatchcase(rel, m) and rel.count("/") == m.count("/") for m in MUSTER)
+
+
+def hat_pdf_ansicht(rel: str) -> bool:
+    return _erlaubt(rel) and rel not in NUR_TEXT
+
+
+def titel(rel: str) -> str:
+    """Verständlicher Name einer Datei für die Oberfläche."""
+    if rel in TITEL:
+        return TITEL[rel]
+    teile = pathlib.PurePosixPath(rel)
+    if teile.parts[0] == "jobs":
+        return f"Lebenslauf-Zuschnitt {teile.stem}"
+    if teile.parts[0] == "anschreiben":
+        return f"Anschreiben: {teile.stem}"
+    if teile.parts[0] == "bewerbungen" and len(teile.parts) == 3:
+        art = "Anschreiben" if teile.name == "anschreiben.yaml" else "Stellenausschreibung"
+        return f"{art} {teile.parts[1]}"
+    return rel
 
 
 def bearbeitbare_dateien(daten: pathlib.Path) -> list[str]:
@@ -81,7 +107,9 @@ def pruefe_inhalt(daten: pathlib.Path, rel: str, text: str, build: pathlib.Path)
     daten = daten.resolve()
     pruefe_datei(daten, rel)
     if rel.endswith(".md"):
-        return None
+        ziel = build / "inhalt-probe" / "vorschau.pdf"
+        _probebau(lambda _: textdokument.baue_pdf(text, titel(rel), build / "inhalt-probe", ziel), [])
+        return ziel
     wert = _yaml(text)
     if rel == "cv.yaml":
         return _baue_lebenslauf(_lebenslauf_fuer_probebau(daten, wert, build), None, build)

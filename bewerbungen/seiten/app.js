@@ -27,6 +27,19 @@ window.App = (() => {
     }));
   }
 
+  // PDF laden und als blob:-Adresse liefern; Fehler des Servers (JSON) kommen als Error mit Meldung.
+  // Pro Anzeigeort (ort) wird nur die eigene vorherige Adresse freigegeben.
+  const letztePdfs = new Map();
+  async function pdfAdresse(pfad, parameter = {}, ort = "standard") {
+    const antwort = await fetch(url(pfad, parameter));
+    if (!antwort.ok) await antwortLesen(antwort);
+    if (!(antwort.headers.get("Content-Type") || "").includes("pdf")) throw new Error("Antwort ist kein PDF");
+    const adresse = URL.createObjectURL(await antwort.blob());
+    if (letztePdfs.has(ort)) URL.revokeObjectURL(letztePdfs.get(ort));
+    letztePdfs.set(ort, adresse);
+    return adresse;
+  }
+
   // el("a", {href: "/x", class: "y"}, "Text", kindElement)
   function el(tag, attribute = {}, ...kinder) {
     const e = document.createElement(tag);
@@ -81,5 +94,5 @@ window.App = (() => {
   }
   navigation();
 
-  return { url, holen, senden, el, status, datum, bestaetigen };
+  return { url, holen, senden, el, status, datum, bestaetigen, pdfAdresse };
 })();

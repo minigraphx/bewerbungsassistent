@@ -17,7 +17,7 @@ from typing import Any, Callable
 
 SEITEN = pathlib.Path(__file__).resolve().parent / "seiten"
 MAX_BODY = 2 * 1024 * 1024
-CSP = ("default-src 'self'; img-src 'self' blob: data:; frame-src 'self'; object-src 'self'; "
+CSP = ("default-src 'self'; img-src 'self' blob: data:; frame-src 'self' blob:; object-src 'self'; "
        "style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'")
 log = logging.getLogger("bewerbungsassistent")
 
