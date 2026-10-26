@@ -114,14 +114,17 @@
 // Jeder Eintrag ist ein unteilbarer Block. Ein Eintrag kann statt Inhalt auch
 // (inhalt: ..., abstand: ...) sein, um den Abstand zum Vorgänger festzulegen.
 // Der erste Eintrag hat oben keinen eigenen Abstand, es gilt der des Titels.
-#let eintraege(id, items, fortsetzung, abstand: 0pt) = {
+// `start`: Nummer des ersten Eintrags, wenn nur ein Teil des Abschnitts gesetzt wird (Fortsetzung);
+// `pruefen: false` lässt die Seitenprüfung weg (zum Messen, wo es keine Seite gibt).
+#let eintraege(id, items, fortsetzung, abstand: 0pt, start: 0, pruefen: true) = {
   for (i, item) in items.enumerate() {
     let (inhalt, oben) = if type(item) == dictionary { (item.inhalt, item.abstand) } else { (item, abstand) }
+    let nr = start + i
     block(breakable: false, above: if i == 0 { 0pt } else { oben }, below: abstand, {
-      [#metadata((abschnitt: id, nr: i))<lebenslauf-eintrag>]
-      if i > 0 {
+      [#metadata((abschnitt: id, nr: nr))<lebenslauf-eintrag>]
+      if nr > 0 and pruefen {
         context {
-          let vorher = query(<lebenslauf-eintrag>).filter(m => m.value == (abschnitt: id, nr: i - 1))
+          let vorher = query(<lebenslauf-eintrag>).filter(m => m.value == (abschnitt: id, nr: nr - 1))
           if vorher.len() > 0 and vorher.first().location().page() != here().page() { fortsetzung }
         }
       }

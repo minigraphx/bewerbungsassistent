@@ -13,6 +13,18 @@ def test_fortsetzung_auf_seite_2(baue):
     assert "BERUFSERFAHRUNG (FORTSETZUNG)" in seiten[1]
 
 
+@pytest.mark.parametrize("faktor", [2, 3, 8])
+def test_fortsetzung_der_hauptspalte_beginnt_links(baue, faktor):
+    """Gedruckt liest man nach Seite 1 unten rechts oben links weiter: dort steht die Berufserfahrung."""
+    cv = lang(beispiel(), faktor)
+    seiten = baue(cv)
+
+    assert seiten[1].lstrip().startswith("BERUFSERFAHRUNG (FORTSETZUNG)")
+    alles = "".join(seiten)
+    for station in cv["work"]:
+        assert alles.count(station["position"] + "\n") == 1, station["position"]
+
+
 def test_keine_fortsetzung_bei_einer_seite(baue):
     kurz = {k: v for k, v in beispiel().items() if k not in ("teaching", "interests", "projects")}
     seiten = baue(kurz)

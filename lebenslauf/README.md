@@ -97,7 +97,7 @@ sections:                 # ganzen Abschnitt ersetzen (optional)
 
 Farben, Schriften, Schriftgrössen, Abstände, Ränder, Spaltenbreite und die Reihenfolge der Abschnitte stehen im Dictionary `standard-stil` am Anfang jedes Themes.
 
-Im Theme `zweispaltig` laufen beide Spalten unabhängig über die Seiten. Wird ein Abschnitt auf der nächsten Seite fortgesetzt, steht dort sein Titel mit „(Fortsetzung)“ bzw. „(continued)“; wandert ein Abschnitt ganz auf die neue Seite, bleibt es beim normalen Titel. Titel, die breiter als die Spalte sind, werden auf Spaltenbreite verkleinert. Das Etikett im Kopf (`basics.label`) bricht nach dem ersten „ – “ um (`label-umbruch-nach-strich`, abschaltbar). Die Hilfsfunktionen dafür (`eintraege`, `foto-rund`) liegen in `themes/common.typ` und lassen sich in eigenen Themes verwenden.
+Im Theme `zweispaltig` laufen beide Spalten unabhängig über die Seiten. Ab Seite 2 steht die Fortsetzung der rechten Spalte (Berufserfahrung, Bildung) links, damit man gedruckt nach Seite 1 unten rechts oben links weiterliest; das Theme misst dafür aus, welche Einträge auf Seite 1 passen (Stil-Option `fortsetzung-links`, abschaltbar). Wird ein Abschnitt auf der nächsten Seite fortgesetzt, steht dort sein Titel mit „(Fortsetzung)“ bzw. „(continued)“; wandert ein Abschnitt ganz auf die neue Seite, bleibt es beim normalen Titel. Titel, die breiter als die Spalte sind, werden auf Spaltenbreite verkleinert. Das Etikett im Kopf (`basics.label`) bricht nach dem ersten „ – “ um (`label-umbruch-nach-strich`, abschaltbar). Die Hilfsfunktionen dafür (`eintraege`, `foto-rund`) liegen in `themes/common.typ` und lassen sich in eigenen Themes verwenden.
 
 ## Eigene Daten
 

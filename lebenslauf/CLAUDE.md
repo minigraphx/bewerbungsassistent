@@ -9,7 +9,7 @@ Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema
 - `anschreiben.py` – Anschreiben (YAML) → PDF; Layout `themes/brief.typ`, Stil je Theme in `themes/<name>/anschreiben.typ`, Einstieg `anschreiben-main.typ` (MIN-260).
 - `tailor.py` – Zuschnitt pro Stelle über `tags`, `max_highlights`, `hide`, `basics`, `sections`.
 - `themes/common.typ` – Datumsformat, Beschriftungen DE/EN, Hilfsfunktionen.
-- `themes/zweispaltig/` – Kopf mit rundem Foto, zwei unabhängig laufende Spalten (Design des Canva-Lebenslaufs).
+- `themes/zweispaltig/` – Kopf mit rundem Foto, zwei unabhängig laufende Spalten (Design des Canva-Lebenslaufs); ab Seite 2 Hauptspalte links (Seite 1 wird ausgemessen, Einträge sind unteilbar).
 - `themes/einspaltig/` – schlicht, ATS-freundlich.
 - `data/beispiel.yaml`, `jobs/beispiel-daten.yaml` – erfundene Beispieldaten.
 - `fonts/` – DM Sans (statisch aus der Variable Font, Familienname "DM Sans") und Liberation Sans, beide OFL.
