@@ -11,7 +11,7 @@
 <nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></nav>
 <main>
   <h1>Bewerbungen</h1>
-  <p class="hilfe">Alle Bewerbungen aus <code>bewerbungen.yaml</code>. Ein Klick öffnet Angaben, Unterlagen, Prüfung, Versand und Job-Room-Daten.</p>
+  <p class="hilfe">Alle Bewerbungen aus <code>bewerbungen.yaml</code>. Ein Klick auf eine Firma öffnet Angaben, Unterlagen, Prüfung, Versand und Job-Room-Daten; ein Klick auf eine Spaltenüberschrift sortiert. Passung als Note von 1 bis 6.</p>
 
   <div class="filter">
     <input type="search" id="suche" placeholder="Firma oder Stelle suchen" aria-label="Suche">
@@ -19,7 +19,7 @@
   </div>
 
   <table>
-    <thead><tr><th>Firma</th><th>Stelle</th><th>Status</th><th>Beworben</th><th>Absage</th><th>Variante</th></tr></thead>
+    <thead><tr id="kopf"></tr></thead>
     <tbody id="liste"></tbody>
   </table>
   <p id="leer" class="leer" hidden>Keine Bewerbungen gefunden.</p>

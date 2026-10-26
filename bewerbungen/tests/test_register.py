@@ -1,4 +1,6 @@
 """Tests für das Bewerbungsregister: Daten pro Bewerbung, Job-Room-Angaben, Import aus der Jobliste (MIN-306)."""
+import datetime
+
 import pytest
 
 import register
@@ -197,3 +199,54 @@ def test_lange_id_endet_an_wortgrenze():
 def test_id_ohne_zeilenumbruch():
     with pytest.raises(ValueError, match="id"):
         register.pruefe_bewerbung({"id": "abc\n", "firma": "F", "stelle": "S"})
+
+
+# Eingetragen am und Passung
+
+
+@pytest.mark.parametrize("wert, erwartet", [(6, 6), ("5.5", 5.5), ("4,5", 4.5), (1, 1), ("3", 3)])
+def test_passung_als_schweizer_note(wert, erwartet):
+    b = register.pruefe_bewerbung({"id": "a-b", "firma": "A", "stelle": "B", "passung": wert})
+
+    assert b["passung"] == erwartet
+
+
+@pytest.mark.parametrize("wert", [0, 7, "5.3", "gut", True])
+def test_passung_ungueltig(wert):
+    with pytest.raises(ValueError, match="passung"):
+        register.pruefe_bewerbung({"id": "a-b", "firma": "A", "stelle": "B", "passung": wert})
+
+
+def test_eingetragen_am_ist_ein_datum():
+    b = register.pruefe_bewerbung({"id": "a-b", "firma": "A", "stelle": "B", "eingetragen_am": "26.10.2026"})
+
+    assert b["eingetragen_am"] == "2026-10-26"
+
+
+def test_neu_setzt_eingetragen_am_auf_heute(reg):
+    b = reg.neu(firma="Alpha AG", stelle="Tester")
+
+    assert b["eingetragen_am"] == datetime.date.today().isoformat()
+
+
+def test_neu_behaelt_angegebenes_datum(reg):
+    b = reg.neu(firma="Alpha AG", stelle="Tester", eingetragen_am="2026-10-01")
+
+    assert b["eingetragen_am"] == "2026-10-01"
+
+
+def test_zusatzspalten_fuer_jobliste(reg):
+    b = reg.neu(firma="Alpha AG", stelle="Tester", eingetragen_am="2026-10-01", passung=4.5)
+
+    assert register.ZUSATZ_SPALTEN == ["Eingetragen am", "Passung"]
+    assert register.zusatzspalten(b) == ["01.10.2026", 4.5]
+    assert register.zusatzspalten({"firma": "A", "stelle": "B"}) == ["", ""]
+
+
+def test_import_liest_zusatzspalten():
+    zeile = ["alpha", "Alpha AG", "Tester", "", "", "", "", "", "Gemerkt", "", "", "", "", "01.10.2026", "5,5"]
+
+    (b,) = register.aus_jobliste([KOPF + register.ZUSATZ_SPALTEN, zeile])
+
+    assert b["eingetragen_am"] == "2026-10-01"
+    assert b["passung"] == 5.5

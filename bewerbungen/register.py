@@ -20,7 +20,7 @@ from dateien import lies_yaml, schreibe_yaml
 DATEI = "bewerbungen.yaml"
 STATUS = ("Gemerkt", "Bewerben", "Beworben", "Gespräch", "Absage", "Zusage", "Verworfen", "Zurückgezogen")
 TEXTFELDER = ("firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante")
-DATUMSFELDER = ("beworben_am", "frist", "absage_am", "gespraech_am")
+DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am")
 JOBROOM_ART = ("elektronisch", "schriftlich", "persönlich", "telefonisch")
 JOBROOM_ERGEBNIS = ("offen", "Absage", "Vorstellungsgespräch", "Anstellung")
 JOBROOM_PENSUM = ("Vollzeit", "Teilzeit")
@@ -28,6 +28,7 @@ JOBROOM_TEXT = ("arbeitgeber", "adresse", "kontaktperson", "kontakt", "stelle")
 JOBROOM_FELDER = ("datum", *JOBROOM_TEXT, "pensum", "art", "ergebnis", "rav_zuweisung", "erfasst_am")
 SPALTEN = ["Firmen-Schlüssel", "Arbeitgeber", "Stelle", "Ort", "Pensum", "Inserent / Vermittler", "Portal(e)",
            "Link", "Status", "Beworben am", "Frist", "Notiz"]
+ZUSATZ_SPALTEN = ["Eingetragen am", "Passung"]  # Spalten N und O der Jobliste (M ist die Duplikat-Formel)
 MAX_ID = 64
 ID_MUSTER = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
@@ -48,6 +49,19 @@ def iso_datum(wert, feld: str) -> str:
 
 def schweizer_datum(iso: str | None) -> str:
     return datetime.date.fromisoformat(iso).strftime("%d.%m.%Y") if iso else ""
+
+
+def pruefe_passung(wert) -> int | float:
+    """Passung als Schweizer Note 1–6 in halben Schritten (6 = passt ohne Haken); auch "4,5" aus der Jobliste."""
+    if isinstance(wert, bool):
+        raise ValueError("passung muss eine Note von 1 bis 6 sein")
+    try:
+        note = float(str(wert).strip().replace(",", "."))
+    except ValueError:
+        raise ValueError(f"passung muss eine Note von 1 bis 6 sein, nicht {wert!r}") from None
+    if not 1 <= note <= 6 or note * 2 != int(note * 2):
+        raise ValueError(f"passung muss eine Note von 1 bis 6 in halben Schritten sein, nicht {wert!r}")
+    return int(note) if note.is_integer() else note
 
 
 def _pruefe_jobroom(j) -> dict:
@@ -80,7 +94,7 @@ def pruefe_bewerbung(b: dict) -> dict:
     """Bewerbung prüfen und als neues, bereinigtes Dict liefern (leere Felder entfallen)."""
     if not isinstance(b, dict):
         raise ValueError("Bewerbung muss eine Zuordnung sein")
-    bekannt = {"id", "status", "versand", "jobroom", *TEXTFELDER, *DATUMSFELDER}
+    bekannt = {"id", "status", "versand", "jobroom", "passung", *TEXTFELDER, *DATUMSFELDER}
     unbekannt = set(b) - bekannt
     if unbekannt:
         raise ValueError(f"Unbekannte Felder: {sorted(unbekannt)}")
@@ -102,6 +116,8 @@ def pruefe_bewerbung(b: dict) -> dict:
     for key in DATUMSFELDER:
         if b.get(key) not in (None, ""):
             neu[key] = iso_datum(b[key], key)
+    if b.get("passung") not in (None, ""):
+        neu["passung"] = pruefe_passung(b["passung"])
     if b.get("jobroom"):
         jobroom = _pruefe_jobroom(b["jobroom"])
         if jobroom:
@@ -184,7 +200,9 @@ class Register:
         bewerbung_id = felder.pop("id", None) or erzeuge_id(felder.get("firma_schluessel") or firma, stelle, vorhandene)
         if bewerbung_id in vorhandene:
             raise ValueError(f"Bewerbung {bewerbung_id!r} gibt es schon")
-        return self.speichere({"id": bewerbung_id, "firma": firma, "stelle": stelle, **felder})
+        eingetragen = felder.pop("eingetragen_am", None) or datetime.date.today().isoformat()
+        return self.speichere({"id": bewerbung_id, "firma": firma, "stelle": stelle, "eingetragen_am": eingetragen,
+                               **felder})
 
     def fuehre_zusammen(self, importiert: list[dict]) -> list[dict]:
         """Importierte Bewerbungen ergänzen; vorhandene IDs bleiben unverändert. Liefert die neuen."""
@@ -201,6 +219,7 @@ class Register:
 
 def _aus_zeile(zeile: list[str], vorhandene: set[str]) -> dict:
     werte = (list(zeile) + [""] * 13)[:13]
+    zusatz = [str(w).strip() for w in (list(zeile) + [""] * 15)[13:15]]
     schluessel, firma, stelle, ort, pensum, vermittler, portal, link, status_roh, beworben, frist, notiz, dup = (
         w.strip() for w in werte
     )
@@ -221,6 +240,10 @@ def _aus_zeile(zeile: list[str], vorhandene: set[str]) -> dict:
                 b[key] = iso_datum(text, key)
         except ValueError:
             notizen.append(f"{'Beworben' if key == 'beworben_am' else 'Frist'}: {text}")
+    if zusatz[0]:
+        b["eingetragen_am"] = iso_datum(zusatz[0], "eingetragen_am")
+    if zusatz[1]:
+        b["passung"] = zusatz[1]
     absage = re.search(r"Absage (\d{2}\.\d{2}\.\d{4})", notiz)
     if absage:
         b["absage_am"] = iso_datum(absage.group(1), "absage_am")
@@ -240,6 +263,11 @@ def aus_jobliste(zeilen: list[list[str]]) -> list[dict]:
         vorhandene.add(b["id"])
         bewerbungen.append(b)
     return bewerbungen
+
+
+def zusatzspalten(b: dict) -> list:
+    """Werte für die Spalten N und O der Jobliste; die Passung als Zahl, damit das Sheet sie als Note zeigt."""
+    return [schweizer_datum(b.get("eingetragen_am")), b.get("passung", "")]
 
 
 def als_jobliste(bewerbungen: list[dict]) -> list[list[str]]:

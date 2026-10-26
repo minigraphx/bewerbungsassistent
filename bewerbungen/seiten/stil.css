@@ -95,3 +95,9 @@ code.yaml { display: block; padding: 10px 12px; background: var(--flaeche); bord
 .inhalt-raster { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 @media (max-width: 900px) { .inhalt-raster { grid-template-columns: 1fr; } }
 #text { min-height: 640px; font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; tab-size: 2; }
+/* Sortierbare Spalten */
+th button.sortieren { all: unset; cursor: pointer; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; }
+th button.sortieren:hover { color: var(--text); }
+th button.sortieren:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; border-radius: 3px; }
+th[aria-sort="ascending"] button.sortieren, th[aria-sort="descending"] button.sortieren { color: var(--text); }
+td.zahl { font-variant-numeric: tabular-nums; }

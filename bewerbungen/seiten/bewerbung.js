@@ -4,7 +4,7 @@
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const FELDER = ["firma", "stelle", "firma_schluessel", "ort", "pensum", "vermittler", "portal", "link",
-                  "status", "variante", "beworben_am", "frist", "gespraech_am", "absage_am", "notiz"];
+                  "status", "variante", "passung", "eingetragen_am", "beworben_am", "frist", "gespraech_am", "absage_am", "notiz"];
   const JOBROOM_TEXT = [["datum", "Datum der Bewerbung", "date"], ["arbeitgeber", "Arbeitgeber"],
     ["adresse", "Adresse"], ["kontaktperson", "Kontaktperson"], ["kontakt", "Telefon / E-Mail"], ["stelle", "Stelle"]];
   const JOBROOM_AUSWAHL = [["pensum", "Pensum", ["", "Vollzeit", "Teilzeit"]],
@@ -29,7 +29,7 @@
     optionen($("f-variante"), [["", "– keine –"], ...daten.varianten.map(v => [v.id, `${v.id}${v.beschreibung ? " – " + v.beschreibung : ""}`])],
       bewerbung.variante || "");
     for (const f of FELDER) {
-      if (f !== "status" && f !== "variante") $("f-" + f).value = bewerbung[f] || "";
+      if (f !== "status" && f !== "variante") $("f-" + f).value = bewerbung[f] ?? "";
     }
     $("stellentext").value = daten.stellentext;
   }
