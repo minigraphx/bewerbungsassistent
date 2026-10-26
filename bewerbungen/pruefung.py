@@ -67,13 +67,22 @@ def _datum_im_text(text: str) -> datetime.date | None:
     return None
 
 
+def firmennamen(firma: str) -> list[str]:
+    """Namen, unter denen die Firma im Anschreiben stehen darf: "C5I (RUAG)" → C5I, RUAG;
+    "unbekannt (über ONE Agency)" → ONE Agency. Rechtsformen fallen weg, "unbekannt" zählt nicht."""
+    teile = [t.strip() for t in re.split(r"[()]", firma) if t.strip()]
+    namen = [RECHTSFORMEN.sub("", re.sub(r"^über\s+", "", t)).strip(" ,-") for t in teile]
+    return [n for n in namen if n and n.lower() != "unbekannt"] or [firma]
+
+
 def pruefe_anschreiben_text(text: str, bewerbung: dict, heute: datetime.date) -> list[Befund]:
     befunde = []
-    firma = RECHTSFORMEN.sub("", bewerbung["firma"]).strip(" ,-") or bewerbung["firma"]
-    if firma.lower() in text.lower():
-        befunde.append(Befund("ok", f"Anschreiben: Firma „{firma}“ genannt"))
+    namen = firmennamen(bewerbung["firma"])
+    genannt = next((n for n in namen if n.lower() in text.lower()), None)
+    if genannt:
+        befunde.append(Befund("ok", f"Anschreiben: Firma „{genannt}“ genannt"))
     else:
-        befunde.append(Befund("fehler", f"Anschreiben: Firma „{firma}“ kommt nicht vor – falsche Vorlage?"))
+        befunde.append(Befund("fehler", f"Anschreiben: Firma „{' / '.join(namen)}“ kommt nicht vor – falsche Vorlage?"))
     woerter = [w for w in re.findall(r"\w{4,}", bewerbung["stelle"])]
     gefunden = [w for w in woerter if w.lower() in text.lower()]
     if not woerter or len(gefunden) * 2 >= len(woerter):

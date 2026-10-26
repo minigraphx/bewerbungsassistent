@@ -102,3 +102,22 @@ def test_ohne_unterlagen(datenordner):
     befunde = pruefung.pruefe(datenordner, Register(datenordner).hole(BRIEF_ID), HEUTE)
 
     assert any(x.stufe == "fehler" and "Lebenslauf" in x.text for x in befunde)
+
+
+@pytest.mark.parametrize("firma, im_brief", [
+    ("C5I (RUAG)", "RUAG AG"),
+    ("C5I (RUAG)", "C5I-Campus"),
+    ("unbekannt (über ONE Agency)", "ONE Agency GmbH"),
+])
+def test_firma_mit_zweitem_namen_in_klammern(firma, im_brief):
+    befunde = pruefung.pruefe_anschreiben_text(BRIEF.replace("Beispiel AG", im_brief), {**BEWERBUNG, "firma": firma}, HEUTE)
+
+    assert "fehler" not in stufen(befunde), texte(befunde)
+
+
+def test_unbekannt_allein_genuegt_nicht():
+    brief = BRIEF.replace("Beispiel AG", "unbekannt")
+
+    befunde = pruefung.pruefe_anschreiben_text(brief, {**BEWERBUNG, "firma": "unbekannt (über ONE Agency)"}, HEUTE)
+
+    assert "fehler" in stufen(befunde)
