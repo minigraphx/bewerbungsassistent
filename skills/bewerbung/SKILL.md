@@ -7,6 +7,9 @@ description: "Bewerbung von der Stelle bis zum Versand: passende Lebenslauf-Vari
 
 Arbeitet im privaten **Datenordner** (z.B. `../bewerbungsassistent-daten`, Aufbau in `bewerbungen/README.md` des Repos) und mit dem Repo `bewerbungsassistent`. Alle Befehle aus dem Repo-Ordner, Python aus `.venv`. Jede Bewerbung hat eine **ID** im Register `bewerbungen.yaml`; Dateien zur Bewerbung liegen in `bewerbungen/<id>/`.
 
+Jede Änderung an Dateien im Datenordner als **Entwurf** sichern, vorher und nachher mit denselben Dateien:
+`.venv/bin/python bewerbungen/entwurf.py <datenordner> <datei> … -m "<was geändert wurde>"`. So sieht die Person jede Änderung unter „Entwürfe“ in der Oberfläche und kann zurück. Committet wird erst beim Versand.
+
 Leitlinie: jede Aussage **belegt**. Belegt heisst: steht in `anschreiben/bausteine.md`, im Lebenslauf `cv.yaml` oder wurde von der Person in dieser Sitzung bestätigt.
 
 ## 1. Kontext laden

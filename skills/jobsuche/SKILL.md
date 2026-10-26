@@ -14,6 +14,8 @@ Das Suchprofil legt im Abschnitt „Portale und Rhythmus“ pro Portal einen Mod
 - **Unbeaufsichtigter Lauf** (geplante Aufgabe, standardmässig wöchentlich): nur Portale mit Modus `automatisch` durchsuchen. Für Portale mit `mit Nutzer` (z.B. LinkedIn) nichts tun, sondern in der Antwort daran erinnern, die Suche dort gemeinsam nachzuholen. Abgelaufene Logins melden, statt still nichts zu finden. In diesem Lauf nichts auf Portalen speichern oder vormerken, ausser das Suchprofil erlaubt es ausdrücklich.
 - **Gemeinsamer Lauf** (in einer Sitzung mit der Person): alle Portale ausser `aus`.
 - Fehlt der Abschnitt im Suchprofil, gelten alle Portale als `automatisch`, LinkedIn als `mit Nutzer`.
+- Wochentag des Laufs: Zeile `Wochentag:` im selben Abschnitt (die Person legt ihn selbst fest; fehlt er, Montag). Die geplante Aufgabe wird danach eingerichtet und bei einer Änderung angepasst.
+- Ändert der Lauf Dateien im Datenordner (z.B. Suchprofil, Notizen), vorher und nachher `bewerbungen/entwurf.py <datenordner> <datei> -m "<was>"` aufrufen, damit die Änderung als Entwurf sichtbar bleibt.
 
 ## 1. Kontext laden
 

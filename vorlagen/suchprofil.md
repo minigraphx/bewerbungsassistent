@@ -11,7 +11,11 @@ Kopie in den privaten Datenordner legen (`suchprofil.md`) und ausfüllen. Der Sk
 - Weitere Kontextdateien: `notizen/bewerbungen.md`
 
 ## Portale und Rhythmus
-Der regelmässige Lauf (geplante Aufgabe) sucht standardmässig **wöchentlich**. Pro Portal festlegen:
+Der regelmässige Lauf (geplante Aufgabe) sucht standardmässig **wöchentlich** am hier gewählten Tag.
+
+Wochentag: Montag
+
+Pro Portal festlegen:
 `automatisch` (unbeaufsichtigter Lauf), `mit Nutzer` (nur gemeinsam in einer Sitzung, z.B. wegen Login oder
 Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 

@@ -44,7 +44,7 @@ meine-daten/
 
 ### Entwürfe und Versionen
 
-- **Entwurf**: Jedes Speichern über die Oberfläche legt einen Entwurf mit Datum an (Inhalte nach SHA-256, jeder nur einmal). Entwürfe sind löschbar, solange sie nicht genutzt wurden.
+- **Entwurf**: Jedes Speichern über die Oberfläche legt einen Entwurf mit Datum an (Inhalte nach SHA-256, jeder nur einmal). Änderungen ausserhalb der Oberfläche, etwa durch Claude im Chat, sichert `python entwurf.py <datenordner> <datei> -m "<was>"` (vorher und nachher aufrufen). Entwürfe sind löschbar, solange sie nicht genutzt wurden.
 - **Version**: Genutzt heisst versendet. Beim Versand werden PDFs und Quelldaten im lokalen Git des Datenordners committet (nie automatisch gepusht).
 - **Ohne Git**: Der Versand funktioniert trotzdem; die Fassungen bleiben unter `versendet/` und im Register und werden beim ersten Versand mit Git nachträglich eingefroren.
 

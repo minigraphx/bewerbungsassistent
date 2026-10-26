@@ -16,6 +16,7 @@ Verwaltung und lokale Oberfläche des Bewerbungsassistenten (MIN-261 Ablauf, MIN
 - `pruefung.py` – formale Prüfung der PDFs und des Anschreibens.
 - `versand.py` – Versand erfassen: ablegen (dedupliziert), Entwürfe genutzt, Register, Git.
 - `dateien.py` – atomar schreiben, Pfade auf den Datenordner beschränken.
+- `entwurf.py` – Befehl, der Dateien als Entwurf sichert; für Änderungen ausserhalb der Oberfläche (Claude im Chat), vorher und nachher aufrufen.
 
 ## Regeln
 - Keine persönlichen Daten in diesem Repo; Tests nutzen die erfundenen Beispieldaten aus `../lebenslauf/data/`.
