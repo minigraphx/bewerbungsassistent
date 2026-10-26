@@ -139,7 +139,7 @@ Reihenfolge je Stelle: Integritätsprüfung → Sprachprüfung → K.-o.-Kriteri
 ## 4. Duplikat-Prüfung vor dem Vormerken
 
 - Firmen-Schlüssel bilden: kurzer Firmenname, klein, ohne Rechtsform (z.B. `beispiel` für "Beispiel AG").
-- Bei Vermittlern (z.B. myitjob, Yellowshark, Coopers, Experis, LHH, ITech Consult, NonStop Consulting, PROSTAFF, Hays) den echten Arbeitgeber ableiten und als Schlüssel nehmen; unklar → `unbekannt-<vermittler>-<stichwort>` und im Text als Vermutung kennzeichnen.
+- Bei Vermittlern (z.B. myitjob, Yellowshark, Coopers, Experis, LHH, ITech Consult, NonStop Consulting, PROSTAFF, Hays, ONE Agency, Summit Recruitment, Prime21) den echten Arbeitgeber ableiten und als Schlüssel nehmen; unklar → `unbekannt-<vermittler>-<stichwort>` und im Text als Vermutung kennzeichnen. Unbekannte Firmennamen bei Bedarf auf kununu nachschlagen: Branche Personalwesen/-beschaffung deutet auf einen Vermittler (Ablauf im Skill `bewerbung`, Schritt 1).
 - Gegen Spalte A prüfen. Treffer melden, besonders bei laufender Direktbewerbung: nie über einen Vermittler bei einer Firma bewerben, bei der schon eine Direktbewerbung läuft (und umgekehrt). Hinweise aus dem Suchprofil zu bestimmten Firmen beachten.
 - Gleiche Stelle auf mehreren Portalen oder mehrfach inseriert: nur eine Zeile, weiteres Portal in "Portal(e)" ergänzen.
 - Gespeicherte und beworbene Stellen der Portale abgleichen, nicht erfasste aktive Stellen melden:
