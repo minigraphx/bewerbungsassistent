@@ -84,12 +84,15 @@ Weil die App auf dem Rechner der Person läuft, hat sie deren IP. Einfache Porta
 | **Text einfügen** | Inseratstext kopieren und einfügen | Geht immer, ohne Installation; der Ersatz, wenn die Erweiterung fehlt |
 | **Job-Abos per E-Mail** (erst mit dem Onlinedienst) | Job-Abos der Portale an eine persönliche Adresse des Dienstes weiterleiten; der Dienst liest Titel, Firma und Link | Stellenvorschläge ganz ohne Abfragen bei den Portalen. Den Volltext holt die Erweiterung, oder die Person fügt ihn ein. |
 | **Offizielle Schnittstellen** | Partnerzugänge, z.B. für job-room oder JobCloud | Stabil und rechtlich sauber, aber wohl nur mit Vertrag; zu prüfen |
+| ~~Eingebauter Browser in der App~~ (z.B. pywebview) | Portale in einem Fenster der App öffnen, ganz ohne Erweiterung | **Abgelehnt:** Google sperrt „Mit Google anmelden“ in eingebetteten Browsern, und viele melden sich so bei LinkedIn oder jobs.ch an. Im normalen Browser gehen alle Anmeldungen. |
 | ~~Proxys mit Privatanschlüssen oder ein VPN~~ | Server-Abfragen über fremde Privatanschlüsse leiten | **Abgelehnt:** umgeht die Sperren bewusst, verletzt die Nutzungsbedingungen und ist rechtlich riskant |
 
 **Regeln für die Erweiterung:**
 
-- **Berechtigungen:** nur für die Portale im Suchprofil und die App auf `127.0.0.1`.
-- **Kopplung:** Die Erweiterung wird einmal mit der App gekoppelt (Code in der App). Die App nimmt nur Anfragen der gekoppelten Erweiterung an.
+- **Berechtigungen:** nur für die Portale im Suchprofil, für Native Messaging und für die Seite der App auf `127.0.0.1`.
+- **App und Erweiterung erkennen sich selbst**, ohne Kopplungscode (wie bei Password-Managern):
+  - **Erweiterung → App über Native Messaging:** Die App meldet sich bei der Installation als Native-Messaging-Host bei Chrome und Edge an (Datei im Benutzerordner, unter Windows ein Eintrag in der Registry). Die Erweiterung schickt Treffer direkt an die App, ohne Port und ohne Netz. Chrome lässt nur die Erweiterung mit unserer ID mit der App sprechen. Fehlt die App, meldet Chrome einen Fehler, und die Erweiterung zeigt „App herunterladen“.
+  - **App → Erweiterung über die eigene Oberfläche:** Die Oberfläche der App läuft im selben Browser. Die Erweiterung meldet sich auf dieser Seite mit einem Zeichen. Fehlt es, zeigt die App den Schritt „Erweiterung hinzufügen“ mit einem Knopf zum Store; sobald die Erweiterung da ist, verschwindet er.
 - **Auslöser:** Sie sucht nur, wenn die Person die Suche startet, und hält die Grenzen aus dem Skill ein (z.B. höchstens 3 Seiten pro Suchbegriff und Ort). Im Hintergrund sucht sie nicht.
 - **Keine Aktionen auf den Portalen:** Sie bewirbt nicht und füllt keine Formulare aus. CAPTCHAs bleiben bei der Person.
 - **LinkedIn halbautomatisch:**
@@ -164,14 +167,17 @@ Der Grundsatz lautet: so viel vom heutigen Code wie möglich unverändert nutzen
 Rechner der Person
   Browser ── Portal-Tabs (job-room, jobs.ch …) ◀── Erweiterung sucht mit IP und Login der Person
      │                                               │ Treffer, Inseratstexte
-     └── http://127.0.0.1 ──▶ App: app.py + Typst ◀──┘
+     └── http://127.0.0.1 ──▶ App: app.py + Typst ◀──┘ Native Messaging
                                  ├─▶ Datenordner (z.B. in Dokumente)
                                  ├─▶ Schlüsselbund des Systems (API-Schlüssel)
                                  └─▶ KI-Aufrufe (pseudonymisiert) ──▶ Testphase: Claude API · Release: nur EU
 ```
 
 - **Paket:** Python, Typst und Schriften als App für macOS (.app in .dmg) und Windows (.exe), z.B. mit PyInstaller oder Briefcase, gebaut in der CI (MIN-342). Ein Doppelklick startet den Server auf `127.0.0.1` und öffnet den Browser. Python, Terminal und Repo braucht die Person nicht.
-- **Ersteinrichtung:** Die Person wählt den Datenordner oder legt ihn an und gibt den API-Schlüssel einmal ein.
+- **Ersteinrichtung** in drei Schritten in der Oberfläche:
+  1. Datenordner wählen oder anlegen.
+  2. Erweiterung hinzufügen: ein Klick zum Store, die Seite erkennt die Erweiterung selbst.
+  3. API-Schlüssel einmal eingeben.
 - **API-Schlüssel:**
   - Im Pilot legt der Projektinhaber pro Person einen Schlüssel in einem eigenen Workspace mit Ausgabengrenze an (MIN-340).
   - Die App legt ihn im Schlüsselbund des Systems ab (macOS-Schlüsselbund, Windows-Anmeldeinformationen), nie im Datenordner, nie in Protokollen und nie im Installationspaket.
@@ -183,7 +189,7 @@ Rechner der Person
 - **Updates:** Die App prüft beim Start, ob es eine neue Version gibt, und verweist auf den Download.
 - **Signatur:** macOS blockiert unsignierte Apps, Windows warnt. Für den Pilot braucht es ein Apple-Entwicklerkonto zum Signieren und Beglaubigen; für Windows eine Signatur oder eine Anleitung zur Warnung.
 - **Plattformen:** macOS und Windows. Chromebooks, Tablets und Handys gehen nicht; vor dem Pilot klären, welchen Rechner die Teilnehmenden haben.
-- **Anpassungen an der Oberfläche:** Ersteinrichtung, Import der HTML-Vorlage, Kopplung mit der Erweiterung, KI-Knöpfe. Host-Prüfung, Token pro Start und CSP bleiben.
+- **Anpassungen an der Oberfläche:** Ersteinrichtung, Import der HTML-Vorlage, Empfang der Treffer über Native Messaging, KI-Knöpfe. Host-Prüfung, Token pro Start und CSP bleiben.
 
 ## Onlinedienst nach dem Pilot
 
@@ -263,7 +269,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 
 - Der Server läuft nur auf `127.0.0.1`. Host-Prüfung, Token pro Start und CSP bleiben; Inhalte werden nur als Text eingesetzt.
 - Der API-Schlüssel liegt im Schlüsselbund des Systems und hat eine Ausgabengrenze. Er erscheint nie in Protokollen oder Fehlermeldungen.
-- Die Erweiterung hat nur die nötigen Berechtigungen. Die App nimmt nur Anfragen der gekoppelten Erweiterung an und prüft sie wie jede Eingabe von aussen.
+- Die Erweiterung hat nur die nötigen Berechtigungen. Treffer nimmt die App nur über Native Messaging von der eigenen Erweiterung an (Chrome prüft deren ID) und prüft sie wie jede Eingabe von aussen.
 - Importierte Dateien (HTML-Vorlage, Lebenslauf) werden geprüft und nie als Code ausgeführt.
 - Fotos werden neu kodiert und ihre Metadaten entfernt.
 - Die Pakete werden in der CI gebaut und signiert; Abhängigkeiten werden geprüft.
