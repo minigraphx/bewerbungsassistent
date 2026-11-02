@@ -5,7 +5,7 @@ Schritt fest, was wann an wen ging:
    mehrere Firmen sie bekommen (gleicher Inhalt = gleiche Datei).
 2. Die Entwürfe der Daten (Lebenslauf, Zuschnitt, Foto, Anschreiben) werden als genutzt markiert und sind
    damit nicht mehr löschbar.
-3. Das Register bekommt Status „Beworben“, Datum, Verweis auf die Fassungen und die Job-Room-Angaben.
+3. Das Register bekommt Status „Beworben“, Datum, Art und Verweis auf die Fassungen.
 4. Alles zusammen wird in Git eingefroren (ohne Git: siehe versionen.OhneGit).
 """
 import datetime
@@ -19,7 +19,7 @@ import yaml
 import unterlagen
 from ablage import Ablage
 from dateien import im_ordner
-from register import JOBROOM_ART, Register, jobroom_vorschlag
+from register import JOBROOM_ART, Register
 from varianten import Varianten
 from versionen import OhneGit, Versionierung
 
@@ -86,7 +86,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     versendet = {"datum": datum.isoformat(), "art": art,
                  "dateien": {a: p.relative_to(daten).as_posix() for a, p in abgelegt.items()}}
     neu = {**bewerbung, "status": "Beworben", "beworben_am": datum.isoformat(), "versand": versendet}
-    neu = register.speichere({**neu, "jobroom": {**jobroom_vorschlag(neu), "art": art}})
+    neu = register.speichere(neu)
 
     # Ohne Git bleiben frühere Fassungen unter versendet/ liegen und werden hier nachgeholt (MIN-304)
     alle_fassungen = sorted((daten / ORDNER).glob("*.pdf"))

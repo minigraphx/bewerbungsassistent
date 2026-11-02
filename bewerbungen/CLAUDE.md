@@ -8,7 +8,7 @@ Verwaltung und lokale Oberfläche des Bewerbungsassistenten (MIN-261 Ablauf, MIN
 - `kontext.py` – Datenordner, Build-Ordner, Ablage, Versionierung; `mit_entwurf` legt beim Schreiben Entwürfe davor/danach an.
 - `ablage.py` – Entwürfe in `.entwuerfe/` (SHA-256, Index); löschbar solange nicht genutzt.
 - `versionen.py` – Git-Commit beim Versand (nur die genannten Dateien, Ersatz-Autor ohne Git-Konfiguration); `OhneGit` als Ausweichlösung.
-- `register.py` – `bewerbungen.yaml`, Prüfung, IDs, Job-Room-Vorschlag, Import/Export im Format der Jobliste.
+- `register.py` – `bewerbungen.yaml`, Prüfung, IDs, Job-Room-Angaben (nur abgeleitet, nie gespeichert), Import/Export im Format der Jobliste.
 - `varianten.py` – `varianten.yaml`, Vorschlag per Stichwort-Abgleich.
 - `unterlagen.py` – Lebenslauf (Variante) und Anschreiben pro Bewerbung bauen.
 - `inhalte.py` – Inhalte (MIN-302): erlaubte Dateien nach Muster, Titel für die Oberfläche, Prüfung je Dateityp mit Probebau im Build-Ordner. Die Seiten zeigen standardmässig das PDF; der Text liegt hinter „Als Text“.

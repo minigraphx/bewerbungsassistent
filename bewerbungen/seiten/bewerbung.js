@@ -4,12 +4,11 @@
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const FELDER = ["firma", "stelle", "firma_schluessel", "ort", "pensum", "vermittler", "portal", "link",
-                  "status", "variante", "passung", "eingetragen_am", "beworben_am", "frist", "gespraech_am", "absage_am", "notiz"];
-  const JOBROOM_TEXT = [["datum", "Datum der Bewerbung", "date"], ["arbeitgeber", "Arbeitgeber"],
-    ["adresse", "Adresse"], ["kontaktperson", "Kontaktperson"], ["kontakt", "Telefon / E-Mail"], ["stelle", "Stelle"]];
-  const JOBROOM_AUSWAHL = [["pensum", "Pensum", ["", "Vollzeit", "Teilzeit"]],
-    ["art", "Art der Bewerbung", ["elektronisch", "schriftlich", "persönlich", "telefonisch"]],
-    ["ergebnis", "Ergebnis", ["offen", "Absage", "Vorstellungsgespräch", "Anstellung"]]];
+                  "status", "variante", "passung", "eingetragen_am", "beworben_am", "frist", "gespraech_am", "absage_am",
+                  "adresse", "kontaktperson", "kontakt", "notiz"];
+  const JOBROOM = [["datum", "Datum der Bewerbung"], ["arbeitgeber", "Arbeitgeber"], ["adresse", "Adresse"],
+    ["kontaktperson", "Kontaktperson"], ["kontakt", "Telefon / E-Mail"], ["stelle", "Stelle"], ["pensum", "Pensum"],
+    ["art", "Art der Bewerbung"], ["ergebnis", "Ergebnis"], ["rav_zuweisung", "Zuweisung des RAV"]];
   let bewerbung = null;
 
   const meldung = (text, art) => status($("status"), text, art);
@@ -31,25 +30,23 @@
     for (const f of FELDER) {
       if (f !== "status" && f !== "variante") $("f-" + f).value = bewerbung[f] ?? "";
     }
+    $("f-rav_zuweisung").checked = !!bewerbung.rav_zuweisung;
     $("stellentext").value = daten.stellentext;
   }
 
+  function jobroomText(key, wert) {
+    if (key === "datum") return datum(wert);
+    if (key === "rav_zuweisung") return wert ? "Ja" : "Nein";
+    return wert;
+  }
+
   function zeigeJobroom(j) {
-    const felder = JOBROOM_TEXT.map(([key, text, typ]) => {
-      const eingabe = el("input", { id: "j-" + key, type: typ || "text", value: j[key] || "" });
-      const kopieren = el("button", { type: "button", onclick: () => kopiere(typ === "date" ? datum(eingabe.value) : eingabe.value) }, "Kopieren");
-      return el("div", {}, el("label", { for: "j-" + key }, text), el("div", { class: "kopieren" }, eingabe, kopieren));
-    });
-    const auswahl = JOBROOM_AUSWAHL.map(([key, text, werte]) => {
-      const s = el("select", { id: "j-" + key });
-      optionen(s, werte.map(w => [w, w || "–"]), j[key] || "");
-      return el("div", {}, el("label", { for: "j-" + key }, text), s);
-    });
-    const rav = el("div", {}, el("label", { class: "schalter" },
-      el("input", { type: "checkbox", id: "j-rav_zuweisung", checked: !!j.rav_zuweisung }), " Bewerbung auf Zuweisung des RAV"));
-    const erfasst = el("div", {}, el("label", { for: "j-erfasst_am" }, "Im Job-Room erfasst am"),
-      el("input", { id: "j-erfasst_am", type: "date", value: j.erfasst_am || "" }));
-    $("jobroom").replaceChildren(...felder, ...auswahl, rav, erfasst);
+    $("jobroom").replaceChildren(...JOBROOM.map(([key, text]) => {
+      const wert = key in j ? jobroomText(key, j[key]) : "";
+      const kopieren = wert ? el("button", { type: "button", onclick: () => kopiere(wert) }, "Kopieren") : null;
+      return el("div", {}, el("span", { class: "etikett" }, text),
+        el("div", { class: "kopieren" }, el("span", { class: wert ? "wert" : "wert leer" }, wert || "– fehlt –"), kopieren));
+    }));
   }
 
   async function kopiere(text) {
@@ -61,16 +58,10 @@
     }
   }
 
-  function jobroomWerte() {
-    const werte = {};
-    for (const [key] of [...JOBROOM_TEXT, ...JOBROOM_AUSWAHL, ["erfasst_am"]]) werte[key] = $("j-" + key).value;
-    werte.rav_zuweisung = $("j-rav_zuweisung").checked;
-    return werte;
-  }
-
   function formularWerte() {
     const werte = { ...bewerbung };
     for (const f of FELDER) werte[f] = $("f-" + f).value;
+    werte.rav_zuweisung = $("f-rav_zuweisung").checked;
     return werte;
   }
 
@@ -130,8 +121,7 @@
     }
   }
 
-  $("speichern").addEventListener("click", () => speichere({ ...formularWerte(), jobroom: bewerbung.jobroom }, "Angaben gespeichert"));
-  $("jobroom-speichern").addEventListener("click", () => speichere({ ...bewerbung, jobroom: jobroomWerte() }, "Job-Room-Angaben gespeichert"));
+  $("speichern").addEventListener("click", () => speichere(formularWerte(), "Angaben gespeichert"));
   $("stelle-speichern").addEventListener("click", async () => {
     try {
       await senden("/api/stellentext", { text: $("stellentext").value }, { id: ID });

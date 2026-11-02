@@ -6,7 +6,7 @@ import pruefung
 import unterlagen
 import versand
 from dateien import im_ordner, schreibe_atomar
-from register import STATUS, jobroom_vorschlag
+from register import STATUS, jobroom_angaben
 from server import datei_antwort, json_antwort, pflicht
 from varianten import vorschlagen
 
@@ -30,7 +30,7 @@ def details(k, parameter, body):
     pfade = unterlagen.pdf_pfade(k.daten, b["id"])
     return json_antwort({
         "bewerbung": b,
-        "jobroom": jobroom_vorschlag(b),
+        "jobroom": jobroom_angaben(b),
         "stellentext": _stellentext(k, b["id"]),
         "pdfs": {art: p.is_file() for art, p in pfade.items()},
         "hat_anschreiben": pfade["anschreiben"].with_suffix(".yaml").is_file(),

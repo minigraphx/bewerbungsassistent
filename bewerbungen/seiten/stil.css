@@ -70,6 +70,9 @@ pre.ansicht {
 }
 .kopieren { display: flex; gap: 6px; }
 .kopieren button { padding: 4px 8px; font-size: 12px; white-space: nowrap; }
+.etikett { display: block; font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+.kopieren .wert { flex: 1; padding: 6px 0; overflow-wrap: anywhere; }
+.kopieren .wert.leer { color: var(--leise); font-style: italic; }
 .karte { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 8px; padding: 12px 14px; margin: 8px 0; }
 .leer { color: var(--leise); font-style: italic; }
 /* Foto */

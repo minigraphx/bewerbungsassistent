@@ -36,8 +36,8 @@ def test_minimal():
         ({"link": "javascript:alert(1)"}, "link"),
         ({"id": "Mit Leerzeichen"}, "id"),
         ({"unbekannt": 1}, "unbekannt"),
-        ({"jobroom": {"art": "Brieftaube"}}, "art"),
-        ({"jobroom": {"farbe": "rot"}}, "farbe"),
+        ({"rav_zuweisung": "ja"}, "rav_zuweisung"),
+        ({"jobroom": "Zug"}, "jobroom"),
     ],
 )
 def test_ungueltig(aenderung, meldung):
@@ -104,28 +104,62 @@ def test_ungueltig_wird_nicht_gespeichert(reg):
 # Job-Room
 
 
-def test_jobroom_vorschlag():
-    b = {"id": "x", "firma": "Beispiel AG", "stelle": "Data Engineer", "pensum": "80–100%",
-         "status": "Absage", "beworben_am": "2026-09-23"}
+def test_jobroom_angaben_aus_der_bewerbung():
+    b = {"id": "x", "firma": "Beispiel AG", "stelle": "Data Engineer", "pensum": "80–100%", "status": "Beworben",
+         "beworben_am": "2026-09-23", "adresse": "Musterweg 1, 3000 Bern", "kontaktperson": "Frau Meier",
+         "kontakt": "jobs@beispiel.ch", "versand": {"datum": "2026-09-23", "art": "schriftlich"}}
 
-    j = register.jobroom_vorschlag(b)
+    j = register.jobroom_angaben(b)
 
-    assert j["datum"] == "2026-09-23"
-    assert j["arbeitgeber"] == "Beispiel AG"
-    assert j["stelle"] == "Data Engineer"
-    assert j["pensum"] == "Teilzeit"
-    assert j["art"] == "elektronisch"
-    assert j["ergebnis"] == "Absage"
+    assert j == {"datum": "2026-09-23", "arbeitgeber": "Beispiel AG", "adresse": "Musterweg 1, 3000 Bern",
+                 "kontaktperson": "Frau Meier", "kontakt": "jobs@beispiel.ch", "stelle": "Data Engineer",
+                 "pensum": "Teilzeit", "art": "schriftlich", "ergebnis": "offen", "rav_zuweisung": False}
 
 
-def test_jobroom_vorschlag_behaelt_erfasste_werte():
-    b = {"id": "x", "firma": "F", "stelle": "S", "pensum": "100%", "jobroom": {"art": "schriftlich", "kontaktperson": "Frau Meier"}}
+@pytest.mark.parametrize(
+    "angaben, ergebnis",
+    [
+        ({"status": "Beworben"}, "offen"),
+        ({"status": "Absage"}, "Absage"),
+        ({"status": "Beworben", "absage_am": "2026-11-02"}, "Absage"),
+        ({"status": "Gespräch", "absage_am": "2026-11-02"}, "Absage"),
+        ({"status": "Gespräch"}, "Vorstellungsgespräch"),
+        ({"status": "Beworben", "gespraech_am": "2026-11-05"}, "Vorstellungsgespräch"),
+        ({"status": "Zusage"}, "Anstellung"),
+    ],
+)
+def test_jobroom_ergebnis(angaben, ergebnis):
+    assert register.jobroom_angaben({"id": "x", "firma": "F", "stelle": "S", **angaben})["ergebnis"] == ergebnis
 
-    j = register.jobroom_vorschlag(b)
 
-    assert j["art"] == "schriftlich"
-    assert j["kontaktperson"] == "Frau Meier"
-    assert j["pensum"] == "Vollzeit"
+@pytest.mark.parametrize("pensum, erwartet", [("100%", "Vollzeit"), ("80–100%", "Teilzeit"), ("Vollzeit", "Vollzeit"),
+                                              ("Teilzeit", "Teilzeit"), ("", None)])
+def test_jobroom_pensum(pensum, erwartet):
+    assert register.jobroom_angaben({"id": "x", "firma": "F", "stelle": "S", "pensum": pensum}).get("pensum") == erwartet
+
+
+def test_jobroom_art_ohne_versand_elektronisch():
+    assert register.jobroom_angaben({"id": "x", "firma": "F", "stelle": "S"})["art"] == "elektronisch"
+
+
+def test_fruehere_jobroom_angaben_werden_uebernommen():
+    b = register.pruefe_bewerbung({
+        "id": "x", "firma": "F", "stelle": "S", "status": "Absage", "kontakt": "neu@f.ch",
+        "jobroom": {"adresse": "Musterweg 1, 3000 Bern", "kontaktperson": "Frau Meier", "kontakt": "alt@f.ch",
+                    "pensum": "Vollzeit", "rav_zuweisung": True, "ergebnis": "offen", "erfasst_am": "2026-10-26"},
+    })
+
+    assert "jobroom" not in b
+    assert b["adresse"] == "Musterweg 1, 3000 Bern"
+    assert b["kontaktperson"] == "Frau Meier"
+    assert b["kontakt"] == "neu@f.ch"
+    assert b["pensum"] == "Vollzeit"
+    assert b["rav_zuweisung"] is True
+    assert register.jobroom_angaben(b)["ergebnis"] == "Absage"
+
+
+def test_rav_zuweisung_nein_entfaellt():
+    assert "rav_zuweisung" not in register.pruefe_bewerbung({"id": "x", "firma": "F", "stelle": "S", "rav_zuweisung": False})
 
 
 # Import aus der Jobliste

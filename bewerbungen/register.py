@@ -1,4 +1,4 @@
-"""Bewerbungsregister (MIN-306): alle Bewerbungen mit Daten, Status und Job-Room-Angaben.
+"""Bewerbungsregister (MIN-306): alle Bewerbungen mit Daten und Status; die Job-Room-Angaben werden daraus abgeleitet.
 
 Gespeichert in `bewerbungen.yaml` im Datenordner. Jede Bewerbung hat eine eindeutige ID; geschrieben wird
 nur über die ID, nie über eine Position. Import und Export im Spaltenformat der Google-Sheet-Jobliste.
@@ -19,13 +19,12 @@ from dateien import lies_yaml, schreibe_yaml
 
 DATEI = "bewerbungen.yaml"
 STATUS = ("Gemerkt", "Bewerben", "Beworben", "Gespräch", "Absage", "Zusage", "Verworfen", "Zurückgezogen")
-TEXTFELDER = ("firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante")
+TEXTFELDER = ("firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
+              "adresse", "kontaktperson", "kontakt")
 DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am")
 JOBROOM_ART = ("elektronisch", "schriftlich", "persönlich", "telefonisch")
-JOBROOM_ERGEBNIS = ("offen", "Absage", "Vorstellungsgespräch", "Anstellung")
-JOBROOM_PENSUM = ("Vollzeit", "Teilzeit")
-JOBROOM_TEXT = ("arbeitgeber", "adresse", "kontaktperson", "kontakt", "stelle")
-JOBROOM_FELDER = ("datum", *JOBROOM_TEXT, "pensum", "art", "ergebnis", "rav_zuweisung", "erfasst_am")
+# Früher gespeichertes Feld `jobroom`: diese Werte wandern in die Bewerbung, der Rest wird abgeleitet
+JOBROOM_UEBERNAHME = ("adresse", "kontaktperson", "kontakt", "pensum", "rav_zuweisung")
 SPALTEN = ["Firmen-Schlüssel", "Arbeitgeber", "Stelle", "Ort", "Pensum", "Inserent / Vermittler", "Portal(e)",
            "Link", "Status", "Beworben am", "Frist", "Notiz"]
 ZUSATZ_SPALTEN = ["Eingetragen am", "Passung"]  # Spalten N und O der Jobliste (M ist die Duplikat-Formel)
@@ -64,37 +63,24 @@ def pruefe_passung(wert) -> int | float:
     return int(note) if note.is_integer() else note
 
 
-def _pruefe_jobroom(j) -> dict:
-    if not isinstance(j, dict):
+def _uebernimm_jobroom(b: dict) -> dict:
+    """Früheres Feld `jobroom` auflösen: fehlende Angaben der Bewerbung daraus ergänzen, den Rest verwerfen."""
+    alt = b.get("jobroom")
+    ohne = {k: v for k, v in b.items() if k != "jobroom"}
+    if not alt:
+        return ohne
+    if not isinstance(alt, dict):
         raise ValueError("jobroom muss eine Zuordnung sein")
-    unbekannt = set(j) - set(JOBROOM_FELDER)
-    if unbekannt:
-        raise ValueError(f"jobroom: unbekannte Felder {sorted(unbekannt)}")
-    erlaubt = {"art": JOBROOM_ART, "ergebnis": JOBROOM_ERGEBNIS, "pensum": JOBROOM_PENSUM}
-    neu = {}
-    for key, wert in j.items():
-        if wert in (None, ""):
-            continue
-        if key in ("datum", "erfasst_am"):
-            neu[key] = iso_datum(wert, f"jobroom.{key}")
-        elif key in erlaubt:
-            if wert not in erlaubt[key]:
-                raise ValueError(f"jobroom.{key} muss eines von {', '.join(erlaubt[key])} sein, nicht {wert!r}")
-            neu[key] = wert
-        elif key == "rav_zuweisung":
-            if not isinstance(wert, bool):
-                raise ValueError("jobroom.rav_zuweisung muss true oder false sein")
-            neu[key] = wert
-        else:
-            neu[key] = str(wert).strip()
-    return neu
+    fehlend = {k: alt[k] for k in JOBROOM_UEBERNAHME if alt.get(k) not in (None, "") and ohne.get(k) in (None, "")}
+    return {**ohne, **fehlend}
 
 
 def pruefe_bewerbung(b: dict) -> dict:
     """Bewerbung prüfen und als neues, bereinigtes Dict liefern (leere Felder entfallen)."""
     if not isinstance(b, dict):
         raise ValueError("Bewerbung muss eine Zuordnung sein")
-    bekannt = {"id", "status", "versand", "jobroom", "passung", *TEXTFELDER, *DATUMSFELDER}
+    b = _uebernimm_jobroom(b)
+    bekannt = {"id", "status", "versand", "passung", "rav_zuweisung", *TEXTFELDER, *DATUMSFELDER}
     unbekannt = set(b) - bekannt
     if unbekannt:
         raise ValueError(f"Unbekannte Felder: {sorted(unbekannt)}")
@@ -118,10 +104,10 @@ def pruefe_bewerbung(b: dict) -> dict:
             neu[key] = iso_datum(b[key], key)
     if b.get("passung") not in (None, ""):
         neu["passung"] = pruefe_passung(b["passung"])
-    if b.get("jobroom"):
-        jobroom = _pruefe_jobroom(b["jobroom"])
-        if jobroom:
-            neu["jobroom"] = jobroom
+    if b.get("rav_zuweisung") not in (None, "", False):
+        if b["rav_zuweisung"] is not True:
+            raise ValueError("rav_zuweisung muss true oder false sein")
+        neu["rav_zuweisung"] = True
     if b.get("versand"):
         if not isinstance(b["versand"], dict):
             raise ValueError("versand muss eine Zuordnung sein")
@@ -147,21 +133,40 @@ def erzeuge_id(firma: str, stelle: str, vorhandene: set[str]) -> str:
 # Job-Room (Nachweis der Arbeitsbemühungen)
 
 
-def jobroom_vorschlag(b: dict) -> dict:
-    """Werte fürs Job-Room-Formular aus der Bewerbung ableiten; bereits erfasste Werte haben Vorrang."""
-    ergebnis = {"Absage": "Absage", "Gespräch": "Vorstellungsgespräch", "Zusage": "Anstellung"}.get(b.get("status"), "offen")
-    zahlen = [int(z) for z in re.findall(r"\d+", b.get("pensum", ""))]
-    pensum = "Vollzeit" if zahlen and min(zahlen) >= 100 else ("Teilzeit" if zahlen else None)
-    vorschlag = {
+def jobroom_ergebnis(b: dict) -> str:
+    """Ergebnis fürs Job-Room: eine Absage gilt immer, auch wenn vorher ein Gespräch stattfand."""
+    if b.get("status") == "Zusage":
+        return "Anstellung"
+    if b.get("status") == "Absage" or b.get("absage_am"):
+        return "Absage"
+    if b.get("status") == "Gespräch" or b.get("gespraech_am"):
+        return "Vorstellungsgespräch"
+    return "offen"
+
+
+def jobroom_pensum(text: str | None) -> str | None:
+    text = (text or "").lower()
+    if "voll" in text or "teil" in text:
+        return "Vollzeit" if "voll" in text else "Teilzeit"
+    zahlen = [int(z) for z in re.findall(r"\d+", text)]
+    return ("Vollzeit" if min(zahlen) >= 100 else "Teilzeit") if zahlen else None
+
+
+def jobroom_angaben(b: dict) -> dict:
+    """Angaben fürs Formular „Arbeitsbemühungen“ im Job-Room, nur aus der Bewerbung abgeleitet (nichts wird gespeichert)."""
+    angaben = {
         "datum": b.get("beworben_am"),
         "arbeitgeber": b.get("firma"),
+        "adresse": b.get("adresse"),
+        "kontaktperson": b.get("kontaktperson"),
+        "kontakt": b.get("kontakt"),
         "stelle": b.get("stelle"),
-        "pensum": pensum,
-        "art": "elektronisch",
-        "ergebnis": ergebnis,
-        "rav_zuweisung": False,
+        "pensum": jobroom_pensum(b.get("pensum")),
+        "art": (b.get("versand") or {}).get("art", "elektronisch"),
+        "ergebnis": jobroom_ergebnis(b),
+        "rav_zuweisung": bool(b.get("rav_zuweisung")),
     }
-    return {k: v for k, v in {**vorschlag, **(b.get("jobroom") or {})}.items() if v not in (None, "")}
+    return {k: v for k, v in angaben.items() if v not in (None, "")}
 
 
 # Register

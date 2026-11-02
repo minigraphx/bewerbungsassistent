@@ -10,6 +10,7 @@ import versand
 import versionen
 from ablage import Ablage
 from conftest import BRIEF_ID
+import register
 from register import Register
 
 DATUM = datetime.date(2026, 10, 26)
@@ -35,8 +36,8 @@ def test_versand_aktualisiert_register(bereit):
     assert b["beworben_am"] == "2026-10-26"
     assert b["versand"]["art"] == "elektronisch"
     assert set(b["versand"]["dateien"]) == {"lebenslauf", "anschreiben"}
-    assert b["jobroom"]["datum"] == "2026-10-26"
-    assert b["jobroom"]["arbeitgeber"] == "Beispiel AG"
+    assert "jobroom" not in b
+    assert register.jobroom_angaben(b)["datum"] == "2026-10-26"
     assert ergebnis["commit"]
 
 

@@ -33,6 +33,10 @@
     <div><label for="f-frist">Frist</label><input id="f-frist" type="date"></div>
     <div><label for="f-gespraech_am">Gespräch am</label><input id="f-gespraech_am" type="date"></div>
     <div><label for="f-absage_am">Absage am</label><input id="f-absage_am" type="date"></div>
+    <div><label for="f-adresse">Adresse Arbeitgeber</label><input id="f-adresse"></div>
+    <div><label for="f-kontaktperson">Kontaktperson</label><input id="f-kontaktperson"></div>
+    <div><label for="f-kontakt">Telefon / E-Mail</label><input id="f-kontakt"></div>
+    <div><label class="schalter"><input type="checkbox" id="f-rav_zuweisung"> Bewerbung auf Zuweisung des RAV</label></div>
     <div class="breit"><label for="f-notiz">Notiz</label><textarea id="f-notiz"></textarea></div>
   </div>
   <div class="knoepfe"><button class="haupt" id="speichern">Angaben speichern</button></div>
@@ -64,9 +68,8 @@
   </div>
 
   <h2>Job-Room (Arbeitsbemühungen)</h2>
-  <p class="hilfe">Vorschlag aus den Angaben; mit „Kopieren“ ins Formular im Job-Room übernehmen. Die Felder entsprechen voraussichtlich dem Formular „Arbeitsbemühungen“; bei Abweichungen bitte anpassen.</p>
+  <p class="hilfe">Nur zur Übernahme ins Formular „Arbeitsbemühungen“: abgeleitet aus den Angaben oben, mit „Kopieren“ übernehmen. Ändern oben unter „Angaben“. Eine Absage ergibt immer das Ergebnis „Absage“.</p>
   <div class="raster" id="jobroom"></div>
-  <div class="knoepfe"><button id="jobroom-speichern">Job-Room-Angaben speichern</button></div>
   <div id="status" class="status" role="status" aria-live="polite"></div>
 </main>
 <script src="/app.js"></script>
