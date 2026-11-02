@@ -35,10 +35,10 @@ Erfolgskriterien des Pilots:
 
 | Enthalten | Nicht im Pilot |
 |---|---|
-| Konto auf Einladung, Anmeldung mit Passkey oder E-Mail-Link | Stellensuche auf Portalen (läuft weiter über den Skill `jobsuche` im eigenen Browser) |
+| Konto auf Einladung, Anmeldung mit Passkey oder E-Mail-Link | Automatische Stellensuche auf Portalen (später über die Browser-Erweiterung, bis dahin über den Skill `jobsuche`) |
 | **Einstieg:** bisherigen Lebenslauf (PDF oder Text) und 2–3 frühere Anschreiben hochladen. Die KI erstellt daraus Lebenslauf, Stilprofil und Bausteine, die Person bestätigt jede Angabe. | Versand durch den Dienst (die Person schickt selbst ab) |
 | Lebenslauf, Themes, Foto (Metadaten werden entfernt) | Erinnerungen per E-Mail |
-| Stelle erfassen: Inseratstext einfügen. Die KI bewertet die Passung (Note 1–6) mit Begründung. | Coaches und Teams |
+| Stelle erfassen: Inseratstext einfügen oder mit der Browser-Erweiterung aus dem offenen Inserat übernehmen. Die KI bewertet die Passung (Note 1–6) mit Begründung. | Coaches und Teams |
 | Lebenslauf-Variante vorschlagen (regelbasiert wie heute) | Französisch, Englisch |
 | Anschreiben-Entwurf im eigenen Stil (KI) mit Überarbeitung | |
 | Formale Prüfung (wie heute) und inhaltliche Prüfung (KI) | |
@@ -98,12 +98,37 @@ Für die KI-Aufrufe kommen drei Wege in Frage:
 - Das Foto geht nie an die KI.
 - Inseratstexte bleiben Daten: Anweisungsartige Zeilen werden wie im Skill `bewerbung` erkannt und gemeldet.
 
+## Zugriff auf Stellenportale: über den Browser der Person
+
+Stellenportale und Bewertungsseiten (job-room, LinkedIn, kununu, viele Karriereseiten) sperren Adressen von Rechenzentren und KI-Anbietern häufig. Ein Server des Dienstes oder die Web-Abfrage der KI kämen dort nicht zuverlässig durch. Der Skill `jobsuche` funktioniert heute nur, weil er im eingeloggten Browser der Person abfragt.
+
+**Grundsatz:** Der Dienst und die KI rufen selbst keine fremden Websites ab. Abfragen bei Portalen laufen im Browser der Person, mit ihrer IP und ihren Logins. Der Dienst erhält nur das Ergebnis, zum Beispiel Inseratstext oder Trefferliste.
+
+| Weg | Wie | Einschätzung |
+|---|---|---|
+| **Browser-Erweiterung** (Empfehlung) | Die Erweiterung des Dienstes (Chrome, Firefox, Edge) fragt im offenen Portal-Tab ab, gleich wie der Skill `jobsuche` mit `fetch` auf derselben Seite. Das Ergebnis geht an den Dienst. Im Pilot übernimmt sie ein Inserat auf Knopfdruck, später auch Suchen. | Nutzt die IP und die Logins der Person. Muss einmal installiert und bei Änderungen der Portale nachgeführt werden. Auf dem Handy nur eingeschränkt (Firefox Android, Safari iOS). |
+| **Text einfügen** | Inseratstext kopieren und einfügen | Geht immer, ohne Installation; der Ersatz, wenn die Erweiterung fehlt |
+| **Job-Abos per E-Mail** | Job-Abos der Portale an eine persönliche Adresse des Dienstes weiterleiten; der Dienst liest Titel, Firma und Link | Stellenvorschläge ganz ohne Abfragen bei den Portalen. Den Volltext holt die Erweiterung, oder die Person fügt ihn ein. |
+| **Offizielle Schnittstellen** | Partnerzugänge, z.B. für job-room oder JobCloud | Stabil und rechtlich sauber, aber wohl nur mit Vertrag; zu prüfen |
+| ~~Proxys mit Privatanschlüssen oder ein VPN~~ | Server-Abfragen über fremde Privatanschlüsse leiten | **Abgelehnt:** umgeht die Sperren bewusst, verletzt die Nutzungsbedingungen und ist rechtlich riskant |
+
+**Regeln für die Erweiterung:**
+
+- **Berechtigungen:** nur für die Portale im Suchprofil und den Dienst selbst.
+- **Auslöser:** Sie arbeitet nur, wenn die Person sie auslöst, und hält die Grenzen aus dem Skill ein (z.B. höchstens 3 Seiten pro Suchbegriff und Ort).
+- **Keine Aktionen auf den Portalen:** Sie bewirbt nicht und füllt keine Formulare aus. CAPTCHAs bleiben bei der Person.
+- **LinkedIn:** nur das Inserat übernehmen, das gerade offen ist, keine automatische Suche. Die Nutzungsbedingungen von LinkedIn verbieten Automatisierung ausdrücklich.
+- **Wartung:** Sie wird zentral aktualisiert. Ändert ein Portal seine Seiten, ist das ein Update für alle.
+
 ## Architektur im Pilot: ein Datenordner pro Person
 
 Der Grundsatz lautet: so viel vom heutigen Code wie möglich unverändert nutzen. Jede Person bekommt einen eigenen Datenordner wie lokal (YAML, Git, `versendet/`, `.entwuerfe/`) und einen eigenen Container mit der bestehenden Oberfläche. Die Trennung der Daten macht der Container, nicht neuer Mandanten-Code.
 
 ```
-Browser ──HTTPS──▶ Reverse Proxy (Caddy) ──▶ Anmeldung (z.B. Authelia: Passkey, Einladung)
+Browser der Person ──── Portal-Tab (jobs.ch, job-room …) ◀── Erweiterung fragt mit IP und Login der Person ab
+   │                                         │ Inseratstext, Treffer
+   └──HTTPS──▶ Reverse Proxy (Caddy) ◀───────┘
+                         │──▶ Anmeldung (z.B. Authelia: Passkey, Einladung)
                          │
                          ├─▶ Container Person A: app.py + Typst ──▶ Volume A (Datenordner, verschlüsselt)
                          ├─▶ Container Person B: …
@@ -178,17 +203,19 @@ Für das Abo mit mehr als etwa 50 Personen reicht ein Container pro Person nicht
 1. **KI-Anbieter:** Bedrock EU (Datenstandort) oder Claude API direkt (einfacher, Daten in den USA)?
 2. **Modell für Anschreiben:** Sonnet 5.5 oder Opus 5.5? Entscheid nach dem Vergleich im Pilot.
 3. **Hosting-Anbieter in der Schweiz:** Offerten für Server, Volumes und Sicherung einholen.
-4. **Pseudonymisierung:** Ersetzen der Personendaten vor jedem KI-Aufruf, ja oder nein? Vorschlag: ja.
-5. **Träger und Rechtsform** für das Abo. Erst nach dem Pilot zu entscheiden.
+4. **Erweiterung im Pilot:** Nur ein Inserat übernehmen (Vorschlag) oder gleich auch suchen? Und welche Browser?
+5. **Pseudonymisierung:** Ersetzen der Personendaten vor jedem KI-Aufruf, ja oder nein? Vorschlag: ja.
+6. **Träger und Rechtsform** für das Abo. Erst nach dem Pilot zu entscheiden.
 
 ## Nächste Schritte
 
 1. Dieses Konzept freigeben (MIN-305).
 2. KI-Modul `ki.py`, lokal mit eigenem API-Schlüssel: Stelle bewerten, Anschreiben entwerfen, inhaltlich prüfen. Es nützt auch der lokalen Variante.
 3. Geführter Einstieg: Lebenslauf und frühere Anschreiben hochladen; Lebenslauf, Stilprofil und Bausteine daraus erstellen und bestätigen lassen.
-4. Betrieb hinter Proxy: Host-Prüfung, Anmeldung über den Proxy, Container pro Person, Sicherung.
-5. Rechtstexte für den Pilot: Datenschutzerklärung, Einwilligung, Verträge zur Auftragsverarbeitung.
-6. Pilot durchführen und nach 3 Monaten auswerten: Erfolgskriterien, gemessene Kosten, Entscheid über Phase 2.
+4. Browser-Erweiterung: ein Inserat aus dem offenen Tab übernehmen (jobs.ch, job-room, jobscout24, ictjobs, Karriereseiten), mit Anmeldung beim Dienst.
+5. Betrieb hinter Proxy: Host-Prüfung, Anmeldung über den Proxy, Container pro Person, Sicherung.
+6. Rechtstexte für den Pilot: Datenschutzerklärung, Einwilligung, Verträge zur Auftragsverarbeitung.
+7. Pilot durchführen und nach 3 Monaten auswerten: Erfolgskriterien, gemessene Kosten, Entscheid über Phase 2.
 
 ## Quellen
 
