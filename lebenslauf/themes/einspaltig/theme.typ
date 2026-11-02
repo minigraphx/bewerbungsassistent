@@ -10,7 +10,7 @@
 
 #let lebenslauf(cv, sprache: "de", stand: none, stil: (:)) = {
   let s = standard-stil + stil
-  let b = beschriftungen.at(sprache)
+  let b = beschriftungen-fuer(cv, sprache)
   let basics = cv.at("basics", default: (:))
   let name = basics.at("name", default: "")
 

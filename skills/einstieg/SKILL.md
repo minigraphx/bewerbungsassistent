@@ -74,7 +74,7 @@ Vorgehen:
 2. **Lebenslauf bauen und zeigen:** `cd lebenslauf && ../.venv/bin/python build.py <datenordner>/cv.yaml --build-dir <datenordner>/.build -o <datenordner>/out/lebenslauf.pdf`.
 3. **Foto, falls gewünscht:** vor der Verwendung mit `magick <foto> -auto-orient -strip <datenordner>/foto.jpg` bereinigen. Den Ausschnitt stellt die Person in der Oberfläche ein (Seite „Foto“).
 
-**Lehrstellensuche:** Schnupperlehren, Ferienjobs und Ämter (z.B. im Verein) kommen in `work`. Eignungstests kommen in `certificates`, die Schule mit Niveau in `education` (z.B. `text: "Sekundarschule, Niveau A, Bern, seit 2023"`). Lieblingsfächer und Schulprojekte zeigen die Themes nicht an; sie kommen in die Bausteine fürs Motivationsschreiben. Die Themes beschriften `work` heute noch mit „Berufserfahrung“; ein eigenes Theme für Schülerlebensläufe folgt (MIN-335).
+**Lehrstellensuche:** Schnupperlehren, Ferienjobs und Ämter (z.B. im Verein) kommen in `work`. Eignungstests kommen in `certificates`, die Schule mit Niveau in `education` (z.B. `text: "Sekundarschule, Niveau A, Bern, seit 2023"`). Lieblingsfächer und Schulprojekte zeigen die Themes nicht an; sie kommen in die Bausteine fürs Motivationsschreiben. Passende Überschriften setzt `x-beschriftungen: {erfahrung: Schnupperlehren & Erfahrungen, bildung: Schule & Eignungstests}` (siehe `lebenslauf/README.md`).
 
 Fertig, wenn die vier Dateien im Datenordner liegen, `build.py` ohne Fehler ein PDF erzeugt und die Person das PDF gesehen hat.
 

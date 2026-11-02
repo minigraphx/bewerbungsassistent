@@ -37,6 +37,10 @@
   ),
 )
 
+// Beschriftungen der Sprache, ergänzt um eigene Überschriften des Lebenslaufs
+// (`x-beschriftungen`, geprüft in build.py), z.B. für Schülerlebensläufe (MIN-335)
+#let beschriftungen-fuer(cv, sprache) = beschriftungen.at(sprache) + cv.at("x-beschriftungen", default: (:))
+
 // Feld lesen, fehlend oder leer -> none
 #let feld(d, key) = {
   if type(d) != dictionary { return none }

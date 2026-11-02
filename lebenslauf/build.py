@@ -19,6 +19,11 @@ from tailor import tailor
 ROOT = pathlib.Path(__file__).resolve().parent
 ZOOM_MIN, ZOOM_MAX = 1, 4
 SPRACHEN = ("de", "en")
+# Abschnitte, deren Überschrift ein Lebenslauf mit `x-beschriftungen` ersetzen darf (MIN-335);
+# die Namen entsprechen `beschriftungen` in themes/common.typ.
+ABSCHNITTE = ("profil", "erfahrung", "projekte", "weitere-projekte", "faehigkeiten", "lehre", "sprachen",
+              "interessen", "bildung")
+MAX_BESCHRIFTUNG = 60
 
 
 def waehle_sprache(wert, sprache: str):
@@ -51,6 +56,21 @@ def pruefe_foto_optionen(optionen: dict) -> dict:
     return dict(optionen)
 
 
+def pruefe_beschriftungen(werte) -> dict:
+    """`x-beschriftungen` prüfen: eigene Überschriften je Abschnitt, z.B. {erfahrung: Schnupperlehren}."""
+    if not isinstance(werte, dict):
+        raise ValueError("x-beschriftungen muss eine Zuordnung sein, z.B. {erfahrung: Schnupperlehren & Erfahrungen}")
+    unbekannt = set(werte) - set(ABSCHNITTE)
+    if unbekannt:
+        raise ValueError(f"x-beschriftungen: unbekannte Abschnitte {sorted(unbekannt)}; erlaubt sind {', '.join(ABSCHNITTE)}")
+    for key, text in werte.items():
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError(f"x-beschriftungen.{key} muss ein nicht leerer Text sein")
+        if len(text) > MAX_BESCHRIFTUNG:
+            raise ValueError(f"x-beschriftungen.{key} darf höchstens {MAX_BESCHRIFTUNG} Zeichen haben")
+    return {key: text.strip() for key, text in werte.items()}
+
+
 def typst_pfad(pfad: pathlib.Path, wurzel: pathlib.Path) -> str:
     """Pfad so, wie Typst ihn relativ zum Projekt-Stammordner erwartet."""
     return "/" + pfad.relative_to(wurzel).as_posix()
@@ -72,6 +92,8 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     cv = waehle_sprache(tailor(cv, job), args.lang)
     if "x-image" in cv.get("basics", {}):
         cv["basics"]["x-image"] = pruefe_foto_optionen(cv["basics"]["x-image"])
+    if "x-beschriftungen" in cv:
+        cv["x-beschriftungen"] = pruefe_beschriftungen(cv["x-beschriftungen"])
 
     build = pathlib.Path(args.build_dir).resolve() if args.build_dir else ROOT / "build"
     build.mkdir(parents=True, exist_ok=True)

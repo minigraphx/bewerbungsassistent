@@ -33,6 +33,7 @@ Erweiterungen:
 | `x-display` | eigener Text statt Zeitraum, z.B. `seit 2021` |
 | `text` | (Bildung/Zertifikate) fertiger Satz statt Zusammensetzung |
 | `tags` | an Einträgen und Stichpunkten, für den Zuschnitt |
+| `x-beschriftungen` | eigene Überschriften je Abschnitt, Text oder `{de, en}`, z.B. für Schülerlebensläufe: `{erfahrung: Schnupperlehren & Erfahrungen, bildung: Schule & Eignungstests}`. Abschnitte: `profil`, `erfahrung`, `projekte`, `weitere-projekte`, `faehigkeiten`, `lehre`, `sprachen`, `interessen`, `bildung` |
 
 Daten: `"2022-06"` wird zu „Juni 2022“, `2018` bleibt eine Jahreszahl; fehlendes `endDate` heisst „heute“.
 
