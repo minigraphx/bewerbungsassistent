@@ -16,7 +16,7 @@ Stand 2.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026). Er
 | Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** in der App oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
 | Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
 | Hosting | Im Pilot nur die KI-Vermittlung, auf dem bestehenden Hosting des Projektinhabers in der Schweiz. Für den Onlinedienst wird es später entschieden. |
-| Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. |
+| Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. **Schülerinnen und Schüler** (Lehrstellensuche) nutzen den Assistenten **generell kostenlos**, auch nach dem Pilot. |
 
 Die App enthält denselben Code wie das Repo; wer technisch versiert ist, arbeitet weiter mit Repo und Claude Code. Der spätere Onlinedienst ist dieselbe App in einem Container pro Person.
 
@@ -242,7 +242,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 
 - **Minderjährige:**
   - In die Bearbeitung ihrer Daten willigen sie selbst ein, sofern sie urteilsfähig sind. Im Pilot werden die Eltern zusätzlich informiert und stimmen zu, weil die KI in der Testphase auch in den USA verarbeitet.
-  - Für ein kostenpflichtiges Abo braucht es die Zustimmung der Eltern.
+  - Die Lehrstellensuche ist kostenlos; eine Zahlung und damit die Zustimmung der Eltern zu einem Abo entfallen.
 - **Zeitpunkt:** Lehrstellen werden oft schon im Herbst und Winter vor dem Lehrbeginn vergeben, und die zwei suchen jetzt. Darum beginnen sie mit dem Einstieg (MIN-332, MIN-333), bevor die App fertig ist: Die Interviews führt der Projektinhaber mit ihnen in Claude Code.
 - **Technik:**
   - Das Register unterscheidet die Art einer Ausschreibung (Stelle, Lehrstelle, Schnupperlehre).
@@ -295,7 +295,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 
 ## Abo (Phase 2, Vorschlag)
 
-**Preis:** CHF 12–19 pro Monat, monatlich kündbar. Als Alternative ein „Paket Stellensuche“ über 3 Monate. Für die Ausbildungssuche wäre ein Paket über die Zeit der Lehrstellensuche passend.
+**Preis:** CHF 12–19 pro Monat, monatlich kündbar. Als Alternative ein „Paket Stellensuche“ über 3 Monate. Für Schülerinnen und Schüler ist die Lehrstellensuche kostenlos (Entscheid 2.11.2026). Ihr Zugang zur Vermittlung hat trotzdem ein Budget; die Kosten trägt das Abo der übrigen Personen oder eine Unterstützung (z.B. Stiftung, Gemeinde), zu klären nach dem Pilot.
 
 **KI-Kontingent im Preis:** zum Beispiel 30 Anschreiben pro Monat. Es deckelt die Kosten pro Person.
 
@@ -315,7 +315,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 1. **LinkedIn:** Wie geht es nach den ersten Erfahrungen mit der halbautomatischen Übernahme weiter?
 2. **Signatur der App:** Apple-Entwicklerkonto für den Pilot; unter Windows Signatur oder Anleitung (MIN-342).
 3. **Nach dem Pilot:** gehosteter Onlinedienst (MIN-343), App mit Abo-Zugang zur Vermittlung oder beides?
-4. **Kostenlose Konten:** Dürfen sie im Release über die Claude API in den USA laufen (MIN-337)?
+4. **Kostenlose Konten:** Dürfen sie im Release über die Claude API in den USA laufen (MIN-337)? Empfehlung: nicht für Schülerinnen und Schüler. Sie sind meist minderjährig, ihre Konten sind immer kostenlos und laufen darum im Release wie alle anderen nur in der EU.
 5. **EU-Anbieter im Release:** Bedrock EU oder Vertex AI „eu“ (MIN-337)?
 6. **Hosting-Anbieter:** Die Vermittlung läuft im Pilot auf dem bestehenden Hosting; für den Onlinedienst wird nach dem Pilot entschieden.
 7. **Träger und Rechtsform** für das Abo. Erst nach dem Pilot zu entscheiden.
