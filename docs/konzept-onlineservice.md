@@ -1,6 +1,6 @@
 # Konzept: Bewerbungsassistent als Onlinedienst (MIN-305)
 
-Stand 2.11.2026; ersetzt den Entwurf vom 26.10.2026. Das Konzept ist eine Entscheidungsgrundlage für den Meilenstein „Onlineservice für nicht versierte Nutzer“. Umgesetzt wird erst nach Freigabe.
+Stand 2.11.2026 (freigegeben); ersetzt den Entwurf vom 26.10.2026. Grundlage für die Meilensteine „Onlinedienst: Pilot“ und „Onlinedienst: Release (Abo, EU)“ im Linear-Projekt.
 
 ## Entscheide
 
@@ -8,12 +8,12 @@ Stand 2.11.2026; ersetzt den Entwurf vom 26.10.2026. Das Konzept ist eine Entsch
 |---|---|
 | Zielgruppe | Zuerst ein **Pilot mit 5–10 Personen aus dem Bekanntenkreis**, betrieben vom Projektinhaber. Nach dem Pilot wird über einen öffentlichen Dienst entschieden. |
 | Kernstück | Die **Stellensuche**: Sie dauert heute am längsten und gehört darum in den Pilot. |
-| KI | Der Dienst ruft die KI mit eigenem Schlüssel auf und trägt die Kosten. Zuerst über die **Claude API von Anthropic**, eine Verarbeitung in der EU (Bedrock) folgt später. |
+| KI | Der Dienst ruft die KI mit eigenem Schlüssel auf und trägt die Kosten. In der **Testphase** (Pilot, eventuell kostenlose Konten) läuft sie über die **Claude API von Anthropic**, auch in den USA. Im **Release** gibt es **keine Verarbeitung in den USA** mehr, nur noch in der EU. |
 | Modell | Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 im Pilot verglichen. |
-| Personendaten an die KI | Sie werden **durch Platzhalter ersetzt** (Pseudonymisierung). |
+| Personendaten an die KI | Sie werden **von Anfang an**, schon vor dem ersten KI-Aufruf im Pilot, **durch Platzhalter ersetzt** (Pseudonymisierung). So gehen auch in der Testphase nicht alle Daten in die USA. |
 | LinkedIn | **Halbautomatisch:** Die Person sitzt am Rechner und öffnet die Stellenübersicht selbst. Wie es weitergeht, wird nach ersten Erfahrungen entschieden. |
 | Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
-| Ausbildungssuche | Sie gehört zur fertigen Version, damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können. Es gibt bereits 2 Interessierte. |
+| Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
 | Hosting | Wird später entschieden. |
 | Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. |
 
@@ -23,17 +23,18 @@ Die lokale Variante bleibt bestehen. Sie ist für technisch Versierte die datens
 
 - **Stellensuchende ohne technische Kenntnisse:** Sie brauchen kein Python, kein Git und keine Kommandozeile. Sie arbeiten im Browser nach demselben Ablauf wie lokal: Suche → Stelle → Unterlagen → Prüfung → Versand.
   - Nutzen: Passende Stellen finden sie schneller. Pro Stelle entstehen ein passender Lebenslauf und ein Anschreiben im eigenen Stil, in dem jede Aussage belegt ist. Dazu kommen eine Übersicht über alle Bewerbungen und die Angaben für den Job-Room.
-- **Schulabgängerinnen und Schulabgänger** (fertige Version): Sie suchen Lehrstellen und Schnupperlehren und erstellen ihr erstes Bewerbungsdossier (siehe [Ausbildungssuche](#ausbildungssuche-fertige-version)).
+- **Schulabgängerinnen und Schulabgänger** (2 im Pilot, ausgebaut in der fertigen Version): Sie suchen Lehrstellen und Schnupperlehren und erstellen ihr erstes Bewerbungsdossier (siehe [Ausbildungssuche](#ausbildungssuche)).
 
 ## Phasen
 
-1. **Pilot** (etwa 3 Monate, gratis, auf Einladung). Er soll drei Fragen klären: Spart die Suche wirklich Zeit? Kommen nicht versierte Personen damit zurecht? Was kostet eine aktive Person pro Monat?
-2. **Öffentlicher Dienst mit Abo** und Ausbildungssuche. Er kommt nur, wenn der Pilot die Erfolgskriterien erfüllt.
+1. **Pilot = Testphase** (etwa 3 Monate, gratis, auf Einladung, KI über die Claude API). Er soll drei Fragen klären: Spart die Suche wirklich Zeit? Kommen nicht versierte Personen damit zurecht? Was kostet eine aktive Person pro Monat?
+2. **Release: öffentlicher Dienst mit Abo**, KI-Verarbeitung nur in der EU, Ausbildungssuche ausgebaut. Er kommt nur, wenn der Pilot die Erfolgskriterien erfüllt.
 
 Erfolgskriterien des Pilots:
 
 - Eine wöchentliche Suche samt Bewertung der Treffer dauert für die Person unter 15 Minuten.
 - Mindestens 5 Personen schicken je mindestens 3 Bewerbungen ab, die mit dem Dienst erstellt wurden.
+- Beide Lehrstellensuchenden schicken Bewerbungen mit Lebenslauf und Motivationsschreiben aus dem Assistenten ab.
 - Eine Bewerbung dauert von der Stelle bis zu den fertigen PDFs unter 30 Minuten.
 - Die KI-Kosten liegen unter CHF 10 pro aktive Person und Monat (gemessen, nicht geschätzt).
 - Kein Datenschutzvorfall, und keine Person sieht Daten einer anderen.
@@ -44,9 +45,10 @@ Erfolgskriterien des Pilots:
 | Enthalten | Nicht im Pilot |
 |---|---|
 | Konto auf Einladung, Anmeldung mit Passkey oder E-Mail-Link | Versand durch den Dienst (die Person schickt selbst ab) |
+| **Lehrstellensuche, Grundlagen:** Art der Ausschreibung, Suchprofil nach Berufen, Schülerlebenslauf, Motivationsschreiben; Lehrstellen per Text einfügen | Lehrstellenportale in der Erweiterung, Lesezugang für Begleitpersonen |
 | **Einstieg** auf drei Wegen (siehe unten): Lebenslauf, Suchprofil, Stilprofil, Bausteine | Erinnerungen per E-Mail |
 | **Stellensuche** über die Browser-Erweiterung auf job-room, jobs.ch, jobscout24, ictjobs und Karriereseiten nach dem Suchprofil, LinkedIn halbautomatisch | Coaches und Begleitpersonen |
-| KI-Bewertung jedes Treffers (Note 1–6 mit Begründung), Abgleich gegen Doppelbewerbungen | Ausbildungssuche (kommt mit der fertigen Version) |
+| KI-Bewertung jedes Treffers (Note 1–6 mit Begründung), Abgleich gegen Doppelbewerbungen | |
 | Stelle erfassen: übernehmen aus Suche oder offenem Inserat, oder Text einfügen | Französisch, Englisch |
 | Lebenslauf, Themes, Foto (Metadaten werden entfernt), Lebenslauf-Variante vorschlagen (regelbasiert wie heute) | |
 | Anschreiben-Entwurf im eigenen Stil (KI) mit Überarbeitung | |
@@ -130,16 +132,22 @@ Im Pilot werden die echten Werte pro Aufruf protokolliert, ohne Inhalte. Für di
 
 ### Datenstandort und Datenminimierung
 
-**Zuerst die Claude API von Anthropic.** Bei ihr lässt sich die Region nur auf „global“ oder „us“ festlegen; eine Region in der EU oder der Schweiz gibt es nicht. Die Daten gehen damit ins Ausland, auch in die USA. Daraus folgt:
+**Testphase (Pilot, eventuell kostenlose Konten): Claude API von Anthropic.** Bei ihr lässt sich die Region nur auf „global“ oder „us“ festlegen; eine Region in der EU oder der Schweiz gibt es nicht. Die Daten gehen damit auch in die USA. Daraus folgt:
 
 - **Rechtsgrundlage:** Nach Art. 16 DSG ist das zulässig, wenn ein angemessener Schutz besteht. Zu prüfen ist, ob Anthropic unter dem Swiss-U.S. Data Privacy Framework zertifiziert ist; sonst braucht es Standardvertragsklauseln.
-- **Information:** Die Datenschutzerklärung und die Einwilligung nennen das ausdrücklich.
+- **Information:** Die Datenschutzerklärung und die Einwilligung nennen das ausdrücklich, bei Minderjährigen auch gegenüber den Eltern.
 
-**Später: EU über Amazon Bedrock.** Die aktuellen Claude-Modelle laufen dort in Zürich (eu-central-2) nicht direkt in der Region. Mit der Geo-Inferenz „EU“ bleibt die Verarbeitung aber in EU-Regionen und Zürich. Google Vertex AI mit der Multi-Region „eu“ wäre eine Alternative. Der Code nutzt das Anthropic SDK, ein Wechsel ist darum vor allem Konfiguration. Die Preise weichen ab.
+**Release: nur EU, keine Verarbeitung in den USA.**
 
-**Datenminimierung (entschieden):**
+- Die aktuellen Claude-Modelle laufen auf Amazon Bedrock in Zürich (eu-central-2) nicht direkt in der Region. Mit der Geo-Inferenz „EU“ bleibt die Verarbeitung aber in EU-Regionen und Zürich.
+- Google Vertex AI mit der Multi-Region „eu“ wäre eine Alternative.
+- Der Code nutzt das Anthropic SDK, ein Wechsel ist darum vor allem Konfiguration. Die Preise weichen ab.
+- Ob kostenlose Konten weiter über die USA laufen dürfen, ist offen (MIN-337).
 
-- Name, Adresse, Geburtsdatum, Telefon und E-Mail werden vor jedem KI-Aufruf durch Platzhalter ersetzt und danach wieder eingesetzt.
+**Datenminimierung von Anfang an (MIN-334):**
+
+- Name, Adresse, Geburtsdatum, Telefon, E-Mail, Profil-Links sowie Namen von Referenz- und Ansprechpersonen werden vor jedem KI-Aufruf durch Platzhalter ersetzt und danach wieder eingesetzt.
+- Bei Minderjährigen gehen Schule und Wohnort nur so genau wie nötig mit.
 - Das Foto geht nie an die KI.
 - Inseratstexte bleiben Daten: Anweisungsartige Zeilen werden wie im Skill `bewerbung` erkannt und gemeldet.
 
@@ -155,7 +163,7 @@ Browser der Person ──── Portal-Tabs (job-room, jobs.ch …) ◀── Er
                          │
                          ├─▶ Container Person A: app.py + Typst ──▶ Volume A (Datenordner, verschlüsselt)
                          ├─▶ Container Person B: …
-                         └─▶ KI-Aufrufe (pseudonymisiert) ──▶ Claude API, später Bedrock EU
+                         └─▶ KI-Aufrufe (pseudonymisiert) ──▶ Testphase: Claude API · Release: nur EU
 ```
 
 - **Server:** 1 virtueller Server mit Docker; der Anbieter wird später gewählt. 10 Personen brauchen je etwa 100–200 MB RAM; Typst rendert einen Lebenslauf in rund 300 ms.
@@ -172,9 +180,9 @@ Browser der Person ──── Portal-Tabs (job-room, jobs.ch …) ◀── Er
 
 Für das Abo mit mehr als etwa 50 Personen reicht ein Container pro Person nicht mehr: Die Kosten und der Betrieb wachsen pro Person. Dann bekommen Register, Entwürfe und Versionen eine Server-Umsetzung derselben Schnittstellen: Datenbank statt YAML, Objektspeicher statt Ordner.
 
-## Ausbildungssuche (fertige Version)
+## Ausbildungssuche
 
-Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können, kommt eine Suche nach Lehrstellen (EFZ, EBA) und Schnupperlehren dazu. Der Ablauf bleibt gleich, die Inhalte unterscheiden sich:
+Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können, kommt eine Suche nach Lehrstellen (EFZ, EBA) und Schnupperlehren dazu. Zwei Lehrstellensuchende, die aktuell suchen, machen im Pilot mit (MIN-335). Im Pilot kommen die Lehrstellen per Text einfügen dazu, die Portale folgen in der Erweiterung. Der Ablauf bleibt gleich, die Inhalte unterscheiden sich:
 
 | Thema | Stellensuche | Ausbildungssuche |
 |---|---|---|
@@ -189,14 +197,12 @@ Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können, kom
 **Besonderheiten:**
 
 - **Minderjährige:**
-  - In die Bearbeitung ihrer Daten willigen sie selbst ein, sofern sie urteilsfähig sind. Für ein kostenpflichtiges Abo braucht es die Zustimmung der Eltern.
-  - Weil die Daten an einen KI-Anbieter in den USA gehen, sollten die Eltern auch dazu informiert sein. Für diese Gruppe spricht viel dafür, die Verarbeitung in der EU (Bedrock) vorzuziehen.
-- **Zeitpunkt:** Lehrstellen werden oft schon im Herbst und Winter vor dem Lehrbeginn vergeben. Bei den zwei Interessierten ist zu klären, für welchen Lehrbeginn sie suchen. Für einen Lehrbeginn 2027 läuft die Suche bereits.
+  - In die Bearbeitung ihrer Daten willigen sie selbst ein, sofern sie urteilsfähig sind. Im Pilot werden die Eltern zusätzlich informiert und stimmen zu, weil die KI in der Testphase auch in den USA verarbeitet.
+  - Für ein kostenpflichtiges Abo braucht es die Zustimmung der Eltern.
+- **Zeitpunkt:** Lehrstellen werden oft schon im Herbst und Winter vor dem Lehrbeginn vergeben, und die zwei suchen jetzt. Darum beginnen sie mit dem Einstieg (MIN-332, MIN-333) und der lokalen Variante, bevor der Dienst läuft.
 - **Technik:**
   - Das Register unterscheidet die Art einer Ausschreibung (Stelle, Lehrstelle, Schnupperlehre).
   - Es braucht ein Theme für Lebensläufe von Schülerinnen und Schülern und Vorlagen für Motivationsschreiben (in der Regel Sie-Form).
-
-Der Einstieg per Interview und HTML-Vorlage ist der erste Baustein, den die Ausbildungssuche braucht. Er lässt sich mit den zwei Interessierten früh testen, auch bevor der Dienst läuft.
 
 ## Datenschutz und Recht
 
@@ -210,7 +216,7 @@ Der Einstieg per Interview und HTML-Vorlage ist der erste Baustein, den die Ausb
 **Schon im Pilot nötig:**
 
 - **Datenschutzerklärung und Einwilligung:** Sie sagen, wo die Daten liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und wie lange die Daten gespeichert bleiben.
-- **Auftragsverarbeitung:** Verträge mit dem Hosting-Anbieter und mit Anthropic. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden.
+- **Auftragsverarbeitung:** Verträge mit dem Hosting-Anbieter und mit Anthropic, im Release mit dem EU-Anbieter. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden.
 - **Löschung:** Nach dem Pilot werden die Daten exportiert und gelöscht, ausser die Person will weitermachen. Inaktive Konten werden 12 Monate nach der letzten Anmeldung gelöscht, mit Vorwarnung.
 - **Datensparsamer Betrieb:** keine Tracker, Protokolle ohne Inhalte.
 
@@ -254,21 +260,34 @@ Der Einstieg per Interview und HTML-Vorlage ist der erste Baustein, den die Ausb
 ## Offene Entscheide
 
 1. **LinkedIn:** Wie geht es nach den ersten Erfahrungen mit der halbautomatischen Übernahme weiter?
-2. **Ausbildungssuche im Pilot:** Machen die zwei Interessierten schon im Pilot mit, als zweite Gruppe mit Einstieg und Lehrstellensuche per Text einfügen, bis die Erweiterung die Lehrstellenportale kann?
-3. **Verarbeitung in der EU:** Wann wechselt die KI auf Bedrock EU, spätestens vor Minderjährigen im Dienst?
-4. **Hosting-Anbieter:** Offerten für Server, Volumes und Sicherung einholen.
+2. **Kostenlose Konten:** Dürfen sie im Release über die Claude API in den USA laufen (MIN-337)?
+3. **EU-Anbieter im Release:** Bedrock EU oder Vertex AI „eu“ (MIN-337)?
+4. **Hosting-Anbieter:** zuerst für die Testphase (MIN-340), über das Hosting im Release wird später entschieden.
 5. **Träger und Rechtsform** für das Abo. Erst nach dem Pilot zu entscheiden.
 
-## Nächste Schritte
+## Arbeitsschritte (Linear)
 
-1. Dieses Konzept freigeben (MIN-305).
-2. **Einstieg:** Skill `einstieg` (Interview mit Claude) und HTML-Vorlage, mit demselben Ergebnis (`cv.yaml`, Suchprofil, Stilprofil, Bausteine). Das ist auch ohne Dienst nutzbar und mit den zwei Interessierten früh testbar.
-3. **KI-Modul `ki.py`** mit Pseudonymisierung, lokal mit eigenem API-Schlüssel: Treffer bewerten, Anschreiben entwerfen, inhaltlich prüfen, Interview.
-4. **Browser-Erweiterung** mit Suche nach dem Suchprofil (job-room, jobs.ch, jobscout24, ictjobs, Karriereseiten), Übernahme des offenen Inserats und LinkedIn halbautomatisch.
-5. **Betrieb hinter Proxy:** Host-Prüfung, Anmeldung über den Proxy, Container pro Person, Sicherung.
-6. **Rechtstexte für den Pilot:** Datenschutzerklärung, Einwilligung, Verträge zur Auftragsverarbeitung.
-7. **Pilot** durchführen und nach 3 Monaten auswerten: Erfolgskriterien, gemessene Kosten, Entscheid über Phase 2.
-8. **Ausbildungssuche:** Quellen und Zugriff prüfen, Register und Themes erweitern, Lesezugang für Begleitpersonen.
+Meilenstein **„Onlinedienst: Pilot“**:
+
+| Ticket | Inhalt | Priorität |
+|---|---|---|
+| MIN-332 | Einstieg per Interview: Skill `einstieg` (Stellen- und Lehrstellensuche) | hoch |
+| MIN-333 | Einstieg per HTML-Vorlage zum Ausfüllen, mit Import | hoch |
+| MIN-334 | Pseudonymisierung vor jedem KI-Aufruf | hoch |
+| MIN-335 | Lehrstellensuche: Grundlagen für den Pilot | hoch |
+| MIN-339 | Browser-Erweiterung: Stellensuche mit IP und Login der Person, LinkedIn halbautomatisch | hoch |
+| MIN-338 | KI-Modul `ki.py` (nach MIN-334) | mittel |
+| MIN-340 | Betrieb: Proxy, Anmeldung, Container pro Person, Sicherung | mittel |
+| MIN-336 | Rechtstexte: Datenschutz, Einwilligung (auch der Eltern), Auftragsverarbeitung | mittel |
+| MIN-341 | Pilot durchführen und auswerten (nach MIN-336, MIN-338, MIN-339, MIN-340) | mittel |
+
+Meilenstein **„Onlinedienst: Release (Abo, EU)“**:
+
+| Ticket | Inhalt |
+|---|---|
+| MIN-337 | KI-Verarbeitung nur in der EU |
+
+Später folgen: Zahlung und Abo, Nutzungsbedingungen, Lesezugang für Begleitpersonen, Lehrstellenportale in der Erweiterung, Datenbank statt Container pro Person.
 
 ## Quellen
 
