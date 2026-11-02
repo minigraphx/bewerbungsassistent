@@ -20,7 +20,7 @@ Leitlinie wie im Skill `bewerbung`: Jede Angabe ist **belegt**. Belegt heisst: D
 - **Datenordner:**
   - Pfad erfragen. Er liegt ausserhalb jedes öffentlichen Repos, bei mehreren Personen einer pro Person.
   - Fehlt er, anlegen und mit `git init` versehen.
-  - Ohne Repo und Dateizugriff (z.B. in claude.ai) werden die vier Dateien am Ende zum Herunterladen ausgegeben.
+  - Ohne Repo und Dateizugriff (z.B. in claude.ai) werden die vier Dateien am Ende zum Herunterladen ausgegeben, oder eine `einstieg.json` im Format von `onboarding/form.json`, die die Person in der Einstiegsvorlage lädt, prüft und ergänzt.
 - **Vorhandene Unterlagen:**
   - Alten Lebenslauf, Zeugnisse oder frühere Anschreiben lesen, falls die Person sie hat.
   - Das Interview fragt dann nur noch nach, was fehlt oder unklar ist.

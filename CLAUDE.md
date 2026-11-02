@@ -5,6 +5,7 @@
 ## Aufbau
 - `lebenslauf/` – Lebenslauf und Anschreiben als PDF (eigene `CLAUDE.md` dort).
 - `bewerbungen/` – lokale Oberfläche und Verwaltung: Register, Unterlagen, Prüfung, Versand, Entwürfe/Versionen (eigene `CLAUDE.md`). Baut auf `lebenslauf/` auf.
+- `onboarding/` – Einstiegsvorlage: eine HTML-Datei (`dist/einstieg.html`, gebaut aus `src/` und `form.json`) und Import nach `cv.yaml`, Suchprofil, Stil und Bausteine. Nach Änderungen `build_template.py` laufen lassen; Prüfregeln in JS und Python über `tests/cases.json` gleich halten.
 - `skills/einstieg/SKILL.md` – Interview für den Einstieg: Lebenslauf, Suchprofil, Stilprofil, Bausteine; Zweige Stellen- und Lehrstellensuche.
 - `skills/jobsuche/SKILL.md` – allgemeiner Skill für die Stellensuche; alles Persönliche steht im Suchprofil.
 - `skills/bewerbung/SKILL.md` – Skill für den Ablauf Stelle → Unterlagen → Prüfung → Versand; Persönliches in Stilprofil und Bausteinen.

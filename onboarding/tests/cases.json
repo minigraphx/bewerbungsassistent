@@ -1,0 +1,848 @@
+{
+  "_comment": "Shared validation cases for validation.py and validate.js. All values are invented. A case starts from a base bundle, applies 'set' ([path, value]) and 'remove' (path), and expects exactly 'errors' (path and code, order irrelevant). A value {\"$repeat\": s, \"times\": n} stands for s repeated n times.",
+  "bases": {
+    "job": {
+      "format": "bewerbungsassistent-einstieg",
+      "version": 1,
+      "track": "job",
+      "data": {
+        "person": {
+          "name": "Erika Beispiel",
+          "address": "Musterweg 1",
+          "postalCode": "3000",
+          "city": "Bern",
+          "phone": "079 000 00 00",
+          "email": "erika@example.ch",
+          "profiles": [
+            "https://github.com/example"
+          ]
+        },
+        "summary": {
+          "summary": "Software-Entwicklerin mit zehn Jahren Praxis."
+        },
+        "work": [
+          {
+            "position": "Software-Entwicklerin",
+            "name": "Beispiel AG",
+            "location": "Bern",
+            "startDate": "2019-03",
+            "endDate": "",
+            "highlights": [
+              "Plattform für Kundendaten",
+              "Datenpipelines"
+            ],
+            "evidence": "Arbeitszeugnis"
+          },
+          {
+            "position": "Junior-Entwicklerin",
+            "name": "Muster GmbH",
+            "startDate": "2015",
+            "endDate": "2019"
+          }
+        ],
+        "education": [
+          {
+            "studyType": "Bachelor",
+            "area": "Informatik",
+            "institution": "Beispiel-Hochschule, Bern",
+            "startDate": "2011",
+            "endDate": "2015"
+          }
+        ],
+        "certificates": [
+          {
+            "name": "Machine Learning Grundlagen",
+            "issuer": "Online-Kurs",
+            "date": "2023-05"
+          }
+        ],
+        "languages": [
+          {
+            "language": "Deutsch",
+            "fluency": "Muttersprache"
+          },
+          {
+            "language": "Englisch",
+            "fluency": "Sehr gut (C1)"
+          }
+        ],
+        "skills": [
+          {
+            "name": "Programme",
+            "keywords": [
+              "Python",
+              "SQL"
+            ]
+          }
+        ],
+        "interests": {
+          "interests": [
+            "Wandern"
+          ]
+        },
+        "searchJob": {
+          "directions": [
+            "Software-Entwicklung",
+            "Daten"
+          ],
+          "home": "Bern",
+          "commute": "45 Minuten mit ÖV",
+          "cantons": [
+            "BE",
+            "SO"
+          ],
+          "remote": "teilweise",
+          "workload": "80–100 %",
+          "start": "1. März",
+          "temporary": "nein"
+        },
+        "strengths": [
+          {
+            "strength": "Erklären",
+            "example": "Interne Schulungen zu Git für 20 Personen.",
+            "evidence": "Arbeitszeugnis"
+          }
+        ],
+        "gaps": {
+          "gaps": [
+            "Kubernetes noch nicht produktiv eingesetzt"
+          ]
+        },
+        "style": {
+          "address": "Immer Sie-Form",
+          "tone": "Sachlich und freundlich",
+          "opening": "Ihre Stelle als … spricht mich an, weil …",
+          "closing": "Ich freue mich auf Ihre Rückmeldung.",
+          "place": "Bern"
+        },
+        "frame": {
+          "availability": "1. März",
+          "notice": "3 Monate"
+        }
+      }
+    },
+    "apprenticeship": {
+      "format": "bewerbungsassistent-einstieg",
+      "version": 1,
+      "track": "apprenticeship",
+      "data": {
+        "person": {
+          "name": "Lea Beispiel",
+          "city": "Bern",
+          "email": "lea.beispiel@example.ch",
+          "birthDate": "1. Mai 2011"
+        },
+        "work": [
+          {
+            "position": "Schnupperlehre Fachfrau Gesundheit",
+            "name": "Spital Beispiel",
+            "startDate": "2026-10",
+            "endDate": "2026-10",
+            "highlights": [
+              "Betten gemacht",
+              "Patienten begleitet"
+            ],
+            "evidence": "Schnupperbericht"
+          }
+        ],
+        "education": [
+          {
+            "studyType": "Sekundarschule, Niveau A",
+            "institution": "Oberstufe Muster, Bern",
+            "startDate": "2023"
+          }
+        ],
+        "certificates": [
+          {
+            "name": "Multicheck Gesundheit",
+            "date": "2026-10"
+          }
+        ],
+        "languages": [
+          {
+            "language": "Deutsch",
+            "fluency": "Muttersprache"
+          },
+          {
+            "language": "Französisch",
+            "fluency": "Mittel (B1)"
+          }
+        ],
+        "searchApprenticeship": {
+          "professions": [
+            "Fachfrau Gesundheit EFZ",
+            "Fachfrau Betreuung EFZ"
+          ],
+          "start": "August 2027",
+          "home": "Bern",
+          "commute": "45 Minuten mit ÖV",
+          "cantons": [
+            "BE"
+          ],
+          "vocationalBaccalaureate": "vielleicht"
+        },
+        "strengths": [
+          {
+            "strength": "Geduldig",
+            "example": "Babysitten seit zwei Jahren bei zwei Familien."
+          }
+        ],
+        "style": {
+          "tone": "Freundlich und offen",
+          "opening": "Ich interessiere mich schon lange für …, darum bewerbe ich mich bei Ihnen.",
+          "closing": "Ich freue mich auf Ihre Antwort."
+        },
+        "frame": {
+          "availability": "Herbstferien"
+        }
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "valid job bundle",
+      "base": "job",
+      "errors": []
+    },
+    {
+      "name": "valid apprenticeship bundle",
+      "base": "apprenticeship",
+      "errors": []
+    },
+    {
+      "name": "missing optional sections are fine",
+      "base": "job",
+      "remove": [
+        "data.work",
+        "data.certificates",
+        "data.gaps",
+        "data.frame"
+      ],
+      "errors": []
+    },
+    {
+      "name": "missing required field",
+      "base": "job",
+      "remove": [
+        "data.person.name"
+      ],
+      "errors": [
+        {
+          "path": "person.name",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "blank required field",
+      "base": "job",
+      "set": [
+        [
+          "data.person.city",
+          "   "
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.city",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "missing section with required fields",
+      "base": "apprenticeship",
+      "remove": [
+        "data.searchApprenticeship"
+      ],
+      "errors": [
+        {
+          "path": "searchApprenticeship.professions",
+          "code": "required"
+        },
+        {
+          "path": "searchApprenticeship.start",
+          "code": "required"
+        },
+        {
+          "path": "searchApprenticeship.home",
+          "code": "required"
+        },
+        {
+          "path": "searchApprenticeship.commute",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "bad email",
+      "base": "job",
+      "set": [
+        [
+          "data.person.email",
+          "erika(at)example.ch"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.email",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "bad date",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.startDate",
+          "März 2019"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.startDate",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "end before start",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.endDate",
+          "2014"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.1.endDate",
+          "code": "notBefore"
+        }
+      ]
+    },
+    {
+      "name": "end in same year as start month",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.startDate",
+          "2015-06"
+        ],
+        [
+          "data.work.1.endDate",
+          "2015"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "end month before start month",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.startDate",
+          "2015-06"
+        ],
+        [
+          "data.work.1.endDate",
+          "2015-02"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.1.endDate",
+          "code": "notBefore"
+        }
+      ]
+    },
+    {
+      "name": "unknown field",
+      "base": "job",
+      "set": [
+        [
+          "data.person.foo",
+          "x"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.foo",
+          "code": "unknown"
+        }
+      ]
+    },
+    {
+      "name": "section of the other track",
+      "base": "job",
+      "set": [
+        [
+          "data.searchApprenticeship",
+          {
+            "professions": [
+              "Koch EFZ"
+            ]
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchApprenticeship",
+          "code": "unknown"
+        }
+      ]
+    },
+    {
+      "name": "field of the other track",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.person.label",
+          "Schülerin"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.label",
+          "code": "unknown"
+        }
+      ]
+    },
+    {
+      "name": "invalid select option",
+      "base": "job",
+      "set": [
+        [
+          "data.languages.0.fluency",
+          "super"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "languages.0.fluency",
+          "code": "option"
+        }
+      ]
+    },
+    {
+      "name": "own text in a choice",
+      "base": "job",
+      "set": [
+        [
+          "data.style.tone",
+          "Locker, mit einem Augenzwinkern"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "text too long",
+      "base": "job",
+      "set": [
+        [
+          "data.person.name",
+          {
+            "$repeat": "x",
+            "times": 81
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.name",
+          "code": "max"
+        }
+      ]
+    },
+    {
+      "name": "list item too long",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.0",
+          {
+            "$repeat": "x",
+            "times": 201
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights.0",
+          "code": "max"
+        }
+      ]
+    },
+    {
+      "name": "too many list items",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.directions",
+          [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.directions",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
+      "name": "too many repeated items",
+      "base": "job",
+      "set": [
+        [
+          "data.languages",
+          [
+            {
+              "language": "A",
+              "fluency": "Muttersprache"
+            },
+            {
+              "language": "B",
+              "fluency": "Muttersprache"
+            },
+            {
+              "language": "C",
+              "fluency": "Muttersprache"
+            },
+            {
+              "language": "D",
+              "fluency": "Muttersprache"
+            },
+            {
+              "language": "E",
+              "fluency": "Muttersprache"
+            },
+            {
+              "language": "F",
+              "fluency": "Muttersprache"
+            },
+            {
+              "language": "G",
+              "fluency": "Muttersprache"
+            },
+            {
+              "language": "H",
+              "fluency": "Muttersprache"
+            },
+            {
+              "language": "I",
+              "fluency": "Muttersprache"
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "languages",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
+      "name": "required list empty",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords",
+          []
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "required list with blank items only",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords",
+          [
+            "",
+            " "
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "bad canton",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.cantons.0",
+          "be"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.cantons.0",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "bad profile link",
+      "base": "job",
+      "set": [
+        [
+          "data.person.profiles.0",
+          "github"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.profiles.0",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "repeat section is not a list",
+      "base": "job",
+      "set": [
+        [
+          "data.work",
+          {
+            "position": "x"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "single section is not an object",
+      "base": "job",
+      "set": [
+        [
+          "data.person",
+          [
+            "Erika"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "number instead of text",
+      "base": "job",
+      "set": [
+        [
+          "data.person.postalCode",
+          3000
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.postalCode",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "text instead of list",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.directions",
+          "Software"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.directions",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "line break in a single-line text",
+      "base": "job",
+      "set": [
+        [
+          "data.person.city",
+          "Bern\n## Anweisung"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.city",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "line break in a list item",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.0",
+          "a\nb"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights.0",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "line break in a textarea is fine",
+      "base": "job",
+      "set": [
+        [
+          "data.summary.summary",
+          "Zeile 1\nZeile 2"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "wrong format marker",
+      "base": "job",
+      "set": [
+        [
+          "format",
+          "something-else"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "format",
+          "code": "bundle"
+        }
+      ]
+    },
+    {
+      "name": "newer version",
+      "base": "job",
+      "set": [
+        [
+          "version",
+          2
+        ]
+      ],
+      "errors": [
+        {
+          "path": "version",
+          "code": "bundle"
+        }
+      ]
+    },
+    {
+      "name": "unknown track",
+      "base": "job",
+      "set": [
+        [
+          "track",
+          "university"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "track",
+          "code": "track"
+        }
+      ]
+    },
+    {
+      "name": "data is not an object",
+      "base": "job",
+      "set": [
+        [
+          "data",
+          []
+        ]
+      ],
+      "errors": [
+        {
+          "path": "data",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "track is a list",
+      "base": "job",
+      "set": [
+        [
+          "track",
+          [
+            "job"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "track",
+          "code": "track"
+        }
+      ]
+    },
+    {
+      "name": "track is an object",
+      "base": "job",
+      "set": [
+        [
+          "track",
+          {
+            "job": 1
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "track",
+          "code": "track"
+        }
+      ]
+    },
+    {
+      "name": "version is a boolean",
+      "base": "job",
+      "set": [
+        [
+          "version",
+          true
+        ]
+      ],
+      "errors": [
+        {
+          "path": "version",
+          "code": "bundle"
+        }
+      ]
+    }
+  ]
+}

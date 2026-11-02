@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PpdLU4FrGGZr1vX6c/55u1ONDaCKwS0sSMuRMorSXJw='; style-src 'sha256-gu/Qf4c84bR+2WyGW7Mp82jlF9N7jgrSYoY7OGdEPnI='; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Einstieg – Bewerbungsassistent</title>
+<style>:root {
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --text: #1f2421;
+  --muted: #5b625e;
+  --line: #d9d6cd;
+  --accent: #1d6b5f;
+  --accent-text: #ffffff;
+  --accent-soft: #e3f0ec;
+  --danger: #a3271f;
+  --danger-soft: #fbeceb;
+  --radius: 10px;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171a19;
+    --surface: #212624;
+    --text: #e8ebe9;
+    --muted: #a3aba7;
+    --line: #3a413e;
+    --accent: #5fbfae;
+    --accent-text: #0e1513;
+    --accent-soft: #23342f;
+    --danger: #f08a80;
+    --danger-soft: #3a2422;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0 auto;
+  max-width: 46rem;
+  padding: 1.5rem 1rem 4rem;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+h1 { font-size: 1.9rem; margin: 0.1rem 0 0.4rem; }
+h2 { font-size: 1.4rem; margin: 0 0 0.5rem; }
+.brand { margin: 0; color: var(--accent); font-weight: 600; letter-spacing: 0.02em; }
+.privacy, .intro, .hint, .secondary, footer { color: var(--muted); }
+.hint { font-size: 0.92rem; margin: 0 0 0.3rem; }
+nav ol { list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0; margin: 1.2rem 0; }
+.step {
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: 0.25rem 0.75rem; font-size: 0.88rem; cursor: pointer;
+}
+.step.current { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.step.flagged:not(.current)::after { content: " •"; color: var(--danger); }
+main {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 1.5rem; outline: none;
+}
+.field { margin: 1.1rem 0; }
+label, legend { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+input[type="text"], input[type="email"], input[type="tel"], textarea, select {
+  width: 100%; padding: 0.6rem 0.7rem; font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px;
+}
+textarea { resize: vertical; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 3px solid var(--accent); outline-offset: 2px;
+}
+.invalid input, .invalid textarea, .invalid select { border-color: var(--danger); background: var(--danger-soft); }
+.error { color: var(--danger); font-size: 0.92rem; margin: 0.25rem 0 0; min-height: 0; }
+.error:empty { display: none; }
+fieldset { border: 0; padding: 0; margin: 0; }
+.choice .option { display: flex; align-items: baseline; gap: 0.5rem; font-weight: 400; margin: 0.35rem 0; }
+.choice .own-option { flex-wrap: wrap; }
+.choice .own { flex: 1 1 14rem; }
+.item {
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 0.4rem 1rem 1rem; margin: 1rem 0;
+}
+.item legend { padding: 0 0.3rem; font-size: 1.05rem; }
+button { font: inherit; cursor: pointer; }
+.nav-buttons { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem; }
+.nav-buttons button, .add, .remove, .primary, .confirm button {
+  padding: 0.55rem 1.1rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text);
+}
+.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+.nav-buttons .primary { margin-left: auto; }
+.remove { font-size: 0.9rem; color: var(--danger); }
+.add { border-style: dashed; width: 100%; }
+.danger { color: var(--danger); border-color: var(--danger); }
+.link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; text-align: left; }
+.tracks { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; margin: 1.2rem 0; }
+.track {
+  display: flex; flex-direction: column; gap: 0.3rem; text-align: left; padding: 1.1rem;
+  border: 2px solid var(--line); border-radius: var(--radius); background: var(--bg); color: var(--text);
+}
+.track strong { font-size: 1.1rem; }
+.track span { color: var(--muted); font-size: 0.95rem; }
+.track:hover, .track.selected { border-color: var(--accent); background: var(--accent-soft); }
+.summary ul { padding-left: 1.1rem; }
+.ok { background: var(--accent-soft); padding: 0.75rem 1rem; border-radius: 8px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+footer { font-size: 0.88rem; margin-top: 1rem; }
+@media (max-width: 30rem) {
+  body { padding: 1rem 0.75rem 3rem; }
+  main { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <p class="brand">Bewerbungsassistent</p>
+  <h1>Einstieg</h1>
+  <p class="privacy">Alles bleibt auf diesem Gerät. Die Seite verschickt nichts; am Schluss entsteht eine Datei zum Speichern.</p>
+</header>
+<nav id="steps" aria-label="Schritte"></nav>
+<main id="main" tabindex="-1"><noscript><p>Diese Vorlage braucht JavaScript. Bitte in einem aktuellen Browser öffnen.</p></noscript></main>
+<footer><p id="autosave" role="status"></p></footer>
+<script type="application/json" id="form-definition">{"format": "bewerbungsassistent-einstieg", "version": 1, "tracks": {"job": "Stellensuche", "apprenticeship": "Lehrstellensuche"}, "limits": {"text": 200, "textarea": 2000, "listItems": 20, "repeatItems": 20}, "formats": {"email": {"pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "example": "vorname.nachname@example.ch"}, "phone": {"pattern": "^\\+?[0-9 ()/-]{6,30}$", "example": "079 000 00 00"}, "date": {"pattern": "^[0-9]{4}(-(0[1-9]|1[0-2]))?$", "example": "2024 oder 2024-08"}, "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"}, "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"}, "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"}}, "sections": [{"id": "person", "title": "Person und Kontakt", "intro": {"job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen.", "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen."}, "fields": [{"id": "name", "label": "Vor- und Nachname", "type": "text", "required": true, "max": 80}, {"id": "label", "label": "Berufsbezeichnung unter dem Namen (freiwillig)", "type": "text", "max": 100, "tracks": ["job"], "placeholder": "z.B. Kaufmann EFZ – Buchhaltung und Administration"}, {"id": "address", "label": "Strasse und Nummer", "type": "text", "max": 100}, {"id": "postalCode", "label": "PLZ", "type": "text", "format": "postalCode"}, {"id": "city", "label": "Ort", "type": "text", "required": true, "max": 60}, {"id": "phone", "label": "Telefon", "type": "text", "format": "phone"}, {"id": "email", "label": "E-Mail", "type": "text", "required": true, "format": "email", "hint": {"apprenticeship": "Die Adresse soll seriös wirken, z.B. vorname.nachname@…"}}, {"id": "birthDate", "label": "Geburtsdatum (freiwillig)", "type": "text", "max": 30, "hint": {"apprenticeship": "Bei Lehrstellen ist das Geburtsdatum üblich."}}, {"id": "nationality", "label": "Nationalität (freiwillig)", "type": "text", "max": 60}, {"id": "profiles", "label": "Profil-Links, z.B. LinkedIn (freiwillig, ein Link pro Zeile)", "type": "list", "format": "url", "maxItems": 5, "tracks": ["job"]}]}, {"id": "summary", "title": "Kurzprofil", "tracks": ["job"], "intro": {"job": "Zwei bis drei Sätze oben im Lebenslauf: Erfahrung, Schwerpunkte, was Sie besonders gut können. Sie können das auch leer lassen."}, "fields": [{"id": "summary", "label": "Kurzprofil (freiwillig)", "type": "textarea", "max": 600}]}, {"id": "work", "title": {"job": "Berufliche Stationen", "apprenticeship": "Schnupperlehren, Ferienjobs und Ämter"}, "intro": {"job": "Die neueste Station zuerst. Pro Station zwei bis vier Tätigkeiten oder Erfolge, möglichst konkret.", "apprenticeship": "Zum Beispiel Schnupperlehren, Babysitten, Nachhilfe oder Leiterin im Verein. Das Neueste zuerst."}, "repeat": true, "itemTitle": {"job": "Station", "apprenticeship": "Erfahrung"}, "fields": [{"id": "position", "label": {"job": "Funktion", "apprenticeship": "Beruf oder Tätigkeit (z.B. Schnupperlehre Fachfrau Gesundheit)"}, "type": "text", "required": true, "max": 100}, {"id": "name", "label": {"job": "Firma", "apprenticeship": "Betrieb, Verein oder Familie"}, "type": "text", "required": true, "max": 100}, {"id": "location", "label": "Ort", "type": "text", "max": 60}, {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "required": true, "format": "date"}, {"id": "endDate", "label": "Bis (leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile)"}, "type": "list", "maxItems": 6}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100}]}, {"id": "education", "title": {"job": "Ausbildung und Weiterbildung", "apprenticeship": "Schule"}, "intro": {"job": "Abschlüsse, die neueste zuerst.", "apprenticeship": "Deine aktuelle Schule zuerst, dann frühere (z.B. Primarschule)."}, "repeat": true, "itemTitle": {"job": "Ausbildung", "apprenticeship": "Schule"}, "fields": [{"id": "studyType", "label": {"job": "Abschluss (z.B. Kaufmann EFZ, Bachelor)", "apprenticeship": "Schulstufe und Niveau (z.B. Sekundarschule, Niveau A)"}, "type": "text", "required": true, "max": 100}, {"id": "area", "label": "Fachrichtung (freiwillig)", "type": "text", "max": 100, "tracks": ["job"]}, {"id": "institution", "label": {"job": "Schule oder Lehrbetrieb, Ort", "apprenticeship": "Name der Schule, Ort"}, "type": "text", "required": true, "max": 100}, {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}, {"id": "endDate", "label": "Bis (leer = laufend)", "type": "text", "format": "date", "notBefore": "startDate"}]}, {"id": "certificates", "title": {"job": "Kurse und Zertifikate", "apprenticeship": "Eignungstests"}, "intro": {"job": "Kurse und Zertifikate mit Anbieter und Datum.", "apprenticeship": "Zum Beispiel Multicheck oder Basic-Check. Du entscheidest, ob ein Test in den Lebenslauf kommt; sonst lass diesen Teil leer."}, "repeat": true, "itemTitle": {"job": "Kurs", "apprenticeship": "Test"}, "fields": [{"id": "name", "label": {"job": "Bezeichnung", "apprenticeship": "Test (z.B. Multicheck Gesundheit)"}, "type": "text", "required": true, "max": 100}, {"id": "issuer", "label": "Anbieter (freiwillig)", "type": "text", "max": 100}, {"id": "date", "label": "Datum (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}]}, {"id": "languages", "title": "Sprachen", "intro": {"job": "Muttersprache und weitere Sprachen.", "apprenticeship": "Deine Muttersprache und die Sprachen aus der Schule."}, "repeat": true, "maxItems": 8, "itemTitle": "Sprache", "fields": [{"id": "language", "label": "Sprache", "type": "text", "required": true, "max": 40}, {"id": "fluency", "label": "Niveau", "type": "select", "required": true, "options": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"]}]}, {"id": "skills", "title": "Kenntnisse", "intro": {"job": "Fachliche Kenntnisse, nach Bereich gruppiert.", "apprenticeship": "Zum Beispiel Computerprogramme, Werkzeuge oder besondere Kenntnisse."}, "repeat": true, "maxItems": 8, "itemTitle": "Bereich", "fields": [{"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "required": true, "max": 60}, {"id": "keywords", "label": "Kenntnisse (eine pro Zeile)", "type": "list", "required": true, "maxItems": 12, "max": 60}]}, {"id": "interests", "title": "Hobbys und Interessen", "intro": {"job": "Freiwillig. Sie stehen am Ende des Lebenslaufs.", "apprenticeship": "Was machst du in der Freizeit? Hat ein Hobby mit deinem Wunschberuf zu tun, schreib das bei den Stärken dazu."}, "fields": [{"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "maxItems": 8, "max": 60}]}, {"id": "searchJob", "title": "Suche", "tracks": ["job"], "intro": {"job": "Danach sucht der Assistent Stellen für Sie."}, "fields": [{"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5}, {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 10}, {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60}, {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100}, {"id": "cantons", "label": "Kantone (Kürzel, eins pro Zeile, z.B. BE)", "type": "list", "format": "canton", "maxItems": 26}, {"id": "remote", "label": "Homeoffice erwünscht?", "type": "select", "options": ["ja", "teilweise", "nein"]}, {"id": "workload", "label": "Pensum (z.B. 80–100 %)", "type": "text", "required": true, "max": 40}, {"id": "start", "label": "Frühester Start (z.B. 1. März)", "type": "text", "required": true, "max": 40}, {"id": "temporary", "label": "Befristete Stelle möglich?", "type": "select", "options": ["ja", "nein"]}, {"id": "keywords", "label": "Stichworte für die Suche (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 15, "max": 60}, {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 15, "max": 60}, {"id": "targetCompanies", "label": "Wunschfirmen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 15, "max": 100}]}, {"id": "searchApprenticeship", "title": "Lehrstellensuche", "tracks": ["apprenticeship"], "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"}, "fields": [{"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5, "max": 100}, {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600}, {"id": "start", "label": "Lehrbeginn (z.B. August 2027)", "type": "text", "required": true, "max": 40}, {"id": "home", "label": "Wohnort", "type": "text", "required": true, "max": 60}, {"id": "commute", "label": "Wie weit darf der Lehrbetrieb höchstens weg sein? (z.B. 45 Minuten mit ÖV)", "type": "text", "required": true, "max": 100}, {"id": "cantons", "label": "Kantone (Kürzel, eins pro Zeile, z.B. BE)", "type": "list", "format": "canton", "maxItems": 26}, {"id": "vocationalBaccalaureate", "label": "Berufsmaturität geplant?", "type": "select", "options": ["ja", "vielleicht", "nein"]}, {"id": "companion", "label": "Begleitperson (freiwillig, z.B. Mutter, liest mit)", "type": "text", "max": 100}]}, {"id": "strengths", "title": "Stärken mit Beispiel", "intro": {"job": "Drei bis fünf Stärken, die zur gesuchten Stelle passen. Zu jeder ein Erlebnis: Situation, was Sie getan haben, Ergebnis. Aus diesen Beispielen entstehen die Anschreiben.", "apprenticeship": "Drei Stärken, die zum Wunschberuf passen. Zu jeder ein Erlebnis aus Schule, Schnupperlehre, Verein oder Familie. Daraus entstehen deine Motivationsschreiben."}, "repeat": true, "maxItems": 6, "itemTitle": "Stärke", "fields": [{"id": "strength", "label": "Stärke (z.B. zuverlässig)", "type": "text", "required": true, "max": 60}, {"id": "example", "label": "Beispiel", "type": "textarea", "required": true, "max": 600}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Zeugnis, Rückmeldung einer Lehrperson)", "type": "text", "max": 100}]}, {"id": "gaps", "title": "Lücken", "intro": {"job": "Was fehlt für die Wunschstellen? Lücken werden in Anschreiben offen und knapp benannt, nicht versteckt.", "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe."}, "fields": [{"id": "gaps", "label": "Lücken (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 8}]}, {"id": "style", "title": "Ton und Stil", "intro": {"job": "Wie sollen Ihre Anschreiben klingen? Wählen Sie, was am besten passt, oder schreiben Sie es mit eigenen Worten.", "apprenticeship": "Motivationsschreiben schreibt man meist in der Sie-Form. Es soll trotzdem nach dir klingen: Wähle, was am besten passt, oder schreib es mit eigenen Worten."}, "fields": [{"id": "address", "label": "Anrede", "type": "select", "required": true, "tracks": ["job"], "options": ["Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form"]}, {"id": "tone", "label": "Ton", "type": "choice", "required": true, "allowOwn": true, "max": 100, "options": {"job": ["Sachlich und freundlich", "Persönlich und herzlich", "Kurz und direkt"], "apprenticeship": ["Freundlich und offen", "Begeistert", "Ruhig und sachlich"]}}, {"id": "opening", "label": "Einstieg: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "options": {"job": ["Mit grossem Interesse habe ich Ihr Inserat für … gelesen.", "Ihre Stelle als … spricht mich an, weil …", "Seit … arbeite ich als … – genau das suchen Sie."], "apprenticeship": ["Seit meiner Schnupperlehre bei … weiss ich, dass ich … werden möchte.", "Mit grossem Interesse bewerbe ich mich um die Lehrstelle als …", "Ich interessiere mich schon lange für …, darum bewerbe ich mich bei Ihnen."]}}, {"id": "closing", "label": "Schluss: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "options": {"job": ["Über ein persönliches Gespräch freue ich mich.", "Gerne erzähle ich Ihnen in einem Gespräch mehr.", "Ich freue mich auf Ihre Rückmeldung."], "apprenticeship": ["Gerne komme ich zu einer Schnupperlehre zu Ihnen.", "Über eine Einladung zu einem Gespräch freue ich mich sehr.", "Ich freue mich auf Ihre Antwort."]}}, {"id": "greeting", "label": "Gruss (leer = „Freundliche Grüsse“)", "type": "text", "max": 60}, {"id": "place", "label": "Ort im Datum (z.B. Bern)", "type": "text", "max": 60}, {"id": "phrases", "label": "Eigene Formulierungen, die gut passen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 10}]}, {"id": "frame", "title": "Rahmen", "intro": {"job": "Angaben für den Schluss der Anschreiben.", "apprenticeship": "Angaben für den Schluss deiner Motivationsschreiben."}, "fields": [{"id": "availability", "label": {"job": "Verfügbar ab", "apprenticeship": "Wann kannst du schnuppern? (z.B. Herbstferien, Mittwochnachmittag)"}, "type": "text", "max": 100}, {"id": "notice", "label": "Kündigungsfrist (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "salary", "label": "Lohnvorstellung (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "reference", "label": "Referenzperson mit Kontakt (freiwillig, nur mit ihrem Einverständnis)", "type": "text", "max": 150}]}]}</script>
+<script>// Validation of onboarding bundles against form.json, for the browser.
+// Mirrors validation.py; both run the shared cases in tests/cases.json.
+"use strict";
+
+const SINGLE_LINE = new Set(["text", "list", "select", "choice"]);
+const TOP_LEVEL_KEYS = new Set(["format", "version", "track", "data", "saved"]);
+
+const MESSAGES = {
+  required: "Bitte ausfüllen.",
+  type: "Unerwarteter Wert, bitte neu eingeben.",
+  max: "Zu lang (höchstens {max} Zeichen).",
+  maxItems: "Zu viele Einträge (höchstens {maxItems}).",
+  format: "Ungültiges Format, zum Beispiel: {example}.",
+  option: "Bitte einen der vorgeschlagenen Werte wählen.",
+  notBefore: "Liegt vor dem Beginn.",
+  newline: "Bitte ohne Zeilenumbruch.",
+  unknown: "Gehört nicht zu dieser Vorlage.",
+  bundle: "Die Datei ist keine Einstiegsdatei dieser Version.",
+  track: "Unbekannte Art der Suche.",
+};
+
+const isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+const err = (path, code) => ({ path, code });
+
+function applies(item, track) {
+  return !item.tracks || item.tracks.includes(track);
+}
+
+/** True if track names a track of the form (a string key, not inherited). */
+function isTrack(form, track) {
+  return typeof track === "string" && Object.prototype.hasOwnProperty.call(form.tracks, track);
+}
+
+function forTrack(value, track) {
+  return isObject(value) ? value[track] : value;
+}
+
+function textLimit(form, field) {
+  return field.max ?? form.limits[field.type === "textarea" ? "textarea" : "text"];
+}
+
+function validateBundle(form, bundle) {
+  if (!isObject(bundle)) return [err("", "type")];
+  if (bundle.format !== form.format) return [err("format", "bundle")];
+  if (bundle.version !== form.version) return [err("version", "bundle")];
+  const track = bundle.track;
+  if (!isTrack(form, track)) return [err("track", "track")];
+  const data = bundle.data;
+  if (!isObject(data)) return [err("data", "type")];
+  const errors = Object.keys(bundle).filter((k) => !TOP_LEVEL_KEYS.has(k)).map((k) => err(k, "unknown"));
+  const sections = form.sections.filter((s) => applies(s, track));
+  const ids = new Set(sections.map((s) => s.id));
+  errors.push(...Object.keys(data).filter((k) => !ids.has(k)).map((k) => err(k, "unknown")));
+  for (const section of sections) errors.push(...validateSection(form, section, track, data[section.id]));
+  return errors;
+}
+
+function validateSection(form, section, track, value) {
+  const sid = section.id;
+  if (!section.repeat) {
+    const item = value ?? {};
+    return isObject(item) ? validateItem(form, section, track, item, sid) : [err(sid, "type")];
+  }
+  if (value == null) return [];
+  if (!Array.isArray(value)) return [err(sid, "type")];
+  const errors = [];
+  if (value.length > (section.maxItems ?? form.limits.repeatItems)) errors.push(err(sid, "maxItems"));
+  value.forEach((item, index) => {
+    const path = `${sid}.${index}`;
+    if (!isObject(item)) errors.push(err(path, "type"));
+    else errors.push(...validateItem(form, section, track, item, path));
+  });
+  return errors;
+}
+
+function validateItem(form, section, track, item, path) {
+  const fields = section.fields.filter((f) => applies(f, track));
+  const ids = new Set(fields.map((f) => f.id));
+  const errors = Object.keys(item).filter((k) => !ids.has(k)).map((k) => err(`${path}.${k}`, "unknown"));
+  for (const field of fields) errors.push(...validateField(form, field, track, item, `${path}.${field.id}`));
+  return errors;
+}
+
+function validateField(form, field, track, item, path) {
+  const value = item[field.id];
+  if (field.type === "list") return validateList(form, field, value, path);
+  const text = value ?? "";
+  if (typeof text !== "string") return [err(path, "type")];
+  if (!text.trim()) return field.required ? [err(path, "required")] : [];
+  const code = checkText(form, field, track, text);
+  if (code) return [err(path, code)];
+  if (field.notBefore && isBefore(text, item[field.notBefore])) return [err(path, "notBefore")];
+  return [];
+}
+
+function validateList(form, field, value, path) {
+  const list = value ?? [];
+  if (!Array.isArray(list) || !list.every((v) => typeof v === "string")) return [err(path, "type")];
+  const items = list.filter((v) => v.trim());
+  if (!items.length) return field.required ? [err(path, "required")] : [];
+  const errors = [];
+  if (items.length > (field.maxItems ?? form.limits.listItems)) errors.push(err(path, "maxItems"));
+  list.forEach((entry, index) => {
+    if (!entry.trim()) return;
+    const code = checkText(form, field, null, entry);
+    if (code) errors.push(err(`${path}.${index}`, code));
+  });
+  return errors;
+}
+
+function checkText(form, field, track, value) {
+  if (SINGLE_LINE.has(field.type) && /[\r\n]/.test(value)) return "newline";
+  // Count code points like Python's len(), not UTF-16 units.
+  if (Array.from(value).length > textLimit(form, field)) return "max";
+  if (field.format && !new RegExp(form.formats[field.format].pattern).test(value.trim())) return "format";
+  if (field.type === "select" && !field.options.includes(value)) return "option";
+  if (field.type === "choice" && !field.allowOwn && !forTrack(field.options, track).includes(value)) return "option";
+  return null;
+}
+
+function isBefore(end, start) {
+  if (typeof start !== "string" || !start.trim()) return false;
+  const e = end.trim();
+  const s = start.trim();
+  if (e.length === 4 || s.length === 4) return e.slice(0, 4) < s.slice(0, 4);
+  return e < s;
+}
+
+function locate(form, track, path) {
+  const parts = path ? path.split(".") : [];
+  const section = form.sections.find((s) => parts.length && s.id === parts[0]);
+  if (!section) return { where: "", field: null, section: null };
+  const names = [forTrack(section.title, track) || section.id];
+  let rest = parts.slice(1);
+  if (section.repeat && rest.length && /^\d+$/.test(rest[0])) {
+    names.push(`${forTrack(section.itemTitle, track)} ${Number(rest[0]) + 1}`);
+    rest = rest.slice(1);
+  }
+  const field = section.fields.find((f) => rest.length && f.id === rest[0]) || null;
+  if (field) {
+    names.push((forTrack(field.label, track) || field.id).split(" (")[0]);
+    if (rest.length > 1 && /^\d+$/.test(rest[1])) names.push(`Zeile ${Number(rest[1]) + 1}`);
+  }
+  return { where: names.join(", "), field, section };
+}
+
+/** Message without location, for display next to the field. */
+function messageText(form, track, error) {
+  return describeParts(form, track, error).text;
+}
+
+/** Message with location (section, item, field), for summaries. */
+function describe(form, track, error) {
+  const { where, text } = describeParts(form, track, error);
+  return where ? `${where}: ${text}` : text;
+}
+
+function describeParts(form, track, error) {
+  const { where, field, section } = locate(form, track, error.path);
+  const params = { max: "?", maxItems: "?", example: "?" };
+  if (field) {
+    params.max = textLimit(form, field);
+    params.maxItems = field.maxItems ?? form.limits.listItems;
+    if (field.format) params.example = form.formats[field.format].example;
+  } else if (section) {
+    params.maxItems = section.maxItems ?? form.limits.repeatItems;
+  }
+  const text = (MESSAGES[error.code] || error.code).replace(/\{(\w+)\}/g, (_, k) => params[k]);
+  return { where, text };
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { validateBundle, describe, messageText, applies, forTrack, isTrack };
+}
+
+// Pure state handling of the onboarding template: no DOM, no storage.
+// State: { track: "job" | "apprenticeship" | null, data: { [sectionId]: object | object[] } }.
+// List fields hold arrays of lines; blank lines and empty items are dropped only when collecting.
+"use strict";
+
+/** A loaded file that is no bundle of this form; the message is German and shown as is. */
+class BundleError extends Error {}
+
+const isPlainObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+
+function trackApplies(item, track) {
+  return !item.tracks || item.tracks.includes(track);
+}
+
+/** Sections shown for a track, in form order. */
+function sectionsFor(form, track) {
+  return form.sections.filter((s) => trackApplies(s, track));
+}
+
+/** Fields of a section shown for a track. */
+function fieldsFor(section, track) {
+  return section.fields.filter((f) => trackApplies(f, track));
+}
+
+function linesToList(text) {
+  return String(text).split(/\r?\n/);
+}
+
+function listToLines(list) {
+  return Array.isArray(list) ? list.join("\n") : "";
+}
+
+/** Copy of an item with only known fields of the right type. */
+function cleanItem(section, track, item, compact) {
+  const result = {};
+  if (!isPlainObject(item)) return result;
+  for (const field of fieldsFor(section, track)) {
+    const value = item[field.id];
+    if (field.type === "list") {
+      if (!Array.isArray(value)) continue;
+      const lines = value.filter((v) => typeof v === "string").map((v) => (compact ? v.trim() : v));
+      const kept = compact ? lines.filter((v) => v) : lines;
+      if (kept.length) result[field.id] = kept;
+    } else if (typeof value === "string" && (!compact || value.trim())) {
+      result[field.id] = compact ? value.trim() : value;
+    }
+  }
+  return result;
+}
+
+function cleanData(form, track, data, compact) {
+  const result = {};
+  for (const section of sectionsFor(form, track)) {
+    const value = isPlainObject(data) ? data[section.id] : undefined;
+    if (section.repeat) {
+      if (!Array.isArray(value)) continue;
+      const list = value.map((item) => cleanItem(section, track, item, compact));
+      const kept = compact ? list.filter((item) => Object.keys(item).length) : list;
+      if (kept.length) result[section.id] = kept;
+    } else if (isPlainObject(value)) {
+      const item = cleanItem(section, track, value, compact);
+      if (Object.keys(item).length) result[section.id] = item;
+    }
+  }
+  return result;
+}
+
+/** The bundle written to einstieg.json: current track only, trimmed, without empty values. */
+function collectBundle(form, state, now) {
+  return {
+    format: form.format,
+    version: form.version,
+    track: state.track,
+    saved: now.toISOString(),
+    data: cleanData(form, state.track, state.data, true),
+  };
+}
+
+/** Bundle for live checks while typing: keeps item positions so error paths match the form. */
+function draftBundle(form, state) {
+  return { format: form.format, version: form.version, track: state.track, data: cleanData(form, state.track, state.data, false) };
+}
+
+/** True if a repeated item has no content yet (such items are dropped when saving). */
+function isBlankItem(item) {
+  if (!isPlainObject(item)) return true;
+  return Object.values(item).every((v) => (Array.isArray(v) ? v.every((x) => !String(x).trim()) : !String(v ?? "").trim()));
+}
+
+/** State from a loaded file; throws an Error with a German message if it is no bundle of this form. */
+function stateFromBundle(form, bundle) {
+  const ok = isPlainObject(bundle) && bundle.format === form.format && bundle.version === form.version
+    && typeof bundle.track === "string" && Object.prototype.hasOwnProperty.call(form.tracks, bundle.track);
+  if (!ok) throw new BundleError("Die Datei ist keine Einstiegsdatei dieser Vorlage.");
+  return { track: bundle.track, data: cleanData(form, bundle.track, bundle.data, false) };
+}
+
+/** New state with the value at path (e.g. ["work", 0, "position"]) replaced; creates missing containers. */
+function setValue(state, path, value) {
+  const update = (container, keys) => {
+    const [key, ...rest] = keys;
+    const base = container ?? (typeof key === "number" ? [] : {});
+    const copy = Array.isArray(base) ? [...base] : { ...base };
+    copy[key] = rest.length ? update(base[key], rest) : value;
+    return copy;
+  };
+  return { ...state, data: update(state.data, path) };
+}
+
+function addItem(state, sectionId) {
+  const list = Array.isArray(state.data[sectionId]) ? state.data[sectionId] : [];
+  return { ...state, data: { ...state.data, [sectionId]: [...list, {}] } };
+}
+
+function removeItem(state, sectionId, index) {
+  const list = state.data[sectionId] || [];
+  return { ...state, data: { ...state.data, [sectionId]: list.filter((_, i) => i !== index) } };
+}
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    sectionsFor, fieldsFor, linesToList, listToLines, collectBundle, draftBundle, isBlankItem, stateFromBundle,
+    setValue, addItem, removeItem, BundleError,
+  };
+}
+
+// DOM building blocks of the template. Values from the person or a loaded file are only ever set as
+// text or form values, never as HTML.
+"use strict";
+
+/** Create an element; attrs are properties (on* handlers, dataset, aria via setAttribute). */
+function el(tag, attrs, children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs || {})) {
+    if (value === undefined || value === null || value === false) continue;
+    if (key === "dataset") Object.assign(node.dataset, value);
+    else if (key.startsWith("aria-") || key === "role" || key === "for") node.setAttribute(key, value);
+    else node[key] = value;
+  }
+  for (const child of [].concat(children || [])) {
+    if (child === null || child === undefined || child === false) continue;
+    node.append(typeof child === "string" ? document.createTextNode(child) : child);
+  }
+  return node;
+}
+
+let idCounter = 0;
+const nextId = (prefix) => `${prefix}-${++idCounter}`;
+
+/**
+ * One field with label, hint, control and error slot.
+ * ctx: { track, value, path (string), onChange(value), onBlur() }
+ */
+function fieldView(field, ctx) {
+  const id = nextId("f");
+  const hint = forTrack(field.hint, ctx.track);
+  const hintId = hint ? `${id}-hint` : null;
+  const errorId = `${id}-error`;
+  const describedBy = [hintId, errorId].filter(Boolean).join(" ");
+  const label = forTrack(field.label, ctx.track) + (field.required ? " *" : "");
+  const control = controlView(field, ctx, id, describedBy);
+  const isGroup = field.type === "choice";
+  return el("div", { className: `field field-${field.type}`, dataset: { path: ctx.path } }, [
+    isGroup ? null : el("label", { for: id }, label),
+    isGroup ? null : hint ? el("p", { className: "hint", id: hintId }, hint) : null,
+    isGroup ? choiceView(field, ctx, id, label, hint, hintId, errorId) : control,
+    el("p", { className: "error", id: errorId, role: "alert" }),
+  ]);
+}
+
+function controlView(field, ctx, id, describedBy) {
+  const common = { id, "aria-describedby": describedBy, "aria-required": field.required ? "true" : null, onblur: () => ctx.onBlur() };
+  if (field.type === "textarea") {
+    return el("textarea", { ...common, rows: 4, value: ctx.value || "", oninput: (e) => ctx.onChange(e.target.value) });
+  }
+  if (field.type === "list") {
+    const text = listToLines(ctx.value);
+    return el("textarea", {
+      ...common, rows: Math.max(3, text.split("\n").length + 1), value: text,
+      placeholder: "Eine Angabe pro Zeile", oninput: (e) => ctx.onChange(linesToList(e.target.value)),
+    });
+  }
+  if (field.type === "select") {
+    const select = el("select", { ...common, onchange: (e) => ctx.onChange(e.target.value) }, [
+      el("option", { value: "" }, "– bitte wählen –"),
+      ...field.options.map((o) => el("option", { value: o, selected: o === ctx.value }, o)),
+    ]);
+    return select;
+  }
+  if (field.type === "choice") return null;
+  const type = field.format === "email" ? "email" : field.format === "phone" ? "tel" : "text";
+  return el("input", {
+    ...common, type, value: ctx.value || "", placeholder: field.placeholder || "",
+    autocomplete: autocompleteFor(ctx.path), oninput: (e) => ctx.onChange(e.target.value),
+  });
+}
+
+function autocompleteFor(path) {
+  const map = { "person.name": "name", "person.email": "email", "person.phone": "tel", "person.address": "street-address",
+    "person.postalCode": "postal-code", "person.city": "address-level2" };
+  return map[path] || "off";
+}
+
+/** Radio group of suggested texts plus an own formulation. */
+function choiceView(field, ctx, id, label, hint, hintId, errorId) {
+  const options = forTrack(field.options, ctx.track) || [];
+  const value = ctx.value || "";
+  const isOwn = value !== "" && !options.includes(value);
+  const ownInput = el("input", {
+    type: "text", value: isOwn ? value : "", className: "own", "aria-label": "Eigene Formulierung",
+    oninput: (e) => { ownRadio.checked = true; ctx.onChange(e.target.value); }, onblur: () => ctx.onBlur(),
+  });
+  const ownRadio = el("input", {
+    type: "radio", name: id, checked: isOwn,
+    onchange: () => { ownInput.focus(); ctx.onChange(ownInput.value); },
+  });
+  const radios = options.map((option) => el("label", { className: "option" }, [
+    el("input", { type: "radio", name: id, value: option, checked: option === value, onchange: () => ctx.onChange(option), onblur: () => ctx.onBlur() }),
+    el("span", {}, option),
+  ]));
+  return el("fieldset", {
+    className: "choice", role: "radiogroup", "aria-required": field.required ? "true" : null,
+    "aria-describedby": [hintId, errorId].filter(Boolean).join(" "),
+  }, [
+    el("legend", {}, label),
+    hint ? el("p", { className: "hint", id: hintId }, hint) : null,
+    ...radios,
+    field.allowOwn ? el("label", { className: "option own-option" }, [ownRadio, el("span", {}, "Eigene Formulierung:"), ownInput]) : null,
+  ]);
+}
+
+/** Show the given messages in the error slots of the rendered fields (matching path or sub-paths). */
+function showErrors(root, messagesByPath, visiblePaths) {
+  for (const node of root.querySelectorAll(".field[data-path]")) {
+    const path = node.dataset.path;
+    const own = Object.entries(messagesByPath)
+      .filter(([p]) => p === path || p.startsWith(`${path}.`))
+      .map(([, m]) => m);
+    const visible = visiblePaths.has(path) && own.length > 0;
+    node.querySelector(".error").textContent = visible ? own.join(" ") : "";
+    node.classList.toggle("invalid", visible);
+    for (const control of node.querySelectorAll("input, textarea, select")) {
+      if (visible) control.setAttribute("aria-invalid", "true");
+      else control.removeAttribute("aria-invalid");
+    }
+  }
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { el, fieldView, showErrors };
+}
+
+// Flow of the onboarding template: start, one step per section, check and save.
+// Depends on validate.js, model.js and dom.js (inlined before this file by build_template.py).
+"use strict";
+
+const STORAGE_KEY = "bewerbungsassistent.einstieg.v1";
+const MAX_FILE_BYTES = 1000000;
+const AUTOSAVE_DELAY_MS = 400;
+const REQUIRED_NOTE = "Felder mit * müssen ausgefüllt sein.";
+const FOCUSABLE = "input, textarea, select, button";
+
+const TEXT = {
+  job: {
+    finishTitle: "Prüfen und speichern",
+    finishOk: "Alles Nötige ist ausgefüllt.",
+    finishErrors: "Diese Angaben fehlen noch oder passen nicht. Sie können trotzdem speichern und später weitermachen.",
+    next: "So geht es weiter: Schicken Sie die Datei an die Person, die Sie im Pilot begleitet, oder öffnen Sie sie später in der App. Mit „Datei laden“ auf der ersten Seite können Sie jederzeit weiterarbeiten.",
+  },
+  apprenticeship: {
+    finishTitle: "Prüfen und speichern",
+    finishOk: "Alles Nötige ist ausgefüllt.",
+    finishErrors: "Diese Angaben fehlen noch oder passen nicht. Du kannst trotzdem speichern und später weitermachen.",
+    next: "So geht es weiter: Schick die Datei an die Person, die dich begleitet, oder öffne sie später in der App. Mit „Datei laden“ auf der ersten Seite kannst du jederzeit weiterarbeiten.",
+  },
+};
+
+const form = JSON.parse(document.getElementById("form-definition").textContent);
+let state = { track: null, data: {} };
+let step = 0;
+let touched = new Set();
+let autosaveTimer = null;
+
+// Storage: optional convenience; the page works without it.
+
+function loadStored() {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const stored = JSON.parse(raw);
+    if (stored && isTrack(form, stored.track)) {
+      state = stateFromBundle(form, { format: form.format, version: form.version, track: stored.track, data: stored.data });
+      step = Number.isInteger(stored.step) ? Math.max(0, stored.step) : 0;
+    }
+  } catch (error) {
+    setStatus("Gespeicherte Eingaben konnten nicht gelesen werden.");
+  }
+}
+
+function storeNow() {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ track: state.track, data: state.data, step }));
+    const time = new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
+    setStatus(`Zwischengespeichert auf diesem Gerät, ${time}.`);
+  } catch (error) {
+    setStatus("Zwischenspeichern ist in diesem Browser nicht möglich. Bitte am Ende die Datei speichern.");
+  }
+}
+
+function scheduleStore() {
+  window.clearTimeout(autosaveTimer);
+  autosaveTimer = window.setTimeout(storeNow, AUTOSAVE_DELAY_MS);
+}
+
+function clearStored() {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    // Nothing stored that could be removed.
+  }
+}
+
+function setStatus(message) {
+  document.getElementById("autosave").textContent = message;
+}
+
+// State changes
+
+function update(newState, { rerender = false } = {}) {
+  state = newState;
+  scheduleStore();
+  if (rerender) render();
+}
+
+function goTo(newStep) {
+  step = Math.max(0, Math.min(newStep, steps().length - 1));
+  scheduleStore();
+  render();
+  document.getElementById("main").focus();
+  window.scrollTo(0, 0);
+}
+
+function steps() {
+  if (!state.track) return [{ kind: "start" }];
+  return [{ kind: "start" }, ...sectionsFor(form, state.track).map((s) => ({ kind: "section", section: s })), { kind: "finish" }];
+}
+
+// Validation shown in the page
+
+function currentErrors() {
+  const errors = validateBundle(form, draftBundle(form, state));
+  return errors.filter((e) => {
+    const [sectionId, index] = e.path.split(".");
+    const list = state.data[sectionId];
+    return !(Array.isArray(list) && /^\d+$/.test(index || "") && isBlankItem(list[Number(index)]));
+  });
+}
+
+function refreshErrors() {
+  const byPath = {};
+  for (const error of currentErrors()) {
+    byPath[error.path] = [byPath[error.path], messageText(form, state.track, error)].filter(Boolean).join(" ");
+  }
+  showErrors(document.getElementById("main"), byPath, touched);
+}
+
+// Rendering
+
+function render() {
+  const all = steps();
+  if (step >= all.length) step = all.length - 1;
+  renderNav(all);
+  const main = document.getElementById("main");
+  const current = all[step];
+  const view = current.kind === "start" ? startView() : current.kind === "finish" ? finishView() : sectionView(current.section);
+  main.replaceChildren(view, navButtons(all));
+  refreshErrors();
+}
+
+function renderNav(all) {
+  const errorSections = new Set(currentErrors().map((e) => e.path.split(".")[0]));
+  const items = all.map((s, i) => {
+    const title = s.kind === "start" ? "Start" : s.kind === "finish" ? "Speichern" : forTrack(s.section.title, state.track);
+    const flagged = s.kind === "section" && errorSections.has(s.section.id);
+    return el("li", {}, el("button", {
+      type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}`,
+      "aria-current": i === step ? "step" : null, onclick: () => goTo(i),
+    }, title));
+  });
+  document.getElementById("steps").replaceChildren(el("ol", {}, items));
+}
+
+function startView() {
+  const choose = (track) => {
+    update({ ...state, track });
+    touched = new Set();
+    goTo(1);
+  };
+  const trackButton = (track, title, text) => el("button", {
+    type: "button", className: `track${state.track === track ? " selected" : ""}`,
+    "aria-pressed": String(state.track === track), onclick: () => choose(track),
+  }, [el("strong", {}, title), el("span", {}, text)]);
+  const fileInput = el("input", { type: "file", accept: ".json,application/json", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
+  return el("section", { className: "start" }, [
+    el("h2", {}, "Worum geht es?"),
+    el("p", {}, "Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsassistent braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. Am Schluss speichern Sie eine Datei."),
+    el("div", { className: "tracks" }, [
+      trackButton("job", "Ich suche eine Stelle", "Lebenslauf, Anschreiben und Stellensuche"),
+      trackButton("apprenticeship", "Ich suche eine Lehrstelle", "Für Schülerinnen und Schüler: Schnupperlehren, Schule, Motivationsschreiben"),
+    ]),
+    el("p", { className: "secondary" }, [
+      "Schon angefangen? ",
+      el("button", { type: "button", className: "link", onclick: () => fileInput.click() }, "Datei laden"),
+      fileInput,
+    ]),
+    el("p", { id: "load-message", role: "status" }),
+  ]);
+}
+
+function sectionView(section) {
+  const track = state.track;
+  const intro = forTrack(section.intro, track);
+  const hasRequired = fieldsFor(section, track).some((f) => f.required);
+  const header = [
+    el("h2", {}, forTrack(section.title, track)),
+    intro ? el("p", { className: "intro" }, intro) : null,
+    hasRequired ? el("p", { className: "hint" }, REQUIRED_NOTE) : null,
+  ];
+  if (!section.repeat) {
+    const item = state.data[section.id] || {};
+    return el("section", {}, [...header, ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
+  }
+  const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
+  const max = section.maxItems ?? form.limits.repeatItems;
+  const itemTitle = forTrack(section.itemTitle, track);
+  const items = list.map((item, index) => el("fieldset", { className: "item", dataset: { item: `${section.id}.${index}` } }, [
+    el("legend", {}, `${itemTitle} ${index + 1}`),
+    ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, index, f.id], item[f.id])),
+    el("button", {
+      type: "button", className: "remove",
+      onclick: () => {
+        update(removeItem(state, section.id, index), { rerender: true });
+        focusFirst(`[data-item="${section.id}.${index}"]`, `[data-item="${section.id}.${index - 1}"]`, ".add", "h2");
+      },
+    }, `${itemTitle} ${index + 1} entfernen`),
+  ]));
+  const add = list.length < max
+    ? el("button", {
+      type: "button", className: "add",
+      onclick: () => {
+        update(addItem(state, section.id), { rerender: true });
+        focusFirst(`[data-item="${section.id}.${list.length}"]`);
+      },
+    }, `+ ${itemTitle} hinzufügen`)
+    : el("p", { className: "hint" }, `Höchstens ${max} Einträge.`);
+  return el("section", {}, [...header, ...items, add]);
+}
+
+/** After a rerender: focus the first control inside the first selector that matches (headings get focus too). */
+function focusFirst(...selectors) {
+  const main = document.getElementById("main");
+  for (const selector of selectors) {
+    const target = main.querySelector(selector);
+    if (!target) continue;
+    const control = target.matches(FOCUSABLE) ? target : target.querySelector(FOCUSABLE);
+    if (control) return control.focus();
+    target.tabIndex = -1;
+    return target.focus();
+  }
+  return main.focus();
+}
+
+function fieldFor(section, field, path, value) {
+  const pathText = path.join(".");
+  return fieldView(field, {
+    track: state.track, value, path: pathText,
+    onChange: (v) => update(setValue(state, path, v)),
+    onBlur: () => { touched = new Set(touched).add(pathText); refreshErrors(); },
+  });
+}
+
+function finishView() {
+  const text = TEXT[state.track];
+  const errors = currentErrors();
+  const summary = errors.length
+    ? el("div", { className: "summary" }, [
+      el("p", {}, text.finishErrors),
+      el("ul", {}, errors.map((e) => el("li", {}, el("button", {
+        type: "button", className: "link", onclick: () => goTo(stepOf(e.path)),
+      }, describe(form, state.track, e))))),
+    ])
+    : el("p", { className: "ok" }, text.finishOk);
+  const confirmBox = el("p", { className: "confirm", hidden: true }, [
+    "Alle Eingaben auf diesem Gerät löschen? ",
+    el("button", { type: "button", className: "danger", onclick: clearAll }, "Ja, löschen"),
+    " ",
+    el("button", { type: "button", onclick: () => { confirmBox.hidden = true; } }, "Abbrechen"),
+  ]);
+  return el("section", {}, [
+    el("h2", {}, text.finishTitle),
+    summary,
+    el("button", { type: "button", className: "primary", onclick: saveFile }, "Datei speichern"),
+    el("p", {}, text.next),
+    el("p", { className: "secondary" }, el("button", { type: "button", className: "link", onclick: () => { confirmBox.hidden = false; } }, "Alles löschen")),
+    confirmBox,
+  ]);
+}
+
+function stepOf(path) {
+  const sectionId = path.split(".")[0];
+  const index = steps().findIndex((s) => s.kind === "section" && s.section.id === sectionId);
+  touched = new Set([...touched, ...currentErrors().map((e) => fieldPath(e.path))]);
+  return index < 0 ? step : index;
+}
+
+/** Path of the field an error belongs to: list errors ("searchJob.cantons.0") point to a line of the field. */
+function fieldPath(errorPath) {
+  const parts = errorPath.split(".");
+  const isLine = parts.length > 2 && /^\d+$/.test(parts[parts.length - 1]);
+  return isLine ? parts.slice(0, -1).join(".") : errorPath;
+}
+
+function navButtons(all) {
+  const back = step > 0 ? el("button", { type: "button", onclick: () => goTo(step - 1) }, "Zurück") : null;
+  const forward = step > 0 && step < all.length - 1
+    ? el("button", { type: "button", className: "primary", onclick: () => { markStepTouched(all[step]); goTo(step + 1); } }, "Weiter")
+    : null;
+  return el("div", { className: "nav-buttons" }, [back, forward]);
+}
+
+function markStepTouched(current) {
+  if (current.kind !== "section") return;
+  const prefix = `${current.section.id}`;
+  touched = new Set([...touched, ...currentErrors().filter((e) => e.path.split(".")[0] === prefix).map((e) => fieldPath(e.path))]);
+}
+
+// Files
+
+function saveFile() {
+  const bundle = collectBundle(form, state, new Date());
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = el("a", { href: url, download: fileName() });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function fileName() {
+  const name = ((state.data.person || {}).name || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return name ? `einstieg-${name}.json` : "einstieg.json";
+}
+
+function loadFile(event) {
+  const file = event.target.files[0];
+  const message = document.getElementById("load-message");
+  if (!file) return;
+  if (file.size > MAX_FILE_BYTES) {
+    message.textContent = "Die Datei ist zu gross für eine Einstiegsdatei.";
+    return;
+  }
+  file.text().then((content) => {
+    state = stateFromBundle(form, JSON.parse(content));
+    touched = new Set();
+    goTo(1);
+    storeNow();
+  }).catch((error) => {
+    message.textContent = error instanceof BundleError ? error.message : "Die Datei ist keine gültige Einstiegsdatei.";
+  });
+}
+
+function clearAll() {
+  window.clearTimeout(autosaveTimer);
+  clearStored();
+  state = { track: null, data: {} };
+  touched = new Set();
+  step = 0;
+  render();
+  document.getElementById("main").focus();
+  setStatus("Alle Eingaben auf diesem Gerät wurden gelöscht.");
+}
+
+loadStored();
+render();
+</script>
+</body>
+</html>
