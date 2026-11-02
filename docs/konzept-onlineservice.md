@@ -15,7 +15,7 @@ Stand 2.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026). Er
 | LinkedIn | **Halbautomatisch:** Die Person sitzt am Rechner und öffnet die Stellenübersicht selbst. Wie es weitergeht, wird nach ersten Erfahrungen entschieden. |
 | Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** in der App oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
 | Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
-| Hosting | Im Pilot nur die KI-Vermittlung, auf dem bestehenden Hosting des Projektinhabers. Für den Onlinedienst wird es später entschieden. |
+| Hosting | Im Pilot nur die KI-Vermittlung, auf dem bestehenden Hosting des Projektinhabers in der Schweiz. Für den Onlinedienst wird es später entschieden. |
 | Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. |
 
 Die App enthält denselben Code wie das Repo; wer technisch versiert ist, arbeitet weiter mit Repo und Claude Code. Der spätere Onlinedienst ist dieselbe App in einem Container pro Person.
@@ -172,7 +172,7 @@ Rechner der Person
                                  ├─▶ Schlüsselbund des Systems (Zugang zur Vermittlung)
                                  └─▶ KI-Aufrufe (pseudonymisiert)
                                         │ HTTPS
-Hosting des Projektinhabers             ▼
+Hosting des Projektinhabers (Schweiz)    ▼
   KI-Vermittlung: Zugang prüfen, Budget, Kosten zählen ──▶ Testphase: Claude API · Release: nur EU
   (Anthropic-Schlüssel nur hier; Inhalte nur durchgereicht)
 ```
@@ -193,7 +193,7 @@ Hosting des Projektinhabers             ▼
 
 ### KI-Vermittlung
 
-Ein kleiner Dienst auf dem bestehenden Hosting des Projektinhabers (MIN-344). Er hält den Anthropic-Schlüssel, damit keiner auf den Rechnern liegt.
+Ein kleiner Dienst auf dem bestehenden Hosting des Projektinhabers in der Schweiz (MIN-344). Er hält den Anthropic-Schlüssel, damit keiner auf den Rechnern liegt.
 
 - **Schnittstelle:** gleich wie die Messages API von Anthropic. `ki.py` nutzt das Anthropic SDK mit der Adresse der Vermittlung und dem Zugang der Person.
 - **Einladung:** Der Projektinhaber erstellt pro Person einen Link mit Einmal-Code. Die App löst ihn ein und erhält einen Zugang. Der Code verfällt nach Gebrauch oder nach 7 Tagen.
@@ -259,7 +259,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 
 **Schon im Pilot nötig:**
 
-- **Datenschutzerklärung und Einwilligung:** Sie sagen, dass die Daten auf dem Rechner der Person liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und dass die Aufrufe über die Vermittlung des Projektinhabers (Standort des Hostings nennen) und sein Konto bei Anthropic laufen. Die Vermittlung reicht Inhalte nur durch und protokolliert nur Kosten.
+- **Datenschutzerklärung und Einwilligung:** Sie sagen, dass die Daten auf dem Rechner der Person liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und dass die Aufrufe über die Vermittlung des Projektinhabers (Hosting in der Schweiz) und sein Konto bei Anthropic laufen. Die Vermittlung reicht Inhalte nur durch und protokolliert nur Kosten.
 - **Auftragsverarbeitung:** Vertrag mit Anthropic und mit dem Anbieter des Hostings der Vermittlung, im Release mit dem EU-Anbieter. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden, und wie lange sie aufbewahrt werden.
 - **Ende des Pilots:** Der Zugang der Person wird gesperrt, ihre Kostenprotokolle nach der Auswertung gelöscht. Ihre Daten bleiben bei ihr; löschen kann sie sie selbst.
 - **Datensparsam:** keine Tracker und keine Telemetrie; die App protokolliert lokal und ohne Inhalte.
