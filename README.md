@@ -24,6 +24,7 @@ Der Assistent nimmt Routinearbeit ab, damit mehr Zeit für das bleibt, was eine 
 |---|---|
 | [`lebenslauf/`](lebenslauf/README.md) | Lebenslauf und Anschreiben als PDF aus YAML und Typst-Themes, Zuschnitt pro Stelle über Tags, mehrsprachige Inhalte |
 | [`bewerbungen/`](bewerbungen/README.md) | Lokale Oberfläche: Bewerbungsregister, Unterlagen erstellen und prüfen, Versand erfassen, Entwürfe und Versionen, Job-Room-Angaben, Fotoausschnitt |
+| [`skills/einstieg/`](skills/einstieg/SKILL.md) | Claude-Skill: Einstieg per Interview – Lebenslauf, Suchprofil, Stilprofil und Bausteine erarbeiten, auch für die Lehrstellensuche |
 | [`skills/jobsuche/`](skills/jobsuche/SKILL.md) | Claude-Skill: Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten, Jobliste in Google Sheets |
 | [`skills/bewerbung/`](skills/bewerbung/SKILL.md) | Claude-Skill: von der Stelle zur fertigen Bewerbung – Variante wählen, Anschreiben im eigenen Stil, Prüfung, Versand |
 | [`vorlagen/`](vorlagen/) | Vorlagen für die persönlichen Dateien (Suchprofil, Stilprofil, Bausteine fürs Anschreiben) |
@@ -65,7 +66,7 @@ python app.py ../../bewerbungsassistent-daten
 
 ## Skills einrichten
 
-`skills/jobsuche/` und `skills/bewerbung/` in Claude Code nach `~/.claude/skills/` kopieren oder verlinken; in claude.ai als Skill hochladen. Vorher die Vorlagen aus `vorlagen/` in den privaten Datenordner kopieren und ausfüllen (`suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`). Der Skill braucht Claude in Chrome (Suche im eingeloggten Browser-Tab) und für die Jobliste den Google-Sheets-Connector.
+`skills/einstieg/`, `skills/jobsuche/` und `skills/bewerbung/` in Claude Code nach `~/.claude/skills/` kopieren oder verlinken; in claude.ai als Skill hochladen. Die persönlichen Dateien im privaten Datenordner (`cv.yaml`, `suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`) erarbeitet der Skill `einstieg` im Interview; alternativ die Vorlagen aus `vorlagen/` kopieren und ausfüllen. Der Skill braucht Claude in Chrome (Suche im eingeloggten Browser-Tab) und für die Jobliste den Google-Sheets-Connector.
 
 ## Lizenz
 

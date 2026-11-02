@@ -5,6 +5,7 @@
 ## Aufbau
 - `lebenslauf/` – Lebenslauf und Anschreiben als PDF (eigene `CLAUDE.md` dort).
 - `bewerbungen/` – lokale Oberfläche und Verwaltung: Register, Unterlagen, Prüfung, Versand, Entwürfe/Versionen (eigene `CLAUDE.md`). Baut auf `lebenslauf/` auf.
+- `skills/einstieg/SKILL.md` – Interview für den Einstieg: Lebenslauf, Suchprofil, Stilprofil, Bausteine; Zweige Stellen- und Lehrstellensuche.
 - `skills/jobsuche/SKILL.md` – allgemeiner Skill für die Stellensuche; alles Persönliche steht im Suchprofil.
 - `skills/bewerbung/SKILL.md` – Skill für den Ablauf Stelle → Unterlagen → Prüfung → Versand; Persönliches in Stilprofil und Bausteinen.
 - `vorlagen/` – Vorlagen für persönliche Dateien, mit erfundenen Werten.
