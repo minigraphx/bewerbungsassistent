@@ -1,90 +1,95 @@
-# Konzept: Bewerbungsassistent als Onlinedienst (MIN-305)
+# Konzept: Bewerbungsassistent als App und Onlinedienst (MIN-305)
 
-Stand 2.11.2026 (freigegeben); ersetzt den Entwurf vom 26.10.2026. Grundlage für die Meilensteine „Onlinedienst: Pilot“ und „Onlinedienst: Release (Abo, EU)“ im Linear-Projekt.
+Stand 2.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026). Ersetzt den Entwurf vom 26.10.2026. Grundlage für die Meilensteine „Pilot: lokale App“ und „Onlinedienst: Release (Abo, EU)“ im Linear-Projekt.
 
 ## Entscheide
 
 | Frage | Entscheid (2.11.2026) |
 |---|---|
-| Zielgruppe | Zuerst ein **Pilot mit 5–10 Personen aus dem Bekanntenkreis**, betrieben vom Projektinhaber. Nach dem Pilot wird über einen öffentlichen Dienst entschieden. |
+| Zielgruppe | Zuerst ein **Pilot mit 5–10 Personen aus dem Bekanntenkreis**, betreut vom Projektinhaber. Nach dem Pilot wird über einen öffentlichen Dienst entschieden. |
+| Form im Pilot | Eine **lokale App** auf dem Rechner der Person (macOS, Windows), dazu eine **Browser-Erweiterung** für die Suche. Kein Server, kein Konto; die Daten bleiben auf dem Rechner. Der **gehostete Onlinedienst** folgt erst nach dem Pilot. |
 | Kernstück | Die **Stellensuche**: Sie dauert heute am längsten und gehört darum in den Pilot. |
-| KI | Der Dienst ruft die KI mit eigenem Schlüssel auf und trägt die Kosten. In der **Testphase** (Pilot, eventuell kostenlose Konten) läuft sie über die **Claude API von Anthropic**, auch in den USA. Im **Release** gibt es **keine Verarbeitung in den USA** mehr, nur noch in der EU. |
+| KI | Die App ruft die KI **direkt** auf. Im Pilot bekommt jede Person einen **eigenen API-Schlüssel mit Ausgabengrenze** aus einem Workspace des Projektinhabers, der die Kosten trägt. In der **Testphase** (Pilot, eventuell kostenlose Konten) läuft die KI über die **Claude API von Anthropic**, auch in den USA. Im **Release** gibt es **keine Verarbeitung in den USA** mehr, nur noch in der EU. |
 | Modell | Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 im Pilot verglichen. |
 | Personendaten an die KI | Sie werden **von Anfang an**, schon vor dem ersten KI-Aufruf im Pilot, **durch Platzhalter ersetzt** (Pseudonymisierung). So gehen auch in der Testphase nicht alle Daten in die USA. |
 | LinkedIn | **Halbautomatisch:** Die Person sitzt am Rechner und öffnet die Stellenübersicht selbst. Wie es weitergeht, wird nach ersten Erfahrungen entschieden. |
-| Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
-| Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
-| Hosting | Wird später entschieden. |
+| Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** in der App oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
+| Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
+| Hosting | Im Pilot keines. Für den Onlinedienst wird es später entschieden. |
 | Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. |
 
-Die lokale Variante bleibt bestehen. Sie ist für technisch Versierte die datensparsamste Wahl.
+Die App enthält denselben Code wie das Repo; wer technisch versiert ist, arbeitet weiter mit Repo und Claude Code. Der spätere Onlinedienst ist dieselbe App in einem Container pro Person.
 
 ## Zielgruppen und Nutzen
 
-- **Stellensuchende ohne technische Kenntnisse:** Sie brauchen kein Python, kein Git und keine Kommandozeile. Sie arbeiten im Browser nach demselben Ablauf wie lokal: Suche → Stelle → Unterlagen → Prüfung → Versand.
+- **Stellensuchende ohne technische Kenntnisse:** Sie brauchen kein Python, kein Git und keine Kommandozeile. Sie installieren die App per Doppelklick und arbeiten im Browser nach demselben Ablauf wie mit dem Repo: Suche → Stelle → Unterlagen → Prüfung → Versand.
   - Nutzen: Passende Stellen finden sie schneller. Pro Stelle entstehen ein passender Lebenslauf und ein Anschreiben im eigenen Stil, in dem jede Aussage belegt ist. Dazu kommen eine Übersicht über alle Bewerbungen und die Angaben für den Job-Room.
 - **Schulabgängerinnen und Schulabgänger** (2 im Pilot, ausgebaut in der fertigen Version): Sie suchen Lehrstellen und Schnupperlehren und erstellen ihr erstes Bewerbungsdossier (siehe [Ausbildungssuche](#ausbildungssuche)).
 
 ## Phasen
 
-1. **Pilot = Testphase** (etwa 3 Monate, gratis, auf Einladung, KI über die Claude API). Er soll drei Fragen klären: Spart die Suche wirklich Zeit? Kommen nicht versierte Personen damit zurecht? Was kostet eine aktive Person pro Monat?
-2. **Release: öffentlicher Dienst mit Abo**, KI-Verarbeitung nur in der EU, Ausbildungssuche ausgebaut. Er kommt nur, wenn der Pilot die Erfolgskriterien erfüllt.
+1. **Pilot = Testphase mit der lokalen App** (etwa 3 Monate, gratis, auf Einladung, KI über die Claude API). Er soll vier Fragen klären: Spart die Suche wirklich Zeit? Kommen nicht versierte Personen mit Installation und Ablauf zurecht? Was kostet eine aktive Person pro Monat? Braucht es danach einen gehosteten Dienst?
+2. **Release: öffentliches Angebot mit Abo**, KI-Verarbeitung nur in der EU, Ausbildungssuche ausgebaut. Es kommt nur, wenn der Pilot die Erfolgskriterien erfüllt. Ob es ein gehosteter Onlinedienst wird oder die App mit einem Abo-Schlüssel reicht, wird nach dem Pilot entschieden.
 
 Erfolgskriterien des Pilots:
 
+- Mindestens 8 von 10 Personen installieren die App und richten sie ohne Hilfe vor Ort ein.
 - Eine wöchentliche Suche samt Bewertung der Treffer dauert für die Person unter 15 Minuten.
-- Mindestens 5 Personen schicken je mindestens 3 Bewerbungen ab, die mit dem Dienst erstellt wurden.
+- Mindestens 5 Personen schicken je mindestens 3 Bewerbungen ab, die mit der App erstellt wurden.
 - Beide Lehrstellensuchenden schicken Bewerbungen mit Lebenslauf und Motivationsschreiben aus dem Assistenten ab.
 - Eine Bewerbung dauert von der Stelle bis zu den fertigen PDFs unter 30 Minuten.
 - Die KI-Kosten liegen unter CHF 10 pro aktive Person und Monat (gemessen, nicht geschätzt).
-- Kein Datenschutzvorfall, und keine Person sieht Daten einer anderen.
+- Kein Datenschutzvorfall.
 - Die Rückmeldungen zeigen, welche Schritte ohne Hilfe nicht klappen.
 
 ## Umfang im Pilot
 
 | Enthalten | Nicht im Pilot |
 |---|---|
-| Konto auf Einladung, Anmeldung mit Passkey oder E-Mail-Link | Versand durch den Dienst (die Person schickt selbst ab) |
+| **App** für macOS und Windows: Installation per Doppelklick, Ersteinrichtung (Datenordner, API-Schlüssel), Hinweis auf Updates | Server, Konto und Anmeldung (kommen mit dem Onlinedienst) |
 | **Lehrstellensuche, Grundlagen:** Art der Ausschreibung, Suchprofil nach Berufen, Schülerlebenslauf, Motivationsschreiben; Lehrstellen per Text einfügen | Lehrstellenportale in der Erweiterung, Lesezugang für Begleitpersonen |
-| **Einstieg** auf drei Wegen (siehe unten): Lebenslauf, Suchprofil, Stilprofil, Bausteine | Erinnerungen per E-Mail |
-| **Stellensuche** über die Browser-Erweiterung auf job-room, jobs.ch, jobscout24, ictjobs und Karriereseiten nach dem Suchprofil, LinkedIn halbautomatisch | Coaches und Begleitpersonen |
-| KI-Bewertung jedes Treffers (Note 1–6 mit Begründung), Abgleich gegen Doppelbewerbungen | |
+| **Einstieg** auf drei Wegen (siehe unten): Lebenslauf, Suchprofil, Stilprofil, Bausteine | Erinnerungen per E-Mail, Job-Abos per E-Mail |
+| **Stellensuche** über die Browser-Erweiterung auf job-room, jobs.ch, jobscout24, ictjobs und Karriereseiten nach dem Suchprofil, LinkedIn halbautomatisch; die Treffer gehen an die App | Versand durch die App (die Person schickt selbst ab) |
+| KI-Bewertung jedes Treffers (Note 1–6 mit Begründung), Abgleich gegen Doppelbewerbungen | Handy, Tablet, Chromebook |
 | Stelle erfassen: übernehmen aus Suche oder offenem Inserat, oder Text einfügen | Französisch, Englisch |
-| Lebenslauf, Themes, Foto (Metadaten werden entfernt), Lebenslauf-Variante vorschlagen (regelbasiert wie heute) | |
+| Lebenslauf, Themes, Foto (Metadaten werden entfernt), Lebenslauf-Variante vorschlagen (regelbasiert wie heute) | Coaches und Begleitpersonen |
 | Anschreiben-Entwurf im eigenen Stil (KI) mit Überarbeitung | |
 | Formale Prüfung (wie heute) und inhaltliche Prüfung (KI) | |
 | Register, Versand festhalten, Job-Room-Angaben zum Kopieren | |
-| Entwürfe und Versionen, Export aller Daten, Löschen des Kontos | |
+| Entwürfe und Versionen; alle Daten in einem Ordner der Person (sichern, mitnehmen, löschen) | |
 
 ## Einstieg: drei Wege, ein Ergebnis
 
-Der Einstieg ist die grösste Hürde für nicht versierte Personen. Lokal entstehen Lebenslauf, Stilprofil und Bausteine heute in einer Claude-Sitzung. Für alle drei Wege gilt: Das Ergebnis ist immer gleich, nämlich `cv.yaml`, das Suchprofil, das Stilprofil und die Bausteine. Die Person bestätigt jede Angabe, bevor sie gilt.
+Der Einstieg ist die grösste Hürde für nicht versierte Personen. Mit dem Repo entstehen Lebenslauf, Stilprofil und Bausteine heute in einer Sitzung mit Claude Code. Für alle drei Wege gilt: Das Ergebnis ist immer gleich, nämlich `cv.yaml`, das Suchprofil, das Stilprofil und die Bausteine. Die Person bestätigt jede Angabe, bevor sie gilt.
 
 | Weg | Wie | Geeignet für |
 |---|---|---|
 | **Unterlagen hochladen** | Bisherigen Lebenslauf (PDF oder Text) und 2–3 frühere Anschreiben hochladen. Die KI liest daraus die Angaben und den Stil heraus. | Personen mit bestehenden Unterlagen |
-| **Interview mit Claude** | Claude fragt Schritt für Schritt nach: Ausbildung, Stationen, Stärken, Ziele, Region, Pensum, Ton (Du/Sie). Fehlende Belege fragt es gezielt nach. Im Dienst ist das ein geführtes Gespräch. Mit eigenem Claude (claude.ai, Desktop-App) geht es über einen Skill `einstieg`, auch für die lokale Variante. | Personen ohne Unterlagen, Schulabgängerinnen und Schulabgänger |
-| **HTML-Vorlage** | Eine einzelne HTML-Datei mit Formular für Lebenslauf, Suchprofil und Stil. Sie läuft ohne Server im Browser, und die Daten bleiben lokal, bis die Person sie hochlädt. Man füllt sie von Hand aus, oder Claude füllt sie aus dem Interview vor. Sie speichert eine Datei zum Hochladen in den Dienst oder für den lokalen Datenordner. | Wer lieber selbst ausfüllt, offline arbeitet oder mit Begleitung (Eltern, Beratung) ausfüllt |
+| **Interview mit Claude** | Claude fragt Schritt für Schritt nach: Ausbildung, Stationen, Stärken, Ziele, Region, Pensum, Ton (Du/Sie). Fehlende Belege fragt es gezielt nach. In der App ist das ein geführtes Gespräch über `ki.py`. Mit Claude Code geht es über den Skill `einstieg`; so führt der Projektinhaber die ersten Interviews, bevor die App fertig ist. | Personen ohne Unterlagen, Schulabgängerinnen und Schulabgänger |
+| **HTML-Vorlage** | Eine einzelne HTML-Datei mit Formular für Lebenslauf, Suchprofil und Stil. Sie läuft ohne Server im Browser und ist über einen Link erreichbar (z.B. GitHub Pages), ohne Installation. Die Daten bleiben lokal. Man füllt sie von Hand aus, oder Claude füllt sie aus dem Interview vor. Sie speichert eine Datei, die die App importiert. | Wer lieber selbst ausfüllt, offline arbeitet oder mit Begleitung (Eltern, Beratung) ausfüllt |
 
-Die HTML-Vorlage prüft die Eingaben mit denselben Regeln wie das Register und der Lebenslauf. Beim Hochladen prüft der Dienst nochmals, denn die Datei ist eine Eingabe von aussen. Ohne frühere Anschreiben entsteht das Stilprofil aus dem Interview und aus 2–3 Beispielsätzen, die die Person auswählt oder anpasst.
+Die HTML-Vorlage prüft die Eingaben mit denselben Regeln wie das Register und der Lebenslauf. Beim Import prüft die App nochmals, denn die Datei ist eine Eingabe von aussen. Ohne frühere Anschreiben entsteht das Stilprofil aus dem Interview und aus 2–3 Beispielsätzen, die die Person auswählt oder anpasst.
 
 ## Stellensuche über den Browser der Person
 
-Die Suche ist das Kernstück. Stellenportale und Bewertungsseiten (job-room, LinkedIn, kununu, viele Karriereseiten) sperren aber Adressen von Rechenzentren und KI-Anbietern häufig. Ein Server des Dienstes oder die Web-Abfrage der KI kämen dort nicht zuverlässig durch. Der Skill `jobsuche` funktioniert heute nur, weil er im eingeloggten Browser der Person abfragt.
+Die Suche ist das Kernstück. Stellenportale und Bewertungsseiten (job-room, LinkedIn, kununu, viele Karriereseiten) sperren aber Adressen von Rechenzentren und KI-Anbietern häufig. Ein Server oder die Web-Abfrage der KI kämen dort nicht zuverlässig durch. Der Skill `jobsuche` funktioniert heute nur, weil er im eingeloggten Browser der Person abfragt.
 
-**Grundsatz:** Der Dienst und die KI rufen selbst keine fremden Websites ab. Abfragen bei Portalen laufen im Browser der Person, mit ihrer IP und ihren Logins, und nur, solange sie am Rechner ist und die Suche gestartet hat. Der Dienst erhält nur das Ergebnis, zum Beispiel eine Trefferliste oder einen Inseratstext. Bewertung, Abgleich und Jobliste laufen danach im Dienst.
+**Grundsatz:** Die KI ruft selbst keine fremden Websites ab. Abfragen bei Portalen laufen auf dem Rechner der Person, mit ihrer IP und ihren Logins, und nur, solange sie am Rechner ist und die Suche gestartet hat. Die App erhält nur das Ergebnis, zum Beispiel eine Trefferliste oder einen Inseratstext. Bewertung, Abgleich und Jobliste laufen danach in der App.
+
+Weil die App auf dem Rechner der Person läuft, hat sie deren IP. Einfache Portale ohne Login kann sie darum auch selbst abfragen. Portale mit Login oder viel JavaScript bleiben bei der Erweiterung.
 
 | Weg | Wie | Einschätzung |
 |---|---|---|
-| **Browser-Erweiterung** (Empfehlung) | Die Erweiterung des Dienstes (Chrome, Firefox, Edge) sucht in Portal-Tabs nach dem Suchprofil, gleich wie der Skill `jobsuche` mit `fetch` auf derselben Seite, und holt die Volltexte. Die Treffer gehen an den Dienst. | Nutzt die IP und die Logins der Person. Muss einmal installiert und bei Änderungen der Portale nachgeführt werden. Auf dem Handy nur eingeschränkt (Firefox Android, Safari iOS). |
+| **Browser-Erweiterung** (Empfehlung) | Die Erweiterung (Chrome, Edge, danach Firefox) sucht in Portal-Tabs nach dem Suchprofil, gleich wie der Skill `jobsuche` mit `fetch` auf derselben Seite, und holt die Volltexte. Die Treffer gehen an die App. | Nutzt die IP und die Logins der Person. Muss einmal installiert und bei Änderungen der Portale nachgeführt werden. Auf dem Handy nur eingeschränkt (Firefox Android, Safari iOS). |
 | **Text einfügen** | Inseratstext kopieren und einfügen | Geht immer, ohne Installation; der Ersatz, wenn die Erweiterung fehlt |
-| **Job-Abos per E-Mail** | Job-Abos der Portale an eine persönliche Adresse des Dienstes weiterleiten; der Dienst liest Titel, Firma und Link | Stellenvorschläge ganz ohne Abfragen bei den Portalen. Den Volltext holt die Erweiterung, oder die Person fügt ihn ein. |
+| **Job-Abos per E-Mail** (erst mit dem Onlinedienst) | Job-Abos der Portale an eine persönliche Adresse des Dienstes weiterleiten; der Dienst liest Titel, Firma und Link | Stellenvorschläge ganz ohne Abfragen bei den Portalen. Den Volltext holt die Erweiterung, oder die Person fügt ihn ein. |
 | **Offizielle Schnittstellen** | Partnerzugänge, z.B. für job-room oder JobCloud | Stabil und rechtlich sauber, aber wohl nur mit Vertrag; zu prüfen |
 | ~~Proxys mit Privatanschlüssen oder ein VPN~~ | Server-Abfragen über fremde Privatanschlüsse leiten | **Abgelehnt:** umgeht die Sperren bewusst, verletzt die Nutzungsbedingungen und ist rechtlich riskant |
 
 **Regeln für die Erweiterung:**
 
-- **Berechtigungen:** nur für die Portale im Suchprofil und den Dienst selbst.
+- **Berechtigungen:** nur für die Portale im Suchprofil und die App auf `127.0.0.1`.
+- **Kopplung:** Die Erweiterung wird einmal mit der App gekoppelt (Code in der App). Die App nimmt nur Anfragen der gekoppelten Erweiterung an.
 - **Auslöser:** Sie sucht nur, wenn die Person die Suche startet, und hält die Grenzen aus dem Skill ein (z.B. höchstens 3 Seiten pro Suchbegriff und Ort). Im Hintergrund sucht sie nicht.
 - **Keine Aktionen auf den Portalen:** Sie bewirbt nicht und füllt keine Formulare aus. CAPTCHAs bleiben bei der Person.
 - **LinkedIn halbautomatisch:**
@@ -92,7 +97,7 @@ Die Suche ist das Kernstück. Stellenportale und Bewertungsseiten (job-room, Lin
   - Auf Knopfdruck liest die Erweiterung nur diese geöffnete Seite und das offene Inserat.
   - Sie navigiert nicht selbständig und fragt nichts im Hintergrund ab.
   - Die Nutzungsbedingungen von LinkedIn verbieten Automatisierung ausdrücklich. Ob und wie es weitergeht, wird nach den ersten Erfahrungen entschieden.
-- **Wartung:** Sie wird zentral aktualisiert. Ändert ein Portal seine Seiten, ist das ein Update für alle.
+- **Wartung:** Sie wird über den Store der Erweiterungen aktualisiert. Ändert ein Portal seine Seiten, ist das ein Update für alle.
 
 ## KI-Funktionen und Kosten
 
@@ -128,7 +133,7 @@ Daraus ergibt sich:
 - **Eine aktive Person pro Monat** (15 Bewerbungen, 300 bewertete Treffer) kostet etwa **CHF 5–6** mit Sonnet 5.5 und **CHF 10–12** mit Opus 5.5.
 - **Prompt-Caching** senkt den Eingabe-Anteil: Suchprofil, Stilprofil, Bausteine und Lebenslauf bleiben pro Person gleich. Der grössere Teil der Kosten ist aber die Ausgabe.
 
-Im Pilot werden die echten Werte pro Aufruf protokolliert, ohne Inhalte. Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 an denselben Stellen verglichen.
+Im Pilot protokolliert die App die echten Werte pro Aufruf lokal, ohne Inhalte. Weil jede Person einen eigenen Schlüssel hat, zeigt die Anthropic Console die Kosten pro Person. Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 an denselben Stellen verglichen.
 
 ### Datenstandort und Datenminimierung
 
@@ -151,38 +156,59 @@ Im Pilot werden die echten Werte pro Aufruf protokolliert, ohne Inhalte. Für di
 - Das Foto geht nie an die KI.
 - Inseratstexte bleiben Daten: Anweisungsartige Zeilen werden wie im Skill `bewerbung` erkannt und gemeldet.
 
-## Architektur im Pilot: ein Datenordner pro Person
+## Architektur im Pilot: lokale App
 
-Der Grundsatz lautet: so viel vom heutigen Code wie möglich unverändert nutzen. Jede Person bekommt einen eigenen Datenordner wie lokal (YAML, Git, `versendet/`, `.entwuerfe/`) und einen eigenen Container mit der bestehenden Oberfläche. Die Trennung der Daten macht der Container, nicht neuer Mandanten-Code.
+Der Grundsatz lautet: so viel vom heutigen Code wie möglich unverändert nutzen. Die App ist die bestehende Oberfläche (`bewerbungen/app.py`) als installierbares Paket. Jede Person hat ihren Datenordner wie heute (YAML, `versendet/`, `.entwuerfe/`) auf dem eigenen Rechner.
 
 ```
-Browser der Person ──── Portal-Tabs (job-room, jobs.ch …) ◀── Erweiterung sucht mit IP und Login der Person
-   │                                         │ Treffer, Inseratstexte
-   └──HTTPS──▶ Reverse Proxy (Caddy) ◀───────┘
-                         │──▶ Anmeldung (z.B. Authelia: Passkey, Einladung)
-                         │
-                         ├─▶ Container Person A: app.py + Typst ──▶ Volume A (Datenordner, verschlüsselt)
-                         ├─▶ Container Person B: …
-                         └─▶ KI-Aufrufe (pseudonymisiert) ──▶ Testphase: Claude API · Release: nur EU
+Rechner der Person
+  Browser ── Portal-Tabs (job-room, jobs.ch …) ◀── Erweiterung sucht mit IP und Login der Person
+     │                                               │ Treffer, Inseratstexte
+     └── http://127.0.0.1 ──▶ App: app.py + Typst ◀──┘
+                                 ├─▶ Datenordner (z.B. in Dokumente)
+                                 ├─▶ Schlüsselbund des Systems (API-Schlüssel)
+                                 └─▶ KI-Aufrufe (pseudonymisiert) ──▶ Testphase: Claude API · Release: nur EU
 ```
 
-- **Server:** 1 virtueller Server mit Docker; der Anbieter wird später gewählt. 10 Personen brauchen je etwa 100–200 MB RAM; Typst rendert einen Lebenslauf in rund 300 ms.
-- **Anmeldung:** über ein bewährtes Werkzeug vor dem Proxy (z.B. Authelia mit Passkeys), nicht selbst gebaut. Der Proxy leitet jede Anmeldung fest zum Container dieser Person. Die Erweiterung meldet sich über dieselbe Anmeldung an.
-- **Anpassungen an der Oberfläche:**
-  - Die Host-Prüfung erlaubt den öffentlichen Namen.
-  - Der Server vertraut der Anmeldung des Proxys nur im internen Netz.
-  - Es gibt Grenzen für Uploads.
-  - Ein Hochladen ersetzt das Bearbeiten im Text-Editor.
-  - Token pro Start und CSP bleiben.
-- **KI-Modul:** Ein neues Modul `bewerbungen/ki.py` erhält eine schmale Schnittstelle: `bewerte_treffer`, `entwirf_anschreiben`, `pruefe_inhalt`, `richte_ein`, `interview`. Die Regeln aus den Skills (Belegpflicht, Stilprofil, Inserat ist Daten) werden zu Prompts, und die Pseudonymisierung sitzt in diesem Modul. Es läuft auch lokal mit eigenem API-Schlüssel; damit hat auch die lokale Variante KI ohne Claude Code.
-- **Versionen:** Git pro Datenordner, wie lokal (MIN-303, MIN-304).
-- **Sicherung:** täglich, verschlüsselt, an einem zweiten Standort; Wiederherstellung einmal im Pilot üben.
+- **Paket:** Python, Typst und Schriften als App für macOS (.app in .dmg) und Windows (.exe), z.B. mit PyInstaller oder Briefcase, gebaut in der CI (MIN-342). Ein Doppelklick startet den Server auf `127.0.0.1` und öffnet den Browser. Python, Terminal und Repo braucht die Person nicht.
+- **Ersteinrichtung:** Die Person wählt den Datenordner oder legt ihn an und gibt den API-Schlüssel einmal ein.
+- **API-Schlüssel:**
+  - Im Pilot legt der Projektinhaber pro Person einen Schlüssel in einem eigenen Workspace mit Ausgabengrenze an (MIN-340).
+  - Die App legt ihn im Schlüsselbund des Systems ab (macOS-Schlüsselbund, Windows-Anmeldeinformationen), nie im Datenordner, nie in Protokollen und nie im Installationspaket.
+  - Am Ende des Pilots oder bei Verlust eines Rechners wird der Schlüssel gesperrt.
+  - Später bringt die Person einen eigenen Schlüssel mit, oder ein kleiner Vermittlungsdienst gibt pro Konto ein Guthaben frei.
+- **KI-Modul:** Ein neues Modul `bewerbungen/ki.py` (MIN-338) erhält eine schmale Schnittstelle für Treffer bewerten, Anschreiben entwerfen, Inhalt prüfen, Einstieg aus Unterlagen und Interview. Die Regeln aus den Skills (Belegpflicht, Stilprofil, Inserat ist Daten) werden zu Prompts, und die Pseudonymisierung sitzt in diesem Modul.
+- **Versionen:** Git, wenn es installiert ist (MIN-303, MIN-304); sonst Entwürfe ohne Git wie heute. Ob die App Git mitbringt, klärt MIN-342.
+- **Sicherung:** macht die Person selbst, z.B. mit Time Machine oder einem Cloud-Ordner. Die Anleitung sagt, wie.
+- **Updates:** Die App prüft beim Start, ob es eine neue Version gibt, und verweist auf den Download.
+- **Signatur:** macOS blockiert unsignierte Apps, Windows warnt. Für den Pilot braucht es ein Apple-Entwicklerkonto zum Signieren und Beglaubigen; für Windows eine Signatur oder eine Anleitung zur Warnung.
+- **Plattformen:** macOS und Windows. Chromebooks, Tablets und Handys gehen nicht; vor dem Pilot klären, welchen Rechner die Teilnehmenden haben.
+- **Anpassungen an der Oberfläche:** Ersteinrichtung, Import der HTML-Vorlage, Kopplung mit der Erweiterung, KI-Knöpfe. Host-Prüfung, Token pro Start und CSP bleiben.
 
-Für das Abo mit mehr als etwa 50 Personen reicht ein Container pro Person nicht mehr: Die Kosten und der Betrieb wachsen pro Person. Dann bekommen Register, Entwürfe und Versionen eine Server-Umsetzung derselben Schnittstellen: Datenbank statt YAML, Objektspeicher statt Ordner.
+## Onlinedienst nach dem Pilot
+
+Braucht es nach dem Pilot einen gehosteten Dienst (z.B. für Personen ohne eigenen Rechner oder für Begleitpersonen), läuft dieselbe App in einem Container pro Person (MIN-343). Die Trennung der Daten macht der Container, nicht neuer Mandanten-Code.
+
+```
+Browser der Person ──── Portal-Tabs ◀── Erweiterung
+   │                          │ Treffer, Inseratstexte
+   └──HTTPS──▶ Reverse Proxy (Caddy) ◀──┘
+                     │──▶ Anmeldung (z.B. Authelia: Passkey, Einladung)
+                     ├─▶ Container Person A: app.py + Typst ──▶ Volume A (Datenordner, verschlüsselt)
+                     ├─▶ Container Person B: …
+                     └─▶ KI-Aufrufe (pseudonymisiert) ──▶ nur EU
+```
+
+- **Server:** 1 virtueller Server mit Docker. 10 Personen brauchen je etwa 100–200 MB RAM; Typst rendert einen Lebenslauf in rund 300 ms.
+- **Anmeldung:** über ein bewährtes Werkzeug vor dem Proxy, nicht selbst gebaut. Der Proxy leitet jede Anmeldung fest zum Container dieser Person.
+- **Anpassungen:** Die Host-Prüfung erlaubt den öffentlichen Namen, der Server vertraut der Anmeldung des Proxys nur im internen Netz, Uploads sind begrenzt.
+- **Sicherung:** täglich, verschlüsselt, an einem zweiten Standort.
+
+Für mehr als etwa 50 Personen reicht ein Container pro Person nicht mehr: Die Kosten und der Betrieb wachsen pro Person. Dann bekommen Register, Entwürfe und Versionen eine Server-Umsetzung derselben Schnittstellen: Datenbank statt YAML, Objektspeicher statt Ordner.
 
 ## Ausbildungssuche
 
-Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können, kommt eine Suche nach Lehrstellen (EFZ, EBA) und Schnupperlehren dazu. Zwei Lehrstellensuchende, die aktuell suchen, machen im Pilot mit (MIN-335). Im Pilot kommen die Lehrstellen per Text einfügen dazu, die Portale folgen in der Erweiterung. Der Ablauf bleibt gleich, die Inhalte unterscheiden sich:
+Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können, kommt eine Suche nach Lehrstellen (EFZ, EBA) und Schnupperlehren dazu. Zwei Lehrstellensuchende, die aktuell suchen, machen im Pilot mit (MIN-335). Im Pilot kommen die Lehrstellen per Text einfügen dazu, die Portale folgen in der Erweiterung. Der Ablauf bleibt gleich, die Inhalte unterscheiden sich:
 
 | Thema | Stellensuche | Ausbildungssuche |
 |---|---|---|
@@ -192,14 +218,14 @@ Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können, kom
 | Unterlagen | Lebenslauf, Anschreiben, Arbeitszeugnisse, Zertifikate | Lebenslauf für Schülerinnen und Schüler (Schule, Sprachen, Hobbys, Schnupperlehren), Motivationsschreiben, Schulzeugnisse, Testergebnisse, Schnupperberichte |
 | Einstieg | Unterlagen hochladen oder Interview | Fast immer Interview oder HTML-Vorlage, weil es noch keine Unterlagen gibt |
 | Job-Room | Angaben für die Arbeitsbemühungen | Entfällt |
-| Begleitung | Selten | Eltern, Lehrperson oder Berufsberatung lesen oft mit: Ein Lesezugang für Begleitpersonen wird hier wichtig. |
+| Begleitung | Selten | Eltern, Lehrperson oder Berufsberatung lesen oft mit: Ein Lesezugang für Begleitpersonen wird mit dem Onlinedienst wichtig; im Pilot sitzen sie dabei. |
 
 **Besonderheiten:**
 
 - **Minderjährige:**
   - In die Bearbeitung ihrer Daten willigen sie selbst ein, sofern sie urteilsfähig sind. Im Pilot werden die Eltern zusätzlich informiert und stimmen zu, weil die KI in der Testphase auch in den USA verarbeitet.
   - Für ein kostenpflichtiges Abo braucht es die Zustimmung der Eltern.
-- **Zeitpunkt:** Lehrstellen werden oft schon im Herbst und Winter vor dem Lehrbeginn vergeben, und die zwei suchen jetzt. Darum beginnen sie mit dem Einstieg (MIN-332, MIN-333) und der lokalen Variante, bevor der Dienst läuft.
+- **Zeitpunkt:** Lehrstellen werden oft schon im Herbst und Winter vor dem Lehrbeginn vergeben, und die zwei suchen jetzt. Darum beginnen sie mit dem Einstieg (MIN-332, MIN-333), bevor die App fertig ist: Die Interviews führt der Projektinhaber mit ihnen in Claude Code.
 - **Technik:**
   - Das Register unterscheidet die Art einer Ausschreibung (Stelle, Lehrstelle, Schnupperlehre).
   - Es braucht ein Theme für Lebensläufe von Schülerinnen und Schülern und Vorlagen für Motivationsschreiben (in der Regel Sie-Form).
@@ -215,10 +241,12 @@ Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können, kom
 
 **Schon im Pilot nötig:**
 
-- **Datenschutzerklärung und Einwilligung:** Sie sagen, wo die Daten liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und wie lange die Daten gespeichert bleiben.
-- **Auftragsverarbeitung:** Verträge mit dem Hosting-Anbieter und mit Anthropic, im Release mit dem EU-Anbieter. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden.
-- **Löschung:** Nach dem Pilot werden die Daten exportiert und gelöscht, ausser die Person will weitermachen. Inaktive Konten werden 12 Monate nach der letzten Anmeldung gelöscht, mit Vorwarnung.
-- **Datensparsamer Betrieb:** keine Tracker, Protokolle ohne Inhalte.
+- **Datenschutzerklärung und Einwilligung:** Sie sagen, dass die Daten auf dem Rechner der Person liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und dass die Aufrufe über das Konto des Projektinhabers bei Anthropic laufen.
+- **Auftragsverarbeitung:** Vertrag mit Anthropic, im Release mit dem EU-Anbieter. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden, und wie lange sie aufbewahrt werden.
+- **Ende des Pilots:** Der Schlüssel der Person wird gesperrt. Ihre Daten bleiben bei ihr; löschen kann sie sie selbst.
+- **Datensparsam:** keine Tracker und keine Telemetrie; die App protokolliert lokal und ohne Inhalte.
+
+**Für den Onlinedienst zusätzlich:** Vertrag mit dem Hosting-Anbieter; Export und Löschung des Kontos; inaktive Konten werden 12 Monate nach der letzten Anmeldung gelöscht, mit Vorwarnung.
 
 **Für das Abo zusätzlich:**
 
@@ -231,14 +259,20 @@ Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können, kom
 
 ## Sicherheit
 
+**App im Pilot:**
+
+- Der Server läuft nur auf `127.0.0.1`. Host-Prüfung, Token pro Start und CSP bleiben; Inhalte werden nur als Text eingesetzt.
+- Der API-Schlüssel liegt im Schlüsselbund des Systems und hat eine Ausgabengrenze. Er erscheint nie in Protokollen oder Fehlermeldungen.
+- Die Erweiterung hat nur die nötigen Berechtigungen. Die App nimmt nur Anfragen der gekoppelten Erweiterung an und prüft sie wie jede Eingabe von aussen.
+- Importierte Dateien (HTML-Vorlage, Lebenslauf) werden geprüft und nie als Code ausgeführt.
+- Fotos werden neu kodiert und ihre Metadaten entfernt.
+- Die Pakete werden in der CI gebaut und signiert; Abhängigkeiten werden geprüft.
+
+**Onlinedienst zusätzlich:**
+
 - Anmeldung mit Passkeys oder E-Mail-Link; Sitzungen mit sicheren Cookies; Schutz gegen CSRF.
 - Die Daten jeder Person liegen in einem eigenen Container und Volume. Ein Test stellt sicher, dass kein Weg zu fremden Daten führt.
-- Anfragen, Uploads und KI-Aufrufe sind pro Person begrenzt. Das schützt vor Missbrauch und vor Kosten.
-- Die Erweiterung hat nur die nötigen Berechtigungen. Was sie schickt, prüft der Dienst wie jede Eingabe von aussen.
-- Hochgeladene Dateien (HTML-Vorlage, Lebenslauf) werden geprüft und nie als Code ausgeführt.
-- Fotos werden serverseitig neu kodiert und ihre Metadaten entfernt.
-- Die bestehende CSP bleibt, Inhalte werden nur als Text eingesetzt.
-- Abhängigkeiten und Container-Images werden in der CI geprüft.
+- Anfragen, Uploads und KI-Aufrufe sind pro Person begrenzt.
 
 ## Abo (Phase 2, Vorschlag)
 
@@ -253,21 +287,23 @@ Damit auch Schulabgängerinnen und Schulabgänger den Dienst nutzen können, kom
 
 **Grobe Rechnung, zu prüfen:**
 
-- Die Fixkosten (Server, Sicherung, Domain, Zahlungsanbieter) liegen bei etwa CHF 100–150 pro Monat.
+- Die Fixkosten eines Onlinedienstes (Server, Sicherung, Domain, Zahlungsanbieter) liegen bei etwa CHF 100–150 pro Monat. Mit der App und einem Abo-Schlüssel fielen Server und Sicherung weg.
 - Pro Person kommen KI-Kosten von CHF 5–6 dazu.
 - Bei CHF 15 Abo bleiben etwa CHF 8 pro Person. Ab etwa 15–20 zahlenden Personen sind die Fixkosten gedeckt, ohne die eigene Arbeitszeit.
 
 ## Offene Entscheide
 
 1. **LinkedIn:** Wie geht es nach den ersten Erfahrungen mit der halbautomatischen Übernahme weiter?
-2. **Kostenlose Konten:** Dürfen sie im Release über die Claude API in den USA laufen (MIN-337)?
-3. **EU-Anbieter im Release:** Bedrock EU oder Vertex AI „eu“ (MIN-337)?
-4. **Hosting-Anbieter:** zuerst für die Testphase (MIN-340), über das Hosting im Release wird später entschieden.
-5. **Träger und Rechtsform** für das Abo. Erst nach dem Pilot zu entscheiden.
+2. **Signatur der App:** Apple-Entwicklerkonto für den Pilot; unter Windows Signatur oder Anleitung (MIN-342).
+3. **Nach dem Pilot:** gehosteter Onlinedienst (MIN-343), App mit Abo-Schlüssel oder beides?
+4. **Kostenlose Konten:** Dürfen sie im Release über die Claude API in den USA laufen (MIN-337)?
+5. **EU-Anbieter im Release:** Bedrock EU oder Vertex AI „eu“ (MIN-337)?
+6. **Hosting-Anbieter:** nur für den Onlinedienst, nach dem Pilot.
+7. **Träger und Rechtsform** für das Abo. Erst nach dem Pilot zu entscheiden.
 
 ## Arbeitsschritte (Linear)
 
-Meilenstein **„Onlinedienst: Pilot“**:
+Meilenstein **„Pilot: lokale App“**:
 
 | Ticket | Inhalt | Priorität |
 |---|---|---|
@@ -275,17 +311,19 @@ Meilenstein **„Onlinedienst: Pilot“**:
 | MIN-333 | Einstieg per HTML-Vorlage zum Ausfüllen, mit Import | hoch |
 | MIN-334 | Pseudonymisierung vor jedem KI-Aufruf | hoch |
 | MIN-335 | Lehrstellensuche: Grundlagen für den Pilot | hoch |
-| MIN-339 | Browser-Erweiterung: Stellensuche mit IP und Login der Person, LinkedIn halbautomatisch | hoch |
+| MIN-342 | Lokale App: Installationspaket für macOS und Windows, Ersteinrichtung, API-Schlüssel | hoch |
+| MIN-339 | Browser-Erweiterung: Stellensuche mit IP und Login der Person, LinkedIn halbautomatisch, Übergabe an die App | hoch |
 | MIN-338 | KI-Modul `ki.py` (nach MIN-334) | mittel |
-| MIN-340 | Betrieb: Proxy, Anmeldung, Container pro Person, Sicherung | mittel |
+| MIN-340 | Betrieb im Pilot: Schlüssel pro Person, Verteilung und Updates, Kosten | mittel |
 | MIN-336 | Rechtstexte: Datenschutz, Einwilligung (auch der Eltern), Auftragsverarbeitung | mittel |
-| MIN-341 | Pilot durchführen und auswerten (nach MIN-336, MIN-338, MIN-339, MIN-340) | mittel |
+| MIN-341 | Pilot durchführen und auswerten (nach MIN-336, MIN-338, MIN-339, MIN-340, MIN-342) | mittel |
 
 Meilenstein **„Onlinedienst: Release (Abo, EU)“**:
 
 | Ticket | Inhalt |
 |---|---|
 | MIN-337 | KI-Verarbeitung nur in der EU |
+| MIN-343 | Onlinedienst: Hosting mit Proxy, Anmeldung, Container pro Person, Sicherung (falls nach dem Pilot entschieden) |
 
 Später folgen: Zahlung und Abo, Nutzungsbedingungen, Lesezugang für Begleitpersonen, Lehrstellenportale in der Erweiterung, Datenbank statt Container pro Person.
 
