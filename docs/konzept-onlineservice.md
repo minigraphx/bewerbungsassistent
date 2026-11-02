@@ -7,15 +7,15 @@ Stand 2.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026). Er
 | Frage | Entscheid (2.11.2026) |
 |---|---|
 | Zielgruppe | Zuerst ein **Pilot mit 5–10 Personen aus dem Bekanntenkreis**, betreut vom Projektinhaber. Nach dem Pilot wird über einen öffentlichen Dienst entschieden. |
-| Form im Pilot | Eine **lokale App** auf dem Rechner der Person (macOS, Windows), dazu eine **Browser-Erweiterung** für die Suche. Kein Server, kein Konto; die Daten bleiben auf dem Rechner. Der **gehostete Onlinedienst** folgt erst nach dem Pilot. |
+| Form im Pilot | Eine **lokale App** auf dem Rechner der Person (macOS, Windows), dazu eine **Browser-Erweiterung** für die Suche. Die Daten bleiben auf dem Rechner; auf einem Server liegt nur die kleine **KI-Vermittlung**. Der **gehostete Onlinedienst** folgt erst nach dem Pilot. |
 | Kernstück | Die **Stellensuche**: Sie dauert heute am längsten und gehört darum in den Pilot. |
-| KI | Die App ruft die KI **direkt** auf. Im Pilot bekommt jede Person einen **eigenen API-Schlüssel mit Ausgabengrenze** aus einem Workspace des Projektinhabers, der die Kosten trägt. In der **Testphase** (Pilot, eventuell kostenlose Konten) läuft die KI über die **Claude API von Anthropic**, auch in den USA. Im **Release** gibt es **keine Verarbeitung in den USA** mehr, nur noch in der EU. |
+| KI | Die App ruft die KI über eine **Vermittlung** des Projektinhabers auf. Auf den Rechnern liegt **kein API-Schlüssel**: Jede Person meldet die App einmal per Einladungslink an und erhält einen **Zugang mit Budget**. Der Projektinhaber trägt die Kosten. In der **Testphase** (Pilot, eventuell kostenlose Konten) läuft die KI über die **Claude API von Anthropic**, auch in den USA. Im **Release** gibt es **keine Verarbeitung in den USA** mehr, nur noch in der EU. |
 | Modell | Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 im Pilot verglichen. |
 | Personendaten an die KI | Sie werden **von Anfang an**, schon vor dem ersten KI-Aufruf im Pilot, **durch Platzhalter ersetzt** (Pseudonymisierung). So gehen auch in der Testphase nicht alle Daten in die USA. |
 | LinkedIn | **Halbautomatisch:** Die Person sitzt am Rechner und öffnet die Stellenübersicht selbst. Wie es weitergeht, wird nach ersten Erfahrungen entschieden. |
 | Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** in der App oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
 | Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
-| Hosting | Im Pilot keines. Für den Onlinedienst wird es später entschieden. |
+| Hosting | Im Pilot nur die KI-Vermittlung, auf dem bestehenden Hosting des Projektinhabers. Für den Onlinedienst wird es später entschieden. |
 | Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. |
 
 Die App enthält denselben Code wie das Repo; wer technisch versiert ist, arbeitet weiter mit Repo und Claude Code. Der spätere Onlinedienst ist dieselbe App in einem Container pro Person.
@@ -29,7 +29,7 @@ Die App enthält denselben Code wie das Repo; wer technisch versiert ist, arbeit
 ## Phasen
 
 1. **Pilot = Testphase mit der lokalen App** (etwa 3 Monate, gratis, auf Einladung, KI über die Claude API). Er soll vier Fragen klären: Spart die Suche wirklich Zeit? Kommen nicht versierte Personen mit Installation und Ablauf zurecht? Was kostet eine aktive Person pro Monat? Braucht es danach einen gehosteten Dienst?
-2. **Release: öffentliches Angebot mit Abo**, KI-Verarbeitung nur in der EU, Ausbildungssuche ausgebaut. Es kommt nur, wenn der Pilot die Erfolgskriterien erfüllt. Ob es ein gehosteter Onlinedienst wird oder die App mit einem Abo-Schlüssel reicht, wird nach dem Pilot entschieden.
+2. **Release: öffentliches Angebot mit Abo**, KI-Verarbeitung nur in der EU, Ausbildungssuche ausgebaut. Es kommt nur, wenn der Pilot die Erfolgskriterien erfüllt. Ob es ein gehosteter Onlinedienst wird oder die App mit einem Abo-Zugang zur Vermittlung reicht, wird nach dem Pilot entschieden.
 
 Erfolgskriterien des Pilots:
 
@@ -46,7 +46,7 @@ Erfolgskriterien des Pilots:
 
 | Enthalten | Nicht im Pilot |
 |---|---|
-| **App** für macOS und Windows: Installation per Doppelklick, Ersteinrichtung (Datenordner, API-Schlüssel), Hinweis auf Updates | Server, Konto und Anmeldung (kommen mit dem Onlinedienst) |
+| **App** für macOS und Windows: Installation per Doppelklick, Ersteinrichtung (Datenordner, Erweiterung, Einladung), Hinweis auf Updates | Daten auf einem Server (kommen erst mit dem Onlinedienst) |
 | **Lehrstellensuche, Grundlagen:** Art der Ausschreibung, Suchprofil nach Berufen, Schülerlebenslauf, Motivationsschreiben; Lehrstellen per Text einfügen | Lehrstellenportale in der Erweiterung, Lesezugang für Begleitpersonen |
 | **Einstieg** auf drei Wegen (siehe unten): Lebenslauf, Suchprofil, Stilprofil, Bausteine | Erinnerungen per E-Mail, Job-Abos per E-Mail |
 | **Stellensuche** über die Browser-Erweiterung auf job-room, jobs.ch, jobscout24, ictjobs und Karriereseiten nach dem Suchprofil, LinkedIn halbautomatisch; die Treffer gehen an die App | Versand durch die App (die Person schickt selbst ab) |
@@ -136,7 +136,7 @@ Daraus ergibt sich:
 - **Eine aktive Person pro Monat** (15 Bewerbungen, 300 bewertete Treffer) kostet etwa **CHF 5–6** mit Sonnet 5.5 und **CHF 10–12** mit Opus 5.5.
 - **Prompt-Caching** senkt den Eingabe-Anteil: Suchprofil, Stilprofil, Bausteine und Lebenslauf bleiben pro Person gleich. Der grössere Teil der Kosten ist aber die Ausgabe.
 
-Im Pilot protokolliert die App die echten Werte pro Aufruf lokal, ohne Inhalte. Weil jede Person einen eigenen Schlüssel hat, zeigt die Anthropic Console die Kosten pro Person. Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 an denselben Stellen verglichen.
+Im Pilot protokolliert die App die echten Werte pro Aufruf lokal, ohne Inhalte. Die Vermittlung zählt Tokens und Kosten pro Person, ohne Inhalte. Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 an denselben Stellen verglichen.
 
 ### Datenstandort und Datenminimierung
 
@@ -169,20 +169,20 @@ Rechner der Person
      │                                               │ Treffer, Inseratstexte
      └── http://127.0.0.1 ──▶ App: app.py + Typst ◀──┘ Native Messaging
                                  ├─▶ Datenordner (z.B. in Dokumente)
-                                 ├─▶ Schlüsselbund des Systems (API-Schlüssel)
-                                 └─▶ KI-Aufrufe (pseudonymisiert) ──▶ Testphase: Claude API · Release: nur EU
+                                 ├─▶ Schlüsselbund des Systems (Zugang zur Vermittlung)
+                                 └─▶ KI-Aufrufe (pseudonymisiert)
+                                        │ HTTPS
+Hosting des Projektinhabers             ▼
+  KI-Vermittlung: Zugang prüfen, Budget, Kosten zählen ──▶ Testphase: Claude API · Release: nur EU
+  (Anthropic-Schlüssel nur hier; Inhalte nur durchgereicht)
 ```
 
 - **Paket:** Python, Typst und Schriften als App für macOS (.app in .dmg) und Windows (.exe), z.B. mit PyInstaller oder Briefcase, gebaut in der CI (MIN-342). Ein Doppelklick startet den Server auf `127.0.0.1` und öffnet den Browser. Python, Terminal und Repo braucht die Person nicht.
 - **Ersteinrichtung** in drei Schritten in der Oberfläche:
   1. Datenordner wählen oder anlegen.
   2. Erweiterung hinzufügen: ein Klick zum Store, die Seite erkennt die Erweiterung selbst.
-  3. API-Schlüssel einmal eingeben.
-- **API-Schlüssel:**
-  - Im Pilot legt der Projektinhaber pro Person einen Schlüssel in einem eigenen Workspace mit Ausgabengrenze an (MIN-340).
-  - Die App legt ihn im Schlüsselbund des Systems ab (macOS-Schlüsselbund, Windows-Anmeldeinformationen), nie im Datenordner, nie in Protokollen und nie im Installationspaket.
-  - Am Ende des Pilots oder bei Verlust eines Rechners wird der Schlüssel gesperrt.
-  - Später bringt die Person einen eigenen Schlüssel mit, oder ein kleiner Vermittlungsdienst gibt pro Konto ein Guthaben frei.
+  3. Einladungslink anklicken (oder Code eintippen); die App meldet sich bei der Vermittlung an.
+- **Zugang statt API-Schlüssel:** Die App legt den Zugang zur Vermittlung im Schlüsselbund des Systems ab (macOS-Schlüsselbund, Windows-Anmeldeinformationen), nie im Datenordner, nie in Protokollen und nie im Installationspaket. Einen Anthropic-Schlüssel sieht die Person nie (siehe [KI-Vermittlung](#ki-vermittlung)).
 - **KI-Modul:** Ein neues Modul `bewerbungen/ki.py` (MIN-338) erhält eine schmale Schnittstelle für Treffer bewerten, Anschreiben entwerfen, Inhalt prüfen, Einstieg aus Unterlagen und Interview. Die Regeln aus den Skills (Belegpflicht, Stilprofil, Inserat ist Daten) werden zu Prompts, und die Pseudonymisierung sitzt in diesem Modul.
 - **Versionen:** Git, wenn es installiert ist (MIN-303, MIN-304); sonst Entwürfe ohne Git wie heute. Ob die App Git mitbringt, klärt MIN-342.
 - **Sicherung:** macht die Person selbst, z.B. mit Time Machine oder einem Cloud-Ordner. Die Anleitung sagt, wie.
@@ -190,6 +190,18 @@ Rechner der Person
 - **Signatur:** macOS blockiert unsignierte Apps, Windows warnt. Für den Pilot braucht es ein Apple-Entwicklerkonto zum Signieren und Beglaubigen; für Windows eine Signatur oder eine Anleitung zur Warnung.
 - **Plattformen:** macOS und Windows. Chromebooks, Tablets und Handys gehen nicht; vor dem Pilot klären, welchen Rechner die Teilnehmenden haben.
 - **Anpassungen an der Oberfläche:** Ersteinrichtung, Import der HTML-Vorlage, Empfang der Treffer über Native Messaging, KI-Knöpfe. Host-Prüfung, Token pro Start und CSP bleiben.
+
+### KI-Vermittlung
+
+Ein kleiner Dienst auf dem bestehenden Hosting des Projektinhabers (MIN-344). Er hält den Anthropic-Schlüssel, damit keiner auf den Rechnern liegt.
+
+- **Schnittstelle:** gleich wie die Messages API von Anthropic. `ki.py` nutzt das Anthropic SDK mit der Adresse der Vermittlung und dem Zugang der Person.
+- **Einladung:** Der Projektinhaber erstellt pro Person einen Link mit Einmal-Code. Die App löst ihn ein und erhält einen Zugang. Der Code verfällt nach Gebrauch oder nach 7 Tagen.
+- **Grenzen:** Budget pro Person und Monat, Anfragen pro Minute, nur freigegebene Modelle, keine Server-Tools. So taugt die Vermittlung nicht als allgemeiner Zugang zu Claude.
+- **Kosten:** pro Aufruf Person, Modell, Tokens und Kosten, ohne Inhalte. Daraus kommen die gemessenen Kosten des Pilots.
+- **Inhalte:** werden nur durchgereicht, nie gespeichert oder protokolliert. Sie sind schon in der App pseudonymisiert.
+- **Sperren:** Am Ende des Pilots oder bei Verlust eines Rechners wird der Zugang gesperrt; die App meldet das verständlich.
+- **Release:** Die Vermittlung wechselt auf einen EU-Anbieter (MIN-337), ohne Update der App. Ein Abo wird ein Zugang mit Budget.
 
 ## Onlinedienst nach dem Pilot
 
@@ -247,12 +259,12 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 
 **Schon im Pilot nötig:**
 
-- **Datenschutzerklärung und Einwilligung:** Sie sagen, dass die Daten auf dem Rechner der Person liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und dass die Aufrufe über das Konto des Projektinhabers bei Anthropic laufen.
-- **Auftragsverarbeitung:** Vertrag mit Anthropic, im Release mit dem EU-Anbieter. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden, und wie lange sie aufbewahrt werden.
-- **Ende des Pilots:** Der Schlüssel der Person wird gesperrt. Ihre Daten bleiben bei ihr; löschen kann sie sie selbst.
+- **Datenschutzerklärung und Einwilligung:** Sie sagen, dass die Daten auf dem Rechner der Person liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und dass die Aufrufe über die Vermittlung des Projektinhabers (Standort des Hostings nennen) und sein Konto bei Anthropic laufen. Die Vermittlung reicht Inhalte nur durch und protokolliert nur Kosten.
+- **Auftragsverarbeitung:** Vertrag mit Anthropic und mit dem Anbieter des Hostings der Vermittlung, im Release mit dem EU-Anbieter. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden, und wie lange sie aufbewahrt werden.
+- **Ende des Pilots:** Der Zugang der Person wird gesperrt, ihre Kostenprotokolle nach der Auswertung gelöscht. Ihre Daten bleiben bei ihr; löschen kann sie sie selbst.
 - **Datensparsam:** keine Tracker und keine Telemetrie; die App protokolliert lokal und ohne Inhalte.
 
-**Für den Onlinedienst zusätzlich:** Vertrag mit dem Hosting-Anbieter; Export und Löschung des Kontos; inaktive Konten werden 12 Monate nach der letzten Anmeldung gelöscht, mit Vorwarnung.
+**Für den Onlinedienst zusätzlich:** Hosting der Daten selbst; Export und Löschung des Kontos; inaktive Konten werden 12 Monate nach der letzten Anmeldung gelöscht, mit Vorwarnung.
 
 **Für das Abo zusätzlich:**
 
@@ -268,7 +280,8 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 **App im Pilot:**
 
 - Der Server läuft nur auf `127.0.0.1`. Host-Prüfung, Token pro Start und CSP bleiben; Inhalte werden nur als Text eingesetzt.
-- Der API-Schlüssel liegt im Schlüsselbund des Systems und hat eine Ausgabengrenze. Er erscheint nie in Protokollen oder Fehlermeldungen.
+- Auf den Rechnern liegt kein API-Schlüssel, nur der Zugang zur Vermittlung im Schlüsselbund des Systems. Er erscheint nie in Protokollen oder Fehlermeldungen.
+- Die Vermittlung speichert Zugänge nur als Hash, prüft Budget und Modelle bei jedem Aufruf und hält den Anthropic-Schlüssel als Geheimnis auf dem Server, nie im Repo.
 - Die Erweiterung hat nur die nötigen Berechtigungen. Treffer nimmt die App nur über Native Messaging von der eigenen Erweiterung an (Chrome prüft deren ID) und prüft sie wie jede Eingabe von aussen.
 - Importierte Dateien (HTML-Vorlage, Lebenslauf) werden geprüft und nie als Code ausgeführt.
 - Fotos werden neu kodiert und ihre Metadaten entfernt.
@@ -293,7 +306,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 
 **Grobe Rechnung, zu prüfen:**
 
-- Die Fixkosten eines Onlinedienstes (Server, Sicherung, Domain, Zahlungsanbieter) liegen bei etwa CHF 100–150 pro Monat. Mit der App und einem Abo-Schlüssel fielen Server und Sicherung weg.
+- Die Fixkosten eines Onlinedienstes (Server, Sicherung, Domain, Zahlungsanbieter) liegen bei etwa CHF 100–150 pro Monat. Mit der App und einem Abo-Zugang zur Vermittlung fielen die Server für Daten und deren Sicherung weg.
 - Pro Person kommen KI-Kosten von CHF 5–6 dazu.
 - Bei CHF 15 Abo bleiben etwa CHF 8 pro Person. Ab etwa 15–20 zahlenden Personen sind die Fixkosten gedeckt, ohne die eigene Arbeitszeit.
 
@@ -301,10 +314,10 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 
 1. **LinkedIn:** Wie geht es nach den ersten Erfahrungen mit der halbautomatischen Übernahme weiter?
 2. **Signatur der App:** Apple-Entwicklerkonto für den Pilot; unter Windows Signatur oder Anleitung (MIN-342).
-3. **Nach dem Pilot:** gehosteter Onlinedienst (MIN-343), App mit Abo-Schlüssel oder beides?
+3. **Nach dem Pilot:** gehosteter Onlinedienst (MIN-343), App mit Abo-Zugang zur Vermittlung oder beides?
 4. **Kostenlose Konten:** Dürfen sie im Release über die Claude API in den USA laufen (MIN-337)?
 5. **EU-Anbieter im Release:** Bedrock EU oder Vertex AI „eu“ (MIN-337)?
-6. **Hosting-Anbieter:** nur für den Onlinedienst, nach dem Pilot.
+6. **Hosting-Anbieter:** Die Vermittlung läuft im Pilot auf dem bestehenden Hosting; für den Onlinedienst wird nach dem Pilot entschieden.
 7. **Träger und Rechtsform** für das Abo. Erst nach dem Pilot zu entscheiden.
 
 ## Arbeitsschritte (Linear)
@@ -317,12 +330,13 @@ Meilenstein **„Pilot: lokale App“**:
 | MIN-333 | Einstieg per HTML-Vorlage zum Ausfüllen, mit Import | hoch |
 | MIN-334 | Pseudonymisierung vor jedem KI-Aufruf | hoch |
 | MIN-335 | Lehrstellensuche: Grundlagen für den Pilot | hoch |
-| MIN-342 | Lokale App: Installationspaket für macOS und Windows, Ersteinrichtung, API-Schlüssel | hoch |
+| MIN-342 | Lokale App: Installationspaket für macOS und Windows, Ersteinrichtung | hoch |
+| MIN-344 | KI-Vermittlung: Zugang pro Person statt API-Schlüssel auf dem Rechner | hoch |
 | MIN-339 | Browser-Erweiterung: Stellensuche mit IP und Login der Person, LinkedIn halbautomatisch, Übergabe an die App | hoch |
 | MIN-338 | KI-Modul `ki.py` (nach MIN-334) | mittel |
-| MIN-340 | Betrieb im Pilot: Schlüssel pro Person, Verteilung und Updates, Kosten | mittel |
+| MIN-340 | Betrieb im Pilot: Vermittlung betreiben, Einladungen, Verteilung und Updates, Kosten | mittel |
 | MIN-336 | Rechtstexte: Datenschutz, Einwilligung (auch der Eltern), Auftragsverarbeitung | mittel |
-| MIN-341 | Pilot durchführen und auswerten (nach MIN-336, MIN-338, MIN-339, MIN-340, MIN-342) | mittel |
+| MIN-341 | Pilot durchführen und auswerten (nach MIN-336, MIN-338, MIN-339, MIN-340, MIN-342, MIN-344) | mittel |
 
 Meilenstein **„Onlinedienst: Release (Abo, EU)“**:
 
