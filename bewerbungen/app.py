@@ -17,7 +17,7 @@ from ablage import Ablage
 from dateien import sichere_gitignore
 from kontext import Kontext
 from server import Server
-from versionen import OhneGit, waehle
+from versionen import waehle
 
 SEITEN = {
     "/": "uebersicht.html",
@@ -61,8 +61,6 @@ def main(argv: list[str] | None = None) -> None:
         server = erstelle_server(pathlib.Path(args.daten), pathlib.Path(args.build_dir) if args.build_dir else None, args.port)
     except (ValueError, OSError) as fehler:
         sys.exit(f"Fehler: {fehler}")
-    if isinstance(server.kontext.versionierung, OhneGit):
-        log.warning(server.kontext.versionierung.hinweis)
     log.info("Bewerbungsassistent läuft auf %s (beenden mit Ctrl+C)", server.url)
     if not args.kein_browser:
         webbrowser.open(server.url)

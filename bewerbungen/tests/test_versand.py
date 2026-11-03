@@ -107,8 +107,30 @@ def test_ohne_git(bereit):
     ergebnis = erfasse(bereit, versionierung=versionen.OhneGit(bereit))
 
     assert ergebnis["commit"] is None
-    assert any("Git" in h for h in ergebnis["hinweise"])
+    assert not any("Git" in h for h in ergebnis["hinweise"])  # missing Git is normal, no hint
     assert Register(bereit).hole(BRIEF_ID)["status"] == "Beworben"
+
+
+def test_sent_versions_are_listed_without_git(bereit):
+    ohne_git = versionen.OhneGit(bereit)
+    erfasse(bereit, versionierung=ohne_git)
+
+    [eintrag] = versand.versendete(bereit, ohne_git)
+
+    assert eintrag["nachricht"] == "Versand: Beispiel AG – Data Engineer (26.10.2026)"
+    assert eintrag["datum"] == "2026-10-26"
+    assert eintrag["commit"] is None
+    assert "cv.yaml" in eintrag["dateien"]
+    assert any(d.startswith("versendet/") and d.endswith(".pdf") for d in eintrag["dateien"])
+
+
+def test_sent_versions_show_the_git_commit_if_there_is_one(bereit):
+    git = versionen.GitVersionen(bereit)
+    ergebnis = erfasse(bereit, versionierung=git)
+
+    [eintrag] = versand.versendete(bereit, git)
+
+    assert eintrag["commit"] == ergebnis["commit"]
 
 
 def test_hinweis_bei_mehreren_bewerbungen_derselben_firma(bereit):

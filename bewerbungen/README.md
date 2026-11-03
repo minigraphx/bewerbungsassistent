@@ -45,8 +45,8 @@ meine-daten/
 ### Entwürfe und Versionen
 
 - **Entwurf**: Jedes Speichern über die Oberfläche legt einen Entwurf mit Datum an (Inhalte nach SHA-256, jeder nur einmal). Änderungen ausserhalb der Oberfläche, etwa durch Claude im Chat, sichert `python entwurf.py <datenordner> <datei> -m "<was>"` (vorher und nachher aufrufen). Entwürfe sind löschbar, solange sie nicht genutzt wurden. Die Editoren (Inhalte, Foto) zeigen unter „Letzte Entwürfe“ die drei neuesten Entwürfe der gerade bearbeiteten Datei, mit Link auf alle.
-- **Version**: Genutzt heisst versendet. Beim Versand werden PDFs und Quelldaten im lokalen Git des Datenordners committet (nie automatisch gepusht).
-- **Ohne Git**: Der Versand funktioniert trotzdem; die Fassungen bleiben unter `versendet/` und im Register und werden beim ersten Versand mit Git nachträglich eingefroren.
+- **Version**: Genutzt heisst versendet. Das PDF kommt einmal nach `versendet/`, die Daten, aus denen es entstand, bleiben als genutzte Entwürfe erhalten und sind nicht mehr löschbar. Das Register sagt, was wann an wen ging. Die Seite „Entwürfe & Versionen“ listet die Versionen daraus.
+- **Git ist freiwillig**: Ohne Git fehlt nichts. Ist Git installiert, kommt jeder Versand zusätzlich als Commit ins lokale Git des Datenordners (nie automatisch gepusht); Fassungen aus der Zeit ohne Git werden beim nächsten Versand mitgenommen. Ein privates GitHub-Repo braucht es nicht.
 
 ### Varianten (`varianten.yaml`)
 

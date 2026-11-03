@@ -34,7 +34,8 @@ def test_waehle_ohne_git(daten, monkeypatch):
     v = versionen.waehle(daten)
 
     assert isinstance(v, versionen.OhneGit)
-    assert "Git" in v.hinweis
+    assert "versendet/" in v.hinweis
+    assert "xcode-select" not in v.hinweis and "installieren" not in v.hinweis
 
 
 def test_friere_ein_legt_repo_an_und_committet_nur_die_dateien(daten):

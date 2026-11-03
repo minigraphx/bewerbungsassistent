@@ -1,8 +1,9 @@
-"""Genutzte Fassungen einfrieren (MIN-303): Beim Versand werden PDFs und Daten im lokalen Git des
-Datenordners committet. Gepusht wird nie automatisch.
+"""Optional extra copy of sent versions in Git (MIN-303, MIN-304).
 
-Ohne installiertes Git (MIN-304) bleiben die versendeten Dateien trotzdem unter `versendet/` und im
-Register erhalten; sie werden beim ersten Versand mit Git mit eingefroren, es geht also nichts verloren.
+The own storage is complete without Git: sent PDFs stay under `versendet/`, the data they were built from
+as used drafts (not deletable, see ablage.py), and the register says what went where. If Git is installed,
+each Versand is also committed to the local Git of the data folder; nothing is ever pushed. Sent files from
+times without Git are committed with the next Versand that has Git.
 """
 import pathlib
 import shutil
@@ -13,7 +14,6 @@ from dateien import relativ
 
 ERSATZ_AUTOR = "Bewerbungsassistent"
 ERSATZ_MAIL = "bewerbungsassistent@localhost"
-INSTALLATION = "macOS: xcode-select --install · Windows/Linux: https://git-scm.com/downloads"
 
 
 class Versionierung(Protocol):
@@ -25,7 +25,8 @@ class Versionierung(Protocol):
 
 
 class GitVersionen:
-    hinweis = "Versionen werden im lokalen Git des Datenordners festgehalten (kein automatischer Push)."
+    hinweis = ("Versendete Fassungen sind gesichert: die PDFs unter versendet/, die Daten als genutzte Entwürfe. "
+               "Zusätzlich hält das lokale Git des Datenordners jeden Versand fest (kein automatischer Push).")
 
     def __init__(self, ordner: pathlib.Path) -> None:
         self.ordner = ordner.resolve()
@@ -82,11 +83,7 @@ class GitVersionen:
 
 
 class OhneGit:
-    hinweis = (
-        "Git ist nicht installiert: Versendete Fassungen bleiben unter versendet/ und im Register erhalten, "
-        f"werden aber noch nicht eingefroren. Git installieren ({INSTALLATION}); beim nächsten Versand wird "
-        "alles nachgeholt."
-    )
+    hinweis = "Versendete Fassungen sind gesichert: die PDFs unter versendet/, die Daten als genutzte Entwürfe."
 
     def __init__(self, ordner: pathlib.Path) -> None:
         self.ordner = ordner.resolve()

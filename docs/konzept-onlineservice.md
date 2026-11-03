@@ -253,9 +253,9 @@ Hosting des Projektinhabers (Schweiz)    ▼
   3. Einladungslink anklicken (oder Code eintippen); die App meldet sich bei der Vermittlung an.
 - **Zugang statt API-Schlüssel:** Die App legt den Zugang zur Vermittlung im Schlüsselbund des Systems ab (macOS-Schlüsselbund, Windows-Anmeldeinformationen), nie im Datenordner, nie in Protokollen und nie im Installationspaket. Einen Anthropic-Schlüssel sieht die Person nie (siehe [KI-Vermittlung](#ki-vermittlung)), ausser sie gibt einen eigenen an (siehe [Eigener API-Schlüssel](#eigener-api-schlüssel)).
 - **KI-Modul:** Ein neues Modul `bewerbungen/ki.py` (MIN-338) erhält eine schmale Schnittstelle für Treffer bewerten, Anschreiben entwerfen, Inhalt prüfen, Einstieg aus Unterlagen und Interview. Die Regeln aus den Skills (Belegpflicht, Stilprofil, Inserat ist Daten) werden zu Prompts, und die Pseudonymisierung sitzt in diesem Modul.
-- **Versionen:** Git, wenn es installiert ist (MIN-303, MIN-304); sonst Entwürfe ohne Git wie heute. Ob die App Git mitbringt, klärt MIN-342.
+- **Versionen:** Die eigene Ablage reicht: versendete PDFs unter `versendet/`, die Daten dazu als genutzte Entwürfe (MIN-303, MIN-304). Git braucht die App nicht und bringt es nicht mit; ist es installiert, hält es jeden Versand zusätzlich fest (Entscheid 3.11.2026).
 - **Jobliste in Google Sheets (optional):** In den Einstellungen „Jobliste in Google Sheets führen“. Die App meldet sich einmal bei Google an (Anmeldung im Browser, Berechtigung nur `drive.file`), legt die Tabelle an, überträgt den Bestand und trägt danach jede neue Stelle und jede Änderung ins Register und in die Liste ein. Die Liste ist nie Quelle: Was dort von Hand geändert wird, übernimmt die App nicht. Ausschalten lässt die Tabelle bestehen. Das Zugangszeichen von Google liegt im Schlüsselbund des Systems.
-- **Sicherung:** macht die Person selbst, z.B. mit Time Machine oder einem Cloud-Ordner. Die Anleitung sagt, wie.
+- **Sicherung:** Knopf „Sicherung erstellen“ in der App. Sie packt den Datenordner als ZIP mit Datum an einen Ort, den die Person wählt (z.B. USB-Stick), und erinnert nach einigen Versänden daran (MIN-359). Ein Konto oder eine Cloud braucht es dafür nicht (Entscheid 3.11.2026).
 - **Updates:** Die App prüft beim Start, ob es eine neue Version gibt, und verweist auf den Download.
 - **Signatur:** macOS blockiert unsignierte Apps, Windows warnt. Für den Pilot braucht es ein Apple-Entwicklerkonto zum Signieren und Beglaubigen; für Windows eine Signatur oder eine Anleitung zur Warnung.
 - **Plattformen:** macOS und Windows. Chromebooks, Tablets und Handys gehen nicht; vor dem Pilot klären, welchen Rechner die Teilnehmenden haben.
@@ -425,6 +425,7 @@ Meilenstein **„Pilot: lokale App“**:
 | MIN-347 | RAV-Arbeitsbemühungen im Job-Room vorausfüllen (nach MIN-339) | hoch |
 | MIN-348 | Erweiterte Einstellungen: eigener API-Schlüssel hebt die Beschränkung auf Portale auf (nach MIN-338, MIN-339) | mittel |
 | MIN-338 | KI-Modul `ki.py` (nach MIN-334) | mittel |
+| MIN-359 | Sicherung erstellen: Datenordner als ZIP, mit Erinnerung | mittel |
 | MIN-340 | Betrieb im Pilot: Vermittlung betreiben, Einladungen, Verteilung und Updates, Kosten | mittel |
 | MIN-336 | Rechtstexte: Datenschutz, Einwilligung (auch der Eltern), Auftragsverarbeitung | mittel |
 | MIN-341 | Pilot durchführen und auswerten (nach MIN-336, MIN-338 bis MIN-340, MIN-342, MIN-344 bis MIN-348) | mittel |

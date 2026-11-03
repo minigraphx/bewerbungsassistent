@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  const { holen, senden, el, status, url, bestaetigen, pdfAdresse, zeitpunkt: zeit } = window.App;
+  const { holen, senden, el, status, url, datum, bestaetigen, pdfAdresse, zeitpunkt: zeit } = window.App;
   const $ = id => document.getElementById(id);
   const meldung = (text, art) => status($("status"), text, art);
 
@@ -97,7 +97,7 @@
       const daten = await holen("/api/versionen");
       $("versionen-hinweis").textContent = daten.hinweis;
       const karten = daten.versionen.map(v => el("div", { class: "karte" },
-        el("strong", {}, v.nachricht), el("div", { class: "leise" }, `${zeit(v.datum)} · ${v.commit.slice(0, 10)}`),
+        el("strong", {}, v.nachricht), el("div", { class: "leise" }, v.commit ? `${datum(v.datum)} · Git ${v.commit.slice(0, 10)}` : datum(v.datum)),
         el("ul", {}, v.dateien.map(d => el("li", {}, d.startsWith("versendet/")
           ? el("a", { href: url("/api/versendet", { datei: d }), target: "_blank", rel: "noopener" }, d) : d)))));
       $("versionen").replaceChildren(...(karten.length ? karten : [el("p", { class: "leer" }, "Noch nichts versendet.")]));

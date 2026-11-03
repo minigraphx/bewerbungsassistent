@@ -1,5 +1,6 @@
 """API-Routen für Entwürfe und Versionen (MIN-303)."""
 import inhalte
+import versand
 from dateien import im_ordner
 from routen_inhalte import pdf_aus_text
 from server import Antwort, json_antwort, pflicht
@@ -80,7 +81,7 @@ def wiederherstellen(k, parameter, body):
 
 
 def versionen(k, parameter, body):
-    return json_antwort({"versionen": k.versionierung.verlauf(), "hinweis": k.versionierung.hinweis})
+    return json_antwort({"versionen": versand.versendete(k.daten, k.versionierung), "hinweis": k.versionierung.hinweis})
 
 
 GET = {

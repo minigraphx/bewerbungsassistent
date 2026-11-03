@@ -6,7 +6,7 @@ Schritt fest, was wann an wen ging:
 2. Die Entwürfe der Daten (Lebenslauf, Zuschnitt, Foto, Anschreiben) werden als genutzt markiert und sind
    damit nicht mehr löschbar.
 3. Das Register bekommt Status „Beworben“, Datum, Art und Verweis auf die Fassungen.
-4. Alles zusammen wird in Git eingefroren (ohne Git: siehe versionen.OhneGit).
+4. Ist Git installiert, kommt alles zusätzlich als Commit ins lokale Git (siehe versionen.py).
 """
 import datetime
 import hashlib
@@ -21,9 +21,14 @@ from ablage import Ablage
 from dateien import im_ordner
 from register import JOBROOM_ART, Register
 from varianten import Varianten
-from versionen import OhneGit, Versionierung
+from versionen import Versionierung
 
 ORDNER = "versendet"
+GIT_HISTORY = 1000  # commits searched for the commit of a Versand
+
+
+def _zweck(bewerbung: dict, datum: datetime.date) -> str:
+    return f"Versand: {bewerbung['firma']} – {bewerbung['stelle']} ({datum:%d.%m.%Y})"
 
 
 def lege_ab(daten: pathlib.Path, pdf: pathlib.Path, datum: datetime.date) -> pathlib.Path:
@@ -79,7 +84,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
         raise ValueError("Lebenslauf-PDF fehlt: zuerst die Unterlagen erstellen und prüfen")
 
     abgelegt = {a: lege_ab(daten, p, datum) for a, p in pdfs.items()}
-    zweck = f"Versand: {bewerbung['firma']} – {bewerbung['stelle']} ({datum:%d.%m.%Y})"
+    zweck = _zweck(bewerbung, datum)
     quellen = _datenquellen(daten, bewerbung)
     Ablage(daten).markiere_genutzt(quellen, zweck)
 
@@ -98,6 +103,21 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
         # Der Versand ist erfasst; eingefroren wird beim nächsten Versand mit (versendet/ und Register sind dabei)
         commit = None
         hinweise.append(f"Versand erfasst, aber nicht in Git eingefroren: {fehler}")
-    if isinstance(versionierung, OhneGit):
-        hinweise.append(versionierung.hinweis)
     return {"bewerbung": neu, "commit": commit, "hinweise": hinweise}
+
+
+def versendete(daten: pathlib.Path, versionierung: Versionierung) -> list[dict]:
+    """Sent applications, newest first: PDFs and data files from register and drafts, plus the Git commit if any."""
+    daten = daten.resolve()
+    commits = {v["nachricht"]: v["commit"] for v in versionierung.verlauf(GIT_HISTORY)}
+    entwuerfe = Ablage(daten).liste()
+    eintraege = []
+    for bewerbung in Register(daten).alle():
+        versand = bewerbung.get("versand")
+        if not versand:
+            continue
+        zweck = _zweck(bewerbung, datetime.date.fromisoformat(versand["datum"]))
+        quellen = {e.datei for e in entwuerfe if zweck in e.genutzt_fuer}
+        eintraege.append({"nachricht": zweck, "datum": versand["datum"], "commit": commits.get(zweck),
+                          "dateien": sorted(quellen | set(versand.get("dateien", {}).values()))})
+    return sorted(eintraege, key=lambda e: e["datum"], reverse=True)
