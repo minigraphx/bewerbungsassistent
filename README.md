@@ -18,6 +18,30 @@ Der Assistent nimmt Routinearbeit ab, damit mehr Zeit für das bleibt, was eine 
 
 **Für Arbeitgeber** heisst das: Ausschreibungen werden von passenden Bewerbenden auch dann gefunden, wenn sie weit hinten in den Suchergebnissen stehen. Der Assistent prüft jede gefundene Ausschreibung auf Passung und wird dabei nicht müde. Er ist auf gezielte Auswahl statt Streuung ausgelegt. Die Unterlagen beziehen sich auf die ausgeschriebene Stelle, auf die Anforderungen des Inserats und auf die Firma, und sie sind übersichtlich gestaltet.
 
+## So sieht es aus
+
+Alle Bilder zeigen frei erfundene Beispieldaten.
+
+**Übersicht der Bewerbungen:** Stand, Passung (Note 1–6) und Lebenslauf-Variante jeder Stelle auf einen Blick.
+
+![Übersicht der Bewerbungen mit Status, Passung und Variante](docs/bilder/uebersicht.jpg)
+
+**Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass im Anschreiben noch die Firma einer anderen Bewerbung steht.
+
+![Lebenslauf und Anschreiben als PDF mit den Befunden der Prüfung darüber](docs/bilder/bewerbung.jpg)
+
+**Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
+
+![Liste der Entwürfe mit Zeit, Datei, Beschreibung und Versand](docs/bilder/entwuerfe.jpg)
+
+**Fotoausschnitt (freiwillig):** Ausschnitt per Maus oder Tastatur einstellen, mit Vorschau in Druckgrösse.
+
+![Editor für den runden Fotoausschnitt mit Reglern für Zoom und Ausschnitt](docs/bilder/foto.jpg)
+
+**Einstieg:** eine HTML-Seite, die Schritt für Schritt alles abfragt, was der Assistent braucht. Sie läuft im Browser und verschickt nichts.
+
+![Einstiegsvorlage mit Schritten und dem Formular „Person und Kontakt“](docs/bilder/einstieg.jpg)
+
 ## Module
 
 | Ordner | Inhalt |
