@@ -1,0 +1,120 @@
+name: App-Paket
+
+# Baut die lokale App für Windows (Installer) und macOS, testet sie und hängt sie bei einem Tag v* als
+# Entwurf an ein Release. Erst das Veröffentlichen des Releases rollt das Update an alle aus (MIN-342).
+on:
+  push:
+    branches: [main]
+    paths: ["desktop/**", "bewerbungen/**", "lebenslauf/**", "onboarding/**", "vorlagen/**", "requirements.txt",
+            ".github/workflows/app.yml"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Abhängigkeiten
+        run: pip install -r requirements.txt -r desktop/requirements.txt
+      - name: Version
+        run: |
+          $version = python -c "import sys; sys.path.insert(0, 'desktop'); import version; print(version.VERSION)"
+          if ($env:GITHUB_REF -like 'refs/tags/v*' -and $env:GITHUB_REF -ne "refs/tags/v$version") {
+            throw "Tag passt nicht zu desktop/version.py ($version)" }
+          "VERSION=$version" >> $env:GITHUB_ENV
+      - name: Voreinstellungen (Adresse der KI-Vermittlung, kein Geheimnis)
+        env:
+          KI_URL: ${{ vars.KI_URL }}
+        run: |
+          New-Item -ItemType Directory -Force desktop/build | Out-Null
+          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
+      - name: Paket bauen
+        run: pyinstaller --noconfirm desktop/bewerbungsassistent.spec
+      - name: Selbsttest des Pakets
+        run: |
+          $p = Start-Process dist\Bewerbungsassistent\Bewerbungsassistent.exe -ArgumentList '--selbsttest' -Wait -PassThru
+          Get-Content selbsttest.txt
+          if ($p.ExitCode -ne 0) { throw "Selbsttest fehlgeschlagen" }
+      - name: Installer bauen
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          & $iscc "/DAppVersion=$env:VERSION" desktop\installer.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC fehlgeschlagen" }
+      - name: Installieren, testen, deinstallieren
+        run: |
+          $setup = "dist-installer\Bewerbungsassistent-Setup-$env:VERSION.exe"
+          Start-Process $setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOSTART' -Wait
+          $app = "$env:LOCALAPPDATA\Programs\Bewerbungsassistent"
+          Remove-Item selbsttest.txt
+          $p = Start-Process "$app\Bewerbungsassistent.exe" -ArgumentList '--selbsttest' -Wait -PassThru
+          Get-Content selbsttest.txt
+          if ($p.ExitCode -ne 0) { throw "Selbsttest der Installation fehlgeschlagen" }
+          if (-not (Test-Path 'HKCU:\Software\Classes\bewerbungsassistent\shell\open\command')) { throw "Link nicht angemeldet" }
+          Start-Process $setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOSTART' -Wait
+          Start-Process "$app\unins000.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait
+          Start-Sleep -Seconds 3
+          if (Test-Path 'HKCU:\Software\Classes\bewerbungsassistent') { throw "Link nach Deinstallation noch angemeldet" }
+      - name: Prüfsummen
+        run: |
+          Get-ChildItem dist-installer\*.exe | ForEach-Object {
+            "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content -Encoding ascii dist-installer\SHA256SUMS.txt
+          Get-Content dist-installer\SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist-installer/
+      - name: Release-Entwurf
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "v$env:VERSION" 2>$null
+          if ($LASTEXITCODE -ne 0) { gh release create "v$env:VERSION" --draft --generate-notes --title "Bewerbungsassistent $env:VERSION" }
+          gh release upload "v$env:VERSION" (Get-ChildItem dist-installer\*).FullName --clobber
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Abhängigkeiten
+        run: pip install -r requirements.txt -r desktop/requirements.txt
+      - name: Voreinstellungen
+        env:
+          KI_URL: ${{ vars.KI_URL }}
+        run: |
+          mkdir -p desktop/build
+          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
+      - name: Paket bauen und testen
+        run: |
+          pyinstaller --noconfirm desktop/bewerbungsassistent.spec
+          dist/Bewerbungsassistent.app/Contents/MacOS/Bewerbungsassistent --selbsttest
+          cat selbsttest.txt
+          VERSION=$(python -c "import sys; sys.path.insert(0, 'desktop'); import version; print(version.VERSION)")
+          mkdir -p dist-mac
+          ditto -c -k --keepParent dist/Bewerbungsassistent.app "dist-mac/Bewerbungsassistent-$VERSION-macOS.zip"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist-mac/
+      - name: Release-Entwurf
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "v$VERSION" >/dev/null 2>&1 || gh release create "v$VERSION" --draft --generate-notes --title "Bewerbungsassistent $VERSION"
+          gh release upload "v$VERSION" dist-mac/* --clobber

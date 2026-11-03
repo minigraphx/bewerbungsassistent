@@ -1,0 +1,113 @@
+"""Start of the desktop app (MIN-342): double-click, the browser opens the local interface.
+
+  Bewerbungsassistent.exe                         start, or open the running app
+  Bewerbungsassistent.exe bewerbungsassistent://einladung?code=…   also redeem an invitation
+  Bewerbungsassistent.exe --selbsttest            build a CV and a letter from example data, then exit
+"""
+import argparse
+import logging
+import pathlib
+import sys
+import webbrowser
+
+import instance
+import settings
+import urlscheme
+
+log = logging.getLogger("bewerbungsassistent")
+
+
+def bundle_dir() -> pathlib.Path:
+    """Folder with the bundled files: next to the code, or PyInstaller's folder in the package."""
+    return pathlib.Path(getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent))
+
+
+def _setup_logging(paths: settings.Paths) -> None:
+    paths.app_dir.mkdir(parents=True, exist_ok=True)
+    handlers = [logging.FileHandler(paths.log, encoding="utf-8")]
+    if sys.stderr is not None:
+        handlers.append(logging.StreamHandler())
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", handlers=handlers, force=True)
+
+
+def _use_mediation(defaults: dict) -> None:
+    """The address of the mediation comes with the package; an environment variable still wins."""
+    import os
+    from ai.connection import URL_VARIABLE
+    if defaults.get("ki_url") and not os.environ.get(URL_VARIABLE):
+        os.environ[URL_VARIABLE] = str(defaults["ki_url"])
+
+
+def _redeem(code: str) -> None:
+    from ai import invitation
+    from ai.connection import mediation_url
+    from ai.errors import AiError
+    try:
+        url = mediation_url()
+        if url:
+            invitation.redeem(url, code)
+            log.info("Einladung eingelöst")
+    except AiError as error:
+        log.warning("Einladung nicht eingelöst: %s", error)
+
+
+def parse(argv: list[str] | None) -> argparse.Namespace:
+    ap = argparse.ArgumentParser(description="Bewerbungsassistent")
+    ap.add_argument("link", nargs="?", help="Einladungslink bewerbungsassistent://einladung?code=…")
+    ap.add_argument("--selbsttest", action="store_true", help="Lebenslauf und Anschreiben probehalber bauen")
+    ap.add_argument("--kein-browser", action="store_true", help="Browser nicht öffnen")
+    return ap.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse(argv)
+    if args.selbsttest:
+        import selftest
+        return selftest.run()
+    paths = settings.Paths(settings.app_dir())
+    _setup_logging(paths)
+    code = urlscheme.invitation_code(args.link)
+    running = instance.find(paths)
+    if running is not None:
+        problem = instance.forward_code(running, code) if code else None
+        if problem:
+            log.warning("Einladung nicht eingelöst: %s", problem)
+        if not args.kein_browser:
+            webbrowser.open(running.url)
+        return 0
+    return serve(paths, code, open_browser=not args.kein_browser)
+
+
+def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) -> int:
+    import app  # the existing interface (bewerbungen/app.py)
+    if getattr(sys, "frozen", False):
+        urlscheme.register_windows(sys.executable)
+    _use_mediation(settings.build_defaults(bundle_dir()))
+    import routes_app
+    data = settings.data_dir(paths, settings.documents_dir() / settings.APP_NAME)
+    holder: dict = {}
+    controls = routes_app.Controls(stop=lambda: holder["server"].shutdown())
+    try:
+        server = app.erstelle_server(data, extra_routes=routes_app.make_routes(controls))
+        holder["server"] = server
+    except (ValueError, OSError) as error:
+        log.error("Start nicht möglich: %s", error)
+        return 1
+    instance.write(paths, server.server_address[1], server.token)
+    if code:
+        _redeem(code)
+    log.info("Bewerbungsassistent läuft auf %s, Daten in %s", server.url, data)
+    if open_browser:
+        webbrowser.open(server.url)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+        instance.remove(paths)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

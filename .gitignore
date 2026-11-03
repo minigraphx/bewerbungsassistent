@@ -4,3 +4,7 @@ build/
 private/
 *.pdf
 .DS_Store
+dist/
+dist-installer/
+dist-mac/
+selbsttest.txt

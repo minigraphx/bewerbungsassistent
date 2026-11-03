@@ -17,6 +17,8 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; padding: 10px 16px; border-botto
 nav a { color: var(--text); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; }
 nav a[aria-current="page"] { background: var(--akzent); color: var(--akzent-text); }
 nav .marke { margin-right: auto; padding: 6px 4px; font-weight: 700; }
+nav .version { align-self: center; padding: 0 8px; font-size: 13px; }
+.banner { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--hinweis-flaeche); color: var(--hinweis); border-radius: 8px; padding: 10px 14px; margin: 0 0 16px; }
 main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
 h1 { font-size: 22px; margin: 0 0 4px; }
 h2 { font-size: 17px; margin: 28px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--linie); }

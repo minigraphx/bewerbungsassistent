@@ -132,5 +132,43 @@ window.App = (() => {
   }
   zurueck();
 
+  // Packaged app only (MIN-342): banner for a new version, button to quit. The plain app has no such route.
+  async function desktop() {
+    let info;
+    try { info = await holen("/api/app/version"); } catch { return; }
+    const nav = document.querySelector("nav");
+    if (nav) {
+      const beenden = el("button", { type: "button", class: "beenden" }, "Beenden");
+      bestaetigen(beenden, "Wirklich beenden?", async () => {
+        try { await senden("/api/app/beenden", {}); } catch { /* already gone */ }
+        document.body.replaceChildren(el("main", {}, el("h1", {}, "Bewerbungsassistent beendet"),
+          el("p", {}, "Sie können dieses Fenster schliessen. Starten Sie die App wieder mit einem Doppelklick.")));
+      });
+      nav.append(el("span", { class: "leise version" }, `Version ${info.version}`), beenden);
+    }
+    if (!info.update) return;
+    const meldung = el("span", {}, `Version ${info.update.version} ist verfügbar. `);
+    const knopf = info.update.automatisch
+      ? el("button", { type: "button", class: "haupt" }, "Jetzt aktualisieren")
+      : el("a", { href: info.update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");
+    const banner = el("div", { class: "banner", role: "status" }, meldung, knopf);
+    if (info.update.automatisch) {
+      knopf.addEventListener("click", async () => {
+        knopf.disabled = true;
+        meldung.textContent = "Neue Version wird geladen und geprüft …";
+        try {
+          await senden("/api/app/aktualisieren", {});
+          meldung.textContent = "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Diesen Tab können Sie schliessen.";
+          knopf.remove();
+        } catch (fehler) {
+          meldung.textContent = fehler.message + " ";
+          knopf.disabled = false;
+        }
+      });
+    }
+    document.querySelector("main")?.prepend(banner);
+  }
+  desktop();
+
   return { url, holen, senden, el, status, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe };
 })();

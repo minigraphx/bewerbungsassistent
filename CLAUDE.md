@@ -5,6 +5,7 @@
 ## Aufbau
 - `lebenslauf/` – Lebenslauf und Anschreiben als PDF (eigene `CLAUDE.md` dort).
 - `bewerbungen/` – lokale Oberfläche und Verwaltung: Register, Unterlagen, Prüfung, Versand, Entwürfe/Versionen (eigene `CLAUDE.md`). Baut auf `lebenslauf/` auf.
+- `desktop/` – lokale App als Paket (MIN-342): Start, eine Instanz, Einladungslink, Updates aus GitHub Releases; PyInstaller und Inno Setup in `.github/workflows/app.yml`. Version in `desktop/version.py`, Release per Tag `v<Version>` (Entwurf, erst Veröffentlichen rollt aus).
 - `vermittlung/` – KI-Vermittlung für den Pilot (MIN-344): Messages API mit Zugang pro Person, Budgets, Kostenprotokoll ohne Inhalte; eigener Container. Der Anthropic-Schlüssel nur als Geheimnis des Servers.
 - `onboarding/` – Einstiegsvorlage: eine HTML-Datei (`dist/einstieg.html`, gebaut aus `src/` und `form.json`) und Import nach `cv.yaml`, Suchprofil, Stil und Bausteine. Nach Änderungen `build_template.py` laufen lassen; Prüfregeln in JS und Python über `tests/cases.json` gleich halten.
 - `skills/einstieg/SKILL.md` – Interview für den Einstieg: Lebenslauf, Suchprofil, Stilprofil, Bausteine; Zweige Stellen- und Lehrstellensuche.

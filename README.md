@@ -51,6 +51,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 | [`skills/einstieg/`](skills/einstieg/SKILL.md) | Claude-Skill: Einstieg aus bestehenden Unterlagen (Lebenslauf, Zeugnisse, Zertifikate, frühere Anschreiben) und per Interview – Lebenslauf, Suchprofil, Stilprofil mit eigenen Formulierungen und Bausteine, auch für die Lehrstellensuche |
 | [`skills/jobsuche/`](skills/jobsuche/SKILL.md) | Claude-Skill: Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten, Eintrag ins Register, optional Jobliste in Google Sheets |
 | [`skills/bewerbung/`](skills/bewerbung/SKILL.md) | Claude-Skill: von der Stelle zur fertigen Bewerbung – Variante wählen, Anschreiben im eigenen Stil, Prüfung, Versand |
+| [`desktop/`](desktop/README.md) | Lokale App für Windows und macOS: Installer, Start per Doppelklick, Einladungslink, Updates aus GitHub Releases |
 | [`vermittlung/`](vermittlung/README.md) | KI-Vermittlung für den Pilot: Zugang pro Person per Einladung, Budgets, Kosten ohne Inhalte; Container hinter HTTPS |
 | [`onboarding/`](onboarding/README.md) | Einstiegsvorlage: eine HTML-Datei zum Ausfüllen ohne Installation (Stellen- und Lehrstellensuche), mit Import in den Datenordner |
 | [`vorlagen/`](vorlagen/) | Vorlagen für die persönlichen Dateien (Suchprofil, Stilprofil, Bausteine fürs Anschreiben) |
