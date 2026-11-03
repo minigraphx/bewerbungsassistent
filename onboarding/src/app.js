@@ -1,5 +1,5 @@
 // Flow of the onboarding template: start, one step per section, check and save.
-// Depends on validate.js, model.js, dom.js, documents.js, zip.js and uploads.js (inlined before this file by build_template.py).
+// Depends on validate.js, model.js, dom.js, documents.js, zip.js, uploadstore.js and uploads.js (inlined before this file by build_template.py).
 "use strict";
 
 const STORAGE_KEY = "bewerbungsassistent.einstieg.v1";
@@ -37,9 +37,10 @@ let state = { track: null, data: {} };
 let step = 0;
 let touched = new Set();
 let autosaveTimer = null;
-let uploads = []; // { category, name, size, data: Uint8Array }; in memory only
+let uploads = []; // { category, name, size, data: Uint8Array }; also kept in IndexedDB when possible
 let uploadMessages = [];
-let uploadsSaved = true;
+let uploadsSaved = true; // saved in a file or kept in this browser
+let uploadsKept = true; // false if this browser cannot keep them (then the page warns before closing)
 
 // Storage: optional convenience; the page works without it.
 
@@ -197,7 +198,7 @@ function startView() {
 
 function documentsView() {
   return uploadsView({
-    form, track: state.track, uploads, messages: uploadMessages,
+    form, track: state.track, uploads, messages: uploadMessages, kept: uploadsKept,
     onAdd: addUploads, onRemove: removeUpload, onSkip: () => goTo(steps().length - 1),
   });
 }
@@ -225,6 +226,26 @@ function setUploads(list, messages) {
   uploads = list;
   uploadMessages = messages;
   uploadsSaved = list.length === 0;
+  render();
+  keepUploadsNow();
+}
+
+async function keepUploadsNow() {
+  const kept = await keepUploads(uploads);
+  if (kept !== uploadsKept) {
+    uploadsKept = kept;
+    if (steps()[step].kind === "documents") render();
+  }
+  if (kept) uploadsSaved = true;
+}
+
+/** Uploads kept from an earlier visit; only those that still pass the rules. */
+async function restoreUploads() {
+  const kept = await keptUploads();
+  const valid = kept.filter((u, i) => validateDocuments(form, kept.slice(0, i + 1).map(({ category, name, size }) => ({ category, name, size })))
+    .every((e) => e.path !== `documents.${i}`));
+  if (!valid.length) return;
+  uploads = valid;
   render();
 }
 
@@ -400,6 +421,7 @@ async function loadFile(event) {
     touched = new Set();
     goTo(1);
     storeNow();
+    keepUploadsNow();
   } catch (error) {
     const known = error instanceof BundleError || error instanceof UploadError || error instanceof ZipError;
     message.textContent = known ? error.message : "Die Datei ist keine gültige Einstiegsdatei.";
@@ -421,6 +443,7 @@ function clearAll() {
   uploads = [];
   uploadMessages = [];
   uploadsSaved = true;
+  keepUploads([]);
   touched = new Set();
   step = 0;
   render();
@@ -436,3 +459,4 @@ window.addEventListener("beforeunload", (event) => {
 
 loadStored();
 render();
+restoreUploads();

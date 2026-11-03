@@ -143,3 +143,20 @@ def test_exclusions_stay_on_one_line(form):
     text = files_for(form, bundle)["suchprofil.md"]
 
     assert "- Ausschluss: Callcenter ## Kein Titel" in text
+
+
+def test_known_gaps_are_taken_over(form):
+    files = files_for(form, base_bundle("job"))
+
+    assert "## Lücken (offen benennen)\n- Kubernetes noch nicht produktiv eingesetzt" in files["anschreiben/bausteine.md"]
+    assert "## Typische Haken (offen benennen)\n- Kubernetes noch nicht produktiv eingesetzt" in files["suchprofil.md"]
+
+
+def test_without_gaps_the_files_say_they_come_later(form):
+    for track in ["job", "apprenticeship"]:
+        bundle = base_bundle(track)
+        bundle["data"].pop("gaps", None)
+        files = files_for(form, bundle)
+
+        assert "## Lücken (offen benennen)\n- Noch keine. Der Assistent ergänzt sie nach und nach" in files["anschreiben/bausteine.md"]
+        assert "## Typische Haken (offen benennen)\n- Noch keine." in files["suchprofil.md"]

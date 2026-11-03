@@ -7,7 +7,7 @@ Eine einzelne HTML-Datei, in der Personen ohne technische Kenntnisse ihre Grundl
 - Die Vorlage öffnen: über den Link (GitHub Pages) oder `dist/einstieg.html` herunterladen und per Doppelklick öffnen.
 - Alles bleibt auf dem Gerät. Die Seite lädt nichts nach und verschickt nichts; die Eingaben werden nur im Browser zwischengespeichert („Alles löschen“ entfernt sie).
 - Mit „Datei laden“ geht es mit einer gespeicherten Datei weiter (JSON oder ZIP), auch auf einem anderen Gerät.
-- **Unterlagen** (Schritt nach dem Start): bisheriger Lebenslauf, Zeugnisse, Zertifikate und frühere Anschreiben hochladen. Erlaubt sind PDF, Word (.docx, .doc) und Text; bei Zeugnissen und Zertifikaten auch Bilder (JPG, PNG) für Scans. Grenzen stehen in `form.json` unter `documents` (Anzahl pro Art, 15 MB pro Datei, 60 MB zusammen). Die Seite hält die Dateien nur im Speicher und warnt beim Schliessen, solange sie nicht gespeichert sind. Mit Unterlagen dürfen Angaben fehlen; der Assistent ergänzt sie später daraus.
+- **Unterlagen** (Schritt nach dem Start): bisheriger Lebenslauf, Zeugnisse, Zertifikate und frühere Anschreiben hochladen. Erlaubt sind PDF, Word (.docx, .doc) und Text; bei Zeugnissen und Zertifikaten auch Bilder (JPG, PNG) für Scans. Grenzen stehen in `form.json` unter `documents` (Anzahl pro Art, 15 MB pro Datei, 60 MB zusammen). Die Seite bewahrt die Dateien in der IndexedDB des Browsers auf (localStorage ist dafür zu klein), so sind sie nach einem Neustart wieder da; „Alles löschen“ entfernt sie. Kann der Browser sie nicht aufbewahren (z.B. im privaten Fenster), warnt die Seite beim Schliessen, solange die Datei nicht gespeichert ist. Mit Unterlagen dürfen Angaben fehlen; der Assistent ergänzt sie später daraus.
 
 ## Import in den Datenordner
 

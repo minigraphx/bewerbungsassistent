@@ -61,6 +61,7 @@ Unterlagen erstellen: in der Oberfläche „Unterlagen erstellen“ oder `unterl
 
 1. **Formal** (automatisch): `pruefung.pruefe(daten, bewerbung, heute)` – kein Befund mit Stufe `fehler`.
 2. **Inhaltlich**: jede Anforderung des Inserats als abgedeckt / fehlt / überdehnt einordnen; jede Aussage in Lebenslauf und Anschreiben gegen die Belege prüfen (keine erfundenen Abschlüsse, Jahre, Technologien).
+3. **Lücken nachtragen:** Lücken sind am Anfang selten bekannt und wachsen mit jeder Bewerbung. Eine Anforderung, die „fehlt“ und noch nicht unter „Lücken (offen benennen)“ in `anschreiben/bausteine.md` steht, der Person als Lücke vorschlagen, mit einer ehrlichen Formulierung und, falls vorhanden, einem Beleg für Lernfähigkeit. Erst nach ihrer Bestätigung eintragen (Entwurf vorher und nachher). Taucht dieselbe Lücke bei mehreren Stellen auf, auch unter „Typische Haken“ in `suchprofil.md` vorschlagen; die Jobsuche bewertet dann ehrlicher. Den Platzhalter „Noch keine.“ dabei entfernen.
 
 Ergebnis als kurze Liste ausgeben; die Person sieht die PDFs in der Oberfläche (`python app.py <daten>`, Seite der Bewerbung). Fertig, wenn keine Fehler offen sind und die Person die PDFs freigibt.
 

@@ -28,6 +28,8 @@ APPRENTICESHIP_OUTLINE = [
 SALUTATION_FORMAL = "Sie-Form: „Sehr geehrte Frau <Nachname>“, ohne Namen „Guten Tag“."
 SALUTATION_INFORMAL = "Du-Form, wenn das Inserat duzt: „Liebes <Firma>-Team“ / „Liebe <Vorname>“."
 DEFAULT_GREETING = "Freundliche Grüsse"
+GAPS_LATER = ("- Noch keine. Der Assistent ergänzt sie nach und nach, wenn Inserate etwas verlangen, das fehlt; "
+              "jede Lücke bestätigt die Person.")
 OWN_STATEMENT = "eigene Angabe"
 
 
@@ -59,7 +61,7 @@ def _search_job(data: dict) -> list[tuple[str, list[str]]]:
         ("Sprachen", _bullets([_joined(_languages(data))])),
         ("Abschluss und Erfahrung", _bullets([_education_summary(data)])),
         ("Stärken", _bullets([_joined(_strength_names(data))])),
-        ("Typische Haken (offen benennen)", _bullets(items(data.get("gaps", {}).get("gaps")))),
+        ("Typische Haken (offen benennen)", _gaps(data)),
         ("Rahmen", _pairs(("Frühester Start", search.get("start")), ("Pensum", search.get("workload")),
                           ("Befristung möglich", search.get("temporary")))),
         ("Zielfirmen mit Karriereseite", _bullets(items(search.get("targetCompanies")))),
@@ -86,7 +88,7 @@ def _search_apprenticeship(data: dict) -> list[tuple[str, list[str]]]:
         ("Eignungstests", _bullets(tests)),
         ("Schnupperlehren", _bullets(trials)),
         ("Stärken", _bullets([_joined(_strength_names(data))])),
-        ("Typische Haken (offen benennen)", _bullets(items(data.get("gaps", {}).get("gaps")))),
+        ("Typische Haken (offen benennen)", _gaps(data)),
         ("Quellen", _bullets(APPRENTICESHIP_SOURCES)),
     ]
 
@@ -132,7 +134,7 @@ def building_blocks(data: dict, track: str, note: str) -> str:
         ("Schnupperlehren und Erfahrungen" if track == "apprenticeship" else "Stationen", stations),
         ("Stärken", strengths),
         ("Berufswahl", _bullets([how_found])),
-        ("Lücken (offen benennen)", _bullets(items(data.get("gaps", {}).get("gaps")))),
+        ("Lücken (offen benennen)", _gaps(data)),
         ("Rahmen", _pairs((available, frame.get("availability")), ("Kündigungsfrist", frame.get("notice")),
                           ("Lohnvorstellung", frame.get("salary")), ("Referenz", frame.get("reference")))),
     ])
@@ -171,6 +173,11 @@ def _numbered(values) -> list[str]:
 
 def _pairs(*pairs: tuple[str, object]) -> list[str]:
     return [f"- {label}: {inline(value)}" for label, value in pairs if inline(value)]
+
+
+def _gaps(data: dict) -> list[str]:
+    """Known gaps, or a note that they are added later (they are rarely known at the start)."""
+    return _bullets(items(data.get("gaps", {}).get("gaps"))) or [GAPS_LATER]
 
 
 def _bullets(values: list[str]) -> list[str]:

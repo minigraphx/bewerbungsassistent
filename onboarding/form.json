@@ -221,8 +221,8 @@
       "id": "gaps",
       "title": "Lücken",
       "intro": {
-        "job": "Was fehlt für die Wunschstellen? Lücken werden in Anschreiben offen und knapp benannt, nicht versteckt.",
-        "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe."
+        "job": "Was fehlt Ihnen für die Wunschstellen? Das wissen Sie am Anfang oft noch nicht; dann einfach weiter. Der Assistent ergänzt Lücken nach und nach, wenn ein Inserat etwas verlangt, das fehlt, und fragt Sie dabei. In Anschreiben werden sie offen und knapp benannt, nicht versteckt.",
+        "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe. Weisst du es noch nicht, einfach weiter: Der Assistent ergänzt das nach und nach und fragt dich dabei."
       },
       "fields": [
         {"id": "gaps", "label": "Lücken (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 8}
