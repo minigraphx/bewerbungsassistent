@@ -28,9 +28,10 @@ def draft_index(data_dir) -> list[dict]:
 def test_writes_the_four_files(tmp_path):
     data_dir = tmp_path / "daten"
 
-    written = import_bundle.import_file(data_dir, write_bundle(tmp_path, base_bundle("job")), TODAY)
+    result = import_bundle.import_file(data_dir, write_bundle(tmp_path, base_bundle("job")), TODAY)
 
-    assert written == FILES
+    assert result.written == FILES
+    assert result.documents == [] and result.incomplete is False
     assert all((data_dir / rel).is_file() for rel in FILES)
     assert {d["datei"] for d in draft_index(data_dir)} == set(FILES)
 

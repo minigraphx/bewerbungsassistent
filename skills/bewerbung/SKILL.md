@@ -12,9 +12,15 @@ Jede Änderung an Dateien im Datenordner als **Entwurf** sichern, vorher und nac
 
 Leitlinie: jede Aussage **belegt**. Belegt heisst: steht in `anschreiben/bausteine.md`, im Lebenslauf `cv.yaml` oder wurde von der Person in dieser Sitzung bestätigt.
 
+## 0. Grundlagen prüfen
+
+Grundlagen im Datenordner: `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`. Fehlt eine davon, oder hat `dokumente/neu.yaml` Einträge (Unterlagen aus der Einstiegsvorlage, noch nicht übernommen): zuerst den Skill `einstieg` ausführen, ohne zu fragen. Der Person in einem Satz sagen, warum. Bringt die Person eine Datei aus der Einstiegsvorlage (`einstieg.json` oder `einstieg-….zip`), ebenso.
+
+Fertig, wenn alle vier Grundlagen da sind und `dokumente/neu.yaml` leer ist oder fehlt.
+
 ## 1. Kontext laden
 
-Lesen: `anschreiben/stil.md` (Stilprofil), `anschreiben/bausteine.md`, `cv.yaml`, `varianten.yaml`, den Eintrag im Register. Fehlen Stilprofil oder Bausteine, mit dem Skill `einstieg` aus den bisherigen Anschreiben ableiten (`dokumente/anschreiben-bisher/`; sonst nachfragen, wo sie liegen).
+Lesen: `anschreiben/stil.md` (Stilprofil), `anschreiben/bausteine.md`, `cv.yaml`, `varianten.yaml`, den Eintrag im Register.
 
 Fertig, wenn die Bewerbung im Register steht (sonst anlegen: Oberfläche „Neue Bewerbung“ oder `register.Register(daten).neu(firma=…, stelle=…)`) und der Inseratstext in `bewerbungen/<id>/stelle.md` liegt.
 

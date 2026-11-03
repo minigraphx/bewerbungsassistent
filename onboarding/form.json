@@ -19,6 +19,30 @@
     "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"},
     "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"}
   },
+  "documents": {
+    "title": "Unterlagen",
+    "intro": {
+      "job": "Haben Sie schon einen Lebenslauf, Arbeitszeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Der Assistent übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt. Die Dateien bleiben auf diesem Gerät und kommen mit in die gespeicherte Datei.",
+      "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Der Assistent übernimmt daraus später, was passt, und fragt nur nach, was fehlt. Die Dateien bleiben auf diesem Gerät und kommen mit in die gespeicherte Datei."
+    },
+    "categories": [
+      {"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 3,
+        "fileTypes": ["document"]},
+      {"id": "zeugnisse", "title": {"job": "Arbeitszeugnisse", "apprenticeship": "Zeugnisse"}, "hint": {"job": "Arbeitszeugnisse und Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20,
+        "fileTypes": ["document", "image"]},
+      {"id": "zertifikate", "title": "Zertifikate und Diplome", "hint": "Diplome, Kursbestätigungen, Sprachzertifikate, Eignungstests", "maxFiles": 30,
+        "fileTypes": ["document", "image"]},
+      {"id": "anschreiben-bisher", "title": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "hint": "daraus übernimmt der Assistent Ton und eigene Formulierungen", "maxFiles": 10,
+        "fileTypes": ["document"]}
+    ],
+    "fileTypes": {
+    "document": {"labels": ["PDF", "Word (.docx, .doc)", "Textdateien (.txt)"], "extensions": ["pdf", "docx", "doc", "txt"]},
+    "image": {"labels": ["Bilder (.jpg, .png)"], "extensions": ["jpg", "jpeg", "png"]}
+  },
+    "namePattern": "^(?!\\.)[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f]{1,120}(?<![. ])$",
+    "maxFileBytes": 15000000,
+    "maxTotalBytes": 60000000
+  },
   "sections": [
     {
       "id": "person",

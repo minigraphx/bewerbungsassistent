@@ -17,7 +17,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent
 SRC = ROOT / "src"
 OUTPUT = ROOT / "dist" / "einstieg.html"
-SCRIPTS = ["validate.js", "model.js", "dom.js", "app.js"]  # order matters: later files use earlier ones
+SCRIPTS = ["validate.js", "model.js", "dom.js", "documents.js", "zip.js", "uploads.js", "app.js"]  # order matters: later files use earlier ones
 
 
 def _sha256(text: str) -> str:

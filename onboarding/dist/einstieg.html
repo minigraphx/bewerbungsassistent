@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-7tGdDkugDKN/ESwllC5IEzXpDaRKtdt/YuboXmt26xQ='; style-src 'sha256-gu/Qf4c84bR+2WyGW7Mp82jlF9N7jgrSYoY7OGdEPnI='; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-u3Qns0ZFkQPRxw3kEtSdqpsDnM1ZunlR3k3+BSD6g5Y='; style-src 'sha256-84CLIqyfo9aNeZzSjoWlOkIZozy1BcMDupjzeeBBMF0='; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Einstieg – Bewerbungsassistent</title>
 <style>:root {
@@ -100,6 +100,12 @@ button { font: inherit; cursor: pointer; }
 .track span { color: var(--muted); font-size: 0.95rem; }
 .track:hover, .track.selected { border-color: var(--accent); background: var(--accent-soft); }
 .summary ul { padding-left: 1.1rem; }
+.files { list-style: none; padding: 0; margin: 0.5rem 0; }
+.files li { display: flex; align-items: center; gap: 0.75rem; padding: 0.35rem 0; border-bottom: 1px solid var(--line); }
+.file-name { flex: 1 1 auto; overflow-wrap: anywhere; }
+.file-size { color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
+.files .remove { padding: 0.25rem 0.6rem; }
+.upload-category .add { margin-top: 0.4rem; }
 .ok { background: var(--accent-soft); padding: 0.75rem 1rem; border-radius: 8px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 footer { font-size: 0.88rem; margin-top: 1rem; }
@@ -118,7 +124,7 @@ footer { font-size: 0.88rem; margin-top: 1rem; }
 <nav id="steps" aria-label="Schritte"></nav>
 <main id="main" tabindex="-1"><noscript><p>Diese Vorlage braucht JavaScript. Bitte in einem aktuellen Browser öffnen.</p></noscript></main>
 <footer><p id="autosave" role="status"></p></footer>
-<script type="application/json" id="form-definition">{"format": "bewerbungsassistent-einstieg", "version": 1, "tracks": {"job": "Stellensuche", "apprenticeship": "Lehrstellensuche"}, "limits": {"text": 200, "textarea": 2000, "listItems": 20, "repeatItems": 20}, "formats": {"email": {"pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "example": "vorname.nachname@example.ch"}, "phone": {"pattern": "^\\+?[0-9 ()/-]{6,30}$", "example": "079 000 00 00"}, "date": {"pattern": "^[0-9]{4}(-(0[1-9]|1[0-2]))?$", "example": "2024 oder 2024-08"}, "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"}, "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"}, "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"}}, "sections": [{"id": "person", "title": "Person und Kontakt", "intro": {"job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen.", "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen."}, "fields": [{"id": "name", "label": "Vor- und Nachname", "type": "text", "required": true, "max": 80}, {"id": "label", "label": "Berufsbezeichnung unter dem Namen (freiwillig)", "type": "text", "max": 100, "tracks": ["job"], "placeholder": "z.B. Kaufmann EFZ – Buchhaltung und Administration"}, {"id": "address", "label": "Strasse und Nummer", "type": "text", "max": 100}, {"id": "postalCode", "label": "PLZ", "type": "text", "format": "postalCode"}, {"id": "city", "label": "Ort", "type": "text", "required": true, "max": 60}, {"id": "phone", "label": "Telefon", "type": "text", "format": "phone"}, {"id": "email", "label": "E-Mail", "type": "text", "required": true, "format": "email", "hint": {"apprenticeship": "Die Adresse soll seriös wirken, z.B. vorname.nachname@…"}}, {"id": "birthDate", "label": "Geburtsdatum (freiwillig)", "type": "text", "max": 30, "hint": {"apprenticeship": "Bei Lehrstellen ist das Geburtsdatum üblich."}}, {"id": "nationality", "label": "Nationalität (freiwillig)", "type": "text", "max": 60}, {"id": "profiles", "label": "Profil-Links, z.B. LinkedIn (freiwillig, ein Link pro Zeile)", "type": "list", "format": "url", "maxItems": 5, "tracks": ["job"]}]}, {"id": "summary", "title": "Kurzprofil", "tracks": ["job"], "intro": {"job": "Zwei bis drei Sätze oben im Lebenslauf: Erfahrung, Schwerpunkte, was Sie besonders gut können. Sie können das auch leer lassen."}, "fields": [{"id": "summary", "label": "Kurzprofil (freiwillig)", "type": "textarea", "max": 600}]}, {"id": "work", "title": {"job": "Berufliche Stationen", "apprenticeship": "Schnupperlehren, Ferienjobs und Ämter"}, "intro": {"job": "Die neueste Station zuerst. Pro Station zwei bis vier Tätigkeiten oder Erfolge, möglichst konkret.", "apprenticeship": "Zum Beispiel Schnupperlehren, Babysitten, Nachhilfe oder Leiterin im Verein. Das Neueste zuerst."}, "repeat": true, "itemTitle": {"job": "Station", "apprenticeship": "Erfahrung"}, "fields": [{"id": "position", "label": {"job": "Funktion", "apprenticeship": "Beruf oder Tätigkeit (z.B. Schnupperlehre Fachfrau Gesundheit)"}, "type": "text", "required": true, "max": 100}, {"id": "name", "label": {"job": "Firma", "apprenticeship": "Betrieb, Verein oder Familie"}, "type": "text", "required": true, "max": 100}, {"id": "location", "label": "Ort", "type": "text", "max": 60}, {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "required": true, "format": "date"}, {"id": "endDate", "label": "Bis (leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile)"}, "type": "list", "maxItems": 6}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100}]}, {"id": "education", "title": {"job": "Ausbildung und Weiterbildung", "apprenticeship": "Schule"}, "intro": {"job": "Abschlüsse, die neueste zuerst.", "apprenticeship": "Deine aktuelle Schule zuerst, dann frühere (z.B. Primarschule)."}, "repeat": true, "itemTitle": {"job": "Ausbildung", "apprenticeship": "Schule"}, "fields": [{"id": "studyType", "label": {"job": "Abschluss (z.B. Kaufmann EFZ, Bachelor)", "apprenticeship": "Schulstufe und Niveau (z.B. Sekundarschule, Niveau A)"}, "type": "text", "required": true, "max": 100}, {"id": "area", "label": "Fachrichtung (freiwillig)", "type": "text", "max": 100, "tracks": ["job"]}, {"id": "institution", "label": {"job": "Schule oder Lehrbetrieb, Ort", "apprenticeship": "Name der Schule, Ort"}, "type": "text", "required": true, "max": 100}, {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}, {"id": "endDate", "label": "Bis (leer = laufend)", "type": "text", "format": "date", "notBefore": "startDate"}]}, {"id": "certificates", "title": {"job": "Kurse und Zertifikate", "apprenticeship": "Eignungstests"}, "intro": {"job": "Kurse und Zertifikate mit Anbieter und Datum.", "apprenticeship": "Zum Beispiel Multicheck oder Basic-Check. Du entscheidest, ob ein Test in den Lebenslauf kommt; sonst lass diesen Teil leer."}, "repeat": true, "itemTitle": {"job": "Kurs", "apprenticeship": "Test"}, "fields": [{"id": "name", "label": {"job": "Bezeichnung", "apprenticeship": "Test (z.B. Multicheck Gesundheit)"}, "type": "text", "required": true, "max": 100}, {"id": "issuer", "label": "Anbieter (freiwillig)", "type": "text", "max": 100}, {"id": "date", "label": "Datum (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}]}, {"id": "languages", "title": "Sprachen", "intro": {"job": "Muttersprache und weitere Sprachen.", "apprenticeship": "Deine Muttersprache und die Sprachen aus der Schule."}, "repeat": true, "maxItems": 8, "itemTitle": "Sprache", "fields": [{"id": "language", "label": "Sprache", "type": "text", "required": true, "max": 40}, {"id": "fluency", "label": "Niveau", "type": "select", "required": true, "options": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"]}]}, {"id": "skills", "title": "Kenntnisse", "intro": {"job": "Fachliche Kenntnisse, nach Bereich gruppiert.", "apprenticeship": "Zum Beispiel Computerprogramme, Werkzeuge oder besondere Kenntnisse."}, "repeat": true, "maxItems": 8, "itemTitle": "Bereich", "fields": [{"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "required": true, "max": 60}, {"id": "keywords", "label": "Kenntnisse (eine pro Zeile)", "type": "list", "required": true, "maxItems": 12, "max": 60}]}, {"id": "interests", "title": "Hobbys und Interessen", "intro": {"job": "Freiwillig. Sie stehen am Ende des Lebenslaufs.", "apprenticeship": "Was machst du in der Freizeit? Hat ein Hobby mit deinem Wunschberuf zu tun, schreib das bei den Stärken dazu."}, "fields": [{"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "maxItems": 8, "max": 60}]}, {"id": "searchJob", "title": "Suche", "tracks": ["job"], "intro": {"job": "Danach sucht der Assistent Stellen für Sie."}, "fields": [{"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5}, {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 10}, {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60}, {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100}, {"id": "cantons", "label": "Kantone (Kürzel, eins pro Zeile, z.B. BE)", "type": "list", "format": "canton", "maxItems": 26}, {"id": "remote", "label": "Homeoffice erwünscht?", "type": "select", "options": ["ja", "teilweise", "nein"]}, {"id": "workload", "label": "Pensum (z.B. 80–100 %)", "type": "text", "required": true, "max": 40}, {"id": "start", "label": "Frühester Start (z.B. 1. März)", "type": "text", "required": true, "max": 40}, {"id": "temporary", "label": "Befristete Stelle möglich?", "type": "select", "options": ["ja", "nein"]}, {"id": "keywords", "label": "Stichworte für die Suche (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 15, "max": 60}, {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 15, "max": 60}, {"id": "targetCompanies", "label": "Wunschfirmen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 15, "max": 100}]}, {"id": "searchApprenticeship", "title": "Lehrstellensuche", "tracks": ["apprenticeship"], "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"}, "fields": [{"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5, "max": 100}, {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600}, {"id": "start", "label": "Lehrbeginn (z.B. August 2027)", "type": "text", "required": true, "max": 40}, {"id": "home", "label": "Wohnort", "type": "text", "required": true, "max": 60}, {"id": "commute", "label": "Wie weit darf der Lehrbetrieb höchstens weg sein? (z.B. 45 Minuten mit ÖV)", "type": "text", "required": true, "max": 100}, {"id": "cantons", "label": "Kantone (Kürzel, eins pro Zeile, z.B. BE)", "type": "list", "format": "canton", "maxItems": 26}, {"id": "vocationalBaccalaureate", "label": "Berufsmaturität geplant?", "type": "select", "options": ["ja", "vielleicht", "nein"]}, {"id": "companion", "label": "Begleitperson (freiwillig, z.B. Mutter, liest mit)", "type": "text", "max": 100}]}, {"id": "strengths", "title": "Stärken mit Beispiel", "intro": {"job": "Drei bis fünf Stärken, die zur gesuchten Stelle passen. Zu jeder ein Erlebnis: Situation, was Sie getan haben, Ergebnis. Aus diesen Beispielen entstehen die Anschreiben.", "apprenticeship": "Drei Stärken, die zum Wunschberuf passen. Zu jeder ein Erlebnis aus Schule, Schnupperlehre, Verein oder Familie. Daraus entstehen deine Motivationsschreiben."}, "repeat": true, "maxItems": 6, "itemTitle": "Stärke", "fields": [{"id": "strength", "label": "Stärke (z.B. zuverlässig)", "type": "text", "required": true, "max": 60}, {"id": "example", "label": "Beispiel", "type": "textarea", "required": true, "max": 600}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Zeugnis, Rückmeldung einer Lehrperson)", "type": "text", "max": 100}]}, {"id": "gaps", "title": "Lücken", "intro": {"job": "Was fehlt für die Wunschstellen? Lücken werden in Anschreiben offen und knapp benannt, nicht versteckt.", "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe."}, "fields": [{"id": "gaps", "label": "Lücken (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 8}]}, {"id": "style", "title": "Ton und Stil", "intro": {"job": "Wie sollen Ihre Anschreiben klingen? Wählen Sie, was am besten passt, oder schreiben Sie es mit eigenen Worten.", "apprenticeship": "Motivationsschreiben schreibt man meist in der Sie-Form. Es soll trotzdem nach dir klingen: Wähle, was am besten passt, oder schreib es mit eigenen Worten."}, "fields": [{"id": "address", "label": "Anrede", "type": "select", "required": true, "tracks": ["job"], "options": ["Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form"]}, {"id": "tone", "label": "Ton", "type": "choice", "required": true, "allowOwn": true, "max": 100, "options": {"job": ["Sachlich und freundlich", "Persönlich und herzlich", "Kurz und direkt"], "apprenticeship": ["Freundlich und offen", "Begeistert", "Ruhig und sachlich"]}}, {"id": "opening", "label": "Einstieg: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "options": {"job": ["Mit grossem Interesse habe ich Ihr Inserat für … gelesen.", "Ihre Stelle als … spricht mich an, weil …", "Seit … arbeite ich als … – genau das suchen Sie."], "apprenticeship": ["Seit meiner Schnupperlehre bei … weiss ich, dass ich … werden möchte.", "Mit grossem Interesse bewerbe ich mich um die Lehrstelle als …", "Ich interessiere mich schon lange für …, darum bewerbe ich mich bei Ihnen."]}}, {"id": "closing", "label": "Schluss: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "options": {"job": ["Über ein persönliches Gespräch freue ich mich.", "Gerne erzähle ich Ihnen in einem Gespräch mehr.", "Ich freue mich auf Ihre Rückmeldung."], "apprenticeship": ["Gerne komme ich zu einer Schnupperlehre zu Ihnen.", "Über eine Einladung zu einem Gespräch freue ich mich sehr.", "Ich freue mich auf Ihre Antwort."]}}, {"id": "greeting", "label": "Gruss (leer = „Freundliche Grüsse“)", "type": "text", "max": 60}, {"id": "place", "label": "Ort im Datum (z.B. Bern)", "type": "text", "max": 60}, {"id": "phrases", "label": "Eigene Formulierungen, die gut passen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 10}]}, {"id": "frame", "title": "Rahmen", "intro": {"job": "Angaben für den Schluss der Anschreiben.", "apprenticeship": "Angaben für den Schluss deiner Motivationsschreiben."}, "fields": [{"id": "availability", "label": {"job": "Verfügbar ab", "apprenticeship": "Wann kannst du schnuppern? (z.B. Herbstferien, Mittwochnachmittag)"}, "type": "text", "max": 100}, {"id": "notice", "label": "Kündigungsfrist (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "salary", "label": "Lohnvorstellung (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "reference", "label": "Referenzperson mit Kontakt (freiwillig, nur mit ihrem Einverständnis)", "type": "text", "max": 150}]}]}</script>
+<script type="application/json" id="form-definition">{"format": "bewerbungsassistent-einstieg", "version": 1, "tracks": {"job": "Stellensuche", "apprenticeship": "Lehrstellensuche"}, "limits": {"text": 200, "textarea": 2000, "listItems": 20, "repeatItems": 20}, "formats": {"email": {"pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "example": "vorname.nachname@example.ch"}, "phone": {"pattern": "^\\+?[0-9 ()/-]{6,30}$", "example": "079 000 00 00"}, "date": {"pattern": "^[0-9]{4}(-(0[1-9]|1[0-2]))?$", "example": "2024 oder 2024-08"}, "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"}, "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"}, "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"}}, "documents": {"title": "Unterlagen", "intro": {"job": "Haben Sie schon einen Lebenslauf, Arbeitszeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Der Assistent übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt. Die Dateien bleiben auf diesem Gerät und kommen mit in die gespeicherte Datei.", "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Der Assistent übernimmt daraus später, was passt, und fragt nur nach, was fehlt. Die Dateien bleiben auf diesem Gerät und kommen mit in die gespeicherte Datei."}, "categories": [{"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 3, "fileTypes": ["document"]}, {"id": "zeugnisse", "title": {"job": "Arbeitszeugnisse", "apprenticeship": "Zeugnisse"}, "hint": {"job": "Arbeitszeugnisse und Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20, "fileTypes": ["document", "image"]}, {"id": "zertifikate", "title": "Zertifikate und Diplome", "hint": "Diplome, Kursbestätigungen, Sprachzertifikate, Eignungstests", "maxFiles": 30, "fileTypes": ["document", "image"]}, {"id": "anschreiben-bisher", "title": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "hint": "daraus übernimmt der Assistent Ton und eigene Formulierungen", "maxFiles": 10, "fileTypes": ["document"]}], "fileTypes": {"document": {"labels": ["PDF", "Word (.docx, .doc)", "Textdateien (.txt)"], "extensions": ["pdf", "docx", "doc", "txt"]}, "image": {"labels": ["Bilder (.jpg, .png)"], "extensions": ["jpg", "jpeg", "png"]}}, "namePattern": "^(?!\\.)[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f]{1,120}(?<![. ])$", "maxFileBytes": 15000000, "maxTotalBytes": 60000000}, "sections": [{"id": "person", "title": "Person und Kontakt", "intro": {"job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen.", "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen."}, "fields": [{"id": "name", "label": "Vor- und Nachname", "type": "text", "required": true, "max": 80}, {"id": "label", "label": "Berufsbezeichnung unter dem Namen (freiwillig)", "type": "text", "max": 100, "tracks": ["job"], "placeholder": "z.B. Kaufmann EFZ – Buchhaltung und Administration"}, {"id": "address", "label": "Strasse und Nummer", "type": "text", "max": 100}, {"id": "postalCode", "label": "PLZ", "type": "text", "format": "postalCode"}, {"id": "city", "label": "Ort", "type": "text", "required": true, "max": 60}, {"id": "phone", "label": "Telefon", "type": "text", "format": "phone"}, {"id": "email", "label": "E-Mail", "type": "text", "required": true, "format": "email", "hint": {"apprenticeship": "Die Adresse soll seriös wirken, z.B. vorname.nachname@…"}}, {"id": "birthDate", "label": "Geburtsdatum (freiwillig)", "type": "text", "max": 30, "hint": {"apprenticeship": "Bei Lehrstellen ist das Geburtsdatum üblich."}}, {"id": "nationality", "label": "Nationalität (freiwillig)", "type": "text", "max": 60}, {"id": "profiles", "label": "Profil-Links, z.B. LinkedIn (freiwillig, ein Link pro Zeile)", "type": "list", "format": "url", "maxItems": 5, "tracks": ["job"]}]}, {"id": "summary", "title": "Kurzprofil", "tracks": ["job"], "intro": {"job": "Zwei bis drei Sätze oben im Lebenslauf: Erfahrung, Schwerpunkte, was Sie besonders gut können. Sie können das auch leer lassen."}, "fields": [{"id": "summary", "label": "Kurzprofil (freiwillig)", "type": "textarea", "max": 600}]}, {"id": "work", "title": {"job": "Berufliche Stationen", "apprenticeship": "Schnupperlehren, Ferienjobs und Ämter"}, "intro": {"job": "Die neueste Station zuerst. Pro Station zwei bis vier Tätigkeiten oder Erfolge, möglichst konkret.", "apprenticeship": "Zum Beispiel Schnupperlehren, Babysitten, Nachhilfe oder Leiterin im Verein. Das Neueste zuerst."}, "repeat": true, "itemTitle": {"job": "Station", "apprenticeship": "Erfahrung"}, "fields": [{"id": "position", "label": {"job": "Funktion", "apprenticeship": "Beruf oder Tätigkeit (z.B. Schnupperlehre Fachfrau Gesundheit)"}, "type": "text", "required": true, "max": 100}, {"id": "name", "label": {"job": "Firma", "apprenticeship": "Betrieb, Verein oder Familie"}, "type": "text", "required": true, "max": 100}, {"id": "location", "label": "Ort", "type": "text", "max": 60}, {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "required": true, "format": "date"}, {"id": "endDate", "label": "Bis (leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile)"}, "type": "list", "maxItems": 6}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100}]}, {"id": "education", "title": {"job": "Ausbildung und Weiterbildung", "apprenticeship": "Schule"}, "intro": {"job": "Abschlüsse, die neueste zuerst.", "apprenticeship": "Deine aktuelle Schule zuerst, dann frühere (z.B. Primarschule)."}, "repeat": true, "itemTitle": {"job": "Ausbildung", "apprenticeship": "Schule"}, "fields": [{"id": "studyType", "label": {"job": "Abschluss (z.B. Kaufmann EFZ, Bachelor)", "apprenticeship": "Schulstufe und Niveau (z.B. Sekundarschule, Niveau A)"}, "type": "text", "required": true, "max": 100}, {"id": "area", "label": "Fachrichtung (freiwillig)", "type": "text", "max": 100, "tracks": ["job"]}, {"id": "institution", "label": {"job": "Schule oder Lehrbetrieb, Ort", "apprenticeship": "Name der Schule, Ort"}, "type": "text", "required": true, "max": 100}, {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}, {"id": "endDate", "label": "Bis (leer = laufend)", "type": "text", "format": "date", "notBefore": "startDate"}]}, {"id": "certificates", "title": {"job": "Kurse und Zertifikate", "apprenticeship": "Eignungstests"}, "intro": {"job": "Kurse und Zertifikate mit Anbieter und Datum.", "apprenticeship": "Zum Beispiel Multicheck oder Basic-Check. Du entscheidest, ob ein Test in den Lebenslauf kommt; sonst lass diesen Teil leer."}, "repeat": true, "itemTitle": {"job": "Kurs", "apprenticeship": "Test"}, "fields": [{"id": "name", "label": {"job": "Bezeichnung", "apprenticeship": "Test (z.B. Multicheck Gesundheit)"}, "type": "text", "required": true, "max": 100}, {"id": "issuer", "label": "Anbieter (freiwillig)", "type": "text", "max": 100}, {"id": "date", "label": "Datum (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}]}, {"id": "languages", "title": "Sprachen", "intro": {"job": "Muttersprache und weitere Sprachen.", "apprenticeship": "Deine Muttersprache und die Sprachen aus der Schule."}, "repeat": true, "maxItems": 8, "itemTitle": "Sprache", "fields": [{"id": "language", "label": "Sprache", "type": "text", "required": true, "max": 40}, {"id": "fluency", "label": "Niveau", "type": "select", "required": true, "options": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"]}]}, {"id": "skills", "title": "Kenntnisse", "intro": {"job": "Fachliche Kenntnisse, nach Bereich gruppiert.", "apprenticeship": "Zum Beispiel Computerprogramme, Werkzeuge oder besondere Kenntnisse."}, "repeat": true, "maxItems": 8, "itemTitle": "Bereich", "fields": [{"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "required": true, "max": 60}, {"id": "keywords", "label": "Kenntnisse (eine pro Zeile)", "type": "list", "required": true, "maxItems": 12, "max": 60}]}, {"id": "interests", "title": "Hobbys und Interessen", "intro": {"job": "Freiwillig. Sie stehen am Ende des Lebenslaufs.", "apprenticeship": "Was machst du in der Freizeit? Hat ein Hobby mit deinem Wunschberuf zu tun, schreib das bei den Stärken dazu."}, "fields": [{"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "maxItems": 8, "max": 60}]}, {"id": "searchJob", "title": "Suche", "tracks": ["job"], "intro": {"job": "Danach sucht der Assistent Stellen für Sie."}, "fields": [{"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5}, {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 10}, {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60}, {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100}, {"id": "cantons", "label": "Kantone (Kürzel, eins pro Zeile, z.B. BE)", "type": "list", "format": "canton", "maxItems": 26}, {"id": "remote", "label": "Homeoffice erwünscht?", "type": "select", "options": ["ja", "teilweise", "nein"]}, {"id": "workload", "label": "Pensum (z.B. 80–100 %)", "type": "text", "required": true, "max": 40}, {"id": "start", "label": "Frühester Start (z.B. 1. März)", "type": "text", "required": true, "max": 40}, {"id": "temporary", "label": "Befristete Stelle möglich?", "type": "select", "options": ["ja", "nein"]}, {"id": "keywords", "label": "Stichworte für die Suche (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 15, "max": 60}, {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 15, "max": 60}, {"id": "targetCompanies", "label": "Wunschfirmen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 15, "max": 100}]}, {"id": "searchApprenticeship", "title": "Lehrstellensuche", "tracks": ["apprenticeship"], "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"}, "fields": [{"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5, "max": 100}, {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600}, {"id": "start", "label": "Lehrbeginn (z.B. August 2027)", "type": "text", "required": true, "max": 40}, {"id": "home", "label": "Wohnort", "type": "text", "required": true, "max": 60}, {"id": "commute", "label": "Wie weit darf der Lehrbetrieb höchstens weg sein? (z.B. 45 Minuten mit ÖV)", "type": "text", "required": true, "max": 100}, {"id": "cantons", "label": "Kantone (Kürzel, eins pro Zeile, z.B. BE)", "type": "list", "format": "canton", "maxItems": 26}, {"id": "vocationalBaccalaureate", "label": "Berufsmaturität geplant?", "type": "select", "options": ["ja", "vielleicht", "nein"]}, {"id": "companion", "label": "Begleitperson (freiwillig, z.B. Mutter, liest mit)", "type": "text", "max": 100}]}, {"id": "strengths", "title": "Stärken mit Beispiel", "intro": {"job": "Drei bis fünf Stärken, die zur gesuchten Stelle passen. Zu jeder ein Erlebnis: Situation, was Sie getan haben, Ergebnis. Aus diesen Beispielen entstehen die Anschreiben.", "apprenticeship": "Drei Stärken, die zum Wunschberuf passen. Zu jeder ein Erlebnis aus Schule, Schnupperlehre, Verein oder Familie. Daraus entstehen deine Motivationsschreiben."}, "repeat": true, "maxItems": 6, "itemTitle": "Stärke", "fields": [{"id": "strength", "label": "Stärke (z.B. zuverlässig)", "type": "text", "required": true, "max": 60}, {"id": "example", "label": "Beispiel", "type": "textarea", "required": true, "max": 600}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Zeugnis, Rückmeldung einer Lehrperson)", "type": "text", "max": 100}]}, {"id": "gaps", "title": "Lücken", "intro": {"job": "Was fehlt für die Wunschstellen? Lücken werden in Anschreiben offen und knapp benannt, nicht versteckt.", "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe."}, "fields": [{"id": "gaps", "label": "Lücken (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 8}]}, {"id": "style", "title": "Ton und Stil", "intro": {"job": "Wie sollen Ihre Anschreiben klingen? Wählen Sie, was am besten passt, oder schreiben Sie es mit eigenen Worten.", "apprenticeship": "Motivationsschreiben schreibt man meist in der Sie-Form. Es soll trotzdem nach dir klingen: Wähle, was am besten passt, oder schreib es mit eigenen Worten."}, "fields": [{"id": "address", "label": "Anrede", "type": "select", "required": true, "tracks": ["job"], "options": ["Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form"]}, {"id": "tone", "label": "Ton", "type": "choice", "required": true, "allowOwn": true, "max": 100, "options": {"job": ["Sachlich und freundlich", "Persönlich und herzlich", "Kurz und direkt"], "apprenticeship": ["Freundlich und offen", "Begeistert", "Ruhig und sachlich"]}}, {"id": "opening", "label": "Einstieg: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "options": {"job": ["Mit grossem Interesse habe ich Ihr Inserat für … gelesen.", "Ihre Stelle als … spricht mich an, weil …", "Seit … arbeite ich als … – genau das suchen Sie."], "apprenticeship": ["Seit meiner Schnupperlehre bei … weiss ich, dass ich … werden möchte.", "Mit grossem Interesse bewerbe ich mich um die Lehrstelle als …", "Ich interessiere mich schon lange für …, darum bewerbe ich mich bei Ihnen."]}}, {"id": "closing", "label": "Schluss: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "options": {"job": ["Über ein persönliches Gespräch freue ich mich.", "Gerne erzähle ich Ihnen in einem Gespräch mehr.", "Ich freue mich auf Ihre Rückmeldung."], "apprenticeship": ["Gerne komme ich zu einer Schnupperlehre zu Ihnen.", "Über eine Einladung zu einem Gespräch freue ich mich sehr.", "Ich freue mich auf Ihre Antwort."]}}, {"id": "greeting", "label": "Gruss (leer = „Freundliche Grüsse“)", "type": "text", "max": 60}, {"id": "place", "label": "Ort im Datum (z.B. Bern)", "type": "text", "max": 60}, {"id": "phrases", "label": "Eigene Formulierungen, die gut passen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 10}]}, {"id": "frame", "title": "Rahmen", "intro": {"job": "Angaben für den Schluss der Anschreiben.", "apprenticeship": "Angaben für den Schluss deiner Motivationsschreiben."}, "fields": [{"id": "availability", "label": {"job": "Verfügbar ab", "apprenticeship": "Wann kannst du schnuppern? (z.B. Herbstferien, Mittwochnachmittag)"}, "type": "text", "max": 100}, {"id": "notice", "label": "Kündigungsfrist (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "salary", "label": "Lohnvorstellung (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "reference", "label": "Referenzperson mit Kontakt (freiwillig, nur mit ihrem Einverständnis)", "type": "text", "max": 150}]}]}</script>
 <script>// Validation of onboarding bundles against form.json, for the browser.
 // Mirrors validation.py; both run the shared cases in tests/cases.json.
 "use strict";
@@ -546,17 +552,480 @@ if (typeof module !== "undefined") {
   module.exports = { el, fieldView, showErrors };
 }
 
+// Rules for uploaded documents, for the browser. Mirrors documents.py; both run the shared
+// "documentCases" in tests/cases.json. An entry is { category, name, size }.
+"use strict";
+
+const BYTES_PER_MB = 1000000;
+const MAX_NAME_CHARS = 120;
+const FALLBACK_NAME = "unterlage";
+const DOCUMENT_MESSAGES = {
+  type: "Unerwarteter Eintrag.",
+  category: "Unbekannte Art von Unterlage.",
+  name: "Ungültiger Dateiname.",
+  extension: "Dieser Dateityp geht nicht. Erlaubt sind {allowed}.",
+  size: "Die Datei ist zu gross (höchstens {maxFileMB} MB).",
+  duplicate: "Diese Datei ist schon dabei.",
+  maxFiles: "Zu viele Dateien (höchstens {maxFiles}).",
+  total: "Zusammen sind die Dateien zu gross (höchstens {maxTotalMB} MB).",
+};
+
+const titleForTrack = (value, track) => (value !== null && typeof value === "object" ? value[track] : value);
+const isDocumentObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+const isSize = (v) => typeof v === "number" && Number.isInteger(v) && v > 0;
+
+function documentCategories(form) {
+  return new Map(form.documents.categories.map((c) => [c.id, c]));
+}
+
+function documentExtension(name) {
+  const dot = name.lastIndexOf(".");
+  return dot < 0 ? "" : name.slice(dot + 1).toLowerCase();
+}
+
+/** File extensions a category accepts, from its file types (e.g. images only for certificates). */
+function allowedExtensions(form, category) {
+  const types = form.documents.fileTypes;
+  return category.fileTypes.flatMap((t) => types[t].extensions);
+}
+
+/** German list of the accepted file types, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“. */
+function allowedText(form, category) {
+  const types = form.documents.fileTypes;
+  const labels = category.fileTypes.flatMap((t) => types[t].labels);
+  return labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(", ")} und ${labels[labels.length - 1]}`;
+}
+
+function validateDocuments(form, entries) {
+  if (!Array.isArray(entries)) return [{ path: "documents", code: "type" }];
+  const rules = form.documents;
+  const known = documentCategories(form);
+  const errors = [];
+  const seen = new Set();
+  const counts = new Map();
+  let total = 0;
+  entries.forEach((entry, index) => {
+    const code = documentEntryError(form, known, entry, seen);
+    if (code) errors.push({ path: `documents.${index}`, code });
+    if (isDocumentObject(entry) && typeof entry.category === "string" && known.has(entry.category)) {
+      counts.set(entry.category, (counts.get(entry.category) || 0) + 1);
+    }
+    if (isDocumentObject(entry) && isSize(entry.size)) total += entry.size;
+  });
+  for (const [id, count] of counts) {
+    if (count > known.get(id).maxFiles) errors.push({ path: `documents.${id}`, code: "maxFiles" });
+  }
+  if (total > rules.maxTotalBytes) errors.push({ path: "documents", code: "total" });
+  return errors;
+}
+
+function documentEntryError(form, known, entry, seen) {
+  const rules = form.documents;
+  if (!isDocumentObject(entry)) return "type";
+  const { category, name, size } = entry;
+  if (typeof category !== "string" || !known.has(category)) return "category";
+  if (typeof name !== "string" || !new RegExp(rules.namePattern, "u").test(name)) return "name";
+  if (!allowedExtensions(form, known.get(category)).includes(documentExtension(name))) return "extension";
+  if (!isSize(size) || size > rules.maxFileBytes) return "size";
+  const key = `${category}/${name.toLowerCase()}`;
+  if (seen.has(key)) return "duplicate";
+  seen.add(key);
+  return null;
+}
+
+/** German message: category and file name, then what is wrong. */
+function describeDocument(form, track, entries, error) {
+  const rules = form.documents;
+  const known = documentCategories(form);
+  const parts = error.path.split(".");
+  const params = {
+    maxFileMB: Math.floor(rules.maxFileBytes / BYTES_PER_MB),
+    maxTotalMB: Math.floor(rules.maxTotalBytes / BYTES_PER_MB),
+    maxFiles: "?",
+    allowed: "?",
+  };
+  let where = "";
+  if (parts.length === 2 && known.has(parts[1])) {
+    const category = known.get(parts[1]);
+    params.maxFiles = category.maxFiles;
+    where = titleForTrack(category.title, track);
+  } else if (parts.length === 2 && /^[0-9]+$/.test(parts[1]) && Number(parts[1]) < entries.length) {
+    const entry = entries[Number(parts[1])];
+    if (isDocumentObject(entry)) {
+      const category = typeof entry.category === "string" ? known.get(entry.category) : undefined;
+      if (category) params.allowed = allowedText(form, category);
+      where = [category ? titleForTrack(category.title, track) : "", entry.name]
+        .filter((n) => typeof n === "string" && n).join(", ");
+    }
+  }
+  const text = (DOCUMENT_MESSAGES[error.code] || error.code).replace(/\{(\w+)\}/g, (_, k) => params[k]);
+  return where ? `${where}: ${text}` : text;
+}
+
+/** A file name from the person's computer, made safe: no folders, no special characters, at most 120 characters. */
+function safeDocumentName(raw) {
+  const base = String(raw).normalize("NFC").split(/[\\/]/).pop();
+  let name = base.replace(/[:*?"<>|\u0000-\u001f\u007f]/g, "-").replace(/^[.\s]+/, "").replace(/[.\s]+$/, "");
+  if (!/[^\-.\s]/.test(name)) return FALLBACK_NAME;
+  const chars = Array.from(name);
+  if (chars.length <= MAX_NAME_CHARS) return name;
+  const ext = documentExtension(name);
+  const suffix = ext && ext.length < 10 ? `.${ext}` : "";
+  return chars.slice(0, MAX_NAME_CHARS - suffix.length).join("").replace(/[.\s]+$/, "") + suffix;
+}
+
+// Uploads in the template: which chosen files to take, and the ZIP layout shared with archive.py.
+
+const UPLOAD_BUNDLE = "einstieg.json";
+const UPLOAD_DIR = "dokumente";
+
+/** A ZIP that is no file of this template; the message is German and shown as is. */
+class UploadError extends Error {}
+
+/**
+ * Which of the chosen files (each { name, size }) to add to a category, checked against the rules
+ * together with what is already there. Returns { accepted: [{ index, category, name, size }], messages }.
+ */
+function planUploads(form, track, current, category, chosen) {
+  const accepted = [];
+  const messages = [];
+  chosen.forEach((file, index) => {
+    const entry = { category, name: safeDocumentName(file.name), size: file.size };
+    const entries = [...current, ...accepted, entry].map(({ category: c, name, size }) => ({ category: c, name, size }));
+    const [error] = validateDocuments(form, entries).filter((e) => isAbout(e, entries.length - 1, category));
+    if (error) messages.push(describeDocument(form, track, entries, error)); // one message per file is enough
+    else accepted.push({ index, ...entry });
+  });
+  return { accepted, messages };
+}
+
+function isAbout(error, last, category) {
+  return error.path === `documents.${last}` || error.path === `documents.${category}` || error.path === "documents";
+}
+
+/** ZIP entries for the saved file: the answers plus each upload under dokumente/<category>/<name>. */
+function uploadZipEntries(bundleBytes, uploads) {
+  return [
+    { name: UPLOAD_BUNDLE, data: bundleBytes },
+    ...uploads.map((u) => ({ name: `${UPLOAD_DIR}/${u.category}/${u.name}`, data: u.data })),
+  ];
+}
+
+/** Split the entries of a loaded ZIP into the answers (bytes) and uploads; throws UploadError. */
+function splitUploadZip(form, entries) {
+  const bundles = entries.filter((e) => e.name === UPLOAD_BUNDLE);
+  if (bundles.length !== 1) throw new UploadError(`Die Datei muss genau eine ${UPLOAD_BUNDLE} enthalten.`);
+  const uploads = entries.filter((e) => e.name !== UPLOAD_BUNDLE).map((e) => {
+    const parts = e.name.split("/");
+    if (parts.length !== 3 || parts[0] !== UPLOAD_DIR) throw new UploadError(`Unerwarteter Inhalt in der Datei: ${e.name}`);
+    return { category: parts[1], name: parts[2], size: e.data.length, data: e.data };
+  });
+  const [error] = validateDocuments(form, uploads.map(({ category, name, size }) => ({ category, name, size })));
+  if (error) throw new UploadError(describeDocument(form, "job", uploads, error));
+  return { bundle: bundles[0].data, uploads };
+}
+
+/** Most entries a saved ZIP can have: the answers plus the most files of every category. */
+function maxUploadEntries(form) {
+  return 1 + form.documents.categories.reduce((sum, c) => sum + c.maxFiles, 0);
+}
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    validateDocuments, describeDocument, safeDocumentName, documentCategories, documentExtension, allowedExtensions, allowedText,
+    planUploads, uploadZipEntries, splitUploadZip, maxUploadEntries, UploadError,
+  };
+}
+
+// Minimal ZIP writer and reader for the template: einstieg.json plus uploaded documents in one file.
+// Writes stored or deflated entries with UTF-8 names; reads stored and deflated entries, checks sizes
+// and CRCs and stops at the given limits. No encryption, no ZIP64, no multi-disk archives.
+"use strict";
+
+const SIG_LOCAL = 0x04034b50;
+const SIG_CENTRAL = 0x02014b50;
+const SIG_END = 0x06054b50;
+const LOCAL_HEADER = 30;
+const CENTRAL_HEADER = 46;
+const END_RECORD = 22;
+const MAX_COMMENT = 0xffff;
+const FLAG_ENCRYPTED = 0x0001;
+const FLAG_UTF8 = 0x0800;
+const METHOD_STORED = 0;
+const METHOD_DEFLATE = 8;
+const ZIP_VERSION = 20;
+
+class ZipError extends Error {}
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(data) {
+  let crc = 0xffffffff;
+  for (let i = 0; i < data.length; i++) crc = CRC_TABLE[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+async function streamThrough(data, transform, limit) {
+  const reader = new Blob([data]).stream().pipeThrough(transform).getReader();
+  const chunks = [];
+  let length = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    length += value.length;
+    if (limit !== undefined && length > limit) {
+      await reader.cancel();
+      throw new ZipError("Die Datei ist beschädigt (ein Eintrag ist grösser als angegeben).");
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) { out.set(chunk, offset); offset += chunk.length; }
+  return out;
+}
+
+function dosDateTime(date) {
+  const time = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+  const day = ((Math.max(date.getFullYear(), 1980) - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+  return { time, day };
+}
+
+/** ZIP bytes for entries [{ name, data: Uint8Array }]; with compress, entries are deflated where that is smaller. */
+async function createZip(entries, { date = new Date(), compress = false } = {}) {
+  const { time, day } = dosDateTime(date);
+  const encoder = new TextEncoder();
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const entry of entries) {
+    const name = encoder.encode(entry.name);
+    const crc = crc32(entry.data);
+    let method = METHOD_STORED;
+    let body = entry.data;
+    if (compress) {
+      const deflated = await streamThrough(entry.data, new CompressionStream("deflate-raw"));
+      if (deflated.length < entry.data.length) { method = METHOD_DEFLATE; body = deflated; }
+    }
+    const fields = { method, time, day, crc, compressed: body.length, size: entry.data.length, name };
+    const local = header(LOCAL_HEADER, SIG_LOCAL, fields);
+    locals.push(local, body);
+    centrals.push(header(CENTRAL_HEADER, SIG_CENTRAL, fields, offset));
+    offset += local.length + body.length;
+  }
+  const centralSize = centrals.reduce((sum, c) => sum + c.length, 0);
+  const end = new Uint8Array(END_RECORD);
+  const view = new DataView(end.buffer);
+  view.setUint32(0, SIG_END, true);
+  view.setUint16(8, entries.length, true);
+  view.setUint16(10, entries.length, true);
+  view.setUint32(12, centralSize, true);
+  view.setUint32(16, offset, true);
+  return concat([...locals, ...centrals, end]);
+}
+
+function header(size, signature, f, offset) {
+  const out = new Uint8Array(size + f.name.length);
+  const v = new DataView(out.buffer);
+  v.setUint32(0, signature, true);
+  const central = signature === SIG_CENTRAL;
+  const base = central ? 2 : 0; // the central header has "version made by" before the common fields
+  if (central) v.setUint16(4, ZIP_VERSION, true);
+  v.setUint16(4 + base, ZIP_VERSION, true);
+  v.setUint16(6 + base, FLAG_UTF8, true);
+  v.setUint16(8 + base, f.method, true);
+  v.setUint16(10 + base, f.time, true);
+  v.setUint16(12 + base, f.day, true);
+  v.setUint32(14 + base, f.crc, true);
+  v.setUint32(18 + base, f.compressed, true);
+  v.setUint32(22 + base, f.size, true);
+  v.setUint16(26 + base, f.name.length, true);
+  if (central) v.setUint32(42, offset, true);
+  out.set(f.name, size);
+  return out;
+}
+
+function concat(parts) {
+  const out = new Uint8Array(parts.reduce((sum, p) => sum + p.length, 0));
+  let offset = 0;
+  for (const part of parts) { out.set(part, offset); offset += part.length; }
+  return out;
+}
+
+/** Entries [{ name, data }] of a ZIP; throws ZipError (German message) if it is damaged or exceeds the limits. */
+async function readZip(bytes, { maxEntries, maxTotalBytes }) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const end = findEnd(bytes, view);
+  const count = view.getUint16(end + 10, true);
+  if (view.getUint16(end + 4, true) !== 0 || view.getUint16(end + 8, true) !== count) {
+    throw new ZipError("ZIP-Dateien über mehrere Teile gehen nicht.");
+  }
+  if (count > maxEntries) throw new ZipError(`Die Datei enthält zu viele Einträge (höchstens ${maxEntries}).`);
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const entries = [];
+  let total = 0;
+  let position = view.getUint32(end + 16, true);
+  for (let i = 0; i < count; i++) {
+    const entry = centralEntry(bytes, view, position, decoder);
+    position = entry.next;
+    if (entry.name.endsWith("/")) continue;
+    total += entry.size;
+    if (total > maxTotalBytes) throw new ZipError(`Der Inhalt ist zu gross (höchstens ${Math.floor(maxTotalBytes / 1000000)} MB).`);
+    entries.push({ name: entry.name, data: await entryData(bytes, view, entry) });
+  }
+  return entries;
+}
+
+function findEnd(bytes, view) {
+  const lowest = Math.max(0, bytes.length - END_RECORD - MAX_COMMENT);
+  for (let i = bytes.length - END_RECORD; i >= lowest; i--) {
+    if (view.getUint32(i, true) === SIG_END) return i;
+  }
+  throw new ZipError("Die Datei ist keine ZIP-Datei.");
+}
+
+function centralEntry(bytes, view, at, decoder) {
+  if (at + CENTRAL_HEADER > bytes.length || view.getUint32(at, true) !== SIG_CENTRAL) {
+    throw new ZipError("Die Datei ist beschädigt (Inhaltsverzeichnis).");
+  }
+  const flags = view.getUint16(at + 8, true);
+  if (flags & FLAG_ENCRYPTED) throw new ZipError("Verschlüsselte ZIP-Dateien gehen nicht.");
+  const nameLength = view.getUint16(at + 28, true);
+  const next = at + CENTRAL_HEADER + nameLength + view.getUint16(at + 30, true) + view.getUint16(at + 32, true);
+  if (next > bytes.length) throw new ZipError("Die Datei ist beschädigt (Inhaltsverzeichnis).");
+  let name;
+  try {
+    name = decoder.decode(bytes.subarray(at + CENTRAL_HEADER, at + CENTRAL_HEADER + nameLength));
+  } catch (error) {
+    throw new ZipError("Ein Dateiname in der ZIP-Datei ist ungültig.");
+  }
+  return {
+    name, next, method: view.getUint16(at + 10, true), crc: view.getUint32(at + 16, true),
+    compressed: view.getUint32(at + 20, true), size: view.getUint32(at + 24, true), offset: view.getUint32(at + 42, true),
+  };
+}
+
+async function entryData(bytes, view, entry) {
+  const at = entry.offset;
+  if (at + LOCAL_HEADER > bytes.length || view.getUint32(at, true) !== SIG_LOCAL) {
+    throw new ZipError("Die Datei ist beschädigt (Eintrag nicht gefunden).");
+  }
+  const start = at + LOCAL_HEADER + view.getUint16(at + 26, true) + view.getUint16(at + 28, true);
+  if (start + entry.compressed > bytes.length) throw new ZipError("Die Datei ist beschädigt (Eintrag abgeschnitten).");
+  const raw = bytes.subarray(start, start + entry.compressed);
+  let data;
+  if (entry.method === METHOD_STORED) data = raw.slice();
+  else if (entry.method === METHOD_DEFLATE) {
+    try {
+      data = await streamThrough(raw, new DecompressionStream("deflate-raw"), entry.size);
+    } catch (error) {
+      if (error instanceof ZipError) throw error;
+      throw new ZipError(`Die Datei ist beschädigt (${entry.name}).`);
+    }
+  } else throw new ZipError(`Diese Art der Komprimierung geht nicht (${entry.name}).`);
+  if (data.length !== entry.size || crc32(data) !== entry.crc) throw new ZipError(`Die Datei ist beschädigt (${entry.name}).`);
+  return data;
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { crc32, createZip, readZip, ZipError };
+}
+
+// Step "Unterlagen" of the template: choose existing documents per category, list and remove them.
+// Files stay in memory only (not in the browser storage); they go into the saved ZIP.
+// Depends on dom.js, model.js and documents.js (inlined before this file by build_template.py).
+"use strict";
+
+const UPLOAD_TEXT = {
+  job: {
+    memory: "Die Seite merkt sich hochgeladene Dateien nicht. Speichern Sie am Schluss die Datei, sonst müssen Sie sie nach dem Schliessen neu wählen.",
+    choose: "Dateien wählen",
+    skip: "Weiter zum Speichern",
+    skipHint: "Mit Unterlagen können Sie die übrigen Schritte auslassen oder nur ausfüllen, was Sie gerade wissen.",
+  },
+  apprenticeship: {
+    memory: "Die Seite merkt sich hochgeladene Dateien nicht. Speichere am Schluss die Datei, sonst musst du sie nach dem Schliessen neu wählen.",
+    choose: "Dateien wählen",
+    skip: "Weiter zum Speichern",
+    skipHint: "Mit Unterlagen kannst du die übrigen Schritte auslassen oder nur ausfüllen, was du gerade weisst.",
+  },
+};
+const BYTES_PER_KB = 1000;
+
+const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+function formatSize(bytes) {
+  if (bytes < BYTES_PER_KB * BYTES_PER_KB) return `${Math.max(1, Math.round(bytes / BYTES_PER_KB))} KB`;
+  return `${(bytes / (BYTES_PER_KB * BYTES_PER_KB)).toLocaleString("de-CH", { maximumFractionDigits: 1 })} MB`;
+}
+
+/**
+ * The step view. ctx: { form, track, uploads, messages, onAdd(category, FileList), onRemove(index), onSkip() }.
+ * File names come from the person's computer and are only ever set as text.
+ */
+function uploadsView(ctx) {
+  const { form, track, uploads } = ctx;
+  const text = UPLOAD_TEXT[track];
+  const rules = form.documents;
+  return el("section", { className: "uploads" }, [
+    el("h2", {}, forTrack(rules.title, track)),
+    el("p", { className: "intro" }, forTrack(rules.intro, track)),
+    el("p", { className: "hint" }, text.memory),
+    el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
+    ...rules.categories.map((category) => categoryView(ctx, category, text)),
+    uploads.length ? el("p", { className: "secondary" }, [
+      text.skipHint, " ",
+      el("button", { type: "button", className: "link", onclick: ctx.onSkip }, text.skip),
+    ]) : null,
+  ]);
+}
+
+function categoryView(ctx, category, text) {
+  const { form, track, uploads } = ctx;
+  const id = nextId("u");
+  const accept = allowedExtensions(form, category).map((ext) => `.${ext}`).join(",");
+  const input = el("input", {
+    type: "file", multiple: true, accept, className: "visually-hidden", tabIndex: -1, "aria-hidden": "true",
+    onchange: (e) => ctx.onAdd(category.id, e.target.files),
+  });
+  const files = uploads
+    .map((upload, index) => ({ upload, index }))
+    .filter(({ upload }) => upload.category === category.id)
+    .map(({ upload, index }) => el("li", {}, [
+      el("span", { className: "file-name" }, upload.name),
+      el("span", { className: "file-size" }, formatSize(upload.size)),
+      el("button", { type: "button", className: "remove", "aria-label": `${upload.name} entfernen`, onclick: () => ctx.onRemove(index) }, "Entfernen"),
+    ]));
+  return el("fieldset", { className: "item upload-category", "aria-describedby": `${id}-hint` }, [
+    el("legend", {}, forTrack(category.title, track)),
+    el("p", { className: "hint", id: `${id}-hint` }, `${capitalize(forTrack(category.hint, track))}. Erlaubt: ${allowedText(form, category)}.`),
+    files.length ? el("ul", { className: "files" }, files) : null,
+    el("button", { type: "button", className: "add", dataset: { category: category.id }, onclick: () => input.click() }, `+ ${text.choose}`),
+    input,
+  ]);
+}
+
 // Flow of the onboarding template: start, one step per section, check and save.
-// Depends on validate.js, model.js and dom.js (inlined before this file by build_template.py).
+// Depends on validate.js, model.js, dom.js, documents.js, zip.js and uploads.js (inlined before this file by build_template.py).
 "use strict";
 
 const STORAGE_KEY = "bewerbungsassistent.einstieg.v1";
 const MAX_FILE_BYTES = 1000000;
+const ZIP_OVERHEAD_BYTES = 1000000;
 const AUTOSAVE_DELAY_MS = 400;
 const REQUIRED_NOTE = "Felder mit * müssen ausgefüllt sein.";
 const EXISTING_DOCUMENTS_NOTE = "Sie haben schon einen Lebenslauf, Arbeitszeugnisse oder frühere Anschreiben? "
-  + "Dann müssen Sie nichts abtippen: Geben Sie sie Claude mit dem Skill „einstieg“. Claude übernimmt daraus Angaben, "
-  + "Belege und Ihre eigenen Formulierungen und bereitet eine Datei vor. Diese laden Sie hier und prüfen und ergänzen nur noch.";
+  + "Dann müssen Sie nichts abtippen: Im Schritt „Unterlagen“ laden Sie sie hoch. Der Assistent übernimmt daraus Angaben, "
+  + "Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.";
+const UNSAVED_UPLOADS = "Hochgeladene Unterlagen sind noch nicht gespeichert.";
 const FOCUSABLE = "input, textarea, select, button";
 
 const TEXT = {
@@ -564,12 +1033,16 @@ const TEXT = {
     finishTitle: "Prüfen und speichern",
     finishOk: "Alles Nötige ist ausgefüllt.",
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Sie können trotzdem speichern und später weitermachen.",
+    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Der Assistent ergänzt sie aus Ihren Unterlagen und fragt nach, was er dort nicht findet.",
+    documents: (n) => `Mit ${n === 1 ? "einer Unterlage" : `${n} Unterlagen`}; die Datei wird eine ZIP-Datei.`,
     next: "So geht es weiter: Schicken Sie die Datei an die Person, die Sie im Pilot begleitet, oder öffnen Sie sie später in der App. Mit „Datei laden“ auf der ersten Seite können Sie jederzeit weiterarbeiten.",
   },
   apprenticeship: {
     finishTitle: "Prüfen und speichern",
     finishOk: "Alles Nötige ist ausgefüllt.",
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Du kannst trotzdem speichern und später weitermachen.",
+    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Der Assistent ergänzt sie aus deinen Unterlagen und fragt nach, was er dort nicht findet.",
+    documents: (n) => `Mit ${n === 1 ? "einer Unterlage" : `${n} Unterlagen`}; die Datei wird eine ZIP-Datei.`,
     next: "So geht es weiter: Schick die Datei an die Person, die dich begleitet, oder öffne sie später in der App. Mit „Datei laden“ auf der ersten Seite kannst du jederzeit weiterarbeiten.",
   },
 };
@@ -579,6 +1052,9 @@ let state = { track: null, data: {} };
 let step = 0;
 let touched = new Set();
 let autosaveTimer = null;
+let uploads = []; // { category, name, size, data: Uint8Array }; in memory only
+let uploadMessages = [];
+let uploadsSaved = true;
 
 // Storage: optional convenience; the page works without it.
 
@@ -633,6 +1109,7 @@ function update(newState, { rerender = false } = {}) {
 
 function goTo(newStep) {
   step = Math.max(0, Math.min(newStep, steps().length - 1));
+  uploadMessages = [];
   scheduleStore();
   render();
   document.getElementById("main").focus();
@@ -641,7 +1118,10 @@ function goTo(newStep) {
 
 function steps() {
   if (!state.track) return [{ kind: "start" }];
-  return [{ kind: "start" }, ...sectionsFor(form, state.track).map((s) => ({ kind: "section", section: s })), { kind: "finish" }];
+  return [
+    { kind: "start" }, { kind: "documents" },
+    ...sectionsFor(form, state.track).map((s) => ({ kind: "section", section: s })), { kind: "finish" },
+  ];
 }
 
 // Validation shown in the page
@@ -671,15 +1151,28 @@ function render() {
   renderNav(all);
   const main = document.getElementById("main");
   const current = all[step];
-  const view = current.kind === "start" ? startView() : current.kind === "finish" ? finishView() : sectionView(current.section);
-  main.replaceChildren(view, navButtons(all));
+  main.replaceChildren(viewFor(current), navButtons(all));
   refreshErrors();
+}
+
+function viewFor(current) {
+  if (current.kind === "start") return startView();
+  if (current.kind === "documents") return documentsView();
+  if (current.kind === "finish") return finishView();
+  return sectionView(current.section);
+}
+
+function stepTitle(s) {
+  if (s.kind === "start") return "Start";
+  if (s.kind === "documents") return forTrack(form.documents.title, state.track);
+  if (s.kind === "finish") return "Speichern";
+  return forTrack(s.section.title, state.track);
 }
 
 function renderNav(all) {
   const errorSections = new Set(currentErrors().map((e) => e.path.split(".")[0]));
   const items = all.map((s, i) => {
-    const title = s.kind === "start" ? "Start" : s.kind === "finish" ? "Speichern" : forTrack(s.section.title, state.track);
+    const title = stepTitle(s);
     const flagged = s.kind === "section" && errorSections.has(s.section.id);
     return el("li", {}, el("button", {
       type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}`,
@@ -699,7 +1192,7 @@ function startView() {
     type: "button", className: `track${state.track === track ? " selected" : ""}`,
     "aria-pressed": String(state.track === track), onclick: () => choose(track),
   }, [el("strong", {}, title), el("span", {}, text)]);
-  const fileInput = el("input", { type: "file", accept: ".json,application/json", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
+  const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
   return el("section", { className: "start" }, [
     el("h2", {}, "Worum geht es?"),
     el("p", {}, "Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsassistent braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. Am Schluss speichern Sie eine Datei."),
@@ -715,6 +1208,39 @@ function startView() {
     el("p", { className: "secondary" }, EXISTING_DOCUMENTS_NOTE),
     el("p", { id: "load-message", role: "status" }),
   ]);
+}
+
+function documentsView() {
+  return uploadsView({
+    form, track: state.track, uploads, messages: uploadMessages,
+    onAdd: addUploads, onRemove: removeUpload, onSkip: () => goTo(steps().length - 1),
+  });
+}
+
+async function addUploads(category, fileList) {
+  const chosen = Array.from(fileList);
+  const { accepted, messages } = planUploads(form, state.track, uploads, category, chosen);
+  try {
+    const read = await Promise.all(accepted.map(async ({ index, ...entry }) => (
+      { ...entry, data: new Uint8Array(await chosen[index].arrayBuffer()) })));
+    setUploads([...uploads, ...read], messages);
+  } catch (error) {
+    setUploads(uploads, [...messages, "Eine Datei liess sich nicht lesen. Bitte nochmals wählen."]);
+  }
+  focusFirst(`[data-category="${category}"]`);
+}
+
+function removeUpload(index) {
+  const category = uploads[index].category;
+  setUploads(uploads.filter((_, i) => i !== index), []);
+  focusFirst(`[data-category="${category}"]`);
+}
+
+function setUploads(list, messages) {
+  uploads = list;
+  uploadMessages = messages;
+  uploadsSaved = list.length === 0;
+  render();
 }
 
 function sectionView(section) {
@@ -782,9 +1308,10 @@ function fieldFor(section, field, path, value) {
 function finishView() {
   const text = TEXT[state.track];
   const errors = currentErrors();
+  const onlyMissing = uploads.length > 0 && errors.every((e) => e.code === "required");
   const summary = errors.length
     ? el("div", { className: "summary" }, [
-      el("p", {}, text.finishErrors),
+      el("p", {}, onlyMissing ? text.finishFromDocuments : text.finishErrors),
       el("ul", {}, errors.map((e) => el("li", {}, el("button", {
         type: "button", className: "link", onclick: () => goTo(stepOf(e.path)),
       }, describe(form, state.track, e))))),
@@ -799,7 +1326,9 @@ function finishView() {
   return el("section", {}, [
     el("h2", {}, text.finishTitle),
     summary,
+    uploads.length ? el("p", { className: "hint" }, text.documents(uploads.length)) : null,
     el("button", { type: "button", className: "primary", onclick: saveFile }, "Datei speichern"),
+    el("p", { id: "save-message", role: "alert", className: "error" }),
     el("p", {}, text.next),
     el("p", { className: "secondary" }, el("button", { type: "button", className: "link", onclick: () => { confirmBox.hidden = false; } }, "Alles löschen")),
     confirmBox,
@@ -836,51 +1365,89 @@ function markStepTouched(current) {
 
 // Files
 
-function saveFile() {
-  const bundle = collectBundle(form, state, new Date());
-  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+async function saveFile() {
+  const now = new Date();
+  const json = JSON.stringify(collectBundle(form, state, now), null, 2);
+  try {
+    if (!uploads.length) {
+      download(new Blob([json], { type: "application/json" }), fileName("json"));
+      return;
+    }
+    const zip = await createZip(uploadZipEntries(new TextEncoder().encode(json), uploads), { date: now, compress: true });
+    download(new Blob([zip], { type: "application/zip" }), fileName("zip"));
+    uploadsSaved = true;
+  } catch (error) {
+    document.getElementById("save-message").textContent = "Speichern hat nicht geklappt. Bitte in einem aktuellen Browser nochmals versuchen.";
+  }
+}
+
+function download(blob, name) {
   const url = URL.createObjectURL(blob);
-  const link = el("a", { href: url, download: fileName() });
+  const link = el("a", { href: url, download: name });
   document.body.append(link);
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function fileName() {
+function fileName(extension) {
   const name = ((state.data.person || {}).name || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return name ? `einstieg-${name}.json` : "einstieg.json";
+  return name ? `einstieg-${name}.${extension}` : `einstieg.${extension}`;
 }
 
-function loadFile(event) {
+async function loadFile(event) {
   const file = event.target.files[0];
   const message = document.getElementById("load-message");
   if (!file) return;
-  if (file.size > MAX_FILE_BYTES) {
+  const isZip = /\.zip$/i.test(file.name);
+  const limit = isZip ? form.documents.maxTotalBytes + MAX_FILE_BYTES + ZIP_OVERHEAD_BYTES : MAX_FILE_BYTES;
+  if (file.size > limit) {
     message.textContent = "Die Datei ist zu gross für eine Einstiegsdatei.";
     return;
   }
-  file.text().then((content) => {
-    state = stateFromBundle(form, JSON.parse(content));
+  try {
+    const loaded = isZip ? await readUploadZip(file) : { bundle: await file.text(), uploads: [] };
+    state = stateFromBundle(form, JSON.parse(loaded.bundle));
+    uploads = loaded.uploads;
+    uploadMessages = [];
+    uploadsSaved = true;
     touched = new Set();
     goTo(1);
     storeNow();
-  }).catch((error) => {
-    message.textContent = error instanceof BundleError ? error.message : "Die Datei ist keine gültige Einstiegsdatei.";
-  });
+  } catch (error) {
+    const known = error instanceof BundleError || error instanceof UploadError || error instanceof ZipError;
+    message.textContent = known ? error.message : "Die Datei ist keine gültige Einstiegsdatei.";
+  }
+}
+
+async function readUploadZip(file) {
+  const limits = { maxEntries: maxUploadEntries(form), maxTotalBytes: form.documents.maxTotalBytes + MAX_FILE_BYTES };
+  const entries = await readZip(new Uint8Array(await file.arrayBuffer()), limits);
+  const { bundle, uploads: found } = splitUploadZip(form, entries);
+  if (bundle.length > MAX_FILE_BYTES) throw new UploadError("Die Antworten in der Datei sind zu gross.");
+  return { bundle: new TextDecoder("utf-8", { fatal: true }).decode(bundle), uploads: found };
 }
 
 function clearAll() {
   window.clearTimeout(autosaveTimer);
   clearStored();
   state = { track: null, data: {} };
+  uploads = [];
+  uploadMessages = [];
+  uploadsSaved = true;
   touched = new Set();
   step = 0;
   render();
   document.getElementById("main").focus();
   setStatus("Alle Eingaben auf diesem Gerät wurden gelöscht.");
 }
+
+window.addEventListener("beforeunload", (event) => {
+  if (uploadsSaved) return;
+  event.preventDefault();
+  event.returnValue = UNSAVED_UPLOADS; // older browsers show a dialog only with a value
+});
 
 loadStored();
 render();

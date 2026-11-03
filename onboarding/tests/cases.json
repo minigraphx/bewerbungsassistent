@@ -844,5 +844,487 @@
         }
       ]
     }
+  ],
+  "documentCases": [
+    {
+      "name": "no documents",
+      "documents": [],
+      "errors": []
+    },
+    {
+      "name": "one of each category",
+      "documents": [
+        {
+          "category": "lebenslauf-bisher",
+          "name": "Lebenslauf 2024.pdf",
+          "size": 100000
+        },
+        {
+          "category": "zeugnisse",
+          "name": "2023 Beispiel AG Arbeitszeugnis.pdf",
+          "size": 100000
+        },
+        {
+          "category": "zertifikate",
+          "name": "Sprachzertifikat B2.pdf",
+          "size": 100000
+        },
+        {
+          "category": "anschreiben-bisher",
+          "name": "Anschreiben Muster GmbH.docx",
+          "size": 100000
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "unknown category",
+      "documents": [
+        {
+          "category": "geheim",
+          "name": "a.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "category"
+        }
+      ]
+    },
+    {
+      "name": "category is not a string",
+      "documents": [
+        {
+          "category": [
+            "zeugnisse"
+          ],
+          "name": "a.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "category"
+        }
+      ]
+    },
+    {
+      "name": "extension not allowed",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "zeugnis.exe",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "extension"
+        }
+      ]
+    },
+    {
+      "name": "no extension",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "zeugnis",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "extension"
+        }
+      ]
+    },
+    {
+      "name": "extension in upper case is fine",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "ZEUGNIS.PDF",
+          "size": 100000
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "path in name",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "../cv.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "backslash in name",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "a\\b.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "hidden name",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": ".zeugnis.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "control character in name",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "a\u0007.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "name too long",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "äääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääää.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "longest name counts characters",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "ääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääää.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "name is not a string",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": 7,
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "file too large",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "gross.pdf",
+          "size": 15000001
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "size"
+        }
+      ]
+    },
+    {
+      "name": "size is not a number",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "a.pdf",
+          "size": "1"
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "size"
+        }
+      ]
+    },
+    {
+      "name": "size is a boolean",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "a.pdf",
+          "size": true
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "size"
+        }
+      ]
+    },
+    {
+      "name": "empty file",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "a.pdf",
+          "size": 0
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "size"
+        }
+      ]
+    },
+    {
+      "name": "same file twice in a category",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "a.pdf",
+          "size": 100000
+        },
+        {
+          "category": "zeugnisse",
+          "name": "a.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.1",
+          "code": "duplicate"
+        }
+      ]
+    },
+    {
+      "name": "same name in two categories is fine",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "a.pdf",
+          "size": 100000
+        },
+        {
+          "category": "zertifikate",
+          "name": "a.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "too many files in a category",
+      "documents": [
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv0.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv1.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv2.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv3.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.lebenslauf-bisher",
+          "code": "maxFiles"
+        }
+      ]
+    },
+    {
+      "name": "too large together",
+      "documents": [
+        {
+          "category": "zertifikate",
+          "name": "z0.pdf",
+          "size": 14000000
+        },
+        {
+          "category": "zertifikate",
+          "name": "z1.pdf",
+          "size": 14000000
+        },
+        {
+          "category": "zertifikate",
+          "name": "z2.pdf",
+          "size": 14000000
+        },
+        {
+          "category": "zertifikate",
+          "name": "z3.pdf",
+          "size": 14000000
+        },
+        {
+          "category": "zertifikate",
+          "name": "z4.pdf",
+          "size": 14000000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents",
+          "code": "total"
+        }
+      ]
+    },
+    {
+      "name": "entry is not an object",
+      "documents": [
+        "a.pdf"
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "word and text files are fine",
+      "documents": [
+        {
+          "category": "anschreiben-bisher",
+          "name": "alt.doc",
+          "size": 10
+        },
+        {
+          "category": "anschreiben-bisher",
+          "name": "notizen.txt",
+          "size": 10
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "images are not accepted for a previous letter",
+      "documents": [
+        {
+          "category": "anschreiben-bisher",
+          "name": "scan.jpg",
+          "size": 10
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "extension"
+        }
+      ]
+    },
+    {
+      "name": "rtf is not accepted",
+      "documents": [
+        {
+          "category": "anschreiben-bisher",
+          "name": "brief.rtf",
+          "size": 10
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "extension"
+        }
+      ]
+    },
+    {
+      "name": "images are fine for references and certificates",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "Zeugnis.JPG",
+          "size": 10
+        },
+        {
+          "category": "zertifikate",
+          "name": "Diplom.png",
+          "size": 10
+        },
+        {
+          "category": "zertifikate",
+          "name": "Kurs.jpeg",
+          "size": 10
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "images are not accepted for a previous CV",
+      "documents": [
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv.png",
+          "size": 10
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "extension"
+        }
+      ]
+    }
   ]
 }

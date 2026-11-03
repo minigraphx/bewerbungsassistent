@@ -5,9 +5,17 @@ description: "Stellensuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, 
 
 # Jobsuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, LinkedIn und Karriereseiten
 
-Ziel: neue, passende Stellen finden, auf dem Portal vormerken und im **Register** erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Eine **Jobliste in Google Sheets ist optional** und nur eine Kopie: Ist sie im Suchprofil eingetragen (aktiviert), kommt jeder Eintrag ins Register **und** in die Liste. Als Quelle dient sie nie; Bestand, Duplikate, Status und Fristen kommen nur aus dem Register. Auf Wunsch der Person legt der Skill sie an (siehe 6b). Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
+Ziel: neue, passende Stellen finden, auf dem Portal vormerken und im **Register** erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Eine **Jobliste in Google Sheets ist optional** und nur eine Kopie: Ist sie im Suchprofil eingetragen (aktiviert), kommt jeder Eintrag ins Register **und** in die Liste. Als Quelle dient sie nie; Bestand, Duplikate, Status und Fristen kommen nur aus dem Register. Auf Wunsch der Person legt der Skill sie an (siehe 6b). Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0a) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
 
-## 0. Portale und Lauf
+## 0. Grundlagen prüfen
+
+Grundlagen im Datenordner: `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`. Fehlt eine davon, oder hat `dokumente/neu.yaml` Einträge (Unterlagen aus der Einstiegsvorlage, noch nicht übernommen): zuerst den Skill `einstieg` ausführen, ohne zu fragen. Der Person in einem Satz sagen, warum. Bringt die Person eine Datei aus der Einstiegsvorlage (`einstieg.json` oder `einstieg-….zip`), ebenso.
+
+Im unbeaufsichtigten Lauf (siehe 0a) geht das nicht, denn der Einstieg braucht die Person. Dann ohne Suchprofil nicht suchen; mit Suchprofil normal suchen und in der Antwort auf die offenen Unterlagen hinweisen.
+
+Fertig, wenn alle vier Grundlagen da sind und `dokumente/neu.yaml` leer ist oder fehlt.
+
+## 0a. Portale und Lauf
 
 Das Suchprofil legt im Abschnitt „Portale und Rhythmus“ pro Portal einen Modus fest:
 
@@ -19,7 +27,7 @@ Das Suchprofil legt im Abschnitt „Portale und Rhythmus“ pro Portal einen Mod
 
 ## 1. Kontext laden
 
-- **Suchprofil lesen** (Pflicht): `suchprofil.md` im privaten Datenordner (Vorlage: `vorlagen/suchprofil.md` in diesem Repo). Es enthält: Name, Suchrichtungen mit Prioritäten, Region (Kantone, Orte, Pendelgrenze, Remote), Keywords, Titel-Positiv- und Ausschlusslisten, Sprachen, Abschluss und Erfahrung, Stärken, typische Haken, Startdatum, Zielfirmen mit Karriereseiten, Hinweise zu bestimmten Firmen und optional Ort und ID einer Jobliste. Ohne Suchprofil nicht suchen, sondern danach fragen.
+- **Suchprofil lesen** (Pflicht): `suchprofil.md` im privaten Datenordner (Vorlage: `vorlagen/suchprofil.md` in diesem Repo). Es enthält: Name, Suchrichtungen mit Prioritäten, Region (Kantone, Orte, Pendelgrenze, Remote), Keywords, Titel-Positiv- und Ausschlusslisten, Sprachen, Abschluss und Erfahrung, Stärken, typische Haken, Startdatum, Zielfirmen mit Karriereseiten, Hinweise zu bestimmten Firmen und optional Ort und ID einer Jobliste. Ohne Suchprofil nicht suchen, sondern zuerst den Skill `einstieg` (Schritt 0).
 - Weitere Kontextdateien, die das Suchprofil nennt (z.B. Notizen zu Bewerbungen, Absagen, Präferenzen), ebenfalls lesen.
 - **Bestand lesen:** das Register `bewerbungen.yaml` im Datenordner (`Register(daten).alle()` aus dem Modul `bewerbungen`). Es ist führend für Duplikate, Status und Fristen.
 - Die Jobliste wird hier nicht gelesen. Ohne Jobliste im Suchprofil kein Sheet suchen; anlegen nur, wenn die Person es verlangt (6b).
@@ -159,7 +167,7 @@ job-room und jobs.ch: nur auf Wunsch. LinkedIn: alle Stellen, die ins Register k
 
 ## 6. Ins Register eintragen (und in die Jobliste, wenn aktiviert)
 
-Das **Register** `bewerbungen.yaml` im Datenordner ist führend (Modul `bewerbungen`). Neue Stellen zuerst dort anlegen, mit Entwurf vorher und nachher (siehe 0): `Register(daten).neu(firma=…, stelle=…, firma_schluessel=…, ort=…, pensum=…, vermittler="direkt" oder Name, portal=…, link=…, status="Gemerkt", passung=…, notiz=…)`. `neu` setzt `eingetragen_am` auf heute. Damit ist der Eintrag erledigt.
+Das **Register** `bewerbungen.yaml` im Datenordner ist führend (Modul `bewerbungen`). Neue Stellen zuerst dort anlegen, mit Entwurf vorher und nachher (siehe 0a): `Register(daten).neu(firma=…, stelle=…, firma_schluessel=…, ort=…, pensum=…, vermittler="direkt" oder Name, portal=…, link=…, status="Gemerkt", passung=…, notiz=…)`. `neu` setzt `eingetragen_am` auf heute. Damit ist der Eintrag erledigt.
 
 **Ist die Jobliste aktiviert** (im Suchprofil eingetragen), dieselben Stellen zusätzlich dort eintragen. Die Liste wird dafür nur gelesen, um die erste freie Zeile und bestehende Zeilen zu finden, nicht als Bestand. Die Zeilen für die Jobliste mit `register.als_jobliste([...])` (Spalten A–L) und `register.zusatzspalten(b)` (Spalten N „Eingetragen am“ und O „Passung“) aus denselben Einträgen erzeugen, damit beide übereinstimmen; Spalte M ist die Duplikat-Formel und wird nicht überschrieben.
 

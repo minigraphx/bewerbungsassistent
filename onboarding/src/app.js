@@ -1,14 +1,16 @@
 // Flow of the onboarding template: start, one step per section, check and save.
-// Depends on validate.js, model.js and dom.js (inlined before this file by build_template.py).
+// Depends on validate.js, model.js, dom.js, documents.js, zip.js and uploads.js (inlined before this file by build_template.py).
 "use strict";
 
 const STORAGE_KEY = "bewerbungsassistent.einstieg.v1";
 const MAX_FILE_BYTES = 1000000;
+const ZIP_OVERHEAD_BYTES = 1000000;
 const AUTOSAVE_DELAY_MS = 400;
 const REQUIRED_NOTE = "Felder mit * müssen ausgefüllt sein.";
 const EXISTING_DOCUMENTS_NOTE = "Sie haben schon einen Lebenslauf, Arbeitszeugnisse oder frühere Anschreiben? "
-  + "Dann müssen Sie nichts abtippen: Geben Sie sie Claude mit dem Skill „einstieg“. Claude übernimmt daraus Angaben, "
-  + "Belege und Ihre eigenen Formulierungen und bereitet eine Datei vor. Diese laden Sie hier und prüfen und ergänzen nur noch.";
+  + "Dann müssen Sie nichts abtippen: Im Schritt „Unterlagen“ laden Sie sie hoch. Der Assistent übernimmt daraus Angaben, "
+  + "Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.";
+const UNSAVED_UPLOADS = "Hochgeladene Unterlagen sind noch nicht gespeichert.";
 const FOCUSABLE = "input, textarea, select, button";
 
 const TEXT = {
@@ -16,12 +18,16 @@ const TEXT = {
     finishTitle: "Prüfen und speichern",
     finishOk: "Alles Nötige ist ausgefüllt.",
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Sie können trotzdem speichern und später weitermachen.",
+    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Der Assistent ergänzt sie aus Ihren Unterlagen und fragt nach, was er dort nicht findet.",
+    documents: (n) => `Mit ${n === 1 ? "einer Unterlage" : `${n} Unterlagen`}; die Datei wird eine ZIP-Datei.`,
     next: "So geht es weiter: Schicken Sie die Datei an die Person, die Sie im Pilot begleitet, oder öffnen Sie sie später in der App. Mit „Datei laden“ auf der ersten Seite können Sie jederzeit weiterarbeiten.",
   },
   apprenticeship: {
     finishTitle: "Prüfen und speichern",
     finishOk: "Alles Nötige ist ausgefüllt.",
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Du kannst trotzdem speichern und später weitermachen.",
+    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Der Assistent ergänzt sie aus deinen Unterlagen und fragt nach, was er dort nicht findet.",
+    documents: (n) => `Mit ${n === 1 ? "einer Unterlage" : `${n} Unterlagen`}; die Datei wird eine ZIP-Datei.`,
     next: "So geht es weiter: Schick die Datei an die Person, die dich begleitet, oder öffne sie später in der App. Mit „Datei laden“ auf der ersten Seite kannst du jederzeit weiterarbeiten.",
   },
 };
@@ -31,6 +37,9 @@ let state = { track: null, data: {} };
 let step = 0;
 let touched = new Set();
 let autosaveTimer = null;
+let uploads = []; // { category, name, size, data: Uint8Array }; in memory only
+let uploadMessages = [];
+let uploadsSaved = true;
 
 // Storage: optional convenience; the page works without it.
 
@@ -85,6 +94,7 @@ function update(newState, { rerender = false } = {}) {
 
 function goTo(newStep) {
   step = Math.max(0, Math.min(newStep, steps().length - 1));
+  uploadMessages = [];
   scheduleStore();
   render();
   document.getElementById("main").focus();
@@ -93,7 +103,10 @@ function goTo(newStep) {
 
 function steps() {
   if (!state.track) return [{ kind: "start" }];
-  return [{ kind: "start" }, ...sectionsFor(form, state.track).map((s) => ({ kind: "section", section: s })), { kind: "finish" }];
+  return [
+    { kind: "start" }, { kind: "documents" },
+    ...sectionsFor(form, state.track).map((s) => ({ kind: "section", section: s })), { kind: "finish" },
+  ];
 }
 
 // Validation shown in the page
@@ -123,15 +136,28 @@ function render() {
   renderNav(all);
   const main = document.getElementById("main");
   const current = all[step];
-  const view = current.kind === "start" ? startView() : current.kind === "finish" ? finishView() : sectionView(current.section);
-  main.replaceChildren(view, navButtons(all));
+  main.replaceChildren(viewFor(current), navButtons(all));
   refreshErrors();
+}
+
+function viewFor(current) {
+  if (current.kind === "start") return startView();
+  if (current.kind === "documents") return documentsView();
+  if (current.kind === "finish") return finishView();
+  return sectionView(current.section);
+}
+
+function stepTitle(s) {
+  if (s.kind === "start") return "Start";
+  if (s.kind === "documents") return forTrack(form.documents.title, state.track);
+  if (s.kind === "finish") return "Speichern";
+  return forTrack(s.section.title, state.track);
 }
 
 function renderNav(all) {
   const errorSections = new Set(currentErrors().map((e) => e.path.split(".")[0]));
   const items = all.map((s, i) => {
-    const title = s.kind === "start" ? "Start" : s.kind === "finish" ? "Speichern" : forTrack(s.section.title, state.track);
+    const title = stepTitle(s);
     const flagged = s.kind === "section" && errorSections.has(s.section.id);
     return el("li", {}, el("button", {
       type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}`,
@@ -151,7 +177,7 @@ function startView() {
     type: "button", className: `track${state.track === track ? " selected" : ""}`,
     "aria-pressed": String(state.track === track), onclick: () => choose(track),
   }, [el("strong", {}, title), el("span", {}, text)]);
-  const fileInput = el("input", { type: "file", accept: ".json,application/json", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
+  const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
   return el("section", { className: "start" }, [
     el("h2", {}, "Worum geht es?"),
     el("p", {}, "Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsassistent braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. Am Schluss speichern Sie eine Datei."),
@@ -167,6 +193,39 @@ function startView() {
     el("p", { className: "secondary" }, EXISTING_DOCUMENTS_NOTE),
     el("p", { id: "load-message", role: "status" }),
   ]);
+}
+
+function documentsView() {
+  return uploadsView({
+    form, track: state.track, uploads, messages: uploadMessages,
+    onAdd: addUploads, onRemove: removeUpload, onSkip: () => goTo(steps().length - 1),
+  });
+}
+
+async function addUploads(category, fileList) {
+  const chosen = Array.from(fileList);
+  const { accepted, messages } = planUploads(form, state.track, uploads, category, chosen);
+  try {
+    const read = await Promise.all(accepted.map(async ({ index, ...entry }) => (
+      { ...entry, data: new Uint8Array(await chosen[index].arrayBuffer()) })));
+    setUploads([...uploads, ...read], messages);
+  } catch (error) {
+    setUploads(uploads, [...messages, "Eine Datei liess sich nicht lesen. Bitte nochmals wählen."]);
+  }
+  focusFirst(`[data-category="${category}"]`);
+}
+
+function removeUpload(index) {
+  const category = uploads[index].category;
+  setUploads(uploads.filter((_, i) => i !== index), []);
+  focusFirst(`[data-category="${category}"]`);
+}
+
+function setUploads(list, messages) {
+  uploads = list;
+  uploadMessages = messages;
+  uploadsSaved = list.length === 0;
+  render();
 }
 
 function sectionView(section) {
@@ -234,9 +293,10 @@ function fieldFor(section, field, path, value) {
 function finishView() {
   const text = TEXT[state.track];
   const errors = currentErrors();
+  const onlyMissing = uploads.length > 0 && errors.every((e) => e.code === "required");
   const summary = errors.length
     ? el("div", { className: "summary" }, [
-      el("p", {}, text.finishErrors),
+      el("p", {}, onlyMissing ? text.finishFromDocuments : text.finishErrors),
       el("ul", {}, errors.map((e) => el("li", {}, el("button", {
         type: "button", className: "link", onclick: () => goTo(stepOf(e.path)),
       }, describe(form, state.track, e))))),
@@ -251,7 +311,9 @@ function finishView() {
   return el("section", {}, [
     el("h2", {}, text.finishTitle),
     summary,
+    uploads.length ? el("p", { className: "hint" }, text.documents(uploads.length)) : null,
     el("button", { type: "button", className: "primary", onclick: saveFile }, "Datei speichern"),
+    el("p", { id: "save-message", role: "alert", className: "error" }),
     el("p", {}, text.next),
     el("p", { className: "secondary" }, el("button", { type: "button", className: "link", onclick: () => { confirmBox.hidden = false; } }, "Alles löschen")),
     confirmBox,
@@ -288,51 +350,89 @@ function markStepTouched(current) {
 
 // Files
 
-function saveFile() {
-  const bundle = collectBundle(form, state, new Date());
-  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+async function saveFile() {
+  const now = new Date();
+  const json = JSON.stringify(collectBundle(form, state, now), null, 2);
+  try {
+    if (!uploads.length) {
+      download(new Blob([json], { type: "application/json" }), fileName("json"));
+      return;
+    }
+    const zip = await createZip(uploadZipEntries(new TextEncoder().encode(json), uploads), { date: now, compress: true });
+    download(new Blob([zip], { type: "application/zip" }), fileName("zip"));
+    uploadsSaved = true;
+  } catch (error) {
+    document.getElementById("save-message").textContent = "Speichern hat nicht geklappt. Bitte in einem aktuellen Browser nochmals versuchen.";
+  }
+}
+
+function download(blob, name) {
   const url = URL.createObjectURL(blob);
-  const link = el("a", { href: url, download: fileName() });
+  const link = el("a", { href: url, download: name });
   document.body.append(link);
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function fileName() {
+function fileName(extension) {
   const name = ((state.data.person || {}).name || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return name ? `einstieg-${name}.json` : "einstieg.json";
+  return name ? `einstieg-${name}.${extension}` : `einstieg.${extension}`;
 }
 
-function loadFile(event) {
+async function loadFile(event) {
   const file = event.target.files[0];
   const message = document.getElementById("load-message");
   if (!file) return;
-  if (file.size > MAX_FILE_BYTES) {
+  const isZip = /\.zip$/i.test(file.name);
+  const limit = isZip ? form.documents.maxTotalBytes + MAX_FILE_BYTES + ZIP_OVERHEAD_BYTES : MAX_FILE_BYTES;
+  if (file.size > limit) {
     message.textContent = "Die Datei ist zu gross für eine Einstiegsdatei.";
     return;
   }
-  file.text().then((content) => {
-    state = stateFromBundle(form, JSON.parse(content));
+  try {
+    const loaded = isZip ? await readUploadZip(file) : { bundle: await file.text(), uploads: [] };
+    state = stateFromBundle(form, JSON.parse(loaded.bundle));
+    uploads = loaded.uploads;
+    uploadMessages = [];
+    uploadsSaved = true;
     touched = new Set();
     goTo(1);
     storeNow();
-  }).catch((error) => {
-    message.textContent = error instanceof BundleError ? error.message : "Die Datei ist keine gültige Einstiegsdatei.";
-  });
+  } catch (error) {
+    const known = error instanceof BundleError || error instanceof UploadError || error instanceof ZipError;
+    message.textContent = known ? error.message : "Die Datei ist keine gültige Einstiegsdatei.";
+  }
+}
+
+async function readUploadZip(file) {
+  const limits = { maxEntries: maxUploadEntries(form), maxTotalBytes: form.documents.maxTotalBytes + MAX_FILE_BYTES };
+  const entries = await readZip(new Uint8Array(await file.arrayBuffer()), limits);
+  const { bundle, uploads: found } = splitUploadZip(form, entries);
+  if (bundle.length > MAX_FILE_BYTES) throw new UploadError("Die Antworten in der Datei sind zu gross.");
+  return { bundle: new TextDecoder("utf-8", { fatal: true }).decode(bundle), uploads: found };
 }
 
 function clearAll() {
   window.clearTimeout(autosaveTimer);
   clearStored();
   state = { track: null, data: {} };
+  uploads = [];
+  uploadMessages = [];
+  uploadsSaved = true;
   touched = new Set();
   step = 0;
   render();
   document.getElementById("main").focus();
   setStatus("Alle Eingaben auf diesem Gerät wurden gelöscht.");
 }
+
+window.addEventListener("beforeunload", (event) => {
+  if (uploadsSaved) return;
+  event.preventDefault();
+  event.returnValue = UNSAVED_UPLOADS; // older browsers show a dialog only with a value
+});
 
 loadStored();
 render();
