@@ -144,9 +144,21 @@ el("speichern").addEventListener("click", async () => {
 });
 window.addEventListener("beforeunload", e => { if (!gleich(stand, gespeichert)) e.preventDefault(); });
 
+// Without a photo (it is optional) only a plain note is shown instead of the editor
+function ohneFoto() {
+  el("ohne-foto").hidden = false;
+  el("anleitung").hidden = true;
+  el("editor").hidden = true;
+  gespeichert = { ...stand };  // nothing to save, no warning when leaving
+}
+
 // Start: Werte aus der Datei und Seitenverhältnis des Originalfotos
 async function start() {
   try {
+    const pruefung = await fetch("/api/foto/vorhanden?t=" + encodeURIComponent(TOKEN));
+    const foto = await pruefung.json();
+    if (!pruefung.ok) throw new Error(foto.fehler);
+    if (!foto.vorhanden) return ohneFoto();
     const antwort = await fetch("/api/foto/optionen?t=" + encodeURIComponent(TOKEN));
     const daten = await antwort.json();
     if (!antwort.ok) throw new Error(daten.fehler);

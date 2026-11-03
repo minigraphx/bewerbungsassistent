@@ -12,9 +12,10 @@
 <main>
   <a href="/" class="zurueck" id="zurueck">← Zurück</a>
   <h1>Fotoausschnitt</h1>
-  <p class="hilfe">Ziehen verschiebt den Ausschnitt, das Mausrad zoomt. Mit der Tastatur: Pfeiltasten verschieben, + und − zoomen, M spiegelt.</p>
+  <p class="hilfe" id="ohne-foto" hidden>Kein Foto hinterlegt (optional).</p>
+  <p class="hilfe" id="anleitung">Ziehen verschiebt den Ausschnitt, das Mausrad zoomt. Mit der Tastatur: Pfeiltasten verschieben, + und − zoomen, M spiegelt.</p>
 
-  <div class="foto-raster">
+  <div class="foto-raster" id="editor">
     <div>
       <div id="kreis" tabindex="0" role="img" aria-label="Vorschau des Fotoausschnitts">
         <img id="gross" alt="">
@@ -38,9 +39,9 @@
         <button id="standard">Standardwerte</button>
       </div>
       <div id="status" class="status" role="status" aria-live="polite"></div>
-      <aside id="verlauf" class="verlauf" aria-label="Letzte Entwürfe des Lebenslaufs"></aside>
     </div>
   </div>
+  <aside id="verlauf" class="verlauf" aria-label="Letzte Entwürfe des Lebenslaufs"></aside>
 </main>
 <script src="/app.js"></script>
 <script src="/foto.js"></script>

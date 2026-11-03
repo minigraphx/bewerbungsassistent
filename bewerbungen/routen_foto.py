@@ -18,6 +18,10 @@ def _vorschau(k) -> fotoausschnitt.Vorschau:
     return k.cache[schluessel]
 
 
+def vorhanden(k, parameter, body):
+    return json_antwort({"vorhanden": fotoausschnitt.hat_foto(_cv(k))})
+
+
 def optionen(k, parameter, body):
     return json_antwort(fotoausschnitt.lies_foto(_cv(k))[1])
 
@@ -39,6 +43,7 @@ def speichern(k, parameter, body):
 
 
 GET = {
+    "/api/foto/vorhanden": vorhanden,
     "/api/foto/optionen": optionen,
     "/api/foto/bild": bild,
     "/api/foto/vorschau.png": vorschau,

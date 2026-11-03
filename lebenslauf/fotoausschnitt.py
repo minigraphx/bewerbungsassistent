@@ -23,6 +23,12 @@ VORSCHAU_PPI = 250  # rund 460 px, etwa 60 ms pro Bild
 _SPEICHERN = threading.Lock()  # Lesen, Ändern und Schreiben nicht überlappen lassen
 
 
+def hat_foto(daten: pathlib.Path) -> bool:
+    """True if the CV names a photo (basics.image); the photo is optional."""
+    cv = yaml.safe_load(daten.read_text(encoding="utf-8")) or {}
+    return bool((cv.get("basics") or {}).get("image"))
+
+
 def lies_foto(daten: pathlib.Path) -> tuple[pathlib.Path, dict]:
     """Pfad des Fotos und die vollständigen Optionen (fehlende mit Standardwerten ergänzt)."""
     cv = yaml.safe_load(daten.read_text(encoding="utf-8")) or {}
