@@ -29,7 +29,7 @@ SALUTATION_FORMAL = "Sie-Form: „Sehr geehrte Frau <Nachname>“, ohne Namen �
 SALUTATION_INFORMAL = "Du-Form, wenn das Inserat duzt: „Liebes <Firma>-Team“ / „Liebe <Vorname>“."
 DEFAULT_GREETING = "Freundliche Grüsse"
 GAPS_LATER = ("- Noch keine. Der Assistent ergänzt sie nach und nach, wenn Inserate etwas verlangen, das fehlt; "
-              "jede Lücke bestätigt die Person.")
+              "jede Lücke bestätigt die Person. Sie dienen dazu, die Passung von Stellen ehrlich zu bewerten.")
 OWN_STATEMENT = "eigene Angabe"
 
 
