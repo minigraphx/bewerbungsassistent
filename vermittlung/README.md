@@ -40,7 +40,7 @@ Einmal einrichten (als Benutzer mit `sudo`):
 sudo install -d -m 700 /etc/bewerbungsassistent-vermittlung
 sudo install -d -m 700 -o 10002 -g 10002 /var/lib/bewerbungsassistent-vermittlung
 sudo install -m 600 /dev/null /etc/bewerbungsassistent-vermittlung/vermittlung.env
-sudo nano /etc/bewerbungsassistent-vermittlung/vermittlung.env   # ANTHROPIC_API_KEY=… eintragen
+sudoedit /etc/bewerbungsassistent-vermittlung/vermittlung.env   # ANTHROPIC_API_KEY=… eintragen
 deploy/deploy.sh <ssh-host>                                      # vom eigenen Rechner: Code kopieren, Image bauen
 sudo cp /opt/bewerbungsassistent-vermittlung/deploy/vermittlung.service \
         /etc/systemd/system/bewerbungsassistent-vermittlung.service
