@@ -3,7 +3,6 @@
 log_format vermittlung_safe '[$time_local] "$request_method $uri" $status $body_bytes_sent $request_time';
 limit_req_zone $binary_remote_addr zone=vermittlung_redeem:1m rate=6r/m;
 limit_req_zone $binary_remote_addr zone=vermittlung_api:1m rate=60r/m;
-limit_req_status 429;
 
 server {
     listen 80;
@@ -25,6 +24,7 @@ server {
     add_header Strict-Transport-Security "max-age=31536000" always;
     add_header X-Content-Type-Options nosniff always;
 
+    limit_req_status 429;  # here, not in http: other vhosts may set it already
     client_max_body_size 2m;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $remote_addr;
