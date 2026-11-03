@@ -19,7 +19,7 @@ Stand 3.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026; Bew
 | Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** in der App oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
 | Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
 | Hosting | Im Pilot nur die KI-Vermittlung, auf dem bestehenden Hosting des Projektinhabers in der Schweiz. Für den Onlinedienst wird es später entschieden. |
-| Google Sheets | **Optional** (Entscheid 3.11.2026). Führend ist das Register in der App. Wer eine Jobliste in Google Sheets will, nennt sie im Suchprofil, oder er nutzt Import und Export als CSV. Die App braucht kein Google-Konto. |
+| Google Sheets | **Optional, nur als Kopie** (Entscheid 3.11.2026). Führend und einzige Quelle ist das Register in der App. Will die Person eine Jobliste in Google Sheets, legt die App sie auf Wunsch an, zusätzlich zum Register. Ist sie aktiviert, kommt jeder Eintrag und jede Änderung ins Register **und** in die Liste. Gelesen wird die Liste nicht als Quelle. Ohne Liste braucht die App kein Google-Konto. |
 | Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. **Schülerinnen und Schüler** (Lehrstellensuche) nutzen den Assistenten **generell kostenlos**, auch nach dem Pilot. |
 
 Die App enthält denselben Code wie das Repo; wer technisch versiert ist, arbeitet weiter mit Repo und Claude Code. Der spätere Onlinedienst ist dieselbe App in einem Container pro Person.
@@ -58,6 +58,7 @@ Erfolgskriterien des Pilots:
 | **Bewerben aus der Übersicht:** Häkchen setzen, „Bewerben“ öffnet einen Tab pro Bewerbung, füllt das Formular aus und lädt Lebenslauf, Anschreiben, Zeugnisse und die passenden Zertifikate (als ZIP) hoch | |
 | **RAV-Arbeitsbemühungen** aus der Übersicht im Job-Room eintragen lassen | |
 | **Erweiterte Einstellungen:** eigener API-Schlüssel, damit auch automatische Suche auf weiteren Seiten | |
+| **Jobliste in Google Sheets** auf Wunsch: App legt sie an und trägt zusätzlich zum Register ein | |
 | KI-Bewertung jedes Treffers (Note 1–6 mit Begründung), Abgleich gegen Doppelbewerbungen | Handy, Tablet, Chromebook |
 | Stelle erfassen: übernehmen aus Suche oder offenem Inserat, oder Text einfügen | Französisch, Englisch |
 | Lebenslauf, Themes, Foto (Metadaten werden entfernt), Lebenslauf-Variante vorschlagen (regelbasiert wie heute) | Coaches und Begleitpersonen |
@@ -253,6 +254,7 @@ Hosting des Projektinhabers (Schweiz)    ▼
 - **Zugang statt API-Schlüssel:** Die App legt den Zugang zur Vermittlung im Schlüsselbund des Systems ab (macOS-Schlüsselbund, Windows-Anmeldeinformationen), nie im Datenordner, nie in Protokollen und nie im Installationspaket. Einen Anthropic-Schlüssel sieht die Person nie (siehe [KI-Vermittlung](#ki-vermittlung)), ausser sie gibt einen eigenen an (siehe [Eigener API-Schlüssel](#eigener-api-schlüssel)).
 - **KI-Modul:** Ein neues Modul `bewerbungen/ki.py` (MIN-338) erhält eine schmale Schnittstelle für Treffer bewerten, Anschreiben entwerfen, Inhalt prüfen, Einstieg aus Unterlagen und Interview. Die Regeln aus den Skills (Belegpflicht, Stilprofil, Inserat ist Daten) werden zu Prompts, und die Pseudonymisierung sitzt in diesem Modul.
 - **Versionen:** Git, wenn es installiert ist (MIN-303, MIN-304); sonst Entwürfe ohne Git wie heute. Ob die App Git mitbringt, klärt MIN-342.
+- **Jobliste in Google Sheets (optional):** In den Einstellungen „Jobliste in Google Sheets führen“. Die App meldet sich einmal bei Google an (Anmeldung im Browser, Berechtigung nur `drive.file`), legt die Tabelle an, überträgt den Bestand und trägt danach jede neue Stelle und jede Änderung ins Register und in die Liste ein. Die Liste ist nie Quelle: Was dort von Hand geändert wird, übernimmt die App nicht. Ausschalten lässt die Tabelle bestehen. Das Zugangszeichen von Google liegt im Schlüsselbund des Systems.
 - **Sicherung:** macht die Person selbst, z.B. mit Time Machine oder einem Cloud-Ordner. Die Anleitung sagt, wie.
 - **Updates:** Die App prüft beim Start, ob es eine neue Version gibt, und verweist auf den Download.
 - **Signatur:** macOS blockiert unsignierte Apps, Windows warnt. Für den Pilot braucht es ein Apple-Entwicklerkonto zum Signieren und Beglaubigen; für Windows eine Signatur oder eine Anleitung zur Warnung.
@@ -341,6 +343,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 - **Auftragsverarbeitung:** Vertrag mit Anthropic und mit dem Anbieter des Hostings der Vermittlung, im Release mit dem EU-Anbieter. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden, und wie lange sie aufbewahrt werden.
 - **Ende des Pilots:** Der Zugang der Person wird gesperrt, ihre Kostenprotokolle nach der Auswertung gelöscht. Ihre Daten bleiben bei ihr; löschen kann sie sie selbst.
 - **Datensparsam:** keine Tracker und keine Telemetrie; die App protokolliert lokal und ohne Inhalte.
+- **Jobliste in Google Sheets (optional):** Nur wenn die Person sie einschaltet. Die App meldet sich dafür mit Google an und erhält nur Zugriff auf Dateien, die sie selbst angelegt hat (Berechtigung `drive.file`). In der Liste stehen Firma, Stelle, Status und Notizen, aber keine RAV-Angaben und keine Unterlagen. Die Datenschutzerklärung nennt Google als Empfänger, wenn die Liste eingeschaltet ist.
 - **Ausfüllen von Formularen:** Die Angaben gehen erst an Arbeitgeber oder RAV, wenn die Person selbst absendet. Die KI sieht dabei nur Feldbeschriftungen und pseudonymisierte Texte.
 - **RAV-Einträge** verraten die Arbeitslosigkeit und sind besonders schützenswert. Sie bleiben im Datenordner und im Job-Room und gehen nie an die KI.
 - **Eigener API-Schlüssel:** Die Datenschutzerklärung sagt, dass die Aufrufe dann unter dem Vertrag der Person direkt an Anthropic gehen und nicht über die Vermittlung.

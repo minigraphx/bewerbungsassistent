@@ -5,7 +5,7 @@ description: "Stellensuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, 
 
 # Jobsuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, LinkedIn und Karriereseiten
 
-Ziel: neue, passende Stellen finden, auf dem Portal vormerken und im **Register** erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Eine **Jobliste in Google Sheets ist optional**: Nur wenn das Suchprofil eine nennt, wird sie zusätzlich gelesen und gepflegt. Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
+Ziel: neue, passende Stellen finden, auf dem Portal vormerken und im **Register** erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Eine **Jobliste in Google Sheets ist optional** und nur eine Kopie: Ist sie im Suchprofil eingetragen (aktiviert), kommt jeder Eintrag ins Register **und** in die Liste. Als Quelle dient sie nie; Bestand, Duplikate, Status und Fristen kommen nur aus dem Register. Auf Wunsch der Person legt der Skill sie an (siehe 6b). Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
 
 ## 0. Portale und Lauf
 
@@ -22,7 +22,7 @@ Das Suchprofil legt im Abschnitt „Portale und Rhythmus“ pro Portal einen Mod
 - **Suchprofil lesen** (Pflicht): `suchprofil.md` im privaten Datenordner (Vorlage: `vorlagen/suchprofil.md` in diesem Repo). Es enthält: Name, Suchrichtungen mit Prioritäten, Region (Kantone, Orte, Pendelgrenze, Remote), Keywords, Titel-Positiv- und Ausschlusslisten, Sprachen, Abschluss und Erfahrung, Stärken, typische Haken, Startdatum, Zielfirmen mit Karriereseiten, Hinweise zu bestimmten Firmen und optional Ort und ID einer Jobliste. Ohne Suchprofil nicht suchen, sondern danach fragen.
 - Weitere Kontextdateien, die das Suchprofil nennt (z.B. Notizen zu Bewerbungen, Absagen, Präferenzen), ebenfalls lesen.
 - **Bestand lesen:** das Register `bewerbungen.yaml` im Datenordner (`Register(daten).alle()` aus dem Modul `bewerbungen`). Es ist führend für Duplikate, Status und Fristen.
-- **Nur wenn das Suchprofil eine Jobliste nennt:** zusätzlich das Google Sheet lesen, Tab `Stellen`, mit Sheets `get_values` (`Stellen!A1:M200`; ohne Sheets-Connector Drive `read_file_content`). Spalte A = Firmen-Schlüssel, Spalte I = Status. Letzte belegte Zeile merken. Ohne Jobliste im Suchprofil kein Sheet suchen, anlegen oder erwähnen.
+- Die Jobliste wird hier nicht gelesen. Ohne Jobliste im Suchprofil kein Sheet suchen; anlegen nur, wenn die Person es verlangt (6b).
 
 Im Folgenden stehen `<Kantone>`, `<Orte>`, `<Keyword>` usw. für die Werte aus dem Suchprofil.
 
@@ -102,7 +102,7 @@ const t = await (await fetch('/jobs-guest/jobs/api/seeMoreJobPostings/search?' +
 - LinkedIn lockert Keywords stark, spätere Keywords bringen meist nur Wiederholungen. Die Kernliste aus dem Suchprofil genügt. Für gezielte Nachsuche Firma + Titel als Keyword nutzen.
 - Volltext: `GET /jobs-guest/jobs/api/jobPosting/{id}` → Beschreibung im Block `show-more-less-html__markup`, Kriterien (Karrierestufe/Anstellungsart/Branche) in `description__job-criteria-text`.
 - Link für den Eintrag: `https://www.linkedin.com/jobs/view/<id>/`.
-- Vermittler-Inserate nennen auf LinkedIn oft den echten Arbeitgeber, der auf job-room/jobs.ch fehlt. Gegen Vermittler-Einträge im Register (und ggf. in der Jobliste) abgleichen und Schlüssel korrigieren.
+- Vermittler-Inserate nennen auf LinkedIn oft den echten Arbeitgeber, der auf job-room/jobs.ch fehlt. Gegen Vermittler-Einträge im Register abgleichen und Schlüssel korrigieren.
 - Seitenwechsel löscht `window.__*` (LinkedIn lädt neu). Zuerst suchen und Volltexte holen, IDs notieren, erst danach den Job-Tracker öffnen oder Stellen speichern.
 
 ## 2d. Karriereseiten von Zielfirmen
@@ -141,7 +141,7 @@ Reihenfolge je Stelle: Integritätsprüfung → Sprachprüfung → K.-o.-Kriteri
 
 - Firmen-Schlüssel bilden: kurzer Firmenname, klein, ohne Rechtsform (z.B. `beispiel` für "Beispiel AG").
 - Bei Vermittlern (z.B. myitjob, Yellowshark, Coopers, Experis, LHH, ITech Consult, NonStop Consulting, PROSTAFF, Hays, ONE Agency, Summit Recruitment, Prime21) den echten Arbeitgeber ableiten und als Schlüssel nehmen; unklar → `unbekannt-<vermittler>-<stichwort>` und im Text als Vermutung kennzeichnen. Unbekannte Firmennamen bei Bedarf auf kununu nachschlagen: Branche Personalwesen/-beschaffung deutet auf einen Vermittler (Ablauf im Skill `bewerbung`, Schritt 1).
-- Gegen die Firmen-Schlüssel im Register prüfen (und, falls vorhanden, gegen Spalte A der Jobliste). Treffer melden, besonders bei laufender Direktbewerbung: nie über einen Vermittler bei einer Firma bewerben, bei der schon eine Direktbewerbung läuft (und umgekehrt). Hinweise aus dem Suchprofil zu bestimmten Firmen beachten.
+- Gegen die Firmen-Schlüssel im Register prüfen. Treffer melden, besonders bei laufender Direktbewerbung: nie über einen Vermittler bei einer Firma bewerben, bei der schon eine Direktbewerbung läuft (und umgekehrt). Hinweise aus dem Suchprofil zu bestimmten Firmen beachten.
 - Gleiche Stelle auf mehreren Portalen oder mehrfach inseriert: nur ein Eintrag, weiteres Portal in "Portal(e)" ergänzen.
 - Gespeicherte und beworbene Stellen der Portale abgleichen, nicht erfasste aktive Stellen melden:
   - jobs.ch: `https://www.jobs.ch/de/konto/gespeicherte-jobs/` (`?page=2` usw.; clientseitig gerendert, daher Seite öffnen und `get_page_text` statt fetch).
@@ -157,11 +157,11 @@ job-room und jobs.ch: nur auf Wunsch. LinkedIn: alle Stellen, die ins Register k
   - Ablauf je Stelle: Screenshot der Detailseite, dann `browser_batch` mit [`left_click` auf den Knopf, 2 s warten, `zoom` auf den Knopf (muss „Gespeichert“ zeigen)]. Refs aus `find` verfallen oft, bevor geklickt wird; Koordinaten aus dem Screenshot sind verlässlicher.
   - Zum Schluss im Job-Tracker prüfen, dass die Zahl bei "Gespeichert" um die Anzahl neu gespeicherter Stellen gestiegen ist.
 
-## 6. Ins Register eintragen (und optional in die Jobliste)
+## 6. Ins Register eintragen (und in die Jobliste, wenn aktiviert)
 
 Das **Register** `bewerbungen.yaml` im Datenordner ist führend (Modul `bewerbungen`). Neue Stellen zuerst dort anlegen, mit Entwurf vorher und nachher (siehe 0): `Register(daten).neu(firma=…, stelle=…, firma_schluessel=…, ort=…, pensum=…, vermittler="direkt" oder Name, portal=…, link=…, status="Gemerkt", passung=…, notiz=…)`. `neu` setzt `eingetragen_am` auf heute. Damit ist der Eintrag erledigt.
 
-**Nur wenn das Suchprofil eine Jobliste nennt**, dieselben Stellen zusätzlich dort eintragen. Die Zeilen für die Jobliste mit `register.als_jobliste([...])` (Spalten A–L) und `register.zusatzspalten(b)` (Spalten N „Eingetragen am“ und O „Passung“) aus denselben Einträgen erzeugen, damit beide übereinstimmen; Spalte M ist die Duplikat-Formel und wird nicht überschrieben. Ohne Register (kein Modul `bewerbungen` im Einsatz) ist die Jobliste der einzige Bestand; dann direkt dorthin schreiben.
+**Ist die Jobliste aktiviert** (im Suchprofil eingetragen), dieselben Stellen zusätzlich dort eintragen. Die Liste wird dafür nur gelesen, um die erste freie Zeile und bestehende Zeilen zu finden, nicht als Bestand. Die Zeilen für die Jobliste mit `register.als_jobliste([...])` (Spalten A–L) und `register.zusatzspalten(b)` (Spalten N „Eingetragen am“ und O „Passung“) aus denselben Einträgen erzeugen, damit beide übereinstimmen; Spalte M ist die Duplikat-Formel und wird nicht überschrieben.
 
 
 Spalten: Firmen-Schlüssel | Arbeitgeber | Stelle | Ort | Pensum | Inserent/Vermittler | Portal(e) | Link | Status | Beworben am | Frist | Notiz | Duplikat-Check (Formel) | Eingetragen am | Passung.
@@ -173,15 +173,25 @@ Spalten: Firmen-Schlüssel | Arbeitgeber | Stelle | Ort | Pensum | Inserent/Verm
   `=IF(A<n>="";"";IF(COUNTIF($A$2:$A$200;A<n>)>1;"Firma mehrfach – prüfen";""))`
 - Mit `get_values` zurücklesen: Werte korrekt, Spalte M ohne `#ERROR!`; Treffer "Firma mehrfach – prüfen" in der Antwort erwähnen.
 - Google erlaubt nur wenige Schreibvorgänge pro Minute. Schreibvorgänge bündeln (alle neuen Zeilen in einem `update_values`); bei „Quota exceeded“ eine Minute warten und denselben Schreibvorgang wiederholen. Vorhandene Zeilen nur ändern, nachdem sie per `get_values` gelesen und über Firmen-Schlüssel **und** Stelle identifiziert sind, nie über die Zeilennummer allein.
-- Ohne Connector: die neuen Zeilen als Tabelle zum Einfügen ausgeben und sagen, dass der Sheets-Connector das direkte Eintragen erlaubt. Keine neue Datei anlegen.
+- Ohne Connector: die neuen Zeilen als Tabelle zum Einfügen ausgeben und sagen, dass der Sheets-Connector das direkte Eintragen erlaubt.
+- Fehlt eine Stelle aus dem Register in der Liste, sie nachtragen; steht in der Liste etwas, das das Register nicht kennt, nur melden und nichts ins Register übernehmen.
 
 ## 6a. Bestehende Liste pflegen (bei jedem Lauf)
 
-Die Einträge im Register pflegen; Änderungen, falls vorhanden, auch in der Jobliste nachführen (Zeile per Firmen-Schlüssel und Stelle finden).
+Die Einträge im Register pflegen; ist die Jobliste aktiviert, jede Änderung dort nachführen (Zeile per Firmen-Schlüssel und Stelle finden).
 
 - **Abgelaufene Inserate:** Für Einträge mit Status "Gemerkt" den Link prüfen: LinkedIn `GET /jobs-guest/jobs/api/jobPosting/{id}` (404 oder Hinweis, dass keine Bewerbungen mehr angenommen werden), jobs.ch `GET /api/v1/public/search/job/{job_id}` (404), job-room `GET /jobadservice/api/jobAdvertisements/{id}` (404 oder nicht mehr veröffentlicht), Karriereseiten (404 oder Stelle nicht mehr in der Liste). Treffer: Status auf "Abgelaufen" setzen, Eintrag nicht löschen.
 - **Fristen:** Einträge mit Status "Gemerkt" und einer Frist in den nächsten 7 Tagen in der Antwort als dringend nennen.
 - **Nachfassen:** Einträge mit Status "Beworben", deren "Beworben am" mehr als 14 Tage zurückliegt und ohne neue Notiz, in der Antwort melden. Auf Wunsch eine Nachfassmail entwerfen: nur Entwurf, nie senden, höchstens zweimal pro Bewerbung, nur Aussagen aus den eingereichten Unterlagen.
+
+## 6b. Jobliste anlegen (nur auf Wunsch)
+
+Nur wenn die Person ausdrücklich eine Jobliste in Google Sheets will:
+
+- Mit dem Google-Drive- oder Sheets-Connector eine neue Tabelle anlegen, z.B. „Jobliste Bewerbungen“, Tab `Stellen`, Kopfzeile mit den Spalten aus 6.
+- Den Bestand aus dem Register übertragen (`register.als_jobliste`, `register.zusatzspalten`) und die Duplikat-Formel in Spalte M setzen; zurücklesen wie in 6.
+- Die Jobliste im Suchprofil eintragen (Abschnitt „Kontext“, Name und ID), mit Entwurf vorher und nachher. Ab dann ist sie aktiviert.
+- Ausschalten: die Zeile aus dem Suchprofil entfernen. Die Tabelle bleibt bestehen; gelöscht wird sie nur von der Person.
 
 ## 7. Antwort
 
