@@ -19,6 +19,7 @@ Stand 3.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026; Bew
 | Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** in der App oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
 | Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
 | Hosting | Im Pilot nur die KI-Vermittlung, auf dem bestehenden Hosting des Projektinhabers in der Schweiz. Für den Onlinedienst wird es später entschieden. |
+| Google Sheets | **Optional** (Entscheid 3.11.2026). Führend ist das Register in der App. Wer eine Jobliste in Google Sheets will, nennt sie im Suchprofil, oder er nutzt Import und Export als CSV. Die App braucht kein Google-Konto. |
 | Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. **Schülerinnen und Schüler** (Lehrstellensuche) nutzen den Assistenten **generell kostenlos**, auch nach dem Pilot. |
 
 Die App enthält denselben Code wie das Repo; wer technisch versiert ist, arbeitet weiter mit Repo und Claude Code. Der spätere Onlinedienst ist dieselbe App in einem Container pro Person.
@@ -81,7 +82,7 @@ Die HTML-Vorlage prüft die Eingaben mit denselben Regeln wie das Register und d
 
 Die Suche ist das Kernstück. Stellenportale und Bewertungsseiten (job-room, LinkedIn, kununu, viele Karriereseiten) sperren aber Adressen von Rechenzentren und KI-Anbietern häufig. Ein Server oder die Web-Abfrage der KI kämen dort nicht zuverlässig durch. Der Skill `jobsuche` funktioniert heute nur, weil er im eingeloggten Browser der Person abfragt.
 
-**Grundsatz:** Die KI ruft selbst keine fremden Websites ab. Abfragen bei Portalen laufen auf dem Rechner der Person, mit ihrer IP und ihren Logins, und nur, solange sie am Rechner ist und die Suche gestartet hat. Die App erhält nur das Ergebnis, zum Beispiel eine Trefferliste oder einen Inseratstext. Bewertung, Abgleich und Jobliste laufen danach in der App.
+**Grundsatz:** Die KI ruft selbst keine fremden Websites ab. Abfragen bei Portalen laufen auf dem Rechner der Person, mit ihrer IP und ihren Logins, und nur, solange sie am Rechner ist und die Suche gestartet hat. Die App erhält nur das Ergebnis, zum Beispiel eine Trefferliste oder einen Inseratstext. Bewertung, Abgleich und Eintrag ins Register laufen danach in der App.
 
 Weil die App auf dem Rechner der Person läuft, hat sie deren IP. Einfache Portale ohne Login kann sie darum auch selbst abfragen. Portale mit Login oder viel JavaScript bleiben bei der Erweiterung.
 

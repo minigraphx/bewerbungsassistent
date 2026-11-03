@@ -1,11 +1,11 @@
 ---
 name: "jobsuche"
-description: "Stellensuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, LinkedIn und Karriereseiten von Zielfirmen nach einem persönlichen Suchprofil: passende Stellen finden, ehrlich bewerten, auf den Portalen vormerken, eine Google-Sheet-Jobliste pflegen und gegen Doppelbewerbungen abgleichen."
+description: "Stellensuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, LinkedIn und Karriereseiten von Zielfirmen nach einem persönlichen Suchprofil: passende Stellen finden, ehrlich bewerten, auf den Portalen vormerken, im Register erfassen (optional zusätzlich in einer Google-Sheet-Jobliste) und gegen Doppelbewerbungen abgleichen."
 ---
 
 # Jobsuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, LinkedIn und Karriereseiten
 
-Ziel: neue, passende Stellen finden, auf dem Portal vormerken und in der zentralen Jobliste erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
+Ziel: neue, passende Stellen finden, auf dem Portal vormerken und im **Register** erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Eine **Jobliste in Google Sheets ist optional**: Nur wenn das Suchprofil eine nennt, wird sie zusätzlich gelesen und gepflegt. Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
 
 ## 0. Portale und Lauf
 
@@ -19,9 +19,10 @@ Das Suchprofil legt im Abschnitt „Portale und Rhythmus“ pro Portal einen Mod
 
 ## 1. Kontext laden
 
-- **Suchprofil lesen** (Pflicht): `suchprofil.md` im privaten Datenordner (Vorlage: `vorlagen/suchprofil.md` in diesem Repo). Es enthält: Name, Suchrichtungen mit Prioritäten, Region (Kantone, Orte, Pendelgrenze, Remote), Keywords, Titel-Positiv- und Ausschlusslisten, Sprachen, Abschluss und Erfahrung, Stärken, typische Haken, Startdatum, Zielfirmen mit Karriereseiten, Hinweise zu bestimmten Firmen sowie Ort und ID der Jobliste. Ohne Suchprofil nicht suchen, sondern danach fragen.
+- **Suchprofil lesen** (Pflicht): `suchprofil.md` im privaten Datenordner (Vorlage: `vorlagen/suchprofil.md` in diesem Repo). Es enthält: Name, Suchrichtungen mit Prioritäten, Region (Kantone, Orte, Pendelgrenze, Remote), Keywords, Titel-Positiv- und Ausschlusslisten, Sprachen, Abschluss und Erfahrung, Stärken, typische Haken, Startdatum, Zielfirmen mit Karriereseiten, Hinweise zu bestimmten Firmen und optional Ort und ID einer Jobliste. Ohne Suchprofil nicht suchen, sondern danach fragen.
 - Weitere Kontextdateien, die das Suchprofil nennt (z.B. Notizen zu Bewerbungen, Absagen, Präferenzen), ebenfalls lesen.
-- Zentrale Jobliste lesen: Google Sheet laut Suchprofil, Tab `Stellen`, mit Sheets `get_values` (`Stellen!A1:M200`; ohne Sheets-Connector Drive `read_file_content`). Spalte A = Firmen-Schlüssel, Spalte I = Status. Letzte belegte Zeile merken.
+- **Bestand lesen:** das Register `bewerbungen.yaml` im Datenordner (`Register(daten).alle()` aus dem Modul `bewerbungen`). Es ist führend für Duplikate, Status und Fristen.
+- **Nur wenn das Suchprofil eine Jobliste nennt:** zusätzlich das Google Sheet lesen, Tab `Stellen`, mit Sheets `get_values` (`Stellen!A1:M200`; ohne Sheets-Connector Drive `read_file_content`). Spalte A = Firmen-Schlüssel, Spalte I = Status. Letzte belegte Zeile merken. Ohne Jobliste im Suchprofil kein Sheet suchen, anlegen oder erwähnen.
 
 Im Folgenden stehen `<Kantone>`, `<Orte>`, `<Keyword>` usw. für die Werte aus dem Suchprofil.
 
@@ -69,7 +70,7 @@ const doc = new DOMParser().parseFromString(html, 'text/html');
 - Ort über die Postleitzahl (`psz`, Werte aus dem Suchprofil), 20 Treffer pro Seite, `p=2` usw. bis eine Seite weniger als 20 liefert. Nach `data-job-id` deduplizieren.
 - Viele Inserate stammen von Vermittlern (z.B. ONE Agency, myitjob, Summit Recruitment, Rocken); Regeln aus 4 anwenden.
 - Volltext: Detailseite (`data-job-detail-url`) per `fetch` holen, `script`/`nav`/`header`/`footer` entfernen und den Text ab „Online bewerben“ nach dem Anforderungsabschnitt durchsuchen. Bei manchen Firmen steht der Text in einem iframe und ist so nicht lesbar; dann in der Antwort „Volltext nicht lesbar“ nennen.
-- Link für die Jobliste: `https://www.jobscout24.ch` + `data-job-detail-url`.
+- Link für den Eintrag: `https://www.jobscout24.ch` + `data-job-detail-url`.
 
 ## 2b3. Suche auf ictjobs.ch (Suchseiten im ictjobs-Tab, kein Login nötig)
 
@@ -81,7 +82,7 @@ const html = await (await fetch('/?fs=' + encodeURIComponent('<Keyword>') + '&fl
 ```
 
 - Regionen (`fltr_location`) aus dem Suchprofil, z.B. `grossraum-bern`, `solothurn`. Den Knopf „Speichern & suchen“ nicht verwenden (legt ein Job-Abo an), sondern die URL direkt abrufen.
-- Link für die Jobliste: das `href` von `a.job-card__link` ohne Suchparameter.
+- Link für den Eintrag: das `href` von `a.job-card__link` ohne Suchparameter.
 
 ## 2c. Suche auf LinkedIn (Guest-API im LinkedIn-Tab)
 
@@ -100,8 +101,8 @@ const t = await (await fetch('/jobs-guest/jobs/api/seeMoreJobPostings/search?' +
 - Rate-Limit: Nach ca. 30 schnellen Requests kommt 429. Mindestens 3,5 s Pause zwischen Requests. Längere Läufe als Hintergrund-Promise starten (`(async()=>{…; window.__done=true})()`), sonst bricht `javascript_tool` mit Timeout ab; danach Status abfragen.
 - LinkedIn lockert Keywords stark, spätere Keywords bringen meist nur Wiederholungen. Die Kernliste aus dem Suchprofil genügt. Für gezielte Nachsuche Firma + Titel als Keyword nutzen.
 - Volltext: `GET /jobs-guest/jobs/api/jobPosting/{id}` → Beschreibung im Block `show-more-less-html__markup`, Kriterien (Karrierestufe/Anstellungsart/Branche) in `description__job-criteria-text`.
-- Link für die Jobliste: `https://www.linkedin.com/jobs/view/<id>/`.
-- Vermittler-Inserate nennen auf LinkedIn oft den echten Arbeitgeber, der auf job-room/jobs.ch fehlt. Gegen Vermittler-Zeilen der Jobliste abgleichen und Schlüssel korrigieren.
+- Link für den Eintrag: `https://www.linkedin.com/jobs/view/<id>/`.
+- Vermittler-Inserate nennen auf LinkedIn oft den echten Arbeitgeber, der auf job-room/jobs.ch fehlt. Gegen Vermittler-Einträge im Register (und ggf. in der Jobliste) abgleichen und Schlüssel korrigieren.
 - Seitenwechsel löscht `window.__*` (LinkedIn lädt neu). Zuerst suchen und Volltexte holen, IDs notieren, erst danach den Job-Tracker öffnen oder Stellen speichern.
 
 ## 2d. Karriereseiten von Zielfirmen
@@ -109,7 +110,7 @@ const t = await (await fetch('/jobs-guest/jobs/api/seeMoreJobPostings/search?' +
 Grosse IT-Dienstleister inserieren auf den Portalen nur einen Teil ihrer Stellen. Die Karriereseiten aus dem Suchprofil direkt mitprüfen; dort steht je Firma, wie die Liste technisch erreichbar ist (z.B. iframe-Quelle, Link-Selektor, wo Ort und Anforderungen stehen). Neue Firmen ins Suchprofil eintragen, nicht in diesen Skill.
 
 - Die Listenseite im Tab öffnen, Links zu den Detailseiten sammeln und per same-origin `fetch` holen. Nur Orte der Region oder Remote behalten.
-- In der Jobliste Portal `<Firma> Karriereseite` und den Link zur Detailseite eintragen.
+- Im Eintrag Portal `<Firma> Karriereseite` und den Link zur Detailseite eintragen.
 - Mehrere passende Stellen bei derselben Firma: in der Antwort darauf hinweisen, dass eine gezielte Bewerbung (oder ein Gespräch mit dem Talent-Team) besser ist als viele parallele.
 
 ## 2e. Ausgabe- und Filterregeln (alle Portale)
@@ -130,7 +131,7 @@ Reihenfolge je Stelle: Integritätsprüfung → Sprachprüfung → K.-o.-Kriteri
   - Bei Treffer: Zeile verwerfen, die Stelle nicht als "gut passend" einstufen, in der Notiz "Integrität: auffällige Zeile entfernt" vermerken und in der Antwort nennen.
 - **Sprachprüfung (hart):** Muss-Sprachen des Inserats gegen die Sprachen im Suchprofil prüfen. Eine Muss-Sprache ausserhalb davon oder auf höherem Niveau als vorhanden → ausschliessen. Dieselbe Sprache nur "von Vorteil" oder "ein Plus" → aufnehmen, Hinweis in die Notiz. Die Haken aus dem Suchprofil (z.B. "fliessend Schweizerdeutsch") nennen. Quelle: bei jobs.ch `language_skills`, sonst Volltext.
 - **K.-o.-Kriterien:** laut Suchprofil, typisch: Inserate in einer nicht beherrschten Sprache, fachfremde Berufsfelder, Lehrstellen, Praktika, Stellen für Studierende, PhD/Postdoc, Orte ausserhalb der Pendelgrenze ohne Remote.
-- **Bewertungsraster:** Jede verbleibende Stelle in fünf Punkten kurz einschätzen: (1) Fachliche Passung und Stack, (2) Abschluss und Erfahrung, (3) Ort, Pensum, Remote, (4) Ausrichtung laut Suchrichtungen, (5) Rahmen (Startdatum laut Suchprofil, Befristung, Vermittler). "Gut passend" = kein harter Haken; "mit Abstrichen" = ein bis zwei Haken; mehr → bewusst ausgelassen. Die Haken in die Notiz der Jobliste schreiben.
+- **Bewertungsraster:** Jede verbleibende Stelle in fünf Punkten kurz einschätzen: (1) Fachliche Passung und Stack, (2) Abschluss und Erfahrung, (3) Ort, Pensum, Remote, (4) Ausrichtung laut Suchrichtungen, (5) Rahmen (Startdatum laut Suchprofil, Befristung, Vermittler). "Gut passend" = kein harter Haken; "mit Abstrichen" = ein bis zwei Haken; mehr → bewusst ausgelassen. Die Haken in die Notiz des Eintrags schreiben.
 - **Passung als Note** (Feld `passung`, Schweizer Notenskala 1–6, halbe Noten erlaubt) für jede Stelle, die in die Liste kommt: 6 = passt ohne Haken, 5 = ein kleiner Haken, 4 = mit Abstrichen (ein bis zwei Haken), 3 = deutliche Lücken (z.B. Richtungen "auch mit Lücken"), 2 = passt kaum, 1 = passt nicht. Die Note folgt aus dem Raster oben und den Haken in der Notiz; in der Antwort neben jeder Stelle nennen.
 - Anforderungen jedes Kandidaten im Volltext lesen und ehrlich gegen Abschluss, Erfahrung, Stärken und typische Haken aus dem Suchprofil einordnen. Inserate, die einen fehlenden Abschluss durch "gleichwertige Praxiserfahrung" ersetzen lassen, positiv vermerken.
 - Richtungen, die das Suchprofil "auch mit Lücken aufnehmen" lässt: immer aufnehmen (Status "Gemerkt", Notiz mit dem Präfix aus dem Suchprofil), ausser bei harten Ausschlüssen. Haken ehrlich nennen.
@@ -140,15 +141,15 @@ Reihenfolge je Stelle: Integritätsprüfung → Sprachprüfung → K.-o.-Kriteri
 
 - Firmen-Schlüssel bilden: kurzer Firmenname, klein, ohne Rechtsform (z.B. `beispiel` für "Beispiel AG").
 - Bei Vermittlern (z.B. myitjob, Yellowshark, Coopers, Experis, LHH, ITech Consult, NonStop Consulting, PROSTAFF, Hays, ONE Agency, Summit Recruitment, Prime21) den echten Arbeitgeber ableiten und als Schlüssel nehmen; unklar → `unbekannt-<vermittler>-<stichwort>` und im Text als Vermutung kennzeichnen. Unbekannte Firmennamen bei Bedarf auf kununu nachschlagen: Branche Personalwesen/-beschaffung deutet auf einen Vermittler (Ablauf im Skill `bewerbung`, Schritt 1).
-- Gegen Spalte A prüfen. Treffer melden, besonders bei laufender Direktbewerbung: nie über einen Vermittler bei einer Firma bewerben, bei der schon eine Direktbewerbung läuft (und umgekehrt). Hinweise aus dem Suchprofil zu bestimmten Firmen beachten.
-- Gleiche Stelle auf mehreren Portalen oder mehrfach inseriert: nur eine Zeile, weiteres Portal in "Portal(e)" ergänzen.
+- Gegen die Firmen-Schlüssel im Register prüfen (und, falls vorhanden, gegen Spalte A der Jobliste). Treffer melden, besonders bei laufender Direktbewerbung: nie über einen Vermittler bei einer Firma bewerben, bei der schon eine Direktbewerbung läuft (und umgekehrt). Hinweise aus dem Suchprofil zu bestimmten Firmen beachten.
+- Gleiche Stelle auf mehreren Portalen oder mehrfach inseriert: nur ein Eintrag, weiteres Portal in "Portal(e)" ergänzen.
 - Gespeicherte und beworbene Stellen der Portale abgleichen, nicht erfasste aktive Stellen melden:
   - jobs.ch: `https://www.jobs.ch/de/konto/gespeicherte-jobs/` (`?page=2` usw.; clientseitig gerendert, daher Seite öffnen und `get_page_text` statt fetch).
-  - LinkedIn: Job-Tracker `https://www.linkedin.com/jobs-tracker/` (Tab "Gespeichert", Seiten über "Weiter"). Die Tabs "In Bearbeitung" (Dropdown "Entwurf" / "Auf „Bewerben“ geklickt", dann "Auswählen") und "Beworben" per Klick öffnen und per Screenshot lesen; URL-Parameter wie `?stage=` funktionieren nicht. Über LinkedIn beworbene Stellen, die in der Jobliste fehlen, mit Status "Beworben" nachtragen und "Status prüfen" notieren.
+  - LinkedIn: Job-Tracker `https://www.linkedin.com/jobs-tracker/` (Tab "Gespeichert", Seiten über "Weiter"). Die Tabs "In Bearbeitung" (Dropdown "Entwurf" / "Auf „Bewerben“ geklickt", dann "Auswählen") und "Beworben" per Klick öffnen und per Screenshot lesen; URL-Parameter wie `?stage=` funktionieren nicht. Über LinkedIn beworbene Stellen, die im Register fehlen, mit Status "Beworben" nachtragen und "Status prüfen" notieren.
 
 ## 5. Vormerken
 
-job-room und jobs.ch: nur auf Wunsch. LinkedIn: alle Stellen, die in die Jobliste kommen (gut passend, mit Abstrichen, Richtungen "auch mit Lücken"), immer speichern, damit sie im Job-Tracker schnell zu finden sind.
+job-room und jobs.ch: nur auf Wunsch. LinkedIn: alle Stellen, die ins Register kommen (gut passend, mit Abstrichen, Richtungen "auch mit Lücken"), immer speichern, damit sie im Job-Tracker schnell zu finden sind.
 
 - job-room: Detailseite öffnen, mit `find` den Button "Zur Merkliste hinzufügen" suchen und klicken; danach prüfen, dass er "Aus Merkliste entfernen" zeigt. Nicht klicken, wenn schon "Aus Merkliste entfernen" angezeigt wird.
 - jobs.ch (Login nötig, erkennbar an "Gespeicherte Jobs" und dem eigenen Namen in der Navigation): Detailseite öffnen, mit `find` den Button "Job speichern" suchen (erscheint zweimal, einen klicken); danach prüfen, dass sich die Beschriftung geändert hat bzw. die Stelle unter "Gespeicherte Jobs" auftaucht. Ist sie dort schon, nicht nochmals klicken (Toggle).
@@ -156,9 +157,11 @@ job-room und jobs.ch: nur auf Wunsch. LinkedIn: alle Stellen, die in die Joblist
   - Ablauf je Stelle: Screenshot der Detailseite, dann `browser_batch` mit [`left_click` auf den Knopf, 2 s warten, `zoom` auf den Knopf (muss „Gespeichert“ zeigen)]. Refs aus `find` verfallen oft, bevor geklickt wird; Koordinaten aus dem Screenshot sind verlässlicher.
   - Zum Schluss im Job-Tracker prüfen, dass die Zahl bei "Gespeichert" um die Anzahl neu gespeicherter Stellen gestiegen ist.
 
-## 6. Ins Register und in die Jobliste eintragen
+## 6. Ins Register eintragen (und optional in die Jobliste)
 
-Das **Register** `bewerbungen.yaml` im Datenordner ist führend (Modul `bewerbungen`). Neue Stellen zuerst dort anlegen, mit Entwurf vorher und nachher (siehe 0): `Register(daten).neu(firma=…, stelle=…, firma_schluessel=…, ort=…, pensum=…, vermittler="direkt" oder Name, portal=…, link=…, status="Gemerkt", passung=…, notiz=…)`. `neu` setzt `eingetragen_am` auf heute. Die Zeilen für die Jobliste mit `register.als_jobliste([...])` (Spalten A–L) und `register.zusatzspalten(b)` (Spalten N „Eingetragen am“ und O „Passung“) aus denselben Einträgen erzeugen, damit beide übereinstimmen; Spalte M ist die Duplikat-Formel und wird nicht überschrieben. Ohne Register (kein Modul `bewerbungen` im Einsatz) direkt in die Jobliste schreiben.
+Das **Register** `bewerbungen.yaml` im Datenordner ist führend (Modul `bewerbungen`). Neue Stellen zuerst dort anlegen, mit Entwurf vorher und nachher (siehe 0): `Register(daten).neu(firma=…, stelle=…, firma_schluessel=…, ort=…, pensum=…, vermittler="direkt" oder Name, portal=…, link=…, status="Gemerkt", passung=…, notiz=…)`. `neu` setzt `eingetragen_am` auf heute. Damit ist der Eintrag erledigt.
+
+**Nur wenn das Suchprofil eine Jobliste nennt**, dieselben Stellen zusätzlich dort eintragen. Die Zeilen für die Jobliste mit `register.als_jobliste([...])` (Spalten A–L) und `register.zusatzspalten(b)` (Spalten N „Eingetragen am“ und O „Passung“) aus denselben Einträgen erzeugen, damit beide übereinstimmen; Spalte M ist die Duplikat-Formel und wird nicht überschrieben. Ohne Register (kein Modul `bewerbungen` im Einsatz) ist die Jobliste der einzige Bestand; dann direkt dorthin schreiben.
 
 
 Spalten: Firmen-Schlüssel | Arbeitgeber | Stelle | Ort | Pensum | Inserent/Vermittler | Portal(e) | Link | Status | Beworben am | Frist | Notiz | Duplikat-Check (Formel) | Eingetragen am | Passung.
@@ -174,9 +177,11 @@ Spalten: Firmen-Schlüssel | Arbeitgeber | Stelle | Ort | Pensum | Inserent/Verm
 
 ## 6a. Bestehende Liste pflegen (bei jedem Lauf)
 
-- **Abgelaufene Inserate:** Für Zeilen mit Status "Gemerkt" den Link prüfen: LinkedIn `GET /jobs-guest/jobs/api/jobPosting/{id}` (404 oder Hinweis, dass keine Bewerbungen mehr angenommen werden), jobs.ch `GET /api/v1/public/search/job/{job_id}` (404), job-room `GET /jobadservice/api/jobAdvertisements/{id}` (404 oder nicht mehr veröffentlicht), Karriereseiten (404 oder Stelle nicht mehr in der Liste). Treffer: Status auf "Abgelaufen" setzen, Zeile nicht löschen.
-- **Fristen:** Zeilen mit Status "Gemerkt" und einer Frist (Spalte K) in den nächsten 7 Tagen in der Antwort als dringend nennen.
-- **Nachfassen:** Zeilen mit Status "Beworben", deren "Beworben am" mehr als 14 Tage zurückliegt und ohne neue Notiz, in der Antwort melden. Auf Wunsch eine Nachfassmail entwerfen: nur Entwurf, nie senden, höchstens zweimal pro Bewerbung, nur Aussagen aus den eingereichten Unterlagen.
+Die Einträge im Register pflegen; Änderungen, falls vorhanden, auch in der Jobliste nachführen (Zeile per Firmen-Schlüssel und Stelle finden).
+
+- **Abgelaufene Inserate:** Für Einträge mit Status "Gemerkt" den Link prüfen: LinkedIn `GET /jobs-guest/jobs/api/jobPosting/{id}` (404 oder Hinweis, dass keine Bewerbungen mehr angenommen werden), jobs.ch `GET /api/v1/public/search/job/{job_id}` (404), job-room `GET /jobadservice/api/jobAdvertisements/{id}` (404 oder nicht mehr veröffentlicht), Karriereseiten (404 oder Stelle nicht mehr in der Liste). Treffer: Status auf "Abgelaufen" setzen, Eintrag nicht löschen.
+- **Fristen:** Einträge mit Status "Gemerkt" und einer Frist in den nächsten 7 Tagen in der Antwort als dringend nennen.
+- **Nachfassen:** Einträge mit Status "Beworben", deren "Beworben am" mehr als 14 Tage zurückliegt und ohne neue Notiz, in der Antwort melden. Auf Wunsch eine Nachfassmail entwerfen: nur Entwurf, nie senden, höchstens zweimal pro Bewerbung, nur Aussagen aus den eingereichten Unterlagen.
 
 ## 7. Antwort
 

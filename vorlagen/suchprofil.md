@@ -7,7 +7,7 @@ Kopie in den privaten Datenordner legen (`suchprofil.md`) und ausfüllen. Der Sk
 - Sprache der Antworten: Deutsch
 
 ## Kontext
-- Jobliste: Google Sheet "Jobliste Bewerbungen", ID `<sheet-id>`, Tab `Stellen`
+- Jobliste (optional): Google Sheet "Jobliste Bewerbungen", ID `<sheet-id>`, Tab `Stellen`. Ohne diese Zeile führt nur das Register die Stellen; ein Sheet braucht es nicht.
 - Weitere Kontextdateien: `notizen/bewerbungen.md`
 
 ## Portale und Rhythmus

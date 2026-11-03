@@ -75,4 +75,4 @@ Danach festhalten:
 - Jobliste im Google Sheet (falls im Suchprofil genannt): Status „Beworben“ und Datum in genau der Zeile mit passendem Firmen-Schlüssel **und** Stellentitel; Zeile vor dem Schreiben lesen, danach nochmals.
 - Job-Room: auf die Angaben in der Oberfläche hinweisen (Abschnitt „Job-Room“), damit die Person sie dort einträgt.
 
-Fertig, wenn Register und Jobliste den Versand zeigen und die Person auf die Job-Room-Angaben hingewiesen wurde.
+Fertig, wenn das Register (und, falls im Suchprofil genannt, die Jobliste) den Versand zeigt und die Person auf die Job-Room-Angaben hingewiesen wurde.
