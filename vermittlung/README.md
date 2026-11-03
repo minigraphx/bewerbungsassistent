@@ -30,6 +30,27 @@ Ohne Container (z.B. Hosting mit Python 3.12): `pip install -r requirements.txt`
 | `VERMITTLUNG_MAX_TOKENS` | `16000` | höchstens so viele Ausgabe-Tokens pro Anfrage |
 | `VERMITTLUNG_HINTER_PROXY` | `1` | Adresse der Person aus `X-Forwarded-For` (für das Limit beim Einlösen) |
 
+### Betrieb mit nginx und systemd
+
+Für einen Server, auf dem nginx schon andere Seiten ausliefert (`deploy/`): Der Container hört nur auf `127.0.0.1:8010`, läuft ohne Rechte und mit nur lesbarem Dateisystem; systemd startet ihn, nginx macht HTTPS.
+
+Einmal einrichten (als Benutzer mit `sudo`):
+
+```bash
+sudo install -d -m 700 /etc/bewerbungsassistent-vermittlung
+sudo install -d -m 700 -o 10001 -g 10001 /var/lib/bewerbungsassistent-vermittlung
+sudo install -m 600 /dev/null /etc/bewerbungsassistent-vermittlung/vermittlung.env
+sudo nano /etc/bewerbungsassistent-vermittlung/vermittlung.env   # ANTHROPIC_API_KEY=… eintragen
+deploy/deploy.sh <ssh-host>                                      # vom eigenen Rechner: Code kopieren, Image bauen
+sudo cp /opt/bewerbungsassistent-vermittlung/deploy/vermittlung.service \
+        /etc/systemd/system/bewerbungsassistent-vermittlung.service
+sudo systemctl enable --now bewerbungsassistent-vermittlung
+# nginx: deploy/nginx.conf.example mit Domain und Zertifikat anpassen, dann
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Neue Fassung: `deploy/deploy.sh <ssh-host>` baut ein Image mit dem Git-Stand als Tag und startet den Dienst neu. Verwaltung dann mit `sudo docker exec bewerbungsassistent-vermittlung-vermittlung-1 python admin.py …`.
+
 Im Anthropic-Konto für die Vermittlung einen eigenen Workspace mit Ausgabenlimit anlegen; das ist die zweite Sicherung neben den Budgets hier.
 
 ## Verwaltung
