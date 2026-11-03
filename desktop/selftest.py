@@ -1,8 +1,10 @@
 """Self-test of the package: build a CV and a cover letter from the bundled example data (MIN-342).
 
-Runs in the CI on the built package; exit code 0 means Typst, the fonts and the themes are in place.
+Runs in the CI on the built package; exit code 0 means Typst, the fonts and the themes are in place, and the
+modules loaded only on a real start (setup, dialogs, import of the einstieg file) are in the package.
 The result also goes to selbsttest.txt next to the working folder, since a windowed app has no console.
 """
+import importlib
 import pathlib
 import tempfile
 import traceback
@@ -11,11 +13,20 @@ import anschreiben
 import build
 
 RESULT_FILE = "selbsttest.txt"
+# Imported inside functions at runtime; importing them here by name checks that PyInstaller packed them.
+LATE_MODULES = ("app", "routes_app", "routes_setup", "dialogs", "setup", "import_bundle", "routes_ai", "ai.gateway")
+
+
+def check_modules() -> None:
+    for name in LATE_MODULES:
+        importlib.import_module(name)
+    importlib.import_module("validation").load_form()  # form.json next to the modules
 
 
 def run(result_dir: pathlib.Path | None = None) -> int:
     target = result_dir or pathlib.Path.cwd()
     try:
+        check_modules()
         with tempfile.TemporaryDirectory() as folder:
             work = pathlib.Path(folder)
             cv = build.main([str(build.ROOT / "data" / "beispiel.yaml"), "--build-dir", str(work / "b1"),
