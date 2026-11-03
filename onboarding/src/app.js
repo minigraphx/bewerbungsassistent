@@ -6,6 +6,9 @@ const STORAGE_KEY = "bewerbungsassistent.einstieg.v1";
 const MAX_FILE_BYTES = 1000000;
 const AUTOSAVE_DELAY_MS = 400;
 const REQUIRED_NOTE = "Felder mit * müssen ausgefüllt sein.";
+const EXISTING_DOCUMENTS_NOTE = "Sie haben schon einen Lebenslauf, Arbeitszeugnisse oder frühere Anschreiben? "
+  + "Dann müssen Sie nichts abtippen: Geben Sie sie Claude mit dem Skill „einstieg“. Claude übernimmt daraus Angaben, "
+  + "Belege und Ihre eigenen Formulierungen und bereitet eine Datei vor. Diese laden Sie hier und prüfen und ergänzen nur noch.";
 const FOCUSABLE = "input, textarea, select, button";
 
 const TEXT = {
@@ -157,10 +160,11 @@ function startView() {
       trackButton("apprenticeship", "Ich suche eine Lehrstelle", "Für Schülerinnen und Schüler: Schnupperlehren, Schule, Motivationsschreiben"),
     ]),
     el("p", { className: "secondary" }, [
-      "Schon angefangen? ",
+      "Schon angefangen oder von Claude vorbereitet? ",
       el("button", { type: "button", className: "link", onclick: () => fileInput.click() }, "Datei laden"),
       fileInput,
     ]),
+    el("p", { className: "secondary" }, EXISTING_DOCUMENTS_NOTE),
     el("p", { id: "load-message", role: "status" }),
   ]);
 }

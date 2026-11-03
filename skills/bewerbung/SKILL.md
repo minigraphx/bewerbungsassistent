@@ -14,7 +14,7 @@ Leitlinie: jede Aussage **belegt**. Belegt heisst: steht in `anschreiben/baustei
 
 ## 1. Kontext laden
 
-Lesen: `anschreiben/stil.md` (Stilprofil), `anschreiben/bausteine.md`, `cv.yaml`, `varianten.yaml`, den Eintrag im Register. Fehlen Stilprofil oder Bausteine, aus `vorlagen/` des Repos anlegen lassen und aus bisherigen Anschreiben der Person ableiten (nachfragen, wo sie liegen).
+Lesen: `anschreiben/stil.md` (Stilprofil), `anschreiben/bausteine.md`, `cv.yaml`, `varianten.yaml`, den Eintrag im Register. Fehlen Stilprofil oder Bausteine, mit dem Skill `einstieg` aus den bisherigen Anschreiben ableiten (`dokumente/anschreiben-bisher/`; sonst nachfragen, wo sie liegen).
 
 Fertig, wenn die Bewerbung im Register steht (sonst anlegen: Oberfläche „Neue Bewerbung“ oder `register.Register(daten).neu(firma=…, stelle=…)`) und der Inseratstext in `bewerbungen/<id>/stelle.md` liegt.
 
@@ -42,7 +42,7 @@ Fertig, wenn `variante` im Register gesetzt ist.
 
 `bewerbungen/<id>/anschreiben.yaml` schreiben (Format: `lebenslauf/README.md`, Abschnitt Anschreiben):
 
-- Aufbau, Ton, Anrede (Du/Sie nach Inserat), Gruss und typische Formulierungen aus dem **Stilprofil**. Bei Konflikten geht ein professioneller, zur Firma passender Ton vor dem persönlichen Stil.
+- Aufbau, Ton, Anrede (Du/Sie nach Inserat), Gruss und Formulierungen aus dem **Stilprofil**. Die „Eigenen Formulierungen“ aus bisherigen Anschreiben wörtlich oder nah daran verwenden, wo sie passen; reicht das Stilprofil nicht, die Originale unter `dokumente/anschreiben-bisher/` als Vorbild lesen. Bei Konflikten geht ein professioneller, zur Firma passender Ton vor dem persönlichen Stil.
 - Inhalt aus den **Bausteinen**, passend zu den zwei bis vier wichtigsten Anforderungen. Lücken offen benennen, mit Beleg für Lernfähigkeit.
 - Konkretes zur Firma nur aus Inserat oder Website der Firma.
 - `lebenslauf: ../../cv.yaml`, `ort`, `datum` (heute), `empfaenger` mit Ansprechperson, falls bekannt.
@@ -60,7 +60,7 @@ Ergebnis als kurze Liste ausgeben; die Person sieht die PDFs in der Oberfläche 
 
 ## 4a. Beilagen
 
-Jeder Bewerbung liegen **Arbeitszeugnisse und Zertifikate** bei, die Zertifikate passend zur Stelle ausgewählt (z.B. KI-Zertifikate für KI-Stellen, Kurs- und Didaktikzertifikate für Bildungsstellen), nie das ganze Archiv. Wo die Dateien liegen, steht in der `CLAUDE.md` des Datenordners; Kopien in `dokumente/` (nicht in Git).
+Jeder Bewerbung liegen **Arbeitszeugnisse und Zertifikate** bei, die Zertifikate passend zur Stelle ausgewählt (z.B. KI-Zertifikate für KI-Stellen, Kurs- und Didaktikzertifikate für Bildungsstellen), nie das ganze Archiv. Sie liegen unter `dokumente/zeugnisse/` und `dokumente/zertifikate/` (nicht in Git; der Skill `einstieg` legt sie dort ab). Liegen sie anderswo, steht das in der `CLAUDE.md` des Datenordners.
 - Vor dem Hochladen die PDF-Metadaten prüfen (Titel aus früheren Fassungen, z.B. einem alten Lebenslauf) und in der Kopie für die Bewerbung korrigieren; Dateinamen mit Name und Inhalt („<Name> - Lebenslauf.pdf“).
 - Grenzen des Formulars beachten (Anzahl Dateien, MB); sonst Zertifikate zu einer Datei zusammenfassen.
 - Formulare füllt Claude auf Wunsch aus, schickt aber nie ab; Einwilligungen (Datenschutz, Datenverwendung) und Logins bleiben bei der Person.

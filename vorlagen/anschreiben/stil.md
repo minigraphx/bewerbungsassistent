@@ -1,6 +1,6 @@
 # Stilprofil – Vorlage
 
-Kopie in den privaten Datenordner legen (`anschreiben/stil.md`) und an die eigenen bisherigen Anschreiben anpassen; der Skill `bewerbung` kann es aus ihnen ableiten. Gilt für jeden Entwurf. Bei Konflikten geht ein professioneller, zur Firma passender Ton vor dem persönlichen Stil. Alle Werte hier sind Beispiele.
+Kopie in den privaten Datenordner legen (`anschreiben/stil.md`) und an die eigenen bisherigen Anschreiben anpassen; der Skill `einstieg` leitet es aus ihnen ab (Originale unter `dokumente/anschreiben-bisher/`). Gilt für jeden Entwurf. Bei Konflikten geht ein professioneller, zur Firma passender Ton vor dem persönlichen Stil. Alle Werte hier sind Beispiele.
 
 ## Ton
 - Sachlich und freundlich, Aussagen mit konkreten Beispielen belegt (Firma, Projekt, Technik, Zahl).
@@ -25,3 +25,9 @@ Kopie in den privaten Datenordner legen (`anschreiben/stil.md`) und an die eigen
 ## Typische Formulierungen
 - „… gehört zu meinem Alltag“
 - „Über ein persönliches Gespräch freue ich mich.“
+
+## Eigene Formulierungen aus bisherigen Anschreiben
+Wörtlich übernommen, mit Quelle. Neue Anschreiben verwenden sie wörtlich oder nah daran, passend zur Stelle.
+- Einstieg: „Ihre Ausschreibung hat mich sofort angesprochen, weil …“ (Anschreiben 2025 an die Beispiel AG)
+- Lücke: „Mit … habe ich noch wenig Praxis; eingearbeitet habe ich mich zuletzt in …, in wenigen Wochen.“ (Anschreiben 2024)
+- Schluss: „Gerne erzähle ich Ihnen mehr darüber in einem Gespräch.“ (Anschreiben 2025)

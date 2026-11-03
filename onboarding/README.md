@@ -18,7 +18,7 @@ Eine einzelne HTML-Datei, in der Personen ohne technische Kenntnisse ihre Grundl
 - Schreibt `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md` und `anschreiben/bausteine.md`. Bestehende Dateien ersetzt er nur mit `--force`; der alte und der neue Stand landen als Entwurf (Oberfläche, Seite „Entwürfe“).
 - Danach den Lebenslauf bauen und mit der Person durchgehen (siehe `lebenslauf/README.md`).
 
-Claude kann die Datei auch aus dem Interview im Skill `einstieg` vorbefüllen; die Person lädt sie dann in der Vorlage, prüft und ergänzt.
+Wer schon Unterlagen hat (Lebenslauf, Arbeitszeugnisse, Zertifikate, frühere Anschreiben), tippt nichts ab: Claude liest sie im Skill `einstieg` und füllt die Datei vor, inklusive eigener Formulierungen aus den bisherigen Anschreiben. Die Person lädt sie dann in der Vorlage, prüft und ergänzt. Die Startseite der Vorlage weist darauf hin. Ein Einlesen von PDFs in der Vorlage selbst gibt es bewusst nicht; sie bleibt ohne Netz und ohne KI (Entscheid 3.11.2026, MIN-362).
 
 ## Aufbau
 

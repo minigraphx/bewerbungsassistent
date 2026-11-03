@@ -48,7 +48,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 |---|---|
 | [`lebenslauf/`](lebenslauf/README.md) | Lebenslauf und Anschreiben als PDF aus YAML und Typst-Themes, Zuschnitt pro Stelle über Tags, mehrsprachige Inhalte |
 | [`bewerbungen/`](bewerbungen/README.md) | Lokale Oberfläche: Bewerbungsregister, Unterlagen erstellen und prüfen, Versand erfassen, Entwürfe und Versionen, Job-Room-Angaben, Fotoausschnitt |
-| [`skills/einstieg/`](skills/einstieg/SKILL.md) | Claude-Skill: Einstieg per Interview – Lebenslauf, Suchprofil, Stilprofil und Bausteine erarbeiten, auch für die Lehrstellensuche |
+| [`skills/einstieg/`](skills/einstieg/SKILL.md) | Claude-Skill: Einstieg aus bestehenden Unterlagen (Lebenslauf, Zeugnisse, Zertifikate, frühere Anschreiben) und per Interview – Lebenslauf, Suchprofil, Stilprofil mit eigenen Formulierungen und Bausteine, auch für die Lehrstellensuche |
 | [`skills/jobsuche/`](skills/jobsuche/SKILL.md) | Claude-Skill: Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten, Eintrag ins Register, optional Jobliste in Google Sheets |
 | [`skills/bewerbung/`](skills/bewerbung/SKILL.md) | Claude-Skill: von der Stelle zur fertigen Bewerbung – Variante wählen, Anschreiben im eigenen Stil, Prüfung, Versand |
 | [`onboarding/`](onboarding/README.md) | Einstiegsvorlage: eine HTML-Datei zum Ausfüllen ohne Installation (Stellen- und Lehrstellensuche), mit Import in den Datenordner |
@@ -91,7 +91,7 @@ python app.py ../../bewerbungsassistent-daten
 
 ## Skills einrichten
 
-`skills/einstieg/`, `skills/jobsuche/` und `skills/bewerbung/` in Claude Code nach `~/.claude/skills/` kopieren oder verlinken; in claude.ai als Skill hochladen. Die persönlichen Dateien im privaten Datenordner (`cv.yaml`, `suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`) erarbeitet der Skill `einstieg` im Interview oder die Person selbst mit der Einstiegsvorlage (`onboarding/`); alternativ die Vorlagen aus `vorlagen/` kopieren und ausfüllen. Der Skill braucht Claude in Chrome (Suche im eingeloggten Browser-Tab) und nur für eine optionale Jobliste in Google Sheets den Google-Sheets-Connector.
+`skills/einstieg/`, `skills/jobsuche/` und `skills/bewerbung/` in Claude Code nach `~/.claude/skills/` kopieren oder verlinken; in claude.ai als Skill hochladen. Die persönlichen Dateien im privaten Datenordner (`cv.yaml`, `suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`) erarbeitet der Skill `einstieg` aus bestehenden Unterlagen und im Interview oder die Person selbst mit der Einstiegsvorlage (`onboarding/`); alternativ die Vorlagen aus `vorlagen/` kopieren und ausfüllen. Der Skill braucht Claude in Chrome (Suche im eingeloggten Browser-Tab) und nur für eine optionale Jobliste in Google Sheets den Google-Sheets-Connector.
 
 ## Lizenz
 

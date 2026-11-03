@@ -73,7 +73,7 @@ Der Einstieg ist die grösste Hürde für nicht versierte Personen. Mit dem Repo
 
 | Weg | Wie | Geeignet für |
 |---|---|---|
-| **Unterlagen hochladen** | Bisherigen Lebenslauf (PDF oder Text) und 2–3 frühere Anschreiben hochladen. Die KI liest daraus die Angaben und den Stil heraus. | Personen mit bestehenden Unterlagen |
+| **Unterlagen hochladen** | Bisherigen Lebenslauf (PDF, Word oder Text), Arbeitszeugnisse, Zertifikate und 2–3 frühere Anschreiben hochladen. Die KI liest daraus die Angaben, Belege für die Bausteine und den Stil samt eigenen Formulierungen heraus; danach fragt sie nur noch die Lücken. Die Originale legt die App unter `dokumente/` ab (Zeugnisse und Zertifikate für die Beilagen). Mit Claude Code geht das heute über den Skill `einstieg` (MIN-362). | Personen mit bestehenden Unterlagen |
 | **Interview mit Claude** | Claude fragt Schritt für Schritt nach: Ausbildung, Stationen, Stärken, Ziele, Region, Pensum, Ton (Du/Sie). Fehlende Belege fragt es gezielt nach. In der App ist das ein geführtes Gespräch über `ki.py`. Mit Claude Code geht es über den Skill `einstieg`; so führt der Projektinhaber die ersten Interviews, bevor die App fertig ist. | Personen ohne Unterlagen, Schulabgängerinnen und Schulabgänger |
 | **HTML-Vorlage** | Eine einzelne HTML-Datei mit Formular für Lebenslauf, Suchprofil und Stil. Sie läuft ohne Server im Browser und ist über einen Link erreichbar (z.B. GitHub Pages), ohne Installation. Die Daten bleiben lokal. Man füllt sie von Hand aus, oder Claude füllt sie aus dem Interview vor. Sie speichert eine Datei, die die App importiert. | Wer lieber selbst ausfüllt, offline arbeitet oder mit Begleitung (Eltern, Beratung) ausfüllt |
 

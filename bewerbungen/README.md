@@ -37,10 +37,11 @@ meine-daten/
   bewerbungen/<id>/          anschreiben.yaml, stelle.md, erstellte PDFs (nicht in Git)
   versendet/                 versendete Fassungen, jede nur einmal (in Git)
   anschreiben/               bausteine.md, stil.md (persönlich)
+  dokumente/                 Originale: zeugnisse/, zertifikate/, anschreiben-bisher/, lebenslauf-bisher/ (nicht in Git)
   .entwuerfe/                Entwürfe (nicht in Git)
 ```
 
-`app.py` ergänzt die `.gitignore` des Datenordners um `.entwuerfe/`, `.build/` und `bewerbungen/*/*.pdf`.
+`app.py` ergänzt die `.gitignore` des Datenordners um `.entwuerfe/`, `.build/`, `bewerbungen/*/*.pdf` und `dokumente/`.
 
 ### Entwürfe und Versionen
 

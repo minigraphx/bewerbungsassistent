@@ -223,6 +223,13 @@ def test_entwuerfe_ansehen_vergleichen_loeschen(server):
     assert zwei.id not in [e.id for e in k.ablage.liste()]
 
 
+def test_copies_of_certificates_stay_out_of_git(datenordner):
+    app.erstelle_server(datenordner).server_close()
+
+    zeilen = (datenordner / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert "dokumente/" in zeilen
+
+
 def test_latest_drafts_of_a_file_are_limited(server):
     k = server.kontext
     cv = k.daten / "cv.yaml"

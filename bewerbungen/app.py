@@ -33,7 +33,7 @@ SEITEN = {
     "/entwuerfe.js": "entwuerfe.js",
     "/foto.js": "foto.js",
 }
-GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf"]
+GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "dokumente/"]
 log = logging.getLogger("bewerbungsassistent")
 
 
