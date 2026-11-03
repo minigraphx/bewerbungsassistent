@@ -9,7 +9,13 @@ server {
     listen [::]:80;
     server_name ki.example.ch;
     access_log off;
-    return 308 https://ki.example.ch$uri;
+    location ^~ /.well-known/acme-challenge/ {  # certbot certonly --webroot -w /var/www/letsencrypt -d ki.example.ch
+        root /var/www/letsencrypt;
+        default_type text/plain;
+    }
+    location / {
+        return 308 https://ki.example.ch$uri;
+    }
 }
 server {
     listen 443 ssl http2;
