@@ -16,6 +16,7 @@ Verwaltung und lokale Oberfläche des Bewerbungsassistenten (MIN-261 Ablauf, MIN
 - `pruefung.py` – formale Prüfung der PDFs und des Anschreibens.
 - `versand.py` – Versand erfassen: ablegen (dedupliziert), Entwürfe genutzt, Register, Git falls vorhanden; `versendete` listet die Versionen aus Register und Ablage.
 - `dateien.py` – atomar schreiben, Pfade auf den Datenordner beschränken.
+- `ai/` – KI-Aufgaben (MIN-334, MIN-338): `personal.py` (welche Werte persönlich sind, auch im Inserat gefunden), `pseudonym.py` (Platzhalter, Varianten, unabhängige Endkontrolle), `gateway.py` (einziger Weg zur API: maskieren, prüfen, senden, zurücksetzen, protokollieren), `tasks.py` (bewerten, entwerfen, prüfen), `prompts.py` (aus den Skills), `connection.py` (Vermittlung oder `ANTHROPIC_API_KEY`), `usage.py` (Kosten ohne Inhalte), `errors.py` (deutsche Meldungen). `routes_ai.py` hängt sie an die App; Tests ersetzen `routes_ai.new_client`.
 - `entwurf.py` – Befehl, der Dateien als Entwurf sichert; für Änderungen ausserhalb der Oberfläche (Claude im Chat), vorher und nachher aufrufen.
 
 ## Regeln
@@ -23,3 +24,4 @@ Verwaltung und lokale Oberfläche des Bewerbungsassistenten (MIN-261 Ablauf, MIN
 - Seiten setzen Inhalte nur per `textContent` (Helfer `App.el`), nie `innerHTML`; keine Inline-Skripte (CSP).
 - Jeder Pfad aus Anfragen oder Index-Dateien läuft über `dateien.im_ordner` / `relativ`.
 - Schreiben ins Register immer über die ID.
+- KI-Aufrufe nur über `ai.gateway.Gateway` mit Pseudonymizer; Tests nie gegen die echte API.

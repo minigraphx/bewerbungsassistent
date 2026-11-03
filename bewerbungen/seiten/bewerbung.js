@@ -155,6 +155,7 @@
     }
   });
   $("pruefen").addEventListener("click", pruefen);
+  document.addEventListener("anschreiben-geaendert", laden);
   $("v-datum").value = new Date().toISOString().slice(0, 10);
   bestaetigen($("versenden"), "Wirklich erfassen? Nochmals klicken", async () => {
     try {

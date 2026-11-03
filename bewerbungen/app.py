@@ -13,6 +13,7 @@ import routen_ablage
 import routen_bewerbungen
 import routen_foto
 import routen_inhalte
+import routes_ai
 from ablage import Ablage
 from dateien import sichere_gitignore
 from kontext import Kontext
@@ -32,8 +33,9 @@ SEITEN = {
     "/bewerbung.js": "bewerbung.js",
     "/entwuerfe.js": "entwuerfe.js",
     "/foto.js": "foto.js",
+    "/ki.js": "ki.js",
 }
-GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "dokumente/"]
+GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "dokumente/", ".ki/"]
 log = logging.getLogger("bewerbungsassistent")
 
 
@@ -44,8 +46,10 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
     sichere_gitignore(daten, GITIGNORE)
     k = kontext or Kontext(daten=daten, build=(build or daten / ".build").resolve(), ablage=Ablage(daten),
                            versionierung=waehle(daten))
-    routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET}
-    routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST}
+    routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET,
+                  **routes_ai.GET}
+    routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST,
+                   **routes_ai.POST}
     return Server(k, routen_get, routen_post, SEITEN, port)
 
 

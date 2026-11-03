@@ -42,13 +42,24 @@
   <div class="knoepfe"><button class="haupt" id="speichern">Angaben speichern</button></div>
 
   <h2>Stellenausschreibung</h2>
-  <p class="hilfe">Text des Inserats einfügen. Er dient dem Vorschlag der Lebenslauf-Variante und der inhaltlichen Prüfung durch den Skill.</p>
+  <p class="hilfe">Text des Inserats einfügen. Er dient dem Vorschlag der Lebenslauf-Variante, der KI-Unterstützung und der inhaltlichen Prüfung durch den Skill.</p>
   <textarea id="stellentext" rows="8"></textarea>
   <div class="knoepfe">
     <button id="stelle-speichern">Stellentext speichern</button>
     <button id="vorschlagen">Variante vorschlagen</button>
   </div>
   <div id="vorschlaege"></div>
+
+  <h2>KI-Unterstützung</h2>
+  <p class="hilfe">Bewertet die Passung, entwirft das Anschreiben und prüft den Inhalt gegen das Inserat. Vor dem Senden ersetzt die App Name, Adresse, Kontakte und Ansprechpersonen durch Platzhalter; Bilder und Scans gehen nie an die KI. Ergebnisse immer selbst lesen: Die KI kann sich irren.</p>
+  <p class="leise" id="ki-status">KI-Verbindung wird geprüft …</p>
+  <div class="knoepfe">
+    <button id="ki-bewerten" disabled>Passung bewerten</button>
+    <button id="ki-entwerfen" disabled>Anschreiben entwerfen</button>
+    <button id="ki-pruefen" disabled>Inhalt prüfen</button>
+  </div>
+  <div id="ki-meldung" class="status" role="status" aria-live="polite"></div>
+  <div id="ki-ergebnis"></div>
 
   <h2>Unterlagen und Prüfung</h2>
   <p class="hilfe">Erstellt den Lebenslauf aus der gewählten Variante und das Anschreiben aus <code>bewerbungen/&lt;id&gt;/anschreiben.yaml</code>. Danach die PDFs ansehen; die automatische Prüfung steht darunter.</p>
@@ -74,5 +85,6 @@
 </main>
 <script src="/app.js"></script>
 <script src="/bewerbung.js"></script>
+<script src="/ki.js"></script>
 </body>
 </html>
