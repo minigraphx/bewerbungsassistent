@@ -3,7 +3,7 @@
 Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema) und Design (Typst-Themes) getrennt. Entstanden im Spike MIN-294.
 
 ## Aufbau
-- `build.py` – YAML → Zuschnitt (`tailor.py`) → `<build-dir>/cv.json` → Typst → PDF. Typst-Stammordner ist der gemeinsame Oberordner von Modul, Build-Ordner und Foto; das Foto wird direkt referenziert.
+- `build.py` – YAML → Zuschnitt (`tailor.py`) → `<build-dir>/cv.json` → Typst → PDF. Typst-Stammordner aus `typst_root.py`: gemeinsamer Oberordner von Themes, Build-Ordner und Foto; liegen sie auf verschiedenen Laufwerken (Windows), werden Themes und Foto in den Build-Ordner kopiert.
 - `tests/` – pytest (`python -m pytest`), u.a. dass mit `--build-dir` nichts in `build/` des Moduls entsteht.
 - `fotoausschnitt.py` – Fotoausschnitt lesen, prüfen, als Vorschau rendern (wiederverwendeter `typst.Compiler`) und per ruamel.yaml ohne Verlust von Kommentaren speichern. Die Oberfläche dazu liegt im Modul `bewerbungen` (Seite „Foto“), die Entwürfe legt dessen Ablage an.
 - `anschreiben.py` – Anschreiben (YAML) → PDF; Layout `themes/brief.typ`, Stil je Theme in `themes/<name>/anschreiben.typ`, Einstieg `anschreiben-main.typ` (MIN-260).

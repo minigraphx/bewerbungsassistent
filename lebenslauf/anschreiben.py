@@ -8,13 +8,13 @@ Beispiele:
 import argparse
 import datetime
 import json
-import os
 import pathlib
 
 import typst
 import yaml
 
-from build import ROOT, typst_pfad
+from build import ROOT
+from typst_root import typst_root
 
 SPRACHEN = ("de", "en")
 PFLICHTFELDER = ("empfaenger", "betreff", "anrede", "text", "gruss")
@@ -116,7 +116,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
 
     build = pathlib.Path(args.build_dir).resolve() if args.build_dir else ROOT / "build"
     build.mkdir(parents=True, exist_ok=True)
-    wurzel = pathlib.Path(os.path.commonpath([ROOT, build]))
+    wurzel = typst_root(build, [ROOT / "themes"])
     daten_json = build / "anschreiben.json"
     daten_json.write_text(json.dumps(daten, ensure_ascii=False, indent=1), encoding="utf-8")
 
@@ -126,11 +126,11 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     out = pathlib.Path(args.out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
     typst.compile(
-        str(vorlage),
+        str(wurzel.locate(vorlage)),
         output=str(out),
-        root=str(wurzel),
+        root=str(wurzel.path),
         font_paths=[str(ROOT / "fonts")],
-        sys_inputs={"data": typst_pfad(daten_json, wurzel)},
+        sys_inputs={"data": wurzel.typst_path(daten_json)},
     )
     print(out)
     return out

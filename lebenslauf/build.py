@@ -8,13 +8,13 @@ Beispiele:
 import argparse
 import datetime
 import json
-import os
 import pathlib
 
 import typst
 import yaml
 
 from tailor import tailor
+from typst_root import typst_root
 
 ROOT = pathlib.Path(__file__).resolve().parent
 ZOOM_MIN, ZOOM_MAX = 1, 4
@@ -71,11 +71,6 @@ def pruefe_beschriftungen(werte) -> dict:
     return {key: text.strip() for key, text in werte.items()}
 
 
-def typst_pfad(pfad: pathlib.Path, wurzel: pathlib.Path) -> str:
-    """Pfad so, wie Typst ihn relativ zum Projekt-Stammordner erwartet."""
-    return "/" + pfad.relative_to(wurzel).as_posix()
-
-
 def main(argv: list[str] | None = None) -> pathlib.Path:
     ap = argparse.ArgumentParser()
     ap.add_argument("data", help="Stamm-Lebenslauf (YAML, JSON-Resume-Schema)")
@@ -99,10 +94,10 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     build.mkdir(parents=True, exist_ok=True)
     bild = cv.get("basics", {}).get("image")
     foto = (data_path.parent / bild).resolve() if bild else None
-    # Typst liest nur innerhalb seines Stammordners: gemeinsamer Oberordner von Modul, Build und Foto.
-    wurzel = pathlib.Path(os.path.commonpath([ROOT, build] + ([foto] if foto else [])))
+    # Typst liest nur innerhalb seines Stammordners: Themes, Build und Foto (auf anderen Laufwerken kopiert).
+    wurzel = typst_root(build, [ROOT / "themes"] + ([foto] if foto else []))
     if foto:
-        cv["basics"]["image"] = typst_pfad(foto, wurzel)
+        cv["basics"]["image"] = wurzel.typst_path(foto)
     daten_json = build / "cv.json"
     daten_json.write_text(json.dumps(cv, ensure_ascii=False, indent=1), encoding="utf-8")
 
@@ -110,11 +105,11 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     out.parent.mkdir(parents=True, exist_ok=True)
     stand = (job or {}).get("stand") or datetime.date.today().strftime("%d.%m.%Y")
     typst.compile(
-        str(ROOT / "themes" / args.theme / "main.typ"),
+        str(wurzel.locate(ROOT / "themes" / args.theme / "main.typ")),
         output=str(out),
-        root=str(wurzel),
+        root=str(wurzel.path),
         font_paths=[str(ROOT / "fonts")],
-        sys_inputs={"data": typst_pfad(daten_json, wurzel), "lang": args.lang, "stand": stand},
+        sys_inputs={"data": wurzel.typst_path(daten_json), "lang": args.lang, "stand": stand},
     )
     print(out)
     return out

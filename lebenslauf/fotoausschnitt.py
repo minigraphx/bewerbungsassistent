@@ -14,7 +14,8 @@ import yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
-from build import ROOT, pruefe_foto_optionen, typst_pfad
+from build import ROOT, pruefe_foto_optionen
+from typst_root import typst_root
 
 STANDARD = {"mirror": False, "zoom": 1, "x": 0.5, "y": 0.5}
 NACHKOMMASTELLEN = 3
@@ -68,12 +69,12 @@ class Vorschau:
 
     def __init__(self, foto: pathlib.Path, build: pathlib.Path) -> None:
         build.mkdir(parents=True, exist_ok=True)
-        self._wurzel = pathlib.Path(os.path.commonpath([ROOT, build, foto]))
-        self._foto = typst_pfad(foto, self._wurzel)
-        self._common = typst_pfad(ROOT / "themes" / "common.typ", self._wurzel)
+        wurzel = typst_root(build, [ROOT / "themes", foto])
+        self._foto = wurzel.typst_path(foto)
+        self._common = wurzel.typst_path(ROOT / "themes" / "common.typ")
         self._datei = build / "foto-vorschau.typ"
         self._schreibe(STANDARD)
-        self._compiler = typst.Compiler(str(self._datei), root=str(self._wurzel))
+        self._compiler = typst.Compiler(str(self._datei), root=str(wurzel.path))
         self._sperre = threading.Lock()
 
     def _schreibe(self, optionen: dict) -> None:

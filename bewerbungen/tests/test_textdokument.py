@@ -2,6 +2,7 @@
 import pypdf
 
 import textdokument
+import typst_root
 
 
 def _text(pdf) -> str:
@@ -80,3 +81,15 @@ def test_leerer_text_gibt_pdf(tmp_path):
     pdf = textdokument.baue_pdf("", "Leer", tmp_path / "build", tmp_path / "leer.pdf")
 
     assert pdf.read_bytes().startswith(b"%PDF")
+
+
+def test_pdf_across_drives(monkeypatch, tmp_path):
+    """On Windows the template and the build folder can lie on different drives (MIN-342)."""
+    def fail(paths):
+        raise ValueError("Paths don't have the same drive")
+
+    monkeypatch.setattr(typst_root.os.path, "commonpath", fail)
+
+    ziel = textdokument.baue_pdf("# Titel\n\nText", "Titel", tmp_path / "b", tmp_path / "d.pdf")
+
+    assert "Text" in _text(ziel)

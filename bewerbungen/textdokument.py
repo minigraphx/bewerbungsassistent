@@ -5,7 +5,6 @@ Der Markdown-Text wird mit markdown-it (CommonMark plus Tabellen) in eine Strukt
 Bilder werden nicht geladen, Links nur für Web- und Mail-Adressen.
 """
 import json
-import os
 import pathlib
 
 import typst
@@ -14,6 +13,7 @@ from markdown_it.tree import SyntaxTreeNode
 
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import build as lebenslauf_modul
+from typst_root import typst_root
 
 VORLAGE = pathlib.Path(__file__).resolve().parent / "typst" / "dokument.typ"
 LINK_SCHEMAS = ("http://", "https://", "mailto:")
@@ -68,10 +68,10 @@ def baue_pdf(text: str, titel: str, build: pathlib.Path, ziel: pathlib.Path) -> 
     build.mkdir(parents=True, exist_ok=True)
     daten = build / "dokument.json"
     daten.write_text(json.dumps({"titel": titel, "bloecke": als_struktur(text)}, ensure_ascii=False), encoding="utf-8")
-    wurzel = pathlib.Path(os.path.commonpath([VORLAGE.parent, build]))
+    wurzel = typst_root(build, [VORLAGE.parent])
     ziel = ziel.resolve()
     ziel.parent.mkdir(parents=True, exist_ok=True)
-    typst.compile(str(VORLAGE), output=str(ziel), root=str(wurzel),
+    typst.compile(str(wurzel.locate(VORLAGE)), output=str(ziel), root=str(wurzel.path),
                   font_paths=[str(lebenslauf_modul.ROOT / "fonts")],
-                  sys_inputs={"data": lebenslauf_modul.typst_pfad(daten, wurzel)})
+                  sys_inputs={"data": wurzel.typst_path(daten)})
     return ziel
