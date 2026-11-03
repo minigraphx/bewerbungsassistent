@@ -13,8 +13,8 @@ Stand 3.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026; Bew
 | Modell | Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 im Pilot verglichen. |
 | Personendaten an die KI | Sie werden **von Anfang an**, schon vor dem ersten KI-Aufruf im Pilot, **durch Platzhalter ersetzt** (Pseudonymisierung). So gehen auch in der Testphase nicht alle Daten in die USA. |
 | Automatische Suche | Nur auf den **erlaubten Portalen** (job-room, jobs.ch, jobscout24, ictjobs). Auf allen anderen Seiten, z.B. LinkedIn oder Karriereseiten von Firmen, gibt es in der Erweiterung die Knöpfe **„Stelle prüfen“** (Passung bewerten) und **„Stelle speichern“** (in die App übernehmen). |
-| Bewerben im Browser | Die Erweiterung **füllt Bewerbungsformulare vor und lädt die Unterlagen hoch**, auf jeder Seite, auf Knopfdruck. **Absenden** tut immer die Person. |
-| RAV | Die Erweiterung füllt die **Arbeitsbemühungen im Job-Room** aus dem Register vor; die Person prüft und schickt ab. |
+| Bewerben im Browser | In der **Übersicht der App** setzt die Person Häkchen und klickt auf **„Bewerben“**. Die Erweiterung öffnet **einen Tab pro Bewerbung**, füllt das Formular aus und lädt die Unterlagen hoch, auf jeder Seite. Die Person prüft, bestätigt Datenschutz und Einwilligungen, füllt unklare Felder selbst aus und **schickt selbst ab**. |
+| RAV | Gleicher Ablauf mit **„Im RAV eintragen“**: Die Erweiterung trägt die **Arbeitsbemühungen im Job-Room** aus dem Register ein; die Person prüft und schickt ab. |
 | Eigener API-Schlüssel | In den **erweiterten Einstellungen** kann die Person einen eigenen Schlüssel angeben. Dann fällt die Beschränkung auf die erlaubten Portale weg, auch für LinkedIn; beim Einschalten erscheint eine Warnung. Die Person trägt Kosten und Risiko selbst. |
 | Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** in der App oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
 | Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
@@ -54,8 +54,8 @@ Erfolgskriterien des Pilots:
 | **Einstieg** auf drei Wegen (siehe unten): Lebenslauf, Suchprofil, Stilprofil, Bausteine | Erinnerungen per E-Mail, Job-Abos per E-Mail |
 | **Stellensuche** über die Browser-Erweiterung auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil; die Treffer gehen an die App | Versand durch die App (die Person schickt selbst ab) |
 | Knöpfe **„Stelle prüfen“** und **„Stelle speichern“** auf jeder Seite, z.B. LinkedIn und Karriereseiten | |
-| **Bewerbungsformulare vorausfüllen** und Lebenslauf, Anschreiben, Zeugnisse und die passenden Zertifikate (als ZIP) hochladen, auf jeder Seite | |
-| **RAV-Arbeitsbemühungen** im Job-Room vorausfüllen | |
+| **Bewerben aus der Übersicht:** Häkchen setzen, „Bewerben“ öffnet einen Tab pro Bewerbung, füllt das Formular aus und lädt Lebenslauf, Anschreiben, Zeugnisse und die passenden Zertifikate (als ZIP) hoch | |
+| **RAV-Arbeitsbemühungen** aus der Übersicht im Job-Room eintragen lassen | |
 | **Erweiterte Einstellungen:** eigener API-Schlüssel, damit auch automatische Suche auf weiteren Seiten | |
 | KI-Bewertung jedes Treffers (Note 1–6 mit Begründung), Abgleich gegen Doppelbewerbungen | Handy, Tablet, Chromebook |
 | Stelle erfassen: übernehmen aus Suche oder offenem Inserat, oder Text einfügen | Französisch, Englisch |
@@ -97,10 +97,10 @@ Weil die App auf dem Rechner der Person läuft, hat sie deren IP. Einfache Porta
 **Regeln für die Erweiterung:**
 
 - **Berechtigungen** (Chrome und Edge):
-  - Fest nur für die erlaubten Portale, für Native Messaging und für die Seite der App auf `127.0.0.1`.
-  - Auf allen anderen Seiten nur auf Knopfdruck über `activeTab`: Die Erweiterung erhält den Zugriff auf den offenen Tab erst, wenn die Person auf einen ihrer Knöpfe klickt.
-  - Liegt ein Formular in einem eingebetteten Rahmen einer anderen Adresse (oft bei Bewerbungssystemen), fragt die Erweiterung einmal pro Seite um Erlaubnis („Auf dieser Seite erlauben“).
-  - Mit eigenem API-Schlüssel fragt sie einmal um den Zugriff auf alle Seiten; ohne Schlüssel gibt sie ihn wieder ab.
+  - Fest für die erlaubten Portale, für Native Messaging und für die Seite der App auf `127.0.0.1`.
+  - **Zugriff auf alle Seiten** als optionale Berechtigung, um die die Erweiterung bei der Einrichtung einmal fragt: Bewerbungsformulare liegen auf beliebigen Seiten, oft in eingebetteten Rahmen der Bewerbungssysteme.
+  - Ohne diese Erlaubnis gehen die Knöpfe „Stelle prüfen“ und „Stelle speichern“ trotzdem (`activeTab`); „Bewerben“ fragt dann zuerst danach.
+  - Die Erweiterung liest und füllt trotz der Berechtigung nur, wenn die Person es auslöst: Suche starten, Knopf in der Erweiterung, „Bewerben“ oder „Im RAV eintragen“ in der App.
 - **App und Erweiterung erkennen sich selbst**, ohne Kopplungscode (wie bei Password-Managern):
   - **Erweiterung → App über Native Messaging:** Die App meldet sich bei der Installation als Native-Messaging-Host bei Chrome und Edge an (Datei im Benutzerordner, unter Windows ein Eintrag in der Registry). Die Erweiterung schickt Treffer direkt an die App, ohne Port und ohne Netz. Chrome lässt nur die Erweiterung mit unserer ID mit der App sprechen. Fehlt die App, meldet Chrome einen Fehler, und die Erweiterung zeigt „App herunterladen“.
   - **App → Erweiterung über die eigene Oberfläche:** Die Oberfläche der App läuft im selben Browser. Die Erweiterung meldet sich auf dieser Seite mit einem Zeichen. Fehlt es, zeigt die App den Schritt „Erweiterung hinzufügen“ mit einem Knopf zum Store; sobald die Erweiterung da ist, verschwindet er.
@@ -117,46 +117,53 @@ Weil die App auf dem Rechner der Person läuft, hat sie deren IP. Einfache Porta
 
 ## Bewerben im Browser: Formulare, Unterlagen, RAV
 
-Viele Firmen nehmen nur Bewerbungen über ihr Formular an, oft in einem Bewerbungssystem wie Workday, SuccessFactors, Refline, Personio oder rexx. Dazu kommen die Arbeitsbemühungen für das RAV. Beides kostet heute viel Abtippen. Die Erweiterung füllt diese Formulare darum vor, auf jeder Seite.
+Viele Firmen nehmen nur Bewerbungen über ihr Formular an, oft in einem Bewerbungssystem wie Workday, SuccessFactors, Refline, Personio oder rexx. Dazu kommen die Arbeitsbemühungen für das RAV. Beides kostet heute viel Abtippen. Die App füllt diese Formulare darum über die Erweiterung aus, auf jeder Seite, für mehrere Bewerbungen auf einmal (Entscheid 3.11.2026).
 
-**Grundsatz: Ausfüllen ja, absenden nie.** Diese Regeln gelten immer, auch mit eigenem API-Schlüssel:
+**Grundsatz: Das Tool füllt aus, die Person entscheidet und schickt ab.** Diese Regeln gelten immer, auch mit eigenem API-Schlüssel:
 
-- Die Erweiterung füllt nur auf Knopfdruck aus („Bewerbung ausfüllen“, „RAV-Eintrag ausfüllen“), nie von selbst.
-- Den Knopf zum Absenden klickt immer die Person. Sie sieht vorher alle ausgefüllten Felder markiert.
-- Die Erweiterung meldet sich nirgends an, legt keine Konten an und gibt keine Passwörter ein.
-- CAPTCHAs löst die Person selbst.
-- Hochgeladen werden nur die Dateien, die die Person für genau diese Bewerbung gewählt hat.
+- Ausgefüllt wird nur, was die Person in der App mit „Bewerben“ oder „Im RAV eintragen“ ausgelöst hat.
+- Den Knopf zum Absenden klickt immer die Person.
+- Einwilligungen setzt die Person selbst: Datenschutz, Nutzungsbedingungen, Weitergabe an Dritte, Talent-Pool.
+- Unklare Felder füllt die Person selbst aus; das Tool lässt sie leer und markiert sie.
+- Die Erweiterung meldet sich nirgends an, legt keine Konten an und gibt keine Passwörter ein. CAPTCHAs löst die Person selbst.
+- Hochgeladen werden nur die Dateien, die zu genau dieser Bewerbung gehören.
 
-**Bewerbungsformular vorausfüllen:**
+**Ablauf „Bewerben“:**
 
-1. Die Person öffnet das Formular der Stelle und klickt in der Erweiterung auf „Bewerbung ausfüllen“. Gehört die Seite noch zu keiner Bewerbung im Register, wählt sie die Bewerbung aus oder speichert die Stelle zuerst.
-2. Die Erweiterung liest die Felder samt Beschriftungen und Auswahlwerten und schickt sie an die App.
-3. Die App ordnet die Felder den Angaben zu: Name, Adresse, Kontakt, Lohnvorstellung, Eintritt, Kündigungsfrist, Sprachen, Ausbildung, Stationen.
+1. **Auswahl in der App:** In der Übersicht der Bewerbungen setzt die Person Häkchen bei den Bewerbungen, die sie abschicken will, und klickt auf „Bewerben“.
+   - Wählbar sind nur Bewerbungen mit fertigen und freigegebenen Unterlagen (Prüfung ohne Fehler) und einem Link zum Bewerbungsformular.
+   - Vorher prüft die App auf Doppelbewerbungen (dieselbe Firma direkt oder über Vermittler) und zeigt Treffer an.
+   - Pro Durchgang höchstens einige Bewerbungen, z.B. 5 (Vorschlag, im Pilot anpassen): Jede braucht eine sorgfältige Prüfung, und ein Massenversand soll nicht entstehen.
+2. **Ein Tab pro Bewerbung:** Die Erweiterung öffnet für jede gewählte Bewerbung einen Tab mit dem Bewerbungsformular. Führt der Link nur zum Inserat, folgt sie dem Knopf „Jetzt bewerben“; findet sie keinen, markiert sie den Tab, und die Person öffnet das Formular selbst.
+3. **Ausfüllen:** In jedem Tab liest die Erweiterung die Felder samt Beschriftungen und Auswahlwerten. Die App ordnet sie den Angaben zu: Name, Adresse, Kontakt, Lohnvorstellung, Eintritt, Kündigungsfrist, Sprachen, Ausbildung, Stationen.
    - Zuerst nach Regeln, z.B. über das Attribut `autocomplete` und bekannte Beschriftungen, für die verbreiteten Bewerbungssysteme mit eigener Anpassung.
-   - Was offen bleibt, ordnet die KI zu. Sie sieht dabei nur die Beschriftungen und Auswahlwerte, nie die Angaben der Person; die Werte setzt die App danach lokal ein.
-   - Freitextfragen wie „Warum möchten Sie bei uns arbeiten?“ entwirft die KI aus Bausteinen und Anschreiben, pseudonymisiert und belegt wie ein Anschreiben. Solche Antworten markiert die Erweiterung als Entwurf.
-4. Die Erweiterung trägt die Werte ein und lädt die Dateien hoch. Die Dateien kommen über Native Messaging von der App:
+   - Was offen bleibt, ordnet die KI zu. Sie sieht dabei nur Beschriftungen und Auswahlwerte, nie die Angaben der Person; die Werte setzt die App lokal ein.
+   - Freitextfragen wie „Warum möchten Sie bei uns arbeiten?“ entwirft die KI aus Bausteinen und Anschreiben, pseudonymisiert und belegt wie ein Anschreiben. Sie sind als Entwurf markiert.
+   - Kann die App ein Feld nicht sicher zuordnen, bleibt es leer.
+4. **Hochladen:** Die Dateien kommen über Native Messaging von der App:
    - Lebenslauf und Anschreiben als PDF der Bewerbung.
    - Arbeitszeugnisse aus dem Datenordner.
-   - **Zertifikate, wenn vorhanden, aber nur die zur Stelle passenden**, zusammen in einer ZIP-Datei (siehe unten).
-5. Felder ohne passende Angabe bleiben leer und werden markiert. Die Person ergänzt, prüft und schickt ab.
-6. Danach fragt die Erweiterung, ob die Bewerbung abgeschickt wurde. Bei Ja erfasst die App den Versand wie heute („Versand erfassen“).
+   - **Zertifikate, wenn vorhanden, nur die zur Stelle passenden**, zusammen in einer ZIP-Datei (siehe unten).
+5. **Mehrseitige Formulare:** Klickt die Person auf „Weiter“, füllt die Erweiterung die nächste Seite selbst aus. Verlangt ein Bewerbungssystem eine Anmeldung oder ein Konto, hält der Tab dort an; nach der Anmeldung durch die Person geht es weiter.
+6. **Prüfen und absenden durch die Person:** Oben im Tab zeigt ein Balken den Stand, z.B. „14 Felder ausgefüllt, 3 offen, Datenschutz bitte selbst bestätigen“. Ausgefüllte, offene und als Entwurf markierte Felder sind farbig hervorgehoben. Die Person ergänzt, bestätigt die Einwilligungen und schickt ab.
+7. **Stand in der App:** Die Übersicht zeigt pro Bewerbung „geöffnet“, „ausgefüllt“ oder „abgeschickt“. Nach dem Absenden fragt der Balken „Abgeschickt?“; bei Ja erfasst die App den Versand wie heute („Versand erfassen“).
+
+Wie gut das Ausfüllen auf den verbreiteten Bewerbungssystemen klappt, wird im Pilot gemessen.
 
 **Zertifikate pro Bewerbung:**
 
 - Die App schlägt pro Bewerbung die passenden Zertifikate vor, mit Begründung aus dem Inserat (z.B. „Scrum Master: Inserat verlangt agile Erfahrung“). Unpassende bleiben weg, damit das Dossier schlank bleibt.
-- Die Person bestätigt oder ändert die Auswahl; sie gilt dann für Formular und E-Mail gleichermassen und wird im Register festgehalten.
+- Die Person bestätigt oder ändert die Auswahl, bevor sie die Bewerbung freigibt. Die Auswahl gilt für Formular und E-Mail gleichermassen und steht im Register.
 - Die App packt die gewählten Zertifikate in eine ZIP-Datei, z.B. `Zertifikate_<Name>.zip`, mit lesbaren Dateinamen darin. Die Datei liegt bei den Unterlagen der Bewerbung und kommt beim Versand mit nach `versendet/`.
 - Nimmt ein Formular keine ZIP-Dateien an, fügt die App die gewählten Zertifikate zu einem PDF zusammen (Vorschlag, im Pilot zu prüfen).
 - Ohne passende Zertifikate entfällt die Datei.
 
-Mehrseitige Formulare füllt die Erweiterung Seite für Seite; auf jeder neuen Seite klickt die Person erneut. Wie gut das Ausfüllen auf den verbreiteten Bewerbungssystemen klappt, wird im Pilot gemessen.
-
-**RAV-Arbeitsbemühungen:**
+**RAV-Arbeitsbemühungen** (gleicher Ablauf):
 
 - Die App kennt die nötigen Angaben schon aus dem Register (Abschnitt Job-Room): Datum, Firma, Adresse, Stelle, Pensum, Art der Bewerbung und Ergebnis.
-- Die Person meldet sich selbst im Job-Room an und öffnet das Formular für die Arbeitsbemühungen. In der Erweiterung wählt sie „RAV-Eintrag ausfüllen“ und die Bewerbungen des Monats, die noch nicht eingetragen sind.
-- Die Erweiterung füllt pro Bewerbung einen Eintrag aus. Die Person prüft und schickt ab, danach markiert die App die Bewerbung als eingetragen.
+- In der Übersicht setzt die Person Häkchen bei den abgeschickten Bewerbungen, die noch nicht eingetragen sind, und klickt auf „Im RAV eintragen“.
+- Die Erweiterung öffnet das Formular für die Arbeitsbemühungen im Job-Room. Ist die Person nicht angemeldet, hält der Tab bei der Anmeldung an; danach füllt die Erweiterung pro Bewerbung einen Eintrag aus.
+- Die Person prüft und schickt ab; danach markiert die App die Bewerbung als „im RAV eingetragen“.
 - Die App erinnert gegen Monatsende, wenn Bewerbungen des Monats noch nicht eingetragen sind.
 - Für RAV, die den Nachweis auf Papier verlangen, ist eine Liste zum Ausdrucken als Ersatz zu prüfen.
 
@@ -240,7 +247,7 @@ Hosting des Projektinhabers (Schweiz)    ▼
 - **Paket:** Python, Typst und Schriften als App für macOS (.app in .dmg) und Windows (.exe), z.B. mit PyInstaller oder Briefcase, gebaut in der CI (MIN-342). Ein Doppelklick startet den Server auf `127.0.0.1` und öffnet den Browser. Python, Terminal und Repo braucht die Person nicht.
 - **Ersteinrichtung** in drei Schritten in der Oberfläche:
   1. Datenordner wählen oder anlegen.
-  2. Erweiterung hinzufügen: ein Klick zum Store, die Seite erkennt die Erweiterung selbst.
+  2. Erweiterung hinzufügen: ein Klick zum Store, die Seite erkennt die Erweiterung selbst. Danach erlaubt die Person das Ausfüllen von Formularen auf allen Seiten.
   3. Einladungslink anklicken (oder Code eintippen); die App meldet sich bei der Vermittlung an.
 - **Zugang statt API-Schlüssel:** Die App legt den Zugang zur Vermittlung im Schlüsselbund des Systems ab (macOS-Schlüsselbund, Windows-Anmeldeinformationen), nie im Datenordner, nie in Protokollen und nie im Installationspaket. Einen Anthropic-Schlüssel sieht die Person nie (siehe [KI-Vermittlung](#ki-vermittlung)), ausser sie gibt einen eigenen an (siehe [Eigener API-Schlüssel](#eigener-api-schlüssel)).
 - **KI-Modul:** Ein neues Modul `bewerbungen/ki.py` (MIN-338) erhält eine schmale Schnittstelle für Treffer bewerten, Anschreiben entwerfen, Inhalt prüfen, Einstieg aus Unterlagen und Interview. Die Regeln aus den Skills (Belegpflicht, Stilprofil, Inserat ist Daten) werden zu Prompts, und die Pseudonymisierung sitzt in diesem Modul.
@@ -249,7 +256,7 @@ Hosting des Projektinhabers (Schweiz)    ▼
 - **Updates:** Die App prüft beim Start, ob es eine neue Version gibt, und verweist auf den Download.
 - **Signatur:** macOS blockiert unsignierte Apps, Windows warnt. Für den Pilot braucht es ein Apple-Entwicklerkonto zum Signieren und Beglaubigen; für Windows eine Signatur oder eine Anleitung zur Warnung.
 - **Plattformen:** macOS und Windows. Chromebooks, Tablets und Handys gehen nicht; vor dem Pilot klären, welchen Rechner die Teilnehmenden haben.
-- **Anpassungen an der Oberfläche:** Ersteinrichtung, Import der HTML-Vorlage, Empfang der Treffer über Native Messaging, KI-Knöpfe, Antworten für „Stelle prüfen“, „Stelle speichern“ und das Ausfüllen von Formularen, Status „im RAV eingetragen“, erweiterte Einstellungen. Host-Prüfung, Token pro Start und CSP bleiben.
+- **Anpassungen an der Oberfläche:** Ersteinrichtung, Import der HTML-Vorlage, Empfang der Treffer über Native Messaging, KI-Knöpfe, Antworten für „Stelle prüfen“ und „Stelle speichern“, Häkchen und die Knöpfe „Bewerben“ und „Im RAV eintragen“ in der Übersicht, Link zum Bewerbungsformular und Stand des Ausfüllens pro Bewerbung, Status „im RAV eingetragen“, erweiterte Einstellungen. Host-Prüfung, Token pro Start und CSP bleiben.
 
 ### KI-Vermittlung
 
@@ -270,8 +277,8 @@ Für Personen, die selbst ein Konto bei Anthropic haben, in den **erweiterten Ei
 - **Ablage:** Die App legt den Schlüssel im Schlüsselbund des Systems ab, wie den Zugang zur Vermittlung, nie im Datenordner und nie in der Erweiterung. Er erscheint nie in Protokollen oder Fehlermeldungen. Die App prüft ihn beim Speichern mit einem kleinen Aufruf.
 - **Aufrufe:** gehen direkt an die Claude API, nicht über die Vermittlung. Budget und Kostenzählung der Vermittlung entfallen; die App zeigt die Kosten lokal an. Die Pseudonymisierung bleibt.
 - **Freigeschaltet:** automatische Suche auf weiteren Seiten, auch LinkedIn (siehe [Regeln für die Erweiterung](#stellensuche-über-den-browser-der-person)). Beim Einschalten erscheint eine Warnung: Die Person trägt Kosten und das Risiko einer Kontosperre selbst, und für die Verarbeitung gilt ihr eigener Vertrag mit Anthropic, auch in den USA.
-- **Gleich bleiben:** Absenden nur durch die Person, keine Anmeldungen, CAPTCHAs bei der Person, Suche nur auf Start durch die Person.
-- **Entfernen:** Löscht die Person den Schlüssel, läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab.
+- **Gleich bleiben:** Absenden und Einwilligungen nur durch die Person, keine Anmeldungen, CAPTCHAs bei der Person, Suche nur auf Start durch die Person.
+- **Entfernen:** Löscht die Person den Schlüssel, läuft die App wieder über die Vermittlung, und die automatische Suche ist wieder auf die erlaubten Portale beschränkt.
 
 ## Onlinedienst nach dem Pilot
 
@@ -355,7 +362,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 - Der Server läuft nur auf `127.0.0.1`. Host-Prüfung, Token pro Start und CSP bleiben; Inhalte werden nur als Text eingesetzt.
 - Auf den Rechnern liegt kein API-Schlüssel, nur der Zugang zur Vermittlung im Schlüsselbund des Systems. Er erscheint nie in Protokollen oder Fehlermeldungen.
 - Die Vermittlung speichert Zugänge nur als Hash, prüft Budget und Modelle bei jedem Aufruf und hält den Anthropic-Schlüssel als Geheimnis auf dem Server, nie im Repo.
-- Die Erweiterung hat nur die nötigen Berechtigungen: fest nur für die erlaubten Portale, sonst `activeTab` auf Knopfdruck. Treffer, Inserate und Formularfelder nimmt die App nur über Native Messaging von der eigenen Erweiterung an (Chrome prüft deren ID) und prüft sie wie jede Eingabe von aussen; Text von fremden Seiten ist Daten, keine Anweisung.
+- Die Erweiterung hat fest nur Berechtigungen für die erlaubten Portale; den Zugriff auf alle Seiten erhält sie nur mit der Erlaubnis der Person und nutzt ihn nur für Vorgänge, die die Person ausgelöst hat. Sie öffnet nur Tabs für Bewerbungen, die die App ihr nennt. Treffer, Inserate und Formularfelder nimmt die App nur über Native Messaging von der eigenen Erweiterung an (Chrome prüft deren ID) und prüft sie wie jede Eingabe von aussen; Text von fremden Seiten ist Daten, keine Anweisung.
 - Dateien zum Hochladen gibt die App nur für die gewählte Bewerbung heraus und nur aus dem Datenordner.
 - Ein eigener API-Schlüssel liegt nur im Schlüsselbund des Systems.
 - Importierte Dateien (HTML-Vorlage, Lebenslauf) werden geprüft und nie als Code ausgeführt.
