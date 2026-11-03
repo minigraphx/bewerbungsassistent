@@ -10,7 +10,12 @@ window.App = (() => {
   async function antwortLesen(antwort) {
     const typ = antwort.headers.get("Content-Type") || "";
     const daten = typ.includes("json") ? await antwort.json() : {};
-    if (!antwort.ok) throw new Error(daten.fehler || antwort.statusText);
+    if (!antwort.ok) {
+      const fehler = new Error(daten.fehler || antwort.statusText);
+      fehler.status = antwort.status;
+      fehler.daten = daten;
+      throw fehler;
+    }
     return daten;
   }
 
@@ -132,6 +137,16 @@ window.App = (() => {
   }
   zurueck();
 
+  // Until a data folder is chosen (or when it is gone), every page leads to the setup.
+  async function zurEinrichtung() {
+    if (location.pathname === "/einrichtung") return;
+    try {
+      const info = await holen("/api/app/einrichtung");
+      if (!info.eingerichtet || info.fehlt) location.replace("/einrichtung");
+      else if (info.gewechselt) location.reload();  // the folder is back: show its data, not the placeholder's
+    } catch { /* plain app without setup */ }
+  }
+
   // Packaged app only (MIN-342): banner for a new version, button to quit. The plain app has no such route.
   async function desktop() {
     let info;
@@ -144,8 +159,11 @@ window.App = (() => {
         document.body.replaceChildren(el("main", {}, el("h1", {}, "Bewerbungsassistent beendet"),
           el("p", {}, "Sie können dieses Fenster schliessen. Starten Sie die App wieder mit einem Doppelklick.")));
       });
+      if (!nav.querySelector('a[href="/einrichtung"]')) nav.append(el("a", { href: "/einrichtung" }, "Einrichtung"));
       nav.append(el("span", { class: "leise version" }, `Version ${info.version}`), beenden);
+      navigation();
     }
+    await zurEinrichtung();
     if (!info.update) return;
     const meldung = el("span", {}, `Version ${info.update.version} ist verfügbar. `);
     const knopf = info.update.automatisch

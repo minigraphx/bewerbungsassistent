@@ -25,17 +25,6 @@ def test_app_folder_per_system(tmp_path):
     assert settings.app_dir({}, "linux", home) == home / ".config" / "bewerbungsassistent"
 
 
-def test_data_folder_is_created_once_and_remembered(paths, tmp_path):
-    default = tmp_path / "Dokumente" / "Bewerbungsassistent"
-
-    first = settings.data_dir(paths, default)
-    settings.save(paths, {**settings.load(paths), "datenordner": str(tmp_path / "anders")})
-    second = settings.data_dir(paths, default)
-
-    assert first == default and default.is_dir()
-    assert second == tmp_path / "anders" and second.is_dir()
-
-
 def test_broken_settings_fall_back_to_defaults(paths, tmp_path):
     paths.app_dir.mkdir(parents=True)
     paths.settings.write_text("{kaputt", encoding="utf-8")

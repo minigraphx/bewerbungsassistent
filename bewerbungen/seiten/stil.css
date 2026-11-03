@@ -30,6 +30,10 @@ button {
   background: var(--flaeche); color: var(--text); cursor: pointer;
 }
 button.haupt { background: var(--akzent); color: var(--akzent-text); font-weight: 600; }
+a.knopf { display: inline-block; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--akzent); text-decoration: none; }
+a.knopf.haupt { background: var(--akzent); color: var(--akzent-text); font-weight: 600; }
+.einrichtung { max-width: 760px; }
+.einrichtung .weiter { margin-top: 28px; }
 button.gefahr { border-color: var(--fehler); color: var(--fehler); }
 button:disabled { opacity: .45; cursor: default; }
 input, select, textarea {

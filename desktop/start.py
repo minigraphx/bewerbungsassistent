@@ -12,6 +12,7 @@ import webbrowser
 
 import instance
 import settings
+import setup
 import urlscheme
 
 log = logging.getLogger("bewerbungsassistent")
@@ -78,17 +79,42 @@ def main(argv: list[str] | None = None) -> int:
     return serve(paths, code, open_browser=not args.kein_browser)
 
 
+def _install_dir() -> pathlib.Path:
+    """Folder of the installed app (replaced by updates); in development the folder of this module."""
+    return pathlib.Path(sys.executable).parent if getattr(sys, "frozen", False) else bundle_dir()
+
+
+def start_folder(paths: settings.Paths) -> pathlib.Path:
+    """The chosen data folder, or a placeholder until one is chosen (or when it is gone, e.g. a USB stick)."""
+    chosen = settings.chosen_data_dir(paths)
+    if chosen is not None and chosen.is_dir():
+        return chosen
+    if chosen is not None:
+        log.warning("Datenordner nicht gefunden: %s", chosen)
+    return setup.placeholder_dir(paths)
+
+
 def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) -> int:
     import app  # the existing interface (bewerbungen/app.py)
     if getattr(sys, "frozen", False):
         urlscheme.register_windows(sys.executable)
     _use_mediation(settings.build_defaults(bundle_dir()))
     import routes_app
-    data = settings.data_dir(paths, settings.documents_dir() / settings.APP_NAME)
+    import routes_setup
+    data = start_folder(paths)
     holder: dict = {}
     controls = routes_app.Controls(stop=lambda: holder["server"].shutdown())
+
+    def switch(folder: pathlib.Path) -> None:
+        holder["server"].kontext = app.erstelle_kontext(folder)
+        log.info("Datenordner gewechselt: %s", folder)
+
+    state = routes_setup.Setup(paths=paths, switch=switch, suggestion=settings.documents_dir() / settings.APP_NAME,
+                               forbidden=(paths.app_dir, _install_dir()))
+    app_get, app_post = routes_app.make_routes(controls)
+    setup_get, setup_post = routes_setup.make_routes(state)
     try:
-        server = app.erstelle_server(data, extra_routes=routes_app.make_routes(controls))
+        server = app.erstelle_server(data, extra_routes=({**app_get, **setup_get}, {**app_post, **setup_post}))
         holder["server"] = server
     except (ValueError, OSError) as error:
         log.error("Start nicht möglich: %s", error)

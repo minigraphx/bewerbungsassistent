@@ -34,20 +34,27 @@ SEITEN = {
     "/entwuerfe.js": "entwuerfe.js",
     "/foto.js": "foto.js",
     "/ki.js": "ki.js",
+    "/einrichtung": "einrichtung.html",
+    "/einrichtung.js": "einrichtung.js",
 }
 GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "dokumente/", ".ki/"]
 log = logging.getLogger("bewerbungsassistent")
 
 
-def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port: int = 0, kontext: Kontext | None = None,
-                    extra_routes: tuple[dict, dict] = ({}, {})) -> Server:
-    """extra_routes: (GET, POST) of the desktop app, e.g. version and update (MIN-342)."""
+def erstelle_kontext(daten: pathlib.Path, build: pathlib.Path | None = None) -> Kontext:
+    """State for one data folder; the desktop app swaps it when the person chooses another folder."""
     daten = daten.resolve()
     if not daten.is_dir():
         raise ValueError(f"Datenordner nicht gefunden: {daten}")
     sichere_gitignore(daten, GITIGNORE)
-    k = kontext or Kontext(daten=daten, build=(build or daten / ".build").resolve(), ablage=Ablage(daten),
-                           versionierung=waehle(daten))
+    return Kontext(daten=daten, build=(build or daten / ".build").resolve(), ablage=Ablage(daten),
+                   versionierung=waehle(daten))
+
+
+def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port: int = 0, kontext: Kontext | None = None,
+                    extra_routes: tuple[dict, dict] = ({}, {})) -> Server:
+    """extra_routes: (GET, POST) of the desktop app, e.g. version and update (MIN-342)."""
+    k = kontext or erstelle_kontext(daten, build)
     routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET,
                   **routes_ai.GET, **extra_routes[0]}
     routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST,

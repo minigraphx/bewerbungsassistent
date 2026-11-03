@@ -77,14 +77,14 @@ def save(paths: Paths, values: dict) -> dict:
     return values
 
 
-def data_dir(paths: Paths, default: pathlib.Path) -> pathlib.Path:
-    """The chosen data folder; the first time the default, created and remembered."""
-    current = load(paths)
-    chosen = pathlib.Path(current["datenordner"]) if current.get("datenordner") else default
-    chosen.mkdir(parents=True, exist_ok=True)
-    if current.get("datenordner") != str(chosen):
-        save(paths, {**current, "datenordner": str(chosen)})
-    return chosen
+def chosen_data_dir(paths: Paths) -> pathlib.Path | None:
+    """The data folder chosen in the setup; None until the person has chosen one."""
+    value = load(paths).get("datenordner")
+    return pathlib.Path(value) if isinstance(value, str) and value else None
+
+
+def remember_data_dir(paths: Paths, folder: pathlib.Path) -> dict:
+    return save(paths, {**load(paths), "datenordner": str(folder)})
 
 
 def build_defaults(bundle_dir: pathlib.Path) -> dict:

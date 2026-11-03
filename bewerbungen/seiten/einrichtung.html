@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<title>Einrichtung</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einrichtung">Einrichtung</a></nav>
+<main class="einrichtung">
+  <h1>Einrichtung</h1>
+  <p class="hilfe">Drei Schritte, danach kann es losgehen. Ihre Daten bleiben auf diesem Computer; an die KI gehen nur Texte, in denen Name, Adresse und Kontaktangaben durch Platzhalter ersetzt sind.</p>
+
+  <h2>1. Datenordner</h2>
+  <p class="hilfe">Hier speichert der Assistent Lebenslauf, Anschreiben und Bewerbungen. Am besten ein eigener Ordner unter Dokumente; sichern Sie ihn wie Ihre anderen Dateien.</p>
+  <div id="ordner-fehlt" class="banner" role="alert" hidden></div>
+  <label for="ordner">Ordner</label>
+  <input id="ordner" spellcheck="false" autocomplete="off">
+  <div class="knoepfe">
+    <button type="button" id="ordner-waehlen">Ordner wählen …</button>
+    <button type="button" id="ordner-uebernehmen" class="haupt">Diesen Ordner verwenden</button>
+  </div>
+  <div id="ordner-status" class="status" role="status" aria-live="polite"></div>
+
+  <h2>2. Angaben aus der Einstiegsvorlage</h2>
+  <p class="hilfe">Wer die Einstiegsvorlage ausgefüllt hat, hat eine Datei <strong>einstieg.zip</strong> oder <strong>einstieg.json</strong> gespeichert, meist im Ordner Downloads. Ohne diese Datei diesen Schritt einfach überspringen.</p>
+  <label for="datei">Datei</label>
+  <input id="datei" spellcheck="false" autocomplete="off" disabled>
+  <div class="knoepfe">
+    <button type="button" id="datei-waehlen" disabled>Datei wählen …</button>
+    <button type="button" id="importieren" class="haupt" disabled>Importieren</button>
+    <button type="button" id="ersetzen" class="gefahr" hidden>Vorhandene Dateien ersetzen</button>
+  </div>
+  <div id="import-status" class="status" role="status" aria-live="polite"></div>
+  <ul id="import-ergebnis" class="befunde"></ul>
+
+  <h2>3. KI-Unterstützung</h2>
+  <p class="hilfe">Die KI bewertet Stellen, entwirft Anschreiben und prüft sie. Im Pilot erhalten Sie dafür einen Einladungscode von Ihrer Begleitperson.</p>
+  <div id="ki-zustand" class="status" role="status" aria-live="polite"></div>
+  <div id="ki-einladung" hidden>
+    <label for="ki-code">Einladungscode</label>
+    <div class="knoepfe"><input id="ki-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button type="button" id="ki-einloesen">Einladung einlösen</button></div>
+  </div>
+
+  <div class="knoepfe weiter"><a id="fertig" class="knopf haupt" href="/" hidden>Fertig: zu den Bewerbungen</a></div>
+</main>
+<script src="/app.js"></script>
+<script src="/einrichtung.js"></script>
+</body>
+</html>
