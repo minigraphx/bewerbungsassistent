@@ -4,14 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="token" content="__TOKEN__">
+<meta name="bewerbungsassistent" content="app">
 <title>Einrichtung</title>
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
-<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einrichtung">Einrichtung</a></nav>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Treffer</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einrichtung">Einrichtung</a></nav>
 <main class="einrichtung">
   <h1>Einrichtung</h1>
-  <p class="hilfe">Drei Schritte, danach kann es losgehen. Ihre Daten bleiben auf diesem Computer; an die KI gehen nur Texte, in denen Name, Adresse und Kontaktangaben durch Platzhalter ersetzt sind.</p>
+  <p class="hilfe">Vier Schritte, danach kann es losgehen. Ihre Daten bleiben auf diesem Computer; an die KI gehen nur Texte, in denen Name, Adresse und Kontaktangaben durch Platzhalter ersetzt sind.</p>
 
   <h2>1. Datenordner</h2>
   <p class="hilfe">Hier speichert der Assistent Lebenslauf, Anschreiben und Bewerbungen. Am besten ein eigener Ordner unter Dokumente; sichern Sie ihn wie Ihre anderen Dateien.</p>
@@ -43,6 +44,20 @@
     <label for="ki-code">Einladungscode</label>
     <div class="knoepfe"><input id="ki-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button type="button" id="ki-einloesen">Einladung einlösen</button></div>
   </div>
+
+  <section id="erweiterung" hidden>
+    <h2>4. Browser-Erweiterung für die Stellensuche</h2>
+    <p class="hilfe">Die Erweiterung sucht in Ihrem Browser auf job-room, jobs.ch, jobscout24 und ictjobs nach Stellen und gibt die Treffer an diese App. Sie läuft in Chrome und Edge. Bis sie im Store ist, wird sie einmal von Hand geladen:</p>
+    <div id="erweiterung-zustand" class="status" role="status" aria-live="polite"></div>
+    <ol id="erweiterung-schritte" class="schritte">
+      <li>In Chrome die Adresse <code>chrome://extensions</code> öffnen, in Edge <code>edge://extensions</code>: Adresse kopieren und in die Adresszeile einfügen. <button type="button" id="adresse-kopieren">Adresse kopieren</button></li>
+      <li>Den <strong>Entwicklermodus</strong> einschalten (Chrome: oben rechts, Edge: links).</li>
+      <li><strong>Entpackte Erweiterung laden</strong> wählen und diesen Ordner auswählen: <code id="erweiterung-ordner" class="pfad"></code>
+        <div class="knoepfe"><button type="button" id="pfad-kopieren">Pfad kopieren</button><button type="button" id="ordner-zeigen">Ordner zeigen</button></div>
+        <span class="leise">Tipp: Im Auswahlfenster auf dem Mac mit Cmd+Shift+G den Pfad einfügen, unter Windows oben in die Adresszeile.</span></li>
+      <li>Diese Seite neu laden. Danach steht hier, dass die Erweiterung bereit ist.</li>
+    </ol>
+  </section>
 
   <div class="knoepfe weiter"><a id="fertig" class="knopf haupt" href="/" hidden>Fertig: zu den Bewerbungen</a></div>
 </main>

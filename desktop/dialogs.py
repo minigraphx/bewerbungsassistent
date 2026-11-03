@@ -71,3 +71,17 @@ def choose(kind: str, start: pathlib.Path, platform: str, run: Run = subprocess.
         raise ValueError(f"Der Auswahldialog liess sich nicht öffnen. {TYPE_PATH}")
     chosen = (result.stdout or "").lstrip("\ufeff").strip()
     return pathlib.Path(chosen) if chosen else None
+
+
+REVEAL = {"darwin": ["open"], "win32": ["explorer"]}
+
+
+def reveal(folder: pathlib.Path, platform: str, run: Run = subprocess.run) -> None:
+    """Show a folder in Finder or Explorer (Explorer ends with code 1 even when it worked)."""
+    if not folder.is_dir():
+        raise ValueError(f"Der Ordner {folder} wurde nicht gefunden.")
+    command = REVEAL.get(platform, ["xdg-open"]) + [str(folder)]
+    try:
+        run(command, capture_output=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ValueError(f"Der Ordner liess sich nicht öffnen: {folder}") from error

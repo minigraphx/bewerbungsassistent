@@ -21,12 +21,17 @@ datas = [
     (str(REPO / "onboarding" / "dist" / "einstieg.html"), "dist"),
     (str(REPO / "vorlagen"), "vorlagen"),
 ]
+# The browser extension as developer add-on (MIN-339), without its tests
+EXTENSION = REPO / "erweiterung"
+datas += [(str(f), str(pathlib.Path("erweiterung") / f.parent.relative_to(EXTENSION)))
+          for f in sorted(EXTENSION.rglob("*")) if f.is_file() and "tests" not in f.relative_to(EXTENSION).parts]
 defaults = REPO / "desktop" / "build" / "voreinstellungen.json"  # written by the CI, see desktop/README.md
 if defaults.is_file():
     datas.append((str(defaults), "."))
 
 hidden = (collect_submodules("keyring.backends") + collect_submodules("ai")
-          + ["routen_ablage", "routen_bewerbungen", "routen_foto", "routen_inhalte", "routes_ai", "app", "selftest"])
+          + ["routen_ablage", "routen_bewerbungen", "routen_foto", "routen_inhalte", "routes_ai", "routes_search", "search_plan", "hits", "app",
+             "selftest"])
 
 a = Analysis(
     [str(REPO / "desktop" / "start.py")],

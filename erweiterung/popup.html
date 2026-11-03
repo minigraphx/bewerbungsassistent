@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Bewerbungsassistent</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>Bewerbungsassistent</h1>
+  <p id="verbindung" class="hinweis">Verbindung zur App wird geprüft …</p>
+  <button id="suchen" type="button" disabled>Stellen suchen</button>
+  <p class="klein">Sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach Ihrem Suchprofil. Die Treffer gehen in die App.</p>
+  <section id="lauf" hidden>
+    <h2>Suche</h2>
+    <p id="schritt"></p>
+    <ul id="portale"></ul>
+    <ul id="hinweise" class="klein"></ul>
+  </section>
+  <button id="oeffnen" type="button" class="zweitrangig">Treffer in der App ansehen</button>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

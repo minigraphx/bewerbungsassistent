@@ -116,6 +116,8 @@ Weil die App auf dem Rechner der Person läuft, hat sie deren IP. Einfache Porta
 - **LinkedIn:** Die Nutzungsbedingungen verbieten Automatisierung ausdrücklich, und LinkedIn kann Konten dafür einschränken oder sperren. Die automatische Suche dort gibt es darum nur mit eigenem Schlüssel und erst nach einer Warnung, die die Person bestätigt.
 - **CAPTCHAs** bleiben immer bei der Person; die Erweiterung löst und umgeht sie nicht.
 - **Wartung:** Sie wird über den Store der Erweiterungen aktualisiert. Ändert ein Portal seine Seiten, ist das ein Update für alle.
+- **Im Pilot zuerst als Entwicklererweiterung** (Entscheid 3.11.2026): Die App bringt die Erweiterung mit und zeigt in der Einrichtung, wie man sie in Chrome oder Edge entpackt lädt. Die ID ist über den Schlüssel im Manifest fest, darum funktioniert Native Messaging wie später mit dem Store. Updates kommen mit der App; danach in `chrome://extensions` „Neu laden“. In den Store kommt sie, sobald Suche und Übergabe im Pilot laufen.
+- **Treffer zuerst in einen Eingang, nicht ins Register:** Die App sichtet die Trefferliste, bevor die Erweiterung Volltexte holt (bekannte Stellen, ausgeschlossene Titel, zu alte Inserate fallen weg), und legt die übrigen auf der Seite „Treffer“ ab. Dieselbe Stelle auf einem zweiten Portal wird zusammengeführt; läuft bei der Firma schon eine Bewerbung, steht ein Hinweis dabei. Die Person lässt die KI bewerten und entscheidet: „Übernehmen“ legt die Bewerbung mit dem Inseratstext an, „Verwerfen“ blendet den Treffer aus, auch bei späteren Suchen.
 
 ## Bewerben im Browser: Formulare, Unterlagen, RAV
 
@@ -249,7 +251,7 @@ Hosting des Projektinhabers (Schweiz)    ▼
 - **Paket:** Python, Typst und Schriften als App für macOS (.app in .dmg) und Windows (.exe), z.B. mit PyInstaller oder Briefcase, gebaut in der CI (MIN-342). Ein Doppelklick startet den Server auf `127.0.0.1` und öffnet den Browser. Python, Terminal und Repo braucht die Person nicht.
 - **Ersteinrichtung** in drei Schritten in der Oberfläche:
   1. Datenordner wählen oder anlegen.
-  2. Erweiterung hinzufügen: ein Klick zum Store, die Seite erkennt die Erweiterung selbst. Danach erlaubt die Person das Ausfüllen von Formularen auf allen Seiten.
+  2. Erweiterung hinzufügen: ein Klick zum Store, die Seite erkennt die Erweiterung selbst. Danach erlaubt die Person das Ausfüllen von Formularen auf allen Seiten. Im Pilot zuerst als entpackte Entwicklererweiterung mit Anleitung in der Einrichtung.
   3. Einladungslink anklicken (oder Code eintippen); die App meldet sich bei der Vermittlung an.
 - **Zugang statt API-Schlüssel:** Die App legt den Zugang zur Vermittlung im Schlüsselbund des Systems ab (macOS-Schlüsselbund, Windows-Anmeldeinformationen), nie im Datenordner, nie in Protokollen und nie im Installationspaket. Einen Anthropic-Schlüssel sieht die Person nie (siehe [KI-Vermittlung](#ki-vermittlung)), ausser sie gibt einen eigenen an (siehe [Eigener API-Schlüssel](#eigener-api-schlüssel)).
 - **KI-Modul:** Ein neues Modul `bewerbungen/ki.py` (MIN-338) erhält eine schmale Schnittstelle für Treffer bewerten, Anschreiben entwerfen, Inhalt prüfen, Einstieg aus Unterlagen und Interview. Die Regeln aus den Skills (Belegpflicht, Stilprofil, Inserat ist Daten) werden zu Prompts, und die Pseudonymisierung sitzt in diesem Modul.

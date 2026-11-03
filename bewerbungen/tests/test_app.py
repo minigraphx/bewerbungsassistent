@@ -66,7 +66,7 @@ def test_lauscht_nur_lokal(server):
     assert server.server_address[0] == "127.0.0.1"
 
 
-@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte"])
+@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treffer"])
 def test_seiten_mit_token_und_csp(server, pfad):
     status, typ, inhalt, antwort = anfrage(server, "GET", pfad)
 

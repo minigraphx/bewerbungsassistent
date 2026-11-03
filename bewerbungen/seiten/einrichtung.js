@@ -126,7 +126,50 @@
   $("ersetzen").addEventListener("click", () => importiere(true));
   $("ki-einloesen").addEventListener("click", loeseEin);
 
-  holen("/api/app/einrichtung").then(zeigeOrdner)
+  // Browser extension (MIN-339): loaded by hand as developer add-on until it is in the stores
+  let erweiterung = null;  // folder and version the app brings along
+
+  function zeigeErweiterung() {
+    if (!erweiterung) return;
+    $("erweiterung").hidden = false;
+    $("erweiterung-ordner").textContent = erweiterung.ordner;
+    const geladen = document.documentElement.dataset.bewerbungsassistentErweiterung;
+    $("erweiterung-schritte").hidden = Boolean(geladen);
+    if (!geladen) {
+      status($("erweiterung-zustand"), "Noch nicht eingerichtet.", "hinweis");
+    } else if (erweiterung.version && geladen !== erweiterung.version) {
+      status($("erweiterung-zustand"), `Die Erweiterung ist geladen (Version ${geladen}), die App bringt Version ${erweiterung.version} mit. Bitte unter chrome://extensions bei der Erweiterung auf „Neu laden“ klicken.`, "hinweis");
+    } else {
+      status($("erweiterung-zustand"), `Die Erweiterung ist bereit (Version ${geladen}).`, "ok");
+    }
+  }
+
+  async function kopiere(text, knopf) {
+    try {
+      await navigator.clipboard.writeText(text);
+      knopf.textContent = "Kopiert";
+    } catch {
+      knopf.textContent = "Bitte von Hand kopieren";
+    }
+  }
+
+  $("adresse-kopieren").addEventListener("click", e => kopiere("chrome://extensions", e.currentTarget));
+  $("pfad-kopieren").addEventListener("click", e => kopiere(erweiterung?.ordner || "", e.currentTarget));
+  $("ordner-zeigen").addEventListener("click", async () => {
+    try { await senden("/api/app/ordner-zeigen", { art: "erweiterung" }); }
+    catch (fehler) { status($("erweiterung-zustand"), fehler.message, "fehler"); }
+  });
+  window.addEventListener("message", event => {
+    if (event.source === window && event.origin === location.origin && event.data?.quelle === "bewerbungsassistent-erweiterung") {
+      zeigeErweiterung();
+    }
+  });
+
+  holen("/api/app/einrichtung").then(info => {
+    zeigeOrdner(info);
+    erweiterung = info.erweiterung;
+    zeigeErweiterung();
+  })
     .catch(() => status($("ordner-status"), "Die Einrichtung gibt es nur in der installierten App.", "hinweis"));
   ladeKi();
 })();

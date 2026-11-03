@@ -3,10 +3,17 @@
 Modul des [Bewerbungsassistenten](../README.md) für den Pilot (MIN-342): die lokale Oberfläche (`bewerbungen/app.py`) als installierbare App für Windows und macOS, ohne Python, Terminal oder Repo.
 
 - **Start per Doppelklick:** Server auf `127.0.0.1`, der Browser öffnet sich. Ein zweiter Start öffnet die laufende App. „Beenden“ steht oben rechts.
-- **Einrichtung** (Seite `/einrichtung`, beim ersten Start automatisch): 1. Datenordner wählen, Vorschlag `Dokumente\Bewerbungsassistent` (unter Windows auch, wenn Dokumente in OneDrive liegt); erlaubt sind ein neuer, ein leerer oder ein bestehender Datenordner, nie ein Ordner mit anderen Dateien oder einer der App. 2. Datei der Einstiegsvorlage (`einstieg.zip` oder `.json`) importieren (`onboarding/import_bundle.py`). 3. Einladungscode für die KI. Ordner und Datei kommen aus dem Auswahldialog des Systems (`dialogs.py`: PowerShell bzw. AppleScript), weil der Browser keine Pfade liefert und die ZIP-Datei grösser sein darf als eine Anfrage. Ein Wechsel des Datenordners gilt sofort, ohne Neustart. Fehlt der Ordner (z.B. USB-Stick), führt jede Seite zur Einrichtung.
+- **Einrichtung** (Seite `/einrichtung`, beim ersten Start automatisch): 1. Datenordner wählen, Vorschlag `Dokumente\Bewerbungsassistent` (unter Windows auch, wenn Dokumente in OneDrive liegt); erlaubt sind ein neuer, ein leerer oder ein bestehender Datenordner, nie ein Ordner mit anderen Dateien oder einer der App. 2. Datei der Einstiegsvorlage (`einstieg.zip` oder `.json`) importieren (`onboarding/import_bundle.py`). 3. Einladungscode für die KI. 4. Browser-Erweiterung laden (siehe unten). Ordner und Datei kommen aus dem Auswahldialog des Systems (`dialogs.py`: PowerShell bzw. AppleScript), weil der Browser keine Pfade liefert und die ZIP-Datei grösser sein darf als eine Anfrage. Ein Wechsel des Datenordners gilt sofort, ohne Neustart. Fehlt der Ordner (z.B. USB-Stick), führt jede Seite zur Einrichtung.
 - **App-Ordner:** Einstellungen und Protokoll in `%APPDATA%\Bewerbungsassistent`, macOS `~/Library/Application Support/Bewerbungsassistent`. Bis ein Datenordner gewählt ist, läuft die App auf `noch-kein-datenordner` darin.
 - **Einladung:** Der Link `bewerbungsassistent://einladung?code=…` öffnet die App und löst den Code ein; der Zugang kommt in den Schlüsselbund des Systems. Alternativ den Code in der Einrichtung oder auf der Seite einer Bewerbung eintippen.
 - **Adresse der KI-Vermittlung:** kommt beim Bauen aus der Repository-Variable `KI_URL` (kein Geheimnis) in `voreinstellungen.json` im Paket.
+
+## Browser-Erweiterung
+
+Die App ist zugleich der **Native-Messaging-Host** für die [Erweiterung](../erweiterung/README.md) (MIN-339). Startet Chrome sie mit `chrome-extension://…` als Argument, öffnet sie keine Oberfläche, sondern reicht die Anfragen der Erweiterung an die laufende App weiter (`native_host.py`). Läuft keine, startet sie sie im Hintergrund. Erlaubt sind nur Suchplan, Sichten, Treffer und Abschluss der Suche.
+
+- **Anmeldung beim Browser** bei jedem Start (`native_messaging.py`): Windows über die Registry (`HKCU\Software\Google\Chrome\NativeMessagingHosts` und Edge) mit der Datei im App-Ordner; macOS und Linux mit einer Datei in den Profilordnern von Chrome, Chrome Beta, Edge, Chromium und Brave. Beim Start aus dem Repo verweist sie auf ein kleines Startskript im App-Ordner.
+- **Ordner der Erweiterung:** Die App kopiert die Erweiterung aus dem Paket nach `<App-Ordner>/erweiterung`, wenn sich die Version geändert hat (`extension.py`). Die Einrichtung (Schritt 4) zeigt diesen Ordner zum Laden in Chrome oder Edge.
 
 ## Updates
 

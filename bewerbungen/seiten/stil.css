@@ -117,3 +117,14 @@ td.zahl { font-variant-numeric: tabular-nums; }
 a.zurueck { display: inline-block; margin: 0 0 12px; color: var(--leise); text-decoration: none; font-size: 14px; }
 a.zurueck:hover { color: var(--text); text-decoration: underline; }
 a.zurueck:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; border-radius: 3px; }
+/* Treffer der Stellensuche (MIN-339) */
+button.link { border: 0; background: none; padding: 0; color: inherit; font: inherit; font-weight: 600; text-align: left; cursor: pointer; text-decoration: underline dotted; }
+td.note { font-weight: 700; white-space: nowrap; }
+tr.details td { background: var(--flaeche); }
+td.knapp { white-space: nowrap; }
+td > .knoepfe { flex-wrap: nowrap; margin: 0; }
+td > .knoepfe button { white-space: nowrap; }
+tr.details ul { margin: 4px 0 8px; }
+pre.inserat { white-space: pre-wrap; font: inherit; font-size: 14px; max-height: 420px; overflow: auto; background: var(--hintergrund); border: 1px solid var(--linie); border-radius: 6px; padding: 10px; }
+ol.schritte li { margin-bottom: 6px; }
+code.pfad { word-break: break-all; }

@@ -109,3 +109,18 @@ jobs:
         run: python -m pytest -q
       - name: Tests (JavaScript)
         run: node --test tests/*.test.cjs
+
+  erweiterung:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: erweiterung
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Tests (JavaScript)
+        run: node --test tests/*.test.mjs
+      - name: Manifest lesbar
+        run: node -e "const m = require('./manifest.json'); if (m.manifest_version !== 3 || !m.key) process.exit(1)"

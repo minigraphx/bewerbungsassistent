@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<meta name="bewerbungsassistent" content="app">
+<title>Treffer</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Treffer</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></nav>
+<main>
+  <h1>Treffer der Stellensuche</h1>
+  <p class="hilfe">Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier. „Bewerten“ lässt die KI die Passung als Note von 1 bis 6 einschätzen; „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.</p>
+
+  <div class="knoepfe">
+    <button type="button" id="suchen" class="haupt" disabled>Stellen suchen</button>
+    <span id="lauf" class="status" role="status" aria-live="polite"></span>
+  </div>
+  <p id="ohne-erweiterung" class="banner" hidden>Für die Suche braucht es die Browser-Erweiterung. <a href="/einrichtung#erweiterung">So richten Sie sie ein</a></p>
+  <p id="letzte" class="leise"></p>
+  <ul id="probleme" class="befunde"></ul>
+
+  <div class="filter">
+    <select id="zustand" aria-label="Zustand">
+      <option value="neu">Neue Treffer</option>
+      <option value="uebernommen">Übernommen</option>
+      <option value="verworfen">Verworfen</option>
+      <option value="">Alle</option>
+    </select>
+    <button type="button" id="alle-bewerten" hidden>Alle neuen bewerten</button>
+  </div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+
+  <table>
+    <thead><tr><th>Note</th><th>Stelle</th><th>Firma</th><th>Ort</th><th>Pensum</th><th>Portal</th><th>Gefunden</th><th></th></tr></thead>
+    <tbody id="liste"></tbody>
+  </table>
+  <p id="leer" class="leer" hidden>Keine Treffer.</p>
+</main>
+<script src="/app.js"></script>
+<script src="/treffer.js"></script>
+</body>
+</html>

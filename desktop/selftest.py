@@ -6,6 +6,7 @@ The result also goes to selbsttest.txt next to the working folder, since a windo
 """
 import importlib
 import pathlib
+import sys
 import tempfile
 import traceback
 
@@ -14,7 +15,10 @@ import build
 
 RESULT_FILE = "selbsttest.txt"
 # Imported inside functions at runtime; importing them here by name checks that PyInstaller packed them.
-LATE_MODULES = ("app", "routes_app", "routes_setup", "dialogs", "setup", "import_bundle", "routes_ai", "ai.gateway")
+LATE_MODULES = ("app", "routes_app", "routes_setup", "dialogs", "setup", "import_bundle", "routes_ai", "ai.gateway",
+                "routes_search", "search_plan", "hits")
+EXTENSION_FILES = ("manifest.json", "background.js", "popup.html", "app-bridge.js", "portals/common.js",
+                   "portals/jobroom.js", "lib/search.js", "lib/senders.js")
 
 
 def check_modules() -> None:
@@ -23,10 +27,20 @@ def check_modules() -> None:
     importlib.import_module("validation").load_form()  # form.json next to the modules
 
 
+def check_extension(bundle: pathlib.Path) -> None:
+    """The developer add-on is in the package, without its tests (MIN-339)."""
+    folder = bundle / "erweiterung"
+    missing = [name for name in EXTENSION_FILES if not (folder / name).is_file()]
+    if missing or (folder / "tests").exists():
+        raise RuntimeError(f"Erweiterung unvollständig: fehlt {missing}" if missing else "Tests der Erweiterung im Paket")
+
+
 def run(result_dir: pathlib.Path | None = None) -> int:
     target = result_dir or pathlib.Path.cwd()
     try:
         check_modules()
+        if getattr(sys, "frozen", False):
+            check_extension(pathlib.Path(sys._MEIPASS))
         with tempfile.TemporaryDirectory() as folder:
             work = pathlib.Path(folder)
             cv = build.main([str(build.ROOT / "data" / "beispiel.yaml"), "--build-dir", str(work / "b1"),

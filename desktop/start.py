@@ -3,6 +3,7 @@
   Bewerbungsassistent.exe                         start, or open the running app
   Bewerbungsassistent.exe bewerbungsassistent://einladung?code=…   also redeem an invitation
   Bewerbungsassistent.exe --selbsttest            build a CV and a letter from example data, then exit
+  Bewerbungsassistent.exe chrome-extension://…/    started by the browser for the extension (Native Messaging)
 """
 import argparse
 import logging
@@ -10,7 +11,10 @@ import pathlib
 import sys
 import webbrowser
 
+import extension
 import instance
+import native_host
+import native_messaging
 import settings
 import setup
 import urlscheme
@@ -61,6 +65,11 @@ def parse(argv: list[str] | None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    raw = sys.argv[1:] if argv is None else argv
+    if native_host.invoked(raw):
+        paths = settings.Paths(settings.app_dir())
+        _setup_logging(paths)
+        return native_host.main(paths)
     args = parse(argv)
     if args.selbsttest:
         import selftest
@@ -82,6 +91,24 @@ def main(argv: list[str] | None = None) -> int:
 def _install_dir() -> pathlib.Path:
     """Folder of the installed app (replaced by updates); in development the folder of this module."""
     return pathlib.Path(sys.executable).parent if getattr(sys, "frozen", False) else bundle_dir()
+
+
+def _host_executable(paths: settings.Paths) -> pathlib.Path:
+    if getattr(sys, "frozen", False):
+        return pathlib.Path(sys.executable)
+    return native_messaging.launcher(paths, sys.platform, bundle_dir(), pathlib.Path(sys.executable))
+
+
+def prepare_extension(paths: settings.Paths) -> pathlib.Path | None:
+    """Register the Native Messaging host and provide the extension folder; the app runs without them too."""
+    frozen = getattr(sys, "frozen", False)
+    try:
+        where = native_messaging.register(paths, _host_executable(paths))
+        log.info("Native Messaging eingetragen: %s", ", ".join(where) or "kein Browser gefunden")
+        return extension.install(paths, extension.source(bundle_dir(), frozen), frozen)
+    except OSError as error:
+        log.warning("Erweiterung nicht vorbereitet: %s", error)
+        return None
 
 
 def start_folder(paths: settings.Paths) -> pathlib.Path:
@@ -110,7 +137,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
         log.info("Datenordner gewechselt: %s", folder)
 
     state = routes_setup.Setup(paths=paths, switch=switch, suggestion=settings.documents_dir() / settings.APP_NAME,
-                               forbidden=(paths.app_dir, _install_dir()))
+                               forbidden=(paths.app_dir, _install_dir()), extension_dir=prepare_extension(paths))
     app_get, app_post = routes_app.make_routes(controls)
     setup_get, setup_post = routes_setup.make_routes(state)
     try:

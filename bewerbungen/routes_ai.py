@@ -53,12 +53,12 @@ def _letter_text(letter: dict) -> str:
     return "\n\n".join(str(p).strip() for p in parts if p and str(p).strip())
 
 
-def _gateway(k, entry: dict | None = None, letter: dict | None = None):
+def ai_gateway(k, entry: dict | None = None, letter: dict | None = None):
     material = tasks.load_material(k.daten)
     return tasks.make_gateway(k.daten, material, new_client(), entry, letter), material
 
 
-def _run(task):
+def run_ai(task):
     """AI errors are meant for the person: they become 400 with the German message."""
     try:
         return task()
@@ -94,10 +94,10 @@ def status(k, parameter, body):
 def redeem(k, parameter, body):
     if not isinstance(body, dict) or not isinstance(body.get("code"), str):
         raise ValueError("code erwartet")
-    url = _run(mediation_url)
+    url = run_ai(mediation_url)
     if url is None:
         raise ValueError("Für diese App ist keine KI-Vermittlung eingerichtet.")
-    _run(lambda: invitation.redeem(url, body["code"]))
+    run_ai(lambda: invitation.redeem(url, body["code"]))
     return json_antwort(_status(k))
 
 
@@ -106,10 +106,10 @@ def rate(k, parameter, body):
     ad = _ad_text(k, entry["id"])
 
     def task():
-        gateway, material = _gateway(k, entry, _letter(k, entry["id"]))
+        gateway, material = ai_gateway(k, entry, _letter(k, entry["id"]))
         return tasks.rate_match(gateway, material, ad)
 
-    return json_antwort(_run(task))
+    return json_antwort(run_ai(task))
 
 
 def draft(k, parameter, body):
@@ -117,10 +117,10 @@ def draft(k, parameter, body):
     ad = _ad_text(k, entry["id"])
 
     def task():
-        gateway, material = _gateway(k, entry, _letter(k, entry["id"]))
+        gateway, material = ai_gateway(k, entry, _letter(k, entry["id"]))
         return tasks.draft_letter(gateway, material, entry, ad), material
 
-    result, material = _run(task)
+    result, material = run_ai(task)
     path = _folder(k, entry["id"]) / LETTER_FILE
 
     def write() -> None:
@@ -141,10 +141,10 @@ def review(k, parameter, body):
         raise ValueError("Zuerst ein Anschreiben entwerfen.")
 
     def task():
-        gateway, material = _gateway(k, entry, letter)
+        gateway, material = ai_gateway(k, entry, letter)
         return tasks.review_content(gateway, material, ad, _letter_text(letter))
 
-    return json_antwort(_run(task))
+    return json_antwort(run_ai(task))
 
 
 GET = {"/api/ki/status": status}

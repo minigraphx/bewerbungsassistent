@@ -11,6 +11,7 @@ from http import HTTPStatus
 from typing import Callable
 
 import dialogs
+import extension
 import settings
 import setup
 
@@ -27,6 +28,8 @@ class Setup:
         lambda kind, start: dialogs.choose(kind, start, sys.platform))
     downloads: pathlib.Path = dataclasses.field(default_factory=lambda: pathlib.Path.home() / "Downloads")
     today: Callable[[], datetime.date] = datetime.date.today
+    extension_dir: pathlib.Path | None = None  # developer add-on to load in the browser (MIN-339)
+    reveal: Callable[[pathlib.Path], None] = lambda folder: dialogs.reveal(folder, sys.platform)
 
     def data_dir(self) -> pathlib.Path | None:
         return settings.chosen_data_dir(self.paths)
@@ -57,7 +60,8 @@ def make_routes(state: Setup) -> tuple[dict, dict]:
         has_cv = chosen is not None and (chosen / "cv.yaml").is_file()
         return json_antwort({"eingerichtet": chosen is not None, "datenordner": str(chosen) if chosen else None,
                              "fehlt": chosen is not None and not chosen.is_dir(), "gewechselt": switched,
-                             "vorschlag": str(state.suggestion), "lebenslauf": has_cv})
+                             "vorschlag": str(state.suggestion), "lebenslauf": has_cv,
+                             "erweiterung": _extension(state)})
 
     def check(k, parameter, body):
         found = setup.check_folder(_path(body), state.forbidden)
@@ -81,9 +85,24 @@ def make_routes(state: Setup) -> tuple[dict, dict]:
     def import_einstieg(k, parameter, body):
         return _import(state, k, body, json_antwort)
 
+    def show_folder(k, parameter, body):
+        kind = body.get("art") if isinstance(body, dict) else None
+        folders = {"erweiterung": state.extension_dir, "datenordner": state.data_dir()}
+        if kind not in folders or folders[kind] is None:
+            raise ValueError("Unbekannter Ordner")
+        state.reveal(folders[kind])
+        return json_antwort({"ok": True})
+
     return ({"/api/app/einrichtung": overview},
             {"/api/app/ordner-pruefen": check, "/api/app/datenordner": choose_data_dir,
-             "/api/app/waehlen": dialog, "/api/app/einstieg": import_einstieg})
+             "/api/app/waehlen": dialog, "/api/app/einstieg": import_einstieg,
+             "/api/app/ordner-zeigen": show_folder})
+
+
+def _extension(state: Setup) -> dict | None:
+    if state.extension_dir is None:
+        return None
+    return {"ordner": str(state.extension_dir), "version": extension.version(state.extension_dir)}
 
 
 def _import(state: Setup, k, body, json_antwort):
