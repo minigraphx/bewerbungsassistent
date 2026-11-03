@@ -1,13 +1,10 @@
 "use strict";
 (() => {
-  const { holen, senden, el, status, url, bestaetigen, pdfAdresse } = window.App;
+  const { holen, senden, el, status, url, bestaetigen, pdfAdresse, zeitpunkt: zeit } = window.App;
   const $ = id => document.getElementById(id);
   const meldung = (text, art) => status($("status"), text, art);
 
-  function zeit(iso) {
-    const d = new Date(iso);
-    return d.toLocaleString("de-CH", { dateStyle: "medium", timeStyle: "short" });
-  }
+  let vorauswahl = new URLSearchParams(location.search).get("datei");
 
   function zeigeText(text) {
     $("pdf-ansicht").hidden = true;
@@ -82,10 +79,13 @@
 
   async function laden() {
     try {
-      const gewaehlt = $("datei").value;
+      const gewaehlt = vorauswahl ?? $("datei").value;
+      vorauswahl = null;
+      history.replaceState(null, "", gewaehlt ? "/entwuerfe?" + new URLSearchParams({ datei: gewaehlt }) : "/entwuerfe");
       const daten = await holen("/api/entwuerfe", gewaehlt ? { datei: gewaehlt } : {});
+      const dateien = gewaehlt && !daten.dateien.includes(gewaehlt) ? [...daten.dateien, gewaehlt] : daten.dateien;
       $("datei").replaceChildren(el("option", { value: "" }, "Alle Dateien"),
-        ...daten.dateien.map(d => el("option", { value: d, selected: d === gewaehlt }, d)));
+        ...dateien.map(d => el("option", { value: d, selected: d === gewaehlt }, d)));
       zeige(daten.entwuerfe);
     } catch (fehler) {
       meldung("Laden fehlgeschlagen: " + fehler.message, "fehler");

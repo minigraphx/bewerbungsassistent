@@ -61,6 +61,29 @@ window.App = (() => {
     element.className = "status " + art;
   }
 
+  function zeitpunkt(iso) {
+    return new Date(iso).toLocaleString("de-CH", { dateStyle: "medium", timeStyle: "short" });
+  }
+
+  // Box in editors: the newest drafts of the file being edited, with a link to all of them (MIN-303)
+  const LETZTE_ENTWUERFE = 3;
+  async function letzteEntwuerfe(element, datei) {
+    element.dataset.datei = datei;
+    const alle = el("a", { href: "/entwuerfe?" + new URLSearchParams({ datei }) }, "Alle Entwürfe dieser Datei");
+    let inhalt;
+    try {
+      const { entwuerfe } = await holen("/api/entwuerfe", { datei, anzahl: LETZTE_ENTWUERFE });
+      const eintraege = entwuerfe.map(e => el("li", {},
+        el("time", { datetime: e.zeit }, zeitpunkt(e.zeit)), " · ", e.beschreibung || "ohne Beschreibung",
+        e.genutzt ? el("span", { class: "leise", title: e.genutzt_fuer.join(", ") }, " · versendet") : null));
+      inhalt = eintraege.length ? el("ul", {}, eintraege) : el("p", { class: "leer" }, "Noch keine Entwürfe.");
+    } catch (fehler) {
+      inhalt = el("p", { class: "leise" }, "Entwürfe nicht lesbar: " + fehler.message);
+    }
+    if (element.dataset.datei !== datei) return;  // another file was chosen meanwhile
+    element.replaceChildren(el("h2", {}, "Letzte Entwürfe"), inhalt, alle);
+  }
+
   function datum(iso) {
     if (!iso) return "";
     const [j, m, t] = iso.split("-");
@@ -109,5 +132,5 @@ window.App = (() => {
   }
   zurueck();
 
-  return { url, holen, senden, el, status, datum, bestaetigen, pdfAdresse };
+  return { url, holen, senden, el, status, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe };
 })();

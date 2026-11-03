@@ -4,17 +4,30 @@ from dateien import im_ordner
 from routen_inhalte import pdf_aus_text
 from server import Antwort, json_antwort, pflicht
 
+MAX_DRAFTS = 1000
+
 
 def _mit_ansicht(e) -> dict:
     return {**e.als_dict(), "titel": inhalte.titel(e.datei),
             "pdf": e.datei.endswith(".pdf") or inhalte.hat_pdf_ansicht(e.datei)}
 
 
+def _limit(parameter) -> int | None:
+    """Optional `anzahl`: how many of the newest drafts to return."""
+    value = parameter.get("anzahl")
+    if value is None:
+        return None
+    if not value.isascii() or not value.isdigit() or not 1 <= int(value) <= MAX_DRAFTS:
+        raise ValueError(f"anzahl muss eine Zahl von 1 bis {MAX_DRAFTS} sein")
+    return int(value)
+
+
 def entwuerfe(k, parameter, body):
     datei = parameter.get("datei")
+    limit = _limit(parameter)
     alle = k.ablage.liste()
     auswahl = k.ablage.liste(im_ordner(k.daten, datei)) if datei else alle
-    return json_antwort({"entwuerfe": [_mit_ansicht(e) for e in auswahl],
+    return json_antwort({"entwuerfe": [_mit_ansicht(e) for e in auswahl[:limit]],
                          "dateien": sorted({e.datei for e in alle})})
 
 

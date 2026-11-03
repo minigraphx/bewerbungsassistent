@@ -75,6 +75,9 @@ pre.ansicht {
 .kopieren .wert.leer { color: var(--leise); font-style: italic; }
 .karte { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 8px; padding: 12px 14px; margin: 8px 0; }
 .leer { color: var(--leise); font-style: italic; }
+.verlauf { margin-top: 8px; font-size: 14px; }
+.verlauf h2 { font-size: 15px; margin-top: 20px; }
+.verlauf ul { margin: 0 0 6px; padding-left: 18px; }
 /* Foto */
 .foto-raster { display: grid; grid-template-columns: minmax(0, 340px) 1fr; gap: 32px; align-items: start; }
 @media (max-width: 680px) { .foto-raster { grid-template-columns: 1fr; } }

@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  const { holen, senden, el, status, pdfAdresse } = window.App;
+  const { holen, senden, el, status, pdfAdresse, letzteEntwuerfe } = window.App;
   const $ = id => document.getElementById(id);
   const meldung = (text, art) => status($("status"), text, art);
   let dateien = [];
@@ -67,6 +67,7 @@
       $("text").value = daten.text;
       zeigeVorschau(null);
       geaendert();
+      letzteEntwuerfe($("verlauf"), aktuelle);
       await ansicht();
     } catch (fehler) {
       meldung("Laden fehlgeschlagen: " + fehler.message, "fehler");
@@ -112,6 +113,7 @@
       const r = await senden("/api/inhalt", { text: $("text").value }, { datei: datei() });
       geladen = $("text").value;
       geaendert();
+      letzteEntwuerfe($("verlauf"), datei());
       zeigeVorschau(r.vorschau ? await vorschauText() : null);
       meldung("Gespeichert. Der Stand davor liegt unter Entwürfe.", "ok");
     } catch (fehler) {

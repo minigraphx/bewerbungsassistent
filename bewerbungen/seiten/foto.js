@@ -2,6 +2,7 @@
 const TOKEN = document.querySelector('meta[name="token"]').content;
 const MIN_ABSTAND_MS = 50;           // höchstens ein Vorschaubild pro 50 ms
 const STANDARD = { mirror: false, zoom: 1, x: 0.5, y: 0.5 };
+const CV = "cv.yaml";                // file holding the crop settings
 const el = id => document.getElementById(id);
 
 let stand = { ...STANDARD };          // aktuelle Werte im Editor
@@ -135,6 +136,7 @@ el("speichern").addEventListener("click", async () => {
     gespeichert = { ...daten };
     zeige();
     status("Gespeichert. Der Stand davor liegt unter Entwürfe.", "ok");
+    window.App.letzteEntwuerfe(el("verlauf"), CV);
   } catch (fehler) {
     zeige();
     status("Speichern fehlgeschlagen: " + fehler.message, "fehler");
@@ -159,3 +161,4 @@ async function start() {
   }
 }
 start();
+window.App.letzteEntwuerfe(el("verlauf"), CV);

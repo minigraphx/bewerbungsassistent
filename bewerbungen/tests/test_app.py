@@ -223,6 +223,24 @@ def test_entwuerfe_ansehen_vergleichen_loeschen(server):
     assert zwei.id not in [e.id for e in k.ablage.liste()]
 
 
+def test_latest_drafts_of_a_file_are_limited(server):
+    k = server.kontext
+    cv = k.daten / "cv.yaml"
+    ids = []
+    for nummer in range(4):
+        cv.write_text(cv.read_text(encoding="utf-8") + f"# {nummer}\n", encoding="utf-8")
+        ids.append(k.ablage.speichere(cv, f"Stand {nummer}").id)
+
+    status, _, inhalt = get(server, "/api/entwuerfe", datei="cv.yaml", anzahl="2")
+    assert status == 200
+    assert [e["id"] for e in json.loads(inhalt)["entwuerfe"]] == [ids[3], ids[2]]
+
+
+@pytest.mark.parametrize("anzahl", ["0", "-1", "zwei", "1001"])
+def test_invalid_draft_limit_is_rejected(server, anzahl):
+    assert get(server, "/api/entwuerfe", datei="cv.yaml", anzahl=anzahl)[0] == 400
+
+
 def test_entwurf_als_pdf(server):
     k = server.kontext
     cv = k.daten / "cv.yaml"
