@@ -55,17 +55,26 @@ def _secure(url: str) -> bool:
     return parts.scheme == "https" or (parts.scheme == "http" and parts.hostname == LOCAL_HOST)
 
 
-def find_connection(environ: dict | None = None, keyring_access=_keyring_access) -> Connection:
-    """The configured connection; AiError with a German hint if there is none."""
+def mediation_url(environ: dict | None = None) -> str | None:
+    """Address of the mediation, if one is configured; AiError if it is not safe."""
     env = os.environ if environ is None else environ
     url = (env.get(URL_VARIABLE) or "").strip()
+    if not url:
+        return None
+    if not _secure(url):
+        raise AiError("Die Adresse der KI-Vermittlung muss mit https:// beginnen.")
+    return url.rstrip("/")
+
+
+def find_connection(environ: dict | None = None, keyring_access=None) -> Connection:
+    """The configured connection; AiError with a German hint if there is none."""
+    env = os.environ if environ is None else environ
+    url = mediation_url(env)
     if url:
-        if not _secure(url):
-            raise AiError("Die Adresse der KI-Vermittlung muss mit https:// beginnen.")
-        access = (env.get(ACCESS_VARIABLE) or "").strip() or keyring_access()
+        access = (env.get(ACCESS_VARIABLE) or "").strip() or (keyring_access or _keyring_access)()
         if not access:
             raise AiError(NOT_SET_UP)
-        return Connection(url.rstrip("/"), access)
+        return Connection(url, access)
     key = (env.get(KEY_VARIABLE) or "").strip()
     if not key:
         raise AiError(NOT_SET_UP)

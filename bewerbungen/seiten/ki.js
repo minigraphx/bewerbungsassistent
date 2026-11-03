@@ -74,20 +74,43 @@
     }
   }
 
+  function statusText(s) {
+    if (!s.eingerichtet) return s.einladung ? "Die KI ist noch nicht eingerichtet: Einladungscode unten eingeben." : s.hinweis;
+    if (!s.vermittlung) return `KI eingerichtet (direkt, Entwicklung). Diesen Monat ${kosten(s.kosten_usd)}.`;
+    const budget = typeof s.budget_usd === "number"
+      ? ` Budget diesen Monat: ${kosten(s.verbraucht_usd)} von ${s.budget_usd.toFixed(2)} USD.` : "";
+    return `KI eingerichtet (über die Vermittlung).${budget}${s.hinweis ? " " + s.hinweis : ""}`;
+  }
+
+  function zeigeStatus(s) {
+    $("ki-status").textContent = statusText(s);
+    $("ki-einladung").hidden = s.eingerichtet || !s.einladung;
+    frei(s.eingerichtet);
+  }
+
   async function ladeStatus() {
     try {
-      const s = await holen("/api/ki/status");
-      const monat = `Diesen Monat ${kosten(s.kosten_usd)}.`;
-      $("ki-status").textContent = s.eingerichtet
-        ? `KI eingerichtet${s.vermittlung ? " (über die Vermittlung)" : " (direkt, Entwicklung)"}. ${monat}`
-        : `${s.hinweis} ${monat}`;
-      frei(s.eingerichtet);
+      zeigeStatus(await holen("/api/ki/status"));
     } catch (fehler) {
       $("ki-status").textContent = "KI-Status nicht lesbar: " + fehler.message;
     }
   }
 
+  async function einloesen() {
+    $("ki-einloesen").disabled = true;
+    try {
+      zeigeStatus(await senden("/api/ki/einladung", { code: $("ki-code").value }));
+      $("ki-code").value = "";
+      meldung("Einladung eingelöst. Die KI ist bereit.", "ok");
+    } catch (fehler) {
+      meldung(fehler.message, "fehler");
+    } finally {
+      $("ki-einloesen").disabled = false;
+    }
+  }
+
   if (!ID) return;
+  $("ki-einloesen").addEventListener("click", einloesen);
   $("ki-bewerten").addEventListener("click", () => ausfuehren("/api/ki/bewerten", "Passung wird bewertet", zeigeBewertung));
   bestaetigen($("ki-entwerfen"), "Ersetzt anschreiben.yaml – nochmals klicken", async () => {
     if (await ausfuehren("/api/ki/anschreiben", "Anschreiben wird entworfen", zeigeEntwurf)) {

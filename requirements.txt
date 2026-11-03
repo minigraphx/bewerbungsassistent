@@ -4,3 +4,4 @@ ruamel.yaml>=0.18
 pypdf
 markdown-it-py>=3
 anthropic>=2.4
+keyring>=25

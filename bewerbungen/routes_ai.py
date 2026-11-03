@@ -6,8 +6,8 @@ outside the lock; only writing the letter holds it (via `mit_entwurf`, which als
 import yaml
 
 import unterlagen
-from ai import tasks
-from ai.connection import find_connection, make_client
+from ai import invitation, tasks
+from ai.connection import find_connection, make_client, mediation_url
 from ai.errors import AiError
 from ai.usage import UsageLog
 from dateien import schreibe_atomar
@@ -66,15 +66,39 @@ def _run(task):
         raise ValueError(str(error)) from error
 
 
-def status(k, parameter, body):
+def _status(k) -> dict:
     month = k.heute().strftime("%Y-%m")
-    spent = UsageLog(k.daten).month_total_usd(month)
+    result = {"monat": month, "kosten_usd": UsageLog(k.daten).month_total_usd(month)}
     try:
         connection = find_connection()
     except AiError as error:
-        return json_antwort({"eingerichtet": False, "hinweis": str(error), "monat": month, "kosten_usd": spent})
-    return json_antwort({"eingerichtet": True, "vermittlung": connection.via_mediation, "monat": month,
-                         "kosten_usd": spent})
+        try:
+            invite = mediation_url() is not None
+        except AiError:
+            invite = False
+        return {**result, "eingerichtet": False, "hinweis": str(error), "einladung": invite}
+    result = {**result, "eingerichtet": True, "vermittlung": connection.via_mediation}
+    if connection.via_mediation:
+        try:
+            konto = invitation.account(connection.base_url, connection.access)
+            result = {**result, "budget_usd": konto.get("budget_usd"), "verbraucht_usd": konto.get("spent_usd")}
+        except AiError as error:
+            result = {**result, "hinweis": str(error)}
+    return result
+
+
+def status(k, parameter, body):
+    return json_antwort(_status(k))
+
+
+def redeem(k, parameter, body):
+    if not isinstance(body, dict) or not isinstance(body.get("code"), str):
+        raise ValueError("code erwartet")
+    url = _run(mediation_url)
+    if url is None:
+        raise ValueError("Für diese App ist keine KI-Vermittlung eingerichtet.")
+    _run(lambda: invitation.redeem(url, body["code"]))
+    return json_antwort(_status(k))
 
 
 def rate(k, parameter, body):
@@ -124,4 +148,5 @@ def review(k, parameter, body):
 
 
 GET = {"/api/ki/status": status}
-POST = {"/api/ki/bewerten": rate, "/api/ki/anschreiben": draft, "/api/ki/pruefen": review}
+POST = {"/api/ki/einladung": redeem, "/api/ki/bewerten": rate, "/api/ki/anschreiben": draft,
+        "/api/ki/pruefen": review}

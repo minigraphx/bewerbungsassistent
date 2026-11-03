@@ -120,3 +120,30 @@ def test_unknown_application_is_404(ki):
     status, _ = post(ki, "/api/ki/bewerten", {}, id="gibt-es-nicht")
 
     assert status == 404
+
+
+def test_invitation_is_offered_and_redeemed(server, monkeypatch):  # noqa: F811
+    monkeypatch.setenv(URL_VARIABLE, "https://ki.example.ch")
+    monkeypatch.delenv(ACCESS_VARIABLE, raising=False)
+    monkeypatch.setattr("ai.connection._keyring_access", lambda: None)
+    redeemed = []
+    monkeypatch.setattr(routes_ai.invitation, "redeem", lambda url, code: redeemed.append((url, code)))
+
+    status, _, inhalt = get(server, "/api/ki/status")
+    assert json.loads(inhalt)["einladung"] is True
+
+    status, antwort = post(server, "/api/ki/einladung", {"code": "ABCD-EFGH"})
+    assert status == 200 and redeemed == [("https://ki.example.ch", "ABCD-EFGH")]
+
+
+def test_status_shows_the_budget_of_the_mediation(server, monkeypatch):  # noqa: F811
+    monkeypatch.setenv(URL_VARIABLE, "https://ki.example.ch")
+    monkeypatch.setenv(ACCESS_VARIABLE, "bwa_x")
+    monkeypatch.setattr(routes_ai.invitation, "account",
+                        lambda url, access: {"month": "2026-11", "spent_usd": 1.5, "budget_usd": 20})
+
+    status, _, inhalt = get(server, "/api/ki/status")
+
+    antwort = json.loads(inhalt)
+    assert antwort["vermittlung"] is True and antwort["budget_usd"] == 20 and antwort["verbraucht_usd"] == 1.5
+    assert b"bwa_x" not in inhalt

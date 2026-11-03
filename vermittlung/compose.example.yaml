@@ -1,0 +1,21 @@
+# Beispiel für den Betrieb mit Caddy (HTTPS automatisch). Kopieren nach compose.yaml, Domain im Caddyfile setzen,
+# den Schlüssel in .env ablegen (ANTHROPIC_API_KEY=…, Datei nur auf dem Server, nie ins Repo).
+services:
+  vermittlung:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      VERMITTLUNG_HINTER_PROXY: "1"
+    volumes:
+      - daten:/data
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy:/data
+volumes:
+  daten:
+  caddy:

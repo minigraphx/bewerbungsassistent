@@ -1,0 +1,7 @@
+# Domain anpassen, z.B. ki.example.ch. Caddy holt das Zertifikat selbst.
+# Bewusst ohne `log`: Ein Zugriffsprotokoll enthielte die Kopfzeile x-api-key mit dem Zugang der Person.
+ki.example.ch {
+	reverse_proxy vermittlung:8080 {
+		flush_interval -1
+	}
+}
