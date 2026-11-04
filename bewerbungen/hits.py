@@ -20,6 +20,7 @@ FOLDER = "suche"
 HITS_FILE = "treffer.yaml"
 RUN_FILE = "letzte-suche.yaml"
 SETTINGS_FILE = "einstellungen.yaml"
+OWN_SITES = "weitere_seiten"
 MAX_STARS = 5
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
@@ -46,14 +47,14 @@ def bounded_text(value, field: str, required: bool = False, limit: int = MAX_FIE
     return text
 
 
-def _link(value, portal: str) -> str:
+def checked_link(value, portal: str) -> str:
     link = bounded_text(value, "Link", required=True, limit=1000)
     # Browsers read "\\" as "/" and take the host before "@" differently than urlsplit: refuse both.
     if any(c in link for c in "\\@ ") or any(ord(c) < 0x20 for c in link):
         raise ValueError(f"Link gehört nicht zu {portal}")
     parts = urllib.parse.urlsplit(link)
     host = (parts.hostname or "").lower()
-    domain = DOMAINS[portal]
+    domain = DOMAINS.get(portal, portal)  # a site the person named has its host as its name (MIN-348)
     if parts.scheme != "https" or parts.netloc.lower() != host or not (host == domain or host.endswith("." + domain)):
         raise ValueError(f"Link gehört nicht zu {portal}")
     return link
@@ -67,17 +68,18 @@ def _age(value) -> int | None:
     return value
 
 
-def validate(raw) -> dict:
-    """A hit as the extension sends it, checked and bounded; the text stays separate."""
+def validate(raw, own_portals: frozenset[str] = frozenset()) -> dict:
+    """A hit as the extension sends it, checked and bounded; the text stays separate. `own_portals`: sites the
+    person named, while they count (MIN-348)."""
     if not isinstance(raw, dict):
         raise ValueError("Treffer muss ein Objekt sein")
     portal = raw.get("portal")
-    if portal not in DOMAINS:
+    if portal not in DOMAINS and portal not in own_portals:
         raise ValueError(f"Unbekanntes Portal: {portal!r}")
     hit = {"portal": portal, "portal_id": bounded_text(raw.get("portal_id"), "portal_id", True, MAX_ID),
            "stelle": bounded_text(raw.get("stelle"), "stelle", True), "firma": bounded_text(raw.get("firma"), "firma") or "unbekannt",
            "ort": bounded_text(raw.get("ort"), "ort"), "pensum": bounded_text(raw.get("pensum"), "pensum"),
-           "link": _link(raw.get("link"), portal), "alter_tage": _age(raw.get("alter_tage")),
+           "link": checked_link(raw.get("link"), portal), "alter_tage": _age(raw.get("alter_tage")),
            "art": bounded_text(raw.get("art"), "art"), "beruf": bounded_text(raw.get("beruf"), "beruf"),
            "lehrbeginn": bounded_text(raw.get("lehrbeginn"), "lehrbeginn")}
     text = raw.get("text")
@@ -198,7 +200,8 @@ class Hits:
     def _write(self, all_hits: list[dict]) -> None:
         schreibe_yaml(self.folder / HITS_FILE, all_hits, "# Treffer der Stellensuche, geschrieben vom Bewerbungsassistenten\n")
 
-    def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict]) -> dict:
+    def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
+               own_portals: frozenset[str] = frozenset()) -> dict:
         """Which hits of a result list the extension should open for the full text.
 
         The same job from another portal needs no text: its link goes to the stored hit right away.
@@ -211,7 +214,7 @@ class Hits:
                            | {o["link"] for h in stored for o in h.get("weitere", [])})
             for raw in listing[:MAX_HITS_PER_CALL * 5]:
                 try:
-                    hit = validate(raw)
+                    hit = validate(raw, own_portals)
                 except ValueError:
                     continue
                 if key(hit) in known_keys or hit["link"] in known_links:
@@ -234,7 +237,8 @@ class Hits:
                 self._write(stored)
         return {"holen": fetch, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": merged}
 
-    def add(self, raw_hits: list, register: list[dict], today: datetime.date) -> dict:
+    def add(self, raw_hits: list, register: list[dict], today: datetime.date,
+            own_portals: frozenset[str] = frozenset()) -> dict:
         """Store new hits; the same job from another portal only adds its link."""
         rejected, new, merged = [], 0, 0
         with _LOCK:
@@ -242,7 +246,7 @@ class Hits:
             by_key = {key(h) for h in stored}
             for raw in raw_hits[:MAX_HITS_PER_CALL]:
                 try:
-                    hit = validate(raw)
+                    hit = validate(raw, own_portals)
                 except ValueError as error:
                     rejected.append(str(error))
                     continue
@@ -292,11 +296,16 @@ class Hits:
         raw = raw if isinstance(raw, dict) else {}
         stars = raw.get("beruf_sterne") if isinstance(raw.get("beruf_sterne"), dict) else {}
         clean = {str(k): v for k, v in stars.items() if type(v) is int and 1 <= v <= MAX_STARS}
-        return {"auto_bewerten": raw.get("auto_bewerten") is not False, "zuschauen": raw.get("zuschauen") is True, "beruf_sterne": clean}
+        return {"auto_bewerten": raw.get("auto_bewerten") is not False, "zuschauen": raw.get("zuschauen") is True, "beruf_sterne": clean,
+                OWN_SITES: raw.get(OWN_SITES) if isinstance(raw.get(OWN_SITES), list) else []}
 
     def _save_settings(self, settings: dict) -> dict:
         schreibe_yaml(self.folder / SETTINGS_FILE, settings)
         return settings
+
+    def set_own_sites(self, addresses: list[str]) -> dict:
+        with _LOCK:
+            return self._save_settings({**self.settings(), OWN_SITES: addresses})
 
     def set_auto_rating(self, enabled: bool) -> dict:
         with _LOCK:

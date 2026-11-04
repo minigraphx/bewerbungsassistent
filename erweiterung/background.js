@@ -3,6 +3,7 @@
 
 import { AppConnection, explain } from './lib/app.js';
 import { runSearch } from './lib/search.js';
+import { followKey, readOpenPage } from './lib/sites.js';
 import { adKey } from './lib/page-ad.js';
 import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, WATCH_ACTION, isRavSender, senderKind } from './lib/senders.js';
 import { ALL_PAGES, ApplyRun } from './lib/apply.js';
@@ -56,7 +57,13 @@ const browserTabs = {
   async openTab(url, watching) {
     const tab = await chrome.tabs.create({ url, active: watching });
     if (watching) watchedTab = tab.id;
-    await waitForLoad(tab.id);
+    try {
+      await waitForLoad(tab.id);
+    } catch (error) {
+      if (watchedTab === tab.id) watchedTab = null;
+      await chrome.tabs.remove(tab.id).catch(() => {});
+      throw error;
+    }
     return tab.id;
   },
   /** Only a note to the person: the search goes on if it cannot be shown. */
@@ -84,7 +91,34 @@ const browserTabs = {
     if (watchedTab === tabId) watchedTab = null; // closed by the search itself, that is no cancelling
     return chrome.tabs.remove(tabId);
   },
+  async readOpen(tabId) {
+    const [result] = await chrome.scripting.executeScript({ target: { tabId }, func: readOpenPage });
+    return (result && result.result) || { title: '', text: '', links: [], wall: '' };
+  },
+  hasAllPages: () => chrome.permissions.contains(ALL_PAGES),
+  askAllPages: () => openPermissionForSearch(),
 };
+
+const OWN_KEY_SEEN = 'eigener-schluessel-gesehen';
+/** The access to all pages for further sites (MIN-348); see followKey. */
+const siteAccess = {
+  remember: () => chrome.storage.local.set({ [OWN_KEY_SEEN]: true }),
+  remembered: async () => Boolean((await chrome.storage.local.get(OWN_KEY_SEEN))[OWN_KEY_SEEN]),
+  async release() {
+    await chrome.permissions.remove(ALL_PAGES);
+    await chrome.storage.local.remove(OWN_KEY_SEEN);
+    return { abgegeben: true };
+  },
+};
+
+async function openPermissionForSearch() {
+  await siteAccess.remember();
+  const url = chrome.runtime.getURL('erlauben.html?fuer=suche');
+  const [open] = await chrome.tabs.query({ url });
+  if (open) await chrome.tabs.update(open.id, { active: true }); // one search after the other must not pile up tabs
+  else await chrome.tabs.create({ url });
+  return { geoeffnet: true };
+}
 
 async function publish(state) {
   await chrome.storage.session.set({ lauf: state });
@@ -101,7 +135,7 @@ async function startSearch() {
   (async () => {
     try {
       const report = (step) => publish({ zustand: 'laeuft', beginn: started, schritt: step });
-      const result = await runSearch({ app, browser: browserTabs, report, sleep: (ms) => new Promise((r) => setTimeout(r, ms)), cancelled: () => searchCancelled });
+      const result = await runSearch({ app, browser: browserTabs, access: siteAccess, report, sleep: (ms) => new Promise((r) => setTimeout(r, ms)), cancelled: () => searchCancelled });
       await publish({ zustand: 'fertig', beginn: started, ende: new Date().toISOString(), ergebnis: result });
     } catch (error) {
       await publish({ zustand: 'fehler', beginn: started, fehler: error.message });
@@ -119,6 +153,7 @@ async function status() {
     const hello = await app.hello();
     // Only a running app is asked for the plan: opening the popup should not start it.
     const plan = hello.app ? await app.request('GET', '/api/suche/plan').then((answer) => answer.plan, () => null) : null;
+    await followKey(plan, siteAccess);
     return { verbunden: true, version: hello.version, app: hello.app, plan };
   } catch (error) {
     return { verbunden: false, fehler: error.message || explain('') };
@@ -354,6 +389,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     'bewerben-starten': (m) => applyRun.start(m),
     'bewerben-weiter': () => applyRun.resume(),
     'rav-starten': (m) => ravRun.start(m),
+    'zugriff-erlauben': () => openPermissionForSearch(),
+    'zugriff-abgeben': () => siteAccess.release(),
   };
   const action = message && actions[message.art];
   if (!action) return false;

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="token" content="__TOKEN__">
+<meta name="bewerbungsassistent" content="app">
 <title>Erweiterte Einstellungen</title>
 <link rel="stylesheet" href="/stil.css">
 </head>
@@ -18,7 +19,19 @@
   <div id="mit-schluessel" hidden>
     <p class="banner ok">Ein eigener Schlüssel ist gespeichert, im Schlüsselbund dieses Computers.</p>
     <div class="knoepfe"><button type="button" id="entfernen" class="gefahr">Schlüssel entfernen</button></div>
-    <p class="hilfe">Danach läuft die App wieder über die Vermittlung.</p>
+    <p class="hilfe">Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab.</p>
+
+    <h2>Weitere Seiten durchsuchen</h2>
+    <p class="hilfe">Die Suche läuft dann auch auf diesen Seiten, sobald Sie sie starten. Die KI liest die Stellen aus dem Text der Seite. Eine Adresse pro Zeile, höchstens <span id="max-seiten"></span>. <code>{begriff}</code> und <code>{ort}</code> setzt die Suche aus Ihrem Suchprofil ein; ohne Platzhalter liest sie die Seite so, wie sie ist, zum Beispiel die offenen Stellen einer Firma.</p>
+    <p class="hilfe">Beispiel: <code>https://www.beispiel.ch/stellen?suche={begriff}&amp;ort={ort}</code></p>
+    <label for="seiten">Adressen</label>
+    <textarea id="seiten" rows="5" spellcheck="false" autocomplete="off"></textarea>
+    <p class="hilfe">Pro Seite höchstens zehn Suchen und dreissig Inserate pro Lauf, mit Pausen dazwischen. Nur Links auf dieselbe Seite werden übernommen. Anmeldungen und CAPTCHAs bleiben bei Ihnen: Verlangt eine Seite das, überspringt die Suche sie. LinkedIn verbietet Automatisierung und kann Konten einschränken oder sperren.</p>
+    <div class="knoepfe">
+      <button type="button" id="seiten-speichern" class="haupt">Seiten speichern</button>
+      <button type="button" id="zugriff" hidden>Zugriff in der Erweiterung erlauben</button>
+    </div>
+    <div id="seiten-meldung" class="status" role="status" aria-live="polite"></div>
   </div>
 
   <div id="ohne-schluessel" hidden>
@@ -35,6 +48,7 @@
     <div class="knoepfe"><button type="button" id="speichern" class="haupt" disabled>Prüfen und speichern</button></div>
   </div>
   <div id="meldung" class="status" role="status" aria-live="polite"></div>
+  <div id="zugriff-meldung" class="status" role="status" aria-live="polite"></div>
 
   <h2>Kosten der KI</h2>
   <p class="hilfe">Was die App für diesen Datenordner notiert hat, auch für Aufrufe über die Vermittlung. Massgebend ist die Abrechnung von Anthropic.</p>

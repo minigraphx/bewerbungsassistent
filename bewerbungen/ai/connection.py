@@ -64,6 +64,17 @@ def own_key() -> str | None:
     return _read_keychain(OWN_KEY_ACCOUNT)
 
 
+def has_own_key() -> bool | None:
+    """Is a key stored? None if the keychain cannot tell, for example while it is locked."""
+    library = _keyring()
+    if library is None:
+        return False
+    try:
+        return library.get_password(KEYRING_SERVICE, OWN_KEY_ACCOUNT) is not None
+    except Exception:  # noqa: BLE001  (its text may hold the key)
+        return None
+
+
 def _secure(url: str) -> bool:
     """https, or plain http only to this computer (for tests of the mediation)."""
     try:

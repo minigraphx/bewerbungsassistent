@@ -19,6 +19,11 @@
     if (event.source !== window || event.origin !== location.origin) return;
     const data = event.data;
     if (!data || data.quelle !== 'bewerbungsassistent-seite') return;
+    if (data.art === 'zugriff-erlauben' || data.art === 'zugriff-abgeben') {
+      chrome.runtime.sendMessage({ art: data.art })
+        .catch((error) => ({ fehler: error.message }))
+        .then((answer) => toPage({ art: 'antwort', frage: data.art, antwort: answer }));
+    }
     if (data.art === 'suche-starten' || data.art === 'status') {
       chrome.runtime.sendMessage({ art: data.art }).then((answer) => toPage({ art: 'antwort', frage: data.art, antwort: answer }));
     }

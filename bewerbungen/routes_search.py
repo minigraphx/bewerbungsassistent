@@ -7,10 +7,11 @@ with drafts (Entwürfe).
 """
 import threading
 
+import own_sites
 import routes_ai
 import search_plan
 import unterlagen
-from ai import tasks
+from ai import connection, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
 import routes_career
@@ -36,17 +37,22 @@ def _list(body, field: str = "treffer") -> list:
 
 
 def plan(k, parameter, body):
-    return json_antwort({"plan": {**search_plan.for_folder(k.daten).as_dict(), "zuschauen": _hits(k).settings()["zuschauen"]}})
+    store = _hits(k)
+    return json_antwort({"plan": {**search_plan.for_folder(k.daten).as_dict(), "zuschauen": store.settings()["zuschauen"],
+                                  "eigener_schluessel": connection.has_own_key(), "weitere_seiten": own_sites.active(store)}})
 
 
 def screen(k, parameter, body):
     current = search_plan.for_folder(k.daten)
-    result = _hits(k).screen(_list(body), current.title_exclude, search_plan.MAX_AGE_DAYS, k.register().alle())
+    store = _hits(k)
+    result = store.screen(_list(body), current.title_exclude, search_plan.MAX_AGE_DAYS, k.register().alle(),
+                          own_sites.active_portals(store))
     return json_antwort(result)
 
 
 def receive(k, parameter, body):
-    return json_antwort(_hits(k).add(_list(body), k.register().alle(), k.heute()))
+    store = _hits(k)
+    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store)))
 
 
 def _portal_summary(raw) -> dict:
@@ -63,9 +69,13 @@ def _portal_summary(raw) -> dict:
 
 def finish(k, parameter, body):
     portals = body.get("portale") if isinstance(body, dict) else None
-    if not isinstance(portals, dict) or not set(portals) <= set(search_plan.ALL_PORTALS):
+    store = _hits(k)
+    # The plan named its sites at the start: the list or the key may have changed since, the rest of the run still counts.
+    known = {*search_plan.ALL_PORTALS, *(site["portal"] for site in own_sites.configured(store))}
+    kept = {name: value for name, value in portals.items() if name in known} if isinstance(portals, dict) else {}
+    if not isinstance(portals, dict) or (portals and not kept):
         raise ValueError("portale erwartet")
-    run = _hits(k).save_run({"portale": {name: _portal_summary(v) for name, v in portals.items()}}, k.heute())
+    run = store.save_run({"portale": {name: _portal_summary(v) for name, v in kept.items()}}, k.heute())
     return json_antwort(run)
 
 

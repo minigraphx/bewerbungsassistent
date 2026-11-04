@@ -22,6 +22,7 @@ import routes_own_key
 import routes_rav
 import routes_page
 import routes_search
+import routes_sites
 from ablage import Ablage
 from dateien import sichere_gitignore
 from kontext import Kontext
@@ -71,9 +72,9 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
     """extra_routes: (GET, POST) of the desktop app, e.g. version and update (MIN-342)."""
     k = kontext or erstelle_kontext(daten, build)
     routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET,
-                  **routes_ai.GET, **routes_own_key.GET, **routes_search.GET, **routes_backup.GET, **routes_certificates.GET, **routes_apply.GET, **routes_rav.GET, **routes_career.GET, **extra_routes[0]}
+                  **routes_ai.GET, **routes_own_key.GET, **routes_sites.GET, **routes_search.GET, **routes_backup.GET, **routes_certificates.GET, **routes_apply.GET, **routes_rav.GET, **routes_career.GET, **extra_routes[0]}
     routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST,
-                   **routes_ai.POST, **routes_own_key.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **extra_routes[1]}
+                   **routes_ai.POST, **routes_own_key.POST, **routes_sites.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **extra_routes[1]}
     return Server(k, routen_get, routen_post, SEITEN, port, body_limits)
 
 

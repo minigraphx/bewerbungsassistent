@@ -30,7 +30,7 @@ if defaults.is_file():
     datas.append((str(defaults), "."))
 
 hidden = (collect_submodules("keyring.backends") + collect_submodules("ai")
-          + ["routen_ablage", "routen_bewerbungen", "routen_foto", "routen_inhalte", "routes_ai", "routes_search", "search_plan", "hits", "app",
+          + ["routen_ablage", "routen_bewerbungen", "routen_foto", "routen_inhalte", "routes_ai", "routes_search", "routes_own_key", "routes_sites", "own_sites", "search_plan", "hits", "app",
              "selftest"])
 
 a = Analysis(

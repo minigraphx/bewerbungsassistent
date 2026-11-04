@@ -2,16 +2,12 @@
 // full texts of the new hits, hits to the app, summary. Only started by the person (popup or app page).
 
 import { ADAPTERS, buildQueries, chunks, hitKey } from './queries.js';
+import { followKey, searchSites } from './sites.js';
+import { CANCELLED, screen, stopIfCancelled } from './steps.js';
 
 export const DELAY_MS = 600; // between requests to a portal, to stay gentle
 export const SEND_SIZE = 10;
-const SCREEN_SIZE = 200;
 const COMMON = 'portals/common.js';
-const CANCELLED = 'Suche abgebrochen.';
-
-function stopIfCancelled(deps) {
-  if (deps.cancelled?.()) throw Object.assign(new Error(CANCELLED), { cancelled: true });
-}
 
 /** The scripts of the portal, and with „Zuschauen“ the message that the browser is being steered (again after each page). */
 async function loadPortal(portal, plan, tab, deps) {
@@ -65,15 +61,6 @@ async function listAll(portal, plan, tab, deps) {
     }
   }
   return { found, problem };
-}
-
-async function screen(found, app) {
-  const wanted = [];
-  for (const part of chunks([...found.values()], SCREEN_SIZE)) {
-    const answer = await app.request('POST', '/api/suche/sichten', { treffer: part });
-    wanted.push(...answer.holen);
-  }
-  return wanted.filter((key) => found.has(key)).map((key) => found.get(key));
 }
 
 /**
@@ -139,11 +126,13 @@ export async function searchPortal(portal, plan, deps) {
 /** The whole run. Errors before the first portal (no app, no search profile) are thrown. */
 export async function runSearch(deps) {
   const { plan } = await deps.app.request('GET', '/api/suche/plan');
+  if (deps.access) await followKey(plan, deps.access);
   const portals = {};
   for (const portal of plan.portale) {
     if (deps.cancelled?.()) break;
     portals[portal] = await searchPortal(portal, plan, deps);
   }
-  await deps.app.request('POST', '/api/suche/abschluss', { portale: portals });
-  return { portale: portals, hinweise: plan.hinweise || [], abgebrochen: Boolean(deps.cancelled?.()) };
+  const all = { ...portals, ...(deps.cancelled?.() ? {} : await searchSites(plan, deps)) };
+  await deps.app.request('POST', '/api/suche/abschluss', { portale: all });
+  return { portale: all, hinweise: plan.hinweise || [], abgebrochen: Boolean(deps.cancelled?.()) };
 }

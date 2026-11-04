@@ -28,7 +28,7 @@ from settings import Paths
 
 ORIGIN_PREFIX = "chrome-extension://"
 ALLOWED = {("GET", "/api/suche/plan"), ("POST", "/api/suche/sichten"), ("POST", "/api/suche/treffer"),
-           ("POST", "/api/suche/abschluss"), ("POST", "/api/seite/pruefen"), ("POST", "/api/seite/speichern"),
+           ("POST", "/api/suche/abschluss"), ("POST", "/api/suche/seite-lesen"), ("POST", "/api/seite/pruefen"), ("POST", "/api/seite/speichern"),
            ("POST", "/api/bewerben/start"), ("GET", "/api/bewerben/daten"), ("GET", "/api/bewerben/datei"),
            ("POST", "/api/bewerben/stand"), ("POST", "/api/bewerben/abgeschickt"),
            ("POST", "/api/bewerben/felder"),

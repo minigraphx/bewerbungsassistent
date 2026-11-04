@@ -29,6 +29,15 @@ Die App nimmt über den Host nur diese vier Anfragen und die zwei für die offen
 
 **Zuschauen (MIN-370):** Die Suche läuft im Hintergrund. Mit dem Häkchen auf der Seite „Treffer“ läuft sie im sichtbaren Tab, damit man mitverfolgen kann, was die Erweiterung tut. Die Einstellung kommt mit dem Suchplan, gilt also auch für einen Start im Popup. Ein Balken sagt, dass der Browser gesteuert wird, und bietet „Suche abbrechen“. Den Tab zu schliessen bricht die Suche ebenfalls ab; was schon an die App ging, bleibt. Wer im Tab etwas anklickt, kann die Abfragen stören, darum die Bitte im Balken: Das betroffene Portal meldet dann ein Problem, die übrigen laufen weiter.
 
+## Weitere Seiten durchsuchen (MIN-348)
+
+Nur mit eigenem API-Schlüssel, die Adressen trägt die Person in der App unter „Erweiterte Einstellungen“ ein.
+
+- **Zugriff:** Das braucht den optionalen Zugriff auf alle Seiten. Die Erlaubnis gibt die Person selbst, in einem eigenen Tab (`erlauben.html?fuer=suche`). Fehlt sie, läuft die Suche auf den Portalen trotzdem und nennt die fehlende Erlaubnis in der Zusammenfassung.
+- **Ablauf:** `lib/sites.js` setzt Begriff und Ort in die Adresse ein, öffnet sie im Tab und schickt Text und Linktexte an die App (`POST /api/suche/seite-lesen`). Die App nennt die Stellen zurück; deren Inserate liest die Erweiterung ebenfalls im Tab, mit einer Pause dazwischen. Danach gehen sie denselben Weg wie die Treffer der Portale.
+- **Grenzen:** Nur die erste Ergebnisseite, höchstens 10 Suchen und 30 Inserate pro Seite. Sie folgt nur Links auf derselben Seite und klickt oder schickt nichts ab. Das Öffnen geschieht mit den Cookies der Person; ein Link wie `/logout` in der Liste würde also aufgerufen, wenn die KI ihn als Stelle nennt. Leitet eine Seite auf eine andere um, hört die Suche dort auf.
+- **Abgeben:** Wird der Schlüssel entfernt, gibt die Erweiterung den Zugriff ab, spätestens beim nächsten Kontakt mit der App. Das betrifft auch Formulare (MIN-346): Dort fragt sie beim nächsten Formular neu. Ist der Schlüsselbund gesperrt, ändert sich nichts.
+
 ## Stelle auf der offenen Seite prüfen oder speichern (MIN-345)
 
 Für Inserate ausserhalb der Portale, zum Beispiel auf LinkedIn oder den Karriereseiten von Firmen. Die Person öffnet das Inserat selbst und klickt auf das Symbol der Erweiterung.
@@ -79,9 +88,9 @@ Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur a
 
 ## Aufbau
 
-- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `127.0.0.1` und Native Messaging, dazu `activeTab` für die offene Seite nach einem Klick und der optionale Zugriff auf alle Seiten für Formulare.
+- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `127.0.0.1` und Native Messaging, dazu `activeTab` für die offene Seite nach einem Klick und der optionale Zugriff auf alle Seiten für Formulare und weitere Seiten.
 - `background.js`: Service Worker; startet die Suche, öffnet und schliesst die Portal-Tabs, meldet den Fortschritt.
-- `lib/`: `queries.js` (Abfragen pro Portal aus dem Suchplan, alle Stichworte zuerst am ersten Ort), `search.js` (Ablauf einer Suche, ohne Browser testbar), `app.js` (Verbindung zur App), `senders.js` (wer Aufträge geben darf), `progress.js` (Text für den Fortschritt).
+- `lib/`: `queries.js` (Abfragen pro Portal aus dem Suchplan, alle Stichworte zuerst am ersten Ort), `search.js` (Ablauf einer Suche, ohne Browser testbar), `sites.js` (weitere Seiten), `steps.js` (Abbrechen, Sichten), `app.js` (Verbindung zur App), `senders.js` (wer Aufträge geben darf), `progress.js` (Text für den Fortschritt).
 - `portals/`: eine Anpassung pro Portal mit `list(query, page)` und `details(hit)`, dazu `common.js` (HTML zu Text, Alter, Pensum, Abrufe).
 - `app-bridge.js`: läuft nur auf Seiten der App (`<meta name="bewerbungsassistent">`), zeigt ihr per Zeichen, dass die Erweiterung da ist, und reicht Start und Fortschritt weiter.
 - `popup.*`: Start der Suche und Stand des letzten Laufs.
