@@ -5,10 +5,14 @@ access back, which goes straight into the keychain (Windows Credential Manager, 
 never shown. `account` reads month, spent and budget for the status line.
 """
 import json
+import logging
 import platform
+import ssl
 import urllib.error
 import urllib.request
 from typing import Callable
+
+import truststore
 
 from ai.connection import KEYRING_ACCOUNT, KEYRING_SERVICE
 from ai.errors import ACCESS_DENIED, OFFLINE, AiError
@@ -16,15 +20,18 @@ from ai.errors import ACCESS_DENIED, OFFLINE, AiError
 TIMEOUT_SECONDS = 30
 REDEEM_PATH = "/v1/invitations/redeem"
 ACCOUNT_PATH = "/v1/account"
-CODE_INVALID = "Der Code gilt nicht (falsch, schon benutzt oder älter als 7 Tage). Bitte um einen neuen Code."
+CODE_INVALID = "Der Code gilt nicht (falsch, schon benutzt oder abgelaufen). Bitte um einen neuen Code."
 TOO_MANY = "Zu viele Versuche. Bitte in einer Minute nochmals."
 NO_KEYCHAIN = "Der Zugang liess sich nicht im Schlüsselbund des Systems ablegen."
 
 Opener = Callable[[urllib.request.Request], object]
+log = logging.getLogger("bewerbungsassistent")
 
 
 def _open(request: urllib.request.Request):
-    return urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS)  # noqa: S310 (https checked in connection)
+    # The packed app has no CA file of its own; the system's trust store verifies, as in the Anthropic SDK.
+    context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    return urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS, context=context)  # noqa: S310 (https checked)
 
 
 def _call(url: str, opener: Opener, body: dict | None = None, access: str | None = None) -> dict:
@@ -37,6 +44,7 @@ def _call(url: str, opener: Opener, body: dict | None = None, access: str | None
     except urllib.error.HTTPError as error:
         raise _http_error(error.code) from error
     except (urllib.error.URLError, TimeoutError, OSError) as error:
+        log.warning("Vermittlung nicht erreicht (%s): %r", url, error)
         raise AiError(OFFLINE) from error
     except (json.JSONDecodeError, UnicodeDecodeError) as error:
         raise AiError("Die Antwort der Vermittlung liess sich nicht lesen.") from error

@@ -2,6 +2,7 @@
 import io
 import json
 import urllib.error
+import urllib.request
 
 import pytest
 
@@ -51,9 +52,10 @@ def test_redeem_errors(status, message):
         invitation.redeem(URL, "ABCD", opener=opener(status=status), keep=lambda a: None)
 
 
-def test_offline_and_empty_code():
+def test_offline_and_empty_code(caplog):
     with pytest.raises(AiError, match="Internet"):
         invitation.redeem(URL, "ABCD", opener=opener(error=urllib.error.URLError("down")), keep=lambda a: None)
+    assert "down" in caplog.text  # the real cause lands in the log
     with pytest.raises(AiError, match="Code gilt nicht"):
         invitation.redeem(URL, "  ", opener=opener({}), keep=lambda a: None)
 
@@ -74,3 +76,19 @@ def test_account_sends_the_access():
 
     assert invitation.account(URL, "bwa_x", opener=fake)["budget_usd"] == 20
     assert fake.requests[0].get_header("X-api-key") == "bwa_x"
+
+
+def test_https_uses_the_certificates_of_the_system(monkeypatch):
+    """The packed app has no CA file of its own (macOS build): the system's trust store must verify."""
+    import truststore
+
+    seen = {}
+
+    def urlopen(request, timeout, context=None):
+        seen["context"] = context
+        return FakeResponse(b"{}")
+    monkeypatch.setattr(invitation.urllib.request, "urlopen", urlopen)
+
+    invitation._open(urllib.request.Request(URL))
+
+    assert isinstance(seen["context"], truststore.SSLContext)

@@ -15,7 +15,7 @@ from limits import RateLimiter
 from policy import Policy
 from pricing import PRICES_USD
 from service import Mediation, Server
-from store import Store
+from store import Store, StoreError
 from upstream import Upstream
 
 NOW = datetime.datetime(2026, 11, 3, 10, 0, tzinfo=datetime.timezone.utc)
@@ -104,10 +104,60 @@ def test_invitation_gives_an_access_once(setup):
     assert again.status_code == 400 and "schon benutzt" in again.json()["error"]["message"]
 
 
-def test_old_invitation_is_refused(setup):
-    setup["clock"]["now"] = NOW + datetime.timedelta(days=8)
+def test_invitation_holds_45_days_by_default(setup):
+    setup["clock"]["now"] = NOW + datetime.timedelta(days=44)
 
-    assert redeem(setup).status_code == 400
+    assert redeem(setup).status_code == 200
+
+
+def test_old_invitation_is_refused(setup):
+    setup["clock"]["now"] = NOW + datetime.timedelta(days=46)
+
+    answer = redeem(setup)
+    assert answer.status_code == 400 and "abgelaufen" in answer.json()["error"]["message"]
+
+
+def invite(db, *options):
+    output = admin.main(["--db", db, "invite", "T03", *options], lambda: NOW)
+    return output, output.split("Code für T03: ")[1].split("\n")[0]
+
+
+def test_admin_sets_how_long_a_code_holds_in_days(tmp_path):
+    db = str(tmp_path / "a.sqlite")
+    output, code = invite(db, "--days", "10")
+
+    assert "Gültig bis 13.11.2026" in output
+    with pytest.raises(StoreError):
+        Store(db).redeem(code, "PC", NOW + datetime.timedelta(days=11))
+    assert Store(db).redeem(code, "PC", NOW + datetime.timedelta(days=9)).startswith("bwa_")
+
+
+@pytest.mark.parametrize("options, until", [
+    ([], "18.12.2026"),                   # 45 days by default
+    (["--weeks", "2"], "17.11.2026"),
+    (["--months", "2"], "03.01.2027"),    # calendar months
+])
+def test_admin_validity_in_weeks_and_months(tmp_path, options, until):
+    output, _ = invite(str(tmp_path / "a.sqlite"), *options)
+
+    assert f"Gültig bis {until}" in output
+
+
+def test_month_end_is_kept_in_shorter_months():
+    start = datetime.datetime(2027, 1, 31, 12, 0, tzinfo=datetime.timezone.utc)
+
+    assert admin.add_months(start, 1).date() == datetime.date(2027, 2, 28)
+
+
+@pytest.mark.parametrize("options", [["--days", "0"], ["--days", "-3"], ["--days", "400"], ["--months", "13"]])
+def test_admin_refuses_odd_validity(tmp_path, options):
+    with pytest.raises(SystemExit, match="Gültigkeit"):
+        admin.main(["--db", str(tmp_path / "a.sqlite"), "invite", "T04", *options], lambda: NOW)
+
+
+def test_only_one_unit_of_validity(tmp_path):
+    with pytest.raises(SystemExit):
+        admin.main(["--db", str(tmp_path / "a.sqlite"), "invite", "T04", "--days", "3", "--weeks", "1"], lambda: NOW)
 
 
 def test_app_sdk_works_through_the_mediation_and_costs_are_logged_without_content(setup):
@@ -221,15 +271,16 @@ def test_admin_commands(tmp_path):
     db = str(tmp_path / "a.sqlite")
     now = lambda: NOW  # noqa: E731
 
-    invitation = admin.main(["--db", db, "einladen", "T02", "--budget", "15"], now)
+    invitation = admin.main(["--db", db, "invite", "T02", "--budget", "15"], now)
     code = invitation.split("Code für T02: ")[1].split("\n")[0]
     Store(db).redeem(code, "PC", NOW)
 
     assert "bewerbungsassistent://einladung?code=" in invitation
-    assert "15.00" in admin.main(["--db", db, "kosten"], now)
-    assert "PC" in admin.main(["--db", db, "zugaenge", "T02"], now)
-    assert admin.main(["--db", db, "sperren", "T02"], now).startswith("1 ")
-    assert "GESPERRT" in admin.main(["--db", db, "zugaenge", "T02"], now)
+    assert "15.00" in admin.main(["--db", db, "costs"], now)
+    assert "PC" in admin.main(["--db", db, "accesses", "T02"], now)
+    assert admin.main(["--db", db, "revoke", "T02"], now).startswith("1 ")
+    assert "GESPERRT" in admin.main(["--db", db, "accesses", "T02"], now)
+    assert "15.00" in admin.main(["--db", db, "costs", "--month", "2026-11"], now)
     with pytest.raises(SystemExit, match="gibt es nicht"):
         admin.main(["--db", db, "budget", "T99", "5"], now)
 

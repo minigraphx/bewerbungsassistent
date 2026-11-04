@@ -125,3 +125,28 @@ def test_quit():
     post["/api/app/beenden"](None, {}, {})
 
     assert stopped.wait(3)
+
+
+def test_https_uses_the_certificates_of_the_system(monkeypatch):
+    """The packed app has no CA file of its own (macOS build): the system's trust store must verify."""
+    import io
+
+    import truststore
+
+    seen = {}
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    def urlopen(request, timeout, context=None):
+        seen["context"] = context
+        return Response(b"{}")
+    monkeypatch.setattr(updates.urllib.request, "urlopen", urlopen)
+
+    updates._fetch(updates.LATEST_URL, 100)
+
+    assert isinstance(seen["context"], truststore.SSLContext)

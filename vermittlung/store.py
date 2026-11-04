@@ -16,7 +16,8 @@ from pricing import Usage
 CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # without 0/O and 1/I, easy to type
 CODE_LENGTH = 16  # 80 bits
 CODE_GROUP = 4
-INVITATION_DAYS = 7
+INVITATION_DAYS = 45  # long enough for a round of applications
+MAX_INVITATION_DAYS = 365
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS people (name TEXT PRIMARY KEY, budget_usd REAL NOT NULL, created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS invitations (code_hash TEXT PRIMARY KEY, person TEXT NOT NULL REFERENCES people(name),
@@ -99,11 +100,13 @@ class Store:
 
     # invitations and accesses
 
-    def create_invitation(self, name: str, now: datetime.datetime) -> str:
+    def create_invitation(self, name: str, now: datetime.datetime, days: int = INVITATION_DAYS) -> str:
+        if not 1 <= days <= MAX_INVITATION_DAYS:
+            raise StoreError(f"Gültigkeit in Tagen: 1 bis {MAX_INVITATION_DAYS}.")
         if not self.has_person(name):
             raise StoreError(f"Person {name} gibt es nicht.")
         code = "".join(secrets.choice(CODE_ALPHABET) for _ in range(CODE_LENGTH))
-        expires = now + datetime.timedelta(days=INVITATION_DAYS)
+        expires = now + datetime.timedelta(days=days)
         self._run("INSERT INTO invitations VALUES (?, ?, ?, ?, NULL)", (_hash(code), name, _iso(now), _iso(expires)))
         return "-".join(code[i:i + CODE_GROUP] for i in range(0, CODE_LENGTH, CODE_GROUP))
 
@@ -118,7 +121,7 @@ class Store:
                     "UPDATE invitations SET used = ? WHERE code_hash = ? AND used IS NULL AND expires > ? "
                     "RETURNING person", (_iso(now), code_hash, _iso(now))).fetchone()
                 if row is None:
-                    raise StoreError("Der Code gilt nicht (falsch, schon benutzt oder älter als 7 Tage).")
+                    raise StoreError("Der Code gilt nicht (falsch, schon benutzt oder abgelaufen).")
                 self._db.execute("INSERT INTO accesses (token_hash, person, device, created) VALUES (?, ?, ?, ?)",
                                  (_hash(token), row["person"], device.strip()[:60] or "Gerät", _iso(now)))
                 self._db.execute("COMMIT")

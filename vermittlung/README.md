@@ -3,7 +3,7 @@
 Modul des [Bewerbungsassistenten](../README.md) für den Pilot (MIN-344): Die App der Teilnehmenden ruft die KI über diese Vermittlung auf. Auf den Rechnern liegt kein API-Schlüssel; jede Person hat einen eigenen Zugang mit Budget.
 
 - **Schnittstelle** wie die Messages API von Anthropic (`POST /v1/messages`, auch Streaming). Die App nutzt das Anthropic SDK mit der Adresse der Vermittlung als `base_url`.
-- **Zugang pro Person:** Einladungscode (16 Zeichen, 7 Tage gültig, nur einmal) → die App löst ihn ein (`POST /v1/invitations/redeem`) und legt den Zugang im Schlüsselbund ab. Codes und Zugänge stehen nur als Hash in der Datenbank. Sperren für alle Geräte einer Person oder für eines.
+- **Zugang pro Person:** Einladungscode (16 Zeichen, standardmässig 45 Tage gültig, nur einmal) → die App löst ihn ein (`POST /v1/invitations/redeem`) und legt den Zugang im Schlüsselbund ab. Codes und Zugänge stehen nur als Hash in der Datenbank. Sperren für alle Geräte einer Person oder für eines.
 - **Grenzen:** Budget pro Monat (sonst Antwort 402, die App sagt „Budget aufgebraucht“), Anfragen pro Minute, nur freigegebene Modelle, höchstens `VERMITTLUNG_MAX_TOKENS` Ausgabe-Tokens, nur Text (keine Bilder, keine Tools). So taugt die Vermittlung nicht als allgemeiner Zugang zu Claude.
 - **Kosten** pro Aufruf: Person, Modell, Tokens, Kosten. **Inhalte werden nie gespeichert oder protokolliert**; sie sind schon in der App pseudonymisiert (MIN-334).
 - `GET /v1/account` zeigt der App Monat, Verbrauch und Budget.
@@ -58,12 +58,15 @@ Im Anthropic-Konto für die Vermittlung einen eigenen Workspace mit Ausgabenlimi
 Auf dem Server (im Container: `docker compose exec vermittlung python admin.py …`):
 
 ```bash
-python admin.py einladen T01 --budget 20   # Person anlegen, Code und Link ausgeben
-python admin.py zugaenge T01               # Geräte mit Zugang
-python admin.py sperren T01 [--zugang 3]   # alle Zugänge oder einen sperren
+python admin.py invite T01 --budget 20     # Person anlegen, Code und Link ausgeben (45 Tage gültig)
+python admin.py invite T01 --months 2      # andere Gültigkeit: --days, --weeks oder --months, höchstens 12 Monate
+python admin.py accesses T01               # Geräte mit Zugang
+python admin.py revoke T01 [--access 3]    # alle Zugänge oder einen sperren
 python admin.py budget T01 30              # Budget pro Monat in USD
-python admin.py kosten [--monat 2026-11]   # Kosten pro Person
+python admin.py costs [--month 2026-11]    # Kosten pro Person
 ```
+
+`--months` zählt Kalendermonate: vom 31. Januar einen Monat weiter ist der 28. Februar.
 
 Personen nur mit Kürzel anlegen (T01, T02 …), nicht mit echtem Namen. Monate zählen in UTC.
 

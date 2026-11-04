@@ -1,19 +1,21 @@
-"""Administration of the mediation (MIN-344), on the server: `python admin.py <befehl>`.
+"""Administration of the mediation (MIN-344), on the server: `python admin.py <command>`.
 
-  einladen T01 [--budget 20]     Person anlegen (falls neu) und Einladungscode ausgeben (7 Tage gültig)
-  sperren T01 [--zugang 3]       alle Zugänge der Person sperren, oder nur einen (pro Gerät)
+  invite T01 [--budget 20] [--days 45 | --weeks 6 | --months 2]
+                                 Person anlegen (falls neu) und Einladungscode ausgeben (Standard 45 Tage)
+  revoke T01 [--access 3]        alle Zugänge der Person sperren, oder nur einen (pro Gerät)
   budget T01 30                  Budget pro Monat in USD ändern
-  zugaenge T01                   Zugänge mit Gerät, erstellt, zuletzt genutzt, gesperrt
-  kosten [--monat 2026-11]       Kosten pro Person im Monat
+  accesses T01                   Zugänge mit Gerät, erstellt, zuletzt genutzt, gesperrt
+  costs [--month 2026-11]        Kosten pro Person im Monat
 
 Personen nur mit Kürzel anlegen (z.B. T01), nicht mit echtem Namen.
 """
 import argparse
+import calendar
 import datetime
 import os
 import sys
 
-from store import Store, StoreError, month_of
+from store import INVITATION_DAYS, MAX_INVITATION_DAYS, Store, StoreError, month_of
 
 DEFAULT_BUDGET_USD = 20.0
 LINK = "bewerbungsassistent://einladung?code={code}"
@@ -23,15 +25,34 @@ def _now() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
 
 
+def add_months(moment: datetime.datetime, months: int) -> datetime.datetime:
+    """Same day `months` calendar months later; the last day of the month when that day is missing."""
+    index = moment.month - 1 + months
+    year, month = moment.year + index // 12, index % 12 + 1
+    return moment.replace(year=year, month=month, day=min(moment.day, calendar.monthrange(year, month)[1]))
+
+
+def validity_days(args, now: datetime.datetime) -> int:
+    if args.months is not None:
+        return (add_months(now, args.months) - now).days if args.months > 0 else 0
+    if args.weeks is not None:
+        return args.weeks * 7
+    return args.days if args.days is not None else INVITATION_DAYS
+
+
 def invite(store: Store, args, now: datetime.datetime) -> str:
+    days = validity_days(args, now)
+    if not 1 <= days <= MAX_INVITATION_DAYS:
+        raise StoreError(f"Gültigkeit: 1 bis {MAX_INVITATION_DAYS} Tage (höchstens 12 Monate).")
     if not store.has_person(args.person):
         store.add_person(args.person, args.budget, now)
-    code = store.create_invitation(args.person, now)
-    return f"Code für {args.person}: {code}\nLink: {LINK.format(code=code)}\nGültig 7 Tage, nur einmal."
+    code = store.create_invitation(args.person, now, days)
+    until = (now + datetime.timedelta(days=days)).astimezone(datetime.timezone.utc).strftime("%d.%m.%Y")
+    return f"Code für {args.person}: {code}\nLink: {LINK.format(code=code)}\nGültig bis {until} (UTC), nur einmal."
 
 
 def revoke(store: Store, args, now: datetime.datetime) -> str:
-    count = store.revoke(args.person, now, args.zugang)
+    count = store.revoke(args.person, now, args.access)
     return f"{count} Zugang/Zugänge von {args.person} gesperrt."
 
 
@@ -48,7 +69,7 @@ def accesses(store: Store, args, now: datetime.datetime) -> str:
 
 
 def costs(store: Store, args, now: datetime.datetime) -> str:
-    month = args.monat or month_of(now)
+    month = args.month or month_of(now)
     rows = store.costs(month)
     lines = [f"{r['person']:<8} {r['calls']:>5} Aufrufe  {r['cost_usd']:>8.2f} von {r['budget_usd']:.2f} USD"
              for r in rows]
@@ -59,23 +80,27 @@ def parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="Verwaltung der KI-Vermittlung")
     ap.add_argument("--db", default=os.environ.get("VERMITTLUNG_DB", "/data/vermittlung.sqlite"))
     sub = ap.add_subparsers(dest="command", required=True)
-    p = sub.add_parser("einladen")
+    p = sub.add_parser("invite", help="Person anlegen und Einladungscode ausgeben")
     p.add_argument("person")
-    p.add_argument("--budget", type=float, default=DEFAULT_BUDGET_USD)
+    p.add_argument("--budget", type=float, default=DEFAULT_BUDGET_USD, help="USD pro Monat")
+    validity = p.add_mutually_exclusive_group()
+    validity.add_argument("--days", type=int, help=f"Gültigkeit in Tagen (Standard {INVITATION_DAYS})")
+    validity.add_argument("--weeks", type=int, help="Gültigkeit in Wochen")
+    validity.add_argument("--months", type=int, help="Gültigkeit in Kalendermonaten")
     p.set_defaults(run=invite)
-    p = sub.add_parser("sperren")
+    p = sub.add_parser("revoke", help="Zugänge sperren")
     p.add_argument("person")
-    p.add_argument("--zugang", type=int)
+    p.add_argument("--access", type=int, help="nur diesen Zugang (ID aus accesses)")
     p.set_defaults(run=revoke)
-    p = sub.add_parser("budget")
+    p = sub.add_parser("budget", help="Budget pro Monat ändern")
     p.add_argument("person")
     p.add_argument("usd", type=float)
     p.set_defaults(run=budget)
-    p = sub.add_parser("zugaenge")
+    p = sub.add_parser("accesses", help="Zugänge einer Person")
     p.add_argument("person")
     p.set_defaults(run=accesses)
-    p = sub.add_parser("kosten")
-    p.add_argument("--monat")
+    p = sub.add_parser("costs", help="Kosten pro Person im Monat")
+    p.add_argument("--month", help="JJJJ-MM, Standard: laufender Monat (UTC)")
     p.set_defaults(run=costs)
     return ap
 

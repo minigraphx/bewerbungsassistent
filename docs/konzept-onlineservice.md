@@ -268,7 +268,7 @@ Hosting des Projektinhabers (Schweiz)    ▼
 Ein kleiner Dienst auf dem bestehenden Hosting des Projektinhabers in der Schweiz (MIN-344). Er hält den Anthropic-Schlüssel, damit keiner auf den Rechnern liegt.
 
 - **Schnittstelle:** gleich wie die Messages API von Anthropic. `ki.py` nutzt das Anthropic SDK mit der Adresse der Vermittlung und dem Zugang der Person.
-- **Einladung:** Der Projektinhaber erstellt pro Person einen Link mit Einmal-Code. Die App löst ihn ein und erhält einen Zugang. Der Code verfällt nach Gebrauch oder nach 7 Tagen.
+- **Einladung:** Der Projektinhaber erstellt pro Person einen Link mit Einmal-Code. Die App löst ihn ein und erhält einen Zugang. Der Code verfällt nach Gebrauch oder nach seiner Gültigkeit (Standard 45 Tage, damit eine Runde Bewerbungen hineinpasst).
 - **Grenzen:** Budget pro Person und Monat, Anfragen pro Minute, nur freigegebene Modelle, keine Server-Tools. So taugt die Vermittlung nicht als allgemeiner Zugang zu Claude.
 - **Kosten:** pro Aufruf Person, Modell, Tokens und Kosten, ohne Inhalte. Daraus kommen die gemessenen Kosten des Pilots.
 - **Inhalte:** werden nur durchgereicht, nie gespeichert oder protokolliert. Sie sind schon in der App pseudonymisiert.

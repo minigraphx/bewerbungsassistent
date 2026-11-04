@@ -10,10 +10,13 @@ import hashlib
 import json
 import pathlib
 import re
+import ssl
 import subprocess
 import urllib.error
 import urllib.request
 from typing import Callable
+
+import truststore
 
 REPO = "minigraphx/bewerbungsassistent"
 LATEST_URL = f"https://api.github.com/repos/{REPO}/releases/latest"
@@ -51,7 +54,8 @@ def _fetch(url: str, limit: int) -> bytes:
     request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
                                                    "User-Agent": "Bewerbungsassistent"})
     timeout = DOWNLOAD_TIMEOUT_SECONDS if limit > SMALL_FILE_BYTES else TIMEOUT_SECONDS
-    with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 (https only)
+    context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # the packed app has no CA file of its own
+    with urllib.request.urlopen(request, timeout=timeout, context=context) as response:  # noqa: S310 (https only)
         data = response.read(limit + 1)
     if len(data) > limit:
         raise UpdateError("Die Datei ist grösser als erwartet; Update abgebrochen.")
