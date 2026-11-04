@@ -1,6 +1,7 @@
 """Setup of the desktop app (MIN-342): data folder, native dialogs, import of the einstieg file."""
 import json
 import pathlib
+import re
 import subprocess
 import threading
 import urllib.request
@@ -372,3 +373,12 @@ def test_route_opens_the_page_and_shows_the_folder(tmp_path):
     answer = post_routes["/api/app/erweiterungsseite"](None, {}, {"browser": "edge"})
 
     assert answer.status == 200 and opened == ["edge"] and shown == [tmp_path / "erweiterung"]
+
+
+def test_the_setup_page_links_to_the_guide_and_its_pictures_exist():
+    root = pathlib.Path(__file__).resolve().parents[2]
+    page = (root / "bewerbungen" / "seiten" / "einrichtung.html").read_text(encoding="utf-8")
+    guide = root / "docs" / "installation.md"
+    assert "docs/installation.md" in page
+    pictures = re.findall(r"\]\((bilder/[^)]+)\)", guide.read_text(encoding="utf-8"))
+    assert pictures and all((guide.parent / picture).exists() for picture in pictures)

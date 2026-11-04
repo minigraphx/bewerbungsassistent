@@ -18,6 +18,8 @@ Der Assistent nimmt Routinearbeit ab, damit mehr Zeit für das bleibt, was eine 
 
 **Für Arbeitgeber** heisst das: Ausschreibungen werden von passenden Bewerbenden auch dann gefunden, wenn sie weit hinten in den Suchergebnissen stehen. Der Assistent prüft jede gefundene Ausschreibung auf Passung und wird dabei nicht müde. Er ist auf gezielte Auswahl statt Streuung ausgelegt. Die Unterlagen beziehen sich auf die ausgeschriebene Stelle, auf die Anforderungen des Inserats und auf die Firma, und sie sind übersichtlich gestaltet.
 
+**Loslegen:** Die [Anleitung zur Installation](docs/installation.md) führt mit Bildern durch App, Einrichtung und Erweiterung.
+
 ## So sieht es aus
 
 Alle Bilder zeigen frei erfundene Beispieldaten.

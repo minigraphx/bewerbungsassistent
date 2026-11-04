@@ -32,6 +32,8 @@ Die App fragt beim Start und danach höchstens alle 6 Stunden das neueste Releas
 
 Für das Release zusätzlich mit Code-Signatur (Windows Authenticode, Apple Developer ID); dann entfällt auch die Warnung bei der Erstinstallation (MIN-351).
 
+Die Anleitung für Teilnehmende steht in [`docs/installation.md`](../docs/installation.md); ändert sich der Ablauf, dort nachführen.
+
 ## Installation im Pilot (Windows)
 
 1. `Bewerbungsassistent-Setup-<Version>.exe` aus dem Release laden und öffnen.
