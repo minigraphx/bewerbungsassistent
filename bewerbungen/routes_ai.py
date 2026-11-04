@@ -7,7 +7,7 @@ import yaml
 
 import unterlagen
 from ai import form_help, invitation, tasks
-from ai.connection import find_connection, make_client, mediation_url
+from ai.connection import find_connection, make_client, mediation_url, own_key
 from ai.errors import AiError
 from ai.usage import UsageLog
 from dateien import schreibe_atomar
@@ -99,7 +99,8 @@ def _status(k) -> dict:
         except AiError:
             invite = False
         return {**result, "eingerichtet": False, "hinweis": str(error), "einladung": invite}
-    result = {**result, "eingerichtet": True, "vermittlung": connection.via_mediation}
+    result = {**result, "eingerichtet": True, "vermittlung": connection.via_mediation,
+              "eigener_schluessel": own_key() is not None}
     if connection.via_mediation:
         try:
             konto = invitation.account(connection.base_url, connection.access)

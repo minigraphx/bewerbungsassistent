@@ -15,7 +15,7 @@ import build
 
 RESULT_FILE = "selbsttest.txt"
 # Imported inside functions at runtime; importing them here by name checks that PyInstaller packed them.
-LATE_MODULES = ("app", "routes_app", "routes_setup", "dialogs", "setup", "import_bundle", "routes_ai", "ai.gateway",
+LATE_MODULES = ("app", "routes_app", "routes_setup", "dialogs", "setup", "import_bundle", "routes_ai", "ai.gateway", "routes_own_key",
                 "routes_search", "search_plan", "hits", "ai.invitation", "updates", "truststore",
                 "routes_angaben", "import_documents", "documents", "archive", "prefill", "read_documents", "pypdf")
 EXTENSION_FILES = ("manifest.json", "background.js", "popup.html", "app-bridge.js", "portals/common.js",

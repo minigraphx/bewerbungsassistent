@@ -1,4 +1,8 @@
 """Gemeinsame Testdaten: ein Datenordner mit den erfundenen Beispieldaten des Lebenslauf-Moduls."""
+import os
+
+os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.null.Keyring"  # tests never touch the real keychain
+
 import shutil
 
 import pytest

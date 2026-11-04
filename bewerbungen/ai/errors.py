@@ -21,7 +21,9 @@ class AnswerError(AiError):
 
 NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. In der App die Einladung einlösen "
               "(oder für die Entwicklung ANTHROPIC_API_KEY setzen).")
-ACCESS_DENIED = "Der Zugang zur KI gilt nicht mehr. Bitte bei der Person melden, die Sie im Pilot begleitet."
+ACCESS_DENIED = ("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen "
+                 "prüfen. Sonst bei der Person melden, die Sie im Pilot begleitet.")
+NO_CREDIT = "Das Guthaben Ihres API-Schlüssels reicht nicht mehr. Bitte bei Anthropic aufladen."
 BUDGET_USED = "Das Budget für die KI ist für diesen Monat aufgebraucht. Ab dem nächsten Monat geht es wieder."
 RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} Sekunden nochmals versuchen."
 TIMEOUT = "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen."
@@ -33,6 +35,7 @@ TOO_LONG = "Die Antwort der KI war zu lang und ist unvollständig. Bitte nochmal
 BAD_ANSWER = "Die Antwort der KI liess sich nicht lesen. Bitte nochmals versuchen."
 DEFAULT_RETRY_SECONDS = 60
 BUDGET_STATUS = 402  # the mediation (MIN-344) answers 402 when the monthly budget is used up
+NO_CREDIT_WORDS = "credit balance"  # how the API says it, with status 400, to someone with an own key (MIN-348)
 
 
 def from_sdk(error: Exception) -> AiError:
@@ -51,6 +54,8 @@ def from_sdk(error: Exception) -> AiError:
             return AiError(BUDGET_USED)
         if error.status_code >= 500:
             return AiError(SERVER)
+        if NO_CREDIT_WORDS in str(error.message).lower():
+            return AiError(NO_CREDIT)
         return AiError(REJECTED_REQUEST)
     return AiError(SERVER)
 

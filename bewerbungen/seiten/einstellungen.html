@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<title>Erweiterte Einstellungen</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Treffer</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einstellungen">Erweiterte Einstellungen</a></div></details></nav>
+<main class="einrichtung">
+  <h1>Erweiterte Einstellungen</h1>
+
+  <h2>Eigener API-Schlüssel</h2>
+  <p class="hilfe">Sie brauchen das nicht, die App läuft auch ohne. Mit einem eigenen Schlüssel von Anthropic gehen die KI-Aufrufe direkt an die Claude API statt über die Vermittlung. Namen und andere persönliche Angaben werden auch dann vor dem Senden ersetzt.</p>
+
+  <div id="mit-schluessel" hidden>
+    <p class="banner ok">Ein eigener Schlüssel ist gespeichert, im Schlüsselbund dieses Computers.</p>
+    <div class="knoepfe"><button type="button" id="entfernen" class="gefahr">Schlüssel entfernen</button></div>
+    <p class="hilfe">Danach läuft die App wieder über die Vermittlung.</p>
+  </div>
+
+  <div id="ohne-schluessel" hidden>
+    <p><strong>Bevor Sie einen Schlüssel eintragen:</strong></p>
+    <ul>
+      <li>Sie tragen die Kosten selbst. Anthropic rechnet direkt mit Ihnen ab.</li>
+      <li>LinkedIn verbietet Automatisierung und kann Konten einschränken oder sperren. Das Risiko liegt bei Ihnen, wenn Sie LinkedIn als weitere Seite durchsuchen lassen.</li>
+      <li>Für die Verarbeitung gilt Ihr eigener Vertrag mit Anthropic, auch in den USA.</li>
+    </ul>
+    <label class="schalter"><input type="checkbox" id="bestaetigt"> Ich habe das gelesen und bin einverstanden.</label>
+    <label for="schluessel">API-Schlüssel</label>
+    <input id="schluessel" type="password" autocomplete="off" spellcheck="false">
+    <p class="hilfe">Beim Speichern prüft ein kleiner, kostenloser Aufruf den Schlüssel; zum Guthaben sagt er nichts. Der Schlüssel liegt danach nur im Schlüsselbund des Computers, nie im Datenordner und nie in der Browser-Erweiterung.</p>
+    <div class="knoepfe"><button type="button" id="speichern" class="haupt" disabled>Prüfen und speichern</button></div>
+  </div>
+  <div id="meldung" class="status" role="status" aria-live="polite"></div>
+
+  <h2>Kosten der KI</h2>
+  <p class="hilfe">Was die App für diesen Datenordner notiert hat, auch für Aufrufe über die Vermittlung. Massgebend ist die Abrechnung von Anthropic.</p>
+  <ul>
+    <li>Dieser Monat: <span id="kosten-monat"></span></li>
+    <li>Insgesamt: <span id="kosten-gesamt"></span></li>
+    <li>Anzahl Aufrufe: <span id="kosten-aufrufe"></span></li>
+  </ul>
+</main>
+<script src="/app.js"></script>
+<script src="/einstellungen.js"></script>
+</body>
+</html>

@@ -1,10 +1,12 @@
 """Shared helpers for onboarding tests: load the form definition and the shared cases."""
 import copy
 import json
+import os
 import pathlib
 
 import pytest
 
+os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.null.Keyring"  # tests never touch the real keychain
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CASES = json.loads((ROOT / "tests" / "cases.json").read_text(encoding="utf-8"))
 
