@@ -310,8 +310,10 @@ class PrefillMessages:
 
 
 def prefill_reply() -> dict:
-    return {"work": [{"position": "Entwicklerin", "name": "Muster GmbH", "location": "", "startDate": "2019", "endDate": "",
-                      "highlights": [], "evidence": "", "source": {"document": 1, "place": "Seite 1"}}]}
+    fields = {"position": "Entwicklerin", "name": "Muster GmbH", "startDate": "2019"}
+    return {"entries": [{"section": "work", "source": {"document": 1, "place": "Seite 1"},
+                         "fields": [{"field": name, "value": value} for name, value in fields.items()]}],
+            "suspicious_lines": []}
 
 
 def install_client(monkeypatch, reply) -> PrefillMessages:

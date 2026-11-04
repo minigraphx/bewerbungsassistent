@@ -8,8 +8,24 @@ import pytest
 import import_documents
 import prefill
 import validation
+from ai import prompts
 from ai.errors import AiError
 from archive import Document
+
+
+def as_pairs(item: dict) -> list[dict]:
+    return [{"field": name, "value": one} for name, value in item.items() if name != "source"
+            for one in (value if isinstance(value, list) else [value])]
+
+
+def as_entries(reply: object) -> object:
+    """The tests write sections with their fields; the AI answers in the flat form of the schema."""
+    if not isinstance(reply, dict) or "entries" in reply:
+        return reply
+    entries = [{"section": name, "source": item.get("source"), "fields": as_pairs(item)}
+               for name, value in reply.items() if name != "suspicious_lines"
+               for item in (value if isinstance(value, list) else [value]) if isinstance(item, dict)]
+    return {"entries": entries, "suspicious_lines": reply.get("suspicious_lines", [])}
 
 
 class FakeMessages:
@@ -21,7 +37,7 @@ class FakeMessages:
         self.calls.append(payload)
         usage = types.SimpleNamespace(input_tokens=1200, output_tokens=800, cache_creation_input_tokens=0,
                                       cache_read_input_tokens=0)
-        block = types.SimpleNamespace(type="text", text=json.dumps(self.reply, ensure_ascii=False))
+        block = types.SimpleNamespace(type="text", text=json.dumps(as_entries(self.reply), ensure_ascii=False))
         return types.SimpleNamespace(content=[block], usage=usage, stop_reason="end_turn", model=payload["model"],
                                      _request_id="req_test")
 
@@ -46,16 +62,7 @@ PERSON = {"name": "Erika Beispiel", "email": "erika.beispiel@example.ch", "phone
 
 
 def empty_answer(**sections) -> dict:
-    answer = {key: value for key, value in prefill.build_schema(FORM, "job")["properties"].items()}
-    result = {}
-    for key, schema in answer.items():
-        if schema["type"] == "array":
-            result[key] = []
-        else:
-            result[key] = {name: ([] if field["type"] == "array" else ("" if field["type"] == "string" else 1))
-                           for name, field in schema["properties"].items() if name != "source"}
-            result[key]["source"] = {"document": 1, "place": ""}
-    return {**result, **sections}
+    return sections
 
 
 WORK = {"position": "Software-Entwicklerin", "name": "Beispiel AG", "location": "Bern", "startDate": "2019",
@@ -175,12 +182,53 @@ def test_too_many_items_and_lines_are_cut(folder):
 def test_sections_outside_the_prefill_list_are_ignored(folder):
     client = FakeClient(reply={**empty_answer(), "person": {"name": "Jemand"}, "searchJob": {"home": "Bern"}})
     assert run(folder, client)["suggestions"] == {}
-    schema = prefill.build_schema(FORM, "job")["properties"]
-    assert "person" not in schema and "searchJob" not in schema and "address" not in schema["style"]["properties"]
+    guide = prefill.field_guide(FORM, "job")
+    assert "person" not in guide and "searchJob" not in guide and "address" not in guide
 
 
 def test_summary_is_only_for_the_job_track():
-    assert "summary" not in prefill.build_schema(FORM, "apprenticeship")["properties"]
+    assert "summary" not in prefill.field_guide(FORM, "apprenticeship")
+    assert "- summary" in prefill.field_guide(FORM, "job")
+
+
+def test_the_schema_stays_flat_because_the_api_refuses_large_ones():
+    assert json.dumps(prompts.PREFILL_SCHEMA).count('"object"') <= 4
+    assert "position" not in json.dumps(prompts.PREFILL_SCHEMA)
+
+
+def test_the_guide_names_every_field_and_the_allowed_values():
+    guide = prefill.field_guide(FORM, "job")
+    for section in prefill._sections(FORM, "job"):
+        assert all(field["id"] in guide for field in prefill._fields(section, "job"))
+    assert "fluency (nur: " in guide and "highlights (mehrere Werte" in guide
+
+
+def test_the_ai_gets_the_guide_and_the_flat_schema(folder):
+    client = FakeClient(reply=empty_answer())
+    run(folder, client)
+    call = client.messages.calls[0]
+    assert call["output_config"]["format"]["schema"] == prompts.PREFILL_SCHEMA
+    assert "- work (ein Eintrag pro Station): position" in call["system"][1]["text"]
+
+
+def test_a_broken_flat_answer_gives_no_suggestions(folder):
+    for reply in ({"entries": "kaputt", "suspicious_lines": []}, {"entries": [5, {"section": 3}, {"section": "work", "fields": "x"}], "suspicious_lines": []}):
+        result = run(folder, FakeClient(reply=reply))
+        assert "work" not in result["suggestions"]
+
+
+def test_a_single_section_named_twice_keeps_the_first(folder):
+    first = {"section": "interests", "source": {"document": 1, "place": "A"}, "fields": [{"field": "interests", "value": "Lesen"}]}
+    second = {"section": "interests", "source": {"document": 1, "place": "B"}, "fields": [{"field": "interests", "value": "Sport"}]}
+    result = run(folder, FakeClient(reply={"entries": [first, second], "suspicious_lines": []}))
+    assert result["suggestions"]["interests"]["values"]["interests"] == ["Lesen"]
+
+
+def test_a_field_with_one_value_keeps_the_first_when_named_twice(folder):
+    entry = {"section": "languages", "source": {"document": 1, "place": "S. 1"},
+             "fields": [{"field": "language", "value": "Deutsch"}, {"field": "language", "value": "Englisch"}, {"field": "erfunden", "value": "x"}]}
+    result = run(folder, FakeClient(reply={"entries": [entry], "suspicious_lines": []}))
+    assert result["suggestions"]["languages"][0]["values"] == {"language": "Deutsch"}
 
 
 def test_single_sections_are_suggested_with_source(folder):

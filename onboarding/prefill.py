@@ -32,11 +32,10 @@ NO_NAME = ("Zuerst den Namen unter „Person und Kontakt“ eintragen: So erkenn
            "und schickt ihn nicht an die KI.")
 BROKEN_CV = "cv.yaml lässt sich nicht lesen."
 UNKNOWN_TRACK = "Unbekannte Art der Suche."
-_TEXT = {"type": "string"}
-
-
-def _object(properties: dict) -> dict:
-    return {"type": "object", "properties": properties, "required": list(properties), "additionalProperties": False}
+SINGLE_ENTRY = "ein Eintrag"
+MANY_ENTRIES = "ein Eintrag pro Station"
+SEVERAL_VALUES = "mehrere Werte, pro Wert ein Paar"
+ONLY_VALUES = "nur: {values}"
 
 
 def _fields(section: dict, track: str) -> list[dict]:
@@ -48,22 +47,57 @@ def _sections(form: dict, track: str) -> list[dict]:
     return [s for s in form["sections"] if s["id"] in SECTIONS and validation.applies(s, track)]
 
 
-def _field_schema(field: dict, track: str) -> dict:
+def _field_guide(field: dict, track: str) -> str:
     if field["type"] == "list":
-        return {"type": "array", "items": _TEXT}
+        return f"{field['id']} ({SEVERAL_VALUES})"
     if field["type"] == "select":
-        return {"type": "string", "enum": [*validation.for_track(field["options"], track), ""]}
-    return _TEXT
+        return f"{field['id']} ({ONLY_VALUES.format(values=', '.join(validation.for_track(field['options'], track)))})"
+    return field["id"]
 
 
-def build_schema(form: dict, track: str) -> dict:
-    """JSON schema of the answer, from the form itself, so both stay the same."""
-    source = _object({"document": {"type": "integer"}, "place": _TEXT})
-    properties = {}
+def field_guide(form: dict, track: str) -> str:
+    """Sections and fields of the form for the instructions. They cannot be in the schema of the answer: a schema with
+    every field is too large for the API ("compiled grammar is too large"). `clean_answer` holds answers to the form."""
+    lines = []
     for section in _sections(form, track):
-        item = _object({**{f["id"]: _field_schema(f, track) for f in _fields(section, track)}, "source": source})
-        properties[section["id"]] = {"type": "array", "items": item} if section.get("repeat") else item
-    return _object({**properties, "suspicious_lines": {"type": "array", "items": _TEXT}})
+        amount = MANY_ENTRIES if section.get("repeat") else SINGLE_ENTRY
+        fields = ", ".join(_field_guide(field, track) for field in _fields(section, track))
+        lines = [*lines, f"- {section['id']} ({amount}): {fields}"]
+    return "\n".join(lines)
+
+
+def _entry_values(entry: dict, section: dict, track: str) -> dict:
+    """One entry of the answer as {field: value}; a list field collects its values, otherwise the first value counts."""
+    kinds = {field["id"]: field["type"] for field in _fields(section, track)}
+    pairs = entry.get("fields") if isinstance(entry.get("fields"), list) else []
+    values: dict = {}
+    for pair in pairs:
+        name = pair.get("field") if isinstance(pair, dict) else None
+        if name not in kinds:
+            continue
+        value = _text(pair.get("value"))
+        if kinds[name] == "list":
+            values = {**values, name: [*values.get(name, []), value]}
+        elif name not in values:
+            values = {**values, name: value}
+    return {**values, "source": entry.get("source")}
+
+
+def from_entries(form: dict, track: str, answer: dict) -> dict:
+    """The flat answer of the AI as sections: a list per repeating section, one set of values otherwise."""
+    sections = {section["id"]: section for section in _sections(form, track)}
+    entries = answer.get("entries") if isinstance(answer.get("entries"), list) else []
+    result: dict = {}
+    for entry in entries:
+        section = sections.get(entry.get("section")) if isinstance(entry, dict) else None
+        if section is None:
+            continue
+        values = _entry_values(entry, section, track)
+        if section.get("repeat"):
+            result = {**result, section["id"]: [*result.get(section["id"], []), values]}
+        elif section["id"] not in result:
+            result = {**result, section["id"]: values}
+    return result
 
 
 def _text(value: object) -> str:
@@ -217,9 +251,9 @@ def suggest(form: dict, data_dir: pathlib.Path, track: object, data: dict, new_c
     secrets = _secrets(data_dir, track, data, [t.text for t in reading.texts])
     gateway = Gateway(new_client(), Pseudonymizer(secrets), UsageLog(data_dir))
     prompt = prompts.prefill_prompt([(_kind(form, t.category, track), t.text) for t in reading.texts])
-    answer = tasks.suggest_from_documents(gateway, prompt, build_schema(form, track))
+    answer = tasks.suggest_from_documents(gateway, prompt, field_guide(form, track))
     files = [t.name for t in reading.texts]
-    suggestions, dropped = clean_answer(form, track, answer, files)
+    suggestions, dropped = clean_answer(form, track, from_entries(form, track, answer), files)
     return {**result, "suggestions": suggestions, "dropped": dropped, "read": files,
             "datei": [t.datei for t in reading.texts], "shortened": [t.name for t in reading.texts if t.shortened],
             "suspicious_lines": _suspicious(answer), "cost_usd": answer.get("cost_usd")}
