@@ -68,12 +68,18 @@ def test_good_addresses(address):
     assert own_sites.clean(address)["adresse"] == address
 
 
+@pytest.mark.parametrize("typed", ["beispiel.ch/stellen", "www.beispiel.ch/stellen"])
+def test_an_address_without_https_is_completed(typed):
+    site = own_sites.clean(typed)
+    assert site["adresse"] == f"https://{typed}" and site["portal"] == "beispiel.ch"
+
+
 def test_the_portal_is_the_host_without_www():
     assert own_sites.clean(SEARCH)["portal"] == PORTAL
 
 
 @pytest.mark.parametrize("address", [
-    "", None, 5, "beispiel.ch", "http://www.beispiel.ch/", "ftp://beispiel.ch", "https://localhost/x",
+    "", None, 5, "intranet", "mailto:a@b.ch", "http://www.beispiel.ch/", "ftp://beispiel.ch", "https://localhost/x",
     "https://127.0.0.1/x", "https://[::1]/x", "https://intranet/x", "https://drucker.local/x", "https://a.ch:8443/x",
     "https://nutzer:geheim@a.ch/x", "https://a.ch/x y", "https://a.ch\\@b.ch/", "https://{begriff}.ch/x",
     "https://a.ch/?q={anderes}", "https://a.ch/{", "https://a.ch/" + "x" * 600, "https://a.ch/\n",

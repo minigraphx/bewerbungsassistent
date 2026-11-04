@@ -4,7 +4,7 @@ import { test } from 'node:test';
 
 import { describePlan } from '../lib/progress.js';
 import { runSearch } from '../lib/search.js';
-import { MAX_SITE_QUERIES, MAX_SITE_TEXTS, followKey, readOpenPage, searchSite, siteQueries } from '../lib/sites.js';
+import { MAX_SITE_QUERIES, MAX_SITE_TEXTS, followKey, formQueries, readOpenPage, searchSite, siteQueries } from '../lib/sites.js';
 
 const SITE = { portal: 'beispiel.ch', adresse: 'https://www.beispiel.ch/suche?q={begriff}&ort={ort}' };
 const PLAN = { stichworte: ['Daten', 'Büro & Verwaltung'], nischen: ['EdTech'], orte: ['Bern', 'Thun'], portale: [], weitere_seiten: [SITE], eigener_schluessel: true };
@@ -197,7 +197,7 @@ test('the popup names the further sites', () => {
 
 // The reader that runs in the tab, on a simulated page
 
-function withPage({ text = 'Text', main = null, links = [], password = null, captcha = null, href = 'https://www.beispiel.ch/suche', title = 'Titel' }, run) {
+function withPage({ text = 'Text', main = null, links = [], forms = [], password = null, captcha = null, href = 'https://www.beispiel.ch/suche', title = 'Titel' }, run) {
   const selectors = (selector) => {
     if (selector.includes('main')) return main ? { innerText: main } : null;
     if (selector.includes('password')) return password;
@@ -208,7 +208,7 @@ function withPage({ text = 'Text', main = null, links = [], password = null, cap
     title,
     body: { innerText: text },
     querySelector: selectors,
-    querySelectorAll: () => links.map((link) => ({ innerText: link.text, href: link.href, getAttribute: () => link.aria || '' })),
+    querySelectorAll: (selector) => (selector === 'form' ? forms : links.map((link) => ({ innerText: link.text, href: link.href, getAttribute: () => link.aria || '' }))),
   };
   globalThis.location = { href, hostname: new URL(href).hostname };
   try {
@@ -225,6 +225,103 @@ test('the reader takes the main part of the page and the links with text', () =>
   assert.equal(page.text, 'Hauptteil');
   assert.deepEqual(page.links, [{ text: 'Stelle A', href: 'https://www.beispiel.ch/a' }]);
   assert.equal(page.wall, '');
+});
+
+function form({ method = 'get', action = '/jobs', inputs }) {
+  const attributes = { method, action };
+  return {
+    getAttribute: (name) => attributes[name] ?? null,
+    querySelectorAll: () => inputs.map((input) => ({ type: 'text', name: '', id: '', placeholder: '', value: '', getAttribute: () => null, ...input })),
+  };
+}
+
+test('the search form of a page is found with its fields, also with odd names', () => {
+  const inputs = [{ name: 'q', placeholder: 'Stelle, Firma' }, { name: 'l', id: 'text-input-where' }, { type: 'hidden', name: 'from', value: 'home' }];
+  const { searchForm } = withPage({ href: 'https://ch.indeed.example/', forms: [form({ inputs })] }, readOpenPage);
+  assert.deepEqual(searchForm, { action: 'https://ch.indeed.example/jobs', term: 'q', place: 'l', hidden: [['from', 'home']] });
+  const typed = withPage({ forms: [form({ inputs: [{ type: 'search', name: 'x7' }] })] }, readOpenPage).searchForm;
+  assert.equal(typed.term, 'x7');
+  assert.equal(typed.place, '');
+});
+
+test('a place field is not taken for the search term', () => {
+  const inputs = [{ type: 'search', name: 'ort' }, { type: 'search', name: 'suche' }];
+  const { searchForm } = withPage({ forms: [form({ inputs })] }, readOpenPage);
+  assert.deepEqual([searchForm.term, searchForm.place], ['suche', 'ort']);
+});
+
+test('forms that send something or sign in are no search form', () => {
+  const field = [{ name: 'q' }];
+  for (const other of [
+    form({ method: 'post', inputs: field }),
+    form({ action: '/newsletter/subscribe', inputs: field }),
+    form({ action: '/login', inputs: field }),
+    form({ inputs: [{ name: 'q' }, { type: 'password', name: 'p' }] }),
+    form({ action: 'http://www.beispiel.ch/jobs', inputs: field }),
+    form({ inputs: [{ name: 'email' }] }),
+  ]) {
+    assert.equal(withPage({ forms: [other] }, readOpenPage).searchForm, null);
+  }
+});
+
+test('a check of the kind big portals show is a wall by its title', () => {
+  assert.equal(withPage({ title: 'Just a moment...' }, readOpenPage).wall, 'pruefung');
+  assert.equal(withPage({ title: 'Sicherheitsprüfung' }, readOpenPage).wall, 'pruefung');
+});
+
+test('a search form makes the queries: term and place, hidden fields kept, values encoded', () => {
+  const found = { action: 'https://a.ch/jobs', term: 'q', place: 'l', hidden: [['from', 'home']] };
+  const { queries } = formQueries(found, { stichworte: ['Büro & Verwaltung'], nischen: [], orte: ['Bern', 'Thun'] });
+  assert.deepEqual(queries.map((q) => q.url), ['https://a.ch/jobs?from=home&q=B%C3%BCro+%26+Verwaltung&l=Bern']);
+});
+
+test('searching all of Switzerland leaves the place of the form empty', () => {
+  const found = { action: 'https://a.ch/jobs', term: 'q', place: 'l', hidden: [] };
+  const { queries } = formQueries(found, { stichworte: ['Koch'], nischen: [], orte: ['Thun'], schweizweit: true });
+  assert.deepEqual(queries.map((q) => q.url), ['https://a.ch/jobs?q=Koch']);
+});
+
+const PLAIN = { portal: 'beispiel.ch', adresse: 'https://www.beispiel.ch/' };
+const PLAIN_FORM = { action: 'https://www.beispiel.ch/jobs', term: 'q', place: '', hidden: [] };
+const pageOf = (searchForm) => () => ({ title: 'T', text: 'Seitentext', links: [{ text: 'Stelle', href: 'https://www.beispiel.ch/stelle/1' }], wall: '', searchForm });
+
+test('with only the address the search reads the page and then uses its search form', async () => {
+  const d = deps({ browser: fakeBrowser({ page: pageOf(PLAIN_FORM) }), app: fakeApp({ holen: () => [] }) });
+  await searchSite(PLAIN, { ...PLAN, stichworte: ['Koch', 'Bäcker'], nischen: [] }, d);
+  const visited = d.browser.log.filter(([what]) => what === 'open' || what === 'navigate').map(([, url]) => url);
+  assert.deepEqual(visited, ['https://www.beispiel.ch/', 'https://www.beispiel.ch/jobs?q=Koch', 'https://www.beispiel.ch/jobs?q=B%C3%A4cker']);
+});
+
+test('the start page and the searches together stay within the limit', async () => {
+  const d = deps({ browser: fakeBrowser({ page: pageOf(PLAIN_FORM) }), app: fakeApp({ holen: () => [] }) });
+  const many = Array.from({ length: 20 }, (_, i) => `Beruf ${i}`);
+  await searchSite(PLAIN, { ...PLAN, stichworte: many, nischen: [] }, d);
+  assert.equal(d.browser.log.filter(([what]) => what === 'read').length, MAX_SITE_QUERIES);
+});
+
+test('a form that leads to another site is not used', async () => {
+  const d = deps({ browser: fakeBrowser({ page: pageOf({ ...PLAIN_FORM, action: 'https://anderswo.ch/jobs' }) }), app: fakeApp({ holen: () => [] }) });
+  await searchSite(PLAIN, { ...PLAN, stichworte: ['Koch'], nischen: [] }, d);
+  assert.equal(d.browser.log.filter(([what]) => what === 'read').length, 1);
+});
+
+test('nothing found says what the person can do', async () => {
+  const d = deps({ browser: fakeBrowser({ page: pageOf(null) }), app: fakeApp({ found: () => [] }) });
+  const summary = await searchSite(PLAIN, { ...PLAN, stichworte: ['Koch'], nischen: [] }, d);
+  assert.match(summary.problem, /keine Stellen gefunden/);
+});
+
+test('ads whose title fits a search term come first, so the limit takes those', async () => {
+  const hits = [{ ...job('1'), stelle: 'Marketing' }, { ...job('2'), stelle: 'Koch EFZ' }];
+  const d = deps({ browser: fakeBrowser({ page: pageOf(null) }), app: fakeApp({ found: () => hits }) });
+  await searchSite(PLAIN, { ...PLAN, stichworte: ['Koch'], nischen: [] }, d);
+  assert.deepEqual(d.app.sent().map((h) => h.portal_id), ['2', '1']);
+});
+
+test('a redirect of the start page names the address to enter instead', async () => {
+  const d = deps({ browser: fakeBrowser({ page: () => ({ title: '', text: 'x', links: [], wall: '', host: 'ch.anderswo.ch' }) }) });
+  const summary = await searchSite(PLAIN, PLAN, d);
+  assert.match(summary.problem, /ch\.anderswo\.ch/);
 });
 
 test('a link without text may use its label, and each address counts once', () => {

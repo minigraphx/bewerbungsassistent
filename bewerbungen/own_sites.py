@@ -1,7 +1,8 @@
 """Further sites for the search, named by the person (MIN-348): they only count with an own API key.
 
-An address is a search page with the placeholders {begriff} and {ort}, or a fixed page such as a company's
-list of open jobs. Sites with their own adapter stay with it. Hits stay on the site's host: the name of the site is
+An address is what the person sees in the browser (MIN-387): the extension uses the search form of that page if it
+has one and reads the page either way. Addresses with the placeholders {begriff} and {ort} keep working, but nobody
+should have to know them. Sites with their own adapter stay with it. Hits stay on the site's host: the name of the site is
 its host, and `hits.checked_link` holds links to it.
 """
 import hashlib
@@ -60,6 +61,8 @@ def clean(address) -> dict:
         raise _refuse(address, "Das ist keine Adresse.")
     if len(address) > MAX_ADDRESS or any(c in address for c in FORBIDDEN_CHARACTERS) or any(ord(c) < 0x20 for c in address):
         raise _refuse(address, "Die Adresse ist zu lang oder enthält Zeichen, die nicht in eine Adresse gehören.")
+    if "://" not in address:
+        address = f"https://{address}"
     if not set(PLACEHOLDER.findall(address)) <= ALLOWED_PLACEHOLDERS or PLACEHOLDER.sub("", address).count("{") + PLACEHOLDER.sub("", address).count("}"):
         raise _refuse(address, "Erlaubt sind nur die Platzhalter {begriff} und {ort}.")
     portal = _portal(address)

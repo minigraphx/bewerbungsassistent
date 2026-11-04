@@ -123,15 +123,15 @@ Mit gespeichertem Schlüssel erscheint auf derselben Seite dieser Abschnitt. Hie
 
 ![Abschnitt Weitere Seiten durchsuchen mit zwei erfundenen Adressen und den Knöpfen Seiten speichern und Zugriff in der Erweiterung erlauben](bilder/einstellungen-seiten.jpg)
 
-1. Unter **Adressen** höchstens fünf Adressen eintragen, eine pro Zeile. Sie müssen mit `https://` beginnen.
-   - Hat die Seite eine eigene Suche, setzen Sie `{begriff}` und `{ort}` in die Adresse. Die App ersetzt sie durch die Angaben aus Ihrem Suchprofil, etwa so: `https://www.beispiel.ch/stellen?suche={begriff}&ort={ort}`.
-   - Ohne Platzhalter liest die Suche die Seite so, wie sie ist.
+1. Unter **Adressen** höchstens fünf Adressen eintragen, eine pro Zeile. Kopieren Sie die Adresse einfach aus der Adresszeile des Browsers, etwa `https://www.beispiel.ch/stellen`.
 2. Auf **Seiten speichern** klicken.
 3. Auf **Zugriff in der Erweiterung erlauben** klicken. Die Erweiterung öffnet eine eigene Seite. Dort klicken Sie auf **Zugriff erlauben und weiter** und bestätigen die Frage des Browsers. Das ist einmal nötig.
 
-Ab der nächsten Suche kommen die Seiten dazu. Die Suche liest pro Seite und Lauf höchstens zehn Suchen und dreissig Inserate, mit Pausen dazwischen. Verlangt eine Seite eine Anmeldung oder ein CAPTCHA, überspringt die Suche sie. Das erledigt die App nicht für Sie.
+Ab der nächsten Suche kommen die Seiten dazu. Hat eine Seite ein Suchfeld, sucht die App dort mit den Begriffen aus Ihrem Suchprofil. Sonst liest sie die Stellen, die auf der Seite stehen. Findet sie nichts, öffnen Sie im Browser die Seite mit den offenen Stellen und tragen deren Adresse ein.
 
-**LinkedIn** verbietet Automatisierung und kann Konten einschränken oder sperren. Tragen Sie LinkedIn als Seite ein, liegt dieses Risiko bei Ihnen.
+Die Suche liest pro Seite und Lauf höchstens zehn Ergebnisseiten und dreissig Inserate, mit Pausen dazwischen. Verlangt eine Seite eine Anmeldung oder ein CAPTCHA, überspringt die Suche sie. Das erledigt die App nicht für Sie.
+
+**LinkedIn** verbietet Automatisierung und kann Konten einschränken oder sperren. Tragen Sie LinkedIn als Seite ein, liegt dieses Risiko bei Ihnen. Auch andere Portale regeln in ihren Bedingungen, was automatisiert erlaubt ist. Prüfen Sie das, bevor Sie ein Portal eintragen.
 
 ### Schlüssel entfernen
 
