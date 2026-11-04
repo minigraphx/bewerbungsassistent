@@ -1,6 +1,7 @@
 "use strict";
 // Gemeinsame Hilfen aller Seiten. Inhalte werden nur als Text eingesetzt (textContent), nie als HTML.
 window.App = (() => {
+  const DOWNLOAD_BEHALTEN_MS = 600000;
   const TOKEN = document.querySelector('meta[name="token"]').content;
 
   function url(pfad, parameter = {}) {
@@ -200,6 +201,85 @@ window.App = (() => {
     document.querySelector("main")?.prepend(banner);
   }
   desktop();
+
+  // Backup (MIN-359): it counts as done only when writing worked, or when the person says the download arrived.
+  async function holeSicherung() {
+    const antwort = await fetch(url("/api/sicherung/datei"));
+    if (!antwort.ok) await antwortLesen(antwort);
+    return antwort.blob();
+  }
+
+  async function schreibeSicherung(griff) {
+    try {
+      const schreiben = await griff.createWritable();
+      await schreiben.write(await holeSicherung());
+      await schreiben.close();
+    } catch (fehler) {
+      await griff.remove?.().catch(() => {});  // choosing the place left an empty file, it must not look like a backup
+      throw fehler;
+    }
+  }
+
+  function ladeSicherungHerunter(inhalt, name) {
+    const adresse = URL.createObjectURL(inhalt);
+    el("a", { href: adresse, download: name }).click();
+    setTimeout(() => URL.revokeObjectURL(adresse), DOWNLOAD_BEHALTEN_MS);  // the browser reads it after the click
+  }
+
+  function sicherungsMeldung(art, ...inhalt) {
+    document.getElementById("sicherung-meldung")?.remove();
+    document.querySelector("main")?.prepend(el("p", { id: "sicherung-meldung", class: "status " + art, role: "status" }, ...inhalt));
+  }
+
+  async function sicherungGespeichert(datei) {
+    await senden("/api/sicherung/erledigt", {});
+    document.getElementById("sicherung-hinweis")?.remove();
+    sicherungsMeldung("ok", `Sicherung erstellt: ${datei}. Am besten auf einem USB-Stick ablegen; zum Wiederherstellen entpacken und den Ordner in der App wählen.`);
+  }
+
+  // Without the dialog the page cannot know whether the download arrived, so the person says so.
+  async function sicherungAlsDownload(datei) {
+    ladeSicherungHerunter(await holeSicherung(), datei);
+    sicherungsMeldung("", `Der Browser lädt ${datei} herunter. `, el("button", { type: "button", onclick: () =>
+      sicherungGespeichert(datei).catch(fehler => sicherungsMeldung("fehler", fehler.message)) }, "Datei ist gespeichert"));
+  }
+
+  async function erstelleSicherung() {
+    document.querySelector("nav details.menue")?.removeAttribute("open");
+    try {
+      const { datei } = await holen("/api/sicherung/stand");
+      if (!window.showSaveFilePicker) {
+        sicherungsMeldung("", "Sicherung wird erstellt …");
+        await sicherungAlsDownload(datei);
+        return;
+      }
+      const griff = await window.showSaveFilePicker({ suggestedName: datei,
+        types: [{ description: "ZIP-Datei", accept: { "application/zip": [".zip"] } }] });
+      sicherungsMeldung("", "Sicherung wird erstellt …");
+      await schreibeSicherung(griff);
+      await sicherungGespeichert(datei);
+    } catch (fehler) {
+      if (fehler.name === "AbortError") document.getElementById("sicherung-meldung")?.remove();  // cancelled in the dialog
+      else sicherungsMeldung("fehler", fehler.message);
+    }
+  }
+
+  function sicherungMenue() {
+    document.querySelector("nav .menue-inhalt")?.append(el("button", { type: "button", class: "menue-knopf", onclick: erstelleSicherung }, "Sicherung erstellen"));
+  }
+  sicherungMenue();
+
+  // A calm hint in the overview only, and nothing at all when the question fails.
+  async function sicherungHinweis() {
+    if (location.pathname !== "/") return;
+    let stand;
+    try { stand = await holen("/api/sicherung/stand"); } catch { return; }
+    if (!stand.faellig) return;
+    const text = stand.zuletzt ? `Die letzte Sicherung ist vom ${datum(stand.zuletzt)}. ` : "Für diese Daten gibt es noch keine Sicherung. ";
+    document.querySelector("main")?.prepend(el("p", { id: "sicherung-hinweis", class: "banner", role: "status" }, text,
+      el("button", { type: "button", onclick: erstelleSicherung }, "Sicherung erstellen")));
+  }
+  sicherungHinweis();
 
   return { url, holen, senden, el, status, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe };
 })();

@@ -44,6 +44,14 @@ meine-daten/
 
 `app.py` ergänzt die `.gitignore` des Datenordners um `.entwuerfe/`, `.build/`, `bewerbungen/*/*.pdf`, `dokumente/` und `.ki/`.
 
+### Sicherung (MIN-359)
+
+Im Menü steht **„Sicherung erstellen“**. Der Browser fragt, wo die Datei `bewerbungsassistent-sicherung-<Datum>.zip` hin soll, zum Beispiel auf einen USB-Stick. Die App lädt nichts irgendwohin hoch. Browser ohne diese Frage (Firefox, Safari) laden die Datei herunter; dann bestätigt die Person, dass sie gespeichert ist.
+
+- **Inhalt:** alle Daten mit `.entwuerfe/`, `versendet/`, `dokumente/` und `.ki/`, ohne `.build/` (lässt sich neu erstellen), ohne frühere Sicherungen im Datenordner und ohne `.git/`. Symlinks kommen nicht mit.
+- **Erinnerung:** In der Übersicht erscheint ein ruhiger Hinweis nach 5 versendeten Bewerbungen oder nach 30 Tagen ohne Sicherung. Das Datum der letzten Sicherung steht in `.sicherung.yaml`. Als Sicherung zählt erst, was der Browser fertig gespeichert hat oder was die Person nach dem Download bestätigt.
+- **Wiederherstellen:** Die ZIP-Datei entpacken und den Ordner in der App unter „Einrichtung“ wählen. Register, Entwürfe und Versionen sind wieder da. Die Git-Geschichte kommt nicht mit; wer sie braucht, sichert `.git/` selbst.
+
 ### Entwürfe und Versionen
 
 - **Entwurf**: Jedes Speichern über die Oberfläche legt einen Entwurf mit Datum an (Inhalte nach SHA-256, jeder nur einmal). Änderungen ausserhalb der Oberfläche, etwa durch Claude im Chat, sichert `python entwurf.py <datenordner> <datei> -m "<was>"` (vorher und nachher aufrufen). Entwürfe sind löschbar, solange sie nicht genutzt wurden. Die Editoren (Inhalte, Foto) zeigen unter „Letzte Entwürfe“ die drei neuesten Entwürfe der gerade bearbeiteten Datei, mit Link auf alle.
