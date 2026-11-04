@@ -26,7 +26,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 ![Übersicht der Bewerbungen mit Status, Passung und Variante](docs/bilder/uebersicht.jpg)
 
-**Treffer der Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung, dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis.
+**Treffer der Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung, dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis.
 
 ![Liste der Treffer mit Note, Firma, Ort, Pensum, Portal und den Knöpfen Bewerten, Übernehmen und Verwerfen](docs/bilder/treffer.jpg)
 
@@ -56,7 +56,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 | [`skills/jobsuche/`](skills/jobsuche/SKILL.md) | Claude-Skill: Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten, Eintrag ins Register, optional Jobliste in Google Sheets |
 | [`skills/bewerbung/`](skills/bewerbung/SKILL.md) | Claude-Skill: von der Stelle zur fertigen Bewerbung – Variante wählen, Anschreiben im eigenen Stil, Prüfung, Versand |
 | [`desktop/`](desktop/README.md) | Lokale App für Windows und macOS: Installer, Start per Doppelklick, Einladungslink, Updates aus GitHub Releases |
-| [`erweiterung/`](erweiterung/README.md) | Browser-Erweiterung für Chrome und Edge: Stellensuche auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, im Browser der Person; Treffer gehen an die App |
+| [`erweiterung/`](erweiterung/README.md) | Browser-Erweiterung für Chrome und Edge: Stellensuche auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellensuche auf LENA und yousty nach dem Suchprofil, im Browser der Person; Treffer gehen an die App |
 | [`vermittlung/`](vermittlung/README.md) | KI-Vermittlung für den Pilot: Zugang pro Person per Einladung, Budgets, Kosten ohne Inhalte; Container hinter HTTPS |
 | [`onboarding/`](onboarding/README.md) | Einstiegsvorlage: eine HTML-Datei zum Ausfüllen ohne Installation (Stellen- und Lehrstellensuche), mit Import in den Datenordner |
 | [`vorlagen/`](vorlagen/) | Vorlagen für die persönlichen Dateien (Suchprofil, Stilprofil, Bausteine fürs Anschreiben) |

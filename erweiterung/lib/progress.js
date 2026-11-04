@@ -28,3 +28,18 @@ export function describeRun(run) {
     hints: result.hinweise || [],
   };
 }
+
+/**
+ * What the popup says about the search before it starts: the plan is known only while the app runs.
+ * @param {{art?: string, portale?: string[]}|null} plan
+ * @returns {{button: string, text: string}}
+ */
+export function describePlan(plan) {
+  if (!plan) {
+    return { button: 'Suche starten', text: 'Sucht nach dem Suchprofil auf den passenden Portalen. Die Treffer gehen in die App.' };
+  }
+  const portals = (plan.portale || []).join(', ').replace(/, ([^,]*)$/, ' und $1');
+  return plan.art === 'lehrstelle'
+    ? { button: 'Lehrstellen suchen', text: `Sucht auf ${portals} nach deinem Suchprofil. Die Treffer gehen in die App.` }
+    : { button: 'Stellen suchen', text: `Sucht auf ${portals} nach Ihrem Suchprofil. Die Treffer gehen in die App.` };
+}

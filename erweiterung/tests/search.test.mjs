@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { AppConnection, APP_MISSING, explain } from '../lib/app.js';
-import { describeRun } from '../lib/progress.js';
+import { describePlan, describeRun } from '../lib/progress.js';
 import { buildQueries, chunks } from '../lib/queries.js';
 import { runSearch, searchPortal, SEND_SIZE } from '../lib/search.js';
 
@@ -213,4 +213,76 @@ test('only the popup and the page of the running app are trusted', async () => {
   assert.equal(senderKind({ id, url: 'http://127.0.0.1:61984/treffer', tab: {} }, id, null), null);
   assert.equal(senderKind({ id: 'fremd', url: `chrome-extension://fremd/popup.html` }, id, app), null);
   assert.equal(senderKind({ id, url: `chrome-extension://${id}/popup.html`, tab: {} }, id, app), null);
+});
+
+const APPRENTICESHIP_PLAN = {
+  art: 'lehrstelle', portale: ['LENA', 'yousty'], stichworte: ['Fachfrau Gesundheit EFZ', 'Assistentin EBA'], kantone: ['BE', 'SO'],
+  orte: ['Bern'], umkreis_km: 25, lehrbeginn_jahre: [2027], max_seiten: 20, max_abfragen: 30,
+};
+
+test('apprenticeships: every profession around the place of residence', () => {
+  assert.deepEqual(queries('yousty', APPRENTICESHIP_PLAN), [
+    { keyword: 'Fachfrau Gesundheit EFZ', years: [2027], place: 'Bern', radius: 25 },
+    { keyword: 'Assistentin EBA', years: [2027], place: 'Bern', radius: 25 },
+  ]);
+});
+
+test('apprenticeships without a place of residence: every profession in each canton', () => {
+  assert.deepEqual(queries('LENA', { ...APPRENTICESHIP_PLAN, orte: [], stichworte: ['Fachfrau Gesundheit EFZ'] }), [
+    { keyword: 'Fachfrau Gesundheit EFZ', years: [2027], canton: 'BE' },
+    { keyword: 'Fachfrau Gesundheit EFZ', years: [2027], canton: 'SO' },
+  ]);
+});
+
+function pagesBrowser(handlers) {
+  const browser = fakeBrowser((portal, method, args) => handlers[method](args));
+  browser.navigate = async (tab, url) => { browser.log.push(['navigate', url]); };
+  return browser;
+}
+
+const LENA_ONE_PROFESSION = { ...APPRENTICESHIP_PLAN, stichworte: ['Fachfrau Gesundheit EFZ'], orte: ['Bern'] };
+
+test('LENA: the tab opens the list of the search and loads the adapters again before reading it', async () => {
+  const browser = pagesBrowser({
+    searchUrl: () => ({ ok: true, value: 'https://www.berufsberatung.ch/de/suche/lehrstellen?profession=1' }),
+    list: () => ({ ok: true, value: { hits: [], more: false } }),
+  });
+  const summary = await searchPortal('LENA', LENA_ONE_PROFESSION, deps(fakeApp(), browser));
+  assert.equal(summary.problem, '');
+  const steps = browser.log.map(([name]) => name);
+  assert.deepEqual(steps, ['open', 'inject', 'searchUrl', 'navigate', 'inject', 'list', 'close']);
+  assert.deepEqual(browser.log[4][1], ['portals/common.js', 'portals/lena.js']);
+});
+
+test('LENA: an unknown profession is a note, and the next profession is still searched', async () => {
+  const browser = pagesBrowser({
+    searchUrl: ([query]) => (query.keyword === 'Assistentin EBA'
+      ? { ok: true, value: 'https://www.berufsberatung.ch/x' }
+      : { ok: false, fehler: 'Den Beruf kennt LENA nicht.' }),
+    list: () => ({ ok: true, value: { hits: [], more: false } }),
+  });
+  const summary = await searchPortal('LENA', APPRENTICESHIP_PLAN, deps(fakeApp(), browser));
+  assert.match(summary.problem, /Den Beruf kennt LENA nicht/);
+  assert.equal(browser.log.filter(([name]) => name === 'list').length, 1);
+});
+
+test('LENA: a changed search form says that the extension needs an update', async () => {
+  const browser = pagesBrowser({ searchUrl: () => ({ ok: false, fehler: 'Formular fehlt', changed: true }) });
+  const summary = await searchPortal('LENA', APPRENTICESHIP_PLAN, deps(fakeApp(), browser));
+  assert.match(summary.problem, /Update der Erweiterung/);
+});
+
+test('yousty needs no new page per search', async () => {
+  const browser = pagesBrowser({ list: () => ({ ok: true, value: { hits: [], more: false } }) });
+  await searchPortal('yousty', LENA_ONE_PROFESSION, deps(fakeApp(), browser));
+  assert.deepEqual(browser.log.map(([name]) => name), ['open', 'inject', 'list', 'close']);
+});
+
+test('popup names the portals of the plan, and stays general without one', () => {
+  assert.deepEqual(describePlan(APPRENTICESHIP_PLAN), {
+    button: 'Lehrstellen suchen', text: 'Sucht auf LENA und yousty nach deinem Suchprofil. Die Treffer gehen in die App.',
+  });
+  assert.equal(describePlan({ art: 'stelle', portale: ['job-room', 'jobs.ch', 'ictjobs'] }).text,
+    'Sucht auf job-room, jobs.ch und ictjobs nach Ihrem Suchprofil. Die Treffer gehen in die App.');
+  assert.equal(describePlan(null).button, 'Suche starten');
 });

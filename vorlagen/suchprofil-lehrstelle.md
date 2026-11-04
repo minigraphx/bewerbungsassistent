@@ -19,6 +19,7 @@ Kopie in den privaten Datenordner legen (`suchprofil.md`) und ausfüllen, z.B. m
 - Wohnort: Bern
 - Schulweg: höchstens 45 Minuten mit ÖV
 - Kantone: BE
+- Umkreis: 25 km
 
 ## Schule
 - Sekundarschule, Niveau A (8. Klasse)
@@ -39,4 +40,4 @@ Kopie in den privaten Datenordner legen (`suchprofil.md`) und ausfüllen, z.B. m
 
 ## Quellen
 - Lehrstellennachweis LENA (berufsberatung.ch), yousty.ch, Lehrstellenseiten der Betriebe
-- Inserate vorerst selbst suchen und den Text einfügen
+- Die Browser-Erweiterung sucht auf LENA und yousty im Umkreis des Wohnorts; ohne Wohnort in den Kantonen

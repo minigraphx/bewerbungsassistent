@@ -1,5 +1,5 @@
 // Popup of the extension: connection to the app, start of the search, progress and summary.
-import { describeRun } from './lib/progress.js';
+import { describePlan, describeRun } from './lib/progress.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -32,6 +32,9 @@ async function connect() {
   if (answer && answer.verbunden) {
     show('verbindung', answer.app ? `Mit der App verbunden (Version ${answer.version}).`
       : `App gefunden (Version ${answer.version}); sie startet bei der Suche.`);
+    const view = describePlan(answer.plan);
+    $('suchen').textContent = view.button;
+    $('plan').textContent = view.text;
     const { lauf } = await chrome.storage.session.get('lauf');
     $('suchen').disabled = Boolean(lauf && lauf.zustand === 'laeuft');
   } else {

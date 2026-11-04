@@ -124,6 +124,6 @@ Fertig, wenn die vier Dateien im Datenordner liegen, `build.py` ohne Fehler ein 
 
 Der Person sagen, was als Nächstes geht:
 
-- **Stellen suchen:** mit dem Skill `jobsuche`; bei der Lehrstellensuche vorerst Inserate selbst suchen und den Text einfügen.
+- **Stellen suchen:** mit dem Skill `jobsuche`; bei der Lehrstellensuche über die Browser-Erweiterung (LENA und yousty) oder Inserate selbst suchen und den Text einfügen.
 - **Bewerben:** mit dem Skill `bewerbung`.
 - **Offene Punkte** aus dem Interview nennen, z.B. fehlende Zeugnisse oder Termine für Schnupperlehren.

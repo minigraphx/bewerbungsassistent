@@ -67,10 +67,86 @@ def test_profile_without_keywords_or_directions_is_refused():
         search_plan.parse("# Suchprofil\n\n## Region\n- Wohnort: Bern\n")
 
 
-def test_apprenticeship_profile_is_refused_for_now():
-    text = (VORLAGEN / "suchprofil-lehrstelle.md").read_text(encoding="utf-8")
-    with pytest.raises(ValueError, match="Lehrstellen"):
+def apprenticeship_template() -> str:
+    return (VORLAGEN / "suchprofil-lehrstelle.md").read_text(encoding="utf-8")
+
+
+def test_apprenticeship_profile_searches_lena_and_yousty_for_the_professions():
+    plan = search_plan.parse(apprenticeship_template())
+    assert plan.kind == search_plan.KIND_APPRENTICESHIP
+    assert plan.portals == ("LENA", "yousty")
+    assert plan.keywords == ("Fachfrau Gesundheit EFZ", "Fachfrau Betreuung EFZ, Fachrichtung Kinder",
+                             "Assistentin Gesundheit und Soziales EBA")
+    assert plan.places == ("Bern",)
+    assert plan.cantons == ("BE",)
+    assert plan.radius_km == 25
+    assert plan.start_years == (2027,)
+    assert plan.hints == ()
+
+
+def test_job_profile_is_of_kind_job():
+    assert search_plan.parse(GENERATED, postal_code="3600").kind == search_plan.KIND_JOB
+
+
+@pytest.mark.parametrize("line, years", [("August 2027", (2027,)), ("2027 oder 2028", (2027, 2028)),
+                                         ("noch offen", ()), ("2028, 2027, 2028", (2027, 2028))])
+def test_start_of_apprenticeship_gives_the_years(line, years):
+    text = apprenticeship_template().replace("- August 2027", f"- {line}")
+    assert search_plan.parse(text).start_years == years
+
+
+def test_radius_comes_from_the_profile_within_limits():
+    text = apprenticeship_template().replace("- Kantone: BE", "- Kantone: BE\n- Umkreis: 10 km")
+    assert search_plan.parse(text).radius_km == 10
+    too_far = text.replace("10 km", "9000 km")
+    assert search_plan.parse(too_far).radius_km == search_plan.MAX_RADIUS_KM
+    unreadable = text.replace("10 km", "nicht so weit")
+    assert search_plan.parse(unreadable).radius_km == search_plan.DEFAULT_RADIUS_KM
+
+
+def test_remark_in_brackets_goes_but_a_specialisation_stays():
+    text = apprenticeship_template().replace("Fachfrau Gesundheit EFZ (Priorität 1)", "Fachfrau Betreuung (Kinder) EFZ")
+    assert search_plan.parse(text).keywords[0] == "Fachfrau Betreuung (Kinder) EFZ"
+
+
+def test_apprenticeship_without_home_searches_the_cantons():
+    plan = search_plan.parse(apprenticeship_template().replace("- Wohnort: Bern\n", ""))
+    assert plan.places == ()
+    assert plan.cantons == ("BE",)
+    assert plan.portals == ("LENA", "yousty")
+
+
+def test_apprenticeship_without_region_is_refused():
+    text = apprenticeship_template().replace("- Wohnort: Bern\n", "").replace("- Kantone: BE\n", "")
+    with pytest.raises(ValueError, match="Wohnort"):
         search_plan.parse(text)
+
+
+def test_apprenticeship_without_professions_is_refused():
+    text = apprenticeship_template()
+    start, end = text.index("1. Fachfrau Gesundheit"), text.index("## Region")
+    with pytest.raises(ValueError, match="Berufe"):
+        search_plan.parse(text[:start] + text[end:])
+
+
+def test_several_cantons_next_to_a_home_are_named_in_a_hint():
+    plan = search_plan.parse(apprenticeship_template().replace("- Kantone: BE", "- Kantone: BE, LU"))
+    assert plan.places == ("Bern",)
+    assert any("BE, LU" in hint and "25 km" in hint for hint in plan.hints)
+
+
+def test_portal_set_to_aus_also_works_for_apprenticeships():
+    text = apprenticeship_template() + "\n## Portale und Rhythmus\n| Portal | Modus |\n|---|---|\n| yousty | aus |\n"
+    assert search_plan.parse(text).portals == ("LENA",)
+
+
+def test_as_dict_of_an_apprenticeship_plan():
+    data = search_plan.parse(apprenticeship_template()).as_dict()
+    assert data["art"] == "lehrstelle"
+    assert data["umkreis_km"] == 25
+    assert data["lehrbeginn_jahre"] == [2027]
+    assert data["max_seiten"] == search_plan.MAX_APPRENTICESHIP_PAGES
+    assert data["stichworte"][0] == "Fachfrau Gesundheit EFZ"
 
 
 def test_values_are_trimmed_bounded_and_deduplicated():
@@ -104,3 +180,9 @@ def test_for_folder_reads_profile_and_postal_code_from_cv(tmp_path):
 def test_for_folder_without_profile_explains_the_einstieg(tmp_path):
     with pytest.raises(ValueError, match="Einstieg"):
         search_plan.for_folder(tmp_path)
+
+
+def test_kind_of_folder_needs_no_complete_profile(tmp_path):
+    assert search_plan.kind_of_folder(tmp_path) == search_plan.KIND_JOB
+    (tmp_path / "suchprofil.md").write_text("## Lehrbeginn\n- 2027\n", encoding="utf-8")
+    assert search_plan.kind_of_folder(tmp_path) == search_plan.KIND_APPRENTICESHIP

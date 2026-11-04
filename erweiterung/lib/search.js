@@ -12,6 +12,15 @@ function changedText(portal, message) {
   return `Die Seite von ${portal} hat sich verändert (${message}). Die Suche dort braucht ein Update der Erweiterung.`;
 }
 
+/** For portals that fill their list in the page: the tab goes to the list of this query, adapters loaded anew. */
+async function openResults(portal, query, tab, deps) {
+  const target = await deps.browser.run(tab, portal, 'searchUrl', [query]);
+  if (!target.ok) return target;
+  await deps.browser.navigate(tab, target.value);
+  await deps.browser.inject(tab, [COMMON, ADAPTERS[portal].file]);
+  return target;
+}
+
 async function listAll(portal, plan, tab, deps) {
   const found = new Map();
   let problem = '';
@@ -20,6 +29,15 @@ async function listAll(portal, plan, tab, deps) {
     problem = `${portal}: ${skipped} Suchen ausgelassen (höchstens ${queries.length}). Im Suchprofil weniger Stichworte oder Orte angeben.`;
   }
   for (const query of queries) {
+    if (ADAPTERS[portal].opensPages) {
+      const opened = await openResults(portal, query, tab, deps);
+      await deps.sleep(DELAY_MS);
+      if (!opened.ok) {
+        if (opened.changed) throw Object.assign(new Error(opened.fehler), { changed: true });
+        problem = [problem, `${portal}: ${opened.fehler}`].filter(Boolean).join(' ');
+        continue;
+      }
+    }
     for (let page = 1; page <= plan.max_seiten; page += 1) {
       deps.report({ portal, phase: 'suche', stichwort: query.keyword, seite: page, gefunden: found.size });
       const result = await deps.browser.run(tab, portal, 'list', [query, page]);

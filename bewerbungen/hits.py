@@ -20,7 +20,8 @@ FOLDER = "suche"
 HITS_FILE = "treffer.yaml"
 RUN_FILE = "letzte-suche.yaml"
 TEXTS = "texte"
-DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch"}
+DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
+           "LENA": "berufsberatung.ch", "yousty": "yousty.ch"}
 STATES = ("neu", "uebernommen", "verworfen")
 MAX_FIELD = 200
 MAX_ID = 200
@@ -73,7 +74,9 @@ def validate(raw) -> dict:
     hit = {"portal": portal, "portal_id": _text(raw.get("portal_id"), "portal_id", True, MAX_ID),
            "stelle": _text(raw.get("stelle"), "stelle", True), "firma": _text(raw.get("firma"), "firma") or "unbekannt",
            "ort": _text(raw.get("ort"), "ort"), "pensum": _text(raw.get("pensum"), "pensum"),
-           "link": _link(raw.get("link"), portal), "alter_tage": _age(raw.get("alter_tage"))}
+           "link": _link(raw.get("link"), portal), "alter_tage": _age(raw.get("alter_tage")),
+           "art": _text(raw.get("art"), "art"), "beruf": _text(raw.get("beruf"), "beruf"),
+           "lehrbeginn": _text(raw.get("lehrbeginn"), "lehrbeginn")}
     text = raw.get("text")
     if text is not None and not isinstance(text, str):
         raise ValueError("text muss Text sein")
@@ -94,8 +97,9 @@ def company_key(name: str) -> str:
     return "-".join(words)
 
 
-def _job_key(firma: str, stelle: str) -> str:
-    return f"{company_key(firma)}|{slug(stelle)}"
+def _job_key(hit: dict) -> str:
+    """Company and job. The portals name a profession differently, so the search's own name for it counts first."""
+    return f"{company_key(hit['firma'])}|{slug(hit.get('beruf') or hit['stelle'])}"
 
 
 def _places(ort: str) -> set[str]:
@@ -110,9 +114,9 @@ def _find_twin(hit: dict, stored: list[dict]) -> dict | None:
     company = company_key(hit["firma"])
     if not company or company == "unbekannt":
         return None
-    job, places = _job_key(hit["firma"], hit["stelle"]), _places(hit.get("ort", ""))
+    job, places = _job_key(hit), _places(hit.get("ort", ""))
     for other in stored:
-        if other["portal"] == hit["portal"] or _job_key(other["firma"], other["stelle"]) != job:
+        if other["portal"] == hit["portal"] or _job_key(other) != job:
             continue
         other_places = _places(other.get("ort", ""))
         if not places or not other_places or places & other_places:
@@ -175,7 +179,8 @@ class Hits:
     def ad_text(self, wanted: str) -> str:
         """Details and text of the ad, as the AI rates it and as it goes into stelle.md."""
         hit = self.get(wanted)
-        labels = (("Stelle", "stelle"), ("Firma", "firma"), ("Ort", "ort"), ("Pensum", "pensum"), ("Link", "link"))
+        labels = (("Stelle", "stelle"), ("Firma", "firma"), ("Ort", "ort"), ("Pensum", "pensum"),
+                  ("Lehrbeginn", "lehrbeginn"), ("Link", "link"))
         head = "\n".join(f"{label}: {hit[field]}" for label, field in labels if hit.get(field))
         body = self.text(wanted)
         return f"{head}\n\n{body}" if body else head

@@ -90,7 +90,60 @@
     return element ? element.textContent.replace(/\s+/g, ' ').trim() : '';
   }
 
-  const common = { PortalChanged, htmlToText, ageFromDate, ageFromText, workload, fetchJson, fetchPage, textOf };
+  const FILLER_WORDS = new Set(['fachrichtung', 'schwerpunkt', 'und', 'mit', 'im', 'der', 'die', 'das']);
+
+  /** One word of a profession without its gender form: Fachfrau, Fachmann → fach; Assistentin → assistent. */
+  function neutralWord(word) {
+    return word
+      .replace(/^köchin$/, 'koch')
+      .replace(/euse$/, 'eur')
+      .replace(/(frau|mann)$/, '')
+      .replace(/(er|ent|ant|ist|eur|or)in$/, '$1');
+  }
+
+  /**
+   * The words of a profession, so that the name in the search profile and the name on a portal can be compared:
+   * „Fachfrau Betreuung EFZ, Fachrichtung Kinder“ and „Fachmann/-frau Betreuung (Kinder) EFZ“ give the same.
+   * @param {string} name
+   * @returns {Set<string>}
+   */
+  function professionWords(name) {
+    const words = String(name || '').toLowerCase()
+      .replace(/\/-?(in|frau|mann|euse)\b/g, '')
+      .split(/[\s,;()/]+/)
+      .filter((word) => word && !FILLER_WORDS.has(word))
+      .map(neutralWord);
+    return new Set(words.filter(Boolean));
+  }
+
+  /**
+   * The option of a portal for a profession: it has all wanted words and as few others as possible, so the plain
+   * profession wins over its specialisations. The first one wins a tie.
+   * @template T
+   * @param {string} wanted
+   * @param {T[]} options
+   * @param {(option: T) => string} labelOf
+   * @returns {T|null}
+   */
+  function bestProfession(wanted, options, labelOf) {
+    const words = professionWords(wanted);
+    if (!words.size) return null;
+    let best = null;
+    let fewest = Infinity;
+    for (const option of options) {
+      const label = professionWords(labelOf(option));
+      const extra = label.size - words.size;
+      if (extra < fewest && [...words].every((word) => label.has(word))) {
+        best = option;
+        fewest = extra;
+      }
+    }
+    return best;
+  }
+
+  const common = {
+    PortalChanged, htmlToText, ageFromDate, ageFromText, workload, fetchJson, fetchPage, textOf, professionWords, bestProfession,
+  };
   globalThis.bewerbungsassistentCommon = common;
   globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
   if (typeof module !== 'undefined') module.exports = common;

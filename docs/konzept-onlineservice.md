@@ -12,13 +12,13 @@ Stand 3.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026; Bew
 | KI | Die App ruft die KI über eine **Vermittlung** des Projektinhabers auf. Auf den Rechnern liegt **kein API-Schlüssel**: Jede Person meldet die App einmal per Einladungslink an und erhält einen **Zugang mit Budget**. Der Projektinhaber trägt die Kosten. Wer will, gibt stattdessen einen **eigenen API-Schlüssel** an (siehe [Eigener API-Schlüssel](#eigener-api-schlüssel)). In der **Testphase** (Pilot, eventuell kostenlose Konten) läuft die KI über die **Claude API von Anthropic**, auch in den USA. Im **Release** gibt es **keine Verarbeitung in den USA** mehr, nur noch in der EU. |
 | Modell | Für die Anschreiben werden Sonnet 5.5 und Opus 5.5 im Pilot verglichen. |
 | Personendaten an die KI | Sie werden **von Anfang an**, schon vor dem ersten KI-Aufruf im Pilot, **durch Platzhalter ersetzt** (Pseudonymisierung). So gehen auch in der Testphase nicht alle Daten in die USA. |
-| Automatische Suche | Nur auf den **erlaubten Portalen** (job-room, jobs.ch, jobscout24, ictjobs). Auf allen anderen Seiten, z.B. LinkedIn oder Karriereseiten von Firmen, gibt es in der Erweiterung die Knöpfe **„Stelle prüfen“** (Passung bewerten) und **„Stelle speichern“** (in die App übernehmen). |
+| Automatische Suche | Nur auf den **erlaubten Portalen** (job-room, jobs.ch, jobscout24, ictjobs; für Lehrstellen LENA und yousty). Auf allen anderen Seiten, z.B. LinkedIn oder Karriereseiten von Firmen, gibt es in der Erweiterung die Knöpfe **„Stelle prüfen“** (Passung bewerten) und **„Stelle speichern“** (in die App übernehmen). |
 | Bewerben im Browser | In der **Übersicht der App** setzt die Person Häkchen und klickt auf **„Bewerben“**. Die Erweiterung öffnet **einen Tab pro Bewerbung**, füllt das Formular aus und lädt die Unterlagen hoch, auf jeder Seite. Die Person prüft, bestätigt Datenschutz und Einwilligungen, füllt unklare Felder selbst aus und **schickt selbst ab**. |
 | RAV | Gleicher Ablauf mit **„Im RAV eintragen“**: Die Erweiterung trägt die **Arbeitsbemühungen im Job-Room** aus dem Register ein; die Person prüft und schickt ab. |
 | Eigener API-Schlüssel | In den **erweiterten Einstellungen** kann die Person einen eigenen Schlüssel angeben. Dann fällt die Beschränkung auf die erlaubten Portale weg, auch für LinkedIn; beim Einschalten erscheint eine Warnung. Die Person trägt Kosten und Risiko selbst. |
 | Einstieg | Der Einstieg geht auf drei Wegen: Unterlagen hochladen, ein **Interview mit Claude** in der App oder eine **HTML-Vorlage**, die mit Daten ausgefüllt wird. |
 | Ausbildungssuche | Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können. **2 Lehrstellensuchende**, die aktuell suchen, **machen im Pilot mit**; die Grundlagen kommen darum schon in den Pilot, ausgebaut wird in der fertigen Version. |
-| Hosting | Im Pilot nur die KI-Vermittlung, auf dem bestehenden Hosting des Projektinhabers in der Schweiz. Für den Onlinedienst wird es später entschieden. |
+| Hosting | Im Pilot nur die KI-Vermittlung, auf einem Server des Projektinhabers in Frankfurt (AWS, EU). Für den Onlinedienst wird es später entschieden. |
 | Google Sheets | **Optional, nur als Kopie** (Entscheid 3.11.2026). Führend und einzige Quelle ist das Register in der App. Will die Person eine Jobliste in Google Sheets, legt die App sie auf Wunsch an, zusätzlich zum Register. Ist sie aktiviert, kommt jeder Eintrag und jede Änderung ins Register **und** in die Liste. Gelesen wird die Liste nicht als Quelle. Ohne Liste braucht die App kein Google-Konto. |
 | Finanzierung | **Kleines Abo** ab dem öffentlichen Dienst. Der Pilot ist gratis und dient dazu, die Kosten pro Person zu messen. **Schülerinnen und Schüler** (Lehrstellensuche) nutzen den Assistenten **generell kostenlos**, auch nach dem Pilot. |
 
@@ -53,7 +53,7 @@ Erfolgskriterien des Pilots:
 | **App** für macOS und Windows: Installation per Doppelklick, Ersteinrichtung (Datenordner, Erweiterung, Einladung), Hinweis auf Updates | Daten auf einem Server (kommen erst mit dem Onlinedienst) |
 | **Lehrstellensuche, Grundlagen:** Art der Ausschreibung, Suchprofil nach Berufen, Schülerlebenslauf, Motivationsschreiben; Lehrstellen per Text einfügen | Lehrstellenportale in der Erweiterung, Lesezugang für Begleitpersonen |
 | **Einstieg** auf drei Wegen (siehe unten): Lebenslauf, Suchprofil, Stilprofil, Bausteine | Erinnerungen per E-Mail, Job-Abos per E-Mail |
-| **Stellensuche** über die Browser-Erweiterung auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil; die Treffer gehen an die App | Versand durch die App (die Person schickt selbst ab) |
+| **Stellensuche** über die Browser-Erweiterung auf job-room, jobs.ch, jobscout24 und ictjobs, für Lehrstellen auf LENA und yousty, nach dem Suchprofil; die Treffer gehen an die App | Versand durch die App (die Person schickt selbst ab) |
 | Knöpfe **„Stelle prüfen“** und **„Stelle speichern“** auf jeder Seite, z.B. LinkedIn und Karriereseiten | |
 | **Bewerben aus der Übersicht:** Häkchen setzen, „Bewerben“ öffnet einen Tab pro Bewerbung, füllt das Formular aus und lädt Lebenslauf, Anschreiben, Zeugnisse und die passenden Zertifikate (als ZIP) hoch | |
 | **RAV-Arbeitsbemühungen** aus der Übersicht im Job-Room eintragen lassen | |
@@ -107,7 +107,7 @@ Weil die App auf dem Rechner der Person läuft, hat sie deren IP. Einfache Porta
   - **Erweiterung → App über Native Messaging:** Die App meldet sich bei der Installation als Native-Messaging-Host bei Chrome und Edge an (Datei im Benutzerordner, unter Windows ein Eintrag in der Registry). Die Erweiterung schickt Treffer direkt an die App, ohne Port und ohne Netz. Chrome lässt nur die Erweiterung mit unserer ID mit der App sprechen. Fehlt die App, meldet Chrome einen Fehler, und die Erweiterung zeigt „App herunterladen“.
   - **App → Erweiterung über die eigene Oberfläche:** Die Oberfläche der App läuft im selben Browser. Die Erweiterung meldet sich auf dieser Seite mit einem Zeichen. Fehlt es, zeigt die App den Schritt „Erweiterung hinzufügen“ mit einem Knopf zum Store; sobald die Erweiterung da ist, verschwindet er.
 - **Auslöser:** Sie sucht nur, wenn die Person die Suche startet, und hält die Grenzen aus dem Skill ein (z.B. höchstens 3 Seiten pro Suchbegriff und Ort). Im Hintergrund sucht sie nicht.
-- **Automatische Suche nur auf den erlaubten Portalen:** job-room, jobs.ch, jobscout24 und ictjobs. Für jedes gibt es eine eigene Anpassung in der Erweiterung.
+- **Automatische Suche nur auf den erlaubten Portalen:** job-room, jobs.ch, jobscout24 und ictjobs, für Lehrstellen LENA und yousty. Für jedes gibt es eine eigene Anpassung in der Erweiterung.
 - **Knöpfe auf allen anderen Seiten**, z.B. LinkedIn und Karriereseiten der Firmen:
   - **„Stelle prüfen“:** Die Erweiterung liest das offene Inserat und schickt es an die App. Die App bewertet die Passung (Note 1–6 mit Begründung, wie bei den Treffern der Suche) und prüft auf Doppelbewerbungen. Das Ergebnis erscheint in der Erweiterung, ohne dass die Stelle gespeichert wird.
   - **„Stelle speichern“:** übernimmt das Inserat mit Text, Firma, Titel und Link als neue Bewerbung ins Register der App, samt Bewertung.
@@ -243,7 +243,7 @@ Rechner der Person
                                  ├─▶ Schlüsselbund des Systems (Zugang zur Vermittlung)
                                  └─▶ KI-Aufrufe (pseudonymisiert)
                                         │ HTTPS
-Hosting des Projektinhabers (Schweiz)    ▼
+Server des Projektinhabers (Frankfurt)    ▼
   KI-Vermittlung: Zugang prüfen, Budget, Kosten zählen ──▶ Testphase: Claude API · Release: nur EU
   (Anthropic-Schlüssel nur hier; Inhalte nur durchgereicht)
 ```
@@ -265,7 +265,7 @@ Hosting des Projektinhabers (Schweiz)    ▼
 
 ### KI-Vermittlung
 
-Ein kleiner Dienst auf dem bestehenden Hosting des Projektinhabers in der Schweiz (MIN-344). Er hält den Anthropic-Schlüssel, damit keiner auf den Rechnern liegt.
+Ein kleiner Dienst auf einem Server des Projektinhabers in Frankfurt (AWS, EU; MIN-344). Er hält den Anthropic-Schlüssel, damit keiner auf den Rechnern liegt.
 
 - **Schnittstelle:** gleich wie die Messages API von Anthropic. `ki.py` nutzt das Anthropic SDK mit der Adresse der Vermittlung und dem Zugang der Person.
 - **Einladung:** Der Projektinhaber erstellt pro Person einen Link mit Einmal-Code. Die App löst ihn ein und erhält einen Zugang. Der Code verfällt nach Gebrauch oder nach seiner Gültigkeit (Standard 45 Tage, damit eine Runde Bewerbungen hineinpasst).
@@ -341,7 +341,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 
 **Schon im Pilot nötig:**
 
-- **Datenschutzerklärung und Einwilligung:** Sie sagen, dass die Daten auf dem Rechner der Person liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und dass die Aufrufe über die Vermittlung des Projektinhabers (Hosting in der Schweiz) und sein Konto bei Anthropic laufen. Die Vermittlung reicht Inhalte nur durch und protokolliert nur Kosten.
+- **Datenschutzerklärung und Einwilligung:** Sie sagen, dass die Daten auf dem Rechner der Person liegen, was an die KI geht (pseudonymisiert, Verarbeitung auch in den USA) und dass die Aufrufe über die Vermittlung des Projektinhabers (Server in Frankfurt, EU) und sein Konto bei Anthropic laufen. Die Vermittlung reicht Inhalte nur durch und protokolliert nur Kosten.
 - **Auftragsverarbeitung:** Vertrag mit Anthropic und mit dem Anbieter des Hostings der Vermittlung, im Release mit dem EU-Anbieter. Zu bestätigen ist, dass API-Daten nicht für das Training verwendet werden, und wie lange sie aufbewahrt werden.
 - **Ende des Pilots:** Der Zugang der Person wird gesperrt, ihre Kostenprotokolle nach der Auswertung gelöscht. Ihre Daten bleiben bei ihr; löschen kann sie sie selbst.
 - **Datensparsam:** keine Tracker und keine Telemetrie; die App protokolliert lokal und ohne Inhalte.

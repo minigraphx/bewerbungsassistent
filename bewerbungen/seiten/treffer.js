@@ -108,7 +108,7 @@
       el("td", { class: "note" }, note),
       el("td", {}, umschalten, " ", el("a", { href: t.link, target: "_blank", rel: "noopener", title: "Inserat auf dem Portal öffnen" }, "↗")),
       el("td", {}, t.firma, t.hinweis ? el("span", { class: "marke-status", "data-status": "Beworben", title: t.hinweis }, " schon beworben?") : null),
-      el("td", {}, t.ort || ""), el("td", { class: "knapp" }, t.pensum || ""),
+      el("td", {}, t.ort || ""), el("td", { class: "knapp" }, t.pensum || t.lehrbeginn || ""),
       el("td", {}, t.portal, (t.weitere || []).length ? ` +${t.weitere.length}` : ""),
       el("td", { class: "knapp" }, datum(t.gefunden_am), alter),
       el("td", {}, el("div", { class: "knoepfe" }, aktionen(t))));
@@ -137,10 +137,27 @@
       ...hinweise.map(h => el("li", { "data-stufe": "hinweis" }, h)));
   }
 
+  function aufzaehlung(namen) {
+    return namen.join(", ").replace(/, ([^,]*)$/, " und $1");
+  }
+
+  // The page follows the search profile: apprenticeships address the person informally, as everywhere else.
+  function zeigeArt(art, portale) {
+    const lehrstelle = art === "lehrstelle";
+    $("titel").textContent = lehrstelle ? "Treffer der Lehrstellensuche" : "Treffer der Stellensuche";
+    $("suchen").textContent = lehrstelle ? "Lehrstellen suchen" : "Stellen suchen";
+    $("spalte-rahmen").textContent = lehrstelle ? "Lehrbeginn" : "Pensum";
+    $("erweiterung-link").textContent = lehrstelle ? "So richtest du sie ein" : "So richten Sie sie ein";
+    $("hilfe").textContent = lehrstelle
+      ? `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach deinem Suchprofil, in deinem Browser und nur, wenn du die Suche startest. Neue Lehrstellen erscheinen hier. „Bewerten“ lässt die KI die Passung als Note von 1 bis 6 einschätzen; „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`
+      : `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier. „Bewerten“ lässt die KI die Passung als Note von 1 bis 6 einschätzen; „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`;
+  }
+
   async function lade() {
     try {
       const daten = await holen("/api/suche/liste");
       alle = daten.treffer;
+      zeigeArt(daten.art, daten.portale || []);
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || []);
       zeigeListe();
     } catch (fehler) {

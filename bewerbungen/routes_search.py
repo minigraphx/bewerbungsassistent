@@ -59,7 +59,7 @@ def _portal_summary(raw) -> dict:
 
 def finish(k, parameter, body):
     portals = body.get("portale") if isinstance(body, dict) else None
-    if not isinstance(portals, dict) or not set(portals) <= set(search_plan.PORTALS):
+    if not isinstance(portals, dict) or not set(portals) <= set(search_plan.ALL_PORTALS):
         raise ValueError("portale erwartet")
     run = _hits(k).save_run({"portale": {name: _portal_summary(v) for name, v in portals.items()}}, k.heute())
     return json_antwort(run)
@@ -67,12 +67,15 @@ def finish(k, parameter, body):
 
 def overview(k, parameter, body):
     store = _hits(k)
+    kind = search_plan.kind_of_folder(k.daten)
+    portals = search_plan.APPRENTICESHIP_PORTALS if kind == search_plan.KIND_APPRENTICESHIP else search_plan.PORTALS
     try:
-        hints = list(search_plan.for_folder(k.daten).hints)
+        current = search_plan.for_folder(k.daten)
+        hints, portals = list(current.hints), current.portals
     except ValueError as error:
         hints = [str(error)]
     return json_antwort({"treffer": sorted(store.all(), key=lambda h: h.get("gefunden_am", ""), reverse=True),
-                         "letzte_suche": store.last_run(), "hinweise": hints})
+                         "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals)})
 
 
 def text(k, parameter, body):
@@ -106,6 +109,8 @@ def _note(hit: dict) -> str:
     parts = [rating.get("zusammenfassung", "")]
     if rating.get("haken"):
         parts.append("Haken: " + "; ".join(rating["haken"]))
+    if hit.get("lehrbeginn"):
+        parts.append(f"Lehrbeginn: {hit['lehrbeginn']}")
     if hit.get("hinweis"):
         parts.append(hit["hinweis"])
     return " ".join(p for p in parts if p)

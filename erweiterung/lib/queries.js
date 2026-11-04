@@ -6,7 +6,12 @@ export const ADAPTERS = {
   'jobs.ch': { file: 'portals/jobsch.js', start: 'https://www.jobs.ch/de/' },
   jobscout24: { file: 'portals/jobscout24.js', start: 'https://www.jobscout24.ch/de/jobs/' },
   ictjobs: { file: 'portals/ictjobs.js', start: 'https://ictjobs.ch/' },
+  // LENA fills its list in the page: each search opens its own address there (adapter method searchUrl).
+  LENA: { file: 'portals/lena.js', start: 'https://www.berufsberatung.ch/de/suche/lehrstellen?mode=city', opensPages: true },
+  yousty: { file: 'portals/yousty.js', start: 'https://www.yousty.ch/de-CH/lehrstellen' },
 };
+
+const APPRENTICESHIP_PORTALS = new Set(['LENA', 'yousty']);
 
 /** Where each portal takes the place from: field of the plan and field of the query. */
 const PLACE = {
@@ -14,6 +19,15 @@ const PLACE = {
   jobscout24: ['plz', 'postalCode'],
   ictjobs: ['regionen', 'region'],
 };
+
+/** Every profession around the place of residence, or without one in each canton. */
+function apprenticeshipQueries(plan) {
+  const years = plan.lehrbeginn_jahre || [];
+  const area = (plan.orte || []).length
+    ? plan.orte.map((place) => ({ place, radius: plan.umkreis_km }))
+    : (plan.kantone || []).map((canton) => ({ canton }));
+  return (plan.stichworte || []).flatMap((keyword) => area.map((where) => ({ keyword, years, ...where })));
+}
 
 /**
  * Queries of one portal. job-room searches all cantons at once; the others once per place, every keyword in
@@ -28,7 +42,9 @@ export function buildQueries(portal, plan) {
   const keywords = plan.stichworte || [];
   const niches = plan.nischen || [];
   let all = [];
-  if (portal === 'job-room') {
+  if (APPRENTICESHIP_PORTALS.has(portal)) {
+    all = apprenticeshipQueries(plan);
+  } else if (portal === 'job-room') {
     all = [
       ...keywords.map((keyword) => ({ keyword, cantons: plan.kantone || [], maxAge })),
       ...niches.map((keyword) => ({ keyword, cantons: [], maxAge })),

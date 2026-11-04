@@ -7,7 +7,7 @@ from values import items, text
 
 APPRENTICESHIP_SOURCES = [
     "Lehrstellennachweis LENA (berufsberatung.ch), yousty.ch, Lehrstellenseiten der Betriebe",
-    "Inserate vorerst selbst suchen und den Text einfügen",
+    "Die Browser-Erweiterung sucht auf LENA und yousty im Umkreis des Wohnorts; ohne Wohnort in den Kantonen",
 ]
 JOB_OUTLINE = [
     "Einstieg: Bezug aufs Inserat und warum die Stelle interessiert.",
@@ -83,7 +83,7 @@ def _search_apprenticeship(data: dict) -> list[tuple[str, list[str]]]:
         ("Berufe (mit Priorität)", _numbered(search.get("professions"))),
         ("Berufswahl", _bullets([inline(search.get("howFound"))])),
         ("Region", _pairs(("Wohnort", search.get("home")), ("Schulweg", search.get("commute")),
-                          ("Kantone", _joined(items(search.get("cantons")))))),
+                          ("Kantone", _joined(items(search.get("cantons")))), ("Umkreis", search.get("radius")))),
         ("Schule", _bullets([school]) + _pairs(("Berufsmaturität", search.get("vocationalBaccalaureate")))),
         ("Eignungstests", _bullets(tests)),
         ("Schnupperlehren", _bullets(trials)),

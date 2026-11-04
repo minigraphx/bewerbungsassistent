@@ -157,3 +157,44 @@ def test_ad_text_has_the_details_first(store):
     text = store.ad_text(store.all()[0]["id"])
     assert text.startswith("Stelle: Data Engineer\nFirma: Muster GmbH")
     assert text.endswith("Wir suchen eine Person mit Python.")
+
+
+LENA_HIT = {"portal": "LENA", "portal_id": "3709234", "stelle": "Fachmann/-frau Gesundheit EFZ", "firma": "Spital Muster AG",
+            "ort": "Bern (BE)", "link": "https://www.berufsberatung.ch/de/lehrstellen/3709234", "art": "Lehrstelle",
+            "beruf": "Fachfrau Gesundheit EFZ", "lehrbeginn": "2027", "text": "Du lernst …"}
+YOUSTY_HIT = {"portal": "yousty", "portal_id": "8690204", "stelle": "Fachmann/-frau Gesundheit (FaGe) EFZ",
+              "firma": "Spital Muster", "ort": "Bern", "art": "Lehrstelle", "beruf": "Fachfrau Gesundheit EFZ",
+              "link": "https://www.yousty.ch/de-CH/lehrstellen/profile/8690204-fage", "lehrbeginn": "2027, 2028",
+              "text": "Deine Lehre …"}
+
+
+def test_apprenticeship_keeps_kind_profession_and_start(store):
+    store.add([LENA_HIT], [], TODAY)
+    stored = store.all()[0]
+    assert (stored["art"], stored["beruf"], stored["lehrbeginn"]) == ("Lehrstelle", "Fachfrau Gesundheit EFZ", "2027")
+    assert "Lehrbeginn: 2027" in store.ad_text(stored["id"])
+
+
+def test_apprenticeship_on_both_portals_is_merged_by_profession_company_and_place(store):
+    store.add([LENA_HIT], [], TODAY)
+    answer = store.add([YOUSTY_HIT], [], TODAY)
+    assert (answer["neu"], answer["zusammengefuehrt"]) == (0, 1)
+    assert store.all()[0]["weitere"] == [{"portal": "yousty", "link": YOUSTY_HIT["link"]}]
+
+
+def test_screening_merges_an_apprenticeship_twin_without_fetching_its_text(store):
+    store.add([LENA_HIT], [], TODAY)
+    answer = store.screen([YOUSTY_HIT], (), 45, [])
+    assert answer["holen"] == []
+    assert answer["zusammengefuehrt"] == 1
+
+
+def test_other_profession_in_the_same_company_stays_a_hit_of_its_own(store):
+    store.add([LENA_HIT], [], TODAY)
+    other = {**YOUSTY_HIT, "beruf": "Assistentin Gesundheit und Soziales EBA"}
+    assert store.add([other], [], TODAY)["neu"] == 1
+
+
+def test_link_of_an_apprenticeship_must_belong_to_its_portal(store):
+    wrong = {**LENA_HIT, "link": "https://www.yousty.ch/de-CH/lehrstellen/profile/1"}
+    assert store.add([wrong], [], TODAY)["neu"] == 0

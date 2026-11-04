@@ -135,3 +135,25 @@ def test_discard_and_restore(search):
 
 def test_text_of_unknown_hit_is_404(search):
     assert get(search, "/api/suche/text", id="gibt-es-nicht")[0] == 404
+
+
+def test_overview_names_kind_and_portals_of_the_profile(search):
+    first = listing(search)
+    assert (first["art"], first["portale"]) == ("stelle", ["job-room", "jobs.ch", "jobscout24", "ictjobs"])
+    shutil.copy(VORLAGEN / "suchprofil-lehrstelle.md", search.kontext.daten / "suchprofil.md")
+    second = listing(search)
+    assert (second["art"], second["portale"]) == ("lehrstelle", ["LENA", "yousty"])
+
+
+def test_summary_of_an_apprenticeship_search_is_accepted(search):
+    shutil.copy(VORLAGEN / "suchprofil-lehrstelle.md", search.kontext.daten / "suchprofil.md")
+    status, _ = post(search, "/api/suche/abschluss", {"portale": {"LENA": {"treffer": 3, "neu": 2}, "yousty": {"treffer": 1, "neu": 0}}})
+    assert status == 200
+    assert set(listing(search)["letzte_suche"]["portale"]) == {"LENA", "yousty"}
+
+
+def test_unfinished_apprenticeship_profile_keeps_its_kind_next_to_the_error(search):
+    (search.kontext.daten / "suchprofil.md").write_text("# Suchprofil Lehrstelle\n\n## Lehrbeginn\n- August 2027\n", encoding="utf-8")
+    overview = listing(search)
+    assert (overview["art"], overview["portale"]) == ("lehrstelle", ["LENA", "yousty"])
+    assert "Berufe" in overview["hinweise"][0]

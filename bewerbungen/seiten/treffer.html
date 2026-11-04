@@ -11,14 +11,14 @@
 <body>
 <nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Treffer</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></div></details></nav>
 <main>
-  <h1>Treffer der Stellensuche</h1>
-  <p class="hilfe">Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier. „Bewerten“ lässt die KI die Passung als Note von 1 bis 6 einschätzen; „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.</p>
+  <h1 id="titel">Treffer der Stellensuche</h1>
+  <p class="hilfe" id="hilfe">Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier. „Bewerten“ lässt die KI die Passung als Note von 1 bis 6 einschätzen; „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.</p>
 
   <div class="knoepfe">
     <button type="button" id="suchen" class="haupt" disabled>Stellen suchen</button>
     <span id="lauf" class="status" role="status" aria-live="polite"></span>
   </div>
-  <p id="ohne-erweiterung" class="banner" hidden>Für die Suche braucht es die Browser-Erweiterung. <a href="/einrichtung#erweiterung">So richten Sie sie ein</a></p>
+  <p id="ohne-erweiterung" class="banner" hidden>Für die Suche braucht es die Browser-Erweiterung. <a id="erweiterung-link" href="/einrichtung#erweiterung">So richten Sie sie ein</a></p>
   <p id="letzte" class="leise"></p>
   <ul id="probleme" class="befunde"></ul>
 
@@ -34,7 +34,7 @@
   <div id="status" class="status" role="status" aria-live="polite"></div>
 
   <table>
-    <thead><tr><th>Note</th><th>Stelle</th><th>Firma</th><th>Ort</th><th>Pensum</th><th>Portal</th><th>Gefunden</th><th></th></tr></thead>
+    <thead><tr><th>Note</th><th>Stelle</th><th>Firma</th><th>Ort</th><th id="spalte-rahmen">Pensum</th><th>Portal</th><th>Gefunden</th><th></th></tr></thead>
     <tbody id="liste"></tbody>
   </table>
   <p id="leer" class="leer" hidden>Keine Treffer.</p>

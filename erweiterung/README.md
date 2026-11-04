@@ -1,6 +1,6 @@
 # Browser-Erweiterung
 
-Modul des [Bewerbungsassistenten](../README.md) (MIN-339): Die Erweiterung für Chrome und Edge sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil. Sie sucht im Browser der Person, mit deren IP und Logins, und nur, wenn die Person die Suche startet. Die Treffer gehen über Native Messaging an die [Desktop-App](../desktop/README.md); dort erscheinen sie auf der Seite „Treffer“.
+Modul des [Bewerbungsassistenten](../README.md) (MIN-339): Die Erweiterung für Chrome und Edge sucht nach dem Suchprofil: Stellen auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellen auf LENA (berufsberatung.ch) und yousty. Sie sucht im Browser der Person, mit deren IP und Logins, und nur, wenn die Person die Suche startet. Die Treffer gehen über Native Messaging an die [Desktop-App](../desktop/README.md); dort erscheinen sie auf der Seite „Treffer“.
 
 Im Pilot wird sie als **Entwicklererweiterung** geladen („Entpackte Erweiterung laden“). In den Store kommt sie später.
 
@@ -27,9 +27,18 @@ Die ID der Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`), weil `mani
 
 Die App nimmt über den Host nur diese vier Anfragen an. Alles andere lehnt der Host ab. Die Erweiterung selbst nimmt Aufträge nur vom Popup und von der Seite der laufenden App an; eine andere Seite auf `127.0.0.1` mit demselben Kennzeichen wird abgewiesen, weil ihre Adresse nicht die ist, die die App über Native Messaging meldet (`lib/senders.js`).
 
+## Lehrstellen
+
+Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur auf LENA und yousty, pro Beruf im gewählten Umkreis um den Wohnort (Standard 25 km), ohne Wohnort in jedem Kanton. Höchstens 20 Seiten pro Abfrage. Nur Lehrstellen mit dem gewählten Lehrbeginn kommen an; ohne Jahr im Profil alle. Schnupperlehren sucht sie noch nicht.
+
+- **Berufe:** Der Name im Profil wird bei jeder Suche über die Vorschläge des Portals auf dessen Beruf abgebildet, Geschlechtsformen zählen dabei nicht („Fachfrau“, „Fachmann/-frau“; `professionWords` in `portals/common.js`). Findet das Portal einen Beruf oder den Ort nicht, steht das als Problem bei der letzten Suche, und die übrigen Berufe laufen weiter.
+- **LENA** füllt die Trefferliste erst im Browser. Darum öffnet der Tab pro Abfrage die Adresse aus `searchUrl`, lädt die Anpassung neu und liest die Karten aus der Seite („Mehr anzeigen“ ist die nächste Seite). Das Formular öffnet seine Vorschläge nur mit einem Fokus-Ereignis, das ein Tab im Hintergrund nicht von selbst auslöst; die Anpassung löst es aus.
+- **yousty** liest wie die Stellenportale fertige Seiten per `fetch`, den Inseratstext aus den strukturierten Daten der Seite (schema.org `JobPosting`).
+- **Zwillinge:** Dieselbe Lehrstelle auf beiden Portalen (gleicher Betrieb, gleicher Beruf laut Suchprofil, gleicher Ort) wird zu einem Treffer mit zweitem Link.
+
 ## Aufbau
 
-- `manifest.json`: MV3, Berechtigungen nur für die vier Portale, `127.0.0.1` und Native Messaging.
+- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `127.0.0.1` und Native Messaging.
 - `background.js`: Service Worker; startet die Suche, öffnet und schliesst die Portal-Tabs, meldet den Fortschritt.
 - `lib/`: `queries.js` (Abfragen pro Portal aus dem Suchplan, alle Stichworte zuerst am ersten Ort), `search.js` (Ablauf einer Suche, ohne Browser testbar), `app.js` (Verbindung zur App), `senders.js` (wer Aufträge geben darf), `progress.js` (Text für den Fortschritt).
 - `portals/`: eine Anpassung pro Portal mit `list(query, page)` und `details(hit)`, dazu `common.js` (HTML zu Text, Alter, Pensum, Abrufe).
@@ -44,4 +53,4 @@ Gegenstück in der App: `desktop/native_host.py` (Host, Weiterleitung an die lau
 node --test tests/*.test.mjs
 ```
 
-Die Anpassungen an die Portale sind mit gespeicherten Antworten getestet. Ändert ein Portal seine Seiten, zuerst die Anpassung im Portal-Tab von Hand prüfen (Code aus `portals/common.js` und der Anpassung in die Konsole einfügen, dann `bewerbungsassistentPortals['jobs.ch'].list({keyword: 'python', place: 'Bern'}, 1)`), danach Test und Anpassung nachführen.
+Die Anpassungen an die Portale sind mit gespeicherten Antworten oder kleinen Nachbildungen der Seiten getestet. Ändert ein Portal seine Seiten, zuerst die Anpassung im Portal-Tab von Hand prüfen (Code aus `portals/common.js` und der Anpassung in die Konsole einfügen, dann `bewerbungsassistentPortals['jobs.ch'].list({keyword: 'python', place: 'Bern'}, 1)`), danach Test und Anpassung nachführen.

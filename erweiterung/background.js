@@ -52,6 +52,11 @@ const browserTabs = {
     await waitForLoad(tab.id);
     return tab.id;
   },
+  async navigate(tabId, url) {
+    const loaded = waitForLoad(tabId);
+    await chrome.tabs.update(tabId, { url });
+    await loaded;
+  },
   async inject(tabId, files) {
     await chrome.scripting.executeScript({ target: { tabId }, files });
   },
@@ -94,7 +99,9 @@ async function status() {
   const app = new AppConnection();
   try {
     const hello = await app.hello();
-    return { verbunden: true, version: hello.version, app: hello.app };
+    // Only a running app is asked for the plan: opening the popup should not start it.
+    const plan = hello.app ? await app.request('GET', '/api/suche/plan').then((answer) => answer.plan, () => null) : null;
+    return { verbunden: true, version: hello.version, app: hello.app, plan };
   } catch (error) {
     return { verbunden: false, fehler: error.message || explain('') };
   } finally {
