@@ -146,7 +146,8 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
             return rejected_answer(rejected, replace, json_antwort)
         if not result.incomplete:
             import_documents.settle_read(folder)
-        return json_antwort({"geschrieben": result.written, "unvollstaendig": result.incomplete})
+        return json_antwort({"geschrieben": result.written, "unvollstaendig": result.incomplete,
+                             "behalten": list(result.kept_terms)})
 
     def prefill_documents(k, parameter, body):
         """Suggestions only: nothing is written to the person's files, the page shows them for checking."""

@@ -235,6 +235,13 @@ def section_bounds(lines: list[str], key: str) -> tuple[int | None, int]:
     return start, next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
 
 
+def section_lines(text: str, title: str) -> list[str]:
+    """The filled lines of a section as they are written."""
+    lines = text.split("\n")
+    start, end = section_bounds(lines, title[3:].strip().lower())
+    return [] if start is None else [row for row in lines[start + 1:end] if row.strip()]
+
+
 def with_section_line(text: str, title: str, line: str, before: str) -> str:
     """Adds the line after the last filled line of the section, so that it stays last; a missing section comes before `before`."""
     lines = text.split("\n")

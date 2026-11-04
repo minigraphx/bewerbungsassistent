@@ -36,11 +36,13 @@ const APP_TEXT = {
   job: {
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Ihre Eingaben bleiben gespeichert; Sie können später weitermachen.",
     done: "Ihre Angaben sind übernommen. ",
+    kept: (names) => `Aus Ihrer bisherigen Suche bleibt dabei: ${names}. Entfernen können Sie das unter „Treffer“. `,
     incomplete: "Ihre Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänzen Sie sie hier, wenn Sie so weit sind. ",
   },
   apprenticeship: {
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Deine Eingaben bleiben gespeichert; du kannst später weitermachen.",
     done: "Deine Angaben sind übernommen. ",
+    kept: (names) => `Aus deiner bisherigen Suche bleibt dabei: ${names}. Entfernen kannst du das unter „Treffer“. `,
     incomplete: "Deine Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänze sie hier, wenn du so weit bist. ",
   },
 };
@@ -563,6 +565,7 @@ async function takeOver(replace) {
       result.unvollstaendig
         ? APP_TEXT[state.track].incomplete
         : APP_TEXT[state.track].done,
+      (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
       el("a", { href: "/" }, "Zu den Bewerbungen"),
     );
   } catch (error) {

@@ -124,3 +124,32 @@ def removed(text: str, name: str) -> str:
         return text
     indent = lines[core][:len(lines[core]) - len(lines[core].lstrip())]
     return "\n".join([*lines[:core], f"{indent}{prefix}{', '.join(kept)}".rstrip(), *lines[core + 1:]])
+
+
+def _kept_offers(old: str, new: str) -> str:
+    """The wish from the page stays if the form says nothing about it."""
+    if search_plan.OFFERS_SECTION in new or search_plan.OFFERS_SECTION not in old:
+        return new
+    lines = search_plan.section_lines(old, search_plan.OFFERS_SECTION)
+    return search_plan.with_section_line(new, search_plan.OFFERS_SECTION, "\n".join(lines), APPRENTICESHIP_MARK) if lines else new
+
+
+def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
+    """A profile from the form replaces the old one: what the old one searched stays, after what the form names.
+
+    Terms are added and removed on the page without the form knowing, so the form cannot mean to drop them. Whoever
+    does not want one any more removes it on the page. A different kind of search shares nothing.
+    """
+    if (APPRENTICESHIP_MARK in old) != (APPRENTICESHIP_MARK in new):
+        return new, ()
+    text, kept = new, []
+    for term in current(old):
+        try:
+            changed = added(text, term)
+        except ValueError:  # the list is full: the rest stays only in the draft of the old profile
+            break
+        if changed != text:
+            kept = [*kept, term]
+        text = changed
+    return (_kept_offers(old, text) if APPRENTICESHIP_MARK in new else text), tuple(kept)
+

@@ -135,3 +135,42 @@ def test_the_section_before_is_found_by_its_whole_line():
 
 def test_keys_are_the_same_for_two_forms_of_a_name():
     assert search_terms.key("Fachfrau/Fachmann Gesundheit EFZ") == search_terms.key("Fachfrau Gesundheit EFZ")
+
+
+def test_replacing_keeps_what_was_added_on_the_page():
+    new = "## Berufe (mit Priorität)\n1. Koch/Köchin EFZ (Priorität 1)\n\n## Lehrbeginn\n- 2027\n"
+    old = "## Berufe (mit Priorität)\n1. Koch EFZ\n2. Maler/in EFZ\n\n## Lehrbeginn\n- 2028\n"
+    text, kept = search_terms.kept_on_replace(old, new)
+    assert kept == ("Maler/in EFZ",)
+    assert search_terms.current(text) == ("Koch/Köchin EFZ", "Maler/in EFZ")
+    assert "- 2027\n" in text and "- 2028\n" not in text
+
+
+def test_replacing_with_nothing_new_changes_nothing():
+    assert search_terms.kept_on_replace(LEHRE, LEHRE) == (LEHRE, ())
+
+
+def test_replacing_keeps_job_terms_in_what_the_new_profile_searches():
+    new = "## Suchrichtungen\n1. Empfang (Priorität 1)\n\n## Region\n- Wohnort: Bern\n"
+    text, kept = search_terms.kept_on_replace(KERN, new)
+    assert kept == ("Daten", "Python")
+    assert search_terms.current(text) == ("Empfang", "Daten", "Python")
+
+
+def test_changing_the_kind_of_search_keeps_nothing():
+    assert search_terms.kept_on_replace(KERN, LEHRE) == (LEHRE, ())
+
+
+def test_replacing_stops_at_what_the_search_uses():
+    names = "".join(f"{i}. Beruf{i} EFZ\n" for i in range(1, search_plan.MAX_PROFESSIONS + 1))
+    old = f"## Berufe (mit Priorität)\n{names}\n## Lehrbeginn\n- 2027\n"
+    text, kept = search_terms.kept_on_replace(old, "## Berufe (mit Priorität)\n1. Koch EFZ\n\n## Lehrbeginn\n- 2027\n")
+    assert len(kept) == search_plan.MAX_PROFESSIONS - 1 and len(search_terms.current(text)) == search_plan.MAX_PROFESSIONS
+
+
+def test_replacing_keeps_the_choice_of_offers_if_the_form_has_none():
+    old = "## Gesucht\n- Schnupperlehren\n\n## Lehrbeginn\n- 2027\n"
+    text, _ = search_terms.kept_on_replace(old, "## Lehrbeginn\n- 2028\n")
+    assert search_plan.OFFERS_SECTION in text and "- Schnupperlehren\n" in text
+    chosen = "## Gesucht\n- Lehrstellen\n\n## Lehrbeginn\n- 2028\n"
+    assert search_terms.kept_on_replace(old, chosen)[0] == chosen

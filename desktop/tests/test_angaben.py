@@ -402,3 +402,15 @@ def test_prefill_with_unknown_form_of_answers_is_refused(started):
     server, _, _ = started
     status, answer = call(server, "/api/angaben/vorbefuellen", {"track": "job", "data": "nein"})
     assert status == 400 and answer["fehler"]
+
+
+def test_replacing_names_what_stays_in_the_search(started):
+    server, folder, _ = started
+    call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle()})
+    profile = folder / "suchprofil.md"
+    profile.write_text(profile.read_text(encoding="utf-8").replace("## Suchrichtungen\n", "## Suchrichtungen\n1. Empfang\n", 1), encoding="utf-8")
+
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": True})
+
+    assert status == 200 and answer["behalten"] == ["Empfang"]
+    assert "Empfang" in profile.read_text(encoding="utf-8")

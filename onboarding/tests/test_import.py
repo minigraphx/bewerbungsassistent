@@ -134,3 +134,19 @@ def test_someone_who_does_not_know_a_profession_yet_can_finish_and_add_one_later
     assert search_plan.kind_of_folder(tmp_path) == search_plan.KIND_APPRENTICESHIP
     assert search_plan.professions_in(profile) == ()
     assert search_plan.professions_in(search_plan.with_profession(profile, "Gärtner/in EFZ")) == ("Gärtner/in EFZ",)
+
+
+def test_replacing_keeps_what_was_added_to_the_search_and_says_so(tmp_path):
+    bundle = base_bundle("apprenticeship")
+    import_bundle.import_file(tmp_path, write_bundle(tmp_path, bundle), TODAY)
+    path = tmp_path / "suchprofil.md"
+    path.write_text(search_plan.with_profession(path.read_text(encoding="utf-8"), "Gärtner/in EFZ"), encoding="utf-8")
+    result = import_bundle.import_file(tmp_path, write_bundle(tmp_path, bundle), TODAY, force=True)
+    assert result.kept_terms == ("Gärtner/in EFZ",)
+    assert "Gärtner/in EFZ" in search_plan.professions_in(path.read_text(encoding="utf-8"))
+    assert "suchprofil.md" in result.written
+
+
+def test_a_first_import_keeps_nothing(tmp_path):
+    result = import_bundle.import_file(tmp_path, write_bundle(tmp_path, base_bundle("job")), TODAY)
+    assert result.kept_terms == ()

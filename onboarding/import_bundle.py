@@ -23,6 +23,8 @@ import paths  # noqa: F401  (makes the module bewerbungen importable)
 import archive
 import convert
 import import_documents
+import search_plan
+import search_terms
 import validation
 from dateien import im_ordner, schreibe_atomar
 from entwurf import sichere
@@ -42,6 +44,7 @@ class ImportResult:
     written: list[str]
     documents: list[str]
     incomplete: bool
+    kept_terms: tuple[str, ...] = ()
 
 
 def read_bundle(path: pathlib.Path) -> object:
@@ -94,16 +97,28 @@ def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.
         track = bundle.get("track") if isinstance(bundle, dict) else None
         raise ImportRejected([validation.describe(form, track, e) for e in errors])
     data_dir = data_dir.resolve()
-    written = [] if incomplete else _write_basics(form, bundle, data_dir, today, force)
+    written, kept = ([], ()) if incomplete else _write_basics(form, bundle, data_dir, today, force)
     data_dir.mkdir(parents=True, exist_ok=True)
     stored = import_documents.store_documents(data_dir, found, today, raw if incomplete else None)
     if not incomplete:
         import_documents.discard_kept_answers(data_dir)
-    return ImportResult(written, stored, incomplete)
+    return ImportResult(written, stored, incomplete, kept)
 
 
-def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datetime.date, force: bool) -> list[str]:
-    encoded = _encode(convert.convert_bundle(form, bundle, today))
+def _keeping_search_terms(files: dict[str, str], data_dir: pathlib.Path) -> tuple[dict[str, str], tuple[str, ...]]:
+    """Terms added on the page of the app are unknown to the form; replacing must not lose them."""
+    path = data_dir / search_plan.PROFILE
+    if search_plan.PROFILE not in files or not path.is_file():
+        return files, ()
+    text, kept = search_terms.kept_on_replace(path.read_text(encoding="utf-8", errors="replace"), files[search_plan.PROFILE])
+    return {**files, search_plan.PROFILE: text}, kept
+
+
+def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datetime.date,
+                  force: bool) -> tuple[list[str], tuple[str, ...]]:
+    files = convert.convert_bundle(form, bundle, today)
+    merged, kept = _keeping_search_terms(files, data_dir) if force else (files, ())
+    encoded = _encode(merged)
     targets = {rel: im_ordner(data_dir, rel) for rel in encoded}
     existing = [rel for rel, target in targets.items() if target.exists()]
     if existing and not force:
@@ -115,7 +130,7 @@ def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datet
     for rel, content in encoded.items():
         schreibe_atomar(targets[rel], content)
     sichere(data_dir, list(encoded), DRAFT_AFTER)
-    return list(encoded)
+    return list(encoded), kept
 
 
 def _encode(files: dict[str, str]) -> dict[str, bytes]:
@@ -144,6 +159,8 @@ def main(argv: list[str] | None = None) -> int:
 def _report(result: ImportResult) -> None:
     if result.written:
         print("Übernommen:", *(f"- {rel}" for rel in result.written), sep="\n")
+    if result.kept_terms:
+        print("Aus der bisherigen Suche behalten:", *(f"- {term}" for term in result.kept_terms), sep="\n")
     if result.documents:
         print("Unterlagen abgelegt:", *(f"- {rel}" for rel in result.documents), sep="\n")
     if result.incomplete:

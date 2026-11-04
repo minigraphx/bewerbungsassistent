@@ -17,16 +17,16 @@ import updates
 import updates_macos
 
 ZIP = b"PK" + b"z" * 4000
-BASE = updates.DOWNLOAD_PREFIX + "v0.2.0/"
-ZIP_NAME = "Bewerbungsassistent-0.2.0-macOS.zip"
+BASE = updates.DOWNLOAD_PREFIX + "v9.2.0/"
+ZIP_NAME = "Bewerbungsassistent-9.2.0-macOS.zip"
 needs_shell = pytest.mark.skipif(sys.platform == "win32", reason="the swap is a shell script for macOS")
 needs_mac = pytest.mark.skipif(sys.platform != "darwin", reason="ditto and codesign exist on macOS only")
 
 
 def release(package=ZIP):
     files = {
-        updates.LATEST_URL: json.dumps({"tag_name": "v0.2.0", "html_url": "https://github.com/x/releases/v", "assets": [
-            {"name": "Bewerbungsassistent-Setup-0.2.0.exe", "browser_download_url": BASE + "Bewerbungsassistent-Setup-0.2.0.exe"},
+        updates.LATEST_URL: json.dumps({"tag_name": "v9.2.0", "html_url": "https://github.com/x/releases/v", "assets": [
+            {"name": "Bewerbungsassistent-Setup-9.2.0.exe", "browser_download_url": BASE + "Bewerbungsassistent-Setup-9.2.0.exe"},
             {"name": "SHA256SUMS.txt", "browser_download_url": BASE + "SHA256SUMS.txt"},
             {"name": ZIP_NAME, "browser_download_url": BASE + ZIP_NAME},
             {"name": updates.MAC_CHECKSUMS, "browser_download_url": BASE + updates.MAC_CHECKSUMS}]}).encode(),
@@ -183,7 +183,7 @@ def swap(tmp_path, pid, command, exit_wait=2, start_wait=1):
     staging = tmp_path / updates_macos.STAGING
     fake_app(staging, updates_macos.NEW_APP, mark="neu")
     note = tmp_path / "fehlgeschlagen.txt"
-    updates_macos.start_swap(app, staging, note, "0.2.0", pid=pid, open_command=str(command),
+    updates_macos.start_swap(app, staging, note, "9.2.0", pid=pid, open_command=str(command),
                              exit_wait=exit_wait, start_wait=start_wait)
     return app, staging, note
 
@@ -221,7 +221,7 @@ def test_swap_keeps_the_name_of_the_installed_app(tmp_path):
     staging = tmp_path / updates_macos.STAGING
     fake_app(staging, updates_macos.NEW_APP, mark="neu")
 
-    updates_macos.start_swap(app, staging, tmp_path / "n.txt", "0.2.0", pid=gone_process(),
+    updates_macos.start_swap(app, staging, tmp_path / "n.txt", "9.2.0", pid=gone_process(),
                              open_command=str(opener(tmp_path)), exit_wait=2, start_wait=1)
     wait_until_gone(staging)
 
@@ -234,7 +234,7 @@ def test_swap_goes_back_when_the_new_version_does_not_confirm(tmp_path):
 
     wait_until_gone(staging)
 
-    assert content(app) == "alt" and note.read_text().strip() == "0.2.0"
+    assert content(app) == "alt" and note.read_text().strip() == "9.2.0"
     log = tmp_path / "gestartet.log"
     end = time.monotonic() + 3  # the old version starts after the clean-up
     while log.read_text() != "neu\nalt\n" and time.monotonic() < end:
@@ -248,7 +248,7 @@ def test_swap_goes_back_when_the_new_version_cannot_be_opened(tmp_path):
 
     wait_until_gone(staging)
 
-    assert content(app) == "alt" and note.read_text().strip() == "0.2.0"
+    assert content(app) == "alt" and note.read_text().strip() == "9.2.0"
 
 
 @needs_shell
@@ -318,7 +318,7 @@ def test_route_names_the_problem_of_the_place(tmp_path):
 
 def test_route_does_not_offer_a_version_that_failed_again(tmp_path):
     get, _, _, controls = routes(tmp_path, app=fake_app(tmp_path))
-    controls.failed_note.write_text("0.2.0\n")
+    controls.failed_note.write_text("9.2.0\n")
 
     update = body(get["/api/app/version"](None, {}, None))["update"]
 
@@ -338,7 +338,7 @@ def test_route_prepares_swaps_and_quits(tmp_path):
     stopping = []
     controls.stop_soon = lambda: stopping.append(True)
 
-    assert body(post["/api/app/aktualisieren"](None, {}, {}))["version"] == "0.2.0"
+    assert body(post["/api/app/aktualisieren"](None, {}, {}))["version"] == "9.2.0"
 
     assert started[0][0] == app and started[0][1] == tmp_path / updates_macos.STAGING and stopping == [True]
 
@@ -373,8 +373,8 @@ def test_real_tools_accept_an_ad_hoc_signed_package(tmp_path):
     subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(package)], check=True, capture_output=True)
     subprocess.run(["ditto", "-c", "-k", "--keepParent", str(package), str(tmp_path / ZIP_NAME)], check=True)
     archive = (tmp_path / ZIP_NAME).read_bytes()
-    base = updates.DOWNLOAD_PREFIX + "v0.2.0/"
-    update = updates.Update("0.2.0", "https://x", base + ZIP_NAME, base + updates.MAC_CHECKSUMS)
+    base = updates.DOWNLOAD_PREFIX + "v9.2.0/"
+    update = updates.Update("9.2.0", "https://x", base + ZIP_NAME, base + updates.MAC_CHECKSUMS)
     files = {base + ZIP_NAME: archive,
              base + updates.MAC_CHECKSUMS: f"{hashlib.sha256(archive).hexdigest()}  {ZIP_NAME}\n".encode()}
     installed = tmp_path / "Programme"
@@ -426,7 +426,7 @@ def test_the_old_version_is_kept_when_the_new_one_cannot_be_moved_away(tmp_path,
         '#!/bin/sh\ncase "$2" in *fehlgeschlagen.app) exit 1;; esac\nexec /bin/mv "$@"\n')
     note = tmp_path / "note.txt"
 
-    updates_macos.start_swap(app, staging, note, "0.2.0", pid=gone_process(), open_command=str(opener(tmp_path, confirms=False)),
+    updates_macos.start_swap(app, staging, note, "9.2.0", pid=gone_process(), open_command=str(opener(tmp_path, confirms=False)),
                              exit_wait=2, start_wait=1)
     wait_for(note)
 
@@ -441,7 +441,7 @@ def test_old_version_comes_back_when_the_new_one_cannot_be_moved_in(tmp_path, mo
     app, staging, note = swap(tmp_path, gone_process(), opener(tmp_path, confirms=False))
     wait_until_gone(staging)
 
-    assert content(app) == "alt" and note.read_text().strip() == "0.2.0"
+    assert content(app) == "alt" and note.read_text().strip() == "9.2.0"
 
 
 def test_a_symlink_instead_of_the_app_is_refused(tmp_path):
