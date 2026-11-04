@@ -121,3 +121,75 @@ def test_unbekannt_allein_genuegt_nicht():
     befunde = pruefung.pruefe_anschreiben_text(brief, {**BEWERBUNG, "firma": "unbekannt (über ONE Agency)"}, HEUTE)
 
     assert "fehler" in stufen(befunde)
+
+
+# Contact person in the address and salutation (MIN-358)
+
+
+@pytest.mark.parametrize("address, salutation", [
+    (["Beispiel AG", "Frau Petra Meier", "Strasse 5"], "Sehr geehrte Frau Meier"),
+    (["Beispiel AG", "Frau Petra Meier"], "Liebe Petra"),
+    (["Beispiel AG", "Frau Petra Meier"], "Liebe Frau Meier"),
+    (["Beispiel AG", "Frau Petra Meier"], "Guten Tag Frau Meier"),
+    (["Beispiel AG", "Herr Keller"], "Sehr geehrter Herr Keller"),
+    (["Beispiel AG", "Herr Urs Keller"], "Lieber Urs"),
+    (["Beispiel AG", "z.H. Frau Dr. Petra Meier"], "Sehr geehrte Frau Dr. Meier"),
+    (["Beispiel AG", "Frau Anna von Arx"], "Sehr geehrte Frau von Arx"),
+    (["Beispiel AG", "Frau Müller-Graf"], "Sehr geehrte Frau Müller-Graf"),
+])
+def test_salutation_fits_the_person(address, salutation):
+    findings = pruefung.check_contact_person(address, salutation)
+
+    assert stufen(findings) == {"ok"}, texte(findings)
+
+
+@pytest.mark.parametrize("address, salutation, word", [
+    (["Beispiel AG", "Frau Petra Meier"], "Sehr geehrte Damen und Herren", "Meier"),
+    (["Beispiel AG", "Frau Petra Meier"], "Guten Tag", "Meier"),
+    (["Beispiel AG", "Frau Petra Meier"], "Sehr geehrte Frau Keller", "Meier"),
+    (["Beispiel AG", "Frau Petra Meier"], "Sehr geehrter Frau Meier", "Form"),
+    (["Beispiel AG", "Frau Petra Meier"], "Sehr geehrter Herr Meier", "Form"),
+    (["Beispiel AG", "Frau Petra Meier"], "Lieber Petra", "Form"),
+    (["Beispiel AG", "Herr Keller"], "Sehr geehrte Herr Keller", "Form"),
+    (["Beispiel AG", "Herr Keller"], "Liebe Herr Keller", "Form"),
+    (["Beispiel AG", "Herr Keller"], "Guten Tag Frau Keller", "Form"),
+    (["Beispiel AG", "Frau Petra Meier"], "", "Meier"),
+])
+def test_salutation_that_does_not_fit_is_an_error(address, salutation, word):
+    findings = pruefung.check_contact_person(address, salutation)
+
+    assert stufen(findings) == {"fehler"} and word in texte(findings), texte(findings)
+
+
+@pytest.mark.parametrize("address, salutation", [
+    (["Beispiel AG", "Strasse 5", "3011 Bern"], "Guten Tag"),
+    (["Beispiel AG", "Personalabteilung"], "Liebes Beispiel-Team"),
+    (["Frau Holle AG", "Strasse 5"], "Guten Tag"),
+    (["Herrengasse 3"], "Sehr geehrte Damen und Herren"),
+    ([], "Guten Tag"),
+    (None, None),
+    ("kein Array", 5),
+])
+def test_without_a_person_any_salutation_is_fine(address, salutation):
+    assert pruefung.check_contact_person(address, salutation) == []
+
+
+def test_a_check_of_the_application_finds_a_wrong_salutation(datenordner, tmp_path):
+    brief = datenordner / "bewerbungen" / BRIEF_ID / "anschreiben.yaml"
+    daten = yaml.safe_load(brief.read_text(encoding="utf-8"))
+    daten["empfaenger"] = ["Beispiel AG", "Herr Urs Keller"]
+    daten["anrede"] = "Sehr geehrte Damen und Herren"
+    brief.write_text(yaml.safe_dump(daten, allow_unicode=True), encoding="utf-8")
+    b = Register(datenordner).hole(BRIEF_ID)
+    unterlagen.baue(datenordner, b, tmp_path / "build")
+
+    befunde = pruefung.pruefe(datenordner, b, HEUTE)
+
+    assert any(x.stufe == "fehler" and "Keller" in x.text for x in befunde), texte(befunde)
+
+
+def test_a_broken_letter_file_is_no_crash_here(datenordner):
+    brief = datenordner / "bewerbungen" / BRIEF_ID / "anschreiben.yaml"
+    brief.write_text("kaputt: [", encoding="utf-8")
+
+    assert pruefung.contact_person_findings(brief) == []

@@ -1,7 +1,7 @@
 """Automatische Prüfung vor dem Absenden (MIN-262).
 
 Prüft die PDFs formal: Text extrahierbar (Bewerbungssoftware/ATS), Seitenzahl, Platzhalter, und im Anschreiben
-Firma, Stelle, Datum sowie eine einheitliche Anrede (Du/Sie). Der inhaltliche Abgleich mit den Anforderungen der
+Firma, Stelle, Datum, eine einheitliche Anrede (Du/Sie) und die Ansprechperson in Adresse und Anrede. Der inhaltliche Abgleich mit den Anforderungen der
 Stelle und mit den Belegen ist Aufgabe des Skills `bewerbung` (LLM). Der Nutzer sieht sich nur die PDFs an,
 die Befunde stehen daneben.
 """
@@ -10,6 +10,7 @@ import datetime
 import pathlib
 import re
 
+import yaml
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
@@ -24,6 +25,10 @@ MONATE_EN = {m: i + 1 for i, m in enumerate(("January", "February", "March", "Ap
 MAX_SEITEN = {"lebenslauf": 3, "anschreiben": 1}
 NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben"}
 MAX_ALTER_TAGE = 14
+CARE_OF = re.compile(r"^(z\.?\s*H\.?(d\.?)?|zu Handen|c/o|Attn\.?:?)\s+", re.IGNORECASE)
+PERSON_LINE = re.compile(r"^(Frau|Herr)\s+((?:(?:Prof\.|Dr\.)\s+)*)(.+)$")
+SURNAME_PARTICLES = {"von", "van", "de", "del", "di", "du", "le", "la", "zu", "zur"}
+WRONG_FORMS = {"Frau": ("Sehr geehrter", "Lieber", "Herr"), "Herr": ("Sehr geehrte", "Liebe", "Frau")}  # words of the other title
 
 
 @dataclasses.dataclass(frozen=True)
@@ -107,6 +112,47 @@ def pruefe_anschreiben_text(text: str, bewerbung: dict, heute: datetime.date) ->
     return befunde
 
 
+def _contact_person(address: object) -> dict | None:
+    """The person named in the address: title, first names and surname. A company such as „Frau Holle AG“ is none."""
+    lines = address if isinstance(address, list) else []
+    for line in (CARE_OF.sub("", str(entry).strip()) for entry in lines):
+        match = PERSON_LINE.match(line)
+        if not match or RECHTSFORMEN.search(line):
+            continue
+        words = match.group(3).split()
+        start = next((i for i, word in enumerate(words) if word.lower() in SURNAME_PARTICLES and i > 0), len(words) - 1)
+        return {"title": match.group(1), "first": words[:start], "surname": " ".join(words[start:])}
+    return None
+
+
+def _has_words(text: str, words: str) -> bool:
+    return re.search(rf"(?<!\w){re.escape(words)}(?!\w)", text, re.IGNORECASE) is not None
+
+
+def check_contact_person(address: object, salutation: object) -> list[Befund]:
+    """With a person in the address, the salutation must name that person in the right form (MIN-358)."""
+    person = _contact_person(address)
+    if person is None:
+        return []
+    text = salutation.strip() if isinstance(salutation, str) else ""
+    shown = f"{person['title']} {person['surname']}"
+    named = _has_words(text, person["surname"]) or any(_has_words(text, first) for first in person["first"])
+    if not named:
+        return [Befund("fehler", f"Anschreiben: In der Adresse steht {shown}, in der Anrede „{text}“ nicht")]
+    if any(_has_words(text, word) for word in WRONG_FORMS[person["title"]]):
+        return [Befund("fehler", f"Anschreiben: Form der Anrede „{text}“ passt nicht zu {shown}")]
+    return [Befund("ok", f"Anschreiben: Anrede passt zu {shown}")]
+
+
+def contact_person_findings(letter: pathlib.Path) -> list[Befund]:
+    """From the source of the letter; a file that cannot be read shows up when building the PDF."""
+    try:
+        data = yaml.safe_load(letter.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, yaml.YAMLError):
+        return []
+    return check_contact_person(data.get("empfaenger"), data.get("anrede")) if isinstance(data, dict) else []
+
+
 def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[Befund]:
     """Alle Prüfungen einer Bewerbung; Fehler zuerst."""
     pfade = unterlagen.pdf_pfade(daten, bewerbung["id"])
@@ -120,6 +166,7 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
                 text = ""
             if text:
                 befunde += pruefe_anschreiben_text(text, bewerbung, heute)
+        befunde += contact_person_findings(pfade["anschreiben"].with_suffix(".yaml"))
     else:
         befunde.append(Befund("hinweis", "Kein Anschreiben (anschreiben.yaml fehlt)"))
     reihenfolge = {"fehler": 0, "hinweis": 1, "ok": 2}
