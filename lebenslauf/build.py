@@ -26,10 +26,14 @@ ABSCHNITTE = ("profil", "erfahrung", "projekte", "weitere-projekte", "faehigkeit
 MAX_BESCHRIFTUNG = 60
 
 
+def ist_mehrsprachig(wert) -> bool:
+    return isinstance(wert, dict) and bool(wert) and set(wert) <= set(SPRACHEN) and all(isinstance(v, str) for v in wert.values())
+
+
 def waehle_sprache(wert, sprache: str):
     """Mehrsprachige Texte ({de: ..., en: ...}) auf eine Sprache reduzieren; fehlt sie, gilt Deutsch (MIN-300)."""
     if isinstance(wert, dict):
-        if wert and set(wert) <= set(SPRACHEN) and all(isinstance(v, str) for v in wert.values()):
+        if ist_mehrsprachig(wert):
             return wert.get(sprache) or wert.get("de") or next(iter(wert.values()))
         return {k: waehle_sprache(v, sprache) for k, v in wert.items()}
     if isinstance(wert, list):

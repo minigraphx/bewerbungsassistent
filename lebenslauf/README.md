@@ -77,6 +77,8 @@ highlights:
     tags: [bildung]
 ```
 
+Vor dem Versand einer anderen Sprachfassung prüft der Skill `bewerbung` nur Felder, die sich seit der letzten Prüfung geändert haben (`bewerbungen/translations.py`, MIN-309).
+
 ## Zuschnitt pro Stelle
 
 ```yaml
