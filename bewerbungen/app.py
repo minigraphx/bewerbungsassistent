@@ -14,6 +14,7 @@ import routen_bewerbungen
 import routen_foto
 import routen_inhalte
 import routes_ai
+import routes_page
 import routes_search
 from ablage import Ablage
 from dateien import sichere_gitignore
@@ -63,7 +64,7 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
     routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET,
                   **routes_ai.GET, **routes_search.GET, **extra_routes[0]}
     routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST,
-                   **routes_ai.POST, **routes_search.POST, **extra_routes[1]}
+                   **routes_ai.POST, **routes_search.POST, **routes_page.POST, **extra_routes[1]}
     return Server(k, routen_get, routen_post, SEITEN, port, body_limits)
 
 

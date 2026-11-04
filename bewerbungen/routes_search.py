@@ -90,7 +90,7 @@ def text(k, parameter, body):
     return json_antwort({"text": store.text(wanted)})
 
 
-def _rating(result: dict, share_usd: float | None, model: str | None) -> dict:
+def rating_fields(result: dict, share_usd: float | None, model: str | None) -> dict:
     fields = {"note": result["grade"], "zusammenfassung": result["summary"], "passt": result["fits"],
               "haken": result["hooks"], "neue_luecken": result["new_gaps"], "auffaellig": result["suspicious_lines"],
               "modell": model, "kosten_usd": share_usd}
@@ -108,7 +108,7 @@ def _rate_ads(k, store: Hits, ads: list[tuple[str, str]]) -> dict:
     result = routes_ai.run_ai(task)
     ratings = result["ratings"]
     share = result["cost_usd"] / len(ratings) if ratings and result["cost_usd"] is not None else None
-    updated = store.update_many({ad_id: {"bewertung": _rating(rating, share, result["model"])}
+    updated = store.update_many({ad_id: {"bewertung": rating_fields(rating, share, result["model"])}
                                  for ad_id, rating in ratings.items()})
     return {"bewertet": updated, "offen": result["missing"], "kosten_usd": result["cost_usd"]}
 
@@ -165,7 +165,7 @@ def stars(k, parameter, body):
     return json_antwort(_hits(k).set_stars(body.get("beruf"), body.get("sterne")))
 
 
-def _note(hit: dict) -> str:
+def note_for(hit: dict) -> str:
     rating = hit.get("bewertung") or {}
     parts = [rating.get("zusammenfassung", "")]
     if rating.get("haken"):
@@ -189,7 +189,7 @@ def take_over(k, parameter, body):
         register = k.register()
         portals = ", ".join(dict.fromkeys([hit["portal"], *(o["portal"] for o in hit.get("weitere", []))]))
         fields = {"firma_schluessel": company_key(hit["firma"]), "ort": hit.get("ort"), "pensum": hit.get("pensum"),
-                  "portal": portals, "link": hit["link"], "status": "Gemerkt", "notiz": _note(hit),
+                  "portal": portals, "link": hit["link"], "status": "Gemerkt", "notiz": note_for(hit),
                   "passung": (hit.get("bewertung") or {}).get("note")}
         entry = k.mit_entwurf(register.pfad, f"Treffer {hit['firma']} – {hit['stelle']} übernommen",
                               lambda: register.neu(firma=hit["firma"], stelle=hit["stelle"],

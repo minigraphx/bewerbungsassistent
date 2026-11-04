@@ -1,0 +1,159 @@
+"""An ad from a page the person has open (MIN-345), e.g. LinkedIn or the career page of a company.
+
+The extension reads the open tab only after a click and sends the ad through the app's Native Messaging host.
+Checking rates it and says what is there already, and stores nothing. Saving makes an application with the ad.
+Text from a page is data: it reaches the AI only through the gateway, and the link only if it is a web address.
+"""
+import threading
+import urllib.parse
+
+import routes_ai
+import unterlagen
+from ai import tasks
+from dateien import schreibe_atomar
+from hits import CLOSED, MAX_TEXT, ad_with_details, bounded_text, company_hint, company_key
+from register import slug
+from routes_search import BAD_RATING, note_for, rating_fields
+from server import json_antwort
+
+AD_ID = "seite"
+WEB_SCHEMES = ("http", "https")
+# Say who clicked or which session it was, not which ad; they stay out of the register, and the AI gets no address at all.
+TRACKING = {"refid", "trk", "trackingid", "ref", "src", "source", "gclid", "fbclid", "mc_cid", "mc_eid", "midtoken", "midsig",
+            "lipi", "eid", "token", "otptoken", "sid", "sessionid", "session"}
+ROUTE_FRAGMENT = ("/", "!/")
+MIN_GRADE, MAX_GRADE = 1, 6
+BAD_LINK = "Diese Seite hat keine gültige Webadresse."
+NO_TEXT = "Der Text des Inserats fehlt."
+BAD_GRADE = "Die Bewertung hat eine unbekannte Form."
+SUMMARY_FIELDS = ("id", "firma", "stelle", "status")
+_SAVE = threading.Lock()
+
+
+def _without_tracking(query: str) -> list[tuple[str, str]]:
+    pairs = urllib.parse.parse_qsl(query, keep_blank_values=True)
+    return [(k, v) for k, v in pairs if k.lower() not in TRACKING and not k.lower().startswith("utm_")]
+
+
+def _link(value) -> str:
+    link = bounded_text(value, "Link", required=True, limit=1000)
+    # Browsers read "\\" as "/" and take the host before "@" differently than urlsplit: refuse both.
+    if any(c in link for c in "\\@ "):
+        raise ValueError(BAD_LINK)
+    parts = urllib.parse.urlsplit(link)
+    if parts.scheme not in WEB_SCHEMES or not parts.hostname:
+        raise ValueError(BAD_LINK)
+    query = urllib.parse.urlencode(_without_tracking(parts.query))
+    fragment = parts.fragment if parts.fragment.startswith(ROUTE_FRAGMENT) else ""  # „#/job/12“ names the ad, „#bewerben“ does not
+    return urllib.parse.urlunsplit(parts._replace(query=query, fragment=fragment))
+
+
+def _ad(body) -> dict:
+    if not isinstance(body, dict):
+        raise ValueError("Die Anfrage hat eine unbekannte Form.")
+    text = body.get("text")
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError(NO_TEXT)
+    return {"stelle": bounded_text(body.get("stelle"), "Stelle", required=True), "firma": bounded_text(body.get("firma"), "Firma"),
+            "ort": bounded_text(body.get("ort"), "Ort"), "link": _link(body.get("link")), "text": text.strip()[:MAX_TEXT]}
+
+
+def _rating(value) -> dict | None:
+    """The rating the extension got from the check; only what goes into the register, and only in the known form."""
+    if value is None:
+        return None
+    grade = value.get("note") if isinstance(value, dict) else None
+    if type(grade) not in (int, float) or not MIN_GRADE <= grade <= MAX_GRADE:
+        raise ValueError(BAD_GRADE)
+    hooks = value.get("haken", [])
+    if not isinstance(hooks, list) or not all(isinstance(h, str) for h in hooks):
+        raise ValueError(BAD_GRADE)
+    return {"note": grade, "zusammenfassung": bounded_text(value.get("zusammenfassung"), "Bewertung", limit=2000),
+            "haken": [bounded_text(h, "Bewertung", limit=500) for h in hooks],
+            "unsicher": bounded_text(value.get("unsicher"), "Bewertung", limit=500)}
+
+
+def comparable_link(link: str) -> str:
+    """The same ad under another scheme or with other tracking values gives the same text."""
+    parts = urllib.parse.urlsplit(link or "")
+    query = urllib.parse.urlencode(sorted(_without_tracking(parts.query)))
+    fragment = parts.fragment if parts.fragment.startswith(ROUTE_FRAGMENT) else ""
+    return f"{(parts.hostname or '').lower()}{parts.path.rstrip('/')}?{query}#{fragment}"
+
+
+def _matches(ad: dict, register: list[dict]) -> list[dict]:
+    """Applications for this ad: same title, and the same link or company. Several ads can share one address."""
+    link = comparable_link(ad["link"])
+    company, title = company_key(ad["firma"]), slug(ad["stelle"])
+
+    def same(entry: dict) -> bool:
+        if slug(entry.get("stelle") or "") != title:
+            return False
+        if entry.get("link") and comparable_link(entry["link"]) == link:
+            return True
+        return bool(company) and company in {company_key(entry.get("firma_schluessel") or ""), company_key(entry.get("firma") or "")}
+
+    return [entry for entry in register if same(entry)]
+
+
+def _open_match(matches: list[dict]) -> dict | None:
+    return next((entry for entry in matches if entry.get("status") not in CLOSED), None)
+
+
+def _summary(entry: dict | None) -> dict | None:
+    return None if entry is None else {field: entry.get(field) for field in SUMMARY_FIELDS}
+
+
+def check(k, parameter, body):
+    ad = _ad(body)
+    register = k.register().alle()
+
+    def task():
+        gateway, material = routes_ai.ai_gateway(k)
+        return tasks.rate_package(gateway, material, [(AD_ID, ad_with_details({**ad, "link": ""}, ad["text"]))])
+
+    result = routes_ai.run_ai(task)
+    rating = result["ratings"].get(AD_ID)
+    if rating is None:
+        raise ValueError(BAD_RATING)
+    matches = _matches(ad, register)
+    existing = _open_match(matches) or next(iter(matches), None)
+    return json_antwort({"bewertung": rating_fields(rating, result["cost_usd"], result["model"]), "vorhanden": _summary(existing),
+                         "hinweis": "" if existing else company_hint({**ad, "firma": ad["firma"] or "unbekannt"}, register)})
+
+
+def _write_ad(k, entry: dict, ad: dict) -> None:
+    path = unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md"
+    text = ad_with_details(ad, ad["text"])
+    k.mit_entwurf(path, f"Stellentext {entry['firma']}", lambda: schreibe_atomar(path, text.encode("utf-8")))
+
+
+def _has_ad(k, entry: dict) -> bool:
+    return (unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md").is_file()
+
+
+def save(k, parameter, body):
+    """One open application per ad: asked twice, the second answer names the first. If writing the text failed the
+    first time, the second try brings it; a text that is there stays, the person may have changed it."""
+    ad = _ad(body)
+    rating = _rating(body.get("bewertung"))
+    if not ad["firma"]:
+        raise ValueError("Firma fehlt. Bitte in der Erweiterung eintragen.")
+    with _SAVE:
+        register = k.register()
+        existing = _open_match(_matches(ad, register.alle()))
+        if existing is not None:
+            if not _has_ad(k, existing):
+                _write_ad(k, existing, ad)
+            return json_antwort({"bewerbung": _summary(existing), "neu": False})
+        host = (urllib.parse.urlsplit(ad["link"]).hostname or "").removeprefix("www.")
+        fields = {"firma_schluessel": company_key(ad["firma"]), "ort": ad["ort"], "portal": host, "link": ad["link"], "status": "Gemerkt",
+                  "notiz": note_for({"bewertung": rating}), "passung": (rating or {}).get("note")}
+        entry = k.mit_entwurf(register.pfad, f"Stelle von Seite: {ad['firma']} – {ad['stelle']}",
+                              lambda: register.neu(firma=ad["firma"], stelle=ad["stelle"],
+                                                   **{key: v for key, v in fields.items() if v not in (None, "")}))
+        _write_ad(k, entry, ad)
+    return json_antwort({"bewerbung": _summary(entry), "neu": True})
+
+
+POST = {"/api/seite/pruefen": check, "/api/seite/speichern": save}

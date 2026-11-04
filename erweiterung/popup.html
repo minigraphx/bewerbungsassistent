@@ -16,6 +16,22 @@
     <ul id="portale"></ul>
     <ul id="hinweise" class="klein"></ul>
   </section>
+  <section id="seite" hidden>
+    <h2>Diese Seite</h2>
+    <p id="seite-status" class="klein"></p>
+    <div id="seite-felder" hidden>
+      <label>Stelle <input id="seite-stelle" type="text" maxlength="200"></label>
+      <label>Firma <input id="seite-firma" type="text" maxlength="200"></label>
+      <div class="reihe">
+        <button id="seite-pruefen" type="button">Stelle prüfen</button>
+        <button id="seite-speichern" type="button" class="zweitrangig">Stelle speichern</button>
+      </div>
+    </div>
+    <div id="seite-ergebnis" hidden>
+      <p id="seite-note" class="note"></p>
+      <ul id="seite-zeilen" class="klein"></ul>
+    </div>
+  </section>
   <button id="oeffnen" type="button" class="zweitrangig">Treffer in der App ansehen</button>
   <script src="popup.js" type="module"></script>
 </body>

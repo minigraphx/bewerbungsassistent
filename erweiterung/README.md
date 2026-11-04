@@ -25,7 +25,19 @@ Die ID der Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`), weil `mani
 4. Die Trefferliste geht zuerst an die App zum **Sichten** (`POST /api/suche/sichten`): bekannte Stellen, ausgeschlossene Titel und zu alte Inserate fallen weg. Dieselbe Stelle von einem anderen Portal (gleiche Firma, gleicher Titel, gleicher Ort) hängt die App gleich als weiteren Link an. Nur für die übrigen holt die Erweiterung den Volltext.
 5. Die Treffer gehen in Zehnergruppen an die App (`POST /api/suche/treffer`), am Ende die Zusammenfassung pro Portal (`POST /api/suche/abschluss`). Ein Inserat, das nicht lädt (z.B. zu viele Abrufe), schickt sie nicht; es kommt bei der nächsten Suche wieder. Ändert ein Portal seine Seiten, gibt es mehr Abfragen als erlaubt oder fehlen Texte, steht das als Problem bei der letzten Suche.
 
-Die App nimmt über den Host nur diese vier Anfragen an. Alles andere lehnt der Host ab. Die Erweiterung selbst nimmt Aufträge nur vom Popup und von der Seite der laufenden App an; eine andere Seite auf `127.0.0.1` mit demselben Kennzeichen wird abgewiesen, weil ihre Adresse nicht die ist, die die App über Native Messaging meldet (`lib/senders.js`).
+Die App nimmt über den Host nur diese vier Anfragen und die zwei für die offene Seite (siehe unten) an. Alles andere lehnt der Host ab. Die Erweiterung selbst nimmt Aufträge nur vom Popup und von der Seite der laufenden App an; eine andere Seite auf `127.0.0.1` mit demselben Kennzeichen wird abgewiesen, weil ihre Adresse nicht die ist, die die App über Native Messaging meldet (`lib/senders.js`).
+
+## Stelle auf der offenen Seite prüfen oder speichern (MIN-345)
+
+Für Inserate ausserhalb der Portale, zum Beispiel auf LinkedIn oder den Karriereseiten von Firmen. Die Person öffnet das Inserat selbst und klickt auf das Symbol der Erweiterung.
+
+- **Zugriff:** `activeTab`. Der Klick auf das Symbol gibt für diesen einen Tab Zugriff; ohne Klick liest die Erweiterung auf fremden Seiten nichts und navigiert nicht. Gelesen wird beim Öffnen des Popups, damit Stelle und Firma vorausgefüllt sind. Hinaus geht erst etwas nach einem Knopfdruck.
+- **Lesen (`lib/page-ad.js`):** zuerst markierter Text, dann die strukturierten Daten der Seite (schema.org `JobPosting`), sonst der sichtbare Text des Hauptteils der Seite, wenn er nach Inserat aussieht. Dann sagt das Popup, dass der ganze Seitentext gelesen wurde, denn so kann mehr als das Inserat an die KI gehen (etwa Namen aus Seitenleisten). Stelle und Firma lassen sich im Popup korrigieren. Findet sie kein Inserat, sagt sie das und speichert nichts; markierter Text hilft dann weiter. Inhalte in eingebetteten Rahmen fremder Adressen sind nicht erreichbar, auch dort hilft Markieren nicht immer.
+- **Adresse:** Die KI bekommt die Adresse der Seite nicht. Im Register steht sie ohne Tracking- und Sitzungswerte (`utm_*`, `refId`, `midToken` und ähnliche).
+- **„Stelle prüfen“** (`POST /api/seite/pruefen`): Note mit Begründung, bestehende Bewerbung und Bewerbungen bei derselben Firma. Gespeichert wird nichts. Anweisungsartige Zeilen im Inserat meldet die KI als auffällig; das Popup zeigt sie rot.
+- **„Stelle speichern“** (`POST /api/seite/speichern`): neue Bewerbung im Register mit `stelle.md` und, falls geprüft, mit der Note. Gleicher Link mit gleichem Titel oder gleiche Firma mit gleichem Titel ergeben keinen zweiten Eintrag; das Popup nennt den bestehenden. Mehrere Inserate unter einer Adresse bleiben getrennt, und nach einer Absage lässt sich dieselbe Stelle neu erfassen.
+
+Das Ergebnis bleibt für diese Seite erhalten, auch wenn das Popup zwischendurch zugeht.
 
 ## Lehrstellen
 
@@ -38,7 +50,7 @@ Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur a
 
 ## Aufbau
 
-- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `127.0.0.1` und Native Messaging.
+- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `127.0.0.1` und Native Messaging, dazu `activeTab` für die offene Seite nach einem Klick.
 - `background.js`: Service Worker; startet die Suche, öffnet und schliesst die Portal-Tabs, meldet den Fortschritt.
 - `lib/`: `queries.js` (Abfragen pro Portal aus dem Suchplan, alle Stichworte zuerst am ersten Ort), `search.js` (Ablauf einer Suche, ohne Browser testbar), `app.js` (Verbindung zur App), `senders.js` (wer Aufträge geben darf), `progress.js` (Text für den Fortschritt).
 - `portals/`: eine Anpassung pro Portal mit `list(query, page)` und `details(hit)`, dazu `common.js` (HTML zu Text, Alter, Pensum, Abrufe).

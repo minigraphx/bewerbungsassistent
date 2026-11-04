@@ -34,7 +34,7 @@ CLOSED = {"Absage", "Verworfen", "Zurückgezogen"}
 _LOCK = threading.Lock()
 
 
-def _text(value, field: str, required: bool = False, limit: int = MAX_FIELD) -> str:
+def bounded_text(value, field: str, required: bool = False, limit: int = MAX_FIELD) -> str:
     if value is None:
         value = ""
     if not isinstance(value, (str, int, float)) or isinstance(value, bool):
@@ -46,7 +46,7 @@ def _text(value, field: str, required: bool = False, limit: int = MAX_FIELD) -> 
 
 
 def _link(value, portal: str) -> str:
-    link = _text(value, "Link", required=True, limit=1000)
+    link = bounded_text(value, "Link", required=True, limit=1000)
     # Browsers read "\\" as "/" and take the host before "@" differently than urlsplit: refuse both.
     if any(c in link for c in "\\@ ") or any(ord(c) < 0x20 for c in link):
         raise ValueError(f"Link gehört nicht zu {portal}")
@@ -73,12 +73,12 @@ def validate(raw) -> dict:
     portal = raw.get("portal")
     if portal not in DOMAINS:
         raise ValueError(f"Unbekanntes Portal: {portal!r}")
-    hit = {"portal": portal, "portal_id": _text(raw.get("portal_id"), "portal_id", True, MAX_ID),
-           "stelle": _text(raw.get("stelle"), "stelle", True), "firma": _text(raw.get("firma"), "firma") or "unbekannt",
-           "ort": _text(raw.get("ort"), "ort"), "pensum": _text(raw.get("pensum"), "pensum"),
+    hit = {"portal": portal, "portal_id": bounded_text(raw.get("portal_id"), "portal_id", True, MAX_ID),
+           "stelle": bounded_text(raw.get("stelle"), "stelle", True), "firma": bounded_text(raw.get("firma"), "firma") or "unbekannt",
+           "ort": bounded_text(raw.get("ort"), "ort"), "pensum": bounded_text(raw.get("pensum"), "pensum"),
            "link": _link(raw.get("link"), portal), "alter_tage": _age(raw.get("alter_tage")),
-           "art": _text(raw.get("art"), "art"), "beruf": _text(raw.get("beruf"), "beruf"),
-           "lehrbeginn": _text(raw.get("lehrbeginn"), "lehrbeginn")}
+           "art": bounded_text(raw.get("art"), "art"), "beruf": bounded_text(raw.get("beruf"), "beruf"),
+           "lehrbeginn": bounded_text(raw.get("lehrbeginn"), "lehrbeginn")}
     text = raw.get("text")
     if text is not None and not isinstance(text, str):
         raise ValueError("text muss Text sein")
@@ -142,13 +142,21 @@ def _title_match(title: str, terms: tuple[str, ...]) -> str | None:
     return None
 
 
-def _hint(hit: dict, register: list[dict]) -> str:
+def company_hint(hit: dict, register: list[dict]) -> str:
     company = company_key(hit["firma"])
     if not company or company == "unbekannt":
         return ""
     same = [b for b in register if b.get("status") not in CLOSED
             and company in (company_key(b.get("firma_schluessel") or ""), company_key(b.get("firma") or ""))]
     return "; ".join(f"Bei {b['firma']} gibt es schon: {b['stelle']} ({b['status']})" for b in same[:2])
+
+
+def ad_with_details(hit: dict, body: str) -> str:
+    """Details and text of an ad, as the AI rates it and as it goes into stelle.md."""
+    labels = (("Stelle", "stelle"), ("Firma", "firma"), ("Ort", "ort"), ("Pensum", "pensum"),
+              ("Lehrbeginn", "lehrbeginn"), ("Link", "link"))
+    head = "\n".join(f"{label}: {hit[field]}" for label, field in labels if hit.get(field))
+    return f"{head}\n\n{body}" if body else head
 
 
 @dataclasses.dataclass(frozen=True)
@@ -180,12 +188,7 @@ class Hits:
 
     def ad_text(self, wanted: str) -> str:
         """Details and text of the ad, as the AI rates it and as it goes into stelle.md."""
-        hit = self.get(wanted)
-        labels = (("Stelle", "stelle"), ("Firma", "firma"), ("Ort", "ort"), ("Pensum", "pensum"),
-                  ("Lehrbeginn", "lehrbeginn"), ("Link", "link"))
-        head = "\n".join(f"{label}: {hit[field]}" for label, field in labels if hit.get(field))
-        body = self.text(wanted)
-        return f"{head}\n\n{body}" if body else head
+        return ad_with_details(self.get(wanted), self.text(wanted))
 
     def _write(self, all_hits: list[dict]) -> None:
         schreibe_yaml(self.folder / HITS_FILE, all_hits, "# Treffer der Stellensuche, geschrieben vom Bewerbungsassistenten\n")
@@ -248,7 +251,7 @@ class Hits:
                     continue
                 text = hit.pop("text")
                 entry = {"id": hit_id(hit), **hit, "gefunden_am": today.isoformat(), "zustand": "neu"}
-                hint = _hint(entry, register)
+                hint = company_hint(entry, register)
                 if hint:
                     entry["hinweis"] = hint
                 if text:
@@ -296,7 +299,7 @@ class Hits:
 
     def set_stars(self, profession: str, stars: int) -> dict:
         """The person's own rating of a profession, 1 to 5; 0 takes it away."""
-        name = _text(profession, "Beruf", required=True)
+        name = bounded_text(profession, "Beruf", required=True)
         if type(stars) is not int or not 0 <= stars <= MAX_STARS:
             raise ValueError(f"Sterne: 0 bis {MAX_STARS}.")
         with _LOCK:

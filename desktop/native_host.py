@@ -28,7 +28,7 @@ from settings import Paths
 
 ORIGIN_PREFIX = "chrome-extension://"
 ALLOWED = {("GET", "/api/suche/plan"), ("POST", "/api/suche/sichten"), ("POST", "/api/suche/treffer"),
-           ("POST", "/api/suche/abschluss")}
+           ("POST", "/api/suche/abschluss"), ("POST", "/api/seite/pruefen"), ("POST", "/api/seite/speichern")}
 MAX_IN = 8 * 1024 * 1024
 MAX_OUT = 1024 * 1024  # limit of the browser for messages to the extension
 START_TIMEOUT = 40

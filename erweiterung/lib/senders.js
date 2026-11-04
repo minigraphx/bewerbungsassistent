@@ -4,7 +4,7 @@
 
 /** What the popup and the app page may ask for. */
 export const ALLOWED = {
-  popup: new Set(['suche-starten', 'status', 'app-oeffnen']),
+  popup: new Set(['suche-starten', 'status', 'app-oeffnen', 'seite-pruefen', 'seite-speichern']),
   app: new Set(['suche-starten', 'status']),
 };
 

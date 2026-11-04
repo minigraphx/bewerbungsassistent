@@ -3,6 +3,7 @@
 
 import { AppConnection, explain } from './lib/app.js';
 import { runSearch } from './lib/search.js';
+import { adKey } from './lib/page-ad.js';
 import { ALLOWED, senderKind } from './lib/senders.js';
 
 const LOAD_TIMEOUT_MS = 30000;
@@ -146,14 +147,37 @@ async function trusted(sender) {
   return senderKind(sender, chrome.runtime.id, await appUrl(sender.url));
 }
 
+/** Check or save the ad the popup read from the open tab; the result stays for the popup when it is opened again. */
+async function pageAd(message, path, kept) {
+  const ad = message.anzeige;
+  if (!ad || typeof ad !== 'object' || typeof ad.text !== 'string') throw new Error('Das Inserat fehlt.');
+  const app = new AppConnection();
+  try {
+    const answer = await app.request('POST', path, ad);
+    const { seite } = await chrome.storage.session.get('seite');
+    const key = adKey(ad);
+    const earlier = seite && seite.key === key ? seite : { key };
+    await chrome.storage.session.set({ seite: { ...earlier, [kept]: answer } });
+    return answer;
+  } finally {
+    app.close();
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
-  const actions = { 'suche-starten': startSearch, status, 'app-oeffnen': openApp };
+  const actions = {
+    'suche-starten': startSearch,
+    status,
+    'app-oeffnen': openApp,
+    'seite-pruefen': (m) => pageAd(m, '/api/seite/pruefen', 'pruefung'),
+    'seite-speichern': (m) => pageAd(m, '/api/seite/speichern', 'gespeichert'),
+  };
   const action = message && actions[message.art];
   if (!action) return false;
   trusted(sender)
     .then((kind) => {
       if (!kind || !ALLOWED[kind].has(message.art)) throw new Error('Nur die App und das Popup dürfen die Suche starten.');
-      return action();
+      return action(message);
     })
     .then(reply, (error) => reply({ fehler: error.message }));
   return true; // answer comes later

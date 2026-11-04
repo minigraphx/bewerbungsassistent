@@ -372,3 +372,7 @@ def test_reveal_opens_finder_or_explorer(tmp_path):
     assert calls == [["open", str(tmp_path)], ["explorer", str(tmp_path)]]
     with pytest.raises(ValueError):
         dialogs.reveal(tmp_path / "fehlt", "darwin")
+
+
+def test_the_extension_reaches_the_routes_for_the_open_page():
+    assert ("POST", "/api/seite/pruefen") in native_host.ALLOWED and ("POST", "/api/seite/speichern") in native_host.ALLOWED

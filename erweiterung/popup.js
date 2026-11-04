@@ -1,5 +1,6 @@
-// Popup of the extension: connection to the app, start of the search, progress and summary.
+// Popup of the extension: connection to the app, start of the search, progress and summary; the ad of the open page.
 import { describePlan, describeRun } from './lib/progress.js';
+import { showOpenPage } from './page-panel.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -37,6 +38,7 @@ async function connect() {
     $('plan').textContent = view.text;
     const { lauf } = await chrome.storage.session.get('lauf');
     $('suchen').disabled = Boolean(lauf && lauf.zustand === 'laeuft');
+    await showOpenPage(answer.app);
   } else {
     show('verbindung', (answer && answer.fehler) || 'Die App antwortet nicht.', true);
   }
