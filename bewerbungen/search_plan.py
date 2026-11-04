@@ -43,6 +43,9 @@ MIN_RADIUS_KM = 5
 MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
 OFFERS_SECTION = "## Gesucht"
+PROFESSIONS_SECTION = "## Berufe (mit Priorität)"
+PROFESSIONS_KEY = PROFESSIONS_SECTION[3:].lower()
+FILLER_WORDS = frozenset({"fachrichtung", "schwerpunkt", "und", "mit", "im", "der", "die", "das"})
 OFFER_APPRENTICESHIP = "lehrstelle"
 OFFER_TRIAL = "schnupperlehre"
 CHOICE_BOTH = "beides"
@@ -148,6 +151,23 @@ def _professions(lines: list[str]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(name for name in names if name))[:MAX_PROFESSIONS]
 
 
+def _neutral_word(word: str) -> str:
+    """One word of a profession without its gender form, as the extension compares them (portals/common.js)."""
+    word = re.sub(r"euse$", "eur", "koch" if word == "köchin" else word)
+    return re.sub(r"(er|ent|ant|ist|eur|or)in$", r"\1", re.sub(r"(frau|mann)$", "", word))
+
+
+def profession_words(name: str) -> frozenset[str]:
+    """What makes two names the same profession on the portals: „Fachfrau/Fachmann Gesundheit EFZ“ and „Fachfrau Gesundheit EFZ“."""
+    plain = re.sub(r"/-?(?:in|frau|mann|euse|r)\b", "", name.lower())
+    words = (_neutral_word(word) for word in re.split(r"[\s,;()/]+", plain) if word and word not in FILLER_WORDS)
+    return frozenset(word for word in words if word)
+
+
+def professions_in(text: str) -> tuple[str, ...]:
+    return _professions(_sections(text).get(PROFESSIONS_KEY, []))
+
+
 def _radius(value: str) -> int:
     number = NUMBER.search(value)
     return min(MAX_RADIUS_KM, max(MIN_RADIUS_KM, int(number.group()))) if number else DEFAULT_RADIUS_KM
@@ -174,7 +194,7 @@ def with_offers(text: str, choice: str) -> str:
 
 
 def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
-    professions = _professions(sections.get("berufe (mit priorität)", []))
+    professions = _professions(sections.get(PROFESSIONS_KEY, []))
     if not professions:
         raise ValueError("Im Suchprofil fehlen Berufe (Abschnitt „Berufe (mit Priorität)“).")
     region = _pairs(sections.get("region", []))
@@ -192,6 +212,29 @@ def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
     return SearchPlan(keywords=professions, cantons=cantons, places=places, hints=hints, kind=KIND_APPRENTICESHIP,
                       portals=tuple(p for p in APPRENTICESHIP_PORTALS if modes.get(p.lower()) != MODE_OFF),
                       radius_km=radius, start_years=tuple(years), offers=_offers(sections.get("gesucht", [])))
+
+
+def with_profession(text: str, name: str) -> str:
+    """The profile text with this profession at the end of its list; everything else stays as it is."""
+    if APPRENTICESHIP_MARK not in text:
+        raise ValueError("Berufe aufnehmen gibt es nur bei der Lehrstellensuche.")
+    known = professions_in(text)
+    if profession_words(name) in map(profession_words, known):
+        return text
+    if len(known) >= MAX_PROFESSIONS:
+        raise ValueError(f"Deine Suche hat schon {MAX_PROFESSIONS} Berufe, mehr sucht sie nicht. Ein neuer Beruf braucht zuerst Platz im Suchprofil.")
+    return _with_line(text, f"{len(known) + 1}. {' '.join(name.split())}")
+
+
+def _with_line(text: str, line: str) -> str:
+    """Adds the line after the last filled line of the professions, so that it stays last; a missing section comes before the start of training."""
+    lines = text.split("\n")
+    start = next((i for i, row in enumerate(lines) if row.startswith("## ") and row[3:].strip().lower() == PROFESSIONS_KEY), None)
+    if start is None:
+        return text.replace(APPRENTICESHIP_MARK, f"{PROFESSIONS_SECTION}\n{line}\n\n{APPRENTICESHIP_MARK}", 1)
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    last = max((i for i in range(start, end) if lines[i].strip()), default=start)
+    return "\n".join([*lines[:last + 1], line, *lines[last + 1:]])
 
 
 def parse(text: str, postal_code: str | None = None) -> SearchPlan:

@@ -104,12 +104,13 @@
   /**
    * The words of a profession, so that the name in the search profile and the name on a portal can be compared:
    * „Fachfrau Betreuung EFZ, Fachrichtung Kinder“ and „Fachmann/-frau Betreuung (Kinder) EFZ“ give the same.
+   * search_plan.profession_words in the app follows the same rules; profession_words.json holds the cases of both.
    * @param {string} name
    * @returns {Set<string>}
    */
   function professionWords(name) {
     const words = String(name || '').toLowerCase()
-      .replace(/\/-?(in|frau|mann|euse)\b/g, '')
+      .replace(/\/-?(in|frau|mann|euse|r)\b/g, '')
       .split(/[\s,;()/]+/)
       .filter((word) => word && !FILLER_WORDS.has(word))
       .map(neutralWord);

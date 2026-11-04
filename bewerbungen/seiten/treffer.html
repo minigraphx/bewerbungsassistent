@@ -48,6 +48,19 @@
   <label class="auswahl"><input type="checkbox" id="zuschauen"> Suche im sichtbaren Tab laufen lassen, zum Zuschauen</label>
   <label class="auswahl"><input type="checkbox" id="auto-bewerten"> <span id="auto-text">Neue Treffer nach der Suche automatisch bewerten</span></label>
   <div id="status" class="status" role="status" aria-live="polite"></div>
+  <details id="vorschlag" hidden>
+    <summary>Welcher Beruf passt zu dir?</summary>
+    <p class="hilfe">Schreib ein paar Stichworte, die KI schlägt dir Berufe vor. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Probier Berufe in einer Schnupperlehre aus, und auch die Berufsberatung hilft dir persönlich weiter.</p>
+    <label for="vorschlag-interessen">Was machst du gern?</label>
+    <textarea id="vorschlag-interessen" rows="2" maxlength="1000"></textarea>
+    <label for="vorschlag-staerken">Was kannst du gut?</label>
+    <textarea id="vorschlag-staerken" rows="2" maxlength="1000"></textarea>
+    <label for="vorschlag-vermeiden">Was möchtest du lieber nicht?</label>
+    <textarea id="vorschlag-vermeiden" rows="2" maxlength="1000"></textarea>
+    <div class="knoepfe"><button type="button" id="vorschlag-holen">Berufe vorschlagen</button></div>
+    <div id="vorschlag-status" class="status" role="status" aria-live="polite"></div>
+    <ul id="vorschlag-liste" class="vorschlaege"></ul>
+  </details>
   <section id="berufe" hidden>
     <h2>Deine Berufe</h2>
     <p class="leise">Wie sehr interessiert dich der Beruf? Treffer mit mehr Sternen stehen weiter oben. Deine Sterne ändern die Note der KI nicht.</p>
@@ -62,6 +75,7 @@
 </main>
 <script src="/app.js"></script>
 <script src="/treffer-logik.js"></script>
+<script src="/beruf-vorschlag.js"></script>
 <script src="/treffer.js"></script>
 </body>
 </html>

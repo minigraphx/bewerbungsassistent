@@ -252,6 +252,8 @@
       paket = daten.paket;
       grenze = daten.grenze;
       zeigeArt(daten.art, daten.portale || [], daten.angebote || []);
+      $("vorschlag").hidden = !lehrstelle;
+      if (lehrstelle && !(daten.gesuchte_berufe || []).length) $("vorschlag").open = true;
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || []);
       zeigeListe();
     } catch (fehler) {
@@ -331,5 +333,6 @@
 
   if (document.documentElement.dataset.bewerbungsassistentErweiterung) erweiterungDa();
   else setTimeout(() => { if ($("suchen").disabled && !$("lauf").textContent) $("ohne-erweiterung").hidden = false; }, 1500);
+  document.addEventListener("suchprofil-geaendert", lade);
   lade();
 })();

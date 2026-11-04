@@ -1,6 +1,7 @@
 // Adapters for apprenticeships (MIN-365): names of professions, and results read from small stand-ins for the pages.
 // Selectors and page shapes were checked against the live portals in a background tab of a real browser.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { test } from 'node:test';
 
@@ -220,4 +221,9 @@ test('LENA trial: address card as hit, with the link of the trial page', () => {
 test('LENA: the search path follows the query', () => {
   assert.equal(lena.searchPath(TRIAL), '/de/suche/schnupperadressen');
   assert.equal(lena.searchPath(QUERY), '/de/suche/lehrstellen');
+});
+
+test('profession words follow the same cases as the app', () => {
+  const cases = JSON.parse(fs.readFileSync(new URL('./profession_words.json', import.meta.url), 'utf8'));
+  for (const [name, expected] of cases) assert.deepEqual(words(name), [...expected].sort(), name);
 });
