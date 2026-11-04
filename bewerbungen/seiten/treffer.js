@@ -9,7 +9,7 @@
   const ERWEITERUNG = "bewerbungsassistent-erweiterung";
 
   let alle = [];
-  let einstellungen = { auto_bewerten: true, beruf_sterne: {} };
+  let einstellungen = { auto_bewerten: true, zuschauen: false, beruf_sterne: {} };
   let paket = 10;
   let grenze = 30;
   let lehrstelle = false;
@@ -152,6 +152,7 @@
     const kosten = ids.length && proTreffer !== null ? `Bisher etwa ${proTreffer.toFixed(3)} USD pro Treffer.` : "";
     $("kosten-hinweis").textContent = laeuft ? "" : logik.alleBewertet(alle) ? "Alle Treffer sind bewertet." : kosten;
     $("auto-bewerten").checked = einstellungen.auto_bewerten;
+    $("zuschauen").checked = einstellungen.zuschauen;
     $("auto-text").textContent = `Neue Treffer nach der Suche automatisch bewerten (höchstens ${grenze} pro Suche)`;
     zeigeBerufe();
   }
@@ -266,6 +267,7 @@
 
   function laufText(lauf) {
     if (lauf.zustand === "fehler") return [lauf.fehler || "Die Suche ist abgebrochen.", "fehler"];
+    if (lauf.zustand === "fertig" && lauf.ergebnis?.abgebrochen) return ["Suche abgebrochen. Was schon gefunden war, ist da.", "hinweis"];
     if (lauf.zustand === "fertig") return ["Suche fertig.", "ok"];
     const s = lauf.schritt || {};
     if (s.phase === "suche") return [`${s.portal}: suche „${s.stichwort}“, Seite ${s.seite} …`, ""];
@@ -317,6 +319,12 @@
   });
   $("auto-bewerten").addEventListener("change", event => {
     senden("/api/suche/einstellungen", { auto_bewerten: event.target.checked })
+      .then(neu => { einstellungen = neu; })
+      .catch(fehler => { status($("status"), fehler.message, "fehler"); zeigeBewerten(); });
+  });
+
+  $("zuschauen").addEventListener("change", event => {
+    senden("/api/suche/einstellungen", { zuschauen: event.target.checked })
       .then(neu => { einstellungen = neu; })
       .catch(fehler => { status($("status"), fehler.message, "fehler"); zeigeBewerten(); });
   });

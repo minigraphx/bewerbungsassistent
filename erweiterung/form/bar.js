@@ -26,6 +26,7 @@
     hier: ['Hier ausfüllen', 'formular-hier', 'haupt'],
     abgeschickt: ['Abgeschickt? Ja', 'formular-abgeschickt', 'haupt'],
     stoppen: ['Nicht mehr ausfüllen', 'formular-stoppen', ''],
+    suche_abbrechen: ['Suche abbrechen', 'suche-abbrechen', ''],
     rav_ja: ['Eingetragen? Ja', 'rav-eingetragen', ''],
     rav_ueberspringen: ['Überspringen', 'rav-ueberspringen', ''],
     rav_stoppen: ['Stoppen', 'rav-stoppen', ''],

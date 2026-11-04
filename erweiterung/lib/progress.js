@@ -20,7 +20,7 @@ export function describeRun(run) {
   const entries = Object.entries(result.portale || {});
   const fresh = entries.reduce((sum, [, p]) => sum + (p.neu || 0), 0);
   return {
-    step: `Fertig: ${fresh} neue Treffer.`,
+    step: result.abgebrochen ? `Abgebrochen: ${fresh} neue Treffer bis dahin.` : `Fertig: ${fresh} neue Treffer.`,
     portals: entries.map(([name, p]) => ({
       text: `${name}: ${p.treffer} gefunden, ${p.neu} neu${p.problem ? ` – ${p.problem}` : ''}`,
       problem: Boolean(p.problem),

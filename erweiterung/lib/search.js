@@ -7,17 +7,28 @@ export const DELAY_MS = 600; // between requests to a portal, to stay gentle
 export const SEND_SIZE = 10;
 const SCREEN_SIZE = 200;
 const COMMON = 'portals/common.js';
+const CANCELLED = 'Suche abgebrochen.';
+
+function stopIfCancelled(deps) {
+  if (deps.cancelled?.()) throw Object.assign(new Error(CANCELLED), { cancelled: true });
+}
+
+/** The scripts of the portal, and with „Zuschauen“ the message that the browser is being steered (again after each page). */
+async function loadPortal(portal, plan, tab, deps) {
+  await deps.browser.inject(tab, [COMMON, ADAPTERS[portal].file]);
+  if (plan.zuschauen) await deps.browser.showWatching(tab, portal);
+}
 
 function changedText(portal, message) {
   return `Die Seite von ${portal} hat sich verändert (${message}). Die Suche dort braucht ein Update der Erweiterung.`;
 }
 
 /** For portals that fill their list in the page: the tab goes to the list of this query, adapters loaded anew. */
-async function openResults(portal, query, tab, deps) {
+async function openResults(portal, plan, query, tab, deps) {
   const target = await deps.browser.run(tab, portal, 'searchUrl', [query]);
   if (!target.ok) return target;
   await deps.browser.navigate(tab, target.value);
-  await deps.browser.inject(tab, [COMMON, ADAPTERS[portal].file]);
+  await loadPortal(portal, plan, tab, deps);
   return target;
 }
 
@@ -30,7 +41,8 @@ async function listAll(portal, plan, tab, deps) {
   }
   for (const query of queries) {
     if (ADAPTERS[portal].opensPages) {
-      const opened = await openResults(portal, query, tab, deps);
+      stopIfCancelled(deps);
+      const opened = await openResults(portal, plan, query, tab, deps);
       await deps.sleep(DELAY_MS);
       if (!opened.ok) {
         if (opened.changed) throw Object.assign(new Error(opened.fehler), { changed: true });
@@ -39,6 +51,7 @@ async function listAll(portal, plan, tab, deps) {
       }
     }
     for (let page = 1; page <= plan.max_seiten; page += 1) {
+      stopIfCancelled(deps);
       deps.report({ portal, phase: 'suche', stichwort: query.keyword, seite: page, gefunden: found.size });
       const result = await deps.browser.run(tab, portal, 'list', [query, page]);
       await deps.sleep(DELAY_MS);
@@ -75,6 +88,7 @@ async function sendWithTexts(portal, hits, tab, deps) {
   for (const part of chunks(hits, SEND_SIZE)) {
     const full = [];
     for (const hit of part) {
+      stopIfCancelled(deps);
       deps.report({ portal, phase: 'texte', fertig: done, von: hits.length });
       done += 1;
       const result = await deps.browser.run(tab, portal, 'details', [hit]);
@@ -102,8 +116,8 @@ export async function searchPortal(portal, plan, deps) {
   if (!adapter) return { ...summary, problem: `${portal}: unbekanntes Portal` };
   let tab = null;
   try {
-    tab = await deps.browser.openTab(adapter.start);
-    await deps.browser.inject(tab, [COMMON, adapter.file]);
+    tab = await deps.browser.openTab(adapter.start, Boolean(plan.zuschauen));
+    await loadPortal(portal, plan, tab, deps);
     const { found, problem } = await listAll(portal, plan, tab, deps);
     const wanted = await screen(found, deps.app);
     const { added, missing, failed } = await sendWithTexts(portal, wanted, tab, deps);
@@ -114,6 +128,8 @@ export async function searchPortal(portal, plan, deps) {
     ];
     return { treffer: found.size, neu: added, problem: notes.filter(Boolean).join(' ') };
   } catch (error) {
+    // Closing the tab is a way to cancel too: then the error is only about the tab being gone.
+    if (error.cancelled || deps.cancelled?.()) return { ...summary, problem: `${portal}: ${CANCELLED}` };
     return { ...summary, problem: error.changed ? changedText(portal, error.message) : `${portal}: ${error.message}` };
   } finally {
     if (tab !== null) await deps.browser.closeTab(tab).catch(() => {});
@@ -125,8 +141,9 @@ export async function runSearch(deps) {
   const { plan } = await deps.app.request('GET', '/api/suche/plan');
   const portals = {};
   for (const portal of plan.portale) {
+    if (deps.cancelled?.()) break;
     portals[portal] = await searchPortal(portal, plan, deps);
   }
   await deps.app.request('POST', '/api/suche/abschluss', { portale: portals });
-  return { portale: portals, hinweise: plan.hinweise || [] };
+  return { portale: portals, hinweise: plan.hinweise || [], abgebrochen: Boolean(deps.cancelled?.()) };
 }

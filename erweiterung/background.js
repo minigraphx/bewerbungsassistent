@@ -4,13 +4,16 @@
 import { AppConnection, explain } from './lib/app.js';
 import { runSearch } from './lib/search.js';
 import { adKey } from './lib/page-ad.js';
-import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, isRavSender, senderKind } from './lib/senders.js';
+import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, WATCH_ACTION, isRavSender, senderKind } from './lib/senders.js';
 import { ALL_PAGES, ApplyRun } from './lib/apply.js';
 import { RavRun, isRavPage } from './lib/rav.js';
 
 const LOAD_TIMEOUT_MS = 30000;
 const appPorts = new Set();
 let running = false;
+let searchCancelled = false;
+let watchedTab = null; // with „Zuschauen“ (MIN-370): the visible tab of the search
+const WATCHING_TEXT = (portal) => `Der Browser wird gerade vom Bewerbungsassistenten gesteuert: Suche auf ${portal}. Bitte warten und im Tab nichts anklicken; er schliesst sich von selbst. Wird er geschlossen, endet die Suche.`;
 
 // Pages of the app that were already open when the extension was loaded get the bridge now, so the setup page
 // shows „bereit“ without a reload. app-bridge.js itself checks that the page belongs to the app.
@@ -50,10 +53,20 @@ function waitForLoad(tabId) {
 }
 
 const browserTabs = {
-  async openTab(url) {
-    const tab = await chrome.tabs.create({ url, active: false });
+  async openTab(url, watching) {
+    const tab = await chrome.tabs.create({ url, active: watching });
+    if (watching) watchedTab = tab.id;
     await waitForLoad(tab.id);
     return tab.id;
+  },
+  /** Only a note to the person: the search goes on if it cannot be shown. */
+  async showWatching(tabId, portal) {
+    try {
+      await chrome.scripting.executeScript({ target: { tabId }, files: ['form/bar.js'] });
+      await chrome.tabs.sendMessage(tabId, { art: 'formular-balken', balken: { text: WATCHING_TEXT(portal), knoepfe: ['suche_abbrechen'] } }, { frameId: 0 });
+    } catch {
+      // the page is just changing; the next page shows it again
+    }
   },
   async navigate(tabId, url) {
     const loaded = waitForLoad(tabId);
@@ -68,6 +81,7 @@ const browserTabs = {
     return (result && result.result) || { ok: false, fehler: 'Keine Antwort aus dem Tab' };
   },
   closeTab(tabId) {
+    if (watchedTab === tabId) watchedTab = null; // closed by the search itself, that is no cancelling
     return chrome.tabs.remove(tabId);
   },
 };
@@ -80,13 +94,14 @@ async function publish(state) {
 async function startSearch() {
   if (running) return { laeuft: true };
   running = true;
+  searchCancelled = false;
   const app = new AppConnection();
   const started = new Date().toISOString();
   await publish({ zustand: 'laeuft', beginn: started, schritt: { phase: 'start' } });
   (async () => {
     try {
       const report = (step) => publish({ zustand: 'laeuft', beginn: started, schritt: step });
-      const result = await runSearch({ app, browser: browserTabs, report, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) });
+      const result = await runSearch({ app, browser: browserTabs, report, sleep: (ms) => new Promise((r) => setTimeout(r, ms)), cancelled: () => searchCancelled });
       await publish({ zustand: 'fertig', beginn: started, ende: new Date().toISOString(), ergebnis: result });
     } catch (error) {
       await publish({ zustand: 'fehler', beginn: started, fehler: error.message });
@@ -267,6 +282,10 @@ chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
   ravRun.loaded(tabId, tab.url).catch(() => { /* the tab went away while loading */ });
 });
 chrome.tabs.onRemoved.addListener((tabId) => {
+  if (tabId === watchedTab) {
+    watchedTab = null;
+    searchCancelled = true;
+  }
   applyRun.closed(tabId);
   ravRun.closed(tabId);
 });
@@ -321,6 +340,10 @@ function fromForm(message, sender, reply) {
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message && RAV_ACTIONS.has(message.art)) return fromRav(message, sender, reply);
+  if (message && message.art === WATCH_ACTION) {
+    if (sender.id === chrome.runtime.id && sender.tab && sender.tab.id === watchedTab) searchCancelled = true;
+    return false;
+  }
   if (message && (FORM_ACTIONS.has(message.art) || BAR_ACTIONS.has(message.art))) return fromForm(message, sender, reply);
   const actions = {
     'suche-starten': startSearch,

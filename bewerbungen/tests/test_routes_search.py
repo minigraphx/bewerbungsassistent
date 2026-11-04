@@ -252,6 +252,15 @@ def test_settings_default_to_automatic_and_can_be_switched_off(search):
     assert post(search, "/api/suche/einstellungen", {"auto_bewerten": "nein"})[0] == 400
 
 
+def test_watching_is_off_until_chosen_and_goes_with_the_plan(search):
+    assert listing(search)["einstellungen"]["zuschauen"] is False
+    assert json.loads(get(search, "/api/suche/plan")[2])["plan"]["zuschauen"] is False
+    assert post(search, "/api/suche/einstellungen", {"zuschauen": True})[0] == 200
+    assert json.loads(get(search, "/api/suche/plan")[2])["plan"]["zuschauen"] is True
+    assert listing(search)["einstellungen"]["auto_bewerten"] is True, "the other setting stays"
+    assert post(search, "/api/suche/einstellungen", {"zuschauen": "ja"})[0] == 400
+
+
 def test_own_stars_per_profession(search):
     status, saved = post(search, "/api/suche/beruf-sterne", {"beruf": "Fachfrau Gesundheit EFZ", "sterne": 5})
     assert status == 200 and saved["beruf_sterne"] == {"Fachfrau Gesundheit EFZ": 5}

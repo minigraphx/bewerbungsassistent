@@ -292,7 +292,7 @@ class Hits:
         raw = raw if isinstance(raw, dict) else {}
         stars = raw.get("beruf_sterne") if isinstance(raw.get("beruf_sterne"), dict) else {}
         clean = {str(k): v for k, v in stars.items() if type(v) is int and 1 <= v <= MAX_STARS}
-        return {"auto_bewerten": raw.get("auto_bewerten") is not False, "beruf_sterne": clean}
+        return {"auto_bewerten": raw.get("auto_bewerten") is not False, "zuschauen": raw.get("zuschauen") is True, "beruf_sterne": clean}
 
     def _save_settings(self, settings: dict) -> dict:
         schreibe_yaml(self.folder / SETTINGS_FILE, settings)
@@ -301,6 +301,10 @@ class Hits:
     def set_auto_rating(self, enabled: bool) -> dict:
         with _LOCK:
             return self._save_settings({**self.settings(), "auto_bewerten": enabled})
+
+    def set_watching(self, enabled: bool) -> dict:
+        with _LOCK:
+            return self._save_settings({**self.settings(), "zuschauen": enabled})
 
     def set_stars(self, profession: str, stars: int) -> dict:
         """The person's own rating of a profession, 1 to 5; 0 takes it away."""

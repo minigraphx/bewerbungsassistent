@@ -35,7 +35,7 @@ def _list(body, field: str = "treffer") -> list:
 
 
 def plan(k, parameter, body):
-    return json_antwort({"plan": search_plan.for_folder(k.daten).as_dict()})
+    return json_antwort({"plan": {**search_plan.for_folder(k.daten).as_dict(), "zuschauen": _hits(k).settings()["zuschauen"]}})
 
 
 def screen(k, parameter, body):
@@ -156,8 +156,10 @@ def rate_package(k, parameter, body):
 
 
 def settings(k, parameter, body):
+    if isinstance(body, dict) and isinstance(body.get("zuschauen"), bool):
+        return json_antwort(_hits(k).set_watching(body["zuschauen"]))
     if not isinstance(body, dict) or not isinstance(body.get("auto_bewerten"), bool):
-        raise ValueError("auto_bewerten erwartet (ja oder nein)")
+        raise ValueError("auto_bewerten oder zuschauen erwartet (ja oder nein)")
     return json_antwort(_hits(k).set_auto_rating(body["auto_bewerten"]))
 
 

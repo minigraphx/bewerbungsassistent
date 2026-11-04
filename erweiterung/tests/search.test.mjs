@@ -307,3 +307,74 @@ test('the popup names what is searched', () => {
   assert.equal(describePlan({ ...plan, angebote: ['lehrstelle'] }).button, 'Lehrstellen suchen');
   assert.equal(describePlan(plan).button, 'Lehrstellen suchen');
 });
+
+// Watching the search (MIN-370)
+
+
+function pagesWithOneHit(portal, method) {
+  if (method === 'list') return { ok: true, value: { hits: [hit(portal, '1')], more: false } };
+  return { ok: true, value: { text: 'Inserat' } };
+}
+
+function watchingBrowser(pages = pagesWithOneHit) {
+  const browser = fakeBrowser(pages);
+  const openTab = browser.openTab;
+  browser.opened = [];
+  browser.openTab = (url, active) => { browser.opened.push(active); return openTab(url); };
+  browser.showWatching = async (tab, portal) => { browser.log.push(['watching', portal]); };
+  return browser;
+}
+
+test('by default the search stays in the background and shows nothing', async () => {
+  const browser = watchingBrowser();
+  await searchPortal('jobs.ch', PLAN, deps(fakeApp(), browser));
+  assert.deepEqual(browser.opened, [false]);
+  assert.equal(browser.log.filter((e) => e[0] === 'watching').length, 0);
+});
+
+test('with „Zuschauen“ the tab is active and says what is going on', async () => {
+  const browser = watchingBrowser();
+  await searchPortal('jobs.ch', { ...PLAN, zuschauen: true }, deps(fakeApp(), browser));
+  assert.deepEqual(browser.opened, [true]);
+  assert.deepEqual(browser.log.filter((e) => e[0] === 'watching'), [['watching', 'jobs.ch']]);
+});
+
+test('a portal that opens pages shows the message again on every page', async () => {
+  const pages = (portal, method) => (method === 'searchUrl' ? { ok: true, value: 'https://www.berufsberatung.ch/x' } : { ok: true, value: { hits: [], more: false } });
+  const browser = watchingBrowser(pages);
+  browser.navigate = async () => {};
+  const plan = { ...APPRENTICESHIP_PLAN, zuschauen: true };
+  await searchPortal('LENA', plan, deps(fakeApp(), browser));
+  assert.ok(browser.log.filter((e) => e[0] === 'watching').length >= 2);
+});
+
+test('cancelling stops before the next request, ends the run and still closes the tab', async () => {
+  const browser = watchingBrowser();
+  const app = fakeApp();
+  let stop = false;
+  const result = await runSearch({ ...deps(app, browser), cancelled: () => stop, report: (step) => { if (step.phase === 'suche') stop = true; } });
+  assert.equal(result.abgebrochen, true);
+  assert.deepEqual(Object.keys(result.portale), ['job-room'], 'the next portal does not start');
+  assert.match(result.portale['job-room'].problem, /abgebrochen/);
+  assert.equal(browser.log.filter((e) => e[0] === 'close').length, 1);
+  assert.equal(app.calls.filter((c) => c[1] === '/api/suche/abschluss').length, 1, 'the summary is still written');
+  assert.equal(app.calls.filter((c) => c[1] === '/api/suche/treffer').length, 0);
+});
+
+test('a tab closed by the person counts as cancelling, not as a problem of the portal', async () => {
+  let stop = false;
+  const pages = () => { stop = true; throw new Error('No tab with id: 7'); };
+  const result = await searchPortal('jobs.ch', PLAN, { ...deps(fakeApp(), watchingBrowser(pages)), cancelled: () => stop });
+  assert.match(result.problem, /abgebrochen/);
+  assert.doesNotMatch(result.problem, /No tab/);
+});
+
+test('without cancelling the result says so', async () => {
+  const result = await runSearch({ ...deps(fakeApp(), watchingBrowser()), cancelled: () => false });
+  assert.equal(result.abgebrochen, false);
+});
+
+test('the popup says when a search was cancelled', () => {
+  assert.match(describeRun({ zustand: 'fertig', ergebnis: { portale: {}, abgebrochen: true } }).step, /Abgebrochen/);
+  assert.match(describeRun({ zustand: 'fertig', ergebnis: { portale: {} } }).step, /Fertig/);
+});

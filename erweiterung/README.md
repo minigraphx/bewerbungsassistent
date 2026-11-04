@@ -27,6 +27,8 @@ Die ID der Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`), weil `mani
 
 Die App nimmt über den Host nur diese vier Anfragen und die zwei für die offene Seite (siehe unten) an. Alles andere lehnt der Host ab. Die Erweiterung selbst nimmt Aufträge nur vom Popup und von der Seite der laufenden App an; eine andere Seite auf `127.0.0.1` mit demselben Kennzeichen wird abgewiesen, weil ihre Adresse nicht die ist, die die App über Native Messaging meldet (`lib/senders.js`).
 
+**Zuschauen (MIN-370):** Die Suche läuft im Hintergrund. Mit dem Häkchen auf der Seite „Treffer“ läuft sie im sichtbaren Tab, damit man mitverfolgen kann, was die Erweiterung tut. Die Einstellung kommt mit dem Suchplan, gilt also auch für einen Start im Popup. Ein Balken sagt, dass der Browser gesteuert wird, und bietet „Suche abbrechen“. Den Tab zu schliessen bricht die Suche ebenfalls ab; was schon an die App ging, bleibt. Wer im Tab etwas anklickt, kann die Abfragen stören, darum die Bitte im Balken: Das betroffene Portal meldet dann ein Problem, die übrigen laufen weiter.
+
 ## Stelle auf der offenen Seite prüfen oder speichern (MIN-345)
 
 Für Inserate ausserhalb der Portale, zum Beispiel auf LinkedIn oder den Karriereseiten von Firmen. Die Person öffnet das Inserat selbst und klickt auf das Symbol der Erweiterung.

@@ -15,6 +15,9 @@ export const ALLOWED = {
 export const FORM_ACTIONS = new Set(['formular-stand', 'formular-datei', 'formular-rahmen', 'formular-ki']);
 export const BAR_ACTIONS = new Set(['formular-hier', 'formular-abgeschickt', 'formular-stoppen']);
 
+/** The button in the tab of a search one can watch (MIN-370). */
+export const WATCH_ACTION = 'suche-abbrechen';
+
 /** What the script in the Job-Room tab of a run may ask for (MIN-347). */
 export const RAV_ACTIONS = new Set(['rav-wartet', 'rav-daten', 'rav-stand', 'rav-gespeichert', 'rav-kein-formular', 'rav-eingetragen',
   'rav-ueberspringen', 'rav-stoppen', 'rav-zum-formular']);
