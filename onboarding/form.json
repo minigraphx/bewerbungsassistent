@@ -191,7 +191,7 @@
       "tracks": ["apprenticeship"],
       "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"},
       "fields": [
-        {"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5, "max": 100},
+        {"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "hint": "Du weisst noch nicht, welcher Beruf passt? Lass das Feld leer. In der App schlägt dir danach die KI unter „Treffer“ Berufe vor, die zu deinen Interessen und Fähigkeiten passen.", "maxItems": 5, "max": 100},
         {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600},
         {"id": "offers", "label": "Was suchst du?", "type": "select", "options": ["Lehrstellen", "Schnupperlehren", "Lehrstellen und Schnupperlehren"], "hint": "Viele suchen zuerst eine Schnupperlehre. Das lässt sich später auf der Seite „Treffer“ ändern. Ohne Auswahl sucht die Erweiterung Lehrstellen."},
         {"id": "start", "label": "Lehrbeginn", "type": "choice", "required": true, "allowOwn": true, "max": 40, "options": {

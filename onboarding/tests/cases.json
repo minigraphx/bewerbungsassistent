@@ -257,10 +257,6 @@
       ],
       "errors": [
         {
-          "path": "searchApprenticeship.professions",
-          "code": "required"
-        },
-        {
           "path": "searchApprenticeship.start",
           "code": "required"
         },

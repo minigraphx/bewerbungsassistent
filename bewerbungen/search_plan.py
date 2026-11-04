@@ -196,7 +196,7 @@ def with_offers(text: str, choice: str) -> str:
 def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
     professions = _professions(sections.get(PROFESSIONS_KEY, []))
     if not professions:
-        raise ValueError("Im Suchprofil fehlen Berufe (Abschnitt „Berufe (mit Priorität)“).")
+        raise ValueError("In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor.")
     region = _pairs(sections.get("region", []))
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     places = _items(_value(region, "wohnort"), 1)

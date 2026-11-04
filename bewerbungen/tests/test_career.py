@@ -1,6 +1,7 @@
 """Suggestions for professions (MIN-375): what the AI sees, what may come back, and how a choice reaches the search."""
 import json
 import pathlib
+import re
 import shutil
 import threading
 
@@ -146,15 +147,16 @@ def known_profession() -> str:
 def test_route_marks_what_is_already_searched(apprentice, monkeypatch):
     reply = {"recommendations": [FIRST, {**SECOND, "profession": known_profession()}]}
     monkeypatch.setattr(routes_ai, "new_client", lambda: Client(reply))
-    status, answer = post(apprentice, "/api/beruf/vorschlag", {"interessen": "Hände"})
+    status, answer = post(apprentice, "/api/beruf/vorschlag", {"interessen": "Hände", "staerken": "geduldig"})
     assert status == 200
     assert [(r["beruf"], r["schon_gesucht"]) for r in answer["vorschlaege"]] == [(FIRST["profession"], False), (known_profession(), True)]
     assert set(answer["vorschlaege"][0]) == {"beruf", "warum", "alltag", "pruefen", "schon_gesucht"}
 
 
 def test_route_needs_something_to_go_on(apprentice):
-    status, answer = post(apprentice, "/api/beruf/vorschlag", {"interessen": "  ", "staerken": ""})
-    assert status == 400 and "Interessen" in answer["fehler"]
+    for body in ({"interessen": "  ", "staerken": ""}, {"interessen": "Hände"}, {"staerken": "geduldig"}):
+        status, answer = post(apprentice, "/api/beruf/vorschlag", body)
+        assert status == 400 and "beidem" in answer["fehler"]
 
 
 def test_route_is_only_for_apprenticeships(server):  # noqa: F811
@@ -266,3 +268,15 @@ def test_adding_at_the_same_time_loses_nothing(apprentice):
     assert answers == [200] * len(names)
     assert set(names) <= set(search_plan.professions_in((apprentice.kontext.daten / search_plan.PROFILE).read_text(encoding="utf-8")))
 
+
+def test_a_person_without_a_profession_gets_suggestions_and_then_can_search(apprentice, monkeypatch):
+    path = apprentice.kontext.daten / search_plan.PROFILE
+    text = re.sub(r"## Berufe \(mit Priorität\)\n(?:.+\n)*\n", "", profile())
+    path.write_text(text, encoding="utf-8")
+    with pytest.raises(ValueError, match="Welcher Beruf passt zu dir"):
+        search_plan.parse(text)
+    monkeypatch.setattr(routes_ai, "new_client", lambda: Client({"recommendations": [FIRST]}))
+    status, answer = post(apprentice, "/api/beruf/vorschlag", {"interessen": "Hände", "staerken": "geduldig"})
+    assert status == 200 and answer["vorschlaege"][0]["schon_gesucht"] is False
+    assert post(apprentice, "/api/beruf/aufnehmen", {"beruf": FIRST["profession"]})[0] == 200
+    assert search_plan.parse(path.read_text(encoding="utf-8")).keywords == (FIRST["profession"],)

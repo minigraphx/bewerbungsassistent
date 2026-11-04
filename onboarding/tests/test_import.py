@@ -8,6 +8,7 @@ from pypdf import PdfReader
 
 import build
 import import_bundle
+import search_plan
 from conftest import base_bundle
 
 TODAY = datetime.date(2026, 11, 2)
@@ -123,3 +124,13 @@ def test_lone_surrogate_is_rejected_before_writing(tmp_path):
         import_bundle.import_file(tmp_path / "daten", path, TODAY)
 
     assert not (tmp_path / "daten").exists()
+
+
+def test_someone_who_does_not_know_a_profession_yet_can_finish_and_add_one_later(tmp_path):
+    bundle = base_bundle("apprenticeship")
+    del bundle["data"]["searchApprenticeship"]["professions"]
+    import_bundle.import_file(tmp_path, write_bundle(tmp_path, bundle), TODAY)
+    profile = (tmp_path / "suchprofil.md").read_text(encoding="utf-8")
+    assert search_plan.kind_of_folder(tmp_path) == search_plan.KIND_APPRENTICESHIP
+    assert search_plan.professions_in(profile) == ()
+    assert search_plan.professions_in(search_plan.with_profession(profile, "Gärtner/in EFZ")) == ("Gärtner/in EFZ",)

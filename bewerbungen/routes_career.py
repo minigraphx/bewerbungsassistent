@@ -6,7 +6,7 @@ from dateien import schreibe_atomar
 from server import json_antwort
 
 ONLY_APPRENTICESHIP = "Berufsvorschläge gibt es vorerst nur bei der Lehrstellensuche."
-NOTHING_GIVEN = "Schreib zuerst etwas zu deinen Interessen oder Stärken."
+BOTH_NEEDED = "Schreib zu beidem etwas: was du gern machst und was du gut kannst."
 NO_PROFESSION = "Das ist kein Beruf mit EFZ oder EBA."
 
 
@@ -23,8 +23,8 @@ def _searched(k) -> list[str]:
 def suggest(k, parameter, body):
     _require_apprenticeship(k)
     answers = career.clean_answers(body)
-    if not answers["interests"] and not answers["strengths"]:
-        raise ValueError(NOTHING_GIVEN)
+    if not answers["interests"] or not answers["strengths"]:
+        raise ValueError(BOTH_NEEDED)
 
     def task():
         gateway, material = routes_ai.ai_gateway(k)

@@ -16,6 +16,7 @@ Landkarte für das Interview im Skill `einstieg` mit Schülerinnen und Schülern
 ## Berufswahl → `suchprofil.md` (Vorlage `vorlagen/suchprofil-lehrstelle.md`)
 - Welche Berufe interessieren dich, mit Abschluss (EFZ oder EBA)? Welcher zuerst?
 - Wie bist du darauf gekommen (Schnupperlehre, Familie, Berufsberatung, Hobby)?
+- Noch keine Idee? Dann bleibt die Liste leer, und niemand drängt zu einem Beruf. In der App schlägt das Sprachmodell unter „Treffer“ passende Berufe vor, aus dem, was die Person gern macht und gut kann; ihre Namen kommen dann in die Suche.
 - Lehrbeginn (z.B. August 2027 oder 2027 oder 2028). Wohnort, in welchem Umkreis gesucht werden soll (10, 25 oder 50 km; im Suchprofil `- Umkreis: 25 km`) und wie lange der Weg zum Lehrbetrieb höchstens dauern darf (Minuten, mit ÖV oder Velo).
 - Berufsmaturität geplant?
 
