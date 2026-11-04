@@ -171,7 +171,7 @@
       "tracks": ["job"],
       "intro": {"job": "Danach sucht der Assistent Stellen für Sie."},
       "fields": [
-        {"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5},
+        {"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Treffer“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 5},
         {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 10},
         {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60},
         {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100},

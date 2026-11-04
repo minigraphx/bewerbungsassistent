@@ -244,16 +244,19 @@
       : `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier, und die KI schätzt die Passung als Note von 1 bis 6 ein: nach der Suche von selbst, wenn diese Seite offen ist, sonst auf Knopfdruck. „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`;
   }
 
+  let ladeNummer = 0;
+
   async function lade() {
+    const nummer = ++ladeNummer;
     try {
       const daten = await holen("/api/suche/liste");
+      if (nummer !== ladeNummer) return; // a newer load is on its way, and this answer may be older
       alle = daten.treffer;
       einstellungen = daten.einstellungen;
       paket = daten.paket;
       grenze = daten.grenze;
       zeigeArt(daten.art, daten.portale || [], daten.angebote || []);
-      $("vorschlag").hidden = !lehrstelle;
-      if (lehrstelle && !(daten.gesuchte_berufe || []).length) $("vorschlag").open = true;
+      window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || []);
       zeigeListe();
     } catch (fehler) {

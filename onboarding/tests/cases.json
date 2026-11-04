@@ -471,6 +471,22 @@
       ]
     },
     {
+      "name": "no idea yet what to search for, job",
+      "base": "job",
+      "remove": [
+        "data.searchJob.directions"
+      ],
+      "errors": []
+    },
+    {
+      "name": "no idea yet what to search for, apprenticeship",
+      "base": "apprenticeship",
+      "remove": [
+        "data.searchApprenticeship.professions"
+      ],
+      "errors": []
+    },
+    {
       "name": "too many list items",
       "base": "job",
       "set": [

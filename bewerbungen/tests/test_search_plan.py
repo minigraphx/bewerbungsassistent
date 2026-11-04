@@ -63,7 +63,7 @@ def test_missing_postal_code_skips_jobscout24_with_a_hint():
 
 
 def test_profile_without_keywords_or_directions_is_refused():
-    with pytest.raises(ValueError, match="Stichworte"):
+    with pytest.raises(ValueError, match="Welche Stellen passen"):
         search_plan.parse("# Suchprofil\n\n## Region\n- Wohnort: Bern\n")
 
 

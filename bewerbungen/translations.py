@@ -26,6 +26,7 @@ SOURCE_LANGUAGE = "de"
 CV_FILE = "cv.yaml"
 VARIANTS = "jobs/*.yaml"
 MISSING = "fehlt"
+NO_GERMAN = "deutsch fehlt"
 UNCHECKED = "ungeprüft"
 STALE = "{count} Prüfung(en) passen nicht mehr zum aktuellen Text. Nichts gespeichert; bitte neu auflisten."
 
@@ -49,13 +50,25 @@ def _sources(data_dir: pathlib.Path) -> list[pathlib.Path]:
     return [path for path in (data_dir / CV_FILE, *sorted(data_dir.glob(VARIANTS))) if path.is_file()]
 
 
+def _load(path: pathlib.Path, standard: object) -> object:
+    try:
+        return lies_yaml(path, standard)
+    except yaml.YAMLError as error:
+        raise ValueError(f"{path.name} lässt sich nicht lesen. Bitte die Datei prüfen.") from error
+
+
 def _entries(data_dir: pathlib.Path) -> list[dict]:
+    if not data_dir.is_dir():
+        raise ValueError(f"Den Datenordner {data_dir} gibt es nicht.")
     entries = []
     for source in _sources(data_dir):
         rel = source.relative_to(data_dir).as_posix()
-        for path, field in _fields(yaml.safe_load(source.read_text(encoding="utf-8"))):
+        for path, field in _fields(_load(source, None)):
             german = field.get(SOURCE_LANGUAGE)
-            if german is None:
+            if not german:
+                if any(field.values()):
+                    entries.append({"datei": rel, "feld": path, "sprache": SOURCE_LANGUAGE, "de": None, "uebersetzung": None,
+                                    "stand": NO_GERMAN, "hash": None})
                 continue
             for language in build.SPRACHEN:
                 if language != SOURCE_LANGUAGE:
@@ -70,7 +83,7 @@ def _entry(rel: str, path: str, language: str, german: str, translation: str | N
 
 
 def _record(data_dir: pathlib.Path) -> dict:
-    record = lies_yaml(data_dir / RECORD, {})
+    record = _load(data_dir / RECORD, {})
     checked = record.get("geprueft", {}) if isinstance(record, dict) else None
     if not isinstance(checked, dict):
         raise ValueError(f"{RECORD} lässt sich nicht lesen. Bitte die Datei prüfen oder löschen; dann wird alles neu geprüft.")
@@ -107,7 +120,7 @@ def main(argv: list[str] | None = None) -> None:
             result = open_fields(args.data_dir)
         else:
             result = {"geprueft": mark_checked(args.data_dir, args.hashes, datetime.date.today())}
-    except (ValueError, OSError, yaml.YAMLError) as error:
+    except (ValueError, OSError) as error:
         print(error, file=sys.stderr)
         sys.exit(1)
     print(json.dumps(result, ensure_ascii=False, indent=1))

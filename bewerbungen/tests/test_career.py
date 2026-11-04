@@ -9,6 +9,7 @@ import pytest
 
 import routes_ai
 import search_plan
+import search_terms
 from ai import career, errors, tasks
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
 from test_ai_tasks import FakeMessages, VORLAGEN, gateway_for  # noqa: F401
@@ -150,7 +151,7 @@ def test_route_marks_what_is_already_searched(apprentice, monkeypatch):
     status, answer = post(apprentice, "/api/beruf/vorschlag", {"interessen": "Hände", "staerken": "geduldig"})
     assert status == 200
     assert [(r["beruf"], r["schon_gesucht"]) for r in answer["vorschlaege"]] == [(FIRST["profession"], False), (known_profession(), True)]
-    assert set(answer["vorschlaege"][0]) == {"beruf", "warum", "alltag", "pruefen", "schon_gesucht"}
+    assert set(answer["vorschlaege"][0]) == {"beruf", "warum", "alltag", "pruefen", "schon_gesucht", "schluessel"}
 
 
 def test_route_needs_something_to_go_on(apprentice):
@@ -159,10 +160,62 @@ def test_route_needs_something_to_go_on(apprentice):
         assert status == 400 and "beidem" in answer["fehler"]
 
 
-def test_route_is_only_for_apprenticeships(server):  # noqa: F811
-    shutil.copy(VORLAGEN / "suchprofil.md", server.kontext.daten / "suchprofil.md")
-    assert post(server, "/api/beruf/vorschlag", {"interessen": "x"})[0] == 400
-    assert post(server, "/api/beruf/aufnehmen", {"beruf": "Koch/Köchin EFZ"})[0] == 400
+JOB_REPLY = {"recommendations": [
+    {"profession": "Sachbearbeitung Administration", "why": "Sie organisieren gern.", "daily": "Sie bearbeiten Anfragen.", "check": "Achten Sie auf verlangte Abschlüsse."},
+    {"profession": "Polymechaniker/in (EFZ), Bern", "why": "x", "daily": "x", "check": "x"},
+]}
+
+
+@pytest.fixture
+def job_seeker(apprentice):
+    shutil.copy(VORLAGEN / "suchprofil.md", apprentice.kontext.daten / "suchprofil.md")
+    return apprentice
+
+
+def test_a_job_seeker_gets_search_terms_and_can_add_and_remove_them(job_seeker, monkeypatch):
+    path = job_seeker.kontext.daten / "suchprofil.md"
+    client = Client(JOB_REPLY)
+    monkeypatch.setattr(routes_ai, "new_client", lambda: client)
+    status, answer = post(job_seeker, "/api/beruf/vorschlag", {"interessen": "etwas Administratives", "staerken": "ordentlich"})
+    assert status == 200
+    assert [entry["beruf"] for entry in answer["vorschlaege"]] == ["Sachbearbeitung Administration"]
+    assert "Sie-Form" in json.dumps(client.messages.calls[-1], ensure_ascii=False, default=str)
+    name = answer["vorschlaege"][0]["beruf"]
+    status, answer = post(job_seeker, "/api/beruf/aufnehmen", {"beruf": name})
+    assert status == 200 and name in answer["berufe"]
+    assert name in search_plan.for_folder(job_seeker.kontext.daten).keywords
+    status, answer = post(job_seeker, "/api/beruf/entfernen", {"beruf": name})
+    assert status == 200 and name not in answer["berufe"]
+    assert name not in path.read_text(encoding="utf-8")
+
+
+def test_job_messages_address_the_person_formally(job_seeker):
+    _, answer = post(job_seeker, "/api/beruf/vorschlag", {"interessen": "x"})
+    assert "Schreiben Sie" in answer["fehler"]
+
+
+def test_a_job_term_is_short_and_fits_a_list():
+    assert career.is_job_term("Sachbearbeitung Administration")
+    for bad in ("a, b", "x" * 200, "Zeile\nzwei", "## Region", "x", "Sachbearbeiter (m/w)", "`Code`", "Kauffrau/Kaufmann", "", None, 5):
+        assert not career.is_job_term(bad)
+
+
+def test_removing_a_profession_through_the_route(apprentice):
+    name = known_profession()
+    status, answer = post(apprentice, "/api/beruf/entfernen", {"beruf": name})
+    assert status == 200 and name not in answer["berufe"]
+    assert any(apprentice.kontext.ablage.liste()), "drafts before and after"
+
+
+@pytest.mark.parametrize("name", [None, 5, "", "x" * 200])
+def test_removing_refuses_what_is_no_name(apprentice, name):
+    assert post(apprentice, "/api/beruf/entfernen", {"beruf": name})[0] == 400
+
+
+def test_without_a_profile_the_routes_say_so(server):  # noqa: F811
+    for route, body in (("/api/beruf/vorschlag", {"interessen": "x", "staerken": "y"}), ("/api/beruf/aufnehmen", {"beruf": "Empfang"}), ("/api/beruf/entfernen", {"beruf": "Empfang"})):
+        status, answer = post(server, route, body)
+        assert status == 400 and "Suchprofil" in answer["fehler"]
 
 
 def test_adding_goes_into_the_profile_with_a_draft(apprentice):
@@ -280,3 +333,50 @@ def test_a_person_without_a_profession_gets_suggestions_and_then_can_search(appr
     assert status == 200 and answer["vorschlaege"][0]["schon_gesucht"] is False
     assert post(apprentice, "/api/beruf/aufnehmen", {"beruf": FIRST["profession"]})[0] == 200
     assert search_plan.parse(path.read_text(encoding="utf-8")).keywords == (FIRST["profession"],)
+
+
+def test_overview_lists_professions_also_when_the_plan_cannot_search_yet(apprentice):
+    path = apprentice.kontext.daten / "suchprofil.md"
+    path.write_text("## Lehrbeginn\n- 2027\n\n## Berufe (mit Priorität)\n1. Koch/Köchin EFZ\n", encoding="utf-8")
+    _, _, content = get(apprentice, "/api/suche/liste")
+    answer = json.loads(content)
+    assert answer["gesuchte_berufe"] == ["Koch/Köchin EFZ"]
+    assert answer["gesuchte_schluessel"] == [search_terms.key("Koch/Köchin EFZ")]
+
+
+def test_a_change_tells_the_page_what_is_searched_now(apprentice):
+    _, answer = post(apprentice, "/api/beruf/aufnehmen", {"beruf": "Maler/in EFZ"})
+    assert search_terms.key("Maler/in EFZ") in answer["schluessel"]
+    _, answer = post(apprentice, "/api/beruf/entfernen", {"beruf": "Maler/in EFZ"})
+    assert search_terms.key("Maler/in EFZ") not in answer["schluessel"]
+
+
+def test_removing_what_cannot_be_found_changes_nothing_and_says_nothing_wrong(apprentice):
+    before = (apprentice.kontext.daten / "suchprofil.md").read_bytes()
+    status, answer = post(apprentice, "/api/beruf/entfernen", {"beruf": "Astronaut EFZ"})
+    assert status == 200 and known_profession() in answer["berufe"]
+    assert (apprentice.kontext.daten / "suchprofil.md").read_bytes() == before
+
+
+def test_job_terms_are_cleaned_of_gender_forms_and_stay_short(folder):
+    def item(name):
+        return {"profession": name, "why": "w", "daily": "d", "check": "c"}
+
+    found = career._suggestions({"recommendations": [item("Sachbearbeiter/in"), item("Kauffrau/Kaufmann"), item("Mitarbeiter im Kundendienst mit viel Erfahrung in Administration")]}, search_plan.KIND_JOB)
+    assert [entry["profession"] for entry in found] == ["Sachbearbeiter"]
+    for good in ("HR", "C# Entwicklung", "Empfang"):
+        assert career.is_job_term(good), good
+
+
+def test_what_the_person_does_not_want_never_comes_back(folder):
+    reply = {"recommendations": [{**FIRST, "profession": "Büroassistent/in EFZ"}, SECOND]}
+    gateway, material = gateway_for(folder, Client(reply))
+    answers = {**ANSWERS, "avoid": "Ich möchte nicht ins Büro."}
+    result = career.recommend(gateway, material, answers)
+    assert [item["profession"] for item in result["recommendations"]] == [SECOND["profession"]]
+
+
+def test_only_avoided_suggestions_end_in_a_clear_message(folder):
+    gateway, material = gateway_for(folder, Client({"recommendations": [{**FIRST, "profession": "Büroassistent/in EFZ"}]}))
+    with pytest.raises(errors.AiError, match="ausgeschlossen"):
+        career.recommend(gateway, material, {**ANSWERS, "avoid": "Büro"})

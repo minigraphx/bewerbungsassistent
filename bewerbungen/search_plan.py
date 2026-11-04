@@ -222,19 +222,40 @@ def with_profession(text: str, name: str) -> str:
     if profession_words(name) in map(profession_words, known):
         return text
     if len(known) >= MAX_PROFESSIONS:
-        raise ValueError(f"Deine Suche hat schon {MAX_PROFESSIONS} Berufe, mehr sucht sie nicht. Ein neuer Beruf braucht zuerst Platz im Suchprofil.")
-    return _with_line(text, f"{len(known) + 1}. {' '.join(name.split())}")
+        raise ValueError(f"Deine Suche hat schon {MAX_PROFESSIONS} Berufe, mehr sucht sie nicht. Entferne zuerst einen.")
+    line = f"{len(known) + 1}. {' '.join(name.split())}"
+    return with_section_line(text, PROFESSIONS_SECTION, line, APPRENTICESHIP_MARK)
 
 
-def _with_line(text: str, line: str) -> str:
-    """Adds the line after the last filled line of the professions, so that it stays last; a missing section comes before the start of training."""
-    lines = text.split("\n")
-    start = next((i for i, row in enumerate(lines) if row.startswith("## ") and row[3:].strip().lower() == PROFESSIONS_KEY), None)
+def section_bounds(lines: list[str], key: str) -> tuple[int | None, int]:
+    """Where the section with this key starts, and where the next one does."""
+    start = next((i for i, row in enumerate(lines) if row.startswith("## ") and row[3:].strip().lower() == key), None)
     if start is None:
-        return text.replace(APPRENTICESHIP_MARK, f"{PROFESSIONS_SECTION}\n{line}\n\n{APPRENTICESHIP_MARK}", 1)
-    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+        return None, len(lines)
+    return start, next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+
+
+def with_section_line(text: str, title: str, line: str, before: str) -> str:
+    """Adds the line after the last filled line of the section, so that it stays last; a missing section comes before `before`."""
+    lines = text.split("\n")
+    start, end = section_bounds(lines, title[3:].strip().lower())
+    if start is None:
+        section = [title, line, ""]
+        place = next((i for i, row in enumerate(lines) if row.strip() == before), None)
+        if place is None:
+            return f"{text.rstrip()}\n\n{title}\n{line}\n"
+        return "\n".join([*lines[:place], *section, *lines[place:]])
     last = max((i for i in range(start, end) if lines[i].strip()), default=start)
     return "\n".join([*lines[:last + 1], line, *lines[last + 1:]])
+
+
+def _job_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
+    core = _items(_value(_pairs(sections.get("keywords", [])), "kernliste"), MAX_KEYWORDS)
+    return core or _directions(sections.get("suchrichtungen", []))
+
+
+def job_terms(text: str) -> tuple[str, ...]:
+    return _job_terms(_sections(text))
 
 
 def parse(text: str, postal_code: str | None = None) -> SearchPlan:
@@ -245,10 +266,9 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     region = _pairs(sections.get("region", []))
     words = _pairs(sections.get("keywords", []))
     titles = _pairs(sections.get("titelfilter", []))
-    keywords = _items(_value(words, "kernliste"), MAX_KEYWORDS) or _directions(sections.get("suchrichtungen", []))
+    keywords = _job_terms(sections)
     if not keywords:
-        raise ValueError("Im Suchprofil fehlen Stichworte für die Suche (Abschnitt „Keywords“, Zeile „Kernliste“) "
-                         "oder gesuchte Stellen (Abschnitt „Suchrichtungen“).")
+        raise ValueError("In Ihrer Suche steht noch nichts. Unter „Welche Stellen passen zu Ihnen?“ schlägt Ihnen die KI Begriffe vor.")
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     places = _items(_value(region, "orte"), MAX_PLACES) or _items(_value(region, "wohnort"), 1)
     postal_codes = _items(_value(region, "plz"), MAX_PLACES) or _items(postal_code or "", 1)

@@ -67,7 +67,7 @@ def test_a_field_without_translation_is_open_and_cannot_be_checked(folder):
 
 
 def test_what_build_does_not_read_as_multilingual_is_ignored(tmp_path):
-    (tmp_path / "cv.yaml").write_text(yaml.safe_dump({"location": {"city": "Bern"}, "x": {"en": "only english"}, "y": {"de": "a", "en": 5}}), encoding="utf-8")
+    (tmp_path / "cv.yaml").write_text(yaml.safe_dump({"location": {"city": "Bern"}, "y": {"de": "a", "en": 5}}), encoding="utf-8")
     assert translations.open_fields(tmp_path) == []
 
 
@@ -122,3 +122,21 @@ def test_the_command_fails_clearly(folder, capsys):
         translations.main(["checked", str(folder), "abc"])
     assert stop.value.code != 0
     assert "Prüfung" in capsys.readouterr().err
+
+
+def test_a_field_only_in_another_language_is_reported(tmp_path):
+    (tmp_path / "cv.yaml").write_text(yaml.safe_dump({"a": {"en": "only english"}, "b": {"de": ""}}), encoding="utf-8")
+    found = translations.open_fields(tmp_path)
+    assert [(entry["feld"], entry["stand"], entry["hash"]) for entry in found] == [("a", "deutsch fehlt", None)]
+
+
+def test_a_folder_that_does_not_exist_is_no_empty_result(tmp_path):
+    with pytest.raises(ValueError, match="Datenordner"):
+        translations.open_fields(tmp_path / "gibt-es-nicht")
+
+
+@pytest.mark.parametrize("name", [translations.RECORD, "cv.yaml"])
+def test_broken_yaml_is_reported_in_plain_words(folder, name):
+    (folder / name).write_text("a: [unterbrochen\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="lässt sich nicht lesen"):
+        translations.open_fields(folder)
