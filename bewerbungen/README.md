@@ -24,7 +24,8 @@ Die Oberfläche läuft nur auf `127.0.0.1` und öffnet sich im Browser:
 3. **Anschreiben** – `bewerbungen/<id>/anschreiben.yaml`, Entwurf durch den Skill `bewerbung` aus Bausteinen und Stilprofil.
 4. **Prüfung** – „Unterlagen erstellen“, PDFs ansehen; formale Prüfung automatisch, inhaltliche durch den Skill.
 5. **Versand** – von Hand abschicken, dann „Versand erfassen“: Fassung nach `versendet/` (jede nur einmal), Entwürfe als genutzt markiert, alles in Git eingefroren. Oder in der Übersicht ankreuzen und „Bewerben“: Die Erweiterung öffnet pro Bewerbung das Formular und füllt es aus, abgeschickt wird durch die Person (siehe `../erweiterung/README.md`); „Abgeschickt? Ja“ im Balken erfasst den Versand.
-6. **Bewerbungsdaten** – Status, Gespräch, Absage nachtragen; Job-Room-Angaben übernehmen.
+6. **Bewerbungsdaten** – Status, Gespräch, Absage nachtragen.
+7. **RAV** – abgeschickte Bewerbungen in der Übersicht ankreuzen und „Im RAV eintragen“: Die Erweiterung füllt im Job-Room einen Eintrag nach dem anderen aus. Anmelden und „Speichern“ bleiben bei Ihnen, und erst damit geht der Eintrag ans RAV. Danach zeigt die Spalte „RAV“ das Datum. Gegen Monatsende erinnert die Übersicht an fehlende Einträge, sobald Sie das einmal genutzt haben. Wer lieber von Hand einträgt, findet die Angaben auf der Seite der Bewerbung und markiert dort „Als eingetragen“. Mit einem Suchprofil für Lehrstellen ist das ausgeblendet.
 
 ## Datenordner
 

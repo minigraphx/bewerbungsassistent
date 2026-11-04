@@ -31,7 +31,8 @@ ALLOWED = {("GET", "/api/suche/plan"), ("POST", "/api/suche/sichten"), ("POST", 
            ("POST", "/api/suche/abschluss"), ("POST", "/api/seite/pruefen"), ("POST", "/api/seite/speichern"),
            ("POST", "/api/bewerben/start"), ("GET", "/api/bewerben/daten"), ("GET", "/api/bewerben/datei"),
            ("POST", "/api/bewerben/stand"), ("POST", "/api/bewerben/abgeschickt"),
-           ("POST", "/api/bewerben/felder")}
+           ("POST", "/api/bewerben/felder"),
+           ("POST", "/api/rav/start"), ("GET", "/api/rav/angaben"), ("POST", "/api/rav/eingetragen")}
 MAX_IN = 8 * 1024 * 1024
 MAX_OUT = 1024 * 1024  # limit of the browser for messages to the extension
 START_TIMEOUT = 40

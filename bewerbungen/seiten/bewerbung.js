@@ -49,6 +49,25 @@
     }));
   }
 
+  /** Entered by hand, or marked by mistake: the same mark as after saving in Job-Room (MIN-347). */
+  function zeigeRav() {
+    const eingetragen = bewerbung.rav_eingetragen_am;
+    $("rav-stand").textContent = eingetragen ? `Im RAV eingetragen am ${datum(eingetragen)}.` : "Noch nicht im RAV eingetragen.";
+    $("rav-umschalten").textContent = eingetragen ? "Zurücksetzen" : "Als eingetragen markieren";
+    $("rav-umschalten").hidden = !eingetragen && !bewerbung.beworben_am;
+  }
+
+  async function schalteRav() {
+    const pfad = bewerbung.rav_eingetragen_am ? "/api/rav/zuruecksetzen" : "/api/rav/eingetragen";
+    try {
+      const { rav_eingetragen_am } = await senden(pfad, { id: bewerbung.id });
+      bewerbung = { ...bewerbung, rav_eingetragen_am };
+      zeigeRav();
+    } catch (fehler) {
+      meldung(fehler.message, "fehler");
+    }
+  }
+
   async function kopiere(text) {
     try {
       await navigator.clipboard.writeText(text);
@@ -124,6 +143,7 @@
       const daten = await holen("/api/bewerbung", { id: ID });
       zeigeAngaben(daten);
       zeigeJobroom(daten.jobroom);
+      zeigeRav();
       zeigeVersand(daten.bewerbung);
       zeigePdfs(daten.pdfs);
       zeigeZertifikate().catch(fehler => status($("zertifikate-status"), fehler.message, "fehler"));
@@ -145,6 +165,7 @@
   }
 
   $("zertifikate-speichern").addEventListener("click", speichereZertifikate);
+  $("rav-umschalten").addEventListener("click", schalteRav);
   $("speichern").addEventListener("click", () => speichere(formularWerte(), "Angaben gespeichert"));
   $("stelle-speichern").addEventListener("click", async () => {
     try {

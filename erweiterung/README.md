@@ -94,3 +94,13 @@ node --test tests/*.test.mjs
 ```
 
 Die Anpassungen an die Portale sind mit gespeicherten Antworten oder kleinen Nachbildungen der Seiten getestet. Ändert ein Portal seine Seiten, zuerst die Anpassung im Portal-Tab von Hand prüfen (Code aus `portals/common.js` und der Anpassung in die Konsole einfügen, dann `bewerbungsassistentPortals['jobs.ch'].list({keyword: 'python', place: 'Bern'}, 1)`), danach Test und Anpassung nachführen.
+
+## Im RAV eintragen (MIN-347)
+
+In der Übersicht der App kreuzt die Person abgeschickte Bewerbungen an und wählt „Im RAV eintragen“. Die Erweiterung öffnet das Formular für die Arbeitsbemühungen im Job-Room in einem einzigen Tab (`lib/rav.js`) und füllt einen Eintrag nach dem anderen (`form/rav-filler.js`, Zuordnung in `form/rav-fields.js`).
+
+- **Anmelden und Speichern tut die Person.** Das Skript drückt nie einen Knopf. „Speichern“ im Job-Room übermittelt den Eintrag ans RAV. Ohne Anmeldung zeigt der Balken „Zum Formular“; auf der Anmeldeseite läuft kein Skript.
+- **Vermerkt wird erst nach dem Speichern:** wenn die Meldung „Arbeitsbemühung gespeichert“ erscheint (Deutsch, Französisch, Italienisch, Englisch), oder wenn die Person im Balken „Eingetragen? Ja“ drückt. „Überspringen“ vermerkt nichts. Bei einem Fehlgriff lässt es sich auf der Seite der Bewerbung zurücksetzen.
+- **Ausgefüllt wird**, was das Register hergibt: Datum, Art der Bewerbung, Firma, Kontakt, Stelle, Zuweisung, Pensum, Ergebnis, Vorstellungsgespräch. Die Adresse nur bei brieflichen und persönlichen Bewerbungen; dort wählt die Person PLZ und Ort aus der Liste. Was fehlt, bleibt offen, ist orange markiert und steht im Balken.
+- **Hat sich das Formular geändert** (Steuerungen oder Beschriftungen nicht mehr wie erwartet), füllt das Skript nichts aus und sagt es im Balken. Die Beschriftungen stammen aus den öffentlichen Sprachdateien des Job-Room, der Aufbau vom Stand 4.11.2026.
+- **Daten:** Die Angaben gehen nur von der App in dieses Formular. Sie sind besonders schützenswert (Art. 5 DSG) und gehen nie an die KI. Die Warteschlange enthält nur Kennung, Firma und Stelle und liegt in `chrome.storage.session`.

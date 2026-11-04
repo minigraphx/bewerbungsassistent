@@ -5,9 +5,9 @@
   // Spalten: Schlüssel im Register, Überschrift, Art (bestimmt die Sortierung)
   const SPALTEN = [
     ["firma", "Firma", "text"], ["stelle", "Stelle", "text"], ["status", "Status", "status"],
-    ["passung", "Passung", "zahl"], ["eingetragen_am", "Eingetragen", "datum"],
+    ["passung", "Passung", "zahl"], ["eingetragen_am", "Erfasst", "datum"],
     ["beworben_am", "Beworben", "datum"], ["absage_am", "Absage", "datum"], ["variante", "Variante", "text"],
-    ["ausfuellen", "Formular", "text"],
+    ["ausfuellen", "Formular", "text"], ["rav_eingetragen_am", "RAV", "datum"],
     ["link", "Inserat", "keine"],  // nicht sortierbar
   ];
   const FORM_STATE_TEXT = { geoeffnet: "geöffnet", ausgefuellt: "ausgefüllt", abgeschickt: "abgeschickt" };
@@ -15,6 +15,7 @@
   const EXTENSION_SOURCE = "bewerbungsassistent-erweiterung";
   const EXTENSION_MARK = "bewerbungsassistentErweiterung";
   const START_ACTION = "bewerben-starten";
+  const RAV_ACTION = "rav-starten";
   const NO_EXTENSION = "Zum Ausfüllen im Browser braucht es die Erweiterung (siehe Einrichtung).";
   const ANSWER_TIMEOUT_MS = 60000;
   const ANSICHT = "uebersicht.ansicht";  // Sortierung, Suche, Filter und Scrollposition bleiben beim Seitenwechsel erhalten
@@ -23,8 +24,11 @@
   let statusReihe = [];
   let sortierung = { spalte: null, richtung: 1 };  // null = Reihenfolge des Servers (nach Status)
   let blockers = new Map();  // id → reason it cannot be opened; only what the app listed can be ticked
+  let ravBlockers = new Map();  // id → reason it cannot be entered in Job-Room; empty when this does not apply (MIN-347)
   let chosen = new Set();
   let maxPerRun = 0;
+  let maxRav = 0;
+  let reminderIds = [];
   let answerTimer = null;
 
   // Browser-Speicher kann fehlen oder gesperrt sein (privates Fenster): dann gilt einfach die Standardansicht
@@ -79,18 +83,34 @@
     zeige();
   }
 
+  const toApply = () => [...chosen].filter(id => blockers.get(id) === null);
+  const toEnter = () => [...chosen].filter(id => ravBlockers.get(id) === null);
+
   function updateChoice() {
-    const count = chosen.size;
+    const count = toApply().length;
     $("bewerben").disabled = count === 0 || count > maxPerRun;
     $("bewerben").textContent = count ? `Bewerben (${count})` : "Bewerben";
     $("bewerben-hilfe").textContent = count > maxPerRun
       ? `Pro Durchgang höchstens ${maxPerRun}.`
       : "Öffnet pro Bewerbung einen Tab und füllt das Formular aus. Abschicken bleibt bei Ihnen.";
+    const entries = toEnter().length;
+    $("rav").disabled = entries === 0 || entries > maxRav;
+    $("rav").textContent = entries ? `Im RAV eintragen (${entries})` : "Im RAV eintragen";
+    $("rav-hilfe").textContent = entries > maxRav
+      ? `Pro Durchgang höchstens ${maxRav}.`
+      : "Füllt im Job-Room einen Eintrag nach dem anderen aus. Anmelden und Speichern bleiben bei Ihnen.";
+  }
+
+  /** Why the box cannot be ticked: a line per thing it could be used for; none when one of them is possible. */
+  function choiceReason(b) {
+    const apply = blockers.has(b.id) ? blockers.get(b.id) : "Noch nicht geprüft";
+    if (!apply || ravBlockers.get(b.id) === null) return "";
+    return ravBlockers.has(b.id) ? `${apply} · RAV: ${ravBlockers.get(b.id)}` : apply;
   }
 
   function choiceBox(b) {
-    const reason = blockers.has(b.id) ? blockers.get(b.id) : "Noch nicht geprüft";
-    const box = el("input", { type: "checkbox", "aria-label": `${b.firma} zum Bewerben wählen`, title: reason || "" });
+    const reason = choiceReason(b);
+    const box = el("input", { type: "checkbox", "aria-label": `${b.firma} wählen`, title: reason });
     box.disabled = Boolean(reason);
     box.checked = chosen.has(b.id);
     box.addEventListener("change", () => {
@@ -113,6 +133,7 @@
       el("td", {}, datum(b.absage_am)),
       el("td", {}, b.variante || ""),
       el("td", {}, FORM_STATE_TEXT[b.ausfuellen] || ""),
+      el("td", {}, datum(b.rav_eingetragen_am)),
       el("td", {}, b.link ? el("a", { href: b.link, target: "_blank", rel: "noopener noreferrer", title: b.link }, "Inserat ↗") : ""),
     );
   }
@@ -130,30 +151,57 @@
     $("leer").hidden = sortiert.length > 0;
   }
 
+  function showReminder(erinnerung) {
+    reminderIds = erinnerung ? erinnerung.ids : [];
+    $("rav-erinnerung").hidden = !erinnerung;
+    if (erinnerung) {
+      $("rav-erinnerung-text").textContent =
+        `${erinnerung.ids.length} Bewerbung(en) aus dem ${erinnerung.monat} fehlen noch im Job-Room. Das RAV erhält die Einträge bis zum ${erinnerung.frist}.`;
+    }
+  }
+
   async function loadChoice() {
-    const auswahl = await holen("/api/bewerben/auswahl");
+    const [auswahl, rav] = await Promise.all([holen("/api/bewerben/auswahl"), holen("/api/rav/auswahl")]);
     blockers = new Map(auswahl.bewerbungen.map(row => [row.id, row.grund]));
     maxPerRun = auswahl.hoechstens;
-    chosen = new Set([...chosen].filter(id => blockers.get(id) === null));
+    ravBlockers = new Map(rav.bewerbungen.map(row => [row.id, row.grund]));
+    maxRav = rav.hoechstens;
+    chosen = new Set([...chosen].filter(id => blockers.get(id) === null || ravBlockers.get(id) === null));
     $("bewerben-zeile").hidden = false;
+    $("rav-zeile").hidden = !rav.sichtbar;
+    showReminder(rav.erinnerung);
     updateChoice();
   }
 
-  function startRun(bestaetigt) {
-    const ids = [...chosen];
+  function askExtension(message, button, waiting) {
     if (!document.documentElement.dataset[EXTENSION_MARK]) {
       status($("bewerben-status"), NO_EXTENSION, "fehler");
       return;
     }
     $("bewerben-frage").hidden = true;
-    $("bewerben").disabled = true;
-    status($("bewerben-status"), "Die Unterlagen werden geprüft …", "");
+    button.disabled = true;
+    status($("bewerben-status"), waiting, "");
     clearTimeout(answerTimer);
     answerTimer = setTimeout(() => {
       status($("bewerben-status"), "Die Erweiterung antwortet nicht. Bitte sie neu laden und es nochmals versuchen.", "fehler");
       updateChoice();
     }, ANSWER_TIMEOUT_MS);
-    window.postMessage({ quelle: PAGE_SOURCE, art: START_ACTION, ids, bestaetigt }, location.origin);
+    window.postMessage({ quelle: PAGE_SOURCE, ...message }, location.origin);
+  }
+
+  function startRun(bestaetigt) {
+    askExtension({ art: START_ACTION, ids: toApply(), bestaetigt }, $("bewerben"), "Die Unterlagen werden geprüft …");
+  }
+
+  function startRav() {
+    askExtension({ art: RAV_ACTION, ids: toEnter() }, $("rav"), "Der Job-Room wird geöffnet …");
+  }
+
+  function chooseReminded() {
+    const open = reminderIds.filter(id => ravBlockers.get(id) === null).slice(0, maxRav);
+    chosen = new Set([...chosen, ...open]);
+    zeige();
+    updateChoice();
   }
 
   function showDuplicates(doppelt) {
@@ -165,6 +213,19 @@
 
   function showRefused(abgelehnt) {
     status($("bewerben-status"), abgelehnt.map(a => `${a.firma}: ${a.grund}`).join(" · "), "fehler");
+  }
+
+  function showRavAnswer(answer) {
+    clearTimeout(answerTimer);
+    updateChoice();
+    status($("bewerben-status"), "", "");
+    if (!answer || answer.fehler) status($("bewerben-status"), (answer && answer.fehler) || "Die Erweiterung antwortet nicht.", "fehler");
+    else if (answer.abgelehnt && answer.abgelehnt.length) showRefused(answer.abgelehnt);
+    else if (answer.geoeffnet) {
+      chosen = new Set();
+      status($("bewerben-status"), `Der Job-Room ist offen, ${answer.geoeffnet} Einträge warten. Gespeichert wird erst durch Sie.`, "ok");
+      laden();
+    }
   }
 
   function showAnswer(answer) {
@@ -212,10 +273,13 @@
   $("bewerben").addEventListener("click", () => startRun(false));
   $("bewerben-trotzdem").addEventListener("click", () => startRun(true));
   $("bewerben-abbrechen").addEventListener("click", () => { $("bewerben-frage").hidden = true; });
+  $("rav").addEventListener("click", startRav);
+  $("rav-erinnerung-waehlen").addEventListener("click", chooseReminded);
   window.addEventListener("message", event => {
     const data = event.data;
-    if (event.source === window && event.origin === location.origin && data?.quelle === EXTENSION_SOURCE
-        && data.art === "antwort" && data.frage === START_ACTION) showAnswer(data.antwort);
+    if (event.source !== window || event.origin !== location.origin || data?.quelle !== EXTENSION_SOURCE || data.art !== "antwort") return;
+    if (data.frage === START_ACTION) showAnswer(data.antwort);
+    if (data.frage === RAV_ACTION) showRavAnswer(data.antwort);
   });
   // The tabs of the forms report to the app; the list shows it on the way back.
   document.addEventListener("visibilitychange", () => { if (!document.hidden) laden(); });

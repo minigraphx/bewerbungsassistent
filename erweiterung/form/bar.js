@@ -1,4 +1,4 @@
-// The bar at the edge of the tab of a form (MIN-346), only in the top frame: the state, the colours, and the buttons
+// The bar at the edge of the tab of a form (MIN-346, MIN-347), only in the top frame: the state, the colours, and the buttons
 // that are the person's decision. In a closed shadow root, so the page cannot reach them; the host element keeps its
 // look with important inline styles. A click only counts when a person made it on a bar that can be seen.
 (function () {
@@ -26,6 +26,10 @@
     hier: ['Hier ausfüllen', 'formular-hier', 'haupt'],
     abgeschickt: ['Abgeschickt? Ja', 'formular-abgeschickt', 'haupt'],
     stoppen: ['Nicht mehr ausfüllen', 'formular-stoppen', ''],
+    rav_ja: ['Eingetragen? Ja', 'rav-eingetragen', ''],
+    rav_ueberspringen: ['Überspringen', 'rav-ueberspringen', ''],
+    rav_stoppen: ['Stoppen', 'rav-stoppen', ''],
+    rav_formular: ['Zum Formular', 'rav-zum-formular', 'haupt'],
   };
 
   let host = null;
@@ -39,8 +43,8 @@
     return el;
   }
 
-  function send(art) {
-    chrome.runtime.sendMessage({ art }).catch(() => { /* the extension was reloaded */ });
+  function send(art, id) {
+    chrome.runtime.sendMessage({ art, id }).catch(() => { /* the extension was reloaded */ });
   }
 
   function barVisible() {
@@ -48,10 +52,11 @@
     return style.opacity === '1' && style.visibility === 'visible' && style.display !== 'none';
   }
 
-  function button([text, art, className]) {
+  /** `id` says which entry the bar is about while it is shown: a late click cannot hit another one (MIN-347). */
+  function button([text, art, className], id) {
     const el = element('button', className, text);
     el.type = 'button';
-    el.addEventListener('click', (event) => { if (event.isTrusted && barVisible()) send(art); });
+    el.addEventListener('click', (event) => { if (event.isTrusted && barVisible()) send(art, id); });
     return el;
   }
 
@@ -66,9 +71,9 @@
     return el;
   }
 
-  function legend() {
+  function legend(kind) {
     const box = element('div', 'farben');
-    for (const [color, text] of LEGEND) {
+    for (const [color, text] of kind === 'rav' ? LEGEND.slice(0, 2) : LEGEND) {
       const item = element('span');
       const swatch = element('i');
       swatch.style.background = color;
@@ -104,8 +109,8 @@
     const style = element('style');
     style.textContent = STYLE;
     bar.append(text);
-    if (balken.farben) bar.append(legend());
-    bar.append(...(balken.knoepfe || []).map((key) => button(BUTTONS[key])), moveButton(bar));
+    if (balken.farben) bar.append(legend(balken.farben));
+    bar.append(...(balken.knoepfe || []).map((key) => button(BUTTONS[key], balken.id)), moveButton(bar));
     ensureRoot().replaceChildren(style, bar);
     setTitleMark(Boolean(balken.aufmerksamkeit));
   }

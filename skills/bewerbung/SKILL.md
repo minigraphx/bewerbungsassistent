@@ -80,6 +80,6 @@ Danach festhalten:
 
 - Oberfläche „Versand erfassen“ (oder `versand.erfasse_versand`): Fassung nach `versendet/`, Entwürfe genutzt, Register „Beworben“ mit Datum, Git-Commit im Datenordner. Hinweise aus dem Ergebnis der Person nennen.
 - Jobliste im Google Sheet (falls im Suchprofil genannt): Status „Beworben“ und Datum in genau der Zeile mit passendem Firmen-Schlüssel **und** Stellentitel; Zeile vor dem Schreiben lesen, danach nochmals.
-- Job-Room: auf die Angaben in der Oberfläche hinweisen (Abschnitt „Job-Room“), damit die Person sie dort einträgt.
+- Job-Room: darauf hinweisen, dass die Person die Bewerbung in der Übersicht mit „Im RAV eintragen“ im Job-Room ausfüllen lässt oder die Angaben auf der Seite der Bewerbung (Abschnitt „Job-Room“) von Hand überträgt. Speichern im Job-Room tut immer die Person; RAV-Angaben nie durch die KI schicken.
 
 Fertig, wenn das Register (und, falls im Suchprofil genannt, die Jobliste) den Versand zeigt und die Person auf die Job-Room-Angaben hingewiesen wurde.

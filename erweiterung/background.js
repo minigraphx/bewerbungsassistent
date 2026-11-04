@@ -4,8 +4,9 @@
 import { AppConnection, explain } from './lib/app.js';
 import { runSearch } from './lib/search.js';
 import { adKey } from './lib/page-ad.js';
-import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, senderKind } from './lib/senders.js';
+import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, isRavSender, senderKind } from './lib/senders.js';
 import { ALL_PAGES, ApplyRun } from './lib/apply.js';
+import { RavRun, isRavPage } from './lib/rav.js';
 
 const LOAD_TIMEOUT_MS = 30000;
 const appPorts = new Set();
@@ -236,10 +237,63 @@ const applyRun = new ApplyRun({
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 });
 
-chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
-  if (change.status === 'complete' && tab.url) applyRun.loaded(tabId, tab.url);
+const RAV_FILES = ['form/bar.js', 'form/rav-fields.js', 'form/rav-filler.js'];
+const RAV_KEY = 'rav-lauf';
+const ravRun = new RavRun({
+  ask: askApp,
+  tabs: {
+    blank: () => formTabs.blank(true),
+    navigate: formTabs.navigate,
+    activate: formTabs.activate,
+    exists: (tabId) => chrome.tabs.get(tabId).then(() => true, () => false),
+    // Pinned to the document that was checked: the page may redirect to a login in between.
+    async inject(tabId) {
+      const [{ documentId, result }] = await chrome.scripting.executeScript({ target: { tabId }, func: () => location.href });
+      if (isRavPage(result)) await chrome.scripting.executeScript({ target: { tabId, documentIds: [documentId] }, files: RAV_FILES });
+    },
+    bar: formTabs.bar,
+    end: formTabs.end,
+  },
+  store: {
+    get: async () => (await chrome.storage.session.get(RAV_KEY))[RAV_KEY] || null,
+    set: (run) => chrome.storage.session.set({ [RAV_KEY]: run }),
+  },
+  sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 });
-chrome.tabs.onRemoved.addListener((tabId) => applyRun.closed(tabId));
+
+chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
+  if (change.status !== 'complete' || !tab.url) return;
+  applyRun.loaded(tabId, tab.url);
+  ravRun.loaded(tabId, tab.url).catch(() => { /* the tab went away while loading */ });
+});
+chrome.tabs.onRemoved.addListener((tabId) => {
+  applyRun.closed(tabId);
+  ravRun.closed(tabId);
+});
+
+function ravAction(message, tabId) {
+  const actions = {
+    'rav-wartet': () => ravRun.waiting(tabId),
+    'rav-daten': () => ravRun.values(tabId),
+    'rav-stand': () => ravRun.report(tabId, message),
+    'rav-gespeichert': () => ravRun.entered(tabId, message.id),
+    'rav-kein-formular': () => ravRun.noForm(tabId),
+    'rav-eingetragen': () => ravRun.entered(tabId, message.id),
+    'rav-ueberspringen': () => ravRun.skip(tabId, message.id),
+    'rav-stoppen': () => ravRun.stop(tabId),
+    'rav-zum-formular': () => ravRun.toForm(tabId),
+  };
+  return actions[message.art]();
+}
+
+/** Messages of the script in the Job-Room tab; the run itself checks that the tab is its own. */
+function fromRav(message, sender, reply) {
+  Promise.resolve().then(() => {
+    if (!isRavSender(sender, chrome.runtime.id)) throw new Error('Dieser Tab gehört nicht zum Eintragen im RAV.');
+    return ravAction(message, sender.tab.id);
+  }).then((answer) => reply(answer || {}), (error) => reply({ fehler: error.message }));
+  return true;
+}
 
 function formAction(message, sender) {
   const tabId = sender.tab.id;
@@ -266,6 +320,7 @@ function fromForm(message, sender, reply) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message && RAV_ACTIONS.has(message.art)) return fromRav(message, sender, reply);
   if (message && (FORM_ACTIONS.has(message.art) || BAR_ACTIONS.has(message.art))) return fromForm(message, sender, reply);
   const actions = {
     'suche-starten': startSearch,
@@ -275,6 +330,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     'seite-speichern': (m) => pageAd(m, '/api/seite/speichern', 'gespeichert'),
     'bewerben-starten': (m) => applyRun.start(m),
     'bewerben-weiter': () => applyRun.resume(),
+    'rav-starten': (m) => ravRun.start(m),
   };
   const action = message && actions[message.art];
   if (!action) return false;

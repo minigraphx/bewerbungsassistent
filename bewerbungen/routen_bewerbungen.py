@@ -11,7 +11,7 @@ from register import STATUS, jobroom_angaben
 from server import datei_antwort, json_antwort, pflicht
 from varianten import vorschlagen
 
-EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen")
+EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen", "rav_eingetragen_am")
 STATUS_REIHENFOLGE = {s: i for i, s in enumerate(("Bewerben", "Gespräch", "Beworben", "Gemerkt", "Zusage",
                                                    "Absage", "Verworfen", "Zurückgezogen"))}
 
@@ -53,7 +53,7 @@ def speichern(k, parameter, body):
 
     def schreiben():
         # Unter der Sperre lesen: ein gleichzeitiger Versand darf nicht überschrieben werden.
-        # Versand, Zertifikate und Stand des Formulars setzen eigene Routen, nie das Formular.
+        # Versand, Zertifikate, Stand des Formulars und Eintrag im RAV setzen eigene Routen, nie das Formular.
         alt = register.hole(body["id"])
         geschuetzt = {key: alt[key] for key in EIGENE_ROUTEN if key in alt}
         return register.speichere({**{key: v for key, v in body.items() if key not in EIGENE_ROUTEN}, **geschuetzt})

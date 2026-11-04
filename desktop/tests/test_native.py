@@ -383,3 +383,10 @@ def test_the_extension_reaches_the_routes_for_applying_but_not_the_choice():
                   ("POST", "/api/bewerben/stand"), ("POST", "/api/bewerben/felder"), ("POST", "/api/bewerben/abgeschickt")):
         assert route in native_host.ALLOWED
     assert ("GET", "/api/bewerbungen") not in native_host.ALLOWED
+
+
+def test_extension_reaches_what_it_needs_for_the_rav_and_not_the_rest():
+    for route in (("POST", "/api/rav/start"), ("GET", "/api/rav/angaben"), ("POST", "/api/rav/eingetragen")):
+        assert route in native_host.ALLOWED
+    assert ("GET", "/api/rav/auswahl") not in native_host.ALLOWED
+    assert ("POST", "/api/rav/zuruecksetzen") not in native_host.ALLOWED

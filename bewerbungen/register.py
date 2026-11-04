@@ -22,7 +22,7 @@ STATUS = ("Gemerkt", "Bewerben", "Beworben", "Gespräch", "Absage", "Zusage", "V
 FORM_STATES = ("geoeffnet", "ausgefuellt", "abgeschickt")  # MIN-346, how far a form in the browser is
 TEXTFELDER = ("art", "formular_link", "firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
               "adresse", "kontaktperson", "kontakt")
-DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am")
+DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am", "rav_eingetragen_am")
 JOBROOM_ART = ("elektronisch", "schriftlich", "persönlich", "telefonisch")
 # Früher gespeichertes Feld `jobroom`: diese Werte wandern in die Bewerbung, der Rest wird abgeleitet
 JOBROOM_UEBERNAHME = ("adresse", "kontaktperson", "kontakt", "pensum", "rav_zuweisung")

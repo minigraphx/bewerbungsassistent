@@ -22,6 +22,10 @@
     if (data.art === 'suche-starten' || data.art === 'status') {
       chrome.runtime.sendMessage({ art: data.art }).then((answer) => toPage({ art: 'antwort', frage: data.art, antwort: answer }));
     }
+    if (data.art === 'rav-starten') {
+      chrome.runtime.sendMessage({ art: data.art, ids: data.ids })
+        .then((answer) => toPage({ art: 'antwort', frage: data.art, antwort: answer }));
+    }
     if (data.art === 'bewerben-starten') {
       chrome.runtime.sendMessage({ art: data.art, ids: data.ids, bestaetigt: data.bestaetigt })
         .then((answer) => toPage({ art: 'antwort', frage: data.art, antwort: answer }));

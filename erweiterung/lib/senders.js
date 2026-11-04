@@ -2,16 +2,27 @@
 // The content script runs on every port of 127.0.0.1 (match patterns ignore the port), so a page there is
 // only trusted when its origin is the address the app itself reports over Native Messaging.
 
+import { isRavPage } from './rav.js';
+
 /** What the popup and the app page may ask for. */
 export const ALLOWED = {
   popup: new Set(['suche-starten', 'status', 'app-oeffnen', 'seite-pruefen', 'seite-speichern']),
-  app: new Set(['suche-starten', 'status', 'bewerben-starten']),
+  app: new Set(['suche-starten', 'status', 'bewerben-starten', 'rav-starten']),
   erlauben: new Set(['bewerben-weiter']),
 };
 
 /** What a form in a tab of a run may ask for (MIN-346); the buttons of the bar only from the top frame. */
 export const FORM_ACTIONS = new Set(['formular-stand', 'formular-datei', 'formular-rahmen', 'formular-ki']);
 export const BAR_ACTIONS = new Set(['formular-hier', 'formular-abgeschickt', 'formular-stoppen']);
+
+/** What the script in the Job-Room tab of a run may ask for (MIN-347). */
+export const RAV_ACTIONS = new Set(['rav-wartet', 'rav-daten', 'rav-stand', 'rav-gespeichert', 'rav-kein-formular', 'rav-eingetragen',
+  'rav-ueberspringen', 'rav-stoppen', 'rav-zum-formular']);
+
+/** The top frame of a tab on Job-Room, from this extension; the tab itself is checked by the run. */
+export function isRavSender(sender, extensionId) {
+  return Boolean(sender && sender.id === extensionId && sender.tab && sender.frameId === 0 && isRavPage(sender.url));
+}
 
 function origin(url) {
   try {
