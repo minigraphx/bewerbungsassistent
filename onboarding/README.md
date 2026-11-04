@@ -19,6 +19,7 @@ Eine einzelne HTML-Datei, in der Personen ohne technische Kenntnisse ihre Grundl
 - Schreibt `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md` und `anschreiben/bausteine.md`. Bestehende Dateien ersetzt er nur mit `--force`; der alte und der neue Stand landen als Entwurf (Oberfläche, Seite „Entwürfe“).
 - Legt Unterlagen unter `dokumente/<art>/` ab (nicht in Git) und listet sie in `dokumente/neu.yaml`. Gleicher Name mit anderem Inhalt bekommt „ (2)“, gleicher Inhalt wird nicht doppelt abgelegt.
 - Fehlen mit Unterlagen noch Angaben (nur fehlend, nicht falsch), schreibt er die Grundlagen noch nicht, sondern legt die Antworten als `dokumente/einstieg.json` ab.
+- In der App: „Aus Unterlagen vorbefüllen“ (siehe unten). Dort gelesene Unterlagen stehen mit `gelesen: true` in `dokumente/neu.yaml`; nach dem vollständigen Übernehmen verschwinden diese Einträge, die Dateien bleiben.
 - Danach übernimmt der Skill `einstieg` die Unterlagen (Schritt 1a) und ergänzt, was fehlt. Die Skills `jobsuche` und `bewerbung` starten ihn von selbst, solange `dokumente/neu.yaml` Einträge hat oder eine Grundlage fehlt.
 
 Die Vorlage liest die Unterlagen nicht selbst; sie bleibt ohne Netz und ohne KI (Entscheid 3.11.2026, MIN-362). Das Lesen übernimmt Claude im Skill `einstieg`, später die App (MIN-367).
@@ -54,3 +55,13 @@ Ein neues Feld kommt in `form.json`, dazu in `convert.py` oder `markdown_files.p
 ## Veröffentlichen
 
 Der Workflow `.github/workflows/einstieg-pages.yml` veröffentlicht nur `dist/einstieg.html` auf GitHub Pages. Er wird von Hand gestartet; dafür muss Pages in den Einstellungen des Repos auf „GitHub Actions“ stehen.
+
+## Aus Unterlagen vorbefüllen (nur in der App)
+
+Die Datei zum Weitergeben (`dist/einstieg.html`) bleibt ohne Netz; nur die Seite „Meine Angaben“ der App kann vorbefüllen.
+
+- **Lesen, lokal** (`read_documents.py`): PDF mit `pypdf`, Word `.docx` über `word/document.xml` (Grössen begrenzt, keine DTD und Entitäten), Text direkt. Der Lebenslauf zuerst, höchstens 40 000 Zeichen pro Datei und 120 000 insgesamt. Alte `.doc`-Dateien, Bilder und Scans werden nicht gesendet; die Person bekommt den Grund und was zu tun ist.
+- **Senden** (`prefill.py`, Aufgabe `prefill` in `bewerbungen/ai/tasks.py`): nur über das Gateway. Ohne Namen im Formular oder in `cv.yaml` geht nichts raus. Maskiert werden die Angaben aus dem Formular und `cv.yaml`, dazu was in den Unterlagen gefunden wird: E-Mail, Telefon, Strasse, Postleitzahl mit Ort, Geburtsdatum, Heimatort, Nationalität, AHV-Nummer, Weblinks, „Frau/Herr Name“. Unsichtbare Zeichen werden vorher entfernt. Dateinamen bleiben auf dem Computer; die KI sieht „Unterlage 1“.
+- **Grenze:** Namen anderer Personen ohne „Frau“ oder „Herr“, etwa die Unterschrift auf einem Zeugnis, werden nicht erkannt und gehen mit. Die Seite sagt das vor dem Klick.
+- **Prüfen** (`prefill.clean_answer`): Nur bekannte Abschnitte und Felder, Werte nach denselben Regeln wie im Formular, jeder Eintrag mit Quelle. Was nicht passt, fällt weg und wird gezählt. Kontaktangaben und Suchwünsche werden gar nicht erst erfragt.
+- **Oberfläche:** Vorschläge kommen nur in leere Felder und bleiben markiert („Vorschlag aus …, bitte prüfen“), bis die Person sie bestätigt oder den Eintrag entfernt (`state.suggested`, im Zwischenstand mitgespeichert); Ändern allein zählt nicht als Prüfen. Solange etwas ungeprüft ist, lässt sich nichts übernehmen. In `cv.yaml` landet erst etwas beim Übernehmen.

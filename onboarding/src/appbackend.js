@@ -34,6 +34,7 @@ function createAppBackend() {
     discard: () => post("/api/angaben/stand-loeschen", {}),
     addDocument: (track, category, name, bytes) => post("/api/angaben/unterlage", { track, category, name, data: toBase64(bytes) }),
     removeDocument: (datei) => post("/api/angaben/unterlage-entfernen", { datei }),
+    prefill: (track, data) => post("/api/angaben/vorbefuellen", { track, data }),
     takeOver: (bundle, ersetzen) => post("/api/angaben/uebernehmen", { bundle, ersetzen }),
   };
 }

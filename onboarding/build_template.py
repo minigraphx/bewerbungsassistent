@@ -26,9 +26,9 @@ SCRIPTS = ["validate.js", "model.js", "dom.js", "documents.js", "zip.js", "uploa
 
 TITLE = "Einstieg"
 TITLE_APP = "Meine Angaben"
-APP_SCRIPT = "appbackend.js"  # only in the app; loaded before app.js
+APP_SCRIPTS = ["appbackend.js", "prefill.js"]  # only in the app; loaded before app.js
 PRIVACY = "Alles bleibt auf diesem Gerät. Die Seite verschickt nichts; am Schluss entsteht eine Datei zum Speichern."
-PRIVACY_APP = "Alles bleibt auf diesem Computer, in Ihrem Datenordner."
+PRIVACY_APP = "Alles bleibt auf diesem Computer im Datenordner. Nur der Knopf „Aus Unterlagen vorbefüllen“ schickt Text an die KI, ohne Name und Adresse."
 HEAD_APP = '<meta name="token" content="__TOKEN__">'
 BACK_APP = '<a class="back" href="/">← Zurück zu den Bewerbungen</a>'
 
@@ -39,7 +39,7 @@ def _sha256(text: str) -> str:
 
 def build(app: bool = False) -> str:
     style = (SRC / "style.css").read_text(encoding="utf-8")
-    names = [*SCRIPTS[:-1], APP_SCRIPT, SCRIPTS[-1]] if app else SCRIPTS
+    names = [*SCRIPTS[:-1], *APP_SCRIPTS, SCRIPTS[-1]] if app else SCRIPTS
     script = "\n".join((SRC / name).read_text(encoding="utf-8") for name in names)
     form = json.dumps(json.loads((ROOT / "form.json").read_text(encoding="utf-8")), ensure_ascii=False)
     form = form.replace("</", "<\\/")  # keep the JSON from closing its script element

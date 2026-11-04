@@ -37,7 +37,7 @@ Fertig, wenn Zweig und Datenordner feststehen und klar ist, welche Unterlagen es
 
 Wer schon Unterlagen hat, tippt nichts ab. Claude liest sie und füllt die Grundlagen vor.
 
-- **Was ansteht:** `dokumente/neu.yaml` listet die Unterlagen aus der Vorlage, die noch nicht übernommen sind (`datei`, `eingang`). Ist die Liste leer oder fehlt sie, die Person nach Unterlagen fragen.
+- **Was ansteht:** `dokumente/neu.yaml` listet die Unterlagen aus der Vorlage, die noch nicht übernommen sind (`datei`, `eingang`; `gelesen: true` heisst: die App hat daraus Vorschläge gemacht, die Person hat sie aber noch nicht vollständig übernommen). Ist die Liste leer oder fehlt sie, die Person nach Unterlagen fragen.
 - **Lesen:**
   - PDF und Textdateien direkt.
   - Word (.docx, .doc): `textutil -convert txt -stdout <datei>` (macOS) oder `pandoc <datei> -t plain` (nur .docx).

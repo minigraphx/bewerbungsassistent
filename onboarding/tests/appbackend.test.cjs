@@ -50,3 +50,13 @@ test("a broken answer still gives a message for people", async () => {
 
   await assert.rejects(createAppBackend().overview(), /Die App antwortet nicht/);
 });
+
+test("prefill posts the track and the answers so far", async () => {
+  const calls = [];
+  const { createAppBackend } = load(async (url, options) => { calls.push([url, options]); return respond(200, { suggestions: {} }); });
+
+  await createAppBackend().prefill("job", { person: { name: "Erika" } });
+
+  assert.strictEqual(calls[0][0], "/api/angaben/vorbefuellen");
+  assert.deepStrictEqual(JSON.parse(calls[0][1].body), { track: "job", data: { person: { name: "Erika" } } });
+});

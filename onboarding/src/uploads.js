@@ -33,7 +33,7 @@ function formatSize(bytes) {
 }
 
 /**
- * The step view. ctx: { form, track, uploads, messages, kept, app, onAdd(category, FileList), onRemove(index), onSkip() }.
+ * The step view. ctx: { form, track, uploads, messages, kept, app, extra (element or null), onAdd(category, FileList), onRemove(index), onSkip() }.
  * File names come from the person's computer and are only ever set as text.
  */
 function uploadsView(ctx) {
@@ -46,6 +46,7 @@ function uploadsView(ctx) {
     el("p", { className: "hint" }, ctx.app ? text.app : (ctx.kept ? text.kept : text.memory)),
     el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
     ...rules.categories.map((category) => categoryView(ctx, category, text)),
+    ctx.extra || null,
     uploads.length ? el("p", { className: "secondary" }, [
       text.skipHint, " ",
       el("button", { type: "button", className: "link", onclick: ctx.onSkip }, ctx.app ? text.skipApp : text.skip),

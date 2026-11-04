@@ -52,3 +52,10 @@ def test_form_definition_cannot_close_its_script_element():
     definition = page.split('id="form-definition">', 1)[1].split("</script>", 1)[0]
 
     assert '"format": "bewerbungsassistent-einstieg"' in definition
+
+
+def test_only_the_page_of_the_app_can_send_documents_to_the_ai():
+    shared = build_template.build()
+    app_page = build_template.build(app=True)
+    assert "vorbefuellen" not in shared and "connect-src 'none'" in shared and "fetch(" not in shared
+    assert "/api/angaben/vorbefuellen" in app_page and "PREFILL_TEXT = " in app_page

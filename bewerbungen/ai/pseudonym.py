@@ -18,6 +18,8 @@ PLACEHOLDER = re.compile(r"\{\{\s*([A-Za-z][A-Za-z0-9_]*)\s*\}\}")
 NEUTRALIZE_BRACES = re.compile(r"\{(?=\{)")  # {{{X}}} → { { {X}}}: no placeholder can come from the input
 EMAIL = re.compile(r"(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 PHONE = re.compile(r"(?<![\w+])(?:\+|00|0)\d(?:[\s./()-]{0,3}\d){8,}(?!\d)")
+_DATE_PART = r"(?:\d{1,2}[./]){1,2}\d{2,4}"
+DATE_RANGE = re.compile(rf"{_DATE_PART}(?:[\s./()-]{{0,3}}{_DATE_PART})*")  # „09.2015 - 06.2019“ in a CV, no phone number
 SEPARATORS = r"[\s./()-]*"
 SWISS_PREFIX = r"(?:(?:\+|00)41" + SEPARATORS + r"(?:\(0\)" + SEPARATORS + r")?|\(?0)"
 MONTHS = ["januar", "februar", "märz", "april", "mai", "juni", "juli", "august", "september", "oktober",
@@ -28,6 +30,11 @@ WORD_DATE = re.compile(r"(\d{1,2})\.?\s+([A-Za-zäÄ]+)\.?\s+(\d{4})")
 TWO_DIGIT_PIVOT = 30  # „1.5.11“ is 2011, „1.5.85“ is 1985
 MIN_FOLDED_CHARS = 10  # shorter values are too likely to appear by chance once spaces are removed
 FOLD_UMLAUTS = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
+
+
+def phone_numbers(text: str) -> list[str]:
+    """Everything in the text that looks like a phone number."""
+    return [m for m in PHONE.findall(text) if not DATE_RANGE.fullmatch(m)]
 
 
 class PseudonymError(Exception):
@@ -169,7 +176,7 @@ class Pseudonymizer:
             normalized = _norm(text)
             leaked |= {rule.secret.field for rule in self._rules if rule.pattern.search(normalized)}
             leaked |= {"E-Mail"} if EMAIL.search(normalized) else set()
-            leaked |= {"Telefon"} if PHONE.search(normalized) else set()
+            leaked |= {"Telefon"} if phone_numbers(normalized) else set()
             leaked |= self._folded_leaks(normalized)
         if leaked:
             raise PseudonymError(f"Persönliche Angaben wären an die KI gegangen ({', '.join(sorted(leaked))}); "

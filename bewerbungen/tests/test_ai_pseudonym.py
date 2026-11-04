@@ -3,6 +3,7 @@ import pytest
 import yaml
 
 import build
+from ai import personal
 from ai.personal import secrets_from_application, secrets_from_building_blocks, secrets_from_cv
 from ai.pseudonym import PLACEHOLDER, PseudonymError, Pseudonymizer, Secret
 
@@ -198,3 +199,49 @@ def test_postal_code_that_looks_like_a_year_keeps_the_years():
     cv = {"basics": {"name": "Lea Muster", "location": {"postalCode": "2000", "city": "Neuchâtel"}}}
 
     assert Pseudonymizer(secrets_from_cv(cv)).mask("seit 2000 in 2000 Neuchâtel") == "seit 2000 in 2000 Neuchâtel"
+
+
+@pytest.mark.parametrize("text,value", [
+    ("Musterweg 12\n", "Musterweg 12"),
+    ("Obere Bahnhof Strasse 3", "Bahnhof Strasse 3"),
+    ("Rue de la Gare 5, 1000 Lausanne", "Rue de la Gare 5"),
+    ("Musterweg 12, 3000 Bern\n", "3000 Bern"),
+    ("3000 Bern\n", "3000 Bern"),
+    ("CH-2000 Neuchâtel\n", "CH-2000 Neuchâtel"),
+    ("Geburtsdatum: 3. Mai 1990", "3. Mai 1990"),
+    ("Geburtsdatum\n15.03.1990\n", "15.03.1990"),
+    ("Musterstr. 12", "Musterstr. 12"),
+    ("BAHNHOFSTRASSE 12", "BAHNHOFSTRASSE 12"),
+    ("Profil: https://www.linkedin.com/in/erika-beispiel/.", "https://www.linkedin.com/in/erika-beispiel/"),
+    ("linkedin.com/in/erika-beispiel", "linkedin.com/in/erika-beispiel"),
+    ("www.erika-beispiel.ch", "www.erika-beispiel.ch"),
+    ("Frau Erika Beispiel, geboren am 03.05.1990, war", "03.05.1990"),
+    ("geb. 3.5.1990", "3.5.1990"),
+    ("Jahrgang 1990", "1990"),
+    ("Heimatort: Musterdorf\n", "Musterdorf"),
+    ("Nationalität Schweiz\n", "Schweiz"),
+    ("AHV-Nr. 756.1234.5678.97", "756.1234.5678.97"),
+])
+def test_personal_lines_in_own_documents_are_found(text, value):
+    assert value in {s.value for s in personal.secrets_in_own_documents([text])}
+
+
+@pytest.mark.parametrize("text", ["2019 Beispiel AG\n", "2015 Muster GmbH Bern\n", "Software-Entwicklerin seit 2019\n",
+                                  "Python, SQL und Airflow\n"])
+def test_stations_of_a_cv_stay_readable(text):
+    assert personal.secrets_in_own_documents([text]) == []
+
+
+@pytest.mark.parametrize("text", ["09.2015 - 06.2019", "09/2015 - 06/2019", "01.09.2015 - 30.06.2019", "09.2015 06.2019",
+                                  "01.2015 - 02.2016 03.2016"])
+def test_date_ranges_of_a_cv_are_no_phone_numbers(text):
+    assert personal.secrets_found_in([text]) == []
+    Pseudonymizer([]).check_clean(text)
+
+
+@pytest.mark.parametrize("text", ["079 000 00 00", "079.000.00.00", "031/123 45 67", "044/234 56 78", "0041 79 000 00 00",
+                                  "+41 79 000 00 00"])
+def test_real_phone_numbers_stay_phone_numbers(text):
+    assert personal.secrets_found_in([text]) != []
+    with pytest.raises(PseudonymError):
+        Pseudonymizer([]).check_clean(text)

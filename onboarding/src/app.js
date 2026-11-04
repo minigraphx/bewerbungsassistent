@@ -57,13 +57,19 @@ let uploadsKept = true; // false if this browser cannot keep them (then the page
 let existingBasics = []; // in the app: files in the data folder a take-over would replace
 let uploadTurn = Promise.resolve(); // in the app: uploads and removals wait for each other
 let appProblem = null; // in the app: why the data folder cannot be used, shown on the first page
+let prefillRun = { running: false, problem: null, report: null }; // in the app: suggestions from documents
+let prefillTurn = 0; // a run that was overtaken by discarding or loading other answers no longer counts
 const backend = typeof createAppBackend === "function" ? createAppBackend() : null; // only in the page of the app
 
 // Storage: optional convenience; the page works without it.
 
 function applyStored(stored) {
   if (stored && isTrack(form, stored.track)) {
-    state = stateFromBundle(form, { format: form.format, version: form.version, track: stored.track, data: stored.data });
+    const marks = cleanSuggestions(stored.suggested);
+    state = {
+      ...stateFromBundle(form, { format: form.format, version: form.version, track: stored.track, data: stored.data }),
+      ...(Object.keys(marks).length ? { suggested: marks } : {}),
+    };
     step = Number.isInteger(stored.step) ? Math.max(0, stored.step) : 0;
   }
 }
@@ -87,7 +93,7 @@ async function loadStored() {
 
 function storeNow() {
   if (backend) {
-    backend.keep({ track: state.track, data: state.data, step })
+    backend.keep({ track: state.track, data: state.data, suggested: state.suggested, step })
       .then(() => setStatus(`Zwischengespeichert im Datenordner, ${new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}.`))
       .catch((error) => setStatus(`Zwischenspeichern hat nicht geklappt: ${error.message}`));
     return;
@@ -197,8 +203,9 @@ function renderNav(all) {
   const items = all.map((s, i) => {
     const title = stepTitle(s);
     const flagged = s.kind === "section" && errorSections.has(s.section.id);
+    const suggested = s.kind === "section" && sectionHasSuggestion(s.section.id);
     return el("li", {}, el("button", {
-      type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}`,
+      type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}${suggested ? " suggested" : ""}`,
       "aria-current": i === step ? "step" : null, onclick: () => goTo(i),
     }, title));
   });
@@ -238,9 +245,71 @@ function startView() {
 function documentsView() {
   return uploadsView({
     form, track: state.track, uploads, messages: uploadMessages, kept: uploadsKept,
-    app: Boolean(backend),
+    app: Boolean(backend), extra: backend ? prefillArea() : null,
     onAdd: addUploads, onRemove: removeUpload, onSkip: () => goTo(steps().length - 1),
   });
+}
+
+// Suggestions from documents (page of the app)
+
+const sectionTitle = (id) => forTrack(form.sections.find((s) => s.id === id).title, state.track);
+
+function sectionHasSuggestion(id) {
+  return Object.keys(state.suggested || {}).some((key) => key.split(".")[0] === id);
+}
+
+function goToSection(id) {
+  goTo(steps().findIndex((s) => s.kind === "section" && s.section.id === id));
+}
+
+function prefillArea() {
+  return prefillView({
+    track: state.track, run: prefillRun, uploads,
+    hasName: Boolean(((state.data.person || {}).name || "").trim()) || existingBasics.includes("cv.yaml"),
+    titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
+  });
+}
+
+function forgetPrefillRun() {
+  prefillTurn += 1;
+  prefillRun = { running: false, problem: null, report: null };
+}
+
+/** The person may be typing elsewhere meanwhile: the new values must show at once, and the focus stays. */
+function renderKeepingFocus() {
+  const path = document.activeElement?.closest?.("[data-path]")?.dataset.path;
+  render();
+  if (path) focusFirst(`[data-path="${path}"]`);
+}
+
+async function runPrefill() {
+  const turn = ++prefillTurn;
+  const track = state.track;
+  prefillRun = { running: true, problem: null, report: null };
+  render();
+  let finished;
+  try {
+    const answer = await backend.prefill(track, state.data);
+    if (turn !== prefillTurn || track !== state.track) return;
+    const merged = applySuggestions(form, state, answer.suggestions);
+    update(merged.state);
+    finished = { problem: null, report: prefillReport(answer, merged) };
+  } catch (error) {
+    if (turn !== prefillTurn) return;
+    finished = { problem: error.message, report: null };
+  }
+  prefillRun = { running: false, ...finished };
+  renderKeepingFocus();
+  if (steps()[step].kind !== "documents") setStatus(finished.problem || PREFILL_TEXT[track].finished);
+}
+
+function confirmSuggestion(key) {
+  update(confirmSuggestions(state, [key]), { rerender: true });
+}
+
+function suggestionNote(key) {
+  const source = (state.suggested || {})[key];
+  return source ? suggestionMark(key, source, confirmSuggestion) : null;
 }
 
 /** One upload or removal after the other, so the list from the app is always the latest one. */
@@ -351,13 +420,14 @@ function sectionView(section) {
   ];
   if (!section.repeat) {
     const item = state.data[section.id] || {};
-    return el("section", {}, [...header, ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
+    return el("section", {}, [...header, suggestionNote(section.id), ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
   const max = section.maxItems ?? form.limits.repeatItems;
   const itemTitle = forTrack(section.itemTitle, track);
   const items = list.map((item, index) => el("fieldset", { className: "item", dataset: { item: `${section.id}.${index}` } }, [
     el("legend", {}, `${itemTitle} ${index + 1}`),
+    suggestionNote(`${section.id}.${index}`),
     ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, index, f.id], item[f.id])),
     el("button", {
       type: "button", className: "remove",
@@ -420,8 +490,13 @@ function finishView() {
     " ",
     el("button", { type: "button", onclick: () => { confirmBox.hidden = true; } }, "Abbrechen"),
   ]);
+  const unchecked = uncheckedSuggestions(form, state);
   const finishing = backend ? [
-    el("button", { type: "button", className: "primary", id: "take-over", onclick: () => takeOver(false) }, "In die App übernehmen"),
+    unchecked.length ? uncheckedView({
+      track: state.track, sections: [...new Set(unchecked.map((key) => key.split(".")[0]))], count: unchecked.length, titleOf: sectionTitle,
+      onGoTo: goToSection, onConfirmAll: () => update(confirmSuggestions(state, unchecked), { rerender: true }),
+    }) : null,
+    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(false) }, "In die App übernehmen"),
     el("button", { type: "button", className: "danger", id: "replace", hidden: true, onclick: () => takeOver(true) }, "Vorhandene Dateien ersetzen"),
     el("p", { id: "save-message", role: "alert", className: "error" }),
     el("p", { id: "take-over-done", role: "status", className: "ok", hidden: true }),
@@ -471,6 +546,7 @@ function markStepTouched(current) {
 // Taking over into the data folder (page of the app)
 
 async function takeOver(replace) {
+  if (uncheckedSuggestions(form, state).length) return render();
   const message = document.getElementById("save-message");
   const done = document.getElementById("take-over-done");
   const replaceButton = document.getElementById("replace");
@@ -541,6 +617,7 @@ async function loadFile(event) {
   try {
     const loaded = isZip ? await readUploadZip(file) : { bundle: await file.text(), uploads: [] };
     state = stateFromBundle(form, JSON.parse(loaded.bundle));
+    forgetPrefillRun();
     if (!backend) uploads = loaded.uploads;
     uploadMessages = [];
     uploadsSaved = true;
@@ -567,6 +644,7 @@ function clearAll() {
   window.clearTimeout(autosaveTimer);
   clearStored();
   state = { track: null, data: {} };
+  forgetPrefillRun();
   if (!backend) {
     uploads = [];
     keepUploads([]);

@@ -107,3 +107,7 @@ footer { font-size: 0.88rem; margin-top: 1rem; }
 }
 .back { display: inline-block; margin-bottom: 8px; }
 #replace { margin-left: 8px; }
+.suggestion { background: var(--accent-soft); padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.92rem; margin: 0 0 0.6rem; }
+.step.suggested::after { content: " •"; color: var(--accent); }
+.prefill { margin: 1.2rem 0; }
+.prefill button:disabled, #take-over:disabled { opacity: 0.6; cursor: not-allowed; }

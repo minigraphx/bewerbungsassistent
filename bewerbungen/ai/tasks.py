@@ -20,8 +20,9 @@ from dateien import im_ordner
 FILES = {"cv": "cv.yaml", "profile": "suchprofil.md", "style": "anschreiben/stil.md",
          "blocks": "anschreiben/bausteine.md"}
 APPRENTICESHIP_MARK = "## Lehrbeginn"  # section only the apprenticeship search profile has
-MODELS = {"rate": "claude-sonnet-5-5", "draft": "claude-opus-5-5", "review": "claude-sonnet-5-5"}
-MAX_TOKENS = {"rate": 8000, "draft": 16000, "review": 12000}
+MODELS = {"rate": "claude-sonnet-5-5", "draft": "claude-opus-5-5", "review": "claude-sonnet-5-5",
+          "prefill": "claude-sonnet-5-5"}
+MAX_TOKENS = {"rate": 8000, "draft": 16000, "review": 12000, "prefill": 16000}
 GRADES = {g / 2 for g in range(2, 13)}  # 1, 1.5, … 6
 MAX_AD_CHARS = 30_000
 MISSING = "Für die KI fehlt noch {name}. Zuerst den Einstieg abschliessen."
@@ -124,6 +125,16 @@ def review_content(gateway: Gateway, material: Material, ad_text: str, letter_te
     if not isinstance(data, dict) or not isinstance(data.get("requirements"), list):
         raise AiError(BAD_ANSWER)
     return {**data, "model": answer.model, "cost_usd": answer.cost_usd}
+
+
+def suggest_from_documents(gateway: Gateway, prompt: str, schema: dict, model: str | None = None) -> dict:
+    """Suggestions for the form from uploaded documents. There are no files of the person yet, so no shared context."""
+    answer = gateway.ask(Request(task="prefill", model=model or MODELS["prefill"], rules=prompts.PREFILL_RULES,
+                                 context="", instructions=prompts.PREFILL, prompt=prompt,
+                                 max_tokens=MAX_TOKENS["prefill"], schema=schema))
+    if not isinstance(answer.data, dict):
+        raise AiError(BAD_ANSWER)
+    return {**answer.data, "model": answer.model, "cost_usd": answer.cost_usd}
 
 
 def letter_file(draft: dict, material: Material, entry: dict, today: datetime.date,

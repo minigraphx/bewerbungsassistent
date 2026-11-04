@@ -104,3 +104,55 @@ test("the draft bundle keeps item positions and blank items are recognised", () 
   assert.equal(model.isBlankItem({ highlights: ["", " "] }), true);
   assert.equal(model.isBlankItem(state.data.work[1]), false);
 });
+
+test("suggestions fill empty places only, with a mark per entry", () => {
+  const state = { track: "job", data: { work: [{}], languages: [{ language: "Deutsch" }], style: { tone: "Eigener Ton" } } };
+  const source = { file: "cv.pdf", place: "Seite 1" };
+  const { state: next, filled, kept } = model.applySuggestions(form, state, {
+    work: [{ values: { position: "A" }, source }, { values: { position: "B" }, source }],
+    languages: [{ values: { language: "Englisch" }, source }],
+    style: { values: { tone: "Kurz", greeting: "Freundliche Grüsse" }, source },
+    certificates: [{ values: { name: "Kurs" }, source }],
+  });
+  assert.deepEqual(next.data.work, [{ position: "A" }, { position: "B" }]);
+  assert.deepEqual(next.data.languages, [{ language: "Deutsch" }]);
+  assert.deepEqual(next.data.style, { tone: "Eigener Ton", greeting: "Freundliche Grüsse" });
+  assert.deepEqual(Object.keys(next.suggested).sort(), ["certificates.0", "style", "work.0", "work.1"]);
+  assert.deepEqual(filled, ["work", "certificates", "style"]);
+  assert.deepEqual(kept, ["languages"]);
+  assert.deepEqual(state.data.work, [{}]);
+});
+
+test("suggestions for sections of the other track are ignored", () => {
+  const source = { file: "a", place: "" };
+  const { state: next } = model.applySuggestions(form, { track: "apprenticeship", data: {} }, { summary: { values: { summary: "x" }, source } });
+  assert.equal(next.data.summary, undefined);
+});
+
+test("changing an entry keeps its mark: only confirming says it was checked", () => {
+  const source = { file: "a", place: "" };
+  const state = { track: "job", data: { work: [{ position: "A" }] }, suggested: { "work.0": source, style: source } };
+  assert.deepEqual(Object.keys(model.setValue(state, ["work", 0, "position"], "C").suggested), ["work.0", "style"]);
+  assert.deepEqual(Object.keys(model.confirmSuggestions(state, ["work.0"]).suggested), ["style"]);
+});
+
+test("only marks of sections in the current track count, the others stay for when the person switches back", () => {
+  const source = { file: "a", place: "" };
+  const marks = { summary: source, "work.0": source };
+  assert.deepEqual(model.uncheckedSuggestions(form, { track: "apprenticeship", suggested: marks }), ["work.0"]);
+  assert.deepEqual(model.uncheckedSuggestions(form, { track: "job", suggested: marks }).sort(), ["summary", "work.0"]);
+  assert.deepEqual(model.uncheckedSuggestions(form, { track: "job" }), []);
+});
+
+test("removing an item moves the marks of the items after it", () => {
+  const source = { file: "a", place: "" };
+  const state = { track: "job", data: { work: [{}, {}, {}] }, suggested: { "work.0": source, "work.1": source, "work.2": source, style: source, "skills.1": source } };
+  const next = model.removeItem(state, "work", 1);
+  assert.deepEqual(Object.keys(next.suggested).sort(), ["skills.1", "style", "work.0", "work.1"]);
+  assert.equal(model.removeItem({ track: "job", data: { work: [{}] } }, "work", 0).suggested, undefined);
+});
+
+test("stored marks keep only the expected shape", () => {
+  assert.deepEqual(model.cleanSuggestions({ "work.0": { file: "a", place: "b", other: 1 }, style: "x", skills: { file: 1, place: "" } }), { "work.0": { file: "a", place: "b" } });
+  assert.deepEqual(model.cleanSuggestions("nein"), {});
+});

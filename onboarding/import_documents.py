@@ -15,6 +15,7 @@ PENDING = f"{DOCUMENTS_DIR}/neu.yaml"
 BUNDLE_COPY = f"{DOCUMENTS_DIR}/einstieg.json"
 PENDING_HEADER = ("# Unterlagen aus der Einstiegsvorlage, die der Skill „einstieg“ noch übernehmen muss (Schritt 1a).\n"
                   "# Einträge werden nach dem Übernehmen entfernt.\n")
+READ_MARK = "gelesen"  # read for suggestions in the app; the entry goes once the answers are taken over
 MAX_SAME_NAME = 100
 
 
@@ -87,6 +88,25 @@ def discard_kept_answers(data_dir: pathlib.Path) -> None:
     """Complete answers make the kept incomplete ones outdated; the skill must not take those over any more."""
     if im_ordner(data_dir, BUNDLE_COPY).is_file():
         _forget_pending(data_dir, BUNDLE_COPY)
+
+
+def mark_read(data_dir: pathlib.Path, rels: list[str]) -> None:
+    """Remember which documents the app has read for suggestions; they stay listed until the take-over."""
+    path = im_ordner(data_dir, PENDING)
+    entries = lies_yaml(path, [])
+    if not rels or not isinstance(entries, list):
+        return
+    updated = [{**e, READ_MARK: True} if isinstance(e, dict) and e.get("datei") in rels else e for e in entries]
+    schreibe_yaml(path, updated, PENDING_HEADER)
+
+
+def settle_read(data_dir: pathlib.Path) -> None:
+    """After the take-over: documents read for suggestions are done. The files stay, e.g. references as enclosures."""
+    path = im_ordner(data_dir, PENDING)
+    entries = lies_yaml(path, [])
+    if not isinstance(entries, list) or not any(isinstance(e, dict) and e.get(READ_MARK) for e in entries):
+        return
+    schreibe_yaml(path, [e for e in entries if not (isinstance(e, dict) and e.get(READ_MARK))], PENDING_HEADER)
 
 
 def _forget_pending(data_dir: pathlib.Path, rel: str) -> None:

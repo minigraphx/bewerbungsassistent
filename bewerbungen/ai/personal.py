@@ -3,11 +3,12 @@ and found in free text such as a job ad (MIN-334). `ai.pseudonym` replaces them.
 
 Limits, on purpose: a postal code that looks like a year (1900–2099) is not replaced on its own, so years in
 the CV stay readable; names in an ad are only found after „Frau“/„Herr“ or in a personal e-mail address.
-Other names of contact persons belong into the field „Kontaktperson“ of the application.
+Other names of contact persons belong into the field „Kontaktperson“ of the application. The same goes for names
+of other people in a reference (`secrets_in_own_documents`).
 """
 import re
 
-from ai.pseudonym import EMAIL, PHONE, Secret, parse_date, url_core
+from ai.pseudonym import EMAIL, PHONE, Secret, parse_date, phone_numbers, url_core
 
 MIN_TOKEN_CHARS = 3
 MIN_USERNAME_CHARS = 4
@@ -21,6 +22,16 @@ NOT_NAMES = {"ihre", "ihr", "ihnen", "sie", "bewerbung", "bewerbungen", "unterla
 GENERIC_MAILBOXES = {"info", "jobs", "job", "hr", "career", "careers", "karriere", "bewerbung", "bewerbungen",
                      "kontakt", "contact", "recruiting", "personal", "team", "office", "mail", "admin", "hello"}
 YEAR_RANGE = range(1900, 2100)
+STREET = re.compile(r"\b[A-ZÄÖÜ][\w.'-]*(?:strasse|str\.|gasse|weg|platz|allee|rain|matte|ring|hof|acker|feld|halde|stutz)\s+\d{1,4}[a-z]?\b"
+                    r"|\b[A-ZÄÖÜ][\w.'-]+\s(?:Strasse|Str\.|Gasse|Weg|Platz)\s+\d{1,4}[a-z]?\b"
+                    r"|\b(?:Rue|Route|Avenue|Chemin|Via|Piazza)\s[^,\n]{2,40}?\s\d{1,4}[a-z]?\b", re.IGNORECASE)
+TOWN_LINE = re.compile(r"(?:^|(?<=,))[ \t]*((?:CH[- ]?)?([1-9]\d{3})\s+[A-ZÄÖÜ][\w'-]+(?:[ \t][\w'-]+){0,2})[ \t]*$", re.MULTILINE)
+BIRTH_LABEL = re.compile(r"(?:\b(?:geboren|geburtsdatum|jahrgang)\b|\bgeb\.)(.*(?:\n.*)?)", re.IGNORECASE)  # tables: value on the next line
+WEB_LINK = re.compile(r"(?:https?://|www\.|\b(?:linkedin|xing|github)\.com/)[^\s,;<>()]+", re.IGNORECASE)
+YEAR = re.compile(r"\b(?:19|20)\d\d\b")
+LABELLED = re.compile(r"\b(?:heimatort|bürgerort|zivilstand|nationalität|staatsangehörigkeit)\b\s*:?\s*([^\n,;]{2,60})",
+                      re.IGNORECASE)
+SOCIAL_NUMBER = re.compile(r"\b756[.\s]?\d{4}[.\s]?\d{4}[.\s]?\d{2}\b")
 
 
 def _text(value) -> str:
@@ -142,9 +153,40 @@ def secrets_found_in(texts: list[str]) -> list[Secret]:
     for text in texts:
         for email in EMAIL.findall(text):
             result += [Secret("FOUND_EMAIL", email)] + _mailbox_names(email)
-        result += [Secret("FOUND_PHONE", phone, "phone") for phone in PHONE.findall(text)]
+        result += [Secret("FOUND_PHONE", phone, "phone") for phone in phone_numbers(text)]
         for match in TITLE_NAME.finditer(text):
             tokens = [t for t in match.groups() if t and t.lower() not in NOT_NAMES]
             if tokens:
                 result += name_secrets("FOUND_CONTACT", " ".join(tokens))
+    return result
+
+
+def _birth_secrets_in(text: str) -> list[Secret]:
+    result = []
+    for match in BIRTH_LABEL.finditer(text):
+        rest = match.group(1)
+        dates = [d.group(0) for d in DATE_LIKE.finditer(rest) if parse_date(d.group(0))]
+        result += [Secret("FOUND_BIRTH_DATE", date, "date") for date in dates]
+        if not dates:
+            result += [Secret("FOUND_BIRTH_YEAR", year.group(0)) for year in YEAR.finditer(rest.split("\n")[0])]
+    return result
+
+
+def secrets_in_own_documents(texts: list[str]) -> list[Secret]:
+    """What a CV or a reference says about the person: street, town line, birth date, origin, AHV number, web links.
+
+    Scanned before anything goes to the AI, also when the form has no address yet. Lines that start with a year
+    („2019 Beispiel AG“) are stations of a CV, not towns. Names of other people without „Frau“ or „Herr“ are not
+    recognized here.
+    """
+    result = []
+    for text in texts:
+        result += [Secret("FOUND_STREET", street) for street in STREET.findall(text)]
+        for line, postal in TOWN_LINE.findall(text):
+            if int(postal) not in YEAR_RANGE or line.upper().startswith("CH"):
+                result.append(Secret("FOUND_TOWN", line.strip()))
+        result += _birth_secrets_in(text)
+        result += [Secret("FOUND_ORIGIN", value.strip()) for value in LABELLED.findall(text)]
+        result += [Secret("FOUND_SOCIAL_NUMBER", number) for number in SOCIAL_NUMBER.findall(text)]
+        result += [Secret("FOUND_LINK", link.rstrip(".:!?'\""), "url") for link in WEB_LINK.findall(text)]
     return result

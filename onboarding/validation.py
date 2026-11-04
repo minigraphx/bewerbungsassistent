@@ -102,7 +102,7 @@ def _validate_field(form: dict, field: dict, track: str, item: dict, path: str) 
         return [ValidationError(path, "type")]
     if not value.strip():
         return [ValidationError(path, "required")] if field.get("required") else []
-    error = _check_text(form, field, track, value)
+    error = check_text(form, field, track, value)
     if error:
         return [ValidationError(path, error)]
     if field.get("notBefore") and _is_before(value, item.get(field["notBefore"])):
@@ -124,13 +124,13 @@ def _validate_list(form: dict, field: dict, value, path: str) -> list[Validation
     for index, entry in enumerate(value):
         if not entry.strip():
             continue
-        error = _check_text(form, field, None, entry)
+        error = check_text(form, field, None, entry)
         if error:
             errors.append(ValidationError(f"{path}.{index}", error))
     return errors
 
 
-def _check_text(form: dict, field: dict, track: str | None, value: str) -> str | None:
+def check_text(form: dict, field: dict, track: str | None, value: str) -> str | None:
     """Return the error code for a single non-empty text value, or None."""
     kind = field["type"]
     if kind in SINGLE_LINE and ("\n" in value or "\r" in value):

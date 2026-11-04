@@ -4,6 +4,7 @@ import concurrent.futures
 import json
 import pathlib
 import threading
+import types
 import urllib.error
 import urllib.request
 
@@ -11,6 +12,7 @@ import pytest
 import yaml
 
 import app
+import routes_ai
 import routes_angaben
 import routes_setup
 import settings
@@ -292,3 +294,111 @@ def test_broken_state_file_does_not_block_the_page(started):
     status, answer = call(server, "/api/angaben/stand")
 
     assert status == 200 and answer["stand"] is None
+
+
+class PrefillMessages:
+    def __init__(self, reply):
+        self.reply, self.calls = reply, []
+
+    def create(self, **payload):
+        self.calls.append(payload)
+        usage = types.SimpleNamespace(input_tokens=100, output_tokens=50, cache_creation_input_tokens=0,
+                                      cache_read_input_tokens=0)
+        block = types.SimpleNamespace(type="text", text=json.dumps(self.reply, ensure_ascii=False))
+        return types.SimpleNamespace(content=[block], usage=usage, stop_reason="end_turn", model=payload["model"],
+                                     _request_id="req_test")
+
+
+def prefill_reply() -> dict:
+    return {"work": [{"position": "Entwicklerin", "name": "Muster GmbH", "location": "", "startDate": "2019", "endDate": "",
+                      "highlights": [], "evidence": "", "source": {"document": 1, "place": "Seite 1"}}]}
+
+
+def install_client(monkeypatch, reply) -> PrefillMessages:
+    messages = PrefillMessages(reply)
+    monkeypatch.setattr(routes_ai, "new_client", lambda: types.SimpleNamespace(messages=messages))
+    return messages
+
+
+PREFILL_DATA = {"person": {"name": "Erika Beispiel"}}
+
+
+def test_prefill_suggests_without_writing_the_persons_files(started, monkeypatch):
+    server, folder, _ = started
+    messages = install_client(monkeypatch, prefill_reply())
+    upload(server, name="cv.txt", data="Erika Beispiel, Entwicklerin bei Muster GmbH seit 2019".encode())
+
+    status, answer = call(server, "/api/angaben/vorbefuellen", {"track": "job", "data": PREFILL_DATA})
+
+    assert status == 200 and answer["suggestions"]["work"][0]["source"] == {"file": "cv.txt", "place": "Seite 1"}
+    assert "Erika" not in json.dumps(messages.calls[0]["messages"], ensure_ascii=False)
+    assert not (folder / "cv.yaml").exists()
+    assert [d["name"] for d in call(server, "/api/angaben/stand")[1]["unterlagen"]] == ["cv.txt"]
+
+
+def test_prefill_needs_the_name_first_and_sends_nothing_without_it(started, monkeypatch):
+    server, _, _ = started
+    messages = install_client(monkeypatch, prefill_reply())
+    upload(server, name="cv.txt", data=b"Text")
+
+    status, answer = call(server, "/api/angaben/vorbefuellen", {"track": "job", "data": {}})
+
+    assert status == 400 and "Person und Kontakt" in answer["fehler"] and messages.calls == []
+
+
+def test_prefill_refuses_a_second_run_at_the_same_time(started, monkeypatch):
+    server, _, _ = started
+    entered, leave = threading.Event(), threading.Event()
+    messages = PrefillMessages(prefill_reply())
+    original = messages.create
+
+    def slow(**payload):
+        entered.set()
+        leave.wait(10)
+        return original(**payload)
+
+    monkeypatch.setattr(messages, "create", slow)
+    monkeypatch.setattr(routes_ai, "new_client", lambda: types.SimpleNamespace(messages=messages))
+    upload(server, name="cv.txt", data=b"Text")
+    body = {"track": "job", "data": PREFILL_DATA}
+    with concurrent.futures.ThreadPoolExecutor(1) as pool:
+        first = pool.submit(call, server, "/api/angaben/vorbefuellen", body)
+        assert entered.wait(10)
+        status, answer = call(server, "/api/angaben/vorbefuellen", body)
+        uploaded = upload(server, name="noch.txt", data=b"Text")  # the AI call does not hold up the page
+        leave.set()
+        assert first.result()[0] == 200
+    assert status == 400 and "schon" in answer["fehler"] and uploaded[0] == 200
+
+
+def test_after_taking_over_read_documents_are_done_but_stay_as_files(started, monkeypatch):
+    server, folder, _ = started
+    install_client(monkeypatch, prefill_reply())
+    upload(server, name="cv.txt", data=b"Text")
+    call(server, "/api/angaben/vorbefuellen", {"track": "job", "data": PREFILL_DATA})
+    upload(server, name="neu.txt", category="zeugnisse", data=b"Neu")
+
+    status, _ = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": False})
+
+    assert status == 200
+    assert [d["name"] for d in call(server, "/api/angaben/stand")[1]["unterlagen"]] == ["neu.txt"]
+    assert (folder / "dokumente" / "lebenslauf-bisher" / "cv.txt").is_file()
+
+
+def test_incomplete_answers_keep_read_documents_listed(started, monkeypatch):
+    server, _, _ = started
+    install_client(monkeypatch, prefill_reply())
+    upload(server, name="cv.txt", data=b"Text")
+    call(server, "/api/angaben/vorbefuellen", {"track": "job", "data": PREFILL_DATA})
+    bundle = {**valid_bundle(), "data": {"person": {"name": "Erika Beispiel"}}}
+
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": bundle, "ersetzen": False})
+
+    assert status == 200 and answer["unvollstaendig"] is True
+    assert [d["name"] for d in call(server, "/api/angaben/stand")[1]["unterlagen"]] == ["cv.txt"]
+
+
+def test_prefill_with_unknown_form_of_answers_is_refused(started):
+    server, _, _ = started
+    status, answer = call(server, "/api/angaben/vorbefuellen", {"track": "job", "data": "nein"})
+    assert status == 400 and answer["fehler"]

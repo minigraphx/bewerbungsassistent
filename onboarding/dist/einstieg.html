@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-sa2eMydLFE6kRkHgpZzf8COx4hwNZ43dnCU4GeiIs80='; style-src 'sha256-NtZOsXMS7w5PFhT/nZTaiGAesY7CwJIJeI0lHl3DiHE='; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-fW0I4xRRo74EqwKUE83wDv8/+X9JncwQgoFfLi5ENps='; style-src 'sha256-qa7/4D8B7G30pxAmeW+YfL+maUNq9M+ODqR+ubF5PRY='; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsassistent</title>
@@ -116,6 +116,10 @@ footer { font-size: 0.88rem; margin-top: 1rem; }
 }
 .back { display: inline-block; margin-bottom: 8px; }
 #replace { margin-left: 8px; }
+.suggestion { background: var(--accent-soft); padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.92rem; margin: 0 0 0.6rem; }
+.step.suggested::after { content: " •"; color: var(--accent); }
+.prefill { margin: 1.2rem 0; }
+.prefill button:disabled, #take-over:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -420,13 +424,82 @@ function addItem(state, sectionId) {
 
 function removeItem(state, sectionId, index) {
   const list = state.data[sectionId] || [];
-  return { ...state, data: { ...state.data, [sectionId]: list.filter((_, i) => i !== index) } };
+  const next = { ...state, data: { ...state.data, [sectionId]: list.filter((_, i) => i !== index) } };
+  return state.suggested ? { ...next, suggested: shiftSuggestions(state.suggested, sectionId, index) } : next;
+}
+
+// Suggestions from documents (page of the app): state.suggested = { "work.0": { file, place }, "style": { file, place } }.
+// A mark says „not checked yet“. It stays while the person edits, because changing one value says nothing about
+// the others in the entry; it goes when the person confirms the entry or removes it.
+
+function confirmSuggestions(state, keys) {
+  const marks = Object.entries(state.suggested || {}).filter(([key]) => !keys.includes(key));
+  return { ...state, suggested: Object.fromEntries(marks) };
+}
+
+/** Marks that count now; those of sections in the other track stay, in case the person switches back. */
+function uncheckedSuggestions(form, state) {
+  const shown = new Set(sectionsFor(form, state.track).map((s) => s.id));
+  return Object.keys(state.suggested || {}).filter((key) => shown.has(key.split(".")[0]));
+}
+
+function shiftSuggestions(marks, sectionId, removed) {
+  const shifted = {};
+  for (const [key, source] of Object.entries(marks)) {
+    const [section, position] = key.split(".");
+    const index = Number(position);
+    if (section !== sectionId || position === undefined) shifted[key] = source;
+    else if (index !== removed) shifted[`${section}.${index > removed ? index - 1 : index}`] = source;
+  }
+  return shifted;
+}
+
+const isBlankValue = (value) => (Array.isArray(value) ? value.every((v) => !String(v).trim()) : !String(value ?? "").trim());
+
+/** Marks kept in a stored state; it comes from a file, so only what has the expected shape stays. */
+function cleanSuggestions(marks) {
+  if (!isPlainObject(marks)) return {};
+  const valid = ([, s]) => isPlainObject(s) && typeof s.file === "string" && typeof s.place === "string";
+  return Object.fromEntries(Object.entries(marks).filter(valid).map(([key, s]) => [key, { file: s.file, place: s.place }]));
+}
+
+function suggestRepeated(data, marks, section, found) {
+  const current = Array.isArray(data[section.id]) ? data[section.id] : [];
+  if (!current.every(isBlankItem)) return null;
+  const kept = Object.entries(marks).filter(([key]) => !key.startsWith(`${section.id}.`));
+  const added = found.map((entry, index) => [`${section.id}.${index}`, entry.source]);
+  return { data: { ...data, [section.id]: found.map((entry) => entry.values) }, marks: Object.fromEntries([...kept, ...added]) };
+}
+
+function suggestSingle(data, marks, section, found) {
+  const current = isPlainObject(data[section.id]) ? data[section.id] : {};
+  const free = Object.entries(found.values).filter(([key]) => isBlankValue(current[key]));
+  if (!free.length) return null;
+  return { data: { ...data, [section.id]: { ...current, ...Object.fromEntries(free) } }, marks: { ...marks, [section.id]: found.source } };
+}
+
+/**
+ * New state with the suggestions in empty places only: what the person has written always stays.
+ * Returns { state, filled, kept } with section ids: where suggestions went, and where they did not.
+ */
+function applySuggestions(form, state, suggestions) {
+  let result = { data: state.data, marks: state.suggested || {} };
+  const filled = [];
+  const kept = [];
+  for (const section of sectionsFor(form, state.track)) {
+    const found = suggestions[section.id];
+    if (!found) continue;
+    const merged = (section.repeat ? suggestRepeated : suggestSingle)(result.data, result.marks, section, found);
+    (merged ? filled : kept).push(section.id);
+    result = merged || result;
+  }
+  return { state: { ...state, data: result.data, suggested: result.marks }, filled, kept };
 }
 
 if (typeof module !== "undefined") {
   module.exports = {
     sectionsFor, fieldsFor, linesToList, listToLines, collectBundle, draftBundle, isBlankItem, stateFromBundle,
-    setValue, addItem, removeItem, BundleError,
+    setValue, addItem, removeItem, applySuggestions, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
   };
 }
 
@@ -1045,7 +1118,7 @@ function formatSize(bytes) {
 }
 
 /**
- * The step view. ctx: { form, track, uploads, messages, kept, app, onAdd(category, FileList), onRemove(index), onSkip() }.
+ * The step view. ctx: { form, track, uploads, messages, kept, app, extra (element or null), onAdd(category, FileList), onRemove(index), onSkip() }.
  * File names come from the person's computer and are only ever set as text.
  */
 function uploadsView(ctx) {
@@ -1058,6 +1131,7 @@ function uploadsView(ctx) {
     el("p", { className: "hint" }, ctx.app ? text.app : (ctx.kept ? text.kept : text.memory)),
     el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
     ...rules.categories.map((category) => categoryView(ctx, category, text)),
+    ctx.extra || null,
     uploads.length ? el("p", { className: "secondary" }, [
       text.skipHint, " ",
       el("button", { type: "button", className: "link", onclick: ctx.onSkip }, ctx.app ? text.skipApp : text.skip),
@@ -1149,13 +1223,19 @@ let uploadsKept = true; // false if this browser cannot keep them (then the page
 let existingBasics = []; // in the app: files in the data folder a take-over would replace
 let uploadTurn = Promise.resolve(); // in the app: uploads and removals wait for each other
 let appProblem = null; // in the app: why the data folder cannot be used, shown on the first page
+let prefillRun = { running: false, problem: null, report: null }; // in the app: suggestions from documents
+let prefillTurn = 0; // a run that was overtaken by discarding or loading other answers no longer counts
 const backend = typeof createAppBackend === "function" ? createAppBackend() : null; // only in the page of the app
 
 // Storage: optional convenience; the page works without it.
 
 function applyStored(stored) {
   if (stored && isTrack(form, stored.track)) {
-    state = stateFromBundle(form, { format: form.format, version: form.version, track: stored.track, data: stored.data });
+    const marks = cleanSuggestions(stored.suggested);
+    state = {
+      ...stateFromBundle(form, { format: form.format, version: form.version, track: stored.track, data: stored.data }),
+      ...(Object.keys(marks).length ? { suggested: marks } : {}),
+    };
     step = Number.isInteger(stored.step) ? Math.max(0, stored.step) : 0;
   }
 }
@@ -1179,7 +1259,7 @@ async function loadStored() {
 
 function storeNow() {
   if (backend) {
-    backend.keep({ track: state.track, data: state.data, step })
+    backend.keep({ track: state.track, data: state.data, suggested: state.suggested, step })
       .then(() => setStatus(`Zwischengespeichert im Datenordner, ${new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}.`))
       .catch((error) => setStatus(`Zwischenspeichern hat nicht geklappt: ${error.message}`));
     return;
@@ -1289,8 +1369,9 @@ function renderNav(all) {
   const items = all.map((s, i) => {
     const title = stepTitle(s);
     const flagged = s.kind === "section" && errorSections.has(s.section.id);
+    const suggested = s.kind === "section" && sectionHasSuggestion(s.section.id);
     return el("li", {}, el("button", {
-      type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}`,
+      type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}${suggested ? " suggested" : ""}`,
       "aria-current": i === step ? "step" : null, onclick: () => goTo(i),
     }, title));
   });
@@ -1330,9 +1411,71 @@ function startView() {
 function documentsView() {
   return uploadsView({
     form, track: state.track, uploads, messages: uploadMessages, kept: uploadsKept,
-    app: Boolean(backend),
+    app: Boolean(backend), extra: backend ? prefillArea() : null,
     onAdd: addUploads, onRemove: removeUpload, onSkip: () => goTo(steps().length - 1),
   });
+}
+
+// Suggestions from documents (page of the app)
+
+const sectionTitle = (id) => forTrack(form.sections.find((s) => s.id === id).title, state.track);
+
+function sectionHasSuggestion(id) {
+  return Object.keys(state.suggested || {}).some((key) => key.split(".")[0] === id);
+}
+
+function goToSection(id) {
+  goTo(steps().findIndex((s) => s.kind === "section" && s.section.id === id));
+}
+
+function prefillArea() {
+  return prefillView({
+    track: state.track, run: prefillRun, uploads,
+    hasName: Boolean(((state.data.person || {}).name || "").trim()) || existingBasics.includes("cv.yaml"),
+    titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
+  });
+}
+
+function forgetPrefillRun() {
+  prefillTurn += 1;
+  prefillRun = { running: false, problem: null, report: null };
+}
+
+/** The person may be typing elsewhere meanwhile: the new values must show at once, and the focus stays. */
+function renderKeepingFocus() {
+  const path = document.activeElement?.closest?.("[data-path]")?.dataset.path;
+  render();
+  if (path) focusFirst(`[data-path="${path}"]`);
+}
+
+async function runPrefill() {
+  const turn = ++prefillTurn;
+  const track = state.track;
+  prefillRun = { running: true, problem: null, report: null };
+  render();
+  let finished;
+  try {
+    const answer = await backend.prefill(track, state.data);
+    if (turn !== prefillTurn || track !== state.track) return;
+    const merged = applySuggestions(form, state, answer.suggestions);
+    update(merged.state);
+    finished = { problem: null, report: prefillReport(answer, merged) };
+  } catch (error) {
+    if (turn !== prefillTurn) return;
+    finished = { problem: error.message, report: null };
+  }
+  prefillRun = { running: false, ...finished };
+  renderKeepingFocus();
+  if (steps()[step].kind !== "documents") setStatus(finished.problem || PREFILL_TEXT[track].finished);
+}
+
+function confirmSuggestion(key) {
+  update(confirmSuggestions(state, [key]), { rerender: true });
+}
+
+function suggestionNote(key) {
+  const source = (state.suggested || {})[key];
+  return source ? suggestionMark(key, source, confirmSuggestion) : null;
 }
 
 /** One upload or removal after the other, so the list from the app is always the latest one. */
@@ -1443,13 +1586,14 @@ function sectionView(section) {
   ];
   if (!section.repeat) {
     const item = state.data[section.id] || {};
-    return el("section", {}, [...header, ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
+    return el("section", {}, [...header, suggestionNote(section.id), ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
   const max = section.maxItems ?? form.limits.repeatItems;
   const itemTitle = forTrack(section.itemTitle, track);
   const items = list.map((item, index) => el("fieldset", { className: "item", dataset: { item: `${section.id}.${index}` } }, [
     el("legend", {}, `${itemTitle} ${index + 1}`),
+    suggestionNote(`${section.id}.${index}`),
     ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, index, f.id], item[f.id])),
     el("button", {
       type: "button", className: "remove",
@@ -1512,8 +1656,13 @@ function finishView() {
     " ",
     el("button", { type: "button", onclick: () => { confirmBox.hidden = true; } }, "Abbrechen"),
   ]);
+  const unchecked = uncheckedSuggestions(form, state);
   const finishing = backend ? [
-    el("button", { type: "button", className: "primary", id: "take-over", onclick: () => takeOver(false) }, "In die App übernehmen"),
+    unchecked.length ? uncheckedView({
+      track: state.track, sections: [...new Set(unchecked.map((key) => key.split(".")[0]))], count: unchecked.length, titleOf: sectionTitle,
+      onGoTo: goToSection, onConfirmAll: () => update(confirmSuggestions(state, unchecked), { rerender: true }),
+    }) : null,
+    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(false) }, "In die App übernehmen"),
     el("button", { type: "button", className: "danger", id: "replace", hidden: true, onclick: () => takeOver(true) }, "Vorhandene Dateien ersetzen"),
     el("p", { id: "save-message", role: "alert", className: "error" }),
     el("p", { id: "take-over-done", role: "status", className: "ok", hidden: true }),
@@ -1563,6 +1712,7 @@ function markStepTouched(current) {
 // Taking over into the data folder (page of the app)
 
 async function takeOver(replace) {
+  if (uncheckedSuggestions(form, state).length) return render();
   const message = document.getElementById("save-message");
   const done = document.getElementById("take-over-done");
   const replaceButton = document.getElementById("replace");
@@ -1633,6 +1783,7 @@ async function loadFile(event) {
   try {
     const loaded = isZip ? await readUploadZip(file) : { bundle: await file.text(), uploads: [] };
     state = stateFromBundle(form, JSON.parse(loaded.bundle));
+    forgetPrefillRun();
     if (!backend) uploads = loaded.uploads;
     uploadMessages = [];
     uploadsSaved = true;
@@ -1659,6 +1810,7 @@ function clearAll() {
   window.clearTimeout(autosaveTimer);
   clearStored();
   state = { track: null, data: {} };
+  forgetPrefillRun();
   if (!backend) {
     uploads = [];
     keepUploads([]);

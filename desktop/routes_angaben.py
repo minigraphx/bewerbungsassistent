@@ -3,6 +3,7 @@
 The port of the app changes with every start, so the browser's own storage would be lost: the state of the
 form and the documents go straight to the data folder (`dokumente/`, not in Git). Taking over uses the same
 checks as importing a file (`onboarding/import_bundle.py`), with drafts of what it replaces.
+Suggestions from documents (`onboarding/prefill.py`) run outside the lock, because the AI takes a while.
 """
 import base64
 import binascii
@@ -17,9 +18,11 @@ log = logging.getLogger(__name__)
 
 STATE_FILE = "dokumente/angaben-stand.json"
 UPLOAD_ROUTE = "/api/angaben/unterlage"
+PREFILL_ROUTE = "/api/angaben/vorbefuellen"
 BASE64_OVERHEAD = 4 / 3
 JSON_OVERHEAD_BYTES = 10_000
 DEFAULT_TRACK = "job"  # only for the wording of messages
+PREFILL_RUNNING = "Die Unterlagen werden schon gelesen. Bitte einen Moment warten."
 
 
 def _body(body) -> dict:
@@ -54,9 +57,8 @@ def _track(form: dict, value: object) -> str:
     return value if isinstance(value, str) and value in form["tracks"] else DEFAULT_TRACK
 
 
-def _one_at_a_time(routes: dict) -> dict:
+def _one_at_a_time(routes: dict, lock: threading.Lock) -> dict:
     """The server runs requests in threads; the list of pending documents is read, changed and written back."""
-    lock = threading.Lock()
 
     def guarded(route):
         def run(k, parameter, body):
@@ -85,9 +87,13 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     import documents
     import import_bundle
     import import_documents
+    import prefill
+    import routes_ai
     import validation
 
     form = validation.load_form()
+    documents_lock = threading.Lock()
+    prefill_running = threading.Lock()
     upload_limit = int(form["documents"]["maxFileBytes"] * BASE64_OVERHEAD) + JSON_OVERHEAD_BYTES
 
     def overview(k, parameter, body):
@@ -138,10 +144,31 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
             result = import_bundle.import_answers(folder, request.get("bundle"), state.today(), force=replace)
         except import_bundle.ImportRejected as rejected:
             return rejected_answer(rejected, replace, json_antwort)
+        if not result.incomplete:
+            import_documents.settle_read(folder)
         return json_antwort({"geschrieben": result.written, "unvollstaendig": result.incomplete})
+
+    def prefill_documents(k, parameter, body):
+        """Suggestions only: nothing is written to the person's files, the page shows them for checking."""
+        folder = ready_data_dir(state, k)
+        request = _body(body)
+        data = request.get("data")
+        if not isinstance(data, dict):
+            raise ValueError("Die Angaben haben eine unbekannte Form.")
+        if not prefill_running.acquire(blocking=False):
+            raise ValueError(PREFILL_RUNNING)
+        try:
+            result = routes_ai.run_ai(
+                lambda: prefill.suggest(form, folder, request.get("track"), data, routes_ai.new_client))
+        finally:
+            prefill_running.release()
+        with documents_lock:
+            import_documents.mark_read(folder, result["datei"])
+        return json_antwort(result)
 
     return ({"/api/angaben/stand": overview},
             _one_at_a_time({"/api/angaben/stand": keep_state, "/api/angaben/stand-loeschen": discard_state,
                             UPLOAD_ROUTE: add_document, "/api/angaben/unterlage-entfernen": remove_document,
-                            "/api/angaben/uebernehmen": take_over}),
+                            "/api/angaben/uebernehmen": take_over}, documents_lock)
+            | {PREFILL_ROUTE: prefill_documents},
             {UPLOAD_ROUTE: upload_limit})
