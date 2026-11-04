@@ -203,3 +203,30 @@ def test_link_of_an_apprenticeship_must_belong_to_its_portal(store):
 def test_details_name_a_trial_and_leave_others_as_they_are():
     assert hits.ad_with_details({"stelle": "X", "art": "Schnupperlehre"}, "Text").startswith("Art: Schnupperlehre\n")
     assert "Art:" not in hits.ad_with_details({"stelle": "X", "art": "Lehrstelle"}, "Text")
+
+
+@pytest.mark.parametrize("raw, clean", [
+    ("<em>UX</em>/<em>UI</em> <em>Designer</em>", "UX/UI Designer"),
+    ("Graphic &amp; Motion Designer:in 100 %", "Graphic & Motion Designer:in 100 %"),
+    ("&lt;b&gt;Koch&lt;/b&gt; EFZ", "Koch EFZ"),
+    ("Entwickler C++ (m/w) 80% < 100%", "Entwickler C++ (m/w) 80% < 100%"),
+])
+def test_titles_and_companies_come_without_markup(raw, clean):
+    found = hits.validate(hit(stelle=raw, firma=raw))
+    assert found["stelle"] == clean and found["firma"] == clean
+
+
+def test_titles_stored_with_markup_read_clean(store):
+    today = datetime.date(2026, 11, 3)
+    store.add([hit()], [], today)
+    stored = store.all()[0]
+    store._write([{**stored, "stelle": "<em>Data</em> &amp; Engineer", "firma": "A &amp; B"}])
+    assert (store.all()[0]["stelle"], store.all()[0]["firma"]) == ("Data & Engineer", "A & B")
+
+
+@pytest.mark.parametrize("place, near", [
+    ("Thun", True), ("3600 Thun", True), ("Thun BE", True), ("3604 Hilterfingen", True),
+    ("Thunstetten", False), ("8000 Zürich", False), ("", False),
+])
+def test_near_means_the_home_or_the_same_postal_area(place, near):
+    assert hits.is_near(place, ("Thun",), ("3600",)) is near

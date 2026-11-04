@@ -121,3 +121,11 @@ test("the filter by kind appears when both kinds are there and keeps hits withou
   assert.deepEqual(logik.nachArt(hits, "Lehrstelle").map(t => t.id), ["a", "c"]);
   assert.equal(logik.nachArt(hits, "").length, 3);
 });
+
+test("near the home comes before the rest, but not before the grade", () => {
+  const hits = [
+    { id: "far", gefunden_am: "2026-11-03" }, { id: "near", nah: true, gefunden_am: "2026-11-01" },
+    { id: "rated", bewertung: { note: 5 }, gefunden_am: "2026-10-01" },
+  ];
+  assert.deepEqual(logik.sortiert(hits, {}).map((t) => t.id), ["rated", "near", "far"]);
+});

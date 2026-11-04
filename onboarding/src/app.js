@@ -36,13 +36,13 @@ const APP_TEXT = {
   job: {
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Ihre Eingaben bleiben gespeichert; Sie können später weitermachen.",
     done: "Ihre Angaben sind übernommen. ",
-    kept: (names) => `Aus Ihrer bisherigen Suche bleibt dabei: ${names}. Entfernen können Sie das unter „Treffer“. `,
+    kept: (names) => `Aus Ihrer bisherigen Suche bleibt dabei: ${names}. Entfernen können Sie das unter „Suche“. `,
     incomplete: "Ihre Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänzen Sie sie hier, wenn Sie so weit sind. ",
   },
   apprenticeship: {
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Deine Eingaben bleiben gespeichert; du kannst später weitermachen.",
     done: "Deine Angaben sind übernommen. ",
-    kept: (names) => `Aus deiner bisherigen Suche bleibt dabei: ${names}. Entfernen kannst du das unter „Treffer“. `,
+    kept: (names) => `Aus deiner bisherigen Suche bleibt dabei: ${names}. Entfernen kannst du das unter „Suche“. `,
     incomplete: "Deine Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänze sie hier, wenn du so weit bist. ",
   },
 };
@@ -81,6 +81,7 @@ async function loadStored() {
     if (backend) {
       const overview = await backend.overview();
       applyStored(overview.stand);
+      notTakenOver = Boolean(overview.stand && overview.stand.offen === true);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
       return;
@@ -95,7 +96,7 @@ async function loadStored() {
 
 function storeNow() {
   if (backend) {
-    backend.keep({ track: state.track, data: state.data, suggested: state.suggested, step })
+    backend.keep({ track: state.track, data: state.data, suggested: state.suggested, step, offen: notTakenOver })
       .then(() => setStatus(`Zwischengespeichert im Datenordner, ${new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}.`))
       .catch((error) => setStatus(`Zwischenspeichern hat nicht geklappt: ${error.message}`));
     return;
@@ -130,9 +131,15 @@ function setStatus(message) {
   document.getElementById("autosave").textContent = message;
 }
 
+const TAKE_OVER_TARGET = "uebernehmen";
+const WANTED_NOTE = "Hier ergänzen. Es zählt für die Suche, sobald es unter „Übernehmen“ abgeschlossen ist.";
+let notTakenOver = false;
+let profileHint = false;
+
 // State changes
 
 function update(newState, { rerender = false } = {}) {
+  if (newState.data !== state.data || newState.track !== state.track) notTakenOver = true;
   state = newState;
   scheduleStore();
   if (rerender) render();
@@ -211,7 +218,39 @@ function renderNav(all) {
       "aria-current": i === step ? "step" : null, onclick: () => goTo(i),
     }, title));
   });
-  document.getElementById("steps").replaceChildren(el("ol", {}, items));
+  document.getElementById("steps").replaceChildren(el("ol", {}, items), ...notTakenOverNote(all));
+}
+
+/** Changes count only after „Übernehmen“; easy to forget when the search is what one is after. */
+function notTakenOverNote(all) {
+  if (!backend || !notTakenOver || all[step].kind === "finish") return [];
+  const text = state.track === "apprenticeship" ? "Deine Änderungen sind noch nicht übernommen." : "Ihre Änderungen sind noch nicht übernommen.";
+  return [el("p", { className: "not-taken-over" }, [
+    `${text} `, el("button", { type: "button", className: "link", onclick: () => goTo(all.length - 1) }, "Zum Übernehmen"),
+  ])];
+}
+
+/** The search leads here with #feld=<path> (or #feld=uebernehmen): open that step and show the field. */
+function openFromAddress() {
+  const wanted = new URLSearchParams(window.location.hash.slice(1)).get("feld");
+  if (!backend || !wanted) return;
+  window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  if (!state.track) {
+    // Imported files without a state of this page: starting over here would ask for everything again.
+    profileHint = existingBasics.length > 0;
+    return render();
+  }
+  const all = steps();
+  const index = wanted === TAKE_OVER_TARGET ? all.length - 1
+    : all.findIndex((s) => s.kind === "section" && s.section.id === wanted.split(".")[0]);
+  if (index < 0) return;
+  goTo(index);
+  const field = [...document.querySelectorAll("[data-path]")].find((f) => f.dataset.path === wanted);
+  if (!field) return;
+  field.classList.add("wanted");
+  field.prepend(el("p", { className: "wanted-note" }, WANTED_NOTE));
+  field.scrollIntoView({ block: "center" });
+  (field.querySelector("input, textarea, select") || field).focus();
 }
 
 function startView() {
@@ -228,6 +267,7 @@ function startView() {
   return el("section", { className: "start" }, [
     el("h2", {}, "Worum geht es?"),
     el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsassistent braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
+    profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,
     appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
     existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,
     el("div", { className: "tracks" }, [
@@ -468,7 +508,7 @@ function focusFirst(...selectors) {
 function fieldFor(section, field, path, value) {
   const pathText = path.join(".");
   return fieldView(field, {
-    track: state.track, value, path: pathText,
+    track: state.track, value, path: pathText, cantons: form.cantons,
     onChange: (v) => update(setValue(state, path, v)),
     onBlur: () => { touched = new Set(touched).add(pathText); refreshErrors(); },
   });
@@ -560,6 +600,8 @@ async function takeOver(replace) {
     storeNow();
     const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
     existingBasics = result.geschrieben.length ? result.geschrieben : existingBasics;
+    notTakenOver = Boolean(result.unvollstaendig);
+    storeNow();
     done.hidden = false;
     done.replaceChildren(
       result.unvollstaendig
@@ -620,6 +662,7 @@ async function loadFile(event) {
   try {
     const loaded = isZip ? await readUploadZip(file) : { bundle: await file.text(), uploads: [] };
     state = stateFromBundle(form, JSON.parse(loaded.bundle));
+    notTakenOver = true;
     forgetPrefillRun();
     if (!backend) uploads = loaded.uploads;
     uploadMessages = [];
@@ -670,4 +713,5 @@ window.addEventListener("beforeunload", (event) => {
 loadStored().then(() => {
   render();
   restoreUploads();
+  openFromAddress();
 });

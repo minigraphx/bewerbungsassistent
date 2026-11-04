@@ -1,4 +1,5 @@
 """Search plan for the browser extension (MIN-339): read from suchprofil.md, with fallbacks for short profiles."""
+import json
 import pathlib
 
 import pytest
@@ -56,10 +57,44 @@ def test_portal_set_to_aus_is_skipped_and_mit_nutzer_still_runs():
     assert search_plan.parse(text, postal_code="3600").portals == ("job-room", "jobscout24", "ictjobs")
 
 
-def test_missing_postal_code_skips_jobscout24_with_a_hint():
+def test_missing_postal_code_searches_jobscout24_everywhere_and_says_where_to_add_it():
     plan = search_plan.parse(GENERATED)
-    assert "jobscout24" not in plan.portals
-    assert any("jobscout24" in hint for hint in plan.hints)
+    assert "jobscout24" in plan.portals
+    hint = next(h for h in plan.hints if "jobscout24" in h)
+    assert dict(plan.hint_targets)[hint] == "person.postalCode"
+
+
+NO_REGION = GENERATED.replace("- Kantone (job-room): BE, LU\n", "")
+
+
+def test_without_cantons_every_portal_searches_all_of_switzerland():
+    plan = search_plan.parse(NO_REGION, postal_code="3600")
+    assert plan.portals == search_plan.PORTALS and plan.nationwide and plan.as_dict()["schweizweit"] is True
+    assert plan.cantons == () and plan.places == ("Thun",) and plan.postal_codes == ("3600",)
+
+
+def test_without_cantons_one_note_leads_to_the_field_and_no_portal_is_blamed():
+    plan = search_plan.parse(NO_REGION)
+    assert len(plan.hints) == 1 and "ganzen Schweiz" in plan.hints[0]
+    assert dict(plan.hint_targets)[plan.hints[0]] == "searchJob.cantons"
+    assert plan.as_dict()["hinweis_ziele"] == {plan.hints[0]: "searchJob.cantons"}
+
+
+def test_cantons_mean_no_search_all_over_switzerland():
+    plan = search_plan.parse(GENERATED, postal_code="3600")
+    assert not plan.nationwide and plan.hints == ()
+
+
+def test_named_places_mean_no_search_all_over_switzerland():
+    assert not search_plan.parse(NO_REGION.replace("- Wohnort: Thun\n", "- Wohnort: Thun\n- Orte: Bern\n")).nationwide
+
+
+def test_a_missing_home_of_an_apprenticeship_names_the_field():
+    profile = apprenticeship_template()
+    text = "\n".join(line for line in profile.splitlines() if not line.startswith(("- Wohnort", "- Kantone")))
+    with pytest.raises(search_plan.ProfileGap) as gap:
+        search_plan.parse(text)
+    assert gap.value.field == "searchApprenticeship.home"
 
 
 def test_profile_without_keywords_or_directions_is_refused():
@@ -257,3 +292,9 @@ def test_a_similar_heading_stays():
     text = "## Gesuchte Stellen\n- A\n\n" + apprenticeship_template()
 
     assert "## Gesuchte Stellen\n- A" in search_plan.with_offers(text, "beides")
+
+
+def test_the_form_names_exactly_the_cantons_the_search_knows():
+    form = json.loads((VORLAGEN.parent / "onboarding" / "form.json").read_text(encoding="utf-8"))
+    assert {canton["code"] for canton in form["cantons"]} == set(search_plan.CANTONS)
+    assert set(search_plan.ICTJOBS_REGIONS) == set(search_plan.CANTONS)

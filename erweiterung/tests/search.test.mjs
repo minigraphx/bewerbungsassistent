@@ -62,6 +62,19 @@ test('jobs.ch searches every keyword in the first place first, then niches, then
     [['Python', 'Bern'], ['Data', 'Bern'], ['EdTech', undefined], ['Python', 'Thun'], ['Data', 'Thun']]);
 });
 
+test('all over Switzerland: around the home first, then without a place', () => {
+  const plan = { ...PLAN, schweizweit: true, kantone: [], stichworte: ['Python'], nischen: [], orte: ['Thun'], plz: ['3600'], regionen: [] };
+  assert.deepEqual(queries('jobs.ch', plan).map((q) => [q.keyword, q.place]), [['Python', 'Thun'], ['Python', undefined]]);
+  assert.deepEqual(queries('jobscout24', plan).map((q) => [q.keyword, q.postalCode]), [['Python', '3600'], ['Python', undefined]]);
+  assert.deepEqual(queries('ictjobs', plan).map((q) => [q.keyword, q.region]), [['Python', undefined]]);
+  assert.deepEqual(queries('job-room', plan).map((q) => [q.keyword, q.cantons]), [['Python', []]]);
+});
+
+test('a portal without its kind of place still searches', () => {
+  const plan = { ...PLAN, stichworte: ['Python'], nischen: [], plz: [], regionen: [] };
+  assert.deepEqual(queries('jobscout24', plan).map((q) => [q.keyword, q.postalCode]), [['Python', undefined]]);
+});
+
 test('jobscout24 and ictjobs need a place and skip niches', () => {
   assert.deepEqual(queries('jobscout24', PLAN).map((q) => q.postalCode), ['3000', '3000']);
   assert.deepEqual(queries('ictjobs', PLAN).map((q) => q.region), ['grossraum-bern', 'grossraum-bern']);

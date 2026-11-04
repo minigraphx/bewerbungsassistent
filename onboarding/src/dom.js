@@ -33,16 +33,19 @@ function fieldView(field, ctx) {
   const describedBy = [hintId, errorId].filter(Boolean).join(" ");
   const label = forTrack(field.label, ctx.track) + (field.required ? " *" : "");
   const control = controlView(field, ctx, id, describedBy);
-  const isGroup = field.type === "choice";
+  const isCantons = field.control === "cantons";
+  const isGroup = field.type === "choice" || isCantons;
   return el("div", { className: `field field-${field.type}`, dataset: { path: ctx.path } }, [
     isGroup ? null : el("label", { for: id }, label),
     isGroup ? null : hint ? el("p", { className: "hint", id: hintId }, hint) : null,
-    isGroup ? choiceView(field, ctx, id, label, hint, hintId, errorId) : control,
+    isCantons ? cantonsView(field, ctx, label, hint, hintId, errorId)
+      : isGroup ? choiceView(field, ctx, id, label, hint, hintId, errorId) : control,
     el("p", { className: "error", id: errorId, role: "alert" }),
   ]);
 }
 
 function controlView(field, ctx, id, describedBy) {
+  if (field.control === "cantons") return null;
   const common = { id, "aria-describedby": describedBy, "aria-required": field.required ? "true" : null, onblur: () => ctx.onBlur() };
   if (field.type === "textarea") {
     return el("textarea", { ...common, rows: 4, value: ctx.value || "", oninput: (e) => ctx.onChange(e.target.value) });
@@ -76,6 +79,26 @@ function autocompleteFor(path) {
 }
 
 /** Radio group of suggested texts plus an own formulation. */
+/** Names instead of codes: the answer stays the list of codes the search and the checks know. */
+function cantonsView(field, ctx, label, hint, hintId, errorId) {
+  const chosen = new Set(ctx.value || []);
+  const changed = (e) => {
+    const boxes = e.target.closest(".canton-list").querySelectorAll("input:checked");
+    ctx.onChange([...boxes].map((box) => box.value));
+  };
+  return el("fieldset", { className: "choice cantons", "aria-describedby": [hintId, errorId].filter(Boolean).join(" ") }, [
+    el("legend", {}, label),
+    hint ? el("p", { className: "hint", id: hintId }, hint) : null,
+    el("div", { className: "canton-list" }, ctx.cantons.map((canton) => el("label", { className: "option" }, [
+      el("input", {
+        type: "checkbox", value: canton.code, checked: chosen.has(canton.code),
+        onchange: changed, onblur: () => ctx.onBlur(),
+      }),
+      el("span", {}, canton.name),
+    ]))),
+  ]);
+}
+
 function choiceView(field, ctx, id, label, hint, hintId, errorId) {
   const options = forTrack(field.options, ctx.track) || [];
   const value = ctx.value || "";

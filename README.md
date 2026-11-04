@@ -28,9 +28,9 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 ![Übersicht der Bewerbungen mit Häkchen, Knöpfen „Bewerben“ und „Im RAV eintragen“, Status, Passung, Variante, Stand des Formulars und Datum des RAV-Eintrags](docs/bilder/uebersicht.jpg)
 
-**Treffer der Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty, wahlweise nach Lehrstellen, Schnupperlehren oder beidem. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung in Paketen von zehn, nach der Suche von selbst (höchstens 30 pro Suche, abschaltbar) oder auf Knopfdruck. Bei Lehrstellen zählt der eigene Beruf mit Sternen zuerst. Dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis. Inserate von anderen Seiten, etwa LinkedIn, prüft oder speichert die Erweiterung auf Klick.
+**Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty, wahlweise nach Lehrstellen, Schnupperlehren oder beidem. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung in Paketen von zehn, nach der Suche von selbst (höchstens 30 pro Suche, abschaltbar) oder auf Knopfdruck. Bei Lehrstellen zählt der eigene Beruf mit Sternen zuerst. Dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis. Inserate von anderen Seiten, etwa LinkedIn, prüft oder speichert die Erweiterung auf Klick.
 
-![Seite Treffer: die Suchbegriffe mit dem Knopf Entfernen, der zugeklappte Abschnitt „Welche Stellen passen zu Ihnen?“ und die Liste der Treffer mit Note, Firma, Ort, Pensum, Portal und den Knöpfen Neu bewerten, Übernehmen und Verwerfen](docs/bilder/treffer.jpg)
+![Seite Suche: die Suchbegriffe mit dem Knopf Entfernen, der zugeklappte Abschnitt „Welche Stellen passen zu Ihnen?“ und die Liste der Treffer mit Note, Firma, Ort, Pensum, Portal und den Knöpfen Neu bewerten, Übernehmen und Verwerfen](docs/bilder/treffer.jpg)
 
 **Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass im Anschreiben noch die Firma einer anderen Bewerbung steht.
 

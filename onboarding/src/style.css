@@ -67,6 +67,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 fieldset { border: 0; padding: 0; margin: 0; }
 .choice .option { display: flex; align-items: baseline; gap: 0.5rem; font-weight: 400; margin: 0.35rem 0; }
 .choice .own-option { flex-wrap: wrap; }
+.canton-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0 1rem; }
+.not-taken-over { margin: 0.75rem 0 0; font-size: 0.9rem; color: var(--danger); }
+.field.wanted { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 4px; }
+.wanted-note { margin: 0 0 0.5rem; font-weight: 600; }
 .choice .own { flex: 1 1 14rem; }
 .item {
   border: 1px solid var(--line); border-radius: var(--radius); padding: 0.4rem 1rem 1rem; margin: 1rem 0;

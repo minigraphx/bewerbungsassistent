@@ -59,9 +59,22 @@ PROFILE = "suchprofil.md"
 DIRECTION = re.compile(r"^\d+\.\s+(.+)$")
 PAIR = re.compile(r"^-\s+([^:]+):\s*(.*)$")
 MODE_OFF = "aus"
+FIELD_CANTONS = "searchJob.cantons"
+FIELD_HOME = "searchJob.home"
+FIELD_POSTAL_CODE = "person.postalCode"
+FIELD_APPRENTICESHIP_HOME = "searchApprenticeship.home"
+NATIONWIDE_NOTE = "Gesucht wird in der ganzen Schweiz, Stellen nahe dem Wohnort stehen zuerst. Eingrenzen: Kantone wählen."
 REMARK = re.compile(r"\s*\([^()]*\b(?:priorität|ersatz|falls|wenn|notfalls)\b[^()]*\)\s*$", re.IGNORECASE)
 YEAR = re.compile(r"\b20\d\d\b")
 NUMBER = re.compile(r"\d+")
+
+
+class ProfileGap(ValueError):
+    """Something the search needs is missing; `field` is where „Meine Angaben“ asks for it."""
+
+    def __init__(self, message: str, field: str) -> None:
+        super().__init__(message)
+        self.field = field
 
 
 @dataclasses.dataclass(frozen=True)
@@ -79,6 +92,8 @@ class SearchPlan:
     radius_km: int = DEFAULT_RADIUS_KM
     start_years: tuple[int, ...] = ()
     offers: tuple[str, ...] = ()
+    nationwide: bool = False
+    hint_targets: tuple[tuple[str, str], ...] = ()  # hint → field in „Meine Angaben“
 
     def as_dict(self) -> dict:
         pages = MAX_APPRENTICESHIP_PAGES if self.kind == KIND_APPRENTICESHIP else MAX_PAGES
@@ -87,7 +102,8 @@ class SearchPlan:
                 "plz": list(self.postal_codes), "regionen": list(self.regions),
                 "titel_ausschluss": list(self.title_exclude), "umkreis_km": self.radius_km,
                 "lehrbeginn_jahre": list(self.start_years), "angebote": list(self.offers), "max_seiten": pages, "max_abfragen": MAX_QUERIES,
-                "max_alter_tage": MAX_AGE_DAYS, "hinweise": list(self.hints)}
+                "max_alter_tage": MAX_AGE_DAYS, "hinweise": list(self.hints), "schweizweit": self.nationwide,
+                "hinweis_ziele": dict(self.hint_targets)}
 
 
 def _sections(text: str) -> dict[str, list[str]]:
@@ -201,7 +217,7 @@ def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     places = _items(_value(region, "wohnort"), 1)
     if not places and not cantons:
-        raise ValueError("Im Suchprofil fehlt der Wohnort oder ein Kanton (Abschnitt „Region“).")
+        raise ProfileGap("Im Suchprofil fehlt der Wohnort oder ein Kanton (Abschnitt „Region“).", FIELD_APPRENTICESHIP_HOME)
     radius = _radius(_value(region, "umkreis"))
     years = sorted({int(y) for line in sections.get("lehrbeginn", []) for y in YEAR.findall(line)})
     hints = ()
@@ -265,6 +281,16 @@ def job_terms(text: str) -> tuple[str, ...]:
     return _job_terms(_sections(text))
 
 
+def _job_hints(nationwide: bool, portals: tuple[str, ...], places: tuple[str, ...],
+               postal_codes: tuple[str, ...]) -> tuple[tuple[str, str], ...]:
+    """What the person may want to add, each with the field to add it in. No portal is skipped for a missing place."""
+    if nationwide:
+        return ((NATIONWIDE_NOTE, FIELD_CANTONS),)
+    gaps = (("jobs.ch", places, "Wohnort", FIELD_HOME), ("jobscout24", postal_codes, "PLZ", FIELD_POSTAL_CODE))
+    return tuple((f"{portal}: Ohne {name} sucht dieses Portal in der ganzen Schweiz. {name} ergänzen.", field)
+                 for portal, known, name, field in gaps if portal in portals and not known)
+
+
 def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     """The search plan from the profile text; postal_code (from cv.yaml) stands in for missing PLZ."""
     sections = _sections(text)
@@ -281,21 +307,13 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     postal_codes = _items(_value(region, "plz"), MAX_PLACES) or _items(postal_code or "", 1)
     regions = _items(_value(region, "regionen"), MAX_PLACES) or _regions(cantons)
     modes = _modes(sections.get("portale und rhythmus", []))
-    portals, hints = [], []
-    needs = {"job-room": cantons, "jobs.ch": places, "jobscout24": postal_codes, "ictjobs": regions}
-    missing = {"job-room": "Kantone", "jobs.ch": "Wohnort oder Orte", "jobscout24": "PLZ",
-               "ictjobs": "Kantone oder Regionen"}
-    for portal in PORTALS:
-        if modes.get(portal) == MODE_OFF:
-            continue
-        if not needs[portal]:
-            hints.append(f"{portal}: im Suchprofil fehlen {missing[portal]}, darum wird dort nicht gesucht.")
-            continue
-        portals.append(portal)
+    portals = tuple(portal for portal in PORTALS if modes.get(portal) != MODE_OFF)
+    nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", "regionen"))
+    targets = _job_hints(nationwide, portals, places, postal_codes)
     return SearchPlan(keywords=keywords, niche_keywords=_items(_value(words, "nischen"), MAX_KEYWORDS),
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
-                      title_exclude=_items(_value(titles, "ausschluss"), 30), portals=tuple(portals),
-                      hints=tuple(hints))
+                      title_exclude=_items(_value(titles, "ausschluss"), 30), portals=portals,
+                      hints=tuple(hint for hint, _ in targets), nationwide=nationwide, hint_targets=targets)
 
 
 def _postal_code(data_dir: pathlib.Path) -> str | None:

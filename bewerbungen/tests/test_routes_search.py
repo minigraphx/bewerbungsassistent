@@ -1,4 +1,4 @@
-"""Routes of the job search (MIN-339): the extension's flow and the page „Treffer“, with a simulated AI."""
+"""Routes of the job search (MIN-339): the extension's flow and the page „Suche“, with a simulated AI."""
 import concurrent.futures
 import json
 import shutil

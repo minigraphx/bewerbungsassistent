@@ -30,7 +30,7 @@ Lücken im Lebenslauf (Pausen, Weiterbildung, Familie) ohne Wertung erfragen. Di
 - Region: Wohnort, Pendelgrenze, Remote.
 - Pensum, frühester Start, Befristung möglich?
 - Stichworte für die Suche; Titel, die passen oder ausgeschlossen sind.
-- Noch keine Idee, was infrage kommt, vielleicht nur „etwas Administratives“? Dann bleibt die Liste leer. In der App schlägt das Sprachmodell unter „Treffer“ passende Stellen und Suchbegriffe vor, aus Interessen, Fähigkeiten und Lebenslauf.
+- Noch keine Idee, was infrage kommt, vielleicht nur „etwas Administratives“? Dann bleibt die Liste leer. In der App schlägt das Sprachmodell unter „Suche“ passende Stellen und Suchbegriffe vor, aus Interessen, Fähigkeiten und Lebenslauf.
 - Haken (z.B. fehlende Sprache, fehlender Abschluss) nur aufnehmen, wenn die Person sie schon kennt; nicht danach bohren. Die übrigen ergänzt der Skill `bewerbung` nach und nach aus den Inseraten.
 - Zielfirmen mit Karriereseite.
 

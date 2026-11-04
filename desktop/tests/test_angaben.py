@@ -416,3 +416,18 @@ def test_replacing_names_what_stays_in_the_search(started):
 
     assert status == 200 and answer["behalten"] == ["Empfang"]
     assert "Empfang" in profile.read_text(encoding="utf-8")
+
+
+def test_changes_count_as_not_taken_over_until_the_page_says_otherwise(started):
+    server, _, _ = started
+    assert call(server, "/api/angaben/offen") == (200, {"offen": False})
+    call(server, "/api/angaben/stand", {"stand": {"track": "job", "data": {}, "offen": True}})
+    assert call(server, "/api/angaben/offen") == (200, {"offen": True})
+    call(server, "/api/angaben/stand", {"stand": {"track": "job", "data": {}, "offen": False}})
+    assert call(server, "/api/angaben/offen") == (200, {"offen": False})
+
+
+def test_a_state_from_before_counts_as_taken_over(started):
+    server, _, _ = started
+    call(server, "/api/angaben/stand", {"stand": {"track": "job", "data": {}}})
+    assert call(server, "/api/angaben/offen") == (200, {"offen": False})

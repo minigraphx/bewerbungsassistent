@@ -22,11 +22,12 @@
     return neue.length > 0 && neue.every(t => t.bewertung);
   }
 
-  /** Own stars of the profession first, then the grade, then the newest. Hits without a profession count as no stars. */
+  /** Own stars of the profession first, then the grade, then near the home, then the newest. Hits without a profession count as no stars. */
   function sortiert(treffer, sterne) {
     const eigene = t => sterne[t.beruf] || 0;
     return [...treffer].sort((a, b) => eigene(b) - eigene(a)
       || (b.bewertung?.note ?? 0) - (a.bewertung?.note ?? 0)
+      || Number(Boolean(b.nah)) - Number(Boolean(a.nah))
       || (b.gefunden_am || "").localeCompare(a.gefunden_am || ""));
   }
 

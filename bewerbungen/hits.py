@@ -8,6 +8,7 @@ same hit comes again.
 import dataclasses
 import datetime
 import hashlib
+import html
 import pathlib
 import re
 import threading
@@ -34,6 +35,22 @@ LEGAL_FORMS = {"ag", "gmbh", "sa", "sarl", "sagl", "ltd", "llc", "inc", "kg", "c
 TRIAL = "Schnupperlehre"
 CLOSED = {"Absage", "Verworfen", "Zurückgezogen"}
 _LOCK = threading.Lock()
+MARKUP = re.compile(r"</?[a-zA-Z][^<>]*>")
+POSTAL_CODE = re.compile(r"\b\d{4}\b")
+POSTAL_AREA = 2
+
+
+def plain_text(value):
+    """Portals mark search terms with tags and send entities (job-room: <em>, &amp;). Anything but text stays as it is."""
+    return " ".join(MARKUP.sub("", html.unescape(value)).split()) if isinstance(value, str) else value
+
+
+def is_near(place: str, homes: tuple[str, ...], postal_codes: tuple[str, ...]) -> bool:
+    """Is this the home or the same postal area (the first two digits)? There are no distances to work with."""
+    if any(re.search(rf"\b{re.escape(home)}\b", place, re.IGNORECASE) for home in homes):
+        return True
+    areas = {code[:POSTAL_AREA] for code in postal_codes}
+    return any(code[:POSTAL_AREA] in areas for code in POSTAL_CODE.findall(place))
 
 
 def bounded_text(value, field: str, required: bool = False, limit: int = MAX_FIELD) -> str:
@@ -77,7 +94,8 @@ def validate(raw, own_portals: frozenset[str] = frozenset()) -> dict:
     if portal not in DOMAINS and portal not in own_portals:
         raise ValueError(f"Unbekanntes Portal: {portal!r}")
     hit = {"portal": portal, "portal_id": bounded_text(raw.get("portal_id"), "portal_id", True, MAX_ID),
-           "stelle": bounded_text(raw.get("stelle"), "stelle", True), "firma": bounded_text(raw.get("firma"), "firma") or "unbekannt",
+           "stelle": bounded_text(plain_text(raw.get("stelle")), "stelle", True),
+           "firma": bounded_text(plain_text(raw.get("firma")), "firma") or "unbekannt",
            "ort": bounded_text(raw.get("ort"), "ort"), "pensum": bounded_text(raw.get("pensum"), "pensum"),
            "link": checked_link(raw.get("link"), portal), "alter_tage": _age(raw.get("alter_tage")),
            "art": bounded_text(raw.get("art"), "art"), "beruf": bounded_text(raw.get("beruf"), "beruf"),
@@ -176,7 +194,11 @@ class Hits:
 
     def all(self) -> list[dict]:
         found = lies_yaml(self.folder / HITS_FILE, [])
-        return [h for h in found if isinstance(h, dict) and isinstance(h.get("id"), str)] if isinstance(found, list) else []
+        if not isinstance(found, list):
+            return []
+        # Hits stored before titles were cleaned read clean too.
+        return [{**h, "stelle": plain_text(h.get("stelle")), "firma": plain_text(h.get("firma"))}
+                for h in found if isinstance(h, dict) and isinstance(h.get("id"), str)]
 
     def get(self, wanted: str) -> dict:
         for hit in self.all():

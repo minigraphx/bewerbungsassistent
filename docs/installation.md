@@ -67,8 +67,8 @@ Die Erweiterung steht dann in der Liste, und in der App erscheint von selbst „
 
 ## 3. Erste Schritte
 
-1. **Meine Angaben** (im Menü): Wählen Sie die Stellensuche und erfassen Sie Lebenslauf und Suchprofil. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Zum Schluss klicken Sie auf **Übernehmen**.
-2. **Treffer**: Klicken Sie auf **Stellen suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten.
+1. **Meine Angaben** (im Menü): Wählen Sie die Stellensuche und erfassen Sie Lebenslauf und Suchprofil. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Zum Schluss klicken Sie auf **Übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
+2. **Suche**: Klicken Sie auf **Stellen suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst.
 3. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Übernehmen** legt eine Bewerbung an, **Verwerfen** blendet den Treffer aus.
 
 Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
@@ -80,8 +80,8 @@ Du installierst alles genau wie oben beschrieben. Lass dir dabei ruhig von deine
 Danach ist Folgendes anders:
 
 1. Unter **Meine Angaben** wählst du die **Lehrstellensuche**. Die Fragen führen dich durch alles, was es braucht.
-2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Treffer** kann dir die KI Berufe vorschlagen. Du entscheidest, welche du in deine Suche aufnimmst.
-3. Auf der Seite **Treffer** wählst du, ob du Lehrstellen, Schnupperlehren oder beides suchst. Die Erweiterung sucht dann auf LENA (berufsberatung.ch) und yousty.
+2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Suche** kann dir die KI Berufe vorschlagen. Du entscheidest, welche du in deine Suche aufnimmst.
+3. Auf der Seite **Suche** wählst du, ob du Lehrstellen, Schnupperlehren oder beides suchst. Die Erweiterung sucht dann auf LENA (berufsberatung.ch) und yousty.
 
 Deine Bewerbung schickst immer du selbst ab.
 

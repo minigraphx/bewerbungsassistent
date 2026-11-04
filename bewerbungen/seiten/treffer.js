@@ -215,7 +215,13 @@
     if (einstellungen.auto_bewerten) starteBewertung(logik.zuBewerten(alle).slice(0, grenze).map(t => t.id));
   }
 
-  function zeigeLetzteSuche(lauf, hinweise) {
+  // A hint with a field in „Meine Angaben“ leads there.
+  function hinweisZeile(text, ziele) {
+    const inhalt = ziele[text] ? el("a", { href: `/angaben#${new URLSearchParams({ feld: ziele[text] })}` }, text) : text;
+    return el("li", { "data-stufe": "hinweis" }, inhalt);
+  }
+
+  function zeigeLetzteSuche(lauf, hinweise, ziele) {
     if (lauf) {
       const neu = Object.values(lauf.portale || {}).reduce((summe, p) => summe + (p.neu || 0), 0);
       $("letzte").textContent = `Letzte Suche am ${datum(lauf.datum)}: ${neu} neue Treffer.`;
@@ -223,7 +229,7 @@
     const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem).map(([, p]) => p.problem);
     $("probleme").replaceChildren(
       ...probleme.map(p => el("li", { "data-stufe": "fehler" }, p)),
-      ...hinweise.map(h => el("li", { "data-stufe": "hinweis" }, h)));
+      ...hinweise.map(h => hinweisZeile(h, ziele)));
   }
 
   function aufzaehlung(namen) {
@@ -235,13 +241,22 @@
     lehrstelle = art === "lehrstelle";
     $("angebot-wahl").hidden = !lehrstelle;
     $("angebot").value = logik.wahlAus(angebote);
-    $("titel").textContent = lehrstelle ? "Treffer der Lehrstellensuche" : "Treffer der Stellensuche";
+    $("titel").textContent = lehrstelle ? "Lehrstellensuche" : "Stellensuche";
     $("suchen").textContent = lehrstelle ? logik.sucheText(angebote) : "Stellen suchen";
     $("spalte-rahmen").textContent = lehrstelle ? "Lehrbeginn" : "Pensum";
     $("erweiterung-link").textContent = lehrstelle ? "So richtest du sie ein" : "So richten Sie sie ein";
     $("hilfe").textContent = lehrstelle
       ? `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach deinem Suchprofil, in deinem Browser und nur, wenn du die Suche startest. Neue Treffer erscheinen hier, und die KI schätzt die Passung als Note von 1 bis 6 ein: nach der Suche von selbst, wenn diese Seite offen ist, sonst auf Knopfdruck. „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`
       : `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier, und die KI schätzt die Passung als Note von 1 bis 6 ein: nach der Suche von selbst, wenn diese Seite offen ist, sonst auf Knopfdruck. „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`;
+  }
+
+  // Only the desktop app has „Meine Angaben“; without it there is nothing to say.
+  async function zeigeNichtUebernommen() {
+    const offen = await holen("/api/angaben/offen").then(a => a.offen, () => false);
+    $("angaben-offen").hidden = !offen;
+    $("angaben-offen-text").textContent = lehrstelle
+      ? "In „Meine Angaben“ hast du Änderungen, die noch nicht übernommen sind. Die Suche nimmt noch die bisherigen Angaben. "
+      : "In „Meine Angaben“ gibt es Änderungen, die noch nicht übernommen sind. Die Suche nimmt noch die bisherigen Angaben. ";
   }
 
   let ladeNummer = 0;
@@ -257,7 +272,8 @@
       grenze = daten.grenze;
       zeigeArt(daten.art, daten.portale || [], daten.angebote || []);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
-      zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || []);
+      zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {});
+      zeigeNichtUebernommen();
       zeigeListe();
     } catch (fehler) {
       status($("status"), fehler.message, "fehler");

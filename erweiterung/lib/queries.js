@@ -34,7 +34,7 @@ function apprenticeshipQueries(plan) {
 /**
  * Queries of one portal. job-room searches all cantons at once; the others once per place, every keyword in
  * the first place first, so the limit cuts the farther places before the keywords.
- * Niche keywords run without place, except on portals that need one (jobscout24, ictjobs).
+ * Niche keywords run without place on jobs.ch only: on jobscout24 and ictjobs they would need one to stay few.
  * @param {string} portal
  * @param {object} plan  as /api/suche/plan returns it
  * @returns {{queries: Array<object>, skipped: number}}
@@ -55,7 +55,9 @@ export function buildQueries(portal, plan) {
     const [field, key] = PLACE[portal];
     const rounds = (plan[field] || []).map((place) => keywords.map((keyword) => ({ keyword, [key]: place, maxAge })));
     const free = portal === 'jobs.ch' ? niches.map((keyword) => ({ keyword, maxAge })) : [];
-    all = rounds.length ? [...rounds[0], ...free, ...rounds.slice(1).flat()] : [];
+    // No place for this portal, or no region chosen at all: the whole of Switzerland, after the home.
+    const everywhere = plan.schweizweit || !rounds.length ? keywords.map((keyword) => ({ keyword, maxAge })) : [];
+    all = [...(rounds[0] || []), ...free, ...rounds.slice(1).flat(), ...everywhere];
   }
   const limit = plan.max_abfragen || all.length;
   return { queries: all.slice(0, limit), skipped: Math.max(0, all.length - limit) };

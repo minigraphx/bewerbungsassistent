@@ -101,6 +101,10 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
         return json_antwort({"stand": _read_state(folder), "unterlagen": import_documents.pending_documents(folder),
                              "vorhanden": _existing_basics(folder)})
 
+    def not_taken_over(k, parameter, body):
+        stored = _read_state(ready_data_dir(state, k))
+        return json_antwort({"offen": isinstance(stored, dict) and stored.get("offen") is True})
+
     def keep_state(k, parameter, body):
         folder = ready_data_dir(state, k)
         stored = _body(body).get("stand")
@@ -167,7 +171,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
             import_documents.mark_read(folder, result["datei"])
         return json_antwort(result)
 
-    return ({"/api/angaben/stand": overview},
+    return ({"/api/angaben/stand": overview, "/api/angaben/offen": not_taken_over},
             _one_at_a_time({"/api/angaben/stand": keep_state, "/api/angaben/stand-loeschen": discard_state,
                             UPLOAD_ROUTE: add_document, "/api/angaben/unterlage-entfernen": remove_document,
                             "/api/angaben/uebernehmen": take_over}, documents_lock)

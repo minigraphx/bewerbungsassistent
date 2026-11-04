@@ -2,7 +2,7 @@
 
 The extension reaches them through the app's Native Messaging host: it fetches the search plan, lets the
 app screen a result list (`sichten`), sends the full hits and finally a summary per portal. The page
-„Treffer“ lists the hits; rating goes through the AI gateway in packages (MIN-372), taking over writes register and stelle.md
+„Suche“ lists the hits; rating goes through the AI gateway in packages (MIN-372), taking over writes register and stelle.md
 with drafts (Entwürfe).
 """
 import threading
@@ -15,7 +15,7 @@ from ai import connection, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
 import routes_career
-from hits import TRIAL, Hits, company_key
+from hits import TRIAL, Hits, company_key, is_near
 from server import json_antwort, pflicht
 
 MAX_PROBLEM = 600
@@ -84,13 +84,21 @@ def overview(k, parameter, body):
     kind = search_plan.kind_of_folder(k.daten)
     portals = search_plan.APPRENTICESHIP_PORTALS if kind == search_plan.KIND_APPRENTICESHIP else search_plan.PORTALS
     offers: tuple[str, ...] = ()
+    targets: dict[str, str] = {}
+    homes: tuple[str, ...] = ()
+    postal_codes: tuple[str, ...] = ()
     try:
         current = search_plan.for_folder(k.daten)
         hints, portals, offers = list(current.hints), current.portals, current.offers
+        targets, homes, postal_codes = dict(current.hint_targets), current.places, current.postal_codes
+    except search_plan.ProfileGap as gap:
+        hints, targets = [str(gap)], {str(gap): gap.field}
     except ValueError as error:
         hints = [str(error)]
     found = sorted(store.all(), key=lambda h: h.get("gefunden_am", ""), reverse=True)
-    return json_antwort({"treffer": [{**hit, "ohne_text": not store.text(hit["id"]).strip()} for hit in found],
+    return json_antwort({"treffer": [{**hit, "ohne_text": not store.text(hit["id"]).strip(),
+                                      "nah": is_near(str(hit.get("ort", "")), homes, postal_codes)} for hit in found],
+                         "hinweis_ziele": targets,
                          "angebote": list(offers), **routes_career.searched_now(k),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals),
                          "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN})
