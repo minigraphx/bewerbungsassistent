@@ -477,3 +477,18 @@ def test_a_trial_apprenticeship_gets_a_request_not_a_letter_of_application(daten
     trial, application = (call["system"][1]["text"] for call in client.messages.calls)
     assert "Anfrage für eine Schnupperlehre" in trial and "keine Bewerbung" in trial
     assert "Anfrage für eine Schnupperlehre" not in application
+
+
+def test_a_refused_request_leaves_its_reason_in_the_log(caplog):
+    error = anthropic.BadRequestError("Error code: 400 - Schema is too complex", response=response(400), body=None)
+    with caplog.at_level("WARNING"):
+        assert str(errors.from_sdk(error)) == errors.REJECTED_REQUEST
+    assert "Schema is too complex" in caplog.text
+
+
+def test_the_log_of_a_refused_request_holds_no_long_token(caplog):
+    secret = "sk-ant-erfunden-0123456789-abcdefghij"
+    error = anthropic.BadRequestError(f"rejected {secret}", response=response(400), body=None)
+    with caplog.at_level("WARNING"):
+        errors.from_sdk(error)
+    assert "rejected" in caplog.text and secret not in caplog.text

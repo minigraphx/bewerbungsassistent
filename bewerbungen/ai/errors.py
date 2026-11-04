@@ -1,5 +1,10 @@
 """Errors of AI calls as short German messages for the app. Access keys never appear in a message."""
+import logging
+import re
+
 import anthropic
+
+log = logging.getLogger("bewerbungsassistent")
 
 
 class AiError(Exception):
@@ -23,7 +28,8 @@ NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. In der App die Einladung einl
               "(oder für die Entwicklung ANTHROPIC_API_KEY setzen).")
 ACCESS_DENIED = ("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen "
                  "prüfen. Sonst bei der Person melden, die Sie im Pilot begleitet.")
-NO_CREDIT = "Das Guthaben Ihres API-Schlüssels reicht nicht mehr. Bitte bei Anthropic aufladen."
+NO_CREDIT = ("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. "
+             "Sonst bei der Person melden, die Sie im Pilot begleitet.")
 BUDGET_USED = "Das Budget für die KI ist für diesen Monat aufgebraucht. Ab dem nächsten Monat geht es wieder."
 RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} Sekunden nochmals versuchen."
 TIMEOUT = "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen."
@@ -35,6 +41,8 @@ TOO_LONG = "Die Antwort der KI war zu lang und ist unvollständig. Bitte nochmal
 BAD_ANSWER = "Die Antwort der KI liess sich nicht lesen. Bitte nochmals versuchen."
 DEFAULT_RETRY_SECONDS = 60
 BUDGET_STATUS = 402  # the mediation (MIN-344) answers 402 when the monthly budget is used up
+MAX_LOGGED_REASON = 400
+LONG_TOKEN = re.compile(r"[A-Za-z0-9_-]{24,}")  # a key or an access never reaches the log, not even inside a message
 NO_CREDIT_WORDS = "credit balance"  # how the API says it, with status 400, to someone with an own key (MIN-348)
 
 
@@ -54,10 +62,16 @@ def from_sdk(error: Exception) -> AiError:
             return AiError(BUDGET_USED)
         if error.status_code >= 500:
             return AiError(SERVER)
+        log.warning("KI-Anfrage abgelehnt, Status %s: %s", error.status_code, _reason(error))
         if NO_CREDIT_WORDS in str(error.message).lower():
             return AiError(NO_CREDIT)
         return AiError(REJECTED_REQUEST)
     return AiError(SERVER)
+
+
+def _reason(error: anthropic.APIStatusError) -> str:
+    """What the API says about a refused request: about its form, never its content. Only for the log."""
+    return LONG_TOKEN.sub("…", str(error.message))[:MAX_LOGGED_REASON]
 
 
 def _retry_after(error: anthropic.APIStatusError) -> int:
