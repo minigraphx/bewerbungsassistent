@@ -19,7 +19,7 @@ from dateien import lies_yaml, schreibe_yaml
 
 DATEI = "bewerbungen.yaml"
 STATUS = ("Gemerkt", "Bewerben", "Beworben", "Gespräch", "Absage", "Zusage", "Verworfen", "Zurückgezogen")
-TEXTFELDER = ("firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
+TEXTFELDER = ("art", "firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
               "adresse", "kontaktperson", "kontakt")
 DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am")
 JOBROOM_ART = ("elektronisch", "schriftlich", "persönlich", "telefonisch")

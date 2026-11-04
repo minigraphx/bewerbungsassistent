@@ -29,6 +29,12 @@ export function describeRun(run) {
   };
 }
 
+const OFFER_BUTTONS = {
+  lehrstelle: 'Lehrstellen suchen',
+  schnupperlehre: 'Schnupperlehren suchen',
+  'lehrstelle+schnupperlehre': 'Lehrstellen und Schnupperlehren suchen',
+};
+
 /**
  * What the popup says about the search before it starts: the plan is known only while the app runs.
  * @param {{art?: string, portale?: string[]}|null} plan
@@ -40,6 +46,6 @@ export function describePlan(plan) {
   }
   const portals = (plan.portale || []).join(', ').replace(/, ([^,]*)$/, ' und $1');
   return plan.art === 'lehrstelle'
-    ? { button: 'Lehrstellen suchen', text: `Sucht auf ${portals} nach deinem Suchprofil. Die Treffer gehen in die App.` }
+    ? { button: OFFER_BUTTONS[(plan.angebote || []).join('+')] || OFFER_BUTTONS.lehrstelle, text: `Sucht auf ${portals} nach deinem Suchprofil. Die Treffer gehen in die App.` }
     : { button: 'Stellen suchen', text: `Sucht auf ${portals} nach Ihrem Suchprofil. Die Treffer gehen in die App.` };
 }

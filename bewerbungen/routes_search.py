@@ -13,7 +13,7 @@ import unterlagen
 from ai import tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
-from hits import Hits, company_key
+from hits import TRIAL, Hits, company_key
 from server import json_antwort, pflicht
 
 MAX_PROBLEM = 600
@@ -72,13 +72,15 @@ def overview(k, parameter, body):
     store = _hits(k)
     kind = search_plan.kind_of_folder(k.daten)
     portals = search_plan.APPRENTICESHIP_PORTALS if kind == search_plan.KIND_APPRENTICESHIP else search_plan.PORTALS
+    offers: tuple[str, ...] = ()
     try:
         current = search_plan.for_folder(k.daten)
-        hints, portals = list(current.hints), current.portals
+        hints, portals, offers = list(current.hints), current.portals, current.offers
     except ValueError as error:
         hints = [str(error)]
     found = sorted(store.all(), key=lambda h: h.get("gefunden_am", ""), reverse=True)
     return json_antwort({"treffer": [{**hit, "ohne_text": not store.text(hit["id"]).strip()} for hit in found],
+                         "angebote": list(offers),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals),
                          "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN})
 
@@ -191,14 +193,29 @@ def take_over(k, parameter, body):
         fields = {"firma_schluessel": company_key(hit["firma"]), "ort": hit.get("ort"), "pensum": hit.get("pensum"),
                   "portal": portals, "link": hit["link"], "status": "Gemerkt", "notiz": note_for(hit),
                   "passung": (hit.get("bewertung") or {}).get("note")}
-        entry = k.mit_entwurf(register.pfad, f"Treffer {hit['firma']} – {hit['stelle']} übernommen",
-                              lambda: register.neu(firma=hit["firma"], stelle=hit["stelle"],
+        trial = hit.get("art") == TRIAL
+        if trial:
+            fields = {**fields, "art": TRIAL}
+        title = f"{TRIAL} {hit['stelle']}" if trial else hit["stelle"]
+        entry = k.mit_entwurf(register.pfad, f"Treffer {hit['firma']} – {title} übernommen",
+                              lambda: register.neu(firma=hit["firma"], stelle=title,
                                                    **{key: v for key, v in fields.items() if v not in (None, "")}))
         taken = store.update(hit["id"], zustand="uebernommen", bewerbung_id=entry["id"])
     ad = store.ad_text(hit["id"])
     path = unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md"
     k.mit_entwurf(path, f"Stellentext {entry['firma']}", lambda: schreibe_atomar(path, ad.encode("utf-8")))
     return json_antwort(taken)
+
+
+def choose_offers(k, parameter, body):
+    """The wish from the page goes into the search profile: it stays the only place that says what is searched."""
+    choice = body.get("wahl") if isinstance(body, dict) else None
+    path = k.daten / search_plan.PROFILE
+    if not path.is_file():
+        raise ValueError("Es gibt noch kein Suchprofil. Zuerst den Einstieg abschliessen.")
+    changed = search_plan.with_offers(path.read_text(encoding="utf-8"), choice)
+    k.mit_entwurf(path, "Gesucht im Suchprofil geändert", lambda: schreibe_atomar(path, changed.encode("utf-8")))
+    return json_antwort({"angebote": list(search_plan.for_folder(k.daten).offers)})
 
 
 def discard(k, parameter, body):
@@ -209,4 +226,4 @@ def discard(k, parameter, body):
 GET = {"/api/suche/plan": plan, "/api/suche/liste": overview, "/api/suche/text": text}
 POST = {"/api/suche/sichten": screen, "/api/suche/treffer": receive, "/api/suche/abschluss": finish,
         "/api/suche/bewerten": rate, "/api/suche/bewerten-paket": rate_package, "/api/suche/einstellungen": settings,
-        "/api/suche/beruf-sterne": stars, "/api/suche/uebernehmen": take_over, "/api/suche/verwerfen": discard}
+        "/api/suche/beruf-sterne": stars, "/api/suche/angebot": choose_offers, "/api/suche/uebernehmen": take_over, "/api/suche/verwerfen": discard}

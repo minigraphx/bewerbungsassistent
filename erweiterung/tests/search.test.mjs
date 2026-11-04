@@ -286,3 +286,24 @@ test('popup names the portals of the plan, and stays general without one', () =>
     'Sucht auf job-room, jobs.ch und ictjobs nach Ihrem Suchprofil. Die Treffer gehen in die App.');
   assert.equal(describePlan(null).button, 'Suche starten');
 });
+
+test('apprenticeship queries follow the wanted offers', () => {
+  const plan = { art: 'lehrstelle', stichworte: ['A', 'B'], orte: ['Bern'], umkreis_km: 25, lehrbeginn_jahre: [2027], max_abfragen: 30 };
+
+  const both = buildQueries('yousty', { ...plan, angebote: ['lehrstelle', 'schnupperlehre'] }).queries;
+  assert.equal(both.length, 4);
+  assert.equal(both.filter((q) => q.trial).length, 2);
+  assert.deepEqual(both.find((q) => q.trial).years, []);
+  assert.deepEqual(both.find((q) => !q.trial).years, [2027]);
+
+  assert.ok(buildQueries('LENA', { ...plan, angebote: ['schnupperlehre'] }).queries.every((q) => q.trial));
+  assert.ok(buildQueries('LENA', plan).queries.every((q) => !q.trial), 'an older plan searches apprenticeships');
+});
+
+test('the popup names what is searched', () => {
+  const plan = { art: 'lehrstelle', portale: ['LENA', 'yousty'] };
+  assert.equal(describePlan({ ...plan, angebote: ['schnupperlehre'] }).button, 'Schnupperlehren suchen');
+  assert.equal(describePlan({ ...plan, angebote: ['lehrstelle', 'schnupperlehre'] }).button, 'Lehrstellen und Schnupperlehren suchen');
+  assert.equal(describePlan({ ...plan, angebote: ['lehrstelle'] }).button, 'Lehrstellen suchen');
+  assert.equal(describePlan(plan).button, 'Lehrstellen suchen');
+});

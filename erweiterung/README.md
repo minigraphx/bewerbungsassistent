@@ -41,6 +41,8 @@ Das Ergebnis bleibt für diese Seite erhalten, auch wenn das Popup zwischendurch
 
 ## Lehrstellen
 
+Abschnitt „Gesucht“ im Suchprofil oder die Wahl auf der Seite „Treffer“ legen fest, ob Lehrstellen, Schnupperlehren oder beides gesucht werden (MIN-373; Listen `lehrstellen` und `schnupperadressen` auf LENA, `lehrstellen` und `schnupperlehren` auf yousty). Schnupperlehren sind in der App eigene Treffer, und „Übernehmen“ legt eine Anfrage statt einer Bewerbung an.
+
 Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur auf LENA und yousty, pro Beruf im gewählten Umkreis um den Wohnort (Standard 25 km), ohne Wohnort in jedem Kanton. Höchstens 20 Seiten pro Abfrage. Nur Lehrstellen mit dem gewählten Lehrbeginn kommen an; ohne Jahr im Profil alle. Schnupperlehren sucht sie noch nicht.
 
 - **Berufe:** Der Name im Profil wird bei jeder Suche über die Vorschläge des Portals auf dessen Beruf abgebildet, Geschlechtsformen zählen dabei nicht („Fachfrau“, „Fachmann/-frau“; `professionWords` in `portals/common.js`). Findet das Portal einen Beruf oder den Ort nicht, steht das als Problem bei der letzten Suche, und die übrigen Berufe laufen weiter.

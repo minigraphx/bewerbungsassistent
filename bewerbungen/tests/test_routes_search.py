@@ -283,3 +283,69 @@ def test_package_with_an_unusable_answer_reports_what_it_cost(search, monkeypatc
     status, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
 
     assert status == 200 and sorted(answer["offen"]) == sorted(ids) and answer["kosten_usd"] > 0
+
+
+TRIAL = {"portal": "yousty", "portal_id": "schnupperlehre-77", "stelle": "Informatiker/in EFZ", "firma": "Muster GmbH", "ort": "Bern",
+         "link": "https://www.yousty.ch/de-CH/lehrstellen/profile/77-x#schnupperlehre", "art": "Schnupperlehre",
+         "beruf": "Informatiker EFZ", "text": "Schnuppern bei uns."}
+APPRENTICESHIP = {**TRIAL, "portal": "LENA", "portal_id": "77", "art": "Lehrstelle", "text": "Lehrstelle bei uns.",
+                  "link": "https://www.berufsberatung.ch/de/lehrstellen/77"}
+
+
+def apprenticeship_profile(s):
+    shutil.copy(VORLAGEN / "suchprofil-lehrstelle.md", s.kontext.daten / "suchprofil.md")
+
+
+def test_trial_and_apprenticeship_at_one_company_stay_two_hits(search):
+    apprenticeship_profile(search)
+    post(search, "/api/suche/treffer", {"treffer": [APPRENTICESHIP]})
+
+    post(search, "/api/suche/treffer", {"treffer": [TRIAL]})
+
+    assert sorted(t["art"] for t in listing(search)["treffer"]) == ["Lehrstelle", "Schnupperlehre"]
+
+
+def test_a_trial_page_with_the_address_of_a_stored_apprenticeship_is_still_fetched(search):
+    apprenticeship_profile(search)
+    plain = {**APPRENTICESHIP, "portal": "yousty", "link": "https://www.yousty.ch/de-CH/lehrstellen/profile/77-x"}
+    post(search, "/api/suche/treffer", {"treffer": [plain]})
+
+    answer = post(search, "/api/suche/sichten", {"treffer": [TRIAL]})[1]
+
+    assert answer["holen"] == ["yousty:schnupperlehre-77"]
+
+
+def test_taking_over_a_trial_names_it_in_the_register(search):
+    apprenticeship_profile(search)
+    post(search, "/api/suche/treffer", {"treffer": [TRIAL]})
+    hit = listing(search)["treffer"][0]
+
+    post(search, f"/api/suche/uebernehmen?id={hit['id']}", {})
+
+    entry = next(b for b in search.kontext.register().alle() if b.get("art") == "Schnupperlehre")
+    assert entry["stelle"] == "Schnupperlehre Informatiker/in EFZ"
+    folder = search.kontext.daten / "bewerbungen" / entry["id"]
+    assert "Art: Schnupperlehre" in (folder / "stelle.md").read_text(encoding="utf-8")
+
+
+def test_the_page_changes_the_wish_in_the_profile_with_drafts(search):
+    apprenticeship_profile(search)
+    assert listing(search)["angebote"] == ["lehrstelle", "schnupperlehre"], "as in the template"
+
+    status, answer = post(search, "/api/suche/angebot", {"wahl": "schnupperlehre"})
+
+    assert status == 200 and answer["angebote"] == ["schnupperlehre"]
+    assert listing(search)["angebote"] == ["schnupperlehre"]
+    assert json.loads(get(search, "/api/suche/plan")[2])["plan"]["angebote"] == ["schnupperlehre"]
+    assert any(e.datei.endswith("suchprofil.md") for e in search.kontext.ablage.liste())
+
+
+def test_a_job_profile_cannot_change_the_wish(search):
+    assert post(search, "/api/suche/angebot", {"wahl": "beides"})[0] == 400
+
+
+def test_a_bad_wish_is_refused(search):
+    apprenticeship_profile(search)
+
+    assert post(search, "/api/suche/angebot", {"wahl": "ferienjob"})[0] == 400
+    assert post(search, "/api/suche/angebot", "beides")[0] == 400

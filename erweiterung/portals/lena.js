@@ -5,6 +5,8 @@
   const common = globalThis.bewerbungsassistentCommon || require('./common.js');
   const ORIGIN = 'https://www.berufsberatung.ch';
   const SEARCH = '/de/suche/lehrstellen';
+  const TRIAL_SEARCH = '/de/suche/schnupperadressen'; // same form, same ids; the results are addresses (MIN-373)
+  const TRIAL_ID = 'schnupperlehre-';
   const PROFESSION_FIELD = 'input[aria-label^="Beruf"]';
   const PLACE_FIELD = 'input[aria-label^="Ort oder PLZ"]';
   const OPTION = '[data-combobox-option]';
@@ -101,11 +103,35 @@
       params.set('canton', query.canton);
     }
     params.set('profession', profession.value);
-    return `${ORIGIN}${SEARCH}?${params}`;
+    return `${ORIGIN}${searchPath(query)}?${params}`;
+  }
+
+  function searchPath(query) {
+    return query.trial ? TRIAL_SEARCH : SEARCH;
+  }
+
+  function trialHit(card, query) {
+    const link = card.querySelector('a[href*="/schnupperlehren/"]');
+    const id = link && (link.getAttribute('href').match(/\/schnupperlehren\/(\d+)/) || [])[1];
+    const title = common.textOf(card.querySelector('.search-result-title'));
+    if (!id || !title) return null;
+    const company = common.textOf(card.querySelector('.search-result-sup-title, .text-overline-small'));
+    const place = (common.textOf(card).replace(company, '').replace(title, '').match(PLACE_IN_TEXT) || [])[1] || '';
+    return {
+      portal: 'LENA',
+      portal_id: `${TRIAL_ID}${id}`,
+      stelle: title,
+      firma: company,
+      ort: place.trim(),
+      link: `${ORIGIN}/de/schnupperlehren/${id}`,
+      art: 'Schnupperlehre',
+      beruf: query.keyword,
+    };
   }
 
   /** @returns {object|null} null when the title is unknown or the year is not wanted */
   function toHit(card, query) {
+    if (query.trial) return trialHit(card, query);
     const link = card.querySelector('a[href*="/lehrstellen/"]');
     const id = link && (link.getAttribute('href').match(/\/lehrstellen\/(\d+)/) || [])[1];
     const title = common.textOf(card.querySelector('.search-result-title'));
@@ -169,7 +195,7 @@
   }
 
   const adapter = {
-    name: 'LENA', start: `${ORIGIN}${SEARCH}`, list, details, searchUrl, toHit, parseList, parseDetails, searchTerms, pickPlace,
+    name: 'LENA', start: `${ORIGIN}${SEARCH}`, list, details, searchUrl, searchPath, toHit, parseList, parseDetails, searchTerms, pickPlace,
   };
   globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
   globalThis.bewerbungsassistentPortals.LENA = adapter;

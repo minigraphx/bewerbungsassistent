@@ -20,6 +20,7 @@ from dateien import im_ordner
 
 FILES = {"cv": "cv.yaml", "profile": "suchprofil.md", "style": "anschreiben/stil.md",
          "blocks": "anschreiben/bausteine.md"}
+TRIAL = "Schnupperlehre"  # register field „art“
 APPRENTICESHIP_MARK = "## Lehrbeginn"  # section only the apprenticeship search profile has
 MODELS = {"rate": "claude-sonnet-5-5", "draft": "claude-opus-5-5", "review": "claude-sonnet-5-5",
           "prefill": "claude-sonnet-5-5", "rate_package": "claude-sonnet-5-5"}
@@ -158,7 +159,8 @@ def rate_package(gateway: Gateway, material: Material, ads: list[tuple[str, str]
 
 def draft_letter(gateway: Gateway, material: Material, entry: dict, ad_text: str, model: str | None = None) -> dict:
     prompt = prompts.job_prompt(_ad(ad_text), _details(entry))
-    answer = _ask(gateway, material, "draft", prompts.DRAFT, prompt, prompts.DRAFT_SCHEMA, model)
+    instructions = prompts.DRAFT_TRIAL if entry.get("art") == TRIAL else prompts.DRAFT
+    answer = _ask(gateway, material, "draft", instructions, prompt, prompts.DRAFT_SCHEMA, model)
     data = answer.data
     if not _is_draft(data):
         raise AiError(BAD_ANSWER)

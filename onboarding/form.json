@@ -193,6 +193,7 @@
       "fields": [
         {"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "required": true, "maxItems": 5, "max": 100},
         {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600},
+        {"id": "offers", "label": "Was suchst du?", "type": "select", "options": ["Lehrstellen", "Schnupperlehren", "Lehrstellen und Schnupperlehren"], "hint": "Viele suchen zuerst eine Schnupperlehre. Das lässt sich später auf der Seite „Treffer“ ändern. Ohne Auswahl sucht die Erweiterung Lehrstellen."},
         {"id": "start", "label": "Lehrbeginn", "type": "choice", "required": true, "allowOwn": true, "max": 40, "options": {
           "apprenticeship": ["August 2027", "August 2028", "2027 oder 2028", "Noch offen"]
         }},

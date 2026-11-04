@@ -186,3 +186,74 @@ def test_kind_of_folder_needs_no_complete_profile(tmp_path):
     assert search_plan.kind_of_folder(tmp_path) == search_plan.KIND_JOB
     (tmp_path / "suchprofil.md").write_text("## Lehrbeginn\n- 2027\n", encoding="utf-8")
     assert search_plan.kind_of_folder(tmp_path) == search_plan.KIND_APPRENTICESHIP
+
+
+@pytest.mark.parametrize("line, offers", [
+    ("- Lehrstellen", ("lehrstelle",)),
+    ("- Schnupperlehren", ("schnupperlehre",)),
+    ("- Lehrstellen und Schnupperlehren", ("lehrstelle", "schnupperlehre")),
+    ("- beides", ("lehrstelle", "schnupperlehre")),
+])
+def test_the_profile_says_what_is_searched(line, offers):
+    text = apprenticeship_template().replace("## Lehrbeginn", f"## Gesucht\n{line}\n\n## Lehrbeginn", 1)
+
+    plan = search_plan.parse(text)
+
+    assert plan.offers == offers
+    assert plan.as_dict()["angebote"] == list(offers)
+
+
+def test_a_profile_without_the_wish_searches_apprenticeships():
+    assert search_plan.parse(apprenticeship_template().replace("## Gesucht", "## Anderes")).offers == ("lehrstelle",)
+
+
+def test_past_trial_apprenticeships_in_the_profile_are_no_wish():
+    text = apprenticeship_template().replace("## Gesucht", "## Anderes")
+    assert "## Schnupperlehren" in text
+
+    assert search_plan.parse(text).offers == ("lehrstelle",)
+
+
+def test_a_job_profile_has_no_offers():
+    assert search_plan.parse(GENERATED, postal_code="3600").as_dict()["angebote"] == []
+
+
+@pytest.mark.parametrize("choice, offers", [("schnupperlehre", ("schnupperlehre",)), ("beides", ("lehrstelle", "schnupperlehre")),
+                                            ("lehrstelle", ("lehrstelle",))])
+def test_changing_the_wish_keeps_the_rest_of_the_profile(choice, offers):
+    once = search_plan.with_offers(apprenticeship_template(), choice)
+    twice = search_plan.with_offers(once, choice)
+
+    assert twice == once and once.count("## Gesucht") == 1
+    assert search_plan.parse(once).offers == offers
+    assert search_plan.parse(once).keywords == search_plan.parse(apprenticeship_template()).keywords
+    assert "## Eignungstests" in once and "Multicheck" in once
+
+
+def test_changing_the_wish_replaces_the_old_one():
+    first = search_plan.with_offers(apprenticeship_template(), "beides")
+
+    assert search_plan.parse(search_plan.with_offers(first, "schnupperlehre")).offers == ("schnupperlehre",)
+
+
+def test_an_unknown_wish_is_refused():
+    with pytest.raises(ValueError):
+        search_plan.with_offers(apprenticeship_template(), "ferienjob")
+
+
+def test_a_job_profile_cannot_get_the_wish():
+    with pytest.raises(ValueError):
+        search_plan.with_offers(GENERATED, "beides")
+
+
+def test_the_wish_at_the_end_of_a_file_without_a_line_break_is_replaced():
+    text = apprenticeship_template().split("## Gesucht")[1].split("\n", 2)[2] + "\n## Gesucht\n- beides"
+    changed = search_plan.with_offers(text, "schnupperlehre")
+
+    assert changed.count("## Gesucht") == 1 and search_plan.parse(changed).offers == ("schnupperlehre",)
+
+
+def test_a_similar_heading_stays():
+    text = "## Gesuchte Stellen\n- A\n\n" + apprenticeship_template()
+
+    assert "## Gesuchte Stellen\n- A" in search_plan.with_offers(text, "beides")

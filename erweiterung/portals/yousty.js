@@ -8,6 +8,12 @@
   const PROFILE = /\/lehrstellen\/profile\/(\d+)/;
   const FOUND = /[\d’']+ Lehrstellen? gefunden/;
   const NONE = /Keine Lehrstelle/;
+  // Trial apprenticeships have their own list, with the same cards and the same parameters (MIN-373).
+  const TRIAL_SEARCH = '/de-CH/schnupperlehren';
+  const TRIAL_FOUND = /[\d’']+ Schnupperlehren? gefunden/;
+  const TRIAL_NONE = /Keine Schnupperlehre/;
+  const TRIAL_ID = 'schnupperlehre-';
+  const TRIAL_MARK = '#schnupperlehre'; // the profile page is the same for both offers, and known links are not fetched again
   const YEAR = /20\d\d/; // the chip reads „2027verfügbar“
   let professions = null;
 
@@ -18,12 +24,27 @@
       .filter(Boolean);
   }
 
+  function trialHit(item, query, link, id, title) {
+    const [company, place] = [...item.querySelectorAll('.company-info strong')].map(common.textOf);
+    return {
+      portal: 'yousty',
+      portal_id: `${TRIAL_ID}${id}`,
+      stelle: title,
+      firma: company || '',
+      ort: place || '',
+      link: `${ORIGIN}${new URL(link.getAttribute('href'), ORIGIN).pathname}${TRIAL_MARK}`,
+      art: 'Schnupperlehre',
+      beruf: query.keyword,
+    };
+  }
+
   /** @returns {object|null} null for offers that are no apprenticeship (school offers) or not in the wanted years */
   function toHit(item, query) {
     const link = item.querySelector('a[href*="/lehrstellen/profile/"]');
     const id = link && (link.getAttribute('href').match(PROFILE) || [])[1];
     const title = common.textOf(item.querySelector('.title'));
     if (!id || !title) return null;
+    if (query.trial) return trialHit(item, query, link, id, title);
     const years = openYears(item);
     const wanted = query.years && query.years.length ? years.filter((year) => query.years.includes(Number(year))) : years;
     if (!wanted.length) return null;
@@ -44,10 +65,10 @@
 
   function parseList(doc, query, page) {
     const text = doc.body ? doc.body.textContent : '';
-    const counted = FOUND.test(text);
+    const counted = (query.trial ? TRIAL_FOUND : FOUND).test(text);
     // Later pages have no count. Without any hit the page offers other apprenticeships instead: not what was asked for.
     if (page === 1 && !counted) {
-      if (NONE.test(text)) return { hits: [], more: false };
+      if ((query.trial ? TRIAL_NONE : NONE).test(text)) return { hits: [], more: false };
       throw new common.PortalChanged('Die Trefferliste wurde nicht gefunden.');
     }
     const items = [...doc.querySelectorAll('.result')];
@@ -81,9 +102,10 @@
       params.set('job', job);
       params.set('distance', String(query.radius));
     }
-    if (query.years && query.years.length === 1) params.set('year', String(query.years[0]));
+    if (!query.trial && query.years && query.years.length === 1) params.set('year', String(query.years[0]));
     if (page > 1) params.set('page', String(page));
-    const path = query.place ? SEARCH : `${SEARCH}/${encodeURIComponent(query.canton)}/${encodeURIComponent(job)}`;
+    const base = query.trial ? TRIAL_SEARCH : SEARCH;
+    const path = query.place ? base : `${base}/${encodeURIComponent(query.canton)}/${encodeURIComponent(job)}`;
     return `${path}?${params}`;
   }
 

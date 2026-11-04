@@ -119,7 +119,8 @@
       ? el("div", { class: "leise" }, `${t.alter_tage} ${t.alter_tage === 1 ? "Tag" : "Tage"} online`) : null;
     const haupt = el("tr", {},
       el("td", { class: "note" }, note, t.bewertung?.unsicher ? el("span", { class: "unsicher-marke", title: `Note unsicher: ${t.bewertung.unsicher}` }, " ?") : null),
-      el("td", {}, umschalten, " ", el("a", { href: t.link, target: "_blank", rel: "noopener", title: "Inserat auf dem Portal öffnen" }, "↗"),
+      el("td", {}, logik.istSchnupperlehre(t) ? el("span", { class: "art-marke" }, "Schnupperlehre") : null,
+        umschalten, " ", el("a", { href: t.link, target: "_blank", rel: "noopener", title: "Inserat auf dem Portal öffnen" }, "↗"),
         sterne ? el("span", { class: "eigene-sterne", "aria-label": `${sterne} von 5 Sternen` }, sternText(sterne)) : null),
       el("td", {}, t.firma, t.hinweis ? el("span", { class: "marke-status", "data-status": "Beworben", title: t.hinweis }, " schon beworben?") : null),
       el("td", {}, t.ort || ""), el("td", { class: "knapp" }, t.pensum || t.lehrbeginn || ""),
@@ -131,7 +132,10 @@
 
   function zeigeListe() {
     const zustand = $("zustand").value;
-    const sichtbar = logik.sortiert(alle.filter(t => !zustand || t.zustand === zustand), einstellungen.beruf_sterne);
+    $("art").hidden = !logik.beideArten(alle);
+    const art = $("art").hidden ? "" : $("art").value;
+    const passend = logik.nachArt(alle.filter(t => !zustand || t.zustand === zustand), art);
+    const sichtbar = logik.sortiert(passend, einstellungen.beruf_sterne);
     $("liste").replaceChildren(...sichtbar.flatMap(zeile));
     $("leer").hidden = sichtbar.length > 0;
     zeigeBewerten();
@@ -226,14 +230,16 @@
   }
 
   // The page follows the search profile: apprenticeships address the person informally, as everywhere else.
-  function zeigeArt(art, portale) {
+  function zeigeArt(art, portale, angebote) {
     lehrstelle = art === "lehrstelle";
+    $("angebot-wahl").hidden = !lehrstelle;
+    $("angebot").value = logik.wahlAus(angebote);
     $("titel").textContent = lehrstelle ? "Treffer der Lehrstellensuche" : "Treffer der Stellensuche";
-    $("suchen").textContent = lehrstelle ? "Lehrstellen suchen" : "Stellen suchen";
+    $("suchen").textContent = lehrstelle ? logik.sucheText(angebote) : "Stellen suchen";
     $("spalte-rahmen").textContent = lehrstelle ? "Lehrbeginn" : "Pensum";
     $("erweiterung-link").textContent = lehrstelle ? "So richtest du sie ein" : "So richten Sie sie ein";
     $("hilfe").textContent = lehrstelle
-      ? `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach deinem Suchprofil, in deinem Browser und nur, wenn du die Suche startest. Neue Lehrstellen erscheinen hier, und die KI schätzt die Passung als Note von 1 bis 6 ein: nach der Suche von selbst, wenn diese Seite offen ist, sonst auf Knopfdruck. „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`
+      ? `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach deinem Suchprofil, in deinem Browser und nur, wenn du die Suche startest. Neue Treffer erscheinen hier, und die KI schätzt die Passung als Note von 1 bis 6 ein: nach der Suche von selbst, wenn diese Seite offen ist, sonst auf Knopfdruck. „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`
       : `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier, und die KI schätzt die Passung als Note von 1 bis 6 ein: nach der Suche von selbst, wenn diese Seite offen ist, sonst auf Knopfdruck. „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`;
   }
 
@@ -244,7 +250,7 @@
       einstellungen = daten.einstellungen;
       paket = daten.paket;
       grenze = daten.grenze;
-      zeigeArt(daten.art, daten.portale || []);
+      zeigeArt(daten.art, daten.portale || [], daten.angebote || []);
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || []);
       zeigeListe();
     } catch (fehler) {
@@ -293,6 +299,17 @@
     window.postMessage({ quelle: SEITE, art: "suche-starten" }, location.origin);
   });
   $("zustand").addEventListener("change", zeigeListe);
+  $("art").addEventListener("change", zeigeListe);
+  $("angebot").addEventListener("change", async () => {
+    try {
+      const { angebote } = await senden("/api/suche/angebot", { wahl: $("angebot").value });
+      $("suchen").textContent = logik.sucheText(angebote);
+      status($("lauf"), "");
+    } catch (fehler) {
+      status($("lauf"), fehler.message, "fehler");
+      lade();
+    }
+  });
   $("anhalten").addEventListener("click", () => {
     if (bewertungslauf) bewertungslauf.halt = true;
     $("anhalten").disabled = true;

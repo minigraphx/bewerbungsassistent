@@ -5,7 +5,8 @@ sections Region, Keywords and Titelfilter, and the table in „Portale und Rhyth
 einstieg template only has place of residence and cantons; the rest is derived from them.
 
 An apprenticeship profile (section „Lehrbeginn“, MIN-365) searches other portals: its professions take the place
-of the keywords, around the place of residence or else in the cantons.
+of the keywords, around the place of residence or else in the cantons. Section „Gesucht“ says whether apprenticeships,
+trial apprenticeships or both (MIN-373); „Schnupperlehren“ in such a profile lists those already done, not a wish.
 """
 import dataclasses
 import pathlib
@@ -41,6 +42,16 @@ DEFAULT_RADIUS_KM = 25
 MIN_RADIUS_KM = 5
 MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
+OFFERS_SECTION = "## Gesucht"
+OFFER_APPRENTICESHIP = "lehrstelle"
+OFFER_TRIAL = "schnupperlehre"
+CHOICE_BOTH = "beides"
+# What the page can choose: the offers it stands for and the words in the profile, the same as in the form.
+OFFER_CHOICES = {
+    OFFER_APPRENTICESHIP: ((OFFER_APPRENTICESHIP,), "Lehrstellen"),
+    OFFER_TRIAL: ((OFFER_TRIAL,), "Schnupperlehren"),
+    CHOICE_BOTH: ((OFFER_APPRENTICESHIP, OFFER_TRIAL), "Lehrstellen und Schnupperlehren"),
+}
 PROFILE = "suchprofil.md"
 DIRECTION = re.compile(r"^\d+\.\s+(.+)$")
 PAIR = re.compile(r"^-\s+([^:]+):\s*(.*)$")
@@ -64,6 +75,7 @@ class SearchPlan:
     kind: str = KIND_JOB
     radius_km: int = DEFAULT_RADIUS_KM
     start_years: tuple[int, ...] = ()
+    offers: tuple[str, ...] = ()
 
     def as_dict(self) -> dict:
         pages = MAX_APPRENTICESHIP_PAGES if self.kind == KIND_APPRENTICESHIP else MAX_PAGES
@@ -71,7 +83,7 @@ class SearchPlan:
                 "nischen": list(self.niche_keywords), "kantone": list(self.cantons), "orte": list(self.places),
                 "plz": list(self.postal_codes), "regionen": list(self.regions),
                 "titel_ausschluss": list(self.title_exclude), "umkreis_km": self.radius_km,
-                "lehrbeginn_jahre": list(self.start_years), "max_seiten": pages, "max_abfragen": MAX_QUERIES,
+                "lehrbeginn_jahre": list(self.start_years), "angebote": list(self.offers), "max_seiten": pages, "max_abfragen": MAX_QUERIES,
                 "max_alter_tage": MAX_AGE_DAYS, "hinweise": list(self.hints)}
 
 
@@ -141,6 +153,26 @@ def _radius(value: str) -> int:
     return min(MAX_RADIUS_KM, max(MIN_RADIUS_KM, int(number.group()))) if number else DEFAULT_RADIUS_KM
 
 
+def _offers(lines: list[str]) -> tuple[str, ...]:
+    """What the section „Gesucht“ asks for; without a clear wish, apprenticeships."""
+    wish = " ".join(lines).lower()
+    trial, apprenticeship = "schnupper" in wish, "lehrstelle" in wish
+    if "beid" in wish or (trial and apprenticeship):
+        return OFFER_CHOICES[CHOICE_BOTH][0]
+    return (OFFER_TRIAL,) if trial else (OFFER_APPRENTICESHIP,)
+
+
+def with_offers(text: str, choice: str) -> str:
+    """The profile text with this wish in section „Gesucht“; everything else stays as it is."""
+    if choice not in OFFER_CHOICES:
+        raise ValueError("Bitte Lehrstellen, Schnupperlehren oder beides wählen.")
+    if APPRENTICESHIP_MARK not in text:
+        raise ValueError("Schnupperlehren gibt es nur bei der Lehrstellensuche.")
+    section = f"{OFFERS_SECTION}\n- {OFFER_CHOICES[choice][1]}\n\n"
+    without = re.sub(rf"^{OFFERS_SECTION}[ \t]*(?:\n|\Z)(?:(?!## ).*\n?)*", "", text, flags=re.MULTILINE)
+    return without.replace(APPRENTICESHIP_MARK, section + APPRENTICESHIP_MARK, 1)
+
+
 def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
     professions = _professions(sections.get("berufe (mit priorität)", []))
     if not professions:
@@ -159,7 +191,7 @@ def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
     modes = _modes(sections.get("portale und rhythmus", []))
     return SearchPlan(keywords=professions, cantons=cantons, places=places, hints=hints, kind=KIND_APPRENTICESHIP,
                       portals=tuple(p for p in APPRENTICESHIP_PORTALS if modes.get(p.lower()) != MODE_OFF),
-                      radius_km=radius, start_years=tuple(years))
+                      radius_km=radius, start_years=tuple(years), offers=_offers(sections.get("gesucht", [])))
 
 
 def parse(text: str, postal_code: str | None = None) -> SearchPlan:

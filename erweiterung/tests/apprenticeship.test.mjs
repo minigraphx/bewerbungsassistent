@@ -166,3 +166,58 @@ test('LENA: a place must match exactly, a postal code takes the first suggestion
 test('the adapters load side by side and register under the name of the plan', () => {
   assert.deepEqual(Object.keys(globalThis.bewerbungsassistentPortals).sort(), ['LENA', 'yousty']);
 });
+
+const TRIAL = { ...QUERY, trial: true, years: [] };
+
+test('yousty trial: own id and address, so it stays apart from the apprenticeship of the same profile', () => {
+  const hit = yousty.toHit(youstyCard({ chips: [] }), TRIAL);
+
+  assert.equal(hit.art, 'Schnupperlehre');
+  assert.equal(hit.portal_id, 'schnupperlehre-8690204');
+  assert.equal(hit.link, 'https://www.yousty.ch/de-CH/lehrstellen/profile/8690204-fage-bern#schnupperlehre');
+  assert.equal(hit.lehrbeginn, undefined);
+  assert.notEqual(hit.portal_id, yousty.toHit(youstyCard(), QUERY).portal_id);
+});
+
+test('yousty trial: own list with its own words, also for no result', () => {
+  const none = youstyDoc({ body: 'Keine Schnupperlehre gefunden', cards: [youstyCard({ chips: [] })] });
+  assert.deepEqual(yousty.parseList(none, TRIAL, 1), { hits: [], more: false });
+  const some = youstyDoc({ body: '35 Schnupperlehren gefunden', cards: [youstyCard({ chips: [] })] });
+  assert.equal(yousty.parseList(some, TRIAL, 1).hits[0].art, 'Schnupperlehre');
+  assert.throws(() => yousty.parseList(youstyDoc({ body: '3 Lehrstellen gefunden' }), TRIAL, 1), (error) => error.changed === true);
+});
+
+test('yousty trial address: place or canton on the own list, without a year', () => {
+  const near = new URL(yousty.searchUrl({ ...TRIAL, years: [2027] }, '1712-x', 1), 'https://www.yousty.ch');
+  assert.equal(near.pathname, '/de-CH/schnupperlehren');
+  assert.equal(near.searchParams.get('place'), 'Bern');
+  assert.equal(near.searchParams.get('job'), '1712-x');
+  assert.equal(near.searchParams.get('year'), null);
+  const { place, radius, ...withoutPlace } = TRIAL;
+  const canton = new URL(yousty.searchUrl({ ...withoutPlace, canton: 'BE' }, '1712-x', 1), 'https://www.yousty.ch');
+  assert.equal(canton.pathname, '/de-CH/schnupperlehren/BE/1712-x');
+});
+
+test('LENA trial: address card as hit, with the link of the trial page', () => {
+  const card = element({
+    text: 'Muster AG Abdichter/-in EFZ Bern (BE) Adresse',
+    one: {
+      'a[href*="/schnupperlehren/"]': element({ attributes: { href: '/de/schnupperlehren/123' } }),
+      '.search-result-title': element({ text: 'Abdichter/-in EFZ' }),
+      '.search-result-sup-title, .text-overline-small': element({ text: 'Muster AG' }),
+    },
+  });
+
+  const hit = lena.toHit(card, TRIAL);
+
+  assert.equal(hit.art, 'Schnupperlehre');
+  assert.equal(hit.portal_id, 'schnupperlehre-123');
+  assert.equal(hit.link, 'https://www.berufsberatung.ch/de/schnupperlehren/123');
+  assert.equal(hit.ort, 'Bern (BE)');
+  assert.equal(hit.firma, 'Muster AG');
+});
+
+test('LENA: the search path follows the query', () => {
+  assert.equal(lena.searchPath(TRIAL), '/de/suche/schnupperadressen');
+  assert.equal(lena.searchPath(QUERY), '/de/suche/lehrstellen');
+});

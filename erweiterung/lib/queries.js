@@ -26,7 +26,9 @@ function apprenticeshipQueries(plan) {
   const area = (plan.orte || []).length
     ? plan.orte.map((place) => ({ place, radius: plan.umkreis_km }))
     : (plan.kantone || []).map((canton) => ({ canton }));
-  return (plan.stichworte || []).flatMap((keyword) => area.map((where) => ({ keyword, years, ...where })));
+  const offers = (plan.angebote || []).length ? plan.angebote : ['lehrstelle'];
+  return offers.flatMap((offer) => (plan.stichworte || []).flatMap((keyword) => area.map((where) => (
+    offer === 'schnupperlehre' ? { keyword, years: [], trial: true, ...where } : { keyword, years, ...where }))));
 }
 
 /**

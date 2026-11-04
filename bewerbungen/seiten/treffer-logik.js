@@ -74,7 +74,32 @@
     return kosten.length ? kosten.reduce((summe, k) => summe + k, 0) / kosten.length : null;
   }
 
-  const logik = { zuBewerten, knoepfe, alleBewertet, sortiert, pakete, bewerteAlle, kostenProTreffer };
+  const SUCHE_TEXTE = { lehrstelle: "Lehrstellen suchen", schnupperlehre: "Schnupperlehren suchen",
+    beides: "Lehrstellen und Schnupperlehren suchen" };
+
+  /** The choice on the page for the offers of the plan (MIN-373). */
+  function wahlAus(angebote) {
+    if (angebote.length > 1) return "beides";
+    return angebote[0] || "lehrstelle";
+  }
+
+  function sucheText(angebote) {
+    return SUCHE_TEXTE[wahlAus(angebote)];
+  }
+
+  const istSchnupperlehre = t => t.art === "Schnupperlehre";
+
+  function beideArten(treffer) {
+    return treffer.some(istSchnupperlehre) && treffer.some(t => !istSchnupperlehre(t));
+  }
+
+  /** Hits of one kind; empty means all. Hits saved before MIN-373 have no kind and are apprenticeships. */
+  function nachArt(treffer, art) {
+    if (!art) return treffer;
+    return treffer.filter(t => istSchnupperlehre(t) === (art === "Schnupperlehre"));
+  }
+
+  const logik = { sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, pakete, bewerteAlle, kostenProTreffer };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

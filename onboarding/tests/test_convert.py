@@ -160,3 +160,11 @@ def test_without_gaps_the_files_say_they_come_later(form):
 
         assert "## Lücken (offen benennen)\n- Noch keine. Der Assistent ergänzt sie nach und nach" in files["anschreiben/bausteine.md"]
         assert "## Typische Haken (offen benennen)\n- Noch keine." in files["suchprofil.md"]
+
+
+def test_the_wish_for_trial_apprenticeships_reaches_the_search_profile():
+    import markdown_files
+
+    sections = dict(markdown_files._search_apprenticeship({"searchApprenticeship": {"offers": "Schnupperlehren"}}))
+
+    assert sections["Gesucht"] == ["- Schnupperlehren"]

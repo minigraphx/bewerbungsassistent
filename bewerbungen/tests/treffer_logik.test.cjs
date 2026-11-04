@@ -99,3 +99,25 @@ test("all rated only when every new hit has a grade", () => {
   assert.equal(logik.alleBewertet([{ zustand: "verworfen" }]), false);
   assert.equal(logik.alleBewertet([]), false);
 });
+
+test("the search button names what is searched", () => {
+  assert.equal(logik.sucheText(["schnupperlehre"]), "Schnupperlehren suchen");
+  assert.equal(logik.sucheText(["lehrstelle", "schnupperlehre"]), "Lehrstellen und Schnupperlehren suchen");
+  assert.equal(logik.sucheText(["lehrstelle"]), "Lehrstellen suchen");
+  assert.equal(logik.sucheText([]), "Lehrstellen suchen");
+});
+
+test("the wish on the page comes from the offers", () => {
+  assert.equal(logik.wahlAus(["schnupperlehre"]), "schnupperlehre");
+  assert.equal(logik.wahlAus(["lehrstelle", "schnupperlehre"]), "beides");
+  assert.equal(logik.wahlAus(["lehrstelle"]), "lehrstelle");
+});
+
+test("the filter by kind appears when both kinds are there and keeps hits without a kind with apprenticeships", () => {
+  const hits = [{ id: "a", art: "Lehrstelle" }, { id: "b", art: "Schnupperlehre" }, { id: "c" }];
+  assert.equal(logik.beideArten(hits), true);
+  assert.equal(logik.beideArten([hits[0], hits[2]]), false);
+  assert.deepEqual(logik.nachArt(hits, "Schnupperlehre").map(t => t.id), ["b"]);
+  assert.deepEqual(logik.nachArt(hits, "Lehrstelle").map(t => t.id), ["a", "c"]);
+  assert.equal(logik.nachArt(hits, "").length, 3);
+});

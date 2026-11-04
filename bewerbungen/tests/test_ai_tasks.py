@@ -465,3 +465,15 @@ def test_text_that_cannot_be_masked_counts_against_the_package_not_the_run(daten
         tasks.rate_package(gateway, material, ADS)
 
     assert caught.value.cost_usd is None and client.messages.calls == []
+
+
+def test_a_trial_apprenticeship_gets_a_request_not_a_letter_of_application(daten):
+    client = FakeClient(reply=DRAFT)
+    gateway, material = gateway_for(daten, client, ENTRY)
+
+    tasks.draft_letter(gateway, material, {**ENTRY, "art": "Schnupperlehre"}, AD)
+    tasks.draft_letter(gateway, material, ENTRY, AD)
+
+    trial, application = (call["system"][1]["text"] for call in client.messages.calls)
+    assert "Anfrage für eine Schnupperlehre" in trial and "keine Bewerbung" in trial
+    assert "Anfrage für eine Schnupperlehre" not in application

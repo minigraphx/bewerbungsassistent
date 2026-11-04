@@ -15,6 +15,13 @@
   <p class="hilfe" id="hilfe">Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier. „Bewerten“ lässt die KI die Passung als Note von 1 bis 6 einschätzen; „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.</p>
 
   <div class="knoepfe">
+    <label id="angebot-wahl" class="auswahl angebot-wahl" hidden>Was suchst du?
+      <select id="angebot">
+        <option value="lehrstelle">Lehrstellen</option>
+        <option value="schnupperlehre">Schnupperlehren</option>
+        <option value="beides">Lehrstellen und Schnupperlehren</option>
+      </select>
+    </label>
     <button type="button" id="suchen" class="haupt" disabled>Stellen suchen</button>
     <span id="lauf" class="status" role="status" aria-live="polite"></span>
   </div>
@@ -28,6 +35,11 @@
       <option value="uebernommen">Übernommen</option>
       <option value="verworfen">Verworfen</option>
       <option value="">Alle</option>
+    </select>
+    <select id="art" aria-label="Art" hidden>
+      <option value="">Alle Arten</option>
+      <option value="Lehrstelle">Nur Lehrstellen</option>
+      <option value="Schnupperlehre">Nur Schnupperlehren</option>
     </select>
     <span id="bewerten-knoepfe" class="knoepfe-inline"></span>
     <button type="button" id="anhalten" hidden>Anhalten</button>

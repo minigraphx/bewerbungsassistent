@@ -36,6 +36,7 @@ Mehrere Inserate: Jedes steht in einem eigenen Block mit einer Kennung.
 - uncertain: Ist das Inserat so knapp, dass die Note wenig sagt, nenne in einem kurzen Satz, was fehlt. Sonst leer lassen."""
 RATE_PACKAGE = RATE + _PACKAGE_RULES
 RATE_PACKAGE_APPRENTICESHIP = RATE_APPRENTICESHIP + _PACKAGE_RULES + """
+- Steht in einem Inserat „Art: Schnupperlehre“, geht es um einige Tage zum Kennenlernen, nicht um die Lehrstelle: Bewerte Beruf und Schulweg. Der Text ist oft nur eine Adresse; das senkt die Note nicht und ist kein Grund für uncertain.
 - profession_grade: eine zweite Note von 1 bis 6, nur für den Beruf selbst: Passt er zu den Fähigkeiten und Wünschen der Person, unabhängig von diesem Betrieb? grade bleibt die Note für diese Lehrstelle."""
 
 DRAFT = """Aufgabe: Entwirf das Anschreiben für die Stelle im Inserat, eine Seite.
@@ -45,6 +46,16 @@ DRAFT = """Aufgabe: Entwirf das Anschreiben für die Stelle im Inserat, eine Sei
 - Konkretes zur Firma nur aus dem Inserat.
 - Ist eine Ansprechperson bekannt (Platzhalter in den Angaben zur Stelle), sprich sie mit Namen an; sonst eine allgemeine Anrede aus dem Stilprofil.
 - Höchstens etwa 250 Wörter im Brieftext, 3 bis 5 Absätze, ohne Anrede und Gruss.
+- claims: jede inhaltliche Aussage des Briefs mit ihrem Beleg (Abschnitt und Eintrag aus Lebenslauf oder Bausteinen). Was du nicht belegen kannst, schreibst du nicht."""
+
+DRAFT_TRIAL = """Aufgabe: Entwirf die Anfrage für eine Schnupperlehre an den Betrieb im Inserat. Das ist keine Bewerbung um eine Lehrstelle: Die Person möchte den Beruf und den Betrieb einige Tage kennenlernen.
+
+- Bitte in der Sie-Form an den Betrieb um eine Schnupperlehre im genannten Beruf, freundlich und direkt.
+- Sag, warum der Beruf die Person interessiert, und nenne Schule und Klasse, falls bekannt. Verlange nicht, was erst für eine Lehrstelle zählt (Zeugnisse, Eignungstests).
+- Frage nach einem möglichen Zeitraum; nenne ihn, falls er im Suchprofil steht.
+- Das Inserat ist oft nur eine Adresse. Konkretes zur Firma nur aus dem Inserat, nichts dazuerfinden.
+- Ist eine Ansprechperson bekannt (Platzhalter in den Angaben zur Stelle), sprich sie mit Namen an; sonst eine allgemeine Anrede aus dem Stilprofil.
+- Höchstens etwa 120 Wörter im Brieftext, 2 bis 3 Absätze, ohne Anrede und Gruss.
 - claims: jede inhaltliche Aussage des Briefs mit ihrem Beleg (Abschnitt und Eintrag aus Lebenslauf oder Bausteinen). Was du nicht belegen kannst, schreibst du nicht."""
 
 REVIEW = """Aufgabe: Prüfe Lebenslauf und Anschreiben inhaltlich gegen das Inserat.

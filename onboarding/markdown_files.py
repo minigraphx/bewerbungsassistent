@@ -79,6 +79,7 @@ def _search_apprenticeship(data: dict) -> list[tuple[str, list[str]]]:
     return [
         ("Person", _pairs(("Name", person.get("name")), ("Sprache der Antworten", "Deutsch"),
                           ("Begleitperson", search.get("companion")))),
+        ("Gesucht", _bullets([inline(search.get("offers"))])),
         ("Lehrbeginn", _bullets([inline(search.get("start"))])),
         ("Berufe (mit Priorität)", _numbered(search.get("professions"))),
         ("Berufswahl", _bullets([inline(search.get("howFound"))])),

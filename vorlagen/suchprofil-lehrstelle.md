@@ -7,6 +7,9 @@ Kopie in den privaten Datenordner legen (`suchprofil.md`) und ausfüllen, z.B. m
 - Sprache der Antworten: Deutsch
 - Begleitperson: Mutter (liest mit)
 
+## Gesucht
+- Lehrstellen und Schnupperlehren
+
 ## Lehrbeginn
 - August 2027
 

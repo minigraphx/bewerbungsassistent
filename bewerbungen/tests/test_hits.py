@@ -198,3 +198,8 @@ def test_other_profession_in_the_same_company_stays_a_hit_of_its_own(store):
 def test_link_of_an_apprenticeship_must_belong_to_its_portal(store):
     wrong = {**LENA_HIT, "link": "https://www.yousty.ch/de-CH/lehrstellen/profile/1"}
     assert store.add([wrong], [], TODAY)["neu"] == 0
+
+
+def test_details_name_a_trial_and_leave_others_as_they_are():
+    assert hits.ad_with_details({"stelle": "X", "art": "Schnupperlehre"}, "Text").startswith("Art: Schnupperlehre\n")
+    assert "Art:" not in hits.ad_with_details({"stelle": "X", "art": "Lehrstelle"}, "Text")

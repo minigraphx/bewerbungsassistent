@@ -30,6 +30,7 @@ MAX_ID = 200
 MAX_TEXT = 30_000
 MAX_HITS_PER_CALL = 100
 LEGAL_FORMS = {"ag", "gmbh", "sa", "sarl", "sagl", "ltd", "llc", "inc", "kg", "co", "se", "plc", "bv"}
+TRIAL = "Schnupperlehre"
 CLOSED = {"Absage", "Verworfen", "Zurückgezogen"}
 _LOCK = threading.Lock()
 
@@ -100,8 +101,11 @@ def company_key(name: str) -> str:
 
 
 def _job_key(hit: dict) -> str:
-    """Company and job. The portals name a profession differently, so the search's own name for it counts first."""
-    return f"{company_key(hit['firma'])}|{slug(hit.get('beruf') or hit['stelle'])}"
+    """Company and job. The portals name a profession differently, so the search's own name for it counts first.
+
+    A trial apprenticeship and an apprenticeship at one company are two offers.
+    """
+    return f"{company_key(hit['firma'])}|{slug(hit.get('beruf') or hit['stelle'])}|{hit.get('art') == TRIAL}"
 
 
 def _places(ort: str) -> set[str]:
@@ -155,7 +159,8 @@ def ad_with_details(hit: dict, body: str) -> str:
     """Details and text of an ad, as the AI rates it and as it goes into stelle.md."""
     labels = (("Stelle", "stelle"), ("Firma", "firma"), ("Ort", "ort"), ("Pensum", "pensum"),
               ("Lehrbeginn", "lehrbeginn"), ("Link", "link"))
-    head = "\n".join(f"{label}: {hit[field]}" for label, field in labels if hit.get(field))
+    kind = [f"Art: {TRIAL}"] if hit.get("art") == TRIAL else []
+    head = "\n".join(kind + [f"{label}: {hit[field]}" for label, field in labels if hit.get(field)])
     return f"{head}\n\n{body}" if body else head
 
 
