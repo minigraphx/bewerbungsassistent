@@ -22,6 +22,7 @@ HITS_FILE = "treffer.yaml"
 RUN_FILE = "letzte-suche.yaml"
 SETTINGS_FILE = "einstellungen.yaml"
 OWN_SITES = "weitere_seiten"
+PORTALS_OFF = "portale_aus"
 MAX_STARS = 5
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
@@ -321,7 +322,8 @@ class Hits:
         stars = raw.get("beruf_sterne") if isinstance(raw.get("beruf_sterne"), dict) else {}
         clean = {str(k): v for k, v in stars.items() if type(v) is int and 1 <= v <= MAX_STARS}
         return {"auto_bewerten": raw.get("auto_bewerten") is not False, "zuschauen": raw.get("zuschauen") is True, "beruf_sterne": clean,
-                OWN_SITES: raw.get(OWN_SITES) if isinstance(raw.get(OWN_SITES), list) else []}
+                OWN_SITES: raw.get(OWN_SITES) if isinstance(raw.get(OWN_SITES), list) else [],
+                PORTALS_OFF: raw.get(PORTALS_OFF) if isinstance(raw.get(PORTALS_OFF), list) else None}
 
     def _save_settings(self, settings: dict) -> dict:
         schreibe_yaml(self.folder / SETTINGS_FILE, settings)
@@ -334,6 +336,10 @@ class Hits:
     def set_auto_rating(self, enabled: bool) -> dict:
         with _LOCK:
             return self._save_settings({**self.settings(), "auto_bewerten": enabled})
+
+    def set_portals_off(self, portals: list[str]) -> dict:
+        with _LOCK:
+            return self._save_settings({**self.settings(), PORTALS_OFF: portals})
 
     def set_watching(self, enabled: bool) -> dict:
         with _LOCK:

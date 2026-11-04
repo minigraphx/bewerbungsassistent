@@ -15,7 +15,7 @@ from ai import connection, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
 import routes_career
-from hits import TRIAL, Hits, company_key, is_near
+from hits import PORTALS_OFF, TRIAL, Hits, company_key, is_near
 from server import json_antwort, pflicht
 
 MAX_PROBLEM = 600
@@ -38,7 +38,8 @@ def _list(body, field: str = "treffer") -> list:
 
 def plan(k, parameter, body):
     store = _hits(k)
-    return json_antwort({"plan": {**search_plan.for_folder(k.daten).as_dict(), "zuschauen": store.settings()["zuschauen"],
+    current = search_plan.chosen(search_plan.for_folder(k.daten), store.settings()[PORTALS_OFF])
+    return json_antwort({"plan": {**current.as_dict(), "zuschauen": store.settings()["zuschauen"],
                                   "eigener_schluessel": connection.has_own_key(), "weitere_seiten": own_sites.active(store)}})
 
 
@@ -88,8 +89,12 @@ def overview(k, parameter, body):
     targets: dict[str, str] = {}
     homes: tuple[str, ...] = ()
     postal_codes: tuple[str, ...] = ()
+    off = store.settings()[PORTALS_OFF]
+    choice = search_plan.portal_choice(search_plan.SearchPlan(keywords=(), kind=kind, portals=portals), off)
     try:
-        current = search_plan.for_folder(k.daten)
+        profile = search_plan.for_folder(k.daten)
+        current = search_plan.chosen(profile, off)
+        choice = search_plan.portal_choice(profile, off)
         hints, portals, offers = list(current.hints), current.portals, current.offers
         targets, homes, postal_codes = dict(current.hint_targets), current.places, current.postal_codes
     except search_plan.ProfileGap as gap:
@@ -101,7 +106,7 @@ def overview(k, parameter, body):
                                       "nah": is_near(str(hit.get("ort", "")), homes, postal_codes)} for hit in found],
                          "hinweis_ziele": targets,
                          "angebote": list(offers), **routes_career.searched_now(k),
-                         "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals),
+                         "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
                          "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN})
 
 
@@ -176,6 +181,9 @@ def rate_package(k, parameter, body):
 
 
 def settings(k, parameter, body):
+    if isinstance(body, dict) and PORTALS_OFF in body:
+        wanted = search_plan.checked_choice(body[PORTALS_OFF], search_plan.kind_of_folder(k.daten))
+        return json_antwort(_hits(k).set_portals_off(wanted))
     if isinstance(body, dict) and isinstance(body.get("zuschauen"), bool):
         return json_antwort(_hits(k).set_watching(body["zuschauen"]))
     if not isinstance(body, dict) or not isinstance(body.get("auto_bewerten"), bool):

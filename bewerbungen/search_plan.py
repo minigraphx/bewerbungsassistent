@@ -17,6 +17,14 @@ import yaml
 PORTALS = ("job-room", "jobs.ch", "jobscout24", "ictjobs")
 APPRENTICESHIP_PORTALS = ("LENA", "yousty")
 ALL_PORTALS = PORTALS + APPRENTICESHIP_PORTALS
+PORTAL_HINTS = {"job-room": "Stellen der RAV, alle Berufe", "jobs.ch": "alle Berufe", "jobscout24": "alle Berufe",
+                "ictjobs": "nur Informatik", "LENA": "offizielle Lehrstellen der Kantone", "yousty": "Lehrstellen und Schnupperlehren"}
+SPECIALIST_PORTAL = "ictjobs"
+COMPUTING = re.compile(r"informati|software|entwickl|developer|programm|devops|cloud|netzwerk|system|admin|cyber|security"
+                       r"|\bit\b|\bict\b|\bki\b|\bai\b|data|daten|digital|applikation|web|frontend|backend|fullstack"
+                       r"|engineer|python|java|typescript|sql|linux|sap", re.IGNORECASE)
+NO_PORTAL_LEFT = "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts."
+BAD_CHOICE = "Diese Auswahl der Portale geht nicht."
 KIND_JOB = "stelle"
 KIND_APPRENTICESHIP = "lehrstelle"
 CANTONS = ("AG", "AI", "AR", "BE", "BL", "BS", "FR", "GE", "GL", "GR", "JU", "LU", "NE", "NW", "OW", "SG", "SH",
@@ -105,6 +113,40 @@ class SearchPlan:
                 "lehrbeginn_jahre": list(self.start_years), "angebote": list(self.offers), "max_seiten": pages, "max_abfragen": MAX_QUERIES,
                 "max_alter_tage": MAX_AGE_DAYS, "max_texte": MAX_TEXTS, "hinweise": list(self.hints), "schweizweit": self.nationwide,
                 "hinweis_ziele": dict(self.hint_targets)}
+
+
+def _portals_of_kind(kind: str) -> tuple[str, ...]:
+    return APPRENTICESHIP_PORTALS if kind == KIND_APPRENTICESHIP else PORTALS
+
+
+def _off(plan: SearchPlan, switched_off: list[str] | None) -> frozenset[str]:
+    """The choice of the person; until there is one, the profile, and a specialist portal only if it can fit."""
+    if switched_off is not None:
+        return frozenset(switched_off)
+    unfit = plan.keywords and not any(COMPUTING.search(term) for term in (*plan.keywords, *plan.niche_keywords))
+    return frozenset(p for p in _portals_of_kind(plan.kind) if p not in plan.portals or (unfit and p == SPECIALIST_PORTAL))
+
+
+def chosen(plan: SearchPlan, switched_off: list[str] | None) -> SearchPlan:
+    """The plan with the portals the person wants (MIN-388); nothing about a portal that is off."""
+    off = _off(plan, switched_off)
+    targets = tuple(pair for pair in plan.hint_targets if pair[0].split(":")[0] not in off)
+    return dataclasses.replace(plan, portals=tuple(p for p in _portals_of_kind(plan.kind) if p not in off),
+                               hints=tuple(h for h in plan.hints if h.split(":")[0] not in off), hint_targets=targets)
+
+
+def portal_choice(plan: SearchPlan, switched_off: list[str] | None) -> list[dict]:
+    off = _off(plan, switched_off)
+    return [{"name": name, "hinweis": PORTAL_HINTS[name], "an": name not in off} for name in _portals_of_kind(plan.kind)]
+
+
+def checked_choice(switched_off, kind: str) -> list[str]:
+    """What may be stored as the portals that are off; ValueError with a message for the person if not."""
+    if not isinstance(switched_off, list) or any(p not in ALL_PORTALS for p in switched_off):
+        raise ValueError(BAD_CHOICE)
+    if all(p in switched_off for p in _portals_of_kind(kind)):
+        raise ValueError(NO_PORTAL_LEFT)
+    return list(dict.fromkeys(switched_off))
 
 
 def _sections(text: str) -> dict[str, list[str]]:

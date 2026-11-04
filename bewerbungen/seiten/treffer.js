@@ -271,6 +271,7 @@
       paket = daten.paket;
       grenze = daten.grenze;
       zeigeArt(daten.art, daten.portale || [], daten.angebote || []);
+      window.PortalWahl.zeige(daten.portale_wahl || [], lehrstelle, lade);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {});
       zeigeNichtUebernommen();

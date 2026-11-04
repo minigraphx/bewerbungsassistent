@@ -9,6 +9,7 @@ import yaml
 import app
 import routes_ai
 import routes_search
+import search_plan
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
 from ai.errors import BUDGET_USED, AiError
 from test_ai_tasks import VORLAGEN, FakeClient, PackageClient, rating_entry
@@ -137,6 +138,24 @@ def test_discard_and_restore(search):
 
 def test_text_of_unknown_hit_is_404(search):
     assert get(search, "/api/suche/text", id="gibt-es-nicht")[0] == 404
+
+
+def test_the_person_chooses_the_portals_and_the_search_follows(search):
+    offer = listing(search)["portale_wahl"]
+    assert {item["name"] for item in offer} == set(search_plan.PORTALS)
+    status, saved = post(search, "/api/suche/einstellungen", {"portale_aus": ["ictjobs", "jobscout24"]})
+    assert status == 200 and saved["portale_aus"] == ["ictjobs", "jobscout24"]
+    assert listing(search)["portale"] == ["job-room", "jobs.ch"]
+    plan_now = json.loads(get(search, "/api/suche/plan")[2])["plan"]
+    assert plan_now["portale"] == ["job-room", "jobs.ch"]
+    assert post(search, "/api/suche/einstellungen", {"auto_bewerten": False})[0] == 200
+    assert listing(search)["einstellungen"]["portale_aus"] == ["ictjobs", "jobscout24"], "other settings leave it alone"
+
+
+def test_all_portals_off_is_refused_with_a_message(search):
+    status, answer = post(search, "/api/suche/einstellungen", {"portale_aus": list(search_plan.PORTALS)})
+    assert status == 400 and "Portal" in answer["fehler"]
+    assert listing(search)["einstellungen"]["portale_aus"] is None
 
 
 def test_overview_names_kind_and_portals_of_the_profile(search):

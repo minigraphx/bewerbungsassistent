@@ -25,6 +25,11 @@
     <button type="button" id="suchen" class="haupt" disabled>Stellen suchen</button>
     <span id="lauf" class="status" role="status" aria-live="polite"></span>
   </div>
+  <details id="portale" class="portale">
+    <summary id="portale-titel">Wo suchen Sie?</summary>
+    <ul id="portale-liste" class="auswahl-liste"></ul>
+    <div id="portale-meldung" class="status" role="status" aria-live="polite"></div>
+  </details>
   <p id="angaben-offen" class="banner" hidden><span id="angaben-offen-text"></span><a href="/angaben#feld=uebernehmen">Zum Übernehmen</a></p>
   <p id="ohne-erweiterung" class="banner" hidden>Für die Suche braucht es die Browser-Erweiterung. <a id="erweiterung-link" href="/einrichtung#erweiterung">So richten Sie sie ein</a></p>
   <p id="letzte" class="leise"></p>
@@ -82,6 +87,7 @@
 <script src="/app.js"></script>
 <script src="/treffer-logik.js"></script>
 <script src="/beruf-vorschlag.js"></script>
+<script src="/portal-wahl.js"></script>
 <script src="/treffer.js"></script>
 </body>
 </html>

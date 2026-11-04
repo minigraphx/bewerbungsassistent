@@ -100,6 +100,64 @@ def test_the_plan_limits_the_texts_per_portal():
     assert search_plan.parse(GENERATED).as_dict()["max_texte"] == search_plan.MAX_TEXTS
 
 
+def _with_terms(*terms: str) -> search_plan.SearchPlan:
+    return search_plan.SearchPlan(keywords=terms, portals=search_plan.PORTALS)
+
+
+@pytest.mark.parametrize("terms", [("Koch",), ("Schreiner EFZ", "Maler"), ("Pflegefachperson",)])
+def test_without_a_link_to_computing_ictjobs_starts_switched_off(terms):
+    assert "ictjobs" not in search_plan.chosen(_with_terms(*terms), None).portals
+
+
+@pytest.mark.parametrize("terms", [("Software Engineer",), ("Informatiker EFZ",), ("IT Support",), ("Data Analyst",),
+                                   ("Python",), ("ICT-Fachmann",), ("Applikationsentwickler",)])
+def test_with_a_link_to_computing_ictjobs_stays_on(terms):
+    assert "ictjobs" in search_plan.chosen(_with_terms(*terms), None).portals
+
+
+def test_the_choice_of_the_person_counts_more_than_any_default():
+    assert search_plan.chosen(_with_terms("Koch"), []).portals == search_plan.PORTALS
+    assert search_plan.chosen(_with_terms("Python"), ["jobs.ch"]).portals == ("job-room", "jobscout24", "ictjobs")
+
+
+def test_a_portal_off_in_the_profile_stays_off_until_the_person_chooses():
+    plan = search_plan.SearchPlan(keywords=("Python",), portals=("job-room",))
+    assert search_plan.chosen(plan, None).portals == ("job-room",)
+    assert "jobs.ch" in search_plan.chosen(plan, []).portals
+
+
+def test_a_portal_that_is_off_gives_no_hint():
+    plan = search_plan.parse(NO_REGION.replace("- Wohnort: Thun\n", "- Wohnort: Thun\n- Orte: Bern\n"), postal_code="3600")
+    current = search_plan.chosen(plan, ["ictjobs"])
+    assert not any(hint.startswith("ictjobs") for hint in current.hints)
+    assert not any(hint.startswith("ictjobs") for hint, _ in current.hint_targets)
+    assert any(hint.startswith("job-room") for hint in current.hints)
+
+
+def test_apprenticeships_choose_among_their_own_portals():
+    plan = search_plan.SearchPlan(keywords=("Koch EFZ",), kind=search_plan.KIND_APPRENTICESHIP, portals=search_plan.APPRENTICESHIP_PORTALS)
+    assert search_plan.chosen(plan, ["yousty", "jobs.ch"]).portals == ("LENA",)
+
+
+def test_the_portals_on_offer_are_named_for_the_person():
+    plan = _with_terms("Koch")
+    offer = search_plan.portal_choice(plan, None)
+    assert [item["name"] for item in offer] == list(search_plan.PORTALS)
+    assert {item["name"]: item["an"] for item in offer}["ictjobs"] is False
+    assert all(item["hinweis"] for item in offer)
+
+
+@pytest.mark.parametrize("off", [list(search_plan.PORTALS), ["unbekannt"], "jobs.ch", [1], None])
+def test_a_bad_choice_is_refused(off):
+    with pytest.raises(ValueError):
+        search_plan.checked_choice(off, search_plan.KIND_JOB)
+
+
+def test_one_portal_must_stay():
+    assert search_plan.checked_choice(["jobs.ch", "jobs.ch"], search_plan.KIND_JOB) == ["jobs.ch"]
+    assert search_plan.checked_choice(["LENA"], search_plan.KIND_APPRENTICESHIP) == ["LENA"]
+
+
 def test_a_missing_home_of_an_apprenticeship_names_the_field():
     profile = apprenticeship_template()
     text = "\n".join(line for line in profile.splitlines() if not line.startswith(("- Wohnort", "- Kantone")))
