@@ -272,6 +272,15 @@ def test_the_page_is_served_and_never_prefills_the_key(server):
     assert 'type="password"' in page and 'autocomplete="off"' in page
 
 
+def test_the_page_links_to_the_guide_and_the_guide_has_the_section():
+    import pathlib
+    root = pathlib.Path(__file__).resolve().parents[2]
+    page = (root / "bewerbungen" / "seiten" / "einstellungen.html").read_text(encoding="utf-8")
+    guide = (root / "docs" / "installation.md").read_text(encoding="utf-8")
+    assert "docs/installation.md#eigener-api-schlüssel-freiwillig" in page
+    assert "## Eigener API-Schlüssel (freiwillig)" in guide
+
+
 def test_a_key_without_credit_is_named_as_such():
     request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
     error = anthropic.BadRequestError("Your credit balance is too low to access the Anthropic API.",

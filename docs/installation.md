@@ -85,6 +85,60 @@ Danach ist Folgendes anders:
 
 Deine Bewerbung schickst immer du selbst ab.
 
+## Eigener API-Schlüssel (freiwillig)
+
+Sie brauchen das nicht: Die App läuft auch mit dem Einladungscode allein. Ein eigener Schlüssel lohnt sich, wenn Sie mehr KI nutzen möchten, als Ihr Budget im Pilot erlaubt, oder wenn die Suche zusätzliche Seiten lesen soll. Das geht nur mit eigenem Schlüssel.
+
+Das ändert sich damit:
+
+- Die KI-Aufrufe gehen direkt an die Claude API, nicht mehr über die Vermittlung. Namen und andere persönliche Angaben werden auch dann vor dem Senden ersetzt.
+- Sie tragen die Kosten selbst. Anthropic rechnet direkt mit Ihnen ab.
+- Für die Verarbeitung gilt Ihr eigener Vertrag mit Anthropic, auch in den USA.
+
+### Schlüssel bei Anthropic holen
+
+Auch mit einem Abo von Claude brauchen Sie dafür ein Konto in der Console, denn die API rechnet Anthropic [getrennt vom Abo](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console) ab.
+
+1. In der [Claude Console](https://platform.claude.com/) ein Konto eröffnen oder sich anmelden.
+2. Unter [Billing](https://platform.claude.com/settings/billing) Guthaben kaufen. Die API läuft [im Voraus bezahlt](https://support.claude.com/en/articles/8977456-how-do-i-pay-for-my-claude-api-usage): Ist das Guthaben aufgebraucht, hält sie an, bis Sie nachladen. Automatisches Nachladen müssen Sie nicht einschalten; ohne bleibt das Guthaben Ihre Obergrenze.
+3. Unter [API keys](https://platform.claude.com/settings/keys) einen Schlüssel erstellen und kopieren.
+
+Behandeln Sie den Schlüssel wie ein Passwort: Wer ihn hat, kann auf Ihre Kosten die KI nutzen. Geben Sie ihn nicht weiter und schicken Sie ihn nicht per E-Mail. Ist er doch einmal in fremde Hände geraten, löschen Sie ihn in der Console.
+
+### Schlüssel in der App eintragen
+
+![Seite Erweiterte Einstellungen mit den Hinweisen, dem Häkchen und dem Feld für den API-Schlüssel](bilder/einstellungen-schluessel.jpg)
+
+1. Im Menü **Erweiterte Einstellungen** öffnen.
+2. Die Hinweise lesen und das Häkchen setzen.
+3. Den Schlüssel einfügen und auf **Prüfen und speichern** klicken.
+
+Die App prüft den Schlüssel mit einem kleinen, kostenlosen Aufruf. Zum Guthaben sagt diese Prüfung nichts: Fehlt es, merken Sie das erst beim ersten Aufruf der KI. Der Schlüssel liegt danach nur im Schlüsselbund Ihres Computers, nie im Datenordner und nie in der Browser-Erweiterung.
+
+Was die KI gekostet hat, steht unten auf derselben Seite unter **Kosten der KI**. Das ist die eigene Notiz der App. Massgebend ist die Abrechnung von Anthropic.
+
+### Weitere Seiten durchsuchen
+
+Mit gespeichertem Schlüssel erscheint auf derselben Seite dieser Abschnitt. Hier tragen Sie Seiten ein, auf denen die Suche zusätzlich schauen soll, zum Beispiel die offenen Stellen einer Firma.
+
+![Abschnitt Weitere Seiten durchsuchen mit zwei erfundenen Adressen und den Knöpfen Seiten speichern und Zugriff in der Erweiterung erlauben](bilder/einstellungen-seiten.jpg)
+
+1. Unter **Adressen** höchstens fünf Adressen eintragen, eine pro Zeile. Sie müssen mit `https://` beginnen.
+   - Hat die Seite eine eigene Suche, setzen Sie `{begriff}` und `{ort}` in die Adresse. Die App ersetzt sie durch die Angaben aus Ihrem Suchprofil, etwa so: `https://www.beispiel.ch/stellen?suche={begriff}&ort={ort}`.
+   - Ohne Platzhalter liest die Suche die Seite so, wie sie ist.
+2. Auf **Seiten speichern** klicken.
+3. Auf **Zugriff in der Erweiterung erlauben** klicken. Die Erweiterung öffnet eine eigene Seite. Dort klicken Sie auf **Zugriff erlauben und weiter** und bestätigen die Frage des Browsers. Das ist einmal nötig.
+
+Ab der nächsten Suche kommen die Seiten dazu. Die Suche liest pro Seite und Lauf höchstens zehn Suchen und dreissig Inserate, mit Pausen dazwischen. Verlangt eine Seite eine Anmeldung oder ein CAPTCHA, überspringt die Suche sie. Das erledigt die App nicht für Sie.
+
+**LinkedIn** verbietet Automatisierung und kann Konten einschränken oder sperren. Tragen Sie LinkedIn als Seite ein, liegt dieses Risiko bei Ihnen.
+
+### Schlüssel entfernen
+
+Klicken Sie unter **Erweiterte Einstellungen** auf **Schlüssel entfernen**. Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab. Die weiteren Seiten werden dann nicht mehr durchsucht.
+
+Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, löschen Sie ihn auch in der Console.
+
 ## Updates
 
 **App:** Gibt es eine neue Version, zeigt die App oben einen Hinweis. Klicken Sie auf **Jetzt aktualisieren**. Ihre Daten und Einstellungen bleiben erhalten.
@@ -100,6 +154,9 @@ Deine Bewerbung schickst immer du selbst ab.
 | „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 3](#schritt-3-ki-unterstützung) ein. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie im Pilot begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |
+| „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
+| „Dieser Schlüssel gilt nicht.“ | Prüfen Sie in der [Console](https://platform.claude.com/settings/keys), ob es ihn noch gibt, oder erstellen Sie einen neuen. Gespeichert wurde nichts. |
+| „Das Guthaben bei Anthropic reicht nicht mehr.“ | Laden Sie unter [Billing](https://platform.claude.com/settings/billing) nach, oder entfernen Sie den eigenen Schlüssel. |
 | „Zuerst in den Ordner Programme verschieben“ (macOS) | Beenden Sie die App, ziehen Sie sie in den Ordner „Programme“ und starten Sie sie von dort. |
 | „Der Datenordner … wurde nicht gefunden“ | Liegt er auf einem USB-Stick, stecken Sie ihn ein und laden die Seite neu. Oder wählen Sie einen anderen Ordner. |
 | Die Seite der App reagiert nicht mehr | Starten Sie die App neu. Ihre Daten bleiben erhalten. |
