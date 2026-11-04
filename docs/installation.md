@@ -143,7 +143,7 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 
 **App:** Gibt es eine neue Version, zeigt die App oben einen Hinweis. Klicken Sie auf **Jetzt aktualisieren**. Ihre Daten und Einstellungen bleiben erhalten.
 
-**Erweiterung:** Die App bringt die neue Version mit. Zeigt die Seite „Einrichtung“, dass eine andere Version geladen ist, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**.
+**Erweiterung:** Die App bringt die neue Version mit, und die Erweiterung lädt sich von selbst neu, sobald die App läuft und keine Suche oder kein Formular offen ist. Sie müssen nichts tun. Der Entwicklermodus muss dafür eingeschaltet bleiben. Zeigt die Seite „Einrichtung“ trotzdem eine andere Version, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**. Das ist auch beim Wechsel auf die erste Version mit dieser Funktion einmal nötig.
 
 ## Häufige Fehler
 

@@ -92,7 +92,9 @@
     if (daten.frage === "zugriff-abgeben") {
       const text = daten.antwort && daten.antwort.fehler
         ? `Die Erweiterung konnte den Zugriff nicht abgeben (${daten.antwort.fehler}). Das geht auch in ihren Einstellungen im Browser.`
-        : "Die Erweiterung hat den Zugriff auf alle Seiten abgegeben.";
+        : daten.antwort && daten.antwort.spaeter
+          ? "Die Erweiterung gibt den Zugriff ab, sobald die laufende Suche oder die offenen Formulare fertig sind."
+          : "Die Erweiterung hat den Zugriff auf alle Seiten abgegeben.";
       status($("zugriff-meldung"), text, daten.antwort && daten.antwort.fehler ? "fehler" : "ok");
     }
     if (daten.frage === "zugriff-erlauben" && daten.antwort && daten.antwort.fehler) {

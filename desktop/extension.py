@@ -2,7 +2,8 @@
 
 Until the extension is in the stores, the person loads it once as unpacked extension („Entpackte
 Erweiterung laden“). The packaged app copies the folder to its app folder on every start, so the path stays
-the same across updates; after an update the person only reloads it. From source, the repo folder is used.
+the same across updates; after an update the extension reloads itself (`erweiterung/lib/reload.js`). From source,
+the repo folder is used.
 """
 import json
 import pathlib

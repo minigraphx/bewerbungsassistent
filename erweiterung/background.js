@@ -8,11 +8,15 @@ import { adKey } from './lib/page-ad.js';
 import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, WATCH_ACTION, isRavSender, senderKind } from './lib/senders.js';
 import { ALL_PAGES, ApplyRun } from './lib/apply.js';
 import { RavRun, isRavPage } from './lib/rav.js';
+import { reloadForAppVersion, siteAccessControl } from './lib/reload.js';
 
 const LOAD_TIMEOUT_MS = 30000;
+const RELOAD_DELAY_MS = 300;
+const RELOADED_FOR = 'neu-geladen-fuer';
 const appPorts = new Set();
 let running = false;
 let searchCancelled = false;
+let versionChecked = false;
 let watchedTab = null; // with „Zuschauen“ (MIN-370): the visible tab of the search
 const WATCHING_TEXT = (portal) => `Der Browser wird gerade vom Bewerbungsassistenten gesteuert: Suche auf ${portal}. Bitte warten und im Tab nichts anklicken; er schliesst sich von selbst. Wird er geschlossen, endet die Suche.`;
 
@@ -104,12 +108,41 @@ const OWN_KEY_SEEN = 'eigener-schluessel-gesehen';
 const siteAccess = {
   remember: () => chrome.storage.local.set({ [OWN_KEY_SEEN]: true }),
   remembered: async () => Boolean((await chrome.storage.local.get(OWN_KEY_SEEN))[OWN_KEY_SEEN]),
-  async release() {
-    await chrome.permissions.remove(ALL_PAGES);
-    await chrome.storage.local.remove(OWN_KEY_SEEN);
-    return { abgegeben: true };
-  },
+  ...siteAccessControl({
+    has: () => chrome.permissions.contains(ALL_PAGES),
+    remove: () => chrome.permissions.remove(ALL_PAGES),
+    forget: () => chrome.storage.local.remove(OWN_KEY_SEEN),
+    busy: isBusy,
+    restart: restartSoon,
+  }),
 };
+
+/** A search, a list of open forms or the entries for the Job-Room: a reload would lose them. */
+async function isBusy() {
+  if (running) return true;
+  const session = await chrome.storage.session.get([FORMS_KEY, RAV_KEY]);
+  return Object.keys(session[FORMS_KEY] || {}).length > 0 || Boolean(session[RAV_KEY]);
+}
+
+/** After the answer to the page is out; onInstalled gives open pages of the app a new bridge. */
+function restartSoon() {
+  setTimeout(() => chrome.runtime.reload(), RELOAD_DELAY_MS);
+}
+
+/** Only a package from a store has an update_url; the store updates that one itself. */
+function followAppVersion(hello) {
+  const manifest = chrome.runtime.getManifest();
+  return reloadForAppVersion({
+    appVersion: hello.version,
+    appRunning: Boolean(hello.app),
+    ownVersion: manifest.version,
+    unpacked: !manifest.update_url,
+    busy: isBusy,
+    tried: async () => (await chrome.storage.local.get(RELOADED_FOR))[RELOADED_FOR] || null,
+    remember: (version) => chrome.storage.local.set({ [RELOADED_FOR]: version }),
+    restart: restartSoon,
+  });
+}
 
 async function openPermissionForSearch() {
   await siteAccess.remember();
@@ -154,12 +187,21 @@ async function status() {
     // Only a running app is asked for the plan: opening the popup should not start it.
     const plan = hello.app ? await app.request('GET', '/api/suche/plan').then((answer) => answer.plan, () => null) : null;
     await followKey(plan, siteAccess);
+    await followAppVersion(hello);
     return { verbunden: true, version: hello.version, app: hello.app, plan };
   } catch (error) {
     return { verbunden: false, fehler: error.message || explain('') };
   } finally {
     app.close();
   }
+}
+
+/** A page of the app is open, so the app runs: it may have just replaced the folder. Once per life of this worker. */
+function checkVersionOnce() {
+  if (versionChecked) return;
+  versionChecked = true;
+  const app = new AppConnection();
+  app.hello().then(followAppVersion).catch(() => {}).finally(() => app.close()); // popup and setup page will tell
 }
 
 async function openApp() {
@@ -415,5 +457,6 @@ chrome.runtime.onConnect.addListener((port) => {
     }
     appPorts.add(port);
     port.onDisconnect.addListener(() => appPorts.delete(port));
+    checkVersionOnce();
   });
 });

@@ -15,7 +15,7 @@ Die App zeigt die Schritte auf der Seite **Einrichtung → Schritt 4** mit dem p
 
 Ein Klick allein genügt nicht: Chrome lässt Apps seit Version 137 keine Erweiterungen mehr selbst laden (`--load-extension`), Richtlinien gelten nur auf verwalteten Geräten. Das ändert erst der Store.
 
-Die ID der Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`), weil `manifest.json` den öffentlichen Schlüssel enthält. Nur diese ID darf mit der App sprechen. Nach einem Update der App mit einer neuen Erweiterung zeigt die Einrichtung einen Hinweis; dann in `chrome://extensions` bei der Erweiterung auf „Neu laden“ klicken.
+Die ID der Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`), weil `manifest.json` den öffentlichen Schlüssel enthält. Nur diese ID darf mit der App sprechen. Nach einem Update der App lädt sich die entpackte Erweiterung selbst neu, sobald die App läuft und keine Suche, kein Formular und kein Lauf im Job-Room offen ist, einmal pro Version (`lib/reload.js`, MIN-382). Eine Fassung aus dem Store hat `update_url` und bleibt beim Store. Klappt es nicht, zeigt die Einrichtung einen Hinweis; dann in `chrome://extensions` auf „Neu laden“ klicken. Ist der Entwicklermodus aus, deaktiviert Chrome entpackte Erweiterungen ohnehin.
 
 ## Ablauf einer Suche
 
@@ -36,7 +36,7 @@ Nur mit eigenem API-Schlüssel, die Adressen trägt die Person in der App unter 
 - **Zugriff:** Das braucht den optionalen Zugriff auf alle Seiten. Die Erlaubnis gibt die Person selbst, in einem eigenen Tab (`erlauben.html?fuer=suche`). Fehlt sie, läuft die Suche auf den Portalen trotzdem und nennt die fehlende Erlaubnis in der Zusammenfassung.
 - **Ablauf:** `lib/sites.js` setzt Begriff und Ort in die Adresse ein, öffnet sie im Tab und schickt Text und Linktexte an die App (`POST /api/suche/seite-lesen`). Die App nennt die Stellen zurück; deren Inserate liest die Erweiterung ebenfalls im Tab, mit einer Pause dazwischen. Danach gehen sie denselben Weg wie die Treffer der Portale.
 - **Grenzen:** Nur die erste Ergebnisseite, höchstens 10 Suchen und 30 Inserate pro Seite. Sie folgt nur Links auf derselben Seite und klickt oder schickt nichts ab. Das Öffnen geschieht mit den Cookies der Person; ein Link wie `/logout` in der Liste würde also aufgerufen, wenn die KI ihn als Stelle nennt. Leitet eine Seite auf eine andere um, hört die Suche dort auf.
-- **Abgeben:** Wird der Schlüssel entfernt, gibt die Erweiterung den Zugriff ab, spätestens beim nächsten Kontakt mit der App. Das betrifft auch Formulare (MIN-346): Dort fragt sie beim nächsten Formular neu. Ist der Schlüsselbund gesperrt, ändert sich nichts.
+- **Abgeben:** Wird der Schlüssel entfernt, gibt die Erweiterung den Zugriff ab, spätestens beim nächsten Kontakt mit der App. Danach lädt sie sich neu (`lib/reload.js`), denn Chrome entzieht mit `<all_urls>` auch die Portale aus dem Manifest, bis die Erweiterung wieder geladen ist. Während einer Suche, offener Formulare oder eines Laufs im Job-Room wartet sie damit. Das betrifft auch Formulare (MIN-346): Dort fragt sie beim nächsten Formular neu. Ist der Schlüsselbund gesperrt, ändert sich nichts.
 
 ## Stelle auf der offenen Seite prüfen oder speichern (MIN-345)
 
