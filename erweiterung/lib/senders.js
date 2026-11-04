@@ -5,8 +5,13 @@
 /** What the popup and the app page may ask for. */
 export const ALLOWED = {
   popup: new Set(['suche-starten', 'status', 'app-oeffnen', 'seite-pruefen', 'seite-speichern']),
-  app: new Set(['suche-starten', 'status']),
+  app: new Set(['suche-starten', 'status', 'bewerben-starten']),
+  erlauben: new Set(['bewerben-weiter']),
 };
+
+/** What a form in a tab of a run may ask for (MIN-346); the buttons of the bar only from the top frame. */
+export const FORM_ACTIONS = new Set(['formular-stand', 'formular-datei', 'formular-rahmen']);
+export const BAR_ACTIONS = new Set(['formular-hier', 'formular-abgeschickt', 'formular-stoppen']);
 
 function origin(url) {
   try {
@@ -17,15 +22,16 @@ function origin(url) {
 }
 
 /**
- * 'popup' or 'app' for a trusted sender, otherwise null.
+ * 'popup', 'erlauben' or 'app' for a trusted sender, otherwise null.
  * @param {{id?: string, url?: string, tab?: object}} sender  as chrome.runtime passes it
  * @param {string} extensionId
  * @param {string|null} appUrl  address of the running app, from `hallo`
- * @returns {'popup'|'app'|null}
+ * @returns {'popup'|'erlauben'|'app'|null}
  */
 export function senderKind(sender, extensionId, appUrl) {
   if (!sender || sender.id !== extensionId || !sender.url) return null;
   if (!sender.tab && sender.url.startsWith(`chrome-extension://${extensionId}/`)) return 'popup';
+  if (sender.tab && sender.url === `chrome-extension://${extensionId}/erlauben.html`) return 'erlauben';
   if (sender.tab && appUrl && origin(sender.url) === origin(appUrl)) return 'app';
   return null;
 }

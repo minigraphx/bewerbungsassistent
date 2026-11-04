@@ -148,3 +148,4 @@ nav .menue-knopf:hover { background: var(--linie); }
 .art-marke { display: block; font-size: 12px; font-weight: 600; color: var(--akzent); }
 .angebot-wahl { margin: 0; white-space: nowrap; }
 .auswahl-liste { list-style: none; margin: 0 0 8px; padding: 0; }
+#liste td:last-child { white-space: nowrap; }

@@ -2,6 +2,10 @@
 // passes "start search" from the page to the extension and the progress back to the page.
 (function () {
   if (!document.querySelector('meta[name="bewerbungsassistent"]')) return;
+  // Also injected when the extension is installed, and the manifest may add it again: only one may answer the page.
+  // A script of an earlier installation no longer counts, it has lost its connection.
+  if (globalThis.bewerbungsassistentBridgeAlive?.()) return;
+  globalThis.bewerbungsassistentBridgeAlive = () => Boolean(chrome.runtime?.id);
   const version = chrome.runtime.getManifest().version;
   const toPage = (message) => window.postMessage({ quelle: 'bewerbungsassistent-erweiterung', version, ...message }, location.origin);
 
@@ -17,6 +21,10 @@
     if (!data || data.quelle !== 'bewerbungsassistent-seite') return;
     if (data.art === 'suche-starten' || data.art === 'status') {
       chrome.runtime.sendMessage({ art: data.art }).then((answer) => toPage({ art: 'antwort', frage: data.art, antwort: answer }));
+    }
+    if (data.art === 'bewerben-starten') {
+      chrome.runtime.sendMessage({ art: data.art, ids: data.ids, bestaetigt: data.bestaetigt })
+        .then((answer) => toPage({ art: 'antwort', frage: data.art, antwort: answer }));
     }
   });
 })();

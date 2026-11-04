@@ -376,3 +376,10 @@ def test_reveal_opens_finder_or_explorer(tmp_path):
 
 def test_the_extension_reaches_the_routes_for_the_open_page():
     assert ("POST", "/api/seite/pruefen") in native_host.ALLOWED and ("POST", "/api/seite/speichern") in native_host.ALLOWED
+
+
+def test_the_extension_reaches_the_routes_for_applying_but_not_the_choice():
+    for route in (("POST", "/api/bewerben/start"), ("GET", "/api/bewerben/daten"), ("GET", "/api/bewerben/datei"),
+                  ("POST", "/api/bewerben/stand"), ("POST", "/api/bewerben/abgeschickt")):
+        assert route in native_host.ALLOWED
+    assert ("GET", "/api/bewerbungen") not in native_host.ALLOWED

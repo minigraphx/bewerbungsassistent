@@ -4,7 +4,8 @@
 import { AppConnection, explain } from './lib/app.js';
 import { runSearch } from './lib/search.js';
 import { adKey } from './lib/page-ad.js';
-import { ALLOWED, senderKind } from './lib/senders.js';
+import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, senderKind } from './lib/senders.js';
+import { ALL_PAGES, ApplyRun } from './lib/apply.js';
 
 const LOAD_TIMEOUT_MS = 30000;
 const appPorts = new Set();
@@ -164,13 +165,115 @@ async function pageAd(message, path, kept) {
   }
 }
 
+async function askApp(method, path, data) {
+  const app = new AppConnection();
+  try {
+    return await app.request(method, path, data);
+  } finally {
+    app.close();
+  }
+}
+
+const FILLER_FILES = ['form/fields.js', 'form/filler.js', 'form/bar.js'];
+
+// Only tabs of the list get these scripts, in all their frames: application systems often sit in embedded frames.
+const formTabs = {
+  async blank(active) {
+    return (await chrome.tabs.create({ url: 'about:blank', active })).id;
+  },
+  async navigate(tabId, url) {
+    await chrome.tabs.update(tabId, { url });
+  },
+  async activate(tabId) {
+    await chrome.tabs.update(tabId, { active: true });
+  },
+  async url(tabId) {
+    return (await chrome.tabs.get(tabId)).url;
+  },
+  /** The documents that have the scripts now; later steps go to these only, not to whatever the tab shows by then. */
+  async inject(tabId) {
+    const results = await chrome.scripting.executeScript({ target: { tabId, allFrames: true }, files: FILLER_FILES });
+    return results.map(({ frameId, documentId }) => ({ frameId, documentId }));
+  },
+  async fill(tabId, documents, values, uploads) {
+    return chrome.scripting.executeScript({
+      target: { tabId, documentIds: documents.map((d) => d.documentId) },
+      func: (v, u) => globalThis.bewerbungsassistentFiller.fill(v, u),
+      args: [values, uploads],
+    });
+  },
+  async follow(tabId, documents) {
+    const top = documents.find((d) => d.frameId === 0);
+    if (!top) return {};
+    const [frame] = await chrome.scripting.executeScript({ target: { tabId, documentIds: [top.documentId] }, func: () => globalThis.bewerbungsassistentFiller.follow() });
+    return (frame && frame.result) || {};
+  },
+  async bar(tabId, balken) {
+    await chrome.tabs.sendMessage(tabId, { art: 'formular-balken', balken }, { frameId: 0 });
+  },
+  async end(tabId, text) {
+    await chrome.tabs.sendMessage(tabId, { art: 'formular-ende', text }).catch(() => {});
+  },
+  async permissionPage() {
+    await chrome.tabs.create({ url: chrome.runtime.getURL('erlauben.html') });
+  },
+};
+
+const FORMS_KEY = 'formulare';
+const PENDING_KEY = 'formulare-wartend';
+const applyRun = new ApplyRun({
+  ask: askApp,
+  tabs: formTabs,
+  store: {
+    get: async () => (await chrome.storage.session.get(FORMS_KEY))[FORMS_KEY] || {},
+    set: (forms) => chrome.storage.session.set({ [FORMS_KEY]: forms }),
+  },
+  pending: {
+    get: async () => (await chrome.storage.session.get(PENDING_KEY))[PENDING_KEY] || null,
+    set: (request) => chrome.storage.session.set({ [PENDING_KEY]: request }),
+  },
+  hasPermission: () => chrome.permissions.contains(ALL_PAGES),
+  sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+});
+
+chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
+  if (change.status === 'complete' && tab.url) applyRun.loaded(tabId, tab.url);
+});
+chrome.tabs.onRemoved.addListener((tabId) => applyRun.closed(tabId));
+
+function formAction(message, sender) {
+  const tabId = sender.tab.id;
+  const actions = {
+    'formular-stand': () => applyRun.frameReport(tabId, sender.frameId, message.bericht),
+    'formular-datei': () => applyRun.file(tabId, message.schluessel),
+    'formular-rahmen': () => applyRun.frameLoaded(tabId),
+    'formular-hier': () => applyRun.fillHere(tabId),
+    'formular-abgeschickt': () => applyRun.sent(tabId),
+    'formular-stoppen': () => applyRun.stop(tabId),
+  };
+  return actions[message.art]();
+}
+
+/** Messages of the scripts in a form: only from a tab of the list, and the bar only exists in the top frame. */
+function fromForm(message, sender, reply) {
+  const known = sender.id === chrome.runtime.id && sender.tab && applyRun.entry(sender.tab.id);
+  Promise.resolve(known).then((entry) => {
+    if (!entry || (BAR_ACTIONS.has(message.art) && sender.frameId !== 0)) throw new Error('Dieser Tab gehört nicht zum Bewerben.');
+    return formAction(message, sender);
+  }).then((answer) => reply(answer || {}), (error) => reply({ fehler: error.message }));
+  return true;
+}
+
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message && (FORM_ACTIONS.has(message.art) || BAR_ACTIONS.has(message.art))) return fromForm(message, sender, reply);
   const actions = {
     'suche-starten': startSearch,
     status,
     'app-oeffnen': openApp,
     'seite-pruefen': (m) => pageAd(m, '/api/seite/pruefen', 'pruefung'),
     'seite-speichern': (m) => pageAd(m, '/api/seite/speichern', 'gespeichert'),
+    'bewerben-starten': (m) => applyRun.start(m),
+    'bewerben-weiter': () => applyRun.resume(),
   };
   const action = message && actions[message.art];
   if (!action) return false;

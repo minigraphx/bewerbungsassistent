@@ -39,6 +39,22 @@ Für Inserate ausserhalb der Portale, zum Beispiel auf LinkedIn oder den Karrier
 
 Das Ergebnis bleibt für diese Seite erhalten, auch wenn das Popup zwischendurch zugeht.
 
+## Bewerben über Formulare
+
+In der Übersicht der App kreuzt die Person bis zu fünf Bewerbungen an und klickt auf **Bewerben** (MIN-346). Die App prüft sie (Unterlagen, Link, Doppelbewerbungen), die Erweiterung öffnet pro Bewerbung einen Tab und füllt das Formular aus.
+
+**Die Erweiterung füllt aus, die Person entscheidet und schickt ab:**
+
+- Sie drückt nie einen Knopf, der etwas absendet, setzt keine Häkchen, Einwilligungen oder Optionsfelder und meldet sich nirgends an. Ein Passwortfeld hält den Tab an.
+- Versteckte Felder bleiben leer, Vorhandenes bleibt stehen, und was die Person löscht, wird nicht wieder gefüllt.
+- Unklare Felder bleiben leer und orange markiert, Einwilligungen rot, Ausgefülltes grün.
+- Hochgeladen werden nur Dateien dieser Bewerbung: Lebenslauf, Anschreiben, Arbeitszeugnisse und die ZIP-Datei mit den gewählten Zertifikaten. Felder für nur eine Datei und Felder ohne klare Bedeutung bleiben offen.
+- Der Versand wird erst erfasst, wenn die Person im Balken „Abgeschickt? Ja“ drückt.
+
+**Zugriff:** Formulare liegen auf beliebigen Seiten, darum fragt die Erweiterung beim ersten „Bewerben“ auf `erlauben.html` einmal um Zugriff auf alle Seiten (`optional_host_permissions`). Sie nutzt ihn nur für Tabs aus ihrer eigenen Liste (`storage.session`). Ohne Frage zählen nur die Adresse nach dem ersten Laden und ihre Subdomains; bei jeder anderen fragt der Balken zuerst („Hier ausfüllen“). Das gilt auch hinter „Jetzt bewerben“: Diesem Link folgt sie einmal, wenn auf der Seite kein Formular ist, die Seite bestimmt aber nicht, wohin die Angaben gehen. Die Werte gehen nur an die geprüften Dokumente, nicht an das, was der Tab inzwischen zeigt.
+
+**Seiten und Rahmen:** Ein Formular braucht mindestens drei sichtbare Felder ohne Häkchen, sonst bleibt der Rahmen unberührt (Suchfelder, Newsletter, Filter). Neue und neu eingeblendete Felder werden nachgefüllt, die nächste Seite derselben Adresse ebenfalls, später gebaute Rahmen auch. Knöpfe drückt sie nur auf Seiten ganz ohne Felder und nie in einem Formular.
+
 ## Lehrstellen
 
 Abschnitt „Gesucht“ im Suchprofil oder die Wahl auf der Seite „Treffer“ legen fest, ob Lehrstellen, Schnupperlehren oder beides gesucht werden (MIN-373; Listen `lehrstellen` und `schnupperadressen` auf LENA, `lehrstellen` und `schnupperlehren` auf yousty). Schnupperlehren sind in der App eigene Treffer, und „Übernehmen“ legt eine Anfrage statt einer Bewerbung an.
@@ -52,12 +68,13 @@ Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur a
 
 ## Aufbau
 
-- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `127.0.0.1` und Native Messaging, dazu `activeTab` für die offene Seite nach einem Klick.
+- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `127.0.0.1` und Native Messaging, dazu `activeTab` für die offene Seite nach einem Klick und der optionale Zugriff auf alle Seiten für Formulare.
 - `background.js`: Service Worker; startet die Suche, öffnet und schliesst die Portal-Tabs, meldet den Fortschritt.
 - `lib/`: `queries.js` (Abfragen pro Portal aus dem Suchplan, alle Stichworte zuerst am ersten Ort), `search.js` (Ablauf einer Suche, ohne Browser testbar), `app.js` (Verbindung zur App), `senders.js` (wer Aufträge geben darf), `progress.js` (Text für den Fortschritt).
 - `portals/`: eine Anpassung pro Portal mit `list(query, page)` und `details(hit)`, dazu `common.js` (HTML zu Text, Alter, Pensum, Abrufe).
 - `app-bridge.js`: läuft nur auf Seiten der App (`<meta name="bewerbungsassistent">`), zeigt ihr per Zeichen, dass die Erweiterung da ist, und reicht Start und Fortschritt weiter.
 - `popup.*`: Start der Suche und Stand des letzten Laufs.
+- `form/`: im Tab eines Formulars: `fields.js` (was ein Feld ist, nur Regeln, ohne Seite testbar), `filler.js` (füllt pro Rahmen), `bar.js` (Balken im oberen Rahmen). `lib/apply.js` führt die Tabs, `erlauben.*` fragt um den Zugriff.
 
 Gegenstück in der App: `desktop/native_host.py` (Host, Weiterleitung an die laufende App, startet sie bei Bedarf), `desktop/native_messaging.py` (Anmeldung beim Browser), `bewerbungen/search_plan.py`, `bewerbungen/hits.py` und `bewerbungen/routes_search.py`.
 

@@ -24,13 +24,17 @@ GENERAL_WORDS = {"zertifikat", "zertifikate", "certificate", "certificat", "dipl
 WORD = re.compile(r"[^\W\d_]+", re.UNICODE)
 
 
-def available(data_dir: pathlib.Path) -> list[str]:
-    """Paths of the certificates, relative to the data folder: regular files only, no links out of it."""
-    folder = data_dir / FOLDER
+def files_in(data_dir: pathlib.Path, relative: str) -> list[str]:
+    """Paths in one folder of the data folder, relative to it: regular files only, no links out of it."""
+    folder = data_dir / relative
     if not folder.is_dir():
         return []
     found = (entry for entry in os.scandir(folder) if entry.is_file(follow_symlinks=False) and not entry.name.startswith("."))
-    return sorted(f"{FOLDER}/{entry.name}" for entry in found)
+    return sorted(f"{relative}/{entry.name}" for entry in found)
+
+
+def available(data_dir: pathlib.Path) -> list[str]:
+    return files_in(data_dir, FOLDER)
 
 
 def _name_words(path: str) -> list[str]:
@@ -79,12 +83,12 @@ def write_zip(data_dir: pathlib.Path, application_id: str, choice: list[str]) ->
     return path
 
 
-def upload_name(data_dir: pathlib.Path) -> str:
-    """Name of the file for the employer, e.g. Zertifikate_Erika_Beispiel.zip."""
+def upload_name(data_dir: pathlib.Path, label: str = "Zertifikate", suffix: str = ".zip") -> str:
+    """Name of a file for the employer, e.g. Zertifikate_Erika_Beispiel.zip."""
     try:
         cv = yaml.safe_load((data_dir / "cv.yaml").read_text(encoding="utf-8")) or {}
     except (OSError, UnicodeDecodeError, yaml.YAMLError):
         cv = {}
     name = (cv.get("basics") or {}).get("name") if isinstance(cv, dict) else None
     words = WORD.findall(unicodedata.normalize("NFC", name)) if isinstance(name, str) else []
-    return "_".join(["Zertifikate", *words]) + ".zip"
+    return "_".join([label, *words]) + suffix

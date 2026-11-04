@@ -16,6 +16,7 @@
     "https://www.yousty.ch/*",
     "http://127.0.0.1/*"
   ],
+  "optional_host_permissions": ["<all_urls>"],
   "background": {"service_worker": "background.js", "type": "module"},
   "action": {"default_popup": "popup.html", "default_title": "Bewerbungsassistent"},
   "content_scripts": [{"matches": ["http://127.0.0.1/*"], "js": ["app-bridge.js"], "run_at": "document_idle"}]

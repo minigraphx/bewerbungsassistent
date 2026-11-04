@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="token" content="__TOKEN__">
-<title>Bewerbungen</title>
+<meta name="bewerbungsassistent" content="app">
+  <title>Bewerbungen</title>
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
@@ -18,6 +19,17 @@
     <input type="search" id="suche" placeholder="Firma oder Stelle suchen" aria-label="Suche">
     <select id="statusfilter" aria-label="Status"><option value="">Alle Status</option></select>
   </div>
+
+  <div class="knoepfe" id="bewerben-zeile" hidden>
+    <button class="haupt" id="bewerben" type="button" disabled>Bewerben</button>
+    <span class="hilfe" id="bewerben-hilfe"></span>
+  </div>
+  <div class="banner" id="bewerben-frage" hidden>
+    <div id="bewerben-frage-text"></div>
+    <button id="bewerben-trotzdem" type="button">Trotzdem öffnen</button>
+    <button id="bewerben-abbrechen" type="button">Abbrechen</button>
+  </div>
+  <div id="bewerben-status" class="status" role="status" aria-live="polite"></div>
 
   <table>
     <thead><tr id="kopf"></tr></thead>

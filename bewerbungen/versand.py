@@ -72,7 +72,7 @@ def _hinweise_firma(alle: list[dict], bewerbung: dict) -> list[str]:
 
 
 def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date, versionierung: Versionierung,
-                    art: str = "elektronisch") -> dict:
+                    art: str = "elektronisch", zusatz: dict | None = None) -> dict:
     daten = daten.resolve()
     if art not in JOBROOM_ART:
         raise ValueError(f"art muss eine von {', '.join(JOBROOM_ART)} sein")
@@ -93,7 +93,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
 
     versendet = {"datum": datum.isoformat(), "art": art,
                  "dateien": {a: p.relative_to(daten).as_posix() for a, p in abgelegt.items()}}
-    neu = {**bewerbung, "status": "Beworben", "beworben_am": datum.isoformat(), "versand": versendet}
+    neu = {**bewerbung, "status": "Beworben", "beworben_am": datum.isoformat(), "versand": versendet, **(zusatz or {})}
     neu = register.speichere(neu)
 
     # Ohne Git bleiben frühere Fassungen unter versendet/ liegen und werden hier nachgeholt (MIN-304)

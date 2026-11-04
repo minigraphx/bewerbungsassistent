@@ -136,7 +136,10 @@ test('foreign pages are reachable only after a click', () => {
   const manifest = JSON.parse(readFileSync(new URL('../manifest.json', import.meta.url)));
 
   assert.ok(manifest.permissions.includes('activeTab'));
-  const wide = [...manifest.host_permissions, ...(manifest.optional_host_permissions || []), ...manifest.content_scripts.flatMap((c) => c.matches)];
+  // The optional access for forms (MIN-346) is asked for separately and only on the page of the extension.
+  assert.deepEqual(manifest.optional_host_permissions, ['<all_urls>']);
+  assert.match(readFileSync(new URL('../erlauben.js', import.meta.url), 'utf8'), /permissions\.request/);
+  const wide = [...manifest.host_permissions, ...manifest.content_scripts.flatMap((c) => c.matches)];
   assert.deepEqual(wide.filter((m) => m === '<all_urls>' || m.startsWith('*://') || m.includes('://*/')), []);
   assert.ok(manifest.description.length <= 132, 'limit of the stores');
 });
