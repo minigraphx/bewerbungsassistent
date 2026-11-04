@@ -53,6 +53,11 @@ jobs:
         run: pip install -r ../requirements-dev.txt
       - name: Tests
         run: python -m pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Tests der Seiten
+        run: node --test tests/*.test.cjs
 
   desktop:
     runs-on: ubuntu-latest

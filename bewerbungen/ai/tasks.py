@@ -6,11 +6,12 @@ returns plain data. Writing files is left to the caller, so it can save drafts (
 import dataclasses
 import datetime
 import pathlib
+import secrets
 
 import yaml
 
 from ai import prompts
-from ai.errors import BAD_ANSWER, AiError
+from ai.errors import BAD_ANSWER, AiError, AnswerError
 from ai.gateway import Answer, Gateway, Request
 from ai.personal import secrets_from_application, secrets_from_building_blocks, secrets_from_cv
 from ai.pseudonym import Pseudonymizer
@@ -21,10 +22,13 @@ FILES = {"cv": "cv.yaml", "profile": "suchprofil.md", "style": "anschreiben/stil
          "blocks": "anschreiben/bausteine.md"}
 APPRENTICESHIP_MARK = "## Lehrbeginn"  # section only the apprenticeship search profile has
 MODELS = {"rate": "claude-sonnet-5-5", "draft": "claude-opus-5-5", "review": "claude-sonnet-5-5",
-          "prefill": "claude-sonnet-5-5"}
-MAX_TOKENS = {"rate": 8000, "draft": 16000, "review": 12000, "prefill": 16000}
+          "prefill": "claude-sonnet-5-5", "rate_package": "claude-sonnet-5-5"}
+MAX_TOKENS = {"rate": 8000, "draft": 16000, "review": 12000, "prefill": 16000, "rate_package": 12000}
 GRADES = {g / 2 for g in range(2, 13)}  # 1, 1.5, … 6
 MAX_AD_CHARS = 30_000
+PACKAGE_SIZE = 10
+MAX_PACKAGE_AD_CHARS = 12_000  # ten long ads must not cost as much as a book; ads are rarely longer
+LABEL_BYTES = 2
 MISSING = "Für die KI fehlt noch {name}. Zuerst den Einstieg abschliessen."
 
 
@@ -93,12 +97,63 @@ def _ask(gateway: Gateway, material: Material, task: str, instructions: str, pro
 
 
 def rate_match(gateway: Gateway, material: Material, ad_text: str, model: str | None = None) -> dict:
-    answer = _ask(gateway, material, "rate", prompts.RATE, prompts.job_prompt(_ad(ad_text)), prompts.RATE_SCHEMA, model)
+    instructions = prompts.RATE_APPRENTICESHIP if material.minor else prompts.RATE
+    answer = _ask(gateway, material, "rate", instructions, prompts.job_prompt(_ad(ad_text)), prompts.RATE_SCHEMA, model)
     data = answer.data
-    grade = data.get("grade") if isinstance(data, dict) else None
-    if isinstance(grade, bool) or not isinstance(grade, (int, float)) or grade not in GRADES:
+    if not isinstance(data, dict) or not _is_grade(data.get("grade")):
         raise AiError(BAD_ANSWER)
     return {**data, "model": answer.model, "cost_usd": answer.cost_usd}
+
+
+def _is_grade(value: object) -> bool:
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and value in GRADES
+
+
+def _texts(value: object) -> list[str]:
+    return [line for line in value if isinstance(line, str)] if isinstance(value, list) else []
+
+
+def _clean_rating(raw: dict, minor: bool) -> dict | None:
+    if not _is_grade(raw.get("grade")):
+        return None
+    rating = {"grade": raw["grade"], "summary": raw["summary"] if isinstance(raw.get("summary"), str) else "",
+              "fits": _texts(raw.get("fits")), "hooks": _texts(raw.get("hooks")), "new_gaps": _texts(raw.get("new_gaps")),
+              "suspicious_lines": _texts(raw.get("suspicious_lines")),
+              "uncertain": raw["uncertain"].strip() if isinstance(raw.get("uncertain"), str) else ""}
+    if minor and _is_grade(raw.get("profession_grade")):
+        return {**rating, "profession_grade": raw["profession_grade"]}
+    return rating
+
+
+def _ratings_by_label(data: object, labels: list[str], minor: bool) -> dict[str, dict]:
+    """Only entries whose label belongs to this request, each label once; a label named twice says nothing."""
+    entries = data.get("ratings") if isinstance(data, dict) else None
+    if not isinstance(entries, list):
+        raise AnswerError(BAD_ANSWER)
+    named = [e.get("id") for e in entries if isinstance(e, dict)]
+    usable = {e["id"]: _clean_rating(e, minor) for e in entries
+              if isinstance(e, dict) and e.get("id") in labels and named.count(e["id"]) == 1}
+    return {label: rating for label, rating in usable.items() if rating}
+
+
+def rate_package(gateway: Gateway, material: Material, ads: list[tuple[str, str]], model: str | None = None) -> dict:
+    """Rate several ads in one call; ads are (id, text). The label of an ad is new for every call, so a text cannot
+    aim at another ad, and a rating belongs to an id only through its label. Ids without a usable answer are `missing`."""
+    if not 1 <= len(ads) <= PACKAGE_SIZE:
+        raise ValueError(f"Ein Paket hat 1 bis {PACKAGE_SIZE} Inserate.")
+    labels = [f"T{number}-{secrets.token_hex(LABEL_BYTES)}" for number in range(1, len(ads) + 1)]
+    by_label = {label: ad_id for label, (ad_id, _) in zip(labels, ads)}
+    texts = [(label, _ad(text[:MAX_PACKAGE_AD_CHARS])) for label, (_, text) in zip(labels, ads)]
+    instructions = prompts.RATE_PACKAGE_APPRENTICESHIP if material.minor else prompts.RATE_PACKAGE
+    schema = prompts.rate_package_schema(labels, material.minor)
+    answer = _ask(gateway, material, "rate_package", instructions, prompts.package_prompt(texts), schema, model)
+    try:
+        found = _ratings_by_label(answer.data, labels, material.minor)
+    except AnswerError as error:
+        raise AnswerError(str(error), cost_usd=answer.cost_usd) from error
+    ratings = {by_label[label]: rating for label, rating in found.items()}
+    return {"ratings": ratings, "missing": [ad_id for ad_id, _ in ads if ad_id not in ratings],
+            "model": answer.model, "cost_usd": answer.cost_usd}
 
 
 def draft_letter(gateway: Gateway, material: Material, entry: dict, ad_text: str, model: str | None = None) -> dict:

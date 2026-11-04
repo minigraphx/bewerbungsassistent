@@ -29,9 +29,17 @@
       <option value="verworfen">Verworfen</option>
       <option value="">Alle</option>
     </select>
-    <button type="button" id="alle-bewerten" hidden>Alle neuen bewerten</button>
+    <span id="bewerten-knoepfe" class="knoepfe-inline"></span>
+    <button type="button" id="anhalten" hidden>Anhalten</button>
+    <span id="kosten-hinweis" class="leise"></span>
   </div>
+  <label class="auswahl"><input type="checkbox" id="auto-bewerten"> <span id="auto-text">Neue Treffer nach der Suche automatisch bewerten</span></label>
   <div id="status" class="status" role="status" aria-live="polite"></div>
+  <section id="berufe" hidden>
+    <h2>Deine Berufe</h2>
+    <p class="leise">Wie sehr interessiert dich der Beruf? Treffer mit mehr Sternen stehen weiter oben. Deine Sterne ändern die Note der KI nicht.</p>
+    <ul id="berufe-liste" class="sterne-liste"></ul>
+  </section>
 
   <table>
     <thead><tr><th>Note</th><th>Stelle</th><th>Firma</th><th>Ort</th><th id="spalte-rahmen">Pensum</th><th>Portal</th><th>Gefunden</th><th></th></tr></thead>
@@ -40,6 +48,7 @@
   <p id="leer" class="leer" hidden>Keine Treffer.</p>
 </main>
 <script src="/app.js"></script>
+<script src="/treffer-logik.js"></script>
 <script src="/treffer.js"></script>
 </body>
 </html>

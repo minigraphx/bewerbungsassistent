@@ -10,6 +10,15 @@ class AiError(Exception):
         self.retry_after = retry_after
 
 
+class AnswerError(AiError):
+    """What is in this request, or what came back, is the problem: one by one it may still work. `cost_usd` is what
+    the call cost when it reached the AI; None if it was not sent."""
+
+    def __init__(self, message: str, *, cost_usd: float | None = None) -> None:
+        super().__init__(message)
+        self.cost_usd = cost_usd
+
+
 NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. In der App die Einladung einlösen "
               "(oder für die Entwicklung ANTHROPIC_API_KEY setzen).")
 ACCESS_DENIED = "Der Zugang zur KI gilt nicht mehr. Bitte bei der Person melden, die Sie im Pilot begleitet."

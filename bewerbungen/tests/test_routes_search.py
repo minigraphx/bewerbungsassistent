@@ -10,7 +10,8 @@ import app
 import routes_ai
 import routes_search
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
-from test_ai_tasks import RATING, VORLAGEN, FakeClient
+from ai.errors import BUDGET_USED, AiError
+from test_ai_tasks import VORLAGEN, FakeClient, PackageClient, rating_entry
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 
 HIT = {"portal": "jobs.ch", "portal_id": "abc-1", "stelle": "Python Developer", "firma": "Muster GmbH", "ort": "Bern",
@@ -68,7 +69,7 @@ def test_bad_bodies_are_refused(search, body):
 
 
 def test_rate_stores_the_rating(search, monkeypatch):
-    client = FakeClient(reply=RATING)
+    client = PackageClient(lambda labels: [rating_entry(labels[0], hooks=["Pensum"])])
     monkeypatch.setattr(routes_ai, "new_client", lambda: client)
     post(search, "/api/suche/treffer", {"treffer": [HIT]})
     hit_id = listing(search)["treffer"][0]["id"]
@@ -157,3 +158,128 @@ def test_unfinished_apprenticeship_profile_keeps_its_kind_next_to_the_error(sear
     overview = listing(search)
     assert (overview["art"], overview["portale"]) == ("lehrstelle", ["LENA", "yousty"])
     assert "Berufe" in overview["hinweise"][0]
+
+
+# Rating in packages (MIN-372)
+
+def many_hits(search, count: int) -> list[str]:
+    hits = [{**HIT, "portal_id": f"p-{i}", "firma": f"Firma {i}", "link": f"{HIT['link']}{i}", "text": f"Inserat Nummer {i}."}
+            for i in range(count)]
+    post(search, "/api/suche/treffer", {"treffer": hits})
+    return [hit["id"] for hit in listing(search)["treffer"]]
+
+
+def use_client(monkeypatch, client):
+    monkeypatch.setattr(routes_ai, "new_client", lambda: client)
+    return client
+
+
+def test_package_stores_each_grade_at_its_hit(search, monkeypatch):
+    def build(labels):
+        return [rating_entry(label, 1 + index) for index, label in reversed(list(enumerate(labels)))]
+
+    client = use_client(monkeypatch, PackageClient(build))
+    ids = many_hits(search, 3)
+    status, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
+    assert status == 200 and answer["offen"] == [] and answer["kosten_usd"] > 0
+    prompt = client.messages.calls[0]["messages"][0]["content"]
+    by_grade = sorted(listing(search)["treffer"], key=lambda hit: hit["bewertung"]["note"])
+    numbers = [int(hit["firma"].split()[1]) for hit in by_grade]
+    assert [prompt.index(f"Nummer {n}") for n in numbers] == sorted(prompt.index(f"Nummer {n}") for n in numbers)
+    assert len(client.messages.calls) == 1
+    shares = [hit["bewertung"]["kosten_usd"] for hit in by_grade]
+    assert sum(shares) == pytest.approx(answer["kosten_usd"])
+
+
+def test_package_keeps_what_it_got_when_labels_are_missing(search, monkeypatch):
+    use_client(monkeypatch, PackageClient(lambda labels: [rating_entry(labels[0])]))
+    ids = many_hits(search, 3)
+    status, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
+    assert status == 200 and len(answer["bewertet"]) == 1 and len(answer["offen"]) == 2
+    assert sum("bewertung" in hit for hit in listing(search)["treffer"]) == 1
+
+
+def test_package_with_an_unusable_answer_tells_the_page_to_go_one_by_one(search, monkeypatch):
+    use_client(monkeypatch, FakeClient(reply="kein json"))
+    ids = many_hits(search, 2)
+    status, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
+    assert status == 200 and answer["bewertet"] == [] and sorted(answer["offen"]) == sorted(ids) and answer["meldung"]
+
+
+def test_package_stops_on_errors_of_access_or_budget(search, monkeypatch):
+    def refuse():
+        raise AiError(BUDGET_USED)
+
+    monkeypatch.setattr(routes_ai, "new_client", refuse)
+    ids = many_hits(search, 2)
+    status, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
+    assert status == 400 and answer["fehler"] == BUDGET_USED
+
+
+def test_package_leaves_out_hits_without_text(search, monkeypatch):
+    client = use_client(monkeypatch, PackageClient(lambda labels: [rating_entry(label) for label in labels]))
+    post(search, "/api/suche/treffer", {"treffer": [{**HIT, "text": ""}]})
+    page = listing(search)["treffer"]
+    assert page[0]["ohne_text"] is True
+    status, answer = post(search, "/api/suche/bewerten-paket", {"ids": [page[0]["id"]]})
+    assert status == 200 and answer["ohne_text"] == [page[0]["id"]] and client.messages.calls == []
+
+
+@pytest.mark.parametrize("body", [{}, {"ids": []}, {"ids": "x"}, {"ids": [1]}, {"ids": ["a", "a"]}, {"ids": [f"a{i}" for i in range(11)]}])
+def test_package_refuses_wrong_requests(search, body):
+    assert post(search, "/api/suche/bewerten-paket", body)[0] == 400
+
+
+def test_package_with_an_unknown_hit_is_not_found(search):
+    assert post(search, "/api/suche/bewerten-paket", {"ids": ["jobs-ch-000000000000"]})[0] == 404
+
+
+def test_an_uncertain_grade_and_the_profession_grade_are_kept(search, monkeypatch):
+    use_client(monkeypatch, PackageClient(lambda labels: [rating_entry(labels[0], 4, uncertain="Sehr knapp.", profession_grade=6)]))
+    profile = search.kontext.daten / "suchprofil.md"
+    profile.write_text(profile.read_text(encoding="utf-8") + "\n## Lehrbeginn\n\nAugust 2027\n", encoding="utf-8")
+    ids = many_hits(search, 1)
+    _, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
+    rating = answer["bewertet"][0]["bewertung"]
+    assert rating["unsicher"] == "Sehr knapp." and rating["beruf_note"] == 6
+
+
+def test_settings_default_to_automatic_and_can_be_switched_off(search):
+    page = listing(search)
+    assert page["einstellungen"]["auto_bewerten"] is True and page["paket"] == 10 and page["grenze"] == 30
+    assert post(search, "/api/suche/einstellungen", {"auto_bewerten": False})[0] == 200
+    assert listing(search)["einstellungen"]["auto_bewerten"] is False
+    assert post(search, "/api/suche/einstellungen", {"auto_bewerten": "nein"})[0] == 400
+
+
+def test_own_stars_per_profession(search):
+    status, saved = post(search, "/api/suche/beruf-sterne", {"beruf": "Fachfrau Gesundheit EFZ", "sterne": 5})
+    assert status == 200 and saved["beruf_sterne"] == {"Fachfrau Gesundheit EFZ": 5}
+    post(search, "/api/suche/beruf-sterne", {"beruf": "Koch EFZ", "sterne": 2})
+    post(search, "/api/suche/beruf-sterne", {"beruf": "Fachfrau Gesundheit EFZ", "sterne": 0})
+    assert listing(search)["einstellungen"]["beruf_sterne"] == {"Koch EFZ": 2}
+
+
+@pytest.mark.parametrize("body", [{"beruf": "Koch", "sterne": 6}, {"beruf": "Koch", "sterne": True}, {"beruf": "", "sterne": 1},
+                                  {"beruf": "Koch"}, {"beruf": ["x"], "sterne": 1}])
+def test_bad_stars_are_refused(search, body):
+    assert post(search, "/api/suche/beruf-sterne", body)[0] == 400
+
+
+def test_an_uncertain_grade_goes_into_the_note_of_the_application(search, monkeypatch):
+    use_client(monkeypatch, PackageClient(lambda labels: [rating_entry(labels[0], uncertain="Sehr knapp.")]))
+    hit_id = many_hits(search, 1)[0]
+    post(search, "/api/suche/bewerten", {}, id=hit_id)
+    taken = post(search, "/api/suche/uebernehmen", {}, id=hit_id)[1]
+    entries = yaml.safe_load((search.kontext.daten / "bewerbungen.yaml").read_text(encoding="utf-8"))
+    entry = next(b for b in entries if b["id"] == taken["bewerbung_id"])
+    assert "Note unsicher: Sehr knapp." in entry["notiz"]
+
+
+def test_package_with_an_unusable_answer_reports_what_it_cost(search, monkeypatch):
+    ids = many_hits(search, 2)
+    use_client(monkeypatch, FakeClient(reply="abgeschnitten", stop_reason="max_tokens"))
+
+    status, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
+
+    assert status == 200 and sorted(answer["offen"]) == sorted(ids) and answer["kosten_usd"] > 0

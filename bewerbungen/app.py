@@ -39,6 +39,7 @@ SEITEN = {
     "/einrichtung.js": "einrichtung.js",
     "/treffer": "treffer.html",
     "/treffer.js": "treffer.js",
+    "/treffer-logik.js": "treffer-logik.js",
     "/angaben": "angaben.html",
 }
 GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "dokumente/", ".ki/", "suche/"]

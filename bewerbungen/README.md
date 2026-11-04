@@ -66,6 +66,13 @@ Bei externen Varianten das PDF selbst als `bewerbungen/<id>/lebenslauf.pdf` able
 
 Auf der Seite einer Bewerbung: **Passung bewerten** (Note 1–6 mit Begründung, übernehmbar), **Anschreiben entwerfen** (schreibt `anschreiben.yaml`, alter Stand bleibt als Entwurf) und **Inhalt prüfen** (Anforderungen abgedeckt / fehlt / überdehnt, unbelegte Aussagen). Grundlage sind `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md` und der gespeicherte Stellentext.
 
+Auf der Seite **Treffer** bewertet die KI in Paketen von zehn Inseraten pro Anfrage (MIN-372):
+
+- **Knöpfe nach Anzahl:** bis 10 offene „Bewerten (N)“, darüber „Nächste 10 bewerten“ und „Alle bewerten (N)“, über 30 „Nächste 30 bewerten“. Ein Lauf lässt sich anhalten, Bewertetes bleibt.
+- **Automatik:** Nach einer Suche bei offener Seite werden höchstens 30 neue Treffer von selbst bewertet; abschaltbar auf der Seite (`suche/einstellungen.yaml`).
+- **Unsichere Noten:** Eine Antwort, die ein Inserat auslässt oder unbrauchbar ist, trifft nur dieses Inserat: Es wird einzeln nochmals versucht. Ist ein Inserat so knapp, dass die Note wenig sagt, steht ein „?“ daneben und in den Details der Grund.
+- **Lehrstellen:** Die Note hat einen eigenen Massstab, in den Details stehen Beruf- und Lehrstellennote. Die Person gibt ihren Berufen 1 bis 5 Sterne; sie sortieren zuerst, ändern die Note nicht und gehen nicht an die KI.
+
 - **Pseudonymisierung**: Jede Anfrage läuft durch `ai/gateway.py`. Name, Kontaktdaten, Adresse, Geburtsdatum, Profile, Referenzen und Ansprechpersonen werden durch Platzhalter wie `{{NAME}}` ersetzt (auch in anderen Schreibweisen: Telefon mit +41, Links ohne https, Daten als 1. Mai 2011) und in der Antwort zurückgesetzt. E-Mail-Adressen, Telefonnummern und Personen nach „Frau“/„Herr“ im Inserat werden ebenfalls ersetzt; andere Namen im Inserat bitte unter „Kontaktperson“ eintragen. Bleibt danach eine E-Mail-Adresse, Telefonnummer oder ein bekannter Wert übrig, wird nichts gesendet. Bilder und Scans gehen nie an die KI.
 - **Inserate sind Daten**: Zeilen, die sich an eine KI richten, befolgt sie nicht; die Oberfläche zeigt sie als „verdächtige Zeile“.
 - **Verbindung**: im Pilot über die [Vermittlung](../vermittlung/README.md) (`BEWERBUNGSASSISTENT_KI_URL`). Die Person gibt einmal ihren Einladungscode ein; die App löst ihn ein und legt den Zugang im Schlüsselbund des Systems ab (oder `BEWERBUNGSASSISTENT_KI_ZUGANG`). Die Seite zeigt dann Verbrauch und Budget des Monats. Zum Entwickeln direkt mit `ANTHROPIC_API_KEY`. Ohne Verbindung bleiben die Knöpfe aus und die Seite sagt, was fehlt.

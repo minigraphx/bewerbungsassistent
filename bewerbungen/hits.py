@@ -19,6 +19,8 @@ from register import slug
 FOLDER = "suche"
 HITS_FILE = "treffer.yaml"
 RUN_FILE = "letzte-suche.yaml"
+SETTINGS_FILE = "einstellungen.yaml"
+MAX_STARS = 5
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
            "LENA": "berufsberatung.ch", "yousty": "yousty.ch"}
@@ -268,6 +270,39 @@ class Hits:
                     self._write(stored)
                     return stored[index]
         raise KeyError(f"Treffer {wanted!r} nicht gefunden")
+
+    def update_many(self, fields_by_id: dict[str, dict]) -> list[dict]:
+        """One write for many hits; a hit that is gone by now is left out."""
+        with _LOCK:
+            stored = self.all()
+            updated = [{**hit, **fields_by_id.get(hit["id"], {})} for hit in stored]
+            self._write(updated)
+        return [hit for hit in updated if hit["id"] in fields_by_id]
+
+    def settings(self) -> dict:
+        raw = lies_yaml(self.folder / SETTINGS_FILE, {})
+        raw = raw if isinstance(raw, dict) else {}
+        stars = raw.get("beruf_sterne") if isinstance(raw.get("beruf_sterne"), dict) else {}
+        clean = {str(k): v for k, v in stars.items() if type(v) is int and 1 <= v <= MAX_STARS}
+        return {"auto_bewerten": raw.get("auto_bewerten") is not False, "beruf_sterne": clean}
+
+    def _save_settings(self, settings: dict) -> dict:
+        schreibe_yaml(self.folder / SETTINGS_FILE, settings)
+        return settings
+
+    def set_auto_rating(self, enabled: bool) -> dict:
+        with _LOCK:
+            return self._save_settings({**self.settings(), "auto_bewerten": enabled})
+
+    def set_stars(self, profession: str, stars: int) -> dict:
+        """The person's own rating of a profession, 1 to 5; 0 takes it away."""
+        name = _text(profession, "Beruf", required=True)
+        if type(stars) is not int or not 0 <= stars <= MAX_STARS:
+            raise ValueError(f"Sterne: 0 bis {MAX_STARS}.")
+        with _LOCK:
+            current = self.settings()
+            others = {k: v for k, v in current["beruf_sterne"].items() if k != name}
+            return self._save_settings({**current, "beruf_sterne": {**others, **({name: stars} if stars else {})}})
 
     def save_run(self, summary: dict, today: datetime.date) -> dict:
         run = {"datum": today.isoformat(), **summary}

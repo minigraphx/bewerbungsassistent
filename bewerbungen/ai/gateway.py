@@ -57,7 +57,7 @@ class Gateway:
         try:
             pseudonymizer.check_clean([context, prompt])
         except PseudonymError as error:
-            raise errors.AiError(str(error)) from error
+            raise errors.AnswerError(str(error)) from error
         try:
             response = self._client.messages.create(**self._payload(request, context, prompt))
         except anthropic.AnthropicError as error:
@@ -66,7 +66,10 @@ class Gateway:
         model = getattr(response, "model", None) or request.model
         self._log.record(task=request.task, model=model, usage=usage, fields=pseudonymizer.fields,
                          request_id=getattr(response, "_request_id", None), now=self._now())
-        return self._answer(request, pseudonymizer, response, model, usage)
+        try:
+            return self._answer(request, pseudonymizer, response, model, usage)
+        except errors.AnswerError as error:
+            raise errors.AnswerError(str(error), cost_usd=cost_usd(model, usage)) from error
 
     @staticmethod
     def _payload(request: Request, context: str, prompt: str) -> dict:
@@ -87,9 +90,9 @@ class Gateway:
     def _answer(request: Request, pseudonymizer: Pseudonymizer, response, model: str, usage: Usage) -> Answer:
         stop = getattr(response, "stop_reason", None)
         if stop == "refusal":
-            raise errors.AiError(errors.REFUSED)
+            raise errors.AnswerError(errors.REFUSED)
         if stop == "max_tokens":
-            raise errors.AiError(errors.TOO_LONG)
+            raise errors.AnswerError(errors.TOO_LONG)
         text = "".join(block.text for block in response.content if getattr(block, "type", None) == "text")
         try:
             if request.schema is None:
@@ -97,6 +100,6 @@ class Gateway:
             data = pseudonymizer.unmask_data(json.loads(text))
             return Answer(json.dumps(data, ensure_ascii=False), data, model, usage, cost_usd(model, usage))
         except json.JSONDecodeError as error:
-            raise errors.AiError(errors.BAD_ANSWER) from error
+            raise errors.AnswerError(errors.BAD_ANSWER) from error
         except PseudonymError as error:
-            raise errors.AiError(str(error)) from error
+            raise errors.AnswerError(str(error)) from error

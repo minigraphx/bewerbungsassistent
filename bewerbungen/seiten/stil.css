@@ -133,3 +133,13 @@ tr.details ul { margin: 4px 0 8px; }
 pre.inserat { white-space: pre-wrap; font: inherit; font-size: 14px; max-height: 420px; overflow: auto; background: var(--hintergrund); border: 1px solid var(--linie); border-radius: 6px; padding: 10px; }
 ol.schritte li { margin-bottom: 6px; }
 code.pfad { word-break: break-all; }
+.knoepfe-inline { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.filter { align-items: center; }
+label.auswahl { display: flex; gap: 6px; align-items: center; font-weight: 400; font-size: 14px; margin: 0 0 8px; }
+label.auswahl input { width: auto; }
+.sterne-liste { list-style: none; padding: 0; margin: 0 0 12px; }
+.sterne-liste li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 3px 0; }
+.sterne { display: inline-flex; }
+.sterne button { background: none; border: none; padding: 0 2px; font-size: 18px; line-height: 1; color: var(--akzent); cursor: pointer; }
+.unsicher-marke { font-weight: 400; color: var(--hinweis); }
+.eigene-sterne { display: block; font-size: 12px; color: var(--akzent); }

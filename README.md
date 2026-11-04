@@ -26,9 +26,9 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 ![Übersicht der Bewerbungen mit Status, Passung und Variante](docs/bilder/uebersicht.jpg)
 
-**Treffer der Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung, dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis.
+**Treffer der Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung in Paketen von zehn, nach der Suche von selbst (höchstens 30 pro Suche, abschaltbar) oder auf Knopfdruck. Bei Lehrstellen zählt der eigene Beruf mit Sternen zuerst. Dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis.
 
-![Liste der Treffer mit Note, Firma, Ort, Pensum, Portal und den Knöpfen Bewerten, Übernehmen und Verwerfen](docs/bilder/treffer.jpg)
+![Liste der Treffer mit Note, Firma, Ort, Pensum, Portal und den Knöpfen Neu bewerten, Übernehmen und Verwerfen](docs/bilder/treffer.jpg)
 
 **Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass im Anschreiben noch die Firma einer anderen Bewerbung steht.
 

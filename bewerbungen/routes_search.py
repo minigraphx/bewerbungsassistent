@@ -2,7 +2,7 @@
 
 The extension reaches them through the app's Native Messaging host: it fetches the search plan, lets the
 app screen a result list (`sichten`), sends the full hits and finally a summary per portal. The page
-„Treffer“ lists the hits; rating goes through the AI gateway, taking over writes register and stelle.md
+„Treffer“ lists the hits; rating goes through the AI gateway in packages (MIN-372), taking over writes register and stelle.md
 with drafts (Entwürfe).
 """
 import threading
@@ -11,12 +11,15 @@ import routes_ai
 import search_plan
 import unterlagen
 from ai import tasks
+from ai.errors import AnswerError
 from dateien import schreibe_atomar
 from hits import Hits, company_key
 from server import json_antwort, pflicht
 
 MAX_PROBLEM = 600
+MAX_RATED_PER_RUN = 30  # one search must not use up the budget; the page says how many are left
 _TAKE_OVER = threading.Lock()
+BAD_RATING = "Die KI hat diesen Treffer nicht bewertet. Bitte nochmals versuchen."
 NO_TEXT = "Für diesen Treffer fehlt der Text des Inserats. Bitte das Inserat öffnen und die Stelle von Hand erfassen."
 
 
@@ -74,8 +77,10 @@ def overview(k, parameter, body):
         hints, portals = list(current.hints), current.portals
     except ValueError as error:
         hints = [str(error)]
-    return json_antwort({"treffer": sorted(store.all(), key=lambda h: h.get("gefunden_am", ""), reverse=True),
-                         "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals)})
+    found = sorted(store.all(), key=lambda h: h.get("gefunden_am", ""), reverse=True)
+    return json_antwort({"treffer": [{**hit, "ohne_text": not store.text(hit["id"]).strip()} for hit in found],
+                         "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals),
+                         "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN})
 
 
 def text(k, parameter, body):
@@ -85,23 +90,79 @@ def text(k, parameter, body):
     return json_antwort({"text": store.text(wanted)})
 
 
+def _rating(result: dict, share_usd: float | None, model: str | None) -> dict:
+    fields = {"note": result["grade"], "zusammenfassung": result["summary"], "passt": result["fits"],
+              "haken": result["hooks"], "neue_luecken": result["new_gaps"], "auffaellig": result["suspicious_lines"],
+              "modell": model, "kosten_usd": share_usd}
+    if result["uncertain"]:
+        fields = {**fields, "unsicher": result["uncertain"]}
+    return {**fields, "beruf_note": result["profession_grade"]} if "profession_grade" in result else fields
+
+
+def _rate_ads(k, store: Hits, ads: list[tuple[str, str]]) -> dict:
+    """One AI call and its results stored. The cost is shared among the hits that got a rating."""
+    def task():
+        gateway, material = routes_ai.ai_gateway(k)
+        return tasks.rate_package(gateway, material, ads)
+
+    result = routes_ai.run_ai(task)
+    ratings = result["ratings"]
+    share = result["cost_usd"] / len(ratings) if ratings and result["cost_usd"] is not None else None
+    updated = store.update_many({ad_id: {"bewertung": _rating(rating, share, result["model"])}
+                                 for ad_id, rating in ratings.items()})
+    return {"bewertet": updated, "offen": result["missing"], "kosten_usd": result["cost_usd"]}
+
+
 def rate(k, parameter, body):
     store = _hits(k)
     hit = store.get(pflicht(parameter, "id"))
     if not store.text(hit["id"]).strip():
         raise ValueError(NO_TEXT)
-    ad = store.ad_text(hit["id"])
+    result = _rate_ads(k, store, [(hit["id"], store.ad_text(hit["id"]))])
+    if not result["bewertet"]:
+        raise ValueError(BAD_RATING)
+    return json_antwort(result["bewertet"][0])
 
-    def task():
-        gateway, material = routes_ai.ai_gateway(k)
-        return tasks.rate_match(gateway, material, ad)
 
-    result = routes_ai.run_ai(task)
-    rating = {"note": result["grade"], "zusammenfassung": result.get("summary", ""),
-              "passt": result.get("fits", []), "haken": result.get("hooks", []),
-              "neue_luecken": result.get("new_gaps", []), "auffaellig": result.get("suspicious_lines", []),
-              "modell": result.get("model"), "kosten_usd": result.get("cost_usd")}
-    return json_antwort(store.update(hit["id"], bewertung=rating))
+def _package_ids(body) -> list[str]:
+    ids = _list(body, "ids")
+    if not 1 <= len(ids) <= tasks.PACKAGE_SIZE or not all(isinstance(i, str) for i in ids) or len(set(ids)) != len(ids):
+        raise ValueError(f"ids: 1 bis {tasks.PACKAGE_SIZE} verschiedene Treffer erwartet")
+    return ids
+
+
+def rate_package(k, parameter, body):
+    """Up to ten hits in one call. Hits without an answer stay unrated; an answer that cannot be used at all is no
+    error for the others, the page tries those hits one by one. Connection, access and budget errors stop the run."""
+    store = _hits(k)
+    ids = _package_ids(body)
+    for wanted in ids:
+        store.get(wanted)
+    without_text = [wanted for wanted in ids if not store.text(wanted).strip()]
+    ads = [(wanted, store.ad_text(wanted)) for wanted in ids if wanted not in without_text]
+    if not ads:
+        return json_antwort({"bewertet": [], "offen": [], "ohne_text": without_text, "kosten_usd": None})
+    try:
+        result = _rate_ads(k, store, ads)
+    except ValueError as error:
+        cause = error.__cause__
+        if not isinstance(cause, AnswerError):
+            raise
+        return json_antwort({"bewertet": [], "offen": [ad for ad, _ in ads], "ohne_text": without_text,
+                             "kosten_usd": cause.cost_usd, "meldung": str(error)})
+    return json_antwort({**result, "ohne_text": without_text})
+
+
+def settings(k, parameter, body):
+    if not isinstance(body, dict) or not isinstance(body.get("auto_bewerten"), bool):
+        raise ValueError("auto_bewerten erwartet (ja oder nein)")
+    return json_antwort(_hits(k).set_auto_rating(body["auto_bewerten"]))
+
+
+def stars(k, parameter, body):
+    if not isinstance(body, dict):
+        raise ValueError("beruf und sterne erwartet")
+    return json_antwort(_hits(k).set_stars(body.get("beruf"), body.get("sterne")))
 
 
 def _note(hit: dict) -> str:
@@ -109,6 +170,8 @@ def _note(hit: dict) -> str:
     parts = [rating.get("zusammenfassung", "")]
     if rating.get("haken"):
         parts.append("Haken: " + "; ".join(rating["haken"]))
+    if rating.get("unsicher"):
+        parts.append(f"Note unsicher: {rating['unsicher']}")
     if hit.get("lehrbeginn"):
         parts.append(f"Lehrbeginn: {hit['lehrbeginn']}")
     if hit.get("hinweis"):
@@ -145,4 +208,5 @@ def discard(k, parameter, body):
 
 GET = {"/api/suche/plan": plan, "/api/suche/liste": overview, "/api/suche/text": text}
 POST = {"/api/suche/sichten": screen, "/api/suche/treffer": receive, "/api/suche/abschluss": finish,
-        "/api/suche/bewerten": rate, "/api/suche/uebernehmen": take_over, "/api/suche/verwerfen": discard}
+        "/api/suche/bewerten": rate, "/api/suche/bewerten-paket": rate_package, "/api/suche/einstellungen": settings,
+        "/api/suche/beruf-sterne": stars, "/api/suche/uebernehmen": take_over, "/api/suche/verwerfen": discard}
