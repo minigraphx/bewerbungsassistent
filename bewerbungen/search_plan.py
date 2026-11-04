@@ -34,6 +34,7 @@ MAX_KEYWORDS = 15
 MAX_PLACES = 6
 MAX_PAGES = 3  # per keyword and place, as in the skill
 MAX_QUERIES = 30  # keyword × place combinations per portal
+MAX_TEXTS = 150  # new ads per portal and run: a search all over Switzerland can find thousands; the rest comes next run
 MAX_AGE_DAYS = 45
 MAX_VALUE = 80
 MAX_PROFESSIONS = 8
@@ -102,7 +103,7 @@ class SearchPlan:
                 "plz": list(self.postal_codes), "regionen": list(self.regions),
                 "titel_ausschluss": list(self.title_exclude), "umkreis_km": self.radius_km,
                 "lehrbeginn_jahre": list(self.start_years), "angebote": list(self.offers), "max_seiten": pages, "max_abfragen": MAX_QUERIES,
-                "max_alter_tage": MAX_AGE_DAYS, "hinweise": list(self.hints), "schweizweit": self.nationwide,
+                "max_alter_tage": MAX_AGE_DAYS, "max_texte": MAX_TEXTS, "hinweise": list(self.hints), "schweizweit": self.nationwide,
                 "hinweis_ziele": dict(self.hint_targets)}
 
 
@@ -281,12 +282,13 @@ def job_terms(text: str) -> tuple[str, ...]:
     return _job_terms(_sections(text))
 
 
-def _job_hints(nationwide: bool, portals: tuple[str, ...], places: tuple[str, ...],
-               postal_codes: tuple[str, ...]) -> tuple[tuple[str, str], ...]:
+def _job_hints(nationwide: bool, portals: tuple[str, ...], cantons: tuple[str, ...], regions: tuple[str, ...],
+               places: tuple[str, ...], postal_codes: tuple[str, ...]) -> tuple[tuple[str, str], ...]:
     """What the person may want to add, each with the field to add it in. No portal is skipped for a missing place."""
     if nationwide:
         return ((NATIONWIDE_NOTE, FIELD_CANTONS),)
-    gaps = (("jobs.ch", places, "Wohnort", FIELD_HOME), ("jobscout24", postal_codes, "PLZ", FIELD_POSTAL_CODE))
+    gaps = (("job-room", cantons, "Kantone", FIELD_CANTONS), ("jobs.ch", places, "Wohnort", FIELD_HOME),
+            ("jobscout24", postal_codes, "PLZ", FIELD_POSTAL_CODE), ("ictjobs", regions, "Kantone", FIELD_CANTONS))
     return tuple((f"{portal}: Ohne {name} sucht dieses Portal in der ganzen Schweiz. {name} ergänzen.", field)
                  for portal, known, name, field in gaps if portal in portals and not known)
 
@@ -309,7 +311,7 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     modes = _modes(sections.get("portale und rhythmus", []))
     portals = tuple(portal for portal in PORTALS if modes.get(portal) != MODE_OFF)
     nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", "regionen"))
-    targets = _job_hints(nationwide, portals, places, postal_codes)
+    targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes)
     return SearchPlan(keywords=keywords, niche_keywords=_items(_value(words, "nischen"), MAX_KEYWORDS),
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
                       title_exclude=_items(_value(titles, "ausschluss"), 30), portals=portals,

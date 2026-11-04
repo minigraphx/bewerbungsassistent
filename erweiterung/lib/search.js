@@ -107,9 +107,12 @@ export async function searchPortal(portal, plan, deps) {
     await loadPortal(portal, plan, tab, deps);
     const { found, problem } = await listAll(portal, plan, tab, deps);
     const wanted = await screen(found, deps.app);
-    const { added, missing, failed } = await sendWithTexts(portal, wanted, tab, deps);
+    const limit = plan.max_texte || wanted.length;
+    const later = Math.max(0, wanted.length - limit);
+    const { added, missing, failed } = await sendWithTexts(portal, wanted.slice(0, limit), tab, deps);
     const notes = [
       problem,
+      later ? `${later} weitere neue Inserate kommen bei der nächsten Suche dran.` : '',
       missing ? `${missing} Inserate ohne lesbaren Text.` : '',
       failed ? `${failed} Inserate nicht geladen, sie kommen bei der nächsten Suche wieder.` : '',
     ];

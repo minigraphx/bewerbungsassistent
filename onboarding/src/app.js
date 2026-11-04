@@ -598,9 +598,10 @@ async function takeOver(replace) {
   try {
     window.clearTimeout(autosaveTimer);
     storeNow();
+    const sent = state; // a change while this runs is not taken over
     const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
     existingBasics = result.geschrieben.length ? result.geschrieben : existingBasics;
-    notTakenOver = Boolean(result.unvollstaendig);
+    notTakenOver = state !== sent || Boolean(result.unvollstaendig);
     storeNow();
     done.hidden = false;
     done.replaceChildren(
@@ -690,6 +691,7 @@ function clearAll() {
   window.clearTimeout(autosaveTimer);
   clearStored();
   state = { track: null, data: {} };
+  notTakenOver = false;
   forgetPrefillRun();
   if (!backend) {
     uploads = [];

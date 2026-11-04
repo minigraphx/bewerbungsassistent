@@ -223,12 +223,12 @@ class Hits:
         schreibe_yaml(self.folder / HITS_FILE, all_hits, "# Treffer der Stellensuche, geschrieben vom Bewerbungsassistenten\n")
 
     def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
-               own_portals: frozenset[str] = frozenset()) -> dict:
-        """Which hits of a result list the extension should open for the full text.
+               own_portals: frozenset[str] = frozenset(), near=lambda place: False) -> dict:
+        """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away.
         """
-        fetch, filtered, known, merged = [], [], 0, 0
+        fetch, nearby, filtered, known, merged = [], [], [], 0, 0
         with _LOCK:
             stored = self.all()
             known_keys = {key(h) for h in stored}
@@ -255,9 +255,11 @@ class Hits:
                     filtered.append({"stelle": hit["stelle"], "grund": f"älter als {max_age} Tage"})
                 elif key(hit) not in fetch:
                     fetch.append(key(hit))
+                    if near(hit.get("ort", "")):
+                        nearby.append(key(hit))
             if merged:
                 self._write(stored)
-        return {"holen": fetch, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": merged}
+        return {"holen": fetch, "nah": nearby, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": merged}
 
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
             own_portals: frozenset[str] = frozenset()) -> dict:

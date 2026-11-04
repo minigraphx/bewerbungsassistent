@@ -1,11 +1,12 @@
 "use strict";
 // Rating hits in packages (MIN-372): what to rate, which buttons to offer, the run itself. No DOM, so it can be tested.
 (function (global) {
-  /** Hits that can be rated now, the newest first, so the limit of a run takes those. */
+  /** Hits that can be rated now: near the home first, then the newest, so the limit of a run takes those. */
   function zuBewerten(treffer) {
     return treffer
       .filter(t => t.zustand === "neu" && !t.bewertung && !t.ohne_text)
-      .sort((a, b) => (b.gefunden_am || "").localeCompare(a.gefunden_am || ""));
+      .sort((a, b) => Number(Boolean(b.nah)) - Number(Boolean(a.nah))
+        || (b.gefunden_am || "").localeCompare(a.gefunden_am || ""));
   }
 
   /** The buttons depend on how many hits are open: „Alle“ only when there are more than one package. */

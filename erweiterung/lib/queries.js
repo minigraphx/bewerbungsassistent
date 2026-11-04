@@ -55,9 +55,10 @@ export function buildQueries(portal, plan) {
     const [field, key] = PLACE[portal];
     const rounds = (plan[field] || []).map((place) => keywords.map((keyword) => ({ keyword, [key]: place, maxAge })));
     const free = portal === 'jobs.ch' ? niches.map((keyword) => ({ keyword, maxAge })) : [];
-    // No place for this portal, or no region chosen at all: the whole of Switzerland, after the home.
+    // No place for this portal, or no region chosen at all: the whole of Switzerland, right after the home,
+    // so the limit of queries does not take it first.
     const everywhere = plan.schweizweit || !rounds.length ? keywords.map((keyword) => ({ keyword, maxAge })) : [];
-    all = [...(rounds[0] || []), ...free, ...rounds.slice(1).flat(), ...everywhere];
+    all = [...(rounds[0] || []), ...free, ...everywhere, ...rounds.slice(1).flat()];
   }
   const limit = plan.max_abfragen || all.length;
   return { queries: all.slice(0, limit), skipped: Math.max(0, all.length - limit) };

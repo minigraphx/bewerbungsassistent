@@ -78,7 +78,7 @@ Auf der Seite einer Bewerbung: **Passung bewerten** (Note 1–6 mit Begründung,
 Auf der Seite **Suche** bewertet die KI in Paketen von zehn Inseraten pro Anfrage (MIN-372):
 
 - **Knöpfe nach Anzahl:** bis 10 offene „Bewerten (N)“, darüber „Nächste 10 bewerten“ und „Alle bewerten (N)“, über 30 „Nächste 30 bewerten“. Ein Lauf lässt sich anhalten, Bewertetes bleibt.
-- **Automatik:** Nach einer Suche bei offener Seite werden höchstens 30 neue Treffer von selbst bewertet; abschaltbar auf der Seite (`suche/einstellungen.yaml`).
+- **Automatik:** Nach einer Suche bei offener Seite werden höchstens 30 neue Treffer von selbst bewertet, die nahen zuerst; abschaltbar auf der Seite (`suche/einstellungen.yaml`).
 - **Unsichere Noten:** Eine Antwort, die ein Inserat auslässt oder unbrauchbar ist, trifft nur dieses Inserat: Es wird einzeln nochmals versucht. Ist ein Inserat so knapp, dass die Note wenig sagt, steht ein „?“ daneben und in den Details der Grund.
 - **Lehrstellen:** Die Note hat einen eigenen Massstab, in den Details stehen Beruf- und Lehrstellennote. Die Person gibt ihren Berufen 1 bis 5 Sterne; sie sortieren zuerst, ändern die Note nicht und gehen nicht an die KI.
 - **Ohne Region (MIN-380):** Ohne Kantone, Orte und PLZ im Suchprofil sucht jedes Portal in der ganzen Schweiz, nach den Abfragen am Wohnort. Unbewertete Treffer am Wohnort oder im selben Postleitzahlgebiet (erste zwei Ziffern) stehen zuerst; Entfernungen kennt die App nicht. Hinweise auf der Seite „Suche“ führen direkt zum Feld in „Meine Angaben“.

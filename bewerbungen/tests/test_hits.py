@@ -230,3 +230,12 @@ def test_titles_stored_with_markup_read_clean(store):
 ])
 def test_near_means_the_home_or_the_same_postal_area(place, near):
     assert hits.is_near(place, ("Thun",), ("3600",)) is near
+
+
+def test_screen_names_the_hits_near_the_home(store):
+    listing = [hit(portal_id="n-1", ort="Thun", link="https://www.jobs.ch/de/stellenangebote/detail/n-1/"),
+               hit(portal_id="f-1", ort="Zürich", stelle="Koch", firma="Andere AG",
+                   link="https://www.jobs.ch/de/stellenangebote/detail/f-1/")]
+    result = store.screen(listing, (), 45, [], near=lambda place: place == "Thun")
+    assert result["nah"] == ["jobs.ch:n-1"] and len(result["holen"]) == 2
+    assert store.screen(listing, (), 45, [])["nah"] == []

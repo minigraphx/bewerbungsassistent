@@ -96,6 +96,41 @@ test('chunks splits into parts', () => {
   assert.deepEqual(chunks([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]]);
 });
 
+test('the whole of Switzerland comes right after the home and is not cut first by the limit', () => {
+  const plan = { ...PLAN, schweizweit: true, kantone: [], stichworte: ['A', 'B'], nischen: [], orte: ['Thun', 'Bern'], max_abfragen: 4 };
+  const { queries: kept, skipped } = buildQueries('jobs.ch', plan);
+  assert.deepEqual(kept.map((q) => [q.keyword, q.place]), [['A', 'Thun'], ['B', 'Thun'], ['A', undefined], ['B', undefined]]);
+  assert.equal(skipped, 2);
+});
+
+test('hits near the home get their text first, across all parts of the list', async () => {
+  const hits = Array.from({ length: 205 }, (_, i) => hit('jobs.ch', `h${i}`));
+  const app = fakeApp();
+  const sichten = app.request;
+  app.request = async (method, path, data) => {
+    const answer = await sichten(method, path, data);
+    return path === '/api/suche/sichten'
+      ? { ...answer, nah: data.treffer.filter((h) => h.portal_id === 'h204').map((h) => `${h.portal}:${h.portal_id}`) }
+      : answer;
+  };
+  const browser = fakeBrowser((portal, method, args) => (method === 'list'
+    ? { ok: true, value: { hits, more: false } }
+    : { ok: true, value: { text: args[0].portal_id } }));
+  await searchPortal('jobs.ch', { ...PLAN, stichworte: ['Python'], orte: ['Bern'], nischen: [], max_texte: 2 }, deps(app, browser));
+  const sent = app.calls.filter(([, path]) => path === '/api/suche/treffer').flatMap(([, , body]) => body.treffer);
+  assert.deepEqual(sent.map((h) => h.portal_id), ['h204', 'h0']);
+});
+
+test('a run fetches only so many texts per portal and says the rest comes next time', async () => {
+  const app = fakeApp();
+  const browser = fakeBrowser((portal, method, args) => (method === 'list'
+    ? { ok: true, value: { hits: [hit('jobs.ch', 'a'), hit('jobs.ch', 'b'), hit('jobs.ch', 'c')], more: false } }
+    : { ok: true, value: { text: args[0].portal_id } }));
+  const summary = await searchPortal('jobs.ch', { ...PLAN, stichworte: ['Python'], orte: ['Bern'], nischen: [], max_texte: 2 }, deps(app, browser));
+  assert.equal(summary.neu, 2);
+  assert.match(summary.problem, /1 weitere neue Inserate kommen bei der nächsten Suche dran/);
+});
+
 test('a portal run lists, screens, fetches texts and sends the new hits', async () => {
   const app = fakeApp({ holen: () => ['jobs.ch:a'] });
   const browser = fakeBrowser((portal, method, args) => {

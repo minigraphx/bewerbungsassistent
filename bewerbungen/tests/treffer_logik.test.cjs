@@ -4,6 +4,15 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const logik = require("../seiten/treffer-logik.js");
 
+test("hits near the home are rated before far ones, so the limit of a run takes those", () => {
+  const found = logik.zuBewerten([
+    { id: "fern", zustand: "neu", gefunden_am: "2026-11-04" },
+    { id: "nah-alt", zustand: "neu", gefunden_am: "2026-11-01", nah: true },
+    { id: "nah-jung", zustand: "neu", gefunden_am: "2026-11-04", nah: true },
+  ]);
+  assert.deepEqual(found.map((t) => t.id), ["nah-jung", "nah-alt", "fern"]);
+});
+
 test("only new hits with a text and without a rating are rated, the newest first", () => {
   const found = logik.zuBewerten([
     { id: "alt", zustand: "neu", gefunden_am: "2026-11-01" },

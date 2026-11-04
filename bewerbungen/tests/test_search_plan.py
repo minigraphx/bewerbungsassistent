@@ -89,6 +89,17 @@ def test_named_places_mean_no_search_all_over_switzerland():
     assert not search_plan.parse(NO_REGION.replace("- Wohnort: Thun\n", "- Wohnort: Thun\n- Orte: Bern\n")).nationwide
 
 
+def test_portals_that_search_everywhere_without_cantons_say_so_when_only_places_are_named():
+    plan = search_plan.parse(NO_REGION.replace("- Wohnort: Thun\n", "- Wohnort: Thun\n- Orte: Bern\n"), postal_code="3600")
+    named = {portal: hint for portal in ("job-room", "ictjobs") for hint in plan.hints if hint.startswith(portal)}
+    assert set(named) == {"job-room", "ictjobs"} and all("ganzen Schweiz" in hint for hint in named.values())
+    assert {dict(plan.hint_targets)[hint] for hint in named.values()} == {"searchJob.cantons"}
+
+
+def test_the_plan_limits_the_texts_per_portal():
+    assert search_plan.parse(GENERATED).as_dict()["max_texte"] == search_plan.MAX_TEXTS
+
+
 def test_a_missing_home_of_an_apprenticeship_names_the_field():
     profile = apprenticeship_template()
     text = "\n".join(line for line in profile.splitlines() if not line.startswith(("- Wohnort", "- Kantone")))

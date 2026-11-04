@@ -52,6 +52,7 @@ def test_extension_flow_screen_send_finish(search):
     assert status == 200
     assert screened["holen"] == ["jobs.ch:abc-1"]
     assert screened["gefiltert"] == [{"stelle": "Praktikum Python", "grund": "Titel: Praktikum"}]
+    assert screened["nah"] == ["jobs.ch:abc-1"], "Bern is a place of the profile"
     status, received = post(search, "/api/suche/treffer", {"treffer": [HIT]})
     assert (status, received["neu"]) == (200, 1)
     status, run = post(search, "/api/suche/abschluss", {"portale": {"jobs.ch": {"treffer": 2, "neu": 1, "problem": ""}}})

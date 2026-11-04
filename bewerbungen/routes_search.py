@@ -46,7 +46,8 @@ def screen(k, parameter, body):
     current = search_plan.for_folder(k.daten)
     store = _hits(k)
     result = store.screen(_list(body), current.title_exclude, search_plan.MAX_AGE_DAYS, k.register().alle(),
-                          own_sites.active_portals(store))
+                          own_sites.active_portals(store),
+                          near=lambda place: is_near(str(place), current.places, current.postal_codes))
     return json_antwort(result)
 
 
