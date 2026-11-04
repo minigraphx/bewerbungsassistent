@@ -25,6 +25,7 @@
     <div><label for="f-vermittler">Inserent / Vermittler</label><input id="f-vermittler"></div>
     <div><label for="f-portal">Portal</label><input id="f-portal"></div>
     <div><label for="f-link">Link zum Inserat</label><input id="f-link" type="url"></div>
+    <div><label for="f-formular_link">Link zum Bewerbungsformular</label><input id="f-formular_link" type="url"></div>
     <div><label for="f-status">Status</label><select id="f-status"></select></div>
     <div><label for="f-variante">Lebenslauf-Variante</label><select id="f-variante"></select></div>
     <div><label for="f-passung">Passung (Note 1–6)</label><input id="f-passung" type="number" min="1" max="6" step="0.5"></div>
@@ -70,6 +71,11 @@
   <div class="knoepfe"><button class="haupt" id="erstellen">Unterlagen erstellen</button><button id="pruefen">Erneut prüfen</button></div>
   <ul class="befunde" id="befunde"></ul>
   <div class="pdfs" id="pdfs"></div>
+
+  <h2>Zertifikate</h2>
+  <p class="hilfe">Nur die Zertifikate, die zur Stelle passen, kommen als eine ZIP-Datei mit. Die Vorschläge stammen aus dem Vergleich der Dateinamen mit dem Inserat; bitte prüfen.</p>
+  <ul class="auswahl-liste" id="zertifikate"></ul>
+  <div class="knoepfe"><button id="zertifikate-speichern" hidden>Auswahl speichern</button><span id="zertifikate-status" class="status" role="status"></span></div>
 
   <h2>Versand</h2>
   <div id="versand-info"></div>

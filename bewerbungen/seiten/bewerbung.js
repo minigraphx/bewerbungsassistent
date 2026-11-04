@@ -3,7 +3,7 @@
   const { holen, senden, el, status, datum, url, bestaetigen } = window.App;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
-  const FELDER = ["firma", "stelle", "firma_schluessel", "ort", "pensum", "vermittler", "portal", "link",
+  const FELDER = ["firma", "stelle", "firma_schluessel", "ort", "pensum", "vermittler", "portal", "link", "formular_link",
                   "status", "variante", "passung", "eingetragen_am", "beworben_am", "frist", "gespraech_am", "absage_am",
                   "adresse", "kontaktperson", "kontakt", "notiz"];
   const JOBROOM = [["datum", "Datum der Bewerbung"], ["arbeitgeber", "Arbeitgeber"], ["adresse", "Adresse"],
@@ -96,6 +96,28 @@
       el("strong", {}, `Versendet am ${datum(v.datum)} (${v.art})`), el("ul", {}, links)));
   }
 
+  // Certificates (MIN-346): without a saved choice yet, the suggestions are ticked and marked with their reason.
+  async function zeigeZertifikate() {
+    const { verfuegbar, vorschlag, gewaehlt } = await holen("/api/zertifikate", { id: ID });
+    const gruende = new Map(vorschlag.map(v => [v.datei, v.grund]));
+    const zeilen = verfuegbar.map(datei => el("li", {}, el("label", { class: "auswahl" },
+      el("input", { type: "checkbox", value: datei, checked: gewaehlt ? gewaehlt.includes(datei) : gruende.has(datei) }),
+      datei.split("/").pop(), gruende.has(datei) ? el("span", { class: "leise" }, ` (${gruende.get(datei)})`) : null)));
+    $("zertifikate").replaceChildren(...(zeilen.length ? zeilen : [el("li", { class: "leer" }, "Keine Zertifikate unter „Meine Angaben“ hochgeladen.")]));
+    $("zertifikate-speichern").hidden = !zeilen.length;
+    status($("zertifikate-status"), !gewaehlt && vorschlag.length ? "Vorschlag, noch nicht gespeichert." : "");
+  }
+
+  async function speichereZertifikate() {
+    const dateien = [...$("zertifikate").querySelectorAll("input:checked")].map(feld => feld.value);
+    try {
+      await senden("/api/zertifikate", { id: ID, dateien });
+      status($("zertifikate-status"), dateien.length ? "Gespeichert." : "Gespeichert: ohne Zertifikate.", "ok");
+    } catch (fehler) {
+      status($("zertifikate-status"), fehler.message, "fehler");
+    }
+  }
+
   async function laden() {
     if (!ID) return meldungOben("Keine Bewerbung gewählt", "fehler");
     try {
@@ -104,6 +126,7 @@
       zeigeJobroom(daten.jobroom);
       zeigeVersand(daten.bewerbung);
       zeigePdfs(daten.pdfs);
+      zeigeZertifikate().catch(fehler => status($("zertifikate-status"), fehler.message, "fehler"));
       if (!daten.hat_anschreiben) meldungOben("Noch kein Anschreiben (bewerbungen/" + ID + "/anschreiben.yaml) – der Skill „bewerbung“ erstellt den Entwurf.", "hinweis");
       if (daten.pdfs.lebenslauf) pruefen();
     } catch (fehler) {
@@ -121,6 +144,7 @@
     }
   }
 
+  $("zertifikate-speichern").addEventListener("click", speichereZertifikate);
   $("speichern").addEventListener("click", () => speichere(formularWerte(), "Angaben gespeichert"));
   $("stelle-speichern").addEventListener("click", async () => {
     try {

@@ -19,7 +19,8 @@ from dateien import lies_yaml, schreibe_yaml
 
 DATEI = "bewerbungen.yaml"
 STATUS = ("Gemerkt", "Bewerben", "Beworben", "Gespräch", "Absage", "Zusage", "Verworfen", "Zurückgezogen")
-TEXTFELDER = ("art", "firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
+FORM_STATES = ("geoeffnet", "ausgefuellt", "abgeschickt")  # MIN-346, how far a form in the browser is
+TEXTFELDER = ("art", "formular_link", "firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
               "adresse", "kontaktperson", "kontakt")
 DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am")
 JOBROOM_ART = ("elektronisch", "schriftlich", "persönlich", "telefonisch")
@@ -80,7 +81,7 @@ def pruefe_bewerbung(b: dict) -> dict:
     if not isinstance(b, dict):
         raise ValueError("Bewerbung muss eine Zuordnung sein")
     b = _uebernimm_jobroom(b)
-    bekannt = {"id", "status", "versand", "passung", "rav_zuweisung", *TEXTFELDER, *DATUMSFELDER}
+    bekannt = {"id", "status", "versand", "passung", "rav_zuweisung", "zertifikate", "ausfuellen", *TEXTFELDER, *DATUMSFELDER}
     unbekannt = set(b) - bekannt
     if unbekannt:
         raise ValueError(f"Unbekannte Felder: {sorted(unbekannt)}")
@@ -95,7 +96,17 @@ def pruefe_bewerbung(b: dict) -> dict:
     link = str(b.get("link") or "").strip()
     if link and not link.startswith(("https://", "http://")):
         raise ValueError("link muss mit https:// oder http:// beginnen")
+    if b.get("formular_link") and not str(b["formular_link"]).strip().startswith(("https://", "http://")):
+        raise ValueError("formular_link muss mit https:// oder http:// beginnen")
+    if b.get("ausfuellen") not in (None, "", *FORM_STATES):
+        raise ValueError(f"ausfuellen muss eines von {', '.join(FORM_STATES)} sein")
     neu = {"id": b["id"], "status": status}
+    if "zertifikate" in b:
+        if not isinstance(b["zertifikate"], list) or not all(isinstance(p, str) for p in b["zertifikate"]):
+            raise ValueError("zertifikate muss eine Liste von Dateien sein")
+        neu["zertifikate"] = list(b["zertifikate"])
+    if b.get("ausfuellen"):
+        neu["ausfuellen"] = b["ausfuellen"]
     for key in TEXTFELDER:
         if b.get(key) not in (None, ""):
             neu[key] = str(b[key]).strip()

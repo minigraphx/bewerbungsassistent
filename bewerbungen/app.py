@@ -15,6 +15,7 @@ import routen_foto
 import routen_inhalte
 import routes_ai
 import routes_backup
+import routes_certificates
 import routes_page
 import routes_search
 from ablage import Ablage
@@ -44,7 +45,7 @@ SEITEN = {
     "/treffer-logik.js": "treffer-logik.js",
     "/angaben": "angaben.html",
 }
-GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "dokumente/", ".ki/", "suche/", ".sicherung.yaml"]
+GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "bewerbungen/*/*.zip", "dokumente/", ".ki/", "suche/", ".sicherung.yaml"]
 log = logging.getLogger("bewerbungsassistent")
 
 
@@ -63,9 +64,9 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
     """extra_routes: (GET, POST) of the desktop app, e.g. version and update (MIN-342)."""
     k = kontext or erstelle_kontext(daten, build)
     routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET,
-                  **routes_ai.GET, **routes_search.GET, **routes_backup.GET, **extra_routes[0]}
+                  **routes_ai.GET, **routes_search.GET, **routes_backup.GET, **routes_certificates.GET, **extra_routes[0]}
     routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST,
-                   **routes_ai.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **extra_routes[1]}
+                   **routes_ai.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **routes_certificates.POST, **extra_routes[1]}
     return Server(k, routen_get, routen_post, SEITEN, port, body_limits)
 
 

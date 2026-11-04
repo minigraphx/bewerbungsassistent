@@ -23,6 +23,7 @@ from register import JOBROOM_ART, Register
 from varianten import Varianten
 from versionen import Versionierung
 
+ZERTIFIKATE_ZIP = "zertifikate.zip"  # MIN-346, see certificates.py
 ORDNER = "versendet"
 GIT_HISTORY = 1000  # commits searched for the commit of a Versand
 
@@ -37,10 +38,10 @@ def lege_ab(daten: pathlib.Path, pdf: pathlib.Path, datum: datetime.date) -> pat
     digest = hashlib.sha256(inhalt).hexdigest()
     ordner = daten / ORDNER
     ordner.mkdir(exist_ok=True)
-    for vorhanden in ordner.glob(f"*-{digest[:12]}.pdf"):
+    for vorhanden in ordner.glob(f"*-{digest[:12]}{pdf.suffix}"):
         if hashlib.sha256(vorhanden.read_bytes()).hexdigest() == digest:
             return vorhanden
-    ziel = ordner / f"{datum.isoformat()}-{digest[:12]}.pdf"
+    ziel = ordner / f"{datum.isoformat()}-{digest[:12]}{pdf.suffix}"
     shutil.copyfile(pdf, ziel)
     return ziel
 
@@ -83,7 +84,9 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     if "lebenslauf" not in pdfs:
         raise ValueError("Lebenslauf-PDF fehlt: zuerst die Unterlagen erstellen und prüfen")
 
-    abgelegt = {a: lege_ab(daten, p, datum) for a, p in pdfs.items()}
+    zertifikate = unterlagen.bewerbungsordner(daten, bewerbung_id) / ZERTIFIKATE_ZIP
+    beilagen = {"zertifikate": zertifikate} if zertifikate.is_file() else {}
+    abgelegt = {a: lege_ab(daten, p, datum) for a, p in {**pdfs, **beilagen}.items()}
     zweck = _zweck(bewerbung, datum)
     quellen = _datenquellen(daten, bewerbung)
     Ablage(daten).markiere_genutzt(quellen, zweck)
@@ -94,7 +97,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     neu = register.speichere(neu)
 
     # Ohne Git bleiben frühere Fassungen unter versendet/ liegen und werden hier nachgeholt (MIN-304)
-    alle_fassungen = sorted((daten / ORDNER).glob("*.pdf"))
+    alle_fassungen = sorted(p for muster in ("*.pdf", "*.zip") for p in (daten / ORDNER).glob(muster))
     varianten = [p for p in (daten / "varianten.yaml",) if p.is_file()]
     hinweise = _hinweise_firma(register.alle(), neu)
     try:

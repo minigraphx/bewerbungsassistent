@@ -20,6 +20,7 @@ Verwaltung und lokale Oberfläche des Bewerbungsassistenten (MIN-261 Ablauf, MIN
 - `search_plan.py`, `hits.py`, `routes_search.py` – Stellen- und Lehrstellensuche über die Erweiterung (MIN-339, MIN-365): Suchplan aus `suchprofil.md`, Trefferliste in `suche/` des Datenordners (nicht im Register, nicht in Git), Sichten vor dem Volltext, Bewerten in Paketen über `routes_ai` (MIN-372; `seiten/treffer-logik.js` ohne DOM, Tests mit `node --test tests/*.test.cjs`), Übernehmen ins Register mit `stelle.md`. Die Erweiterung erreicht nur sichten, treffer, abschluss, plan und die zwei Routen von `routes_page.py` (Liste im Host `desktop/native_host.py`).
 - `routes_page.py` – Inserat von der offenen Seite (MIN-345): prüfen ohne zu speichern, speichern mit Erkennung von Duplikaten; erreichbar über den Host der Erweiterung.
 - `backup.py`, `routes_backup.py` – Sicherung als ZIP über den Browser, Erinnerung nach Versänden oder Zeit (MIN-359).
+- `certificates.py`, `routes_certificates.py` – Zertifikate pro Bewerbung: Vorschlag aus dem Inserat, Auswahl im Register, ZIP bei den Unterlagen (MIN-346).
 - `entwurf.py` – Befehl, der Dateien als Entwurf sichert; für Änderungen ausserhalb der Oberfläche (Claude im Chat), vorher und nachher aufrufen.
 
 ## Regeln

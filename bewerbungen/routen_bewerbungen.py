@@ -1,6 +1,7 @@
 """API-Routen für Bewerbungen: Register, Stellentext, Varianten, Unterlagen, Prüfung, Versand."""
 import dataclasses
 import datetime
+import pathlib
 
 import pruefung
 import unterlagen
@@ -10,6 +11,7 @@ from register import STATUS, jobroom_angaben
 from server import datei_antwort, json_antwort, pflicht
 from varianten import vorschlagen
 
+EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen")
 STATUS_REIHENFOLGE = {s: i for i, s in enumerate(("Bewerben", "Gespräch", "Beworben", "Gemerkt", "Zusage",
                                                    "Absage", "Verworfen", "Zurückgezogen"))}
 
@@ -51,10 +53,10 @@ def speichern(k, parameter, body):
 
     def schreiben():
         # Unter der Sperre lesen: ein gleichzeitiger Versand darf nicht überschrieben werden.
-        # Der Versand wird nur über /api/versand gesetzt, nie über das Formular.
+        # Versand, Zertifikate und Stand des Formulars setzen eigene Routen, nie das Formular.
         alt = register.hole(body["id"])
-        versand_alt = {"versand": alt["versand"]} if alt.get("versand") else {}
-        return register.speichere({**{key: v for key, v in body.items() if key != "versand"}, **versand_alt})
+        geschuetzt = {key: alt[key] for key in EIGENE_ROUTEN if key in alt}
+        return register.speichere({**{key: v for key, v in body.items() if key not in EIGENE_ROUTEN}, **geschuetzt})
 
     gespeichert = k.mit_entwurf(register.pfad, f"Bewerbung {body['id']} geändert", schreiben)
     return json_antwort(gespeichert)
@@ -105,9 +107,10 @@ def pdf(k, parameter, body):
 
 def versendet(k, parameter, body):
     rel = pflicht(parameter, "datei")
-    if not rel.startswith(f"{versand.ORDNER}/") or not rel.endswith(".pdf"):
+    typ = {".pdf": "application/pdf", ".zip": "application/zip"}.get(pathlib.PurePosixPath(rel).suffix)
+    if not rel.startswith(f"{versand.ORDNER}/") or typ is None:
         raise ValueError("Nur Dateien aus versendet/")
-    return datei_antwort(im_ordner(k.daten, rel), "application/pdf")
+    return datei_antwort(im_ordner(k.daten, rel), typ)
 
 
 def pruefen(k, parameter, body):
