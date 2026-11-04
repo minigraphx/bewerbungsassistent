@@ -106,6 +106,10 @@ jobs:
           VERSION=$(python -c "import sys; sys.path.insert(0, 'desktop'); import version; print(version.VERSION)")
           mkdir -p dist-mac
           ditto -c -k --keepParent dist/Bewerbungsassistent.app "dist-mac/Bewerbungsassistent-$VERSION-macOS.zip"
+          (cd dist-mac && shasum -a 256 "Bewerbungsassistent-$VERSION-macOS.zip" > SHA256SUMS-macOS.txt)
+          mkdir -p entpackt
+          ditto -x -k "dist-mac/Bewerbungsassistent-$VERSION-macOS.zip" entpackt
+          codesign --verify --deep --strict entpackt/Bewerbungsassistent.app
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:

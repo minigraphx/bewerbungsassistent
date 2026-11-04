@@ -1,17 +1,20 @@
-"""Updates of the desktop app from GitHub Releases of the public repo (MIN-342).
+"""Updates of the desktop app from GitHub Releases of the public repo (MIN-342, MIN-368).
 
-A release `v1.2.3` carries `Bewerbungsassistent-Setup-1.2.3.exe` and `SHA256SUMS.txt`. The app checks the
-latest release, and on Windows downloads the installer, verifies its SHA-256 sum and runs it silently over
-the installed version; the installer starts the app again. Data folder, settings and the access in the
-keychain stay untouched. On macOS the app links to the release page.
+A release `v1.2.3` carries `Bewerbungsassistent-Setup-1.2.3.exe` with `SHA256SUMS.txt` and
+`Bewerbungsassistent-1.2.3-macOS.zip` with `SHA256SUMS-macOS.txt`: the two builds run side by side, so each writes
+its own list. The app checks the latest release, downloads the package of its system and verifies its SHA-256 sum.
+On Windows the installer then runs silently over the installed version and starts the app again; on macOS
+`updates_macos.py` takes over. Data folder, settings and the access in the keychain stay untouched.
 """
 import dataclasses
 import hashlib
+import http.client
 import json
 import pathlib
 import re
 import ssl
 import subprocess
+import sys
 import urllib.error
 import urllib.request
 from typing import Callable
@@ -22,7 +25,10 @@ REPO = "minigraphx/bewerbungsassistent"
 LATEST_URL = f"https://api.github.com/repos/{REPO}/releases/latest"
 DOWNLOAD_PREFIX = f"https://github.com/{REPO}/releases/download/"
 INSTALLER = re.compile(r"^Bewerbungsassistent-Setup-(\d+\.\d+\.\d+)\.exe$")
+MAC_ZIP = re.compile(r"^Bewerbungsassistent-(\d+\.\d+\.\d+)-macOS\.zip$")
 CHECKSUMS = "SHA256SUMS.txt"
+MAC_CHECKSUMS = "SHA256SUMS-macOS.txt"
+PACKAGES = {"win32": (INSTALLER, CHECKSUMS), "darwin": (MAC_ZIP, MAC_CHECKSUMS)}
 TIMEOUT_SECONDS = 10
 DOWNLOAD_TIMEOUT_SECONDS = 300
 MAX_INSTALLER_BYTES = 400 * 1024 * 1024
@@ -62,7 +68,12 @@ def _fetch(url: str, limit: int) -> bytes:
     return data
 
 
-def latest(fetch: Fetch = _fetch) -> Update | None:
+def _package_url(assets: dict, pattern: re.Pattern, version: str) -> str | None:
+    matching = (url for name, url in assets.items() if name and (found := pattern.match(name)) and found.group(1) == version)
+    return next(matching, None)
+
+
+def latest(fetch: Fetch = _fetch, platform: str = sys.platform) -> Update | None:
     try:
         release = json.loads(fetch(LATEST_URL, SMALL_FILE_BYTES))
     except (urllib.error.URLError, OSError, ValueError):
@@ -71,12 +82,13 @@ def latest(fetch: Fetch = _fetch) -> Update | None:
         return None
     assets = {a.get("name"): a.get("browser_download_url") for a in release.get("assets") or [] if isinstance(a, dict)}
     version = str(release.get("tag_name") or "").lstrip("v")
-    installer = next((url for name, url in assets.items() if name and INSTALLER.match(name)
-                      and INSTALLER.match(name).group(1) == version), None)
-    safe = [url for url in (installer, assets.get(CHECKSUMS)) if url and str(url).startswith(DOWNLOAD_PREFIX)]
+    pattern, sums_name = PACKAGES.get(platform, (None, None))
+    installer = _package_url(assets, pattern, version) if pattern else None
+    sums = assets.get(sums_name) if sums_name else None
+    safe = [url for url in (installer, sums) if url and str(url).startswith(DOWNLOAD_PREFIX)]
     return Update(version=version, page_url=str(release.get("html_url") or f"https://github.com/{REPO}/releases"),
                   installer_url=installer if installer in safe else None,
-                  checksums_url=assets.get(CHECKSUMS) if assets.get(CHECKSUMS) in safe else None,
+                  checksums_url=sums if sums in safe else None,
                   notes=str(release.get("body") or "")[:2000])
 
 
@@ -96,7 +108,7 @@ def download(update: Update, target_dir: pathlib.Path, fetch: Fetch = _fetch) ->
         if not expected:
             raise UpdateError("Die Prüfsumme des Installers fehlt; Update abgebrochen.")
         data = fetch(update.installer_url, MAX_INSTALLER_BYTES)
-    except (urllib.error.URLError, OSError, UnicodeDecodeError) as error:
+    except (urllib.error.URLError, http.client.HTTPException, OSError, UnicodeDecodeError) as error:
         raise UpdateError("Die neue Version liess sich nicht laden. Ist der Rechner online?") from error
     if hashlib.sha256(data).hexdigest() != expected:
         raise UpdateError("Die Prüfsumme stimmt nicht; der Download ist beschädigt. Update abgebrochen.")

@@ -17,9 +17,12 @@ import native_host
 import native_messaging
 import settings
 import setup
+import updates_macos
 import urlscheme
 
 log = logging.getLogger("bewerbungsassistent")
+
+FAILED_UPDATE_NOTE = "update-fehlgeschlagen.txt"
 
 
 def bundle_dir() -> pathlib.Path:
@@ -131,7 +134,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     import routes_setup
     data = start_folder(paths)
     holder: dict = {}
-    controls = routes_app.Controls(stop=lambda: holder["server"].shutdown())
+    controls = routes_app.Controls(stop=lambda: holder["server"].shutdown(), failed_note=paths.app_dir / FAILED_UPDATE_NOTE)
 
     def switch(folder: pathlib.Path) -> None:
         holder["server"].kontext = app.erstelle_kontext(folder)
@@ -150,6 +153,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
         log.error("Start nicht möglich: %s", error)
         return 1
     instance.write(paths, server.server_address[1], server.token)
+    updates_macos.confirm_started(controls.app)
     if code:
         _redeem(code)
     log.info("Bewerbungsassistent läuft auf %s, Daten in %s", server.url, data)

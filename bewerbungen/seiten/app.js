@@ -178,7 +178,7 @@ window.App = (() => {
     }
     await zurEinrichtung();
     if (!info.update) return;
-    const meldung = el("span", {}, `Version ${info.update.version} ist verfügbar. `);
+    const meldung = el("span", {}, `Version ${info.update.version} ist verfügbar. ${info.update.hinweis || ""} `);
     const knopf = info.update.automatisch
       ? el("button", { type: "button", class: "haupt" }, "Jetzt aktualisieren")
       : el("a", { href: info.update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");

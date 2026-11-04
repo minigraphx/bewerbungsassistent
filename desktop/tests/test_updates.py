@@ -36,26 +36,26 @@ def test_versions(text, expected):
 
 
 def test_newer_release_is_found_and_older_ignored():
-    found = updates.latest(release())
+    found = updates.latest(release(), "win32")
 
     assert updates.newer("0.1.0", found).version == "0.2.0"
     assert updates.newer("0.2.0", found) is None and updates.newer("0.10.0", found) is None
 
 
 def test_drafts_prereleases_and_offline_are_no_update():
-    assert updates.latest(release(prerelease=True)) is None
+    assert updates.latest(release(prerelease=True), "win32") is None
     assert updates.latest(lambda url, limit: (_ for _ in ()).throw(OSError("offline"))) is None
 
 
 def test_download_verifies_the_checksum(tmp_path):
-    path = updates.download(updates.latest(release()), tmp_path, release())
+    path = updates.download(updates.latest(release(), "win32"), tmp_path, release())
 
     assert path.read_bytes() == INSTALLER and path.name == "Bewerbungsassistent-Setup-0.2.0.exe"
 
 
 def test_tampered_installer_is_refused(tmp_path):
     good = release()
-    found = updates.latest(good)
+    found = updates.latest(good, "win32")
 
     def tampered(url, limit):
         return b"MZ evil" if url.endswith(".exe") else good(url, limit)
@@ -66,7 +66,7 @@ def test_tampered_installer_is_refused(tmp_path):
 
 
 def test_downloads_only_from_our_releases(tmp_path):
-    found = updates.latest(release(prefix="https://evil.example/"))
+    found = updates.latest(release(prefix="https://evil.example/"), "win32")
 
     assert found.installer_url is None
     with pytest.raises(updates.UpdateError, match="keinen Installer"):
@@ -83,7 +83,7 @@ def test_installer_runs_silently(tmp_path):
 
 def routes(automatic=True, fetch=None):
     stopped, installed = threading.Event(), []
-    controls = routes_app.Controls(stop=stopped.set, automatic=automatic, fetch=fetch or release(),
+    controls = routes_app.Controls(stop=stopped.set, automatic=automatic, platform="win32", fetch=fetch or release(),
                                    run_installer=installed.append)
     get, post = routes_app.make_routes(controls)
     return get, post, stopped, installed
