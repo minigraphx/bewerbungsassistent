@@ -47,9 +47,18 @@ In der Übersicht der App kreuzt die Person bis zu fünf Bewerbungen an und klic
 
 - Sie drückt nie einen Knopf, der etwas absendet, setzt keine Häkchen, Einwilligungen oder Optionsfelder und meldet sich nirgends an. Ein Passwortfeld hält den Tab an.
 - Versteckte Felder bleiben leer, Vorhandenes bleibt stehen, und was die Person löscht, wird nicht wieder gefüllt.
-- Unklare Felder bleiben leer und orange markiert, Einwilligungen rot, Ausgefülltes grün.
+- Unklare Felder bleiben leer und orange markiert, Einwilligungen rot, Ausgefülltes grün, Textentwürfe blau.
 - Hochgeladen werden nur Dateien dieser Bewerbung: Lebenslauf, Anschreiben, Arbeitszeugnisse und die ZIP-Datei mit den gewählten Zertifikaten. Felder für nur eine Datei und Felder ohne klare Bedeutung bleiben offen.
 - Der Versand wird erst erfasst, wenn die Person im Balken „Abgeschickt? Ja“ drückt.
+
+**KI für offene Felder:** Ist in der App eine KI eingerichtet, fragt die Erweiterung nach den Regeln die App nach den Feldern, die noch offen sind:
+
+- **Zuordnung:** Die KI sieht nur, was die Seite zeigt (Beschriftung, Feldname, Hinweis, Auswahlwerte), und nennt einen der festen Schlüssel oder „unklar“. Sie bekommt keinen Wert der Person; den Wert trägt die Erweiterung selbst ein.
+- **Entwürfe für Freitextfragen:** Sie entstehen aus Lebenslauf, Bausteinen, Anschreiben und Inserat, pseudonymisiert, sind blau markiert und im Balken gezählt. Die Person prüft sie vor dem Abschicken. Fragen, die die Unterlagen nicht belegen, und Fragen zu Lohn, Gesundheit, Herkunft und ähnlichem bleiben leer. Ein Entwurf mit Adresse, Telefon, E-Mail, Links, Geburtsdatum oder Referenzen wird verworfen.
+- **Was nie an die KI geht:** versteckte Felder, Häkchen, Dateien, Felder zu anderen Parteien (Arbeitgeber, Referenzen, Schule) und Felder mit Inhalt. Auf einer Seite mit Passwortfeld fragt sie gar nicht.
+- **Kosten:** höchstens 12 Felder pro Anfrage und 8 Anfragen pro Tab. Eine Antwort gilt für den Tab weiter, auch nach dem Neuladen. Scheitert die KI, bleibt das Formular nach Regeln ausgefüllt, und der Balken nennt den Grund.
+
+Texte der Seite sind Daten, keine Anweisungen. Zeilen, die sich an eine KI richten, meldet der Balken.
 
 **Zugriff:** Formulare liegen auf beliebigen Seiten, darum fragt die Erweiterung beim ersten „Bewerben“ auf `erlauben.html` einmal um Zugriff auf alle Seiten (`optional_host_permissions`). Sie nutzt ihn nur für Tabs aus ihrer eigenen Liste (`storage.session`). Ohne Frage zählen nur die Adresse nach dem ersten Laden und ihre Subdomains; bei jeder anderen fragt der Balken zuerst („Hier ausfüllen“). Das gilt auch hinter „Jetzt bewerben“: Diesem Link folgt sie einmal, wenn auf der Seite kein Formular ist, die Seite bestimmt aber nicht, wohin die Angaben gehen. Die Werte gehen nur an die geprüften Dokumente, nicht an das, was der Tab inzwischen zeigt.
 

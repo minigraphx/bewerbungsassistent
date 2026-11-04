@@ -6,7 +6,7 @@ outside the lock; only writing the letter holds it (via `mit_entwurf`, which als
 import yaml
 
 import unterlagen
-from ai import invitation, tasks
+from ai import form_help, invitation, tasks
 from ai.connection import find_connection, make_client, mediation_url
 from ai.errors import AiError
 from ai.usage import UsageLog
@@ -64,6 +64,28 @@ def run_ai(task):
         return task()
     except AiError as error:
         raise ValueError(str(error)) from error
+
+
+def connected() -> bool:
+    """Is an AI set up? Without one a form is filled by the rules alone, and nobody needs to hear about it."""
+    try:
+        find_connection()
+    except AiError:
+        return False
+    return True
+
+
+def form_fields(k, entry: dict, fields: list[form_help.FormField]) -> dict:
+    """Help for the open fields of a form. The ad may be missing: then only the assignment runs."""
+    path = _folder(k, entry["id"]) / STELLE_FILE
+    ad = path.read_text(encoding="utf-8") if path.is_file() else ""
+    letter = _letter(k, entry["id"])
+
+    def task():
+        gateway, material = ai_gateway(k, entry, letter)
+        return form_help.assist(gateway, material, entry, ad, _letter_text(letter) if letter else "", fields)
+
+    return run_ai(task)
 
 
 def _status(k) -> dict:

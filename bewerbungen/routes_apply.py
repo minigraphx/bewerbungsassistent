@@ -6,7 +6,9 @@ import base64
 
 import apply
 import pruefung
+import routes_ai
 import versand
+from ai import form_help
 from register import FORM_STATES
 from server import json_antwort, pflicht
 
@@ -64,8 +66,17 @@ def values(k, parameter, body):
     reason = apply.blocker(k.daten, entry)
     if reason:
         raise ValueError(reason)
-    return json_antwort({"werte": apply.form_values(k.daten),
+    return json_antwort({"werte": apply.form_values(k.daten), "ki": routes_ai.connected(),
                          "dateien": apply.describe_uploads(apply.uploads(k.daten, wanted))})
+
+
+def field_help(k, parameter, body):
+    """What the AI says about the open fields of a form; writes nothing, the person checks the form."""
+    entry = k.register().hole(_body_id(body))
+    reason = apply.blocker(k.daten, entry)
+    if reason:
+        raise ValueError(reason)
+    return json_antwort(routes_ai.form_fields(k, entry, form_help.clean_fields(body.get("felder"))))
 
 
 def _part_number(parameter: dict) -> int:
@@ -113,4 +124,5 @@ def sent(k, parameter, body):
 
 
 GET = {"/api/bewerben/auswahl": choice, "/api/bewerben/daten": values, "/api/bewerben/datei": file_part}
-POST = {"/api/bewerben/start": start, "/api/bewerben/stand": state, "/api/bewerben/abgeschickt": sent}
+POST = {"/api/bewerben/start": start, "/api/bewerben/stand": state, "/api/bewerben/abgeschickt": sent,
+        "/api/bewerben/felder": field_help}

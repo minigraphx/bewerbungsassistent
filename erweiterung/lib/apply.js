@@ -7,6 +7,9 @@ const MAX_PARTS = 60;
 const NO_FORM = 'Hier ist kein Formular zu finden. Bitte das Formular selbst öffnen, es wird dann ausgefüllt. Schon abgeschickt? Dann unten bestätigen.';
 const LOGIN = 'Hier braucht es eine Anmeldung oder ein Konto: Das bleibt bei Ihnen. Danach geht das Ausfüllen weiter.';
 const GOES_ON = 'Ausfüllen beendet. Die eingetragenen Werte bleiben im Formular.';
+const AI_LIMIT = 'Für diesen Tab ist die Grenze der KI-Anfragen erreicht. Weitere Felder bleiben bei Ihnen.';
+const NOT_THIS_TAB = 'Dieser Tab gehört nicht mehr zum Bewerben.';
+export const MAX_AI_ROUNDS = 8; // a page can show new fields without end; every call costs money
 
 export function hostOf(url) {
   try {
@@ -30,6 +33,7 @@ export function mergeReports(frames) {
   const sum = (key) => reports.reduce((total, r) => total + (Number(r[key]) || 0), 0);
   return {
     felder: sum('felder'), gefuellt: sum('gefuellt'), offen: sum('offen'), einwilligungen: sum('einwilligungen'),
+    entwuerfe: sum('entwuerfe'), ki: sum('ki'),
     anmeldung: reports.some((r) => r.anmeldung),
     hinweise: [...new Set(reports.flatMap((r) => (Array.isArray(r.hinweise) ? r.hinweise : [])))],
   };
@@ -44,9 +48,27 @@ export function describeReport(merged) {
   if (merged.anmeldung) return { text: LOGIN, aufmerksamkeit: true, knoepfe: ['stoppen'] };
   if (!merged.felder) return { text: NO_FORM, aufmerksamkeit: true, knoepfe: ['abgeschickt', 'stoppen'] };
   const parts = [`${plural(merged.gefuellt, 'Feld', 'Felder')} ausgefüllt`, `${merged.offen} offen`];
+  if (merged.entwuerfe) parts.push(`${plural(merged.entwuerfe, 'Textentwurf', 'Textentwürfe')} bitte prüfen`);
+  if (merged.ki) parts.push('die KI sieht sich offene Felder an');
   if (merged.einwilligungen) parts.push(`${plural(merged.einwilligungen, 'Einwilligung', 'Einwilligungen')} bitte selbst prüfen`);
   return { text: `${parts.join(', ')}. Abschicken bleibt bei Ihnen.`, hinweise: merged.hinweise, farben: true,
            knoepfe: ['abgeschickt', 'stoppen'] };
+}
+
+/** The same question on a reloaded page or in the next step: refs change, what the page shows does not. */
+function fieldKey(field) {
+  return JSON.stringify([field.art, field.label, field.name, field.hinweis, field.einzeilig, field.laenge]);
+}
+
+function forKeptFields(fields, kept) {
+  const zuordnung = {};
+  const entwuerfe = {};
+  for (const field of fields) {
+    const known = kept[fieldKey(field)];
+    if (known && known.schluessel) zuordnung[field.ref] = known.schluessel;
+    if (known && known.text) entwuerfe[field.ref] = known.text;
+  }
+  return { zuordnung, entwuerfe };
 }
 
 export class ApplyRun {
@@ -194,8 +216,8 @@ export class ApplyRun {
 
   /** The values go only to the documents that were checked: a page that leaves meanwhile gets nothing. */
   async fill(tabId, entry, documents, mayFollow) {
-    const { werte, dateien } = await this.ask('GET', '/api/bewerben/daten', { id: entry.id });
-    const results = await this.tabs.fill(tabId, documents, werte, dateien);
+    const { werte, dateien, ki } = await this.ask('GET', '/api/bewerben/daten', { id: entry.id });
+    const results = await this.tabs.fill(tabId, documents, werte, dateien, ki === true);
     const frames = Object.fromEntries(results.filter((r) => r.result).map((r) => [r.frameId, r.result]));
     const updated = await this.updateTab(tabId, (current) => ({ ...current, frames: { ...current.frames, ...frames } }));
     if (!updated) return;
@@ -242,13 +264,51 @@ export class ApplyRun {
   /** A file of the application of this tab, whole: the extension asks for it in parts below the host's limit. */
   async file(tabId, key) {
     const entry = await this.entry(tabId);
-    if (!entry || entry.fremd) throw new Error('Dieser Tab gehört nicht mehr zum Bewerben.');
+    if (!entry || entry.fremd) throw new Error(NOT_THIS_TAB);
     const part = (teil) => this.ask('GET', '/api/bewerben/datei', { id: entry.id, schluessel: key, teil: String(teil) });
     const first = await part(0);
     if (first.teile > MAX_PARTS) throw new Error('Die Datei ist zu gross.');
     let daten = first.daten;
     for (let teil = 1; teil < first.teile; teil += 1) daten += (await part(teil)).daten;
     return { name: first.name, typ: first.typ, daten };
+  }
+
+  /** One more call for this tab, or false at the limit; counted before the call, frames ask at the same time. */
+  reserveAiRound(tabId) {
+    return this.change((forms) => {
+      const entry = forms[tabId];
+      const rounds = (entry && entry.kiRunden) || 0;
+      if (!entry || rounds >= MAX_AI_ROUNDS) return { next: forms, result: false };
+      return { next: { ...forms, [tabId]: { ...entry, kiRunden: rounds + 1 } }, result: true };
+    });
+  }
+
+  /** Asks the app about fields it has not seen for this tab. What the AI left open stays open, unless a step failed. */
+  async learnFields(tabId, entry, fresh) {
+    const answer = await this.ask('POST', '/api/bewerben/felder', { id: entry.id, felder: fresh });
+    const notes = Array.isArray(answer.hinweise) ? answer.hinweise : [];
+    const learned = fresh.map((field) => [fieldKey(field), {
+      schluessel: answer.zuordnung && answer.zuordnung[field.ref], text: answer.entwuerfe && answer.entwuerfe[field.ref],
+    }]).filter(([, found]) => !answer.wiederholen || found.schluessel || found.text);
+    const updated = await this.updateTab(tabId, (current) => ({
+      ...current, kiAntworten: { ...current.kiAntworten, ...Object.fromEntries(learned) },
+      kiHinweise: answer.wiederholen ? current.kiHinweise : [...new Set([...(current.kiHinweise || []), ...notes])],
+    }));
+    return { kept: (updated && updated.kiAntworten) || {}, known: (updated && updated.kiHinweise) || [], notes };
+  }
+
+  /** Help of the AI for open fields of a frame; the frame fills them itself. */
+  async assist(tabId, felder) {
+    const entry = await this.entry(tabId);
+    if (!entry || entry.fremd) throw new Error(NOT_THIS_TAB);
+    if (!Array.isArray(felder)) throw new Error('Die Felder fehlen.');
+    const known = entry.kiAntworten || {};
+    const notes = entry.kiHinweise || []; // a warning about the page stays true after a reload
+    const fresh = felder.filter((field) => !Object.hasOwn(known, fieldKey(field)));
+    if (!fresh.length) return { ...forKeptFields(felder, known), hinweise: notes };
+    if (!(await this.reserveAiRound(tabId))) return { ...forKeptFields(felder, known), hinweise: [...notes, AI_LIMIT] };
+    const learned = await this.learnFields(tabId, entry, fresh);
+    return { ...forKeptFields(felder, learned.kept), hinweise: [...new Set([...learned.known, ...learned.notes])] };
   }
 
   /** The person said it is sent. */

@@ -163,6 +163,11 @@ class Pseudonymizer:
         new = [s for s in secrets if not self.covers(s.value)]
         return Pseudonymizer(list(self._secrets) + new) if new else self
 
+    def finds(self, text: str) -> bool:
+        """Does this text contain one of the values, in any of the forms `mask` knows?"""
+        normalized = _norm(text)
+        return any(rule.pattern.search(normalized) for rule in self._rules)
+
     def mask(self, text: str) -> str:
         result = NEUTRALIZE_BRACES.sub("{ ", _norm(text))
         for rule in self._rules:

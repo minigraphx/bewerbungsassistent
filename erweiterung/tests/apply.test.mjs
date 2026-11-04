@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import vm from 'node:vm';
-import { ApplyRun, describeReport, hostOf, mergeReports, sameSite } from '../lib/apply.js';
+import { ApplyRun, MAX_AI_ROUNDS, describeReport, hostOf, mergeReports, sameSite } from '../lib/apply.js';
 import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, senderKind } from '../lib/senders.js';
 
 const READY = { id: 'a', firma: 'Muster', stelle: 'X', link: 'https://firma.ch/stelle' };
@@ -32,7 +32,7 @@ function setup({ permission = true, start = { bereit: [READY], abgelehnt: [], do
       activate: async (tabId) => { log.push(['activate', tabId]); },
       url: async () => current.url,
       inject: async () => { log.push(['inject']); return [{ frameId: 0, documentId: 'D' }]; },
-      fill: async (tabId, documents) => { log.push(['fill', documents]); return [{ frameId: 0, result: report }]; },
+      fill: async (tabId, documents, values, uploads, ki) => { log.push(['fill', documents, ki]); return [{ frameId: 0, result: report }]; },
       follow: async (tabId, documents) => { log.push(['follow', documents]); return followed; },
       bar: async (tabId, balken) => { log.push(['bar', balken]); },
       end: async (tabId, text) => { log.push(['end', text]); },
@@ -65,7 +65,7 @@ test('the same site is the host and its subdomains, nothing wider', () => {
 
 test('the frames of a tab count together', () => {
   const merged = mergeReports({ 0: { felder: 2, gefuellt: 1, offen: 1, hinweise: ['x'] }, 5: { felder: 3, gefuellt: 3, einwilligungen: 1, hinweise: ['x', 'y'] } });
-  assert.deepEqual(merged, { felder: 5, gefuellt: 4, offen: 1, einwilligungen: 1, anmeldung: false, hinweise: ['x', 'y'] });
+  assert.deepEqual(merged, { felder: 5, gefuellt: 4, offen: 1, einwilligungen: 1, entwuerfe: 0, ki: 0, anmeldung: false, hinweise: ['x', 'y'] });
 });
 
 test('the bar says what is open', () => {
@@ -402,4 +402,130 @@ test('only the page of the app starts a run, and only the permission page goes o
   for (const action of [...FORM_ACTIONS, ...BAR_ACTIONS]) {
     assert.ok(!ALLOWED.app.has(action) && !ALLOWED.popup.has(action), action);
   }
+});
+
+const unclear = (ref, label) => ({ ref, art: 'unklar', label, name: '', hinweis: '' });
+
+async function withForm(helpAnswers) {
+  const setup_ = setup();
+  const { run, log } = setup_;
+  await run.start({ ids: ['a'] });
+  const forms = await run.store.get();
+  const tabId = Number(Object.keys(forms)[0]);
+  const original = run.ask;
+  const asked = [];
+  run.ask = async (method, path, data) => {
+    if (path !== '/api/bewerben/felder') return original(method, path, data);
+    asked.push(data);
+    const reply = helpAnswers.shift();
+    if (reply instanceof Error) throw reply;
+    return reply;
+  };
+  return { run, tabId, asked, log };
+}
+
+test('help for fields asks the app for this application', async () => {
+  const { run, tabId, asked } = await withForm([{ zuordnung: { f1: 'city' }, entwuerfe: { f2: 'Ein Entwurf.' }, hinweise: [] }]);
+
+  const answer = await run.assist(tabId, [unclear('f1', 'Wohngemeinde'), { ...unclear('f2', 'Warum?'), art: 'frage' }]);
+
+  assert.deepEqual(answer, { zuordnung: { f1: 'city' }, entwuerfe: { f2: 'Ein Entwurf.' }, hinweise: [] });
+  assert.equal(asked[0].id, 'a');
+  assert.equal(asked[0].felder.length, 2);
+});
+
+test('a field asked before is answered without another call, under its new reference', async () => {
+  const { run, tabId, asked } = await withForm([{ zuordnung: { f1: 'city' }, entwuerfe: {}, hinweise: [] }]);
+
+  await run.assist(tabId, [unclear('f1', 'Wohngemeinde'), unclear('f2', 'Rätsel')]);
+  const again = await run.assist(tabId, [unclear('f9', 'Wohngemeinde'), unclear('f8', 'Rätsel')]);
+
+  assert.equal(asked.length, 1);
+  assert.deepEqual(again.zuordnung, { f9: 'city' });
+});
+
+test('only the new fields of a page cost a call', async () => {
+  const { run, tabId, asked } = await withForm([
+    { zuordnung: { f1: 'city' }, entwuerfe: {}, hinweise: [] },
+    { zuordnung: { f4: 'notice' }, entwuerfe: {}, hinweise: [] },
+  ]);
+
+  await run.assist(tabId, [unclear('f1', 'Wohngemeinde')]);
+  const second = await run.assist(tabId, [unclear('f3', 'Wohngemeinde'), unclear('f4', 'Frist')]);
+
+  assert.deepEqual(asked[1].felder.map((f) => f.ref), ['f4']);
+  assert.deepEqual(second.zuordnung, { f3: 'city', f4: 'notice' });
+});
+
+test('after a failing step the unanswered fields can be asked again', async () => {
+  const { run, tabId, asked } = await withForm([
+    { zuordnung: {}, entwuerfe: {}, hinweise: ['Überlastet'], wiederholen: true },
+    { zuordnung: { f1: 'city' }, entwuerfe: {}, hinweise: [] },
+  ]);
+
+  const first = await run.assist(tabId, [unclear('f1', 'Wohngemeinde')]);
+  const second = await run.assist(tabId, [unclear('f1', 'Wohngemeinde')]);
+
+  assert.deepEqual(first.hinweise, ['Überlastet']);
+  assert.deepEqual(second.zuordnung, { f1: 'city' });
+  assert.deepEqual(second.hinweise, []);
+  assert.equal(asked.length, 2);
+});
+
+test('a note about the page does not cost another call, and stays after a reload', async () => {
+  const { run, tabId, asked } = await withForm([{ zuordnung: {}, entwuerfe: {}, hinweise: ['Auffällige Zeilen'], wiederholen: false }]);
+
+  const first = await run.assist(tabId, [unclear('f1', 'Rätsel')]);
+  const again = await run.assist(tabId, [unclear('f7', 'Rätsel')]);
+
+  assert.deepEqual(first.hinweise, ['Auffällige Zeilen']);
+  assert.deepEqual(again.hinweise, ['Auffällige Zeilen']);
+  assert.equal(asked.length, 1);
+});
+
+test('a tab has a limit of calls, so a page cannot run up costs', async () => {
+  const replies = Array.from({ length: 30 }, () => ({ zuordnung: {}, entwuerfe: {}, hinweise: [] }));
+  const { run, tabId, asked } = await withForm(replies);
+
+  let last;
+  for (let n = 0; n < 30; n += 1) last = await run.assist(tabId, [unclear(`f${n}`, `Feld ${n}`)]);
+
+  assert.equal(asked.length, MAX_AI_ROUNDS);
+  assert.equal(last.hinweise.length, 1);
+  assert.deepEqual(last.zuordnung, {});
+});
+
+test('no help on a tab that left the list or waits for the person on a new address', async () => {
+  const { run, tabId, asked } = await withForm([]);
+  await run.updateTab(tabId, (entry) => ({ ...entry, fremd: 'andere.ch' }));
+
+  await assert.rejects(run.assist(tabId, [unclear('f1', 'x')]));
+  await assert.rejects(run.assist(999, [unclear('f1', 'x')]));
+  await assert.rejects(run.assist(tabId, 'kein Array'));
+  assert.equal(asked.length, 0);
+});
+
+test('the bar counts drafts and says when the AI is at work', () => {
+  const merged = mergeReports({ 0: { felder: 5, gefuellt: 3, offen: 1, einwilligungen: 0, entwuerfe: 2, ki: 1 } });
+
+  assert.equal(merged.entwuerfe, 2);
+  assert.match(describeReport(merged).text, /2 Textentwürfe bitte prüfen/);
+  assert.match(describeReport(merged).text, /KI/);
+  assert.doesNotMatch(describeReport({ ...merged, ki: 0 }).text, /KI/);
+});
+
+test('whether the AI may help comes from the app and goes to the frame', async () => {
+  const { run, log } = setup({});
+  const original = run.ask;
+  run.ask = async (method, path, data) => (path === '/api/bewerben/daten' ? { werte: {}, dateien: [], ki: true } : original(method, path, data));
+  await run.start({ ids: ['a'] });
+  const tabId = Number(Object.keys(await run.store.get())[0]);
+
+  await run.loaded(tabId, 'https://firma.ch/form');
+
+  assert.equal(log.find(([step]) => step === 'fill').at(-1), true);
+});
+
+test('the frame may ask for help', () => {
+  assert.ok(FORM_ACTIONS.has('formular-ki'));
 });

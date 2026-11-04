@@ -195,11 +195,11 @@ const formTabs = {
     const results = await chrome.scripting.executeScript({ target: { tabId, allFrames: true }, files: FILLER_FILES });
     return results.map(({ frameId, documentId }) => ({ frameId, documentId }));
   },
-  async fill(tabId, documents, values, uploads) {
+  async fill(tabId, documents, values, uploads, ai) {
     return chrome.scripting.executeScript({
       target: { tabId, documentIds: documents.map((d) => d.documentId) },
-      func: (v, u) => globalThis.bewerbungsassistentFiller.fill(v, u),
-      args: [values, uploads],
+      func: (v, u, a) => globalThis.bewerbungsassistentFiller.fill(v, u, a),
+      args: [values, uploads, ai],
     });
   },
   async follow(tabId, documents) {
@@ -247,6 +247,7 @@ function formAction(message, sender) {
     'formular-stand': () => applyRun.frameReport(tabId, sender.frameId, message.bericht),
     'formular-datei': () => applyRun.file(tabId, message.schluessel),
     'formular-rahmen': () => applyRun.frameLoaded(tabId),
+    'formular-ki': () => applyRun.assist(tabId, message.felder),
     'formular-hier': () => applyRun.fillHere(tabId),
     'formular-abgeschickt': () => applyRun.sent(tabId),
     'formular-stoppen': () => applyRun.stop(tabId),

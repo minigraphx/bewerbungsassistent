@@ -20,9 +20,16 @@
   const FRAME_WAIT_MS = 1000;
   const OBSERVED = { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] };
   const TICK_TYPES = new Set(['checkbox', 'radio']);
+  const AI_WAIT_MS = 1200; // forms build their fields bit by bit: one question instead of many
+  const MAX_AI_FIELDS = 12;
+  const MAX_AI_OPTIONS = 20;
+  const MAX_AI_LABEL = 300; // the limits of the app: a page cannot fill the extension's storage with its texts
+  const MAX_AI_NAME = 100;
+  const MAX_AI_HINT = 150;
+  const MAX_AI_OPTION = 60;
 
   const handled = new Map(); // element → status
-  let job = null; // { values, uploads }
+  let job = null; // { values, uploads, ai }
   let stopped = false;
   let observer = null;
   let timer = null;
@@ -30,6 +37,10 @@
   let lastSent = '';
   let hints = [];
   let frameTimer = null;
+  const askedAi = new WeakSet();
+  let nextRef = 1;
+  let aiTimer = null;
+  let aiBusy = false;
 
   function allRoots(start = document) {
     const hosts = [...start.querySelectorAll('*')].filter((el) => el.shadowRoot);
@@ -194,8 +205,90 @@
       felder: login ? 0 : fields.length, gefuellt: count('filled'),
       offen: present.filter(([el, s]) => s === 'open' && stillOpen(el, s)).length,
       einwilligungen: present.filter(([el, s]) => s === 'consent' && stillOpen(el, s)).length,
-      anmeldung: login, hinweise: hints,
+      entwuerfe: count('draft'), ki: aiBusy ? 1 : 0, anmeldung: login, hinweise: hints,
     };
+  }
+
+  function canTakeHelp(el) {
+    return el.isConnected && handled.get(el) === 'open' && !el.disabled && !el.readOnly && !el.value.trim()
+      && !TICK_TYPES.has(el.type) && el.type !== 'file' && eligible(el);
+  }
+
+  /** The open fields no rule could decide, each only once. */
+  function fieldsForAi() {
+    const fields = allFields().filter(eligible);
+    if (fields.some((el) => el.type === 'password')) return [];
+    const found = logic.classifyAll(fields.map(describe));
+    if (found.some((f) => f.kind === 'password')) return [];
+    return fields.map((el, position) => ({ el, found: found[position] }))
+      .filter(({ el, found: f }) => logic.needsHelp(f) && canTakeHelp(el) && !askedAi.has(el));
+  }
+
+  /** What the page shows of a field, nothing of the person. */
+  function askAbout({ el, found }) {
+    const field = describe(el);
+    const isList = el.tagName === 'SELECT';
+    return {
+      ref: `f${nextRef++}`, art: found.kind === 'freetext' && !isList ? 'frage' : 'unklar',
+      label: [...new Set([field.label, field.ariaLabel])].filter(Boolean).join(' ').slice(0, MAX_AI_LABEL),
+      name: field.name.slice(0, MAX_AI_NAME), hinweis: field.placeholder.slice(0, MAX_AI_HINT),
+      optionen: isList ? [...el.options].slice(0, MAX_AI_OPTIONS).map((o) => o.text.slice(0, MAX_AI_OPTION)) : [],
+      laenge: el.maxLength > 0 ? el.maxLength : 0, einzeilig: el.tagName !== 'TEXTAREA',
+    };
+  }
+
+  function addHints(more) {
+    hints = [...new Set([...hints, ...more])];
+  }
+
+  /** A draft that does not arrive as written is not left in the field: unmarked it would look like the person's text. */
+  function fillDraft(el, text) {
+    if (typeof text !== 'string' || !text) return 'open';
+    if (el.maxLength > 0 && text.length > el.maxLength) return 'open';
+    const wanted = text.replace(/\r\n?/g, '\n');
+    setNative(el, wanted);
+    if (el.value === wanted) return 'draft';
+    setNative(el, '');
+    return 'open';
+  }
+
+  /** The answer of the AI, checked again here: the person may have typed meanwhile, and only known values exist. */
+  function applyHelp(answer, byRef) {
+    for (const [ref, key] of Object.entries(answer.zuordnung || {})) {
+      const el = byRef.get(ref);
+      if (el && canTakeHelp(el) && Object.hasOwn(job.values, key)) mark(el, fillValue(el, key));
+    }
+    for (const [ref, text] of Object.entries(answer.entwuerfe || {})) {
+      const el = byRef.get(ref);
+      if (el && canTakeHelp(el)) mark(el, fillDraft(el, text));
+    }
+    if (Array.isArray(answer.hinweise)) addHints(answer.hinweise.filter((h) => typeof h === 'string'));
+  }
+
+  async function askAi() {
+    aiTimer = null;
+    try {
+      const open = stopped ? [] : fieldsForAi().slice(0, MAX_AI_FIELDS);
+      if (open.length) {
+        const requests = open.map(askAbout);
+        const byRef = new Map(open.map(({ el }, position) => [requests[position].ref, el]));
+        open.forEach(({ el }) => askedAi.add(el));
+        const answer = await chrome.runtime.sendMessage({ art: 'formular-ki', felder: requests });
+        if (!answer || answer.fehler) throw new Error((answer && answer.fehler) || 'Keine Antwort');
+        if (!stopped) applyHelp(answer, byRef);
+      }
+    } catch (error) {
+      addHints([`KI-Hilfe: ${error.message}`]);
+    } finally {
+      aiBusy = false;
+      schedule(); // the state for the bar, and fields beyond this request
+    }
+  }
+
+  function startHelp() {
+    if (!job.ai || aiBusy || stopped || !fieldsForAi().length) return;
+    aiBusy = true;
+    aiTimer = setTimeout(askAi, AI_WAIT_MS);
   }
 
   async function pass() {
@@ -208,6 +301,7 @@
     for (const [position, el] of fields.entries()) {
       if (!handled.has(el)) mark(el, await act(el, describe(el), found[position]));
     }
+    startHelp();
     return report(countable, false);
   }
 
@@ -239,8 +333,16 @@
     }, FRAME_WAIT_MS);
   }
 
+  /** A frame that goes away while the AI is asked can no longer say that it is done. */
+  function leaving() {
+    if (!aiBusy) return;
+    aiBusy = false;
+    sendIfChanged({ ...JSON.parse(lastSent || '{}'), ki: 0 });
+  }
+
   function watch() {
     if (observer) return;
+    window.addEventListener('pagehide', leaving);
     observer = new MutationObserver(schedule);
     observer.observe(document.documentElement, OBSERVED);
     document.addEventListener('change', schedule, true);
@@ -248,8 +350,8 @@
     document.addEventListener('load', frameLoaded, true);
   }
 
-  async function fill(values, uploads) {
-    job = { values, uploads };
+  async function fill(values, uploads, ai) {
+    job = { values, uploads, ai: ai === true };
     stopped = false;
     watch();
     const bericht = await run();
@@ -270,6 +372,8 @@
   function stop() {
     stopped = true;
     clearTimeout(timer);
+    clearTimeout(aiTimer);
+    aiBusy = false;
     if (observer) observer.disconnect();
     observer = null;
     document.removeEventListener('change', schedule, true);

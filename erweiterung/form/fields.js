@@ -9,6 +9,7 @@
 
   // Addresses and names of others: a company's address is not the person's.
   const OTHER_PARTY = /firma|firmen|arbeitgeber|unternehmen|company|employer|employeur|entreprise|referenz|reference|référence|kontaktperson|vorgesetzt|notfall|emergency|schule|school|hochschule|universit/i;
+  const OTHER_PEOPLE = /referenz|reference|référence|kontaktperson|vorgesetzt|notfall|emergency|eltern|parents/i;
   const ADDRESS_EXTRA = /address.?line.?2|adresszusatz|zusatz|complément|\bc\/o\b/i;
   const LOGIN = /benutzername|username|user name|anmeldename|\blogin\b|identifiant|nom d'utilisateur/i;
   const CONSENT = /datenschutz|einwillig|zustimm|stimme|einverstanden|akzeptier|\bagb\b|nutzungsbedingung|talent.?pool|privacy|consent|terms|accept|agree|gdpr|dsgvo|confidentialit|conditions/i;
@@ -80,14 +81,19 @@
   function classifyByAutocomplete(token) {
     if (AUTOCOMPLETE_SECRET.has(token)) return { kind: 'password' };
     if (AUTOCOMPLETE_LOGIN.has(token)) return { kind: 'login' };
-    if (AUTOCOMPLETE_OTHER.has(token)) return { kind: 'unclear' };
+    if (AUTOCOMPLETE_OTHER.has(token)) return { kind: 'unclear', final: true };
     return AUTOCOMPLETE[token] ? { kind: 'value', key: AUTOCOMPLETE[token] } : null;
+  }
+
+  /** Pages often repeat the label as aria-label: that is not a longer text. */
+  function longestLabel(field) {
+    return Math.max(String(field.label || '').length, String(field.ariaLabel || '').length);
   }
 
   function classifyByText(field, label) {
     const sources = [label, field.placeholder || '', words(field.name)];
     for (const source of sources) {
-      if (OTHER_PARTY.test(source) || ADDRESS_EXTRA.test(source)) return { kind: 'unclear' };
+      if (OTHER_PARTY.test(source) || ADDRESS_EXTRA.test(source)) return { kind: 'unclear', final: true };
       if (LOGIN.test(source)) return { kind: 'login' };
       const key = ruleFor(source);
       if (key) return { kind: 'value', key };
@@ -98,7 +104,7 @@
 
   /**
    * @param {{tag: string, type?: string, autocomplete?: string, name?: string, label?: string, ariaLabel?: string, placeholder?: string}} field
-   * @returns {{kind: 'value'|'consent'|'choice'|'file'|'password'|'login'|'freetext'|'unclear', key?: string, bare?: boolean}}
+   * @returns {{kind: 'value'|'consent'|'choice'|'file'|'password'|'login'|'freetext'|'unclear', key?: string, bare?: boolean, final?: boolean}}
    */
   function classify(field) {
     const type = field.type || '';
@@ -109,12 +115,15 @@
     const byAutocomplete = classifyByAutocomplete(fromAutocomplete(field.autocomplete));
     if (byAutocomplete) return byAutocomplete;
     const byText = classifyByText(field, label);
+    const asks = [field.label, field.ariaLabel].some((text) => String(text || '').trim().endsWith('?'));
+    // „Warum zu unserer Firma?“ is no company's name; a question about other people stays with the person.
+    if (byText && byText.final && asks && !OTHER_PEOPLE.test(label) && !ADDRESS_EXTRA.test(label)) return { kind: 'freetext' };
     // The type of the field says more than a word in its label; another party or a login stays what it is.
     if (byText && byText.kind !== 'value') return byText;
     if (type === 'email') return { kind: 'value', key: 'email' };
     if (type === 'tel') return { kind: 'value', key: 'phone' };
     if (byText) return byText;
-    if (field.tag === 'textarea' || label.length > LONG_QUESTION || label.trim().endsWith('?')) return { kind: 'freetext' };
+    if (field.tag === 'textarea' || asks || longestLabel(field) > LONG_QUESTION) return { kind: 'freetext' };
     return { kind: 'unclear' };
   }
 
@@ -123,6 +132,11 @@
     const found = fields.map(classify);
     const hasFirstName = found.some((f) => f.key === 'first_name');
     return found.map((f) => (f.bare && hasFirstName ? { kind: 'value', key: 'last_name' } : f));
+  }
+
+  /** A field the AI may look at. What the rules settled stays settled: another party's fields never get the person's values. */
+  function needsHelp(found) {
+    return found.kind === 'freetext' || (found.kind === 'unclear' && !found.final);
   }
 
   function normal(text) {
@@ -180,7 +194,7 @@
     });
   }
 
-  const api = { MIN_FIELDS, accepts, classify, classifyAll, documentsFor, findApplyTarget, matchOption };
+  const api = { MIN_FIELDS, accepts, classify, classifyAll, documentsFor, findApplyTarget, matchOption, needsHelp };
   root.bewerbungsassistentForm = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

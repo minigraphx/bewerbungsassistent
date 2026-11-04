@@ -150,3 +150,44 @@ test('never a button that sends', () => {
   assert.equal(findApplyTarget([{ text: 'Jetzt bewerben', tag: 'button', type: 'button', inForm: true }]), -1);
   assert.equal(findApplyTarget([{ text: 'Jetzt bewerben', tag: 'button', type: 'button', inForm: false }]), 0);
 });
+
+test('the AI helps only with fields no rule has decided', () => {
+  const { needsHelp } = require('../form/fields.js');
+  const help = (field) => needsHelp(classify(field));
+  assert.equal(help(text('Bürgerort')), true);
+  assert.equal(help({ tag: 'textarea', label: 'Ihre Nachricht' }), true);
+  assert.equal(help(text('E-Mail')), false);
+  assert.equal(help(text('Firma')), false, 'another party stays open');
+  assert.equal(help(text('Adresszusatz')), false);
+  assert.equal(help(text('Benutzername')), false);
+  assert.equal(help({ tag: 'input', type: 'password', label: 'Passwort' }), false);
+  assert.equal(help({ tag: 'input', type: 'checkbox', label: 'Newsletter' }), false);
+  assert.equal(help({ tag: 'input', type: 'file', label: 'Lebenslauf' }), false);
+  assert.equal(help(text('Firma', { autocomplete: 'organization' })), false);
+});
+
+test('a question about the company is a question, a short label about it is not', () => {
+  assert.equal(classify({ tag: 'textarea', label: 'Warum möchten Sie in unserem Unternehmen arbeiten?' }).kind, 'freetext');
+  assert.equal(classify(text('Was reizt Sie an dieser Firma?')).kind, 'freetext');
+  assert.equal(classify({ tag: 'textarea', label: 'Arbeitgeber' }).kind, 'unclear');
+  assert.equal(classify(text('Benutzername, den Sie bei der Registrierung gewählt haben?')).kind, 'login');
+  assert.equal(classify(text('Wie lautet Ihre E-Mail?')).kind, 'value');
+});
+
+test('fields about other people never become a question for the AI', () => {
+  const { needsHelp } = require('../form/fields.js');
+  for (const field of [
+    text('Name des Arbeitgebers', { ariaLabel: 'Name des Arbeitgebers' }),
+    text('Notfallkontakt: Name der Eltern (für Notfälle), bitte vollständig'),
+    text('Name und Adresse des letzten Arbeitgebers (optional)'),
+    text('Wer ist Ihr Notfallkontakt?'),
+    text('Wie lautet Ihre Referenz?'),
+    { tag: 'textarea', label: 'Wen dürfen wir als Referenz anfragen?' },
+  ]) {
+    assert.equal(needsHelp(classify(field)), false, field.label);
+  }
+});
+
+test('a label repeated as aria-label is not a long question', () => {
+  assert.equal(classify(text('Heimatort der Familie gemäss Pass', { ariaLabel: 'Heimatort der Familie gemäss Pass' })).kind, 'unclear');
+});

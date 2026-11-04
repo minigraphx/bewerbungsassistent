@@ -10,7 +10,7 @@ export const ALLOWED = {
 };
 
 /** What a form in a tab of a run may ask for (MIN-346); the buttons of the bar only from the top frame. */
-export const FORM_ACTIONS = new Set(['formular-stand', 'formular-datei', 'formular-rahmen']);
+export const FORM_ACTIONS = new Set(['formular-stand', 'formular-datei', 'formular-rahmen', 'formular-ki']);
 export const BAR_ACTIONS = new Set(['formular-hier', 'formular-abgeschickt', 'formular-stoppen']);
 
 function origin(url) {
