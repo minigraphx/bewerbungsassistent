@@ -128,5 +128,6 @@
       status($("status"), "Anlegen fehlgeschlagen: " + fehler.message, "fehler");
     }
   });
+  holen("/api/grundlagen").then(g => { $("ohne-angaben").hidden = g.lebenslauf; }).catch(() => { /* the list shows the error */ });
   laden();
 })();

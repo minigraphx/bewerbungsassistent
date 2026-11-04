@@ -3,6 +3,7 @@ import datetime
 import http.client
 import io
 import json
+import re
 import shutil
 import threading
 import urllib.parse
@@ -12,6 +13,7 @@ import pytest
 
 import app
 import build
+import server as server_modul
 from ablage import Ablage
 from conftest import BRIEF_ID
 from kontext import Kontext
@@ -379,3 +381,50 @@ def test_kein_einbetten_in_fremde_seiten(server):
     _, _, _, antwort = anfrage(server, "GET", "/")
 
     assert "frame-ancestors 'self'" in antwort.getheader("Content-Security-Policy")
+
+
+# First start (MIN-366): one menu everywhere, an empty data folder never gives an internal error
+
+def nav_of(html: str) -> str:
+    return re.search(r"<nav>.*?</nav>", html, re.S).group(0)
+
+
+def test_all_pages_share_one_menu():
+    pages = sorted(path for path in server_modul.SEITEN.glob("*.html") if path.name != "angaben.html")
+    navs = {page.name: nav_of(page.read_text(encoding="utf-8")) for page in pages}
+
+    assert len(navs) >= 7 and len(set(navs.values())) == 1, navs
+    nav = next(iter(navs.values()))
+    for link in ("/", "/treffer"):
+        assert f'<a href="{link}">' in nav.split("<details")[0]
+    for link in ("/angaben", "/einrichtung", "/inhalte", "/entwuerfe", "/foto"):
+        assert f'<a href="{link}">' in nav.split("<details")[1]
+
+
+@pytest.fixture
+def leerer_server(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    ordner = tmp_path / "leer"
+    ordner.mkdir()
+    s = app.erstelle_server(ordner, build=tmp_path / "build")
+    threading.Thread(target=s.serve_forever, daemon=True).start()
+    yield s
+    s.shutdown()
+    s.server_close()
+
+
+def test_empty_data_folder_gives_no_internal_error(leerer_server):
+    s = leerer_server
+    fehler = {}
+    for pfad in s.routen_get:
+        query = urllib.parse.urlencode({"t": s.token, "id": "x", "pfad": "cv.yaml", "datei": "cv.yaml"})
+        status = anfrage(s, "GET", f"{pfad}?{query}")[0]
+        if status >= 500:
+            fehler[pfad] = status
+
+    assert not fehler
+
+
+def test_basics_tell_whether_the_person_has_entered_anything(leerer_server, server):
+    assert json.loads(get(leerer_server, "/api/grundlagen")[2]) == {"lebenslauf": False, "suchprofil": False}
+    assert json.loads(get(server, "/api/grundlagen")[2])["lebenslauf"] is True

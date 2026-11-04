@@ -5,17 +5,21 @@
 
 const UPLOAD_TEXT = {
   job: {
-    kept: "Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen. „Alles löschen“ im letzten Schritt entfernt sie.",
+    kept: "Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen, und kommen mit in die gespeicherte Datei. „Alles löschen“ im letzten Schritt entfernt sie.",
     memory: "Dieser Browser kann die Dateien nicht aufbewahren (z.B. im privaten Fenster). Speichern Sie am Schluss die Datei, sonst müssen Sie sie nach dem Schliessen neu wählen.",
     choose: "Dateien wählen",
     skip: "Weiter zum Speichern",
+    app: "Die Dateien kommen sofort in Ihren Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer.",
+    skipApp: "Weiter zum Übernehmen",
     skipHint: "Mit Unterlagen können Sie die übrigen Schritte auslassen oder nur ausfüllen, was Sie gerade wissen.",
   },
   apprenticeship: {
-    kept: "Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen. „Alles löschen“ im letzten Schritt entfernt sie.",
+    kept: "Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen, und kommen mit in die gespeicherte Datei. „Alles löschen“ im letzten Schritt entfernt sie.",
     memory: "Dieser Browser kann die Dateien nicht aufbewahren (z.B. im privaten Fenster). Speichere am Schluss die Datei, sonst musst du sie nach dem Schliessen neu wählen.",
     choose: "Dateien wählen",
     skip: "Weiter zum Speichern",
+    app: "Die Dateien kommen sofort in deinen Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer.",
+    skipApp: "Weiter zum Übernehmen",
     skipHint: "Mit Unterlagen kannst du die übrigen Schritte auslassen oder nur ausfüllen, was du gerade weisst.",
   },
 };
@@ -29,7 +33,7 @@ function formatSize(bytes) {
 }
 
 /**
- * The step view. ctx: { form, track, uploads, messages, kept, onAdd(category, FileList), onRemove(index), onSkip() }.
+ * The step view. ctx: { form, track, uploads, messages, kept, app, onAdd(category, FileList), onRemove(index), onSkip() }.
  * File names come from the person's computer and are only ever set as text.
  */
 function uploadsView(ctx) {
@@ -39,12 +43,12 @@ function uploadsView(ctx) {
   return el("section", { className: "uploads" }, [
     el("h2", {}, forTrack(rules.title, track)),
     el("p", { className: "intro" }, forTrack(rules.intro, track)),
-    el("p", { className: "hint" }, ctx.kept ? text.kept : text.memory),
+    el("p", { className: "hint" }, ctx.app ? text.app : (ctx.kept ? text.kept : text.memory)),
     el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
     ...rules.categories.map((category) => categoryView(ctx, category, text)),
     uploads.length ? el("p", { className: "secondary" }, [
       text.skipHint, " ",
-      el("button", { type: "button", className: "link", onclick: ctx.onSkip }, text.skip),
+      el("button", { type: "button", className: "link", onclick: ctx.onSkip }, ctx.app ? text.skipApp : text.skip),
     ]) : null,
   ]);
 }

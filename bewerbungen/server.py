@@ -9,6 +9,7 @@ import json
 import logging
 import mimetypes
 import pathlib
+import re
 import secrets
 import urllib.parse
 from http import HTTPStatus
@@ -17,8 +18,13 @@ from typing import Any, Callable
 
 SEITEN = pathlib.Path(__file__).resolve().parent / "seiten"
 MAX_BODY = 2 * 1024 * 1024
+MAX_DISCARD = 64 * 1024 * 1024  # a larger request is cut off, its answer may get lost
+DISCARD_CHUNK = 64 * 1024
+FRAMING = "frame-ancestors 'self'"
 CSP = ("default-src 'self'; img-src 'self' blob: data:; frame-src 'self' blob:; object-src 'self'; "
-       "style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'")
+       f"style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'; {FRAMING}")
+# A page may bring its own policy as meta tag (the template with hashes); it then replaces the default one.
+EIGENE_CSP = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">')
 log = logging.getLogger("bewerbungsassistent")
 
 
@@ -50,13 +56,15 @@ Route = Callable[[Any, dict[str, str], Any], Antwort]
 
 class Server(ThreadingHTTPServer):
     daemon_threads = True
+    request_queue_size = 32  # a browser opens several connections at once
 
     def __init__(self, kontext: Any, routen_get: dict[str, Route], routen_post: dict[str, Route],
-                 seiten: dict[str, str], port: int = 0) -> None:
+                 seiten: dict[str, str], port: int = 0, grenzen: dict[str, int] | None = None) -> None:
         self.kontext = kontext
         self.routen_get = routen_get
         self.routen_post = routen_post
         self.seiten = seiten  # Pfad -> Dateiname in seiten/
+        self.grenzen = dict(grenzen or {})  # Pfad -> grösste Anfrage, wo MAX_BODY nicht reicht
         self.token = secrets.token_urlsafe(32)
         super().__init__(("127.0.0.1", port), Handler)
 
@@ -75,7 +83,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
-        self.send_header("Content-Security-Policy", CSP)
+        if not any(name == "Content-Security-Policy" for name, _ in antwort.kopf):
+            self.send_header("Content-Security-Policy", CSP)
         for name, wert in antwort.kopf:
             self.send_header(name, wert)
         self.end_headers()
@@ -96,7 +105,10 @@ class Handler(BaseHTTPRequestHandler):
         pfad = SEITEN / datei
         if pfad.suffix == ".html":
             html = pfad.read_text(encoding="utf-8").replace("__TOKEN__", self.server.token)
-            return Antwort(HTTPStatus.OK, "text/html; charset=utf-8", html.encode("utf-8"))
+            eigene = EIGENE_CSP.search(html)
+            # frame-ancestors only counts in the header, a meta tag cannot carry it
+            kopf = (("Content-Security-Policy", f"{eigene.group(1)}; {FRAMING}"),) if eigene else ()
+            return Antwort(HTTPStatus.OK, "text/html; charset=utf-8", html.encode("utf-8"), kopf)
         return datei_antwort(pfad)
 
     def do_GET(self) -> None:
@@ -128,14 +140,26 @@ class Handler(BaseHTTPRequestHandler):
             laenge = int(self.headers.get("Content-Length") or 0)
         except ValueError:
             laenge = -1
-        if not 0 < laenge <= MAX_BODY:
-            return self._fehler(HTTPStatus.BAD_REQUEST, f"Anfrage leer oder grösser als {MAX_BODY} Bytes")
+        grenze = self.server.grenzen.get(teile.path, MAX_BODY)
+        if not 0 < laenge <= grenze:
+            self._discard_body(laenge)
+            return self._fehler(HTTPStatus.BAD_REQUEST, f"Anfrage leer oder grösser als {grenze} Bytes")
         try:
             body = json.loads(self.rfile.read(laenge))
         except (json.JSONDecodeError, UnicodeDecodeError):
             return self._fehler(HTTPStatus.BAD_REQUEST, "Ungültiges JSON")
         parameter = {k: v[-1] for k, v in urllib.parse.parse_qs(teile.query).items()}
         self._ausfuehren(route, parameter, body)
+
+    def _discard_body(self, length: int) -> None:
+        """Read what the browser is still sending; if it cannot finish, it never sees the answer."""
+        remaining = min(length, MAX_DISCARD)
+        while remaining > 0:
+            chunk = self.rfile.read(min(remaining, DISCARD_CHUNK))
+            if not chunk:
+                break
+            remaining -= len(chunk)
+        self.close_connection = True
 
     def _ausfuehren(self, route: Route, parameter: dict, body: Any) -> None:
         try:

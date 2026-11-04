@@ -21,7 +21,9 @@ Eine einzelne HTML-Datei, in der Personen ohne technische Kenntnisse ihre Grundl
 - Fehlen mit Unterlagen noch Angaben (nur fehlend, nicht falsch), schreibt er die Grundlagen noch nicht, sondern legt die Antworten als `dokumente/einstieg.json` ab.
 - Danach übernimmt der Skill `einstieg` die Unterlagen (Schritt 1a) und ergänzt, was fehlt. Die Skills `jobsuche` und `bewerbung` starten ihn von selbst, solange `dokumente/neu.yaml` Einträge hat oder eine Grundlage fehlt.
 
-Die Vorlage liest die Unterlagen nicht selbst; sie bleibt ohne Netz und ohne KI (Entscheid 3.11.2026, MIN-362). Das Lesen übernimmt Claude im Skill `einstieg`, später die App (MIN-338).
+Die Vorlage liest die Unterlagen nicht selbst; sie bleibt ohne Netz und ohne KI (Entscheid 3.11.2026, MIN-362). Das Lesen übernimmt Claude im Skill `einstieg`, später die App (MIN-367).
+
+Aus denselben Quellen entsteht die Seite „Meine Angaben“ der App (`bewerbungen/seiten/angaben.html`, MIN-366): zusätzlich mit `src/appbackend.js`, mit Netzwerk nur zur App selbst (`connect-src 'self'`), Zwischenstand und Unterlagen im Datenordner. Die Datei zum Weitergeben enthält diesen Teil nicht und bleibt ohne Netz. `build_template.py` schreibt beide Fassungen, `--check` prüft beide.
 
 ## Aufbau
 
@@ -33,6 +35,7 @@ Die Vorlage liest die Unterlagen nicht selbst; sie bleibt ohne Netz und ohne KI 
 | `src/documents.js`, `documents.py` | Regeln für Unterlagen (Art, Dateityp, Grösse, Anzahl); gemeinsame Testfälle in `tests/cases.json` |
 | `src/zip.js`, `archive.py` | ZIP schreiben und lesen in der Vorlage, sicher lesen beim Import |
 | `src/dom.js`, `src/uploads.js`, `src/app.js`, `src/template.html`, `src/style.css` | Oberfläche |
+| `src/appbackend.js` | nur Seite der App: Anfragen an die App |
 | `build_template.py` | fügt alles zu `dist/einstieg.html` zusammen; CSP nur mit Hashes, ohne Netzzugriff |
 | `convert.py`, `markdown_files.py` | Datei → `cv.yaml` (JSON Resume wie `lebenslauf/`) und Markdown nach `vorlagen/` |
 | `import_bundle.py`, `import_documents.py`, `rejected.py` | Import mit Entwürfen und Ablage der Unterlagen, über `paths.py` mit `bewerbungen/` verbunden |

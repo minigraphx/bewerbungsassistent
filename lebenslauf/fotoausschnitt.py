@@ -25,13 +25,17 @@ _SPEICHERN = threading.Lock()  # Lesen, Ändern und Schreiben nicht überlappen 
 
 
 def hat_foto(daten: pathlib.Path) -> bool:
-    """True if the CV names a photo (basics.image); the photo is optional."""
+    """True if the CV names a photo (basics.image); the photo and, before the first entry, the CV are optional."""
+    if not daten.is_file():
+        return False
     cv = yaml.safe_load(daten.read_text(encoding="utf-8")) or {}
     return bool((cv.get("basics") or {}).get("image"))
 
 
 def lies_foto(daten: pathlib.Path) -> tuple[pathlib.Path, dict]:
     """Pfad des Fotos und die vollständigen Optionen (fehlende mit Standardwerten ergänzt)."""
+    if not daten.is_file():
+        raise ValueError("Es gibt noch keinen Lebenslauf. Bitte zuerst die Angaben erfassen.")
     cv = yaml.safe_load(daten.read_text(encoding="utf-8")) or {}
     basics = cv.get("basics") or {}
     bild = basics.get("image")

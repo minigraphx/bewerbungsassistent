@@ -28,7 +28,7 @@ from dateien import im_ordner, schreibe_atomar
 from entwurf import sichere
 from rejected import ImportRejected
 
-__all__ = ["ImportRejected", "ImportResult", "import_file", "main", "read_bundle"]
+__all__ = ["ImportRejected", "ImportResult", "import_answers", "import_file", "main", "read_bundle"]
 
 MAX_BYTES = 1_000_000
 DRAFT_BEFORE = "Vor dem Import aus der Einstiegsvorlage"
@@ -74,8 +74,22 @@ def import_file(data_dir: pathlib.Path, bundle_path: pathlib.Path, today: dateti
     """Validate, convert and write; incomplete answers with documents are kept for the skill einstieg."""
     form = validation.load_form()
     bundle, raw, found = _load(bundle_path, form)
+    return _import(form, bundle, raw, found, bool(found), data_dir, today, force)
+
+
+def import_answers(data_dir: pathlib.Path, bundle: object, today: datetime.date, force: bool = False) -> ImportResult:
+    """The same for answers from the page „Meine Angaben“ of the app; documents are already in the data folder."""
+    raw = json.dumps(bundle, ensure_ascii=False, indent=2).encode("utf-8", "surrogatepass")
+    if len(raw) > MAX_BYTES:
+        raise ImportRejected([f"Die Angaben sind zu gross (höchstens {MAX_BYTES // 1000} KB)."])
+    has_documents = bool(import_documents.pending_documents(data_dir.resolve()))
+    return _import(validation.load_form(), bundle, raw, (), has_documents, data_dir, today, force)
+
+
+def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.Document, ...], has_documents: bool,
+            data_dir: pathlib.Path, today: datetime.date, force: bool) -> ImportResult:
     errors = validation.validate_bundle(form, bundle)
-    incomplete = bool(errors and found) and all(e.code == "required" for e in errors)
+    incomplete = bool(errors and has_documents) and all(e.code == "required" for e in errors)
     if errors and not incomplete:
         track = bundle.get("track") if isinstance(bundle, dict) else None
         raise ImportRejected([validation.describe(form, track, e) for e in errors])
@@ -83,6 +97,8 @@ def import_file(data_dir: pathlib.Path, bundle_path: pathlib.Path, today: dateti
     written = [] if incomplete else _write_basics(form, bundle, data_dir, today, force)
     data_dir.mkdir(parents=True, exist_ok=True)
     stored = import_documents.store_documents(data_dir, found, today, raw if incomplete else None)
+    if not incomplete:
+        import_documents.discard_kept_answers(data_dir)
     return ImportResult(written, stored, incomplete)
 
 

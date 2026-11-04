@@ -22,8 +22,8 @@
   "documents": {
     "title": "Unterlagen",
     "intro": {
-      "job": "Haben Sie schon einen Lebenslauf, Arbeitszeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Der Assistent übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt. Die Dateien bleiben auf diesem Gerät und kommen mit in die gespeicherte Datei.",
-      "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Der Assistent übernimmt daraus später, was passt, und fragt nur nach, was fehlt. Die Dateien bleiben auf diesem Gerät und kommen mit in die gespeicherte Datei."
+      "job": "Haben Sie schon einen Lebenslauf, Arbeitszeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Der Assistent übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.",
+      "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Der Assistent übernimmt daraus später, was passt, und fragt nur nach, was fehlt."
     },
     "categories": [
       {"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 3,

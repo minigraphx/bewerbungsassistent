@@ -25,6 +25,11 @@ def liste(k, parameter, body):
     return json_antwort({"bewerbungen": alle, "status": list(STATUS)})
 
 
+def grundlagen(k, parameter, body):
+    """Whether the person has entered the basics yet; the first start leads to „Meine Angaben“ (MIN-366)."""
+    return json_antwort({"lebenslauf": (k.daten / "cv.yaml").is_file(), "suchprofil": (k.daten / "suchprofil.md").is_file()})
+
+
 def details(k, parameter, body):
     b = k.register().hole(pflicht(parameter, "id"))
     pfade = unterlagen.pdf_pfade(k.daten, b["id"])
@@ -122,6 +127,7 @@ def versenden(k, parameter, body):
 
 GET = {
     "/api/bewerbungen": liste,
+    "/api/grundlagen": grundlagen,
     "/api/bewerbung": details,
     "/api/varianten/vorschlag": varianten_vorschlag,
     "/api/pdf": pdf,

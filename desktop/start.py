@@ -127,6 +127,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
         urlscheme.register_windows(sys.executable)
     _use_mediation(settings.build_defaults(bundle_dir()))
     import routes_app
+    import routes_angaben
     import routes_setup
     data = start_folder(paths)
     holder: dict = {}
@@ -140,8 +141,10 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
                                forbidden=(paths.app_dir, _install_dir()), extension_dir=prepare_extension(paths))
     app_get, app_post = routes_app.make_routes(controls)
     setup_get, setup_post = routes_setup.make_routes(state)
+    angaben_get, angaben_post, limits = routes_angaben.make_routes(state)
     try:
-        server = app.erstelle_server(data, extra_routes=({**app_get, **setup_get}, {**app_post, **setup_post}))
+        server = app.erstelle_server(data, extra_routes=({**app_get, **setup_get, **angaben_get},
+                                                         {**app_post, **setup_post, **angaben_post}), body_limits=limits)
         holder["server"] = server
     except (ValueError, OSError) as error:
         log.error("Start nicht möglich: %s", error)

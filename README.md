@@ -42,7 +42,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 ![Editor für den runden Fotoausschnitt mit Reglern für Zoom und Ausschnitt](docs/bilder/foto.jpg)
 
-**Einstieg:** eine HTML-Seite, die Schritt für Schritt alles abfragt, was der Assistent braucht. Bestehende Unterlagen lädt man gleich am Anfang hoch; dann übernimmt der Assistent die Angaben daraus. Sie läuft im Browser und verschickt nichts.
+**Einstieg:** eine HTML-Seite, die Schritt für Schritt alles abfragt, was der Assistent braucht. Bestehende Unterlagen lädt man gleich am Anfang hoch; dann übernimmt der Assistent die Angaben daraus. Die Vorlage läuft im Browser und verschickt nichts; in der App steht sie unter „Meine Angaben“ und speichert direkt in den Datenordner.
 
 ![Einstiegsvorlage im Schritt „Unterlagen“ mit einem hochgeladenen Lebenslauf](docs/bilder/einstieg.jpg)
 

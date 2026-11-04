@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
-<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Treffer</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einrichtung">Einrichtung</a></nav>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Treffer</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a></div></details></nav>
 <main class="einrichtung">
   <h1>Einrichtung</h1>
   <p class="hilfe">Vier Schritte, danach kann es losgehen. Ihre Daten bleiben auf diesem Computer; an die KI gehen nur Texte, in denen Name, Adresse und Kontaktangaben durch Platzhalter ersetzt sind.</p>
@@ -26,7 +26,7 @@
   <div id="ordner-status" class="status" role="status" aria-live="polite"></div>
 
   <h2>2. Angaben aus der Einstiegsvorlage</h2>
-  <p class="hilfe">Wer die Einstiegsvorlage ausgefüllt hat, hat eine Datei <strong>einstieg.zip</strong> oder <strong>einstieg.json</strong> gespeichert, meist im Ordner Downloads. Ohne diese Datei diesen Schritt einfach überspringen.</p>
+  <p class="hilfe">Wer die Einstiegsvorlage ausgefüllt hat, hat eine Datei <strong>einstieg.zip</strong> oder <strong>einstieg.json</strong> gespeichert, meist im Ordner Downloads. Ohne diese Datei überspringen Sie diesen Schritt und erfassen Ihre Angaben danach unter <a href="/angaben">Meine Angaben</a>; dort können Sie auch vorhandene Unterlagen wie PDF oder Word hochladen.</p>
   <label for="datei">Datei</label>
   <input id="datei" spellcheck="false" autocomplete="off" disabled>
   <div class="knoepfe">
@@ -47,16 +47,17 @@
 
   <section id="erweiterung" hidden>
     <h2>4. Browser-Erweiterung für die Stellensuche</h2>
-    <p class="hilfe">Die Erweiterung sucht in Ihrem Browser auf job-room, jobs.ch, jobscout24 und ictjobs nach Stellen und gibt die Treffer an diese App. Sie läuft in Chrome und Edge. Bis sie im Store ist, wird sie einmal von Hand geladen:</p>
+    <p class="hilfe">Die Erweiterung sucht in Ihrem Browser auf job-room, jobs.ch, jobscout24 und ictjobs nach Stellen und gibt die Treffer an diese App. Sie läuft in Chrome und Edge. Bis sie im Store ist, wird sie einmal von Hand geladen. Einen Browser kann eine App dazu nur anleiten, nicht selbst einrichten:</p>
     <div id="erweiterung-zustand" class="status" role="status" aria-live="polite"></div>
     <ol id="erweiterung-schritte" class="schritte">
-      <li>In Chrome die Adresse <code>chrome://extensions</code> öffnen, in Edge <code>edge://extensions</code>: Adresse kopieren und in die Adresszeile einfügen. <button type="button" id="adresse-kopieren">Adresse kopieren</button></li>
+      <li>Erweiterungsseite öffnen. Die App öffnet dazu auch den Ordner der Erweiterung.
+        <div class="knoepfe"><button type="button" class="haupt" data-browser="chrome">In Chrome öffnen</button><button type="button" data-browser="edge">In Edge öffnen</button></div></li>
       <li>Den <strong>Entwicklermodus</strong> einschalten (Chrome: oben rechts, Edge: links).</li>
-      <li><strong>Entpackte Erweiterung laden</strong> wählen und diesen Ordner auswählen: <code id="erweiterung-ordner" class="pfad"></code>
+      <li>Den Ordner <strong>erweiterung</strong> auf die Erweiterungsseite ziehen. Geht das nicht: <strong>Entpackte Erweiterung laden</strong> wählen und diesen Ordner auswählen: <code id="erweiterung-ordner" class="pfad"></code>
         <div class="knoepfe"><button type="button" id="pfad-kopieren">Pfad kopieren</button><button type="button" id="ordner-zeigen">Ordner zeigen</button></div>
         <span class="leise">Tipp: Im Auswahlfenster auf dem Mac mit Cmd+Shift+G den Pfad einfügen, unter Windows oben in die Adresszeile.</span></li>
-      <li>Diese Seite neu laden. Danach steht hier, dass die Erweiterung bereit ist.</li>
     </ol>
+    <p class="hilfe" id="erweiterung-warten">Sobald die Erweiterung geladen ist, steht das hier von selbst.</p>
   </section>
 
   <div class="knoepfe weiter"><a id="fertig" class="knopf haupt" href="/" hidden>Fertig: zu den Bewerbungen</a></div>

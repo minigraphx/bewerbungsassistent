@@ -8,6 +8,7 @@ import pytest
 import yaml
 
 import import_bundle
+import import_documents
 import validation
 from conftest import base_bundle
 
@@ -149,3 +150,29 @@ def test_cli_names_the_next_step_for_documents(tmp_path, capsys):
     out = capsys.readouterr().out
     assert code == 0
     assert "einstieg" in out and "dokumente/neu.yaml" in out
+
+
+
+def test_complete_answers_replace_kept_incomplete_ones(tmp_path):
+    bundle = base_bundle("job")
+    partial = copy.deepcopy(bundle)
+    partial["data"] = {"searchJob": bundle["data"]["searchJob"]}
+    data_dir = tmp_path / "daten"
+    import_bundle.import_file(data_dir, make_zip(tmp_path, partial, documents()), TODAY)
+
+    result = import_bundle.import_file(data_dir, make_zip(tmp_path, bundle, documents()), TODAY)
+
+    assert result.incomplete is False
+    assert not (data_dir / "dokumente" / "einstieg.json").exists()
+    assert {e["datei"] for e in pending(data_dir)} == {REFERENCE, LETTER}
+
+
+def test_entries_leaving_the_documents_folder_are_not_pending(tmp_path):
+    (tmp_path / "dokumente").mkdir()
+    (tmp_path / "cv.yaml").write_text("basics: {}\n", encoding="utf-8")
+    (tmp_path / import_documents.PENDING).write_text("- datei: dokumente/../cv.yaml\n", encoding="utf-8")
+
+    assert import_documents.pending_documents(tmp_path) == []
+    with pytest.raises(ValueError):
+        import_documents.remove_pending(tmp_path, "dokumente/../cv.yaml")
+    assert (tmp_path / "cv.yaml").is_file()

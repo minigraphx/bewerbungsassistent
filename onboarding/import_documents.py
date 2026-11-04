@@ -59,3 +59,38 @@ def _add_pending(data_dir: pathlib.Path, new: list[str], today: datetime.date) -
     added = [{"datei": rel, "eingang": today.isoformat()} for rel in new if rel not in known]
     if added:
         schreibe_yaml(path, [*entries, *added], PENDING_HEADER)
+
+
+def pending_documents(data_dir: pathlib.Path) -> list[dict]:
+    """Documents still waiting to be taken over: category, name, size and path; files that are gone are left out."""
+    entries = lies_yaml(im_ordner(data_dir, PENDING), [])
+    found = []
+    for entry in entries if isinstance(entries, list) else []:
+        rel = entry.get("datei") if isinstance(entry, dict) else None
+        parts = rel.split("/") if isinstance(rel, str) else []
+        if len(parts) != 3 or parts[0] != DOCUMENTS_DIR or {".", ".."} & set(parts):
+            continue
+        target = im_ordner(data_dir, rel)
+        if target.is_file():
+            found.append({"category": parts[1], "name": parts[2], "size": target.stat().st_size, "datei": rel})
+    return found
+
+
+def remove_pending(data_dir: pathlib.Path, rel: str) -> None:
+    """Delete a document that is still pending; anything else stays untouched."""
+    if rel not in {d["datei"] for d in pending_documents(data_dir)}:
+        raise ValueError("Diese Unterlage gibt es nicht (mehr).")
+    _forget_pending(data_dir, rel)
+
+
+def discard_kept_answers(data_dir: pathlib.Path) -> None:
+    """Complete answers make the kept incomplete ones outdated; the skill must not take those over any more."""
+    if im_ordner(data_dir, BUNDLE_COPY).is_file():
+        _forget_pending(data_dir, BUNDLE_COPY)
+
+
+def _forget_pending(data_dir: pathlib.Path, rel: str) -> None:
+    im_ordner(data_dir, rel).unlink()
+    path = im_ordner(data_dir, PENDING)
+    entries = lies_yaml(path, [])
+    schreibe_yaml(path, [e for e in entries if not (isinstance(e, dict) and e.get("datei") == rel)], PENDING_HEADER)

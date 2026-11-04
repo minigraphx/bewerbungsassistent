@@ -85,3 +85,28 @@ def reveal(folder: pathlib.Path, platform: str, run: Run = subprocess.run) -> No
         run(command, capture_output=True, timeout=30)
     except (OSError, subprocess.TimeoutExpired) as error:
         raise ValueError(f"Der Ordner liess sich nicht öffnen: {folder}") from error
+
+
+BROWSERS = {
+    "chrome": ("Google Chrome", "chrome", "chrome://extensions"),
+    "edge": ("Microsoft Edge", "msedge", "edge://extensions"),
+}
+
+
+def open_extensions_page(browser: str, platform: str, run: Run = subprocess.run) -> None:
+    """Open the extensions page; a web page may not link to it, the system may (MIN-366)."""
+    if browser not in BROWSERS:
+        raise ValueError("Unbekannter Browser.")
+    name, windows_command, page = BROWSERS[browser]
+    if platform == "darwin":
+        command = ["open", "-a", name, page]
+    elif platform == "win32":
+        command = ["cmd", "/c", "start", "", windows_command, page]
+    else:
+        raise ValueError(f"Bitte {name} selbst öffnen und {page} in die Adresszeile eingeben.")
+    try:
+        done = run(command, capture_output=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ValueError(f"{name} liess sich nicht öffnen.") from error
+    if done.returncode != 0:
+        raise ValueError(f"{name} wurde nicht gefunden. Ist der Browser installiert?")

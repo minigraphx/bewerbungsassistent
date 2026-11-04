@@ -9,9 +9,11 @@ Im Pilot wird sie als **Entwicklererweiterung** geladen („Entpackte Erweiterun
 Die App zeigt die Schritte auf der Seite **Einrichtung → Schritt 4** mit dem passenden Ordner:
 
 1. Die App einmal starten. Sie meldet sich bei Chrome und Edge als Native-Messaging-Host an und legt den Ordner der Erweiterung in ihrem App-Ordner ab (`…/Bewerbungsassistent/erweiterung`). Beim Start aus dem Repo nimmt sie direkt diesen Ordner.
-2. `chrome://extensions` (Edge: `edge://extensions`) öffnen und den **Entwicklermodus** einschalten.
-3. **„Entpackte Erweiterung laden“** und den Ordner aus der Einrichtung wählen (auf dem Mac im Dialog mit Cmd+Shift+G den Pfad einfügen).
-4. Die Seite „Treffer“ der App neu laden. Der Knopf „Stellen suchen“ ist jetzt aktiv.
+2. In der Einrichtung „In Chrome öffnen“ bzw. „In Edge öffnen“ klicken: Die Erweiterungsseite und der Ordner gehen auf. Einmalig den **Entwicklermodus** einschalten. Von Hand: `chrome://extensions` oder `edge://extensions`.
+3. **„Entpackte Erweiterung laden“** und den Ordner wählen (auf dem Mac im Dialog mit Cmd+Shift+G den Pfad einfügen).
+4. Der Knopf „Stellen suchen“ auf der Seite „Treffer“ ist jetzt aktiv, auch ohne dass offene Seiten der App neu geladen werden müssen.
+
+Ein Klick allein genügt nicht: Chrome lässt Apps seit Version 137 keine Erweiterungen mehr selbst laden (`--load-extension`), Richtlinien gelten nur auf verwalteten Geräten. Das ändert erst der Store.
 
 Die ID der Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`), weil `manifest.json` den öffentlichen Schlüssel enthält. Nur diese ID darf mit der App sprechen. Nach einem Update der App mit einer neuen Erweiterung zeigt die Einrichtung einen Hinweis; dann in `chrome://extensions` bei der Erweiterung auf „Neu laden“ klicken.
 

@@ -16,6 +16,9 @@ APPRENTICESHIP_HEADINGS = {"erfahrung": "Schnupperlehren & Erfahrungen", "bildun
 NETWORKS = {"linkedin": "LinkedIn", "github": "GitHub", "xing": "XING", "gitlab": "GitLab"}
 
 
+BASICS = ("cv.yaml", "suchprofil.md", "anschreiben/stil.md", "anschreiben/bausteine.md")
+
+
 def convert_bundle(form: dict, bundle: dict, today: datetime.date) -> dict[str, str]:
     """Map a bundle that passed validation.validate_bundle to {relative path: file text}."""
     data = bundle["data"]

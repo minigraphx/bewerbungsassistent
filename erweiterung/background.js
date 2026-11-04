@@ -9,6 +9,15 @@ const LOAD_TIMEOUT_MS = 30000;
 const appPorts = new Set();
 let running = false;
 
+// Pages of the app that were already open when the extension was loaded get the bridge now, so the setup page
+// shows „bereit“ without a reload. app-bridge.js itself checks that the page belongs to the app.
+// Only when the extension itself is new: after a Chrome update the pages still have a working bridge.
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+  if (reason !== 'install' && reason !== 'update') return;
+  const tabs = await chrome.tabs.query({ url: 'http://127.0.0.1/*' });
+  await Promise.allSettled(tabs.map((tab) => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['app-bridge.js'] })));
+});
+
 // Runs inside the portal tab, in the same isolated world as the injected adapters. Must stay self-contained.
 async function inPage(portal, method, args) {
   try {

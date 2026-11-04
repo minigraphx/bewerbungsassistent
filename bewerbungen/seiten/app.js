@@ -122,6 +122,20 @@ window.App = (() => {
   }
   navigation();
 
+  // Menu: closes with Escape and with a click elsewhere
+  function menue() {
+    const details = document.querySelector("nav details.menue");
+    if (!details) return;
+    document.addEventListener("click", e => { if (!details.contains(e.target)) details.open = false; });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && details.open) {
+        details.open = false;
+        details.querySelector("summary").focus();
+      }
+    });
+  }
+  menue();
+
   // „Zurück“: zur vorherigen Seite der App (behält dort Sortierung und Scrollposition), sonst zur Übersicht
   function zurueck() {
     const knopf = document.getElementById("zurueck");
@@ -159,9 +173,8 @@ window.App = (() => {
         document.body.replaceChildren(el("main", {}, el("h1", {}, "Bewerbungsassistent beendet"),
           el("p", {}, "Sie können dieses Fenster schliessen. Starten Sie die App wieder mit einem Doppelklick.")));
       });
-      if (!nav.querySelector('a[href="/einrichtung"]')) nav.append(el("a", { href: "/einrichtung" }, "Einrichtung"));
-      nav.append(el("span", { class: "leise version" }, `Version ${info.version}`), beenden);
-      navigation();
+      nav.querySelector(".menue-inhalt")?.append(el("span", { class: "leise version" }, `Version ${info.version}`));
+      nav.append(beenden);
     }
     await zurEinrichtung();
     if (!info.update) return;

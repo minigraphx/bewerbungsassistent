@@ -24,6 +24,8 @@
     for (const id of ["datei", "datei-waehlen", "importieren"]) $(id).disabled = !bereit;
     $("ordner-uebernehmen").textContent = bereit ? "Anderen Ordner verwenden" : "Diesen Ordner verwenden";
     $("fertig").hidden = !bereit;
+    $("fertig").href = info.lebenslauf ? "/" : "/angaben";
+    $("fertig").textContent = info.lebenslauf ? "Fertig: zu den Bewerbungen" : "Weiter: Ihre Angaben erfassen";
     aktuell = bereit ? info.datenordner : null;
     ordnerKnopf();
   }
@@ -80,6 +82,7 @@
     try {
       zeigeImport(await senden("/api/app/einstieg", { pfad: $("datei").value, ersetzen }));
       status($("import-status"), "Import abgeschlossen.", "ok");
+      zeigeOrdner(await holen("/api/app/einrichtung"));
     } catch (fehler) {
       const vorhanden = fehler.status === 409 && fehler.daten?.vorhanden;
       status($("import-status"), fehler.message, vorhanden ? "hinweis" : "fehler");
@@ -135,6 +138,7 @@
     $("erweiterung-ordner").textContent = erweiterung.ordner;
     const geladen = document.documentElement.dataset.bewerbungsassistentErweiterung;
     $("erweiterung-schritte").hidden = Boolean(geladen);
+    $("erweiterung-warten").hidden = Boolean(geladen);
     if (!geladen) {
       status($("erweiterung-zustand"), "Noch nicht eingerichtet.", "hinweis");
     } else if (erweiterung.version && geladen !== erweiterung.version) {
@@ -153,7 +157,12 @@
     }
   }
 
-  $("adresse-kopieren").addEventListener("click", e => kopiere("chrome://extensions", e.currentTarget));
+  for (const knopf of document.querySelectorAll("button[data-browser]")) {
+    knopf.addEventListener("click", async () => {
+      try { await senden("/api/app/erweiterungsseite", { browser: knopf.dataset.browser }); }
+      catch (fehler) { status($("erweiterung-zustand"), fehler.message, "fehler"); }
+    });
+  }
   $("pfad-kopieren").addEventListener("click", e => kopiere(erweiterung?.ordner || "", e.currentTarget));
   $("ordner-zeigen").addEventListener("click", async () => {
     try { await senden("/api/app/ordner-zeigen", { art: "erweiterung" }); }

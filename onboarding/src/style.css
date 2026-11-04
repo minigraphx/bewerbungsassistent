@@ -105,3 +105,5 @@ footer { font-size: 0.88rem; margin-top: 1rem; }
   body { padding: 1rem 0.75rem 3rem; }
   main { padding: 1rem; }
 }
+.back { display: inline-block; margin-bottom: 8px; }
+#replace { margin-left: 8px; }

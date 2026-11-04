@@ -324,3 +324,51 @@ def test_dialog_output_with_bom(tmp_path):
     chosen = dialogs.choose("ordner", tmp_path, platform="win32", run=Runner(stdout="\ufeffC:\\Daten\r\n"))
 
     assert chosen == pathlib.Path("C:\\Daten")
+
+
+# Opening the extensions page of the browser from the app (MIN-366)
+
+def recording(returncode=0):
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, returncode, "", "")
+    run.calls = calls
+    return run
+
+
+@pytest.mark.parametrize("browser, platform, command", [
+    ("chrome", "darwin", ["open", "-a", "Google Chrome", "chrome://extensions"]),
+    ("edge", "darwin", ["open", "-a", "Microsoft Edge", "edge://extensions"]),
+    ("chrome", "win32", ["cmd", "/c", "start", "", "chrome", "chrome://extensions"]),
+    ("edge", "win32", ["cmd", "/c", "start", "", "msedge", "edge://extensions"]),
+])
+def test_extensions_page_opens_in_the_chosen_browser(browser, platform, command):
+    run = recording()
+
+    dialogs.open_extensions_page(browser, platform, run)
+
+    assert run.calls == [command]
+
+
+def test_missing_browser_is_explained():
+    with pytest.raises(ValueError, match="Microsoft Edge"):
+        dialogs.open_extensions_page("edge", "darwin", recording(returncode=1))
+
+
+def test_unknown_browser_is_refused():
+    with pytest.raises(ValueError, match="Unbekannter Browser"):
+        dialogs.open_extensions_page("firefox", "darwin", recording())
+
+
+def test_route_opens_the_page_and_shows_the_folder(tmp_path):
+    opened, shown = [], []
+    state = routes_setup.Setup(paths=settings.Paths(tmp_path / "app"), switch=lambda folder: None,
+                               suggestion=tmp_path / "x", extension_dir=tmp_path / "erweiterung",
+                               open_page=opened.append, reveal=shown.append)
+    _, post_routes = routes_setup.make_routes(state)
+
+    answer = post_routes["/api/app/erweiterungsseite"](None, {}, {"browser": "edge"})
+
+    assert answer.status == 200 and opened == ["edge"] and shown == [tmp_path / "erweiterung"]

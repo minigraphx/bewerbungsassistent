@@ -30,6 +30,7 @@ class Setup:
     today: Callable[[], datetime.date] = datetime.date.today
     extension_dir: pathlib.Path | None = None  # developer add-on to load in the browser (MIN-339)
     reveal: Callable[[pathlib.Path], None] = lambda folder: dialogs.reveal(folder, sys.platform)
+    open_page: Callable[[str], None] = lambda browser: dialogs.open_extensions_page(browser, sys.platform)
 
     def data_dir(self) -> pathlib.Path | None:
         return settings.chosen_data_dir(self.paths)
@@ -93,10 +94,17 @@ def make_routes(state: Setup) -> tuple[dict, dict]:
         state.reveal(folders[kind])
         return json_antwort({"ok": True})
 
+    def extensions_page(k, parameter, body):
+        if state.extension_dir is None:
+            raise ValueError("Die Erweiterung gibt es nur in der installierten App.")
+        state.open_page(body.get("browser") if isinstance(body, dict) else None)
+        state.reveal(state.extension_dir)
+        return json_antwort({"ok": True})
+
     return ({"/api/app/einrichtung": overview},
             {"/api/app/ordner-pruefen": check, "/api/app/datenordner": choose_data_dir,
              "/api/app/waehlen": dialog, "/api/app/einstieg": import_einstieg,
-             "/api/app/ordner-zeigen": show_folder})
+             "/api/app/ordner-zeigen": show_folder, "/api/app/erweiterungsseite": extensions_page})
 
 
 def _extension(state: Setup) -> dict | None:
@@ -105,14 +113,31 @@ def _extension(state: Setup) -> dict | None:
     return {"ordner": str(state.extension_dir), "version": extension.version(state.extension_dir)}
 
 
-def _import(state: Setup, k, body, json_antwort):
-    import import_bundle  # onboarding/; imported late, it pulls in the form definition
+def ready_data_dir(state: Setup, k) -> pathlib.Path:
+    """The chosen data folder, in use by the server; ValueError with a German message if there is none."""
     target = state.data_dir()
     if target is None:
         raise ValueError("Bitte zuerst den Datenordner wählen.")
     if not target.is_dir():
         raise ValueError(f"Der Datenordner {target} wurde nicht gefunden.")
     _sync(state, k)
+    return target
+
+
+def rejected_answer(rejected, replace: bool, json_antwort):
+    """Existing files become a question (409, the page offers to replace them), anything else an error."""
+    problems = rejected.messages
+    existing = any("gibt es schon" in p for p in problems)
+    text = " ".join(p.replace("Zum Ersetzen mit --force aufrufen", "Zum Ersetzen „Vorhandene Dateien ersetzen“ wählen")
+                    for p in problems)
+    if existing and not replace:
+        return json_antwort({"fehler": text, "vorhanden": True}, HTTPStatus.CONFLICT)
+    raise ValueError(text) from rejected
+
+
+def _import(state: Setup, k, body, json_antwort):
+    import import_bundle  # onboarding/; imported late, it pulls in the form definition
+    target = ready_data_dir(state, k)
     source = pathlib.Path(_path(body).strip()).expanduser()
     if not source.is_file():
         raise ValueError("Die Datei wurde nicht gefunden.")
@@ -120,12 +145,6 @@ def _import(state: Setup, k, body, json_antwort):
     try:
         result = import_bundle.import_file(target, source, state.today(), force=replace)
     except import_bundle.ImportRejected as rejected:
-        problems = rejected.messages
-        existing = any("gibt es schon" in p for p in problems)
-        text = " ".join(p.replace("Zum Ersetzen mit --force aufrufen", "Zum Ersetzen „Vorhandene Dateien ersetzen“ wählen")
-                        for p in problems)
-        if existing and not replace:
-            return json_antwort({"fehler": text, "vorhanden": True}, HTTPStatus.CONFLICT)
-        raise ValueError(text) from rejected
+        return rejected_answer(rejected, replace, json_antwort)
     return json_antwort({"geschrieben": result.written, "dokumente": result.documents,
                          "unvollstaendig": result.incomplete})
