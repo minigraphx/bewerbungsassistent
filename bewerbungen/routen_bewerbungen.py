@@ -29,18 +29,21 @@ def liste(k, parameter, body):
 
 def grundlagen(k, parameter, body):
     """Whether the person has entered the basics yet; the first start leads to „Meine Angaben“ (MIN-366)."""
-    return json_antwort({"lebenslauf": (k.daten / "cv.yaml").is_file(), "suchprofil": (k.daten / "suchprofil.md").is_file()})
+    own_cv = (k.daten / unterlagen.OWN_CV).is_file()
+    return json_antwort({"lebenslauf": own_cv or (k.daten / "cv.yaml").is_file(), "suchprofil": (k.daten / "suchprofil.md").is_file()})
 
 
 def details(k, parameter, body):
     b = k.register().hole(pflicht(parameter, "id"))
-    pfade = unterlagen.pdf_pfade(k.daten, b["id"])
+    pfade = unterlagen.wirksame_pdfs(k.daten, b)
     return json_antwort({
         "bewerbung": b,
         "jobroom": jobroom_angaben(b),
         "stellentext": _stellentext(k, b["id"]),
         "pdfs": {art: p.is_file() for art, p in pfade.items()},
         "pdf_stand": {art: p.stat().st_mtime_ns if p.is_file() else None for art, p in pfade.items()},
+        "eigener_lebenslauf": unterlagen.eigener_lebenslauf(k.daten, b) is not None,
+        "eigener_lebenslauf_da": (k.daten / unterlagen.OWN_CV).is_file(),
         "hat_anschreiben": pfade["anschreiben"].with_suffix(".yaml").is_file(),
         "varianten": k.varianten().alle(),
         "status": list(STATUS),
@@ -100,10 +103,10 @@ def unterlagen_bauen(k, parameter, body):
 
 def pdf(k, parameter, body):
     art = pflicht(parameter, "art")
-    pfade = unterlagen.pdf_pfade(k.daten, pflicht(parameter, "id"))
-    if art not in pfade:
+    wanted = pflicht(parameter, "id")
+    if art not in unterlagen.pdf_pfade(k.daten, wanted):
         raise ValueError("art muss lebenslauf oder anschreiben sein")
-    return datei_antwort(pfade[art], "application/pdf")
+    return datei_antwort(unterlagen.wirksame_pdfs(k.daten, k.register().hole(wanted))[art], "application/pdf")
 
 
 def versendet(k, parameter, body):

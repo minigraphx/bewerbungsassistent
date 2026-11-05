@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<title>Meine Dateien</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Suche</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/dateien">Meine Dateien</a><a href="/fragen">Fragen</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einstellungen">Erweiterte Einstellungen</a></div></details></nav>
+<main>
+  <h1>Meine Dateien</h1>
+  <p class="hilfe">Fertige Unterlagen ablegen und so verwenden, wie sie sind. Die Dateien bleiben auf diesem Computer und gehen nicht an die KI. Hochgeladen werden sie nur beim Ausfüllen eines Formulars. Name, Adresse und Kontakt fürs Formular kommen aus <a href="/angaben">„Meine Angaben“</a>; ohne diese Angaben bleiben die Felder leer.</p>
+
+  <section class="eigene-dateien" data-art="lebenslauf">
+    <h2>Lebenslauf</h2>
+    <p class="hilfe">Ein PDF. Es gilt für alle Bewerbungen, bei denen keine Variante gewählt ist, ohne „Unterlagen erstellen“. Ein neues PDF ersetzt das bisherige.</p>
+    <label class="datei-waehlen">PDF wählen<input type="file" accept=".pdf,application/pdf"></label>
+    <ul class="datei-liste"></ul>
+    <div class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="eigene-dateien" data-art="zertifikat">
+    <h2>Zertifikate und Diplome</h2>
+    <p class="hilfe">PDF, JPG oder PNG. Welche zu einer Stelle passen, steht zur Wahl auf der Seite der Bewerbung. Eine Datei mit gleichem Namen ersetzt die bisherige.</p>
+    <label class="datei-waehlen">Dateien wählen<input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></label>
+    <ul class="datei-liste"></ul>
+    <div class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="eigene-dateien" data-art="zeugnis">
+    <h2>Zeugnisse</h2>
+    <p class="hilfe">PDF, JPG oder PNG. Sie stehen beim Ausfüllen eines Formulars bereit. Eine Datei mit gleichem Namen ersetzt die bisherige.</p>
+    <label class="datei-waehlen">Dateien wählen<input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></label>
+    <ul class="datei-liste"></ul>
+    <div class="status" role="status" aria-live="polite"></div>
+  </section>
+  <p class="hilfe">Ersetzte und entfernte Dateien lassen sich unter <a href="/entwuerfe">„Entwürfe &amp; Versionen“</a> zurückholen.</p>
+</main>
+<script src="/app.js"></script>
+<script src="/dateien.js"></script>
+</body>
+</html>

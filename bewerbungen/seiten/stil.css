@@ -170,3 +170,12 @@ button.klein { padding: 2px 8px; font-size: 0.85em; margin: 0; }
 .chat-beispiele { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .chat-beispiele:empty { display: none; }
 .fehlt-noch { display: block; margin-top: 4px; font-size: 0.85em; color: var(--leise); }
+
+/* Meine Dateien */
+.eigene-dateien { margin-block: 1.5rem; }
+.datei-waehlen { display: inline-block; margin: 0; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--akzent); background: var(--flaeche); color: var(--text); font-size: inherit; font-weight: 400; cursor: pointer; }
+.datei-waehlen input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; }
+.datei-waehlen:focus-within { outline: 2px solid currentColor; outline-offset: 2px; }
+.datei-liste { list-style: none; padding: 0; margin-block: .75rem; }
+.datei-liste li { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding-block: .35rem; }
+.datei-liste a { overflow-wrap: anywhere; }

@@ -38,12 +38,23 @@ meine-daten/
   bewerbungen/<id>/          anschreiben.yaml, stelle.md, erstellte PDFs (nicht in Git)
   versendet/                 versendete Fassungen, jede nur einmal (in Git)
   anschreiben/               bausteine.md, stil.md (persönlich)
-  dokumente/                 Originale: zeugnisse/, zertifikate/, anschreiben-bisher/, lebenslauf-bisher/ (nicht in Git)
+  dokumente/                 Originale: zeugnisse/, zertifikate/, anschreiben-bisher/, lebenslauf-bisher/, lebenslauf.pdf (nicht in Git)
   .entwuerfe/                Entwürfe (nicht in Git)
   .ki/nutzung.jsonl          KI-Nutzung: Aufgabe, Modell, Tokens, Kosten, ersetzte Felder – nie Inhalte (nicht in Git)
 ```
 
 `app.py` ergänzt die `.gitignore` des Datenordners um `.entwuerfe/`, `.build/`, `bewerbungen/*/*.pdf`, `dokumente/` und `.ki/`.
+
+### Eigene Dateien (MIN-346)
+
+Wer fertige Unterlagen hat, legt sie auf der Seite „Meine Dateien“ ab und verwendet sie unverändert:
+
+- **Lebenslauf:** ein PDF, gespeichert als `dokumente/lebenslauf.pdf`. Es gilt für jede Bewerbung ohne gewählte Variante und ersetzt dort den gebauten Lebenslauf, ohne „Unterlagen erstellen“. Eine gewählte Variante geht vor.
+- **Zertifikate und Zeugnisse:** PDF, JPG oder PNG, in denselben Ordnern wie die Unterlagen aus „Meine Angaben“. Zertifikate werden pro Bewerbung gewählt. Wird ein gewähltes Zertifikat ersetzt oder entfernt, gilt das für alle noch nicht versendeten Bewerbungen.
+
+Höchstens 15 MB pro Datei. Die App prüft den Inhalt, nicht nur die Endung, und nimmt keine anderen Dateitypen an. Ersetzte und entfernte Dateien bleiben unter „Entwürfe“. Die Dateien gehen nicht an die KI; sie gehen nur beim Ausfüllen eines Formulars an die Seite, die die Person selbst geöffnet hat.
+
+Die automatische Prüfung meldet beim eigenen Lebenslauf einen Scan ohne Text oder einen Platzhalter nur als Hinweis, denn die Person will die Datei so verwenden. Ein PDF, das sich nicht lesen lässt, bleibt ein Fehler und sperrt „Bewerben“. Name, Adresse und Kontakt fürs Formular kommen aus `cv.yaml`; ohne diese Datei bleiben die Felder leer.
 
 ### Sicherung (MIN-359)
 

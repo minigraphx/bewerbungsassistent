@@ -41,8 +41,10 @@ def _seiten(pdf: pathlib.Path) -> list[str]:
     return [seite.extract_text() or "" for seite in PdfReader(pdf).pages]
 
 
-def pruefe_pdf(pdf: pathlib.Path, art: str) -> list[Befund]:
+def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False) -> list[Befund]:
+    """With `as_it_is` the person uploaded the file to use it unchanged: what is not broken is their decision."""
     name = NAMEN[art]
+    content_stufe = "hinweis" if as_it_is else "fehler"
     if not pdf.is_file():
         return [Befund("fehler", f"{name}: PDF fehlt ({pdf.name}). Zuerst die Unterlagen erstellen.")]
     try:
@@ -52,14 +54,14 @@ def pruefe_pdf(pdf: pathlib.Path, art: str) -> list[Befund]:
     befunde = []
     text = "\n".join(seiten)
     if len(text.strip()) < 200:
-        befunde.append(Befund("fehler", f"{name}: kaum Text extrahierbar – Bewerbungssoftware (ATS) liest es nicht"))
+        befunde.append(Befund(content_stufe, f"{name}: kaum Text extrahierbar – Bewerbungssoftware (ATS) liest es nicht"))
     else:
         befunde.append(Befund("ok", f"{name}: Text extrahierbar ({len(seiten)} Seite{'n' if len(seiten) != 1 else ''})"))
     if len(seiten) > MAX_SEITEN[art]:
         stufe = "fehler" if art == "anschreiben" else "hinweis"
         befunde.append(Befund(stufe, f"{name}: {len(seiten)} Seiten, empfohlen höchstens {MAX_SEITEN[art]} Seite(n)"))
     if PLATZHALTER.search(text):
-        befunde.append(Befund("fehler", f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
+        befunde.append(Befund(content_stufe, f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
     return befunde
 
 
@@ -155,8 +157,9 @@ def contact_person_findings(letter: pathlib.Path) -> list[Befund]:
 
 def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[Befund]:
     """Alle Prüfungen einer Bewerbung; Fehler zuerst."""
-    pfade = unterlagen.pdf_pfade(daten, bewerbung["id"])
-    befunde = pruefe_pdf(pfade["lebenslauf"], "lebenslauf")
+    pfade = unterlagen.wirksame_pdfs(daten, bewerbung)
+    as_it_is = unterlagen.eigener_lebenslauf(daten, bewerbung) is not None or bool(bewerbung.get("versand"))
+    befunde = pruefe_pdf(pfade["lebenslauf"], "lebenslauf", as_it_is=as_it_is)
     if pfade["anschreiben"].is_file() or pfade["anschreiben"].with_suffix(".yaml").is_file():
         befunde += pruefe_pdf(pfade["anschreiben"], "anschreiben")
         if pfade["anschreiben"].is_file():

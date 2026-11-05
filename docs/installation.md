@@ -70,9 +70,17 @@ Die Erweiterung steht dann in der Liste, und in der App erscheint von selbst „
 1. **Meine Angaben** (im Menü): Wählen Sie die Stellensuche und erfassen Sie Lebenslauf und Suchprofil. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Zum Schluss klicken Sie auf **Übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
 2. **Suche**: Klicken Sie auf **Stellen suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Unter **Wo suchen Sie?** wählen Sie die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche.
 3. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Übernehmen** legt eine Bewerbung an, **Verwerfen** blendet den Treffer aus.
-4. **Bewerben**: Öffnen Sie unter **Bewerbungen** eine Firma und klicken Sie auf **Unterlagen erstellen**. Erst dann lässt sie sich in der Übersicht ankreuzen; was noch fehlt, steht dort bei der Firma. **Bewerben** öffnet das Formular und füllt es aus.
+4. **Bewerben**: Öffnen Sie unter **Bewerbungen** eine Firma und klicken Sie auf **Unterlagen erstellen**. Erst dann lässt sie sich in der Übersicht ankreuzen; was noch fehlt, steht dort bei der Firma. **Bewerben** öffnet das Formular und füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe unten).
 
 Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
+
+### Fertige Dateien verwenden
+
+Unter **Meine Dateien** (im Menü) laden Sie Ihren Lebenslauf als PDF sowie Zertifikate und Zeugnisse hoch. Sie werden so verwendet, wie sie sind. Der Lebenslauf gilt für alle Bewerbungen, bei denen keine Variante gewählt ist. Welche Zertifikate mitgehen, wählen Sie pro Bewerbung. Die Dateien gehen nicht an die KI.
+
+Damit das Formular auch Name, Adresse und Kontakt einfüllt, braucht es trotzdem die Angaben unter **Meine Angaben**. Ohne sie bleiben diese Felder leer, und Sie tragen sie selbst ein.
+
+![Seite „Meine Dateien“ mit einem hochgeladenen Lebenslauf, einem Zertifikat und einem Zeugnis, je mit Knopf zum Entfernen](bilder/meine-dateien.jpg)
 
 ## Für Lehrstellen
 

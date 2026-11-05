@@ -28,8 +28,9 @@
     $("titel").textContent = `${bewerbung.firma} – ${bewerbung.stelle}`;
     $("untertitel").textContent = `ID ${bewerbung.id} · Status ${bewerbung.status}` +
       (bewerbung.beworben_am ? ` · beworben am ${datum(bewerbung.beworben_am)}` : "");
+    $("eigener-cv").hidden = !daten.eigener_lebenslauf;
     optionen($("f-status"), daten.status.map(s => [s, s]), bewerbung.status);
-    optionen($("f-variante"), [["", daten.varianten.length ? "– keine –" : "– ganzer Lebenslauf –"], ...daten.varianten.map(v => [v.id, `${v.id}${v.beschreibung ? " – " + v.beschreibung : ""}`])],
+    optionen($("f-variante"), [["", daten.eigener_lebenslauf_da ? "– eigener Lebenslauf –" : daten.varianten.length ? "– keine –" : "– ganzer Lebenslauf –"], ...daten.varianten.map(v => [v.id, `${v.id}${v.beschreibung ? " – " + v.beschreibung : ""}`])],
       bewerbung.variante || "");
     for (const f of FELDER) {
       if (f !== "status" && f !== "variante") $("f-" + f).value = bewerbung[f] ?? "";
@@ -127,7 +128,7 @@
     const zeilen = verfuegbar.map(datei => el("li", {}, el("label", { class: "auswahl" },
       el("input", { type: "checkbox", value: datei, checked: gewaehlt ? gewaehlt.includes(datei) : gruende.has(datei) }),
       datei.split("/").pop(), gruende.has(datei) ? el("span", { class: "leise" }, ` (${gruende.get(datei)})`) : null)));
-    $("zertifikate").replaceChildren(...(zeilen.length ? zeilen : [el("li", { class: "leer" }, "Keine Zertifikate unter „Meine Angaben“ hochgeladen.")]));
+    $("zertifikate").replaceChildren(...(zeilen.length ? zeilen : [el("li", { class: "leer" }, "Noch keine Zertifikate hochgeladen. Das geht unter ", el("a", { href: "/dateien" }, "„Meine Dateien“"), ".")]));
     $("zertifikate-speichern").hidden = !zeilen.length;
     status($("zertifikate-status"), !gewaehlt && vorschlag.length ? "Vorschlag, noch nicht gespeichert." : "");
   }

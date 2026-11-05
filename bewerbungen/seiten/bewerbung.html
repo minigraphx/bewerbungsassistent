@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
-<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Suche</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/fragen">Fragen</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einstellungen">Erweiterte Einstellungen</a></div></details></nav>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Suche</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/dateien">Meine Dateien</a><a href="/fragen">Fragen</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einstellungen">Erweiterte Einstellungen</a></div></details></nav>
 <main>
   <a href="/" class="zurueck" id="zurueck">← Zurück</a>
   <h1 id="titel">Bewerbung</h1>
@@ -68,6 +68,7 @@
 
   <h2>Unterlagen und Prüfung</h2>
   <p class="hilfe">Erstellt den Lebenslauf aus der gewählten Variante und das Anschreiben aus <code>bewerbungen/&lt;id&gt;/anschreiben.yaml</code>. Danach die PDFs ansehen; die automatische Prüfung steht darunter.</p>
+  <p class="hilfe" id="eigener-cv" hidden>Als Lebenslauf gilt die Datei aus <a href="/dateien">„Meine Dateien“</a>, so wie sie ist. Dafür braucht es „Unterlagen erstellen“ nicht. Eine gewählte Variante geht vor.</p>
   <div class="knoepfe"><button class="haupt" id="erstellen">Unterlagen erstellen</button><button id="pruefen">Erneut prüfen</button></div>
   <ul class="befunde" id="befunde"></ul>
   <div class="pdfs" id="pdfs"></div>

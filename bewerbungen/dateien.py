@@ -24,9 +24,16 @@ def im_ordner(ordner: pathlib.Path, rel: str) -> pathlib.Path:
 def schreibe_atomar(pfad: pathlib.Path, inhalt: bytes) -> None:
     """Erst in eine temporäre Datei im selben Ordner schreiben, dann ersetzen: nie eine halbe Datei."""
     pfad.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile("wb", dir=pfad.parent, delete=False, suffix=".tmp") as tmp:
-        tmp.write(inhalt)
-    os.replace(tmp.name, pfad)
+    # The leading dot keeps it out of file lists while it is being written (certificates.files_in).
+    with tempfile.NamedTemporaryFile("wb", dir=pfad.parent, delete=False, prefix=".", suffix=".tmp") as tmp:
+        try:
+            tmp.write(inhalt)
+            tmp.close()
+            os.replace(tmp.name, pfad)
+        except OSError:
+            tmp.close()
+            pathlib.Path(tmp.name).unlink(missing_ok=True)
+            raise
 
 
 def lies_yaml(pfad: pathlib.Path, standard):

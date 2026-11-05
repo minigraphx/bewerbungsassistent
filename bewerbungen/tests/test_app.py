@@ -68,7 +68,7 @@ def test_lauscht_nur_lokal(server):
     assert server.server_address[0] == "127.0.0.1"
 
 
-@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treffer"])
+@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/dateien", "/entwuerfe", "/foto", "/inhalte", "/treffer"])
 def test_seiten_mit_token_und_csp(server, pfad):
     status, typ, inhalt, antwort = anfrage(server, "GET", pfad)
 
@@ -459,7 +459,7 @@ def test_details_say_when_the_documents_were_built(server):
     assert isinstance(built["anschreiben"], int) and built["anschreiben"] != stand["anschreiben"]
 
 
-PAGES_WITH_MENU = ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treffer", "/einstellungen", "/einrichtung"]
+PAGES_WITH_MENU = ["/", "/bewerbung", "/dateien", "/entwuerfe", "/foto", "/inhalte", "/treffer", "/einstellungen", "/einrichtung"]
 
 
 def test_the_page_for_questions_is_off_unless_switched_on(server):

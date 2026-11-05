@@ -80,7 +80,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     bewerbung = register.hole(bewerbung_id)
     if bewerbung.get("versand"):
         raise ValueError(f"Diese Bewerbung wurde bereits am {bewerbung['versand']['datum']} versendet")
-    pdfs = {a: p for a, p in unterlagen.pdf_pfade(daten, bewerbung_id).items() if p.is_file()}
+    pdfs = {a: p for a, p in unterlagen.wirksame_pdfs(daten, bewerbung).items() if p.is_file()}
     if "lebenslauf" not in pdfs:
         raise ValueError("Lebenslauf-PDF fehlt: zuerst die Unterlagen erstellen und prüfen")
 

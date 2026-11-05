@@ -14,7 +14,7 @@ import certificates
 from ai.personal import strip_titles
 from hits import company_key
 from pruefung import SURNAME_PARTICLES
-from unterlagen import pdf_pfade
+from unterlagen import wirksame_pdfs
 
 MAX_PER_RUN = 5
 OPEN_STATUS = ("Gemerkt", "Bewerben")
@@ -29,7 +29,7 @@ REFERENCES_FOLDER = "dokumente/zeugnisse"
 ALREADY_SENT = "Schon versendet"
 NOT_OPEN = "Status „{status}“"
 NO_LINK = "Kein Link zum Formular: öffnen und Link eintragen"
-NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“"
+NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Meine Dateien“ hochladen"
 UNKNOWN_FILE = "Diese Datei gehört nicht zu dieser Bewerbung."
 UNKNOWN_PART = "Dieser Teil der Datei fehlt."
 
@@ -56,7 +56,7 @@ def blocker(data_dir: pathlib.Path, entry: dict) -> str | None:
         return NOT_OPEN.format(status=entry.get("status"))
     if not form_link(entry):
         return NO_LINK
-    if not pdf_pfade(data_dir, entry["id"])["lebenslauf"].is_file():
+    if not wirksame_pdfs(data_dir, entry)["lebenslauf"].is_file():
         return NO_CV
     return None
 
@@ -94,7 +94,10 @@ def _profile_links(basics: dict) -> dict[str, str]:
 
 
 def _read_cv(data_dir: pathlib.Path) -> dict:
-    cv = yaml.safe_load((data_dir / "cv.yaml").read_text(encoding="utf-8")) or {}
+    path = data_dir / "cv.yaml"
+    if not path.is_file():
+        return {}  # whoever only uploaded their files fills in the form themselves
+    cv = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     basics = cv.get("basics") if isinstance(cv, dict) else None
     if not isinstance(basics, dict):
         raise ValueError("Im Lebenslauf fehlen die Angaben zur Person.")
@@ -125,11 +128,11 @@ def form_values(data_dir: pathlib.Path) -> dict[str, str]:
     return {key: str(value) for key, value in values.items() if value}
 
 
-def uploads(data_dir: pathlib.Path, application_id: str) -> dict[str, Upload]:
+def uploads(data_dir: pathlib.Path, entry: dict) -> dict[str, Upload]:
     """The files of this application by key; only these can be asked for."""
     found = {kind: Upload(path, certificates.upload_name(data_dir, kind.capitalize(), ".pdf"))
-             for kind, path in pdf_pfade(data_dir, application_id).items() if path.is_file()}
-    packed = certificates.zip_path(data_dir, application_id)
+             for kind, path in wirksame_pdfs(data_dir, entry).items() if path.is_file()}
+    packed = certificates.zip_path(data_dir, entry["id"])
     if packed.is_file():
         found["zertifikate"] = Upload(packed, certificates.upload_name(data_dir))
     references = certificates.files_in(data_dir, REFERENCES_FOLDER)

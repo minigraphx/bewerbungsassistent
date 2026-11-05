@@ -24,6 +24,8 @@ Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet diese
 | Zuschnitt, Variantenliste, Anschreiben schreiben | `write_file` (`jobs/<name>.yaml`, `varianten.yaml`, `bewerbungen/<id>/anschreiben.yaml`); Formate mit `read_template` |
 | Unterlagen erstellen und formal prüfen | `build_documents`, `check_documents` |
 
+Zeigt `get_application` `eigener_lebenslauf_da`, hat die Person unter „Meine Dateien“ einen fertigen Lebenslauf abgelegt. Er gilt unverändert für jede Bewerbung ohne Variante, und `build_documents` baut dort keinen neuen. Eine Variante setzt Claude dann nur, wenn die Person das will. Die Datei selbst erreicht Claude nicht.
+
 Die Seiten der App bedient Claude nicht im Browser, auch nicht mit Claude in Chrome: Es schreibt nur über die Werkzeuge in die App, und die Person kann sie dabei offen haben. Die PDFs sieht die Person in der App, auf der Seite der Bewerbung. Abschicken, Beilagen und „Versand erfassen“ macht die Person dort; das Register zeigt den Versand erst danach. Fertig, wenn `check_documents` keinen Fehler mehr nennt und die Person die PDFs freigegeben hat.
 
 ## 0. Grundlagen prüfen

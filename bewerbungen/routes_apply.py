@@ -67,7 +67,7 @@ def values(k, parameter, body):
     if reason:
         raise ValueError(reason)
     return json_antwort({"werte": apply.form_values(k.daten), "ki": routes_ai.connected(),
-                         "dateien": apply.describe_uploads(apply.uploads(k.daten, wanted))})
+                         "dateien": apply.describe_uploads(apply.uploads(k.daten, entry))})
 
 
 def field_help(k, parameter, body):
@@ -92,7 +92,7 @@ def file_part(k, parameter, body):
     reason = apply.blocker(k.daten, entry)
     if reason:
         raise ValueError(reason)
-    upload = apply.uploads(k.daten, wanted).get(pflicht(parameter, "schluessel"))
+    upload = apply.uploads(k.daten, entry).get(pflicht(parameter, "schluessel"))
     if upload is None:
         raise ValueError(apply.UNKNOWN_FILE)
     data, parts = apply.read_part(upload, _part_number(parameter))

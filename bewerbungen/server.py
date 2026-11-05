@@ -28,6 +28,9 @@ EIGENE_CSP = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([
 log = logging.getLogger("bewerbungsassistent")
 
 
+UNSAFE_IN_HEADER = re.compile(r"[^A-Za-z0-9._ -]")
+
+
 class NichtGefunden(KeyError):
     pass
 
@@ -44,11 +47,16 @@ def json_antwort(wert: Any, status: int = HTTPStatus.OK) -> Antwort:
     return Antwort(status, "application/json; charset=utf-8", json.dumps(wert, ensure_ascii=False).encode("utf-8"))
 
 
+def _header_name(name: str) -> str:
+    """Own files can have any name; a header only takes plain characters and must not end early."""
+    return UNSAFE_IN_HEADER.sub("_", name)
+
+
 def datei_antwort(pfad: pathlib.Path, typ: str | None = None) -> Antwort:
     if not pfad.is_file():
         raise NichtGefunden(f"{pfad.name} nicht gefunden")
     return Antwort(HTTPStatus.OK, typ or mimetypes.guess_type(pfad.name)[0] or "application/octet-stream",
-                   pfad.read_bytes(), (("Content-Disposition", f'inline; filename="{pfad.name}"'),))
+                   pfad.read_bytes(), (("Content-Disposition", f'inline; filename="{_header_name(pfad.name)}"'),))
 
 
 Route = Callable[[Any, dict[str, str], Any], Antwort]

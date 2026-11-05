@@ -2,6 +2,7 @@
 import inhalte
 import versand
 from dateien import im_ordner
+import routes_own_files
 from routen_inhalte import pdf_aus_text
 from server import Antwort, json_antwort, pflicht
 
@@ -77,6 +78,7 @@ def wiederherstellen(k, parameter, body):
         raise ValueError("id erwartet")
     with k.sperre:
         e = k.ablage.stelle_her(pflicht(body, "id"))
+        routes_own_files.refresh_chosen(k, e.datei)
     return json_antwort({"ok": True, "datei": e.datei})
 
 
