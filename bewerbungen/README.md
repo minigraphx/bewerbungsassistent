@@ -21,7 +21,7 @@ Die Oberfläche läuft nur auf `127.0.0.1` und öffnet sich im Browser:
 
 1. **Stelle wählen** – in der Übersicht oder per Skill `jobsuche`; Status „Bewerben“.
 2. **Lebenslauf** – bestehende Variante wiederverwenden oder neue erstellen (`varianten.yaml`, Tags zum Wiederfinden).
-3. **Anschreiben** – `bewerbungen/<id>/anschreiben.yaml`, Entwurf durch den Skill `bewerbung` aus Bausteinen und Stilprofil.
+3. **Anschreiben** – `bewerbungen/<id>/anschreiben.yaml`, Entwurf durch den Skill `bewerbung` aus Bausteinen und Stilprofil. Fehlt es, entwirft „Unterlagen erstellen“ zuerst eines, wenn eine KI eingerichtet ist.
 4. **Prüfung** – „Unterlagen erstellen“, PDFs ansehen; formale Prüfung automatisch, inhaltliche durch den Skill.
 5. **Versand** – von Hand abschicken, dann „Versand erfassen“: Fassung nach `versendet/` (jede nur einmal), Entwürfe als genutzt markiert, alles in Git eingefroren. Oder in der Übersicht ankreuzen und „Bewerben“: Die Erweiterung öffnet pro Bewerbung das Formular und füllt es aus, abgeschickt wird durch die Person (siehe `../erweiterung/README.md`); „Abgeschickt? Ja“ im Balken erfasst den Versand.
 6. **Bewerbungsdaten** – Status, Gespräch, Absage nachtragen.

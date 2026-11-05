@@ -114,10 +114,15 @@ window.App = (() => {
   }
 
   // Zweistufiger Knopf statt confirm(): erster Klick fragt nach, zweiter führt aus
-  function bestaetigen(knopf, frage, aktion) {
+  /** `noetig` says whether there is anything to confirm right now. */
+  function bestaetigen(knopf, frage, aktion, noetig = () => true) {
     const text = knopf.textContent;
     let bereit = false;
     knopf.addEventListener("click", async () => {
+      if (!noetig()) {
+        await aktion();
+        return;
+      }
       if (!bereit) {
         bereit = true;
         knopf.textContent = frage;

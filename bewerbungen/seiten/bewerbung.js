@@ -1,7 +1,7 @@
 "use strict";
 (() => {
   const { holen, senden, el, status, datum, url, bestaetigen, beobachten } = window.App;
-  const { geaenderteFelder } = window.FormularLogik;
+  const { fehltAnschreiben, geaenderteFelder } = window.FormularLogik;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const FELDER = ["firma", "stelle", "firma_schluessel", "ort", "pensum", "vermittler", "portal", "link", "formular_link",
@@ -12,10 +12,11 @@
     ["art", "Art der Bewerbung"], ["ergebnis", "Ergebnis"], ["rav_zuweisung", "Zuweisung des RAV"]];
   const ANDERSWO_GEAENDERT = "Diese Bewerbung wurde inzwischen auch anderswo geändert. Ihre Eingaben bleiben stehen, und gespeichert werden nur die Felder, die Sie geändert haben.";
   const FORM_FILES = { lebenslauf: "Lebenslauf", anschreiben: "Anschreiben", zertifikate: "Zertifikate", unterlagen: "Unterlagen (gemeinsames PDF)", nachweise: "Nachweise (gemeinsames PDF)" };
-  const KEIN_ANSCHREIBEN = "Noch kein Anschreiben. Einen Entwurf erstellt „Anschreiben entwerfen“ weiter unten oder Claude mit dem Skill „bewerbung“. Ein fertiges PDF lässt sich unter „Eigenes Anschreiben“ hochladen.";
+  const KEIN_ANSCHREIBEN = "Noch kein Anschreiben. „Unterlagen erstellen“ entwirft eines, wenn die KI eingerichtet ist; sonst Claude mit dem Skill „bewerbung“. Ein fertiges PDF lässt sich unter „Eigenes Anschreiben“ hochladen.";
   let bewerbung = null;
   let geladenerText = "";
   let pdfStand = "";
+  let geladen = null;
 
   const meldung = (text, art) => status($("status"), text, art);
   const meldungOben = (text, art) => status($("status-oben"), text, art);
@@ -221,6 +222,29 @@
     }
   }
 
+  async function waehleVariante(variante) {
+    try {
+      bewerbung = await senden("/api/bewerbung", { id: bewerbung.id, variante });
+      $("f-variante").value = variante;
+      meldungOben(`Variante ${variante} gespeichert`, "ok");
+    } catch (fehler) {
+      meldungOben("Speichern fehlgeschlagen: " + fehler.message, "fehler");
+    }
+  }
+
+  /** The note for the person when no letter could be drafted; the rest of the documents is still worth building. */
+  async function entwirfFehlendes() {
+    if (!geladen || !fehltAnschreiben(geladen)) return "";
+    meldungOben("Anschreiben wird entworfen … das kann bis zu einer Minute dauern.");
+    try {
+      const ergebnis = await senden("/api/ki/anschreiben", {}, { id: ID });
+      document.dispatchEvent(new CustomEvent("anschreiben-entworfen", { detail: ergebnis }));
+      return "";
+    } catch (fehler) {
+      return `Kein Anschreiben entworfen: ${fehler.message}`;
+    }
+  }
+
   $("zertifikate-speichern").addEventListener("click", speichereZertifikate);
   $("rav-umschalten").addEventListener("click", schalteRav);
   $("speichern").addEventListener("click", () => speichere(formularWerte(), "Angaben gespeichert"));
@@ -239,27 +263,37 @@
         el("strong", {}, `${v.id}`), v.beschreibung ? ` – ${v.beschreibung}` : "",
         el("div", {}, `Passt: ${v.treffer.join(", ")}`),
         v.fehlt.length ? el("div", { class: "leise" }, `Fehlt in dieser Variante: ${v.fehlt.join(", ")}`) : null,
-        el("button", { type: "button", onclick: () => { $("f-variante").value = v.id; meldungOben(`Variante ${v.id} gewählt – „Angaben speichern“ nicht vergessen`, "hinweis"); } }, "Übernehmen")))
+        el("button", { type: "button", onclick: () => waehleVariante(v.id) }, "Übernehmen")))
         : [el("p", { class: "leer" }, "Keine passende Variante gefunden – neue Variante anlegen (Skill „bewerbung“).")]));
     } catch (fehler) {
       meldungOben(fehler.message, "fehler");
     }
   });
   $("erstellen").addEventListener("click", async () => {
-    meldungOben("Unterlagen werden erstellt …");
+    $("erstellen").disabled = true; // a second click would pay for a second draft
     try {
+      const offen = await entwirfFehlendes();
+      meldungOben("Unterlagen werden erstellt …");
       await senden("/api/unterlagen", {}, { id: ID });
-      meldungOben("Unterlagen erstellt", "ok");
-      zeigePdfs({ lebenslauf: true, anschreiben: true });
-      await laden();
+      await laden(); // says itself when a letter is missing, so the result comes after it
+      meldungOben(offen ? `Unterlagen erstellt. ${offen}` : "Unterlagen erstellt", offen ? "hinweis" : "ok");
     } catch (fehler) {
       meldungOben("Erstellen fehlgeschlagen: " + fehler.message, "fehler");
+    } finally {
+      $("erstellen").disabled = false;
     }
   });
   $("pruefen").addEventListener("click", pruefen);
   document.addEventListener("anschreiben-geaendert", laden);
   document.addEventListener("eigenes-anschreiben-geaendert", nachsehen);
-  document.addEventListener("bewerbung-geladen", event => zeigeFormularFassung(event.detail));
+  document.addEventListener("bewerbung-geladen", event => {
+    geladen = event.detail;
+    zeigeFormularFassung(event.detail);
+  });
+  document.addEventListener("bewerbung-gespeichert", event => {
+    bewerbung = event.detail;
+    $("f-passung").value = bewerbung.passung ?? "";
+  });
   $("v-datum").value = new Date().toISOString().slice(0, 10);
   bestaetigen($("versenden"), "Wirklich erfassen? Nochmals klicken", async () => {
     try {
