@@ -26,7 +26,7 @@ Ohne Container (z.B. Hosting mit Python 3.12): `pip install -r requirements.txt`
 | `ANTHROPIC_API_KEY` | – | Schlüssel von Anthropic, nur als Geheimnis des Servers |
 | `VERMITTLUNG_DB` | `/data/vermittlung.sqlite` | Datenbank (Personen, Zugänge, Kosten) |
 | `VERMITTLUNG_HOST`, `VERMITTLUNG_PORT` | `0.0.0.0`, `8080` | Adresse im Container |
-| `VERMITTLUNG_ANFRAGEN_PRO_MINUTE` | `10` | pro Person |
+| `VERMITTLUNG_ANFRAGEN_PRO_MINUTE` | `20` | pro Person |
 | `VERMITTLUNG_MAX_TOKENS` | `16000` | höchstens so viele Ausgabe-Tokens pro Anfrage |
 | `VERMITTLUNG_HINTER_PROXY` | `1` | Adresse der Person aus `X-Forwarded-For` (für das Limit beim Einlösen) |
 

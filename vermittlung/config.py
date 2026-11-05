@@ -3,7 +3,7 @@ import dataclasses
 import os
 
 DEFAULTS = {"VERMITTLUNG_DB": "/data/vermittlung.sqlite", "VERMITTLUNG_HOST": "0.0.0.0", "VERMITTLUNG_PORT": "8080",
-            "VERMITTLUNG_ANFRAGEN_PRO_MINUTE": "10", "VERMITTLUNG_MAX_TOKENS": "16000",
+            "VERMITTLUNG_ANFRAGEN_PRO_MINUTE": "20", "VERMITTLUNG_MAX_TOKENS": "16000",
             "VERMITTLUNG_HINTER_PROXY": "1"}
 
 

@@ -8,10 +8,12 @@ import dataclasses
 import datetime
 import json
 import pathlib
+import threading
 
 from dateien import im_ordner
 
 LOG_PATH = ".ki/nutzung.jsonl"
+_WRITE_LOCK = threading.Lock()  # calls can run side by side (ai/second_look.py)
 PER_MILLION = 1_000_000
 CACHE_WRITE_FACTOR = 1.25
 CACHE_READ_FACTOR = 0.1
@@ -62,7 +64,7 @@ class UsageLog:
             "replaced_fields": sorted(fields), "request_id": request_id,
         }
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("a", encoding="utf-8") as handle:
+        with _WRITE_LOCK, self.path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
         return entry
 

@@ -4,6 +4,20 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const logik = require("../seiten/treffer-logik.js");
 
+test("the details name the runs of a second look and which grade counts", () => {
+  const text = pruefung => logik.nachpruefungText({ nachpruefung: pruefung }, String);
+  assert.equal(text({ im_paket: 4.5, noten: [3, 4, 3.5] }), "Nachgeprüft: einzeln Noten 3, 4 und 3.5, es zählt die mittlere. Im Paket zuerst: Note 4.5.");
+  assert.equal(text({ im_paket: null, noten: [5, 3, 4] }), "Nachgeprüft: einzeln Noten 5, 3 und 4, es zählt die mittlere.");
+  assert.equal(text({ im_paket: 5, noten: [4, 3] }), "Nachgeprüft: einzeln Noten 4 und 3, es zählt die tiefere. Im Paket zuerst: Note 5.");
+  assert.equal(text({ im_paket: 5, noten: [4] }), "Nachgeprüft: einzeln Note 4. Im Paket zuerst: Note 5.");
+});
+
+test("a second look that failed is said out loud, a rating without one says nothing", () => {
+  assert.match(logik.nachpruefungText({ nachpruefung: { im_paket: 5, noten: [] } }, String), /nicht möglich/);
+  assert.match(logik.nachpruefungText({ nachpruefung: { im_paket: null, noten: [5] } }, String), /nicht möglich/);
+  assert.equal(logik.nachpruefungText({ note: 5 }, String), "");
+});
+
 test("hits near the home are rated before far ones, so the limit of a run takes those", () => {
   const found = logik.zuBewerten([
     { id: "fern", zustand: "neu", gefunden_am: "2026-11-04" },

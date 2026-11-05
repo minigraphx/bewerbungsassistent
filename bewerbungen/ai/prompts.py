@@ -16,7 +16,7 @@ SECTION = "## {title}\n\n{body}"
 RATE = """Aufgabe: Bewerte, wie gut die Stelle im Inserat zur Person passt.
 
 Raster in fünf Punkten: (1) fachliche Passung, (2) Abschluss und Erfahrung, (3) Ort, Pensum, Remote, (4) Ausrichtung laut Suchrichtungen, (5) Rahmen (Startdatum, Befristung, Vermittler).
-- Sprachen: Verlangt das Inserat eine Sprache als Muss, die im Suchprofil fehlt oder auf höherem Niveau, ist die Note höchstens 2. Nur „von Vorteil“ ist ein Haken, kein Ausschluss.
+- Sprachen: Fehlt eine Muss-Sprache des Inserats im Suchprofil oder liegt sie dort mehr als eine Stufe unter dem Verlangten (z.B. A2 bei verlangtem B2), ist die Note höchstens 2. Liegt sie genau eine Stufe darunter (z.B. B2 bei „sehr gut“ oder C1), ist das ein Haken wie andere auch und begrenzt die Note nicht. Nur „von Vorteil“ ist ebenfalls ein Haken, kein Ausschluss.
 - Berücksichtige die typischen Haken aus dem Suchprofil und die Lücken aus den Bausteinen. Ein fehlender Abschluss, den das Inserat durch gleichwertige Praxis ersetzen lässt, ist positiv.
 - Note auf der Schweizer Skala 1–6, halbe Noten erlaubt: 6 passt ohne Haken, 5 ein kleiner Haken, 4 mit Abstrichen (ein bis zwei Haken), 3 deutliche Lücken, 2 passt kaum, 1 passt nicht. Ehrlich, nicht schönfärben.
 - new_gaps: Anforderungen des Inserats, die fehlen und noch nicht unter den Lücken stehen, je als kurze, ehrliche Formulierung. Die Person bestätigt sie später."""

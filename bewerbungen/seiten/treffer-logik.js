@@ -76,6 +76,22 @@
     return kosten.length ? kosten.reduce((summe, k) => summe + k, 0) / kosten.length : null;
   }
 
+  /** What the details say about the second look at a good grade (MIN-389); empty when there was none. */
+  function nachpruefungText(bewertung, notenText) {
+    const pruefung = bewertung?.nachpruefung;
+    if (!pruefung) return "";
+    const paket = pruefung.im_paket ?? null;
+    if (pruefung.noten.length <= (paket === null ? 1 : 0)) {
+      return "Die Nachprüfung war nicht möglich, die Note kann abweichen. „Neu bewerten“ versucht es nochmals.";
+    }
+    const noten = pruefung.noten.map(notenText);
+    const teile = { 1: `einzeln Note ${noten[0]}.`,
+      2: `einzeln Noten ${noten[0]} und ${noten[1]}, es zählt die tiefere.`,
+      3: `einzeln Noten ${noten[0]}, ${noten[1]} und ${noten[2]}, es zählt die mittlere.` };
+    const zuerst = paket === null ? "" : ` Im Paket zuerst: Note ${notenText(paket)}.`;
+    return `Nachgeprüft: ${teile[noten.length]}${zuerst}`;
+  }
+
   const SUCHE_TEXTE = { lehrstelle: "Lehrstellen suchen", schnupperlehre: "Schnupperlehren suchen",
     beides: "Lehrstellen und Schnupperlehren suchen" };
 
@@ -101,7 +117,7 @@
     return treffer.filter(t => istSchnupperlehre(t) === (art === "Schnupperlehre"));
   }
 
-  const logik = { sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, pakete, bewerteAlle, kostenProTreffer };
+  const logik = { sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, pakete, bewerteAlle, kostenProTreffer, nachpruefungText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

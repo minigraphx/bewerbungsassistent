@@ -80,6 +80,7 @@
     return el("td", { colspan: 8 },
       b ? el("p", {}, b.zusammenfassung) : el("p", { class: "leise" }, "Noch nicht bewertet."),
       b && b.unsicher ? el("p", { class: "status hinweis" }, `Note unsicher: ${b.unsicher}`) : null,
+      b && b.nachpruefung ? el("p", { class: "leise" }, logik.nachpruefungText(b, notenText)) : null,
       b && b.beruf_note ? el("p", {}, `Der Beruf passt zu deinen Fähigkeiten und Wünschen: Note ${notenText(b.beruf_note)}. Diese Lehrstelle: Note ${notenText(b.note)}.`) : null,
       b ? liste("Passt", b.passt) : null,
       b ? liste("Haken", b.haken) : null,

@@ -419,3 +419,71 @@ def test_a_hit_in_the_register_cannot_be_discarded_and_taken_over_a_second_time(
     assert post(search, "/api/suche/verwerfen", {}, id=wanted)[0] == 400
     assert post(search, "/api/suche/uebernehmen", {}, id=wanted)[0] == 400
     assert len(search.kontext.register().alle()) == before + 1
+
+
+def test_a_good_grade_in_a_package_is_looked_at_again_and_the_middle_counts(search, monkeypatch):
+    answers = iter([3, 6, 4])
+
+    def build(labels):
+        if len(labels) > 1:
+            return [rating_entry(labels[0], 5), rating_entry(labels[1], 2)]
+        return [rating_entry(labels[0], next(answers), summary="Einzeln")]
+
+    client = use_client(monkeypatch, PackageClient(build))
+    ids = many_hits(search, 2)
+    status, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
+    assert status == 200 and len(client.messages.calls) == 4
+    by_grade = {hit["bewertung"]["note"]: hit["bewertung"] for hit in listing(search)["treffer"]}
+    assert set(by_grade) == {4, 2}
+    assert by_grade[4]["nachpruefung"]["im_paket"] == 5 and sorted(by_grade[4]["nachpruefung"]["noten"]) == [3, 4, 6]
+    assert by_grade[4]["zusammenfassung"] == "Einzeln"
+    assert "nachpruefung" not in by_grade[2], "a weak grade stays as it is"
+    assert by_grade[4]["kosten_usd"] > by_grade[2]["kosten_usd"], "the runs are paid for by the hit they belong to"
+    assert by_grade[4]["kosten_usd"] + by_grade[2]["kosten_usd"] == pytest.approx(answer["kosten_usd"])
+    assert [hit["bewertung"]["note"] for hit in answer["bewertet"]].count(4) == 1, "the answer has the final grade"
+
+
+def test_rating_one_hit_counts_its_call_as_the_first_of_three(search, monkeypatch):
+    answers = iter([5, 3, 4])
+    client = use_client(monkeypatch, PackageClient(lambda labels: [rating_entry(labels[0], next(answers))]))
+    post(search, "/api/suche/treffer", {"treffer": [HIT]})
+    hit_id = listing(search)["treffer"][0]["id"]
+    status, rated = post(search, "/api/suche/bewerten", {}, id=hit_id)
+    assert status == 200 and len(client.messages.calls) == 3
+    assert rated["bewertung"]["note"] == 4
+    assert rated["bewertung"]["nachpruefung"]["im_paket"] is None
+    assert rated["bewertung"]["nachpruefung"]["noten"][0] == 5, "the call that was alone already counts"
+
+
+def test_a_failed_second_look_keeps_the_package_grade_and_says_so(search, monkeypatch):
+    use_client(monkeypatch, PackageClient(lambda labels: [rating_entry(labels[0], 5), rating_entry(labels[1], 2)]))
+    real_rate = routes_search.tasks.rate_package
+    calls = []
+
+    def rate(gateway, material, ads, model=None):
+        calls.append(len(ads))
+        if len(ads) == 1:
+            raise AiError(BUDGET_USED)
+        return real_rate(gateway, material, ads, model)
+
+    monkeypatch.setattr(routes_search.tasks, "rate_package", rate)
+    status, _ = post(search, "/api/suche/bewerten-paket", {"ids": many_hits(search, 2)})
+    assert status == 200 and calls == [2, 1, 1, 1]
+    grades = {hit["bewertung"]["note"]: hit["bewertung"] for hit in listing(search)["treffer"]}
+    assert grades[5]["nachpruefung"] == {"im_paket": 5, "noten": []}
+
+
+def test_the_package_grade_is_stored_before_the_second_look(search, monkeypatch):
+    seen = []
+    ids = many_hits(search, 2)
+    real_rate = routes_search.tasks.rate_package
+
+    def rate(gateway, material, ads, model=None):
+        if len(ads) == 1:
+            seen.append(sorted(str((hit.get("bewertung") or {}).get("note")) for hit in listing(search)["treffer"]))
+        return real_rate(gateway, material, ads, model)
+
+    use_client(monkeypatch, PackageClient(lambda labels: [rating_entry(label, 5) for label in labels]))
+    monkeypatch.setattr(routes_search.tasks, "rate_package", rate)
+    assert post(search, "/api/suche/bewerten-paket", {"ids": ids})[0] == 200
+    assert seen[0] == ["5", "5"]

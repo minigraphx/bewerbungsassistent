@@ -11,7 +11,7 @@ import own_sites
 import routes_ai
 import search_plan
 import unterlagen
-from ai import connection, tasks
+from ai import connection, second_look, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
 import routes_career
@@ -130,18 +130,30 @@ def rating_fields(result: dict, share_usd: float | None, model: str | None) -> d
     return {**fields, "beruf_note": result["profession_grade"]} if "profession_grade" in result else fields
 
 
-def _rate_ads(k, store: Hits, ads: list[tuple[str, str]]) -> dict:
-    """One AI call and its results stored. The cost is shared among the hits that got a rating."""
-    def task():
-        gateway, material = routes_ai.ai_gateway(k)
-        return tasks.rate_package(gateway, material, ads)
+def _second_look_fields(look: second_look.Look, share_usd: float | None, model: str | None) -> dict:
+    cost = None if share_usd is None and look.cost_usd is None else (share_usd or 0) + (look.cost_usd or 0)
+    return {**rating_fields(look.rating, cost, model),
+            "nachpruefung": {"im_paket": look.first_grade, "noten": list(look.grades)}}
 
-    result = routes_ai.run_ai(task)
-    ratings = result["ratings"]
+
+def _rate_ads(k, store: Hits, ads: list[tuple[str, str]]) -> dict:
+    """One AI call and its results stored, the cost shared among the hits that got a rating. Good grades are then
+    looked at again; they are stored first, so an aborted second look loses nothing."""
+    def package():
+        gateway, material = routes_ai.ai_gateway(k)
+        return gateway, material, tasks.rate_package(gateway, material, ads)
+
+    gateway, material, result = routes_ai.run_ai(package)
+    ratings, model = result["ratings"], result["model"]
     share = result["cost_usd"] / len(ratings) if ratings and result["cost_usd"] is not None else None
-    updated = store.update_many({ad_id: {"bewertung": rating_fields(rating, share, result["model"])}
-                                 for ad_id, rating in ratings.items()})
-    return {"bewertet": updated, "offen": result["missing"], "kosten_usd": result["cost_usd"]}
+    stored = store.update_many({ad_id: {"bewertung": rating_fields(rating, share, model)} for ad_id, rating in ratings.items()})
+    good = {ad_id: rating for ad_id, rating in ratings.items() if second_look.deserved(rating)}
+    looks = second_look.look_again(gateway, material, ads, good)
+    looked = store.update_many({ad_id: {"bewertung": _second_look_fields(look, share, model)} for ad_id, look in looks.items()})
+    final = {hit["id"]: hit for hit in [*stored, *looked]}
+    extra = sum(look.cost_usd or 0 for look in looks.values())
+    cost = None if result["cost_usd"] is None and not extra else (result["cost_usd"] or 0) + extra
+    return {"bewertet": list(final.values()), "offen": result["missing"], "kosten_usd": cost}
 
 
 def rate(k, parameter, body):

@@ -1,4 +1,5 @@
 """AI tasks with a simulated API: what is sent, what comes back, what is logged, which errors (MIN-338)."""
+import concurrent.futures
 import datetime
 import json
 import pathlib
@@ -9,11 +10,11 @@ import anthropic
 import httpx2
 import pytest
 
-from ai import errors, tasks
+from ai import errors, prompts, tasks
 from ai.connection import find_connection
 from ai.gateway import Gateway, Request
 from ai.pseudonym import Pseudonymizer
-from ai.usage import LOG_PATH, UsageLog
+from ai.usage import LOG_PATH, Usage, UsageLog
 from conftest import BRIEF_ID
 
 VORLAGEN = pathlib.Path(__file__).resolve().parents[2] / "vorlagen"
@@ -313,6 +314,12 @@ class PackageClient:
 ADS = [("job-a", "Stelle A " + AD), ("job-b", "Stelle B bei der Muster AG in Thun."), ("job-c", "Stelle C in Biel.")]
 
 
+@pytest.mark.parametrize("instructions", [prompts.RATE, prompts.RATE_PACKAGE])
+def test_a_language_one_level_short_is_a_hook_and_only_a_clearly_missing_one_caps_the_grade(instructions):
+    assert "mehr als eine Stufe unter dem Verlangten" in instructions and "höchstens 2" in instructions
+    assert "genau eine Stufe darunter" in instructions and "begrenzt die Note nicht" in instructions
+
+
 def test_a_rating_belongs_to_its_ad_even_in_another_order(daten):
     grades = {"T1": 6, "T2": 2, "T3": 4}
     client = PackageClient(lambda labels: [rating_entry(label, grades[label.split("-")[0]]) for label in reversed(labels)])
@@ -492,3 +499,17 @@ def test_the_log_of_a_refused_request_holds_no_long_token(caplog):
     with caplog.at_level("WARNING"):
         errors.from_sdk(error)
     assert "rejected" in caplog.text and secret not in caplog.text
+
+
+def test_usage_lines_from_calls_side_by_side_stay_whole(tmp_path):
+    log = UsageLog(tmp_path)
+    usage = Usage(1, 1, 0, 0)
+    now = datetime.datetime(2026, 11, 5, tzinfo=datetime.timezone.utc)
+
+    def write(_):
+        log.record(task="rate", model="m", usage=usage, fields=[], request_id=None, now=now)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(write, range(80)))
+    lines = log.path.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 80 and all(json.loads(line)["task"] == "rate" for line in lines)
