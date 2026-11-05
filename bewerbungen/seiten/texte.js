@@ -11,6 +11,20 @@
   const TEXTE = {
     // Navigation (step 3)
     "nav.suche": { sie: "Stellen suchen", du: "Stellen suchen", lehrstelle: "Lehrstellen suchen" },
+    // Other pages (step 6)
+    "dateien.variante": { sie: "Wenn Sie in einer Bewerbung eine Variante wählen, gilt sie dort.", du: "Wenn du in einer Bewerbung eine Variante wählst, gilt sie dort." },
+    "dateien.eigen-titel": { sie: "Ihr eigenes PDF", du: "Dein eigenes PDF" },
+    "dateien.eigen": { sie: "Sonst gilt der Lebenslauf, den Sie hier hochladen.", du: "Sonst gilt der Lebenslauf, den du hier hochlädst." },
+    "dateien.gebaut": { sie: "Ohne eigenes PDF erstellt der Assistent den Lebenslauf aus Ihren Angaben.", du: "Ohne eigenes PDF erstellt der Assistent den Lebenslauf aus deinen Angaben." },
+    "entwuerfe.intro": {
+      sie: "Jedes Speichern legt eine Fassung an. Sie können jede ansehen, mit einer anderen vergleichen und zurückholen.",
+      du: "Jedes Speichern legt eine Fassung an. Du kannst jede ansehen, mit einer anderen vergleichen und zurückholen.",
+    },
+    "inhalte.intro": {
+      sie: "Hier sehen Sie, woraus der Assistent Ihre Unterlagen baut, und können es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",
+      du: "Hier siehst du, woraus der Assistent deine Unterlagen baut, und kannst es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",
+    },
+
     // Search (step 5)
     "suche.wie": {
       sie: "Die Erweiterung sucht in Ihrem Browser und nur, wenn Sie die Suche starten. Die KI schätzt jeden neuen Treffer als Note von 1 bis 6 ein.",

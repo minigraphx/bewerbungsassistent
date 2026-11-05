@@ -10,10 +10,29 @@
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
-<main class="einrichtung">
-  <h1>Erweiterte Einstellungen</h1>
+<main class="page page--side">
+  <aside class="page__aside">
+    <h1>Erweiterte Einstellungen</h1>
+    <p class="page__mark"><span class="marke-status" data-status="Gemerkt">Für Geübte</span></p>
+    <nav class="page__toc" aria-label="Abschnitte">
+      <a href="#kosten">Kosten der KI</a>
+      <a href="#schluessel-teil">Eigener API-Schlüssel</a>
+      <a href="#claude-abo">Claude mit eigenem Abo</a>
+    </nav>
+  </aside>
+  <div class="page__body">
+  <section class="card" id="kosten" aria-labelledby="kosten-titel">
+    <h2 id="kosten-titel">Kosten der KI</h2>
+    <p class="field__hint">Was die App für diesen Datenordner notiert hat, auch für Aufrufe über die Vermittlung. Gespeichert wird nur, was wie viel gekostet hat, nie der Inhalt. Massgebend ist die Abrechnung von Anthropic.</p>
+    <dl class="facts">
+      <dt>Dieser Monat</dt><dd id="kosten-monat"></dd>
+      <dt>Insgesamt</dt><dd id="kosten-gesamt"></dd>
+      <dt>Anzahl Aufrufe</dt><dd id="kosten-aufrufe"></dd>
+    </dl>
+  </section>
 
-  <h2>Eigener API-Schlüssel</h2>
+  <section class="card" id="schluessel-teil" aria-labelledby="schluessel-titel">
+  <h2 id="schluessel-titel">Eigener API-Schlüssel</h2>
   <p class="hilfe">Sie brauchen das nicht, die App läuft auch ohne. Mit einem eigenen Schlüssel von Anthropic gehen die KI-Aufrufe direkt an die Claude API statt über die Vermittlung. Namen und andere persönliche Angaben werden auch dann vor dem Senden ersetzt. <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md#eigener-api-schlüssel-freiwillig" target="_blank" rel="noopener">Anleitung: woher der Schlüssel kommt und was er kostet</a></p>
 
   <div id="mit-schluessel" hidden>
@@ -21,7 +40,7 @@
     <div class="knoepfe"><button type="button" id="entfernen" class="gefahr">Schlüssel entfernen</button></div>
     <p class="hilfe">Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab.</p>
 
-    <h2>Weitere Seiten durchsuchen</h2>
+    <h3>Weitere Seiten durchsuchen</h3>
     <p class="hilfe">Die Suche läuft dann auch auf diesen Seiten, sobald Sie sie starten. Tragen Sie die Adresse so ein, wie sie im Browser steht, eine pro Zeile, höchstens <span id="max-seiten"></span>. Hat die Seite ein Suchfeld, sucht die App dort mit den Begriffen aus Ihrem Suchprofil. Sonst liest sie die Stellen, die auf der Seite stehen, zum Beispiel die offenen Stellen einer Firma. Die KI liest die Stellen aus dem Text der Seite.</p>
     <p class="hilfe">Beispiel: <code>https://www.beispiel.ch/stellen</code></p>
     <label for="seiten">Adressen</label>
@@ -49,9 +68,10 @@
   </div>
   <div id="meldung" class="status" role="status" aria-live="polite"></div>
   <div id="zugriff-meldung" class="status" role="status" aria-live="polite"></div>
+  </section>
 
-  <section id="claude-abo" hidden>
-    <h2>Mit dem eigenen Claude-Abo arbeiten</h2>
+  <section class="card" id="claude-abo" aria-labelledby="abo-titel" hidden>
+    <h2 id="abo-titel">Claude mit eigenem Abo</h2>
     <p class="hilfe">Haben Sie ein Abo bei Anthropic, dann kann Claude selbst suchen, bewerten und Anschreiben entwerfen und das Ergebnis hier in die App schreiben. Die KI-Knöpfe der App laufen damit nicht, denn Anthropic erlaubt nicht, ein Abo in anderen Apps zu nutzen. <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/eigenes-abo.md" target="_blank" rel="noopener">Anleitung lesen</a></p>
 
     <p><strong>1. Skills herunterladen und in Claude hochladen</strong> (<a href="https://support.claude.com/en/articles/12512180-use-skills-in-claude" target="_blank" rel="noopener">Anpassen, Skills</a>)</p>
@@ -87,13 +107,7 @@
     <div id="abo-meldung" class="status" role="status" aria-live="polite"></div>
   </section>
 
-  <h2>Kosten der KI</h2>
-  <p class="hilfe">Was die App für diesen Datenordner notiert hat, auch für Aufrufe über die Vermittlung. Massgebend ist die Abrechnung von Anthropic.</p>
-  <ul>
-    <li>Dieser Monat: <span id="kosten-monat"></span></li>
-    <li>Insgesamt: <span id="kosten-gesamt"></span></li>
-    <li>Anzahl Aufrufe: <span id="kosten-aufrufe"></span></li>
-  </ul>
+  </div>
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>

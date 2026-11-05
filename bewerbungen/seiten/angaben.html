@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-scTPullxRqPYs8+XU3FxBvYMHu827Qd0nlhMHqsgMA8='; style-src 'sha256-hpVowUMXueKu74AiS8OoFx1j50WOOgJ4NE9Rv+axAhE='; font-src 'self'; img-src 'none'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BZi+vT5JNGsjgwOqD9Z99IhXQaia+BafNNLdCUm16JU='; style-src 'sha256-AmnHYVeg8j5OFVxrblC5mpG7BHBPVFsSDvgdw5OWapc='; font-src 'self'; img-src 'none'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
+<meta name="bewerbungsbegleiter" content="app">
 <title>Meine Angaben – Bewerbungsbegleiter</title>
 <style>@font-face { font-family: "DM Sans"; src: url("/fonts/DMSans-400.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "DM Sans"; src: url("/fonts/DMSans-400i.ttf") format("truetype"); font-weight: 400; font-style: italic; font-display: swap; }
@@ -58,34 +59,60 @@
 }
 * { box-sizing: border-box; }
 body {
-  margin: 0 auto;
-  max-width: 760px;
-  padding: 24px 16px 64px;
+  margin: 0;
   background: var(--bg);
   color: var(--text);
   font: 400 16px/24px "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 h1, h2, h3, legend { color: var(--text-strong); }
-h1 { font-size: 28px; line-height: 34px; margin: 2px 0 8px; }
+h1 { font-size: 24px; line-height: 30px; margin: 0 0 20px; }
 h2 { font-size: 22px; line-height: 28px; margin: 0 0 8px; }
+h3 { font-size: 18px; line-height: 24px; margin: 0 0 4px; }
+.top { padding: 16px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.top .privacy { margin: 4px 0 0; font-size: 14px; line-height: 20px; }
 .brand { margin: 0; color: var(--text-strong); font-weight: 700; }
+/* Page: steps on the left, the current step on the right (design: Angaben) */
+.layout {
+  display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 16px 48px; align-items: start;
+  max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px;
+}
+.layout > * { min-width: 0; }
+.side { position: sticky; top: 16px; }
+.autosave { margin: 16px 0 0; font-size: 13px; line-height: 18px; color: var(--muted); }
+.autosave:empty { display: none; }
+.steps { list-style: none; margin: 0; padding: 0; }
+.step { position: relative; }
+.step:not(:last-child)::before { content: ""; position: absolute; left: 9px; top: 26px; bottom: -6px; width: 2px; background: var(--line); }
+.step__button {
+  display: grid; grid-template-columns: 20px 1fr; column-gap: 12px; width: 100%; padding: 4px 0 14px; border: 0;
+  background: none; color: var(--text-strong); text-align: left; font: inherit;
+}
+.step__dot { grid-row: 1 / span 3; width: 20px; height: 20px; margin-top: 2px; border: 2px solid var(--line-strong); border-radius: 50%; background: var(--surface); }
+.step[data-state="current"] .step__dot { border-color: var(--accent); box-shadow: inset 0 0 0 4px var(--surface); background: var(--accent); }
+.step[data-state="done"] .step__dot { border-color: var(--accent); background: var(--accent); }
+.step__label { font-size: 15px; line-height: 24px; }
+.step[data-state="current"] .step__label { font-weight: 700; }
+.step__button:hover .step__label { text-decoration: underline; text-underline-offset: 3px; }
+.step__meta { font-size: 13px; line-height: 18px; color: var(--muted); }
+.step__mark { font-size: 13px; line-height: 18px; font-weight: 500; color: var(--danger); }
+.step[data-mark="suggested"] .step__mark { color: var(--text-strong); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; }
+.card + .card { margin-top: 24px; }
+.choice-card__line { margin: 0 0 4px; color: var(--text-strong); }
+.choice-card__line a { margin-left: 16px; font-weight: 500; }
+.choice-card .hint { margin: 0; }
+.choice-card .suggestion { margin: 12px 0 0; }
 .privacy, .intro, .hint, .secondary, footer { color: var(--muted); }
 .hint { font-size: 14px; line-height: 20px; margin: 0 0 4px; }
 a { color: var(--text-strong); text-underline-offset: 3px; }
 a:hover { color: var(--accent); }
-nav ol { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 20px 0; }
-.step {
-  border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-strong);
-  border-radius: var(--radius-control); padding: 4px 12px; font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer;
+#main { outline: none; }
+#main > section:not(.start--app) {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px;
 }
-.step:hover { background: var(--surface-subtle); }
-.step.current { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-.step.flagged:not(.current)::after { content: " •"; color: var(--danger); }
-main {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 24px; outline: none;
-}
+.group > .hint { margin-bottom: 16px; }
+.part + .part { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
 .field { margin: 16px 0; }
 label, legend { display: block; font-weight: 500; font-size: 14px; line-height: 20px; margin-bottom: 4px; color: var(--text-strong); }
 input[type="text"], input[type="email"], input[type="tel"], textarea, select {
@@ -104,7 +131,6 @@ fieldset { border: 0; padding: 0; margin: 0; }
 .choice .option input { accent-color: var(--accent); }
 .choice .own-option { flex-wrap: wrap; }
 .canton-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0 16px; }
-.not-taken-over { margin: 12px 0 0; font-size: 14px; color: var(--danger); }
 .field.wanted { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 4px; }
 .wanted-note { margin: 0 0 8px; font-weight: 500; color: var(--text-strong); }
 .choice .own { flex: 1 1 14rem; }
@@ -121,7 +147,8 @@ button { font: inherit; cursor: pointer; }
 .nav-buttons button:hover, .add:hover, .remove:hover, .confirm button:hover { background: var(--surface-subtle); }
 .primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 .primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-.nav-buttons .primary { margin-left: auto; }
+.nav-buttons .primary { margin-left: auto; background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.nav-buttons .primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .remove { font-size: 14px; color: var(--danger); }
 .add { border-style: dashed; width: 100%; }
 .danger { color: var(--danger); border-color: var(--danger); }
@@ -143,31 +170,82 @@ button { font: inherit; cursor: pointer; }
 .upload-category .add { margin-top: 6px; }
 .ok { background: var(--success-soft); color: var(--text-strong); padding: 12px 16px; border-radius: var(--radius-control); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-footer { font-size: 14px; line-height: 20px; margin-top: 16px; }
-@media (max-width: 30rem) {
-  body { padding: 16px 12px 48px; }
-  main { padding: 16px; }
-}
-.back { display: inline-block; margin-bottom: 8px; color: var(--muted); text-decoration: none; font-size: 14px; }
-.back:hover { color: var(--text-strong); text-decoration: underline; }
 #replace { margin-left: 8px; }
 .suggestion { background: var(--accent-soft); color: var(--text-strong); padding: 8px 12px; border-radius: var(--radius-control); font-size: 14px; line-height: 20px; margin: 0 0 10px; }
-.step.suggested::after { content: " •"; color: var(--accent); }
-.prefill { margin: 20px 0; }
-.prefill button:disabled, #take-over:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Start in the app: documents and „Vorbefüllen“ in one card */
+.prefill-card h2 { font-size: 18px; line-height: 24px; }
+.start--app > p { margin: 16px 0 0; }
+.prefill-card .upload-category .hint { font-size: 13px; line-height: 18px; }
+.prefill-card__files { margin: 8px 0 0; }
+.prefill-card .upload-category { border: 0; border-top: 1px solid var(--line); border-radius: 0; margin: 0; padding: 12px 0; }
+.prefill-card .upload-category legend { float: left; width: 100%; padding: 0; margin: 0 0 2px; font-size: 15px; }
+.prefill-card .upload-category .hint { clear: both; }
+.prefill-card .upload-category .add { width: auto; min-height: 32px; border-style: solid; font-size: 14px; }
+.prefill-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 16px 0 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+.prefill-card__actions .link { font-weight: 500; }
+.prefill-card #prefill:disabled, #take-over:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Take over: one line per step */
+.review { list-style: none; margin: 16px 0 24px; padding: 0; border-top: 1px solid var(--line); }
+.review__row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.review__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.review__state { color: var(--success); font-size: 14px; }
+.review__state--empty { color: var(--muted); }
+.review__missing { margin: 4px 0 0; padding-left: 18px; font-size: 14px; line-height: 20px; }
+.review__missing .link { color: var(--danger); }
+.review__open { flex: none; min-height: 32px; padding: 0 12px; border-radius: var(--radius-control); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-strong); font-weight: 500; }
+.review__open:hover { background: var(--surface-subtle); }
+.not-taken-over { margin: 12px 0 0; font-size: 14px; line-height: 20px; color: var(--danger); }
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; gap: 16px; padding: 16px 16px 48px; }
+  .side { position: static; }
+  h1 { margin-bottom: 12px; }
+  .steps { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .step:not(:last-child)::before { display: none; }
+  .step__button { display: block; padding: 4px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-control); white-space: nowrap; }
+  .step__dot, .step__meta, .step__mark { display: none; }
+  .step[data-state="current"] .step__button { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .step[data-mark="flagged"]:not([data-state="current"]) .step__label::after { content: " •"; color: var(--danger); }
+  .step__label { font-size: 14px; line-height: 20px; }
+  #main > section:not(.start--app), .card { padding: 16px; }
+}
+/* Only in the page „Meine Angaben“ of the app: the navigation of the app, as in bewerbungen/seiten/stil.css
+   (the page brings its own styles by hash and loads no stylesheet). Keep the two in step. */
+.app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.app-nav__brand { margin-right: auto; padding: 8px 4px; font-weight: 700; color: var(--text-strong); text-decoration: none; }
+.app-nav__list { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.app-nav__link, .app-nav__more > summary { display: block; padding: 6px 12px; border-radius: var(--radius-control); color: var(--text-strong); font-weight: 500; text-decoration: none; cursor: pointer; }
+.app-nav__link:hover, .app-nav__more > summary:hover { background: var(--surface-subtle); color: var(--text-strong); }
+.app-nav__link[aria-current="page"], .app-nav__more:has(a[aria-current="page"]) > summary { background: var(--accent); color: var(--accent-text); }
+.app-nav__more { position: relative; }
+.app-nav__more > summary { list-style: none; }
+.app-nav__more > summary::-webkit-details-marker { display: none; }
+.menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); }
+.menu__group:empty { display: none; }
+.menu__group + .menu__group { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.menu__heading { margin: 0; padding: 4px 8px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--muted); }
+.menu a, .menu button { display: block; width: 100%; padding: 6px 8px; border: 0; border-radius: 4px; background: none; color: var(--text-strong); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.menu a:hover, .menu button:hover { background: var(--surface-subtle); }
+.menu__meta { margin: 0; padding: 4px 8px; font-size: 13px; color: var(--muted); }
+/* Messages of app.js (new version, backup) above the page */
+.banner, .status { grid-column: 1 / -1; margin: 0; padding: 12px 16px; border-radius: var(--radius-control); background: var(--accent-soft); color: var(--text-strong); }
+.banner button, .banner a, .status button { margin-left: 8px; }
+.status.fehler { background: var(--danger-soft); }
+.status.ok { background: var(--success-soft); }
 </style>
 </head>
 <body>
-<header class="top">
-  <p class="brand">Bewerbungsbegleiter</p>
-  <a class="back" href="/">← Zurück zu den Bewerbungen</a>
-  <h1>Meine Angaben</h1>
-  <p class="privacy">Alles bleibt auf diesem Computer im Datenordner. Nur der Knopf „Aus Unterlagen vorbefüllen“ schickt Text an die KI, ohne Name und Adresse.</p>
-</header>
-<nav id="steps" aria-label="Schritte"></nav>
-<main id="main" tabindex="-1"><noscript><p>Diese Vorlage braucht JavaScript. Bitte in einem aktuellen Browser öffnen.</p></noscript></main>
-<footer><p id="autosave" role="status"></p></footer>
+<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
+<main class="layout">
+  <div class="side">
+    <h1>Meine Angaben</h1>
+    <nav id="steps" aria-label="Schritte"></nav>
+    <p id="autosave" class="autosave" role="status"></p>
+  </div>
+  <div id="main" class="content" tabindex="-1"><noscript><p>Diese Vorlage braucht JavaScript. Bitte in einem aktuellen Browser öffnen.</p></noscript></div>
+</main>
 <script type="application/json" id="form-definition">{"format": "bewerbungsassistent-einstieg", "version": 1, "tracks": {"job": "Stellensuche", "apprenticeship": "Lehrstellensuche"}, "limits": {"text": 200, "textarea": 2000, "listItems": 20, "repeatItems": 20}, "formats": {"email": {"pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "example": "vorname.nachname@example.ch"}, "phone": {"pattern": "^\\+?[0-9 ()/-]{6,30}$", "example": "079 000 00 00"}, "date": {"pattern": "^[0-9]{4}(-(0[1-9]|1[0-2]))?$", "example": "2024 oder 2024-08"}, "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"}, "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"}, "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"}}, "documents": {"title": "Unterlagen", "intro": {"job": "Haben Sie schon einen Lebenslauf, Arbeitszeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Der Assistent übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.", "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Der Assistent übernimmt daraus später, was passt, und fragt nur nach, was fehlt."}, "categories": [{"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 3, "fileTypes": ["document"]}, {"id": "zeugnisse", "title": {"job": "Arbeitszeugnisse", "apprenticeship": "Zeugnisse"}, "hint": {"job": "Arbeitszeugnisse und Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20, "fileTypes": ["document", "image"]}, {"id": "zertifikate", "title": "Zertifikate und Diplome", "hint": "Diplome, Kursbestätigungen, Sprachzertifikate, Eignungstests", "maxFiles": 30, "fileTypes": ["document", "image"]}, {"id": "anschreiben-bisher", "title": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "hint": "daraus übernimmt der Assistent Ton und eigene Formulierungen", "maxFiles": 10, "fileTypes": ["document"]}], "fileTypes": {"document": {"labels": ["PDF", "Word (.docx, .doc)", "Textdateien (.txt)"], "extensions": ["pdf", "docx", "doc", "txt"]}, "image": {"labels": ["Bilder (.jpg, .png)"], "extensions": ["jpg", "jpeg", "png"]}}, "namePattern": "^(?!\\.)[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f]{1,120}(?<![. ])$", "maxFileBytes": 15000000, "maxTotalBytes": 60000000}, "cantons": [{"code": "AG", "name": "Aargau"}, {"code": "AR", "name": "Appenzell Ausserrhoden"}, {"code": "AI", "name": "Appenzell Innerrhoden"}, {"code": "BL", "name": "Basel-Landschaft"}, {"code": "BS", "name": "Basel-Stadt"}, {"code": "BE", "name": "Bern"}, {"code": "FR", "name": "Freiburg"}, {"code": "GE", "name": "Genf"}, {"code": "GL", "name": "Glarus"}, {"code": "GR", "name": "Graubünden"}, {"code": "JU", "name": "Jura"}, {"code": "LU", "name": "Luzern"}, {"code": "NE", "name": "Neuenburg"}, {"code": "NW", "name": "Nidwalden"}, {"code": "OW", "name": "Obwalden"}, {"code": "SH", "name": "Schaffhausen"}, {"code": "SZ", "name": "Schwyz"}, {"code": "SO", "name": "Solothurn"}, {"code": "SG", "name": "St. Gallen"}, {"code": "TI", "name": "Tessin"}, {"code": "TG", "name": "Thurgau"}, {"code": "UR", "name": "Uri"}, {"code": "VD", "name": "Waadt"}, {"code": "VS", "name": "Wallis"}, {"code": "ZG", "name": "Zug"}, {"code": "ZH", "name": "Zürich"}], "sections": [{"id": "person", "title": "Person und Kontakt", "intro": {"job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen.", "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen."}, "fields": [{"id": "name", "label": "Vor- und Nachname", "type": "text", "required": true, "max": 80}, {"id": "label", "label": "Berufsbezeichnung unter dem Namen (freiwillig)", "type": "text", "max": 100, "tracks": ["job"], "placeholder": "z.B. Kaufmann EFZ – Buchhaltung und Administration"}, {"id": "address", "label": "Strasse und Nummer", "type": "text", "max": 100}, {"id": "postalCode", "label": "PLZ", "type": "text", "format": "postalCode"}, {"id": "city", "label": "Ort", "type": "text", "required": true, "max": 60}, {"id": "phone", "label": "Telefon", "type": "text", "format": "phone"}, {"id": "email", "label": "E-Mail", "type": "text", "required": true, "format": "email", "hint": {"apprenticeship": "Die Adresse soll seriös wirken, z.B. vorname.nachname@…"}}, {"id": "birthDate", "label": "Geburtsdatum (freiwillig)", "type": "text", "max": 30, "hint": {"apprenticeship": "Bei Lehrstellen ist das Geburtsdatum üblich."}}, {"id": "nationality", "label": "Nationalität (freiwillig)", "type": "text", "max": 60}, {"id": "profiles", "label": "Profil-Links, z.B. LinkedIn (freiwillig, ein Link pro Zeile)", "type": "list", "format": "url", "maxItems": 5, "tracks": ["job"]}]}, {"id": "summary", "title": "Kurzprofil", "tracks": ["job"], "intro": {"job": "Zwei bis drei Sätze oben im Lebenslauf: Erfahrung, Schwerpunkte, was Sie besonders gut können. Sie können das auch leer lassen."}, "fields": [{"id": "summary", "label": "Kurzprofil (freiwillig)", "type": "textarea", "max": 600}]}, {"id": "work", "title": {"job": "Berufliche Stationen", "apprenticeship": "Schnupperlehren, Ferienjobs und Ämter"}, "intro": {"job": "Die neueste Station zuerst. Pro Station zwei bis vier Tätigkeiten oder Erfolge, möglichst konkret.", "apprenticeship": "Zum Beispiel Schnupperlehren, Babysitten, Nachhilfe oder Leiterin im Verein. Das Neueste zuerst."}, "repeat": true, "itemTitle": {"job": "Station", "apprenticeship": "Erfahrung"}, "fields": [{"id": "position", "label": {"job": "Funktion", "apprenticeship": "Beruf oder Tätigkeit (z.B. Schnupperlehre Fachfrau Gesundheit)"}, "type": "text", "required": true, "max": 100}, {"id": "name", "label": {"job": "Firma", "apprenticeship": "Betrieb, Verein oder Familie"}, "type": "text", "required": true, "max": 100}, {"id": "location", "label": "Ort", "type": "text", "max": 60}, {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "required": true, "format": "date"}, {"id": "endDate", "label": "Bis (leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile)"}, "type": "list", "maxItems": 6}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100}]}, {"id": "education", "title": {"job": "Ausbildung und Weiterbildung", "apprenticeship": "Schule"}, "intro": {"job": "Abschlüsse, die neueste zuerst.", "apprenticeship": "Deine aktuelle Schule zuerst, dann frühere (z.B. Primarschule)."}, "repeat": true, "itemTitle": {"job": "Ausbildung", "apprenticeship": "Schule"}, "fields": [{"id": "studyType", "label": {"job": "Abschluss (z.B. Kaufmann EFZ, Bachelor)", "apprenticeship": "Schulstufe und Niveau (z.B. Sekundarschule, Niveau A)"}, "type": "text", "required": true, "max": 100}, {"id": "area", "label": "Fachrichtung (freiwillig)", "type": "text", "max": 100, "tracks": ["job"]}, {"id": "institution", "label": {"job": "Schule oder Lehrbetrieb, Ort", "apprenticeship": "Name der Schule, Ort"}, "type": "text", "required": true, "max": 100}, {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}, {"id": "endDate", "label": "Bis (leer = laufend)", "type": "text", "format": "date", "notBefore": "startDate"}]}, {"id": "certificates", "title": {"job": "Kurse und Zertifikate", "apprenticeship": "Eignungstests"}, "intro": {"job": "Kurse und Zertifikate mit Anbieter und Datum.", "apprenticeship": "Zum Beispiel Multicheck oder Basic-Check. Du entscheidest, ob ein Test in den Lebenslauf kommt; sonst lass diesen Teil leer."}, "repeat": true, "itemTitle": {"job": "Kurs", "apprenticeship": "Test"}, "fields": [{"id": "name", "label": {"job": "Bezeichnung", "apprenticeship": "Test (z.B. Multicheck Gesundheit)"}, "type": "text", "required": true, "max": 100}, {"id": "issuer", "label": "Anbieter (freiwillig)", "type": "text", "max": 100}, {"id": "date", "label": "Datum (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}]}, {"id": "languages", "title": "Sprachen", "intro": {"job": "Muttersprache und weitere Sprachen.", "apprenticeship": "Deine Muttersprache und die Sprachen aus der Schule."}, "repeat": true, "maxItems": 8, "itemTitle": "Sprache", "fields": [{"id": "language", "label": "Sprache", "type": "text", "required": true, "max": 40}, {"id": "fluency", "label": "Niveau", "type": "select", "required": true, "options": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"]}]}, {"id": "skills", "title": "Kenntnisse", "intro": {"job": "Fachliche Kenntnisse, nach Bereich gruppiert.", "apprenticeship": "Zum Beispiel Computerprogramme, Werkzeuge oder besondere Kenntnisse."}, "repeat": true, "maxItems": 8, "itemTitle": "Bereich", "fields": [{"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "required": true, "max": 60}, {"id": "keywords", "label": "Kenntnisse (eine pro Zeile)", "type": "list", "required": true, "maxItems": 12, "max": 60}]}, {"id": "interests", "title": "Hobbys und Interessen", "intro": {"job": "Freiwillig. Sie stehen am Ende des Lebenslaufs.", "apprenticeship": "Was machst du in der Freizeit? Hat ein Hobby mit deinem Wunschberuf zu tun, schreib das bei den Stärken dazu."}, "fields": [{"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "maxItems": 8, "max": 60}]}, {"id": "searchJob", "title": "Suche", "tracks": ["job"], "intro": {"job": "Danach sucht der Assistent Stellen für Sie."}, "fields": [{"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Suche“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 5}, {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 10}, {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60}, {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100}, {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Ohne Auswahl sucht der Assistent in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst."}, {"id": "remote", "label": "Homeoffice erwünscht?", "type": "select", "options": ["ja", "teilweise", "nein"]}, {"id": "workload", "label": "Pensum (z.B. 80–100 %)", "type": "text", "required": true, "max": 40}, {"id": "start", "label": "Frühester Start (z.B. 1. März)", "type": "text", "required": true, "max": 40}, {"id": "temporary", "label": "Befristete Stelle möglich?", "type": "select", "options": ["ja", "nein"]}, {"id": "keywords", "label": "Stichworte für die Suche (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 15, "max": 60}, {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 15, "max": 60}, {"id": "targetCompanies", "label": "Wunschfirmen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 15, "max": 100}]}, {"id": "searchApprenticeship", "title": "Lehrstellensuche", "tracks": ["apprenticeship"], "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"}, "fields": [{"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "hint": "Du weisst noch nicht, welcher Beruf passt? Lass das Feld leer. In der App schlägt dir danach die KI unter „Suche“ Berufe vor, die zu deinen Interessen und Fähigkeiten passen.", "maxItems": 5, "max": 100}, {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600}, {"id": "offers", "label": "Was suchst du?", "type": "select", "options": ["Lehrstellen", "Schnupperlehren", "Lehrstellen und Schnupperlehren"], "hint": "Viele suchen zuerst eine Schnupperlehre. Das lässt sich später auf der Seite „Suche“ ändern. Ohne Auswahl sucht die Erweiterung Lehrstellen."}, {"id": "start", "label": "Lehrbeginn", "type": "choice", "required": true, "allowOwn": true, "max": 40, "options": {"apprenticeship": ["August 2027", "August 2028", "2027 oder 2028", "Noch offen"]}}, {"id": "home", "label": "Wohnort", "type": "text", "required": true, "max": 60}, {"id": "radius", "label": "Wie weit um deinen Wohnort soll gesucht werden?", "type": "select", "options": ["10 km", "25 km", "50 km"], "hint": "Ohne Auswahl sucht die Erweiterung im Umkreis von 25 km."}, {"id": "commute", "label": "Wie lange darf dein Weg zum Lehrbetrieb höchstens dauern? (z.B. 45 Minuten mit ÖV)", "type": "text", "required": true, "max": 100}, {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Die Erweiterung sucht im Umkreis deines Wohnorts. Die Kantone helfen dem Assistenten beim Einordnen."}, {"id": "vocationalBaccalaureate", "label": "Berufsmaturität geplant?", "type": "select", "options": ["ja", "vielleicht", "nein"]}, {"id": "companion", "label": "Begleitperson (freiwillig, z.B. Mutter, liest mit)", "type": "text", "max": 100}]}, {"id": "strengths", "title": "Stärken mit Beispiel", "intro": {"job": "Drei bis fünf Stärken, die zur gesuchten Stelle passen. Zu jeder ein Erlebnis: Situation, was Sie getan haben, Ergebnis. Aus diesen Beispielen entstehen die Anschreiben.", "apprenticeship": "Drei Stärken, die zum Wunschberuf passen. Zu jeder ein Erlebnis aus Schule, Schnupperlehre, Verein oder Familie. Daraus entstehen deine Motivationsschreiben."}, "repeat": true, "maxItems": 6, "itemTitle": "Stärke", "fields": [{"id": "strength", "label": "Stärke (z.B. zuverlässig)", "type": "text", "required": true, "max": 60}, {"id": "example", "label": "Beispiel", "type": "textarea", "required": true, "max": 600}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Zeugnis, Rückmeldung einer Lehrperson)", "type": "text", "max": 100}]}, {"id": "gaps", "title": "Lücken", "intro": {"job": "Was fehlt Ihnen für die Wunschstellen? Damit bewertet der Assistent bei der Stellensuche ehrlich, wie gut eine Stelle passt, und Anschreiben benennen Lücken offen und knapp, statt sie zu verstecken. Am Anfang wissen Sie das oft noch nicht; dann einfach weiter. Der Assistent ergänzt Lücken nach und nach, wenn ein Inserat etwas verlangt, das fehlt, und fragt Sie dabei.", "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe. Damit bewertet der Assistent bei der Suche ehrlich, wie gut eine Lehrstelle zu dir passt. Weisst du es noch nicht, einfach weiter: Der Assistent ergänzt das nach und nach und fragt dich dabei."}, "fields": [{"id": "gaps", "label": "Lücken (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 8}]}, {"id": "style", "title": "Ton und Stil", "intro": {"job": "Wie sollen Ihre Anschreiben klingen? Wählen Sie, was am besten passt, oder schreiben Sie es mit eigenen Worten.", "apprenticeship": "Motivationsschreiben schreibt man meist in der Sie-Form. Es soll trotzdem nach dir klingen: Wähle, was am besten passt, oder schreib es mit eigenen Worten."}, "fields": [{"id": "address", "label": "Anrede", "type": "select", "required": true, "tracks": ["job"], "options": ["Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form"]}, {"id": "tone", "label": "Ton", "type": "choice", "required": true, "allowOwn": true, "max": 100, "options": {"job": ["Sachlich und freundlich", "Persönlich und herzlich", "Kurz und direkt"], "apprenticeship": ["Freundlich und offen", "Begeistert", "Ruhig und sachlich"]}}, {"id": "opening", "label": "Einstieg: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "options": {"job": ["Mit grossem Interesse habe ich Ihr Inserat für … gelesen.", "Ihre Stelle als … spricht mich an, weil …", "Seit … arbeite ich als … – genau das suchen Sie."], "apprenticeship": ["Seit meiner Schnupperlehre bei … weiss ich, dass ich … werden möchte.", "Mit grossem Interesse bewerbe ich mich um die Lehrstelle als …", "Ich interessiere mich schon lange für …, darum bewerbe ich mich bei Ihnen."]}}, {"id": "closing", "label": "Schluss: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "options": {"job": ["Über ein persönliches Gespräch freue ich mich.", "Gerne erzähle ich Ihnen in einem Gespräch mehr.", "Ich freue mich auf Ihre Rückmeldung."], "apprenticeship": ["Gerne komme ich zu einer Schnupperlehre zu Ihnen.", "Über eine Einladung zu einem Gespräch freue ich mich sehr.", "Ich freue mich auf Ihre Antwort."]}}, {"id": "greeting", "label": "Gruss (leer = „Freundliche Grüsse“)", "type": "text", "max": 60}, {"id": "place", "label": "Ort im Datum (z.B. Bern)", "type": "text", "max": 60}, {"id": "phrases", "label": "Eigene Formulierungen, die gut passen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 10}]}, {"id": "frame", "title": "Rahmen", "intro": {"job": "Angaben für den Schluss der Anschreiben.", "apprenticeship": "Angaben für den Schluss deiner Motivationsschreiben."}, "fields": [{"id": "availability", "label": {"job": "Verfügbar ab", "apprenticeship": "Wann kannst du schnuppern? (z.B. Herbstferien, Mittwochnachmittag)"}, "type": "text", "max": 100}, {"id": "notice", "label": "Kündigungsfrist (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "salary", "label": "Lohnvorstellung (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "reference", "label": "Referenzperson mit Kontakt (freiwillig, nur mit ihrem Einverständnis)", "type": "text", "max": 150}]}]}</script>
+<script src="/texte.js"></script>
+<script src="/app.js"></script>
 <script>// Validation of onboarding bundles against form.json, for the browser.
 // Mirrors validation.py; both run the shared cases in tests/cases.json.
 "use strict";
@@ -536,6 +614,64 @@ if (typeof module !== "undefined") {
     sectionsFor, fieldsFor, linesToList, listToLines, collectBundle, draftBundle, isBlankItem, stateFromBundle,
     setValue, addItem, removeItem, applySuggestions, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
   };
+}
+
+// The steps of the template (MIN-369): the sections of form.json grouped into five steps, as in the design.
+// Pure data and lookups, no DOM; tested in tests/steps.test.cjs.
+"use strict";
+
+/** Sections per step, in the order shown; a section that does not apply to the track is left out. */
+const STEP_GROUPS = [
+  {
+    id: "person",
+    title: { job: "Person und Kontakt", apprenticeship: "Du und deine Kontakte" },
+    meta: { job: "Name, Adresse, Kontakt", apprenticeship: "Name, Adresse, Kontakt" },
+    sections: { job: ["person"], apprenticeship: ["person"] },
+  },
+  {
+    id: "career",
+    title: { job: "Werdegang", apprenticeship: "Schule und Schnuppern" },
+    meta: { job: "Stationen, Ausbildung, Kurse", apprenticeship: "Schule, Schnupperlehren, Tests" },
+    sections: { job: ["work", "education", "certificates"], apprenticeship: ["education", "work", "certificates"] },
+  },
+  {
+    id: "abilities",
+    title: { job: "Können", apprenticeship: "Was du kannst" },
+    meta: { job: "Sprachen, Kenntnisse, Stärken", apprenticeship: "Sprachen, Stärken, Hobbys" },
+    sections: { job: ["languages", "skills", "strengths", "interests"], apprenticeship: ["languages", "skills", "strengths", "interests"] },
+  },
+  {
+    id: "search",
+    title: { job: "Was Sie suchen", apprenticeship: "Was du suchst" },
+    meta: { job: "Stellen, Region, Rahmen", apprenticeship: "Berufe, Region, Lehrbeginn" },
+    sections: { job: ["searchJob", "frame"], apprenticeship: ["searchApprenticeship", "frame"] },
+  },
+  {
+    id: "writing",
+    title: { job: "Wie Sie schreiben", apprenticeship: "Wie du schreibst" },
+    meta: { job: "Kurzprofil, Lücken, Ton", apprenticeship: "Lücken, Ton" },
+    sections: { job: ["summary", "gaps", "style"], apprenticeship: ["gaps", "style"] },
+  },
+];
+
+/** The five steps for a track: { id, title, meta, sections }; `sections` are those of the track (model.sectionsFor). */
+function stepGroups(sections, track) {
+  const byId = new Map(sections.map((s) => [s.id, s]));
+  return STEP_GROUPS.map((group) => ({
+    id: group.id,
+    title: group.title[track],
+    meta: group.meta[track],
+    sections: group.sections[track].map((id) => byId.get(id)).filter(Boolean),
+  }));
+}
+
+/** Index of the group that holds a section, -1 if none does. */
+function groupOfSection(groups, sectionId) {
+  return groups.findIndex((g) => g.sections.some((s) => s.id === sectionId));
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { STEP_GROUPS, stepGroups, groupOfSection };
 }
 
 // DOM building blocks of the template. Values from the person or a loaded file are only ever set as
@@ -1153,7 +1289,6 @@ const UPLOAD_TEXT = {
     choose: "Dateien wählen",
     skip: "Weiter zum Speichern",
     app: "Die Dateien kommen sofort in Ihren Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer.",
-    skipApp: "Weiter zum Übernehmen",
     skipHint: "Mit Unterlagen können Sie die übrigen Schritte auslassen oder nur ausfüllen, was Sie gerade wissen.",
   },
   apprenticeship: {
@@ -1162,7 +1297,6 @@ const UPLOAD_TEXT = {
     choose: "Dateien wählen",
     skip: "Weiter zum Speichern",
     app: "Die Dateien kommen sofort in deinen Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer.",
-    skipApp: "Weiter zum Übernehmen",
     skipHint: "Mit Unterlagen kannst du die übrigen Schritte auslassen oder nur ausfüllen, was du gerade weisst.",
   },
 };
@@ -1176,7 +1310,8 @@ function formatSize(bytes) {
 }
 
 /**
- * The step view. ctx: { form, track, uploads, messages, kept, app, extra (element or null), onAdd(category, FileList), onRemove(index), onSkip() }.
+ * The step view of the shared file. ctx: { form, track, uploads, messages, kept, onAdd(category, FileList), onRemove(index), onSkip() }.
+ * In the app the categories are part of the card on the start (prefill.js); `app` is the line about the data folder there.
  * File names come from the person's computer and are only ever set as text.
  */
 function uploadsView(ctx) {
@@ -1186,13 +1321,12 @@ function uploadsView(ctx) {
   return el("section", { className: "uploads" }, [
     el("h2", {}, forTrack(rules.title, track)),
     el("p", { className: "intro" }, forTrack(rules.intro, track)),
-    el("p", { className: "hint" }, ctx.app ? text.app : (ctx.kept ? text.kept : text.memory)),
+    el("p", { className: "hint" }, ctx.kept ? text.kept : text.memory),
     el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
     ...rules.categories.map((category) => categoryView(ctx, category, text)),
-    ctx.extra || null,
     uploads.length ? el("p", { className: "secondary" }, [
       text.skipHint, " ",
-      el("button", { type: "button", className: "link", onclick: ctx.onSkip }, ctx.app ? text.skipApp : text.skip),
+      el("button", { type: "button", className: "link", onclick: ctx.onSkip }, text.skip),
     ]) : null,
   ]);
 }
@@ -1269,8 +1403,11 @@ function createAppBackend() {
 
 const PREFILL_TEXT = {
   job: {
-    title: "Aus Unterlagen vorbefüllen",
-    privacy: "Der Text aus PDF-, Word- und Textdateien geht an die KI (Anthropic), ohne Ihren Namen, Ihre Adresse und Ihre Kontaktangaben. Namen anderer Personen, etwa auf Zeugnissen, erkennt der Assistent nur nach „Frau“ oder „Herr“. Bilder und alte Word-Dateien bleiben auf diesem Computer. Die Vorschläge kommen ins Formular, nur in leere Felder; in die App übernommen wird erst, wenn Sie alles geprüft haben.",
+    title: "Aus Ihren Unterlagen vorbefüllen",
+    text: "Laden Sie Lebenslauf und Zeugnisse hoch. Die KI liest sie und füllt die nächsten Schritte aus, nur leere Felder. Sie prüfen alles.",
+    run: "Vorbefüllen",
+    byHand: "Lieber von Hand ausfüllen",
+    privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt der Assistent nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer.",
     needsName: "Tragen Sie zuerst Ihren Namen ein: So erkennt der Assistent ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
     running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; Sie können in dieser Zeit weiterarbeiten.",
@@ -1288,8 +1425,11 @@ const PREFILL_TEXT = {
     confirmAll: "Ich habe alle geprüft",
   },
   apprenticeship: {
-    title: "Aus Unterlagen vorbefüllen",
-    privacy: "Der Text aus PDF-, Word- und Textdateien geht an die KI (Anthropic), ohne deinen Namen, deine Adresse und deine Kontaktangaben. Namen anderer Personen, etwa auf Zeugnissen, erkennt der Assistent nur nach „Frau“ oder „Herr“. Bilder und alte Word-Dateien bleiben auf diesem Computer. Die Vorschläge kommen ins Formular, nur in leere Felder; in die App übernommen wird erst, wenn du alles geprüft hast.",
+    title: "Aus deinen Unterlagen vorbefüllen",
+    text: "Lade dein Zeugnis oder einen Lebenslauf hoch. Die KI liest sie und füllt die nächsten Schritte aus, nur leere Felder. Du prüfst alles.",
+    run: "Vorbefüllen",
+    byHand: "Lieber von Hand ausfüllen",
+    privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt der Assistent nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer.",
     needsName: "Trag zuerst deinen Namen ein: So erkennt der Assistent ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
     running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; du kannst in dieser Zeit weiterarbeiten.",
@@ -1334,19 +1474,31 @@ function reportView(report, ctx, text) {
   ]);
 }
 
-/** ctx: { track, run: { running, problem, report }, uploads, hasName, titleOf(id), onRun(), onGoTo(id) } */
-function prefillView(ctx) {
+/**
+ * The card on the start (MIN-369): documents per category, then „Vorbefüllen“ or „Lieber von Hand ausfüllen“.
+ * ctx: { form, track, uploads, messages, run: { running, problem, report }, hasName, titleOf(id), onRun(), onGoTo(id),
+ *        onAdd(category, FileList), onRemove(index), onByHand() }
+ */
+function prefillCard(ctx) {
   const text = PREFILL_TEXT[ctx.track];
-  if (!ctx.uploads.length && !ctx.run.report) return null;
-  return el("section", { className: "prefill item" }, [
-    el("h3", {}, text.title),
-    el("p", { className: "hint" }, text.privacy),
-    ctx.hasName
-      ? el("button", { type: "button", className: "primary", id: "prefill", disabled: ctx.run.running, onclick: ctx.onRun }, text.title)
-      : el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)]),
+  const uploadText = UPLOAD_TEXT[ctx.track];
+  const canRun = ctx.uploads.length > 0 && ctx.hasName;
+  return el("section", { className: "card prefill-card", "aria-labelledby": "prefill-title" }, [
+    el("h2", { id: "prefill-title" }, text.title),
+    el("p", {}, text.text),
+    el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
+    el("div", { className: "prefill-card__files" }, ctx.form.documents.categories.map((category) => categoryView(ctx, category, uploadText))),
+    ctx.uploads.length && !ctx.hasName
+      ? el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)])
+      : null,
+    el("div", { className: "prefill-card__actions" }, [
+      canRun ? el("button", { type: "button", className: "primary", id: "prefill", disabled: ctx.run.running, onclick: ctx.onRun }, text.run) : null,
+      el("button", { type: "button", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
+    ]),
     ctx.run.running ? el("p", { role: "status" }, text.running) : null,
     ctx.run.problem ? el("p", { className: "error", role: "alert" }, ctx.run.problem) : null,
     ctx.run.report ? reportView(ctx.run.report, ctx, text) : null,
+    el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`),
   ]);
 }
 
@@ -1371,7 +1523,7 @@ function uncheckedView(ctx) {
 }
 
 // Flow of the onboarding template: start, one step per section, check and save.
-// Depends on validate.js, model.js, dom.js, documents.js, zip.js, uploadstore.js and uploads.js (inlined before this file by build_template.py).
+// Depends on validate.js, model.js, steps.js, dom.js, documents.js, zip.js, uploadstore.js and uploads.js (inlined before this file by build_template.py).
 "use strict";
 
 const STORAGE_KEY = "bewerbungsassistent.einstieg.v1";
@@ -1410,12 +1562,16 @@ const APP_TEXT = {
     done: "Ihre Angaben sind übernommen. ",
     kept: (names) => `Aus Ihrer bisherigen Suche bleibt dabei: ${names}. Entfernen können Sie das unter „Suche“. `,
     incomplete: "Ihre Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänzen Sie sie hier, wenn Sie so weit sind. ",
+    intro: "Prüfen Sie die Übersicht. Mit «Angaben übernehmen» erstellt der Assistent daraus Ihren Lebenslauf, Ihr Suchprofil und Ihren Schreibstil.",
+    kept_versions: "Ihre bisherigen Angaben bleiben unter ",
   },
   apprenticeship: {
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Deine Eingaben bleiben gespeichert; du kannst später weitermachen.",
     done: "Deine Angaben sind übernommen. ",
     kept: (names) => `Aus deiner bisherigen Suche bleibt dabei: ${names}. Entfernen kannst du das unter „Suche“. `,
     incomplete: "Deine Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänze sie hier, wenn du so weit bist. ",
+    intro: "Prüf die Übersicht. Mit «Angaben übernehmen» erstellt der Assistent daraus deinen Lebenslauf, dein Suchprofil und deinen Schreibstil.",
+    kept_versions: "Deine bisherigen Angaben bleiben unter ",
   },
 };
 
@@ -1433,6 +1589,8 @@ let uploadTurn = Promise.resolve(); // in the app: uploads and removals wait for
 let appProblem = null; // in the app: why the data folder cannot be used, shown on the first page
 let prefillRun = { running: false, problem: null, report: null }; // in the app: suggestions from documents
 let prefillTurn = 0; // a run that was overtaken by discarding or loading other answers no longer counts
+let choice = null; // in the app: what the setup chose (MIN-369) { track, anrede, rav, gewaehlt }
+let pageStateFound = false; // in the app: this page has kept answers before (not only the track of the setup)
 const backend = typeof createAppBackend === "function" ? createAppBackend() : null; // only in the page of the app
 
 // Storage: optional convenience; the page works without it.
@@ -1452,8 +1610,10 @@ async function loadStored() {
   try {
     if (backend) {
       const overview = await backend.overview();
-      // Nothing entered yet: start in the track the setup chose (MIN-369), the cards only show it.
-      applyStored(overview.stand || (overview.gesucht ? { track: overview.gesucht, data: {} } : null));
+      choice = overview.wahl || null;
+      pageStateFound = Boolean(overview.stand);
+      // Nothing entered yet: start in the track of the setup (MIN-369); the start only shows the choice.
+      applyStored(overview.stand || (choice ? { track: choice.track, data: {} } : null));
       notTakenOver = Boolean(overview.stand && overview.stand.offen === true);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
@@ -1527,12 +1687,18 @@ function goTo(newStep) {
   window.scrollTo(0, 0);
 }
 
+/** Start, (in the shared file) the documents, the five steps of the design (steps.js), take over or save. */
 function steps() {
   if (!state.track) return [{ kind: "start" }];
-  return [
-    { kind: "start" }, { kind: "documents" },
-    ...sectionsFor(form, state.track).map((s) => ({ kind: "section", section: s })), { kind: "finish" },
-  ];
+  const groups = stepGroups(sectionsFor(form, state.track), state.track).map((group) => ({ kind: "group", group }));
+  return [{ kind: "start" }, ...(backend ? [] : [{ kind: "documents" }]), ...groups, { kind: "finish" }];
+}
+
+const inGroup = (group, sectionId) => group.sections.some((s) => s.id === sectionId);
+
+/** Index of the step that holds a section. */
+function stepOfSection(sectionId) {
+  return steps().findIndex((s) => s.kind === "group" && inGroup(s.group, sectionId));
 }
 
 // Validation shown in the page
@@ -1570,28 +1736,45 @@ function viewFor(current) {
   if (current.kind === "start") return startView();
   if (current.kind === "documents") return documentsView();
   if (current.kind === "finish") return finishView();
-  return sectionView(current.section);
+  return groupView(current.group);
 }
 
 function stepTitle(s) {
   if (s.kind === "start") return "Start";
   if (s.kind === "documents") return forTrack(form.documents.title, state.track);
   if (s.kind === "finish") return backend ? "Übernehmen" : "Speichern";
-  return forTrack(s.section.title, state.track);
+  return s.group.title;
 }
 
+function stepMeta(s) {
+  if (s.kind === "start") return backend ? forTrack(form.documents.title, state.track) : "Stelle oder Lehrstelle";
+  if (s.kind === "documents") return "Lebenslauf, Zeugnisse";
+  if (s.kind === "group") return s.group.meta;
+  return null;
+}
+
+const STEP_MARKS = { flagged: "Angaben fehlen", suggested: "Vorschläge prüfen" };
+
 function renderNav(all) {
-  const errorSections = new Set(currentErrors().map((e) => e.path.split(".")[0]));
+  // Only where the person has been: on the first visit every step would say that something is missing.
+  const errorSections = new Set(currentErrors().filter((e) => touched.has(fieldPath(e.path))).map((e) => e.path.split(".")[0]));
   const items = all.map((s, i) => {
-    const title = stepTitle(s);
-    const flagged = s.kind === "section" && errorSections.has(s.section.id);
-    const suggested = s.kind === "section" && sectionHasSuggestion(s.section.id);
-    return el("li", {}, el("button", {
-      type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}${suggested ? " suggested" : ""}`,
-      "aria-current": i === step ? "step" : null, onclick: () => goTo(i),
-    }, title));
+    const sections = s.kind === "group" ? s.group.sections.map((x) => x.id) : [];
+    const flagged = sections.some((id) => errorSections.has(id));
+    const suggested = sections.some(sectionHasSuggestion);
+    const mark = suggested ? STEP_MARKS.suggested : flagged ? STEP_MARKS.flagged : null;
+    const meta = stepMeta(s);
+    const position = i === step ? "current" : i < step ? "done" : "todo";
+    return el("li", { className: "step", dataset: { state: position, ...(mark ? { mark: suggested ? "suggested" : "flagged" } : {}) } }, el("button", {
+      type: "button", className: "step__button", "aria-current": i === step ? "step" : null, onclick: () => goTo(i),
+    }, [
+      el("span", { className: "step__dot", "aria-hidden": "true" }),
+      el("span", { className: "step__label" }, stepTitle(s)),
+      meta ? el("span", { className: "step__meta" }, meta) : null,
+      mark ? el("span", { className: "step__mark" }, mark) : null,
+    ]));
   });
-  document.getElementById("steps").replaceChildren(el("ol", {}, items), ...notTakenOverNote(all));
+  document.getElementById("steps").replaceChildren(el("ol", { className: "steps" }, items), ...notTakenOverNote(all));
 }
 
 /** Changes count only after „Übernehmen“; easy to forget when the search is what one is after. */
@@ -1608,14 +1791,13 @@ function openFromAddress() {
   const wanted = new URLSearchParams(window.location.hash.slice(1)).get("feld");
   if (!backend || !wanted) return;
   window.history.replaceState(null, "", window.location.pathname + window.location.search);
-  if (!state.track) {
+  if (!state.track || (!pageStateFound && existingBasics.length)) {
     // Imported files without a state of this page: starting over here would ask for everything again.
     profileHint = existingBasics.length > 0;
     return render();
   }
   const all = steps();
-  const index = wanted === TAKE_OVER_TARGET ? all.length - 1
-    : all.findIndex((s) => s.kind === "section" && s.section.id === wanted.split(".")[0]);
+  const index = wanted === TAKE_OVER_TARGET ? all.length - 1 : stepOfSection(wanted.split(".")[0]);
   if (index < 0) return;
   goTo(index);
   const field = [...document.querySelectorAll("[data-path]")].find((f) => f.dataset.path === wanted);
@@ -1626,7 +1808,63 @@ function openFromAddress() {
   (field.querySelector("input, textarea, select") || field).focus();
 }
 
+const TRACK_WORDS = { job: "eine Stelle", apprenticeship: "eine Lehrstelle" };
+
+/** In the app the setup has chosen the track (MIN-369): the start shows the choice and the documents. */
 function startView() {
+  return backend && choice ? appStartView() : sharedStartView();
+}
+
+function choiceCard() {
+  const parts = [`Gesucht wird: ${TRACK_WORDS[choice.track]}`];
+  if (choice.track === "job") parts.push(`Anrede: ${choice.anrede === "du" ? "du" : "Sie"}`);
+  parts.push(`RAV: ${choice.rav ? "ja" : "nein"}`);
+  const differs = state.track && state.track !== choice.track;
+  return el("section", { className: "card choice-card", "aria-label": "Wahl aus der Einrichtung" }, [
+    el("p", { className: "choice-card__line" }, [
+      el("strong", {}, parts.join(" · ")), " ",
+      el("a", { href: "/einrichtung#gesucht" }, "Ändern"),
+    ]),
+    el("p", { className: "hint" }, choice.gewaehlt
+      ? "Gewählt in der Einrichtung. Eine Änderung passt die Texte und die Suche an."
+      : "Abgeleitet aus dem Suchprofil, noch nicht in der Einrichtung gewählt. Eine Änderung passt die Texte und die Suche an."),
+    differs ? el("p", { className: "suggestion" }, [
+      `Die Angaben auf dieser Seite sind für ${TRACK_WORDS[state.track]} erfasst. `,
+      el("button", { type: "button", className: "link", onclick: () => update({ ...state, track: choice.track }, { rerender: true }) },
+        `Für ${TRACK_WORDS[choice.track]} weiterfahren`),
+    ]) : null,
+  ]);
+}
+
+function loadFileLine() {
+  const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
+  return [
+    el("p", { className: "secondary" }, [
+      "Schon angefangen oder von Claude vorbereitet? ",
+      el("button", { type: "button", className: "link", onclick: () => fileInput.click() }, "Datei laden"),
+      fileInput,
+    ]),
+    el("p", { id: "load-message", role: "status" }),
+  ];
+}
+
+function appStartView() {
+  return el("section", { className: "start start--app" }, [
+    el("h2", { className: "visually-hidden" }, "Start"),
+    profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
+    appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
+    choiceCard(),
+    prefillCard({
+      form, track: state.track, uploads, messages: uploadMessages, run: prefillRun,
+      hasName: hasName(), titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
+      onAdd: addUploads, onRemove: removeUpload, onByHand: () => goTo(1),
+    }),
+    existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
+    ...loadFileLine(),
+  ]);
+}
+
+function sharedStartView() {
   const choose = (track) => {
     update({ ...state, track });
     touched = new Set();
@@ -1636,7 +1874,6 @@ function startView() {
     type: "button", className: `track${state.track === track ? " selected" : ""}`,
     "aria-pressed": String(state.track === track), onclick: () => choose(track),
   }, [el("strong", {}, title), el("span", {}, text)]);
-  const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
   return el("section", { className: "start" }, [
     el("h2", {}, "Worum geht es?"),
     el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsbegleiter braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
@@ -1647,20 +1884,14 @@ function startView() {
       trackButton("job", "Ich suche eine Stelle", "Lebenslauf, Anschreiben und Stellensuche"),
       trackButton("apprenticeship", "Ich suche eine Lehrstelle", "Für Schülerinnen und Schüler: Schnupperlehren, Schule, Motivationsschreiben"),
     ]),
-    el("p", { className: "secondary" }, [
-      "Schon angefangen oder von Claude vorbereitet? ",
-      el("button", { type: "button", className: "link", onclick: () => fileInput.click() }, "Datei laden"),
-      fileInput,
-    ]),
     el("p", { className: "secondary" }, EXISTING_DOCUMENTS_NOTE),
-    el("p", { id: "load-message", role: "status" }),
+    ...loadFileLine(),
   ]);
 }
 
 function documentsView() {
   return uploadsView({
     form, track: state.track, uploads, messages: uploadMessages, kept: uploadsKept,
-    app: Boolean(backend), extra: backend ? prefillArea() : null,
     onAdd: addUploads, onRemove: removeUpload, onSkip: () => goTo(steps().length - 1),
   });
 }
@@ -1673,17 +1904,16 @@ function sectionHasSuggestion(id) {
   return Object.keys(state.suggested || {}).some((key) => key.split(".")[0] === id);
 }
 
+/** Open the step of a section and bring the section into view. */
 function goToSection(id) {
-  goTo(steps().findIndex((s) => s.kind === "section" && s.section.id === id));
+  const index = stepOfSection(id);
+  if (index < 0) return;
+  goTo(index);
+  const part = document.querySelector(`[data-section="${id}"]`);
+  if (part && index === step && steps()[index].group.sections[0].id !== id) part.scrollIntoView({ block: "start" });
 }
 
-function prefillArea() {
-  return prefillView({
-    track: state.track, run: prefillRun, uploads,
-    hasName: Boolean(((state.data.person || {}).name || "").trim()) || existingBasics.includes("cv.yaml"),
-    titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
-  });
-}
+const hasName = () => Boolean(((state.data.person || {}).name || "").trim()) || existingBasics.includes("cv.yaml");
 
 function forgetPrefillRun() {
   prefillTurn += 1;
@@ -1715,7 +1945,7 @@ async function runPrefill() {
   }
   prefillRun = { running: false, ...finished };
   renderKeepingFocus();
-  if (steps()[step].kind !== "documents") setStatus(finished.problem || PREFILL_TEXT[track].finished);
+  if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished);
 }
 
 function confirmSuggestion(key) {
@@ -1735,7 +1965,7 @@ function inTurn(work) {
 
 /** The person may have moved on while a large file was on its way. */
 function focusOnDocuments(category) {
-  if (steps()[step].kind === "documents") focusFirst(`[data-category="${category}"]`);
+  if (["start", "documents"].includes(steps()[step].kind)) focusFirst(`[data-category="${category}"]`);
 }
 
 /** In the app every document goes straight to the data folder; the list of the app is the truth afterwards. */
@@ -1800,7 +2030,7 @@ function setUploads(list, messages) {
   uploads = list;
   uploadMessages = messages;
   uploadsSaved = backend ? true : list.length === 0;
-  if (!backend || ["documents", "finish"].includes(steps()[step].kind)) render();
+  if (!backend || ["start", "finish"].includes(steps()[step].kind)) render();
   if (!backend) keepUploadsNow();
 }
 
@@ -1824,18 +2054,29 @@ async function restoreUploads() {
   render();
 }
 
-function sectionView(section) {
+/** One step: its sections one below the other, so every mark and every missing field stays in sight. */
+function groupView(group) {
+  const track = state.track;
+  const required = group.sections.some((s) => fieldsFor(s, track).some((f) => f.required));
+  const single = group.sections.length === 1;
+  return el("section", { className: "group" }, [
+    el("h2", {}, group.title),
+    required ? el("p", { className: "hint" }, REQUIRED_NOTE) : null,
+    ...group.sections.map((s) => sectionView(s, single)),
+  ]);
+}
+
+function sectionView(section, single) {
   const track = state.track;
   const intro = forTrack(section.intro, track);
-  const hasRequired = fieldsFor(section, track).some((f) => f.required);
   const header = [
-    el("h2", {}, forTrack(section.title, track)),
+    single ? null : el("h3", {}, forTrack(section.title, track)),
     intro ? el("p", { className: "intro" }, intro) : null,
-    hasRequired ? el("p", { className: "hint" }, REQUIRED_NOTE) : null,
   ];
+  const attrs = { className: "part", dataset: { section: section.id } };
   if (!section.repeat) {
     const item = state.data[section.id] || {};
-    return el("section", {}, [...header, suggestionNote(section.id), ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
+    return el("section", attrs, [...header, suggestionNote(section.id), ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
   const max = section.maxItems ?? form.limits.repeatItems;
@@ -1848,7 +2089,7 @@ function sectionView(section) {
       type: "button", className: "remove",
       onclick: () => {
         update(removeItem(state, section.id, index), { rerender: true });
-        focusFirst(`[data-item="${section.id}.${index}"]`, `[data-item="${section.id}.${index - 1}"]`, ".add", "h2");
+        focusFirst(`[data-item="${section.id}.${index}"]`, `[data-item="${section.id}.${index - 1}"]`, `[data-section="${section.id}"] .add`, "h2");
       },
     }, `${itemTitle} ${index + 1} entfernen`),
   ]));
@@ -1861,7 +2102,7 @@ function sectionView(section) {
       },
     }, `+ ${itemTitle} hinzufügen`)
     : el("p", { className: "hint" }, `Höchstens ${max} Einträge.`);
-  return el("section", {}, [...header, ...items, add]);
+  return el("section", attrs, [...header, ...items, add]);
 }
 
 /** After a rerender: focus the first control inside the first selector that matches (headings get focus too). */
@@ -1892,12 +2133,7 @@ function finishView() {
   const errors = currentErrors();
   const onlyMissing = uploads.length > 0 && errors.every((e) => e.code === "required");
   const summary = errors.length
-    ? el("div", { className: "summary" }, [
-      el("p", {}, onlyMissing ? text.finishFromDocuments : (backend ? APP_TEXT[state.track].finishErrors : text.finishErrors)),
-      el("ul", {}, errors.map((e) => el("li", {}, el("button", {
-        type: "button", className: "link", onclick: () => goTo(stepOf(e.path)),
-      }, describe(form, state.track, e))))),
-    ])
+    ? el("p", {}, onlyMissing ? text.finishFromDocuments : (backend ? APP_TEXT[state.track].finishErrors : text.finishErrors))
     : el("p", { className: "ok" }, text.finishOk);
   const confirmBox = el("p", { className: "confirm", hidden: true }, [
     backend ? "Alle Eingaben dieser Seite verwerfen? Hochgeladene Unterlagen und schon übernommene Angaben bleiben. " : "Alle Eingaben auf diesem Gerät löschen? ",
@@ -1911,18 +2147,21 @@ function finishView() {
       track: state.track, sections: [...new Set(unchecked.map((key) => key.split(".")[0]))], count: unchecked.length, titleOf: sectionTitle,
       onGoTo: goToSection, onConfirmAll: () => update(confirmSuggestions(state, unchecked), { rerender: true }),
     }) : null,
-    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(false) }, "In die App übernehmen"),
+    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(false) }, "Angaben übernehmen"),
     el("button", { type: "button", className: "danger", id: "replace", hidden: true, onclick: () => takeOver(true) }, "Vorhandene Dateien ersetzen"),
     el("p", { id: "save-message", role: "alert", className: "error" }),
     el("p", { id: "take-over-done", role: "status", className: "ok", hidden: true }),
+    el("p", { className: "hint" }, [APP_TEXT[state.track].kept_versions, el("a", { href: "/entwuerfe" }, "Entwürfe und Versionen"), " erhalten."]),
   ] : [
     el("button", { type: "button", className: "primary", onclick: saveFile }, "Datei speichern"),
     el("p", { id: "save-message", role: "alert", className: "error" }),
     el("p", {}, text.next),
   ];
   return el("section", {}, [
-    el("h2", {}, backend ? "Prüfen und übernehmen" : text.finishTitle),
+    el("h2", {}, backend ? "Übernehmen" : text.finishTitle),
+    backend ? el("p", { className: "intro" }, APP_TEXT[state.track].intro) : null,
     summary,
+    reviewList(errors),
     uploads.length && !backend ? el("p", { className: "hint" }, text.documents(uploads.length)) : null,
     ...finishing,
     el("p", { className: "secondary" }, el("button", { type: "button", className: "link", onclick: () => { confirmBox.hidden = false; } }, backend ? "Eingaben verwerfen" : "Alles löschen")),
@@ -1930,9 +2169,37 @@ function finishView() {
   ]);
 }
 
+/** One line per step: complete, or what is missing with a link to it. */
+function reviewList(errors) {
+  const groups = steps().map((s, index) => ({ s, index })).filter(({ s }) => s.kind === "group");
+  return el("ul", { className: "review" }, groups.map(({ s, index }) => {
+    const missing = errors.filter((e) => inGroup(s.group, e.path.split(".")[0]));
+    return el("li", { className: "review__row" }, [
+      el("div", { className: "review__text" }, [
+        el("strong", {}, s.group.title),
+        missing.length
+          ? el("ul", { className: "review__missing" }, missing.map((e) => el("li", {}, el("button", {
+            type: "button", className: "link", onclick: () => goTo(stepOf(e.path)),
+          }, describe(form, state.track, e)))))
+          : groupHasContent(s.group)
+            ? el("span", { className: "review__state" }, "Vollständig")
+            : el("span", { className: "review__state review__state--empty" }, "Nichts eingetragen, nicht nötig"),
+      ]),
+      el("button", { type: "button", className: "review__open", onclick: () => goTo(missing.length ? stepOf(missing[0].path) : index) },
+        missing.length ? "Ergänzen" : "Ansehen"),
+    ]);
+  }));
+}
+
+function groupHasContent(group) {
+  return group.sections.some((s) => {
+    const value = state.data[s.id];
+    return Array.isArray(value) ? value.some((item) => !isBlankItem(item)) : Boolean(value) && !isBlankItem(value);
+  });
+}
+
 function stepOf(path) {
-  const sectionId = path.split(".")[0];
-  const index = steps().findIndex((s) => s.kind === "section" && s.section.id === sectionId);
+  const index = stepOfSection(path.split(".")[0]);
   touched = new Set([...touched, ...currentErrors().map((e) => fieldPath(e.path))]);
   return index < 0 ? step : index;
 }
@@ -1945,17 +2212,16 @@ function fieldPath(errorPath) {
 }
 
 function navButtons(all) {
-  const back = step > 0 ? el("button", { type: "button", onclick: () => goTo(step - 1) }, "Zurück") : null;
+  const back = step > 0 ? el("button", { type: "button", onclick: () => goTo(step - 1) }, `Zurück: ${stepTitle(all[step - 1])}`) : null;
   const forward = step > 0 && step < all.length - 1
-    ? el("button", { type: "button", className: "primary", onclick: () => { markStepTouched(all[step]); goTo(step + 1); } }, "Weiter")
+    ? el("button", { type: "button", className: "primary", onclick: () => { markStepTouched(all[step]); goTo(step + 1); } }, `Weiter: ${stepTitle(all[step + 1])}`)
     : null;
   return el("div", { className: "nav-buttons" }, [back, forward]);
 }
 
 function markStepTouched(current) {
-  if (current.kind !== "section") return;
-  const prefix = `${current.section.id}`;
-  touched = new Set([...touched, ...currentErrors().filter((e) => e.path.split(".")[0] === prefix).map((e) => fieldPath(e.path))]);
+  if (current.kind !== "group") return;
+  touched = new Set([...touched, ...currentErrors().filter((e) => inGroup(current.group, e.path.split(".")[0])).map((e) => fieldPath(e.path))]);
 }
 
 // Taking over into the data folder (page of the app)
