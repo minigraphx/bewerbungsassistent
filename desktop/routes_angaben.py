@@ -12,6 +12,7 @@ import logging
 import pathlib
 import threading
 
+import preferences
 from routes_setup import Setup, ready_data_dir, rejected_answer
 
 log = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ PREFILL_ROUTE = "/api/angaben/vorbefuellen"
 BASE64_OVERHEAD = 4 / 3
 JSON_OVERHEAD_BYTES = 10_000
 DEFAULT_TRACK = "job"  # only for the wording of messages
+TRACKS = {preferences.JOB: "job", preferences.APPRENTICESHIP: "apprenticeship"}  # setup → form (form.json tracks)
 PREFILL_RUNNING = "Die Unterlagen werden schon gelesen. Bitte einen Moment warten."
 
 
@@ -79,6 +81,12 @@ def _decode(body: dict) -> bytes:
         raise ValueError("Die Datei liess sich nicht lesen.") from error
 
 
+def _sought(folder: pathlib.Path) -> str | None:
+    """The track the setup chose (MIN-369), so the page does not ask again; None until something is chosen."""
+    choice = preferences.load(folder)
+    return TRACKS[choice.sought] if choice.chosen else None
+
+
 def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     """GET routes, POST routes and the request size allowed for uploads."""
     from dateien import schreibe_atomar
@@ -99,7 +107,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     def overview(k, parameter, body):
         folder = ready_data_dir(state, k)
         return json_antwort({"stand": _read_state(folder), "unterlagen": import_documents.pending_documents(folder),
-                             "vorhanden": _existing_basics(folder)})
+                             "vorhanden": _existing_basics(folder), "gesucht": _sought(folder)})
 
     def not_taken_over(k, parameter, body):
         stored = _read_state(ready_data_dir(state, k))

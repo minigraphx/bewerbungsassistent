@@ -80,7 +80,8 @@ async function loadStored() {
   try {
     if (backend) {
       const overview = await backend.overview();
-      applyStored(overview.stand);
+      // Nothing entered yet: start in the track the setup chose (MIN-369), the cards only show it.
+      applyStored(overview.stand || (overview.gesucht ? { track: overview.gesucht, data: {} } : null));
       notTakenOver = Boolean(overview.stand && overview.stand.offen === true);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;

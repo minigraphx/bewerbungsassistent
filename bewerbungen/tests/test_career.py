@@ -179,7 +179,7 @@ def test_a_job_seeker_gets_search_terms_and_can_add_and_remove_them(job_seeker, 
     status, answer = post(job_seeker, "/api/beruf/vorschlag", {"interessen": "etwas Administratives", "staerken": "ordentlich"})
     assert status == 200
     assert [entry["beruf"] for entry in answer["vorschlaege"]] == ["Sachbearbeitung Administration"]
-    assert "Sie-Form" in json.dumps(client.messages.calls[-1], ensure_ascii=False, default=str)
+    assert "mit Sie an" in json.dumps(client.messages.calls[-1], ensure_ascii=False, default=str)
     name = answer["vorschlaege"][0]["beruf"]
     status, answer = post(job_seeker, "/api/beruf/aufnehmen", {"beruf": name})
     assert status == 200 and name in answer["berufe"]

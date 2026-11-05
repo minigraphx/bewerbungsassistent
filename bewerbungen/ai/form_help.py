@@ -180,7 +180,7 @@ def _draft(gateway: Gateway, material: tasks.Material, entry: dict, ad: str, let
     details = {"Firma": str(entry.get("firma") or ""), "Stelle": str(entry.get("stelle") or "")}
     prompt = prompts.form_answers_prompt(ad, letter, details, [(label, f.asked()) for label, f in labels.items()])
     answer = gateway.ask(Request(
-        task="form_answers", model=tasks.MODELS["form_answers"], rules=prompts.RULES, context=material.context,
+        task="form_answers", model=tasks.MODELS["form_answers"], rules=prompts.rules(material.address), context=material.context,
         instructions=prompts.FORM_ANSWERS_TRIAL if entry.get("art") == tasks.TRIAL else prompts.FORM_ANSWERS,
         prompt=prompt, max_tokens=tasks.MAX_TOKENS["form_answers"], schema=prompts.form_answers_schema(list(labels))))
     contact = _contact_details(material)

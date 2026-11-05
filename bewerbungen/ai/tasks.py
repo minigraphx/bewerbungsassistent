@@ -16,6 +16,7 @@ from ai.gateway import Answer, Gateway, Request
 from ai.personal import secrets_from_application, secrets_from_building_blocks, secrets_from_cv
 from ai.pseudonym import Pseudonymizer
 from ai.usage import UsageLog
+import preferences
 from dateien import im_ordner
 
 FILES = {"cv": "cv.yaml", "profile": "suchprofil.md", "style": "anschreiben/stil.md",
@@ -44,6 +45,7 @@ class Material:
     style: str
     blocks: str
     missing: tuple[str, ...] = ()
+    address: str = preferences.SIE  # how the AI speaks to the person (MIN-369)
 
     @property
     def minor(self) -> bool:
@@ -68,7 +70,8 @@ def load_material(data_dir: pathlib.Path, partial: bool = False) -> Material:
         raise AiError("cv.yaml lässt sich nicht lesen.") from error
     if not isinstance(cv, dict):
         raise AiError("cv.yaml lässt sich nicht lesen.")
-    return Material(cv, texts["cv"], texts["profile"], texts["style"], texts["blocks"], missing)
+    return Material(cv, texts["cv"], texts["profile"], texts["style"], texts["blocks"], missing,
+                    preferences.load(data_dir).address)
 
 
 def make_gateway(data_dir: pathlib.Path, material: Material, client, entry: dict | None = None,
@@ -96,7 +99,7 @@ def _details(entry: dict) -> dict[str, str]:
 
 def _ask(gateway: Gateway, material: Material, task: str, instructions: str, prompt: str, schema: dict,
          model: str | None) -> Answer:
-    return gateway.ask(Request(task=task, model=model or MODELS[task], rules=prompts.RULES,
+    return gateway.ask(Request(task=task, model=model or MODELS[task], rules=prompts.rules(material.address),
                                context=material.context,
                                instructions=instructions, prompt=prompt, max_tokens=MAX_TOKENS[task], schema=schema))
 

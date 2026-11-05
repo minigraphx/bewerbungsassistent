@@ -49,7 +49,7 @@ def remaining_today(log: UsageLog, today: datetime.date) -> int:
 
 def answer(gateway: Gateway, material: tasks.Material, question: str, history: list[dict], kind: str = search_plan.KIND_JOB) -> dict:
     instructions = prompts.CHAT_APPRENTICESHIP if kind == search_plan.KIND_APPRENTICESHIP else prompts.CHAT
-    reply = gateway.ask(Request(task=TASK, model=tasks.MODELS[TASK], rules=prompts.RULES, context=material.context, instructions=instructions,
+    reply = gateway.ask(Request(task=TASK, model=tasks.MODELS[TASK], rules=prompts.rules(material.address), context=material.context, instructions=instructions,
                                 prompt=prompts.chat_prompt(history[-MAX_TURNS:], question), max_tokens=tasks.MAX_TOKENS[TASK]))
     if not reply.text.strip():
         raise AnswerError(BAD_ANSWER, cost_usd=reply.cost_usd)

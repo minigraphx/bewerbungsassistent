@@ -10,59 +10,119 @@
 </head>
 <body>
 <nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Suche</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/dateien">Meine Dateien</a><a href="/fragen">Fragen</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einstellungen">Erweiterte Einstellungen</a></div></details></nav>
-<main class="einrichtung">
-  <h1>Einrichtung</h1>
-  <p class="hilfe">Vier Schritte, danach kann es losgehen. Ihre Daten bleiben auf diesem Computer; an die KI gehen nur Texte, in denen Name, Adresse und Kontaktangaben durch Platzhalter ersetzt sind. <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md" target="_blank" rel="noopener">Anleitung mit Bildern</a></p>
+<main class="einrichtung setup">
+  <header class="setup__head">
+    <h1>Einrichtung</h1>
+    <p>Fünf Schritte, zusammen etwa zehn Minuten. Jeder lässt sich später ändern. <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md" target="_blank" rel="noopener">Anleitung mit Bildern</a></p>
+  </header>
+  <p id="nur-installiert" class="notice notice--warning" role="status" hidden>Die Einrichtung gibt es nur in der installierten App.</p>
+  <ol id="schritte" class="steps" aria-label="Schritte der Einrichtung"></ol>
 
-  <h2>1. Datenordner</h2>
-  <p class="hilfe">Hier speichert der Assistent Lebenslauf, Anschreiben und Bewerbungen. Am besten ein eigener Ordner unter Dokumente; sichern Sie ihn wie Ihre anderen Dateien.</p>
-  <div id="ordner-fehlt" class="banner" role="alert" hidden></div>
-  <label for="ordner">Ordner</label>
-  <input id="ordner" spellcheck="false" autocomplete="off">
-  <div class="knoepfe">
-    <button type="button" id="ordner-waehlen">Ordner wählen …</button>
-    <button type="button" id="ordner-uebernehmen" class="haupt">Diesen Ordner verwenden</button>
-  </div>
-  <div id="ordner-status" class="status" role="status" aria-live="polite"></div>
-
-  <h2>2. Angaben aus der Einstiegsvorlage</h2>
-  <p class="hilfe">Wer die Einstiegsvorlage ausgefüllt hat, hat eine Datei <strong>einstieg.zip</strong> oder <strong>einstieg.json</strong> gespeichert, meist im Ordner Downloads. Ohne diese Datei überspringen Sie diesen Schritt und erfassen Ihre Angaben danach unter <a href="/angaben">Meine Angaben</a>; dort können Sie auch vorhandene Unterlagen wie PDF oder Word hochladen.</p>
-  <label for="datei">Datei</label>
-  <input id="datei" spellcheck="false" autocomplete="off" disabled>
-  <div class="knoepfe">
-    <button type="button" id="datei-waehlen" disabled>Datei wählen …</button>
-    <button type="button" id="importieren" class="haupt" disabled>Importieren</button>
-    <button type="button" id="ersetzen" class="gefahr" hidden>Vorhandene Dateien ersetzen</button>
-  </div>
-  <div id="import-status" class="status" role="status" aria-live="polite"></div>
-  <ul id="import-ergebnis" class="befunde"></ul>
-
-  <h2>3. KI-Unterstützung</h2>
-  <p class="hilfe">Die KI bewertet Stellen, entwirft Anschreiben und prüft sie. Im Pilot erhalten Sie dafür einen Einladungscode von Ihrer Begleitperson.</p>
-  <div id="ki-zustand" class="status" role="status" aria-live="polite"></div>
-  <div id="ki-einladung" hidden>
-    <label for="ki-code">Einladungscode</label>
-    <div class="knoepfe"><input id="ki-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button type="button" id="ki-einloesen">Einladung einlösen</button></div>
-  </div>
-
-  <section id="erweiterung" hidden>
-    <h2>4. Browser-Erweiterung für die Stellensuche</h2>
-    <p class="hilfe">Die Erweiterung sucht in Ihrem Browser auf job-room, jobs.ch, jobscout24 und ictjobs nach Stellen und gibt die Treffer an diese App. Sie läuft in Chrome und Edge. Bis sie im Store ist, wird sie einmal von Hand geladen. Einen Browser kann eine App dazu nur anleiten, nicht selbst einrichten:</p>
-    <div id="erweiterung-zustand" class="status" role="status" aria-live="polite"></div>
-    <ol id="erweiterung-schritte" class="schritte">
-      <li>Erweiterungsseite öffnen. Die App öffnet dazu auch den Ordner der Erweiterung.
-        <div class="knoepfe"><button type="button" class="haupt" data-browser="chrome">In Chrome öffnen</button><button type="button" data-browser="edge">In Edge öffnen</button></div></li>
-      <li>Den <strong>Entwicklermodus</strong> einschalten (Chrome: oben rechts, Edge: links).</li>
-      <li>Den Ordner <strong>erweiterung</strong> auf die Erweiterungsseite ziehen. Geht das nicht: <strong>Entpackte Erweiterung laden</strong> wählen und diesen Ordner auswählen: <code id="erweiterung-ordner" class="pfad"></code>
-        <div class="knoepfe"><button type="button" id="pfad-kopieren">Pfad kopieren</button><button type="button" id="ordner-zeigen">Ordner zeigen</button></div>
-        <span class="leise">Tipp: Im Auswahlfenster auf dem Mac mit Cmd+Shift+G den Pfad einfügen, unter Windows oben in die Adresszeile.</span></li>
-    </ol>
-    <p class="hilfe" id="erweiterung-warten">Sobald die Erweiterung geladen ist, steht das hier von selbst.</p>
+  <!-- 1. What is sought: neutral, the form of address is not known yet -->
+  <section class="card" id="gesucht" data-schritt="gesucht" aria-labelledby="gesucht-titel" hidden>
+    <h2 id="gesucht-titel">Was wird gesucht?</h2>
+    <div class="choice-cards" role="group" aria-labelledby="gesucht-titel">
+      <button type="button" class="choice-card" data-gesucht="stelle" aria-pressed="true"><strong>Eine Stelle</strong><span>Für die Suche nach einer Arbeitsstelle.</span></button>
+      <button type="button" class="choice-card" data-gesucht="lehrstelle" aria-pressed="false"><strong>Eine Lehrstelle</strong><span>Für Jugendliche, auch Schnupperlehren.</span></button>
+    </div>
+    <fieldset id="anrede" class="choice-group">
+      <legend>Wie soll die App Sie ansprechen?</legend>
+      <label class="check"><input type="radio" name="anrede" value="sie" checked> Mit Sie (Vorgabe)</label>
+      <label class="check"><input type="radio" name="anrede" value="du"> Mit du</label>
+    </fieldset>
+    <p id="anrede-lehrstelle" class="field__hint" hidden>Bei Lehrstellen spricht die App mit du.</p>
+    <fieldset class="choice-group">
+      <legend>Beim RAV gemeldet?</legend>
+      <label class="check"><input type="radio" name="rav" value="ja" checked> Ja</label>
+      <label class="check"><input type="radio" name="rav" value="nein"> Nein</label>
+      <p class="field__hint">Mit Ja hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.</p>
+    </fieldset>
+    <p class="field__hint">Lässt sich später unter Meine Angaben ändern.</p>
+    <p id="gesucht-status" class="status-line" role="status" aria-live="polite"></p>
+    <div class="btn-row setup__actions"><button type="button" class="btn btn--primary" id="gesucht-weiter">Weiter</button></div>
   </section>
 
-  <div class="knoepfe weiter"><a id="fertig" class="knopf haupt" href="/" hidden>Fertig: zu den Bewerbungen</a></div>
+  <!-- 2. Data folder -->
+  <section class="card" id="datenordner" data-schritt="datenordner" aria-labelledby="ordner-titel" hidden>
+    <h2 id="ordner-titel" data-text="einrichtung.ordner.frage">Wo sollen Ihre Unterlagen liegen?</h2>
+    <p data-text="einrichtung.ordner.text">In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf Ihrem Computer.</p>
+    <p id="ordner-fehlt" class="notice notice--warning" role="alert" hidden></p>
+    <div class="field">
+      <label class="field__label" for="ordner">Datenordner</label>
+      <div class="setup__path"><input class="input" id="ordner" spellcheck="false" autocomplete="off"><button type="button" class="btn" id="ordner-waehlen">Ordner wählen …</button></div>
+      <p class="field__hint">Ein Ordner, der gesichert wird, ist gut. Ein Cloud-Ordner wie OneDrive funktioniert auch.</p>
+    </div>
+    <p id="ordner-status" class="status-line" role="status" aria-live="polite"></p>
+    <div class="btn-row setup__actions"><button type="button" class="btn btn--primary" id="ordner-uebernehmen">Ordner anlegen und weiter</button></div>
+  </section>
+
+  <!-- 3. Einstieg file, optional -->
+  <section class="card" id="vorlage" data-schritt="vorlage" aria-labelledby="vorlage-titel" hidden>
+    <h2 id="vorlage-titel">Angaben aus der Einstiegsvorlage</h2>
+    <p>Wer die Einstiegsvorlage ausgefüllt hat, hat eine Datei <strong>einstieg.zip</strong> oder <strong>einstieg.json</strong>, meist im Ordner Downloads.</p>
+    <p data-text="einrichtung.vorlage.ohne">Ohne diese Datei überspringen Sie den Schritt und erfassen Ihre Angaben danach unter Meine Angaben, auch aus Unterlagen wie PDF oder Word.</p>
+    <div class="field">
+      <label class="field__label" for="datei">Datei</label>
+      <div class="setup__path"><input class="input" id="datei" spellcheck="false" autocomplete="off"><button type="button" class="btn" id="datei-waehlen">Datei wählen …</button></div>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn" id="importieren">Importieren</button>
+      <button type="button" class="btn btn--danger" id="ersetzen" hidden>Vorhandene Dateien ersetzen</button>
+    </div>
+    <p id="import-status" class="status-line" role="status" aria-live="polite"></p>
+    <ul id="import-ergebnis" class="befunde"></ul>
+    <div class="btn-row setup__actions setup__actions--split"><button type="button" class="btn btn--quiet" id="vorlage-ueberspringen">Überspringen</button><button type="button" class="btn btn--primary" id="vorlage-weiter">Weiter</button></div>
+  </section>
+
+  <!-- 4. AI -->
+  <section class="card" id="ki" data-schritt="ki" aria-labelledby="ki-titel" hidden>
+    <h2 id="ki-titel">KI einrichten</h2>
+    <p><span data-text="einrichtung.ki.aufgabe">Die KI schätzt Stellen ein und entwirft Anschreiben.</span> <span id="ki-code-hinweis" data-text="einrichtung.ki.code" hidden>Sie haben von Ihrer Begleitperson einen Einladungscode erhalten.</span></p>
+    <div id="ki-einladung" class="field" hidden>
+      <label class="field__label" for="ki-code">Einladungscode</label>
+      <div class="setup__path setup__path--code"><input class="input setup__code" id="ki-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button type="button" class="btn" id="ki-einloesen">Einladung einlösen</button></div>
+    </div>
+    <p id="ki-zustand" class="status-line" role="status" aria-live="polite"></p>
+    <details id="ki-ohne" class="setup__more">
+      <summary>Ich habe keinen Code</summary>
+      <p data-text="einrichtung.ki.ohne">Ohne KI funktionieren Suche, Unterlagen und Versand trotzdem. Anschreiben laden Sie dann selbst hoch, und Treffer bekommen keine Note.</p>
+      <p><span data-text="einrichtung.ki.selbst">Mit einem eigenen Schlüssel von Anthropic oder Ihrem Claude-Abo zahlen Sie die Kosten selbst:</span> <a href="/einstellungen">Erweiterte Einstellungen</a>.</p>
+    </details>
+    <div class="btn-row setup__actions setup__actions--split"><button type="button" class="btn btn--quiet" id="ki-ueberspringen">Ohne KI weiter</button><button type="button" class="btn btn--primary" id="ki-weiter">Weiter</button></div>
+  </section>
+
+  <!-- 5. Browser extension -->
+  <section class="card" id="erweiterung" data-schritt="erweiterung" aria-labelledby="erweiterung-titel" hidden>
+    <h2 id="erweiterung-titel">Browser-Erweiterung laden</h2>
+    <p>Die Erweiterung sucht auf den Portalen und füllt Bewerbungsformulare aus. Abschicken macht sie nie. Im Pilot wird sie von Hand geladen, das geht einmal und dauert etwa zwei Minuten.</p>
+    <ol id="erweiterung-schritte" class="setup__instructions">
+      <li>In Chrome oder Edge diese Adresse öffnen:
+        <div class="copy-row setup__copy"><span class="copy-row__value setup__mono">chrome://extensions</span><button type="button" class="btn btn--sm" data-kopieren="chrome://extensions">Kopieren</button></div>
+        <div class="btn-row"><button type="button" class="btn btn--sm" data-browser="chrome">In Chrome öffnen</button><button type="button" class="btn btn--sm" data-browser="edge">In Edge öffnen</button></div></li>
+      <li>Den <strong>Entwicklermodus</strong> einschalten (Chrome: oben rechts, Edge: links). Das ist für den Pilot nötig und ändert sonst nichts am Browser.</li>
+      <li><strong>Entpackte Erweiterung laden</strong> wählen und diesen Ordner angeben:
+        <div class="copy-row setup__copy"><span id="erweiterung-ordner" class="copy-row__value setup__mono"></span><button type="button" class="btn btn--sm" id="pfad-kopieren">Kopieren</button></div>
+        <div class="btn-row"><button type="button" class="btn btn--sm" id="ordner-zeigen">Ordner zeigen</button></div>
+        <p class="field__hint">Im Auswahlfenster auf dem Mac mit Cmd+Shift+G den Pfad einfügen, unter Windows oben in die Adresszeile.</p></li>
+    </ol>
+    <div id="erweiterung-warten" class="progress setup__waiting" role="status" aria-live="polite">
+      <div class="progress__head"><strong>Wartet auf die Erweiterung</strong></div>
+      <div class="progress__busy" aria-hidden="true"></div>
+      <p class="progress__note">Sobald die Erweiterung geladen ist, geht es hier von selbst weiter.</p>
+    </div>
+    <p id="erweiterung-zustand" class="status-line" role="status" aria-live="polite"></p>
+    <div class="btn-row setup__actions setup__actions--split"><button type="button" class="btn btn--quiet" id="erweiterung-spaeter">Später einrichten</button><button type="button" class="btn btn--primary" id="erweiterung-weiter" disabled>Weiter</button></div>
+  </section>
+
+  <!-- Done -->
+  <section class="card" id="fertig" data-schritt="fertig" aria-labelledby="fertig-titel" hidden>
+    <h2 id="fertig-titel">Alles eingerichtet</h2>
+    <ul id="fertig-liste" class="setup__summary"></ul>
+    <div class="btn-row setup__actions"><a id="fertig-weiter" class="btn btn--primary" href="/angaben">Meine Angaben erfassen</a></div>
+  </section>
 </main>
 <script src="/app.js"></script>
+<script src="/texte.js"></script>
 <script src="/einrichtung.js"></script>
 </body>
 </html>

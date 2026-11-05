@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2zRx7mEoWNFh5LyMtJZrAn/AjEwAz4yhhUTKzov+wbA='; style-src 'sha256-Lv58QTnvDkfLf6bj5aCzylKSXxe86N5o32+dUtmyj3I='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-/0JAsVknCfrF9lqx1jQyGu5lEqiF3b8d5/bfdyFuurg='; style-src 'sha256-Lv58QTnvDkfLf6bj5aCzylKSXxe86N5o32+dUtmyj3I='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsassistent</title>
@@ -1300,7 +1300,8 @@ async function loadStored() {
   try {
     if (backend) {
       const overview = await backend.overview();
-      applyStored(overview.stand);
+      // Nothing entered yet: start in the track the setup chose (MIN-369), the cards only show it.
+      applyStored(overview.stand || (overview.gesucht ? { track: overview.gesucht, data: {} } : null));
       notTakenOver = Boolean(overview.stand && overview.stand.offen === true);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
