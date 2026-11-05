@@ -222,12 +222,11 @@ def test_one_application_comes_without_the_job_room_part(paths):
     assert "jobroom" not in got and "rav_zuweisung" not in got["bewerbung"] and got["stellentext"] == "Inserat"
 
 
-def test_updating_merges_into_the_whole_entry_and_keeps_what_claude_cannot_see(paths):
+def test_updating_sends_only_the_named_fields_so_it_overwrites_nothing_the_person_changed(paths):
     entry = {**FULL_ENTRY, "status": "Gemerkt", "versand": []}
     mcp, host = server(paths, {("GET", "/api/bewerbung"): {"bewerbung": entry}, ("POST", "/api/bewerbung"): {**entry, "notiz": "neu"}})
     got = payload(call(mcp, "update_application", id="a-1", felder={"notiz": "neu", "status": "Bewerben"}))
-    sent = host.calls[-1][2]
-    assert sent["notiz"] == "neu" and sent["status"] == "Bewerben" and sent["rav_zuweisung"] is True
+    assert host.calls[-1][2] == {"id": "a-1", "notiz": "neu", "status": "Bewerben"}
     assert "rav_zuweisung" not in got
 
 

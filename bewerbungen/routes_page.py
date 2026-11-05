@@ -32,7 +32,7 @@ BAD_LINK = "Diese Seite hat keine gültige Webadresse."
 NO_TEXT = "Der Text des Inserats fehlt."
 BAD_GRADE = "Die Bewertung hat eine unbekannte Form."
 SUMMARY_FIELDS = ("id", "firma", "stelle", "status")
-SITES_WITHOUT_PORTAL = ("linkedin.com",)  # Claude reads them for the person, the search has no list of them
+SITES_WITHOUT_PORTAL = ("linkedin.com",)  # the person gives Claude these ads, the search has no list of them
 LINK_NOT_TAKEN = "Adresse von Claude, nicht geprüft: {link}. Stimmt sie, tragen Sie sie selbst bei „Link zum Inserat“ ein."
 _SAVE = threading.Lock()
 

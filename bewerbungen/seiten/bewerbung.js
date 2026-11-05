@@ -1,6 +1,7 @@
 "use strict";
 (() => {
-  const { holen, senden, el, status, datum, url, bestaetigen } = window.App;
+  const { holen, senden, el, status, datum, url, bestaetigen, beobachten } = window.App;
+  const { geaenderteFelder } = window.FormularLogik;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const FELDER = ["firma", "stelle", "firma_schluessel", "ort", "pensum", "vermittler", "portal", "link", "formular_link",
@@ -9,7 +10,10 @@
   const JOBROOM = [["datum", "Datum der Bewerbung"], ["arbeitgeber", "Arbeitgeber"], ["adresse", "Adresse"],
     ["kontaktperson", "Kontaktperson"], ["kontakt", "Telefon / E-Mail"], ["stelle", "Stelle"], ["pensum", "Pensum"],
     ["art", "Art der Bewerbung"], ["ergebnis", "Ergebnis"], ["rav_zuweisung", "Zuweisung des RAV"]];
+  const ANDERSWO_GEAENDERT = "Diese Bewerbung wurde inzwischen auch anderswo geändert. Ihre Eingaben bleiben stehen, und gespeichert werden nur die Felder, die Sie geändert haben.";
   let bewerbung = null;
+  let geladenerText = "";
+  let pdfStand = "";
 
   const meldung = (text, art) => status($("status"), text, art);
   const meldungOben = (text, art) => status($("status-oben"), text, art);
@@ -32,6 +36,7 @@
     }
     $("f-rav_zuweisung").checked = !!bewerbung.rav_zuweisung;
     $("stellentext").value = daten.stellentext;
+    geladenerText = daten.stellentext;
   }
 
   function jobroomText(key, wert) {
@@ -137,15 +142,43 @@
     }
   }
 
+  function zeigeEintrag(daten) {
+    zeigeAngaben(daten);
+    zeigeJobroom(daten.jobroom);
+    zeigeRav();
+    zeigeVersand(daten.bewerbung);
+  }
+
+  function hatEingaben() {
+    return Object.keys(geaenderteFelder(bewerbung, formularWerte())).length > 0 || $("stellentext").value !== geladenerText;
+  }
+
+  /** Shows what Claude wrote meanwhile. What the person is typing stays: the form is only replaced when it holds nothing new. */
+  async function nachsehen() {
+    if (!bewerbung) return;
+    let daten;
+    try {
+      daten = await holen("/api/bewerbung", { id: ID });
+    } catch {
+      return; // the app is closing or the entry is gone; the next action says so
+    }
+    if (JSON.stringify(daten.pdf_stand) !== pdfStand) {
+      pdfStand = JSON.stringify(daten.pdf_stand);
+      zeigePdfs(daten.pdfs);
+      if (daten.pdfs.lebenslauf) pruefen();
+    }
+    if (JSON.stringify(daten.bewerbung) === JSON.stringify(bewerbung) && daten.stellentext === geladenerText) return;
+    if (hatEingaben()) meldung(ANDERSWO_GEAENDERT, "hinweis");
+    else zeigeEintrag(daten);
+  }
+
   async function laden() {
     if (!ID) return meldungOben("Keine Bewerbung gewählt", "fehler");
     try {
       const daten = await holen("/api/bewerbung", { id: ID });
-      zeigeAngaben(daten);
-      zeigeJobroom(daten.jobroom);
-      zeigeRav();
-      zeigeVersand(daten.bewerbung);
+      zeigeEintrag(daten);
       zeigePdfs(daten.pdfs);
+      pdfStand = JSON.stringify(daten.pdf_stand);
       zeigeZertifikate().catch(fehler => status($("zertifikate-status"), fehler.message, "fehler"));
       if (!daten.hat_anschreiben) meldungOben("Noch kein Anschreiben (bewerbungen/" + ID + "/anschreiben.yaml) – der Skill „bewerbung“ erstellt den Entwurf.", "hinweis");
       if (daten.pdfs.lebenslauf) pruefen();
@@ -156,7 +189,7 @@
 
   async function speichere(werte, text) {
     try {
-      bewerbung = await senden("/api/bewerbung", werte);
+      bewerbung = await senden("/api/bewerbung", { id: bewerbung.id, ...geaenderteFelder(bewerbung, werte) });
       meldung(text, "ok");
       await laden();
     } catch (fehler) {
@@ -214,4 +247,5 @@
     }
   });
   laden();
+  beobachten(nachsehen);
 })();

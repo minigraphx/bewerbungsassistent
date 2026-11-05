@@ -14,13 +14,15 @@ Die KI-Knöpfe in der App (zum Beispiel „Bewerten“ oder „Entwurf erstellen
 - **Ihr Vertrag:** Es gilt Ihr eigener Vertrag mit Anthropic, auch in den USA. Ob Ihre Chats zum Training dienen, stellen Sie in Claude unter den Einstellungen zum Datenschutz ein.
 - **Alter:** Claude setzt laut den [Bedingungen von Anthropic](https://www.anthropic.com/legal/consumer-terms) mindestens 18 Jahre voraus. Für jüngere Lehrstellensuchende passt dieser Weg nicht; sie nutzen die App mit Einladung.
 - **Kosten und Grenzen:** Die Nutzung zählt auf die Grenzen Ihres Abos. Eine Suche über mehrere Portale braucht viel davon.
-- **Portale:** Claude liest die Portale in Ihrem Browser. Für LinkedIn gilt: LinkedIn verbietet Automatisierung und kann Konten einschränken. Das Risiko liegt bei Ihnen.
+- **Portale:** Claude liest die Portale in Ihrem Browser. LinkedIn liest Claude nicht, denn LinkedIn verbietet Automatisierung und kann Konten einschränken. Dort öffnen Sie das Inserat selbst und klicken in der Erweiterung des Bewerbungsassistenten auf „Stelle speichern“.
 
 Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ihnen. Dafür hat die Verbindung zur App keine Werkzeuge. Ist eine Bewerbung verschickt, ändert Claude dort nur noch die Notiz, denn der Nachweis für das RAV stützt sich auf diese Angaben.
 
-**Links:** „Bewerben“ öffnet den Link einer Bewerbung und füllt dort Ihre Angaben ein. Darum übernimmt die App einen Link von Claude nur für die Portale der Suche, LinkedIn und Seiten, die Sie unter „Weitere Seiten durchsuchen“ eingetragen haben. Bei anderen Seiten steht die Adresse in der Notiz. Stimmt sie, tragen Sie sie bei der Bewerbung selbst unter „Link zum Inserat“ ein.
+**Links:** „Bewerben“ öffnet den Link einer Bewerbung und füllt dort Ihre Angaben ein. Darum übernimmt die App einen Link von Claude nur für die Portale der Suche, LinkedIn und Seiten, die Sie unter „Weitere Seiten durchsuchen“ eingetragen haben. Bei anderen Seiten steht die Adresse in der Notiz. Stimmt sie, tragen Sie sie bei der Bewerbung selbst unter „Link zum Inserat“ ein. Speichern Sie ein Inserat selbst mit „Stelle speichern“, ist der Link immer dabei.
 
-**Claude in Chrome:** Diese Grenzen gelten für die Verbindung zur App. Claude in Chrome bedient den Browser und könnte auch eine offene Seite der App bedienen. Schliessen Sie darum den Tab der App, solange Claude im Browser arbeitet.
+**App offen lassen:** Die App kann offen bleiben, während Claude arbeitet. Was Claude schreibt, erscheint nach wenigen Sekunden von selbst. Was Sie gerade eintippen, bleibt stehen, und beim Speichern ändert die App nur die Felder, die Sie geändert haben.
+
+**Claude in Chrome:** Die Grenzen oben gelten für die Verbindung zur App. Claude in Chrome bedient den Browser und ist daran nicht gebunden: Es könnte auch in der App klicken, zum Beispiel auf „Versand erfassen“. Die Skills weisen Claude an, die Seiten der App nicht zu bedienen. Das ist eine Anweisung, keine technische Sperre. Ziehen Sie den Tab der App darum nicht in die [Tab-Gruppe von Claude](https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome), starten Sie Claude in Chrome nicht in diesem Tab, und lehnen Sie ab, falls Claude dort etwas tun will. Wer jede Aktion selbst freigeben will, stellt das in den [Berechtigungen von Claude in Chrome](https://support.claude.com/en/articles/12902446-claude-in-chrome-permissions-guide) ein.
 
 **Zurück:** Änderungen an Ihren Texten und am Register sichert die App als Entwurf; unter „Entwürfe“ kommen Sie zurück. Nicht dabei sind die Trefferliste auf der Seite „Suche“ und neu gebaute PDFs, die sich aus den Texten wieder bauen lassen.
 
@@ -28,7 +30,7 @@ Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ih
 
 Sie brauchen ein bezahltes Abo, weil [Claude in Chrome](https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome) nur damit läuft.
 
-1. **App laden und starten**, wie in der [Installation](installation.md) beschrieben. Die Einladung und die Browser-Erweiterung des Bewerbungsassistenten können Sie überspringen.
+1. **App laden und starten**, wie in der [Installation](installation.md) beschrieben. Die Einladung können Sie überspringen. Die [Browser-Erweiterung des Bewerbungsassistenten](installation.md#schritt-4-browser-erweiterung) brauchen Sie, um Inserate von LinkedIn und anderen Seiten einzulesen.
 2. **Zugang einschalten:** In der App unter Menü, „Erweiterte Einstellungen“, Abschnitt „Mit dem eigenen Claude-Abo arbeiten“. Hinweise lesen, Häkchen setzen, „Zugang einschalten“.
 
    ![Abschnitt „Mit dem eigenen Claude-Abo arbeiten“ in den erweiterten Einstellungen, mit den drei Skills, dem Knopf zum Eintragen in Claude Desktop und dem Knopf zum Ausschalten](bilder/einstellungen-claude.jpg)
@@ -53,6 +55,10 @@ Claude fragt nach, was fehlt, und speichert Lebenslauf, Suchprofil, Stil und Bau
 
 Claude holt in der App den Suchplan, liest die gewählten Portale in Chrome, gibt die Inserate an die App und bewertet sie. Die Treffer stehen danach in der App unter „Suche“, mit Note und Begründung. Kommt ein Portal mit einer Anmeldung oder einem CAPTCHA, ist das Ihre Aufgabe.
 
+**Inserat einlesen.** Für LinkedIn und jede andere Seite: Inserat selbst öffnen, auf das Symbol der Erweiterung klicken, Stelle und Firma prüfen und **Stelle speichern** klicken. Das braucht keine KI. Die Stelle steht danach in der App unter „Bewerbungen“, und Claude findet sie dort:
+
+> Bewerte die Stelle bei der Muster AG, die ich gerade gespeichert habe.
+
 **Bewerben.**
 
 > Bewirb mich auf die Stelle bei der Muster AG: Variante wählen, Anschreiben entwerfen, Unterlagen erstellen und prüfen.
@@ -69,7 +75,7 @@ Claude übernimmt die Stelle ins Register, schlägt eine Lebenslauf-Variante vor
 | „Die App startet nicht.“ | App von Hand öffnen und nochmals versuchen. |
 | Die App wurde verschoben | In den erweiterten Einstellungen „Eintrag in Claude Desktop erneuern“ klicken. |
 | `save_job` meldet `link_gespeichert: false` | Die Adresse steht in der Notiz der Bewerbung. Prüfen und selbst unter „Link zum Inserat“ eintragen. |
-| „Bewerten“ in der App meldet, die KI sei nicht eingerichtet | Auf diesem Weg bewertet Claude: „Bewerte die neuen Treffer in der App.“ |
+| „Bewerten“ in der App oder „Stelle prüfen“ in der Erweiterung meldet, die KI sei nicht eingerichtet | Auf diesem Weg bewertet Claude: „Bewerte die neuen Treffer in der App.“ In der Erweiterung nehmen Sie „Stelle speichern“. |
 
 ## Wieder ausschalten
 

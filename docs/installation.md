@@ -16,8 +16,8 @@ Im Pilot ist die App noch nicht signiert. Darum warnt Ihr Betriebssystem beim er
 
 ### Windows
 
-1. `Bewerbungsassistent-Setup-<Version>.exe` herunterladen und öffnen.
-2. Erscheint „Der Computer wurde durch Windows geschützt“: auf **Weitere Informationen** klicken, dann auf **Trotzdem ausführen**.
+1. `Bewerbungsassistent-Setup-<Version>.exe` herunterladen und öffnen. Warnt der Browser beim Herunterladen, behalten Sie die Datei.
+2. Erscheint „Der Computer wurde durch Windows geschützt“: auf **Weitere Informationen** klicken, dann auf **Trotzdem ausführen**. Die App ist nicht signiert, darum diese Warnung.
 3. Die Installation durchlaufen. Administratorrechte braucht es nicht. Die App steht danach im Startmenü.
 
 Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
@@ -53,7 +53,7 @@ Tragen Sie den Einladungscode ein und klicken Sie auf **Einladung einlösen**. H
 
 ### Schritt 4: Browser-Erweiterung
 
-Die Erweiterung sucht in Ihrem Browser nach Stellen. Bis sie im Store ist, laden Sie sie einmal von Hand.
+Die Erweiterung sucht in Ihrem Browser nach Stellen. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**. Bis sie im Store ist, laden Sie sie einmal von Hand.
 
 ![Schritt Browser-Erweiterung mit den Knöpfen In Chrome öffnen, In Edge öffnen, Pfad kopieren und Ordner zeigen](bilder/einrichtung-erweiterung.jpg)
 
@@ -153,6 +153,7 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 
 | Meldung oder Problem | Was hilft |
 |---|---|
+| Windows blockiert die Datei, und **Trotzdem ausführen** fehlt | Vermutlich ist [Smart App Control](https://support.microsoft.com/de-de/windows/smart-app-control-frequently-asked-questions-285ea03d-fa88-4d56-882e-6698afdb7003) aktiv. Es blockiert nicht signierte Programme, und laut Microsoft gibt es keine Ausnahme für einzelne Programme. Die App läuft dann nur, wenn Sie es in der Windows-Sicherheit ausschalten. Das gilt für alle Programme; entscheiden Sie das bewusst, bei Jugendlichen zusammen mit der Begleitperson. |
 | „Für die Suche braucht es die Browser-Erweiterung.“ | Die Erweiterung ist nicht geladen oder ausgeschaltet. Gehen Sie zu [Schritt 4](#schritt-4-browser-erweiterung), oder schalten Sie sie auf der Erweiterungsseite ein. |
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
 | „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 3](#schritt-3-ki-unterstützung) ein. |

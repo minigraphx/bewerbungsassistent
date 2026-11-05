@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  const { holen, senden, el, status, datum } = window.App;
+  const { holen, senden, el, status, datum, beobachten } = window.App;
   const $ = id => document.getElementById(id);
   // Spalten: Schlüssel im Register, Überschrift, Art (bestimmt die Sortierung)
   const SPALTEN = [
@@ -21,6 +21,7 @@
   const ANSICHT = "uebersicht.ansicht";  // Sortierung, Suche, Filter und Scrollposition bleiben beim Seitenwechsel erhalten
   let wiederhergestellt = false;  // Scrollposition erst speichern, wenn die gemerkte gesetzt ist
   let alle = [];
+  let gezeigt = "";  // the register as last drawn, to see whether Claude changed it
   let statusReihe = [];
   let sortierung = { spalte: null, richtung: 1 };  // null = Reihenfolge des Servers (nach Status)
   let blockers = new Map();  // id → reason it cannot be opened; only what the app listed can be ticked
@@ -244,10 +245,21 @@
     }
   }
 
+  /** Claude writes into the register while this page is open; drawn anew only when something changed, so nothing jumps. */
+  async function nachsehen() {
+    try {
+      const { bewerbungen } = await holen("/api/bewerbungen");
+      if (JSON.stringify(bewerbungen) !== gezeigt) await laden();
+    } catch {
+      /* the app is closing; the next action says so */
+    }
+  }
+
   async function laden() {
     try {
       const daten = await holen("/api/bewerbungen");
       await loadChoice();
+      gezeigt = JSON.stringify(daten.bewerbungen);
       alle = daten.bewerbungen;
       statusReihe = daten.status;
       $("statusfilter").replaceChildren(el("option", { value: "" }, "Alle Status"),
@@ -283,6 +295,7 @@
   });
   // The tabs of the forms report to the app; the list shows it on the way back.
   document.addEventListener("visibilitychange", () => { if (!document.hidden) laden(); });
+  beobachten(nachsehen);
   $("anlegen").addEventListener("click", async () => {
     try {
       const b = await senden("/api/bewerbung/neu", { firma: $("neu-firma").value, stelle: $("neu-stelle").value });

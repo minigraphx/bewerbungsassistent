@@ -74,6 +74,33 @@ test('text is cut to the limit', () => {
   assert.equal(toAd(page({ text: LONG.repeat(100) })).text.length, 30000);
 });
 
+test('signed in, LinkedIn only names job and company in the title of the tab', () => {
+  const signedIn = (extra) => page({ url: 'https://www.linkedin.com/jobs/view/4242/', siteName: '', ogTitle: '', heading: 'Weitere Stellen', ...extra });
+
+  const ad = toAd(signedIn({ title: '(3) Data Engineer | Muster AG | LinkedIn' }));
+  assert.equal(ad.stelle, 'Data Engineer');
+  assert.equal(ad.firma, 'Muster AG');
+
+  const list = toAd(signedIn({ title: 'Python Jobs in Bern | LinkedIn', heading: 'Python Jobs' }));
+  assert.equal(list.stelle, 'Python Jobs');
+  assert.equal(list.firma, '');
+
+  const elsewhere = toAd(page({ title: 'Data Engineer | Muster AG | LinkedIn', heading: 'Kopfzeile' }));
+  assert.equal(elsewhere.stelle, 'Kopfzeile');
+});
+
+test('an ad on LinkedIn gets its own address, wherever the person opened it', () => {
+  const link = (url) => toAd(page({ url })).link;
+
+  assert.equal(link('https://www.linkedin.com/jobs/search/?currentJobId=4242&keywords=python&geoId=1'), 'https://www.linkedin.com/jobs/view/4242/');
+  assert.equal(link('https://www.linkedin.com/jobs/collections/recommended/?currentJobId=4242'), 'https://www.linkedin.com/jobs/view/4242/');
+  assert.equal(link('https://ch.linkedin.com/jobs/view/4242/?trk=abc'), 'https://www.linkedin.com/jobs/view/4242/');
+  assert.equal(link('https://www.linkedin.com/jobs/view/data-engineer-at-muster-ag-4242?refId=x'), 'https://www.linkedin.com/jobs/view/4242/');
+  assert.equal(link('https://www.linkedin.com/feed/?currentJobId=abc'), 'https://www.linkedin.com/feed/?currentJobId=abc');
+  assert.equal(link('https://evil.example/jobs/search/?currentJobId=4242'), 'https://evil.example/jobs/search/?currentJobId=4242');
+  assert.equal(link('https://linkedin.com.evil.example/jobs/view/4242/'), 'https://linkedin.com.evil.example/jobs/view/4242/');
+});
+
 test('the name of a job portal is not taken for the company', () => {
   const ad = toAd(page({ url: 'https://www.linkedin.com/jobs/view/1/', siteName: 'LinkedIn', heading: '',
     ogTitle: 'Muster AG hiring Data Engineer in Bern, Switzerland | LinkedIn', title: 'x' }));

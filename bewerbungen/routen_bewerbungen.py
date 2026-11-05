@@ -40,6 +40,7 @@ def details(k, parameter, body):
         "jobroom": jobroom_angaben(b),
         "stellentext": _stellentext(k, b["id"]),
         "pdfs": {art: p.is_file() for art, p in pfade.items()},
+        "pdf_stand": {art: p.stat().st_mtime_ns if p.is_file() else None for art, p in pfade.items()},
         "hat_anschreiben": pfade["anschreiben"].with_suffix(".yaml").is_file(),
         "varianten": k.varianten().alle(),
         "status": list(STATUS),
@@ -54,9 +55,9 @@ def speichern(k, parameter, body):
     def schreiben():
         # Unter der Sperre lesen: ein gleichzeitiger Versand darf nicht überschrieben werden.
         # Versand, Zertifikate, Stand des Formulars und Eintrag im RAV setzen eigene Routen, nie das Formular.
+        # Fields not named stay: the page and Claude write side by side (MIN-377), each only sends what it changes.
         alt = register.hole(body["id"])
-        geschuetzt = {key: alt[key] for key in EIGENE_ROUTEN if key in alt}
-        return register.speichere({**{key: v for key, v in body.items() if key not in EIGENE_ROUTEN}, **geschuetzt})
+        return register.speichere({**alt, **{key: v for key, v in body.items() if key not in EIGENE_ROUTEN}})
 
     gespeichert = k.mit_entwurf(register.pfad, f"Bewerbung {body['id']} geändert", schreiben)
     return json_antwort(gespeichert)

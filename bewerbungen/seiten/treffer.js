@@ -2,13 +2,14 @@
 // Hits of the job search (MIN-339): list, rate with the AI in packages (MIN-372), take over into the register, discard.
 // The search itself runs in the browser extension; this page starts it through app-bridge.js.
 (() => {
-  const { holen, senden, el, status, datum } = window.App;
+  const { holen, senden, el, status, datum, beobachten } = window.App;
   const logik = window.TrefferLogik;
   const $ = id => document.getElementById(id);
   const SEITE = "bewerbungsassistent-seite";
   const ERWEITERUNG = "bewerbungsassistent-erweiterung";
 
   let alle = [];
+  let gezeigt = "";  // the hits as last loaded, to see whether Claude changed them
   let einstellungen = { auto_bewerten: true, zuschauen: false, beruf_sterne: {} };
   let paket = 10;
   let grenze = 30;
@@ -261,11 +262,23 @@
 
   let ladeNummer = 0;
 
+  /** Claude adds and rates hits while this page is open; a rating run of the page updates the list itself. */
+  async function nachsehen() {
+    if (bewertungslauf) return;
+    try {
+      const { treffer } = await holen("/api/suche/liste");
+      if (!bewertungslauf && JSON.stringify(treffer) !== gezeigt) await lade();
+    } catch {
+      /* the app is closing; the next action says so */
+    }
+  }
+
   async function lade() {
     const nummer = ++ladeNummer;
     try {
       const daten = await holen("/api/suche/liste");
       if (nummer !== ladeNummer) return; // a newer load is on its way, and this answer may be older
+      gezeigt = JSON.stringify(daten.treffer);
       alle = daten.treffer;
       einstellungen = daten.einstellungen;
       paket = daten.paket;
@@ -355,4 +368,5 @@
   else setTimeout(() => { if ($("suchen").disabled && !$("lauf").textContent) $("ohne-erweiterung").hidden = false; }, 1500);
   document.addEventListener("suchprofil-geaendert", lade);
   lade();
+  beobachten(nachsehen);
 })();

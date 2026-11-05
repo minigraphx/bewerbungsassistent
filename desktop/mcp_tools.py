@@ -99,7 +99,7 @@ def _checked_update(entry: dict, fields) -> dict:
         raise ValueError(STATE_REFUSED)
     if (entry.get("status") not in EARLY_STATES or entry.get("versand")) and not set(fields) <= set(UPDATABLE_WHEN_SENT):
         raise ValueError(SENT_REFUSED)
-    return {**entry, **fields}
+    return {"id": entry["id"], **fields}
 
 
 def _update_application(send: Send, args: dict) -> dict:
@@ -160,7 +160,7 @@ TOOLS = (
     Tool("take_over_hit", "Take a hit into the register, status „Gemerkt“. Only what the person wants or what fits well.",
          _post_for_id("/api/suche/uebernehmen"), ("/api/suche/uebernehmen",), ID, ("id",)),
     Tool("discard_hit", "Discard a hit; the person can bring it back on the page „Suche“.", _post_for_id("/api/suche/verwerfen"), ("/api/suche/verwerfen",), ID, ("id",), replaces=True),
-    Tool("save_job", "Save an ad from any other page (LinkedIn, a company's site) in the register with its text; an ad already in the register is not added twice. "
+    Tool("save_job", "Save an ad from any other page (a company's site, a text the person gives you) in the register with its text; an ad already in the register is not added twice. "
          "The link is kept only for the portals of the plan, LinkedIn and sites the person named; for others it goes to the note (link_gespeichert false): tell the person, "
          "who then enters it.",
          lambda send, args: send("POST", "/api/seite/von-claude", {key: args.get(key) for key in ("stelle", "firma", "ort", "link", "text")}),

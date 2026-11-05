@@ -9,7 +9,7 @@ Ziel: neue, passende Stellen finden, auf dem Portal vormerken und im **Register*
 
 ## Mit der App (Connector `bewerbungsassistent`)
 
-Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner: Die Portale liest Claude im Browser wie in den Abschnitten 2a bis 2e beschrieben, alles Übrige läuft über die App. Die Entwürfe sichert die App selbst; Befehle mit `.venv` und `Register(…)` entfallen.
+Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner: Die Portale liest Claude im Browser wie in den Abschnitten 2a bis 2e beschrieben, ausser LinkedIn; alles Übrige läuft über die App. Die Seiten der App bedient Claude nicht im Browser, auch nicht mit Claude in Chrome: Es schreibt nur über die Werkzeuge in die App, und die Person kann sie dabei offen haben. Die Entwürfe sichert die App selbst; Befehle mit `.venv` und `Register(…)` entfallen.
 
 | Im Skill | Werkzeug |
 |---|---|
@@ -19,7 +19,8 @@ Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet diese
 | Trefferliste eines Portals | `screen_hits`, danach nur die Inserate aus `holen` öffnen |
 | Inserate speichern | `save_hits` mit dem vollen Text, Portalname wie im Plan |
 | Bewerten nach Abschnitt 3 | `rate_hit` |
-| LinkedIn und Karriereseiten | `save_job`; meldet es `link_gespeichert: false`, der Person sagen, dass sie die Adresse aus der Notiz prüft und selbst einträgt |
+| LinkedIn | Abschnitt 2c, das Vormerken und die Prüfung auf LinkedIn entfallen: LinkedIn verbietet Automatisierung. Die Person öffnet Inserate selbst und klickt in der Erweiterung des Bewerbungsassistenten auf „Stelle speichern“. Die Stelle steht dann im Register: `list_applications`, `get_application`; bewerten mit `update_application` und `passung` |
+| Karriereseiten | `save_job`; meldet es `link_gespeichert: false`, der Person sagen, dass sie die Adresse aus der Notiz prüft und selbst einträgt |
 | Ins Register | `take_over_hit`; verwerfen mit `discard_hit` |
 | Lauf beenden | `finish_search` mit Anzahl und Problem pro Portal |
 

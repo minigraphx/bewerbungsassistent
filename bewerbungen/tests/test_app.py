@@ -428,3 +428,32 @@ def test_empty_data_folder_gives_no_internal_error(leerer_server):
 def test_basics_tell_whether_the_person_has_entered_anything(leerer_server, server):
     assert json.loads(get(leerer_server, "/api/grundlagen")[2]) == {"lebenslauf": False, "suchprofil": False}
     assert json.loads(get(server, "/api/grundlagen")[2])["lebenslauf"] is True
+
+
+def test_saving_some_fields_keeps_what_someone_else_wrote_meanwhile(server):
+    _, b = post(server, "/api/bewerbung/neu", {"firma": "Neu AG", "stelle": "Tester"})
+    post(server, "/api/bewerbung", {"id": b["id"], "notiz": "von Claude", "passung": 2})
+
+    status, saved = post(server, "/api/bewerbung", {"id": b["id"], "ort": "Bern"})
+
+    assert status == 200
+    assert (saved["notiz"], saved["passung"], saved["ort"], saved["firma"]) == ("von Claude", 2, "Bern", "Neu AG")
+
+
+def test_an_empty_field_clears_the_value(server):
+    _, b = post(server, "/api/bewerbung/neu", {"firma": "Neu AG", "stelle": "Tester"})
+    post(server, "/api/bewerbung", {"id": b["id"], "notiz": "alt"})
+
+    _, saved = post(server, "/api/bewerbung", {"id": b["id"], "notiz": ""})
+
+    assert "notiz" not in saved
+
+
+def test_details_say_when_the_documents_were_built(server):
+    _, _, inhalt = get(server, "/api/bewerbung", id=BRIEF_ID)
+    stand = json.loads(inhalt)["pdf_stand"]
+    post(server, "/api/unterlagen", {}, id=BRIEF_ID)
+    built = json.loads(get(server, "/api/bewerbung", id=BRIEF_ID)[2])["pdf_stand"]
+
+    assert set(stand) == {"lebenslauf", "anschreiben"}
+    assert isinstance(built["anschreiben"], int) and built["anschreiben"] != stand["anschreiben"]

@@ -2,7 +2,15 @@
 // Gemeinsame Hilfen aller Seiten. Inhalte werden nur als Text eingesetzt (textContent), nie als HTML.
 window.App = (() => {
   const DOWNLOAD_BEHALTEN_MS = 600000;
+  const NACHSEHEN_MS = 5000;
   const TOKEN = document.querySelector('meta[name="token"]').content;
+
+  /** Claude writes into the app while a page is open (MIN-377): look again as long as the page can be seen. */
+  function beobachten(nachsehen) {
+    const einmal = () => { if (!document.hidden) nachsehen(); };
+    setInterval(einmal, NACHSEHEN_MS);
+    document.addEventListener("visibilitychange", einmal);
+  }
 
   function url(pfad, parameter = {}) {
     return pfad + "?" + new URLSearchParams({ t: TOKEN, ...parameter });
@@ -281,5 +289,5 @@ window.App = (() => {
   }
   sicherungHinweis();
 
-  return { url, holen, senden, el, status, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe };
+  return { url, holen, senden, el, status, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe, beobachten };
 })();

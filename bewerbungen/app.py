@@ -49,6 +49,7 @@ SEITEN = {
     "/treffer": "treffer.html",
     "/treffer.js": "treffer.js",
     "/treffer-logik.js": "treffer-logik.js",
+    "/formular-logik.js": "formular-logik.js",
     "/beruf-vorschlag.js": "beruf-vorschlag.js",
     "/portal-wahl.js": "portal-wahl.js",
     "/angaben": "angaben.html",

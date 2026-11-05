@@ -24,6 +24,7 @@ Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet diese
 - Die Formate liefert `read_template` (`cv`, `suchprofil`, `suchprofil-lehrstelle`, `stil`, `bausteine`).
 - In Schritt 4 schreibt `write_file` jede Datei. Die App prüft sie vorher, baut beim Lebenslauf probehalber ein PDF und sichert die Entwürfe selbst. Eine Fehlermeldung beheben und nochmals schreiben.
 - Das PDF und das Foto sieht die Person in der App, unter „Lebenslauf“ und „Foto“.
+- Die Seiten der App bedient Claude nicht im Browser, auch nicht mit Claude in Chrome: Es schreibt nur über die Werkzeuge in die App, und die Person kann sie dabei offen haben.
 
 Fertig, wenn `write_file` alle vier Dateien angenommen hat und die Person den Lebenslauf in der App gesehen hat.
 

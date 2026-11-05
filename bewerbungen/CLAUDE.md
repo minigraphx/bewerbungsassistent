@@ -35,5 +35,5 @@ Verwaltung und lokale Oberfläche des Bewerbungsassistenten (MIN-261 Ablauf, MIN
 - Keine persönlichen Daten in diesem Repo; Tests nutzen die erfundenen Beispieldaten aus `../lebenslauf/data/`.
 - Seiten setzen Inhalte nur per `textContent` (Helfer `App.el`), nie `innerHTML`; keine Inline-Skripte (CSP).
 - Jeder Pfad aus Anfragen oder Index-Dateien läuft über `dateien.im_ordner` / `relativ`.
-- Schreiben ins Register immer über die ID.
+- Schreiben ins Register immer über die ID. `POST /api/bewerbung` ändert nur die genannten Felder: Die Seite (`seiten/formular-logik.js`) und Claude schreiben nebeneinander in dieselbe Bewerbung. Offene Seiten sehen mit `App.beobachten` nach und ersetzen nichts, was die Person gerade eintippt.
 - KI-Aufrufe nur über `ai.gateway.Gateway` mit Pseudonymizer; Tests nie gegen die echte API.

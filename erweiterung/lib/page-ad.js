@@ -9,6 +9,11 @@ const MIN_JOB_WORDS = 2;
 const JOB_WORDS = /\b(bewerb\w*|stelle\w*|aufgaben|anforderung\w*|profil|pensum|arbeitsort|lehrstelle|lehrbeginn|apply|application|responsibilit\w*|requirements?|qualifications?|vacancy|candidat\w*|poste|emploi|mansioni)\b/gi;
 const PORTALS = /^(linkedin|indeed|xing|glassdoor|jobs\.ch|jobscout24|jobup|monster|stepstone)/i;
 const LINKEDIN_TITLE = /^([^|]{1,150}?) (?:hiring|sucht|recrute|cerca) ([^|]{1,150}?) (?:in|à|a) ([^|]{1,150}?) \| LinkedIn/;
+// Signed in there is no og:title: the tab says "(3) Job | Company | LinkedIn". Other pages have fewer parts.
+const LINKEDIN_TAB = /^(?:\(\d+\) )?([^|]{1,150}?) \| ([^|]{1,150}?) \| LinkedIn$/;
+const LINKEDIN_HOST = /^(?:[a-z]{2,3}\.|www\.)?linkedin\.com$/;
+const LINKEDIN_AD_PATH = /^\/jobs\/view\/(?:[^/]*-)?(\d+)\/?$/;
+const LINKEDIN_AD_ID = /^\d+$/;
 const MAX_FIELD = 300;
 const MAX_DESCRIPTION = 60000;
 const ROUTE_FRAGMENT = /#!?\//;
@@ -121,6 +126,27 @@ function withoutFragment(url) {
   return ROUTE_FRAGMENT.test(url) ? url : url.split('#')[0];
 }
 
+/** The number of the ad on LinkedIn: in the path, or in the list where the person opened it beside other ads. */
+function linkedinAd(url) {
+  let parts;
+  try {
+    parts = new URL(url);
+  } catch {
+    return '';
+  }
+  if (!LINKEDIN_HOST.test(parts.hostname)) return '';
+  const inPath = parts.pathname.match(LINKEDIN_AD_PATH);
+  if (inPath) return inPath[1];
+  const inList = parts.searchParams.get('currentJobId') || '';
+  return parts.pathname.startsWith('/jobs/') && LINKEDIN_AD_ID.test(inList) ? inList : '';
+}
+
+/** One address per ad: lists on LinkedIn carry the search in theirs, and „Bewerben“ should open the ad. */
+function adLink(url) {
+  const id = linkedinAd(url);
+  return id ? `https://www.linkedin.com/jobs/view/${id}/` : withoutFragment(url);
+}
+
 function cut(value) {
   return String(value || '').slice(0, MAX_FIELD);
 }
@@ -134,12 +160,13 @@ export function toAd(page) {
   const pageTitle = cut(page.title);
   const siteName = cut(page.siteName);
   const linkedin = ogTitle.match(LINKEDIN_TITLE) || [];
+  const linkedinTab = (linkedinAd(page.url) && pageTitle.match(LINKEDIN_TAB)) || [];
   const tail = pageTitle.split(/\s[|–—-]\s/)[0].trim();
   return {
-    stelle: cut(text(posting && posting.title) || linkedin[2] || page.heading || ogTitle || tail),
-    firma: cut(companyOf(posting && posting.hiringOrganization) || linkedin[1] || (PORTALS.test(siteName) ? '' : siteName)),
+    stelle: cut(text(posting && posting.title) || linkedin[2] || linkedinTab[1] || page.heading || ogTitle || tail),
+    firma: cut(companyOf(posting && posting.hiringOrganization) || linkedin[1] || linkedinTab[2] || (PORTALS.test(siteName) ? '' : siteName)),
     ort: cut(placeOf(posting && posting.jobLocation) || linkedin[3] || ''),
-    link: withoutFragment(page.url),
+    link: adLink(page.url),
     text: found.inhalt.slice(0, MAX_TEXT),
     quelle: found.quelle,
   };
