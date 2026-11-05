@@ -5,6 +5,7 @@
   'use strict';
   if (globalThis.bewerbungsassistentBar || window !== window.top) return;
   const END_WAIT_MS = 6000;
+  const IN_THE_DIALOG = 'Dateien von dort ins Formular ziehen. Oder im Datei-Dialog: Mac ⇧⌘G und Pfad einfügen, Windows Pfad ins Feld „Dateiname“.';
   const ATTENTION = '⚠ ';
   const STYLE = `
     :host { all: initial; }
@@ -19,11 +20,15 @@
     .farben i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; border-radius: 2px; }
     button { font: inherit; padding: 4px 10px; border-radius: 4px; border: 1px solid #9aa5b1; background: transparent; color: #fff; cursor: pointer; }
     button.haupt { background: #fff; color: #1f2933; border-color: #fff; font-weight: 600; }
+    .pfad { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 13px; }
+    .pfad code { font: 12px ui-monospace, monospace; word-break: break-all; user-select: all; }
+    .pfad small { flex: 1 1 100%; color: #cbd2d9; }
   `;
   const HOST_STYLE = [['all', 'initial'], ['display', 'block'], ['opacity', '1'], ['visibility', 'visible']];
-  const LEGEND = [['#2e7d32', 'ausgefüllt'], ['#ef6c00', 'offen'], ['#c62828', 'selbst bestätigen'], ['#1565c0', 'Entwurf']];
+  const LEGEND = [['#2e7d32', 'ausgefüllt'], ['#ef6c00', 'offen'], ['#c62828', 'selbst bestätigen'], ['#1565c0', 'von der KI, bitte prüfen']];
   const BUTTONS = {
     hier: ['Hier ausfüllen', 'formular-hier', 'haupt'],
+    ordner: ['Dateien im Ordner zeigen', 'formular-ordner', ''],
     abgeschickt: ['Abgeschickt? Ja', 'formular-abgeschickt', 'haupt'],
     stoppen: ['Nicht mehr ausfüllen', 'formular-stoppen', ''],
     suche_abbrechen: ['Suche abbrechen', 'suche-abbrechen', ''],
@@ -59,6 +64,23 @@
     el.type = 'button';
     el.addEventListener('click', (event) => { if (event.isTrusted && barVisible()) send(art, id); });
     return el;
+  }
+
+  function folderLine(path) {
+    const line = element('div', 'pfad');
+    const copy = element('button', '', 'Pfad kopieren');
+    copy.type = 'button';
+    copy.addEventListener('click', async (event) => {
+      if (!event.isTrusted || !barVisible()) return;
+      try {
+        await navigator.clipboard.writeText(path);
+        copy.textContent = 'Kopiert';
+      } catch {
+        copy.textContent = 'Bitte von Hand markieren'; // a page can forbid the clipboard
+      }
+    });
+    line.append(element('code', '', path), copy, element('small', '', IN_THE_DIALOG));
+    return line;
   }
 
   function moveButton(bar) {
@@ -112,6 +134,7 @@
     bar.append(text);
     if (balken.farben) bar.append(legend(balken.farben));
     bar.append(...(balken.knoepfe || []).map((key) => button(BUTTONS[key], balken.id)), moveButton(bar));
+    if (balken.pfad) bar.append(folderLine(balken.pfad)); // the root is closed: the page does not learn the path
     ensureRoot().replaceChildren(style, bar);
     setTitleMark(Boolean(balken.aufmerksamkeit));
   }

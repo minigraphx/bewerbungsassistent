@@ -41,6 +41,7 @@ SEITEN = {
     "/dateien": "dateien.html",
     "/dateien.js": "dateien.js",
     "/eigenes-anschreiben.js": "eigenes-anschreiben.js",
+    "/dateien-ordner.js": "dateien-ordner.js",
     "/stil.css": "stil.css",
     "/app.js": "app.js",
     "/uebersicht.js": "uebersicht.js",
@@ -61,7 +62,7 @@ SEITEN = {
     "/einstellungen.js": "einstellungen.js",
     "/claude-abo.js": "claude-abo.js",
 }
-GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "bewerbungen/*/*.zip", "bewerbungen/*/an-formular/", "dokumente/", ".ki/", "suche/", ".sicherung.yaml"]
+GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "bewerbungen/*/*.zip", "bewerbungen/*/an-formular/", "bewerbungen/*/zum-hochladen/", "dokumente/", ".ki/", "suche/", ".sicherung.yaml"]
 log = logging.getLogger("bewerbungsassistent")
 
 

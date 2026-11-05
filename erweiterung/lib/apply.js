@@ -33,7 +33,7 @@ export function mergeReports(frames) {
   const sum = (key) => reports.reduce((total, r) => total + (Number(r[key]) || 0), 0);
   return {
     felder: sum('felder'), gefuellt: sum('gefuellt'), offen: sum('offen'), einwilligungen: sum('einwilligungen'),
-    entwuerfe: sum('entwuerfe'), ki: sum('ki'),
+    entwuerfe: sum('entwuerfe'), kiDateien: sum('kiDateien'), ki: sum('ki'),
     anmeldung: reports.some((r) => r.anmeldung),
     hinweise: [...new Set(reports.flatMap((r) => (Array.isArray(r.hinweise) ? r.hinweise : [])))],
   };
@@ -46,13 +46,14 @@ function plural(count, one, many) {
 /** The text of the bar: „14 Felder ausgefüllt, 3 offen, 1 Einwilligung bitte selbst prüfen“. */
 export function describeReport(merged) {
   if (merged.anmeldung) return { text: LOGIN, aufmerksamkeit: true, knoepfe: ['stoppen'] };
-  if (!merged.felder) return { text: NO_FORM, aufmerksamkeit: true, knoepfe: ['abgeschickt', 'stoppen'] };
+  if (!merged.felder) return { text: NO_FORM, aufmerksamkeit: true, knoepfe: ['ordner', 'abgeschickt', 'stoppen'] };
   const parts = [`${plural(merged.gefuellt, 'Feld', 'Felder')} ausgefüllt`, `${merged.offen} offen`];
   if (merged.entwuerfe) parts.push(`${plural(merged.entwuerfe, 'Textentwurf', 'Textentwürfe')} bitte prüfen`);
+  if (merged.kiDateien) parts.push(`${plural(merged.kiDateien, 'Datei', 'Dateien')} von der KI zugeordnet, bitte prüfen`);
   if (merged.ki) parts.push('die KI sieht sich offene Felder an');
   if (merged.einwilligungen) parts.push(`${plural(merged.einwilligungen, 'Einwilligung', 'Einwilligungen')} bitte selbst prüfen`);
   return { text: `${parts.join(', ')}. Abschicken bleibt bei Ihnen.`, hinweise: merged.hinweise, farben: true,
-           knoepfe: ['abgeschickt', 'stoppen'] };
+           knoepfe: ['ordner', 'abgeschickt', 'stoppen'] };
 }
 
 /** The same question on a reloaded page or in the next step: refs change, what the page shows does not. */
@@ -63,12 +64,14 @@ function fieldKey(field) {
 function forKeptFields(fields, kept) {
   const zuordnung = {};
   const entwuerfe = {};
+  const dateien = {};
   for (const field of fields) {
     const known = kept[fieldKey(field)];
     if (known && known.schluessel) zuordnung[field.ref] = known.schluessel;
     if (known && known.text) entwuerfe[field.ref] = known.text;
+    if (known && known.datei) dateien[field.ref] = known.datei;
   }
-  return { zuordnung, entwuerfe };
+  return { zuordnung, entwuerfe, dateien };
 }
 
 export class ApplyRun {
@@ -259,7 +262,9 @@ export class ApplyRun {
       const reached = await this.ask('POST', '/api/bewerben/stand', { id: entry.id, stand: 'ausgefuellt' }).then(() => true, () => false);
       if (reached) await this.updateTab(tabId, (current) => ({ ...current, ausgefuellt: true }));
     }
-    await this.tabs.bar(tabId, describeReport(merged));
+    const view = describeReport(merged);
+    const notes = [...new Set([...(view.hinweise || []), ...(entry.ordnerHinweise || [])])];
+    await this.tabs.bar(tabId, { ...view, ...(notes.length ? { hinweise: notes } : {}), ...(entry.ordner ? { pfad: entry.ordner } : {}) });
   }
 
   /** A file of the application of this tab, whole: the extension asks for it in parts below the host's limit. */
@@ -290,7 +295,8 @@ export class ApplyRun {
     const notes = Array.isArray(answer.hinweise) ? answer.hinweise : [];
     const learned = fresh.map((field) => [fieldKey(field), {
       schluessel: answer.zuordnung && answer.zuordnung[field.ref], text: answer.entwuerfe && answer.entwuerfe[field.ref],
-    }]).filter(([, found]) => !answer.wiederholen || found.schluessel || found.text);
+      datei: answer.dateien && answer.dateien[field.ref],
+    }]).filter(([, found]) => !answer.wiederholen || found.schluessel || found.text || found.datei);
     const updated = await this.updateTab(tabId, (current) => ({
       ...current, kiAntworten: { ...current.kiAntworten, ...Object.fromEntries(learned) },
       kiHinweise: answer.wiederholen ? current.kiHinweise : [...new Set([...(current.kiHinweise || []), ...notes])],
@@ -310,6 +316,18 @@ export class ApplyRun {
     if (!(await this.reserveAiRound(tabId))) return { ...forKeptFields(felder, known), hinweise: [...notes, AI_LIMIT] };
     const learned = await this.learnFields(tabId, entry, fresh);
     return { ...forKeptFields(felder, learned.kept), hinweise: [...new Set([...learned.known, ...learned.notes])] };
+  }
+
+  /** The files in a folder of the file manager, for what the extension could not place. The path stays in the bar. */
+  async openFolder(tabId) {
+    const entry = await this.entry(tabId);
+    if (!entry || entry.fremd) throw new Error(NOT_THIS_TAB);
+    const known = await this.ask('POST', '/api/bewerben/ordner', { id: entry.id }).then(
+      (answer) => ({ ordner: answer.ordner, ordnerHinweise: Array.isArray(answer.hinweise) ? answer.hinweise : [] }),
+      (error) => ({ ordnerHinweise: [error.message] }),
+    );
+    await this.updateTab(tabId, (current) => ({ ...current, ...known }));
+    await this.publish(tabId);
   }
 
   /** The person said it is sent. */

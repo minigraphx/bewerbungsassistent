@@ -100,6 +100,13 @@
       <label class="auswahl"><input type="checkbox" id="v-formular"> Über dieses Formular abgeschickt: festhalten, was es bekommen hat</label>
     </div>
     <div class="knoepfe"><button class="haupt" id="versenden">Versand erfassen</button></div>
+    <h3>Dateien von Hand hochladen</h3>
+    <p class="hilfe">Bleibt ein Upload-Feld im Formular offen: Dieser Knopf legt alle Dateien der Bewerbung in einen Ordner und zeigt ihn. Der Browser lässt nicht zu, dass die App seinen Datei-Dialog in einen bestimmten Ordner lenkt.</p>
+    <div class="knoepfe"><button type="button" id="ordner-zeigen">Dateien im Ordner zeigen</button><span id="ordner-status" class="status" role="status"></span></div>
+    <div id="ordner-pfad" hidden>
+      <div class="kopieren"><code id="ordner-text"></code><button type="button" id="ordner-kopieren">Pfad kopieren</button></div>
+      <p class="hilfe">Dateien von dort ins Formular ziehen. Oder im Datei-Dialog: Mac ⇧⌘G und Pfad einfügen, Windows Pfad ins Feld „Dateiname“.</p>
+    </div>
   </div>
 
   <h2>Job-Room (Arbeitsbemühungen)</h2>
@@ -114,6 +121,7 @@
 <script src="/app.js"></script>
 <script src="/formular-logik.js"></script>
 <script src="/eigenes-anschreiben.js"></script>
+<script src="/dateien-ordner.js"></script>
 <script src="/bewerbung.js"></script>
 <script src="/ki.js"></script>
 </body>

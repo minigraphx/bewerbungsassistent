@@ -65,7 +65,7 @@ test('the same site is the host and its subdomains, nothing wider', () => {
 
 test('the frames of a tab count together', () => {
   const merged = mergeReports({ 0: { felder: 2, gefuellt: 1, offen: 1, hinweise: ['x'] }, 5: { felder: 3, gefuellt: 3, einwilligungen: 1, hinweise: ['x', 'y'] } });
-  assert.deepEqual(merged, { felder: 5, gefuellt: 4, offen: 1, einwilligungen: 1, entwuerfe: 0, ki: 0, anmeldung: false, hinweise: ['x', 'y'] });
+  assert.deepEqual(merged, { felder: 5, gefuellt: 4, offen: 1, einwilligungen: 1, entwuerfe: 0, kiDateien: 0, ki: 0, anmeldung: false, hinweise: ['x', 'y'] });
 });
 
 test('the bar says what is open', () => {
@@ -438,7 +438,7 @@ test('help for fields asks the app for this application', async () => {
 
   const answer = await run.assist(tabId, [unclear('f1', 'Wohngemeinde'), { ...unclear('f2', 'Warum?'), art: 'frage' }]);
 
-  assert.deepEqual(answer, { zuordnung: { f1: 'city' }, entwuerfe: { f2: 'Ein Entwurf.' }, hinweise: [] });
+  assert.deepEqual(answer, { zuordnung: { f1: 'city' }, entwuerfe: { f2: 'Ein Entwurf.' }, dateien: {}, hinweise: [] });
   assert.equal(asked[0].id, 'a');
   assert.equal(asked[0].felder.length, 2);
 });
@@ -537,4 +537,60 @@ test('whether the AI may help comes from the app and goes to the frame', async (
 
 test('the frame may ask for help', () => {
   assert.ok(FORM_ACTIONS.has('formular-ki'));
+});
+
+test('the form always offers the folder and the path stays in the bar', async () => {
+  const { run, seen, answers, log } = setup();
+  answers['/api/bewerben/ordner'] = () => ({ ordner: '/daten/zum-hochladen', dateien: ['L.pdf'], hinweise: ['Hinweis'] });
+  await run.start({ ids: ['a'] });
+  await run.loaded(10, 'https://firma.ch/stelle');
+  assert.ok(seen('bar').at(-1)[1].knoepfe.includes('ordner'));
+
+  await run.openFolder(10);
+
+  const bar = seen('bar').at(-1)[1];
+  assert.equal(bar.pfad, '/daten/zum-hochladen');
+  assert.ok(bar.hinweise.includes('Hinweis') && bar.knoepfe.includes('abgeschickt'));
+  assert.deepEqual(log.find((e) => e[0] === '/api/bewerben/ordner')[1], { id: 'a' });
+
+  await run.frameReport(10, 0, { felder: 5, gefuellt: 5, offen: 0 });
+  assert.equal(seen('bar').at(-1)[1].pfad, '/daten/zum-hochladen');
+});
+
+test('a folder that fails is a note and the bar keeps its buttons', async () => {
+  const { run, seen, answers } = setup();
+  answers['/api/bewerben/ordner'] = () => { throw new Error('Noch keine Dateien'); };
+  await run.start({ ids: ['a'] });
+  await run.loaded(10, 'https://firma.ch/stelle');
+
+  await run.openFolder(10);
+
+  const bar = seen('bar').at(-1)[1];
+  assert.ok(bar.hinweise.includes('Noch keine Dateien') && bar.knoepfe.includes('abgeschickt') && !bar.pfad);
+});
+
+test('a tab that is not part of the run opens no folder', async () => {
+  const { run, log } = setup();
+
+  await assert.rejects(run.openFolder(99));
+  assert.ok(!log.some((e) => e[0] === '/api/bewerben/ordner'));
+});
+
+test('files the AI chose are named in the bar', () => {
+  assert.match(describeReport({ felder: 4, gefuellt: 3, offen: 0, kiDateien: 1 }).text, /1 Datei von der KI zugeordnet/);
+  assert.equal(mergeReports({ 0: { kiDateien: 1 }, 5: { kiDateien: 2 } }).kiDateien, 3);
+});
+
+test('the file the AI chose is kept for the same field after a reload', async () => {
+  const { run, answers, log } = setup();
+  const field = { ref: 'f1', art: 'datei', label: 'Dossier', name: '' };
+  answers['/api/bewerben/felder'] = () => ({ zuordnung: {}, entwuerfe: {}, dateien: { f1: 'unterlagen' }, hinweise: [] });
+  await run.start({ ids: ['a'] });
+  await run.loaded(10, 'https://firma.ch/stelle');
+
+  assert.deepEqual((await run.assist(10, [field])).dateien, { f1: 'unterlagen' });
+  const again = await run.assist(10, [{ ...field, ref: 'f9' }]);
+
+  assert.deepEqual(again.dateien, { f9: 'unterlagen' });
+  assert.equal(log.filter((e) => e[0] === '/api/bewerben/felder').length, 1);
 });

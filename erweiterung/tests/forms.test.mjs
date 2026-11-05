@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { test } from 'node:test';
 
 const require = createRequire(import.meta.url);
-const { accepts, classify, classifyAll, documentsFor, findApplyTarget, matchOption } = require('../form/fields.js');
+const { accepts, classify, classifyAll, documentsFor, documentsForKind, fileNeedsHelp, findApplyTarget, matchOption } = require('../form/fields.js');
 
 const text = (label, extra = {}) => ({ tag: 'input', type: 'text', label, ...extra });
 
@@ -190,4 +190,96 @@ test('fields about other people never become a question for the AI', () => {
 
 test('a label repeated as aria-label is not a long question', () => {
   assert.equal(classify(text('Heimatort der Familie gemäss Pass', { ariaLabel: 'Heimatort der Familie gemäss Pass' })).kind, 'unclear');
+});
+
+const JOINED = [...UPLOADS, { schluessel: 'unterlagen', name: 'Unterlagen_E.pdf' }, { schluessel: 'nachweise', name: 'Nachweise_E.pdf' }];
+
+test('a general field for one file gets the joined PDF', () => {
+  assert.deepEqual(documentsFor({ label: 'Unterlagen hochladen' }, JOINED), { keys: ['unterlagen'] });
+  assert.deepEqual(documentsFor({ label: 'Unterlagen hochladen', accept: '.pdf' }, JOINED), { keys: ['unterlagen'] });
+});
+
+test('a joined PDF the field refuses leaves it open with the reason', () => {
+  const answer = documentsFor({ label: 'Unterlagen hochladen', accept: '.docx' }, JOINED);
+  assert.deepEqual(answer.keys, []);
+  assert.ok(answer.hinweis);
+});
+
+test('a field for several files keeps getting the single files', () => {
+  const { keys } = documentsFor({ label: 'Unterlagen hochladen', multiple: true }, JOINED);
+  assert.equal(keys.length, 5);
+  assert.ok(!keys.includes('unterlagen') && !keys.includes('nachweise'));
+});
+
+test('a field for references gets the proofs, never the whole documents', () => {
+  assert.deepEqual(documentsFor({ label: 'Arbeitszeugnisse' }, JOINED), { keys: ['nachweise'] });
+  assert.deepEqual(documentsFor({ label: 'Zeugnisse und Diplome' }, JOINED), { keys: ['nachweise'] });
+});
+
+test('a field for two named documents adds nothing unasked for', () => {
+  const answer = documentsFor({ label: 'Lebenslauf und Motivationsschreiben' }, JOINED);
+  assert.deepEqual(answer.keys, []);
+  assert.ok(answer.hinweis);
+});
+
+test('the kind the AI named goes through the same checks', () => {
+  assert.deepEqual(documentsForKind({ label: 'Dossier' }, JOINED, 'unterlagen'), { keys: ['unterlagen'] });
+  assert.deepEqual(documentsForKind({ label: 'Dossier' }, JOINED, 'lebenslauf'), { keys: ['lebenslauf'] });
+  assert.deepEqual(documentsForKind({ label: 'Dossier', multiple: true }, JOINED, 'zeugnis').keys, ['zeugnis-0', 'zeugnis-1']);
+  assert.deepEqual(documentsForKind({ label: 'Dossier', accept: '.docx' }, JOINED, 'lebenslauf').keys, []);
+  assert.deepEqual(documentsForKind({ label: 'Dossier' }, JOINED, 'erfunden'), { keys: [] });
+});
+
+test('a joined PDF that does not exist falls back to the single file', () => {
+  const single = [{ schluessel: 'lebenslauf', name: 'L.pdf' }];
+  assert.deepEqual(documentsForKind({ label: 'Dossier' }, single, 'unterlagen'), { keys: ['lebenslauf'] });
+});
+
+test('the AI only looks at a file field the rules cannot place', () => {
+  assert.equal(fileNeedsHelp({ label: 'Dossier' }, JOINED), true);
+  assert.equal(fileNeedsHelp({ label: 'Lebenslauf' }, JOINED), false);
+  assert.equal(fileNeedsHelp({ label: 'Lebenslauf und Motivationsschreiben' }, JOINED), false); // said why already
+  assert.equal(fileNeedsHelp({ label: 'Dossier' }, []), false);
+});
+
+const SOME_FILES = [
+  { schluessel: 'lebenslauf', name: 'Lebenslauf.pdf' }, { schluessel: 'anschreiben', name: 'Anschreiben.pdf' },
+  { schluessel: 'unterlagen', name: 'Unterlagen.pdf' }, { schluessel: 'nachweise', name: 'Nachweise.pdf' },
+];
+
+for (const field of [
+  { label: 'Foto', name: 'photo_upload' }, { label: 'Passfoto', name: 'file' }, { label: '', name: 'profile-picture-file' },
+  { label: 'Kopie Ausweis', name: 'document' }, { label: 'Strafregisterauszug', name: 'upload' },
+  { label: 'Arbeitsprobe', name: 'attachment', multiple: true }, { label: 'Arbeitsbewilligung', name: 'datei' },
+]) {
+  test(`file field „${field.label || field.name}“ gets no document, and the AI is not asked`, () => {
+    assert.deepEqual(documentsFor(field, SOME_FILES).keys, []);
+    assert.equal(fileNeedsHelp(field, SOME_FILES), false);
+  });
+}
+
+test('a generic word alone never sends everything into a field for one file: the AI reads the label', () => {
+  for (const field of [{ label: 'Bitte wählen', name: 'file-upload' }, { label: 'Attach file', name: 'x' }, { label: 'Anhang', name: 'a' }]) {
+    assert.deepEqual(documentsFor(field, SOME_FILES).keys, []);
+    assert.equal(fileNeedsHelp(field, SOME_FILES), true);
+  }
+});
+
+test('a label that names the documents gets the joined PDF, a technical name does not', () => {
+  for (const label of ['Ihre Unterlagen', 'Dokumente hochladen', 'Your documents']) {
+    assert.deepEqual(documentsFor({ label, name: 'x' }, SOME_FILES).keys, ['unterlagen']);
+  }
+  assert.deepEqual(documentsFor({ label: 'Hier ablegen', name: 'documents' }, SOME_FILES).keys, []);
+});
+
+test('a named document wins over a word like photo', () => {
+  assert.deepEqual(documentsFor({ label: 'Lebenslauf mit Foto', name: 'x' }, SOME_FILES).keys, ['lebenslauf']);
+});
+
+test('words that only look like a photo do not count', () => {
+  assert.deepEqual(documentsFor({ label: 'Ausbildungen und Unterlagen', name: 'x' }, SOME_FILES).keys, ['unterlagen']);
+});
+
+test('a field for several files still takes the single files on a generic word', () => {
+  assert.deepEqual(documentsFor({ label: 'Anhänge', name: 'x', multiple: true }, SOME_FILES).keys, ['lebenslauf', 'anschreiben']);
 });

@@ -11,7 +11,7 @@
     ["kontaktperson", "Kontaktperson"], ["kontakt", "Telefon / E-Mail"], ["stelle", "Stelle"], ["pensum", "Pensum"],
     ["art", "Art der Bewerbung"], ["ergebnis", "Ergebnis"], ["rav_zuweisung", "Zuweisung des RAV"]];
   const ANDERSWO_GEAENDERT = "Diese Bewerbung wurde inzwischen auch anderswo geändert. Ihre Eingaben bleiben stehen, und gespeichert werden nur die Felder, die Sie geändert haben.";
-  const FORM_FILES = { lebenslauf: "Lebenslauf", anschreiben: "Anschreiben", zertifikate: "Zertifikate" };
+  const FORM_FILES = { lebenslauf: "Lebenslauf", anschreiben: "Anschreiben", zertifikate: "Zertifikate", unterlagen: "Unterlagen (gemeinsames PDF)", nachweise: "Nachweise (gemeinsames PDF)" };
   const KEIN_ANSCHREIBEN = "Noch kein Anschreiben. Einen Entwurf erstellt „Anschreiben entwerfen“ weiter unten oder Claude mit dem Skill „bewerbung“. Ein fertiges PDF lässt sich unter „Eigenes Anschreiben“ hochladen.";
   let bewerbung = null;
   let geladenerText = "";

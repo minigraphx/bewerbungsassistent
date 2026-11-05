@@ -349,7 +349,7 @@ def test_a_form_can_be_opened_with_nothing_but_the_uploaded_cv(server):  # noqa:
     answer = json.loads(get(server, "/api/bewerben/daten", id=entry["id"])[2])
     assert answer["werte"] == {}
     keys = {f["schluessel"] for f in answer["dateien"]}
-    assert "lebenslauf" in keys and len(keys) == 2 and any(key.startswith("zeugnis-") for key in keys)
+    assert "lebenslauf" in keys and any(key.startswith("zeugnis-") for key in keys)
     part = json.loads(get(server, "/api/bewerben/datei", id=entry["id"], schluessel="lebenslauf")[2])
     assert base64.b64decode(part["daten"]) == scan
 

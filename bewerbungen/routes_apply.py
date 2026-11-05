@@ -4,11 +4,14 @@ Only `abgeschickt` records a dispatch, and the extension calls it only after the
 """
 import base64
 import logging
+import sys
 
 import apply
 import form_copy
+import ordner
 import pruefung
 import routes_ai
+import unterlagen
 import versand
 from ai import form_help
 from register import FORM_STATES
@@ -98,7 +101,7 @@ def _read_handed_over(k, wanted: str, key: str, part: int) -> tuple[str, bytes, 
         upload = apply.uploads(k.daten, entry).get(key)
         if upload is None:
             raise ValueError(apply.UNKNOWN_FILE)
-        source = apply.handed_over(k.daten, entry["id"], key, upload, part)
+        source = apply.handed_over(k.daten, entry, key, upload, part)
         return (source.name, *apply.read_part(source, part))
 
 
@@ -107,6 +110,22 @@ def file_part(k, parameter, body):
     name, data, parts = _read_handed_over(k, pflicht(parameter, "id"), pflicht(parameter, "schluessel"), number)
     return json_antwort({"name": name, "typ": apply.content_type(name), "teile": parts,
                          "daten": base64.b64encode(data).decode("ascii")})
+
+
+def open_folder(k, parameter, body):
+    """The files of an application in one folder, for fields the extension cannot fill. Says nothing about what a form got."""
+    wanted = _body_id(body)
+    with k.sperre:
+        entry = k.register().hole(wanted)
+        if entry.get("versand"):
+            raise ValueError(unterlagen.SENT_STAYS)
+        folder = apply.prepare_folder(k.daten, entry)
+    notes = folder.notes
+    try:
+        ordner.reveal(folder.path, sys.platform)
+    except ValueError as error:  # the path below is still of use
+        notes = [*notes, str(error)]
+    return json_antwort({"ordner": str(folder.path), "dateien": folder.names, "hinweise": notes})
 
 
 def _forget_earlier_form(k, entry_id: str) -> None:
@@ -145,4 +164,4 @@ def sent(k, parameter, body):
 
 GET = {"/api/bewerben/auswahl": choice, "/api/bewerben/daten": values, "/api/bewerben/datei": file_part}
 POST = {"/api/bewerben/start": start, "/api/bewerben/stand": state, "/api/bewerben/abgeschickt": sent,
-        "/api/bewerben/felder": field_help}
+        "/api/bewerben/felder": field_help, "/api/bewerben/ordner": open_folder}

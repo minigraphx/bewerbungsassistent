@@ -43,30 +43,32 @@ class Material:
     profile: str
     style: str
     blocks: str
+    missing: tuple[str, ...] = ()
 
     @property
     def minor(self) -> bool:
-        return APPRENTICESHIP_MARK in self.profile
+        """Without a search profile nobody knows: then the stricter masking applies."""
+        return APPRENTICESHIP_MARK in self.profile or FILES["profile"] in self.missing
 
     @property
     def context(self) -> str:
         return prompts.context(self.cv_text, self.profile, self.style, self.blocks)
 
 
-def load_material(data_dir: pathlib.Path) -> Material:
-    texts = {}
-    for key, rel in FILES.items():
-        path = im_ordner(data_dir, rel)
-        if not path.is_file():
-            raise AiError(MISSING.format(name=rel))
-        texts[key] = path.read_text(encoding="utf-8")
+def load_material(data_dir: pathlib.Path, partial: bool = False) -> Material:
+    """`partial` is for tasks that use only what the page shows: whoever uploaded their own files has no style profile."""
+    paths = {key: im_ordner(data_dir, rel) for key, rel in FILES.items()}
+    missing = tuple(FILES[key] for key, path in paths.items() if not path.is_file())
+    if missing and not partial:
+        raise AiError(MISSING.format(name=missing[0]))
+    texts = {key: path.read_text(encoding="utf-8") if path.is_file() else "" for key, path in paths.items()}
     try:
         cv = yaml.safe_load(texts["cv"]) or {}
     except yaml.YAMLError as error:
         raise AiError("cv.yaml lässt sich nicht lesen.") from error
     if not isinstance(cv, dict):
         raise AiError("cv.yaml lässt sich nicht lesen.")
-    return Material(cv, texts["cv"], texts["profile"], texts["style"], texts["blocks"])
+    return Material(cv, texts["cv"], texts["profile"], texts["style"], texts["blocks"], missing)
 
 
 def make_gateway(data_dir: pathlib.Path, material: Material, client, entry: dict | None = None,

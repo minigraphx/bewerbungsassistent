@@ -17,6 +17,7 @@ import subprocess
 import yaml
 
 import form_copy
+import merged_pdf
 import unterlagen
 from ablage import Ablage
 from dateien import im_ordner
@@ -85,19 +86,24 @@ def _aktuelle_dateien(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib
     return {**pdfs, "zertifikate": zertifikate} if zertifikate.is_file() else pdfs
 
 
+def _unterschiede(daten: pathlib.Path, bewerbung: dict, aus_formular: dict, aktuell: dict) -> list[str]:
+    einzeln = {art: pfad for art, pfad in aus_formular.items() if art not in merged_pdf.KEYS}
+    return [*form_copy.differing(einzeln, aktuell), *merged_pdf.changed(daten, bewerbung, aus_formular)]
+
+
 def form_differs(daten: pathlib.Path, bewerbung: dict) -> list[str]:
     """What an open form holds in another version than the one that counts now."""
     if bewerbung.get("versand"):
         return []
-    return form_copy.differing(form_copy.copies(daten, bewerbung["id"]), _aktuelle_dateien(daten, bewerbung))
+    return _unterschiede(daten, bewerbung, form_copy.copies(daten, bewerbung["id"]), _aktuelle_dateien(daten, bewerbung))
 
 
-def _hinweise_fassungen(daten: pathlib.Path, bewerbung_id: str, aus_formular: dict, aktuell: dict) -> list[str]:
+def _hinweise_fassungen(daten: pathlib.Path, bewerbung: dict, aus_formular: dict, aktuell: dict) -> list[str]:
     """Says when the record names another version than the one that counts now, and removes the copies."""
-    anders = [form_copy.LABELS[art] for art in form_copy.differing(aus_formular, aktuell)]
+    anders = [form_copy.LABELS[art] for art in _unterschiede(daten, bewerbung, aus_formular, aktuell)]
     hinweise = [FORM_VERSION_KEPT.format(files=", ".join(anders))] if anders else []
     try:
-        form_copy.forget(daten, bewerbung_id)
+        form_copy.forget_all(daten, bewerbung["id"])
     except OSError as fehler:
         hinweise.append(COPY_LEFT.format(error=fehler))
     return hinweise
@@ -132,7 +138,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     # Ohne Git bleiben frühere Fassungen unter versendet/ liegen und werden hier nachgeholt (MIN-304)
     alle_fassungen = sorted(p for muster in ("*.pdf", "*.zip") for p in (daten / ORDNER).glob(muster))
     varianten = [p for p in (daten / "varianten.yaml",) if p.is_file()]
-    hinweise = [*_hinweise_firma(register.alle(), neu), *_hinweise_fassungen(daten, bewerbung_id, aus_formular, aktuell)]
+    hinweise = [*_hinweise_firma(register.alle(), neu), *_hinweise_fassungen(daten, bewerbung, aus_formular, aktuell)]
     try:
         commit = versionierung.friere_ein([*alle_fassungen, *quellen, *varianten, register.pfad], zweck)
     except (RuntimeError, subprocess.CalledProcessError, OSError) as fehler:

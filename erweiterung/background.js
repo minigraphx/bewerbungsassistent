@@ -401,6 +401,7 @@ function formAction(message, sender) {
     'formular-ki': () => applyRun.assist(tabId, message.felder),
     'formular-hier': () => applyRun.fillHere(tabId),
     'formular-abgeschickt': () => applyRun.sent(tabId),
+    'formular-ordner': () => applyRun.openFolder(tabId),
     'formular-stoppen': () => applyRun.stop(tabId),
   };
   return actions[message.art]();

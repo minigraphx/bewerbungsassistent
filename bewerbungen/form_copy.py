@@ -11,8 +11,11 @@ import unterlagen
 from dateien import schreibe_atomar
 
 FOLDER = "an-formular"
-FILE_NAMES = {"lebenslauf": "lebenslauf.pdf", "anschreiben": "anschreiben.pdf", "zertifikate": "zertifikate.zip"}
-LABELS = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "zertifikate": "Zertifikate"}
+HAND_FOLDER = "zum-hochladen"  # the files with their names for the employer, for whoever uploads them by hand
+FILE_NAMES = {"lebenslauf": "lebenslauf.pdf", "anschreiben": "anschreiben.pdf", "zertifikate": "zertifikate.zip",
+              "unterlagen": "unterlagen.pdf", "nachweise": "nachweise.pdf"}
+LABELS = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "zertifikate": "Zertifikate",
+          "unterlagen": "Unterlagen", "nachweise": "Nachweise"}
 NOT_KEPT = "Die Datei liess sich nicht für das Formular bereitstellen. Bitte nochmals versuchen."
 
 
@@ -26,15 +29,27 @@ def copy_path(data_dir: pathlib.Path, entry_id: str, key: str) -> pathlib.Path |
     return _folder(data_dir, entry_id) / name if name else None
 
 
-def keep(data_dir: pathlib.Path, entry_id: str, key: str, source: pathlib.Path) -> pathlib.Path:
-    """Call with the lock held, while the entry is known to be unsent: a dispatch must not leave a copy behind."""
+def hand_folder(data_dir: pathlib.Path, entry_id: str) -> pathlib.Path:
+    return unterlagen.bewerbungsordner(data_dir, entry_id) / HAND_FOLDER
+
+
+def store(data_dir: pathlib.Path, entry_id: str, key: str, data: bytes) -> pathlib.Path:
     target = copy_path(data_dir, entry_id, key)
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
-        schreibe_atomar(target, source.read_bytes())
+        schreibe_atomar(target, data)
     except OSError as error:
         raise ValueError(NOT_KEPT) from error
     return target
+
+
+def keep(data_dir: pathlib.Path, entry_id: str, key: str, source: pathlib.Path) -> pathlib.Path:
+    """Call with the lock held, while the entry is known to be unsent: a dispatch must not leave a copy behind."""
+    try:
+        data = source.read_bytes()
+    except OSError as error:
+        raise ValueError(NOT_KEPT) from error
+    return store(data_dir, entry_id, key, data)
 
 
 def copies(data_dir: pathlib.Path, entry_id: str) -> dict[str, pathlib.Path]:
@@ -55,6 +70,17 @@ def differing(kept: dict[str, pathlib.Path], current: dict[str, pathlib.Path]) -
 
 
 def forget(data_dir: pathlib.Path, entry_id: str) -> None:
+    """What a form got. The folder for uploading by hand stays: it says nothing about any form."""
     folder = _folder(data_dir, entry_id)
     if folder.is_dir():
         shutil.rmtree(folder)
+
+
+def forget_all(data_dir: pathlib.Path, entry_id: str) -> None:
+    """After the dispatch nothing of this is needed any more."""
+    try:
+        forget(data_dir, entry_id)
+    finally:  # a copy that stays locked must not keep all the documents here as well
+        folder = hand_folder(data_dir, entry_id)
+        if folder.is_dir():
+            shutil.rmtree(folder)

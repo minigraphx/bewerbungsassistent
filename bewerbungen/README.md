@@ -37,6 +37,7 @@ meine-daten/
   bewerbungen.yaml           Register aller Bewerbungen (MIN-306)
   bewerbungen/<id>/          anschreiben.yaml, stelle.md, erstellte PDFs (nicht in Git)
   bewerbungen/<id>/an-formular/  was das offene Formular bekommen hat (nicht in Git)
+  bewerbungen/<id>/zum-hochladen/  Dateien der Bewerbung zum Hochladen von Hand, bis zum Versand (nicht in Git)
   versendet/                 versendete Fassungen, jede nur einmal (in Git)
   anschreiben/               bausteine.md, stil.md (persönlich)
   dokumente/                 Originale: zeugnisse/, zertifikate/, anschreiben-bisher/, lebenslauf-bisher/, lebenslauf.pdf (nicht in Git)
@@ -44,7 +45,7 @@ meine-daten/
   .ki/nutzung.jsonl          KI-Nutzung: Aufgabe, Modell, Tokens, Kosten, ersetzte Felder – nie Inhalte (nicht in Git)
 ```
 
-`app.py` ergänzt die `.gitignore` des Datenordners um `.entwuerfe/`, `.build/`, `bewerbungen/*/*.pdf`, `bewerbungen/*/*.zip`, `bewerbungen/*/an-formular/`, `dokumente/` und `.ki/`.
+`app.py` ergänzt die `.gitignore` des Datenordners um `.entwuerfe/`, `.build/`, `bewerbungen/*/*.pdf`, `bewerbungen/*/*.zip`, `bewerbungen/*/an-formular/`, `bewerbungen/*/zum-hochladen/`, `dokumente/` und `.ki/`.
 
 ### Eigene Dateien (MIN-346)
 
@@ -56,7 +57,13 @@ Wer fertige Unterlagen hat, legt sie auf der Seite „Meine Dateien“ ab und ve
 
 Höchstens 15 MB pro Datei. Die App prüft den Inhalt, nicht nur die Endung, und nimmt keine anderen Dateitypen an. Ersetzte und entfernte Dateien bleiben unter „Entwürfe“. Die Dateien gehen nicht an die KI; sie gehen nur beim Ausfüllen eines Formulars an die Seite, die die Person selbst geöffnet hat.
 
-**Datei ersetzt, während ein Formular offen ist:** Das Formular behält, was es bekommen hat. Die App hebt diese Fassung von Lebenslauf, Anschreiben und Zertifikaten unter `bewerbungen/<id>/an-formular/` auf, bis der Versand erfasst ist oder „Bewerben“ für diese Bewerbung ein neues Formular öffnet. „Abgeschickt? Ja“ im Balken hält genau sie fest und nennt, was inzwischen neuer ist. Eine Datei, die das Formular nicht von der App bekommen hat, wird in der aktuellen Fassung festgehalten, denn die App sieht nicht, was die Person selbst hochlädt. „Versand erfassen“ auf der Seite der Bewerbung hält die aktuelle Fassung fest, etwa für einen Versand per E-Mail, und bietet bei einem Unterschied ein Häkchen für die Fassung des Formulars an. Lädt die Person das Formular neu, bekommt es die aktuelle Fassung. Tauscht sie die Datei im Formular von Hand, sieht die App das nicht; dann hält „Abgeschickt? Ja“ die frühere Fassung fest.
+**Formular mit nur einem Upload-Feld:** Passen mehrere Dateien auf ein Feld für nur eine Datei, baut die App ohne KI ein gemeinsames PDF: `Unterlagen_…pdf` aus Anschreiben, Lebenslauf, Zeugnissen und gewählten Zertifikaten, `Nachweise_…pdf` nur aus Zeugnissen und Zertifikaten. Bilder werden dafür zu PDF-Seiten. Geht die Bewerbung raus, hält der Nachweis genau dieses PDF fest.
+
+**Upload-Feld ohne klare Bedeutung:** Ist eine KI verbunden, wählt sie anhand dessen, was die Seite zeigt, eine Dateiart oder „unklar“. Der Inhalt der Dateien geht nie an die KI. Die Datei steht dann blau markiert im Feld und wird im Balken genannt; prüfen bleibt bei der Person. Das braucht weder Stilprofil noch Bausteine; nur Textentwürfe verlangen sie.
+
+**Dateien von Hand hochladen:** Der Browser lässt keine Seite und keine Erweiterung den Datei-Dialog in einen Ordner lenken. Darum legt „Dateien im Ordner zeigen“ (im Balken und auf der Seite der Bewerbung) alle Dateien der Bewerbung unter `bewerbungen/<id>/zum-hochladen/` ab, zeigt den Ordner im Finder oder Explorer und nennt den Pfad zum Kopieren. Der Ordner verschwindet beim Versand.
+
+**Datei ersetzt, während ein Formular offen ist:** Das Formular behält, was es bekommen hat. Die App hebt diese Fassung von Lebenslauf, Anschreiben, Zertifikaten und gemeinsamen PDFs unter `bewerbungen/<id>/an-formular/` auf, bis der Versand erfasst ist oder „Bewerben“ für diese Bewerbung ein neues Formular öffnet. „Abgeschickt? Ja“ im Balken hält genau sie fest und nennt, was inzwischen neuer ist. Eine Datei, die das Formular nicht von der App bekommen hat, wird in der aktuellen Fassung festgehalten, denn die App sieht nicht, was die Person selbst hochlädt. „Versand erfassen“ auf der Seite der Bewerbung hält die aktuelle Fassung fest, etwa für einen Versand per E-Mail, und bietet bei einem Unterschied ein Häkchen für die Fassung des Formulars an. Lädt die Person das Formular neu, bekommt es die aktuelle Fassung. Tauscht sie die Datei im Formular von Hand, sieht die App das nicht; dann hält „Abgeschickt? Ja“ die frühere Fassung fest.
 
 Die automatische Prüfung meldet bei eigenen Dateien einen Scan ohne Text oder einen Platzhalter nur als Hinweis, denn die Person will die Datei so verwenden. Beim eigenen Anschreiben gilt das auch für zu viele Seiten und eine Firma, die im Text nicht vorkommt. Für eine versendete Bewerbung baut „Unterlagen erstellen“ nichts mehr. Ein PDF, das sich nicht lesen lässt, bleibt ein Fehler und sperrt „Bewerben“. Name, Adresse und Kontakt fürs Formular kommen aus `cv.yaml`; ohne diese Datei bleiben die Felder leer.
 

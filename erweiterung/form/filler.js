@@ -6,7 +6,7 @@
   if (globalThis.bewerbungsassistentFiller) return;
   const logic = globalThis.bewerbungsassistentForm;
   const isTop = window === window.top;
-  const COLORS = { filled: '#2e7d32', open: '#ef6c00', consent: '#c62828', draft: '#1565c0' };
+  const COLORS = { filled: '#2e7d32', open: '#ef6c00', consent: '#c62828', draft: '#1565c0', aiFile: '#1565c0' };
   const FIELD_SELECTOR = 'input, select, textarea';
   const SKIPPED_TYPES = new Set(['hidden', 'submit', 'button', 'reset', 'image', 'search', 'range', 'color']);
   const MUTATION_WAIT_MS = 600;
@@ -27,6 +27,8 @@
   const MAX_AI_NAME = 100;
   const MAX_AI_HINT = 150;
   const MAX_AI_OPTION = 60;
+  const LARGE_FILE_BYTES = 10000000; // forms rarely say their limit before they refuse
+  const BYTES_PER_MB = 1000000;
 
   const handled = new Map(); // element → status
   let job = null; // { values, uploads, ai }
@@ -170,11 +172,21 @@
     const { keys, hinweis } = logic.documentsFor(field, job.uploads);
     if (hinweis) hints = [...hints, hinweis];
     if (!keys.length) return 'open';
+    return await placeFiles(el, keys) ? 'filled' : 'open';
+  }
+
+  /** @returns {Promise<boolean>} whether they went in; `stillWanted` asks again after the wait for the files */
+  async function placeFiles(el, keys, stillWanted = () => true) {
+    const files = await Promise.all(keys.map(fetchFile));
+    if (!stillWanted()) return false;
     const transfer = new DataTransfer();
-    for (const file of await Promise.all(keys.map(fetchFile))) transfer.items.add(file);
+    for (const file of files) {
+      transfer.items.add(file);
+      if (file.size > LARGE_FILE_BYTES) addHints([`„${file.name}“ ist ${Math.round(file.size / BYTES_PER_MB)} MB gross. Manche Formulare nehmen weniger.`]);
+    }
     el.files = transfer.files;
     for (const type of ['input', 'change']) el.dispatchEvent(new Event(type, { bubbles: true }));
-    return 'filled';
+    return true;
   }
 
   async function act(el, field, found) {
@@ -205,13 +217,22 @@
       felder: login ? 0 : fields.length, gefuellt: count('filled'),
       offen: present.filter(([el, s]) => s === 'open' && stillOpen(el, s)).length,
       einwilligungen: present.filter(([el, s]) => s === 'consent' && stillOpen(el, s)).length,
-      entwuerfe: count('draft'), ki: aiBusy ? 1 : 0, anmeldung: login, hinweise: hints,
+      entwuerfe: count('draft'), kiDateien: count('aiFile'), ki: aiBusy ? 1 : 0, anmeldung: login, hinweise: hints,
     };
   }
 
   function canTakeHelp(el) {
     return el.isConnected && handled.get(el) === 'open' && !el.disabled && !el.readOnly && !el.value.trim()
       && !TICK_TYPES.has(el.type) && el.type !== 'file' && eligible(el);
+  }
+
+  function canTakeFile(el) {
+    return el.isConnected && handled.get(el) === 'open' && el.type === 'file' && !el.disabled && !el.files?.length && eligible(el);
+  }
+
+  function aiMayLookAt(el, found) {
+    if (found.kind === 'file') return canTakeFile(el) && logic.fileNeedsHelp(describe(el), job.uploads);
+    return logic.needsHelp(found) && canTakeHelp(el);
   }
 
   /** The open fields no rule could decide, each only once. */
@@ -221,15 +242,16 @@
     const found = logic.classifyAll(fields.map(describe));
     if (found.some((f) => f.kind === 'password')) return [];
     return fields.map((el, position) => ({ el, found: found[position] }))
-      .filter(({ el, found: f }) => logic.needsHelp(f) && canTakeHelp(el) && !askedAi.has(el));
+      .filter(({ el, found: f }) => aiMayLookAt(el, f) && !askedAi.has(el));
   }
 
   /** What the page shows of a field, nothing of the person. */
   function askAbout({ el, found }) {
     const field = describe(el);
     const isList = el.tagName === 'SELECT';
+    const asked = found.kind === 'freetext' && !isList ? 'frage' : 'unklar';
     return {
-      ref: `f${nextRef++}`, art: found.kind === 'freetext' && !isList ? 'frage' : 'unklar',
+      ref: `f${nextRef++}`, art: found.kind === 'file' ? 'datei' : asked,
       label: [...new Set([field.label, field.ariaLabel])].filter(Boolean).join(' ').slice(0, MAX_AI_LABEL),
       name: field.name.slice(0, MAX_AI_NAME), hinweis: field.placeholder.slice(0, MAX_AI_HINT),
       optionen: isList ? [...el.options].slice(0, MAX_AI_OPTIONS).map((o) => o.text.slice(0, MAX_AI_OPTION)) : [],
@@ -252,8 +274,20 @@
     return 'open';
   }
 
+  /** Marked like a draft: the person checks what the AI chose. A file can reach the company at once, so never over one already there. */
+  async function placeChosenFile(el, kind) {
+    const { keys, hinweis } = logic.documentsForKind(describe(el), job.uploads, kind);
+    if (hinweis) addHints([hinweis]);
+    if (!keys.length) return;
+    try {
+      if (await placeFiles(el, keys, () => !stopped && canTakeFile(el))) mark(el, 'aiFile');
+    } catch (error) {
+      addHints([`Datei nicht hochgeladen: ${error.message}`]);
+    }
+  }
+
   /** The answer of the AI, checked again here: the person may have typed meanwhile, and only known values exist. */
-  function applyHelp(answer, byRef) {
+  async function applyHelp(answer, byRef) {
     for (const [ref, key] of Object.entries(answer.zuordnung || {})) {
       const el = byRef.get(ref);
       if (el && canTakeHelp(el) && Object.hasOwn(job.values, key)) mark(el, fillValue(el, key));
@@ -261,6 +295,10 @@
     for (const [ref, text] of Object.entries(answer.entwuerfe || {})) {
       const el = byRef.get(ref);
       if (el && canTakeHelp(el)) mark(el, fillDraft(el, text));
+    }
+    for (const [ref, kind] of Object.entries(answer.dateien || {})) {
+      const el = byRef.get(ref);
+      if (el && canTakeFile(el)) await placeChosenFile(el, kind);
     }
     if (Array.isArray(answer.hinweise)) addHints(answer.hinweise.filter((h) => typeof h === 'string'));
   }
@@ -275,7 +313,7 @@
         open.forEach(({ el }) => askedAi.add(el));
         const answer = await chrome.runtime.sendMessage({ art: 'formular-ki', felder: requests });
         if (!answer || answer.fehler) throw new Error((answer && answer.fehler) || 'Keine Antwort');
-        if (!stopped) applyHelp(answer, byRef);
+        if (!stopped) await applyHelp(answer, byRef);
       }
     } catch (error) {
       addHints([`KI-Hilfe: ${error.message}`]);

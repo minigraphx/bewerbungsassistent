@@ -55,8 +55,8 @@ def _letter_text(letter: dict) -> str:
     return "\n\n".join(str(p).strip() for p in parts if p and str(p).strip())
 
 
-def ai_gateway(k, entry: dict | None = None, letter: dict | None = None):
-    material = tasks.load_material(k.daten)
+def ai_gateway(k, entry: dict | None = None, letter: dict | None = None, partial: bool = False):
+    material = tasks.load_material(k.daten, partial)
     return tasks.make_gateway(k.daten, material, new_client(), entry, letter), material
 
 
@@ -85,7 +85,7 @@ def form_fields(k, entry: dict, fields: list[form_help.FormField]) -> dict:
     letter = None if unterlagen.own_letter(k.daten, entry) else _letter(k, entry["id"])
 
     def task():
-        gateway, material = ai_gateway(k, entry, letter)
+        gateway, material = ai_gateway(k, entry, letter, partial=True)
         return form_help.assist(gateway, material, entry, ad, _letter_text(letter) if letter else "", fields)
 
     return run_ai(task)

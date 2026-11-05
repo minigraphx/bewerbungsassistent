@@ -320,7 +320,7 @@ def test_the_form_help_of_the_ai_does_not_follow_a_draft_that_no_longer_counts(s
     source.parent.mkdir(parents=True, exist_ok=True)
     source.write_text("text: Was im alten Entwurf steht\n", encoding="utf-8")
     seen = []
-    monkeypatch.setattr(routes_ai, "ai_gateway", lambda k, e, letter: (seen.append(letter), {}))
+    monkeypatch.setattr(routes_ai, "ai_gateway", lambda k, e, letter, partial: (seen.append(letter), {}))
     monkeypatch.setattr(routes_ai.form_help, "assist", lambda gateway, material, e, ad, letter, fields: seen.append(letter) or {})
 
     routes_ai.form_fields(server.kontext, Register(daten).hole(entry["id"]), [])

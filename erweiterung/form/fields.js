@@ -53,7 +53,13 @@
     ['zeugnis', /zeugnis|reference letter|certificat de travail/i],
     ['zertifikate', /zertifikat|certificate|diplom|attestation/i],
   ];
+  const ALL_FILES = 'unterlagen'; // one PDF with everything, from the app
+  const PROOFS = 'nachweise'; // one PDF with references and certificates
+  const PROOF_KINDS = ['zeugnis', 'zertifikate'];
   const ANY_DOCUMENT = /unterlagen|dokument|anhang|anhänge|anlage|beilage|attachment|document|upload|datei|fichier|pièce|\bfile/i;
+  const NAMES_THE_DOCUMENTS = /unterlagen|dokument|document|beilage|anlage|bewerbung|candidature|pièces/i; // in what the person sees
+  // Kinds of file the app does not hold. A generic word beside them says nothing, and the whole dossier must not end up there.
+  const NOT_A_DOCUMENT = /foto\b|photo|bild\b|picture|image|portrait|avatar|selfie|video|logo|ausweis|\bpass\b|reisepass|passport|\bid.?(card|copy)|identit|strafregister|casier|betreibung|poursuite|arbeitsprobe|portfolio|work.?sample|bewilligung|permis|permit|visa\b/i;
   const MIME_BY_SUFFIX = { pdf: ['application/pdf'], zip: ['application/zip', 'application/x-zip-compressed'] };
 
   const APPLY_TEXT = /^(jetzt |online |hier |direkt |gleich )*(online )?(bewerben|bewerbung starten|zur bewerbung|zum bewerbungsformular|apply( now| here| online)?|postuler( maintenant)?|candidater)\b/i;
@@ -158,10 +164,39 @@
       || (t.endsWith('/*') && mimes.some((m) => m.startsWith(t.slice(0, -1)))));
   }
 
-  function wantedDocuments(text) {
+  function shownText(field) {
+    return [field.label, field.ariaLabel].filter(Boolean).join(' ');
+  }
+
+  function fieldText(field) {
+    return [shownText(field), words(field.name)].filter(Boolean).join(' ');
+  }
+
+  /** A generic word says little, and most file inputs have one in their id: for one file it must be a label naming the documents. */
+  function wantedDocuments(field) {
+    const text = fieldText(field);
     const named = DOCUMENT_RULES.filter(([, pattern]) => pattern.test(text)).map(([kind]) => kind);
     if (named.length) return named;
-    return ANY_DOCUMENT.test(text) ? DOCUMENT_RULES.map(([kind]) => kind) : [];
+    if (NOT_A_DOCUMENT.test(text) || !ANY_DOCUMENT.test(text)) return [];
+    return field.multiple || NAMES_THE_DOCUMENTS.test(shownText(field)) ? DOCUMENT_RULES.map(([kind]) => kind) : [];
+  }
+
+  /** The joined PDF that answers for these kinds of file, if there is one that does not add anything unasked for. */
+  function joinedKey(kinds) {
+    if (kinds.length === DOCUMENT_RULES.length) return ALL_FILES;
+    return kinds.every((kind) => PROOF_KINDS.includes(kind)) ? PROOFS : null;
+  }
+
+  function pick(field, uploads, kinds) {
+    const matching = uploads.filter((u) => kinds.some((kind) => u.schluessel === kind || u.schluessel.startsWith(`${kind}-`)));
+    const fitting = matching.filter((u) => accepts(field.accept, u.name));
+    if (matching.length && !fitting.length) return { keys: [], hinweis: `„${matching[0].name}“ passt nicht in dieses Feld.` };
+    if (fitting.length > 1 && !field.multiple) {
+      const joined = uploads.find((u) => u.schluessel === joinedKey(kinds));
+      if (joined && accepts(field.accept, joined.name)) return { keys: [joined.schluessel] };
+      return { keys: [], hinweis: 'Ein Feld für nur eine Datei: bitte selbst wählen.' };
+    }
+    return { keys: fitting.map((u) => u.schluessel) };
   }
 
   /**
@@ -171,13 +206,21 @@
    * @returns {{keys: string[], hinweis?: string}}
    */
   function documentsFor(field, uploads) {
-    const text = [field.label, field.ariaLabel, words(field.name)].filter(Boolean).join(' ');
-    const wanted = wantedDocuments(text);
-    const matching = uploads.filter((u) => wanted.some((kind) => u.schluessel === kind || u.schluessel.startsWith(`${kind}-`)));
-    const fitting = matching.filter((u) => accepts(field.accept, u.name));
-    if (matching.length && !fitting.length) return { keys: [], hinweis: `„${matching[0].name}“ passt nicht in dieses Feld.` };
-    if (fitting.length > 1 && !field.multiple) return { keys: [], hinweis: 'Ein Feld für nur eine Datei: bitte selbst wählen.' };
-    return { keys: fitting.map((u) => u.schluessel) };
+    return pick(field, uploads, wantedDocuments(field));
+  }
+
+  /** The files for the kind the AI named; the same checks of the field as for the rules. */
+  function documentsForKind(field, uploads, kind) {
+    const joined = uploads.find((u) => u.schluessel === kind);
+    if (joined && accepts(field.accept, joined.name)) return { keys: [kind] };
+    if (kind === ALL_FILES) return pick(field, uploads, DOCUMENT_RULES.map(([name]) => name));
+    return pick(field, uploads, kind === PROOFS ? PROOF_KINDS : [kind]);
+  }
+
+  /** A file field the rules cannot place, and no reason they gave: only then the AI may look at it. */
+  function fileNeedsHelp(field, uploads) {
+    const { keys, hinweis } = documentsFor(field, uploads);
+    return uploads.length > 0 && !keys.length && !hinweis && !NOT_A_DOCUMENT.test(fieldText(field));
   }
 
   /**
@@ -194,7 +237,7 @@
     });
   }
 
-  const api = { MIN_FIELDS, accepts, classify, classifyAll, documentsFor, findApplyTarget, matchOption, needsHelp };
+  const api = { MIN_FIELDS, accepts, classify, classifyAll, documentsFor, documentsForKind, fileNeedsHelp, findApplyTarget, matchOption, needsHelp };
   root.bewerbungsassistentForm = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

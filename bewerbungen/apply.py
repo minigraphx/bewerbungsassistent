@@ -4,17 +4,21 @@ The extension fills a form only for applications the person chose in the app, an
 is recorded when the person says it happened. The values stay on this computer and in the person's own browser.
 """
 import hashlib
+import itertools
 import mimetypes
 import pathlib
 import re
+import shutil
 from dataclasses import dataclass
 
 import yaml
 
 import certificates
 import form_copy
+import merged_pdf
 from ai.personal import strip_titles
 from hits import company_key
+from dateien import schreibe_atomar
 from pruefung import SURNAME_PARTICLES
 from unterlagen import wirksame_pdfs
 
@@ -27,7 +31,7 @@ SWISS_POSTAL_CODE = re.compile(r"^[1-9]\d{3}$")
 BLOCKS_FILE = "anschreiben/bausteine.md"
 FRAME_LINE = re.compile(r"^-\s*(Verfügbar ab|Kündigungsfrist|Lohnvorstellung)\s*:\s*(.+?)\s*$", re.MULTILINE)
 FRAME_KEYS = {"Verfügbar ab": "availability", "Kündigungsfrist": "notice", "Lohnvorstellung": "salary"}
-REFERENCES_FOLDER = "dokumente/zeugnisse"
+REFERENCES_FOLDER = merged_pdf.REFERENCES_FOLDER
 REFERENCE_KEY_LENGTH = 12
 ALREADY_SENT = "Schon versendet"
 NOT_OPEN = "Status „{status}“"
@@ -35,6 +39,8 @@ NO_LINK = "Kein Link zum Formular: öffnen und Link eintragen"
 NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Meine Dateien“ hochladen"
 UNKNOWN_FILE = "Diese Datei gehört nicht zu dieser Bewerbung."
 UNKNOWN_PART = "Dieser Teil der Datei fehlt."
+NO_FILES = "Für diese Bewerbung gibt es noch keine Dateien. Bitte zuerst „Unterlagen erstellen“ oder unter „Meine Dateien“ hochladen."
+FOLDER_FAILED = "Der Ordner liess sich nicht vorbereiten. Bitte nochmals versuchen."
 
 
 @dataclass(frozen=True)
@@ -144,25 +150,72 @@ def uploads(data_dir: pathlib.Path, entry: dict) -> dict[str, Upload]:
     if packed.is_file():
         found["zertifikate"] = Upload(packed, certificates.upload_name(data_dir))
     references = certificates.files_in(data_dir, REFERENCES_FOLDER)
-    return found | {_reference_key(rel): Upload(data_dir / rel, pathlib.PurePath(rel).name) for rel in references}
+    joined = {key: Upload(form_copy.copy_path(data_dir, entry["id"], key),  # exists once a form or person asks for it
+                          certificates.upload_name(data_dir, merged_pdf.FILE_LABELS[key], ".pdf"))
+               for key in merged_pdf.offered(data_dir, entry)}
+    return found | {_reference_key(rel): Upload(data_dir / rel, pathlib.PurePath(rel).name) for rel in references} | joined
 
 
 def describe_uploads(files: dict[str, Upload]) -> list[dict]:
     return [{"schluessel": key, "name": upload.name} for key, upload in files.items()]
 
 
-def handed_over(data_dir: pathlib.Path, entry_id: str, key: str, upload: Upload, part: int) -> Upload:
+def handed_over(data_dir: pathlib.Path, entry: dict, key: str, upload: Upload, part: int) -> Upload:
     """What this request reads from. The first part keeps a copy, the others read it: all parts are one version.
 
     Call with the lock held."""
-    copy = form_copy.copy_path(data_dir, entry_id, key)
+    copy = form_copy.copy_path(data_dir, entry["id"], key)
     if copy is None:
         return upload
+    if part == 0 and key in merged_pdf.KEYS:
+        return Upload(merged_pdf.keep(data_dir, entry, key), upload.name)
     if part == 0:
-        return Upload(form_copy.keep(data_dir, entry_id, key, upload.path), upload.name)
+        return Upload(form_copy.keep(data_dir, entry["id"], key, upload.path), upload.name)
     if not copy.is_file():
         raise ValueError(UNKNOWN_PART)
     return Upload(copy, upload.name)
+
+
+@dataclass(frozen=True)
+class HandFolder:
+    path: pathlib.Path
+    names: list[str]
+    notes: list[str]
+
+
+def _file_for_hand(data_dir: pathlib.Path, entry: dict, key: str, upload: Upload) -> bytes:
+    return merged_pdf.build(merged_pdf.sources(data_dir, entry)[key]) if key in merged_pdf.KEYS else upload.path.read_bytes()
+
+
+def _free_name(name: str, taken: list[str]) -> str:
+    """A reference may be called like a generated file: both stay, and file systems may ignore case."""
+    used = {other.casefold() for other in taken}
+    path = pathlib.PurePath(name)
+    candidates = itertools.chain([name], (f"{path.stem} ({n}){path.suffix}" for n in itertools.count(2)))
+    return next(candidate for candidate in candidates if candidate.casefold() not in used)
+
+
+def prepare_folder(data_dir: pathlib.Path, entry: dict) -> HandFolder:
+    """All files of this application as they count now, with their names for the employer. Call with the lock held."""
+    files = uploads(data_dir, entry)
+    if not files:
+        raise ValueError(NO_FILES)
+    folder = form_copy.hand_folder(data_dir, entry["id"])
+    names, notes = [], []
+    try:
+        if folder.is_dir():
+            shutil.rmtree(folder)
+        folder.mkdir(parents=True)
+        for key, upload in files.items():
+            try:
+                name = _free_name(upload.name, names)
+                schreibe_atomar(folder / name, _file_for_hand(data_dir, entry, key, upload))
+                names.append(name)
+            except ValueError as error:  # the joined PDF is a help; the single files are still there
+                notes.append(str(error))
+    except OSError as error:
+        raise ValueError(FOLDER_FAILED) from error
+    return HandFolder(folder, names, notes)
 
 
 def read_part(upload: Upload, part: int) -> tuple[bytes, int]:

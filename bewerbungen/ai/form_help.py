@@ -23,7 +23,13 @@ KEYS = {
 }
 UNCLEAR = "unklar"
 QUESTION = "frage"
-KINDS = (UNCLEAR, QUESTION)
+FILE = "datei"
+KINDS = (UNCLEAR, QUESTION, FILE)
+FILE_KEYS = {
+    "lebenslauf": "Lebenslauf, CV", "anschreiben": "Anschreiben, Motivationsschreiben", "zeugnis": "Arbeitszeugnisse",
+    "zertifikate": "Zertifikate, Diplome, Kursbestätigungen", "nachweise": "Zeugnisse und Zertifikate zusammen in einem Feld",
+    "unterlagen": "alle Bewerbungsunterlagen zusammen in einem Feld",
+}
 MAX_FIELDS = 12
 MAX_LABEL = 300
 MAX_NAME = 100
@@ -39,7 +45,9 @@ ALLOWED_IN_DRAFTS = ("NAME", "POSTAL_CODE", "PROFILE_USER")
 UNKNOWN_FORM = "Die Felder haben eine unbekannte Form."
 TOO_MANY = f"Pro Anfrage gehen höchstens {MAX_FIELDS} Felder."
 NO_AD = "Für Textentwürfe fehlt das Inserat. Offene Fragen bleiben bei Ihnen."
+NO_MATERIAL = "Für Textentwürfe fehlt noch {name}. Offene Fragen bleiben bei Ihnen."
 SUSPICIOUS = "Im Formular stehen Zeilen, die sich an eine KI richten. Entwürfe bitte besonders genau prüfen."
+FILES_HELD_BACK = "Im Formular stehen Zeilen, die sich an eine KI richten. Darum hat die KI keine Dateien zugeordnet; bitte selbst hochladen."
 DROPPED = "Ein Entwurf nannte Kontaktangaben oder Referenzen und wurde verworfen. Diese Frage bleibt bei Ihnen."
 
 
@@ -53,6 +61,7 @@ class FormField:
     options: tuple[str, ...]
     limit: int
     one_line: bool
+    is_file: bool = False
 
     def shown(self) -> dict[str, str]:
         return {"Beschriftung": self.label, "Feldname": self.name, "Hinweis": self.hint,
@@ -81,7 +90,7 @@ def _clean_field(raw: object) -> FormField:
     shown = options[:MAX_OPTIONS] if isinstance(options, list) else []
     return FormField(raw["ref"], raw["art"] == QUESTION, _short(raw.get("label"), MAX_LABEL), _short(raw.get("name"), MAX_NAME),
                      _short(raw.get("hinweis"), MAX_HINT), tuple(t for t in (_short(o, MAX_OPTION) for o in shown) if t),
-                     _limit(raw), raw.get("einzeilig") is not False)
+                     _limit(raw), raw.get("einzeilig") is not False, raw["art"] == FILE)
 
 
 def clean_fields(raw: object) -> list[FormField]:
@@ -128,6 +137,29 @@ def _assign(gateway: Gateway, fields: list[FormField]) -> tuple[dict[str, str], 
     return keys, questions, _suspicious(answer.data)
 
 
+def _assign_files(gateway: Gateway, fields: list[FormField]) -> tuple[dict[str, str], bool]:
+    """(ref → kind of file, lines aimed at an AI found). Only what the page shows goes along, never a file or its name."""
+    labels = _labels(fields)
+    instructions = prompts.FORM_FILES.format(keys="\n".join(f"- {key}: {text}" for key, text in FILE_KEYS.items()))
+    answer = gateway.ask(Request(
+        task="form_fields", model=tasks.MODELS["form_fields"], rules=prompts.FORM_FIELD_RULES, context="",
+        instructions=instructions, prompt=prompts.form_fields_prompt([(label, f.shown()) for label, f in labels.items()]),
+        max_tokens=tasks.MAX_TOKENS["form_fields"], schema=prompts.form_fields_schema(list(labels), [*FILE_KEYS, UNCLEAR])))
+    found = _entries(answer.data, "fields", labels)
+    return {labels[label].ref: e["key"] for label, e in found.items() if e.get("key") in FILE_KEYS}, _suspicious(answer.data)
+
+
+def _file_step(gateway: Gateway, fields: list[FormField]) -> tuple[dict[str, str], list[str], bool]:
+    """(ref → kind of file, notes, failed). A file can reach the company at once, so a page that tries to steer the AI gets none."""
+    if not fields:
+        return {}, [], False
+    try:
+        chosen, suspicious = _assign_files(gateway, fields)
+    except AiError as error:
+        return {}, [str(error)], True
+    return ({}, [FILES_HELD_BACK], False) if suspicious else (chosen, [], False)
+
+
 def _contact_details(material: tasks.Material) -> Pseudonymizer:
     """The same matching as for masking: a phone number or a link is found in all its forms, a name only as a word."""
     found = secrets_from_cv(material.cv, minor=material.minor) + secrets_from_building_blocks(material.blocks)
@@ -165,8 +197,9 @@ def _draft(gateway: Gateway, material: tasks.Material, entry: dict, ad: str, let
 def assist(gateway: Gateway, material: tasks.Material, entry: dict, ad: str, letter: str, fields: list[FormField]) -> dict:
     """What is known for these fields. A failing step leaves the other one and a note: the form works without the AI.
     `wiederholen` says that a later try could know more; a field the AI left open stays open without it."""
-    unclear = [f for f in fields if not f.is_question]
+    unclear = [f for f in fields if not f.is_question and not f.is_file]
     questions = [f for f in fields if f.is_question]
+    files, file_notes, files_failed = _file_step(gateway, [f for f in fields if f.is_file])
     keys, notes, failed = {}, [], False
     if unclear:
         try:
@@ -175,7 +208,9 @@ def assist(gateway: Gateway, material: tasks.Material, entry: dict, ad: str, let
         except AiError as error:
             notes, failed = [str(error)], True
     drafts = {}
-    if questions and not ad.strip():
+    if questions and material.missing:
+        notes = [*notes, NO_MATERIAL.format(name=material.missing[0])]
+    elif questions and not ad.strip():
         notes = [*notes, NO_AD]
     elif questions:
         try:
@@ -183,4 +218,5 @@ def assist(gateway: Gateway, material: tasks.Material, entry: dict, ad: str, let
             notes = [*notes, *drafted]
         except AiError as error:
             notes, failed = [*notes, str(error)], True
-    return {"zuordnung": keys, "entwuerfe": drafts, "hinweise": list(dict.fromkeys(notes)), "wiederholen": failed}
+    return {"zuordnung": keys, "entwuerfe": drafts, "dateien": files, "hinweise": list(dict.fromkeys([*notes, *file_notes])),
+            "wiederholen": failed or files_failed}
