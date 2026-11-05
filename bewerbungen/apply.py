@@ -28,8 +28,8 @@ FRAME_KEYS = {"Verfügbar ab": "availability", "Kündigungsfrist": "notice", "Lo
 REFERENCES_FOLDER = "dokumente/zeugnisse"
 ALREADY_SENT = "Schon versendet"
 NOT_OPEN = "Status „{status}“"
-NO_LINK = "Kein Link zum Formular"
-NO_CV = "Lebenslauf-PDF fehlt"
+NO_LINK = "Kein Link zum Formular: öffnen und Link eintragen"
+NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“"
 UNKNOWN_FILE = "Diese Datei gehört nicht zu dieser Bewerbung."
 UNKNOWN_PART = "Dieser Teil der Datei fehlt."
 

@@ -28,11 +28,32 @@ def test_baue_beide(datenordner, tmp_path):
     assert "Sehr geehrte Frau Meier" in PdfReader(gebaut["anschreiben"]).pages[0].extract_text()
 
 
-def test_ohne_variante(datenordner, tmp_path):
+def test_without_a_choice_among_variants_the_person_has_to_choose(datenordner, tmp_path):
     b = {**Register(datenordner).hole(BRIEF_ID)}
     del b["variante"]
 
-    with pytest.raises(ValueError, match="Variante"):
+    with pytest.raises(ValueError, match="Bitte unter „Angaben“"):
+        unterlagen.baue(datenordner, b, tmp_path / "build")
+
+
+def test_without_any_variant_the_whole_cv_is_built(datenordner, tmp_path):
+    # Variants come from Claude; whoever works in the app alone has none and must still get a CV.
+    (datenordner / "varianten.yaml").unlink()
+    b = {**Register(datenordner).hole(BRIEF_ID)}
+    del b["variante"]
+
+    built = unterlagen.baue(datenordner, b, tmp_path / "build")
+
+    assert built["lebenslauf"].is_file() and PdfReader(built["lebenslauf"]).pages
+
+
+def test_without_a_cv_it_says_where_to_enter_it(datenordner, tmp_path):
+    (datenordner / "varianten.yaml").unlink()
+    (datenordner / "cv.yaml").unlink()
+    b = {**Register(datenordner).hole(BRIEF_ID)}
+    del b["variante"]
+
+    with pytest.raises(ValueError, match="Meine Angaben"):
         unterlagen.baue(datenordner, b, tmp_path / "build")
 
 

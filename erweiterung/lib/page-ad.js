@@ -27,12 +27,23 @@ export function readPage() {
   const field = 300;
   // The main part of the page where it has one: side panels may show messages and names of other people.
   const main = document.querySelector('main, [role="main"], article');
+  // The link to the company's page beside the title of the ad; a page may list other companies further away.
+  const companyIn = (box) => [...box.querySelectorAll('a[href*="/company/"]')].map((link) => (link.innerText || '').trim().split('\n')[0]).find(Boolean) || '';
+  const companyLink = () => {
+    let box = document.querySelector('h1');
+    for (let level = 0; box && level < 8; level += 1, box = box.parentElement) {
+      const name = companyIn(box);
+      if (name) return name;
+    }
+    return main ? companyIn(main) : '';
+  };
   return {
     url: location.href,
     title: (document.title || '').slice(0, field),
     heading: (document.querySelector('h1')?.innerText || '').trim().slice(0, field),
     siteName: meta('og:site_name').slice(0, field),
     ogTitle: meta('og:title').slice(0, field),
+    companyLink: companyLink().slice(0, field),
     structured: [...document.querySelectorAll('script[type="application/ld+json"]')].slice(0, 20).map((s) => s.textContent.slice(0, limit)),
     selection: String(globalThis.getSelection?.() || '').trim().slice(0, limit),
     text: ((main && main.innerText) || document.body?.innerText || '').slice(0, limit),
@@ -160,11 +171,13 @@ export function toAd(page) {
   const pageTitle = cut(page.title);
   const siteName = cut(page.siteName);
   const linkedin = ogTitle.match(LINKEDIN_TITLE) || [];
-  const linkedinTab = (linkedinAd(page.url) && pageTitle.match(LINKEDIN_TAB)) || [];
+  const onLinkedin = Boolean(linkedinAd(page.url));
+  const linkedinTab = (onLinkedin && pageTitle.match(LINKEDIN_TAB)) || [];
+  const companyLink = onLinkedin ? cut(page.companyLink) : '';
   const tail = pageTitle.split(/\s[|–—-]\s/)[0].trim();
   return {
     stelle: cut(text(posting && posting.title) || linkedin[2] || linkedinTab[1] || page.heading || ogTitle || tail),
-    firma: cut(companyOf(posting && posting.hiringOrganization) || linkedin[1] || linkedinTab[2] || (PORTALS.test(siteName) ? '' : siteName)),
+    firma: cut(companyOf(posting && posting.hiringOrganization) || linkedin[1] || linkedinTab[2] || companyLink || (PORTALS.test(siteName) ? '' : siteName)),
     ort: cut(placeOf(posting && posting.jobLocation) || linkedin[3] || ''),
     link: adLink(page.url),
     text: found.inhalt.slice(0, MAX_TEXT),

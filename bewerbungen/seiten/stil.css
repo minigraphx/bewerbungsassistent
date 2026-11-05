@@ -169,3 +169,4 @@ button.klein { padding: 2px 8px; font-size: 0.85em; margin: 0; }
 .chat-person { background: transparent; }
 .chat-beispiele { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .chat-beispiele:empty { display: none; }
+.fehlt-noch { display: block; margin-top: 4px; font-size: 0.85em; color: var(--leise); }

@@ -13,6 +13,8 @@ from varianten import Varianten
 
 ORDNER = "bewerbungen"
 ARTEN = ("lebenslauf", "anschreiben")
+CHOOSE_VARIANT = "Keine Lebenslauf-Variante gewählt. Bitte unter „Angaben“ eine wählen und speichern."
+NO_CV = "Noch kein Lebenslauf. Bitte zuerst unter „Meine Angaben“ erfassen."
 
 
 def bewerbungsordner(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
@@ -26,9 +28,18 @@ def pdf_pfade(daten: pathlib.Path, bewerbung_id: str) -> dict[str, pathlib.Path]
     return {art: ordner / f"{art}.pdf" for art in ARTEN}
 
 
+def _baue_ganzen_lebenslauf(daten: pathlib.Path, build: pathlib.Path, ziel: pathlib.Path) -> None:
+    """Variants come from Claude; whoever works in the app alone has none and still needs a CV. With variants, the person chooses."""
+    if Varianten(daten).alle():
+        raise ValueError(CHOOSE_VARIANT)
+    if not (daten / "cv.yaml").is_file():
+        raise ValueError(NO_CV)
+    lebenslauf_modul.main([str(daten / "cv.yaml"), "--build-dir", str(build), "-o", str(ziel)])
+
+
 def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, ziel: pathlib.Path) -> None:
     if not bewerbung.get("variante"):
-        raise ValueError("Keine Lebenslauf-Variante gewählt (Feld variante)")
+        return _baue_ganzen_lebenslauf(daten, build, ziel)
     variante = Varianten(daten).hole(bewerbung["variante"])
     if variante.get("quelle"):
         lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(im_ordner(daten, variante["quelle"])),

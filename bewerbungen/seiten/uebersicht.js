@@ -20,6 +20,7 @@
   const ANSWER_TIMEOUT_MS = 60000;
   const ANSICHT = "uebersicht.ansicht";  // Sortierung, Suche, Filter und Scrollposition bleiben beim Seitenwechsel erhalten
   let wiederhergestellt = false;  // Scrollposition erst speichern, wenn die gemerkte gesetzt ist
+  const OFFENER_STATUS = ["Gemerkt", "Bewerben"];
   let alle = [];
   let gezeigt = "";  // the register as last drawn, to see whether Claude changed it
   let statusReihe = [];
@@ -87,12 +88,17 @@
   const toApply = () => [...chosen].filter(id => blockers.get(id) === null);
   const toEnter = () => [...chosen].filter(id => ravBlockers.get(id) === null);
 
+  /** What still stands between an open application and „Bewerben“; sent ones have nothing to do here. */
+  const fehltNoch = b => (OFFENER_STATUS.includes(b.status) ? blockers.get(b.id) : null);
+
   function updateChoice() {
     const count = toApply().length;
     $("bewerben").disabled = count === 0 || count > maxPerRun;
     $("bewerben").textContent = count ? `Bewerben (${count})` : "Bewerben";
+    const keineBereit = alle.some(fehltNoch) && ![...blockers.values()].includes(null);
     $("bewerben-hilfe").textContent = count > maxPerRun
       ? `Pro Durchgang höchstens ${maxPerRun}.`
+      : keineBereit ? "Noch ist keine Bewerbung bereit. Was fehlt, steht bei der Firma."
       : "Öffnet pro Bewerbung einen Tab und füllt das Formular aus. Abschicken bleibt bei Ihnen.";
     const entries = toEnter().length;
     $("rav").disabled = entries === 0 || entries > maxRav;
@@ -122,10 +128,12 @@
   }
 
   function zeile(b) {
-    const link = el("a", { href: "/bewerbung?id=" + encodeURIComponent(b.id) }, b.firma);
+    const adresse = "/bewerbung?id=" + encodeURIComponent(b.id);
+    const link = el("a", { href: adresse }, b.firma);
+    const fehlt = fehltNoch(b);
     return el("tr", {},
       el("td", {}, choiceBox(b)),
-      el("td", {}, link),
+      el("td", {}, link, fehlt ? el("a", { href: adresse, class: "fehlt-noch" }, fehlt) : null),
       el("td", {}, b.stelle),
       el("td", {}, el("span", { class: "marke-status", "data-status": b.status }, b.status)),
       el("td", { class: "zahl" }, b.passung ?? ""),
@@ -261,6 +269,7 @@
       await loadChoice();
       gezeigt = JSON.stringify(daten.bewerbungen);
       alle = daten.bewerbungen;
+      updateChoice();  // its hint depends on the applications, which loadChoice does not have yet
       statusReihe = daten.status;
       $("statusfilter").replaceChildren(el("option", { value: "" }, "Alle Status"),
         ...daten.status.map(s => el("option", { value: s }, `${s} (${alle.filter(b => b.status === s).length})`)));

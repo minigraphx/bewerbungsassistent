@@ -89,6 +89,15 @@ test('signed in, LinkedIn only names job and company in the title of the tab', (
   assert.equal(elsewhere.stelle, 'Kopfzeile');
 });
 
+test('if the tab does not name the company, the link to its page on LinkedIn does', () => {
+  const linkedin = (extra) => page({ url: 'https://www.linkedin.com/jobs/view/4242/', siteName: '', title: '(1) LinkedIn', heading: 'Data Engineer', ...extra });
+
+  assert.equal(toAd(linkedin({ companyLink: 'Muster AG' })).firma, 'Muster AG');
+  assert.equal(toAd(linkedin({ companyLink: 'Muster AG', title: 'Data Engineer | Probe SA | LinkedIn' })).firma, 'Probe SA');
+  assert.equal(toAd(page({ companyLink: 'Falsche AG', siteName: '' })).firma, '', 'only on LinkedIn');
+  assert.equal(toAd(linkedin({})).firma, '');
+});
+
 test('an ad on LinkedIn gets its own address, wherever the person opened it', () => {
   const link = (url) => toAd(page({ url })).link;
 

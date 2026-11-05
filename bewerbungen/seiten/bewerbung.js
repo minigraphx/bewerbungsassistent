@@ -29,7 +29,7 @@
     $("untertitel").textContent = `ID ${bewerbung.id} · Status ${bewerbung.status}` +
       (bewerbung.beworben_am ? ` · beworben am ${datum(bewerbung.beworben_am)}` : "");
     optionen($("f-status"), daten.status.map(s => [s, s]), bewerbung.status);
-    optionen($("f-variante"), [["", "– keine –"], ...daten.varianten.map(v => [v.id, `${v.id}${v.beschreibung ? " – " + v.beschreibung : ""}`])],
+    optionen($("f-variante"), [["", daten.varianten.length ? "– keine –" : "– ganzer Lebenslauf –"], ...daten.varianten.map(v => [v.id, `${v.id}${v.beschreibung ? " – " + v.beschreibung : ""}`])],
       bewerbung.variante || "");
     for (const f of FELDER) {
       if (f !== "status" && f !== "variante") $("f-" + f).value = bewerbung[f] ?? "";
@@ -180,7 +180,7 @@
       zeigePdfs(daten.pdfs);
       pdfStand = JSON.stringify(daten.pdf_stand);
       zeigeZertifikate().catch(fehler => status($("zertifikate-status"), fehler.message, "fehler"));
-      if (!daten.hat_anschreiben) meldungOben("Noch kein Anschreiben (bewerbungen/" + ID + "/anschreiben.yaml) – der Skill „bewerbung“ erstellt den Entwurf.", "hinweis");
+      if (!daten.hat_anschreiben) meldungOben("Noch kein Anschreiben. Einen Entwurf erstellt „Anschreiben entwerfen“ weiter unten oder Claude mit dem Skill „bewerbung“.", "hinweis");
       if (daten.pdfs.lebenslauf) pruefen();
     } catch (fehler) {
       meldungOben("Laden fehlgeschlagen: " + fehler.message, "fehler");

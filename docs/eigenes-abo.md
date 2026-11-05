@@ -31,11 +31,11 @@ Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ih
 Sie brauchen ein bezahltes Abo, weil [Claude in Chrome](https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome) nur damit läuft.
 
 1. **App laden und starten**, wie in der [Installation](installation.md) beschrieben. Die Einladung können Sie überspringen. Die [Browser-Erweiterung des Bewerbungsassistenten](installation.md#schritt-4-browser-erweiterung) brauchen Sie, um Inserate von LinkedIn und anderen Seiten einzulesen.
-2. **Zugang einschalten:** In der App unter Menü, „Erweiterte Einstellungen“, Abschnitt „Mit dem eigenen Claude-Abo arbeiten“. Hinweise lesen, Häkchen setzen, „Zugang einschalten“.
+2. **Skills hochladen:** In der App unter Menü, „Erweiterte Einstellungen“, Abschnitt „Mit dem eigenen Claude-Abo arbeiten“, laden Sie `einstieg.zip`, `jobsuche.zip` und `bewerbung.zip` herunter. In Claude: [Anpassen, Skills, „+“, Skill hochladen](https://support.claude.com/en/articles/12512180-use-skills-in-claude). Einmal pro Datei; entpacken ist nicht nötig.
+3. **Zugang einschalten:** Im selben Abschnitt. Hinweise lesen, Häkchen setzen, „Zugang einschalten“.
 
-   ![Abschnitt „Mit dem eigenen Claude-Abo arbeiten“ in den erweiterten Einstellungen, mit den drei Skills, dem Knopf zum Eintragen in Claude Desktop und dem Knopf zum Ausschalten](bilder/einstellungen-claude.jpg)
+   ![Abschnitt „Mit dem eigenen Claude-Abo arbeiten“ in den erweiterten Einstellungen, mit den drei Skills zum Herunterladen, den Hinweisen vor dem Einschalten und dem Knopf „Zugang einschalten“](bilder/einstellungen-claude.jpg)
 
-3. **Skills hochladen:** Laden Sie im selben Abschnitt `einstieg.zip`, `jobsuche.zip` und `bewerbung.zip` herunter. In Claude: [Anpassen, Skills, „+“, Skill hochladen](https://support.claude.com/en/articles/12512180-use-skills-in-claude). Einmal pro Datei; entpacken ist nicht nötig.
 4. **Claude mit der App verbinden:** „In Claude Desktop eintragen“ klicken und Claude Desktop einmal ganz beenden und neu öffnen. Die App ändert nur ihren eigenen Eintrag und legt die alte Datei daneben. Claude Code statt Desktop: Der Befehl steht unter „Claude Code oder von Hand eintragen“. Claude Code liest Skills aus dem Ordner `~/.claude/skills/`; entpacken Sie die drei ZIP-Dateien dort.
 5. **Browser verbinden:** In Chrome die Erweiterung [Claude in Chrome](https://claude.com/claude-in-chrome) installieren und anmelden. In Claude Desktop unter Einstellungen, Anpassen, Connectors den Eintrag „Claude in Chrome“ einschalten. In Claude Code: `claude --chrome`.
 
