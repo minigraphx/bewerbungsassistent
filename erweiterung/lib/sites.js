@@ -84,7 +84,7 @@ export function readOpenPage() {
       || fields.find((input) => input.type === 'search' && !isPlace(input));
     if (!term) return null;
     const url = new URL(action, location.href);
-    if (url.protocol !== 'https:') return null;
+    if (url.protocol !== 'https:' || url.port) return null;
     const hidden = inputs.filter((input) => input.type === 'hidden' && input.name).slice(0, 20);
     return {
       action: `${url.origin}${url.pathname}`,

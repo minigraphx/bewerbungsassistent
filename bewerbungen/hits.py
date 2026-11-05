@@ -323,7 +323,7 @@ class Hits:
         clean = {str(k): v for k, v in stars.items() if type(v) is int and 1 <= v <= MAX_STARS}
         return {"auto_bewerten": raw.get("auto_bewerten") is not False, "zuschauen": raw.get("zuschauen") is True, "beruf_sterne": clean,
                 OWN_SITES: raw.get(OWN_SITES) if isinstance(raw.get(OWN_SITES), list) else [],
-                PORTALS_OFF: raw.get(PORTALS_OFF) if isinstance(raw.get(PORTALS_OFF), list) else None}
+                PORTALS_OFF: [p for p in raw[PORTALS_OFF] if isinstance(p, str)] if isinstance(raw.get(PORTALS_OFF), list) else None}
 
     def _save_settings(self, settings: dict) -> dict:
         schreibe_yaml(self.folder / SETTINGS_FILE, settings)

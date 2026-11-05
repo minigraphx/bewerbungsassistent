@@ -259,6 +259,7 @@ test('forms that send something or sign in are no search form', () => {
     form({ inputs: [{ name: 'q' }, { type: 'password', name: 'p' }] }),
     form({ action: 'http://www.beispiel.ch/jobs', inputs: field }),
     form({ inputs: [{ name: 'email' }] }),
+    form({ action: 'https://jobs.beispiel.ch:8443/suche', inputs: field }),
   ]) {
     assert.equal(withPage({ forms: [other] }, readOpenPage).searchForm, null);
   }

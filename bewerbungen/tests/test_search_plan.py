@@ -110,9 +110,15 @@ def test_without_a_link_to_computing_ictjobs_starts_switched_off(terms):
 
 
 @pytest.mark.parametrize("terms", [("Software Engineer",), ("Informatiker EFZ",), ("IT Support",), ("Data Analyst",),
-                                   ("Python",), ("ICT-Fachmann",), ("Applikationsentwickler",)])
+                                   ("Python",), ("ICT-Fachmann",), ("Applikationsentwickler",), ("Product Owner",), ("Scrum Master",),
+                                   ("Business Analyst",), ("Helpdesk",), ("Software Tester",), ("Testingenieur",), ("UX Designer",), ("Mediamatiker EFZ",)])
 def test_with_a_link_to_computing_ictjobs_stays_on(terms):
     assert "ictjobs" in search_plan.chosen(_with_terms(*terms), None).portals
+
+
+def test_the_default_for_a_specialist_portal_never_leaves_a_search_without_portals():
+    plan = search_plan.SearchPlan(keywords=("Koch",), portals=("ictjobs",))
+    assert search_plan.chosen(plan, None).portals == ("ictjobs",)
 
 
 def test_the_choice_of_the_person_counts_more_than_any_default():

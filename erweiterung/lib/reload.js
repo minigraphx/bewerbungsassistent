@@ -13,7 +13,7 @@ export function siteAccessControl({ has, remove, forget, busy, restart }) {
         return { abgegeben: true };
       }
       if (await busy()) return { abgegeben: false, spaeter: true };
-      await remove();
+      if (await remove() === false) return { abgegeben: false, spaeter: true };
       await forget();
       restart();
       return { abgegeben: true };

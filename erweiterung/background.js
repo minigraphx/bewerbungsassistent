@@ -117,11 +117,11 @@ const siteAccess = {
   }),
 };
 
-/** A search, a list of open forms or the entries for the Job-Room: a reload would lose them. */
+/** A search, a list of open forms, a run waiting for access or the entries for the Job-Room: a reload would lose them. */
 async function isBusy() {
   if (running) return true;
-  const session = await chrome.storage.session.get([FORMS_KEY, RAV_KEY]);
-  return Object.keys(session[FORMS_KEY] || {}).length > 0 || Boolean(session[RAV_KEY]);
+  const session = await chrome.storage.session.get([FORMS_KEY, RAV_KEY, PENDING_KEY]);
+  return Object.keys(session[FORMS_KEY] || {}).length > 0 || Boolean(session[RAV_KEY]) || Boolean(session[PENDING_KEY]);
 }
 
 /** After the answer to the page is out; onInstalled gives open pages of the app a new bridge. */
@@ -187,7 +187,8 @@ async function status() {
     // Only a running app is asked for the plan: opening the popup should not start it.
     const plan = hello.app ? await app.request('GET', '/api/suche/plan').then((answer) => answer.plan, () => null) : null;
     await followKey(plan, siteAccess);
-    await followAppVersion(hello);
+    // Staying on the old version is no reason to report the connection as lost.
+    await followAppVersion(hello).catch(() => false);
     return { verbunden: true, version: hello.version, app: hello.app, plan };
   } catch (error) {
     return { verbunden: false, fehler: error.message || explain('') };

@@ -3,13 +3,14 @@ import { test } from 'node:test';
 
 import { reloadForAppVersion, siteAccessControl } from '../lib/reload.js';
 
-function access({ granted = true, busy = false, failing = false } = {}) {
+function access({ granted = true, busy = false, failing = false, removed = true } = {}) {
   const log = [];
   const control = siteAccessControl({
     has: async () => granted,
     remove: async () => {
       log.push('remove');
       if (failing) throw new Error('kaputt');
+      return removed;
     },
     forget: async () => log.push('forget'),
     busy: async () => busy,
@@ -34,6 +35,12 @@ test('during a search or an open form it waits and keeps the mark, so a later co
   const { control, log } = access({ busy: true });
   assert.deepEqual(await control.release(), { abgegeben: false, spaeter: true });
   assert.deepEqual(log, []);
+});
+
+test('if Chrome keeps the access, the mark stays and a later contact tries again', async () => {
+  const { control, log } = access({ removed: false });
+  assert.deepEqual(await control.release(), { abgegeben: false, spaeter: true });
+  assert.deepEqual(log, ['remove']);
 });
 
 test('a failed removal keeps the mark and does not reload', async () => {

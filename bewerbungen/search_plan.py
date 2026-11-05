@@ -22,7 +22,8 @@ PORTAL_HINTS = {"job-room": "Stellen der RAV, alle Berufe", "jobs.ch": "alle Ber
 SPECIALIST_PORTAL = "ictjobs"
 COMPUTING = re.compile(r"informati|software|entwickl|developer|programm|devops|cloud|netzwerk|system|admin|cyber|security"
                        r"|\bit\b|\bict\b|\bki\b|\bai\b|data|daten|digital|applikation|web|frontend|backend|fullstack"
-                       r"|engineer|python|java|typescript|sql|linux|sap", re.IGNORECASE)
+                       r"|engineer|python|java|typescript|sql|linux|sap|product owner|scrum|business analy|helpdesk|service desk"
+                       r"|\btest|\bux\b|\bui\b|mediamatik", re.IGNORECASE)
 NO_PORTAL_LEFT = "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts."
 BAD_CHOICE = "Diese Auswahl der Portale geht nicht."
 KIND_JOB = "stelle"
@@ -124,7 +125,9 @@ def _off(plan: SearchPlan, switched_off: list[str] | None) -> frozenset[str]:
     if switched_off is not None:
         return frozenset(switched_off)
     unfit = plan.keywords and not any(COMPUTING.search(term) for term in (*plan.keywords, *plan.niche_keywords))
-    return frozenset(p for p in _portals_of_kind(plan.kind) if p not in plan.portals or (unfit and p == SPECIALIST_PORTAL))
+    from_profile = frozenset(p for p in _portals_of_kind(plan.kind) if p not in plan.portals)
+    others_left = any(p not in from_profile and p != SPECIALIST_PORTAL for p in _portals_of_kind(plan.kind))
+    return from_profile | {SPECIALIST_PORTAL} if unfit and others_left else from_profile
 
 
 def chosen(plan: SearchPlan, switched_off: list[str] | None) -> SearchPlan:

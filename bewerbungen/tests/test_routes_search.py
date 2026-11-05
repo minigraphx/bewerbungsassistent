@@ -152,6 +152,14 @@ def test_the_person_chooses_the_portals_and_the_search_follows(search):
     assert listing(search)["einstellungen"]["portale_aus"] == ["ictjobs", "jobscout24"], "other settings leave it alone"
 
 
+def test_a_broken_choice_of_portals_in_the_file_does_not_break_the_plan(search):
+    folder = search.kontext.daten / "suche"
+    folder.mkdir(exist_ok=True)
+    (folder / "einstellungen.yaml").write_text("portale_aus:\n- jobs.ch\n- {a: b}\n- 3\n", encoding="utf-8")
+    status, _, content = get(search, "/api/suche/plan")
+    assert status == 200 and "jobs.ch" not in json.loads(content)["plan"]["portale"]
+
+
 def test_all_portals_off_is_refused_with_a_message(search):
     status, answer = post(search, "/api/suche/einstellungen", {"portale_aus": list(search_plan.PORTALS)})
     assert status == 400 and "Portal" in answer["fehler"]
