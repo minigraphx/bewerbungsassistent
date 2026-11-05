@@ -49,7 +49,9 @@ Haben Sie schon eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus
 
 ![Schritt KI-Unterstützung mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
 
-Tragen Sie den Einladungscode ein und klicken Sie auf **Einladung einlösen**. Haben Sie stattdessen einen Einladungslink erhalten, genügt ein Klick darauf.
+Lesen Sie zuerst die Datenschutz-Erklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Bei der Lehrstellensuche richtet ein Elternteil oder die gesetzliche Vertretung die App ein und bestätigt das hier. Widerrufen können Sie jederzeit unter **Erweiterte Einstellungen**.
+
+Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlösen**. Haben Sie stattdessen einen Einladungslink erhalten, genügt ein Klick darauf; der Code wird nach der Einwilligung eingelöst.
 
 ### Schritt 4: Browser-Erweiterung
 
@@ -185,6 +187,7 @@ Einladungslinks, die mit `bewerbungsassistent://` beginnen, öffnen die App nich
 | Windows blockiert die Datei, und **Trotzdem ausführen** fehlt | Vermutlich ist [Smart App Control](https://support.microsoft.com/de-de/windows/smart-app-control-frequently-asked-questions-285ea03d-fa88-4d56-882e-6698afdb7003) aktiv. Es blockiert nicht signierte Programme, und laut Microsoft gibt es keine Ausnahme für einzelne Programme. Die App läuft dann nur, wenn Sie es in der Windows-Sicherheit ausschalten. Das gilt für alle Programme; entscheiden Sie das bewusst, bei Jugendlichen zusammen mit der Begleitperson. |
 | „Für die Suche braucht es die Browser-Erweiterung.“ | Die Erweiterung ist nicht geladen oder ausgeschaltet. Gehen Sie zu [Schritt 4](#schritt-4-browser-erweiterung), oder schalten Sie sie auf der Erweiterungsseite ein. |
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
+| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein. |
 | „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 3](#schritt-3-ki-unterstützung) ein. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie im Pilot begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |

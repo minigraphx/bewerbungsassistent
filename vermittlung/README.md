@@ -60,7 +60,7 @@ Auf dem Server (im Container: `docker compose exec vermittlung python admin.py �
 ```bash
 python admin.py invite T01 --budget 20     # Person anlegen, Code und Link ausgeben (45 Tage gültig)
 python admin.py invite T01 --months 2      # andere Gültigkeit: --days, --weeks oder --months, höchstens 12 Monate
-python admin.py accesses T01               # Geräte mit Zugang
+python admin.py accesses T01               # Geräte mit Zugang und Einwilligung (Fassung und Art der Suche)
 python admin.py revoke T01 [--access 3]    # alle Zugänge oder einen sperren
 python admin.py budget T01 30              # Budget pro Monat in USD
 python admin.py costs [--month 2026-11]    # Kosten pro Person

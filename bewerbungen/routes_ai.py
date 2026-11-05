@@ -3,11 +3,14 @@
 Every call goes through `ai.gateway.Gateway`, so nothing leaves the computer unpseudonymized. AI calls run
 outside the lock; only writing the letter holds it (via `mit_entwurf`, which also saves drafts).
 """
+import datetime
+
 import yaml
 
 import letter_approval
+import preferences
 import unterlagen
-from ai import form_help, invitation, tasks
+from ai import consent, form_help, invitation, tasks
 from ai.connection import find_connection, make_client, mediation_url, own_key
 from ai.errors import AiError
 from ai.usage import UsageLog
@@ -19,6 +22,8 @@ STELLE_FILE = "stelle.md"
 NO_AD = "Zuerst den Stellentext einfügen und speichern."
 OWN_LETTER_NO_DRAFT = "Für diese Bewerbung gilt das eigene Anschreiben. Für einen Entwurf zuerst die Datei entfernen."
 OWN_LETTER_NO_REVIEW = "Das eigene Anschreiben geht nicht an die KI. Bitte selbst mit dem Inserat vergleichen."
+NO_TICK = "Bitte zuerst den Text lesen und bestätigen."
+WAITING_CODE = "wartender_code"  # in the context: from an invitation link, redeemed once the consent is there
 
 
 def new_client():
@@ -56,7 +61,12 @@ def _letter_text(letter: dict) -> str:
     return "\n\n".join(str(p).strip() for p in parts if p and str(p).strip())
 
 
+def _kind(k) -> str:
+    return preferences.strictest_kind(k.daten)
+
+
 def ai_gateway(k, entry: dict | None = None, letter: dict | None = None, partial: bool = False):
+    consent.require(k.daten, _kind(k))
     material = tasks.load_material(k.daten, partial)
     return tasks.make_gateway(k.daten, material, new_client(), entry, letter), material
 
@@ -94,7 +104,8 @@ def form_fields(k, entry: dict, fields: list[form_help.FormField]) -> dict:
 
 def _status(k) -> dict:
     month = k.heute().strftime("%Y-%m")
-    result = {"monat": month, "kosten_usd": UsageLog(k.daten).month_total_usd(month)}
+    result = {"monat": month, "kosten_usd": UsageLog(k.daten).month_total_usd(month),
+              "einwilligung": {**consent.state(k.daten, _kind(k)), "code_wartet": WAITING_CODE in k.cache}}
     try:
         connection = find_connection()
     except AiError as error:
@@ -124,7 +135,44 @@ def redeem(k, parameter, body):
     url = run_ai(mediation_url)
     if url is None:
         raise ValueError("Für diese App ist keine KI-Vermittlung eingerichtet.")
-    run_ai(lambda: invitation.redeem(url, body["code"]))
+    if not consent.is_given(k.daten, _kind(k)):
+        k.cache[WAITING_CODE] = body["code"]
+        raise ValueError(consent.MISSING)
+    run_ai(lambda: invitation.redeem(url, body["code"], receipt=consent.receipt(k.daten)))
+    return json_antwort(_status(k))
+
+
+def _redeem_waiting_code(k) -> str:
+    """The code of an invitation link that came before the consent; what went wrong, for the person."""
+    code = k.cache.pop(WAITING_CODE, None)
+    if code is None:
+        return ""
+    try:
+        url = mediation_url()
+        if url is not None:
+            invitation.redeem(url, code, receipt=consent.receipt(k.daten))
+    except AiError as error:
+        return str(error)
+    return ""
+
+
+def hand_over_waiting_code(old, new) -> None:
+    """Choosing the data folder comes with a new context; the invitation link stays valid for it."""
+    if WAITING_CODE in old.cache:
+        new.cache[WAITING_CODE] = old.cache[WAITING_CODE]
+
+
+def consent_give(k, parameter, body):
+    if not isinstance(body, dict) or body.get("zustimmung") is not True:
+        raise ValueError(NO_TICK)
+    consent.give(k.daten, _kind(k), str(body.get("fassung")), datetime.datetime.now(datetime.timezone.utc))
+    problem = _redeem_waiting_code(k)
+    status_now = _status(k)
+    return json_antwort({**status_now, "einladung_fehler": problem} if problem else status_now)
+
+
+def consent_withdraw(k, parameter, body):
+    consent.withdraw(k.daten)
     return json_antwort(_status(k))
 
 
@@ -181,5 +229,6 @@ def review(k, parameter, body):
 
 
 GET = {"/api/ki/status": status}
-POST = {"/api/ki/einladung": redeem, "/api/ki/bewerten": rate, "/api/ki/anschreiben": draft,
+POST = {"/api/ki/einladung": redeem, "/api/ki/einwilligung": consent_give, "/api/ki/einwilligung/widerruf": consent_withdraw,
+        "/api/ki/bewerten": rate, "/api/ki/anschreiben": draft,
         "/api/ki/pruefen": review}

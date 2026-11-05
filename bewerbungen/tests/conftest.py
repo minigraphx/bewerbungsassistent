@@ -9,8 +9,20 @@ import pytest
 import yaml
 
 import build
+from ai import consent
 from register import Register
 from varianten import Varianten
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "real_consent: the consent gate is on, see test_consent")
+
+
+@pytest.fixture(autouse=True)
+def consent_given(request, monkeypatch):
+    """Other tests are not about the consent (MIN-401); test_consent turns the gate on."""
+    if not request.node.get_closest_marker("real_consent"):
+        monkeypatch.setattr(consent, "is_given", lambda data_dir, kind: True)
+
 
 BEISPIEL = build.ROOT / "data"
 BRIEF_ID = "beispiel-ag-data-engineer"

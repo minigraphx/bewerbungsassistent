@@ -71,11 +71,14 @@ def _keep(access: str) -> None:
         raise AiError(NO_KEYCHAIN) from error
 
 
-def redeem(base_url: str, code: str, opener: Opener = _open, keep: Callable[[str], None] = _keep) -> None:
+def redeem(base_url: str, code: str, opener: Opener = _open, keep: Callable[[str], None] = _keep,
+           receipt: str = "") -> None:
+    """`receipt`: version and kind of the consent (MIN-401), so that the operator can show it; no names."""
     code = (code or "").strip()
     if not code or len(code) > 64:
         raise AiError(CODE_INVALID)
-    answer = _call(base_url.rstrip("/") + REDEEM_PATH, opener, {"code": code, "device": platform.system() or "Gerät"})
+    answer = _call(base_url.rstrip("/") + REDEEM_PATH, opener, {"code": code, "device": platform.system() or "Gerät",
+                                                                "consent": receipt})
     access = answer.get("access")
     if not isinstance(access, str) or not access:
         raise AiError("Die Antwort der Vermittlung liess sich nicht lesen.")

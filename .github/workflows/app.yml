@@ -35,9 +35,10 @@ jobs:
       - name: Voreinstellungen (Adresse der KI-Vermittlung, kein Geheimnis)
         env:
           KI_URL: ${{ vars.KI_URL }}
+          DATENSCHUTZ_URL: ${{ vars.DATENSCHUTZ_URL }}
         run: |
           New-Item -ItemType Directory -Force desktop/build | Out-Null
-          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
+          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
       - name: Paket bauen
         run: pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
       - name: Selbsttest des Pakets
@@ -111,9 +112,10 @@ jobs:
       - name: Voreinstellungen
         env:
           KI_URL: ${{ vars.KI_URL }}
+          DATENSCHUTZ_URL: ${{ vars.DATENSCHUTZ_URL }}
         run: |
           mkdir -p desktop/build
-          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
+          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
       - name: Paket bauen und testen
         run: |
           pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec

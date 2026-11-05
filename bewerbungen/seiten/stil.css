@@ -762,3 +762,7 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 .page .foto-raster.card { display: grid; }
 @media (max-width: 760px) { .page__aside { position: static; } }
 .page .verlauf.card { margin: 0; } .page .verlauf.card h2 { margin: 0; padding: 0; border: 0; }
+
+/* Consent before the first AI call: a long text beside the tick */
+.einwilligung .schalter { align-items: flex-start; font-weight: 400; }
+.einwilligung .btn { justify-self: start; align-self: flex-start; }

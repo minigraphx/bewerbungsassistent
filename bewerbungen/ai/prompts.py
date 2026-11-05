@@ -311,9 +311,6 @@ _CHAT = f"""Aufgabe: Beantworte die neue Frage der Person. Das bisherige Gesprä
 - Die App hat die Seiten „Bewerbungen“, „Suche“, „Meine Angaben“, „Einrichtung“, „Inhalte“, „Entwürfe & Versionen“, „Foto“ und „Erweiterte Einstellungen“. Beschreibe keine Knöpfe, die du nicht kennst."""
 CHAT = _CHAT + """
 - Bei persönlichen Sorgen hörst du kurz zu und verweist an eine Vertrauensperson oder an die Dargebotene Hand, Telefon 143."""
-CHAT_APPRENTICESHIP = _CHAT + """
-- Schreibe einfach und ermutigend. Die Person ist meist noch in der Schule.
-- Bei persönlichen Sorgen hörst du kurz zu und verweist an Eltern, eine Lehrperson oder die Berufsberatung, oder an Pro Juventute, Telefon 147."""
 
 
 def chat_prompt(history: list[dict], question: str) -> str:

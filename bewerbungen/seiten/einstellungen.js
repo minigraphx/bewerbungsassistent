@@ -1,7 +1,7 @@
 "use strict";
 // Page „Erweiterte Einstellungen“ (MIN-348). The key field is sent once and emptied; the key never comes back.
 (() => {
-  const { holen, senden, status } = window.App;
+  const { holen, senden, status, bestaetigen } = window.App;
   const $ = id => document.getElementById(id);
   const usd = wert => `${Number(wert).toFixed(2)} USD`;
   const SEITE = "bewerbungsbegleiter-seite";
@@ -15,6 +15,18 @@
     $("kosten-gesamt").textContent = usd(stand.kosten.gesamt_usd);
     $("kosten-aufrufe").textContent = String(stand.kosten.aufrufe);
     if (stand.gesetzt) ladeSeiten();
+  }
+
+  function zeigeEinwilligung(ki) {
+    const erteilt = ki.einwilligung.erteilt;
+    $("einwilligung-erteilt").hidden = !erteilt;
+    $("einwilligung-offen").hidden = erteilt;
+    if (!erteilt) window.Einwilligung.zeige($("einwilligung-offen"), ki.einwilligung, zeigeEinwilligung);
+    status($("einwilligung-meldung"), ki.einladung_fehler || "", ki.einladung_fehler ? "fehler" : "");
+  }
+
+  function ladeEinwilligung() {
+    holen("/api/ki/status").then(zeigeEinwilligung, fehler => status($("einwilligung-meldung"), fehler.message, "fehler"));
   }
 
   function zeigeSeiten(stand) {
@@ -109,4 +121,12 @@
   $("seiten-speichern").addEventListener("click", seitenSpeichern);
   $("zugriff").addEventListener("click", zugriffErlauben);
   holen("/api/schluessel").then(zeige).catch(fehler => status($("meldung"), fehler.message, "fehler"));
+  bestaetigen($("einwilligung-widerruf"), "Wirklich widerrufen? Nochmals klicken", async () => {
+    try {
+      zeigeEinwilligung(await senden("/api/ki/einwilligung/widerruf", {}));
+    } catch (fehler) {
+      status($("einwilligung-meldung"), fehler.message, "fehler");
+    }
+  });
+  ladeEinwilligung();
 })();

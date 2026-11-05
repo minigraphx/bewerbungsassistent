@@ -1,7 +1,7 @@
 """HTTP service of the mediation (MIN-344): same interface as the Messages API, one access per person.
 
   POST /v1/messages              Messages API (also streaming), access in x-api-key or Authorization: Bearer
-  POST /v1/invitations/redeem    {"code", "device"} → {"access"}; the app keeps the access in the keychain
+  POST /v1/invitations/redeem    {"code", "device", "consent"} → {"access"}; the app keeps the access in the keychain
   GET  /v1/account               month, spent and budget of the person
   GET  /health                   for the container
 
@@ -100,7 +100,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if not isinstance(body, dict) or not isinstance(body.get("code"), str):
             raise Failure(400, "invalid_request_error", "code expected")
         try:
-            token = self.mediation.store.redeem(body["code"], str(body.get("device") or ""), self.mediation.now())
+            token = self.mediation.store.redeem(body["code"], str(body.get("device") or ""), self.mediation.now(),
+                                                str(body.get("consent") or ""))
         except StoreError as error:
             raise Failure(400, "invalid_request_error", str(error)) from error
         self._send_json(200, {"access": token})

@@ -127,7 +127,7 @@ def test_invitation_is_offered_and_redeemed(server, monkeypatch):  # noqa: F811
     monkeypatch.delenv(ACCESS_VARIABLE, raising=False)
     monkeypatch.setattr("ai.connection._keyring_access", lambda: None)
     redeemed = []
-    monkeypatch.setattr(routes_ai.invitation, "redeem", lambda url, code: redeemed.append((url, code)))
+    monkeypatch.setattr(routes_ai.invitation, "redeem", lambda url, code, receipt="": redeemed.append((url, code)))
 
     status, _, inhalt = get(server, "/api/ki/status")
     assert json.loads(inhalt)["einladung"] is True

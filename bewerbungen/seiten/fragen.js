@@ -4,27 +4,15 @@
   const { holen, senden, el, status } = window.App;
   const $ = id => document.getElementById(id);
   const ZUEGE_MIT = 12;  // the server takes no more of them; the page keeps the whole conversation
-  const TEXTE = {
-    lehrstelle: {
-      hilfe: "Frag hier zur Lehrstellensuche, zur Berufswahl und zu deiner Bewerbung. Die KI kennt deine Angaben, nicht deine Liste der Bewerbungen, und sie ändert nichts. Das Gespräch bleibt nur auf dieser Seite. Prüfe wichtige Antworten, auch eine KI irrt sich.",
-      label: "Deine Frage",
-      aus: "Für Fragen braucht es die KI der App. Unter „Einrichtung“ trägst du den Einladungscode ein.",
-      du: "Du",
-      uebrig: n => `Heute noch ${n === 1 ? "1 Frage" : `${n} Fragen`}.`,
-      leer: "Schreib zuerst deine Frage.",
-      beispiele: ["Was fehlt noch in meinen Angaben?", "Wie bereite ich mich auf eine Schnupperlehre vor?", "Was schreibe ich in eine Bewerbung für eine Lehrstelle?"],
-    },
-    stelle: {
-      hilfe: "Fragen Sie hier zur Stellensuche und zu Ihrer Bewerbung. Die KI kennt Ihre Angaben, nicht Ihre Liste der Bewerbungen, und sie ändert nichts. Das Gespräch bleibt nur auf dieser Seite. Prüfen Sie wichtige Antworten, auch eine KI irrt sich.",
-      label: "Ihre Frage",
-      aus: "Für Fragen braucht es die KI der App: unter „Einrichtung“ der Einladungscode oder unter „Erweiterte Einstellungen“ ein eigener Schlüssel. Wer Claude mit dem eigenen Abo nutzt, fragt direkt dort.",
-      du: "Sie",
-      uebrig: n => `Heute noch ${n === 1 ? "1 Frage" : `${n} Fragen`}.`,
-      leer: "Bitte zuerst die Frage schreiben.",
-      beispiele: ["Was fehlt noch in meinen Angaben?", "Wie bereite ich mich auf ein Vorstellungsgespräch vor?", "Wie gehe ich im Anschreiben mit einer Lücke um?"],
-    },
+  const texte = {
+    hilfe: "Fragen Sie hier zur Stellensuche und zu Ihrer Bewerbung. Die KI kennt Ihre Angaben, nicht Ihre Liste der Bewerbungen, und sie ändert nichts. Das Gespräch bleibt nur auf dieser Seite. Prüfen Sie wichtige Antworten, auch eine KI irrt sich.",
+    label: "Ihre Frage",
+    aus: "Für Fragen braucht es die KI der App: unter „Einrichtung“ der Einladungscode oder unter „Erweiterte Einstellungen“ ein eigener Schlüssel. Wer Claude mit dem eigenen Abo nutzt, fragt direkt dort.",
+    du: "Sie",
+    uebrig: n => `Heute noch ${n === 1 ? "1 Frage" : `${n} Fragen`}.`,
+    leer: "Bitte zuerst die Frage schreiben.",
+    beispiele: ["Was fehlt noch in meinen Angaben?", "Wie bereite ich mich auf ein Vorstellungsgespräch vor?", "Wie gehe ich im Anschreiben mit einer Lücke um?"],
   };
-  let texte = TEXTE.stelle;
   let verlauf = [];
   let wartet = false;
 
@@ -65,12 +53,12 @@
   }
 
   function zeige(stand) {
-    texte = TEXTE[stand.art] || TEXTE.stelle;
-    $("fragen-hilfe").textContent = texte.hilfe;
+    const bereit = stand.eingerichtet && stand.erlaubt;
+    $("fragen-hilfe").textContent = stand.erlaubt ? texte.hilfe : "";
     $("fragen-label").textContent = texte.label;
-    $("fragen-aus").hidden = stand.eingerichtet;
-    $("fragen-aus").textContent = texte.aus;
-    $("fragen-an").hidden = !stand.eingerichtet;
+    $("fragen-aus").hidden = bereit;
+    $("fragen-aus").textContent = stand.erlaubt ? texte.aus : stand.hinweis;
+    $("fragen-an").hidden = !bereit;
     $("fragen-beispiele").replaceChildren(...texte.beispiele.map(beispiel =>
       el("button", { type: "button", class: "chat-beispiel", onclick: () => fragen(beispiel) }, beispiel)));
     zeigeUebrig(stand.uebrig);

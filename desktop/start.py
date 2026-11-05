@@ -45,20 +45,20 @@ def _use_mediation(defaults: dict) -> None:
     """The address of the mediation comes with the package; an environment variable still wins."""
     import os
     from ai.connection import URL_VARIABLE
+    from ai.consent import PAGE_VARIABLE
     if defaults.get("ki_url") and not os.environ.get(URL_VARIABLE):
         os.environ[URL_VARIABLE] = str(defaults["ki_url"])
+    if defaults.get("datenschutz_url") and not os.environ.get(PAGE_VARIABLE):
+        os.environ[PAGE_VARIABLE] = str(defaults["datenschutz_url"])
 
 
-def _redeem(code: str) -> None:
-    from ai import invitation
-    from ai.connection import mediation_url
-    from ai.errors import AiError
+def _redeem(kontext, code: str) -> None:
+    """Through the route of the app: without the consent the code waits for it (MIN-401)."""
+    import routes_ai
     try:
-        url = mediation_url()
-        if url:
-            invitation.redeem(url, code)
-            log.info("Einladung eingelöst")
-    except AiError as error:
+        routes_ai.redeem(kontext, {}, {"code": code})
+        log.info("Einladung eingelöst")
+    except ValueError as error:
         log.warning("Einladung nicht eingelöst: %s", error)
 
 
@@ -183,13 +183,16 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     import routes_app
     import routes_angaben
     import routes_claude
+    import routes_ai
     import routes_setup
     data = start_folder(paths)
     holder: dict = {}
     controls = routes_app.Controls(stop=lambda: holder["server"].shutdown(), failed_note=paths.app_dir / FAILED_UPDATE_NOTE)
 
     def switch(folder: pathlib.Path) -> None:
-        holder["server"].kontext = app.erstelle_kontext(folder)
+        new_context = app.erstelle_kontext(folder)
+        routes_ai.hand_over_waiting_code(holder["server"].kontext, new_context)
+        holder["server"].kontext = new_context
         log.info("Datenordner gewechselt: %s", folder)
 
     state = routes_setup.Setup(paths=paths, switch=switch, suggestion=settings.documents_dir() / settings.SUGGESTED_DATA_FOLDER,
@@ -209,7 +212,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     instance.write(paths, server.server_address[1], server.token)
     updates_macos.confirm_started(controls.app)
     if code:
-        _redeem(code)
+        _redeem(server.kontext, code)
     log.info("Bewerbungsbegleiter läuft auf %s, Daten in %s", server.url, data)
     if open_browser:
         webbrowser.open(server.url)
