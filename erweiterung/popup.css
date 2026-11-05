@@ -1,53 +1,77 @@
+/* Values from the design system (docs/design/system/tokens.json, MIN-369), the same as the app.
+   The extension ships no fonts: DM Sans only if it is installed, else the system font. */
 :root {
   color-scheme: light dark;
-  --text: #1f2328;
-  --muted: #59636e;
-  --accent: #0b5cad;
-  --bad: #b42318;
   --bg: #ffffff;
+  --surface-subtle: #f4f2ee;
+  --line: #d9dde3;
+  --line-strong: #7c8794;
+  --text-strong: #27333f;
+  --text: #38495d;
+  --muted: #5a6879;
+  --accent: #38495d;
+  --accent-hover: #27333f;
+  --on-accent: #ffffff;
+  --focus: #38495d;
+  --bad: #b3261e;
+  --good: #2e6b3a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #e6edf3;
-    --muted: #9198a1;
-    --accent: #58a6ff;
-    --bad: #ff7b72;
-    --bg: #161b22;
+    --bg: #1f2328;
+    --surface-subtle: #1a1e22;
+    --line: #3a4048;
+    --line-strong: #7d8794;
+    --text-strong: #f0f3f6;
+    --text: #e3e7ec;
+    --muted: #a3adb9;
+    --accent: #c9d4e2;
+    --accent-hover: #dfe6ef;
+    --on-accent: #16191d;
+    --focus: #c9d4e2;
+    --bad: #ff8a80;
+    --good: #8fd19e;
   }
 }
 
 body {
   width: 320px;
   margin: 0;
-  padding: 12px 14px;
-  font: 14px/1.4 system-ui, sans-serif;
+  padding: 12px 16px;
+  font: 14px/20px "DM Sans", system-ui, sans-serif;
   color: var(--text);
   background: var(--bg);
 }
 
-h1 { font-size: 16px; margin: 0 0 8px; }
-h2 { font-size: 14px; margin: 12px 0 4px; }
+h1 { font-size: 15px; line-height: 20px; margin: 0 0 8px; color: var(--text-strong); }
+h2 { font-size: 14px; line-height: 20px; margin: 12px 0 4px; color: var(--text-strong); }
 p { margin: 6px 0; }
 ul { margin: 4px 0; padding-left: 18px; }
+a { color: var(--text-strong); text-underline-offset: 3px; }
 
 button {
   width: 100%;
+  min-height: 40px;
   margin: 6px 0;
-  padding: 8px;
-  border: 0;
+  padding: 0 16px;
+  border: 1px solid var(--accent);
   border-radius: 6px;
   font: inherit;
-  color: #fff;
+  font-weight: 500;
+  color: var(--on-accent);
   background: var(--accent);
   cursor: pointer;
 }
 
-button:disabled { opacity: 0.5; cursor: default; }
-button.zweitrangig { color: var(--accent); background: transparent; border: 1px solid var(--accent); }
-.klein { font-size: 12px; color: var(--muted); }
+button:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.zweitrangig { color: var(--text-strong); background: var(--bg); border-color: var(--line-strong); }
+button.zweitrangig:hover { background: var(--surface-subtle); }
+.klein { font-size: 13px; line-height: 18px; color: var(--muted); }
 .fehler { color: var(--bad); }
-label { display: block; margin: 6px 0; font-size: 12px; color: var(--muted); }
-input { box-sizing: border-box; width: 100%; margin-top: 2px; padding: 6px; border: 1px solid var(--muted); border-radius: 6px; font: inherit; color: var(--text); background: var(--bg); }
+label { display: block; margin: 6px 0; font-size: 13px; font-weight: 500; color: var(--text-strong); }
+input { box-sizing: border-box; width: 100%; min-height: 40px; margin-top: 2px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 6px; font: inherit; color: var(--text-strong); background: var(--bg); }
 .reihe { display: flex; gap: 6px; }
-.note { font-weight: 600; }
+.note { font-weight: 700; color: var(--text-strong); font-variant-numeric: tabular-nums; }
