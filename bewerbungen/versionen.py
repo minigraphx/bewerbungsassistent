@@ -12,8 +12,8 @@ from typing import Protocol
 
 from dateien import relativ
 
-ERSATZ_AUTOR = "Bewerbungsassistent"
-ERSATZ_MAIL = "bewerbungsassistent@localhost"
+ERSATZ_AUTOR = "Bewerbungsbegleiter"
+ERSATZ_MAIL = "bewerbungsbegleiter@localhost"
 
 
 class Versionierung(Protocol):

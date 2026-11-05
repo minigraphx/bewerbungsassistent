@@ -1,15 +1,15 @@
 // Content script on 127.0.0.1: only on pages of the app (meta tag), it shows that the extension is there and
 // passes "start search" from the page to the extension and the progress back to the page.
 (function () {
-  if (!document.querySelector('meta[name="bewerbungsassistent"]')) return;
+  if (!document.querySelector('meta[name="bewerbungsbegleiter"]')) return;
   // Also injected when the extension is installed, and the manifest may add it again: only one may answer the page.
   // A script of an earlier installation no longer counts, it has lost its connection.
-  if (globalThis.bewerbungsassistentBridgeAlive?.()) return;
-  globalThis.bewerbungsassistentBridgeAlive = () => Boolean(chrome.runtime?.id);
+  if (globalThis.bewerbungsbegleiterBridgeAlive?.()) return;
+  globalThis.bewerbungsbegleiterBridgeAlive = () => Boolean(chrome.runtime?.id);
   const version = chrome.runtime.getManifest().version;
-  const toPage = (message) => window.postMessage({ quelle: 'bewerbungsassistent-erweiterung', version, ...message }, location.origin);
+  const toPage = (message) => window.postMessage({ quelle: 'bewerbungsbegleiter-erweiterung', version, ...message }, location.origin);
 
-  document.documentElement.dataset.bewerbungsassistentErweiterung = version;
+  document.documentElement.dataset.bewerbungsbegleiterErweiterung = version;
   toPage({ art: 'da' });
 
   const port = chrome.runtime.connect({ name: 'app-seite' });
@@ -18,7 +18,7 @@
   window.addEventListener('message', (event) => {
     if (event.source !== window || event.origin !== location.origin) return;
     const data = event.data;
-    if (!data || data.quelle !== 'bewerbungsassistent-seite') return;
+    if (!data || data.quelle !== 'bewerbungsbegleiter-seite') return;
     if (data.art === 'zugriff-erlauben' || data.art === 'zugriff-abgeben') {
       chrome.runtime.sendMessage({ art: data.art })
         .catch((error) => ({ fehler: error.message }))

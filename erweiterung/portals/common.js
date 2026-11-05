@@ -1,5 +1,5 @@
 // Shared helpers of the portal adapters. Injected into the portal tab before the adapter (isolated world)
-// and loaded by the tests in Node. Adapters register under globalThis.bewerbungsassistentPortals.
+// and loaded by the tests in Node. Adapters register under globalThis.bewerbungsbegleiterPortals.
 (function () {
   const DAY_MS = 24 * 60 * 60 * 1000;
   const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', shy: '' };
@@ -145,7 +145,7 @@
   const common = {
     PortalChanged, htmlToText, ageFromDate, ageFromText, workload, fetchJson, fetchPage, textOf, professionWords, bestProfession,
   };
-  globalThis.bewerbungsassistentCommon = common;
-  globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
+  globalThis.bewerbungsbegleiterCommon = common;
+  globalThis.bewerbungsbegleiterPortals = globalThis.bewerbungsbegleiterPortals || {};
   if (typeof module !== 'undefined') module.exports = common;
 })();

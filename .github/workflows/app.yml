@@ -39,34 +39,48 @@ jobs:
           New-Item -ItemType Directory -Force desktop/build | Out-Null
           python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
       - name: Paket bauen
-        run: pyinstaller --noconfirm desktop/bewerbungsassistent.spec
+        run: pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
       - name: Selbsttest des Pakets
         run: |
-          $p = Start-Process dist\Bewerbungsassistent\Bewerbungsassistent.exe -ArgumentList '--selbsttest' -Wait -PassThru
+          $p = Start-Process dist\Bewerbungsbegleiter\Bewerbungsbegleiter.exe -ArgumentList '--selbsttest' -Wait -PassThru
           Get-Content selbsttest.txt
           if ($p.ExitCode -ne 0) { throw "Selbsttest fehlgeschlagen" }
       - name: MCP des Pakets
-        run: python desktop/mcp_smoke.py dist\Bewerbungsassistent\Bewerbungsassistent.exe
+        run: python desktop/mcp_smoke.py dist\Bewerbungsbegleiter\Bewerbungsbegleiter.exe
       - name: Installer bauen
         run: |
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
           & $iscc "/DAppVersion=$env:VERSION" desktop\installer.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC fehlgeschlagen" }
+      - name: Über die alte Version mit dem alten Namen installieren (MIN-395)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.2.7 --pattern 'Bewerbungsassistent-Setup-*.exe' --dir alt
+          if ($LASTEXITCODE -ne 0) { throw "Alte Version nicht geladen" }
+          $alt = (Get-ChildItem alt\*.exe).FullName
+          Start-Process $alt -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOSTART' -Wait
+          $altOrdner = "$env:LOCALAPPDATA\Programs\Bewerbungsassistent"
+          if (-not (Test-Path "$altOrdner\Bewerbungsassistent.exe")) { throw "Alte Version nicht installiert" }
+          Start-Process "dist-installer\Bewerbungsbegleiter-Setup-$env:VERSION.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOSTART' -Wait
+          if (Test-Path $altOrdner) { throw "Alter Ordner noch da" }
+          if (Test-Path 'HKCU:\Software\Classes\bewerbungsassistent') { throw "Alter Link noch da" }
+          if (-not (Test-Path "$env:LOCALAPPDATA\Programs\Bewerbungsbegleiter\Bewerbungsbegleiter.exe")) { throw "Neue Version nicht installiert" }
       - name: Installieren, testen, deinstallieren
         run: |
-          $setup = "dist-installer\Bewerbungsassistent-Setup-$env:VERSION.exe"
+          $setup = "dist-installer\Bewerbungsbegleiter-Setup-$env:VERSION.exe"
           Start-Process $setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOSTART' -Wait
-          $app = "$env:LOCALAPPDATA\Programs\Bewerbungsassistent"
+          $app = "$env:LOCALAPPDATA\Programs\Bewerbungsbegleiter"
           Remove-Item selbsttest.txt
-          $p = Start-Process "$app\Bewerbungsassistent.exe" -ArgumentList '--selbsttest' -Wait -PassThru
+          $p = Start-Process "$app\Bewerbungsbegleiter.exe" -ArgumentList '--selbsttest' -Wait -PassThru
           Get-Content selbsttest.txt
           if ($p.ExitCode -ne 0) { throw "Selbsttest der Installation fehlgeschlagen" }
-          if (-not (Test-Path 'HKCU:\Software\Classes\bewerbungsassistent\shell\open\command')) { throw "Link nicht angemeldet" }
+          if (-not (Test-Path 'HKCU:\Software\Classes\bewerbungsbegleiter\shell\open\command')) { throw "Link nicht angemeldet" }
           Start-Process $setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOSTART' -Wait
           Start-Process "$app\unins000.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait
           Start-Sleep -Seconds 3
-          if (Test-Path 'HKCU:\Software\Classes\bewerbungsassistent') { throw "Link nach Deinstallation noch angemeldet" }
+          if (Test-Path 'HKCU:\Software\Classes\bewerbungsbegleiter') { throw "Link nach Deinstallation noch angemeldet" }
       - name: Prüfsummen
         run: |
           Get-ChildItem dist-installer\*.exe | ForEach-Object {
@@ -102,17 +116,17 @@ jobs:
           python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
       - name: Paket bauen und testen
         run: |
-          pyinstaller --noconfirm desktop/bewerbungsassistent.spec
-          dist/Bewerbungsassistent.app/Contents/MacOS/Bewerbungsassistent --selbsttest
+          pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
+          dist/Bewerbungsbegleiter.app/Contents/MacOS/Bewerbungsbegleiter --selbsttest
           cat selbsttest.txt
-          python desktop/mcp_smoke.py dist/Bewerbungsassistent.app/Contents/MacOS/Bewerbungsassistent
+          python desktop/mcp_smoke.py dist/Bewerbungsbegleiter.app/Contents/MacOS/Bewerbungsbegleiter
           VERSION=$(python -c "import sys; sys.path.insert(0, 'desktop'); import version; print(version.VERSION)")
           mkdir -p dist-mac
-          ditto -c -k --keepParent dist/Bewerbungsassistent.app "dist-mac/Bewerbungsassistent-$VERSION-macOS.zip"
-          (cd dist-mac && shasum -a 256 "Bewerbungsassistent-$VERSION-macOS.zip" > SHA256SUMS-macOS.txt)
+          ditto -c -k --keepParent dist/Bewerbungsbegleiter.app "dist-mac/Bewerbungsbegleiter-$VERSION-macOS.zip"
+          (cd dist-mac && shasum -a 256 "Bewerbungsbegleiter-$VERSION-macOS.zip" > SHA256SUMS-macOS.txt)
           mkdir -p entpackt
-          ditto -x -k "dist-mac/Bewerbungsassistent-$VERSION-macOS.zip" entpackt
-          codesign --verify --deep --strict entpackt/Bewerbungsassistent.app
+          ditto -x -k "dist-mac/Bewerbungsbegleiter-$VERSION-macOS.zip" entpackt
+          codesign --verify --deep --strict entpackt/Bewerbungsbegleiter.app
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:

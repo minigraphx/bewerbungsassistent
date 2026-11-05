@@ -16,7 +16,7 @@ Im Pilot ist die App noch nicht signiert. Darum warnt Ihr Betriebssystem beim er
 
 ### Windows
 
-1. `Bewerbungsassistent-Setup-<Version>.exe` herunterladen und öffnen. Warnt der Browser beim Herunterladen, behalten Sie die Datei.
+1. `Bewerbungsbegleiter-Setup-<Version>.exe` herunterladen und öffnen. Warnt der Browser beim Herunterladen, behalten Sie die Datei.
 2. Erscheint „Der Computer wurde durch Windows geschützt“: auf **Weitere Informationen** klicken, dann auf **Trotzdem ausführen**. Die App ist nicht signiert, darum diese Warnung.
 3. Die Installation durchlaufen. Administratorrechte braucht es nicht. Die App steht danach im Startmenü.
 
@@ -24,7 +24,7 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
 ### macOS
 
-1. `Bewerbungsassistent-<Version>-macOS.zip` herunterladen und im Finder öffnen.
+1. `Bewerbungsbegleiter-<Version>-macOS.zip` herunterladen und im Finder öffnen.
 2. **Die App in den Ordner „Programme“ ziehen.** Sonst funktionieren spätere Updates nicht.
 3. Die App dort öffnen. macOS warnt und öffnet sie nicht.
 4. **Systemeinstellungen → Datenschutz & Sicherheit** öffnen, nach unten scrollen und bei der App auf **Dennoch öffnen** klicken.
@@ -163,6 +163,20 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 **App:** Gibt es eine neue Version, zeigt die App oben einen Hinweis. Klicken Sie auf **Jetzt aktualisieren**, oder arbeiten Sie weiter: Beim **Beenden** installiert sich die neue Version von selbst im Hintergrund, beim nächsten Start läuft sie. Ihre Daten und Einstellungen bleiben erhalten.
 
 **Erweiterung:** Die App bringt die neue Version mit, und die Erweiterung lädt sich von selbst neu, sobald die App läuft und keine Suche oder kein Formular offen ist. Sie müssen nichts tun. Der Entwicklermodus muss dafür eingeschaltet bleiben. Zeigt die Seite „Einrichtung“ trotzdem eine andere Version, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**. Das ist auch beim Wechsel auf die erste Version mit dieser Funktion einmal nötig.
+
+### Wechsel von Version 0.2.10 oder älter
+
+Bis Version 0.2.10 hiess die App technisch `Bewerbungsassistent`. Von dort aktualisiert sie sich nicht von selbst: Sie zeigt nur den Link zum Herunterladen. Laden Sie die neue Version einmal von Hand und installieren Sie sie wie oben. Danach geht es wieder von selbst.
+
+Beim ersten Start übernimmt die neue Version Ihre Einstellungen, den Datenordner und den Zugang zur KI. Der Mac fragt dabei unter Umständen einmal nach Ihrem Passwort für den Schlüsselbund. Lehnen Sie ab, lösen Sie Ihre Einladung neu ein. Eine noch offene alte App wird dabei beendet.
+
+Von Hand bleibt:
+
+- **Mac:** Die alte `Bewerbungsassistent.app` aus „Programme“ löschen. Windows entfernt die alte Version selbst.
+- **Erweiterung:** Die alte Erweiterung auf der Erweiterungsseite des Browsers entfernen und den neuen Ordner laden, wie in Schritt 4 beschrieben.
+- **Eigenes Claude-Abo:** Die drei Skills in der App neu herunterladen und in Claude ersetzen, und Claude Desktop einmal neu starten. Haben Sie die App in Claude Code eingetragen: `claude mcp remove bewerbungsassistent` und den Befehl aus den Einstellungen neu ausführen.
+
+Einladungslinks, die mit `bewerbungsassistent://` beginnen, öffnen die App nicht mehr. Geben Sie den Code in diesem Fall in der App ein.
 
 ## Häufige Fehler
 

@@ -25,7 +25,7 @@ TOO_MANY = "Zu viele Versuche. Bitte in einer Minute nochmals."
 NO_KEYCHAIN = "Der Zugang liess sich nicht im Schlüsselbund des Systems ablegen."
 
 Opener = Callable[[urllib.request.Request], object]
-log = logging.getLogger("bewerbungsassistent")
+log = logging.getLogger("bewerbungsbegleiter")
 
 
 def _open(request: urllib.request.Request):

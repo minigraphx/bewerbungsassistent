@@ -4,9 +4,9 @@
   const { holen, senden, status } = window.App;
   const $ = id => document.getElementById(id);
   const usd = wert => `${Number(wert).toFixed(2)} USD`;
-  const SEITE = "bewerbungsassistent-seite";
+  const SEITE = "bewerbungsbegleiter-seite";
   const anErweiterung = art => window.postMessage({ quelle: SEITE, art }, location.origin);
-  const hatErweiterung = () => Boolean(document.documentElement.dataset.bewerbungsassistentErweiterung);
+  const hatErweiterung = () => Boolean(document.documentElement.dataset.bewerbungsbegleiterErweiterung);
 
   function zeige(stand) {
     $("ohne-schluessel").hidden = stand.gesetzt;
@@ -88,7 +88,7 @@
   window.addEventListener("message", ereignis => {
     const daten = ereignis.data;
     if (ereignis.source !== window || ereignis.origin !== location.origin) return;
-    if (!daten || daten.quelle !== "bewerbungsassistent-erweiterung" || daten.art !== "antwort") return;
+    if (!daten || daten.quelle !== "bewerbungsbegleiter-erweiterung" || daten.art !== "antwort") return;
     if (daten.frage === "zugriff-abgeben") {
       const text = daten.antwort && daten.antwort.fehler
         ? `Die Erweiterung konnte den Zugriff nicht abgeben (${daten.antwort.fehler}). Das geht auch in ihren Einstellungen im Browser.`

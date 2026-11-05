@@ -1,6 +1,6 @@
 // jobs.ch: public search API on the same page, as in the skill `jobsuche` (20 per page at most).
 (function () {
-  const common = globalThis.bewerbungsassistentCommon || require('./common.js');
+  const common = globalThis.bewerbungsbegleiterCommon || require('./common.js');
   const ROWS = 20;
   const ORIGIN = 'https://www.jobs.ch';
 
@@ -44,7 +44,7 @@
   }
 
   const adapter = { name: 'jobs.ch', start: `${ORIGIN}/de/`, list, details, toHit, parseList };
-  globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
-  globalThis.bewerbungsassistentPortals['jobs.ch'] = adapter;
+  globalThis.bewerbungsbegleiterPortals = globalThis.bewerbungsbegleiterPortals || {};
+  globalThis.bewerbungsbegleiterPortals['jobs.ch'] = adapter;
   if (typeof module !== 'undefined') module.exports = adapter;
 })();

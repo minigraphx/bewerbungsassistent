@@ -8,9 +8,9 @@
   const L = window.UebersichtLogik;
   const $ = id => document.getElementById(id);
 
-  const PAGE_SOURCE = "bewerbungsassistent-seite";
-  const EXTENSION_SOURCE = "bewerbungsassistent-erweiterung";
-  const EXTENSION_MARK = "bewerbungsassistentErweiterung";
+  const PAGE_SOURCE = "bewerbungsbegleiter-seite";
+  const EXTENSION_SOURCE = "bewerbungsbegleiter-erweiterung";
+  const EXTENSION_MARK = "bewerbungsbegleiterErweiterung";
   const START_ACTION = "bewerben-starten";
   const RAV_ACTION = "rav-starten";
   const NO_EXTENSION = "Zum Ausfüllen im Browser braucht es die Erweiterung (siehe Einrichtung).";

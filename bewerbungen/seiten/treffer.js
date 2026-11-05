@@ -5,8 +5,8 @@
   const { holen, senden, el, status, datum, beobachten } = window.App;
   const logik = window.TrefferLogik;
   const $ = id => document.getElementById(id);
-  const SEITE = "bewerbungsassistent-seite";
-  const ERWEITERUNG = "bewerbungsassistent-erweiterung";
+  const SEITE = "bewerbungsbegleiter-seite";
+  const ERWEITERUNG = "bewerbungsbegleiter-erweiterung";
 
   let alle = [];
   let gezeigt = "";  // the hits as last loaded, to see whether Claude changed them
@@ -365,7 +365,7 @@
       .catch(fehler => { status($("status"), fehler.message, "fehler"); zeigeBewerten(); });
   });
 
-  if (document.documentElement.dataset.bewerbungsassistentErweiterung) erweiterungDa();
+  if (document.documentElement.dataset.bewerbungsbegleiterErweiterung) erweiterungDa();
   else setTimeout(() => { if ($("suchen").disabled && !$("lauf").textContent) $("ohne-erweiterung").hidden = false; }, 1500);
   document.addEventListener("suchprofil-geaendert", lade);
   lade();

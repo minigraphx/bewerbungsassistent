@@ -238,6 +238,6 @@
   }
 
   const api = { MIN_FIELDS, accepts, classify, classifyAll, documentsFor, documentsForKind, fileNeedsHelp, findApplyTarget, matchOption, needsHelp };
-  root.bewerbungsassistentForm = api;
+  root.bewerbungsbegleiterForm = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

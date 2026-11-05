@@ -1,6 +1,6 @@
 // job-room.ch (Arbeitsmarktplattform des Bundes): JSON API on the same page, as in the skill `jobsuche`.
 (function () {
-  const common = globalThis.bewerbungsassistentCommon || require('./common.js');
+  const common = globalThis.bewerbungsbegleiterCommon || require('./common.js');
   const PAGE_SIZE = 100;
   const ORIGIN = 'https://www.job-room.ch';
 
@@ -60,7 +60,7 @@
   }
 
   const adapter = { name: 'job-room', start: `${ORIGIN}/home/job-seeker`, list, details, toHit, parseList, markdownToText };
-  globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
-  globalThis.bewerbungsassistentPortals['job-room'] = adapter;
+  globalThis.bewerbungsbegleiterPortals = globalThis.bewerbungsbegleiterPortals || {};
+  globalThis.bewerbungsbegleiterPortals['job-room'] = adapter;
   if (typeof module !== 'undefined') module.exports = adapter;
 })();

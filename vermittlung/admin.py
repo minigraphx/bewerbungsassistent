@@ -18,7 +18,7 @@ import sys
 from store import INVITATION_DAYS, MAX_INVITATION_DAYS, Store, StoreError, month_of
 
 DEFAULT_BUDGET_USD = 20.0
-LINK = "bewerbungsassistent://einladung?code={code}"
+LINK = "bewerbungsbegleiter://einladung?code={code}"
 
 
 def _now() -> datetime.datetime:

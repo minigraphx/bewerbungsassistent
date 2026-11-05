@@ -18,7 +18,7 @@ import updates_macos
 
 ZIP = b"PK" + b"z" * 4000
 BASE = updates.DOWNLOAD_PREFIX + "v9.2.0/"
-ZIP_NAME = "Bewerbungsassistent-9.2.0-macOS.zip"
+ZIP_NAME = "Bewerbungsbegleiter-9.2.0-macOS.zip"
 needs_shell = pytest.mark.skipif(sys.platform == "win32", reason="the swap is a shell script for macOS")
 needs_mac = pytest.mark.skipif(sys.platform != "darwin", reason="ditto and codesign exist on macOS only")
 
@@ -26,7 +26,7 @@ needs_mac = pytest.mark.skipif(sys.platform != "darwin", reason="ditto and codes
 def release(package=ZIP):
     files = {
         updates.LATEST_URL: json.dumps({"tag_name": "v9.2.0", "html_url": "https://github.com/x/releases/v", "assets": [
-            {"name": "Bewerbungsassistent-Setup-9.2.0.exe", "browser_download_url": BASE + "Bewerbungsassistent-Setup-9.2.0.exe"},
+            {"name": "Bewerbungsbegleiter-Setup-9.2.0.exe", "browser_download_url": BASE + "Bewerbungsbegleiter-Setup-9.2.0.exe"},
             {"name": "SHA256SUMS.txt", "browser_download_url": BASE + "SHA256SUMS.txt"},
             {"name": ZIP_NAME, "browser_download_url": BASE + ZIP_NAME},
             {"name": updates.MAC_CHECKSUMS, "browser_download_url": BASE + updates.MAC_CHECKSUMS}]}).encode(),
@@ -41,10 +41,10 @@ def release(package=ZIP):
     return fetch
 
 
-def fake_app(folder: pathlib.Path, name="Bewerbungsassistent.app", mark="alt") -> pathlib.Path:
+def fake_app(folder: pathlib.Path, name="Bewerbungsbegleiter.app", mark="alt") -> pathlib.Path:
     app = folder / name
     (app / "Contents" / "MacOS").mkdir(parents=True)
-    (app / "Contents" / "MacOS" / "Bewerbungsassistent").write_text(mark)
+    (app / "Contents" / "MacOS" / "Bewerbungsbegleiter").write_text(mark)
     return app
 
 
@@ -79,9 +79,9 @@ def test_other_systems_get_no_package():
 
 
 def test_running_app_is_read_from_the_executable():
-    inside = "/Applications/Bewerbungsassistent 2.app/Contents/MacOS/Bewerbungsassistent"
+    inside = "/Applications/Bewerbungsbegleiter 2.app/Contents/MacOS/Bewerbungsbegleiter"
 
-    assert updates_macos.running_app(inside) == pathlib.Path("/Applications/Bewerbungsassistent 2.app")
+    assert updates_macos.running_app(inside) == pathlib.Path("/Applications/Bewerbungsbegleiter 2.app")
     assert updates_macos.running_app("/usr/local/bin/python3") is None
     assert updates_macos.running_app("python") is None
 
@@ -91,7 +91,7 @@ def test_writable_place_is_fine(tmp_path):
 
 
 def test_translocated_app_must_be_moved_first():
-    app = pathlib.Path("/private/var/folders/x/AppTranslocation/ABC/d/Bewerbungsassistent.app")
+    app = pathlib.Path("/private/var/folders/x/AppTranslocation/ABC/d/Bewerbungsbegleiter.app")
 
     assert "Ordner Programme" in updates_macos.place_problem(app)
 
@@ -171,8 +171,8 @@ def test_leftovers_of_an_earlier_try_are_replaced(tmp_path):
 def opener(folder: pathlib.Path, confirms=True, works=True) -> pathlib.Path:
     """Stands in for `open`: logs what it starts; the new version confirms its start like the real app."""
     path = folder / "open.sh"
-    confirm = f'[ "$(cat "$1/Contents/MacOS/Bewerbungsassistent")" = neu ] && : > "{folder}/.Bewerbungsassistent-update/gestartet"' if confirms else ":"
-    path.write_text(f'#!/bin/sh\nprintf "%s\\n" "$(cat "$1/Contents/MacOS/Bewerbungsassistent")" >> "{folder}/gestartet.log"\n'
+    confirm = f'[ "$(cat "$1/Contents/MacOS/Bewerbungsbegleiter")" = neu ] && : > "{folder}/.Bewerbungsbegleiter-update/gestartet"' if confirms else ":"
+    path.write_text(f'#!/bin/sh\nprintf "%s\\n" "$(cat "$1/Contents/MacOS/Bewerbungsbegleiter")" >> "{folder}/gestartet.log"\n'
                     f'{confirm}\nexit {0 if works else 1}\n')
     path.chmod(0o755)
     return path
@@ -196,7 +196,7 @@ def wait_until_gone(path: pathlib.Path, seconds=8.0):
 
 
 def content(app: pathlib.Path) -> str:
-    return (app / "Contents" / "MacOS" / "Bewerbungsassistent").read_text()
+    return (app / "Contents" / "MacOS" / "Bewerbungsbegleiter").read_text()
 
 
 def gone_process() -> int:
@@ -219,7 +219,7 @@ def logging_opener(folder: pathlib.Path) -> pathlib.Path:
     """Stands in for `open`: writes down its arguments after the app, and confirms the start like the new version."""
     path = folder / "open-args.sh"
     path.write_text(f'#!/bin/sh\nshift\nprintf "%s\\n" "$*" >> "{folder}/argumente.log"\n'
-                    f': > "{folder}/.Bewerbungsassistent-update/gestartet"\n')
+                    f': > "{folder}/.Bewerbungsbegleiter-update/gestartet"\n')
     path.chmod(0o755)
     return path
 
@@ -272,7 +272,7 @@ def test_swap_after_quit_goes_back_quietly_when_the_new_version_fails(tmp_path):
 
 @needs_shell
 def test_swap_keeps_the_name_of_the_installed_app(tmp_path):
-    app = fake_app(tmp_path, "Bewerbungsassistent 2.app")
+    app = fake_app(tmp_path, "Bewerbungsbegleiter 2.app")
     staging = tmp_path / updates_macos.STAGING
     fake_app(staging, updates_macos.NEW_APP, mark="neu")
 
@@ -360,7 +360,7 @@ def test_route_offers_the_update_in_a_good_place(tmp_path):
 
 
 def test_route_names_the_problem_of_the_place(tmp_path):
-    app = pathlib.Path("/private/var/folders/x/AppTranslocation/ABC/d/Bewerbungsassistent.app")
+    app = pathlib.Path("/private/var/folders/x/AppTranslocation/ABC/d/Bewerbungsbegleiter.app")
     get, post, started, _ = routes(tmp_path, app=app)
 
     update = body(get["/api/app/version"](None, {}, None))["update"]
@@ -423,7 +423,7 @@ def test_quit_leaves_a_version_alone_that_failed_before(tmp_path):
 
 
 def test_quit_leaves_the_app_alone_in_a_bad_place(tmp_path):
-    _, post, started, controls = routes(tmp_path, app=tmp_path / "AppTranslocation" / "x" / "Bewerbungsassistent.app")
+    _, post, started, controls = routes(tmp_path, app=tmp_path / "AppTranslocation" / "x" / "Bewerbungsbegleiter.app")
     controls.stop_soon = lambda: None
 
     assert body(post["/api/app/beenden"](None, {}, {})) == {"ok": True}
@@ -455,7 +455,7 @@ def test_real_tools_accept_an_ad_hoc_signed_package(tmp_path):
     """The real ditto and codesign, on a package signed like the app itself."""
     build = tmp_path / "build"
     package = fake_app(build)
-    executable = package / "Contents" / "MacOS" / "Bewerbungsassistent"
+    executable = package / "Contents" / "MacOS" / "Bewerbungsbegleiter"
     shutil.copy("/bin/ls", executable)
     subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(package)], check=True, capture_output=True)
     subprocess.run(["ditto", "-c", "-k", "--keepParent", str(package), str(tmp_path / ZIP_NAME)], check=True)
@@ -469,7 +469,7 @@ def test_real_tools_accept_an_ad_hoc_signed_package(tmp_path):
 
     staging = updates_macos.prepare(update, fake_app(installed), lambda url, limit: files[url])
 
-    assert (staging / updates_macos.NEW_APP / "Contents" / "MacOS" / "Bewerbungsassistent").is_file()
+    assert (staging / updates_macos.NEW_APP / "Contents" / "MacOS" / "Bewerbungsbegleiter").is_file()
 
 
 def failing_mv(folder: pathlib.Path, source_part: str) -> str:
@@ -492,12 +492,12 @@ def wait_for(path: pathlib.Path, seconds=8.0):
 
 @needs_shell
 def test_the_old_version_is_kept_when_it_cannot_be_put_back(tmp_path, monkeypatch):
-    monkeypatch.setenv("PATH", failing_mv(tmp_path, "Bewerbungsassistent-alt.app"))
+    monkeypatch.setenv("PATH", failing_mv(tmp_path, "Bewerbungsbegleiter-alt.app"))
 
     _, staging, note = swap(tmp_path, gone_process(), opener(tmp_path, confirms=False))
     wait_for(note)
 
-    assert (staging / "Bewerbungsassistent-alt.app" / "Contents" / "MacOS" / "Bewerbungsassistent").read_text() == "alt"
+    assert (staging / "Bewerbungsbegleiter-alt.app" / "Contents" / "MacOS" / "Bewerbungsbegleiter").read_text() == "alt"
 
 
 @needs_shell
@@ -517,8 +517,8 @@ def test_the_old_version_is_kept_when_the_new_one_cannot_be_moved_away(tmp_path,
                              exit_wait=2, start_wait=1)
     wait_for(note)
 
-    assert (staging / "Bewerbungsassistent-alt.app" / "Contents" / "MacOS" / "Bewerbungsassistent").read_text() == "alt"
-    assert not (app / "Bewerbungsassistent-alt.app").exists(), "moving onto a folder would bury the old version in it"
+    assert (staging / "Bewerbungsbegleiter-alt.app" / "Contents" / "MacOS" / "Bewerbungsbegleiter").read_text() == "alt"
+    assert not (app / "Bewerbungsbegleiter-alt.app").exists(), "moving onto a folder would bury the old version in it"
 
 
 @needs_shell

@@ -276,7 +276,7 @@ def test_admin_commands(tmp_path):
     code = invitation.split("Code für T02: ")[1].split("\n")[0]
     Store(db).redeem(code, "PC", NOW)
 
-    assert "bewerbungsassistent://einladung?code=" in invitation
+    assert "bewerbungsbegleiter://einladung?code=" in invitation
     assert "15.00" in admin.main(["--db", db, "costs"], now)
     assert "PC" in admin.main(["--db", db, "accesses", "T02"], now)
     assert admin.main(["--db", db, "revoke", "T02"], now).startswith("1 ")

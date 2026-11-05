@@ -70,7 +70,7 @@ Claude übernimmt die Stelle ins Register, schlägt eine Lebenslauf-Variante vor
 | Meldung oder Beobachtung | Was hilft |
 |---|---|
 | „Der Zugang für Claude ist ausgeschaltet.“ | In der App unter „Erweiterte Einstellungen“ einschalten. |
-| Claude kennt die Werkzeuge `bewerbungsassistent` nicht | Claude Desktop ganz beenden und neu öffnen. Unter Connectors nachsehen, ob der Eintrag erscheint. |
+| Claude kennt die Werkzeuge `bewerbungsbegleiter` nicht | Claude Desktop ganz beenden und neu öffnen. Unter Connectors nachsehen, ob der Eintrag erscheint. |
 | „Die Einstellungen von Claude Desktop lassen sich nicht lesen.“ | Die Datei selbst ergänzen. Text und Pfad stehen unter „Claude Code oder von Hand eintragen“. |
 | „Die App startet nicht.“ | App von Hand öffnen und nochmals versuchen. |
 | Die App wurde verschoben | In den erweiterten Einstellungen „Eintrag in Claude Desktop erneuern“ klicken. |

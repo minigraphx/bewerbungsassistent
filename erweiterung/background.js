@@ -32,7 +32,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 // Runs inside the portal tab, in the same isolated world as the injected adapters. Must stay self-contained.
 async function inPage(portal, method, args) {
   try {
-    const adapter = globalThis.bewerbungsassistentPortals && globalThis.bewerbungsassistentPortals[portal];
+    const adapter = globalThis.bewerbungsbegleiterPortals && globalThis.bewerbungsbegleiterPortals[portal];
     if (!adapter) return { ok: false, fehler: 'Anpassung für das Portal nicht geladen' };
     return { ok: true, value: await adapter[method](...args) };
   } catch (error) {
@@ -292,14 +292,14 @@ const formTabs = {
   async fill(tabId, documents, values, uploads, ai) {
     return chrome.scripting.executeScript({
       target: { tabId, documentIds: documents.map((d) => d.documentId) },
-      func: (v, u, a) => globalThis.bewerbungsassistentFiller.fill(v, u, a),
+      func: (v, u, a) => globalThis.bewerbungsbegleiterFiller.fill(v, u, a),
       args: [values, uploads, ai],
     });
   },
   async follow(tabId, documents) {
     const top = documents.find((d) => d.frameId === 0);
     if (!top) return {};
-    const [frame] = await chrome.scripting.executeScript({ target: { tabId, documentIds: [top.documentId] }, func: () => globalThis.bewerbungsassistentFiller.follow() });
+    const [frame] = await chrome.scripting.executeScript({ target: { tabId, documentIds: [top.documentId] }, func: () => globalThis.bewerbungsbegleiterFiller.follow() });
     return (frame && frame.result) || {};
   },
   async bar(tabId, balken) {

@@ -17,7 +17,7 @@ import updates
 import updates_macos
 from version import VERSION
 
-log = logging.getLogger("bewerbungsassistent")
+log = logging.getLogger("bewerbungsbegleiter")
 
 CHECK_EVERY_SECONDS = 6 * 3600
 QUIT_DELAY_SECONDS = 1.0
@@ -83,7 +83,7 @@ class Controls:
 
 
 def _install_windows(controls: Controls, found: updates.Update, after_quit: bool = False) -> None:
-    folder = pathlib.Path(tempfile.mkdtemp(prefix="bewerbungsassistent-"))
+    folder = pathlib.Path(tempfile.mkdtemp(prefix="bewerbungsbegleiter-"))
     run = controls.run_installer_after_quit if after_quit else controls.run_installer
     run(updates.download(found, folder, controls.fetch))
 

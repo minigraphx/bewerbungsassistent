@@ -1,6 +1,6 @@
 # Bewerbungsbegleiter
 
-*Das Repo und die technischen Kennungen heissen weiter `bewerbungsassistent`.*
+*Das Repo heisst weiter `bewerbungsassistent`.*
 
 Werkzeuge und Claude-Skills für den ganzen Bewerbungsablauf: passende Stellen finden, Lebenslauf und Anschreiben pro Stelle zuschneiden, vor dem Absenden prüfen und den Versand vorbereiten. Ausgelegt auf den Schweizer Stellenmarkt (job-room.ch, jobs.ch, LinkedIn).
 

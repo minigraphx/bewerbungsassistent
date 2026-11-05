@@ -21,7 +21,7 @@ CASES = pathlib.Path(__file__).resolve().parents[2] / "onboarding" / "tests" / "
 
 
 def test_new_folder_is_created_later(tmp_path):
-    check = setup.check_folder(str(tmp_path / "Bewerbungsassistent"))
+    check = setup.check_folder(str(tmp_path / "Bewerbungsbegleiter"))
 
     assert check.state == "neu" and not check.path.exists()
 
@@ -141,7 +141,7 @@ def started(tmp_path):
         server.kontext = app.erstelle_kontext(folder)
         chosen.append(folder)
 
-    state = routes_setup.Setup(paths=paths, switch=switch, suggestion=tmp_path / "Dokumente" / "Bewerbungsassistent",
+    state = routes_setup.Setup(paths=paths, switch=switch, suggestion=tmp_path / "Dokumente" / "Bewerbungsbegleiter",
                                choose=lambda kind, start: tmp_path / "gewaehlt")
     get_routes, post_routes = routes_setup.make_routes(state)
     server.routen_get.update(get_routes)
@@ -179,12 +179,12 @@ def test_first_start_is_not_set_up(started):
     status, answer = call(server, "/api/app/einrichtung")
 
     assert status == 200 and answer["eingerichtet"] is False
-    assert answer["vorschlag"].endswith("Bewerbungsassistent") and answer["datenordner"] is None
+    assert answer["vorschlag"].endswith("Bewerbungsbegleiter") and answer["datenordner"] is None
 
 
 def test_choosing_the_data_folder_switches_without_restart(started, tmp_path):
     server, paths, chosen = started
-    folder = tmp_path / "Dokumente" / "Bewerbungsassistent"
+    folder = tmp_path / "Dokumente" / "Bewerbungsbegleiter"
 
     status, answer = call(server, "/api/app/datenordner", {"pfad": str(folder)})
 

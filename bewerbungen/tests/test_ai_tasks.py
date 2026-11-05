@@ -211,7 +211,7 @@ def test_review_reports_requirements(daten):
 
 
 def test_connection_prefers_the_mediation_and_hides_the_access():
-    env = {"BEWERBUNGSASSISTENT_KI_URL": "https://ki.example.ch/", "BEWERBUNGSASSISTENT_KI_ZUGANG": "geheim-123",
+    env = {"BEWERBUNGSBEGLEITER_KI_URL": "https://ki.example.ch/", "BEWERBUNGSBEGLEITER_KI_ZUGANG": "geheim-123",
            "ANTHROPIC_API_KEY": "sk-dev"}
 
     connection = find_connection(env, keyring_access=lambda: None)
@@ -224,8 +224,8 @@ def test_connection_errors_are_clear():
     with pytest.raises(errors.AiError, match="nicht eingerichtet"):
         find_connection({}, keyring_access=lambda: None)
     with pytest.raises(errors.AiError, match="https"):
-        find_connection({"BEWERBUNGSASSISTENT_KI_URL": "http://ki.example.ch"}, keyring_access=lambda: "x")
-    assert find_connection({"BEWERBUNGSASSISTENT_KI_URL": "https://k.ch"}, keyring_access=lambda: "aus-keyring").access == "aus-keyring"
+        find_connection({"BEWERBUNGSBEGLEITER_KI_URL": "http://ki.example.ch"}, keyring_access=lambda: "x")
+    assert find_connection({"BEWERBUNGSBEGLEITER_KI_URL": "https://k.ch"}, keyring_access=lambda: "aus-keyring").access == "aus-keyring"
     assert not find_connection({"ANTHROPIC_API_KEY": "sk-dev"}, keyring_access=lambda: None).via_mediation
 
 
@@ -279,7 +279,7 @@ def test_incomplete_drafts_are_errors(daten, reply):
                                  "https://user:pw@ki.example.ch", "ftp://ki.example.ch"])
 def test_mediation_url_must_be_safe(url):
     with pytest.raises(errors.AiError, match="https"):
-        find_connection({"BEWERBUNGSASSISTENT_KI_URL": url}, keyring_access=lambda: "x")
+        find_connection({"BEWERBUNGSBEGLEITER_KI_URL": url}, keyring_access=lambda: "x")
 
 
 # Rating in packages (MIN-372)
@@ -514,3 +514,54 @@ def test_usage_lines_from_calls_side_by_side_stay_whole(tmp_path):
         list(pool.map(write, range(80)))
     lines = log.path.read_text(encoding="utf-8").splitlines()
     assert len(lines) == 80 and all(json.loads(line)["task"] == "rate" for line in lines)
+
+
+class _FakeKeychain:
+    """A keychain in memory; tests never touch the real one."""
+
+    def __init__(self, entries: dict | None = None, refuse: bool = False):
+        self.entries = dict(entries or {})
+        self.refuse = refuse
+
+    def get_password(self, service, account):
+        if self.refuse:
+            raise RuntimeError("geheim-im-fehlertext")
+        return self.entries.get((service, account))
+
+    def set_password(self, service, account, value):
+        self.entries = {**self.entries, (service, account): value}
+
+    def delete_password(self, service, account):
+        self.entries = {key: value for key, value in self.entries.items() if key != (service, account)}
+
+
+def test_keychain_entries_move_to_the_new_name(monkeypatch):
+    from ai import connection as module
+    keychain = _FakeKeychain({(module.OLD_KEYRING_SERVICE, module.KEYRING_ACCOUNT): "zugang-alt",
+                              (module.OLD_KEYRING_SERVICE, module.OWN_KEY_ACCOUNT): "schluessel-alt"})
+    monkeypatch.setattr(module, "_keyring", lambda: keychain)
+    module.adopt_old_keychain()
+    assert keychain.entries == {(module.KEYRING_SERVICE, module.KEYRING_ACCOUNT): "zugang-alt",
+                                (module.KEYRING_SERVICE, module.OWN_KEY_ACCOUNT): "schluessel-alt"}
+
+
+def test_keychain_entry_under_the_new_name_wins(monkeypatch):
+    from ai import connection as module
+    keychain = _FakeKeychain({(module.OLD_KEYRING_SERVICE, module.KEYRING_ACCOUNT): "zugang-alt",
+                              (module.KEYRING_SERVICE, module.KEYRING_ACCOUNT): "zugang-neu"})
+    monkeypatch.setattr(module, "_keyring", lambda: keychain)
+    module.adopt_old_keychain()
+    assert keychain.entries == {(module.KEYRING_SERVICE, module.KEYRING_ACCOUNT): "zugang-neu"}
+
+
+def test_refused_keychain_keeps_quiet_and_goes_on(monkeypatch, caplog):
+    from ai import connection as module
+    monkeypatch.setattr(module, "_keyring", lambda: _FakeKeychain(refuse=True))
+    module.adopt_old_keychain()
+    assert "geheim-im-fehlertext" not in caplog.text
+
+
+def test_no_keychain_library_is_fine(monkeypatch):
+    from ai import connection as module
+    monkeypatch.setattr(module, "_keyring", lambda: None)
+    module.adopt_old_keychain()

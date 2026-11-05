@@ -3,7 +3,7 @@
 // look with important inline styles. A click only counts when a person made it on a bar that can be seen.
 (function () {
   'use strict';
-  if (globalThis.bewerbungsassistentBar || window !== window.top) return;
+  if (globalThis.bewerbungsbegleiterBar || window !== window.top) return;
   const END_WAIT_MS = 6000;
   const IN_THE_DIALOG = 'Dateien von dort ins Formular ziehen. Oder im Datei-Dialog: Mac ⇧⌘G und Pfad einfügen, Windows Pfad ins Feld „Dateiname“.';
   const ATTENTION = '⚠ ';
@@ -147,7 +147,7 @@
     }, END_WAIT_MS);
   }
 
-  globalThis.bewerbungsassistentBar = { show };
+  globalThis.bewerbungsbegleiterBar = { show };
   chrome.runtime.onMessage.addListener((message) => {
     if (message && message.art === 'formular-balken') show(message.balken);
     if (message && message.art === 'formular-ende') end(message.text);

@@ -18,7 +18,7 @@ def running(tmp_path):
     data.mkdir()
     paths = settings.Paths(tmp_path / "app")
     setup = routes_claude.ClaudeRoutes(paths=paths, config=tmp_path / "Claude" / "claude_desktop_config.json",
-                                       command=("/app/Bewerbungsassistent", "--mcp"), skills=REPO / "skills")
+                                       command=("/app/Bewerbungsbegleiter", "--mcp"), skills=REPO / "skills")
     get_routes, post_routes = routes_claude.make_routes(setup)
     server = app.erstelle_server(data, extra_routes=(get_routes, post_routes))
     import threading
@@ -91,5 +91,5 @@ def test_a_skill_comes_as_a_download(running):
 def test_the_state_says_when_the_entry_points_to_an_old_place(running):
     server, setup = running
     assert state(server)["desktop_veraltet"] is False
-    claude_setup.enter_in_desktop(setup.config, ["/alt/Bewerbungsassistent", "--mcp"])
+    claude_setup.enter_in_desktop(setup.config, ["/alt/Bewerbungsbegleiter", "--mcp"])
     assert state(server)["desktop_veraltet"] is True

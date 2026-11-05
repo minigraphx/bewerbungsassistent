@@ -52,7 +52,7 @@ def test_initialize_answers_with_the_version_of_the_client_if_known(paths):
     reply = mcp.answer({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18"}})
     assert reply["id"] == 1 and reply["result"]["protocolVersion"] == "2025-06-18"
     assert reply["result"]["capabilities"] == {"tools": {}}
-    assert reply["result"]["serverInfo"]["name"] == "bewerbungsassistent"
+    assert reply["result"]["serverInfo"]["name"] == "bewerbungsbegleiter"
     assert "Daten" in reply["result"]["instructions"] or "data" in reply["result"]["instructions"]
 
 

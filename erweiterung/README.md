@@ -8,7 +8,7 @@ Im Pilot wird sie als **Entwicklererweiterung** geladen („Entpackte Erweiterun
 
 Die App zeigt die Schritte auf der Seite **Einrichtung → Schritt 4** mit dem passenden Ordner:
 
-1. Die App einmal starten. Sie meldet sich bei Chrome und Edge als Native-Messaging-Host an und legt den Ordner der Erweiterung in ihrem App-Ordner ab (`…/Bewerbungsassistent/erweiterung`). Beim Start aus dem Repo nimmt sie direkt diesen Ordner.
+1. Die App einmal starten. Sie meldet sich bei Chrome und Edge als Native-Messaging-Host an und legt den Ordner der Erweiterung in ihrem App-Ordner ab (`…/Bewerbungsbegleiter/erweiterung`). Beim Start aus dem Repo nimmt sie direkt diesen Ordner.
 2. In der Einrichtung „In Chrome öffnen“ bzw. „In Edge öffnen“ klicken: Die Erweiterungsseite und der Ordner gehen auf. Einmalig den **Entwicklermodus** einschalten. Von Hand: `chrome://extensions` oder `edge://extensions`.
 3. **„Entpackte Erweiterung laden“** und den Ordner wählen (auf dem Mac im Dialog mit Cmd+Shift+G den Pfad einfügen).
 4. Der Knopf „Stellen suchen“ auf der Seite „Suche“ ist jetzt aktiv, auch ohne dass offene Seiten der App neu geladen werden müssen.
@@ -95,7 +95,7 @@ Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur a
 - `background.js`: Service Worker; startet die Suche, öffnet und schliesst die Portal-Tabs, meldet den Fortschritt.
 - `lib/`: `queries.js` (Abfragen pro Portal aus dem Suchplan, alle Stichworte zuerst am ersten Ort), `search.js` (Ablauf einer Suche, ohne Browser testbar), `sites.js` (weitere Seiten), `steps.js` (Abbrechen, Sichten), `app.js` (Verbindung zur App), `senders.js` (wer Aufträge geben darf), `progress.js` (Text für den Fortschritt).
 - `portals/`: eine Anpassung pro Portal mit `list(query, page)` und `details(hit)`, dazu `common.js` (HTML zu Text, Alter, Pensum, Abrufe).
-- `app-bridge.js`: läuft nur auf Seiten der App (`<meta name="bewerbungsassistent">`), zeigt ihr per Zeichen, dass die Erweiterung da ist, und reicht Start und Fortschritt weiter.
+- `app-bridge.js`: läuft nur auf Seiten der App (`<meta name="bewerbungsbegleiter">`), zeigt ihr per Zeichen, dass die Erweiterung da ist, und reicht Start und Fortschritt weiter.
 - `popup.*`: Start der Suche und Stand des letzten Laufs.
 - `form/`: im Tab eines Formulars: `fields.js` (was ein Feld ist, nur Regeln, ohne Seite testbar), `filler.js` (füllt pro Rahmen), `bar.js` (Balken im oberen Rahmen). `lib/apply.js` führt die Tabs, `erlauben.*` fragt um den Zugriff.
 
@@ -107,7 +107,7 @@ Gegenstück in der App: `desktop/native_host.py` (Host, Weiterleitung an die lau
 node --test tests/*.test.mjs
 ```
 
-Die Anpassungen an die Portale sind mit gespeicherten Antworten oder kleinen Nachbildungen der Seiten getestet. Ändert ein Portal seine Seiten, zuerst die Anpassung im Portal-Tab von Hand prüfen (Code aus `portals/common.js` und der Anpassung in die Konsole einfügen, dann `bewerbungsassistentPortals['jobs.ch'].list({keyword: 'python', place: 'Bern'}, 1)`), danach Test und Anpassung nachführen.
+Die Anpassungen an die Portale sind mit gespeicherten Antworten oder kleinen Nachbildungen der Seiten getestet. Ändert ein Portal seine Seiten, zuerst die Anpassung im Portal-Tab von Hand prüfen (Code aus `portals/common.js` und der Anpassung in die Konsole einfügen, dann `bewerbungsbegleiterPortals['jobs.ch'].list({keyword: 'python', place: 'Bern'}, 1)`), danach Test und Anpassung nachführen.
 
 ## Im RAV eintragen (MIN-347)
 

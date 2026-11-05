@@ -17,9 +17,9 @@
     ["art", "Art"], ["ergebnis", "Ergebnis"], ["rav_zuweisung", "Zuweisung des RAV"]];
   const ANDERSWO_GEAENDERT = "Diese Bewerbung wurde inzwischen auch anderswo geändert. Die Eingaben bleiben stehen, und gespeichert werden nur die geänderten Felder.";
   const FORM_FILES = { lebenslauf: "Lebenslauf", anschreiben: "Anschreiben", zertifikate: "Zertifikate", unterlagen: "Unterlagen (gemeinsames PDF)", nachweise: "Nachweise (gemeinsames PDF)" };
-  const PAGE_SOURCE = "bewerbungsassistent-seite";
-  const EXTENSION_SOURCE = "bewerbungsassistent-erweiterung";
-  const EXTENSION_MARK = "bewerbungsassistentErweiterung";
+  const PAGE_SOURCE = "bewerbungsbegleiter-seite";
+  const EXTENSION_SOURCE = "bewerbungsbegleiter-erweiterung";
+  const EXTENSION_MARK = "bewerbungsbegleiterErweiterung";
   const START_ACTION = "bewerben-starten";
   const RAV_ACTION = "rav-starten";
   const NO_EXTENSION = "Zum Ausfüllen im Browser braucht es die Erweiterung (siehe Einrichtung).";

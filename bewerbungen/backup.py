@@ -19,7 +19,8 @@ log = logging.getLogger(__name__)
 
 NOTE_FILE = ".sicherung.yaml"
 LEFT_OUT = {".build", ".git"}
-FILE_PREFIX = "bewerbungsassistent-sicherung-"
+FILE_PREFIX = "bewerbungsbegleiter-sicherung-"
+OLD_FILE_PREFIX = "bewerbungsassistent-sicherung-"  # up to version 0.2.10 (MIN-395)
 ALREADY_COMPRESSED = {".pdf", ".jpg", ".jpeg", ".png", ".zip", ".docx"}
 REMIND_AFTER_DAYS = 30
 REMIND_AFTER_SENT = 5
@@ -31,7 +32,7 @@ def file_name(today: datetime.date) -> str:
 
 def _earlier_backup(path: pathlib.Path, data_dir: pathlib.Path) -> bool:
     """Saved in the folder itself, every further backup would contain all earlier ones."""
-    return path.parent == data_dir and path.name.startswith(FILE_PREFIX) and path.suffix == ".zip"
+    return path.parent == data_dir and path.name.startswith((FILE_PREFIX, OLD_FILE_PREFIX)) and path.suffix == ".zip"
 
 
 def _files(data_dir: pathlib.Path):

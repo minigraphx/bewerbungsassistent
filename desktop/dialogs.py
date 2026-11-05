@@ -11,7 +11,7 @@ from typing import Callable
 
 from ordner import reveal  # noqa: F401  (the setup pages use it from here)
 
-START_VARIABLE = "BEWERBUNGSASSISTENT_START"
+START_VARIABLE = "BEWERBUNGSBEGLEITER_START"
 TIMEOUT_SECONDS = 600
 CANCELLED_MAC = "-128"
 TYPE_PATH = "Bitte den Pfad selbst eintragen."
@@ -23,7 +23,7 @@ $owner = New-Object System.Windows.Forms.Form -Property @{TopMost = $true; ShowI
 $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
 $dialog.Description = 'Ordner für die Bewerbungsdaten wählen'
 $dialog.ShowNewFolderButton = $true
-$dialog.SelectedPath = $env:BEWERBUNGSASSISTENT_START
+$dialog.SelectedPath = $env:BEWERBUNGSBEGLEITER_START
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 if ($dialog.ShowDialog($owner) -eq 'OK') { $dialog.SelectedPath }
 """,
@@ -33,17 +33,17 @@ $owner = New-Object System.Windows.Forms.Form -Property @{TopMost = $true; ShowI
 $dialog = New-Object System.Windows.Forms.OpenFileDialog
 $dialog.Title = 'Datei aus der Einstiegsvorlage wählen'
 $dialog.Filter = 'Einstiegsvorlage (*.zip;*.json)|*.zip;*.json'
-$dialog.InitialDirectory = $env:BEWERBUNGSASSISTENT_START
+$dialog.InitialDirectory = $env:BEWERBUNGSBEGLEITER_START
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 if ($dialog.ShowDialog($owner) -eq 'OK') { $dialog.FileName }
 """,
 }
 MAC = {
     "ordner": 'POSIX path of (choose folder with prompt "Ordner für die Bewerbungsdaten wählen" '
-              'default location (POSIX file (system attribute "BEWERBUNGSASSISTENT_START")))',
+              'default location (POSIX file (system attribute "BEWERBUNGSBEGLEITER_START")))',
     "datei": 'POSIX path of (choose file with prompt "Datei aus der Einstiegsvorlage wählen" '
              'of type {"public.zip-archive", "public.json"} '
-             'default location (POSIX file (system attribute "BEWERBUNGSASSISTENT_START")))',
+             'default location (POSIX file (system attribute "BEWERBUNGSBEGLEITER_START")))',
 }
 
 Run = Callable[..., subprocess.CompletedProcess]

@@ -2,7 +2,7 @@
 // so the list is read from the open page, after search.js opened the address from searchUrl. The ids of professions
 // and places come from the suggestions of the search form; the details pages are rendered on the server.
 (function () {
-  const common = globalThis.bewerbungsassistentCommon || require('./common.js');
+  const common = globalThis.bewerbungsbegleiterCommon || require('./common.js');
   const ORIGIN = 'https://www.berufsberatung.ch';
   const SEARCH = '/de/suche/lehrstellen';
   const TRIAL_SEARCH = '/de/suche/schnupperadressen'; // same form, same ids; the results are addresses (MIN-373)
@@ -197,7 +197,7 @@
   const adapter = {
     name: 'LENA', start: `${ORIGIN}${SEARCH}`, list, details, searchUrl, searchPath, toHit, parseList, parseDetails, searchTerms, pickPlace,
   };
-  globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
-  globalThis.bewerbungsassistentPortals.LENA = adapter;
+  globalThis.bewerbungsbegleiterPortals = globalThis.bewerbungsbegleiterPortals || {};
+  globalThis.bewerbungsbegleiterPortals.LENA = adapter;
   if (typeof module !== 'undefined') module.exports = adapter;
 })();

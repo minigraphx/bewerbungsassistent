@@ -1,6 +1,6 @@
 // Connection to the app over Native Messaging: one port per search, answers matched by id.
 
-export const HOST = 'bewerbungsassistent';
+export const HOST = 'bewerbungsbegleiter';
 const MISSING = /not found|nicht gefunden|forbidden|exited|beendet/i;
 export const APP_MISSING =
   'Die App Bewerbungsbegleiter wurde nicht gefunden. Bitte die App installieren und einmal starten; '

@@ -20,9 +20,9 @@ import updates
 
 log = logging.getLogger(__name__)
 
-STAGING = ".Bewerbungsassistent-update"
-NEW_APP = "Bewerbungsassistent.app"
-INSIDE = pathlib.PurePath("Contents", "MacOS", "Bewerbungsassistent")
+STAGING = ".Bewerbungsbegleiter-update"
+NEW_APP = "Bewerbungsbegleiter.app"
+INSIDE = pathlib.PurePath("Contents", "MacOS", "Bewerbungsbegleiter")
 STARTED = "gestartet"
 SCRIPT = "tausch.sh"
 TRANSLOCATED = "/AppTranslocation/"
@@ -44,8 +44,8 @@ Run = Callable[..., subprocess.CompletedProcess]
 SWAP_SCRIPT = r'''#!/bin/sh
 pid=$1; app=$2; staging=$3; note=$4; version=$5; opener=$6; exit_wait=$7; start_wait=$8
 shift 8  # what is left goes to the app when it is opened
-new="$staging/Bewerbungsassistent.app"
-old="$staging/Bewerbungsassistent-alt.app"
+new="$staging/Bewerbungsbegleiter.app"
+old="$staging/Bewerbungsbegleiter-alt.app"
 started="$staging/gestartet"
 
 failed() { printf '%s\n' "$version" > "$note"; }

@@ -1,4 +1,4 @@
-"""The link `bewerbungsassistent://einladung?code=…` opens the app and redeems the invitation (MIN-342, MIN-344).
+"""The link `bewerbungsbegleiter://einladung?code=…` opens the app and redeems the invitation (MIN-342, MIN-344).
 
 On Windows the scheme is registered for the current user (HKCU, no admin rights); the installer does the
 same and removes it again on uninstall. On macOS the app bundle declares it (Info.plist).
@@ -7,7 +7,7 @@ import re
 import sys
 import urllib.parse
 
-SCHEME = "bewerbungsassistent"
+SCHEME = "bewerbungsbegleiter"
 CODE = re.compile(r"[A-Za-z0-9 -]{4,40}")
 REGISTRY_KEY = rf"Software\Classes\{SCHEME}"
 
@@ -30,7 +30,7 @@ def register_windows(executable: str) -> bool:
     try:
         import winreg
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY) as key:
-            winreg.SetValueEx(key, None, 0, winreg.REG_SZ, "URL:Bewerbungsassistent")
+            winreg.SetValueEx(key, None, 0, winreg.REG_SZ, "URL:Bewerbungsbegleiter")
             winreg.SetValueEx(key, "URL Protocol", 0, winreg.REG_SZ, "")
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY + r"\shell\open\command") as key:
             winreg.SetValueEx(key, None, 0, winreg.REG_SZ, f'"{executable}" "%1"')

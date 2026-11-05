@@ -16,9 +16,9 @@ Ergebnis sind die vier Grundlagen, mit denen die Skills `jobsuche` und `bewerbun
 
 Leitlinie wie im Skill `bewerbung`: Jede Angabe ist **belegt**. Belegt heisst: Die Person hat sie im Interview gesagt und bestätigt, oder sie steht in einer Unterlage, die die Person gezeigt hat (Zeugnis, alter Lebenslauf). Was offen bleibt, bleibt leer und wird als offen genannt; erfunden wird nichts, auch keine schönen Formulierungen für Erfahrungen, die es nicht gibt.
 
-## Mit der App (Connector `bewerbungsassistent`)
+## Mit der App (Connector `bewerbungsbegleiter`)
 
-Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner:
+Stehen die Werkzeuge des Connectors `bewerbungsbegleiter` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner:
 
 - Der Datenordner steht schon fest, Schritt 1 fragt nur noch den Zweig. Ob es Grundlagen schon gibt, sagen `list_files` und `read_file`.
 - Die Formate liefert `read_template` (`cv`, `suchprofil`, `suchprofil-lehrstelle`, `stil`, `bausteine`).

@@ -43,7 +43,7 @@ def paths(tmp_path):
 @pytest.mark.parametrize("argv, expected", [
     (["chrome-extension://abc/"], True),
     (["chrome-extension://abc/", "--parent-window=0"], True),
-    (["bewerbungsassistent://einladung?code=x"], False),
+    (["bewerbungsbegleiter://einladung?code=x"], False),
     ([], False),
 ])
 def test_started_by_the_browser_is_recognised(argv, expected):
@@ -268,10 +268,10 @@ def test_extension_key_gives_the_registered_id():
 def test_macos_registers_for_installed_browsers_only(paths, tmp_path):
     home = tmp_path / "home"
     (home / "Library" / "Application Support" / "Google" / "Chrome").mkdir(parents=True)
-    where = native_messaging.register(paths, tmp_path / "Bewerbungsassistent", platform="darwin", home=home)
-    target = home / "Library" / "Application Support" / "Google" / "Chrome" / "NativeMessagingHosts" / "bewerbungsassistent.json"
+    where = native_messaging.register(paths, tmp_path / "Bewerbungsbegleiter", platform="darwin", home=home)
+    target = home / "Library" / "Application Support" / "Google" / "Chrome" / "NativeMessagingHosts" / "bewerbungsbegleiter.json"
     assert where == [str(target.parent)]
-    assert json.loads(target.read_text(encoding="utf-8"))["path"] == str(tmp_path / "Bewerbungsassistent")
+    assert json.loads(target.read_text(encoding="utf-8"))["path"] == str(tmp_path / "Bewerbungsbegleiter")
 
 
 def test_one_unwritable_browser_folder_does_not_stop_the_others(paths, tmp_path):
@@ -280,7 +280,7 @@ def test_one_unwritable_browser_folder_does_not_stop_the_others(paths, tmp_path)
     (support / "Google" / "Chrome").mkdir(parents=True)
     (support / "Microsoft Edge").mkdir(parents=True)
     (support / "Google" / "Chrome" / "NativeMessagingHosts").write_text("eine Datei statt eines Ordners")
-    where = native_messaging.register(paths, tmp_path / "Bewerbungsassistent", platform="darwin", home=home)
+    where = native_messaging.register(paths, tmp_path / "Bewerbungsbegleiter", platform="darwin", home=home)
     assert where == [str(support / "Microsoft Edge" / "NativeMessagingHosts")]
 
 
