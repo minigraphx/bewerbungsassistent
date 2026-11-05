@@ -464,7 +464,7 @@ PAGES_WITH_MENU = ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treff
 
 def test_the_page_for_questions_is_off_unless_switched_on(server):
     assert get(server, "/fragen")[0] == 404
-    assert get(server)[0] == 404
+    assert get(server, "/fragen.js")[0] == 404
     assert get(server, "/api/fragen/stand")[0] == 404
     assert post(server, "/api/fragen/senden", {"frage": "Was fehlt?"})[0] == 404
     for path in PAGES_WITH_MENU:
