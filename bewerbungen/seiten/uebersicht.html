@@ -5,55 +5,109 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsassistent" content="app">
-  <title>Bewerbungen</title>
+<title>Übersicht</title>
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
-<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Suche</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/dateien">Meine Dateien</a><a href="/fragen">Fragen</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einstellungen">Erweiterte Einstellungen</a></div></details></nav>
-<main>
-  <h1>Bewerbungen</h1>
-  <p id="ohne-angaben" class="banner" hidden>Bevor es losgeht: Erfassen Sie zuerst Ihre Angaben (Lebenslauf, Suche, Stärken). Vorhandene Unterlagen wie PDF oder Word können Sie dort hochladen. <a class="knopf haupt" href="/angaben">Angaben erfassen</a> <a class="knopf" href="/dateien">Fertigen Lebenslauf hochladen</a></p>
-  <p class="hilfe">Alle Bewerbungen aus <code>bewerbungen.yaml</code>. Ein Klick auf eine Firma öffnet Angaben, Unterlagen, Prüfung, Versand und Job-Room-Daten; ein Klick auf eine Spaltenüberschrift sortiert. Passung als Note von 1 bis 6.</p>
+<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsassistent</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
+<main class="overview">
+  <!-- First start: no CV and no application yet -->
+  <section id="erststart" class="overview__start" hidden>
+    <header class="overview__welcome">
+      <h1>Willkommen</h1>
+      <p data-text="uebersicht.start.text">Der Assistent hilft Ihnen, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei Ihnen.</p>
+    </header>
+    <div class="overview__start-row">
+      <section class="next-step overview__card" aria-labelledby="start-titel">
+        <p class="next-step__eyebrow">Nächster Schritt</p>
+        <h2 class="next-step__title" id="start-titel">Meine Angaben erfassen</h2>
+        <p class="next-step__text" data-text="uebersicht.start.karte">Lebenslauf, gesuchte Stellen und wie Sie schreiben. Das dauert etwa 20 Minuten. Sie können jederzeit unterbrechen, nichts geht verloren.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="/angaben">Angaben erfassen</a><a class="btn btn--quiet" href="/dateien">Ich habe schon einen Lebenslauf als PDF</a></div>
+        <p class="next-step__after" data-text="uebersicht.start.fuss">Ihre Angaben bleiben auf diesem Computer.</p>
+      </section>
+      <section class="overview__how" aria-labelledby="wie-titel">
+        <h2 id="wie-titel">So geht es weiter</h2>
+        <ol class="steps steps--vertical" aria-label="Ablauf">
+          <li class="steps__item" data-state="current" aria-current="step"><span class="steps__dot"></span><span class="steps__label">Angaben erfassen</span><span class="steps__meta">etwa 20 Minuten</span></li>
+          <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label" data-text="nav.suche">Stellen suchen</span><span class="steps__meta">die Erweiterung sucht auf den Portalen</span></li>
+          <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Unterlagen vorbereiten</span><span class="steps__meta" data-text="uebersicht.start.unterlagen">Lebenslauf und Anschreiben pro Stelle</span></li>
+          <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Abschicken</span><span class="steps__meta" data-text="uebersicht.start.abschicken">machen Sie selbst, das Formular ist vorausgefüllt</span></li>
+          <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Festhalten</span><span class="steps__meta" id="festhalten" data-text="uebersicht.start.festhalten-rav">für Sie und fürs RAV</span></li>
+        </ol>
+      </section>
+    </div>
+  </section>
 
-  <div class="filter">
-    <input type="search" id="suche" placeholder="Firma oder Stelle suchen" aria-label="Suche">
-    <select id="statusfilter" aria-label="Status"><option value="">Alle Status</option></select>
+  <div id="rav-hinweis" class="notice notice--warning" role="status" hidden>
+    <span class="notice__title">Bald Monatsende</span>
+    <p class="notice__body" id="rav-hinweis-text"></p>
+    <div class="notice__actions"><button type="button" class="btn btn--sm" id="rav-hinweis-knopf">Jetzt eintragen</button></div>
   </div>
 
-  <div class="knoepfe" id="bewerben-zeile" hidden>
-    <button class="haupt" id="bewerben" type="button" disabled>Bewerben</button>
-    <span class="hilfe" id="bewerben-hilfe"></span>
-  </div>
-  <div class="knoepfe" id="rav-zeile" hidden>
-    <button id="rav" type="button" disabled>Im RAV eintragen</button>
-    <span class="hilfe" id="rav-hilfe"></span>
-  </div>
-  <div class="banner" id="rav-erinnerung" hidden>
-    <div id="rav-erinnerung-text"></div>
-    <button id="rav-erinnerung-waehlen" type="button">Diese wählen</button>
-  </div>
-  <div class="banner" id="bewerben-frage" hidden>
-    <div id="bewerben-frage-text"></div>
-    <button id="bewerben-trotzdem" type="button">Trotzdem öffnen</button>
-    <button id="bewerben-abbrechen" type="button">Abbrechen</button>
-  </div>
-  <div id="bewerben-status" class="status" role="status" aria-live="polite"></div>
+  <section id="steht-an" class="overview__now" aria-labelledby="steht-an-titel" hidden>
+    <div class="overview__head">
+      <h1 id="steht-an-titel">Das steht an</h1>
+      <button type="button" class="btn" id="von-hand" data-text="uebersicht.von-hand">Stelle von Hand erfassen</button>
+    </div>
+    <div class="overview__now-row">
+      <section id="karte" class="next-step overview__card" aria-labelledby="karte-titel" hidden>
+        <p class="next-step__eyebrow" id="karte-zeile"></p>
+        <h2 class="next-step__title" id="karte-titel"></h2>
+        <p class="next-step__text" id="karte-text"></p>
+        <div class="btn-row" id="karte-knoepfe"></div>
+        <p class="next-step__after" id="karte-fuss" hidden></p>
+      </section>
+      <section id="auch" class="overview__more" aria-labelledby="auch-titel" hidden>
+        <h2 id="auch-titel">Auch noch offen</h2>
+        <ul id="auch-liste" class="overview__more-list"></ul>
+      </section>
+    </div>
+  </section>
+  <p id="lauf-status" class="status-line" role="status" aria-live="polite"></p>
 
-  <table>
-    <thead><tr id="kopf"></tr></thead>
-    <tbody id="liste"></tbody>
-  </table>
-  <p id="leer" class="leer" hidden>Keine Bewerbungen gefunden.</p>
+  <section id="liste-teil" class="overview__list" aria-labelledby="liste-titel" hidden>
+    <div class="overview__list-head">
+      <h2 id="liste-titel">Bewerbungen</h2>
+      <div class="overview__tools">
+        <div role="group" aria-label="Anzeigen" class="overview__views" id="ansichten">
+          <button type="button" class="btn btn--sm" data-ansicht="laufend" aria-pressed="true">Laufend <span class="num" data-zahl="laufend"></span></button>
+          <button type="button" class="btn btn--sm" data-ansicht="abgeschlossen" aria-pressed="false">Abgeschlossen <span class="num" data-zahl="abgeschlossen"></span></button>
+          <button type="button" class="btn btn--sm" data-ansicht="alle" aria-pressed="false">Alle <span class="num" data-zahl="alle"></span></button>
+        </div>
+        <label class="visually-hidden" for="suche">Suchen</label>
+        <input class="input overview__search" id="suche" type="search" autocomplete="off">
+      </div>
+    </div>
+    <p id="liste-leer" class="overview__empty" data-text="uebersicht.liste-leer" hidden>Noch keine Bewerbungen. Übernehmen Sie eine Stelle aus der Suche oder erfassen Sie eine von Hand.</p>
+    <p id="nichts-gefunden" class="overview__empty" hidden>Keine Bewerbung passt zu dieser Suche.</p>
+    <div class="table-wrap" id="tabelle">
+      <table class="table">
+        <thead><tr><th data-text="uebersicht.spalte">Stelle und Firma</th><th>Stand</th><th>Note</th><th>Nächster Schritt</th><th class="num">Frist</th></tr></thead>
+        <tbody id="liste"></tbody>
+      </table>
+    </div>
+    <p id="liste-fuss" class="overview__foot" hidden></p>
+  </section>
 
-  <h2>Neue Bewerbung</h2>
-  <div class="raster">
-    <div><label for="neu-firma">Firma</label><input id="neu-firma" autocomplete="off"></div>
-    <div><label for="neu-stelle">Stelle</label><input id="neu-stelle" autocomplete="off"></div>
-  </div>
-  <div class="knoepfe"><button class="haupt" id="anlegen">Anlegen</button></div>
-  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <dialog class="dialog" id="neu-dialog" aria-labelledby="neu-titel">
+    <form method="dialog" id="neu-form">
+      <h2 class="dialog__title" id="neu-titel" data-text="uebersicht.von-hand">Stelle von Hand erfassen</h2>
+      <div class="field"><label class="field__label" for="neu-firma" data-text="uebersicht.feld-firma">Firma</label><input class="input" id="neu-firma" autocomplete="off" required></div>
+      <div class="field"><label class="field__label" for="neu-stelle" data-text="uebersicht.feld-stelle">Stelle</label><input class="input" id="neu-stelle" autocomplete="off" required></div>
+      <p id="neu-status" class="status-line" role="status" aria-live="polite"></p>
+      <div class="dialog__actions"><button type="button" class="btn" id="neu-abbrechen">Abbrechen</button><button type="submit" class="btn btn--primary" id="neu-anlegen">Anlegen</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog" id="doppelt-dialog" aria-labelledby="doppelt-titel" aria-describedby="doppelt-text">
+    <h2 class="dialog__title" id="doppelt-titel"></h2>
+    <div class="dialog__text" id="doppelt-text"></div>
+    <div class="dialog__actions"><button type="button" class="btn" id="doppelt-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="doppelt-trotzdem">Trotzdem öffnen</button></div>
+  </dialog>
 </main>
+<script src="/texte.js"></script>
 <script src="/app.js"></script>
+<script src="/uebersicht-logik.js"></script>
 <script src="/uebersicht.js"></script>
 </body>
 </html>

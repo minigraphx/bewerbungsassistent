@@ -48,6 +48,7 @@ SEITEN = {
     "/stil.css": "stil.css",
     "/app.js": "app.js",
     "/uebersicht.js": "uebersicht.js",
+    "/uebersicht-logik.js": "uebersicht-logik.js",
     "/bewerbung.js": "bewerbung.js",
     "/entwuerfe.js": "entwuerfe.js",
     "/foto.js": "foto.js",
@@ -74,7 +75,7 @@ log = logging.getLogger("bewerbungsassistent")
 
 
 QUESTIONS_PAGES = {"/fragen": "fragen.html", "/fragen.js": "fragen.js"}
-QUESTIONS_LINK = '<a href="/fragen">Fragen</a>'
+QUESTIONS_LINK = '<a href="/fragen">Fragen an die KI</a>'
 
 
 def erstelle_kontext(daten: pathlib.Path, build: pathlib.Path | None = None) -> Kontext:

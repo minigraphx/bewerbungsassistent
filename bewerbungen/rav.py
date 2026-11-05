@@ -7,7 +7,7 @@ import datetime
 import pathlib
 import re
 
-import search_plan
+import preferences
 from register import jobroom_angaben, jobroom_ergebnis, schweizer_datum
 
 MAX_PER_RUN = 20
@@ -32,8 +32,8 @@ STREET_NUMBER = re.compile(r"^(.*\S)\s+(\d+\s?[A-Za-z]?)$")
 
 
 def applies(data_dir: pathlib.Path) -> bool:
-    """People looking for an apprenticeship are not registered with an RAV as a rule."""
-    return search_plan.kind_of_folder(data_dir) != search_plan.KIND_APPRENTICESHIP
+    """As chosen in the setup (MIN-369); before a choice, people looking for an apprenticeship are not registered as a rule."""
+    return preferences.load(data_dir).rav
 
 
 def blocker(entry: dict) -> str | None:

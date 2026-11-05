@@ -215,3 +215,13 @@ def test_saving_the_page_does_not_change_the_date(server, datenordner):
     assert status == 200 and saved["rav_eingetragen_am"] == "2026-10-21"
     gone = {key: value for key, value in entry.items() if key != "rav_eingetragen_am"}
     assert post(server, "/api/bewerbung", gone)[1]["rav_eingetragen_am"] == "2026-10-21"
+
+
+@pytest.mark.parametrize("chosen, visible", [
+    ("gesucht: stelle\nanrede: sie\nrav: false\n", False),
+    ("gesucht: lehrstelle\nanrede: du\nrav: true\n", True),
+])
+def test_the_choice_in_the_setup_decides_over_the_profile(server, datenordner, chosen, visible):
+    (datenordner / "einrichtung.yaml").write_text(chosen, encoding="utf-8")
+    _, _, content = get(server, "/api/rav/auswahl")
+    assert json.loads(content)["sichtbar"] is visible

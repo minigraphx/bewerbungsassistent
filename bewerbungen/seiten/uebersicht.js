@@ -1,16 +1,13 @@
 "use strict";
+// Overview (MIN-369): „Das steht an“ with the next step, then the applications in five columns.
+// The next step per application comes from uebersicht-logik.js. Forms and Job-Room entries open through the
+// browser extension (MIN-346, MIN-347): one application from its card, several together from one item.
 (() => {
-  const { holen, senden, el, status, datum, beobachten } = window.App;
+  const { holen, senden, el, beobachten, textsatz } = window.App;
+  const { text } = window.Texte;
+  const L = window.UebersichtLogik;
   const $ = id => document.getElementById(id);
-  // Spalten: Schlüssel im Register, Überschrift, Art (bestimmt die Sortierung)
-  const SPALTEN = [
-    ["firma", "Firma", "text"], ["stelle", "Stelle", "text"], ["status", "Status", "status"],
-    ["passung", "Passung", "zahl"], ["eingetragen_am", "Erfasst", "datum"],
-    ["beworben_am", "Beworben", "datum"], ["absage_am", "Absage", "datum"], ["variante", "Variante", "text"],
-    ["ausfuellen", "Formular", "text"], ["rav_eingetragen_am", "RAV", "datum"],
-    ["link", "Inserat", "keine"],  // nicht sortierbar
-  ];
-  const FORM_STATE_TEXT = { geoeffnet: "geöffnet", ausgefuellt: "ausgefüllt", abgeschickt: "abgeschickt" };
+
   const PAGE_SOURCE = "bewerbungsassistent-seite";
   const EXTENSION_SOURCE = "bewerbungsassistent-erweiterung";
   const EXTENSION_MARK = "bewerbungsassistentErweiterung";
@@ -18,238 +15,328 @@
   const RAV_ACTION = "rav-starten";
   const NO_EXTENSION = "Zum Ausfüllen im Browser braucht es die Erweiterung (siehe Einrichtung).";
   const ANSWER_TIMEOUT_MS = 60000;
-  const ANSICHT = "uebersicht.ansicht";  // Sortierung, Suche, Filter und Scrollposition bleiben beim Seitenwechsel erhalten
-  let wiederhergestellt = false;  // Scrollposition erst speichern, wenn die gemerkte gesetzt ist
-  const OFFENER_STATUS = ["Gemerkt", "Bewerben"];
+  const ANSICHT = "uebersicht.ansicht";  // view, search and scroll position stay when going to another page
+  const ANSICHTEN = ["laufend", "abgeschlossen", "alle"];
+  const MAX_AUCH = 3;
+  const GESCHLOSSEN_WORT = { Zusage: ["Zusage", "Zusagen"], Absage: ["Absage", "Absagen"], Verworfen: ["verworfen", "verworfen"],
+                             "Zurückgezogen": ["zurückgezogen", "zurückgezogen"] };
+
+  let satz = "stelle-sie";
+  let rav = false;
   let alle = [];
-  let gezeigt = "";  // the register as last drawn, to see whether Claude changed it
-  let statusReihe = [];
-  let sortierung = { spalte: null, richtung: 1 };  // null = Reihenfolge des Servers (nach Status)
-  let blockers = new Map();  // id → reason it cannot be opened; only what the app listed can be ticked
-  let ravBlockers = new Map();  // id → reason it cannot be entered in Job-Room; empty when this does not apply (MIN-347)
-  let chosen = new Set();
+  let zeilen = [];
+  let gezeigt = "";      // the register as last drawn, to see whether Claude changed it
+  let gruende = new Map();
+  let ravGruende = new Map();
   let maxPerRun = 0;
   let maxRav = 0;
-  let reminderIds = [];
+  let erinnerung = null;
+  let neueTreffer = null;  // { anzahl, letzte } or null
+  let ansicht = "laufend";
+  let laufendeAnfrage = null;  // { ids } of the run waiting for the extension, for „Trotzdem öffnen“
   let answerTimer = null;
+  let wiederhergestellt = false;
 
-  // Browser-Speicher kann fehlen oder gesperrt sein (privates Fenster): dann gilt einfach die Standardansicht
+  // Small helpers
+
+  function meldung(inhalt, stufe = "") {
+    $("lauf-status").textContent = inhalt;
+    if (stufe) $("lauf-status").dataset.level = stufe;
+    else delete $("lauf-status").dataset.level;
+  }
+
+  const t = (schluessel, werte) => text(schluessel, satz, werte);
+  const lehrstelle = () => satz === "lehrstelle-du";
+  const adresse = b => "/bewerbung?id=" + encodeURIComponent(b.id);
+  const wo = b => [b.firma, b.ort].filter(Boolean).join(", ");
+
   function merken() {
     try {
       const scroll = wiederhergestellt ? Math.round(window.scrollY) : gemerkt().scroll;
-      localStorage.setItem(ANSICHT, JSON.stringify({ sortierung, suche: $("suche").value, filter: $("statusfilter").value, scroll }));
-    } catch { /* ohne Speicher keine Erinnerung */ }
+      localStorage.setItem(ANSICHT, JSON.stringify({ ansicht, suche: $("suche").value, scroll }));
+    } catch { /* without storage the default view applies */ }
   }
 
   function gemerkt() {
     try {
       const a = JSON.parse(localStorage.getItem(ANSICHT) || "{}");
-      const gueltig = a.sortierung && SPALTEN.some(([s, , art]) => s === a.sortierung.spalte && art !== "keine") && [1, -1].includes(a.sortierung.richtung);
-      return { sortierung: gueltig ? a.sortierung : { spalte: null, richtung: 1 },
-               suche: typeof a.suche === "string" ? a.suche : "", filter: typeof a.filter === "string" ? a.filter : "",
+      return { ansicht: ANSICHTEN.includes(a.ansicht) ? a.ansicht : "laufend", suche: typeof a.suche === "string" ? a.suche : "",
                scroll: Number.isFinite(a.scroll) && a.scroll > 0 ? a.scroll : 0 };
     } catch {
-      return { sortierung: { spalte: null, richtung: 1 }, suche: "", filter: "", scroll: 0 };
+      return { ansicht: "laufend", suche: "", scroll: 0 };
     }
   }
 
-  function wert(b, spalte, art) {
-    const w = b[spalte];
-    if (art === "status") return statusReihe.indexOf(w);
-    if (art === "zahl") return typeof w === "number" ? w : null;
-    return w ? String(w).toLowerCase() : null;  // ISO-Datum sortiert als Text richtig
+  // What a step is called, in the list and on the card
+
+  function schrittText(schritt, anzahl = 1) {
+    switch (schritt.art) {
+      case "abschicken": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen abschicken`, zusatz: "Formulare sind bereit" } : { titel: "Abschicken", zusatz: "Formular ist bereit" };
+      case "unterlagen": return { titel: "Unterlagen erstellen", zusatz: "Lebenslauf-PDF fehlt" };
+      case "link": return { titel: "Link zum Formular eintragen", zusatz: "dann füllt die Erweiterung es aus" };
+      case "offen": return { titel: schritt.grund || "Bewerbung öffnen", zusatz: "" };
+      case "rav": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen im Job-Room eintragen`, zusatz: "fürs RAV" } : { titel: "Im Job-Room eintragen", zusatz: "fürs RAV" };
+      case "gespraech": return { titel: "Gespräch vorbereiten", zusatz: schritt.frist ? L.datum(schritt.frist) : "Termin eintragen" };
+      case "entscheiden": return { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
+      case "warten": return { titel: "Antwort abwarten", zusatz: schritt.zusatz ? `nachfragen ab ${L.datum(schritt.zusatz)}` : "" };
+      default: return { titel: "", zusatz: "" };
+    }
   }
 
-  // Leere Werte immer ans Ende, unabhängig von der Richtung
-  function vergleiche(a, b) {
-    const [spalte, , art] = SPALTEN.find(([s]) => s === sortierung.spalte);
-    const x = wert(a, spalte, art), y = wert(b, spalte, art);
-    if (x === null || y === null) return (x === null) - (y === null);
-    return (x < y ? -1 : x > y ? 1 : 0) * sortierung.richtung;
+  // Note 1–6 as in the design: value, six bars, a word
+  function notenWort(note) {
+    return note >= 5.5 ? "passt sehr gut" : note >= 4.5 ? "passt gut" : note >= 4 ? "passt knapp" : "passt wenig";
   }
 
-  function kopf() {
-    $("kopf").replaceChildren(el("th", {}, "Wahl"), ...SPALTEN.map(([spalte, text, art]) => {
-      if (art === "keine") return el("th", {}, text);
-      const aktiv = sortierung.spalte === spalte;
-      const pfeil = aktiv ? (sortierung.richtung === 1 ? " ▲" : " ▼") : "";
-      const knopf = el("button", { type: "button", class: "sortieren", onclick: () => sortiere(spalte, art) }, text + pfeil);
-      return el("th", { "aria-sort": aktiv ? (sortierung.richtung === 1 ? "ascending" : "descending") : "none" }, knopf);
-    }));
+  function note(b) {
+    if (typeof b.passung !== "number") return el("span", { class: "table__sub" }, "keine Note");
+    const balken = [1, 2, 3, 4, 5, 6].map(k => el("i", { class: b.passung >= k ? "on" : b.passung >= k - 0.5 ? "half" : "" }));
+    return el("span", { class: "grade-meter grade-meter--sm", "aria-label": `Note ${b.passung} von 6, ${notenWort(b.passung)}` },
+      el("span", { class: "grade-meter__value" }, String(b.passung)),
+      el("span", { class: "grade-meter__bar", "aria-hidden": "true" }, balken),
+      el("span", { class: "grade-meter__word", "aria-hidden": "true" }, notenWort(b.passung)));
   }
 
-  function sortiere(spalte, art) {
-    // Erster Klick: Text und Status aufsteigend, Zahlen und Daten absteigend (beste Note, neuestes Datum zuerst)
-    const richtung = sortierung.spalte === spalte ? -sortierung.richtung : (art === "zahl" || art === "datum" ? -1 : 1);
-    sortierung = { spalte, richtung };
-    zeige();
-  }
+  // The list
 
-  const toApply = () => [...chosen].filter(id => blockers.get(id) === null);
-  const toEnter = () => [...chosen].filter(id => ravBlockers.get(id) === null);
-
-  /** What still stands between an open application and „Bewerben“; sent ones have nothing to do here. */
-  const fehltNoch = b => (OFFENER_STATUS.includes(b.status) ? blockers.get(b.id) : null);
-
-  function updateChoice() {
-    const count = toApply().length;
-    $("bewerben").disabled = count === 0 || count > maxPerRun;
-    $("bewerben").textContent = count ? `Bewerben (${count})` : "Bewerben";
-    const keineBereit = alle.some(fehltNoch) && ![...blockers.values()].includes(null);
-    $("bewerben-hilfe").textContent = count > maxPerRun
-      ? `Pro Durchgang höchstens ${maxPerRun}.`
-      : keineBereit ? "Noch ist keine Bewerbung bereit. Was fehlt, steht bei der Firma."
-      : "Öffnet pro Bewerbung einen Tab und füllt das Formular aus. Abschicken bleibt bei Ihnen.";
-    const entries = toEnter().length;
-    $("rav").disabled = entries === 0 || entries > maxRav;
-    $("rav").textContent = entries ? `Im RAV eintragen (${entries})` : "Im RAV eintragen";
-    $("rav-hilfe").textContent = entries > maxRav
-      ? `Pro Durchgang höchstens ${maxRav}.`
-      : "Füllt im Job-Room einen Eintrag nach dem anderen aus. Anmelden und Speichern bleiben bei Ihnen.";
-  }
-
-  /** Why the box cannot be ticked: a line per thing it could be used for; none when one of them is possible. */
-  function choiceReason(b) {
-    const apply = blockers.has(b.id) ? blockers.get(b.id) : "Noch nicht geprüft";
-    if (!apply || ravBlockers.get(b.id) === null) return "";
-    return ravBlockers.has(b.id) ? `${apply} · RAV: ${ravBlockers.get(b.id)}` : apply;
-  }
-
-  function choiceBox(b) {
-    const reason = choiceReason(b);
-    const box = el("input", { type: "checkbox", "aria-label": `${b.firma} wählen`, title: reason });
-    box.disabled = Boolean(reason);
-    box.checked = chosen.has(b.id);
-    box.addEventListener("change", () => {
-      chosen = box.checked ? new Set([...chosen, b.id]) : new Set([...chosen].filter(id => id !== b.id));
-      updateChoice();
-    });
-    return box;
-  }
-
-  function zeile(b) {
-    const adresse = "/bewerbung?id=" + encodeURIComponent(b.id);
-    const link = el("a", { href: adresse }, b.firma);
-    const fehlt = fehltNoch(b);
+  function zeile({ bewerbung: b, schritt }) {
+    const was = schrittText(schritt);
     return el("tr", {},
-      el("td", {}, choiceBox(b)),
-      el("td", {}, link, fehlt ? el("a", { href: adresse, class: "fehlt-noch" }, fehlt) : null),
-      el("td", {}, b.stelle),
-      el("td", {}, el("span", { class: "marke-status", "data-status": b.status }, b.status)),
-      el("td", { class: "zahl" }, b.passung ?? ""),
-      el("td", {}, datum(b.eingetragen_am)),
-      el("td", {}, datum(b.beworben_am)),
-      el("td", {}, datum(b.absage_am)),
-      el("td", {}, b.variante || ""),
-      el("td", {}, FORM_STATE_TEXT[b.ausfuellen] || ""),
-      el("td", {}, datum(b.rav_eingetragen_am)),
-      el("td", {}, b.link ? el("a", { href: b.link, target: "_blank", rel: "noopener noreferrer", title: b.link }, "Inserat ↗") : ""),
-    );
+      el("td", { "data-label": "" }, el("a", { class: "table__main", href: adresse(b) }, b.stelle || "ohne Titel"), el("span", { class: "table__sub" }, wo(b))),
+      el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, b.status)),
+      el("td", { "data-label": "Note" }, note(b)),
+      el("td", { "data-label": "Nächster Schritt", class: "table__next" }, was.titel || "–", was.zusatz ? el("span", { class: "table__sub" }, was.zusatz) : null),
+      el("td", { "data-label": "Frist", class: "num" }, L.datum(schritt.frist)));
+  }
+
+  function zeigeListe() {
+    const gezeigte = L.gefiltert(zeilen, ansicht, $("suche").value);
+    for (const knopf of document.querySelectorAll("[data-ansicht]")) knopf.setAttribute("aria-pressed", String(knopf.dataset.ansicht === ansicht));
+    for (const name of ANSICHTEN) document.querySelector(`[data-zahl=${name}]`).textContent = String(L.gefiltert(zeilen, name, "").length);
+    $("liste").replaceChildren(...gezeigte.map(zeile));
+    $("tabelle").hidden = gezeigte.length === 0;
+    $("liste-leer").hidden = alle.length > 0;
+    $("nichts-gefunden").hidden = alle.length === 0 || gezeigte.length > 0;
+    const fertig = L.abgeschlossenZaehlen(zeilen);
+    const teile = Object.entries(fertig).map(([status, n]) => `${n} ${(GESCHLOSSEN_WORT[status] || [status, status])[n === 1 ? 0 : 1]}`);
+    $("liste-fuss").hidden = ansicht !== "laufend" || teile.length === 0;
+    $("liste-fuss").replaceChildren(`Abgeschlossen: ${teile.join(", ")}. `,
+      el("button", { type: "button", class: "link", onclick: () => waehleAnsicht("abgeschlossen") }, "Anzeigen"));
+    merken();
+  }
+
+  function waehleAnsicht(name) {
+    ansicht = name;
+    zeigeListe();
+  }
+
+  // „Das steht an“
+
+  function aktion(eintrag, klein = false) {
+    const art = eintrag.art;
+    const ids = eintrag.eintraege.map(z => z.bewerbung.id);
+    const klasse = klein ? "btn btn--sm" : "btn btn--primary";
+    if (art === "abschicken") {
+      const knopf = el("button", { type: "button", class: klasse }, ids.length > 1 ? "Formulare öffnen" : "Formular öffnen");
+      knopf.addEventListener("click", () => startRun(ids.slice(0, maxPerRun), false, knopf));
+      return knopf;
+    }
+    if (art === "rav") {
+      const knopf = el("button", { type: "button", class: klasse }, "Jetzt eintragen");
+      knopf.addEventListener("click", () => startRav(ids.slice(0, maxRav), knopf));
+      return knopf;
+    }
+    return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) }, klein ? "Öffnen" : "Bewerbung öffnen");
+  }
+
+  function kartenText(eintrag) {
+    const { schritt } = eintrag.eintraege[0];
+    switch (eintrag.art) {
+      case "abschicken": return t(eintrag.eintraege.length > 1 ? "uebersicht.karte.abschicken-alle" : "uebersicht.karte.abschicken");
+      case "rav": return t("uebersicht.karte.rav");
+      case "unterlagen": return t("uebersicht.karte.unterlagen");
+      case "link": return "Ohne Link zum Bewerbungsformular kann die Erweiterung es nicht öffnen und ausfüllen.";
+      case "gespraech": return schritt.frist ? `Termin am ${L.datum(schritt.frist)}. Inserat, Anschreiben und Notizen stehen in der Bewerbung.` : "Den Termin in der Bewerbung eintragen, dann steht er hier.";
+      case "entscheiden": return "Bewerben oder verwerfen? Note und Inserat stehen in der Bewerbung.";
+      default: return schritt.grund || "";
+    }
+  }
+
+  function zeigeKarte(eintrag) {
+    $("karte").hidden = !eintrag;
+    if (!eintrag) return;
+    const erste = eintrag.eintraege[0].bewerbung;
+    const anzahl = eintrag.eintraege.length;
+    const was = schrittText(eintrag.eintraege[0].schritt, anzahl);
+    $("karte-zeile").textContent = anzahl > 1 ? "Nächster Schritt" : `Nächster Schritt · ${[erste.stelle, erste.firma].filter(Boolean).join(", ")}`;
+    $("karte-titel").textContent = was.titel;
+    $("karte-text").textContent = kartenText(eintrag);
+    $("karte-knoepfe").replaceChildren(aktion(eintrag));
+    const fristen = eintrag.eintraege.map(z => z.schritt.frist).filter(Boolean).sort();
+    const fuss = anzahl > 1 ? eintrag.eintraege.map(z => z.bewerbung.firma).join(", ")
+      : fristen.length && eintrag.art !== "gespraech" ? `Frist ${L.datum(fristen[0])}` : "";
+    $("karte-fuss").hidden = !fuss;
+    $("karte-fuss").textContent = fuss;
+  }
+
+  function auchZeile(titel, unter, knopf) {
+    return el("li", { class: "overview__more-item" },
+      el("span", {}, el("strong", {}, titel), unter ? el("span", { class: "table__sub" }, unter) : null), knopf);
+  }
+
+  function zeigeAuch(eintraege) {
+    const punkte = eintraege.map(e => {
+      const was = schrittText(e.eintraege[0].schritt, e.eintraege.length);
+      const b = e.eintraege[0].bewerbung;
+      const unter = e.eintraege.length > 1 ? e.eintraege.map(z => z.bewerbung.firma).join(", ")
+        : [b.firma, e.eintraege[0].schritt.frist ? L.datum(e.eintraege[0].schritt.frist) : was.zusatz].filter(Boolean).join(" · ");
+      return auchZeile(was.titel, unter, aktion(e, true));
+    });
+    if (neueTreffer && neueTreffer.anzahl > 0 && punkte.length < MAX_AUCH) {
+      const unter = neueTreffer.letzte ? `Suche vom ${L.datum(neueTreffer.letzte.slice(0, 10))}` : "";
+      punkte.push(auchZeile(`${neueTreffer.anzahl} neue Treffer ansehen`, unter, el("a", { class: "btn btn--sm", href: "/treffer" }, "Ansehen")));
+    }
+    $("auch").hidden = punkte.length === 0;
+    $("auch-liste").replaceChildren(...punkte);
+  }
+
+  function zeigeStehtAn() {
+    const an = L.stehtAn(zeilen, MAX_AUCH + 1);
+    if (alle.length === 0) {
+      $("karte").hidden = false;
+      $("karte-zeile").textContent = "Nächster Schritt";
+      $("karte-titel").textContent = t("uebersicht.leer.titel");
+      $("karte-text").textContent = t("uebersicht.leer.text");
+      $("karte-knoepfe").replaceChildren(el("a", { class: "btn btn--primary", href: "/treffer" }, t("nav.suche")));
+      $("karte-fuss").hidden = true;
+      zeigeAuch([]);
+      return;
+    }
+    zeigeKarte(an[0]);
+    zeigeAuch(an.slice(1));
+  }
+
+  function zeigeRavHinweis() {
+    const offen = erinnerung ? erinnerung.ids.filter(id => ravGruende.get(id) === null) : [];
+    $("rav-hinweis").hidden = !rav || offen.length === 0;
+    if (offen.length) {
+      $("rav-hinweis-text").textContent = `${offen.length} ${offen.length === 1 ? "Bewerbung" : "Bewerbungen"} aus dem ${erinnerung.monat} fehlen noch im Job-Room. Das RAV erhält die Einträge bis zum ${erinnerung.frist}.`;
+    }
   }
 
   function zeige() {
-    const suche = $("suche").value.trim().toLowerCase();
-    const filter = $("statusfilter").value;
-    const auswahl = alle.filter(b =>
-      (!filter || b.status === filter) &&
-      (!suche || `${b.firma} ${b.stelle} ${b.notiz || ""}`.toLowerCase().includes(suche)));
-    const sortiert = sortierung.spalte ? [...auswahl].sort(vergleiche) : auswahl;
-    kopf();
-    merken();
-    $("liste").replaceChildren(...sortiert.map(zeile));
-    $("leer").hidden = sortiert.length > 0;
-  }
-
-  function showReminder(erinnerung) {
-    reminderIds = erinnerung ? erinnerung.ids : [];
-    $("rav-erinnerung").hidden = !erinnerung;
-    if (erinnerung) {
-      $("rav-erinnerung-text").textContent =
-        `${erinnerung.ids.length} Bewerbung(en) aus dem ${erinnerung.monat} fehlen noch im Job-Room. Das RAV erhält die Einträge bis zum ${erinnerung.frist}.`;
+    const ohneAngaben = !grundlagen.lebenslauf && alle.length === 0;
+    $("erststart").hidden = !ohneAngaben;
+    $("steht-an").hidden = ohneAngaben;
+    $("liste-teil").hidden = ohneAngaben;
+    $("festhalten").dataset.text = rav ? "uebersicht.start.festhalten-rav" : "uebersicht.start.festhalten";
+    window.Texte.anwenden(document, satz);
+    $("suche").placeholder = t("uebersicht.suche");
+    zeigeRavHinweis();
+    if (!ohneAngaben) {
+      zeigeStehtAn();
+      zeigeListe();
     }
   }
 
-  async function loadChoice() {
-    const [auswahl, rav] = await Promise.all([holen("/api/bewerben/auswahl"), holen("/api/rav/auswahl")]);
-    blockers = new Map(auswahl.bewerbungen.map(row => [row.id, row.grund]));
-    maxPerRun = auswahl.hoechstens;
-    ravBlockers = new Map(rav.bewerbungen.map(row => [row.id, row.grund]));
-    maxRav = rav.hoechstens;
-    chosen = new Set([...chosen].filter(id => blockers.get(id) === null || ravBlockers.get(id) === null));
-    $("bewerben-zeile").hidden = false;
-    $("rav-zeile").hidden = !rav.sichtbar;
-    showReminder(rav.erinnerung);
-    updateChoice();
-  }
+  // Opening forms and Job-Room entries through the extension
 
   function askExtension(message, button, waiting) {
     if (!document.documentElement.dataset[EXTENSION_MARK]) {
-      status($("bewerben-status"), NO_EXTENSION, "fehler");
+      meldung(NO_EXTENSION, "danger");
       return;
     }
-    $("bewerben-frage").hidden = true;
-    button.disabled = true;
-    status($("bewerben-status"), waiting, "");
+    if (button) button.disabled = true;
+    meldung(waiting);
     clearTimeout(answerTimer);
     answerTimer = setTimeout(() => {
-      status($("bewerben-status"), "Die Erweiterung antwortet nicht. Bitte sie neu laden und es nochmals versuchen.", "fehler");
-      updateChoice();
+      meldung("Die Erweiterung antwortet nicht. Bitte sie neu laden und es nochmals versuchen.", "danger");
+      if (button) button.disabled = false;
     }, ANSWER_TIMEOUT_MS);
     window.postMessage({ quelle: PAGE_SOURCE, ...message }, location.origin);
   }
 
-  function startRun(bestaetigt) {
-    askExtension({ art: START_ACTION, ids: toApply(), bestaetigt }, $("bewerben"), "Die Unterlagen werden geprüft …");
+  function startRun(ids, bestaetigt, button = null) {
+    laufendeAnfrage = { ids, button };
+    askExtension({ art: START_ACTION, ids, bestaetigt }, button, "Die Unterlagen werden geprüft …");
   }
 
-  function startRav() {
-    askExtension({ art: RAV_ACTION, ids: toEnter() }, $("rav"), "Der Job-Room wird geöffnet …");
+  function startRav(ids, button = null) {
+    askExtension({ art: RAV_ACTION, ids }, button, "Der Job-Room wird geöffnet …");
   }
 
-  function chooseReminded() {
-    const open = reminderIds.filter(id => ravBlockers.get(id) === null).slice(0, maxRav);
-    chosen = new Set([...chosen, ...open]);
-    zeige();
-    updateChoice();
+  function zeigeDoppelt(doppelt) {
+    const firmen = [...new Set(doppelt.map(d => d.firma))];
+    $("doppelt-titel").textContent = firmen.length === 1 ? `Bei ${firmen[0]} läuft schon eine Bewerbung` : "Bei diesen Firmen läuft schon eine Bewerbung";
+    $("doppelt-text").replaceChildren(
+      ...doppelt.map(d => el("p", {}, `${d.firma}: ${d.stelle}, Stand ${d.status}.`)),
+      el("p", {}, t("uebersicht.doppelt")));
+    $("doppelt-dialog").showModal();
   }
 
-  function showDuplicates(doppelt) {
-    $("bewerben-frage-text").replaceChildren(
-      el("strong", {}, "Doppelbewerbung?"),
-      ...doppelt.map(d => el("div", {}, `${d.firma}: auch „${d.stelle}“ (${d.status})`)));
-    $("bewerben-frage").hidden = false;
-  }
-
-  function showRefused(abgelehnt) {
-    status($("bewerben-status"), abgelehnt.map(a => `${a.firma}: ${a.grund}`).join(" · "), "fehler");
-  }
-
-  function showRavAnswer(answer) {
+  function fertig() {
     clearTimeout(answerTimer);
-    updateChoice();
-    status($("bewerben-status"), "", "");
-    if (!answer || answer.fehler) status($("bewerben-status"), (answer && answer.fehler) || "Die Erweiterung antwortet nicht.", "fehler");
-    else if (answer.abgelehnt && answer.abgelehnt.length) showRefused(answer.abgelehnt);
-    else if (answer.geoeffnet) {
-      chosen = new Set();
-      status($("bewerben-status"), `Der Job-Room ist offen, ${answer.geoeffnet} Einträge warten. Gespeichert wird erst durch Sie.`, "ok");
-      laden();
-    }
+    for (const knopf of document.querySelectorAll("#karte-knoepfe button, #auch-liste button, #rav-hinweis-knopf")) knopf.disabled = false;
   }
 
   function showAnswer(answer) {
     if (answer && answer.laeuft) return;
-    clearTimeout(answerTimer);
-    updateChoice();
-    status($("bewerben-status"), "", "");
-    if (!answer || answer.fehler) status($("bewerben-status"), (answer && answer.fehler) || "Die Erweiterung antwortet nicht.", "fehler");
-    else if (answer.berechtigung) status($("bewerben-status"), "Bitte im neuen Tab den Zugriff erlauben; danach geht es weiter.", "hinweis");
-    else if (answer.abgelehnt && answer.abgelehnt.length) showRefused(answer.abgelehnt);
-    else if (answer.doppelt && answer.doppelt.length) showDuplicates(answer.doppelt);
+    fertig();
+    meldung("");
+    if (!answer || answer.fehler) meldung((answer && answer.fehler) || "Die Erweiterung antwortet nicht.", "danger");
+    else if (answer.berechtigung) meldung("Bitte im neuen Tab den Zugriff erlauben; danach geht es weiter.", "warning");
+    else if (answer.abgelehnt && answer.abgelehnt.length) meldung(answer.abgelehnt.map(a => `${a.firma}: ${a.grund}`).join(" · "), "danger");
+    else if (answer.doppelt && answer.doppelt.length) zeigeDoppelt(answer.doppelt);
     else if (answer.geoeffnet) {
-      chosen = new Set();
-      status($("bewerben-status"), `${answer.geoeffnet} Tab(s) geöffnet. Abgeschickt wird erst durch Sie.`, "ok");
+      meldung(t("uebersicht.geoeffnet", { anzahl: answer.geoeffnet }), "success");
       laden();
+    }
+  }
+
+  function showRavAnswer(answer) {
+    fertig();
+    meldung("");
+    if (!answer || answer.fehler) meldung((answer && answer.fehler) || "Die Erweiterung antwortet nicht.", "danger");
+    else if (answer.abgelehnt && answer.abgelehnt.length) meldung(answer.abgelehnt.map(a => `${a.firma}: ${a.grund}`).join(" · "), "danger");
+    else if (answer.geoeffnet) {
+      meldung(t("uebersicht.jobroom-offen", { anzahl: answer.geoeffnet }), "success");
+      laden();
+    }
+  }
+
+  // Loading
+
+  let grundlagen = { lebenslauf: true };
+
+  async function ladeAuswahl() {
+    const [auswahl, ravAuswahl] = await Promise.all([holen("/api/bewerben/auswahl"), holen("/api/rav/auswahl")]);
+    gruende = new Map(auswahl.bewerbungen.map(row => [row.id, row.grund]));
+    maxPerRun = auswahl.hoechstens;
+    rav = Boolean(ravAuswahl.sichtbar);
+    ravGruende = new Map(rav ? ravAuswahl.bewerbungen.map(row => [row.id, row.grund]) : []);
+    maxRav = ravAuswahl.hoechstens;
+    erinnerung = ravAuswahl.erinnerung;
+  }
+
+  async function ladeTreffer() {
+    try {
+      const liste = await holen("/api/suche/liste");
+      neueTreffer = { anzahl: liste.treffer.filter(h => h.zustand === "neu").length, letzte: liste.letzte_suche?.datum || "" };
+    } catch {
+      neueTreffer = null;  // no search profile yet: nothing to look at
+    }
+  }
+
+  async function laden() {
+    try {
+      const [daten, , gefunden] = await Promise.all([holen("/api/bewerbungen"), ladeAuswahl(), holen("/api/grundlagen").catch(() => grundlagen), ladeTreffer()]);
+      grundlagen = gefunden;
+      gezeigt = JSON.stringify(daten.bewerbungen);
+      alle = daten.bewerbungen;
+      zeilen = L.mitSchritten(alle, gruende, ravGruende);
+      zeige();
+    } catch (fehler) {
+      meldung("Laden fehlgeschlagen: " + fehler.message, "danger");
     }
   }
 
@@ -258,44 +345,44 @@
     try {
       const { bewerbungen } = await holen("/api/bewerbungen");
       if (JSON.stringify(bewerbungen) !== gezeigt) await laden();
-    } catch {
-      /* the app is closing; the next action says so */
-    }
+    } catch { /* the app is closing; the next action says so */ }
   }
 
-  async function laden() {
+  // Adding one by hand
+
+  async function anlegen(event) {
+    event.preventDefault();
+    $("neu-anlegen").disabled = true;
     try {
-      const daten = await holen("/api/bewerbungen");
-      await loadChoice();
-      gezeigt = JSON.stringify(daten.bewerbungen);
-      alle = daten.bewerbungen;
-      updateChoice();  // its hint depends on the applications, which loadChoice does not have yet
-      statusReihe = daten.status;
-      $("statusfilter").replaceChildren(el("option", { value: "" }, "Alle Status"),
-        ...daten.status.map(s => el("option", { value: s }, `${s} (${alle.filter(b => b.status === s).length})`)));
-      const ansicht = gemerkt();
-      sortierung = ansicht.sortierung;
-      $("suche").value = ansicht.suche;
-      $("statusfilter").value = daten.status.includes(ansicht.filter) ? ansicht.filter : "";
-      zeige();
-      requestAnimationFrame(() => { window.scrollTo(0, ansicht.scroll); wiederhergestellt = true; });
+      const b = await senden("/api/bewerbung/neu", { firma: $("neu-firma").value, stelle: $("neu-stelle").value });
+      location.href = adresse(b);
     } catch (fehler) {
-      status($("status"), "Laden fehlgeschlagen: " + fehler.message, "fehler");
+      $("neu-status").textContent = fehler.message;
+      $("neu-status").dataset.level = "danger";
+      $("neu-anlegen").disabled = false;
     }
   }
 
-  // Die Liste kommt erst nach dem Laden: Scrollposition selbst verwalten statt dem Browser zu überlassen
+  // Wiring
+
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   let scrollTimer = null;
   window.addEventListener("scroll", () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(merken, 150); }, { passive: true });
   window.addEventListener("pagehide", merken);
-  $("suche").addEventListener("input", zeige);
-  $("statusfilter").addEventListener("change", zeige);
-  $("bewerben").addEventListener("click", () => startRun(false));
-  $("bewerben-trotzdem").addEventListener("click", () => startRun(true));
-  $("bewerben-abbrechen").addEventListener("click", () => { $("bewerben-frage").hidden = true; });
-  $("rav").addEventListener("click", startRav);
-  $("rav-erinnerung-waehlen").addEventListener("click", chooseReminded);
+  $("suche").addEventListener("input", zeigeListe);
+  for (const knopf of document.querySelectorAll("[data-ansicht]")) knopf.addEventListener("click", () => waehleAnsicht(knopf.dataset.ansicht));
+  $("rav-hinweis-knopf").addEventListener("click", e => {
+    const offen = erinnerung ? erinnerung.ids.filter(id => ravGruende.get(id) === null) : [];
+    startRav(offen.slice(0, maxRav), e.currentTarget);
+  });
+  $("von-hand").addEventListener("click", () => { $("neu-status").textContent = ""; $("neu-dialog").showModal(); $("neu-firma").focus(); });
+  $("neu-abbrechen").addEventListener("click", () => $("neu-dialog").close());
+  $("neu-form").addEventListener("submit", anlegen);
+  $("doppelt-abbrechen").addEventListener("click", () => { $("doppelt-dialog").close(); meldung(""); });
+  $("doppelt-trotzdem").addEventListener("click", () => {
+    $("doppelt-dialog").close();
+    if (laufendeAnfrage) startRun(laufendeAnfrage.ids, true, laufendeAnfrage.button);
+  });
   window.addEventListener("message", event => {
     const data = event.data;
     if (event.source !== window || event.origin !== location.origin || data?.quelle !== EXTENSION_SOURCE || data.art !== "antwort") return;
@@ -305,14 +392,13 @@
   // The tabs of the forms report to the app; the list shows it on the way back.
   document.addEventListener("visibilitychange", () => { if (!document.hidden) laden(); });
   beobachten(nachsehen);
-  $("anlegen").addEventListener("click", async () => {
-    try {
-      const b = await senden("/api/bewerbung/neu", { firma: $("neu-firma").value, stelle: $("neu-stelle").value });
-      location.href = "/bewerbung?id=" + encodeURIComponent(b.id);
-    } catch (fehler) {
-      status($("status"), "Anlegen fehlgeschlagen: " + fehler.message, "fehler");
-    }
-  });
-  holen("/api/grundlagen").then(g => { $("ohne-angaben").hidden = g.lebenslauf; }).catch(() => { /* the list shows the error */ });
-  laden();
+
+  (async () => {
+    const ansichtGemerkt = gemerkt();
+    ansicht = ansichtGemerkt.ansicht;
+    $("suche").value = ansichtGemerkt.suche;
+    satz = await textsatz();
+    await laden();
+    requestAnimationFrame(() => { window.scrollTo(0, ansichtGemerkt.scroll); wiederhergestellt = true; });
+  })();
 })();

@@ -17,7 +17,8 @@ def test_without_a_choice_a_job_profile_means_a_job_with_sie_and_rav(tmp_path):
 def test_without_a_choice_an_apprenticeship_profile_means_du(tmp_path):
     (tmp_path / "suchprofil.md").write_text(APPRENTICESHIP_PROFILE, encoding="utf-8")
 
-    assert preferences.load(tmp_path).text_set == "lehrstelle-du"
+    choice = preferences.load(tmp_path)
+    assert (choice.text_set, choice.rav) == ("lehrstelle-du", False)
 
 
 def test_an_apprenticeship_is_always_du():

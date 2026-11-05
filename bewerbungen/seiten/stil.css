@@ -106,23 +106,9 @@ code, pre { font-family: var(--font-mono); }
 .muted, .leise, p.hilfe { color: var(--text-muted); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* ---------- Navigation ---------- */
-nav { display: flex; gap: var(--space-1); flex-wrap: wrap; align-items: center; padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--line); background: var(--surface); }
-nav a { color: var(--text-strong); text-decoration: none; padding: 6px var(--space-3); border-radius: var(--radius-md); font-weight: 500; }
-nav a:hover { background: var(--surface-subtle); color: var(--text-strong); }
-nav a[aria-current="page"] { background: var(--accent); color: var(--on-accent); }
-nav .marke { margin-right: auto; padding: var(--space-2) var(--space-1); font-weight: 700; }
-nav .marke:hover { background: none; }
-nav .version { display: block; padding: 6px var(--space-3); font-size: 13px; color: var(--text-muted); }
-nav details.menue { position: relative; }
-nav details.menue > summary { list-style: none; cursor: pointer; padding: 6px var(--space-3); border-radius: var(--radius-md); font-weight: 500; color: var(--text-strong); }
-nav details.menue > summary:hover { background: var(--surface-subtle); }
-nav details.menue > summary::-webkit-details-marker { display: none; }
-nav details.menue:has(a[aria-current="page"]) > summary { background: var(--accent); color: var(--on-accent); }
-nav .menue-inhalt { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; display: flex; flex-direction: column; gap: 2px; min-width: 240px; padding: var(--space-2); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-menu); }
-nav .menue-inhalt a { border-radius: var(--radius-sm); }
-nav .menue-knopf { min-height: 0; padding: 6px var(--space-3); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-strong); font: inherit; font-weight: 500; text-align: left; cursor: pointer; }
-nav .menue-knopf:hover { background: var(--surface-subtle); }
+/* ---------- Navigation (design: AppNav, classes in part 2) ---------- */
+.app-nav__more:has(a[aria-current="page"]) > summary { background: var(--accent); color: var(--on-accent); }
+.menu__group:empty { display: none; }
 
 /* ---------- Layout ---------- */
 main { max-width: var(--width-content); margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-7); }
@@ -459,6 +445,7 @@ textarea.input { min-height: 120px; resize: vertical; }
   .table td.num { text-align: left; }
   .table td[data-label]::before { content: attr(data-label); display: block; font: 500 13px/18px var(--font-sans); color: var(--text-muted); }
   .table td[data-label=""]::before { display: none; }
+  .table td:empty { display: none; }
 }
 
 /* ---------- Dialog ---------- */
@@ -601,3 +588,40 @@ label.check input { margin-top: 3px; }
 .setup__summary .notice { padding: var(--space-2) var(--space-3); }
 .setup__summary .notice__body { min-width: 0; overflow-wrap: anywhere; }
 .setup .befunde:empty { display: none; }
+
+/* ---------- Overview ---------- */
+.overview { display: flex; flex-direction: column; gap: var(--space-6); }
+.overview h1 { margin: 0; font-size: 28px; line-height: 34px; }
+.overview h2:not([class]) { margin: 0; padding: 0; border: 0; font-size: 18px; line-height: 24px; }
+.overview > .notice, .overview > .banner, .overview > .status { margin: 0; }
+.overview > .status-line { margin: calc(-1 * var(--space-4)) 0 0; }
+.overview > .status-line:empty { display: none; }
+.overview__welcome { display: flex; flex-direction: column; gap: var(--space-2); max-width: var(--width-reading); }
+.overview__welcome p { margin: 0; }
+.overview__start { display: flex; flex-direction: column; gap: var(--space-5); }
+.overview__start-row, .overview__now-row { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: stretch; }
+.overview__start-row { align-items: flex-start; }
+.overview__card { flex: 3 1 440px; }
+.next-step__title { padding: 0; border: 0; }
+.overview__card .next-step__after:empty { display: none; }
+.overview__how { flex: 1 1 280px; display: flex; flex-direction: column; gap: var(--space-3); }
+.overview__now { display: flex; flex-direction: column; gap: var(--space-4); }
+.overview__head, .overview__list-head { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; align-items: center; }
+.overview__more { flex: 2 1 320px; display: flex; flex-direction: column; padding: var(--space-4) var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.overview__more h2 { margin: 0 0 var(--space-1); padding: 0; border: 0; font-size: 16px; line-height: 22px; }
+.overview__more-list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.overview__more-item { display: flex; gap: var(--space-3); justify-content: space-between; align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+.overview__more-item:last-child { border-bottom: 0; }
+.overview__more-item strong { color: var(--text-strong); font-weight: 500; }
+.overview__more-item .table__sub { font-size: 14px; line-height: 20px; }
+.overview__list { display: flex; flex-direction: column; gap: var(--space-3); }
+.overview__tools { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.overview__views { display: flex; gap: var(--space-1); }
+.overview__views .btn[aria-pressed="true"] { background: var(--accent-subtle); border-color: var(--accent); }
+.overview__views .num { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.input.overview__search { width: 220px; min-height: 32px; padding: 4px 10px; font-size: 14px; }
+.overview__empty { margin: 0; padding: var(--space-6); border: 1px dashed var(--line-strong); border-radius: var(--radius-lg); text-align: center; color: var(--text-muted); }
+.overview__foot { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.overview .table__main { text-decoration: none; }
+.overview .table__main:hover { text-decoration: underline; }
+.dialog .field:last-of-type { margin-bottom: var(--space-3); }
