@@ -85,6 +85,10 @@ Danach ist Folgendes anders:
 
 Deine Bewerbung schickst immer du selbst ab.
 
+## Eigenes Claude-Abo (freiwillig)
+
+Wer ein Abo bei Anthropic hat, kann auch in Claude arbeiten und das Ergebnis in die App schreiben lassen, ohne Einladung. Die KI-Knöpfe der App laufen damit nicht. Mehr dazu in der Anleitung [Mit dem eigenen Claude-Abo arbeiten](eigenes-abo.md).
+
 ## Eigener API-Schlüssel (freiwillig)
 
 Sie brauchen das nicht: Die App läuft auch mit dem Einladungscode allein. Ein eigener Schlüssel lohnt sich, wenn Sie mehr KI nutzen möchten, als Ihr Budget im Pilot erlaubt, oder wenn die Suche zusätzliche Seiten lesen soll. Das geht nur mit eigenem Schlüssel.

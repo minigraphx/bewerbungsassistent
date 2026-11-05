@@ -386,3 +386,26 @@ def test_a_bad_wish_is_refused(search):
 
     assert post(search, "/api/suche/angebot", {"wahl": "ferienjob"})[0] == 400
     assert post(search, "/api/suche/angebot", "beides")[0] == 400
+
+
+def _one_hit(s) -> str:
+    post(s, "/api/suche/treffer", {"treffer": [{"portal": "jobs.ch", "portal_id": "9", "stelle": "Koch", "firma": "Muster AG", "link": "https://www.jobs.ch/x/9", "text": "Inserat"}]})
+    return listing(s)["treffer"][0]["id"]
+
+
+def test_a_rating_from_claude_is_stored_without_any_ai_call(search, monkeypatch):
+    monkeypatch.setattr(routes_ai, "new_client", lambda *a: (_ for _ in ()).throw(AssertionError("no call")))
+    wanted = _one_hit(search)
+    status, answer = post(search, f"/api/suche/bewertung?id={wanted}", {"note": 2.5, "zusammenfassung": "Passt gut", "passt": ["Erfahrung"], "haken": ["Pendeln"]})
+    assert status == 200 and answer["bewertung"]["note"] == 2.5
+    stored = listing(search)["treffer"][0]["bewertung"]
+    assert stored["zusammenfassung"] == "Passt gut" and stored["haken"] == ["Pendeln"] and stored["modell"] == "Claude (eigenes Abo)"
+    assert stored["kosten_usd"] is None and stored["neue_luecken"] == [] and stored["auffaellig"] == []
+
+
+@pytest.mark.parametrize("body", [{"note": 7, "zusammenfassung": "x"}, {"note": True, "zusammenfassung": "x"}, {"note": "2", "zusammenfassung": "x"},
+                                  {"note": 2, "zusammenfassung": "x", "haken": "kein Liste"}, {"note": 2, "zusammenfassung": ""}, []])
+def test_a_rating_in_another_form_is_refused(search, body):
+    wanted = _one_hit(search)
+    assert post(search, f"/api/suche/bewertung?id={wanted}", body)[0] == 400
+    assert "bewertung" not in listing(search)["treffer"][0]

@@ -53,6 +53,7 @@ SEITEN = {
     "/angaben": "angaben.html",
     "/einstellungen": "einstellungen.html",
     "/einstellungen.js": "einstellungen.js",
+    "/claude-abo.js": "claude-abo.js",
 }
 GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "bewerbungen/*/*.zip", "dokumente/", ".ki/", "suche/", ".sicherung.yaml"]
 log = logging.getLogger("bewerbungsassistent")

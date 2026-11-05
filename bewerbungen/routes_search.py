@@ -15,13 +15,16 @@ from ai import connection, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
 import routes_career
-from hits import PORTALS_OFF, TRIAL, Hits, company_key, is_near
+from hits import PORTALS_OFF, TRIAL, Hits, bounded_text, company_key, is_near
 from server import json_antwort, pflicht
 
 MAX_PROBLEM = 600
 MAX_RATED_PER_RUN = 30  # one search must not use up the budget; the page says how many are left
 _TAKE_OVER = threading.Lock()
 BAD_RATING = "Die KI hat diesen Treffer nicht bewertet. Bitte nochmals versuchen."
+BAD_OWN_RATING = "Die Bewertung braucht eine Note von 1 bis 6 und eine Zusammenfassung."
+MIN_OWN_GRADE, MAX_OWN_GRADE = 1, 6
+OWN_CLAUDE = "Claude (eigenes Abo)"
 NO_TEXT = "Für diesen Treffer fehlt der Text des Inserats. Bitte das Inserat öffnen und die Stelle von Hand erfassen."
 
 
@@ -151,6 +154,27 @@ def rate(k, parameter, body):
     return json_antwort(result["bewertet"][0])
 
 
+def _strings(body: dict, name: str) -> list[str]:
+    value = body.get(name, [])
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise ValueError(BAD_OWN_RATING)
+    return [bounded_text(item, "Bewertung", limit=500) for item in value]
+
+
+def own_rating(k, parameter, body):
+    """The rating of Claude on the person's own subscription (MIN-377): stored as it came, no AI call and no cost here."""
+    grade = body.get("note") if isinstance(body, dict) else None
+    if type(grade) not in (int, float) or not MIN_OWN_GRADE <= grade <= MAX_OWN_GRADE:
+        raise ValueError(BAD_OWN_RATING)
+    fields = {"note": grade, "zusammenfassung": bounded_text(body.get("zusammenfassung"), "Bewertung", required=True, limit=2000),
+              **{name: _strings(body, name) for name in ("passt", "haken", "neue_luecken", "auffaellig")},
+              "modell": OWN_CLAUDE, "kosten_usd": None}
+    uncertain = bounded_text(body.get("unsicher"), "Bewertung", limit=500)
+    store = _hits(k)
+    store.get(pflicht(parameter, "id"))
+    return json_antwort(store.update(pflicht(parameter, "id"), bewertung={**fields, "unsicher": uncertain} if uncertain else fields))
+
+
 def _package_ids(body) -> list[str]:
     ids = _list(body, "ids")
     if not 1 <= len(ids) <= tasks.PACKAGE_SIZE or not all(isinstance(i, str) for i in ids) or len(set(ids)) != len(ids):
@@ -255,5 +279,5 @@ def discard(k, parameter, body):
 
 GET = {"/api/suche/plan": plan, "/api/suche/liste": overview, "/api/suche/text": text}
 POST = {"/api/suche/sichten": screen, "/api/suche/treffer": receive, "/api/suche/abschluss": finish,
-        "/api/suche/bewerten": rate, "/api/suche/bewerten-paket": rate_package, "/api/suche/einstellungen": settings,
+        "/api/suche/bewerten": rate, "/api/suche/bewerten-paket": rate_package, "/api/suche/bewertung": own_rating, "/api/suche/einstellungen": settings,
         "/api/suche/beruf-sterne": stars, "/api/suche/angebot": choose_offers, "/api/suche/uebernehmen": take_over, "/api/suche/verwerfen": discard}

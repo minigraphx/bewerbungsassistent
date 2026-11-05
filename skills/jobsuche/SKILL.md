@@ -7,6 +7,24 @@ description: "Stellensuche auf job-room.ch, jobs.ch, jobscout24.ch, ictjobs.ch, 
 
 Ziel: neue, passende Stellen finden, auf dem Portal vormerken und im **Register** erfassen, ohne dass dieselbe Stelle zweimal verwendet wird. Eine **Jobliste in Google Sheets ist optional** und nur eine Kopie: Ist sie im Suchprofil eingetragen (aktiviert), kommt jeder Eintrag ins Register **und** in die Liste. Als Quelle dient sie nie; Bestand, Duplikate, Status und Fristen kommen nur aus dem Register. Auf Wunsch der Person legt der Skill sie an (siehe 6b). Was "passend" heisst, steht im **Suchprofil** der suchenden Person (siehe 1). Welches Portal: das, auf dem der aktive Browser-Tab steht; sonst alle laut Modus im Suchprofil (siehe 0a) plus die Karriereseiten. Die Portale sind in Cloud-Umgebungen oft gesperrt oder brauchen ein Login, daher läuft die Suche immer per `javascript_tool` im jeweiligen Browser-Tab (same-origin `fetch`), nie per curl.
 
+## Mit der App (Connector `bewerbungsassistent`)
+
+Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner: Die Portale liest Claude im Browser wie in den Abschnitten 2a bis 2e beschrieben, alles Übrige läuft über die App. Die Entwürfe sichert die App selbst; Befehle mit `.venv` und `Register(…)` entfallen.
+
+| Im Skill | Werkzeug |
+|---|---|
+| Grundlagen prüfen, Suchprofil lesen | `list_files`, `read_file`; fehlt eine Grundlage: Skill `einstieg` |
+| Bestand und Duplikate | `list_applications` |
+| Begriffe, Region, Portale | `get_search_plan`: Er enthält die Wahl der Person, und Portale, die dort fehlen, bleiben aus. |
+| Trefferliste eines Portals | `screen_hits`, danach nur die Inserate aus `holen` öffnen |
+| Inserate speichern | `save_hits` mit dem vollen Text, Portalname wie im Plan |
+| Bewerten nach Abschnitt 3 | `rate_hit` |
+| LinkedIn und Karriereseiten | `save_job` |
+| Ins Register | `take_over_hit`; verwerfen mit `discard_hit` |
+| Lauf beenden | `finish_search` mit Anzahl und Problem pro Portal |
+
+Die Person sieht die Treffer danach in der App unter „Suche“. Fertig, wenn jedes Portal des Plans in `finish_search` steht.
+
 ## 0. Grundlagen prüfen
 
 Grundlagen im Datenordner: `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`. Fehlt eine davon, oder hat `dokumente/neu.yaml` Einträge (Unterlagen aus der Einstiegsvorlage, noch nicht übernommen): zuerst den Skill `einstieg` ausführen, ohne zu fragen. Der Person in einem Satz sagen, warum. Bringt die Person eine Datei aus der Einstiegsvorlage (`einstieg.json` oder `einstieg-….zip`), ebenso.

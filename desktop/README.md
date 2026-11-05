@@ -16,6 +16,10 @@ Die App ist zugleich der **Native-Messaging-Host** für die [Erweiterung](../erw
 - **Anmeldung beim Browser** bei jedem Start (`native_messaging.py`): Windows über die Registry (`HKCU\Software\Google\Chrome\NativeMessagingHosts` und Edge) mit der Datei im App-Ordner; macOS und Linux mit einer Datei in den Profilordnern von Chrome, Chrome Beta, Edge, Chromium und Brave. Beim Start aus dem Repo verweist sie auf ein kleines Startskript im App-Ordner.
 - **Ordner der Erweiterung:** Die App kopiert die Erweiterung aus dem Paket nach `<App-Ordner>/erweiterung`, wenn sich die Version geändert hat (`extension.py`). Die Einrichtung (Schritt 4) öffnet per Knopf die Erweiterungsseite von Chrome oder Edge und zeigt den Ordner im Finder bzw. Explorer.
 
+## Claude mit dem eigenen Abo
+
+Mit `--mcp` ist die App ein lokaler MCP-Server über stdin und stdout (MIN-377), für Claude Desktop und Claude Code. `mcp_server.py` spricht das Protokoll, `mcp_tools.py` legt fest, was Claude erreicht: Das ist die Grenze. Kein Versand, kein RAV, keine Formulare, keine Schlüssel. Der Zugang ist aus, bis die Person ihn unter „Erweiterte Einstellungen“ einschaltet (`routes_claude.py`, `claude_setup.py`). Anleitung für Nutzer: [`docs/eigenes-abo.md`](../docs/eigenes-abo.md). Eine App darf ein Abo nicht selbst nutzen, darum bleibt die KI auf diesem Weg in Claude.
+
 ## Updates
 
 Die App fragt beim Start und danach höchstens alle 6 Stunden das neueste Release dieses Repos ab und zeigt ein Banner.

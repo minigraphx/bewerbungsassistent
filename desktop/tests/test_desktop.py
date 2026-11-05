@@ -95,3 +95,10 @@ def test_mediation_address_comes_with_the_package(monkeypatch):
 def test_selftest_builds_both_pdfs(tmp_path):
     assert selftest.run(tmp_path) == 0
     assert (tmp_path / selftest.RESULT_FILE).read_text(encoding="utf-8").startswith("ok")
+
+
+def test_mcp_flag_goes_to_the_mcp_server_before_anything_else(monkeypatch, tmp_path):
+    import mcp_server
+    monkeypatch.setattr(settings, "app_dir", lambda: tmp_path)
+    monkeypatch.setattr(mcp_server, "main", lambda paths: 42)
+    assert start.main(["--mcp"]) == 42

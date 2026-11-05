@@ -15,6 +15,7 @@ APP_NAME = "Bewerbungsassistent"
 SETTINGS_FILE = "einstellungen.json"
 INSTANCE_FILE = "instanz.json"
 LOG_FILE = "protokoll.txt"
+CLAUDE_ACCESS = "claude_zugang"
 DEFAULTS_FILE = "voreinstellungen.json"  # written at build time (e.g. address of the mediation), not secret
 
 
@@ -75,6 +76,15 @@ def save(paths: Paths, values: dict) -> dict:
     temporary.write_text(json.dumps(values, ensure_ascii=False, indent=1), encoding="utf-8")
     temporary.replace(paths.settings)
     return values
+
+
+def claude_access(paths: Paths) -> bool:
+    """Whether Claude may use the tools of the app (MIN-377); off until the person has read the notes and said yes."""
+    return load(paths).get(CLAUDE_ACCESS) is True
+
+
+def set_claude_access(paths: Paths, allowed: bool) -> dict:
+    return save(paths, {**load(paths), CLAUDE_ACCESS: allowed})
 
 
 def chosen_data_dir(paths: Paths) -> pathlib.Path | None:

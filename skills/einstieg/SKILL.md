@@ -16,6 +16,17 @@ Ergebnis sind die vier Grundlagen, mit denen die Skills `jobsuche` und `bewerbun
 
 Leitlinie wie im Skill `bewerbung`: Jede Angabe ist **belegt**. Belegt heisst: Die Person hat sie im Interview gesagt und bestätigt, oder sie steht in einer Unterlage, die die Person gezeigt hat (Zeugnis, alter Lebenslauf). Was offen bleibt, bleibt leer und wird als offen genannt; erfunden wird nichts, auch keine schönen Formulierungen für Erfahrungen, die es nicht gibt.
 
+## Mit der App (Connector `bewerbungsassistent`)
+
+Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner:
+
+- Der Datenordner steht schon fest, Schritt 1 fragt nur noch den Zweig. Ob es Grundlagen schon gibt, sagen `list_files` und `read_file`.
+- Die Formate liefert `read_template` (`cv`, `suchprofil`, `suchprofil-lehrstelle`, `stil`, `bausteine`).
+- In Schritt 4 schreibt `write_file` jede Datei. Die App prüft sie vorher, baut beim Lebenslauf probehalber ein PDF und sichert die Entwürfe selbst. Eine Fehlermeldung beheben und nochmals schreiben.
+- Das PDF und das Foto sieht die Person in der App, unter „Lebenslauf“ und „Foto“.
+
+Fertig, wenn `write_file` alle vier Dateien angenommen hat und die Person den Lebenslauf in der App gesehen hat.
+
 ## 1. Ausgangslage klären
 
 - **Zweig wählen:** Stellensuche oder Lehrstellensuche (Lehrstelle EFZ/EBA, Schnupperlehre). Der Zweig bestimmt den Fragenkatalog: [`fragen-stelle.md`](fragen-stelle.md) oder [`fragen-lehrstelle.md`](fragen-lehrstelle.md).

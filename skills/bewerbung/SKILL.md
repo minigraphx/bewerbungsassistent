@@ -12,6 +12,20 @@ Jede Änderung an Dateien im Datenordner als **Entwurf** sichern, vorher und nac
 
 Leitlinie: jede Aussage **belegt**. Belegt heisst: steht in `anschreiben/bausteine.md`, im Lebenslauf `cv.yaml` oder wurde von der Person in dieser Sitzung bestätigt.
 
+## Mit der App (Connector `bewerbungsassistent`)
+
+Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner. Die Entwürfe sichert die App selbst; Befehle mit `.venv` entfallen.
+
+| Im Skill | Werkzeug |
+|---|---|
+| Stilprofil, Bausteine, Lebenslauf, Varianten lesen | `list_files`, `read_file`; fehlt eine Grundlage: Skill `einstieg` |
+| Eintrag im Register und Inseratstext | `list_applications`, `get_application`; neu mit `new_application` und `save_ad_text` |
+| Variante vorschlagen und setzen | `suggest_variant`, `update_application` mit `variante` |
+| Zuschnitt, Variantenliste, Anschreiben schreiben | `write_file` (`jobs/<name>.yaml`, `varianten.yaml`, `bewerbungen/<id>/anschreiben.yaml`); Formate mit `read_template` |
+| Unterlagen erstellen und formal prüfen | `build_documents`, `check_documents` |
+
+Die PDFs sieht die Person in der App, auf der Seite der Bewerbung. Abschicken, Beilagen und „Versand erfassen“ macht die Person dort; das Register zeigt den Versand erst danach. Fertig, wenn `check_documents` keinen Fehler mehr nennt und die Person die PDFs freigegeben hat.
+
 ## 0. Grundlagen prüfen
 
 Grundlagen im Datenordner: `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md`, `anschreiben/bausteine.md`. Fehlt eine davon, oder hat `dokumente/neu.yaml` Einträge (Unterlagen aus der Einstiegsvorlage, noch nicht übernommen): zuerst den Skill `einstieg` ausführen, ohne zu fragen. Der Person in einem Satz sagen, warum. Bringt die Person eine Datei aus der Einstiegsvorlage (`einstieg.json` oder `einstieg-….zip`), ebenso.

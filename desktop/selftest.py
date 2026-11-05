@@ -17,7 +17,7 @@ RESULT_FILE = "selbsttest.txt"
 # Imported inside functions at runtime; importing them here by name checks that PyInstaller packed them.
 LATE_MODULES = ("app", "routes_app", "routes_setup", "dialogs", "setup", "import_bundle", "routes_ai", "ai.gateway", "routes_own_key", "routes_sites", "own_sites",
                 "routes_search", "search_plan", "hits", "ai.invitation", "updates", "truststore",
-                "routes_angaben", "import_documents", "documents", "archive", "prefill", "read_documents", "pypdf")
+                "routes_angaben", "routes_claude", "claude_setup", "mcp_server", "mcp_tools", "import_documents", "documents", "archive", "prefill", "read_documents", "pypdf")
 EXTENSION_FILES = ("manifest.json", "background.js", "popup.html", "app-bridge.js", "portals/common.js",
                    "portals/jobroom.js", "lib/search.js", "lib/senders.js")
 
@@ -36,12 +36,21 @@ def check_extension(bundle: pathlib.Path) -> None:
         raise RuntimeError(f"Erweiterung unvollständig: fehlt {missing}" if missing else "Tests der Erweiterung im Paket")
 
 
+def check_skills(bundle: pathlib.Path) -> None:
+    """The skills for the person's own Claude are in the package (MIN-377)."""
+    import claude_setup
+    for name in claude_setup.SKILLS:
+        if not claude_setup.skill_zip(bundle / "skills", name) or not (bundle / "skills" / name / "SKILL.md").is_file():
+            raise RuntimeError(f"Skill fehlt: {name}")
+
+
 def run(result_dir: pathlib.Path | None = None) -> int:
     target = result_dir or pathlib.Path.cwd()
     try:
         check_modules()
         if getattr(sys, "frozen", False):
             check_extension(pathlib.Path(sys._MEIPASS))
+            check_skills(pathlib.Path(sys._MEIPASS))
         with tempfile.TemporaryDirectory() as folder:
             work = pathlib.Path(folder)
             cv = build.main([str(build.ROOT / "data" / "beispiel.yaml"), "--build-dir", str(work / "b1"),
