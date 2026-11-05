@@ -34,6 +34,7 @@
     $("untertitel").textContent = `ID ${bewerbung.id} · Status ${bewerbung.status}` +
       (bewerbung.beworben_am ? ` · beworben am ${datum(bewerbung.beworben_am)}` : "");
     $("eigener-cv").hidden = !daten.eigener_lebenslauf;
+    $("vorschlagen").hidden = !daten.varianten.length; // it only picks among existing variants
     optionen($("f-status"), daten.status.map(s => [s, s]), bewerbung.status);
     optionen($("f-variante"), [["", daten.eigener_lebenslauf_da ? "– eigener Lebenslauf –" : daten.varianten.length ? "– keine –" : "– ganzer Lebenslauf –"], ...daten.varianten.map(v => [v.id, `${v.id}${v.beschreibung ? " – " + v.beschreibung : ""}`])],
       bewerbung.variante || "");

@@ -27,7 +27,8 @@
     <div><label for="f-link">Link zum Inserat</label><input id="f-link" type="url"></div>
     <div><label for="f-formular_link">Link zum Bewerbungsformular</label><input id="f-formular_link" type="url"></div>
     <div><label for="f-status">Status</label><select id="f-status"></select></div>
-    <div><label for="f-variante">Lebenslauf-Variante</label><select id="f-variante"></select></div>
+    <div><label for="f-variante">Lebenslauf-Variante</label><select id="f-variante"></select><button type="button" id="vorschlagen" class="unter-feld" hidden>Variante vorschlagen</button></div>
+    <div id="vorschlaege" class="breit"></div>
     <div><label for="f-passung">Passung (Note 1–6)</label><input id="f-passung" type="number" min="1" max="6" step="0.5"></div>
     <div><label for="f-eingetragen_am">Eingetragen am</label><input id="f-eingetragen_am" type="date"></div>
     <div><label for="f-beworben_am">Beworben am</label><input id="f-beworben_am" type="date"></div>
@@ -47,9 +48,7 @@
   <textarea id="stellentext" rows="8"></textarea>
   <div class="knoepfe">
     <button id="stelle-speichern">Stellentext speichern</button>
-    <button id="vorschlagen">Variante vorschlagen</button>
   </div>
-  <div id="vorschlaege"></div>
 
   <h2>KI-Unterstützung</h2>
   <p class="hilfe">Bewertet die Passung, entwirft das Anschreiben und prüft den Inhalt gegen das Inserat. Vor dem Senden ersetzt die App Name, Adresse, Kontakte und Ansprechpersonen durch Platzhalter; Bilder und Scans gehen nie an die KI. Ergebnisse immer selbst lesen: Die KI kann sich irren.</p>
