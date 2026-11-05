@@ -1,6 +1,6 @@
 // jobscout24.ch: result pages rendered on the server, read with DOMParser, as in the skill `jobsuche`.
 (function () {
-  const common = globalThis.bewerbungsassistentCommon || require('./common.js');
+  const common = globalThis.bewerbungsbegleiterCommon || require('./common.js');
   const PAGE_SIZE = 20;
   const ORIGIN = 'https://www.jobscout24.ch';
 
@@ -49,7 +49,7 @@
   }
 
   const adapter = { name: 'jobscout24', start: `${ORIGIN}/de/jobs/`, list, details, toHit, parseList };
-  globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
-  globalThis.bewerbungsassistentPortals.jobscout24 = adapter;
+  globalThis.bewerbungsbegleiterPortals = globalThis.bewerbungsbegleiterPortals || {};
+  globalThis.bewerbungsbegleiterPortals.jobscout24 = adapter;
   if (typeof module !== 'undefined') module.exports = adapter;
 })();

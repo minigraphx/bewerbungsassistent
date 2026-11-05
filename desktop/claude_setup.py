@@ -9,9 +9,10 @@ import os
 import pathlib
 import zipfile
 
-SERVER_NAME = "bewerbungsassistent"
+SERVER_NAME = "bewerbungsbegleiter"
+OLD_SERVER_NAME = "bewerbungsassistent"  # up to version 0.2.10 (MIN-395)
 CONFIG_NAME = "claude_desktop_config.json"
-BACKUP_SUFFIX = ".vor-bewerbungsassistent"
+BACKUP_SUFFIX = ".vor-bewerbungsbegleiter"
 SERVERS = "mcpServers"
 SKILLS = ("einstieg", "jobsuche", "bewerbung")
 FIXED_TIME = (1980, 1, 1, 0, 0, 0)  # the same files give the same bytes
@@ -86,6 +87,18 @@ def enter_in_desktop(path: pathlib.Path, command: list[str]) -> None:
     if path.is_file():
         path.with_name(path.name + BACKUP_SUFFIX).write_bytes(path.read_bytes())
     _write(path, {**content, SERVERS: {**content.get(SERVERS, {}), SERVER_NAME: _entry(command)}})
+
+
+def adopt_old_entry(path: pathlib.Path, command: list[str]) -> bool:
+    """An entry under the old name becomes ours; without one the file stays untouched. True if something changed."""
+    content = _read(path)
+    servers = content.get(SERVERS, {})
+    if OLD_SERVER_NAME not in servers:
+        return False
+    path.with_name(path.name + BACKUP_SUFFIX).write_bytes(path.read_bytes())
+    kept = {name: value for name, value in servers.items() if name != OLD_SERVER_NAME}
+    _write(path, {**content, SERVERS: {**kept, SERVER_NAME: _entry(command)}})
+    return True
 
 
 def remove_from_desktop(path: pathlib.Path) -> None:

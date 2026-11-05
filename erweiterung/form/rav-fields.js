@@ -129,6 +129,6 @@
   }
 
   const api = { isSavedTitle, plan };
-  root.bewerbungsassistentRavFields = api;
+  root.bewerbungsbegleiterRavFields = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

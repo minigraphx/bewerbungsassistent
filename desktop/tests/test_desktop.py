@@ -20,9 +20,9 @@ def paths(tmp_path):
 def test_app_folder_per_system(tmp_path):
     home = tmp_path / "home"
 
-    assert settings.app_dir({"APPDATA": str(tmp_path / "roaming")}, "win32", home) == tmp_path / "roaming" / "Bewerbungsassistent"
-    assert settings.app_dir({}, "darwin", home) == home / "Library" / "Application Support" / "Bewerbungsassistent"
-    assert settings.app_dir({}, "linux", home) == home / ".config" / "bewerbungsassistent"
+    assert settings.app_dir({"APPDATA": str(tmp_path / "roaming")}, "win32", home) == tmp_path / "roaming" / "Bewerbungsbegleiter"
+    assert settings.app_dir({}, "darwin", home) == home / "Library" / "Application Support" / "Bewerbungsbegleiter"
+    assert settings.app_dir({}, "linux", home) == home / ".config" / "bewerbungsbegleiter"
 
 
 def test_broken_settings_fall_back_to_defaults(paths, tmp_path):
@@ -34,11 +34,11 @@ def test_broken_settings_fall_back_to_defaults(paths, tmp_path):
 
 
 @pytest.mark.parametrize("link, code", [
-    ("bewerbungsassistent://einladung?code=ABCD-EFGH-JKLM-NPQR", "ABCD-EFGH-JKLM-NPQR"),
-    ("bewerbungsassistent://einladung/?code=abcd efgh", "abcd efgh"),
-    ("bewerbungsassistent://anderes?code=ABCD", None),
+    ("bewerbungsbegleiter://einladung?code=ABCD-EFGH-JKLM-NPQR", "ABCD-EFGH-JKLM-NPQR"),
+    ("bewerbungsbegleiter://einladung/?code=abcd efgh", "abcd efgh"),
+    ("bewerbungsbegleiter://anderes?code=ABCD", None),
     ("https://einladung?code=ABCD", None),
-    ("bewerbungsassistent://einladung?code=<script>", None),
+    ("bewerbungsbegleiter://einladung?code=<script>", None),
     (None, None),
 ])
 def test_invitation_links(link, code):
@@ -51,7 +51,7 @@ def test_no_registry_outside_windows():
 
 def test_second_start_finds_the_running_app(paths, tmp_path, monkeypatch):
     import app
-    monkeypatch.delenv("BEWERBUNGSASSISTENT_KI_URL", raising=False)
+    monkeypatch.delenv("BEWERBUNGSBEGLEITER_KI_URL", raising=False)
     data = tmp_path / "daten"
     data.mkdir()
     server = app.erstelle_server(data)
@@ -84,12 +84,12 @@ def test_stale_instance_file_is_ignored(paths):
 
 
 def test_mediation_address_comes_with_the_package(monkeypatch):
-    monkeypatch.delenv("BEWERBUNGSASSISTENT_KI_URL", raising=False)
+    monkeypatch.delenv("BEWERBUNGSBEGLEITER_KI_URL", raising=False)
 
     start._use_mediation({"ki_url": "https://ki.example.ch"})
 
     import os
-    assert os.environ["BEWERBUNGSASSISTENT_KI_URL"] == "https://ki.example.ch"
+    assert os.environ["BEWERBUNGSBEGLEITER_KI_URL"] == "https://ki.example.ch"
 
 
 def test_selftest_builds_both_pdfs(tmp_path):

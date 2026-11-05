@@ -48,7 +48,7 @@
 
   const bereit = () => Boolean(info && info.eingerichtet && !info.fehlt);
   const kiVerbunden = () => Boolean(ki && ki.eingerichtet);
-  const erweiterungGeladen = () => document.documentElement.dataset.bewerbungsassistentErweiterung || "";
+  const erweiterungGeladen = () => document.documentElement.dataset.bewerbungsbegleiterErweiterung || "";
   const satz = () => wahl ? (wahl.gesucht === "lehrstelle" ? "lehrstelle-du" : `stelle-${wahl.anrede}`) : "stelle-sie";
 
   function erledigt(id) {
@@ -419,7 +419,7 @@
   $("erweiterung-spaeter").addEventListener("click", () => ueberspringe("erweiterung"));
   $("erweiterung-weiter").addEventListener("click", () => naechster("erweiterung"));
   window.addEventListener("message", event => {
-    if (event.source !== window || event.origin !== location.origin || event.data?.quelle !== "bewerbungsassistent-erweiterung") return;
+    if (event.source !== window || event.origin !== location.origin || event.data?.quelle !== "bewerbungsbegleiter-erweiterung") return;
     if (aktueller() !== "erweiterung") return zeigeSchritte(aktueller());
     zeigeErweiterung();
     zeigeSchritte("erweiterung");

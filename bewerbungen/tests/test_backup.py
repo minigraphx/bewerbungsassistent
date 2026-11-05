@@ -74,7 +74,7 @@ def test_a_backup_works_after_unpacking_somewhere_else(tmp_path):
 
 
 def test_name_has_the_date():
-    assert backup.file_name(TODAY) == "bewerbungsassistent-sicherung-2026-11-04.zip"
+    assert backup.file_name(TODAY) == "bewerbungsbegleiter-sicherung-2026-11-04.zip"
 
 
 def entries(*sent):
@@ -150,7 +150,7 @@ def test_route_marks_a_backup_only_when_told(server):  # noqa: F811
     status, answer = post(server, "/api/sicherung/erledigt", {})
 
     assert status == 200 and answer["zuletzt"] and answer["faellig"] is False
-    assert answer["datei"].startswith("bewerbungsassistent-sicherung-")
+    assert answer["datei"].startswith("bewerbungsbegleiter-sicherung-")
 
 
 def test_a_file_from_before_1980_goes_in(tmp_path):
@@ -187,12 +187,12 @@ def test_a_file_that_cannot_be_read_stops_the_backup_with_its_name(tmp_path, mon
 def test_an_earlier_backup_in_the_folder_is_not_packed_again(tmp_path):
     folder = filled(data_folder(tmp_path))
     (folder / backup.file_name(TODAY)).write_bytes(b"alt")
-    (folder / "dokumente" / "bewerbungsassistent-sicherung-notiz.zip").write_bytes(b"eigene Datei")
+    (folder / "dokumente" / "bewerbungsbegleiter-sicherung-notiz.zip").write_bytes(b"eigene Datei")
 
     names = zipfile.ZipFile(io.BytesIO(backup.create(folder))).namelist()
 
     assert backup.file_name(TODAY) not in names
-    assert "dokumente/bewerbungsassistent-sicherung-notiz.zip" in names
+    assert "dokumente/bewerbungsbegleiter-sicherung-notiz.zip" in names
 
 
 def test_compressed_files_are_stored_as_they_are(tmp_path):
@@ -202,3 +202,9 @@ def test_compressed_files_are_stored_as_they_are(tmp_path):
 
     assert archive.getinfo("versendet/brief.pdf").compress_type == zipfile.ZIP_STORED
     assert archive.getinfo("cv.yaml").compress_type == zipfile.ZIP_DEFLATED
+
+
+def test_backups_under_the_old_name_stay_out_too(tmp_path):
+    (tmp_path / "bewerbungsassistent-sicherung-2026-11-01.zip").write_bytes(b"x")
+    (tmp_path / "behalten.txt").write_text("x", encoding="utf-8")
+    assert [path.name for path in backup._files(tmp_path)] == ["behalten.txt"]

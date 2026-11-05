@@ -49,7 +49,7 @@ def build(target_dir: pathlib.Path, source: pathlib.Path = EXTENSION) -> pathlib
     manifest = _store_manifest(source)
     files = _packed_files(source)
     target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / f"bewerbungsassistent-erweiterung-{manifest['version']}.zip"
+    target = target_dir / f"bewerbungsbegleiter-erweiterung-{manifest['version']}.zip"
     with zipfile.ZipFile(target, "w") as archive:
         _add(archive, "manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
         for path in files:

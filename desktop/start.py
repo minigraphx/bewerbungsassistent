@@ -1,9 +1,9 @@
 """Start of the desktop app (MIN-342): double-click, the browser opens the local interface.
 
-  Bewerbungsassistent.exe                         start, or open the running app
-  Bewerbungsassistent.exe bewerbungsassistent://einladung?code=…   also redeem an invitation
-  Bewerbungsassistent.exe --selbsttest            build a CV and a letter from example data, then exit
-  Bewerbungsassistent.exe chrome-extension://…/    started by the browser for the extension (Native Messaging)
+  Bewerbungsbegleiter.exe                         start, or open the running app
+  Bewerbungsbegleiter.exe bewerbungsbegleiter://einladung?code=…   also redeem an invitation
+  Bewerbungsbegleiter.exe --selbsttest            build a CV and a letter from example data, then exit
+  Bewerbungsbegleiter.exe chrome-extension://…/    started by the browser for the extension (Native Messaging)
 """
 import argparse
 import logging
@@ -17,12 +17,13 @@ import instance
 import mcp_server
 import native_host
 import native_messaging
+import rename_migration
 import settings
 import setup
 import updates_macos
 import urlscheme
 
-log = logging.getLogger("bewerbungsassistent")
+log = logging.getLogger("bewerbungsbegleiter")
 
 FAILED_UPDATE_NOTE = "update-fehlgeschlagen.txt"
 
@@ -61,9 +62,15 @@ def _redeem(code: str) -> None:
         log.warning("Einladung nicht eingelöst: %s", error)
 
 
+def _adopt_keychain() -> None:
+    from ai.connection import adopt_old_keychain
+    log.info("App-Ordner unter dem neuen Namen übernommen")
+    adopt_old_keychain()
+
+
 def parse(argv: list[str] | None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="Bewerbungsbegleiter")
-    ap.add_argument("link", nargs="?", help="Einladungslink bewerbungsassistent://einladung?code=…")
+    ap.add_argument("link", nargs="?", help="Einladungslink bewerbungsbegleiter://einladung?code=…")
     ap.add_argument("--selbsttest", action="store_true", help="Lebenslauf und Anschreiben probehalber bauen")
     ap.add_argument("--kein-browser", action="store_true", help="Browser nicht öffnen")
     ap.add_argument(updates_macos.CHECK_FLAG, action="store_true", help="Nach einem Update beim Beenden: Version prüfen, nichts öffnen")
@@ -99,7 +106,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.nach_update:
         return check_after_update()
     paths = settings.Paths(settings.app_dir())
+    adopted = rename_migration.adopt_app_folder(paths.app_dir)  # before the log creates the new folder
     _setup_logging(paths)
+    if adopted:
+        _adopt_keychain()
     code = urlscheme.invitation_code(args.link)
     running = instance.find(paths)
     if running is not None:
@@ -127,6 +137,7 @@ def prepare_extension(paths: settings.Paths) -> pathlib.Path | None:
     """Register the Native Messaging host and provide the extension folder; the app runs without them too."""
     frozen = getattr(sys, "frozen", False)
     try:
+        native_messaging.forget_old_host()
         where = native_messaging.register(paths, _host_executable(paths))
         log.info("Native Messaging eingetragen: %s", ", ".join(where) or "kein Browser gefunden")
         return extension.install(paths, extension.source(bundle_dir(), frozen), frozen)
@@ -145,11 +156,22 @@ def start_folder(paths: settings.Paths) -> pathlib.Path:
     return setup.placeholder_dir(paths)
 
 
+def adopt_claude_entry(config: pathlib.Path, command: list[str]) -> None:
+    """An entry under the old name would start a program that no longer exists; the start goes on without it."""
+    import claude_setup
+    try:
+        if claude_setup.adopt_old_entry(config, command):
+            log.info("Eintrag in Claude Desktop unter dem neuen Namen übernommen")
+    except (OSError, ValueError) as error:
+        log.warning("Eintrag in Claude Desktop nicht übernommen: %s", error)
+
+
 def claude_routes(paths: settings.Paths) -> "routes_claude.ClaudeRoutes":
     import claude_setup
     import routes_claude
     command = claude_setup.server_command(_host_executable(paths))
     config = claude_setup.desktop_config(sys.platform, dict(os.environ), pathlib.Path.home())
+    adopt_claude_entry(config, command)
     return routes_claude.ClaudeRoutes(paths=paths, config=config, command=tuple(command), skills=claude_setup.skills_folder(bundle_dir()))
 
 

@@ -3,9 +3,9 @@
 // and that stays with the person.
 (function () {
   'use strict';
-  if (globalThis.bewerbungsassistentRav) return;
-  globalThis.bewerbungsassistentRav = true;
-  const logic = globalThis.bewerbungsassistentRavFields;
+  if (globalThis.bewerbungsbegleiterRav) return;
+  globalThis.bewerbungsbegleiterRav = true;
+  const logic = globalThis.bewerbungsbegleiterRavFields;
   const POLL_MS = 700;
   const NO_FORM_POLLS = 6;
   const COLORS = { filled: '#2e7d32', open: '#ef6c00' };

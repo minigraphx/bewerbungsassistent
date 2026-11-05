@@ -12,9 +12,9 @@ Jede Änderung an Dateien im Datenordner als **Entwurf** sichern, vorher und nac
 
 Leitlinie: jede Aussage **belegt**. Belegt heisst: steht in `anschreiben/bausteine.md`, im Lebenslauf `cv.yaml` oder wurde von der Person in dieser Sitzung bestätigt.
 
-## Mit der App (Connector `bewerbungsassistent`)
+## Mit der App (Connector `bewerbungsbegleiter`)
 
-Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner. Die Entwürfe sichert die App selbst; Befehle mit `.venv` entfallen.
+Stehen die Werkzeuge des Connectors `bewerbungsbegleiter` bereit, arbeitet dieser Skill ohne Repo und ohne Datenordner. Die Entwürfe sichert die App selbst; Befehle mit `.venv` entfallen.
 
 | Im Skill | Werkzeug |
 |---|---|

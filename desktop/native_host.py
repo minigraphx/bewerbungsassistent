@@ -40,7 +40,7 @@ REQUEST_TIMEOUT = 120
 NOT_RUNNING = "Die App startet nicht. Bitte den Bewerbungsbegleiter von Hand öffnen."
 START_LOCK = "start-erweiterung.lock"
 UNEXPECTED = "Unerwarteter Fehler in der App, Details im Protokoll."
-log = logging.getLogger("bewerbungsassistent")
+log = logging.getLogger("bewerbungsbegleiter")
 
 
 def invoked(argv: list[str]) -> bool:

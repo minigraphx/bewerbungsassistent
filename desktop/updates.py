@@ -1,7 +1,7 @@
 """Updates of the desktop app from GitHub Releases of the public repo (MIN-342, MIN-368).
 
-A release `v1.2.3` carries `Bewerbungsassistent-Setup-1.2.3.exe` with `SHA256SUMS.txt` and
-`Bewerbungsassistent-1.2.3-macOS.zip` with `SHA256SUMS-macOS.txt`: the two builds run side by side, so each writes
+A release `v1.2.3` carries `Bewerbungsbegleiter-Setup-1.2.3.exe` with `SHA256SUMS.txt` and
+`Bewerbungsbegleiter-1.2.3-macOS.zip` with `SHA256SUMS-macOS.txt`: the two builds run side by side, so each writes
 its own list. The app checks the latest release, downloads the package of its system and verifies its SHA-256 sum.
 On Windows the installer then runs silently over the installed version and starts the app again; on macOS
 `updates_macos.py` takes over. Data folder, settings and the access in the keychain stay untouched.
@@ -24,8 +24,8 @@ import truststore
 REPO = "minigraphx/bewerbungsassistent"
 LATEST_URL = f"https://api.github.com/repos/{REPO}/releases/latest"
 DOWNLOAD_PREFIX = f"https://github.com/{REPO}/releases/download/"
-INSTALLER = re.compile(r"^Bewerbungsassistent-Setup-(\d+\.\d+\.\d+)\.exe$")
-MAC_ZIP = re.compile(r"^Bewerbungsassistent-(\d+\.\d+\.\d+)-macOS\.zip$")
+INSTALLER = re.compile(r"^Bewerbungsbegleiter-Setup-(\d+\.\d+\.\d+)\.exe$")
+MAC_ZIP = re.compile(r"^Bewerbungsbegleiter-(\d+\.\d+\.\d+)-macOS\.zip$")
 CHECKSUMS = "SHA256SUMS.txt"
 MAC_CHECKSUMS = "SHA256SUMS-macOS.txt"
 PACKAGES = {"win32": (INSTALLER, CHECKSUMS), "darwin": (MAC_ZIP, MAC_CHECKSUMS)}
@@ -59,7 +59,7 @@ def parse_version(text: str) -> tuple[int, ...]:
 
 def _fetch(url: str, limit: int) -> bytes:
     request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
-                                                   "User-Agent": "Bewerbungsassistent"})
+                                                   "User-Agent": "Bewerbungsbegleiter"})
     timeout = DOWNLOAD_TIMEOUT_SECONDS if limit > SMALL_FILE_BYTES else TIMEOUT_SECONDS
     context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # the packed app has no CA file of its own
     with urllib.request.urlopen(request, timeout=timeout, context=context) as response:  # noqa: S310 (https only)

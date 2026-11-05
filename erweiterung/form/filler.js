@@ -3,8 +3,8 @@
 // the person removes stays removed. A password field stops it: logging in is for the person.
 (function () {
   'use strict';
-  if (globalThis.bewerbungsassistentFiller) return;
-  const logic = globalThis.bewerbungsassistentForm;
+  if (globalThis.bewerbungsbegleiterFiller) return;
+  const logic = globalThis.bewerbungsbegleiterForm;
   const isTop = window === window.top;
   const COLORS = { filled: '#2e7d32', open: '#ef6c00', consent: '#c62828', draft: '#1565c0', aiFile: '#1565c0' };
   const FIELD_SELECTOR = 'input, select, textarea';
@@ -13,7 +13,7 @@
   const MAX_NEARBY_TEXT = 120;
   const NEARBY_LEVELS = 3;
   const MAX_STAND_IN_HEIGHT = 120;
-  const MARK = 'data-bewerbungsassistent';
+  const MARK = 'data-bewerbungsbegleiter';
   const MIN_SIZE = 4;
   const MIN_OPACITY = 0.1;
   const MAX_PAGE_TOP = 30000;
@@ -437,7 +437,7 @@
     return { geklickt: true };
   }
 
-  globalThis.bewerbungsassistentFiller = { fill, follow, stop, isTop };
+  globalThis.bewerbungsbegleiterFiller = { fill, follow, stop, isTop };
   chrome.runtime.onMessage.addListener((message) => {
     if (message && message.art === 'formular-ende') stop();
   });

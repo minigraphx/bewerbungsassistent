@@ -1,7 +1,7 @@
 // yousty.ch: result pages rendered on the server, read with DOMParser. The professions have fixed ids, which the
 // suggestions of the search form list; the text of a place is what the form itself sends.
 (function () {
-  const common = globalThis.bewerbungsassistentCommon || require('./common.js');
+  const common = globalThis.bewerbungsbegleiterCommon || require('./common.js');
   const ORIGIN = 'https://www.yousty.ch';
   const SEARCH = '/de-CH/lehrstellen';
   const PROFESSIONS = `${SEARCH}/apprenticeship_jobs/for_autocomplete`;
@@ -136,7 +136,7 @@
   }
 
   const adapter = { name: 'yousty', start: `${ORIGIN}${SEARCH}`, list, details, toHit, parseList, parseDetails, searchUrl };
-  globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
-  globalThis.bewerbungsassistentPortals.yousty = adapter;
+  globalThis.bewerbungsbegleiterPortals = globalThis.bewerbungsbegleiterPortals || {};
+  globalThis.bewerbungsbegleiterPortals.yousty = adapter;
   if (typeof module !== 'undefined') module.exports = adapter;
 })();

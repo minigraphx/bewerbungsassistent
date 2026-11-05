@@ -1,6 +1,6 @@
 // ictjobs.ch: result pages rendered on the server; the full text comes from the JobPosting data of the ad.
 (function () {
-  const common = globalThis.bewerbungsassistentCommon || require('./common.js');
+  const common = globalThis.bewerbungsbegleiterCommon || require('./common.js');
   const ORIGIN = 'https://ictjobs.ch';
 
   function toHit(card) {
@@ -63,7 +63,7 @@
   }
 
   const adapter = { name: 'ictjobs', start: `${ORIGIN}/`, list, details, toHit, parseList };
-  globalThis.bewerbungsassistentPortals = globalThis.bewerbungsassistentPortals || {};
-  globalThis.bewerbungsassistentPortals.ictjobs = adapter;
+  globalThis.bewerbungsbegleiterPortals = globalThis.bewerbungsbegleiterPortals || {};
+  globalThis.bewerbungsbegleiterPortals.ictjobs = adapter;
   if (typeof module !== 'undefined') module.exports = adapter;
 })();

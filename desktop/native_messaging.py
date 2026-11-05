@@ -4,7 +4,7 @@ Then the extension reaches the app without a port and without a pairing code: th
 with the extension's origin as argument (see `native_host.py`), and only the extensions listed here may
 connect. Registered on every start, so a moved or updated app is found again.
 
-  macOS/Linux: <browser profile folder>/NativeMessagingHosts/bewerbungsassistent.json
+  macOS/Linux: <browser profile folder>/NativeMessagingHosts/bewerbungsbegleiter.json
   Windows:     manifest in the app folder, path in HKCU\\Software\\<browser>\\NativeMessagingHosts\\…
 """
 import json
@@ -16,9 +16,10 @@ from typing import Callable
 
 from settings import Paths
 
-log = logging.getLogger("bewerbungsassistent")
+log = logging.getLogger("bewerbungsbegleiter")
 
-HOST_NAME = "bewerbungsassistent"
+HOST_NAME = "bewerbungsbegleiter"
+OLD_HOST_NAME = "bewerbungsassistent"  # up to version 0.2.10 (MIN-395)
 # The developer add-on (key in erweiterung/manifest.json); the IDs of the stores follow with the release.
 EXTENSION_IDS = ("ghniboofenadplgmdgddmgjaaeeogejn",  # developer add-on
                  "mcbcijjbklfeffbollnemgkgnabnmfmp")  # Edge Add-ons (MIN-352)
@@ -33,7 +34,7 @@ SOURCE_MODULES = ("desktop", "bewerbungen", "lebenslauf", "onboarding")
 
 
 def manifest(executable: pathlib.Path) -> dict:
-    return {"name": HOST_NAME, "description": "Bewerbungsassistent", "path": str(executable), "type": "stdio",
+    return {"name": HOST_NAME, "description": "Bewerbungsbegleiter", "path": str(executable), "type": "stdio",
             "allowed_origins": [f"chrome-extension://{extension_id}/" for extension_id in EXTENSION_IDS]}
 
 
@@ -69,6 +70,28 @@ def _set_registry(key: str, value: str) -> None:
     import winreg
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, rf"{key}\{HOST_NAME}") as handle:
         winreg.SetValueEx(handle, "", 0, winreg.REG_SZ, value)
+
+
+def _delete_registry(key: str) -> None:
+    import winreg
+    try:
+        winreg.DeleteKey(winreg.HKEY_CURRENT_USER, rf"{key}\{OLD_HOST_NAME}")
+    except FileNotFoundError:
+        pass
+
+
+def forget_old_host(platform: str = sys.platform, home: pathlib.Path | None = None,
+                    delete_registry: Callable[[str], None] = _delete_registry) -> None:
+    """Remove the entry under the old name: it points to a program that no longer exists."""
+    try:
+        if platform == "win32":
+            for key in WINDOWS_KEYS:
+                delete_registry(key)
+            return
+        for folder in _manifest_dirs(platform, home or pathlib.Path.home()):
+            (folder / f"{OLD_HOST_NAME}.json").unlink(missing_ok=True)
+    except OSError as error:
+        log.warning("Native Messaging: alter Eintrag nicht entfernt (%s)", error)
 
 
 def register(paths: Paths, executable: pathlib.Path, platform: str = sys.platform, home: pathlib.Path | None = None,

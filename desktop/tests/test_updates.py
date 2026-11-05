@@ -13,13 +13,13 @@ BASE = updates.DOWNLOAD_PREFIX + "v9.2.0/"
 
 
 def release(version="9.2.0", installer=INSTALLER, prefix=BASE, **extra):
-    sums = f"{hashlib.sha256(installer).hexdigest()}  Bewerbungsassistent-Setup-{version}.exe\n".encode()
+    sums = f"{hashlib.sha256(installer).hexdigest()}  Bewerbungsbegleiter-Setup-{version}.exe\n".encode()
     files = {
         updates.LATEST_URL: json.dumps({"tag_name": f"v{version}", "html_url": "https://github.com/x/releases/v",
                                         "body": "Neu: Updates", **extra, "assets": [
-            {"name": f"Bewerbungsassistent-Setup-{version}.exe", "browser_download_url": prefix + f"Bewerbungsassistent-Setup-{version}.exe"},
+            {"name": f"Bewerbungsbegleiter-Setup-{version}.exe", "browser_download_url": prefix + f"Bewerbungsbegleiter-Setup-{version}.exe"},
             {"name": "SHA256SUMS.txt", "browser_download_url": prefix + "SHA256SUMS.txt"}]}).encode(),
-        prefix + f"Bewerbungsassistent-Setup-{version}.exe": installer,
+        prefix + f"Bewerbungsbegleiter-Setup-{version}.exe": installer,
         prefix + "SHA256SUMS.txt": sums,
     }
 
@@ -50,7 +50,7 @@ def test_drafts_prereleases_and_offline_are_no_update():
 def test_download_verifies_the_checksum(tmp_path):
     path = updates.download(updates.latest(release(), "win32"), tmp_path, release())
 
-    assert path.read_bytes() == INSTALLER and path.name == "Bewerbungsassistent-Setup-9.2.0.exe"
+    assert path.read_bytes() == INSTALLER and path.name == "Bewerbungsbegleiter-Setup-9.2.0.exe"
 
 
 def test_tampered_installer_is_refused(tmp_path):
@@ -107,7 +107,7 @@ def test_update_route_installs_and_quits():
 
     data = body(post["/api/app/aktualisieren"](None, {}, {}))
 
-    assert data["ok"] and installed[0].name == "Bewerbungsassistent-Setup-9.2.0.exe"
+    assert data["ok"] and installed[0].name == "Bewerbungsbegleiter-Setup-9.2.0.exe"
     assert stopped.wait(3)
 
 
@@ -149,7 +149,7 @@ def test_quit_installs_a_waiting_update_and_still_stops():
     data = body(post["/api/app/beenden"](None, {}, {}))
 
     assert data == {"ok": True, "aktualisiert": "9.2.0"}
-    assert installed[0].name == "Bewerbungsassistent-Setup-9.2.0.exe"
+    assert installed[0].name == "Bewerbungsbegleiter-Setup-9.2.0.exe"
     assert stopped.wait(3)
 
 

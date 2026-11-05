@@ -3,9 +3,10 @@
 ; Installation pro Benutzer ohne Administratorrechte. Ein neuer Installer über eine bestehende Version
 ; ist das Update (auch still mit /VERYSILENT); Datenordner, Einstellungen und Schlüsselbund bleiben.
 #define AppName "Bewerbungsbegleiter"
-; Der Ordner und die Dateien behalten den alten Namen: Laufende Installationen und ihre Updates hängen daran.
-#define AppFolder "Bewerbungsassistent"
-#define AppExe "Bewerbungsassistent.exe"
+#define AppExe "Bewerbungsbegleiter.exe"
+; Der Name bis Version 0.2.10 (MIN-395)
+#define OldName "Bewerbungsassistent"
+#define OldScheme "bewerbungsassistent"
 #ifndef AppVersion
   #define AppVersion "0.0.0"
 #endif
@@ -15,12 +16,13 @@ AppId={{6B0C9E7A-3F2D-4C1B-9E55-8A1D2F4B7C30}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppName}
-DefaultDirName={localappdata}\Programs\{#AppFolder}
+DefaultDirName={localappdata}\Programs\{#AppName}
+UsePreviousAppDir=no
 DisableProgramGroupPage=yes
 DisableDirPage=yes
 PrivilegesRequired=lowest
 OutputDir=..\dist-installer
-OutputBaseFilename=Bewerbungsassistent-Setup-{#AppVersion}
+OutputBaseFilename=Bewerbungsbegleiter-Setup-{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -39,22 +41,25 @@ Name: "desktopicon"; Description: "Verknüpfung auf dem Desktop anlegen"; Flags:
 [InstallDelete]
 ; Dateien der alten Version entfernen, damit nichts Veraltetes liegen bleibt
 Type: filesandordirs; Name: "{app}\_internal"
-; Verknüpfungen unter dem alten Namen
-Type: files; Name: "{autoprograms}\{#AppFolder}.lnk"
-Type: files; Name: "{autodesktop}\{#AppFolder}.lnk"
+; Ordner und Verknüpfungen unter dem alten Namen
+Type: filesandordirs; Name: "{localappdata}\Programs\{#OldName}"
+Type: files; Name: "{autoprograms}\{#OldName}.lnk"
+Type: files; Name: "{autodesktop}\{#OldName}.lnk"
 
 [Files]
-Source: "..\dist\{#AppFolder}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\{#AppName}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Registry]
-; Einladungslink bewerbungsassistent://einladung?code=… öffnet die App
-Root: HKCU; Subkey: "Software\Classes\bewerbungsassistent"; ValueType: string; ValueName: ""; ValueData: "URL:Bewerbungsassistent"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\bewerbungsassistent"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
-Root: HKCU; Subkey: "Software\Classes\bewerbungsassistent\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""
+; Der Link unter dem alten Namen führte in den alten Ordner
+Root: HKCU; Subkey: "Software\Classes\{#OldScheme}"; ValueType: none; Flags: deletekey
+; Einladungslink bewerbungsbegleiter://einladung?code=… öffnet die App
+Root: HKCU; Subkey: "Software\Classes\bewerbungsbegleiter"; ValueType: string; ValueName: ""; ValueData: "URL:Bewerbungsbegleiter"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\bewerbungsbegleiter"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCU; Subkey: "Software\Classes\bewerbungsbegleiter\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""
 
 [Run]
 ; Läuft auch beim stillen Update, damit die neue Version gleich wieder offen ist (ausser mit /NOSTART, für die CI)

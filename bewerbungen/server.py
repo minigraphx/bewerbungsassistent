@@ -25,7 +25,7 @@ CSP = ("default-src 'self'; img-src 'self' blob: data:; frame-src 'self' blob:; 
        f"style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'; {FRAMING}")
 # A page may bring its own policy as meta tag (the template with hashes); it then replaces the default one.
 EIGENE_CSP = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">')
-log = logging.getLogger("bewerbungsassistent")
+log = logging.getLogger("bewerbungsbegleiter")
 
 
 UNSAFE_IN_HEADER = re.compile(r"[^A-Za-z0-9._ -]")

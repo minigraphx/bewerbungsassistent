@@ -72,7 +72,7 @@ SEITEN = {
 FONT_FILES = ("DMSans-400.ttf", "DMSans-400i.ttf", "DMSans-500.ttf", "DMSans-700.ttf")
 SEITEN.update({f"/fonts/{name}": str(lebenslauf_modul.ROOT / "fonts" / name) for name in FONT_FILES})
 GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "bewerbungen/*/*.zip", "bewerbungen/*/an-formular/", "bewerbungen/*/zum-hochladen/", "dokumente/", ".ki/", "suche/", ".sicherung.yaml"]
-log = logging.getLogger("bewerbungsassistent")
+log = logging.getLogger("bewerbungsbegleiter")
 
 
 QUESTIONS_PAGES = {"/fragen": "fragen.html", "/fragen.js": "fragen.js"}

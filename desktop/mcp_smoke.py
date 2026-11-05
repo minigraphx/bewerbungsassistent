@@ -21,7 +21,7 @@ def check(output: str) -> str:
         return f"Keine JSON-Antwort: {error}"
     if set(replies) != {1, 2}:
         return f"Unerwartete Antworten: {sorted(map(str, replies))}"
-    if replies[1].get("result", {}).get("serverInfo", {}).get("name") != "bewerbungsassistent":
+    if replies[1].get("result", {}).get("serverInfo", {}).get("name") != "bewerbungsbegleiter":
         return "Der Server meldet sich nicht richtig."
     if not replies[2].get("result", {}).get("tools"):
         return "Keine Werkzeuge."

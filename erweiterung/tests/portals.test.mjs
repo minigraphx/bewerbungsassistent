@@ -82,7 +82,7 @@ test('jobs.ch pages follow num_pages, unknown answers are a changed portal', () 
 });
 
 test('adapters register for the page', () => {
-  assert.deepEqual(Object.keys(globalThis.bewerbungsassistentPortals).sort(), ['job-room', 'jobs.ch']);
+  assert.deepEqual(Object.keys(globalThis.bewerbungsbegleiterPortals).sort(), ['job-room', 'jobs.ch']);
 });
 
 test('job-room Markdown becomes plain text', () => {

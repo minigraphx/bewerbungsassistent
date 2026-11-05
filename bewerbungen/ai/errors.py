@@ -4,7 +4,7 @@ import re
 
 import anthropic
 
-log = logging.getLogger("bewerbungsassistent")
+log = logging.getLogger("bewerbungsbegleiter")
 
 
 class AiError(Exception):

@@ -1,5 +1,5 @@
 # PyInstaller: the local app as one folder with Python, Typst, themes and fonts (MIN-342).
-#   pyinstaller desktop/bewerbungsassistent.spec   (from the repo root)
+#   pyinstaller desktop/bewerbungsbegleiter.spec   (from the repo root)
 # Modules of bewerbungen/, lebenslauf/, onboarding/ and desktop/ land side by side; their files keep the
 # folder names the code expects next to the modules (seiten/, typst/, themes/, fonts/, data/, form.json).
 import pathlib
@@ -9,7 +9,7 @@ from PyInstaller.utils.hooks import collect_submodules
 
 REPO = pathlib.Path(SPECPATH).resolve().parent
 MODULES = [REPO / name for name in ("desktop", "bewerbungen", "lebenslauf", "onboarding")]
-NAME = "Bewerbungsassistent"
+NAME = "Bewerbungsbegleiter"
 
 datas = [
     (str(REPO / "bewerbungen" / "seiten"), "seiten"),
@@ -58,11 +58,11 @@ if sys.platform == "darwin":
     app = BUNDLE(
         coll,
         name=f"{NAME}.app",
-        bundle_identifier="ch.bewerbungsassistent.app",
+        bundle_identifier="ch.bewerbungsbegleiter.app",
         info_plist={
             "CFBundleName": "Bewerbungsbegleiter",
             "CFBundleDisplayName": "Bewerbungsbegleiter",  # the file name stays: updates of installed versions rely on it
-            "CFBundleURLTypes": [{"CFBundleURLName": "Einladung", "CFBundleURLSchemes": ["bewerbungsassistent"]}],
+            "CFBundleURLTypes": [{"CFBundleURLName": "Einladung", "CFBundleURLSchemes": ["bewerbungsbegleiter"]}],
             "LSUIElement": True,  # no Dock icon: the interface is the browser
         },
     )

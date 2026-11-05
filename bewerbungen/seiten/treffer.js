@@ -7,8 +7,8 @@
   const { text: textAus, anwenden } = window.Texte;
   const EINSTELLEN_OFFEN = "suche.einstellen";  // remembered per browser: whether the settings stay open
   const $ = id => document.getElementById(id);
-  const SEITE = "bewerbungsassistent-seite";
-  const ERWEITERUNG = "bewerbungsassistent-erweiterung";
+  const SEITE = "bewerbungsbegleiter-seite";
+  const ERWEITERUNG = "bewerbungsbegleiter-erweiterung";
 
   let alle = [];
   let gezeigt = "";  // the hits as last loaded, to see whether Claude changed them
@@ -436,7 +436,7 @@
   $("leer-einstellen").addEventListener("click", () => { zeigeEinstellen(true, true); $("einstellen").scrollIntoView({ behavior: "smooth" }); });
   try { if (localStorage.getItem(EINSTELLEN_OFFEN) === "1") zeigeEinstellen(true); } catch { /* closed by default */ }
 
-  if (document.documentElement.dataset.bewerbungsassistentErweiterung) erweiterungDa();
+  if (document.documentElement.dataset.bewerbungsbegleiterErweiterung) erweiterungDa();
   else setTimeout(() => { if ($("suchen").disabled && $("lauf-box").hidden) $("ohne-erweiterung").hidden = false; }, 1500);
   document.addEventListener("suchprofil-geaendert", lade);
   textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); }).finally(() => { lade(); beobachten(nachsehen); });

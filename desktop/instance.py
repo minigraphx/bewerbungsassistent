@@ -60,6 +60,18 @@ def find(paths: Paths) -> Running | None:
         return None
 
 
+def ask_to_quit(running: Running) -> None:
+    """Ask the running app to quit; if it does not answer, there is nothing more to do."""
+    request = urllib.request.Request(f"{running.url}api/app/beenden", data=b"{}",
+                                     headers={"Content-Type": "application/json", "X-Token": running.token},
+                                     method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS):  # noqa: S310 (local)
+            pass
+    except (urllib.error.URLError, OSError):
+        pass
+
+
 def forward_code(running: Running, code: str) -> str | None:
     """Let the running app redeem an invitation; the German error message, or None if it worked."""
     request = urllib.request.Request(f"{running.url}api/ki/einladung", data=json.dumps({"code": code}).encode(),

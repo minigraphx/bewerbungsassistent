@@ -165,7 +165,7 @@ test('LENA: a place must match exactly, a postal code takes the first suggestion
 });
 
 test('the adapters load side by side and register under the name of the plan', () => {
-  assert.deepEqual(Object.keys(globalThis.bewerbungsassistentPortals).sort(), ['LENA', 'yousty']);
+  assert.deepEqual(Object.keys(globalThis.bewerbungsbegleiterPortals).sort(), ['LENA', 'yousty']);
 });
 
 const TRIAL = { ...QUERY, trial: true, years: [] };
