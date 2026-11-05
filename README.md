@@ -46,9 +46,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 ![Editor für den runden Fotoausschnitt mit Reglern für Zoom und Ausschnitt](docs/bilder/foto.jpg)
 
-**Einstieg:** eine HTML-Seite, die Schritt für Schritt alles abfragt, was der Assistent braucht. Bestehende Unterlagen lädt man gleich am Anfang hoch; dann übernimmt der Assistent die Angaben daraus. Die Vorlage läuft im Browser und verschickt nichts; in der App steht sie unter „Meine Angaben“ und speichert direkt in den Datenordner. Dort füllt „Aus Unterlagen vorbefüllen“ das Formular aus PDF, Word und Text vor; der Text geht ohne Name, Adresse und Kontaktangaben an die KI, und jeder Vorschlag bleibt markiert, bis er geprüft ist.
-
-![Einstiegsvorlage im Schritt „Unterlagen“ mit einem hochgeladenen Lebenslauf](docs/bilder/einstieg.jpg)
+**Meine Angaben:** eine Seite in der App, die Schritt für Schritt alles abfragt, was die App braucht, und direkt in den Datenordner speichert. Bestehende Unterlagen lädt man gleich am Anfang hoch: „Aus Unterlagen vorbefüllen“ füllt das Formular aus PDF, Word und Text vor. Der Text geht ohne Name, Adresse und Kontaktangaben an die KI, und jeder Vorschlag bleibt markiert, bis er geprüft ist.
 
 ## Module
 
@@ -62,7 +60,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 | [`desktop/`](desktop/README.md) | Lokale App für Windows und macOS: Installer, Start per Doppelklick, Einladungslink, Updates aus GitHub Releases |
 | [`erweiterung/`](erweiterung/README.md) | Browser-Erweiterung für Chrome und Edge: Stellensuche auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellensuche auf LENA und yousty nach dem Suchprofil, im Browser der Person; Treffer gehen an die App |
 | [`vermittlung/`](vermittlung/README.md) | KI-Vermittlung für den Pilot: Zugang pro Person per Einladung, Budgets, Kosten ohne Inhalte; Container hinter HTTPS |
-| [`onboarding/`](onboarding/README.md) | Einstiegsvorlage: eine HTML-Datei zum Ausfüllen ohne Installation (Stellen- und Lehrstellensuche), mit Import in den Datenordner |
+| [`onboarding/`](onboarding/README.md) | Formular für die Grundlagen (Stellen- und Lehrstellensuche): Quellen der Seite „Meine Angaben“ und Import in den Datenordner |
 | [`vorlagen/`](vorlagen/) | Vorlagen für die persönlichen Dateien (Suchprofil, Stilprofil, Bausteine fürs Anschreiben) |
 
 ## Eigene Daten

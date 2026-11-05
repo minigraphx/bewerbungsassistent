@@ -78,10 +78,10 @@ def test_invalid_bundle_lists_german_messages(tmp_path):
 
 
 @pytest.mark.parametrize("content, message", [
-    (b"{not json", "keine gültige JSON-Datei"),
-    (b"\xff\xfe", "keine gültige JSON-Datei"),
+    (b"{not json", "keine gültige Einstiegsdatei"),
+    (b"\xff\xfe", "keine gültige Einstiegsdatei"),
     (b"x" * (import_bundle.MAX_BYTES + 1), "zu gross"),
-    (b"[" * 100_000, "keine gültige JSON-Datei"),
+    (b"[" * 100_000, "keine gültige Einstiegsdatei"),
 ])
 def test_unreadable_files(tmp_path, content, message):
     path = tmp_path / "einstieg.json"

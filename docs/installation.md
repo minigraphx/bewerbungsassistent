@@ -35,15 +35,15 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
 Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Sie beenden sie oben rechts mit **Beenden**.
 
-![Seite Einrichtung mit den Schritten Datenordner und Angaben aus der Einstiegsvorlage](bilder/einrichtung-start.jpg)
+![Seite Einrichtung mit den Schritten Datenordner und Angaben aus einer Datei](bilder/einrichtung-start.jpg)
 
 ### Schritt 1: Datenordner
 
 Hier liegen Ihr Lebenslauf, Ihre Anschreiben und Ihre Bewerbungen. Der Vorschlag unter „Dokumente“ passt meistens: Klicken Sie auf **Diesen Ordner verwenden**.
 
-### Schritt 2: Angaben aus der Einstiegsvorlage
+### Schritt 2: Angaben aus einer Datei
 
-Haben Sie die Einstiegsvorlage schon ausgefüllt, wählen Sie die Datei `einstieg.zip` oder `einstieg.json` und klicken auf **Importieren**. Sonst überspringen Sie diesen Schritt und erfassen Ihre Angaben später.
+Haben Sie schon eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus Claude, wählen Sie sie und klicken auf **Importieren**. Sonst überspringen Sie diesen Schritt und erfassen Ihre Angaben später unter **Meine Angaben**.
 
 ### Schritt 3: KI-Unterstützung
 

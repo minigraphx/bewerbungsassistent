@@ -4,7 +4,7 @@ Eine einzelne HTML-Datei, in der Personen ohne technische Kenntnisse ihre Grundl
 
 ## Für Personen, die ausfüllen
 
-- Die Vorlage öffnen: über den Link (GitHub Pages) oder `dist/einstieg.html` herunterladen und per Doppelklick öffnen.
+- Die Vorlage öffnen: `dist/einstieg.html` per Doppelklick. Öffentlich steht sie nicht mehr; im Normalfall erfasst man die Angaben unter „Meine Angaben“ in der App.
 - Alles bleibt auf dem Gerät. Die Seite lädt nichts nach und verschickt nichts; die Eingaben werden nur im Browser zwischengespeichert („Alles löschen“ entfernt sie).
 - Mit „Datei laden“ geht es mit einer gespeicherten Datei weiter (JSON oder ZIP), auch auf einem anderen Gerät.
 - **Unterlagen** (Schritt nach dem Start): bisheriger Lebenslauf, Zeugnisse, Zertifikate und frühere Anschreiben hochladen. Erlaubt sind PDF, Word (.docx, .doc) und Text; bei Zeugnissen und Zertifikaten auch Bilder (JPG, PNG) für Scans. Grenzen stehen in `form.json` unter `documents` (Anzahl pro Art, 15 MB pro Datei, 60 MB zusammen). Die Seite bewahrt die Dateien in der IndexedDB des Browsers auf (localStorage ist dafür zu klein), so sind sie nach einem Neustart wieder da; „Alles löschen“ entfernt sie. Kann der Browser sie nicht aufbewahren (z.B. im privaten Fenster), warnt die Seite beim Schliessen, solange die Datei nicht gespeichert ist. Mit Unterlagen dürfen Angaben fehlen; der Assistent ergänzt sie später daraus.
@@ -51,10 +51,6 @@ node --test tests/*.test.cjs               # JavaScript
 ```
 
 Ein neues Feld kommt in `form.json`, dazu in `convert.py` oder `markdown_files.py`, wohin es geschrieben wird, und ein Fall in `tests/cases.json`. Die Datei hat eine `version`; ändert sich ihre Bedeutung, wird sie erhöht.
-
-## Veröffentlichen
-
-Der Workflow `.github/workflows/einstieg-pages.yml` veröffentlicht nur `dist/einstieg.html` auf GitHub Pages. Er wird von Hand gestartet; dafür muss Pages in den Einstellungen des Repos auf „GitHub Actions“ stehen.
 
 ## Aus Unterlagen vorbefüllen (nur in der App)
 
