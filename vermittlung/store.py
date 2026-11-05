@@ -18,6 +18,7 @@ CODE_LENGTH = 16  # 80 bits
 CODE_GROUP = 4
 INVITATION_DAYS = 45  # long enough for a round of applications
 MAX_INVITATION_DAYS = 365
+RETENTION_DAYS = 30  # cost logs go at the latest this long after the last access was revoked
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS people (name TEXT PRIMARY KEY, budget_usd REAL NOT NULL, created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS invitations (code_hash TEXT PRIMARY KEY, person TEXT NOT NULL REFERENCES people(name),
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS usage (id INTEGER PRIMARY KEY, time TEXT NOT NULL, pe
     cost_usd REAL NOT NULL, status INTEGER NOT NULL, request_id TEXT);
 CREATE INDEX IF NOT EXISTS usage_person_time ON usage (person, time);
 """
+PERSON_TABLES = ("usage", "accesses", "invitations")  # children of people, deleted first
 
 
 class StoreError(ValueError):
@@ -150,6 +152,44 @@ class Store:
     def accesses(self, name: str) -> list[dict]:
         return [dict(row) for row in self._run(
             "SELECT id, device, created, last_used, revoked FROM accesses WHERE person = ? ORDER BY id", (name,))]
+
+    # deletion
+
+    def _holdings(self, name: str) -> dict:
+        """What is stored about a person who may be deleted; call with the lock held."""
+        if self._db.execute("SELECT 1 FROM people WHERE name = ?", (name,)).fetchone() is None:
+            raise StoreError(f"Person {name} gibt es nicht.")
+        if self._db.execute("SELECT 1 FROM accesses WHERE person = ? AND revoked IS NULL", (name,)).fetchone():
+            raise StoreError(f"{name} hat noch einen aktiven Zugang. Zuerst sperren: revoke {name}")
+        return {table: self._db.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE person = ?", (name,)).fetchone()["n"]
+                for table in PERSON_TABLES}
+
+    def holdings(self, name: str) -> dict:
+        """Rows per table that `forget` would delete. StoreError if the person is unknown or still active."""
+        with self._lock:
+            return self._holdings(name)
+
+    def forget(self, name: str) -> dict:
+        """Delete a person with accesses, invitations and cost logs, all or nothing; returns the rows per table."""
+        with self._lock:
+            self._db.execute("BEGIN IMMEDIATE")
+            try:
+                removed = self._holdings(name)
+                for table in PERSON_TABLES:
+                    self._db.execute(f"DELETE FROM {table} WHERE person = ?", (name,))
+                self._db.execute("DELETE FROM people WHERE name = ?", (name,))
+                self._db.execute("COMMIT")
+            except Exception:
+                self._db.execute("ROLLBACK")
+                raise
+        return removed
+
+    def due_for_deletion(self, now: datetime.datetime, days: int = RETENTION_DAYS) -> list[dict]:
+        """People without an active access whose last revocation is at least `days` ago."""
+        return [dict(row) for row in self._run(
+            "SELECT person, MAX(revoked) AS revoked FROM accesses GROUP BY person "
+            "HAVING SUM(revoked IS NULL) = 0 AND MAX(revoked) <= ? ORDER BY person",
+            (_iso(now - datetime.timedelta(days=days)),))]
 
     # costs
 
