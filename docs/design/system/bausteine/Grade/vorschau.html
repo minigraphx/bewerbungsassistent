@@ -1,0 +1,16 @@
+<!-- @dsCard group="Status" height=230 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Grade</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)}</style>
+</head>
+<body>
+<div class="stack">
+<span class="grade-meter" aria-label="Note 5.5 von 6, passt sehr gut"><span class="grade-meter__value">5.5</span><span class="grade-meter__bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i></span><span class="grade-meter__word" aria-hidden="true">passt sehr gut</span></span>
+<span class="grade-meter" aria-label="Note 4.5 von 6, passt gut"><span class="grade-meter__value">4.5</span><span class="grade-meter__bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i><i></i></span><span class="grade-meter__word" aria-hidden="true">passt gut</span></span>
+<span class="grade-meter" data-uncertain aria-label="Note 4 von 6, passt knapp, unsicher"><span class="grade-meter__value">4</span><span class="grade-meter__bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="grade-meter__word" aria-hidden="true">passt knapp</span></span>
+<span class="grade-meter" aria-label="Note 3 von 6, passt wenig"><span class="grade-meter__value">3</span><span class="grade-meter__bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="grade-meter__word" aria-hidden="true">passt wenig</span></span>
+<details class="grade-help"><summary>Wie lese ich die Note?</summary><p>Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein.</p></details>
+</div>
+</body>
+</html>

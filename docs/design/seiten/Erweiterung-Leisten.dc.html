@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Formularleiste, alle Zustände</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.cap{margin:0 0 6px;font:500 13px/18px var(--font-sans);color:#27333f}
+</style>
+</helmet>
+<div style="width: 1280px; box-sizing: border-box; padding: 28px 0; background: #e9ebee; display: flex; flex-direction: column; gap: 22px; font-family: var(--font-sans);">
+  <p style="margin: 0 32px; font-size: 14px; line-height: 20px; color: #3a4048;">Die Leiste liegt am unteren Rand der fremden Seite und nimmt eigenen Platz ein. Sie verdeckt keine Felder und schickt nie etwas ab. Mit «Leiste nach oben» wechselt sie an den oberen Rand.</p>
+  <div><p class="cap" style="margin-left: 32px;">Formular erkannt, noch nicht ausgefüllt</p><dc-import name="Leiste" zustand="bereit" hint-size="100%,96px"></dc-import></div>
+  <div><p class="cap" style="margin-left: 32px;">Ausgefüllt, Person prüft</p><dc-import name="Leiste" zustand="formular" hint-size="100%,110px"></dc-import></div>
+  <div><p class="cap" style="margin-left: 32px;">Dateien hochladen</p><dc-import name="Leiste" zustand="dateien" hint-size="100%,110px"></dc-import></div>
+  <div><p class="cap" style="margin-left: 32px;">Nach «Abgeschickt? Ja»</p><dc-import name="Leiste" zustand="festgehalten" hint-size="100%,96px"></dc-import></div>
+  <div><p class="cap" style="margin-left: 32px;">Job-Room, ein Eintrag nach dem anderen (nur mit RAV, auch bei Lehrstellen)</p><dc-import name="Leiste" zustand="jobroom" hint-size="100%,110px"></dc-import></div>
+  <div><p class="cap" style="margin-left: 32px;">Suche im sichtbaren Tab</p><dc-import name="Leiste" zustand="suche" hint-size="100%,96px"></dc-import></div>
+  <div><p class="cap" style="margin-left: 32px;">Lehrstelle (immer du) ohne RAV, nach «Abgeschickt? Ja»: Antwort abwarten statt Job-Room</p><dc-import name="Leiste" zustand="festgehalten" anrede="du" modus="lehrstelle" rav="nein" hint-size="100%,96px"></dc-import></div>
+  <div><p class="cap" style="margin-left: 32px;">Stelle mit gewählter Anrede du</p><dc-import name="Leiste" zustand="dateien" anrede="du" modus="stelle" hint-size="100%,110px"></dc-import></div>
+  <div><p class="cap" style="margin-left: 32px;">Am oberen Rand, nach «Leiste nach oben». Die Leiste ist immer dunkel, auch bei dunkler Systemeinstellung.</p><dc-import name="Leiste" zustand="formular" lage="oben" hint-size="100%,110px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1440}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

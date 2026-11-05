@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Navigation</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.app-nav__more > summary[aria-current="page"]{background:var(--accent);color:var(--on-accent)}
+</style>
+</helmet>
+<nav class="app-nav" aria-label="Hauptnavigation" style="font-family: var(--font-sans); position: relative; z-index: 5;">
+  <a class="app-nav__brand" href="Main.dc.html">Bewerbungsassistent</a>
+  <ul class="app-nav__list">
+    <li><a class="app-nav__link" href="Main.dc.html" aria-current="{{curU}}">Übersicht</a></li>
+    <li><a class="app-nav__link" href="Suche.dc.html" aria-current="{{curS}}">{{suchLabel}}<sc-if value="{{hatZaehler}}" hint-placeholder-val="{{ false }}"><span class="app-nav__count num">{{zaehler}}</span></sc-if></a></li>
+    <li><a class="app-nav__link" href="Angaben.dc.html" aria-current="{{curA}}">{{angabenLabel}}</a></li>
+  </ul>
+  <details class="app-nav__more" open="{{menuOffen}}">
+    <summary aria-current="{{curM}}">Mehr</summary>
+    <div class="menu">
+      <div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="Dateien.dc.html">Meine Dateien</a><a href="Entwuerfe.dc.html">Entwürfe und Versionen</a><a href="Foto.dc.html">Foto</a></div>
+      <div class="menu__group"><p class="menu__heading">Hilfe</p><a href="Fragen.dc.html">Fragen an die KI</a><a href="Einrichtung.dc.html">Einrichtung</a></div>
+      <div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="Inhalte.dc.html">Inhalte als Text</a><a href="Einstellungen.dc.html">Erweiterte Einstellungen</a></div>
+      <div class="menu__group"><button type="button">Sicherung erstellen</button><button type="button">Beenden</button><p class="menu__meta">Version 0.9.3</p></div>
+    </div>
+  </details>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"aktiv":{"editor":"enum","options":["uebersicht","suche","angaben","mehr"],"default":"uebersicht"},"modus":{"editor":"enum","options":["stelle","lehrstelle"],"default":"stelle"},"zaehler":{"editor":"text","default":""},"menuOffen":{"editor":"boolean","default":false},"$preview":{"width":1280,"height":64}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.props.aktiv ?? 'uebersicht';
+    const lehr = (this.props.modus ?? 'stelle') === 'lehrstelle';
+    const z = this.props.zaehler ?? '';
+    const cur = (k) => (a === k ? 'page' : undefined);
+    return {
+      curU: cur('uebersicht'), curS: cur('suche'), curA: cur('angaben'), curM: cur('mehr'),
+      mehrStil: a === 'mehr' ? 'background: var(--accent); color: var(--on-accent);' : '',
+      suchLabel: lehr ? 'Lehrstellen suchen' : 'Stellen suchen',
+      angabenLabel: 'Meine Angaben',
+      hatZaehler: z !== '', zaehler: z,
+      menuOffen: !!this.props.menuOffen
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Einrichtung</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:24px;display:flex;flex-direction:column;gap:16px}
+.card h2{margin:0;font-size:18px;line-height:24px}
+.anl{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px}
+.track{all:unset;box-sizing:border-box;flex:1 1 220px;display:flex;flex-direction:column;gap:4px;padding:16px 20px;border:2px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer}
+.track[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-subtle)}
+.track:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="mehr" hint-size="100%,57px"></dc-import>
+<main style="max-width: 760px; margin: 0 auto; padding: 40px 24px 48px; display: flex; flex-direction: column; gap: 24px;">
+  <header style="display: flex; flex-direction: column; gap: 6px;">
+    <h1 style="margin: 0; font-size: 28px; line-height: 34px;">Einrichtung</h1>
+    <p style="margin: 0;">Fünf Schritte, zusammen etwa zehn Minuten. Jeder lässt sich später ändern.</p>
+  </header>
+  <ol class="steps" aria-label="Schritte der Einrichtung">
+    <sc-for list="{{schritte}}" as="s" hint-placeholder-count="4">
+      <li class="steps__item" data-state="{{s.state}}" aria-current="{{s.cur}}"><span class="steps__dot"></span><span class="steps__label">{{s.label}}</span><span class="steps__meta">{{s.meta}}</span></li>
+    </sc-for>
+  </ol>
+
+  <sc-if value="{{istWahl}}" hint-placeholder-val="{{ false }}">
+    <section class="card" aria-labelledby="w">
+      <h2 id="w">Was wird gesucht?</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+        <button class="track" type="button" aria-pressed="{{stelleGewaehlt}}" onClick="{{waehleStelle}}"><strong style="color: var(--text-strong); font-size: 17px;">Eine Stelle</strong><span style="font-size: 14px; color: var(--text-muted);">Für die Suche nach einer Arbeitsstelle.</span></button>
+        <button class="track" type="button" aria-pressed="{{lehrGewaehlt}}" onClick="{{waehleLehr}}"><strong style="color: var(--text-strong); font-size: 17px;">Eine Lehrstelle</strong><span style="font-size: 14px; color: var(--text-muted);">Für Jugendliche, auch Schnupperlehren.</span></button>
+      </div>
+      <sc-if value="{{zeigeAnrede}}" hint-placeholder-val="{{ true }}">
+        <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px;">
+          <legend style="font-weight: 500; color: var(--text-strong); margin-bottom: 6px;">Wie soll die App Sie ansprechen?</legend>
+          <label class="check"><input type="radio" name="anrede" checked> Mit Sie (Vorgabe)</label>
+          <label class="check"><input type="radio" name="anrede"> Mit du</label>
+        </fieldset>
+      </sc-if>
+      <sc-if value="{{lehrGewaehltBool}}" hint-placeholder-val="{{ false }}">
+        <p style="font-size: 14px; line-height: 20px; color: var(--text-muted);">Bei Lehrstellen spricht die App mit du.</p>
+      </sc-if>
+      <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px;">
+        <legend style="font-weight: 500; color: var(--text-strong); margin-bottom: 6px;">Beim RAV gemeldet?</legend>
+        <label class="check"><input type="radio" name="rav" checked="{{ravJa}}" onChange="{{setzeRavJa}}"> Ja</label>
+        <label class="check"><input type="radio" name="rav" checked="{{ravNein}}" onChange="{{setzeRavNein}}"> Nein</label>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">Mit Ja hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.</p>
+      </fieldset>
+      <p style="font-size: 14px; line-height: 20px; color: var(--text-muted);">Lässt sich später unter Meine Angaben ändern.</p>
+      <div class="btn-row" style="justify-content: flex-end;"><button class="btn btn--primary" type="button">Weiter</button></div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{istOrdner}}" hint-placeholder-val="{{ false }}">
+    <section class="card" aria-labelledby="o">
+      <h2 id="o">Wo sollen Ihre Unterlagen liegen?</h2>
+      <p style="margin: 0;">In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf Ihrem Computer.</p>
+      <div class="field" style="margin: 0;"><label class="field__label" for="pf">Datenordner</label><input class="input" id="pf" value="Dokumente › Bewerbungsassistent"><p class="field__hint">Ein Ordner, der gesichert wird, ist gut. Ein Cloud-Ordner wie OneDrive funktioniert auch.</p></div>
+      <div class="btn-row" style="justify-content: flex-end;"><button class="btn btn--primary" type="button">Ordner anlegen und weiter</button></div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{istKi}}" hint-placeholder-val="{{ true }}">
+    <section class="card" aria-labelledby="k">
+      <h2 id="k">KI einrichten</h2>
+      <p style="margin: 0;">Die KI schätzt Stellen ein und entwirft Anschreiben. Sie haben von Ihrer Begleitperson einen Einladungscode erhalten.</p>
+      <div class="field" style="margin: 0;"><label class="field__label" for="code">Einladungscode</label><input class="input" id="code" value="PILOT-7F3K-29QD" style="max-width: 320px; font-family: var(--font-mono);"><p class="status-line" data-level="success" aria-live="polite">Einladung eingelöst. Ihre Begleitperson trägt die Kosten bis CHF 20.00, gültig bis 31.12.2026.</p></div>
+      <details>
+        <summary style="cursor: pointer; font-weight: 500; color: var(--text-strong);">Ich habe keinen Code</summary>
+        <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 8px;">
+          <p style="margin: 0;">Ohne KI funktionieren Suche, Unterlagen und Versand trotzdem. Anschreiben laden Sie dann selbst hoch, und Treffer bekommen keine Note.</p>
+          <p style="margin: 0;">Mit einem eigenen Schlüssel von Anthropic zahlen Sie die Kosten selbst: <a href="Einstellungen.dc.html">Erweiterte Einstellungen</a>.</p>
+        </div>
+      </details>
+      <div class="btn-row" style="justify-content: space-between;"><button class="btn btn--quiet" type="button">Ohne KI weiter</button><a class="btn btn--primary" href="Einrichtung-Erweiterung.dc.html">Weiter</a></div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{istErweiterung}}" hint-placeholder-val="{{ false }}">
+    <section class="card" aria-labelledby="e">
+      <h2 id="e">Browser-Erweiterung laden</h2>
+      <p style="margin: 0;">Die Erweiterung sucht auf den Portalen und füllt Bewerbungsformulare aus. Abschicken macht sie nie. Im Pilot wird sie von Hand geladen, das geht einmal und dauert etwa zwei Minuten.</p>
+      <ol class="anl">
+        <li>In Chrome oder Edge diese Adresse öffnen:<dl class="copy-list" style="margin-top: 6px;"><div class="copy-row" style="grid-template-columns: 1fr auto;"><dd><span class="copy-row__value" style="font-family: var(--font-mono); font-size: 14px;">chrome://extensions</span><button class="btn btn--sm" type="button">Kopieren</button></dd></div></dl></li>
+        <li>Oben rechts den <strong style="color: var(--text-strong);">Entwicklermodus</strong> einschalten. Das ist für den Pilot nötig und ändert sonst nichts am Browser.</li>
+        <li><strong style="color: var(--text-strong);">Entpackte Erweiterung laden</strong> wählen und diesen Ordner angeben:<dl class="copy-list" style="margin-top: 6px;"><div class="copy-row" style="grid-template-columns: 1fr auto;"><dd><span class="copy-row__value" style="font-family: var(--font-mono); font-size: 14px;">C:\Programme\Bewerbungsassistent\erweiterung</span><button class="btn btn--sm" type="button">Kopieren</button></dd></div></dl></li>
+      </ol>
+      <div class="progress" role="status" aria-live="polite" style="background: var(--surface-subtle);">
+        <div class="progress__head"><strong>Wartet auf die Erweiterung</strong></div>
+        <div class="progress__busy" aria-hidden="true"></div>
+        <p class="progress__note">Sobald die Erweiterung geladen ist, geht es hier von selbst weiter.</p>
+      </div>
+      <div class="btn-row" style="justify-content: space-between;"><button class="btn btn--quiet" type="button">Später einrichten</button><button class="btn btn--primary" type="button" aria-disabled="true">Weiter</button></div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{istFertig}}" hint-placeholder-val="{{ false }}">
+    <section class="card" aria-labelledby="f">
+      <h2 id="f">Alles eingerichtet</h2>
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px;">
+        <li class="notice notice--success" style="padding: 8px 12px;"><span class="notice__title">Datenordner</span><p class="notice__body">Dokumente › Bewerbungsassistent</p></li>
+        <li class="notice notice--success" style="padding: 8px 12px;"><span class="notice__title">KI</span><p class="notice__body">Einladung eingelöst, CHF 20.00 bis 31.12.2026</p></li>
+        <li class="notice notice--success" style="padding: 8px 12px;"><span class="notice__title">Erweiterung</span><p class="notice__body">Geladen in Chrome</p></li>
+      </ul>
+      <div class="btn-row" style="justify-content: flex-end;"><a class="btn btn--primary" href="Angaben.dc.html">Meine Angaben erfassen</a></div>
+    </section>
+  </sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["wahl","ordner","ki","erweiterung","fertig"],"default":"ki"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { wahl: 'stelle' }; }
+  renderVals() {
+    const z = this.props.zustand ?? 'ki';
+    const pos = { wahl: 0, ordner: 1, ki: 3, erweiterung: 4, fertig: 5 }[z];
+    const l = [['Gesucht', pos > 0 ? 'eine Stelle, Sie, mit RAV' : 'Stelle oder Lehrstelle'], ['Datenordner', 'Dokumente'], ['Vorlage', 'übersprungen'], ['KI', 'Einladungscode'], ['Erweiterung', 'etwa 2 Minuten']];
+    const schritte = l.map(([label, meta], i) => ({ label, meta: i === 2 && pos <= 2 ? 'freiwillig' : meta, state: i < pos ? 'done' : (i === pos ? 'current' : 'todo'), cur: i === pos ? 'step' : undefined }));
+    const lehr = this.state.wahl === 'lehr';
+    return {
+      theme: this.props.theme ?? 'light', schritte, istWahl: z === 'wahl',
+      ravJa: (this.state.rav ?? (lehr ? 'nein' : 'ja')) === 'ja', ravNein: (this.state.rav ?? (lehr ? 'nein' : 'ja')) === 'nein',
+      setzeRavJa: () => this.setState({ rav: 'ja' }), setzeRavNein: () => this.setState({ rav: 'nein' }),
+      stelleGewaehlt: lehr ? 'false' : 'true', lehrGewaehlt: lehr ? 'true' : 'false', lehrGewaehltBool: lehr, zeigeAnrede: !lehr,
+      waehleStelle: () => this.setState({ wahl: 'stelle' }), waehleLehr: () => this.setState({ wahl: 'lehr' }),
+      istOrdner: z === 'ordner', istKi: z === 'ki', istErweiterung: z === 'erweiterung', istFertig: z === 'fertig'
+    };
+  }
+}
+</script>
+</body>
+</html>

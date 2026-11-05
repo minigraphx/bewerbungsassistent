@@ -1,0 +1,22 @@
+<!-- @dsCard group="Rückmeldung" height=300 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Progress</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)}</style>
+</head>
+<body>
+<div class="stack">
+<div class="progress" role="status" aria-live="polite">
+  <div class="progress__head"><strong>KI schätzt Treffer ein</strong><span class="num">3 von 10</span></div>
+  <div class="progress__track" aria-hidden="true"><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <p class="progress__note">Jeder Treffer dauert 10 bis 60 Sekunden. Sie können währenddessen weiterarbeiten. Bisher CHF 0.06.</p>
+  <div><button class="btn btn--sm" type="button">Anhalten</button></div>
+</div>
+<div class="progress" role="status" aria-live="polite">
+  <div class="progress__head"><strong>Anschreiben wird entworfen</strong><span class="muted">meist unter einer Minute</span></div>
+  <div class="progress__busy" aria-hidden="true"></div>
+  <ol class="progress__phases"><li class="done">Inserat lesen</li><li aria-current="step">Belege im Lebenslauf suchen</li><li>Entwurf schreiben</li></ol>
+</div>
+</div>
+</body>
+</html>

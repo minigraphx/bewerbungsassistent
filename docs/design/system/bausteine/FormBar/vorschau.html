@@ -1,0 +1,33 @@
+<!-- @dsCard group="Erweiterung" height=470 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>FormBar</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)} .page{min-height:180px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:10px;overflow:hidden;background:#eef0f2} .page > p{margin:16px;color:#1f2933}</style>
+</head>
+<body>
+<div class="page">
+<p>… fremde Seite mit dem Bewerbungsformular …</p>
+<div class="form-bar" role="region" aria-label="Bewerbungsassistent">
+  <p class="form-bar__summary"><strong>10 Felder ausgefüllt, 3 offen, 1 Einwilligung bitte selbst prüfen.</strong><span class="form-bar__hand">Abschicken bleibt bei Ihnen.</span></p>
+  <ul class="form-bar__legend" aria-label="Legende">
+    <li><span class="mark-key mark-key--filled"></span>ausgefüllt</li>
+    <li><span class="mark-key mark-key--open"></span>offen</li>
+    <li><span class="mark-key mark-key--consent"></span>selbst bestätigen</li>
+    <li><span class="mark-key mark-key--ai"></span>Entwurf der KI</li>
+  </ul>
+  <div class="form-bar__actions">
+    <button class="form-bar__btn form-bar__btn--primary" type="button">Abgeschickt? Ja</button>
+    <button class="form-bar__btn" type="button">Nicht mehr ausfüllen</button>
+    <button class="form-bar__btn" type="button">Leiste nach oben</button>
+  </div>
+</div>
+</div>
+<div class="page" style="margin-top:16px;justify-content:flex-start;">
+<div class="form-bar form-bar--top" role="region" aria-label="Bewerbungsassistent, oben">
+  <p class="form-bar__summary"><strong>10 Felder ausgefüllt, 3 offen, 1 Einwilligung bitte selbst prüfen.</strong><span class="form-bar__hand">Abschicken bleibt bei Ihnen.</span></p>
+  <div class="form-bar__actions"><button class="form-bar__btn form-bar__btn--primary" type="button">Abgeschickt? Ja</button><button class="form-bar__btn" type="button">Nicht mehr ausfüllen</button><button class="form-bar__btn" type="button">Leiste nach unten</button></div>
+</div>
+<p>… die fremde Seite beginnt unter der Leiste …</p>
+</div>
+</body>
+</html>

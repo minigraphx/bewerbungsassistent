@@ -1,0 +1,15 @@
+<!-- @dsCard group="Erweiterung" height=300 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>FieldMark</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)} .demo{max-width:520px;padding:16px;border-radius:10px;background:#ffffff;color:#1f2933;display:grid;gap:22px} .demo label{font:500 14px/20px var(--font-sans)} .demo input{width:100%;padding:8px 10px;border:1px solid #8a94a0;border-radius:4px;font:inherit;background:#fff;color:#1f2933}</style>
+</head>
+<body>
+<div class="demo" aria-label="Beispiel eines fremden Formulars">
+  <div class="mark" data-mark="filled"><label for="m1">Vorname</label><input id="m1" value="Andrea"><span class="mark__tag">ausgefüllt</span></div>
+  <div class="mark" data-mark="open"><label for="m2">Frühester Eintritt</label><input id="m2"><span class="mark__tag">offen, bitte selbst ausfüllen</span></div>
+  <div class="mark" data-mark="ai"><label for="m3">Warum möchten Sie bei uns arbeiten?</label><input id="m3" value="Die Muster AG verbindet …"><span class="mark__tag">Entwurf der KI, bitte prüfen</span></div>
+  <div class="mark" data-mark="consent"><label for="m4"><input id="m4" type="checkbox" style="width:auto"> Ich akzeptiere die Datenschutzerklärung</label><span class="mark__tag">selbst bestätigen</span></div>
+</div>
+</body>
+</html>

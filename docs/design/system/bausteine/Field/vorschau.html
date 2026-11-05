@@ -1,0 +1,22 @@
+<!-- @dsCard group="Eingaben" height=420 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Field</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)}</style>
+</head>
+<body>
+<div class="row">
+<div style="flex:1 1 260px">
+  <div class="field"><label class="field__label" for="f1">Kontaktperson <span class="field__optional">(freiwillig)</span></label><input class="input" id="f1" value="Frau Brunner"><p class="field__hint">Steht dann in der Anrede des Anschreibens.</p></div>
+  <div class="field"><label class="field__label" for="f2">Pensum</label><input class="input" id="f2" value="120&nbsp;%" aria-invalid="true" aria-describedby="e2"><p class="field__error" id="e2">Bitte eine Zahl zwischen 10 und 100 eingeben.</p></div>
+  <div class="field"><label class="field__label" for="f3">Status</label><select class="input" id="f3"><option>Gemerkt</option><option selected>Bewerben</option><option>Beworben</option></select></div>
+</div>
+<div style="flex:1 1 260px">
+  <div class="field"><label class="field__label" for="f4">Notiz</label><textarea class="input" id="f4">Am Telefon: Gespräch wohl Ende November.</textarea></div>
+  <label class="check"><input type="checkbox" checked> Zeugnis der Muster AG beilegen</label>
+  <label class="switch"><input type="checkbox" role="switch" checked> Treffer automatisch einschätzen</label>
+  <label class="switch"><input type="checkbox" role="switch"> Suche im sichtbaren Tab</label>
+</div>
+</div>
+</body>
+</html>

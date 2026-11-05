@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Meine Dateien</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:16px 20px;display:flex;flex-direction:column;gap:8px}
+.card h2{margin:0;font-size:18px;line-height:24px}
+.row{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.rang{flex:1 1 220px;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.rang[data-aktiv]{border:2px solid var(--accent);background:var(--accent-subtle)}
+.nr{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:2px solid var(--line-strong);font-size:13px;font-weight:700;color:var(--text-strong)}
+.rang[data-aktiv] .nr{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="mehr" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 24px;">
+  <header style="display: flex; flex-direction: column; gap: 6px; max-width: 760px;">
+    <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Meine Dateien</h1>
+    <p style="margin: 0;">Fertige Unterlagen, die so verwendet werden, wie sie sind. Diese Dateien gehen nie an die KI.</p>
+  </header>
+
+  <section aria-labelledby="wl" style="display: flex; flex-direction: column; gap: 12px;">
+    <h2 id="wl" style="margin: 0; font-size: 18px; line-height: 24px;">Welcher Lebenslauf wird verwendet?</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+      <div class="rang"><span style="display: flex; gap: 8px; align-items: center;"><span class="nr">1</span><strong style="color: var(--text-strong);">Gewählte Variante</strong></span><span style="font-size: 14px; line-height: 20px;">Wenn Sie in einer Bewerbung eine Variante wählen, gilt sie dort.</span><span style="font-size: 13px; color: var(--text-muted);">2 Bewerbungen haben eine Variante</span></div>
+      <div class="rang" data-aktiv="{{eigenAktiv}}"><span style="display: flex; gap: 8px; align-items: center;"><span class="nr">2</span><strong style="color: var(--text-strong);">Ihr eigenes PDF</strong></span><span style="font-size: 14px; line-height: 20px;">Sonst gilt der Lebenslauf, den Sie hier hochladen.</span><span style="font-size: 13px; color: var(--text-strong); font-weight: 500;">{{eigenStand}}</span></div>
+      <div class="rang" data-aktiv="{{gebautAktiv}}"><span style="display: flex; gap: 8px; align-items: center;"><span class="nr">3</span><strong style="color: var(--text-strong);">Aus Meine Angaben</strong></span><span style="font-size: 14px; line-height: 20px;">Ohne eigenes PDF erstellt der Assistent den Lebenslauf aus Ihren Angaben.</span><span style="font-size: 13px; color: var(--text-strong); font-weight: 500;">{{gebautStand}}</span></div>
+    </div>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start;">
+    <sc-for list="{{gruppen}}" as="g" hint-placeholder-count="3">
+      <section class="card" aria-label="{{g.titel}}">
+        <h2>{{g.titel}}</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">{{g.hilfe}}</p>
+        <sc-for list="{{g.dateien}}" as="d" hint-placeholder-count="2">
+          <div class="row"><span style="display: flex; flex-direction: column; min-width: 0;"><a href="#" style="overflow-wrap: anywhere;">{{d.name}}</a><span style="font-size: 13px; color: var(--text-muted);">{{d.info}}</span></span><button class="btn btn--quiet btn--sm" type="button">Entfernen</button></div>
+        </sc-for>
+        <sc-if value="{{g.leer}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 16px; border: 1px dashed var(--line-strong); border-radius: 6px; text-align: center; font-size: 14px; color: var(--text-muted);">Noch keine Datei.</div>
+        </sc-if>
+        <div><button class="btn btn--sm" type="button">Datei hinzufügen</button></div>
+      </section>
+    </sc-for>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["normal","leer"],"default":"normal"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const leer = (this.props.zustand ?? 'normal') === 'leer';
+    const g = (titel, hilfe, dateien) => ({ titel, hilfe, dateien: leer ? [] : dateien, leer });
+    return {
+      theme: this.props.theme ?? 'light',
+      eigenAktiv: leer ? undefined : '', gebautAktiv: leer ? '' : undefined,
+      eigenStand: leer ? 'Kein PDF hochgeladen' : 'Wird jetzt verwendet: Lebenslauf_2025.pdf',
+      gebautStand: leer ? 'Wird jetzt verwendet' : 'Wird nicht verwendet, solange ein PDF da ist',
+      gruppen: [
+        g('Lebenslauf', 'Ein PDF, das so mitgeschickt wird, wie es ist.', [{ name: 'Lebenslauf_2025.pdf', info: '2 Seiten · 180 KB · 02.11.2026' }]),
+        g('Zertifikate und Diplome', 'Werden in der Bewerbung als Beilage angeboten.', [{ name: 'Diplom_Kauffrau_EFZ.pdf', info: '1 Seite · 320 KB · 02.11.2026' }, { name: 'Zertifikat_SAP_MM.pdf', info: '1 Seite · 140 KB · 02.11.2026' }]),
+        g('Arbeitszeugnisse', 'Werden in der Bewerbung als Beilage angeboten.', [{ name: 'Arbeitszeugnis_Muster_Handel.pdf', info: '2 Seiten · 240 KB · 02.11.2026' }, { name: 'Zwischenzeugnis_Beispiel_Markt.pdf', info: '1 Seite · 110 KB · 02.11.2026' }])
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Zugriff auf eine weitere Seite erlauben</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.liste{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<main style="max-width: 560px; margin: 0 auto; padding: 64px 24px; display: flex; flex-direction: column; gap: 20px;">
+  <span style="font-weight: 700; color: var(--text-strong);">Bewerbungsassistent</span>
+  <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Darf die Erweiterung auf karriere.muster-ag.ch suchen?</h1>
+  <p style="margin: 0;">Sie haben diese Karriereseite in den Erweiterten Einstellungen hinzugefügt. Damit die Erweiterung dort Stellen finden kann, braucht sie Ihre Erlaubnis.</p>
+  <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+    <section style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);">
+      <h2 style="margin: 0; font-size: 15px; line-height: 20px;">Was sie dort tut</h2>
+      <ul class="liste" style="font-size: 14px; line-height: 20px;"><li>Stellenanzeigen lesen</li><li>Bewerbungsformulare ausfüllen, wenn Sie das starten</li></ul>
+    </section>
+    <section style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);">
+      <h2 style="margin: 0; font-size: 15px; line-height: 20px;">Was sie nie tut</h2>
+      <ul class="liste" style="font-size: 14px; line-height: 20px;"><li>etwas abschicken</li><li>sich anmelden oder Passwörter lesen</li></ul>
+    </section>
+  </div>
+  <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">Danach fragt der Browser noch einmal selbst nach. Zurücknehmen können Sie die Erlaubnis jederzeit in den Erweiterten Einstellungen.</p>
+  <sc-if value="{{offen}}" hint-placeholder-val="{{ true }}">
+    <div class="btn-row"><button class="btn btn--primary" type="button">Erlaubnis geben</button><button class="btn btn--quiet" type="button">Nicht erlauben</button></div>
+  </sc-if>
+  <sc-if value="{{erlaubt}}" hint-placeholder-val="{{ false }}">
+    <div class="notice notice--success"><span class="notice__title">Erlaubt</span><p class="notice__body">Die nächste Suche schliesst karriere.muster-ag.ch ein. Sie können diesen Tab schliessen.</p></div>
+  </sc-if>
+  <sc-if value="{{abgelehnt}}" hint-placeholder-val="{{ false }}">
+    <div class="notice"><span class="notice__title">Nicht erlaubt</span><p class="notice__body">Die Seite bleibt in der Liste, wird aber nicht durchsucht. Sie können später noch erlauben.</p></div>
+  </sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["frage","erlaubt","abgelehnt"],"default":"frage"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'frage';
+    return { theme: this.props.theme ?? 'light', offen: z === 'frage', erlaubt: z === 'erlaubt', abgelehnt: z === 'abgelehnt' };
+  }
+}
+</script>
+</body>
+</html>

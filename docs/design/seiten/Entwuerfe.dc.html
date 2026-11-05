@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Entwürfe und Versionen</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:16px 20px;display:flex;flex-direction:column;gap:4px}
+.card h2{margin:0 0 8px;font-size:18px;line-height:24px}
+.ver{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.diff{flex:1 1 400px;min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:20px 24px;display:flex;flex-direction:column;gap:12px;font-size:15px;line-height:23px;color:var(--text-strong)}
+.diff p{margin:0}
+del{background:var(--danger-bg);color:var(--text-strong);text-decoration:line-through;text-decoration-color:var(--danger);text-decoration-thickness:2px}
+ins{background:var(--success-bg);color:var(--text-strong);text-decoration:underline;text-decoration-color:var(--success);text-decoration-thickness:2px}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="mehr" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 24px;">
+<sc-if value="{{istListe}}" hint-placeholder-val="{{ true }}">
+  <header style="display: flex; flex-direction: column; gap: 6px; max-width: 760px;">
+    <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Entwürfe und Versionen</h1>
+    <p style="margin: 0;">Jedes Speichern legt eine Fassung an. Sie können jede ansehen, mit der jetzigen vergleichen und zurückholen.</p>
+  </header>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+    <div role="group" aria-label="Dokumente" style="display: flex; flex-wrap: wrap; gap: 4px;">
+      <button class="btn btn--sm" type="button" aria-pressed="true" style="background: var(--accent-subtle); border-color: var(--accent);">Alle</button>
+      <button class="btn btn--sm" type="button" aria-pressed="false">Anschreiben</button>
+      <button class="btn btn--sm" type="button" aria-pressed="false">Lebenslauf</button>
+      <button class="btn btn--sm" type="button" aria-pressed="false">Meine Angaben</button>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; align-items: start;">
+    <sc-for list="{{gruppen}}" as="g" hint-placeholder-count="3">
+      <section class="card" aria-label="{{g.titel}}">
+        <h2>{{g.titel}}</h2>
+        <sc-for list="{{g.fassungen}}" as="f" hint-placeholder-count="3">
+          <div class="ver">
+            <span style="display: flex; flex-direction: column;"><strong style="font-weight: 500; color: var(--text-strong);">{{f.wann}}</strong><span style="font-size: 14px; line-height: 20px; color: var(--text-muted);">{{f.was}}</span></span>
+            <span class="btn-row"><a class="btn btn--sm" href="#">Ansehen</a><sc-if value="{{f.alt}}" hint-placeholder-val="{{ true }}"><a class="btn btn--sm" href="Entwuerfe-Vergleich.dc.html">Mit jetzt vergleichen</a><button class="btn btn--quiet btn--sm" type="button">Zurückholen</button></sc-if></span>
+          </div>
+        </sc-for>
+      </section>
+    </sc-for>
+  </div>
+  <section class="card" aria-labelledby="vf">
+    <h2 id="vf">Versendete Fassungen</h2>
+    <p style="margin: 0 0 4px; font-size: 14px; line-height: 20px; color: var(--text-muted);">So wurde abgeschickt. Diese Fassungen ändern sich nicht mehr.</p>
+    <div class="ver"><span style="display: flex; flex-direction: column;"><strong style="font-weight: 500; color: var(--text-strong);">Muster AG · Sachbearbeiterin Einkauf</strong><span style="font-size: 14px; line-height: 20px; color: var(--text-muted);">06.11.2026 · Lebenslauf, Anschreiben, 2 Beilagen</span></span><a class="btn btn--sm" href="Bewerbung-Versendet.dc.html">Ansehen</a></div>
+    <div class="ver"><span style="display: flex; flex-direction: column;"><strong style="font-weight: 500; color: var(--text-strong);">Testfirma AG · Disponentin</strong><span style="font-size: 14px; line-height: 20px; color: var(--text-muted);">28.10.2026 · Lebenslauf, Anschreiben, 1 Beilage</span></span><a class="btn btn--sm" href="#">Ansehen</a></div>
+  </section>
+</sc-if>
+
+<sc-if value="{{istVergleich}}" hint-placeholder-val="{{ false }}">
+  <a href="Entwuerfe.dc.html" style="font-size: 14px; line-height: 20px; color: var(--text-muted); text-decoration: none;">← Zurück zu Entwürfe und Versionen</a>
+  <header style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-end;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Anschreiben Muster AG</h1>
+      <p style="margin: 0;">Fassung von gestern, 16:10, verglichen mit jetzt</p>
+    </div>
+    <div class="btn-row"><button class="btn btn--primary" type="button">Fassung von gestern zurückholen</button></div>
+  </header>
+  <p style="margin: 0; font-size: 14px; line-height: 20px;"><del>durchgestrichen</del> = nur gestern · <ins>unterstrichen</ins> = neu seit gestern</p>
+  <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+    <article class="diff" aria-label="Gestern, 16:10">
+      <h2 style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); font-weight: 500;">Gestern, 16:10 · von Hand geändert</h2>
+      <p>Sehr geehrte Damen und Herren</p>
+      <p>Seit sechs Jahren verhandle ich im Einkauf eines Detailhändlers Lieferverträge<del> und bin dabei sehr erfolgreich</del>.</p>
+      <p>Bei der Muster Handel AG habe ich die Bestellabwicklung auf SAP MM umgestellt.</p>
+    </article>
+    <article class="diff" aria-label="Jetzt">
+      <h2 style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); font-weight: 500;">Jetzt · Entwurf der KI von heute, 10:42</h2>
+      <p><ins>Sehr geehrte Frau Brunner</ins></p>
+      <p>Seit sechs Jahren verhandle ich im Einkauf eines Detailhändlers Lieferverträge<ins> und betreue rund 40 Lieferanten</ins>.</p>
+      <p>Bei der Muster Handel AG habe ich die Bestellabwicklung auf SAP MM umgestellt<ins> und dabei die Durchlaufzeit einer Bestellung von vier auf zwei Tage gesenkt</ins>.</p>
+    </article>
+  </div>
+  <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">Beim Zurückholen bleibt die jetzige Fassung als eigener Eintrag erhalten.</p>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["liste","vergleich"],"default":"liste"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'liste';
+    const f = (wann, was, alt) => ({ wann, was, alt });
+    return {
+      theme: this.props.theme ?? 'light',
+      istListe: z === 'liste', istVergleich: z === 'vergleich',
+      gruppen: [
+        { titel: 'Anschreiben Muster AG', fassungen: [f('Heute, 10:42 · jetzige Fassung', 'Entwurf der KI', false), f('Gestern, 16:10', 'Von Hand geändert, 2 Sätze', true), f('Gestern, 15:55', 'Erster Entwurf der KI', true)] },
+        { titel: 'Lebenslauf', fassungen: [f('04.11.2026 · jetzige Fassung', 'Variante Einkauf angelegt', false), f('02.11.2026', 'Aus Meine Angaben übernommen', true)] },
+        { titel: 'Meine Angaben', fassungen: [f('02.11.2026, 18:20 · jetzige Fassung', 'Übernommen', false), f('02.11.2026, 17:45', 'Aus Unterlagen vorbefüllt', true)] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!-- @dsCard group="Führung" height=280 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Steps</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)}</style>
+</head>
+<body>
+<div class="stack">
+<ol class="steps" aria-label="Stand der Bewerbung">
+  <li class="steps__item" data-state="done"><span class="steps__dot"></span><span class="steps__label">Stelle</span><span class="steps__meta">übernommen 03.11.</span></li>
+  <li class="steps__item" data-state="done"><span class="steps__dot"></span><span class="steps__label">Lebenslauf</span><span class="steps__meta">Variante Einkauf</span></li>
+  <li class="steps__item" data-state="current" aria-current="step"><span class="steps__dot"></span><span class="steps__label">Anschreiben</span><span class="steps__meta">Entwurf lesen</span></li>
+  <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Prüfen</span></li>
+  <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Abschicken</span><span class="steps__meta">machen Sie selbst</span></li>
+  <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Festhalten</span></li>
+</ol>
+<ol class="steps steps--vertical" aria-label="Einrichtung" style="max-width:320px">
+  <li class="steps__item" data-state="done"><span class="steps__dot"></span><span class="steps__label">Datenordner wählen</span><span class="steps__meta">erledigt</span></li>
+  <li class="steps__item" data-state="current" aria-current="step"><span class="steps__dot"></span><span class="steps__label">KI einrichten</span><span class="steps__meta">Einladungscode eingeben</span></li>
+  <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Erweiterung laden</span><span class="steps__meta">ca. 2 Minuten</span></li>
+</ol>
+</div>
+</body>
+</html>

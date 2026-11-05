@@ -1,0 +1,85 @@
+/* Bewerbungsassistent — generated from tokens.json */
+:root, [data-theme="light"] {
+  --bg: #fdfcfa;
+  --surface: #ffffff;
+  --surface-subtle: #f4f2ee;
+  --accent-subtle: #e8edf3;
+  --line: #d9dde3;
+  --line-strong: #7c8794;
+  --text-strong: #27333f;
+  --text: #38495d;
+  --text-muted: #5a6879;
+  --accent: #38495d;
+  --accent-hover: #27333f;
+  --on-accent: #ffffff;
+  --focus: #38495d;
+  --warning: #8a5a00;
+  --warning-bg: #fff4dc;
+  --danger: #b3261e;
+  --danger-bg: #fde7e5;
+  --success: #2e6b3a;
+  --success-bg: #e6f2e8;
+  --on-success: #ffffff;
+  --inverse: #27333f;
+  --on-inverse: #ffffff;
+  --on-inverse-muted: #c3ccd6;
+  --mark-filled: #2e7d32;
+  --mark-open: #ef6c00;
+  --mark-consent: #c62828;
+  --mark-ai: #1565c0;
+  --mark-halo: #ffffff;
+  --mark-ink: #1f2933;
+  --shadow-menu: 0 6px 18px rgba(0, 0, 0, 0.15);
+  --shadow-dialog: 0 12px 32px rgba(0, 0, 0, 0.18);
+  --shadow-bar: 0 -2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-bar-top: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+[data-theme="dark"] {
+  --bg: #16191d;
+  --surface: #1f2328;
+  --surface-subtle: #1a1e22;
+  --accent-subtle: #273241;
+  --line: #3a4048;
+  --line-strong: #7d8794;
+  --text-strong: #f0f3f6;
+  --text: #e3e7ec;
+  --text-muted: #a3adb9;
+  --accent: #c9d4e2;
+  --accent-hover: #dfe6ef;
+  --on-accent: #16191d;
+  --focus: #c9d4e2;
+  --warning: #f0b552;
+  --warning-bg: #3a2f17;
+  --danger: #ff8a80;
+  --danger-bg: #3d1f1d;
+  --success: #8fd19e;
+  --success-bg: #1d3322;
+  --on-success: #16191d;
+  --shadow-menu: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-dialog: 0 12px 32px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-full: 999px;
+  --width-content: 1180px;
+  --width-reading: 760px;
+  --width-dialog: 520px;
+  --width-popup: 320px;
+  --control-height: 40px;
+  --font-sans: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@font-face { font-family: "DM Sans"; src: url("fonts/DMSans-400.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "DM Sans"; src: url("fonts/DMSans-400i.ttf") format("truetype"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "DM Sans"; src: url("fonts/DMSans-500.ttf") format("truetype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "DM Sans"; src: url("fonts/DMSans-700.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: swap; }

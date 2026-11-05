@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Bewerbung</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.card h2{margin:0;font-size:18px;line-height:24px}
+.card h3{margin:0;font-size:14px;line-height:20px}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:14px;line-height:20px}
+.facts dt{color:var(--text-muted)}
+.facts dd{margin:0;color:var(--text-strong);overflow-wrap:anywhere}
+.letter{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:28px 32px;font-size:15px;line-height:23px;color:var(--text-strong);display:flex;flex-direction:column;gap:12px}
+.letter p{margin:0}
+.letter mark{background:var(--warning-bg);color:inherit;border-bottom:2px dotted var(--warning);padding:0 2px}
+.pdf{flex:1 1 220px;display:flex;flex-direction:column;gap:6px}
+.pdf__page{aspect-ratio:210/297;border:1px solid var(--line);border-radius:4px;background:#ffffff;padding:18px;display:flex;flex-direction:column;gap:7px}
+.pdf__page i{display:block;height:5px;border-radius:2px;background:#d9dde3}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="uebersicht" modus="{{modus}}" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 24px 24px 48px; display: flex; flex-direction: column; gap: 24px;">
+  <a href="Main.dc.html" style="font-size: 14px; line-height: 20px; color: var(--text-muted); text-decoration: none;">← Zurück zur Übersicht</a>
+  <header style="display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: flex-start;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <h1 style="margin: 0; font-size: 22px; line-height: 28px;">{{t.titel}}</h1>
+      <p style="margin: 0;">{{t.unter}}</p>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+      <span class="status" data-status="{{status}}">{{status}}</span>
+      <sc-for list="{{t.noten}}" as="g" hint-placeholder-count="1">
+        <span class="grade-meter grade-meter--sm" aria-label="{{g.label}}"><sc-if value="{{g.hatName}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="font-size: 12px; color: var(--text-muted);">{{g.name}}</span></sc-if><span class="grade-meter__value">{{g.wert}}</span><span class="grade-meter__bar" aria-hidden="true"><sc-for list="{{g.segs}}" as="s" hint-placeholder-count="6"><i class="{{s.cls}}"></i></sc-for></span><span class="grade-meter__word" aria-hidden="true">{{g.wort}}</span></span>
+      </sc-for>
+    </div>
+  </header>
+
+  <ol class="steps" aria-label="Stand der Bewerbung">
+    <sc-for list="{{schritte}}" as="s" hint-placeholder-count="6">
+      <li class="steps__item" data-state="{{s.state}}" aria-current="{{s.cur}}"><span class="steps__dot"></span><span class="steps__label">{{s.label}}</span><span class="steps__meta">{{s.meta}}</span></li>
+    </sc-for>
+  </ol>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+  <div style="flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px;">
+
+  <sc-if value="{{istAnschreiben}}" hint-placeholder-val="{{ true }}">
+    <section class="next-step" aria-labelledby="ns">
+      <p class="next-step__eyebrow">Nächster Schritt</p>
+      <h2 class="next-step__title" id="ns">Anschreiben lesen und freigeben</h2>
+      <p class="next-step__text">{{t.anschrText}}</p>
+      <div class="btn-row"><a class="btn btn--primary" href="#anschreiben">Anschreiben lesen</a></div>
+      <p class="next-step__after">Danach: PDFs erstellen und prüfen</p>
+    </section>
+    <section class="card" id="anschreiben" aria-labelledby="an">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: baseline;"><h2 id="an">Anschreiben</h2><span style="font-size: 13px; color: var(--text-muted);">Entwurf der KI vom 05.11.2026, 10:42</span></div>
+      <sc-if value="{{istStelle}}" hint-placeholder-val="{{ true }}">
+        <div class="letter">
+          <p>Sehr geehrte Frau Brunner</p>
+          <p>Seit sechs Jahren verhandle ich im Einkauf eines Detailhändlers Lieferverträge und betreue rund 40 Lieferanten. Ihre Stelle verbindet genau das mit der Arbeit in SAP, die ich aus zwei Stellen kenne.</p>
+          <p>Bei der Muster Handel AG habe ich die Bestellabwicklung auf SAP MM umgestellt und dabei die Durchlaufzeit einer Bestellung von vier auf zwei Tage gesenkt. <mark>Auch mit öffentlichen Ausschreibungen habe ich Erfahrung.</mark></p>
+          <p>Gerne erzähle ich Ihnen in einem Gespräch mehr.</p>
+          <p>Freundliche Grüsse<br>Andrea Muster</p>
+        </div>
+      </sc-if>
+      <sc-if value="{{istLehr}}" hint-placeholder-val="{{ false }}">
+        <div class="letter">
+          <p>Sehr geehrte Frau Keller</p>
+          <p>Ich interessiere mich für die Lehre als Kauffrau EFZ, weil ich gerne mit Menschen arbeite und Ordnung in Abläufe bringe. In meiner Schnupperlehre bei der Beispiel Bank AG habe ich am Schalter mitgeholfen und Kundendossiers abgelegt.</p>
+          <p>In der Schule sind Deutsch und Mathematik meine stärksten Fächer. <mark>Ich habe schon Erfahrung im Kundendienst.</mark></p>
+          <p>Gerne zeige ich Ihnen in einer Schnupperlehre, was ich kann.</p>
+          <p>Freundliche Grüsse<br>Lea Muster</p>
+        </div>
+      </sc-if>
+      <div class="btn-row"><button class="btn btn--primary" type="button">Freigeben</button><button class="btn" type="button">Ändern</button><button class="btn btn--quiet" type="button">Neu entwerfen</button><button class="btn btn--quiet" type="button">Eigenes Anschreiben verwenden</button></div>
+      <p style="margin: 0; font-size: 13px; line-height: 18px; color: var(--text-muted);">Jede Änderung wird als Entwurf gespeichert und lässt sich zurückholen.</p>
+    </section>
+    <article class="ai-result" aria-labelledby="au">
+      <header class="ai-result__head"><h2 class="ai-result__kind" id="au">Aussagen im Anschreiben</h2><span style="color: var(--text-muted);">{{t.belegt}}</span></header>
+      <div>
+        <sc-for list="{{t.aussagen}}" as="c" hint-placeholder-count="3">
+          <div class="claim" data-evidence="{{c.art}}"><span class="claim__text">{{c.text}}</span><span class="claim__source">{{c.quelle}}</span></div>
+        </sc-for>
+      </div>
+      <div class="btn-row"><button class="btn" type="button">Satz streichen</button><a class="btn btn--quiet" href="Angaben.dc.html">In Meine Angaben ergänzen</a></div>
+      <p class="ai-result__foot">Eine Einschätzung, kein Urteil. Die KI kann sich irren. · Claude · CHF 0.04 · 05.11.2026</p>
+    </article>
+  </sc-if>
+
+  <sc-if value="{{istOhneKi}}" hint-placeholder-val="{{ false }}">
+    <section class="next-step" aria-labelledby="ns2">
+      <p class="next-step__eyebrow">Nächster Schritt</p>
+      <h2 class="next-step__title" id="ns2">Anschreiben hinzufügen</h2>
+      <p class="next-step__text">{{t.ohneKiText}}</p>
+      <div class="btn-row"><button class="btn btn--primary" type="button">Eigenes Anschreiben hochladen</button><a class="btn btn--quiet" href="Einrichtung.dc.html">KI einrichten</a></div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{istPruefen}}" hint-placeholder-val="{{ false }}">
+    <section class="next-step" aria-labelledby="ns3">
+      <p class="next-step__eyebrow">Nächster Schritt</p>
+      <h2 class="next-step__title" id="ns3">Unterlagen prüfen</h2>
+      <p class="next-step__text">Lebenslauf und Anschreiben sind als PDF erstellt. Die Prüfung hat einen Hinweis gefunden.</p>
+      <div class="btn-row"><a class="btn btn--primary" href="Bewerbung-Abschicken.dc.html">Unterlagen sind in Ordnung</a></div>
+    </section>
+    <section class="card" aria-labelledby="pr">
+      <h2 id="pr">Prüfung</h2>
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px;">
+        <li class="notice notice--warning" style="padding: 8px 12px;"><span class="notice__title">Hinweis</span><p class="notice__body">{{t.pruefHinweis}}</p></li>
+        <li class="notice notice--success" style="padding: 8px 12px;"><span class="notice__title">In Ordnung</span><p class="notice__body">Alle 7 Anforderungen aus dem Inserat sind belegt.</p></li>
+        <li class="notice notice--success" style="padding: 8px 12px;"><span class="notice__title">In Ordnung</span><p class="notice__body">Adresse, Telefon und E-Mail sind in beiden Dokumenten gleich.</p></li>
+      </ul>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+        <figure class="pdf" style="margin: 0;"><figcaption style="font-size: 14px; font-weight: 500; color: var(--text-strong);">Lebenslauf, {{t.variante}} · 2 Seiten</figcaption><div class="pdf__page" aria-hidden="true"><i style="width: 45%; height: 9px;"></i><i style="width: 70%;"></i><i></i><i style="width: 90%;"></i><i></i><i style="width: 60%;"></i><i></i><i style="width: 85%;"></i></div></figure>
+        <figure class="pdf" style="margin: 0;"><figcaption style="font-size: 14px; font-weight: 500; color: var(--text-strong);">Anschreiben · 1 Seite</figcaption><div class="pdf__page" aria-hidden="true"><i style="width: 35%;"></i><i style="width: 30%;"></i><i style="width: 50%; margin-top: 12px;"></i><i></i><i></i><i style="width: 80%;"></i><i></i><i style="width: 65%;"></i></div></figure>
+      </div>
+      <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px;">
+        <legend style="font-weight: 500; color: var(--text-strong); margin-bottom: 6px;">Beilagen</legend>
+        <sc-for list="{{t.beilagen}}" as="b" hint-placeholder-count="3"><label class="check"><input type="checkbox" checked="{{b.an}}"> {{b.name}}</label></sc-for>
+      </fieldset>
+      <div class="btn-row"><button class="btn" type="button">PDFs neu erstellen</button><a class="btn btn--quiet" href="Inhalte.dc.html">Lebenslauf ändern</a></div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{istAbschicken}}" hint-placeholder-val="{{ false }}">
+    <section class="next-step" aria-labelledby="ns4">
+      <p class="next-step__eyebrow">Nächster Schritt</p>
+      <h2 class="next-step__title" id="ns4">{{t.abschTitel}}</h2>
+      <p class="next-step__text">{{t.abschText}}</p>
+      <div class="btn-row"><button class="btn btn--primary" type="button">Formular öffnen</button><button class="btn btn--quiet" type="button">Per E-Mail beworben? Versand erfassen</button></div>
+    </section>
+    <section class="card" aria-labelledby="fo">
+      <h2 id="fo">Formular offen seit 10:42</h2>
+      <p style="margin: 0;">{{t.offenText}}</p>
+      <figure style="margin: 0; display: flex; flex-direction: column; gap: 6px;">
+        <figcaption style="font-size: 13px; color: var(--text-muted);">So sieht die Leiste im Formular aus:</figcaption>
+        <div class="form-bar" style="border-radius: 6px;">
+          <p class="form-bar__summary"><strong>10 Felder ausgefüllt, 3 offen, 1 Einwilligung bitte selbst prüfen.</strong><span class="form-bar__hand">{{t.hand}}</span></p>
+          <div class="form-bar__actions"><button class="form-bar__btn form-bar__btn--primary" type="button">Abgeschickt? Ja</button><button class="form-bar__btn" type="button">Nicht mehr ausfüllen</button></div>
+        </div>
+      </figure>
+      <h3>Dateien für den Upload</h3>
+      <dl class="copy-list">
+        <div class="copy-row"><dt>Ordner</dt><dd><span class="copy-row__value">{{t.ordner}}</span><button class="btn btn--sm" type="button">Kopieren</button></dd></div>
+      </dl>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">Lebenslauf.pdf, Anschreiben.pdf und die Beilagen. Im Dateidialog des Browsers diesen Ordner wählen.</p>
+      <div class="btn-row"><button class="btn" type="button">Ja, abgeschickt</button><button class="btn btn--quiet" type="button">Noch nicht</button></div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{istVersendet}}" hint-placeholder-val="{{ false }}">
+    <div class="notice notice--success"><span class="notice__title">Beworben am 06.11.2026</span><p class="notice__body">{{t.versendetText}}</p></div>
+    <sc-if value="{{mitRav}}" hint-placeholder-val="{{ true }}">
+      <section class="next-step" aria-labelledby="ns5">
+        <p class="next-step__eyebrow">Nächster Schritt · fürs RAV</p>
+        <h2 class="next-step__title" id="ns5">Im Job-Room eintragen</h2>
+        <p class="next-step__text">{{t.jobroomText}}</p>
+        <div class="btn-row"><button class="btn btn--primary" type="button">Job-Room öffnen</button></div>
+        <dl class="copy-list" style="margin-top: 16px;">
+          <sc-for list="{{t.jobroomZeilen}}" as="r" hint-placeholder-count="4"><div class="copy-row"><dt>{{r.k}}</dt><dd><span class="copy-row__value">{{r.v}}</span><button class="btn btn--sm" type="button">Kopieren</button></dd></div></sc-for>
+        </dl>
+      </section>
+    </sc-if>
+    <sc-if value="{{ohneRav}}" hint-placeholder-val="{{ false }}">
+      <section class="next-step" aria-labelledby="ns6">
+        <p class="next-step__eyebrow">Nächster Schritt</p>
+        <h2 class="next-step__title" id="ns6">Antwort abwarten</h2>
+        <p class="next-step__text">{{t.abwartenText}}</p>
+        <div class="btn-row"><a class="btn btn--primary" href="Main.dc.html">Zur Übersicht</a></div>
+      </section>
+    </sc-if>
+    <section class="card" aria-labelledby="ant">
+      <h2 id="ant">Antwort eintragen, sobald sie kommt</h2>
+      <div class="btn-row"><sc-for list="{{t.antworten}}" as="a" hint-placeholder-count="3"><button class="btn" type="button">{{a}}</button></sc-for></div>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">Ohne Antwort erinnert die Übersicht am 20.11.2026 ans Nachfragen.</p>
+    </section>
+    <section class="card" aria-labelledby="fa">
+      <h2 id="fa">Versendete Fassung</h2>
+      <ul style="margin: 0; padding-left: 20px;"><sc-for list="{{t.fassung}}" as="f" hint-placeholder-count="3"><li><a href="#">{{f}}</a></li></sc-for></ul>
+    </section>
+  </sc-if>
+
+  <details class="card">
+    <summary style="cursor: pointer; font-weight: 700; color: var(--text-strong);">{{t.inseratTitel}}</summary>
+    <p style="margin: 0;">{{t.inserat}}</p>
+  </details>
+  <details class="card">
+    <summary style="cursor: pointer; font-weight: 700; color: var(--text-strong);">{{t.kiTitel}}</summary>
+    <p style="margin: 0;">{{t.kiText}}</p>
+  </details>
+  </div>
+
+  <aside style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+    <section class="card" aria-labelledby="as">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;"><h2 id="as" style="font-size: 16px;">{{t.angabenTitel}}</h2><button class="btn btn--quiet btn--sm" type="button">Ändern</button></div>
+      <dl class="facts">
+        <sc-for list="{{t.fakten}}" as="f" hint-placeholder-count="7"><dt>{{f.k}}</dt><dd>{{f.v}}</dd></sc-for>
+      </dl>
+      <a href="#" style="font-size: 14px;">Inserat öffnen</a>
+    </section>
+    <section class="card" aria-labelledby="no">
+      <h2 id="no" style="font-size: 16px;">Notiz</h2>
+      <label class="visually-hidden" for="notiz">Notiz</label>
+      <textarea class="input" id="notiz" readonly value="{{t.notiz}}" style="min-height: 80px; font-size: 14px;"></textarea>
+    </section>
+    <section class="card" aria-labelledby="ve">
+      <h2 id="ve" style="font-size: 16px;">Verlauf</h2>
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 20px;">
+        <sc-for list="{{verlauf}}" as="v" hint-placeholder-count="3"><li><span class="num" style="color: var(--text-muted);">{{v.d}}</span> {{v.t}}</li></sc-for>
+      </ul>
+      <a href="Entwuerfe.dc.html" style="font-size: 14px;">Alle Entwürfe dieser Bewerbung</a>
+    </section>
+  </aside>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["anschreiben","ohne-ki","pruefen","abschicken","versendet"],"default":"anschreiben"},"modus":{"editor":"enum","options":["stelle","lehrstelle"],"default":"stelle"},"anrede":{"editor":"enum","options":["sie","du"],"default":"sie"},"rav":{"editor":"enum","options":["ja","nein"],"default":"ja"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":1700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'anschreiben';
+    const lehr = (this.props.modus ?? 'stelle') === 'lehrstelle';
+    const du = lehr || (this.props.anrede ?? 'sie') === 'du';
+    const rav = (this.props.rav ?? (lehr ? 'nein' : 'ja')) === 'ja';
+    const firma = lehr ? 'Muster Versicherung AG' : 'Muster AG';
+    const variante = lehr ? 'Variante Kauffrau' : 'Variante Einkauf';
+    const wort = (n) => (n >= 5.5 ? 'passt sehr gut' : n >= 4.5 ? 'passt gut' : n >= 4 ? 'passt knapp' : 'passt wenig');
+    const note = (name, n) => ({ name, hatName: !!name, wert: String(n), wort: wort(n),
+      segs: [1, 2, 3, 4, 5, 6].map((k) => ({ cls: n >= k ? 'on' : (n >= k - 0.5 ? 'half' : '') })),
+      label: (name ? name + ': ' : '') + 'Note ' + n + ' von 6, ' + wort(n) });
+    const pos = { anschreiben: 2, 'ohne-ki': 2, pruefen: 3, abschicken: 4, versendet: 6 }[z];
+    const labels = [[lehr ? 'Lehrstelle' : 'Stelle', 'übernommen 03.11.'], ['Lebenslauf', variante], ['Anschreiben', z === 'ohne-ki' ? 'fehlt noch' : 'Entwurf lesen'], ['Prüfen', ''], ['Abschicken', du ? 'machst du selbst' : 'machen Sie selbst'], ['Festhalten', '']];
+    const schritte = labels.map(([label, meta], i) => ({
+      label, meta: i < pos && i === 2 ? 'freigegeben' : (i < pos && i === 3 ? '1 Hinweis geklärt' : (i < pos && i === 4 ? 'am 06.11.2026' : (i < pos && i === 5 ? 'beworben' : meta))),
+      state: i < pos ? 'done' : (i === pos ? 'current' : 'todo'), cur: i === pos ? 'step' : undefined
+    }));
+    const t = {
+      titel: lehr ? 'Kauffrau EFZ' : 'Sachbearbeiterin Einkauf 80 %',
+      unter: lehr ? 'Muster Versicherung AG, Bern · Lehrbeginn August 2027 · Abgabe bis 20.11.2026' : 'Muster AG, Zürich · Abgabe bis 20.11.2026',
+      noten: lehr ? [note('Beruf', 5.5), note('Lehrstelle', 5)] : [note('', 5)],
+      anschrText: 'Der Entwurf ist fertig. Eine Aussage hat noch keinen Beleg in ' + (du ? 'deinen' : 'Ihren') + ' Angaben, sie ist gelb markiert.',
+      belegt: lehr ? '4 belegt, 1 offen' : '5 belegt, 1 offen',
+      aussagen: lehr ? [
+        { art: 'ok', text: '«In meiner Schnupperlehre bei der Beispiel Bank AG habe ich am Schalter mitgeholfen …»', quelle: 'Beleg: Meine Angaben, Schnupperlehren, Beispiel Bank AG, 2026' },
+        { art: 'ok', text: '«Deutsch und Mathematik meine stärksten Fächer»', quelle: 'Beleg: Zeugnis 2. Oberstufe' },
+        { art: 'gap', text: '«Ich habe schon Erfahrung im Kundendienst.»', quelle: 'Kein Beleg gefunden. Streichen oder in Meine Angaben ergänzen.' }
+      ] : [
+        { art: 'ok', text: '«Seit sechs Jahren verhandle ich … Lieferverträge»', quelle: 'Beleg: Lebenslauf, Muster Handel AG, 2019–2025' },
+        { art: 'ok', text: '«Durchlaufzeit von vier auf zwei Tage gesenkt»', quelle: 'Beleg: Meine Angaben, Stärken, Beispiel 2' },
+        { art: 'gap', text: '«Auch mit öffentlichen Ausschreibungen habe ich Erfahrung.»', quelle: 'Kein Beleg gefunden. Streichen oder in Meine Angaben ergänzen.' }
+      ],
+      ohneKiText: 'Die KI ist nicht eingerichtet. ' + (du ? 'Lade' : 'Laden Sie') + ' ein eigenes Anschreiben als PDF hoch. Alles andere funktioniert auch ohne KI.',
+      pruefHinweis: 'Das Anschreiben nennt die Kontaktperson, das Formular ' + (lehr ? 'des Lehrbetriebs' : 'der Firma') + ' fragt aber nach einer anderen Abteilung.',
+      variante,
+      beilagen: lehr
+        ? [{ name: 'Zeugnis 2. Oberstufe', an: true }, { name: 'Multicheck kaufmännisch', an: true }, { name: 'Bericht zur Schnupperlehre', an: false }]
+        : [{ name: 'Arbeitszeugnis Muster Handel AG', an: true }, { name: 'Diplom Kauffrau EFZ', an: true }, { name: 'Zertifikat SAP MM', an: false }],
+      abschTitel: 'Formular bei ' + firma + ' ausfüllen',
+      abschText: 'Die App öffnet das Formular ' + (lehr ? 'des Lehrbetriebs' : 'der Firma') + ' in einem neuen Tab. Die Erweiterung füllt aus, was sie weiss, und markiert, was offen ist. ' + (du ? 'Du prüfst und schickst' : 'Sie prüfen und schicken') + ' selbst ab.',
+      offenText: '10 Felder sind ausgefüllt, 3 offen. Eine Einwilligung ' + (du ? 'musst du' : 'müssen Sie') + ' selbst bestätigen.',
+      hand: du ? 'Abschicken bleibt bei dir.' : 'Abschicken bleibt bei Ihnen.',
+      ordner: 'Bewerbungen › ' + firma + ' › Fassung 1',
+      versendetText: 'Über das Formular ' + (lehr ? 'des Lehrbetriebs' : 'der Firma') + '. Diese Fassung ist fest gespeichert und ändert sich nicht mehr.',
+      jobroomText: 'Die Erweiterung füllt den Eintrag im Job-Room aus. ' + (du ? 'Speichern und anmelden machst du selbst. Oder kopiere' : 'Speichern und anmelden machen Sie selbst. Oder kopieren Sie') + ' die Angaben einzeln.',
+      jobroomZeilen: [{ k: 'Datum', v: '06.11.2026' },
+        { k: lehr ? 'Lehrbetrieb' : 'Firma', v: lehr ? 'Muster Versicherung AG, Bundesplatz 2, 3011 Bern' : 'Muster AG, Bahnhofstrasse 1, 8001 Zürich' },
+        { k: lehr ? 'Lehrstelle' : 'Stelle', v: lehr ? 'Kauffrau EFZ' : 'Sachbearbeiterin Einkauf 80 %' },
+        { k: 'Art', v: 'elektronisch' }],
+      abwartenText: 'Ohne Antwort erinnert ' + (du ? 'dich' : 'Sie') + ' die Übersicht am 20.11.2026 ans Nachfragen.',
+      antworten: lehr ? ['Einladung zur Schnupperlehre', 'Einladung zum Gespräch', 'Absage', 'Zusage'] : ['Einladung zum Gespräch', 'Absage', 'Zusage'],
+      fassung: lehr ? ['Lebenslauf, Variante Kauffrau (PDF)', 'Anschreiben (PDF)', 'Zeugnis 2. Oberstufe (PDF)'] : ['Lebenslauf, Variante Einkauf (PDF)', 'Anschreiben (PDF)', 'Arbeitszeugnis Muster Handel AG (PDF)'],
+      inseratTitel: lehr ? 'Inseratstext' : 'Stellentext',
+      inserat: lehr
+        ? 'Für August 2027 bieten wir eine Lehrstelle als Kauffrau/Kaufmann EFZ an. Du lernst in vier Abteilungen, die Berufsschule besuchst du in Bern …'
+        : 'Für unser Team in Zürich suchen wir per 1. Januar 2027 eine Sachbearbeiterin oder einen Sachbearbeiter Einkauf (80 %). Sie bestellen Material in SAP, pflegen Lieferantendaten und verhandeln Rahmenverträge …',
+      kiTitel: lehr ? 'Einschätzung der KI: Beruf 5.5, Lehrstelle 5' : 'Einschätzung der KI: 5, passt gut',
+      kiText: lehr ? 'Was passt: Kauffrau mit drei Sternen gewählt, Deutsch und Mathematik. Was fehlt: das Multicheck-Ergebnis.' : 'Was passt: 6 Jahre Einkauf, SAP MM, Pensum. Was fehlt: Englisch verhandlungssicher.',
+      angabenTitel: lehr ? 'Angaben zur Lehrstelle' : 'Angaben zur Stelle',
+      fakten: lehr
+        ? [{ k: 'Lehrbetrieb', v: 'Muster Versicherung AG' }, { k: 'Ort', v: 'Bern' }, { k: 'Lehrbeginn', v: 'August 2027' }, { k: 'Kontakt', v: 'Frau S. Keller, Berufsbildung' }, { k: 'Gefunden', v: 'yousty, 03.11.2026' }, { k: 'Lebenslauf', v: 'Variante Kauffrau' }].concat(rav ? [{ k: 'RAV', v: 'keine Zuweisung' }] : [])
+        : [{ k: 'Firma', v: 'Muster AG' }, { k: 'Ort', v: 'Zürich' }, { k: 'Pensum', v: '80 %' }, { k: 'Kontakt', v: 'Frau R. Brunner, Personal' }, { k: 'Gefunden', v: 'jobs.ch, 03.11.2026' }, { k: 'Lebenslauf', v: 'Variante Einkauf' }].concat(rav ? [{ k: 'RAV', v: 'keine Zuweisung' }] : []),
+      notiz: lehr ? 'Frau Keller am Telefon: Schnuppertage im Dezember möglich.' : 'Frau Brunner am Telefon sehr freundlich, Team von fünf Personen.'
+    };
+    const verlauf = [
+      { d: '03.11.', t: 'Aus der Suche übernommen' },
+      { d: '04.11.', t: 'Lebenslauf-' + variante + ' gewählt' },
+      { d: '05.11.', t: z === 'ohne-ki' ? 'Anschreiben fehlt noch' : 'Anschreiben entworfen' }
+    ];
+    if (pos >= 4) verlauf.push({ d: '05.11.', t: 'PDFs erstellt und geprüft' });
+    if (pos >= 6) verlauf.push({ d: '06.11.', t: 'Abgeschickt über das Formular' });
+    return {
+      theme: this.props.theme ?? 'light', modus: lehr ? 'lehrstelle' : 'stelle',
+      istStelle: !lehr, istLehr: lehr, mitRav: rav, ohneRav: !rav, t,
+      status: pos >= 6 ? 'Beworben' : 'Bewerben',
+      schritte, verlauf,
+      istAnschreiben: z === 'anschreiben', istOhneKi: z === 'ohne-ki', istPruefen: z === 'pruefen',
+      istAbschicken: z === 'abschicken', istVersendet: z === 'versendet'
+    };
+  }
+}
+</script>
+</body>
+</html>
