@@ -23,6 +23,7 @@ FORM_STATES = ("geoeffnet", "ausgefuellt", "abgeschickt")  # MIN-346, how far a 
 TEXTFELDER = ("art", "formular_link", "firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
               "adresse", "kontaktperson", "kontakt")
 DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am", "rav_eingetragen_am")
+FORMULA_STARTS = ("=", "+", "-", "@")
 JOBROOM_ART = ("elektronisch", "schriftlich", "persönlich", "telefonisch")
 # Früher gespeichertes Feld `jobroom`: diese Werte wandern in die Bewerbung, der Rest wird abgeleitet
 JOBROOM_UEBERNAHME = ("adresse", "kontaktperson", "kontakt", "pensum", "rav_zuweisung")
@@ -275,7 +276,7 @@ def aus_jobliste(zeilen: list[list[str]]) -> list[dict]:
     for zeile in zeilen[1:]:
         if len(zeile) < 3 or not (zeile[1].strip() and zeile[2].strip()):
             continue
-        b = _aus_zeile(zeile, vorhandene)
+        b = _aus_zeile([_from_cell(wert) for wert in zeile], vorhandene)
         vorhandene.add(b["id"])
         bewerbungen.append(b)
     return bewerbungen
@@ -286,12 +287,22 @@ def zusatzspalten(b: dict) -> list:
     return [schweizer_datum(b.get("eingetragen_am")), b.get("passung", "")]
 
 
+def _as_cell(value: str) -> str:
+    """Titles and companies come from portals: in a spreadsheet nothing of that may run as a formula."""
+    text = str(value).lstrip()
+    return f"'{text}" if text.startswith(FORMULA_STARTS) else str(value)
+
+
+def _from_cell(value: str) -> str:
+    return value[1:] if value.startswith("'") and value[1:].startswith(FORMULA_STARTS) else value
+
+
 def als_jobliste(bewerbungen: list[dict]) -> list[list[str]]:
     zeilen = [list(SPALTEN)]
     for b in bewerbungen:
-        zeilen.append([b.get("firma_schluessel", ""), b["firma"], b["stelle"], b.get("ort", ""), b.get("pensum", ""),
-                       b.get("vermittler", ""), b.get("portal", ""), b.get("link", ""), b["status"],
-                       schweizer_datum(b.get("beworben_am")), schweizer_datum(b.get("frist")), b.get("notiz", "")])
+        zeilen.append([*map(_as_cell, (b.get("firma_schluessel", ""), b["firma"], b["stelle"], b.get("ort", ""), b.get("pensum", ""),
+                                       b.get("vermittler", ""), b.get("portal", ""), b.get("link", ""))), b["status"],
+                       schweizer_datum(b.get("beworben_am")), schweizer_datum(b.get("frist")), _as_cell(b.get("notiz", ""))])
     return zeilen
 
 

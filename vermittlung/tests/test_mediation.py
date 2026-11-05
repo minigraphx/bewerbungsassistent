@@ -37,13 +37,14 @@ class FakeAnthropic:
     def __init__(self):
         self.requests = []
         self.status = 200
+        self.message = "busy"
 
     def __call__(self, request):
         payload = json.loads(request.content)
         self.requests.append(payload)
         if self.status != 200:
-            return httpx2.Response(self.status, json={"type": "error", "error": {"type": "overloaded_error",
-                                                                                  "message": "busy"}})
+            kind = "invalid_request_error" if self.status == 400 else "overloaded_error"
+            return httpx2.Response(self.status, json={"type": "error", "error": {"type": kind, "message": self.message}})
         if payload.get("stream"):
             return httpx2.Response(200, headers={"content-type": "text/event-stream", "request-id": "req_s"},
                                    content=SSE)
@@ -289,3 +290,25 @@ def test_config_needs_the_key():
     with pytest.raises(config.ConfigError, match="ANTHROPIC_API_KEY"):
         config.load({})
     assert "sk-x" not in repr(config.load({"ANTHROPIC_API_KEY": "sk-x"}))
+
+
+def test_refusals_leave_a_reason_for_the_operator_without_contents(setup, caplog):
+    caplog.set_level("INFO")
+    access = access_for(setup)
+    body = {"model": "claude-other", "max_tokens": 100, "messages": [{"role": "user", "content": SECRET_TEXT}]}
+
+    assert raw(setup, "POST", "/v1/messages", body, {"x-api-key": access}).status_code == 400
+
+    assert "model not allowed" in caplog.text and SECRET_TEXT not in caplog.text
+
+
+def test_upstream_errors_are_logged_by_type_and_not_by_message(setup, caplog):
+    caplog.set_level("INFO")
+    setup["fake"].status = 400
+    setup["fake"].message = SECRET_TEXT
+    access = access_for(setup)
+    body = {"model": MODEL, "max_tokens": 100, "messages": [{"role": "user", "content": SECRET_TEXT}]}
+
+    assert raw(setup, "POST", "/v1/messages", body, {"x-api-key": access}).status_code == 400
+
+    assert "invalid_request_error" in caplog.text and SECRET_TEXT not in caplog.text

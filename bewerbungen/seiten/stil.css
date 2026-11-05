@@ -24,6 +24,7 @@ nav details.menue > summary::-webkit-details-marker { display: none; }
 nav details.menue:has(a[aria-current="page"]) > summary { background: var(--akzent); color: var(--akzent-text); }
 nav .menue-inhalt { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; display: flex; flex-direction: column; gap: 2px; min-width: 210px; padding: 6px; background: var(--flaeche); border: 1px solid var(--linie); border-radius: 8px; box-shadow: 0 6px 18px rgba(0, 0, 0, .15); }
 .banner { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--hinweis-flaeche); color: var(--hinweis); border-radius: 8px; padding: 10px 14px; margin: 0 0 16px; }
+.banner.ok { background: var(--ok-flaeche); color: var(--ok); }
 main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
 h1 { font-size: 22px; margin: 0 0 4px; }
 h2 { font-size: 17px; margin: 28px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--linie); }

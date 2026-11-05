@@ -25,7 +25,7 @@ class AnswerError(AiError):
 
 
 NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. In der App die Einladung einlösen "
-              "(oder für die Entwicklung ANTHROPIC_API_KEY setzen).")
+              "oder unter „Erweiterte Einstellungen“ einen eigenen Schlüssel eintragen.")
 ACCESS_DENIED = ("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen "
                  "prüfen. Sonst bei der Person melden, die Sie im Pilot begleitet.")
 NO_CREDIT = ("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. "

@@ -267,8 +267,9 @@ def choose_offers(k, parameter, body):
     path = k.daten / search_plan.PROFILE
     if not path.is_file():
         raise ValueError("Es gibt noch kein Suchprofil. Zuerst den Einstieg abschliessen.")
-    changed = search_plan.with_offers(path.read_text(encoding="utf-8"), choice)
-    k.mit_entwurf(path, "Gesucht im Suchprofil geändert", lambda: schreibe_atomar(path, changed.encode("utf-8")))
+    # Read under the lock of the draft: another change in between must not be overwritten.
+    k.mit_entwurf(path, "Gesucht im Suchprofil geändert",
+                  lambda: schreibe_atomar(path, search_plan.with_offers(path.read_text(encoding="utf-8"), choice).encode("utf-8")))
     return json_antwort({"angebote": list(search_plan.for_folder(k.daten).offers)})
 
 

@@ -21,7 +21,17 @@ from store import Access, Store, StoreError, month_of
 from upstream import JSON_TYPE, Upstream, error_body
 
 MAX_BODY = 2 * 1024 * 1024
+MAX_LOGGED_REASON = 200
 log = logging.getLogger("vermittlung")
+
+
+def _error_type(body: bytes) -> str:
+    """Only the type: the message of an error can quote the request, and the logs hold no contents."""
+    try:
+        kind = json.loads(body)["error"]["type"]
+    except (ValueError, KeyError, TypeError):
+        return "unknown"
+    return kind[:MAX_LOGGED_REASON] if isinstance(kind, str) else "unknown"
 
 
 @dataclasses.dataclass
@@ -62,6 +72,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 raise Failure(404, "not_found_error", "not found")
             route()
         except Failure as failure:
+            log.info("refused with %s %s: %s", failure.status, failure.kind, str(failure)[:MAX_LOGGED_REASON])
             headers = {"retry-after": str(failure.retry_after)} if failure.retry_after else {}
             self._send(failure.status, error_body(failure.kind, str(failure)), headers=headers)
         except BrokenPipeError:
@@ -117,7 +128,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if reply.content_type.startswith("text/event-stream"):
                     self._send_stream(reply.status, reply.content_type, reply.chunks, headers)
                 else:
-                    self._send(reply.status, b"".join(reply.chunks), reply.content_type, headers)
+                    body = b"".join(reply.chunks)
+                    if reply.status >= 400:
+                        log.warning("upstream answered %s %s, request %s", reply.status, _error_type(body), reply.request_id)
+                    self._send(reply.status, body, reply.content_type, headers)
             finally:
                 if reply.status < 400 or reply.usage.output_tokens:
                     self.mediation.store.record_usage(access, payload["model"], reply.usage,

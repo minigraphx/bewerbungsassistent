@@ -223,6 +223,19 @@ def test_export_fuer_jobliste(reg):
     assert zeilen[1][8:10] == ["Beworben", "24.10.2026"]
 
 
+def test_text_from_portals_never_becomes_a_formula_in_the_list(reg):
+    reg.neu(firma="=IMPORTXML(1)", stelle="+Tester", firma_schluessel="@x", notiz="-1+1", vermittler="\t=2")
+    zeile = register.als_jobliste(reg.alle())[1]
+    assert zeile[:3] == ["'@x", "'=IMPORTXML(1)", "'+Tester"]
+    assert zeile[5] == "'=2" and zeile[11] == "'-1+1"
+
+
+def test_the_guard_against_formulas_does_not_come_back_on_import(reg):
+    reg.neu(firma="=Firma", stelle="Tester")
+    zeilen = register.als_jobliste(reg.alle())
+    assert register.aus_jobliste(zeilen)[0]["firma"] == "=Firma"
+
+
 def test_lange_id_endet_an_wortgrenze():
     neu = register.erzeuge_id("beispiel", "Spontanbewerbung Software Engineer (Inserat nicht mehr publiziert)", set())
 
