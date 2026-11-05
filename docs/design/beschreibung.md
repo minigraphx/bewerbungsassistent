@@ -1,4 +1,4 @@
-# Bewerbungsassistent: Beschreibung für das Design
+# Bewerbungsbegleiter: Beschreibung für das Design
 
 Grundlage für die Neugestaltung in Claude Design (MIN-369). Alle Namen, Firmen und Dokumente in den Bildern sind erfunden. Der Code liegt öffentlich unter `minigraphx/bewerbungsassistent`, die Seiten unter `bewerbungen/seiten/`.
 

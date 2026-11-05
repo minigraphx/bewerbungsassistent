@@ -34,6 +34,7 @@ DOWNLOAD_TIMEOUT_SECONDS = 300
 MAX_INSTALLER_BYTES = 400 * 1024 * 1024
 SMALL_FILE_BYTES = 1024 * 1024
 SILENT = ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"]
+NO_START = "/NOSTART"  # see ShouldStart in installer.iss
 
 Fetch = Callable[[str, int], bytes]
 
@@ -118,7 +119,16 @@ def download(update: Update, target_dir: pathlib.Path, fetch: Fetch = _fetch) ->
     return path
 
 
+def _start_installer(path: pathlib.Path, options: list[str], popen) -> None:
+    flags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    popen([str(path), *options], creationflags=flags, close_fds=True)
+
+
 def run_installer(path: pathlib.Path, popen=subprocess.Popen) -> None:
     """Start the installer detached; it closes this app, replaces it and starts the new version."""
-    flags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
-    popen([str(path), *SILENT], creationflags=flags, close_fds=True)
+    _start_installer(path, SILENT, popen)
+
+
+def run_installer_after_quit(path: pathlib.Path, popen=subprocess.Popen) -> None:
+    """The same when the person is quitting (MIN-382): the new version waits for the next start."""
+    _start_installer(path, [*SILENT, NO_START], popen)

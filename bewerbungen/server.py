@@ -1,4 +1,4 @@
-"""Lokaler HTTP-Server des Bewerbungsassistenten: nur 127.0.0.1, Token pro Start, Host-Prüfung gegen
+"""Lokaler HTTP-Server des Bewerbungsbegleiters: nur 127.0.0.1, Token pro Start, Host-Prüfung gegen
 DNS-Rebinding, Content-Security-Policy ohne Inline-Skripte.
 
 Routen sind Funktionen `(kontext, parameter, body) -> Antwort`. Seiten (HTML) brauchen kein Token, alle

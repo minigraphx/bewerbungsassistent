@@ -249,7 +249,7 @@ class Hits:
         return ad_with_details(self.get(wanted), self.text(wanted))
 
     def _write(self, all_hits: list[dict]) -> None:
-        schreibe_yaml(self.folder / HITS_FILE, all_hits, "# Treffer der Stellensuche, geschrieben vom Bewerbungsassistenten\n")
+        schreibe_yaml(self.folder / HITS_FILE, all_hits, "# Treffer der Stellensuche, geschrieben vom Bewerbungsbegleiter\n")
 
     def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
                own_portals: frozenset[str] = frozenset(), near=lambda place: False) -> dict:

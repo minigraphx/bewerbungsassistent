@@ -59,7 +59,7 @@ class Ablage:
 
     def _schreibe(self, eintraege: list[Entwurf]) -> None:
         daten = [{k: v for k, v in e.als_dict().items() if k != "genutzt"} for e in eintraege]
-        schreibe_yaml(self._index, daten, "# Entwürfe, geschrieben vom Bewerbungsassistenten\n")
+        schreibe_yaml(self._index, daten, "# Entwürfe, geschrieben vom Bewerbungsbegleiter\n")
 
     def liste(self, datei: pathlib.Path | None = None) -> list[Entwurf]:
         """Entwürfe, neueste zuerst; optional nur die einer Datei."""

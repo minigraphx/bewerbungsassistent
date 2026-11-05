@@ -1,6 +1,6 @@
 # KI-Vermittlung
 
-Modul des [Bewerbungsassistenten](../README.md) für den Pilot (MIN-344): Die App der Teilnehmenden ruft die KI über diese Vermittlung auf. Auf den Rechnern liegt kein API-Schlüssel; jede Person hat einen eigenen Zugang mit Budget.
+Modul des [Bewerbungsbegleiters](../README.md) für den Pilot (MIN-344): Die App der Teilnehmenden ruft die KI über diese Vermittlung auf. Auf den Rechnern liegt kein API-Schlüssel; jede Person hat einen eigenen Zugang mit Budget.
 
 - **Schnittstelle** wie die Messages API von Anthropic (`POST /v1/messages`, auch Streaming). Die App nutzt das Anthropic SDK mit der Adresse der Vermittlung als `base_url`.
 - **Zugang pro Person:** Einladungscode (16 Zeichen, standardmässig 45 Tage gültig, nur einmal) → die App löst ihn ein (`POST /v1/invitations/redeem`) und legt den Zugang im Schlüsselbund ab. Codes und Zugänge stehen nur als Hash in der Datenbank. Sperren für alle Geräte einer Person oder für eines.

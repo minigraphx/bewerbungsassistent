@@ -215,6 +215,61 @@ def test_swap_starts_the_new_version_and_cleans_up(tmp_path):
     assert (tmp_path / "gestartet.log").read_text() == "neu\n"
 
 
+def logging_opener(folder: pathlib.Path) -> pathlib.Path:
+    """Stands in for `open`: writes down its arguments after the app, and confirms the start like the new version."""
+    path = folder / "open-args.sh"
+    path.write_text(f'#!/bin/sh\nshift\nprintf "%s\\n" "$*" >> "{folder}/argumente.log"\n'
+                    f': > "{folder}/.Bewerbungsassistent-update/gestartet"\n')
+    path.chmod(0o755)
+    return path
+
+
+@needs_shell
+def test_swap_after_quit_only_lets_the_new_version_check_itself(tmp_path):
+    app = fake_app(tmp_path)
+    staging = tmp_path / updates_macos.STAGING
+    fake_app(staging, updates_macos.NEW_APP, mark="neu")
+
+    updates_macos.start_swap(app, staging, tmp_path / "n.txt", "9.2.0", pid=gone_process(),
+                             open_command=str(logging_opener(tmp_path)), exit_wait=2, start_wait=2, check_only=True)
+    wait_until_gone(staging)
+
+    assert content(app) == "neu"
+    assert (tmp_path / "argumente.log").read_text() == "--args --nach-update\n"
+
+
+@needs_shell
+def test_swap_with_click_opens_the_new_version_normally(tmp_path):
+    app = fake_app(tmp_path)
+    staging = tmp_path / updates_macos.STAGING
+    fake_app(staging, updates_macos.NEW_APP, mark="neu")
+
+    updates_macos.start_swap(app, staging, tmp_path / "n.txt", "9.2.0", pid=gone_process(),
+                             open_command=str(logging_opener(tmp_path)), exit_wait=2, start_wait=2)
+    wait_until_gone(staging)
+
+    assert (tmp_path / "argumente.log").read_text() == "\n"
+
+
+@needs_shell
+def test_swap_after_quit_goes_back_quietly_when_the_new_version_fails(tmp_path):
+    log = tmp_path / "argumente.log"
+    command = tmp_path / "open-silent.sh"
+    command.write_text(f'#!/bin/sh\nshift\nprintf "%s\\n" "$*" >> "{log}"\n')
+    command.chmod(0o755)
+    app = fake_app(tmp_path)
+    staging = tmp_path / updates_macos.STAGING
+    fake_app(staging, updates_macos.NEW_APP, mark="neu")
+    note = tmp_path / "n.txt"
+
+    updates_macos.start_swap(app, staging, note, "9.2.0", pid=gone_process(), open_command=str(command),
+                             exit_wait=2, start_wait=1, check_only=True)
+    wait_until_gone(staging)
+
+    assert content(app) != "neu" and note.read_text().strip() == "9.2.0"
+    assert log.read_text().splitlines() == ["--args --nach-update", "--args --nach-update"]
+
+
 @needs_shell
 def test_swap_keeps_the_name_of_the_installed_app(tmp_path):
     app = fake_app(tmp_path, "Bewerbungsassistent 2.app")
@@ -341,6 +396,38 @@ def test_route_prepares_swaps_and_quits(tmp_path):
     assert body(post["/api/app/aktualisieren"](None, {}, {}))["version"] == "9.2.0"
 
     assert started[0][0] == app and started[0][1] == tmp_path / updates_macos.STAGING and stopping == [True]
+
+
+def test_quit_swaps_without_opening_the_interface_again(tmp_path):
+    app = fake_app(tmp_path)
+    swaps = []
+    controls = routes_app.Controls(
+        stop=lambda: None, automatic=True, platform="darwin", fetch=release(), app=app, failed_note=tmp_path / "note.txt",
+        run_tool=Tools(), start_swap=lambda *args, **kwargs: swaps.append((args, kwargs)), background=lambda work: work())
+    controls.stop_soon = lambda: None
+
+    data = body(routes_app.make_routes(controls)[1]["/api/app/beenden"](None, {}, {}))
+
+    assert data["aktualisiert"] == "9.2.0"
+    assert swaps[0][0][0] == app and swaps[0][1] == {"check_only": True}
+
+
+def test_quit_leaves_a_version_alone_that_failed_before(tmp_path):
+    app = fake_app(tmp_path)
+    (tmp_path / "note.txt").write_text("9.2.0")
+    _, post, started, controls = routes(tmp_path, app=app)
+    controls.stop_soon = lambda: None
+
+    assert body(post["/api/app/beenden"](None, {}, {})) == {"ok": True}
+    assert started == []
+
+
+def test_quit_leaves_the_app_alone_in_a_bad_place(tmp_path):
+    _, post, started, controls = routes(tmp_path, app=tmp_path / "AppTranslocation" / "x" / "Bewerbungsassistent.app")
+    controls.stop_soon = lambda: None
+
+    assert body(post["/api/app/beenden"](None, {}, {})) == {"ok": True}
+    assert started == []
 
 
 def test_route_reports_a_failed_preparation_and_can_try_again(tmp_path):

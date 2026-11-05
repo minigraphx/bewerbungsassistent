@@ -1,4 +1,4 @@
-# Bewerbungsassistent: Texte in Sie- und Du-Form
+# Bewerbungsbegleiter: Texte in Sie- und Du-Form
 
 Stand: 05.11.2026 · Quelle: [Claude-Docs-Dokument](https://claude.ai/artifact/2vVWbr5YyJ56psyLa1Zjda) (privat)
 
@@ -25,7 +25,7 @@ Nur der Link zur Suche und der Satz zum Datenschutz unterscheiden sich; der Rest
 | Ort | Sie (Stellen) | du (Lehrstellen) |
 | --- | --- | --- |
 | Navigation, Suche | Stellen suchen | Lehrstellen suchen |
-| Navigation, übrige | Bewerbungsassistent · Übersicht · Meine Angaben · Mehr | gleich |
+| Navigation, übrige | Bewerbungsbegleiter · Übersicht · Meine Angaben · Mehr | gleich |
 | Menü Mehr | Unterlagen: Meine Dateien, Entwürfe und Versionen, Foto · Hilfe: Fragen an die KI, Einrichtung · Für Geübte: Inhalte als Text, Erweiterte Einstellungen · Sicherung erstellen · Beenden · Version 0.9.3 | gleich |
 | Zähler am Link Suche | 3 von 10 | gleich |
 | Zurück-Links | ← Zurück zur Übersicht · ← Zurück zu Meine Angaben · ← Zurück zu Entwürfe und Versionen | gleich |
@@ -224,14 +224,14 @@ Der zweite Satz der Formularleiste ist der wichtigste Unterschied: «Abschicken 
 
 | Ort | Sie (Stellen) | du (Lehrstellen) |
 | --- | --- | --- |
-| Popup, Kopf | Bewerbungsassistent · verbunden · nicht verbunden | gleich |
+| Popup, Kopf | Bewerbungsbegleiter · verbunden · nicht verbunden | gleich |
 | Popup, Suche | Stellen suchen · Letzte Suche heute, 08:12 · 12 neue Treffer · Suche starten | Lehrstellen suchen · Letzte Suche heute, 08:12 · 4 neue Treffer · Suche starten |
 | Popup, Suche läuft | fertig, 8 Treffer · Seite 2 von 5 · wartet · Sie können den Browser weiter benutzen. Der Tab der Suche bleibt offen. · Suche abbrechen | fertig, 8 Treffer · Seite 2 von 5 · wartet · Du kannst den Browser weiter benutzen. Der Tab der Suche bleibt offen. · Suche abbrechen |
 | Popup, Diese Seite | Diese Seite · Auf dieser Seite ist keine Stellenanzeige erkannt. | Diese Seite · Auf dieser Seite ist keine Lehrstelle erkannt. |
 | Popup, Stelle geprüft | Einschätzung der KI, kann sich irren · CHF 0.01 · Stelle speichern | Einschätzung der KI, kann sich irren · CHF 0.01 · Lehrstelle speichern |
-| Popup, App fehlt | Die App läuft nicht · Starten Sie den Bewerbungsassistenten auf diesem Computer. Danach verbindet sich die Erweiterung von selbst. · Nochmals verbinden | Die App läuft nicht · Starte den Bewerbungsassistenten auf diesem Computer. Danach verbindet sich die Erweiterung von selbst. · Nochmals verbinden |
+| Popup, App fehlt | Die App läuft nicht · Starten Sie den Bewerbungsbegleiter auf diesem Computer. Danach verbindet sich die Erweiterung von selbst. · Nochmals verbinden | Die App läuft nicht · Starte den Bewerbungsbegleiter auf diesem Computer. Danach verbindet sich die Erweiterung von selbst. · Nochmals verbinden |
 | Popup, Fuss | Treffer in der App ansehen | gleich |
-| Leiste, immer | Bewerbungsassistent · Leiste nach oben · Leiste nach unten | gleich |
+| Leiste, immer | Bewerbungsbegleiter · Leiste nach oben · Leiste nach unten | gleich |
 | Leiste, Formular erkannt | Bewerbungsformular erkannt: Muster AG, Sachbearbeiterin Einkauf. · Die Erweiterung füllt aus, was sie weiss. Abschicken bleibt bei Ihnen. · Hier ausfüllen · Nicht hier | Bewerbungsformular erkannt: Muster Versicherung AG, Kauffrau EFZ. · Die Erweiterung füllt aus, was sie weiss. Abschicken bleibt bei dir. · Hier ausfüllen · Nicht hier |
 | Leiste, ausgefüllt | 5 Felder ausgefüllt, davon 1 Entwurf der KI. 3 offen, 1 Einwilligung bitte selbst prüfen. · Abschicken bleibt bei Ihnen. · Abgeschickt? Ja · Nicht mehr ausfüllen | 5 Felder ausgefüllt, davon 1 Entwurf der KI. 3 offen, 1 Einwilligung bitte selbst prüfen. · Abschicken bleibt bei dir. · Abgeschickt? Ja · Nicht mehr ausfüllen |
 | Leiste, Legende | ausgefüllt · offen · selbst bestätigen · Entwurf der KI, bitte prüfen | gleich |
@@ -304,7 +304,7 @@ Wer eine Stelle sucht und in der Einrichtung du wählt, sieht die Wörter der Si
 | Einstellungen, Kosten | Im November CHF 3.40 von CHF 20.00. Getragen von deiner Begleitperson. |
 | Einstellungen, Schlüssel | Du zahlst die Kosten dann selbst, direkt bei Anthropic. · Der Schlüssel öffnet dein Konto. Gib ihn niemandem weiter. |
 | Einstellungen, Claude-Abo | Wenn du Claude selbst nutzt, kann Claude über eine Verbindung auf diesem Computer Stellen suchen, einschätzen und Anschreiben entwerfen. Die Kosten laufen dann über dein Abo. · Deine Angaben und Bewerbungen. Abschicken und Einträge im Job-Room bleiben bei dir. |
-| Popup | Du kannst den Browser weiter benutzen. Der Tab der Suche bleibt offen. · Starte den Bewerbungsassistenten auf diesem Computer. Danach verbindet sich die Erweiterung von selbst. |
+| Popup | Du kannst den Browser weiter benutzen. Der Tab der Suche bleibt offen. · Starte den Bewerbungsbegleiter auf diesem Computer. Danach verbindet sich die Erweiterung von selbst. |
 | Formularleiste | Abschicken bleibt bei dir. · Wähle dort den Ordner Bewerbungen › Muster AG › Fassung 1. · Speichern und anmelden machst du selbst. · Bitte nicht schliessen, du kannst in einem anderen Tab weiterarbeiten. |
 | Erlaubnis-Seite | Du hast diese Karriereseite in den Erweiterten Einstellungen hinzugefügt. Damit die Erweiterung dort Stellen finden kann, braucht sie deine Erlaubnis. · wenn du das startest · Zurücknehmen kannst du die Erlaubnis jederzeit in den Erweiterten Einstellungen. · Du kannst diesen Tab schliessen. · Du kannst später noch erlauben. |
 | Banner Sicherung | Deine letzte Sicherung ist 30 Tage alt. |

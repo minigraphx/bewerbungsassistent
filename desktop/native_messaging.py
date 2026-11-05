@@ -20,7 +20,8 @@ log = logging.getLogger("bewerbungsassistent")
 
 HOST_NAME = "bewerbungsassistent"
 # The developer add-on (key in erweiterung/manifest.json); the IDs of the stores follow with the release.
-EXTENSION_IDS = ("ghniboofenadplgmdgddmgjaaeeogejn",)
+EXTENSION_IDS = ("ghniboofenadplgmdgddmgjaaeeogejn",  # developer add-on
+                 "mcbcijjbklfeffbollnemgkgnabnmfmp")  # Edge Add-ons (MIN-352)
 MANIFEST_FILE = f"{HOST_NAME}.json"
 WINDOWS_MANIFEST = "native-messaging-host.json"
 LAUNCHER = "native-messaging-host"

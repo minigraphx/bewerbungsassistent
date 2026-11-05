@@ -200,7 +200,7 @@ class Register:
         raise KeyError(f"Bewerbung {bewerbung_id!r} nicht gefunden")
 
     def _schreibe(self, bewerbungen: list[dict]) -> None:
-        schreibe_yaml(self.pfad, bewerbungen, "# Bewerbungsregister, geschrieben vom Bewerbungsassistenten\n")
+        schreibe_yaml(self.pfad, bewerbungen, "# Bewerbungsregister, geschrieben vom Bewerbungsbegleiter\n")
 
     def speichere(self, bewerbung: dict) -> dict:
         """Bewerbung neu anlegen oder per ID ersetzen."""

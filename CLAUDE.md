@@ -1,4 +1,6 @@
-# CLAUDE.md – Bewerbungsassistent
+# CLAUDE.md – Bewerbungsbegleiter
+
+Der sichtbare Name ist **Bewerbungsbegleiter**. Technische Kennungen heissen weiter `bewerbungsassistent`, weil bestehende Installationen und Updates daran hängen: Repo, Tags und Dateinamen der Releases, `Bewerbungsassistent.app` und `.exe`, Ordner der App, Link `bewerbungsassistent://`, Native-Messaging-Host, Schlüsselbund, Connector, Umgebungsvariablen, Dienst der Vermittlung. Nicht umbenennen ohne Plan für den Übergang.
 
 Öffentliches Repo `minigraphx/bewerbungsassistent`. Werkzeuge und Skills für den Bewerbungsablauf: Stellensuche → Lebenslauf und Anschreiben pro Stelle → Prüfung → Versand. Geplant und verfolgt im Linear-Projekt "Bewerbungs-Assistent" (Team Minigraphx, Tickets ab MIN-255).
 

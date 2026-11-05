@@ -1,6 +1,6 @@
 ---
 name: "bewerbung"
-description: "Bewerbung von der Stelle bis zum Versand: passende Lebenslauf-Variante wählen oder neu erstellen, Anschreiben im persönlichen Stil entwerfen, Unterlagen prüfen und den Versand festhalten. Nutzt das Modul bewerbungen des Bewerbungsassistenten und den privaten Datenordner."
+description: "Bewerbung von der Stelle bis zum Versand: passende Lebenslauf-Variante wählen oder neu erstellen, Anschreiben im persönlichen Stil entwerfen, Unterlagen prüfen und den Versand festhalten. Nutzt das Modul bewerbungen des Bewerbungsbegleiters und den privaten Datenordner."
 ---
 
 # Bewerbung: Stelle → Unterlagen → Prüfung → Versand

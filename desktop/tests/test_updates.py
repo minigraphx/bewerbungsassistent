@@ -127,6 +127,119 @@ def test_quit():
     assert stopped.wait(3)
 
 
+def quitting(fetch=None, automatic=True, installer=None):
+    stopped, installed = threading.Event(), []
+
+    def finish_now(work):
+        work()
+
+    def install(path):
+        if installer:
+            installer(path)
+        installed.append(path)
+
+    controls = routes_app.Controls(stop=stopped.set, automatic=automatic, platform="win32", fetch=fetch or release(),
+                                   run_installer_after_quit=install, background=finish_now)
+    return routes_app.make_routes(controls)[1], stopped, installed, controls
+
+
+def test_quit_installs_a_waiting_update_and_still_stops():
+    post, stopped, installed, _ = quitting()
+
+    data = body(post["/api/app/beenden"](None, {}, {}))
+
+    assert data == {"ok": True, "aktualisiert": "9.2.0"}
+    assert installed[0].name == "Bewerbungsassistent-Setup-9.2.0.exe"
+    assert stopped.wait(3)
+
+
+def test_quit_without_an_update_only_stops():
+    post, stopped, installed, _ = quitting(fetch=release(version="0.0.1"))
+
+    assert body(post["/api/app/beenden"](None, {}, {})) == {"ok": True}
+    assert installed == [] and stopped.wait(3)
+
+
+def test_quit_does_not_install_where_the_app_cannot_update_itself():
+    post, stopped, installed, _ = quitting(automatic=False)
+
+    assert body(post["/api/app/beenden"](None, {}, {})) == {"ok": True}
+    assert installed == [] and stopped.wait(3)
+
+
+def test_quit_stops_even_when_the_download_fails():
+    good = release()
+
+    def broken(url, limit):
+        if url.endswith(".exe"):
+            raise OSError("offline")
+        return good(url, limit)
+
+    post, stopped, installed, _ = quitting(fetch=broken)
+
+    assert body(post["/api/app/beenden"](None, {}, {}))["aktualisiert"] == "9.2.0"
+    assert installed == [] and stopped.wait(3)
+
+
+def test_quit_stops_even_when_the_installer_cannot_start():
+    def cannot_start(path):
+        raise OSError("blocked")
+
+    post, stopped, installed, _ = quitting(installer=cannot_start)
+
+    post["/api/app/beenden"](None, {}, {})
+
+    assert installed == [] and stopped.wait(3)
+
+
+def test_quit_stops_even_when_the_check_for_updates_breaks():
+    def broken(url, limit):
+        raise RuntimeError("unexpected")
+
+    post, stopped, installed, _ = quitting(fetch=broken)
+
+    assert body(post["/api/app/beenden"](None, {}, {})) == {"ok": True}
+    assert installed == [] and stopped.wait(3)
+
+
+def test_quit_while_an_update_runs_starts_no_second_one():
+    post, stopped, installed, controls = quitting()
+    controls.installing.acquire()
+
+    assert body(post["/api/app/beenden"](None, {}, {})) == {"ok": True}
+    assert installed == [] and stopped.wait(3)
+
+
+def test_quit_works_in_the_real_background_thread():
+    stopped, installed = threading.Event(), []
+    controls = routes_app.Controls(stop=stopped.set, automatic=True, platform="win32", fetch=release(),
+                                   run_installer_after_quit=installed.append)
+
+    routes_app.make_routes(controls)[1]["/api/app/beenden"](None, {}, {})
+
+    assert stopped.wait(5) and installed
+
+
+def test_installer_after_quit_does_not_start_the_app_again(tmp_path):
+    calls = []
+
+    updates.run_installer_after_quit(tmp_path / "setup.exe", popen=lambda args, **kw: calls.append(args))
+
+    assert calls[0][1:] == ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/NOSTART"]
+
+
+def test_version_route_says_the_update_comes_with_quitting():
+    get, _, _, _ = routes()
+
+    assert body(get["/api/app/version"](None, {}, None))["update"]["beimBeenden"] is True
+
+
+def test_version_route_promises_nothing_without_automatic_update():
+    get, _, _, _ = routes(automatic=False)
+
+    assert body(get["/api/app/version"](None, {}, None))["update"]["beimBeenden"] is False
+
+
 def test_https_uses_the_certificates_of_the_system(monkeypatch):
     """The packed app has no CA file of its own (macOS build): the system's trust store must verify."""
     import io

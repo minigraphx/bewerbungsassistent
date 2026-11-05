@@ -82,7 +82,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view "v$env:VERSION" 2>$null
-          if ($LASTEXITCODE -ne 0) { gh release create "v$env:VERSION" --draft --generate-notes --title "Bewerbungsassistent $env:VERSION" }
+          if ($LASTEXITCODE -ne 0) { gh release create "v$env:VERSION" --draft --generate-notes --title "Bewerbungsbegleiter $env:VERSION" }
           gh release upload "v$env:VERSION" (Get-ChildItem dist-installer\*).FullName --clobber
 
   macos:
@@ -123,5 +123,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "v$VERSION" >/dev/null 2>&1 || gh release create "v$VERSION" --draft --generate-notes --title "Bewerbungsassistent $VERSION"
+          gh release view "v$VERSION" >/dev/null 2>&1 || gh release create "v$VERSION" --draft --generate-notes --title "Bewerbungsbegleiter $VERSION"
           gh release upload "v$VERSION" dist-mac/* --clobber

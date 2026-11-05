@@ -267,7 +267,7 @@ function startView() {
   const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
   return el("section", { className: "start" }, [
     el("h2", {}, "Worum geht es?"),
-    el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsassistent braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
+    el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsbegleiter braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
     profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,
     appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
     existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,

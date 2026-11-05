@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-/0JAsVknCfrF9lqx1jQyGu5lEqiF3b8d5/bfdyFuurg='; style-src 'sha256-Lv58QTnvDkfLf6bj5aCzylKSXxe86N5o32+dUtmyj3I='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-j7z5l5MenfJuOrK76436hQNGOsly/clxtxT/aQU2DP8='; style-src 'sha256-Lv58QTnvDkfLf6bj5aCzylKSXxe86N5o32+dUtmyj3I='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
-<title>Einstieg – Bewerbungsassistent</title>
+<title>Einstieg – Bewerbungsbegleiter</title>
 <style>/* Values from the design system (docs/design/system/tokens.json, MIN-369), the same as bewerbungen/seiten/stil.css.
    The shared file has no fonts of its own: DM Sans only where the app serves it (build_template.APP_FONTS). */
 :root {
@@ -155,7 +155,7 @@ footer { font-size: 14px; line-height: 20px; margin-top: 16px; }
 </head>
 <body>
 <header class="top">
-  <p class="brand">Bewerbungsassistent</p>
+  <p class="brand">Bewerbungsbegleiter</p>
   
   <h1>Einstieg</h1>
   <p class="privacy">Alles bleibt auf diesem Gerät. Die Seite verschickt nichts; am Schluss entsteht eine Datei zum Speichern.</p>
@@ -1487,7 +1487,7 @@ function startView() {
   const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
   return el("section", { className: "start" }, [
     el("h2", {}, "Worum geht es?"),
-    el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsassistent braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
+    el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsbegleiter braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
     profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,
     appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
     existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,

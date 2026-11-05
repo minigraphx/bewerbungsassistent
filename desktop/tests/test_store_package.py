@@ -73,3 +73,9 @@ def test_the_same_files_give_the_same_bytes(source, tmp_path):
     second = store_package.build(tmp_path / "b", source).read_bytes()
 
     assert first == second
+
+
+def test_the_real_extension_names_german_for_the_stores(tmp_path):
+    with zipfile.ZipFile(store_package.build(tmp_path)) as archive:
+        assert json.loads(archive.read("manifest.json"))["default_locale"] == "de"
+        assert json.loads(archive.read("_locales/de/messages.json"))

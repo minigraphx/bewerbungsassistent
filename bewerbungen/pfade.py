@@ -1,6 +1,6 @@
 """Macht das Nachbarmodul `lebenslauf/` importierbar (build, anschreiben, fotoausschnitt).
 
-Die Module des Bewerbungsassistenten liegen als Ordner nebeneinander; `bewerbungen` baut auf `lebenslauf`
+Die Module des Bewerbungsbegleiters liegen als Ordner nebeneinander; `bewerbungen` baut auf `lebenslauf`
 auf, nie umgekehrt.
 """
 import pathlib

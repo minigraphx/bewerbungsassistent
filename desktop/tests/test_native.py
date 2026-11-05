@@ -251,7 +251,8 @@ def test_real_forwarding_to_a_running_app(tmp_path):
 def test_manifest_allows_only_our_extension(tmp_path):
     data = native_messaging.manifest(tmp_path / "app")
     assert data["name"] == native_messaging.HOST_NAME
-    assert data["allowed_origins"] == ["chrome-extension://ghniboofenadplgmdgddmgjaaeeogejn/"]
+    assert data["allowed_origins"] == ["chrome-extension://ghniboofenadplgmdgddmgjaaeeogejn/",
+                                      "chrome-extension://mcbcijjbklfeffbollnemgkgnabnmfmp/"]
     assert data["type"] == "stdio"
 
 

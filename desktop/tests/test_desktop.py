@@ -111,3 +111,25 @@ def test_the_page_for_questions_is_off_until_switched_on_in_the_settings(tmp_pat
     assert settings.questions_page(paths) is False
     settings.save(paths, {settings.QUESTIONS_PAGE: True})
     assert settings.questions_page(paths) is True
+
+
+def test_check_after_an_update_confirms_and_ends(monkeypatch):
+    confirmed = []
+    monkeypatch.setattr(start.updates_macos, "confirm_started", confirmed.append)
+    monkeypatch.setattr(start.updates_macos, "running_app", lambda: "die-app")
+    monkeypatch.setattr(selftest, "check_modules", lambda: None)
+
+    assert start.main(["--nach-update"]) == 0
+    assert confirmed == ["die-app"]
+
+
+def test_check_after_an_update_does_not_confirm_a_broken_version(monkeypatch):
+    def broken():
+        raise ImportError("missing")
+
+    confirmed = []
+    monkeypatch.setattr(start.updates_macos, "confirm_started", confirmed.append)
+    monkeypatch.setattr(selftest, "check_modules", broken)
+
+    assert start.main(["--nach-update"]) == 1
+    assert confirmed == []

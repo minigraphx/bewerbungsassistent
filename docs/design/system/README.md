@@ -1,4 +1,4 @@
-# Design System Bewerbungsassistent
+# Design System Bewerbungsbegleiter
 
 Ein ruhiger, verlässlicher Begleiter durch eine belastende Lebensphase, kein Verwaltungswerkzeug. Jede Seite beantwortet zuerst eine Frage: **Was ist mein nächster Schritt?** Dieses System gilt für die App, für Meine Angaben mit der Einstiegsvorlage und für die Browser-Erweiterung. Die drei bisherigen Erscheinungsbilder (Schieferblau in `stil.css`, Grün mit Pillen in `onboarding/src/style.css`, GitHub-Blau im Popup) gehen darin auf.
 
@@ -92,7 +92,7 @@ Ein ruhiger, verlässlicher Begleiter durch eine belastende Lebensphase, kein Ve
 
 ## Ikonografie
 
-- Es gibt noch keine Symbolsammlung und kein Logo, nur den Schriftzug „Bewerbungsassistent“ in DM Sans 700. In der App steht der Schriftzug in `text-strong`, nie in einer Farbe.
+- Es gibt noch keine Symbolsammlung und kein Logo, nur den Schriftzug „Bewerbungsbegleiter“ in DM Sans 700. In der App steht der Schriftzug in `text-strong`, nie in einer Farbe.
 - Bedeutung tragen Wörter, nicht Symbole. Formen aus CSS (Punkt der Statusmarke, Haken im Schritt) sind erlaubt. Keine Emojis, keine Sterne als Schmuck (die Sterne der Berufswahl bei Lehrstellen sind eine Eingabe und bleiben).
 - Das Symbol der Erweiterung (`assets/Symbole/`) ist nur Programmsymbol im Browser, kein Markenzeichen.
 

@@ -204,15 +204,20 @@ window.App = (() => {
     if (gruppe) {
       const beenden = el("button", { type: "button", class: "beenden" }, "Beenden");
       bestaetigen(beenden, "Wirklich beenden?", async () => {
-        try { await senden("/api/app/beenden", {}); } catch { /* already gone */ }
-        document.body.replaceChildren(el("main", {}, el("h1", {}, "Bewerbungsassistent beendet"),
-          el("p", {}, "Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick.")));
+        let ergebnis = {};
+        try { ergebnis = await senden("/api/app/beenden", {}); } catch { /* already gone */ }
+        document.body.replaceChildren(ergebnis.aktualisiert
+          ? el("main", {}, el("h1", {}, "Bewerbungsbegleiter wird aktualisiert"),
+            el("p", {}, `Version ${ergebnis.aktualisiert} wird im Hintergrund geladen und installiert, danach beendet sich die App. Dieses Fenster lässt sich jetzt schliessen. Beim nächsten Start läuft die neue Version.`))
+          : el("main", {}, el("h1", {}, "Bewerbungsbegleiter beendet"),
+            el("p", {}, "Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick.")));
       });
       gruppe.append(beenden, el("p", { class: "menu__meta version" }, `Version ${info.version}`));
     }
     await zurEinrichtung();
     if (!info.update) return;
-    const meldung = el("span", {}, `Version ${info.update.version} ist verfügbar. ${info.update.hinweis || ""} `);
+    const zeitpunkt = info.update.beimBeenden ? "Sie wird beim Beenden installiert, oder gleich hier. " : "";
+    const meldung = el("span", {}, `Version ${info.update.version} ist verfügbar. ${zeitpunkt}${info.update.hinweis || ""} `);
     const knopf = info.update.automatisch
       ? el("button", { type: "button", class: "haupt" }, "Jetzt aktualisieren")
       : el("a", { href: info.update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");
