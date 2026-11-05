@@ -4,6 +4,7 @@ The app downloads the zip of the release, checks its SHA-256 sum, unpacks it in 
 and verifies the signature. After the app has quit, a small script swaps old and new and starts the new version.
 The old version stays in the hidden folder until the new one confirms its start; without that it comes back.
 If it cannot come back, the folder stays, because it then holds the only working version.
+When the person is quitting (MIN-382), the new version only checks itself and ends, so no browser opens.
 The checksum over HTTPS says the package is ours; codesign says it arrived complete (the app is signed ad hoc,
 so the signature names no one).
 """
@@ -32,6 +33,8 @@ SHELL = "/bin/sh"
 TOOL_TIMEOUT_SECONDS = 300
 EXIT_WAIT_SECONDS = 30
 START_WAIT_SECONDS = 120
+CHECK_FLAG = "--nach-update"
+CHECK_ONLY_ARGS = ("--args", CHECK_FLAG)  # `open` hands what follows --args to the app
 MOVE_FIRST = "Zuerst in den Ordner Programme verschieben, dann geht das Update hier in der App."
 NO_APP = "Diese Version lässt sich nicht selbst aktualisieren."
 
@@ -40,6 +43,7 @@ Run = Callable[..., subprocess.CompletedProcess]
 # Arguments, not text pasted into the script, so names with spaces or quotes stay harmless.
 SWAP_SCRIPT = r'''#!/bin/sh
 pid=$1; app=$2; staging=$3; note=$4; version=$5; opener=$6; exit_wait=$7; start_wait=$8
+shift 8  # what is left goes to the app when it is opened
 new="$staging/Bewerbungsassistent.app"
 old="$staging/Bewerbungsassistent-alt.app"
 started="$staging/gestartet"
@@ -53,7 +57,7 @@ go_back() {
   if [ -e "$app" ] && ! mv "$app" "$staging/fehlgeschlagen.app"; then exit 1; fi
   if ! mv "$old" "$app"; then exit 1; fi
   rm -rf "$staging"
-  "$opener" "$app"
+  "$opener" "$app" "$@"
   exit 1
 }
 
@@ -64,13 +68,13 @@ while kill -0 "$pid" 2>/dev/null; do
   waited=$((waited + 1))
 done
 
-if ! mv "$app" "$old"; then failed; rm -rf "$staging"; "$opener" "$app"; exit 1; fi
-mv "$new" "$app" || go_back
-"$opener" "$app" || go_back
+if ! mv "$app" "$old"; then failed; rm -rf "$staging"; "$opener" "$app" "$@"; exit 1; fi
+mv "$new" "$app" || go_back "$@"
+"$opener" "$app" "$@" || go_back "$@"
 
 waited=0
 while [ ! -e "$started" ]; do
-  if [ "$waited" -ge "$start_wait" ]; then go_back; fi
+  if [ "$waited" -ge "$start_wait" ]; then go_back "$@"; fi
   sleep 1
   waited=$((waited + 1))
 done
@@ -137,13 +141,14 @@ def prepare(update: updates.Update, app: pathlib.Path, fetch: updates.Fetch, run
 
 
 def start_swap(app: pathlib.Path, staging: pathlib.Path, note: pathlib.Path, version: str, pid: int | None = None,
-               open_command: str = OPEN, exit_wait: int = EXIT_WAIT_SECONDS, start_wait: int = START_WAIT_SECONDS) -> None:
+               open_command: str = OPEN, exit_wait: int = EXIT_WAIT_SECONDS, start_wait: int = START_WAIT_SECONDS,
+               check_only: bool = False) -> None:
     """Start the script detached; it outlives this app, which quits right after."""
     script = staging / SCRIPT
     script.write_text(SWAP_SCRIPT, encoding="utf-8")
     subprocess.Popen(  # noqa: S603 (fixed script and tool, values passed as arguments)
         [SHELL, str(script), str(os.getpid() if pid is None else pid), str(app), str(staging), str(note), version,
-         open_command, str(exit_wait), str(start_wait)],
+         open_command, str(exit_wait), str(start_wait), *(CHECK_ONLY_ARGS if check_only else ())],
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         start_new_session=True, close_fds=True)
 

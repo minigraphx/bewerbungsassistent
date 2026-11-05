@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Bewerbungsassistent",
+  "default_locale": "de",
+  "name": "Bewerbungsbegleiter",
   "version": "0.2.9",
-  "description": "Sucht Stellen und Lehrstellen nach dem Suchprofil, prüft Inserate auf Klick und gibt sie an die App Bewerbungsassistent.",
+  "description": "Sucht Stellen und Lehrstellen nach dem Suchprofil, prüft Inserate auf Klick und gibt sie an die App Bewerbungsbegleiter.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArAh5ljw0p/r7bI5HaIMMj/JBifUSUZhNjpYZJzxeNFRFUACgMbf+5CQxnijVKSRyfNkdfyKZlI8bq+pFNVF6n11CQ1u85sGVwKs5w7sTFD9/fKKZG5g/eXyRsQUqJOxgloIKBaEnXNSQK2k0eBvNncTFxPucb0N7UeSGsCqASpNU1X/5HB3b+EfMYd231ZaeSXGX1OOnXcRKPk+XJFHaCRV1ZJiroOpiakLZKcSDpMBgr56IZ8aTOCiJq1Yol6YUVrD8scwSE2oOnQpxYvsOeXPB8DFV5nV07QaLxUpIH939363e6F65D8s/Rcn8qFvFZM5PWeF+21I751ZoT90dswIDAQAB",
   "minimum_chrome_version": "116",
   "permissions": ["activeTab", "nativeMessaging", "scripting", "storage"],
@@ -18,7 +19,7 @@
   ],
   "optional_host_permissions": ["<all_urls>"],
   "background": {"service_worker": "background.js", "type": "module"},
-  "action": {"default_popup": "popup.html", "default_title": "Bewerbungsassistent",
+  "action": {"default_popup": "popup.html", "default_title": "Bewerbungsbegleiter",
              "default_icon": {"16": "icons/icon16.png", "32": "icons/icon32.png"}},
   "icons": {"16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png"},
   "content_scripts": [{"matches": ["http://127.0.0.1/*"], "js": ["app-bridge.js"], "run_at": "document_idle"}]

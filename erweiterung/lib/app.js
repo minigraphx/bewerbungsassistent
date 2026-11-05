@@ -3,7 +3,7 @@
 export const HOST = 'bewerbungsassistent';
 const MISSING = /not found|nicht gefunden|forbidden|exited|beendet/i;
 export const APP_MISSING =
-  'Die App Bewerbungsassistent wurde nicht gefunden. Bitte die App installieren und einmal starten; '
+  'Die App Bewerbungsbegleiter wurde nicht gefunden. Bitte die App installieren und einmal starten; '
   + 'sie meldet sich dabei beim Browser an.';
 
 /** Readable message for an error of the browser's Native Messaging. */

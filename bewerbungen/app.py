@@ -1,4 +1,4 @@
-"""Lokale Oberfläche des Bewerbungsassistenten: Bewerbungen, Unterlagen prüfen, Versand erfassen,
+"""Lokale Oberfläche des Bewerbungsbegleiters: Bewerbungen, Unterlagen prüfen, Versand erfassen,
 Entwürfe und Versionen, Fotoausschnitt. Läuft nur auf 127.0.0.1.
 
   python app.py ../../bewerbungsassistent-daten
@@ -105,7 +105,7 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
 
 
 def main(argv: list[str] | None = None) -> None:
-    ap = argparse.ArgumentParser(description="Lokale Oberfläche des Bewerbungsassistenten")
+    ap = argparse.ArgumentParser(description="Lokale Oberfläche des Bewerbungsbegleiters")
     ap.add_argument("daten", help="Privater Datenordner (mit cv.yaml)")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: <daten>/.build)")
     ap.add_argument("--port", type=int, default=0, help="Port (Standard: ein freier Port)")
@@ -117,7 +117,7 @@ def main(argv: list[str] | None = None) -> None:
         server = erstelle_server(pathlib.Path(args.daten), pathlib.Path(args.build_dir) if args.build_dir else None, args.port, questions_page=args.fragen)
     except (ValueError, OSError) as fehler:
         sys.exit(f"Fehler: {fehler}")
-    log.info("Bewerbungsassistent läuft auf %s (beenden mit Ctrl+C)", server.url)
+    log.info("Bewerbungsbegleiter läuft auf %s (beenden mit Ctrl+C)", server.url)
     if not args.kein_browser:
         webbrowser.open(server.url)
     try:

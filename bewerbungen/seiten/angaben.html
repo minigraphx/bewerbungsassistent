@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nLY1Y2Mj+StDfeDxOxF72Gvfk+fVgXNkNfUJOVc34Ks='; style-src 'sha256-hpVowUMXueKu74AiS8OoFx1j50WOOgJ4NE9Rv+axAhE='; font-src 'self'; img-src 'none'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-scTPullxRqPYs8+XU3FxBvYMHu827Qd0nlhMHqsgMA8='; style-src 'sha256-hpVowUMXueKu74AiS8OoFx1j50WOOgJ4NE9Rv+axAhE='; font-src 'self'; img-src 'none'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
-<title>Meine Angaben – Bewerbungsassistent</title>
+<title>Meine Angaben – Bewerbungsbegleiter</title>
 <style>@font-face { font-family: "DM Sans"; src: url("/fonts/DMSans-400.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "DM Sans"; src: url("/fonts/DMSans-400i.ttf") format("truetype"); font-weight: 400; font-style: italic; font-display: swap; }
 @font-face { font-family: "DM Sans"; src: url("/fonts/DMSans-500.ttf") format("truetype"); font-weight: 500; font-style: normal; font-display: swap; }
@@ -159,7 +159,7 @@ footer { font-size: 14px; line-height: 20px; margin-top: 16px; }
 </head>
 <body>
 <header class="top">
-  <p class="brand">Bewerbungsassistent</p>
+  <p class="brand">Bewerbungsbegleiter</p>
   <a class="back" href="/">← Zurück zu den Bewerbungen</a>
   <h1>Meine Angaben</h1>
   <p class="privacy">Alles bleibt auf diesem Computer im Datenordner. Nur der Knopf „Aus Unterlagen vorbefüllen“ schickt Text an die KI, ohne Name und Adresse.</p>
@@ -1639,7 +1639,7 @@ function startView() {
   const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
   return el("section", { className: "start" }, [
     el("h2", {}, "Worum geht es?"),
-    el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsassistent braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
+    el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsbegleiter braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
     profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,
     appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
     existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,

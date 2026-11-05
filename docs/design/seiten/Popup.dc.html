@@ -23,13 +23,13 @@ a{color:var(--text-strong)}a:hover{color:var(--accent)}
 </helmet>
 <div data-theme="{{theme}}" style="width: 320px; box-sizing: border-box; background: var(--surface); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 20px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;">
   <header style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px;">
-    <strong style="font-size: 15px; color: var(--text-strong);">Bewerbungsassistent</strong>
+    <strong style="font-size: 15px; color: var(--text-strong);">Bewerbungsbegleiter</strong>
     <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: {{verbFarbe}};"><span class="pp-dot" style="background: {{verbFarbe}};"></span>{{verbText}}</span>
   </header>
 
   <sc-if value="{{istGetrennt}}" hint-placeholder-val="{{ false }}">
     <div class="pp-sec">
-      <div class="notice notice--warning" style="flex-direction: column; gap: 4px; padding: 10px 12px;"><span class="notice__title">Die App läuft nicht</span><p class="notice__body" style="flex: none; font-size: 14px; line-height: 20px;">Starten Sie den Bewerbungsassistenten auf diesem Computer. Danach verbindet sich die Erweiterung von selbst.</p></div>
+      <div class="notice notice--warning" style="flex-direction: column; gap: 4px; padding: 10px 12px;"><span class="notice__title">Die App läuft nicht</span><p class="notice__body" style="flex: none; font-size: 14px; line-height: 20px;">Starten Sie den Bewerbungsbegleiter auf diesem Computer. Danach verbindet sich die Erweiterung von selbst.</p></div>
       <button class="btn pp-btn" type="button">Nochmals verbinden</button>
     </div>
   </sc-if>

@@ -1,6 +1,6 @@
 # CLAUDE.md – Modul Bewerbungen
 
-Verwaltung und lokale Oberfläche des Bewerbungsassistenten (MIN-261 Ablauf, MIN-262 Prüfung, MIN-263 Versand, MIN-303/304 Entwürfe und Versionen, MIN-306 Register, MIN-307 Varianten). Baut auf `../lebenslauf` auf, nie umgekehrt (`pfade.py` macht es importierbar; pytest über `pythonpath` in `pytest.ini`).
+Verwaltung und lokale Oberfläche des Bewerbungsbegleiters (MIN-261 Ablauf, MIN-262 Prüfung, MIN-263 Versand, MIN-303/304 Entwürfe und Versionen, MIN-306 Register, MIN-307 Varianten). Baut auf `../lebenslauf` auf, nie umgekehrt (`pfade.py` macht es importierbar; pytest über `pythonpath` in `pytest.ini`).
 
 ## Aufbau
 - `app.py` – Einstieg: `python app.py <datenordner>`; Server (`server.py`), Routen (`routen_*.py`), Seiten (`seiten/`).

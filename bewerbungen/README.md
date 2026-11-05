@@ -1,6 +1,6 @@
 # Bewerbungen
 
-Modul des [Bewerbungsassistenten](../README.md): Bewerbungen verwalten, Unterlagen erstellen und prüfen, Versand festhalten. Mit lokaler Oberfläche im Browser.
+Modul des [Bewerbungsbegleiters](../README.md): Bewerbungen verwalten, Unterlagen erstellen und prüfen, Versand festhalten. Mit lokaler Oberfläche im Browser.
 
 ```bash
 pip install -r ../requirements.txt

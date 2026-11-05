@@ -1,6 +1,6 @@
 # Mit dem eigenen Claude-Abo arbeiten
 
-Wer ein Abo bei Anthropic hat, kann den Bewerbungsassistenten mit Claude nutzen, ohne Einladung und ohne API-Schlüssel. Claude sucht, bewertet und entwirft; die App hält Register, Unterlagen und Entwürfe.
+Wer ein Abo bei Anthropic hat, kann den Bewerbungsbegleiter mit Claude nutzen, ohne Einladung und ohne API-Schlüssel. Claude sucht, bewertet und entwirft; die App hält Register, Unterlagen und Entwürfe.
 
 ## So funktioniert es
 
@@ -14,7 +14,7 @@ Die KI-Knöpfe in der App (zum Beispiel „Bewerten“ oder „Entwurf erstellen
 - **Ihr Vertrag:** Es gilt Ihr eigener Vertrag mit Anthropic, auch in den USA. Ob Ihre Chats zum Training dienen, stellen Sie in Claude unter den Einstellungen zum Datenschutz ein.
 - **Alter:** Claude setzt laut den [Bedingungen von Anthropic](https://www.anthropic.com/legal/consumer-terms) mindestens 18 Jahre voraus. Für jüngere Lehrstellensuchende passt dieser Weg nicht; sie nutzen die App mit Einladung.
 - **Kosten und Grenzen:** Die Nutzung zählt auf die Grenzen Ihres Abos. Eine Suche über mehrere Portale braucht viel davon.
-- **Portale:** Claude liest die Portale in Ihrem Browser. LinkedIn liest Claude nicht, denn LinkedIn verbietet Automatisierung und kann Konten einschränken. Dort öffnen Sie das Inserat selbst und klicken in der Erweiterung des Bewerbungsassistenten auf „Stelle speichern“.
+- **Portale:** Claude liest die Portale in Ihrem Browser. LinkedIn liest Claude nicht, denn LinkedIn verbietet Automatisierung und kann Konten einschränken. Dort öffnen Sie das Inserat selbst und klicken in der Erweiterung des Bewerbungsbegleiters auf „Stelle speichern“.
 
 Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ihnen. Dafür hat die Verbindung zur App keine Werkzeuge. Ist eine Bewerbung verschickt, ändert Claude dort nur noch die Notiz, denn der Nachweis für das RAV stützt sich auf diese Angaben.
 
@@ -30,7 +30,7 @@ Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ih
 
 Sie brauchen ein bezahltes Abo, weil [Claude in Chrome](https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome) nur damit läuft.
 
-1. **App laden und starten**, wie in der [Installation](installation.md) beschrieben. Die Einladung können Sie überspringen. Die [Browser-Erweiterung des Bewerbungsassistenten](installation.md#schritt-4-browser-erweiterung) brauchen Sie, um Inserate von LinkedIn und anderen Seiten einzulesen.
+1. **App laden und starten**, wie in der [Installation](installation.md) beschrieben. Die Einladung können Sie überspringen. Die [Browser-Erweiterung des Bewerbungsbegleiters](installation.md#schritt-4-browser-erweiterung) brauchen Sie, um Inserate von LinkedIn und anderen Seiten einzulesen.
 2. **Skills hochladen:** In der App unter Menü, „Erweiterte Einstellungen“, Abschnitt „Mit dem eigenen Claude-Abo arbeiten“, laden Sie `einstieg.zip`, `jobsuche.zip` und `bewerbung.zip` herunter. In Claude: [Anpassen, Skills, „+“, Skill hochladen](https://support.claude.com/en/articles/12512180-use-skills-in-claude). Einmal pro Datei; entpacken ist nicht nötig.
 3. **Zugang einschalten:** Im selben Abschnitt. Hinweise lesen, Häkchen setzen, „Zugang einschalten“.
 
@@ -45,7 +45,7 @@ Beispiel mit erfundenen Angaben: Erika Beispiel sucht eine Stelle als Köchin in
 
 **Angaben erfassen.** Entweder in der App unter „Meine Angaben“, oder in Claude:
 
-> Richte mich im Bewerbungsassistenten ein. Ich suche eine Stelle als Köchin in der Region Bern. Hier ist mein alter Lebenslauf.
+> Richte mich im Bewerbungsbegleiter ein. Ich suche eine Stelle als Köchin in der Region Bern. Hier ist mein alter Lebenslauf.
 
 Claude fragt nach, was fehlt, und speichert Lebenslauf, Suchprofil, Stil und Bausteine in der App. Claude fragt bei jedem Werkzeug um Erlaubnis. Das können Sie pro Werkzeug dauerhaft erlauben.
 

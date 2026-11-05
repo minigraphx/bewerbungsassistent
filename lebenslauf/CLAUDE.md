@@ -1,6 +1,6 @@
 # CLAUDE.md – Modul Lebenslauf
 
-Lebenslauf-Generator des Bewerbungsassistenten: Inhalt (YAML, JSON-Resume-Schema) und Design (Typst-Themes) getrennt. Entstanden im Spike MIN-294.
+Lebenslauf-Generator des Bewerbungsbegleiters: Inhalt (YAML, JSON-Resume-Schema) und Design (Typst-Themes) getrennt. Entstanden im Spike MIN-294.
 
 ## Aufbau
 - `build.py` – YAML → Zuschnitt (`tailor.py`) → `<build-dir>/cv.json` → Typst → PDF. Typst-Stammordner aus `typst_root.py`: gemeinsamer Oberordner von Themes, Build-Ordner und Foto; liegen sie auf verschiedenen Laufwerken (Windows), werden Themes und Foto in den Build-Ordner kopiert.

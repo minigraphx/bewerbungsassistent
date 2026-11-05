@@ -60,6 +60,8 @@ if sys.platform == "darwin":
         name=f"{NAME}.app",
         bundle_identifier="ch.bewerbungsassistent.app",
         info_plist={
+            "CFBundleName": "Bewerbungsbegleiter",
+            "CFBundleDisplayName": "Bewerbungsbegleiter",  # the file name stays: updates of installed versions rely on it
             "CFBundleURLTypes": [{"CFBundleURLName": "Einladung", "CFBundleURLSchemes": ["bewerbungsassistent"]}],
             "LSUIElement": True,  # no Dock icon: the interface is the browser
         },

@@ -1,0 +1,6 @@
+{
+  "appName": {
+    "message": "Bewerbungsbegleiter",
+    "description": "Sichtbarer Name; Name und Beschreibung im Manifest sind feste Texte. Der Ordner legt die Sprache für die Stores fest (MIN-352)."
+  }
+}

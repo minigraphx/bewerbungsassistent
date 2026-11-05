@@ -1,6 +1,6 @@
 # Lebenslauf
 
-Modul des [Bewerbungsassistenten](../README.md): Lebenslauf und Anschreiben als PDF aus Daten erzeugen – Inhalt und Design getrennt.
+Modul des [Bewerbungsbegleiters](../README.md): Lebenslauf und Anschreiben als PDF aus Daten erzeugen – Inhalt und Design getrennt.
 
 - **Inhalt:** eine YAML-Datei nach dem [JSON-Resume-Schema](https://jsonresume.org/schema) mit wenigen Erweiterungen.
 - **Design:** Themes in [Typst](https://typst.app) unter `themes/<name>/`.

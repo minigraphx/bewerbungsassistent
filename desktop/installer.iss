@@ -1,8 +1,10 @@
-; Windows-Installer des Bewerbungsassistenten (MIN-342), gebaut in der CI mit Inno Setup:
+; Windows-Installer des Bewerbungsbegleiters (MIN-342), gebaut in der CI mit Inno Setup:
 ;   ISCC.exe /DAppVersion=0.1.0 desktop\installer.iss   (nach pyinstaller, aus dem Repo-Ordner)
 ; Installation pro Benutzer ohne Administratorrechte. Ein neuer Installer über eine bestehende Version
 ; ist das Update (auch still mit /VERYSILENT); Datenordner, Einstellungen und Schlüsselbund bleiben.
-#define AppName "Bewerbungsassistent"
+#define AppName "Bewerbungsbegleiter"
+; Der Ordner und die Dateien behalten den alten Namen: Laufende Installationen und ihre Updates hängen daran.
+#define AppFolder "Bewerbungsassistent"
 #define AppExe "Bewerbungsassistent.exe"
 #ifndef AppVersion
   #define AppVersion "0.0.0"
@@ -12,8 +14,8 @@
 AppId={{6B0C9E7A-3F2D-4C1B-9E55-8A1D2F4B7C30}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppPublisher=Bewerbungsassistent
-DefaultDirName={localappdata}\Programs\{#AppName}
+AppPublisher={#AppName}
+DefaultDirName={localappdata}\Programs\{#AppFolder}
 DisableProgramGroupPage=yes
 DisableDirPage=yes
 PrivilegesRequired=lowest
@@ -37,9 +39,12 @@ Name: "desktopicon"; Description: "Verknüpfung auf dem Desktop anlegen"; Flags:
 [InstallDelete]
 ; Dateien der alten Version entfernen, damit nichts Veraltetes liegen bleibt
 Type: filesandordirs; Name: "{app}\_internal"
+; Verknüpfungen unter dem alten Namen
+Type: files; Name: "{autoprograms}\{#AppFolder}.lnk"
+Type: files; Name: "{autodesktop}\{#AppFolder}.lnk"
 
 [Files]
-Source: "..\dist\{#AppName}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\{#AppFolder}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
@@ -53,7 +58,7 @@ Root: HKCU; Subkey: "Software\Classes\bewerbungsassistent\shell\open\command"; V
 
 [Run]
 ; Läuft auch beim stillen Update, damit die neue Version gleich wieder offen ist (ausser mit /NOSTART, für die CI)
-Filename: "{app}\{#AppExe}"; Description: "Bewerbungsassistent starten"; Flags: nowait postinstall; Check: ShouldStart
+Filename: "{app}\{#AppExe}"; Description: "{#AppName} starten"; Flags: nowait postinstall; Check: ShouldStart
 
 [Code]
 function ShouldStart(): Boolean;

@@ -1,4 +1,4 @@
-# Konzept: Bewerbungsassistent als App und Onlinedienst (MIN-305)
+# Konzept: Bewerbungsbegleiter als App und Onlinedienst (MIN-305)
 
 Stand 3.11.2026 (freigegeben; Pilot als lokale App entschieden am 2.11.2026; Bewerben im Browser, RAV-Einträge und eigener API-Schlüssel ergänzt am 3.11.2026). Ersetzt den Entwurf vom 26.10.2026. Grundlage für die Meilensteine „Pilot: lokale App“ und „Onlinedienst: Release (Abo, EU)“ im Linear-Projekt.
 

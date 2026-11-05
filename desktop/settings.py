@@ -2,7 +2,7 @@
 
 App files (settings, the address of the running instance, the log) live in the user's app folder:
 %APPDATA%\\Bewerbungsassistent on Windows, ~/Library/Application Support/Bewerbungsassistent on macOS.
-The data folder is the person's own folder (default: Documents\\Bewerbungsassistent). Nothing secret is
+The data folder is the person's own folder (default: Documents\\Bewerbungsbegleiter). Nothing secret is
 stored here: the access to the AI is in the system's keychain.
 """
 import dataclasses
@@ -11,7 +11,8 @@ import os
 import pathlib
 import sys
 
-APP_NAME = "Bewerbungsassistent"
+APP_NAME = "Bewerbungsassistent"  # the folder of installed apps: stays, whatever the app is called
+SUGGESTED_DATA_FOLDER = "Bewerbungsbegleiter"
 SETTINGS_FILE = "einstellungen.json"
 INSTANCE_FILE = "instanz.json"
 LOG_FILE = "protokoll.txt"

@@ -62,11 +62,24 @@ def _redeem(code: str) -> None:
 
 
 def parse(argv: list[str] | None) -> argparse.Namespace:
-    ap = argparse.ArgumentParser(description="Bewerbungsassistent")
+    ap = argparse.ArgumentParser(description="Bewerbungsbegleiter")
     ap.add_argument("link", nargs="?", help="Einladungslink bewerbungsassistent://einladung?code=…")
     ap.add_argument("--selbsttest", action="store_true", help="Lebenslauf und Anschreiben probehalber bauen")
     ap.add_argument("--kein-browser", action="store_true", help="Browser nicht öffnen")
+    ap.add_argument(updates_macos.CHECK_FLAG, action="store_true", help="Nach einem Update beim Beenden: Version prüfen, nichts öffnen")
     return ap.parse_args(argv)
+
+
+def check_after_update() -> int:
+    """The new version after an update on quitting (MIN-382): it loads, tells the swap and ends; no failure, no way back."""
+    import selftest
+    try:
+        selftest.check_modules()
+    except Exception as error:  # noqa: BLE001 (the swap brings the old version back)
+        log.error("Neue Version unvollständig: %s", error)
+        return 1
+    updates_macos.confirm_started(updates_macos.running_app())
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -83,6 +96,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.selbsttest:
         import selftest
         return selftest.run()
+    if args.nach_update:
+        return check_after_update()
     paths = settings.Paths(settings.app_dir())
     _setup_logging(paths)
     code = urlscheme.invitation_code(args.link)
@@ -155,7 +170,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
         holder["server"].kontext = app.erstelle_kontext(folder)
         log.info("Datenordner gewechselt: %s", folder)
 
-    state = routes_setup.Setup(paths=paths, switch=switch, suggestion=settings.documents_dir() / settings.APP_NAME,
+    state = routes_setup.Setup(paths=paths, switch=switch, suggestion=settings.documents_dir() / settings.SUGGESTED_DATA_FOLDER,
                                forbidden=(paths.app_dir, _install_dir()), extension_dir=prepare_extension(paths))
     app_get, app_post = routes_app.make_routes(controls)
     setup_get, setup_post = routes_setup.make_routes(state)
@@ -173,7 +188,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     updates_macos.confirm_started(controls.app)
     if code:
         _redeem(code)
-    log.info("Bewerbungsassistent läuft auf %s, Daten in %s", server.url, data)
+    log.info("Bewerbungsbegleiter läuft auf %s, Daten in %s", server.url, data)
     if open_browser:
         webbrowser.open(server.url)
     try:

@@ -1,6 +1,6 @@
 ---
 name: "einstieg"
-description: "Einstieg in den Bewerbungsassistenten: Lebenslauf, Suchprofil, Stilprofil und Bausteine aus bestehenden Unterlagen übernehmen (alter Lebenslauf, Arbeitszeugnisse, Zertifikate, frühere Anschreiben) und per Interview ergänzen, oder ganz per Interview erarbeiten – für die Stellensuche und für die Lehrstellensuche von Schulabgängerinnen und Schulabgängern. Von selbst starten, ohne zu fragen: wenn im Datenordner eine der vier Grundlagen fehlt, wenn dokumente/neu.yaml Einträge hat, und wenn jemand eine Datei aus der Einstiegsvorlage bringt (einstieg.json oder einstieg-….zip)."
+description: "Einstieg in den Bewerbungsbegleiter: Lebenslauf, Suchprofil, Stilprofil und Bausteine aus bestehenden Unterlagen übernehmen (alter Lebenslauf, Arbeitszeugnisse, Zertifikate, frühere Anschreiben) und per Interview ergänzen, oder ganz per Interview erarbeiten – für die Stellensuche und für die Lehrstellensuche von Schulabgängerinnen und Schulabgängern. Von selbst starten, ohne zu fragen: wenn im Datenordner eine der vier Grundlagen fehlt, wenn dokumente/neu.yaml Einträge hat, und wenn jemand eine Datei aus der Einstiegsvorlage bringt (einstieg.json oder einstieg-….zip)."
 ---
 
 # Einstieg: Unterlagen und Interview → Grundlagen im Datenordner

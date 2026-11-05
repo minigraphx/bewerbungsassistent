@@ -1,4 +1,4 @@
-/* Bewerbungsassistent — component styles.
+/* Bewerbungsbegleiter — component styles.
    Plain CSS, no framework, no build. Every colour, length and shadow comes from tokens.json via var(--…).
    Class names are English (repo rule for new code); data-status values stay German like the register. */
 

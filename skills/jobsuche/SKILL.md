@@ -19,7 +19,7 @@ Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet diese
 | Trefferliste eines Portals | `screen_hits`, danach nur die Inserate aus `holen` öffnen |
 | Inserate speichern | `save_hits` mit dem vollen Text, Portalname wie im Plan |
 | Bewerten nach Abschnitt 3 | `rate_hit` |
-| LinkedIn | Abschnitt 2c, das Vormerken und die Prüfung auf LinkedIn entfallen: LinkedIn verbietet Automatisierung. Die Person öffnet Inserate selbst und klickt in der Erweiterung des Bewerbungsassistenten auf „Stelle speichern“. Die Stelle steht dann im Register: `list_applications`, `get_application`; bewerten mit `update_application` und `passung` |
+| LinkedIn | Abschnitt 2c, das Vormerken und die Prüfung auf LinkedIn entfallen: LinkedIn verbietet Automatisierung. Die Person öffnet Inserate selbst und klickt in der Erweiterung des Bewerbungsbegleiters auf „Stelle speichern“. Die Stelle steht dann im Register: `list_applications`, `get_application`; bewerten mit `update_application` und `passung` |
 | Karriereseiten | `save_job`; meldet es `link_gespeichert: false`, der Person sagen, dass sie die Adresse aus der Notiz prüft und selbst einträgt |
 | Ins Register | `take_over_hit`; verwerfen mit `discard_hit` |
 | Lauf beenden | `finish_search` mit Anzahl und Problem pro Portal |

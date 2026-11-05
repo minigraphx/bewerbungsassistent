@@ -65,7 +65,7 @@ def _classify(path: pathlib.Path) -> FolderCheck:
     if any((path / marker).is_file() for marker in DATA_MARKERS):
         return FolderCheck(path, "datenordner")
     raise ValueError("Der Ordner enthält schon andere Dateien. Bitte einen leeren Ordner wählen "
-                     "oder am Ende einen neuen Namen angeben, z.B. …\\Bewerbungsassistent.")
+                     "oder am Ende einen neuen Namen angeben, z.B. …\\Bewerbungsbegleiter.")
 
 
 def prepare(check: FolderCheck) -> pathlib.Path:
