@@ -407,3 +407,11 @@ def test_admin_due_names_the_people_to_delete(tmp_path):
     assert "Niemand" in admin.main(["--db", db, "due"], lambda: NOW)
     store.revoke("T01", NOW)
     assert "T01" in admin.main(["--db", db, "due"], lambda: NOW + datetime.timedelta(days=31))
+
+
+def test_rate_limiter_lets_go_of_addresses_that_went_quiet():
+    moments = iter([0.0, 61.0])
+    limiter = RateLimiter(5, clock=lambda: next(moments))
+    limiter.acquire("203.0.113.7")
+    limiter.acquire("198.51.100.2")
+    assert list(limiter._calls) == ["198.51.100.2"]
