@@ -402,7 +402,7 @@ def test_kein_einbetten_in_fremde_seiten(server):
 # First start (MIN-366): one menu everywhere, an empty data folder never gives an internal error
 
 def nav_of(html: str) -> str:
-    return re.search(r"<nav>.*?</nav>", html, re.S).group(0)
+    return re.search(r"<nav[ >].*?</nav>", html, re.S).group(0)
 
 
 def test_all_pages_share_one_menu():
@@ -411,10 +411,10 @@ def test_all_pages_share_one_menu():
 
     assert len(navs) >= 7 and len(set(navs.values())) == 1, navs
     nav = next(iter(navs.values()))
-    for link in ("/", "/treffer"):
-        assert f'<a href="{link}">' in nav.split("<details")[0]
-    for link in ("/angaben", "/einrichtung", "/inhalte", "/entwuerfe", "/foto"):
-        assert f'<a href="{link}">' in nav.split("<details")[1]
+    for link in ("/", "/treffer", "/angaben"):
+        assert f'href="{link}"' in nav.split("<details")[0]
+    for link in ("/dateien", "/einrichtung", "/inhalte", "/entwuerfe", "/foto", "/einstellungen"):
+        assert f'href="{link}"' in nav.split("<details")[1]
 
 
 @pytest.fixture

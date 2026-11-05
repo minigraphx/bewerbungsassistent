@@ -54,7 +54,7 @@ Das Ergebnis bleibt für diese Seite erhalten, auch wenn das Popup zwischendurch
 
 ## Bewerben über Formulare
 
-In der Übersicht der App kreuzt die Person bis zu fünf Bewerbungen an und klickt auf **Bewerben** (MIN-346). Die App prüft sie (Unterlagen, Link, Doppelbewerbungen), die Erweiterung öffnet pro Bewerbung einen Tab und füllt das Formular aus.
+In der Übersicht der App klickt die Person bei „Das steht an“ auf **Formular öffnen**, oder auf **Formulare öffnen**, wenn mehrere Bewerbungen bereit sind (bis zu fünf pro Durchgang, MIN-346). Die App prüft sie (Unterlagen, Link, Doppelbewerbungen), die Erweiterung öffnet pro Bewerbung einen Tab und füllt das Formular aus.
 
 **Die Erweiterung füllt aus, die Person entscheidet und schickt ab:**
 
@@ -111,7 +111,7 @@ Die Anpassungen an die Portale sind mit gespeicherten Antworten oder kleinen Nac
 
 ## Im RAV eintragen (MIN-347)
 
-In der Übersicht der App kreuzt die Person abgeschickte Bewerbungen an und wählt „Im RAV eintragen“. Die Erweiterung öffnet das Formular für die Arbeitsbemühungen im Job-Room in einem einzigen Tab (`lib/rav.js`) und füllt einen Eintrag nach dem anderen (`form/rav-filler.js`, Zuordnung in `form/rav-fields.js`).
+In der Übersicht der App wählt die Person bei „Das steht an“ oder beim Hinweis gegen Monatsende „Jetzt eintragen“; das nimmt alle abgeschickten, noch nicht eingetragenen Bewerbungen (höchstens 20 pro Durchgang). Die Erweiterung öffnet das Formular für die Arbeitsbemühungen im Job-Room in einem einzigen Tab (`lib/rav.js`) und füllt einen Eintrag nach dem anderen (`form/rav-filler.js`, Zuordnung in `form/rav-fields.js`).
 
 - **Anmelden und Speichern tut die Person.** Das Skript drückt nie einen Knopf. „Speichern“ im Job-Room übermittelt den Eintrag ans RAV. Ohne Anmeldung zeigt der Balken „Zum Formular“; auf der Anmeldeseite läuft kein Skript.
 - **Vermerkt wird erst nach dem Speichern:** wenn die Meldung „Arbeitsbemühung gespeichert“ erscheint (Deutsch, Französisch, Italienisch, Englisch), oder wenn die Person im Balken „Eingetragen? Ja“ drückt. „Überspringen“ vermerkt nichts. Bei einem Fehlgriff lässt es sich auf der Seite der Bewerbung zurücksetzen.

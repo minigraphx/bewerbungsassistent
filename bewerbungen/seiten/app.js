@@ -137,7 +137,7 @@ window.App = (() => {
 
   function navigation() {
     const pfad = location.pathname;
-    for (const a of document.querySelectorAll("nav a[href]")) {
+    for (const a of document.querySelectorAll(".app-nav a[href]:not(.app-nav__brand)")) {
       if (a.getAttribute("href") === pfad || (pfad === "/bewerbung" && a.getAttribute("href") === "/")) {
         a.setAttribute("aria-current", "page");
       }
@@ -145,9 +145,21 @@ window.App = (() => {
   }
   navigation();
 
+  // Text set from the setup (MIN-369): the pages fill their data-text elements, the menu names the search.
+  // Without the route (or before a choice) the page keeps the words it was written with: a job, Sie.
+  const wahl = holen("/api/einrichtung/wahl").catch(() => null);
+  async function textsatz() {
+    const gewaehlt = await wahl;
+    return gewaehlt ? gewaehlt.textsatz : "stelle-sie";
+  }
+  textsatz().then(satz => {
+    document.documentElement.dataset.textsatz = satz;
+    window.Texte?.anwenden(document, satz);
+  });
+
   // Menu: closes with Escape and with a click elsewhere
   function menue() {
-    const details = document.querySelector("nav details.menue");
+    const details = document.querySelector(".app-nav details.app-nav__more");
     if (!details) return;
     document.addEventListener("click", e => { if (!details.contains(e.target)) details.open = false; });
     document.addEventListener("keydown", e => {
@@ -188,16 +200,15 @@ window.App = (() => {
   async function desktop() {
     let info;
     try { info = await holen("/api/app/version"); } catch { return; }
-    const nav = document.querySelector("nav");
-    if (nav) {
+    const gruppe = document.getElementById("menu-app");
+    if (gruppe) {
       const beenden = el("button", { type: "button", class: "beenden" }, "Beenden");
       bestaetigen(beenden, "Wirklich beenden?", async () => {
         try { await senden("/api/app/beenden", {}); } catch { /* already gone */ }
         document.body.replaceChildren(el("main", {}, el("h1", {}, "Bewerbungsassistent beendet"),
-          el("p", {}, "Sie können dieses Fenster schliessen. Starten Sie die App wieder mit einem Doppelklick.")));
+          el("p", {}, "Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick.")));
       });
-      nav.querySelector(".menue-inhalt")?.append(el("span", { class: "leise version" }, `Version ${info.version}`));
-      nav.append(beenden);
+      gruppe.append(beenden, el("p", { class: "menu__meta version" }, `Version ${info.version}`));
     }
     await zurEinrichtung();
     if (!info.update) return;
@@ -267,7 +278,7 @@ window.App = (() => {
   }
 
   async function erstelleSicherung() {
-    document.querySelector("nav details.menue")?.removeAttribute("open");
+    document.querySelector(".app-nav details.app-nav__more")?.removeAttribute("open");
     try {
       const { datei } = await holen("/api/sicherung/stand");
       if (!window.showSaveFilePicker) {
@@ -287,7 +298,7 @@ window.App = (() => {
   }
 
   function sicherungMenue() {
-    document.querySelector("nav .menue-inhalt")?.append(el("button", { type: "button", class: "menue-knopf", onclick: erstelleSicherung }, "Sicherung erstellen"));
+    document.getElementById("menu-app")?.prepend(el("button", { type: "button", onclick: erstelleSicherung }, "Sicherung erstellen"));
   }
   sicherungMenue();
 
@@ -303,5 +314,6 @@ window.App = (() => {
   }
   sicherungHinweis();
 
-  return { url, holen, senden, el, status, alsBase64, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe, beobachten };
+  return { url, holen, senden, el, status, alsBase64, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe, beobachten,
+           wahl: () => wahl, textsatz };
 })();

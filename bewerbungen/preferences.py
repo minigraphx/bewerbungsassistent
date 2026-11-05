@@ -2,7 +2,8 @@
 
 Stored in the data folder (`einrichtung.yaml`), so it moves with the person's files and Claude sees it too. Before
 anything is chosen, the search profile says what is sought (an apprenticeship profile has „## Lehrbeginn“), the form
-of address follows from it, and RAV stays on: for people who set up the app earlier nothing disappears.
+of address follows from it, and RAV stays as it was (on for jobs, off for apprenticeships): nothing changes for people
+who set up the app earlier.
 
 Three text sets follow from the choice: a job with Sie, a job with du, an apprenticeship with du.
 """
@@ -45,7 +46,7 @@ class Choice:
 
 def _default(data_dir: pathlib.Path) -> Choice:
     sought = search_plan.kind_of_folder(data_dir)
-    return Choice(sought, DU if sought == APPRENTICESHIP else SIE, True)
+    return Choice(sought, DU if sought == APPRENTICESHIP else SIE, sought != APPRENTICESHIP)
 
 
 def parse(values) -> Choice:
