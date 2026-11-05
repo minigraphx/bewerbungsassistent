@@ -3,6 +3,7 @@
 (() => {
   const { holen, senden, el, status } = window.App;
   const $ = id => document.getElementById(id);
+  const ZUEGE_MIT = 12;  // the server takes no more of them; the page keeps the whole conversation
   const TEXTE = {
     lehrstelle: {
       hilfe: "Frag hier zur Lehrstellensuche, zur Berufswahl und zu deiner Bewerbung. Die KI kennt deine Angaben, nicht deine Liste der Bewerbungen, und sie ändert nichts. Das Gespräch bleibt nur auf dieser Seite. Prüfe wichtige Antworten, auch eine KI irrt sich.",
@@ -46,7 +47,7 @@
     $("fragen-senden").disabled = true;
     status($("fragen-meldung"), "Die KI antwortet …", "");
     try {
-      const antwort = await senden("/api/fragen/senden", { frage: text, verlauf });
+      const antwort = await senden("/api/fragen/senden", { frage: text, verlauf: verlauf.slice(-ZUEGE_MIT) });
       const neu = [{ rolle: "person", text }, { rolle: "ki", text: antwort.antwort }];
       verlauf = [...verlauf, ...neu];
       neu.forEach(zeigeZug);
@@ -59,6 +60,7 @@
       wartet = false;
       $("fragen-senden").disabled = false;
       status($("fragen-meldung"), fehler.message, "fehler");  // the question stays in the field
+      holen("/api/fragen/stand").then(stand => zeigeUebrig(stand.uebrig), () => {});  // an answer that could not be used still counted
     }
   }
 

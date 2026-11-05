@@ -73,11 +73,29 @@ def test_a_clean_conversation_takes_only_the_known_form():
 
 @pytest.mark.parametrize("body", [None, [], {}, {"frage": ""}, {"frage": "  "}, {"frage": 5}, {"frage": "x" * (chat.MAX_QUESTION + 1)},
                                   {"frage": "x", "verlauf": "alt"}, {"frage": "x", "verlauf": [{"rolle": "system", "text": "y"}]},
-                                  {"frage": "x", "verlauf": [{"rolle": "ki"}]}, {"frage": "x", "verlauf": [{"rolle": "ki", "text": "y" * (chat.MAX_TURN_TEXT + 1)}]},
+                                  {"frage": "x", "verlauf": [{"rolle": "ki"}]},
                                   {"frage": "x", "verlauf": ["y"]}])
 def test_another_form_is_refused(body):
     with pytest.raises(ValueError):
         chat.clean_conversation(body)
+
+
+def test_a_long_answer_is_shortened_on_the_way_back_and_blocks_nothing():
+    _, history = chat.clean_conversation({"frage": "x", "verlauf": [{"rolle": "ki", "text": "y" * (chat.MAX_TURN_TEXT + 500)}]})
+    assert len(history[0]["text"]) == chat.MAX_TURN_TEXT
+
+
+def test_a_long_conversation_keeps_working_with_its_last_turns():
+    turns = [{"rolle": "person", "text": f"Satz {n}."} for n in range(500)]
+    _, history = chat.clean_conversation({"frage": "x", "verlauf": turns})
+    assert len(history) == chat.MAX_TURNS and history[-1]["text"] == "Satz 499."
+
+
+def test_the_next_question_after_a_long_answer_is_answered(asking):
+    s, client = asking
+    long_answer = "Absatz. " * 600
+    status, _ = post(s, "/api/fragen/senden", {"frage": "Und nun?", "verlauf": [{"rolle": "person", "text": "Entwurf?"}, {"rolle": "ki", "text": long_answer}]})
+    assert status == 200 and len(client.messages.calls) == 1
 
 
 def test_questions_of_today_are_counted_from_the_log_and_other_tasks_do_not_count(tmp_path):

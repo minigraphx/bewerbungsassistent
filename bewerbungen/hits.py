@@ -107,6 +107,8 @@ def validate(raw, own_portals: frozenset[str] = frozenset()) -> dict:
     return {**{k: v for k, v in hit.items() if v not in ("", None)}, "text": (text or "").strip()[:MAX_TEXT]}
 
 
+NOT_A_PLACE = frozenset({"schweiz", "suisse", "svizzera", "switzerland", "homeoffice", "home", "office", "remote", "und", "oder", "bei", "region", "raum",
+                         "kanton", "bad", "sankt"})  # „Bern, Schweiz“ and „Zürich, Schweiz“ share a word, not a place
 # With m or w: „D/F“ in a Swiss title means German and French.
 _TITLE_GENDER = re.compile(r"\(?\b(?=[dfx/|\s]*[mw])[mwfdx](?:\s*[/|]\s*[mwfdx]){1,3}\b\)?", re.IGNORECASE)
 _TITLE_ENDING = re.compile(r"\s*[/:*_]\s*-?in(?:nen)?\b")  # Entwickler/in, Entwickler:in, Ingenieur/-in
@@ -147,7 +149,13 @@ def _job_key(hit: dict) -> str:
 
 
 def _places(ort: str) -> set[str]:
-    return set(re.findall(r"[^\W\d_]{3,}", (ort or "").lower()))
+    return set(re.findall(r"[^\W\d_]{3,}", (ort or "").lower())) - NOT_A_PLACE
+
+
+def _has_other_ad_of_portal(stored: dict, hit: dict) -> bool:
+    """A link from this portal is already merged into the stored hit. The same link again stays known; another one is a second job."""
+    merged = stored.get("weitere", [])
+    return any(o["portal"] == hit["portal"] for o in merged) and all(o["link"] != hit["link"] for o in merged)
 
 
 def _find_twin(hit: dict, stored: list[dict]) -> dict | None:
@@ -160,7 +168,7 @@ def _find_twin(hit: dict, stored: list[dict]) -> dict | None:
         return None
     job, places, pensum = _job_key(hit), _places(hit.get("ort", "")), _title_pensum(hit["stelle"])
     for other in stored:
-        if other["portal"] == hit["portal"] or _job_key(other) != job:
+        if other["portal"] == hit["portal"] or _job_key(other) != job or _has_other_ad_of_portal(other, hit):
             continue
         other_pensum = _title_pensum(other["stelle"])
         if pensum and other_pensum and pensum != other_pensum:  # „Koch 50%“ and „Koch 100%“ can be two jobs

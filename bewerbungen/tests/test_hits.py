@@ -265,3 +265,43 @@ def test_a_title_of_nothing_but_details_does_not_become_empty(store):
     store.add([hit(stelle="100%")], REGISTER, TODAY)
     other = hit(portal="job-room", portal_id="x-9", stelle="(m/w/d)", link="https://www.job-room.ch/job-search/x-9")
     assert store.add([other], REGISTER, TODAY)["neu"] == 1
+
+
+# What counts as the same place, and two ads of one portal.
+
+@pytest.mark.parametrize("first, second", [("Zürich, Schweiz", "Bern, Schweiz"), ("Bad Ragaz", "Bad Zurzach"), ("Bern (und Homeoffice)", "Thun (und Homeoffice)"),
+                                           ("Sankt Gallen", "Sankt Moritz"), ("Kanton Bern", "Kanton Zürich")])
+def test_words_that_name_no_place_do_not_make_two_places_the_same(store, first, second):
+    store.add([hit(ort=first)], REGISTER, TODAY)
+    other = hit(portal="job-room", portal_id="x-9", ort=second, link="https://www.job-room.ch/job-search/x-9")
+    assert store.add([other], REGISTER, TODAY)["neu"] == 1
+
+
+@pytest.mark.parametrize("first, second", [("Bern, Schweiz (und Homeoffice)", "3011 Bern"), ("Schweiz", "Bern"), ("Bad Ragaz", "7310 Bad Ragaz")])
+def test_the_same_place_in_another_spelling_is_still_merged(store, first, second):
+    store.add([hit(ort=first)], REGISTER, TODAY)
+    twin = hit(portal="job-room", portal_id="x-9", ort=second, link="https://www.job-room.ch/job-search/x-9")
+    assert store.add([twin], REGISTER, TODAY)["zusammengefuehrt"] == 1
+
+
+def _job_room(number: int) -> dict:
+    return hit(portal="job-room", portal_id=f"x-{number}", link=f"https://www.job-room.ch/job-search/x-{number}")
+
+
+def test_two_ads_of_one_portal_stay_two_jobs_also_after_a_merge(store):
+    store.add([hit()], REGISTER, TODAY)
+    assert store.add([_job_room(1)], REGISTER, TODAY)["zusammengefuehrt"] == 1
+    assert store.add([_job_room(2)], REGISTER, TODAY) == {"neu": 1, "zusammengefuehrt": 0, "abgelehnt": []}
+
+
+def test_a_merged_ad_that_comes_again_stays_known(store):
+    store.add([hit()], REGISTER, TODAY)
+    store.add([_job_room(1)], REGISTER, TODAY)
+    assert store.add([_job_room(1)], REGISTER, TODAY) == {"neu": 0, "zusammengefuehrt": 0, "abgelehnt": []}
+    assert len(store.all()) == 1
+
+
+def test_screening_asks_for_the_second_ad_of_a_portal(store):
+    store.add([hit()], REGISTER, TODAY)
+    store.add([_job_room(1)], REGISTER, TODAY)
+    assert store.screen([_job_room(2)], (), 45, REGISTER)["holen"] == ["job-room:x-2"]

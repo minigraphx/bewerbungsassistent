@@ -15,9 +15,8 @@ from ai.usage import UsageLog
 
 TASK = "chat"
 MAX_QUESTION = 1000
-MAX_TURN_TEXT = 2000
+MAX_TURN_TEXT = 2000  # an answer can be longer: what goes along is shortened, the page keeps it whole
 MAX_TURNS = 12  # older turns stay on the page but do not go along
-MAX_HISTORY = 200  # what is accepted at all; a longer one did not come from the page
 MAX_PER_DAY = 30
 ROLES = ("person", "ki")
 NO_QUESTION = "Bitte eine Frage schreiben."
@@ -26,9 +25,9 @@ BAD_FORM = "Die Anfrage hat eine unbekannte Form."
 
 
 def _turn(raw: object) -> dict:
-    if not isinstance(raw, dict) or raw.get("rolle") not in ROLES or not isinstance(raw.get("text"), str) or len(raw["text"]) > MAX_TURN_TEXT:
+    if not isinstance(raw, dict) or raw.get("rolle") not in ROLES or not isinstance(raw.get("text"), str):
         raise ValueError(BAD_FORM)
-    return {"rolle": raw["rolle"], "text": raw["text"]}
+    return {"rolle": raw["rolle"], "text": raw["text"][:MAX_TURN_TEXT]}
 
 
 def clean_conversation(body: object) -> tuple[str, list[dict]]:
@@ -38,9 +37,9 @@ def clean_conversation(body: object) -> tuple[str, list[dict]]:
     if len(question) > MAX_QUESTION:
         raise ValueError(TOO_LONG)
     history = body.get("verlauf", [])
-    if not isinstance(history, list) or len(history) > MAX_HISTORY:
+    if not isinstance(history, list):
         raise ValueError(BAD_FORM)
-    return question, [_turn(turn) for turn in history]
+    return question, [_turn(turn) for turn in history[-MAX_TURNS:]]
 
 
 def remaining_today(log: UsageLog, today: datetime.date) -> int:
