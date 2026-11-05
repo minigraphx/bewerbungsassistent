@@ -625,3 +625,46 @@ label.check input { margin-top: 3px; }
 .overview .table__main { text-decoration: none; }
 .overview .table__main:hover { text-decoration: underline; }
 .dialog .field:last-of-type { margin-bottom: var(--space-3); }
+
+/* ---------- Application ---------- */
+.application { display: flex; flex-direction: column; gap: var(--space-5); }
+.application > a.zurueck { margin: 0; align-self: flex-start; }
+.application > .status-line { margin: 0; }
+.application > .status-line:empty { display: none; }
+.application__head { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); justify-content: space-between; align-items: flex-start; }
+.application__title { display: flex; flex-direction: column; gap: var(--space-1); }
+.application__title h1 { margin: 0; font-size: 22px; line-height: 28px; }
+.application__title p { margin: 0; }
+.application__marks { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.application__layout { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: flex-start; }
+.application__main { flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-5); }
+.application__side { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+.application .card { gap: var(--space-3); padding: var(--space-4) var(--space-5); }
+.application .card h3 { margin: var(--space-2) 0 0; font-size: 14px; line-height: 20px; color: var(--text-strong); }
+.application .card > p, .application .card .field, .application .card ul, .application .card .btn-row { margin: 0; }
+.application__side .card > h2, .application__side-head h2 { font-size: 16px; line-height: 22px; }
+.application__side-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
+.application__side-head h2 { margin: 0; padding: 0; border: 0; }
+.application__inline { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.application__inline .input { flex: 1 1 220px; min-width: 0; }
+.application__fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0 var(--space-4); }
+.application__fields .field { margin-bottom: var(--space-3); }
+.application__ai { display: flex; flex-direction: column; gap: var(--space-2); }
+.application__ai .status:empty, .application__own .status:empty { display: none; }
+.application__own { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.application__own .datei-liste { margin: 0; }
+.application__own .datei-waehlen { align-self: flex-start; }
+.application__details > summary { cursor: pointer; font-weight: 700; color: var(--text-strong); }
+.application__details[open] > summary { margin-bottom: var(--space-1); }
+.application__suggestions:empty { display: none; }
+.application__note { min-height: 96px; font-size: 14px; }
+.application__history { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; font-size: 14px; line-height: 20px; }
+.application__date { color: var(--text-muted); }
+.application__dialog { width: min(760px, calc(100% - 2 * var(--space-4))); }
+.application #jobroom .copy-row__value:empty::before { content: "fehlt"; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 4px var(--space-3); margin: 0; font-size: 14px; line-height: 20px; }
+.facts dt { color: var(--text-muted); }
+.facts dd { margin: 0; color: var(--text-strong); overflow-wrap: anywhere; }
+.application #formular-teil, .application #versand-form, .application #antwort-teil, .application #jobroom-teil, .application #versand-info { display: flex; flex-direction: column; gap: var(--space-2); }
+.application #versand-info:empty { display: none; }
+.application #versand-form .application__fields { margin-top: var(--space-1); }
