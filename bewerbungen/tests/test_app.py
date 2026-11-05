@@ -406,7 +406,7 @@ def nav_of(html: str) -> str:
 
 
 def test_all_pages_share_one_menu():
-    pages = sorted(path for path in server_modul.SEITEN.glob("*.html") if path.name != "angaben.html")
+    pages = sorted(server_modul.SEITEN.glob("*.html"))
     navs = {page.name: nav_of(page.read_text(encoding="utf-8")) for page in pages}
 
     assert len(navs) >= 7 and len(set(navs.values())) == 1, navs

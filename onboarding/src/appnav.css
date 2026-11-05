@@ -1,0 +1,23 @@
+/* Only in the page „Meine Angaben“ of the app: the navigation of the app, as in bewerbungen/seiten/stil.css
+   (the page brings its own styles by hash and loads no stylesheet). Keep the two in step. */
+.app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.app-nav__brand { margin-right: auto; padding: 8px 4px; font-weight: 700; color: var(--text-strong); text-decoration: none; }
+.app-nav__list { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.app-nav__link, .app-nav__more > summary { display: block; padding: 6px 12px; border-radius: var(--radius-control); color: var(--text-strong); font-weight: 500; text-decoration: none; cursor: pointer; }
+.app-nav__link:hover, .app-nav__more > summary:hover { background: var(--surface-subtle); color: var(--text-strong); }
+.app-nav__link[aria-current="page"], .app-nav__more:has(a[aria-current="page"]) > summary { background: var(--accent); color: var(--accent-text); }
+.app-nav__more { position: relative; }
+.app-nav__more > summary { list-style: none; }
+.app-nav__more > summary::-webkit-details-marker { display: none; }
+.menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); }
+.menu__group:empty { display: none; }
+.menu__group + .menu__group { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.menu__heading { margin: 0; padding: 4px 8px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--muted); }
+.menu a, .menu button { display: block; width: 100%; padding: 6px 8px; border: 0; border-radius: 4px; background: none; color: var(--text-strong); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.menu a:hover, .menu button:hover { background: var(--surface-subtle); }
+.menu__meta { margin: 0; padding: 4px 8px; font-size: 13px; color: var(--muted); }
+/* Messages of app.js (new version, backup) above the page */
+.banner, .status { grid-column: 1 / -1; margin: 0; padding: 12px 16px; border-radius: var(--radius-control); background: var(--accent-soft); color: var(--text-strong); }
+.banner button, .banner a, .status button { margin-left: 8px; }
+.status.fehler { background: var(--danger-soft); }
+.status.ok { background: var(--success-soft); }
