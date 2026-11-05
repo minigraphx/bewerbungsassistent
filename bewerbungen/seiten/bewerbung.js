@@ -11,7 +11,8 @@
     ["kontaktperson", "Kontaktperson"], ["kontakt", "Telefon / E-Mail"], ["stelle", "Stelle"], ["pensum", "Pensum"],
     ["art", "Art der Bewerbung"], ["ergebnis", "Ergebnis"], ["rav_zuweisung", "Zuweisung des RAV"]];
   const ANDERSWO_GEAENDERT = "Diese Bewerbung wurde inzwischen auch anderswo geändert. Ihre Eingaben bleiben stehen, und gespeichert werden nur die Felder, die Sie geändert haben.";
-  const KEIN_ANSCHREIBEN = "Noch kein Anschreiben. Einen Entwurf erstellt „Anschreiben entwerfen“ weiter unten oder Claude mit dem Skill „bewerbung“. Ein fertiges PDF lässt sich unter „Fertiges Anschreiben“ hochladen.";
+  const FORM_FILES = { lebenslauf: "Lebenslauf", anschreiben: "Anschreiben", zertifikate: "Zertifikate" };
+  const KEIN_ANSCHREIBEN = "Noch kein Anschreiben. Einen Entwurf erstellt „Anschreiben entwerfen“ weiter unten oder Claude mit dem Skill „bewerbung“. Ein fertiges PDF lässt sich unter „Eigenes Anschreiben“ hochladen.";
   let bewerbung = null;
   let geladenerText = "";
   let pdfStand = "";
@@ -114,6 +115,16 @@
   function zeigeAnschreibenHinweis(daten) {
     if (!daten.hat_anschreiben && !daten.bewerbung.versand) meldungOben(KEIN_ANSCHREIBEN, "hinweis");
     else if ($("status-oben").textContent === KEIN_ANSCHREIBEN) meldungOben("");
+  }
+
+  // A form keeps the file it got. Whoever sent it there and then records it here says so, the app cannot know.
+  function zeigeFormularFassung(daten) {
+    const anders = daten.formular_abweichend.map(art => FORM_FILES[art]);
+    $("formular-fassung").hidden = !anders.length;
+    if (!anders.length) $("v-formular").checked = false;
+    $("formular-fassung-text").textContent = anders.length
+      ? `Das Formular im Browser hat eine andere Fassung bekommen: ${anders.join(", ")}. Ohne Häkchen wird die aktuelle festgehalten.`
+      : "";
   }
 
   function zeigeVersand(b) {
@@ -248,10 +259,11 @@
   $("pruefen").addEventListener("click", pruefen);
   document.addEventListener("anschreiben-geaendert", laden);
   document.addEventListener("eigenes-anschreiben-geaendert", nachsehen);
+  document.addEventListener("bewerbung-geladen", event => zeigeFormularFassung(event.detail));
   $("v-datum").value = new Date().toISOString().slice(0, 10);
   bestaetigen($("versenden"), "Wirklich erfassen? Nochmals klicken", async () => {
     try {
-      const ergebnis = await senden("/api/versand", { datum: $("v-datum").value, art: $("v-art").value }, { id: ID });
+      const ergebnis = await senden("/api/versand", { datum: $("v-datum").value, art: $("v-art").value, fassung_formular: $("v-formular").checked }, { id: ID });
       const hinweise = ergebnis.hinweise.length ? " Hinweise: " + ergebnis.hinweise.join(" · ") : "";
       meldung((ergebnis.commit ? "Versand erfasst und in Git eingefroren." : "Versand erfasst.") + hinweise,
         ergebnis.hinweise.length ? "hinweis" : "ok");

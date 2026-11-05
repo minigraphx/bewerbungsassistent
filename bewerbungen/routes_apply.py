@@ -3,8 +3,10 @@
 Only `abgeschickt` records a dispatch, and the extension calls it only after the person pressed its button.
 """
 import base64
+import logging
 
 import apply
+import form_copy
 import pruefung
 import routes_ai
 import versand
@@ -12,6 +14,7 @@ from ai import form_help
 from register import FORM_STATES
 from server import json_antwort, pflicht
 
+log = logging.getLogger(__name__)
 OPENED, FILLED, SENT = FORM_STATES
 TOO_MANY = f"Pro Durchgang gehen höchstens {apply.MAX_PER_RUN} Bewerbungen."
 NONE_CHOSEN = "Bitte zuerst Bewerbungen ankreuzen."
@@ -86,18 +89,32 @@ def _part_number(parameter: dict) -> int:
         raise ValueError(apply.UNKNOWN_PART) from error
 
 
+def _read_handed_over(k, wanted: str, key: str, part: int) -> tuple[str, bytes, int]:
+    with k.sperre:  # a dispatch can neither come before the copy nor remove it while it is read
+        entry = k.register().hole(wanted)
+        reason = apply.blocker(k.daten, entry)
+        if reason:
+            raise ValueError(reason)
+        upload = apply.uploads(k.daten, entry).get(key)
+        if upload is None:
+            raise ValueError(apply.UNKNOWN_FILE)
+        source = apply.handed_over(k.daten, entry["id"], key, upload, part)
+        return (source.name, *apply.read_part(source, part))
+
+
 def file_part(k, parameter, body):
-    wanted = pflicht(parameter, "id")
-    entry = k.register().hole(wanted)
-    reason = apply.blocker(k.daten, entry)
-    if reason:
-        raise ValueError(reason)
-    upload = apply.uploads(k.daten, entry).get(pflicht(parameter, "schluessel"))
-    if upload is None:
-        raise ValueError(apply.UNKNOWN_FILE)
-    data, parts = apply.read_part(upload, _part_number(parameter))
-    return json_antwort({"name": upload.name, "typ": apply.content_type(upload.name), "teile": parts,
+    number = _part_number(parameter)
+    name, data, parts = _read_handed_over(k, pflicht(parameter, "id"), pflicht(parameter, "schluessel"), number)
+    return json_antwort({"name": name, "typ": apply.content_type(name), "teile": parts,
                          "daten": base64.b64encode(data).decode("ascii")})
+
+
+def _forget_earlier_form(k, entry_id: str) -> None:
+    """A new form has got nothing yet: what an abandoned one got says nothing about what goes out now."""
+    try:
+        form_copy.forget(k.daten, entry_id)
+    except OSError:  # the new form overwrites what it fetches; only a file it does not fetch stays behind
+        log.warning("Kopien des früheren Formulars nicht entfernt: %s", entry_id, exc_info=True)
 
 
 def state(k, parameter, body):
@@ -110,6 +127,8 @@ def state(k, parameter, body):
         entry = register.hole(wanted)
         if entry.get("versand"):
             return entry  # a late message from the tab changes nothing any more
+        if body["stand"] == OPENED:
+            _forget_earlier_form(k, wanted)
         return register.speichere({**entry, "ausfuellen": body["stand"]})
 
     entry = k.mit_entwurf(register.pfad, f"Formular für {wanted}: {body['stand']}", write)
@@ -119,7 +138,8 @@ def state(k, parameter, body):
 def sent(k, parameter, body):
     wanted = _body_id(body)
     with k.sperre:
-        result = versand.erfasse_versand(k.daten, wanted, k.heute(), k.versionierung, zusatz={"ausfuellen": SENT})
+        result = versand.erfasse_versand(k.daten, wanted, k.heute(), k.versionierung, zusatz={"ausfuellen": SENT},
+                                         from_form=True)
     return json_antwort({"stand": SENT, "hinweise": result["hinweise"]})
 
 

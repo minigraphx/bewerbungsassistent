@@ -231,11 +231,12 @@ def test_values_and_files_for_an_open_application(server):
     status, _, content = get(server, "/api/bewerben/daten", id=entry["id"])
     answer = json.loads(content)
     names = {f["schluessel"]: f["name"] for f in answer["dateien"]}
+    reference = next(key for key in names if key.startswith("zeugnis-"))
 
     assert status == 200 and answer["werte"]["email"] and "beispiel" in names["lebenslauf"].lower()
-    assert names["zeugnis-0"] == "Zeugnis Beispiel AG.pdf" and names["zertifikate"].endswith(".zip")
+    assert names[reference] == "Zeugnis Beispiel AG.pdf" and names["zertifikate"].endswith(".zip")
 
-    status, _, content = get(server, "/api/bewerben/datei", id=entry["id"], schluessel="zeugnis-0")
+    status, _, content = get(server, "/api/bewerben/datei", id=entry["id"], schluessel=reference)
     part = json.loads(content)
     assert status == 200 and base64.b64decode(part["daten"]) == b"z" * 10
     assert part["typ"] == "application/pdf" and part["teile"] == 1

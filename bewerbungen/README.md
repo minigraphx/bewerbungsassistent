@@ -36,6 +36,7 @@ meine-daten/
   varianten.yaml             Lebenslauf-Varianten mit Tags (MIN-307)
   bewerbungen.yaml           Register aller Bewerbungen (MIN-306)
   bewerbungen/<id>/          anschreiben.yaml, stelle.md, erstellte PDFs (nicht in Git)
+  bewerbungen/<id>/an-formular/  was das offene Formular bekommen hat (nicht in Git)
   versendet/                 versendete Fassungen, jede nur einmal (in Git)
   anschreiben/               bausteine.md, stil.md (persönlich)
   dokumente/                 Originale: zeugnisse/, zertifikate/, anschreiben-bisher/, lebenslauf-bisher/, lebenslauf.pdf (nicht in Git)
@@ -43,7 +44,7 @@ meine-daten/
   .ki/nutzung.jsonl          KI-Nutzung: Aufgabe, Modell, Tokens, Kosten, ersetzte Felder – nie Inhalte (nicht in Git)
 ```
 
-`app.py` ergänzt die `.gitignore` des Datenordners um `.entwuerfe/`, `.build/`, `bewerbungen/*/*.pdf`, `dokumente/` und `.ki/`.
+`app.py` ergänzt die `.gitignore` des Datenordners um `.entwuerfe/`, `.build/`, `bewerbungen/*/*.pdf`, `bewerbungen/*/*.zip`, `bewerbungen/*/an-formular/`, `dokumente/` und `.ki/`.
 
 ### Eigene Dateien (MIN-346)
 
@@ -51,9 +52,11 @@ Wer fertige Unterlagen hat, legt sie auf der Seite „Meine Dateien“ ab und ve
 
 - **Lebenslauf:** ein PDF, gespeichert als `dokumente/lebenslauf.pdf`. Es gilt für jede Bewerbung ohne gewählte Variante und ersetzt dort den gebauten Lebenslauf, ohne „Unterlagen erstellen“. Eine gewählte Variante geht vor.
 - **Zertifikate und Zeugnisse:** PDF, JPG oder PNG, in denselben Ordnern wie die Unterlagen aus „Meine Angaben“. Zertifikate werden pro Bewerbung gewählt. Wird ein gewähltes Zertifikat ersetzt oder entfernt, gilt das für alle noch nicht versendeten Bewerbungen.
-- **Anschreiben:** ein PDF pro Bewerbung, hochgeladen auf der Seite der Bewerbung unter „Fertiges Anschreiben“, gespeichert als `bewerbungen/<id>/eigenes-anschreiben.pdf`. Es gilt anstelle eines Entwurfs aus `anschreiben.yaml`; „Unterlagen erstellen“ baut dann kein Anschreiben, und die KI-Knöpfe „Anschreiben entwerfen“ und „Inhalt prüfen“ lehnen ab, bis die Datei entfernt ist. Auch beim Ausfüllen eines Formulars nutzt die KI den Entwurf dann nicht mehr. Nach dem Versand gilt die Kopie unter `versendet/`, und die Datei lässt sich nicht mehr ersetzen oder entfernen. Wird sie ersetzt, während ein Formular offen ist, enthält das Formular noch die bisherige Datei; die Seite weist darauf hin, denn als versendet gilt die neue.
+- **Anschreiben:** ein PDF pro Bewerbung, hochgeladen auf der Seite der Bewerbung unter „Eigenes Anschreiben“, gespeichert als `bewerbungen/<id>/eigenes-anschreiben.pdf`. Es gilt anstelle eines Entwurfs aus `anschreiben.yaml`; „Unterlagen erstellen“ baut dann kein Anschreiben, und die KI-Knöpfe „Anschreiben entwerfen“ und „Inhalt prüfen“ lehnen ab, bis die Datei entfernt ist. Auch beim Ausfüllen eines Formulars nutzt die KI den Entwurf dann nicht mehr. Nach dem Versand gilt die Kopie unter `versendet/`, und die Datei lässt sich nicht mehr ersetzen oder entfernen.
 
 Höchstens 15 MB pro Datei. Die App prüft den Inhalt, nicht nur die Endung, und nimmt keine anderen Dateitypen an. Ersetzte und entfernte Dateien bleiben unter „Entwürfe“. Die Dateien gehen nicht an die KI; sie gehen nur beim Ausfüllen eines Formulars an die Seite, die die Person selbst geöffnet hat.
+
+**Datei ersetzt, während ein Formular offen ist:** Das Formular behält, was es bekommen hat. Die App hebt diese Fassung von Lebenslauf, Anschreiben und Zertifikaten unter `bewerbungen/<id>/an-formular/` auf, bis der Versand erfasst ist oder „Bewerben“ für diese Bewerbung ein neues Formular öffnet. „Abgeschickt? Ja“ im Balken hält genau sie fest und nennt, was inzwischen neuer ist. Eine Datei, die das Formular nicht von der App bekommen hat, wird in der aktuellen Fassung festgehalten, denn die App sieht nicht, was die Person selbst hochlädt. „Versand erfassen“ auf der Seite der Bewerbung hält die aktuelle Fassung fest, etwa für einen Versand per E-Mail, und bietet bei einem Unterschied ein Häkchen für die Fassung des Formulars an. Lädt die Person das Formular neu, bekommt es die aktuelle Fassung. Tauscht sie die Datei im Formular von Hand, sieht die App das nicht; dann hält „Abgeschickt? Ja“ die frühere Fassung fest.
 
 Die automatische Prüfung meldet bei eigenen Dateien einen Scan ohne Text oder einen Platzhalter nur als Hinweis, denn die Person will die Datei so verwenden. Beim eigenen Anschreiben gilt das auch für zu viele Seiten und eine Firma, die im Text nicht vorkommt. Für eine versendete Bewerbung baut „Unterlagen erstellen“ nichts mehr. Ein PDF, das sich nicht lesen lässt, bleibt ein Fehler und sperrt „Bewerben“. Name, Adresse und Kontakt fürs Formular kommen aus `cv.yaml`; ohne diese Datei bleiben die Felder leer.
 

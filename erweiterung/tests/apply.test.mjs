@@ -81,6 +81,15 @@ test('a login stops it, without the button for sending', () => {
   assert.ok(view.aufmerksamkeit && !view.knoepfe.includes('abgeschickt'));
 });
 
+test('tells the app about a new form before the form can ask for files', async () => {
+  const { run, log } = setup();
+
+  await run.start({ ids: ['a'] });
+
+  const position = (found) => log.findIndex(found);
+  assert.ok(position((e) => e[0] === '/api/bewerben/stand') < position((e) => e[0] === 'navigate'));
+});
+
 test('opens the tab of a checked application and then fills it', async () => {
   const { run, log, forms, seen } = setup();
 

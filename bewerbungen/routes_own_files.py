@@ -6,8 +6,8 @@ import pathlib
 import certificates
 import own_files
 import unterlagen
+import versand
 from dateien import schreibe_atomar
-from register import FORM_STATES
 from server import datei_antwort, json_antwort, pflicht
 
 BASE64_OVERHEAD = 4 / 3
@@ -18,8 +18,6 @@ BODY_LIMITS = {route: int(own_files.MAX_FILE_BYTES * BASE64_OVERHEAD) + JSON_OVE
                for route in (UPLOAD_ROUTE, LETTER_ROUTE)}
 UNREADABLE = "Die Datei liess sich nicht lesen. Bitte nochmals versuchen."
 NO_APPLICATION = "Bewerbung mit id erwartet."
-OPENED, FILLED, _ = FORM_STATES
-FORM_IN_USE = (OPENED, FILLED)
 
 
 def _body(body: object) -> dict:
@@ -112,9 +110,9 @@ def _refuse_when_sent(k, entry_id: str) -> None:
         raise ValueError(unterlagen.SENT_STAYS)
 
 
-def _letter_answer(entry: dict):
-    """A form already open holds the earlier file; what is recorded on sending is the file that counts now, so the person must know."""
-    return json_antwort({"formular_offen": entry.get("ausfuellen") in FORM_IN_USE})
+def _letter_answer(k, entry: dict):
+    """A form that already got a letter keeps it, so the person must know that it now holds another one."""
+    return json_antwort({"formular_abweichend": versand.form_differs(k.daten, entry)})
 
 
 def upload_letter(k, parameter, body):
@@ -128,7 +126,7 @@ def upload_letter(k, parameter, body):
         schreibe_atomar(path, data)
 
     k.mit_entwurf(path, f"Eigenes Anschreiben {entry['firma']} hochgeladen", write)
-    return _letter_answer(entry)
+    return _letter_answer(k, entry)
 
 
 def remove_letter(k, parameter, body):
@@ -141,7 +139,7 @@ def remove_letter(k, parameter, body):
         path.unlink()
 
     k.mit_entwurf(path, f"Eigenes Anschreiben {entry['firma']} entfernt", write)
-    return _letter_answer(entry)
+    return _letter_answer(k, entry)
 
 
 GET = {"/api/dateien": overview, "/api/dateien/ansehen": show}

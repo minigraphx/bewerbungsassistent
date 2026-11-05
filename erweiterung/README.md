@@ -62,7 +62,7 @@ In der Übersicht der App kreuzt die Person bis zu fünf Bewerbungen an und klic
 - Versteckte Felder bleiben leer, Vorhandenes bleibt stehen, und was die Person löscht, wird nicht wieder gefüllt.
 - Unklare Felder bleiben leer und orange markiert, Einwilligungen rot, Ausgefülltes grün, Textentwürfe blau.
 - Hochgeladen werden nur Dateien dieser Bewerbung: Lebenslauf, Anschreiben, Arbeitszeugnisse und die ZIP-Datei mit den gewählten Zertifikaten. Felder für nur eine Datei und Felder ohne klare Bedeutung bleiben offen.
-- Der Versand wird erst erfasst, wenn die Person im Balken „Abgeschickt? Ja“ drückt.
+- Der Versand wird erst erfasst, wenn die Person im Balken „Abgeschickt? Ja“ drückt. Hat das Formular eine Datei von der App bekommen, wird genau diese Fassung festgehalten; sonst die aktuelle.
 
 **KI für offene Felder:** Ist in der App eine KI eingerichtet, fragt die Erweiterung nach den Regeln die App nach den Feldern, die noch offen sind:
 

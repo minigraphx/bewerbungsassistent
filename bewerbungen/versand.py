@@ -16,6 +16,7 @@ import subprocess
 
 import yaml
 
+import form_copy
 import unterlagen
 from ablage import Ablage
 from dateien import im_ordner
@@ -26,6 +27,8 @@ from versionen import Versionierung
 ZERTIFIKATE_ZIP = "zertifikate.zip"  # MIN-346, see certificates.py
 ORDNER = "versendet"
 GIT_HISTORY = 1000  # commits searched for the commit of a Versand
+FORM_VERSION_KEPT = "Festgehalten ist, was das Formular bekommen hat. Die neuere Fassung ging nicht mit: {files}."
+COPY_LEFT = "Die Kopie für das Formular liess sich nicht entfernen: {error}"
 
 
 def _zweck(bewerbung: dict, datum: datetime.date) -> str:
@@ -46,7 +49,7 @@ def lege_ab(daten: pathlib.Path, pdf: pathlib.Path, datum: datetime.date) -> pat
     return ziel
 
 
-def _datenquellen(daten: pathlib.Path, bewerbung: dict) -> list[pathlib.Path]:
+def _datenquellen(daten: pathlib.Path, bewerbung: dict, gesendeter_brief: pathlib.Path | None) -> list[pathlib.Path]:
     """Dateien, aus denen die Unterlagen entstanden sind."""
     quellen = []
     cv = daten / "cv.yaml"
@@ -61,8 +64,11 @@ def _datenquellen(daten: pathlib.Path, bewerbung: dict) -> list[pathlib.Path]:
             if variante.get(feld):
                 quellen.append(im_ordner(daten, variante[feld]))
     ordner = unterlagen.bewerbungsordner(daten, bewerbung["id"])
-    # An own letter went out instead of the draft, so the draft is no source of what was sent.
-    brief = [] if unterlagen.own_letter(daten, bewerbung) else [ordner / unterlagen.LETTER_SOURCE]
+    # An own letter went out instead of the draft, so the draft is no source of what was sent. A form can hold another
+    # letter than the own one that counts now.
+    eigener = unterlagen.own_letter(daten, bewerbung)
+    ohne_entwurf = eigener and gesendeter_brief and form_copy.same_content(gesendeter_brief, eigener)
+    brief = [] if ohne_entwurf else [ordner / unterlagen.LETTER_SOURCE]
     quellen += [p for p in (*brief, ordner / "stelle.md") if p.is_file()]
     return quellen
 
@@ -73,8 +79,33 @@ def _hinweise_firma(alle: list[dict], bewerbung: dict) -> list[str]:
     return [f"Bei {bewerbung['firma']} läuft schon eine Bewerbung: {b['stelle']} ({b['status']})" for b in andere]
 
 
+def _aktuelle_dateien(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Path]:
+    pdfs = {a: p for a, p in unterlagen.wirksame_pdfs(daten, bewerbung).items() if p.is_file()}
+    zertifikate = unterlagen.bewerbungsordner(daten, bewerbung["id"]) / ZERTIFIKATE_ZIP
+    return {**pdfs, "zertifikate": zertifikate} if zertifikate.is_file() else pdfs
+
+
+def form_differs(daten: pathlib.Path, bewerbung: dict) -> list[str]:
+    """What an open form holds in another version than the one that counts now."""
+    if bewerbung.get("versand"):
+        return []
+    return form_copy.differing(form_copy.copies(daten, bewerbung["id"]), _aktuelle_dateien(daten, bewerbung))
+
+
+def _hinweise_fassungen(daten: pathlib.Path, bewerbung_id: str, aus_formular: dict, aktuell: dict) -> list[str]:
+    """Says when the record names another version than the one that counts now, and removes the copies."""
+    anders = [form_copy.LABELS[art] for art in form_copy.differing(aus_formular, aktuell)]
+    hinweise = [FORM_VERSION_KEPT.format(files=", ".join(anders))] if anders else []
+    try:
+        form_copy.forget(daten, bewerbung_id)
+    except OSError as fehler:
+        hinweise.append(COPY_LEFT.format(error=fehler))
+    return hinweise
+
+
 def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date, versionierung: Versionierung,
-                    art: str = "elektronisch", zusatz: dict | None = None) -> dict:
+                    art: str = "elektronisch", zusatz: dict | None = None, from_form: bool = False) -> dict:
+    """`from_form`: the person sent it from the form, so what the form got is what went out."""
     daten = daten.resolve()
     if art not in JOBROOM_ART:
         raise ValueError(f"art muss eine von {', '.join(JOBROOM_ART)} sein")
@@ -82,15 +113,15 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     bewerbung = register.hole(bewerbung_id)
     if bewerbung.get("versand"):
         raise ValueError(f"Diese Bewerbung wurde bereits am {bewerbung['versand']['datum']} versendet")
-    pdfs = {a: p for a, p in unterlagen.wirksame_pdfs(daten, bewerbung).items() if p.is_file()}
-    if "lebenslauf" not in pdfs:
+    aktuell = _aktuelle_dateien(daten, bewerbung)
+    aus_formular = form_copy.copies(daten, bewerbung_id) if from_form else {}
+    fassungen = {**aktuell, **aus_formular}
+    if "lebenslauf" not in fassungen:
         raise ValueError("Lebenslauf-PDF fehlt: zuerst die Unterlagen erstellen und prüfen")
 
-    zertifikate = unterlagen.bewerbungsordner(daten, bewerbung_id) / ZERTIFIKATE_ZIP
-    beilagen = {"zertifikate": zertifikate} if zertifikate.is_file() else {}
-    abgelegt = {a: lege_ab(daten, p, datum) for a, p in {**pdfs, **beilagen}.items()}
+    abgelegt = {a: lege_ab(daten, p, datum) for a, p in fassungen.items()}
     zweck = _zweck(bewerbung, datum)
-    quellen = _datenquellen(daten, bewerbung)
+    quellen = _datenquellen(daten, bewerbung, fassungen.get("anschreiben"))
     Ablage(daten).markiere_genutzt(quellen, zweck)
 
     versendet = {"datum": datum.isoformat(), "art": art,
@@ -101,7 +132,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     # Ohne Git bleiben frühere Fassungen unter versendet/ liegen und werden hier nachgeholt (MIN-304)
     alle_fassungen = sorted(p for muster in ("*.pdf", "*.zip") for p in (daten / ORDNER).glob(muster))
     varianten = [p for p in (daten / "varianten.yaml",) if p.is_file()]
-    hinweise = _hinweise_firma(register.alle(), neu)
+    hinweise = [*_hinweise_firma(register.alle(), neu), *_hinweise_fassungen(daten, bewerbung_id, aus_formular, aktuell)]
     try:
         commit = versionierung.friere_ein([*alle_fassungen, *quellen, *varianten, register.pfad], zweck)
     except (RuntimeError, subprocess.CalledProcessError, OSError) as fehler:

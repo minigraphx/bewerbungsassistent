@@ -160,8 +160,9 @@ export class ApplyRun {
     const tabId = await this.tabs.blank(active);
     const entry = { id: application.id, firma: application.firma, hosts: [], frames: {}, gefolgt: false, ausgefuellt: false };
     await this.change((current) => ({ next: { ...current, [tabId]: entry }, result: null }));
-    await this.tabs.navigate(tabId, application.link);
+    // Before the form can ask for files: the app forgets here what an earlier form of this application got.
     await this.ask('POST', '/api/bewerben/stand', { id: application.id, stand: 'geoeffnet' });
+    await this.tabs.navigate(tabId, application.link);
   }
 
   /** A page of a listed tab has loaded. On a new address the person decides first: tabs can be used for anything. */

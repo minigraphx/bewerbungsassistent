@@ -138,6 +138,8 @@ code.pfad { word-break: break-all; }
 .filter { align-items: center; }
 label.auswahl { display: flex; gap: 6px; align-items: center; font-weight: 400; font-size: 14px; margin: 0 0 8px; }
 label.auswahl input { width: auto; }
+#formular-fassung { margin-top: 14px; }
+#formular-fassung p.hilfe { margin-bottom: 8px; }
 .sterne-liste { list-style: none; padding: 0; margin: 0 0 12px; }
 .sterne-liste li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 3px 0; }
 .sterne { display: inline-flex; }

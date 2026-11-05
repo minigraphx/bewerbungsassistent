@@ -26,7 +26,7 @@ Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet diese
 
 Zeigt `get_application` `eigener_lebenslauf_da`, hat die Person unter „Meine Dateien“ einen fertigen Lebenslauf abgelegt. Er gilt unverändert für jede Bewerbung ohne Variante, und `build_documents` baut dort keinen neuen. Eine Variante setzt Claude dann nur, wenn die Person das will. Die Datei selbst erreicht Claude nicht.
 
-Zeigt `get_application` `eigenes_anschreiben: true`, hat die Person für diese Bewerbung ein fertiges Anschreiben hochgeladen. Es gilt anstelle von `anschreiben.yaml`, und `build_documents` baut keines. Lesen kann Claude es nicht, und den Inhalt prüft die Person selbst. `check_documents` meldet dazu nur Formales. Schritt 3 entfällt, solange die Person kein anderes will; ein neuer Entwurf zählt erst, wenn sie die Datei in der App entfernt.
+Zeigt `get_application` `eigenes_anschreiben: true`, hat die Person für diese Bewerbung ein eigenes Anschreiben hochgeladen. Es gilt anstelle von `anschreiben.yaml`, und `build_documents` baut keines. Lesen kann Claude es nicht, und den Inhalt prüft die Person selbst. `check_documents` meldet dazu nur Formales. Schritt 3 entfällt, solange die Person kein anderes will; ein neuer Entwurf zählt erst, wenn sie die Datei in der App entfernt.
 
 Die Seiten der App bedient Claude nicht im Browser, auch nicht mit Claude in Chrome: Es schreibt nur über die Werkzeuge in die App, und die Person kann sie dabei offen haben. Die PDFs sieht die Person in der App, auf der Seite der Bewerbung. Abschicken, Beilagen und „Versand erfassen“ macht die Person dort; das Register zeigt den Versand erst danach. Fertig, wenn `check_documents` keinen Fehler mehr nennt und die Person die PDFs freigegeben hat.
 

@@ -75,7 +75,7 @@
   <div class="pdfs" id="pdfs"></div>
 
   <section id="eigenes-anschreiben" class="eigene-dateien">
-    <h2>Fertiges Anschreiben</h2>
+    <h2>Eigenes Anschreiben</h2>
     <p class="hilfe">Ein PDF nur für diese Bewerbung, verwendet wie es ist. Es gilt anstelle eines Entwurfs, bleibt auf diesem Computer und geht nicht an die KI. Ein neues PDF ersetzt das bisherige.</p>
     <label class="datei-waehlen">PDF wählen<input id="anschreiben-datei" type="file" accept=".pdf,application/pdf"></label>
     <ul class="datei-liste" id="anschreiben-liste"></ul>
@@ -94,6 +94,10 @@
     <div class="raster">
       <div><label for="v-datum">Versendet am</label><input id="v-datum" type="date"></div>
       <div><label for="v-art">Art</label><select id="v-art"><option>elektronisch</option><option>schriftlich</option><option>persönlich</option><option>telefonisch</option></select></div>
+    </div>
+    <div id="formular-fassung" hidden>
+      <p class="hilfe" id="formular-fassung-text"></p>
+      <label class="auswahl"><input type="checkbox" id="v-formular"> Über dieses Formular abgeschickt: festhalten, was es bekommen hat</label>
     </div>
     <div class="knoepfe"><button class="haupt" id="versenden">Versand erfassen</button></div>
   </div>

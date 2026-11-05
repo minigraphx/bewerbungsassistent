@@ -313,17 +313,6 @@ def test_the_check_and_the_file_change_in_one_turn(server, monkeypatch):  # noqa
     assert checked_under_lock == [True, True]  # a dispatch cannot come between the check and the file
 
 
-@pytest.mark.parametrize("state, expected", [(None, False), ("geoeffnet", True), ("ausgefuellt", True)])
-def test_the_answer_says_when_a_form_is_open_with_the_earlier_file(server, state, expected):  # noqa: F811
-    entry = new_entry(server)
-    upload_letter(server, entry["id"])
-    if state:
-        Register(server.kontext.daten).speichere({**Register(server.kontext.daten).hole(entry["id"]), "ausfuellen": state})
-
-    assert upload_letter(server, entry["id"], PDF + b"neu")[1]["formular_offen"] is expected
-    assert post(server, REMOVE, {"id": entry["id"]})[1]["formular_offen"] is expected
-
-
 def test_the_form_help_of_the_ai_does_not_follow_a_draft_that_no_longer_counts(server, monkeypatch):  # noqa: F811
     entry = new_entry(server)
     daten = server.kontext.daten

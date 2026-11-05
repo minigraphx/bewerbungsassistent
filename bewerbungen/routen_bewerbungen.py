@@ -47,6 +47,7 @@ def details(k, parameter, body):
         "eigener_lebenslauf_da": (k.daten / unterlagen.OWN_CV).is_file(),
         "eigenes_anschreiben": unterlagen.own_letter(k.daten, b) is not None,
         "hat_anschreiben": pfade["anschreiben"].is_file() or unterlagen.letter_source(k.daten, b["id"]).is_file(),
+        "formular_abweichend": versand.form_differs(k.daten, b),
         "max_datei": MAX_FILE_BYTES,
         "varianten": k.varianten().alle(),
         "status": list(STATUS),
@@ -134,7 +135,8 @@ def versenden(k, parameter, body):
     datum = datetime.date.fromisoformat(str(body.get("datum") or k.heute().isoformat()))
     with k.sperre:
         ergebnis = versand.erfasse_versand(k.daten, pflicht(parameter, "id"), datum, k.versionierung,
-                                           art=body.get("art") or "elektronisch")
+                                           art=body.get("art") or "elektronisch",
+                                           from_form=body.get("fassung_formular") is True)
     return json_antwort(ergebnis)
 
 

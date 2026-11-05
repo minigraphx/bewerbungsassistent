@@ -3,6 +3,7 @@
 The extension fills a form only for applications the person chose in the app, and it never sends one: a dispatch
 is recorded when the person says it happened. The values stay on this computer and in the person's own browser.
 """
+import hashlib
 import mimetypes
 import pathlib
 import re
@@ -11,6 +12,7 @@ from dataclasses import dataclass
 import yaml
 
 import certificates
+import form_copy
 from ai.personal import strip_titles
 from hits import company_key
 from pruefung import SURNAME_PARTICLES
@@ -26,6 +28,7 @@ BLOCKS_FILE = "anschreiben/bausteine.md"
 FRAME_LINE = re.compile(r"^-\s*(Verfügbar ab|Kündigungsfrist|Lohnvorstellung)\s*:\s*(.+?)\s*$", re.MULTILINE)
 FRAME_KEYS = {"Verfügbar ab": "availability", "Kündigungsfrist": "notice", "Lohnvorstellung": "salary"}
 REFERENCES_FOLDER = "dokumente/zeugnisse"
+REFERENCE_KEY_LENGTH = 12
 ALREADY_SENT = "Schon versendet"
 NOT_OPEN = "Status „{status}“"
 NO_LINK = "Kein Link zum Formular: öffnen und Link eintragen"
@@ -128,6 +131,11 @@ def form_values(data_dir: pathlib.Path) -> dict[str, str]:
     return {key: str(value) for key, value in values.items() if value}
 
 
+def _reference_key(rel: str) -> str:
+    """From the file, not its place in the list: a form asks later, and the list can have changed by then."""
+    return f"zeugnis-{hashlib.sha256(rel.encode('utf-8')).hexdigest()[:REFERENCE_KEY_LENGTH]}"
+
+
 def uploads(data_dir: pathlib.Path, entry: dict) -> dict[str, Upload]:
     """The files of this application by key; only these can be asked for."""
     found = {kind: Upload(path, certificates.upload_name(data_dir, kind.capitalize(), ".pdf"))
@@ -136,11 +144,25 @@ def uploads(data_dir: pathlib.Path, entry: dict) -> dict[str, Upload]:
     if packed.is_file():
         found["zertifikate"] = Upload(packed, certificates.upload_name(data_dir))
     references = certificates.files_in(data_dir, REFERENCES_FOLDER)
-    return found | {f"zeugnis-{nr}": Upload(data_dir / rel, pathlib.PurePath(rel).name) for nr, rel in enumerate(references)}
+    return found | {_reference_key(rel): Upload(data_dir / rel, pathlib.PurePath(rel).name) for rel in references}
 
 
 def describe_uploads(files: dict[str, Upload]) -> list[dict]:
     return [{"schluessel": key, "name": upload.name} for key, upload in files.items()]
+
+
+def handed_over(data_dir: pathlib.Path, entry_id: str, key: str, upload: Upload, part: int) -> Upload:
+    """What this request reads from. The first part keeps a copy, the others read it: all parts are one version.
+
+    Call with the lock held."""
+    copy = form_copy.copy_path(data_dir, entry_id, key)
+    if copy is None:
+        return upload
+    if part == 0:
+        return Upload(form_copy.keep(data_dir, entry_id, key, upload.path), upload.name)
+    if not copy.is_file():
+        raise ValueError(UNKNOWN_PART)
+    return Upload(copy, upload.name)
 
 
 def read_part(upload: Upload, part: int) -> tuple[bytes, int]:
