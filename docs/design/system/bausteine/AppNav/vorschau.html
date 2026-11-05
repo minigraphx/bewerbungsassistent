@@ -1,0 +1,26 @@
+<!-- @dsCard group="Navigation" height=360 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>AppNav</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)} .app-nav__more[open] .menu{position:absolute}</style>
+</head>
+<body>
+<nav class="app-nav" aria-label="Hauptnavigation">
+  <a class="app-nav__brand" href="#">Bewerbungsassistent</a>
+  <ul class="app-nav__list">
+    <li><a class="app-nav__link" href="#" aria-current="page">Übersicht</a></li>
+    <li><a class="app-nav__link" href="#">Stellen suchen<span class="app-nav__count num">3 von 10</span></a></li>
+    <li><a class="app-nav__link" href="#">Bewerbungen</a></li>
+    <li><a class="app-nav__link" href="#">Meine Angaben</a></li>
+  </ul>
+  <details class="app-nav__more" open>
+    <summary>Mehr</summary>
+    <div class="menu">
+      <div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="#">Meine Dateien</a><a href="#">Entwürfe und Versionen</a><a href="#">Foto</a></div>
+      <div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="#">Inhalte als Text</a><a href="#">Erweiterte Einstellungen</a></div>
+      <div class="menu__group"><p class="menu__heading">App</p><a href="#">Einrichtung</a><a href="#">Sicherung erstellen</a><button type="button">Beenden</button><p class="menu__meta">Version 0.9.3</p></div>
+    </div>
+  </details>
+</nav>
+</body>
+</html>

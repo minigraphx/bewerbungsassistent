@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Inhalte als Text</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.doc{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;padding:10px 12px;border-radius:6px;cursor:pointer}
+.doc:hover{background:var(--surface-subtle)}
+.doc[aria-current="true"]{background:var(--accent-subtle)}
+.doc:focus-visible{outline:2px solid var(--focus);outline-offset:0}
+.tab{all:unset;cursor:pointer;padding:8px 12px;color:var(--text);margin-bottom:-1px}
+.tab[aria-selected="true"]{font-weight:500;color:var(--text-strong);border-bottom:3px solid var(--accent)}
+.pdf__page{width:100%;max-width:420px;aspect-ratio:210/297;border:1px solid var(--line);border-radius:4px;background:#ffffff;padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
+.pdf__page i{display:block;height:6px;border-radius:2px;background:#d9dde3}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="mehr" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 24px;">
+  <header style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline;">
+    <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Inhalte als Text</h1>
+    <span class="status" style="background: var(--surface);">Für Geübte</span>
+    <p style="margin: 0; flex-basis: 100%; max-width: 760px;">Hier sehen Sie, woraus der Assistent Ihre Unterlagen baut, und können es direkt bearbeiten. Für das Übliche reichen Meine Angaben.</p>
+  </header>
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+    <nav aria-label="Dokumente" style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 8px;">
+      <sc-for list="{{dokumente}}" as="d" hint-placeholder-count="6">
+        <button class="doc" type="button" aria-current="{{d.aktuell}}" onClick="{{d.pick}}"><span style="font-weight: 500; color: var(--text-strong);">{{d.name}}</span><span style="font-size: 13px; line-height: 18px; color: var(--text-muted);">{{d.info}}</span></button>
+      </sc-for>
+    </nav>
+    <section aria-labelledby="dn" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid var(--line);">
+        <h2 id="dn" style="margin: 0 0 8px; font-size: 18px; line-height: 24px;">{{aktuell.name}}</h2>
+        <div role="tablist" aria-label="Darstellung" style="display: flex; gap: 4px;">
+          <button class="tab" role="tab" type="button" aria-selected="{{tabAnsicht}}" onClick="{{zeigeAnsicht}}">Ansicht</button>
+          <button class="tab" role="tab" type="button" aria-selected="{{tabText}}" onClick="{{zeigeText}}">Als Text</button>
+        </div>
+      </div>
+      <sc-if value="{{istAnsicht}}" hint-placeholder-val="{{ true }}">
+        <div class="pdf__page" role="img" aria-label="Vorschau als PDF"><i style="width: 45%; height: 12px;"></i><i style="width: 60%;"></i><i style="width: 35%; margin-bottom: 12px;"></i><i></i><i style="width: 92%;"></i><i></i><i style="width: 70%;"></i><i style="width: 40%; height: 9px; margin-top: 12px;"></i><i></i><i style="width: 85%;"></i><i></i><i style="width: 60%;"></i></div>
+        <div class="btn-row"><button class="btn" type="button">PDF herunterladen</button></div>
+      </sc-if>
+      <sc-if value="{{istText}}" hint-placeholder-val="{{ false }}">
+        <div class="notice notice--warning"><span class="notice__title">Direkt im Text</span><p class="notice__body">Die Einrückung zählt. Wenn etwas nicht stimmt, zeigt die App die Zeile an. Die alte Fassung bleibt unter Entwürfe erhalten.</p></div>
+        <label class="visually-hidden" for="tx">{{aktuell.name}} als Text</label>
+        <textarea class="input" id="tx" spellcheck="false" value="{{textWert}}" onChange="{{textAendern}}" style="min-height: 360px; font-family: var(--font-mono); font-size: 13px; line-height: 20px; white-space: pre;"></textarea>
+        <div><div class="btn-row"><button class="btn btn--primary" type="button">Speichern</button><button class="btn btn--quiet" type="button">Änderungen verwerfen</button></div><p class="status-line" data-level="danger" aria-live="polite">Zeile 7: Nach «bis:» fehlt ein Leerzeichen. Nichts gespeichert.</p></div>
+      </sc-if>
+    </section>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["ansicht","text"],"default":"text"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sel: 0, tab: null }; }
+  renderVals() {
+    const tab = this.state.tab ?? (this.props.zustand ?? 'text');
+    const docs = [
+      { name: 'Lebenslauf', info: 'Grundlage für alle Varianten', text: 'person:\n  name: Andrea Muster\n  ort: 8004 Zürich\nstationen:\n  - firma: Muster Handel AG\n    funktion: Sachbearbeiterin Einkauf\n    von: 04.2019\n    bis:09.2025\n    aufgaben:\n      - Bestellungen für 40 Lieferanten in SAP MM\n      - Rahmenverträge verhandelt\n' },
+      { name: 'Lebenslauf, Variante Einkauf', info: 'Zuschnitt für 2 Bewerbungen', text: 'grundlage: Lebenslauf\nreihenfolge:\n  - stationen\n  - kenntnisse\nhervorheben:\n  - SAP MM\n  - Verhandlung\n' },
+      { name: 'Anschreiben Muster AG', info: 'Entwurf vom 05.11.2026', text: 'anrede: Sehr geehrte Frau Brunner\nabsaetze:\n  - Seit sechs Jahren verhandle ich …\n' },
+      { name: 'Schreibstil', info: 'aus Meine Angaben', text: 'ton: sachlich\nlaenge: eher kurz\nvermeiden:\n  - Floskeln\n' },
+      { name: 'Bausteine', info: '6 Textbausteine', text: 'luecke_2025: Seit Oktober 2025 suche ich bewusst …\n' },
+      { name: 'Suchprofil', info: 'Einkauf, Logistik', text: 'region: Zürich, 30 km\npensum: 80-100\nbegriffe:\n  - Einkauf\n  - Beschaffung\n  - Disposition\n' }
+    ];
+    const sel = this.state.sel;
+    return {
+      theme: this.props.theme ?? 'light',
+      dokumente: docs.map((d, i) => ({ ...d, aktuell: i === sel ? 'true' : undefined, pick: () => this.setState({ sel: i }) })),
+      aktuell: docs[sel],
+      textWert: (this.state.texte && this.state.texte[sel] != null) ? this.state.texte[sel] : docs[sel].text,
+      textAendern: (e) => this.setState({ texte: { ...(this.state.texte || {}), [sel]: e.target.value } }),
+      istAnsicht: tab === 'ansicht', istText: tab === 'text',
+      tabAnsicht: tab === 'ansicht' ? 'true' : 'false', tabText: tab === 'text' ? 'true' : 'false',
+      zeigeAnsicht: () => this.setState({ tab: 'ansicht' }), zeigeText: () => this.setState({ tab: 'text' })
+    };
+  }
+}
+</script>
+</body>
+</html>

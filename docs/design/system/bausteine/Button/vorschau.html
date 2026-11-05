@@ -1,0 +1,22 @@
+<!-- @dsCard group="Aktionen" height=150 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Button</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)}</style>
+</head>
+<body>
+<div class="stack">
+<div class="btn-row">
+  <button class="btn btn--primary" type="button">Unterlagen erstellen</button>
+  <button class="btn" type="button">Lebenslauf ansehen</button>
+  <button class="btn btn--quiet" type="button">Später</button>
+  <button class="btn btn--danger" type="button">Entwurf löschen</button>
+</div>
+<div class="btn-row">
+  <button class="btn btn--primary" type="button" aria-busy="true" disabled>Anschreiben wird entworfen …</button>
+  <div><button class="btn" type="button" aria-disabled="true" aria-describedby="r1">PDFs erstellen</button><p class="btn-reason" id="r1">Erst eine Lebenslauf-Variante wählen.</p></div>
+  <button class="btn btn--sm" type="button">Übernehmen</button>
+</div>
+</div>
+</body>
+</html>

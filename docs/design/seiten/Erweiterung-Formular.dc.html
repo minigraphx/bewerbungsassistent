@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Erweiterung auf einem Bewerbungsformular</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.fx{font-family:Georgia, "Times New Roman", serif;color:#222}
+.fx label{display:block;font:600 14px/20px Arial, Helvetica, sans-serif;color:#333}
+.fx input[type=text],.fx input[type=email],.fx select,.fx textarea{box-sizing:border-box;width:100%;padding:8px 10px;border:1px solid #9a9a9a;border-radius:2px;background:#fff;color:#222;font:15px/20px Arial, Helvetica, sans-serif}
+.fx textarea{min-height:84px;resize:none}
+.fx .mark{gap:6px}
+.fx .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 28px}
+.fx .full{grid-column:1 / -1}
+.fx-send{padding:10px 22px;border:0;border-radius:2px;background:#7a1f2b;color:#fff;font:600 15px Arial, Helvetica, sans-serif}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 1100px; overflow: hidden; background: #f3f1ee; display: flex; flex-direction: column;">
+  <sc-if value="{{oben}}" hint-placeholder-val="{{ false }}">
+    <dc-import name="Leiste" zustand="{{leiste}}" anrede="{{anrede}}" lage="oben" hint-size="100%,110px"></dc-import>
+  </sc-if>
+  <div class="fx" style="flex: 1 1 auto; min-height: 0; overflow: hidden;">
+    <header style="display: flex; justify-content: space-between; align-items: center; padding: 18px 64px; background: #ffffff; border-bottom: 3px solid #7a1f2b;">
+      <strong style="font-size: 22px; letter-spacing: .02em;">Muster AG</strong>
+      <span style="font: 14px Arial, Helvetica, sans-serif; color: #555;">Karriere · Offene Stellen · Kontakt</span>
+    </header>
+    <sc-if value="{{istAbgeschickt}}" hint-placeholder-val="{{ false }}">
+      <main style="max-width: 760px; margin: 64px auto; padding: 40px 48px; background: #fff; border: 1px solid #ddd;">
+        <h1 style="margin: 0 0 12px; font-size: 28px;">Vielen Dank für Ihre Bewerbung</h1>
+        <p style="margin: 0; font: 16px/24px Arial, Helvetica, sans-serif;">Wir haben Ihre Unterlagen erhalten und melden uns innert zwei Wochen.</p>
+      </main>
+    </sc-if>
+    <sc-if value="{{istFormular}}" hint-placeholder-val="{{ true }}">
+      <main style="max-width: 820px; margin: 32px auto; padding: 32px 48px; background: #fff; border: 1px solid #ddd;">
+        <h1 style="margin: 0 0 4px; font-size: 26px;">Bewerbung: Sachbearbeiterin / Sachbearbeiter Einkauf 80&nbsp;%</h1>
+        <p style="margin: 0 0 24px; font: 14px Arial, Helvetica, sans-serif; color: #555;">Zürich · Eintritt nach Vereinbarung · Felder mit * sind Pflicht</p>
+        <div class="grid">
+          <div class="mark" data-mark="{{mFilled}}"><label for="a1">Vorname *</label><input id="a1" type="text" readonly value="{{w.vorname}}"><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">ausgefüllt</span></sc-if></div>
+          <div class="mark" data-mark="{{mFilled}}"><label for="a2">Nachname *</label><input id="a2" type="text" readonly value="{{w.nachname}}"><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">ausgefüllt</span></sc-if></div>
+          <div class="mark" data-mark="{{mFilled}}"><label for="a3">E-Mail *</label><input id="a3" type="email" readonly value="{{w.mail}}"><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">ausgefüllt</span></sc-if></div>
+          <div class="mark" data-mark="{{mOpen}}"><label for="a4">Frühester Eintritt *</label><input id="a4" type="text" readonly value=""><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">offen, bitte selbst ausfüllen</span></sc-if></div>
+          <div class="mark" data-mark="{{mOpen}}"><label for="a5">Lohnvorstellung (CHF pro Jahr)</label><input id="a5" type="text" readonly value=""><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">offen, bitte selbst ausfüllen</span></sc-if></div>
+          <div class="mark" data-mark="{{mFilled}}"><label for="a6">Wie sind Sie auf uns aufmerksam geworden?</label><select id="a6" disabled="{{ true }}"><option>{{w.quelle}}</option></select><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">ausgefüllt</span></sc-if></div>
+          <div class="mark full" data-mark="{{mAi}}"><label for="a7">Warum möchten Sie bei uns arbeiten? *</label><textarea id="a7" readonly value="{{w.motivation}}"></textarea><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">Entwurf der KI, bitte prüfen</span></sc-if></div>
+          <div class="mark full" data-mark="{{mOpen}}" style="background: {{dateiGrund}}; border-radius: 4px;"><label for="a8">Lebenslauf und Anschreiben (PDF) *</label><span id="a8" style="outline: {{dateiOutline}}; outline-offset: 2px; box-shadow: 0 0 0 6px var(--mark-halo); display: flex; align-items: center; gap: 10px; padding: 6px; border: 1px solid #9a9a9a; border-radius: 2px; background: #fff; font: 14px Arial, Helvetica, sans-serif; color: #555;"><span style="padding: 4px 10px; border: 1px solid #9a9a9a; border-radius: 2px; background: #eee; color: #222;">Dateien auswählen</span>Keine Datei ausgewählt</span><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">offen, Dateien selbst wählen</span></sc-if></div>
+          <div class="mark full" data-mark="{{mConsent}}"><label style="display: flex; gap: 8px; align-items: center; font-weight: 400;"><input type="checkbox" disabled="{{ true }}" style="width: 18px; height: 18px;"> Ich habe die Datenschutzerklärung gelesen und bin einverstanden. *</label><sc-if value="{{zeigeMarken}}" hint-placeholder-val="{{ true }}"><span class="mark__tag">selbst bestätigen</span></sc-if></div>
+        </div>
+        <div style="margin-top: 28px;"><button class="fx-send" type="button">Bewerbung absenden</button></div>
+      </main>
+    </sc-if>
+  </div>
+  <sc-if value="{{unten}}" hint-placeholder-val="{{ true }}">
+    <dc-import name="Leiste" zustand="{{leiste}}" anrede="{{anrede}}" lage="unten" hint-size="100%,110px"></dc-import>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["ausgefuellt","bereit","dateien","abgeschickt"],"default":"ausgefuellt"},"anrede":{"editor":"enum","options":["sie","du"],"default":"sie"},"lage":{"editor":"enum","options":["unten","oben"],"default":"unten"},"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'ausgefuellt';
+    const marken = z === 'ausgefuellt' || z === 'dateien';
+    const voll = { vorname: 'Andrea', nachname: 'Muster', mail: 'andrea.muster@example.ch', quelle: 'jobs.ch',
+      motivation: 'Seit sechs Jahren arbeite ich im Einkauf und kenne SAP MM aus zwei Stellen. Ihre Stelle verbindet beides mit der Verhandlung von Rahmenverträgen …' };
+    const leer = { vorname: '', nachname: '', mail: '', quelle: 'Bitte wählen', motivation: '' };
+    const m = (art) => (marken ? art : undefined);
+    return {
+      istFormular: z !== 'abgeschickt', istAbgeschickt: z === 'abgeschickt',
+      zeigeMarken: marken, w: marken ? voll : leer,
+      mFilled: m('filled'), mOpen: m('open'), mAi: m('ai'), mConsent: m('consent'),
+      dateiGrund: z === 'dateien' ? '#fff3e0' : 'transparent',
+      dateiOutline: marken ? '2px dashed var(--mark-open)' : 'none',
+      leiste: { ausgefuellt: 'formular', bereit: 'bereit', dateien: 'dateien', abgeschickt: 'festgehalten' }[z],
+      anrede: this.props.anrede ?? 'sie',
+      oben: (this.props.lage ?? 'unten') === 'oben', unten: (this.props.lage ?? 'unten') !== 'oben'
+    };
+  }
+}
+</script>
+</body>
+</html>

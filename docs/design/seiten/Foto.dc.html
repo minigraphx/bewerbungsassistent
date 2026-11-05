@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Foto</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.slider{display:flex;flex-direction:column;gap:4px;margin-bottom:16px}
+.slider label{display:flex;justify-content:space-between;font-weight:500;color:var(--text-strong);font-size:14px}
+.slider output{font-weight:400;font-variant-numeric:tabular-nums;color:var(--text)}
+.slider input{width:100%;accent-color:var(--accent)}
+.kreis{border-radius:999px;background:var(--surface-subtle);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text-muted);position:relative;overflow:hidden}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="angaben" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 24px 24px 48px; display: flex; flex-direction: column; gap: 24px;">
+  <a href="Angaben.dc.html" style="font-size: 14px; line-height: 20px; color: var(--text-muted); text-decoration: none;">← Zurück zu Meine Angaben</a>
+  <header style="display: flex; flex-direction: column; gap: 6px; max-width: 760px;">
+    <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Foto für den Lebenslauf</h1>
+    <p style="margin: 0;">Ein Foto ist in der Schweiz üblich, aber freiwillig. Das Foto geht nie an die KI.</p>
+  </header>
+  <label class="switch"><input type="checkbox" role="switch" checked> Foto im Lebenslauf zeigen</label>
+  <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;">
+    <figure style="margin: 0; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+      <div class="kreis" tabindex="0" role="img" aria-label="Ausschnitt des Fotos. Mit Maus ziehen oder mit den Pfeiltasten verschieben." style="width: 340px; height: 340px; cursor: grab;">
+        <span style="position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent 0 14px, var(--line) 14px 15px);"></span>
+        <span style="position: relative; font-size: 14px;">Ihr Foto</span>
+      </div>
+      <figcaption style="font-size: 14px; line-height: 20px; color: var(--text-muted);">Ziehen oder Pfeiltasten, um den Ausschnitt zu verschieben.</figcaption>
+    </figure>
+    <div style="flex: 1 1 320px; max-width: 420px; display: flex; flex-direction: column;">
+      <div class="slider"><label for="g">Grösse <output for="g">120&nbsp;%</output></label><input id="g" type="range" min="100" max="300" value="120"></div>
+      <div class="slider"><label for="h">Nach links oder rechts <output for="h">etwas links</output></label><input id="h" type="range" min="-50" max="50" value="-8"></div>
+      <div class="slider"><label for="v">Nach oben oder unten <output for="v">Mitte</output></label><input id="v" type="range" min="-50" max="50" value="0"></div>
+      <label class="switch"><input type="checkbox" role="switch"> Spiegeln</label>
+      <div style="display: flex; gap: 16px; align-items: center; margin-top: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);">
+        <div class="kreis" aria-hidden="true" style="width: 88px; height: 88px; font-size: 12px;">Foto</div>
+        <p style="margin: 0; font-size: 14px; line-height: 20px;">So gross erscheint das Foto im Lebenslauf: 4.65 cm Durchmesser, oben rechts.</p>
+      </div>
+      <div class="btn-row" style="margin-top: 24px;"><button class="btn btn--primary" type="button">Speichern</button><button class="btn" type="button">Anderes Foto wählen</button><button class="btn btn--quiet" type="button">Foto entfernen</button></div>
+    </div>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() { return { theme: this.props.theme ?? 'light' }; }
+}
+</script>
+</body>
+</html>

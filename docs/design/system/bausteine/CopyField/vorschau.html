@@ -1,0 +1,15 @@
+<!-- @dsCard group="Eingaben" height=200 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>CopyField</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)}</style>
+</head>
+<body>
+<dl class="copy-list">
+  <div class="copy-row"><dt>Firma</dt><dd><span class="copy-row__value">Muster AG</span><button class="btn btn--sm" type="button">Kopieren</button></dd></div>
+  <div class="copy-row"><dt>Stelle</dt><dd><span class="copy-row__value">Sachbearbeiterin Einkauf 80&nbsp;%</span><button class="btn btn--sm" type="button" data-copied>Kopiert</button></dd></div>
+  <div class="copy-row"><dt>Kontaktperson</dt><dd><span class="copy-row__value"></span><button class="btn btn--sm" type="button" disabled>Kopieren</button></dd></div>
+</dl>
+<p class="status-line" aria-live="polite">„Sachbearbeiterin Einkauf 80&nbsp;%“ kopiert.</p>
+</body>
+</html>

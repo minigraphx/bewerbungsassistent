@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Erweiterung beim Eintragen der Arbeitsbemühungen</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.jr{font-family:Arial, Helvetica, sans-serif;color:#1c1c1c}
+.jr label{display:block;font:600 14px/20px Arial, Helvetica, sans-serif;color:#333}
+.jr input,.jr select{box-sizing:border-box;width:100%;padding:8px 10px;border:1px solid #8c8c8c;border-radius:3px;background:#fff;color:#1c1c1c;font:15px/20px Arial, Helvetica, sans-serif}
+.jr .mark{gap:6px}
+.jr .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 28px}
+.jr-btn{padding:9px 20px;border:1px solid #444;border-radius:3px;background:#fff;color:#1c1c1c;font:600 14px Arial, Helvetica, sans-serif}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 900px; overflow: hidden; background: #f2f2f2;">
+  <div class="jr" style="height: 100%; padding-bottom: 150px; box-sizing: border-box;">
+    <header style="padding: 16px 64px; background: #ffffff; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center;">
+      <strong style="font-size: 18px;">Arbeitsbemühungen</strong>
+      <span style="font-size: 13px; color: #666;">Vereinfachte Darstellung, kein echtes Formular</span>
+    </header>
+    <main style="max-width: 820px; margin: 28px auto; padding: 28px 40px; background: #fff; border: 1px solid #d6d6d6;">
+      <h1 style="margin: 0 0 4px; font-size: 22px;">Arbeitsbemühung erfassen</h1>
+      <p style="margin: 0 0 22px; font-size: 14px; color: #555;">Kontrollperiode November 2026 · 3 von 8 erfasst</p>
+      <div class="grid">
+        <div class="mark" data-mark="filled"><label for="j1">Datum der Bewerbung</label><input id="j1" readonly value="06.11.2026"><span class="mark__tag">ausgefüllt</span></div>
+        <div class="mark" data-mark="filled"><label for="j2">Art der Bewerbung</label><select id="j2" disabled="{{ true }}"><option>elektronisch</option></select><span class="mark__tag">ausgefüllt</span></div>
+        <div class="mark" data-mark="filled"><label for="j3">Arbeitgeber</label><input id="j3" readonly value="Muster AG"><span class="mark__tag">ausgefüllt</span></div>
+        <div class="mark" data-mark="filled"><label for="j4">Ort</label><input id="j4" readonly value="8001 Zürich"><span class="mark__tag">ausgefüllt</span></div>
+        <div class="mark" data-mark="filled"><label for="j5">Stelle</label><input id="j5" readonly value="Sachbearbeiterin Einkauf"><span class="mark__tag">ausgefüllt</span></div>
+        <div class="mark" data-mark="filled"><label for="j6">Pensum</label><input id="j6" readonly value="80 %"><span class="mark__tag">ausgefüllt</span></div>
+        <div class="mark" data-mark="open"><label for="j7">Ergebnis</label><select id="j7" disabled="{{ true }}"><option>Bitte wählen</option></select><span class="mark__tag">offen, bitte selbst wählen</span></div>
+        <div class="mark" data-mark="filled"><label for="j8">Zuweisung durch das RAV</label><select id="j8" disabled="{{ true }}"><option>nein</option></select><span class="mark__tag">ausgefüllt</span></div>
+      </div>
+      <div style="margin-top: 26px; display: flex; gap: 10px;"><button class="jr-btn" type="button">Speichern</button><button class="jr-btn" type="button" style="border-color: transparent;">Abbrechen</button></div>
+    </main>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0;">
+    <dc-import name="Leiste" zustand="jobroom" anrede="{{anrede}}" hint-size="100%,110px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"anrede":{"editor":"enum","options":["sie","du"],"default":"sie"},"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return { anrede: this.props.anrede ?? 'sie' }; }
+}
+</script>
+</body>
+</html>

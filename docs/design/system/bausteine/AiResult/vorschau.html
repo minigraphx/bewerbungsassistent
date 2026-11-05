@@ -1,0 +1,27 @@
+<!-- @dsCard group="KI" height=520 -->
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>AiResult</title>
+<style>body{padding:16px} .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start} .stack{display:grid;gap:16px} .cap{margin:0 0 4px;font-size:13px;line-height:18px;color:var(--text-muted)}</style>
+</head>
+<body>
+<div class="stack">
+<article class="ai-result" aria-labelledby="ai1">
+  <header class="ai-result__head"><h2 class="ai-result__kind" id="ai1">Einschätzung der KI</h2><span class="grade-meter" aria-label="Note 4.5 von 6, passt gut"><span class="grade-meter__value">4.5</span><span class="grade-meter__bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i><i></i></span><span class="grade-meter__word" aria-hidden="true">passt gut</span></span></header>
+  <div class="ai-result__cols">
+    <div><h3>Was passt</h3><ul><li>6 Jahre Einkauf im Detailhandel</li><li>SAP MM aus zwei Stellen</li><li>Französisch gut</li></ul></div>
+    <div><h3>Was fehlt oder unsicher ist</h3><ul><li>Gefragt ist Erfahrung mit Ausschreibungen; im Lebenslauf nicht erwähnt</li><li>Pensum 100&nbsp;%, gesucht 80&nbsp;%</li></ul></div>
+  </div>
+  <div class="btn-row"><button class="btn btn--primary" type="button">Note übernehmen</button><button class="btn btn--quiet" type="button">Nochmals einschätzen</button></div>
+  <p class="ai-result__foot">Eine Einschätzung, kein Urteil. Die KI kann sich irren. · Claude · CHF 0.02 · 05.11.2026</p>
+</article>
+<article class="ai-result" aria-labelledby="ai2">
+  <header class="ai-result__head"><h2 class="ai-result__kind" id="ai2">Aussagen im Anschreiben</h2><span class="muted">5 belegt, 1 offen</span></header>
+  <div>
+    <div class="claim" data-evidence="ok"><span class="claim__text">„Seit sechs Jahren verhandle ich Lieferverträge …“</span><span class="claim__source">Beleg: Lebenslauf, Muster Handel AG, 2019–2025</span></div>
+    <div class="claim" data-evidence="gap"><span class="claim__text">„… Erfahrung mit öffentlichen Ausschreibungen“</span><span class="claim__source">Kein Beleg gefunden. Streichen oder in Meine Angaben ergänzen.</span></div>
+  </div>
+</article>
+</div>
+</body>
+</html>

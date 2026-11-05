@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Übersicht</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="position: relative; min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="uebersicht" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 32px;">
+
+<sc-if value="{{istErststart}}" hint-placeholder-val="{{ false }}">
+  <header style="display: flex; flex-direction: column; gap: 8px; max-width: 760px;">
+    <h1 style="margin: 0; font-size: 28px; line-height: 34px;">Willkommen</h1>
+    <p style="margin: 0;">Der Assistent hilft Ihnen, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei Ihnen.</p>
+  </header>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+    <section class="next-step" aria-labelledby="ns0" style="flex: 2 1 420px;">
+      <p class="next-step__eyebrow">Nächster Schritt</p>
+      <h2 class="next-step__title" id="ns0">Meine Angaben erfassen</h2>
+      <p class="next-step__text">Lebenslauf, gesuchte Stellen und wie Sie schreiben. Das dauert etwa 20 Minuten. Sie können jederzeit unterbrechen, nichts geht verloren.</p>
+      <div class="btn-row"><a class="btn btn--primary" href="Angaben.dc.html">Angaben erfassen</a><a class="btn btn--quiet" href="Dateien.dc.html">Ich habe schon einen Lebenslauf als PDF</a></div>
+      <p class="next-step__after">Ihre Angaben bleiben auf diesem Computer.</p>
+    </section>
+    <section aria-labelledby="sw" style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 12px;">
+      <h2 id="sw" style="margin: 0; font-size: 18px; line-height: 24px;">So geht es weiter</h2>
+      <ol class="steps steps--vertical" aria-label="Ablauf">
+        <li class="steps__item" data-state="current" aria-current="step"><span class="steps__dot"></span><span class="steps__label">Angaben erfassen</span><span class="steps__meta">etwa 20 Minuten</span></li>
+        <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Stellen suchen</span><span class="steps__meta">die Erweiterung sucht auf den Portalen</span></li>
+        <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Unterlagen vorbereiten</span><span class="steps__meta">Lebenslauf und Anschreiben pro Stelle</span></li>
+        <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Abschicken</span><span class="steps__meta">machen Sie selbst, das Formular ist vorausgefüllt</span></li>
+        <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Festhalten</span><span class="steps__meta">für Sie und fürs RAV</span></li>
+      </ol>
+    </section>
+  </div>
+</sc-if>
+
+<sc-if value="{{istNormal}}" hint-placeholder-val="{{ true }}">
+  <div class="notice notice--warning"><span class="notice__title">Bald Monatsende</span><p class="notice__body">Für November sind 4 von 8 Arbeitsbemühungen im Job-Room eingetragen.</p><div class="notice__actions"><a class="btn btn--sm" href="Bewerbung-Versendet.dc.html">Jetzt eintragen</a></div></div>
+  <section aria-labelledby="dsa" style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: baseline;">
+      <h1 id="dsa" style="margin: 0; font-size: 28px; line-height: 34px;">Das steht an</h1>
+      <a class="btn" href="Bewerbung.dc.html">Stelle von Hand erfassen</a>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch;">
+      <section class="next-step" aria-labelledby="ns1" style="flex: 3 1 440px;">
+        <p class="next-step__eyebrow">Nächster Schritt · Sachbearbeiterin Einkauf, Muster AG</p>
+        <h2 class="next-step__title" id="ns1">Anschreiben lesen und freigeben</h2>
+        <p class="next-step__text">Der Entwurf ist fertig. Achten Sie besonders auf die eine Aussage, für die es noch keinen Beleg gibt.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="Bewerbung.dc.html">Anschreiben lesen</a></div>
+        <p class="next-step__after">Danach: PDFs erstellen und prüfen · Abgabe bis 20.11.2026</p>
+      </section>
+      <section aria-labelledby="auch" style="flex: 2 1 320px; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 16px 20px;">
+        <h2 id="auch" style="margin: 0 0 4px; font-size: 16px; line-height: 22px;">Auch noch offen</h2>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;">
+          <li style="display: flex; gap: 12px; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);"><span><strong style="color: var(--text-strong); font-weight: 500;">Gespräch vorbereiten</strong><span style="display: block; font-size: 14px; line-height: 20px; color: var(--text-muted);">Beispiel GmbH · Di 11.11.2026, 14:00</span></span><a class="btn btn--sm" href="Bewerbung.dc.html">Öffnen</a></li>
+          <li style="display: flex; gap: 12px; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);"><span><strong style="color: var(--text-strong); font-weight: 500;">12 neue Treffer ansehen</strong><span style="display: block; font-size: 14px; line-height: 20px; color: var(--text-muted);">Suche von heute, 08:12</span></span><a class="btn btn--sm" href="Suche.dc.html">Ansehen</a></li>
+          <li style="display: flex; gap: 12px; justify-content: space-between; align-items: center; padding: 12px 0;"><span><strong style="color: var(--text-strong); font-weight: 500;">Lebenslauf-Variante wählen</strong><span style="display: block; font-size: 14px; line-height: 20px; color: var(--text-muted);">Probe Logistik AG · Abgabe 25.11.2026</span></span><a class="btn btn--sm" href="Bewerbung.dc.html">Öffnen</a></li>
+        </ul>
+      </section>
+    </div>
+  </section>
+</sc-if>
+
+<sc-if value="{{istLeer}}" hint-placeholder-val="{{ false }}">
+  <h1 style="margin: 0; font-size: 28px; line-height: 34px;">Das steht an</h1>
+  <section class="next-step" aria-labelledby="ns2" style="max-width: 760px;">
+    <p class="next-step__eyebrow">Nächster Schritt</p>
+    <h2 class="next-step__title" id="ns2">Erste Stellen suchen</h2>
+    <p class="next-step__text">Ihre Angaben sind übernommen. Die Erweiterung sucht jetzt auf den Portalen, die KI schätzt jeden Treffer ein. Ein Suchlauf dauert einige Minuten.</p>
+    <div class="btn-row"><a class="btn btn--primary" href="Suche.dc.html">Stellen suchen</a></div>
+  </section>
+</sc-if>
+
+<sc-if value="{{zeigtListe}}" hint-placeholder-val="{{ true }}">
+  <section aria-labelledby="bw" style="display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+      <h2 id="bw" style="margin: 0; font-size: 18px; line-height: 24px;">Bewerbungen</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <div role="group" aria-label="Anzeigen" style="display: flex; gap: 4px;">
+          <button class="btn btn--sm" type="button" aria-pressed="true" style="background: var(--accent-subtle); border-color: var(--accent);">Laufend 5</button>
+          <button class="btn btn--sm" type="button" aria-pressed="false">Abgeschlossen 7</button>
+          <button class="btn btn--sm" type="button" aria-pressed="false">Alle 12</button>
+        </div>
+        <label class="visually-hidden" for="such">Firma oder Stelle suchen</label>
+        <input class="input" id="such" type="search" placeholder="Firma oder Stelle" style="width: 220px; min-height: 32px; padding: 4px 10px; font-size: 14px;">
+      </div>
+    </div>
+    <sc-if value="{{istLeer}}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 32px; border: 1px dashed var(--line-strong); border-radius: 10px; text-align: center; color: var(--text-muted);">Noch keine Bewerbungen. Übernehmen Sie eine Stelle aus der Suche oder erfassen Sie eine von Hand.</div>
+    </sc-if>
+    <sc-if value="{{hatZeilen}}" hint-placeholder-val="{{ true }}">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Stelle und Firma</th><th>Stand</th><th>Note</th><th>Nächster Schritt</th><th class="num">Frist</th></tr></thead>
+        <tbody>
+          <sc-for list="{{zeilen}}" as="r" hint-placeholder-count="5">
+            <tr>
+              <td data-label=""><a class="table__main" href="Bewerbung.dc.html" style="text-decoration: none;">{{r.stelle}}</a><span class="table__sub">{{r.firma}}</span></td>
+              <td data-label="Stand"><span class="status" data-status="{{r.status}}">{{r.status}}</span></td>
+              <td data-label="Note"><span class="grade-meter grade-meter--sm" data-uncertain="{{r.unsicher}}" aria-label="{{r.notenLabel}}"><span class="grade-meter__value">{{r.note}}</span><span class="grade-meter__bar" aria-hidden="true"><sc-for list="{{r.segs}}" as="s" hint-placeholder-count="6"><i class="{{s.cls}}"></i></sc-for></span><span class="grade-meter__word" aria-hidden="true">{{r.wort}}</span></span></td>
+              <td data-label="Nächster Schritt" class="table__next">{{r.naechster}}<span class="table__sub">{{r.naechsterZusatz}}</span></td>
+              <td data-label="Frist" class="num">{{r.frist}}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">Abgeschlossen: 1 Zusage, 5 Absagen, 1 zurückgezogen. <a href="Main.dc.html">Anzeigen</a></p>
+    </sc-if>
+  </section>
+</sc-if>
+</main>
+
+<sc-if value="{{istDoppelt}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; background: rgba(22, 25, 29, 0.45);"></div>
+  <dialog class="dialog" open aria-labelledby="dd" aria-describedby="ddt" style="position: absolute; top: 220px; left: 0; right: 0; margin: 0 auto;">
+    <h2 class="dialog__title" id="dd">Bei Muster AG läuft schon eine Bewerbung</h2>
+    <p class="dialog__text" id="ddt">Sachbearbeiterin Einkauf, beworben am 28.10.2026. Möchten Sie das Formular für «Assistentin Einkauf» trotzdem öffnen?</p>
+    <div class="dialog__actions"><button class="btn" type="button" autofocus>Abbrechen</button><button class="btn btn--primary" type="button">Trotzdem öffnen</button></div>
+  </dialog>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["normal","erststart","leer","doppelt"],"default":"normal"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'normal';
+    const seg = (n) => [1, 2, 3, 4, 5, 6].map((k) => ({ cls: n >= k ? 'on' : (n >= k - 0.5 ? 'half' : '') }));
+    const wort = (n) => (n >= 5.5 ? 'passt sehr gut' : n >= 4.5 ? 'passt gut' : n >= 4 ? 'passt knapp' : 'passt wenig');
+    const row = (stelle, firma, status, n, unsicher, naechster, zusatz, frist) => ({
+      stelle, firma, status, note: String(n), segs: seg(n), wort: wort(n), unsicher: unsicher ? '' : undefined,
+      notenLabel: 'Note ' + n + ' von 6, ' + wort(n) + (unsicher ? ', unsicher' : ''), naechster, naechsterZusatz: zusatz, frist
+    });
+    const zeilen = [
+      row('Sachbearbeiterin Einkauf 80 %', 'Muster AG, Zürich', 'Bewerben', 5, false, 'Anschreiben lesen', 'Entwurf ist fertig', '20.11.2026'),
+      row('Supply Chain Coordinator 100 %', 'Probe Logistik AG, Zug', 'Bewerben', 5.5, false, 'Lebenslauf-Variante wählen', 'zwei Varianten passen', '25.11.2026'),
+      row('Kauffrau Logistik 100 %', 'Beispiel GmbH, Winterthur', 'Gespräch', 4.5, false, 'Gespräch vorbereiten', 'Di 11.11.2026, 14:00', '11.11.2026'),
+      row('Disponentin 80 %', 'Testfirma AG, Bern', 'Beworben', 4.5, false, 'Antwort abwarten', 'nachfragen ab 18.11.2026', ''),
+      row('Einkaufsassistentin 60–80 %', 'Demo Handel AG, Basel', 'Gemerkt', 4, true, 'Entscheiden', 'bewerben oder verwerfen', '30.11.2026')
+    ];
+    return {
+      theme: this.props.theme ?? 'light',
+      istErststart: z === 'erststart',
+      istNormal: z === 'normal' || z === 'doppelt',
+      istLeer: z === 'leer',
+      istDoppelt: z === 'doppelt',
+      zeigtListe: z !== 'erststart',
+      hatZeilen: z !== 'leer' && z !== 'erststart',
+      zeilen
+    };
+  }
+}
+</script>
+</body>
+</html>

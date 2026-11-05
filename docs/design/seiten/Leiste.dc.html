@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Formularleiste der Erweiterung</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.fb-name{font-weight:700;font-size:13px;line-height:18px;color:var(--on-inverse-muted);letter-spacing:.02em}
+</style>
+</helmet>
+<div class="form-bar {{lageKlasse}}" role="region" aria-label="Bewerbungsassistent" style="font-family: var(--font-sans); align-items: flex-start;">
+  <div class="form-bar__summary" style="display: flex; flex-direction: column; gap: 2px;">
+    <span class="fb-name">Bewerbungsassistent</span>
+    <strong>{{titel}}</strong>
+    <span class="form-bar__hand">{{hand}}</span>
+    <sc-if value="{{hatLegende}}" hint-placeholder-val="{{ true }}">
+      <ul class="form-bar__legend" aria-label="Legende" style="margin-top: 6px;">
+        <li><span class="mark-key mark-key--filled"></span>ausgefüllt</li>
+        <li><span class="mark-key mark-key--open"></span>offen</li>
+        <sc-if value="{{volleLegende}}" hint-placeholder-val="{{ true }}">
+          <li><span class="mark-key mark-key--consent"></span>selbst bestätigen</li>
+          <li><span class="mark-key mark-key--ai"></span>Entwurf der KI, bitte prüfen</li>
+        </sc-if>
+      </ul>
+    </sc-if>
+  </div>
+  <div class="form-bar__actions" style="align-self: center;">
+    <sc-for list="{{knoepfe}}" as="k" hint-placeholder-count="3">
+      <button class="{{k.cls}}" type="button">{{k.text}}</button>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["formular","bereit","dateien","suche","jobroom","festgehalten"],"default":"formular"},"anrede":{"editor":"enum","options":["sie","du"],"default":"sie"},"lage":{"editor":"enum","options":["unten","oben"],"default":"unten"},"modus":{"editor":"enum","options":["stelle","lehrstelle"],"default":"stelle"},"rav":{"editor":"enum","options":["ja","nein"],"default":"ja"},"$preview":{"width":1280,"height":110}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'formular';
+    const du = (this.props.anrede ?? 'sie') === 'du';
+    const lehr = (this.props.modus ?? 'stelle') === 'lehrstelle';
+    const firma = lehr ? 'Muster Versicherung AG' : 'Muster AG';
+    const stelle = lehr ? 'Kauffrau EFZ' : 'Sachbearbeiterin Einkauf';
+    const P = 'form-bar__btn form-bar__btn--primary', N = 'form-bar__btn';
+    const bei = du ? 'Abschicken bleibt bei dir.' : 'Abschicken bleibt bei Ihnen.';
+    const oben = (this.props.lage ?? 'unten') === 'oben';
+    const lage = { text: oben ? 'Leiste nach unten' : 'Leiste nach oben', cls: N };
+    const v = {
+      formular: { titel: '5 Felder ausgefüllt, davon 1 Entwurf der KI. 3 offen, 1 Einwilligung bitte selbst prüfen.', hand: bei, legende: 'voll',
+        knoepfe: [{ text: 'Abgeschickt? Ja', cls: P }, { text: 'Nicht mehr ausfüllen', cls: N }, lage] },
+      bereit: { titel: 'Bewerbungsformular erkannt: ' + firma + ', ' + stelle + '.', hand: 'Die Erweiterung füllt aus, was sie weiss. ' + bei,
+        knoepfe: [{ text: 'Hier ausfüllen', cls: P }, { text: 'Nicht hier', cls: N }, lage] },
+      dateien: { titel: 'Das Formular verlangt Lebenslauf und Anschreiben als PDF.', hand: 'Den Dateidialog öffnet der Browser. ' + (du ? 'Wähle' : 'Wählen Sie') + ' dort den Ordner Bewerbungen › ' + firma + ' › Fassung 1.', legende: 'voll',
+        knoepfe: [{ text: 'Dateien im Ordner zeigen', cls: P }, { text: 'Ordnerpfad kopieren', cls: N }, lage] },
+      suche: { titel: 'Suche läuft: ' + (lehr ? 'yousty' : 'job-room.ch') + ', Seite 2 von 5.', hand: du ? 'Dieser Tab gehört gerade der Suche. Bitte nicht schliessen, du kannst in einem anderen Tab weiterarbeiten.' : 'Dieser Tab gehört gerade der Suche. Bitte nicht schliessen, Sie können in einem anderen Tab weiterarbeiten.',
+        knoepfe: [{ text: 'Suche abbrechen', cls: N }] },
+      jobroom: { titel: 'Eintrag 2 von 4: Muster AG, Sachbearbeiterin Einkauf, 06.11.2026.', hand: du ? 'Speichern und anmelden machst du selbst.' : 'Speichern und anmelden machen Sie selbst.', legende: 'kurz',
+        knoepfe: [{ text: 'Eingetragen? Ja', cls: P }, { text: 'Zum Formular', cls: N }, { text: 'Überspringen', cls: N }] },
+      festgehalten: { titel: 'Festgehalten: beworben am 06.11.2026. Die abgeschickte Fassung liegt in der App.', hand: (this.props.rav ?? (lehr ? 'nein' : 'ja')) === 'ja' ? 'Nächster Schritt: im Job-Room eintragen.' : 'Nächster Schritt: Antwort abwarten. Die App erinnert ' + (du ? 'dich' : 'Sie') + ' ans Nachfragen.',
+        knoepfe: [{ text: 'In der App ansehen', cls: P }, { text: 'Leiste schliessen', cls: N }] }
+    }[z];
+    return {
+      lageKlasse: oben ? 'form-bar--top' : '',
+      titel: v.titel, hand: v.hand, knoepfe: v.knoepfe,
+      hatLegende: !!v.legende, volleLegende: v.legende === 'voll'
+    };
+  }
+}
+</script>
+</body>
+</html>

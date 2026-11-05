@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Stellen suchen</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.hit{all:unset;box-sizing:border-box;display:flex;gap:16px;align-items:flex-start;width:100%;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.hit:hover{background:var(--surface-subtle)}
+.hit:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.hit[aria-current="true"]{background:var(--accent-subtle)}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="suche" modus="{{modus}}" zaehler="{{zaehler}}" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 24px;">
+
+  <header style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end;">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <h1 style="margin: 0; font-size: 22px; line-height: 28px;">{{titel}}</h1>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">{{letzteSuche}}</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn" type="button" aria-expanded="{{einstellenAria}}" aria-controls="einst" onClick="{{einstellenUmschalten}}">{{einstellenLabel}}</button>
+      <button class="btn btn--primary" type="button" disabled="{{laeuft}}" aria-busy="{{laeuftAria}}">{{suchKnopf}}</button>
+    </div>
+  </header>
+
+  <sc-if value="{{einstellenOffen}}" hint-placeholder-val="{{ false }}">
+    <section id="einst" aria-label="Suche einstellen" style="display: flex; flex-wrap: wrap; gap: 24px 40px; padding: 20px 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);">
+      <fieldset style="border: 0; margin: 0; padding: 0; flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px;">
+        <legend style="font-weight: 500; color: var(--text-strong); margin-bottom: 8px;">{{portaleFrage}}</legend>
+        <sc-for list="{{portalWahl}}" as="p" hint-placeholder-count="5"><label class="check"><input type="checkbox" checked="{{p.an}}"> {{p.name}}</label></sc-for>
+      </fieldset>
+      <div style="flex: 2 1 320px; display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-weight: 500; color: var(--text-strong);">{{begriffeTitel}}</span>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px;">
+          <sc-for list="{{begriffe}}" as="x" hint-placeholder-count="4"><li style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 10px; border: 1px solid var(--line-strong); border-radius: 6px;">{{x.b}}<button class="btn btn--quiet btn--sm" type="button" aria-label="{{x.b}} entfernen" style="min-height: 28px; padding: 0 6px; text-decoration: none;">×</button></li></sc-for>
+        </ul>
+        <div style="display: flex; gap: 8px;"><label class="visually-hidden" for="nb">Suchbegriff hinzufügen</label><input class="input" id="nb" placeholder="Suchbegriff hinzufügen" style="max-width: 260px; min-height: 32px; padding: 4px 10px; font-size: 14px;"><button class="btn btn--sm" type="button">Hinzufügen</button></div>
+        <label class="switch" style="margin-top: 8px;"><input type="checkbox" role="switch" checked> Treffer automatisch einschätzen</label>
+        <label class="switch"><input type="checkbox" role="switch"> <span>Im sichtbaren Tab suchen <span style="display: block; font-size: 13px; line-height: 18px; color: var(--text-muted);">{{sichtbarHilfe}}</span></span></label>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ohneErweiterung}}" hint-placeholder-val="{{ false }}">
+    <div class="notice notice--warning"><span class="notice__title">Die Erweiterung fehlt</span><p class="notice__body">{{erweiterungText}}</p><div class="notice__actions"><a class="btn btn--sm" href="Einrichtung-Erweiterung.dc.html">Erweiterung einrichten</a></div></div>
+  </sc-if>
+
+  <sc-if value="{{laeuft}}" hint-placeholder-val="{{ false }}">
+    <div class="progress" role="status" aria-live="polite">
+      <div class="progress__head"><strong>{{laufTitel}}</strong><span class="num">2 von 4 Portalen</span></div>
+      <div class="progress__track" aria-hidden="true"><span class="done"></span><span class="done"></span><span class="now"></span><span></span></div>
+      <ul class="progress__phases" aria-label="Portale"><sc-for list="{{portale}}" as="p" hint-placeholder-count="4"><li class="{{p.cls}}" aria-current="{{p.cur}}">{{p.text}}</li></sc-for></ul>
+      <div class="progress__head" style="margin-top: 8px;"><strong>KI schätzt Treffer ein</strong><span class="num">3 von 10</span></div>
+      <div class="progress__track" aria-hidden="true"><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <p class="progress__note">{{laufNotiz}}</p>
+      <div><button class="btn btn--sm" type="button">Anhalten</button></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{istLehr}}" hint-placeholder-val="{{ false }}">
+    <section aria-labelledby="berufe" style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;">
+      <h2 id="berufe" style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text-strong);">Deine Berufe</h2>
+      <span style="display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface);">Kauffrau/Kaufmann EFZ <span aria-label="3 von 3 Sternen" style="color: var(--accent); letter-spacing: 1px;">★★★</span></span>
+      <span style="display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface);">Informatiker/in EFZ <span aria-label="2 von 3 Sternen" style="color: var(--accent); letter-spacing: 1px;">★★<span style="color: var(--line-strong);">★</span></span></span>
+      <span style="display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface);">Logistiker/in EFZ <span aria-label="1 von 3 Sternen" style="color: var(--accent); letter-spacing: 1px;">★<span style="color: var(--line-strong);">★★</span></span></span>
+      <span style="font-size: 14px; line-height: 20px; color: var(--text-muted);">Die Sterne ordnen die Liste. Die Note ändern sie nicht.</span>
+    </section>
+  </sc-if>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+    <div role="group" aria-label="Treffer anzeigen" style="display: flex; gap: 4px;">
+      <button class="btn btn--sm" type="button" aria-pressed="true" style="background: var(--accent-subtle); border-color: var(--accent);">{{neuLabel}}</button>
+      <button class="btn btn--sm" type="button" aria-pressed="false">Übernommen 4</button>
+      <button class="btn btn--sm" type="button" aria-pressed="false">Verworfen 7</button>
+    </div>
+    <details class="grade-help"><summary>{{notenTitel}}</summary><p>{{notenHilfe}}</p></details>
+  </div>
+
+  <sc-if value="{{keineTreffer}}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 40px 24px; border: 1px dashed var(--line-strong); border-radius: 10px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+      <strong style="color: var(--text-strong);">Keine neuen Treffer</strong>
+      <p style="margin: 0; max-width: 52ch;">{{leerText}}</p>
+      <button class="btn" type="button">{{einstellenLabel}}</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hatTreffer}}" hint-placeholder-val="{{ true }}">
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+    <section aria-label="Trefferliste" style="flex: 1 1 480px; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden;">
+      <sc-for list="{{treffer}}" as="t" hint-placeholder-count="5">
+        <button class="hit" type="button" aria-current="{{t.aktuell}}" onClick="{{t.pick}}">
+          <span style="display: flex; flex-direction: column; gap: 4px; min-width: 104px;">
+            <sc-for list="{{t.noten}}" as="g" hint-placeholder-count="1">
+              <span class="grade-meter grade-meter--sm" data-uncertain="{{g.unsicher}}" aria-label="{{g.label}}"><sc-if value="{{g.hatName}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="min-width: 60px; font-size: 12px; line-height: 16px; color: var(--text-muted);">{{g.name}}</span></sc-if><span class="grade-meter__value">{{g.wert}}</span><span class="grade-meter__bar" aria-hidden="true"><sc-for list="{{g.segs}}" as="s" hint-placeholder-count="6"><i class="{{s.cls}}"></i></sc-for></span></span>
+            </sc-for>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
+            <span style="font-weight: 500; color: var(--text-strong);">{{t.titel}}</span>
+            <span style="font-size: 14px; line-height: 20px;">{{t.firma}} · {{t.ort}} · {{t.umfang}}</span>
+            <span style="font-size: 13px; line-height: 18px; color: var(--text-muted);">{{t.portal}} · {{t.gefunden}}<sc-if value="{{t.hatMarke}}" hint-placeholder-val="{{ false }}"> · <span style="color: var(--text-strong); font-weight: 500;">{{t.marke}}</span></sc-if></span>
+          </span>
+        </button>
+      </sc-for>
+    </section>
+
+    <section aria-labelledby="dt" style="flex: 1 1 400px; min-width: 0; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <h2 id="dt" style="margin: 0; font-size: 18px; line-height: 24px;">{{sel.titel}}</h2>
+        <p style="margin: 0;">{{sel.firma}}, {{sel.ort}} · {{sel.umfang}}</p>
+        <p style="margin: 0; font-size: 14px; line-height: 20px;"><a href="#">Inserat auf {{sel.portal}} öffnen</a></p>
+      </div>
+      <sc-if value="{{sel.hatRegister}}" hint-placeholder-val="{{ false }}">
+        <div class="notice"><span class="notice__title">Schon im Register</span><p class="notice__body">{{sel.register}}</p></div>
+      </sc-if>
+      <article class="ai-result" aria-labelledby="ki">
+        <header class="ai-result__head"><h3 class="ai-result__kind" id="ki">Einschätzung der KI</h3>
+          <span style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+            <sc-for list="{{sel.noten}}" as="g" hint-placeholder-count="1">
+              <span class="grade-meter" data-uncertain="{{g.unsicher}}" aria-label="{{g.label}}"><span style="min-width: 64px; text-align: right; font-size: 13px; color: var(--text-muted);">{{g.name}}</span><span class="grade-meter__value">{{g.wert}}</span><span class="grade-meter__bar" aria-hidden="true"><sc-for list="{{g.segs}}" as="s" hint-placeholder-count="6"><i class="{{s.cls}}"></i></sc-for></span><span class="grade-meter__word" aria-hidden="true" style="min-width: 104px;">{{g.wort}}</span></span>
+            </sc-for>
+          </span>
+        </header>
+        <p style="margin: 0;">{{sel.zusammenfassung}}</p>
+        <div class="ai-result__cols">
+          <div><h3>Was passt</h3><ul><sc-for list="{{sel.passt}}" as="x" hint-placeholder-count="2"><li>{{x}}</li></sc-for></ul></div>
+          <div><h3>Was fehlt oder unsicher ist</h3><ul><sc-for list="{{sel.fehlt}}" as="x" hint-placeholder-count="2"><li>{{x}}</li></sc-for></ul></div>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">{{sel.nachgeprueft}}</p>
+        <div class="btn-row">
+          <sc-if value="{{sel.empfohlen}}" hint-placeholder-val="{{ true }}"><a class="btn btn--primary" href="Bewerbung.dc.html">Übernehmen</a></sc-if>
+          <sc-if value="{{sel.nichtEmpfohlen}}" hint-placeholder-val="{{ false }}"><a class="btn" href="Bewerbung.dc.html">Trotzdem übernehmen</a></sc-if>
+          <button class="btn btn--quiet" type="button">Verwerfen</button>
+        </div>
+        <p class="ai-result__foot">Eine Einschätzung, kein Urteil. Die KI kann sich irren. · Claude · CHF 0.01</p>
+      </article>
+    </section>
+  </div>
+  </sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["ergebnisse","einstellen","laeuft","ohne-erweiterung","keine-treffer"],"default":"ergebnisse"},"modus":{"editor":"enum","options":["stelle","lehrstelle"],"default":"stelle"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sel: 0 }; }
+  renderVals() {
+    const z = this.props.zustand ?? 'ergebnisse';
+    const lehr = (this.props.modus ?? 'stelle') === 'lehrstelle';
+    const wort = (n) => (n >= 5.5 ? 'passt sehr gut' : n >= 4.5 ? 'passt gut' : n >= 4 ? 'passt knapp' : 'passt wenig');
+    const note = (name, n, unsicher) => ({
+      name, hatName: !!name, wert: String(n), wort: wort(n), unsicher: unsicher ? '' : undefined,
+      segs: [1, 2, 3, 4, 5, 6].map((k) => ({ cls: n >= k ? 'on' : (n >= k - 0.5 ? 'half' : '') })),
+      label: (name ? name + ': ' : '') + 'Note ' + n + ' von 6, ' + wort(n) + (unsicher ? ', unsicher' : '')
+    });
+    const stellen = [
+      { titel: 'Sachbearbeiter/in Einkauf 80–100 %', firma: 'Muster Industrie AG', ort: 'Winterthur', umfang: '80–100 %', portal: 'jobs.ch', gefunden: 'heute', noten: [note('', 5)],
+        zusammenfassung: 'Operativer Einkauf für Ersatzteile, Bestellungen in SAP, Kontakt zu Lieferanten in der Schweiz und in Deutschland.',
+        passt: ['6 Jahre Einkauf im Detailhandel', 'SAP MM aus zwei Stellen', 'Pensum passt'], fehlt: ['Englisch verhandlungssicher verlangt, im Profil «gut»'],
+        nachgeprueft: 'Dreimal einzeln nachgeprüft: 5, 5 und 4.5.' },
+      { titel: 'Einkaufsassistent/in 60 %', firma: 'Demo Handel AG', ort: 'Basel', umfang: '60 %', portal: 'job-room.ch', gefunden: 'heute', noten: [note('', 4, true)],
+        zusammenfassung: 'Unterstützung des Einkaufsteams, Pflege der Lieferantendaten. Das Inserat ist knapp.', marke: 'schon im Register',
+        register: 'Bei Demo Handel AG ist die Stelle «Einkaufsassistentin 60–80 %» gemerkt.',
+        passt: ['Erfahrung im Detailhandel'], fehlt: ['Pensum tiefer als gesucht', 'Wenig Angaben im Inserat, darum unsicher'],
+        nachgeprueft: 'Dreimal einzeln nachgeprüft: 4, 4.5 und 3.5. Die Einschätzungen gehen auseinander.' },
+      { titel: 'Disponent/in Logistik 100 %', firma: 'Probe Transport AG', ort: 'Zug', umfang: '100 %', portal: 'jobscout24.ch', gefunden: 'gestern', noten: [note('', 4.5)],
+        zusammenfassung: 'Tourenplanung für 20 Fahrzeuge, Kundenkontakt am Telefon.',
+        passt: ['Planung und Koordination aus dem Einkauf', 'Deutsch und Französisch'], fehlt: ['Branchenwechsel in die Logistik'],
+        nachgeprueft: 'Dreimal einzeln nachgeprüft: 4.5, 4.5 und 4.' },
+      { titel: 'Leiter/in Beschaffung 100 %', firma: 'Beispiel Holding AG', ort: 'Zürich', umfang: '100 %', portal: 'LinkedIn', gefunden: 'gestern', noten: [note('', 3)],
+        zusammenfassung: 'Führung eines Teams von acht Personen, Strategie der Beschaffung.',
+        passt: ['Branchenkenntnis'], fehlt: ['Fünf Jahre Führungserfahrung verlangt, im Profil keine', 'Hochschulabschluss verlangt'],
+        nachgeprueft: 'Unter Note 4 wird nicht nachgeprüft.' },
+      { titel: 'Kauffrau/Kaufmann Spedition 80 %', firma: 'Testlogistik GmbH', ort: 'Basel', umfang: '80 %', portal: 'jobs.ch', gefunden: 'vor 3 Tagen', noten: [note('', 3.5)],
+        zusammenfassung: 'Zollabwicklung und Exportpapiere.',
+        passt: ['Kaufmännische Grundbildung'], fehlt: ['Zollkenntnisse verlangt, im Profil keine'],
+        nachgeprueft: 'Unter Note 4 wird nicht nachgeprüft.' }
+    ];
+    const lehrstellen = [
+      { titel: 'Kauffrau/Kaufmann EFZ', firma: 'Muster Versicherung AG', ort: 'Bern', umfang: 'Lehrbeginn August 2027', portal: 'yousty', gefunden: 'heute', noten: [note('Beruf', 5.5), note('Lehrstelle', 5)],
+        zusammenfassung: 'Drei Jahre, Einsätze in vier Abteilungen, Berufsschule in Bern.',
+        passt: ['Du hast Kauffrau/Kaufmann mit drei Sternen gewählt', 'Gute Noten in Deutsch und Mathematik', 'Schnupperlehre bei einer Bank'], fehlt: ['Verlangt wird das Multicheck-Ergebnis, das fehlt noch'],
+        nachgeprueft: 'Dreimal einzeln nachgeprüft: 5, 5 und 5.' },
+      { titel: 'Informatiker/in EFZ', firma: 'Demo Informatik AG', ort: 'Thun', umfang: 'Schnuppertage im Dezember', portal: 'LENA', gefunden: 'heute', noten: [note('Beruf', 5), note('Lehrstelle', 4.5)], marke: 'Schnupperlehre',
+        zusammenfassung: 'Zwei Schnuppertage in der Applikationsentwicklung.',
+        passt: ['Interesse an Computern und Programmieren'], fehlt: ['Weg von Bern nach Thun etwa 40 Minuten'],
+        nachgeprueft: 'Dreimal einzeln nachgeprüft: 4.5, 4.5 und 5.' },
+      { titel: 'Logistiker/in EFZ', firma: 'Probe Transport AG', ort: 'Bern', umfang: 'Lehrbeginn August 2027', portal: 'LENA', gefunden: 'gestern', noten: [note('Beruf', 4), note('Lehrstelle', 4.5)],
+        zusammenfassung: 'Lager und Verteilzentrum, Staplerprüfung während der Lehre.',
+        passt: ['Nahe am Wohnort'], fehlt: ['Du hast Logistik nur mit einem Stern gewählt'],
+        nachgeprueft: 'Dreimal einzeln nachgeprüft: 4.5, 4 und 4.5.' },
+      { titel: 'Detailhandelsfachfrau/-mann EFZ', firma: 'Beispiel Markt AG', ort: 'Biel', umfang: 'Lehrbeginn August 2027', portal: 'yousty', gefunden: 'gestern', noten: [note('Beruf', 3.5), note('Lehrstelle', 4)],
+        zusammenfassung: 'Beratung und Verkauf im Lebensmittelbereich.',
+        passt: ['Französisch gut'], fehlt: ['Detailhandel ist nicht unter deinen Berufen'],
+        nachgeprueft: 'Unter Note 4 beim Beruf wird nicht nachgeprüft.' }
+    ];
+    const liste = lehr ? lehrstellen : stellen;
+    const idx = Math.min(this.state.sel, liste.length - 1);
+    const treffer = liste.map((t, i) => ({ ...t, hatMarke: !!t.marke, aktuell: i === idx ? 'true' : undefined, pick: () => this.setState({ sel: i }) }));
+    const s = liste[idx];
+    const hoechste = Math.min(...s.noten.map((g) => Number(g.wert)));
+    const sel = { ...s, hatRegister: !!s.register, empfohlen: hoechste >= 4, nichtEmpfohlen: hoechste < 4 };
+    const laeuft = z === 'laeuft';
+    const portale = (lehr ? ['LENA: fertig, 9 Treffer', 'yousty: läuft', 'Berufsberatung.ch: wartet', 'Karriereseiten: wartet'] : ['jobs.ch: fertig, 8 Treffer', 'job-room.ch: läuft', 'jobscout24.ch: wartet', 'LinkedIn: wartet'])
+      .map((t, i) => ({ text: t, cls: '', cur: i === 1 ? 'step' : undefined }));
+    const offen = this.state.einstellen ?? (z === 'einstellen');
+    const portalWahl = (lehr ? ['LENA', 'yousty', 'Berufsberatung.ch', 'Karriereseiten meiner Firmen'] : ['jobs.ch', 'job-room.ch', 'jobscout24.ch', 'LinkedIn', 'ictjobs.ch'])
+      .map((n, i) => ({ name: n, an: i < 4 ? true : false }));
+    const begriffe = (lehr ? ['Kauffrau EFZ', 'Informatikerin EFZ', 'Logistikerin EFZ'] : ['Einkauf', 'Beschaffung', 'Disposition', 'Supply Chain']).map((b) => ({ b }));
+    return {
+      theme: this.props.theme ?? 'light', modus: lehr ? 'lehrstelle' : 'stelle', istLehr: lehr,
+      einstellenOffen: offen, einstellenAria: offen ? 'true' : 'false', portalWahl, begriffe,
+      einstellenUmschalten: () => this.setState({ einstellen: !offen }),
+      portaleFrage: lehr ? 'Wo suchst du?' : 'Wo suchen Sie?',
+      begriffeTitel: lehr ? 'Deine Suchbegriffe' : 'Ihre Suchbegriffe',
+      sichtbarHilfe: lehr ? 'Langsamer, dafür siehst du, was die Erweiterung tut.' : 'Langsamer, dafür sehen Sie, was die Erweiterung tut.',
+      titel: lehr ? 'Lehrstellen suchen' : 'Stellen suchen',
+      letzteSuche: laeuft ? 'Suche läuft seit 08:12.' : (lehr ? 'Letzte Suche heute, 08:12 · LENA und yousty · 14 Treffer, 4 neu' : 'Letzte Suche heute, 08:12 · 4 Portale · 23 Treffer, 12 neu'),
+      einstellenLabel: lehr ? 'Suche einstellen' : 'Suche einstellen',
+      suchKnopf: laeuft ? 'Suche läuft …' : (lehr ? 'Jetzt suchen' : 'Jetzt suchen'),
+      laeuft, laeuftAria: laeuft ? 'true' : undefined, zaehler: laeuft ? '3 von 10' : '',
+      laufTitel: 'Die Erweiterung sucht auf den Portalen', portale,
+      laufNotiz: lehr ? 'Ein Suchlauf dauert einige Minuten. Du kannst währenddessen weiterarbeiten. Bisher CHF 0.03.' : 'Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten. Bisher CHF 0.03.',
+      ohneErweiterung: z === 'ohne-erweiterung',
+      erweiterungText: lehr ? 'Für die Suche braucht es die Browser-Erweiterung. Die bisherigen Treffer bleiben hier.' : 'Für die Suche braucht es die Browser-Erweiterung. Die bisherigen Treffer bleiben hier.',
+      keineTreffer: z === 'keine-treffer', hatTreffer: z !== 'keine-treffer',
+      leerText: lehr ? 'Die Portale haben nichts Neues gemeldet. Nimm weitere Berufe dazu oder suche in einer grösseren Umgebung.' : 'Die Portale haben nichts Neues gemeldet. Versuchen Sie weitere Suchbegriffe oder eine grössere Umgebung.',
+      neuLabel: lehr ? 'Neu 4' : 'Neu 12',
+      notenTitel: lehr ? 'Wie lese ich die Noten?' : 'Wie lese ich die Note?',
+      notenHilfe: lehr
+        ? 'Schweizer Noten: 6 ist die beste, 1 die schlechteste Note. Die Note «Beruf» sagt, wie gut der Beruf zu dir passt, die Note «Lehrstelle», wie gut dieser Lehrbetrieb passt. Ab 4 passt es genügend. Die KI kann sich irren.'
+        : 'Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein.',
+      treffer, sel
+    };
+  }
+}
+</script>
+</body>
+</html>

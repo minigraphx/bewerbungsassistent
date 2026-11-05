@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Meine Angaben</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.track{all:unset;box-sizing:border-box;flex:1 1 240px;display:flex;flex-direction:column;gap:4px;padding:16px 20px;border:2px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer}
+.track[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-subtle)}
+.track:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.sum{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="angaben" modus="{{modus}}" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+  <aside style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 16px;">
+    <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Meine Angaben</h1>
+    <ol class="steps steps--vertical" aria-label="Teile">
+      <sc-for list="{{teile}}" as="s" hint-placeholder-count="7">
+        <li class="steps__item" data-state="{{s.state}}" aria-current="{{s.cur}}"><span class="steps__dot"></span><span class="steps__label">{{s.label}}</span><span class="steps__meta">{{s.meta}}</span></li>
+      </sc-for>
+    </ol>
+    <p style="margin: 0; font-size: 13px; line-height: 18px; color: var(--text-muted);">{{gespeichert}}</p>
+  </aside>
+
+  <section style="flex: 999 1 560px; min-width: 0; max-width: 760px; display: flex; flex-direction: column; gap: 24px;">
+  <sc-if value="{{istStart}}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);">
+      <strong style="color: var(--text-strong); font-weight: 500;">{{wahlText}}</strong>
+      <a class="btn btn--quiet btn--sm" href="Einrichtung-Wahl.dc.html">Ändern</a>
+      <span style="flex-basis: 100%; font-size: 14px; line-height: 20px; color: var(--text-muted);">Gewählt in der Einrichtung. Eine Änderung passt die Texte und die Suche an.</span>
+    </div>
+    <div class="card">
+      <h2 style="margin: 0; font-size: 18px; line-height: 24px;">{{vorbefuellenTitel}}</h2>
+      <p style="margin: 0;">{{vorbefuellenText}}</p>
+      <ul style="list-style: none; margin: 0; padding: 0;">
+        <li class="sum"><span>Lebenslauf_2025.pdf <span style="color: var(--text-muted); font-size: 14px;">· 180 KB</span></span><button class="btn btn--quiet btn--sm" type="button">Entfernen</button></li>
+        <li class="sum" style="border-bottom: 0;"><span>Arbeitszeugnis_Muster_Handel.pdf <span style="color: var(--text-muted); font-size: 14px;">· 240 KB</span></span><button class="btn btn--quiet btn--sm" type="button">Entfernen</button></li>
+      </ul>
+      <div class="btn-row"><button class="btn btn--primary" type="button">Vorbefüllen</button><button class="btn" type="button">Weitere Datei wählen</button><a class="btn btn--quiet" href="Angaben.dc.html">{{vonHand}}</a></div>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">{{datenschutz}}</p>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{istSchritt}}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin: 0; font-size: 22px; line-height: 28px;">Werdegang</h2>
+      <div role="tablist" aria-label="Werdegang" style="display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line);">
+        <button role="tab" aria-selected="true" type="button" style="all: unset; cursor: pointer; padding: 8px 12px; font-weight: 500; color: var(--text-strong); border-bottom: 3px solid var(--accent); margin-bottom: -1px;">Berufliche Stationen 3</button>
+        <button role="tab" aria-selected="false" type="button" style="all: unset; cursor: pointer; padding: 8px 12px; color: var(--text);">Ausbildung 2</button>
+        <button role="tab" aria-selected="false" type="button" style="all: unset; cursor: pointer; padding: 8px 12px; color: var(--text);">Kurse und Zertifikate 4</button>
+      </div>
+    </div>
+    <div class="notice"><span class="notice__title">Aus Ihren Unterlagen vorbefüllt</span><p class="notice__body">Bitte prüfen Sie jede Station. Was Sie ändern, wird sofort gespeichert.</p></div>
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px;"><h3 style="margin: 0; font-size: 16px; color: var(--text-strong);">Muster Handel AG</h3><span style="font-size: 14px; color: var(--text-muted);">2019 bis 2025</span></div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 16px;">
+        <div class="field"><label class="field__label" for="f1">Funktion</label><input class="input" id="f1" value="Sachbearbeiterin Einkauf"></div>
+        <div class="field"><label class="field__label" for="f2">Ort</label><input class="input" id="f2" value="Zürich"></div>
+        <div class="field"><label class="field__label" for="f3">Von</label><input class="input" id="f3" value="04.2019"></div>
+        <div class="field"><label class="field__label" for="f4">Bis</label><input class="input" id="f4" value="09.2025"><p class="field__hint">Leer lassen, wenn Sie noch dort arbeiten.</p></div>
+      </div>
+      <div class="field" style="margin: 0;"><label class="field__label" for="f5">Aufgaben und Erfolge</label><textarea class="input" id="f5">Bestellungen für 40 Lieferanten in SAP MM. Rahmenverträge verhandelt. Bestellabwicklung umgestellt, Durchlaufzeit von vier auf zwei Tage gesenkt.</textarea><p class="field__hint">Ein Erfolg mit Zahl hilft dem Anschreiben am meisten.</p></div>
+    </div>
+    <ul style="list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 0 20px;">
+      <li class="sum"><span><strong style="color: var(--text-strong); font-weight: 500;">Beispiel Markt AG</strong> <span style="color: var(--text-muted); font-size: 14px;">· Kauffrau · 2015 bis 2019</span></span><button class="btn btn--sm" type="button">Bearbeiten</button></li>
+      <li class="sum" style="border-bottom: 0;"><span><strong style="color: var(--text-strong); font-weight: 500;">Demo Versand GmbH</strong> <span style="color: var(--text-muted); font-size: 14px;">· Lehre Kauffrau EFZ · 2012 bis 2015</span></span><button class="btn btn--sm" type="button">Bearbeiten</button></li>
+    </ul>
+    <button class="btn" type="button" style="border-style: dashed; width: 100%;">Station hinzufügen</button>
+    <div style="display: flex; justify-content: space-between; gap: 12px; padding-top: 8px;"><a class="btn btn--quiet" href="Angaben.dc.html">Zurück: Person und Kontakt</a><a class="btn btn--primary" href="Angaben.dc.html">Weiter: Können</a></div>
+  </sc-if>
+
+  <sc-if value="{{istUebernehmen}}" hint-placeholder-val="{{ false }}">
+    <h2 style="margin: 0; font-size: 22px; line-height: 28px;">Übernehmen</h2>
+    <p style="margin: 0;">Prüfen Sie die Übersicht. Mit «Übernehmen» erstellt der Assistent daraus Ihren Lebenslauf, Ihr Suchprofil und Ihren Schreibstil.</p>
+    <ul style="list-style: none; margin: 0; padding: 0 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);">
+      <sc-for list="{{zusammenfassung}}" as="r" hint-placeholder-count="5">
+        <li class="sum"><span style="display: flex; flex-direction: column;"><strong style="color: var(--text-strong); font-weight: 500;">{{r.teil}}</strong><span style="font-size: 14px; line-height: 20px; color: {{r.farbe}};">{{r.stand}}</span></span><a class="btn btn--sm" href="Angaben.dc.html">{{r.knopf}}</a></li>
+      </sc-for>
+    </ul>
+    <div class="btn-row"><button class="btn btn--primary" type="button">Angaben übernehmen</button></div>
+    <p style="margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted);">Ihre bisherigen Angaben bleiben unter Entwürfe und Versionen erhalten.</p>
+  </sc-if>
+  </section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["start","schritt","uebernehmen"],"default":"start"},"modus":{"editor":"enum","options":["stelle","lehrstelle"],"default":"stelle"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'start';
+    const lehr = (this.props.modus ?? 'stelle') === 'lehrstelle';
+    const pos = { start: 0, schritt: 2, uebernehmen: 6 }[z];
+    const t = lehr
+      ? [['Start', 'Unterlagen'], ['Du und deine Kontakte', 'Name, Adresse, Eltern'], ['Schule und Schnuppern', 'Zeugnisse, Schnupperlehren'], ['Was du kannst', 'Sprachen, Stärken, Hobbys'], ['Was du suchst', 'Berufe, Region, Lehrbeginn'], ['Wie du schreibst', 'Ton, Kurzprofil'], ['Übernehmen', '']]
+      : [['Start', 'Unterlagen'], ['Person und Kontakt', 'Name, Adresse, Foto'], ['Werdegang', 'Stationen, Ausbildung, Kurse'], ['Können', 'Sprachen, Kenntnisse, Stärken'], ['Was Sie suchen', 'Stellen, Region, Rahmen'], ['Wie Sie schreiben', 'Kurzprofil, Lücken, Ton'], ['Übernehmen', '']];
+    const teile = t.map(([label, meta], i) => ({ label, meta, state: i < pos ? 'done' : (i === pos ? 'current' : 'todo'), cur: i === pos ? 'step' : undefined }));
+    const ok = 'var(--text-muted)', hin = 'var(--warning)';
+    const zusammenfassung = [
+      { teil: 'Person und Kontakt', stand: 'Vollständig', farbe: ok, knopf: 'Ansehen' },
+      { teil: 'Werdegang', stand: '3 Stationen, 2 Ausbildungen, 4 Kurse', farbe: ok, knopf: 'Ansehen' },
+      { teil: 'Können', stand: 'Hinweis: Bei Englisch fehlt das Niveau', farbe: hin, knopf: 'Ergänzen' },
+      { teil: 'Was Sie suchen', stand: 'Einkauf, Logistik · Zürich und 30 km · 80 bis 100 %', farbe: ok, knopf: 'Ansehen' },
+      { teil: 'Wie Sie schreiben', stand: 'Sachlich, eher kurz · Lücke 2025 erklärt', farbe: ok, knopf: 'Ansehen' }
+    ];
+    return {
+      theme: this.props.theme ?? 'light', modus: lehr ? 'lehrstelle' : 'stelle', teile, zusammenfassung,
+      istStart: z === 'start', istSchritt: z === 'schritt', istUebernehmen: z === 'uebernehmen',
+      gespeichert: 'Alles wird laufend gespeichert, zuletzt um 10:42.',
+      wahlText: lehr ? 'Gesucht wird: eine Lehrstelle · RAV: nein' : 'Gesucht wird: eine Stelle · Anrede: Sie · RAV: ja',
+      stellePressed: lehr ? 'false' : 'true', lehrPressed: lehr ? 'true' : 'false',
+      vorbefuellenTitel: lehr ? 'Aus deinen Unterlagen vorbefüllen' : 'Aus Ihren Unterlagen vorbefüllen',
+      vorbefuellenText: lehr
+        ? 'Lade dein Zeugnis oder einen Lebenslauf hoch. Die KI liest sie und füllt die nächsten Schritte aus, du prüfst alles.'
+        : 'Laden Sie Lebenslauf und Zeugnisse hoch. Die KI liest sie und füllt die nächsten Schritte aus. Sie prüfen alles.',
+      vonHand: lehr ? 'Lieber von Hand ausfüllen' : 'Lieber von Hand ausfüllen',
+      datenschutz: lehr
+        ? 'Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und Scans bleiben auf deinem Computer.'
+        : 'Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und Scans bleiben auf Ihrem Computer.'
+    };
+  }
+}
+</script>
+</body>
+</html>

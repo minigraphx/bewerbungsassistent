@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Fragen an die KI</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.zug{padding:12px 16px;border-radius:10px;border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.zug p{margin:0}
+.wer{font-size:13px;line-height:18px;font-weight:500;color:var(--text-muted)}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="mehr" hint-size="100%,57px"></dc-import>
+<main style="max-width: 760px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 20px;">
+  <header style="display: flex; flex-direction: column; gap: 6px;">
+    <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Fragen an die KI</h1>
+    <p style="margin: 0;">Zur Stellensuche, zu Ihren Unterlagen oder zum Vorstellungsgespräch. Die KI kennt Ihre Angaben ohne Namen und Adresse.</p>
+  </header>
+  <sc-if value="{{istAus}}" hint-placeholder-val="{{ false }}">
+    <div class="notice"><span class="notice__title">Fragen ist ausgeschaltet</span><p class="notice__body">Ihre Begleitperson oder Sie selbst können es in den Erweiterten Einstellungen einschalten.</p><div class="notice__actions"><a class="btn btn--sm" href="Einstellungen.dc.html">Einstellungen öffnen</a></div></div>
+  </sc-if>
+  <sc-if value="{{istAn}}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div class="zug" style="background: transparent;"><span class="wer">Sie</span><p>Wie bereite ich mich auf das Gespräch bei der Beispiel GmbH vor?</p></div>
+      <div class="zug" style="background: var(--surface);"><span class="wer">KI</span><p>Drei Dinge lohnen sich besonders:</p><p>1. Lesen Sie das Inserat noch einmal und notieren Sie zu jeder Anforderung ein Beispiel aus Ihrer Arbeit. Zur Disposition passt Ihre Umstellung auf SAP MM gut.</p><p>2. Bereiten Sie eine kurze Antwort auf die Lücke seit Oktober 2025 vor. Ihre Formulierung aus den Bausteinen ist ein guter Anfang.</p><p>3. Überlegen Sie zwei Fragen an die Firma, etwa wie die Einarbeitung aussieht.</p><p style="font-size: 13px; line-height: 18px; color: var(--text-muted);">Eine Einschätzung, kein Rat einer Fachperson. Die KI kann sich irren. · CHF 0.01</p></div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;" aria-label="Beispielfragen">
+      <button class="btn btn--sm" type="button">Wie erkläre ich eine Lücke im Lebenslauf?</button>
+      <button class="btn btn--sm" type="button">Welche Fragen kommen oft im Gespräch?</button>
+      <button class="btn btn--sm" type="button">Soll ich mich auch auf 100&nbsp;% bewerben?</button>
+    </div>
+    <div class="field" style="margin: 0;"><label class="field__label" for="q">Ihre Frage</label><textarea class="input" id="q" style="min-height: 88px;"></textarea></div>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;"><span style="font-size: 14px; line-height: 20px; color: var(--text-muted);">Heute noch 18 von 20 Fragen</span><button class="btn btn--primary" type="button">Fragen</button></div>
+  </sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["an","aus"],"default":"an"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'an';
+    return { theme: this.props.theme ?? 'light', istAn: z === 'an', istAus: z === 'aus' };
+  }
+}
+</script>
+</body>
+</html>

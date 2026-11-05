@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Popup der Erweiterung</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.pp-sec{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-top:1px solid var(--line)}
+.pp-sec h2{margin:0;font-size:14px;line-height:20px;font-weight:700;color:var(--text-strong)}
+.pp-sec p{margin:0;font-size:14px;line-height:20px}
+.pp-dot{width:8px;height:8px;border-radius:999px;flex:none}
+.pp-portal{display:flex;justify-content:space-between;gap:8px;font-size:14px;line-height:20px}
+.pp-btn{width:100%}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 320px; box-sizing: border-box; background: var(--surface); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 20px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;">
+  <header style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px;">
+    <strong style="font-size: 15px; color: var(--text-strong);">Bewerbungsassistent</strong>
+    <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: {{verbFarbe}};"><span class="pp-dot" style="background: {{verbFarbe}};"></span>{{verbText}}</span>
+  </header>
+
+  <sc-if value="{{istGetrennt}}" hint-placeholder-val="{{ false }}">
+    <div class="pp-sec">
+      <div class="notice notice--warning" style="flex-direction: column; gap: 4px; padding: 10px 12px;"><span class="notice__title">Die App läuft nicht</span><p class="notice__body" style="flex: none; font-size: 14px; line-height: 20px;">Starten Sie den Bewerbungsassistenten auf diesem Computer. Danach verbindet sich die Erweiterung von selbst.</p></div>
+      <button class="btn pp-btn" type="button">Nochmals verbinden</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{istVerbunden}}" hint-placeholder-val="{{ true }}">
+    <section class="pp-sec" aria-labelledby="ps">
+      <h2 id="ps">Stellen suchen</h2>
+      <sc-if value="{{istRuhig}}" hint-placeholder-val="{{ true }}">
+        <p class="muted">Letzte Suche heute, 08:12 · 12 neue Treffer</p>
+        <button class="btn btn--primary pp-btn" type="button">Suche starten</button>
+      </sc-if>
+      <sc-if value="{{istSuche}}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="display: flex; flex-direction: column; gap: 6px;">
+          <div class="progress__track" aria-hidden="true"><span class="done"></span><span class="now"></span><span></span><span></span></div>
+          <div class="pp-portal"><span>jobs.ch</span><span style="color: var(--success); font-weight: 500;">fertig, 8 Treffer</span></div>
+          <div class="pp-portal"><span style="font-weight: 500; color: var(--text-strong);">job-room.ch</span><span style="color: var(--text-strong);">Seite 2 von 5</span></div>
+          <div class="pp-portal"><span>jobscout24.ch</span><span class="muted">wartet</span></div>
+          <div class="pp-portal"><span>LinkedIn</span><span class="muted">wartet</span></div>
+        </div>
+        <p class="muted">Sie können den Browser weiter benutzen. Der Tab der Suche bleibt offen.</p>
+        <button class="btn pp-btn" type="button">Suche abbrechen</button>
+      </sc-if>
+    </section>
+
+    <section class="pp-sec" aria-labelledby="pd">
+      <h2 id="pd">Diese Seite</h2>
+      <sc-if value="{{istStelle}}" hint-placeholder-val="{{ false }}">
+        <p style="color: var(--text-strong); font-weight: 500;">Sachbearbeiter/in Einkauf 80–100&nbsp;%</p>
+        <p class="muted" style="margin-top: -6px;">Muster Industrie AG, Winterthur</p>
+        <sc-if value="{{istGeprueft}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 6px; background: var(--surface-subtle);">
+            <span class="grade-meter grade-meter--sm" aria-label="Note 5 von 6, passt gut"><span class="grade-meter__value">5</span><span class="grade-meter__bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="grade-meter__word" aria-hidden="true">passt gut</span></span>
+            <p>Passt: Einkauf, SAP MM, Pensum. Fehlt: Englisch verhandlungssicher.</p>
+            <p style="font-size: 12px; line-height: 16px; color: var(--text-muted);">Einschätzung der KI, kann sich irren · CHF 0.01</p>
+          </div>
+          <button class="btn btn--primary pp-btn" type="button">Stelle speichern</button>
+        </sc-if>
+      </sc-if>
+      <sc-if value="{{keineStelle}}" hint-placeholder-val="{{ true }}">
+        <p class="muted">Auf dieser Seite ist keine Stellenanzeige erkannt.</p>
+      </sc-if>
+    </section>
+  </sc-if>
+
+  <footer style="padding: 12px 16px; border-top: 1px solid var(--line); background: var(--surface-subtle);">
+    <a href="Suche.dc.html">Treffer in der App ansehen</a>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"zustand":{"editor":"enum","options":["verbunden","suche","stelle","getrennt"],"default":"verbunden"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":320,"height":560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const z = this.props.zustand ?? 'verbunden';
+    const getrennt = z === 'getrennt';
+    return {
+      theme: this.props.theme ?? 'light',
+      verbText: getrennt ? 'nicht verbunden' : 'verbunden',
+      verbFarbe: getrennt ? 'var(--warning)' : 'var(--success)',
+      istGetrennt: getrennt, istVerbunden: !getrennt,
+      istRuhig: z !== 'suche', istSuche: z === 'suche',
+      istStelle: z === 'stelle', istGeprueft: z === 'stelle', keineStelle: z !== 'stelle'
+    };
+  }
+}
+</script>
+</body>
+</html>

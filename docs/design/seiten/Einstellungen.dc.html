@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Erweiterte Einstellungen</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bewerbungsassistent/tokens.css">
+<link rel="stylesheet" href="ds/bewerbungsassistent/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-strong)}a:hover{color:var(--accent)}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:20px 24px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.card h2{margin:0;font-size:18px;line-height:24px}
+.card p{margin:0}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--line);font-size:14px;line-height:20px}
+.sub a{display:block;padding:6px 10px;border-radius:6px;text-decoration:none;font-size:14px}
+.sub a:hover{background:var(--surface-subtle)}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 24px;">
+<dc-import name="Nav" aktiv="mehr" hint-size="100%,57px"></dc-import>
+<main style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+  <aside style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 12px;">
+    <h1 style="margin: 0; font-size: 22px; line-height: 28px;">Erweiterte Einstellungen</h1>
+    <span class="status" style="align-self: flex-start; background: var(--surface);">Für Geübte</span>
+    <nav class="sub" aria-label="Abschnitte"><a href="#kosten">Kosten der KI</a><a href="#zugang">Zugang zur KI</a><a href="#seiten">Weitere Seiten durchsuchen</a><a href="#abo">Claude mit eigenem Abo</a><a href="#fragen">Fragen an die KI</a></nav>
+  </aside>
+  <div style="flex: 999 1 560px; min-width: 0; max-width: 760px; display: flex; flex-direction: column; gap: 20px;">
+    <section class="card" id="kosten" aria-labelledby="h1">
+      <h2 id="h1">Kosten der KI</h2>
+      <p>Im November CHF 3.40 von CHF 20.00. Getragen von Ihrer Begleitperson.</p>
+      <div class="progress__track" aria-hidden="true"><span class="done"></span><span class="done"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div><div class="kv"><span>Treffer einschätzen, 142-mal</span><span class="num">CHF 1.90</span></div><div class="kv"><span>Anschreiben entwerfen, 9-mal</span><span class="num">CHF 1.20</span></div><div class="kv"><span>Inhalt prüfen, 6-mal</span><span class="num">CHF 0.30</span></div></div>
+      <p style="font-size: 14px; line-height: 20px; color: var(--text-muted);">Gespeichert wird nur, wie viel was gekostet hat, nie der Inhalt.</p>
+    </section>
+
+    <section class="card" id="zugang" aria-labelledby="h2">
+      <h2 id="h2">Zugang zur KI</h2>
+      <p>Jetzt: <strong style="color: var(--text-strong);">Einladung (Pilot)</strong>, gültig bis 31.12.2026.</p>
+      <details>
+        <summary style="cursor: pointer; font-weight: 500; color: var(--text-strong);">Eigenen Schlüssel von Anthropic verwenden</summary>
+        <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 12px;">
+          <div class="notice notice--warning" style="flex-direction: column; align-items: stretch;"><span class="notice__title">Bitte zuerst lesen</span>
+            <ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px;"><li>Sie zahlen die Kosten dann selbst, direkt bei Anthropic.</li><li>Der Schlüssel öffnet Ihr Konto. Geben Sie ihn niemandem weiter.</li><li>Er wird nur auf diesem Computer gespeichert.</li></ul></div>
+          <div class="field" style="margin: 0;"><label class="field__label" for="key">Schlüssel</label><input class="input" id="key" type="password" autocomplete="off" style="font-family: var(--font-mono);"></div>
+          <label class="check"><input type="checkbox"> Ich habe die Hinweise gelesen</label>
+          <div><button class="btn" type="button" aria-disabled="true" aria-describedby="kr">Schlüssel speichern</button><p class="btn-reason" id="kr">Erst die Hinweise bestätigen.</p></div>
+        </div>
+      </details>
+    </section>
+
+    <section class="card" id="seiten" aria-labelledby="h3">
+      <h2 id="h3">Weitere Seiten durchsuchen</h2>
+      <p>Zusätzlich zu den Portalen kann die Erweiterung Karriereseiten von Firmen durchsuchen. Der Browser fragt für jede Seite einmal um Erlaubnis.</p>
+      <div><div class="kv"><span>karriere.muster-ag.ch</span><span style="color: var(--success); font-weight: 500;">erlaubt</span></div><div class="kv"><span>jobs.beispiel-holding.ch</span><span style="color: var(--warning); font-weight: 500;">Erlaubnis fehlt</span></div></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;"><div class="field" style="margin: 0; flex: 1 1 260px;"><label class="field__label" for="url">Adresse der Karriereseite</label><input class="input" id="url" placeholder="karriere.firma.ch"></div><button class="btn" type="button">Hinzufügen</button></div>
+    </section>
+
+    <section class="card" id="abo" aria-labelledby="h4">
+      <h2 id="h4">Claude mit eigenem Abo</h2>
+      <p>Wenn Sie Claude selbst nutzen, kann Claude über eine Verbindung auf diesem Computer Stellen suchen, einschätzen und Anschreiben entwerfen. Die Kosten laufen dann über Ihr Abo.</p>
+      <div class="notice"><span class="notice__title">Was Claude dann sieht</span><p class="notice__body">Ihre Angaben und Bewerbungen. Abschicken und Einträge im Job-Room bleiben bei Ihnen.</p></div>
+      <p>Status: <strong style="color: var(--text-strong);">nicht verbunden</strong></p>
+      <div class="btn-row"><button class="btn" type="button">Verbindung einrichten</button></div>
+    </section>
+
+    <section class="card" id="fragen" aria-labelledby="h5">
+      <h2 id="h5">Fragen an die KI</h2>
+      <label class="switch"><input type="checkbox" role="switch" checked> Seite «Fragen an die KI» zeigen</label>
+      <div class="field" style="margin: 0; max-width: 240px;"><label class="field__label" for="lim">Fragen pro Tag</label><input class="input" id="lim" value="20" inputmode="numeric"></div>
+    </section>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() { return { theme: this.props.theme ?? 'light' }; }
+}
+</script>
+</body>
+</html>
