@@ -47,6 +47,16 @@ def test_page_of_the_app_may_only_talk_to_the_app():
     assert not re.search(r"https?://(?!www\.w3\.org)", page.split("<script", 1)[0])
 
 
+def test_only_the_page_of_the_app_loads_fonts_and_only_from_the_app():
+    shared = build_template.build()
+    app_page = build_template.build(app=True)
+    policy = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', app_page).group(1)
+
+    assert "@font-face" not in shared and "font-src 'none'" in shared
+    assert "font-src 'self'" in policy
+    assert 'url("/fonts/DMSans-400.ttf")' in app_page
+
+
 def test_form_definition_cannot_close_its_script_element():
     page = build_template.build()
     definition = page.split('id="form-definition">', 1)[1].split("</script>", 1)[0]

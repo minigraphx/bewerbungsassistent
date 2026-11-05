@@ -25,6 +25,8 @@ import routes_rav
 import routes_page
 import routes_search
 import routes_sites
+import pfade  # noqa: F401  (makes the module lebenslauf importable)
+import build as lebenslauf_modul
 from ablage import Ablage
 from dateien import sichere_gitignore
 from kontext import Kontext
@@ -62,6 +64,9 @@ SEITEN = {
     "/einstellungen.js": "einstellungen.js",
     "/claude-abo.js": "claude-abo.js",
 }
+# DM Sans for stil.css and „Meine Angaben“ (MIN-369): the same files as the CV, served by the app, never from a CDN (CSP).
+FONT_FILES = ("DMSans-400.ttf", "DMSans-400i.ttf", "DMSans-500.ttf", "DMSans-700.ttf")
+SEITEN.update({f"/fonts/{name}": str(lebenslauf_modul.ROOT / "fonts" / name) for name in FONT_FILES})
 GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "bewerbungen/*/*.zip", "bewerbungen/*/an-formular/", "bewerbungen/*/zum-hochladen/", "dokumente/", ".ki/", "suche/", ".sicherung.yaml"]
 log = logging.getLogger("bewerbungsassistent")
 

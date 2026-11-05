@@ -87,6 +87,22 @@ def test_statische_dateien(server, pfad):
     assert inhalt
 
 
+@pytest.mark.parametrize("name", ["DMSans-400.ttf", "DMSans-400i.ttf", "DMSans-500.ttf", "DMSans-700.ttf"])
+def test_fonts_are_served_by_the_app(server, name):
+    status, typ, inhalt, _ = anfrage(server, "GET", f"/fonts/{name}")
+
+    assert status == 200
+    assert typ == "font/ttf"
+    assert inhalt[:4] == b"\x00\x01\x00\x00"  # TrueType
+
+
+def test_stylesheet_loads_fonts_only_from_the_app(server):
+    css = anfrage(server, "GET", "/stil.css")[2].decode("utf-8")
+
+    assert 'url("/fonts/DMSans-400.ttf")' in css
+    assert "http" not in css
+
+
 @pytest.mark.parametrize("pfad", ["/api/bewerbungen", "/api/bewerbungen?t=falsch", "/api/bewerbungen?t=%C3%A4"])
 def test_api_ohne_token(server, pfad):
     assert anfrage(server, "GET", pfad)[0] == 403
