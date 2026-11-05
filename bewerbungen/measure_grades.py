@@ -14,7 +14,8 @@ import string
 import sys
 from statistics import mean
 
-from ai import tasks
+import preferences
+from ai import consent, tasks
 from ai.connection import find_connection, make_client
 from ai.errors import AiError, AnswerError
 from dateien import schreibe_atomar
@@ -177,6 +178,7 @@ def main(argv: list[str] | None = None) -> int:
         print("Zum Starten denselben Befehl mit --ja.")
         return 0
     try:
+        consent.require(args.datenordner, preferences.strictest_kind(args.datenordner))
         material = tasks.load_material(args.datenordner)
         gateway = tasks.make_gateway(args.datenordner, material, make_client(find_connection()))
     except AiError as error:

@@ -46,11 +46,12 @@ class Material:
     blocks: str
     missing: tuple[str, ...] = ()
     address: str = preferences.SIE  # how the AI speaks to the person (MIN-369)
+    apprenticeship_chosen: bool = False  # in the setup, also before the search profile says so (MIN-401)
 
     @property
     def minor(self) -> bool:
         """Without a search profile nobody knows: then the stricter masking applies."""
-        return APPRENTICESHIP_MARK in self.profile or FILES["profile"] in self.missing
+        return self.apprenticeship_chosen or APPRENTICESHIP_MARK in self.profile or FILES["profile"] in self.missing
 
     @property
     def context(self) -> str:
@@ -71,7 +72,8 @@ def load_material(data_dir: pathlib.Path, partial: bool = False) -> Material:
     if not isinstance(cv, dict):
         raise AiError("cv.yaml lässt sich nicht lesen.")
     return Material(cv, texts["cv"], texts["profile"], texts["style"], texts["blocks"], missing,
-                    preferences.load(data_dir).address)
+                    preferences.load(data_dir).address,
+                    preferences.strictest_kind(data_dir) == preferences.APPRENTICESHIP)
 
 
 def make_gateway(data_dir: pathlib.Path, material: Material, client, entry: dict | None = None,

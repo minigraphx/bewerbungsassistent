@@ -72,7 +72,7 @@ def values(k, parameter, body):
     reason = apply.blocker(k.daten, entry)
     if reason:
         raise ValueError(reason)
-    return json_antwort({"werte": apply.form_values(k.daten), "ki": routes_ai.connected(),
+    return json_antwort({"werte": apply.form_values(k.daten), "ki": routes_ai.usable(k),
                          "dateien": apply.describe_uploads(apply.uploads(k.daten, entry))})
 
 

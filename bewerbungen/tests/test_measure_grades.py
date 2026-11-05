@@ -144,6 +144,15 @@ def test_the_report_names_no_company_and_gives_the_numbers():
     assert "1.25 USD" in report
 
 
+@pytest.mark.real_consent
+def test_measuring_needs_the_consent_for_the_ai(daten, capsys, monkeypatch):
+    with_hits(daten, [3, 4])
+    monkeypatch.setattr(measure_grades, "find_connection", lambda: None)
+    monkeypatch.setattr(measure_grades, "make_client", lambda _: pytest.fail("no AI without consent"))
+    assert measure_grades.main([str(daten), "--anzahl", "2", "--runden", "1", "--ja"]) == 2
+    assert "Einwilligung" in capsys.readouterr().err
+
+
 def test_without_consent_only_the_plan_is_shown(daten, capsys, monkeypatch):
     with_hits(daten, [3, 4])
     monkeypatch.setattr(measure_grades, "make_client", lambda _: pytest.fail("no AI without consent"))

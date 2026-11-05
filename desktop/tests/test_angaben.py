@@ -13,6 +13,7 @@ import yaml
 
 import app
 import routes_ai
+from ai import consent
 import routes_angaben
 import routes_setup
 import settings
@@ -23,6 +24,14 @@ PDF = b"%PDF-1.4 erfunden"
 
 def valid_bundle() -> dict:
     return json.loads(CASES.read_text(encoding="utf-8"))["bases"]["job"]
+
+
+REAL_CONSENT_CHECK = consent.is_given
+
+
+@pytest.fixture(autouse=True)
+def consent_given(monkeypatch):
+    monkeypatch.setattr(consent, "is_given", lambda *args: True)
 
 
 @pytest.fixture
@@ -331,6 +340,18 @@ def install_client(monkeypatch, reply) -> PrefillMessages:
 
 
 PREFILL_DATA = {"person": {"name": "Erika Beispiel"}}
+
+
+def test_prefill_sends_nothing_without_the_consent(started, monkeypatch):
+    server, _, _ = started
+    monkeypatch.setattr(consent, "is_given", REAL_CONSENT_CHECK)
+    messages = install_client(monkeypatch, prefill_reply())
+    upload(server, name="cv.txt", data="Erika Beispiel, Entwicklerin bei Muster GmbH seit 2019".encode())
+
+    status, answer = call(server, "/api/angaben/vorbefuellen", {"track": "job", "data": PREFILL_DATA})
+
+    assert status == 400 and answer["fehler"] == consent.MISSING
+    assert messages.calls == []
 
 
 def test_prefill_suggests_without_writing_the_persons_files(started, monkeypatch):

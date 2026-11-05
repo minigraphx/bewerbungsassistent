@@ -23,6 +23,7 @@ NO_AD = "Zuerst den Stellentext einfügen und speichern."
 OWN_LETTER_NO_DRAFT = "Für diese Bewerbung gilt das eigene Anschreiben. Für einen Entwurf zuerst die Datei entfernen."
 OWN_LETTER_NO_REVIEW = "Das eigene Anschreiben geht nicht an die KI. Bitte selbst mit dem Inserat vergleichen."
 NO_TICK = "Bitte zuerst den Text lesen und bestätigen."
+OPEN_LINK_AGAIN = "Der Code ist noch gültig: Bitte den Einladungslink nochmals öffnen."
 WAITING_CODE = "wartender_code"  # in the context: from an invitation link, redeemed once the consent is there
 
 
@@ -65,6 +66,12 @@ def _kind(k) -> str:
     return preferences.strictest_kind(k.daten)
 
 
+def consented_client(data_dir):
+    """For the few calls without the material of `ai_gateway`: the same rule, no AI without consent."""
+    consent.require(data_dir, preferences.strictest_kind(data_dir))
+    return new_client()
+
+
 def ai_gateway(k, entry: dict | None = None, letter: dict | None = None, partial: bool = False):
     consent.require(k.daten, _kind(k))
     material = tasks.load_material(k.daten, partial)
@@ -86,6 +93,11 @@ def connected() -> bool:
     except AiError:
         return False
     return True
+
+
+def usable(k) -> bool:
+    """Set up and agreed to. For a form that runs by itself: without consent it stays with the rules, no error."""
+    return connected() and consent.is_given(k.daten, _kind(k))
 
 
 def form_fields(k, entry: dict, fields: list[form_help.FormField]) -> dict:
@@ -152,7 +164,7 @@ def _redeem_waiting_code(k) -> str:
         if url is not None:
             invitation.redeem(url, code, receipt=consent.receipt(k.daten))
     except AiError as error:
-        return str(error)
+        return str(error) if str(error) == invitation.CODE_INVALID else f"{error} {OPEN_LINK_AGAIN}"
     return ""
 
 

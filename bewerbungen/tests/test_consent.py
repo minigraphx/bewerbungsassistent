@@ -8,8 +8,9 @@ import pytest
 import app
 import preferences
 import routes_ai
+import routes_apply
 import search_plan
-from ai import consent, invitation
+from ai import consent, errors, invitation, tasks
 from ai.connection import ACCESS_VARIABLE, URL_VARIABLE
 from ai.errors import AiError
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
@@ -194,6 +195,53 @@ def test_an_apprenticeship_anywhere_counts_as_the_stricter_kind(tmp_path, setup,
 def test_the_choice_in_the_setup_is_enough_for_the_wording(server):  # noqa: F811
     (server.kontext.daten / preferences.FILE).write_text(APPRENTICESHIP_CHOSEN, encoding="utf-8")
     assert "Elternteil" in json.loads(get(server, "/api/ki/status")[2])["einwilligung"]["text"]
+
+
+def test_a_waiting_code_that_failed_on_the_way_says_to_open_the_link_again(server, monkeypatch):  # noqa: F811
+    def offline(url, code, receipt=""):
+        raise AiError(errors.OFFLINE)
+    monkeypatch.setattr(routes_ai.invitation, "redeem", offline)
+    monkeypatch.setattr(routes_ai, "mediation_url", lambda: "https://vermittlung.example")
+    post(server, "/api/ki/einladung", {"code": "ABCD"})
+    answer = post(server, "/api/ki/einwilligung", {"fassung": consent.VERSION, "zustimmung": True})[1]
+    assert errors.OFFLINE in answer["einladung_fehler"] and "Einladungslink nochmals" in answer["einladung_fehler"]
+
+
+def test_an_invalid_waiting_code_does_not_send_the_person_back_to_the_link(server, monkeypatch):  # noqa: F811
+    def invalid(url, code, receipt=""):
+        raise AiError(invitation.CODE_INVALID)
+    monkeypatch.setattr(routes_ai.invitation, "redeem", invalid)
+    monkeypatch.setattr(routes_ai, "mediation_url", lambda: "https://vermittlung.example")
+    post(server, "/api/ki/einladung", {"code": "ABCD"})
+    answer = post(server, "/api/ki/einwilligung", {"fassung": consent.VERSION, "zustimmung": True})[1]
+    assert answer["einladung_fehler"] == invitation.CODE_INVALID
+
+
+def test_the_extension_hears_of_the_ai_only_with_consent(server, monkeypatch):  # noqa: F811
+    monkeypatch.setattr(routes_ai, "connected", lambda: True)
+    monkeypatch.setattr(routes_apply.apply, "blocker", lambda *args: None)
+    monkeypatch.setattr(routes_apply.apply, "form_values", lambda *args: {})
+    monkeypatch.setattr(routes_apply.apply, "uploads", lambda *args: [])
+    monkeypatch.setattr(routes_apply.apply, "describe_uploads", lambda *args: [])
+    entry = server.kontext.register().neu(firma="A", stelle="B")
+    assert json.loads(get(server, "/api/bewerben/daten", id=entry["id"])[2])["ki"] is False
+    _consented(server)
+    assert json.loads(get(server, "/api/bewerben/daten", id=entry["id"])[2])["ki"] is True
+
+
+def test_the_choice_in_the_setup_makes_the_material_that_of_a_minor(tmp_path):
+    (tmp_path / search_plan.PROFILE).write_text("# Ein altes Profil für eine Stelle\n", encoding="utf-8")
+    assert tasks.load_material(tmp_path, partial=True).minor is False
+    (tmp_path / preferences.FILE).write_text(APPRENTICESHIP_CHOSEN, encoding="utf-8")
+    assert tasks.load_material(tmp_path, partial=True).minor is True
+
+
+def test_the_career_page_follows_the_choice_in_the_setup(server):  # noqa: F811
+    daten = server.kontext.daten
+    (daten / search_plan.PROFILE).write_text("# Ein altes Profil für eine Stelle\n", encoding="utf-8")
+    (daten / preferences.FILE).write_text(APPRENTICESHIP_CHOSEN, encoding="utf-8")
+    status, answer = post(server, "/api/beruf/vorschlag", {})
+    assert status == 400 and answer["fehler"].startswith("Schreib zu beidem")
 
 
 def test_the_mediation_gets_the_receipt_with_the_code():
