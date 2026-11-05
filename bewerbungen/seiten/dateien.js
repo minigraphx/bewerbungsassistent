@@ -30,12 +30,25 @@
       el("span", { class: "leise" }, sizeText(file.groesse)), remove);
   }
 
+  let withVariant = 0;  // applications that chose a variant: there the variant counts (MIN-369)
+
+  /** Which CV counts: a chosen variant, else the own PDF, else the one built from „Meine Angaben“. */
+  function showRank(found) {
+    const own = found.lebenslauf.length > 0;
+    document.getElementById("rang-variante").textContent = withVariant === 1 ? "1 Bewerbung hat eine Variante" : `${withVariant} Bewerbungen haben eine Variante`;
+    document.getElementById("rang-eigen").textContent = own ? `Wird verwendet: ${found.lebenslauf[0].name}` : "Noch kein PDF hochgeladen";
+    document.getElementById("rang-gebaut").textContent = own ? "Wird nicht verwendet, solange ein PDF da ist" : "Wird verwendet";
+    document.querySelector('[data-rang="eigen"]').toggleAttribute("data-aktiv", own);
+    document.querySelector('[data-rang="gebaut"]').toggleAttribute("data-aktiv", !own);
+  }
+
   function show(found) {
     for (const part of sections()) {
       const kind = part.dataset.art;
       const rows = found[kind].map(file => fileRow(kind, file));
       part.querySelector(".datei-liste").replaceChildren(...(rows.length ? rows : [el("li", { class: "leer" }, "Noch nichts hochgeladen.")]));
     }
+    showRank(found);
   }
 
   async function uploadOne(kind, file) {
@@ -69,6 +82,7 @@
         await upload(part.dataset.art, files);
       });
     }
+    withVariant = await holen("/api/bewerbungen").then(d => d.bewerbungen.filter(b => b.variante && !b.versand).length, () => 0);
     const found = await holen("/api/dateien");
     maxBytes = found.max_groesse;
     show(found);
