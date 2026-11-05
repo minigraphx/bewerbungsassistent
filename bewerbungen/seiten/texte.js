@@ -11,6 +11,32 @@
   const TEXTE = {
     // Navigation (step 3)
     "nav.suche": { sie: "Stellen suchen", du: "Stellen suchen", lehrstelle: "Lehrstellen suchen" },
+    // Search (step 5)
+    "suche.wie": {
+      sie: "Die Erweiterung sucht in Ihrem Browser und nur, wenn Sie die Suche starten. Die KI schätzt jeden neuen Treffer als Note von 1 bis 6 ein.",
+      du: "Die Erweiterung sucht in deinem Browser und nur, wenn du die Suche startest. Die KI schätzt jeden neuen Treffer als Note von 1 bis 6 ein.",
+    },
+    "suche.sichtbar": { sie: "Langsamer, dafür sehen Sie, was die Erweiterung tut.", du: "Langsamer, dafür siehst du, was die Erweiterung tut." },
+    "suche.laufnotiz": {
+      sie: "Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten.",
+      du: "Ein Suchlauf dauert einige Minuten. Du kannst währenddessen weiterarbeiten.",
+    },
+    "suche.keine": {
+      sie: "Die Portale haben nichts Neues gemeldet. Versuchen Sie weitere Suchbegriffe oder eine grössere Umgebung.",
+      du: "Die Portale haben nichts Neues gemeldet. Versuche weitere Suchbegriffe oder eine grössere Umgebung.",
+      lehrstelle: "Die Portale haben nichts Neues gemeldet. Nimm weitere Berufe dazu oder suche in einer grösseren Umgebung.",
+    },
+    "suche.notenhilfe-titel": { sie: "Wie lese ich die Note?", du: "Wie lese ich die Note?", lehrstelle: "Wie lese ich die Noten?" },
+    "suche.notenhilfe": {
+      sie: "Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein.",
+      du: "Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein.",
+      lehrstelle: "Schweizer Noten: 6 ist die beste, 1 die schlechteste Note. Die Note «Beruf» sagt, wie gut der Beruf zu dir passt, die Note «Lehrstelle», wie gut dieser Lehrbetrieb passt. Ab 4 passt es genügend. Die KI kann sich irren.",
+    },
+    "suche.angaben-offen": {
+      sie: "In «Meine Angaben» gibt es Änderungen, die noch nicht übernommen sind. Die Suche nimmt noch die bisherigen Angaben.",
+      du: "In «Meine Angaben» hast du Änderungen, die noch nicht übernommen sind. Die Suche nimmt noch die bisherigen Angaben.",
+    },
+
     // Application page (step 4)
     "bewerbung.angaben": { sie: "Angaben zur Stelle", du: "Angaben zur Stelle", lehrstelle: "Angaben zur Lehrstelle" },
     "bewerbung.stellentext": { sie: "Stellentext", du: "Stellentext", lehrstelle: "Inseratstext" },

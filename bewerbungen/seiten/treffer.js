@@ -2,8 +2,10 @@
 // Hits of the job search (MIN-339): list, rate with the AI in packages (MIN-372), take over into the register, discard.
 // The search itself runs in the browser extension; this page starts it through app-bridge.js.
 (() => {
-  const { holen, senden, el, status, datum, beobachten } = window.App;
+  const { holen, senden, el, status, datum, beobachten, textsatz } = window.App;
   const logik = window.TrefferLogik;
+  const { text: textAus, anwenden } = window.Texte;
+  const EINSTELLEN_OFFEN = "suche.einstellen";  // remembered per browser: whether the settings stay open
   const $ = id => document.getElementById(id);
   const SEITE = "bewerbungsbegleiter-seite";
   const ERWEITERUNG = "bewerbungsbegleiter-erweiterung";
@@ -16,7 +18,19 @@
   let lehrstelle = false;
   let bewertungslauf = null;  // { halt: bool } while a run is going
   let letzterSuchlauf = "";
-  const offen = new Set();  // ids with details shown
+  let zustand = "neu";       // which hits the list shows
+  let gewaehlt = null;       // id of the hit in the detail column
+  let satz = "stelle-sie";
+  const t = (schluessel, werte) => textAus(schluessel, satz, werte);
+  const STUFE = { ok: "success", hinweis: "warning", fehler: "danger" };
+
+  function zeile(element, inhalt, stufe = "") {
+    element.textContent = inhalt;
+    const level = STUFE[stufe] || stufe;
+    if (level) element.dataset.level = level;
+    else delete element.dataset.level;
+  }
+  const meldung = (inhalt, stufe) => zeile($("status"), inhalt, stufe);
 
   function anzeigen(treffer) {
     alle = alle.map(t => (t.id === treffer.id ? treffer : t));
@@ -25,15 +39,13 @@
 
   async function bewerte(t, knopf) {
     if (knopf) knopf.disabled = true;
-    status($("status"), `KI bewertet „${t.stelle}“ …`);
+    meldung(`KI bewertet „${t.stelle}“ …`);
     try {
       anzeigen(await senden("/api/suche/bewerten", {}, { id: t.id }));
-      offen.add(t.id);
-      zeigeListe();
-      status($("status"), "");
+      meldung("");
       return true;
     } catch (fehler) {
-      status($("status"), `${t.stelle}: ${fehler.message}`, "fehler");
+      meldung(`${t.stelle}: ${fehler.message}`, "fehler");
       if (knopf) knopf.disabled = false;
       return false;
     }
@@ -44,9 +56,9 @@
     try {
       const neu = await senden("/api/suche/uebernehmen", {}, { id: t.id });
       anzeigen(neu);
-      status($("status"), `„${t.stelle}“ ist jetzt im Register.`, "ok");
+      meldung(`„${t.stelle}“ ist jetzt im Register.`, "ok");
     } catch (fehler) {
-      status($("status"), fehler.message, "fehler");
+      meldung(fehler.message, "fehler");
       knopf.disabled = false;
       lade();
     }
@@ -56,99 +68,141 @@
     try {
       anzeigen(await senden("/api/suche/verwerfen", { zurueck }, { id: t.id }));
     } catch (fehler) {
-      status($("status"), fehler.message, "fehler");
+      meldung(fehler.message, "fehler");
     }
   }
 
   function liste(titel, eintraege) {
-    return eintraege && eintraege.length ? el("div", {}, el("strong", {}, titel), el("ul", {}, eintraege.map(e => el("li", {}, e)))) : null;
-  }
-
-  function details(t) {
-    const b = t.bewertung;
-    const text = el("pre", { class: "inserat", hidden: true });
-    const knopf = el("button", { type: "button" }, "Inserat anzeigen");
-    knopf.addEventListener("click", async () => {
-      if (text.hidden && !text.textContent) {
-        try { text.textContent = (await holen("/api/suche/text", { id: t.id })).text || "Kein Text gespeichert."; }
-        catch (fehler) { text.textContent = fehler.message; }
-      }
-      text.hidden = !text.hidden;
-      knopf.textContent = text.hidden ? "Inserat anzeigen" : "Inserat verbergen";
-    });
-    const weitere = (t.weitere || []).map(w => el("li", {}, el("a", { href: w.link, target: "_blank", rel: "noopener" }, `Auch auf ${w.portal}`)));
-    return el("td", { colspan: 8 },
-      b ? el("p", {}, b.zusammenfassung) : el("p", { class: "leise" }, "Noch nicht bewertet."),
-      b && b.unsicher ? el("p", { class: "status hinweis" }, `Note unsicher: ${b.unsicher}`) : null,
-      b && b.nachpruefung ? el("p", { class: "leise" }, logik.nachpruefungText(b, notenText)) : null,
-      b && b.beruf_note ? el("p", {}, `Der Beruf passt zu deinen Fähigkeiten und Wünschen: Note ${notenText(b.beruf_note)}. Diese Lehrstelle: Note ${notenText(b.note)}.`) : null,
-      b ? liste("Passt", b.passt) : null,
-      b ? liste("Haken", b.haken) : null,
-      b && b.auffaellig && b.auffaellig.length ? el("p", { class: "status fehler" },
-        "Auffällige Zeilen im Inserat (nicht befolgt): " + b.auffaellig.join(" · ")) : null,
-      t.hinweis ? el("p", { class: "status hinweis" }, t.hinweis) : null,
-      weitere.length ? el("ul", {}, weitere) : null,
-      el("div", { class: "knoepfe" }, knopf), text);
-  }
-
-  function aktionen(t) {
-    if (t.zustand === "uebernommen") {
-      return [el("a", { href: "/bewerbung?" + new URLSearchParams({ id: t.bewerbung_id }) }, "Zur Bewerbung")];
-    }
-    if (t.zustand === "verworfen") {
-      return [el("button", { type: "button", onclick: () => verwirf(t, true) }, "Zurückholen")];
-    }
-    const bewerten = el("button", { type: "button", disabled: bewertungslauf !== null }, t.bewertung ? "Neu bewerten" : "Bewerten");
-    bewerten.addEventListener("click", () => bewerte(t, bewerten));
-    const uebernehmen = el("button", { type: "button", class: "haupt" }, "Übernehmen");
-    uebernehmen.addEventListener("click", () => uebernimm(t, uebernehmen));
-    return [bewerten, uebernehmen,
-      el("button", { type: "button", onclick: () => verwirf(t, false) }, "Verwerfen")];
+    return eintraege && eintraege.length ? el("div", {}, el("h3", {}, titel), el("ul", {}, eintraege.map(e => el("li", {}, e)))) : null;
   }
 
   const notenText = note => String(note).replace(".", ",");
-  const sternText = anzahl => "★".repeat(anzahl) + "☆".repeat(5 - anzahl);
+  const notenWort = n => (n >= 5.5 ? "passt sehr gut" : n >= 4.5 ? "passt gut" : n >= 4 ? "passt knapp" : "passt wenig");
 
-  function zeile(t) {
-    const note = t.bewertung ? notenText(t.bewertung.note) : "–";
-    const sterne = t.beruf ? einstellungen.beruf_sterne[t.beruf] : 0;
-    const umschalten = el("button", { type: "button", class: "link", "aria-expanded": String(offen.has(t.id)) }, t.stelle);
-    umschalten.addEventListener("click", () => {
-      if (offen.has(t.id)) offen.delete(t.id); else offen.add(t.id);
-      zeigeListe();
+  /** Grade as in the design: value, six bars, a word; a name when there are two (apprenticeships). */
+  function note(wert, { name = "", unsicher = false, klein = true, wort = !klein } = {}) {
+    const balken = [1, 2, 3, 4, 5, 6].map(k => el("i", { class: wert >= k ? "on" : wert >= k - 0.5 ? "half" : "" }));
+    const span = el("span", { class: `grade-meter${klein ? " grade-meter--sm" : ""}`, "aria-label": `${name ? name + ": " : ""}Note ${wert} von 6, ${notenWort(wert)}${unsicher ? ", unsicher" : ""}` },
+      name ? el("span", { class: "search__grade-name", "aria-hidden": "true" }, name) : null,
+      el("span", { class: "grade-meter__value" }, notenText(wert)),
+      el("span", { class: "grade-meter__bar", "aria-hidden": "true" }, balken),
+      wort ? el("span", { class: "grade-meter__word", "aria-hidden": "true" }, notenWort(wert)) : null);
+    if (unsicher) span.dataset.uncertain = "";
+    return span;
+  }
+
+  function noten(treffer, optionen = {}) {
+    const b = treffer.bewertung;
+    if (!b) return [el("span", { class: "search__hint" }, "noch keine Note")];
+    const unsicher = Boolean(b.unsicher);
+    if (lehrstelle && b.beruf_note) return [note(b.beruf_note, { name: "Beruf", ...optionen }), note(b.note, { name: "Lehrstelle", unsicher, ...optionen })];
+    return [note(b.note, { unsicher, ...optionen })];
+  }
+
+  function aktionen(treffer) {
+    if (treffer.zustand === "uebernommen") {
+      return [el("a", { class: "btn btn--primary", href: "/bewerbung?" + new URLSearchParams({ id: treffer.bewerbung_id }) }, "Zur Bewerbung")];
+    }
+    if (treffer.zustand === "verworfen") {
+      return [el("button", { type: "button", class: "btn", onclick: () => verwirf(treffer, true) }, "Zurückholen")];
+    }
+    const b = treffer.bewertung;
+    const empfohlen = b && b.note >= 4;
+    const uebernehmen = el("button", { type: "button", class: empfohlen ? "btn btn--primary" : "btn" }, b && !empfohlen ? "Trotzdem übernehmen" : "Übernehmen");
+    uebernehmen.addEventListener("click", () => uebernimm(treffer, uebernehmen));
+    const bewerten = el("button", { type: "button", class: "btn btn--quiet", disabled: bewertungslauf !== null }, b ? "Neu bewerten" : "Bewerten");
+    bewerten.addEventListener("click", () => bewerte(treffer, bewerten));
+    return [uebernehmen, el("button", { type: "button", class: "btn btn--quiet", onclick: () => verwirf(treffer, false) }, "Verwerfen"), bewerten];
+  }
+
+  function inseratKnopf(treffer) {
+    const textFeld = el("pre", { class: "inserat", hidden: true });
+    const knopf = el("button", { type: "button", class: "btn btn--sm" }, "Inserat hier lesen");
+    knopf.addEventListener("click", async () => {
+      if (textFeld.hidden && !textFeld.textContent) {
+        try { textFeld.textContent = (await holen("/api/suche/text", { id: treffer.id })).text || "Kein Text gespeichert."; }
+        catch (fehler) { textFeld.textContent = fehler.message; }
+      }
+      textFeld.hidden = !textFeld.hidden;
+      knopf.textContent = textFeld.hidden ? "Inserat hier lesen" : "Inserat verbergen";
     });
-    const alter = t.alter_tage !== undefined
-      ? el("div", { class: "leise" }, `${t.alter_tage} ${t.alter_tage === 1 ? "Tag" : "Tage"} online`) : null;
-    const haupt = el("tr", {},
-      el("td", { class: "note" }, note, t.bewertung?.unsicher ? el("span", { class: "unsicher-marke", title: `Note unsicher: ${t.bewertung.unsicher}` }, " ?") : null),
-      el("td", {}, logik.istSchnupperlehre(t) ? el("span", { class: "art-marke" }, "Schnupperlehre") : null,
-        umschalten, " ", el("a", { href: t.link, target: "_blank", rel: "noopener", title: "Inserat auf dem Portal öffnen" }, "↗"),
-        sterne ? el("span", { class: "eigene-sterne", "aria-label": `${sterne} von 5 Sternen` }, sternText(sterne)) : null),
-      el("td", {}, t.firma, t.hinweis ? el("span", { class: "marke-status", "data-status": "Beworben", title: t.hinweis }, " schon beworben?") : null),
-      el("td", {}, t.ort || ""), el("td", { class: "knapp" }, t.pensum || t.lehrbeginn || ""),
-      el("td", {}, t.portal, (t.weitere || []).length ? ` +${t.weitere.length}` : ""),
-      el("td", { class: "knapp" }, datum(t.gefunden_am), alter),
-      el("td", {}, el("div", { class: "knoepfe" }, aktionen(t))));
-    return offen.has(t.id) ? [haupt, el("tr", { class: "details" }, details(t))] : [haupt];
+    return [knopf, textFeld];
+  }
+
+  function zeigeDetail(treffer) {
+    if (!treffer) return $("detail").replaceChildren();
+    const b = treffer.bewertung;
+    const rahmen = [treffer.ort, treffer.pensum || treffer.lehrbeginn].filter(Boolean).join(" · ");
+    const weitere = (treffer.weitere || []).map(w => el("li", {}, el("a", { href: w.link, target: "_blank", rel: "noopener" }, `Auch auf ${w.portal}`)));
+    const [knopf, textFeld] = inseratKnopf(treffer);
+    $("detail").replaceChildren(...[
+      el("div", { class: "search__detail-head" },
+        el("h2", { id: "detail-titel" }, treffer.stelle),
+        el("p", {}, [treffer.firma, rahmen].filter(Boolean).join(", ")),
+        el("p", { class: "search__hint" }, el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, `Inserat auf ${treffer.portal} öffnen`),
+          ` · gefunden ${datum(treffer.gefunden_am)}`, treffer.alter_tage !== undefined ? ` · ${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : "")),
+      treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Schon im Register"), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
+      el("article", { class: "ai-result" },
+        el("header", { class: "ai-result__head" }, el("h3", { class: "ai-result__kind" }, "Einschätzung der KI"),
+          el("span", { class: "search__grades" }, noten(treffer, { klein: false }))),
+        b ? el("p", {}, b.zusammenfassung) : el("p", { class: "search__hint" }, "Noch nicht bewertet."),
+        b && b.unsicher ? el("p", { class: "status-line", "data-level": "warning" }, `Note unsicher: ${b.unsicher}`) : null,
+        b ? el("div", { class: "ai-result__cols" }, liste("Was passt", b.passt), liste("Was fehlt oder unsicher ist", b.haken)) : null,
+        b && b.nachpruefung ? el("p", { class: "search__hint" }, logik.nachpruefungText(b, notenText)) : null,
+        b && b.auffaellig && b.auffaellig.length ? el("p", { class: "status-line", "data-level": "danger" }, "Auffällige Zeilen im Inserat (nicht befolgt): " + b.auffaellig.join(" · ")) : null,
+        el("div", { class: "btn-row" }, aktionen(treffer)),
+        b ? el("p", { class: "ai-result__foot" }, "Eine Einschätzung, kein Urteil. Die KI kann sich irren.") : null),
+      weitere.length ? el("ul", { class: "search__more" }, weitere) : null,
+      el("div", { class: "btn-row" }, knopf), textFeld].filter(Boolean));
+  }
+
+  function trefferZeile(treffer) {
+    const sterne = treffer.beruf ? einstellungen.beruf_sterne[treffer.beruf] : 0;
+    const marken = [
+      logik.istSchnupperlehre(treffer) ? "Schnupperlehre" : "",
+      treffer.hinweis ? "schon im Register" : "",
+      sterne ? `${"★".repeat(sterne)}` : "",
+    ].filter(Boolean);
+    const knopf = el("button", { type: "button", class: "hit", "aria-current": String(treffer.id === gewaehlt) },
+      el("span", { class: "hit__grades" }, noten(treffer)),
+      el("span", { class: "hit__text" },
+        el("span", { class: "hit__title" }, treffer.stelle),
+        el("span", { class: "hit__where" }, [treffer.firma, treffer.ort, treffer.pensum || treffer.lehrbeginn].filter(Boolean).join(" · ")),
+        el("span", { class: "hit__meta" }, [treffer.portal + ((treffer.weitere || []).length ? ` +${treffer.weitere.length}` : ""), datum(treffer.gefunden_am)].join(" · "),
+          ...marken.map(m => [" · ", el("strong", {}, m)]).flat())));
+    knopf.addEventListener("click", () => {
+      gewaehlt = treffer.id;
+      zeigeListe();
+      if (window.matchMedia("(max-width: 900px)").matches) $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return knopf;
   }
 
   function zeigeListe() {
-    const zustand = $("zustand").value;
     $("art").hidden = !logik.beideArten(alle);
     const art = $("art").hidden ? "" : $("art").value;
-    const passend = logik.nachArt(alle.filter(t => !zustand || t.zustand === zustand), art);
+    const passend = logik.nachArt(alle.filter(x => x.zustand === zustand), art);
     const sichtbar = logik.sortiert(passend, einstellungen.beruf_sterne);
-    $("liste").replaceChildren(...sichtbar.flatMap(zeile));
+    for (const knopf of document.querySelectorAll("[data-zustand]")) knopf.setAttribute("aria-pressed", String(knopf.dataset.zustand === zustand));
+    for (const name of ["neu", "uebernommen", "verworfen"]) document.querySelector(`[data-zahl=${name}]`).textContent = String(alle.filter(x => x.zustand === name).length);
+    if (!sichtbar.some(x => x.id === gewaehlt)) gewaehlt = sichtbar[0]?.id ?? null;
+    $("liste").classList.toggle("search__list--two", lehrstelle);  // two grades: the same width for every row
+    $("liste").replaceChildren(...sichtbar.map(trefferZeile));
+    zeigeDetail(sichtbar.find(x => x.id === gewaehlt));
+    $("ergebnisse").hidden = sichtbar.length === 0;
     $("leer").hidden = sichtbar.length > 0;
+    $("leer-titel").textContent = zustand === "neu" ? "Keine neuen Treffer" : zustand === "uebernommen" ? "Noch nichts übernommen" : "Nichts verworfen";
+    $("leer-text").textContent = zustand === "neu" ? t("suche.keine") : "";
+    $("leer-einstellen").hidden = zustand !== "neu";
     zeigeBewerten();
   }
 
   function zeigeBewerten() {
     const ids = logik.zuBewerten(alle).map(t => t.id);
     const laeuft = bewertungslauf !== null;
-    $("anhalten").hidden = !laeuft;
+    $("bewerten-box").hidden = !laeuft;
     $("bewerten-knoepfe").replaceChildren(...(laeuft ? [] : logik.knoepfe(ids.length, paket, grenze).map(knopf => {
-      return el("button", { type: "button", onclick: () => starteBewertung(ids.slice(0, knopf.anzahl)) }, knopf.text);
+      return el("button", { type: "button", class: "btn btn--sm", onclick: () => starteBewertung(ids.slice(0, knopf.anzahl)) }, knopf.text);
     })));
     const proTreffer = logik.kostenProTreffer(alle);
     const kosten = ids.length && proTreffer !== null ? `Bisher etwa ${proTreffer.toFixed(3)} USD pro Treffer.` : "";
@@ -162,7 +216,7 @@
   function sterneWaehlen(beruf, anzahl) {
     senden("/api/suche/beruf-sterne", { beruf, sterne: anzahl })
       .then(neu => { einstellungen = neu; zeigeListe(); })
-      .catch(fehler => status($("status"), fehler.message, "fehler"));
+      .catch(fehler => meldung(fehler.message, "fehler"));
   }
 
   function zeigeBerufe() {
@@ -195,7 +249,8 @@
     bewertungslauf = lauf;
     $("anhalten").disabled = false;
     zeigeListe();
-    status($("status"), `KI bewertet: 0 von ${ids.length} …`);
+    meldung("");
+    $("bewerten-zahl").textContent = `0 von ${ids.length}`;
     const stand = await logik.bewerteAlle(ids, {
       paket,
       sende: gruppe => senden("/api/suche/bewerten-paket", { ids: gruppe }),
@@ -204,13 +259,13 @@
         const neu = new Map(treffer.map(t => [t.id, t]));
         alle = alle.map(t => (neu.has(t.id) ? { ...neu.get(t.id), ohne_text: false } : t));
         zeigeListe();
-        status($("status"), `KI bewertet: ${zwischen.bewertet} von ${ids.length} …`);
+        $("bewerten-zahl").textContent = `${zwischen.bewertet} von ${ids.length}`;
       },
     });
     bewertungslauf = null;
     zeigeListe();
-    if (stand.fehler) status($("status"), `${stand.fehler} ${schlussText(stand)}`, "fehler");
-    else status($("status"), schlussText(stand), stand.offen.length || stand.gestoppt ? "hinweis" : "ok");
+    if (stand.fehler) meldung(`${stand.fehler} ${schlussText(stand)}`, "fehler");
+    else meldung(schlussText(stand), stand.offen.length || stand.gestoppt ? "hinweis" : "ok");
   }
 
   function bewerteNachSuche() {
@@ -224,10 +279,11 @@
   }
 
   function zeigeLetzteSuche(lauf, hinweise, ziele) {
-    if (lauf) {
-      const neu = Object.values(lauf.portale || {}).reduce((summe, p) => summe + (p.neu || 0), 0);
-      $("letzte").textContent = `Letzte Suche am ${datum(lauf.datum)}: ${neu} neue Treffer.`;
-    }
+    const portale = Object.keys(lauf?.portale || {});
+    const neu = alle.filter(x => x.zustand === "neu").length;
+    $("letzte").textContent = lauf
+      ? `Letzte Suche am ${datum(lauf.datum)} · ${portale.length === 1 ? portale[0] : `${portale.length} Portale`} · ${alle.length} Treffer, ${neu} neu`
+      : "Noch keine Suche.";
     const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem).map(([, p]) => p.problem);
     $("probleme").replaceChildren(
       ...probleme.map(p => el("li", { "data-stufe": "fehler" }, p)),
@@ -238,27 +294,19 @@
     return namen.join(", ").replace(/, ([^,]*)$/, " und $1");
   }
 
-  // The page follows the search profile: apprenticeships address the person informally, as everywhere else.
-  function zeigeArt(art, portale, angebote) {
+  // The page follows the search profile: apprenticeships search other portals and know trial apprenticeships.
+  function zeigeArt(art, angebote) {
     lehrstelle = art === "lehrstelle";
     $("angebot-wahl").hidden = !lehrstelle;
     $("angebot").value = logik.wahlAus(angebote);
-    $("titel").textContent = lehrstelle ? "Lehrstellensuche" : "Stellensuche";
-    $("suchen").textContent = lehrstelle ? logik.sucheText(angebote) : "Stellen suchen";
-    $("spalte-rahmen").textContent = lehrstelle ? "Lehrbeginn" : "Pensum";
-    $("erweiterung-link").textContent = lehrstelle ? "So richtest du sie ein" : "So richten Sie sie ein";
-    $("hilfe").textContent = lehrstelle
-      ? `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach deinem Suchprofil, in deinem Browser und nur, wenn du die Suche startest. Neue Treffer erscheinen hier, und die KI schätzt die Passung als Note von 1 bis 6 ein: nach der Suche von selbst, wenn diese Seite offen ist, sonst auf Knopfdruck. „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`
-      : `Die Browser-Erweiterung sucht auf ${aufzaehlung(portale)} nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier, und die KI schätzt die Passung als Note von 1 bis 6 ein: nach der Suche von selbst, wenn diese Seite offen ist, sonst auf Knopfdruck. „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.`;
+    $("suchen").textContent = "Jetzt suchen";
   }
 
   // Only the desktop app has „Meine Angaben“; without it there is nothing to say.
   async function zeigeNichtUebernommen() {
     const offen = await holen("/api/angaben/offen").then(a => a.offen, () => false);
     $("angaben-offen").hidden = !offen;
-    $("angaben-offen-text").textContent = lehrstelle
-      ? "In „Meine Angaben“ hast du Änderungen, die noch nicht übernommen sind. Die Suche nimmt noch die bisherigen Angaben. "
-      : "In „Meine Angaben“ gibt es Änderungen, die noch nicht übernommen sind. Die Suche nimmt noch die bisherigen Angaben. ";
+    $("angaben-offen-text").textContent = t("suche.angaben-offen");
   }
 
   let ladeNummer = 0;
@@ -284,14 +332,15 @@
       einstellungen = daten.einstellungen;
       paket = daten.paket;
       grenze = daten.grenze;
-      zeigeArt(daten.art, daten.portale || [], daten.angebote || []);
+      zeigeArt(daten.art, daten.angebote || []);
       window.PortalWahl.zeige(daten.portale_wahl || [], lehrstelle, lade);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
+      zeigeListe();
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {});
       zeigeNichtUebernommen();
-      zeigeListe();
+      if (!alle.length && !einstellenGemerkt()) zeigeEinstellen(true);
     } catch (fehler) {
-      status($("status"), fehler.message, "fehler");
+      meldung(fehler.message, "fehler");
     }
   }
 
@@ -318,56 +367,77 @@
     erweiterungDa();
     if (daten.art === "lauf") {
       const [text, art] = laufText(daten.lauf);
-      status($("lauf"), text, art);
-      $("suchen").disabled = daten.lauf.zustand === "laeuft";
+      const laeuft = daten.lauf.zustand === "laeuft";
+      $("lauf-box").hidden = !laeuft;
+      zeile($("lauf"), laeuft ? text : "");
+      if (!laeuft) meldung(text, art);
+      $("suchen").disabled = laeuft;
+      $("suchen").textContent = laeuft ? "Suche läuft …" : "Jetzt suchen";
+      $("suchen").setAttribute("aria-busy", String(laeuft));
       const eben = letzterSuchlauf === "laeuft" && daten.lauf.zustand === "fertig";
       letzterSuchlauf = daten.lauf.zustand;
       // Only a search that ended while this page was open starts a rating by itself.
       if (eben) lade().then(bewerteNachSuche);
       else if (daten.lauf.zustand === "fertig") lade();
     } else if (daten.art === "antwort" && daten.antwort?.fehler) {
-      status($("lauf"), daten.antwort.fehler, "fehler");
+      $("lauf-box").hidden = true;
+      meldung(daten.antwort.fehler, "fehler");
       $("suchen").disabled = false;
     }
   });
 
   $("suchen").addEventListener("click", () => {
     $("suchen").disabled = true;
-    status($("lauf"), "Suche startet …");
+    $("lauf-box").hidden = false;
+    zeile($("lauf"), "Suche startet …");
     window.postMessage({ quelle: SEITE, art: "suche-starten" }, location.origin);
   });
-  $("zustand").addEventListener("change", zeigeListe);
+  for (const knopf of document.querySelectorAll("[data-zustand]")) knopf.addEventListener("click", () => { zustand = knopf.dataset.zustand; zeigeListe(); });
   $("art").addEventListener("change", zeigeListe);
   $("angebot").addEventListener("change", async () => {
     try {
       const { angebote } = await senden("/api/suche/angebot", { wahl: $("angebot").value });
-      $("suchen").textContent = logik.sucheText(angebote);
-      status($("lauf"), "");
+      meldung(`Gesucht wird: ${logik.sucheText(angebote).replace(/ suchen$/, "")}.`, "ok");
     } catch (fehler) {
-      status($("lauf"), fehler.message, "fehler");
+      meldung(fehler.message, "fehler");
       lade();
     }
   });
   $("anhalten").addEventListener("click", () => {
     if (bewertungslauf) bewertungslauf.halt = true;
     $("anhalten").disabled = true;
-    status($("status"), "Wird nach dem laufenden Paket angehalten …");
+    meldung("Wird nach dem laufenden Paket angehalten …");
   });
   $("auto-bewerten").addEventListener("change", event => {
     senden("/api/suche/einstellungen", { auto_bewerten: event.target.checked })
       .then(neu => { einstellungen = neu; })
-      .catch(fehler => { status($("status"), fehler.message, "fehler"); zeigeBewerten(); });
+      .catch(fehler => { meldung(fehler.message, "fehler"); zeigeBewerten(); });
   });
 
   $("zuschauen").addEventListener("change", event => {
     senden("/api/suche/einstellungen", { zuschauen: event.target.checked })
       .then(neu => { einstellungen = neu; })
-      .catch(fehler => { status($("status"), fehler.message, "fehler"); zeigeBewerten(); });
+      .catch(fehler => { meldung(fehler.message, "fehler"); zeigeBewerten(); });
   });
 
+  // Settings: open on request, and at first while there are no hits yet
+  function einstellenGemerkt() {
+    try { return localStorage.getItem(EINSTELLEN_OFFEN) !== null; } catch { return false; }
+  }
+
+  function zeigeEinstellen(offen, merken = false) {
+    $("einstellen").hidden = !offen;
+    $("einstellen-knopf").setAttribute("aria-expanded", String(offen));
+    $("einstellen-knopf").textContent = offen ? "Einstellungen schliessen" : "Suche einstellen";
+    if (merken) { try { localStorage.setItem(EINSTELLEN_OFFEN, offen ? "1" : "0"); } catch { /* without storage it stays as it is now */ } }
+  }
+
+  $("einstellen-knopf").addEventListener("click", () => zeigeEinstellen($("einstellen").hidden, true));
+  $("leer-einstellen").addEventListener("click", () => { zeigeEinstellen(true, true); $("einstellen").scrollIntoView({ behavior: "smooth" }); });
+  try { if (localStorage.getItem(EINSTELLEN_OFFEN) === "1") zeigeEinstellen(true); } catch { /* closed by default */ }
+
   if (document.documentElement.dataset.bewerbungsbegleiterErweiterung) erweiterungDa();
-  else setTimeout(() => { if ($("suchen").disabled && !$("lauf").textContent) $("ohne-erweiterung").hidden = false; }, 1500);
+  else setTimeout(() => { if ($("suchen").disabled && $("lauf-box").hidden) $("ohne-erweiterung").hidden = false; }, 1500);
   document.addEventListener("suchprofil-geaendert", lade);
-  lade();
-  beobachten(nachsehen);
+  textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); }).finally(() => { lade(); beobachten(nachsehen); });
 })();
