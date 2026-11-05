@@ -72,11 +72,12 @@
   function schrittText(schritt, anzahl = 1) {
     switch (schritt.art) {
       case "abschicken": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen abschicken`, zusatz: "Formulare sind bereit" } : { titel: "Abschicken", zusatz: "Formular ist bereit" };
+      case "freigeben": return { titel: "Anschreiben lesen und freigeben", zusatz: "Entwurf ist fertig" };
       case "unterlagen": return { titel: "Unterlagen erstellen", zusatz: "Lebenslauf-PDF fehlt" };
       case "link": return { titel: "Link zum Formular eintragen", zusatz: "dann füllt die Erweiterung es aus" };
       case "offen": return { titel: schritt.grund || "Bewerbung öffnen", zusatz: "" };
       case "rav": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen im Job-Room eintragen`, zusatz: "fürs RAV" } : { titel: "Im Job-Room eintragen", zusatz: "fürs RAV" };
-      case "gespraech": return { titel: "Gespräch vorbereiten", zusatz: schritt.frist ? L.datum(schritt.frist) : "Termin eintragen" };
+      case "gespraech": return { titel: t("bewerbung.gespraech"), zusatz: schritt.frist ? L.datum(schritt.frist) : "Termin eintragen" };
       case "entscheiden": return { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
       case "warten": return { titel: "Antwort abwarten", zusatz: schritt.zusatz ? `nachfragen ab ${L.datum(schritt.zusatz)}` : "" };
       default: return { titel: "", zusatz: "" };
@@ -103,7 +104,7 @@
     const was = schrittText(schritt);
     return el("tr", {},
       el("td", { "data-label": "" }, el("a", { class: "table__main", href: adresse(b) }, b.stelle || "ohne Titel"), el("span", { class: "table__sub" }, wo(b))),
-      el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, b.status)),
+      el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, window.Texte.statusName(b.status, satz))),
       el("td", { "data-label": "Note" }, note(b)),
       el("td", { "data-label": "Nächster Schritt", class: "table__next" }, was.titel || "–", was.zusatz ? el("span", { class: "table__sub" }, was.zusatz) : null),
       el("td", { "data-label": "Frist", class: "num" }, L.datum(schritt.frist)));
@@ -146,6 +147,7 @@
       knopf.addEventListener("click", () => startRav(ids.slice(0, maxRav), knopf));
       return knopf;
     }
+    if (art === "freigeben") return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) + "#s-anschreiben" }, klein ? "Lesen" : "Anschreiben lesen");
     return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) }, klein ? "Öffnen" : "Bewerbung öffnen");
   }
 
@@ -154,6 +156,7 @@
     switch (eintrag.art) {
       case "abschicken": return t(eintrag.eintraege.length > 1 ? "uebersicht.karte.abschicken-alle" : "uebersicht.karte.abschicken");
       case "rav": return t("uebersicht.karte.rav");
+      case "freigeben": return t("uebersicht.karte.freigeben");
       case "unterlagen": return t("uebersicht.karte.unterlagen");
       case "link": return "Ohne Link zum Bewerbungsformular kann die Erweiterung es nicht öffnen und ausfüllen.";
       case "gespraech": return schritt.frist ? `Termin am ${L.datum(schritt.frist)}. Inserat, Anschreiben und Notizen stehen in der Bewerbung.` : "Den Termin in der Bewerbung eintragen, dann steht er hier.";

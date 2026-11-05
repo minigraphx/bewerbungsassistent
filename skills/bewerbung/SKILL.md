@@ -90,6 +90,7 @@ Jeder Bewerbung liegen **Arbeitszeugnisse und Zertifikate** bei, die Zertifikate
 - Vor dem Hochladen die PDF-Metadaten prüfen (Titel aus früheren Fassungen, z.B. einem alten Lebenslauf) und in der Kopie für die Bewerbung korrigieren; Dateinamen mit Name und Inhalt („<Name> - Lebenslauf.pdf“).
 - Grenzen des Formulars beachten (Anzahl Dateien, MB); sonst Zertifikate zu einer Datei zusammenfassen.
 - Formulare füllt Claude auf Wunsch aus, schickt aber nie ab; Einwilligungen (Datenschutz, Datenverwendung) und Logins bleiben bei der Person.
+- Ein Anschreiben aus `anschreiben.yaml` muss die Person in der App lesen und freigeben, bevor die Erweiterung das Formular öffnet. Jede Änderung am Text hebt die Freigabe auf; darauf hinweisen, nachdem Claude den Brief geändert hat.
 
 ## 5. Versand
 

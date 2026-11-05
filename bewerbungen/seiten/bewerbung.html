@@ -9,117 +9,203 @@
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
-<main>
-  <a href="/" class="zurueck" id="zurueck">← Zurück</a>
-  <h1 id="titel">Bewerbung</h1>
-  <p class="hilfe" id="untertitel"></p>
-  <div id="status-oben" class="status" role="status" aria-live="polite"></div>
-
-  <h2>Angaben</h2>
-  <div class="raster" id="angaben">
-    <div><label for="f-firma">Firma</label><input id="f-firma"></div>
-    <div><label for="f-stelle">Stelle</label><input id="f-stelle"></div>
-    <div><label for="f-firma_schluessel">Firmen-Schlüssel</label><input id="f-firma_schluessel"></div>
-    <div><label for="f-ort">Ort</label><input id="f-ort"></div>
-    <div><label for="f-pensum">Pensum</label><input id="f-pensum"></div>
-    <div><label for="f-vermittler">Inserent / Vermittler</label><input id="f-vermittler"></div>
-    <div><label for="f-portal">Portal</label><input id="f-portal"></div>
-    <div><label for="f-link">Link zum Inserat</label><input id="f-link" type="url"></div>
-    <div><label for="f-formular_link">Link zum Bewerbungsformular</label><input id="f-formular_link" type="url"></div>
-    <div><label for="f-status">Status</label><select id="f-status"></select></div>
-    <div><label for="f-variante">Lebenslauf-Variante</label><select id="f-variante"></select><button type="button" id="vorschlagen" class="unter-feld" hidden>Variante vorschlagen</button></div>
-    <div id="vorschlaege" class="breit"></div>
-    <div><label for="f-passung">Passung (Note 1–6)</label><input id="f-passung" type="number" min="1" max="6" step="0.5"></div>
-    <div><label for="f-eingetragen_am">Eingetragen am</label><input id="f-eingetragen_am" type="date"></div>
-    <div><label for="f-beworben_am">Beworben am</label><input id="f-beworben_am" type="date"></div>
-    <div><label for="f-frist">Frist</label><input id="f-frist" type="date"></div>
-    <div><label for="f-gespraech_am">Gespräch am</label><input id="f-gespraech_am" type="date"></div>
-    <div><label for="f-absage_am">Absage am</label><input id="f-absage_am" type="date"></div>
-    <div><label for="f-adresse">Adresse Arbeitgeber</label><input id="f-adresse"></div>
-    <div><label for="f-kontaktperson">Kontaktperson</label><input id="f-kontaktperson"></div>
-    <div><label for="f-kontakt">Telefon / E-Mail</label><input id="f-kontakt"></div>
-    <div><label class="schalter"><input type="checkbox" id="f-rav_zuweisung"> Bewerbung auf Zuweisung des RAV</label></div>
-    <div class="breit"><label for="f-notiz">Notiz</label><textarea id="f-notiz"></textarea></div>
-  </div>
-  <div class="knoepfe"><button class="haupt" id="speichern">Angaben speichern</button></div>
-
-  <h2>Stellenausschreibung</h2>
-  <p class="hilfe">Text des Inserats einfügen. Er dient dem Vorschlag der Lebenslauf-Variante, der KI-Unterstützung und der inhaltlichen Prüfung durch den Skill.</p>
-  <textarea id="stellentext" rows="8"></textarea>
-  <div class="knoepfe">
-    <button id="stelle-speichern">Stellentext speichern</button>
-  </div>
-
-  <h2>KI-Unterstützung</h2>
-  <p class="hilfe">Bewertet die Passung, entwirft das Anschreiben und prüft den Inhalt gegen das Inserat. Vor dem Senden ersetzt die App Name, Adresse, Kontakte und Ansprechpersonen durch Platzhalter; Bilder und Scans gehen nie an die KI. Ergebnisse immer selbst lesen: Die KI kann sich irren.</p>
-  <p class="leise" id="ki-status">KI-Verbindung wird geprüft …</p>
-  <div id="ki-einladung" hidden>
-    <label for="ki-code">Einladungscode (von der Begleitperson im Pilot)</label>
-    <div class="knoepfe"><input id="ki-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button id="ki-einloesen">Einladung einlösen</button></div>
-  </div>
-  <div class="knoepfe">
-    <button id="ki-bewerten" disabled>Passung bewerten</button>
-    <button id="ki-entwerfen" disabled>Anschreiben entwerfen</button>
-    <button id="ki-pruefen" disabled>Inhalt prüfen</button>
-  </div>
-  <div id="ki-meldung" class="status" role="status" aria-live="polite"></div>
-  <div id="ki-ergebnis"></div>
-
-  <h2>Unterlagen und Prüfung</h2>
-  <p class="hilfe">Erstellt den Lebenslauf aus der gewählten Variante und das Anschreiben aus <code>bewerbungen/&lt;id&gt;/anschreiben.yaml</code>. Fehlt noch ein Anschreiben, entwirft die KI zuerst eines, wenn sie eingerichtet ist. Danach die PDFs ansehen; die automatische Prüfung steht darunter.</p>
-  <p class="hilfe" id="eigener-cv" hidden>Als Lebenslauf gilt die Datei aus <a href="/dateien">„Meine Dateien“</a>, so wie sie ist. Dafür braucht es „Unterlagen erstellen“ nicht. Eine gewählte Variante geht vor.</p>
-  <p class="hilfe" id="eigener-brief" hidden>Als Anschreiben gilt das hochgeladene PDF, so wie es ist. Ein Entwurf gilt erst wieder, wenn es entfernt ist.</p>
-  <div class="knoepfe"><button class="haupt" id="erstellen">Unterlagen erstellen</button><button id="pruefen">Erneut prüfen</button></div>
-  <ul class="befunde" id="befunde"></ul>
-  <div class="pdfs" id="pdfs"></div>
-
-  <section id="eigenes-anschreiben" class="eigene-dateien">
-    <h2>Eigenes Anschreiben</h2>
-    <p class="hilfe">Ein PDF nur für diese Bewerbung, verwendet wie es ist. Es gilt anstelle eines Entwurfs, bleibt auf diesem Computer und geht nicht an die KI. Ein neues PDF ersetzt das bisherige.</p>
-    <label class="datei-waehlen">PDF wählen<input id="anschreiben-datei" type="file" accept=".pdf,application/pdf"></label>
-    <ul class="datei-liste" id="anschreiben-liste"></ul>
-    <div id="anschreiben-status" class="status" role="status" aria-live="polite"></div>
-  </section>
-
-  <h2>Zertifikate</h2>
-  <p class="hilfe">Nur die Zertifikate, die zur Stelle passen, kommen als eine ZIP-Datei mit. Die Vorschläge stammen aus dem Vergleich der Dateinamen mit dem Inserat; bitte prüfen.</p>
-  <ul class="auswahl-liste" id="zertifikate"></ul>
-  <div class="knoepfe"><button id="zertifikate-speichern" hidden>Auswahl speichern</button><span id="zertifikate-status" class="status" role="status"></span></div>
-
-  <h2>Versand</h2>
-  <div id="versand-info"></div>
-  <div id="versand-form">
-    <p class="hilfe">Abschicken von Hand (Formular, E-Mail). Danach hier erfassen: Die Fassungen werden unter <code>versendet/</code> abgelegt (jede nur einmal), die Entwürfe als genutzt markiert und alles in Git eingefroren.</p>
-    <div class="raster">
-      <div><label for="v-datum">Versendet am</label><input id="v-datum" type="date"></div>
-      <div><label for="v-art">Art</label><select id="v-art"><option>elektronisch</option><option>schriftlich</option><option>persönlich</option><option>telefonisch</option></select></div>
+<main class="application">
+  <a href="/" class="zurueck" id="zurueck">← Zurück zur Übersicht</a>
+  <header class="application__head">
+    <div class="application__title">
+      <h1 id="titel">Bewerbung</h1>
+      <p id="untertitel"></p>
     </div>
-    <div id="formular-fassung" hidden>
-      <p class="hilfe" id="formular-fassung-text"></p>
-      <label class="auswahl"><input type="checkbox" id="v-formular"> Über dieses Formular abgeschickt: festhalten, was es bekommen hat</label>
-    </div>
-    <div class="knoepfe"><button class="haupt" id="versenden">Versand erfassen</button></div>
-    <h3>Dateien von Hand hochladen</h3>
-    <p class="hilfe">Bleibt ein Upload-Feld im Formular offen: Dieser Knopf legt alle Dateien der Bewerbung in einen Ordner und zeigt ihn. Der Browser lässt nicht zu, dass die App seinen Datei-Dialog in einen bestimmten Ordner lenkt.</p>
-    <div class="knoepfe"><button type="button" id="ordner-zeigen">Dateien im Ordner zeigen</button><span id="ordner-status" class="status" role="status"></span></div>
-    <div id="ordner-pfad" hidden>
-      <div class="kopieren"><code id="ordner-text"></code><button type="button" id="ordner-kopieren">Pfad kopieren</button></div>
-      <p class="hilfe">Dateien von dort ins Formular ziehen. Oder im Datei-Dialog: Mac ⇧⌘G und Pfad einfügen, Windows Pfad ins Feld „Dateiname“.</p>
-    </div>
-  </div>
+    <div class="application__marks"><span class="marke-status" id="kopf-status" hidden></span><span id="kopf-note"></span></div>
+  </header>
+  <p id="status-oben" class="status-line" role="status" aria-live="polite"></p>
+  <ol id="schritte" class="steps" aria-label="Stand der Bewerbung"></ol>
 
-  <h2>Job-Room (Arbeitsbemühungen)</h2>
-  <p class="hilfe">Nur zur Übernahme ins Formular „Arbeitsbemühungen“: abgeleitet aus den Angaben oben, mit „Kopieren“ übernehmen. Ändern oben unter „Angaben“. Eine Absage ergibt immer das Ergebnis „Absage“.</p>
-  <div class="raster" id="jobroom"></div>
-  <div class="knoepfe">
-    <span id="rav-stand"></span>
-    <button id="rav-umschalten" type="button"></button>
+  <div class="application__layout">
+    <div class="application__main">
+      <section id="naechster" class="next-step" aria-labelledby="naechster-titel">
+        <p class="next-step__eyebrow" id="naechster-zeile">Nächster Schritt</p>
+        <h2 class="next-step__title" id="naechster-titel"></h2>
+        <p class="next-step__text" id="naechster-text"></p>
+        <div class="btn-row" id="naechster-knoepfe"></div>
+      </section>
+
+      <section class="card" id="s-lebenslauf" aria-labelledby="lebenslauf-titel">
+        <h2 id="lebenslauf-titel">Lebenslauf</h2>
+        <p class="field__hint" id="eigener-cv" hidden>Als Lebenslauf gilt die Datei aus <a href="/dateien">Meine Dateien</a>, so wie sie ist. Eine gewählte Variante geht vor.</p>
+        <div class="field">
+          <label class="field__label" for="f-variante">Lebenslauf-Variante</label>
+          <div class="application__inline"><select class="input" id="f-variante"></select><button type="button" class="btn" id="vorschlagen" hidden>Variante vorschlagen</button></div>
+        </div>
+        <div id="vorschlaege" class="application__suggestions"></div>
+      </section>
+
+      <section class="card" id="s-anschreiben" aria-labelledby="anschreiben-titel">
+        <h2 id="anschreiben-titel">Anschreiben</h2>
+        <p id="anschreiben-stand"></p>
+        <div class="letter" id="anschreiben-text" hidden></div>
+        <article class="ai-result" id="ki-pruefung-teil" aria-labelledby="ki-pruefung-titel" hidden>
+          <header class="ai-result__head"><h3 class="ai-result__kind" id="ki-pruefung-titel">Aussagen im Anschreiben</h3><span class="application__date" id="ki-pruefung-zahl"></span></header>
+          <div id="ki-pruefung-liste"></div>
+          <p class="ai-result__foot" id="ki-pruefung-fuss"></p>
+        </article>
+        <div class="btn-row" id="freigabe-zeile" hidden><button type="button" class="btn" id="freigeben">Freigeben</button><a class="btn btn--quiet" id="anschreiben-aendern" href="/inhalte">Ändern</a></div>
+        <p class="status-line" id="freigabe-status" role="status" aria-live="polite"></p>
+        <p class="field__hint" id="eigener-brief" hidden>Als Anschreiben gilt das hochgeladene PDF, so wie es ist. Ein Entwurf gilt erst wieder, wenn es entfernt ist.</p>
+        <div class="application__ai">
+          <p class="status-line" id="ki-status">KI-Verbindung wird geprüft …</p>
+          <div id="ki-einladung" class="field" hidden>
+            <label class="field__label" for="ki-code">Einladungscode</label>
+            <div class="application__inline"><input class="input" id="ki-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button type="button" class="btn" id="ki-einloesen">Einladung einlösen</button></div>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn" id="ki-entwerfen" disabled>Anschreiben entwerfen</button>
+            <button type="button" class="btn" id="ki-pruefen" disabled>Inhalt prüfen</button>
+            <button type="button" class="btn btn--quiet" id="ki-bewerten" disabled>Passung bewerten</button>
+          </div>
+          <div id="ki-meldung" class="status" role="status" aria-live="polite"></div>
+          <div id="ki-ergebnis"></div>
+          <p class="field__hint">Vor dem Senden ersetzt die App Name, Adresse, Kontakte und Ansprechpersonen durch Platzhalter; Bilder und Scans gehen nie an die KI. Eine Einschätzung, kein Urteil: Die KI kann sich irren.</p>
+        </div>
+        <div id="eigenes-anschreiben" class="application__own">
+          <h3>Eigenes Anschreiben</h3>
+          <p class="field__hint">Ein PDF nur für diese Bewerbung, verwendet wie es ist. Es gilt anstelle eines Entwurfs, bleibt auf diesem Computer und geht nicht an die KI.</p>
+          <label class="datei-waehlen">PDF wählen<input id="anschreiben-datei" type="file" accept=".pdf,application/pdf"></label>
+          <ul class="datei-liste" id="anschreiben-liste"></ul>
+          <div id="anschreiben-status" class="status" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="card" id="s-pruefen" aria-labelledby="pruefen-titel">
+        <h2 id="pruefen-titel">Unterlagen prüfen</h2>
+        <p>Erstellt den Lebenslauf aus der gewählten Variante und das Anschreiben als PDF und prüft beide. Fehlt noch ein Anschreiben, entwirft die KI zuerst eines, wenn sie eingerichtet ist.</p>
+        <div class="btn-row"><button type="button" class="btn" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen">Erneut prüfen</button></div>
+        <ul class="befunde" id="befunde"></ul>
+        <div class="pdfs" id="pdfs"></div>
+        <h3>Beilagen</h3>
+        <p class="field__hint">Nur die Zertifikate, die zur Stelle passen, kommen als eine ZIP-Datei mit. Die Vorschläge stammen aus dem Vergleich der Dateinamen mit dem Inserat.</p>
+        <ul class="auswahl-liste" id="zertifikate"></ul>
+        <div class="btn-row"><button type="button" class="btn btn--sm" id="zertifikate-speichern" hidden>Auswahl speichern</button><span id="zertifikate-status" class="status" role="status"></span></div>
+      </section>
+
+      <section class="card" id="s-abschicken" aria-labelledby="abschicken-titel">
+        <h2 id="abschicken-titel">Abschicken</h2>
+        <div id="formular-teil">
+          <p data-text="bewerbung.formular">Die App öffnet das Formular der Firma in einem neuen Tab. Die Erweiterung füllt aus, was sie weiss, und markiert, was offen ist. Sie prüfen und schicken selbst ab.</p>
+          <div class="btn-row"><button type="button" class="btn" id="formular-oeffnen">Formular öffnen</button></div>
+          <p id="formular-status" class="status-line" role="status" aria-live="polite"></p>
+        </div>
+        <div id="versand-info"></div>
+        <div id="versand-form">
+          <h3 id="versand-titel">Versand erfassen</h3>
+          <p class="field__hint">Nach dem Abschicken von Hand (E-Mail, Post) oder wenn die Leiste im Formular nicht gefragt hat: Die Fassungen werden unter <code>versendet/</code> abgelegt, die Entwürfe als genutzt markiert und alles eingefroren.</p>
+          <div class="application__fields">
+            <div class="field"><label class="field__label" for="v-datum">Versendet am</label><input class="input" id="v-datum" type="date"></div>
+            <div class="field"><label class="field__label" for="v-art">Art</label><select class="input" id="v-art"><option>elektronisch</option><option>schriftlich</option><option>persönlich</option><option>telefonisch</option></select></div>
+          </div>
+          <div id="formular-fassung" hidden>
+            <p class="field__hint" id="formular-fassung-text"></p>
+            <label class="check"><input type="checkbox" id="v-formular"> Über dieses Formular abgeschickt: festhalten, was es bekommen hat</label>
+          </div>
+          <div class="btn-row"><button type="button" class="btn" id="versenden">Versand erfassen</button></div>
+          <h3>Dateien von Hand hochladen</h3>
+          <p class="field__hint">Bleibt ein Upload-Feld im Formular offen: Dieser Knopf legt alle Dateien der Bewerbung in einen Ordner und zeigt ihn. Den Datei-Dialog des Browsers kann die App nicht lenken.</p>
+          <div class="btn-row"><button type="button" class="btn btn--sm" id="ordner-zeigen">Dateien im Ordner zeigen</button><span id="ordner-status" class="status" role="status"></span></div>
+          <div id="ordner-pfad" hidden>
+            <div class="copy-row setup__copy"><code id="ordner-text" class="copy-row__value"></code><button type="button" class="btn btn--sm" id="ordner-kopieren">Kopieren</button></div>
+            <p class="field__hint">Dateien von dort ins Formular ziehen. Oder im Datei-Dialog: Mac ⇧⌘G und Pfad einfügen, Windows Pfad ins Feld „Dateiname“.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="s-festhalten" aria-labelledby="festhalten-titel">
+        <h2 id="festhalten-titel">Festhalten</h2>
+        <div id="antwort-teil">
+          <h3>Antwort eintragen, sobald sie kommt</h3>
+          <div class="btn-row">
+            <button type="button" class="btn" data-antwort="Gespräch" id="schnupper-knopf" hidden>Einladung zur Schnupperlehre</button>
+            <button type="button" class="btn" data-antwort="Gespräch">Einladung zum Gespräch</button>
+            <button type="button" class="btn" data-antwort="Absage">Absage</button>
+            <button type="button" class="btn" data-antwort="Zusage">Zusage</button>
+          </div>
+        </div>
+        <div id="jobroom-teil">
+          <h3>Job-Room (Arbeitsbemühungen)</h3>
+          <p class="field__hint">Abgeleitet aus den Angaben zur Stelle. Eine Absage ergibt immer das Ergebnis „Absage“.</p>
+          <div class="btn-row"><button type="button" class="btn" id="jobroom-oeffnen">Job-Room öffnen</button></div>
+          <dl class="copy-list" id="jobroom"></dl>
+          <div class="btn-row"><span id="rav-stand"></span><button type="button" class="btn btn--sm" id="rav-umschalten"></button></div>
+        </div>
+      </section>
+
+      <details class="card application__details" id="s-stelle">
+        <summary data-text="bewerbung.stellentext">Stellentext</summary>
+        <p class="field__hint">Der Text des Inserats. Er dient dem Vorschlag der Lebenslauf-Variante, der KI und der Prüfung.</p>
+        <textarea class="input" id="stellentext" rows="10"></textarea>
+        <div class="btn-row"><button type="button" class="btn btn--sm" id="stelle-speichern">Speichern</button></div>
+      </details>
+    </div>
+
+    <aside class="application__side">
+      <section class="card" aria-labelledby="angaben-titel">
+        <div class="application__side-head"><h2 id="angaben-titel" data-text="bewerbung.angaben">Angaben zur Stelle</h2><button type="button" class="btn btn--quiet btn--sm" id="angaben-aendern">Ändern</button></div>
+        <dl class="facts" id="fakten"></dl>
+        <a id="inserat-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Inserat öffnen</a>
+      </section>
+      <section class="card" aria-labelledby="notiz-titel">
+        <h2 id="notiz-titel">Notiz</h2>
+        <label class="visually-hidden" for="f-notiz">Notiz</label>
+        <textarea class="input application__note" id="f-notiz"></textarea>
+        <div class="btn-row"><button type="button" class="btn btn--sm" id="notiz-speichern">Notiz speichern</button></div>
+      </section>
+      <section class="card" aria-labelledby="verlauf-titel">
+        <h2 id="verlauf-titel">Verlauf</h2>
+        <ul id="verlauf" class="application__history"></ul>
+        <a href="/entwuerfe">Alle Entwürfe und Versionen</a>
+      </section>
+    </aside>
   </div>
-  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <p id="status" class="status-line" role="status" aria-live="polite"></p>
+
+  <dialog class="dialog application__dialog" id="angaben-dialog" aria-labelledby="dialog-titel">
+    <form method="dialog" id="angaben-form">
+      <h2 class="dialog__title" id="dialog-titel">Angaben ändern</h2>
+      <div class="application__fields">
+        <div class="field"><label class="field__label" for="f-firma" data-text="bewerbung.feld-firma">Firma</label><input class="input" id="f-firma"></div>
+        <div class="field"><label class="field__label" for="f-stelle" data-text="bewerbung.feld-stelle">Stelle</label><input class="input" id="f-stelle"></div>
+        <div class="field"><label class="field__label" for="f-status">Stand</label><select class="input" id="f-status"></select></div>
+        <div class="field"><label class="field__label" for="f-ort">Ort</label><input class="input" id="f-ort"></div>
+        <div class="field"><label class="field__label" for="f-pensum">Pensum</label><input class="input" id="f-pensum"></div>
+        <div class="field"><label class="field__label" for="f-frist">Frist</label><input class="input" id="f-frist" type="date"></div>
+        <div class="field"><label class="field__label" for="f-link">Link zum Inserat</label><input class="input" id="f-link" type="url"></div>
+        <div class="field"><label class="field__label" for="f-formular_link">Link zum Bewerbungsformular</label><input class="input" id="f-formular_link" type="url"></div>
+        <div class="field"><label class="field__label" for="f-kontaktperson">Kontaktperson</label><input class="input" id="f-kontaktperson"></div>
+        <div class="field"><label class="field__label" for="f-kontakt">Telefon / E-Mail</label><input class="input" id="f-kontakt"></div>
+        <div class="field"><label class="field__label" for="f-adresse">Adresse</label><input class="input" id="f-adresse"></div>
+        <div class="field"><label class="field__label" for="f-passung">Note (1–6)</label><input class="input" id="f-passung" type="number" min="1" max="6" step="0.5"></div>
+        <div class="field"><label class="field__label" for="f-gespraech_am">Gespräch am</label><input class="input" id="f-gespraech_am" type="date"></div>
+        <div class="field"><label class="field__label" for="f-beworben_am">Beworben am</label><input class="input" id="f-beworben_am" type="date"></div>
+        <div class="field"><label class="field__label" for="f-absage_am">Absage am</label><input class="input" id="f-absage_am" type="date"></div>
+        <div class="field"><label class="field__label" for="f-eingetragen_am">Erfasst am</label><input class="input" id="f-eingetragen_am" type="date"></div>
+        <div class="field"><label class="field__label" for="f-portal">Portal</label><input class="input" id="f-portal"></div>
+        <div class="field"><label class="field__label" for="f-vermittler">Inserent / Vermittler</label><input class="input" id="f-vermittler"></div>
+        <div class="field"><label class="field__label" for="f-firma_schluessel">Firmen-Schlüssel</label><input class="input" id="f-firma_schluessel"></div>
+        <div class="field" id="rav-zuweisung-feld"><label class="check"><input type="checkbox" id="f-rav_zuweisung"> Bewerbung auf Zuweisung des RAV</label></div>
+      </div>
+      <div class="dialog__actions"><button type="button" class="btn" id="angaben-abbrechen">Abbrechen</button><button type="submit" class="btn btn--primary" id="speichern">Speichern</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog" id="doppelt-dialog" aria-labelledby="doppelt-titel">
+    <h2 class="dialog__title" id="doppelt-titel"></h2>
+    <div class="dialog__text" id="doppelt-text"></div>
+    <div class="dialog__actions"><button type="button" class="btn" id="doppelt-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="doppelt-trotzdem">Trotzdem öffnen</button></div>
+  </dialog>
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>
 <script src="/formular-logik.js"></script>
+<script src="/bewerbung-logik.js"></script>
 <script src="/eigenes-anschreiben.js"></script>
 <script src="/dateien-ordner.js"></script>
 <script src="/bewerbung.js"></script>

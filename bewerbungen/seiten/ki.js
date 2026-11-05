@@ -139,6 +139,10 @@
       document.dispatchEvent(new CustomEvent("anschreiben-geaendert"));
     }
   }, () => briefDa);
-  $("ki-pruefen").addEventListener("click", () => ausfuehren("/api/ki/pruefen", "Inhalt wird geprüft", zeigePruefung));
+  $("ki-pruefen").addEventListener("click", async () => {
+    if (await ausfuehren("/api/ki/pruefen", "Inhalt wird geprüft", zeigePruefung)) {
+      document.dispatchEvent(new CustomEvent("anschreiben-geprueft"));  // the page shows the kept review beside the letter
+    }
+  });
   ladeStatus();
 })();

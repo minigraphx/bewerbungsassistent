@@ -5,6 +5,7 @@ outside the lock; only writing the letter holds it (via `mit_entwurf`, which als
 """
 import yaml
 
+import letter_approval
 import unterlagen
 from ai import form_help, invitation, tasks
 from ai.connection import find_connection, make_client, mediation_url, own_key
@@ -174,7 +175,9 @@ def review(k, parameter, body):
         gateway, material = ai_gateway(k, entry, letter)
         return tasks.review_content(gateway, material, ad, _letter_text(letter))
 
-    return json_antwort(run_ai(task))
+    result = run_ai(task)
+    letter_approval.keep_review(k.daten, entry["id"], result, k.heute())  # shown until the letter changes (MIN-369)
+    return json_antwort(result)
 
 
 GET = {"/api/ki/status": status}

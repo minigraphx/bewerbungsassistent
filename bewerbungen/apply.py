@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import yaml
 
 import certificates
+import letter_approval
 import form_copy
 import merged_pdf
 from ai.personal import strip_titles
@@ -37,6 +38,7 @@ ALREADY_SENT = "Schon versendet"
 NOT_OPEN = "Status „{status}“"
 NO_LINK = "Kein Link zum Formular: öffnen und Link eintragen"
 NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Meine Dateien“ hochladen"
+NOT_APPROVED = "Anschreiben noch nicht freigegeben: öffnen, lesen und „Freigeben“"
 UNKNOWN_FILE = "Diese Datei gehört nicht zu dieser Bewerbung."
 UNKNOWN_PART = "Dieser Teil der Datei fehlt."
 NO_FILES = "Für diese Bewerbung gibt es noch keine Dateien. Bitte zuerst „Unterlagen erstellen“ oder unter „Meine Dateien“ hochladen."
@@ -67,6 +69,8 @@ def blocker(data_dir: pathlib.Path, entry: dict) -> str | None:
         return NO_LINK
     if not wirksame_pdfs(data_dir, entry)["lebenslauf"].is_file():
         return NO_CV
+    if letter_approval.missing(data_dir, entry):  # MIN-369: no AI letter goes out unread
+        return NOT_APPROVED
     return None
 
 

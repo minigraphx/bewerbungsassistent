@@ -11,6 +11,59 @@
   const TEXTE = {
     // Navigation (step 3)
     "nav.suche": { sie: "Stellen suchen", du: "Stellen suchen", lehrstelle: "Lehrstellen suchen" },
+    // Application page (step 4)
+    "bewerbung.angaben": { sie: "Angaben zur Stelle", du: "Angaben zur Stelle", lehrstelle: "Angaben zur Lehrstelle" },
+    "bewerbung.stellentext": { sie: "Stellentext", du: "Stellentext", lehrstelle: "Inseratstext" },
+    "bewerbung.gespraech": { sie: "Gespräch vorbereiten", du: "Gespräch vorbereiten", lehrstelle: "Einladung vorbereiten" },
+    "bewerbung.feld-firma": { sie: "Firma", du: "Firma", lehrstelle: "Lehrbetrieb" },
+    "bewerbung.feld-stelle": { sie: "Stelle", du: "Stelle", lehrstelle: "Lehrstelle" },
+    "bewerbung.inserat": {
+      sie: "Ohne den Text des Inserats können Variante, Anschreiben und Prüfung nicht darauf eingehen. Kopieren Sie ihn aus dem Inserat in das Feld.",
+      du: "Ohne den Text des Inserats können Variante, Anschreiben und Prüfung nicht darauf eingehen. Kopiere ihn aus dem Inserat in das Feld.",
+    },
+    "bewerbung.eigenes": {
+      sie: "Die KI ist nicht eingerichtet. Laden Sie ein eigenes Anschreiben als PDF hoch. Alles andere funktioniert auch ohne KI.",
+      du: "Die KI ist nicht eingerichtet. Lade ein eigenes Anschreiben als PDF hoch. Alles andere funktioniert auch ohne KI.",
+    },
+    "bewerbung.formular": {
+      sie: "Die App öffnet das Formular der Firma in einem neuen Tab. Die Erweiterung füllt aus, was sie weiss, und markiert, was offen ist. Sie prüfen und schicken selbst ab.",
+      du: "Die App öffnet das Formular der Firma in einem neuen Tab. Die Erweiterung füllt aus, was sie weiss, und markiert, was offen ist. Du prüfst und schickst selbst ab.",
+      lehrstelle: "Die App öffnet das Formular des Lehrbetriebs in einem neuen Tab. Die Erweiterung füllt aus, was sie weiss, und markiert, was offen ist. Du prüfst und schickst selbst ab.",
+    },
+    "bewerbung.versand": {
+      sie: "Es gibt keinen Link zu einem Formular. Schicken Sie die Unterlagen selbst ab, etwa per E-Mail, und erfassen Sie danach den Versand.",
+      du: "Es gibt keinen Link zu einem Formular. Schick die Unterlagen selbst ab, etwa per E-Mail, und erfasse danach den Versand.",
+    },
+    "bewerbung.jobroom": {
+      sie: "Die Erweiterung füllt den Eintrag im Job-Room aus. Speichern und anmelden machen Sie selbst. Oder kopieren Sie die Angaben einzeln.",
+      du: "Die Erweiterung füllt den Eintrag im Job-Room aus. Speichern und anmelden machst du selbst. Oder kopiere die Angaben einzeln.",
+    },
+    "bewerbung.warten": {
+      sie: "Ohne Antwort erinnert Sie die Übersicht am {datum} ans Nachfragen.",
+      du: "Ohne Antwort erinnert dich die Übersicht am {datum} ans Nachfragen.",
+    },
+    "bewerbung.absage": {
+      sie: "Das gehört dazu. Ihre Unterlagen für diese Stelle bleiben gespeichert.",
+      du: "Das gehört dazu. Deine Unterlagen für diese Stelle bleiben gespeichert.",
+      lehrstelle: "Das gehört dazu. Deine Unterlagen für diese Lehrstelle bleiben gespeichert.",
+    },
+    "bewerbung.freigeben": {
+      sie: "Der Entwurf ist fertig. Lesen Sie ihn, bevor er an die Firma geht. Erst mit der Freigabe öffnet die Erweiterung das Formular.",
+      du: "Der Entwurf ist fertig. Lies ihn, bevor er an die Firma geht. Erst mit der Freigabe öffnet die Erweiterung das Formular.",
+      lehrstelle: "Der Entwurf ist fertig. Lies ihn, bevor er an den Lehrbetrieb geht. Erst mit der Freigabe öffnet die Erweiterung das Formular.",
+    },
+    "bewerbung.freigeben-offen": {
+      sie: "Der Entwurf ist fertig. {aussagen} noch keinen Beleg in Ihren Angaben; gelb markiert.",
+      du: "Der Entwurf ist fertig. {aussagen} noch keinen Beleg in deinen Angaben; gelb markiert.",
+    },
+    "bewerbung.geoeffnet": {
+      sie: "Das Formular ist in einem neuen Tab offen. Abgeschickt wird erst durch Sie.",
+      du: "Das Formular ist in einem neuen Tab offen. Abgeschickt wird erst durch dich.",
+    },
+    "bewerbung.jobroom-offen": {
+      sie: "Der Job-Room ist offen. Gespeichert wird erst durch Sie.", du: "Der Job-Room ist offen. Gespeichert wird erst durch dich.",
+    },
+
     // Overview (step 3)
     "uebersicht.von-hand": { sie: "Stelle von Hand erfassen", du: "Stelle von Hand erfassen", lehrstelle: "Lehrstelle von Hand erfassen" },
     "uebersicht.feld-firma": { sie: "Firma", du: "Firma", lehrstelle: "Lehrbetrieb" },
@@ -62,6 +115,11 @@
       sie: "Für diese Stelle fehlt noch der Lebenslauf als PDF. In der Bewerbung lassen sich Lebenslauf und Anschreiben erstellen.",
       du: "Für diese Stelle fehlt noch der Lebenslauf als PDF. In der Bewerbung lassen sich Lebenslauf und Anschreiben erstellen.",
       lehrstelle: "Für diese Lehrstelle fehlt noch der Lebenslauf als PDF. In der Bewerbung lassen sich Lebenslauf und Anschreiben erstellen.",
+    },
+    "uebersicht.karte.freigeben": {
+      sie: "Der Entwurf ist fertig. Lesen Sie ihn, bevor er an die Firma geht. Erst mit der Freigabe öffnet die Erweiterung das Formular.",
+      du: "Der Entwurf ist fertig. Lies ihn, bevor er an die Firma geht. Erst mit der Freigabe öffnet die Erweiterung das Formular.",
+      lehrstelle: "Der Entwurf ist fertig. Lies ihn, bevor er an den Lehrbetrieb geht. Erst mit der Freigabe öffnet die Erweiterung das Formular.",
     },
     "uebersicht.geoeffnet": {
       sie: "{anzahl} Tab(s) geöffnet. Abgeschickt wird erst durch Sie.", du: "{anzahl} Tab(s) geöffnet. Abgeschickt wird erst durch dich.",
@@ -129,7 +187,12 @@
     for (const element of wurzel.querySelectorAll("[data-text]")) element.textContent = text(element.dataset.text, satz);
   }
 
-  const texte = { SAETZE, VORGABE, TEXTE, satzOder, text, anwenden };
+  /** The name of a status as the person reads it: for apprenticeships an interview is often a trial apprenticeship. */
+  function statusName(status, satz) {
+    return satzOder(satz) === "lehrstelle-du" && status === "Gespräch" ? "Einladung" : status;
+  }
+
+  const texte = { SAETZE, VORGABE, TEXTE, satzOder, text, anwenden, statusName };
   if (typeof module !== "undefined") module.exports = texte;
   else global.Texte = texte;
 })(typeof window !== "undefined" ? window : globalThis);
