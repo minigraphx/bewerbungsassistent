@@ -723,3 +723,42 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 .hit__meta { font-size: 13px; line-height: 18px; color: var(--text-muted); }
 .hit__meta strong { color: var(--text-strong); font-weight: 500; }
 @media (max-width: 900px) { .search__detail { position: static; } }
+
+/* ---------- Pages of the menu „Mehr“ (step 6) ---------- */
+.page { display: flex; flex-direction: column; gap: var(--space-5); }
+.page > a.zurueck { margin: 0; align-self: flex-start; }
+.page > .status:empty { display: none; }
+.page__head { display: flex; flex-direction: column; gap: var(--space-1); max-width: var(--width-reading); }
+.page__head h1, .page__aside h1 { margin: 0; font-size: 22px; line-height: 28px; }
+.page__head p { margin: 0; }
+.page__mark { margin: 0; }
+.page__section { display: flex; flex-direction: column; gap: var(--space-3); }
+.page__section > h2, .page .card > h2 { margin: 0; padding: 0; border: 0; font-size: 18px; line-height: 24px; }
+.page .card > h3 { margin: var(--space-3) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--line); font-size: 16px; line-height: 22px; color: var(--text-strong); }
+.page .card > p, .page .card > ul, .page .card .knoepfe, .page .card .filter, .page .card table { margin: 0; }
+.page__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4); align-items: start; }
+.page__grid .card { gap: var(--space-3); }
+.page .card .datei-liste { margin: 0; }
+.page .card .datei-liste li { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); align-items: center; justify-content: space-between; padding: var(--space-2) 0; border-top: 1px solid var(--line); }
+.page .card .datei-waehlen { align-self: flex-start; }
+.page > .field__hint { margin: 0; }
+.rank { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.rank__item { flex: 1 1 220px; display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3) var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); font-size: 14px; line-height: 20px; }
+.rank__item[data-aktiv] { border: 2px solid var(--accent); background: var(--accent-subtle); }
+.rank__head { display: flex; gap: var(--space-2); align-items: center; font-size: 16px; line-height: 22px; color: var(--text-strong); }
+.rank__nr { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--radius-full); border: 2px solid var(--line-strong); font-size: 13px; font-weight: 700; color: var(--text-strong); }
+.rank__item[data-aktiv] .rank__nr { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.rank__state { font-size: 13px; line-height: 18px; color: var(--text-muted); }
+.rank__item[data-aktiv] .rank__state { color: var(--text-strong); font-weight: 500; }
+.page--side { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+.page__aside { flex: 1 1 220px; display: flex; flex-direction: column; gap: var(--space-3); position: sticky; top: var(--space-4); }
+.page__toc { display: flex; flex-direction: column; gap: 2px; }
+.page__toc a { padding: 6px var(--space-2); border-radius: var(--radius-sm); color: var(--text); text-decoration: none; font-size: 14px; }
+.page__toc a:hover { background: var(--surface-subtle); color: var(--text-strong); }
+.page__body { flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+.page__body .card { gap: var(--space-3); }
+.page__body .card label { margin: 0; }
+.page .verlauf.card:empty { display: none; }
+.page .foto-raster.card { display: grid; }
+@media (max-width: 760px) { .page__aside { position: static; } }
+.page .verlauf.card { margin: 0; } .page .verlauf.card h2 { margin: 0; padding: 0; border: 0; }

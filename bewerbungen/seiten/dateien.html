@@ -9,11 +9,25 @@
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
-<main>
-  <h1>Meine Dateien</h1>
-  <p class="hilfe">Fertige Unterlagen ablegen und so verwenden, wie sie sind. Die Dateien bleiben auf diesem Computer und gehen nicht an die KI. Hochgeladen werden sie nur beim Ausfüllen eines Formulars. Name, Adresse und Kontakt fürs Formular kommen aus <a href="/angaben">„Meine Angaben“</a>; ohne diese Angaben bleiben die Felder leer.</p>
+<main class="page">
+  <header class="page__head">
+    <h1>Meine Dateien</h1>
+    <p>Fertige Unterlagen, die so verwendet werden, wie sie sind. Diese Dateien bleiben auf diesem Computer und gehen nie an die KI.</p>
+    <p class="field__hint">Hochgeladen werden sie nur beim Ausfüllen eines Formulars. Name, Adresse und Kontakt fürs Formular kommen aus <a href="/angaben">Meine Angaben</a>.</p>
+  </header>
 
-  <section class="eigene-dateien" data-art="lebenslauf">
+  <section class="page__section" aria-labelledby="rang-titel">
+    <h2 id="rang-titel">Welcher Lebenslauf wird verwendet?</h2>
+    <ol class="rank" id="rang">
+      <li class="rank__item" data-rang="variante"><span class="rank__head"><span class="rank__nr">1</span><strong>Gewählte Variante</strong></span><span data-text="dateien.variante">Wenn Sie in einer Bewerbung eine Variante wählen, gilt sie dort.</span><span class="rank__state" id="rang-variante"></span></li>
+      <li class="rank__item" data-rang="eigen"><span class="rank__head"><span class="rank__nr">2</span><strong data-text="dateien.eigen-titel">Ihr eigenes PDF</strong></span><span data-text="dateien.eigen">Sonst gilt der Lebenslauf, den Sie hier hochladen.</span><span class="rank__state" id="rang-eigen"></span></li>
+      <li class="rank__item" data-rang="gebaut"><span class="rank__head"><span class="rank__nr">3</span><strong>Aus Meine Angaben</strong></span><span data-text="dateien.gebaut">Ohne eigenes PDF erstellt der Assistent den Lebenslauf aus Ihren Angaben.</span><span class="rank__state" id="rang-gebaut"></span></li>
+    </ol>
+  </section>
+
+  <div class="page__grid">
+
+  <section class="card eigene-dateien" data-art="lebenslauf">
     <h2>Lebenslauf</h2>
     <p class="hilfe">Ein PDF. Es gilt für alle Bewerbungen, bei denen keine Variante gewählt ist, ohne „Unterlagen erstellen“. Ein neues PDF ersetzt das bisherige.</p>
     <label class="datei-waehlen">PDF wählen<input type="file" accept=".pdf,application/pdf"></label>
@@ -21,7 +35,7 @@
     <div class="status" role="status" aria-live="polite"></div>
   </section>
 
-  <section class="eigene-dateien" data-art="zertifikat">
+  <section class="card eigene-dateien" data-art="zertifikat">
     <h2>Zertifikate und Diplome</h2>
     <p class="hilfe">PDF, JPG oder PNG. Welche zu einer Stelle passen, steht zur Wahl auf der Seite der Bewerbung. Eine Datei mit gleichem Namen ersetzt die bisherige.</p>
     <label class="datei-waehlen">Dateien wählen<input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></label>
@@ -29,14 +43,15 @@
     <div class="status" role="status" aria-live="polite"></div>
   </section>
 
-  <section class="eigene-dateien" data-art="zeugnis">
-    <h2>Zeugnisse</h2>
+  <section class="card eigene-dateien" data-art="zeugnis">
+    <h2>Arbeitszeugnisse und Zeugnisse</h2>
     <p class="hilfe">PDF, JPG oder PNG. Sie stehen beim Ausfüllen eines Formulars bereit. Eine Datei mit gleichem Namen ersetzt die bisherige.</p>
     <label class="datei-waehlen">Dateien wählen<input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></label>
     <ul class="datei-liste"></ul>
     <div class="status" role="status" aria-live="polite"></div>
   </section>
-  <p class="hilfe">Ersetzte und entfernte Dateien lassen sich unter <a href="/entwuerfe">„Entwürfe &amp; Versionen“</a> zurückholen.</p>
+  </div>
+  <p class="field__hint">Ersetzte und entfernte Dateien lassen sich unter <a href="/entwuerfe">Entwürfe und Versionen</a> zurückholen.</p>
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>

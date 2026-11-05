@@ -10,11 +10,13 @@
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
-<main class="einrichtung">
-  <h1>Fragen</h1>
-  <p id="fragen-hilfe" class="hilfe"></p>
-  <p id="fragen-aus" class="banner" hidden></p>
-  <div id="fragen-an" hidden>
+<main class="einrichtung page">
+  <header class="page__head">
+    <h1>Fragen an die KI</h1>
+    <p id="fragen-hilfe"></p>
+  </header>
+  <p id="fragen-aus" class="notice notice--warning" hidden></p>
+  <div id="fragen-an" class="card" hidden>
     <div id="fragen-verlauf" class="chat-verlauf" aria-live="polite"></div>
     <div id="fragen-beispiele" class="chat-beispiele"></div>
     <label for="fragen-text" id="fragen-label"></label>

@@ -9,11 +9,16 @@
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
-<main>
+<main class="page">
   <a href="/" class="zurueck" id="zurueck">← Zurück</a>
-  <h1>Inhalte</h1>
-  <p class="hilfe">Lebenslauf, Zuschnitte, Anschreiben, Stilprofil, Bausteine und Suchprofil als PDF ansehen. Mit „Als Text“ lässt sich der Inhalt direkt bearbeiten, z.B. um etwas von anderswo wieder einzubauen; gespeichert wird nur Gültiges, jedes Mal mit Entwurf.</p>
+  <header class="page__head">
+    <p class="page__mark"><span class="marke-status" data-status="Gemerkt">Für Geübte</span></p>
+    <h1>Inhalte als Text</h1>
+    <p data-text="inhalte.intro">Hier sehen Sie, woraus der Assistent Ihre Unterlagen baut, und können es direkt bearbeiten. Für das Übliche reichen Meine Angaben.</p>
+    <p class="field__hint">Gespeichert wird nur Gültiges, jedes Mal mit Entwurf.</p>
+  </header>
 
+  <section class="card">
   <div class="filter">
     <select id="datei" aria-label="Datei"></select>
     <button id="umschalten" aria-pressed="false">Als Text</button>
@@ -36,7 +41,8 @@
     <div class="pdfs" id="vorschau"></div>
   </section>
   <div id="status" class="status" role="status" aria-live="polite"></div>
-  <aside id="verlauf" class="verlauf" aria-label="Letzte Entwürfe dieser Datei"></aside>
+  </section>
+  <aside id="verlauf" class="card verlauf" aria-label="Letzte Entwürfe dieser Datei"></aside>
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>
