@@ -10,79 +10,105 @@
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
-<main>
-  <h1 id="titel">Stellensuche</h1>
-  <p class="hilfe" id="hilfe">Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach Ihrem Suchprofil, in Ihrem Browser und nur, wenn Sie die Suche starten. Neue Stellen erscheinen hier. „Bewerten“ lässt die KI die Passung als Note von 1 bis 6 einschätzen; „Übernehmen“ legt die Bewerbung mit dem Inseratstext an.</p>
+<main class="search">
+  <header class="search__head">
+    <div class="search__title">
+      <h1 id="titel" data-text="nav.suche">Stellen suchen</h1>
+      <p id="letzte" class="search__sub"></p>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn" id="einstellen-knopf" aria-expanded="false" aria-controls="einstellen">Suche einstellen</button>
+      <button type="button" class="btn btn--primary" id="suchen" disabled>Jetzt suchen</button>
+    </div>
+  </header>
 
-  <div class="knoepfe">
-    <label id="angebot-wahl" class="auswahl angebot-wahl" hidden>Was suchst du?
-      <select id="angebot">
-        <option value="lehrstelle">Lehrstellen</option>
-        <option value="schnupperlehre">Schnupperlehren</option>
-        <option value="beides">Lehrstellen und Schnupperlehren</option>
-      </select>
-    </label>
-    <button type="button" id="suchen" class="haupt" disabled>Stellen suchen</button>
-    <span id="lauf" class="status" role="status" aria-live="polite"></span>
-  </div>
-  <details id="portale" class="portale">
-    <summary id="portale-titel">Wo suchen Sie?</summary>
-    <ul id="portale-liste" class="auswahl-liste"></ul>
-    <div id="portale-meldung" class="status" role="status" aria-live="polite"></div>
-  </details>
-  <p id="angaben-offen" class="banner" hidden><span id="angaben-offen-text"></span><a href="/angaben#feld=uebernehmen">Zum Übernehmen</a></p>
-  <p id="ohne-erweiterung" class="banner" hidden>Für die Suche braucht es die Browser-Erweiterung. <a id="erweiterung-link" href="/einrichtung#erweiterung">So richten Sie sie ein</a></p>
-  <p id="letzte" class="leise"></p>
+  <section id="einstellen" class="search__settings" aria-label="Suche einstellen" hidden>
+    <p class="field__hint search__wide" data-text="suche.wie">Die Erweiterung sucht in Ihrem Browser und nur, wenn Sie die Suche starten. Die KI schätzt jeden neuen Treffer als Note von 1 bis 6 ein.</p>
+    <fieldset class="choice-group search__portals" id="portale">
+      <legend id="portale-titel">Wo suchen Sie?</legend>
+      <ul id="portale-liste" class="auswahl-liste"></ul>
+      <div id="portale-meldung" class="status" role="status" aria-live="polite"></div>
+    </fieldset>
+    <div class="search__terms">
+      <label id="angebot-wahl" class="field" hidden><span class="field__label">Was suchst du?</span>
+        <select class="input" id="angebot">
+          <option value="lehrstelle">Lehrstellen</option>
+          <option value="schnupperlehre">Schnupperlehren</option>
+          <option value="beides">Lehrstellen und Schnupperlehren</option>
+        </select>
+      </label>
+      <section id="suchliste" hidden>
+        <p id="suchliste-titel" class="field__label"></p>
+        <ul id="suchliste-liste" class="suchliste"></ul>
+        <div id="suchliste-status" class="status" role="status" aria-live="polite" tabindex="-1"></div>
+      </section>
+      <label class="switch"><input type="checkbox" role="switch" id="auto-bewerten"> <span id="auto-text">Neue Treffer nach der Suche automatisch bewerten</span></label>
+      <label class="switch"><input type="checkbox" role="switch" id="zuschauen"> <span>Im sichtbaren Tab suchen <span class="search__hint" data-text="suche.sichtbar">Langsamer, dafür sehen Sie, was die Erweiterung tut.</span></span></label>
+    </div>
+    <details id="vorschlag" class="search__wide application__details" hidden>
+      <summary id="vorschlag-titel"></summary>
+      <p id="vorschlag-hilfe" class="field__hint"></p>
+      <label id="vorschlag-label-interessen" class="field__label" for="vorschlag-interessen"></label>
+      <textarea class="input" id="vorschlag-interessen" rows="2" maxlength="1000"></textarea>
+      <label id="vorschlag-label-staerken" class="field__label" for="vorschlag-staerken"></label>
+      <textarea class="input" id="vorschlag-staerken" rows="2" maxlength="1000"></textarea>
+      <label id="vorschlag-label-vermeiden" class="field__label" for="vorschlag-vermeiden"></label>
+      <textarea class="input" id="vorschlag-vermeiden" rows="2" maxlength="1000"></textarea>
+      <div class="btn-row"><button type="button" class="btn" id="vorschlag-holen"></button></div>
+      <div id="vorschlag-status" class="status" role="status" aria-live="polite"></div>
+      <ul id="vorschlag-liste" class="vorschlaege"></ul>
+    </details>
+  </section>
+
+  <div id="ohne-erweiterung" class="notice notice--warning" hidden><span class="notice__title">Die Erweiterung fehlt</span><p class="notice__body">Für die Suche braucht es die Browser-Erweiterung. Die bisherigen Treffer bleiben hier.</p><div class="notice__actions"><a class="btn btn--sm" href="/einrichtung#erweiterung">Erweiterung einrichten</a></div></div>
+  <div id="angaben-offen" class="notice notice--warning" hidden><p class="notice__body" id="angaben-offen-text"></p><div class="notice__actions"><a class="btn btn--sm" href="/angaben#feld=uebernehmen">Zum Übernehmen</a></div></div>
   <ul id="probleme" class="befunde"></ul>
 
-  <div class="filter">
-    <select id="zustand" aria-label="Zustand">
-      <option value="neu">Neue Treffer</option>
-      <option value="uebernommen">Übernommen</option>
-      <option value="verworfen">Verworfen</option>
-      <option value="">Alle</option>
-    </select>
-    <select id="art" aria-label="Art" hidden>
+  <div id="lauf-box" class="progress" role="status" aria-live="polite" hidden>
+    <div class="progress__head"><strong id="lauf-titel">Die Erweiterung sucht auf den Portalen</strong></div>
+    <div class="progress__busy" aria-hidden="true"></div>
+    <p class="progress__note" id="lauf"></p>
+    <p class="progress__note" data-text="suche.laufnotiz">Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten.</p>
+  </div>
+  <div id="bewerten-box" class="progress" role="status" aria-live="polite" hidden>
+    <div class="progress__head"><strong>KI schätzt Treffer ein</strong><span class="num" id="bewerten-zahl"></span></div>
+    <div class="progress__busy" aria-hidden="true"></div>
+    <div><button type="button" class="btn btn--sm" id="anhalten">Anhalten</button></div>
+  </div>
+  <p id="status" class="status-line" role="status" aria-live="polite"></p>
+
+  <section id="berufe" class="search__professions" aria-labelledby="berufe-titel" hidden>
+    <h2 id="berufe-titel">Deine Berufe</h2>
+    <ul id="berufe-liste" class="sterne-liste"></ul>
+    <p class="field__hint">Die Sterne ordnen die Liste. Die Note ändern sie nicht.</p>
+  </section>
+
+  <div class="search__bar">
+    <div role="group" aria-label="Treffer anzeigen" class="overview__views" id="zustaende">
+      <button type="button" class="btn btn--sm" data-zustand="neu" aria-pressed="true">Neu <span class="num" data-zahl="neu"></span></button>
+      <button type="button" class="btn btn--sm" data-zustand="uebernommen" aria-pressed="false">Übernommen <span class="num" data-zahl="uebernommen"></span></button>
+      <button type="button" class="btn btn--sm" data-zustand="verworfen" aria-pressed="false">Verworfen <span class="num" data-zahl="verworfen"></span></button>
+    </div>
+    <select class="input search__kind" id="art" aria-label="Art" hidden>
       <option value="">Alle Arten</option>
       <option value="Lehrstelle">Nur Lehrstellen</option>
       <option value="Schnupperlehre">Nur Schnupperlehren</option>
     </select>
-    <span id="bewerten-knoepfe" class="knoepfe-inline"></span>
-    <button type="button" id="anhalten" hidden>Anhalten</button>
-    <span id="kosten-hinweis" class="leise"></span>
+    <span id="bewerten-knoepfe" class="btn-row"></span>
+    <span id="kosten-hinweis" class="search__hint"></span>
+    <details class="grade-help search__help"><summary data-text="suche.notenhilfe-titel">Wie lese ich die Note?</summary><p data-text="suche.notenhilfe">Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein.</p></details>
   </div>
-  <label class="auswahl"><input type="checkbox" id="zuschauen"> Suche im sichtbaren Tab laufen lassen, zum Zuschauen</label>
-  <label class="auswahl"><input type="checkbox" id="auto-bewerten"> <span id="auto-text">Neue Treffer nach der Suche automatisch bewerten</span></label>
-  <div id="status" class="status" role="status" aria-live="polite"></div>
-  <section id="suchliste" hidden>
-    <p id="suchliste-titel" class="leise"></p>
-    <ul id="suchliste-liste" class="suchliste"></ul>
-    <div id="suchliste-status" class="status" role="status" aria-live="polite" tabindex="-1"></div>
-  </section>
-  <details id="vorschlag" hidden>
-    <summary id="vorschlag-titel"></summary>
-    <p id="vorschlag-hilfe" class="hilfe"></p>
-    <label id="vorschlag-label-interessen" for="vorschlag-interessen"></label>
-    <textarea id="vorschlag-interessen" rows="2" maxlength="1000"></textarea>
-    <label id="vorschlag-label-staerken" for="vorschlag-staerken"></label>
-    <textarea id="vorschlag-staerken" rows="2" maxlength="1000"></textarea>
-    <label id="vorschlag-label-vermeiden" for="vorschlag-vermeiden"></label>
-    <textarea id="vorschlag-vermeiden" rows="2" maxlength="1000"></textarea>
-    <div class="knoepfe"><button type="button" id="vorschlag-holen"></button></div>
-    <div id="vorschlag-status" class="status" role="status" aria-live="polite"></div>
-    <ul id="vorschlag-liste" class="vorschlaege"></ul>
-  </details>
-  <section id="berufe" hidden>
-    <h2>Deine Berufe</h2>
-    <p class="leise">Wie sehr interessiert dich der Beruf? Treffer mit mehr Sternen stehen weiter oben. Deine Sterne ändern die Note der KI nicht.</p>
-    <ul id="berufe-liste" class="sterne-liste"></ul>
-  </section>
 
-  <table>
-    <thead><tr><th>Note</th><th>Stelle</th><th>Firma</th><th>Ort</th><th id="spalte-rahmen">Pensum</th><th>Portal</th><th>Gefunden</th><th></th></tr></thead>
-    <tbody id="liste"></tbody>
-  </table>
-  <p id="leer" class="leer" hidden>Keine Treffer.</p>
+  <div id="leer" class="search__empty" hidden>
+    <strong id="leer-titel">Keine neuen Treffer</strong>
+    <p id="leer-text"></p>
+    <button type="button" class="btn" id="leer-einstellen">Suche einstellen</button>
+  </div>
+
+  <div class="search__layout" id="ergebnisse" hidden>
+    <section class="search__list" aria-label="Trefferliste" id="liste"></section>
+    <section class="search__detail" aria-labelledby="detail-titel" id="detail"></section>
+  </div>
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>
