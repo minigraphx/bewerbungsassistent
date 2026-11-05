@@ -312,3 +312,106 @@ def test_upstream_errors_are_logged_by_type_and_not_by_message(setup, caplog):
     assert raw(setup, "POST", "/v1/messages", body, {"x-api-key": access}).status_code == 400
 
     assert "invalid_request_error" in caplog.text and SECRET_TEXT not in caplog.text
+
+
+def _person_with_usage(store, name="T01"):
+    from pricing import Usage
+    store.add_person(name, 20, NOW)
+    token = store.redeem(store.create_invitation(name, NOW), "Mac", NOW)
+    store.create_invitation(name, NOW)  # a second code, not redeemed
+    access = store.authenticate(token, NOW)
+    store.record_usage(access, MODEL, Usage(10, 5, 0, 0), 0.5, 200, "req_1", NOW)
+    return access
+
+
+def _rows(store, table, person):
+    column = "name" if table == "people" else "person"
+    return store._run(f"SELECT COUNT(*) AS n FROM {table} WHERE {column} = ?", (person,)).fetchone()["n"]
+
+
+def test_forget_refuses_while_an_access_is_active(tmp_path):
+    store = Store(str(tmp_path / "a.sqlite"))
+    _person_with_usage(store)
+    with pytest.raises(StoreError, match="aktiv"):
+        store.forget("T01")
+    assert store.spent("T01", "2026-11") == 0.5
+
+
+def test_forget_removes_everything_of_the_person_and_nobody_else(tmp_path):
+    store = Store(str(tmp_path / "a.sqlite"))
+    _person_with_usage(store, "T01")
+    _person_with_usage(store, "T02")
+    store.revoke("T01", NOW)
+    removed = store.forget("T01")
+    assert removed == {"usage": 1, "accesses": 1, "invitations": 2}
+    assert [_rows(store, t, "T01") for t in ("usage", "accesses", "invitations", "people")] == [0, 0, 0, 0]
+    assert [_rows(store, t, "T02") for t in ("usage", "accesses", "invitations", "people")] == [1, 1, 2, 1]
+
+
+def test_forget_unknown_person_is_an_error(tmp_path):
+    with pytest.raises(StoreError, match="gibt es nicht"):
+        Store(str(tmp_path / "a.sqlite")).forget("T09")
+
+
+def test_forget_works_for_a_person_who_never_redeemed(tmp_path):
+    store = Store(str(tmp_path / "a.sqlite"))
+    store.add_person("T01", 20, NOW)
+    store.create_invitation("T01", NOW)
+    assert store.forget("T01") == {"usage": 0, "accesses": 0, "invitations": 1}
+
+
+def test_due_lists_people_whose_last_revocation_passed_the_retention(tmp_path):
+    store = Store(str(tmp_path / "a.sqlite"))
+    for name in ("T01", "T02", "T03"):
+        _person_with_usage(store, name)
+    store.revoke("T01", NOW)
+    store.revoke("T02", NOW + datetime.timedelta(days=5))
+    later = NOW + datetime.timedelta(days=30)
+    assert [row["person"] for row in store.due_for_deletion(later)] == ["T01"]
+    assert [row["person"] for row in store.due_for_deletion(later + datetime.timedelta(days=5))] == ["T01", "T02"]
+
+
+def test_a_person_with_one_active_access_is_not_due(tmp_path):
+    store = Store(str(tmp_path / "a.sqlite"))
+    _person_with_usage(store, "T01")
+    second = store.create_invitation("T01", NOW)
+    store.revoke("T01", NOW)
+    store.redeem(second, "Windows", NOW)
+    assert store.due_for_deletion(NOW + datetime.timedelta(days=60)) == []
+
+
+def test_admin_forget_asks_for_yes_before_deleting(tmp_path):
+    db, now = str(tmp_path / "a.sqlite"), lambda: NOW
+    store = Store(db)
+    _person_with_usage(store)
+    store.revoke("T01", NOW)
+    preview = admin.main(["--db", db, "forget", "T01"], now)
+    assert "--yes" in preview and "1 Aufrufe" in preview
+    assert store.has_person("T01")
+    done = admin.main(["--db", db, "forget", "T01", "--yes"], now)
+    assert "gelöscht" in done
+    assert not store.has_person("T01")
+
+
+def test_admin_forget_stops_with_a_message_while_active(tmp_path):
+    db = str(tmp_path / "a.sqlite")
+    _person_with_usage(Store(db))
+    with pytest.raises(SystemExit, match="aktiv"):
+        admin.main(["--db", db, "forget", "T01"], lambda: NOW)
+
+
+def test_admin_due_names_the_people_to_delete(tmp_path):
+    db = str(tmp_path / "a.sqlite")
+    store = Store(db)
+    _person_with_usage(store)
+    assert "Niemand" in admin.main(["--db", db, "due"], lambda: NOW)
+    store.revoke("T01", NOW)
+    assert "T01" in admin.main(["--db", db, "due"], lambda: NOW + datetime.timedelta(days=31))
+
+
+def test_rate_limiter_lets_go_of_addresses_that_went_quiet():
+    moments = iter([0.0, 61.0])
+    limiter = RateLimiter(5, clock=lambda: next(moments))
+    limiter.acquire("203.0.113.7")
+    limiter.acquire("198.51.100.2")
+    assert list(limiter._calls) == ["198.51.100.2"]

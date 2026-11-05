@@ -6,6 +6,8 @@
   budget T01 30                  Budget pro Monat in USD ändern
   accesses T01                   Zugänge mit Gerät, erstellt, zuletzt genutzt, gesperrt
   costs [--month 2026-11]        Kosten pro Person im Monat
+  due                            Personen, deren Daten zu löschen sind (Sperrung vor 30 Tagen oder länger)
+  forget T01 [--yes]             gesperrte Person samt Kostenprotokollen löschen; ohne --yes nur anzeigen
 
 Personen nur mit Kürzel anlegen (z.B. T01), nicht mit echtem Namen.
 """
@@ -15,7 +17,7 @@ import datetime
 import os
 import sys
 
-from store import INVITATION_DAYS, MAX_INVITATION_DAYS, Store, StoreError, month_of
+from store import INVITATION_DAYS, MAX_INVITATION_DAYS, RETENTION_DAYS, Store, StoreError, month_of
 
 DEFAULT_BUDGET_USD = 20.0
 LINK = "bewerbungsbegleiter://einladung?code={code}"
@@ -76,6 +78,23 @@ def costs(store: Store, args, now: datetime.datetime) -> str:
     return f"Kosten {month}:\n" + ("\n".join(lines) or "keine Personen")
 
 
+def due(store: Store, args, now: datetime.datetime) -> str:
+    rows = store.due_for_deletion(now)
+    lines = [f"{r['person']:<8} gesperrt {r['revoked']}" for r in rows]
+    return "\n".join(lines) or f"Niemand: keine Sperrung liegt {RETENTION_DAYS} Tage oder länger zurück."
+
+
+def _summary(rows: dict) -> str:
+    return f"{rows['usage']} Aufrufe, {rows['accesses']} Zugänge, {rows['invitations']} Einladungen"
+
+
+def forget(store: Store, args, now: datetime.datetime) -> str:
+    if not args.yes:
+        return (f"Würde {args.person} löschen: {_summary(store.holdings(args.person))}. "
+                "Vorher auswerten (costs), das lässt sich nicht rückgängig machen. Löschen mit --yes.")
+    return f"{args.person} gelöscht: {_summary(store.forget(args.person))}."
+
+
 def parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="Verwaltung der KI-Vermittlung")
     ap.add_argument("--db", default=os.environ.get("VERMITTLUNG_DB", "/data/vermittlung.sqlite"))
@@ -102,6 +121,12 @@ def parser() -> argparse.ArgumentParser:
     p = sub.add_parser("costs", help="Kosten pro Person im Monat")
     p.add_argument("--month", help="JJJJ-MM, Standard: laufender Monat (UTC)")
     p.set_defaults(run=costs)
+    p = sub.add_parser("due", help="Personen, deren Daten zu löschen sind")
+    p.set_defaults(run=due)
+    p = sub.add_parser("forget", help="gesperrte Person samt Kostenprotokollen löschen")
+    p.add_argument("person")
+    p.add_argument("--yes", action="store_true", help="wirklich löschen, sonst nur anzeigen")
+    p.set_defaults(run=forget)
     return ap
 
 
