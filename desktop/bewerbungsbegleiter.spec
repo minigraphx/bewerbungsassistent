@@ -18,7 +18,6 @@ datas = [
     (str(REPO / "lebenslauf" / "fonts"), "fonts"),
     (str(REPO / "lebenslauf" / "data"), "data"),
     (str(REPO / "onboarding" / "form.json"), "."),
-    (str(REPO / "onboarding" / "dist" / "einstieg.html"), "dist"),
     (str(REPO / "vorlagen"), "vorlagen"),
     (str(REPO / "skills"), "skills"),
 ]

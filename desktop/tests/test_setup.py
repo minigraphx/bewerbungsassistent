@@ -255,7 +255,7 @@ def test_invalid_einstieg_file_lists_the_problems(started, tmp_path):
 
     status, answer = call(server, "/api/app/einstieg", {"pfad": str(broken)})
 
-    assert status == 400 and "Einstiegsvorlage" in answer["fehler"]
+    assert status == 400 and "Einstiegsdatei" in answer["fehler"]
 
 
 def test_missing_data_folder_leads_back_to_the_setup(started, tmp_path):
@@ -382,3 +382,14 @@ def test_the_setup_page_links_to_the_guide_and_its_pictures_exist():
     assert "docs/installation.md" in page
     pictures = re.findall(r"\]\((bilder/[^)]+)\)", guide.read_text(encoding="utf-8"))
     assert pictures and all((guide.parent / picture).exists() for picture in pictures)
+
+
+def test_setup_page_no_longer_points_to_a_template_nobody_can_reach():
+    page = (pathlib.Path(__file__).parents[2] / "bewerbungen" / "seiten" / "einrichtung.html").read_text(encoding="utf-8")
+    assert "Einstiegsvorlage" not in page
+    assert "einstieg.zip" in page
+
+
+def test_file_dialog_names_the_entry_file():
+    assert "Einstiegsdatei" in dialogs.WINDOWS["datei"] and "Einstiegsvorlage" not in dialogs.WINDOWS["datei"]
+    assert "Einstiegsdatei" in dialogs.MAC["datei"] and "Einstiegsvorlage" not in dialogs.MAC["datei"]

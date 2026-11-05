@@ -17,7 +17,7 @@ BUNDLE_NAME = "einstieg.json"
 DOCUMENTS_DIR = "dokumente"
 ZIP_MAGIC = b"PK\x03\x04"
 FLAG_ENCRYPTED = 0x1
-NOT_A_ZIP = "Die Datei ist keine gültige ZIP-Datei aus der Einstiegsvorlage."
+NOT_A_ZIP = "Die Datei ist keine gültige Einstiegsdatei (ZIP)."
 
 
 @dataclasses.dataclass(frozen=True)

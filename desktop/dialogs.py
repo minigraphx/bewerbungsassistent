@@ -31,8 +31,8 @@ if ($dialog.ShowDialog($owner) -eq 'OK') { $dialog.SelectedPath }
 Add-Type -AssemblyName System.Windows.Forms
 $owner = New-Object System.Windows.Forms.Form -Property @{TopMost = $true; ShowInTaskbar = $false}
 $dialog = New-Object System.Windows.Forms.OpenFileDialog
-$dialog.Title = 'Datei aus der Einstiegsvorlage wählen'
-$dialog.Filter = 'Einstiegsvorlage (*.zip;*.json)|*.zip;*.json'
+$dialog.Title = 'Einstiegsdatei wählen'
+$dialog.Filter = 'Einstiegsdatei (*.zip;*.json)|*.zip;*.json'
 $dialog.InitialDirectory = $env:BEWERBUNGSBEGLEITER_START
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 if ($dialog.ShowDialog($owner) -eq 'OK') { $dialog.FileName }
@@ -41,7 +41,7 @@ if ($dialog.ShowDialog($owner) -eq 'OK') { $dialog.FileName }
 MAC = {
     "ordner": 'POSIX path of (choose folder with prompt "Ordner für die Bewerbungsdaten wählen" '
               'default location (POSIX file (system attribute "BEWERBUNGSBEGLEITER_START")))',
-    "datei": 'POSIX path of (choose file with prompt "Datei aus der Einstiegsvorlage wählen" '
+    "datei": 'POSIX path of (choose file with prompt "Einstiegsdatei wählen" '
              'of type {"public.zip-archive", "public.json"} '
              'default location (POSIX file (system attribute "BEWERBUNGSBEGLEITER_START")))',
 }

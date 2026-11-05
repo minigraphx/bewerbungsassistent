@@ -33,9 +33,9 @@ from rejected import ImportRejected
 __all__ = ["ImportRejected", "ImportResult", "import_answers", "import_file", "main", "read_bundle"]
 
 MAX_BYTES = 1_000_000
-DRAFT_BEFORE = "Vor dem Import aus der Einstiegsvorlage"
-DRAFT_AFTER = "Import aus der Einstiegsvorlage"
-NOT_A_BUNDLE = "Die Datei ist keine gültige JSON-Datei aus der Einstiegsvorlage."
+DRAFT_BEFORE = "Vor dem Import der Einstiegsdatei"
+DRAFT_AFTER = "Import der Einstiegsdatei"
+NOT_A_BUNDLE = "Die Datei ist keine gültige Einstiegsdatei (JSON)."
 
 
 @dataclasses.dataclass(frozen=True)
