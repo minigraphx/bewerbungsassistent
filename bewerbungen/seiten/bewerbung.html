@@ -43,6 +43,14 @@
       <section class="card" id="s-anschreiben" aria-labelledby="anschreiben-titel">
         <h2 id="anschreiben-titel">Anschreiben</h2>
         <p id="anschreiben-stand"></p>
+        <div class="letter" id="anschreiben-text" hidden></div>
+        <article class="ai-result" id="ki-pruefung-teil" aria-labelledby="ki-pruefung-titel" hidden>
+          <header class="ai-result__head"><h3 class="ai-result__kind" id="ki-pruefung-titel">Aussagen im Anschreiben</h3><span class="application__date" id="ki-pruefung-zahl"></span></header>
+          <div id="ki-pruefung-liste"></div>
+          <p class="ai-result__foot" id="ki-pruefung-fuss"></p>
+        </article>
+        <div class="btn-row" id="freigabe-zeile" hidden><button type="button" class="btn" id="freigeben">Freigeben</button><a class="btn btn--quiet" id="anschreiben-aendern" href="/inhalte">Ändern</a></div>
+        <p class="status-line" id="freigabe-status" role="status" aria-live="polite"></p>
         <p class="field__hint" id="eigener-brief" hidden>Als Anschreiben gilt das hochgeladene PDF, so wie es ist. Ein Entwurf gilt erst wieder, wenn es entfernt ist.</p>
         <div class="application__ai">
           <p class="status-line" id="ki-status">KI-Verbindung wird geprüft …</p>
@@ -115,6 +123,7 @@
         <div id="antwort-teil">
           <h3>Antwort eintragen, sobald sie kommt</h3>
           <div class="btn-row">
+            <button type="button" class="btn" data-antwort="Gespräch" id="schnupper-knopf" hidden>Einladung zur Schnupperlehre</button>
             <button type="button" class="btn" data-antwort="Gespräch">Einladung zum Gespräch</button>
             <button type="button" class="btn" data-antwort="Absage">Absage</button>
             <button type="button" class="btn" data-antwort="Zusage">Zusage</button>

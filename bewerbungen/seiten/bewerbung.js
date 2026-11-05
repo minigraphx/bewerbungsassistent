@@ -84,7 +84,8 @@
     $("untertitel").textContent = [[b.firma, b.ort].filter(Boolean).join(", "), b.frist ? `Abgabe bis ${datum(b.frist)}` : ""].filter(Boolean).join(" · ");
     $("kopf-status").hidden = false;
     $("kopf-status").dataset.status = b.status;
-    $("kopf-status").textContent = b.status;
+    $("kopf-status").textContent = window.Texte.statusName(b.status, satz);
+    $("schnupper-knopf").hidden = satz !== "lehrstelle-du";
     $("kopf-note").replaceChildren(note(b.passung));
   }
 
@@ -120,6 +121,9 @@
     const karten = {
       inserat: ["Inseratstext einfügen", t("bewerbung.inserat"), [knopf("Zum Textfeld", zuAbschnitt("s-stelle"))]],
       variante: ["Lebenslauf-Variante wählen", "Es gibt mehrere Varianten des Lebenslaufs. «Variante vorschlagen» vergleicht sie mit dem Inserat.", [knopf("Variante wählen", zuAbschnitt("s-lebenslauf"))]],
+      freigeben: ["Anschreiben lesen und freigeben", offeneAussagen().length
+        ? t("bewerbung.freigeben-offen", { aussagen: offeneAussagen().length === 1 ? "Eine Aussage hat" : `${offeneAussagen().length} Aussagen haben` })
+        : t("bewerbung.freigeben"), [knopf("Anschreiben lesen", zuAbschnitt("s-anschreiben"))]],
       entwerfen: ["Anschreiben entwerfen", "Die KI entwirft das Anschreiben aus dem Inserat und den Angaben. Jede Aussage nennt ihren Beleg; was sich nicht belegen lässt, kommt nicht in den Brief.", [knopf("Anschreiben entwerfen", () => $("ki-entwerfen").click()), knopf("Eigenes Anschreiben verwenden", zuAbschnitt("eigenes-anschreiben"), false)]],
       eigenes: ["Anschreiben hinzufügen", t("bewerbung.eigenes"), [knopf("Eigenes Anschreiben hochladen", () => $("anschreiben-datei").click()), el("a", { class: "btn btn--quiet", href: "/einrichtung#ki" }, "KI einrichten")]],
       erstellen: ["Unterlagen erstellen", "Lebenslauf und Anschreiben werden als PDF erstellt und danach automatisch geprüft. Die PDFs stehen dann zum Lesen bereit.", [knopf("Unterlagen erstellen", () => $("erstellen").click())]],
@@ -130,7 +134,7 @@
       nachtragen: ["Versand festhalten", `Beworben am ${datum(b.beworben_am)}, aber der Versand ist noch nicht festgehalten. «Versand erfassen» legt die Fassung ab, die verschickt wurde.`, [knopf("Versand erfassen", zuAbschnitt("versand-titel"))]],
       jobroom: ["Im Job-Room eintragen", t("bewerbung.jobroom"), [knopf("Job-Room öffnen", e => oeffneJobroom(e.currentTarget))]],
       warten: ["Antwort abwarten", b.beworben_am ? t("bewerbung.warten", { datum: datum(plusTage(b.beworben_am, NACHFRAGEN_NACH_TAGEN)) }) : "Die Antwort lässt sich unten eintragen, sobald sie kommt.", [el("a", { class: "btn btn--primary", href: "/" }, "Zur Übersicht")]],
-      gespraech: ["Gespräch vorbereiten", b.gespraech_am ? `Termin am ${datum(b.gespraech_am)}. Inserat und Anschreiben stehen auf dieser Seite.` : "Den Termin bei den Angaben eintragen, dann steht er hier und in der Übersicht.",
+      gespraech: [t("bewerbung.gespraech"), b.gespraech_am ? `Termin am ${datum(b.gespraech_am)}. Inserat und Anschreiben stehen auf dieser Seite.` : "Den Termin bei den Angaben eintragen, dann steht er hier und in der Übersicht.",
         [b.gespraech_am ? knopf("Inserat lesen", zuAbschnitt("s-stelle")) : knopf("Termin eintragen", () => oeffneAngaben("f-gespraech_am"))]],
       absage: ["Absage erhalten", t("bewerbung.absage"), [el("a", { class: "btn btn--primary", href: "/" }, "Zur Übersicht")]],
       zusage: ["Zusage erhalten", "Die Unterlagen dieser Bewerbung bleiben gespeichert.", [el("a", { class: "btn btn--primary", href: "/" }, "Zur Übersicht")]],
@@ -163,10 +167,83 @@
 
   // Steps in the main column
 
+  /** Statements the kept AI review found without evidence; only for the letter as it is now (letter_approval.py). */
+  function offeneAussagen() {
+    return (daten.ki_pruefung && daten.ki_pruefung.unsupported) || [];
+  }
+
+  /** A paragraph with the statements lacking evidence marked; only as text nodes, never HTML. */
+  function absatz(textInhalt) {
+    const stellen = offeneAussagen().map(u => u.text).filter(x => x && textInhalt.includes(x));
+    if (!stellen.length) return el("p", {}, textInhalt);
+    const teile = [];
+    let rest = textInhalt;
+    for (const stelle of stellen) {
+      const i = rest.indexOf(stelle);
+      if (i < 0) continue;
+      teile.push(rest.slice(0, i), el("mark", {}, stelle));
+      rest = rest.slice(i + stelle.length);
+    }
+    return el("p", {}, ...teile, rest);
+  }
+
+  function zeigeBrief() {
+    const brief = daten.anschreiben_text;
+    const zeigen = Boolean(brief) && !daten.eigenes_anschreiben && !bewerbung.versand;
+    $("anschreiben-text").hidden = !zeigen;
+    if (zeigen) {
+      $("anschreiben-text").replaceChildren(
+        brief.betreff ? el("p", {}, el("strong", {}, brief.betreff)) : null,
+        brief.anrede ? el("p", {}, brief.anrede) : null,
+        ...brief.absaetze.map(absatz),
+        brief.gruss ? el("p", {}, brief.gruss) : null);
+    }
+    const freigabe = daten.anschreiben_freigabe || {};
+    $("freigabe-zeile").hidden = !zeigen;
+    $("freigeben").hidden = !freigabe.noetig || freigabe.freigegeben;
+    $("anschreiben-aendern").href = "/inhalte?" + new URLSearchParams({ datei: `bewerbungen/${ID}/anschreiben.yaml`, ansicht: "text" });
+    zeile($("freigabe-status"), !zeigen || !freigabe.noetig ? ""
+      : freigabe.freigegeben ? `Freigegeben am ${datum(freigabe.am)}. Eine Änderung am Text hebt die Freigabe auf.`
+        : "Noch nicht freigegeben. Erst mit der Freigabe öffnet die Erweiterung das Formular.", freigabe.freigegeben ? "ok" : "");
+    zeigeKiPruefung(zeigen);
+  }
+
+  function zeigeKiPruefung(briefSichtbar) {
+    const p = daten.ki_pruefung;
+    $("ki-pruefung-teil").hidden = !briefSichtbar || !p;
+    if (!p) return;
+    const anforderungen = p.requirements || [];
+    const abgedeckt = anforderungen.filter(r => r.status === "abgedeckt").length;
+    const offen = offeneAussagen();
+    $("ki-pruefung-zahl").textContent = `${abgedeckt} von ${anforderungen.length} Anforderungen belegt, ${offen.length} ${offen.length === 1 ? "Aussage" : "Aussagen"} ohne Beleg`;
+    $("ki-pruefung-liste").replaceChildren(
+      ...offen.map(u => el("div", { class: "claim", "data-evidence": "gap" }, el("span", { class: "claim__text" }, `«${u.text}»`),
+        el("span", { class: "claim__source" }, u.problem || "Kein Beleg gefunden. Streichen oder in Meine Angaben ergänzen."))),
+      ...anforderungen.filter(r => r.status !== "abgedeckt").map(r => el("div", { class: "claim", "data-evidence": "gap" },
+        el("span", { class: "claim__text" }, `${r.requirement}: ${r.status}`), el("span", { class: "claim__source" }, r.note || ""))));
+    $("ki-pruefung-fuss").textContent = `Prüfung der KI vom ${datum(p.am)}. Eine Einschätzung, kein Urteil: Die KI kann sich irren.`;
+  }
+
   function zeigeAnschreibenStand() {
+    const freigabe = daten.anschreiben_freigabe || {};
     $("anschreiben-stand").textContent = daten.eigenes_anschreiben ? "Für diese Bewerbung gilt das hochgeladene PDF."
-      : daten.hat_anschreiben ? "Ein Anschreiben ist vorhanden. Lesen lässt es sich als PDF bei «Unterlagen prüfen»."
-        : "Noch kein Anschreiben.";
+      : bewerbung.versand ? "Das Anschreiben ist mit der Bewerbung versendet."
+        : daten.anschreiben_text ? (freigabe.freigegeben ? "Freigegebener Entwurf:" : "Entwurf, bitte lesen:")
+          : daten.hat_anschreiben ? "Ein Anschreiben ist vorhanden." : "Noch kein Anschreiben.";
+    zeigeBrief();
+  }
+
+  async function freigeben() {
+    $("freigeben").disabled = true;
+    try {
+      await senden("/api/anschreiben/freigeben", { id: ID });
+      await laden();
+      meldungOben("Anschreiben freigegeben", "ok");
+    } catch (fehler) {
+      zeile($("freigabe-status"), fehler.message, "fehler");
+    } finally {
+      $("freigeben").disabled = false;
+    }
   }
 
   function zeigeAbschnitte() {
@@ -351,7 +428,8 @@
     meldeGeladen(neu);
     if (JSON.stringify(neu.pdf_stand) !== pdfStand) {
       pdfStand = JSON.stringify(neu.pdf_stand);
-      daten = { ...daten, pdfs: neu.pdfs, hat_anschreiben: neu.hat_anschreiben, eigenes_anschreiben: neu.eigenes_anschreiben };
+      daten = { ...daten, pdfs: neu.pdfs, hat_anschreiben: neu.hat_anschreiben, eigenes_anschreiben: neu.eigenes_anschreiben,
+                anschreiben_text: neu.anschreiben_text, anschreiben_freigabe: neu.anschreiben_freigabe, ki_pruefung: neu.ki_pruefung };
       zeigePdfs(neu.pdfs);
       befunde = null;
       zeigeAlles();
@@ -534,6 +612,8 @@
     }
   });
   $("pruefen").addEventListener("click", pruefen);
+  $("freigeben").addEventListener("click", freigeben);
+  document.addEventListener("anschreiben-geprueft", laden);
   document.addEventListener("anschreiben-geaendert", laden);
   document.addEventListener("eigenes-anschreiben-geaendert", nachsehen);
   document.addEventListener("bewerbung-geladen", event => zeigeFormularFassung(event.detail));

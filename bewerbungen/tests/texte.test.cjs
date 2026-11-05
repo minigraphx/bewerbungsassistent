@@ -32,3 +32,9 @@ test("values fill their places", () => {
   assert.equal(texte.text("test.wert", "stelle-du", { anzahl: 3 }), "Noch 3 Schritte für dich.");
   delete texte.TEXTE["test.wert"];
 });
+
+test("for apprenticeships an interview reads as an invitation, the stored status stays", () => {
+  assert.equal(texte.statusName("Gespräch", "lehrstelle-du"), "Einladung");
+  assert.equal(texte.statusName("Gespräch", "stelle-du"), "Gespräch");
+  assert.equal(texte.statusName("Absage", "lehrstelle-du"), "Absage");
+});

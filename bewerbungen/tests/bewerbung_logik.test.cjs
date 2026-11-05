@@ -26,6 +26,17 @@ test("a missing letter is drafted with the AI, else uploaded", () => {
   assert.equal(naechster(daten(), { ki: false }), "eigenes");
 });
 
+test("a draft is read and approved before anything else, an approval made void counts as none", () => {
+  const offen = daten({}, { hat_anschreiben: true, anschreiben_freigabe: { noetig: true, freigegeben: false } });
+  assert.equal(naechster(offen), "freigeben");
+  assert.equal(logik.schritte(offen)[2].meta, "lesen und freigeben");
+  const frei = daten({}, { hat_anschreiben: true, anschreiben_freigabe: { noetig: true, freigegeben: true } });
+  assert.equal(naechster(frei), "erstellen");
+  assert.equal(logik.schritte(frei)[2].meta, "freigegeben");
+  const eigenes = daten({}, { hat_anschreiben: true, eigenes_anschreiben: true, anschreiben_freigabe: { noetig: false, freigegeben: false } });
+  assert.equal(naechster(eigenes), "erstellen");
+});
+
 test("with a letter the PDFs come next, then the check, then its errors", () => {
   const mitBrief = daten({}, { hat_anschreiben: true });
   assert.equal(naechster(mitBrief), "erstellen");

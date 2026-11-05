@@ -6,6 +6,7 @@ import pytest
 
 import apply
 import form_copy
+import letter_approval
 import routes_apply
 import unterlagen
 import versand
@@ -372,6 +373,7 @@ def test_a_draft_is_a_source_if_its_letter_went_to_the_form(server):  # noqa: F8
     data = server.kontext.daten
     source = unterlagen.letter_source(data, entry["id"])
     source.write_text("betreff: Test\n", encoding="utf-8")
+    letter_approval.approve(data, entry, server.kontext.heute())  # a draft goes to a form only once approved (MIN-369)
     hand_over(server, entry, "anschreiben")
     upload_letter(server, entry["id"], PDF)
     current = Register(data).hole(entry["id"])

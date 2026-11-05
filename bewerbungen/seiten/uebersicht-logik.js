@@ -8,8 +8,9 @@
   const NACHFRAGEN_NACH_TAGEN = 14;
   const OHNE_LEBENSLAUF = "Lebenslauf-PDF fehlt";  // apply.NO_CV starts so
   const OHNE_LINK = "Kein Link zum Formular";      // apply.NO_LINK starts so
+  const OHNE_FREIGABE = "Anschreiben noch nicht freigegeben";  // apply.NOT_APPROVED starts so
   // The order of what to do: an interview first, then sending, then what is missing, then the RAV, then deciding.
-  const RANG = { gespraech: 0, abschicken: 1, unterlagen: 2, link: 2, offen: 2, rav: 3, entscheiden: 4, warten: 5, fertig: 6 };
+  const RANG = { gespraech: 0, abschicken: 1, freigeben: 1, unterlagen: 2, link: 2, offen: 2, rav: 3, entscheiden: 4, warten: 5, fertig: 6 };
   const GRUPPE_AB = 2;  // from two of a kind, one line does them together
 
   function plusTage(iso, tage) {
@@ -36,6 +37,7 @@
         if (grund === null) return { art: "abschicken", frist: b.frist };
         if (typeof grund === "string" && grund.startsWith(OHNE_LEBENSLAUF)) return { art: "unterlagen", frist: b.frist };
         if (typeof grund === "string" && grund.startsWith(OHNE_LINK)) return { art: "link", frist: b.frist };
+        if (typeof grund === "string" && grund.startsWith(OHNE_FREIGABE)) return { art: "freigeben", frist: b.frist };
         return { art: "offen", frist: b.frist, grund: grund || "" };
       case "Beworben":
         if (ravOffen) return { art: "rav" };

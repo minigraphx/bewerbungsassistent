@@ -13,6 +13,8 @@
   }
 
   const versendet = b => Boolean(b.versand || b.beworben_am);
+  /** A draft that counts and still waits for the person's approval (letter_approval.py). */
+  const offeneFreigabe = daten => Boolean(daten.anschreiben_freigabe?.noetig && !daten.anschreiben_freigabe?.freigegeben);
   const fehler = befunde => (befunde || []).filter(b => b.stufe === "fehler").length;
   const hinweise = befunde => (befunde || []).filter(b => b.stufe === "hinweis").length;
 
@@ -33,8 +35,9 @@
         meta: b.variante ? `Variante ${b.variante}` : daten.eigener_lebenslauf ? "eigenes PDF" : variantenDa ? "Variante wählen" : "ganzer Lebenslauf",
       },
       anschreiben: {
-        erledigt: gesendet || Boolean(daten.hat_anschreiben),
-        meta: daten.eigenes_anschreiben ? "eigenes PDF" : daten.hat_anschreiben ? "vorhanden" : "fehlt noch",
+        erledigt: gesendet || Boolean(daten.eigenes_anschreiben) || (Boolean(daten.hat_anschreiben) && !offeneFreigabe(daten)),
+        meta: daten.eigenes_anschreiben ? "eigenes PDF" : !daten.hat_anschreiben ? (gesendet ? "" : "fehlt noch")
+          : offeneFreigabe(daten) ? "lesen und freigeben" : daten.anschreiben_freigabe?.freigegeben ? "freigegeben" : "vorhanden",
       },
       pruefen: {
         erledigt: gesendet || (gebaut && befunde !== null && fehler(befunde) === 0),
@@ -69,7 +72,9 @@
     switch (aktueller(liste)) {
       case "stelle": return { art: "inserat", ziel: "s-stelle" };
       case "lebenslauf": return { art: "variante", ziel: "s-lebenslauf" };
-      case "anschreiben": return { art: ki ? "entwerfen" : "eigenes", ziel: "s-anschreiben" };
+      case "anschreiben":
+        if (daten.hat_anschreiben) return { art: "freigeben", ziel: "s-anschreiben" };
+        return { art: ki ? "entwerfen" : "eigenes", ziel: "s-anschreiben" };
       case "pruefen": {
         const pdfs = daten.pdfs || {};
         if (!(pdfs.lebenslauf && pdfs.anschreiben)) return { art: "erstellen", ziel: "s-pruefen" };
@@ -100,7 +105,7 @@
     return punkte.sort((x, y) => x[0].localeCompare(y[0])).map(([wann, was]) => ({ datum: wann, text: was }));
   }
 
-  const logik = { SCHRITTE, datum, versendet, schritte, aktueller, naechster, verlauf };
+  const logik = { SCHRITTE, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, verlauf };
   if (typeof module !== "undefined") module.exports = logik;
   else global.BewerbungLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

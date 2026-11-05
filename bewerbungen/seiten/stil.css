@@ -668,3 +668,6 @@ label.check input { margin-top: 3px; }
 .application #formular-teil, .application #versand-form, .application #antwort-teil, .application #jobroom-teil, .application #versand-info { display: flex; flex-direction: column; gap: var(--space-2); }
 .application #versand-info:empty { display: none; }
 .application #versand-form .application__fields { margin-top: var(--space-1); }
+.letter { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5) var(--space-6); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); color: var(--text-strong); font-size: 15px; line-height: 23px; }
+.letter p { margin: 0; }
+.letter mark { padding: 0 2px; border-bottom: 2px dotted var(--warning); background: var(--warning-bg); color: inherit; }

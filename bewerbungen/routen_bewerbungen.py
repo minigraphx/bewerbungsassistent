@@ -3,6 +3,9 @@ import dataclasses
 import datetime
 import pathlib
 
+import yaml
+
+import letter_approval
 import pruefung
 import unterlagen
 import versand
@@ -47,11 +50,33 @@ def details(k, parameter, body):
         "eigener_lebenslauf_da": (k.daten / unterlagen.OWN_CV).is_file(),
         "eigenes_anschreiben": unterlagen.own_letter(k.daten, b) is not None,
         "hat_anschreiben": pfade["anschreiben"].is_file() or unterlagen.letter_source(k.daten, b["id"]).is_file(),
+        "anschreiben_text": _letter_text(k, b["id"]),
+        "anschreiben_freigabe": letter_approval.state(k.daten, b),
+        "ki_pruefung": letter_approval.review(k.daten, b["id"]),
         "formular_abweichend": versand.form_differs(k.daten, b),
         "max_datei": MAX_FILE_BYTES,
         "varianten": k.varianten().alle(),
         "status": list(STATUS),
     })
+
+
+def _letter_text(k, entry_id: str) -> dict | None:
+    """The draft as the page shows it for reading; None without one or when it cannot be read."""
+    path = unterlagen.letter_source(k.daten, entry_id)
+    try:
+        letter = yaml.safe_load(path.read_text(encoding="utf-8")) if path.is_file() else None
+    except (OSError, yaml.YAMLError):
+        return None
+    if not isinstance(letter, dict):
+        return None
+    paragraphs = [part.strip() for part in str(letter.get("text") or "").split("\n\n") if part.strip()]
+    return {"betreff": str(letter.get("betreff") or ""), "anrede": str(letter.get("anrede") or ""),
+            "absaetze": [" ".join(part.split()) for part in paragraphs], "gruss": str(letter.get("gruss") or "")}
+
+
+def freigeben(k, parameter, body):
+    entry = k.register().hole(pflicht(body if isinstance(body, dict) else {}, "id"))
+    return json_antwort(letter_approval.approve(k.daten, entry, k.heute()))
 
 
 def speichern(k, parameter, body):
@@ -152,6 +177,7 @@ GET = {
 POST = {
     "/api/bewerbung": speichern,
     "/api/bewerbung/neu": neu_anlegen,
+    "/api/anschreiben/freigeben": freigeben,
     "/api/stellentext": stellentext_speichern,
     "/api/unterlagen": unterlagen_bauen,
     "/api/versand": versenden,
