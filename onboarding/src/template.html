@@ -10,16 +10,16 @@
 <style>{{STYLE}}</style>
 </head>
 <body>
-<header class="top">
-  <p class="brand">Bewerbungsbegleiter</p>
-  {{BACK}}
-  <h1>{{HEADING}}</h1>
-  <p class="privacy">{{PRIVACY}}</p>
-</header>
-<nav id="steps" aria-label="Schritte"></nav>
-<main id="main" tabindex="-1"><noscript><p>Diese Vorlage braucht JavaScript. Bitte in einem aktuellen Browser öffnen.</p></noscript></main>
-<footer><p id="autosave" role="status"></p></footer>
+{{TOP}}
+<main class="layout">
+  <div class="side">
+    <h1>{{HEADING}}</h1>
+    <nav id="steps" aria-label="Schritte"></nav>
+    <p id="autosave" class="autosave" role="status"></p>
+  </div>
+  <div id="main" class="content" tabindex="-1"><noscript><p>Diese Vorlage braucht JavaScript. Bitte in einem aktuellen Browser öffnen.</p></noscript></div>
+</main>
 <script type="application/json" id="form-definition">{{FORM}}</script>
-<script>{{SCRIPT}}</script>
+{{APP_SCRIPTS}}<script>{{SCRIPT}}</script>
 </body>
 </html>
