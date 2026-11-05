@@ -1,5 +1,5 @@
 // Flow of the onboarding template: start, one step per section, check and save.
-// Depends on validate.js, model.js, dom.js, documents.js, zip.js, uploadstore.js and uploads.js (inlined before this file by build_template.py).
+// Depends on validate.js, model.js, steps.js, dom.js, documents.js, zip.js, uploadstore.js and uploads.js (inlined before this file by build_template.py).
 "use strict";
 
 const STORAGE_KEY = "bewerbungsassistent.einstieg.v1";
@@ -38,12 +38,16 @@ const APP_TEXT = {
     done: "Ihre Angaben sind übernommen. ",
     kept: (names) => `Aus Ihrer bisherigen Suche bleibt dabei: ${names}. Entfernen können Sie das unter „Suche“. `,
     incomplete: "Ihre Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänzen Sie sie hier, wenn Sie so weit sind. ",
+    intro: "Prüfen Sie die Übersicht. Mit «Angaben übernehmen» erstellt der Assistent daraus Ihren Lebenslauf, Ihr Suchprofil und Ihren Schreibstil.",
+    kept_versions: "Ihre bisherigen Angaben bleiben unter ",
   },
   apprenticeship: {
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Deine Eingaben bleiben gespeichert; du kannst später weitermachen.",
     done: "Deine Angaben sind übernommen. ",
     kept: (names) => `Aus deiner bisherigen Suche bleibt dabei: ${names}. Entfernen kannst du das unter „Suche“. `,
     incomplete: "Deine Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänze sie hier, wenn du so weit bist. ",
+    intro: "Prüf die Übersicht. Mit «Angaben übernehmen» erstellt der Assistent daraus deinen Lebenslauf, dein Suchprofil und deinen Schreibstil.",
+    kept_versions: "Deine bisherigen Angaben bleiben unter ",
   },
 };
 
@@ -61,6 +65,8 @@ let uploadTurn = Promise.resolve(); // in the app: uploads and removals wait for
 let appProblem = null; // in the app: why the data folder cannot be used, shown on the first page
 let prefillRun = { running: false, problem: null, report: null }; // in the app: suggestions from documents
 let prefillTurn = 0; // a run that was overtaken by discarding or loading other answers no longer counts
+let choice = null; // in the app: what the setup chose (MIN-369) { track, anrede, rav, gewaehlt }
+let pageStateFound = false; // in the app: this page has kept answers before (not only the track of the setup)
 const backend = typeof createAppBackend === "function" ? createAppBackend() : null; // only in the page of the app
 
 // Storage: optional convenience; the page works without it.
@@ -80,8 +86,10 @@ async function loadStored() {
   try {
     if (backend) {
       const overview = await backend.overview();
-      // Nothing entered yet: start in the track the setup chose (MIN-369), the cards only show it.
-      applyStored(overview.stand || (overview.gesucht ? { track: overview.gesucht, data: {} } : null));
+      choice = overview.wahl || null;
+      pageStateFound = Boolean(overview.stand);
+      // Nothing entered yet: start in the track of the setup (MIN-369); the start only shows the choice.
+      applyStored(overview.stand || (choice ? { track: choice.track, data: {} } : null));
       notTakenOver = Boolean(overview.stand && overview.stand.offen === true);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
@@ -155,12 +163,18 @@ function goTo(newStep) {
   window.scrollTo(0, 0);
 }
 
+/** Start, (in the shared file) the documents, the five steps of the design (steps.js), take over or save. */
 function steps() {
   if (!state.track) return [{ kind: "start" }];
-  return [
-    { kind: "start" }, { kind: "documents" },
-    ...sectionsFor(form, state.track).map((s) => ({ kind: "section", section: s })), { kind: "finish" },
-  ];
+  const groups = stepGroups(sectionsFor(form, state.track), state.track).map((group) => ({ kind: "group", group }));
+  return [{ kind: "start" }, ...(backend ? [] : [{ kind: "documents" }]), ...groups, { kind: "finish" }];
+}
+
+const inGroup = (group, sectionId) => group.sections.some((s) => s.id === sectionId);
+
+/** Index of the step that holds a section. */
+function stepOfSection(sectionId) {
+  return steps().findIndex((s) => s.kind === "group" && inGroup(s.group, sectionId));
 }
 
 // Validation shown in the page
@@ -198,28 +212,45 @@ function viewFor(current) {
   if (current.kind === "start") return startView();
   if (current.kind === "documents") return documentsView();
   if (current.kind === "finish") return finishView();
-  return sectionView(current.section);
+  return groupView(current.group);
 }
 
 function stepTitle(s) {
   if (s.kind === "start") return "Start";
   if (s.kind === "documents") return forTrack(form.documents.title, state.track);
   if (s.kind === "finish") return backend ? "Übernehmen" : "Speichern";
-  return forTrack(s.section.title, state.track);
+  return s.group.title;
 }
 
+function stepMeta(s) {
+  if (s.kind === "start") return backend ? forTrack(form.documents.title, state.track) : "Stelle oder Lehrstelle";
+  if (s.kind === "documents") return "Lebenslauf, Zeugnisse";
+  if (s.kind === "group") return s.group.meta;
+  return null;
+}
+
+const STEP_MARKS = { flagged: "Angaben fehlen", suggested: "Vorschläge prüfen" };
+
 function renderNav(all) {
-  const errorSections = new Set(currentErrors().map((e) => e.path.split(".")[0]));
+  // Only where the person has been: on the first visit every step would say that something is missing.
+  const errorSections = new Set(currentErrors().filter((e) => touched.has(fieldPath(e.path))).map((e) => e.path.split(".")[0]));
   const items = all.map((s, i) => {
-    const title = stepTitle(s);
-    const flagged = s.kind === "section" && errorSections.has(s.section.id);
-    const suggested = s.kind === "section" && sectionHasSuggestion(s.section.id);
-    return el("li", {}, el("button", {
-      type: "button", className: `step${i === step ? " current" : ""}${flagged ? " flagged" : ""}${suggested ? " suggested" : ""}`,
-      "aria-current": i === step ? "step" : null, onclick: () => goTo(i),
-    }, title));
+    const sections = s.kind === "group" ? s.group.sections.map((x) => x.id) : [];
+    const flagged = sections.some((id) => errorSections.has(id));
+    const suggested = sections.some(sectionHasSuggestion);
+    const mark = suggested ? STEP_MARKS.suggested : flagged ? STEP_MARKS.flagged : null;
+    const meta = stepMeta(s);
+    const position = i === step ? "current" : i < step ? "done" : "todo";
+    return el("li", { className: "step", dataset: { state: position, ...(mark ? { mark: suggested ? "suggested" : "flagged" } : {}) } }, el("button", {
+      type: "button", className: "step__button", "aria-current": i === step ? "step" : null, onclick: () => goTo(i),
+    }, [
+      el("span", { className: "step__dot", "aria-hidden": "true" }),
+      el("span", { className: "step__label" }, stepTitle(s)),
+      meta ? el("span", { className: "step__meta" }, meta) : null,
+      mark ? el("span", { className: "step__mark" }, mark) : null,
+    ]));
   });
-  document.getElementById("steps").replaceChildren(el("ol", {}, items), ...notTakenOverNote(all));
+  document.getElementById("steps").replaceChildren(el("ol", { className: "steps" }, items), ...notTakenOverNote(all));
 }
 
 /** Changes count only after „Übernehmen“; easy to forget when the search is what one is after. */
@@ -236,14 +267,13 @@ function openFromAddress() {
   const wanted = new URLSearchParams(window.location.hash.slice(1)).get("feld");
   if (!backend || !wanted) return;
   window.history.replaceState(null, "", window.location.pathname + window.location.search);
-  if (!state.track) {
+  if (!state.track || (!pageStateFound && existingBasics.length)) {
     // Imported files without a state of this page: starting over here would ask for everything again.
     profileHint = existingBasics.length > 0;
     return render();
   }
   const all = steps();
-  const index = wanted === TAKE_OVER_TARGET ? all.length - 1
-    : all.findIndex((s) => s.kind === "section" && s.section.id === wanted.split(".")[0]);
+  const index = wanted === TAKE_OVER_TARGET ? all.length - 1 : stepOfSection(wanted.split(".")[0]);
   if (index < 0) return;
   goTo(index);
   const field = [...document.querySelectorAll("[data-path]")].find((f) => f.dataset.path === wanted);
@@ -254,7 +284,63 @@ function openFromAddress() {
   (field.querySelector("input, textarea, select") || field).focus();
 }
 
+const TRACK_WORDS = { job: "eine Stelle", apprenticeship: "eine Lehrstelle" };
+
+/** In the app the setup has chosen the track (MIN-369): the start shows the choice and the documents. */
 function startView() {
+  return backend && choice ? appStartView() : sharedStartView();
+}
+
+function choiceCard() {
+  const parts = [`Gesucht wird: ${TRACK_WORDS[choice.track]}`];
+  if (choice.track === "job") parts.push(`Anrede: ${choice.anrede === "du" ? "du" : "Sie"}`);
+  parts.push(`RAV: ${choice.rav ? "ja" : "nein"}`);
+  const differs = state.track && state.track !== choice.track;
+  return el("section", { className: "card choice-card", "aria-label": "Wahl aus der Einrichtung" }, [
+    el("p", { className: "choice-card__line" }, [
+      el("strong", {}, parts.join(" · ")), " ",
+      el("a", { href: "/einrichtung#gesucht" }, "Ändern"),
+    ]),
+    el("p", { className: "hint" }, choice.gewaehlt
+      ? "Gewählt in der Einrichtung. Eine Änderung passt die Texte und die Suche an."
+      : "Abgeleitet aus dem Suchprofil, noch nicht in der Einrichtung gewählt. Eine Änderung passt die Texte und die Suche an."),
+    differs ? el("p", { className: "suggestion" }, [
+      `Die Angaben auf dieser Seite sind für ${TRACK_WORDS[state.track]} erfasst. `,
+      el("button", { type: "button", className: "link", onclick: () => update({ ...state, track: choice.track }, { rerender: true }) },
+        `Für ${TRACK_WORDS[choice.track]} weiterfahren`),
+    ]) : null,
+  ]);
+}
+
+function loadFileLine() {
+  const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
+  return [
+    el("p", { className: "secondary" }, [
+      "Schon angefangen oder von Claude vorbereitet? ",
+      el("button", { type: "button", className: "link", onclick: () => fileInput.click() }, "Datei laden"),
+      fileInput,
+    ]),
+    el("p", { id: "load-message", role: "status" }),
+  ];
+}
+
+function appStartView() {
+  return el("section", { className: "start start--app" }, [
+    el("h2", { className: "visually-hidden" }, "Start"),
+    profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
+    appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
+    choiceCard(),
+    prefillCard({
+      form, track: state.track, uploads, messages: uploadMessages, run: prefillRun,
+      hasName: hasName(), titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
+      onAdd: addUploads, onRemove: removeUpload, onByHand: () => goTo(1),
+    }),
+    existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
+    ...loadFileLine(),
+  ]);
+}
+
+function sharedStartView() {
   const choose = (track) => {
     update({ ...state, track });
     touched = new Set();
@@ -264,7 +350,6 @@ function startView() {
     type: "button", className: `track${state.track === track ? " selected" : ""}`,
     "aria-pressed": String(state.track === track), onclick: () => choose(track),
   }, [el("strong", {}, title), el("span", {}, text)]);
-  const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
   return el("section", { className: "start" }, [
     el("h2", {}, "Worum geht es?"),
     el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsbegleiter braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
@@ -275,20 +360,14 @@ function startView() {
       trackButton("job", "Ich suche eine Stelle", "Lebenslauf, Anschreiben und Stellensuche"),
       trackButton("apprenticeship", "Ich suche eine Lehrstelle", "Für Schülerinnen und Schüler: Schnupperlehren, Schule, Motivationsschreiben"),
     ]),
-    el("p", { className: "secondary" }, [
-      "Schon angefangen oder von Claude vorbereitet? ",
-      el("button", { type: "button", className: "link", onclick: () => fileInput.click() }, "Datei laden"),
-      fileInput,
-    ]),
     el("p", { className: "secondary" }, EXISTING_DOCUMENTS_NOTE),
-    el("p", { id: "load-message", role: "status" }),
+    ...loadFileLine(),
   ]);
 }
 
 function documentsView() {
   return uploadsView({
     form, track: state.track, uploads, messages: uploadMessages, kept: uploadsKept,
-    app: Boolean(backend), extra: backend ? prefillArea() : null,
     onAdd: addUploads, onRemove: removeUpload, onSkip: () => goTo(steps().length - 1),
   });
 }
@@ -301,17 +380,16 @@ function sectionHasSuggestion(id) {
   return Object.keys(state.suggested || {}).some((key) => key.split(".")[0] === id);
 }
 
+/** Open the step of a section and bring the section into view. */
 function goToSection(id) {
-  goTo(steps().findIndex((s) => s.kind === "section" && s.section.id === id));
+  const index = stepOfSection(id);
+  if (index < 0) return;
+  goTo(index);
+  const part = document.querySelector(`[data-section="${id}"]`);
+  if (part && index === step && steps()[index].group.sections[0].id !== id) part.scrollIntoView({ block: "start" });
 }
 
-function prefillArea() {
-  return prefillView({
-    track: state.track, run: prefillRun, uploads,
-    hasName: Boolean(((state.data.person || {}).name || "").trim()) || existingBasics.includes("cv.yaml"),
-    titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
-  });
-}
+const hasName = () => Boolean(((state.data.person || {}).name || "").trim()) || existingBasics.includes("cv.yaml");
 
 function forgetPrefillRun() {
   prefillTurn += 1;
@@ -343,7 +421,7 @@ async function runPrefill() {
   }
   prefillRun = { running: false, ...finished };
   renderKeepingFocus();
-  if (steps()[step].kind !== "documents") setStatus(finished.problem || PREFILL_TEXT[track].finished);
+  if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished);
 }
 
 function confirmSuggestion(key) {
@@ -363,7 +441,7 @@ function inTurn(work) {
 
 /** The person may have moved on while a large file was on its way. */
 function focusOnDocuments(category) {
-  if (steps()[step].kind === "documents") focusFirst(`[data-category="${category}"]`);
+  if (["start", "documents"].includes(steps()[step].kind)) focusFirst(`[data-category="${category}"]`);
 }
 
 /** In the app every document goes straight to the data folder; the list of the app is the truth afterwards. */
@@ -428,7 +506,7 @@ function setUploads(list, messages) {
   uploads = list;
   uploadMessages = messages;
   uploadsSaved = backend ? true : list.length === 0;
-  if (!backend || ["documents", "finish"].includes(steps()[step].kind)) render();
+  if (!backend || ["start", "finish"].includes(steps()[step].kind)) render();
   if (!backend) keepUploadsNow();
 }
 
@@ -452,18 +530,29 @@ async function restoreUploads() {
   render();
 }
 
-function sectionView(section) {
+/** One step: its sections one below the other, so every mark and every missing field stays in sight. */
+function groupView(group) {
+  const track = state.track;
+  const required = group.sections.some((s) => fieldsFor(s, track).some((f) => f.required));
+  const single = group.sections.length === 1;
+  return el("section", { className: "group" }, [
+    el("h2", {}, group.title),
+    required ? el("p", { className: "hint" }, REQUIRED_NOTE) : null,
+    ...group.sections.map((s) => sectionView(s, single)),
+  ]);
+}
+
+function sectionView(section, single) {
   const track = state.track;
   const intro = forTrack(section.intro, track);
-  const hasRequired = fieldsFor(section, track).some((f) => f.required);
   const header = [
-    el("h2", {}, forTrack(section.title, track)),
+    single ? null : el("h3", {}, forTrack(section.title, track)),
     intro ? el("p", { className: "intro" }, intro) : null,
-    hasRequired ? el("p", { className: "hint" }, REQUIRED_NOTE) : null,
   ];
+  const attrs = { className: "part", dataset: { section: section.id } };
   if (!section.repeat) {
     const item = state.data[section.id] || {};
-    return el("section", {}, [...header, suggestionNote(section.id), ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
+    return el("section", attrs, [...header, suggestionNote(section.id), ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
   const max = section.maxItems ?? form.limits.repeatItems;
@@ -476,7 +565,7 @@ function sectionView(section) {
       type: "button", className: "remove",
       onclick: () => {
         update(removeItem(state, section.id, index), { rerender: true });
-        focusFirst(`[data-item="${section.id}.${index}"]`, `[data-item="${section.id}.${index - 1}"]`, ".add", "h2");
+        focusFirst(`[data-item="${section.id}.${index}"]`, `[data-item="${section.id}.${index - 1}"]`, `[data-section="${section.id}"] .add`, "h2");
       },
     }, `${itemTitle} ${index + 1} entfernen`),
   ]));
@@ -489,7 +578,7 @@ function sectionView(section) {
       },
     }, `+ ${itemTitle} hinzufügen`)
     : el("p", { className: "hint" }, `Höchstens ${max} Einträge.`);
-  return el("section", {}, [...header, ...items, add]);
+  return el("section", attrs, [...header, ...items, add]);
 }
 
 /** After a rerender: focus the first control inside the first selector that matches (headings get focus too). */
@@ -520,12 +609,7 @@ function finishView() {
   const errors = currentErrors();
   const onlyMissing = uploads.length > 0 && errors.every((e) => e.code === "required");
   const summary = errors.length
-    ? el("div", { className: "summary" }, [
-      el("p", {}, onlyMissing ? text.finishFromDocuments : (backend ? APP_TEXT[state.track].finishErrors : text.finishErrors)),
-      el("ul", {}, errors.map((e) => el("li", {}, el("button", {
-        type: "button", className: "link", onclick: () => goTo(stepOf(e.path)),
-      }, describe(form, state.track, e))))),
-    ])
+    ? el("p", {}, onlyMissing ? text.finishFromDocuments : (backend ? APP_TEXT[state.track].finishErrors : text.finishErrors))
     : el("p", { className: "ok" }, text.finishOk);
   const confirmBox = el("p", { className: "confirm", hidden: true }, [
     backend ? "Alle Eingaben dieser Seite verwerfen? Hochgeladene Unterlagen und schon übernommene Angaben bleiben. " : "Alle Eingaben auf diesem Gerät löschen? ",
@@ -539,18 +623,21 @@ function finishView() {
       track: state.track, sections: [...new Set(unchecked.map((key) => key.split(".")[0]))], count: unchecked.length, titleOf: sectionTitle,
       onGoTo: goToSection, onConfirmAll: () => update(confirmSuggestions(state, unchecked), { rerender: true }),
     }) : null,
-    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(false) }, "In die App übernehmen"),
+    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(false) }, "Angaben übernehmen"),
     el("button", { type: "button", className: "danger", id: "replace", hidden: true, onclick: () => takeOver(true) }, "Vorhandene Dateien ersetzen"),
     el("p", { id: "save-message", role: "alert", className: "error" }),
     el("p", { id: "take-over-done", role: "status", className: "ok", hidden: true }),
+    el("p", { className: "hint" }, [APP_TEXT[state.track].kept_versions, el("a", { href: "/entwuerfe" }, "Entwürfe und Versionen"), " erhalten."]),
   ] : [
     el("button", { type: "button", className: "primary", onclick: saveFile }, "Datei speichern"),
     el("p", { id: "save-message", role: "alert", className: "error" }),
     el("p", {}, text.next),
   ];
   return el("section", {}, [
-    el("h2", {}, backend ? "Prüfen und übernehmen" : text.finishTitle),
+    el("h2", {}, backend ? "Übernehmen" : text.finishTitle),
+    backend ? el("p", { className: "intro" }, APP_TEXT[state.track].intro) : null,
     summary,
+    reviewList(errors),
     uploads.length && !backend ? el("p", { className: "hint" }, text.documents(uploads.length)) : null,
     ...finishing,
     el("p", { className: "secondary" }, el("button", { type: "button", className: "link", onclick: () => { confirmBox.hidden = false; } }, backend ? "Eingaben verwerfen" : "Alles löschen")),
@@ -558,9 +645,37 @@ function finishView() {
   ]);
 }
 
+/** One line per step: complete, or what is missing with a link to it. */
+function reviewList(errors) {
+  const groups = steps().map((s, index) => ({ s, index })).filter(({ s }) => s.kind === "group");
+  return el("ul", { className: "review" }, groups.map(({ s, index }) => {
+    const missing = errors.filter((e) => inGroup(s.group, e.path.split(".")[0]));
+    return el("li", { className: "review__row" }, [
+      el("div", { className: "review__text" }, [
+        el("strong", {}, s.group.title),
+        missing.length
+          ? el("ul", { className: "review__missing" }, missing.map((e) => el("li", {}, el("button", {
+            type: "button", className: "link", onclick: () => goTo(stepOf(e.path)),
+          }, describe(form, state.track, e)))))
+          : groupHasContent(s.group)
+            ? el("span", { className: "review__state" }, "Vollständig")
+            : el("span", { className: "review__state review__state--empty" }, "Nichts eingetragen, nicht nötig"),
+      ]),
+      el("button", { type: "button", className: "review__open", onclick: () => goTo(missing.length ? stepOf(missing[0].path) : index) },
+        missing.length ? "Ergänzen" : "Ansehen"),
+    ]);
+  }));
+}
+
+function groupHasContent(group) {
+  return group.sections.some((s) => {
+    const value = state.data[s.id];
+    return Array.isArray(value) ? value.some((item) => !isBlankItem(item)) : Boolean(value) && !isBlankItem(value);
+  });
+}
+
 function stepOf(path) {
-  const sectionId = path.split(".")[0];
-  const index = steps().findIndex((s) => s.kind === "section" && s.section.id === sectionId);
+  const index = stepOfSection(path.split(".")[0]);
   touched = new Set([...touched, ...currentErrors().map((e) => fieldPath(e.path))]);
   return index < 0 ? step : index;
 }
@@ -573,17 +688,16 @@ function fieldPath(errorPath) {
 }
 
 function navButtons(all) {
-  const back = step > 0 ? el("button", { type: "button", onclick: () => goTo(step - 1) }, "Zurück") : null;
+  const back = step > 0 ? el("button", { type: "button", onclick: () => goTo(step - 1) }, `Zurück: ${stepTitle(all[step - 1])}`) : null;
   const forward = step > 0 && step < all.length - 1
-    ? el("button", { type: "button", className: "primary", onclick: () => { markStepTouched(all[step]); goTo(step + 1); } }, "Weiter")
+    ? el("button", { type: "button", className: "primary", onclick: () => { markStepTouched(all[step]); goTo(step + 1); } }, `Weiter: ${stepTitle(all[step + 1])}`)
     : null;
   return el("div", { className: "nav-buttons" }, [back, forward]);
 }
 
 function markStepTouched(current) {
-  if (current.kind !== "section") return;
-  const prefix = `${current.section.id}`;
-  touched = new Set([...touched, ...currentErrors().filter((e) => e.path.split(".")[0] === prefix).map((e) => fieldPath(e.path))]);
+  if (current.kind !== "group") return;
+  touched = new Set([...touched, ...currentErrors().filter((e) => inGroup(current.group, e.path.split(".")[0])).map((e) => fieldPath(e.path))]);
 }
 
 // Taking over into the data folder (page of the app)

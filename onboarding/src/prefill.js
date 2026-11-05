@@ -4,8 +4,11 @@
 
 const PREFILL_TEXT = {
   job: {
-    title: "Aus Unterlagen vorbefüllen",
-    privacy: "Der Text aus PDF-, Word- und Textdateien geht an die KI (Anthropic), ohne Ihren Namen, Ihre Adresse und Ihre Kontaktangaben. Namen anderer Personen, etwa auf Zeugnissen, erkennt der Assistent nur nach „Frau“ oder „Herr“. Bilder und alte Word-Dateien bleiben auf diesem Computer. Die Vorschläge kommen ins Formular, nur in leere Felder; in die App übernommen wird erst, wenn Sie alles geprüft haben.",
+    title: "Aus Ihren Unterlagen vorbefüllen",
+    text: "Laden Sie Lebenslauf und Zeugnisse hoch. Die KI liest sie und füllt die nächsten Schritte aus, nur leere Felder. Sie prüfen alles.",
+    run: "Vorbefüllen",
+    byHand: "Lieber von Hand ausfüllen",
+    privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt der Assistent nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer.",
     needsName: "Tragen Sie zuerst Ihren Namen ein: So erkennt der Assistent ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
     running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; Sie können in dieser Zeit weiterarbeiten.",
@@ -23,8 +26,11 @@ const PREFILL_TEXT = {
     confirmAll: "Ich habe alle geprüft",
   },
   apprenticeship: {
-    title: "Aus Unterlagen vorbefüllen",
-    privacy: "Der Text aus PDF-, Word- und Textdateien geht an die KI (Anthropic), ohne deinen Namen, deine Adresse und deine Kontaktangaben. Namen anderer Personen, etwa auf Zeugnissen, erkennt der Assistent nur nach „Frau“ oder „Herr“. Bilder und alte Word-Dateien bleiben auf diesem Computer. Die Vorschläge kommen ins Formular, nur in leere Felder; in die App übernommen wird erst, wenn du alles geprüft hast.",
+    title: "Aus deinen Unterlagen vorbefüllen",
+    text: "Lade dein Zeugnis oder einen Lebenslauf hoch. Die KI liest sie und füllt die nächsten Schritte aus, nur leere Felder. Du prüfst alles.",
+    run: "Vorbefüllen",
+    byHand: "Lieber von Hand ausfüllen",
+    privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt der Assistent nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer.",
     needsName: "Trag zuerst deinen Namen ein: So erkennt der Assistent ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
     running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; du kannst in dieser Zeit weiterarbeiten.",
@@ -69,19 +75,31 @@ function reportView(report, ctx, text) {
   ]);
 }
 
-/** ctx: { track, run: { running, problem, report }, uploads, hasName, titleOf(id), onRun(), onGoTo(id) } */
-function prefillView(ctx) {
+/**
+ * The card on the start (MIN-369): documents per category, then „Vorbefüllen“ or „Lieber von Hand ausfüllen“.
+ * ctx: { form, track, uploads, messages, run: { running, problem, report }, hasName, titleOf(id), onRun(), onGoTo(id),
+ *        onAdd(category, FileList), onRemove(index), onByHand() }
+ */
+function prefillCard(ctx) {
   const text = PREFILL_TEXT[ctx.track];
-  if (!ctx.uploads.length && !ctx.run.report) return null;
-  return el("section", { className: "prefill item" }, [
-    el("h3", {}, text.title),
-    el("p", { className: "hint" }, text.privacy),
-    ctx.hasName
-      ? el("button", { type: "button", className: "primary", id: "prefill", disabled: ctx.run.running, onclick: ctx.onRun }, text.title)
-      : el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)]),
+  const uploadText = UPLOAD_TEXT[ctx.track];
+  const canRun = ctx.uploads.length > 0 && ctx.hasName;
+  return el("section", { className: "card prefill-card", "aria-labelledby": "prefill-title" }, [
+    el("h2", { id: "prefill-title" }, text.title),
+    el("p", {}, text.text),
+    el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
+    el("div", { className: "prefill-card__files" }, ctx.form.documents.categories.map((category) => categoryView(ctx, category, uploadText))),
+    ctx.uploads.length && !ctx.hasName
+      ? el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)])
+      : null,
+    el("div", { className: "prefill-card__actions" }, [
+      canRun ? el("button", { type: "button", className: "primary", id: "prefill", disabled: ctx.run.running, onclick: ctx.onRun }, text.run) : null,
+      el("button", { type: "button", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
+    ]),
     ctx.run.running ? el("p", { role: "status" }, text.running) : null,
     ctx.run.problem ? el("p", { className: "error", role: "alert" }, ctx.run.problem) : null,
     ctx.run.report ? reportView(ctx.run.report, ctx, text) : null,
+    el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`),
   ]);
 }
 

@@ -13,7 +13,7 @@
   const SCHRITTE = [
     { id: "gesucht", titel: "Gesucht" },
     { id: "datenordner", titel: "Datenordner" },
-    { id: "vorlage", titel: "Vorlage" },
+    { id: "vorlage", titel: "Datei" },
     { id: "ki", titel: "KI" },
     { id: "erweiterung", titel: "Erweiterung" },
   ];

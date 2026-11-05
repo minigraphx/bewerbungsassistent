@@ -81,10 +81,11 @@ def _decode(body: dict) -> bytes:
         raise ValueError("Die Datei liess sich nicht lesen.") from error
 
 
-def _sought(folder: pathlib.Path) -> str | None:
-    """The track the setup chose (MIN-369), so the page does not ask again; None until something is chosen."""
+def _choice(folder: pathlib.Path) -> dict:
+    """What the setup chose (MIN-369), or what follows from the search profile before a choice: the page shows it on
+    the start instead of asking again, and starts in its track."""
     choice = preferences.load(folder)
-    return TRACKS[choice.sought] if choice.chosen else None
+    return {"track": TRACKS[choice.sought], "anrede": choice.address, "rav": choice.rav, "gewaehlt": choice.chosen}
 
 
 def make_routes(state: Setup) -> tuple[dict, dict, dict]:
@@ -107,7 +108,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     def overview(k, parameter, body):
         folder = ready_data_dir(state, k)
         return json_antwort({"stand": _read_state(folder), "unterlagen": import_documents.pending_documents(folder),
-                             "vorhanden": _existing_basics(folder), "gesucht": _sought(folder)})
+                             "vorhanden": _existing_basics(folder), "wahl": _choice(folder)})
 
     def not_taken_over(k, parameter, body):
         stored = _read_state(ready_data_dir(state, k))

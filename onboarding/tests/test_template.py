@@ -69,3 +69,12 @@ def test_only_the_page_of_the_app_can_send_documents_to_the_ai():
     app_page = build_template.build(app=True)
     assert "vorbefuellen" not in shared and "connect-src 'none'" in shared and "fetch(" not in shared
     assert "/api/angaben/vorbefuellen" in app_page and "PREFILL_TEXT = " in app_page
+
+
+def test_page_of_the_app_has_the_menu_and_scripts_of_the_app():
+    app_page = build_template.build(app=True)
+    shared = build_template.build()
+
+    assert build_template.app_menu() in app_page and 'class="app-nav"' not in shared
+    assert re.findall(r'<script src="([^"]+)"', app_page) == ["/texte.js", "/app.js"]
+    assert "script-src 'self' 'sha256-" in app_page and "script-src 'self'" not in shared
