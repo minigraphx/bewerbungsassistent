@@ -59,12 +59,14 @@ class Server(ThreadingHTTPServer):
     request_queue_size = 32  # a browser opens several connections at once
 
     def __init__(self, kontext: Any, routen_get: dict[str, Route], routen_post: dict[str, Route],
-                 seiten: dict[str, str], port: int = 0, grenzen: dict[str, int] | None = None) -> None:
+                 seiten: dict[str, str], port: int = 0, grenzen: dict[str, int] | None = None,
+                 hidden_links: tuple[str, ...] = ()) -> None:
         self.kontext = kontext
         self.routen_get = routen_get
         self.routen_post = routen_post
         self.seiten = seiten  # Pfad -> Dateiname in seiten/
         self.grenzen = dict(grenzen or {})  # Pfad -> grösste Anfrage, wo MAX_BODY nicht reicht
+        self.hidden_links = hidden_links  # links in the fixed menu of the pages to pages that are switched off
         self.token = secrets.token_urlsafe(32)
         super().__init__(("127.0.0.1", port), Handler)
 
@@ -105,6 +107,8 @@ class Handler(BaseHTTPRequestHandler):
         pfad = SEITEN / datei
         if pfad.suffix == ".html":
             html = pfad.read_text(encoding="utf-8").replace("__TOKEN__", self.server.token)
+            for link in self.server.hidden_links:
+                html = html.replace(link, "")
             eigene = EIGENE_CSP.search(html)
             # frame-ancestors only counts in the header, a meta tag cannot carry it
             kopf = (("Content-Security-Policy", f"{eigene.group(1)}; {FRAMING}"),) if eigene else ()

@@ -96,7 +96,9 @@ Auf der Seite **Suche** bewertet die KI in Paketen von zehn Inseraten pro Anfrag
 
 ### Fragen an die KI (MIN-376)
 
-Im Menü steht **„Fragen“**: ein Gespräch mit der KI zu Stellensuche, Lehrstellensuche, Berufswahl, Bewerbung, Lebenslauf, Anschreiben, Vorstellungsgespräch und zur Bedienung der App. Fehlt in den Angaben etwas für eine gute Antwort, fragt sie danach und sagt, wo es eingetragen wird.
+**Vorerst ausgeschaltet.** Einschalten: in der App-Datei `einstellungen.json` im Ordner der App `"fragen_seite": true` setzen und die App neu starten; beim Start aus dem Repo `app.py --fragen`. Ohne das gibt es weder Seite noch Schnittstelle noch Menüeintrag.
+
+Dann steht im Menü **„Fragen“**: ein Gespräch mit der KI zu Stellensuche, Lehrstellensuche, Berufswahl, Bewerbung, Lebenslauf, Anschreiben, Vorstellungsgespräch und zur Bedienung der App. Fehlt in den Angaben etwas für eine gute Antwort, fragt sie danach und sagt, wo es eingetragen wird.
 
 ![Seite Fragen mit einem erfundenen Gespräch über fehlende Angaben und die Vorbereitung auf ein Gespräch, darunter das Feld für die nächste Frage](../docs/bilder/fragen.jpg)
 

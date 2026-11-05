@@ -12,6 +12,7 @@ from test_ai_tasks import FakeClient, daten, gateway_for  # noqa: F401  (daten i
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 from test_routes_search import search  # noqa: F401  (search is a fixture)
 
+pytestmark = pytest.mark.questions_page  # off by default, see test_app
 TODAY = datetime.date(2026, 11, 5)
 
 

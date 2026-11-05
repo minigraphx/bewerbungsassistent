@@ -22,7 +22,7 @@ from versionen import GitVersionen
 
 
 @pytest.fixture
-def server(datenordner, tmp_path, monkeypatch):
+def server(request, datenordner, tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
     shutil.copy(build.ROOT / "tests" / "halbe.png", datenordner / "foto.png")
@@ -30,7 +30,7 @@ def server(datenordner, tmp_path, monkeypatch):
     cv.write_text(cv.read_text(encoding="utf-8").replace("basics:\n", "basics:\n  image: foto.png\n", 1), encoding="utf-8")
     k = Kontext(daten=datenordner.resolve(), build=(tmp_path / "build").resolve(), ablage=Ablage(datenordner),
                 versionierung=GitVersionen(datenordner), heute=lambda: datetime.date(2026, 10, 26))
-    s = app.erstelle_server(datenordner, kontext=k)
+    s = app.erstelle_server(datenordner, kontext=k, questions_page=request.node.get_closest_marker("questions_page") is not None)
     thread = threading.Thread(target=s.serve_forever, daemon=True)
     thread.start()
     yield s
@@ -68,7 +68,7 @@ def test_lauscht_nur_lokal(server):
     assert server.server_address[0] == "127.0.0.1"
 
 
-@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treffer", "/fragen"])
+@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treffer"])
 def test_seiten_mit_token_und_csp(server, pfad):
     status, typ, inhalt, antwort = anfrage(server, "GET", pfad)
 
@@ -79,7 +79,7 @@ def test_seiten_mit_token_und_csp(server, pfad):
     assert "<script>" not in inhalt.decode("utf-8")  # keine Inline-Skripte
 
 
-@pytest.mark.parametrize("pfad", ["/stil.css", "/app.js", "/uebersicht.js", "/bewerbung.js", "/entwuerfe.js", "/foto.js", "/inhalte.js", "/fragen.js"])
+@pytest.mark.parametrize("pfad", ["/stil.css", "/app.js", "/uebersicht.js", "/bewerbung.js", "/entwuerfe.js", "/foto.js", "/inhalte.js"])
 def test_statische_dateien(server, pfad):
     status, _, inhalt, _ = anfrage(server, "GET", pfad)
 
@@ -457,3 +457,24 @@ def test_details_say_when_the_documents_were_built(server):
 
     assert set(stand) == {"lebenslauf", "anschreiben"}
     assert isinstance(built["anschreiben"], int) and built["anschreiben"] != stand["anschreiben"]
+
+
+PAGES_WITH_MENU = ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treffer", "/einstellungen", "/einrichtung"]
+
+
+def test_the_page_for_questions_is_off_unless_switched_on(server):
+    assert get(server, "/fragen")[0] == 404
+    assert get(server)[0] == 404
+    assert get(server, "/api/fragen/stand")[0] == 404
+    assert post(server, "/api/fragen/senden", {"frage": "Was fehlt?"})[0] == 404
+    for path in PAGES_WITH_MENU:
+        status, _, content = get(server, path)
+        assert status == 200 and b"/fragen" not in content, path
+
+
+@pytest.mark.questions_page
+def test_switched_on_the_page_for_questions_is_in_the_menu(server):
+    assert get(server, "/fragen")[0] == 200
+    assert get(server, "/api/fragen/stand")[0] == 200
+    for path in PAGES_WITH_MENU:
+        assert b'href="/fragen"' in get(server, path)[2], path

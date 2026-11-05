@@ -102,3 +102,12 @@ def test_mcp_flag_goes_to_the_mcp_server_before_anything_else(monkeypatch, tmp_p
     monkeypatch.setattr(settings, "app_dir", lambda: tmp_path)
     monkeypatch.setattr(mcp_server, "main", lambda paths: 42)
     assert start.main(["--mcp"]) == 42
+
+
+def test_the_page_for_questions_is_off_until_switched_on_in_the_settings(tmp_path):
+    paths = settings.Paths(tmp_path)
+    assert settings.questions_page(paths) is False
+    settings.save(paths, {settings.QUESTIONS_PAGE: "ja"})
+    assert settings.questions_page(paths) is False
+    settings.save(paths, {settings.QUESTIONS_PAGE: True})
+    assert settings.questions_page(paths) is True

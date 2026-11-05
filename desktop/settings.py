@@ -16,6 +16,7 @@ SETTINGS_FILE = "einstellungen.json"
 INSTANCE_FILE = "instanz.json"
 LOG_FILE = "protokoll.txt"
 CLAUDE_ACCESS = "claude_zugang"
+QUESTIONS_PAGE = "fragen_seite"
 DEFAULTS_FILE = "voreinstellungen.json"  # written at build time (e.g. address of the mediation), not secret
 
 
@@ -85,6 +86,11 @@ def claude_access(paths: Paths) -> bool:
 
 def set_claude_access(paths: Paths, allowed: bool) -> dict:
     return save(paths, {**load(paths), CLAUDE_ACCESS: allowed})
+
+
+def questions_page(paths: Paths) -> bool:
+    """Whether the page „Fragen“ is there (MIN-376); off until Andy decides how it should work, on by hand in the settings file."""
+    return load(paths).get(QUESTIONS_PAGE) is True
 
 
 def chosen_data_dir(paths: Paths) -> pathlib.Path | None:

@@ -163,7 +163,8 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     claude_get, claude_post = routes_claude.make_routes(claude_routes(paths))
     try:
         server = app.erstelle_server(data, extra_routes=({**app_get, **setup_get, **angaben_get, **claude_get},
-                                                         {**app_post, **setup_post, **angaben_post, **claude_post}), body_limits=limits)
+                                                         {**app_post, **setup_post, **angaben_post, **claude_post}), body_limits=limits,
+                                     questions_page=settings.questions_page(paths))
         holder["server"] = server
     except (ValueError, OSError) as error:
         log.error("Start nicht möglich: %s", error)
