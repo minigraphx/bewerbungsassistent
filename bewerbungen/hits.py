@@ -107,6 +107,12 @@ def validate(raw, own_portals: frozenset[str] = frozenset()) -> dict:
     return {**{k: v for k, v in hit.items() if v not in ("", None)}, "text": (text or "").strip()[:MAX_TEXT]}
 
 
+# With m or w: „D/F“ in a Swiss title means German and French.
+_TITLE_GENDER = re.compile(r"\(?\b(?=[dfx/|\s]*[mw])[mwfdx](?:\s*[/|]\s*[mwfdx]){1,3}\b\)?", re.IGNORECASE)
+_TITLE_ENDING = re.compile(r"\s*[/:*_]\s*-?in(?:nen)?\b")  # Entwickler/in, Entwickler:in, Ingenieur/-in
+_TITLE_PENSUM = re.compile(r"(?:\bPensum\b\s*:?\s*)?\b\d{1,3}\s*(?:(?:-|–|—|bis)\s*\d{1,3}\s*)?%", re.IGNORECASE)
+
+
 def key(hit: dict) -> str:
     return f"{hit['portal']}:{hit['portal_id']}"
 
@@ -121,12 +127,23 @@ def company_key(name: str) -> str:
     return "-".join(words)
 
 
+def _title_key(title: str) -> str:
+    """The title without what says nothing about the job. Only that: merging two jobs would lose one, a double hit costs a click."""
+    cleaned = _TITLE_PENSUM.sub(" ", _TITLE_ENDING.sub("", _TITLE_GENDER.sub(" ", title)))
+    return slug(cleaned) or slug(title)
+
+
+def _title_pensum(title: str) -> str:
+    found = _TITLE_PENSUM.search(_TITLE_GENDER.sub(" ", title))
+    return "".join(re.findall(r"\d+", found.group())) if found else ""
+
+
 def _job_key(hit: dict) -> str:
     """Company and job. The portals name a profession differently, so the search's own name for it counts first.
 
     A trial apprenticeship and an apprenticeship at one company are two offers.
     """
-    return f"{company_key(hit['firma'])}|{slug(hit.get('beruf') or hit['stelle'])}|{hit.get('art') == TRIAL}"
+    return f"{company_key(hit['firma'])}|{_title_key(hit.get('beruf') or hit['stelle'])}|{hit.get('art') == TRIAL}"
 
 
 def _places(ort: str) -> set[str]:
@@ -141,9 +158,12 @@ def _find_twin(hit: dict, stored: list[dict]) -> dict | None:
     company = company_key(hit["firma"])
     if not company or company == "unbekannt":
         return None
-    job, places = _job_key(hit), _places(hit.get("ort", ""))
+    job, places, pensum = _job_key(hit), _places(hit.get("ort", "")), _title_pensum(hit["stelle"])
     for other in stored:
         if other["portal"] == hit["portal"] or _job_key(other) != job:
+            continue
+        other_pensum = _title_pensum(other["stelle"])
+        if pensum and other_pensum and pensum != other_pensum:  # „Koch 50%“ and „Koch 100%“ can be two jobs
             continue
         other_places = _places(other.get("ort", ""))
         if not places or not other_places or places & other_places:

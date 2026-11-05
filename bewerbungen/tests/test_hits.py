@@ -239,3 +239,29 @@ def test_screen_names_the_hits_near_the_home(store):
     result = store.screen(listing, (), 45, [], near=lambda place: place == "Thun")
     assert result["nah"] == ["jobs.ch:n-1"] and len(result["holen"]) == 2
     assert store.screen(listing, (), 45, [])["nah"] == []
+
+
+# The same job under a slightly different title: only what says nothing about the job is left out.
+
+@pytest.mark.parametrize("first, second", [("Koch (m/w/d)", "Koch"), ("Koch 80-100%", "Koch"), ("Koch (w/m) 100 %", "Koch 100%"), ("Koch M/F/D", "Koch"),
+                                           ("Software-Entwickler/in", "Software Entwickler"), ("Entwickler:in Web", "Entwickler Web"), ("Entwickler*in", "Entwickler"),
+                                           ("Ingenieur/-in", "Ingenieur"), ("Koch, Pensum 80%", "Koch"), ("Koch 80 – 100%", "Koch (m/w/x)"), ("Koch d/m/w", "Koch"), ("Koch x/w", "Koch")])
+def test_the_same_job_with_other_details_in_the_title_is_merged(store, first, second):
+    store.add([hit(stelle=first)], REGISTER, TODAY)
+    twin = hit(portal="job-room", portal_id="x-9", stelle=second, link="https://www.job-room.ch/job-search/x-9")
+    assert store.add([twin], REGISTER, TODAY)["zusammengefuehrt"] == 1
+
+
+@pytest.mark.parametrize("first, second", [("Koch 50%", "Koch 100%"), ("Koch", "Chefkoch"), ("Koch", "Koch Stv."), ("Entwickler Web", "Entwickler Backend"),
+                                           ("Koch 2", "Koch 3"), ("Leiter/in Küche", "Leiter Service"), ("Kundenberater D/F", "Kundenberater"), ("Kundenberater F/D", "Kundenberater D/F"),
+                                           ("IT/Innendienst", "IT")])
+def test_a_different_job_stays_its_own_hit(store, first, second):
+    store.add([hit(stelle=first)], REGISTER, TODAY)
+    other = hit(portal="job-room", portal_id="x-9", stelle=second, link="https://www.job-room.ch/job-search/x-9")
+    assert store.add([other], REGISTER, TODAY)["neu"] == 1
+
+
+def test_a_title_of_nothing_but_details_does_not_become_empty(store):
+    store.add([hit(stelle="100%")], REGISTER, TODAY)
+    other = hit(portal="job-room", portal_id="x-9", stelle="(m/w/d)", link="https://www.job-room.ch/job-search/x-9")
+    assert store.add([other], REGISTER, TODAY)["neu"] == 1
