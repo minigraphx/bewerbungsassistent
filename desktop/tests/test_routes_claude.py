@@ -5,6 +5,7 @@ import pathlib
 import pytest
 
 import app
+import claude_setup
 import routes_claude
 import settings
 
@@ -85,3 +86,10 @@ def test_a_skill_comes_as_a_download(running):
     status, content, headers = request(running[0], "/api/claude/skill?name=jobsuche")
     assert status == 200 and content[:2] == b"PK" and "jobsuche.zip" in headers["Content-Disposition"]
     assert request(running[0], "/api/claude/skill?name=andere")[0] == 400
+
+
+def test_the_state_says_when_the_entry_points_to_an_old_place(running):
+    server, setup = running
+    assert state(server)["desktop_veraltet"] is False
+    claude_setup.enter_in_desktop(setup.config, ["/alt/Bewerbungsassistent", "--mcp"])
+    assert state(server)["desktop_veraltet"] is True

@@ -46,7 +46,8 @@ def code_line(command: list[str]) -> str:
 
 def _read(path: pathlib.Path) -> dict:
     try:
-        content = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+        text = path.read_text(encoding="utf-8-sig") if path.is_file() else ""  # Notepad may write a byte order mark
+        content = json.loads(text) if text.strip() else {}
     except (OSError, ValueError) as error:
         raise ValueError(UNREADABLE) from error
     if not isinstance(content, dict) or not isinstance(content.get(SERVERS, {}), dict):
@@ -66,6 +67,18 @@ def is_entered(path: pathlib.Path) -> bool:
         return SERVER_NAME in _read(path).get(SERVERS, {})
     except ValueError:
         return False
+
+
+def is_stale(path: pathlib.Path, command: list[str]) -> bool:
+    """Our entry is there, but it does not start this app, e.g. after the app was moved."""
+    try:
+        servers = _read(path).get(SERVERS, {})
+    except ValueError:
+        return False
+    if SERVER_NAME not in servers:
+        return False
+    entry, wanted = servers[SERVER_NAME], _entry(command)
+    return not isinstance(entry, dict) or any(entry.get(key) != wanted[key] for key in wanted)
 
 
 def enter_in_desktop(path: pathlib.Path, command: list[str]) -> None:

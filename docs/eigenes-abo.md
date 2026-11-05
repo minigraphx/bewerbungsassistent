@@ -16,7 +16,13 @@ Die KI-Knöpfe in der App (zum Beispiel „Bewerten“ oder „Entwurf erstellen
 - **Kosten und Grenzen:** Die Nutzung zählt auf die Grenzen Ihres Abos. Eine Suche über mehrere Portale braucht viel davon.
 - **Portale:** Claude liest die Portale in Ihrem Browser. Für LinkedIn gilt: LinkedIn verbietet Automatisierung und kann Konten einschränken. Das Risiko liegt bei Ihnen.
 
-Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ihnen. Dafür gibt es keinen Zugang. Jede Änderung an einer Datei sichert die App als Entwurf; unter „Entwürfe“ kommen Sie zurück.
+Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ihnen. Dafür hat die Verbindung zur App keine Werkzeuge. Ist eine Bewerbung verschickt, ändert Claude dort nur noch die Notiz, denn der Nachweis für das RAV stützt sich auf diese Angaben.
+
+**Links:** „Bewerben“ öffnet den Link einer Bewerbung und füllt dort Ihre Angaben ein. Darum übernimmt die App einen Link von Claude nur für die Portale der Suche, LinkedIn und Seiten, die Sie unter „Weitere Seiten durchsuchen“ eingetragen haben. Bei anderen Seiten steht die Adresse in der Notiz. Stimmt sie, tragen Sie sie bei der Bewerbung selbst unter „Link zum Inserat“ ein.
+
+**Claude in Chrome:** Diese Grenzen gelten für die Verbindung zur App. Claude in Chrome bedient den Browser und könnte auch eine offene Seite der App bedienen. Schliessen Sie darum den Tab der App, solange Claude im Browser arbeitet.
+
+**Zurück:** Änderungen an Ihren Texten und am Register sichert die App als Entwurf; unter „Entwürfe“ kommen Sie zurück. Nicht dabei sind die Trefferliste auf der Seite „Suche“ und neu gebaute PDFs, die sich aus den Texten wieder bauen lassen.
 
 ## Einrichten
 
@@ -61,7 +67,8 @@ Claude übernimmt die Stelle ins Register, schlägt eine Lebenslauf-Variante vor
 | Claude kennt die Werkzeuge `bewerbungsassistent` nicht | Claude Desktop ganz beenden und neu öffnen. Unter Connectors nachsehen, ob der Eintrag erscheint. |
 | „Die Einstellungen von Claude Desktop lassen sich nicht lesen.“ | Die Datei selbst ergänzen. Text und Pfad stehen unter „Claude Code oder von Hand eintragen“. |
 | „Die App startet nicht.“ | App von Hand öffnen und nochmals versuchen. |
-| Die App wurde verschoben | „In Claude Desktop eintragen“ nochmals klicken. |
+| Die App wurde verschoben | In den erweiterten Einstellungen „Eintrag in Claude Desktop erneuern“ klicken. |
+| `save_job` meldet `link_gespeichert: false` | Die Adresse steht in der Notiz der Bewerbung. Prüfen und selbst unter „Link zum Inserat“ eintragen. |
 | „Bewerten“ in der App meldet, die KI sei nicht eingerichtet | Auf diesem Weg bewertet Claude: „Bewerte die neuen Treffer in der App.“ |
 
 ## Wieder ausschalten

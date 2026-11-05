@@ -404,8 +404,18 @@ def test_a_rating_from_claude_is_stored_without_any_ai_call(search, monkeypatch)
 
 
 @pytest.mark.parametrize("body", [{"note": 7, "zusammenfassung": "x"}, {"note": True, "zusammenfassung": "x"}, {"note": "2", "zusammenfassung": "x"},
-                                  {"note": 2, "zusammenfassung": "x", "haken": "kein Liste"}, {"note": 2, "zusammenfassung": ""}, []])
+                                  {"note": 2, "zusammenfassung": "x", "haken": "kein Liste"}, {"note": 2, "zusammenfassung": ""}, [],
+                                  {"note": 4.3, "zusammenfassung": "halbe Schritte fehlen"}])
 def test_a_rating_in_another_form_is_refused(search, body):
     wanted = _one_hit(search)
     assert post(search, f"/api/suche/bewertung?id={wanted}", body)[0] == 400
     assert "bewertung" not in listing(search)["treffer"][0]
+
+
+def test_a_hit_in_the_register_cannot_be_discarded_and_taken_over_a_second_time(search):
+    wanted = _one_hit(search)
+    before = len(search.kontext.register().alle())
+    assert post(search, "/api/suche/uebernehmen", {}, id=wanted)[0] == 200
+    assert post(search, "/api/suche/verwerfen", {}, id=wanted)[0] == 400
+    assert post(search, "/api/suche/uebernehmen", {}, id=wanted)[0] == 400
+    assert len(search.kontext.register().alle()) == before + 1

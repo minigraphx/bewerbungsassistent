@@ -28,8 +28,13 @@ TITEL = {"cv.yaml": "Lebenslauf", "suchprofil.md": "Suchprofil", "anschreiben/st
          "bewerbungen.yaml": "Bewerbungsregister (Daten)", "varianten.yaml": "Lebenslauf-Varianten (Daten)"}
 
 
+def _bleibt_im_ordner(rel: str) -> bool:
+    """Windows liest den Backslash als Trenner, und „*“ im Muster passt auch auf ihn und auf „..“."""
+    return not any(zeichen in rel for zeichen in "\\:") and not any(teil in ("", ".", "..") for teil in rel.split("/"))
+
+
 def _erlaubt(rel: str) -> bool:
-    return any(fnmatch.fnmatchcase(rel, m) and rel.count("/") == m.count("/") for m in MUSTER)
+    return _bleibt_im_ordner(rel) and any(fnmatch.fnmatchcase(rel, m) and rel.count("/") == m.count("/") for m in MUSTER)
 
 
 def hat_pdf_ansicht(rel: str) -> bool:

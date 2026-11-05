@@ -23,6 +23,7 @@ def make_routes(setup: ClaudeRoutes) -> tuple[dict, dict]:
     def state() -> dict:
         command = list(setup.command)
         return {"zugang": settings.claude_access(setup.paths), "desktop_eingetragen": claude_setup.is_entered(setup.config),
+                "desktop_veraltet": claude_setup.is_stale(setup.config, command),
                 "desktop_datei": str(setup.config), "desktop_text": claude_setup.config_text(command), "code_befehl": claude_setup.code_line(command),
                 "skills": list(claude_setup.SKILLS)}
 

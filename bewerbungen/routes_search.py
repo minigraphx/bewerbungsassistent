@@ -25,6 +25,7 @@ BAD_RATING = "Die KI hat diesen Treffer nicht bewertet. Bitte nochmals versuchen
 BAD_OWN_RATING = "Die Bewertung braucht eine Note von 1 bis 6 und eine Zusammenfassung."
 MIN_OWN_GRADE, MAX_OWN_GRADE = 1, 6
 OWN_CLAUDE = "Claude (eigenes Abo)"
+ALREADY_IN_REGISTER = "Dieser Treffer ist schon im Register."
 NO_TEXT = "Für diesen Treffer fehlt der Text des Inserats. Bitte das Inserat öffnen und die Stelle von Hand erfassen."
 
 
@@ -164,7 +165,7 @@ def _strings(body: dict, name: str) -> list[str]:
 def own_rating(k, parameter, body):
     """The rating of Claude on the person's own subscription (MIN-377): stored as it came, no AI call and no cost here."""
     grade = body.get("note") if isinstance(body, dict) else None
-    if type(grade) not in (int, float) or not MIN_OWN_GRADE <= grade <= MAX_OWN_GRADE:
+    if type(grade) not in (int, float) or not MIN_OWN_GRADE <= grade <= MAX_OWN_GRADE or grade * 2 != int(grade * 2):  # the register takes half steps
         raise ValueError(BAD_OWN_RATING)
     fields = {"note": grade, "zusammenfassung": bounded_text(body.get("zusammenfassung"), "Bewertung", required=True, limit=2000),
               **{name: _strings(body, name) for name in ("passt", "haken", "neue_luecken", "auffaellig")},
@@ -241,7 +242,7 @@ def take_over(k, parameter, body):
     with _TAKE_OVER:
         hit = store.get(pflicht(parameter, "id"))
         if hit.get("zustand") == "uebernommen":
-            raise ValueError("Dieser Treffer ist schon im Register.")
+            raise ValueError(ALREADY_IN_REGISTER)
         register = k.register()
         portals = ", ".join(dict.fromkeys([hit["portal"], *(o["portal"] for o in hit.get("weitere", []))]))
         fields = {"firma_schluessel": company_key(hit["firma"]), "ort": hit.get("ort"), "pensum": hit.get("pensum"),
@@ -275,7 +276,10 @@ def choose_offers(k, parameter, body):
 
 def discard(k, parameter, body):
     restore = isinstance(body, dict) and body.get("zurueck") is True
-    return json_antwort(_hits(k).update(pflicht(parameter, "id"), zustand="neu" if restore else "verworfen"))
+    store, wanted = _hits(k), pflicht(parameter, "id")
+    if store.get(wanted).get("zustand") == "uebernommen":  # it could be taken over a second time
+        raise ValueError(ALREADY_IN_REGISTER)
+    return json_antwort(store.update(wanted, zustand="neu" if restore else "verworfen"))
 
 
 GET = {"/api/suche/plan": plan, "/api/suche/liste": overview, "/api/suche/text": text}

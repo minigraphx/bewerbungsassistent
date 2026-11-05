@@ -3,15 +3,20 @@
 The extension reads the open tab only after a click and sends the ad through the app's Native Messaging host.
 Checking rates it and says what is there already, and stores nothing. Saving makes an application with the ad.
 Text from a page is data: it reaches the AI only through the gateway, and the link only if it is a web address.
+
+Claude on the person's own subscription (MIN-377) saves through its own route, which the extension cannot reach. The
+extension takes the address of the tab the person has open; Claude only names one, and a text on a page can make it name
+any. „Bewerben“ opens that address and fills in the person's data, so only known sites get a link; others go to the note.
 """
 import threading
 import urllib.parse
 
+import own_sites
 import routes_ai
 import unterlagen
 from ai import tasks
 from dateien import schreibe_atomar
-from hits import CLOSED, MAX_TEXT, ad_with_details, bounded_text, company_hint, company_key
+from hits import CLOSED, DOMAINS, MAX_TEXT, Hits, ad_with_details, bounded_text, company_hint, company_key
 from register import slug
 from routes_search import BAD_RATING, note_for, rating_fields
 from server import json_antwort
@@ -27,6 +32,8 @@ BAD_LINK = "Diese Seite hat keine gültige Webadresse."
 NO_TEXT = "Der Text des Inserats fehlt."
 BAD_GRADE = "Die Bewertung hat eine unbekannte Form."
 SUMMARY_FIELDS = ("id", "firma", "stelle", "status")
+SITES_WITHOUT_PORTAL = ("linkedin.com",)  # Claude reads them for the person, the search has no list of them
+LINK_NOT_TAKEN = "Adresse von Claude, nicht geprüft: {link}. Stimmt sie, tragen Sie sie selbst bei „Link zum Inserat“ ein."
 _SAVE = threading.Lock()
 
 
@@ -132,11 +139,9 @@ def _has_ad(k, entry: dict) -> bool:
     return (unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md").is_file()
 
 
-def save(k, parameter, body):
+def _store(k, ad: dict, rating: dict | None, link: str | None, note: str = "") -> dict:
     """One open application per ad: asked twice, the second answer names the first. If writing the text failed the
     first time, the second try brings it; a text that is there stays, the person may have changed it."""
-    ad = _ad(body)
-    rating = _rating(body.get("bewertung"))
     if not ad["firma"]:
         raise ValueError("Firma fehlt. Bitte in der Erweiterung eintragen.")
     with _SAVE:
@@ -145,15 +150,37 @@ def save(k, parameter, body):
         if existing is not None:
             if not _has_ad(k, existing):
                 _write_ad(k, existing, ad)
-            return json_antwort({"bewerbung": _summary(existing), "neu": False})
+            return {"bewerbung": _summary(existing), "neu": False}
         host = (urllib.parse.urlsplit(ad["link"]).hostname or "").removeprefix("www.")
-        fields = {"firma_schluessel": company_key(ad["firma"]), "ort": ad["ort"], "portal": host, "link": ad["link"], "status": "Gemerkt",
-                  "notiz": note_for({"bewertung": rating}), "passung": (rating or {}).get("note")}
+        fields = {"firma_schluessel": company_key(ad["firma"]), "ort": ad["ort"], "portal": host, "link": link, "status": "Gemerkt",
+                  "notiz": "\n".join(part for part in (note_for({"bewertung": rating}), note) if part), "passung": (rating or {}).get("note")}
         entry = k.mit_entwurf(register.pfad, f"Stelle von Seite: {ad['firma']} – {ad['stelle']}",
                               lambda: register.neu(firma=ad["firma"], stelle=ad["stelle"],
                                                    **{key: v for key, v in fields.items() if v not in (None, "")}))
         _write_ad(k, entry, ad)
-    return json_antwort({"bewerbung": _summary(entry), "neu": True})
+    return {"bewerbung": _summary(entry), "neu": True}
 
 
-POST = {"/api/seite/pruefen": check, "/api/seite/speichern": save}
+def save(k, parameter, body):
+    ad = _ad(body)
+    return json_antwort(_store(k, ad, _rating(body.get("bewertung")), ad["link"]))
+
+
+def _known_site(k, link: str) -> bool:
+    parts = urllib.parse.urlsplit(link)
+    host = (parts.hostname or "").lower()
+    if parts.scheme != "https" or parts.netloc.lower() != host:
+        return False
+    named = (site["portal"] for site in own_sites.configured(Hits(k.daten)))
+    return any(host == site or host.endswith("." + site) for site in (*DOMAINS.values(), *SITES_WITHOUT_PORTAL, *named))
+
+
+def save_from_claude(k, parameter, body):
+    """An ad Claude saves: the same as `save`, but a link only for a site the app or the person knows."""
+    ad = _ad(body)
+    known = _known_site(k, ad["link"])
+    stored = _store(k, ad, None, ad["link"] if known else None, "" if known else LINK_NOT_TAKEN.format(link=ad["link"]))
+    return json_antwort({**stored, "link_gespeichert": known})
+
+
+POST = {"/api/seite/pruefen": check, "/api/seite/speichern": save, "/api/seite/von-claude": save_from_claude}

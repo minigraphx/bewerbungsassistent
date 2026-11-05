@@ -129,3 +129,11 @@ def test_fehler_beim_probebau_wird_verstaendlich(datenordner, tmp_path):
 
     with pytest.raises(ValueError, match="Probebau"):
         inhalte.pruefe_inhalt(datenordner, "cv.yaml", text, tmp_path / "build")
+
+
+@pytest.mark.parametrize("datei", ["jobs/..\\bewerbungen.yaml", "anschreiben/..\\..\\geheim.md", "bewerbungen/../stelle.md", "bewerbungen/../anschreiben.yaml",
+                                   "bewerbungen/./stelle.md", "jobs/x.yaml:stream.yaml", "jobs/..\\x.yaml"])
+def test_paths_that_leave_their_folder_are_refused(datenordner, datei):
+    # Windows reads the backslash as a separator, and "*" in the pattern matches it (review of MIN-377).
+    with pytest.raises(ValueError):
+        inhalte.pruefe_datei(datenordner, datei)

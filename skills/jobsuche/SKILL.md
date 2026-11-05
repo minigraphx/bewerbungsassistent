@@ -19,7 +19,7 @@ Stehen die Werkzeuge des Connectors `bewerbungsassistent` bereit, arbeitet diese
 | Trefferliste eines Portals | `screen_hits`, danach nur die Inserate aus `holen` öffnen |
 | Inserate speichern | `save_hits` mit dem vollen Text, Portalname wie im Plan |
 | Bewerten nach Abschnitt 3 | `rate_hit` |
-| LinkedIn und Karriereseiten | `save_job` |
+| LinkedIn und Karriereseiten | `save_job`; meldet es `link_gespeichert: false`, der Person sagen, dass sie die Adresse aus der Notiz prüft und selbst einträgt |
 | Ins Register | `take_over_hit`; verwerfen mit `discard_hit` |
 | Lauf beenden | `finish_search` mit Anzahl und Problem pro Portal |
 

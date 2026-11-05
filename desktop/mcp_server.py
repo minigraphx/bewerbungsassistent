@@ -79,7 +79,9 @@ class McpServer:
             return _result(message_id, {"tools": [tool.listing() for tool in mcp_tools.TOOLS]})
         if method != "tools/call":
             return _error(message_id, NO_METHOD, f"Unknown method: {method}")
-        tool, arguments = mcp_tools.BY_NAME.get(params.get("name")), params.get("arguments", {})
+        name, arguments = params.get("name"), params.get("arguments")
+        tool = mcp_tools.BY_NAME.get(name) if isinstance(name, str) else None
+        arguments = {} if arguments is None else arguments
         if tool is None or not isinstance(arguments, dict):
             return _error(message_id, BAD_PARAMS, "Unknown tool or arguments in another form")
         return _result(message_id, self._call(tool, arguments))
@@ -87,7 +89,7 @@ class McpServer:
     def _reply_to(self, line: bytes) -> dict | None:
         try:
             message = json.loads(line.decode("utf-8"))
-        except (ValueError, UnicodeDecodeError):
+        except (ValueError, UnicodeDecodeError, RecursionError):
             return _error(None, PARSE_ERROR, "Not JSON")
         if not isinstance(message, dict):
             return _error(None, BAD_REQUEST, "One message per line")
@@ -107,8 +109,16 @@ class McpServer:
             else:
                 reply = self._reply_to(line)
             if reply is not None:
-                outgoing.write(json.dumps(reply, ensure_ascii=False).encode("utf-8") + b"\n")
-                outgoing.flush()
+                _write_all(outgoing, json.dumps(reply, ensure_ascii=False).encode("utf-8") + b"\n")
+
+
+def _write_all(stream: BinaryIO, data: bytes) -> None:
+    """The stream is unbuffered and a pipe may take only a part at a time."""
+    view = memoryview(data)
+    while view:
+        written = stream.write(view)
+        view = view[written if written is not None else len(view):]
+    stream.flush()
 
 
 def main(paths: Paths) -> int:

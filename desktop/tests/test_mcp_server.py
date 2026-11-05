@@ -115,6 +115,47 @@ def test_arguments_must_be_an_object(paths):
     assert reply["error"]["code"] == -32602
 
 
+def test_a_name_in_another_form_is_a_protocol_error_and_the_server_goes_on(paths):
+    mcp, _ = server(paths)
+    for name in (["read_file"], {"a": 1}, None, 3):
+        reply = mcp.answer({"jsonrpc": "2.0", "id": 5, "method": "tools/call", "params": {"name": name, "arguments": {}}})
+        assert reply["error"]["code"] == -32602
+
+
+def test_arguments_may_be_null_for_a_tool_without_arguments(paths):
+    mcp, host = server(paths, {("GET", "/api/suche/plan"): {"portale": []}})
+    reply = mcp.answer({"jsonrpc": "2.0", "id": 5, "method": "tools/call", "params": {"name": "get_search_plan", "arguments": None}})
+    assert "error" not in reply and host.calls
+
+
+def test_json_nested_too_deeply_is_a_parse_error_and_the_server_goes_on(paths):
+    mcp, _ = server(paths)
+    incoming = io.BytesIO(b"[" * 200_000 + b"\n" + b'{"jsonrpc":"2.0","id":2,"method":"ping"}\n')
+    outgoing = io.BytesIO()
+    assert mcp.serve(incoming, outgoing) == 0
+    replies = [json.loads(line) for line in outgoing.getvalue().splitlines()]
+    assert replies[0]["error"]["code"] == -32700 and replies[1]["id"] == 2
+
+
+def test_a_partial_write_of_the_pipe_still_sends_the_whole_answer(paths):
+    class Slow(io.BytesIO):
+        def write(self, data):
+            return super().write(bytes(data)[:3])
+    mcp, _ = server(paths)
+    outgoing = Slow()
+    mcp.serve(io.BytesIO(b'{"jsonrpc":"2.0","id":2,"method":"ping"}\n'), outgoing)
+    assert json.loads(outgoing.getvalue())["id"] == 2
+
+
+def test_tools_that_replace_something_say_so(paths):
+    mcp, _ = server(paths)
+    tools = {tool["name"]: tool for tool in mcp.answer({"jsonrpc": "2.0", "id": 4, "method": "tools/list"})["result"]["tools"]}
+    for name in ("write_file", "update_application", "save_ad_text", "rate_hit", "build_documents", "discard_hit"):
+        assert tools[name]["annotations"]["destructiveHint"] is True, name
+    for name in ("read_file", "list_hits", "save_hits", "new_application", "take_over_hit"):
+        assert tools[name]["annotations"]["destructiveHint"] is False, name
+
+
 # Access
 
 def test_without_the_switch_in_the_app_no_tool_runs(tmp_path):
@@ -181,7 +222,7 @@ def test_one_application_comes_without_the_job_room_part(paths):
 
 
 def test_updating_merges_into_the_whole_entry_and_keeps_what_claude_cannot_see(paths):
-    entry = {**FULL_ENTRY, "status": "Gemerkt"}
+    entry = {**FULL_ENTRY, "status": "Gemerkt", "versand": []}
     mcp, host = server(paths, {("GET", "/api/bewerbung"): {"bewerbung": entry}, ("POST", "/api/bewerbung"): {**entry, "notiz": "neu"}})
     got = payload(call(mcp, "update_application", id="a-1", felder={"notiz": "neu", "status": "Bewerben"}))
     sent = host.calls[-1][2]
@@ -202,6 +243,44 @@ def test_only_the_person_records_what_was_sent(paths, now, wanted):
     mcp, host = server(paths, {("GET", "/api/bewerbung"): {"bewerbung": {**FULL_ENTRY, "status": now}}})
     assert call(mcp, "update_application", id="a-1", felder={"status": wanted})["isError"] is True
     assert [c for c in host.calls if c[0] == "POST"] == []
+
+
+@pytest.mark.parametrize("status", ["Beworben", "Gespräch", "Absage", "Zusage", "Zurückgezogen"])
+@pytest.mark.parametrize("fields", [{"adresse": "Falsch 1"}, {"kontakt": "falsch@example.org"}, {"kontaktperson": "Falsch"}, {"pensum": "10%"}, {"passung": 1}])
+def test_what_the_rav_proof_is_filled_from_stays_as_it_was_sent(paths, status, fields):
+    mcp, host = server(paths, {("GET", "/api/bewerbung"): {"bewerbung": {**FULL_ENTRY, "status": status}}})
+    assert call(mcp, "update_application", id="a-1", felder=fields)["isError"] is True
+    assert [c for c in host.calls if c[0] == "POST"] == []
+
+
+def test_a_sent_application_only_takes_a_note(paths):
+    entry = {**FULL_ENTRY, "status": "Beworben"}
+    mcp, host = server(paths, {("GET", "/api/bewerbung"): {"bewerbung": entry}, ("POST", "/api/bewerbung"): entry})
+    assert not call(mcp, "update_application", id="a-1", felder={"notiz": "Gespräch vorbereiten"}).get("isError")
+    assert host.calls[-1][2]["notiz"] == "Gespräch vorbereiten"
+
+
+def test_an_entry_with_a_recorded_sending_counts_as_sent_whatever_its_status(paths):
+    mcp, host = server(paths, {("GET", "/api/bewerbung"): {"bewerbung": {**FULL_ENTRY, "status": "Gemerkt", "versand": [{"datum": "2026-11-01"}]}}})
+    assert call(mcp, "update_application", id="a-1", felder={"adresse": "Falsch 1"})["isError"] is True
+
+
+@pytest.mark.parametrize("wanted", ["Bewerben", "Gemerkt"])
+def test_what_the_person_discarded_stays_discarded_for_claude(paths, wanted):
+    mcp, host = server(paths, {("GET", "/api/bewerbung"): {"bewerbung": {**FULL_ENTRY, "status": "Verworfen"}}})
+    assert call(mcp, "update_application", id="a-1", felder={"status": wanted})["isError"] is True
+    assert [c for c in host.calls if c[0] == "POST"] == []
+
+
+def test_saving_a_job_goes_through_the_route_that_keeps_only_known_links(paths):
+    mcp, host = server(paths)
+    call(mcp, "save_job", stelle="Koch", firma="Muster AG", link="https://evil.example/", text="Inserat")
+    assert host.calls[-1][:2] == ("POST", "/api/seite/von-claude")
+    assert "/api/seite/speichern" not in mcp_tools.ALL_PATHS
+
+
+def test_a_rating_asks_for_half_steps_in_the_schema(paths):
+    assert mcp_tools.BY_NAME["rate_hit"].properties["note"]["multipleOf"] == 0.5
 
 
 def test_requests_keep_the_id_in_the_address(paths):

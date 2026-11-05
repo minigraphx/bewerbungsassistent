@@ -109,3 +109,30 @@ def test_skills_are_found_in_the_package_and_in_the_repo(tmp_path):
 def test_each_skill_says_how_it_works_with_the_app(name):
     text = (REPO / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
     assert "Mit der App" in text and "bewerbungsassistent" in text
+
+
+def test_an_entry_with_another_path_is_stale(config):
+    claude_setup.enter_in_desktop(config, ["/alt/Bewerbungsassistent", "--mcp"])
+    assert claude_setup.is_entered(config) is True and claude_setup.is_stale(config, COMMAND) is True
+    claude_setup.enter_in_desktop(config, COMMAND)
+    assert claude_setup.is_stale(config, COMMAND) is False
+
+
+def test_no_entry_is_not_stale(config):
+    assert claude_setup.is_stale(config, COMMAND) is False
+
+
+def test_a_broken_entry_of_ours_is_stale_and_an_unreadable_file_is_not(config):
+    config.parent.mkdir(parents=True)
+    config.write_text(json.dumps({"mcpServers": {"bewerbungsassistent": "alt"}}), encoding="utf-8")
+    assert claude_setup.is_stale(config, COMMAND) is True
+    config.write_text("{kein json", encoding="utf-8")
+    assert claude_setup.is_stale(config, COMMAND) is False
+
+
+@pytest.mark.parametrize("content", [b"\xef\xbb\xbf{\"mcpServers\": {\"anderer\": {\"command\": \"x\"}}}", b"", b"  \n"])
+def test_a_file_from_notepad_or_an_empty_one_can_be_read(config, content):
+    config.parent.mkdir(parents=True)
+    config.write_bytes(content)
+    claude_setup.enter_in_desktop(config, COMMAND)
+    assert claude_setup.is_entered(config) is True

@@ -1,7 +1,10 @@
 """An ad from a page the person has open (MIN-345): check without storing, save once, see what is there already."""
 import pytest
 
+import apply
+import own_sites
 import routes_ai
+from hits import Hits
 from test_ai_tasks import PackageClient, rating_entry
 from test_app import post, server  # noqa: F401  (server is a fixture)
 from test_routes_search import listing, search  # noqa: F401  (search is a fixture)
@@ -224,3 +227,42 @@ def test_a_closed_application_does_not_block_a_new_one(rated):
     assert check["vorhanden"]["status"] == "Absage", "the check still names it"
     assert second["neu"] is True and second["bewerbung"]["id"] != first["bewerbung"]["id"]
     assert third["neu"] is False and third["bewerbung"]["id"] == second["bewerbung"]["id"]
+
+
+# From Claude on the person's own subscription (MIN-377): a text on a page must not choose where „Bewerben“ goes.
+
+def claude_ad(link):
+    return {key: value for key, value in {**AD, "link": link}.items()}
+
+
+def saved(s, answer):
+    return next(b for b in applications(s) if b["id"] == answer["bewerbung"]["id"])
+
+
+@pytest.mark.parametrize("link", ["https://www.linkedin.com/jobs/view/123/", "https://www.jobs.ch/de/stellenangebote/detail/1/", "https://jobs.ch/x"])
+def test_a_link_from_claude_on_a_known_portal_is_kept(search, link):  # noqa: F811
+    status, answer = post(search, "/api/seite/von-claude", claude_ad(link))
+    assert status == 200 and answer["link_gespeichert"] is True
+    assert saved(search, answer)["link"] == link
+
+
+@pytest.mark.parametrize("link", ["https://evil.example/apply", "http://www.jobs.ch/x", "https://jobs.ch.evil.example/x", "https://localhost/x", "https://jobs.ch:8443/x"])
+def test_another_link_from_claude_goes_to_the_note_and_opens_nothing(search, link):  # noqa: F811
+    status, answer = post(search, "/api/seite/von-claude", claude_ad(link))
+    assert status == 200 and answer["neu"] is True and answer["link_gespeichert"] is False
+    entry = saved(search, answer)
+    assert not entry.get("link") and not entry.get("formular_link") and link in entry["notiz"]
+    assert apply.form_link(entry) is None
+
+
+def test_a_site_the_person_named_counts_as_known(search):  # noqa: F811
+    own_sites.save(Hits(search.kontext.daten), ["https://karriere.beispiel-firma.ch/stellen"])
+    status, answer = post(search, "/api/seite/von-claude", claude_ad("https://karriere.beispiel-firma.ch/stellen/42"))
+    assert status == 200 and answer["link_gespeichert"] is True
+
+
+def test_an_ad_from_claude_is_not_added_twice_and_keeps_the_link_of_the_first(search):  # noqa: F811
+    first = post(search, "/api/seite/speichern", AD)[1]
+    status, again = post(search, "/api/seite/von-claude", claude_ad("https://evil.example/apply"))
+    assert status == 200 and again["neu"] is False and again["bewerbung"]["id"] == first["bewerbung"]["id"]
+    assert "linkedin.com" in saved(search, again)["link"]

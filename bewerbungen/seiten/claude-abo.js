@@ -10,9 +10,11 @@
     $("claude-abo").hidden = false;
     $("abo-aus").hidden = stand.zugang;
     $("abo-an").hidden = !stand.zugang;
-    $("abo-desktop").textContent = stand.desktop_eingetragen ? "Aus Claude Desktop entfernen" : "In Claude Desktop eintragen";
-    $("abo-desktop").dataset.eintragen = stand.desktop_eingetragen ? "nein" : "ja";
-    $("abo-desktop-stand").textContent = stand.desktop_eingetragen ? "Eingetragen. Claude Desktop einmal ganz beenden und neu öffnen." : "";
+    const veraltet = stand.desktop_veraltet;
+    $("abo-desktop").textContent = veraltet ? "Eintrag in Claude Desktop erneuern" : stand.desktop_eingetragen ? "Aus Claude Desktop entfernen" : "In Claude Desktop eintragen";
+    $("abo-desktop").dataset.eintragen = veraltet || !stand.desktop_eingetragen ? "ja" : "nein";
+    $("abo-desktop-stand").textContent = veraltet ? "Der Eintrag zeigt auf einen alten Ort der App."
+      : stand.desktop_eingetragen ? "Eingetragen. Claude Desktop einmal ganz beenden und neu öffnen." : "";
     $("abo-code").textContent = stand.code_befehl;
     $("abo-text").textContent = stand.desktop_text;
     $("abo-datei").textContent = stand.desktop_datei;
