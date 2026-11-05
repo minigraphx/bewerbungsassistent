@@ -16,6 +16,9 @@ ARTEN = ("lebenslauf", "anschreiben")
 CHOOSE_VARIANT = "Keine Lebenslauf-Variante gewählt. Bitte unter „Angaben“ eine wählen und speichern."
 NO_CV = "Noch kein Lebenslauf. Bitte unter „Meine Angaben“ erfassen oder unter „Meine Dateien“ als PDF hochladen."
 OWN_CV = "dokumente/lebenslauf.pdf"  # uploaded on the page „Meine Dateien“, see own_files.py
+OWN_LETTER = "eigenes-anschreiben.pdf"  # uploaded on the page of the application, see own_files.py
+LETTER_SOURCE = "anschreiben.yaml"
+SENT_STAYS = "Diese Bewerbung ist versendet. Was verschickt wurde, bleibt so."
 
 
 def bewerbungsordner(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
@@ -35,12 +38,32 @@ def eigener_lebenslauf(daten: pathlib.Path, bewerbung: dict) -> pathlib.Path | N
     return pfad if pfad.is_file() and not bewerbung.get("variante") and not bewerbung.get("versand") else None
 
 
+def letter_source(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
+    """What the letter is built from. The file that counts can be another one, so never derive this from `wirksame_pdfs`."""
+    return bewerbungsordner(daten, bewerbung_id) / LETTER_SOURCE
+
+
+def own_letter_path(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
+    return bewerbungsordner(daten, bewerbung_id) / OWN_LETTER
+
+
+def own_letter(daten: pathlib.Path, bewerbung: dict) -> pathlib.Path | None:
+    """The letter the person uploaded for this application, as long as it counts: it goes before a draft, until sent."""
+    pfad = own_letter_path(daten, bewerbung["id"])
+    return pfad if pfad.is_file() and not bewerbung.get("versand") else None
+
+
 def wirksame_pdfs(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Path]:
-    """The files that count for this application: once sent, the CV that went out. Building still writes to `pdf_pfade`."""
-    gesendet = ((bewerbung.get("versand") or {}).get("dateien") or {}).get("lebenslauf")
-    gilt = im_ordner(daten, gesendet) if gesendet else eigener_lebenslauf(daten, bewerbung)
-    pfade_pdf = pdf_pfade(daten, bewerbung["id"])
-    return {**pfade_pdf, "lebenslauf": gilt} if gilt and gilt.is_file() else pfade_pdf
+    """The files that count for this application: once sent, what went out, before that the person's own files.
+    Building still writes to `pdf_pfade`."""
+    gesendet = (bewerbung.get("versand") or {}).get("dateien") or {}
+    eigene = {"lebenslauf": eigener_lebenslauf(daten, bewerbung), "anschreiben": own_letter(daten, bewerbung)}
+
+    def gilt(art: str, gebaut: pathlib.Path) -> pathlib.Path:
+        pfad = im_ordner(daten, gesendet[art]) if gesendet.get(art) else eigene[art]
+        return pfad if pfad and pfad.is_file() else gebaut
+
+    return {art: gilt(art, gebaut) for art, gebaut in pdf_pfade(daten, bewerbung["id"]).items()}
 
 
 def _baue_ganzen_lebenslauf(daten: pathlib.Path, build: pathlib.Path, ziel: pathlib.Path) -> None:
@@ -77,7 +100,10 @@ def baue(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> dict[str,
     if not eigener:
         _baue_lebenslauf(daten, bewerbung, build, pfade_pdf["lebenslauf"])
     gebaut = {"lebenslauf": eigener or pfade_pdf["lebenslauf"]}
-    brief = pfade_pdf["anschreiben"].with_suffix(".yaml")
+    eigenes_anschreiben = own_letter(daten, bewerbung)
+    if eigenes_anschreiben:
+        return {**gebaut, "anschreiben": eigenes_anschreiben}
+    brief = letter_source(daten, bewerbung["id"])
     if brief.is_file():
         argumente = [str(brief), "--build-dir", str(build), "-o", str(pfade_pdf["anschreiben"])]
         if (daten / "cv.yaml").is_file():

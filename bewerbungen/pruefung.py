@@ -58,7 +58,7 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False) -> list[Befu
     else:
         befunde.append(Befund("ok", f"{name}: Text extrahierbar ({len(seiten)} Seite{'n' if len(seiten) != 1 else ''})"))
     if len(seiten) > MAX_SEITEN[art]:
-        stufe = "fehler" if art == "anschreiben" else "hinweis"
+        stufe = "fehler" if art == "anschreiben" and not as_it_is else "hinweis"
         befunde.append(Befund(stufe, f"{name}: {len(seiten)} Seiten, empfohlen höchstens {MAX_SEITEN[art]} Seite(n)"))
     if PLATZHALTER.search(text):
         befunde.append(Befund(content_stufe, f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
@@ -82,14 +82,15 @@ def firmennamen(firma: str) -> list[str]:
     return [n for n in namen if n and n.lower() != "unbekannt"] or [firma]
 
 
-def pruefe_anschreiben_text(text: str, bewerbung: dict, heute: datetime.date) -> list[Befund]:
+def pruefe_anschreiben_text(text: str, bewerbung: dict, heute: datetime.date, as_it_is: bool = False) -> list[Befund]:
+    content_stufe = "hinweis" if as_it_is else "fehler"
     befunde = []
     namen = firmennamen(bewerbung["firma"])
     genannt = next((n for n in namen if n.lower() in text.lower()), None)
     if genannt:
         befunde.append(Befund("ok", f"Anschreiben: Firma „{genannt}“ genannt"))
     else:
-        befunde.append(Befund("fehler", f"Anschreiben: Firma „{' / '.join(namen)}“ kommt nicht vor – falsche Vorlage?"))
+        befunde.append(Befund(content_stufe, f"Anschreiben: Firma „{' / '.join(namen)}“ kommt nicht vor – falsche Vorlage?"))
     woerter = [w for w in re.findall(r"\w{4,}", bewerbung["stelle"])]
     gefunden = [w for w in woerter if w.lower() in text.lower()]
     if not woerter or len(gefunden) * 2 >= len(woerter):
@@ -110,7 +111,7 @@ def pruefe_anschreiben_text(text: str, bewerbung: dict, heute: datetime.date) ->
     elif sie and re.search(r"\b(euch|eure[rnms]?|ihr)\b", text):
         befunde.append(Befund("hinweis", "Anschreiben: Anrede in Sie-Form, im Text aber euch/eure/ihr"))
     if PLATZHALTER.search(text):
-        befunde.append(Befund("fehler", f"Anschreiben: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
+        befunde.append(Befund(content_stufe, f"Anschreiben: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
     return befunde
 
 
@@ -158,19 +159,23 @@ def contact_person_findings(letter: pathlib.Path) -> list[Befund]:
 def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[Befund]:
     """Alle Prüfungen einer Bewerbung; Fehler zuerst."""
     pfade = unterlagen.wirksame_pdfs(daten, bewerbung)
-    as_it_is = unterlagen.eigener_lebenslauf(daten, bewerbung) is not None or bool(bewerbung.get("versand"))
+    gesendet = bool(bewerbung.get("versand"))
+    as_it_is = unterlagen.eigener_lebenslauf(daten, bewerbung) is not None or gesendet
+    letter_as_it_is = unterlagen.own_letter(daten, bewerbung) is not None or gesendet
+    quelle = unterlagen.letter_source(daten, bewerbung["id"])
     befunde = pruefe_pdf(pfade["lebenslauf"], "lebenslauf", as_it_is=as_it_is)
-    if pfade["anschreiben"].is_file() or pfade["anschreiben"].with_suffix(".yaml").is_file():
-        befunde += pruefe_pdf(pfade["anschreiben"], "anschreiben")
+    if pfade["anschreiben"].is_file() or quelle.is_file():
+        befunde += pruefe_pdf(pfade["anschreiben"], "anschreiben", as_it_is=letter_as_it_is)
         if pfade["anschreiben"].is_file():
             try:
                 text = "\n".join(_seiten(pfade["anschreiben"]))
             except (PdfReadError, ValueError, OSError):
                 text = ""
             if text:
-                befunde += pruefe_anschreiben_text(text, bewerbung, heute)
-        befunde += contact_person_findings(pfade["anschreiben"].with_suffix(".yaml"))
+                befunde += pruefe_anschreiben_text(text, bewerbung, heute, as_it_is=letter_as_it_is)
+        if not letter_as_it_is:
+            befunde += contact_person_findings(quelle)
     else:
-        befunde.append(Befund("hinweis", "Kein Anschreiben (anschreiben.yaml fehlt)"))
+        befunde.append(Befund("hinweis", "Kein Anschreiben: weder ein Entwurf noch ein eigenes PDF"))
     reihenfolge = {"fehler": 0, "hinweis": 1, "ok": 2}
     return sorted(befunde, key=lambda b: reihenfolge[b.stufe])

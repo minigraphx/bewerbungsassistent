@@ -51,10 +51,11 @@ Wer fertige Unterlagen hat, legt sie auf der Seite „Meine Dateien“ ab und ve
 
 - **Lebenslauf:** ein PDF, gespeichert als `dokumente/lebenslauf.pdf`. Es gilt für jede Bewerbung ohne gewählte Variante und ersetzt dort den gebauten Lebenslauf, ohne „Unterlagen erstellen“. Eine gewählte Variante geht vor.
 - **Zertifikate und Zeugnisse:** PDF, JPG oder PNG, in denselben Ordnern wie die Unterlagen aus „Meine Angaben“. Zertifikate werden pro Bewerbung gewählt. Wird ein gewähltes Zertifikat ersetzt oder entfernt, gilt das für alle noch nicht versendeten Bewerbungen.
+- **Anschreiben:** ein PDF pro Bewerbung, hochgeladen auf der Seite der Bewerbung unter „Fertiges Anschreiben“, gespeichert als `bewerbungen/<id>/eigenes-anschreiben.pdf`. Es gilt anstelle eines Entwurfs aus `anschreiben.yaml`; „Unterlagen erstellen“ baut dann kein Anschreiben, und die KI-Knöpfe „Anschreiben entwerfen“ und „Inhalt prüfen“ lehnen ab, bis die Datei entfernt ist. Auch beim Ausfüllen eines Formulars nutzt die KI den Entwurf dann nicht mehr. Nach dem Versand gilt die Kopie unter `versendet/`, und die Datei lässt sich nicht mehr ersetzen oder entfernen. Wird sie ersetzt, während ein Formular offen ist, enthält das Formular noch die bisherige Datei; die Seite weist darauf hin, denn als versendet gilt die neue.
 
 Höchstens 15 MB pro Datei. Die App prüft den Inhalt, nicht nur die Endung, und nimmt keine anderen Dateitypen an. Ersetzte und entfernte Dateien bleiben unter „Entwürfe“. Die Dateien gehen nicht an die KI; sie gehen nur beim Ausfüllen eines Formulars an die Seite, die die Person selbst geöffnet hat.
 
-Die automatische Prüfung meldet beim eigenen Lebenslauf einen Scan ohne Text oder einen Platzhalter nur als Hinweis, denn die Person will die Datei so verwenden. Ein PDF, das sich nicht lesen lässt, bleibt ein Fehler und sperrt „Bewerben“. Name, Adresse und Kontakt fürs Formular kommen aus `cv.yaml`; ohne diese Datei bleiben die Felder leer.
+Die automatische Prüfung meldet bei eigenen Dateien einen Scan ohne Text oder einen Platzhalter nur als Hinweis, denn die Person will die Datei so verwenden. Beim eigenen Anschreiben gilt das auch für zu viele Seiten und eine Firma, die im Text nicht vorkommt. Für eine versendete Bewerbung baut „Unterlagen erstellen“ nichts mehr. Ein PDF, das sich nicht lesen lässt, bleibt ein Fehler und sperrt „Bewerben“. Name, Adresse und Kontakt fürs Formular kommen aus `cv.yaml`; ohne diese Datei bleiben die Felder leer.
 
 ### Sicherung (MIN-359)
 

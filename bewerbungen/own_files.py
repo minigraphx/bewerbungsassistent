@@ -1,7 +1,9 @@
-"""Files the person uploads and uses as they are: a finished CV as PDF, certificates, references (MIN-346).
+"""Files the person uploads and uses as they are: a finished CV as PDF, certificates, references (MIN-346), and per
+application a finished cover letter.
 
-The CV counts for every application without a chosen variant (`unterlagen.wirksame_pdfs`). Certificates and references
-live in the same folders as those uploaded under „Meine Angaben“. None of this goes to the AI.
+The CV counts for every application without a chosen variant, the letter for its application and before a draft
+(`unterlagen.wirksame_pdfs`). Certificates and references live in the same folders as those uploaded under „Meine
+Angaben“. None of this goes to the AI.
 """
 import pathlib
 import re
@@ -30,6 +32,7 @@ RESERVED = {"CON", "PRN", "AUX", "NUL", *(f"COM{n}" for n in range(1, 10)), *(f"
 UNKNOWN_KIND = "Unbekannte Art von Datei."
 BAD_NAME = "Dieser Dateiname geht nicht. Bitte die Datei umbenennen."
 CV_ONLY_PDF = "Der Lebenslauf muss ein PDF sein."
+LETTER_ONLY_PDF = "Das Anschreiben muss ein PDF sein."
 ONLY_THESE_TYPES = "Möglich sind PDF, JPG und PNG."
 NOT_WHAT_IT_SAYS = "Diese Datei ist kein echtes {typ}. Vielleicht wurde sie nur umbenannt."
 TOO_LARGE = "Die Datei ist zu gross, höchstens {mb} MB."
@@ -56,19 +59,35 @@ def _is_type(content_type: str, data: bytes) -> bool:
     return data.startswith(SIGNATURES[content_type])
 
 
-def check_upload(kind: object, name: str, data: bytes) -> None:
-    """Fail unless this file may be kept; what it claims to be is compared with what it is."""
-    if kind not in KINDS:
-        raise ValueError(UNKNOWN_KIND)
-    suffix = pathlib.PurePosixPath(name).suffix.lower()
-    if kind == CV_KIND and suffix != ".pdf":
-        raise ValueError(CV_ONLY_PDF)
-    if suffix not in TYPES:
-        raise ValueError(ONLY_THESE_TYPES)
+def _suffix(name: str) -> str:
+    return pathlib.PurePosixPath(name).suffix.lower()
+
+
+def _check_content(suffix: str, data: bytes) -> None:
+    """What the file claims to be is compared with what it is."""
     if len(data) > MAX_FILE_BYTES:
         raise ValueError(TOO_LARGE.format(mb=MAX_FILE_BYTES // 1_000_000))
     if not _is_type(TYPES[suffix], data):
         raise ValueError(NOT_WHAT_IT_SAYS.format(typ=suffix[1:].upper()))
+
+
+def check_upload(kind: object, name: str, data: bytes) -> None:
+    """Fail unless this file may be kept."""
+    if kind not in KINDS:
+        raise ValueError(UNKNOWN_KIND)
+    suffix = _suffix(name)
+    if kind == CV_KIND and suffix != ".pdf":
+        raise ValueError(CV_ONLY_PDF)
+    if suffix not in TYPES:
+        raise ValueError(ONLY_THESE_TYPES)
+    _check_content(suffix, data)
+
+
+def check_letter(name: str, data: bytes) -> None:
+    """Fail unless this file may be kept as the cover letter of an application."""
+    if _suffix(name) != ".pdf":
+        raise ValueError(LETTER_ONLY_PDF)
+    _check_content(".pdf", data)
 
 
 def _same_name_key(name: str) -> str:

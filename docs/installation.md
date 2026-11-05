@@ -78,6 +78,8 @@ Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
 
 Unter **Meine Dateien** (im Menü) laden Sie Ihren Lebenslauf als PDF sowie Zertifikate und Zeugnisse hoch. Sie werden so verwendet, wie sie sind. Der Lebenslauf gilt für alle Bewerbungen, bei denen keine Variante gewählt ist. Welche Zertifikate mitgehen, wählen Sie pro Bewerbung. Die Dateien gehen nicht an die KI.
 
+Ein fertiges Anschreiben laden Sie als PDF auf der Seite der Bewerbung hoch, unter **Fertiges Anschreiben**. Es gilt nur für diese Bewerbung und anstelle eines Entwurfs. Solange es gilt, entwirft und prüft die KI dort kein Anschreiben; den Inhalt vergleichen Sie selbst mit dem Inserat. Entfernen Sie die Datei, gilt wieder der Entwurf.
+
 Damit das Formular auch Name, Adresse und Kontakt einfüllt, braucht es trotzdem die Angaben unter **Meine Angaben**. Ohne sie bleiben diese Felder leer, und Sie tragen sie selbst ein.
 
 ![Seite „Meine Dateien“ mit einem hochgeladenen Lebenslauf, einem Zertifikat und einem Zeugnis, je mit Knopf zum Entfernen](bilder/meine-dateien.jpg)

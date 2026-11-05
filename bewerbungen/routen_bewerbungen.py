@@ -7,6 +7,7 @@ import pruefung
 import unterlagen
 import versand
 from dateien import im_ordner, schreibe_atomar
+from own_files import MAX_FILE_BYTES
 from register import STATUS, jobroom_angaben
 from server import datei_antwort, json_antwort, pflicht
 from varianten import vorschlagen
@@ -44,7 +45,9 @@ def details(k, parameter, body):
         "pdf_stand": {art: p.stat().st_mtime_ns if p.is_file() else None for art, p in pfade.items()},
         "eigener_lebenslauf": unterlagen.eigener_lebenslauf(k.daten, b) is not None,
         "eigener_lebenslauf_da": (k.daten / unterlagen.OWN_CV).is_file(),
-        "hat_anschreiben": pfade["anschreiben"].with_suffix(".yaml").is_file(),
+        "eigenes_anschreiben": unterlagen.own_letter(k.daten, b) is not None,
+        "hat_anschreiben": pfade["anschreiben"].is_file() or unterlagen.letter_source(k.daten, b["id"]).is_file(),
+        "max_datei": MAX_FILE_BYTES,
         "varianten": k.varianten().alle(),
         "status": list(STATUS),
     })
@@ -95,8 +98,11 @@ def varianten_vorschlag(k, parameter, body):
 
 
 def unterlagen_bauen(k, parameter, body):
-    b = k.register().hole(pflicht(parameter, "id"))
+    wanted = pflicht(parameter, "id")
     with k.sperre:
+        b = k.register().hole(wanted)
+        if b.get("versand"):  # a letter built now would look like the one that went out
+            raise ValueError(unterlagen.SENT_STAYS)
         gebaut = unterlagen.baue(k.daten, b, k.build)
     return json_antwort({"gebaut": sorted(gebaut)})
 

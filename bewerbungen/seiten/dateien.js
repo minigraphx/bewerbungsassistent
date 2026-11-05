@@ -1,7 +1,7 @@
 "use strict";
 // Page „Meine Dateien“ (MIN-346): upload finished documents and use them as they are.
 (() => {
-  const { holen, senden, el, status, url, bestaetigen } = App;
+  const { holen, senden, el, status, url, bestaetigen, alsBase64 } = App;
   const BYTES_PER_MB = 1000000;
   const BYTES_PER_KB = 1000;
   let maxBytes = 0;
@@ -38,18 +38,9 @@
     }
   }
 
-  function asBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(",")[1] || "");
-      reader.onerror = () => reject(new Error(`${file.name} liess sich nicht lesen.`));
-      reader.readAsDataURL(file);
-    });
-  }
-
   async function uploadOne(kind, file) {
     if (file.size > maxBytes) throw new Error(`${file.name} ist zu gross, höchstens ${maxBytes / BYTES_PER_MB} MB.`);
-    return senden("/api/dateien/hochladen", { art: kind, name: file.name, daten: await asBase64(file) });
+    return senden("/api/dateien/hochladen", { art: kind, name: file.name, daten: await alsBase64(file) });
   }
 
   // One after the other: a refused file says why and does not stop the others.

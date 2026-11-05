@@ -10,7 +10,7 @@ Die KI-Knöpfe in der App (zum Beispiel „Bewerten“ oder „Entwurf erstellen
 
 ## Was Sie wissen sollten
 
-- **Klartext:** Claude liest Lebenslauf, Suchprofil, Bausteine und Bewerbungen im Klartext. Die Pseudonymisierung der App gilt auf diesem Weg nicht. Dateien unter „Meine Dateien“ erreicht die Verbindung zur App nicht.
+- **Klartext:** Claude liest Lebenslauf, Suchprofil, Bausteine und Bewerbungen im Klartext. Die Pseudonymisierung der App gilt auf diesem Weg nicht. Dateien unter „Meine Dateien“ und ein hochgeladenes Anschreiben erreicht die Verbindung zur App nicht.
 - **Ihr Vertrag:** Es gilt Ihr eigener Vertrag mit Anthropic, auch in den USA. Ob Ihre Chats zum Training dienen, stellen Sie in Claude unter den Einstellungen zum Datenschutz ein.
 - **Alter:** Claude setzt laut den [Bedingungen von Anthropic](https://www.anthropic.com/legal/consumer-terms) mindestens 18 Jahre voraus. Für jüngere Lehrstellensuchende passt dieser Weg nicht; sie nutzen die App mit Einladung.
 - **Kosten und Grenzen:** Die Nutzung zählt auf die Grenzen Ihres Abos. Eine Suche über mehrere Portale braucht viel davon.

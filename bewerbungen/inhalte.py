@@ -17,6 +17,7 @@ import build as lebenslauf_modul
 from dateien import relativ
 import textdokument
 from register import pruefe_bewerbung
+from unterlagen import OWN_LETTER
 from varianten import pruefe_variante
 
 MUSTER = ("cv.yaml", "suchprofil.md", "varianten.yaml", "bewerbungen.yaml", "jobs/*.yaml", "anschreiben/*.md",
@@ -51,7 +52,7 @@ def titel(rel: str) -> str:
     if teile.parts[0] == "anschreiben":
         return f"Anschreiben: {teile.stem}"
     if teile.parts[0] == "bewerbungen" and len(teile.parts) == 3:
-        art = "Anschreiben" if teile.name == "anschreiben.yaml" else "Stellenausschreibung"
+        art = {"anschreiben.yaml": "Anschreiben", OWN_LETTER: "Eigenes Anschreiben"}.get(teile.name, "Stellenausschreibung")
         return f"{art} {teile.parts[1]}"
     return rel
 

@@ -16,6 +16,8 @@ from server import json_antwort, pflicht
 LETTER_FILE = "anschreiben.yaml"
 STELLE_FILE = "stelle.md"
 NO_AD = "Zuerst den Stellentext einfügen und speichern."
+OWN_LETTER_NO_DRAFT = "Für diese Bewerbung gilt das eigene Anschreiben. Für einen Entwurf zuerst die Datei entfernen."
+OWN_LETTER_NO_REVIEW = "Das eigene Anschreiben geht nicht an die KI. Bitte selbst mit dem Inserat vergleichen."
 
 
 def new_client():
@@ -79,7 +81,8 @@ def form_fields(k, entry: dict, fields: list[form_help.FormField]) -> dict:
     """Help for the open fields of a form. The ad may be missing: then only the assignment runs."""
     path = _folder(k, entry["id"]) / STELLE_FILE
     ad = path.read_text(encoding="utf-8") if path.is_file() else ""
-    letter = _letter(k, entry["id"])
+    # With an own letter the draft may say something else than what goes out, and the own letter stays away from the AI.
+    letter = None if unterlagen.own_letter(k.daten, entry) else _letter(k, entry["id"])
 
     def task():
         gateway, material = ai_gateway(k, entry, letter)
@@ -137,6 +140,8 @@ def rate(k, parameter, body):
 
 def draft(k, parameter, body):
     entry = k.register().hole(pflicht(parameter, "id"))
+    if unterlagen.own_letter(k.daten, entry):
+        raise ValueError(OWN_LETTER_NO_DRAFT)
     ad = _ad_text(k, entry["id"])
 
     def task():
@@ -158,6 +163,8 @@ def draft(k, parameter, body):
 
 def review(k, parameter, body):
     entry = k.register().hole(pflicht(parameter, "id"))
+    if unterlagen.own_letter(k.daten, entry):  # the draft may say something else than what will go out
+        raise ValueError(OWN_LETTER_NO_REVIEW)
     ad = _ad_text(k, entry["id"])
     letter = _letter(k, entry["id"])
     if letter is None:

@@ -69,9 +69,18 @@
   <h2>Unterlagen und Prüfung</h2>
   <p class="hilfe">Erstellt den Lebenslauf aus der gewählten Variante und das Anschreiben aus <code>bewerbungen/&lt;id&gt;/anschreiben.yaml</code>. Danach die PDFs ansehen; die automatische Prüfung steht darunter.</p>
   <p class="hilfe" id="eigener-cv" hidden>Als Lebenslauf gilt die Datei aus <a href="/dateien">„Meine Dateien“</a>, so wie sie ist. Dafür braucht es „Unterlagen erstellen“ nicht. Eine gewählte Variante geht vor.</p>
+  <p class="hilfe" id="eigener-brief" hidden>Als Anschreiben gilt das hochgeladene PDF, so wie es ist. Ein Entwurf gilt erst wieder, wenn es entfernt ist.</p>
   <div class="knoepfe"><button class="haupt" id="erstellen">Unterlagen erstellen</button><button id="pruefen">Erneut prüfen</button></div>
   <ul class="befunde" id="befunde"></ul>
   <div class="pdfs" id="pdfs"></div>
+
+  <section id="eigenes-anschreiben" class="eigene-dateien">
+    <h2>Fertiges Anschreiben</h2>
+    <p class="hilfe">Ein PDF nur für diese Bewerbung, verwendet wie es ist. Es gilt anstelle eines Entwurfs, bleibt auf diesem Computer und geht nicht an die KI. Ein neues PDF ersetzt das bisherige.</p>
+    <label class="datei-waehlen">PDF wählen<input id="anschreiben-datei" type="file" accept=".pdf,application/pdf"></label>
+    <ul class="datei-liste" id="anschreiben-liste"></ul>
+    <div id="anschreiben-status" class="status" role="status" aria-live="polite"></div>
+  </section>
 
   <h2>Zertifikate</h2>
   <p class="hilfe">Nur die Zertifikate, die zur Stelle passen, kommen als eine ZIP-Datei mit. Die Vorschläge stammen aus dem Vergleich der Dateinamen mit dem Inserat; bitte prüfen.</p>
@@ -100,6 +109,7 @@
 </main>
 <script src="/app.js"></script>
 <script src="/formular-logik.js"></script>
+<script src="/eigenes-anschreiben.js"></script>
 <script src="/bewerbung.js"></script>
 <script src="/ki.js"></script>
 </body>

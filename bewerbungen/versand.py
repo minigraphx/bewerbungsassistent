@@ -61,7 +61,9 @@ def _datenquellen(daten: pathlib.Path, bewerbung: dict) -> list[pathlib.Path]:
             if variante.get(feld):
                 quellen.append(im_ordner(daten, variante[feld]))
     ordner = unterlagen.bewerbungsordner(daten, bewerbung["id"])
-    quellen += [p for p in (ordner / "anschreiben.yaml", ordner / "stelle.md") if p.is_file()]
+    # An own letter went out instead of the draft, so the draft is no source of what was sent.
+    brief = [] if unterlagen.own_letter(daten, bewerbung) else [ordner / unterlagen.LETTER_SOURCE]
+    quellen += [p for p in (*brief, ordner / "stelle.md") if p.is_file()]
     return quellen
 
 

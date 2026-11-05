@@ -75,6 +75,15 @@ window.App = (() => {
     element.className = "status " + art;
   }
 
+  function alsBase64(datei) {
+    return new Promise((resolve, reject) => {
+      const leser = new FileReader();
+      leser.onload = () => resolve(leser.result.split(",")[1] || "");
+      leser.onerror = () => reject(new Error(`${datei.name} liess sich nicht lesen.`));
+      leser.readAsDataURL(datei);
+    });
+  }
+
   function zeitpunkt(iso) {
     return new Date(iso).toLocaleString("de-CH", { dateStyle: "medium", timeStyle: "short" });
   }
@@ -289,5 +298,5 @@ window.App = (() => {
   }
   sicherungHinweis();
 
-  return { url, holen, senden, el, status, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe, beobachten };
+  return { url, holen, senden, el, status, alsBase64, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe, beobachten };
 })();

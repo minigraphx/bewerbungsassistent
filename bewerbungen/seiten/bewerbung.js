@@ -11,12 +11,15 @@
     ["kontaktperson", "Kontaktperson"], ["kontakt", "Telefon / E-Mail"], ["stelle", "Stelle"], ["pensum", "Pensum"],
     ["art", "Art der Bewerbung"], ["ergebnis", "Ergebnis"], ["rav_zuweisung", "Zuweisung des RAV"]];
   const ANDERSWO_GEAENDERT = "Diese Bewerbung wurde inzwischen auch anderswo geändert. Ihre Eingaben bleiben stehen, und gespeichert werden nur die Felder, die Sie geändert haben.";
+  const KEIN_ANSCHREIBEN = "Noch kein Anschreiben. Einen Entwurf erstellt „Anschreiben entwerfen“ weiter unten oder Claude mit dem Skill „bewerbung“. Ein fertiges PDF lässt sich unter „Fertiges Anschreiben“ hochladen.";
   let bewerbung = null;
   let geladenerText = "";
   let pdfStand = "";
 
   const meldung = (text, art) => status($("status"), text, art);
   const meldungOben = (text, art) => status($("status-oben"), text, art);
+  const pruefbar = daten => daten.pdfs.lebenslauf || daten.pdfs.anschreiben;
+  const meldeGeladen = daten => document.dispatchEvent(new CustomEvent("bewerbung-geladen", { detail: daten }));
 
   function optionen(select, werte, gewaehlt) {
     select.replaceChildren(...werte.map(([wert, text]) => el("option", { value: wert, selected: wert === gewaehlt }, text)));
@@ -108,9 +111,15 @@
     }
   }
 
+  function zeigeAnschreibenHinweis(daten) {
+    if (!daten.hat_anschreiben && !daten.bewerbung.versand) meldungOben(KEIN_ANSCHREIBEN, "hinweis");
+    else if ($("status-oben").textContent === KEIN_ANSCHREIBEN) meldungOben("");
+  }
+
   function zeigeVersand(b) {
     const v = b.versand;
     $("versand-form").hidden = !!v;
+    $("erstellen").hidden = !!v;
     if (!v) {
       $("versand-info").replaceChildren();
       return;
@@ -163,10 +172,12 @@
     } catch {
       return; // the app is closing or the entry is gone; the next action says so
     }
+    meldeGeladen(daten);
     if (JSON.stringify(daten.pdf_stand) !== pdfStand) {
       pdfStand = JSON.stringify(daten.pdf_stand);
       zeigePdfs(daten.pdfs);
-      if (daten.pdfs.lebenslauf) pruefen();
+      zeigeAnschreibenHinweis(daten);
+      if (pruefbar(daten)) pruefen();
     }
     if (JSON.stringify(daten.bewerbung) === JSON.stringify(bewerbung) && daten.stellentext === geladenerText) return;
     if (hatEingaben()) meldung(ANDERSWO_GEAENDERT, "hinweis");
@@ -180,9 +191,10 @@
       zeigeEintrag(daten);
       zeigePdfs(daten.pdfs);
       pdfStand = JSON.stringify(daten.pdf_stand);
+      meldeGeladen(daten);
       zeigeZertifikate().catch(fehler => status($("zertifikate-status"), fehler.message, "fehler"));
-      if (!daten.hat_anschreiben) meldungOben("Noch kein Anschreiben. Einen Entwurf erstellt „Anschreiben entwerfen“ weiter unten oder Claude mit dem Skill „bewerbung“.", "hinweis");
-      if (daten.pdfs.lebenslauf) pruefen();
+      zeigeAnschreibenHinweis(daten);
+      if (pruefbar(daten)) pruefen();
     } catch (fehler) {
       meldungOben("Laden fehlgeschlagen: " + fehler.message, "fehler");
     }
@@ -235,6 +247,7 @@
   });
   $("pruefen").addEventListener("click", pruefen);
   document.addEventListener("anschreiben-geaendert", laden);
+  document.addEventListener("eigenes-anschreiben-geaendert", nachsehen);
   $("v-datum").value = new Date().toISOString().slice(0, 10);
   bestaetigen($("versenden"), "Wirklich erfassen? Nochmals klicken", async () => {
     try {

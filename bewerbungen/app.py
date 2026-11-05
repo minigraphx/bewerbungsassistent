@@ -40,6 +40,7 @@ SEITEN = {
     "/foto": "foto.html",
     "/dateien": "dateien.html",
     "/dateien.js": "dateien.js",
+    "/eigenes-anschreiben.js": "eigenes-anschreiben.js",
     "/stil.css": "stil.css",
     "/app.js": "app.js",
     "/uebersicht.js": "uebersicht.js",
