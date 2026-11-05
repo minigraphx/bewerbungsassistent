@@ -18,6 +18,7 @@ import routes_backup
 import routes_apply
 import routes_certificates
 import routes_career
+import routes_chat
 import routes_own_key
 import routes_rav
 import routes_page
@@ -54,6 +55,8 @@ SEITEN = {
     "/einstellungen": "einstellungen.html",
     "/einstellungen.js": "einstellungen.js",
     "/claude-abo.js": "claude-abo.js",
+    "/fragen": "fragen.html",
+    "/fragen.js": "fragen.js",
 }
 GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "bewerbungen/*/*.zip", "dokumente/", ".ki/", "suche/", ".sicherung.yaml"]
 log = logging.getLogger("bewerbungsassistent")
@@ -74,9 +77,9 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
     """extra_routes: (GET, POST) of the desktop app, e.g. version and update (MIN-342)."""
     k = kontext or erstelle_kontext(daten, build)
     routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET,
-                  **routes_ai.GET, **routes_own_key.GET, **routes_sites.GET, **routes_search.GET, **routes_backup.GET, **routes_certificates.GET, **routes_apply.GET, **routes_rav.GET, **routes_career.GET, **extra_routes[0]}
+                  **routes_ai.GET, **routes_chat.GET, **routes_own_key.GET, **routes_sites.GET, **routes_search.GET, **routes_backup.GET, **routes_certificates.GET, **routes_apply.GET, **routes_rav.GET, **routes_career.GET, **extra_routes[0]}
     routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST,
-                   **routes_ai.POST, **routes_own_key.POST, **routes_sites.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **extra_routes[1]}
+                   **routes_ai.POST, **routes_chat.POST, **routes_own_key.POST, **routes_sites.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **extra_routes[1]}
     return Server(k, routen_get, routen_post, SEITEN, port, body_limits)
 
 

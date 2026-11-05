@@ -6,6 +6,7 @@ import pytest
 
 import mcp_server
 import mcp_tools
+import native_host
 import settings
 
 
@@ -277,6 +278,11 @@ def test_saving_a_job_goes_through_the_route_that_keeps_only_known_links(paths):
     call(mcp, "save_job", stelle="Koch", firma="Muster AG", link="https://evil.example/", text="Inserat")
     assert host.calls[-1][:2] == ("POST", "/api/seite/von-claude")
     assert "/api/seite/speichern" not in mcp_tools.ALL_PATHS
+
+
+def test_the_questions_to_the_ai_are_only_for_the_page_of_the_app():
+    assert not any(path.startswith("/api/fragen") for path in mcp_tools.ALL_PATHS)
+    assert not any(path.startswith("/api/fragen") for _, path in native_host.ALLOWED)
 
 
 def test_a_rating_asks_for_half_steps_in_the_schema(paths):

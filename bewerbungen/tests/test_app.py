@@ -68,7 +68,7 @@ def test_lauscht_nur_lokal(server):
     assert server.server_address[0] == "127.0.0.1"
 
 
-@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treffer"])
+@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/entwuerfe", "/foto", "/inhalte", "/treffer", "/fragen"])
 def test_seiten_mit_token_und_csp(server, pfad):
     status, typ, inhalt, antwort = anfrage(server, "GET", pfad)
 
@@ -79,7 +79,7 @@ def test_seiten_mit_token_und_csp(server, pfad):
     assert "<script>" not in inhalt.decode("utf-8")  # keine Inline-Skripte
 
 
-@pytest.mark.parametrize("pfad", ["/stil.css", "/app.js", "/uebersicht.js", "/bewerbung.js", "/entwuerfe.js", "/foto.js", "/inhalte.js"])
+@pytest.mark.parametrize("pfad", ["/stil.css", "/app.js", "/uebersicht.js", "/bewerbung.js", "/entwuerfe.js", "/foto.js", "/inhalte.js", "/fragen.js"])
 def test_statische_dateien(server, pfad):
     status, _, inhalt, _ = anfrage(server, "GET", pfad)
 

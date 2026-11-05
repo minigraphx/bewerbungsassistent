@@ -94,6 +94,18 @@ Auf der Seite **Suche** bewertet die KI in Paketen von zehn Inseraten pro Anfrag
 - **Weitere Seiten durchsuchen** (nur mit eigenem Schlüssel): bis zu fünf Adressen, so wie sie im Browser stehen. Die Erweiterung öffnet sie bei jeder Suche im Tab und nutzt das Suchfeld der Seite, wenn sie eines findet (nur Formulare mit GET auf derselben Seite; die Platzhalter `{begriff}` und `{ort}` funktionieren weiterhin). Die KI liest Seitentext und Linktexte und nennt die Stellen. Sie bekommt weder Adressen noch Lebenslauf. Pro Seite gelten die erste Ergebnisseite, höchstens 10 Suchen und 30 Inserate. Anmeldungen und Prüfungen wie CAPTCHAs bleiben bei der Person: Die Seite wird dann übersprungen und in der Zusammenfassung genannt.
 - **Kosten**: `.ki/nutzung.jsonl` hält pro Anfrage Modell, Tokens und Kosten fest; die Seite zeigt die Summe des Monats.
 
+### Fragen an die KI (MIN-376)
+
+Im Menü steht **„Fragen“**: ein Gespräch mit der KI zu Stellensuche, Lehrstellensuche, Berufswahl, Bewerbung, Lebenslauf, Anschreiben, Vorstellungsgespräch und zur Bedienung der App. Fehlt in den Angaben etwas für eine gute Antwort, fragt sie danach und sagt, wo es eingetragen wird.
+
+![Seite Fragen mit einem erfundenen Gespräch über fehlende Angaben und die Vorbereitung auf ein Gespräch, darunter das Feld für die nächste Frage](../docs/bilder/fragen.jpg)
+
+- **Was die KI sieht:** Lebenslauf, Suchprofil, Stilprofil und Bausteine, wie bei den anderen Aufgaben, und das laufende Gespräch. Namen und Adressen sind ersetzt. Das Register und alles zum RAV gehen nicht mit.
+- **Was sie kann:** nur antworten. Sie ändert nichts und schickt nichts ab.
+- **Thema:** Die Eingrenzung steht in den Anweisungen an die KI. Sie ist keine harte Sperre, begrenzt aber, wofür die Fragen taugen.
+- **Kosten:** günstiges Modell, kurze Antworten, 30 Fragen pro Tag; mit der Vermittlung zählt zusätzlich ihr Monatsbudget. Das Protokoll `.ki/nutzung.jsonl` hält Tokens und Kosten fest, nie den Text.
+- **Verlauf:** Das Gespräch bleibt nur auf der Seite. Beim Verlassen ist es weg.
+
 ## Kommandozeile
 
 ```bash

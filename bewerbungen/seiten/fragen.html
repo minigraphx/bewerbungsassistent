@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<meta name="bewerbungsassistent" content="app">
+<title>Fragen</title>
+<link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+<nav><span class="marke">Bewerbungsassistent</span><a href="/">Bewerbungen</a><a href="/treffer">Suche</a><details class="menue"><summary>☰ Menü</summary><div class="menue-inhalt"><a href="/angaben">Meine Angaben</a><a href="/fragen">Fragen</a><a href="/einrichtung">Einrichtung</a><a href="/inhalte">Inhalte</a><a href="/entwuerfe">Entwürfe &amp; Versionen</a><a href="/foto">Foto</a><a href="/einstellungen">Erweiterte Einstellungen</a></div></details></nav>
+<main class="einrichtung">
+  <h1>Fragen</h1>
+  <p id="fragen-hilfe" class="hilfe"></p>
+  <p id="fragen-aus" class="banner" hidden></p>
+  <div id="fragen-an" hidden>
+    <div id="fragen-verlauf" class="chat-verlauf" aria-live="polite"></div>
+    <div id="fragen-beispiele" class="chat-beispiele"></div>
+    <label for="fragen-text" id="fragen-label"></label>
+    <textarea id="fragen-text" rows="3" maxlength="1000"></textarea>
+    <p class="aktionen"><button id="fragen-senden" class="haupt" type="button">Senden</button></p>
+    <p id="fragen-meldung" class="status" role="status"></p>
+    <p id="fragen-uebrig" class="leise"></p>
+  </div>
+</main>
+<script src="/app.js"></script>
+<script src="/fragen.js"></script>
+</body>
+</html>

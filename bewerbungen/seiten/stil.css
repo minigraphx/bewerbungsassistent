@@ -162,3 +162,10 @@ button.klein { padding: 2px 8px; font-size: 0.85em; margin: 0; }
 .portale { margin: 8px 0; }
 .portale .auswahl-liste { margin-top: 6px; }
 .portale > summary { cursor: pointer; font-weight: 600; }
+.chat-verlauf { display: grid; gap: 10px; margin-bottom: 14px; }
+.chat-verlauf:empty { display: none; }
+.chat-zug { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--linie); background: var(--flaeche); }
+.chat-zug p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-person { background: transparent; }
+.chat-beispiele { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.chat-beispiele:empty { display: none; }
