@@ -43,8 +43,14 @@ def test_the_instructions_limit_the_topic(daten):  # noqa: F811
         assert expected in text
 
 
-@pytest.mark.parametrize("kind, marker", [(search_plan.KIND_JOB, "Sie-Form"), (search_plan.KIND_APPRENTICESHIP, "Du-Form")])
-def test_the_form_of_address_follows_the_kind_of_search(daten, kind, marker):  # noqa: F811
+@pytest.mark.parametrize("chosen, kind, marker", [
+    (None, search_plan.KIND_JOB, "mit Sie an"),
+    ("gesucht: stelle\nanrede: du\nrav: true\n", search_plan.KIND_JOB, "mit du an"),
+    ("gesucht: lehrstelle\nanrede: du\nrav: false\n", search_plan.KIND_APPRENTICESHIP, "mit du an"),
+])
+def test_the_form_of_address_follows_the_choice_in_the_setup(daten, chosen, kind, marker):  # noqa: F811
+    if chosen:
+        (daten / "einrichtung.yaml").write_text(chosen, encoding="utf-8")
     _, payload = ask(daten, kind=kind)
     assert marker in system_text(payload)
 

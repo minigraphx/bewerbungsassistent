@@ -84,7 +84,7 @@ def test_other_pages_keep_the_strict_policy(started):
 
 def test_state_is_kept_in_the_data_folder(started):
     server, folder, _ = started
-    assert call(server, "/api/angaben/stand") == (200, {"stand": None, "unterlagen": [], "vorhanden": []})
+    assert call(server, "/api/angaben/stand") == (200, {"stand": None, "unterlagen": [], "vorhanden": [], "gesucht": None})
 
     state = {"track": "job", "data": {"person": {"name": "Erika Beispiel"}}, "step": 2}
     assert call(server, "/api/angaben/stand", {"stand": state})[0] == 200
@@ -92,6 +92,13 @@ def test_state_is_kept_in_the_data_folder(started):
     assert call(server, "/api/angaben/stand")[1]["stand"] == state
     assert "dokumente/" in (folder / ".gitignore").read_text(encoding="utf-8")
     assert not list(folder.glob("*.json"))  # not next to the files the person edits
+
+
+def test_the_page_starts_in_the_track_the_setup_chose(started):
+    server, folder, _ = started
+    assert call(server, "/api/einrichtung/wahl", {"gesucht": "lehrstelle", "anrede": "du", "rav": False})[0] == 200
+
+    assert call(server, "/api/angaben/stand")[1]["gesucht"] == "apprenticeship"
 
 
 @pytest.mark.parametrize("state", ["text", ["liste"], None])

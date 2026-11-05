@@ -81,7 +81,7 @@ def _avoids(name: str, avoid: str) -> bool:
 def recommend(gateway: Gateway, material: tasks.Material, answers: dict[str, str], kind: str = search_plan.KIND_APPRENTICESHIP,
               model: str | None = None) -> dict:
     instructions = prompts.CAREER if kind == search_plan.KIND_APPRENTICESHIP else prompts.CAREER_JOB
-    answer = gateway.ask(Request(task="career", model=model or tasks.MODELS["career"], rules=prompts.RULES,
+    answer = gateway.ask(Request(task="career", model=model or tasks.MODELS["career"], rules=prompts.rules(material.address),
                                  context=material.context, instructions=instructions, prompt=prompts.career_prompt(answers),
                                  max_tokens=tasks.MAX_TOKENS["career"], schema=prompts.CAREER_SCHEMA))
     suggestions = _suggestions(answer.data, kind)

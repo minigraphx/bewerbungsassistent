@@ -128,7 +128,6 @@ nav .menue-knopf:hover { background: var(--surface-subtle); }
 main { max-width: var(--width-content); margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-7); }
 p.hilfe { margin: 0 0 var(--space-4); }
 .einrichtung { max-width: var(--width-reading); }
-.einrichtung .weiter { margin-top: var(--space-6); }
 .raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-3) var(--space-4); }
 .breit { grid-column: 1 / -1; }
 .karte { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); margin: var(--space-2) 0; }
@@ -553,3 +552,52 @@ textarea.input { min-height: 120px; resize: vertical; }
 .form-bar__btn:hover { border-color: var(--on-inverse); }
 .form-bar__btn--primary { background: var(--on-inverse); border-color: var(--on-inverse); color: var(--inverse); font-weight: 700; }
 .form-bar :focus-visible { outline-color: var(--on-inverse); }
+
+/* =====================================================================
+   Part 3: pages built from the design (MIN-369), one block per page.
+   ===================================================================== */
+
+/* ---------- Card, choice (shared by the redesigned pages) ---------- */
+.card { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.card > h2 { margin: 0; padding: 0; border: 0; font-size: 18px; line-height: 24px; }
+.card > p, .card .field { margin: 0; }
+.card .status-line { margin: 0; overflow-wrap: anywhere; }
+.card .status-line:empty { display: none; }
+.choice-cards { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+button.choice-card {
+  flex: 1 1 220px; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: var(--space-1);
+  min-height: 0; padding: var(--space-4) var(--space-5); text-align: left;
+  border: 2px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); color: var(--text);
+}
+button.choice-card strong { font-size: 17px; line-height: 24px; color: var(--text-strong); }
+button.choice-card span { font: 400 14px/20px var(--font-sans); color: var(--text-muted); }
+button.choice-card:hover { border-color: var(--line-strong); background: var(--surface); }
+button.choice-card[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-subtle); }
+.choice-group { display: flex; flex-direction: column; gap: var(--space-1); margin: 0; padding: 0; border: 0; }
+.choice-group legend { margin-bottom: var(--space-2); padding: 0; font-weight: 500; color: var(--text-strong); }
+.choice-group .field__hint { margin-top: var(--space-1); }
+label.check { font: 400 16px/24px var(--font-sans); color: var(--text); margin: 0; }
+label.check input { margin-top: 3px; }
+.steps a.steps__label { text-decoration: underline; text-underline-offset: 3px; }
+.steps a.steps__label:hover { color: var(--accent); }
+
+/* ---------- Setup ---------- */
+.setup { display: flex; flex-direction: column; gap: var(--space-5); }
+.setup__head h1 { margin: 0 0 var(--space-1); font-size: 28px; line-height: 34px; }
+.setup__head p, .setup > .notice { margin: 0; }
+.setup__path { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.setup__path .input { flex: 1 1 280px; min-width: 0; }
+.setup__path--code .input { flex: 0 1 320px; font-family: var(--font-mono); }
+.setup__actions { justify-content: flex-end; }
+.setup__actions--split { justify-content: space-between; }
+.setup__instructions { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; padding-left: 22px; }
+.setup__instructions .btn-row, .setup__instructions .field__hint { margin-top: var(--space-2); }
+.setup__copy { grid-template-columns: 1fr auto; margin-top: var(--space-2); }
+.setup__mono { font: 400 14px/20px var(--font-mono); }
+.setup__waiting { background: var(--surface-subtle); }
+.setup__more > summary { cursor: pointer; font-weight: 500; color: var(--text-strong); }
+.setup__more > p { margin: var(--space-2) 0 0; }
+.setup__summary { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.setup__summary .notice { padding: var(--space-2) var(--space-3); }
+.setup__summary .notice__body { min-width: 0; overflow-wrap: anywhere; }
+.setup .befunde:empty { display: none; }

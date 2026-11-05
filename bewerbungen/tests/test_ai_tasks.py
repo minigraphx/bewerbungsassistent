@@ -410,7 +410,8 @@ def test_an_apprentice_is_rated_by_the_apprenticeship_scale(daten):
     result = tasks.rate_package(gateway, material, ADS[:1])
     instructions = client.messages.calls[0]["system"][1]["text"]
     schema = client.messages.calls[0]["output_config"]["format"]["schema"]["properties"]["ratings"]["items"]
-    assert "Lehrbeginn" in instructions and "Du-Form" in instructions and "Schulniveau" in instructions
+    assert "Lehrbeginn" in instructions and "Schulniveau" in instructions
+    assert "mit du an" in client.messages.calls[0]["system"][0]["text"]
     assert "profession_grade" in schema["properties"]
     assert result["ratings"]["job-a"]["profession_grade"] == 6 and result["ratings"]["job-a"]["uncertain"] == "Inserat sehr knapp."
 
