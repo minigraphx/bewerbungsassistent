@@ -64,3 +64,70 @@ test("finished ones are counted per status, not those still to enter in the Job-
     new Map(), new Map([["e", null]]));
   assert.deepEqual(logik.abgeschlossenZaehlen(zeilen), { Zusage: 1, Absage: 2 });
 });
+
+// Sorting the list by a column (MIN-404)
+
+function reihe(...werte) {
+  return werte.map(([stelle, status, passung, art, frist]) => ({ bewerbung: { stelle, status, passung }, schritt: { art, frist } }));
+}
+const SORTIERBAR = reihe(["Beta", "Beworben", 4.5, "warten", "2026-12-01"],
+                         ["alpha", "Absage", undefined, "fertig", undefined],
+                         ["Gamma", "Gemerkt", 5.5, "gespraech", "2026-11-10"]);
+const stellen = zeilen => zeilen.map(z => z.bewerbung.stelle);
+
+test("without a chosen column the list keeps the order of the app", () => {
+  assert.deepEqual(stellen(logik.sortiert(SORTIERBAR, null)), ["Beta", "alpha", "Gamma"]);
+  assert.deepEqual(stellen(logik.sortiert(SORTIERBAR, { spalte: "gibt-es-nicht", richtung: "auf" })), ["Beta", "alpha", "Gamma"]);
+});
+
+test("positions sort by the alphabet, ignoring case, in both directions", () => {
+  assert.deepEqual(stellen(logik.sortiert(SORTIERBAR, { spalte: "stelle", richtung: "auf" })), ["alpha", "Beta", "Gamma"]);
+  assert.deepEqual(stellen(logik.sortiert(SORTIERBAR, { spalte: "stelle", richtung: "ab" })), ["Gamma", "Beta", "alpha"]);
+});
+
+test("the status follows the course of an application, not the alphabet", () => {
+  assert.deepEqual(stellen(logik.sortiert(SORTIERBAR, { spalte: "stand", richtung: "auf" })), ["Gamma", "Beta", "alpha"]);
+});
+
+test("the next step sorts by what comes first", () => {
+  assert.deepEqual(stellen(logik.sortiert(SORTIERBAR, { spalte: "schritt", richtung: "auf" })), ["Gamma", "Beta", "alpha"]);
+});
+
+test("no grade and no date stay at the bottom in both directions", () => {
+  for (const [spalte, auf, ab] of [["note", ["Beta", "Gamma", "alpha"], ["Gamma", "Beta", "alpha"]],
+                                   ["frist", ["Gamma", "Beta", "alpha"], ["Beta", "Gamma", "alpha"]]]) {
+    assert.deepEqual(stellen(logik.sortiert(SORTIERBAR, { spalte, richtung: "auf" })), auf);
+    assert.deepEqual(stellen(logik.sortiert(SORTIERBAR, { spalte, richtung: "ab" })), ab);
+  }
+});
+
+test("equal values keep the order of the app, and the list itself stays as it is", () => {
+  const gleich = reihe(["Zwei", "Beworben", 5, "warten"], ["Eins", "Beworben", 5, "warten"]);
+  assert.deepEqual(stellen(logik.sortiert(gleich, { spalte: "note", richtung: "ab" })), ["Zwei", "Eins"]);
+  logik.sortiert(SORTIERBAR, { spalte: "stelle", richtung: "auf" });
+  assert.deepEqual(stellen(SORTIERBAR), ["Beta", "alpha", "Gamma"]);
+});
+
+test("clicks go first direction, other direction, back to the order of the app", () => {
+  const erster = logik.naechsteSortierung(null, "frist");
+  assert.deepEqual(erster, { spalte: "frist", richtung: "auf" });
+  const zweiter = logik.naechsteSortierung(erster, "frist");
+  assert.deepEqual(zweiter, { spalte: "frist", richtung: "ab" });
+  assert.equal(logik.naechsteSortierung(zweiter, "frist"), null);
+  assert.deepEqual(logik.naechsteSortierung(zweiter, "stelle"), { spalte: "stelle", richtung: "auf" });
+});
+
+test("the best grade comes first on the first click", () => {
+  const erster = logik.naechsteSortierung(null, "note");
+  assert.deepEqual(erster, { spalte: "note", richtung: "ab" });
+  const zweiter = logik.naechsteSortierung(erster, "note");
+  assert.deepEqual(zweiter, { spalte: "note", richtung: "auf" });
+  assert.equal(logik.naechsteSortierung(zweiter, "note"), null);
+});
+
+test("a stored sorting only counts when it is one the page knows", () => {
+  assert.deepEqual(logik.gueltigeSortierung({ spalte: "note", richtung: "ab" }), { spalte: "note", richtung: "ab" });
+  for (const falsch of [null, "note", {}, { spalte: "note" }, { spalte: "x", richtung: "ab" }, { spalte: "note", richtung: "quer" }]) {
+    assert.equal(logik.gueltigeSortierung(falsch), null);
+  }
+});
