@@ -16,6 +16,7 @@
     <p class="page__mark"><span class="marke-status" data-status="Gemerkt">Für Geübte</span></p>
     <nav class="page__toc" aria-label="Abschnitte">
       <a href="#kosten">Kosten der KI</a>
+      <a href="#einwilligung">Einwilligung</a>
       <a href="#schluessel-teil">Eigener API-Schlüssel</a>
       <a href="#claude-abo">Claude mit eigenem Abo</a>
     </nav>
@@ -29,6 +30,17 @@
       <dt>Insgesamt</dt><dd id="kosten-gesamt"></dd>
       <dt>Anzahl Aufrufe</dt><dd id="kosten-aufrufe"></dd>
     </dl>
+  </section>
+
+  <section class="card" id="einwilligung" aria-labelledby="einwilligung-titel">
+    <h2 id="einwilligung-titel">Einwilligung</h2>
+    <p class="field__hint">Ohne Einwilligung gehen keine Texte an die KI, auch nicht mit einem eigenen Schlüssel. Suche, Unterlagen und Versand funktionieren trotzdem. Mit dem Claude-Abo läuft die KI über Ihr eigenes Konto bei Anthropic; dafür gilt der Hinweis weiter unten.</p>
+    <div id="einwilligung-offen" class="einwilligung" hidden></div>
+    <div id="einwilligung-erteilt" hidden>
+      <p>Sie haben eingewilligt. Sie können das jederzeit widerrufen; danach gehen keine Texte mehr an die KI, bis Sie wieder einwilligen.</p>
+      <div class="knoepfe"><button type="button" id="einwilligung-widerruf" class="gefahr">Einwilligung widerrufen</button></div>
+    </div>
+    <div id="einwilligung-meldung" class="status" role="status" aria-live="polite"></div>
   </section>
 
   <section class="card" id="schluessel-teil" aria-labelledby="schluessel-titel">
@@ -111,6 +123,7 @@
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>
+<script src="/einwilligung.js"></script>
 <script src="/einstellungen.js"></script>
 <script src="/claude-abo.js"></script>
 </body>

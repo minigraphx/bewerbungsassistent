@@ -7,7 +7,6 @@ length of what goes along and a number per day; with the mediation its monthly b
 """
 import datetime
 
-import search_plan
 from ai import prompts, tasks
 from ai.errors import BAD_ANSWER, AnswerError
 from ai.gateway import Gateway, Request
@@ -47,9 +46,8 @@ def remaining_today(log: UsageLog, today: datetime.date) -> int:
     return max(0, MAX_PER_DAY - asked)
 
 
-def answer(gateway: Gateway, material: tasks.Material, question: str, history: list[dict], kind: str = search_plan.KIND_JOB) -> dict:
-    instructions = prompts.CHAT_APPRENTICESHIP if kind == search_plan.KIND_APPRENTICESHIP else prompts.CHAT
-    reply = gateway.ask(Request(task=TASK, model=tasks.MODELS[TASK], rules=prompts.rules(material.address), context=material.context, instructions=instructions,
+def answer(gateway: Gateway, material: tasks.Material, question: str, history: list[dict]) -> dict:
+    reply = gateway.ask(Request(task=TASK, model=tasks.MODELS[TASK], rules=prompts.rules(material.address), context=material.context, instructions=prompts.CHAT,
                                 prompt=prompts.chat_prompt(history[-MAX_TURNS:], question), max_tokens=tasks.MAX_TOKENS[TASK]))
     if not reply.text.strip():
         raise AnswerError(BAD_ANSWER, cost_usd=reply.cost_usd)

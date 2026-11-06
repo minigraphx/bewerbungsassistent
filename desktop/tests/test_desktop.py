@@ -92,6 +92,28 @@ def test_mediation_address_comes_with_the_package(monkeypatch):
     assert os.environ["BEWERBUNGSBEGLEITER_KI_URL"] == "https://ki.example.ch"
 
 
+def test_the_privacy_page_comes_with_the_package(monkeypatch):
+    monkeypatch.delenv("BEWERBUNGSBEGLEITER_DATENSCHUTZ_URL", raising=False)
+
+    start._use_mediation({"datenschutz_url": "https://example.ch/datenschutz"})
+
+    import os
+    assert os.environ["BEWERBUNGSBEGLEITER_DATENSCHUTZ_URL"] == "https://example.ch/datenschutz"
+
+
+def test_an_invitation_link_at_the_start_waits_for_the_consent(tmp_path, monkeypatch):
+    import app
+    import routes_ai
+    from ai.connection import URL_VARIABLE
+    monkeypatch.setenv(URL_VARIABLE, "https://ki.example.ch")
+    monkeypatch.setattr(routes_ai.invitation, "redeem", lambda *args, **kwargs: pytest.fail("no consent yet"))
+    kontext = app.erstelle_kontext(tmp_path)
+
+    start._redeem(kontext, "ABCD-EFGH")
+
+    assert kontext.cache[routes_ai.WAITING_CODE] == "ABCD-EFGH"
+
+
 def test_selftest_builds_both_pdfs(tmp_path):
     assert selftest.run(tmp_path) == 0
     assert (tmp_path / selftest.RESULT_FILE).read_text(encoding="utf-8").startswith("ok")

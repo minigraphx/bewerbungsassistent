@@ -93,6 +93,7 @@
   }
 
   function statusText(s) {
+    if (s.einwilligung && !s.einwilligung.erteilt) return "Die KI ist noch aus: Vor der ersten Nutzung braucht es die Einwilligung.";
     if (!s.eingerichtet) return s.einladung ? "Die KI ist noch nicht eingerichtet: Einladungscode unten eingeben." : s.hinweis;
     if (!s.vermittlung) return `KI eingerichtet (direkt, Entwicklung). Diesen Monat ${kosten(s.kosten_usd)}.`;
     const budget = typeof s.budget_usd === "number"
@@ -102,8 +103,12 @@
 
   function zeigeStatus(s) {
     $("ki-status").textContent = statusText(s);
-    $("ki-einladung").hidden = s.eingerichtet || !s.einladung;
-    frei(s.eingerichtet);
+    const einwilligungOffen = Boolean(s.einwilligung && !s.einwilligung.erteilt);
+    $("ki-einwilligung").hidden = !einwilligungOffen;
+    if (einwilligungOffen) window.Einwilligung.zeige($("ki-einwilligung"), s.einwilligung, zeigeStatus);
+    $("ki-einladung").hidden = s.eingerichtet || !s.einladung || einwilligungOffen;
+    frei(s.eingerichtet && !einwilligungOffen);
+    if (s.einladung_fehler) meldung(s.einladung_fehler, "fehler");
   }
 
   async function ladeStatus() {

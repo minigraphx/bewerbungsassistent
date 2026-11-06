@@ -54,6 +54,7 @@
         <p class="field__hint" id="eigener-brief" hidden>Als Anschreiben gilt das hochgeladene PDF, so wie es ist. Ein Entwurf gilt erst wieder, wenn es entfernt ist.</p>
         <div class="application__ai">
           <p class="status-line" id="ki-status">KI-Verbindung wird geprüft …</p>
+          <div id="ki-einwilligung" class="field einwilligung" hidden></div>
           <div id="ki-einladung" class="field" hidden>
             <label class="field__label" for="ki-code">Einladungscode</label>
             <div class="application__inline"><input class="input" id="ki-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button type="button" class="btn" id="ki-einloesen">Einladung einlösen</button></div>
@@ -204,6 +205,7 @@
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>
+<script src="/einwilligung.js"></script>
 <script src="/formular-logik.js"></script>
 <script src="/bewerbung-logik.js"></script>
 <script src="/eigenes-anschreiben.js"></script>

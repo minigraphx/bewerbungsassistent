@@ -75,6 +75,12 @@ def load(data_dir: pathlib.Path) -> Choice:
         return _default(data_dir)
 
 
+def strictest_kind(data_dir: pathlib.Path) -> str:
+    """For what protects minors: an apprenticeship in the setup or in the search profile counts (MIN-401)."""
+    kinds = (load(data_dir).sought, search_plan.kind_of_folder(data_dir))
+    return search_plan.KIND_APPRENTICESHIP if search_plan.KIND_APPRENTICESHIP in kinds else search_plan.KIND_JOB
+
+
 def save(k, values) -> Choice:
     """Store a choice, with drafts before and after like every file in the data folder."""
     choice = parse(values)

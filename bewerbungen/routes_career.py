@@ -1,4 +1,5 @@
 """Routes for what to search for (MIN-375): suggestions from the AI, adding and removing; only for the page of the app."""
+import preferences
 import routes_ai
 import search_plan
 import search_terms
@@ -34,7 +35,7 @@ def searched_now(k) -> dict:
 
 def suggest(k, parameter, body):
     path = _profile(k)
-    kind = search_plan.kind_of_folder(k.daten)
+    kind = preferences.strictest_kind(k.daten)
     answers = career.clean_answers(body)
     if not answers["interests"] or not answers["strengths"]:
         raise ValueError(BOTH_NEEDED[kind])
@@ -66,7 +67,7 @@ def _change(k, path, description: str, change) -> dict:
 
 def add(k, parameter, body):
     path = _profile(k)
-    kind = search_plan.kind_of_folder(k.daten)
+    kind = preferences.strictest_kind(k.daten)
     name = body.get("beruf") if isinstance(body, dict) else None
     if not career.is_valid_name(name, kind):
         raise ValueError(NOT_VALID[kind])

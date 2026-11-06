@@ -173,7 +173,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
             raise ValueError(PREFILL_RUNNING)
         try:
             result = routes_ai.run_ai(
-                lambda: prefill.suggest(form, folder, request.get("track"), data, routes_ai.new_client))
+                lambda: prefill.suggest(form, folder, request.get("track"), data, lambda: routes_ai.consented_client(folder)))
         finally:
             prefill_running.release()
         with documents_lock:

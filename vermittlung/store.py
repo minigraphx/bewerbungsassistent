@@ -7,6 +7,7 @@ Times are UTC; a month is "YYYY-MM" in UTC.
 import dataclasses
 import datetime
 import hashlib
+import re
 import secrets
 import sqlite3
 import threading
@@ -18,6 +19,7 @@ CODE_LENGTH = 16  # 80 bits
 CODE_GROUP = 4
 INVITATION_DAYS = 45  # long enough for a round of applications
 MAX_INVITATION_DAYS = 365
+CONSENT_RECEIPT = re.compile(r"\d{4}-\d{2} [a-z]{1,20}")  # version and kind of search, nothing about the person
 RETENTION_DAYS = 30  # cost logs go at the latest this long after the last access was revoked
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS people (name TEXT PRIMARY KEY, budget_usd REAL NOT NULL, created TEXT NOT NULL);
@@ -25,7 +27,7 @@ CREATE TABLE IF NOT EXISTS invitations (code_hash TEXT PRIMARY KEY, person TEXT 
     created TEXT NOT NULL, expires TEXT NOT NULL, used TEXT);
 CREATE TABLE IF NOT EXISTS accesses (id INTEGER PRIMARY KEY, token_hash TEXT UNIQUE NOT NULL,
     person TEXT NOT NULL REFERENCES people(name), device TEXT NOT NULL, created TEXT NOT NULL,
-    last_used TEXT, revoked TEXT);
+    last_used TEXT, revoked TEXT, consent TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS usage (id INTEGER PRIMARY KEY, time TEXT NOT NULL, person TEXT NOT NULL,
     access_id INTEGER NOT NULL, model TEXT NOT NULL, input_tokens INTEGER NOT NULL, output_tokens INTEGER NOT NULL,
     cache_creation_input_tokens INTEGER NOT NULL, cache_read_input_tokens INTEGER NOT NULL,
@@ -70,6 +72,13 @@ class Store:
         with self._lock:
             self._db.execute("PRAGMA foreign_keys = ON")
             self._db.executescript(SCHEMA)
+            self._add_consent_column()
+
+    def _add_consent_column(self) -> None:
+        """`CREATE TABLE IF NOT EXISTS` leaves a database from before MIN-401 as it is."""
+        columns = {row["name"] for row in self._db.execute("PRAGMA table_info(accesses)")}
+        if "consent" not in columns:
+            self._db.execute("ALTER TABLE accesses ADD COLUMN consent TEXT NOT NULL DEFAULT ''")
 
     def _run(self, sql: str, args: tuple = ()) -> sqlite3.Cursor:
         with self._lock:
@@ -112,10 +121,11 @@ class Store:
         self._run("INSERT INTO invitations VALUES (?, ?, ?, ?, NULL)", (_hash(code), name, _iso(now), _iso(expires)))
         return "-".join(code[i:i + CODE_GROUP] for i in range(0, CODE_LENGTH, CODE_GROUP))
 
-    def redeem(self, code: str, device: str, now: datetime.datetime) -> str:
+    def redeem(self, code: str, device: str, now: datetime.datetime, consent: str = "") -> str:
         """A new access for the person of the code; the code is used up. StoreError if invalid or expired."""
         code_hash = _hash(normalize_code(code))
         token = "bwa_" + secrets.token_urlsafe(32)
+        receipt = consent if CONSENT_RECEIPT.fullmatch(consent) else ""
         with self._lock:
             self._db.execute("BEGIN IMMEDIATE")
             try:
@@ -124,8 +134,8 @@ class Store:
                     "RETURNING person", (_iso(now), code_hash, _iso(now))).fetchone()
                 if row is None:
                     raise StoreError("Der Code gilt nicht (falsch, schon benutzt oder abgelaufen).")
-                self._db.execute("INSERT INTO accesses (token_hash, person, device, created) VALUES (?, ?, ?, ?)",
-                                 (_hash(token), row["person"], device.strip()[:60] or "Gerät", _iso(now)))
+                self._db.execute("INSERT INTO accesses (token_hash, person, device, created, consent) VALUES (?, ?, ?, ?, ?)",
+                                 (_hash(token), row["person"], device.strip()[:60] or "Gerät", _iso(now), receipt))
                 self._db.execute("COMMIT")
             except Exception:
                 self._db.execute("ROLLBACK")
@@ -151,7 +161,7 @@ class Store:
 
     def accesses(self, name: str) -> list[dict]:
         return [dict(row) for row in self._run(
-            "SELECT id, device, created, last_used, revoked FROM accesses WHERE person = ? ORDER BY id", (name,))]
+            "SELECT id, device, created, last_used, revoked, consent FROM accesses WHERE person = ? ORDER BY id", (name,))]
 
     # deletion
 

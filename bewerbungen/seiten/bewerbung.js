@@ -641,7 +641,7 @@
       holen("/api/ki/status").catch(() => null)]);
     satz = satzJetzt;
     rav = wahl ? Boolean(wahl.rav) : true;
-    kiBereit = Boolean(kiStatus && kiStatus.eingerichtet);
+    kiBereit = Boolean(kiStatus && kiStatus.eingerichtet && kiStatus.einwilligung?.erteilt);
     await laden();
     beobachten(nachsehen);
   })();

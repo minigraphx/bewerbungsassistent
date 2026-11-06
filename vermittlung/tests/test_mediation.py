@@ -2,6 +2,7 @@
 import datetime
 import json
 import pathlib
+import sqlite3
 import sys
 import threading
 
@@ -415,3 +416,40 @@ def test_rate_limiter_lets_go_of_addresses_that_went_quiet():
     limiter.acquire("203.0.113.7")
     limiter.acquire("198.51.100.2")
     assert list(limiter._calls) == ["198.51.100.2"]
+
+
+def _invited(db: str, name: str = "T03") -> str:
+    store = Store(db)
+    store.add_person(name, 10.0, NOW)
+    return store.create_invitation(name, NOW)
+
+
+def test_the_consent_is_kept_with_the_access_and_shown_to_the_operator(tmp_path):
+    db = str(tmp_path / "m.db")
+    Store(db).redeem(_invited(db), "PC", NOW, consent="2026-11 lehrstelle")
+    assert Store(db).accesses("T03")[0]["consent"] == "2026-11 lehrstelle"
+    assert "2026-11 lehrstelle" in admin.main(["--db", db, "accesses", "T03"], lambda: NOW)
+
+
+@pytest.mark.parametrize("sent", ["<script>", "x" * 41, "Name: Erika Muster"])
+def test_only_a_receipt_is_stored_as_consent_never_free_text(tmp_path, sent):
+    db = str(tmp_path / "m.db")
+    Store(db).redeem(_invited(db), "PC", NOW, consent=sent)
+    assert Store(db).accesses("T03")[0]["consent"] == ""
+
+
+def test_an_existing_database_gets_the_column_and_keeps_its_accesses(tmp_path):
+    db = str(tmp_path / "m.db")
+    Store(db).redeem(_invited(db), "PC", NOW)
+    old = sqlite3.connect(db)
+    old.execute("ALTER TABLE accesses DROP COLUMN consent")
+    old.commit()
+    old.close()
+    assert Store(db).accesses("T03")[0]["consent"] == ""
+    assert Store(db).accesses("T03")[0]["device"] == "PC"
+
+
+def test_the_route_passes_the_receipt_on(setup):
+    answer = raw(setup, "POST", "/v1/invitations/redeem", {"code": setup["code"], "device": "Laptop", "consent": "2026-11 stelle"})
+    assert answer.status_code == 200
+    assert setup["store"].accesses("T01")[0]["consent"] == "2026-11 stelle"

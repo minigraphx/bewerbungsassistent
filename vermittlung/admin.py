@@ -4,7 +4,7 @@
                                  Person anlegen (falls neu) und Einladungscode ausgeben (Standard 45 Tage)
   revoke T01 [--access 3]        alle Zugänge der Person sperren, oder nur einen (pro Gerät)
   budget T01 30                  Budget pro Monat in USD ändern
-  accesses T01                   Zugänge mit Gerät, erstellt, zuletzt genutzt, gesperrt
+  accesses T01                   Zugänge mit Gerät, erstellt, zuletzt genutzt, Einwilligung, gesperrt
   costs [--month 2026-11]        Kosten pro Person im Monat
   due                            Personen, deren Daten zu löschen sind (Sperrung vor 30 Tagen oder länger)
   forget T01 [--yes]             gesperrte Person samt Kostenprotokollen löschen; ohne --yes nur anzeigen
@@ -66,6 +66,7 @@ def budget(store: Store, args, now: datetime.datetime) -> str:
 def accesses(store: Store, args, now: datetime.datetime) -> str:
     rows = store.accesses(args.person)
     lines = [f"{r['id']:>4}  {r['device']:<20} erstellt {r['created']}  zuletzt {r['last_used'] or '–'}"
+             f"  Einwilligung {r['consent'] or '–'}"
              f"{'  GESPERRT ' + r['revoked'] if r['revoked'] else ''}" for r in rows]
     return "\n".join(lines) or f"{args.person} hat keine Zugänge."
 

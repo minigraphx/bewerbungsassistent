@@ -5,7 +5,6 @@ import datetime
 import pytest
 
 import routes_ai
-import search_plan
 from ai import chat, prompts, tasks
 from ai.usage import UsageLog
 from test_ai_tasks import FakeClient, daten, gateway_for  # noqa: F401  (daten is a fixture)
@@ -16,10 +15,10 @@ pytestmark = pytest.mark.questions_page  # off by default, see test_app
 TODAY = datetime.date(2026, 11, 5)
 
 
-def ask(daten_dir, question="Wie bereite ich mich auf ein Gespräch vor?", history=(), kind=search_plan.KIND_JOB, reply="Üben Sie die Vorstellung."):  # noqa: F811
+def ask(daten_dir, question="Wie bereite ich mich auf ein Gespräch vor?", history=(), reply="Üben Sie die Vorstellung."):  # noqa: F811
     client = FakeClient(reply=reply)
     gateway, material = gateway_for(daten_dir, client)
-    answer = chat.answer(gateway, material, question, list(history), kind)
+    answer = chat.answer(gateway, material, question, list(history))
     return answer, client.messages.calls[0]
 
 
@@ -43,15 +42,14 @@ def test_the_instructions_limit_the_topic(daten):  # noqa: F811
         assert expected in text
 
 
-@pytest.mark.parametrize("chosen, kind, marker", [
-    (None, search_plan.KIND_JOB, "mit Sie an"),
-    ("gesucht: stelle\nanrede: du\nrav: true\n", search_plan.KIND_JOB, "mit du an"),
-    ("gesucht: lehrstelle\nanrede: du\nrav: false\n", search_plan.KIND_APPRENTICESHIP, "mit du an"),
+@pytest.mark.parametrize("chosen, marker", [
+    (None, "mit Sie an"),
+    ("gesucht: stelle\nanrede: du\nrav: true\n", "mit du an"),
 ])
-def test_the_form_of_address_follows_the_choice_in_the_setup(daten, chosen, kind, marker):  # noqa: F811
+def test_the_form_of_address_follows_the_choice_in_the_setup(daten, chosen, marker):  # noqa: F811
     if chosen:
         (daten / "einrichtung.yaml").write_text(chosen, encoding="utf-8")
-    _, payload = ask(daten, kind=kind)
+    _, payload = ask(daten)
     assert marker in system_text(payload)
 
 
@@ -134,7 +132,7 @@ def test_the_route_answers_and_says_what_is_left(asking):
 def test_the_state_tells_the_page_what_it_needs(asking):
     s, _ = asking
     status, kind, content = get(s, "/api/fragen/stand")
-    assert status == 200 and b'"eingerichtet": true' in content and b'"art": "stelle"' in content and f'"uebrig": {chat.MAX_PER_DAY}'.encode() in content
+    assert status == 200 and b'"eingerichtet": true' in content and b'"erlaubt": true' in content and f'"uebrig": {chat.MAX_PER_DAY}'.encode() in content
 
 
 def test_without_a_connection_the_state_says_so(search, monkeypatch):  # noqa: F811

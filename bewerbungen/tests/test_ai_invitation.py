@@ -34,7 +34,7 @@ def opener(answer=None, status=None, error=None):
     return open_
 
 
-def test_redeem_keeps_the_access_and_sends_only_code_and_system():
+def test_redeem_keeps_the_access_and_sends_only_code_system_and_receipt():
     kept = []
     fake = opener({"access": "bwa_geheim"})
 
@@ -42,7 +42,7 @@ def test_redeem_keeps_the_access_and_sends_only_code_and_system():
 
     request = fake.requests[0]
     assert request.full_url == URL + "/v1/invitations/redeem"
-    assert set(json.loads(request.data)) == {"code", "device"} and json.loads(request.data)["code"] == "ABCD-EFGH-JKLM-NPQR"
+    assert set(json.loads(request.data)) == {"code", "device", "consent"} and json.loads(request.data)["code"] == "ABCD-EFGH-JKLM-NPQR"
     assert kept == ["bwa_geheim"]
 
 

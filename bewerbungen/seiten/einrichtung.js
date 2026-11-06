@@ -334,8 +334,12 @@
     }
     // Without an invitation in this build the notes on an own key and the Claude subscription are the way in.
     const ohneEinladung = !ki.eingerichtet && !ki.einladung;
-    meldung($("ki-zustand"), ohneEinladung ? "" : zustand, ki.eingerichtet ? "success" : "");
-    $("ki-einladung").hidden = ki.eingerichtet || !ki.einladung;
+    const einwilligungOffen = Boolean(ki.einwilligung && !ki.einwilligung.erteilt);
+    meldung($("ki-zustand"), ohneEinladung || einwilligungOffen ? "" : zustand, ki.eingerichtet ? "success" : "");
+    if (ki.einladung_fehler) meldung($("ki-zustand"), ki.einladung_fehler, "danger");
+    $("ki-einwilligung").hidden = !einwilligungOffen;
+    if (einwilligungOffen) window.Einwilligung.zeige($("ki-einwilligung"), ki.einwilligung, neu => { ki = neu; zeigeKi(); });
+    $("ki-einladung").hidden = ki.eingerichtet || !ki.einladung || einwilligungOffen;
     $("ki-code-hinweis").hidden = ki.eingerichtet || !ki.einladung;
     $("ki-ohne").hidden = ki.eingerichtet;
     $("ki-ohne").open = ohneEinladung || $("ki-ohne").open;
