@@ -15,29 +15,19 @@ import pytest
 import routes_app
 import updates
 import updates_macos
+from signed_update import BASE, announcement, envelope, server
 
 ZIP = b"PK" + b"z" * 4000
-BASE = updates.DOWNLOAD_PREFIX + "v9.2.0/"
+PACKAGE_URL = f"{BASE}/9.2.0/"
 ZIP_NAME = "Bewerbungsbegleiter-9.2.0-macOS.zip"
 needs_shell = pytest.mark.skipif(sys.platform == "win32", reason="the swap is a shell script for macOS")
 needs_mac = pytest.mark.skipif(sys.platform != "darwin", reason="ditto and codesign exist on macOS only")
 
 
 def release(package=ZIP):
-    files = {
-        updates.LATEST_URL: json.dumps({"tag_name": "v9.2.0", "html_url": "https://github.com/x/releases/v", "assets": [
-            {"name": "Bewerbungsbegleiter-Setup-9.2.0.exe", "browser_download_url": BASE + "Bewerbungsbegleiter-Setup-9.2.0.exe"},
-            {"name": "SHA256SUMS.txt", "browser_download_url": BASE + "SHA256SUMS.txt"},
-            {"name": ZIP_NAME, "browser_download_url": BASE + ZIP_NAME},
-            {"name": updates.MAC_CHECKSUMS, "browser_download_url": BASE + updates.MAC_CHECKSUMS}]}).encode(),
-        BASE + ZIP_NAME: package,
-        BASE + updates.MAC_CHECKSUMS: f"{hashlib.sha256(ZIP).hexdigest()}  {ZIP_NAME}\n".encode(),
-    }
-
-    def fetch(url, limit):
-        if url not in files:
-            raise OSError("not found")
-        return files[url]
+    """Announces the sum of ZIP; `package` is what the server hands out, so a different one fails the check."""
+    announced = announcement("9.2.0", {"win32": b"MZ", "darwin": ZIP})
+    fetch = server("9.2.0", {"win32": b"MZ", "darwin": package}, raw=envelope(announced))
     return fetch
 
 
@@ -62,16 +52,16 @@ class Tools:
         return subprocess.CompletedProcess(args, code, "", "kaputt")
 
 
-def test_the_mac_finds_its_zip_and_its_checksums():
+def test_the_mac_finds_its_zip_and_its_checksum():
     found = updates.latest(release(), "darwin")
 
-    assert found.installer_url == BASE + ZIP_NAME and found.checksums_url == BASE + updates.MAC_CHECKSUMS
+    assert found.installer_url == PACKAGE_URL + ZIP_NAME and found.sha256 == hashlib.sha256(ZIP).hexdigest()
 
 
 def test_windows_still_finds_the_installer():
     found = updates.latest(release(), "win32")
 
-    assert found.installer_url.endswith(".exe") and found.checksums_url.endswith("/SHA256SUMS.txt")
+    assert found.installer_url.endswith(".exe") and found.sha256 == hashlib.sha256(b"MZ").hexdigest()
 
 
 def test_other_systems_get_no_package():
@@ -460,10 +450,8 @@ def test_real_tools_accept_an_ad_hoc_signed_package(tmp_path):
     subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(package)], check=True, capture_output=True)
     subprocess.run(["ditto", "-c", "-k", "--keepParent", str(package), str(tmp_path / ZIP_NAME)], check=True)
     archive = (tmp_path / ZIP_NAME).read_bytes()
-    base = updates.DOWNLOAD_PREFIX + "v9.2.0/"
-    update = updates.Update("9.2.0", "https://x", base + ZIP_NAME, base + updates.MAC_CHECKSUMS)
-    files = {base + ZIP_NAME: archive,
-             base + updates.MAC_CHECKSUMS: f"{hashlib.sha256(archive).hexdigest()}  {ZIP_NAME}\n".encode()}
+    update = updates.Update("9.2.0", "https://x", PACKAGE_URL + ZIP_NAME, hashlib.sha256(archive).hexdigest())
+    files = {PACKAGE_URL + ZIP_NAME: archive}
     installed = tmp_path / "Programme"
     installed.mkdir()
 

@@ -1,7 +1,8 @@
 name: App-Paket
 
 # Baut die lokale App für Windows (Installer) und macOS, testet sie und hängt sie bei einem Tag v* als
-# Entwurf an ein Release. Erst das Veröffentlichen des Releases rollt das Update an alle aus (MIN-342).
+# Entwurf an ein Release. Erst das Veröffentlichen des Releases rollt das Update an alle aus (MIN-342):
+# update-ausrollen.yml für den Update-Server, das Release selbst für Installationen bis 0.2.11 (MIN-403).
 on:
   push:
     branches: [main]
@@ -36,9 +37,11 @@ jobs:
         env:
           KI_URL: ${{ vars.KI_URL }}
           DATENSCHUTZ_URL: ${{ vars.DATENSCHUTZ_URL }}
+          UPDATE_URL: ${{ vars.UPDATE_URL }}
         run: |
+          if ($env:GITHUB_REF -like 'refs/tags/v*' -and -not $env:UPDATE_URL) { throw "Variable UPDATE_URL fehlt: Das Release bekäme nie mehr Updates" }
           New-Item -ItemType Directory -Force desktop/build | Out-Null
-          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
+          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', ''), 'update_url': os.environ.get('UPDATE_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
       - name: Paket bauen
         run: pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
       - name: Selbsttest des Pakets
@@ -113,9 +116,11 @@ jobs:
         env:
           KI_URL: ${{ vars.KI_URL }}
           DATENSCHUTZ_URL: ${{ vars.DATENSCHUTZ_URL }}
+          UPDATE_URL: ${{ vars.UPDATE_URL }}
         run: |
+          case "$GITHUB_REF" in refs/tags/v*) [ -n "$UPDATE_URL" ] || { echo "::error::Variable UPDATE_URL fehlt: Das Release bekäme nie mehr Updates"; exit 1; };; esac
           mkdir -p desktop/build
-          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
+          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', ''), 'update_url': os.environ.get('UPDATE_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
       - name: Paket bauen und testen
         run: |
           pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec

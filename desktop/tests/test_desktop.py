@@ -86,7 +86,7 @@ def test_stale_instance_file_is_ignored(paths):
 def test_mediation_address_comes_with_the_package(monkeypatch):
     monkeypatch.delenv("BEWERBUNGSBEGLEITER_KI_URL", raising=False)
 
-    start._use_mediation({"ki_url": "https://ki.example.ch"})
+    start._apply_build_defaults({"ki_url": "https://ki.example.ch"})
 
     import os
     assert os.environ["BEWERBUNGSBEGLEITER_KI_URL"] == "https://ki.example.ch"
@@ -95,10 +95,20 @@ def test_mediation_address_comes_with_the_package(monkeypatch):
 def test_the_privacy_page_comes_with_the_package(monkeypatch):
     monkeypatch.delenv("BEWERBUNGSBEGLEITER_DATENSCHUTZ_URL", raising=False)
 
-    start._use_mediation({"datenschutz_url": "https://example.ch/datenschutz"})
+    start._apply_build_defaults({"datenschutz_url": "https://example.ch/datenschutz"})
 
     import os
     assert os.environ["BEWERBUNGSBEGLEITER_DATENSCHUTZ_URL"] == "https://example.ch/datenschutz"
+
+
+def test_the_update_address_comes_with_the_package(monkeypatch):
+    import updates
+    monkeypatch.delenv(updates.URL_VARIABLE, raising=False)
+
+    start._apply_build_defaults({"update_url": "https://updates.example.ch"})
+
+    import os
+    assert os.environ[updates.URL_VARIABLE] == "https://updates.example.ch"
 
 
 def test_an_invitation_link_at_the_start_waits_for_the_consent(tmp_path, monkeypatch):

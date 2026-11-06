@@ -1,36 +1,50 @@
-"""Updates of the desktop app from GitHub Releases of the public repo (MIN-342, MIN-368).
+"""Updates of the desktop app from our update server (MIN-342, MIN-368, MIN-403).
 
-A release `v1.2.3` carries `Bewerbungsbegleiter-Setup-1.2.3.exe` with `SHA256SUMS.txt` and
-`Bewerbungsbegleiter-1.2.3-macOS.zip` with `SHA256SUMS-macOS.txt`: the two builds run side by side, so each writes
-its own list. The app checks the latest release, downloads the package of its system and verifies its SHA-256 sum.
+Publishing a release puts the packages on the server, then `latest.json`: version and SHA-256 sums, signed with Ed25519
+(.github/workflows/update-ausrollen.yml). The server is shared with other websites, so it is not trusted: the app only
+believes a valid signature, and the sums come from that signed file. Package addresses are built from our own address.
 On Windows the installer then runs silently over the installed version and starts the app again; on macOS
 `updates_macos.py` takes over. Data folder, settings and the access in the keychain stay untouched.
 """
+import base64
 import dataclasses
 import hashlib
 import http.client
 import json
+import logging
+import os
 import pathlib
+import queue
 import re
 import ssl
 import subprocess
 import sys
+import threading
 import urllib.error
 import urllib.request
 from typing import Callable
 
 import truststore
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-REPO = "minigraphx/bewerbungsassistent"
-LATEST_URL = f"https://api.github.com/repos/{REPO}/releases/latest"
-DOWNLOAD_PREFIX = f"https://github.com/{REPO}/releases/download/"
+import update_key
+
+log = logging.getLogger("bewerbungsbegleiter")
+
+URL_VARIABLE = "BEWERBUNGSBEGLEITER_UPDATE_URL"
+ANNOUNCEMENT = "latest.json"
+RELEASES_PAGE = "https://github.com/minigraphx/bewerbungsassistent/releases"  # only ever opened by the person
 INSTALLER = re.compile(r"^Bewerbungsbegleiter-Setup-(\d+\.\d+\.\d+)\.exe$")
 MAC_ZIP = re.compile(r"^Bewerbungsbegleiter-(\d+\.\d+\.\d+)-macOS\.zip$")
-CHECKSUMS = "SHA256SUMS.txt"
-MAC_CHECKSUMS = "SHA256SUMS-macOS.txt"
-PACKAGES = {"win32": (INSTALLER, CHECKSUMS), "darwin": (MAC_ZIP, MAC_CHECKSUMS)}
+PACKAGES = {"win32": INSTALLER, "darwin": MAC_ZIP}
+VERSION = re.compile(r"^\d+\.\d+\.\d+$")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
+MAX_NOTES = 2000
 TIMEOUT_SECONDS = 10
 DOWNLOAD_TIMEOUT_SECONDS = 300
+ANNOUNCEMENT_DEADLINE_SECONDS = 20
+DOWNLOAD_DEADLINE_SECONDS = 1800
 MAX_INSTALLER_BYTES = 400 * 1024 * 1024
 SMALL_FILE_BYTES = 1024 * 1024
 SILENT = ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"]
@@ -48,7 +62,7 @@ class Update:
     version: str
     page_url: str
     installer_url: str | None
-    checksums_url: str | None
+    sha256: str | None
     notes: str = ""
 
 
@@ -57,10 +71,8 @@ def parse_version(text: str) -> tuple[int, ...]:
     return tuple(int(part) for part in match.groups()) if match else (0, 0, 0)
 
 
-def _fetch(url: str, limit: int) -> bytes:
-    request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
-                                                   "User-Agent": "Bewerbungsbegleiter"})
-    timeout = DOWNLOAD_TIMEOUT_SECONDS if limit > SMALL_FILE_BYTES else TIMEOUT_SECONDS
+def _read_url(url: str, limit: int, timeout: int) -> bytes:
+    request = urllib.request.Request(url, headers={"User-Agent": "Bewerbungsbegleiter"})
     context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # the packed app has no CA file of its own
     with urllib.request.urlopen(request, timeout=timeout, context=context) as response:  # noqa: S310 (https only)
         data = response.read(limit + 1)
@@ -69,28 +81,80 @@ def _fetch(url: str, limit: int) -> bytes:
     return data
 
 
-def _package_url(assets: dict, pattern: re.Pattern, version: str) -> str | None:
-    matching = (url for name, url in assets.items() if name and (found := pattern.match(name)) and found.group(1) == version)
-    return next(matching, None)
+def _fetch(url: str, limit: int) -> bytes:
+    """The file at url within a deadline: the socket timeout only limits each read, and the server is not trusted."""
+    small = limit <= SMALL_FILE_BYTES
+    deadline = ANNOUNCEMENT_DEADLINE_SECONDS if small else DOWNLOAD_DEADLINE_SECONDS
+    outcome: queue.SimpleQueue = queue.SimpleQueue()
+
+    def read() -> None:
+        try:
+            outcome.put((_read_url(url, limit, TIMEOUT_SECONDS if small else DOWNLOAD_TIMEOUT_SECONDS), None))
+        except Exception as error:  # noqa: BLE001 (raised again in the caller's thread)
+            outcome.put((None, error))
+
+    threading.Thread(target=read, name="update-laden", daemon=True).start()  # a stuck request must not block quitting
+    try:
+        data, error = outcome.get(timeout=deadline)
+    except queue.Empty:
+        raise TimeoutError(f"no answer within {deadline} s") from None
+    if error:
+        raise error
+    return data
+
+
+def _server_address() -> str | None:
+    address = os.environ.get(URL_VARIABLE, "").strip().rstrip("/")
+    return address if address.startswith("https://") else None
+
+
+def verified_payload(raw: bytes, public_key: str) -> dict:
+    """The announcement inside `raw`; ValueError unless the signature is valid and the content an object."""
+    try:
+        envelope = json.loads(raw)
+        payload = base64.b64decode(envelope["payload"], validate=True)
+        signature = base64.b64decode(envelope["signature"], validate=True)
+        Ed25519PublicKey.from_public_bytes(base64.b64decode(public_key, validate=True)).verify(signature, payload)
+        announced = json.loads(payload)
+    except (KeyError, TypeError, RecursionError, InvalidSignature) as error:
+        raise ValueError(f"announcement refused: {type(error).__name__}") from error
+    if not isinstance(announced, dict):
+        raise ValueError("announcement refused: no object")
+    return announced
+
+
+def _package(announced: dict, platform: str, version: str, address: str) -> tuple[str | None, str | None]:
+    """Address and sum of the package for this system; nothing unless both look exactly as expected."""
+    pattern = PACKAGES.get(platform)
+    packages = announced.get("packages")
+    entry = packages.get(platform) if isinstance(packages, dict) else None
+    if not pattern or not isinstance(entry, dict):
+        return None, None
+    name, digest = str(entry.get("file") or ""), str(entry.get("sha256") or "")
+    found = pattern.match(name)
+    if not found or found.group(1) != version or not SHA256.match(digest):
+        return None, None
+    return f"{address}/{version}/{name}", digest
 
 
 def latest(fetch: Fetch = _fetch, platform: str = sys.platform) -> Update | None:
+    address = _server_address()
+    if not address:
+        return None
     try:
-        release = json.loads(fetch(LATEST_URL, SMALL_FILE_BYTES))
-    except (urllib.error.URLError, OSError, ValueError):
+        announced = verified_payload(fetch(f"{address}/{ANNOUNCEMENT}", SMALL_FILE_BYTES), update_key.PUBLIC_KEY)
+    except (urllib.error.URLError, http.client.HTTPException, OSError):
         return None
-    if not isinstance(release, dict) or release.get("draft") or release.get("prerelease"):
+    except (ValueError, UpdateError) as error:
+        log.warning("Update-Ankündigung abgelehnt: %s", error)
         return None
-    assets = {a.get("name"): a.get("browser_download_url") for a in release.get("assets") or [] if isinstance(a, dict)}
-    version = str(release.get("tag_name") or "").lstrip("v")
-    pattern, sums_name = PACKAGES.get(platform, (None, None))
-    installer = _package_url(assets, pattern, version) if pattern else None
-    sums = assets.get(sums_name) if sums_name else None
-    safe = [url for url in (installer, sums) if url and str(url).startswith(DOWNLOAD_PREFIX)]
-    return Update(version=version, page_url=str(release.get("html_url") or f"https://github.com/{REPO}/releases"),
-                  installer_url=installer if installer in safe else None,
-                  checksums_url=sums if sums in safe else None,
-                  notes=str(release.get("body") or "")[:2000])
+    version = str(announced.get("version") or "")
+    if not VERSION.match(version):
+        log.warning("Update-Ankündigung ohne gültige Version")
+        return None
+    package_url, digest = _package(announced, platform, version, address)
+    return Update(version=version, page_url=RELEASES_PAGE, installer_url=package_url, sha256=digest,
+                  notes=str(announced.get("notes") or "")[:MAX_NOTES])
 
 
 def newer(current: str, update: Update | None) -> Update | None:
@@ -99,19 +163,14 @@ def newer(current: str, update: Update | None) -> Update | None:
 
 def download(update: Update, target_dir: pathlib.Path, fetch: Fetch = _fetch) -> pathlib.Path:
     """The verified installer in target_dir; UpdateError if anything does not match."""
-    if not update.installer_url or not update.checksums_url:
+    if not update.installer_url or not update.sha256:
         raise UpdateError("Für diese Version gibt es keinen Installer; bitte von der Release-Seite laden.")
     name = update.installer_url.rsplit("/", 1)[-1]
     try:
-        sums = fetch(update.checksums_url, 64 * 1024).decode("utf-8")
-        expected = next((line.split()[0].lower() for line in sums.splitlines()
-                         if len(line.split()) == 2 and line.split()[1].lstrip("*") == name), None)
-        if not expected:
-            raise UpdateError("Die Prüfsumme des Installers fehlt; Update abgebrochen.")
         data = fetch(update.installer_url, MAX_INSTALLER_BYTES)
-    except (urllib.error.URLError, http.client.HTTPException, OSError, UnicodeDecodeError) as error:
+    except (urllib.error.URLError, http.client.HTTPException, OSError) as error:
         raise UpdateError("Die neue Version liess sich nicht laden. Ist der Rechner online?") from error
-    if hashlib.sha256(data).hexdigest() != expected:
+    if hashlib.sha256(data).hexdigest() != update.sha256:
         raise UpdateError("Die Prüfsumme stimmt nicht; der Download ist beschädigt. Update abgebrochen.")
     target_dir.mkdir(parents=True, exist_ok=True)
     path = target_dir / name
