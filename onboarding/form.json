@@ -22,8 +22,8 @@
   "documents": {
     "title": "Unterlagen",
     "intro": {
-      "job": "Haben Sie schon einen Lebenslauf, Arbeitszeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Der Assistent übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.",
-      "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Der Assistent übernimmt daraus später, was passt, und fragt nur nach, was fehlt."
+      "job": "Haben Sie schon einen Lebenslauf, Arbeitszeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Die App übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.",
+      "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Die App übernimmt daraus später, was passt, und fragt nur nach, was fehlt."
     },
     "categories": [
       {"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 3,
@@ -32,7 +32,7 @@
         "fileTypes": ["document", "image"]},
       {"id": "zertifikate", "title": "Zertifikate und Diplome", "hint": "Diplome, Kursbestätigungen, Sprachzertifikate, Eignungstests", "maxFiles": 30,
         "fileTypes": ["document", "image"]},
-      {"id": "anschreiben-bisher", "title": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "hint": "daraus übernimmt der Assistent Ton und eigene Formulierungen", "maxFiles": 10,
+      {"id": "anschreiben-bisher", "title": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "hint": "daraus übernimmt die App Ton und eigene Formulierungen", "maxFiles": 10,
         "fileTypes": ["document"]}
     ],
     "fileTypes": {
@@ -197,13 +197,13 @@
       "id": "searchJob",
       "title": "Suche",
       "tracks": ["job"],
-      "intro": {"job": "Danach sucht der Assistent Stellen für Sie."},
+      "intro": {"job": "Danach sucht die App Stellen für Sie."},
       "fields": [
         {"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Suche“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 5},
         {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 10},
         {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60},
         {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100},
-        {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Ohne Auswahl sucht der Assistent in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst."},
+        {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Ohne Auswahl sucht die App in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst."},
         {"id": "remote", "label": "Homeoffice erwünscht?", "type": "select", "options": ["ja", "teilweise", "nein"]},
         {"id": "workload", "label": "Pensum (z.B. 80–100 %)", "type": "text", "required": true, "max": 40},
         {"id": "start", "label": "Frühester Start (z.B. 1. März)", "type": "text", "required": true, "max": 40},
@@ -253,8 +253,8 @@
       "id": "gaps",
       "title": "Lücken",
       "intro": {
-        "job": "Was fehlt Ihnen für die Wunschstellen? Damit bewertet der Assistent bei der Stellensuche ehrlich, wie gut eine Stelle passt, und Anschreiben benennen Lücken offen und knapp, statt sie zu verstecken. Am Anfang wissen Sie das oft noch nicht; dann einfach weiter. Der Assistent ergänzt Lücken nach und nach, wenn ein Inserat etwas verlangt, das fehlt, und fragt Sie dabei.",
-        "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe. Damit bewertet der Assistent bei der Suche ehrlich, wie gut eine Lehrstelle zu dir passt. Weisst du es noch nicht, einfach weiter: Der Assistent ergänzt das nach und nach und fragt dich dabei."
+        "job": "Was fehlt Ihnen für die Wunschstellen? Damit bewertet die App bei der Stellensuche ehrlich, wie gut eine Stelle passt, und Anschreiben benennen Lücken offen und knapp, statt sie zu verstecken. Am Anfang wissen Sie das oft noch nicht; dann einfach weiter. Die App ergänzt Lücken nach und nach, wenn ein Inserat etwas verlangt, das fehlt, und fragt Sie dabei.",
+        "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe. Damit bewertet die App bei der Suche ehrlich, wie gut eine Lehrstelle zu dir passt. Weisst du es noch nicht, einfach weiter: Die App ergänzt das nach und nach und fragt dich dabei."
       },
       "fields": [
         {"id": "gaps", "label": "Lücken (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 8}

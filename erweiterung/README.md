@@ -1,17 +1,17 @@
 # Browser-Erweiterung
 
-Modul des [Bewerbungsbegleiters](../README.md) (MIN-339): Die Erweiterung für Chrome und Edge sucht nach dem Suchprofil: Stellen auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellen auf LENA (berufsberatung.ch) und yousty. Sie sucht im Browser der Person, mit deren IP und Logins, und nur, wenn die Person die Suche startet. Die Treffer gehen über Native Messaging an die [Desktop-App](../desktop/README.md); dort erscheinen sie auf der Seite „Suche“.
+Modul des [Bewerbungsbegleiters](../README.md) (MIN-339): Die Erweiterung für Chrome und Edge sucht nach dem Suchprofil: Stellen auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellen auf LENA (berufsberatung.ch) und yousty. Sie sucht im Browser der Person, mit deren IP und Logins, und nur, wenn die Person die Suche startet. Die Treffer gehen über Native Messaging an die [Desktop-App](../desktop/README.md); dort erscheinen sie auf der Seite „Stellen suchen“.
 
 Im Pilot wird sie als **Entwicklererweiterung** geladen („Entpackte Erweiterung laden“). Für die Stores baut `desktop/store_package.py` die ZIP-Datei: ohne Tests und ohne das Feld `key`, denn dort vergibt der Store die ID. Diese ID muss in `EXTENSION_IDS` (`desktop/native_messaging.py`) stehen, sonst lässt die App die Store-Fassung nicht zu.
 
 ## Einrichten
 
-Die App zeigt die Schritte auf der Seite **Einrichtung → Schritt 4** mit dem passenden Ordner:
+Die App zeigt die Schritte auf der Seite **Einrichtung → Schritt 5** mit dem passenden Ordner:
 
 1. Die App einmal starten. Sie meldet sich bei Chrome und Edge als Native-Messaging-Host an und legt den Ordner der Erweiterung in ihrem App-Ordner ab (`…/Bewerbungsbegleiter/erweiterung`). Beim Start aus dem Repo nimmt sie direkt diesen Ordner.
 2. In der Einrichtung „In Chrome öffnen“ bzw. „In Edge öffnen“ klicken: Die Erweiterungsseite und der Ordner gehen auf. Einmalig den **Entwicklermodus** einschalten. Von Hand: `chrome://extensions` oder `edge://extensions`.
 3. **„Entpackte Erweiterung laden“** und den Ordner wählen (auf dem Mac im Dialog mit Cmd+Shift+G den Pfad einfügen).
-4. Der Knopf „Stellen suchen“ auf der Seite „Suche“ ist jetzt aktiv, auch ohne dass offene Seiten der App neu geladen werden müssen.
+4. Der Knopf „Jetzt suchen“ auf der Seite „Stellen suchen“ ist jetzt aktiv, auch ohne dass offene Seiten der App neu geladen werden müssen.
 
 Ein Klick allein genügt nicht: Chrome lässt Apps seit Version 137 keine Erweiterungen mehr selbst laden (`--load-extension`), Richtlinien gelten nur auf verwalteten Geräten. Das ändert erst der Store.
 
@@ -19,7 +19,7 @@ Die ID der entpackten Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`),
 
 ## Ablauf einer Suche
 
-1. Start im Popup der Erweiterung oder mit „Stellen suchen“ auf der Seite „Suche“.
+1. Start im Popup der Erweiterung oder mit „Jetzt suchen“ auf der Seite „Stellen suchen“.
 2. Die Erweiterung holt den **Suchplan** von der App (`GET /api/suche/plan`, gebaut aus `suchprofil.md`): Stichworte, Orte, PLZ, Kantone, Titelfilter und Portale. Ohne Region steht `schweizweit` im Plan: Dann folgen nach den Abfragen am Wohnort dieselben Stichworte ohne Ort.
 3. Pro Portal öffnet sie einen Tab im Hintergrund und führt dort die Anpassung aus `portals/` aus (`fetch` auf derselben Seite, wie im Skill `jobsuche`). Grenzen: höchstens 3 Seiten pro Abfrage, 30 Abfragen pro Portal, 150 neue Inserate pro Portal und Lauf (die nahen zuerst, der Rest beim nächsten Lauf), Inserate bis 45 Tage alt, 0,6 Sekunden zwischen den Abrufen.
 4. Die Trefferliste geht zuerst an die App zum **Sichten** (`POST /api/suche/sichten`): bekannte Stellen, ausgeschlossene Titel und zu alte Inserate fallen weg. Dieselbe Stelle von einem anderen Portal (gleiche Firma, gleicher Titel, gleicher Ort) hängt die App gleich als weiteren Link an. Nur für die übrigen holt die Erweiterung den Volltext.
@@ -27,7 +27,7 @@ Die ID der entpackten Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`),
 
 Die App nimmt über den Host nur diese vier Anfragen und die zwei für die offene Seite (siehe unten) an. Alles andere lehnt der Host ab. Die Erweiterung selbst nimmt Aufträge nur vom Popup und von der Seite der laufenden App an; eine andere Seite auf `127.0.0.1` mit demselben Kennzeichen wird abgewiesen, weil ihre Adresse nicht die ist, die die App über Native Messaging meldet (`lib/senders.js`).
 
-**Zuschauen (MIN-370):** Die Suche läuft im Hintergrund. Mit dem Häkchen auf der Seite „Suche“ läuft sie im sichtbaren Tab, damit man mitverfolgen kann, was die Erweiterung tut. Die Einstellung kommt mit dem Suchplan, gilt also auch für einen Start im Popup. Ein Balken sagt, dass der Browser gesteuert wird, und bietet „Suche abbrechen“. Den Tab zu schliessen bricht die Suche ebenfalls ab; was schon an die App ging, bleibt. Wer im Tab etwas anklickt, kann die Abfragen stören, darum die Bitte im Balken: Das betroffene Portal meldet dann ein Problem, die übrigen laufen weiter.
+**Zuschauen (MIN-370):** Die Suche läuft im Hintergrund. Mit dem Häkchen unter „Suche einstellen“ läuft sie im sichtbaren Tab, damit man mitverfolgen kann, was die Erweiterung tut. Die Einstellung kommt mit dem Suchplan, gilt also auch für einen Start im Popup. Ein Balken sagt, dass der Browser gesteuert wird, und bietet „Suche abbrechen“. Den Tab zu schliessen bricht die Suche ebenfalls ab; was schon an die App ging, bleibt. Wer im Tab etwas anklickt, kann die Abfragen stören, darum die Bitte im Balken: Das betroffene Portal meldet dann ein Problem, die übrigen laufen weiter.
 
 ## Weitere Seiten durchsuchen (MIN-348)
 
@@ -74,13 +74,13 @@ In der Übersicht der App klickt die Person bei „Das steht an“ auf **Formula
 
 Texte der Seite sind Daten, keine Anweisungen. Zeilen, die sich an eine KI richten, meldet der Balken.
 
-**Zugriff:** Formulare liegen auf beliebigen Seiten, darum fragt die Erweiterung beim ersten „Bewerben“ auf `erlauben.html` einmal um Zugriff auf alle Seiten (`optional_host_permissions`). Sie nutzt ihn nur für Tabs aus ihrer eigenen Liste (`storage.session`). Ohne Frage zählen nur die Adresse nach dem ersten Laden und ihre Subdomains; bei jeder anderen fragt der Balken zuerst („Hier ausfüllen“). Das gilt auch hinter „Jetzt bewerben“: Diesem Link folgt sie einmal, wenn auf der Seite kein Formular ist, die Seite bestimmt aber nicht, wohin die Angaben gehen. Die Werte gehen nur an die geprüften Dokumente, nicht an das, was der Tab inzwischen zeigt.
+**Zugriff:** Formulare liegen auf beliebigen Seiten, darum fragt die Erweiterung beim ersten „Formular öffnen“ auf `erlauben.html` einmal um Zugriff auf alle Seiten (`optional_host_permissions`). Sie nutzt ihn nur für Tabs aus ihrer eigenen Liste (`storage.session`). Ohne Frage zählen nur die Adresse nach dem ersten Laden und ihre Subdomains; bei jeder anderen fragt der Balken zuerst („Hier ausfüllen“). Das gilt auch hinter „Jetzt bewerben“: Diesem Link folgt sie einmal, wenn auf der Seite kein Formular ist, die Seite bestimmt aber nicht, wohin die Angaben gehen. Die Werte gehen nur an die geprüften Dokumente, nicht an das, was der Tab inzwischen zeigt.
 
 **Seiten und Rahmen:** Ein Formular braucht mindestens drei sichtbare Felder ohne Häkchen, sonst bleibt der Rahmen unberührt (Suchfelder, Newsletter, Filter). Neue und neu eingeblendete Felder werden nachgefüllt, die nächste Seite derselben Adresse ebenfalls, später gebaute Rahmen auch. Knöpfe drückt sie nur auf Seiten ganz ohne Felder und nie in einem Formular.
 
 ## Lehrstellen
 
-Abschnitt „Gesucht“ im Suchprofil oder die Wahl auf der Seite „Suche“ legen fest, ob Lehrstellen, Schnupperlehren oder beides gesucht werden (MIN-373; Listen `lehrstellen` und `schnupperadressen` auf LENA, `lehrstellen` und `schnupperlehren` auf yousty). Schnupperlehren sind in der App eigene Treffer, und „Übernehmen“ legt eine Anfrage statt einer Bewerbung an.
+Abschnitt „Gesucht“ im Suchprofil oder die Wahl auf der Seite „Stellen suchen“ legen fest, ob Lehrstellen, Schnupperlehren oder beides gesucht werden (MIN-373; Listen `lehrstellen` und `schnupperadressen` auf LENA, `lehrstellen` und `schnupperlehren` auf yousty). Schnupperlehren sind in der App eigene Treffer, und „Übernehmen“ legt eine Anfrage statt einer Bewerbung an.
 
 Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur auf LENA und yousty, pro Beruf im gewählten Umkreis um den Wohnort (Standard 25 km), ohne Wohnort in jedem Kanton. Höchstens 20 Seiten pro Abfrage. Nur Lehrstellen mit dem gewählten Lehrbeginn kommen an; ohne Jahr im Profil alle. Schnupperlehren sucht sie noch nicht.
 
