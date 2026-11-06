@@ -1,4 +1,11 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git checkout *)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {

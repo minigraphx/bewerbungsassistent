@@ -32,6 +32,6 @@ Offene Arbeit liegt auf dem Pullboard-Board dieses Repos: `pullboard queue` zeig
 
 - **Reihenfolge:** Meilensteine und deren Rang. Was auf Andy wartet oder von Andy noch nicht eingeplant ist, steht auf Hold und nimmt sich kein Agent.
 - **Ablauf:** Worktree der Lane `app`, `pullboard claim`, Commits, `pullboard submit` (läuft `scripts/gate.sh`, gut 4 Minuten), dann `scripts/verify-item.sh`. Das startet eine eigene Claude-Sitzung als Prüfer; ein Subagent gilt als dieselbe Sitzung und wird abgelehnt. Nach dem Verify den Branch pushen, Pull Request, Checks grün, Squash-Merge, `pullboard merged <id> <squash-sha>`.
-- **Bei Andy bleiben:** Spec-Zeilen freigeben (`pullboard spec approve`), Releases veröffentlichen, die Vermittlung deployen, Entscheide auf Items mit Hold.
+- **Bei Andy bleiben:** Spec-Zeilen freigeben (`pullboard spec approve`; Pflicht nur für `feat`-Commits), Releases veröffentlichen, die Vermittlung deployen, Entscheide auf Items mit Hold.
 
 @AGENTS.md

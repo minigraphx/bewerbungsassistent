@@ -41,8 +41,7 @@
   "shared": [],
   "commits": {
     "requireIds": [
-      "feat",
-      "fix"
+      "feat"
     ]
   },
   "checks": {
