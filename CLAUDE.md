@@ -20,6 +20,7 @@ Die App heisst **Bewerbungsbegleiter**, auch technisch (seit 0.2.11, MIN-395). `
 
 ## Regeln
 - Nichts direkt auf `main`: Jede Änderung läuft über einen eigenen Branch und einen Pull Request, mit Ticket-ID in Commit und PR. Gemergt wird erst nach Andys Freigabe. `main` ist geschützt: Die Checks müssen grün und der Branch aktuell sein. Auch der Versions-Commit eines Releases läuft so; den Tag `v<Version>` setzt man danach auf den Merge-Stand.
+- Die Datenschutz-Seite liegt auf dem Hosting, nicht im Repo, weil sie den Namen des Betreibers nennt. Sie ist im selben Zug nachzuführen, wenn sich ändert, was an die KI, die Vermittlung oder den Update-Server geht.
 - Keine persönlichen Daten in dieses Repo: keine echten Namen, Adressen, Fotos, Sheet-IDs, Bewerbungsstände oder konkreten Zielfirmen mit Status. Sie liegen im privaten Ordner `../bewerbungsassistent-daten/` (eigenes privates Repo) und werden per Pfad übergeben.
 - Skills bleiben allgemein: personenbezogene Kriterien, Region, Keywords und Zielfirmen gehören ins Suchprofil, nicht in den Skill.
 - Dokumentation und Texte für Nutzer (Oberfläche, Fehlermeldungen) auf Deutsch, Schweizer Schreibweise (ss statt ß).
