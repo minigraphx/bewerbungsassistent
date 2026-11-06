@@ -158,7 +158,7 @@ def test_without_gaps_the_files_say_they_come_later(form):
         bundle["data"].pop("gaps", None)
         files = files_for(form, bundle)
 
-        assert "## Lücken (offen benennen)\n- Noch keine. Der Assistent ergänzt sie nach und nach" in files["anschreiben/bausteine.md"]
+        assert "## Lücken (offen benennen)\n- Noch keine. Die App ergänzt sie nach und nach" in files["anschreiben/bausteine.md"]
         assert "## Typische Haken (offen benennen)\n- Noch keine." in files["suchprofil.md"]
 
 

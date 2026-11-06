@@ -28,7 +28,7 @@ MAX_PLACE_CHARS = 100
 MAX_SUSPICIOUS_LINES = 20
 MAX_SUSPICIOUS_CHARS = 300
 NO_DOCUMENTS = "Zuerst Unterlagen hochladen."
-NO_NAME = ("Zuerst den Namen unter „Person und Kontakt“ eintragen: So erkennt der Assistent ihn in den Unterlagen "
+NO_NAME = ("Zuerst den Namen unter „Person und Kontakt“ eintragen: So erkennt die App ihn in den Unterlagen "
            "und schickt ihn nicht an die KI.")
 BROKEN_CV = "cv.yaml lässt sich nicht lesen."
 UNKNOWN_TRACK = "Unbekannte Art der Suche."

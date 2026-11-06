@@ -71,8 +71,8 @@
   function note(wert) {
     if (typeof wert !== "number") return "";
     const balken = [1, 2, 3, 4, 5, 6].map(k => el("i", { class: wert >= k ? "on" : wert >= k - 0.5 ? "half" : "" }));
-    return el("span", { class: "grade-meter grade-meter--sm", "aria-label": `Note ${wert} von 6, ${notenWort(wert)}` },
-      el("span", { class: "grade-meter__value" }, String(wert)),
+    return el("span", { class: "grade-meter grade-meter--sm", "aria-label": `Note ${window.Texte.notenText(wert)} von 6, ${notenWort(wert)}` },
+      el("span", { class: "grade-meter__value" }, window.Texte.notenText(wert)),
       el("span", { class: "grade-meter__bar", "aria-hidden": "true" }, balken),
       el("span", { class: "grade-meter__word", "aria-hidden": "true" }, notenWort(wert)));
   }

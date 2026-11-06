@@ -33,35 +33,41 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
 ## 2. Einrichtung in der App
 
-Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Sie beenden sie oben rechts mit **Beenden**.
+Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Sie beenden sie im Menü **Mehr** mit **Beenden**.
 
-![Seite Einrichtung mit den Schritten Datenordner und Angaben aus einer Datei](bilder/einrichtung-start.jpg)
+Die Einrichtung hat fünf Schritte und dauert zusammen etwa zehn Minuten. Jeden Schritt können Sie später ändern; Sie finden die Seite im Menü **Mehr** unter **Einrichtung**.
 
-### Schritt 1: Datenordner
+### Schritt 1: Was wird gesucht?
 
-Hier liegen Ihr Lebenslauf, Ihre Anschreiben und Ihre Bewerbungen. Der Vorschlag unter „Dokumente“ passt meistens: Klicken Sie auf **Diesen Ordner verwenden**.
+Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room. Klicken Sie dann auf **Weiter**.
 
-### Schritt 2: Angaben aus einer Datei
+### Schritt 2: Datenordner
 
-Haben Sie schon eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus Claude, wählen Sie sie und klicken auf **Importieren**. Sonst überspringen Sie diesen Schritt und erfassen Ihre Angaben später unter **Meine Angaben**.
+![Seite Einrichtung mit den fünf Schritten und dem Feld für den Datenordner](bilder/einrichtung-start.jpg)
 
-### Schritt 3: KI-Unterstützung
+Hier liegen Ihr Lebenslauf, Ihre Anschreiben und Ihre Bewerbungen. Der Vorschlag unter „Dokumente“ passt meistens: Klicken Sie auf **Ordner anlegen und weiter**. Einen anderen Ordner wählen Sie mit **Ordner wählen …**.
 
-![Schritt KI-Unterstützung mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
+### Schritt 3: Angaben aus einer Datei
+
+Haben Sie schon eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus Claude, wählen Sie sie mit **Datei wählen …** und klicken auf **Importieren**. Sonst klicken Sie auf **Überspringen** und erfassen Ihre Angaben später unter **Meine Angaben**.
+
+### Schritt 4: KI
+
+![Schritt KI einrichten mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
 
 Lesen Sie zuerst die Datenschutz-Erklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Bei der Lehrstellensuche richtet ein Elternteil oder die gesetzliche Vertretung die App ein und bestätigt das hier. Widerrufen können Sie jederzeit unter **Erweiterte Einstellungen**.
 
-Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlösen**. Haben Sie stattdessen einen Einladungslink erhalten, genügt ein Klick darauf; der Code wird nach der Einwilligung eingelöst.
+Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlösen**. Haben Sie stattdessen einen Einladungslink erhalten, genügt ein Klick darauf; der Code wird nach der Einwilligung eingelöst. Ohne Code geht es mit **Ohne KI weiter**. Suche, Unterlagen und Versand funktionieren dann trotzdem.
 
-### Schritt 4: Browser-Erweiterung
+### Schritt 5: Browser-Erweiterung
 
-Die Erweiterung sucht in Ihrem Browser nach Stellen. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**. Bis sie im Store ist, laden Sie sie einmal von Hand.
+Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**. Bis sie im Store ist, laden Sie sie einmal von Hand.
 
-![Schritt Browser-Erweiterung mit den Knöpfen In Chrome öffnen, In Edge öffnen, Pfad kopieren und Ordner zeigen](bilder/einrichtung-erweiterung.jpg)
+![Schritt Browser-Erweiterung mit den Knöpfen In Chrome öffnen, In Edge öffnen, dem Pfad des Ordners und dem Knopf Ordner zeigen](bilder/einrichtung-erweiterung.jpg)
 
 1. Auf **In Chrome öffnen** oder **In Edge öffnen** klicken. Die Erweiterungsseite und der Ordner der Erweiterung gehen auf.
 2. Den **Entwicklermodus** einschalten: in Chrome oben rechts, in Edge links.
-3. Den Ordner `erweiterung` auf die Erweiterungsseite ziehen. Geht das nicht: **Entpackte Erweiterung laden** wählen und den Ordner auswählen. Der Knopf **Pfad kopieren** hilft dabei: Auf dem Mac fügen Sie den Pfad im Auswahlfenster mit Cmd+Shift+G ein, unter Windows oben in die Adresszeile.
+3. Den Ordner `erweiterung` auf die Erweiterungsseite ziehen. Geht das nicht: **Entpackte Erweiterung laden** wählen und den Ordner auswählen. Der Knopf **Kopieren** neben dem Pfad hilft dabei: Auf dem Mac fügen Sie den Pfad im Auswahlfenster mit Cmd+Shift+G ein, unter Windows oben in die Adresszeile.
 
 ![Erweiterungsseite von Chrome mit eingeschaltetem Entwicklermodus, dem Knopf Entpackte Erweiterung laden und der geladenen Erweiterung](bilder/chrome-erweiterungen.jpg)
 
@@ -69,16 +75,16 @@ Die Erweiterung steht dann in der Liste, und in der App erscheint von selbst „
 
 ## 3. Erste Schritte
 
-1. **Meine Angaben** (im Menü): Wählen Sie die Stellensuche und erfassen Sie Lebenslauf und Suchprofil. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Zum Schluss klicken Sie auf **Übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
-2. **Suche**: Klicken Sie auf **Stellen suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Unter **Wo suchen Sie?** wählen Sie die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche.
+1. **Meine Angaben**: Erfassen Sie Lebenslauf und Suchprofil. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Zum Schluss klicken Sie auf **Übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
+2. **Stellen suchen**: Klicken Sie auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Unter **Suche einstellen**, **Wo suchen Sie?**, wählen Sie die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche.
 3. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Übernehmen** legt eine Bewerbung an, **Verwerfen** blendet den Treffer aus.
-4. **Bewerben**: Öffnen Sie unter **Bewerbungen** eine Firma und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Erst dann lässt sie sich in der Übersicht ankreuzen; was noch fehlt, steht dort bei der Firma. **Bewerben** öffnet das Formular und füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe unten).
+4. **Bewerben**: Die **Übersicht** zeigt unter **Das steht an**, was als Nächstes zu tun ist, und in der Liste den nächsten Schritt jeder Bewerbung. Öffnen Sie eine Bewerbung und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Lesen Sie den Entwurf und klicken Sie auf **Freigeben**. Danach öffnet **Formular öffnen** das Formular der Firma, und die Erweiterung füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe unten).
 
 Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
 
 ### Fertige Dateien verwenden
 
-Unter **Meine Dateien** (im Menü) laden Sie Ihren Lebenslauf als PDF sowie Zertifikate und Zeugnisse hoch. Sie werden so verwendet, wie sie sind. Der Lebenslauf gilt für alle Bewerbungen, bei denen keine Variante gewählt ist. Welche Zertifikate mitgehen, wählen Sie pro Bewerbung. Die Dateien gehen nicht an die KI.
+Unter **Meine Dateien** (im Menü **Mehr**) laden Sie Ihren Lebenslauf als PDF sowie Zertifikate und Zeugnisse hoch. Sie werden so verwendet, wie sie sind. Der Lebenslauf gilt für alle Bewerbungen, bei denen keine Variante gewählt ist. Welche Zertifikate mitgehen, wählen Sie pro Bewerbung. Die Dateien gehen nicht an die KI.
 
 Ein eigenes Anschreiben laden Sie als PDF auf der Seite der Bewerbung hoch, unter **Eigenes Anschreiben**. Es gilt nur für diese Bewerbung und anstelle eines Entwurfs. Solange es gilt, entwirft und prüft die KI dort kein Anschreiben; den Inhalt vergleichen Sie selbst mit dem Inserat. Entfernen Sie die Datei, gilt wieder der Entwurf.
 
@@ -97,8 +103,8 @@ Du installierst alles genau wie oben beschrieben. Lass dir dabei ruhig von deine
 Danach ist Folgendes anders:
 
 1. Unter **Meine Angaben** wählst du die **Lehrstellensuche**. Die Fragen führen dich durch alles, was es braucht.
-2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Suche** kann dir die KI Berufe vorschlagen. Du entscheidest, welche du in deine Suche aufnimmst.
-3. Auf der Seite **Suche** wählst du, ob du Lehrstellen, Schnupperlehren oder beides suchst. Die Erweiterung sucht dann auf LENA (berufsberatung.ch) und yousty. Unter **Wo suchst du?** kannst du eines davon ausschalten.
+2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Stellen suchen** kann dir die KI Berufe vorschlagen. Du entscheidest, welche du in deine Suche aufnimmst.
+3. Unter **Suche einstellen** wählst du, ob du Lehrstellen, Schnupperlehren oder beides suchst. Die Erweiterung sucht dann auf LENA (berufsberatung.ch) und yousty. Unter **Wo suchst du?** kannst du eines davon ausschalten.
 
 Deine Bewerbung schickst immer du selbst ab.
 
@@ -128,21 +134,21 @@ Behandeln Sie den Schlüssel wie ein Passwort: Wer ihn hat, kann auf Ihre Kosten
 
 ### Schlüssel in der App eintragen
 
-![Seite Erweiterte Einstellungen mit den Hinweisen, dem Häkchen und dem Feld für den API-Schlüssel](bilder/einstellungen-schluessel.jpg)
+![Abschnitt Eigener API-Schlüssel mit den Hinweisen, dem Häkchen und dem Feld für den Schlüssel](bilder/einstellungen-schluessel.jpg)
 
-1. Im Menü **Erweiterte Einstellungen** öffnen.
+1. Im Menü **Mehr** die **Erweiterten Einstellungen** öffnen.
 2. Die Hinweise lesen und das Häkchen setzen.
 3. Den Schlüssel einfügen und auf **Prüfen und speichern** klicken.
 
 Die App prüft den Schlüssel mit einem kleinen, kostenlosen Aufruf. Zum Guthaben sagt diese Prüfung nichts: Fehlt es, merken Sie das erst beim ersten Aufruf der KI. Der Schlüssel liegt danach nur im Schlüsselbund Ihres Computers, nie im Datenordner und nie in der Browser-Erweiterung.
 
-Was die KI gekostet hat, steht unten auf derselben Seite unter **Kosten der KI**. Das ist die eigene Notiz der App. Massgebend ist die Abrechnung von Anthropic.
+Was die KI gekostet hat, steht oben auf derselben Seite unter **Kosten der KI**. Das ist die eigene Notiz der App. Massgebend ist die Abrechnung von Anthropic.
 
 ### Weitere Seiten durchsuchen
 
 Mit gespeichertem Schlüssel erscheint auf derselben Seite dieser Abschnitt. Hier tragen Sie Seiten ein, auf denen die Suche zusätzlich schauen soll, zum Beispiel die offenen Stellen einer Firma.
 
-![Abschnitt Weitere Seiten durchsuchen mit zwei erfundenen Adressen und den Knöpfen Seiten speichern und Zugriff in der Erweiterung erlauben](bilder/einstellungen-seiten.jpg)
+![Abschnitt Eigener API-Schlüssel mit gespeichertem Schlüssel und darunter Weitere Seiten durchsuchen mit zwei erfundenen Adressen und den Knöpfen Seiten speichern und Zugriff in der Erweiterung erlauben](bilder/einstellungen-seiten.jpg)
 
 1. Unter **Adressen** höchstens fünf Adressen eintragen, eine pro Zeile. Kopieren Sie die Adresse einfach aus der Adresszeile des Browsers, etwa `https://www.beispiel.ch/stellen`.
 2. Auf **Seiten speichern** klicken.
@@ -175,7 +181,7 @@ Beim ersten Start übernimmt die neue Version Ihre Einstellungen, den Datenordne
 Von Hand bleibt:
 
 - **Mac:** Die alte `Bewerbungsassistent.app` aus „Programme“ löschen. Windows entfernt die alte Version selbst.
-- **Erweiterung:** Die alte Erweiterung auf der Erweiterungsseite des Browsers entfernen und den neuen Ordner laden, wie in Schritt 4 beschrieben.
+- **Erweiterung:** Die alte Erweiterung auf der Erweiterungsseite des Browsers entfernen und den neuen Ordner laden, wie in Schritt 5 beschrieben.
 - **Eigenes Claude-Abo:** Die drei Skills in der App neu herunterladen und in Claude ersetzen, und Claude Desktop einmal neu starten. Haben Sie die App in Claude Code eingetragen: `claude mcp remove bewerbungsassistent` und den Befehl aus den Einstellungen neu ausführen.
 
 Einladungslinks, die mit `bewerbungsassistent://` beginnen, öffnen die App nicht mehr. Geben Sie den Code in diesem Fall in der App ein.
@@ -185,10 +191,10 @@ Einladungslinks, die mit `bewerbungsassistent://` beginnen, öffnen die App nich
 | Meldung oder Problem | Was hilft |
 |---|---|
 | Windows blockiert die Datei, und **Trotzdem ausführen** fehlt | Vermutlich ist [Smart App Control](https://support.microsoft.com/de-de/windows/smart-app-control-frequently-asked-questions-285ea03d-fa88-4d56-882e-6698afdb7003) aktiv. Es blockiert nicht signierte Programme, und laut Microsoft gibt es keine Ausnahme für einzelne Programme. Die App läuft dann nur, wenn Sie es in der Windows-Sicherheit ausschalten. Das gilt für alle Programme; entscheiden Sie das bewusst, bei Jugendlichen zusammen mit der Begleitperson. |
-| „Für die Suche braucht es die Browser-Erweiterung.“ | Die Erweiterung ist nicht geladen oder ausgeschaltet. Gehen Sie zu [Schritt 4](#schritt-4-browser-erweiterung), oder schalten Sie sie auf der Erweiterungsseite ein. |
+| „Für die Suche braucht es die Browser-Erweiterung.“ | Die Erweiterung ist nicht geladen oder ausgeschaltet. Gehen Sie zu [Schritt 5](#schritt-5-browser-erweiterung), oder schalten Sie sie auf der Erweiterungsseite ein. |
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
 | „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein. |
-| „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 3](#schritt-3-ki-unterstützung) ein. |
+| „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 4](#schritt-4-ki) ein. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie im Pilot begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |
 | „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
