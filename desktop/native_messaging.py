@@ -22,7 +22,8 @@ HOST_NAME = "bewerbungsbegleiter"
 OLD_HOST_NAME = "bewerbungsassistent"  # up to version 0.2.10 (MIN-395)
 # The developer add-on (key in erweiterung/manifest.json); the IDs of the stores follow with the release.
 EXTENSION_IDS = ("ghniboofenadplgmdgddmgjaaeeogejn",  # developer add-on
-                 "mcbcijjbklfeffbollnemgkgnabnmfmp")  # Edge Add-ons (MIN-352)
+                 "mcbcijjbklfeffbollnemgkgnabnmfmp",  # Edge Add-ons (MIN-352)
+                 "nopiegcdnjpkekgfakgglegkeifpmopo")  # Chrome Web Store (MIN-352)
 MANIFEST_FILE = f"{HOST_NAME}.json"
 WINDOWS_MANIFEST = "native-messaging-host.json"
 LAUNCHER = "native-messaging-host"
