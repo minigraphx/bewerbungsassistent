@@ -35,8 +35,6 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - name: Werkzeug für den Upload
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
       - name: Release holen und Ankündigung bauen
         env:
           GH_TOKEN: ${{ github.token }}
@@ -62,33 +60,22 @@ jobs:
           openssl pkeyutl -sign -inkey "$key" -rawin -in payload.json -out payload.sig
           python3 desktop/release_manifest.py envelope payload.json payload.sig latest.json
       - name: Hochladen, die Ankündigung zuletzt
+        # FTP mit Pflicht zu TLS und geprüftem Zertifikat: Nur ein FTP-Konto lässt sich auf einen Ordner beschränken.
         env:
-          LFTP_PASSWORD: ${{ secrets.UPDATE_SFTP_PASSWORD }}
-          SFTP_HOST: ${{ vars.UPDATE_SFTP_HOST }}
-          SFTP_USER: ${{ vars.UPDATE_SFTP_USER }}
-          SFTP_FOLDER: ${{ vars.UPDATE_SFTP_FOLDER }}
-          KNOWN_HOSTS: ${{ vars.UPDATE_SFTP_KNOWN_HOSTS }}
+          FTP_PASSWORD: ${{ secrets.UPDATE_FTP_PASSWORD }}
+          FTP_HOST: ${{ vars.UPDATE_FTP_HOST }}
+          FTP_USER: ${{ vars.UPDATE_FTP_USER }}
         run: |
           version="${TAG#v}"
-          known="$RUNNER_TEMP/known_hosts"
-          printf '%s\n' "$KNOWN_HOSTS" > "$known"
-          cat > upload.lftp <<LFTP
-          set cmd:fail-exit yes
-          set net:max-retries 3
-          set net:timeout 30
-          set sftp:auto-confirm no
-          set sftp:connect-program "ssh -a -x -o UserKnownHostsFile=$known -o StrictHostKeyChecking=yes"
-          open --user "$SFTP_USER" --env-password "sftp://$SFTP_HOST"
-          cd "$SFTP_FOLDER"
-          mkdir -fp "$version"
-          put -O "$version" "pakete/Bewerbungsbegleiter-Setup-$version.exe"
-          put -O "$version" "pakete/Bewerbungsbegleiter-$version-macOS.zip"
-          put -o latest.json.part latest.json
-          rm -f latest.json
-          mv latest.json.part latest.json
-          bye
-          LFTP
-          lftp -f upload.lftp
+          config="$RUNNER_TEMP/ftp.conf"
+          trap 'rm -f "$config"' EXIT
+          password="${FTP_PASSWORD//\\/\\\\}"
+          (umask 077; printf 'user = "%s:%s"\n' "$FTP_USER" "${password//\"/\\\"}" > "$config")
+          upload() { curl --fail --silent --show-error --ssl-reqd --retry 3 --ftp-create-dirs --config "$config" "$@"; }
+          upload -T "pakete/Bewerbungsbegleiter-Setup-$version.exe" "ftp://$FTP_HOST/$version/"
+          upload -T "pakete/Bewerbungsbegleiter-$version-macOS.zip" "ftp://$FTP_HOST/$version/"
+          upload -T latest.json "ftp://$FTP_HOST/latest.json.part" \
+            -Q "-*DELE latest.json" -Q "-RNFR latest.json.part" -Q "-RNTO latest.json"
       - name: Prüfen, was der Server ausliefert
         env:
           UPDATE_URL: ${{ vars.UPDATE_URL }}
