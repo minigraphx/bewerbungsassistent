@@ -78,3 +78,7 @@ def test_page_of_the_app_has_the_menu_and_scripts_of_the_app():
     assert build_template.app_menu() in app_page and 'class="app-nav"' not in shared
     assert re.findall(r'<script src="([^"]+)"', app_page) == ["/texte.js", "/app.js"]
     assert "script-src 'self' 'sha256-" in app_page and "script-src 'self'" not in shared
+
+
+def test_the_form_speaks_of_the_app_not_of_an_assistant():
+    assert not re.search(r"\b(der|dem|den|des) Assistent", build_template.build(), re.IGNORECASE)
