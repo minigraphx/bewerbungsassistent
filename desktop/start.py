@@ -41,15 +41,15 @@ def _setup_logging(paths: settings.Paths) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", handlers=handlers, force=True)
 
 
-def _use_mediation(defaults: dict) -> None:
-    """The address of the mediation comes with the package; an environment variable still wins."""
+def _apply_build_defaults(defaults: dict) -> None:
+    """Addresses that come with the package; an environment variable still wins."""
     import os
+    import updates
     from ai.connection import URL_VARIABLE
     from ai.consent import PAGE_VARIABLE
-    if defaults.get("ki_url") and not os.environ.get(URL_VARIABLE):
-        os.environ[URL_VARIABLE] = str(defaults["ki_url"])
-    if defaults.get("datenschutz_url") and not os.environ.get(PAGE_VARIABLE):
-        os.environ[PAGE_VARIABLE] = str(defaults["datenschutz_url"])
+    for key, variable in (("ki_url", URL_VARIABLE), ("datenschutz_url", PAGE_VARIABLE), ("update_url", updates.URL_VARIABLE)):
+        if defaults.get(key) and not os.environ.get(variable):
+            os.environ[variable] = str(defaults[key])
 
 
 def _redeem(kontext, code: str) -> None:
@@ -179,7 +179,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     import app  # the existing interface (bewerbungen/app.py)
     if getattr(sys, "frozen", False):
         urlscheme.register_windows(sys.executable)
-    _use_mediation(settings.build_defaults(bundle_dir()))
+    _apply_build_defaults(settings.build_defaults(bundle_dir()))
     import routes_app
     import routes_angaben
     import routes_claude

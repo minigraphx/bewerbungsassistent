@@ -8,6 +8,7 @@ Modul des [Bewerbungsbegleiters](../README.md) für den Pilot (MIN-342): die lok
 - **App-Ordner:** Einstellungen und Protokoll in `%APPDATA%\Bewerbungsbegleiter`, macOS `~/Library/Application Support/Bewerbungsbegleiter`. Bis ein Datenordner gewählt ist, läuft die App auf `noch-kein-datenordner` darin.
 - **Einladung:** Der Link `bewerbungsbegleiter://einladung?code=…` öffnet die App und löst den Code ein; der Zugang kommt in den Schlüsselbund des Systems. Alternativ den Code in der Einrichtung oder auf der Seite einer Bewerbung eintippen.
 - **Adresse der KI-Vermittlung:** kommt beim Bauen aus der Repository-Variable `KI_URL` (kein Geheimnis) in `voreinstellungen.json` im Paket.
+- **Adresse des Update-Servers:** ebenso aus der Variable `UPDATE_URL`. Ein Tag-Build ohne sie bricht ab, sonst bekäme das Release nie mehr Updates.
 
 ## Browser-Erweiterung
 
@@ -22,10 +23,14 @@ Mit `--mcp` ist die App ein lokaler MCP-Server über stdin und stdout (MIN-377),
 
 ## Updates
 
-Die App fragt beim Start und danach höchstens alle 6 Stunden das neueste Release dieses Repos ab und zeigt ein Banner.
+Die App fragt beim Start und danach höchstens alle 6 Stunden die Datei `latest.json` auf dem Update-Server ab und zeigt ein Banner. Der Server sieht dabei die IP-Adresse; das steht im Datenschutztext.
 
-- **Windows:** „Jetzt aktualisieren“ lädt den Installer, prüft seine SHA-256-Prüfsumme gegen `SHA256SUMS.txt` des Releases und installiert still über die bestehende Version. Danach startet die neue Version selbst. Datenordner, Einstellungen und Zugang bleiben.
-- **macOS:** „Jetzt aktualisieren“ lädt das Zip, prüft es gegen `SHA256SUMS-macOS.txt` und entpackt es in den versteckten Ordner `.Bewerbungsbegleiter-update` neben der App (`ditto`, Rechte und Symlinks bleiben). `codesign --verify --deep --strict` prüft das Paket. Nach dem Beenden tauscht ein kleines Skript alte und neue Version und startet die neue. Die alte bleibt liegen, bis die neue ihren Start bestätigt; sonst kommt sie nach 2 Minuten zurück und die App nennt die Version nicht mehr zum automatischen Update. Datenordner und Einstellungen bleiben.
+**Signatur (MIN-403):** Auf dem Hosting liegen auch andere Websites, darum vertraut die App dem Server nicht. `latest.json` enthält Version und Prüfsummen und ist mit Ed25519 signiert. Die App installiert nichts ohne gültige Signatur gegen den Schlüssel in `update_key.py` und baut die Adressen der Pakete selbst aus der eigenen Update-Adresse. Der private Schlüssel liegt nur als Geheimnis der GitHub-Umgebung `update-ausrollen` und in Andys Passwortmanager, nie auf dem Hosting. Geht er verloren, kann keine installierte App mehr automatisch aktualisieren: Dann braucht es einen neuen Schlüssel und eine Neuinstallation von Hand.
+
+Bewusst offen: Die Ankündigung hat kein Ablaufdatum. Wer den Server kontrolliert, kann eine ältere signierte Ankündigung zeigen und so ein neueres Update zurückhalten. Installieren lässt sich damit nur, was einmal signiert wurde, und nie eine ältere Version als die laufende.
+
+- **Windows:** „Jetzt aktualisieren“ lädt den Installer, prüft seine SHA-256-Prüfsumme aus `latest.json` und installiert still über die bestehende Version. Danach startet die neue Version selbst. Datenordner, Einstellungen und Zugang bleiben.
+- **macOS:** „Jetzt aktualisieren“ lädt das Zip, prüft es gegen die Prüfsumme aus `latest.json` und entpackt es in den versteckten Ordner `.Bewerbungsbegleiter-update` neben der App (`ditto`, Rechte und Symlinks bleiben). `codesign --verify --deep --strict` prüft das Paket. Nach dem Beenden tauscht ein kleines Skript alte und neue Version und startet die neue. Die alte bleibt liegen, bis die neue ihren Start bestätigt; sonst kommt sie nach 2 Minuten zurück und die App nennt die Version nicht mehr zum automatischen Update. Datenordner und Einstellungen bleiben.
   - **Ort:** Die App muss aus einem beschreibbaren Ordner laufen, am besten „Programme“. Startet macOS sie aus einem Ersatzordner (App Translocation, typisch direkt nach dem Download) oder darf sie den Ordner nicht schreiben, zeigt das Banner „Zuerst in den Ordner Programme verschieben“ und den Link zum Release.
   - **Erstmals von Hand:** Erst die Version mit diesem Weg kann sich selbst aktualisieren.
 - **Beim Beenden (MIN-382):** Wartet ein Update und könnte die App es selbst installieren, läuft nach „Beenden“ derselbe Weg im Hintergrund, ohne Klick und ohne dass sich die App wieder öffnet. Windows ruft den Installer mit `/NOSTART` auf. Auf macOS startet das Skript die neue Version mit `--nach-update`: Sie lädt ihre Module, bestätigt den Start und endet; schlägt das fehl, kommt die alte zurück. Klappt das Laden oder Installieren nicht, endet die App trotzdem, und das Update wird wieder angeboten.
@@ -33,7 +38,10 @@ Die App fragt beim Start und danach höchstens alle 6 Stunden das neueste Releas
 **Neue Version ausrollen:**
 1. `desktop/version.py` erhöhen und committen.
 2. Tag `v<Version>` pushen. Die CI baut, installiert und testet die App und legt einen **Release-Entwurf** mit Installer, macOS-Zip und je einer Prüfsummen-Datei an.
-3. Den Entwurf prüfen (Installer auf einem Testrechner) und **veröffentlichen**. Erst dann sehen die Apps das Update.
+3. Den Entwurf prüfen (Installer auf einem Testrechner) und **veröffentlichen**. Erst dann sehen die Apps das Update: `update-ausrollen.yml` lädt die Pakete und zuletzt die signierte `latest.json` auf den Server und vergleicht, was er ausliefert. Vorabversionen rollt der Workflow nicht aus.
+4. Bricht der Workflow ab, sehen die Apps weiter die alte Ankündigung. Dann den Workflow von Hand mit dem Tag nochmals starten.
+
+Das Release bleibt auch auf GitHub stehen: Installationen bis 0.2.11 fragen dort nach, und die Installationsanleitung verweist darauf. Die Prüfsummen-Dateien des Builds gehören darum weiter ins Release; `release_manifest.py` vergleicht sie mit den Paketen.
 
 Für das Release zusätzlich mit Code-Signatur (Windows Authenticode, Apple Developer ID); dann entfällt auch die Warnung bei der Erstinstallation (MIN-351).
 

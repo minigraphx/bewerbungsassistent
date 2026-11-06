@@ -1,0 +1,88 @@
+name: Update ausrollen
+
+# Das Veröffentlichen eines Releases rollt das Update aus: Pakete auf den Update-Server, zuletzt die signierte
+# Ankündigung latest.json, damit nie eine Version angekündigt wird, deren Pakete noch fehlen (MIN-403).
+# Bricht der Lauf ab, sehen die Apps weiter die alte Ankündigung; von Hand mit dem Tag nochmals starten.
+# Fremde Actions auf Commits gepinnt: Dieser Job hält den Signaturschlüssel.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Veröffentlichtes Release, das nochmals ausgerollt wird, z.B. v1.2.3"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-ausrollen
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ausrollen:
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.release.prerelease }}
+    runs-on: ubuntu-24.04
+    environment: update-ausrollen
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Release holen und Ankündigung bauen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          [ "$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)" = "false" ]
+          gh release view "$TAG" --json body --jq .body > notes.md
+          gh release download "$TAG" --dir pakete --pattern 'Bewerbungsbegleiter-*' --pattern 'SHA256SUMS*'
+          python3 desktop/release_manifest.py payload "$TAG" pakete notes.md payload.json
+      - name: Signieren
+        env:
+          SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: |
+          key="$RUNNER_TEMP/signing.pem"
+          trap 'rm -f "$key"' EXIT
+          (umask 077; printf '%s\n' "$SIGNING_KEY" > "$key")
+          expected=$(python3 -c "import sys; sys.path.insert(0, 'desktop'); import update_key; print(update_key.PUBLIC_KEY)")
+          actual=$(openssl pkey -in "$key" -pubout -outform DER | tail -c 32 | base64)
+          if [ "$expected" != "$actual" ]; then
+            echo "::error::Der Signaturschlüssel passt nicht zu desktop/update_key.py"
+            exit 1
+          fi
+          openssl pkeyutl -sign -inkey "$key" -rawin -in payload.json -out payload.sig
+          python3 desktop/release_manifest.py envelope payload.json payload.sig latest.json
+      - name: Hochladen, die Ankündigung zuletzt
+        # FTP mit Pflicht zu TLS und geprüftem Zertifikat: Nur ein FTP-Konto lässt sich auf einen Ordner beschränken.
+        env:
+          FTP_PASSWORD: ${{ secrets.UPDATE_FTP_PASSWORD }}
+          FTP_HOST: ${{ vars.UPDATE_FTP_HOST }}
+          FTP_USER: ${{ vars.UPDATE_FTP_USER }}
+          FTP_FOLDER: ${{ vars.UPDATE_FTP_FOLDER }}
+        run: |
+          version="${TAG#v}"
+          config="$RUNNER_TEMP/ftp.conf"
+          trap 'rm -f "$config"' EXIT
+          password="${FTP_PASSWORD//\\/\\\\}"
+          (umask 077; printf 'user = "%s:%s"\n' "$FTP_USER" "${password//\"/\\\"}" > "$config")
+          upload() { curl --fail --silent --show-error --ssl-reqd --retry 3 --ftp-create-dirs --config "$config" "$@"; }
+          upload -T "pakete/Bewerbungsbegleiter-Setup-$version.exe" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
+          upload -T "pakete/Bewerbungsbegleiter-$version-macOS.zip" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
+          upload -T latest.json "ftp://$FTP_HOST/$FTP_FOLDER/latest.json.part" \
+            -Q "-*DELE latest.json" -Q "-RNFR latest.json.part" -Q "-RNTO latest.json"
+      - name: Prüfen, was der Server ausliefert
+        env:
+          UPDATE_URL: ${{ vars.UPDATE_URL }}
+        run: |
+          version="${TAG#v}"
+          curl -fsS "$UPDATE_URL/latest.json" | cmp - latest.json
+          for name in "Bewerbungsbegleiter-Setup-$version.exe" "Bewerbungsbegleiter-$version-macOS.zip"; do
+            curl -fsS "$UPDATE_URL/$version/$name" | cmp - "pakete/$name"
+          done
