@@ -158,8 +158,8 @@ function setup({ start = { bereit: READY, abgelehnt: [] } } = {}) {
       activate: async (tabId) => { log.push(['activate', tabId]); },
       exists: async () => true,
       inject: async (tabId) => { log.push(['inject', tabId]); },
-      bar: async (tabId, balken) => { log.push(['bar', balken]); },
-      end: async (tabId, text) => { log.push(['end', text]); },
+      bar: async (tabId, balken) => { log.push(['bar', { ...balken, text: [balken.titel, balken.text].filter(Boolean).join(' ') }]); },
+      end: async (tabId, balken) => { log.push(['end', [balken.titel, balken.text].join(' ')]); },
     },
     store: { get: async () => state, set: async (next) => { state = next; } },
     sleep: async () => {},
@@ -275,7 +275,7 @@ test('after filling, the bar says the person saves, and offers the way out', asy
   assert.match(bar.text, /Muster AG/);
   assert.match(bar.text, /Speichern/);
   assert.deepEqual(bar.hinweise, ['Pensum selbst wählen.']);
-  assert.deepEqual(bar.knoepfe, ['rav_ja', 'rav_ueberspringen', 'rav_stoppen']);
+  assert.deepEqual(bar.knoepfe, ['rav_ja', 'rav_formular', 'rav_ueberspringen', 'rav_stoppen']);
   assert.equal(bar.id, 'a', 'the buttons say which entry they mean');
   assert.equal(bar.farben, 'rav');
   assert.equal(bar.aufmerksamkeit, true);
@@ -288,7 +288,7 @@ test('a changed form is reported in words, and nothing was filled', async () => 
   const bar = t.lastBar();
   assert.equal(bar.fehler, true);
   assert.match(bar.text, /anders aus/);
-  assert.deepEqual(bar.knoepfe, ['rav_ja', 'rav_ueberspringen', 'rav_stoppen']);
+  assert.deepEqual(bar.knoepfe, ['rav_ja', 'rav_formular', 'rav_ueberspringen', 'rav_stoppen']);
 });
 
 test('a report about another entry changes nothing', async () => {
