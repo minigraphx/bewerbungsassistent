@@ -65,6 +65,7 @@ jobs:
           FTP_PASSWORD: ${{ secrets.UPDATE_FTP_PASSWORD }}
           FTP_HOST: ${{ vars.UPDATE_FTP_HOST }}
           FTP_USER: ${{ vars.UPDATE_FTP_USER }}
+          FTP_FOLDER: ${{ vars.UPDATE_FTP_FOLDER }}
         run: |
           version="${TAG#v}"
           config="$RUNNER_TEMP/ftp.conf"
@@ -72,9 +73,9 @@ jobs:
           password="${FTP_PASSWORD//\\/\\\\}"
           (umask 077; printf 'user = "%s:%s"\n' "$FTP_USER" "${password//\"/\\\"}" > "$config")
           upload() { curl --fail --silent --show-error --ssl-reqd --retry 3 --ftp-create-dirs --config "$config" "$@"; }
-          upload -T "pakete/Bewerbungsbegleiter-Setup-$version.exe" "ftp://$FTP_HOST/$version/"
-          upload -T "pakete/Bewerbungsbegleiter-$version-macOS.zip" "ftp://$FTP_HOST/$version/"
-          upload -T latest.json "ftp://$FTP_HOST/latest.json.part" \
+          upload -T "pakete/Bewerbungsbegleiter-Setup-$version.exe" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
+          upload -T "pakete/Bewerbungsbegleiter-$version-macOS.zip" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
+          upload -T latest.json "ftp://$FTP_HOST/$FTP_FOLDER/latest.json.part" \
             -Q "-*DELE latest.json" -Q "-RNFR latest.json.part" -Q "-RNTO latest.json"
       - name: Prüfen, was der Server ausliefert
         env:
