@@ -252,7 +252,8 @@ def test_manifest_allows_only_our_extension(tmp_path):
     data = native_messaging.manifest(tmp_path / "app")
     assert data["name"] == native_messaging.HOST_NAME
     assert data["allowed_origins"] == ["chrome-extension://ghniboofenadplgmdgddmgjaaeeogejn/",
-                                      "chrome-extension://mcbcijjbklfeffbollnemgkgnabnmfmp/"]
+                                      "chrome-extension://mcbcijjbklfeffbollnemgkgnabnmfmp/",
+                                      "chrome-extension://nopiegcdnjpkekgfakgglegkeifpmopo/"]
     assert data["type"] == "stdio"
 
 
