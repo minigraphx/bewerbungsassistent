@@ -169,6 +169,25 @@ test('the bridge in the page of the app answers once, also when injected twice',
   assert.deepEqual(listeners, ['message', 'message']);
 });
 
+test('the bridge tells the page only about a hand-loaded extension, a store version has update_url', () => {
+  const code = readFileSync(new URL('../app-bridge.js', import.meta.url), 'utf8');
+  const markAfter = (manifest) => {
+    const dataset = {};
+    const context = {
+      document: { querySelector: () => ({}), documentElement: { dataset } },
+      window: { addEventListener: () => {}, postMessage: () => {} },
+      location: { origin: 'http://127.0.0.1:1' },
+      chrome: { runtime: { id: 'x', getManifest: () => manifest, connect: () => ({ onMessage: { addListener: () => {} } }) } },
+    };
+    context.globalThis = context;
+    vm.runInNewContext(code, context);
+    return dataset;
+  };
+
+  assert.equal(markAfter({ version: '1' }).bewerbungsbegleiterEntpackt, 'true');
+  assert.equal('bewerbungsbegleiterEntpackt' in markAfter({ version: '1', update_url: 'https://store.example/update' }), false);
+});
+
 test('tabs outside the list are left alone', async () => {
   const { run, seen } = setup();
 
