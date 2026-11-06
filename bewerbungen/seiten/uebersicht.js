@@ -17,6 +17,7 @@
   const ANSWER_TIMEOUT_MS = 60000;
   const ANSICHT = "uebersicht.ansicht";  // view, search and scroll position stay when going to another page
   const ANSICHTEN = ["laufend", "abgeschlossen", "alle"];
+  const ARIA_SORT = { auf: "ascending", ab: "descending" };
   const MAX_AUCH = 3;
   const GESCHLOSSEN_WORT = { Zusage: ["Zusage", "Zusagen"], Absage: ["Absage", "Absagen"], Verworfen: ["verworfen", "verworfen"],
                              "Zurückgezogen": ["zurückgezogen", "zurückgezogen"] };
@@ -33,6 +34,7 @@
   let erinnerung = null;
   let neueTreffer = null;  // { anzahl, letzte } or null
   let ansicht = "laufend";
+  let sortierung = null;  // { spalte, richtung } or null for the order of the app
   let laufendeAnfrage = null;  // { ids } of the run waiting for the extension, for „Trotzdem öffnen“
   let answerTimer = null;
   let wiederhergestellt = false;
@@ -53,7 +55,7 @@
   function merken() {
     try {
       const scroll = wiederhergestellt ? Math.round(window.scrollY) : gemerkt().scroll;
-      localStorage.setItem(ANSICHT, JSON.stringify({ ansicht, suche: $("suche").value, scroll }));
+      localStorage.setItem(ANSICHT, JSON.stringify({ ansicht, suche: $("suche").value, scroll, sortierung }));
     } catch { /* without storage the default view applies */ }
   }
 
@@ -61,9 +63,9 @@
     try {
       const a = JSON.parse(localStorage.getItem(ANSICHT) || "{}");
       return { ansicht: ANSICHTEN.includes(a.ansicht) ? a.ansicht : "laufend", suche: typeof a.suche === "string" ? a.suche : "",
-               scroll: Number.isFinite(a.scroll) && a.scroll > 0 ? a.scroll : 0 };
+               scroll: Number.isFinite(a.scroll) && a.scroll > 0 ? a.scroll : 0, sortierung: L.gueltigeSortierung(a.sortierung) };
     } catch {
-      return { ansicht: "laufend", suche: "", scroll: 0 };
+      return { ansicht: "laufend", suche: "", scroll: 0, sortierung: null };
     }
   }
 
@@ -111,7 +113,11 @@
   }
 
   function zeigeListe() {
-    const gezeigte = L.gefiltert(zeilen, ansicht, $("suche").value);
+    const gezeigte = L.sortiert(L.gefiltert(zeilen, ansicht, $("suche").value), sortierung);
+    for (const kopf of document.querySelectorAll("th[data-spalte]")) {
+      if (sortierung?.spalte === kopf.dataset.spalte) kopf.setAttribute("aria-sort", ARIA_SORT[sortierung.richtung]);
+      else kopf.removeAttribute("aria-sort");
+    }
     for (const knopf of document.querySelectorAll("[data-ansicht]")) knopf.setAttribute("aria-pressed", String(knopf.dataset.ansicht === ansicht));
     for (const name of ANSICHTEN) document.querySelector(`[data-zahl=${name}]`).textContent = String(L.gefiltert(zeilen, name, "").length);
     $("liste").replaceChildren(...gezeigte.map(zeile));
@@ -124,6 +130,11 @@
     $("liste-fuss").replaceChildren(`Abgeschlossen: ${teile.join(", ")}. `,
       el("button", { type: "button", class: "link", onclick: () => waehleAnsicht("abgeschlossen") }, "Anzeigen"));
     merken();
+  }
+
+  function sortiereNach(spalte) {
+    sortierung = L.naechsteSortierung(sortierung, spalte);
+    zeigeListe();
   }
 
   function waehleAnsicht(name) {
@@ -374,6 +385,7 @@
   window.addEventListener("pagehide", merken);
   $("suche").addEventListener("input", zeigeListe);
   for (const knopf of document.querySelectorAll("[data-ansicht]")) knopf.addEventListener("click", () => waehleAnsicht(knopf.dataset.ansicht));
+  for (const kopf of document.querySelectorAll("th[data-spalte]")) kopf.querySelector("button").addEventListener("click", () => sortiereNach(kopf.dataset.spalte));
   $("rav-hinweis-knopf").addEventListener("click", e => {
     const offen = erinnerung ? erinnerung.ids.filter(id => ravGruende.get(id) === null) : [];
     startRav(offen.slice(0, maxRav), e.currentTarget);
@@ -400,6 +412,7 @@
     const ansichtGemerkt = gemerkt();
     ansicht = ansichtGemerkt.ansicht;
     $("suche").value = ansichtGemerkt.suche;
+    sortierung = ansichtGemerkt.sortierung;
     satz = await textsatz();
     await laden();
     requestAnimationFrame(() => { window.scrollTo(0, ansichtGemerkt.scroll); wiederhergestellt = true; });

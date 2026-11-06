@@ -71,6 +71,48 @@
       && (!wort || `${b.firma} ${b.stelle} ${b.notiz || ""}`.toLowerCase().includes(wort)));
   }
 
+  // Sorting by a column (MIN-404). A value of null means nothing to compare: it stays at the bottom in both directions.
+  const VERLAUF = ["Gemerkt", "Bewerben", "Beworben", "Gespräch", "Zusage", "Absage", "Zurückgezogen", "Verworfen"];
+  const position = wert => (wert < 0 ? null : wert);
+  const SPALTEN = {
+    stelle: z => z.bewerbung.stelle || null,
+    stand: z => position(VERLAUF.indexOf(z.bewerbung.status)),
+    note: z => (typeof z.bewerbung.passung === "number" ? z.bewerbung.passung : null),
+    schritt: z => RANG[z.schritt.art] ?? null,
+    frist: z => z.schritt.frist || null,
+  };
+  const ZUERST_ABSTEIGEND = ["note"];  // the best grade first
+  const GEGENTEIL = { auf: "ab", ab: "auf" };
+
+  function vergleicheWerte(a, b) {
+    return typeof a === "number" ? a - b : a.localeCompare(b, "de", { sensitivity: "base" });
+  }
+
+  /** A copy of the rows by the chosen column; without one, or with equal values, the order of the app stays. */
+  function sortiert(zeilen, sortierung) {
+    const wert = sortierung && SPALTEN[sortierung.spalte];
+    if (!wert) return zeilen;
+    const zeichen = sortierung.richtung === "ab" ? -1 : 1;
+    return [...zeilen].sort((a, b) => {
+      const [x, y] = [wert(a), wert(b)];
+      if (x === null || y === null) return (x === null) - (y === null);
+      return zeichen * vergleicheWerte(x, y);
+    });
+  }
+
+  /** What a click on a column heading does: first direction, the other one, back to the order of the app. */
+  function naechsteSortierung(aktuell, spalte) {
+    const erste = ZUERST_ABSTEIGEND.includes(spalte) ? "ab" : "auf";
+    if (aktuell?.spalte !== spalte) return { spalte, richtung: erste };
+    return aktuell.richtung === erste ? { spalte, richtung: GEGENTEIL[erste] } : null;
+  }
+
+  /** A sorting from the browser's storage, if it is one this page knows. */
+  function gueltigeSortierung(wert) {
+    return wert && Object.hasOwn(SPALTEN, wert.spalte ?? "") && Object.hasOwn(GEGENTEIL, wert.richtung ?? "")
+      ? { spalte: wert.spalte, richtung: wert.richtung } : null;
+  }
+
   /** „Abgeschlossen: 1 Zusage, 5 Absagen, 1 zurückgezogen.“ — counts per status of what the view „Abgeschlossen“ shows. */
   function abgeschlossenZaehlen(zeilen) {
     const zahl = {};
@@ -97,7 +139,7 @@
     return alle.slice(0, hoechstens);
   }
 
-  const logik = { LAUFEND, NACHFRAGEN_NACH_TAGEN, datum, plusTage, laufend, naechsterSchritt, mitSchritten, gefiltert, abgeschlossenZaehlen, stehtAn };
+  const logik = { LAUFEND, NACHFRAGEN_NACH_TAGEN, datum, plusTage, laufend, naechsterSchritt, mitSchritten, gefiltert, sortiert, naechsteSortierung, gueltigeSortierung, abgeschlossenZaehlen, stehtAn };
   if (typeof module !== "undefined") module.exports = logik;
   else global.UebersichtLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

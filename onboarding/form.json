@@ -228,7 +228,7 @@
         {"id": "home", "label": "Wohnort", "type": "text", "required": true, "max": 60},
         {"id": "radius", "label": "Wie weit um deinen Wohnort soll gesucht werden?", "type": "select", "options": ["10 km", "25 km", "50 km"], "hint": "Ohne Auswahl sucht die Erweiterung im Umkreis von 25 km."},
         {"id": "commute", "label": "Wie lange darf dein Weg zum Lehrbetrieb höchstens dauern? (z.B. 45 Minuten mit ÖV)", "type": "text", "required": true, "max": 100},
-        {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Die Erweiterung sucht im Umkreis deines Wohnorts. Die Kantone helfen dem Assistenten beim Einordnen."},
+        {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Die Erweiterung sucht im Umkreis deines Wohnorts. Die Kantone helfen der App beim Einordnen."},
         {"id": "vocationalBaccalaureate", "label": "Berufsmaturität geplant?", "type": "select", "options": ["ja", "vielleicht", "nein"]},
         {"id": "companion", "label": "Begleitperson (freiwillig, z.B. Mutter, liest mit)", "type": "text", "max": 100}
       ]
