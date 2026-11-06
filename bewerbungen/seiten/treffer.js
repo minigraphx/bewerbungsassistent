@@ -173,6 +173,7 @@
     knopf.addEventListener("click", () => {
       gewaehlt = treffer.id;
       zeigeListe();
+      $("detail").scrollTop = 0;  // the next hit starts at its top, not where the last one was left
       if (window.matchMedia("(max-width: 900px)").matches) $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
     });
     return knopf;
