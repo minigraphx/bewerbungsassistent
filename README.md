@@ -6,19 +6,19 @@ Werkzeuge und Claude-Skills für den ganzen Bewerbungsablauf: passende Stellen f
 
 ## Wozu: weniger, dafür passende Bewerbungen
 
-Der Assistent nimmt Routinearbeit ab, damit mehr Zeit für das bleibt, was eine gute Bewerbung ausmacht: die richtige Stelle wählen, sich mit der Firma befassen und zeigen, was man mitbringt. Er arbeitet nach diesen Grundsätzen:
+Die App nimmt Routinearbeit ab, damit mehr Zeit für das bleibt, was eine gute Bewerbung ausmacht: die richtige Stelle wählen, sich mit der Firma befassen und zeigen, was man mitbringt. Er arbeitet nach diesen Grundsätzen:
 
 - **Passung vor Menge.** Die Suche filtert nach einem persönlichen Suchprofil (Richtung, Region, Pensum, Ausschlüsse) und gleicht gegen bisherige Bewerbungen ab. So landen nur Stellen auf der Liste, die wirklich passen, und keine Firma bekommt dieselbe Bewerbung zweimal.
 - **Zugeschnitten auf die Stelle.** Jede Anforderung des Inserats wird geprüft: abgedeckt, fehlt oder überdehnt. Der Lebenslauf zeigt die Erfahrung, die für diese Stelle zählt, das Anschreiben bezieht sich auf genau diese Firma und bleibt bei einer Seite.
 - **Im eigenen Stil.** Das Anschreiben folgt dem Tonfall der Person, abgeleitet aus ihren bisherigen Anschreiben, und bleibt dabei professionell und passend zu Branche und Firma.
 - **Eigenes Design.** Inhalt und Gestaltung sind getrennt. Wer will, gestaltet Lebenslauf und Anschreiben mit einem eigenen Template (Farben, Schriften, Aufbau; [Anleitung](lebenslauf/README.md#eigenes-theme)). So sehen die Unterlagen nicht aus wie die von allen anderen.
-- **Die Person entscheidet und schickt selbst.** Der Assistent macht Vorschläge und Entwürfe. Freigabe und Versand liegen immer bei der Person; nichts wird automatisch verschickt.
+- **Die Person entscheidet und schickt selbst.** Die App macht Vorschläge und Entwürfe. Freigabe und Versand liegen immer bei der Person; nichts wird automatisch verschickt.
 - **Nachvollziehbar.** Jede versendete Fassung wird mit Datum festgehalten. Vor einem Gespräch ist sofort klar, welche Unterlagen die Firma bekommen hat, und Rückfragen lassen sich zuverlässig beantworten.
 - **Daten bleiben bei der Person.** Lebenslauf, Foto und Bewerbungsstände liegen lokal im eigenen Datenordner, nicht in diesem Repo und nicht auf einem fremden Server.
 
 **Für Bewerbende** heisst das: weniger Zeit für die Suche nach passenden Stellen, für Formatierung und Verwaltung, mehr für die Auswahl und die Vorbereitung aufs Gespräch. Dazu Unterlagen in einem eigenen Design und ein sauberer Nachweis der Arbeitsbemühungen für den Job-Room.
 
-**Für Arbeitgeber** heisst das: Ausschreibungen werden von passenden Bewerbenden auch dann gefunden, wenn sie weit hinten in den Suchergebnissen stehen. Der Assistent prüft jede gefundene Ausschreibung auf Passung und wird dabei nicht müde. Er ist auf gezielte Auswahl statt Streuung ausgelegt. Die Unterlagen beziehen sich auf die ausgeschriebene Stelle, auf die Anforderungen des Inserats und auf die Firma, und sie sind übersichtlich gestaltet.
+**Für Arbeitgeber** heisst das: Ausschreibungen werden von passenden Bewerbenden auch dann gefunden, wenn sie weit hinten in den Suchergebnissen stehen. Die App prüft jede gefundene Ausschreibung auf Passung und wird dabei nicht müde. Er ist auf gezielte Auswahl statt Streuung ausgelegt. Die Unterlagen beziehen sich auf die ausgeschriebene Stelle, auf die Anforderungen des Inserats und auf die Firma, und sie sind übersichtlich gestaltet.
 
 **Loslegen:** Die [Anleitung zur Installation](docs/installation.md) führt mit Bildern durch App, Einrichtung und Erweiterung.
 
@@ -26,17 +26,21 @@ Der Assistent nimmt Routinearbeit ab, damit mehr Zeit für das bleibt, was eine 
 
 Alle Bilder zeigen frei erfundene Beispieldaten.
 
-**Übersicht der Bewerbungen:** Stand, Passung (Note 1–6) und Lebenslauf-Variante jeder Stelle auf einen Blick. Von hier aus bewerben Sie sich über die Formulare der Firmen und tragen abgeschickte Bewerbungen im Job-Room ein; speichern und abschicken tun immer Sie.
+**Übersicht der Bewerbungen:** Was als Nächstes ansteht, dazu Stand, Passung (Note 1–6) und nächster Schritt jeder Stelle auf einen Blick. Von hier aus bewerben Sie sich über die Formulare der Firmen und tragen abgeschickte Bewerbungen im Job-Room ein; speichern und abschicken tun immer Sie.
 
-![Übersicht der Bewerbungen mit Häkchen, Knöpfen „Bewerben“ und „Im RAV eintragen“, was bei einer Firma noch fehlt, Status, Passung, Variante, Stand des Formulars und Datum des RAV-Eintrags](docs/bilder/uebersicht.jpg)
+![Übersicht mit „Das steht an“: der nächste Schritt als Karte, daneben, was auch noch offen ist, darunter die Liste der Bewerbungen mit Stand, Note und nächstem Schritt](docs/bilder/uebersicht.jpg)
 
 **Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty, wahlweise nach Lehrstellen, Schnupperlehren oder beidem. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung in Paketen von zehn, nach der Suche von selbst (höchstens 30 pro Suche, abschaltbar) oder auf Knopfdruck. Bei Lehrstellen zählt der eigene Beruf mit Sternen zuerst. Dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis. Inserate von anderen Seiten, etwa LinkedIn, prüft oder speichert die Erweiterung auf Klick.
 
-![Seite Suche: der zugeklappte Abschnitt „Wo suchen Sie?“ für die Portale, die Suchbegriffe mit dem Knopf Entfernen, der zugeklappte Abschnitt „Welche Stellen passen zu Ihnen?“ und die Liste der Treffer mit Note, Firma, Ort, Pensum, Portal und den Knöpfen Neu bewerten, Übernehmen und Verwerfen](docs/bilder/treffer.jpg)
+![Seite Stellen suchen: links die Liste der Treffer mit Note, Firma, Ort, Pensum und Portal, rechts die Einschätzung der KI zum gewählten Treffer mit den Knöpfen Übernehmen, Verwerfen und Neu bewerten](docs/bilder/treffer.jpg)
+
+**Eine Bewerbung in sechs Schritten:** Von der Stelle bis zum Festhalten sehen Sie, wo die Bewerbung steht und was als Nächstes kommt. Ein Anschreiben der KI geht erst weiter, wenn Sie es gelesen und freigegeben haben.
+
+![Seite einer Bewerbung mit den sechs Schritten, der Karte „Nächster Schritt“ und den Angaben zur Stelle](docs/bilder/bewerbung.jpg)
 
 **Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass im Anschreiben noch die Firma einer anderen Bewerbung steht.
 
-![Lebenslauf und Anschreiben als PDF mit den Befunden der Prüfung darüber](docs/bilder/bewerbung.jpg)
+![Abschnitt Unterlagen prüfen: die Befunde der Prüfung, darunter Lebenslauf und Anschreiben als PDF und die Wahl der Beilagen](docs/bilder/pruefung.jpg)
 
 **Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
 
@@ -57,7 +61,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 | [`skills/einstieg/`](skills/einstieg/SKILL.md) | Claude-Skill: Einstieg aus bestehenden Unterlagen (Lebenslauf, Zeugnisse, Zertifikate, frühere Anschreiben) und per Interview – Lebenslauf, Suchprofil, Stilprofil mit eigenen Formulierungen und Bausteine, auch für die Lehrstellensuche |
 | [`skills/jobsuche/`](skills/jobsuche/SKILL.md) | Claude-Skill: Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten, Eintrag ins Register, optional Jobliste in Google Sheets |
 | [`skills/bewerbung/`](skills/bewerbung/SKILL.md) | Claude-Skill: von der Stelle zur fertigen Bewerbung – Variante wählen, Anschreiben im eigenen Stil, Prüfung, Versand |
-| [`desktop/`](desktop/README.md) | Lokale App für Windows und macOS: Installer, Start per Doppelklick, Einladungslink, Updates aus GitHub Releases |
+| [`desktop/`](desktop/README.md) | Lokale App für Windows und macOS: Installer, Start per Doppelklick, Einladungslink, signierte Updates vom eigenen Server |
 | [`erweiterung/`](erweiterung/README.md) | Browser-Erweiterung für Chrome und Edge: Stellensuche auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellensuche auf LENA und yousty nach dem Suchprofil, im Browser der Person; Treffer gehen an die App |
 | [`vermittlung/`](vermittlung/README.md) | KI-Vermittlung für den Pilot: Zugang pro Person per Einladung, Budgets, Kosten ohne Inhalte; Container hinter HTTPS |
 | [`onboarding/`](onboarding/README.md) | Formular für die Grundlagen (Stellen- und Lehrstellensuche): Quellen der Seite „Meine Angaben“ und Import in den Datenordner |

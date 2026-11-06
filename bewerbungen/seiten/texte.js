@@ -15,14 +15,14 @@
     "dateien.variante": { sie: "Wenn Sie in einer Bewerbung eine Variante wählen, gilt sie dort.", du: "Wenn du in einer Bewerbung eine Variante wählst, gilt sie dort." },
     "dateien.eigen-titel": { sie: "Ihr eigenes PDF", du: "Dein eigenes PDF" },
     "dateien.eigen": { sie: "Sonst gilt der Lebenslauf, den Sie hier hochladen.", du: "Sonst gilt der Lebenslauf, den du hier hochlädst." },
-    "dateien.gebaut": { sie: "Ohne eigenes PDF erstellt der Assistent den Lebenslauf aus Ihren Angaben.", du: "Ohne eigenes PDF erstellt der Assistent den Lebenslauf aus deinen Angaben." },
+    "dateien.gebaut": { sie: "Ohne eigenes PDF erstellt die App den Lebenslauf aus Ihren Angaben.", du: "Ohne eigenes PDF erstellt die App den Lebenslauf aus deinen Angaben." },
     "entwuerfe.intro": {
       sie: "Jedes Speichern legt eine Fassung an. Sie können jede ansehen, mit einer anderen vergleichen und zurückholen.",
       du: "Jedes Speichern legt eine Fassung an. Du kannst jede ansehen, mit einer anderen vergleichen und zurückholen.",
     },
     "inhalte.intro": {
-      sie: "Hier sehen Sie, woraus der Assistent Ihre Unterlagen baut, und können es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",
-      du: "Hier siehst du, woraus der Assistent deine Unterlagen baut, und kannst es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",
+      sie: "Hier sehen Sie, woraus die App Ihre Unterlagen baut, und können es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",
+      du: "Hier siehst du, woraus die App deine Unterlagen baut, und kannst es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",
     },
 
     // Search (step 5)
@@ -121,9 +121,9 @@
       du: "Deine Angaben sind übernommen. Die Erweiterung sucht jetzt auf den Portalen, die KI schätzt jeden Treffer ein. Ein Suchlauf dauert einige Minuten.",
     },
     "uebersicht.start.text": {
-      sie: "Der Assistent hilft Ihnen, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei Ihnen.",
-      du: "Der Assistent hilft dir, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei dir.",
-      lehrstelle: "Der Assistent hilft dir, passende Lehrstellen und Schnupperlehren zu finden und deine Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei dir.",
+      sie: "Die App hilft Ihnen, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei Ihnen.",
+      du: "Die App hilft dir, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei dir.",
+      lehrstelle: "Die App hilft dir, passende Lehrstellen und Schnupperlehren zu finden und deine Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei dir.",
     },
     "uebersicht.start.karte": {
       sie: "Lebenslauf, gesuchte Stellen und wie Sie schreiben. Das dauert etwa 20 Minuten. Sie können jederzeit unterbrechen, nichts geht verloren.",
@@ -232,7 +232,9 @@
     return satzOder(satz) === "lehrstelle-du" && status === "Gespräch" ? "Einladung" : status;
   }
 
-  const texte = { SAETZE, VORGABE, TEXTE, satzOder, text, anwenden, statusName };
+  const notenText = note => String(note).replace(".", ",");
+
+  const texte = { SAETZE, VORGABE, TEXTE, satzOder, text, anwenden, statusName, notenText };
   if (typeof module !== "undefined") module.exports = texte;
   else global.Texte = texte;
 })(typeof window !== "undefined" ? window : globalThis);

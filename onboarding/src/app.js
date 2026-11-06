@@ -8,7 +8,7 @@ const ZIP_OVERHEAD_BYTES = 1000000;
 const AUTOSAVE_DELAY_MS = 400;
 const REQUIRED_NOTE = "Felder mit * müssen ausgefüllt sein.";
 const EXISTING_DOCUMENTS_NOTE = "Sie haben schon einen Lebenslauf, Arbeitszeugnisse oder frühere Anschreiben? "
-  + "Dann müssen Sie nichts abtippen: Im Schritt „Unterlagen“ laden Sie sie hoch. Der Assistent übernimmt daraus Angaben, "
+  + "Dann müssen Sie nichts abtippen: Im Schritt „Unterlagen“ laden Sie sie hoch. Die App übernimmt daraus Angaben, "
   + "Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.";
 const UNSAVED_UPLOADS = "Hochgeladene Unterlagen sind noch nicht gespeichert.";
 const FOCUSABLE = "input, textarea, select, button";
@@ -18,7 +18,7 @@ const TEXT = {
     finishTitle: "Prüfen und speichern",
     finishOk: "Alles Nötige ist ausgefüllt.",
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Sie können trotzdem speichern und später weitermachen.",
-    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Der Assistent ergänzt sie aus Ihren Unterlagen und fragt nach, was er dort nicht findet.",
+    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Die App ergänzt sie aus Ihren Unterlagen und fragt nach, was sie dort nicht findet.",
     documents: (n) => `Mit ${n === 1 ? "einer Unterlage" : `${n} Unterlagen`}; die Datei wird eine ZIP-Datei.`,
     next: "So geht es weiter: Schicken Sie die Datei an die Person, die Sie im Pilot begleitet, oder öffnen Sie sie später in der App. Mit „Datei laden“ auf der ersten Seite können Sie jederzeit weiterarbeiten.",
   },
@@ -26,7 +26,7 @@ const TEXT = {
     finishTitle: "Prüfen und speichern",
     finishOk: "Alles Nötige ist ausgefüllt.",
     finishErrors: "Diese Angaben fehlen noch oder passen nicht. Du kannst trotzdem speichern und später weitermachen.",
-    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Der Assistent ergänzt sie aus deinen Unterlagen und fragt nach, was er dort nicht findet.",
+    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Die App ergänzt sie aus deinen Unterlagen und fragt nach, was sie dort nicht findet.",
     documents: (n) => `Mit ${n === 1 ? "einer Unterlage" : `${n} Unterlagen`}; die Datei wird eine ZIP-Datei.`,
     next: "So geht es weiter: Schick die Datei an die Person, die dich begleitet, oder öffne sie später in der App. Mit „Datei laden“ auf der ersten Seite kannst du jederzeit weiterarbeiten.",
   },
@@ -38,7 +38,7 @@ const APP_TEXT = {
     done: "Ihre Angaben sind übernommen. ",
     kept: (names) => `Aus Ihrer bisherigen Suche bleibt dabei: ${names}. Entfernen können Sie das unter „Suche“. `,
     incomplete: "Ihre Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänzen Sie sie hier, wenn Sie so weit sind. ",
-    intro: "Prüfen Sie die Übersicht. Mit «Angaben übernehmen» erstellt der Assistent daraus Ihren Lebenslauf, Ihr Suchprofil und Ihren Schreibstil.",
+    intro: "Prüfen Sie die Übersicht. Mit «Angaben übernehmen» erstellt die App daraus Ihren Lebenslauf, Ihr Suchprofil und Ihren Schreibstil.",
     kept_versions: "Ihre bisherigen Angaben bleiben unter ",
   },
   apprenticeship: {
@@ -46,7 +46,7 @@ const APP_TEXT = {
     done: "Deine Angaben sind übernommen. ",
     kept: (names) => `Aus deiner bisherigen Suche bleibt dabei: ${names}. Entfernen kannst du das unter „Suche“. `,
     incomplete: "Deine Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänze sie hier, wenn du so weit bist. ",
-    intro: "Prüf die Übersicht. Mit «Angaben übernehmen» erstellt der Assistent daraus deinen Lebenslauf, dein Suchprofil und deinen Schreibstil.",
+    intro: "Prüf die Übersicht. Mit «Angaben übernehmen» erstellt die App daraus deinen Lebenslauf, dein Suchprofil und deinen Schreibstil.",
     kept_versions: "Deine bisherigen Angaben bleiben unter ",
   },
 };

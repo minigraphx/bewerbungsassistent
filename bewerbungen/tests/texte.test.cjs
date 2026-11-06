@@ -38,3 +38,13 @@ test("for apprenticeships an interview reads as an invitation, the stored status
   assert.equal(texte.statusName("Gespräch", "stelle-du"), "Gespräch");
   assert.equal(texte.statusName("Absage", "lehrstelle-du"), "Absage");
 });
+
+test("a grade is written with a comma", () => {
+  assert.equal(texte.notenText(5.5), "5,5");
+  assert.equal(texte.notenText(4), "4");
+});
+
+test("the app is called the app, not the assistant", () => {
+  const worte = Object.values(texte.TEXTE).flatMap(eintrag => Object.values(eintrag));
+  assert.deepEqual(worte.filter(wort => /Assistent/.test(wort)), []);
+});

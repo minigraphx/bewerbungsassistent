@@ -76,7 +76,7 @@
     return eintraege && eintraege.length ? el("div", {}, el("h3", {}, titel), el("ul", {}, eintraege.map(e => el("li", {}, e)))) : null;
   }
 
-  const notenText = note => String(note).replace(".", ",");
+  const notenText = window.Texte.notenText;
   const notenWort = n => (n >= 5.5 ? "passt sehr gut" : n >= 4.5 ? "passt gut" : n >= 4 ? "passt knapp" : "passt wenig");
 
   /** Grade as in the design: value, six bars, a word; a name when there are two (apprenticeships). */

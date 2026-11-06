@@ -92,8 +92,8 @@
   function note(b) {
     if (typeof b.passung !== "number") return el("span", { class: "table__sub" }, "keine Note");
     const balken = [1, 2, 3, 4, 5, 6].map(k => el("i", { class: b.passung >= k ? "on" : b.passung >= k - 0.5 ? "half" : "" }));
-    return el("span", { class: "grade-meter grade-meter--sm", "aria-label": `Note ${b.passung} von 6, ${notenWort(b.passung)}` },
-      el("span", { class: "grade-meter__value" }, String(b.passung)),
+    return el("span", { class: "grade-meter grade-meter--sm", "aria-label": `Note ${window.Texte.notenText(b.passung)} von 6, ${notenWort(b.passung)}` },
+      el("span", { class: "grade-meter__value" }, window.Texte.notenText(b.passung)),
       el("span", { class: "grade-meter__bar", "aria-hidden": "true" }, balken),
       el("span", { class: "grade-meter__word", "aria-hidden": "true" }, notenWort(b.passung)));
   }
