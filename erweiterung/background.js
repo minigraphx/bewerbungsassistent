@@ -5,6 +5,7 @@ import { AppConnection, explain } from './lib/app.js';
 import { runSearch } from './lib/search.js';
 import { followKey, readOpenPage } from './lib/sites.js';
 import { adKey } from './lib/page-ad.js';
+import { textSet } from './lib/popup-view.js';
 import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, WATCH_ACTION, isRavSender, senderKind } from './lib/senders.js';
 import { ALL_PAGES, ApplyRun } from './lib/apply.js';
 import { RavRun, isRavPage } from './lib/rav.js';
@@ -181,6 +182,12 @@ async function startSearch() {
   return { gestartet: true };
 }
 
+/** The popup's „Suche abbrechen“: the run stops after its current step, like the button in a watched tab. */
+async function stopSearch() {
+  if (running) searchCancelled = true;
+  return { abgebrochen: running };
+}
+
 async function status() {
   const app = new AppConnection();
   try {
@@ -188,6 +195,8 @@ async function status() {
     // Only a running app is asked for the plan: opening the popup should not start it.
     const plan = hello.app ? await app.request('GET', '/api/suche/plan').then((answer) => answer.plan, () => null) : null;
     await followKey(plan, siteAccess);
+    // The page that asks for access has no plan of its own: it speaks like the app from the last known plan.
+    if (plan) await chrome.storage.local.set({ textsatz: textSet(plan) });
     // Staying on the old version is no reason to report the connection as lost.
     await followAppVersion(hello).catch(() => false);
     return { verbunden: true, version: hello.version, app: hello.app, plan };
@@ -427,6 +436,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message && (FORM_ACTIONS.has(message.art) || BAR_ACTIONS.has(message.art))) return fromForm(message, sender, reply);
   const actions = {
     'suche-starten': startSearch,
+    'suche-stoppen': stopSearch,
     status,
     'app-oeffnen': openApp,
     'seite-pruefen': (m) => pageAd(m, '/api/seite/pruefen', 'pruefung'),

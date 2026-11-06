@@ -6,33 +6,53 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>Bewerbungsbegleiter</h1>
-  <p id="verbindung" class="hinweis">Verbindung zur App wird geprüft …</p>
-  <button id="suchen" type="button" disabled>Suche starten</button>
-  <p id="plan" class="klein">Sucht nach dem Suchprofil auf den passenden Portalen. Die Treffer gehen in die App.</p>
-  <section id="lauf" hidden>
-    <h2>Suche</h2>
-    <p id="schritt"></p>
-    <ul id="portale"></ul>
+  <header class="head">
+    <h1>Bewerbungsbegleiter</h1>
+    <span id="verbindung" class="state" role="status">wird geprüft …</span>
+  </header>
+  <section id="fehlt" class="part" hidden>
+    <div class="notice">
+      <p class="notice__title">Die App läuft nicht</p>
+      <p id="fehlt-text"></p>
+    </div>
+    <button id="verbinden" type="button" class="zweitrangig">Nochmals verbinden</button>
+  </section>
+  <section id="suche" class="part" aria-labelledby="suche-titel" hidden>
+    <h2 id="suche-titel">Stellen suchen</h2>
+    <p id="suche-zeile" class="line"></p>
+    <div id="lauf" hidden>
+      <div id="balken" class="progress" aria-hidden="true"></div>
+      <ul id="portale" class="portals"></ul>
+      <p id="lauf-hinweis" class="line"></p>
+      <button id="abbrechen" type="button" class="zweitrangig">Suche abbrechen</button>
+    </div>
+    <button id="suchen" type="button" disabled>Suche starten</button>
     <ul id="hinweise" class="klein"></ul>
   </section>
-  <section id="seite" hidden>
-    <h2>Diese Seite</h2>
-    <p id="seite-status" class="klein"></p>
-    <div id="seite-felder" hidden>
-      <label>Stelle <input id="seite-stelle" type="text" maxlength="200"></label>
-      <label>Firma <input id="seite-firma" type="text" maxlength="200"></label>
-      <div class="reihe">
-        <button id="seite-pruefen" type="button">Stelle prüfen</button>
-        <button id="seite-speichern" type="button" class="zweitrangig">Stelle speichern</button>
+  <section id="seite" class="part" aria-labelledby="seite-h" hidden>
+    <h2 id="seite-h">Diese Seite</h2>
+    <p id="seite-status" class="line"></p>
+    <div id="seite-anzeige" hidden>
+      <p id="seite-titel" class="ad__title"></p>
+      <p id="seite-firma-text" class="line"></p>
+      <button id="seite-korrigieren" type="button" class="link">Angaben korrigieren</button>
+      <div id="seite-felder" hidden>
+        <label>Stelle <input id="seite-stelle" type="text" maxlength="200"></label>
+        <label>Firma <input id="seite-firma" type="text" maxlength="200"></label>
       </div>
-    </div>
-    <div id="seite-ergebnis" hidden>
-      <p id="seite-note" class="note"></p>
-      <ul id="seite-zeilen" class="klein"></ul>
+      <div id="seite-ergebnis" class="rating" hidden>
+        <div id="seite-noten"></div>
+        <p id="seite-text"></p>
+        <ul id="seite-zeilen" class="klein"></ul>
+        <p class="rating__foot">Einschätzung der KI, kann sich irren</p>
+      </div>
+      <button id="seite-pruefen" type="button">Stelle prüfen</button>
+      <button id="seite-speichern" type="button" class="zweitrangig">Stelle speichern</button>
     </div>
   </section>
-  <button id="oeffnen" type="button" class="zweitrangig">Treffer in der App ansehen</button>
+  <footer class="foot">
+    <button id="oeffnen" type="button" class="link">Treffer in der App ansehen</button>
+  </footer>
   <script src="popup.js" type="module"></script>
 </body>
 </html>

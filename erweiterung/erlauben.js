@@ -1,20 +1,34 @@
-// The browser asks for the access only after a click on a page of the extension (MIN-346).
-const say = (text) => { document.getElementById('meldung').textContent = text; };
-const forSearch = new URLSearchParams(location.search).get('fuer') === 'suche';
-const REFUSED_FORMS = 'Ohne diesen Zugriff füllt die Erweiterung keine Formulare aus. Bewerben geht weiterhin von Hand.';
-const REFUSED_SEARCH = 'Ohne diesen Zugriff sucht die Erweiterung nur auf den Portalen weiter.';
+// The browser asks for the access only after a click on a page of the extension (MIN-346); design MIN-369.
+// The words follow the setup of the app, which the service worker remembers when it reads the plan.
+import { permissionText } from './lib/permission-text.js';
 
-if (forSearch) {
-  document.getElementById('fuer-formulare').hidden = true;
-  document.getElementById('fuer-suche').hidden = false;
-  document.getElementById('erlauben').textContent = 'Zugriff erlauben';
+const $ = (id) => document.getElementById(id);
+const say = (text) => { $('meldung').textContent = text; };
+const forSearch = new URLSearchParams(location.search).get('fuer') === 'suche';
+
+function list(id, lines) {
+  $(id).replaceChildren(...lines.map((line) => {
+    const item = document.createElement('li');
+    item.textContent = line;
+    return item;
+  }));
 }
 
-document.getElementById('erlauben').addEventListener('click', async () => {
+const { textsatz } = await chrome.storage.local.get('textsatz').catch(() => ({}));
+const words = permissionText(forSearch ? 'suche' : 'formulare', textsatz);
+$('frage').textContent = words.question;
+$('text').textContent = words.text;
+list('tut', words.does);
+list('nie', words.never);
+$('fuss').textContent = words.foot;
+
+$('ablehnen').addEventListener('click', () => say(words.refused));
+
+$('erlauben').addEventListener('click', async () => {
   try {
     const granted = await chrome.permissions.request({ origins: ['<all_urls>'] });
     if (!granted) {
-      say(forSearch ? REFUSED_SEARCH : REFUSED_FORMS);
+      say(words.refused);
       return;
     }
     if (forSearch) {

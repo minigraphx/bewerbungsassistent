@@ -8,6 +8,7 @@ with drafts (Entwürfe).
 import threading
 
 import own_sites
+import preferences
 import routes_ai
 import search_plan
 import unterlagen
@@ -43,7 +44,8 @@ def _list(body, field: str = "treffer") -> list:
 def plan(k, parameter, body):
     store = _hits(k)
     current = search_plan.chosen(search_plan.for_folder(k.daten), store.settings()[PORTALS_OFF])
-    return json_antwort({"plan": {**current.as_dict(), "zuschauen": store.settings()["zuschauen"],
+    # The form of address of the setup (MIN-369): the popup of the extension speaks like the app.
+    return json_antwort({"plan": {**current.as_dict(), "anrede": preferences.load(k.daten).address, "zuschauen": store.settings()["zuschauen"],
                                   "eigener_schluessel": connection.has_own_key(), "weitere_seiten": own_sites.active(store)}})
 
 
