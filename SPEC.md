@@ -12,5 +12,11 @@ Write each requirement as one row under its section, in this format. The fence k
 ```
 
 ## G · Goals: what the client asked for
+- G3 [approved, must] In Edge führt der Einrichtungsschritt Erweiterung zum Store-Eintrag; das Laden von Hand bleibt als zweiter Weg. | gate: review
+- G4 [approved, must] Das AS-Logo erscheint einfarbig unter Mehr, Über die App; Schriftzug und Programmsymbol bleiben. | gate: review
+- G5 [approved, must] Die App läuft unter Linux als AppImage; zugesagt ist Ubuntu LTS. | gate: review
+- G6 [approved, must] Die Windows-App gibt es als MSIX-Paket für den Microsoft Store. | gate: review
+- G7 [approved, must] Die Webseite stellt die App vor, führt zum Download und zeigt die Anleitung; Sprache vorerst Deutsch. | gate: review
+- G8 [approved, must] Gibt es beim Start der App ein Update, erscheint es zuerst in einem Dialog, der bis Installieren oder Später offen bleibt; nach Später fragt die App beim nächsten Start wieder. | gate: review
 
 ## K · Constraints
