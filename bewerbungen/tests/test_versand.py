@@ -9,7 +9,7 @@ import unterlagen
 import versand
 import versionen
 from ablage import Ablage
-from conftest import BRIEF_ID
+from sample_folder import BRIEF_ID
 import register
 from register import Register
 

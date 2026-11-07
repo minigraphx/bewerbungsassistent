@@ -2,7 +2,7 @@
 import pytest
 
 import build
-from conftest import beispiel, lang
+from cv_samples import beispiel, lang
 
 
 def test_fortsetzung_auf_seite_2(baue):

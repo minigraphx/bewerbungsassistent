@@ -3,7 +3,7 @@ import pytest
 from pypdf import PdfReader
 
 import unterlagen
-from conftest import BRIEF_ID
+from sample_folder import BRIEF_ID
 from register import Register
 from varianten import Varianten
 

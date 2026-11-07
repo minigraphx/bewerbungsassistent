@@ -9,7 +9,7 @@ import yaml
 import routes_ai
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
 from ai.usage import UsageLog
-from conftest import BRIEF_ID
+from sample_folder import BRIEF_ID
 from test_ai_tasks import DRAFT, RATING, VORLAGEN, FakeClient, response
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 

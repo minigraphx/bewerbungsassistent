@@ -6,7 +6,7 @@ import yaml
 
 import pruefung
 import unterlagen
-from conftest import BRIEF_ID
+from sample_folder import BRIEF_ID
 from register import Register
 
 HEUTE = datetime.date(2026, 10, 25)

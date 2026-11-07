@@ -2,7 +2,7 @@
 import pytest
 
 import validation
-from conftest import CASES, apply_case, base_bundle
+from form_cases import CASES, apply_case, base_bundle
 
 
 @pytest.mark.parametrize("case", CASES["cases"], ids=[c["name"] for c in CASES["cases"]])

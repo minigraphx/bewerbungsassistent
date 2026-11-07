@@ -2,7 +2,7 @@
 import pytest
 
 import documents
-from conftest import CASES
+from form_cases import CASES
 
 
 @pytest.mark.parametrize("case", CASES["documentCases"], ids=lambda c: c["name"])

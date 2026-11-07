@@ -15,7 +15,7 @@ import app
 import build
 import server as server_modul
 from ablage import Ablage
-from conftest import BRIEF_ID
+from sample_folder import BRIEF_ID
 from kontext import Kontext
 from register import Register
 from versionen import GitVersionen

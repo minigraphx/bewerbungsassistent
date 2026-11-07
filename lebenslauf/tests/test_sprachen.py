@@ -2,7 +2,7 @@
 import pytest
 
 import build
-from conftest import beispiel
+from cv_samples import beispiel
 
 
 def test_waehlt_sprache_ueberall():

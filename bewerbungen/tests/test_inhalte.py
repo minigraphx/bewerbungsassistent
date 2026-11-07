@@ -3,7 +3,7 @@ import pytest
 import yaml
 
 import inhalte
-from conftest import BRIEF_ID
+from sample_folder import BRIEF_ID
 
 
 def test_bearbeitbare_dateien(datenordner):
