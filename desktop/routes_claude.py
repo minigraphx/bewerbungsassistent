@@ -6,7 +6,7 @@ from http import HTTPStatus
 import claude_setup
 import settings
 
-CONFIRM_FIRST = "Bitte zuerst bestätigen, dass Sie die Hinweise gelesen haben."
+CONFIRM_FIRST = "Bitte zuerst die Hinweise lesen und bestätigen."
 
 
 @dataclasses.dataclass(frozen=True)

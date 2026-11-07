@@ -9,7 +9,7 @@ from server import json_antwort
 
 NO_PROFILE = "Es gibt noch kein Suchprofil. Zuerst den Einstieg abschliessen."
 BOTH_NEEDED = {search_plan.KIND_APPRENTICESHIP: "Schreib zu beidem etwas: was du gern machst und was du gut kannst.",
-               search_plan.KIND_JOB: "Schreiben Sie zu beidem etwas: was Sie gern machen und was Sie gut können."}
+               search_plan.KIND_JOB: "Bitte zu beidem etwas schreiben: Interessen und Fähigkeiten."}
 NOT_VALID = {search_plan.KIND_APPRENTICESHIP: "Das ist kein Beruf mit EFZ oder EBA.",
              search_plan.KIND_JOB: "Das passt nicht als Suchbegriff."}
 NO_NAME = "Welcher Eintrag soll weg?"

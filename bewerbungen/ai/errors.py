@@ -27,9 +27,9 @@ class AnswerError(AiError):
 NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. In der App die Einladung einlösen "
               "oder unter „Erweiterte Einstellungen“ einen eigenen Schlüssel eintragen.")
 ACCESS_DENIED = ("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen "
-                 "prüfen. Sonst bei der Person melden, die Sie im Pilot begleitet.")
+                 "prüfen. Sonst bei der Begleitperson im Pilot melden.")
 NO_CREDIT = ("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. "
-             "Sonst bei der Person melden, die Sie im Pilot begleitet.")
+             "Sonst bei der Begleitperson im Pilot melden.")
 BUDGET_USED = "Das Budget für die KI ist für diesen Monat aufgebraucht. Ab dem nächsten Monat geht es wieder."
 RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} Sekunden nochmals versuchen."
 TIMEOUT = "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen."

@@ -189,9 +189,9 @@ def test_a_job_seeker_gets_search_terms_and_can_add_and_remove_them(job_seeker, 
     assert name not in path.read_text(encoding="utf-8")
 
 
-def test_job_messages_address_the_person_formally(job_seeker):
+def test_job_messages_fit_both_forms_of_address(job_seeker):
     _, answer = post(job_seeker, "/api/beruf/vorschlag", {"interessen": "x"})
-    assert "Schreiben Sie" in answer["fehler"]
+    assert answer["fehler"] == "Bitte zu beidem etwas schreiben: Interessen und Fähigkeiten."
 
 
 def test_a_job_term_is_short_and_fits_a_list():

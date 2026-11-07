@@ -37,7 +37,7 @@ def test_adding_to_directions_comes_last():
 
 def test_adding_to_a_profile_without_terms_makes_it_searchable():
     text = "# Suchprofil\n\n## Region\n- Wohnort: Bern\n- Kantone (job-room): BE\n"
-    with pytest.raises(ValueError, match="Welche Stellen passen zu Ihnen"):
+    with pytest.raises(ValueError, match="schlägt die KI Begriffe vor"):
         search_plan.parse(text)
     assert search_plan.parse(search_terms.added(text, "Empfang")).keywords == ("Empfang",)
     assert search_terms.current(search_terms.added("# Suchprofil\n", "Empfang")) == ("Empfang",)
@@ -49,7 +49,7 @@ def test_adding_what_is_there_changes_nothing():
 
 def test_adding_stops_at_what_the_search_uses():
     terms = ", ".join(f"Begriff{i}" for i in range(search_plan.MAX_KEYWORDS))
-    with pytest.raises(ValueError, match="Entfernen"):
+    with pytest.raises(ValueError, match="zuerst einen entfernen"):
         search_terms.added(f"## Keywords\n- Kernliste: {terms}\n", "Empfang")
 
 

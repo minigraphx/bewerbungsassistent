@@ -11,7 +11,7 @@ export const MAX_SITE_TEXTS = 30;
 const SETTLE_MS = 1500; // lists of such pages often appear after the load event
 const SITE_DELAY_MS = 3000; // gentler than on the portals: nobody agreed on anything with these sites
 const SEND_SIZE = 10;
-const NOTHING_FOUND = 'Hier wurden keine Stellen gefunden. Öffnen Sie im Browser die Seite mit den offenen Stellen und tragen Sie deren Adresse ein.';
+const NOTHING_FOUND = 'Hier wurden keine Stellen gefunden. Bitte im Browser die Seite mit den offenen Stellen öffnen und deren Adresse eintragen.';
 const WALL_LOGIN = 'anmeldung';
 const WALLS = {
   [WALL_LOGIN]: 'verlangt eine Anmeldung',
@@ -126,8 +126,8 @@ function onSite(page, site) {
 
 /** Why this page cannot be used, or '': a login, a check, or a redirect, whose text would not belong to the site. */
 function pageProblem(page, site) {
-  if (page.wall) return `${site.portal} ${WALLS[page.wall] || WALLS[WALL_LOGIN]}. Das bleibt bei Ihnen: Seite selbst öffnen, danach nochmals suchen.`;
-  if (!onSite(page, site)) return `${site.portal} leitet auf eine andere Seite weiter (${String(page.host).slice(0, 100)}), zum Beispiel zu einer Anmeldung. Die Suche dort hört hier auf. Ist das die richtige Seite, tragen Sie deren Adresse ein.`;
+  if (page.wall) return `${site.portal} ${WALLS[page.wall] || WALLS[WALL_LOGIN]}. Das braucht einen eigenen Schritt: Seite selbst öffnen, danach nochmals suchen.`;
+  if (!onSite(page, site)) return `${site.portal} leitet auf eine andere Seite weiter (${String(page.host).slice(0, 100)}), zum Beispiel zu einer Anmeldung. Die Suche dort hört hier auf. Ist das die richtige Seite, bitte deren Adresse eintragen.`;
   return '';
 }
 

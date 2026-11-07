@@ -8,7 +8,7 @@ from ai.usage import UsageLog
 from routes_ai import run_ai
 from server import json_antwort
 
-CONFIRM_FIRST = "Bitte zuerst bestätigen, dass Sie die Hinweise gelesen haben."
+CONFIRM_FIRST = "Bitte zuerst die Hinweise lesen und bestätigen."
 
 
 def _costs(k) -> dict:

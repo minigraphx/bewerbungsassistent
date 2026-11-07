@@ -48,5 +48,5 @@ export function describePlan(plan) {
   const portals = [...(plan.portale || []), ...sites].join(', ').replace(/, ([^,]*)$/, ' und $1');
   return plan.art === 'lehrstelle'
     ? { button: OFFER_BUTTONS[(plan.angebote || []).join('+')] || OFFER_BUTTONS.lehrstelle, text: `Sucht auf ${portals} nach deinem Suchprofil. Die Treffer gehen in die App.` }
-    : { button: 'Stellen suchen', text: `Sucht auf ${portals} nach Ihrem Suchprofil. Die Treffer gehen in die App.` };
+    : { button: 'Stellen suchen', text: `Sucht auf ${portals} nach dem Suchprofil. Die Treffer gehen in die App.` };
 }

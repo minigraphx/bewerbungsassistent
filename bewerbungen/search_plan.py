@@ -348,7 +348,7 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     titles = _pairs(sections.get("titelfilter", []))
     keywords = _job_terms(sections)
     if not keywords:
-        raise ValueError("In Ihrer Suche steht noch nichts. Unter „Welche Stellen passen zu Ihnen?“ schlägt Ihnen die KI Begriffe vor.")
+        raise ValueError("In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor.")
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     places = _items(_value(region, "orte"), MAX_PLACES) or _items(_value(region, "wohnort"), 1)
     postal_codes = _items(_value(region, "plz"), MAX_PLACES) or _items(postal_code or "", 1)

@@ -331,7 +331,7 @@ test('popup names the portals of the plan, and stays general without one', () =>
     button: 'Lehrstellen suchen', text: 'Sucht auf LENA und yousty nach deinem Suchprofil. Die Treffer gehen in die App.',
   });
   assert.equal(describePlan({ art: 'stelle', portale: ['job-room', 'jobs.ch', 'ictjobs'] }).text,
-    'Sucht auf job-room, jobs.ch und ictjobs nach Ihrem Suchprofil. Die Treffer gehen in die App.');
+    'Sucht auf job-room, jobs.ch und ictjobs nach dem Suchprofil. Die Treffer gehen in die App.');
   assert.equal(describePlan(null).button, 'Suche starten');
 });
 
