@@ -18,5 +18,14 @@ Write each requirement as one row under its section, in this format. The fence k
 - G6 [approved, must] Die Windows-App gibt es als MSIX-Paket für den Microsoft Store. | gate: review
 - G7 [approved, must] Die Webseite stellt die App vor, führt zum Download und zeigt die Anleitung; Sprache vorerst Deutsch. | gate: review
 - G8 [approved, must] Gibt es beim Start der App ein Update, erscheint es zuerst in einem Dialog, der bis Installieren oder Später offen bleibt; nach Später fragt die App beim nächsten Start wieder. | gate: review
+- G9 [approved, must] In Chrome führt der Einrichtungsschritt Erweiterung zum Eintrag im Chrome Web Store; das Laden von Hand bleibt als zweiter Weg. | gate: review
+- G10 [approved, must] Die Oberfläche von App und Erweiterung gibt es auf Deutsch, Französisch und Englisch; die Person wählt die Sprache in den Einstellungen. Italienisch und Spanisch folgen später. | gate: review
+- G11 [approved, must] Die KI schreibt der Person in der Sprache der Oberfläche; Inserate und Portale bleiben in ihrer Originalsprache. | gate: review
+- G12 [approved, must] Lebenslauf und Anschreiben lassen sich unabhängig von der Sprache der Oberfläche in jeder Bewerbungssprache erstellen; die Person wählt ihre Bewerbungssprachen, die App schlägt sie aus dem Lebenslauf vor. | gate: review
+- G13 [approved, must] Webseite und Anleitung gibt es auf Deutsch, Französisch und Englisch, mit Wahl der Sprache auf der Seite; das ersetzt den Teil von G7, nach dem die Webseite vorerst Deutsch ist. | gate: review
+- G14 [approved, must] Wo die Person Name, Adresse und Kontaktdaten erfasst, und vor der Einwilligung, erklärt die App kurz, dass sie diese Angaben vor dem Senden an die KI durch Platzhalter ersetzt, welche Angaben nicht ersetzt werden, und dass sie nur ersetzen kann, was korrekt eingetragen ist. | gate: review
+- G15 [approved, must] Die Person kann vor einem KI-Aufruf sehen, welcher Text mit Platzhaltern an die KI geht. | gate: review
+- G16 [approved, must] Neben den bestehenden Designs gibt es ein Design als Bewerbungsdossier: Titelseite, Anschreiben und Lebenslauf in einem gestalteten PDF. Aus demselben Design entstehen Lebenslauf und Anschreiben auch als einzelne Dateien für Portale, die getrennte Uploads verlangen. Bewertungen wie Balken oder Ringe für Können und Programme zeigt es nur, wenn die Person sie angegeben hat. | gate: review
+- G17 [approved, must] Bei einer Bewerbung kann die Person einen Lebenslauf nicht nur wählen, sondern auch erstellen: Inhalt aus Meine Angaben, für die Stelle zugeschnitten (Auswahl, Reihenfolge, Kurzprofil), und Layout (Design) getrennt davon wählbar. Der neue Lebenslauf steht danach wie eine Variante zur Wahl. | gate: review
 
 ## K · Constraints
