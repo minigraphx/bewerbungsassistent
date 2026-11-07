@@ -96,8 +96,8 @@ Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur a
 - `lib/`: `queries.js` (Abfragen pro Portal aus dem Suchplan, alle Stichworte zuerst am ersten Ort), `search.js` (Ablauf einer Suche, ohne Browser testbar), `sites.js` (weitere Seiten), `steps.js` (Abbrechen, Sichten), `app.js` (Verbindung zur App), `senders.js` (wer Aufträge geben darf), `progress.js` (Text für den Fortschritt).
 - `portals/`: eine Anpassung pro Portal mit `list(query, page)` und `details(hit)`, dazu `common.js` (HTML zu Text, Alter, Pensum, Abrufe).
 - `app-bridge.js`: läuft nur auf Seiten der App (`<meta name="bewerbungsbegleiter">`), zeigt ihr per Zeichen, dass die Erweiterung da ist, und reicht Start und Fortschritt weiter.
-- `popup.*`: Start der Suche und Stand des letzten Laufs.
-- `form/`: im Tab eines Formulars: `fields.js` (was ein Feld ist, nur Regeln, ohne Seite testbar), `filler.js` (füllt pro Rahmen), `bar.js` (Balken im oberen Rahmen). `lib/apply.js` führt die Tabs, `erlauben.*` fragt um den Zugriff.
+- `popup.*`, `page-panel.js`: Popup nach dem Entwurf (MIN-369): verbunden oder „Die App läuft nicht“ mit „Nochmals verbinden“, die letzte Suche oder die Portale eines laufenden Laufs mit „Suche abbrechen“ (`suche-stoppen`, hört nach dem laufenden Schritt auf), die Stelle der offenen Seite mit Note. Was es zeigt, steht ohne DOM in `lib/popup-view.js`. Die Wörter folgen der Einrichtung der App: Der Suchplan bringt die Anrede mit, bei Lehrstellen immer du; der Service Worker merkt sich den Textsatz für `erlauben.*` (`storage.local`, `textsatz`).
+- `form/`: im Tab eines Formulars: `fields.js` (was ein Feld ist, nur Regeln, ohne Seite testbar), `filler.js` (füllt pro Rahmen), `bar.js` (Balken im oberen Rahmen). `lib/apply.js` führt die Tabs, `erlauben.*` fragt um den Zugriff (Wörter in `lib/permission-text.js`: was die Erweiterung dort tut und was nie).
 
 Gegenstück in der App: `desktop/native_host.py` (Host, Weiterleitung an die laufende App, startet sie bei Bedarf), `desktop/native_messaging.py` (Anmeldung beim Browser), `bewerbungen/search_plan.py`, `bewerbungen/hits.py` und `bewerbungen/routes_search.py`.
 
