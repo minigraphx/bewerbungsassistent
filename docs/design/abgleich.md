@@ -1,6 +1,6 @@
 # Abgleich der App mit dem Design
 
-Stand 7.11.2026, Item #23. Verglichen wurden die Bilder in `entwurf/` und die Quellen in `seiten/` mit `main`, in der laufenden App mit erfundenen Daten. Alles unten ist **nicht geändert** und wartet auf einen Entscheid. Was Andy nicht entscheidet, bleibt, wie es ist.
+Stand 7.11.2026, Item #23. Verglichen wurden die Bilder in `entwurf/` und die Quellen in `seiten/` mit `main`, in der laufenden App mit erfundenen Daten. Die nummerierten Punkte sind **nicht geändert** und warten auf einen Entscheid. Was Andy nicht entscheidet, bleibt, wie es ist.
 
 ## Behoben, weil klar falsch
 
@@ -52,6 +52,7 @@ Wer die App mit du nutzt, las an einigen Stellen trotzdem Sie:
 | 19 | Foto | „Foto im Lebenslauf zeigen“, „Anderes Foto wählen“, „Foto entfernen“. | „Zoom“, „Ausschnitt waagrecht (x)“ und ein YAML-Block; die drei Knöpfe fehlen. |
 | 20 | Fragen | Chat-Karten, Knopf „Fragen“, Zähler „18 von 20“, eigene Beispielfragen für Lehrstellen. | Knopf „Senden“, „Heute noch 30 Fragen“, dieselben Beispiele für alle. |
 | 21 | Einstellungen | Eigene Karten „Zugang zur KI“, „Fragen an die KI“ (Schalter, Limit) und „Weitere Seiten durchsuchen“ mit Status; Budget als Balken. | Die zwei ersten Karten fehlen, „Weitere Seiten“ erscheint nur mit eigenem Schlüssel, Kosten ohne Budget. |
+| 27 | Meine Angaben | Ein Block zum Vorbefüllen mit Dateiliste und Knopf „Vorbefüllen“, darunter „Alles wird laufend gespeichert, zuletzt um 10:42“. | Vier Gruppen zum Hochladen (Lebenslauf, Zeugnisse, Zertifikate, frühere Anschreiben), keine Zeile zum Speichern. |
 | 22 | Einrichtung | Link und Knöpfe nicht vorgesehen. | Zusätzlich „Anleitung mit Bildern“, „In Chrome/Edge öffnen“, „Ordner zeigen“, Mac-Hinweis. Vorschlag: lassen, sie helfen beim Einstieg. |
 
 ## Erweiterung
@@ -62,6 +63,7 @@ Wer die App mit du nutzt, las an einigen Stellen trotzdem Sie:
 | 24 | Dieselben Farben in Leiste und Formular. | Legende `#4caf50`, `#ff9800`; Formular `#2e7d32`, `#ef6c00`. |
 | 25 | Leistenzustand „Dateien hochladen“ mit Satz zum Formular. | Knopf „Dateien im Ordner zeigen“. |
 | 26 | Erlaubnis-Seite nennt die Domain. | Nennt keine Domain, weil die Erlaubnis alle Seiten betrifft. |
+| 28 | Kürzere Texte in Job-Room- und Such-Leiste. | Längere Texte, in der Such-Leiste mit „Bitte nichts anklicken und nicht schliessen, sonst endet sie“. Vorschlag: lassen, der Satz erklärt das Verhalten. |
 
 ## Absichtlich, bleibt
 
@@ -71,6 +73,46 @@ Wer die App mit du nutzt, las an einigen Stellen trotzdem Sie:
 - Einwilligung vor dem ersten KI-Aufruf, in Einrichtung, Bewerbung und Einstellungen (2069cd5, 6a5c58b).
 - Einfache Einrichtung ohne Desktop-Teil zeigt nur den ersten Schritt (e8c20e1).
 - Die Lücke unter „Lebenslauf-Variante“ aus dem Item liess sich nicht nachstellen, weder bei 1280 noch bei 760 px.
+
+## Abdeckung
+
+Jede Datei in `seiten/`. „Bild“ heisst: Bild des Designs und Aufnahme der App verglichen. „Code“ heisst: nur gegen den Code verglichen, nicht gerendert.
+
+| Seite | Geprüft | Ergebnis |
+| --- | --- | --- |
+| Main | Bild | #4, sonst stimmt sie |
+| Uebersicht-760 | Bild | stimmt |
+| Uebersicht-Dunkel | Bild, Dialog nur Code | stimmt |
+| Uebersicht-Erststart | Bild | #4, sonst stimmt sie |
+| Nav | Bild | #13 |
+| Suche | Bild | #2, #3, #14 |
+| Suche-760 | Bild | wie Suche |
+| Suche-Lehrstellen | Bild | #12, #13 |
+| Bewerbung | Bild | #1, #5, #7, #10, #11 |
+| Bewerbung-760 | Bild | wie Bewerbung |
+| Bewerbung-Abschicken | Bild ohne offenes Formular, sonst Code | #9 |
+| Bewerbung-Versendet | Bild nur als Lehrstelle, Stelle mit Code | #6 |
+| Bewerbung-Lehrstelle | Bild | #5, #7, #8 |
+| Bewerbung-Lehrstelle-Versendet | Bild | #6, #8 |
+| Einrichtung-Wahl | Bild | #22 |
+| Einrichtung | Bild | #22, Einwilligung absichtlich |
+| Einrichtung-Erweiterung | Bild | #22 |
+| Angaben | Bild | #27 |
+| Dateien | Bild | #15 |
+| Inhalte | Bild | #16 |
+| Entwuerfe | Bild | #17 |
+| Entwuerfe-Vergleich | Bild | #18 |
+| Foto | Bild ohne Foto, Editor nur Code | #1, #19 |
+| Fragen | Bild | #3, #20 |
+| Einstellungen | Bild | #2, #21 |
+| Erweiterung-Popups | Code | #1, #3 |
+| Popup | Code, Baustein von Erweiterung-Popups | wie Erweiterung-Popups |
+| Erweiterung-Formular | Code | #23, #24 |
+| Erweiterung-Formular-Oben | Code | Leiste lässt sich nach oben setzen, sonst wie Erweiterung-Formular |
+| Erweiterung-Leisten | Code | #25, #28 |
+| Leiste | Code, Baustein von Erweiterung-Leisten | wie Erweiterung-Leisten |
+| Erweiterung-JobRoom | Code | #28 |
+| Erweiterung-Erlauben | Code | #26 |
 
 ## Nicht geprüft
 
