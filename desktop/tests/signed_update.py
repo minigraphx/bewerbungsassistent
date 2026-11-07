@@ -12,7 +12,8 @@ SHIPPED_KEY = update_key.PUBLIC_KEY
 BASE = "https://updates.example.ch/app"
 KEY = Ed25519PrivateKey.generate()
 PUBLIC_KEY = base64.b64encode(KEY.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)).decode()
-PACKAGE_NAMES = {"win32": "Bewerbungsbegleiter-Setup-{}.exe", "darwin": "Bewerbungsbegleiter-{}-macOS.zip"}
+PACKAGE_NAMES = {"win32": "Bewerbungsbegleiter-Setup-{}.exe", "darwin": "Bewerbungsbegleiter-{}-macOS.zip",
+                 "linux": "Bewerbungsbegleiter-{}-x86_64.AppImage"}
 
 
 def envelope(payload: bytes, key: Ed25519PrivateKey = KEY) -> bytes:

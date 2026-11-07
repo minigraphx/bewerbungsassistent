@@ -37,7 +37,9 @@ ANNOUNCEMENT = "latest.json"
 RELEASES_PAGE = "https://github.com/minigraphx/bewerbungsassistent/releases"  # only ever opened by the person
 INSTALLER = re.compile(r"^Bewerbungsbegleiter-Setup-(\d+\.\d+\.\d+)\.exe$")
 MAC_ZIP = re.compile(r"^Bewerbungsbegleiter-(\d+\.\d+\.\d+)-macOS\.zip$")
-PACKAGES = {"win32": INSTALLER, "darwin": MAC_ZIP}
+APPIMAGE = re.compile(r"^Bewerbungsbegleiter-(\d+\.\d+\.\d+)-x86_64\.AppImage$")
+PACKAGES = {"win32": INSTALLER, "darwin": MAC_ZIP, "linux": APPIMAGE}
+LOADED_BY_HAND = ("linux",)  # no self-update: the person opens the package itself, from our server
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 MAX_NOTES = 2000
@@ -153,7 +155,8 @@ def latest(fetch: Fetch = _fetch, platform: str = sys.platform) -> Update | None
         log.warning("Update-Ankündigung ohne gültige Version")
         return None
     package_url, digest = _package(announced, platform, version, address)
-    return Update(version=version, page_url=RELEASES_PAGE, installer_url=package_url, sha256=digest,
+    page_url = package_url if platform in LOADED_BY_HAND and package_url else RELEASES_PAGE
+    return Update(version=version, page_url=page_url, installer_url=package_url, sha256=digest,
                   notes=str(announced.get("notes") or "")[:MAX_NOTES])
 
 
