@@ -4,6 +4,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import vm from 'node:vm';
 import { ApplyRun, MAX_AI_ROUNDS, describeReport, hostOf, mergeReports, sameSite } from '../lib/apply.js';
+
+/** What a bar says, both lines (MIN-369: a bold first line and a second one). */
+const said = (bar) => [bar.titel, bar.text].filter(Boolean).join(' ');
 import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, senderKind } from '../lib/senders.js';
 
 const READY = { id: 'a', firma: 'Muster', stelle: 'X', link: 'https://firma.ch/stelle' };
@@ -34,8 +37,8 @@ function setup({ permission = true, start = { bereit: [READY], abgelehnt: [], do
       inject: async () => { log.push(['inject']); return [{ frameId: 0, documentId: 'D' }]; },
       fill: async (tabId, documents, values, uploads, ki) => { log.push(['fill', documents, ki]); return [{ frameId: 0, result: report }]; },
       follow: async (tabId, documents) => { log.push(['follow', documents]); return followed; },
-      bar: async (tabId, balken) => { log.push(['bar', balken]); },
-      end: async (tabId, text) => { log.push(['end', text]); },
+      bar: async (tabId, balken) => { log.push(['bar', { ...balken, text: said(balken) }]); },
+      end: async (tabId, balken) => { log.push(['end', said(balken)]); },
       permissionPage: async () => { log.push(['permissionPage']); },
     },
     store: { get: async () => forms, set: async (next) => { forms = next; } },
@@ -70,14 +73,17 @@ test('the frames of a tab count together', () => {
 
 test('the bar says what is open', () => {
   const view = describeReport({ felder: 18, gefuellt: 14, offen: 3, einwilligungen: 1, anmeldung: false, hinweise: [] });
-  assert.match(view.text, /14 Felder ausgefüllt, 3 offen, 1 Einwilligung bitte selbst prüfen/);
+  assert.equal(view.titel, '14 Felder ausgefüllt. 3 offen, 1 Einwilligung bitte selbst prüfen.');
+  assert.equal(view.text, 'Abschicken bleibt bei Ihnen.');
+  assert.equal(said(describeReport({ felder: 1, gefuellt: 1, offen: 0 }, 'lehrstelle-du')), '1 Feld ausgefüllt. 0 offen. Abschicken bleibt bei dir.');
+  assert.deepEqual(view.knoepfe, ['abgeschickt', 'ordner', 'stoppen'], 'the main button first');
   assert.ok(view.knoepfe.includes('abgeschickt'));
-  assert.match(describeReport({ felder: 1, gefuellt: 1, offen: 0 }).text, /1 Feld ausgefüllt/);
+  assert.match(said(describeReport({ felder: 1, gefuellt: 1, offen: 0 })), /1 Feld ausgefüllt/);
 });
 
 test('a login stops it, without the button for sending', () => {
   const view = describeReport({ felder: 0, anmeldung: true });
-  assert.match(view.text, /Anmeldung/);
+  assert.match(said(view), /Anmeldung/);
   assert.ok(view.aufmerksamkeit && !view.knoepfe.includes('abgeschickt'));
 });
 
@@ -327,7 +333,7 @@ test('without a form and a link it tells the person', async () => {
   await run.loaded(10, 'https://firma.ch/stelle');
 
   const bar = seen('bar').at(-1)[1];
-  assert.match(bar.text, /kein Formular/);
+  assert.match(said(bar), /kein Formular/);
   assert.ok(bar.aufmerksamkeit);
 });
 
@@ -382,7 +388,18 @@ test('a dispatch is recorded only when the person says so, and ends the tab', as
 
   assert.deepEqual(log.find((e) => e[0] === '/api/bewerben/abgeschickt')[1], { id: 'a' });
   assert.deepEqual(forms(), {});
-  assert.match(seen('end')[0][1], /Versand erfasst/);
+  assert.match(seen('end')[0][1], /^Festgehalten: beworben am \d\d\.\d\d\.\d{4}\. .*Nächster Schritt: im Job-Room eintragen\./);
+});
+
+test('the bar speaks like the app and names the next step without RAV (MIN-369)', async () => {
+  const { run, seen } = setup({ start: { bereit: [READY], abgelehnt: [], doppelt: [], textsatz: 'lehrstelle-du', rav: false } });
+  await run.start({ ids: ['a'] });
+  await run.loaded(10, 'https://firma.ch/');
+  assert.match(seen('bar').at(-1)[1].text, /Abschicken bleibt bei dir\./);
+
+  await run.sent(10);
+
+  assert.match(seen('end')[0][1], /Nächster Schritt: Antwort abwarten\. Die App erinnert dich ans Nachfragen\./);
 });
 
 test('a failed dispatch stays visible and the tab stays in the list', async () => {
@@ -537,9 +554,9 @@ test('the bar counts drafts and says when the AI is at work', () => {
   const merged = mergeReports({ 0: { felder: 5, gefuellt: 3, offen: 1, einwilligungen: 0, entwuerfe: 2, ki: 1 } });
 
   assert.equal(merged.entwuerfe, 2);
-  assert.match(describeReport(merged).text, /2 Textentwürfe bitte prüfen/);
-  assert.match(describeReport(merged).text, /KI/);
-  assert.doesNotMatch(describeReport({ ...merged, ki: 0 }).text, /KI/);
+  assert.match(said(describeReport(merged)), /davon 2 Entwürfe der KI/);
+  assert.match(said(describeReport(merged)), /die KI sieht sich offene Felder an/);
+  assert.doesNotMatch(said(describeReport({ ...merged, ki: 0 })), /KI sieht/);
 });
 
 test('whether the AI may help comes from the app and goes to the frame', async () => {
@@ -596,7 +613,7 @@ test('a tab that is not part of the run opens no folder', async () => {
 });
 
 test('files the AI chose are named in the bar', () => {
-  assert.match(describeReport({ felder: 4, gefuellt: 3, offen: 0, kiDateien: 1 }).text, /1 Datei von der KI zugeordnet/);
+  assert.match(said(describeReport({ felder: 4, gefuellt: 3, offen: 0, kiDateien: 1 })), /1 Datei von der KI zugeordnet/);
   assert.equal(mergeReports({ 0: { kiDateien: 1 }, 5: { kiDateien: 2 } }).kiDateien, 3);
 });
 

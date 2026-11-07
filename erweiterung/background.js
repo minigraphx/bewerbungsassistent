@@ -6,6 +6,7 @@ import { runSearch } from './lib/search.js';
 import { followKey, readOpenPage } from './lib/sites.js';
 import { adKey } from './lib/page-ad.js';
 import { textSet } from './lib/popup-view.js';
+import { watchingBar } from './lib/bar-text.js';
 import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, WATCH_ACTION, isRavSender, senderKind } from './lib/senders.js';
 import { ALL_PAGES, ApplyRun } from './lib/apply.js';
 import { RavRun, isRavPage } from './lib/rav.js';
@@ -20,7 +21,6 @@ let running = false;
 let searchCancelled = false;
 let versionChecked = false;
 let watchedTab = null; // with „Zuschauen“ (MIN-370): the visible tab of the search
-const WATCHING_TEXT = (portal) => `Der Browser wird gerade vom Bewerbungsbegleiter gesteuert: Suche auf ${portal}. Bitte warten und im Tab nichts anklicken; er schliesst sich von selbst. Wird er geschlossen, endet die Suche.`;
 
 // Pages of the app that were already open when the extension was loaded get the bridge now, so the setup page
 // shows „bereit“ without a reload. app-bridge.js itself checks that the page belongs to the app.
@@ -76,7 +76,8 @@ const browserTabs = {
   async showWatching(tabId, portal) {
     try {
       await chrome.scripting.executeScript({ target: { tabId }, files: ['form/bar.js'] });
-      await chrome.tabs.sendMessage(tabId, { art: 'formular-balken', balken: { text: WATCHING_TEXT(portal), knoepfe: ['suche_abbrechen'] } }, { frameId: 0 });
+      const { textsatz } = await chrome.storage.local.get('textsatz');
+      await chrome.tabs.sendMessage(tabId, { art: 'formular-balken', balken: { ...watchingBar(textsatz, portal), knoepfe: ['suche_abbrechen'] } }, { frameId: 0 });
     } catch {
       // the page is just changing; the next page shows it again
     }
@@ -315,8 +316,8 @@ const formTabs = {
   async bar(tabId, balken) {
     await chrome.tabs.sendMessage(tabId, { art: 'formular-balken', balken }, { frameId: 0 });
   },
-  async end(tabId, text) {
-    await chrome.tabs.sendMessage(tabId, { art: 'formular-ende', text }).catch(() => {});
+  async end(tabId, balken) {
+    await chrome.tabs.sendMessage(tabId, { art: 'formular-ende', balken }).catch(() => {});
   },
   async permissionPage() {
     await chrome.tabs.create({ url: chrome.runtime.getURL('erlauben.html') });

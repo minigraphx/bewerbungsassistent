@@ -156,7 +156,9 @@ def test_start_checks_and_writes_nothing(server, datenordner):
     before = (datenordner / "bewerbungen.yaml").read_bytes()
     status, answer = post(server, "/api/rav/start", {"ids": ["muster-ag-dev", "b"]})
     assert status == 200
-    assert answer["bereit"] == [{"id": "muster-ag-dev", "firma": "Muster AG", "stelle": "Entwickler"}]
+    assert answer["bereit"] == [{"id": "muster-ag-dev", "firma": "Muster AG", "stelle": "Entwickler",
+                                 "beworben_am": Register(datenordner).hole("muster-ag-dev")["beworben_am"]}]
+    assert answer["textsatz"] == "stelle-sie"
     assert [row["id"] for row in answer["abgelehnt"]] == ["b"]
     assert (datenordner / "bewerbungen.yaml").read_bytes() == before
 

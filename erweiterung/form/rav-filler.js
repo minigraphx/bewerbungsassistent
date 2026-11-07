@@ -8,7 +8,7 @@
   const logic = globalThis.bewerbungsbegleiterRavFields;
   const POLL_MS = 700;
   const NO_FORM_POLLS = 6;
-  const COLORS = { filled: '#2e7d32', open: '#ef6c00' };
+  const LINES = { filled: '2px solid #2e7d32', open: '2px dashed #ef6c00' }; // as in filler.js (MIN-369)
   const DATE_CONTROL = '[alvformcontrolname="date"]';
   const FORM_PATH = '/work-efforts/create';
   const MIN_FORM_FIELDS = 5;
@@ -58,9 +58,9 @@
     };
   }
 
-  function mark(el, color) {
+  function mark(el, line) {
     const target = el.type === 'checkbox' || el.type === 'radio' ? el.labels?.[0] || el : el;
-    target.style.setProperty('outline', `2px solid ${color}`, 'important');
+    target.style.setProperty('outline', line, 'important');
     target.style.setProperty('outline-offset', '1px', 'important');
   }
 
@@ -77,9 +77,9 @@
       const el = elements[action.index];
       if (action.kind === 'text') setText(el, action.value);
       else el.click();
-      mark(el, COLORS.filled);
+      mark(el, LINES.filled);
     }
-    for (const index of found.open) mark(elements[index], COLORS.open);
+    for (const index of found.open) mark(elements[index], LINES.open);
     return found;
   }
 

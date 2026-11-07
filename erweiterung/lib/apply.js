@@ -1,13 +1,11 @@
 // Forms in tabs (MIN-346): the extension opens what the person chose in the app, fills it, reports the state and
 // records a dispatch only after the person pressed the button. Tab, app and storage come from outside, for the tests.
 
+import { aiLimit, filledTitle, folderText, loginBar, newAddressBar, noFormBar, sentBar, stoppedBar, yoursToSend } from './bar-text.js';
+
 export const ALL_PAGES = { origins: ['<all_urls>'] };
 const FOLLOW_WAIT_MS = 1500;
 const MAX_PARTS = 60;
-const NO_FORM = 'Hier ist kein Formular zu finden. Bitte das Formular selbst öffnen, es wird dann ausgefüllt. Schon abgeschickt? Dann unten bestätigen.';
-const LOGIN = 'Hier braucht es eine Anmeldung oder ein Konto: Das bleibt bei Ihnen. Danach geht das Ausfüllen weiter.';
-const GOES_ON = 'Ausfüllen beendet. Die eingetragenen Werte bleiben im Formular.';
-const AI_LIMIT = 'Für diesen Tab ist die Grenze der KI-Anfragen erreicht. Weitere Felder bleiben bei Ihnen.';
 const NOT_THIS_TAB = 'Dieser Tab gehört nicht mehr zum Bewerben.';
 export const MAX_AI_ROUNDS = 8; // a page can show new fields without end; every call costs money
 
@@ -39,21 +37,12 @@ export function mergeReports(frames) {
   };
 }
 
-function plural(count, one, many) {
-  return `${count} ${count === 1 ? one : many}`;
-}
-
-/** The text of the bar: „14 Felder ausgefüllt, 3 offen, 1 Einwilligung bitte selbst prüfen“. */
-export function describeReport(merged) {
-  if (merged.anmeldung) return { text: LOGIN, aufmerksamkeit: true, knoepfe: ['stoppen'] };
-  if (!merged.felder) return { text: NO_FORM, aufmerksamkeit: true, knoepfe: ['ordner', 'abgeschickt', 'stoppen'] };
-  const parts = [`${plural(merged.gefuellt, 'Feld', 'Felder')} ausgefüllt`, `${merged.offen} offen`];
-  if (merged.entwuerfe) parts.push(`${plural(merged.entwuerfe, 'Textentwurf', 'Textentwürfe')} bitte prüfen`);
-  if (merged.kiDateien) parts.push(`${plural(merged.kiDateien, 'Datei', 'Dateien')} von der KI zugeordnet, bitte prüfen`);
-  if (merged.ki) parts.push('die KI sieht sich offene Felder an');
-  if (merged.einwilligungen) parts.push(`${plural(merged.einwilligungen, 'Einwilligung', 'Einwilligungen')} bitte selbst prüfen`);
-  return { text: `${parts.join(', ')}. Abschicken bleibt bei Ihnen.`, hinweise: merged.hinweise, farben: true,
-           knoepfe: ['ordner', 'abgeschickt', 'stoppen'] };
+/** The bar after a report: „5 Felder ausgefüllt, davon 1 Entwurf der KI. 3 offen, …“ and whose the sending is (MIN-369). */
+export function describeReport(merged, set) {
+  if (merged.anmeldung) return { ...loginBar(set), aufmerksamkeit: true, knoepfe: ['stoppen'] };
+  if (!merged.felder) return { ...noFormBar(set), aufmerksamkeit: true, knoepfe: ['abgeschickt', 'ordner', 'stoppen'] };
+  return { titel: filledTitle(merged), text: yoursToSend(set), hinweise: merged.hinweise, farben: true,
+           knoepfe: ['abgeschickt', 'ordner', 'stoppen'] };
 }
 
 /** The same question on a reloaded page or in the next step: refs change, what the page shows does not. */
@@ -141,7 +130,8 @@ export class ApplyRun {
       await this.tabs.permissionPage();
       return { berechtigung: true };
     }
-    for (const [position, application] of answer.bereit.entries()) await this.open(application, position === 0);
+    const speech = { textsatz: answer.textsatz, rav: answer.rav !== false };
+    for (const [position, application] of answer.bereit.entries()) await this.open({ ...application, ...speech }, position === 0);
     return { geoeffnet: answer.bereit.length };
   }
 
@@ -161,7 +151,8 @@ export class ApplyRun {
     }
     // First the empty tab: then the list knows it before the form has loaded.
     const tabId = await this.tabs.blank(active);
-    const entry = { id: application.id, firma: application.firma, hosts: [], frames: {}, gefolgt: false, ausgefuellt: false };
+    const entry = { id: application.id, firma: application.firma, stelle: application.stelle, textsatz: application.textsatz,
+                    rav: application.rav, hosts: [], frames: {}, gefolgt: false, ausgefuellt: false };
     await this.change((current) => ({ next: { ...current, [tabId]: entry }, result: null }));
     // Before the form can ask for files: the app forgets here what an earlier form of this application got.
     await this.ask('POST', '/api/bewerben/stand', { id: application.id, stand: 'geoeffnet' });
@@ -180,7 +171,7 @@ export class ApplyRun {
     if (!entry) return;
     try {
       const documents = await this.tabs.inject(tabId);
-      if (entry.fremd) await this.tabs.bar(tabId, { text: `Neue Adresse: ${host}. Hier auch ausfüllen?`, knoepfe: ['hier', 'abgeschickt', 'stoppen'] });
+      if (entry.fremd) await this.tabs.bar(tabId, { ...newAddressBar(entry.textsatz, entry, host), knoepfe: ['hier', 'nicht_hier', 'abgeschickt'] });
       else await this.fill(tabId, entry, documents, true);
     } catch (error) {
       await this.reportFailure(tabId, host, error);
@@ -262,9 +253,9 @@ export class ApplyRun {
       const reached = await this.ask('POST', '/api/bewerben/stand', { id: entry.id, stand: 'ausgefuellt' }).then(() => true, () => false);
       if (reached) await this.updateTab(tabId, (current) => ({ ...current, ausgefuellt: true }));
     }
-    const view = describeReport(merged);
+    const view = describeReport(merged, entry.textsatz);
     const notes = [...new Set([...(view.hinweise || []), ...(entry.ordnerHinweise || [])])];
-    await this.tabs.bar(tabId, { ...view, ...(notes.length ? { hinweise: notes } : {}), ...(entry.ordner ? { pfad: entry.ordner } : {}) });
+    await this.tabs.bar(tabId, { ...view, ...(notes.length ? { hinweise: notes } : {}), ...(entry.ordner ? { pfad: entry.ordner, pfadText: folderText(entry.textsatz) } : {}) });
   }
 
   /** A file of the application of this tab, whole: the extension asks for it in parts below the host's limit. */
@@ -313,7 +304,7 @@ export class ApplyRun {
     const notes = entry.kiHinweise || []; // a warning about the page stays true after a reload
     const fresh = felder.filter((field) => !Object.hasOwn(known, fieldKey(field)));
     if (!fresh.length) return { ...forKeptFields(felder, known), hinweise: notes };
-    if (!(await this.reserveAiRound(tabId))) return { ...forKeptFields(felder, known), hinweise: [...notes, AI_LIMIT] };
+    if (!(await this.reserveAiRound(tabId))) return { ...forKeptFields(felder, known), hinweise: [...notes, aiLimit(entry.textsatz)] };
     const learned = await this.learnFields(tabId, entry, fresh);
     return { ...forKeptFields(felder, learned.kept), hinweise: [...new Set([...learned.known, ...learned.notes])] };
   }
@@ -337,15 +328,14 @@ export class ApplyRun {
     try {
       const answer = await this.ask('POST', '/api/bewerben/abgeschickt', { id: entry.id });
       await this.removeTab(tabId);
-      const notes = answer.hinweise && answer.hinweise.length ? ` ${answer.hinweise.join(' ')}` : '';
-      await this.tabs.end(tabId, `Versand erfasst.${notes}`);
+      await this.tabs.end(tabId, sentBar(entry.textsatz, entry.rav !== false, new Date(), answer.hinweise || []));
     } catch (error) {
       await this.showError(tabId, error);
     }
   }
 
   async stop(tabId) {
-    if (await this.removeTab(tabId)) await this.tabs.end(tabId, GOES_ON);
+    if (await this.removeTab(tabId)) await this.tabs.end(tabId, stoppedBar());
   }
 
   async closed(tabId) {
@@ -353,6 +343,6 @@ export class ApplyRun {
   }
 
   async showError(tabId, error) {
-    await this.tabs.bar(tabId, { text: error.message, fehler: true, aufmerksamkeit: true, knoepfe: ['stoppen'] }).catch(() => {});
+    await this.tabs.bar(tabId, { titel: error.message, fehler: true, aufmerksamkeit: true, knoepfe: ['stoppen'] }).catch(() => {});
   }
 }

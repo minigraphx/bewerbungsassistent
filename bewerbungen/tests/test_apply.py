@@ -167,6 +167,7 @@ def test_start_gives_the_links_and_changes_nothing(server, checked):
 
     assert status == 200 and answer["bereit"] == [{"id": entry["id"], "firma": "Muster AG", "stelle": "Entwicklerin",
                                                    "link": "https://example.ch/form"}]
+    assert (answer["textsatz"], answer["rav"]) == ("stelle-sie", True), "the bar speaks like the app (MIN-369)"
     assert "ausfuellen" not in Register(server.kontext.daten).hole(entry["id"])
 
 

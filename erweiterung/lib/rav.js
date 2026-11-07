@@ -2,13 +2,14 @@
 // saves; this only opens the form, hands over the values and moves on. Kept in the session storage, because the
 // service worker does not stay alive between two entries. What is entered here never goes to the AI.
 
+import { ravEntryBar } from './bar-text.js';
+
 export const RAV_HOST = 'www.job-room.ch';
 export const FORM_URL = `https://${RAV_HOST}/work-efforts/create`;
 const NEXT_WAIT_MS = 1500;
 const WAITING = 'Warte auf das Formular der Arbeitsbemühungen …';
-const NO_FORM = 'Hier ist kein Formular für die Arbeitsbemühungen zu sehen. Bitte bei Job-Room anmelden, falls nötig, und danach „Zum Formular“ drücken. Erscheint es auch dann nicht, hat sich der Job-Room geändert: bitte von Hand eintragen.';
+const NO_FORM = 'Bitte bei Job-Room anmelden, falls nötig, und danach „Zum Formular“ drücken. Erscheint es auch dann nicht, hat sich der Job-Room geändert: bitte von Hand eintragen.';
 const CHANGED = 'Das Formular im Job-Room sieht anders aus als erwartet, darum wurde nichts ausgefüllt. Bitte von Hand eintragen und selbst speichern, oder überspringen.';
-const SAVE_YOURSELF = 'Bitte prüfen und selbst auf „Speichern“ drücken; damit geht der Eintrag ans RAV.';
 const NOT_RECORDED = 'Der Eintrag ist im Job-Room gespeichert, aber in der App nicht vermerkt:';
 const RUNNING = 'Es läuft schon ein Durchgang fürs RAV; der Tab ist jetzt vorn.';
 const NOT_THIS_TAB = 'Dieser Tab gehört nicht zum Eintragen im RAV.';
@@ -57,10 +58,10 @@ export class RavRun {
         await this.tabs.activate(earlier.tabId);
         return { fehler: RUNNING };
       }
-      const { bereit, abgelehnt } = await this.ask('POST', '/api/rav/start', { ids });
+      const { bereit, abgelehnt, textsatz } = await this.ask('POST', '/api/rav/start', { ids });
       if (abgelehnt.length) return { abgelehnt };
       const tabId = await this.tabs.blank();
-      await this.store.set({ tabId, open: bereit, total: bereit.length, entered: 0, skipped: 0 });
+      await this.store.set({ tabId, open: bereit, total: bereit.length, entered: 0, skipped: 0, textsatz });
       await this.tabs.navigate(tabId, FORM_URL);
       return { geoeffnet: bereit.length };
     });
@@ -83,7 +84,7 @@ export class RavRun {
   waiting(tabId) {
     return this.change(async () => {
       await this.mine(tabId);
-      await this.bar(tabId, { text: WAITING, knoepfe: ['rav_stoppen'] });
+      await this.bar(tabId, { titel: WAITING, knoepfe: ['rav_stoppen'] });
     });
   }
 
@@ -95,7 +96,7 @@ export class RavRun {
         const { werte } = await this.ask('GET', '/api/rav/angaben', { id: entry.id });
         return { id: entry.id, werte };
       } catch (error) {
-        await this.bar(tabId, { id: entry.id, text: `${entry.firma}: ${error.message}`, fehler: true, knoepfe: ['rav_ueberspringen', 'rav_stoppen'] });
+        await this.bar(tabId, { id: entry.id, titel: `${entry.firma}: ${error.message}`, fehler: true, knoepfe: ['rav_ueberspringen', 'rav_stoppen'] });
         return { fehler: error.message };
       }
     });
@@ -107,17 +108,17 @@ export class RavRun {
       const entry = run.open[0];
       if (entry.id !== id) return;
       const position = run.total - run.open.length + 1;
-      const name = `Eintrag ${position} von ${run.total}: ${entry.firma}, ${entry.stelle}.`;
-      const buttons = ['rav_ja', 'rav_ueberspringen', 'rav_stoppen'];
-      if (geaendert) await this.bar(tabId, { id, text: `${name} ${CHANGED}`, fehler: true, knoepfe: buttons, aufmerksamkeit: true });
-      else await this.bar(tabId, { id, text: `${name} ${SAVE_YOURSELF}`, hinweise, knoepfe: buttons, farben: 'rav', aufmerksamkeit: true });
+      const view = ravEntryBar(run.textsatz, position, run.total, entry);
+      const buttons = ['rav_ja', 'rav_formular', 'rav_ueberspringen', 'rav_stoppen'];
+      if (geaendert) await this.bar(tabId, { id, titel: view.titel, text: CHANGED, fehler: true, knoepfe: buttons, aufmerksamkeit: true });
+      else await this.bar(tabId, { id, ...view, hinweise, knoepfe: buttons, farben: 'rav', aufmerksamkeit: true });
     });
   }
 
   noForm(tabId) {
     return this.change(async () => {
       await this.mine(tabId);
-      await this.bar(tabId, { text: NO_FORM, knoepfe: ['rav_formular', 'rav_stoppen'], aufmerksamkeit: true });
+      await this.bar(tabId, { titel: 'Kein Formular für die Arbeitsbemühungen.', text: NO_FORM, knoepfe: ['rav_formular', 'rav_stoppen'], aufmerksamkeit: true });
     });
   }
 
@@ -140,7 +141,7 @@ export class RavRun {
       try {
         await this.ask('POST', '/api/rav/eingetragen', { id: entry.id });
       } catch (error) {
-        await this.bar(tabId, { id, text: `${NOT_RECORDED} ${error.message}`, fehler: true, knoepfe: ['rav_ja', 'rav_ueberspringen', 'rav_stoppen'] });
+        await this.bar(tabId, { id, titel: NOT_RECORDED, text: error.message, fehler: true, knoepfe: ['rav_ja', 'rav_ueberspringen', 'rav_stoppen'] });
         return;
       }
       await this.advance({ ...run, open: run.open.slice(1), entered: run.entered + 1 }, `Vermerkt: ${entry.firma}.`);
@@ -172,13 +173,13 @@ export class RavRun {
       return;
     }
     await this.store.set(run);
-    await this.bar(run.tabId, { text: `${done} Weiter mit ${run.open[0].firma} …` });
+    await this.bar(run.tabId, { titel: done, text: `Weiter mit ${run.open[0].firma} …` });
     await this.sleep(NEXT_WAIT_MS);
     await this.tabs.navigate(run.tabId, FORM_URL);
   }
 
   async finish(run) {
     await this.store.set(null);
-    await this.tabs.end(run.tabId, `Fertig: ${run.entered} eingetragen, ${run.skipped} übersprungen. Die Übersicht in der App zeigt es.`);
+    await this.tabs.end(run.tabId, { titel: `Fertig: ${run.entered} eingetragen, ${run.skipped} übersprungen.`, text: 'Die Übersicht in der App zeigt es.' });
   }
 }
