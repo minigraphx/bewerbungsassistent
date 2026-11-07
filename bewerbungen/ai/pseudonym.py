@@ -35,6 +35,25 @@ UMLAUT_SPELLINGS = {"ä": "(?:ä|ae|a)", "ö": "(?:ö|oe|o)", "ü": "(?:ü|ue|u)
 UMLAUT_PAIRS = {"ae": "ä", "oe": "ö", "ue": "ü"}  # and „Mueller“ stored, „Müller“ written
 
 
+# What the person reads when a request is stopped (#111): the first part of the field that matches decides,
+# so REFERENCE_NOTE_1_NAME is a reference and CONTACT_EMAIL an e-mail address.
+FIELD_LABELS = (("EMAIL", "E-Mail"), ("PHONE", "Telefon"), ("BIRTH", "Geburtsdatum"), ("SOCIAL_NUMBER", "AHV-Nummer"),
+                ("ORIGIN", "Heimatort, Zivilstand oder Nationalität"), ("STREET", "Adresse"), ("ADDRESS", "Adresse"),
+                ("POSTAL_CODE", "Postleitzahl"), ("TOWN", "Wohnort"), ("PROFILE_USER", "Benutzername"),
+                ("PROFILE", "Link"), ("WEBSITE", "Link"), ("LINK", "Link"), ("PHOTO", "Foto"), ("SCHOOL", "Schule"),
+                ("REFERENCE", "Referenz"), ("CONTACT_WAY", "Kontaktweg"), ("CONTACT", "Kontaktperson"),
+                ("RECIPIENT", "Kontaktperson"), ("NAME", "Name"))
+UNKNOWN_LABEL = "persönliche Angabe"
+
+
+def label(field: str) -> str:
+    """The German word for a field like NAME_LAST or FOUND_PHONE_2."""
+    for key, text in FIELD_LABELS:
+        if re.search(rf"(?:^|_){key}(?:_|$)", field):
+            return text
+    return UNKNOWN_LABEL
+
+
 def phone_numbers(text: str) -> list[str]:
     """Everything in the text that looks like a phone number."""
     return [m for m in PHONE.findall(text) if not DATE_RANGE.fullmatch(m)]
@@ -204,10 +223,10 @@ class Pseudonymizer:
         leaked: set[str] = set()
         for text in [texts] if isinstance(texts, str) else texts:
             normalized = _norm(text)
-            leaked |= {rule.secret.field for rule in self._rules if rule.pattern.search(normalized)}
+            leaked |= {label(rule.secret.field) for rule in self._rules if rule.pattern.search(normalized)}
             leaked |= {"E-Mail"} if EMAIL.search(normalized) else set()
             leaked |= {"Telefon"} if phone_numbers(normalized) else set()
-            leaked |= self._folded_leaks(normalized)
+            leaked |= {label(field) for field in self._folded_leaks(normalized)}
         if leaked:
             raise PseudonymError(f"Persönliche Angaben wären an die KI gegangen ({', '.join(sorted(leaked))}); "
                                  "nichts gesendet.")
