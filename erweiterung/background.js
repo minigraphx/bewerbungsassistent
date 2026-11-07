@@ -8,6 +8,7 @@ import { adKey } from './lib/page-ad.js';
 import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, WATCH_ACTION, isRavSender, senderKind } from './lib/senders.js';
 import { ALL_PAGES, ApplyRun } from './lib/apply.js';
 import { RavRun, isRavPage } from './lib/rav.js';
+import { showHits } from './lib/app-tab.js';
 import { reloadForAppVersion, siteAccessControl } from './lib/reload.js';
 
 const LOAD_TIMEOUT_MS = 30000;
@@ -212,7 +213,7 @@ async function openApp() {
     await app.request('GET', '/api/suche/plan').catch(() => null);
     const hello = await app.hello();
     if (!hello.app) throw new Error('Die App läuft nicht.');
-    await chrome.tabs.create({ url: `${hello.app}treffer` });
+    await showHits(hello.app, chrome);
     return { ok: true };
   } finally {
     app.close();
