@@ -2,20 +2,20 @@
 
 Modul des [Bewerbungsbegleiters](../README.md) (MIN-339): Die Erweiterung für Chrome und Edge sucht nach dem Suchprofil: Stellen auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellen auf LENA (berufsberatung.ch) und yousty. Sie sucht im Browser der Person, mit deren IP und Logins, und nur, wenn die Person die Suche startet. Die Treffer gehen über Native Messaging an die [Desktop-App](../desktop/README.md); dort erscheinen sie auf der Seite „Stellen suchen“.
 
-In Edge kommt sie aus dem [Store](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp), die Einrichtung führt dorthin. Sonst wird sie als **Entwicklererweiterung** geladen („Entpackte Erweiterung laden“). Für die Stores baut `desktop/store_package.py` die ZIP-Datei: ohne Tests und ohne das Feld `key`, denn dort vergibt der Store die ID. Diese ID muss in `EXTENSION_IDS` (`desktop/native_messaging.py`) stehen, sonst lässt die App die Store-Fassung nicht zu.
+In Chrome kommt sie aus dem [Chrome Web Store](https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo), in Edge aus dem [Edge-Store](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp); die Einrichtung führt dorthin. Sonst wird sie als **Entwicklererweiterung** geladen („Entpackte Erweiterung laden“). Für die Stores baut `desktop/store_package.py` die ZIP-Datei: ohne Tests und ohne das Feld `key`, denn dort vergibt der Store die ID. Diese ID muss in `EXTENSION_IDS` (`desktop/native_messaging.py`) stehen, sonst lässt die App die Store-Fassung nicht zu.
 
 ## Einrichten
 
-Die App zeigt die Schritte auf der Seite **Einrichtung → Schritt 5** mit dem passenden Ordner:
+Die App zeigt auf der Seite **Einrichtung → Schritt 5** zuerst die Knöpfe zu den Stores; von Hand mit dem passenden Ordner:
 
 1. Die App einmal starten. Sie meldet sich bei Chrome und Edge als Native-Messaging-Host an und legt den Ordner der Erweiterung in ihrem App-Ordner ab (`…/Bewerbungsbegleiter/erweiterung`). Beim Start aus dem Repo nimmt sie direkt diesen Ordner.
 2. In der Einrichtung „In Chrome öffnen“ bzw. „In Edge öffnen“ klicken: Die Erweiterungsseite und der Ordner gehen auf. Einmalig den **Entwicklermodus** einschalten. Von Hand: `chrome://extensions` oder `edge://extensions`.
 3. **„Entpackte Erweiterung laden“** und den Ordner wählen (auf dem Mac im Dialog mit Cmd+Shift+G den Pfad einfügen).
 4. Der Knopf „Jetzt suchen“ auf der Seite „Stellen suchen“ ist jetzt aktiv, auch ohne dass offene Seiten der App neu geladen werden müssen.
 
-Ein Klick allein genügt nicht: Chrome lässt Apps seit Version 137 keine Erweiterungen mehr selbst laden (`--load-extension`), Richtlinien gelten nur auf verwalteten Geräten. Das ändert erst der Store.
+Ein Klick allein genügt nicht: Chrome lässt Apps seit Version 137 keine Erweiterungen mehr selbst laden (`--load-extension`), Richtlinien gelten nur auf verwalteten Geräten. Deshalb führt die Einrichtung zuerst zum Store.
 
-Die ID der entpackten Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`), weil `manifest.json` den öffentlichen Schlüssel enthält. Die Stores vergeben eine eigene ID, Edge `mcbcijjbklfeffbollnemgkgnabnmfmp`. Nur die IDs in `EXTENSION_IDS` (`desktop/native_messaging.py`) dürfen mit der App sprechen. Nach einem Update der App lädt sich die entpackte Erweiterung selbst neu, sobald die App läuft und keine Suche, kein Formular und kein Lauf im Job-Room offen ist, einmal pro Version (`lib/reload.js`, MIN-382). Eine Fassung aus dem Store hat `update_url` und bleibt beim Store. Klappt es nicht, zeigt die Einrichtung einen Hinweis; dann in `chrome://extensions` auf „Neu laden“ klicken. Ist der Entwicklermodus aus, deaktiviert Chrome entpackte Erweiterungen ohnehin.
+Die ID der entpackten Erweiterung ist fest (`ghniboofenadplgmdgddmgjaaeeogejn`), weil `manifest.json` den öffentlichen Schlüssel enthält. Die Stores vergeben eine eigene ID, Chrome `nopiegcdnjpkekgfakgglegkeifpmopo`, Edge `mcbcijjbklfeffbollnemgkgnabnmfmp`. Nur die IDs in `EXTENSION_IDS` (`desktop/native_messaging.py`) dürfen mit der App sprechen. Nach einem Update der App lädt sich die entpackte Erweiterung selbst neu, sobald die App läuft und keine Suche, kein Formular und kein Lauf im Job-Room offen ist, einmal pro Version (`lib/reload.js`, MIN-382). Eine Fassung aus dem Store hat `update_url` und bleibt beim Store. Klappt es nicht, zeigt die Einrichtung einen Hinweis; dann in `chrome://extensions` auf „Neu laden“ klicken. Ist der Entwicklermodus aus, deaktiviert Chrome entpackte Erweiterungen ohnehin.
 
 ## Ablauf einer Suche
 
