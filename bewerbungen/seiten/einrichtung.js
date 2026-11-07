@@ -84,7 +84,7 @@
       case "ki": return kiVerbunden() ? "verbunden" : sitzung.uebersprungen.ki ? "übersprungen" : "Einladungscode";
       case "erweiterung":
         if (!info?.erweiterung) return "nur in der installierten App";
-        return erweiterungGeladen() ? "geladen" : sitzung.uebersprungen.erweiterung ? "später" : "etwa 2 Minuten";
+        return erweiterungGeladen() ? "geladen" : sitzung.uebersprungen.erweiterung ? "später" : "1 bis 2 Minuten";
       default: return "";
     }
   }
@@ -386,6 +386,7 @@
     $("erweiterung-ordner").textContent = info.erweiterung.ordner;
     const geladen = erweiterungGeladen();
     $("erweiterung-schritte").hidden = Boolean(geladen);
+    $("erweiterung-store").hidden = Boolean(geladen);
     $("erweiterung-warten").hidden = Boolean(geladen);
     $("erweiterung-weiter").disabled = !geladen;
     $("erweiterung-spaeter").hidden = Boolean(geladen);
@@ -411,6 +412,12 @@
   for (const knopf of document.querySelectorAll("button[data-browser]")) {
     knopf.addEventListener("click", async () => {
       try { await senden("/api/app/erweiterungsseite", { browser: knopf.dataset.browser }); }
+      catch (fehler) { meldung($("erweiterung-zustand"), fehler.message, "danger"); }
+    });
+  }
+  for (const knopf of document.querySelectorAll("button[data-store]")) {
+    knopf.addEventListener("click", async () => {
+      try { await senden("/api/app/erweiterung-store", { browser: knopf.dataset.store }); }
       catch (fehler) { meldung($("erweiterung-zustand"), fehler.message, "danger"); }
     });
   }

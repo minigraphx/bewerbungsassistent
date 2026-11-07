@@ -81,11 +81,27 @@ BROWSERS = {
 }
 
 
+STORE_PAGES = {
+    "edge": "https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp",
+}
+
+
 def open_extensions_page(browser: str, platform: str, run: Run = subprocess.run) -> None:
     """Open the extensions page; a web page may not link to it, the system may (MIN-366)."""
     if browser not in BROWSERS:
         raise ValueError("Unbekannter Browser.")
-    name, windows_command, page = BROWSERS[browser]
+    _open_in_browser(browser, BROWSERS[browser][2], platform, run)
+
+
+def open_store_page(browser: str, platform: str, run: Run = subprocess.run) -> None:
+    """Open the store entry in that browser: a store only installs into its own browser (#75)."""
+    if browser not in STORE_PAGES:
+        raise ValueError("Für diesen Browser gibt es noch keinen Store-Eintrag.")
+    _open_in_browser(browser, STORE_PAGES[browser], platform, run)
+
+
+def _open_in_browser(browser: str, page: str, platform: str, run: Run) -> None:
+    name, windows_command, _ = BROWSERS[browser]
     if platform == "darwin":
         command = ["open", "-a", name, page]
     elif platform == "win32":

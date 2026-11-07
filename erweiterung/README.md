@@ -2,7 +2,7 @@
 
 Modul des [Bewerbungsbegleiters](../README.md) (MIN-339): Die Erweiterung für Chrome und Edge sucht nach dem Suchprofil: Stellen auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellen auf LENA (berufsberatung.ch) und yousty. Sie sucht im Browser der Person, mit deren IP und Logins, und nur, wenn die Person die Suche startet. Die Treffer gehen über Native Messaging an die [Desktop-App](../desktop/README.md); dort erscheinen sie auf der Seite „Stellen suchen“.
 
-Im Pilot wird sie als **Entwicklererweiterung** geladen („Entpackte Erweiterung laden“). Für die Stores baut `desktop/store_package.py` die ZIP-Datei: ohne Tests und ohne das Feld `key`, denn dort vergibt der Store die ID. Diese ID muss in `EXTENSION_IDS` (`desktop/native_messaging.py`) stehen, sonst lässt die App die Store-Fassung nicht zu.
+In Edge kommt sie aus dem [Store](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp), die Einrichtung führt dorthin. Sonst wird sie als **Entwicklererweiterung** geladen („Entpackte Erweiterung laden“). Für die Stores baut `desktop/store_package.py` die ZIP-Datei: ohne Tests und ohne das Feld `key`, denn dort vergibt der Store die ID. Diese ID muss in `EXTENSION_IDS` (`desktop/native_messaging.py`) stehen, sonst lässt die App die Store-Fassung nicht zu.
 
 ## Einrichten
 

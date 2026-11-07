@@ -31,6 +31,7 @@ class Setup:
     extension_dir: pathlib.Path | None = None  # developer add-on to load in the browser (MIN-339)
     reveal: Callable[[pathlib.Path], None] = lambda folder: dialogs.reveal(folder, sys.platform)
     open_page: Callable[[str], None] = lambda browser: dialogs.open_extensions_page(browser, sys.platform)
+    open_store: Callable[[str], None] = lambda browser: dialogs.open_store_page(browser, sys.platform)
 
     def data_dir(self) -> pathlib.Path | None:
         return settings.chosen_data_dir(self.paths)
@@ -101,10 +102,15 @@ def make_routes(state: Setup) -> tuple[dict, dict]:
         state.reveal(state.extension_dir)
         return json_antwort({"ok": True})
 
+    def extension_store(k, parameter, body):
+        state.open_store(body.get("browser") if isinstance(body, dict) else None)
+        return json_antwort({"ok": True})
+
     return ({"/api/app/einrichtung": overview},
             {"/api/app/ordner-pruefen": check, "/api/app/datenordner": choose_data_dir,
              "/api/app/waehlen": dialog, "/api/app/einstieg": import_einstieg,
-             "/api/app/ordner-zeigen": show_folder, "/api/app/erweiterungsseite": extensions_page})
+             "/api/app/ordner-zeigen": show_folder, "/api/app/erweiterungsseite": extensions_page,
+             "/api/app/erweiterung-store": extension_store})
 
 
 def _extension(state: Setup) -> dict | None:
