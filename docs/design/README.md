@@ -96,5 +96,5 @@ Entwurf der Webseite, von Andy am 7.11.2026 freigegeben (Original privat: [Zeich
 
 - **Sprachwahl:** DE, EN und FR sind gestaltet, aber vorerst mit `display: none` ausgeblendet, bis die App weitere Sprachen kann.
 - **Bilder:** dieselben wie im README, aus `docs/bilder/`, mit erfundenen Daten.
-- **Logo:** `docs/bilder/as-logo.svg`, einfarbig, hell und dunkel nach der Systemeinstellung. Es ist von der GPL ausgenommen (`docs/NOTICE`).
+- **Logo:** `bewerbungen/seiten/as-logo.svg`, dieselbe Datei wie in der App, einfarbig, hell und dunkel nach der Systemeinstellung. Es ist von der GPL ausgenommen (`docs/NOTICE`).
 - **Anleitung:** Die Knöpfe „Anleitung“ zeigen in der fertigen Seite auf eine eigene Seite, gebaut aus `docs/installation.md`.

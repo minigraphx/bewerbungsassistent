@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-nZKg0EFCROQr1/rSH8+M+Zny1P4S9VpzV4+Ajwv0WPQ='; style-src 'sha256-AmnHYVeg8j5OFVxrblC5mpG7BHBPVFsSDvgdw5OWapc='; font-src 'self'; img-src 'none'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-nZKg0EFCROQr1/rSH8+M+Zny1P4S9VpzV4+Ajwv0WPQ='; style-src 'sha256-oSLYVrpRv2G/GNyBQN8swARxgmRkLWHb/2SDaipdkNc='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -226,6 +226,9 @@ button { font: inherit; cursor: pointer; }
 .menu a, .menu button { display: block; width: 100%; padding: 6px 8px; border: 0; border-radius: 4px; background: none; color: var(--text-strong); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
 .menu a:hover, .menu button:hover { background: var(--surface-subtle); }
 .menu__meta { margin: 0; padding: 4px 8px; font-size: 13px; color: var(--muted); }
+.menu__about { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 4px 8px; }
+.menu__about .menu__heading, .menu__about .menu__meta { padding: 0; line-height: 18px; }
+.menu__logo { flex: none; width: 28px; height: 28px; }
 /* Messages of app.js (new version, backup) above the page */
 .banner, .status { grid-column: 1 / -1; margin: 0; padding: 12px 16px; border-radius: var(--radius-control); background: var(--accent-soft); color: var(--text-strong); }
 .banner button, .banner a, .status button { margin-left: 8px; }

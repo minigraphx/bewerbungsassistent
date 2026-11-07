@@ -67,7 +67,7 @@ def build(app: bool = False) -> str:
         f"script-src 'self' {_sha256(script)}" if app else f"script-src {_sha256(script)}",
         f"style-src {_sha256(style)}",
         "font-src 'self'" if app else "font-src 'none'",
-        "img-src 'none'",
+        "img-src 'self'" if app else "img-src 'none'",  # the app menu shows the logo
         f"connect-src {chr(39)}self{chr(39)}" if app else "connect-src 'none'",
         "form-action 'none'",
         "base-uri 'none'",

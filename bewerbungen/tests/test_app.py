@@ -106,6 +106,24 @@ def test_fonts_are_served_by_the_app(server, name):
     assert inhalt[:4] == b"\x00\x01\x00\x00"  # TrueType
 
 
+def test_logo_is_served_by_the_app_as_a_single_colour_vector(server):
+    status, typ, inhalt, _ = anfrage(server, "GET", "/as-logo.svg")
+
+    svg = inhalt.decode("utf-8")
+    assert status == 200
+    assert typ == "image/svg+xml"
+    assert "<image" not in svg and "base64" not in svg  # a vector, no embedded picture
+    assert set(re.findall(r"#[0-9a-fA-F]{6}", svg)) == {"#27333f", "#f0f3f6"}  # text colour, light and dark
+
+
+def test_menu_shows_the_logo_under_about_the_app():
+    script = (server_modul.SEITEN / "app.js").read_text(encoding="utf-8")
+
+    assert 'src: "/as-logo.svg"' in script and "Über die App" in script
+    # the about block only counts when the app menu actually appends it
+    assert re.search(r"gruppe\.append\([^;]*ueberDieApp\(info\.version\)", script)
+
+
 def test_stylesheet_loads_fonts_only_from_the_app(server):
     css = anfrage(server, "GET", "/stil.css")[2].decode("utf-8")
 

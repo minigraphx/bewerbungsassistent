@@ -57,6 +57,14 @@ def test_only_the_page_of_the_app_loads_fonts_and_only_from_the_app():
     assert 'url("/fonts/DMSans-400.ttf")' in app_page
 
 
+def test_only_the_page_of_the_app_shows_images_and_only_from_the_app():
+    shared = build_template.build()
+    policy = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', build_template.build(app=True)).group(1)
+
+    assert "img-src 'none'" in shared
+    assert "img-src 'self'" in policy
+
+
 def test_form_definition_cannot_close_its_script_element():
     page = build_template.build()
     definition = page.split('id="form-definition">', 1)[1].split("</script>", 1)[0]
