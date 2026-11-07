@@ -2,7 +2,7 @@
 
   invite T01 [--budget 20] [--days 45 | --weeks 6 | --months 2]
                                  Person anlegen (falls neu) und Einladungscode ausgeben (Standard 45 Tage)
-  revoke T01 [--access 3]        alle Zugänge der Person sperren, oder nur einen (pro Gerät)
+  revoke T01 [--access 3]        alle Zugänge und offenen Einladungen der Person sperren, oder nur einen Zugang
   budget T01 30                  Budget pro Monat in USD ändern
   accesses T01                   Zugänge mit Gerät, erstellt, zuletzt genutzt, Einwilligung, gesperrt
   costs [--month 2026-11]        Kosten pro Person im Monat
@@ -55,7 +55,8 @@ def invite(store: Store, args, now: datetime.datetime) -> str:
 
 def revoke(store: Store, args, now: datetime.datetime) -> str:
     count = store.revoke(args.person, now, args.access)
-    return f"{count} Zugang/Zugänge von {args.person} gesperrt."
+    voided = store.void_invitations(args.person, now) if args.access is None else 0
+    return f"{count} Zugang/Zugänge von {args.person} gesperrt, {voided} offene Einladung(en) ungültig."
 
 
 def budget(store: Store, args, now: datetime.datetime) -> str:

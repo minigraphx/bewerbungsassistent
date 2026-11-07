@@ -14,7 +14,7 @@ import json
 import logging
 from typing import Callable
 
-from limits import RateLimiter
+from limits import ParallelLimiter, RateLimiter
 from policy import Policy, PolicyError
 from pricing import cost_usd
 from store import Access, Store, StoreError, month_of
@@ -22,6 +22,8 @@ from upstream import JSON_TYPE, Upstream, error_body
 
 MAX_BODY = 2 * 1024 * 1024
 MAX_LOGGED_REASON = 200
+DEFAULT_AT_ONCE = 5  # the app runs three checks of a job at once, plus what the person starts meanwhile
+BUSY_RETRY_SECONDS = 5
 log = logging.getLogger("vermittlung")
 
 
@@ -41,6 +43,7 @@ class Mediation:
     policy: Policy = dataclasses.field(default_factory=Policy)
     calls: RateLimiter = dataclasses.field(default_factory=lambda: RateLimiter(10))
     redeems: RateLimiter = dataclasses.field(default_factory=lambda: RateLimiter(5))
+    parallel: ParallelLimiter = dataclasses.field(default_factory=lambda: ParallelLimiter(DEFAULT_AT_ONCE))
     now: Callable[[], datetime.datetime] = lambda: datetime.datetime.now(datetime.timezone.utc)
     trust_proxy: bool = False
 
@@ -72,7 +75,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 raise Failure(404, "not_found_error", "not found")
             route()
         except Failure as failure:
-            log.info("refused with %s %s: %s", failure.status, failure.kind, str(failure)[:MAX_LOGGED_REASON])
+            # ascii(): the reason can quote field names of the request, and one line stays one line
+            log.info("refused with %s %s: %s", failure.status, failure.kind, ascii(str(failure)[:MAX_LOGGED_REASON]))
             headers = {"retry-after": str(failure.retry_after)} if failure.retry_after else {}
             self._send(failure.status, error_body(failure.kind, str(failure)), headers=headers)
         except BrokenPipeError:
@@ -111,13 +115,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         wait = self.mediation.calls.acquire(access.person)
         if wait:
             raise Failure(429, "rate_limit_error", "too many requests", wait)
-        if self.mediation.store.spent(access.person, month_of(self.mediation.now())) >= access.budget_usd:
-            raise Failure(402, "budget_exceeded", "monthly budget used up")
-        try:
-            payload = self.mediation.policy.check(self._body())
-        except PolicyError as error:
-            raise Failure(400, "invalid_request_error", str(error)) from error
-        self._forward(access, payload)
+        with self.mediation.parallel.slot(access.person) as free:
+            if not free:
+                raise Failure(429, "rate_limit_error", "too many requests at once", BUSY_RETRY_SECONDS)
+            if self.mediation.store.spent(access.person, month_of(self.mediation.now())) >= access.budget_usd:
+                raise Failure(402, "budget_exceeded", "monthly budget used up")
+            try:
+                payload = self.mediation.policy.check(self._body())
+            except PolicyError as error:
+                raise Failure(400, "invalid_request_error", str(error)) from error
+            self._forward(access, payload)
 
     # helpers
 

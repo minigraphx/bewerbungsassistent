@@ -1,8 +1,10 @@
-"""Requests per minute, counted in memory per key (a person, or an address for redeeming codes)."""
+"""Limits counted in memory per key: requests per minute (a person, or an address for redeeming codes)
+and requests running at once (a person)."""
 import collections
+import contextlib
 import threading
 import time
-from typing import Callable
+from typing import Callable, Iterator
 
 WINDOW_SECONDS = 60.0
 
@@ -31,3 +33,28 @@ class RateLimiter:
                 return max(1, int(WINDOW_SECONDS - (now - calls[0])) + 1)
             calls.append(now)
             return 0
+
+
+class ParallelLimiter:
+    """The budget is checked before a call and charged after it, so calls running at once could all overspend."""
+
+    def __init__(self, at_once: int) -> None:
+        self._at_once = at_once
+        self._running: collections.Counter = collections.Counter()
+        self._lock = threading.Lock()
+
+    @contextlib.contextmanager
+    def slot(self, key: str) -> Iterator[bool]:
+        """True if the call may run; False means the limit is reached and nothing is held."""
+        with self._lock:
+            free = self._running[key] < self._at_once
+            if free:
+                self._running[key] += 1
+        try:
+            yield free
+        finally:
+            if free:
+                with self._lock:
+                    self._running[key] -= 1
+                    if not self._running[key]:
+                        del self._running[key]

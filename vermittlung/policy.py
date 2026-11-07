@@ -10,6 +10,7 @@ from pricing import PRICES_USD
 ALLOWED_FIELDS = {"model", "max_tokens", "system", "messages", "output_config", "stream", "thinking",
                   "temperature", "stop_sequences"}
 TEXT_BLOCK_FIELDS = {"type", "text", "cache_control"}
+CACHE_CONTROL = {"type": "ephemeral"}  # a longer cache costs more than pricing.py charges
 ROLES = {"user", "assistant"}
 MAX_MESSAGES = 20
 
@@ -30,7 +31,8 @@ class Policy:
         extra = sorted(set(payload) - ALLOWED_FIELDS)
         if extra:
             raise PolicyError(f"fields not allowed: {', '.join(extra)}")
-        if payload.get("model") not in self.models:
+        model = payload.get("model")
+        if not isinstance(model, str) or model not in self.models:
             raise PolicyError(f"model not allowed: {payload.get('model')!r}")
         tokens = payload.get("max_tokens")
         if not isinstance(tokens, int) or isinstance(tokens, bool) or not 0 < tokens <= self.max_output_tokens:
@@ -52,6 +54,8 @@ def _check_text_blocks(blocks: object, where: str) -> None:
             raise PolicyError(f"{where}: only text blocks are allowed")
         if set(block) - TEXT_BLOCK_FIELDS:
             raise PolicyError(f"{where}: unknown fields in a text block")
+        if "cache_control" in block and block["cache_control"] != CACHE_CONTROL:
+            raise PolicyError(f"{where}: cache_control must be {CACHE_CONTROL}")
 
 
 def _check_system(system: object) -> None:
@@ -63,6 +67,7 @@ def _check_messages(messages: object) -> None:
     if not isinstance(messages, list) or not 0 < len(messages) <= MAX_MESSAGES:
         raise PolicyError(f"messages: 1 to {MAX_MESSAGES} messages expected")
     for message in messages:
-        if not isinstance(message, dict) or set(message) != {"role", "content"} or message["role"] not in ROLES:
+        if not isinstance(message, dict) or set(message) != {"role", "content"} \
+                or not isinstance(message["role"], str) or message["role"] not in ROLES:
             raise PolicyError("messages: each message needs exactly role and content")
         _check_text_blocks(message["content"], "messages")

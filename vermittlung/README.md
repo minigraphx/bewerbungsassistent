@@ -4,7 +4,7 @@ Modul des [Bewerbungsbegleiters](../README.md) für den Pilot (MIN-344): Die App
 
 - **Schnittstelle** wie die Messages API von Anthropic (`POST /v1/messages`, auch Streaming). Die App nutzt das Anthropic SDK mit der Adresse der Vermittlung als `base_url`.
 - **Zugang pro Person:** Einladungscode (16 Zeichen, standardmässig 45 Tage gültig, nur einmal) → die App löst ihn ein (`POST /v1/invitations/redeem`) und legt den Zugang im Schlüsselbund ab. Codes und Zugänge stehen nur als Hash in der Datenbank. Sperren für alle Geräte einer Person oder für eines.
-- **Grenzen:** Budget pro Monat (sonst Antwort 402, die App sagt „Budget aufgebraucht“), Anfragen pro Minute, nur freigegebene Modelle, höchstens `VERMITTLUNG_MAX_TOKENS` Ausgabe-Tokens, nur Text (keine Bilder, keine Tools). So taugt die Vermittlung nicht als allgemeiner Zugang zu Claude.
+- **Grenzen:** Budget pro Monat (sonst Antwort 402, die App sagt „Budget aufgebraucht“), Anfragen pro Minute und gleichzeitig, nur freigegebene Modelle, höchstens `VERMITTLUNG_MAX_TOKENS` Ausgabe-Tokens, nur Text (keine Bilder, keine Tools). Texte selbst lassen sich nicht einschränken: Wer einen Zugang hat, kann beliebigen Text schicken, begrenzt durch Budget und Limits.
 - **Kosten** pro Aufruf: Person, Modell, Tokens, Kosten. **Inhalte werden nie gespeichert oder protokolliert**; sie sind schon in der App pseudonymisiert (MIN-334).
 - `GET /v1/account` zeigt der App Monat, Verbrauch und Budget.
 
@@ -27,6 +27,7 @@ Ohne Container (z.B. Hosting mit Python 3.12): `pip install -r requirements.txt`
 | `VERMITTLUNG_DB` | `/data/vermittlung.sqlite` | Datenbank (Personen, Zugänge, Kosten) |
 | `VERMITTLUNG_HOST`, `VERMITTLUNG_PORT` | `0.0.0.0`, `8080` | Adresse im Container |
 | `VERMITTLUNG_ANFRAGEN_PRO_MINUTE` | `20` | pro Person |
+| `VERMITTLUNG_GLEICHZEITIG` | `5` | Anfragen pro Person, die gleichzeitig laufen; begrenzt, wie weit parallele Anfragen das Budget überschreiten können |
 | `VERMITTLUNG_MAX_TOKENS` | `16000` | höchstens so viele Ausgabe-Tokens pro Anfrage |
 | `VERMITTLUNG_HINTER_PROXY` | `1` | Adresse der Person aus `X-Forwarded-For` (für das Limit beim Einlösen) |
 
@@ -61,7 +62,7 @@ Auf dem Server (im Container: `docker compose exec vermittlung python admin.py �
 python admin.py invite T01 --budget 20     # Person anlegen, Code und Link ausgeben (45 Tage gültig)
 python admin.py invite T01 --months 2      # andere Gültigkeit: --days, --weeks oder --months, höchstens 12 Monate
 python admin.py accesses T01               # Geräte mit Zugang und Einwilligung (Fassung und Art der Suche)
-python admin.py revoke T01 [--access 3]    # alle Zugänge oder einen sperren
+python admin.py revoke T01 [--access 3]    # alle Zugänge und offenen Einladungen sperren, oder einen Zugang
 python admin.py budget T01 30              # Budget pro Monat in USD
 python admin.py costs [--month 2026-11]    # Kosten pro Person
 python admin.py due                        # Personen, deren Daten zu löschen sind

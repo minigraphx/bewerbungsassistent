@@ -126,6 +126,8 @@ class Store:
         code_hash = _hash(normalize_code(code))
         token = "bwa_" + secrets.token_urlsafe(32)
         receipt = consent if CONSENT_RECEIPT.fullmatch(consent) else ""
+        # the name comes from outside and is printed in the operator's terminal
+        device = "".join(char for char in device if char.isprintable())
         with self._lock:
             self._db.execute("BEGIN IMMEDIATE")
             try:
@@ -158,6 +160,10 @@ class Store:
         if access_id is not None:
             sql, args = sql + " AND id = ?", args + (access_id,)
         return self._run(sql, args).rowcount
+
+    def void_invitations(self, name: str, now: datetime.datetime) -> int:
+        """Use up the open invitations of a person, so a revoked person cannot come back with one."""
+        return self._run("UPDATE invitations SET used = ? WHERE person = ? AND used IS NULL", (_iso(now), name)).rowcount
 
     def accesses(self, name: str) -> list[dict]:
         return [dict(row) for row in self._run(
