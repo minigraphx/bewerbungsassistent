@@ -27,5 +27,8 @@ Write each requirement as one row under its section, in this format. The fence k
 - G15 [approved, must] Die Person kann vor einem KI-Aufruf sehen, welcher Text mit Platzhaltern an die KI geht. | gate: review
 - G16 [approved, must] Neben den bestehenden Designs gibt es ein Design als Bewerbungsdossier: Titelseite, Anschreiben und Lebenslauf in einem gestalteten PDF. Aus demselben Design entstehen Lebenslauf und Anschreiben auch als einzelne Dateien für Portale, die getrennte Uploads verlangen. Bewertungen wie Balken oder Ringe für Können und Programme zeigt es nur, wenn die Person sie angegeben hat. | gate: review
 - G17 [approved, must] Bei einer Bewerbung kann die Person einen Lebenslauf nicht nur wählen, sondern auch erstellen: Inhalt aus Meine Angaben, für die Stelle zugeschnitten (Auswahl, Reihenfolge, Kurzprofil), und Layout (Design) getrennt davon wählbar. Der neue Lebenslauf steht danach wie eine Variante zur Wahl. | gate: review
+- G18 [draft, must] Im Dossier wählt die Person das Monogramm aus mehreren Varianten aus ihren Initialen oder lädt ein eigenes Logo hoch, und sie wählt die Akzentfarbe; voreingestellt ist eine Akzentfarbe passend zur Hauptfarbe des Designs. | gate: review
+- G19 [draft, must] Begrüssung und Dank im Dossier entwirft die KI aus den Bausteinen der Person; die Person passt die Texte an wie bei den anderen Vorlagen, und ohne Text entfällt die Seite. | gate: review
+- G20 [draft, must] Die Person kann in der Oberfläche für Fähigkeiten, Sprachen und Programme eine Stufe angeben oder offen lassen; ohne Angaben bleibt die Darstellung einheitlich ohne Bewertungen. | gate: review
 
 ## K · Constraints
