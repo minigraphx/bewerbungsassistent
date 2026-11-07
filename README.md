@@ -110,6 +110,6 @@ python app.py ../../bewerbungsassistent-daten
 
 Erstellt von Andreas Schmidt.
 
-[GNU General Public License v3.0](LICENSE). Ohne Gewährleistung und ohne Haftung (Abschnitte 15 und 16 der Lizenz). Nutzen und weiterentwickeln darf den Bewerbungsbegleiter jede und jeder, auch kommerziell; wer ihn weitergibt, muss den Quellcode offen halten und den Vermerk in [`docs/NOTICE`](docs/NOTICE) mit der Nennung des Urhebers erhalten (Abschnitt 7 b).
+[GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). Ohne Gewährleistung und ohne Haftung (Abschnitte 15 und 16 der Lizenz). Nutzen und weiterentwickeln darf den Bewerbungsbegleiter jede und jeder, auch kommerziell; wer ihn weitergibt oder eine geänderte Fassung über das Netz als Dienst anbietet (Abschnitt 13), muss den Quellcode offen halten und den Vermerk in [`docs/NOTICE`](docs/NOTICE) mit der Nennung des Urhebers erhalten (Abschnitt 7 b).
 
 Schriften unter `lebenslauf/fonts/`: SIL Open Font License (siehe dort).

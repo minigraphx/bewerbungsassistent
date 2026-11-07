@@ -23,7 +23,7 @@ Das Ergebnis liegt in `docs/webseite/build/` (nicht im Repo). Zwei Adressen steh
 | Aussehen | `stil.css`, Werte aus `docs/design/system/tokens.json` |
 | Version | `desktop/version.py` |
 | Bilder | `docs/bilder/`, nur mit erfundenen Daten |
-| Logo | `bewerbungen/seiten/as-logo.svg`, dieselbe Datei wie in der App, von der GPL ausgenommen (`docs/NOTICE`) |
+| Logo | `bewerbungen/seiten/as-logo.svg`, dieselbe Datei wie in der App, von der AGPL ausgenommen (`docs/NOTICE`) |
 | Schrift | DM Sans aus `lebenslauf/fonts/` |
 
 Die Seite lädt nichts von fremden Servern und hat kein Skript; die Content Security Policy in `rahmen.html` erlaubt nur eigene Dateien.
