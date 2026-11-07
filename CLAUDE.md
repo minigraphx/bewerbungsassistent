@@ -26,6 +26,7 @@ Die App heisst **Bewerbungsbegleiter**, auch technisch (seit 0.2.11, MIN-395). `
 - Skills bleiben allgemein: personenbezogene Kriterien, Region, Keywords und Zielfirmen gehören ins Suchprofil, nicht in den Skill.
 - Dokumentation und Texte für Nutzer (Oberfläche, Fehlermeldungen) auf Deutsch, Schweizer Schreibweise (ss statt ß).
 - Code auf Englisch: Bezeichner, Docstrings, Kommentare und Testnamen. Gilt für neuen Code; bestehende deutsche Bezeichner werden nur in einem eigenen Refactoring umbenannt.
+- Auf GitHub und auf dem Board auf Englisch: Titel und Text von Pull Requests, Commit-Nachrichten, Board-Items und Kommentare auf GitHub. Den Text eines Pull Requests schreibt man in eigenen Worten: keine Zitate von Andy, keine Zeile „Generated with Claude Code“. Texte für Nutzer bleiben deutsch, in Schweizer Schreibweise.
 - Dateien im Datenordner vor und nach jeder Änderung mit `bewerbungen/entwurf.py <datenordner> <datei> -m "<was>"` als Entwurf sichern; committet wird dort erst beim Versand.
 
 ## Board
