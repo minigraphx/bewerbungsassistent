@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<title>Bewerbungsbegleiter</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face { font-family: "DM Sans"; src: url("../../../lebenslauf/fonts/DMSans-400.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "DM Sans"; src: url("../../../lebenslauf/fonts/DMSans-500.ttf") format("truetype"); font-weight: 500; font-style: normal; }
+@font-face { font-family: "DM Sans"; src: url("../../../lebenslauf/fonts/DMSans-700.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+:root {
+  --bg: #fdfcfa; --surface: #ffffff; --surface-subtle: #f4f2ee; --accent-subtle: #e8edf3;
+  --line: #d9dde3; --line-strong: #7c8794; --text-strong: #27333f; --text: #38495d; --text-muted: #5a6879;
+  --accent: #38495d; --accent-hover: #27333f; --on-accent: #ffffff; --focus: #38495d;
+  --success: #2e6b3a; --success-bg: #e6f2e8; --warning: #8a5a00; --warning-bg: #fff4dc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16191d; --surface: #1f2328; --surface-subtle: #1a1e22; --accent-subtle: #273241;
+    --line: #3a4048; --line-strong: #7d8794; --text-strong: #f0f3f6; --text: #e3e7ec; --text-muted: #a3adb9;
+    --accent: #c9d4e2; --accent-hover: #dfe6ef; --on-accent: #16191d; --focus: #c9d4e2;
+    --success: #8fd19e; --success-bg: #1d3322; --warning: #f0b552; --warning-bg: #3a2f17;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16191d; --surface: #1f2328; --surface-subtle: #1a1e22; --accent-subtle: #273241;
+  --line: #3a4048; --line-strong: #7d8794; --text-strong: #f0f3f6; --text: #e3e7ec; --text-muted: #a3adb9;
+  --accent: #c9d4e2; --accent-hover: #dfe6ef; --on-accent: #16191d; --focus: #c9d4e2;
+  --success: #8fd19e; --success-bg: #1d3322; --warning: #f0b552; --warning-bg: #3a2f17;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 16px/24px "DM Sans", system-ui, sans-serif; }
+a { color: var(--text-strong); text-underline-offset: 3px; }
+a:hover { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+h1, h2, h3 { margin: 0; color: var(--text-strong); }
+p { margin: 0; }
+.page { background: var(--bg); min-height: 100%; }
+.wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.site-head { background: var(--surface); border-bottom: 1px solid var(--line); }
+.site-head__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 32px; padding-top: 12px; padding-bottom: 12px; }
+.wordmark { font-weight: 700; font-size: 18px; line-height: 24px; color: var(--text-strong); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+.nav { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; }
+.nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; font-weight: 500; text-decoration: none; color: var(--text-strong); }
+.nav a:hover { background: var(--surface-subtle); color: var(--text-strong); }
+.lang { display: none; /* bis EN und FR kommen, dann wieder flex */ flex-direction: column; align-items: flex-end; gap: 2px; }
+.lang__buttons { display: flex; gap: 4px; }
+.lang__btn { min-width: 44px; min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--text-muted); font: 500 14px/20px "DM Sans", system-ui, sans-serif; cursor: not-allowed; }
+.lang__btn[aria-current="true"] { background: var(--accent-subtle); border-color: var(--accent-subtle); color: var(--text-strong); cursor: default; }
+.lang__reason { font-size: 13px; line-height: 18px; color: var(--text-muted); text-align: right; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); color: var(--text-strong); font: 500 16px/20px "DM Sans", system-ui, sans-serif; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.btn:hover { background: var(--surface-subtle); color: var(--text-strong); }
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
+.btn--quiet { border-color: transparent; background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+.btn[disabled] { border-color: var(--line); background: var(--surface-subtle); color: var(--text-muted); cursor: not-allowed; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 48px; align-items: center; padding-top: 64px; padding-bottom: 64px; }
+.hero__title { font-size: clamp(32px, 4vw, 44px); line-height: 1.15; font-weight: 700; letter-spacing: -0.01em; }
+.hero__lead { margin-top: 16px; font-size: 18px; line-height: 28px; max-width: 34em; }
+.hero__actions { margin-top: 24px; }
+.hero__note { margin-top: 12px; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.shot { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.section { padding-top: 64px; padding-bottom: 64px; }
+.section--band { background: var(--surface-subtle); }
+.section__title { font-size: 28px; line-height: 34px; font-weight: 700; }
+.section__intro { margin-top: 8px; max-width: 760px; font-size: 18px; line-height: 28px; }
+.feature { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 48px; align-items: center; margin-top: 48px; }
+.feature__title { font-size: 22px; line-height: 28px; font-weight: 700; }
+.feature__list { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 16px; }
+.feature__list strong { display: block; color: var(--text-strong); font-weight: 500; }
+.promise { margin-top: 48px; padding: 24px; border-radius: 10px; background: var(--accent-subtle); }
+.promise__title { font-size: 22px; line-height: 28px; font-weight: 700; }
+.promise__text { margin-top: 8px; max-width: 60ch; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; margin-top: 32px; }
+.card { padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.card__title { font-size: 18px; line-height: 24px; font-weight: 700; }
+.card__text { margin-top: 8px; }
+.card__list { margin: 12px 0 0; padding-left: 20px; }
+.card__list li + li { margin-top: 4px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 32px; margin-top: 32px; }
+.facts__title { font-size: 18px; line-height: 24px; font-weight: 700; color: var(--text-strong); }
+.facts__text { margin-top: 4px; }
+.downloads { margin-top: 32px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.download { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 16px 24px; }
+.download + .download { border-top: 1px solid var(--line); }
+.download__name { flex: 1 1 260px; }
+.download__title { font-weight: 500; color: var(--text-strong); }
+.download__detail { font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.status { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px 1px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-subtle); color: var(--text-strong); font: 500 13px/20px "DM Sans", system-ui, sans-serif; white-space: nowrap; }
+.status::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+.status--ok { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+.status--wait { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
+.status--later { background: transparent; color: var(--text-muted); }
+.download__action { flex: 0 0 auto; min-width: 150px; display: flex; justify-content: flex-end; }
+.pilot { margin-top: 24px; max-width: 760px; }
+.pilot + .pilot { margin-top: 8px; }
+.site-foot { border-top: 1px solid var(--line); background: var(--surface); }
+.site-foot__row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 32px; padding-top: 24px; padding-bottom: 24px; }
+.author { display: flex; align-items: center; gap: 12px; flex: 1 1 280px; }
+.as-logo { width: 56px; height: 56px; flex: none; display: block; }
+.author__name { font-weight: 500; color: var(--text-strong); }
+.author__licence { font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.foot-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.foot-links a { display: inline-flex; align-items: center; min-height: 44px; }
+@media (max-width: 720px) {
+  .lang { align-items: flex-start; }
+  .lang__reason { text-align: left; }
+  .hero, .section { padding-top: 48px; padding-bottom: 48px; }
+  .hero, .feature { gap: 32px; }
+  .download__action { justify-content: flex-start; }
+}
+</style>
+</helmet>
+<div class="page">
+
+<header class="site-head">
+  <div class="wrap site-head__row">
+    <a class="wordmark" href="#start">Bewerbungsbegleiter</a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="#ablauf">So läuft es</a>
+      <a href="#fuer-wen">Für wen</a>
+      <a href="#daten">Ihre Daten</a>
+      <a href="#laden">Laden</a>
+    </nav>
+    <div class="lang">
+      <div class="lang__buttons" role="group" aria-label="Sprache">
+        <button class="lang__btn" type="button" aria-current="true" lang="de">DE</button>
+        <button class="lang__btn" type="button" disabled="disabled" lang="en" title="Folgt, sobald die App Englisch kann">EN</button>
+        <button class="lang__btn" type="button" disabled="disabled" lang="fr" title="Folgt, sobald die App Französisch kann">FR</button>
+      </div>
+      <p class="lang__reason">EN und FR folgen, sobald die App sie kann.</p>
+    </div>
+  </div>
+</header>
+
+<main id="start">
+
+<section class="wrap hero" aria-labelledby="hero-titel">
+  <div>
+    <h1 id="hero-titel" class="hero__title">Weniger Bewerbungen, dafür solche, die passen.</h1>
+    <p class="hero__lead">Der Bewerbungsbegleiter sucht passende Stellen, schneidet Lebenslauf und Anschreiben auf jede Stelle zu und prüft die Unterlagen, bevor sie weggehen. Abschicken bleibt bei Ihnen.</p>
+    <div class="btn-row hero__actions">
+      <a class="btn btn--primary" href="#laden">App laden</a>
+      <a class="btn btn--quiet" href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md">Anleitung ansehen</a>
+    </div>
+    <p class="hero__note">Für Windows und macOS. Die Daten bleiben auf dem Computer.</p>
+  </div>
+  <img class="shot" src="../../bilder/uebersicht.jpg" width="1280" height="918" alt="Die App, Seite Übersicht: oben der nächste Schritt, darunter alle laufenden Bewerbungen mit Stand, Note und nächstem Schritt. Beispieldaten.">
+</section>
+
+<section id="ablauf" class="section section--band" aria-labelledby="ablauf-titel">
+  <div class="wrap">
+    <h2 id="ablauf-titel" class="section__title">Von der Stelle bis zum Abschicken</h2>
+    <p class="section__intro">Die App nimmt Routinearbeit ab. So bleibt mehr Zeit für das, was eine gute Bewerbung ausmacht: die richtige Stelle wählen, sich mit der Firma befassen und zeigen, was man mitbringt.</p>
+
+    <div class="feature">
+      <div>
+        <h3 class="feature__title">Passende Stellen finden</h3>
+        <ul class="feature__list">
+          <li><strong>Suche nach Ihrem Suchprofil</strong>Richtung, Region, Pensum und Ausschlüsse legen Sie fest. Die App sucht auf den Schweizer Portalen, zum Beispiel job-room.ch und jobs.ch.</li>
+          <li><strong>Eine Einschätzung pro Stelle</strong>Die KI gibt eine Note und nennt, was passt und was fehlt. Eine Einschätzung, kein Urteil.</li>
+        </ul>
+      </div>
+      <img class="shot" src="../../bilder/treffer.jpg" width="1280" height="860" alt="Die App, Seite Stellen suchen: Trefferliste mit Noten und daneben die Einschätzung der KI zu einer Stelle. Beispieldaten.">
+    </div>
+
+    <div class="feature">
+      <img class="shot" src="../../bilder/bewerbung.jpg" width="1280" height="640" alt="Die App, Seite einer Bewerbung mit den Schritten von der Stelle bis zum Festhalten. Beispieldaten.">
+      <div>
+        <h3 class="feature__title">Unterlagen, die zur Stelle passen</h3>
+        <ul class="feature__list">
+          <li><strong>Lebenslauf und Anschreiben pro Stelle</strong>Das Anschreiben folgt Ihrem Stil und bezieht sich auf genau diese Firma. Es geht erst weiter, wenn Sie es gelesen und freigegeben haben.</li>
+          <li><strong>Prüfung vor dem Versand</strong>Die App zeigt, welche Anforderung abgedeckt ist, was fehlt und was überdehnt wäre.</li>
+          <li><strong>Festgehalten</strong>Jede versendete Fassung bleibt mit Datum erhalten, auch für den Nachweis der Arbeitsbemühungen.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="promise">
+      <h3 class="promise__title">Abschicken bleibt bei Ihnen.</h3>
+      <p class="promise__text">Die App füllt Formulare aus und bereitet alles vor. Einwilligungen setzen Sie selbst, unklare Felder bleiben leer und markiert, und nichts geht automatisch weg.</p>
+    </div>
+  </div>
+</section>
+
+<section id="fuer-wen" class="section" aria-labelledby="fuer-wen-titel">
+  <div class="wrap">
+    <h2 id="fuer-wen-titel" class="section__title">Für wen die App gedacht ist</h2>
+    <div class="cards">
+      <article class="card">
+        <h3 class="card__title">Für Stellensuchende</h3>
+        <p class="card__text">Sie suchen eine Stelle in der Schweiz und möchten weniger Zeit für Suche, Formatierung und Verwaltung aufwenden, dafür mehr für die Auswahl und die Vorbereitung aufs Gespräch.</p>
+        <ul class="card__list">
+          <li>Sucht nach Ihrem Suchprofil</li>
+          <li>Zeigt zu jeder Bewerbung den nächsten Schritt</li>
+          <li>Hilft beim Nachweis für den Job-Room</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3 class="card__title">Für Eltern von Lehrstellensuchenden</h3>
+        <p class="card__text">Die App ist ab 18 Jahren. Sie richten sie ein und begleiten Ihr Kind. Die Texte für die Lehrstellensuche sprechen Ihr Kind mit Du an.</p>
+        <ul class="card__list">
+          <li>Eigener Einstieg für die Lehrstellensuche</li>
+          <li>Klare nächste Schritte, auch über viele Bewerbungen</li>
+          <li>Die Unterlagen bleiben bei Ihnen zu Hause</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="daten" class="section section--band" aria-labelledby="daten-titel">
+  <div class="wrap">
+    <h2 id="daten-titel" class="section__title">Die Daten bleiben auf dem Computer</h2>
+    <p class="section__intro">Lebenslauf, Foto und Bewerbungsstände sind besonders persönlich. Deshalb liegen sie bei Ihnen und nicht auf einem fremden Server.</p>
+    <div class="facts">
+      <div>
+        <h3 class="facts__title">Ein eigener Datenordner</h3>
+        <p class="facts__text">Alles liegt in einem Ordner auf Ihrem Computer. Die App ist nur von diesem Computer aus erreichbar.</p>
+      </div>
+      <div>
+        <h3 class="facts__title">KI nur für einzelne Schritte</h3>
+        <p class="facts__text">Für eine Einschätzung oder einen Entwurf geht der nötige Text an die KI. Protokolliert werden Kosten, keine Inhalte.</p>
+      </div>
+      <div>
+        <h3 class="facts__title">Offen einsehbar</h3>
+        <p class="facts__text">Der Quellcode ist öffentlich. Was genau an wen geht, steht in der <a href="#datenschutz">Datenschutzerklärung</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="laden" class="section" aria-labelledby="laden-titel">
+  <div class="wrap">
+    <h2 id="laden-titel" class="section__title">App laden</h2>
+    <p class="section__intro">Aktuelle Version 0.2.12. Die <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md">Anleitung</a> führt mit Bildern durch Installation und Einrichtung.</p>
+
+    <div class="downloads">
+      <div class="download">
+        <div class="download__name">
+          <div class="download__title">Windows</div>
+          <div class="download__detail">Installationsprogramm</div>
+        </div>
+        <span class="status status--ok">Verfügbar</span>
+        <div class="download__action"><a class="btn" href="https://github.com/minigraphx/bewerbungsassistent/releases/latest">Für Windows laden</a></div>
+      </div>
+      <div class="download">
+        <div class="download__name">
+          <div class="download__title">macOS</div>
+          <div class="download__detail">ZIP mit der App</div>
+        </div>
+        <span class="status status--ok">Verfügbar</span>
+        <div class="download__action"><a class="btn" href="https://github.com/minigraphx/bewerbungsassistent/releases/latest">Für macOS laden</a></div>
+      </div>
+      <div class="download">
+        <div class="download__name">
+          <div class="download__title">Linux</div>
+          <div class="download__detail">Für Ubuntu LTS, in Arbeit</div>
+        </div>
+        <span class="status status--later">Später</span>
+        <div class="download__action"><button class="btn" type="button" disabled="disabled">Noch nicht bereit</button></div>
+      </div>
+      <div class="download">
+        <div class="download__name">
+          <div class="download__title">Browser-Erweiterung für Edge</div>
+          <div class="download__detail">Sucht auf den Portalen und füllt Formulare aus</div>
+        </div>
+        <span class="status status--ok">Verfügbar</span>
+        <div class="download__action"><a class="btn" href="https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp">Im Edge-Store</a></div>
+      </div>
+      <div class="download">
+        <div class="download__name">
+          <div class="download__title">Browser-Erweiterung für Chrome</div>
+          <div class="download__detail">Liegt zur Prüfung beim Chrome Web Store</div>
+        </div>
+        <span class="status status--wait">In Prüfung</span>
+        <div class="download__action"><button class="btn" type="button" disabled="disabled">Noch nicht bereit</button></div>
+      </div>
+    </div>
+
+    <p class="pilot">Windows und macOS warnen beim ersten Start, weil die App noch nicht signiert ist. Die Anleitung zeigt jeden Schritt.</p>
+    <p class="pilot">Die App läuft im Pilot. Für die KI brauchen Sie einen Einladungscode oder einen eigenen Schlüssel.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap site-foot__row">
+    <div class="author">
+      <img class="as-logo" src="../../bilder/as-logo.svg" width="56" height="56" alt="Logo AS">
+      <div>
+        <div class="author__name">Erstellt von Andreas Schmidt</div>
+        <div class="author__licence">Freie Software unter der GPLv3</div>
+      </div>
+    </div>
+    <nav class="foot-links" aria-label="Weitere Links">
+      <a id="datenschutz" href="#datenschutz">Datenschutz</a>
+      <a href="https://github.com/minigraphx/bewerbungsassistent">Quellcode</a>
+      <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/LICENSE">Lizenz</a>
+    </nav>
+  </div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
