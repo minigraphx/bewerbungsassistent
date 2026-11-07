@@ -20,10 +20,15 @@ ALL_PORTALS = PORTALS + APPRENTICESHIP_PORTALS
 PORTAL_HINTS = {"job-room": "Stellen der RAV, alle Berufe", "jobs.ch": "alle Berufe", "jobscout24": "alle Berufe",
                 "ictjobs": "nur Informatik", "LENA": "offizielle Lehrstellen der Kantone", "yousty": "Lehrstellen und Schnupperlehren"}
 SPECIALIST_PORTAL = "ictjobs"
-COMPUTING = re.compile(r"informati|software|entwickl|developer|programm|devops|cloud|netzwerk|system|admin|cyber|security"
-                       r"|\bit\b|\bict\b|\bki\b|\bai\b|data|daten|digital|applikation|web|frontend|backend|fullstack"
+# Word starts alone match too much (#107): Administration, Datenschutz, Systemgastronomie, Testfahrer.
+COMPUTING = re.compile(r"informati|software|entwickl|developer|programm|devops|cloud|netzwerk|cyber|security"
+                       r"|\bsystems?\b|system(?:admin|techni|ingenieur|engineer|spezialist|integrat|architekt|betreu)"
+                       r"|\badmin\b|(?:sys|system|netzwerk|datenbank|server)admin"
+                       r"|\bit\b|\bict\b|\bki\b|\bai\b|data|daten(?:bank|analy|ingenieur|wissenschaft|management|architekt)"
+                       r"|digital|applikation|web|frontend|backend|fullstack"
                        r"|engineer|python|java|typescript|sql|linux|sap|product owner|scrum|business analy|helpdesk|service desk"
-                       r"|\btest|\bux\b|\bui\b|mediamatik", re.IGNORECASE)
+                       r"|\btest(?:er|ing|ingenieur|automat|analy|manag|engineer)?\b|\btest(?:ingenieur|automat|analy|manag)"
+                       r"|\bux\b|\bui\b|mediamatik", re.IGNORECASE)
 NO_PORTAL_LEFT = "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts."
 BAD_CHOICE = "Diese Auswahl der Portale geht nicht."
 KIND_JOB = "stelle"
@@ -124,7 +129,7 @@ def _off(plan: SearchPlan, switched_off: list[str] | None) -> frozenset[str]:
     """The choice of the person; until there is one, the profile, and a specialist portal only if it can fit."""
     if switched_off is not None:
         return frozenset(switched_off)
-    unfit = plan.keywords and not any(COMPUTING.search(term) for term in (*plan.keywords, *plan.niche_keywords))
+    unfit = plan.keywords and _computing_term(plan) is None
     from_profile = frozenset(p for p in _portals_of_kind(plan.kind) if p not in plan.portals)
     others_left = any(p not in from_profile and p != SPECIALIST_PORTAL for p in _portals_of_kind(plan.kind))
     return from_profile | {SPECIALIST_PORTAL} if unfit and others_left else from_profile
@@ -138,9 +143,32 @@ def chosen(plan: SearchPlan, switched_off: list[str] | None) -> SearchPlan:
                                hints=tuple(h for h in plan.hints if h.split(":")[0] not in off), hint_targets=targets)
 
 
+def _computing_term(plan: SearchPlan) -> str | None:
+    return next((term for term in (*plan.keywords, *plan.niche_keywords) if COMPUTING.search(term)), None)
+
+
+def _specialist_reason(plan: SearchPlan, switched_off: list[str] | None, on: bool) -> dict:
+    """Why ictjobs is on or off (#107): chosen by the person, no terms yet, a term that fits, or none fits."""
+    if switched_off is not None:
+        return {"grund": "gewaehlt"}
+    if SPECIALIST_PORTAL not in plan.portals:
+        return {}  # off in the profile itself; the box says enough
+    if not plan.keywords:
+        return {"grund": "keine"}
+    term = _computing_term(plan)
+    if term:
+        return {"grund": "passt", "begriff": term}
+    return {} if on else {"grund": "aus"}  # on although nothing fits: the only portal left
+
+
 def portal_choice(plan: SearchPlan, switched_off: list[str] | None) -> list[dict]:
     off = _off(plan, switched_off)
-    return [{"name": name, "hinweis": PORTAL_HINTS[name], "an": name not in off} for name in _portals_of_kind(plan.kind)]
+    choice = []
+    for name in _portals_of_kind(plan.kind):
+        item = {"name": name, "hinweis": PORTAL_HINTS[name], "an": name not in off}
+        reason = _specialist_reason(plan, switched_off, item["an"]) if name == SPECIALIST_PORTAL else {}
+        choice.append({**item, **reason})
+    return choice
 
 
 def checked_choice(switched_off, kind: str) -> list[str]:
