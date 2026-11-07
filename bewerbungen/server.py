@@ -1,10 +1,12 @@
 """Lokaler HTTP-Server des Bewerbungsbegleiters: nur 127.0.0.1, Token pro Start, Host-Prüfung gegen
 DNS-Rebinding, Content-Security-Policy ohne Inline-Skripte.
 
-Routen sind Funktionen `(kontext, parameter, body) -> Antwort`. Seiten (HTML) brauchen kein Token, alle
-`/api/`-Routen schon: GET als Parameter `t`, POST als Header `X-Token` mit JSON-Body.
+Routen sind Funktionen `(kontext, parameter, body) -> Antwort`. Alle `/api/`-Routen brauchen das Token:
+GET als Parameter `t`, POST als Header `X-Token` mit JSON-Body. Eine Seite (HTML) enthält es und geht nur mit Sitzung
+hinaus: Der Link mit dem Token (`entry_url`) setzt das Cookie, denn den Port erreichen auch andere Konten des Rechners.
 """
 import dataclasses
+import http.cookies
 import json
 import logging
 import mimetypes
@@ -26,6 +28,14 @@ CSP = ("default-src 'self'; img-src 'self' blob: data:; frame-src 'self' blob:; 
 # A page may bring its own policy as meta tag (the template with hashes); it then replaces the default one.
 EIGENE_CSP = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">')
 log = logging.getLogger("bewerbungsbegleiter")
+
+
+SESSION_COOKIE = "bewerbungsbegleiter-{port}"  # cookies do not tell ports apart
+SESSION_DAYS = 30  # the session ends with the app anyway; this keeps it across a restart of the browser
+PAGE_LOCKED = ("<!doctype html><html lang=\"de-CH\"><head><meta charset=\"utf-8\"><title>Bewerbungsbegleiter</title>"
+               "<link rel=\"stylesheet\" href=\"/stil.css\"></head><body><main class=\"einrichtung\"><h1>Bewerbungsbegleiter</h1>"
+               "<p>Diese Seite öffnet sich nur über die App. Bitte den Bewerbungsbegleiter über sein Programmsymbol "
+               "öffnen, auch wenn er schon läuft.</p></main></body></html>")
 
 
 UNSAFE_IN_HEADER = re.compile(r"[^A-Za-z0-9._ -]")
@@ -76,11 +86,17 @@ class Server(ThreadingHTTPServer):
         self.grenzen = dict(grenzen or {})  # Pfad -> grösste Anfrage, wo MAX_BODY nicht reicht
         self.hidden_links = hidden_links  # links in the fixed menu of the pages to pages that are switched off
         self.token = secrets.token_urlsafe(32)
+        self.session = secrets.token_urlsafe(32)
         super().__init__(("127.0.0.1", port), Handler)
 
     @property
     def url(self) -> str:
         return f"http://127.0.0.1:{self.server_address[1]}/"
+
+    @property
+    def entry_url(self) -> str:
+        """The address to open: other accounts on this computer reach the port too, so a page needs proof."""
+        return f"{self.url}?t={self.token}"
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -123,12 +139,39 @@ class Handler(BaseHTTPRequestHandler):
             return Antwort(HTTPStatus.OK, "text/html; charset=utf-8", html.encode("utf-8"), kopf)
         return datei_antwort(pfad)
 
+    def _session_cookie_name(self) -> str:
+        return SESSION_COOKIE.format(port=self.server.server_address[1])
+
+    def _has_session(self) -> bool:
+        try:
+            morsel = http.cookies.SimpleCookie(self.headers.get("Cookie", "")).get(self._session_cookie_name())
+        except http.cookies.CookieError:
+            return False
+        return morsel is not None and secrets.compare_digest(morsel.value.encode("utf-8"),
+                                                             self.server.session.encode("utf-8"))
+
+    def _page_with_proof(self, teile: urllib.parse.SplitResult) -> Antwort:
+        """A page holds the token. It goes out with the session; the link with the token starts the session."""
+        datei = self.server.seiten[teile.path]
+        if not datei.endswith(".html"):
+            return self._seite(datei)
+        query = urllib.parse.parse_qsl(teile.query, keep_blank_values=True)
+        if self._token_gueltig(dict(query).get("t")):
+            rest = urllib.parse.urlencode([(key, value) for key, value in query if key != "t"])
+            cookie = (f"{self._session_cookie_name()}={self.server.session}; Path=/; HttpOnly; SameSite=Lax; "
+                      f"Max-Age={SESSION_DAYS * 24 * 3600}")
+            return Antwort(HTTPStatus.SEE_OTHER, "text/plain; charset=utf-8", b"",
+                           (("Location", teile.path + (f"?{rest}" if rest else "")), ("Set-Cookie", cookie)))
+        if self._has_session():
+            return self._seite(datei)
+        return Antwort(HTTPStatus.FORBIDDEN, "text/html; charset=utf-8", PAGE_LOCKED.encode("utf-8"))
+
     def do_GET(self) -> None:
         if not self._host_erlaubt():
             return self._fehler(HTTPStatus.FORBIDDEN, "Unbekannter Host")
         teile = urllib.parse.urlsplit(self.path)
         if teile.path in self.server.seiten:
-            return self._senden(self._seite(self.server.seiten[teile.path]))
+            return self._senden(self._page_with_proof(teile))
         route = self.server.routen_get.get(teile.path)
         if route is None:
             return self._fehler(HTTPStatus.NOT_FOUND, "Nicht gefunden")

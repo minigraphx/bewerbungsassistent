@@ -4,7 +4,7 @@ Verwaltung und lokale Oberfläche des Bewerbungsbegleiters (MIN-261 Ablauf, MIN-
 
 ## Aufbau
 - `app.py` – Einstieg: `python app.py <datenordner>`; Server (`server.py`), Routen (`routen_*.py`), Seiten (`seiten/`).
-- `server.py` – nur 127.0.0.1, Token pro Start (GET `t`, POST `X-Token` + JSON), Host-Prüfung, CSP ohne Inline-Skripte; ValueError → 400, KeyError → 404.
+- `server.py` – nur 127.0.0.1, Token pro Start (GET `t`, POST `X-Token` + JSON), Seiten nur mit Sitzung (`entry_url` setzt das Cookie), Host-Prüfung, CSP ohne Inline-Skripte; ValueError → 400, KeyError → 404.
 - `kontext.py` – Datenordner, Build-Ordner, Ablage, Versionierung; `mit_entwurf` legt beim Schreiben Entwürfe davor/danach an.
 - `ablage.py` – Entwürfe in `.entwuerfe/` (SHA-256, Index); löschbar solange nicht genutzt.
 - `versionen.py` – zusätzlicher Git-Commit beim Versand, nur wenn Git installiert ist (nur die genannten Dateien, Ersatz-Autor ohne Git-Konfiguration); ohne Git `OhneGit`. Die eigene Ablage ist auch ohne Git vollständig (MIN-304).

@@ -177,7 +177,8 @@ class Host:
         kind = message.get("art")
         if kind == "hallo":
             found = self.find(self.paths)
-            return {"version": version.VERSION, "app": found.url if found else None}
+            return {"version": version.VERSION, "app": found.url if found else None,
+                    "einstieg": found.entry_url if found else None}
         if kind != "anfrage":
             raise ValueError("Unbekannte Nachricht")
         method, path, data = message.get("methode"), message.get("pfad"), message.get("daten")

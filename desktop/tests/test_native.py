@@ -110,6 +110,7 @@ def test_hello_reports_version_and_running_app(paths):
     assert host.serve(framed({"id": 1, "art": "hallo"}), out) == 0
     [reply] = replies(out)
     assert reply["ok"] and reply["daten"]["app"] == RUNNING.url
+    assert reply["daten"]["einstieg"] == f"{RUNNING.url}?t={RUNNING.token}"
 
 
 def test_allowed_request_is_forwarded(paths):

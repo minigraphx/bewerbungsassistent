@@ -68,7 +68,7 @@ def test_second_start_finds_the_running_app(paths, tmp_path, monkeypatch):
         opened = []
         monkeypatch.setattr(start.webbrowser, "open", opened.append)
         monkeypatch.setattr(start.settings, "app_dir", lambda: paths.app_dir)
-        assert start.main([]) == 0 and opened == [running.url]
+        assert start.main([]) == 0 and opened == [running.entry_url]
     finally:
         server.shutdown()
         server.server_close()
