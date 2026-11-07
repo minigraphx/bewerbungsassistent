@@ -18,7 +18,7 @@ prompt="You are the independent verifier for one submitted item on this reposito
 
 Work only inside this repository. Read AGENTS.md first.
 
-1. Join and reserve: run \`git worktree add --detach .claude/worktrees/$seat HEAD\`, change into that folder, run \`pullboard join review --model \"$model\"\`, then \`pullboard next --verify\`. Run these as separate commands. If one of them refuses, report the refusal text verbatim and stop.
+1. Join and reserve: run \`git worktree add --detach .claude/worktrees/$seat HEAD\`, change into that folder, run \`pullboard join review --model \"$model\"\`, then \`pullboard next --verify\`, then \`git switch --detach <the submitted commit it names>\`. Run these as separate commands. If one of them refuses, report the refusal text verbatim and stop.
 2. Check the work in that worktree: read the brief with \`pullboard show <id>\` and the diff against main, run the tests that prove the criterion, and try to break it on one real edge. Python comes from \`$main/.venv/bin/python\`. The submit already ran the full gate on this commit.
 3. Decide with \`pullboard verify <id> accept --note \"<what you broke or tried, and what happened>\"\` or \`pullboard verify <id> reject --reason TEST_FAILURE --note \"<what failed>\"\`.
 4. Reply with one line per step: the command's result and your verdict.
@@ -27,7 +27,7 @@ Limits: Edit files only inside your own worktree, to show that a test fails with
 
 status=0
 claude -p "$prompt" --model "$model" --max-budget-usd "$budget" \
-  --allowedTools "Bash(pullboard *)" "Bash(git worktree add *)" "Bash(git diff *)" "Bash(git log *)" \
+  --allowedTools "Bash(pullboard *)" "Bash(git worktree add *)" "Bash(git switch --detach *)" "Bash(git diff *)" "Bash(git log *)" \
     "Bash(git show *)" "Bash(git status *)" "Bash(git checkout -- *)" "Bash(git stash *)" "Bash(cd *)" "Bash(cat *)" \
     "Bash(grep *)" "Bash(sed -n *)" "Bash(node --test *)" "Bash(PYTHON_KEYRING_BACKEND=* *.venv/bin/python -m pytest *)" \
     "Bash(*.venv/bin/python -m pytest *)" Read Grep Glob "Edit(.claude/worktrees/$seat/**)" \
