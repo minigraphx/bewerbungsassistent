@@ -206,7 +206,76 @@ window.App = (() => {
         el("p", { class: "menu__meta" }, "von Andreas Schmidt")));
   }
 
-  // Packaged app only (MIN-342): banner for a new version, button to quit. The plain app has no such route.
+  // A new version (#32, G8): the first page after a start asks in a dialog; after "later" a banner stays for this run.
+  function updateText(update) {
+    const zeitpunkt = update.beimBeenden ? "Sie wird beim Beenden installiert, oder gleich hier. " : "";
+    return `Version ${update.version} ist verfügbar. ${zeitpunkt}${update.hinweis || ""} `;
+  }
+
+  async function installieren(knopf, meldung) {
+    knopf.disabled = true;
+    meldung.textContent = "Neue Version wird geladen und geprüft …";
+    try {
+      await senden("/api/app/aktualisieren", {});
+      meldung.textContent = "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Dieser Tab lässt sich dann schliessen.";
+      knopf.remove();
+      return true;
+    } catch (fehler) {
+      meldung.textContent = fehler.message + " ";
+      knopf.disabled = false;
+      return false;
+    }
+  }
+
+  // Without a self-update the person loads the new version from its page.
+  function updateKnopf(update, beschriftung) {
+    return update.automatisch
+      ? el("button", { type: "button", class: "haupt" }, beschriftung)
+      : el("a", { href: update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");
+  }
+
+  function updateBanner(update) {
+    const meldung = el("span", {}, updateText(update));
+    const knopf = updateKnopf(update, "Jetzt aktualisieren");
+    if (update.automatisch) knopf.addEventListener("click", () => installieren(knopf, meldung));
+    document.querySelector("main")?.prepend(el("div", { class: "banner", role: "status" }, meldung, knopf));
+  }
+
+  function updateDialog(update) {
+    const meldung = el("p", { class: "dialog__text", id: "update-text" }, updateText(update));
+    const spaeter = el("button", { type: "button", class: "btn" }, "Später");
+    const knopf = updateKnopf(update, "Installieren");
+    knopf.classList.add("btn", "btn--primary");
+    const dialog = el("dialog", { class: "dialog", id: "update-dialog", "aria-labelledby": "update-titel", "aria-describedby": "update-text" },
+      el("h2", { class: "dialog__title", id: "update-titel" }, "Neue Version verfügbar"),
+      meldung, el("div", { class: "dialog__actions" }, spaeter, knopf));
+    let entschieden = false;
+    const verschieben = async () => {
+      entschieden = true;
+      dialog.close();
+      dialog.remove();
+      try { await senden("/api/app/spaeter", {}); } catch { /* then the next page asks once more */ }
+      updateBanner(update);
+    };
+    spaeter.addEventListener("click", verschieben);
+    if (update.automatisch) {
+      knopf.addEventListener("click", async () => {
+        entschieden = true;
+        spaeter.disabled = true;
+        if (await installieren(knopf, meldung)) spaeter.remove();
+        else entschieden = spaeter.disabled = false;
+      });
+    } else {
+      knopf.addEventListener("click", verschieben);  // the download page opens in its own tab
+    }
+    dialog.addEventListener("cancel", event => event.preventDefault());  // Escape does not choose
+    // Browsers may still close it on a repeated Escape; that counts as "later", never as a silent dismissal.
+    dialog.addEventListener("close", () => { if (!entschieden) verschieben(); });
+    document.body.append(dialog);
+    dialog.showModal();
+  }
+
+  // Packaged app only (MIN-342): the offer of a new version, button to quit. The plain app has no such route.
   async function desktop() {
     let info;
     try { info = await holen("/api/app/version"); } catch { return; }
@@ -226,27 +295,8 @@ window.App = (() => {
     }
     await zurEinrichtung();
     if (!info.update) return;
-    const zeitpunkt = info.update.beimBeenden ? "Sie wird beim Beenden installiert, oder gleich hier. " : "";
-    const meldung = el("span", {}, `Version ${info.update.version} ist verfügbar. ${zeitpunkt}${info.update.hinweis || ""} `);
-    const knopf = info.update.automatisch
-      ? el("button", { type: "button", class: "haupt" }, "Jetzt aktualisieren")
-      : el("a", { href: info.update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");
-    const banner = el("div", { class: "banner", role: "status" }, meldung, knopf);
-    if (info.update.automatisch) {
-      knopf.addEventListener("click", async () => {
-        knopf.disabled = true;
-        meldung.textContent = "Neue Version wird geladen und geprüft …";
-        try {
-          await senden("/api/app/aktualisieren", {});
-          meldung.textContent = "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Dieser Tab lässt sich dann schliessen.";
-          knopf.remove();
-        } catch (fehler) {
-          meldung.textContent = fehler.message + " ";
-          knopf.disabled = false;
-        }
-      });
-    }
-    document.querySelector("main")?.prepend(banner);
+    if (info.update.fragen) updateDialog(info.update);
+    else updateBanner(info.update);
   }
   desktop();
 

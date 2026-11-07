@@ -1,5 +1,8 @@
 """Routes of the desktop app: version and update, quit (MIN-342, MIN-368, MIN-382). Only present in the packaged app.
 
+A found update is asked about first in a dialog (#32, G8). "Later" lasts until the app starts again: it lives only in
+this process, so every new start asks once more.
+
 Quitting also installs a waiting update, in the background and without opening the app again; whatever goes wrong
 there, the app still ends and the update is offered again.
 """
@@ -49,6 +52,7 @@ class Controls:
     run_tool: updates_macos.Run = subprocess.run
     start_swap: Callable[..., None] = updates_macos.start_swap
     installing: threading.Lock = dataclasses.field(default_factory=threading.Lock)
+    postponed: str = ""  # the version the person put off with "later" in this run
     _checked_at: float = 0.0
     _update: updates.Update | None = None
     _lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
@@ -127,7 +131,8 @@ def make_routes(controls: Controls) -> tuple[dict, dict]:
         automatic = controls.can_install(found)
         return json_antwort({"version": VERSION, "update": {"version": found.version, "seite": found.page_url,
                                                             "automatisch": automatic, "beimBeenden": automatic,
-                                                            "hinweis": obstacle}})
+                                                            "hinweis": obstacle,
+                                                            "fragen": found.version != controls.postponed}})
 
     def install(k, parameter, body):
         found = controls.update()
@@ -151,6 +156,13 @@ def make_routes(controls: Controls) -> tuple[dict, dict]:
         controls.stop_soon()
         return json_antwort({"ok": True, "version": found.version})
 
+    def later(k, parameter, body):
+        found = controls.update()
+        if found is None:
+            raise ValueError("Es gibt keine neuere Version.")
+        controls.postponed = found.version
+        return json_antwort({"ok": True})
+
     def quit_app(k, parameter, body):
         found = _update_for_quit(controls)
         if found is None or not controls.installing.acquire(blocking=False):
@@ -159,4 +171,5 @@ def make_routes(controls: Controls) -> tuple[dict, dict]:
         controls.background(lambda: _install_then_stop(controls, found))
         return json_antwort({"ok": True, "aktualisiert": found.version})
 
-    return {"/api/app/version": version}, {"/api/app/aktualisieren": install, "/api/app/beenden": quit_app}
+    return {"/api/app/version": version}, {"/api/app/aktualisieren": install, "/api/app/spaeter": later,
+                                         "/api/app/beenden": quit_app}
