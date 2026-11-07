@@ -1,9 +1,12 @@
 """Personal data is replaced before any AI call and restored afterwards (MIN-334)."""
+import pathlib
+import re
+
 import pytest
 import yaml
 
 import build
-from ai import personal
+from ai import personal, pseudonym
 from ai.personal import secrets_from_application, secrets_from_building_blocks, secrets_from_cv
 from ai.pseudonym import PLACEHOLDER, PseudonymError, Pseudonymizer, Secret
 
@@ -57,7 +60,7 @@ def test_values_in_the_job_ad_and_building_blocks_are_replaced_too():
 
 
 def test_check_clean_refuses_text_with_a_personal_value():
-    with pytest.raises(PseudonymError, match="NAME"):
+    with pytest.raises(PseudonymError, match=r"\(Name\)"):
         make().check_clean(["Anschreiben von Erika Beispiel"])
 
 
@@ -284,3 +287,34 @@ def test_a_variant_comes_back_as_the_stored_spelling():
 @pytest.mark.parametrize("text", ["Lead Developer", "Mullerweg", "Learning"])
 def test_variants_stay_whole_words(text):
     assert ACCENT_NAMES.mask(text) == text and UMLAUT_NAMES.mask(text) == text
+
+
+SOURCE_OF_FIELDS = (pathlib.Path(personal.__file__)).read_text(encoding="utf-8")
+FIELD_PREFIXES = sorted(set(re.findall(r'(?:Secret|name_secrets|people_secrets)\(f?"([A-Z][A-Z_]*)', SOURCE_OF_FIELDS)))
+
+
+def test_every_field_of_personal_has_a_label():
+    """The message to the person names what was found in German, never the technical field."""
+    assert "NAME" in FIELD_PREFIXES and "FOUND_SOCIAL_NUMBER" in FIELD_PREFIXES
+    for prefix in FIELD_PREFIXES:
+        for field in (prefix, f"{prefix}_FIRST", f"{prefix}_LAST", f"{prefix}_2", f"{prefix}_PART_3"):
+            assert pseudonym.label(field) != pseudonym.UNKNOWN_LABEL, field
+
+
+@pytest.mark.parametrize("field, expected", [("NAME_LAST", "Name"), ("CONTACT_2_FIRST", "Kontaktperson"),
+                                             ("REFERENCE_NOTE_1_NAME", "Referenz"), ("FOUND_PHONE", "Telefon"),
+                                             ("CONTACT_EMAIL", "E-Mail"), ("BIRTH_DATE", "Geburtsdatum"),
+                                             ("PROFILE_USER_1", "Benutzername"), ("FOUND_SOCIAL_NUMBER", "AHV-Nummer")])
+def test_labels_say_what_it_is(field, expected):
+    assert pseudonym.label(field) == expected
+
+
+def test_the_stop_message_has_no_technical_names():
+    p = Pseudonymizer(secrets_from_cv({"basics": {"name": "Erika Beispiel", "location": {"address": "Musterweg 1"}}}))
+
+    with pytest.raises(PseudonymError) as stopped:
+        p.check_clean(["Erika\nBeispiel wohnt am Musterweg1, Tel. 044 000 00 00"])
+
+    found = re.search(r"\((.*)\)", str(stopped.value)).group(1)
+    assert found == "Adresse, Name, Telefon"
+    assert not re.search(r"[A-Z]{2,}|_", found)
