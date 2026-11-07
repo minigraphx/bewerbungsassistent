@@ -183,3 +183,11 @@ def test_package_names_match_what_the_rollout_uploads():
 def test_downloads_url_must_be_https():
     with pytest.raises(build.BuildError, match="Update-Server"):
         build.download_links("http://updates.example.ch", "1.0.0")
+
+
+def test_both_browser_extensions_link_to_their_store(site):
+    index = read(site, "index.html")
+    assert 'href="https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp"' in index
+    assert 'href="https://chromewebstore.google.com/detail/nopiegcdnjpkekgfakgglegkeifpmopo"' in index
+    chrome = index.split("Browser-Erweiterung für Chrome</div>")[1].split("download__title")[0]
+    assert "Verfügbar" in chrome and "disabled" not in chrome
