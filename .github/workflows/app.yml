@@ -1,7 +1,7 @@
 name: App-Paket
 
-# Baut die lokale App für Windows (Installer) und macOS, testet sie und hängt sie bei einem Tag v* als
-# Entwurf an ein Release. Erst das Veröffentlichen des Releases rollt das Update an alle aus (MIN-342):
+# Baut die lokale App für Windows (Installer), macOS und Linux (AppImage, #73), testet sie und hängt sie bei
+# einem Tag v* als Entwurf an ein Release. Erst das Veröffentlichen des Releases rollt das Update an alle aus (MIN-342):
 # update-ausrollen.yml für den Update-Server, das Release selbst für Installationen bis 0.2.11 (MIN-403).
 on:
   push:
@@ -146,3 +146,71 @@ jobs:
         run: |
           gh release view "v$VERSION" >/dev/null 2>&1 || gh release create "v$VERSION" --draft --generate-notes --title "Bewerbungsbegleiter $VERSION"
           gh release upload "v$VERSION" dist-mac/* --clobber
+
+  linux:
+    # Ubuntu 22.04: Was dort gebaut ist, läuft auch auf neueren Systemen (glibc), so auf dem aktuellen LTS und Mint.
+    runs-on: ubuntu-22.04
+    env:
+      APPIMAGETOOL_URL: https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
+      APPIMAGETOOL_SHA256: ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0
+      RUNTIME_URL: https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64
+      RUNTIME_SHA256: 2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Systempakete (FUSE für das AppImage, xdg-utils für den Einladungslink)
+        run: sudo apt-get update -q && sudo apt-get install -y -q fuse3 xdg-utils desktop-file-utils
+      - name: Abhängigkeiten
+        run: pip install -r requirements.txt -r desktop/requirements.txt
+      - name: Version und Voreinstellungen
+        env:
+          KI_URL: ${{ vars.KI_URL }}
+          DATENSCHUTZ_URL: ${{ vars.DATENSCHUTZ_URL }}
+          UPDATE_URL: ${{ vars.UPDATE_URL }}
+        run: |
+          VERSION=$(python -c "import sys; sys.path.insert(0, 'desktop'); import version; print(version.VERSION)")
+          case "$GITHUB_REF" in refs/tags/v*)
+            [ "$GITHUB_REF" = "refs/tags/v$VERSION" ] || { echo "::error::Tag passt nicht zu desktop/version.py ($VERSION)"; exit 1; }
+            [ -n "$UPDATE_URL" ] || { echo "::error::Variable UPDATE_URL fehlt: Das Release bekäme nie mehr Updates"; exit 1; };; esac
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          mkdir -p desktop/build
+          python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', ''), 'update_url': os.environ.get('UPDATE_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
+      - name: Paket bauen und testen
+        run: |
+          pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
+          dist/Bewerbungsbegleiter/Bewerbungsbegleiter --selbsttest
+          cat selbsttest.txt
+          python desktop/mcp_smoke.py dist/Bewerbungsbegleiter/Bewerbungsbegleiter
+      - name: AppImage bauen (Werkzeuge mit Prüfsumme)
+        run: |
+          mkdir -p werkzeug
+          curl -fsSL -o werkzeug/appimagetool "$APPIMAGETOOL_URL"
+          curl -fsSL -o werkzeug/runtime "$RUNTIME_URL"
+          printf '%s  werkzeug/appimagetool\n%s  werkzeug/runtime\n' "$APPIMAGETOOL_SHA256" "$RUNTIME_SHA256" | sha256sum -c -
+          chmod +x werkzeug/appimagetool
+          python desktop/appimage.py dist/Bewerbungsbegleiter "dist-linux/Bewerbungsbegleiter-$VERSION-x86_64.AppImage" \
+            --tool werkzeug/appimagetool --runtime werkzeug/runtime
+          rm -rf dist-linux/AppDir
+      - name: AppImage testen
+        run: |
+          IMAGE="dist-linux/Bewerbungsbegleiter-$VERSION-x86_64.AppImage"
+          rm -f selbsttest.txt
+          "$IMAGE" --selbsttest
+          cat selbsttest.txt
+          rm -f selbsttest.txt
+          "$IMAGE" --appimage-extract-and-run --selbsttest  # ohne FUSE, wie es die Anleitung als Ausweg nennt
+          python desktop/linux_smoke.py "$IMAGE"
+          (cd dist-linux && sha256sum "Bewerbungsbegleiter-$VERSION-x86_64.AppImage" > SHA256SUMS-Linux.txt)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: linux
+          path: dist-linux/
+      - name: Release-Entwurf
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "v$VERSION" >/dev/null 2>&1 || gh release create "v$VERSION" --draft --generate-notes --title "Bewerbungsbegleiter $VERSION"
+          gh release upload "v$VERSION" dist-linux/* --clobber

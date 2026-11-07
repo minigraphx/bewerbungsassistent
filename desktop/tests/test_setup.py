@@ -119,7 +119,47 @@ def test_failed_dialog_asks_for_the_path(tmp_path):
     with pytest.raises(ValueError, match="Pfad"):
         dialogs.choose("ordner", tmp_path, platform="darwin", run=Runner(1, stderr="boom"))
     with pytest.raises(ValueError, match="Pfad"):
-        dialogs.choose("ordner", tmp_path, platform="linux", run=Runner())
+        dialogs.choose("ordner", tmp_path, platform="linux", run=Runner(), which=lambda name: None)
+
+
+def only(*tools):
+    return lambda name: f"/usr/bin/{name}" if name in tools else None
+
+
+def test_linux_uses_zenity_with_the_start_folder(tmp_path):
+    run = Runner(stdout="/home/erika/Bewerbung\n")
+
+    chosen = dialogs.choose("ordner", tmp_path, platform="linux", run=run, which=only("zenity", "kdialog"))
+
+    command = run.calls[0][0]
+    assert chosen == pathlib.Path("/home/erika/Bewerbung")
+    assert command[:3] == ["zenity", "--file-selection", "--directory"] and f"--filename={tmp_path}/" in command
+
+
+def test_linux_file_dialog_filters_einstieg_files(tmp_path):
+    run = Runner(stdout="/home/erika/einstieg.zip\n")
+
+    dialogs.choose("datei", tmp_path, platform="linux", run=run, which=only("zenity"))
+
+    assert "--file-filter=Einstiegsdatei | *.zip *.json" in run.calls[0][0]
+
+
+def test_kde_without_zenity_uses_kdialog(tmp_path):
+    run = Runner(stdout="/home/erika/Bewerbung\n")
+
+    dialogs.choose("ordner", tmp_path, platform="linux", run=run, which=only("kdialog"))
+
+    assert run.calls[0][0] == ["kdialog", "--title", "Ordner für die Bewerbungsdaten wählen", "--getexistingdirectory", str(tmp_path)]
+
+
+@pytest.mark.parametrize("tool", ["zenity", "kdialog"])
+def test_cancel_on_linux_returns_nothing(tmp_path, tool):
+    assert dialogs.choose("datei", tmp_path, platform="linux", run=Runner(1), which=only(tool)) is None
+
+
+def test_a_broken_dialog_on_linux_asks_for_the_path(tmp_path):
+    with pytest.raises(ValueError, match="Pfad"):
+        dialogs.choose("ordner", tmp_path, platform="linux", run=Runner(255, stderr="cannot open display"), which=only("zenity"))
 
 
 def test_unknown_dialog_kind(tmp_path):
@@ -351,6 +391,24 @@ def test_extensions_page_opens_in_the_chosen_browser(browser, platform, command)
     dialogs.open_extensions_page(browser, platform, run)
 
     assert run.calls == [command]
+
+
+@pytest.mark.parametrize("browser, installed, command", [
+    ("chrome", ("google-chrome",), ["google-chrome", "chrome://extensions"]),
+    ("chrome", ("chromium",), ["chromium", "chrome://extensions"]),
+    ("edge", ("microsoft-edge-stable",), ["microsoft-edge-stable", "edge://extensions"]),
+])
+def test_linux_opens_the_browser_by_its_command(browser, installed, command):
+    run = recording()
+
+    dialogs.open_extensions_page(browser, "linux", run, which=only(*installed))
+
+    assert run.calls == [command]
+
+
+def test_linux_without_the_browser_says_what_to_type():
+    with pytest.raises(ValueError, match="edge://extensions"):
+        dialogs.open_extensions_page("edge", "linux", recording(), which=only())
 
 
 def test_missing_browser_is_explained():
