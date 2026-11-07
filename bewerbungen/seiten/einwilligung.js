@@ -33,5 +33,5 @@ window.Einwilligung = (() => {
     ort.hidden = false;
   }
 
-  return { zeige };
+  return { zeige, link };
 })();
