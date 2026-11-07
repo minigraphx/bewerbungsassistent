@@ -19,7 +19,7 @@ VERSION = "2026-11"
 PAGE_VARIABLE = "BEWERBUNGSBEGLEITER_DATENSCHUTZ_URL"
 MISSING = "Vor der ersten KI-Nutzung braucht es die Einwilligung: unter „Erweiterte Einstellungen“, Abschnitt „Einwilligung“."
 STALE_PAGE = "Der Text hat sich geändert. Bitte die Seite neu laden und nochmals lesen."
-_SENDING = ("Ich habe die Datenschutz-Erklärung gelesen und bin einverstanden, dass Texte aus {whose} Unterlagen für die "
+_SENDING = ("Ich habe die Datenschutzerklärung gelesen und bin einverstanden, dass Texte aus {whose} Unterlagen für die "
             "KI-Funktionen an Anthropic gehen, auch in die USA. Sie können indirekt auf {hints} hindeuten.")
 WORDING = {
     search_plan.KIND_JOB: "Ich bin mindestens 18 Jahre alt. " + _SENDING.format(

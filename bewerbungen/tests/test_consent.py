@@ -13,6 +13,7 @@ import search_plan
 from ai import consent, errors, invitation, tasks
 from ai.connection import ACCESS_VARIABLE, URL_VARIABLE
 from ai.errors import AiError
+from server import SEITEN as PAGES
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 
 pytestmark = pytest.mark.real_consent
@@ -254,3 +255,12 @@ def test_the_mediation_gets_the_receipt_with_the_code():
     with pytest.raises(AiError):
         invitation.redeem("https://ki.example.ch", "ABCD-EFGH", opener=opener, receipt="2026-11 stelle")
     assert sent[0]["consent"] == "2026-11 stelle" and sent[0]["code"] == "ABCD-EFGH"
+
+
+def test_the_wording_writes_datenschutzerklaerung_as_one_word():
+    page = (PAGES / "einwilligung.js").read_text(encoding="utf-8")
+
+    for text in [*consent.WORDING.values(), page]:
+        assert "Datenschutz-Erklärung" not in text
+    assert all("Datenschutzerklärung" in text for text in consent.WORDING.values())
+    assert "Datenschutzerklärung lesen" in page
