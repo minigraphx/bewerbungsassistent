@@ -49,7 +49,7 @@ def _check(key: str) -> None:
 def _keychain():
     library = connection._keyring()
     if library is None:
-        raise AiError(NO_KEYCHAIN)
+        raise AiError(connection.keychain_problem(NO_KEYCHAIN))
     return library
 
 
@@ -63,7 +63,7 @@ def store(key: str) -> None:
     except Exception:  # noqa: BLE001  (its text may hold the key)
         kept = None
     if kept != key:
-        raise AiError(NO_KEYCHAIN) from None
+        raise AiError(connection.keychain_problem(NO_KEYCHAIN)) from None
 
 
 def save(value) -> None:
@@ -83,6 +83,6 @@ def remove() -> None:
     try:
         left = library.get_password(connection.KEYRING_SERVICE, connection.OWN_KEY_ACCOUNT)
     except Exception:  # noqa: BLE001
-        raise AiError(NO_KEYCHAIN) from None
+        raise AiError(connection.keychain_problem(NO_KEYCHAIN)) from None
     if left:
-        raise AiError(NO_KEYCHAIN)
+        raise AiError(connection.keychain_problem(NO_KEYCHAIN))
