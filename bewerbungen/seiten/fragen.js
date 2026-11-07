@@ -5,19 +5,17 @@
   const $ = id => document.getElementById(id);
   const ZUEGE_MIT = 12;  // the server takes no more of them; the page keeps the whole conversation
   const texte = {
-    hilfe: "Fragen Sie hier zur Stellensuche und zu Ihrer Bewerbung. Die KI kennt Ihre Angaben, nicht Ihre Liste der Bewerbungen, und sie ändert nichts. Das Gespräch bleibt nur auf dieser Seite. Prüfen Sie wichtige Antworten, auch eine KI irrt sich.",
-    label: "Ihre Frage",
     aus: "Für Fragen braucht es die KI der App: unter „Einrichtung“ der Einladungscode oder unter „Erweiterte Einstellungen“ ein eigener Schlüssel. Wer Claude mit dem eigenen Abo nutzt, fragt direkt dort.",
-    du: "Sie",
     uebrig: n => `Heute noch ${n === 1 ? "1 Frage" : `${n} Fragen`}.`,
     leer: "Bitte zuerst die Frage schreiben.",
     beispiele: ["Was fehlt noch in meinen Angaben?", "Wie bereite ich mich auf ein Vorstellungsgespräch vor?", "Wie gehe ich im Anschreiben mit einer Lücke um?"],
   };
+  let satz = "stelle-sie";
   let verlauf = [];
   let wartet = false;
 
   function zeigeZug(zug) {
-    const wer = zug.rolle === "person" ? texte.du : "KI";
+    const wer = zug.rolle === "person" ? window.Texte.text("fragen.sprecher", satz) : "KI";
     $("fragen-verlauf").append(el("div", { class: `chat-zug chat-${zug.rolle}` }, el("strong", {}, wer), el("p", {}, zug.text)));
     $("fragen-verlauf").lastElementChild.scrollIntoView({ block: "nearest" });
   }
@@ -54,8 +52,8 @@
 
   function zeige(stand) {
     const bereit = stand.eingerichtet && stand.erlaubt;
-    $("fragen-hilfe").textContent = stand.erlaubt ? texte.hilfe : "";
-    $("fragen-label").textContent = texte.label;
+    $("fragen-hilfe").textContent = stand.erlaubt ? window.Texte.text("fragen.hilfe", satz) : "";
+    $("fragen-label").textContent = window.Texte.text("fragen.label", satz);
     $("fragen-aus").hidden = bereit;
     $("fragen-aus").textContent = stand.erlaubt ? texte.aus : stand.hinweis;
     $("fragen-an").hidden = !bereit;
@@ -68,5 +66,6 @@
   $("fragen-text").addEventListener("keydown", event => {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) fragen($("fragen-text").value);
   });
-  holen("/api/fragen/stand").then(zeige, fehler => status($("fragen-meldung"), fehler.message, "fehler"));
+  window.App.textsatz().then(gewaehlt => { satz = gewaehlt; return holen("/api/fragen/stand"); })
+    .then(zeige, fehler => status($("fragen-meldung"), fehler.message, "fehler"));
 })();

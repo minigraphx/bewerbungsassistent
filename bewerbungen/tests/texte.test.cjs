@@ -2,6 +2,9 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
 const texte = require("../seiten/texte.js");
 
 test("each set picks its form, an apprenticeship falls back to du", () => {
@@ -47,4 +50,45 @@ test("a grade is written with a comma", () => {
 test("the app is called the app, not the assistant", () => {
   const worte = Object.values(texte.TEXTE).flatMap(eintrag => Object.values(eintrag));
   assert.deepEqual(worte.filter(wort => /Assistent/.test(wort)), []);
+});
+
+// Pages whose text speaks to the person: what is left outside a data-text element must not use the address.
+const SIE_FORM = /\b(Sie|Ihr|Ihre|Ihrem|Ihren|Ihrer|Ihnen)\b/;
+const seite = name => fs.readFileSync(path.join(__dirname, "..", "seiten", name), "utf8");
+const ohneTextElemente = html => html.replace(/<(\w+)\b[^>]*\bdata-text="[^"]*"[^>]*>[\s\S]*?<\/\1>/g, "");
+
+test("the settings page leaves its address to the text set", () => {
+  assert.doesNotMatch(ohneTextElemente(seite("einstellungen.html")), SIE_FORM);
+});
+
+test("each data-text of the settings page is known and starts as the Sie text", () => {
+  const html = seite("einstellungen.html");
+  const elemente = [...html.matchAll(/<(\w+)\b[^>]*\bdata-text="([^"]*)"[^>]*>([\s\S]*?)<\/\1>/g)];
+  assert.ok(elemente.length > 0);
+  for (const [, , schluessel, inhalt] of elemente) assert.equal(inhalt, texte.text(schluessel, "stelle-sie"));
+});
+
+test("scripts with texts of their own do not fix the address", () => {
+  for (const name of ["fragen.js", "einwilligung.js", "portal-wahl.js"]) assert.doesNotMatch(seite(name), SIE_FORM, name);
+  assert.doesNotMatch(seite("app.js"), /können Sie/);
+  assert.doesNotMatch(seite("treffer.html").replace(/data-text="suche\.wo">[^<]*/, ""), /Wo suchen Sie/);
+});
+
+test("the questions page speaks in the form of the set", () => {
+  assert.equal(texte.text("fragen.label", "stelle-sie"), "Ihre Frage");
+  assert.equal(texte.text("fragen.label", "stelle-du"), "Deine Frage");
+  assert.equal(texte.text("fragen.sprecher", "lehrstelle-du"), "Du");
+  assert.match(texte.text("fragen.hilfe", "lehrstelle-du"), /zur Lehrstellensuche und zu deiner Bewerbung/);
+});
+
+test("a job with du gets the search suggestions with du", () => {
+  const context = { window: { App: { senden() {}, el() {}, status() {} } }, document: { getElementById: () => ({ addEventListener() {} }), dispatchEvent() {} }, CustomEvent: class {} };
+  vm.runInNewContext(seite("beruf-vorschlag.js"), context);
+  const { texteFuer } = context.window.Suchbegriffe;
+  assert.match(texteFuer("stelle", "stelle-sie").titel, /zu Ihnen/);
+  assert.match(texteFuer("stelle", "stelle-du").titel, /zu dir/);
+  assert.match(texteFuer("lehrstelle", "lehrstelle-du").titel, /Beruf/);
+  for (const [name, wert] of Object.entries(texteFuer("stelle", "stelle-du"))) {
+    assert.doesNotMatch(typeof wert === "function" ? wert("Muster") : wert, SIE_FORM, name);
+  }
 });

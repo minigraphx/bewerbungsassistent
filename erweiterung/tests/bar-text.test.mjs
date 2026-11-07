@@ -29,7 +29,7 @@ test('after sending, the next step depends on RAV', () => {
 test('Job-Room and the watched search', () => {
   const bar = ravEntryBar('lehrstelle-du', 2, 4, { firma: 'Muster AG', stelle: 'Kauffrau EFZ', beworben_am: '2026-11-06' });
   assert.equal(bar.titel, 'Eintrag 2 von 4: Muster AG, Kauffrau EFZ, 06.11.2026.');
-  assert.match(bar.text, /machst du selbst/);
+  assert.match(bar.text, /^Prüfe den Eintrag\..*machst du selbst/);
   assert.equal(ravEntryBar('stelle-sie', 1, 1, { firma: 'A', stelle: 'B' }).titel, 'Eintrag 1 von 1: A, B.');
   assert.equal(watchingBar('stelle-sie', 'jobs.ch').titel, 'Suche läuft: jobs.ch.');
   assert.match(watchingBar('lehrstelle-du', 'yousty').text, /Du kannst in einem anderen Tab/);

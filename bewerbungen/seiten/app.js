@@ -228,7 +228,7 @@ window.App = (() => {
         meldung.textContent = "Neue Version wird geladen und geprüft …";
         try {
           await senden("/api/app/aktualisieren", {});
-          meldung.textContent = "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Diesen Tab können Sie schliessen.";
+          meldung.textContent = "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Dieser Tab lässt sich dann schliessen.";
           knopf.remove();
         } catch (fehler) {
           meldung.textContent = fehler.message + " ";

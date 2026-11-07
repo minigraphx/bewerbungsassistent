@@ -1,0 +1,79 @@
+# Abgleich der App mit dem Design
+
+Stand 7.11.2026, Item #23. Verglichen wurden die Bilder in `entwurf/` und die Quellen in `seiten/` mit `main`, in der laufenden App mit erfundenen Daten. Alles unten ist **nicht geändert** und wartet auf einen Entscheid. Was Andy nicht entscheidet, bleibt, wie es ist.
+
+## Behoben, weil klar falsch
+
+Wer die App mit du nutzt, las an einigen Stellen trotzdem Sie:
+
+- Seiten „Erweiterte Einstellungen“ und „Fragen an die KI“.
+- Vorschläge für die Suche bei Stellen mit du.
+- „Wo suchen Sie?“ bei Stellen mit du.
+- Drei einzelne Sätze: Einladungscode, Tab nach dem Update, Fragen aufgebraucht.
+- In der Formularleiste stand „Prüf den Eintrag“ statt „Prüfe den Eintrag“.
+
+## Entscheide, die mehrere Seiten betreffen
+
+| # | Thema | Design | App | Vorschlag |
+| --- | --- | --- | --- | --- |
+| 1 | Noten und Dezimalzahlen | `4.5`, „nie 4,5“ | App `4,5` (bewusst, c50db93), Popup der Erweiterung `4.5`, Foto `4,65 cm` neben `1.20×` | Eine Schreibweise überall. Punkt passt zum Design, Komma zum heutigen Test. |
+| 2 | Währung der Kosten | CHF | USD, wie Anthropic abrechnet | USD lassen, bis die Vermittlung in CHF abrechnet. |
+| 3 | Kosten pro Antwort | „Claude · CHF 0.01“ im Fuss von KI-Karten und Popup | nur die Kostenzeile der Suche und die Summen in den Einstellungen | offen |
+| 4 | Seitenrand | 32 px oben, 24 px seitlich | 24 px oben, 16 px seitlich | Design übernehmen; kleine Änderung. |
+
+## Bewerbung
+
+| # | Design | App | Vorschlag |
+| --- | --- | --- | --- |
+| 5 | Nur die Karte des aktuellen Schritts ist offen. | Alle Abschnitte stehen untereinander, die Seite wird sehr lang. | Am meisten Wirkung; eigenes Item. |
+| 6 | Nach dem Versand: grünes Banner zuoberst, nur noch Antwort, versendete Fassung, Inserat und KI-Einschätzung. | Banner steht unten unter „Abschicken“; Lebenslauf, Anschreiben, KI-Knöpfe und Einwilligung bleiben sichtbar. | Design übernehmen. |
+| 7 | Anschreiben: „Neu entwerfen“, „Eigenes Anschreiben verwenden“, „Satz streichen“, „In Meine Angaben ergänzen“, Karte „Einschätzung der KI“. „Freigeben“ ist der Hauptknopf. | Diese Knöpfe und die Karte fehlen, „Freigeben“ ist ein Randknopf. | Einzeln ansehen. |
+| 8 | Lehrstelle: „Lehrbeginn“ in den Angaben, zwei Noten im Kopf (Beruf und Lehrstelle), Kontakt. | „Pensum“, eine Note, kein Kontakt. | Design übernehmen; Lehrbeginn fehlt dort sonst ganz. |
+| 9 | Abschicken: Formular offen seit 10:42, Zählung der Felder, Vorschau der Leiste, „Ja, abgeschickt / Noch nicht“. | Eine Statuszeile und „Versand erfassen“. | offen |
+| 10 | Verlauf mit Zwischenschritten („Aus der Suche übernommen“, „Anschreiben entworfen“). Schrittzeile „übernommen 03.11.“. | Nur „Erfasst“, „Beworben“, „Versand erfasst“. Schrittzeile „erfasst 20.10.“. | offen |
+| 11 | Kein Knopf bei der Notiz, Schrittnamen nicht unterstrichen. PDF-Titel mit Seitenzahl, „PDFs neu erstellen · Lebenslauf ändern“. | Knopf „Notiz speichern“, Schrittnamen unterstrichen (sind Links). PDF-Titel ohne Zusatz, der Link fehlt. | Knopf und Links lassen. |
+
+## Suche und Übersicht
+
+| # | Design | App | Vorschlag |
+| --- | --- | --- | --- |
+| 12 | „Deine Berufe“ als drei Chips mit bis zu drei Sternen. | Senkrechte Liste mit fünf Sternen; die Skala stammt aus dem Datenmodell. | offen |
+| 13 | Zähler „3 von 10“ am Menüpunkt der Suche. | Fehlt; das CSS ist da, das Markup nicht. | Einbauen oder CSS entfernen. |
+| 14 | Datum relativ („heute“, „gestern“). | Datum absolut. | offen |
+
+## Übrige Seiten
+
+| # | Seite | Design | App |
+| --- | --- | --- | --- |
+| 15 | Meine Dateien | Metazeile pro Datei (Seiten, Grösse, Datum), Entfernen als Textlink; „Wird jetzt verwendet“, „Kein PDF hochgeladen“; eigene Gruppentitel bei Lehrstellen. | Hilfetext und Knöpfe; „Wird verwendet“, „Noch kein PDF hochgeladen“; dieselben Gruppentitel. |
+| 16 | Inhalte als Text | Dateiliste links, Reiter „Ansicht / Als Text“. | Auswahlmenü und Umschaltknopf, zusätzlich „Letzte Entwürfe“. |
+| 17 | Entwürfe | Karten pro Datei mit Filter, „Mit jetzt vergleichen“, „Zurückholen“. | Tabelle mit „Vergleich mit vorher“, „Wiederherstellen“, „Löschen“. |
+| 18 | Entwürfe, Vergleich | Zwei Spalten, durchgestrichen und unterstrichen, Knopf „Fassung zurückholen“. Für Einsteiger lesbar. | Technischer Diff als Text mit `cv.yaml`, `@@`, `+` und `-`. |
+| 19 | Foto | „Foto im Lebenslauf zeigen“, „Anderes Foto wählen“, „Foto entfernen“. | „Zoom“, „Ausschnitt waagrecht (x)“ und ein YAML-Block; die drei Knöpfe fehlen. |
+| 20 | Fragen | Chat-Karten, Knopf „Fragen“, Zähler „18 von 20“, eigene Beispielfragen für Lehrstellen. | Knopf „Senden“, „Heute noch 30 Fragen“, dieselben Beispiele für alle. |
+| 21 | Einstellungen | Eigene Karten „Zugang zur KI“, „Fragen an die KI“ (Schalter, Limit) und „Weitere Seiten durchsuchen“ mit Status; Budget als Balken. | Die zwei ersten Karten fehlen, „Weitere Seiten“ erscheint nur mit eigenem Schlüssel, Kosten ohne Budget. |
+| 22 | Einrichtung | Link und Knöpfe nicht vorgesehen. | Zusätzlich „Anleitung mit Bildern“, „In Chrome/Edge öffnen“, „Ordner zeigen“, Mac-Hinweis. Vorschlag: lassen, sie helfen beim Einstieg. |
+
+## Erweiterung
+
+| # | Design | App |
+| --- | --- | --- |
+| 23 | Feldmarken mit Etikett („ausgefüllt“, „offen, bitte selbst ausfüllen“). | Nur ein farbiger Rahmen, kein Etikett. |
+| 24 | Dieselben Farben in Leiste und Formular. | Legende `#4caf50`, `#ff9800`; Formular `#2e7d32`, `#ef6c00`. |
+| 25 | Leistenzustand „Dateien hochladen“ mit Satz zum Formular. | Knopf „Dateien im Ordner zeigen“. |
+| 26 | Erlaubnis-Seite nennt die Domain. | Nennt keine Domain, weil die Erlaubnis alle Seiten betrifft. |
+
+## Absichtlich, bleibt
+
+- Name „Bewerbungsbegleiter“, „die App“ statt „der Assistent“ (0684dd8, c50db93). Die Bilder in `entwurf/` zeigen noch den alten Namen.
+- Sortierpfeile in der Liste der Übersicht (a578c1b).
+- „Bewerten“, „Neu bewerten“, „Inserat hier lesen“, automatisches Bewerten in der Suche (61d7db2, 5bf430e).
+- Einwilligung vor dem ersten KI-Aufruf, in Einrichtung, Bewerbung und Einstellungen (2069cd5, 6a5c58b).
+- Einfache Einrichtung ohne Desktop-Teil zeigt nur den ersten Schritt (e8c20e1).
+- Die Lücke unter „Lebenslauf-Variante“ aus dem Item liess sich nicht nachstellen, weder bei 1280 noch bei 760 px.
+
+## Nicht geprüft
+
+- Die Erweiterung lief nicht: Popup, Formularleiste und Erlaubnis-Seite sind nur im Code verglichen.
+- Nicht gerendert: laufende Suche, Editor auf der Seite Foto, Bewerbung mit offenem Formular, Dialog „Läuft schon eine Bewerbung“.
+- Texte: Der Abgleich mit `texte.md` lief stichprobenweise, nicht Satz für Satz.

@@ -13,6 +13,7 @@ Hier liegen die Ergebnisse der Neugestaltung, damit die Umsetzung ohne Zugang zu
 | `system/components.css` | Die Bausteine als CSS-Klassen, nur mit Variablen aus `tokens.css`. |
 | `system/bausteine/<Name>/` | Pro Baustein eine Anleitung (`README.md`) und das Markup als Beispiel (`vorschau.html`). |
 | `texte.md` | Alle sichtbaren Texte in Sie- und Du-Form, Regeln für die Anrede, Entscheide für die Umsetzung. |
+| `abgleich.md` | Wo die App vom Design abweicht und was davon auf einen Entscheid wartet. |
 | `entwurf/*.jpg` | Bilder aller Zeichenflächen, gerendert am 05.11.2026 (Tabelle unten). |
 | `seiten/*.dc.html` | Quellen der Zeichenflächen. Sie laufen nur in der Zeichenfläche (Format von Claude Design) und dienen als Referenz für Aufbau, Zustände und Texte. |
 
