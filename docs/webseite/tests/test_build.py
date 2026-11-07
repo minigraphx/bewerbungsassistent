@@ -197,3 +197,16 @@ def test_the_site_writes_datenschutzerklaerung_as_one_word(site):
     for name in ("index.html", "anleitung.html"):
         assert "Datenschutz-Erklärung" not in read(site, name)
     assert "Datenschutzerklärung" in read(site, "anleitung.html")
+
+
+def test_the_person_adapts_the_letter_and_has_time_for_the_firm(site):
+    index = read(site, "index.html")
+    assert "Erleichterung, keine Bewerbungsmaschine" in index
+    assert "Sie passen es an" in index and "„Ändern“" in index
+    assert "sich mit der Firma und der Stelle zu befassen" in index
+    assert "schneidet Lebenslauf und Anschreiben" not in index
+
+
+def test_the_guide_says_the_draft_is_a_starting_point(site):
+    guide = read(site, "anleitung.html")
+    assert "Der Entwurf ist ein Ausgangspunkt" in guide and "<strong>Ändern</strong>" in guide
