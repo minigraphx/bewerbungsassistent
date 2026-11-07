@@ -363,6 +363,44 @@ def test_unknown_browser_is_refused():
         dialogs.open_extensions_page("firefox", "darwin", recording())
 
 
+@pytest.mark.parametrize("platform, command", [
+    ("darwin", ["open", "-a", "Microsoft Edge", dialogs.STORE_PAGES["edge"]]),
+    ("win32", ["cmd", "/c", "start", "", "msedge", dialogs.STORE_PAGES["edge"]]),
+])
+def test_store_page_opens_in_edge(platform, command):
+    run = recording()
+
+    dialogs.open_store_page("edge", platform, run)
+
+    assert run.calls == [command]
+
+
+def test_store_page_is_refused_for_a_browser_without_a_store_entry():
+    with pytest.raises(ValueError, match="Store"):
+        dialogs.open_store_page("chrome", "darwin", recording())
+
+
+def test_route_opens_the_store_without_showing_the_folder(tmp_path):
+    opened, shown = [], []
+    state = routes_setup.Setup(paths=settings.Paths(tmp_path / "app"), switch=lambda folder: None,
+                               suggestion=tmp_path / "x", extension_dir=tmp_path / "erweiterung",
+                               open_store=opened.append, reveal=shown.append)
+    _, post_routes = routes_setup.make_routes(state)
+
+    answer = post_routes["/api/app/erweiterung-store"](None, {}, {"browser": "edge"})
+
+    assert answer.status == 200 and opened == ["edge"] and shown == []
+
+
+def test_the_setup_page_offers_the_edge_store_before_loading_by_hand():
+    root = pathlib.Path(__file__).resolve().parents[2]
+    page = (root / "bewerbungen" / "seiten" / "einrichtung.html").read_text(encoding="utf-8")
+    assert 'data-store="edge"' in page
+    assert page.index('data-store="edge"') < page.index("Entpackte Erweiterung laden")
+    script = (root / "bewerbungen" / "seiten" / "einrichtung.js").read_text(encoding="utf-8")
+    assert '"/api/app/erweiterung-store"' in script
+
+
 def test_route_opens_the_page_and_shows_the_folder(tmp_path):
     opened, shown = [], []
     state = routes_setup.Setup(paths=settings.Paths(tmp_path / "app"), switch=lambda folder: None,
