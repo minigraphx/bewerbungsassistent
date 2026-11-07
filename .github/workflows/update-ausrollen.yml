@@ -75,6 +75,7 @@ jobs:
           upload() { curl --fail --silent --show-error --ssl-reqd --retry 3 --ftp-create-dirs --config "$config" "$@"; }
           upload -T "pakete/Bewerbungsbegleiter-Setup-$version.exe" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
           upload -T "pakete/Bewerbungsbegleiter-$version-macOS.zip" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
+          upload -T "pakete/Bewerbungsbegleiter-$version-x86_64.AppImage" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
           upload -T latest.json "ftp://$FTP_HOST/$FTP_FOLDER/latest.json.part" \
             -Q "-*DELE latest.json" -Q "-RNFR latest.json.part" -Q "-RNTO latest.json"
       - name: Prüfen, was der Server ausliefert
@@ -83,7 +84,7 @@ jobs:
         run: |
           version="${TAG#v}"
           curl -fsS "$UPDATE_URL/latest.json" | cmp - latest.json
-          for name in "Bewerbungsbegleiter-Setup-$version.exe" "Bewerbungsbegleiter-$version-macOS.zip"; do
+          for name in "Bewerbungsbegleiter-Setup-$version.exe" "Bewerbungsbegleiter-$version-macOS.zip" "Bewerbungsbegleiter-$version-x86_64.AppImage"; do
             curl -fsS "$UPDATE_URL/$version/$name" | cmp - "pakete/$name"
           done
 

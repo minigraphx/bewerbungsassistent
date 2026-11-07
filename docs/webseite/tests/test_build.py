@@ -162,13 +162,22 @@ def test_download_buttons_point_to_this_version_on_the_update_server(site):
     version = build.read_version()
     assert f'href="https://updates.example.ch/app/{version}/Bewerbungsbegleiter-Setup-{version}.exe"' in index
     assert f'href="https://updates.example.ch/app/{version}/Bewerbungsbegleiter-{version}-macOS.zip"' in index
+    assert f'href="https://updates.example.ch/app/{version}/Bewerbungsbegleiter-{version}-x86_64.AppImage"' in index
     assert "releases/latest" not in index
+
+
+def test_linux_is_offered_next_to_windows_and_macos(site):
+    index = read(site, "index.html")
+    assert "Für Linux laden" in index and "Noch nicht bereit</button>" not in index.split("Linux</div>")[1].split("download__title")[0]
+    assert index.count("Für Windows, macOS und Linux") == 2  # description and the note under the title
 
 
 def test_package_names_match_what_the_rollout_uploads():
     workflow = (build.REPO / ".github" / "workflows" / "update-ausrollen.yml").read_text(encoding="utf-8")
+    checked = next(line for line in workflow.splitlines() if line.strip().startswith("for name in"))
     for url in build.download_links("https://x.example", "$version").values():
-        assert f'"pakete/{url.rsplit("/", 1)[1]}"' in workflow
+        name = url.rsplit("/", 1)[1]
+        assert f'"pakete/{name}"' in workflow and f'"{name}"' in checked
 
 
 def test_downloads_url_must_be_https():

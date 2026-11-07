@@ -66,7 +66,8 @@ def download_links(base, version):
     """Direct links to the packages of this version on the update server."""
     base = check_https(base, "des Update-Servers").rstrip("/")
     return {"download_windows": f"{base}/{version}/Bewerbungsbegleiter-Setup-{version}.exe",
-            "download_macos": f"{base}/{version}/Bewerbungsbegleiter-{version}-macOS.zip"}
+            "download_macos": f"{base}/{version}/Bewerbungsbegleiter-{version}-macOS.zip",
+            "download_linux": f"{base}/{version}/Bewerbungsbegleiter-{version}-x86_64.AppImage"}
 
 
 def fill(template, values):
