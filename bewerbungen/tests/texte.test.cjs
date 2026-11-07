@@ -108,3 +108,20 @@ test("the consent says what the app replaces before text goes to the AI, in the 
   assert.match(lehrstelle, /Schulen/);
   assert.match(seite("einwilligung.js"), /"einwilligung\.ersetzt"/);
 });
+
+test("the ictjobs line says why it is on or off and how to change it, in the form of the set (#107)", () => {
+  const begriff = { begriff: "Software" };
+  assert.equal(texte.text("suche.ictjobs.aus", "stelle-sie"), "Aus, weil keiner Ihrer Suchbegriffe nach Informatik klingt. Mit dem Häkchen einschalten.");
+  assert.equal(texte.text("suche.ictjobs.aus", "stelle-du"), "Aus, weil keiner deiner Suchbegriffe nach Informatik klingt. Mit dem Häkchen einschalten.");
+  assert.equal(texte.text("suche.ictjobs.passt", "stelle-sie", begriff), "An, weil Ihr Suchbegriff «Software» nach Informatik klingt. Mit dem Häkchen ausschalten.");
+  assert.equal(texte.text("suche.ictjobs.passt", "stelle-du", begriff), "An, weil dein Suchbegriff «Software» nach Informatik klingt. Mit dem Häkchen ausschalten.");
+  assert.match(texte.text("suche.ictjobs.gewaehlt", "stelle-sie"), /^Ihre Wahl\. .*Häkchen/);
+  assert.match(texte.text("suche.ictjobs.gewaehlt", "stelle-du"), /^Deine Wahl\. .*Häkchen/);
+  for (const satz of ["stelle-sie", "stelle-du"]) assert.match(texte.text("suche.ictjobs.keine", satz), /^An, bis Suchbegriffe da sind\. .*Häkchen/);
+});
+
+test("the portal choice shows the reason of ictjobs from the text set", () => {
+  const script = seite("portal-wahl.js");
+  assert.match(script, /`suche\.ictjobs\.\$\{portal\.grund\}`/);
+  assert.match(script, /begriff: portal\.begriff/);
+});
