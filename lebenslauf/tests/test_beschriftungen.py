@@ -2,7 +2,7 @@
 import pytest
 
 import build
-from conftest import beispiel, lang
+from cv_samples import beispiel, lang
 
 SCHUELER = {"erfahrung": "Schnupperlehren & Erfahrungen", "bildung": "Schule & Eignungstests"}
 

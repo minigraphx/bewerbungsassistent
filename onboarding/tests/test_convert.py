@@ -4,7 +4,7 @@ import datetime
 import yaml
 
 import convert
-from conftest import base_bundle
+from form_cases import base_bundle
 
 TODAY = datetime.date(2026, 11, 2)
 FILES = ["cv.yaml", "suchprofil.md", "anschreiben/stil.md", "anschreiben/bausteine.md"]

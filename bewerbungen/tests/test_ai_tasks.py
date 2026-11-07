@@ -15,7 +15,7 @@ from ai.connection import find_connection
 from ai.gateway import Gateway, Request
 from ai.pseudonym import Pseudonymizer
 from ai.usage import LOG_PATH, Usage, UsageLog
-from conftest import BRIEF_ID
+from sample_folder import BRIEF_ID
 
 VORLAGEN = pathlib.Path(__file__).resolve().parents[2] / "vorlagen"
 TODAY = datetime.date(2026, 11, 3)

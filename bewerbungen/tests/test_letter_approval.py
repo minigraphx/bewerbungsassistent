@@ -4,7 +4,7 @@ import json
 import apply
 import letter_approval
 import unterlagen
-from conftest import BRIEF_ID
+from sample_folder import BRIEF_ID
 from register import Register
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 from test_routes_ai import REVIEW, ki, use  # noqa: F401  (ki is a fixture)

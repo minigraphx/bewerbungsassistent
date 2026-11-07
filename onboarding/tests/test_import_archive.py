@@ -10,7 +10,7 @@ import yaml
 import import_bundle
 import import_documents
 import validation
-from conftest import base_bundle
+from form_cases import base_bundle
 
 TODAY = datetime.date(2026, 11, 3)
 BASICS = ["cv.yaml", "suchprofil.md", "anschreiben/stil.md", "anschreiben/bausteine.md"]

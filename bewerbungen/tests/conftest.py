@@ -12,6 +12,7 @@ import yaml
 import build
 from ai import consent
 from register import Register
+from sample_folder import BRIEF_ID
 from varianten import Varianten
 
 HERE = pathlib.Path(__file__).parent
@@ -32,7 +33,6 @@ def consent_given(request, monkeypatch):
 
 
 BEISPIEL = build.ROOT / "data"
-BRIEF_ID = "beispiel-ag-data-engineer"
 
 
 @pytest.fixture
