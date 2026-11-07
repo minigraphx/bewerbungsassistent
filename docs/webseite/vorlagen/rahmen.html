@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; font-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="description" content="Der Bewerbungsbegleiter sucht passende Stellen, schneidet Lebenslauf und Anschreiben auf jede Stelle zu und prüft die Unterlagen. Für Windows und macOS, die Daten bleiben auf dem Computer.">
+<title>{{titel}}</title>
+<link rel="stylesheet" href="stil.css">
+<link rel="icon" href="bilder/as-logo.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#inhalt">Zum Inhalt</a>
+<header class="site-head">
+  <div class="wrap site-head__row">
+    <a class="wordmark" href="./">Bewerbungsbegleiter</a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="./#ablauf">So läuft es</a>
+      <a href="./#fuer-wen">Für wen</a>
+      <a href="./#daten">Ihre Daten</a>
+      <a href="./#laden">Laden</a>
+      <a href="anleitung.html">Anleitung</a>
+    </nav>
+    <div class="lang">
+      <div class="lang__buttons" role="group" aria-label="Sprache">
+        <button class="lang__btn" type="button" aria-current="true" lang="de">DE</button>
+        <button class="lang__btn" type="button" disabled lang="en" title="Folgt, sobald die App Englisch kann">EN</button>
+        <button class="lang__btn" type="button" disabled lang="fr" title="Folgt, sobald die App Französisch kann">FR</button>
+      </div>
+      <p class="lang__reason">EN und FR folgen, sobald die App sie kann.</p>
+    </div>
+  </div>
+</header>
+
+<main id="inhalt">
+{{inhalt}}
+</main>
+
+<footer class="site-foot">
+  <div class="wrap site-foot__row">
+    <div class="author">
+      <img class="as-logo" src="bilder/as-logo.svg" width="56" height="56" alt="Logo AS">
+      <div>
+        <div class="author__name">Erstellt von Andreas Schmidt</div>
+        <div class="author__licence">Freie Software unter der GPLv3</div>
+      </div>
+    </div>
+    <nav class="foot-links" aria-label="Weitere Links">
+      <a href="{{datenschutz}}">Datenschutz</a>
+      <a href="{{quellcode}}">Quellcode</a>
+      <a href="{{quellcode}}/blob/main/LICENSE">Lizenz</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
