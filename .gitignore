@@ -8,3 +8,4 @@ dist/
 dist-installer/
 dist-mac/
 selbsttest.txt
+.claude/worktrees/

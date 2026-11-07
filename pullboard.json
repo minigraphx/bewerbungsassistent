@@ -1,0 +1,50 @@
+{
+  "gate": "scripts/gate.sh",
+  "spec": "SPEC.md",
+  "practice": "DOCTRINE.md",
+  "worktrees": "inside",
+  "verify": {
+    "policy": "any",
+    "family": "off"
+  },
+  "agents": {
+    "names": "suffix"
+  },
+  "lease": "2h",
+  "lanes": {
+    "review": {
+      "owns": [],
+      "starts": "any time: verifiers check submitted work and own no folders"
+    },
+    "app": {
+      "owns": [
+        ".github/",
+        "bewerbungen/",
+        "desktop/",
+        "docs/",
+        "erweiterung/",
+        "lebenslauf/",
+        "onboarding/",
+        "skills/",
+        "vermittlung/",
+        "vorlagen/",
+        "scripts/",
+        "README.md",
+        "CLAUDE.md",
+        "requirements.txt",
+        "requirements-dev.txt",
+        "LICENSE",
+        ".gitignore"
+      ]
+    }
+  },
+  "shared": [],
+  "commits": {
+    "requireIds": [
+      "feat"
+    ]
+  },
+  "checks": {
+    "provesNothing": "hold"
+  }
+}
