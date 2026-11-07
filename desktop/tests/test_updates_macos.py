@@ -185,6 +185,17 @@ def wait_until_gone(path: pathlib.Path, seconds=8.0):
     assert not path.exists(), "the swap did not finish"
 
 
+def wait_for_lines(path: pathlib.Path, count: int, seconds=8.0) -> list[str]:
+    """The script removes its folder before it reopens the old version, so that call can still be on its way."""
+    end = time.monotonic() + seconds
+    while time.monotonic() < end:
+        lines = path.read_text().splitlines() if path.exists() else []
+        if len(lines) >= count:
+            return lines
+        time.sleep(0.05)
+    return path.read_text().splitlines() if path.exists() else []
+
+
 def content(app: pathlib.Path) -> str:
     return (app / "Contents" / "MacOS" / "Bewerbungsbegleiter").read_text()
 
@@ -257,7 +268,7 @@ def test_swap_after_quit_goes_back_quietly_when_the_new_version_fails(tmp_path):
     wait_until_gone(staging)
 
     assert content(app) != "neu" and note.read_text().strip() == "9.2.0"
-    assert log.read_text().splitlines() == ["--args --nach-update", "--args --nach-update"]
+    assert wait_for_lines(log, 2) == ["--args --nach-update", "--args --nach-update"]
 
 
 @needs_shell
