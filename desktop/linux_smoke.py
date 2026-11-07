@@ -21,7 +21,8 @@ TIMEOUT_SECONDS = 60
 
 
 def environment(home: pathlib.Path) -> dict:
-    env = {key: value for key, value in os.environ.items() if not key.startswith("XDG_")}
+    # as on a fresh desktop: no XDG folders of the runner, no library path of the CI's Python
+    env = {key: value for key, value in os.environ.items() if not key.startswith("XDG_") and key != "LD_LIBRARY_PATH"}
     return {**env, "HOME": str(home), "BROWSER": "true",  # no browser in the CI: "opening" one does nothing
             "PYTHON_KEYRING_BACKEND": "keyring.backends.null.Keyring"}
 

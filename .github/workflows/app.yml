@@ -195,12 +195,14 @@ jobs:
           rm -rf dist-linux/AppDir
       - name: AppImage testen
         run: |
+          # setup-python setzt LD_LIBRARY_PATH auf seine Bibliotheken; ein frisches Ubuntu hat das nicht.
           IMAGE="dist-linux/Bewerbungsbegleiter-$VERSION-x86_64.AppImage"
           rm -f selbsttest.txt
-          "$IMAGE" --selbsttest
+          env -u LD_LIBRARY_PATH "$IMAGE" --selbsttest
           cat selbsttest.txt
           rm -f selbsttest.txt
-          "$IMAGE" --appimage-extract-and-run --selbsttest  # ohne FUSE, wie es die Anleitung als Ausweg nennt
+          env -u LD_LIBRARY_PATH "$IMAGE" --appimage-extract-and-run --selbsttest  # ohne FUSE, der Ausweg aus desktop/README.md
+          cat selbsttest.txt
           python desktop/linux_smoke.py "$IMAGE"
           (cd dist-linux && sha256sum "Bewerbungsbegleiter-$VERSION-x86_64.AppImage" > SHA256SUMS-Linux.txt)
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
