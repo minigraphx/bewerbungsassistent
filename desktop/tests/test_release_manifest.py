@@ -9,8 +9,9 @@ import signed_update
 import updates
 from signed_update import BASE, KEY
 
-EXE, ZIP = b"MZ" + b"x" * 500, b"PK" + b"z" * 500
+EXE, ZIP, IMAGE = b"MZ" + b"x" * 500, b"PK" + b"z" * 500, b"\x7fELF" + b"a" * 500
 EXE_NAME, ZIP_NAME = "Bewerbungsbegleiter-Setup-9.2.0.exe", "Bewerbungsbegleiter-9.2.0-macOS.zip"
+IMAGE_NAME = "Bewerbungsbegleiter-9.2.0-x86_64.AppImage"
 
 
 def sum_line(data, name, star=""):
@@ -23,6 +24,8 @@ def folder(tmp_path):
     (tmp_path / ZIP_NAME).write_bytes(ZIP)
     (tmp_path / "SHA256SUMS.txt").write_text(sum_line(EXE, EXE_NAME))
     (tmp_path / "SHA256SUMS-macOS.txt").write_text(sum_line(ZIP, ZIP_NAME))
+    (tmp_path / IMAGE_NAME).write_bytes(IMAGE)
+    (tmp_path / "SHA256SUMS-Linux.txt").write_text(sum_line(IMAGE, IMAGE_NAME))
     return tmp_path
 
 
@@ -31,8 +34,9 @@ def announced_by(payload):
     return signed_update.server(raw=raw, packages={})
 
 
-@pytest.mark.parametrize("platform, name, data", [("win32", EXE_NAME, EXE), ("darwin", ZIP_NAME, ZIP)])
-def test_the_app_finds_both_packages(folder, platform, name, data):
+@pytest.mark.parametrize("platform, name, data", [("win32", EXE_NAME, EXE), ("darwin", ZIP_NAME, ZIP), ("linux", IMAGE_NAME, IMAGE)],
+                         ids=["win32", "darwin", "linux"])
+def test_the_app_finds_every_package(folder, platform, name, data):
     payload = release_manifest.build_payload("v9.2.0", folder, "Neu: Updates")
 
     found = updates.latest(announced_by(payload), platform)
@@ -47,7 +51,7 @@ def test_binary_mode_marks_in_the_list_are_understood(folder):
     assert release_manifest.build_payload("v9.2.0", folder, "")
 
 
-@pytest.mark.parametrize("missing", [EXE_NAME, ZIP_NAME, "SHA256SUMS.txt", "SHA256SUMS-macOS.txt"])
+@pytest.mark.parametrize("missing", [EXE_NAME, ZIP_NAME, IMAGE_NAME, "SHA256SUMS.txt", "SHA256SUMS-macOS.txt", "SHA256SUMS-Linux.txt"])
 def test_a_release_with_a_missing_file_is_not_announced(folder, missing):
     (folder / missing).unlink()
 

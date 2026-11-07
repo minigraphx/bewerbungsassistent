@@ -166,6 +166,40 @@ def test_the_package_address_is_built_from_our_address_only():
     assert found.installer_url == f"{BASE}/9.2.0/{INSTALLER_NAME}"
 
 
+IMAGE = b"\x7fELF" + b"a" * 5000
+IMAGE_URL = f"{BASE}/9.2.0/Bewerbungsbegleiter-9.2.0-x86_64.AppImage"
+
+
+def test_on_linux_the_new_version_is_loaded_from_our_server():
+    """Linux does not update itself: the person loads the AppImage, from the server in Switzerland, not GitHub."""
+    found = updates.latest(server(packages={"win32": INSTALLER, "linux": IMAGE}), "linux")
+
+    assert found.page_url == IMAGE_URL and found.installer_url == IMAGE_URL
+    assert "github" not in found.page_url
+
+
+def test_other_systems_keep_their_page():
+    found = updates.latest(server(packages={"win32": INSTALLER, "linux": IMAGE}), "win32")
+
+    assert found.page_url == updates.RELEASES_PAGE
+
+
+@pytest.mark.parametrize("packages", [{"win32": INSTALLER}, {}], ids=["no linux entry", "old announcement"])
+def test_linux_without_its_package_still_hears_of_the_version(packages):
+    found = updates.latest(server(packages=packages), "linux")
+
+    assert found.version == "9.2.0" and found.installer_url is None
+    assert found.page_url == updates.RELEASES_PAGE
+
+
+def test_a_wrong_linux_entry_is_not_linked():
+    payload = json.dumps({"version": "9.2.0", "packages": {"linux": {"file": "andere.AppImage", "sha256": "a" * 64}}}).encode()
+
+    found = updates.latest(server(raw=envelope(payload)), "linux")
+
+    assert found.page_url == updates.RELEASES_PAGE and found.installer_url is None
+
+
 def test_the_shipped_public_key_is_a_real_key():
     assert Ed25519PublicKey.from_public_bytes(base64.b64decode(signed_update.SHIPPED_KEY, validate=True))
 
@@ -426,6 +460,18 @@ def test_version_route_says_the_update_comes_with_quitting():
     get, _, _, _ = routes()
 
     assert body(get["/api/app/version"](None, {}, None))["update"]["beimBeenden"] is True
+
+
+def test_on_linux_the_version_route_links_the_appimage():
+    controls = routes_app.Controls(stop=lambda: None, automatic=False, platform="linux",
+                                   fetch=server(packages={"linux": IMAGE}))
+    get, post = routes_app.make_routes(controls)
+
+    update = body(get["/api/app/version"](None, {}, None))["update"]
+
+    assert update["seite"] == IMAGE_URL and update["automatisch"] is False
+    with pytest.raises(ValueError, match="AppImage"):
+        post["/api/app/aktualisieren"](None, {}, {})
 
 
 def test_version_route_promises_nothing_without_automatic_update():

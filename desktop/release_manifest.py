@@ -15,6 +15,7 @@ TAG = re.compile(r"^v(\d+\.\d+\.\d+)$")
 PACKAGES = {
     "win32": ("Bewerbungsbegleiter-Setup-{}.exe", "SHA256SUMS.txt"),
     "darwin": ("Bewerbungsbegleiter-{}-macOS.zip", "SHA256SUMS-macOS.txt"),
+    "linux": ("Bewerbungsbegleiter-{}-x86_64.AppImage", "SHA256SUMS-Linux.txt"),
 }
 MAX_NOTES = 2000
 SIGNATURE_BYTES = 64

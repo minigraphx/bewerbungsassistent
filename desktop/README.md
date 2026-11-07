@@ -37,7 +37,7 @@ Bewusst offen: Die Ankündigung hat kein Ablaufdatum. Wer den Server kontrollier
 
 **Neue Version ausrollen:**
 1. `desktop/version.py` erhöhen und committen.
-2. Tag `v<Version>` pushen. Die CI baut, installiert und testet die App und legt einen **Release-Entwurf** mit Installer, macOS-Zip, AppImage und je einer Prüfsummen-Datei an. Das AppImage installiert sich nicht selbst; unter Linux führt das Update auf das Release.
+2. Tag `v<Version>` pushen. Die CI baut, installiert und testet die App und legt einen **Release-Entwurf** mit Installer, macOS-Zip, AppImage und je einer Prüfsummen-Datei an. Das AppImage installiert sich nicht selbst; unter Linux verlinkt die App das AppImage der neuen Version auf dem Update-Server (`latest.json` nennt es mit Prüfsumme, #102).
 3. Den Entwurf prüfen (Installer auf einem Testrechner) und **veröffentlichen**. Erst dann sehen die Apps das Update: `update-ausrollen.yml` lädt die Pakete und zuletzt die signierte `latest.json` auf den Server und vergleicht, was er ausliefert. Vorabversionen rollt der Workflow nicht aus.
 4. Bricht der Workflow ab, sehen die Apps weiter die alte Ankündigung. Dann den Workflow von Hand mit dem Tag nochmals starten.
 
