@@ -22,8 +22,7 @@ window.PortalWahl = (() => {
     return el("li", {}, el("label", { class: "auswahl" }, kasten, ` ${portal.name}`, el("span", { class: "leise" }, ` (${portal.hinweis})`)));
   }
 
-  function zeige(wahl, lehrstelle, neuLaden) {
-    $("portale-titel").textContent = lehrstelle ? "Wo suchst du?" : "Wo suchen Sie?";
+  function zeige(wahl, neuLaden) {
     const kaesten = new Map(wahl.map(portal => [portal.name, el("input", { type: "checkbox" })]));
     $("portale-liste").replaceChildren(...wahl.map(portal => zeile(portal, kaesten, neuLaden)));
   }

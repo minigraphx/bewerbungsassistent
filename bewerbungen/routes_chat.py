@@ -6,7 +6,7 @@ from ai import chat
 from ai.usage import UsageLog
 from server import json_antwort
 
-USED_UP = "Für heute sind Ihre Fragen aufgebraucht. Morgen geht es weiter."
+USED_UP = "Für heute sind die Fragen aufgebraucht. Morgen geht es weiter."
 ADULTS_ONLY = "Der Chat steht nur ab 18 Jahren zur Verfügung und ist bei der Lehrstellensuche ausgeschaltet."
 
 

@@ -8,7 +8,7 @@ window.Einwilligung = (() => {
   }
 
   function wartenderCode(stand) {
-    return stand.code_wartet ? el("p", {}, "Der Einladungscode aus Ihrem Link wird danach eingelöst.") : null;
+    return stand.code_wartet ? el("p", {}, "Der Einladungscode aus dem Link wird danach eingelöst.") : null;
   }
 
   /** Fills `ort` with the text to agree to; `fertig` gets the new AI status once it is given. */

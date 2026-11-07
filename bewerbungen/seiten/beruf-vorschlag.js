@@ -33,7 +33,22 @@ window.Suchbegriffe = (() => {
       liste: "Danach suchen Sie:",
       entfernt: name => `„${name}“ ist nicht mehr in Ihrer Suche.`,
     },
+    stelleDu: {
+      titel: "Welche Stellen passen zu dir?",
+      hilfe: "Du weisst noch nicht genau, wonach du suchen sollst, vielleicht nur „etwas Administratives“? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf deinen Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfe die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft dir persönlich weiter.",
+      interessen: "Was machst du gern? (Interessen)",
+      staerken: "Was kannst du gut? (Fähigkeiten)",
+      vermeiden: "Was möchtest du lieber nicht? (freiwillig)",
+      knopf: "Stellen vorschlagen",
+      fertig: n => `${n === 1 ? "1 Vorschlag" : `${n} Vorschläge`}. Nimm auf, was dich interessiert.`,
+      schon: "Steht schon in deiner Suche.",
+      neu: "In deiner Suche. Die nächste Suche sucht auch danach.",
+      pruefen: "Im Inserat",
+      liste: "Danach suchst du:",
+      entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
+    },
   };
+  const texteFuer = (art, satz) => (art === "lehrstelle" ? TEXTE.lehrstelle : satz === "stelle-du" ? TEXTE.stelleDu : TEXTE.stelle);
   let texte = TEXTE.stelle;
   let karten = [];
   let schonGeoeffnet = false;
@@ -123,8 +138,8 @@ window.Suchbegriffe = (() => {
   }
 
   /** Called with each load of the page's data. */
-  function zeige(art, begriffe, schluessel) {
-    texte = TEXTE[art] || TEXTE.stelle;
+  async function zeige(art, begriffe, schluessel) {
+    texte = texteFuer(art, await window.App.textsatz());
     $("vorschlag-titel").textContent = texte.titel;
     $("vorschlag-hilfe").textContent = texte.hilfe;
     $("vorschlag-label-interessen").textContent = texte.interessen;
@@ -141,5 +156,5 @@ window.Suchbegriffe = (() => {
   }
 
   $("vorschlag-holen").addEventListener("click", ask);
-  return { zeige };
+  return { zeige, texteFuer };
 })();

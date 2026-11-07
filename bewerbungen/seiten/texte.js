@@ -25,6 +25,72 @@
       du: "Hier siehst du, woraus die App deine Unterlagen baut, und kannst es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",
     },
 
+    // Questions and settings (design check, #23)
+    "fragen.hilfe": {
+      sie: "Fragen Sie hier zur Stellensuche und zu Ihrer Bewerbung. Die KI kennt Ihre Angaben, nicht Ihre Liste der Bewerbungen, und sie ändert nichts. Das Gespräch bleibt nur auf dieser Seite. Prüfen Sie wichtige Antworten, auch eine KI irrt sich.",
+      du: "Frag hier zur Stellensuche und zu deiner Bewerbung. Die KI kennt deine Angaben, nicht deine Liste der Bewerbungen, und sie ändert nichts. Das Gespräch bleibt nur auf dieser Seite. Prüfe wichtige Antworten, auch eine KI irrt sich.",
+      lehrstelle: "Frag hier zur Lehrstellensuche und zu deiner Bewerbung. Die KI kennt deine Angaben, nicht deine Liste der Bewerbungen, und sie ändert nichts. Das Gespräch bleibt nur auf dieser Seite. Prüfe wichtige Antworten, auch eine KI irrt sich.",
+    },
+    "fragen.label": { sie: "Ihre Frage", du: "Deine Frage" },
+    "fragen.sprecher": { sie: "Sie", du: "Du" },
+    "suche.wo": { sie: "Wo suchen Sie?", du: "Wo suchst du?" },
+    "einstellungen.einwilligung": {
+      sie: "Ohne Einwilligung gehen keine Texte an die KI, auch nicht mit einem eigenen Schlüssel. Suche, Unterlagen und Versand funktionieren trotzdem. Mit dem Claude-Abo läuft die KI über Ihr eigenes Konto bei Anthropic; dafür gilt der Hinweis weiter unten.",
+      du: "Ohne Einwilligung gehen keine Texte an die KI, auch nicht mit einem eigenen Schlüssel. Suche, Unterlagen und Versand funktionieren trotzdem. Mit dem Claude-Abo läuft die KI über dein eigenes Konto bei Anthropic; dafür gilt der Hinweis weiter unten.",
+    },
+    "einstellungen.eingewilligt": {
+      sie: "Sie haben eingewilligt. Sie können das jederzeit widerrufen; danach gehen keine Texte mehr an die KI, bis Sie wieder einwilligen.",
+      du: "Du hast eingewilligt. Du kannst das jederzeit widerrufen; danach gehen keine Texte mehr an die KI, bis du wieder einwilligst.",
+    },
+    "einstellungen.schluessel": {
+      sie: "Sie brauchen das nicht, die App läuft auch ohne. Mit einem eigenen Schlüssel von Anthropic gehen die KI-Aufrufe direkt an die Claude API statt über die Vermittlung. Namen und andere persönliche Angaben werden auch dann vor dem Senden ersetzt.",
+      du: "Du brauchst das nicht, die App läuft auch ohne. Mit einem eigenen Schlüssel von Anthropic gehen die KI-Aufrufe direkt an die Claude API statt über die Vermittlung. Namen und andere persönliche Angaben werden auch dann vor dem Senden ersetzt.",
+    },
+    "einstellungen.seiten-adressen": {
+      sie: "Die Suche läuft dann auch auf diesen Seiten, sobald Sie sie starten. Tragen Sie die Adresse so ein, wie sie im Browser steht, eine pro Zeile,",
+      du: "Die Suche läuft dann auch auf diesen Seiten, sobald du sie startest. Trag die Adresse so ein, wie sie im Browser steht, eine pro Zeile,",
+    },
+    "einstellungen.seiten-suche": {
+      sie: "Hat die Seite ein Suchfeld, sucht die App dort mit den Begriffen aus Ihrem Suchprofil. Sonst liest sie die Stellen, die auf der Seite stehen, zum Beispiel die offenen Stellen einer Firma. Die KI liest die Stellen aus dem Text der Seite.",
+      du: "Hat die Seite ein Suchfeld, sucht die App dort mit den Begriffen aus deinem Suchprofil. Sonst liest sie die Stellen, die auf der Seite stehen, zum Beispiel die offenen Stellen einer Firma. Die KI liest die Stellen aus dem Text der Seite.",
+    },
+    "einstellungen.seiten-grenzen": {
+      sie: "Pro Seite höchstens zehn Suchen und dreissig Inserate pro Lauf, mit Pausen dazwischen. Nur Links auf dieselbe Seite werden übernommen. Anmeldungen und CAPTCHAs bleiben bei Ihnen: Verlangt eine Seite das, überspringt die Suche sie. LinkedIn verbietet Automatisierung und kann Konten einschränken oder sperren.",
+      du: "Pro Seite höchstens zehn Suchen und dreissig Inserate pro Lauf, mit Pausen dazwischen. Nur Links auf dieselbe Seite werden übernommen. Anmeldungen und CAPTCHAs bleiben bei dir: Verlangt eine Seite das, überspringt die Suche sie. LinkedIn verbietet Automatisierung und kann Konten einschränken oder sperren.",
+    },
+    "einstellungen.vor-schluessel": {
+      sie: "Bevor Sie einen Schlüssel eintragen:",
+      du: "Bevor du einen Schlüssel einträgst:",
+    },
+    "einstellungen.kosten-selbst": {
+      sie: "Sie tragen die Kosten selbst. Anthropic rechnet direkt mit Ihnen ab.",
+      du: "Du trägst die Kosten selbst. Anthropic rechnet direkt mit dir ab.",
+    },
+    "einstellungen.linkedin": {
+      sie: "LinkedIn verbietet Automatisierung und kann Konten einschränken oder sperren. Das Risiko liegt bei Ihnen, wenn Sie LinkedIn als weitere Seite durchsuchen lassen.",
+      du: "LinkedIn verbietet Automatisierung und kann Konten einschränken oder sperren. Das Risiko liegt bei dir, wenn du LinkedIn als weitere Seite durchsuchen lässt.",
+    },
+    "einstellungen.vertrag": {
+      sie: "Für die Verarbeitung gilt Ihr eigener Vertrag mit Anthropic, auch in den USA.",
+      du: "Für die Verarbeitung gilt dein eigener Vertrag mit Anthropic, auch in den USA.",
+    },
+    "einstellungen.abo": {
+      sie: "Haben Sie ein Abo bei Anthropic, dann kann Claude selbst suchen, bewerten und Anschreiben entwerfen und das Ergebnis hier in die App schreiben. Die KI-Knöpfe der App laufen damit nicht, denn Anthropic erlaubt nicht, ein Abo in anderen Apps zu nutzen.",
+      du: "Hast du ein Abo bei Anthropic, dann kann Claude selbst suchen, bewerten und Anschreiben entwerfen und das Ergebnis hier in die App schreiben. Die KI-Knöpfe der App laufen damit nicht, denn Anthropic erlaubt nicht, ein Abo in anderen Apps zu nutzen.",
+    },
+    "einstellungen.abo-klartext": {
+      sie: "Claude liest Ihre Angaben im Klartext: Lebenslauf, Suchprofil, Bausteine und Bewerbungen. Die Pseudonymisierung der App gilt auf diesem Weg nicht.",
+      du: "Claude liest deine Angaben im Klartext: Lebenslauf, Suchprofil, Bausteine und Bewerbungen. Die Pseudonymisierung der App gilt auf diesem Weg nicht.",
+    },
+    "einstellungen.abo-vertrag": {
+      sie: "Für die Verarbeitung gilt Ihr eigener Vertrag mit Anthropic, auch in den USA. Ob Ihre Chats zum Training dienen, stellen Sie in Claude ein.",
+      du: "Für die Verarbeitung gilt dein eigener Vertrag mit Anthropic, auch in den USA. Ob deine Chats zum Training dienen, stellst du in Claude ein.",
+    },
+    "einstellungen.abo-versand": {
+      sie: "Abschicken, „Versand erfassen“ und alles zum RAV bleiben bei Ihnen. Dafür gibt es keinen Zugang.",
+      du: "Abschicken, „Versand erfassen“ und alles zum RAV bleiben bei dir. Dafür gibt es keinen Zugang.",
+    },
+
     // Search (step 5)
     "suche.wie": {
       sie: "Die Erweiterung sucht in Ihrem Browser und nur, wenn Sie die Suche starten. Die KI schätzt jeden neuen Treffer als Note von 1 bis 6 ein.",

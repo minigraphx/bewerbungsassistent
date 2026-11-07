@@ -334,7 +334,7 @@
       paket = daten.paket;
       grenze = daten.grenze;
       zeigeArt(daten.art, daten.angebote || []);
-      window.PortalWahl.zeige(daten.portale_wahl || [], lehrstelle, lade);
+      window.PortalWahl.zeige(daten.portale_wahl || [], lade);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
       zeigeListe();
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {});

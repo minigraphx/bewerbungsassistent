@@ -72,7 +72,7 @@ export function ravEntryBar(set, position, total, entry) {
   return {
     titel: `Eintrag ${position} von ${total}: ${entry.firma}, ${entry.stelle}${day}.`,
     text: pick(set, 'Prüfen Sie den Eintrag. Speichern und anmelden machen Sie selbst; damit geht er ans RAV.',
-      'Prüf den Eintrag. Speichern und anmelden machst du selbst; damit geht er ans RAV.'),
+      'Prüfe den Eintrag. Speichern und anmelden machst du selbst; damit geht er ans RAV.'),
   };
 }
 
