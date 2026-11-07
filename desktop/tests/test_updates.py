@@ -253,6 +253,49 @@ def test_version_route_tells_about_the_update():
     assert data["update"]["automatisch"] is True
 
 
+def test_a_new_update_asks_first():
+    get, _, _, _ = routes()
+
+    assert body(get["/api/app/version"](None, {}, None))["update"]["fragen"] is True
+
+
+def test_later_stops_asking_for_this_run():
+    get, post, stopped, installed = routes()
+
+    assert body(post["/api/app/spaeter"](None, {}, {}))["ok"] is True
+
+    assert body(get["/api/app/version"](None, {}, None))["update"]["fragen"] is False
+    assert installed == [] and not stopped.is_set()
+
+
+def test_the_next_start_asks_again():
+    _, post, _, _ = routes()
+    post["/api/app/spaeter"](None, {}, {})
+
+    get, _, _, _ = routes()  # a new start of the app builds its routes anew
+
+    assert body(get["/api/app/version"](None, {}, None))["update"]["fragen"] is True
+
+
+def test_later_for_one_version_asks_again_for_a_newer_one():
+    controls = routes_app.Controls(stop=lambda: None, platform="win32", fetch=release("9.2.0"))
+    get, post = routes_app.make_routes(controls)
+    post["/api/app/spaeter"](None, {}, {})
+
+    controls.fetch, controls._checked_at = release("9.3.0"), 0.0  # the next check finds a newer version
+
+    update = body(get["/api/app/version"](None, {}, None))["update"]
+    assert update["version"] == "9.3.0" and update["fragen"] is True
+
+
+def test_later_without_an_update_is_refused():
+    get, post, _, _ = routes(fetch=release(version=routes_app.VERSION))
+
+    assert body(get["/api/app/version"](None, {}, None))["update"] is None
+    with pytest.raises(ValueError):
+        post["/api/app/spaeter"](None, {}, {})
+
+
 def test_update_route_installs_and_quits():
     _, post, stopped, installed = routes()
 

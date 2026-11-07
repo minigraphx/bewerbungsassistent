@@ -124,6 +124,15 @@ def test_menu_shows_the_logo_under_about_the_app():
     assert re.search(r"gruppe\.append\([^;]*ueberDieApp\(info\.version\)", script)
 
 
+def test_a_new_version_is_asked_about_in_a_dialog_first():
+    script = (server_modul.SEITEN / "app.js").read_text(encoding="utf-8")
+    angaben = (server_modul.SEITEN / "angaben.html").read_text(encoding="utf-8")
+
+    assert re.search(r"if \(info\.update\.fragen\) updateDialog\(info\.update\);\s*else updateBanner\(info\.update\);", script)
+    assert 'senden("/api/app/spaeter", {})' in script and "dialog.showModal()" in script
+    assert ".dialog::backdrop" in angaben  # the page of the onboarding form brings its own styles
+
+
 def test_stylesheet_loads_fonts_only_from_the_app(server):
     css = anfrage(server, "GET", "/stil.css")[2].decode("utf-8")
 
