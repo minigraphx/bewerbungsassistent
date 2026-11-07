@@ -2,31 +2,31 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <title>Bewerbungsbegleiter: Zugriff erlauben</title>
+  <title>Bewerbungsbegleiter: Erlaubnis</title>
   <link rel="stylesheet" href="popup.css">
-  <style>body { width: auto; max-width: 560px; margin: 40px auto; padding: 0 16px; font-size: 15px; }</style>
 </head>
-<body>
-  <div id="fuer-formulare">
-  <h1>Formulare ausfüllen</h1>
-  <p>Bewerbungsformulare liegen auf beliebigen Seiten und oft in eingebetteten Rahmen. Damit die Erweiterung sie ausfüllen kann, braucht sie einmal den Zugriff auf alle Seiten.</p>
-  <ul>
-    <li>Genutzt wird der Zugriff nur in Tabs, die in der App mit „Bewerben“ geöffnet wurden.</li>
-    <li>Abschicken, Einwilligungen und Anmeldungen bleiben bei Ihnen.</li>
-    <li>Der Zugriff lässt sich in den Einstellungen der Erweiterung wieder entziehen.</li>
-  </ul>
-  </div>
-  <div id="fuer-suche" hidden>
-    <h1>Weitere Seiten durchsuchen</h1>
-    <p>Sie haben in den erweiterten Einstellungen der App weitere Seiten angegeben. Um sie zu lesen, braucht die Erweiterung einmalig Zugriff auf alle Seiten.</p>
-    <ul>
-      <li>Genutzt wird der Zugriff für die Suche nur auf den Seiten, die Sie angegeben haben, und nur, wenn Sie die Suche starten.</li>
-      <li>Anmeldungen und Prüfungen (CAPTCHA) bleiben bei Ihnen. Verlangt eine Seite das, überspringt die Suche sie.</li>
-      <li>Entfernen Sie den eigenen Schlüssel, gibt die Erweiterung den Zugriff wieder ab.</li>
-    </ul>
-  </div>
-  <button id="erlauben" type="button">Zugriff erlauben und weiter</button>
-  <p id="meldung" role="status"></p>
-  <script src="erlauben.js"></script>
+<body class="ask">
+  <main class="ask__page">
+    <p class="ask__brand">Bewerbungsbegleiter</p>
+    <h1 id="frage">Darf die Erweiterung Bewerbungsformulare ausfüllen?</h1>
+    <p id="text"></p>
+    <div class="ask__boxes">
+      <section class="ask__box" aria-labelledby="tut-h">
+        <h2 id="tut-h">Was sie dort tut</h2>
+        <ul id="tut"></ul>
+      </section>
+      <section class="ask__box" aria-labelledby="nie-h">
+        <h2 id="nie-h">Was sie nie tut</h2>
+        <ul id="nie"></ul>
+      </section>
+    </div>
+    <p id="fuss" class="klein"></p>
+    <div class="ask__actions">
+      <button id="erlauben" type="button">Erlaubnis geben</button>
+      <button id="ablehnen" type="button" class="link">Nicht erlauben</button>
+    </div>
+    <p id="meldung" role="status"></p>
+  </main>
+  <script src="erlauben.js" type="module"></script>
 </body>
 </html>

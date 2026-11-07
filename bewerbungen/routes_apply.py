@@ -9,7 +9,9 @@ import sys
 import apply
 import form_copy
 import ordner
+import preferences
 import pruefung
+import rav
 import routes_ai
 import unterlagen
 import versand
@@ -63,7 +65,9 @@ def start(k, parameter, body):
     if refused or (twice and body.get("bestaetigt") is not True):
         return json_antwort({"abgelehnt": refused, "doppelt": twice, "bereit": []})
     ready = [{"id": b["id"], "firma": b.get("firma"), "stelle": b.get("stelle"), "link": apply.form_link(b)} for b in chosen]
-    return json_antwort({"abgelehnt": [], "doppelt": twice, "bereit": ready})
+    # The bar in the tab speaks like the app (MIN-369) and names the next step after sending: Job-Room only with RAV.
+    return json_antwort({"abgelehnt": [], "doppelt": twice, "bereit": ready,
+                         "textsatz": preferences.load(k.daten).text_set, "rav": rav.applies(k.daten)})
 
 
 def values(k, parameter, body):

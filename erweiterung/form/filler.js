@@ -6,7 +6,9 @@
   if (globalThis.bewerbungsbegleiterFiller) return;
   const logic = globalThis.bewerbungsbegleiterForm;
   const isTop = window === window.top;
-  const COLORS = { filled: '#2e7d32', open: '#ef6c00', consent: '#c62828', draft: '#1565c0', aiFile: '#1565c0' };
+  // Colour and line differ (design MIN-369), so the marks work without colours too; the legend is in bar.js.
+  const LINES = { filled: '2px solid #2e7d32', open: '2px dashed #ef6c00', consent: '3px double #c62828', draft: '2px dotted #1565c0',
+                  aiFile: '2px dotted #1565c0' };
   const FIELD_SELECTOR = 'input, select, textarea';
   const SKIPPED_TYPES = new Set(['hidden', 'submit', 'button', 'reset', 'image', 'search', 'range', 'color']);
   const MUTATION_WAIT_MS = 600;
@@ -129,8 +131,8 @@
   function mark(el, status) {
     handled.set(el, status);
     const target = seen(el) ? el : standIn(el);
-    if (!target || !COLORS[status]) return;
-    target.style.setProperty('outline', `2px solid ${COLORS[status]}`, 'important');
+    if (!target || !LINES[status]) return;
+    target.style.setProperty('outline', LINES[status], 'important');
     target.style.setProperty('outline-offset', '1px', 'important');
     target.setAttribute(MARK, status);
   }

@@ -41,6 +41,13 @@ def test_plan_comes_from_the_profile(search):
     assert json.loads(content)["plan"]["kantone"] == ["BE", "SO"]
 
 
+def test_plan_says_the_form_of_address_of_the_setup(search):
+    assert json.loads(get(search, "/api/suche/plan")[2])["plan"]["anrede"] == "sie"
+    assert post(search, "/api/einrichtung/wahl", {"gesucht": "stelle", "anrede": "du", "rav": True})[0] == 200
+
+    assert json.loads(get(search, "/api/suche/plan")[2])["plan"]["anrede"] == "du"
+
+
 def test_plan_without_profile_is_a_clear_error(server):  # noqa: F811
     status, _, content = get(server, "/api/suche/plan")
     assert status == 400

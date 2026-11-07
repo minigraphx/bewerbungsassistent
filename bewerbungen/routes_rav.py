@@ -2,6 +2,7 @@
 
 Only the person saves in Job-Room; `eingetragen` records it afterwards. Nothing here goes through the AI.
 """
+import preferences
 import rav
 from server import json_antwort, pflicht
 
@@ -38,8 +39,9 @@ def start(k, parameter, body):
     register = k.register()
     chosen = [register.hole(i) for i in _chosen_ids(body)]
     refused = [{"id": entry["id"], "firma": entry.get("firma"), "grund": rav.blocker(entry)} for entry in chosen if rav.blocker(entry)]
-    ready = [{"id": entry["id"], "firma": entry.get("firma"), "stelle": entry.get("stelle")} for entry in chosen if not rav.blocker(entry)]
-    return json_antwort({"abgelehnt": refused, "bereit": ready})
+    ready = [{"id": entry["id"], "firma": entry.get("firma"), "stelle": entry.get("stelle"), "beworben_am": entry.get("beworben_am")}
+             for entry in chosen if not rav.blocker(entry)]
+    return json_antwort({"abgelehnt": refused, "bereit": ready, "textsatz": preferences.load(k.daten).text_set})
 
 
 def values(k, parameter, body):

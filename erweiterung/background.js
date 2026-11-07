@@ -5,9 +5,12 @@ import { AppConnection, explain } from './lib/app.js';
 import { runSearch } from './lib/search.js';
 import { followKey, readOpenPage } from './lib/sites.js';
 import { adKey } from './lib/page-ad.js';
+import { textSet } from './lib/popup-view.js';
+import { watchingBar } from './lib/bar-text.js';
 import { ALLOWED, BAR_ACTIONS, FORM_ACTIONS, RAV_ACTIONS, WATCH_ACTION, isRavSender, senderKind } from './lib/senders.js';
 import { ALL_PAGES, ApplyRun } from './lib/apply.js';
 import { RavRun, isRavPage } from './lib/rav.js';
+import { showHits } from './lib/app-tab.js';
 import { reloadForAppVersion, siteAccessControl } from './lib/reload.js';
 
 const LOAD_TIMEOUT_MS = 30000;
@@ -18,7 +21,6 @@ let running = false;
 let searchCancelled = false;
 let versionChecked = false;
 let watchedTab = null; // with „Zuschauen“ (MIN-370): the visible tab of the search
-const WATCHING_TEXT = (portal) => `Der Browser wird gerade vom Bewerbungsbegleiter gesteuert: Suche auf ${portal}. Bitte warten und im Tab nichts anklicken; er schliesst sich von selbst. Wird er geschlossen, endet die Suche.`;
 
 // Pages of the app that were already open when the extension was loaded get the bridge now, so the setup page
 // shows „bereit“ without a reload. app-bridge.js itself checks that the page belongs to the app.
@@ -74,7 +76,8 @@ const browserTabs = {
   async showWatching(tabId, portal) {
     try {
       await chrome.scripting.executeScript({ target: { tabId }, files: ['form/bar.js'] });
-      await chrome.tabs.sendMessage(tabId, { art: 'formular-balken', balken: { text: WATCHING_TEXT(portal), knoepfe: ['suche_abbrechen'] } }, { frameId: 0 });
+      const { textsatz } = await chrome.storage.local.get('textsatz');
+      await chrome.tabs.sendMessage(tabId, { art: 'formular-balken', balken: { ...watchingBar(textsatz, portal), knoepfe: ['suche_abbrechen'] } }, { frameId: 0 });
     } catch {
       // the page is just changing; the next page shows it again
     }
@@ -180,6 +183,12 @@ async function startSearch() {
   return { gestartet: true };
 }
 
+/** The popup's „Suche abbrechen“: the run stops after its current step, like the button in a watched tab. */
+async function stopSearch() {
+  if (running) searchCancelled = true;
+  return { abgebrochen: running };
+}
+
 async function status() {
   const app = new AppConnection();
   try {
@@ -187,6 +196,8 @@ async function status() {
     // Only a running app is asked for the plan: opening the popup should not start it.
     const plan = hello.app ? await app.request('GET', '/api/suche/plan').then((answer) => answer.plan, () => null) : null;
     await followKey(plan, siteAccess);
+    // The page that asks for access has no plan of its own: it speaks like the app from the last known plan.
+    if (plan) await chrome.storage.local.set({ textsatz: textSet(plan) });
     // Staying on the old version is no reason to report the connection as lost.
     await followAppVersion(hello).catch(() => false);
     return { verbunden: true, version: hello.version, app: hello.app, plan };
@@ -212,7 +223,7 @@ async function openApp() {
     await app.request('GET', '/api/suche/plan').catch(() => null);
     const hello = await app.hello();
     if (!hello.app) throw new Error('Die App läuft nicht.');
-    await chrome.tabs.create({ url: `${hello.app}treffer` });
+    await showHits(hello.app, chrome);
     return { ok: true };
   } finally {
     app.close();
@@ -305,8 +316,8 @@ const formTabs = {
   async bar(tabId, balken) {
     await chrome.tabs.sendMessage(tabId, { art: 'formular-balken', balken }, { frameId: 0 });
   },
-  async end(tabId, text) {
-    await chrome.tabs.sendMessage(tabId, { art: 'formular-ende', text }).catch(() => {});
+  async end(tabId, balken) {
+    await chrome.tabs.sendMessage(tabId, { art: 'formular-ende', balken }).catch(() => {});
   },
   async permissionPage() {
     await chrome.tabs.create({ url: chrome.runtime.getURL('erlauben.html') });
@@ -426,6 +437,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message && (FORM_ACTIONS.has(message.art) || BAR_ACTIONS.has(message.art))) return fromForm(message, sender, reply);
   const actions = {
     'suche-starten': startSearch,
+    'suche-stoppen': stopSearch,
     status,
     'app-oeffnen': openApp,
     'seite-pruefen': (m) => pageAd(m, '/api/seite/pruefen', 'pruefung'),
