@@ -57,6 +57,7 @@ SEITEN = {
     "/einwilligung.js": "einwilligung.js",
     "/einrichtung": "einrichtung.html",
     "/einrichtung.js": "einrichtung.js",
+    "/einrichtung-logik.js": "einrichtung-logik.js",
     "/texte.js": "texte.js",
     "/treffer": "treffer.html",
     "/treffer.js": "treffer.js",

@@ -10,6 +10,8 @@
   const toPage = (message) => window.postMessage({ quelle: 'bewerbungsbegleiter-erweiterung', version, ...message }, location.origin);
 
   document.documentElement.dataset.bewerbungsbegleiterErweiterung = version;
+  // The stores add update_url. Only a hand-loaded extension can be told to reload when the app brings another version.
+  if (!chrome.runtime.getManifest().update_url) document.documentElement.dataset.bewerbungsbegleiterEntpackt = 'true';
   toPage({ art: 'da' });
 
   const port = chrome.runtime.connect({ name: 'app-seite' });
