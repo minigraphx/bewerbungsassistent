@@ -115,6 +115,7 @@ LINUX_COMMANDS = {  # Chromium counts for Chrome: same extensions page, same add
 
 
 STORE_PAGES = {
+    "chrome": "https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo",
     "edge": "https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp",
 }
 
@@ -127,9 +128,9 @@ def open_extensions_page(browser: str, platform: str, run: Run = subprocess.run,
 
 
 def open_store_page(browser: str, platform: str, run: Run = subprocess.run, which: Which = shutil.which) -> None:
-    """Open the store entry in that browser: a store only installs into its own browser (#75)."""
+    """Open the store entry in that browser: a store only installs into its own browser (#75, #87)."""
     if browser not in STORE_PAGES:
-        raise ValueError("Für diesen Browser gibt es noch keinen Store-Eintrag.")
+        raise ValueError("Unbekannter Browser.")
     _open_in_browser(browser, STORE_PAGES[browser], platform, run, which)
 
 
