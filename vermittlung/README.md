@@ -69,7 +69,7 @@ python admin.py due                        # Personen, deren Daten zu löschen s
 python admin.py forget T01 [--yes]         # gesperrte Person löschen; ohne --yes nur anzeigen
 ```
 
-Kostenprotokolle löschen: nach der Auswertung, spätestens 30 Tage nach der Sperrung (so steht es in der Datenschutz-Erklärung). `forget` entfernt Person, Zugänge, Einladungen und Kostenprotokolle und lehnt ab, solange ein Zugang aktiv ist, weil das Monatsbudget aus den Protokollen berechnet wird. Gelöscht wird nichts von selbst: `due` zeigt, wer fällig ist.
+Kostenprotokolle löschen: nach der Auswertung, spätestens 30 Tage nach der Sperrung (so steht es in der Datenschutzerklärung). `forget` entfernt Person, Zugänge, Einladungen und Kostenprotokolle und lehnt ab, solange ein Zugang aktiv ist, weil das Monatsbudget aus den Protokollen berechnet wird. Gelöscht wird nichts von selbst: `due` zeigt, wer fällig ist.
 
 `--months` zählt Kalendermonate: vom 31. Januar einen Monat weiter ist der 28. Februar.
 

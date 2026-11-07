@@ -4,7 +4,7 @@ window.Einwilligung = (() => {
   const { senden, el } = window.App;
 
   function link(stand) {
-    return stand.link ? el("p", {}, el("a", { href: stand.link, target: "_blank", rel: "noopener" }, "Datenschutz-Erklärung lesen")) : null;
+    return stand.link ? el("p", {}, el("a", { href: stand.link, target: "_blank", rel: "noopener" }, "Datenschutzerklärung lesen")) : null;
   }
 
   function wartenderCode(stand) {

@@ -191,3 +191,9 @@ def test_both_browser_extensions_link_to_their_store(site):
     assert 'href="https://chromewebstore.google.com/detail/nopiegcdnjpkekgfakgglegkeifpmopo"' in index
     chrome = index.split("Browser-Erweiterung für Chrome</div>")[1].split("download__title")[0]
     assert "Verfügbar" in chrome and "disabled" not in chrome
+
+
+def test_the_site_writes_datenschutzerklaerung_as_one_word(site):
+    for name in ("index.html", "anleitung.html"):
+        assert "Datenschutz-Erklärung" not in read(site, name)
+    assert "Datenschutzerklärung" in read(site, "anleitung.html")

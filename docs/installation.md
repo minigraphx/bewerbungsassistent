@@ -65,7 +65,7 @@ Haben Sie schon eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus
 
 ![Schritt KI einrichten mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
 
-Lesen Sie zuerst die Datenschutz-Erklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Bei der Lehrstellensuche richtet ein Elternteil oder die gesetzliche Vertretung die App ein und bestätigt das hier. Widerrufen können Sie jederzeit unter **Erweiterte Einstellungen**.
+Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Bei der Lehrstellensuche richtet ein Elternteil oder die gesetzliche Vertretung die App ein und bestätigt das hier. Widerrufen können Sie jederzeit unter **Erweiterte Einstellungen**.
 
 Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlösen**. Haben Sie stattdessen einen Einladungslink erhalten, genügt ein Klick darauf; der Code wird nach der Einwilligung eingelöst. Ohne Code geht es mit **Ohne KI weiter**. Suche, Unterlagen und Versand funktionieren dann trotzdem.
 
