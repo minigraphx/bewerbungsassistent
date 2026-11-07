@@ -29,6 +29,7 @@ run onboarding onboarding "$python" -m pytest -q &
 run lebenslauf lebenslauf "$python" -m pytest -q &
 run vermittlung vermittlung "$python" -m pytest -q &
 run bewerbungen bewerbungen "$python" -m pytest -q &
+run webseite docs/webseite "$python" -m pytest -q &
 run onboarding-js onboarding sh -c 'node --test tests/*.test.cjs' &
 run bewerbungen-js bewerbungen sh -c 'node --test tests/*.test.cjs' &
 run erweiterung . sh -c 'node --test erweiterung/tests/*.test.mjs' &
