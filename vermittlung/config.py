@@ -3,7 +3,8 @@ import dataclasses
 import os
 
 DEFAULTS = {"VERMITTLUNG_DB": "/data/vermittlung.sqlite", "VERMITTLUNG_HOST": "0.0.0.0", "VERMITTLUNG_PORT": "8080",
-            "VERMITTLUNG_ANFRAGEN_PRO_MINUTE": "20", "VERMITTLUNG_MAX_TOKENS": "16000",
+            "VERMITTLUNG_ANFRAGEN_PRO_MINUTE": "20", "VERMITTLUNG_GLEICHZEITIG": "5",
+            "VERMITTLUNG_MAX_TOKENS": "16000",
             "VERMITTLUNG_HINTER_PROXY": "1"}
 
 
@@ -17,6 +18,7 @@ class Config:
     host: str
     port: int
     calls_per_minute: int
+    calls_at_once: int
     max_output_tokens: int
     behind_proxy: bool
     api_key: str = dataclasses.field(repr=False)
@@ -42,6 +44,7 @@ def load(environ: dict | None = None, need_key: bool = True) -> Config:
                   host=env.get("VERMITTLUNG_HOST") or DEFAULTS["VERMITTLUNG_HOST"],
                   port=_number(env, "VERMITTLUNG_PORT"),
                   calls_per_minute=_number(env, "VERMITTLUNG_ANFRAGEN_PRO_MINUTE"),
+                  calls_at_once=_number(env, "VERMITTLUNG_GLEICHZEITIG"),
                   max_output_tokens=_number(env, "VERMITTLUNG_MAX_TOKENS"),
                   behind_proxy=(env.get("VERMITTLUNG_HINTER_PROXY") or DEFAULTS["VERMITTLUNG_HINTER_PROXY"]) == "1",
                   api_key=key)

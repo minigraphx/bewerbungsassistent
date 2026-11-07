@@ -12,7 +12,7 @@ import pytest
 
 import admin
 import config
-from limits import RateLimiter
+from limits import ParallelLimiter, RateLimiter
 from policy import Policy
 from pricing import PRICES_USD
 from service import Mediation, Server
@@ -39,10 +39,15 @@ class FakeAnthropic:
         self.requests = []
         self.status = 200
         self.message = "busy"
+        self.entered = threading.Event()
+        self.hold = None  # an Event: the answer waits until it is set
 
     def __call__(self, request):
         payload = json.loads(request.content)
         self.requests.append(payload)
+        self.entered.set()
+        if self.hold:
+            self.hold.wait(10)
         if self.status != 200:
             kind = "invalid_request_error" if self.status == 400 else "overloaded_error"
             return httpx2.Response(self.status, json={"type": "error", "error": {"type": kind, "message": self.message}})
@@ -207,6 +212,10 @@ def test_used_budget_answers_402(setup):
     ({"max_tokens": 4001}, "max_tokens"),
     ({"tools": [{"type": "web_search_20260209", "name": "web_search"}]}, "fields not allowed"),
     ({"messages": [{"role": "user", "content": [{"type": "image", "source": {}}]}]}, "only text"),
+    ({"model": ["claude-sonnet-5-5"]}, "model not allowed"),
+    ({"messages": [{"role": ["user"], "content": "x"}]}, "role and content"),
+    ({"messages": [{"role": "user", "content": [
+        {"type": "text", "text": "x", "cache_control": {"type": "ephemeral", "ttl": "1h"}}]}]}, "cache_control"),
 ])
 def test_policy_blocks_other_uses(setup, extra, message):
     access = access_for(setup)
@@ -226,6 +235,43 @@ def test_rate_limit_per_person(setup):
     with pytest.raises(anthropic.RateLimitError) as error:
         ask(client)
     assert int(error.value.response.headers["retry-after"]) > 0
+
+
+def test_parallel_requests_of_a_person_are_limited(setup):
+    setup["server"].mediation.parallel = ParallelLimiter(1)
+    setup["fake"].hold = threading.Event()
+    client = app_client(setup, access_for(setup))
+    running = threading.Thread(target=ask, args=(client,))
+    running.start()
+    assert setup["fake"].entered.wait(5)
+
+    with pytest.raises(anthropic.RateLimitError) as error:
+        ask(client)
+
+    assert int(error.value.response.headers["retry-after"]) > 0
+    setup["fake"].hold.set()
+    running.join(5)
+    assert ask(client).content[0].text == "Hallo"
+    assert len(setup["fake"].requests) == 2
+
+
+def test_a_refused_request_gives_its_parallel_slot_back(setup):
+    setup["server"].mediation.parallel = ParallelLimiter(1)
+    access = access_for(setup)
+    body = {"model": "claude-other", "max_tokens": 100, "messages": [{"role": "user", "content": "x"}]}
+
+    statuses = [raw(setup, "POST", "/v1/messages", body, {"x-api-key": access}).status_code for _ in range(2)]
+
+    assert statuses == [400, 400]
+
+
+def test_parallel_limit_counts_each_person_alone():
+    limiter = ParallelLimiter(1)
+    with limiter.slot("T01") as first:
+        with limiter.slot("T01") as second, limiter.slot("T02") as other:
+            assert (first, second, other) == (True, False, True)
+    with limiter.slot("T01") as again:
+        assert again
 
 
 def test_upstream_errors_pass_through_without_cost(setup):
@@ -287,6 +333,37 @@ def test_admin_commands(tmp_path):
         admin.main(["--db", db, "budget", "T99", "5"], now)
 
 
+def test_revoking_a_person_voids_open_invitations(tmp_path):
+    db = str(tmp_path / "a.sqlite")
+    now = lambda: NOW  # noqa: E731
+    open_code = _invited(db, "T04")
+
+    assert "1 offene Einladung" in admin.main(["--db", db, "revoke", "T04"], now)
+
+    with pytest.raises(StoreError):
+        Store(db).redeem(open_code, "PC", NOW)
+    fresh = Store(db).create_invitation("T04", NOW)
+    assert Store(db).redeem(fresh, "PC", NOW).startswith("bwa_")
+
+
+def test_revoking_one_access_keeps_open_invitations(tmp_path):
+    db = str(tmp_path / "a.sqlite")
+    now = lambda: NOW  # noqa: E731
+    Store(db).redeem(_invited(db, "T05"), "PC", NOW)
+    open_code = Store(db).create_invitation("T05", NOW)
+
+    admin.main(["--db", db, "revoke", "T05", "--access", "1"], now)
+
+    assert Store(db).redeem(open_code, "Laptop", NOW).startswith("bwa_")
+
+
+def test_the_device_name_cannot_carry_control_characters(tmp_path):
+    db = str(tmp_path / "a.sqlite")
+    Store(db).redeem(_invited(db, "T06"), "PC\x1b[31m\nGESPERRT", NOW)
+
+    assert Store(db).accesses("T06")[0]["device"] == "PC[31mGESPERRT"
+
+
 def test_config_needs_the_key():
     with pytest.raises(config.ConfigError, match="ANTHROPIC_API_KEY"):
         config.load({})
@@ -301,6 +378,16 @@ def test_refusals_leave_a_reason_for_the_operator_without_contents(setup, caplog
     assert raw(setup, "POST", "/v1/messages", body, {"x-api-key": access}).status_code == 400
 
     assert "model not allowed" in caplog.text and SECRET_TEXT not in caplog.text
+
+
+def test_a_refusal_cannot_write_extra_lines_into_the_log(setup, caplog):
+    caplog.set_level("INFO")
+    access = access_for(setup)
+    body = {"model": MODEL, "max_tokens": 100, "messages": [{"role": "user", "content": "x"}], "a\nFORGED": 1}
+
+    assert raw(setup, "POST", "/v1/messages", body, {"x-api-key": access}).status_code == 400
+
+    assert "fields not allowed" in caplog.text and "\nFORGED" not in caplog.text
 
 
 def test_upstream_errors_are_logged_by_type_and_not_by_message(setup, caplog):

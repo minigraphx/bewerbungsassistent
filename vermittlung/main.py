@@ -3,7 +3,7 @@ import logging
 import sys
 
 from config import ConfigError, load
-from limits import RateLimiter
+from limits import ParallelLimiter, RateLimiter
 from policy import Policy
 from service import Mediation, Server
 from store import Store
@@ -18,7 +18,8 @@ def main() -> None:
         sys.exit(str(error))
     mediation = Mediation(store=Store(config.db_path), upstream=Upstream.from_key(config.api_key),
                           policy=Policy(max_output_tokens=config.max_output_tokens),
-                          calls=RateLimiter(config.calls_per_minute), trust_proxy=config.behind_proxy)
+                          calls=RateLimiter(config.calls_per_minute),
+                          parallel=ParallelLimiter(config.calls_at_once), trust_proxy=config.behind_proxy)
     server = Server((config.host, config.port), mediation)
     logging.getLogger("vermittlung").info("Vermittlung läuft auf %s:%s", config.host, config.port)
     server.serve_forever()
