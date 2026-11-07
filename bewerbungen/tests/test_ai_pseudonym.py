@@ -245,3 +245,42 @@ def test_real_phone_numbers_stay_phone_numbers(text):
     assert personal.secrets_found_in([text]) != []
     with pytest.raises(PseudonymError):
         Pseudonymizer([]).check_clean(text)
+
+
+UMLAUT_NAMES = Pseudonymizer(secrets_from_cv({"basics": {"name": "Jonas Müller"}}))
+ACCENT_NAMES = Pseudonymizer(secrets_from_cv({"basics": {"name": "Léa Brändli"}}))
+
+
+@pytest.mark.parametrize("p, written, placeholder", [
+    (UMLAUT_NAMES, "Jonas Mueller", "{{NAME}}"),
+    (UMLAUT_NAMES, "Herr Mueller", "{{NAME_LAST}}"),
+    (UMLAUT_NAMES, "Herr Muller", "{{NAME_LAST}}"),
+    (UMLAUT_NAMES, "MUELLERS Lebenslauf", "{{NAME_LAST}}"),
+    (ACCENT_NAMES, "Liebe Lea", "{{NAME_FIRST}}"),
+    (ACCENT_NAMES, "Lea Braendli", "{{NAME}}"),
+    (ACCENT_NAMES, "Frau Brandli", "{{NAME_LAST}}"),
+])
+def test_names_are_found_without_umlauts_and_accents(p, written, placeholder):
+    """Someone writes „Mueller“ although „Müller“ is stored: the name must not reach the AI half replaced."""
+    masked = p.mask(written)
+
+    assert placeholder in masked
+    assert not any(part.lower() in masked.lower() for part in ("mueller", "muller", "lea ", "braendli", "brandli"))
+    p.check_clean(masked)
+
+
+def test_a_name_written_with_umlauts_is_found_when_stored_without():
+    p = Pseudonymizer(secrets_from_cv({"basics": {"name": "Jonas Mueller"}}))
+
+    assert p.mask("Herr Müller") == "Herr {{NAME_LAST}}"
+
+
+def test_a_variant_comes_back_as_the_stored_spelling():
+    masked = UMLAUT_NAMES.mask("Gruss, Jonas Mueller")
+
+    assert UMLAUT_NAMES.unmask(masked) == "Gruss, Jonas Müller"
+
+
+@pytest.mark.parametrize("text", ["Lead Developer", "Mullerweg", "Learning"])
+def test_variants_stay_whole_words(text):
+    assert ACCENT_NAMES.mask(text) == text and UMLAUT_NAMES.mask(text) == text

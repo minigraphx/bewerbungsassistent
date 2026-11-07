@@ -2,9 +2,9 @@
 
 Known values (from `ai.personal`: name, address, contacts, birth date, profiles, references, contact persons)
 are matched in their usual variants: phone numbers in any Swiss notation, links with or without scheme,
-dates in several formats, names also in the genitive. E-mail addresses, phone numbers and
-contact persons found in the texts themselves (`ai.personal.secrets_found_in`, e.g. in a job ad) are
-added per request with `extended`.
+dates in several formats, names also in the genitive and without umlauts or accents (#110).
+E-mail addresses, phone numbers and contact persons found in the texts themselves
+(`ai.personal.secrets_found_in`, e.g. in a job ad) are added per request with `extended`.
 
 Placeholders look like `{{NAME}}`. `unmask` puts the values back; an unknown placeholder is an error.
 `check_clean` is the last check before sending and does not rely on the same patterns only: any e-mail
@@ -30,6 +30,9 @@ WORD_DATE = re.compile(r"(\d{1,2})\.?\s+([A-Za-zäÄ]+)\.?\s+(\d{4})")
 TWO_DIGIT_PIVOT = 30  # „1.5.11“ is 2011, „1.5.85“ is 1985
 MIN_FOLDED_CHARS = 10  # shorter values are too likely to appear by chance once spaces are removed
 FOLD_UMLAUTS = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
+# How a name may be written without its umlauts or accents (MIN-334, #110): „Müller“ as „Mueller“ or „Muller“
+UMLAUT_SPELLINGS = {"ä": "(?:ä|ae|a)", "ö": "(?:ö|oe|o)", "ü": "(?:ü|ue|u)", "ß": "(?:ß|ss)"}
+UMLAUT_PAIRS = {"ae": "ä", "oe": "ö", "ue": "ü"}  # and „Mueller“ stored, „Müller“ written
 
 
 def phone_numbers(text: str) -> list[str]:
@@ -65,13 +68,35 @@ def _fold(text: str, umlauts: bool = False) -> str:
     return "".join(c for c in decomposed if c.isalnum() and not unicodedata.combining(c))
 
 
-def _words(value: str) -> str:
-    return r"\s+".join(re.escape(part) for part in value.split())
+def _letter(char: str) -> str:
+    """One letter of a name as a pattern: an umlaut also as ae/a, an accented letter also without its accent."""
+    if char.lower() in UMLAUT_SPELLINGS:
+        return UMLAUT_SPELLINGS[char.lower()]
+    plain = "".join(c for c in unicodedata.normalize("NFD", char) if not unicodedata.combining(c))
+    return f"(?:{re.escape(char)}|{re.escape(plain)})" if plain and plain != char else re.escape(char)
 
 
-def _text_pattern(value: str, genitive: bool = False) -> re.Pattern:
-    end = r"(?=s?(?![\w@]))" if genitive else r"(?![\w@])"
-    return re.compile(r"(?<![\w@.])" + _words(value) + end, re.IGNORECASE)
+def _spellings(word: str) -> str:
+    parts, i = [], 0
+    while i < len(word):
+        pair = word[i:i + 2]
+        if pair.lower() in UMLAUT_PAIRS:
+            parts.append(f"(?:{re.escape(pair)}|{UMLAUT_PAIRS[pair.lower()]})")
+            i += 2
+        else:
+            parts.append(_letter(word[i]))
+            i += 1
+    return "".join(parts)
+
+
+def _words(value: str, spellings: bool = False) -> str:
+    return r"\s+".join(_spellings(part) if spellings else re.escape(part) for part in value.split())
+
+
+def _text_pattern(value: str, name: bool = False) -> re.Pattern:
+    """A name also in the genitive and without umlauts or accents; other text exactly, but in any case."""
+    end = r"(?=s?(?![\w@]))" if name else r"(?![\w@])"
+    return re.compile(r"(?<![\w@.])" + _words(value, spellings=name) + end, re.IGNORECASE)
 
 
 def _digits_pattern(digits: str) -> str:
@@ -133,7 +158,7 @@ def _pattern(secret: Secret) -> re.Pattern:
         return _url_pattern(value)
     if secret.kind == "date":
         return _date_pattern(value)
-    return _text_pattern(value, genitive=secret.kind == "name")
+    return _text_pattern(value, name=secret.kind == "name")
 
 
 @dataclasses.dataclass(frozen=True)
