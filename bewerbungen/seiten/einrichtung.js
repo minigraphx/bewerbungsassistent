@@ -373,7 +373,7 @@
   $("ki-ueberspringen").addEventListener("click", () => ueberspringe("ki"));
   $("ki-weiter").addEventListener("click", () => ueberspringe("ki"));
 
-  // 5. Browser extension (MIN-339): loaded by hand as developer add-on until it is in the stores
+  // 5. Browser extension (MIN-339): from the Chrome or Edge store (#75, #87), by hand as developer add-on otherwise
 
   function zeigeErweiterung() {
     if (!info?.erweiterung) {
