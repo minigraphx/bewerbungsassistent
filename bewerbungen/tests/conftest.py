@@ -3,6 +3,7 @@ import os
 
 os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.null.Keyring"  # tests never touch the real keychain
 
+import pathlib
 import shutil
 
 import pytest
@@ -13,14 +14,20 @@ from ai import consent
 from register import Register
 from varianten import Varianten
 
+HERE = pathlib.Path(__file__).parent
+
+
 def pytest_configure(config):
     config.addinivalue_line("markers", "real_consent: the consent gate is on, see test_consent")
 
 
 @pytest.fixture(autouse=True)
 def consent_given(request, monkeypatch):
-    """Other tests are not about the consent (MIN-401); test_consent turns the gate on."""
-    if not request.node.get_closest_marker("real_consent"):
+    """Other tests are not about the consent (MIN-401); test_consent turns the gate on.
+
+    Run together with desktop/tests, pytest applies this to those tests too, so it checks the folder (#90).
+    """
+    if request.path.is_relative_to(HERE) and not request.node.get_closest_marker("real_consent"):
         monkeypatch.setattr(consent, "is_given", lambda data_dir, kind: True)
 
 
