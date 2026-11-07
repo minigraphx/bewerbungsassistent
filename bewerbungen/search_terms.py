@@ -14,7 +14,7 @@ KEYWORDS_KEY = "keywords"
 AFTER_DIRECTIONS = "## Region"
 CORE_LIST = re.compile(r"^(-\s+kernliste[^:]*:\s*)(.*)$", re.IGNORECASE)
 TERMS_AND_REMARK = re.compile(r"^([^(]*?)(\s*\(.*)?$")
-FULL = "Ihre Suche hat schon {limit} Begriffe, mehr sucht sie nicht. Entfernen Sie zuerst einen."
+FULL = "Die Suche hat schon {limit} Begriffe, mehr sucht sie nicht. Bitte zuerst einen entfernen."
 
 
 def current(text: str) -> tuple[str, ...]:

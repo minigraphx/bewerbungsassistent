@@ -173,7 +173,7 @@ def test_a_missing_home_of_an_apprenticeship_names_the_field():
 
 
 def test_profile_without_keywords_or_directions_is_refused():
-    with pytest.raises(ValueError, match="Welche Stellen passen"):
+    with pytest.raises(ValueError, match="schlägt die KI Begriffe vor"):
         search_plan.parse("# Suchprofil\n\n## Region\n- Wohnort: Bern\n")
 
 

@@ -44,11 +44,11 @@ REF = re.compile(r"f\d{1,6}")
 ALLOWED_IN_DRAFTS = ("NAME", "POSTAL_CODE", "PROFILE_USER")
 UNKNOWN_FORM = "Die Felder haben eine unbekannte Form."
 TOO_MANY = f"Pro Anfrage gehen höchstens {MAX_FIELDS} Felder."
-NO_AD = "Für Textentwürfe fehlt das Inserat. Offene Fragen bleiben bei Ihnen."
-NO_MATERIAL = "Für Textentwürfe fehlt noch {name}. Offene Fragen bleiben bei Ihnen."
+NO_AD = "Für Textentwürfe fehlt das Inserat. Offene Fragen bleiben leer."
+NO_MATERIAL = "Für Textentwürfe fehlt noch {name}. Offene Fragen bleiben leer."
 SUSPICIOUS = "Im Formular stehen Zeilen, die sich an eine KI richten. Entwürfe bitte besonders genau prüfen."
 FILES_HELD_BACK = "Im Formular stehen Zeilen, die sich an eine KI richten. Darum hat die KI keine Dateien zugeordnet; bitte selbst hochladen."
-DROPPED = "Ein Entwurf nannte Kontaktangaben oder Referenzen und wurde verworfen. Diese Frage bleibt bei Ihnen."
+DROPPED = "Ein Entwurf nannte Kontaktangaben oder Referenzen und wurde verworfen. Diese Frage bleibt leer."
 
 
 @dataclasses.dataclass(frozen=True)
