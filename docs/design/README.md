@@ -86,5 +86,15 @@ Jeder Schritt ein eigener Pull Request.
 | [erweiterung-leisten.jpg](entwurf/erweiterung-leisten.jpg) | Formularleiste · alle Zustände | 1280 px | [Erweiterung-Leisten.dc.html](seiten/Erweiterung-Leisten.dc.html) |
 | [erweiterung-jobroom.jpg](entwurf/erweiterung-jobroom.jpg) | Erweiterung · Arbeitsbemühungen eintragen | 1280 px | [Erweiterung-JobRoom.dc.html](seiten/Erweiterung-JobRoom.dc.html) |
 | [erweiterung-erlauben.jpg](entwurf/erweiterung-erlauben.jpg) | Erweiterung · Erlaubnis für eine weitere Seite | 1280 px | [Erweiterung-Erlauben.dc.html](seiten/Erweiterung-Erlauben.dc.html) |
+| [webseite.jpg](entwurf/webseite.jpg) | Webseite der App, Startseite | 1280 px | [Webseite.dc.html](seiten/Webseite.dc.html) |
 
 Weitere Zustände der Seiten (etwa leer, ohne KI, dunkel) sind in den Zeichenflächen über die Einstellungen jeder Seite wählbar und in `texte.md` beschrieben.
+
+## Webseite
+
+Entwurf der Webseite, von Andy am 7.11.2026 freigegeben (Original privat: [Zeichenfläche](https://claude.ai/artifact/H6U4oZS6efH9w3gDghpX2Q)). Die Seite stellt die App vor und führt zum Download, für Stellensuchende und Eltern von Lehrstellensuchenden.
+
+- **Sprachwahl:** DE, EN und FR sind gestaltet, aber vorerst mit `display: none` ausgeblendet, bis die App weitere Sprachen kann.
+- **Bilder:** dieselben wie im README, aus `docs/bilder/`, mit erfundenen Daten.
+- **Logo:** `docs/bilder/as-logo.svg`, einfarbig, hell und dunkel nach der Systemeinstellung. Es ist von der GPL ausgenommen (`docs/NOTICE`).
+- **Anleitung:** Die Knöpfe „Anleitung“ zeigen in der fertigen Seite auf eine eigene Seite, gebaut aus `docs/installation.md`.
