@@ -359,7 +359,7 @@ Damit auch Schulabgängerinnen und Schulabgänger den Assistenten nutzen können
 - Träger: Einzelfirma oder GmbH.
 - Mehrwertsteuer erst ab CHF 100'000 Umsatz.
 
-**Lizenz:** Der Code steht unter GPL-3.0. Soll auch der Betrieb als Dienst zur Offenlegung von Änderungen verpflichten, ist ein Wechsel auf AGPL-3.0 zu prüfen.
+**Lizenz:** Der Code steht unter AGPL-3.0. Sie verpflichtet auch den Betrieb als Dienst: Wer eine geänderte Fassung über das Netz anbietet, muss den Nutzenden deren Quellcode anbieten (Abschnitt 13).
 
 ## Sicherheit
 
