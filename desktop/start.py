@@ -14,6 +14,7 @@ import webbrowser
 
 import extension
 import instance
+import linux_desktop
 import mcp_server
 import native_host
 import native_messaging
@@ -129,7 +130,7 @@ def _install_dir() -> pathlib.Path:
 
 def _host_executable(paths: settings.Paths) -> pathlib.Path:
     if getattr(sys, "frozen", False):
-        return pathlib.Path(sys.executable)
+        return linux_desktop.launch_path(pathlib.Path(sys.executable), dict(os.environ))
     return native_messaging.launcher(paths, sys.platform, bundle_dir(), pathlib.Path(sys.executable))
 
 
@@ -175,10 +176,20 @@ def claude_routes(paths: settings.Paths) -> "routes_claude.ClaudeRoutes":
     return routes_claude.ClaudeRoutes(paths=paths, config=config, command=tuple(command), skills=claude_setup.skills_folder(bundle_dir()))
 
 
+def register_link(platform: str = sys.platform) -> None:
+    """The invitation link opens the packed app; macOS declares it in the bundle, the others register it here."""
+    if not getattr(sys, "frozen", False):
+        return
+    if platform == "win32":
+        urlscheme.register_windows(sys.executable)
+    elif platform.startswith("linux"):
+        executable = linux_desktop.launch_path(pathlib.Path(sys.executable), dict(os.environ))
+        linux_desktop.register_quietly(executable, bundle_dir() / "erweiterung" / "icons" / "icon128.png")
+
+
 def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) -> int:
     import app  # the existing interface (bewerbungen/app.py)
-    if getattr(sys, "frozen", False):
-        urlscheme.register_windows(sys.executable)
+    register_link()
     _apply_build_defaults(settings.build_defaults(bundle_dir()))
     import routes_app
     import routes_angaben

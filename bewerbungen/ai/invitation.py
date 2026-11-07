@@ -14,7 +14,7 @@ from typing import Callable
 
 import truststore
 
-from ai.connection import KEYRING_ACCOUNT, KEYRING_SERVICE
+from ai.connection import KEYRING_ACCOUNT, KEYRING_SERVICE, keychain_problem
 from ai.errors import ACCESS_DENIED, OFFLINE, AiError
 
 TIMEOUT_SECONDS = 30
@@ -68,7 +68,7 @@ def _keep(access: str) -> None:
         import keyring
         keyring.set_password(KEYRING_SERVICE, KEYRING_ACCOUNT, access)
     except Exception as error:  # noqa: BLE001  (no keychain backend, or access denied)
-        raise AiError(NO_KEYCHAIN) from error
+        raise AiError(keychain_problem(NO_KEYCHAIN)) from error
 
 
 def redeem(base_url: str, code: str, opener: Opener = _open, keep: Callable[[str], None] = _keep,

@@ -1,6 +1,7 @@
 """Redeeming an invitation of the mediation: the access goes to the keychain, errors are German (MIN-344)."""
 import io
 import json
+import sys
 import urllib.error
 import urllib.request
 
@@ -69,6 +70,27 @@ def test_keychain_failure_is_explained(monkeypatch):
 
     with pytest.raises(AiError, match="Schlüsselbund"):
         invitation.redeem(URL, "ABCD", opener=opener({"access": "bwa_x"}))
+
+
+def test_on_linux_the_message_names_the_missing_keychain_service(monkeypatch):
+    import keyring
+
+    def fail(*args):
+        raise keyring.errors.NoKeyringError("none")
+    monkeypatch.setattr(keyring, "set_password", fail)
+    monkeypatch.setattr(sys, "platform", "linux")
+
+    with pytest.raises(AiError, match="GNOME-Schlüsselbund oder KWallet"):
+        invitation.redeem(URL, "ABCD", opener=opener({"access": "bwa_x"}))
+
+
+def test_own_key_on_linux_names_the_missing_keychain_service(monkeypatch):
+    from ai import connection, own_key
+    monkeypatch.setattr(connection, "_keyring", lambda: None)
+    monkeypatch.setattr(sys, "platform", "linux")
+
+    with pytest.raises(AiError, match="KWallet"):
+        own_key.store("sk-ant-api03-" + "x" * 90)
 
 
 def test_account_sends_the_access():

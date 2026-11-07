@@ -165,3 +165,37 @@ def test_check_after_an_update_does_not_confirm_a_broken_version(monkeypatch):
 
     assert start.main(["--nach-update"]) == 1
     assert confirmed == []
+
+
+# Linux as AppImage (#73): whatever starts the app later gets the AppImage file, not the temporary mount
+
+
+def test_packed_on_linux_the_extension_starts_the_appimage(monkeypatch, tmp_path):
+    image = tmp_path / "Bewerbungsbegleiter-x86_64.AppImage"
+    image.write_bytes(b"")
+    monkeypatch.setattr(start.sys, "frozen", True, raising=False)
+    monkeypatch.setenv("APPIMAGE", str(image))
+
+    assert start._host_executable(settings.Paths(tmp_path / "app")) == image
+
+
+def test_packed_on_linux_the_link_and_menu_entry_are_registered(monkeypatch, tmp_path):
+    image = tmp_path / "B.AppImage"
+    image.write_bytes(b"")
+    calls = []
+    monkeypatch.setattr(start.sys, "frozen", True, raising=False)
+    monkeypatch.setenv("APPIMAGE", str(image))
+    monkeypatch.setattr(start.linux_desktop, "register_quietly", lambda executable, icon: calls.append((executable, icon)))
+
+    start.register_link("linux")
+
+    assert calls == [(image, start.bundle_dir() / "erweiterung" / "icons" / "icon128.png")]
+
+
+def test_from_source_no_link_is_registered(monkeypatch):
+    monkeypatch.delattr(start.sys, "frozen", raising=False)
+    monkeypatch.setattr(start.linux_desktop, "register_quietly", lambda *args: pytest.fail("must not register"))
+    monkeypatch.setattr(start.urlscheme, "register_windows", lambda *args: pytest.fail("must not register"))
+
+    start.register_link("linux")
+    start.register_link("win32")

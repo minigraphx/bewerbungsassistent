@@ -1,7 +1,8 @@
 """The link `bewerbungsbegleiter://einladung?code=…` opens the app and redeems the invitation (MIN-342, MIN-344).
 
 On Windows the scheme is registered for the current user (HKCU, no admin rights); the installer does the
-same and removes it again on uninstall. On macOS the app bundle declares it (Info.plist).
+same and removes it again on uninstall. On macOS the app bundle declares it (Info.plist), on Linux the menu
+entry that the AppImage writes on every start (linux_desktop.py, #73).
 """
 import re
 import sys

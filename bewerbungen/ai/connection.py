@@ -10,6 +10,7 @@ logged or shown; they only go to the SDK.
 import dataclasses
 import logging
 import os
+import sys
 import urllib.parse
 
 import anthropic
@@ -38,6 +39,14 @@ class Connection:
     @property
     def via_mediation(self) -> bool:
         return self.base_url is not None
+
+
+KEYCHAIN_HINT_LINUX = "Unter Linux braucht es dafür einen Schlüsselbund-Dienst wie den GNOME-Schlüsselbund oder KWallet."
+
+
+def keychain_problem(text: str) -> str:
+    """The message when the keychain refuses; on Linux a slim desktop may run no keychain service at all (#73)."""
+    return f"{text} {KEYCHAIN_HINT_LINUX}" if sys.platform.startswith("linux") else text
 
 
 def _keyring():

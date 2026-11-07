@@ -1,12 +1,12 @@
 # Desktop-App
 
-Modul des [Bewerbungsbegleiters](../README.md) für den Pilot (MIN-342): die lokale Oberfläche (`bewerbungen/app.py`) als installierbare App für Windows und macOS, ohne Python, Terminal oder Repo.
+Modul des [Bewerbungsbegleiters](../README.md) für den Pilot (MIN-342): die lokale Oberfläche (`bewerbungen/app.py`) als installierbare App für Windows, macOS und Linux (AppImage, #73), ohne Python, Terminal oder Repo.
 
 - **Start per Doppelklick:** Server auf `127.0.0.1`, der Browser öffnet sich. Ein zweiter Start öffnet die laufende App. „Übersicht“, „Stellen suchen“ und „Meine Angaben“ stehen oben; „Beenden“, die Einrichtung und die übrigen Seiten stehen im Menü „Mehr“.
-- **Einrichtung** (Seite `/einrichtung`, beim ersten Start automatisch): 1. Datenordner wählen, Vorschlag `Dokumente\Bewerbungsbegleiter` (unter Windows auch, wenn Dokumente in OneDrive liegt); erlaubt sind ein neuer, ein leerer oder ein bestehender Datenordner, nie ein Ordner mit anderen Dateien oder einer der App. 2. Einstiegsdatei (`einstieg.zip` oder `.json`) importieren, falls vorhanden (`onboarding/import_bundle.py`). 3. Einladungscode für die KI. 4. Browser-Erweiterung laden (siehe unten). Ordner und Datei kommen aus dem Auswahldialog des Systems (`dialogs.py`: PowerShell bzw. AppleScript), weil der Browser keine Pfade liefert und die ZIP-Datei grösser sein darf als eine Anfrage. Ein Wechsel des Datenordners gilt sofort, ohne Neustart. Fehlt der Ordner (z.B. USB-Stick), führt jede Seite zur Einrichtung.
+- **Einrichtung** (Seite `/einrichtung`, beim ersten Start automatisch): 1. Datenordner wählen, Vorschlag `Dokumente\Bewerbungsbegleiter` (unter Windows auch, wenn Dokumente in OneDrive liegt); erlaubt sind ein neuer, ein leerer oder ein bestehender Datenordner, nie ein Ordner mit anderen Dateien oder einer der App. 2. Einstiegsdatei (`einstieg.zip` oder `.json`) importieren, falls vorhanden (`onboarding/import_bundle.py`). 3. Einladungscode für die KI. 4. Browser-Erweiterung laden (siehe unten). Ordner und Datei kommen aus dem Auswahldialog des Systems (`dialogs.py`: PowerShell, AppleScript, unter Linux zenity oder kdialog), weil der Browser keine Pfade liefert und die ZIP-Datei grösser sein darf als eine Anfrage. Ein Wechsel des Datenordners gilt sofort, ohne Neustart. Fehlt der Ordner (z.B. USB-Stick), führt jede Seite zur Einrichtung.
 - **Meine Angaben** (Seite `/angaben`, `routes_angaben.py`): das Formular für die Grundlagen, gebaut aus denselben Quellen. Ohne Lebenslauf und Suchprofil führen Einrichtung und Übersicht dorthin. Der Zwischenstand liegt in `dokumente/angaben-stand.json`, weil der Port bei jedem Start wechselt und der Speicher des Browsers verloren ginge. PDF- und Word-Dateien kommen beim Hochladen sofort nach `dokumente/<art>/`. „Übernehmen“ nutzt dieselben Prüfungen wie der Import einer Datei; Vorhandenes wird nur auf Wunsch ersetzt, der alte Stand bleibt als Entwurf.
-- **App-Ordner:** Einstellungen und Protokoll in `%APPDATA%\Bewerbungsbegleiter`, macOS `~/Library/Application Support/Bewerbungsbegleiter`. Bis ein Datenordner gewählt ist, läuft die App auf `noch-kein-datenordner` darin.
-- **Einladung:** Der Link `bewerbungsbegleiter://einladung?code=…` öffnet die App und löst den Code ein; der Zugang kommt in den Schlüsselbund des Systems. Alternativ den Code in der Einrichtung oder auf der Seite einer Bewerbung eintippen.
+- **App-Ordner:** Einstellungen und Protokoll in `%APPDATA%\Bewerbungsbegleiter`, macOS `~/Library/Application Support/Bewerbungsbegleiter`, Linux `~/.config/bewerbungsbegleiter`. Bis ein Datenordner gewählt ist, läuft die App auf `noch-kein-datenordner` darin.
+- **Einladung:** Der Link `bewerbungsbegleiter://einladung?code=…` öffnet die App und löst den Code ein; der Zugang kommt in den Schlüsselbund des Systems (Linux: Secret Service; ohne ihn sagt die App, was fehlt, und legt nichts unverschlüsselt ab). Alternativ den Code in der Einrichtung oder auf der Seite einer Bewerbung eintippen.
 - **Adresse der KI-Vermittlung:** kommt beim Bauen aus der Repository-Variable `KI_URL` (kein Geheimnis) in `voreinstellungen.json` im Paket.
 - **Adresse des Update-Servers:** ebenso aus der Variable `UPDATE_URL`. Ein Tag-Build ohne sie bricht ab, sonst bekäme das Release nie mehr Updates.
 
@@ -37,7 +37,7 @@ Bewusst offen: Die Ankündigung hat kein Ablaufdatum. Wer den Server kontrollier
 
 **Neue Version ausrollen:**
 1. `desktop/version.py` erhöhen und committen.
-2. Tag `v<Version>` pushen. Die CI baut, installiert und testet die App und legt einen **Release-Entwurf** mit Installer, macOS-Zip und je einer Prüfsummen-Datei an.
+2. Tag `v<Version>` pushen. Die CI baut, installiert und testet die App und legt einen **Release-Entwurf** mit Installer, macOS-Zip, AppImage und je einer Prüfsummen-Datei an. Das AppImage installiert sich nicht selbst; unter Linux führt das Update auf das Release.
 3. Den Entwurf prüfen (Installer auf einem Testrechner) und **veröffentlichen**. Erst dann sehen die Apps das Update: `update-ausrollen.yml` lädt die Pakete und zuletzt die signierte `latest.json` auf den Server und vergleicht, was er ausliefert. Vorabversionen rollt der Workflow nicht aus.
 4. Bricht der Workflow ab, sehen die Apps weiter die alte Ankündigung. Dann den Workflow von Hand mit dem Tag nochmals starten.
 
@@ -65,6 +65,15 @@ Deinstallation über Einstellungen → Apps. Der Datenordner in Dokumente bleibt
 
 Löschen: die App aus „Programme“ in den Papierkorb legen. Der Datenordner in Dokumente bleibt erhalten.
 
+## Linux (AppImage, #73)
+
+Zugesagt ist das aktuelle Ubuntu LTS; gebaut wird auf Ubuntu 22.04, damit das Paket auch auf neueren Systemen und Mint läuft. Ein AppImage läuft aus einem temporären Einhängepunkt, darum bekommt alles, was die App später startet, die Datei selbst aus `$APPIMAGE` (`linux_desktop.py`): Native Messaging, Claude Desktop und der Einladungslink.
+
+- **Menüeintrag und Einladungslink:** Bei jedem Start schreibt die App `~/.local/share/applications/bewerbungsbegleiter.desktop` mit `MimeType=x-scheme-handler/bewerbungsbegleiter` und meldet sich mit `xdg-mime` dafür an. Wird das AppImage verschoben, gilt beim nächsten Start der neue Pfad.
+- **Laufzeit:** Die statische Laufzeit von AppImage braucht FUSE (`fusermount3` aus `fuse3`), nicht mehr `libfuse2`. Ohne FUSE läuft die App mit `--appimage-extract-and-run`, dann aber nicht für die Erweiterung.
+- **Browser:** Chrome, Edge, Chromium und Brave als normales Paket. Als Snap oder Flatpak dürfen sie kein Programm ausserhalb starten; Native Messaging geht dort nicht.
+- **CI:** `appimage.py` baut das AppDir und ruft appimagetool mit der gepinnten Laufzeit auf (Werkzeuge mit Prüfsumme in `app.yml`). Getestet werden der Selbsttest mit und ohne FUSE, MCP und `linux_smoke.py`: Start in einem leeren Benutzerordner, Menüeintrag und Link, Native Messaging über die AppImage-Datei, Einladungslink an die laufende App.
+
 ## Bauen
 
 ```bash
@@ -73,7 +82,7 @@ cd .. && pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
 dist/Bewerbungsbegleiter/Bewerbungsbegleiter --selbsttest    # baut Lebenslauf und Anschreiben aus den Beispieldaten
 ```
 
-Den Windows-Installer baut die CI mit Inno Setup (`installer.iss`), siehe `.github/workflows/app.yml`.
+Den Windows-Installer baut die CI mit Inno Setup (`installer.iss`), das AppImage mit `appimage.py`, siehe `.github/workflows/app.yml`.
 
 ## Tests
 
