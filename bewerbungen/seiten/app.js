@@ -196,6 +196,16 @@ window.App = (() => {
     } catch { /* plain app without setup */ }
   }
 
+  // "About the app" in the menu (#81): the AS logo marks the author; name and app icon stay as they are.
+  function ueberDieApp(version) {
+    return el("div", { class: "menu__about" },
+      el("img", { class: "menu__logo", src: "/as-logo.svg", width: "28", height: "28", alt: "Logo AS" }),
+      el("div", {},
+        el("p", { class: "menu__heading" }, "Über die App"),
+        el("p", { class: "menu__meta version" }, `Version ${version}`),
+        el("p", { class: "menu__meta" }, "von Andreas Schmidt")));
+  }
+
   // Packaged app only (MIN-342): banner for a new version, button to quit. The plain app has no such route.
   async function desktop() {
     let info;
@@ -212,7 +222,7 @@ window.App = (() => {
           : el("main", {}, el("h1", {}, "Bewerbungsbegleiter beendet"),
             el("p", {}, "Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick.")));
       });
-      gruppe.append(beenden, el("p", { class: "menu__meta version" }, `Version ${info.version}`));
+      gruppe.append(beenden, ueberDieApp(info.version));
     }
     await zurEinrichtung();
     if (!info.update) return;
