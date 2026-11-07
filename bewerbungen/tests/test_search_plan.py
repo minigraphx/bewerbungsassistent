@@ -153,6 +153,47 @@ def test_the_portals_on_offer_are_named_for_the_person():
     assert all(item["hinweis"] for item in offer)
 
 
+@pytest.mark.parametrize("terms", [("Administration",), ("Datenschutz",), ("Systemgastronomie",), ("Testfahrer",),
+                                   ("Sachbearbeiterin Personaladministration",)])
+def test_words_that_only_start_like_computing_do_not_switch_ictjobs_on(terms):
+    assert "ictjobs" not in search_plan.chosen(_with_terms(*terms), None).portals
+
+
+@pytest.mark.parametrize("terms", [("Systemadministrator",), ("Systemtechniker",), ("Datenbankentwickler",),
+                                   ("Datenanalyst",), ("Tester",), ("Testautomation",)])
+def test_computing_words_still_switch_ictjobs_on(terms):
+    assert "ictjobs" in search_plan.chosen(_with_terms(*terms), None).portals
+
+
+def _ictjobs(plan, off):
+    return next(item for item in search_plan.portal_choice(plan, off) if item["name"] == "ictjobs")
+
+
+def test_ictjobs_says_it_is_off_by_itself_when_no_term_sounds_like_computing():
+    item = _ictjobs(_with_terms("Koch", "Maler"), None)
+    assert item["an"] is False and item["grund"] == "aus" and "begriff" not in item
+
+
+def test_ictjobs_names_the_term_that_switched_it_on():
+    item = _ictjobs(_with_terms("Koch", "Software Engineer"), None)
+    assert item["an"] is True and item["grund"] == "passt" and item["begriff"] == "Software Engineer"
+
+
+@pytest.mark.parametrize("off, on", [([], True), (["ictjobs"], False)])
+def test_ictjobs_says_the_person_chose(off, on):
+    item = _ictjobs(_with_terms("Koch"), off)
+    assert item["an"] is on and item["grund"] == "gewaehlt"
+
+
+def test_ictjobs_is_on_until_there_are_terms():
+    item = _ictjobs(search_plan.SearchPlan(keywords=(), portals=search_plan.PORTALS), None)
+    assert item["an"] is True and item["grund"] == "keine"
+
+
+def test_only_ictjobs_carries_a_reason():
+    assert all("grund" not in item for item in search_plan.portal_choice(_with_terms("Koch"), None) if item["name"] != "ictjobs")
+
+
 @pytest.mark.parametrize("off", [list(search_plan.PORTALS), ["unbekannt"], "jobs.ch", [1], None])
 def test_a_bad_choice_is_refused(off):
     with pytest.raises(ValueError):
