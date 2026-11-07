@@ -93,6 +93,22 @@ test("a job with du gets the search suggestions with du", () => {
   }
 });
 
+test("the consent says what the app replaces before text goes to the AI, in the form of the set (G14)", () => {
+  const sie = texte.text("einwilligung.ersetzt", "stelle-sie");
+  const du = texte.text("einwilligung.ersetzt", "stelle-du");
+  const lehrstelle = texte.text("einwilligung.ersetzt", "lehrstelle-du");
+  for (const satz of [sie, du, lehrstelle]) {
+    assert.match(satz, /Platzhalter/);
+    assert.match(satz, /Name.*Adresse.*Telefon.*E-Mail/);
+    assert.match(satz, /Jahreszahlen bleiben/);
+    assert.match(satz, /richtig eingetragen/);
+  }
+  assert.match(sie, /\bIhre\b/);
+  assert.match(du, /\bdeine\b/);
+  assert.match(lehrstelle, /Schulen/);
+  assert.match(seite("einwilligung.js"), /"einwilligung\.ersetzt"/);
+});
+
 test("the ictjobs line says why it is on or off and how to change it, in the form of the set (#107)", () => {
   const begriff = { begriff: "Software" };
   assert.equal(texte.text("suche.ictjobs.aus", "stelle-sie"), "Aus, weil keiner Ihrer Suchbegriffe nach Informatik klingt. Mit dem Häkchen einschalten.");
