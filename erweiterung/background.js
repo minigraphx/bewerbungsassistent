@@ -223,7 +223,7 @@ async function openApp() {
     await app.request('GET', '/api/suche/plan').catch(() => null);
     const hello = await app.hello();
     if (!hello.app) throw new Error('Die App läuft nicht.');
-    await showHits(hello.app, chrome);
+    await showHits(hello.app, chrome, hello.einstieg);
     return { ok: true };
   } finally {
     app.close();

@@ -75,9 +75,15 @@ def upload(server, name="lebenslauf.pdf", category="lebenslauf-bisher", data=PDF
                 {"category": category, "name": name, "data": base64.b64encode(data).decode()})
 
 
+def open_page(server, path):
+    """Like a browser: in through the link with the token, then with the session."""
+    browser = urllib.request.build_opener(urllib.request.HTTPCookieProcessor())
+    return browser.open(f"{server.url}{path}?t={server.token}", timeout=10)
+
+
 def test_page_is_the_template_with_its_own_policy(started):
     server, _, _ = started
-    with urllib.request.urlopen(f"{server.url}angaben", timeout=10) as response:
+    with open_page(server, "angaben") as response:
         html = response.read().decode("utf-8")
         policies = response.headers.get_all("Content-Security-Policy")
 
@@ -87,7 +93,7 @@ def test_page_is_the_template_with_its_own_policy(started):
 
 def test_other_pages_keep_the_strict_policy(started):
     server, _, _ = started
-    with urllib.request.urlopen(f"{server.url}einrichtung", timeout=10) as response:
+    with open_page(server, "einrichtung") as response:
         assert "script-src 'self'" in response.headers["Content-Security-Policy"]
 
 
@@ -274,7 +280,7 @@ def test_complete_answers_leave_no_outdated_copy_behind(started):
 
 def test_page_cannot_be_framed_by_other_sites(started):
     server, _, _ = started
-    with urllib.request.urlopen(f"{server.url}angaben", timeout=10) as response:
+    with open_page(server, "angaben") as response:
         policy = response.headers["Content-Security-Policy"]
 
     assert "frame-ancestors 'self'" in policy

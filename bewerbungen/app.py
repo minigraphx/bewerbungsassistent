@@ -120,9 +120,9 @@ def main(argv: list[str] | None = None) -> None:
         server = erstelle_server(pathlib.Path(args.daten), pathlib.Path(args.build_dir) if args.build_dir else None, args.port, questions_page=args.fragen)
     except (ValueError, OSError) as fehler:
         sys.exit(f"Fehler: {fehler}")
-    log.info("Bewerbungsbegleiter läuft auf %s (beenden mit Ctrl+C)", server.url)
+    log.info("Bewerbungsbegleiter läuft auf %s (beenden mit Ctrl+C)", server.entry_url if args.kein_browser else server.url)
     if not args.kein_browser:
-        webbrowser.open(server.url)
+        webbrowser.open(server.entry_url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

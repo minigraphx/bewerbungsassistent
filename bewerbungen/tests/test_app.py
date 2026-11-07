@@ -49,8 +49,18 @@ def anfrage(s, methode, pfad, body=None, headers=None, host=None):
     return antwort.status, antwort.getheader("Content-Type", ""), inhalt, antwort
 
 
+def session_header(s):
+    """What the browser sends after it came in through the link with the token."""
+    _, _, _, antwort = anfrage(s, "GET", f"/?t={s.token}")
+    return {"Cookie": antwort.getheader("Set-Cookie").split(";", 1)[0]}
+
+
 def get(s, pfad, **parameter):
-    status, typ, inhalt, _ = anfrage(s, "GET", pfad + "?" + urllib.parse.urlencode({"t": s.token, **parameter}))
+    """Like a browser: the link with the token leads to the page, with the session."""
+    status, typ, inhalt, antwort = anfrage(s, "GET", pfad + "?" + urllib.parse.urlencode({"t": s.token, **parameter}))
+    if status == 303:
+        kopf = {"Cookie": antwort.getheader("Set-Cookie").split(";", 1)[0]}
+        status, typ, inhalt, _ = anfrage(s, "GET", antwort.getheader("Location"), headers=kopf)
     return status, typ, inhalt
 
 
@@ -70,7 +80,7 @@ def test_lauscht_nur_lokal(server):
 
 @pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/dateien", "/entwuerfe", "/foto", "/inhalte", "/treffer"])
 def test_seiten_mit_token_und_csp(server, pfad):
-    status, typ, inhalt, antwort = anfrage(server, "GET", pfad)
+    status, typ, inhalt, antwort = anfrage(server, "GET", pfad, headers=session_header(server))
 
     assert status == 200
     assert typ.startswith("text/html")
@@ -121,6 +131,48 @@ def test_post_braucht_json(server):
                          {"Content-Type": "application/x-www-form-urlencoded", "X-Token": server.token})
 
     assert status == 415
+
+
+def test_a_page_hands_out_no_token_without_proof(server):
+    status, typ, inhalt, _ = anfrage(server, "GET", "/")
+
+    assert status == 403 and typ.startswith("text/html")
+    assert server.token.encode() not in inhalt and "Programmsymbol" in inhalt.decode("utf-8")
+
+
+@pytest.mark.parametrize("kopf", [{"Cookie": "bewerbungsbegleiter-0=falsch"}, {"Cookie": "kaputt=;;\x7f"}, {}])
+def test_a_wrong_cookie_is_no_proof(server, kopf):
+    status, _, inhalt, _ = anfrage(server, "GET", "/treffer?t=falsch", headers=kopf)
+
+    assert status == 403 and server.token.encode() not in inhalt
+
+
+def test_the_link_with_the_token_sets_the_session_and_cleans_the_address(server):
+    status, _, _, antwort = anfrage(server, "GET", f"/bewerbung?id=b1&t={server.token}")
+
+    assert status == 303 and antwort.getheader("Location") == "/bewerbung?id=b1"
+    cookie = antwort.getheader("Set-Cookie")
+    assert "HttpOnly" in cookie and "SameSite=Lax" in cookie and "Path=/" in cookie
+    assert server.token not in cookie
+
+
+def test_the_session_of_another_port_does_not_count(server):
+    name, wert = session_header(server)["Cookie"].split("=", 1)
+    assert str(server.server_address[1]) in name
+
+    status, _, _, _ = anfrage(server, "GET", "/", headers={"Cookie": f"bewerbungsbegleiter-1={wert}"})
+
+    assert status == 403
+
+
+def test_files_of_the_pages_need_no_proof_and_hold_no_token(server):
+    status, _, inhalt, _ = anfrage(server, "GET", "/stil.css")
+
+    assert status == 200 and server.token.encode() not in inhalt
+
+
+def test_the_entry_link_carries_the_token(server):
+    assert server.entry_url == f"{server.url}?t={server.token}"
 
 
 def test_fremder_host(server):

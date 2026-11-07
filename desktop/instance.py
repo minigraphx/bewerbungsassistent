@@ -23,6 +23,11 @@ class Running:
     def url(self) -> str:
         return f"http://127.0.0.1:{self.port}/"
 
+    @property
+    def entry_url(self) -> str:
+        """The address for a browser: a page needs the session that this link starts."""
+        return f"{self.url}?t={self.token}"
+
 
 def write(paths: Paths, port: int, token: str) -> None:
     paths.app_dir.mkdir(parents=True, exist_ok=True)

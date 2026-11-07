@@ -13,9 +13,13 @@ function pageOf(tab, origin) {
   }
 }
 
-/** @param {string} appUrl address of the running app, ending in a slash */
-export async function showHits(appUrl, { tabs, windows }) {
+/**
+ * @param {string} appUrl address of the running app, ending in a slash
+ * @param {string} [entryUrl] the same with the token: this browser may not have a session of the app yet
+ */
+export async function showHits(appUrl, { tabs, windows }, entryUrl) {
   const target = new URL(HITS_PAGE, appUrl);
+  if (entryUrl) target.search = new URL(entryUrl).search;
   const open = await tabs.query({ url: APP_TABS });
   const tab = REPLACEABLE_PATHS.map((path) => open.find((t) => pageOf(t, target.origin) === path)).find(Boolean);
   if (!tab) {

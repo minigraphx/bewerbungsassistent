@@ -117,7 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         if problem:
             log.warning("Einladung nicht eingelöst: %s", problem)
         if not args.kein_browser:
-            webbrowser.open(running.url)
+            webbrowser.open(running.entry_url)
         return 0
     return serve(paths, code, open_browser=not args.kein_browser)
 
@@ -215,7 +215,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
         _redeem(server.kontext, code)
     log.info("Bewerbungsbegleiter läuft auf %s, Daten in %s", server.url, data)
     if open_browser:
-        webbrowser.open(server.url)
+        webbrowser.open(server.entry_url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

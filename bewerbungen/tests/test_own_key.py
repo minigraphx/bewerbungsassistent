@@ -267,7 +267,8 @@ def test_the_extension_cannot_reach_the_key():
 def test_the_page_is_served_and_never_prefills_the_key(server):
     import urllib.request
     url = f"{server.url.rstrip('/')}/einstellungen?t={server.token}"
-    with urllib.request.urlopen(url, timeout=10) as response:
+    browser = urllib.request.build_opener(urllib.request.HTTPCookieProcessor())
+    with browser.open(url, timeout=10) as response:
         page = response.read().decode()
     assert 'type="password"' in page and 'autocomplete="off"' in page
 
