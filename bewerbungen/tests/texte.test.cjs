@@ -92,3 +92,19 @@ test("a job with du gets the search suggestions with du", () => {
     assert.doesNotMatch(typeof wert === "function" ? wert("Muster") : wert, SIE_FORM, name);
   }
 });
+
+test("the consent says what the app replaces before text goes to the AI, in the form of the set (G14)", () => {
+  const sie = texte.text("einwilligung.ersetzt", "stelle-sie");
+  const du = texte.text("einwilligung.ersetzt", "stelle-du");
+  const lehrstelle = texte.text("einwilligung.ersetzt", "lehrstelle-du");
+  for (const satz of [sie, du, lehrstelle]) {
+    assert.match(satz, /Platzhalter/);
+    assert.match(satz, /Name.*Adresse.*Telefon.*E-Mail/);
+    assert.match(satz, /Jahreszahlen bleiben/);
+    assert.match(satz, /richtig eingetragen/);
+  }
+  assert.match(sie, /\bIhre\b/);
+  assert.match(du, /\bdeine\b/);
+  assert.match(lehrstelle, /Schulen/);
+  assert.match(seite("einwilligung.js"), /"einwilligung\.ersetzt"/);
+});
