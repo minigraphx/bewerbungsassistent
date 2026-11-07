@@ -76,11 +76,11 @@
       "id": "person",
       "title": "Person und Kontakt",
       "intro": {
-        "job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen.",
-        "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen."
+        "job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen. Bevor ein Text zur KI geht, ersetzt die App Ihren Namen, Strasse, PLZ, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter. Firmen, Ausbildungen und Jahreszahlen bleiben stehen, damit die KI Ihren Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist.",
+        "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen. Bevor ein Text zur KI geht, ersetzt die App deinen Namen, Strasse, PLZ, Telefon, E-Mail, Geburtsdatum und deine Schulen durch Platzhalter. Betriebe und Jahreszahlen bleiben stehen, damit die KI deinen Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist."
       },
       "fields": [
-        {"id": "name", "label": "Vor- und Nachname", "type": "text", "required": true, "max": 80},
+        {"id": "name", "label": "Vor- und Nachname", "type": "text", "required": true, "max": 80, "hint": {"job": "Schreiben Sie den Namen genau wie im Lebenslauf, mit denselben Akzenten und Umlauten. In dieser Schreibweise ersetzt die App den Namen, bevor ein Text zur KI geht.", "apprenticeship": "Schreib deinen Namen genau wie im Lebenslauf, mit denselben Akzenten und Umlauten. In dieser Schreibweise ersetzt die App den Namen, bevor ein Text zur KI geht."}},
         {"id": "label", "label": "Berufsbezeichnung unter dem Namen (freiwillig)", "type": "text", "max": 100, "tracks": ["job"], "placeholder": "z.B. Kaufmann EFZ – Buchhaltung und Administration"},
         {"id": "address", "label": "Strasse und Nummer", "type": "text", "max": 100},
         {"id": "postalCode", "label": "PLZ", "type": "text", "format": "postalCode"},
