@@ -11,7 +11,7 @@ Statische Webseite der App: Startseite und Anleitung. Sie stellt die App vor und
 Das Ergebnis liegt in `docs/webseite/build/` (nicht im Repo). Zwei Adressen stehen nicht im Repo und kommen als Parameter oder aus der Umgebung, wie beim Build der App:
 
 - `--datenschutz` oder `BEWERBUNGSBEGLEITER_DATENSCHUTZ_URL`: die Datenschutz-Seite. Sie nennt den Namen des Betreibers.
-- `--downloads` oder `BEWERBUNGSBEGLEITER_UPDATE_URL`: der Update-Server. Die Knöpfe „Für Windows laden“ und „Für macOS laden“ zeigen direkt auf die Pakete dieser Version, `<Adresse>/<Version>/<Paket>`, so wie `update-ausrollen.yml` sie hochlädt.
+- `--downloads` oder `BEWERBUNGSBEGLEITER_UPDATE_URL`: der Update-Server. Die Knöpfe „Für Windows laden“, „Für macOS laden“ und „Für Linux laden“ zeigen direkt auf die Pakete dieser Version, `<Adresse>/<Version>/<Paket>`, so wie `update-ausrollen.yml` sie hochlädt.
 
 ## Woher die Inhalte kommen
 
