@@ -31,5 +31,6 @@ Write each requirement as one row under its section, in this format. The fence k
 - G19 [approved, must] Begrüssung und Dank im Dossier entwirft die KI aus den Bausteinen der Person; die Person passt die Texte an wie bei den anderen Vorlagen, und ohne Text entfällt die Seite. | gate: review
 - G20 [approved, must] Die Person kann in der Oberfläche für Fähigkeiten, Sprachen und Programme eine Stufe angeben oder offen lassen; ohne Angaben bleibt die Darstellung einheitlich ohne Bewertungen. | gate: review
 - G21 [approved, must] Auf der Seite Foto kann die Person jederzeit ein Foto hochladen, auch wenn sie bei der Einrichtung keines angegeben hat. Sie kann mehrere Fotos speichern und eines als aktiv kennzeichnen; neu erstellte Unterlagen nutzen das aktive Foto, bestehende Versionen bleiben unverändert. | gate: review
+- G22 [draft, must] Die Person kann jedem gefundenen Treffer eine eigene Bewertung von 1 bis 5 Sternen geben, ändern oder wieder entfernen. Die Trefferliste lässt sich nach eigener Bewertung, Note der KI oder Datum sortieren; die Wahl bleibt erhalten. Die eigene Bewertung geht nie an die KI und ändert deren Note nicht. | gate: review
 
 ## K · Constraints
