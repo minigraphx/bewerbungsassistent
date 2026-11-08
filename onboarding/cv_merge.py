@@ -1,11 +1,11 @@
 """Merge the answers of the form into an existing cv.yaml instead of rewriting it (#159, #160, G23).
 
 The form shows only part of the format in lebenslauf/README.md (cv_read.py reads that part). Saving changes only
-what the form shows and the answers changed. Keys it never writes (basics.image, basics.x-image, projects, teaching,
-x-* …), fields it cannot show on an entry (x-display, text, …), entries it shows nothing of, and comments and order
+what the form shows and the answers changed. Keys it never writes (basics.image, basics.x-image, x-* …), fields it
+cannot show on an entry (x-display on work, url on projects, …), entries it shows nothing of, and comments and order
 stay as they are (ruamel.yaml, like lebenslauf/fotoausschnitt.py). Answers are matched to entries by content, so an
-edited or removed entry does not hand its fields to another. Only the job track shows basics.label, basics.summary,
-basics.profiles and education.area; the apprenticeship track leaves them alone. Tags are answers since G24, but only
+edited or removed entry does not hand its fields to another. Only the job track shows basics.label, basics.url,
+basics.summary, basics.profiles, education.area, projects and teaching (G25); the apprenticeship track leaves them alone. Tags are answers since G24, but only
 where the answers give them (convert.build_cv with tag_keys): an empty list removes them, no key keeps those of the
 file, as for answers from before G24. A highlight with tags is written as {text, tags}, one without as plain text, and
 new lists of tags in the short form [a, b].
@@ -21,14 +21,16 @@ from ruamel.yaml.util import load_yaml_guess_indent
 
 import convert
 from cv_read import (BIRTH, INTERESTS, LOCATION, SECTIONS, TEXT_BASICS, detail_places, detail_values, entry_shown,
-                     highlight_shown, item_text, shown_text, tag_text)
+                     field_text, highlight_shown, item_text, tag_text)
 
 ABSENT = object()
 TAGS = "tags"
 HEADINGS = "x-beschriftungen"
-JOB_ONLY = {"basics": ("label", "summary", "profiles"), "education": ("area",)}
-IDENTITY = {"work": ("name", "position", "startDate"), "education": ("studyType", "institution"),
-            "certificates": ("name",), "languages": ("language",), "skills": ("name",), "interests": ("name",)}
+JOB_ONLY = {"basics": ("label", "url", "summary", "profiles"), "education": ("area",)}
+JOB_ONLY_SECTIONS = frozenset({"projects", "teaching"})
+IDENTITY = {"work": ("name", "position", "startDate"), "teaching": ("name", "position", "startDate"),
+            "projects": ("name", "description"), "education": ("studyType", "institution", "text"),
+            "certificates": ("name", "text"), "languages": ("language",), "skills": ("name",), "interests": ("name",)}
 DEFAULT_INDENT = 2
 COMMENT_SLOTS, MAP_TAIL, SEQ_TAIL = 4, 2, 0  # layout of ruamel's comment entries (ca.items)
 NESTED_MAPPING = re.compile(r"^( *)[^ #\-][^\n]*:[ \t]*\n(?:[ \t]*(?:#[^\n]*)?\n)*( *)[^ #\-\n]", re.M)
@@ -83,7 +85,7 @@ def _yaml(text: str) -> YAML:
 def _merge_cv(doc: CommentedMap, new_cv: dict, job: bool) -> bool:
     changes = [_merge_basics(doc, new_cv.get("basics", {}), job),
                *(_merge_list(doc, key, new_cv.get(key, []), _entry_kind(key, fields, job))
-                 for key, fields in SECTIONS.items()),
+                 for key, fields in SECTIONS.items() if job or key not in JOB_ONLY_SECTIONS),
                _merge_list(doc, "interests", new_cv.get("interests", []), _entry_kind("interests", INTERESTS, job)),
                _merge_headings(doc, new_cv)]
     return any(changes)
@@ -110,7 +112,7 @@ def _merge_basics(doc: CommentedMap, new: dict, job: bool) -> bool:
 
 def _merge_scalar(entry: dict, key: str, new: object) -> bool:
     """Set or remove one text field; a value the form could not show stays unless the answers give one."""
-    old_text = shown_text(entry.get(key)) if key in entry else ""
+    old_text = field_text(key, entry.get(key)) if key in entry else ""
     new_text = "" if new is ABSENT or new is None else new
     if (old_text is None and not new_text) or old_text == new_text:
         return False

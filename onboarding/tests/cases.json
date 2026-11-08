@@ -1453,6 +1453,364 @@
           "code": "format"
         }
       ]
+    },
+    {
+      "name": "a project with a group and tags passes",
+      "base": "job",
+      "set": [
+        [
+          "data.projects",
+          [
+            {
+              "name": "datenatlas",
+              "description": "Offene Verkehrsdaten",
+              "group": "more",
+              "tags": [
+                "daten"
+              ]
+            },
+            {
+              "name": "Spiel",
+              "group": "main"
+            }
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a project group outside the options",
+      "base": "job",
+      "set": [
+        [
+          "data.projects",
+          [
+            {
+              "name": "datenatlas",
+              "group": "archiv"
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "projects.0.group",
+          "code": "option"
+        }
+      ]
+    },
+    {
+      "name": "a project needs a name",
+      "base": "job",
+      "set": [
+        [
+          "data.projects",
+          [
+            {
+              "description": "Offene Verkehrsdaten"
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "projects.0.name",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "a project tag with a comma",
+      "base": "job",
+      "set": [
+        [
+          "data.projects",
+          [
+            {
+              "name": "datenatlas",
+              "tags": [
+                "a,b"
+              ]
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "projects.0.tags.0",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "teaching with a display instead of a start date passes",
+      "base": "job",
+      "set": [
+        [
+          "data.teaching",
+          [
+            {
+              "position": "Kursleiterin Programmieren",
+              "name": "Volkshochschule Beispiel",
+              "x-display": "seit 2020"
+            }
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "teaching needs a start date or a display",
+      "base": "job",
+      "set": [
+        [
+          "data.teaching",
+          [
+            {
+              "position": "Kursleiterin Programmieren",
+              "name": "Volkshochschule Beispiel",
+              "x-display": "  "
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "teaching.0.startDate",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "teaching takes highlights with tags and tags on the entry",
+      "base": "job",
+      "set": [
+        [
+          "data.teaching",
+          [
+            {
+              "position": "Kursleiterin Programmieren",
+              "name": "Volkshochschule Beispiel",
+              "startDate": "2020",
+              "highlights": [
+                "Python",
+                {
+                  "text": "pandas",
+                  "tags": [
+                    "daten"
+                  ]
+                }
+              ],
+              "tags": [
+                "bildung"
+              ]
+            }
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "teaching dates keep their order",
+      "base": "job",
+      "set": [
+        [
+          "data.teaching",
+          [
+            {
+              "position": "Kursleiterin Programmieren",
+              "name": "Volkshochschule Beispiel",
+              "startDate": "2020",
+              "endDate": "2019"
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "teaching.0.endDate",
+          "code": "notBefore"
+        }
+      ]
+    },
+    {
+      "name": "a too long display",
+      "base": "job",
+      "set": [
+        [
+          "data.teaching",
+          [
+            {
+              "position": "Kursleiterin Programmieren",
+              "name": "Volkshochschule Beispiel",
+              "startDate": "2020"
+            }
+          ]
+        ],
+        [
+          "data.teaching.0.x-display",
+          {
+            "$repeat": "x",
+            "times": 41
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "teaching.0.x-display",
+          "code": "max"
+        }
+      ]
+    },
+    {
+      "name": "an education entry with only a free text passes",
+      "base": "job",
+      "set": [
+        [
+          "data.education.0",
+          {
+            "text": "Matura, Gymnasium Beispiel, 2010"
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a certificate with only a free text passes",
+      "base": "job",
+      "set": [
+        [
+          "data.certificates.0",
+          {
+            "text": "Kurs in Projektleitung, 2021"
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a blank free text does not stand in for the name",
+      "base": "job",
+      "set": [
+        [
+          "data.certificates.0",
+          {
+            "text": "  ",
+            "date": "2021"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "certificates.0.name",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "the free text is one line",
+      "base": "job",
+      "set": [
+        [
+          "data.education.0.text",
+          "Matura\nGymnasium"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "education.0.text",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "a free text of the apprenticeship track stands in for the school",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.education.0",
+          {
+            "text": "Sekundarschule Beispiel, seit 2023"
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a website in the wrong format",
+      "base": "job",
+      "set": [
+        [
+          "data.person.url",
+          "example"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.url",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a website passes",
+      "base": "job",
+      "set": [
+        [
+          "data.person.url",
+          "www.example.ch"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "the website is not on the apprenticeship track",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.person.url",
+          "www.example.ch"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.url",
+          "code": "unknown"
+        }
+      ]
+    },
+    {
+      "name": "projects and teaching are not on the apprenticeship track",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.projects",
+          [
+            {
+              "name": "Spiel"
+            }
+          ]
+        ],
+        [
+          "data.teaching",
+          [
+            {
+              "position": "Kursleiterin Programmieren",
+              "name": "Volkshochschule Beispiel"
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "projects",
+          "code": "unknown"
+        },
+        {
+          "path": "teaching",
+          "code": "unknown"
+        }
+      ]
     }
   ],
   "documentCases": [

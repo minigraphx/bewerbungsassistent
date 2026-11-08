@@ -3,7 +3,8 @@
 The page „Meine Angaben“ opens with these answers. Only what the form can show comes back; an entry without
 anything the form shows does not come back at all. All of it stays in the file: cv_merge.py puts the answers back
 without touching the rest. The keys below are the field ids of form.json (sections marked "cv"). Tags (G24) come
-along on entries and on highlights; a highlight with tags is {text, tags}, as in the file.
+along on entries and on highlights; a highlight with tags is {text, tags}, as in the file. Projects, teaching, the free
+texts of education and certificates and basics.url came with G25; a project group the form does not offer stays out.
 """
 import datetime
 import logging
@@ -18,18 +19,23 @@ log = logging.getLogger(__name__)
 
 CV = "cv.yaml"
 BIRTH = "geboren "  # convert._basics writes the birth date as the detail "geboren <date>"
-TEXT_BASICS = ("name", "label", "email", "phone")
+TEXT_BASICS = ("name", "label", "email", "url", "phone")
 LOCATION = ("address", "postalCode", "city")
 DATES = ("startDate", "endDate")
 SECTIONS = {
     "work": ("position", "name", "location", *DATES, "highlights", "tags"),
-    "education": ("studyType", "area", "institution", *DATES),
-    "certificates": ("name", "issuer", "date", "tags"),
+    "teaching": ("position", "name", "location", *DATES, "x-display", "highlights", "tags"),
+    "projects": ("name", "description", "group", "tags"),
+    "education": ("studyType", "area", "institution", *DATES, "text"),
+    "certificates": ("name", "issuer", "date", "text", "tags"),
     "languages": ("language", "fluency"),
     "skills": ("name", "keywords", "tags"),
 }
 INTERESTS = ("name",)
-TAG = re.compile(validation.load_form()["formats"]["tag"]["pattern"])
+FORM = validation.load_form()
+TAG = re.compile(FORM["formats"]["tag"]["pattern"])
+CHOICES = {"group": next(f["options"] for s in FORM["sections"] if s["id"] == "projects"
+                         for f in s["fields"] if f["id"] == "group")}
 
 
 def shown_text(value: object) -> str | None:
@@ -45,6 +51,12 @@ def shown_text(value: object) -> str | None:
     if isinstance(value, datetime.date):
         return value.isoformat()
     return None
+
+
+def field_text(key: str, value: object) -> str | None:
+    """A field of an entry as the form shows it; a choice the form does not offer it cannot show."""
+    text = shown_text(value)
+    return None if key in CHOICES and text and text not in CHOICES[key] else text
 
 
 def item_text(item: object) -> str | None:
@@ -90,7 +102,7 @@ def entry_shown(entry: object, fields: tuple[str, ...]) -> dict | None:
             lines = [line for line in map(LIST_SHOWN[key], value) if line] if isinstance(value, list) else []
             if lines:
                 shown[key] = lines
-        elif text := shown_text(value):
+        elif text := field_text(key, value):
             shown[key] = text
     return shown or None
 

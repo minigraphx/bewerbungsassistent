@@ -60,7 +60,7 @@ test("a form field that cv.yaml holds is marked, and evidence is not", () => {
   assert.equal(work.cv, true);
   assert.equal(work.fields.find((f) => f.id === "evidence").cv, false);
   assert.deepEqual(form.sections.filter((s) => s.cv).map((s) => s.id),
-    ["person", "summary", "work", "education", "certificates", "languages", "skills", "interests"]);
+    ["person", "summary", "work", "teaching", "projects", "education", "certificates", "languages", "skills", "interests"]);
 });
 
 test("marks of suggestions in the CV steps go, others stay", () => {

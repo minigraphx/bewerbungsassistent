@@ -13,8 +13,8 @@ const STEP_GROUPS = [
   {
     id: "career",
     title: { job: "Werdegang", apprenticeship: "Schule und Schnuppern" },
-    meta: { job: "Stationen, Ausbildung, Kurse", apprenticeship: "Schule, Schnupperlehren, Tests" },
-    sections: { job: ["work", "education", "certificates"], apprenticeship: ["education", "work", "certificates"] },
+    meta: { job: "Stationen, Lehre, Projekte, Ausbildung, Kurse", apprenticeship: "Schule, Schnupperlehren, Tests" },
+    sections: { job: ["work", "teaching", "projects", "education", "certificates"], apprenticeship: ["education", "work", "certificates"] },
   },
   {
     id: "abilities",
