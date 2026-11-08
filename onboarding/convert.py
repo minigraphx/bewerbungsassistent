@@ -23,13 +23,21 @@ def convert_bundle(form: dict, bundle: dict, today: datetime.date) -> dict[str, 
     """Map a bundle that passed validation.validate_bundle to {relative path: file text}."""
     data = bundle["data"]
     track = bundle["track"]
-    note = f"Erstellt mit der Einstiegsvorlage am {today.day}.{today.month}.{today.year}"
+    note = made_on(today)
     return {
-        "cv.yaml": f"# {note}. Format: lebenslauf/README.md\n" + _dump_yaml(build_cv(data, track)),
+        "cv.yaml": cv_file(build_cv(data, track), note),
         "suchprofil.md": markdown_files.search_profile(data, track, note),
         "anschreiben/stil.md": markdown_files.style_profile(form, data, track, note),
         "anschreiben/bausteine.md": markdown_files.building_blocks(data, track, note),
     }
+
+
+def made_on(today: datetime.date) -> str:
+    return f"Erstellt mit der Einstiegsvorlage am {today.day}.{today.month}.{today.year}"
+
+
+def cv_file(cv: dict, note: str) -> str:
+    return f"# {note}. Format: lebenslauf/README.md\n" + _dump_yaml(cv)
 
 
 def build_cv(data: dict, track: str) -> dict:

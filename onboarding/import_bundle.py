@@ -6,6 +6,7 @@ into `dokumente/` with a list for the skill einstieg (`dokumente/neu.yaml`). The
 it is size-limited, parsed and validated against form.json before anything is written. Existing files
 are only replaced with --force, and every file is saved as a draft before and after (like
 `bewerbungen/entwurf.py`), so the previous state can be restored in the app under „Entwürfe“.
+Replacing keeps what the form cannot show: see `cv_merge.py` for the CV and `search_terms.py` for the search.
 
 If documents came along and answers are only missing (not wrong), the basics are not written yet: the
 answers are kept as `dokumente/einstieg.json` and the skill einstieg completes them from the documents.
@@ -22,6 +23,7 @@ import sys
 import paths  # noqa: F401  (makes the module bewerbungen importable)
 import archive
 import convert
+import cv_merge
 import import_documents
 import search_plan
 import search_terms
@@ -36,6 +38,7 @@ MAX_BYTES = 1_000_000
 DRAFT_BEFORE = "Vor dem Import der Einstiegsdatei"
 DRAFT_AFTER = "Import der Einstiegsdatei"
 NOT_A_BUNDLE = "Die Datei ist keine gültige Einstiegsdatei (JSON)."
+CV = "cv.yaml"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -45,6 +48,7 @@ class ImportResult:
     documents: list[str]
     incomplete: bool
     kept_terms: tuple[str, ...] = ()
+    kept_files: tuple[str, ...] = ()  # left as they were: replacing would lose what the form cannot show
 
 
 def read_bundle(path: pathlib.Path) -> object:
@@ -97,12 +101,12 @@ def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.
         track = bundle.get("track") if isinstance(bundle, dict) else None
         raise ImportRejected([validation.describe(form, track, e) for e in errors])
     data_dir = data_dir.resolve()
-    written, kept = ([], ()) if incomplete else _write_basics(form, bundle, data_dir, today, force)
+    written, kept, unchanged = ([], (), ()) if incomplete else _write_basics(form, bundle, data_dir, today, force)
     data_dir.mkdir(parents=True, exist_ok=True)
     stored = import_documents.store_documents(data_dir, found, today, raw if incomplete else None)
     if not incomplete:
         import_documents.discard_kept_answers(data_dir)
-    return ImportResult(written, stored, incomplete, kept)
+    return ImportResult(written, stored, incomplete, kept, unchanged)
 
 
 def _keeping_search_terms(files: dict[str, str], data_dir: pathlib.Path) -> tuple[dict[str, str], tuple[str, ...]]:
@@ -114,9 +118,26 @@ def _keeping_search_terms(files: dict[str, str], data_dir: pathlib.Path) -> tupl
     return {**files, search_plan.PROFILE: text}, kept
 
 
+def _keeping_cv_content(files: dict[str, str], bundle: dict, data_dir: pathlib.Path,
+                        today: datetime.date) -> tuple[dict[str, str], tuple[str, ...]]:
+    """Content the form cannot show must survive replacing; if merging cannot keep it, the CV stays as it was."""
+    path = data_dir / CV
+    if not path.is_file():
+        return files, ()
+    try:
+        existing = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        existing = None
+    cv = None if existing is None else cv_merge.merged(existing, convert.build_cv(bundle["data"], bundle["track"]))
+    if cv is None:
+        return {rel: text for rel, text in files.items() if rel != CV}, (CV,)
+    return {**files, CV: convert.cv_file(cv, convert.made_on(today))}, ()
+
+
 def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datetime.date,
-                  force: bool) -> tuple[list[str], tuple[str, ...]]:
+                  force: bool) -> tuple[list[str], tuple[str, ...], tuple[str, ...]]:
     files = convert.convert_bundle(form, bundle, today)
+    files, unchanged = _keeping_cv_content(files, bundle, data_dir, today) if force else (files, ())
     merged, kept = _keeping_search_terms(files, data_dir) if force else (files, ())
     encoded = _encode(merged)
     targets = {rel: im_ordner(data_dir, rel) for rel in encoded}
@@ -130,7 +151,7 @@ def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datet
     for rel, content in encoded.items():
         schreibe_atomar(targets[rel], content)
     sichere(data_dir, list(encoded), DRAFT_AFTER)
-    return list(encoded), kept
+    return list(encoded), kept, unchanged
 
 
 def _encode(files: dict[str, str]) -> dict[str, bytes]:
@@ -161,6 +182,9 @@ def _report(result: ImportResult) -> None:
         print("Übernommen:", *(f"- {rel}" for rel in result.written), sep="\n")
     if result.kept_terms:
         print("Aus der bisherigen Suche behalten:", *(f"- {term}" for term in result.kept_terms), sep="\n")
+    if result.kept_files:
+        print("Unverändert gelassen, weil sie mehr enthalten, als das Formular zeigt:",
+              *(f"- {rel}" for rel in result.kept_files), sep="\n")
     if result.documents:
         print("Unterlagen abgelegt:", *(f"- {rel}" for rel in result.documents), sep="\n")
     if result.incomplete:

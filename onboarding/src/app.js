@@ -736,7 +736,8 @@ async function takeOver(replace) {
     storeNow();
     const sent = state; // a change while this runs is not taken over
     const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
-    existingBasics = result.geschrieben.length ? result.geschrieben : existingBasics;
+    const present = [...result.geschrieben, ...(result.unveraendert || [])];
+    existingBasics = present.length ? present : existingBasics;
     notTakenOver = state !== sent || Boolean(result.unvollstaendig);
     storeNow();
     done.hidden = false;
@@ -745,6 +746,9 @@ async function takeOver(replace) {
         ? APP_TEXT[state.track].incomplete
         : APP_TEXT[state.track].done,
       (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
+      result.hinweis ? `${result.hinweis} ` : "",
+      result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "",
+      result.hinweis ? " · " : "",
       el("a", { href: "/" }, "Zu den Bewerbungen"),
     );
   } catch (error) {

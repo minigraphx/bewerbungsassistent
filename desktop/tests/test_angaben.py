@@ -482,3 +482,20 @@ def test_a_state_from_before_counts_as_taken_over(started):
     server, _, _ = started
     call(server, "/api/angaben/stand", {"stand": {"track": "job", "data": {}}})
     assert call(server, "/api/angaben/offen") == (200, {"offen": False})
+
+
+def test_replacing_keeps_a_cv_the_form_cannot_show_and_says_so(started):
+    server, folder, _ = started
+    cv = folder / "cv.yaml"
+    cv.write_text("basics:\n  name: Alt Beispiel\n  x-image: {zoom: 1.2}\n  url: https://beispiel.example\n"
+                  "work:\n  - position: Alte Stelle\n    tags: [daten]\n"
+                  "    highlights: [{text: Ein Punkt, tags: [daten]}]\n"
+                  "projects:\n  - name: Beispielprojekt\nteaching:\n  - position: Kursleiterin\n", encoding="utf-8")
+    before = cv.read_bytes()
+
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": True})
+
+    assert status == 200 and cv.read_bytes() == before
+    assert answer["unveraendert"] == ["cv.yaml"]
+    assert "cv.yaml" not in answer["geschrieben"] and "suchprofil.md" in answer["geschrieben"]
+    assert "Inhalte" in answer["hinweis"] and "ß" not in answer["hinweis"]

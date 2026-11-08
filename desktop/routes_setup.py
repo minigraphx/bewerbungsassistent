@@ -153,4 +153,4 @@ def _import(state: Setup, k, body, json_antwort):
     except import_bundle.ImportRejected as rejected:
         return rejected_answer(rejected, replace, json_antwort)
     return json_antwort({"geschrieben": result.written, "dokumente": result.documents,
-                         "unvollstaendig": result.incomplete})
+                         "unvollstaendig": result.incomplete, "unveraendert": list(result.kept_files)})
