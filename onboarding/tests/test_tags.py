@@ -157,7 +157,7 @@ def test_removing_all_tags_of_an_entry_removes_the_key(tmp_path):
     path = write_cv(tmp_path)
 
     def edit(data):
-        del data["certificates"][0]["tags"]
+        data["certificates"][0]["tags"] = []
 
     cv = yaml.safe_load(save(tmp_path, bundle_from(path, edit)))
 
@@ -183,7 +183,7 @@ def test_a_highlight_without_tags_is_written_as_plain_text(tmp_path):
     path = write_cv(tmp_path)
 
     def edit(data):
-        data["work"][0]["highlights"][1] = "Datenpipelines mit Airflow"
+        data["work"][0]["highlights"][1] = {"text": "Datenpipelines mit Airflow", "tags": []}
 
     highlights = yaml.safe_load(save(tmp_path, bundle_from(path, edit)))["work"][0]["highlights"]
 
@@ -207,11 +207,99 @@ def test_a_highlight_keeps_its_other_fields_when_its_tags_go(tmp_path):
     path = write_cv(tmp_path, CV.replace("        tags: [daten]\n", "        tags: [daten]\n        prio: 1\n"))
 
     def edit(data):
-        data["work"][0]["highlights"][1] = "Datenpipelines mit Airflow"
+        data["work"][0]["highlights"][1] = {"text": "Datenpipelines mit Airflow", "tags": []}
 
     highlights = yaml.safe_load(save(tmp_path, bundle_from(path, edit)))["work"][0]["highlights"]
 
     assert highlights[1] == {"text": "Datenpipelines mit Airflow", "prio": 1}
+
+
+def without_tags(data: dict) -> None:
+    """An answer from before G24: no tags key anywhere, highlights as plain text."""
+    for section in ("work", "skills", "certificates"):
+        for entry in data[section]:
+            entry.pop("tags", None)
+            if "highlights" in entry:
+                entry["highlights"] = [line["text"] if isinstance(line, dict) else line for line in entry["highlights"]]
+
+
+def test_an_old_bundle_without_tags_keeps_them_byte_for_byte(tmp_path):
+    path = write_cv(tmp_path)
+
+    assert save(tmp_path, bundle_from(path, without_tags)) == CV
+
+
+def test_an_old_bundle_with_a_change_keeps_the_tags_of_matching_entries(tmp_path):
+    path = write_cv(tmp_path)
+
+    def edit(data):
+        without_tags(data)
+        data["work"][0]["position"] = "Senior-Entwicklerin"
+        data["work"][0]["highlights"][1] = "Datenpipelines mit Airflow und dbt"
+        data["skills"].reverse()
+
+    cv = yaml.safe_load(save(tmp_path, bundle_from(path, edit)))
+
+    assert cv["work"][0]["position"] == "Senior-Entwicklerin" and cv["work"][0]["tags"] == ["web", "daten"]
+    assert cv["work"][0]["highlights"][1] == {"text": "Datenpipelines mit Airflow und dbt", "tags": ["daten"]}
+    assert {s["name"]: s.get("tags") for s in cv["skills"]} == {"Daten": ["daten"], "Programme": None}
+    assert cv["certificates"][0]["tags"] == ["ki"]
+
+
+def test_an_explicit_empty_list_removes_the_tags(tmp_path):
+    path = write_cv(tmp_path)
+
+    def edit(data):
+        without_tags(data)
+        data["work"][0]["tags"] = []
+        data["work"][0]["highlights"][1] = {"text": "Datenpipelines mit Airflow", "tags": []}
+
+    cv = yaml.safe_load(save(tmp_path, bundle_from(path, edit)))
+
+    assert "tags" not in cv["work"][0]
+    assert cv["work"][0]["highlights"] == ["Plattform für Kundendaten", "Datenpipelines mit Airflow"]
+    assert cv["skills"][0]["tags"] == ["daten"] and cv["certificates"][0]["tags"] == ["ki"]
+
+
+def test_what_the_page_sends_after_removing_a_tag_removes_it(tmp_path):
+    path = write_cv(tmp_path)
+
+    def removed_on_the_page(data):
+        # what model.js collectBundle sends after the person cleared the tags (tags.test.cjs checks that shape)
+        data["certificates"][0]["tags"] = []
+        data["work"][0]["highlights"][1] = {"text": "Datenpipelines mit Airflow", "tags": []}
+        data["work"][1]["highlights"][0] = {"text": "Wartung von Webshops", "tags": []}
+
+    after = save(tmp_path, bundle_from(path, removed_on_the_page))
+
+    cv = yaml.safe_load(after)
+    assert "tags" not in cv["certificates"][0] and cv["work"][0]["highlights"][1] == "Datenpipelines mit Airflow"
+    assert cv["work"][1]["highlights"] == ["Wartung von Webshops"] and "tags: []" not in after
+
+
+def test_a_new_entry_with_an_empty_list_of_tags_has_none(tmp_path):
+    path = write_cv(tmp_path)
+
+    def edit(data):
+        data["certificates"].append({"name": "Scrum Master", "tags": []})
+        data["work"][1]["highlights"].append({"text": "Shop-Migration", "tags": []})
+
+    after = save(tmp_path, bundle_from(path, edit))
+
+    cv = yaml.safe_load(after)
+    assert cv["certificates"][1] == {"name": "Scrum Master"}
+    assert cv["work"][1]["highlights"] == ["Wartung von Webshops", "Shop-Migration"]
+
+
+def test_an_empty_cv_file_gets_no_empty_tags(tmp_path):
+    write_cv(tmp_path, "")
+    bundle = base_bundle("job")
+    bundle["data"]["work"][0]["tags"] = []
+    bundle["data"]["work"][0]["highlights"][0] = {"text": "Plattform", "tags": []}
+
+    after = save(tmp_path, bundle)
+
+    assert "tags" not in after and yaml.safe_load(after)["work"][0]["highlights"][0] == "Plattform"
 
 
 def test_a_new_tagged_highlight_and_entry_come_in(tmp_path):

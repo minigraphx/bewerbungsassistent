@@ -5,8 +5,10 @@ what the form shows and the answers changed. Keys it never writes (basics.image,
 x-* …), fields it cannot show on an entry (x-display, text, …), entries it shows nothing of, and comments and order
 stay as they are (ruamel.yaml, like lebenslauf/fotoausschnitt.py). Answers are matched to entries by content, so an
 edited or removed entry does not hand its fields to another. Only the job track shows basics.label, basics.summary,
-basics.profiles and education.area; the apprenticeship track leaves them alone. Tags are answers since G24: a highlight
-with tags is written as {text, tags}, one without as plain text, and new lists of tags in the short form [a, b].
+basics.profiles and education.area; the apprenticeship track leaves them alone. Tags are answers since G24, but only
+where the answers give them (convert.build_cv with tag_keys): an empty list removes them, no key keeps those of the
+file, as for answers from before G24. A highlight with tags is written as {text, tags}, one without as plain text, and
+new lists of tags in the short form [a, b].
 """
 import dataclasses
 import io
@@ -53,7 +55,7 @@ def merged_text(existing_text: str, new_cv: dict, track: str, note: str) -> str 
     except (YAMLError, ValueError):
         return None
     if doc is None:
-        return convert.cv_file(new_cv, note)
+        return convert.cv_file(_settled(new_cv), note)
     if not isinstance(doc, CommentedMap) or not isinstance(doc.get("basics", {}), (dict, type(None))):
         return None
     # doc is a fresh copy of the file, changed only here
@@ -172,7 +174,8 @@ def _merge_list(parent: CommentedMap, key: str, new: list, kind: Kind) -> bool:
         parent[key] = _new_value(key, new)
         return True
     old_shown = [kind.shown(item) for item in old]
-    pairs = _match(old_shown, [kind.shown(item) for item in new], kind.fallback)
+    kept = [_kept_fields(item, kind) for item in new]
+    pairs = _match(old_shown, [kind.shown(item) for item in new], kind.fallback, kept)
     edits = [_merge_item(old, j, new[i], kind) for i, j in enumerate(pairs)]
     picks = list(zip(edits, pairs))
     for index, shown in enumerate(old_shown):
@@ -191,6 +194,8 @@ def _merge_item(old: list, j: int | None, new: object, kind: Kind) -> object:
         return kind.merge(item, new)
     if isinstance(new, dict):
         for key in kind.fields:
+            if key in KEPT_UNLESS_GIVEN and key not in new:
+                continue
             if key in LIST_KINDS:
                 _merge_list(item, key, new.get(key, []), LIST_KINDS[key])
             else:
@@ -204,12 +209,28 @@ def _merge_item(old: list, j: int | None, new: object, kind: Kind) -> object:
     return new
 
 
-def _match(old_shown: list, new_shown: list, fallback: Pairing) -> list[int | None]:
+def _kept_fields(answer: object, kind: Kind) -> tuple[str, ...]:
+    """Fields an answer leaves to the file: tags it does not give (a highlight as plain text gives none)."""
+    if kind is HIGHLIGHTS:
+        return (TAGS,) if not isinstance(answer, dict) or TAGS not in answer else ()
+    return tuple(key for key in kind.fields if key in KEPT_UNLESS_GIVEN and isinstance(answer, dict) and key not in answer)
+
+
+def _without(shown: object, keys: tuple[str, ...]) -> object:
+    """What an answer that leaves keys to the file is compared on; a line without its tags is its text."""
+    if not keys or not isinstance(shown, dict):
+        return shown
+    rest = {key: value for key, value in shown.items() if key not in keys}
+    return rest["text"] if list(rest) == ["text"] else rest
+
+
+def _match(old_shown: list, new_shown: list, fallback: Pairing, kept: list[tuple[str, ...]]) -> list[int | None]:
     """For each answer the index of the old entry it continues, or None for a new one; equal ones first."""
     pairs: list[int | None] = [None] * len(new_shown)
     free = [i for i, shown in enumerate(old_shown) if shown is not None]
     for i, shown in enumerate(new_shown):
-        j = i if i in free and old_shown[i] == shown else next((k for k in free if old_shown[k] == shown), None)
+        same = [k for k in free if _without(old_shown[k], kept[i]) == _without(shown, kept[i])]
+        j = i if i in same else next(iter(same), None)
         if j is not None:
             pairs[i] = j
             free.remove(j)
@@ -237,15 +258,18 @@ def _same_text_or_place(i: int, free: list[int], old_shown: list, shown: object)
 
 
 def _merge_highlight(item: object, new: object) -> object:
-    """The highlight that continues item with the answer: text and tags from the answer, other fields kept.
+    """The highlight that continues item with the answer: its text, its tags if it gives them, other fields kept.
 
     One that loses its last tag becomes plain text again, unless it holds more than its text.
     """
-    text, tags = (new["text"], new["tags"]) if isinstance(new, dict) else (new, [])
+    text = new["text"] if isinstance(new, dict) else new
+    tags = new.get(TAGS) if isinstance(new, dict) else None  # None: the answer leaves the tags to the file
     if not isinstance(item, dict):
         return item if item_text(item) == text and not tags else _commented({"text": text, TAGS: tags} if tags else text)
     if item_text(item) != text:
         item["text"] = text
+    if tags is None:
+        return item
     had_tags = TAGS in item
     _merge_list(item, TAGS, tags, TAG_LINES)
     if had_tags and TAGS not in item and list(item) == ["text"]:
@@ -293,8 +317,23 @@ def _put_list(parent: CommentedMap, key: str, picks: list[tuple[object, int | No
     return True
 
 
+def _settled(value: object) -> object:
+    """New answers as the file writes them: no empty list of tags, a highlight without tags as plain text."""
+    if isinstance(value, (CommentedMap, CommentedSeq)):
+        return value
+    if isinstance(value, list):
+        return [_settled(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    if value.get(TAGS) == []:
+        rest = {key: item for key, item in value.items() if key != TAGS}
+        return rest["text"] if list(rest) == ["text"] else _settled(rest)
+    return {key: _settled(item) for key, item in value.items()}
+
+
 def _commented(value: object) -> object:
     """New answers as round-trip nodes, so blank lines and comments can attach to them."""
+    value = _settled(value)
     if isinstance(value, dict) and not isinstance(value, CommentedMap):
         return CommentedMap((key, _new_value(key, item)) for key, item in value.items())
     if isinstance(value, list) and not isinstance(value, CommentedSeq):
@@ -361,4 +400,5 @@ LINES = Kind(item_text, (), _same_place)
 TAG_LINES = Kind(tag_text, (), _same_place)
 HIGHLIGHTS = Kind(highlight_shown, (), _same_text_or_place, _merge_highlight)
 LIST_KINDS = {"highlights": HIGHLIGHTS, "keywords": LINES, TAGS: TAG_LINES}
+KEPT_UNLESS_GIVEN = frozenset({TAGS})
 PROFILES = Kind(_profile_shown, (), _no_pairing)

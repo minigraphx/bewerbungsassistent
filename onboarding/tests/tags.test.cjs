@@ -38,7 +38,7 @@ test("tags are typed with commas and read back as a list", () => {
   assert.equal(model.tagsToText(undefined), "");
 });
 
-test("the bundle keeps tags trimmed and writes a highlight without tags as plain text", () => {
+test("the bundle keeps tags trimmed and an edited line with its tags, even none", () => {
   const state = {
     track: "job",
     data: {
@@ -52,7 +52,7 @@ test("the bundle keeps tags trimmed and writes a highlight without tags as plain
   const [work] = model.collectBundle(form, state, NOW).data.work;
 
   assert.deepEqual(work.tags, ["web", "daten"]);
-  assert.deepEqual(work.highlights, ["Plattform", { text: "Pipelines", tags: ["daten"] }, "Ohne"]);
+  assert.deepEqual(work.highlights, ["Plattform", { text: "Pipelines", tags: ["daten"] }, { text: "Ohne", tags: [] }]);
 });
 
 test("lines of the wrong shape are not taken from a loaded file", () => {
@@ -93,6 +93,40 @@ test("a field only the form holds stays on a station with tags", () => {
   const state = model.fillFromCv(form, stored, { work: [{ position: "A", name: "B", startDate: "2019", tags: ["alt"] }] });
 
   assert.equal(state.data.work[0].evidence, "Zeugnis");
+});
+
+// G23: what the form does not send stays in cv.yaml. A missing tags key keeps the tags of the file, an empty list
+// removes them; so the page sends the key wherever the person changed tags, and leaves it out where it never knew them.
+
+test("the bundle sends the tags an entry has on the page, an empty list included, and leaves out unknown ones", () => {
+  const state = { track: "job", data: { certificates: [{ name: "Kurs", tags: [] }, { name: "Alt" }, { name: "Neu", tags: [" ki "] }] } };
+
+  const data = model.collectBundle(form, state, NOW).data;
+
+  assert.deepEqual(data.certificates, [{ name: "Kurs", tags: [] }, { name: "Alt" }, { name: "Neu", tags: ["ki"] }]);
+});
+
+test("an entry with nothing but an empty list of tags is blank and not sent", () => {
+  const state = { track: "job", data: { certificates: [{ tags: [] }, { name: "Kurs" }], work: [{ highlights: [{ text: " ", tags: [] }], tags: [] }] } };
+
+  assert.equal(model.isBlankItem({ tags: [] }), true);
+  const data = model.collectBundle(form, state, NOW).data;
+  assert.deepEqual(data.certificates, [{ name: "Kurs" }]);
+  assert.equal("work" in data, false);
+});
+
+test("removing a tag on the page sends an empty list for the entry and for the line", () => {
+  const cv = { certificates: [{ name: "Kurs", tags: ["ki"] }],
+    work: [{ position: "A", name: "B", startDate: "2019", highlights: [{ text: "Pipelines", tags: ["daten"] }] }] };
+  let state = model.fillFromCv(form, { track: "job", data: {} }, cv);
+
+  state = model.setValue(state, ["certificates", 0, "tags"], model.parseTags(""));
+  state = model.setValue(state, ["work", 0, "highlights"], [model.taggedLine("Pipelines", [])]);
+  const data = model.collectBundle(form, state, NOW).data;
+
+  assert.deepEqual(data.certificates, [{ name: "Kurs", tags: [] }]);
+  assert.deepEqual(data.work[0].highlights, [{ text: "Pipelines", tags: [] }]);
+  assert.deepEqual(validateBundle(form, { ...cases.bases.job, data: { ...cases.bases.job.data, ...data } }), []);
 });
 
 test("suggestions are the tags of the app and those already typed, each once and sorted", () => {
@@ -183,7 +217,7 @@ test("editing a row changes its line, tags make it text and tags", () => {
   assert.deepEqual(plain(changes.at(-1)), [{ text: "Plattform", tags: ["web"] }, { text: "Pipelines mit dbt", tags: ["daten"] }]);
 
   typeInto(byTag(second, "input")[1], "");
-  assert.deepEqual(plain(changes.at(-1)), [{ text: "Plattform", tags: ["web"] }, "Pipelines mit dbt"]);
+  assert.deepEqual(plain(changes.at(-1)), [{ text: "Plattform", tags: ["web"] }, { text: "Pipelines mit dbt", tags: [] }]);
 });
 
 test("rows are added up to the limit and removed with their tags", () => {

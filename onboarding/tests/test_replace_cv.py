@@ -132,10 +132,23 @@ def test_tags_are_answers_since_the_form_shows_them(tmp_path):
     assert work["highlights"] == [{"text": "Plattform für Kundendaten", "tags": ["daten"]}, "Datenpipelines"]
 
 
-def test_answers_without_tags_take_them_away(tmp_path):
+def test_answers_without_tags_keep_them(tmp_path):
     path = existing_cv(tmp_path, TAGGED_MATCH)
 
     replace(tmp_path)
+
+    work = yaml.safe_load(path.read_text(encoding="utf-8"))["work"][0]
+    assert work["tags"] == ["daten"]
+    assert work["highlights"] == [{"text": "Plattform für Kundendaten", "tags": ["daten"]}, "Datenpipelines"]
+
+
+def test_answers_with_empty_tags_take_them_away(tmp_path):
+    path = existing_cv(tmp_path, TAGGED_MATCH)
+    bundle = base_bundle("job")
+    bundle["data"]["work"][0]["tags"] = []
+    bundle["data"]["work"][0]["highlights"][0] = {"text": "Plattform für Kundendaten", "tags": []}
+
+    import_bundle.import_answers(tmp_path, bundle, TODAY, force=True)
 
     work = yaml.safe_load(path.read_text(encoding="utf-8"))["work"][0]
     assert "tags" not in work and work["highlights"] == ["Plattform für Kundendaten", "Datenpipelines"]

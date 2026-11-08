@@ -525,11 +525,8 @@ def test_replacing_merges_into_the_cv_and_keeps_what_the_form_cannot_show(starte
                   "work:\n  - position: Software-Entwicklerin\n    name: Beispiel AG\n    tags: [daten]\n"
                   "    highlights: [{text: Plattform für Kundendaten, tags: [daten]}]\n"
                   "projects:\n  - name: Beispielprojekt\nteaching:\n  - position: Kursleiterin\n", encoding="utf-8")
-    bundle = valid_bundle()  # as the page sends it after opening on this cv.yaml, the tags come with it (G24)
-    bundle["data"]["work"][0]["tags"] = ["daten"]
-    bundle["data"]["work"][0]["highlights"][0] = {"text": "Plattform für Kundendaten", "tags": ["daten"]}
 
-    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": bundle, "ersetzen": True})
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": True})
 
     merged = yaml.safe_load(cv.read_text(encoding="utf-8"))
     assert status == 200 and answer["unveraendert"] == [] and answer["hinweis"] == ""

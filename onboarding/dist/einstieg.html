@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-LTBbKhxNRmrpjNFZ4FiHkjhbdq3XEDyvWyYm1ArXVVg='; style-src 'sha256-mhNv+B4eGuLWd3DA6a+mbWsbakU7w9d6BIPPUG/NQH0='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-KmCT0xTmLLXBJ1QgA1uViU+nX1VgPQciibsnqTdG264='; style-src 'sha256-mhNv+B4eGuLWd3DA6a+mbWsbakU7w9d6BIPPUG/NQH0='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsbegleiter</title>
@@ -438,6 +438,8 @@ if (typeof module !== "undefined") {
 // State: { track: "job" | "apprenticeship" | null, data: { [sectionId]: object | object[] } }.
 // List fields hold arrays of lines; blank lines and empty items are dropped only when collecting.
 // Tags (G24): a "tags" field holds an array of tags; a list marked "tags" holds lines as text or { text, tags }.
+// What the form does not send stays in cv.yaml (G23): a missing tags key keeps the tags of the file, an empty list
+// removes them. So tags go out wherever the page holds them, an empty list included; a plain text line keeps its tags.
 "use strict";
 
 /** A loaded file that is no bundle of this form; the message is German and shown as is. */
@@ -482,20 +484,18 @@ function cleanTags(value, compact) {
   return compact ? tags.filter((t) => t) : tags;
 }
 
-/** One line of a list with tags: text without tags stays plain text, as in cv.yaml; null if it has no text. */
+/** One line of a list with tags: plain text (tags left to the file) or { text, tags }; null if it has no text. */
 function cleanLine(value, compact) {
   if (typeof value === "string") return compact ? value.trim() : value;
   if (!isPlainObject(value) || typeof value.text !== "string") return null;
-  const text = compact ? value.text.trim() : value.text;
-  const tags = cleanTags(value.tags, compact);
-  return tags.length ? { text, tags } : text;
+  return { text: compact ? value.text.trim() : value.text, tags: cleanTags(value.tags, compact) };
 }
 
 const lineText = (line) => (isPlainObject(line) ? String(line.text ?? "") : String(line ?? ""));
 
-/** A line as the form keeps it: plain text, or { text, tags } when it has tags. */
+/** A line the person edited: with its tags, an empty list included, so removing the last tag removes it. */
 function taggedLine(text, tags) {
-  return tags.length ? { text, tags } : text;
+  return { text, tags };
 }
 
 function cleanList(field, value, compact) {
@@ -520,7 +520,7 @@ function pickFields(fields, item, compact) {
     if (field.type === "list" || field.type === "tags") {
       if (!Array.isArray(value)) continue;
       const kept = field.type === "tags" ? cleanTags(value, compact) : cleanList(field, value, compact);
-      if (kept.length) result[field.id] = kept;
+      if (kept.length || field.type === "tags") result[field.id] = kept;
     } else if (typeof value === "string" && (!compact || value.trim())) {
       result[field.id] = compact ? value.trim() : value;
     }
@@ -535,7 +535,7 @@ function cleanData(form, track, data, compact) {
     if (section.repeat) {
       if (!Array.isArray(value)) continue;
       const list = value.map((item) => cleanItem(section, track, item, compact));
-      const kept = compact ? list.filter((item) => Object.keys(item).length) : list;
+      const kept = compact ? list.filter((item) => !isBlankItem(item)) : list;
       if (kept.length) result[section.id] = kept;
     } else if (isPlainObject(value)) {
       const item = cleanItem(section, track, value, compact);
