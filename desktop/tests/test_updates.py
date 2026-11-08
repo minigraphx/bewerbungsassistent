@@ -15,6 +15,13 @@ from signed_update import BASE, announcement, envelope, server
 
 INSTALLER = b"MZ" + b"x" * 5000
 INSTALLER_NAME = "Bewerbungsbegleiter-Setup-9.2.0.exe"
+TEST_QUIT_DELAY_SECONDS = 0.01
+
+
+@pytest.fixture(autouse=True)
+def short_quit_delay(monkeypatch):
+    """The real Timer still stops the app, only without the second the interface needs to get its answer (#136)."""
+    monkeypatch.setattr(routes_app, "QUIT_DELAY_SECONDS", TEST_QUIT_DELAY_SECONDS)
 
 
 def release(version="9.2.0", installer=INSTALLER):
