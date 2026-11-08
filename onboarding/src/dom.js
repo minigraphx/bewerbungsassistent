@@ -2,13 +2,17 @@
 // text or form values, never as HTML.
 "use strict";
 
+const MAX_TAG_OPTIONS = 50;
+const DEFAULT_MAX_LINES = 20;
+const TAG_PLACEHOLDER = "z.B. daten, führung";
+
 /** Create an element; attrs are properties (on* handlers, dataset, aria via setAttribute). */
 function el(tag, attrs, children) {
   const node = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs || {})) {
     if (value === undefined || value === null || value === false) continue;
     if (key === "dataset") Object.assign(node.dataset, value);
-    else if (key.startsWith("aria-") || key === "role" || key === "for") node.setAttribute(key, value);
+    else if (key.startsWith("aria-") || key === "role" || key === "for" || key === "list") node.setAttribute(key, value);
     else node[key] = value;
   }
   for (const child of [].concat(children || [])) {
@@ -23,7 +27,7 @@ const nextId = (prefix) => `${prefix}-${++idCounter}`;
 
 /**
  * One field with label, hint, control and error slot.
- * ctx: { track, value, path (string), onChange(value), onBlur() }
+ * ctx: { track, value, path (string), tagSuggestions (tags offered while typing), onChange(value), onBlur() }
  */
 function fieldView(field, ctx) {
   const id = nextId("f");
@@ -50,6 +54,11 @@ function controlView(field, ctx, id, describedBy) {
   if (field.type === "textarea") {
     return el("textarea", { ...common, rows: 4, value: ctx.value || "", oninput: (e) => ctx.onChange(e.target.value) });
   }
+  if (field.type === "tags") {
+    const onTags = (tags) => ctx.onChange(tags);
+    return el("div", { className: "tags-control" }, tagsInput({ ...common, placeholder: TAG_PLACEHOLDER }, ctx.value, ctx.tagSuggestions, onTags));
+  }
+  if (field.type === "list" && field.tags === true) return taggedLinesView(field, ctx, id, describedBy);
   if (field.type === "list") {
     const text = listToLines(ctx.value);
     return el("textarea", {
@@ -70,6 +79,80 @@ function controlView(field, ctx, id, describedBy) {
     ...common, type, value: ctx.value || "", placeholder: field.placeholder || "",
     autocomplete: autocompleteFor(ctx.path), oninput: (e) => ctx.onChange(e.target.value),
   });
+}
+
+/**
+ * What the list of a tags input offers: the last tag completed, or another tag after a complete one. A datalist
+ * matches the whole text of the input, so each option is the whole text with the tag in it.
+ */
+function tagOptions(text, suggestions) {
+  const offered = Array.isArray(suggestions) ? suggestions : [];
+  const parts = String(text).split(",");
+  const done = parts.slice(0, -1).map((t) => t.trim()).filter((t) => t);
+  const last = parts[parts.length - 1].trim();
+  const free = offered.filter((t) => t !== last && !done.includes(t));
+  const completed = free.filter((t) => t.toLowerCase().startsWith(last.toLowerCase())).map((t) => [...done, t].join(", "));
+  const added = offered.includes(last) ? free.map((t) => [...done, last, t].join(", ")) : [];
+  return [...new Set([...completed, ...added])].slice(0, MAX_TAG_OPTIONS);
+}
+
+/** A text input for tags separated by commas, with its own list of suggestions; onTags gets the tags. */
+function tagsInput(attrs, tags, suggestions, onTags) {
+  const listId = nextId("tags");
+  const datalist = el("datalist", { id: listId });
+  const offer = (text) => datalist.replaceChildren(...tagOptions(text, suggestions).map((o) => el("option", { value: o })));
+  const text = tagsToText(tags);
+  offer(text);
+  const input = el("input", {
+    ...attrs, type: "text", value: text, list: listId, autocomplete: "off", spellcheck: false,
+    oninput: (e) => { offer(e.target.value); onTags(parseTags(e.target.value)); },
+  });
+  return [input, datalist];
+}
+
+/** A list whose lines take tags (highlights): one row per line with its text and its tags. */
+function taggedLinesView(field, ctx, id, describedBy) {
+  const name = forTrack(field.label, ctx.track).split(" (")[0];
+  const max = field.maxItems ?? DEFAULT_MAX_LINES;
+  let lines = Array.isArray(ctx.value) && ctx.value.length ? ctx.value : [""];
+  const rows = el("div", { className: "tagged-lines" });
+  const view = el("div", { className: "tagged-list" });
+  const tagsOf = (line) => (line !== null && typeof line === "object" && Array.isArray(line.tags) ? line.tags : []);
+  const change = (next, focusAt) => {
+    lines = next.length ? next : [""];
+    ctx.onChange(lines);
+    if (focusAt !== undefined) draw(focusAt);
+  };
+  const setLine = (index, text, tags) => change(lines.map((line, i) => (i === index ? taggedLine(text, tags) : line)));
+  const add = el("button", {
+    type: "button", className: "add-line", onclick: () => change([...lines, ""], lines.length),
+  }, "+ Zeile hinzufügen");
+
+  function row(line, index) {
+    const number = index + 1;
+    const text = el("input", {
+      type: "text", id: index === 0 ? id : null, value: lineText(line), "aria-label": `${name}, Zeile ${number}`,
+      "aria-describedby": describedBy, onblur: () => ctx.onBlur(),
+      oninput: (e) => setLine(index, e.target.value, tagsOf(lines[index])),
+    });
+    const tagAttrs = { className: "line-tags", placeholder: "Tags", "aria-label": `Tags zu Zeile ${number}`, onblur: () => ctx.onBlur() };
+    const tags = tagsInput(tagAttrs, tagsOf(line), ctx.tagSuggestions, (found) => setLine(index, lineText(lines[index]), found));
+    const remove = el("button", {
+      type: "button", className: "remove-line", "aria-label": `Zeile ${number} entfernen`,
+      onclick: () => change(lines.filter((_, i) => i !== index), Math.max(0, index - 1)),
+    }, "×");
+    return el("div", { className: "tagged-line" }, [text, ...tags, remove]);
+  }
+
+  function draw(focusAt) {
+    rows.replaceChildren(...lines.map(row));
+    view.replaceChildren(rows, ...(lines.length < max ? [add] : []));
+    const target = focusAt === undefined ? null : rows.children[Math.min(focusAt, lines.length - 1)];
+    if (target) target.children[0].focus();
+  }
+
+  draw();
+  return view;
 }
 
 function autocompleteFor(path) {

@@ -23,6 +23,7 @@ from import_documents import pending_documents
 
 SECTIONS = ("summary", "work", "education", "certificates", "languages", "skills", "interests", "strengths", "style")
 LEFT_OUT_FIELDS = {"style": {"address", "place"}}  # the person's own decision; the place is personal
+LEFT_OUT_TYPES = {"tags"}  # tags choose what goes into which version of the CV: the person's own decision (G24)
 APPRENTICESHIP = "apprenticeship"
 MAX_PLACE_CHARS = 100
 MAX_SUSPICIOUS_LINES = 20
@@ -40,7 +41,8 @@ ONLY_VALUES = "nur: {values}"
 
 def _fields(section: dict, track: str) -> list[dict]:
     left_out = LEFT_OUT_FIELDS.get(section["id"], set())
-    return [f for f in section["fields"] if validation.applies(f, track) and f["id"] not in left_out]
+    return [f for f in section["fields"]
+            if validation.applies(f, track) and f["id"] not in left_out and f["type"] not in LEFT_OUT_TYPES]
 
 
 def _sections(form: dict, track: str) -> list[dict]:

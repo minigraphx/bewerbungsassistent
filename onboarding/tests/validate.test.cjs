@@ -33,7 +33,7 @@ const key = (e) => `${e.path}|${e.code}`;
 
 for (const c of cases.cases) {
   test(c.name, () => {
-    const found = validateBundle(form, applyCase(c)).map(key).sort();
+    const found = validateBundle(form, applyCase(c), (c.known || []).map(expand)).map(key).sort();
     assert.deepEqual(found, c.errors.map(key).sort());
   });
 }

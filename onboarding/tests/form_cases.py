@@ -39,5 +39,10 @@ def apply_case(case: dict) -> dict:
     return bundle
 
 
+def known_of(case: dict) -> frozenset[str]:
+    """The tags a case takes as already in the data folder (G24)."""
+    return frozenset(expand(tag) for tag in case.get("known", []))
+
+
 def base_bundle(track: str) -> dict:
     return copy.deepcopy(CASES["bases"][track])
