@@ -16,7 +16,7 @@ Eine einzelne HTML-Datei, in der Personen ohne technische Kenntnisse ihre Grundl
 ```
 
 - Prüft die Datei mit denselben Regeln wie die Vorlage (sie ist eine Eingabe von aussen) und nennt Fehler auf Deutsch. Eine ZIP darf nur `einstieg.json` und `dokumente/<art>/<datei>` enthalten; Grössen und Anzahl werden vor dem Lesen geprüft, nichts wird entpackt.
-- Schreibt `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md` und `anschreiben/bausteine.md`. Bestehende Dateien ersetzt er nur mit `--force`; der alte und der neue Stand landen als Entwurf (Oberfläche, Seite „Entwürfe“).
+- Schreibt `cv.yaml`, `suchprofil.md`, `anschreiben/stil.md` und `anschreiben/bausteine.md`. Bestehende Dateien ersetzt er nur mit `--force`; der alte und der neue Stand landen als Entwurf (Oberfläche, Seite „Entwürfe“). Beim Ersetzen bleibt im Lebenslauf, was das Formular nicht schreibt (etwa `basics.image`, `basics.x-image`, `projects`, `teaching`, `x-…`); enthalten bestehende Einträge Felder, die das Formular nicht kennt (etwa `tags`, `x-display`, Stichpunkte als `{text, tags}`), bleibt `cv.yaml` unverändert (`cv_merge.py`).
 - Legt Unterlagen unter `dokumente/<art>/` ab (nicht in Git) und listet sie in `dokumente/neu.yaml`. Gleicher Name mit anderem Inhalt bekommt „ (2)“, gleicher Inhalt wird nicht doppelt abgelegt.
 - Fehlen mit Unterlagen noch Angaben (nur fehlend, nicht falsch), schreibt er die Grundlagen noch nicht, sondern legt die Antworten als `dokumente/einstieg.json` ab.
 - In der App: „Aus Unterlagen vorbefüllen“ (siehe unten). Dort gelesene Unterlagen stehen mit `gelesen: true` in `dokumente/neu.yaml`; nach dem vollständigen Übernehmen verschwinden diese Einträge, die Dateien bleiben.

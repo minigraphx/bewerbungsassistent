@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-o0tYTCo8ZIN2zEEfKINDqNG4gqIW2B3djZdgy6MViH4='; style-src 'sha256-gl4qJm8owcFyxNCp6k5k9LADrXTrSOMBfuXj7bsxx9Q='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ldf02GkApQ79U7G49ePKCXNdyM3TfcvpUSY5yBwb2sA='; style-src 'sha256-gl4qJm8owcFyxNCp6k5k9LADrXTrSOMBfuXj7bsxx9Q='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsbegleiter</title>
@@ -2094,7 +2094,8 @@ async function takeOver(replace) {
     storeNow();
     const sent = state; // a change while this runs is not taken over
     const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
-    existingBasics = result.geschrieben.length ? result.geschrieben : existingBasics;
+    const present = [...result.geschrieben, ...(result.unveraendert || [])];
+    existingBasics = present.length ? present : existingBasics;
     notTakenOver = state !== sent || Boolean(result.unvollstaendig);
     storeNow();
     done.hidden = false;
@@ -2103,6 +2104,9 @@ async function takeOver(replace) {
         ? APP_TEXT[state.track].incomplete
         : APP_TEXT[state.track].done,
       (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
+      result.hinweis ? `${result.hinweis} ` : "",
+      result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "",
+      result.hinweis ? " · " : "",
       el("a", { href: "/" }, "Zu den Bewerbungen"),
     );
   } catch (error) {

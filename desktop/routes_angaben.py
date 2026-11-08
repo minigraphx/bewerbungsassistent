@@ -25,6 +25,9 @@ JSON_OVERHEAD_BYTES = 10_000
 DEFAULT_TRACK = "job"  # only for the wording of messages
 TRACKS = {preferences.JOB: "job", preferences.APPRENTICESHIP: "apprenticeship"}  # setup → form (form.json tracks)
 PREFILL_RUNNING = "Die Unterlagen werden schon gelesen. Bitte einen Moment warten."
+CV_KEPT = ("Der Lebenslauf (cv.yaml) bleibt, wie er war: Er enthält mehr, als dieses Formular zeigen kann, zum Beispiel "
+           "Stichwörter oder eigene Zeiträume, und das ginge beim Ersetzen verloren. Ändern lässt er sich unter "
+           "„Inhalte als Text“.")
 
 
 def _body(body) -> dict:
@@ -160,7 +163,8 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
         if not result.incomplete:
             import_documents.settle_read(folder)
         return json_antwort({"geschrieben": result.written, "unvollstaendig": result.incomplete,
-                             "behalten": list(result.kept_terms)})
+                             "behalten": list(result.kept_terms), "unveraendert": list(result.kept_files),
+                             "hinweis": CV_KEPT if result.kept_files else ""})
 
     def prefill_documents(k, parameter, body):
         """Suggestions only: nothing is written to the person's files, the page shows them for checking."""

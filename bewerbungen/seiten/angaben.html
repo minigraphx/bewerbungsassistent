@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Tm+qWrCwCr6md/2lFaFKVZ2Fmq7w6ipxFGG0QGkAg+c='; style-src 'sha256-XM8M8i4TEY257iuq/3aYuhtM0udgPnlOjG3ubYd1VII='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-19k3MCaMIy9UFNGz/HYKwoz9UzYQBHiWSCy29UlWy90='; style-src 'sha256-XM8M8i4TEY257iuq/3aYuhtM0udgPnlOjG3ubYd1VII='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -2336,7 +2336,8 @@ async function takeOver(replace) {
     storeNow();
     const sent = state; // a change while this runs is not taken over
     const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
-    existingBasics = result.geschrieben.length ? result.geschrieben : existingBasics;
+    const present = [...result.geschrieben, ...(result.unveraendert || [])];
+    existingBasics = present.length ? present : existingBasics;
     notTakenOver = state !== sent || Boolean(result.unvollstaendig);
     storeNow();
     done.hidden = false;
@@ -2345,6 +2346,9 @@ async function takeOver(replace) {
         ? APP_TEXT[state.track].incomplete
         : APP_TEXT[state.track].done,
       (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
+      result.hinweis ? `${result.hinweis} ` : "",
+      result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "",
+      result.hinweis ? " · " : "",
       el("a", { href: "/" }, "Zu den Bewerbungen"),
     );
   } catch (error) {
