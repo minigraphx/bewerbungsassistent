@@ -38,5 +38,6 @@ Write each requirement as one row under its section, in this format. The fence k
 - G26 [approved, must] Gibt es Suchprofil, Stilprofil oder Bausteine schon im Datenordner, wählt die Person auf der Seite Meine Angaben pro Datei, ob sie ersetzt wird; vorgewählt ist Behalten. Vor dem Ersetzen zeigt die Seite die Unterschiede zwischen altem und neuem Stand. | gate: review
 - G27 [draft, must] In der Liste der Bewerbungen filtert die Person nach Stand, jeweils mit Anzahl: Gemerkt (Gemerkt, Bewerben), Beworben (Beworben, Gespräch), Abgeschlossen (Absage, Zusage, Verworfen, Zurückgezogen) und Alle. Eine Absage zählt immer als abgeschlossen; ein noch offener Eintrag im Job-Room steht weiter unter Das steht an. Die Wahl bleibt erhalten. | gate: review
 - G28 [draft, must] Die Liste der Bewerbungen lässt sich auch nach dem Datum der Erfassung sortieren, in beide Richtungen; Einträge ohne Datum stehen am Ende. | gate: review
+- G29 [draft, must] Die Person kann den Stand einer Bewerbung jederzeit ändern, auch nach Ablauf der Frist: auf der Seite der Bewerbung mit einem sichtbaren Knopf (Verwerfen vor dem Versand, Zurückziehen danach) und in der Übersicht für eine oder mehrere ausgewählte Bewerbungen in einem Schritt. | gate: review
 
 ## K · Constraints
