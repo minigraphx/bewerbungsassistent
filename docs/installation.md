@@ -1,4 +1,4 @@
-# Installation und erste Schritte
+# Anleitung
 
 Der Bewerbungsbegleiter ist eine App für Ihren Computer. Die App sucht auf Schweizer Stellenportalen nach Stellen, die zu Ihnen passen, und schätzt jede ein. Für die Stellen, die Sie wählen, bereitet sie Lebenslauf und Anschreiben als Entwurf vor und füllt das Bewerbungsformular der Firma aus. Bei jeder Bewerbung zeigt sie den nächsten Schritt, und sie hilft beim Nachweis fürs RAV.
 
