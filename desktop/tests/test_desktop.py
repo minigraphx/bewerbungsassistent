@@ -55,7 +55,7 @@ def test_second_start_finds_the_running_app(paths, tmp_path, monkeypatch):
     data = tmp_path / "daten"
     data.mkdir()
     server = app.erstelle_server(data)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
     try:
         assert instance.find(paths) is None
         instance.write(paths, server.server_address[1], server.token)

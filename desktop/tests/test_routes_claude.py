@@ -22,7 +22,7 @@ def running(tmp_path):
     get_routes, post_routes = routes_claude.make_routes(setup)
     server = app.erstelle_server(data, extra_routes=(get_routes, post_routes))
     import threading
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
     thread.start()
     yield server, setup
     server.shutdown()
