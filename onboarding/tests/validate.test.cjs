@@ -11,6 +11,11 @@ const form = JSON.parse(fs.readFileSync(path.join(root, "form.json"), "utf8"));
 const cases = JSON.parse(fs.readFileSync(path.join(__dirname, "cases.json"), "utf8"));
 
 const expand = (v) => (v && typeof v === "object" && "$repeat" in v ? v.$repeat.repeat(v.times) : v);
+const expandAll = (v) => {
+  if (Array.isArray(v)) return v.map(expandAll);
+  if (v && typeof v === "object" && !("$repeat" in v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, expandAll(x)]));
+  return expand(v);
+};
 const walk = (obj, keys) => keys.reduce((o, k) => (Array.isArray(o) ? o[Number(k)] : o[k]), obj);
 
 function applyCase(c) {
@@ -33,7 +38,7 @@ const key = (e) => `${e.path}|${e.code}`;
 
 for (const c of cases.cases) {
   test(c.name, () => {
-    const found = validateBundle(form, applyCase(c), (c.known || []).map(expand)).map(key).sort();
+    const found = validateBundle(form, applyCase(c), (c.known || []).map(expand), c.loaded ? expandAll(c.loaded) : undefined).map(key).sort();
     assert.deepEqual(found, c.errors.map(key).sort());
   });
 }

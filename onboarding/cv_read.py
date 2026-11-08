@@ -5,6 +5,9 @@ anything the form shows does not come back at all. All of it stays in the file: 
 without touching the rest. The keys below are the field ids of form.json (sections marked "cv"). Tags (G24) come
 along on entries and on highlights; a highlight with tags is {text, tags}, as in the file. Projects, teaching, the free
 texts of education and certificates and basics.url came with G25; a project group the form does not offer stays out.
+Two-language values {de, en} (lebenslauf/README.md) come along as they are on the text fields without a format and on
+highlights (#167): the page shows them without editing them and sends them back, and validation.py lets them pass as
+long as cv.yaml holds them. cv_merge.py reads the file without them, so they stay until the person types a new value.
 """
 import datetime
 import logging
@@ -38,6 +41,11 @@ TAG = re.compile(FORM["formats"]["tag"]["pattern"])
 KEPT_SECTIONS = frozenset(s["id"] for s in FORM["sections"] if s.get("cv") and s.get("keepUnlessGiven"))
 KEPT_BASICS = frozenset(f["id"] for s in FORM["sections"] if s["id"] == "person"
                         for f in s["fields"] if f.get("keepUnlessGiven"))
+LANGUAGES = frozenset({"de", "en"})
+# per section the fields that take a two-language value: plain texts (no dates, links or choices) and highlights
+BILINGUAL = {s["id"]: frozenset(f["id"] for f in s["fields"]
+                                if (f["type"] in ("text", "textarea") and not f.get("format")) or f.get("tags") is True)
+             for s in FORM["sections"] if s.get("cv")}
 CHOICES = {"group": next(f["options"] for s in FORM["sections"] if s["id"] == "projects"
                          for f in s["fields"] if f["id"] == "group")}
 
@@ -55,6 +63,22 @@ def shown_text(value: object) -> str | None:
     if isinstance(value, datetime.date):
         return value.isoformat()
     return None
+
+
+def is_bilingual(value: object) -> bool:
+    """A two-language value as lebenslauf/README.md writes it: {de, en} with text in each."""
+    return (isinstance(value, dict) and bool(value) and set(value) <= LANGUAGES
+            and all(isinstance(text, str) for text in value.values()))
+
+
+def bilingual_line(item: object) -> dict | None:
+    """A highlight in two languages as the page gets it: {de, en}, or {text: {de, en}, tags} with its tags."""
+    if is_bilingual(item):
+        return dict(item)
+    if not isinstance(item, dict) or not is_bilingual(item.get("text")):
+        return None
+    tags = shown_tags(item.get("tags"))
+    return {"text": dict(item["text"]), "tags": tags} if tags else dict(item["text"])
 
 
 def field_text(key: str, value: object) -> str | None:
@@ -95,20 +119,28 @@ def highlight_shown(item: object) -> str | dict | None:
 LIST_SHOWN = {"highlights": highlight_shown, "keywords": item_text, "tags": tag_text}
 
 
-def entry_shown(entry: object, fields: tuple[str, ...]) -> dict | None:
-    """What the form shows of an entry; None if it shows nothing of it."""
+def entry_shown(entry: object, fields: tuple[str, ...], bilingual: frozenset[str] = frozenset()) -> dict | None:
+    """What the form shows of an entry; None if it shows nothing of it. Fields named in bilingual bring their
+    two-language values, and so do their highlights."""
     if not isinstance(entry, dict):
         return None
     shown = {}
     for key in fields:
         value = entry.get(key)
         if key in LIST_SHOWN:
-            lines = [line for line in map(LIST_SHOWN[key], value) if line] if isinstance(value, list) else []
+            read = _with_bilingual_line if key == "highlights" and key in bilingual else LIST_SHOWN[key]
+            lines = [line for line in map(read, value) if line] if isinstance(value, list) else []
             if lines:
                 shown[key] = lines
         elif text := field_text(key, value):
             shown[key] = text
+        elif key in bilingual and is_bilingual(value):
+            shown[key] = dict(value)
     return shown or None
+
+
+def _with_bilingual_line(item: object) -> str | dict | None:
+    return highlight_shown(item) or bilingual_line(item)
 
 
 def detail_places(details: list) -> tuple[int | None, int | None]:
@@ -131,9 +163,10 @@ def detail_values(details: object) -> tuple[str, str]:
 def form_data(cv: dict) -> dict:
     """The answers of the CV sections of the form; every one of them, empty ones included."""
     basics = cv.get("basics") if isinstance(cv.get("basics"), dict) else {}
-    entries = {key: _entries(cv.get(key), fields) for key, fields in SECTIONS.items()}
+    entries = {key: _entries(cv.get(key), fields, BILINGUAL[key]) for key, fields in SECTIONS.items()}
     names = [item["name"] for item in _entries(cv.get("interests"), INTERESTS)]
-    return {"person": _person(basics), "summary": _texts(basics, ("summary",)), **entries,
+    summary = entry_shown(basics, ("summary",), BILINGUAL["summary"]) or {}
+    return {"person": _person(basics), "summary": summary, **entries,
             "interests": {"interests": names} if names else {}}
 
 
@@ -150,19 +183,18 @@ def read_form_data(folder: pathlib.Path) -> dict | None:
     return form_data(cv) if isinstance(cv, dict) else None
 
 
-def _texts(source: dict, keys: tuple[str, ...]) -> dict:
-    return {key: text for key in keys if (text := shown_text(source.get(key)))}
-
-
 def _person(basics: dict) -> dict:
     location = basics.get("location") if isinstance(basics.get("location"), dict) else {}
     birth, nationality = detail_values(basics.get("details"))
     profiles = basics.get("profiles") if isinstance(basics.get("profiles"), list) else []
     urls = [shown["url"] for shown in (entry_shown(p, ("url",)) for p in profiles) if shown]
-    person = {**_texts(basics, TEXT_BASICS), **_texts(location, LOCATION),
-              "birthDate": birth, "nationality": nationality, "profiles": urls}
+    texts = entry_shown(basics, TEXT_BASICS, BILINGUAL["person"]) or {}
+    places = entry_shown(location, LOCATION, BILINGUAL["person"]) or {}
+    person = {**texts, **places, "birthDate": birth, "nationality": nationality, "profiles": urls}
     return {key: value for key, value in person.items() if value}
 
 
-def _entries(value: object, fields: tuple[str, ...]) -> list[dict]:
-    return [shown for shown in (entry_shown(e, fields) for e in value) if shown] if isinstance(value, list) else []
+def _entries(value: object, fields: tuple[str, ...], bilingual: frozenset[str] = frozenset()) -> list[dict]:
+    if not isinstance(value, list):
+        return []
+    return [shown for shown in (entry_shown(e, fields, bilingual) for e in value) if shown]

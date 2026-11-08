@@ -1,5 +1,5 @@
 {
-  "_comment": "Shared validation cases for validation.py and validate.js. All values are invented. A case starts from a base bundle, applies 'set' ([path, value]) and 'remove' (path), and expects exactly 'errors' (path and code, order irrelevant). A value {\"$repeat\": s, \"times\": n} stands for s repeated n times. A case may name 'known' tags (already in the data folder, G24): the limits for typed tags do not apply to them; its values may be placeholders too.",
+  "_comment": "Shared validation cases for validation.py and validate.js. All values are invented. A case starts from a base bundle, applies 'set' ([path, value]) and 'remove' (path), and expects exactly 'errors' (path and code, order irrelevant). A value {\"$repeat\": s, \"times\": n} stands for s repeated n times. A case may name 'known' tags (already in the data folder, G24): the limits for typed tags do not apply to them; its values may be placeholders too. A case may give 'loaded', the answers read from cv.yaml (G23): an entry, a value or a line the file already holds is not checked, and a list or section may keep as many entries as loaded.",
   "bases": {
     "job": {
       "format": "bewerbungsassistent-einstieg",
@@ -1809,6 +1809,551 @@
         {
           "path": "teaching",
           "code": "unknown"
+        }
+      ]
+    },
+    {
+      "name": "a full date loaded from the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.startDate",
+          "2015-06-01"
+        ]
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": "Junior-Entwicklerin",
+            "name": "Muster GmbH",
+            "startDate": "2015-06-01",
+            "endDate": "2019"
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "a changed entry keeps a full date loaded from the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.startDate",
+          "2015-06-01"
+        ],
+        [
+          "data.work.1.position",
+          "Junior-Entwicklerin Web"
+        ]
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": "Junior-Entwicklerin",
+            "name": "Muster GmbH",
+            "startDate": "2015-06-01",
+            "endDate": "2019"
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "a full date typed anew next to a loaded one",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.startDate",
+          "2015-07-01"
+        ]
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": "Junior-Entwicklerin",
+            "name": "Muster GmbH",
+            "startDate": "2015-06-01",
+            "endDate": "2019"
+          }
+        ]
+      },
+      "errors": [
+        {
+          "path": "work.1.startDate",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a fluency outside the list loaded from the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.languages.1.fluency",
+          "fliessend"
+        ]
+      ],
+      "loaded": {
+        "languages": [
+          {
+            "language": "Englisch",
+            "fluency": "fliessend"
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "a fluency outside the list not in the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.languages.1.fluency",
+          "fliessend"
+        ]
+      ],
+      "loaded": {
+        "languages": [
+          {
+            "language": "Englisch",
+            "fluency": "Sehr gut (C1)"
+          }
+        ]
+      },
+      "errors": [
+        {
+          "path": "languages.1.fluency",
+          "code": "option"
+        }
+      ]
+    },
+    {
+      "name": "a text over the limit loaded from the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.position",
+          {
+            "$repeat": "x",
+            "times": 101
+          }
+        ],
+        [
+          "data.summary.summary",
+          {
+            "$repeat": "s",
+            "times": 601
+          }
+        ]
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": {
+              "$repeat": "x",
+              "times": 101
+            },
+            "name": "Muster GmbH",
+            "startDate": "2015",
+            "endDate": "2019"
+          }
+        ],
+        "summary": {
+          "summary": {
+            "$repeat": "s",
+            "times": 601
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "a text over the limit typed anew",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.position",
+          {
+            "$repeat": "x",
+            "times": 101
+          }
+        ]
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": "Junior-Entwicklerin",
+            "name": "Muster GmbH",
+            "startDate": "2015",
+            "endDate": "2019"
+          }
+        ]
+      },
+      "errors": [
+        {
+          "path": "work.1.position",
+          "code": "max"
+        }
+      ]
+    },
+    {
+      "name": "more entries than the form allows, as many as loaded",
+      "base": "job",
+      "set": [
+        [
+          "data.languages",
+          [
+            {
+              "language": "Sprache 1",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 2",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 3",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 4",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 5",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 6",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 7",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 8",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 9",
+              "fluency": "Gut (B2)"
+            }
+          ]
+        ]
+      ],
+      "loaded": {
+        "languages": [
+          {
+            "language": "Sprache 1",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 2",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 3",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 4",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 5",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 6",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 7",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 8",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 9",
+            "fluency": "Gut (B2)"
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "one entry more than loaded beyond the limit",
+      "base": "job",
+      "set": [
+        [
+          "data.languages",
+          [
+            {
+              "language": "Sprache 1",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 2",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 3",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 4",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 5",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 6",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 7",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 8",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 9",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 10",
+              "fluency": "Gut (B2)"
+            }
+          ]
+        ]
+      ],
+      "loaded": {
+        "languages": [
+          {
+            "language": "Sprache 1",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 2",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 3",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 4",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 5",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 6",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 7",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 8",
+            "fluency": "Gut (B2)"
+          },
+          {
+            "language": "Sprache 9",
+            "fluency": "Gut (B2)"
+          }
+        ]
+      },
+      "errors": [
+        {
+          "path": "languages",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
+      "name": "more highlights than the form allows, as many as loaded",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.highlights",
+          [
+            "Punkt 1",
+            "Punkt 2",
+            "Punkt 3",
+            "Punkt 4",
+            "Punkt 5",
+            "Punkt 6",
+            "Punkt 7",
+            "Punkt 8"
+          ]
+        ],
+        [
+          "data.work.1.location",
+          "Thun"
+        ]
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": "Junior-Entwicklerin",
+            "name": "Muster GmbH",
+            "startDate": "2015",
+            "endDate": "2019",
+            "highlights": [
+              "Punkt 1",
+              "Punkt 2",
+              "Punkt 3",
+              "Punkt 4",
+              "Punkt 5",
+              "Punkt 6",
+              "Punkt 7",
+              "Punkt 8"
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "a work entry without start loaded from the CV",
+      "base": "job",
+      "remove": [
+        "data.work.1.startDate",
+        "data.work.1.endDate"
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": "Junior-Entwicklerin",
+            "name": "Muster GmbH"
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "a work entry without start not in the CV",
+      "base": "job",
+      "remove": [
+        "data.work.1.startDate",
+        "data.work.1.endDate"
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": "Junior-Entwicklerin",
+            "name": "Muster GmbH",
+            "startDate": "2015",
+            "endDate": "2019"
+          }
+        ]
+      },
+      "errors": [
+        {
+          "path": "work.1.startDate",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "a two-language value loaded from the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.position",
+          {
+            "de": "Software-Entwicklerin",
+            "en": "Software developer"
+          }
+        ],
+        [
+          "data.work.0.highlights.0",
+          {
+            "de": "Plattform für Kundendaten",
+            "en": "Customer data platform"
+          }
+        ],
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": {
+              "de": "Plattform für Kundendaten",
+              "en": "Customer data platform"
+            },
+            "tags": [
+              "daten"
+            ]
+          }
+        ]
+      ],
+      "loaded": {
+        "work": [
+          {
+            "position": {
+              "de": "Software-Entwicklerin",
+              "en": "Software developer"
+            },
+            "name": "Beispiel AG",
+            "location": "Bern",
+            "startDate": "2019-03",
+            "highlights": [
+              {
+                "de": "Plattform für Kundendaten",
+                "en": "Customer data platform"
+              },
+              {
+                "text": {
+                  "de": "Plattform für Kundendaten",
+                  "en": "Customer data platform"
+                },
+                "tags": [
+                  "daten"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "a two-language value not in the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.position",
+          {
+            "de": "Software-Entwicklerin",
+            "en": "Software developer"
+          }
+        ],
+        [
+          "data.work.0.highlights.0",
+          {
+            "de": "Plattform für Kundendaten",
+            "en": "Customer data platform"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.position",
+          "code": "type"
+        },
+        {
+          "path": "work.0.highlights",
+          "code": "type"
         }
       ]
     }

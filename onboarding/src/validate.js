@@ -1,6 +1,8 @@
 // Validation of onboarding bundles against form.json, for the browser.
 // Mirrors validation.py; both run the shared cases in tests/cases.json. The limits of tags hold for typed tags only:
-// `known` names the tags already in the data folder (G24), which never block saving.
+// `known` names the tags already in the data folder (G24), which never block saving. In the same way `loaded`, the
+// answers the app read from cv.yaml (G23), never blocks saving: an entry, a value or a line the file holds at that place
+// is not checked, two-language values {de, en} included, and a section or list may keep as many entries as the file has.
 "use strict";
 
 const SINGLE_LINE = new Set(["text", "list", "select", "choice", "tags"]);
@@ -57,7 +59,59 @@ function isTaggedLine(value) {
 
 const lineOf = (value) => (isObject(value) ? value.text : value);
 
-function validateBundle(form, bundle, known) {
+/** A value as it counts when compared with cv.yaml: trimmed, blank as "", a line without tags as its text. */
+function storedValue(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) {
+    const lines = value.map(storedLine).filter((line) => line !== "");
+    return lines.length ? lines : "";
+  }
+  return value;
+}
+
+function storedLine(value) {
+  if (isObject(value) && "text" in value && Object.keys(value).every((k) => TAGGED_LINE_KEYS.has(k))) {
+    const text = typeof value.text === "string" ? storedValue(value.text) : value.text;
+    const tags = Array.isArray(value.tags) ? storedValue(value.tags) : value.tags;
+    return tags && text !== "" ? { text, tags } : text;
+  }
+  return typeof value === "string" ? storedValue(value) : value;
+}
+
+/** Deep equality of JSON values; the order of keys does not count. */
+function sameValue(a, b) {
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => sameValue(x, b[i]));
+  }
+  if (isObject(a) || isObject(b)) {
+    if (!isObject(a) || !isObject(b)) return false;
+    const keys = Object.keys(a);
+    return keys.length === Object.keys(b).length && keys.every((k) => Object.prototype.hasOwnProperty.call(b, k) && sameValue(a[k], b[k]));
+  }
+  return a === b;
+}
+
+/** The entries of a section as read from cv.yaml; one entry for a section that does not repeat. */
+function loadedEntries(section, loaded) {
+  const value = isObject(loaded) && section.cv ? loaded[section.id] : undefined;
+  return (Array.isArray(value) ? value : [value]).filter(isObject);
+}
+
+function isLoadedEntry(section, track, item, before) {
+  const ids = section.fields.filter((f) => applies(f, track) && f.cv !== false).map((f) => f.id);
+  return before.some((entry) => ids.every((id) => sameValue(storedValue(item[id]), storedValue(entry[id]))));
+}
+
+function isLoadedValue(id, value, before) {
+  const shown = storedValue(value);
+  return shown !== "" && before.some((entry) => sameValue(storedValue(entry[id]), shown));
+}
+
+const loadedLines = (id, before) => before.flatMap((entry) => storedValue(entry[id]) || []);
+const loadedCount = (id, before) => Math.max(0, ...before.map((entry) => (storedValue(entry[id]) || []).length));
+
+function validateBundle(form, bundle, known, loaded) {
   const knownTags = new Set(Array.isArray(known) ? known : []);
   if (!isObject(bundle)) return [err("", "type")];
   if (bundle.format !== form.format) return [err("format", "bundle")];
@@ -70,40 +124,47 @@ function validateBundle(form, bundle, known) {
   const sections = form.sections.filter((s) => applies(s, track));
   const ids = new Set(sections.map((s) => s.id));
   errors.push(...Object.keys(data).filter((k) => !ids.has(k)).map((k) => err(k, "unknown")));
-  for (const section of sections) errors.push(...validateSection(form, section, track, data[section.id], knownTags));
+  for (const section of sections) {
+    const before = loadedEntries(section, loaded);
+    errors.push(...validateSection(form, section, track, data[section.id], knownTags, before));
+  }
   return errors;
 }
 
-function validateSection(form, section, track, value, known) {
+function validateSection(form, section, track, value, known, before) {
   const sid = section.id;
   if (!section.repeat) {
     const item = value ?? {};
-    return isObject(item) ? validateItem(form, section, track, item, sid, known) : [err(sid, "type")];
+    return isObject(item) ? validateItem(form, section, track, item, sid, known, before) : [err(sid, "type")];
   }
   if (value == null) return [];
   if (!Array.isArray(value)) return [err(sid, "type")];
   const errors = [];
-  if (value.length > (section.maxItems ?? form.limits.repeatItems)) errors.push(err(sid, "maxItems"));
+  if (value.length > Math.max(section.maxItems ?? form.limits.repeatItems, before.length)) errors.push(err(sid, "maxItems"));
   value.forEach((item, index) => {
     const path = `${sid}.${index}`;
     if (!isObject(item)) errors.push(err(path, "type"));
-    else errors.push(...validateItem(form, section, track, item, path, known));
+    else errors.push(...validateItem(form, section, track, item, path, known, before));
   });
   return errors;
 }
 
-function validateItem(form, section, track, item, path, known) {
+function validateItem(form, section, track, item, path, known, before) {
   const fields = section.fields.filter((f) => applies(f, track));
   const ids = new Set(fields.map((f) => f.id));
   const errors = Object.keys(item).filter((k) => !ids.has(k)).map((k) => err(`${path}.${k}`, "unknown"));
-  for (const field of fields) errors.push(...validateField(form, field, track, item, `${path}.${field.id}`, known));
+  const same = isLoadedEntry(section, track, item, before);
+  for (const field of fields) {
+    if ((same && field.cv !== false) || isLoadedValue(field.id, item[field.id], before)) continue;
+    errors.push(...validateField(form, field, track, item, `${path}.${field.id}`, known, before));
+  }
   return errors;
 }
 
-function validateField(form, field, track, item, path, known) {
+function validateField(form, field, track, item, path, known, before) {
   const value = item[field.id];
   if (field.type === "tags") return validateTags(form, value, path, known);
-  if (field.type === "list") return validateList(form, field, value, path, known);
+  if (field.type === "list") return validateList(form, field, value, path, known, before);
   const text = value ?? "";
   if (typeof text !== "string") return [err(path, "type")];
   if (!text.trim()) return isRequired(field, item) ? [err(path, "required")] : [];
@@ -135,17 +196,21 @@ function validateTags(form, value, path, known) {
   return errors;
 }
 
-function validateList(form, field, value, path, known) {
+/** A list of lines; lines cv.yaml holds in this field are not checked, two-language ones included. */
+function validateList(form, field, value, path, known, before) {
   const list = value ?? [];
+  if (!Array.isArray(list)) return [err(path, "type")];
   const tagged = field.tags === true;
-  const fits = (v) => typeof v === "string" || (tagged && isTaggedLine(v));
-  if (!Array.isArray(list) || !list.every(fits)) return [err(path, "type")];
-  const items = list.filter((v) => lineOf(v).trim());
+  const lines = loadedLines(field.id, before);
+  const inFile = list.map((v) => lines.some((line) => sameValue(line, storedLine(v))));
+  const fits = (v, i) => inFile[i] || typeof v === "string" || (tagged && isTaggedLine(v));
+  if (!list.every(fits)) return [err(path, "type")];
+  const items = list.filter((v, i) => inFile[i] || lineOf(v).trim());
   if (!items.length) return field.required ? [err(path, "required")] : [];
   const errors = [];
-  if (items.length > (field.maxItems ?? form.limits.listItems)) errors.push(err(path, "maxItems"));
+  if (items.length > Math.max(field.maxItems ?? form.limits.listItems, loadedCount(field.id, before))) errors.push(err(path, "maxItems"));
   list.forEach((entry, index) => {
-    const text = lineOf(entry);
+    const text = inFile[index] ? "" : lineOf(entry);
     if (!text.trim()) return;
     const code = checkText(form, field, null, text);
     if (code) errors.push(err(`${path}.${index}`, code));
