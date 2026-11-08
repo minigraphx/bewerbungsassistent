@@ -34,6 +34,28 @@
     "fragen.label": { sie: "Ihre Frage", du: "Deine Frage" },
     "fragen.sprecher": { sie: "Sie", du: "Du" },
     "suche.wo": { sie: "Wo suchen Sie?", du: "Wo suchst du?" },
+    "einwilligung.ersetzt": {
+      sie: "Bevor ein Text zur KI geht, ersetzt die App Ihre Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Firmen, Ausbildungen und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
+      du: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Firmen, Ausbildungen und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
+      lehrstelle: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail und Geburtsdatum sowie deine Schulen durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Betriebe und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
+    },
+    // Why ictjobs is on or off (#107); the key ends in `grund` from /api/suche/liste
+    "suche.ictjobs.aus": {
+      sie: "Aus, weil keiner Ihrer Suchbegriffe nach Informatik klingt. Mit dem Häkchen einschalten.",
+      du: "Aus, weil keiner deiner Suchbegriffe nach Informatik klingt. Mit dem Häkchen einschalten.",
+    },
+    "suche.ictjobs.passt": {
+      sie: "An, weil Ihr Suchbegriff «{begriff}» nach Informatik klingt. Mit dem Häkchen ausschalten.",
+      du: "An, weil dein Suchbegriff «{begriff}» nach Informatik klingt. Mit dem Häkchen ausschalten.",
+    },
+    "suche.ictjobs.gewaehlt": {
+      sie: "Ihre Wahl. Mit dem Häkchen ändern; die App schaltet hier nichts mehr von selbst um.",
+      du: "Deine Wahl. Mit dem Häkchen ändern; die App schaltet hier nichts mehr von selbst um.",
+    },
+    "suche.ictjobs.keine": {
+      sie: "An, bis Suchbegriffe da sind. Mit dem Häkchen ausschalten.",
+      du: "An, bis Suchbegriffe da sind. Mit dem Häkchen ausschalten.",
+    },
     "einstellungen.einwilligung": {
       sie: "Ohne Einwilligung gehen keine Texte an die KI, auch nicht mit einem eigenen Schlüssel. Suche, Unterlagen und Versand funktionieren trotzdem. Mit dem Claude-Abo läuft die KI über Ihr eigenes Konto bei Anthropic; dafür gilt der Hinweis weiter unten.",
       du: "Ohne Einwilligung gehen keine Texte an die KI, auch nicht mit einem eigenen Schlüssel. Suche, Unterlagen und Versand funktionieren trotzdem. Mit dem Claude-Abo läuft die KI über dein eigenes Konto bei Anthropic; dafür gilt der Hinweis weiter unten.",

@@ -72,7 +72,7 @@ def setup(tmp_path):
     mediation = Mediation(store=store, upstream=upstream, policy=Policy(max_output_tokens=4000),
                           calls=RateLimiter(3), redeems=RateLimiter(5), now=lambda: clock["now"])
     server = Server(("127.0.0.1", 0), mediation)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
     store.add_person("T01", 1.0, NOW)
     code = store.create_invitation("T01", NOW)
     yield {"server": server, "store": store, "fake": fake, "db": db, "code": code, "clock": clock,

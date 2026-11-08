@@ -31,7 +31,7 @@ def server(request, datenordner, tmp_path, monkeypatch):
     k = Kontext(daten=datenordner.resolve(), build=(tmp_path / "build").resolve(), ablage=Ablage(datenordner),
                 versionierung=GitVersionen(datenordner), heute=lambda: datetime.date(2026, 10, 26))
     s = app.erstelle_server(datenordner, kontext=k, questions_page=request.node.get_closest_marker("questions_page") is not None)
-    thread = threading.Thread(target=s.serve_forever, daemon=True)
+    thread = threading.Thread(target=s.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
     thread.start()
     yield s
     s.shutdown()
@@ -502,7 +502,7 @@ def leerer_server(tmp_path, monkeypatch):
     ordner = tmp_path / "leer"
     ordner.mkdir()
     s = app.erstelle_server(ordner, build=tmp_path / "build")
-    threading.Thread(target=s.serve_forever, daemon=True).start()
+    threading.Thread(target=s.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
     yield s
     s.shutdown()
     s.server_close()

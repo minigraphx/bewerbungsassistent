@@ -62,7 +62,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 | [`skills/jobsuche/`](skills/jobsuche/SKILL.md) | Claude-Skill: Stellensuche auf job-room.ch, jobs.ch, LinkedIn und Karriereseiten, Eintrag ins Register, optional Jobliste in Google Sheets |
 | [`skills/bewerbung/`](skills/bewerbung/SKILL.md) | Claude-Skill: von der Stelle zur fertigen Bewerbung – Variante wählen, Anschreiben im eigenen Stil, Prüfung, Versand |
 | [`desktop/`](desktop/README.md) | Lokale App für Windows, macOS und Linux: Installer bzw. AppImage, Start per Doppelklick, Einladungslink, signierte Updates vom eigenen Server |
-| [`erweiterung/`](erweiterung/README.md) | Browser-Erweiterung für Chrome und Edge: in Edge aus dem [Store](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp), in Chrome vorerst von Hand geladen; Stellensuche auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellensuche auf LENA und yousty nach dem Suchprofil, im Browser der Person; Treffer gehen an die App |
+| [`erweiterung/`](erweiterung/README.md) | Browser-Erweiterung für Chrome und Edge: aus dem [Chrome Web Store](https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo) bzw. dem [Edge-Store](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp), sonst von Hand geladen; Stellensuche auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellensuche auf LENA und yousty nach dem Suchprofil, im Browser der Person; Treffer gehen an die App |
 | [`vermittlung/`](vermittlung/README.md) | KI-Vermittlung für den Pilot: Zugang pro Person per Einladung, Budgets, Kosten ohne Inhalte; Container hinter HTTPS |
 | [`onboarding/`](onboarding/README.md) | Formular für die Grundlagen (Stellen- und Lehrstellensuche): Quellen der Seite „Meine Angaben“ und Import in den Datenordner |
 | [`vorlagen/`](vorlagen/) | Vorlagen für die persönlichen Dateien (Suchprofil, Stilprofil, Bausteine fürs Anschreiben) |
@@ -110,6 +110,6 @@ python app.py ../../bewerbungsassistent-daten
 
 Erstellt von Andreas Schmidt.
 
-[GNU General Public License v3.0](LICENSE). Ohne Gewährleistung und ohne Haftung (Abschnitte 15 und 16 der Lizenz). Nutzen und weiterentwickeln darf den Bewerbungsbegleiter jede und jeder, auch kommerziell; wer ihn weitergibt, muss den Quellcode offen halten und den Vermerk in [`docs/NOTICE`](docs/NOTICE) mit der Nennung des Urhebers erhalten (Abschnitt 7 b).
+[GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). Ohne Gewährleistung und ohne Haftung (Abschnitte 15 und 16 der Lizenz). Nutzen und weiterentwickeln darf den Bewerbungsbegleiter jede und jeder, auch kommerziell; wer ihn weitergibt oder eine geänderte Fassung über das Netz als Dienst anbietet (Abschnitt 13), muss den Quellcode offen halten und den Vermerk in [`docs/NOTICE`](docs/NOTICE) mit der Nennung des Urhebers erhalten (Abschnitt 7 b).
 
 Schriften unter `lebenslauf/fonts/`: SIL Open Font License (siehe dort).

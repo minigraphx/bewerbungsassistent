@@ -73,13 +73,15 @@ Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlös
 
 ### Schritt 5: Browser-Erweiterung
 
-Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**. In Microsoft Edge kommt sie aus dem Store, für Chrome folgt der Store-Eintrag.
+Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**. In Google Chrome und Microsoft Edge kommt sie aus dem Store.
+
+**In Chrome:** Auf **Im Chrome Web Store öffnen** klicken, im [Eintrag im Chrome Web Store](https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo) auf **Hinzufügen** klicken und bestätigen. Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
 
 **In Edge:** Auf **Im Edge-Store öffnen** klicken, im [Eintrag bei Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp) auf **Abrufen** klicken und bestätigen. Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
 
-**In Chrome und in allen anderen Fällen** laden Sie die Erweiterung einmal von Hand:
+**In allen anderen Fällen**, zum Beispiel wenn der Store nicht erreichbar ist, laden Sie die Erweiterung einmal von Hand:
 
-![Schritt Browser-Erweiterung mit dem Knopf Im Edge-Store öffnen, den Knöpfen In Chrome öffnen und In Edge öffnen, dem Pfad des Ordners und dem Knopf Ordner zeigen](bilder/einrichtung-erweiterung.jpg)
+![Schritt Browser-Erweiterung mit den Knöpfen Im Chrome Web Store öffnen und Im Edge-Store öffnen, den Knöpfen In Chrome öffnen und In Edge öffnen, dem Pfad des Ordners und dem Knopf Ordner zeigen](bilder/einrichtung-erweiterung.jpg)
 
 1. Auf **In Chrome öffnen** oder **In Edge öffnen** klicken. Die Erweiterungsseite und der Ordner der Erweiterung gehen auf.
 2. Den **Entwicklermodus** einschalten: in Chrome oben rechts, in Edge links.

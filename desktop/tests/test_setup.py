@@ -10,6 +10,7 @@ import pytest
 
 import app
 import dialogs
+import native_messaging
 import routes_setup
 import settings
 import setup
@@ -186,7 +187,7 @@ def started(tmp_path):
     get_routes, post_routes = routes_setup.make_routes(state)
     server.routen_get.update(get_routes)
     server.routen_post.update(post_routes)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
     yield server, paths, chosen
     server.shutdown()
     server.server_close()
@@ -433,9 +434,29 @@ def test_store_page_opens_in_edge(platform, command):
     assert run.calls == [command]
 
 
+CHROME_STORE = "https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo"
+
+
+@pytest.mark.parametrize("platform, command", [
+    ("darwin", ["open", "-a", "Google Chrome", CHROME_STORE]),
+    ("win32", ["cmd", "/c", "start", "", "chrome", CHROME_STORE]),
+])
+def test_store_page_opens_in_chrome(platform, command):
+    run = recording()
+
+    dialogs.open_store_page("chrome", platform, run)
+
+    assert run.calls == [command]
+
+
+def test_chrome_store_entry_is_an_extension_the_app_allows():
+    store_id = dialogs.STORE_PAGES["chrome"].rsplit("/", 1)[1]
+    assert store_id in native_messaging.EXTENSION_IDS
+
+
 def test_store_page_is_refused_for_a_browser_without_a_store_entry():
-    with pytest.raises(ValueError, match="Store"):
-        dialogs.open_store_page("chrome", "darwin", recording())
+    with pytest.raises(ValueError, match="Unbekannter Browser"):
+        dialogs.open_store_page("firefox", "darwin", recording())
 
 
 def test_route_opens_the_store_without_showing_the_folder(tmp_path):
@@ -450,11 +471,13 @@ def test_route_opens_the_store_without_showing_the_folder(tmp_path):
     assert answer.status == 200 and opened == ["edge"] and shown == []
 
 
-def test_the_setup_page_offers_the_edge_store_before_loading_by_hand():
+def test_the_setup_page_offers_both_stores_before_loading_by_hand():
     root = pathlib.Path(__file__).resolve().parents[2]
     page = (root / "bewerbungen" / "seiten" / "einrichtung.html").read_text(encoding="utf-8")
-    assert 'data-store="edge"' in page
-    assert page.index('data-store="edge"') < page.index("Entpackte Erweiterung laden")
+    for browser in ("edge", "chrome"):
+        assert f'data-store="{browser}"' in page
+        assert page.index(f'data-store="{browser}"') < page.index("Entpackte Erweiterung laden")
+    assert "Für Chrome folgt der Store-Eintrag" not in page
     script = (root / "bewerbungen" / "seiten" / "einrichtung.js").read_text(encoding="utf-8")
     assert '"/api/app/erweiterung-store"' in script
 

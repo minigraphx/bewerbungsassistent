@@ -50,7 +50,7 @@ def started(tmp_path):
     server.routen_get.update(get_routes)
     server.routen_post.update(post_routes)
     server.grenzen.update(limits)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
     yield server, folder, paths
     server.shutdown()
     server.server_close()

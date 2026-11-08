@@ -17,6 +17,8 @@ import updates
 import updates_macos
 from signed_update import BASE, announcement, envelope, server
 
+POLL = 0.02  # the script polls this often instead of every second, so its waits pass quickly
+
 ZIP = b"PK" + b"z" * 4000
 PACKAGE_URL = f"{BASE}/9.2.0/"
 ZIP_NAME = "Bewerbungsbegleiter-9.2.0-macOS.zip"
@@ -174,14 +176,14 @@ def swap(tmp_path, pid, command, exit_wait=2, start_wait=1):
     fake_app(staging, updates_macos.NEW_APP, mark="neu")
     note = tmp_path / "fehlgeschlagen.txt"
     updates_macos.start_swap(app, staging, note, "9.2.0", pid=pid, open_command=str(command),
-                             exit_wait=exit_wait, start_wait=start_wait)
+                             exit_wait=exit_wait, start_wait=start_wait, poll_seconds=POLL)
     return app, staging, note
 
 
 def wait_until_gone(path: pathlib.Path, seconds=8.0):
     end = time.monotonic() + seconds
     while path.exists() and time.monotonic() < end:
-        time.sleep(0.05)
+        time.sleep(0.01)
     assert not path.exists(), "the swap did not finish"
 
 
@@ -192,7 +194,7 @@ def wait_for_lines(path: pathlib.Path, count: int, seconds=8.0) -> list[str]:
         lines = path.read_text().splitlines() if path.exists() else []
         if len(lines) >= count:
             return lines
-        time.sleep(0.05)
+        time.sleep(0.01)
     return path.read_text().splitlines() if path.exists() else []
 
 
@@ -201,7 +203,7 @@ def content(app: pathlib.Path) -> str:
 
 
 def gone_process() -> int:
-    process = subprocess.Popen([sys.executable, "-c", ""])
+    process = subprocess.Popen(["/usr/bin/true"])  # a process that has already ended, started quickly
     process.wait()
     return process.pid
 
@@ -232,7 +234,7 @@ def test_swap_after_quit_only_lets_the_new_version_check_itself(tmp_path):
     fake_app(staging, updates_macos.NEW_APP, mark="neu")
 
     updates_macos.start_swap(app, staging, tmp_path / "n.txt", "9.2.0", pid=gone_process(),
-                             open_command=str(logging_opener(tmp_path)), exit_wait=2, start_wait=2, check_only=True)
+                             open_command=str(logging_opener(tmp_path)), exit_wait=2, start_wait=2, check_only=True, poll_seconds=POLL)
     wait_until_gone(staging)
 
     assert content(app) == "neu"
@@ -246,7 +248,7 @@ def test_swap_with_click_opens_the_new_version_normally(tmp_path):
     fake_app(staging, updates_macos.NEW_APP, mark="neu")
 
     updates_macos.start_swap(app, staging, tmp_path / "n.txt", "9.2.0", pid=gone_process(),
-                             open_command=str(logging_opener(tmp_path)), exit_wait=2, start_wait=2)
+                             open_command=str(logging_opener(tmp_path)), exit_wait=2, start_wait=2, poll_seconds=POLL)
     wait_until_gone(staging)
 
     assert (tmp_path / "argumente.log").read_text() == "\n"
@@ -264,7 +266,7 @@ def test_swap_after_quit_goes_back_quietly_when_the_new_version_fails(tmp_path):
     note = tmp_path / "n.txt"
 
     updates_macos.start_swap(app, staging, note, "9.2.0", pid=gone_process(), open_command=str(command),
-                             exit_wait=2, start_wait=1, check_only=True)
+                             exit_wait=2, start_wait=1, check_only=True, poll_seconds=POLL)
     wait_until_gone(staging)
 
     assert content(app) != "neu" and note.read_text().strip() == "9.2.0"
@@ -278,7 +280,7 @@ def test_swap_keeps_the_name_of_the_installed_app(tmp_path):
     fake_app(staging, updates_macos.NEW_APP, mark="neu")
 
     updates_macos.start_swap(app, staging, tmp_path / "n.txt", "9.2.0", pid=gone_process(),
-                             open_command=str(opener(tmp_path)), exit_wait=2, start_wait=1)
+                             open_command=str(opener(tmp_path)), exit_wait=2, start_wait=1, poll_seconds=POLL)
     wait_until_gone(staging)
 
     assert content(app) == "neu"
@@ -294,7 +296,7 @@ def test_swap_goes_back_when_the_new_version_does_not_confirm(tmp_path):
     log = tmp_path / "gestartet.log"
     end = time.monotonic() + 3  # the old version starts after the clean-up
     while log.read_text() != "neu\nalt\n" and time.monotonic() < end:
-        time.sleep(0.05)
+        time.sleep(0.01)
     assert log.read_text() == "neu\nalt\n"
 
 
@@ -472,21 +474,22 @@ def test_real_tools_accept_an_ad_hoc_signed_package(tmp_path):
 
 
 def failing_mv(folder: pathlib.Path, source_part: str) -> str:
-    """A `mv` that refuses the source named, so the script's way back can be tried; returns a PATH with it first."""
+    """A `mv` that refuses the source named, so the script's way back can be tried; returns a PATH with it first.
+    Each refusal leaves the file `refused` in fake-bin, so a test can wait for it instead of for a fixed time."""
     bin_dir = folder / "fake-bin"
     bin_dir.mkdir()
     path = bin_dir / "mv"
-    path.write_text(f'#!/bin/sh\ncase "$1" in *{source_part}*) exit 1;; esac\nexec /bin/mv "$@"\n')
+    path.write_text(f'#!/bin/sh\ncase "$1" in *{source_part}*) : > "{bin_dir}/refused"; exit 1;; esac\nexec /bin/mv "$@"\n')
     path.chmod(0o755)
     return f"{bin_dir}{os.pathsep}{os.environ['PATH']}"
 
 
-def wait_for(path: pathlib.Path, seconds=8.0):
+def wait_for(path: pathlib.Path, seconds=8.0, settle=0.2):
     end = time.monotonic() + seconds
     while not path.exists() and time.monotonic() < end:
-        time.sleep(0.05)
+        time.sleep(0.01)
     assert path.exists(), f"{path.name} did not appear"
-    time.sleep(0.2)  # the script finishes its last steps
+    time.sleep(settle)  # the script finishes its last steps
 
 
 @needs_shell
@@ -494,7 +497,8 @@ def test_the_old_version_is_kept_when_it_cannot_be_put_back(tmp_path, monkeypatc
     monkeypatch.setenv("PATH", failing_mv(tmp_path, "Bewerbungsbegleiter-alt.app"))
 
     _, staging, note = swap(tmp_path, gone_process(), opener(tmp_path, confirms=False))
-    wait_for(note)
+    wait_for(note, settle=0)
+    wait_for(tmp_path / "fake-bin" / "refused", settle=0)  # putting the old version back is the script's last step
 
     assert (staging / "Bewerbungsbegleiter-alt.app" / "Contents" / "MacOS" / "Bewerbungsbegleiter").read_text() == "alt"
 
@@ -509,12 +513,13 @@ def test_the_old_version_is_kept_when_the_new_one_cannot_be_moved_away(tmp_path,
     app = fake_app(programme)
     # moving the old app aside must work here, so only a move out of the program folder itself is refused later
     (tmp_path / "fake-bin" / "mv").write_text(
-        '#!/bin/sh\ncase "$2" in *fehlgeschlagen.app) exit 1;; esac\nexec /bin/mv "$@"\n')
+        f'#!/bin/sh\ncase "$2" in *fehlgeschlagen.app) : > "{tmp_path}/fake-bin/refused"; exit 1;; esac\nexec /bin/mv "$@"\n')
     note = tmp_path / "note.txt"
 
     updates_macos.start_swap(app, staging, note, "9.2.0", pid=gone_process(), open_command=str(opener(tmp_path, confirms=False)),
-                             exit_wait=2, start_wait=1)
-    wait_for(note)
+                             exit_wait=2, start_wait=1, poll_seconds=POLL)
+    wait_for(note, settle=0)
+    wait_for(tmp_path / "fake-bin" / "refused", settle=0)  # the refused move is the script's last step
 
     assert (staging / "Bewerbungsbegleiter-alt.app" / "Contents" / "MacOS" / "Bewerbungsbegleiter").read_text() == "alt"
     assert not (app / "Bewerbungsbegleiter-alt.app").exists(), "moving onto a folder would bury the old version in it"
@@ -581,3 +586,15 @@ def test_a_failed_start_of_the_swap_leaves_nothing(tmp_path):
         post["/api/app/aktualisieren"](None, {}, {})
 
     assert not (tmp_path / updates_macos.STAGING).exists() and not controls.installing.locked()
+
+
+def test_the_app_polls_once_a_second_so_its_waits_are_seconds(tmp_path, monkeypatch):
+    started = []
+    monkeypatch.setattr(updates_macos.subprocess, "Popen", lambda args, **kwargs: started.append(args))
+    staging = tmp_path / updates_macos.STAGING
+    staging.mkdir()
+
+    updates_macos.start_swap(tmp_path / "Bewerbungsbegleiter.app", staging, tmp_path / "n.txt", "9.2.0", pid=1)
+
+    exit_wait, start_wait, poll = started[0][8:11]
+    assert (exit_wait, start_wait, poll) == ("30", "120", "1")

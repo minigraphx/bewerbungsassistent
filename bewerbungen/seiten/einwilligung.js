@@ -7,6 +7,15 @@ window.Einwilligung = (() => {
     return stand.link ? el("p", {}, el("a", { href: stand.link, target: "_blank", rel: "noopener" }, "Datenschutzerklärung lesen")) : null;
   }
 
+  // What pseudonymisation covers (G14); data-text lets a page with its own text set apply it again.
+  function ersetzt() {
+    const { text } = window.Texte;
+    const absatz = el("p", { class: "field__hint", "data-text": "einwilligung.ersetzt" },
+      text("einwilligung.ersetzt", document.documentElement.dataset.textsatz));
+    window.App.textsatz().then(satz => { absatz.textContent = text("einwilligung.ersetzt", satz); });
+    return absatz;
+  }
+
   function wartenderCode(stand) {
     return stand.code_wartet ? el("p", {}, "Der Einladungscode aus dem Link wird danach eingelöst.") : null;
   }
@@ -28,7 +37,7 @@ window.Einwilligung = (() => {
         knopf.disabled = !haken.checked;
       }
     });
-    const teile = [link(stand), el("label", { class: "schalter" }, haken, " ", stand.text), wartenderCode(stand), knopf, meldung];
+    const teile = [link(stand), el("label", { class: "schalter" }, haken, " ", stand.text), ersetzt(), wartenderCode(stand), knopf, meldung];
     ort.replaceChildren(...teile.filter(Boolean));
     ort.hidden = false;
   }
