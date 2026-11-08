@@ -66,9 +66,14 @@ def _kind(k) -> str:
     return preferences.strictest_kind(k.daten)
 
 
+def require_consent(data_dir) -> None:
+    """Also before slow work that leads to an AI call, such as reading large documents: the answer comes at once."""
+    consent.require(data_dir, preferences.strictest_kind(data_dir))
+
+
 def consented_client(data_dir):
     """For the few calls without the material of `ai_gateway`: the same rule, no AI without consent."""
-    consent.require(data_dir, preferences.strictest_kind(data_dir))
+    require_consent(data_dir)
     return new_client()
 
 
