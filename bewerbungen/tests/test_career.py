@@ -380,3 +380,56 @@ def test_only_avoided_suggestions_end_in_a_clear_message(folder):
     gateway, material = gateway_for(folder, Client({"recommendations": [{**FIRST, "profession": "Büroassistent/in EFZ"}]}))
     with pytest.raises(errors.AiError, match="ausgeschlossen"):
         career.recommend(gateway, material, {**ANSWERS, "avoid": "Büro"})
+
+
+# The setup chose an apprenticeship, the profile does not say so yet (#147)
+
+APPRENTICESHIP_SETUP = "gesucht: lehrstelle\nanrede: du\nrav: false\n"
+PROFILE_WITHOUT_START = "# Suchprofil Lehrstelle\n\n## Person\n- Sprache der Antworten: Deutsch\n\n## Region\n- Wohnort: Bern\n- Kantone: BE\n"
+
+
+@pytest.fixture
+def apprentice_without_start(apprentice):
+    daten = apprentice.kontext.daten
+    (daten / "einrichtung.yaml").write_text(APPRENTICESHIP_SETUP, encoding="utf-8")
+    (daten / "suchprofil.md").write_text(PROFILE_WITHOUT_START, encoding="utf-8")
+    return apprentice
+
+
+def test_a_suggested_profession_makes_an_apprenticeship_plan_when_the_setup_chose_one(apprentice_without_start):
+    daten = apprentice_without_start.kontext.daten
+    status, answer = post(apprentice_without_start, "/api/beruf/aufnehmen", {"beruf": "Koch/Köchin EFZ"})
+    assert status == 200 and answer["berufe"] == ["Koch/Köchin EFZ"]
+    plan = search_plan.for_folder(daten)
+    assert plan.kind == search_plan.KIND_APPRENTICESHIP
+    assert plan.portals == search_plan.APPRENTICESHIP_PORTALS
+    assert plan.keywords == ("Koch/Köchin EFZ",)
+    assert plan.places == ("Bern",) and plan.start_years == ()
+    _, _, content = get(apprentice_without_start, "/api/suche/liste")
+    assert json.loads(content)["gesuchte_berufe"] == ["Koch/Köchin EFZ"]
+
+
+def test_a_second_profession_joins_the_first(apprentice_without_start):
+    for name in ("Koch/Köchin EFZ", "Maler/in EFZ"):
+        assert post(apprentice_without_start, "/api/beruf/aufnehmen", {"beruf": name})[0] == 200
+    plan = search_plan.for_folder(apprentice_without_start.kontext.daten)
+    assert plan.kind == search_plan.KIND_APPRENTICESHIP and plan.keywords == ("Koch/Köchin EFZ", "Maler/in EFZ")
+
+
+def test_the_apprenticeship_plan_never_gets_an_invented_region(apprentice_without_start):
+    daten = apprentice_without_start.kontext.daten
+    (daten / "suchprofil.md").write_text("# Suchprofil Lehrstelle\n", encoding="utf-8")
+    assert post(apprentice_without_start, "/api/beruf/aufnehmen", {"beruf": "Koch/Köchin EFZ"})[0] == 200
+    with pytest.raises(search_plan.ProfileGap) as gap:
+        search_plan.for_folder(daten)
+    assert gap.value.field == search_plan.FIELD_APPRENTICESHIP_HOME
+    assert "## Region" not in (daten / "suchprofil.md").read_text(encoding="utf-8")
+
+
+def test_a_profile_that_names_its_search_keeps_its_kind(apprentice_without_start):
+    daten = apprentice_without_start.kontext.daten
+    shutil.copy(VORLAGEN / "suchprofil.md", daten / "suchprofil.md")
+    known = search_plan.for_folder(daten).keywords
+    assert post(apprentice_without_start, "/api/beruf/aufnehmen", {"beruf": "Koch/Köchin EFZ"})[0] == 200
+    plan = search_plan.for_folder(daten)
+    assert plan.kind == search_plan.KIND_JOB and plan.keywords == (*known, "Koch/Köchin EFZ")

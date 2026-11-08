@@ -174,3 +174,29 @@ def test_replacing_keeps_the_choice_of_offers_if_the_form_has_none():
     assert search_plan.OFFERS_SECTION in text and "- Schnupperlehren\n" in text
     chosen = "## Gesucht\n- Lehrstellen\n\n## Lehrbeginn\n- 2028\n"
     assert search_terms.kept_on_replace(old, chosen)[0] == chosen
+
+
+def test_an_apprenticeship_without_a_start_reads_the_added_profession():
+    text = "# Suchprofil Lehrstelle\n\n## Region\n- Wohnort: Bern\n"
+    changed = search_terms.added(text, "Koch/Köchin EFZ", search_plan.KIND_APPRENTICESHIP)
+    plan = search_plan.parse(changed)
+    assert plan.kind == search_plan.KIND_APPRENTICESHIP and plan.keywords == ("Koch/Köchin EFZ",)
+    added_lines = "## Berufe (mit Priorität)\n1. Koch/Köchin EFZ\n\n## Lehrbeginn\n\n"
+    assert added_lines in changed and changed.replace(added_lines, "") == text
+
+
+def test_professions_already_listed_without_a_start_stay_first():
+    text = "# Suchprofil Lehrstelle\n\n## Berufe (mit Priorität)\n1. Maler/in EFZ\n\n## Region\n- Wohnort: Bern\n"
+    changed = search_terms.added(text, "Koch/Köchin EFZ", search_plan.KIND_APPRENTICESHIP)
+    assert search_plan.parse(changed).keywords == ("Maler/in EFZ", "Koch/Köchin EFZ")
+
+
+def test_a_job_profile_with_terms_keeps_its_kind_when_an_apprenticeship_is_sought():
+    changed = search_terms.added(KERN, "Koch/Köchin EFZ", search_plan.KIND_APPRENTICESHIP)
+    assert search_plan.parse(changed).kind == search_plan.KIND_JOB
+    assert search_terms.current(changed) == ("Daten", "Python", "Koch/Köchin EFZ")
+
+
+def test_without_a_kind_a_profile_without_terms_stays_a_job_search():
+    changed = search_terms.added("# Suchprofil\n", "Empfang")
+    assert search_plan.parse(changed).kind == search_plan.KIND_JOB
