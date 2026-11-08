@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-nZKg0EFCROQr1/rSH8+M+Zny1P4S9VpzV4+Ajwv0WPQ='; style-src 'sha256-Kqn+rY875wJtWAEIZ+2pl/vNrkC384OtTiV4UCvuGZY='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-mZ3et0wosVPXkU5X1LCCxxcccdYCTsRyNCUiQTkIeAw='; style-src 'sha256-FUevcDGRTV/q4ZOiCPSdOFFzzpWhyudvyICdbPlSecY='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -183,7 +183,9 @@ button { font: inherit; cursor: pointer; }
 .prefill-card .upload-category .add { width: auto; min-height: 32px; border-style: solid; font-size: 14px; }
 .prefill-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 16px 0 12px; padding-top: 16px; border-top: 1px solid var(--line); }
 .prefill-card__actions .link { font-weight: 500; }
-.prefill-card #prefill:disabled, #take-over:disabled { opacity: 0.5; cursor: not-allowed; }
+.prefill-card #prefill:disabled:not(.busy), #take-over:disabled { opacity: 0.5; cursor: not-allowed; }
+.prefill-card #prefill.busy { cursor: progress; }
+.prefill-card__status { margin: 0 0 12px; font-weight: 500; }
 /* Take over: one line per step */
 .review { list-style: none; margin: 16px 0 24px; padding: 0; border-top: 1px solid var(--line); }
 .review__row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -1423,6 +1425,8 @@ const PREFILL_TEXT = {
     needsName: "Tragen Sie zuerst Ihren Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
     running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; Sie können in dieser Zeit weiterarbeiten.",
+    busy: "Wird gelesen …",
+    waiting: "Die Unterlagen werden noch hochgeladen. Danach liest die App sie, ohne dass Sie nochmals klicken.",
     finished: "Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert.",
     filled: "Vorschläge stehen bereit. Bitte prüfen Sie jeden Eintrag:",
     nothing: "In den Unterlagen wurden keine passenden Angaben gefunden.",
@@ -1445,6 +1449,8 @@ const PREFILL_TEXT = {
     needsName: "Trag zuerst deinen Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
     running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; du kannst in dieser Zeit weiterarbeiten.",
+    busy: "Wird gelesen …",
+    waiting: "Die Unterlagen werden noch hochgeladen. Danach liest die App sie, ohne dass du nochmals klickst.",
     finished: "Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert.",
     filled: "Vorschläge stehen bereit. Bitte prüf jeden Eintrag:",
     nothing: "In den Unterlagen wurden keine passenden Angaben gefunden.",
@@ -1503,15 +1509,45 @@ function prefillCard(ctx) {
     ctx.uploads.length && !ctx.hasName
       ? el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)])
       : null,
-    el("div", { className: "prefill-card__actions" }, [
-      canRun ? el("button", { type: "button", className: "primary", id: "prefill", disabled: ctx.run.running, onclick: ctx.onRun }, text.run) : null,
-      el("button", { type: "button", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
+    el("div", { className: "prefill-card__run" }, [
+      el("div", { className: "prefill-card__actions" }, [
+        canRun ? el("button", {
+          type: "button", className: `primary${ctx.run.running ? " busy" : ""}`, id: "prefill", disabled: ctx.run.running,
+          "aria-busy": ctx.run.running ? "true" : null, onclick: ctx.onRun,
+        }, ctx.run.running ? text.busy : text.run) : null,
+        el("button", { type: "button", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
+      ]),
+      runLine(ctx.run, text),
     ]),
-    ctx.run.running ? el("p", { role: "status" }, text.running) : null,
-    ctx.run.problem ? el("p", { className: "error", role: "alert" }, ctx.run.problem) : null,
     ctx.run.report ? reportView(ctx.run.report, ctx, text) : null,
     el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`),
   ]);
+}
+
+/** Right after the buttons, so it is seen where the person clicked: what runs, or what went wrong. */
+function runLine(run, text) {
+  if (run.running) return el("p", { id: "prefill-status", className: "prefill-card__status", role: "status" }, run.waiting ? text.waiting : text.running);
+  if (run.problem) return el("p", { id: "prefill-status", className: "error", role: "alert" }, run.problem);
+  return null;
+}
+
+/**
+ * The click on „Vorbefüllen“ (#156): the busy state shows and is brought into view before anything is awaited.
+ * Uploads still on their way finish first, because the app reads only what has arrived; the page says so meanwhile.
+ * steps: { show(run), reveal(), pendingUploads() → Promise or null, isCurrent() → boolean, ask() → Promise }
+ * Resolves to the answer of ask(), or null when another run or other answers overtook this one.
+ */
+async function startPrefill(steps) {
+  const pending = steps.pendingUploads();
+  steps.show({ running: true, waiting: Boolean(pending), problem: null, report: null });
+  steps.reveal();
+  if (pending) {
+    await pending.then(() => null, () => null); // a failed upload has its own message in the list
+    if (!steps.isCurrent()) return null;
+    steps.show({ running: true, waiting: false, problem: null, report: null });
+    steps.reveal(); // the new files in the list may have pushed the text out of view
+  }
+  return steps.ask();
 }
 
 /** The mark above a suggested entry; `key` is the item („work.0“) or section („style“). */
@@ -1599,7 +1635,8 @@ let uploadsKept = true; // false if this browser cannot keep them (then the page
 let existingBasics = []; // in the app: files in the data folder a take-over would replace
 let uploadTurn = Promise.resolve(); // in the app: uploads and removals wait for each other
 let appProblem = null; // in the app: why the data folder cannot be used, shown on the first page
-let prefillRun = { running: false, problem: null, report: null }; // in the app: suggestions from documents
+let uploadsUnderway = 0; // in the app: choices of files not yet in the data folder
+let prefillRun = { running: false, waiting: false, problem: null, report: null }; // in the app: suggestions from documents
 let prefillTurn = 0; // a run that was overtaken by discarding or loading other answers no longer counts
 let choice = null; // in the app: what the setup chose (MIN-369) { track, anrede, rav, gewaehlt }
 let pageStateFound = false; // in the app: this page has kept answers before (not only the track of the setup)
@@ -1929,7 +1966,7 @@ const hasName = () => Boolean(((state.data.person || {}).name || "").trim()) || 
 
 function forgetPrefillRun() {
   prefillTurn += 1;
-  prefillRun = { running: false, problem: null, report: null };
+  prefillRun = { running: false, waiting: false, problem: null, report: null };
 }
 
 /** The person may be typing elsewhere meanwhile: the new values must show at once, and the focus stays. */
@@ -1939,15 +1976,26 @@ function renderKeepingFocus() {
   if (path) focusFirst(`[data-path="${path}"]`);
 }
 
+/** The running text stands right after the button, which may sit at the bottom edge of the window. */
+function revealPrefillStatus() {
+  const status = document.getElementById("prefill-status");
+  if (status) status.scrollIntoView({ block: "nearest" });
+}
+
 async function runPrefill() {
   const turn = ++prefillTurn;
   const track = state.track;
-  prefillRun = { running: true, problem: null, report: null };
-  render();
+  const isCurrent = () => turn === prefillTurn && track === state.track;
   let finished;
   try {
-    const answer = await backend.prefill(track, state.data);
-    if (turn !== prefillTurn || track !== state.track) return;
+    const answer = await startPrefill({
+      show: (run) => { prefillRun = run; renderKeepingFocus(); },
+      reveal: revealPrefillStatus,
+      pendingUploads: () => (uploadsUnderway ? uploadTurn : null),
+      isCurrent,
+      ask: () => backend.prefill(track, state.data),
+    });
+    if (answer === null || !isCurrent()) return;
     const merged = applySuggestions(form, state, answer.suggestions);
     update(merged.state);
     finished = { problem: null, report: prefillReport(answer, merged) };
@@ -1955,7 +2003,7 @@ async function runPrefill() {
     if (turn !== prefillTurn) return;
     finished = { problem: error.message, report: null };
   }
-  prefillRun = { running: false, ...finished };
+  prefillRun = { running: false, waiting: false, ...finished };
   renderKeepingFocus();
   if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished);
 }
@@ -2010,7 +2058,16 @@ async function sendChosen(category, chosen) {
 
 async function addUploads(category, fileList) {
   const chosen = Array.from(fileList);
-  if (backend) return inTurn(() => sendChosen(category, chosen));
+  if (backend) {
+    uploadsUnderway += 1;
+    return inTurn(async () => {
+      try {
+        await sendChosen(category, chosen);
+      } finally {
+        uploadsUnderway -= 1;
+      }
+    });
+  }
   const { accepted, messages } = planUploads(form, state.track, uploads, category, chosen);
   try {
     const read = await Promise.all(accepted.map(async ({ index, ...entry }) => (
