@@ -86,7 +86,7 @@ Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur a
 
 - **Berufe:** Der Name im Profil wird bei jeder Suche über die Vorschläge des Portals auf dessen Beruf abgebildet, Geschlechtsformen zählen dabei nicht („Fachfrau“, „Fachmann/-frau“; `professionWords` in `portals/common.js`). Findet das Portal einen Beruf oder den Ort nicht, steht das als Problem bei der letzten Suche, und die übrigen Berufe laufen weiter.
 - **LENA** füllt die Trefferliste erst im Browser. Darum öffnet der Tab pro Abfrage die Adresse aus `searchUrl`, lädt die Anpassung neu und liest die Karten aus der Seite („Mehr anzeigen“ ist die nächste Seite). Das Formular öffnet seine Vorschläge nur mit einem Fokus-Ereignis, das ein Tab im Hintergrund nicht von selbst auslöst; die Anpassung löst es aus.
-- **yousty** liest wie die Stellenportale fertige Seiten per `fetch`, den Inseratstext aus den strukturierten Daten der Seite (schema.org `JobPosting`).
+- **yousty** liest wie die Stellenportale fertige Seiten per `fetch`, den Inseratstext aus den strukturierten Daten der Seite (schema.org `JobPosting`). Fehlen sie, nimmt sie den Abschnitt „Lehrstellenbeschreibung“ bis „Dein Arbeitsort“, ohne Navigation und Arbeitsort.
 - **Zwillinge:** Dieselbe Lehrstelle auf beiden Portalen (gleicher Betrieb, gleicher Beruf laut Suchprofil, gleicher Ort) wird zu einem Treffer mit zweitem Link.
 
 ## Aufbau

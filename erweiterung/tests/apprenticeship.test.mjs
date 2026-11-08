@@ -42,6 +42,20 @@ test('the plain profession wins over its specialisations, a named specialisation
   assert.equal(common.bestProfession('Fachfrau Gesundheit EFZ', YOUSTY_LABELS, label).id, 'health');
 });
 
+const BAKER_LABELS = [
+  { label: 'Bäcker/in-Konditor/in-Confiseur/in EFZ Schwerpunkt Konditorei-Confiserie', id: 'special' },
+  { label: 'Bäcker/in-Konditor/in-Confiseur/in EFZ', id: 'plain' },
+  { label: 'Bäcker/in-Konditor/in-Confiseur/in EBA', id: 'short' },
+];
+const BAKER_PAIR = 'Bäckerin-Konditorin-Confiseurin EFZ / Bäcker-Konditor-Confiseur EFZ';
+
+test('a name given in both forms finds the same profession as either form alone', () => {
+  assert.equal(common.bestProfession(BAKER_PAIR, BAKER_LABELS, label).id, 'plain');
+  assert.equal(common.bestProfession('Bäckerin-Konditorin-Confiseurin EFZ', BAKER_LABELS, label).id, 'plain');
+  assert.equal(common.bestProfession('Bäcker-Konditor-Confiseur EFZ', BAKER_LABELS, label).id, 'plain');
+  assert.equal(common.bestProfession('Fachfrau Betreuung EFZ / Fachmann Betreuung EFZ', YOUSTY_LABELS, label).id, 'plain');
+});
+
 test('a profession the portal does not have stays without a match', () => {
   assert.equal(common.bestProfession('Bootbauerin EFZ', YOUSTY_LABELS, label), null);
   assert.equal(common.bestProfession('', YOUSTY_LABELS, label), null);
@@ -124,6 +138,29 @@ test('yousty text comes from the structured data of the page', () => {
   assert.deepEqual(yousty.parseDetails({ querySelectorAll: () => [] }), { text: '' });
 });
 
+/** A made-up yousty page as far as parseDetails reads it: its ld+json scripts and its HTML. */
+function youstyPage(html) {
+  const scripts = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => element({ text: m[1] }));
+  return {
+    querySelectorAll: (selector) => (selector === 'script[type="application/ld+json"]' ? scripts : []),
+    documentElement: { outerHTML: html },
+  };
+}
+const YOUSTY_PAGE = fs.readFileSync(new URL('./fixtures/yousty-without-jobposting.html', import.meta.url), 'utf8');
+
+test('yousty without a JobPosting reads the description section, without navigation or work place', () => {
+  const { text } = yousty.parseDetails(youstyPage(YOUSTY_PAGE));
+  assert.equal(text, 'Lehrstellenbeschreibung\n\nDu fertigst Bauteile an Dreh- und Fräsmaschinen & lernst, Anlagen zu warten.\n\n'
+    + '- Abwechslungsreiche Arbeit im Team\n- Eigene Lernwerkstatt');
+  for (const outside of ['Anmelden', 'Musterstrasse', 'Impressum', 'tracking']) assert.ok(!text.includes(outside), outside);
+});
+
+test('yousty keeps the JobPosting when the page has one, and gives nothing without either', () => {
+  const posting = '<script type="application/ld+json">{"@type":"JobPosting","description":"Aus den Daten"}</script>';
+  assert.deepEqual(yousty.parseDetails(youstyPage(YOUSTY_PAGE.replace('</head>', `${posting}</head>`))), { text: 'Aus den Daten' });
+  assert.deepEqual(yousty.parseDetails(youstyPage('<main><h1>Polymechaniker/in EFZ</h1><p>Kurz</p></main>')), { text: '' });
+});
+
 function lenaCard({ id = '3709234', title = 'Fachmann/-frau Gesundheit EFZ (2027)' } = {}) {
   const company = element({ text: 'Spital Muster' });
   return element({
@@ -154,6 +191,10 @@ test('LENA: other years are no hits, and cards of an unknown form are a changed 
 test('LENA: what is typed into the search form', () => {
   assert.deepEqual(lena.searchTerms('Fachfrau Betreuung EFZ, Fachrichtung Kinder'), ['Fachfrau Betreuung EFZ Kinder', 'Fachfrau Betreuung Kinder']);
   assert.deepEqual(lena.searchTerms('Fachfrau Gesundheit'), ['Fachfrau Gesundheit']);
+  assert.deepEqual(lena.searchTerms(BAKER_PAIR), [
+    'Bäckerin-Konditorin-Confiseurin EFZ', 'Bäckerin-Konditorin-Confiseurin',
+    'Bäcker-Konditor-Confiseur EFZ', 'Bäcker-Konditor-Confiseur',
+  ]);
 });
 
 test('LENA: a place must match exactly, a postal code takes the first suggestion', () => {
