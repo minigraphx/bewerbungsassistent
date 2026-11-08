@@ -169,11 +169,15 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
         data = request.get("data")
         if not isinstance(data, dict):
             raise ValueError("Die Angaben haben eine unbekannte Form.")
+
+        def suggest() -> dict:
+            routes_ai.require_consent(folder)  # before reading: large PDFs take seconds (#156)
+            return prefill.suggest(form, folder, request.get("track"), data, lambda: routes_ai.consented_client(folder))
+
         if not prefill_running.acquire(blocking=False):
             raise ValueError(PREFILL_RUNNING)
         try:
-            result = routes_ai.run_ai(
-                lambda: prefill.suggest(form, folder, request.get("track"), data, lambda: routes_ai.consented_client(folder)))
+            result = routes_ai.run_ai(suggest)
         finally:
             prefill_running.release()
         with documents_lock:

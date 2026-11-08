@@ -14,6 +14,7 @@ import yaml
 import app
 import routes_ai
 from ai import consent
+import read_documents
 import routes_angaben
 import routes_setup
 import settings
@@ -358,6 +359,21 @@ def test_prefill_sends_nothing_without_the_consent(started, monkeypatch):
 
     assert status == 400 and answer["fehler"] == consent.MISSING
     assert messages.calls == []
+
+
+def test_prefill_without_the_consent_reads_no_documents(started, monkeypatch):
+    """Large PDFs take seconds to read; the missing consent must be said before that, not after (#156)."""
+    server, _, _ = started
+    monkeypatch.setattr(consent, "is_given", REAL_CONSENT_CHECK)
+    install_client(monkeypatch, prefill_reply())
+    read = []
+    monkeypatch.setattr(read_documents, "collect_texts", lambda *args: read.append(args))
+    upload(server, name="cv.txt", data="Erika Beispiel, Entwicklerin bei Muster GmbH seit 2019".encode())
+
+    status, answer = call(server, "/api/angaben/vorbefuellen", {"track": "job", "data": PREFILL_DATA})
+
+    assert status == 400 and answer["fehler"] == consent.MISSING
+    assert read == []
 
 
 def test_prefill_suggests_without_writing_the_persons_files(started, monkeypatch):
