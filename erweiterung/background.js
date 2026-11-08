@@ -12,6 +12,7 @@ import { ALL_PAGES, ApplyRun } from './lib/apply.js';
 import { RavRun, isRavPage } from './lib/rav.js';
 import { showHits } from './lib/app-tab.js';
 import { reloadForAppVersion, siteAccessControl } from './lib/reload.js';
+import { SearchTabs, currentRun } from './lib/run-state.js';
 
 const LOAD_TIMEOUT_MS = 30000;
 const RELOAD_DELAY_MS = 300;
@@ -21,6 +22,7 @@ let running = false;
 let searchCancelled = false;
 let versionChecked = false;
 let watchedTab = null; // with „Zuschauen“ (MIN-370): the visible tab of the search
+const searchTabs = new SearchTabs();
 
 // Pages of the app that were already open when the extension was loaded get the bridge now, so the setup page
 // shows „bereit“ without a reload. app-bridge.js itself checks that the page belongs to the app.
@@ -63,10 +65,12 @@ const browserTabs = {
   async openTab(url, watching) {
     const tab = await chrome.tabs.create({ url, active: watching });
     if (watching) watchedTab = tab.id;
+    searchTabs.opened(tab.id);
     try {
       await waitForLoad(tab.id);
     } catch (error) {
       if (watchedTab === tab.id) watchedTab = null;
+      searchTabs.closedBySearch(tab.id);
       await chrome.tabs.remove(tab.id).catch(() => {});
       throw error;
     }
@@ -96,6 +100,7 @@ const browserTabs = {
   },
   closeTab(tabId) {
     if (watchedTab === tabId) watchedTab = null; // closed by the search itself, that is no cancelling
+    searchTabs.closedBySearch(tabId);
     return chrome.tabs.remove(tabId);
   },
   async readOpen(tabId) {
@@ -158,13 +163,29 @@ async function openPermissionForSearch() {
 
 async function publish(state) {
   await chrome.storage.session.set({ lauf: state });
-  for (const port of appPorts) port.postMessage({ art: 'lauf', lauf: state });
+  for (const port of appPorts) send(port, { art: 'lauf', lauf: state });
+}
+
+/** A page that went away in between must not stop the run's reports to the others. */
+function send(port, message) {
+  try {
+    port.postMessage(message);
+  } catch {
+    appPorts.delete(port);
+  }
+}
+
+/** The run as pages see it: what a stopped worker left as running is over. */
+async function runNow() {
+  const { lauf } = await chrome.storage.session.get('lauf');
+  return currentRun(lauf, running);
 }
 
 async function startSearch() {
   if (running) return { laeuft: true };
   running = true;
   searchCancelled = false;
+  searchTabs.clear();
   const app = new AppConnection();
   const started = new Date().toISOString();
   await publish({ zustand: 'laeuft', beginn: started, schritt: { phase: 'start' } });
@@ -190,6 +211,7 @@ async function stopSearch() {
 }
 
 async function status() {
+  const lauf = await runNow();
   const app = new AppConnection();
   try {
     const hello = await app.hello();
@@ -200,9 +222,9 @@ async function status() {
     if (plan) await chrome.storage.local.set({ textsatz: textSet(plan) });
     // Staying on the old version is no reason to report the connection as lost.
     await followAppVersion(hello).catch(() => false);
-    return { verbunden: true, version: hello.version, app: hello.app, plan };
+    return { verbunden: true, version: hello.version, app: hello.app, plan, lauf };
   } catch (error) {
-    return { verbunden: false, fehler: error.message || explain('') };
+    return { verbunden: false, fehler: error.message || explain(''), lauf };
   } finally {
     app.close();
   }
@@ -371,10 +393,8 @@ chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
   ravRun.loaded(tabId, tab.url).catch(() => { /* the tab went away while loading */ });
 });
 chrome.tabs.onRemoved.addListener((tabId) => {
-  if (tabId === watchedTab) {
-    watchedTab = null;
-    searchCancelled = true;
-  }
+  if (tabId === watchedTab) watchedTab = null;
+  if (searchTabs.removed(tabId) && running) searchCancelled = true;
   applyRun.closed(tabId);
   ravRun.closed(tabId);
 });
@@ -471,6 +491,8 @@ chrome.runtime.onConnect.addListener((port) => {
     }
     appPorts.add(port);
     port.onDisconnect.addListener(() => appPorts.delete(port));
+    // A page that connects during a run has missed its start; how a run ended it asks with „status“ when it waits.
+    runNow().then((lauf) => { if (lauf && lauf.zustand === 'laeuft') send(port, { art: 'lauf', lauf }); });
     checkVersionOnce();
   });
 });

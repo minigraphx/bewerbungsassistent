@@ -152,3 +152,30 @@ test("near the home comes before the rest, but not before the grade", () => {
   ];
   assert.deepEqual(logik.sortiert(hits, {}).map((t) => t.id), ["rated", "near", "far"]);
 });
+
+// The page Suche never waits for a run the extension no longer has (#142).
+const SEIT = "2026-11-08T10:00:00.000Z";
+
+test("a status with the running search keeps the page waiting, one that ended since the start ends it", () => {
+  const laeuft = { zustand: "laeuft", beginn: "2026-11-08T10:00:01.000Z", schritt: { phase: "start" } };
+  assert.equal(logik.laufNachStatus({ verbunden: true, lauf: laeuft }, SEIT), laeuft);
+  const fertig = { zustand: "fertig", beginn: "2026-11-08T10:00:01.000Z", ergebnis: { abgebrochen: true } };
+  assert.equal(logik.laufNachStatus({ verbunden: true, lauf: fertig }, SEIT), fertig);
+  const unterbrochen = { zustand: "fehler", beginn: "2026-11-08T10:00:01.000Z", fehler: "Die Suche wurde unterbrochen." };
+  assert.equal(logik.laufNachStatus({ verbunden: true, lauf: unterbrochen }, SEIT), unterbrochen);
+});
+
+test("without a run of its own the page stops waiting with a message, also when the extension is not reached", () => {
+  const alt = { zustand: "fertig", beginn: "2026-11-07T08:00:00.000Z", ergebnis: {} };
+  for (const antwort of [{ verbunden: true, lauf: alt }, { verbunden: true, lauf: null }, {}, null]) {
+    const lauf = logik.laufNachStatus(antwort, SEIT);
+    assert.equal(lauf.zustand, "fehler");
+    assert.match(lauf.fehler, /Jetzt suchen/);
+  }
+  const fehlt = logik.laufNachStatus({ fehler: "Die Erweiterung antwortet nicht. Bitte die Seite neu laden." }, SEIT);
+  assert.deepEqual(fehlt, { zustand: "fehler", fehler: "Die Erweiterung antwortet nicht. Bitte die Seite neu laden." });
+});
+
+test("the page asks for the status after a while without progress, not at once", () => {
+  assert.ok(logik.STILLE_MS >= 5000 && logik.STILLE_MS <= 60000);
+});

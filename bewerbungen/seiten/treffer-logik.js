@@ -117,7 +117,22 @@
     return treffer.filter(t => istSchnupperlehre(t) === (art === "Schnupperlehre"));
   }
 
-  const logik = { sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, pakete, bewerteAlle, kostenProTreffer, nachpruefungText };
+  /** How long the page waits for word of a running search before it asks the extension for its status (#142). */
+  const STILLE_MS = 20000;
+  const KEIN_LAUF = "Die Erweiterung hat keine Suche am Laufen. Bitte nochmals „Jetzt suchen“ drücken, sonst die Seite neu laden.";
+
+  /**
+   * The run the page follows after asking the extension. `seit` is when the page began to wait: a run that ended
+   * before is an older one, so this search did not start.
+   */
+  function laufNachStatus(antwort, seit) {
+    const lauf = antwort && antwort.lauf;
+    if (lauf && (lauf.zustand === "laeuft" || (lauf.beginn || "") >= seit)) return lauf;
+    if (!lauf && antwort && antwort.fehler) return { zustand: "fehler", fehler: antwort.fehler };
+    return { zustand: "fehler", fehler: KEIN_LAUF };
+  }
+
+  const logik = { STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, pakete, bewerteAlle, kostenProTreffer, nachpruefungText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);
