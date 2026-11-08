@@ -22,7 +22,8 @@ from dateien import im_ordner, lies_yaml
 from import_documents import pending_documents
 
 SECTIONS = ("summary", "work", "education", "certificates", "languages", "skills", "interests", "strengths", "style")
-LEFT_OUT_FIELDS = {"style": {"address", "place"}}  # the person's own decision; the place is personal
+# the person's own decision; the place is personal; a free text replaces what the documents give field by field (G25)
+LEFT_OUT_FIELDS = {"style": {"address", "place"}, "education": {"text"}, "certificates": {"text"}}
 LEFT_OUT_TYPES = {"tags"}  # tags choose what goes into which version of the CV: the person's own decision (G24)
 APPRENTICESHIP = "apprenticeship"
 MAX_PLACE_CHARS = 100
@@ -115,6 +116,7 @@ def _as_cv(data: dict) -> dict:
     return {
         "basics": {
             "name": _text(person.get("name")), "email": _text(person.get("email")), "phone": _text(person.get("phone")),
+            "url": _text(person.get("url")),
             "location": {"address": _text(person.get("address")), "postalCode": _text(person.get("postalCode"))},
             "profiles": [{"url": url} for url in profiles if isinstance(url, str) and url.strip()],
             "details": [f"geboren {birth}"] if birth.strip() else [],

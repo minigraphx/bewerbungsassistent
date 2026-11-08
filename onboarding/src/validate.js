@@ -106,11 +106,17 @@ function validateField(form, field, track, item, path, known) {
   if (field.type === "list") return validateList(form, field, value, path, known);
   const text = value ?? "";
   if (typeof text !== "string") return [err(path, "type")];
-  if (!text.trim()) return field.required ? [err(path, "required")] : [];
+  if (!text.trim()) return isRequired(field, item) ? [err(path, "required")] : [];
   const code = checkText(form, field, track, text);
   if (code) return [err(path, code)];
   if (field.notBefore && isBefore(text, item[field.notBefore])) return [err(path, "notBefore")];
   return [];
+}
+
+/** Required, unless the field named by requiredUnless holds text: a free text stands in for what it replaces (G25). */
+function isRequired(field, item) {
+  const other = field.requiredUnless === undefined ? undefined : item[field.requiredUnless];
+  return Boolean(field.required) && !(typeof other === "string" && other.trim());
 }
 
 /** A list of tags: known ones may be longer or more than the limits allow, typed ones may not. */

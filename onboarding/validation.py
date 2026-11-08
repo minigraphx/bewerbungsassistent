@@ -2,7 +2,8 @@
 
 The bundle comes from outside (the HTML template, or a file someone edited), so every value is
 checked: known sections and fields for the track, types, required values, lengths, formats and
-date order. `src/validate.js` implements the same rules for the browser; both run the shared cases
+date order. A field marked requiredUnless is required only while the named field of its entry is empty (G25: a free
+text or a display stands in for the fields it replaces). `src/validate.js` implements the same rules for the browser; both run the shared cases
 in `tests/cases.json`. Tags (G24) are a list per entry, or per line of a list marked "tags" ({text, tags}); a tag
 holds no comma and no control character. The limits of length and count hold for typed tags only: tags already in the
 data folder (`known`, see known_tags.py) never block saving.
@@ -109,13 +110,19 @@ def _validate_field(form: dict, field: dict, track: str, item: dict, path: str,
     if not isinstance(value, str):
         return [ValidationError(path, "type")]
     if not value.strip():
-        return [ValidationError(path, "required")] if field.get("required") else []
+        return [ValidationError(path, "required")] if is_required(field, item) else []
     error = check_text(form, field, track, value)
     if error:
         return [ValidationError(path, error)]
     if field.get("notBefore") and _is_before(value, item.get(field["notBefore"])):
         return [ValidationError(path, "notBefore")]
     return []
+
+
+def is_required(field: dict, item: dict) -> bool:
+    """Required, unless the field named by requiredUnless holds text: a free text stands in for what it replaces."""
+    other = item.get(field.get("requiredUnless"))
+    return bool(field.get("required")) and not (isinstance(other, str) and other.strip())
 
 
 def tag_rules(form: dict) -> dict:

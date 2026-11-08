@@ -69,7 +69,7 @@ function controlView(field, ctx, id, describedBy) {
   if (field.type === "select") {
     const select = el("select", { ...common, onchange: (e) => ctx.onChange(e.target.value) }, [
       el("option", { value: "" }, "– bitte wählen –"),
-      ...field.options.map((o) => el("option", { value: o, selected: o === ctx.value }, o)),
+      ...field.options.map((o) => el("option", { value: o, selected: o === ctx.value }, field.optionLabels?.[o] ?? o)),
     ]);
     return select;
   }

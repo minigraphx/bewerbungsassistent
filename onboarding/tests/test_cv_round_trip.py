@@ -49,7 +49,7 @@ basics:
     - network: Mastodon
       username: beispiel
 
-# Projekte zeigt das Formular nicht
+# Projekte, Hauptprojekte zuerst
 projects:
   - name: datenatlas
     description: Visualisierung offener Verkehrsdaten
@@ -178,7 +178,7 @@ def test_the_form_is_filled_from_the_cv():
 
     assert data["person"] == {
         "name": "Erika Beispiel", "label": "Software-Entwicklerin – Web und Daten", "email": "erika@example.ch",
-        "phone": "079 000 00 00", "address": "Musterweg 1", "postalCode": "3000", "city": "Bern",
+        "url": "www.example.ch", "phone": "079 000 00 00", "address": "Musterweg 1", "postalCode": "3000", "city": "Bern",
         "birthDate": "1. Mai 1990", "nationality": "Schweiz",
         "profiles": ["https://github.com/example", "www.linkedin.com/in/example"],
     }
@@ -193,7 +193,8 @@ def test_the_form_is_filled_from_the_cv():
          "endDate": "2019", "highlights": ["Wartung von Webshops"]},
     ]
     assert data["education"] == [{"studyType": "Bachelor", "area": "Informatik", "institution": "Beispiel-Hochschule",
-                                  "startDate": "2011", "endDate": "2015"}]
+                                  "startDate": "2011", "endDate": "2015",
+                                  "text": "Bachelor of Science in Informatik, Beispiel-Hochschule"}]
     assert data["certificates"] == [{"name": "Machine Learning Grundlagen", "issuer": "Online-Kurs", "date": "2023-05",
                                      "tags": ["daten"]}]
     assert data["languages"][1] == {"language": "Englisch", "fluency": "Sehr gut (C1)"}

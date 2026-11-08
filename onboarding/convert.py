@@ -11,9 +11,11 @@ import urllib.parse
 import yaml
 
 import markdown_files
+from cv_read import KEPT_BASICS, KEPT_SECTIONS
 from values import items, text
 
 APPRENTICESHIP_HEADINGS = {"erfahrung": "Schnupperlehren & Erfahrungen", "bildung": "Schule & Eignungstests"}
+TEACHING_EXTRA = ("x-display",)  # teaching is shaped like work; the form shows its display text too (G25)
 NETWORKS = {"linkedin": "LinkedIn", "github": "GitHub", "xing": "XING", "gitlab": "GitLab"}
 
 
@@ -41,23 +43,30 @@ def cv_file(cv: dict, note: str) -> str:
     return f"# {note}. Format: lebenslauf/README.md\n" + _dump_yaml(cv)
 
 
-def build_cv(data: dict, track: str, tag_keys: bool = False) -> dict:
-    """The CV of the answers. With tag_keys an answer's tags stay as given, an empty list too, and a highlight given
-    as {text, tags} stays one: cv_merge.py tells "no tags" (empty list) from "tags not given" (no key)."""
+def build_cv(data: dict, track: str, answer_keys: bool = False) -> dict:
+    """The CV of the answers. With answer_keys an answer's tags stay as given, an empty list too, a highlight given
+    as {text, tags} stays one, and so do the empty sections and fields marked keepUnlessGiven in form.json (G25):
+    cv_merge.py tells "none" (empty) from "not given" (no key)."""
+    tag_keys = answer_keys
     person = data.get("person", {})
-    cv = {"basics": _basics(person, data.get("summary", {}))}
+    basics = _basics(person, data.get("summary", {}))
+    given = {key: "" for key in KEPT_BASICS if answer_keys and key in person and key not in basics}
+    cv = {"basics": {**basics, **given}}
     tagged = functools.partial(_tagged, tag_keys=tag_keys)
     sections = {
         "work": [_work(w, tag_keys) for w in data.get("work", [])],
-        "education": [_pick(e, "studyType", "area", "institution", "startDate", "endDate", keep_end=True)
+        "teaching": [_work(t, tag_keys, TEACHING_EXTRA) for t in data.get("teaching", [])],
+        "projects": [tagged(_pick(p, "name", "description", "group"), p) for p in data.get("projects", [])],
+        "education": [_pick(e, "studyType", "area", "institution", "startDate", "endDate", "text", keep_end=True)
                       for e in data.get("education", [])],
-        "certificates": [tagged(_pick(c, "name", "issuer", "date"), c) for c in data.get("certificates", [])],
+        "certificates": [tagged(_pick(c, "name", "issuer", "date", "text"), c) for c in data.get("certificates", [])],
         "languages": [_pick(lang, "language", "fluency") for lang in data.get("languages", [])],
         "skills": [tagged({"name": text(s["name"]), "keywords": items(s.get("keywords"))}, s)
                    for s in data.get("skills", [])],
         "interests": [{"name": name} for name in items(data.get("interests", {}).get("interests"))],
     }
-    cv.update({key: value for key, value in sections.items() if value})
+    cv.update({key: value for key, value in sections.items()
+               if value or (answer_keys and key in KEPT_SECTIONS and key in data)})
     if track == "apprenticeship":
         cv["x-beschriftungen"] = dict(APPRENTICESHIP_HEADINGS)
     return cv
@@ -71,6 +80,7 @@ def _basics(person: dict, summary: dict) -> dict:
         "name": text(person.get("name")),
         "label": text(person.get("label")),
         "email": text(person.get("email")),
+        "url": text(person.get("url")),
         "phone": text(person.get("phone")),
         "location": location,
         "details": [d for d in details if d],
@@ -95,8 +105,8 @@ def _profile(url: str) -> dict:
     return {"network": network, "url": full}
 
 
-def _work(entry: dict, tag_keys: bool) -> dict:
-    work = _pick(entry, "position", "name", "location", "startDate", "endDate", keep_end=True)
+def _work(entry: dict, tag_keys: bool, extra: tuple[str, ...] = ()) -> dict:
+    work = _pick(entry, "position", "name", "location", "startDate", "endDate", *extra, keep_end=True)
     highlights = [line for line in (_highlight(h, tag_keys) for h in entry.get("highlights") or []) if line]
     return _tagged({**work, "highlights": highlights} if highlights else work, entry, tag_keys)
 
