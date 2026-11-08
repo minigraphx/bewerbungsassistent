@@ -209,7 +209,7 @@ Du installierst alles genau wie oben beschrieben. Lass dir dabei ruhig von deine
 Danach ist Folgendes anders:
 
 1. Unter **Meine Angaben** wählst du die **Lehrstellensuche**. Die Fragen führen dich durch alles, was es braucht.
-2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Lehrstellen suchen** kann dir die KI Berufe vorschlagen. Du entscheidest, welche du in deine Suche aufnimmst.
+2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Lehrstellen suchen** kann dir die KI unter **Welcher Beruf passt zu dir?** Berufe vorschlagen. Fehlt noch die Einwilligung, fragt die App gleich dort danach. Was du geschrieben hast, bleibt stehen, und nach **Einwilligen** kommen die Vorschläge. Du entscheidest, welche du in deine Suche aufnimmst.
 3. Unter **Suche einstellen** wählst du, ob du Lehrstellen, Schnupperlehren oder beides suchst. Die Erweiterung sucht dann auf LENA (berufsberatung.ch) und yousty. Unter **Wo suchst du?** kannst du eines davon ausschalten.
 
 Deine Bewerbung schickst immer du selbst ab.
@@ -337,7 +337,7 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
-| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein. |
+| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein. Für Vorschläge der KI auf der Seite **Stellen suchen** oder **Lehrstellen suchen** fragt die App direkt im Feld für die Vorschläge nach der Einwilligung; was Sie dort geschrieben haben, bleibt stehen. |
 | „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 4](#schritt-4-ki) ein. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie im Pilot begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |
@@ -350,6 +350,8 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Für die Suche braucht es die Browser-Erweiterung.“ | Die Erweiterung ist nicht hinzugefügt oder ausgeschaltet. Gehen Sie zu [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen), oder schalten Sie sie auf der Erweiterungsseite ein. |
+| „Die Erweiterung antwortet nicht. Bitte die Seite neu laden.“ | Laden Sie die Seite der App neu. Das kommt vor, wenn die Erweiterung neu geladen oder aktualisiert wurde. Hilft das nicht, prüfen Sie auf der Erweiterungsseite, ob sie eingeschaltet ist. |
+| „Die Erweiterung hat keine Suche am Laufen. Bitte nochmals „Jetzt suchen“ drücken, sonst die Seite neu laden.“ | Die Suche ist unterbrochen worden, und die Seite wartet nicht länger auf sie. Was schon in der App angekommen ist, bleibt. Klicken Sie nochmals auf **Jetzt suchen**; hilft das nicht, laden Sie die Seite neu. |
 
 <details>
 <summary>Für Computer mit Linux: Fehler, die nur dort vorkommen</summary>
