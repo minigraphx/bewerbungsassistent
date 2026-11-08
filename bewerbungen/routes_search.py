@@ -87,9 +87,14 @@ def finish(k, parameter, body):
     return json_antwort(run)
 
 
+def _page_kind(k) -> str:
+    """The kind the page Suche is worded and offers portals for: the setup's choice, else what the profile says."""
+    return preferences.load(k.daten).sought
+
+
 def overview(k, parameter, body):
     store = _hits(k)
-    kind = search_plan.kind_of_folder(k.daten)
+    kind = _page_kind(k)
     portals = search_plan.APPRENTICESHIP_PORTALS if kind == search_plan.KIND_APPRENTICESHIP else search_plan.PORTALS
     offers: tuple[str, ...] = ()
     targets: dict[str, str] = {}
@@ -98,6 +103,9 @@ def overview(k, parameter, body):
     off = store.settings()[PORTALS_OFF]
     choice = search_plan.portal_choice(search_plan.SearchPlan(keywords=(), kind=kind, portals=portals), off)
     try:
+        if (k.daten / search_plan.PROFILE).is_file() and search_plan.kind_of_folder(k.daten) != kind:
+            # an apprenticeship profile gets „## Lehrbeginn“ only with a start; until then the choice words the page
+            raise ValueError(search_plan.NOTHING_OF_KIND[kind])
         profile = search_plan.for_folder(k.daten)
         current = search_plan.chosen(profile, off)
         choice = search_plan.portal_choice(profile, off)
@@ -221,7 +229,7 @@ def rate_package(k, parameter, body):
 
 def settings(k, parameter, body):
     if isinstance(body, dict) and PORTALS_OFF in body:
-        wanted = search_plan.checked_choice(body[PORTALS_OFF], search_plan.kind_of_folder(k.daten))
+        wanted = search_plan.checked_choice(body[PORTALS_OFF], _page_kind(k))
         return json_antwort(_hits(k).set_portals_off(wanted))
     if isinstance(body, dict) and isinstance(body.get("zuschauen"), bool):
         return json_antwort(_hits(k).set_watching(body["zuschauen"]))

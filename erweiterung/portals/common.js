@@ -104,22 +104,33 @@
   /**
    * The words of a profession, so that the name in the search profile and the name on a portal can be compared:
    * „Fachfrau Betreuung EFZ, Fachrichtung Kinder“ and „Fachmann/-frau Betreuung (Kinder) EFZ“ give the same.
-   * search_plan.profession_words in the app follows the same rules; profession_words.json holds the cases of both.
+   * A name in two forms („… / …“) counts by its first. search_plan.profession_words in the app follows the same rules;
+   * profession_words.json holds the cases of both.
    * @param {string} name
    * @returns {Set<string>}
    */
   function professionWords(name) {
-    const words = String(name || '').toLowerCase()
+    const words = String(professionForms(name)[0] || '').toLowerCase()
       .replace(/\/-?(in|frau|mann|euse|r)\b/g, '')
       .split(/[\s,;()/]+/)
       .filter((word) => word && !FILLER_WORDS.has(word))
-      .map(neutralWord);
-    return new Set(words.filter(Boolean));
+      .map((word) => word.split('-').map(neutralWord).join('-'));
+    return new Set(words.filter((word) => word.replace(/-/g, '')));
   }
 
   /**
-   * The option of a portal for a profession: it has all wanted words and as few others as possible, so the plain
-   * profession wins over its specialisations. The first one wins a tie.
+   * The forms of a name written as „Bäckerin-Konditorin EFZ / Bäcker-Konditor EFZ“; a name without „ / “ is one form.
+   * Only a slash with spaces around it separates forms, „Koch/Köchin“ stays one.
+   * @param {string} name
+   * @returns {string[]}
+   */
+  function professionForms(name) {
+    return String(name || '').split(/\s+\/\s+/).map((form) => form.trim()).filter(Boolean);
+  }
+
+  /**
+   * The option of a portal for a profession: it has all wanted words of one of its forms and as few others as
+   * possible, so the plain profession wins over its specialisations. The first one wins a tie.
    * @template T
    * @param {string} wanted
    * @param {T[]} options
@@ -127,23 +138,24 @@
    * @returns {T|null}
    */
   function bestProfession(wanted, options, labelOf) {
-    const words = professionWords(wanted);
-    if (!words.size) return null;
+    const forms = professionForms(wanted).map(professionWords).filter((words) => words.size);
     let best = null;
     let fewest = Infinity;
     for (const option of options) {
       const label = professionWords(labelOf(option));
-      const extra = label.size - words.size;
-      if (extra < fewest && [...words].every((word) => label.has(word))) {
-        best = option;
-        fewest = extra;
+      for (const words of forms) {
+        const extra = label.size - words.size;
+        if (extra < fewest && [...words].every((word) => label.has(word))) {
+          best = option;
+          fewest = extra;
+        }
       }
     }
     return best;
   }
 
   const common = {
-    PortalChanged, htmlToText, ageFromDate, ageFromText, workload, fetchJson, fetchPage, textOf, professionWords, bestProfession,
+    PortalChanged, htmlToText, ageFromDate, ageFromText, workload, fetchJson, fetchPage, textOf, professionWords, professionForms, bestProfession,
   };
   globalThis.bewerbungsbegleiterCommon = common;
   globalThis.bewerbungsbegleiterPortals = globalThis.bewerbungsbegleiterPortals || {};
