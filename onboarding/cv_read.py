@@ -2,13 +2,17 @@
 
 The page „Meine Angaben“ opens with these answers. Only what the form can show comes back; an entry without
 anything the form shows does not come back at all. All of it stays in the file: cv_merge.py puts the answers back
-without touching the rest. The keys below are the field ids of form.json (sections marked "cv").
+without touching the rest. The keys below are the field ids of form.json (sections marked "cv"). Tags (G24) come
+along on entries and on highlights; a highlight with tags is {text, tags}, as in the file.
 """
 import datetime
 import logging
 import pathlib
+import re
 
 import yaml
+
+import validation
 
 log = logging.getLogger(__name__)
 
@@ -18,14 +22,14 @@ TEXT_BASICS = ("name", "label", "email", "phone")
 LOCATION = ("address", "postalCode", "city")
 DATES = ("startDate", "endDate")
 SECTIONS = {
-    "work": ("position", "name", "location", *DATES, "highlights"),
+    "work": ("position", "name", "location", *DATES, "highlights", "tags"),
     "education": ("studyType", "area", "institution", *DATES),
-    "certificates": ("name", "issuer", "date"),
+    "certificates": ("name", "issuer", "date", "tags"),
     "languages": ("language", "fluency"),
-    "skills": ("name", "keywords"),
+    "skills": ("name", "keywords", "tags"),
 }
 INTERESTS = ("name",)
-TEXT_LISTS = frozenset({"highlights", "keywords"})
+TAG = re.compile(validation.load_form()["formats"]["tag"]["pattern"])
 
 
 def shown_text(value: object) -> str | None:
@@ -45,9 +49,34 @@ def shown_text(value: object) -> str | None:
 
 def item_text(item: object) -> str | None:
     """A list line (highlight, keyword) as text, also from {text, tags}; None if blank or not text."""
-    text = shown_text(item["text"]) if isinstance(item, dict) and "text" in item else (
-        None if isinstance(item, (dict, list)) else shown_text(item))
+    text = shown_text(item["text"]) if isinstance(item, dict) and "text" in item else line_text(item)
     return text or None
+
+
+def line_text(item: object) -> str | None:
+    """One line of a list of plain lines (keywords) as text; None if blank or not text."""
+    return None if isinstance(item, (dict, list)) else shown_text(item) or None
+
+
+def tag_text(item: object) -> str | None:
+    """One tag as the form can show it; None if blank, not text, or holding a comma or a control character."""
+    text = line_text(item)
+    return text if text and TAG.fullmatch(text) else None
+
+
+def shown_tags(value: object) -> list[str]:
+    """The tags of a list the form can show; the others stay out (and stay in the file)."""
+    return [t for t in map(tag_text, value) if t] if isinstance(value, list) else []
+
+
+def highlight_shown(item: object) -> str | dict | None:
+    """A highlight as the form shows it: its text, or {text, tags} when it has tags; None if it cannot."""
+    text = item_text(item)
+    tags = shown_tags(item.get("tags")) if isinstance(item, dict) else []
+    return {"text": text, "tags": tags} if text and tags else text
+
+
+LIST_SHOWN = {"highlights": highlight_shown, "keywords": item_text, "tags": tag_text}
 
 
 def entry_shown(entry: object, fields: tuple[str, ...]) -> dict | None:
@@ -57,10 +86,10 @@ def entry_shown(entry: object, fields: tuple[str, ...]) -> dict | None:
     shown = {}
     for key in fields:
         value = entry.get(key)
-        if key in TEXT_LISTS:
-            texts = [t for t in map(item_text, value) if t] if isinstance(value, list) else []
-            if texts:
-                shown[key] = texts
+        if key in LIST_SHOWN:
+            lines = [line for line in map(LIST_SHOWN[key], value) if line] if isinstance(value, list) else []
+            if lines:
+                shown[key] = lines
         elif text := shown_text(value):
             shown[key] = text
     return shown or None

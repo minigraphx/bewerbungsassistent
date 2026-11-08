@@ -87,10 +87,10 @@ MATCHING = EXTRAS_ONLY.replace("  - position: Alte Stelle\n    name: Alt AG\n   
 
 
 @pytest.mark.parametrize("change, kept", [
-    (("    highlights: [Erster Punkt]\n", "    tags: [daten]\n    highlights: [Erster Punkt]\n"),
-     lambda cv: cv["work"][0]["tags"] == ["daten"]),
-    (("    highlights: [Erster Punkt]\n", "    highlights: [{text: Plattform für Kundendaten, tags: [daten]}]\n"),
-     lambda cv: cv["work"][0]["highlights"][0] == {"text": "Plattform für Kundendaten", "tags": ["daten"]}),
+    (("    highlights: [Erster Punkt]\n", "    tags: daten\n    highlights: [Erster Punkt]\n"),
+     lambda cv: cv["work"][0]["tags"] == "daten"),
+    (("    highlights: [Erster Punkt]\n", "    highlights: [{text: Plattform für Kundendaten, tags: daten}]\n"),
+     lambda cv: cv["work"][0]["highlights"][0] == {"text": "Plattform für Kundendaten", "tags": "daten"}),
     (("    highlights: [Erster Punkt]\n", "    x-display: seit 2019\n    highlights: [Erster Punkt]\n"),
      lambda cv: cv["work"][0]["x-display"] == "seit 2019"),
     (("    highlights: [Erster Punkt]\n", "    summary: Ein Satz, den das Formular nicht kennt\n"),
@@ -113,6 +113,45 @@ def test_fields_the_form_does_not_know_stay_when_replacing(tmp_path, change, kep
     assert "cv.yaml" in result.written and result.kept_files == ()
     assert kept(cv)
     assert cv["basics"]["name"] == "Erika Beispiel"
+
+
+TAGGED_MATCH = MATCHING.replace("    highlights: [Erster Punkt]\n",
+                                "    tags: [daten]\n    highlights: [{text: Plattform für Kundendaten, tags: [daten]}]\n")
+
+
+def test_tags_are_answers_since_the_form_shows_them(tmp_path):
+    path = existing_cv(tmp_path, TAGGED_MATCH)
+    bundle = base_bundle("job")
+    bundle["data"]["work"][0]["tags"] = ["daten"]
+    bundle["data"]["work"][0]["highlights"][0] = {"text": "Plattform für Kundendaten", "tags": ["daten"]}
+
+    import_bundle.import_answers(tmp_path, bundle, TODAY, force=True)
+
+    work = yaml.safe_load(path.read_text(encoding="utf-8"))["work"][0]
+    assert work["tags"] == ["daten"]
+    assert work["highlights"] == [{"text": "Plattform für Kundendaten", "tags": ["daten"]}, "Datenpipelines"]
+
+
+def test_answers_without_tags_keep_them(tmp_path):
+    path = existing_cv(tmp_path, TAGGED_MATCH)
+
+    replace(tmp_path)
+
+    work = yaml.safe_load(path.read_text(encoding="utf-8"))["work"][0]
+    assert work["tags"] == ["daten"]
+    assert work["highlights"] == [{"text": "Plattform für Kundendaten", "tags": ["daten"]}, "Datenpipelines"]
+
+
+def test_answers_with_empty_tags_take_them_away(tmp_path):
+    path = existing_cv(tmp_path, TAGGED_MATCH)
+    bundle = base_bundle("job")
+    bundle["data"]["work"][0]["tags"] = []
+    bundle["data"]["work"][0]["highlights"][0] = {"text": "Plattform für Kundendaten", "tags": []}
+
+    import_bundle.import_answers(tmp_path, bundle, TODAY, force=True)
+
+    work = yaml.safe_load(path.read_text(encoding="utf-8"))["work"][0]
+    assert "tags" not in work and work["highlights"] == ["Plattform für Kundendaten", "Datenpipelines"]
 
 
 def test_an_entry_the_answers_no_longer_hold_goes_with_its_fields(tmp_path):

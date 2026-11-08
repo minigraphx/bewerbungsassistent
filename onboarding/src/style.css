@@ -137,6 +137,13 @@ button { font: inherit; cursor: pointer; }
 .nav-buttons .primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .remove { font-size: 14px; color: var(--danger); }
 .add { border-style: dashed; width: 100%; }
+.tagged-line { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.tagged-line input { min-width: 0; flex: 3 1 16rem; }
+.tagged-line input.line-tags { flex: 1 1 8rem; }
+.tagged-line .remove-line { min-width: 40px; min-height: 40px; border: 1px solid var(--line-strong); border-radius: var(--radius-control);
+  background: var(--surface); color: var(--danger); flex: 0 0 auto; }
+.add-line { min-height: 32px; padding: 0 12px; border: 1px dashed var(--line-strong); border-radius: var(--radius-control);
+  background: var(--surface); color: var(--text-strong); font-size: 14px; }
 .danger { color: var(--danger); border-color: var(--danger); }
 .link { border: 0; background: none; padding: 0; color: var(--text-strong); text-decoration: underline; text-underline-offset: 3px; text-align: left; }
 .tracks { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 16px; margin: 20px 0; }

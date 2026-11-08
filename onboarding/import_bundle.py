@@ -26,6 +26,7 @@ import archive
 import convert
 import cv_merge
 import import_documents
+import known_tags
 import search_plan
 import search_terms
 import validation
@@ -96,7 +97,8 @@ def import_answers(data_dir: pathlib.Path, bundle: object, today: datetime.date,
 
 def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.Document, ...], has_documents: bool,
             data_dir: pathlib.Path, today: datetime.date, force: bool) -> ImportResult:
-    errors = validation.validate_bundle(form, bundle)
+    # tags already in the data folder never block saving, only typed ones keep to the limits (G24)
+    errors = validation.validate_bundle(form, bundle, known=frozenset(known_tags.known_tags(data_dir, form)))
     incomplete = bool(errors and has_documents) and all(e.code == "required" for e in errors)
     if errors and not incomplete:
         track = bundle.get("track") if isinstance(bundle, dict) else None
@@ -129,7 +131,7 @@ def _keeping_cv_content(files: dict[str, str], bundle: dict, data_dir: pathlib.P
         existing = path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         existing = None
-    new_cv = convert.build_cv(bundle["data"], bundle["track"])
+    new_cv = convert.build_cv(bundle["data"], bundle["track"], tag_keys=True)
     text = None if existing is None else cv_merge.merged_text(existing, new_cv, bundle["track"], convert.made_on(today))
     if text is None:
         return {rel: content for rel, content in files.items() if rel != CV}, (CV,)

@@ -102,7 +102,7 @@ def test_state_is_kept_in_the_data_folder(started):
     server, folder, _ = started
     derived = {"track": "job", "anrede": "sie", "rav": True, "gewaehlt": False}
     assert call(server, "/api/angaben/stand") == (200, {"stand": None, "unterlagen": [], "vorhanden": [], "wahl": derived,
-                                                   "lebenslauf": None})
+                                                   "lebenslauf": None, "tags": []})
 
     state = {"track": "job", "data": {"person": {"name": "Erika Beispiel"}}, "step": 2}
     assert call(server, "/api/angaben/stand", {"stand": state})[0] == 200
@@ -497,7 +497,25 @@ def test_the_overview_reads_the_cv_for_the_form(started):
     cv = call(server, "/api/angaben/stand")[1]["lebenslauf"]
 
     assert cv["person"] == {"name": "Erika Beispiel"}
-    assert cv["work"] == [{"position": "Entwicklerin", "name": "Beispiel AG", "highlights": ["Ein Punkt"]}]
+    assert cv["work"] == [{"position": "Entwicklerin", "name": "Beispiel AG", "tags": ["daten"],
+                           "highlights": [{"text": "Ein Punkt", "tags": ["daten"]}]}]
+
+
+def test_the_overview_suggests_the_tags_of_the_data_folder(started):
+    server, folder, _ = started
+    (folder / "cv.yaml").write_text("work:\n  - position: Entwicklerin\n    tags: [web]\n", encoding="utf-8")
+    (folder / "varianten.yaml").write_text("- id: daten\n  quelle: jobs/daten.yaml\n  tags: [fullstack]\n",
+                                           encoding="utf-8")
+    (folder / "jobs").mkdir()
+    (folder / "jobs" / "daten.yaml").write_text("tags: [daten, web]\n", encoding="utf-8")
+
+    assert call(server, "/api/angaben/stand")[1]["tags"] == ["daten", "fullstack", "web"]
+
+
+def test_the_overview_suggests_no_tags_without_any(started):
+    server, _, _ = started
+
+    assert call(server, "/api/angaben/stand")[1]["tags"] == []
 
 
 def test_replacing_merges_into_the_cv_and_keeps_what_the_form_cannot_show(started):

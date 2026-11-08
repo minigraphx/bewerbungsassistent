@@ -5,6 +5,7 @@ The CV follows the JSON Resume schema used by `lebenslauf/` (see its README); th
 files follow the templates in `vorlagen/`.
 """
 import datetime
+import functools
 import urllib.parse
 
 import yaml
@@ -40,16 +41,20 @@ def cv_file(cv: dict, note: str) -> str:
     return f"# {note}. Format: lebenslauf/README.md\n" + _dump_yaml(cv)
 
 
-def build_cv(data: dict, track: str) -> dict:
+def build_cv(data: dict, track: str, tag_keys: bool = False) -> dict:
+    """The CV of the answers. With tag_keys an answer's tags stay as given, an empty list too, and a highlight given
+    as {text, tags} stays one: cv_merge.py tells "no tags" (empty list) from "tags not given" (no key)."""
     person = data.get("person", {})
     cv = {"basics": _basics(person, data.get("summary", {}))}
+    tagged = functools.partial(_tagged, tag_keys=tag_keys)
     sections = {
-        "work": [_work(w) for w in data.get("work", [])],
+        "work": [_work(w, tag_keys) for w in data.get("work", [])],
         "education": [_pick(e, "studyType", "area", "institution", "startDate", "endDate", keep_end=True)
                       for e in data.get("education", [])],
-        "certificates": [_pick(c, "name", "issuer", "date") for c in data.get("certificates", [])],
+        "certificates": [tagged(_pick(c, "name", "issuer", "date"), c) for c in data.get("certificates", [])],
         "languages": [_pick(lang, "language", "fluency") for lang in data.get("languages", [])],
-        "skills": [{"name": text(s["name"]), "keywords": items(s.get("keywords"))} for s in data.get("skills", [])],
+        "skills": [tagged({"name": text(s["name"]), "keywords": items(s.get("keywords"))}, s)
+                   for s in data.get("skills", [])],
         "interests": [{"name": name} for name in items(data.get("interests", {}).get("interests"))],
     }
     cv.update({key: value for key, value in sections.items() if value})
@@ -90,10 +95,25 @@ def _profile(url: str) -> dict:
     return {"network": network, "url": full}
 
 
-def _work(entry: dict) -> dict:
+def _work(entry: dict, tag_keys: bool) -> dict:
     work = _pick(entry, "position", "name", "location", "startDate", "endDate", keep_end=True)
-    highlights = items(entry.get("highlights"))
-    return {**work, "highlights": highlights} if highlights else work
+    highlights = [line for line in (_highlight(h, tag_keys) for h in entry.get("highlights") or []) if line]
+    return _tagged({**work, "highlights": highlights} if highlights else work, entry, tag_keys)
+
+
+def _highlight(line, tag_keys: bool) -> str | dict | None:
+    """A highlight as lebenslauf/README.md has it: text, or {text, tags} when it has tags (G24)."""
+    if not isinstance(line, dict):
+        return text(line) or None
+    line_text, tags = text(line.get("text")), items(line.get("tags"))
+    if not line_text:
+        return None
+    return {"text": line_text, "tags": tags} if tags or (tag_keys and "tags" in line) else line_text
+
+
+def _tagged(cv_entry: dict, entry: dict, tag_keys: bool) -> dict:
+    tags = items(entry.get("tags"))
+    return {**cv_entry, "tags": tags} if tags or (tag_keys and "tags" in entry) else cv_entry
 
 
 def _pick(entry: dict, *keys: str, keep_end: bool = False) -> dict:
