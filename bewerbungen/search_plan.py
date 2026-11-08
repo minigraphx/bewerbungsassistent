@@ -57,6 +57,9 @@ DEFAULT_RADIUS_KM = 25
 MIN_RADIUS_KM = 5
 MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
+NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
+NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
+NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
 PROFESSIONS_SECTION = "## Berufe (mit Priorität)"
 PROFESSIONS_KEY = PROFESSIONS_SECTION[3:].lower()
@@ -247,11 +250,20 @@ def _neutral_word(word: str) -> str:
     return re.sub(r"(er|ent|ant|ist|eur|or)in$", r"\1", re.sub(r"(frau|mann)$", "", word))
 
 
+def profession_forms(name: str) -> tuple[str, ...]:
+    """The forms of a name such as „Bäckerin-Konditorin EFZ / Bäcker-Konditor EFZ“; only „ / “ with spaces separates them."""
+    return tuple(form.strip() for form in re.split(r"\s+/\s+", name) if form.strip())
+
+
 def profession_words(name: str) -> frozenset[str]:
-    """What makes two names the same profession on the portals: „Fachfrau/Fachmann Gesundheit EFZ“ and „Fachfrau Gesundheit EFZ“."""
-    plain = re.sub(r"/-?(?:in|frau|mann|euse|r)\b", "", name.lower())
-    words = (_neutral_word(word) for word in re.split(r"[\s,;()/]+", plain) if word and word not in FILLER_WORDS)
-    return frozenset(word for word in words if word)
+    """What makes two names the same profession on the portals: „Fachfrau/Fachmann Gesundheit EFZ“ and „Fachfrau Gesundheit EFZ“.
+
+    A name in two forms counts by its first, as portals/common.js does.
+    """
+    forms = profession_forms(name)
+    plain = re.sub(r"/-?(?:in|frau|mann|euse|r)\b", "", forms[0].lower() if forms else "")
+    words = ("-".join(map(_neutral_word, word.split("-"))) for word in re.split(r"[\s,;()/]+", plain) if word and word not in FILLER_WORDS)
+    return frozenset(word for word in words if word.replace("-", ""))
 
 
 def professions_in(text: str) -> tuple[str, ...]:
@@ -286,7 +298,7 @@ def with_offers(text: str, choice: str) -> str:
 def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
     professions = _professions(sections.get(PROFESSIONS_KEY, []))
     if not professions:
-        raise ValueError("In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor.")
+        raise ValueError(NO_PROFESSION)
     region = _pairs(sections.get("region", []))
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     places = _items(_value(region, "wohnort"), 1)
@@ -376,7 +388,7 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     titles = _pairs(sections.get("titelfilter", []))
     keywords = _job_terms(sections)
     if not keywords:
-        raise ValueError("In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor.")
+        raise ValueError(NO_TERMS)
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     places = _items(_value(region, "orte"), MAX_PLACES) or _items(_value(region, "wohnort"), 1)
     postal_codes = _items(_value(region, "plz"), MAX_PLACES) or _items(postal_code or "", 1)
