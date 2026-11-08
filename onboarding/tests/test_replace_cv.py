@@ -1,4 +1,4 @@
-"""Replacing the basics must not lose CV content the form cannot show (#159); all data is invented."""
+"""Replacing the basics must not lose CV content the form cannot show (#159, #160); all data is invented."""
 import datetime
 
 import pytest
@@ -82,36 +82,49 @@ def test_basics_the_person_cleared_in_the_form_stay_cleared(tmp_path):
     assert "phone" not in yaml.safe_load(path.read_text(encoding="utf-8"))["basics"]
 
 
-@pytest.mark.parametrize("change", [
-    ("    highlights: [Erster Punkt]\n", "    tags: [daten]\n    highlights: [Erster Punkt]\n"),
-    ("    highlights: [Erster Punkt]\n", "    highlights: [{text: Erster Punkt, tags: [daten]}]\n"),
-    ("    highlights: [Erster Punkt]\n", "    x-display: seit 2010\n    highlights: [Erster Punkt]\n"),
-    ("    highlights: [Erster Punkt]\n", "    summary: Ein Satz, den das Formular nicht kennt\n"),
-    ("x-farbe: blau\n", "education:\n  - text: Matura, Beispiel-Gymnasium\n"),
-    ("  url: https://beispiel.example\n", "  location: {city: Bern, countryCode: CH}\n"),
-    ("  url: https://beispiel.example\n", "  profiles: [{network: GitHub, username: beispiel}]\n"),
+MATCHING = EXTRAS_ONLY.replace("  - position: Alte Stelle\n    name: Alt AG\n    startDate: \"2010\"\n    endDate: \"2012\"\n",
+                               "  - position: Software-Entwicklerin\n    name: Beispiel AG\n    startDate: \"2019-03\"\n")
+
+
+@pytest.mark.parametrize("change, kept", [
+    (("    highlights: [Erster Punkt]\n", "    tags: [daten]\n    highlights: [Erster Punkt]\n"),
+     lambda cv: cv["work"][0]["tags"] == ["daten"]),
+    (("    highlights: [Erster Punkt]\n", "    highlights: [{text: Plattform für Kundendaten, tags: [daten]}]\n"),
+     lambda cv: cv["work"][0]["highlights"][0] == {"text": "Plattform für Kundendaten", "tags": ["daten"]}),
+    (("    highlights: [Erster Punkt]\n", "    x-display: seit 2019\n    highlights: [Erster Punkt]\n"),
+     lambda cv: cv["work"][0]["x-display"] == "seit 2019"),
+    (("    highlights: [Erster Punkt]\n", "    summary: Ein Satz, den das Formular nicht kennt\n"),
+     lambda cv: cv["work"][0]["summary"] == "Ein Satz, den das Formular nicht kennt"),
+    (("x-farbe: blau\n", "education:\n  - text: Matura, Beispiel-Gymnasium\n"),
+     lambda cv: cv["education"][0] == {"text": "Matura, Beispiel-Gymnasium"} and len(cv["education"]) == 2),
+    (("  url: https://beispiel.example\n", "  location: {city: Bern, countryCode: CH}\n"),
+     lambda cv: cv["basics"]["location"]["countryCode"] == "CH"),
+    (("  url: https://beispiel.example\n", "  profiles: [{network: GitHub, username: beispiel}]\n"),
+     lambda cv: {"network": "GitHub", "username": "beispiel"} in cv["basics"]["profiles"]),
 ])
-def test_entries_with_fields_the_form_would_drop_leave_the_cv_as_it_was(tmp_path, change):
-    text = EXTRAS_ONLY.replace(*change)
-    assert text != EXTRAS_ONLY
+def test_fields_the_form_does_not_know_stay_when_replacing(tmp_path, change, kept):
+    text = MATCHING.replace(*change)
+    assert text != MATCHING
     path = existing_cv(tmp_path, text)
-
-    replace(tmp_path)
-
-    assert path.read_bytes() == text.encode("utf-8")
-
-
-def test_tagged_work_keeps_the_cv_byte_for_byte_and_writes_the_rest(tmp_path):
-    path = existing_cv(tmp_path, TAGGED)
-    before = path.read_bytes()
 
     result = replace(tmp_path)
 
-    assert path.read_bytes() == before
-    assert result.kept_files == ("cv.yaml",)
-    assert "cv.yaml" not in result.written
-    assert set(result.written) == {"suchprofil.md", "anschreiben/stil.md", "anschreiben/bausteine.md"}
-    assert all((tmp_path / rel).is_file() for rel in result.written)
+    cv = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert "cv.yaml" in result.written and result.kept_files == ()
+    assert kept(cv)
+    assert cv["basics"]["name"] == "Erika Beispiel"
+
+
+def test_an_entry_the_answers_no_longer_hold_goes_with_its_fields(tmp_path):
+    path = existing_cv(tmp_path, TAGGED)
+
+    result = replace(tmp_path)
+
+    cv = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert result.kept_files == () and "cv.yaml" in result.written
+    assert [w["name"] for w in cv["work"]] == ["Beispiel AG", "Muster GmbH"]
+    assert all("tags" not in w and "x-display" not in w for w in cv["work"])
+    assert set(result.written) == {"cv.yaml", "suchprofil.md", "anschreiben/stil.md", "anschreiben/bausteine.md"}
 
 
 def test_a_cv_that_cannot_be_read_is_left_as_it_was(tmp_path):

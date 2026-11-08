@@ -32,9 +32,13 @@ function listToLines(list) {
 
 /** Copy of an item with only known fields of the right type. */
 function cleanItem(section, track, item, compact) {
+  return pickFields(fieldsFor(section, track), item, compact);
+}
+
+function pickFields(fields, item, compact) {
   const result = {};
   if (!isPlainObject(item)) return result;
-  for (const field of fieldsFor(section, track)) {
+  for (const field of fields) {
     const value = item[field.id];
     if (field.type === "list") {
       if (!Array.isArray(value)) continue;
@@ -186,9 +190,55 @@ function applySuggestions(form, state, suggestions) {
   return { state: { ...state, data: result.data, suggested: result.marks }, filled, kept };
 }
 
+// The page of the app opens on the CV in the data folder (G23): the app reads cv.yaml (onboarding/cv_read.py), and the
+// sections marked "cv" in form.json follow it. A field marked "cv": false is not in the file; it stays on its entry.
+
+const cvFields = (section) => section.fields.filter((f) => f.cv !== false);
+
+const comparable = (value) => (Array.isArray(value) ? value.map((v) => String(v).trim()).filter((v) => v) : String(value ?? "").trim());
+
+function sameInCv(section, a, b) {
+  return cvFields(section).every((f) => JSON.stringify(comparable(a[f.id])) === JSON.stringify(comparable(b[f.id])));
+}
+
+/** Entries from the CV with the fields only the form holds, taken from the stored entry that matches. */
+function withFormFields(section, entries, stored) {
+  const own = section.fields.filter((f) => f.cv === false);
+  const previous = Array.isArray(stored) ? stored.filter(isPlainObject) : [];
+  if (!own.length || !previous.length) return entries;
+  const used = new Set();
+  return entries.map((entry) => {
+    const match = previous.findIndex((item, index) => !used.has(index) && sameInCv(section, item, entry));
+    if (match < 0) return entry;
+    used.add(match);
+    return { ...entry, ...pickFields(own, previous[match], false) };
+  });
+}
+
+/** New state with the CV sections taken from the answers the app read from cv.yaml; unchanged without them. */
+function fillFromCv(form, state, cv) {
+  if (!isPlainObject(cv)) return state;
+  const sections = form.sections.filter((s) => s.cv);
+  const data = { ...state.data };
+  for (const section of sections) {
+    const value = cv[section.id];
+    if (section.repeat) {
+      const entries = (Array.isArray(value) ? value : []).map((item) => pickFields(cvFields(section), item, true))
+        .filter((item) => Object.keys(item).length);
+      data[section.id] = withFormFields(section, entries, state.data[section.id]);
+    } else {
+      data[section.id] = pickFields(cvFields(section), value, true);
+    }
+  }
+  if (!state.suggested) return { ...state, data };
+  const filled = new Set(sections.map((s) => s.id));
+  const marks = Object.entries(state.suggested).filter(([key]) => !filled.has(key.split(".")[0]));
+  return { ...state, data, suggested: Object.fromEntries(marks) };
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     sectionsFor, fieldsFor, linesToList, listToLines, collectBundle, draftBundle, isBlankItem, stateFromBundle,
-    setValue, addItem, removeItem, applySuggestions, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
+    setValue, addItem, removeItem, applySuggestions, fillFromCv, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
   };
 }

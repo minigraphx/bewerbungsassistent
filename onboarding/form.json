@@ -74,6 +74,7 @@
   "sections": [
     {
       "id": "person",
+      "cv": true,
       "title": "Person und Kontakt",
       "intro": {
         "job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen. Bevor ein Text zur KI geht, ersetzt die App Ihren Namen, Strasse, PLZ, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter. Firmen, Ausbildungen und Jahreszahlen bleiben stehen, damit die KI Ihren Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist.",
@@ -94,6 +95,7 @@
     },
     {
       "id": "summary",
+      "cv": true,
       "title": "Kurzprofil",
       "tracks": ["job"],
       "intro": {"job": "Zwei bis drei Sätze oben im Lebenslauf: Erfahrung, Schwerpunkte, was Sie besonders gut können. Sie können das auch leer lassen."},
@@ -103,6 +105,7 @@
     },
     {
       "id": "work",
+      "cv": true,
       "title": {"job": "Berufliche Stationen", "apprenticeship": "Schnupperlehren, Ferienjobs und Ämter"},
       "intro": {
         "job": "Die neueste Station zuerst. Pro Station zwei bis vier Tätigkeiten oder Erfolge, möglichst konkret.",
@@ -117,11 +120,12 @@
         {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "required": true, "format": "date"},
         {"id": "endDate", "label": "Bis (leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"},
         {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile)"}, "type": "list", "maxItems": 6},
-        {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100}
+        {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100, "cv": false}
       ]
     },
     {
       "id": "education",
+      "cv": true,
       "title": {"job": "Ausbildung und Weiterbildung", "apprenticeship": "Schule"},
       "intro": {
         "job": "Abschlüsse, die neueste zuerst.",
@@ -139,6 +143,7 @@
     },
     {
       "id": "certificates",
+      "cv": true,
       "title": {"job": "Kurse und Zertifikate", "apprenticeship": "Eignungstests"},
       "intro": {
         "job": "Kurse und Zertifikate mit Anbieter und Datum.",
@@ -154,6 +159,7 @@
     },
     {
       "id": "languages",
+      "cv": true,
       "title": "Sprachen",
       "intro": {
         "job": "Muttersprache und weitere Sprachen.",
@@ -169,6 +175,7 @@
     },
     {
       "id": "skills",
+      "cv": true,
       "title": "Kenntnisse",
       "intro": {
         "job": "Fachliche Kenntnisse, nach Bereich gruppiert.",
@@ -184,6 +191,7 @@
     },
     {
       "id": "interests",
+      "cv": true,
       "title": "Hobbys und Interessen",
       "intro": {
         "job": "Freiwillig. Sie stehen am Ende des Lebenslaufs.",

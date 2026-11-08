@@ -101,7 +101,8 @@ def test_other_pages_keep_the_strict_policy(started):
 def test_state_is_kept_in_the_data_folder(started):
     server, folder, _ = started
     derived = {"track": "job", "anrede": "sie", "rav": True, "gewaehlt": False}
-    assert call(server, "/api/angaben/stand") == (200, {"stand": None, "unterlagen": [], "vorhanden": [], "wahl": derived})
+    assert call(server, "/api/angaben/stand") == (200, {"stand": None, "unterlagen": [], "vorhanden": [], "wahl": derived,
+                                                   "lebenslauf": None})
 
     state = {"track": "job", "data": {"person": {"name": "Erika Beispiel"}}, "step": 2}
     assert call(server, "/api/angaben/stand", {"stand": state})[0] == 200
@@ -239,8 +240,11 @@ def test_existing_basics_are_only_replaced_on_request(started):
     assert status == 409 and answer["vorhanden"] is True and "--force" not in answer["fehler"]
     assert "# von Hand" in (folder / "cv.yaml").read_text(encoding="utf-8")
 
-    assert call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": True})[0] == 200
-    assert "# von Hand" not in (folder / "cv.yaml").read_text(encoding="utf-8")
+    changed = valid_bundle()
+    changed["data"]["person"]["name"] = "Erika Muster"
+    assert call(server, "/api/angaben/uebernehmen", {"bundle": changed, "ersetzen": True})[0] == 200
+    after = (folder / "cv.yaml").read_text(encoding="utf-8")
+    assert "name: Erika Muster" in after and "# von Hand" in after  # merged, not rewritten (G23)
 
 
 def test_missing_answers_are_refused_without_documents(started):
@@ -484,13 +488,40 @@ def test_a_state_from_before_counts_as_taken_over(started):
     assert call(server, "/api/angaben/offen") == (200, {"offen": False})
 
 
-def test_replacing_keeps_a_cv_the_form_cannot_show_and_says_so(started):
+def test_the_overview_reads_the_cv_for_the_form(started):
+    server, folder, _ = started
+    (folder / "cv.yaml").write_text("basics:\n  name: Erika Beispiel\n  x-image: {zoom: 1.2}\n"
+                                    "work:\n  - position: Entwicklerin\n    name: Beispiel AG\n    tags: [daten]\n"
+                                    "    highlights: [{text: Ein Punkt, tags: [daten]}]\n", encoding="utf-8")
+
+    cv = call(server, "/api/angaben/stand")[1]["lebenslauf"]
+
+    assert cv["person"] == {"name": "Erika Beispiel"}
+    assert cv["work"] == [{"position": "Entwicklerin", "name": "Beispiel AG", "highlights": ["Ein Punkt"]}]
+
+
+def test_replacing_merges_into_the_cv_and_keeps_what_the_form_cannot_show(started):
     server, folder, _ = started
     cv = folder / "cv.yaml"
     cv.write_text("basics:\n  name: Alt Beispiel\n  x-image: {zoom: 1.2}\n  url: https://beispiel.example\n"
-                  "work:\n  - position: Alte Stelle\n    tags: [daten]\n"
-                  "    highlights: [{text: Ein Punkt, tags: [daten]}]\n"
+                  "work:\n  - position: Software-Entwicklerin\n    name: Beispiel AG\n    tags: [daten]\n"
+                  "    highlights: [{text: Plattform für Kundendaten, tags: [daten]}]\n"
                   "projects:\n  - name: Beispielprojekt\nteaching:\n  - position: Kursleiterin\n", encoding="utf-8")
+
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": True})
+
+    merged = yaml.safe_load(cv.read_text(encoding="utf-8"))
+    assert status == 200 and answer["unveraendert"] == [] and answer["hinweis"] == ""
+    assert "cv.yaml" in answer["geschrieben"] and merged["basics"]["name"] == "Erika Beispiel"
+    assert merged["basics"]["x-image"] == {"zoom": 1.2} and merged["work"][0]["tags"] == ["daten"]
+    assert merged["work"][0]["highlights"][0] == {"text": "Plattform für Kundendaten", "tags": ["daten"]}
+    assert merged["projects"] == [{"name": "Beispielprojekt"}] and merged["teaching"] == [{"position": "Kursleiterin"}]
+
+
+def test_replacing_keeps_a_cv_that_cannot_be_read_and_says_so(started):
+    server, folder, _ = started
+    cv = folder / "cv.yaml"
+    cv.write_text("basics: [nicht: lesbar\n", encoding="utf-8")
     before = cv.read_bytes()
 
     status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": True})

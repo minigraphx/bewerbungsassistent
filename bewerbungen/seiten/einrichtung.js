@@ -279,7 +279,7 @@
     const zeilen = [
       ...ergebnis.geschrieben.map(datei => el("li", { "data-stufe": "ok" }, `Angelegt: ${datei}`)),
       ...(ergebnis.unveraendert || []).map(datei => el("li", { "data-stufe": "hinweis" },
-        `Unverändert gelassen: ${datei}. Die Datei enthält mehr, als das Formular zeigen kann; zu ändern unter „Inhalte als Text“.`)),
+        `Unverändert gelassen: ${datei}. Die Datei lässt sich nicht lesen; zu ändern unter „Inhalte als Text“.`)),
       ergebnis.dokumente.length ? el("li", { "data-stufe": "ok" }, `${ergebnis.dokumente.length} Dokument(e) abgelegt`) : null,
       ergebnis.unvollstaendig ? el("li", { "data-stufe": "hinweis" }, text("einrichtung.vorlage.unvollstaendig", satz())) : null,
     ];

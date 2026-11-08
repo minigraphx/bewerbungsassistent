@@ -293,12 +293,12 @@ def test_replacing_names_a_cv_it_left_as_it_was(started, tmp_path):
     folder = tmp_path / "daten"
     call(server, "/api/app/datenordner", {"pfad": str(folder)})
     cv = folder / "cv.yaml"
-    cv.write_text("basics: {name: Alt Beispiel}\nwork:\n  - position: Alte Stelle\n    tags: [daten]\n", encoding="utf-8")
+    cv.write_text("basics: [nicht: lesbar\n", encoding="utf-8")
 
     status, answer = call(server, "/api/app/einstieg", {"pfad": str(write_bundle(tmp_path)), "ersetzen": True})
 
     assert status == 200 and answer["unveraendert"] == ["cv.yaml"] and "cv.yaml" not in answer["geschrieben"]
-    assert "tags: [daten]" in cv.read_text(encoding="utf-8")
+    assert cv.read_text(encoding="utf-8") == "basics: [nicht: lesbar\n"
 
 
 def test_invalid_einstieg_file_lists_the_problems(started, tmp_path):
