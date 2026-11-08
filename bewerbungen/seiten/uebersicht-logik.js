@@ -100,8 +100,9 @@
     note: z => (typeof z.bewerbung.passung === "number" ? z.bewerbung.passung : null),
     schritt: z => RANG[z.schritt.art] ?? null,
     frist: z => z.schritt.frist || null,
+    erfasst: z => z.bewerbung.eingetragen_am || null,  // ISO, so the alphabet is the calendar (#168)
   };
-  const ZUERST_ABSTEIGEND = ["note"];  // the best grade first
+  const ZUERST_ABSTEIGEND = ["note", "erfasst"];  // the best grade and the newest entry first
   const GEGENTEIL = { auf: "ab", ab: "auf" };
 
   function vergleicheWerte(a, b) {
