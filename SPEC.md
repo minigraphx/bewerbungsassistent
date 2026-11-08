@@ -37,5 +37,6 @@ Write each requirement as one row under its section, in this format. The fence k
 - G25 [approved, must] Die Seite Meine Angaben kennt auch Projekte (mit Gruppe Haupt- oder weitere Projekte), Lehrtätigkeiten (mit Anzeige), einen Freitext bei Ausbildungen und Zertifikaten sowie eine eigene Webseite der Person. | gate: review
 - G26 [approved, must] Gibt es Suchprofil, Stilprofil oder Bausteine schon im Datenordner, wählt die Person auf der Seite Meine Angaben pro Datei, ob sie ersetzt wird; vorgewählt ist Behalten. Vor dem Ersetzen zeigt die Seite die Unterschiede zwischen altem und neuem Stand. | gate: review
 - G27 [draft, must] In der Liste der Bewerbungen filtert die Person nach Stand, jeweils mit Anzahl: Gemerkt (Gemerkt, Bewerben), Beworben (Beworben, Gespräch), Abgeschlossen (Absage, Zusage, Verworfen, Zurückgezogen) und Alle. Eine Absage zählt immer als abgeschlossen; ein noch offener Eintrag im Job-Room steht weiter unter Das steht an. Die Wahl bleibt erhalten. | gate: review
+- G28 [draft, must] Die Liste der Bewerbungen lässt sich auch nach dem Datum der Erfassung sortieren, in beide Richtungen; Einträge ohne Datum stehen am Ende. | gate: review
 
 ## K · Constraints
