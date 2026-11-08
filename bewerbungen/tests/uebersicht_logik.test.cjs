@@ -152,3 +152,27 @@ test("a stored sorting only counts when it is one the page knows", () => {
     assert.equal(logik.gueltigeSortierung(falsch), null);
   }
 });
+
+// Sorting by the date an application was entered (#168)
+
+const ERFASST = [["Mitte", "2026-10-15"], ["Ohne", undefined], ["Neu", "2026-11-02"], ["Leer", ""], ["Alt", "2026-09-30"]]
+  .map(([stelle, eingetragen_am]) => ({ bewerbung: { stelle, status: "Beworben", eingetragen_am }, schritt: { art: "warten" } }));
+
+test("the entry date sorts both ways, entries without a date stay at the bottom", () => {
+  assert.deepEqual(stellen(logik.sortiert(ERFASST, { spalte: "erfasst", richtung: "ab" })), ["Neu", "Mitte", "Alt", "Ohne", "Leer"]);
+  assert.deepEqual(stellen(logik.sortiert(ERFASST, { spalte: "erfasst", richtung: "auf" })), ["Alt", "Mitte", "Neu", "Ohne", "Leer"]);
+});
+
+test("the newest entry comes first on the first click", () => {
+  const erster = logik.naechsteSortierung(null, "erfasst");
+  assert.deepEqual(erster, { spalte: "erfasst", richtung: "ab" });
+  const zweiter = logik.naechsteSortierung(erster, "erfasst");
+  assert.deepEqual(zweiter, { spalte: "erfasst", richtung: "auf" });
+  assert.equal(logik.naechsteSortierung(zweiter, "erfasst"), null);
+});
+
+test("a stored sorting by the entry date is kept", () => {
+  for (const richtung of ["auf", "ab"]) {
+    assert.deepEqual(logik.gueltigeSortierung({ spalte: "erfasst", richtung }), { spalte: "erfasst", richtung });
+  }
+});

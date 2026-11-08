@@ -1,5 +1,5 @@
 "use strict";
-// Overview (MIN-369): „Das steht an“ with the next step, then the applications in five columns.
+// Overview (MIN-369): „Das steht an“ with the next step, then the applications in six columns.
 // The next step per application comes from uebersicht-logik.js. Forms and Job-Room entries open through the
 // browser extension (MIN-346, MIN-347): one application from its card, several together from one item.
 (() => {
@@ -111,7 +111,8 @@
       el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, window.Texte.statusName(b.status, satz))),
       el("td", { "data-label": "Note" }, note(b)),
       el("td", { "data-label": "Nächster Schritt", class: "table__next" }, was.titel || "–", was.zusatz ? el("span", { class: "table__sub" }, was.zusatz) : null),
-      el("td", { "data-label": "Frist", class: "num" }, L.datum(schritt.frist)));
+      el("td", { "data-label": "Frist", class: "num" }, L.datum(schritt.frist)),
+      el("td", { "data-label": "Erfasst", class: "num" }, L.datum(b.eingetragen_am)));
   }
 
   function zeigeListe() {
