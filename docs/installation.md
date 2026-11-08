@@ -22,6 +22,7 @@ Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson
   - [Für Lehrstellen](#für-lehrstellen)
 - [Bei Bedarf](#bei-bedarf)
   - [Updates](#updates)
+  - [Mehrere Personen](#mehrere-personen)
   - [Für Geübte](#für-geübte)
   - [Häufige Fehler](#häufige-fehler)
   - [Hilfe](#hilfe)
@@ -245,6 +246,25 @@ Von Hand bleibt:
 Einladungslinks, die mit `bewerbungsassistent://` beginnen, öffnen die App nicht mehr. Geben Sie den Code in diesem Fall in der App ein.
 
 </details>
+
+### Mehrere Personen
+
+Mehrere Personen können die App auf demselben Computer nutzen. Jede Person hat einen eigenen Datenordner mit Lebenslauf, Anschreiben und Bewerbungen.
+
+Am einfachsten hat jede Person ein eigenes Benutzerkonto auf dem Computer und richtet die App dort ein. Dann hat sie auch ihren eigenen Zugang zur KI.
+
+Teilen Sie sich ein Benutzerkonto, wechseln Sie so zwischen den Personen:
+
+1. Oben unter **Mehr** auf **Einrichtung** klicken.
+2. In der Liste der Schritte auf **Datenordner** klicken.
+3. Mit **Ordner wählen …** den Ordner der anderen Person wählen. Die App meldet dann „Der Ordner enthält schon Bewerbungsdaten; sie werden weiter verwendet.“ Für eine neue Person wählen Sie einen neuen, leeren Ordner.
+4. Auf **Ordner anlegen und weiter** klicken. Der Knopf heisst auch bei einem Ordner so, den es schon gibt; die Unterlagen darin bleiben, wie sie sind.
+
+Die App arbeitet jetzt mit den Unterlagen dieser Person. Eine neue Person erfasst danach ihre Angaben unter **Meine Angaben**. Die Einwilligung gehört zum Datenordner: Vor der ersten KI-Nutzung gibt jede Person ihre eigene.
+
+Bringen Sie vor dem Wechsel zu Ende, was noch offen ist: eine laufende Suche, Tabs mit Bewerbungsformularen und angefangene Einträge im Job-Room. Sonst kann, was dabei herauskommt, bei der falschen Person landen.
+
+Der Zugang zur KI gehört zum Benutzerkonto des Computers, nicht zum Datenordner. Auf demselben Konto nutzen beide Personen also denselben Zugang und dasselbe Budget. Das gilt auch für einen eigenen API-Schlüssel.
 
 ### Für Geübte
 
