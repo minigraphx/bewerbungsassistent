@@ -40,8 +40,28 @@ def _words_as_shown(part: str) -> frozenset[str]:
     return profession_words(" ".join(part.replace("`", "").split())[:MAX_VALUE])
 
 
-def added(text: str, name: str) -> str:
-    """The profile text with this term at the end of what is searched; a term that is there changes nothing."""
+def _as_apprenticeship(text: str) -> str:
+    """The profile with the mark the apprenticeship plan reads, before its professions or its region.
+
+    The start stays empty: only the person knows it, and the plan searches without one.
+    """
+    lines = text.split("\n")
+    anchors = [next((i for i, row in enumerate(lines) if row.strip().lower() == title.lower()), None)
+               for title in (search_plan.PROFESSIONS_SECTION, AFTER_DIRECTIONS)]
+    place = next((i for i in anchors if i is not None), None)
+    if place is None:
+        return f"{text.rstrip()}\n\n{APPRENTICESHIP_MARK}\n"
+    return "\n".join([*lines[:place], APPRENTICESHIP_MARK, "", *lines[place:]])
+
+
+def added(text: str, name: str, kind: str | None = None) -> str:
+    """The profile text with this term at the end of what is searched; a term that is there changes nothing.
+
+    With `kind` an apprenticeship, a profile that searches nothing yet becomes an apprenticeship profile (#147): the
+    setup chose it, but a profile without a start lacks „## Lehrbeginn“. A profile with terms keeps its kind.
+    """
+    if APPRENTICESHIP_MARK not in text and kind == search_plan.KIND_APPRENTICESHIP and not current(text):
+        text = _as_apprenticeship(text)
     if APPRENTICESHIP_MARK in text:
         return search_plan.with_profession(text, name)
     known = current(text)

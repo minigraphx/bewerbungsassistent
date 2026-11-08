@@ -72,7 +72,8 @@ def add(k, parameter, body):
     if not career.is_valid_name(name, kind):
         raise ValueError(NOT_VALID[kind])
     clean = name.strip()
-    return _change(k, path, f"In die Suche aufgenommen: {clean}", lambda text: search_terms.added(text, clean))
+    sought = preferences.load(k.daten).sought
+    return _change(k, path, f"In die Suche aufgenommen: {clean}", lambda text: search_terms.added(text, clean, sought))
 
 
 def remove(k, parameter, body):
