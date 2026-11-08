@@ -30,5 +30,6 @@ Write each requirement as one row under its section, in this format. The fence k
 - G18 [draft, must] Im Dossier wählt die Person das Monogramm aus mehreren Varianten aus ihren Initialen oder lädt ein eigenes Logo hoch, und sie wählt die Akzentfarbe; voreingestellt ist eine Akzentfarbe passend zur Hauptfarbe des Designs. | gate: review
 - G19 [draft, must] Begrüssung und Dank im Dossier entwirft die KI aus den Bausteinen der Person; die Person passt die Texte an wie bei den anderen Vorlagen, und ohne Text entfällt die Seite. | gate: review
 - G20 [draft, must] Die Person kann in der Oberfläche für Fähigkeiten, Sprachen und Programme eine Stufe angeben oder offen lassen; ohne Angaben bleibt die Darstellung einheitlich ohne Bewertungen. | gate: review
+- G21 [draft, must] Auf der Seite Foto kann die Person jederzeit ein Foto hochladen, auch wenn sie bei der Einrichtung keines angegeben hat. Sie kann mehrere Fotos speichern und eines als aktiv kennzeichnen; neu erstellte Unterlagen nutzen das aktive Foto, bestehende Versionen bleiben unverändert. | gate: review
 
 ## K · Constraints
