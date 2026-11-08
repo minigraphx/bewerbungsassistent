@@ -236,7 +236,7 @@ def test_real_forwarding_to_a_running_app(tmp_path):
             pass
 
     server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
     try:
         running = instance.Running(server.server_address[1], "geheim")
         assert native_host.call(running, "POST", "/api/suche/treffer", {"a": 1}) == {"echo": {"a": 1}}

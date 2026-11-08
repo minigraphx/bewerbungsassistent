@@ -187,7 +187,7 @@ def started(tmp_path):
     get_routes, post_routes = routes_setup.make_routes(state)
     server.routen_get.update(get_routes)
     server.routen_post.update(post_routes)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
     yield server, paths, chosen
     server.shutdown()
     server.server_close()
