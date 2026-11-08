@@ -138,6 +138,29 @@ test('yousty text comes from the structured data of the page', () => {
   assert.deepEqual(yousty.parseDetails({ querySelectorAll: () => [] }), { text: '' });
 });
 
+/** A made-up yousty page as far as parseDetails reads it: its ld+json scripts and its HTML. */
+function youstyPage(html) {
+  const scripts = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => element({ text: m[1] }));
+  return {
+    querySelectorAll: (selector) => (selector === 'script[type="application/ld+json"]' ? scripts : []),
+    documentElement: { outerHTML: html },
+  };
+}
+const YOUSTY_PAGE = fs.readFileSync(new URL('./fixtures/yousty-without-jobposting.html', import.meta.url), 'utf8');
+
+test('yousty without a JobPosting reads the description section, without navigation or work place', () => {
+  const { text } = yousty.parseDetails(youstyPage(YOUSTY_PAGE));
+  assert.equal(text, 'Lehrstellenbeschreibung\n\nDu fertigst Bauteile an Dreh- und Fräsmaschinen & lernst, Anlagen zu warten.\n\n'
+    + '- Abwechslungsreiche Arbeit im Team\n- Eigene Lernwerkstatt');
+  for (const outside of ['Anmelden', 'Musterstrasse', 'Impressum', 'tracking']) assert.ok(!text.includes(outside), outside);
+});
+
+test('yousty keeps the JobPosting when the page has one, and gives nothing without either', () => {
+  const posting = '<script type="application/ld+json">{"@type":"JobPosting","description":"Aus den Daten"}</script>';
+  assert.deepEqual(yousty.parseDetails(youstyPage(YOUSTY_PAGE.replace('</head>', `${posting}</head>`))), { text: 'Aus den Daten' });
+  assert.deepEqual(yousty.parseDetails(youstyPage('<main><h1>Polymechaniker/in EFZ</h1><p>Kurz</p></main>')), { text: '' });
+});
+
 function lenaCard({ id = '3709234', title = 'Fachmann/-frau Gesundheit EFZ (2027)' } = {}) {
   const company = element({ text: 'Spital Muster' });
   return element({

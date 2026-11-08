@@ -15,6 +15,8 @@
   const TRIAL_ID = 'schnupperlehre-';
   const TRIAL_MARK = '#schnupperlehre'; // the profile page is the same for both offers, and known links are not fetched again
   const YEAR = /20\d\d/; // the chip reads „2027verfügbar“
+  const DESCRIPTION_START = /^Lehrstellenbeschreibung$/i;
+  const DESCRIPTION_END = /^Dein Arbeitsort\b/i;
   let professions = null;
 
   /** Open years of a result, e.g. ['2027', '2028']; a trial apprenticeship (Schnupperlehre) is not one of them. */
@@ -118,7 +120,18 @@
     return parseList(await common.fetchPage(searchUrl(query, job.id, page)), query, page);
   }
 
-  /** The ad is in the page as structured data (schema.org JobPosting). */
+  /**
+   * The description section of the page, from its heading up to the work place; nothing if either is missing,
+   * because without the end the footer and its links would come along.
+   */
+  function descriptionSection(doc) {
+    const lines = common.htmlToText(doc.documentElement ? doc.documentElement.outerHTML : '').split('\n');
+    const start = lines.findIndex((line) => DESCRIPTION_START.test(line));
+    const end = start < 0 ? -1 : lines.findIndex((line, i) => i > start && DESCRIPTION_END.test(line));
+    return end < 0 ? '' : lines.slice(start, end).join('\n').trim();
+  }
+
+  /** The ad is in the page as structured data (schema.org JobPosting); some pages have only the description section. */
   function parseDetails(doc) {
     const postings = [...doc.querySelectorAll('script[type="application/ld+json"]')].map((script) => {
       try {
@@ -128,7 +141,7 @@
       }
     });
     const posting = postings.find((entry) => entry && entry['@type'] === 'JobPosting');
-    return { text: posting ? common.htmlToText(posting.description) : '' };
+    return { text: posting ? common.htmlToText(posting.description) : descriptionSection(doc) };
   }
 
   async function details(hit) {
