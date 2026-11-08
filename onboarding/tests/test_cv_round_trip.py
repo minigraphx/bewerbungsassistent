@@ -186,13 +186,16 @@ def test_the_form_is_filled_from_the_cv():
                                           "Baut Webanwendungen und Datenpipelines."}
     assert data["work"] == [
         {"position": "Software-Entwicklerin", "name": "Beispiel AG", "location": "Bern", "startDate": "2019-03",
-         "highlights": ["Entwicklung einer Plattform für Kundendaten", "Aufbau von Datenpipelines mit Airflow"]},
+         "highlights": ["Entwicklung einer Plattform für Kundendaten",
+                        {"text": "Aufbau von Datenpipelines mit Airflow", "tags": ["daten"]}],
+         "tags": ["web", "daten"]},
         {"position": "Junior-Entwicklerin", "name": "Muster GmbH", "location": "Zürich", "startDate": "2015",
          "endDate": "2019", "highlights": ["Wartung von Webshops"]},
     ]
     assert data["education"] == [{"studyType": "Bachelor", "area": "Informatik", "institution": "Beispiel-Hochschule",
                                   "startDate": "2011", "endDate": "2015"}]
-    assert data["certificates"] == [{"name": "Machine Learning Grundlagen", "issuer": "Online-Kurs", "date": "2023-05"}]
+    assert data["certificates"] == [{"name": "Machine Learning Grundlagen", "issuer": "Online-Kurs", "date": "2023-05",
+                                     "tags": ["daten"]}]
     assert data["languages"][1] == {"language": "Englisch", "fluency": "Sehr gut (C1)"}
     assert data["skills"][0] == {"name": "Sprachen", "keywords": ["Python", "TypeScript", "SQL"]}
     assert data["interests"] == {"interests": ["Wandern", "Fotografie"]}
@@ -249,7 +252,7 @@ def test_fields_the_form_does_not_know_stay_on_their_entries(tmp_path):
 
     def edit(data):
         data["work"][0]["position"] = "Senior-Entwicklerin"
-        data["work"][0]["highlights"][1] = "Aufbau von Datenpipelines mit Airflow und dbt"
+        data["work"][0]["highlights"][1]["text"] = "Aufbau von Datenpipelines mit Airflow und dbt"
         data["work"][1]["name"] = "Muster AG"
 
     save(tmp_path, bundle_from(path, change=edit))

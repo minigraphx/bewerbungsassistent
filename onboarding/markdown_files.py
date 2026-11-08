@@ -3,7 +3,7 @@
 Values are written as single lines (`inline`), so text from the bundle cannot open headings or
 lists of its own. Section layout follows the templates in `vorlagen/`.
 """
-from values import items, text
+from values import highlight_texts, items, text
 
 APPRENTICESHIP_SOURCES = [
     "Lehrstellennachweis LENA (berufsberatung.ch), yousty.ch, Lehrstellenseiten der Betriebe",
@@ -122,7 +122,7 @@ def style_profile(form: dict, data: dict, track: str, note: str) -> str:
 def building_blocks(data: dict, track: str, note: str) -> str:
     stations = [_block(", ".join(filter(None, [inline(w.get("position")), inline(w.get("name")), inline(w.get("location"))]))
                        + _period(w, prefix=" (", suffix=")"),
-                       "; ".join(inline(h) for h in items(w.get("highlights"))), w.get("evidence"))
+                       "; ".join(inline(h) for h in highlight_texts(w.get("highlights"))), w.get("evidence"))
                 for w in data.get("work", [])]
     strengths = [_block(inline(s.get("strength")), inline(s.get("example")), s.get("evidence"))
                  for s in data.get("strengths", [])]

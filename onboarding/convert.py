@@ -47,9 +47,10 @@ def build_cv(data: dict, track: str) -> dict:
         "work": [_work(w) for w in data.get("work", [])],
         "education": [_pick(e, "studyType", "area", "institution", "startDate", "endDate", keep_end=True)
                       for e in data.get("education", [])],
-        "certificates": [_pick(c, "name", "issuer", "date") for c in data.get("certificates", [])],
+        "certificates": [_tagged(_pick(c, "name", "issuer", "date"), c) for c in data.get("certificates", [])],
         "languages": [_pick(lang, "language", "fluency") for lang in data.get("languages", [])],
-        "skills": [{"name": text(s["name"]), "keywords": items(s.get("keywords"))} for s in data.get("skills", [])],
+        "skills": [_tagged({"name": text(s["name"]), "keywords": items(s.get("keywords"))}, s)
+                   for s in data.get("skills", [])],
         "interests": [{"name": name} for name in items(data.get("interests", {}).get("interests"))],
     }
     cv.update({key: value for key, value in sections.items() if value})
@@ -92,8 +93,21 @@ def _profile(url: str) -> dict:
 
 def _work(entry: dict) -> dict:
     work = _pick(entry, "position", "name", "location", "startDate", "endDate", keep_end=True)
-    highlights = items(entry.get("highlights"))
-    return {**work, "highlights": highlights} if highlights else work
+    highlights = [line for line in map(_highlight, entry.get("highlights") or []) if line]
+    return _tagged({**work, "highlights": highlights} if highlights else work, entry)
+
+
+def _highlight(line) -> str | dict | None:
+    """A highlight as lebenslauf/README.md has it: text, or {text, tags} when it has tags (G24)."""
+    if isinstance(line, dict):
+        line_text, tags = text(line.get("text")), items(line.get("tags"))
+        return {"text": line_text, "tags": tags} if line_text and tags else line_text or None
+    return text(line) or None
+
+
+def _tagged(cv_entry: dict, entry: dict) -> dict:
+    tags = items(entry.get("tags"))
+    return {**cv_entry, "tags": tags} if tags else cv_entry
 
 
 def _pick(entry: dict, *keys: str, keep_end: bool = False) -> dict:

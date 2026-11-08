@@ -1,6 +1,7 @@
 // Pure state handling of the onboarding template: no DOM, no storage.
 // State: { track: "job" | "apprenticeship" | null, data: { [sectionId]: object | object[] } }.
 // List fields hold arrays of lines; blank lines and empty items are dropped only when collecting.
+// Tags (G24): a "tags" field holds an array of tags; a list marked "tags" holds lines as text or { text, tags }.
 "use strict";
 
 /** A loaded file that is no bundle of this form; the message is German and shown as is. */
@@ -30,6 +31,46 @@ function listToLines(list) {
   return Array.isArray(list) ? list.join("\n") : "";
 }
 
+/** Tags as typed: separated by commas, blanks dropped. */
+function parseTags(text) {
+  return String(text).split(",").map((t) => t.trim()).filter((t) => t);
+}
+
+function tagsToText(tags) {
+  return Array.isArray(tags) ? tags.join(", ") : "";
+}
+
+function cleanTags(value, compact) {
+  if (!Array.isArray(value)) return [];
+  const tags = value.filter((t) => typeof t === "string").map((t) => (compact ? t.trim() : t));
+  return compact ? tags.filter((t) => t) : tags;
+}
+
+/** One line of a list with tags: text without tags stays plain text, as in cv.yaml; null if it has no text. */
+function cleanLine(value, compact) {
+  if (typeof value === "string") return compact ? value.trim() : value;
+  if (!isPlainObject(value) || typeof value.text !== "string") return null;
+  const text = compact ? value.text.trim() : value.text;
+  const tags = cleanTags(value.tags, compact);
+  return tags.length ? { text, tags } : text;
+}
+
+const lineText = (line) => (isPlainObject(line) ? String(line.text ?? "") : String(line ?? ""));
+
+/** A line as the form keeps it: plain text, or { text, tags } when it has tags. */
+function taggedLine(text, tags) {
+  return tags.length ? { text, tags } : text;
+}
+
+function cleanList(field, value, compact) {
+  if (field.tags === true) {
+    const lines = value.map((v) => cleanLine(v, compact)).filter((v) => v !== null);
+    return compact ? lines.filter((v) => lineText(v)) : lines;
+  }
+  const lines = value.filter((v) => typeof v === "string").map((v) => (compact ? v.trim() : v));
+  return compact ? lines.filter((v) => v) : lines;
+}
+
 /** Copy of an item with only known fields of the right type. */
 function cleanItem(section, track, item, compact) {
   return pickFields(fieldsFor(section, track), item, compact);
@@ -40,10 +81,9 @@ function pickFields(fields, item, compact) {
   if (!isPlainObject(item)) return result;
   for (const field of fields) {
     const value = item[field.id];
-    if (field.type === "list") {
+    if (field.type === "list" || field.type === "tags") {
       if (!Array.isArray(value)) continue;
-      const lines = value.filter((v) => typeof v === "string").map((v) => (compact ? v.trim() : v));
-      const kept = compact ? lines.filter((v) => v) : lines;
+      const kept = field.type === "tags" ? cleanTags(value, compact) : cleanList(field, value, compact);
       if (kept.length) result[field.id] = kept;
     } else if (typeof value === "string" && (!compact || value.trim())) {
       result[field.id] = compact ? value.trim() : value;
@@ -85,10 +125,10 @@ function draftBundle(form, state) {
   return { format: form.format, version: form.version, track: state.track, data: cleanData(form, state.track, state.data, false) };
 }
 
-/** True if a repeated item has no content yet (such items are dropped when saving). */
+/** True if a repeated item has no content yet (such items are dropped when saving); tags on an empty line do not count. */
 function isBlankItem(item) {
   if (!isPlainObject(item)) return true;
-  return Object.values(item).every((v) => (Array.isArray(v) ? v.every((x) => !String(x).trim()) : !String(v ?? "").trim()));
+  return Object.values(item).every((v) => (Array.isArray(v) ? v.every((x) => !lineText(x).trim()) : !String(v ?? "").trim()));
 }
 
 /** State from a loaded file; throws an Error with a German message if it is no bundle of this form. */
@@ -148,7 +188,7 @@ function shiftSuggestions(marks, sectionId, removed) {
   return shifted;
 }
 
-const isBlankValue = (value) => (Array.isArray(value) ? value.every((v) => !String(v).trim()) : !String(value ?? "").trim());
+const isBlankValue = (value) => (Array.isArray(value) ? value.every((v) => !lineText(v).trim()) : !String(value ?? "").trim());
 
 /** Marks kept in a stored state; it comes from a file, so only what has the expected shape stays. */
 function cleanSuggestions(marks) {
@@ -195,7 +235,8 @@ function applySuggestions(form, state, suggestions) {
 
 const cvFields = (section) => section.fields.filter((f) => f.cv !== false);
 
-const comparable = (value) => (Array.isArray(value) ? value.map((v) => String(v).trim()).filter((v) => v) : String(value ?? "").trim());
+const comparableLine = (v) => (isPlainObject(v) ? { text: lineText(v).trim(), tags: cleanTags(v.tags, true) } : String(v).trim());
+const comparable = (value) => (Array.isArray(value) ? value.map(comparableLine).filter((v) => lineText(v)) : String(value ?? "").trim());
 
 function sameInCv(section, a, b) {
   return cvFields(section).every((f) => JSON.stringify(comparable(a[f.id])) === JSON.stringify(comparable(b[f.id])));
@@ -236,9 +277,35 @@ function fillFromCv(form, state, cv) {
   return { ...state, data, suggested: Object.fromEntries(marks) };
 }
 
+// Suggestions for tags: those the app found in the data folder (cv.yaml, varianten.yaml, jobs/) and those typed here.
+
+const TAG_ORDER = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), "de") || (a < b ? -1 : a > b ? 1 : 0);
+
+function tagsOfItem(section, item) {
+  if (!isPlainObject(item)) return [];
+  return section.fields.flatMap((field) => {
+    const value = item[field.id];
+    if (!Array.isArray(value)) return [];
+    if (field.type === "tags") return cleanTags(value, true);
+    return field.tags === true ? value.flatMap((line) => (isPlainObject(line) ? cleanTags(line.tags, true) : [])) : [];
+  });
+}
+
+/** Every valid tag once (the rules of validate.js: format "tag" and limits.tag), sorted without regard to case. */
+function knownTags(form, state, fromApp) {
+  const pattern = new RegExp(form.formats.tag.pattern);
+  const valid = (t) => pattern.test(t) && Array.from(t).length <= form.limits.tag;
+  const typed = form.sections.filter((s) => s.repeat && Array.isArray(state.data[s.id]))
+    .flatMap((s) => state.data[s.id].flatMap((item) => tagsOfItem(s, item)));
+  const all = [...(Array.isArray(fromApp) ? fromApp : []), ...typed]
+    .filter((t) => typeof t === "string").map((t) => t.trim()).filter(valid);
+  return [...new Set(all)].sort(TAG_ORDER);
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
-    sectionsFor, fieldsFor, linesToList, listToLines, collectBundle, draftBundle, isBlankItem, stateFromBundle,
+    sectionsFor, fieldsFor, linesToList, listToLines, parseTags, tagsToText, taggedLine, lineText, knownTags,
+    collectBundle, draftBundle, isBlankItem, stateFromBundle,
     setValue, addItem, removeItem, applySuggestions, fillFromCv, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
   };
 }

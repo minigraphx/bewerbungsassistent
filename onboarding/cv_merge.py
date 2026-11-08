@@ -2,10 +2,11 @@
 
 The form shows only part of the format in lebenslauf/README.md (cv_read.py reads that part). Saving changes only
 what the form shows and the answers changed. Keys it never writes (basics.image, basics.x-image, projects, teaching,
-x-* …), fields it cannot show on an entry (tags, x-display, highlights as {text, tags}, …), entries it shows nothing
-of, and comments and order stay as they are (ruamel.yaml, like lebenslauf/fotoausschnitt.py). Answers are matched to
-entries by content, so an edited or removed entry does not hand its fields to another. Only the job track shows
-basics.label, basics.summary, basics.profiles and education.area; the apprenticeship track leaves them alone.
+x-* …), fields it cannot show on an entry (x-display, text, …), entries it shows nothing of, and comments and order
+stay as they are (ruamel.yaml, like lebenslauf/fotoausschnitt.py). Answers are matched to entries by content, so an
+edited or removed entry does not hand its fields to another. Only the job track shows basics.label, basics.summary,
+basics.profiles and education.area; the apprenticeship track leaves them alone. Tags are answers since G24: a highlight
+with tags is written as {text, tags}, one without as plain text, and new lists of tags in the short form [a, b].
 """
 import dataclasses
 import io
@@ -17,10 +18,11 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.util import load_yaml_guess_indent
 
 import convert
-from cv_read import (BIRTH, INTERESTS, LOCATION, SECTIONS, TEXT_BASICS, TEXT_LISTS, detail_places, detail_values,
-                     entry_shown, item_text, shown_text)
+from cv_read import (BIRTH, INTERESTS, LOCATION, SECTIONS, TEXT_BASICS, detail_places, detail_values, entry_shown,
+                     highlight_shown, item_text, shown_text, tag_text)
 
 ABSENT = object()
+TAGS = "tags"
 HEADINGS = "x-beschriftungen"
 JOB_ONLY = {"basics": ("label", "summary", "profiles"), "education": ("area",)}
 IDENTITY = {"work": ("name", "position", "startDate"), "education": ("studyType", "institution"),
@@ -30,14 +32,17 @@ COMMENT_SLOTS, MAP_TAIL, SEQ_TAIL = 4, 2, 0  # layout of ruamel's comment entrie
 NESTED_MAPPING = re.compile(r"^( *)[^ #\-][^\n]*:[ \t]*\n(?:[ \t]*(?:#[^\n]*)?\n)*( *)[^ #\-\n]", re.M)
 
 Pairing = Callable[[int, list[int], list, object], int | None]
+LineMerge = Callable[[object, object], object]
 
 
 @dataclasses.dataclass(frozen=True)
 class Kind:
-    """How the form shows the entries of a list and how an answer finds the entry it continues."""
+    """How the form shows the entries of a list, how an answer finds the entry it continues, and (for lines that are
+    not plain text) how the answer goes into it."""
     shown: Callable[[object], object]
     fields: tuple[str, ...]
     fallback: Pairing
+    merge: LineMerge | None = None
 
 
 def merged_text(existing_text: str, new_cv: dict, track: str, note: str) -> str | None:
@@ -164,7 +169,7 @@ def _merge_list(parent: CommentedMap, key: str, new: list, kind: Kind) -> bool:
     if not isinstance(old, list):
         if not new:
             return False
-        parent[key] = new
+        parent[key] = _new_value(key, new)
         return True
     old_shown = [kind.shown(item) for item in old]
     pairs = _match(old_shown, [kind.shown(item) for item in new], kind.fallback)
@@ -182,10 +187,12 @@ def _merge_item(old: list, j: int | None, new: object, kind: Kind) -> object:
     if j is None:
         return new
     item = old[j]
+    if kind.merge:
+        return kind.merge(item, new)
     if isinstance(new, dict):
         for key in kind.fields:
-            if key in TEXT_LISTS:
-                _merge_list(item, key, new.get(key, []), LINES)
+            if key in LIST_KINDS:
+                _merge_list(item, key, new.get(key, []), LIST_KINDS[key])
             else:
                 _merge_scalar(item, key, new.get(key, ABSENT))
         return item
@@ -216,6 +223,34 @@ def _match(old_shown: list, new_shown: list, fallback: Pairing) -> list[int | No
 
 def _same_place(i: int, free: list[int], old_shown: list, shown: object) -> int | None:
     return i if i in free else None
+
+
+def _line_text(shown: object) -> object:
+    return shown["text"] if isinstance(shown, dict) else shown
+
+
+def _same_text_or_place(i: int, free: list[int], old_shown: list, shown: object) -> int | None:
+    """A line whose tags changed continues the line with its text; an edited one the line in its place."""
+    text = _line_text(shown)
+    same = next((k for k in free if _line_text(old_shown[k]) == text), None)
+    return same if same is not None else _same_place(i, free, old_shown, shown)
+
+
+def _merge_highlight(item: object, new: object) -> object:
+    """The highlight that continues item with the answer: text and tags from the answer, other fields kept.
+
+    One that loses its last tag becomes plain text again, unless it holds more than its text.
+    """
+    text, tags = (new["text"], new["tags"]) if isinstance(new, dict) else (new, [])
+    if not isinstance(item, dict):
+        return item if item_text(item) == text and not tags else _commented({"text": text, TAGS: tags} if tags else text)
+    if item_text(item) != text:
+        item["text"] = text
+    had_tags = TAGS in item
+    _merge_list(item, TAGS, tags, TAG_LINES)
+    if had_tags and TAGS not in item and list(item) == ["text"]:
+        return item["text"]
+    return item
 
 
 def _no_pairing(i: int, free: list[int], old_shown: list, shown: object) -> int | None:
@@ -261,10 +296,18 @@ def _put_list(parent: CommentedMap, key: str, picks: list[tuple[object, int | No
 def _commented(value: object) -> object:
     """New answers as round-trip nodes, so blank lines and comments can attach to them."""
     if isinstance(value, dict) and not isinstance(value, CommentedMap):
-        return CommentedMap((key, _commented(item)) for key, item in value.items())
+        return CommentedMap((key, _new_value(key, item)) for key, item in value.items())
     if isinstance(value, list) and not isinstance(value, CommentedSeq):
         return CommentedSeq(_commented(item) for item in value)
     return value
+
+
+def _new_value(key: object, value: object) -> object:
+    """A new value under key; tags in the short form [a, b], as lebenslauf/README.md writes them."""
+    node = _commented(value)
+    if key == TAGS and isinstance(node, CommentedSeq):
+        node.fa.set_flow_style()
+    return node
 
 
 def _tail(node: CommentedMap | CommentedSeq, key: object) -> tuple:
@@ -315,4 +358,7 @@ def _profile_shown(profile: object) -> dict | None:
 
 
 LINES = Kind(item_text, (), _same_place)
+TAG_LINES = Kind(tag_text, (), _same_place)
+HIGHLIGHTS = Kind(highlight_shown, (), _same_text_or_place, _merge_highlight)
+LIST_KINDS = {"highlights": HIGHLIGHTS, "keywords": LINES, TAGS: TAG_LINES}
 PROFILES = Kind(_profile_shown, (), _no_pairing)

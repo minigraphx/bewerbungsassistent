@@ -9,7 +9,9 @@
     "text": 200,
     "textarea": 2000,
     "listItems": 20,
-    "repeatItems": 20
+    "repeatItems": 20,
+    "tag": 40,
+    "tags": 10
   },
   "formats": {
     "email": {"pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "example": "vorname.nachname@example.ch"},
@@ -17,7 +19,8 @@
     "date": {"pattern": "^[0-9]{4}(-(0[1-9]|1[0-2]))?$", "example": "2024 oder 2024-08"},
     "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"},
     "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"},
-    "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"}
+    "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"},
+    "tag": {"pattern": "^[^\\s,\\x00-\\x1f\\x7f\\ufeff]+$", "example": "daten"}
   },
   "documents": {
     "title": "Unterlagen",
@@ -119,7 +122,8 @@
         {"id": "location", "label": "Ort", "type": "text", "max": 60},
         {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "required": true, "format": "date"},
         {"id": "endDate", "label": "Bis (leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"},
-        {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile)"}, "type": "list", "maxItems": 6},
+        {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile, Tags freiwillig)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile, Tags freiwillig)"}, "type": "list", "tags": true, "maxItems": 6, "hint": {"job": "Eine Zeile mit Tags kommt nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Eine Zeile mit Tags kommt nur in Fassungen für Lehrstellen mit einem dieser Tags."}},
+        {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}},
         {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100, "cv": false}
       ]
     },
@@ -154,7 +158,8 @@
       "fields": [
         {"id": "name", "label": {"job": "Bezeichnung", "apprenticeship": "Test (z.B. Multicheck Gesundheit)"}, "type": "text", "required": true, "max": 100},
         {"id": "issuer", "label": "Anbieter (freiwillig)", "type": "text", "max": 100},
-        {"id": "date", "label": "Datum (Jahr oder Jahr-Monat)", "type": "text", "format": "date"}
+        {"id": "date", "label": "Datum (Jahr oder Jahr-Monat)", "type": "text", "format": "date"},
+        {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}
       ]
     },
     {
@@ -186,7 +191,8 @@
       "itemTitle": "Bereich",
       "fields": [
         {"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "required": true, "max": 60},
-        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile)", "type": "list", "required": true, "maxItems": 12, "max": 60}
+        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile)", "type": "list", "required": true, "maxItems": 12, "max": 60},
+        {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}
       ]
     },
     {

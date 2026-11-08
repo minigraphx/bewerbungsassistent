@@ -2,7 +2,11 @@
 // Mirrors validation.py; both run the shared cases in tests/cases.json.
 "use strict";
 
-const SINGLE_LINE = new Set(["text", "list", "select", "choice"]);
+const SINGLE_LINE = new Set(["text", "list", "select", "choice", "tags"]);
+const TAGGED_LINE_KEYS = new Set(["text", "tags"]);
+const LINE = "Zeile";
+const TAG = "Tag";
+const TAGS_NAME = "Tags";
 const TOP_LEVEL_KEYS = new Set(["format", "version", "track", "data", "saved"]);
 
 const MESSAGES = {
@@ -38,6 +42,19 @@ function forTrack(value, track) {
 function textLimit(form, field) {
   return field.max ?? form.limits[field.type === "textarea" ? "textarea" : "text"];
 }
+
+/** The rules of one list of tags (G24), on an entry or on a line. */
+function tagRules(form) {
+  return { type: "tags", format: "tag", max: form.limits.tag, maxItems: form.limits.tags };
+}
+
+/** A line with tags, as cv.yaml writes it: { text, tags }. */
+function isTaggedLine(value) {
+  return isObject(value) && Object.keys(value).every((k) => TAGGED_LINE_KEYS.has(k)) && typeof value.text === "string"
+    && (value.tags === undefined || Array.isArray(value.tags));
+}
+
+const lineOf = (value) => (isObject(value) ? value.text : value);
 
 function validateBundle(form, bundle) {
   if (!isObject(bundle)) return [err("", "type")];
@@ -83,6 +100,7 @@ function validateItem(form, section, track, item, path) {
 
 function validateField(form, field, track, item, path) {
   const value = item[field.id];
+  if (field.type === "tags") return validateList(form, tagRules(form), value, path);
   if (field.type === "list") return validateList(form, field, value, path);
   const text = value ?? "";
   if (typeof text !== "string") return [err(path, "type")];
@@ -95,15 +113,19 @@ function validateField(form, field, track, item, path) {
 
 function validateList(form, field, value, path) {
   const list = value ?? [];
-  if (!Array.isArray(list) || !list.every((v) => typeof v === "string")) return [err(path, "type")];
-  const items = list.filter((v) => v.trim());
+  const tagged = field.tags === true;
+  const fits = (v) => typeof v === "string" || (tagged && isTaggedLine(v));
+  if (!Array.isArray(list) || !list.every(fits)) return [err(path, "type")];
+  const items = list.filter((v) => lineOf(v).trim());
   if (!items.length) return field.required ? [err(path, "required")] : [];
   const errors = [];
   if (items.length > (field.maxItems ?? form.limits.listItems)) errors.push(err(path, "maxItems"));
   list.forEach((entry, index) => {
-    if (!entry.trim()) return;
-    const code = checkText(form, field, null, entry);
+    const text = lineOf(entry);
+    if (!text.trim()) return;
+    const code = checkText(form, field, null, text);
     if (code) errors.push(err(`${path}.${index}`, code));
+    if (isObject(entry)) errors.push(...validateList(form, tagRules(form), entry.tags, `${path}.${index}.tags`));
   });
   return errors;
 }
@@ -136,12 +158,22 @@ function locate(form, track, path) {
     names.push(`${forTrack(section.itemTitle, track)} ${Number(rest[0]) + 1}`);
     rest = rest.slice(1);
   }
-  const field = section.fields.find((f) => rest.length && f.id === rest[0]) || null;
+  let field = section.fields.find((f) => rest.length && f.id === rest[0]) || null;
   if (field) {
     names.push((forTrack(field.label, track) || field.id).split(" (")[0]);
-    if (rest.length > 1 && /^\d+$/.test(rest[1])) names.push(`Zeile ${Number(rest[1]) + 1}`);
+    const below = lineNames(rest.slice(1), field.type === "tags" ? TAG : LINE);
+    names.push(...below.names);
+    if (field.type === "tags" || below.inTags) field = tagRules(form);
   }
   return { where: names.join(", "), field, section };
+}
+
+/** Names below a field, the line ("Zeile 2") and on a line its tags ("Tags, Tag 1"); inTags if it reaches tags. */
+function lineNames(rest, unit) {
+  if (!rest.length || !/^\d+$/.test(rest[0])) return { names: [], inTags: false };
+  const line = `${unit} ${Number(rest[0]) + 1}`;
+  if (rest.length < 2 || rest[1] !== "tags") return { names: [line], inTags: false };
+  return { names: [line, TAGS_NAME, ...lineNames(rest.slice(2, 3), TAG).names], inTags: true };
 }
 
 /** Message without location, for display next to the field. */

@@ -5,6 +5,7 @@ form and the documents go straight to the data folder (`dokumente/`, not in Git)
 checks as importing a file (`onboarding/import_bundle.py`), with drafts of what it replaces.
 Suggestions from documents (`onboarding/prefill.py`) run outside the lock, because the AI takes a while.
 The page opens on the cv.yaml of the data folder (`onboarding/cv_read.py`, G23), and taking over merges into it.
+It suggests the tags already in the data folder (`onboarding/known_tags.py`, G24).
 """
 import base64
 import binascii
@@ -100,6 +101,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     import documents
     import import_bundle
     import import_documents
+    import known_tags
     import prefill
     import routes_ai
     import validation
@@ -113,7 +115,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
         folder = ready_data_dir(state, k)
         return json_antwort({"stand": _read_state(folder), "unterlagen": import_documents.pending_documents(folder),
                              "vorhanden": _existing_basics(folder), "wahl": _choice(folder),
-                             "lebenslauf": cv_read.read_form_data(folder)})
+                             "lebenslauf": cv_read.read_form_data(folder), "tags": known_tags.known_tags(folder, form)})
 
     def not_taken_over(k, parameter, body):
         stored = _read_state(ready_data_dir(state, k))

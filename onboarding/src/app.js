@@ -68,6 +68,7 @@ let prefillRun = { running: false, waiting: false, problem: null, report: null }
 let prefillTurn = 0; // a run that was overtaken by discarding or loading other answers no longer counts
 let choice = null; // in the app: what the setup chose (MIN-369) { track, anrede, rav, gewaehlt }
 let pageStateFound = false; // in the app: this page has kept answers before (not only the track of the setup)
+let folderTags = []; // in the app: tags already in cv.yaml, varianten.yaml and jobs/ of the data folder (G24)
 const backend = typeof createAppBackend === "function" ? createAppBackend() : null; // only in the page of the app
 
 // Storage: optional convenience; the page works without it.
@@ -96,6 +97,7 @@ async function loadStored() {
       if (!notTakenOver) state = fillFromCv(form, state, overview.lebenslauf);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
+      folderTags = Array.isArray(overview.tags) ? overview.tags : [];
       return;
     }
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -621,7 +623,7 @@ function focusFirst(...selectors) {
 function fieldFor(section, field, path, value) {
   const pathText = path.join(".");
   return fieldView(field, {
-    track: state.track, value, path: pathText, cantons: form.cantons,
+    track: state.track, value, path: pathText, cantons: form.cantons, tagSuggestions: knownTags(form, state, folderTags),
     onChange: (v) => update(setValue(state, path, v)),
     onBlur: () => { touched = new Set(touched).add(pathText); refreshErrors(); },
   });

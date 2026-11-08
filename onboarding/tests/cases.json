@@ -855,6 +855,414 @@
           "code": "bundle"
         }
       ]
+    },
+    {
+      "name": "tags on entries and highlights are valid",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "web",
+            "daten"
+          ]
+        ],
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": "Datenpipelines",
+            "tags": [
+              "daten"
+            ]
+          }
+        ],
+        [
+          "data.skills.0.tags",
+          [
+            "daten"
+          ]
+        ],
+        [
+          "data.certificates.0.tags",
+          [
+            "ki"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "tags in the apprenticeship track are valid",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "pflege"
+          ]
+        ],
+        [
+          "data.work.0.highlights.0",
+          {
+            "text": "Betten gemacht",
+            "tags": [
+              "pflege"
+            ]
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a tag with a space",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "daten",
+            "Data Engineering"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.tags.1",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a tag with a comma",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.tags",
+          [
+            "a,b"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.tags.0",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a tag with a control character",
+      "base": "job",
+      "set": [
+        [
+          "data.certificates.0.tags",
+          [
+            "ki\u0007"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "certificates.0.tags.0",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a tag that is too long",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "daten"
+          ]
+        ],
+        [
+          "data.work.0.tags.0",
+          {
+            "$repeat": "a",
+            "times": 41
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.tags.0",
+          "code": "max"
+        }
+      ]
+    },
+    {
+      "name": "a tag of the longest length",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "daten"
+          ]
+        ],
+        [
+          "data.work.0.tags.0",
+          {
+            "$repeat": "ä",
+            "times": 40
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "too many tags on an entry",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "t1",
+            "t2",
+            "t3",
+            "t4",
+            "t5",
+            "t6",
+            "t7",
+            "t8",
+            "t9",
+            "t10",
+            "t11"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.tags",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
+      "name": "tags that are no list",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.tags",
+          "daten"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.tags",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "a blank tag is ignored",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "daten",
+            "  "
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a bad tag on a highlight",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": "Datenpipelines",
+            "tags": [
+              "a b"
+            ]
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights.1.tags.0",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "too many tags on a highlight",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": "Datenpipelines",
+            "tags": [
+              "t1",
+              "t2",
+              "t3",
+              "t4",
+              "t5",
+              "t6",
+              "t7",
+              "t8",
+              "t9",
+              "t10",
+              "t11"
+            ]
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights.1.tags",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
+      "name": "a tagged highlight that is too long",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": "x",
+            "tags": [
+              "daten"
+            ]
+          }
+        ],
+        [
+          "data.work.0.highlights.1.text",
+          {
+            "$repeat": "x",
+            "times": 201
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights.1",
+          "code": "max"
+        }
+      ]
+    },
+    {
+      "name": "a tagged highlight with another field",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": "Datenpipelines",
+            "prio": "1"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "a tagged highlight without text",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.1",
+          {
+            "tags": [
+              "daten"
+            ]
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "a tagged highlight with tags that are no list",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": "Datenpipelines",
+            "tags": "daten"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "tags on a blank highlight are ignored",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": " ",
+            "tags": [
+              "a b"
+            ]
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "keywords take no tags",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.0",
+          {
+            "text": "Python",
+            "tags": [
+              "daten"
+            ]
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "tags are no field of languages",
+      "base": "job",
+      "set": [
+        [
+          "data.languages.0.tags",
+          [
+            "daten"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "languages.0.tags",
+          "code": "unknown"
+        }
+      ]
     }
   ],
   "documentCases": [
