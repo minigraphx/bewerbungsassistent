@@ -18,6 +18,8 @@
   let lehrstelle = false;
   let bewertungslauf = null;  // { halt: bool } while a run is going
   let letzterSuchlauf = "";
+  let wartetSeit = null;     // ISO time since the page waits for a search, to tell its run from older ones
+  let stille = null;         // timer: no word from the extension for a while
   let zustand = "neu";       // which hits the list shows
   let gewaehlt = null;       // id of the hit in the detail column
   let satz = "stelle-sie";
@@ -361,29 +363,46 @@
     return ["Suche startet …", ""];
   }
 
+  // The extension's worker may stop and lose this page's connection: without word for a while, the page asks.
+  function warte() {
+    clearTimeout(stille);
+    stille = setTimeout(() => window.postMessage({ quelle: SEITE, art: "status" }, location.origin), logik.STILLE_MS);
+  }
+
+  function folge(lauf) {
+    const [text, art] = laufText(lauf);
+    const laeuft = lauf.zustand === "laeuft";
+    $("lauf-box").hidden = !laeuft;
+    zeile($("lauf"), laeuft ? text : "");
+    if (!laeuft) meldung(text, art);
+    $("suchen").disabled = laeuft;
+    $("suchen").textContent = laeuft ? "Suche läuft …" : "Jetzt suchen";
+    $("suchen").setAttribute("aria-busy", String(laeuft));
+    const eben = letzterSuchlauf === "laeuft" && lauf.zustand === "fertig";
+    letzterSuchlauf = lauf.zustand;
+    if (laeuft) {
+      wartetSeit = wartetSeit || lauf.beginn || new Date().toISOString();
+      warte();
+      return;
+    }
+    clearTimeout(stille);
+    wartetSeit = null;
+    // Only a search that ended while this page was open starts a rating by itself.
+    if (eben) lade().then(bewerteNachSuche);
+    else lade();
+  }
+
   window.addEventListener("message", event => {
     if (event.source !== window || event.origin !== location.origin) return;
     const daten = event.data;
     if (!daten || daten.quelle !== ERWEITERUNG) return;
     erweiterungDa();
     if (daten.art === "lauf") {
-      const [text, art] = laufText(daten.lauf);
-      const laeuft = daten.lauf.zustand === "laeuft";
-      $("lauf-box").hidden = !laeuft;
-      zeile($("lauf"), laeuft ? text : "");
-      if (!laeuft) meldung(text, art);
-      $("suchen").disabled = laeuft;
-      $("suchen").textContent = laeuft ? "Suche läuft …" : "Jetzt suchen";
-      $("suchen").setAttribute("aria-busy", String(laeuft));
-      const eben = letzterSuchlauf === "laeuft" && daten.lauf.zustand === "fertig";
-      letzterSuchlauf = daten.lauf.zustand;
-      // Only a search that ended while this page was open starts a rating by itself.
-      if (eben) lade().then(bewerteNachSuche);
-      else if (daten.lauf.zustand === "fertig") lade();
+      folge(daten.lauf);
+    } else if (daten.art === "antwort" && daten.frage === "status") {
+      if (wartetSeit) folge(logik.laufNachStatus(daten.antwort, wartetSeit));
     } else if (daten.art === "antwort" && daten.antwort?.fehler) {
-      $("lauf-box").hidden = true;
-      meldung(daten.antwort.fehler, "fehler");
-      $("suchen").disabled = false;
+      folge({ zustand: "fehler", fehler: daten.antwort.fehler });
     }
   });
 
@@ -391,6 +410,8 @@
     $("suchen").disabled = true;
     $("lauf-box").hidden = false;
     zeile($("lauf"), "Suche startet …");
+    wartetSeit = new Date().toISOString();
+    warte();
     window.postMessage({ quelle: SEITE, art: "suche-starten" }, location.origin);
   });
   for (const knopf of document.querySelectorAll("[data-zustand]")) knopf.addEventListener("click", () => { zustand = knopf.dataset.zustand; zeigeListe(); });

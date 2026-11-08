@@ -160,7 +160,7 @@ test('the bridge in the page of the app answers once, also when injected twice',
     window: { addEventListener: (type) => listeners.push(type), postMessage: () => {} },
     location: { origin: 'http://127.0.0.1:1' },
     chrome: {
-      runtime: { id: 'x', getManifest: () => ({ version: '1' }), connect: () => ({ onMessage: { addListener: () => {} } }) },
+      runtime: { id: 'x', getManifest: () => ({ version: '1' }), connect: () => ({ onMessage: { addListener: () => {} }, onDisconnect: { addListener: () => {} } }) },
     },
   };
   context.globalThis = context;
@@ -183,7 +183,7 @@ test('the bridge tells the page only about a hand-loaded extension, a store vers
       document: { querySelector: () => ({}), documentElement: { dataset } },
       window: { addEventListener: () => {}, postMessage: () => {} },
       location: { origin: 'http://127.0.0.1:1' },
-      chrome: { runtime: { id: 'x', getManifest: () => manifest, connect: () => ({ onMessage: { addListener: () => {} } }) } },
+      chrome: { runtime: { id: 'x', getManifest: () => manifest, connect: () => ({ onMessage: { addListener: () => {} }, onDisconnect: { addListener: () => {} } }) } },
     };
     context.globalThis = context;
     vm.runInNewContext(code, context);
