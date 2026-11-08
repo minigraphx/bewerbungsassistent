@@ -33,6 +33,7 @@ SHELL = "/bin/sh"
 TOOL_TIMEOUT_SECONDS = 300
 EXIT_WAIT_SECONDS = 30
 START_WAIT_SECONDS = 120
+POLL_SECONDS = 1.0
 CHECK_FLAG = "--nach-update"
 CHECK_ONLY_ARGS = ("--args", CHECK_FLAG)  # `open` hands what follows --args to the app
 MOVE_FIRST = "Zuerst in den Ordner Programme verschieben, dann geht das Update hier in der App."
@@ -42,8 +43,9 @@ Run = Callable[..., subprocess.CompletedProcess]
 
 # Arguments, not text pasted into the script, so names with spaces or quotes stay harmless.
 SWAP_SCRIPT = r'''#!/bin/sh
-pid=$1; app=$2; staging=$3; note=$4; version=$5; opener=$6; exit_wait=$7; start_wait=$8
-shift 8  # what is left goes to the app when it is opened
+pid=$1; app=$2; staging=$3; note=$4; version=$5; opener=$6; exit_wait=$7; start_wait=$8; poll=$9
+shift 9  # what is left goes to the app when it is opened
+# The waits count polls; with the app's poll of one second they are seconds.
 new="$staging/Bewerbungsbegleiter.app"
 old="$staging/Bewerbungsbegleiter-alt.app"
 started="$staging/gestartet"
@@ -64,7 +66,7 @@ go_back() {
 waited=0
 while kill -0 "$pid" 2>/dev/null; do
   if [ "$waited" -ge "$exit_wait" ]; then rm -rf "$staging"; exit 1; fi
-  sleep 1
+  sleep "$poll"
   waited=$((waited + 1))
 done
 
@@ -75,7 +77,7 @@ mv "$new" "$app" || go_back "$@"
 waited=0
 while [ ! -e "$started" ]; do
   if [ "$waited" -ge "$start_wait" ]; then go_back "$@"; fi
-  sleep 1
+  sleep "$poll"
   waited=$((waited + 1))
 done
 rm -rf "$staging"
@@ -142,13 +144,14 @@ def prepare(update: updates.Update, app: pathlib.Path, fetch: updates.Fetch, run
 
 def start_swap(app: pathlib.Path, staging: pathlib.Path, note: pathlib.Path, version: str, pid: int | None = None,
                open_command: str = OPEN, exit_wait: int = EXIT_WAIT_SECONDS, start_wait: int = START_WAIT_SECONDS,
-               check_only: bool = False) -> None:
-    """Start the script detached; it outlives this app, which quits right after."""
+               check_only: bool = False, poll_seconds: float = POLL_SECONDS) -> None:
+    """Start the script detached; it outlives this app, which quits right after.
+    Tests shorten `poll_seconds`, so a wait of n polls takes n times that instead of n seconds."""
     script = staging / SCRIPT
     script.write_text(SWAP_SCRIPT, encoding="utf-8")
     subprocess.Popen(  # noqa: S603 (fixed script and tool, values passed as arguments)
         [SHELL, str(script), str(os.getpid() if pid is None else pid), str(app), str(staging), str(note), version,
-         open_command, str(exit_wait), str(start_wait), *(CHECK_ONLY_ARGS if check_only else ())],
+         open_command, str(exit_wait), str(start_wait), f"{poll_seconds:g}", *(CHECK_ONLY_ARGS if check_only else ())],
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         start_new_session=True, close_fds=True)
 
