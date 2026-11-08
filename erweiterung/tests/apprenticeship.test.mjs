@@ -42,6 +42,20 @@ test('the plain profession wins over its specialisations, a named specialisation
   assert.equal(common.bestProfession('Fachfrau Gesundheit EFZ', YOUSTY_LABELS, label).id, 'health');
 });
 
+const BAKER_LABELS = [
+  { label: 'Bäcker/in-Konditor/in-Confiseur/in EFZ Schwerpunkt Konditorei-Confiserie', id: 'special' },
+  { label: 'Bäcker/in-Konditor/in-Confiseur/in EFZ', id: 'plain' },
+  { label: 'Bäcker/in-Konditor/in-Confiseur/in EBA', id: 'short' },
+];
+const BAKER_PAIR = 'Bäckerin-Konditorin-Confiseurin EFZ / Bäcker-Konditor-Confiseur EFZ';
+
+test('a name given in both forms finds the same profession as either form alone', () => {
+  assert.equal(common.bestProfession(BAKER_PAIR, BAKER_LABELS, label).id, 'plain');
+  assert.equal(common.bestProfession('Bäckerin-Konditorin-Confiseurin EFZ', BAKER_LABELS, label).id, 'plain');
+  assert.equal(common.bestProfession('Bäcker-Konditor-Confiseur EFZ', BAKER_LABELS, label).id, 'plain');
+  assert.equal(common.bestProfession('Fachfrau Betreuung EFZ / Fachmann Betreuung EFZ', YOUSTY_LABELS, label).id, 'plain');
+});
+
 test('a profession the portal does not have stays without a match', () => {
   assert.equal(common.bestProfession('Bootbauerin EFZ', YOUSTY_LABELS, label), null);
   assert.equal(common.bestProfession('', YOUSTY_LABELS, label), null);
@@ -154,6 +168,10 @@ test('LENA: other years are no hits, and cards of an unknown form are a changed 
 test('LENA: what is typed into the search form', () => {
   assert.deepEqual(lena.searchTerms('Fachfrau Betreuung EFZ, Fachrichtung Kinder'), ['Fachfrau Betreuung EFZ Kinder', 'Fachfrau Betreuung Kinder']);
   assert.deepEqual(lena.searchTerms('Fachfrau Gesundheit'), ['Fachfrau Gesundheit']);
+  assert.deepEqual(lena.searchTerms(BAKER_PAIR), [
+    'Bäckerin-Konditorin-Confiseurin EFZ', 'Bäckerin-Konditorin-Confiseurin',
+    'Bäcker-Konditor-Confiseur EFZ', 'Bäcker-Konditor-Confiseur',
+  ]);
 });
 
 test('LENA: a place must match exactly, a postal code takes the first suggestion', () => {

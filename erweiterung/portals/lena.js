@@ -59,11 +59,16 @@
     field.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  /** What to type for a profession: the whole name first, then less, because the suggestions search loosely. */
+  /**
+   * What to type for a profession: the whole name first, then less, because the suggestions search loosely.
+   * A name in two forms („… / …“) types each form, since LENA suggests nothing for the pair.
+   */
   function searchTerms(name) {
-    const clean = name.replace(/[(),]/g, ' ').replace(/\bFachrichtung\b/gi, ' ').replace(/\s+/g, ' ').trim();
-    const short = clean.replace(/\b(EFZ|EBA)\b/g, ' ').replace(/\s+/g, ' ').trim();
-    return [...new Set([clean, short])];
+    return [...new Set(common.professionForms(name).flatMap((form) => {
+      const clean = form.replace(/[(),]/g, ' ').replace(/\bFachrichtung\b/gi, ' ').replace(/\s+/g, ' ').trim();
+      const short = clean.replace(/\b(EFZ|EBA)\b/g, ' ').replace(/\s+/g, ' ').trim();
+      return [clean, short];
+    }))];
   }
 
   async function suggestion(selector, terms, pick) {

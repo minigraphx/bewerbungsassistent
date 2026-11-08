@@ -247,11 +247,20 @@ def _neutral_word(word: str) -> str:
     return re.sub(r"(er|ent|ant|ist|eur|or)in$", r"\1", re.sub(r"(frau|mann)$", "", word))
 
 
+def profession_forms(name: str) -> tuple[str, ...]:
+    """The forms of a name such as „Bäckerin-Konditorin EFZ / Bäcker-Konditor EFZ“; only „ / “ with spaces separates them."""
+    return tuple(form.strip() for form in re.split(r"\s+/\s+", name) if form.strip())
+
+
 def profession_words(name: str) -> frozenset[str]:
-    """What makes two names the same profession on the portals: „Fachfrau/Fachmann Gesundheit EFZ“ and „Fachfrau Gesundheit EFZ“."""
-    plain = re.sub(r"/-?(?:in|frau|mann|euse|r)\b", "", name.lower())
-    words = (_neutral_word(word) for word in re.split(r"[\s,;()/]+", plain) if word and word not in FILLER_WORDS)
-    return frozenset(word for word in words if word)
+    """What makes two names the same profession on the portals: „Fachfrau/Fachmann Gesundheit EFZ“ and „Fachfrau Gesundheit EFZ“.
+
+    A name in two forms counts by its first, as portals/common.js does.
+    """
+    forms = profession_forms(name)
+    plain = re.sub(r"/-?(?:in|frau|mann|euse|r)\b", "", forms[0].lower() if forms else "")
+    words = ("-".join(map(_neutral_word, word.split("-"))) for word in re.split(r"[\s,;()/]+", plain) if word and word not in FILLER_WORDS)
+    return frozenset(word for word in words if word.replace("-", ""))
 
 
 def professions_in(text: str) -> tuple[str, ...]:
