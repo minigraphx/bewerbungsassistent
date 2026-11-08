@@ -1,4 +1,4 @@
-// The overview (MIN-369): next step per application, running or finished, what comes first, without a page.
+// The overview (MIN-369): next step per application, the views by stage (#165), what comes first, without a page.
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -39,14 +39,35 @@ test("the list puts an interview first, then sending, the closest deadline first
   assert.deepEqual(zeilen.map(z => z.bewerbung.id), ["gespraech", "frueh", "spaet", "gemerkt", "warten"]);
 });
 
-test("running and finished split the list, a finished one still to enter in the Job-Room stays running", () => {
+test("the views follow the stage: Gemerkt, Beworben, Abgeschlossen and Alle", () => {
+  const zeilen = logik.mitSchritten([
+    b("g", "Gemerkt"), b("w", "Bewerben"), b("a", "Beworben"), b("s", "Gespräch", { gespraech_am: "2026-11-11" }),
+    b("z", "Zusage"), b("r", "Absage"), b("v", "Verworfen"), b("x", "Zurückgezogen"),
+  ]);
+  const ids = ansicht => logik.gefiltert(zeilen, ansicht, "").map(z => z.bewerbung.id).sort();
+  assert.deepEqual(ids("gemerkt"), ["g", "w"]);
+  assert.deepEqual(ids("beworben"), ["a", "s"]);
+  assert.deepEqual(ids("abgeschlossen"), ["r", "v", "x", "z"]);
+  assert.deepEqual(ids("alle"), ["a", "g", "r", "s", "v", "w", "x", "z"]);
+  assert.deepEqual(logik.gefiltert(zeilen, "alle", "firma z").map(z => z.bewerbung.id), ["z"]);
+  assert.deepEqual(logik.ansichtenZaehlen(zeilen), { gemerkt: 2, beworben: 2, abgeschlossen: 4, alle: 8 });
+});
+
+test("a rejection is finished even while its Job-Room entry is open, which still shows under Das steht an", () => {
   const zeilen = logik.mitSchritten([b("a", "Beworben"), b("z", "Zusage"), b("r", "Absage", { beworben_am: "2026-11-02" })],
     new Map(), new Map([["r", null], ["a", "Schon im RAV eingetragen."]]));
   const ids = ansicht => logik.gefiltert(zeilen, ansicht, "").map(z => z.bewerbung.id).sort();
-  assert.deepEqual(ids("laufend"), ["a", "r"]);
-  assert.deepEqual(ids("abgeschlossen"), ["z"]);
-  assert.deepEqual(ids("alle"), ["a", "r", "z"]);
-  assert.deepEqual(logik.gefiltert(zeilen, "alle", "firma z").map(z => z.bewerbung.id), ["z"]);
+  assert.deepEqual(ids("beworben"), ["a"]);
+  assert.deepEqual(ids("abgeschlossen"), ["r", "z"]);
+  assert.deepEqual(logik.stehtAn(zeilen).map(e => [e.art, e.eintraege.map(z => z.bewerbung.id)]), [["rav", ["r"]]]);
+});
+
+test("the stored view is kept, the former Laufend becomes Beworben, anything else the default", () => {
+  for (const ansicht of ["gemerkt", "beworben", "abgeschlossen", "alle"]) assert.equal(logik.gueltigeAnsicht(ansicht), ansicht);
+  assert.equal(logik.gueltigeAnsicht("laufend"), "beworben");
+  for (const falsch of [undefined, null, "", "quer", 3, {}]) assert.equal(logik.gueltigeAnsicht(falsch), logik.STANDARD_ANSICHT);
+  assert.ok(logik.ANSICHTEN.includes(logik.STANDARD_ANSICHT));
+  assert.deepEqual(logik.ANSICHTEN, ["gemerkt", "beworben", "abgeschlossen", "alle"]);
 });
 
 test("two or more ready ones become one item to open together, waiting ones never show", () => {
@@ -59,10 +80,10 @@ test("two or more ready ones become one item to open together, waiting ones neve
     [["gespraech", ["g"]], ["abschicken", ["x", "y"]], ["entscheiden", ["m"]]]);
 });
 
-test("finished ones are counted per status, not those still to enter in the Job-Room", () => {
+test("finished ones are counted per status, also those still to enter in the Job-Room", () => {
   const zeilen = logik.mitSchritten([b("a", "Zusage"), b("b", "Absage"), b("c", "Absage"), b("d", "Beworben"), b("e", "Absage")],
     new Map(), new Map([["e", null]]));
-  assert.deepEqual(logik.abgeschlossenZaehlen(zeilen), { Zusage: 1, Absage: 2 });
+  assert.deepEqual(logik.abgeschlossenZaehlen(zeilen), { Zusage: 1, Absage: 3 });
 });
 
 // Sorting the list by a column (MIN-404)
@@ -129,5 +150,29 @@ test("a stored sorting only counts when it is one the page knows", () => {
   assert.deepEqual(logik.gueltigeSortierung({ spalte: "note", richtung: "ab" }), { spalte: "note", richtung: "ab" });
   for (const falsch of [null, "note", {}, { spalte: "note" }, { spalte: "x", richtung: "ab" }, { spalte: "note", richtung: "quer" }]) {
     assert.equal(logik.gueltigeSortierung(falsch), null);
+  }
+});
+
+// Sorting by the date an application was entered (#168)
+
+const ERFASST = [["Mitte", "2026-10-15"], ["Ohne", undefined], ["Neu", "2026-11-02"], ["Leer", ""], ["Alt", "2026-09-30"]]
+  .map(([stelle, eingetragen_am]) => ({ bewerbung: { stelle, status: "Beworben", eingetragen_am }, schritt: { art: "warten" } }));
+
+test("the entry date sorts both ways, entries without a date stay at the bottom", () => {
+  assert.deepEqual(stellen(logik.sortiert(ERFASST, { spalte: "erfasst", richtung: "ab" })), ["Neu", "Mitte", "Alt", "Ohne", "Leer"]);
+  assert.deepEqual(stellen(logik.sortiert(ERFASST, { spalte: "erfasst", richtung: "auf" })), ["Alt", "Mitte", "Neu", "Ohne", "Leer"]);
+});
+
+test("the newest entry comes first on the first click", () => {
+  const erster = logik.naechsteSortierung(null, "erfasst");
+  assert.deepEqual(erster, { spalte: "erfasst", richtung: "ab" });
+  const zweiter = logik.naechsteSortierung(erster, "erfasst");
+  assert.deepEqual(zweiter, { spalte: "erfasst", richtung: "auf" });
+  assert.equal(logik.naechsteSortierung(zweiter, "erfasst"), null);
+});
+
+test("a stored sorting by the entry date is kept", () => {
+  for (const richtung of ["auf", "ab"]) {
+    assert.deepEqual(logik.gueltigeSortierung({ spalte: "erfasst", richtung }), { spalte: "erfasst", richtung });
   }
 });

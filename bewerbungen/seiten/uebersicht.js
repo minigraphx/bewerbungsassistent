@@ -1,5 +1,5 @@
 "use strict";
-// Overview (MIN-369): „Das steht an“ with the next step, then the applications in five columns.
+// Overview (MIN-369): „Das steht an“ with the next step, then the applications in six columns.
 // The next step per application comes from uebersicht-logik.js. Forms and Job-Room entries open through the
 // browser extension (MIN-346, MIN-347): one application from its card, several together from one item.
 (() => {
@@ -16,7 +16,9 @@
   const NO_EXTENSION = "Zum Ausfüllen im Browser braucht es die Erweiterung (siehe Einrichtung).";
   const ANSWER_TIMEOUT_MS = 60000;
   const ANSICHT = "uebersicht.ansicht";  // view, search and scroll position stay when going to another page
-  const ANSICHTEN = ["laufend", "abgeschlossen", "alle"];
+  const MIT_FUSS = ["gemerkt", "beworben"];  // views that do not show the finished ones name them below the list
+  const NICHTS_GEFUNDEN = "Keine Bewerbung passt zu dieser Suche.";
+  const ANSICHT_LEER = "In dieser Ansicht ist keine Bewerbung.";
   const ARIA_SORT = { auf: "ascending", ab: "descending" };
   const MAX_AUCH = 3;
   const GESCHLOSSEN_WORT = { Zusage: ["Zusage", "Zusagen"], Absage: ["Absage", "Absagen"], Verworfen: ["verworfen", "verworfen"],
@@ -33,7 +35,7 @@
   let maxRav = 0;
   let erinnerung = null;
   let neueTreffer = null;  // { anzahl, letzte } or null
-  let ansicht = "laufend";
+  let ansicht = L.STANDARD_ANSICHT;
   let sortierung = null;  // { spalte, richtung } or null for the order of the app
   let laufendeAnfrage = null;  // { ids } of the run waiting for the extension, for „Trotzdem öffnen“
   let answerTimer = null;
@@ -62,10 +64,10 @@
   function gemerkt() {
     try {
       const a = JSON.parse(localStorage.getItem(ANSICHT) || "{}");
-      return { ansicht: ANSICHTEN.includes(a.ansicht) ? a.ansicht : "laufend", suche: typeof a.suche === "string" ? a.suche : "",
+      return { ansicht: L.gueltigeAnsicht(a.ansicht), suche: typeof a.suche === "string" ? a.suche : "",
                scroll: Number.isFinite(a.scroll) && a.scroll > 0 ? a.scroll : 0, sortierung: L.gueltigeSortierung(a.sortierung) };
     } catch {
-      return { ansicht: "laufend", suche: "", scroll: 0, sortierung: null };
+      return { ansicht: L.STANDARD_ANSICHT, suche: "", scroll: 0, sortierung: null };
     }
   }
 
@@ -109,7 +111,8 @@
       el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, window.Texte.statusName(b.status, satz))),
       el("td", { "data-label": "Note" }, note(b)),
       el("td", { "data-label": "Nächster Schritt", class: "table__next" }, was.titel || "–", was.zusatz ? el("span", { class: "table__sub" }, was.zusatz) : null),
-      el("td", { "data-label": "Frist", class: "num" }, L.datum(schritt.frist)));
+      el("td", { "data-label": "Frist", class: "num" }, L.datum(schritt.frist)),
+      el("td", { "data-label": "Erfasst", class: "num" }, L.datum(b.eingetragen_am)));
   }
 
   function zeigeListe() {
@@ -119,14 +122,15 @@
       else kopf.removeAttribute("aria-sort");
     }
     for (const knopf of document.querySelectorAll("[data-ansicht]")) knopf.setAttribute("aria-pressed", String(knopf.dataset.ansicht === ansicht));
-    for (const name of ANSICHTEN) document.querySelector(`[data-zahl=${name}]`).textContent = String(L.gefiltert(zeilen, name, "").length);
+    for (const [name, zahl] of Object.entries(L.ansichtenZaehlen(zeilen))) document.querySelector(`[data-zahl=${name}]`).textContent = String(zahl);
     $("liste").replaceChildren(...gezeigte.map(zeile));
     $("tabelle").hidden = gezeigte.length === 0;
     $("liste-leer").hidden = alle.length > 0;
     $("nichts-gefunden").hidden = alle.length === 0 || gezeigte.length > 0;
+    $("nichts-gefunden").textContent = $("suche").value.trim() ? NICHTS_GEFUNDEN : ANSICHT_LEER;
     const fertig = L.abgeschlossenZaehlen(zeilen);
     const teile = Object.entries(fertig).map(([status, n]) => `${n} ${(GESCHLOSSEN_WORT[status] || [status, status])[n === 1 ? 0 : 1]}`);
-    $("liste-fuss").hidden = ansicht !== "laufend" || teile.length === 0;
+    $("liste-fuss").hidden = !MIT_FUSS.includes(ansicht) || teile.length === 0;
     $("liste-fuss").replaceChildren(`Abgeschlossen: ${teile.join(", ")}. `,
       el("button", { type: "button", class: "link", onclick: () => waehleAnsicht("abgeschlossen") }, "Anzeigen"));
     merken();

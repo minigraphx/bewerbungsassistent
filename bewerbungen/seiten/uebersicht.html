@@ -70,7 +70,8 @@
       <h2 id="liste-titel">Bewerbungen</h2>
       <div class="overview__tools">
         <div role="group" aria-label="Anzeigen" class="overview__views" id="ansichten">
-          <button type="button" class="btn btn--sm" data-ansicht="laufend" aria-pressed="true">Laufend <span class="num" data-zahl="laufend"></span></button>
+          <button type="button" class="btn btn--sm" data-ansicht="gemerkt" aria-pressed="false">Gemerkt <span class="num" data-zahl="gemerkt"></span></button>
+          <button type="button" class="btn btn--sm" data-ansicht="beworben" aria-pressed="true">Beworben <span class="num" data-zahl="beworben"></span></button>
           <button type="button" class="btn btn--sm" data-ansicht="abgeschlossen" aria-pressed="false">Abgeschlossen <span class="num" data-zahl="abgeschlossen"></span></button>
           <button type="button" class="btn btn--sm" data-ansicht="alle" aria-pressed="false">Alle <span class="num" data-zahl="alle"></span></button>
         </div>
@@ -82,7 +83,7 @@
     <p id="nichts-gefunden" class="overview__empty" hidden>Keine Bewerbung passt zu dieser Suche.</p>
     <div class="table-wrap" id="tabelle">
       <table class="table">
-        <thead><tr><th data-spalte="stelle"><button type="button" class="table__sort" data-text="uebersicht.spalte">Stelle und Firma</button></th><th data-spalte="stand"><button type="button" class="table__sort">Stand</button></th><th data-spalte="note"><button type="button" class="table__sort">Note</button></th><th data-spalte="schritt"><button type="button" class="table__sort">Nächster Schritt</button></th><th class="num" data-spalte="frist"><button type="button" class="table__sort">Frist</button></th></tr></thead>
+        <thead><tr><th data-spalte="stelle"><button type="button" class="table__sort" data-text="uebersicht.spalte">Stelle und Firma</button></th><th data-spalte="stand"><button type="button" class="table__sort">Stand</button></th><th data-spalte="note"><button type="button" class="table__sort">Note</button></th><th data-spalte="schritt"><button type="button" class="table__sort">Nächster Schritt</button></th><th class="num" data-spalte="frist"><button type="button" class="table__sort">Frist</button></th><th class="num" data-spalte="erfasst"><button type="button" class="table__sort">Erfasst</button></th></tr></thead>
         <tbody id="liste"></tbody>
       </table>
     </div>

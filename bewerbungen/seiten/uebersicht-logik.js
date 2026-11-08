@@ -1,10 +1,19 @@
 "use strict";
-// The overview after the design (MIN-369): what comes next for each application, which ones are still running,
+// The overview after the design (MIN-369): what comes next for each application, the views by stage (#165),
 // and what „Das steht an“ shows first. No DOM, so it can be tested (tests/uebersicht_logik.test.cjs).
 // `grund` is why the app cannot open the form yet (/api/bewerben/auswahl, null = ready), `ravGrund` why it cannot
 // be entered in the Job-Room (/api/rav/auswahl, null = can be entered, undefined = no RAV).
 (function (global) {
-  const LAUFEND = ["Gemerkt", "Bewerben", "Beworben", "Gespräch"];
+  // The views by stage (#165). They go by the status only: a rejection still to enter in the Job-Room is finished,
+  // and „Das steht an“ shows that entry anyway.
+  const STAENDE = {
+    gemerkt: ["Gemerkt", "Bewerben"],
+    beworben: ["Beworben", "Gespräch"],
+    abgeschlossen: ["Absage", "Zusage", "Verworfen", "Zurückgezogen"],
+  };
+  const ANSICHTEN = [...Object.keys(STAENDE), "alle"];
+  const STANDARD_ANSICHT = "beworben";
+  const FRUEHERE_ANSICHT = { laufend: "beworben" };  // stored before #165
   const NACHFRAGEN_NACH_TAGEN = 14;
   const OHNE_LEBENSLAUF = "Lebenslauf-PDF fehlt";  // apply.NO_CV starts so
   const OHNE_LINK = "Kein Link zum Formular";      // apply.NO_LINK starts so
@@ -24,8 +33,6 @@
     const [j, m, t] = iso.split("-");
     return `${t}.${m}.${j}`;
   }
-
-  const laufend = b => LAUFEND.includes(b.status);
 
   /** { art, frist?, zusatz?, grund? } — art is one of RANG; frist an ISO date that orders and shows in the list. */
   function naechsterSchritt(b, { grund, ravGrund } = {}) {
@@ -63,12 +70,25 @@
     })).sort(vergleiche);
   }
 
-  /** Laufend, Abgeschlossen or Alle, with the search over company, position and note. */
+  /** Gemerkt, Beworben, Abgeschlossen or Alle, with the search over company, position and note. */
   function gefiltert(zeilen, ansicht, suche) {
     const wort = (suche || "").trim().toLowerCase();
-    return zeilen.filter(({ bewerbung: b, schritt }) =>
-      (ansicht === "alle" || (ansicht === "abgeschlossen") === (!laufend(b) && schritt.art !== "rav"))
+    const staende = STAENDE[ansicht];
+    return zeilen.filter(({ bewerbung: b }) =>
+      (ansicht === "alle" || (staende || []).includes(b.status))
       && (!wort || `${b.firma} ${b.stelle} ${b.notiz || ""}`.toLowerCase().includes(wort)));
+  }
+
+  /** How many applications each view shows without a search: { gemerkt, beworben, abgeschlossen, alle }. */
+  function ansichtenZaehlen(zeilen) {
+    return Object.fromEntries(ANSICHTEN.map(name => [name, gefiltert(zeilen, name, "").length]));
+  }
+
+  /** A view from the browser's storage: a known one, the former „Laufend“ as Beworben, else the default. */
+  function gueltigeAnsicht(wert) {
+    if (typeof wert !== "string") return STANDARD_ANSICHT;
+    if (Object.hasOwn(FRUEHERE_ANSICHT, wert)) return FRUEHERE_ANSICHT[wert];
+    return ANSICHTEN.includes(wert) ? wert : STANDARD_ANSICHT;
   }
 
   // Sorting by a column (MIN-404). A value of null means nothing to compare: it stays at the bottom in both directions.
@@ -80,8 +100,9 @@
     note: z => (typeof z.bewerbung.passung === "number" ? z.bewerbung.passung : null),
     schritt: z => RANG[z.schritt.art] ?? null,
     frist: z => z.schritt.frist || null,
+    erfasst: z => z.bewerbung.eingetragen_am || null,  // ISO, so the alphabet is the calendar (#168)
   };
-  const ZUERST_ABSTEIGEND = ["note"];  // the best grade first
+  const ZUERST_ABSTEIGEND = ["note", "erfasst"];  // the best grade and the newest entry first
   const GEGENTEIL = { auf: "ab", ab: "auf" };
 
   function vergleicheWerte(a, b) {
@@ -139,7 +160,8 @@
     return alle.slice(0, hoechstens);
   }
 
-  const logik = { LAUFEND, NACHFRAGEN_NACH_TAGEN, datum, plusTage, laufend, naechsterSchritt, mitSchritten, gefiltert, sortiert, naechsteSortierung, gueltigeSortierung, abgeschlossenZaehlen, stehtAn };
+  const logik = { ANSICHTEN, STANDARD_ANSICHT, NACHFRAGEN_NACH_TAGEN, datum, plusTage, naechsterSchritt, mitSchritten, gefiltert,
+                  ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung, abgeschlossenZaehlen, stehtAn };
   if (typeof module !== "undefined") module.exports = logik;
   else global.UebersichtLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);
