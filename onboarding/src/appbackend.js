@@ -21,6 +21,7 @@ function createAppBackend() {
     const error = new Error(body.fehler || "Die App antwortet nicht. Läuft sie noch?");
     error.status = response.status;
     error.existing = Boolean(body.vorhanden);
+    error.choice = Array.isArray(body.wahl) ? body.wahl : []; // existing Markdown files to choose for (G26)
     throw error;
   }
 

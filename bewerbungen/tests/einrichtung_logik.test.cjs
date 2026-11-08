@@ -26,3 +26,19 @@ test("no extension is no extension", () => {
   assert.equal(logik.erweiterungZustand("", "0.2.12", false), "fehlt");
   assert.equal(logik.erweiterungZustand("", null, true), "fehlt");
 });
+
+// Step „Datei“: existing Markdown files are kept unless replacing is picked per file (G26, #163).
+
+test("every existing file starts as kept, so nothing is replaced by default", () => {
+  const wahl = logik.startWahl([{ datei: "suchprofil.md" }, { datei: "anschreiben/stil.md" }]);
+  assert.deepEqual({ ...wahl }, { "suchprofil.md": "behalten", "anschreiben/stil.md": "behalten" });
+  assert.deepEqual(logik.zuErsetzen(wahl), []);
+});
+
+test("only the files picked for replacing are sent", () => {
+  assert.deepEqual(logik.zuErsetzen({ "suchprofil.md": "ersetzen", "anschreiben/stil.md": "behalten" }), ["suchprofil.md"]);
+});
+
+test("each line of the differences says whether it goes or comes", () => {
+  assert.deepEqual(["gleich", "weg", "neu", "luecke"].map(art => logik.zeilenZeichen(art)), ["  ", "− ", "+ ", "…"]);
+});

@@ -23,6 +23,7 @@
   let wahl = null;         // /api/einrichtung/wahl, or what the page keeps until there is a folder
   let ki = null;           // /api/ki/status
   let importiert = false;
+  let dateiWahl = {};      // per existing Markdown file „behalten“ or „ersetzen“ (G26)
   let ravBeruehrt = false; // the default for RAV follows the choice until the person picks one
   const sitzung = ladeSitzung();  // { wahl, bestaetigt, uebersprungen: {vorlage, ki, erweiterung} }
 
@@ -278,6 +279,7 @@
   function zeigeImport(ergebnis) {
     const zeilen = [
       ...ergebnis.geschrieben.map(datei => el("li", { "data-stufe": "ok" }, `Angelegt: ${datei}`)),
+      ...(ergebnis.nicht_ersetzt || []).map(datei => el("li", { "data-stufe": "ok" }, `Behalten: ${datei}`)),
       ...(ergebnis.unveraendert || []).map(datei => el("li", { "data-stufe": "hinweis" },
         `Unverändert gelassen: ${datei}. Die Datei lässt sich nicht lesen; zu ändern unter „Inhalte als Text“.`)),
       ergebnis.dokumente.length ? el("li", { "data-stufe": "ok" }, `${ergebnis.dokumente.length} Dokument(e) abgelegt`) : null,
@@ -286,8 +288,9 @@
     $("import-ergebnis").replaceChildren(...zeilen.filter(Boolean));
   }
 
-  async function importiere(ersetzen = false) {
-    $("ersetzen").hidden = true;
+  // ersetzen: null on the first try (existing Markdown files come back as a choice), else the files picked for replacing
+  async function importiere(ersetzen = null) {
+    zeigeWahl([]);
     $("import-ergebnis").replaceChildren();
     meldung($("import-status"), "Wird importiert …");
     try {
@@ -300,8 +303,35 @@
     } catch (fehler) {
       const vorhanden = fehler.status === 409 && fehler.daten?.vorhanden;
       meldung($("import-status"), fehler.message, vorhanden ? "warning" : "danger");
-      $("ersetzen").hidden = !vorhanden;
+      zeigeWahl(vorhanden ? fehler.daten.wahl || [] : []);
     }
+  }
+
+  function zeigeWahl(dateien) {
+    dateiWahl = window.EinrichtungLogik.startWahl(dateien);
+    $("import-wahl").replaceChildren(...dateien.map(dateiFrage));
+    $("import-wahl").hidden = !dateien.length;
+    $("ersetzen").hidden = !dateien.length;
+  }
+
+  function dateiFrage(datei, index) {
+    const unterschiede = el("div", { "aria-live": "polite" });
+    const option = (wert, beschriftung) => el("label", { class: "import-wahl__option" },
+      el("input", { type: "radio", name: `import-wahl-${index}`, value: wert, checked: wert === "behalten", onchange: () => {
+        dateiWahl = { ...dateiWahl, [datei.datei]: wert };
+        unterschiede.replaceChildren(...(wert === "ersetzen" ? [unterschiedeAnsicht(datei.zeilen)] : []));
+      } }), ` ${beschriftung}`);
+    return el("fieldset", { class: "import-wahl__datei" }, el("legend", {}, `${datei.titel} (${datei.datei})`),
+      el("div", { class: "import-wahl__optionen" }, option("behalten", "Behalten"), option("ersetzen", "Ersetzen")), unterschiede);
+  }
+
+  function unterschiedeAnsicht(zeilen) {
+    if (!zeilen.length) return el("p", { class: "field__hint" }, "Kein Unterschied zum bisherigen Stand.");
+    const { zeilenZeichen } = window.EinrichtungLogik;
+    return el("div", {},
+      el("p", { class: "field__hint" }, "Unterschiede zum bisherigen Stand: Zeilen mit − fallen weg, Zeilen mit + kommen dazu."),
+      el("pre", { class: "import-wahl__zeilen" }, zeilen.map(z => el("span", { class: `import-wahl__zeile import-wahl__zeile--${z.art}` },
+        zeilenZeichen(z.art), z.art === "weg" ? el("del", {}, z.text) : z.art === "neu" ? el("ins", {}, z.text) : z.text, "\n"))));
   }
 
   function zeigeVorlage() {
@@ -319,8 +349,8 @@
   }
 
   $("datei-waehlen").addEventListener("click", () => waehle("datei", "datei", "import-status", async () => {}));
-  $("importieren").addEventListener("click", () => importiere(false));
-  $("ersetzen").addEventListener("click", () => importiere(true));
+  $("importieren").addEventListener("click", () => importiere(null));
+  $("ersetzen").addEventListener("click", () => importiere(window.EinrichtungLogik.zuErsetzen(dateiWahl)));
   $("vorlage-ueberspringen").addEventListener("click", () => ueberspringe("vorlage"));
   $("vorlage-weiter").addEventListener("click", () => ueberspringe("vorlage"));
 

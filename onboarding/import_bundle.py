@@ -7,7 +7,8 @@ it is size-limited, parsed and validated against form.json before anything is wr
 are only replaced with --force, and every file is saved as a draft before and after (like
 `bewerbungen/entwurf.py`), so the previous state can be restored in the app under „Entwürfe“.
 Replacing keeps what the form cannot show: the answers merge into the CV (`cv_merge.py`), and `search_terms.py`
-keeps the terms of the search.
+keeps the terms of the search. The pages of the app pass a `MarkdownChoice` instead (G26): cv.yaml always merges,
+and each existing Markdown file is replaced only when chosen; without a choice they come back with their diffs.
 
 If documents came along and answers are only missing (not wrong), the basics are not written yet: the
 answers are kept as `dokumente/einstieg.json` and the skill einstieg completes them from the documents.
@@ -32,15 +33,22 @@ import search_terms
 import validation
 from dateien import im_ordner, schreibe_atomar
 from entwurf import sichere
-from rejected import ImportRejected
+from rejected import ExistingFiles, ImportRejected
+from text_diff import line_diff
 
-__all__ = ["ImportRejected", "ImportResult", "import_answers", "import_file", "main", "read_bundle"]
+__all__ = ["ExistingFiles", "ImportRejected", "ImportResult", "MarkdownChoice", "import_answers", "import_file",
+           "main", "read_bundle"]
 
 MAX_BYTES = 1_000_000
 DRAFT_BEFORE = "Vor dem Import der Einstiegsdatei"
 DRAFT_AFTER = "Import der Einstiegsdatei"
 NOT_A_BUNDLE = "Die Datei ist keine gültige Einstiegsdatei (JSON)."
 CV = "cv.yaml"
+MARKDOWN_TITLES = {"suchprofil.md": "Suchprofil", "anschreiben/stil.md": "Stilprofil",
+                   "anschreiben/bausteine.md": "Bausteine"}
+MARKDOWN = tuple(rel for rel in convert.BASICS if rel != CV)
+CHOOSE_PER_FILE = ("Diese Dateien gibt es schon: {files}. Pro Datei wählen, ob sie bleibt oder ersetzt wird; "
+                   "der alte Stand bleibt als Entwurf erhalten.")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -51,6 +59,13 @@ class ImportResult:
     incomplete: bool
     kept_terms: tuple[str, ...] = ()
     kept_files: tuple[str, ...] = ()  # left as they were: they could not be read, so nothing could merge in
+    not_replaced: tuple[str, ...] = ()  # existing Markdown files the person chose to keep
+
+
+@dataclasses.dataclass(frozen=True)
+class MarkdownChoice:
+    """Which existing Markdown files to replace; None means not chosen yet, so existing ones are refused with diffs."""
+    replace: frozenset[str] | None = None
 
 
 def read_bundle(path: pathlib.Path) -> object:
@@ -79,24 +94,25 @@ def _load(path: pathlib.Path, form: dict) -> tuple[object, bytes | None, tuple[a
 
 
 def import_file(data_dir: pathlib.Path, bundle_path: pathlib.Path, today: datetime.date,
-                force: bool = False) -> ImportResult:
+                force: bool = False, choice: MarkdownChoice | None = None) -> ImportResult:
     """Validate, convert and write; incomplete answers with documents are kept for the skill einstieg."""
     form = validation.load_form()
     bundle, raw, found = _load(bundle_path, form)
-    return _import(form, bundle, raw, found, bool(found), data_dir, today, force)
+    return _import(form, bundle, raw, found, bool(found), data_dir, today, force, choice)
 
 
-def import_answers(data_dir: pathlib.Path, bundle: object, today: datetime.date, force: bool = False) -> ImportResult:
+def import_answers(data_dir: pathlib.Path, bundle: object, today: datetime.date, force: bool = False,
+                   choice: MarkdownChoice | None = None) -> ImportResult:
     """The same for answers from the page „Meine Angaben“ of the app; documents are already in the data folder."""
     raw = json.dumps(bundle, ensure_ascii=False, indent=2).encode("utf-8", "surrogatepass")
     if len(raw) > MAX_BYTES:
         raise ImportRejected([f"Die Angaben sind zu gross (höchstens {MAX_BYTES // 1000} KB)."])
     has_documents = bool(import_documents.pending_documents(data_dir.resolve()))
-    return _import(validation.load_form(), bundle, raw, (), has_documents, data_dir, today, force)
+    return _import(validation.load_form(), bundle, raw, (), has_documents, data_dir, today, force, choice)
 
 
 def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.Document, ...], has_documents: bool,
-            data_dir: pathlib.Path, today: datetime.date, force: bool) -> ImportResult:
+            data_dir: pathlib.Path, today: datetime.date, force: bool, choice: MarkdownChoice | None) -> ImportResult:
     # tags already in the data folder never block saving, only typed ones keep to the limits (G24)
     errors = validation.validate_bundle(form, bundle, known=frozenset(known_tags.known_tags(data_dir, form)))
     incomplete = bool(errors and has_documents) and all(e.code == "required" for e in errors)
@@ -104,12 +120,13 @@ def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.
         track = bundle.get("track") if isinstance(bundle, dict) else None
         raise ImportRejected([validation.describe(form, track, e) for e in errors])
     data_dir = data_dir.resolve()
-    written, kept, unchanged = ([], (), ()) if incomplete else _write_basics(form, bundle, data_dir, today, force)
+    written, kept, unchanged, not_replaced = (
+        ([], (), (), ()) if incomplete else _write_basics(form, bundle, data_dir, today, force, choice))
     data_dir.mkdir(parents=True, exist_ok=True)
     stored = import_documents.store_documents(data_dir, found, today, raw if incomplete else None)
     if not incomplete:
         import_documents.discard_kept_answers(data_dir)
-    return ImportResult(written, stored, incomplete, kept, unchanged)
+    return ImportResult(written, stored, incomplete, kept, unchanged, not_replaced)
 
 
 def _keeping_search_terms(files: dict[str, str], data_dir: pathlib.Path) -> tuple[dict[str, str], tuple[str, ...]]:
@@ -138,24 +155,46 @@ def _keeping_cv_content(files: dict[str, str], bundle: dict, data_dir: pathlib.P
     return {**files, CV: text}, ()
 
 
-def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datetime.date,
-                  force: bool) -> tuple[list[str], tuple[str, ...], tuple[str, ...]]:
+def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datetime.date, force: bool,
+                  choice: MarkdownChoice | None) -> tuple[list[str], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     files = convert.convert_bundle(form, bundle, today)
-    files, unchanged = _keeping_cv_content(files, bundle, data_dir, today) if force else (files, ())
-    merged, kept = _keeping_search_terms(files, data_dir) if force else (files, ())
+    merging = force or choice is not None
+    files, unchanged = _keeping_cv_content(files, bundle, data_dir, today) if merging else (files, ())
+    merged, kept = _keeping_search_terms(files, data_dir) if merging else (files, ())
     encoded = _encode(merged)
-    targets = {rel: im_ordner(data_dir, rel) for rel in encoded}
-    existing = [rel for rel, target in targets.items() if target.exists()]
-    if existing and not force:
+    existing = [rel for rel in encoded if im_ordner(data_dir, rel).exists()]
+    if choice is not None:
+        not_replaced = _not_replaced(choice, existing, merged, data_dir)
+        encoded = {rel: content for rel, content in encoded.items() if rel not in not_replaced}
+        existing = [rel for rel in existing if rel not in not_replaced]
+        kept = kept if search_plan.PROFILE in encoded else ()
+    elif existing and not force:
         raise ImportRejected([f"Diese Dateien gibt es schon: {', '.join(existing)}. "
                               "Zum Ersetzen mit --force aufrufen; der alte Stand bleibt als Entwurf erhalten."])
+    else:
+        not_replaced = ()
     data_dir.mkdir(parents=True, exist_ok=True)
     if existing:
         sichere(data_dir, existing, DRAFT_BEFORE)
     for rel, content in encoded.items():
-        schreibe_atomar(targets[rel], content)
+        schreibe_atomar(im_ordner(data_dir, rel), content)
     sichere(data_dir, list(encoded), DRAFT_AFTER)
-    return list(encoded), kept, unchanged
+    return list(encoded), kept, unchanged, not_replaced
+
+
+def _not_replaced(choice: MarkdownChoice, existing: list[str], merged: dict[str, str],
+                  data_dir: pathlib.Path) -> tuple[str, ...]:
+    """The existing Markdown files that stay as they are; without a choice they are refused with their diffs."""
+    present = [rel for rel in existing if rel in MARKDOWN]
+    if choice.replace is None and present:
+        raise ExistingFiles([CHOOSE_PER_FILE.format(files=", ".join(present))],
+                            [_file_diff(rel, merged[rel], data_dir) for rel in present])
+    return tuple(rel for rel in present if rel not in (choice.replace or frozenset()))
+
+
+def _file_diff(rel: str, new: str, data_dir: pathlib.Path) -> dict:
+    old = im_ordner(data_dir, rel).read_text(encoding="utf-8", errors="replace")
+    return {"datei": rel, "titel": MARKDOWN_TITLES[rel], "zeilen": line_diff(old, new)}
 
 
 def _encode(files: dict[str, str]) -> dict[str, bytes]:

@@ -60,3 +60,15 @@ test("prefill posts the track and the answers so far", async () => {
   assert.strictEqual(calls[0][0], "/api/angaben/vorbefuellen");
   assert.deepStrictEqual(JSON.parse(calls[0][1].body), { track: "job", data: { person: { name: "Erika" } } });
 });
+
+test("taking over sends the chosen files and a refusal carries the choice to make", async () => {
+  const calls = [];
+  const choice = [{ datei: "suchprofil.md", titel: "Suchprofil", zeilen: [] }];
+  const { createAppBackend } = load(async (url, options) => { calls.push(JSON.parse(options.body)); return respond(409, { fehler: "Es gibt schon Dateien.", vorhanden: true, wahl: choice }); });
+
+  await assert.rejects(createAppBackend().takeOver({}, ["suchprofil.md"]), (error) => {
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(error.choice)), choice);
+    return true;
+  });
+  assert.deepStrictEqual(calls[0], { bundle: {}, ersetzen: ["suchprofil.md"] });
+});

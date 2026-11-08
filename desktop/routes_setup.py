@@ -16,6 +16,7 @@ import settings
 import setup
 
 DIALOG_KINDS = ("ordner", "datei")
+UNKNOWN_CHOICE = "Die Wahl der Dateien hat eine unbekannte Form."
 
 
 @dataclasses.dataclass
@@ -130,15 +131,26 @@ def ready_data_dir(state: Setup, k) -> pathlib.Path:
     return target
 
 
-def rejected_answer(rejected, replace: bool, json_antwort):
-    """Existing files become a question (409, the page offers to replace them), anything else an error."""
-    problems = rejected.messages
-    existing = any("gibt es schon" in p for p in problems)
-    text = " ".join(p.replace("Zum Ersetzen mit --force aufrufen", "Zum Ersetzen „Vorhandene Dateien ersetzen“ wählen")
-                    for p in problems)
-    if existing and not replace:
-        return json_antwort({"fehler": text, "vorhanden": True}, HTTPStatus.CONFLICT)
-    raise ValueError(text) from rejected
+def replace_request(value: object) -> tuple[bool, "import_bundle.MarkdownChoice | None"]:
+    """`ersetzen` of a request: True replaces every file (as before), a list only the Markdown files named in it (G26);
+    without it, existing Markdown files come back as a choice. Returns (force, choice)."""
+    import import_bundle  # onboarding/
+    if value is True:
+        return True, None
+    if value is None or value is False:
+        return False, import_bundle.MarkdownChoice()
+    if not isinstance(value, list) or not all(isinstance(rel, str) and rel in import_bundle.MARKDOWN for rel in value):
+        raise ValueError(UNKNOWN_CHOICE)
+    return False, import_bundle.MarkdownChoice(frozenset(value))
+
+
+def rejected_answer(rejected, json_antwort):
+    """Existing Markdown files become a question (409, the page offers a choice per file), anything else an error."""
+    from rejected import ExistingFiles  # onboarding/
+    if isinstance(rejected, ExistingFiles):
+        return json_antwort({"fehler": " ".join(rejected.messages), "vorhanden": True, "wahl": rejected.choice},
+                            HTTPStatus.CONFLICT)
+    raise ValueError(" ".join(rejected.messages)) from rejected
 
 
 def _import(state: Setup, k, body, json_antwort):
@@ -147,10 +159,11 @@ def _import(state: Setup, k, body, json_antwort):
     source = pathlib.Path(_path(body).strip()).expanduser()
     if not source.is_file():
         raise ValueError("Die Datei wurde nicht gefunden.")
-    replace = bool(body.get("ersetzen"))
+    force, choice = replace_request(body.get("ersetzen"))
     try:
-        result = import_bundle.import_file(target, source, state.today(), force=replace)
+        result = import_bundle.import_file(target, source, state.today(), force=force, choice=choice)
     except import_bundle.ImportRejected as rejected:
-        return rejected_answer(rejected, replace, json_antwort)
+        return rejected_answer(rejected, json_antwort)
     return json_antwort({"geschrieben": result.written, "dokumente": result.documents,
-                         "unvollstaendig": result.incomplete, "unveraendert": list(result.kept_files)})
+                         "unvollstaendig": result.incomplete, "unveraendert": list(result.kept_files),
+                         "nicht_ersetzt": list(result.not_replaced)})

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-m4UJRJZ788VOMvZ2yLSbcYECjt3UbZbClO588jlBFhU='; style-src 'sha256-tT7DJFw5VTCZprd79BvWB5/pgBbV8NSWfbn56fBSdlY='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-aHUZLycnuIvoTlELqRGKnIdpf9EEOpzrMAG6x/QpniQ='; style-src 'sha256-+7vrbidFThW6cCNnBTjLLZ5IaEEblqkUo94fCveKc3g='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -219,6 +219,17 @@ button { font: inherit; cursor: pointer; }
   .step__label { font-size: 14px; line-height: 20px; }
   #main > section:not(.start--app), .card { padding: 16px; }
 }
+
+/* Choice per existing Markdown file before taking over (G26) */
+.replace-choice { margin: 16px 0; }
+.replace-choice__file { margin: 12px 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius); }
+.replace-choice .choice { display: flex; flex-wrap: wrap; gap: 0 24px; }
+.diff__lines { margin: 8px 0 0; padding: 8px 0; max-height: 360px; overflow: auto; font-size: 13px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-subtle); border-radius: var(--radius-control); }
+.diff__line { display: block; padding: 0 8px; }
+.diff__line ins, .diff__line del { text-decoration: none; }
+.diff__line--weg { background: var(--danger-soft); }
+.diff__line--neu { background: var(--success-soft); }
+.diff__line--gap { color: var(--muted); }
 /* Only in the page „Meine Angaben“ of the app: the navigation of the app, as in bewerbungen/seiten/stil.css
    (the page brings its own styles by hash and loads no stylesheet). Keep the two in step. */
 .app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
@@ -1686,6 +1697,7 @@ function createAppBackend() {
     const error = new Error(body.fehler || "Die App antwortet nicht. Läuft sie noch?");
     error.status = response.status;
     error.existing = Boolean(body.vorhanden);
+    error.choice = Array.isArray(body.wahl) ? body.wahl : []; // existing Markdown files to choose for (G26)
     throw error;
   }
 
@@ -1863,6 +1875,78 @@ function uncheckedView(ctx) {
   ]);
 }
 
+// Only in the page „Meine Angaben“ of the app: when the Markdown files exist already, taking over asks per file
+// whether it is replaced (G26). Keeping is the default; a file chosen for replacing shows its differences first.
+// The app computes them (onboarding/text_diff.py) as lines of the kinds gleich, weg, neu and luecke.
+"use strict";
+
+const KEEP = "keep";
+const REPLACE = "replace";
+const REPLACE_TEXT = {
+  intro: "Pro Datei wählen, ob sie bleibt oder durch die neuen Angaben ersetzt wird. Der Lebenslauf (cv.yaml) nimmt die Angaben in jedem Fall auf.",
+  keep: "Behalten",
+  replace: "Ersetzen",
+  diff: "Unterschiede zum bisherigen Stand: Zeilen mit − fallen weg, Zeilen mit + kommen dazu.",
+  same: "Kein Unterschied zum bisherigen Stand.",
+  gap: "…",
+};
+const DIFF_MARKS = { gleich: "  ", weg: "− ", neu: "+ " };
+
+/** Every file starts as kept. */
+function defaultReplaceChoices(changes) {
+  return Object.fromEntries(changes.map((change) => [change.datei, KEEP]));
+}
+
+/** The files chosen for replacing, as the app expects them in `ersetzen`. */
+function chosenReplacements(choices) {
+  return Object.keys(choices).filter((file) => choices[file] === REPLACE);
+}
+
+/** One choice per file; onChoose(file, "keep" | "replace") hands each change back. Picking shows or hides the
+ * differences in place, so the focus stays on the option. */
+function replaceChoiceView({ changes, choices, onChoose }) {
+  return el("div", { className: "replace-choice" }, [
+    el("p", { className: "hint" }, REPLACE_TEXT.intro),
+    ...changes.map((change, index) => fileChoiceView(change, choices[change.datei] || KEEP, index, onChoose)),
+  ]);
+}
+
+function fileChoiceView(change, chosen, index, onChoose) {
+  const name = `replace-choice-${index}`;
+  const slot = el("div", { className: "replace-choice__diff", "aria-live": "polite" }, chosen === REPLACE ? diffView(change) : null);
+  const pick = (value) => {
+    slot.replaceChildren(...(value === REPLACE ? [diffView(change)] : []));
+    onChoose(change.datei, value);
+  };
+  const option = (value) => el("label", { className: "option" }, [
+    el("input", { type: "radio", name, value, checked: chosen === value, onchange: () => pick(value) }),
+    ` ${REPLACE_TEXT[value]}`,
+  ]);
+  return el("fieldset", { className: "replace-choice__file" }, [
+    el("legend", {}, `${change.titel} (${change.datei})`),
+    el("div", { className: "choice", role: "radiogroup" }, [option(KEEP), option(REPLACE)]),
+    slot,
+  ]);
+}
+
+function diffView(change) {
+  if (!change.zeilen.length) return el("p", { className: "hint" }, REPLACE_TEXT.same);
+  return el("div", { className: "diff" }, [
+    el("p", { className: "hint" }, REPLACE_TEXT.diff),
+    el("pre", { className: "diff__lines" }, change.zeilen.map(diffLine)),
+  ]);
+}
+
+function diffLine(line) {
+  if (line.art === "luecke") return el("span", { className: "diff__line diff__line--gap" }, `${REPLACE_TEXT.gap}\n`);
+  const tag = line.art === "weg" ? "del" : line.art === "neu" ? "ins" : "span";
+  return el("span", { className: `diff__line diff__line--${line.art}` }, [
+    DIFF_MARKS[line.art] || "  ",
+    el(tag, {}, line.text),
+    "\n",
+  ]);
+}
+
 // Flow of the onboarding template: start, one step per section, check and save.
 // Depends on validate.js, model.js, steps.js, dom.js, documents.js, zip.js, uploadstore.js and uploads.js (inlined before this file by build_template.py).
 "use strict";
@@ -1926,6 +2010,7 @@ let uploadMessages = [];
 let uploadsSaved = true; // saved in a file or kept in this browser
 let uploadsKept = true; // false if this browser cannot keep them (then the page warns before closing)
 let existingBasics = []; // in the app: files in the data folder a take-over would replace
+let replaceChoices = {}; // in the app: per existing Markdown file "keep" or "replace" (G26)
 let uploadTurn = Promise.resolve(); // in the app: uploads and removals wait for each other
 let appProblem = null; // in the app: why the data folder cannot be used, shown on the first page
 let uploadsUnderway = 0; // in the app: choices of files not yet in the data folder
@@ -2513,9 +2598,10 @@ function finishView() {
       track: state.track, sections: [...new Set(unchecked.map((key) => key.split(".")[0]))], count: unchecked.length, titleOf: sectionTitle,
       onGoTo: goToSection, onConfirmAll: () => update(confirmSuggestions(state, unchecked), { rerender: true }),
     }) : null,
-    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(false) }, "Angaben übernehmen"),
-    el("button", { type: "button", className: "danger", id: "replace", hidden: true, onclick: () => takeOver(true) }, "Vorhandene Dateien ersetzen"),
+    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(null) }, "Angaben übernehmen"),
     el("p", { id: "save-message", role: "alert", className: "error" }),
+    el("div", { id: "replace-choice", hidden: true }),
+    el("button", { type: "button", className: "primary", id: "replace", hidden: true, onclick: () => takeOver(chosenReplacements(replaceChoices)) }, "Mit dieser Wahl übernehmen"),
     el("p", { id: "take-over-done", role: "status", className: "ok", hidden: true }),
     el("p", { className: "hint" }, [APP_TEXT[state.track].kept_versions, el("a", { href: "/entwuerfe" }, "Entwürfe und Versionen"), " erhalten."]),
   ] : [
@@ -2592,20 +2678,20 @@ function markStepTouched(current) {
 
 // Taking over into the data folder (page of the app)
 
+/** replace: null on the first try (existing Markdown files come back as a choice), else the files chosen for replacing. */
 async function takeOver(replace) {
   if (uncheckedSuggestions(form, state).length) return render();
   const message = document.getElementById("save-message");
   const done = document.getElementById("take-over-done");
-  const replaceButton = document.getElementById("replace");
   message.textContent = "";
   done.hidden = true;
-  replaceButton.hidden = true;
+  showReplaceChoice([]);
   try {
     window.clearTimeout(autosaveTimer);
     storeNow();
     const sent = state; // a change while this runs is not taken over
     const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
-    const present = [...result.geschrieben, ...(result.unveraendert || [])];
+    const present = [...result.geschrieben, ...(result.unveraendert || []), ...(result.nicht_ersetzt || [])];
     existingBasics = present.length ? present : existingBasics;
     notTakenOver = state !== sent || Boolean(result.unvollstaendig);
     storeNow();
@@ -2615,6 +2701,7 @@ async function takeOver(replace) {
         ? APP_TEXT[state.track].incomplete
         : APP_TEXT[state.track].done,
       (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
+      (result.nicht_ersetzt || []).length ? `Unverändert geblieben: ${result.nicht_ersetzt.join(", ")}. ` : "",
       result.hinweis ? `${result.hinweis} ` : "",
       result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "",
       result.hinweis ? " · " : "",
@@ -2622,8 +2709,22 @@ async function takeOver(replace) {
     );
   } catch (error) {
     message.textContent = error.message;
-    replaceButton.hidden = !error.existing;
+    replaceChoices = defaultReplaceChoices(error.existing ? error.choice : []);
+    showReplaceChoice(error.existing ? error.choice : []);
   }
+}
+
+/** The choice per existing Markdown file with its differences; nothing to choose hides it. */
+function showReplaceChoice(changes) {
+  const box = document.getElementById("replace-choice");
+  const button = document.getElementById("replace");
+  if (!box || !button) return;
+  box.hidden = changes.length === 0;
+  button.hidden = changes.length === 0;
+  box.replaceChildren(...(changes.length ? [replaceChoiceView({
+    changes, choices: replaceChoices,
+    onChoose: (file, value) => { replaceChoices = { ...replaceChoices, [file]: value }; },
+  })] : []));
 }
 
 // Files

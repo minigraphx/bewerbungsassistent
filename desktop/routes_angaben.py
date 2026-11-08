@@ -5,6 +5,7 @@ form and the documents go straight to the data folder (`dokumente/`, not in Git)
 checks as importing a file (`onboarding/import_bundle.py`), with drafts of what it replaces.
 Suggestions from documents (`onboarding/prefill.py`) run outside the lock, because the AI takes a while.
 The page opens on the cv.yaml of the data folder (`onboarding/cv_read.py`, G23), and taking over merges into it.
+Existing Markdown files are kept unless the person chooses to replace them, after seeing the diff (G26).
 It suggests the tags already in the data folder (`onboarding/known_tags.py`, G24).
 """
 import base64
@@ -15,7 +16,7 @@ import pathlib
 import threading
 
 import preferences
-from routes_setup import Setup, ready_data_dir, rejected_answer
+from routes_setup import Setup, ready_data_dir, rejected_answer, replace_request
 
 log = logging.getLogger(__name__)
 
@@ -159,15 +160,16 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     def take_over(k, parameter, body):
         folder = ready_data_dir(state, k)
         request = _body(body)
-        replace = bool(request.get("ersetzen"))
+        force, choice = replace_request(request.get("ersetzen"))
         try:
-            result = import_bundle.import_answers(folder, request.get("bundle"), state.today(), force=replace)
+            result = import_bundle.import_answers(folder, request.get("bundle"), state.today(), force=force, choice=choice)
         except import_bundle.ImportRejected as rejected:
-            return rejected_answer(rejected, replace, json_antwort)
+            return rejected_answer(rejected, json_antwort)
         if not result.incomplete:
             import_documents.settle_read(folder)
         return json_antwort({"geschrieben": result.written, "unvollstaendig": result.incomplete,
                              "behalten": list(result.kept_terms), "unveraendert": list(result.kept_files),
+                             "nicht_ersetzt": list(result.not_replaced),
                              "hinweis": CV_KEPT if result.kept_files else ""})
 
     def prefill_documents(k, parameter, body):

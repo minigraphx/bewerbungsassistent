@@ -61,6 +61,7 @@ let uploadMessages = [];
 let uploadsSaved = true; // saved in a file or kept in this browser
 let uploadsKept = true; // false if this browser cannot keep them (then the page warns before closing)
 let existingBasics = []; // in the app: files in the data folder a take-over would replace
+let replaceChoices = {}; // in the app: per existing Markdown file "keep" or "replace" (G26)
 let uploadTurn = Promise.resolve(); // in the app: uploads and removals wait for each other
 let appProblem = null; // in the app: why the data folder cannot be used, shown on the first page
 let uploadsUnderway = 0; // in the app: choices of files not yet in the data folder
@@ -648,9 +649,10 @@ function finishView() {
       track: state.track, sections: [...new Set(unchecked.map((key) => key.split(".")[0]))], count: unchecked.length, titleOf: sectionTitle,
       onGoTo: goToSection, onConfirmAll: () => update(confirmSuggestions(state, unchecked), { rerender: true }),
     }) : null,
-    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(false) }, "Angaben übernehmen"),
-    el("button", { type: "button", className: "danger", id: "replace", hidden: true, onclick: () => takeOver(true) }, "Vorhandene Dateien ersetzen"),
+    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(null) }, "Angaben übernehmen"),
     el("p", { id: "save-message", role: "alert", className: "error" }),
+    el("div", { id: "replace-choice", hidden: true }),
+    el("button", { type: "button", className: "primary", id: "replace", hidden: true, onclick: () => takeOver(chosenReplacements(replaceChoices)) }, "Mit dieser Wahl übernehmen"),
     el("p", { id: "take-over-done", role: "status", className: "ok", hidden: true }),
     el("p", { className: "hint" }, [APP_TEXT[state.track].kept_versions, el("a", { href: "/entwuerfe" }, "Entwürfe und Versionen"), " erhalten."]),
   ] : [
@@ -727,20 +729,20 @@ function markStepTouched(current) {
 
 // Taking over into the data folder (page of the app)
 
+/** replace: null on the first try (existing Markdown files come back as a choice), else the files chosen for replacing. */
 async function takeOver(replace) {
   if (uncheckedSuggestions(form, state).length) return render();
   const message = document.getElementById("save-message");
   const done = document.getElementById("take-over-done");
-  const replaceButton = document.getElementById("replace");
   message.textContent = "";
   done.hidden = true;
-  replaceButton.hidden = true;
+  showReplaceChoice([]);
   try {
     window.clearTimeout(autosaveTimer);
     storeNow();
     const sent = state; // a change while this runs is not taken over
     const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
-    const present = [...result.geschrieben, ...(result.unveraendert || [])];
+    const present = [...result.geschrieben, ...(result.unveraendert || []), ...(result.nicht_ersetzt || [])];
     existingBasics = present.length ? present : existingBasics;
     notTakenOver = state !== sent || Boolean(result.unvollstaendig);
     storeNow();
@@ -750,6 +752,7 @@ async function takeOver(replace) {
         ? APP_TEXT[state.track].incomplete
         : APP_TEXT[state.track].done,
       (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
+      (result.nicht_ersetzt || []).length ? `Unverändert geblieben: ${result.nicht_ersetzt.join(", ")}. ` : "",
       result.hinweis ? `${result.hinweis} ` : "",
       result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "",
       result.hinweis ? " · " : "",
@@ -757,8 +760,22 @@ async function takeOver(replace) {
     );
   } catch (error) {
     message.textContent = error.message;
-    replaceButton.hidden = !error.existing;
+    replaceChoices = defaultReplaceChoices(error.existing ? error.choice : []);
+    showReplaceChoice(error.existing ? error.choice : []);
   }
+}
+
+/** The choice per existing Markdown file with its differences; nothing to choose hides it. */
+function showReplaceChoice(changes) {
+  const box = document.getElementById("replace-choice");
+  const button = document.getElementById("replace");
+  if (!box || !button) return;
+  box.hidden = changes.length === 0;
+  button.hidden = changes.length === 0;
+  box.replaceChildren(...(changes.length ? [replaceChoiceView({
+    changes, choices: replaceChoices,
+    onChoose: (file, value) => { replaceChoices = { ...replaceChoices, [file]: value }; },
+  })] : []));
 }
 
 // Files

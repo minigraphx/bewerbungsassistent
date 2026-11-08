@@ -27,7 +27,7 @@ SCRIPTS = ["validate.js", "model.js", "steps.js", "dom.js", "documents.js", "zip
 
 TITLE = "Einstieg"
 TITLE_APP = "Meine Angaben"
-APP_SCRIPTS = ["appbackend.js", "prefill.js"]  # only in the app; loaded before app.js
+APP_SCRIPTS = ["appbackend.js", "prefill.js", "replacechoice.js"]  # only in the app; loaded before app.js
 PRIVACY = "Alles bleibt auf diesem Gerät. Die Seite verschickt nichts; am Schluss entsteht eine Datei zum Speichern."
 HEAD_APP = '<meta name="token" content="__TOKEN__">\n<meta name="bewerbungsbegleiter" content="app">'
 TOP_SHARED = f'<header class="top"><p class="brand">Bewerbungsbegleiter</p><p class="privacy">{PRIVACY}</p></header>'
