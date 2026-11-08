@@ -44,5 +44,19 @@ def known_of(case: dict) -> frozenset[str]:
     return frozenset(expand(tag) for tag in case.get("known", []))
 
 
+def expand_all(value):
+    """expand() inside lists and objects too, for the answers a case takes as read from cv.yaml."""
+    if isinstance(value, dict) and "$repeat" not in value:
+        return {key: expand_all(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [expand_all(item) for item in value]
+    return expand(value)
+
+
+def loaded_of(case: dict) -> dict | None:
+    """The answers a case takes as read from cv.yaml (G23); None when it gives none."""
+    return expand_all(case["loaded"]) if "loaded" in case else None
+
+
 def base_bundle(track: str) -> dict:
     return copy.deepcopy(CASES["bases"][track])

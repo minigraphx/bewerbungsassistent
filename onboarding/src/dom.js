@@ -5,6 +5,13 @@
 const MAX_TAG_OPTIONS = 50;
 const DEFAULT_MAX_LINES = 20;
 const TAG_PLACEHOLDER = "z.B. daten, führung";
+const LANGUAGE_NAMES = { de: "Deutsch", en: "Englisch" };
+const BILINGUAL_TEXT = {
+  lead: "Zweisprachig, hier nicht änderbar:",
+  where: "Beide Sprachen lassen sich unter „Inhalte als Text“ (Menü „Mehr“) ändern.",
+  field: "Eine Eingabe hier ersetzt beide.",
+  line: "Eine Eingabe in der Zeile ersetzt beide.",
+};
 
 /** Create an element; attrs are properties (on* handlers, dataset, aria via setAttribute). */
 function el(tag, attrs, children) {
@@ -25,6 +32,24 @@ function el(tag, attrs, children) {
 let idCounter = 0;
 const nextId = (prefix) => `${prefix}-${++idCounter}`;
 
+/** The note under a value from cv.yaml in two languages (#167): both shown, edited elsewhere, replaced by typing. */
+function bilingualNote(value, replacing) {
+  const languages = Object.entries(value).map(([key, text]) => `${LANGUAGE_NAMES[key] || key} „${text.trim()}“`).join(", ");
+  return el("p", { className: "hint bilingual" }, `${BILINGUAL_TEXT.lead} ${languages}. ${BILINGUAL_TEXT.where} ${replacing}`);
+}
+
+/**
+ * A text control on a value that may come in two languages: it starts empty then, and emptying it again keeps the
+ * two languages, so only typing replaces them.
+ */
+function textInput(tag, attrs, ctx) {
+  const original = isBilingual(ctx.value) ? ctx.value : null;
+  const input = el(tag, {
+    ...attrs, value: original ? "" : ctx.value || "", oninput: (e) => ctx.onChange(original && e.target.value === "" ? original : e.target.value),
+  });
+  return original ? [input, bilingualNote(original, BILINGUAL_TEXT.field)] : input;
+}
+
 /**
  * One field with label, hint, control and error slot.
  * ctx: { track, value, path (string), tagSuggestions (tags offered while typing), onChange(value), onBlur() }
@@ -42,8 +67,8 @@ function fieldView(field, ctx) {
   return el("div", { className: `field field-${field.type}`, dataset: { path: ctx.path } }, [
     isGroup ? null : el("label", { for: id }, label),
     isGroup ? null : hint ? el("p", { className: "hint", id: hintId }, hint) : null,
-    isCantons ? cantonsView(field, ctx, label, hint, hintId, errorId)
-      : isGroup ? choiceView(field, ctx, id, label, hint, hintId, errorId) : control,
+    ...[].concat(isCantons ? cantonsView(field, ctx, label, hint, hintId, errorId)
+      : isGroup ? choiceView(field, ctx, id, label, hint, hintId, errorId) : control),
     el("p", { className: "error", id: errorId, role: "alert" }),
   ]);
 }
@@ -51,9 +76,7 @@ function fieldView(field, ctx) {
 function controlView(field, ctx, id, describedBy) {
   if (field.control === "cantons") return null;
   const common = { id, "aria-describedby": describedBy, "aria-required": field.required ? "true" : null, onblur: () => ctx.onBlur() };
-  if (field.type === "textarea") {
-    return el("textarea", { ...common, rows: 4, value: ctx.value || "", oninput: (e) => ctx.onChange(e.target.value) });
-  }
+  if (field.type === "textarea") return textInput("textarea", { ...common, rows: 4 }, ctx);
   if (field.type === "tags") {
     const onTags = (tags) => ctx.onChange(tags);
     return el("div", { className: "tags-control" }, tagsInput({ ...common, placeholder: TAG_PLACEHOLDER }, ctx.value, ctx.tagSuggestions, onTags));
@@ -67,18 +90,17 @@ function controlView(field, ctx, id, describedBy) {
     });
   }
   if (field.type === "select") {
+    // a value from cv.yaml outside the options is shown as it is and stays until the person picks another (#167)
+    const own = typeof ctx.value === "string" && ctx.value !== "" && !field.options.includes(ctx.value) ? [ctx.value] : [];
     const select = el("select", { ...common, onchange: (e) => ctx.onChange(e.target.value) }, [
       el("option", { value: "" }, "– bitte wählen –"),
-      ...field.options.map((o) => el("option", { value: o, selected: o === ctx.value }, field.optionLabels?.[o] ?? o)),
+      ...[...field.options, ...own].map((o) => el("option", { value: o, selected: o === ctx.value }, field.optionLabels?.[o] ?? o)),
     ]);
     return select;
   }
   if (field.type === "choice") return null;
   const type = field.format === "email" ? "email" : field.format === "phone" ? "tel" : "text";
-  return el("input", {
-    ...common, type, value: ctx.value || "", placeholder: field.placeholder || "",
-    autocomplete: autocompleteFor(ctx.path), oninput: (e) => ctx.onChange(e.target.value),
-  });
+  return textInput("input", { ...common, type, placeholder: field.placeholder || "", autocomplete: autocompleteFor(ctx.path) }, ctx);
 }
 
 /**
@@ -128,20 +150,22 @@ function taggedLinesView(field, ctx, id, describedBy) {
     type: "button", className: "add-line", onclick: () => change([...lines, ""], lines.length),
   }, "+ Zeile hinzufügen");
 
+  // a line in two languages (#167) starts empty and keeps its tags until the person types a new text
   function row(line, index) {
     const number = index + 1;
+    const original = bilingualOf(line);
     const text = el("input", {
-      type: "text", id: index === 0 ? id : null, value: lineText(line), "aria-label": `${name}, Zeile ${number}`,
+      type: "text", id: index === 0 ? id : null, value: original ? "" : lineText(line), "aria-label": `${name}, Zeile ${number}`,
       "aria-describedby": describedBy, onblur: () => ctx.onBlur(),
       oninput: (e) => setLine(index, e.target.value, tagsOf(lines[index])),
     });
-    const tagAttrs = { className: "line-tags", placeholder: "Tags", "aria-label": `Tags zu Zeile ${number}`, onblur: () => ctx.onBlur() };
+    const tagAttrs = { className: "line-tags", placeholder: "Tags", "aria-label": `Tags zu Zeile ${number}`, onblur: () => ctx.onBlur(), disabled: Boolean(original) };
     const tags = tagsInput(tagAttrs, tagsOf(line), ctx.tagSuggestions, (found) => setLine(index, lineText(lines[index]), found));
     const remove = el("button", {
       type: "button", className: "remove-line", "aria-label": `Zeile ${number} entfernen`,
       onclick: () => change(lines.filter((_, i) => i !== index), Math.max(0, index - 1)),
     }, "×");
-    return el("div", { className: "tagged-line" }, [text, ...tags, remove]);
+    return el("div", { className: "tagged-line" }, [text, ...tags, remove, original ? bilingualNote(original, BILINGUAL_TEXT.line) : null]);
   }
 
   function draw(focusAt) {

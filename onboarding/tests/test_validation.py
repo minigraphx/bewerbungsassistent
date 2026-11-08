@@ -2,12 +2,12 @@
 import pytest
 
 import validation
-from form_cases import CASES, apply_case, base_bundle, known_of
+from form_cases import CASES, apply_case, base_bundle, known_of, loaded_of
 
 
 @pytest.mark.parametrize("case", CASES["cases"], ids=[c["name"] for c in CASES["cases"]])
 def test_shared_case(form, case):
-    errors = validation.validate_bundle(form, apply_case(case), known=known_of(case))
+    errors = validation.validate_bundle(form, apply_case(case), known=known_of(case), loaded=loaded_of(case))
 
     found = sorted((e.path, e.code) for e in errors)
     expected = sorted((e["path"], e["code"]) for e in case["errors"])

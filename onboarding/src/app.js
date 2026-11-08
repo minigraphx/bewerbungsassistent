@@ -70,6 +70,7 @@ let prefillTurn = 0; // a run that was overtaken by discarding or loading other 
 let choice = null; // in the app: what the setup chose (MIN-369) { track, anrede, rav, gewaehlt }
 let pageStateFound = false; // in the app: this page has kept answers before (not only the track of the setup)
 let folderTags = []; // in the app: tags already in cv.yaml, varianten.yaml and jobs/ of the data folder (G24)
+let cvAnswers = null; // in the app: the answers read from cv.yaml; what it holds never blocks (#167, G23)
 const backend = typeof createAppBackend === "function" ? createAppBackend() : null; // only in the page of the app
 
 // Storage: optional convenience; the page works without it.
@@ -99,6 +100,7 @@ async function loadStored() {
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
       folderTags = Array.isArray(overview.tags) ? overview.tags : [];
+      cvAnswers = overview.lebenslauf || null;
       return;
     }
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -186,7 +188,8 @@ function stepOfSection(sectionId) {
 // Validation shown in the page
 
 function currentErrors() {
-  const errors = validateBundle(form, draftBundle(form, state), folderTags); // tags from the data folder never block (G24)
+  // tags from the data folder never block (G24), nor do the values cv.yaml holds (#167, G23)
+  const errors = validateBundle(form, draftBundle(form, state), folderTags, cvAnswers);
   return errors.filter((e) => {
     const [sectionId, index] = e.path.split(".");
     const list = state.data[sectionId];

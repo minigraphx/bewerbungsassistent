@@ -6,7 +6,10 @@ date order. A field marked requiredUnless is required only while the named field
 text or a display stands in for the fields it replaces). `src/validate.js` implements the same rules for the browser; both run the shared cases
 in `tests/cases.json`. Tags (G24) are a list per entry, or per line of a list marked "tags" ({text, tags}); a tag
 holds no comma and no control character. The limits of length and count hold for typed tags only: tags already in the
-data folder (`known`, see known_tags.py) never block saving.
+data folder (`known`, see known_tags.py) never block saving. In the same way the values already in cv.yaml (`loaded`,
+the answers cv_read.py reads from it, G23) never block saving: an entry, a value or a line the file holds at that place
+is not checked, two-language values {de, en} included, and a section or list may keep as many entries as the file has.
+What the person types or changes keeps to the rules.
 """
 import dataclasses
 import json
@@ -43,7 +46,8 @@ def for_track(value, track: str):
     return value
 
 
-def validate_bundle(form: dict, bundle, known: frozenset[str] = frozenset()) -> list[ValidationError]:
+def validate_bundle(form: dict, bundle, known: frozenset[str] = frozenset(),
+                    loaded: dict | None = None) -> list[ValidationError]:
     if not isinstance(bundle, dict):
         return [ValidationError("", "type")]
     if bundle.get("format") != form["format"]:
@@ -61,50 +65,102 @@ def validate_bundle(form: dict, bundle, known: frozenset[str] = frozenset()) -> 
     sections = {s["id"]: s for s in form["sections"] if applies(s, track)}
     errors += [ValidationError(key, "unknown") for key in data if key not in sections]
     for section in sections.values():
-        errors += _validate_section(form, section, track, data.get(section["id"]), known)
+        before = loaded_entries(section, loaded)
+        errors += _validate_section(form, section, track, data.get(section["id"]), known, before)
     return errors
 
 
-def _validate_section(form: dict, section: dict, track: str, value, known: frozenset[str]) -> list[ValidationError]:
+def loaded_entries(section: dict, loaded: dict | None) -> list[dict]:
+    """The entries of a section as read from cv.yaml; one entry for a section that does not repeat."""
+    value = loaded.get(section["id"]) if isinstance(loaded, dict) and section.get("cv") else None
+    entries = value if isinstance(value, list) else [value]
+    return [entry for entry in entries if isinstance(entry, dict)]
+
+
+def comparable(value):
+    """A value as it counts when compared with cv.yaml: trimmed, blank as "", a line without tags as its text."""
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, list):
+        lines = [line for line in map(comparable_line, value) if line != ""]
+        return lines or ""
+    return value
+
+
+def comparable_line(value):
+    if isinstance(value, dict) and set(value) <= TAGGED_LINE_KEYS and "text" in value:
+        text = comparable(value["text"]) if isinstance(value["text"], str) else value["text"]
+        tags = comparable(value["tags"]) if isinstance(value.get("tags"), list) else value.get("tags")
+        return {"text": text, "tags": tags} if tags and text != "" else text
+    return comparable(value) if isinstance(value, str) else value
+
+
+def _is_loaded_entry(section: dict, track: str, item: dict, before: list[dict]) -> bool:
+    """True if every field of the entry that cv.yaml holds is as in one of its entries."""
+    ids = [f["id"] for f in section["fields"] if applies(f, track) and f.get("cv") is not False]
+    return any(all(comparable(item.get(key)) == comparable(entry.get(key)) for key in ids) for entry in before)
+
+
+def _is_loaded_value(key: str, value, before: list[dict]) -> bool:
+    shown = comparable(value)
+    return shown != "" and any(comparable(entry.get(key)) == shown for entry in before)
+
+
+def _loaded_lines(key: str, before: list[dict]) -> list:
+    return [line for entry in before for line in (comparable(entry.get(key)) or [])]
+
+
+def _loaded_count(key: str, before: list[dict]) -> int:
+    return max((len(comparable(entry.get(key)) or []) for entry in before), default=0)
+
+
+def _validate_section(form: dict, section: dict, track: str, value, known: frozenset[str],
+                      before: list[dict]) -> list[ValidationError]:
     sid = section["id"]
     if not section.get("repeat"):
         if value is None:
             value = {}
         if not isinstance(value, dict):
             return [ValidationError(sid, "type")]
-        return _validate_item(form, section, track, value, sid, known)
+        return _validate_item(form, section, track, value, sid, known, before)
     if value is None:
         return []
     if not isinstance(value, list):
         return [ValidationError(sid, "type")]
     errors = []
-    if len(value) > section.get("maxItems", form["limits"]["repeatItems"]):
+    if len(value) > max(section.get("maxItems", form["limits"]["repeatItems"]), len(before)):
         errors.append(ValidationError(sid, "maxItems"))
     for index, item in enumerate(value):
         path = f"{sid}.{index}"
         if not isinstance(item, dict):
             errors.append(ValidationError(path, "type"))
             continue
-        errors += _validate_item(form, section, track, item, path, known)
+        errors += _validate_item(form, section, track, item, path, known, before)
     return errors
 
 
 def _validate_item(form: dict, section: dict, track: str, item: dict, path: str,
-                   known: frozenset[str]) -> list[ValidationError]:
+                   known: frozenset[str], before: list[dict]) -> list[ValidationError]:
     fields = {f["id"]: f for f in section["fields"] if applies(f, track)}
     errors = [ValidationError(f"{path}.{key}", "unknown") for key in item if key not in fields]
+    same = _is_loaded_entry(section, track, item, before)
     for field in fields.values():
-        errors += _validate_field(form, field, track, item, f"{path}.{field['id']}", known)
+        key = field["id"]
+        if (same and field.get("cv") is not False) or _is_loaded_value(key, item.get(key), before):
+            continue
+        errors += _validate_field(form, field, track, item, f"{path}.{key}", known, before)
     return errors
 
 
 def _validate_field(form: dict, field: dict, track: str, item: dict, path: str,
-                    known: frozenset[str]) -> list[ValidationError]:
+                    known: frozenset[str], before: list[dict]) -> list[ValidationError]:
     value = item.get(field["id"])
     if field["type"] == "tags":
         return _validate_tags(form, value, path, known)
     if field["type"] == "list":
-        return _validate_list(form, field, value, path, known)
+        return _validate_list(form, field, value, path, known, before)
     if value is None:
         value = ""
     if not isinstance(value, str):
@@ -159,20 +215,26 @@ def _validate_tags(form: dict, value, path: str, known: frozenset[str]) -> list[
     return errors
 
 
-def _validate_list(form: dict, field: dict, value, path: str, known: frozenset[str]) -> list[ValidationError]:
+def _validate_list(form: dict, field: dict, value, path: str, known: frozenset[str],
+                   before: list[dict]) -> list[ValidationError]:
+    """A list of lines; lines cv.yaml holds in this field are not checked, two-language ones included."""
     if value is None:
         value = []
-    tagged = field.get("tags") is True
-    if not isinstance(value, list) or not all(isinstance(v, str) or (tagged and is_tagged_line(v)) for v in value):
+    if not isinstance(value, list):
         return [ValidationError(path, "type")]
-    items = [v for v in value if line_text(v).strip()]
+    tagged = field.get("tags") is True
+    lines = _loaded_lines(field["id"], before)
+    in_file = [comparable_line(v) in lines for v in value]
+    if not all(kept or isinstance(v, str) or (tagged and is_tagged_line(v)) for v, kept in zip(value, in_file)):
+        return [ValidationError(path, "type")]
+    items = [v for v, kept in zip(value, in_file) if kept or line_text(v).strip()]
     if not items:
         return [ValidationError(path, "required")] if field.get("required") else []
     errors = []
-    if len(items) > field.get("maxItems", form["limits"]["listItems"]):
+    if len(items) > max(field.get("maxItems", form["limits"]["listItems"]), _loaded_count(field["id"], before)):
         errors.append(ValidationError(path, "maxItems"))
-    for index, entry in enumerate(value):
-        text = line_text(entry)
+    for index, (entry, kept) in enumerate(zip(value, in_file)):
+        text = "" if kept else line_text(entry)
         if not text.strip():
             continue
         error = check_text(form, field, None, text)

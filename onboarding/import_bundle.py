@@ -26,6 +26,7 @@ import paths  # noqa: F401  (makes the module bewerbungen importable)
 import archive
 import convert
 import cv_merge
+import cv_read
 import import_documents
 import known_tags
 import search_plan
@@ -113,8 +114,10 @@ def import_answers(data_dir: pathlib.Path, bundle: object, today: datetime.date,
 
 def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.Document, ...], has_documents: bool,
             data_dir: pathlib.Path, today: datetime.date, force: bool, choice: MarkdownChoice | None) -> ImportResult:
-    # tags already in the data folder never block saving, only typed ones keep to the limits (G24)
-    errors = validation.validate_bundle(form, bundle, known=frozenset(known_tags.known_tags(data_dir, form)))
+    # tags already in the data folder never block saving, only typed ones keep to the limits (G24); nor do the values
+    # cv.yaml holds, only those typed or changed keep to the rules (#167, G23)
+    errors = validation.validate_bundle(form, bundle, known=frozenset(known_tags.known_tags(data_dir, form)),
+                                        loaded=cv_read.read_form_data(data_dir))
     incomplete = bool(errors and has_documents) and all(e.code == "required" for e in errors)
     if errors and not incomplete:
         track = bundle.get("track") if isinstance(bundle, dict) else None

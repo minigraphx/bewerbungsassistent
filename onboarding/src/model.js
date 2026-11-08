@@ -6,12 +6,27 @@
 // removes them. So tags go out wherever the page holds them, an empty list included; a plain text line keeps its tags.
 // The same holds for sections and fields marked "keepUnlessGiven" in form.json (G25: projects, teaching, the website):
 // they go out wherever the page holds them, empty too, and a state from before G25 sends no key, so cv.yaml keeps them.
+// Two-language values {de, en} from cv.yaml (#167) stay as they are on text fields and as lines, and go back unchanged:
+// validate.js lets them pass while cv.yaml holds them, and the app keeps them in the file until the person types anew.
 "use strict";
 
 /** A loaded file that is no bundle of this form; the message is German and shown as is. */
 class BundleError extends Error {}
 
 const isPlainObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+const LANGUAGES = ["de", "en"];
+
+/** A two-language value as cv.yaml writes it: { de, en } with text in each. */
+function isBilingual(value) {
+  const keys = isPlainObject(value) ? Object.keys(value) : [];
+  return keys.length > 0 && keys.every((k) => LANGUAGES.includes(k) && typeof value[k] === "string");
+}
+
+/** The two languages of a value or of a line ({ de, en } or { text: { de, en }, tags }); null for plain text. */
+function bilingualOf(value) {
+  if (isBilingual(value)) return value;
+  return isPlainObject(value) && isBilingual(value.text) ? value.text : null;
+}
 
 function trackApplies(item, track) {
   return !item.tracks || item.tracks.includes(track);
@@ -53,11 +68,15 @@ function cleanTags(value, compact) {
 /** One line of a list with tags: plain text (tags left to the file) or { text, tags }; null if it has no text. */
 function cleanLine(value, compact) {
   if (typeof value === "string") return compact ? value.trim() : value;
+  if (isBilingual(value)) return { ...value };
+  if (isPlainObject(value) && isBilingual(value.text)) return { text: { ...value.text }, tags: cleanTags(value.tags, compact) };
   if (!isPlainObject(value) || typeof value.text !== "string") return null;
   return { text: compact ? value.text.trim() : value.text, tags: cleanTags(value.tags, compact) };
 }
 
-const lineText = (line) => (isPlainObject(line) ? String(line.text ?? "") : String(line ?? ""));
+const lineText = (line) => (isPlainObject(line) ? (typeof line.text === "string" ? line.text : "") : String(line ?? ""));
+/** True if a line or value holds something: text, or a value in two languages. */
+const hasContent = (value) => Boolean(bilingualOf(value)) || lineText(value).trim() !== "";
 
 /** A line the person edited: with its tags, an empty list included, so removing the last tag removes it. */
 function taggedLine(text, tags) {
@@ -67,7 +86,7 @@ function taggedLine(text, tags) {
 function cleanList(field, value, compact) {
   if (field.tags === true) {
     const lines = value.map((v) => cleanLine(v, compact)).filter((v) => v !== null);
-    return compact ? lines.filter((v) => lineText(v)) : lines;
+    return compact ? lines.filter(hasContent) : lines;
   }
   const lines = value.filter((v) => typeof v === "string").map((v) => (compact ? v.trim() : v));
   return compact ? lines.filter((v) => v) : lines;
@@ -89,6 +108,8 @@ function pickFields(fields, item, compact) {
       if (kept.length || field.type === "tags") result[field.id] = kept;
     } else if (typeof value === "string" && (!compact || value.trim() || field.keepUnlessGiven)) {
       result[field.id] = compact ? value.trim() : value;
+    } else if (isBilingual(value)) {
+      result[field.id] = { ...value };
     }
   }
   return result;
@@ -130,7 +151,7 @@ function draftBundle(form, state) {
 /** True if a repeated item has no content yet (such items are dropped when saving); tags on an empty line do not count. */
 function isBlankItem(item) {
   if (!isPlainObject(item)) return true;
-  return Object.values(item).every((v) => (Array.isArray(v) ? v.every((x) => !lineText(x).trim()) : !String(v ?? "").trim()));
+  return Object.values(item).every((v) => (Array.isArray(v) ? !v.some(hasContent) : !hasContent(v)));
 }
 
 /** State from a loaded file; throws an Error with a German message if it is no bundle of this form. */
@@ -190,7 +211,7 @@ function shiftSuggestions(marks, sectionId, removed) {
   return shifted;
 }
 
-const isBlankValue = (value) => (Array.isArray(value) ? value.every((v) => !lineText(v).trim()) : !String(value ?? "").trim());
+const isBlankValue = (value) => (Array.isArray(value) ? !value.some(hasContent) : !hasContent(value));
 
 /** Marks kept in a stored state; it comes from a file, so only what has the expected shape stays. */
 function cleanSuggestions(marks) {
@@ -306,7 +327,7 @@ function knownTags(form, state, fromApp) {
 
 if (typeof module !== "undefined") {
   module.exports = {
-    sectionsFor, fieldsFor, linesToList, listToLines, parseTags, tagsToText, taggedLine, lineText, knownTags,
+    sectionsFor, fieldsFor, linesToList, listToLines, parseTags, tagsToText, taggedLine, lineText, knownTags, isBilingual, bilingualOf,
     collectBundle, draftBundle, isBlankItem, stateFromBundle,
     setValue, addItem, removeItem, applySuggestions, fillFromCv, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
   };
