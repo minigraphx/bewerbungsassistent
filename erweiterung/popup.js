@@ -55,11 +55,6 @@ function showRun(run) {
   $('hinweise').replaceChildren(...lines.map((line) => el('li', line.problem ? 'fehler' : '', line.text)));
 }
 
-async function currentRun() {
-  const { lauf } = await chrome.storage.session.get('lauf');
-  return lauf || null;
-}
-
 async function connect() {
   setConnection('', 'wird geprüft …');
   const answer = await chrome.runtime.sendMessage({ art: 'status' }).catch(() => null);
@@ -80,7 +75,8 @@ async function connect() {
   $('fehlt').hidden = true;
   $('suche').hidden = false;
   $('suche-titel').textContent = plan && plan.art === 'lehrstelle' ? describePlan(plan).button : words(set).title;
-  const run = await currentRun();
+  // Not storage.session: a worker the browser stopped leaves „laeuft“ there; status() says what the page sees (#148).
+  const run = answer.lauf || null;
   $('suchen').disabled = Boolean(run && run.zustand === 'laeuft');
   showRun(run);
   await showOpenPage(answer.app, set);

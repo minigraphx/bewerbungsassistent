@@ -39,8 +39,6 @@ classify() {
       folder=${1%%/*}; group="node-$folder"; target=${1#*/} ;;
     erweiterung/tests/*.test.mjs)
       folder=.; group=node-erweiterung; target=$1 ;;
-    docs/webseite/tests/test_*.py)
-      folder=docs/webseite; group=py-webseite; target=${1#docs/webseite/} ;;
     bewerbungen/tests/test_*.py | desktop/tests/test_*.py | lebenslauf/tests/test_*.py | \
     onboarding/tests/test_*.py | vermittlung/tests/test_*.py)
       folder=${1%%/*}; group="py-$folder"; target=${1#*/} ;;
