@@ -205,3 +205,14 @@ button { font: inherit; cursor: pointer; }
   .step__label { font-size: 14px; line-height: 20px; }
   #main > section:not(.start--app), .card { padding: 16px; }
 }
+
+/* Choice per existing Markdown file before taking over (G26) */
+.replace-choice { margin: 16px 0; }
+.replace-choice__file { margin: 12px 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius); }
+.replace-choice .choice { display: flex; flex-wrap: wrap; gap: 0 24px; }
+.diff__lines { margin: 8px 0 0; padding: 8px 0; max-height: 360px; overflow: auto; font-size: 13px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-subtle); border-radius: var(--radius-control); }
+.diff__line { display: block; padding: 0 8px; }
+.diff__line ins, .diff__line del { text-decoration: none; }
+.diff__line--weg { background: var(--danger-soft); }
+.diff__line--neu { background: var(--success-soft); }
+.diff__line--gap { color: var(--muted); }

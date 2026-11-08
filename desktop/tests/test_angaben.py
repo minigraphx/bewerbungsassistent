@@ -548,3 +548,90 @@ def test_replacing_keeps_a_cv_that_cannot_be_read_and_says_so(started):
     assert answer["unveraendert"] == ["cv.yaml"]
     assert "cv.yaml" not in answer["geschrieben"] and "suchprofil.md" in answer["geschrieben"]
     assert "Inhalte" in answer["hinweis"] and "ß" not in answer["hinweis"]
+
+
+# One choice per existing Markdown file (G26, #163)
+
+MARKDOWN = ["suchprofil.md", "anschreiben/stil.md", "anschreiben/bausteine.md"]
+
+
+def by_hand(path: pathlib.Path, line: str) -> bytes:
+    path.write_text(path.read_text(encoding="utf-8") + line + "\n", encoding="utf-8")
+    return path.read_bytes()
+
+
+def drafts_of(folder: pathlib.Path, rel: str) -> list[bytes]:
+    from ablage import Ablage
+    store = Ablage(folder)
+    return [store.inhalt(d.id) for d in sorted(store.liste(folder / rel), key=lambda d: d.zeit)]
+
+
+def test_existing_markdown_files_are_a_choice_with_their_differences(started):
+    server, folder, _ = started
+    call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle()})
+    by_hand(folder / "anschreiben" / "stil.md", "- Von Hand ergänzt")
+
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle()})
+
+    assert status == 409 and answer["vorhanden"] is True and "ß" not in answer["fehler"]
+    assert [c["datei"] for c in answer["wahl"]] == MARKDOWN  # cv.yaml is merged, not part of the choice
+    style = answer["wahl"][1]
+    assert style["titel"] == "Stilprofil" and {"art": "weg", "text": "- Von Hand ergänzt"} in style["zeilen"]
+    assert answer["wahl"][0]["zeilen"] == []  # unchanged: nothing to show
+
+
+def test_a_kept_file_stays_byte_for_byte_and_a_replaced_one_is_backed_up(started):
+    server, folder, _ = started
+    call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle()})
+    style, blocks = folder / "anschreiben" / "stil.md", folder / "anschreiben" / "bausteine.md"
+    kept = by_hand(style, "- Von Hand im Stil")
+    replaced = by_hand(blocks, "- Von Hand in den Bausteinen")
+    style_drafts = drafts_of(folder, "anschreiben/stil.md")
+    changed = valid_bundle()
+    changed["data"]["person"]["name"] = "Erika Muster"
+
+    status, answer = call(server, "/api/angaben/uebernehmen",
+                          {"bundle": changed, "ersetzen": ["anschreiben/bausteine.md"]})
+
+    assert status == 200 and answer["nicht_ersetzt"] == ["suchprofil.md", "anschreiben/stil.md"]
+    assert style.read_bytes() == kept and drafts_of(folder, "anschreiben/stil.md") == style_drafts
+    assert "anschreiben/stil.md" not in answer["geschrieben"] and "anschreiben/bausteine.md" in answer["geschrieben"]
+    assert "Von Hand" not in blocks.read_text(encoding="utf-8")
+    assert drafts_of(folder, "anschreiben/bausteine.md")[-2:] == [replaced, blocks.read_bytes()]  # before and after
+    assert "name: Erika Muster" in (folder / "cv.yaml").read_text(encoding="utf-8")  # merged as before
+
+
+def test_search_terms_stay_only_when_the_search_profile_is_replaced(started):
+    server, folder, _ = started
+    call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle()})
+    profile = folder / "suchprofil.md"
+    profile.write_text(profile.read_text(encoding="utf-8").replace("## Suchrichtungen\n", "## Suchrichtungen\n1. Empfang\n", 1), encoding="utf-8")
+
+    kept = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": []})[1]
+    replaced = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": ["suchprofil.md"]})[1]
+
+    assert kept["behalten"] == [] and kept["nicht_ersetzt"] == MARKDOWN
+    assert replaced["behalten"] == ["Empfang"] and "Empfang" in profile.read_text(encoding="utf-8")
+
+
+def test_a_cv_alone_is_merged_without_a_question(started):
+    server, folder, _ = started
+    (folder / "cv.yaml").write_text("basics:\n  name: Alt Beispiel\n  x-image: {zoom: 1.2}\n", encoding="utf-8")
+
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle()})
+
+    merged = yaml.safe_load((folder / "cv.yaml").read_text(encoding="utf-8"))
+    assert status == 200 and "cv.yaml" in answer["geschrieben"] and answer["nicht_ersetzt"] == []
+    assert merged["basics"]["name"] == "Erika Beispiel" and merged["basics"]["x-image"] == {"zoom": 1.2}
+
+
+@pytest.mark.parametrize("choice", [["cv.yaml"], ["../suchprofil.md"], "suchprofil.md", [1], {"a": 1}])
+def test_an_unknown_choice_of_files_is_refused(started, choice):
+    server, folder, _ = started
+    call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle()})
+    before = {rel: (folder / rel).read_bytes() for rel in MARKDOWN}
+
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": choice})
+
+    assert status == 400 and answer["fehler"]
+    assert {rel: (folder / rel).read_bytes() for rel in MARKDOWN} == before

@@ -283,9 +283,26 @@ def test_einstieg_file_is_imported_into_the_data_folder(started, tmp_path):
     assert (folder / "cv.yaml").is_file()
     status, again = call(server, "/api/app/einstieg", {"pfad": str(write_bundle(tmp_path))})
     assert status == 409 and again["vorhanden"] and "gibt es schon" in again["fehler"]
-    assert "„Vorhandene Dateien ersetzen“" in again["fehler"] and "--force" not in again["fehler"]
+    assert "Pro Datei wählen" in again["fehler"] and "--force" not in again["fehler"]
+    assert [c["datei"] for c in again["wahl"]] == ["suchprofil.md", "anschreiben/stil.md", "anschreiben/bausteine.md"]
     status, replaced = call(server, "/api/app/einstieg", {"pfad": str(write_bundle(tmp_path)), "ersetzen": True})
     assert status == 200 and "cv.yaml" in replaced["geschrieben"] and replaced["unveraendert"] == []
+
+
+def test_import_replaces_only_the_chosen_files(started, tmp_path):
+    server, _, _ = started
+    folder = tmp_path / "daten"
+    call(server, "/api/app/datenordner", {"pfad": str(folder)})
+    call(server, "/api/app/einstieg", {"pfad": str(write_bundle(tmp_path))})
+    style, profile = folder / "anschreiben" / "stil.md", folder / "suchprofil.md"
+    style.write_text(style.read_text(encoding="utf-8") + "- Von Hand\n", encoding="utf-8")
+    profile.write_text(profile.read_text(encoding="utf-8") + "- Von Hand\n", encoding="utf-8")
+    kept = style.read_bytes()
+
+    status, answer = call(server, "/api/app/einstieg", {"pfad": str(write_bundle(tmp_path)), "ersetzen": ["suchprofil.md"]})
+
+    assert status == 200 and answer["nicht_ersetzt"] == ["anschreiben/stil.md", "anschreiben/bausteine.md"]
+    assert style.read_bytes() == kept and "Von Hand" not in profile.read_text(encoding="utf-8")
 
 
 def test_replacing_names_a_cv_it_left_as_it_was(started, tmp_path):

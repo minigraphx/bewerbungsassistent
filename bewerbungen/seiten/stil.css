@@ -600,6 +600,17 @@ label.check input { margin-top: 3px; }
 .setup__summary .notice { padding: var(--space-2) var(--space-3); }
 .setup__summary .notice__body { min-width: 0; overflow-wrap: anywhere; }
 .setup .befunde:empty { display: none; }
+.import-wahl { display: flex; flex-direction: column; gap: var(--space-3); margin: var(--space-3) 0; }
+.import-wahl__datei { margin: 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.import-wahl__datei legend { padding: 0 var(--space-1); font-weight: 500; color: var(--text-strong); }
+.import-wahl__optionen { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); }
+.import-wahl__option { display: inline-flex; align-items: center; gap: var(--space-2); }
+.import-wahl__zeilen { margin: var(--space-2) 0 0; padding: var(--space-2) 0; max-height: 360px; overflow: auto; font: 400 13px/20px var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-subtle); border-radius: var(--radius-sm); }
+.import-wahl__zeile { display: block; padding: 0 var(--space-2); }
+.import-wahl__zeile ins, .import-wahl__zeile del { text-decoration: none; }
+.import-wahl__zeile--weg { background: var(--danger-bg); }
+.import-wahl__zeile--neu { background: var(--success-bg); }
+.import-wahl__zeile--luecke { color: var(--text-muted); }
 
 /* ---------- Overview ---------- */
 .overview { display: flex; flex-direction: column; gap: var(--space-6); }
