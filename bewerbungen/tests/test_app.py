@@ -140,6 +140,13 @@ def test_stylesheet_loads_fonts_only_from_the_app(server):
     assert "http" not in css
 
 
+def test_overview_view_buttons_wrap_on_a_narrow_screen(server):
+    css = anfrage(server, "GET", "/stil.css")[2].decode("utf-8")
+
+    rule = re.search(r"^\.overview__views \{([^}]*)\}", css, re.M).group(1)
+    assert re.search(r"(^|;)\s*flex-wrap:\s*wrap\s*(;|$)", rule)
+
+
 @pytest.mark.parametrize("pfad", ["/api/bewerbungen", "/api/bewerbungen?t=falsch", "/api/bewerbungen?t=%C3%A4"])
 def test_api_ohne_token(server, pfad):
     assert anfrage(server, "GET", pfad)[0] == 403

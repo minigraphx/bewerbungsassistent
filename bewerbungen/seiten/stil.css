@@ -628,7 +628,7 @@ label.check input { margin-top: 3px; }
 .overview__more-item .table__sub { font-size: 14px; line-height: 20px; }
 .overview__list { display: flex; flex-direction: column; gap: var(--space-3); }
 .overview__tools { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
-.overview__views { display: flex; gap: var(--space-1); }
+.overview__views { display: flex; flex-wrap: wrap; gap: var(--space-1); }
 .overview__views .btn[aria-pressed="true"] { background: var(--accent-subtle); border-color: var(--accent); }
 .overview__views .num { color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .input.overview__search { width: 220px; min-height: 32px; padding: 4px 10px; font-size: 14px; }
