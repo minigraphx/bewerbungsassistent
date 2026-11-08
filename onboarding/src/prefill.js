@@ -12,6 +12,8 @@ const PREFILL_TEXT = {
     needsName: "Tragen Sie zuerst Ihren Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
     running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; Sie können in dieser Zeit weiterarbeiten.",
+    busy: "Wird gelesen …",
+    waiting: "Die Unterlagen werden noch hochgeladen. Danach liest die App sie, ohne dass Sie nochmals klicken.",
     finished: "Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert.",
     filled: "Vorschläge stehen bereit. Bitte prüfen Sie jeden Eintrag:",
     nothing: "In den Unterlagen wurden keine passenden Angaben gefunden.",
@@ -34,6 +36,8 @@ const PREFILL_TEXT = {
     needsName: "Trag zuerst deinen Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
     running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; du kannst in dieser Zeit weiterarbeiten.",
+    busy: "Wird gelesen …",
+    waiting: "Die Unterlagen werden noch hochgeladen. Danach liest die App sie, ohne dass du nochmals klickst.",
     finished: "Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert.",
     filled: "Vorschläge stehen bereit. Bitte prüf jeden Eintrag:",
     nothing: "In den Unterlagen wurden keine passenden Angaben gefunden.",
@@ -92,15 +96,45 @@ function prefillCard(ctx) {
     ctx.uploads.length && !ctx.hasName
       ? el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)])
       : null,
-    el("div", { className: "prefill-card__actions" }, [
-      canRun ? el("button", { type: "button", className: "primary", id: "prefill", disabled: ctx.run.running, onclick: ctx.onRun }, text.run) : null,
-      el("button", { type: "button", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
+    el("div", { className: "prefill-card__run" }, [
+      el("div", { className: "prefill-card__actions" }, [
+        canRun ? el("button", {
+          type: "button", className: `primary${ctx.run.running ? " busy" : ""}`, id: "prefill", disabled: ctx.run.running,
+          "aria-busy": ctx.run.running ? "true" : null, onclick: ctx.onRun,
+        }, ctx.run.running ? text.busy : text.run) : null,
+        el("button", { type: "button", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
+      ]),
+      runLine(ctx.run, text),
     ]),
-    ctx.run.running ? el("p", { role: "status" }, text.running) : null,
-    ctx.run.problem ? el("p", { className: "error", role: "alert" }, ctx.run.problem) : null,
     ctx.run.report ? reportView(ctx.run.report, ctx, text) : null,
     el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`),
   ]);
+}
+
+/** Right after the buttons, so it is seen where the person clicked: what runs, or what went wrong. */
+function runLine(run, text) {
+  if (run.running) return el("p", { id: "prefill-status", className: "prefill-card__status", role: "status" }, run.waiting ? text.waiting : text.running);
+  if (run.problem) return el("p", { id: "prefill-status", className: "error", role: "alert" }, run.problem);
+  return null;
+}
+
+/**
+ * The click on „Vorbefüllen“ (#156): the busy state shows and is brought into view before anything is awaited.
+ * Uploads still on their way finish first, because the app reads only what has arrived; the page says so meanwhile.
+ * steps: { show(run), reveal(), pendingUploads() → Promise or null, isCurrent() → boolean, ask() → Promise }
+ * Resolves to the answer of ask(), or null when another run or other answers overtook this one.
+ */
+async function startPrefill(steps) {
+  const pending = steps.pendingUploads();
+  steps.show({ running: true, waiting: Boolean(pending), problem: null, report: null });
+  steps.reveal();
+  if (pending) {
+    await pending.then(() => null, () => null); // a failed upload has its own message in the list
+    if (!steps.isCurrent()) return null;
+    steps.show({ running: true, waiting: false, problem: null, report: null });
+    steps.reveal(); // the new files in the list may have pushed the text out of view
+  }
+  return steps.ask();
 }
 
 /** The mark above a suggested entry; `key` is the item („work.0“) or section („style“). */
