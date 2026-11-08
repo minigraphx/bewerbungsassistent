@@ -6,7 +6,8 @@ into `dokumente/` with a list for the skill einstieg (`dokumente/neu.yaml`). The
 it is size-limited, parsed and validated against form.json before anything is written. Existing files
 are only replaced with --force, and every file is saved as a draft before and after (like
 `bewerbungen/entwurf.py`), so the previous state can be restored in the app under „Entwürfe“.
-Replacing keeps what the form cannot show: see `cv_merge.py` for the CV and `search_terms.py` for the search.
+Replacing keeps what the form cannot show: the answers merge into the CV (`cv_merge.py`), and `search_terms.py`
+keeps the terms of the search.
 
 If documents came along and answers are only missing (not wrong), the basics are not written yet: the
 answers are kept as `dokumente/einstieg.json` and the skill einstieg completes them from the documents.
@@ -48,7 +49,7 @@ class ImportResult:
     documents: list[str]
     incomplete: bool
     kept_terms: tuple[str, ...] = ()
-    kept_files: tuple[str, ...] = ()  # left as they were: replacing would lose what the form cannot show
+    kept_files: tuple[str, ...] = ()  # left as they were: they could not be read, so nothing could merge in
 
 
 def read_bundle(path: pathlib.Path) -> object:
@@ -120,7 +121,7 @@ def _keeping_search_terms(files: dict[str, str], data_dir: pathlib.Path) -> tupl
 
 def _keeping_cv_content(files: dict[str, str], bundle: dict, data_dir: pathlib.Path,
                         today: datetime.date) -> tuple[dict[str, str], tuple[str, ...]]:
-    """Content the form cannot show must survive replacing; if merging cannot keep it, the CV stays as it was."""
+    """The answers are merged into an existing CV; one that cannot be read stays as it was."""
     path = data_dir / CV
     if not path.is_file():
         return files, ()
@@ -128,10 +129,11 @@ def _keeping_cv_content(files: dict[str, str], bundle: dict, data_dir: pathlib.P
         existing = path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         existing = None
-    cv = None if existing is None else cv_merge.merged(existing, convert.build_cv(bundle["data"], bundle["track"]))
-    if cv is None:
-        return {rel: text for rel, text in files.items() if rel != CV}, (CV,)
-    return {**files, CV: convert.cv_file(cv, convert.made_on(today))}, ()
+    new_cv = convert.build_cv(bundle["data"], bundle["track"])
+    text = None if existing is None else cv_merge.merged_text(existing, new_cv, bundle["track"], convert.made_on(today))
+    if text is None:
+        return {rel: content for rel, content in files.items() if rel != CV}, (CV,)
+    return {**files, CV: text}, ()
 
 
 def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datetime.date,
@@ -183,7 +185,7 @@ def _report(result: ImportResult) -> None:
     if result.kept_terms:
         print("Aus der bisherigen Suche behalten:", *(f"- {term}" for term in result.kept_terms), sep="\n")
     if result.kept_files:
-        print("Unverändert gelassen, weil sie mehr enthalten, als das Formular zeigt:",
+        print("Unverändert gelassen, weil sie sich nicht lesen lassen:",
               *(f"- {rel}" for rel in result.kept_files), sep="\n")
     if result.documents:
         print("Unterlagen abgelegt:", *(f"- {rel}" for rel in result.documents), sep="\n")

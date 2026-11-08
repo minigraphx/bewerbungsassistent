@@ -4,6 +4,7 @@ The port of the app changes with every start, so the browser's own storage would
 form and the documents go straight to the data folder (`dokumente/`, not in Git). Taking over uses the same
 checks as importing a file (`onboarding/import_bundle.py`), with drafts of what it replaces.
 Suggestions from documents (`onboarding/prefill.py`) run outside the lock, because the AI takes a while.
+The page opens on the cv.yaml of the data folder (`onboarding/cv_read.py`, G23), and taking over merges into it.
 """
 import base64
 import binascii
@@ -25,9 +26,8 @@ JSON_OVERHEAD_BYTES = 10_000
 DEFAULT_TRACK = "job"  # only for the wording of messages
 TRACKS = {preferences.JOB: "job", preferences.APPRENTICESHIP: "apprenticeship"}  # setup → form (form.json tracks)
 PREFILL_RUNNING = "Die Unterlagen werden schon gelesen. Bitte einen Moment warten."
-CV_KEPT = ("Der Lebenslauf (cv.yaml) bleibt, wie er war: Er enthält mehr, als dieses Formular zeigen kann, zum Beispiel "
-           "Stichwörter oder eigene Zeiträume, und das ginge beim Ersetzen verloren. Ändern lässt er sich unter "
-           "„Inhalte als Text“.")
+CV_KEPT = ("Der Lebenslauf (cv.yaml) bleibt, wie er war: Die Datei lässt sich nicht lesen, darum kommen die Angaben "
+           "nicht hinein. Ändern lässt er sich unter „Inhalte als Text“.")
 
 
 def _body(body) -> dict:
@@ -96,6 +96,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     from dateien import schreibe_atomar
     from server import json_antwort
     import archive
+    import cv_read
     import documents
     import import_bundle
     import import_documents
@@ -111,7 +112,8 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     def overview(k, parameter, body):
         folder = ready_data_dir(state, k)
         return json_antwort({"stand": _read_state(folder), "unterlagen": import_documents.pending_documents(folder),
-                             "vorhanden": _existing_basics(folder), "wahl": _choice(folder)})
+                             "vorhanden": _existing_basics(folder), "wahl": _choice(folder),
+                             "lebenslauf": cv_read.read_form_data(folder)})
 
     def not_taken_over(k, parameter, body):
         stored = _read_state(ready_data_dir(state, k))

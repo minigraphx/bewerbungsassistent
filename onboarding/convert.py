@@ -75,8 +75,12 @@ def _basics(person: dict, summary: dict) -> dict:
     return {key: value for key, value in basics.items() if value}
 
 
+def full_url(url: str) -> str:
+    return url if url.startswith(("http://", "https://")) else f"https://{url}"
+
+
 def _profile(url: str) -> dict:
-    full = url if url.startswith(("http://", "https://")) else f"https://{url}"
+    full = full_url(url)
     try:
         host = urllib.parse.urlsplit(full).hostname or url
     except ValueError:  # e.g. an unclosed "[" that urlsplit reads as an IPv6 host
