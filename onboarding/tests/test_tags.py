@@ -77,7 +77,7 @@ def bundle_from(path, change=None, track: str = "job") -> dict:
 
 
 def save(folder, bundle) -> str:
-    assert validation.validate_bundle(FORM, bundle) == []
+    assert validation.validate_bundle(FORM, bundle, known=frozenset(known_tags.known_tags(folder, FORM))) == []
     import_bundle.import_answers(folder, bundle, TODAY, force=True)
     return (folder / "cv.yaml").read_text(encoding="utf-8")
 
@@ -375,8 +375,8 @@ def test_suggestions_are_the_tags_of_the_cv_the_variants_and_the_jobs(tmp_path):
 
 
 @pytest.mark.parametrize("text, expected", [
-    ("tags: [zwei Wörter, gut]\n", ["gut"]), ("tags: [gut, 5, null, true, {a: 1}, [x]]\n", ["gut"]),
-    ("tags: [gut, " + "x" * 41 + "]\n", ["gut"]), ("tags: [gut, 'a,b']\n", ["gut"]), ("tags: gut\n", []),
+    ("tags: [zwei Wörter, gut]\n", ["gut", "zwei Wörter"]), ("tags: [gut, 5, null, true, {a: 1}, [x]]\n", ["gut"]),
+    ("tags: [gut, \"a\\tb\"]\n", ["gut"]), ("tags: [gut, 'a,b']\n", ["gut"]), ("tags: gut\n", []),
 ])
 def test_suggestions_leave_out_what_is_no_valid_tag(tmp_path, text, expected):
     write(tmp_path, "jobs/a.yaml", text)
@@ -399,7 +399,71 @@ def test_an_empty_folder_suggests_nothing(tmp_path):
     assert known_tags.known_tags(tmp_path, FORM) == []
 
 
-def test_suggestions_are_limited(tmp_path):
-    write(tmp_path, "jobs/viele.yaml", "tags: [" + ", ".join(f"t{i:04d}" for i in range(known_tags.MAX_TAGS + 50)) + "]\n")
+MANY = [f"thema {i}" for i in range(1, 13)]
+LONG = "eine sehr lange Bezeichnung für ein Thema und länger als vierzig Zeichen"
+UNUSUAL_CV = f"""\
+basics:
+  name: Erika Beispiel
+  email: erika@example.ch
+  location:
+    city: Bern
+work:
+  - position: Software-Entwicklerin
+    name: Beispiel AG
+    startDate: "2019-03"
+    tags: [{", ".join(MANY)}]
+    highlights:
+      - text: Modelle trainiert
+        tags: [machine learning, "{LONG}"]
+certificates:
+  - name: Machine Learning Grundlagen
+    tags: [machine learning, "a,b"]
+"""
 
-    assert len(known_tags.known_tags(tmp_path, FORM)) == known_tags.MAX_TAGS
+
+def test_tags_with_spaces_are_shown_and_a_comma_is_left_in_the_file():
+    data = cv_read.form_data(yaml.safe_load(UNUSUAL_CV))
+
+    assert data["work"][0]["tags"] == MANY
+    assert data["work"][0]["highlights"] == [{"text": "Modelle trainiert", "tags": ["machine learning", LONG]}]
+    assert data["certificates"][0]["tags"] == ["machine learning"]
+
+
+def test_tags_from_the_cv_beyond_the_limits_keep_it_byte_for_byte(tmp_path):
+    path = write_cv(tmp_path, UNUSUAL_CV)
+
+    assert save(tmp_path, bundle_from(path)) == UNUSUAL_CV
+
+
+def test_tags_from_the_cv_beyond_the_limits_do_not_block_another_change(tmp_path):
+    path = write_cv(tmp_path, UNUSUAL_CV)
+
+    def edit(data):
+        data["work"][0]["position"] = "Senior-Entwicklerin"
+
+    after = save(tmp_path, bundle_from(path, edit))
+
+    assert after == UNUSUAL_CV.replace("Software-Entwicklerin", "Senior-Entwicklerin")
+
+
+def test_the_limits_hold_for_typed_tags(tmp_path):
+    path = write_cv(tmp_path, UNUSUAL_CV)
+
+    def typed(data):
+        data["work"][0]["tags"] = [*MANY, "neu"]
+        data["certificates"][0]["tags"] = ["machine learning", "x" * 41]
+
+    with pytest.raises(import_bundle.ImportRejected) as rejected:
+        import_bundle.import_answers(tmp_path, bundle_from(path, typed), TODAY, force=True)
+
+    assert path.read_text(encoding="utf-8") == UNUSUAL_CV
+    assert any("höchstens 10" in m for m in rejected.value.messages)
+    assert any("höchstens 40 Zeichen" in m for m in rejected.value.messages)
+
+
+def test_suggestions_keep_long_tags_and_tags_with_spaces(tmp_path):
+    write_cv(tmp_path, UNUSUAL_CV)
+
+    tags = known_tags.known_tags(tmp_path, FORM)
+
+    assert LONG in tags and "machine learning" in tags and "thema 12" in tags and "a,b" not in tags

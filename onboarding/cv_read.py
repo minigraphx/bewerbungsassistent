@@ -8,8 +8,11 @@ along on entries and on highlights; a highlight with tags is {text, tags}, as in
 import datetime
 import logging
 import pathlib
+import re
 
 import yaml
+
+import validation
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +29,7 @@ SECTIONS = {
     "skills": ("name", "keywords", "tags"),
 }
 INTERESTS = ("name",)
+TAG = re.compile(validation.load_form()["formats"]["tag"]["pattern"])
 
 
 def shown_text(value: object) -> str | None:
@@ -45,17 +49,23 @@ def shown_text(value: object) -> str | None:
 
 def item_text(item: object) -> str | None:
     """A list line (highlight, keyword) as text, also from {text, tags}; None if blank or not text."""
-    text = shown_text(item["text"]) if isinstance(item, dict) and "text" in item else tag_text(item)
+    text = shown_text(item["text"]) if isinstance(item, dict) and "text" in item else line_text(item)
     return text or None
 
 
-def tag_text(item: object) -> str | None:
-    """One tag, or one line of a list of plain lines, as text; None if blank or not text."""
+def line_text(item: object) -> str | None:
+    """One line of a list of plain lines (keywords) as text; None if blank or not text."""
     return None if isinstance(item, (dict, list)) else shown_text(item) or None
 
 
+def tag_text(item: object) -> str | None:
+    """One tag as the form can show it; None if blank, not text, or holding a comma or a control character."""
+    text = line_text(item)
+    return text if text and TAG.fullmatch(text) else None
+
+
 def shown_tags(value: object) -> list[str]:
-    """The tags of a list the form can show; what is no text stays out (and stays in the file)."""
+    """The tags of a list the form can show; the others stay out (and stay in the file)."""
     return [t for t in map(tag_text, value) if t] if isinstance(value, list) else []
 
 

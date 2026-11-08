@@ -133,12 +133,26 @@ test("suggestions are the tags of the app and those already typed, each once and
   const state = { track: "job", data: { work: [{ tags: ["web", "Daten"], highlights: ["x", { text: "y", tags: ["neu"] }] }],
     certificates: [{ tags: ["ki"] }] } };
 
-  assert.deepEqual(model.knownTags(form, state, ["daten", "web", 5, "zwei Wörter"]), ["Daten", "daten", "ki", "neu", "web"]);
+  const long = "x".repeat(form.limits.tag + 1);
+  assert.deepEqual(model.knownTags(form, state, ["daten", "web", 5, "zwei Wörter", "a,b", "a\tb", long]),
+    ["Daten", "daten", "ki", "neu", "web", long, "zwei Wörter"]);
   assert.deepEqual(model.knownTags(form, { track: "job", data: {} }, undefined), []);
 });
 
 test("the shared cases cover tags", () => {
   assert.ok(cases.cases.filter((c) => c.name.includes("tag")).length >= 10);
+});
+
+test("tags already in the data folder pass beyond the limits, typed ones do not", () => {
+  const bundle = structuredClone(cases.bases.job);
+  const many = Array.from({ length: 12 }, (_, i) => `thema ${i + 1}`);
+  bundle.data.work[0].tags = many;
+  bundle.data.work[0].highlights[0] = { text: "Modelle", tags: ["machine learning", "x".repeat(41)] };
+
+  assert.deepEqual(validateBundle(form, bundle, [...many, "machine learning", "x".repeat(41)]), []);
+  assert.deepEqual(validateBundle(form, bundle, many).map((e) => `${e.path} ${e.code}`), ["work.0.highlights.0.tags.1 max"]);
+  assert.deepEqual(validateBundle(form, bundle).map((e) => `${e.path} ${e.code}`).sort(),
+    ["work.0.highlights.0.tags.1 max", "work.0.tags maxItems"]);
 });
 
 test("messages about tags name the tag and its limits", () => {

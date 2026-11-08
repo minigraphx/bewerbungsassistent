@@ -185,7 +185,7 @@ function stepOfSection(sectionId) {
 // Validation shown in the page
 
 function currentErrors() {
-  const errors = validateBundle(form, draftBundle(form, state));
+  const errors = validateBundle(form, draftBundle(form, state), folderTags); // tags from the data folder never block (G24)
   return errors.filter((e) => {
     const [sectionId, index] = e.path.split(".");
     const list = state.data[sectionId];

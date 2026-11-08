@@ -1,5 +1,6 @@
 // Validation of onboarding bundles against form.json, for the browser.
-// Mirrors validation.py; both run the shared cases in tests/cases.json.
+// Mirrors validation.py; both run the shared cases in tests/cases.json. The limits of tags hold for typed tags only:
+// `known` names the tags already in the data folder (G24), which never block saving.
 "use strict";
 
 const SINGLE_LINE = new Set(["text", "list", "select", "choice", "tags"]);
@@ -56,7 +57,8 @@ function isTaggedLine(value) {
 
 const lineOf = (value) => (isObject(value) ? value.text : value);
 
-function validateBundle(form, bundle) {
+function validateBundle(form, bundle, known) {
+  const knownTags = new Set(Array.isArray(known) ? known : []);
   if (!isObject(bundle)) return [err("", "type")];
   if (bundle.format !== form.format) return [err("format", "bundle")];
   if (bundle.version !== form.version) return [err("version", "bundle")];
@@ -68,15 +70,15 @@ function validateBundle(form, bundle) {
   const sections = form.sections.filter((s) => applies(s, track));
   const ids = new Set(sections.map((s) => s.id));
   errors.push(...Object.keys(data).filter((k) => !ids.has(k)).map((k) => err(k, "unknown")));
-  for (const section of sections) errors.push(...validateSection(form, section, track, data[section.id]));
+  for (const section of sections) errors.push(...validateSection(form, section, track, data[section.id], knownTags));
   return errors;
 }
 
-function validateSection(form, section, track, value) {
+function validateSection(form, section, track, value, known) {
   const sid = section.id;
   if (!section.repeat) {
     const item = value ?? {};
-    return isObject(item) ? validateItem(form, section, track, item, sid) : [err(sid, "type")];
+    return isObject(item) ? validateItem(form, section, track, item, sid, known) : [err(sid, "type")];
   }
   if (value == null) return [];
   if (!Array.isArray(value)) return [err(sid, "type")];
@@ -85,23 +87,23 @@ function validateSection(form, section, track, value) {
   value.forEach((item, index) => {
     const path = `${sid}.${index}`;
     if (!isObject(item)) errors.push(err(path, "type"));
-    else errors.push(...validateItem(form, section, track, item, path));
+    else errors.push(...validateItem(form, section, track, item, path, known));
   });
   return errors;
 }
 
-function validateItem(form, section, track, item, path) {
+function validateItem(form, section, track, item, path, known) {
   const fields = section.fields.filter((f) => applies(f, track));
   const ids = new Set(fields.map((f) => f.id));
   const errors = Object.keys(item).filter((k) => !ids.has(k)).map((k) => err(`${path}.${k}`, "unknown"));
-  for (const field of fields) errors.push(...validateField(form, field, track, item, `${path}.${field.id}`));
+  for (const field of fields) errors.push(...validateField(form, field, track, item, `${path}.${field.id}`, known));
   return errors;
 }
 
-function validateField(form, field, track, item, path) {
+function validateField(form, field, track, item, path, known) {
   const value = item[field.id];
-  if (field.type === "tags") return validateList(form, tagRules(form), value, path);
-  if (field.type === "list") return validateList(form, field, value, path);
+  if (field.type === "tags") return validateTags(form, value, path, known);
+  if (field.type === "list") return validateList(form, field, value, path, known);
   const text = value ?? "";
   if (typeof text !== "string") return [err(path, "type")];
   if (!text.trim()) return field.required ? [err(path, "required")] : [];
@@ -111,7 +113,23 @@ function validateField(form, field, track, item, path) {
   return [];
 }
 
-function validateList(form, field, value, path) {
+/** A list of tags: known ones may be longer or more than the limits allow, typed ones may not. */
+function validateTags(form, value, path, known) {
+  const list = value ?? [];
+  if (!Array.isArray(list) || !list.every((v) => typeof v === "string")) return [err(path, "type")];
+  const rules = tagRules(form);
+  const tags = list.map((v) => v.trim()).filter((v) => v);
+  const typed = tags.filter((tag) => !known.has(tag));
+  const errors = tags.length > rules.maxItems && typed.length ? [err(path, "maxItems")] : [];
+  list.forEach((tag, index) => {
+    if (!tag.trim()) return;
+    const code = checkText(form, known.has(tag.trim()) ? { ...rules, max: Infinity } : rules, null, tag);
+    if (code) errors.push(err(`${path}.${index}`, code));
+  });
+  return errors;
+}
+
+function validateList(form, field, value, path, known) {
   const list = value ?? [];
   const tagged = field.tags === true;
   const fits = (v) => typeof v === "string" || (tagged && isTaggedLine(v));
@@ -125,7 +143,7 @@ function validateList(form, field, value, path) {
     if (!text.trim()) return;
     const code = checkText(form, field, null, text);
     if (code) errors.push(err(`${path}.${index}`, code));
-    if (isObject(entry)) errors.push(...validateList(form, tagRules(form), entry.tags, `${path}.${index}.tags`));
+    if (isObject(entry)) errors.push(...validateTags(form, entry.tags, `${path}.${index}.tags`, known));
   });
   return errors;
 }

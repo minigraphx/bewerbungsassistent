@@ -20,7 +20,7 @@
     "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"},
     "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"},
     "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"},
-    "tag": {"pattern": "^[^\\s,\\x00-\\x1f\\x7f\\ufeff]+$", "example": "daten"}
+    "tag": {"pattern": "^[^,\\x00-\\x1f\\x7f-\\x9f]+$", "example": "daten"}
   },
   "documents": {
     "title": "Unterlagen",

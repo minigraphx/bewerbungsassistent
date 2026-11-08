@@ -1,5 +1,5 @@
 {
-  "_comment": "Shared validation cases for validation.py and validate.js. All values are invented. A case starts from a base bundle, applies 'set' ([path, value]) and 'remove' (path), and expects exactly 'errors' (path and code, order irrelevant). A value {\"$repeat\": s, \"times\": n} stands for s repeated n times.",
+  "_comment": "Shared validation cases for validation.py and validate.js. All values are invented. A case starts from a base bundle, applies 'set' ([path, value]) and 'remove' (path), and expects exactly 'errors' (path and code, order irrelevant). A value {\"$repeat\": s, \"times\": n} stands for s repeated n times. A case may name 'known' tags (already in the data folder, G24): the limits for typed tags do not apply to them; its values may be placeholders too.",
   "bases": {
     "job": {
       "format": "bewerbungsassistent-einstieg",
@@ -914,23 +914,19 @@
       "errors": []
     },
     {
-      "name": "a tag with a space",
+      "name": "a tag with spaces",
       "base": "job",
       "set": [
         [
           "data.work.0.tags",
           [
             "daten",
-            "Data Engineering"
+            "machine learning",
+            " Data Engineering "
           ]
         ]
       ],
-      "errors": [
-        {
-          "path": "work.0.tags.1",
-          "code": "format"
-        }
-      ]
+      "errors": []
     },
     {
       "name": "a tag with a comma",
@@ -1080,7 +1076,7 @@
           {
             "text": "Datenpipelines",
             "tags": [
-              "a b"
+              "a,b"
             ]
           }
         ]
@@ -1261,6 +1257,200 @@
         {
           "path": "languages.0.tags",
           "code": "unknown"
+        }
+      ]
+    },
+    {
+      "name": "a tag with a tab",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "machine\tlearning"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.tags.0",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a long tag already in the data folder",
+      "base": "job",
+      "known": [
+        {
+          "$repeat": "a",
+          "times": 41
+        }
+      ],
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "daten"
+          ]
+        ],
+        [
+          "data.work.0.tags.0",
+          {
+            "$repeat": "a",
+            "times": 41
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a long typed tag next to a known one",
+      "base": "job",
+      "known": [
+        "daten"
+      ],
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "daten",
+            "x"
+          ]
+        ],
+        [
+          "data.work.0.tags.1",
+          {
+            "$repeat": "b",
+            "times": 41
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.tags.1",
+          "code": "max"
+        }
+      ]
+    },
+    {
+      "name": "more than ten tags that are all known",
+      "base": "job",
+      "known": [
+        "t1",
+        "t2",
+        "t3",
+        "t4",
+        "t5",
+        "t6",
+        "t7",
+        "t8",
+        "t9",
+        "t10",
+        "t11",
+        "t12"
+      ],
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "t1",
+            "t2",
+            "t3",
+            "t4",
+            "t5",
+            "t6",
+            "t7",
+            "t8",
+            "t9",
+            "t10",
+            "t11",
+            "t12"
+          ]
+        ],
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": "Datenpipelines",
+            "tags": [
+              "t1",
+              "t2",
+              "t3",
+              "t4",
+              "t5",
+              "t6",
+              "t7",
+              "t8",
+              "t9",
+              "t10",
+              "t11",
+              "t12"
+            ]
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "more than ten tags with a typed one",
+      "base": "job",
+      "known": [
+        "t1",
+        "t2",
+        "t3",
+        "t4",
+        "t5",
+        "t6",
+        "t7",
+        "t8",
+        "t9",
+        "t10",
+        "t11"
+      ],
+      "set": [
+        [
+          "data.work.0.tags",
+          [
+            "t1",
+            "t2",
+            "t3",
+            "t4",
+            "t5",
+            "t6",
+            "t7",
+            "t8",
+            "t9",
+            "t10",
+            "t11",
+            "neu"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.tags",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
+      "name": "a known tag with a comma is still no tag",
+      "base": "job",
+      "known": [
+        "a,b"
+      ],
+      "set": [
+        [
+          "data.skills.0.tags",
+          [
+            "a,b"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.tags.0",
+          "code": "format"
         }
       ]
     }

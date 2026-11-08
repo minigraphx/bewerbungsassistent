@@ -3,11 +3,13 @@
 The bundle comes from outside (the HTML template, or a file someone edited), so every value is
 checked: known sections and fields for the track, types, required values, lengths, formats and
 date order. `src/validate.js` implements the same rules for the browser; both run the shared cases
-in `tests/cases.json`. Tags (G24) are a list of single words per entry, or per line of a list marked "tags"
-({text, tags}); their limits are the same everywhere (`tag_rules`).
+in `tests/cases.json`. Tags (G24) are a list per entry, or per line of a list marked "tags" ({text, tags}); a tag
+holds no comma and no control character. The limits of length and count hold for typed tags only: tags already in the
+data folder (`known`, see known_tags.py) never block saving.
 """
 import dataclasses
 import json
+import math
 import pathlib
 import re
 
@@ -40,7 +42,7 @@ def for_track(value, track: str):
     return value
 
 
-def validate_bundle(form: dict, bundle) -> list[ValidationError]:
+def validate_bundle(form: dict, bundle, known: frozenset[str] = frozenset()) -> list[ValidationError]:
     if not isinstance(bundle, dict):
         return [ValidationError("", "type")]
     if bundle.get("format") != form["format"]:
@@ -58,18 +60,18 @@ def validate_bundle(form: dict, bundle) -> list[ValidationError]:
     sections = {s["id"]: s for s in form["sections"] if applies(s, track)}
     errors += [ValidationError(key, "unknown") for key in data if key not in sections]
     for section in sections.values():
-        errors += _validate_section(form, section, track, data.get(section["id"]))
+        errors += _validate_section(form, section, track, data.get(section["id"]), known)
     return errors
 
 
-def _validate_section(form: dict, section: dict, track: str, value) -> list[ValidationError]:
+def _validate_section(form: dict, section: dict, track: str, value, known: frozenset[str]) -> list[ValidationError]:
     sid = section["id"]
     if not section.get("repeat"):
         if value is None:
             value = {}
         if not isinstance(value, dict):
             return [ValidationError(sid, "type")]
-        return _validate_item(form, section, track, value, sid)
+        return _validate_item(form, section, track, value, sid, known)
     if value is None:
         return []
     if not isinstance(value, list):
@@ -82,24 +84,26 @@ def _validate_section(form: dict, section: dict, track: str, value) -> list[Vali
         if not isinstance(item, dict):
             errors.append(ValidationError(path, "type"))
             continue
-        errors += _validate_item(form, section, track, item, path)
+        errors += _validate_item(form, section, track, item, path, known)
     return errors
 
 
-def _validate_item(form: dict, section: dict, track: str, item: dict, path: str) -> list[ValidationError]:
+def _validate_item(form: dict, section: dict, track: str, item: dict, path: str,
+                   known: frozenset[str]) -> list[ValidationError]:
     fields = {f["id"]: f for f in section["fields"] if applies(f, track)}
     errors = [ValidationError(f"{path}.{key}", "unknown") for key in item if key not in fields]
     for field in fields.values():
-        errors += _validate_field(form, field, track, item, f"{path}.{field['id']}")
+        errors += _validate_field(form, field, track, item, f"{path}.{field['id']}", known)
     return errors
 
 
-def _validate_field(form: dict, field: dict, track: str, item: dict, path: str) -> list[ValidationError]:
+def _validate_field(form: dict, field: dict, track: str, item: dict, path: str,
+                    known: frozenset[str]) -> list[ValidationError]:
     value = item.get(field["id"])
     if field["type"] == "tags":
-        return _validate_list(form, tag_rules(form), value, path)
+        return _validate_tags(form, value, path, known)
     if field["type"] == "list":
-        return _validate_list(form, field, value, path)
+        return _validate_list(form, field, value, path, known)
     if value is None:
         value = ""
     if not isinstance(value, str):
@@ -129,7 +133,26 @@ def line_text(value) -> str:
     return value["text"] if isinstance(value, dict) else value
 
 
-def _validate_list(form: dict, field: dict, value, path: str) -> list[ValidationError]:
+def _validate_tags(form: dict, value, path: str, known: frozenset[str]) -> list[ValidationError]:
+    """A list of tags: known ones may be longer or more than the limits allow, typed ones may not."""
+    if value is None:
+        value = []
+    if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+        return [ValidationError(path, "type")]
+    rules = tag_rules(form)
+    tags = [v.strip() for v in value if v.strip()]
+    typed = [tag for tag in tags if tag not in known]
+    errors = [ValidationError(path, "maxItems")] if len(tags) > rules["maxItems"] and typed else []
+    for index, tag in enumerate(value):
+        if not tag.strip():
+            continue
+        error = check_text(form, {**rules, "max": math.inf} if tag.strip() in known else rules, None, tag)
+        if error:
+            errors.append(ValidationError(f"{path}.{index}", error))
+    return errors
+
+
+def _validate_list(form: dict, field: dict, value, path: str, known: frozenset[str]) -> list[ValidationError]:
     if value is None:
         value = []
     tagged = field.get("tags") is True
@@ -149,7 +172,7 @@ def _validate_list(form: dict, field: dict, value, path: str) -> list[Validation
         if error:
             errors.append(ValidationError(f"{path}.{index}", error))
         if isinstance(entry, dict):
-            errors += _validate_list(form, tag_rules(form), entry.get("tags"), f"{path}.{index}.tags")
+            errors += _validate_tags(form, entry.get("tags"), f"{path}.{index}.tags", known)
     return errors
 
 

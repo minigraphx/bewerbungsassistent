@@ -1,8 +1,9 @@
 """The tags already in a data folder, as suggestions on the page „Meine Angaben“ (#161, G24).
 
 Tags choose per job what goes into the CV (lebenslauf/README.md, „Zuschnitt pro Stelle“). They stand on entries and
-highlights of cv.yaml, on the variants in varianten.yaml and on the tailorings under jobs/. Only what passes the rules
-of the form comes back, each tag once; a file that cannot be read adds nothing and keeps the page from nothing.
+highlights of cv.yaml, on the variants in varianten.yaml and on the tailorings under jobs/. Every tag the form can show
+comes back once (no comma, no control character), long ones too: the limits of the form hold for typed tags only, and
+validation.py takes these as known. A file that cannot be read adds nothing and keeps the page from nothing.
 """
 import logging
 import pathlib
@@ -16,18 +17,16 @@ FILES = ("cv.yaml", "varianten.yaml")
 JOBS = "jobs"
 JOB_FILES = "*.yaml"
 TAGS = "tags"
-MAX_TAGS = 500
 MAX_DEPTH = 20
 
 
 def known_tags(folder: pathlib.Path, form: dict) -> list[str]:
-    """Every tag of the data folder once, sorted without regard to case; at most MAX_TAGS."""
+    """Every tag of the data folder once, sorted without regard to case."""
     pattern = re.compile(form["formats"]["tag"]["pattern"])
-    limit = form["limits"]["tag"]
     jobs = sorted((folder / JOBS).glob(JOB_FILES)) if (folder / JOBS).is_dir() else []
     found = {tag.strip() for path in [*(folder / name for name in FILES), *jobs] for tag in _tags_in(_read(path))}
-    valid = [tag for tag in found if len(tag) <= limit and pattern.fullmatch(tag)]
-    return sorted(valid, key=lambda tag: (tag.casefold(), tag))[:MAX_TAGS]
+    valid = [tag for tag in found if tag and pattern.fullmatch(tag)]
+    return sorted(valid, key=lambda tag: (tag.casefold(), tag))
 
 
 def _read(path: pathlib.Path) -> object:

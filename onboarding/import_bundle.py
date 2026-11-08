@@ -26,6 +26,7 @@ import archive
 import convert
 import cv_merge
 import import_documents
+import known_tags
 import search_plan
 import search_terms
 import validation
@@ -96,7 +97,8 @@ def import_answers(data_dir: pathlib.Path, bundle: object, today: datetime.date,
 
 def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.Document, ...], has_documents: bool,
             data_dir: pathlib.Path, today: datetime.date, force: bool) -> ImportResult:
-    errors = validation.validate_bundle(form, bundle)
+    # tags already in the data folder never block saving, only typed ones keep to the limits (G24)
+    errors = validation.validate_bundle(form, bundle, known=frozenset(known_tags.known_tags(data_dir, form)))
     incomplete = bool(errors and has_documents) and all(e.code == "required" for e in errors)
     if errors and not incomplete:
         track = bundle.get("track") if isinstance(bundle, dict) else None

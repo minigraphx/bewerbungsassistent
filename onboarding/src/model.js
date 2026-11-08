@@ -291,10 +291,10 @@ function tagsOfItem(section, item) {
   });
 }
 
-/** Every valid tag once (the rules of validate.js: format "tag" and limits.tag), sorted without regard to case. */
+/** Every tag the form can show once (format "tag"; long ones too), sorted without regard to case. */
 function knownTags(form, state, fromApp) {
   const pattern = new RegExp(form.formats.tag.pattern);
-  const valid = (t) => pattern.test(t) && Array.from(t).length <= form.limits.tag;
+  const valid = (t) => t !== "" && pattern.test(t);
   const typed = form.sections.filter((s) => s.repeat && Array.isArray(state.data[s.id]))
     .flatMap((s) => state.data[s.id].flatMap((item) => tagsOfItem(s, item)));
   const all = [...(Array.isArray(fromApp) ? fromApp : []), ...typed]
