@@ -101,6 +101,8 @@ Hier liegen Ihr Lebenslauf, Ihre Anschreiben und Ihre Bewerbungen. Der Vorschlag
 
 Haben Sie schon eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus Claude, wählen Sie sie mit **Datei wählen …** und klicken auf **Importieren**. Sonst klicken Sie auf **Überspringen** und erfassen Ihre Angaben später unter **Meine Angaben**.
 
+Liegen Suchprofil, Stilprofil oder Bausteine schon im Datenordner, fragt die App pro Datei, ob sie bleibt. Das geht wie unter [Angaben erfassen](#angaben-erfassen) beschrieben, abschliessend mit **Mit dieser Wahl importieren**.
+
 #### Schritt 4: KI
 
 ![Schritt KI einrichten mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
@@ -160,9 +162,15 @@ Du suchst eine Lehrstelle? Was bei dir anders ist, steht unter [Für Lehrstellen
 
 ### Angaben erfassen
 
-Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minuten. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Zum Schluss klicken Sie auf **Übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
+Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minuten. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Im letzten Schritt, **Übernehmen**, klicken Sie auf **Angaben übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
 
-Ändern können Sie Ihre Angaben jederzeit an derselben Stelle.
+Ändern können Sie Ihre Angaben jederzeit an derselben Stelle. Die Seite zeigt dann Ihren bisherigen Lebenslauf. Was sie nicht anzeigt, zum Beispiel Ihr Foto, bleibt beim Übernehmen, wie es ist. So geht nichts verloren, was Sie schon verfeinert haben.
+
+**Tags** bestimmen, wo ein Eintrag erscheint: Ohne Tags steht er in jedem Lebenslauf, mit Tags nur in den Varianten für Stellen mit einem dieser Tags. Tags können Sie Stellen, einzelnen Tätigkeiten, Kenntnissen, Projekten, Lehrtätigkeiten und Zertifikaten geben. Die Seite schlägt die Tags vor, die Sie schon verwenden; neue tippen Sie einfach ein. Tags sind freiwillig.
+
+Für die Stellensuche gibt es ausserdem die Abschnitte **Projekte** sowie **Lehre und Training** und ein Feld für Ihre eigene Webseite. Bei Ausbildungen und Zertifikaten können Sie unter **Eigener Text** einen fertigen Satz schreiben; er steht im Lebenslauf anstelle der einzelnen Angaben.
+
+Gibt es Suchprofil, Stilprofil oder Bausteine schon, fragt die App beim Übernehmen pro Datei, ob sie bleibt. Vorgewählt ist **Behalten**. Wählen Sie **Ersetzen**, zeigt die Seite zuerst die Unterschiede: Zeilen mit − fallen weg, Zeilen mit + kommen dazu. Abschliessend klicken Sie auf **Mit dieser Wahl übernehmen**. Der alte Stand bleibt als Entwurf erhalten, und der Lebenslauf nimmt Ihre Angaben in jedem Fall auf.
 
 ### Stellen suchen und bewerben
 
