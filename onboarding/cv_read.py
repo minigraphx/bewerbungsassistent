@@ -1,0 +1,123 @@
+"""Read an existing cv.yaml back into the answers of the form (#160, G23): the inverse of convert.build_cv.
+
+The page „Meine Angaben“ opens with these answers. Only what the form can show comes back; an entry without
+anything the form shows does not come back at all. All of it stays in the file: cv_merge.py puts the answers back
+without touching the rest. The keys below are the field ids of form.json (sections marked "cv").
+"""
+import datetime
+import logging
+import pathlib
+
+import yaml
+
+log = logging.getLogger(__name__)
+
+CV = "cv.yaml"
+BIRTH = "geboren "  # convert._basics writes the birth date as the detail "geboren <date>"
+TEXT_BASICS = ("name", "label", "email", "phone")
+LOCATION = ("address", "postalCode", "city")
+DATES = ("startDate", "endDate")
+SECTIONS = {
+    "work": ("position", "name", "location", *DATES, "highlights"),
+    "education": ("studyType", "area", "institution", *DATES),
+    "certificates": ("name", "issuer", "date"),
+    "languages": ("language", "fluency"),
+    "skills": ("name", "keywords"),
+}
+INTERESTS = ("name",)
+TEXT_LISTS = frozenset({"highlights", "keywords"})
+
+
+def shown_text(value: object) -> str | None:
+    """A value as the form shows it: text for scalars, "" for nothing, None where the form cannot show it."""
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, datetime.date):
+        return value.isoformat()
+    return None
+
+
+def item_text(item: object) -> str | None:
+    """A list line (highlight, keyword) as text, also from {text, tags}; None if blank or not text."""
+    text = shown_text(item["text"]) if isinstance(item, dict) and "text" in item else (
+        None if isinstance(item, (dict, list)) else shown_text(item))
+    return text or None
+
+
+def entry_shown(entry: object, fields: tuple[str, ...]) -> dict | None:
+    """What the form shows of an entry; None if it shows nothing of it."""
+    if not isinstance(entry, dict):
+        return None
+    shown = {}
+    for key in fields:
+        value = entry.get(key)
+        if key in TEXT_LISTS:
+            texts = [t for t in map(item_text, value) if t] if isinstance(value, list) else []
+            if texts:
+                shown[key] = texts
+        elif text := shown_text(value):
+            shown[key] = text
+    return shown or None
+
+
+def detail_places(details: list) -> tuple[int | None, int | None]:
+    """Positions of the birth date and the nationality in basics.details, as the form reads them."""
+    texts = [shown_text(d) if isinstance(d, str) else None for d in details]
+    birth = next((i for i, t in enumerate(texts) if t and t.startswith(BIRTH)), None)
+    nationality = next((i for i, t in enumerate(texts) if t and i != birth), None)
+    return birth, nationality
+
+
+def detail_values(details: object) -> tuple[str, str]:
+    """Birth date and nationality from basics.details; empty where there is none."""
+    if not isinstance(details, list):
+        return "", ""
+    birth, nationality = detail_places(details)
+    return (details[birth].strip()[len(BIRTH):].strip() if birth is not None else "",
+            details[nationality].strip() if nationality is not None else "")
+
+
+def form_data(cv: dict) -> dict:
+    """The answers of the CV sections of the form; every one of them, empty ones included."""
+    basics = cv.get("basics") if isinstance(cv.get("basics"), dict) else {}
+    entries = {key: _entries(cv.get(key), fields) for key, fields in SECTIONS.items()}
+    names = [item["name"] for item in _entries(cv.get("interests"), INTERESTS)]
+    return {"person": _person(basics), "summary": _texts(basics, ("summary",)), **entries,
+            "interests": {"interests": names} if names else {}}
+
+
+def read_form_data(folder: pathlib.Path) -> dict | None:
+    """The answers from the cv.yaml of a data folder; None without a readable one."""
+    path = folder / CV
+    if not path.is_file():
+        return None
+    try:
+        cv = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, yaml.YAMLError) as error:
+        log.warning("cv.yaml nicht lesbar: %s", error)
+        return None
+    return form_data(cv) if isinstance(cv, dict) else None
+
+
+def _texts(source: dict, keys: tuple[str, ...]) -> dict:
+    return {key: text for key in keys if (text := shown_text(source.get(key)))}
+
+
+def _person(basics: dict) -> dict:
+    location = basics.get("location") if isinstance(basics.get("location"), dict) else {}
+    birth, nationality = detail_values(basics.get("details"))
+    profiles = basics.get("profiles") if isinstance(basics.get("profiles"), list) else []
+    urls = [shown["url"] for shown in (entry_shown(p, ("url",)) for p in profiles) if shown]
+    person = {**_texts(basics, TEXT_BASICS), **_texts(location, LOCATION),
+              "birthDate": birth, "nationality": nationality, "profiles": urls}
+    return {key: value for key, value in person.items() if value}
+
+
+def _entries(value: object, fields: tuple[str, ...]) -> list[dict]:
+    return [shown for shown in (entry_shown(e, fields) for e in value) if shown] if isinstance(value, list) else []

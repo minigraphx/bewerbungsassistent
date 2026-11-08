@@ -92,6 +92,8 @@ async function loadStored() {
       // Nothing entered yet: start in the track of the setup (MIN-369); the start only shows the choice.
       applyStored(overview.stand || (choice ? { track: choice.track, data: {} } : null));
       notTakenOver = Boolean(overview.stand && overview.stand.offen === true);
+      // Answers not taken over yet are newer than cv.yaml; otherwise the file counts (G23).
+      if (!notTakenOver) state = fillFromCv(form, state, overview.lebenslauf);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
       return;
