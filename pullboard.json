@@ -1,5 +1,6 @@
 {
   "gate": "scripts/gate.sh",
+  "affectedTests": "scripts/run-tests.sh",
   "spec": "SPEC.md",
   "practice": "DOCTRINE.md",
   "worktrees": "inside",
