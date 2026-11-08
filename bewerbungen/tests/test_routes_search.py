@@ -181,6 +181,30 @@ def test_overview_names_kind_and_portals_of_the_profile(search):
     assert (second["art"], second["portale"]) == ("lehrstelle", ["LENA", "yousty"])
 
 
+APPRENTICESHIP_WITHOUT_START = "# Suchprofil Lehrstelle\n\n## Region\n- Wohnort: Musterwil\n"
+
+
+def test_overview_follows_the_setup_choice_before_the_profile_says_lehrbeginn(search):
+    (search.kontext.daten / "suchprofil.md").write_text(APPRENTICESHIP_WITHOUT_START, encoding="utf-8")
+    assert listing(search)["art"] == "stelle", "without a stored choice the profile decides"
+    assert post(search, "/api/einrichtung/wahl", {"gesucht": "lehrstelle", "anrede": "du", "rav": False})[0] == 200
+
+    overview = listing(search)
+    assert (overview["art"], overview["portale"]) == ("lehrstelle", ["LENA", "yousty"])
+    assert [p["name"] for p in overview["portale_wahl"]] == ["LENA", "yousty"]
+    assert overview["hinweise"] == [search_plan.NO_PROFESSION]
+    status, _ = post(search, "/api/suche/einstellungen", {"portale_aus": ["yousty"]})
+    assert status == 200, "the portal choice follows the same kind as the page"
+
+
+def test_overview_of_a_job_profile_follows_a_job_choice(search):
+    assert post(search, "/api/einrichtung/wahl", {"gesucht": "stelle", "anrede": "sie", "rav": True})[0] == 200
+    shutil.copy(VORLAGEN / "suchprofil-lehrstelle.md", search.kontext.daten / "suchprofil.md")
+    overview = listing(search)
+    assert (overview["art"], overview["portale"]) == ("stelle", list(search_plan.PORTALS))
+    assert overview["hinweise"] == [search_plan.NO_TERMS]
+
+
 def test_summary_of_an_apprenticeship_search_is_accepted(search):
     shutil.copy(VORLAGEN / "suchprofil-lehrstelle.md", search.kontext.daten / "suchprofil.md")
     status, _ = post(search, "/api/suche/abschluss", {"portale": {"LENA": {"treffer": 3, "neu": 2}, "yousty": {"treffer": 1, "neu": 0}}})
