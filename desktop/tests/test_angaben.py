@@ -524,20 +524,16 @@ def test_replacing_merges_into_the_cv_and_keeps_what_the_form_cannot_show(starte
     cv.write_text("basics:\n  name: Alt Beispiel\n  x-image: {zoom: 1.2}\n  url: https://beispiel.example\n"
                   "work:\n  - position: Software-Entwicklerin\n    name: Beispiel AG\n    tags: [daten]\n"
                   "    highlights: [{text: Plattform für Kundendaten, tags: [daten]}]\n"
-                  "projects:\n  - name: Beispielprojekt\n    url: https://beispiel.example/projekt\n"
-                  "references:\n  - name: Beispiel Referenz\n", encoding="utf-8")
-    bundle = valid_bundle()
-    bundle["data"]["projects"] = [{"name": "Beispielprojekt"}]
+                  "projects:\n  - name: Beispielprojekt\nteaching:\n  - position: Kursleiterin\n", encoding="utf-8")
 
-    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": bundle, "ersetzen": True})
+    status, answer = call(server, "/api/angaben/uebernehmen", {"bundle": valid_bundle(), "ersetzen": True})
 
     merged = yaml.safe_load(cv.read_text(encoding="utf-8"))
     assert status == 200 and answer["unveraendert"] == [] and answer["hinweis"] == ""
     assert "cv.yaml" in answer["geschrieben"] and merged["basics"]["name"] == "Erika Beispiel"
     assert merged["basics"]["x-image"] == {"zoom": 1.2} and merged["work"][0]["tags"] == ["daten"]
     assert merged["work"][0]["highlights"][0] == {"text": "Plattform für Kundendaten", "tags": ["daten"]}
-    assert merged["projects"] == [{"name": "Beispielprojekt", "url": "https://beispiel.example/projekt"}]
-    assert merged["references"] == [{"name": "Beispiel Referenz"}]
+    assert merged["projects"] == [{"name": "Beispielprojekt"}] and merged["teaching"] == [{"position": "Kursleiterin"}]
 
 
 def test_replacing_keeps_a_cv_that_cannot_be_read_and_says_so(started):

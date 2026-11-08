@@ -93,7 +93,7 @@
         {"id": "email", "label": "E-Mail", "type": "text", "required": true, "format": "email", "hint": {"apprenticeship": "Die Adresse soll seriös wirken, z.B. vorname.nachname@…"}},
         {"id": "birthDate", "label": "Geburtsdatum (freiwillig)", "type": "text", "max": 30, "hint": {"apprenticeship": "Bei Lehrstellen ist das Geburtsdatum üblich."}},
         {"id": "nationality", "label": "Nationalität (freiwillig)", "type": "text", "max": 60},
-        {"id": "url", "label": "Eigene Webseite (freiwillig)", "type": "text", "format": "url", "tracks": ["job"]},
+        {"id": "url", "label": "Eigene Webseite (freiwillig)", "type": "text", "format": "url", "tracks": ["job"], "keepUnlessGiven": true},
         {"id": "profiles", "label": "Profil-Links, z.B. LinkedIn (freiwillig, ein Link pro Zeile)", "type": "list", "format": "url", "maxItems": 5, "tracks": ["job"]}
       ]
     },
@@ -131,6 +131,7 @@
     {
       "id": "teaching",
       "cv": true,
+      "keepUnlessGiven": true,
       "title": "Lehre und Training",
       "tracks": ["job"],
       "intro": {"job": "Kurse, Schulungen und Trainings, die Sie geben oder gegeben haben. Das Neueste zuerst. Sie stehen im Lebenslauf unter „Lehre & Training“."},
@@ -150,6 +151,7 @@
     {
       "id": "projects",
       "cv": true,
+      "keepUnlessGiven": true,
       "title": "Projekte",
       "tracks": ["job"],
       "intro": {"job": "Eigene Projekte, zum Beispiel aus Freizeit, Studium oder Open Source. Hauptprojekte stehen im Lebenslauf unter „Projekte“, die anderen unter „Weitere Projekte“."},

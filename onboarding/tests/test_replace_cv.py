@@ -51,24 +51,15 @@ def existing_cv(tmp_path, text: str):
     return path
 
 
-def replace(tmp_path, track: str = "job", bundle: dict | None = None) -> import_bundle.ImportResult:
-    return import_bundle.import_answers(tmp_path, bundle or base_bundle(track), TODAY, force=True)
-
-
-def with_shown_extras() -> dict:
-    """The base answers with the website, project and teaching entry of EXTRAS_ONLY, which the form shows (G25)."""
-    bundle = base_bundle("job")
-    bundle["data"]["person"]["url"] = "https://beispiel.example"
-    bundle["data"]["projects"] = [{"name": "Beispielprojekt", "group": "more"}]
-    bundle["data"]["teaching"] = [{"position": "Kursleiterin", "name": "Beispiel-Schule", "startDate": "2020"}]
-    return bundle
+def replace(tmp_path, track: str = "job") -> import_bundle.ImportResult:
+    return import_bundle.import_answers(tmp_path, base_bundle(track), TODAY, force=True)
 
 
 def test_replacing_carries_over_what_the_form_does_not_write(tmp_path):
     path = existing_cv(tmp_path, EXTRAS_ONLY)
     old = yaml.safe_load(EXTRAS_ONLY)
 
-    result = replace(tmp_path, bundle=with_shown_extras())
+    result = replace(tmp_path)
 
     cv = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert "cv.yaml" in result.written and result.kept_files == ()

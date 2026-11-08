@@ -4,6 +4,8 @@
 // Tags (G24): a "tags" field holds an array of tags; a list marked "tags" holds lines as text or { text, tags }.
 // What the form does not send stays in cv.yaml (G23): a missing tags key keeps the tags of the file, an empty list
 // removes them. So tags go out wherever the page holds them, an empty list included; a plain text line keeps its tags.
+// The same holds for sections and fields marked "keepUnlessGiven" in form.json (G25: projects, teaching, the website):
+// they go out wherever the page holds them, empty too, and a state from before G25 sends no key, so cv.yaml keeps them.
 "use strict";
 
 /** A loaded file that is no bundle of this form; the message is German and shown as is. */
@@ -85,7 +87,7 @@ function pickFields(fields, item, compact) {
       if (!Array.isArray(value)) continue;
       const kept = field.type === "tags" ? cleanTags(value, compact) : cleanList(field, value, compact);
       if (kept.length || field.type === "tags") result[field.id] = kept;
-    } else if (typeof value === "string" && (!compact || value.trim())) {
+    } else if (typeof value === "string" && (!compact || value.trim() || field.keepUnlessGiven)) {
       result[field.id] = compact ? value.trim() : value;
     }
   }
@@ -100,7 +102,7 @@ function cleanData(form, track, data, compact) {
       if (!Array.isArray(value)) continue;
       const list = value.map((item) => cleanItem(section, track, item, compact));
       const kept = compact ? list.filter((item) => !isBlankItem(item)) : list;
-      if (kept.length) result[section.id] = kept;
+      if (kept.length || section.keepUnlessGiven) result[section.id] = kept;
     } else if (isPlainObject(value)) {
       const item = cleanItem(section, track, value, compact);
       if (Object.keys(item).length) result[section.id] = item;

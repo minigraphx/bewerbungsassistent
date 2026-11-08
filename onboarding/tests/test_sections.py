@@ -94,15 +94,15 @@ def for_track(data: dict, track: str) -> dict:
 
 
 def bundle_from(path, change=None, track: str = "job") -> dict:
-    """What the page sends after opening on this cv.yaml: the CV sections from the file, the rest from the example."""
+    """What the page sends after opening on this cv.yaml: the CV sections from the file, empty ones included, the rest
+    from the example."""
     data = copy.deepcopy(cv_read.form_data(yaml.safe_load(path.read_text(encoding="utf-8"))))
     if change:
         change(data)
     base = base_bundle(track)
     cv_sections = {s["id"] for s in FORM["sections"] if s.get("cv")}
     others = {key: value for key, value in base["data"].items() if key not in cv_sections}
-    sent = {key: value for key, value in {**others, **data}.items() if value}
-    return {**base, "data": for_track(sent, track)}
+    return {**base, "data": for_track({**others, **data}, track)}
 
 
 def save(folder, bundle) -> str:
@@ -171,17 +171,64 @@ def test_the_apprenticeship_track_keeps_projects_teaching_and_the_website(tmp_pa
     assert after.startswith(CV) and yaml.safe_load(after[len(CV):]) == {"x-beschriftungen": convert.APPRENTICESHIP_HEADINGS}
 
 
-def test_answers_without_projects_teaching_or_website_remove_them(tmp_path):
+def test_answers_from_before_g25_keep_projects_teaching_and_website_byte_for_byte(tmp_path):
+    path = write_cv(tmp_path)
+
+    def before_g25(data):
+        del data["person"]["url"], data["projects"], data["teaching"]
+
+    assert save(tmp_path, bundle_from(path, before_g25)) == CV
+
+
+def test_answers_from_before_g25_keep_them_while_other_answers_change(tmp_path):
+    path = write_cv(tmp_path)
+
+    def before_g25(data):
+        del data["person"]["url"], data["projects"], data["teaching"]
+        data["person"]["email"] = "erika.beispiel@example.ch"
+
+    after = save(tmp_path, bundle_from(path, before_g25))
+
+    assert after == CV.replace("email: erika@example.ch", "email: erika.beispiel@example.ch")
+
+
+def test_an_empty_list_and_an_empty_website_remove_them(tmp_path):
     path = write_cv(tmp_path)
 
     def clear(data):
-        del data["person"]["url"]
+        data["person"]["url"] = ""
         data["projects"] = []
         data["teaching"] = []
 
     cv = yaml.safe_load(save(tmp_path, bundle_from(path, clear)))
 
     assert "projects" not in cv and "teaching" not in cv and "url" not in cv["basics"]
+
+
+def test_removing_a_project_on_the_page_removes_it(tmp_path):
+    path = write_cv(tmp_path)
+
+    def remove(data):
+        del data["projects"][0]
+
+    cv = yaml.safe_load(save(tmp_path, bundle_from(path, remove)))
+
+    assert [p["name"] for p in cv["projects"]] == ["Kleines Spiel", "Altes Projekt"]
+    assert cv["projects"][1]["group"] == "archiv"
+
+
+def test_empty_answers_write_no_empty_keys(tmp_path):
+    bundle = base_bundle("job")
+    bundle["data"]["person"]["url"] = ""
+    bundle["data"]["projects"] = []
+    bundle["data"]["teaching"] = []
+
+    new = yaml.safe_load(save(tmp_path, bundle))
+    assert "projects" not in new and "teaching" not in new and "url" not in new["basics"]
+
+    write_cv(tmp_path, "basics:\n  name: Erika Beispiel\n")
+    merged = yaml.safe_load(save(tmp_path, bundle))
+    assert "projects" not in merged and "teaching" not in merged and "url" not in merged["basics"]
 
 
 def test_edits_change_only_what_the_form_shows(tmp_path):
@@ -212,7 +259,7 @@ def test_a_change_of_group_and_a_removed_website_are_written(tmp_path):
     path = write_cv(tmp_path)
 
     def edit(data):
-        del data["person"]["url"]
+        data["person"]["url"] = ""  # what the page sends for a cleared field
         data["projects"][0]["group"] = "more"
         data["projects"][1]["group"] = "main"
 

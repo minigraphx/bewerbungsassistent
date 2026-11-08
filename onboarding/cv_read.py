@@ -34,6 +34,10 @@ SECTIONS = {
 INTERESTS = ("name",)
 FORM = validation.load_form()
 TAG = re.compile(FORM["formats"]["tag"]["pattern"])
+# a bundle without these keys keeps them in the file, an empty value removes them (G25, the rule of tags in G24)
+KEPT_SECTIONS = frozenset(s["id"] for s in FORM["sections"] if s.get("cv") and s.get("keepUnlessGiven"))
+KEPT_BASICS = frozenset(f["id"] for s in FORM["sections"] if s["id"] == "person"
+                        for f in s["fields"] if f.get("keepUnlessGiven"))
 CHOICES = {"group": next(f["options"] for s in FORM["sections"] if s["id"] == "projects"
                          for f in s["fields"] if f["id"] == "group")}
 

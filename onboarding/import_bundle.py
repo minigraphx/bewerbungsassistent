@@ -131,7 +131,7 @@ def _keeping_cv_content(files: dict[str, str], bundle: dict, data_dir: pathlib.P
         existing = path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         existing = None
-    new_cv = convert.build_cv(bundle["data"], bundle["track"], tag_keys=True)
+    new_cv = convert.build_cv(bundle["data"], bundle["track"], answer_keys=True)
     text = None if existing is None else cv_merge.merged_text(existing, new_cv, bundle["track"], convert.made_on(today))
     if text is None:
         return {rel: content for rel, content in files.items() if rel != CV}, (CV,)

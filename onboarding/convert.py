@@ -11,6 +11,7 @@ import urllib.parse
 import yaml
 
 import markdown_files
+from cv_read import KEPT_BASICS, KEPT_SECTIONS
 from values import items, text
 
 APPRENTICESHIP_HEADINGS = {"erfahrung": "Schnupperlehren & Erfahrungen", "bildung": "Schule & Eignungstests"}
@@ -42,11 +43,15 @@ def cv_file(cv: dict, note: str) -> str:
     return f"# {note}. Format: lebenslauf/README.md\n" + _dump_yaml(cv)
 
 
-def build_cv(data: dict, track: str, tag_keys: bool = False) -> dict:
-    """The CV of the answers. With tag_keys an answer's tags stay as given, an empty list too, and a highlight given
-    as {text, tags} stays one: cv_merge.py tells "no tags" (empty list) from "tags not given" (no key)."""
+def build_cv(data: dict, track: str, answer_keys: bool = False) -> dict:
+    """The CV of the answers. With answer_keys an answer's tags stay as given, an empty list too, a highlight given
+    as {text, tags} stays one, and so do the empty sections and fields marked keepUnlessGiven in form.json (G25):
+    cv_merge.py tells "none" (empty) from "not given" (no key)."""
+    tag_keys = answer_keys
     person = data.get("person", {})
-    cv = {"basics": _basics(person, data.get("summary", {}))}
+    basics = _basics(person, data.get("summary", {}))
+    given = {key: "" for key in KEPT_BASICS if answer_keys and key in person and key not in basics}
+    cv = {"basics": {**basics, **given}}
     tagged = functools.partial(_tagged, tag_keys=tag_keys)
     sections = {
         "work": [_work(w, tag_keys) for w in data.get("work", [])],
@@ -60,7 +65,8 @@ def build_cv(data: dict, track: str, tag_keys: bool = False) -> dict:
                    for s in data.get("skills", [])],
         "interests": [{"name": name} for name in items(data.get("interests", {}).get("interests"))],
     }
-    cv.update({key: value for key, value in sections.items() if value})
+    cv.update({key: value for key, value in sections.items()
+               if value or (answer_keys and key in KEPT_SECTIONS and key in data)})
     if track == "apprenticeship":
         cv["x-beschriftungen"] = dict(APPRENTICESHIP_HEADINGS)
     return cv

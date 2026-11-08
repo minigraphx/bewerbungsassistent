@@ -113,3 +113,42 @@ test("projects and teaching are in the step of the career, the job track only", 
   assert.deepEqual(job.sections.map((s) => s.id), ["work", "teaching", "projects", "education", "certificates"]);
   assert.deepEqual(apprenticeship.sections.map((s) => s.id), ["education", "work", "certificates"]);
 });
+
+// G23: a bundle without the keys of projects, teaching or the website keeps those of cv.yaml (answers from before
+// G25); an empty list or an empty text removes them. So the page sends these keys wherever it shows them, even empty.
+
+test("the page sends projects, teaching and the website it shows, even empty", () => {
+  let state = model.fillFromCv(form, { track: "job", data: {} }, { ...fromCv(), projects: [{ name: "Spiel" }], teaching: [] });
+  state = model.removeItem(state, "projects", 0);
+  state = model.setValue(state, ["person", "url"], " ");
+
+  const data = model.collectBundle(form, state, NOW).data;
+
+  assert.deepEqual(data.projects, []);
+  assert.deepEqual(data.teaching, []);
+  assert.equal(data.person.url, "");
+  assert.deepEqual(validateBundle(form, { ...cases.bases.job, data: { ...cases.bases.job.data, ...data } }), []);
+});
+
+test("a page state from before G25 sends no such keys", () => {
+  const state = { track: "job", data: { person: { name: "Erika Beispiel" }, work: [{ position: "A", name: "B", startDate: "2019" }] } };
+
+  const data = model.collectBundle(form, state, NOW).data;
+
+  assert.equal("projects" in data || "teaching" in data || "url" in data.person, false);
+});
+
+test("removing one project on the page sends the others", () => {
+  let state = model.fillFromCv(form, { track: "job", data: {} }, fromCv());
+  state = model.removeItem(state, "projects", 0);
+
+  assert.deepEqual(model.collectBundle(form, state, NOW).data.projects, [{ name: "Spiel", group: "more" }]);
+});
+
+test("empty sections that keep the file stay out of the apprenticeship track", () => {
+  const state = { track: "apprenticeship", data: { projects: [], teaching: [], person: { url: "" } } };
+
+  const data = model.collectBundle(form, state, NOW).data;
+
+  assert.equal("projects" in data || "teaching" in data || "url" in (data.person || {}), false);
+});
