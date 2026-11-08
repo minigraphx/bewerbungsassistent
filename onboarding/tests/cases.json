@@ -1175,6 +1175,62 @@
       "errors": []
     },
     {
+      "name": "ten CVs are fine",
+      "documents": [
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv0.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv1.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv2.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv3.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv4.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv5.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv6.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv7.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv8.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv9.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": []
+    },
+    {
       "name": "too many files in a category",
       "documents": [
         {
@@ -1195,6 +1251,41 @@
         {
           "category": "lebenslauf-bisher",
           "name": "cv3.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv4.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv5.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv6.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv7.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv8.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv9.pdf",
+          "size": 100000
+        },
+        {
+          "category": "lebenslauf-bisher",
+          "name": "cv10.pdf",
           "size": 100000
         }
       ],

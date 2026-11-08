@@ -13,6 +13,8 @@ const DOCUMENT_MESSAGES = {
   size: "Die Datei ist zu gross (höchstens {maxFileMB} MB).",
   duplicate: "Diese Datei ist schon dabei.",
   maxFiles: "Zu viele Dateien (höchstens {maxFiles}).",
+  leftOutOne: "{title}: höchstens {maxFiles} Dateien. Eine Datei wurde nicht hinzugefügt.",
+  leftOutMany: "{title}: höchstens {maxFiles} Dateien. {count} Dateien wurden nicht hinzugefügt.",
   total: "Zusammen sind die Dateien zu gross (höchstens {maxTotalMB} MB).",
 };
 
@@ -128,21 +130,37 @@ const UPLOAD_DIR = "dokumente";
 /** A ZIP that is no file of this template; the message is German and shown as is. */
 class UploadError extends Error {}
 
+/** How many files of a category are there and how many it takes. */
+function categoryRoom(form, uploads, category) {
+  const { maxFiles } = documentCategories(form).get(category);
+  return { count: uploads.filter((u) => u.category === category).length, maxFiles };
+}
+
 /**
  * Which of the chosen files (each { name, size }) to add to a category, checked against the rules
- * together with what is already there. Returns { accepted: [{ index, category, name, size }], messages }.
+ * together with what is already there. Files beyond the limit of the category are left out and counted in
+ * one message, so the list and the message agree. Returns { accepted: [{ index, category, name, size }], messages }.
  */
 function planUploads(form, track, current, category, chosen) {
   const accepted = [];
   const messages = [];
+  let leftOut = 0;
   chosen.forEach((file, index) => {
     const entry = { category, name: safeDocumentName(file.name), size: file.size };
     const entries = [...current, ...accepted, entry].map(({ category: c, name, size }) => ({ category: c, name, size }));
     const [error] = validateDocuments(form, entries).filter((e) => isAbout(e, entries.length - 1, category));
-    if (error) messages.push(describeDocument(form, track, entries, error)); // one message per file is enough
+    if (error && error.code === "maxFiles") leftOut += 1;
+    else if (error) messages.push(describeDocument(form, track, entries, error)); // one message per file is enough
     else accepted.push({ index, ...entry });
   });
-  return { accepted, messages };
+  return { accepted, messages: leftOut ? [...messages, leftOutMessage(form, track, category, leftOut)] : messages };
+}
+
+function leftOutMessage(form, track, category, count) {
+  const rules = documentCategories(form).get(category);
+  const params = { title: titleForTrack(rules.title, track), maxFiles: rules.maxFiles, count };
+  const text = count === 1 ? DOCUMENT_MESSAGES.leftOutOne : DOCUMENT_MESSAGES.leftOutMany;
+  return text.replace(/\{(\w+)\}/g, (_, k) => params[k]);
 }
 
 function isAbout(error, last, category) {
@@ -179,6 +197,6 @@ function maxUploadEntries(form) {
 if (typeof module !== "undefined") {
   module.exports = {
     validateDocuments, describeDocument, safeDocumentName, documentCategories, documentExtension, allowedExtensions, allowedText,
-    planUploads, uploadZipEntries, splitUploadZip, maxUploadEntries, UploadError,
+    planUploads, categoryRoom, uploadZipEntries, splitUploadZip, maxUploadEntries, UploadError,
   };
 }

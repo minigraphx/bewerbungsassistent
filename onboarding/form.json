@@ -26,7 +26,7 @@
       "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Die App übernimmt daraus später, was passt, und fragt nur nach, was fehlt."
     },
     "categories": [
-      {"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 3,
+      {"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 10,
         "fileTypes": ["document"]},
       {"id": "zeugnisse", "title": {"job": "Arbeitszeugnisse", "apprenticeship": "Zeugnisse"}, "hint": {"job": "Arbeitszeugnisse und Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20,
         "fileTypes": ["document", "image"]},

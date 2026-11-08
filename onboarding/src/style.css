@@ -154,6 +154,8 @@ button { font: inherit; cursor: pointer; }
 .file-size { color: var(--muted); font-size: 14px; white-space: nowrap; }
 .files .remove { min-height: 32px; padding: 0 12px; }
 .upload-category .add { margin-top: 6px; }
+.upload-category .add:disabled { opacity: 0.5; cursor: not-allowed; }
+.upload-category .limit-note { margin: 4px 0 0; }
 .ok { background: var(--success-soft); color: var(--text-strong); padding: 12px 16px; border-radius: var(--radius-control); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 #replace { margin-left: 8px; }
