@@ -2,7 +2,7 @@
 // What to search for (MIN-375): the list of what is searched with „Entfernen“, and suggestions from the AI to add to it.
 // Apprenticeships address the person informally and name professions, jobs formally and name search terms.
 window.Suchbegriffe = (() => {
-  const { senden, el, status } = window.App;
+  const { holen, senden, el, status } = window.App;
   const $ = id => document.getElementById(id);
   const TEXTE = {
     lehrstelle: {
@@ -18,6 +18,7 @@ window.Suchbegriffe = (() => {
       pruefen: "In der Schnupperlehre",
       liste: "Danach suchst du:",
       entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
+      einwilligung: "Bevor die KI dir Berufe vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.",
     },
     stelle: {
       titel: "Welche Stellen passen zu Ihnen?",
@@ -32,6 +33,7 @@ window.Suchbegriffe = (() => {
       pruefen: "Im Inserat",
       liste: "Danach suchen Sie:",
       entfernt: name => `„${name}“ ist nicht mehr in Ihrer Suche.`,
+      einwilligung: "Bevor die KI Stellen vorschlägt, braucht es Ihre Einwilligung. Was Sie geschrieben haben, bleibt stehen.",
     },
     stelleDu: {
       titel: "Welche Stellen passen zu dir?",
@@ -46,6 +48,7 @@ window.Suchbegriffe = (() => {
       pruefen: "Im Inserat",
       liste: "Danach suchst du:",
       entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
+      einwilligung: "Bevor die KI Stellen vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.",
     },
   };
   const texteFuer = (art, satz) => (art === "lehrstelle" ? TEXTE.lehrstelle : satz === "stelle-du" ? TEXTE.stelleDu : TEXTE.stelle);
@@ -100,7 +103,39 @@ window.Suchbegriffe = (() => {
       el("div", { class: "knoepfe" }, button, note));
   }
 
+  /** The open consent, or null; an unreadable status lets the suggestion route say what is missing. */
+  async function offeneEinwilligung() {
+    try {
+      const { einwilligung } = await holen("/api/ki/status");
+      return einwilligung && !einwilligung.erteilt ? einwilligung : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // In the box itself, so that what was typed stays and nothing of it goes out before the consent.
+  function zeigeEinwilligung(stand) {
+    status($("vorschlag-status"), texte.einwilligung, "");
+    window.Einwilligung.zeige($("vorschlag-einwilligung"), stand, neu => {
+      if (neu.einwilligung && !neu.einwilligung.erteilt) return;
+      $("vorschlag-einwilligung").hidden = true;
+      return vorschlagen();
+    });
+  }
+
   async function ask() {
+    $("vorschlag-holen").disabled = true;
+    const offen = await offeneEinwilligung();
+    if (offen) {
+      $("vorschlag-holen").disabled = false;
+      zeigeEinwilligung(offen);
+      return;
+    }
+    $("vorschlag-einwilligung").hidden = true;
+    await vorschlagen();
+  }
+
+  async function vorschlagen() {
     $("vorschlag-holen").disabled = true;
     $("vorschlag-liste").replaceChildren();
     karten = [];
