@@ -1,87 +1,147 @@
 # Installation und erste Schritte
 
-Der Bewerbungsbegleiter nimmt Ihnen Suche, Formatierung und Verwaltung ab. Die Zeit, die so frei wird, gehört Ihrer Bewerbung: sich mit der Firma und der Stelle befassen und das Anschreiben darauf anpassen.
+Der Bewerbungsbegleiter ist eine App für Ihren Computer. Die App sucht auf Schweizer Stellenportalen nach Stellen, die zu Ihnen passen, und schätzt jede ein. Für die Stellen, die Sie wählen, bereitet sie Lebenslauf und Anschreiben als Entwurf vor und füllt das Bewerbungsformular der Firma aus. Bei jeder Bewerbung zeigt sie den nächsten Schritt, und sie hilft beim Nachweis fürs RAV.
 
-Diese Anleitung führt Sie von der Installation bis zur ersten Suche. Sie brauchen dazu:
+Was zählt, bleibt bei Ihnen: Sie wählen die Stellen, passen das Anschreiben an die Firma an, geben es frei und schicken die Bewerbung selbst ab. Die Zeit, die Sie bei Suche und Formatierung sparen, gehört Ihrer Bewerbung.
+
+Ihre Unterlagen liegen auf Ihrem Computer, nicht auf einem fremden Server.
+
+Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson ein. Was bei dir anders ist, steht unter [Für Lehrstellen](#für-lehrstellen).
+
+**Springen zu**
+
+- [Einmal einrichten](#einmal-einrichten)
+  - [Was Sie brauchen](#was-sie-brauchen)
+  - [App installieren](#app-installieren)
+  - [App einrichten](#app-einrichten)
+  - [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen)
+- [Mit der App arbeiten](#mit-der-app-arbeiten)
+  - [Angaben erfassen](#angaben-erfassen)
+  - [Stellen suchen und bewerben](#stellen-suchen-und-bewerben)
+  - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
+  - [Für Lehrstellen](#für-lehrstellen)
+- [Bei Bedarf](#bei-bedarf)
+  - [Updates](#updates)
+  - [Für Geübte](#für-geübte)
+  - [Häufige Fehler](#häufige-fehler)
+  - [Hilfe](#hilfe)
+
+## Einmal einrichten
+
+Diese Kapitel brauchen Sie nur einmal. Sie gelten auch, wenn Sie die App für Ihr Kind einrichten, das eine Lehrstelle sucht.
+
+### Was Sie brauchen
 
 - einen Computer mit Windows, macOS oder Linux,
 - den Browser Chrome oder Edge,
-- für die KI-Unterstützung einen Einladungscode von Ihrer Begleitperson.
+- für die KI-Unterstützung einen Einladungscode von Ihrer Begleitperson. Haben Sie ein eigenes Claude-Abo oder einen eigenen API-Schlüssel, geht es auch ohne Code (siehe [Für Geübte](#für-geübte)).
 
-Sie suchen eine Lehrstelle? Die Installation ist dieselbe. Unter [Für Lehrstellen](#für-lehrstellen) steht, was bei dir anders ist.
+### App installieren
 
-## 1. App herunterladen und starten
+Die App laden Sie auf der [Startseite](./#laden), für Windows, macOS oder Linux.
 
-Die neueste Version finden Sie unter [Releases](https://github.com/minigraphx/bewerbungsassistent/releases/latest).
+Im Pilot ist die App noch nicht signiert. Darum warnt Ihr Betriebssystem beim ersten Start. Das ist bei dieser Version zu erwarten, und Sie müssen die Warnung einmal bestätigen. Öffnen Sie unten den Teil für Ihren Computer.
 
-Im Pilot ist die App noch nicht signiert. Darum warnt Ihr Betriebssystem beim ersten Start. Das ist bei dieser Version zu erwarten, und Sie müssen die Warnung einmal bestätigen.
+<details>
+<summary>Für Computer mit Windows</summary>
 
-### Windows
-
-1. `Bewerbungsbegleiter-Setup-<Version>.exe` herunterladen und öffnen. Warnt der Browser beim Herunterladen, behalten Sie die Datei.
+1. Die Datei `Bewerbungsbegleiter-Setup-<Version>.exe` herunterladen und öffnen. Warnt der Browser beim Herunterladen, behalten Sie die Datei.
 2. Erscheint „Der Computer wurde durch Windows geschützt“: auf **Weitere Informationen** klicken, dann auf **Trotzdem ausführen**. Die App ist nicht signiert, darum diese Warnung.
 3. Die Installation durchlaufen. Administratorrechte braucht es nicht. Die App steht danach im Startmenü.
 
 Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
-### macOS
+</details>
 
-1. `Bewerbungsbegleiter-<Version>-macOS.zip` herunterladen und im Finder öffnen.
+<details>
+<summary>Für Mac-Computer mit macOS</summary>
+
+1. Die Datei `Bewerbungsbegleiter-<Version>-macOS.zip` herunterladen und im Finder öffnen.
 2. **Die App in den Ordner „Programme“ ziehen.** Sonst funktionieren spätere Updates nicht.
 3. Die App dort öffnen. macOS warnt und öffnet sie nicht.
 4. **Systemeinstellungen → Datenschutz & Sicherheit** öffnen, nach unten scrollen und bei der App auf **Dennoch öffnen** klicken.
 
 Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
-### Linux
+</details>
+
+<details>
+<summary>Für Computer mit Linux (Ubuntu, Linux Mint)</summary>
 
 Zugesagt ist das aktuelle Ubuntu LTS. Linux Mint baut darauf auf und wird mitgeprüft. Auf anderen Systemen wie Fedora, Debian oder Arch läuft die App meist auch, aber ohne Zusage.
 
-1. `Bewerbungsbegleiter-<Version>-x86_64.AppImage` herunterladen und in einen festen Ordner legen, zum Beispiel `Programme` in Ihrem Benutzerordner. Dort soll die Datei bleiben: Die App meldet sich beim Start unter diesem Pfad an, für den Einladungslink und die Erweiterung.
+1. Die Datei `Bewerbungsbegleiter-<Version>-x86_64.AppImage` herunterladen und in einen festen Ordner legen, zum Beispiel `Programme` in Ihrem Benutzerordner. Dort soll die Datei bleiben: Die App meldet sich beim Start unter diesem Pfad an, für den Einladungslink und die Erweiterung.
 2. Die Datei ausführbar machen: im Dateimanager unter **Eigenschaften** „Als Programm ausführen“ erlauben, oder im Terminal mit `chmod +x Bewerbungsbegleiter-*.AppImage`.
 3. Die Datei doppelt anklicken. Danach steht der Bewerbungsbegleiter auch im Anwendungsmenü.
 
 Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“. Für die Erweiterung braucht es Chrome oder Edge als Paket von der Seite des Herstellers, nicht als Snap oder Flatpak (mehr unter [Häufige Fehler](#häufige-fehler)).
 
-## 2. Einrichtung in der App
+</details>
+
+### App einrichten
 
 Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Sie beenden sie im Menü **Mehr** mit **Beenden**.
 
-Die Einrichtung hat fünf Schritte und dauert zusammen etwa zehn Minuten. Jeden Schritt können Sie später ändern; Sie finden die Seite im Menü **Mehr** unter **Einrichtung**.
+Die Einrichtung hat fünf Schritte und dauert zusammen etwa zehn Minuten. Die Schritte 1 bis 4 stehen hier, Schritt 5 unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen). Jeden Schritt können Sie später ändern; Sie finden die Seite im Menü **Mehr** unter **Einrichtung**.
 
-### Schritt 1: Was wird gesucht?
+#### Schritt 1: Was wird gesucht?
 
 Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room. Klicken Sie dann auf **Weiter**.
 
-### Schritt 2: Datenordner
+Bei Lehrstellen: Wählen Sie **Eine Lehrstelle**, auch wenn Sie die App für Ihr Kind einrichten.
+
+#### Schritt 2: Datenordner
 
 ![Seite Einrichtung mit den fünf Schritten und dem Feld für den Datenordner](bilder/einrichtung-start.jpg)
 
 Hier liegen Ihr Lebenslauf, Ihre Anschreiben und Ihre Bewerbungen. Der Vorschlag unter „Dokumente“ passt meistens: Klicken Sie auf **Ordner anlegen und weiter**. Einen anderen Ordner wählen Sie mit **Ordner wählen …**.
 
-### Schritt 3: Angaben aus einer Datei
+#### Schritt 3: Angaben aus einer Datei
 
 Haben Sie schon eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus Claude, wählen Sie sie mit **Datei wählen …** und klicken auf **Importieren**. Sonst klicken Sie auf **Überspringen** und erfassen Ihre Angaben später unter **Meine Angaben**.
 
-### Schritt 4: KI
+#### Schritt 4: KI
 
 ![Schritt KI einrichten mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
 
-Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Bei der Lehrstellensuche richtet ein Elternteil oder die gesetzliche Vertretung die App ein und bestätigt das hier. Widerrufen können Sie jederzeit unter **Erweiterte Einstellungen**.
+Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Widerrufen können Sie jederzeit unter **Erweiterte Einstellungen**.
 
-Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlösen**. Haben Sie stattdessen einen Einladungslink erhalten, genügt ein Klick darauf; der Code wird nach der Einwilligung eingelöst. Ohne Code geht es mit **Ohne KI weiter**. Suche, Unterlagen und Versand funktionieren dann trotzdem.
+Bei Lehrstellen: Ein Elternteil oder die gesetzliche Vertretung richtet die App ein und bestätigt das hier.
 
-### Schritt 5: Browser-Erweiterung
+Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlösen**. Haben Sie stattdessen einen Einladungslink erhalten, genügt ein Klick darauf; der Code wird nach der Einwilligung eingelöst. Ohne Code geht es mit **Ohne KI weiter**. Suche, Unterlagen und Versand funktionieren dann trotzdem. Mit einem eigenen Claude-Abo oder einem eigenen API-Schlüssel kommen Sie auch so zur KI (siehe [Für Geübte](#für-geübte)).
 
-Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**. In Google Chrome und Microsoft Edge kommt sie aus dem Store.
+### Browser-Erweiterung hinzufügen
 
-**In Chrome:** Auf **Im Chrome Web Store öffnen** klicken, im [Eintrag im Chrome Web Store](https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo) auf **Hinzufügen** klicken und bestätigen. Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
+Das ist Schritt 5 der Einrichtung. Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus; abschicken macht sie nie. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**.
 
-**In Edge:** Auf **Im Edge-Store öffnen** klicken, im [Eintrag bei Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp) auf **Abrufen** klicken und bestätigen. Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
-
-**In allen anderen Fällen**, zum Beispiel wenn der Store nicht erreichbar ist, laden Sie die Erweiterung einmal von Hand:
+In Microsoft Edge und Google Chrome kommt die Erweiterung aus dem Store. Öffnen Sie unten den Teil für Ihren Browser.
 
 ![Schritt Browser-Erweiterung mit den Knöpfen Im Chrome Web Store öffnen und Im Edge-Store öffnen, den Knöpfen In Chrome öffnen und In Edge öffnen, dem Pfad des Ordners und dem Knopf Ordner zeigen](bilder/einrichtung-erweiterung.jpg)
+
+<details>
+<summary>Für Microsoft Edge</summary>
+
+1. In der App auf **Im Edge-Store öffnen** klicken. Der [Eintrag bei Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp) geht auf.
+2. Auf **Abrufen** klicken und bestätigen.
+
+Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
+
+</details>
+
+<details>
+<summary>Für Google Chrome</summary>
+
+1. In der App auf **Im Chrome Web Store öffnen** klicken. Der [Eintrag im Chrome Web Store](https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo) geht auf.
+2. Auf **Hinzufügen** klicken und bestätigen.
+
+Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
+
+</details>
+
+<details>
+<summary>Ohne Store laden: wenn es über den Store nicht klappt</summary>
+
+In diesem Fall laden Sie die Erweiterung einmal von Hand, in Chrome oder Edge:
 
 1. Auf **In Chrome öffnen** oder **In Edge öffnen** klicken. Die Erweiterungsseite und der Ordner der Erweiterung gehen auf.
 2. Den **Entwicklermodus** einschalten: in Chrome oben rechts, in Edge links.
@@ -91,48 +151,112 @@ Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformula
 
 Die Erweiterung steht dann in der Liste, und in der App erscheint von selbst „Die Erweiterung ist bereit“.
 
-## 3. Erste Schritte
+</details>
 
-1. **Meine Angaben**: Erfassen Sie Lebenslauf und Suchprofil. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Zum Schluss klicken Sie auf **Übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
-2. **Stellen suchen**: Klicken Sie auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Unter **Suche einstellen**, **Wo suchen Sie?**, wählen Sie die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche.
-3. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Übernehmen** legt eine Bewerbung an, **Verwerfen** blendet den Treffer aus.
-4. **Bewerben**: Die **Übersicht** zeigt unter **Das steht an**, was als Nächstes zu tun ist, und in der Liste den nächsten Schritt jeder Bewerbung. Öffnen Sie eine Bewerbung und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Der Entwurf ist ein Ausgangspunkt: Lesen Sie ihn, passen Sie ihn mit **Ändern** an die Stelle und die Firma an, und klicken Sie dann auf **Freigeben**. Danach öffnet **Formular öffnen** das Formular der Firma, und die Erweiterung füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe unten).
+## Mit der App arbeiten
+
+Du suchst eine Lehrstelle? Was bei dir anders ist, steht unter [Für Lehrstellen](#für-lehrstellen).
+
+### Angaben erfassen
+
+Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minuten. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Zum Schluss klicken Sie auf **Übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
+
+Ändern können Sie Ihre Angaben jederzeit an derselben Stelle.
+
+### Stellen suchen und bewerben
+
+1. **Stellen suchen**: Klicken Sie auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Unter **Suche einstellen**, **Wo suchen Sie?**, wählen Sie die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche.
+2. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Übernehmen** legt eine Bewerbung an, **Verwerfen** blendet den Treffer aus.
+3. **Bewerben**: Die **Übersicht** zeigt unter **Das steht an**, was als Nächstes zu tun ist, und in der Liste den nächsten Schritt jeder Bewerbung. Öffnen Sie eine Bewerbung und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Der Entwurf ist ein Ausgangspunkt: Lesen Sie ihn, passen Sie ihn mit **Ändern** an die Stelle und die Firma an, und klicken Sie dann auf **Freigeben**. Danach öffnet **Formular öffnen** das Formular der Firma, und die Erweiterung füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe [Fertige Dateien verwenden](#fertige-dateien-verwenden)).
 
 Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
 
 ### Fertige Dateien verwenden
 
+Haben Sie Lebenslauf, Zeugnisse oder ein Anschreiben schon als fertige Datei, verwendet die App sie so, wie sie sind. Öffnen Sie unten den Teil, der für Sie passt.
+
+<details>
+<summary>Lebenslauf und Zeugnisse: wenn Sie sie schon als PDF haben</summary>
+
 Unter **Meine Dateien** (im Menü **Mehr**) laden Sie Ihren Lebenslauf als PDF sowie Zertifikate und Zeugnisse hoch. Sie werden so verwendet, wie sie sind. Der Lebenslauf gilt für alle Bewerbungen, bei denen keine Variante gewählt ist. Welche Zertifikate mitgehen, wählen Sie pro Bewerbung. Die Dateien gehen nicht an die KI.
 
+![Seite „Meine Dateien“ mit einem hochgeladenen Lebenslauf, einem Zertifikat und einem Zeugnis, je mit Knopf zum Entfernen](bilder/meine-dateien.jpg)
+
+Damit das Formular auch Name, Adresse und Kontakt einfüllt, braucht es trotzdem die Angaben unter **Meine Angaben**. Ohne sie bleiben diese Felder leer, und Sie tragen sie selbst ein.
+
+</details>
+
+<details>
+<summary>Eigenes Anschreiben: wenn Sie es selbst geschrieben haben</summary>
+
 Ein eigenes Anschreiben laden Sie als PDF auf der Seite der Bewerbung hoch, unter **Eigenes Anschreiben**. Es gilt nur für diese Bewerbung und anstelle eines Entwurfs. Solange es gilt, entwirft und prüft die KI dort kein Anschreiben; den Inhalt vergleichen Sie selbst mit dem Inserat. Entfernen Sie die Datei, gilt wieder der Entwurf.
+
+</details>
+
+<details>
+<summary>Wenn im Formular ein Upload-Feld offen bleibt</summary>
 
 Hat ein Formular nur ein Feld für eine Datei, baut die App daraus ein gemeinsames PDF. Bleibt ein Upload-Feld trotzdem offen, klicken Sie im Balken oder auf der Seite der Bewerbung auf **Dateien im Ordner zeigen**. Die App legt dann alle Dateien der Bewerbung in einen Ordner, öffnet ihn und nennt den Pfad. Von dort ziehen Sie die Datei ins Formular. Oder Sie fügen den Pfad im Datei-Dialog ein: auf dem Mac mit ⇧⌘G, unter Windows im Feld „Dateiname“. Direkt in diesen Ordner kann die App den Datei-Dialog nicht lenken, das lässt der Browser nicht zu.
 
 Ersetzen Sie eine Datei, während ein Formular offen ist, behält das Formular die frühere Fassung. Laden Sie das Formular neu, damit es die aktuelle bekommt. Tauschen Sie die Datei dort nicht von Hand aus: Bei „Abgeschickt? Ja“ hält die App fest, was das Formular von ihr bekommen hat.
 
-Damit das Formular auch Name, Adresse und Kontakt einfüllt, braucht es trotzdem die Angaben unter **Meine Angaben**. Ohne sie bleiben diese Felder leer, und Sie tragen sie selbst ein.
+</details>
 
-![Seite „Meine Dateien“ mit einem hochgeladenen Lebenslauf, einem Zertifikat und einem Zeugnis, je mit Knopf zum Entfernen](bilder/meine-dateien.jpg)
-
-## Für Lehrstellen
+### Für Lehrstellen
 
 Du installierst alles genau wie oben beschrieben. Lass dir dabei ruhig von deinen Eltern oder deiner Begleitperson helfen, vor allem bei den Warnungen des Computers.
 
 Danach ist Folgendes anders:
 
 1. Unter **Meine Angaben** wählst du die **Lehrstellensuche**. Die Fragen führen dich durch alles, was es braucht.
-2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Stellen suchen** kann dir die KI Berufe vorschlagen. Du entscheidest, welche du in deine Suche aufnimmst.
+2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Lehrstellen suchen** kann dir die KI Berufe vorschlagen. Du entscheidest, welche du in deine Suche aufnimmst.
 3. Unter **Suche einstellen** wählst du, ob du Lehrstellen, Schnupperlehren oder beides suchst. Die Erweiterung sucht dann auf LENA (berufsberatung.ch) und yousty. Unter **Wo suchst du?** kannst du eines davon ausschalten.
 
 Deine Bewerbung schickst immer du selbst ab.
 
-## Eigenes Claude-Abo (freiwillig)
+## Bei Bedarf
+
+### Updates
+
+**App:** Gibt es eine neue Version, fragt die App beim Start in einem Fenster nach. Klicken Sie auf **Installieren**, oder auf **Später** und arbeiten Sie weiter. Dann steht oben ein Hinweis mit **Jetzt aktualisieren**, und beim nächsten Start fragt die App wieder. Beim **Beenden** installiert sich die neue Version von selbst im Hintergrund, beim nächsten Start läuft sie. Ihre Daten und Einstellungen bleiben erhalten.
+
+**Erweiterung:** Aus dem Store hält der Browser die Erweiterung selbst aktuell. Haben Sie sie von Hand geladen, bringt die App die neue Version mit, und die Erweiterung lädt sich von selbst neu, sobald die App läuft und keine Suche oder kein Formular offen ist. Sie müssen nichts tun. Der Entwicklermodus muss dafür eingeschaltet bleiben. Zeigt die Seite „Einrichtung“ trotzdem eine andere Version, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**. Das ist auch beim Wechsel auf die erste Version mit dieser Funktion einmal nötig.
+
+<details>
+<summary>Für Linux: die App von Hand aktualisieren</summary>
+
+Unter Linux installiert sich die App nicht selbst: Auf **Neue Version herunterladen** klicken, die neue AppImage-Datei an die Stelle der alten legen und ausführbar machen. Ihre Daten und Einstellungen bleiben erhalten.
+
+</details>
+
+<details>
+<summary>Wechsel von Version 0.2.10 oder älter: wenn die App bei Ihnen noch Bewerbungsassistent heisst</summary>
+
+Bis Version 0.2.10 hiess die App technisch `Bewerbungsassistent`. Von dort aktualisiert sie sich nicht von selbst: Sie zeigt nur den Link zum Herunterladen. Laden Sie die neue Version einmal von Hand und installieren Sie sie wie unter [App installieren](#app-installieren). Danach geht es wieder von selbst.
+
+Beim ersten Start übernimmt die neue Version Ihre Einstellungen, den Datenordner und den Zugang zur KI. Der Mac fragt dabei unter Umständen einmal nach Ihrem Passwort für den Schlüsselbund. Lehnen Sie ab, lösen Sie Ihre Einladung neu ein. Eine noch offene alte App wird dabei beendet.
+
+Von Hand bleibt:
+
+- **Mac:** Die alte `Bewerbungsassistent.app` aus „Programme“ löschen. Windows entfernt die alte Version selbst.
+- **Erweiterung:** Die alte Erweiterung auf der Erweiterungsseite des Browsers entfernen und die neue hinzufügen, wie unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen) beschrieben.
+- **Eigenes Claude-Abo:** Die drei Skills in der App neu herunterladen und in Claude ersetzen, und Claude Desktop einmal neu starten. Haben Sie die App in Claude Code eingetragen: `claude mcp remove bewerbungsassistent` und den Befehl aus den Einstellungen neu ausführen.
+
+Einladungslinks, die mit `bewerbungsassistent://` beginnen, öffnen die App nicht mehr. Geben Sie den Code in diesem Fall in der App ein.
+
+</details>
+
+### Für Geübte
+
+Beides ist freiwillig. Mit dem Einladungscode allein läuft die App schon. Haben Sie keinen Code, kommen Sie auf einem dieser Wege zur KI.
+
+#### Eigenes Claude-Abo (freiwillig)
 
 Wer ein Abo bei Anthropic hat, kann auch in Claude arbeiten und das Ergebnis in die App schreiben lassen, ohne Einladung. Die KI-Knöpfe der App laufen damit nicht. Mehr dazu in der Anleitung [Mit dem eigenen Claude-Abo arbeiten](eigenes-abo.md).
 
-## Eigener API-Schlüssel (freiwillig)
+#### Eigener API-Schlüssel (freiwillig)
 
-Sie brauchen das nicht: Die App läuft auch mit dem Einladungscode allein. Ein eigener Schlüssel lohnt sich, wenn Sie mehr KI nutzen möchten, als Ihr Budget im Pilot erlaubt, oder wenn die Suche zusätzliche Seiten lesen soll. Das geht nur mit eigenem Schlüssel.
+Ein eigener Schlüssel lohnt sich, wenn Sie mehr KI nutzen möchten, als Ihr Budget im Pilot erlaubt, oder wenn die Suche zusätzliche Seiten lesen soll. Das geht nur mit eigenem Schlüssel.
 
 Das ändert sich damit:
 
@@ -140,7 +264,8 @@ Das ändert sich damit:
 - Sie tragen die Kosten selbst. Anthropic rechnet direkt mit Ihnen ab.
 - Für die Verarbeitung gilt Ihr eigener Vertrag mit Anthropic, auch in den USA.
 
-### Schlüssel bei Anthropic holen
+<details>
+<summary>Schlüssel bei Anthropic holen</summary>
 
 Auch mit einem Abo von Claude brauchen Sie dafür ein Konto in der Console, denn die API rechnet Anthropic [getrennt vom Abo](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console) ab.
 
@@ -150,7 +275,10 @@ Auch mit einem Abo von Claude brauchen Sie dafür ein Konto in der Console, denn
 
 Behandeln Sie den Schlüssel wie ein Passwort: Wer ihn hat, kann auf Ihre Kosten die KI nutzen. Geben Sie ihn nicht weiter und schicken Sie ihn nicht per E-Mail. Ist er doch einmal in fremde Hände geraten, löschen Sie ihn in der Console.
 
-### Schlüssel in der App eintragen
+</details>
+
+<details>
+<summary>Schlüssel in der App eintragen</summary>
 
 ![Abschnitt Eigener API-Schlüssel mit den Hinweisen, dem Häkchen und dem Feld für den Schlüssel](bilder/einstellungen-schluessel.jpg)
 
@@ -162,7 +290,10 @@ Die App prüft den Schlüssel mit einem kleinen, kostenlosen Aufruf. Zum Guthabe
 
 Was die KI gekostet hat, steht oben auf derselben Seite unter **Kosten der KI**. Das ist die eigene Notiz der App. Massgebend ist die Abrechnung von Anthropic.
 
-### Weitere Seiten durchsuchen
+</details>
+
+<details>
+<summary>Weitere Seiten durchsuchen</summary>
 
 Mit gespeichertem Schlüssel erscheint auf derselben Seite dieser Abschnitt. Hier tragen Sie Seiten ein, auf denen die Suche zusätzlich schauen soll, zum Beispiel die offenen Stellen einer Firma.
 
@@ -170,7 +301,7 @@ Mit gespeichertem Schlüssel erscheint auf derselben Seite dieser Abschnitt. Hie
 
 1. Unter **Adressen** höchstens fünf Adressen eintragen, eine pro Zeile. Kopieren Sie die Adresse einfach aus der Adresszeile des Browsers, etwa `https://www.beispiel.ch/stellen`.
 2. Auf **Seiten speichern** klicken.
-3. Auf **Zugriff in der Erweiterung erlauben** klicken. Die Erweiterung öffnet eine eigene Seite. Dort klicken Sie auf **Zugriff erlauben und weiter** und bestätigen die Frage des Browsers. Das ist einmal nötig.
+3. Auf **Zugriff in der Erweiterung erlauben** klicken. Die Erweiterung öffnet eine eigene Seite. Dort klicken Sie auf **Erlaubnis geben** und bestätigen die Frage des Browsers. Das ist einmal nötig.
 
 Ab der nächsten Suche kommen die Seiten dazu. Hat eine Seite ein Suchfeld, sucht die App dort mit den Begriffen aus Ihrem Suchprofil. Sonst liest sie die Stellen, die auf der Seite stehen. Findet sie nichts, öffnen Sie im Browser die Seite mit den offenen Stellen und tragen deren Adresse ein.
 
@@ -178,41 +309,33 @@ Die Suche liest pro Seite und Lauf höchstens zehn Ergebnisseiten und dreissig I
 
 **LinkedIn** verbietet Automatisierung und kann Konten einschränken oder sperren. Tragen Sie LinkedIn als Seite ein, liegt dieses Risiko bei Ihnen. Auch andere Portale regeln in ihren Bedingungen, was automatisiert erlaubt ist. Prüfen Sie das, bevor Sie ein Portal eintragen.
 
-### Schlüssel entfernen
+</details>
+
+<details>
+<summary>Schlüssel entfernen</summary>
 
 Klicken Sie unter **Erweiterte Einstellungen** auf **Schlüssel entfernen**. Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab. Die weiteren Seiten werden dann nicht mehr durchsucht.
 
 Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, löschen Sie ihn auch in der Console.
 
-## Updates
+</details>
 
-**App:** Gibt es eine neue Version, fragt die App beim Start in einem Fenster nach. Klicken Sie auf **Installieren**, oder auf **Später** und arbeiten Sie weiter. Dann steht oben ein Hinweis mit **Jetzt aktualisieren**, und beim nächsten Start fragt die App wieder. Beim **Beenden** installiert sich die neue Version von selbst im Hintergrund, beim nächsten Start läuft sie. Ihre Daten und Einstellungen bleiben erhalten.
+### Häufige Fehler
 
-**Unter Linux** installiert sich die App nicht selbst: Auf **Neue Version herunterladen** klicken, die neue AppImage-Datei an die Stelle der alten legen und ausführbar machen. Ihre Daten und Einstellungen bleiben erhalten.
-
-**Erweiterung:** Die App bringt die neue Version mit, und die Erweiterung lädt sich von selbst neu, sobald die App läuft und keine Suche oder kein Formular offen ist. Sie müssen nichts tun. Der Entwicklermodus muss dafür eingeschaltet bleiben. Zeigt die Seite „Einrichtung“ trotzdem eine andere Version, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**. Das ist auch beim Wechsel auf die erste Version mit dieser Funktion einmal nötig.
-
-### Wechsel von Version 0.2.10 oder älter
-
-Bis Version 0.2.10 hiess die App technisch `Bewerbungsassistent`. Von dort aktualisiert sie sich nicht von selbst: Sie zeigt nur den Link zum Herunterladen. Laden Sie die neue Version einmal von Hand und installieren Sie sie wie oben. Danach geht es wieder von selbst.
-
-Beim ersten Start übernimmt die neue Version Ihre Einstellungen, den Datenordner und den Zugang zur KI. Der Mac fragt dabei unter Umständen einmal nach Ihrem Passwort für den Schlüsselbund. Lehnen Sie ab, lösen Sie Ihre Einladung neu ein. Eine noch offene alte App wird dabei beendet.
-
-Von Hand bleibt:
-
-- **Mac:** Die alte `Bewerbungsassistent.app` aus „Programme“ löschen. Windows entfernt die alte Version selbst.
-- **Erweiterung:** Die alte Erweiterung auf der Erweiterungsseite des Browsers entfernen und den neuen Ordner laden, wie in Schritt 5 beschrieben.
-- **Eigenes Claude-Abo:** Die drei Skills in der App neu herunterladen und in Claude ersetzen, und Claude Desktop einmal neu starten. Haben Sie die App in Claude Code eingetragen: `claude mcp remove bewerbungsassistent` und den Befehl aus den Einstellungen neu ausführen.
-
-Einladungslinks, die mit `bewerbungsassistent://` beginnen, öffnen die App nicht mehr. Geben Sie den Code in diesem Fall in der App ein.
-
-## Häufige Fehler
+#### Beim Start
 
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Diese Seite öffnet sich nur über die App“ | Sie haben die Adresse von Hand geöffnet oder in einem anderen Browser. Öffnen Sie den Bewerbungsbegleiter über sein Programmsymbol, auch wenn er schon läuft. Andere Konten auf demselben Rechner kommen so nicht an Ihre Daten. |
 | Windows blockiert die Datei, und **Trotzdem ausführen** fehlt | Vermutlich ist [Smart App Control](https://support.microsoft.com/de-de/windows/smart-app-control-frequently-asked-questions-285ea03d-fa88-4d56-882e-6698afdb7003) aktiv. Es blockiert nicht signierte Programme, und laut Microsoft gibt es keine Ausnahme für einzelne Programme. Die App läuft dann nur, wenn Sie es in der Windows-Sicherheit ausschalten. Das gilt für alle Programme; entscheiden Sie das bewusst, bei Jugendlichen zusammen mit der Begleitperson. |
-| „Für die Suche braucht es die Browser-Erweiterung.“ | Die Erweiterung ist nicht geladen oder ausgeschaltet. Gehen Sie zu [Schritt 5](#schritt-5-browser-erweiterung), oder schalten Sie sie auf der Erweiterungsseite ein. |
+| „Zuerst in den Ordner Programme verschieben“ (macOS) | Beenden Sie die App, ziehen Sie sie in den Ordner „Programme“ und starten Sie sie von dort. |
+| „Der Datenordner … wurde nicht gefunden“ | Liegt er auf einem USB-Stick, stecken Sie ihn ein und laden die Seite neu. Oder wählen Sie einen anderen Ordner. |
+| Die Seite der App reagiert nicht mehr | Starten Sie die App neu. Ihre Daten bleiben erhalten. |
+
+#### Mit der KI
+
+| Meldung oder Problem | Was hilft |
+|---|---|
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
 | „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein. |
 | „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 4](#schritt-4-ki) ein. |
@@ -221,12 +344,25 @@ Einladungslinks, die mit `bewerbungsassistent://` beginnen, öffnen die App nich
 | „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
 | „Dieser Schlüssel gilt nicht.“ | Prüfen Sie in der [Console](https://platform.claude.com/settings/keys), ob es ihn noch gibt, oder erstellen Sie einen neuen. Gespeichert wurde nichts. |
 | „Das Guthaben bei Anthropic reicht nicht mehr.“ | Laden Sie unter [Billing](https://platform.claude.com/settings/billing) nach, oder entfernen Sie den eigenen Schlüssel. |
-| „Zuerst in den Ordner Programme verschieben“ (macOS) | Beenden Sie die App, ziehen Sie sie in den Ordner „Programme“ und starten Sie sie von dort. |
-| „Der Datenordner … wurde nicht gefunden“ | Liegt er auf einem USB-Stick, stecken Sie ihn ein und laden die Seite neu. Oder wählen Sie einen anderen Ordner. |
-| Die Seite der App reagiert nicht mehr | Starten Sie die App neu. Ihre Daten bleiben erhalten. |
-| Linux: Das AppImage startet nicht, und es erscheint ein Hinweis auf FUSE | Unter Ubuntu und Mint `sudo apt install fuse3`, unter Arch `sudo pacman -S fuse3`, unter Fedora `sudo dnf install fuse3`. Danach die Datei erneut öffnen. |
-| Linux: Die Erweiterung findet die App nicht | Chrome oder Edge laufen vermutlich als Snap oder Flatpak, etwa das Chromium von Ubuntu. Solche Browser dürfen keine Programme ausserhalb starten. Installieren Sie Chrome oder Edge als `.deb`-Paket von der Seite von Google oder Microsoft und starten Sie danach die App einmal neu. |
-| Linux: „Der Zugang liess sich nicht im Schlüsselbund des Systems ablegen“ | Die App legt den Zugang zur KI nur verschlüsselt ab, im Schlüsselbund des Systems. Ubuntu und Mint haben ihn. Auf schlanken Desktops fehlt er manchmal: den GNOME-Schlüsselbund (`gnome-keyring`) oder KWallet installieren, neu anmelden und den Einladungslink nochmals öffnen. |
-| Linux: „Für den Auswahldialog fehlt zenity oder kdialog“ | Den Pfad ins Feld darunter tippen, oder `zenity` installieren (`sudo apt install zenity`). |
+
+#### Mit der Erweiterung
+
+| Meldung oder Problem | Was hilft |
+|---|---|
+| „Für die Suche braucht es die Browser-Erweiterung.“ | Die Erweiterung ist nicht hinzugefügt oder ausgeschaltet. Gehen Sie zu [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen), oder schalten Sie sie auf der Erweiterungsseite ein. |
+
+<details>
+<summary>Für Computer mit Linux: Fehler, die nur dort vorkommen</summary>
+
+| Meldung oder Problem | Was hilft |
+|---|---|
+| Das AppImage startet nicht, und es erscheint ein Hinweis auf FUSE | Unter Ubuntu und Mint `sudo apt install fuse3`, unter Arch `sudo pacman -S fuse3`, unter Fedora `sudo dnf install fuse3`. Danach die Datei erneut öffnen. |
+| Die Erweiterung findet die App nicht | Chrome oder Edge laufen vermutlich als Snap oder Flatpak, etwa das Chromium von Ubuntu. Solche Browser dürfen keine Programme ausserhalb starten. Installieren Sie Chrome oder Edge als `.deb`-Paket von der Seite von Google oder Microsoft und starten Sie danach die App einmal neu. |
+| „Der Zugang liess sich nicht im Schlüsselbund des Systems ablegen“ | Die App legt den Zugang zur KI nur verschlüsselt ab, im Schlüsselbund des Systems. Ubuntu und Mint haben ihn. Auf schlanken Desktops fehlt er manchmal: den GNOME-Schlüsselbund (`gnome-keyring`) oder KWallet installieren, neu anmelden und den Einladungslink nochmals öffnen. |
+| „Für den Auswahldialog fehlt zenity oder kdialog“ | Den Pfad ins Feld darunter tippen, oder `zenity` installieren (`sudo apt install zenity`). |
+
+</details>
+
+### Hilfe
 
 Kommen Sie nicht weiter, melden Sie sich bei der Person, die Sie im Pilot begleitet.
