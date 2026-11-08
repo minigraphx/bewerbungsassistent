@@ -59,13 +59,27 @@ const docs = require("../src/documents.js");
 
 test("chosen files are checked together with those already there", () => {
   const current = [{ category: "lebenslauf-bisher", name: "cv.pdf", size: 10 }, { category: "lebenslauf-bisher", name: "cv2.pdf", size: 10 }];
-  const chosen = [{ name: "C:\\Users\\x\\cv.pdf", size: 10 }, { name: "neu.docx", size: 10 }, { name: "noch.pdf", size: 10 }, { name: "bild.png", size: 10 }];
+  const chosen = [{ name: "C:\\Users\\x\\cv.pdf", size: 10 }, { name: "neu.docx", size: 10 }, { name: "bild.png", size: 10 }];
   const { accepted, messages } = docs.planUploads(form, "job", current, "lebenslauf-bisher", chosen);
   assert.deepEqual(accepted, [{ index: 1, category: "lebenslauf-bisher", name: "neu.docx", size: 10 }]);
-  assert.equal(messages.length, 3);
+  assert.equal(messages.length, 2);
   assert.match(messages[0], /schon dabei/);
-  assert.match(messages[1], /Zu viele Dateien \(höchstens 3\)/);
-  assert.match(messages[2], /Dateityp/);
+  assert.match(messages[1], /Dateityp/);
+});
+
+test("more files than fit: those that fit are added, one message says how many were left out", () => {
+  const current = Array.from({ length: 8 }, (_, i) => ({ category: "lebenslauf-bisher", name: `cv${i}.pdf`, size: 10 }));
+  const chosen = ["a.pdf", "b.pdf", "c.pdf", "d.pdf", "e.pdf"].map((name) => ({ name, size: 10 }));
+  const { accepted, messages } = docs.planUploads(form, "job", current, "lebenslauf-bisher", chosen);
+  assert.deepEqual(accepted.map((a) => a.name), ["a.pdf", "b.pdf"]);
+  assert.deepEqual(messages, ["Bisheriger Lebenslauf: höchstens 10 Dateien. 3 Dateien wurden nicht hinzugefügt."]);
+});
+
+test("one file left out is named in the singular", () => {
+  const current = Array.from({ length: 10 }, (_, i) => ({ category: "lebenslauf-bisher", name: `cv${i}.pdf`, size: 10 }));
+  const { accepted, messages } = docs.planUploads(form, "apprenticeship", current, "lebenslauf-bisher", [{ name: "x.pdf", size: 10 }]);
+  assert.deepEqual(accepted, []);
+  assert.deepEqual(messages, ["Bisheriger Lebenslauf: höchstens 10 Dateien. Eine Datei wurde nicht hinzugefügt."]);
 });
 
 test("images are taken for certificates", () => {
@@ -99,5 +113,5 @@ test("a loaded ZIP with unexpected content is refused", () => {
 });
 
 test("a saved ZIP may hold the answers and the most files of every category", () => {
-  assert.equal(docs.maxUploadEntries(form), 1 + 3 + 20 + 30 + 10);
+  assert.equal(docs.maxUploadEntries(form), 1 + 10 + 20 + 30 + 10);
 });

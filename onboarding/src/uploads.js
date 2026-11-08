@@ -11,6 +11,7 @@ const UPLOAD_TEXT = {
     skip: "Weiter zum Speichern",
     app: "Die Dateien kommen sofort in Ihren Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer.",
     skipHint: "Mit Unterlagen können Sie die übrigen Schritte auslassen oder nur ausfüllen, was Sie gerade wissen.",
+    full: (max) => `Höchstens ${max} Dateien. Entfernen Sie eine, wenn Sie eine andere wählen möchten.`,
   },
   apprenticeship: {
     kept: "Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen, und kommen mit in die gespeicherte Datei. „Alles löschen“ im letzten Schritt entfernt sie.",
@@ -19,6 +20,7 @@ const UPLOAD_TEXT = {
     skip: "Weiter zum Speichern",
     app: "Die Dateien kommen sofort in deinen Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer.",
     skipHint: "Mit Unterlagen kannst du die übrigen Schritte auslassen oder nur ausfüllen, was du gerade weisst.",
+    full: (max) => `Höchstens ${max} Dateien. Entferne eine, wenn du eine andere wählen möchtest.`,
   },
 };
 const BYTES_PER_KB = 1000;
@@ -68,11 +70,17 @@ function categoryView(ctx, category, text) {
       el("span", { className: "file-size" }, formatSize(upload.size)),
       el("button", { type: "button", className: "remove", "aria-label": `${upload.name} entfernen`, onclick: () => ctx.onRemove(index) }, "Entfernen"),
     ]));
+  const { count, maxFiles } = categoryRoom(form, uploads, category.id);
+  const full = count >= maxFiles; // the file dialog cannot be told how many files it may take
   return el("fieldset", { className: "item upload-category", "aria-describedby": `${id}-hint` }, [
     el("legend", {}, forTrack(category.title, track)),
     el("p", { className: "hint", id: `${id}-hint` }, `${capitalize(forTrack(category.hint, track))}. Erlaubt: ${allowedText(form, category)}.`),
     files.length ? el("ul", { className: "files" }, files) : null,
-    el("button", { type: "button", className: "add", dataset: { category: category.id }, onclick: () => input.click() }, `+ ${text.choose}`),
+    el("button", {
+      type: "button", className: "add", dataset: { category: category.id }, disabled: full,
+      "aria-describedby": full ? `${id}-full` : null, onclick: () => input.click(),
+    }, `+ ${text.choose}`),
+    full ? el("p", { className: "hint limit-note", id: `${id}-full` }, text.full(maxFiles)) : null,
     input,
   ]);
 }
