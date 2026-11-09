@@ -148,6 +148,14 @@
     </div>
 
     <aside class="application__side">
+      <section class="card" id="beenden-teil" aria-labelledby="beenden-titel" hidden>
+        <h2 id="beenden-titel">Bewerbung beenden</h2>
+        <p class="field__hint" id="beenden-hinweis"></p>
+        <div class="btn-row">
+          <button type="button" class="btn" id="verwerfen" hidden>Verwerfen</button>
+          <button type="button" class="btn" id="zurueckziehen" hidden>Zurückziehen</button>
+        </div>
+      </section>
       <section class="card" aria-labelledby="angaben-titel">
         <div class="application__side-head"><h2 id="angaben-titel" data-text="bewerbung.angaben">Angaben zur Stelle</h2><button type="button" class="btn btn--quiet btn--sm" id="angaben-aendern">Ändern</button></div>
         <dl class="facts" id="fakten"></dl>

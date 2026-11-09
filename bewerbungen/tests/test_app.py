@@ -247,6 +247,28 @@ def test_neu_und_speichern_legt_entwuerfe_an(server):
     assert len(server.kontext.ablage.liste(server.kontext.daten / "bewerbungen.yaml")) >= 2
 
 
+def test_the_end_buttons_stay_outside_what_hides_before_sending(server):
+    page = anfrage(server, "GET", "/bewerbung", headers=session_header(server))[2].decode("utf-8")
+
+    end = page.index('id="beenden-teil"')
+    record = page.index('id="s-festhalten"')
+    assert page.index('id="verwerfen"') > end and page.index('id="zurueckziehen"') > end
+    assert not record < end < page.index("</section>", record)
+    assert ">Verwerfen</button>" in page and ">Zurückziehen</button>" in page
+
+
+def test_an_application_past_its_deadline_is_withdrawn_with_drafts(server):
+    _, b = post(server, "/api/bewerbung/neu", {"firma": "Muster AG", "stelle": "Sachbearbeiterin"})
+    post(server, "/api/bewerbung", {"id": b["id"], "status": "Beworben", "beworben_am": "2026-01-05", "frist": "2026-01-15"})
+    vorher = len(server.kontext.ablage.liste(server.kontext.daten / "bewerbungen.yaml"))
+
+    status, gespeichert = post(server, "/api/bewerbung", {"id": b["id"], "status": "Zurückgezogen"})
+
+    assert status == 200
+    assert gespeichert["status"] == "Zurückgezogen"
+    assert len(server.kontext.ablage.liste(server.kontext.daten / "bewerbungen.yaml")) > vorher
+
+
 def test_speichern_ungueltig(server):
     status, antwort = post(server, "/api/bewerbung", {"id": BRIEF_ID, "firma": "Beispiel AG", "stelle": "X", "status": "Kaputt"})
 

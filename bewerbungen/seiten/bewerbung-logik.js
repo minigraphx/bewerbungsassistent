@@ -92,6 +92,18 @@
     }
   }
 
+  // G29: ending an application never depends on the deadline, the person decides when it is over.
+  const ENDE = {
+    Gemerkt: "Verworfen", Bewerben: "Verworfen",
+    Beworben: "Zurückgezogen", Gespräch: "Zurückgezogen",
+  };
+
+  /** The stage that ends the application from its current one: { stand } or null once it is over. */
+  function beenden(b) {
+    const stand = ENDE[b.status];
+    return stand ? { stand } : null;
+  }
+
   /** Dates of the application as a short history, oldest first. */
   function verlauf(b) {
     const punkte = [
@@ -105,7 +117,7 @@
     return punkte.sort((x, y) => x[0].localeCompare(y[0])).map(([wann, was]) => ({ datum: wann, text: was }));
   }
 
-  const logik = { SCHRITTE, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, verlauf };
+  const logik = { SCHRITTE, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf };
   if (typeof module !== "undefined") module.exports = logik;
   else global.BewerbungLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);
