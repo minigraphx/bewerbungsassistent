@@ -487,13 +487,15 @@ def _window(value: str) -> tuple[int, tuple[str, ...]]:
 
 
 def portal_days(window: int, portals: tuple[str, ...], last_success: dict, today: datetime.date) -> dict[str, int]:
-    """Per portal the days since its last successful run, the day of that run included, never more than the window."""
+    """Per portal the days since its last successful run, the day of that run included, never more than the window.
+
+    A date in the future (a clock that was wrong, a copied data folder) says nothing about what was searched: full window."""
     def days(portal: str) -> int:
         try:
             since = (today - datetime.date.fromisoformat(str(last_success.get(portal)))).days
         except ValueError:
             return window
-        return min(window, max(MIN_WINDOW_DAYS, since + 1))
+        return window if since < 0 else min(window, max(MIN_WINDOW_DAYS, since + 1))
     return {portal: days(portal) for portal in portals}
 
 
