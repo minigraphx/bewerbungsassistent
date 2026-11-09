@@ -28,6 +28,10 @@ MAX_STARS = 5
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
            "LENA": "berufsberatung.ch", "yousty": "yousty.ch"}
+# Say who clicked or which session it was, not which ad; they stay out of the register, and the AI gets no address at all.
+TRACKING = {"refid", "trk", "trackingid", "ref", "src", "source", "gclid", "fbclid", "mc_cid", "mc_eid", "midtoken", "midsig",
+            "lipi", "eid", "token", "otptoken", "sid", "sessionid", "session"}
+ROUTE_FRAGMENT = ("/", "!/")
 STATES = ("neu", "uebernommen", "verworfen")
 MAX_FIELD = 200
 MAX_ID = 200
@@ -72,6 +76,33 @@ def bounded_text(value, field: str, required: bool = False, limit: int = MAX_FIE
     if required and not text:
         raise ValueError(f"{field} fehlt")
     return text
+
+
+def without_tracking(query: str) -> list[tuple[str, str]]:
+    pairs = urllib.parse.parse_qsl(query, keep_blank_values=True)
+    return [(k, v) for k, v in pairs if k.lower() not in TRACKING and not k.lower().startswith("utm_")]
+
+
+def comparable_link(link: str, any_fragment: bool = False) -> str:
+    """The same ad under another scheme, with or without www, a slash or tracking values gives the same text.
+
+    `any_fragment` is for links the search builds: there „#schnupperlehre“ tells a trial from the apprenticeship."""
+    parts = urllib.parse.urlsplit(link or "")
+    query = urllib.parse.urlencode(sorted(without_tracking(parts.query)))
+    fragment = parts.fragment if any_fragment or parts.fragment.startswith(ROUTE_FRAGMENT) else ""
+    host = (parts.hostname or "").lower().removeprefix("www.")
+    return f"{host}{parts.path.rstrip('/')}?{query}#{fragment}"
+
+
+def is_trial(link: str, kind: str = "") -> bool:
+    """A trial apprenticeship: yousty shows it on the apprenticeship's page, only „#schnupperlehre“ tells them apart."""
+    return kind == TRIAL or urllib.parse.urlsplit(link or "").fragment == TRIAL.lower()
+
+
+def portal_of(link: str) -> str | None:
+    """The portal whose site the link is on, by name as the search stores it; None for any other site."""
+    host = (urllib.parse.urlsplit(link or "").hostname or "").lower()
+    return next((portal for portal, domain in DOMAINS.items() if host == domain or host.endswith("." + domain)), None)
 
 
 def checked_link(value, portal: str) -> str:
@@ -311,14 +342,15 @@ class Hits:
         with _LOCK:
             stored = self.all()
             known_keys = {key(h) for h in stored}
-            known_links = ({b.get("link") for b in register if b.get("link")} | {h.get("link") for h in stored}
-                           | {o["link"] for h in stored for o in h.get("weitere", [])})
+            links = ([b.get("link") for b in register] + [h.get("link") for h in stored]
+                     + [o["link"] for h in stored for o in h.get("weitere", [])])
+            known_links = {comparable_link(link, any_fragment=True) for link in links if link}
             for raw in listing[:MAX_HITS_PER_CALL * 5]:
                 try:
                     hit = validate(raw, own_portals)
                 except ValueError:
                     continue
-                if key(hit) in known_keys or hit["link"] in known_links:
+                if key(hit) in known_keys or comparable_link(hit["link"], any_fragment=True) in known_links:
                     known += 1
                     continue
                 twin = _find_twin(hit, stored)
