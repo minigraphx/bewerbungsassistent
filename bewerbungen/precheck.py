@@ -40,13 +40,14 @@ LEVEL_WORDS = (
 LEVEL = re.compile("|".join(f"(?P<l{level}>{words})" for level, words in LEVEL_WORDS), re.IGNORECASE)
 LEVEL_NAMES = {1: "A1", 2: "A2", 3: "B1", 4: "B2", 5: "C1", 6: "C2", 7: "Muttersprache"}
 MAX_DISTANCE = 40  # characters between a language and its level
-# „die perfekte Ergänzung“, „ein mittleres Unternehmen“: an inflected level adjective before another noun is about
-# that noun. Before a language, „Kenntnisse“ and the like, or lower case („gute mündliche …“), it stays a level.
+# „die perfekte Ergänzung“, „sehr gute analytische Fähigkeiten“: an inflected level adjective is about the noun it
+# qualifies, past further adjectives. Only a language or „Kenntnisse“, „Sprache“ and the like keep it a level.
 LEVEL_ADJECTIVE = re.compile(r"(?:perfekt|ausgezeichnet|gut|mittler|verhandlungssicher|stilsicher|flie(?:ss|ß)end)"
                              r"(?:e|en|es|er|em)$", re.IGNORECASE)
-NEXT_NOUN = re.compile(r"\s+([A-ZÄÖÜ][\w-]*)")
-LANGUAGE_NOUN = re.compile(r"kenntnis|sprach|speaker|ausdruck|beherrsch|kommunikation|verständnis|niveau|wort|schrift|"
-                           + "|".join(LANGUAGES), re.IGNORECASE)
+NEXT_NOUN = re.compile(r"(?:\s+[a-zäöü][\w-]*){0,4}?\s+([A-ZÄÖÜ][\w-]*)")
+# Anchored at the start of the noun: „IT-Kenntnisse“, „Fachkenntnisse“ or „Antwort“ are no language.
+LANGUAGE_NOUN = re.compile(r"(?:fremd|mutter|erst)?sprach|(?:grund)?kenntnis|speaker|ausdruck|beherrsch|kommunikation"
+                           r"|verständnis|niveau|wort\b|schrift", re.IGNORECASE)
 # „passen Sie perfekt in unser Team“, „passt ausgezeichnet zu uns“: a level adverb before „in“ or „zu“ and anything
 # but a language or „Wort und Schrift“ is about fitting in. „fliessend in Deutsch“ stays a level.
 LEVEL_ADVERB = re.compile(r"(?:perfekt|ausgezeichnet|gut|verhandlungssicher|stilsicher)$", re.IGNORECASE)
@@ -140,14 +141,20 @@ def for_folder(data_dir: pathlib.Path) -> Person:
     return person_of(cv, profile)
 
 
+def _names_language(word: str) -> bool:
+    return bool(LANGUAGE_NOUN.match(word) or LANGUAGE_IN_NAME.search(word))
+
+
 def _about_another_noun(clause: str, match: re.Match) -> bool:
     noun = NEXT_NOUN.match(clause, match.end())
-    if LEVEL_ADJECTIVE.search(match[0]) and noun and not LANGUAGE_NOUN.search(noun[1]):
+    # „sehr gute englische Texte“ still asks for English; „italienischsprachige Kunden“ does not
+    skipped = [word for word in clause[match.end():noun.start(1)].split() if "sprachig" not in word.lower()] if noun else []
+    if LEVEL_ADJECTIVE.search(match[0]) and noun and not any(map(_names_language, [*skipped, noun[1]])):
         return True
     after = NEXT_AFTER_PREPOSITION.match(clause, match.end())
     # „ins italienischsprachige Team“ names the team, not the language
     return bool(LEVEL_ADVERB.search(match[0]) and after
-                and (not LANGUAGE_NOUN.search(after[1]) or "sprachig" in after[1].lower()))
+                and (not _names_language(after[1]) or "sprachig" in after[1].lower()))
 
 
 def _nearest_level(clause: str, mention: re.Match) -> int | None:

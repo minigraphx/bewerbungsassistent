@@ -196,6 +196,46 @@ def test_a_level_adverb_about_the_language_still_counts(text):
     assert check(text).startswith("Verlangt Französisch auf Niveau C2")
 
 
+B2_ENGLISH = precheck.Person(languages={"deutsch": 7, "englisch": 4}, degree=None, excluded=())
+
+
+@pytest.mark.parametrize("text", [
+    "Sehr gute analytische Fähigkeiten sowie Englischkenntnisse.",
+    "Ausgeprägte Kundenorientierung, sehr gute analytische Fähigkeiten und Englischkenntnisse.",
+    "Ausgezeichnete analytische Fähigkeiten und Englisch.",
+    "Sehr gute IT-Kenntnisse und Englisch.",
+    "Sehr gute soziale und agile Fähigkeiten und Englisch.",
+    "Sehr gute MS-Office-Kenntnisse sowie Englischkenntnisse.",
+    "Sehr gute PC-Kenntnisse und Englisch.",
+    "Sehr gute Fachkenntnisse und Englisch.",
+    "Ausgezeichnete SAP-Kenntnisse und Englisch.",
+    "Sehr gute Informatikkenntnisse und Englisch.",
+    "Perfekte kommunikative Fähigkeiten und Englisch.",
+])
+def test_a_level_adjective_before_another_noun_is_no_language_level(text):
+    assert precheck.check("Analyst", text, B2_ENGLISH) == ""
+
+
+def test_good_skills_beside_a_language_ask_no_level_of_it():
+    b1_english = precheck.Person(languages={"deutsch": 7, "englisch": 3}, degree=None, excluded=())
+    assert precheck.check("Analyst", "Gute organisatorische Fähigkeiten und Englischkenntnisse", b1_english) == ""
+    assert precheck.check("Analyst", "Gute mündliche Englischkenntnisse", b1_english) \
+        == "Verlangt Englisch auf Niveau B2, vorhanden ist B1."
+
+
+@pytest.mark.parametrize("text", [
+    "Sehr gute mündliche und schriftliche Englischkenntnisse.",
+    "Sehr gute Sprachkenntnisse in Englisch.",
+    "Sehr gute Fremdsprachenkenntnisse in Englisch.",
+    "Sehr gute Kenntnisse der englischen Sprache.",
+    "Sehr gute Englisch- und Deutschkenntnisse.",
+    "Ausgezeichnete schriftliche Ausdrucksfähigkeit in Englisch.",
+    "Sehr gute englische Texte schreiben Sie selbständig.",
+])
+def test_a_level_adjective_before_the_language_still_counts(text):
+    assert precheck.check("Analyst", text, B2_ENGLISH) == "Verlangt Englisch auf Niveau C1, vorhanden ist B2."
+
+
 def test_swiss_german_and_standard_german_in_cv_yaml_count_as_german():
     cv = {"languages": [{"language": "Schweizerdeutsch", "fluency": "Muttersprache"}, {"language": "Hochdeutsch", "fluency": "C2"}]}
     person = precheck.person_of(cv, "# Suchprofil\n")
