@@ -239,6 +239,8 @@ def rate_package(k, parameter, body):
 
 
 def settings(k, parameter, body):
+    if isinstance(body, dict) and "sortierung" in body:
+        return json_antwort(_hits(k).set_order(body["sortierung"]))
     if isinstance(body, dict) and PORTALS_OFF in body:
         wanted = search_plan.checked_choice(body[PORTALS_OFF], _page_kind(k))
         return json_antwort(_hits(k).set_portals_off(wanted))
@@ -253,6 +255,13 @@ def stars(k, parameter, body):
     if not isinstance(body, dict):
         raise ValueError("beruf und sterne erwartet")
     return json_antwort(_hits(k).set_stars(body.get("beruf"), body.get("sterne")))
+
+
+def own_stars(k, parameter, body):
+    """Own stars of one hit (G22): only from the page, the extension and Claude cannot reach this route."""
+    if not isinstance(body, dict):
+        raise ValueError("sterne erwartet")
+    return json_antwort(_hits(k).set_own_stars(pflicht(parameter, "id"), body.get("sterne")))
 
 
 def note_for(hit: dict) -> str:
@@ -318,4 +327,4 @@ def discard(k, parameter, body):
 GET = {"/api/suche/plan": plan, "/api/suche/liste": overview, "/api/suche/text": text}
 POST = {"/api/suche/sichten": screen, "/api/suche/treffer": receive, "/api/suche/abschluss": finish,
         "/api/suche/bewerten": rate, "/api/suche/bewerten-paket": rate_package, "/api/suche/bewertung": own_rating, "/api/suche/einstellungen": settings,
-        "/api/suche/beruf-sterne": stars, "/api/suche/angebot": choose_offers, "/api/suche/uebernehmen": take_over, "/api/suche/verwerfen": discard}
+        "/api/suche/beruf-sterne": stars, "/api/suche/sterne": own_stars, "/api/suche/angebot": choose_offers, "/api/suche/uebernehmen": take_over, "/api/suche/verwerfen": discard}

@@ -23,13 +23,26 @@
     return neue.length > 0 && neue.every(t => t.bewertung);
   }
 
-  /** Own stars of the profession first, then the grade, then near the home, then the newest. Hits without a profession count as no stars. */
-  function sortiert(treffer, sterne) {
-    const eigene = t => sterne[t.beruf] || 0;
-    return [...treffer].sort((a, b) => eigene(b) - eigene(a)
+  const SORTIERUNGEN = ["note", "eigene", "datum"];
+
+  /** A stored order of the list: a known one, else the grade. */
+  function gueltigeSortierung(wert) {
+    return SORTIERUNGEN.includes(wert) ? wert : "note";
+  }
+
+  /** Own stars of the profession first, then the grade, then near the home, then the newest. Hits without a profession count as no stars.
+   * By own stars (G22) the hits the person rated come first; by date the newest. Ties keep the order by grade. */
+  function sortiert(treffer, sterne, sortierung = "note") {
+    const beruf = t => sterne[t.beruf] || 0;
+    const nachNote = (a, b) => beruf(b) - beruf(a)
       || (b.bewertung?.note ?? 0) - (a.bewertung?.note ?? 0)
       || Number(Boolean(b.nah)) - Number(Boolean(a.nah))
-      || (b.gefunden_am || "").localeCompare(a.gefunden_am || ""));
+      || (b.gefunden_am || "").localeCompare(a.gefunden_am || "");
+    const vorne = {
+      eigene: (a, b) => (b.eigene_sterne || 0) - (a.eigene_sterne || 0),
+      datum: (a, b) => (b.gefunden_am || "").localeCompare(a.gefunden_am || ""),
+    }[gueltigeSortierung(sortierung)] || (() => 0);
+    return [...treffer].sort((a, b) => vorne(a, b) || nachNote(a, b));
   }
 
   function pakete(ids, groesse) {
@@ -132,7 +145,7 @@
     return { zustand: "fehler", fehler: KEIN_LAUF };
   }
 
-  const logik = { STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, pakete, bewerteAlle, kostenProTreffer, nachpruefungText };
+  const logik = { STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, kostenProTreffer, nachpruefungText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

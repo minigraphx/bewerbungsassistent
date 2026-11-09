@@ -36,6 +36,8 @@ MAX_HITS_PER_CALL = 100
 NO_POSITIVE_TERM = "kein Positivbegriff im Titel"
 LEGAL_FORMS = {"ag", "gmbh", "sa", "sarl", "sagl", "ltd", "llc", "inc", "kg", "co", "se", "plc", "bv"}
 TRIAL = "Schnupperlehre"
+OWN_STARS = "eigene_sterne"  # the person's own rating of a hit (G22); never part of an AI request
+ORDERS = ("note", "eigene", "datum")  # how the list of hits is sorted; the grade first, as before G22
 CLOSED = {"Absage", "Verworfen", "Zurückgezogen"}
 # G34: staffing agencies post jobs of other companies; the search profile can add more („## Vermittler“).
 AGENCIES = ("Adecco", "Manpower", "Randstad", "Hays", "Michael Page", "Page Personnel", "Robert Half", "Kelly Services",
@@ -403,6 +405,7 @@ class Hits:
         stars = raw.get("beruf_sterne") if isinstance(raw.get("beruf_sterne"), dict) else {}
         clean = {str(k): v for k, v in stars.items() if type(v) is int and 1 <= v <= MAX_STARS}
         return {"auto_bewerten": raw.get("auto_bewerten") is not False, "zuschauen": raw.get("zuschauen") is True, "beruf_sterne": clean,
+                "sortierung": raw.get("sortierung") if raw.get("sortierung") in ORDERS else ORDERS[0],
                 OWN_SITES: raw.get(OWN_SITES) if isinstance(raw.get(OWN_SITES), list) else [],
                 PORTALS_OFF: [p for p in raw[PORTALS_OFF] if isinstance(p, str)] if isinstance(raw.get(PORTALS_OFF), list) else None}
 
@@ -425,6 +428,26 @@ class Hits:
     def set_watching(self, enabled: bool) -> dict:
         with _LOCK:
             return self._save_settings({**self.settings(), "zuschauen": enabled})
+
+    def set_order(self, order: str) -> dict:
+        if order not in ORDERS:
+            raise ValueError(f"Sortierung: {', '.join(ORDERS)}.")
+        with _LOCK:
+            return self._save_settings({**self.settings(), "sortierung": order})
+
+    def set_own_stars(self, wanted: str, stars: int) -> dict:
+        """The person's own rating of one hit, 1 to 5; 0 takes it away. The grade of the AI stays as it is."""
+        if type(stars) is not int or not 0 <= stars <= MAX_STARS:
+            raise ValueError(f"Sterne: 0 bis {MAX_STARS}.")
+        with _LOCK:
+            stored = self.all()
+            hit = next((h for h in stored if h["id"] == wanted), None)
+            if hit is None:
+                raise KeyError(f"Treffer {wanted!r} nicht gefunden")
+            rest = {key: value for key, value in hit.items() if key != OWN_STARS}
+            changed = {**rest, OWN_STARS: stars} if stars else rest
+            self._write([changed if h["id"] == wanted else h for h in stored])
+            return changed
 
     def set_stars(self, profession: str, stars: int) -> dict:
         """The person's own rating of a profession, 1 to 5; 0 takes it away."""

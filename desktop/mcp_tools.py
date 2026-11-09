@@ -114,8 +114,13 @@ def _list_files(send: Send, args: dict) -> dict:
 
 
 def _list_hits(send: Send, args: dict) -> dict:
+    """The person's own stars per hit stay out: they are never part of what an AI gets (G22)."""
     answer = send("GET", "/api/suche/liste", None)
-    return {key: answer[key] for key in HIT_LIST_FIELDS if key in answer}
+    listed = {key: answer[key] for key in HIT_LIST_FIELDS if key in answer}
+    if isinstance(listed.get("treffer"), list):
+        listed = {**listed, "treffer": [{k: v for k, v in hit.items() if k != "eigene_sterne"} if isinstance(hit, dict) else hit
+                                        for hit in listed["treffer"]]}
+    return listed
 
 
 def _rate_hit(send: Send, args: dict) -> dict:
