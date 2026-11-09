@@ -59,3 +59,33 @@ test("a company with a stored value gets no Von Hand eintragen", async () => {
   ]);
   assert.deepEqual([...zeilen.values()].flat().filter(name => name === "Von Hand eintragen"), []);
 });
+
+const ALT = { zustand: "gefunden", wert: 3.2, bewertungen: 57, geprueft_am: "2026-07-02", link: LINK, seite: "ch" };
+
+test("a failed Neu prüfen on Stellen suchen for a stale value leads to Von Hand eintragen on a fresh Firmen page", async () => {
+  const stale = firma("Muster Industrie AG", ALT);
+  const ergebnisse = [];
+  global.document = { documentElement: { dataset: { bewerbungsbegleiterErweiterung: "1" } } };
+  global.window = { App: { el }, FirmenLogik: logik, KununuPruefen: { pruefe: async () => ({ gelesen: false }) } };
+  const trefferFirma = path.join(__dirname, "../seiten/treffer-firma.js");
+  delete require.cache[require.resolve(trefferFirma)];
+  require(trefferFirma);
+  const zeile = window.TrefferFirma.zeile(stale, "2026-11-09", { wo: "Firmen", nachPruefen: e => ergebnisse.push(e) });
+  const neu = knoepfe(zeile).find(k => text(k).startsWith("Neu prüfen"));
+  await neu.attrs.onclick({ currentTarget: neu.attrs });
+  assert.match(ergebnisse[0].text, /unter Firmen von Hand eintragen\.$/);
+
+  const zeilen = await frischGeladen([stale]);  // nothing was stored, so the old value comes back
+  assert.ok(zeilen.get("muster-industrie-ag").includes("Von Hand eintragen"));
+});
+
+test("every company Stellen suchen offers a check for gets Von Hand eintragen on Firmen", () => {
+  const faelle = [null, { zustand: "zugeordnet", link: LINK }, { zustand: "fehler" }, { zustand: "nicht_gefunden" }, { zustand: "mehrere" },
+    { zustand: "gefunden", bewertungen: 0, geprueft_am: "2026-07-02" }, ALT, { ...ALT, bewertungen: 4 },
+    { ...ALT, geprueft_am: "2026-11-05" }, { ...ALT, bewertungen: 4, geprueft_am: "2026-11-05" }];
+  for (const kununu of faelle) {
+    const f = firma("Muster Industrie AG", kununu);
+    const pruefbar = logik.firmenZeile(f, "2026-11-09").aktionen.some(a => a.art === "pruefen");
+    if (pruefbar) assert.equal(logik.vonHandAnbieten(f, "2026-11-09"), true, JSON.stringify(kununu));
+  }
+});

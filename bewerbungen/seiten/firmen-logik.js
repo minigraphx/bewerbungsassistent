@@ -156,10 +156,16 @@
     return { text: (texte[k.zustand] || texte.nicht_gefunden)(), stufe: "success", vonHand: false };
   }
 
-  /** Whether „Von Hand eintragen“ shows: for every company without a stored value, so a check that failed elsewhere
-   *  (Stellen suchen) leads here; for one with a value only after a check of this page could not read it. */
-  function vonHandAnbieten(firma, nichtGelesen = new Set()) {
-    return !MIT_WERT.includes(zustand(firma)) || nichtGelesen.has(firma.schluessel);
+  /** Whether a check is due: never checked, page assigned, last check failed, or the value is out of date. Both pages
+   *  offer „Prüfen“ by this rule; Stellen suchen names it „Jetzt prüfen“, „Nochmals prüfen“ or „Neu prüfen“. */
+  function pruefungFaellig(firma, heute) {
+    return ["ungeprueft", "zugeordnet", "fehler"].includes(zustand(firma)) || veraltet(firma, heute);
+  }
+
+  /** Whether „Von Hand eintragen“ shows. A check that cannot read stores nothing, so the company keeps its state: every
+   *  company with a check due or without a value gets it, also on a fresh page after a check on Stellen suchen. */
+  function vonHandAnbieten(firma, heute, nichtGelesen = new Set()) {
+    return pruefungFaellig(firma, heute) || !MIT_WERT.includes(zustand(firma)) || nichtGelesen.has(firma.schluessel);
   }
 
   /** Score and count as the person typed them, or the field that is wrong and why. */
@@ -213,7 +219,7 @@
     if (z === "fehler") return pruefen("Nochmals prüfen");
     if (z === "nicht_gefunden") return [{ art: "suchen", text: "Bei kununu suchen", href: firma.suche }];
     if (z === "mehrere") return [];
-    return [...(veraltet(firma, heute) ? pruefen("Neu prüfen") : []), ...ansehen];
+    return [...(pruefungFaellig(firma, heute) ? pruefen("Neu prüfen") : []), ...ansehen];
   }
 
   /** What the detail column says about the company of a hit; links open kununu in a new tab. */
@@ -231,7 +237,7 @@
              aktionen: zeilenAktionen(firma, z, heute) };
   }
 
-  const logik = { pruefErgebnis, vonHandWerte, vonHandAnbieten, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
+  const logik = { pruefErgebnis, vonHandWerte, vonHandAnbieten, pruefungFaellig, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
                   prozent, datum, bewertungen, seite, trefferText, gefiltert, zaehlen, sortiert, gueltigerFilter,
                   gueltigeSortierung, naechsteSortierung, pruefenLink, zusammenfassung, nachTreffer, marke, firmenZeile };
   if (typeof module !== "undefined") module.exports = logik;

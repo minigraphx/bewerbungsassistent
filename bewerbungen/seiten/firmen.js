@@ -105,8 +105,8 @@
       mehrere: [knopf(firma, "Passende wählen", () => waehlen(firma),
         { "aria-expanded": String(offen === firma.schluessel), "aria-controls": `wahl-${firma.schluessel}` })],
     };
-    const gefunden = [logik.veraltet(firma, heute) ? pruefenKnopf(firma, "Neu prüfen") : null, ansehen];
-    const hand = logik.vonHandAnbieten(firma, nichtGelesen) ? knopf(firma, "Von Hand eintragen", () => oeffneVonHand(firma)) : null;
+    const gefunden = [logik.pruefungFaellig(firma, heute) ? pruefenKnopf(firma, "Neu prüfen") : null, ansehen];
+    const hand = logik.vonHandAnbieten(firma, heute, nichtGelesen) ? knopf(firma, "Von Hand eintragen", () => oeffneVonHand(firma)) : null;
     return el("div", { class: "btn-row" }, ...(je[zustand] || gefunden).filter(Boolean), hand);
   }
 
