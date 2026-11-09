@@ -30,8 +30,8 @@ def test_the_plan_says_how_many_keywords_each_place_searches():
     hints = search_plan.parse(PROFILE).hints
     assert ("jobs.ch: 30 Suchen reichen nicht für alle 15 Begriffe in 4 Orten; pro Ort laufen die ersten 6. "
             "Wichtige Begriffe nach vorne stellen.") in hints
-    assert ("jobscout24: 30 Suchen reichen nicht für alle 15 Begriffe in 4 Orten; pro Ort laufen die ersten 7. "
-            "Wichtige Begriffe nach vorne stellen.") in hints
+    assert ("jobscout24: 30 Suchen reichen nicht für alle 15 Begriffe in 4 Orten; in 3000 und 3600 laufen die ersten 8, "
+            "in 2500 und 4500 die ersten 7. Wichtige Begriffe nach vorne stellen.") in hints  # #195: the real shares
     assert not any(hint.startswith("ictjobs:") for hint in hints), "one region searches every keyword"
 
 
