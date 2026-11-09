@@ -18,6 +18,7 @@ Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson
 - [Mit der App arbeiten](#mit-der-app-arbeiten)
   - [Angaben erfassen](#angaben-erfassen)
   - [Stellen suchen und bewerben](#stellen-suchen-und-bewerben)
+  - [Firmen und kununu](#firmen-und-kununu)
   - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
   - [Für Lehrstellen](#für-lehrstellen)
 - [Bei Bedarf](#bei-bedarf)
@@ -180,6 +181,25 @@ Gibt es Suchprofil, Stilprofil oder Bausteine schon, fragt die App beim Überneh
 3. **Bewerben**: Die **Übersicht** zeigt unter **Das steht an**, was als Nächstes zu tun ist, und in der Liste den nächsten Schritt jeder Bewerbung. Öffnen Sie eine Bewerbung und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Der Entwurf ist ein Ausgangspunkt: Lesen Sie ihn, passen Sie ihn mit **Ändern** an die Stelle und die Firma an, und klicken Sie dann auf **Freigeben**. Danach öffnet **Formular öffnen** das Formular der Firma, und die Erweiterung füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe [Fertige Dateien verwenden](#fertige-dateien-verwenden)).
 
 Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
+
+### Firmen und kununu
+
+Unter **Mehr**, **Firmen** steht jede Firma aus Ihren Treffern und Bewerbungen, dazu, was kununu über sie sagt. Auf **Stellen suchen** führt **Firmen ansehen** dorthin. Bei der Lehrstellensuche heisst die Seite **Lehrbetriebe**.
+
+Auf kununu bewerten heutige und frühere Mitarbeitende ihre Firma, bei Lehrbetrieben auch Lernende. 5 ist der beste Wert, 1 der schlechteste. Die Werte stammen von diesen Mitarbeitenden, nicht von der App. Unter 10 Bewertungen sagt ein Wert wenig, die App schreibt dann „wenig aussagekräftig“. Nach 90 Tagen gilt er als veraltet, und die App bietet **Neu prüfen** an. Die Note der App ist etwas anderes: Sie sagt, wie gut eine Stelle zu Ihren Angaben passt.
+
+Die App fragt kununu nur, wenn Sie auf **Prüfen** klicken, nie von selbst. An kununu geht dabei nur der Firmenname; Ihre Angaben bleiben auf diesem Computer. Mit der Erweiterung liest die App Wert und Anzahl Bewertungen in einem Tab und trägt sie ein. Ohne Erweiterung öffnet **Prüfen** die Firma bei kununu in einem neuen Tab, und Sie lesen den Wert dort selbst.
+
+Auf **Stellen suchen** steht der Wert als **kununu 3.8** nach dem Firmennamen, gestrichelt bei wenigen Bewertungen. Neben dem Treffer zeigt eine Zeile Wert, Bewertungen und Datum, dazu **Bei kununu ansehen** oder **Jetzt prüfen**. **Jetzt prüfen** tut dasselbe wie **Prüfen** auf der Seite **Firmen**.
+
+Lässt sich kein Wert lesen, zum Beispiel weil kununu eine Prüfseite zeigt, bleibt der Tab offen. Klicken Sie dann auf der Seite **Firmen** auf **Von Hand eintragen**. Geben Sie den Wert und die Anzahl Bewertungen so ein, wie sie bei kununu stehen, und klicken Sie auf **Eintragen**.
+
+Welche kununu-Seite zu einer Firma gehört, entscheiden Sie selbst:
+
+- Findet kununu mehrere Firmen, klicken Sie auf **Passende wählen**. Ort und Branche helfen beim Wählen. Wählen Sie die richtige und klicken Sie auf **Zuordnen**. Passt keine, wählen Sie **Keine davon passt**.
+- Findet kununu die Firma nicht, suchen Sie mit **Bei kununu suchen** selbst. Öffnen Sie die Firma bei kununu und kopieren Sie den Link aus der Adresszeile. Klicken Sie in der App auf **Selbst zuordnen**, fügen Sie den Link ein und klicken Sie auf **Zuordnen**. Es gehen Links von kununu.com/ch, kununu.com/de und kununu.de. Danach liest **Prüfen** die Werte von dieser Seite.
+
+Unter **Zu klären** zeigt die Seite die Firmen, bei denen noch eine Wahl offen ist oder die Prüfung nicht ging.
 
 ### Fertige Dateien verwenden
 
