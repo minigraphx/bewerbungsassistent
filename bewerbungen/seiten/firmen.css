@@ -45,3 +45,13 @@
   .companies-page__search { width: 100%; }
   .companies-page__help { margin-left: 0; }
 }
+
+/* Stellen suchen (#190): the badge after the company name, squarer than status badges, and the company line. */
+.kununu-mark { display: inline-block; margin-left: 6px; padding: 0 5px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  font-size: 12px; line-height: 16px; color: var(--text-muted); white-space: nowrap; vertical-align: 1px; }
+.kununu-mark[data-art="wenige"] { border-style: dashed; }
+.kununu-mark[data-art="leise"] { border-color: transparent; padding: 0; }
+.company-line { display: grid; gap: var(--space-2); padding: var(--space-4) 0; border-top: 1px solid var(--line); }
+.company-line__title { margin: 0; font: 500 14px/20px var(--font-sans); color: var(--text-strong); }
+.company-line__date { margin: 0; font-size: 13px; line-height: 18px; color: var(--text-muted); }
+.company-line .rating__state, .company-line .status-line { margin: 0; }

@@ -164,9 +164,68 @@
     return { wert: wertZahl, bewertungen: Number(anzahlRoh) };
   }
 
+  // Stellen suchen (#190): the badge after the company name and the company line in the detail column.
+
+  /** Hit id → its company, from the hits each row of /api/firmen lists. */
+  function nachTreffer(firmen) {
+    return new Map(firmen.flatMap(firma => firma.treffer.map(t => [t.id, firma])));
+  }
+
+  /** The badge in a hit row, or null: text only (the row is a button), its full wording read with the button's name. */
+  function marke(firma) {
+    if (!firma) return null;
+    const z = zustand(firma);
+    const k = firma.kununu;
+    if (z === "gefunden") return { text: `kununu ${wert(k.wert)}`, vorlesen: `kununu ${wert(k.wert)} von 5, ${bewertungen(k.bewertungen)}`, art: "wert" };
+    if (z === "wenige") {
+      return { text: `kununu ${wert(k.wert)}, wenige Bewertungen`, vorlesen: `kununu ${wert(k.wert)} von 5, nur ${bewertungen(k.bewertungen)}`, art: "wenige" };
+    }
+    if (z === "mehrere") return { text: "kununu: wählen", vorlesen: "kununu: passende Firma wählen", art: "leise" };
+    if (z === "nicht_gefunden") return { text: "nicht bei kununu", vorlesen: "bei kununu nicht gefunden", art: "leise" };
+    return null;
+  }
+
+  const FEHLER = "Nicht geprüft. kununu war nicht erreichbar. Bitte später nochmals prüfen.";
+
+  function angabenMitWert(firma, z, lehrstelle) {
+    const k = firma.kununu;
+    const lernende = lehrstelle && k.lernende?.bewertungen && typeof k.lernende.wert === "number"
+      ? `Lernende: ${wert(k.lernende.wert)} von 5, ${bewertungen(k.lernende.bewertungen)}` : "";
+    const empfehlung = z === "gefunden" && typeof k.empfehlung === "number" ? `${prozent(k.empfehlung)} empfehlen` : "";
+    const anzahlText = z === "wenige" ? `Nur ${bewertungen(k.bewertungen)}, wenig aussagekräftig.` : bewertungen(k.bewertungen);
+    return [anzahlText, empfehlung, lernende, seite(k)].filter(Boolean);
+  }
+
+  function zeilenAktionen(firma, z, heute) {
+    const link = firma.kununu?.link;
+    const ansehen = link ? [{ art: "ansehen", text: "Bei kununu ansehen", href: link }] : [];
+    const pruefen = text => [{ art: "pruefen", text, href: pruefenLink(firma) }];
+    if (z === "ungeprueft") return pruefen("Jetzt prüfen");
+    if (z === "zugeordnet") return [...pruefen("Prüfen"), ...ansehen];
+    if (z === "fehler") return pruefen("Nochmals prüfen");
+    if (z === "nicht_gefunden") return [{ art: "suchen", text: "Bei kununu suchen", href: firma.suche }];
+    if (z === "mehrere") return [];
+    return [...(veraltet(firma, heute) ? pruefen("Neu prüfen") : []), ...ansehen];
+  }
+
+  /** What the detail column says about the company of a hit; links open kununu in a new tab. */
+  function firmenZeile(firma, heute, { lehrstelle = false } = {}) {
+    const z = zustand(firma);
+    const k = firma.kununu || {};
+    const mitWert = MIT_WERT.includes(z);
+    const saetze = { ungeprueft: "Noch nicht bei kununu geprüft.", zugeordnet: "Seite zugeordnet, noch nicht geprüft.",
+                     keine: "Noch keine Bewertungen.", fehler: FEHLER, nicht_gefunden: "Bei kununu nicht gefunden.",
+                     mehrere: lehrstelle ? "Mehrere Lehrbetriebe bei kununu." : "Mehrere Firmen bei kununu." };
+    const geprueft = k.geprueft_am && z !== "zugeordnet"
+      ? (veraltet(firma, heute) ? `Stand ${datum(k.geprueft_am)}` : `Geprüft am ${datum(k.geprueft_am)}`) : "";
+    return { titel: `${firma.name} bei kununu`, zustand: z, wert: mitWert ? wert(k.wert) : null, wenige: z === "wenige",
+             angaben: mitWert ? angabenMitWert(firma, z, lehrstelle) : [], datum: geprueft, satz: saetze[z] || "",
+             aktionen: zeilenAktionen(firma, z, heute) };
+  }
+
   const logik = { pruefErgebnis, vonHandWerte, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
                   prozent, datum, bewertungen, seite, trefferText, gefiltert, zaehlen, sortiert, gueltigerFilter,
-                  gueltigeSortierung, naechsteSortierung, pruefenLink, zusammenfassung };
+                  gueltigeSortierung, naechsteSortierung, pruefenLink, zusammenfassung, nachTreffer, marke, firmenZeile };
   if (typeof module !== "undefined") module.exports = logik;
   else global.FirmenLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

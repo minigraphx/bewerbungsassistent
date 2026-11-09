@@ -38,6 +38,7 @@
     "nav.firmen": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
     "suche.firmen": { sie: "Firmen ansehen", du: "Firmen ansehen", lehrstelle: "Lehrbetriebe ansehen" },
     "firmen.titel": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
+    "firmen.alle": { sie: "Alle Firmen", du: "Alle Firmen", lehrstelle: "Alle Lehrbetriebe" },
     "firmen.zeile": {
       sie: "{anzahl} Firmen aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",
       du: "{anzahl} Firmen aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",
