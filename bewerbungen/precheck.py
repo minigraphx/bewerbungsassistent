@@ -17,6 +17,11 @@ LANGUAGES = {"deutsch": "deutsch", "german": "deutsch", "französisch": "franzö
              "italian": "italienisch", "spanisch": "spanisch", "spanish": "spanisch", "portugiesisch": "portugiesisch",
              "rätoromanisch": "rätoromanisch"}
 LANGUAGE_MENTION = re.compile(r"\b(" + "|".join(sorted(LANGUAGES, key=len, reverse=True)) + r")\w*", re.IGNORECASE)
+# cv.yaml takes any name: „Schweizerdeutsch“ or „Hochdeutsch“ is German.
+LANGUAGE_IN_NAME = re.compile("|".join(sorted(LANGUAGES, key=len, reverse=True)), re.IGNORECASE)
+# „Deutsch oder Französisch fliessend“: one of them is enough.
+ALTERNATIVE = re.compile(r"\s*(?:oder|or|bzw\.?|beziehungsweise|/)\s*", re.IGNORECASE)
+ABBREVIATED_OR = re.compile(r"\bbzw\.", re.IGNORECASE)  # its dot must not end the clause
 # One alternation, longer phrases first, so that „sehr gute“ is not read as „gute“.
 LEVEL_WORDS = (
     (7, r"muttersprach\w*|erstsprache|native"),
@@ -42,7 +47,10 @@ DEGREE_NAMES = {level: name for level, name, _ in DEGREE_WORDS}
 OPTIONAL = re.compile(r"von vorteil|wünschenswert|ein plus|nice to have|idealerweise|vorteilhaft|erwünscht|optional"
                       r"|gleichwertig|vergleichbar|oder entsprechende|oder mehrjährige|or equivalent|or similar", re.IGNORECASE)
 STRONG = re.compile(r"mehrjährig|langjährig|fundiert|ausgewiesen|vertieft|profund|schwerpunkt|expert|voraussetzung"
-                    r"|\bpflicht\b|\bmuss\b|mindestens\s+\d+\s+jahr|\d+\+?\s+jahre", re.IGNORECASE)
+                    r"|\bpflicht\b|\bmuss\b|mindestens\s+\d+\s+jahr", re.IGNORECASE)
+# Years count as required experience only with experience named; „seit 25 Jahren“ is the age of the company.
+YEARS = re.compile(r"(?<!seit\s)(?<!since\s)\b\d+\+?\s+(?:jahre|years)", re.IGNORECASE)
+EXPERIENCE = re.compile(r"erfahrung|experience|praxis", re.IGNORECASE)
 SENTENCE = re.compile(r"[\n.;•·]+(?:\s|$)|\n")
 CLAUSE = re.compile(r"[\n.;,•·]+(?:\s|$)|\n")
 EXCLUSIONS_SECTION = "## Ausschlüsse"
@@ -73,7 +81,8 @@ def _languages(cv: dict, profile: str) -> dict[str, int]:
     found += [match.groups() for line in search_plan.section_lines(profile, LANGUAGES_SECTION) for match in NAMED_LEVEL.finditer(line)]
     known: dict[str, int] = {}
     for name, fluency in found:
-        language, level = LANGUAGES.get(str(name or "").strip().lower()), _level_of(str(fluency or ""))
+        named = LANGUAGE_IN_NAME.search(str(name or ""))
+        language, level = LANGUAGES[named[0].lower()] if named else None, _level_of(str(fluency or ""))
         if language and level:
             known = {**known, language: max(level, known.get(language, 0))}
     return known
@@ -117,18 +126,33 @@ def _nearest_level(clause: str, mention: re.Match) -> int | None:
     return min(near)[1] if near else None
 
 
+def _alternatives(clause: str) -> list[list[re.Match]]:
+    """The languages of a clause in groups; languages joined by „oder“, „or“, „bzw.“ or „/“ share one group."""
+    groups: list[list[re.Match]] = []
+    for mention in LANGUAGE_MENTION.finditer(clause):
+        joined = groups and ALTERNATIVE.fullmatch(clause[groups[-1][-1].end():mention.start()])
+        groups = [*groups[:-1], [*groups[-1], mention]] if joined else [*groups, [mention]]
+    return groups
+
+
+def _shortfall(clause: str, mention: re.Match, person: Person) -> str:
+    language, wanted = LANGUAGES[mention[1].lower()], _nearest_level(clause, mention)
+    have = person.languages.get(language, 0)
+    if wanted and wanted > have:
+        return f"Verlangt {language.capitalize()} auf Niveau {LEVEL_NAMES[wanted]}, vorhanden ist {LEVEL_NAMES.get(have, 'keine Angabe')}."
+    return ""
+
+
 def _language_reason(text: str, person: Person) -> str:
     if not person.languages:
         return ""
-    for clause in CLAUSE.split(text):
+    for clause in CLAUSE.split(ABBREVIATED_OR.sub("bzw", text)):
         if OPTIONAL.search(clause):
             continue
-        for mention in LANGUAGE_MENTION.finditer(clause):
-            language, wanted = LANGUAGES[mention[1].lower()], _nearest_level(clause, mention)
-            have = person.languages.get(language, 0)
-            if wanted and wanted > have:
-                return (f"Verlangt {language.capitalize()} auf Niveau {LEVEL_NAMES[wanted]}, "
-                        f"vorhanden ist {LEVEL_NAMES.get(have, 'keine Angabe')}.")
+        for group in _alternatives(clause):
+            reasons = [_shortfall(clause, mention, person) for mention in group]
+            if all(reasons):
+                return reasons[0]
     return ""
 
 
@@ -148,9 +172,13 @@ def _mentions(text: str, term: str) -> bool:
     return re.search(f"{before}{re.escape(term)}{after}", text, re.IGNORECASE) is not None
 
 
+def _strong(sentence: str) -> bool:
+    return bool(STRONG.search(sentence) or (YEARS.search(sentence) and EXPERIENCE.search(sentence)))
+
+
 def _technology_reason(title: str, text: str, person: Person) -> str:
     for term in person.excluded:
-        main = _mentions(title, term) or any(_mentions(sentence, term) and STRONG.search(sentence) and not OPTIONAL.search(sentence)
+        main = _mentions(title, term) or any(_mentions(sentence, term) and _strong(sentence) and not OPTIONAL.search(sentence)
                                              for sentence in SENTENCE.split(text))
         if main:
             return f"Schwerpunkt {term}, im Suchprofil ausgeschlossen."

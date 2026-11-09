@@ -1,6 +1,7 @@
 """Rule-based pre-check of an ad before rating (G33), with invented ads, profile and cv.yaml."""
 import json
 
+import pytest
 import yaml
 
 import precheck
@@ -82,6 +83,32 @@ def test_an_excluded_technology_as_main_requirement_fails():
 def test_an_excluded_technology_on_the_side_passes():
     assert check("Python im Zentrum. Java-Kenntnisse sind von Vorteil.") == ""
     assert check("Unser Stack: Python, Java, Go.") == ""
+
+
+@pytest.mark.parametrize("text", ["Muttersprache Deutsch oder Französisch, gute Englischkenntnisse.",
+                                  "Deutsch oder Französisch als Muttersprache.", "Deutsch oder Französisch fliessend.",
+                                  "Deutsch bzw. Französisch fliessend.", "Deutsch/Französisch fliessend.", "German or French, fluent."])
+def test_languages_joined_by_or_are_alternatives(text):
+    assert check(text) == ""
+
+
+def test_alternatives_fail_only_when_none_fits_and_and_still_needs_both():
+    assert check("Italienisch oder Französisch fliessend.") == "Verlangt Italienisch auf Niveau C1, vorhanden ist keine Angabe."
+    assert check("Deutsch und Französisch fliessend.") == "Verlangt Französisch auf Niveau C1, vorhanden ist A2."
+
+
+def test_swiss_german_and_standard_german_in_cv_yaml_count_as_german():
+    cv = {"languages": [{"language": "Schweizerdeutsch", "fluency": "Muttersprache"}, {"language": "Hochdeutsch", "fluency": "C2"}]}
+    person = precheck.person_of(cv, "# Suchprofil\n")
+
+    assert person.languages == {"deutsch": 7}
+    assert precheck.check("Python Entwickler", "Deutsch auf Muttersprachniveau.", person) == ""
+
+
+def test_the_age_of_the_company_is_not_required_experience():
+    assert check("Seit 25 Jahren setzen wir auf Python und Java.") == ""
+    assert check("Since 30 years we build on Python and Java.") == ""
+    assert check("Sie bringen 5 Jahre Erfahrung mit Java mit.") == "Schwerpunkt Java, im Suchprofil ausgeschlossen."
 
 
 def test_missing_person_data_keeps_every_hit():
