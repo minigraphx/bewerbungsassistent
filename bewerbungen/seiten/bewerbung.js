@@ -255,6 +255,7 @@
     $("antwort-teil").hidden = !gesendet;
     $("jobroom-teil").hidden = !rav || !gesendet;
     $("s-festhalten").hidden = !gesendet;
+    zeigeBeenden(b);
     $("s-lebenslauf").hidden = Boolean(b.versand) && !b.variante;
     $("s-stelle").open = !(daten.stellentext || "").trim() && !gesendet;
     if (b.beworben_am && !b.versand && !versandDatumGesetzt) {  // sent already: record it with that date
@@ -262,6 +263,16 @@
       versandDatumGesetzt = true;
     }
     zeigeAnschreibenStand();
+  }
+
+  function zeigeBeenden(b) {
+    const ende = L.beenden(b);
+    $("beenden-teil").hidden = !ende;
+    $("verwerfen").hidden = ende?.stand !== "Verworfen";
+    $("zurueckziehen").hidden = ende?.stand !== "Zurückgezogen";
+    $("beenden-hinweis").textContent = !ende ? ""
+      : ende.stand === "Verworfen" ? "Nicht bewerben: Die Bewerbung bleibt mit dem Stand „Verworfen“ in der Liste."
+        : "Die Bewerbung nicht weiterverfolgen: Sie bleibt mit dem Stand „Zurückgezogen“ in der Liste.";
   }
 
   function zeigeAlles() {
@@ -566,6 +577,8 @@
   $("notiz-speichern").addEventListener("click", () => speichere(formularWerte(), "Notiz gespeichert"));
   $("f-variante").addEventListener("change", () => waehleVariante($("f-variante").value));
   for (const k of document.querySelectorAll("[data-antwort]")) k.addEventListener("click", () => antwort(k.dataset.antwort));
+  bestaetigen($("verwerfen"), "Wirklich verwerfen? Nochmals klicken", () => antwort("Verworfen"));
+  bestaetigen($("zurueckziehen"), "Wirklich zurückziehen? Nochmals klicken", () => antwort("Zurückgezogen"));
   $("formular-oeffnen").addEventListener("click", e => oeffneFormular(e.currentTarget, false));
   $("jobroom-oeffnen").addEventListener("click", e => oeffneJobroom(e.currentTarget));
   $("doppelt-abbrechen").addEventListener("click", () => $("doppelt-dialog").close());

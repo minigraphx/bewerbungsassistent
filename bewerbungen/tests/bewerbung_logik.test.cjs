@@ -77,3 +77,11 @@ test("sent but not recorded: the sending is recorded afterwards, the steps befor
   assert.deepEqual(logik.schritte(nur).slice(0, 4).map(s => s.erledigt), [true, true, true, true]);
   assert.equal(logik.schritte(nur)[0].meta, "");
 });
+
+test("an application can be discarded before sending and withdrawn after, also past its deadline", () => {
+  const pastDeadline = { firma: "Muster AG", stelle: "Sachbearbeiterin", frist: "2026-01-15" };
+  const endFor = status => logik.beenden({ ...pastDeadline, status });
+  for (const status of ["Gemerkt", "Bewerben"]) assert.equal(endFor(status).stand, "Verworfen");
+  for (const status of ["Beworben", "Gespräch"]) assert.equal(endFor(status).stand, "Zurückgezogen");
+  for (const status of ["Absage", "Zusage", "Verworfen", "Zurückgezogen"]) assert.equal(endFor(status), null);
+});
