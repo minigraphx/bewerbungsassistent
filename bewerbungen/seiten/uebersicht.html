@@ -79,11 +79,18 @@
         <input class="input overview__search" id="suche" type="search" autocomplete="off">
       </div>
     </div>
+    <div class="overview__bulk" id="auswahl-leiste" role="group" aria-label="Stand der ausgewählten Bewerbungen ändern">
+      <label class="check overview__bulk-all"><input type="checkbox" id="alle-waehlen"> Alle in dieser Ansicht</label>
+      <span class="overview__bulk-count" id="auswahl-zahl" role="status" aria-live="polite">Keine ausgewählt</span>
+      <label class="visually-hidden" for="stand-wahl">Neuer Stand</label>
+      <select class="input overview__bulk-stage" id="stand-wahl"><option value="">Stand wählen …</option></select>
+      <button type="button" class="btn btn--sm" id="stand-setzen">Stand setzen</button>
+    </div>
     <p id="liste-leer" class="overview__empty" data-text="uebersicht.liste-leer" hidden>Noch keine Bewerbungen. Übernehmen Sie eine Stelle aus der Suche oder erfassen Sie eine von Hand.</p>
     <p id="nichts-gefunden" class="overview__empty" hidden>Keine Bewerbung passt zu dieser Suche.</p>
     <div class="table-wrap" id="tabelle">
       <table class="table">
-        <thead><tr><th data-spalte="stelle"><button type="button" class="table__sort" data-text="uebersicht.spalte">Stelle und Firma</button></th><th data-spalte="stand"><button type="button" class="table__sort">Stand</button></th><th data-spalte="note"><button type="button" class="table__sort">Note</button></th><th data-spalte="schritt"><button type="button" class="table__sort">Nächster Schritt</button></th><th class="num" data-spalte="frist"><button type="button" class="table__sort">Frist</button></th><th class="num" data-spalte="erfasst"><button type="button" class="table__sort">Erfasst</button></th></tr></thead>
+        <thead><tr><th class="table__pick"><span class="visually-hidden">Auswahl</span></th><th data-spalte="stelle"><button type="button" class="table__sort" data-text="uebersicht.spalte">Stelle und Firma</button></th><th data-spalte="stand"><button type="button" class="table__sort">Stand</button></th><th data-spalte="note"><button type="button" class="table__sort">Note</button></th><th data-spalte="schritt"><button type="button" class="table__sort">Nächster Schritt</button></th><th class="num" data-spalte="frist"><button type="button" class="table__sort">Frist</button></th><th class="num" data-spalte="erfasst"><button type="button" class="table__sort">Erfasst</button></th></tr></thead>
         <tbody id="liste"></tbody>
       </table>
     </div>
@@ -104,6 +111,11 @@
     <h2 class="dialog__title" id="doppelt-titel"></h2>
     <div class="dialog__text" id="doppelt-text"></div>
     <div class="dialog__actions"><button type="button" class="btn" id="doppelt-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="doppelt-trotzdem">Trotzdem öffnen</button></div>
+  </dialog>
+  <dialog class="dialog" id="stand-dialog" aria-labelledby="stand-titel" aria-describedby="stand-text">
+    <h2 class="dialog__title" id="stand-titel"></h2>
+    <div class="dialog__text" id="stand-text"></div>
+    <div class="dialog__actions"><button type="button" class="btn" id="stand-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="stand-ok">Stand setzen</button></div>
   </dialog>
 </main>
 <script src="/texte.js"></script>
