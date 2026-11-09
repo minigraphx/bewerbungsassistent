@@ -34,6 +34,45 @@
     "fragen.label": { sie: "Ihre Frage", du: "Deine Frage" },
     "fragen.sprecher": { sie: "Sie", du: "Du" },
     "suche.wo": { sie: "Wo suchen Sie?", du: "Wo suchst du?" },
+    // Firmen with kununu (G35, #188, docs/design/firmen.md); „Firma“ stays neutral, apprenticeships say „Lehrbetrieb“
+    "nav.firmen": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
+    "suche.firmen": { sie: "Firmen ansehen", du: "Firmen ansehen", lehrstelle: "Lehrbetriebe ansehen" },
+    "firmen.titel": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
+    "firmen.zeile": {
+      sie: "{anzahl} Firmen aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",
+      du: "{anzahl} Firmen aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",
+      lehrstelle: "{anzahl} Lehrbetriebe aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",
+    },
+    "firmen.nur-name": {
+      sie: "Prüfen öffnet die Firma bei kununu in einem neuen Tab. Nur der Firmenname geht an kununu. Ihre Angaben bleiben auf diesem Computer.",
+      du: "Prüfen öffnet die Firma bei kununu in einem neuen Tab. Nur der Firmenname geht an kununu. Deine Angaben bleiben auf diesem Computer.",
+      lehrstelle: "Prüfen öffnet den Lehrbetrieb bei kununu in einem neuen Tab. Nur der Name des Lehrbetriebs geht an kununu. Deine Angaben bleiben auf diesem Computer.",
+    },
+    "firmen.spalte": { sie: "Firma", du: "Firma", lehrstelle: "Lehrbetrieb" },
+    "firmen.suchen": { sie: "Firma suchen", du: "Firma suchen", lehrstelle: "Lehrbetrieb suchen" },
+    "firmen.keine-passt": { sie: "Keine Firma passt zu dieser Suche.", du: "Keine Firma passt zu dieser Suche.", lehrstelle: "Kein Lehrbetrieb passt zu dieser Suche." },
+    "firmen.mehrere": { sie: "Mehrere Firmen bei kununu", du: "Mehrere Firmen bei kununu", lehrstelle: "Mehrere Lehrbetriebe bei kununu" },
+    "firmen.hilfe": {
+      sie: "Auf kununu bewerten heutige und frühere Mitarbeitende ihre Firma: 5 ist der beste Wert, 1 der schlechteste. Unter 10 Bewertungen sagt der Wert wenig. Die Note der App sagt dagegen, wie gut eine Stelle zu Ihren Angaben passt.",
+      du: "Auf kununu bewerten heutige und frühere Mitarbeitende ihre Firma: 5 ist der beste Wert, 1 der schlechteste. Unter 10 Bewertungen sagt der Wert wenig. Die Note der App sagt dagegen, wie gut eine Stelle zu deinen Angaben passt.",
+      lehrstelle: "Auf kununu bewerten heutige und frühere Mitarbeitende und Lernende ihren Lehrbetrieb: 5 ist der beste Wert, 1 der schlechteste. Unter 10 Bewertungen sagt der Wert wenig. Die Note der App sagt dagegen, wie gut eine Lehrstelle zu deinen Angaben passt.",
+    },
+    "firmen.leer": {
+      sie: "Noch keine Firmen. Die Liste füllt sich mit der Suche und mit Stellen, die Sie von Hand erfassen.",
+      du: "Noch keine Firmen. Die Liste füllt sich mit der Suche und mit Stellen, die du von Hand erfasst.",
+      lehrstelle: "Noch keine Lehrbetriebe. Die Liste füllt sich mit der Suche und mit Lehrstellen, die du von Hand erfasst.",
+    },
+    "firmen.dialog": { sie: "Welche kununu-Seite gehört zu {firma}?", du: "Welche kununu-Seite gehört zu {firma}?" },
+    "firmen.dialog-feld": { sie: "Link zur Firma bei kununu", du: "Link zur Firma bei kununu", lehrstelle: "Link zum Lehrbetrieb bei kununu" },
+    "firmen.dialog-hilfe": {
+      sie: "Bei kununu die Firma öffnen und den Link aus der Adresszeile kopieren. kununu.com/ch und kununu.de gehen.",
+      du: "Bei kununu die Firma öffnen und den Link aus der Adresszeile kopieren. kununu.com/ch und kununu.de gehen.",
+      lehrstelle: "Bei kununu den Lehrbetrieb öffnen und den Link aus der Adresszeile kopieren. kununu.com/ch und kununu.de gehen.",
+    },
+    "firmen.dialog-fehler": {
+      sie: "Das ist kein Link zu einer Firma bei kununu.", du: "Das ist kein Link zu einer Firma bei kununu.",
+      lehrstelle: "Das ist kein Link zu einem Lehrbetrieb bei kununu.",
+    },
     "einwilligung.ersetzt": {
       sie: "Bevor ein Text zur KI geht, ersetzt die App Ihre Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Firmen, Ausbildungen und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
       du: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Firmen, Ausbildungen und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",

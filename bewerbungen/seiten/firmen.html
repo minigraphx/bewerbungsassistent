@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<meta name="bewerbungsbegleiter" content="app">
+<title>Firmen</title>
+<link rel="stylesheet" href="/stil.css">
+<link rel="stylesheet" href="/firmen.css">
+</head>
+<body>
+<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
+<main class="page companies-page">
+  <header class="companies-page__head">
+    <h1 id="titel" data-text="firmen.titel">Firmen</h1>
+    <p class="companies-page__sub" id="zeile"></p>
+    <p class="field__hint" data-text="firmen.nur-name">Prüfen öffnet die Firma bei kununu in einem neuen Tab. Nur der Firmenname geht an kununu. Ihre Angaben bleiben auf diesem Computer.</p>
+  </header>
+
+  <div class="companies-page__bar">
+    <div role="group" aria-label="Firmen anzeigen" class="overview__views" id="filter">
+      <button type="button" class="btn btn--sm" data-filter="alle" aria-pressed="true">Alle <span class="num" data-zahl="alle"></span></button>
+      <button type="button" class="btn btn--sm" data-filter="neu" aria-pressed="false">Mit neuen Treffern <span class="num" data-zahl="neu"></span></button>
+      <button type="button" class="btn btn--sm" data-filter="bewerbung" aria-pressed="false">Mit Bewerbung <span class="num" data-zahl="bewerbung"></span></button>
+      <button type="button" class="btn btn--sm" data-filter="klaeren" aria-pressed="false">Zu klären <span class="num" data-zahl="klaeren"></span></button>
+    </div>
+    <label class="visually-hidden" for="suche" data-text="firmen.suchen">Firma suchen</label>
+    <input class="input companies-page__search" id="suche" type="search" autocomplete="off" placeholder="Firma suchen">
+    <details class="grade-help companies-page__help"><summary>Wie lese ich kununu?</summary><p data-text="firmen.hilfe">Auf kununu bewerten heutige und frühere Mitarbeitende ihre Firma: 5 ist der beste Wert, 1 der schlechteste. Unter 10 Bewertungen sagt der Wert wenig. Die Note der App sagt dagegen, wie gut eine Stelle zu Ihren Angaben passt.</p></details>
+  </div>
+
+  <p id="status" class="status-line" role="status" aria-live="polite"></p>
+  <p id="leer" class="overview__empty" data-text="firmen.leer" hidden>Noch keine Firmen. Die Liste füllt sich mit der Suche und mit Stellen, die Sie von Hand erfassen.</p>
+  <p id="nichts" class="overview__empty" data-text="firmen.keine-passt" hidden>Keine Firma passt zu dieser Suche.</p>
+  <div class="table-wrap" id="tabelle" hidden>
+    <table class="table companies">
+      <thead><tr>
+        <th scope="col" data-spalte="firma"><button type="button" class="table__sort" data-text="firmen.spalte">Firma</button></th>
+        <th scope="col" data-spalte="kununu"><button type="button" class="table__sort">kununu</button></th>
+        <th scope="col" data-spalte="verknuepft"><button type="button" class="table__sort">Treffer und Bewerbungen</button></th>
+        <th scope="col" data-spalte="geprueft"><button type="button" class="table__sort">Geprüft</button></th>
+        <th scope="col"><span class="visually-hidden">Aktionen</span></th>
+      </tr></thead>
+      <tbody id="liste"></tbody>
+    </table>
+  </div>
+  <p class="companies-page__source">Bewertungen: kununu, Stand am angegebenen Tag. Sie stammen von Mitarbeitenden, nicht von der App.</p>
+
+  <dialog class="dialog" id="zuordnen-dialog" aria-labelledby="zuordnen-titel">
+    <form method="dialog" id="zuordnen-form" novalidate>
+      <h2 class="dialog__title" id="zuordnen-titel"></h2>
+      <div class="field">
+        <label class="field__label" for="zuordnen-link" data-text="firmen.dialog-feld">Link zur Firma bei kununu</label>
+        <input class="input" id="zuordnen-link" type="url" autocomplete="off" aria-describedby="zuordnen-hilfe zuordnen-fehler">
+        <p class="field__hint" id="zuordnen-hilfe" data-text="firmen.dialog-hilfe">Bei kununu die Firma öffnen und den Link aus der Adresszeile kopieren. kununu.com/ch und kununu.de gehen.</p>
+        <p class="field__error" id="zuordnen-fehler" role="alert"></p>
+      </div>
+      <div class="dialog__actions"><button type="button" class="btn" id="zuordnen-abbrechen">Abbrechen</button><button type="submit" class="btn btn--primary">Zuordnen</button></div>
+    </form>
+  </dialog>
+</main>
+<script src="/texte.js"></script>
+<script src="/app.js"></script>
+<script src="/firmen-logik.js"></script>
+<script src="/firmen.js"></script>
+</body>
+</html>

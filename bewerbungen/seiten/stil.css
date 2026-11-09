@@ -725,6 +725,7 @@ label.check input { margin-top: 3px; }
 .search__bar { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
 .search__bar .btn-row:empty { display: none; }
 .search__help { margin-left: auto; }
+.search__companies { font-size: 14px; line-height: 20px; }
 .input.search__kind { width: auto; min-height: 32px; padding: 4px 10px; font-size: 14px; }
 .search__empty { display: flex; flex-direction: column; gap: var(--space-3); align-items: center; padding: var(--space-7) var(--space-5); border: 1px dashed var(--line-strong); border-radius: var(--radius-lg); text-align: center; }
 .search__empty strong { color: var(--text-strong); }
