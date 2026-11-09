@@ -179,3 +179,19 @@ test("without a run of its own the page stops waiting with a message, also when 
 test("the page asks for the status after a while without progress, not at once", () => {
   assert.ok(logik.STILLE_MS >= 5000 && logik.STILLE_MS <= 60000);
 });
+
+test("a hit that failed the pre-check comes below the rest, even with stars or a grade (G33)", () => {
+  const hits = [
+    { id: "failed", beruf: "Pflege", vorpruefung: "Verlangt Master, vorhanden ist Bachelor.", bewertung: { note: 5 }, nah: true },
+    { id: "plain", gefunden_am: "2026-11-01" }, { id: "rated", bewertung: { note: 3 } },
+  ];
+  assert.deepEqual(logik.sortiert(hits, { Pflege: 5 }).map((t) => t.id), ["rated", "plain", "failed"]);
+});
+
+test("a hit that failed the pre-check is rated last, so the limit of a run takes the others (G33)", () => {
+  const found = logik.zuBewerten([
+    { id: "failed", zustand: "neu", nah: true, vorpruefung: "Schwerpunkt Java, im Suchprofil ausgeschlossen." },
+    { id: "far", zustand: "neu", gefunden_am: "2026-11-01" },
+  ]);
+  assert.deepEqual(found.map((t) => t.id), ["far", "failed"]);
+});

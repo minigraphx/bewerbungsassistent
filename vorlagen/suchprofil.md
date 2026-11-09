@@ -63,6 +63,10 @@ Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 ## Stärken
 - Python, TypeScript, Datenpipelines, technische Themen verständlich erklären
 
+## Ausschlüsse
+Die App prüft jedes Inserat vor der Bewertung mit festen Regeln: Sprachen und Abschluss gegen Lebenslauf und diese Datei, dazu die Technologien hier. Passt eines nicht, steht der Treffer mit Grund unten in der Liste.
+- Technologien als Schwerpunkt: Java, .NET
+
 ## Typische Haken (offen benennen)
 - Java- oder .NET-Schwerpunkt, Startdatum nach 1.3., Befristung
 

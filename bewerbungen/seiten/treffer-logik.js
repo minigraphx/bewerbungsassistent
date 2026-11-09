@@ -1,11 +1,15 @@
 "use strict";
 // Rating hits in packages (MIN-372): what to rate, which buttons to offer, the run itself. No DOM, so it can be tested.
 (function (global) {
-  /** Hits that can be rated now: near the home first, then the newest, so the limit of a run takes those. */
+  /** A hit that failed the pre-check by fixed rules (G33) goes below the others; it is never hidden. */
+  const durchgefallen = t => Number(Boolean(t.vorpruefung));
+
+  /** Hits that can be rated now: passed the pre-check, near the home first, then the newest, so the limit of a run takes those. */
   function zuBewerten(treffer) {
     return treffer
       .filter(t => t.zustand === "neu" && !t.bewertung && !t.ohne_text)
-      .sort((a, b) => Number(Boolean(b.nah)) - Number(Boolean(a.nah))
+      .sort((a, b) => durchgefallen(a) - durchgefallen(b)
+        || Number(Boolean(b.nah)) - Number(Boolean(a.nah))
         || (b.gefunden_am || "").localeCompare(a.gefunden_am || ""));
   }
 
@@ -23,10 +27,11 @@
     return neue.length > 0 && neue.every(t => t.bewertung);
   }
 
-  /** Own stars of the profession first, then the grade, then near the home, then the newest. Hits without a profession count as no stars. */
+  /** Failed pre-check last; then own stars of the profession, the grade, near the home, the newest. Hits without a profession count as no stars. */
   function sortiert(treffer, sterne) {
     const eigene = t => sterne[t.beruf] || 0;
-    return [...treffer].sort((a, b) => eigene(b) - eigene(a)
+    return [...treffer].sort((a, b) => durchgefallen(a) - durchgefallen(b)
+      || eigene(b) - eigene(a)
       || (b.bewertung?.note ?? 0) - (a.bewertung?.note ?? 0)
       || Number(Boolean(b.nah)) - Number(Boolean(a.nah))
       || (b.gefunden_am || "").localeCompare(a.gefunden_am || ""));
