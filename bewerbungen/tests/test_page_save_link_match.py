@@ -136,3 +136,42 @@ def test_screening_knows_a_saved_job_under_a_slightly_other_link(search):  # noq
     screened = post(search, "/api/suche/sichten", {"treffer": [{**HIT, "link": LINK.rstrip("/") + "?utm_source=alert"}]})[1]
 
     assert screened["holen"] == [] and screened["bekannt"] == 1
+
+
+YOUSTY = "https://www.yousty.ch/de-CH/lehrstellen/beispiel-werk-ag/informatiker-efz"
+APPRENTICESHIP_AD = {"stelle": "Informatiker/in EFZ", "firma": "Beispiel Werk AG", "ort": "Bern", "link": YOUSTY, "text": TEXT}
+TRIAL_AD = {**APPRENTICESHIP_AD, "stelle": "Schnupperlehre Informatiker/in EFZ", "link": YOUSTY + "#schnupperlehre"}
+
+
+def saved_on_yousty(s, ad, **fields):
+    return s.kontext.register().neu(firma="Beispiel Werk AG", stelle=ad["stelle"], firma_schluessel="beispiel-werk",
+                                     portal="yousty", link=ad["link"], status="Gemerkt", **fields)
+
+
+def test_the_apprenticeship_page_does_not_land_in_the_saved_trial(rated):  # noqa: F811
+    s, _ = rated
+    trial = saved_on_yousty(s, TRIAL_AD, art="Schnupperlehre")
+
+    status, answer = post(s, "/api/seite/speichern", APPRENTICESHIP_AD)
+
+    assert status == 200 and answer["neu"] is True and answer["bewerbung"]["id"] != trial["id"]
+    assert not ad_file(s, trial).exists()
+
+
+def test_the_trial_page_does_not_land_in_the_saved_apprenticeship(rated):  # noqa: F811
+    s, _ = rated
+    apprenticeship = saved_on_yousty(s, APPRENTICESHIP_AD)
+
+    status, answer = post(s, "/api/seite/speichern", TRIAL_AD)
+
+    assert status == 200 and answer["neu"] is True and answer["bewerbung"]["id"] != apprenticeship["id"]
+    assert not ad_file(s, apprenticeship).exists()
+
+
+def test_the_trial_page_fills_in_the_saved_trial(rated):  # noqa: F811
+    s, _ = rated
+    trial = saved_on_yousty(s, TRIAL_AD, art="Schnupperlehre")
+
+    status, answer = post(s, "/api/seite/speichern", {**TRIAL_AD, "stelle": "Informatiker/in EFZ"})
+
+    assert status == 200 and answer["neu"] is False and answer["bewerbung"]["id"] == trial["id"]

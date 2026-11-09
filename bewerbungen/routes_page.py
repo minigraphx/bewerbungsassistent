@@ -17,7 +17,7 @@ import unterlagen
 from ai import tasks
 from dateien import schreibe_atomar
 from hits import (CLOSED, DOMAINS, MAX_TEXT, ROUTE_FRAGMENT, Hits, _close_title, ad_with_details, bounded_text,
-                  comparable_link, company_hint, company_key, portal_of, without_tracking)
+                  comparable_link, company_hint, company_key, is_trial, portal_of, without_tracking)
 from routes_search import BAD_RATING, note_for, rating_fields
 from server import json_antwort
 
@@ -42,7 +42,8 @@ def _link(value) -> str:
     if parts.scheme not in WEB_SCHEMES or not parts.hostname:
         raise ValueError(BAD_LINK)
     query = urllib.parse.urlencode(without_tracking(parts.query))
-    fragment = parts.fragment if parts.fragment.startswith(ROUTE_FRAGMENT) else ""  # „#/job/12“ names the ad, „#bewerben“ does not
+    # „#/job/12“ names the ad and „#schnupperlehre“ the trial on yousty, „#bewerben“ names nothing
+    fragment = parts.fragment if parts.fragment.startswith(ROUTE_FRAGMENT) or is_trial(link) else ""
     return urllib.parse.urlunsplit(parts._replace(query=query, fragment=fragment))
 
 
@@ -73,12 +74,16 @@ def _rating(value) -> dict | None:
 
 def _matches(ad: dict, register: list[dict]) -> list[dict]:
     """Applications for this ad. On a portal a link names one ad, whatever the title says (#197); elsewhere several ads
-    can share one address, so the title must be close too, and then the same link or company counts."""
+    can share one address, so the title must be close too, and then the same link or company counts. A trial never
+    matches its apprenticeship, though yousty shows both on one page."""
     link = comparable_link(ad["link"])
     on_portal = portal_of(ad["link"]) is not None
     company = company_key(ad["firma"])
+    trial = is_trial(ad["link"])
 
     def same(entry: dict) -> bool:
+        if is_trial(entry.get("link") or "", entry.get("art") or "") != trial:
+            return False
         same_link = bool(entry.get("link")) and comparable_link(entry["link"]) == link
         if on_portal and same_link:
             return True

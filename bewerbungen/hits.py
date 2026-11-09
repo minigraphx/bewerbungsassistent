@@ -94,6 +94,11 @@ def comparable_link(link: str, any_fragment: bool = False) -> str:
     return f"{host}{parts.path.rstrip('/')}?{query}#{fragment}"
 
 
+def is_trial(link: str, kind: str = "") -> bool:
+    """A trial apprenticeship: yousty shows it on the apprenticeship's page, only „#schnupperlehre“ tells them apart."""
+    return kind == TRIAL or urllib.parse.urlsplit(link or "").fragment == TRIAL.lower()
+
+
 def portal_of(link: str) -> str | None:
     """The portal whose site the link is on, by name as the search stores it; None for any other site."""
     host = (urllib.parse.urlsplit(link or "").hostname or "").lower()
