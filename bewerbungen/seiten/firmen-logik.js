@@ -139,11 +139,13 @@
   const WERT_FALSCH = "Der Wert muss eine Zahl von 1 bis 5 sein.";
   const ANZAHL_FALSCH = "Die Anzahl Bewertungen muss eine ganze Zahl ab 0 sein.";
 
-  /** What the page says after a check; null when the extension is missing and kununu only opened in a tab. */
-  function pruefErgebnis(antwort, name) {
+  /** What the page says after a check; null when the extension is missing and kununu only opened in a tab.
+   *  `wo` names the page for entering a value by hand when the check ran elsewhere (Stellen suchen). */
+  function pruefErgebnis(antwort, name, { wo = "" } = {}) {
     if (antwort?.geoeffnet) return null;
     if (!antwort || antwort.fehler) return { text: antwort?.fehler || "Die Erweiterung antwortet nicht.", stufe: "warning", vonHand: false };
-    if (!antwort.gelesen) return { text: `Bei kununu liess sich für ${name} kein Wert lesen. ${NICHT_GELESEN}`, stufe: "warning", vonHand: true };
+    const nichtGelesen = wo ? NICHT_GELESEN.replace("von Hand", `unter ${wo} von Hand`) : NICHT_GELESEN;
+    if (!antwort.gelesen) return { text: `Bei kununu liess sich für ${name} kein Wert lesen. ${nichtGelesen}`, stufe: "warning", vonHand: true };
     const k = antwort.kununu || {};
     const texte = {
       gefunden: () => `${name}: kununu ${wert(k.wert)} von 5, ${bewertungen(k.bewertungen)}.`,
@@ -152,6 +154,18 @@
       mehrere: () => `${name}: mehrere Treffer bei kununu. Bitte den passenden wählen.`,
     };
     return { text: (texte[k.zustand] || texte.nicht_gefunden)(), stufe: "success", vonHand: false };
+  }
+
+  /** Whether a check is due: never checked, page assigned, last check failed, or the value is out of date. Both pages
+   *  offer „Prüfen“ by this rule; Stellen suchen names it „Jetzt prüfen“, „Nochmals prüfen“ or „Neu prüfen“. */
+  function pruefungFaellig(firma, heute) {
+    return ["ungeprueft", "zugeordnet", "fehler"].includes(zustand(firma)) || veraltet(firma, heute);
+  }
+
+  /** Whether „Von Hand eintragen“ shows. A check that cannot read stores nothing, so the company keeps its state: every
+   *  company with a check due or without a value gets it, also on a fresh page after a check on Stellen suchen. */
+  function vonHandAnbieten(firma, heute, nichtGelesen = new Set()) {
+    return pruefungFaellig(firma, heute) || !MIT_WERT.includes(zustand(firma)) || nichtGelesen.has(firma.schluessel);
   }
 
   /** Score and count as the person typed them, or the field that is wrong and why. */
@@ -205,7 +219,7 @@
     if (z === "fehler") return pruefen("Nochmals prüfen");
     if (z === "nicht_gefunden") return [{ art: "suchen", text: "Bei kununu suchen", href: firma.suche }];
     if (z === "mehrere") return [];
-    return [...(veraltet(firma, heute) ? pruefen("Neu prüfen") : []), ...ansehen];
+    return [...(pruefungFaellig(firma, heute) ? pruefen("Neu prüfen") : []), ...ansehen];
   }
 
   /** What the detail column says about the company of a hit; links open kununu in a new tab. */
@@ -223,7 +237,7 @@
              aktionen: zeilenAktionen(firma, z, heute) };
   }
 
-  const logik = { pruefErgebnis, vonHandWerte, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
+  const logik = { pruefErgebnis, vonHandWerte, vonHandAnbieten, pruefungFaellig, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
                   prozent, datum, bewertungen, seite, trefferText, gefiltert, zaehlen, sortiert, gueltigerFilter,
                   gueltigeSortierung, naechsteSortierung, pruefenLink, zusammenfassung, nachTreffer, marke, firmenZeile };
   if (typeof module !== "undefined") module.exports = logik;

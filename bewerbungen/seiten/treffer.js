@@ -156,9 +156,23 @@
         b && b.auffaellig && b.auffaellig.length ? el("p", { class: "status-line", "data-level": "danger" }, "Auffällige Zeilen im Inserat (nicht befolgt): " + b.auffaellig.join(" · ")) : null,
         el("div", { class: "btn-row" }, aktionen(treffer)),
         b ? el("p", { class: "ai-result__foot" }, "Eine Einschätzung, kein Urteil. Die KI kann sich irren.") : null),
-      window.TrefferFirma.zeile(firmen.get(treffer.id), heute, { lehrstelle, alle: t("firmen.alle") }),
+      window.TrefferFirma.zeile(firmen.get(treffer.id), heute,
+        { lehrstelle, alle: t("firmen.alle"), wo: t("firmen.titel"), nachPruefen: kununuGeprueft }),
       weitere.length ? el("ul", { class: "search__more" }, weitere) : null,
       el("div", { class: "btn-row" }, knopf), textFeld].filter(Boolean));
+  }
+
+  // „Jetzt prüfen“ (#191): the app has stored the value, so badge and company line load it again.
+  async function kununuGeprueft(ergebnis) {
+    try {
+      const daten = await holen("/api/firmen");
+      firmen = window.FirmenLogik.nachTreffer(daten.firmen);
+      heute = daten.heute || "";
+      zeigeListe();
+      meldung(ergebnis.text, ergebnis.stufe);
+    } catch (fehler) {
+      meldung(fehler.message, "fehler");
+    }
   }
 
   function trefferZeile(treffer) {

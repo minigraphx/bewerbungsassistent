@@ -15,11 +15,23 @@
       el("span", { "aria-hidden": "true" }, m.text), el("span", { class: "visually-hidden" }, `, ${m.vorlesen}`));
   }
 
-  function aktion(firma, a) {
-    const name = el("span", { class: "visually-hidden" }, `: ${firma.name}${NEUER_TAB}`);
+  const erweiterungDa = () => Boolean(document.documentElement.dataset.bewerbungsbegleiterErweiterung);
+
+  /** The same check as on the page Firmen (#191); `nachPruefen` gets what to say, nothing when kununu only opened. */
+  async function pruefen(firma, knopf, { wo, nachPruefen }) {
+    knopf.disabled = true;
+    const ergebnis = logik.pruefErgebnis(await window.KununuPruefen.pruefe(firma), firma.name, { wo });
+    knopf.disabled = false;
+    if (ergebnis && nachPruefen) await nachPruefen(ergebnis);
+  }
+
+  function aktion(firma, a, optionen) {
     if (a.art === "pruefen") {
-      return el("button", { type: "button", class: "btn btn--sm", onclick: () => window.open(a.href, "_blank", "noopener,noreferrer") }, a.text, name);
+      const name = el("span", { class: "visually-hidden" }, `: ${firma.name}${erweiterungDa() ? "" : NEUER_TAB}`);
+      return el("button", { type: "button", class: "btn btn--sm", onclick: event => pruefen(firma, event.currentTarget, optionen) },
+        a.text, name);
     }
+    const name = el("span", { class: "visually-hidden" }, `: ${firma.name}${NEUER_TAB}`);
     return el("a", { class: a.art === "suchen" ? "btn btn--sm btn--quiet" : "btn btn--sm", href: a.href, target: "_blank",
       rel: "noopener noreferrer" }, a.text, name);
   }
@@ -30,8 +42,9 @@
       ...zeile.angaben.map(angabe => el("span", { class: "rating__meta" }, angabe)));
   }
 
-  /** The company line under the AI's assessment; `alle` names the link to the page Firmen or Lehrbetriebe. */
-  function zeile(firma, heute, { lehrstelle = false, alle = "Alle Firmen" } = {}) {
+  /** The company line under the AI's assessment; `alle` names the link to the page Firmen or Lehrbetriebe, `wo` that
+   *  page for a value by hand, and `nachPruefen` gets the result of „Jetzt prüfen“. */
+  function zeile(firma, heute, { lehrstelle = false, alle = "Alle Firmen", wo = "", nachPruefen = null } = {}) {
     if (!firma) return null;
     const z = logik.firmenZeile(firma, heute, { lehrstelle });
     const satz = z.zustand === "fehler" ? el("p", { class: "status-line", "data-level": "warning" }, z.satz)
@@ -40,7 +53,7 @@
       el("h3", { class: "company-line__title", id: "firma-titel" }, z.titel),
       z.wert ? wertBlock(z) : null, satz,
       z.datum ? el("p", { class: "company-line__date" }, z.datum) : null,
-      el("div", { class: "btn-row" }, ...z.aktionen.map(a => aktion(firma, a)),
+      el("div", { class: "btn-row" }, ...z.aktionen.map(a => aktion(firma, a, { wo, nachPruefen })),
         el("a", { class: "btn btn--sm btn--quiet", href: "/firmen" }, alle)));
   }
 
