@@ -426,3 +426,10 @@ test('the popup says when a search was cancelled', () => {
   assert.match(describeRun({ zustand: 'fertig', ergebnis: { portale: {}, abgebrochen: true } }).step, /Abgebrochen/);
   assert.match(describeRun({ zustand: 'fertig', ergebnis: { portale: {} } }).step, /Fertig/);
 });
+
+test('each portal searches its own days when the plan names them, else the window (G32)', () => {
+  const plan = { ...PLAN, max_alter_tage: 21, max_alter_tage_portale: { 'job-room': 4 } };
+  assert.ok(queries('job-room', plan).every((q) => q.maxAge === 4));
+  assert.ok(queries('jobs.ch', plan).every((q) => q.maxAge === 21));
+  assert.ok(queries('job-room', { ...PLAN, max_alter_tage: 21 }).every((q) => q.maxAge === 21), 'an older app sends the window only');
+});

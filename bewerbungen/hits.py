@@ -20,6 +20,7 @@ from register import slug
 FOLDER = "suche"
 HITS_FILE = "treffer.yaml"
 RUN_FILE = "letzte-suche.yaml"
+LAST_SUCCESS = "erfolgreich_am"
 SETTINGS_FILE = "einstellungen.yaml"
 OWN_SITES = "weitere_seiten"
 PORTALS_OFF = "portale_aus"
@@ -36,6 +37,13 @@ NO_POSITIVE_TERM = "kein Positivbegriff im Titel"
 LEGAL_FORMS = {"ag", "gmbh", "sa", "sarl", "sagl", "ltd", "llc", "inc", "kg", "co", "se", "plc", "bv"}
 TRIAL = "Schnupperlehre"
 CLOSED = {"Absage", "Verworfen", "Zurückgezogen"}
+# G34: staffing agencies post jobs of other companies; the search profile can add more („## Vermittler“).
+AGENCIES = ("Adecco", "Manpower", "Randstad", "Hays", "Michael Page", "Page Personnel", "Robert Half", "Kelly Services",
+            "Gi Group", "Universal-Job", "Careerplus", "Coople", "Interiman", "Persona Service", "Yellowshark")
+AGENCY_CLOSED = CLOSED | {"Zusage"}
+AGENCY_TWIN = "Könnte dieselbe Stelle sein wie „{stelle}“ bei {firma} ({status}) im Register."
+TITLE_FILLERS = frozenset({"und", "mit", "für", "fuer", "der", "die", "das", "als", "im", "in", "zur", "zum", "von"})
+MIN_TITLE_OVERLAP = 0.75  # share of the shorter title's words both titles have
 _LOCK = threading.Lock()
 MARKUP = re.compile(r"</?[a-zA-Z][^<>]*>")
 POSTAL_CODE = re.compile(r"\b\d{4}\b")
@@ -205,6 +213,43 @@ def company_hint(hit: dict, register: list[dict]) -> str:
     return "; ".join(f"Bei {b['firma']} gibt es schon: {b['stelle']} ({b['status']})" for b in same[:2])
 
 
+def _is_agency(company: str, agencies: tuple[str, ...]) -> bool:
+    found = f"-{company_key(company)}-"
+    return any(key and f"-{key}-" in found for key in map(company_key, agencies))
+
+
+def _title_words(title: str) -> frozenset[str]:
+    return frozenset(word for word in _title_key(title).split("-") if len(word) > 1 and word not in TITLE_FILLERS)
+
+
+def _pensum_range(text: str) -> tuple[int, int] | None:
+    found = _TITLE_PENSUM.search(text or "")
+    numbers = [int(n) for n in re.findall(r"\d+", found.group())] if found else []
+    return (min(numbers), max(numbers)) if numbers else None
+
+
+def _same_pensum(hit: dict, entry: dict) -> bool:
+    """Unknown on either side counts as the same; „80–100 %“ and „80 %“ overlap."""
+    ours, theirs = _pensum_range(hit.get("pensum") or hit["stelle"]), _pensum_range(entry.get("pensum") or entry.get("stelle", ""))
+    return ours is None or theirs is None or (ours[0] <= theirs[1] and theirs[0] <= ours[1])
+
+
+def _close_title(title: str, other: str) -> bool:
+    ours, theirs = _title_words(title), _title_words(other)
+    shared = len(ours & theirs)
+    return bool(shared) and shared / min(len(ours), len(theirs)) >= MIN_TITLE_OVERLAP
+
+
+def agency_hint(hit: dict, register: list[dict], agencies: tuple[str, ...]) -> str:
+    """An agency hides the company: an open entry with a close title and the same pensum may be this job (G34)."""
+    if not _is_agency(hit["firma"], (*AGENCIES, *agencies)):
+        return ""
+    same = [b for b in register if b.get("status") not in AGENCY_CLOSED and b.get("stelle")
+            and _close_title(hit["stelle"], b["stelle"]) and _same_pensum(hit, b)]
+    return " ".join(AGENCY_TWIN.format(stelle=b["stelle"], firma=b.get("firma") or "unbekannt", status=b.get("status") or "Gemerkt")
+                    for b in same[:2])
+
+
 def ad_with_details(hit: dict, body: str) -> str:
     """Details and text of an ad, as the AI rates it and as it goes into stelle.md."""
     labels = (("Stelle", "stelle"), ("Firma", "firma"), ("Ort", "ort"), ("Pensum", "pensum"),
@@ -254,13 +299,15 @@ class Hits:
 
     def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
                own_portals: frozenset[str] = frozenset(), near=lambda place: False,
-               title_positive: tuple[str, ...] = ()) -> dict:
+               title_positive: tuple[str, ...] = (), max_age_by_portal: dict[str, int] | None = None) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away. With positive
         terms (G31), a title needs one of them; the others are screened out before their text counts against the limit.
+        `max_age_by_portal` shortens the window per portal after a successful run (G32).
         """
         fetch, nearby, filtered, known, merged = [], [], [], 0, 0
+        ages = max_age_by_portal or {}
         with _LOCK:
             stored = self.all()
             known_keys = {key(h) for h in stored}
@@ -285,8 +332,9 @@ class Hits:
                     filtered.append({"stelle": hit["stelle"], "grund": f"Titel: {term}"})
                 elif title_positive and _title_match(hit["stelle"], title_positive) is None:
                     filtered.append({"stelle": hit["stelle"], "grund": NO_POSITIVE_TERM})
-                elif hit.get("alter_tage") is not None and hit["alter_tage"] > max_age:
-                    filtered.append({"stelle": hit["stelle"], "grund": f"älter als {max_age} Tage"})
+                elif hit.get("alter_tage") is not None and hit["alter_tage"] > ages.get(hit["portal"], max_age):
+                    days = ages.get(hit["portal"], max_age)
+                    filtered.append({"stelle": hit["stelle"], "grund": f"älter als {days} {'Tag' if days == 1 else 'Tage'}"})
                 elif key(hit) not in fetch:
                     fetch.append(key(hit))
                     if near(hit.get("ort", "")):
@@ -296,8 +344,8 @@ class Hits:
         return {"holen": fetch, "nah": nearby, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": merged}
 
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
-            own_portals: frozenset[str] = frozenset()) -> dict:
-        """Store new hits; the same job from another portal only adds its link."""
+            own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = ()) -> dict:
+        """Store new hits; the same job from another portal only adds its link. `agencies`: more from the profile (G34)."""
         rejected, new, merged = [], 0, 0
         with _LOCK:
             stored = self.all()
@@ -318,7 +366,7 @@ class Hits:
                     continue
                 text = hit.pop("text")
                 entry = {"id": hit_id(hit), **hit, "gefunden_am": today.isoformat(), "zustand": "neu"}
-                hint = company_hint(entry, register)
+                hint = company_hint(entry, register) or agency_hint(entry, register, agencies)
                 if hint:
                     entry["hinweis"] = hint
                 if text:
@@ -389,9 +437,16 @@ class Hits:
             return self._save_settings({**current, "beruf_sterne": {**others, **({name: stars} if stars else {})}})
 
     def save_run(self, summary: dict, today: datetime.date) -> dict:
-        run = {"datum": today.isoformat(), **summary}
+        """The run as the page shows it; each portal without a problem also counts as its last success (G32)."""
+        succeeded = {name: today.isoformat() for name, portal in summary.get("portale", {}).items() if not portal.get("problem")}
+        run = {"datum": today.isoformat(), **summary, LAST_SUCCESS: {**self.last_success(), **succeeded}}
         schreibe_yaml(self.folder / RUN_FILE, run)
         return run
+
+    def last_success(self) -> dict[str, str]:
+        """Portal → date of its last run without a problem."""
+        found = (self.last_run() or {}).get(LAST_SUCCESS)
+        return {str(k): str(v) for k, v in found.items()} if isinstance(found, dict) else {}
 
     def last_run(self) -> dict | None:
         run = lies_yaml(self.folder / RUN_FILE, None)

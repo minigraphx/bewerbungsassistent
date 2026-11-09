@@ -9,6 +9,7 @@ of the keywords, around the place of residence or else in the cantons. Section �
 trial apprenticeships or both (MIN-373); „Schnupperlehren“ in such a profile lists those already done, not a wish.
 """
 import dataclasses
+import datetime
 import pathlib
 import re
 
@@ -51,7 +52,11 @@ MAX_PLACES = 6
 MAX_PAGES = 3  # per keyword and place, as in the skill
 MAX_QUERIES = 30  # keyword × place combinations per portal
 MAX_TEXTS = 150  # new ads per portal and run: a search all over Switzerland can find thousands; the rest comes next run
-MAX_AGE_DAYS = 45
+MAX_AGE_DAYS = 21  # G32: the window by default; the profile can set it („Zeitfenster“ under „Portale und Rhythmus“)
+MIN_WINDOW_DAYS = 1
+MAX_WINDOW_DAYS = 60
+BAD_WINDOW = ("Zeitfenster „{value}“ geht nicht: erlaubt sind {low} bis {high} Tage. Gesucht werden die letzten "
+              f"{MAX_AGE_DAYS} Tage.")
 MAX_VALUE = 80
 MAX_PROFESSIONS = 8
 MAX_APPRENTICESHIP_PAGES = 20  # the lists are short pages, and only the search area is asked for
@@ -59,6 +64,7 @@ DEFAULT_RADIUS_KM = 25
 MIN_RADIUS_KM = 5
 MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
+AGENCIES_SECTION = "## Vermittler"
 NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
 NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
 PLACE_SHARE = ("{portal}: {limit} Suchen reichen nicht für alle {terms} Begriffe in {places} Orten; pro Ort laufen die ersten "
@@ -124,6 +130,7 @@ class SearchPlan:
     offers: tuple[str, ...] = ()
     nationwide: bool = False
     hint_targets: tuple[tuple[str, str], ...] = ()  # hint → field in „Meine Angaben“
+    max_age_days: int = MAX_AGE_DAYS
 
     def as_dict(self) -> dict:
         pages = MAX_APPRENTICESHIP_PAGES if self.kind == KIND_APPRENTICESHIP else MAX_PAGES
@@ -132,7 +139,7 @@ class SearchPlan:
                 "plz": list(self.postal_codes), "regionen": list(self.regions),
                 "titel_ausschluss": list(self.title_exclude), "umkreis_km": self.radius_km,
                 "lehrbeginn_jahre": list(self.start_years), "angebote": list(self.offers), "max_seiten": pages, "max_abfragen": MAX_QUERIES,
-                "max_alter_tage": MAX_AGE_DAYS, "max_texte": MAX_TEXTS, "hinweise": list(self.hints), "schweizweit": self.nationwide,
+                "max_alter_tage": self.max_age_days, "max_texte": MAX_TEXTS, "hinweise": list(self.hints), "schweizweit": self.nationwide,
                 "hinweis_ziele": dict(self.hint_targets)}
 
 
@@ -459,12 +466,41 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     limit_hint = (TOO_MANY_TERMS.format(limit=MAX_KEYWORDS, terms=", ".join(dropped)),) if dropped else ()
     shares = _place_shares(portals, len(keywords), len(niches[:MAX_KEYWORDS]),
                            {"jobs.ch": places, "jobscout24": postal_codes, "ictjobs": regions})
+    window, window_hint = _window(_value(_pairs(sections.get("portale und rhythmus", [])), "zeitfenster"))
     return SearchPlan(keywords=keywords, niche_keywords=niches[:MAX_KEYWORDS],
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
                       title_exclude=_terms(_value(titles, "ausschluss"), MAX_TITLE_TERMS),
                       title_positive=_terms(_value(titles, "positiv"), MAX_TITLE_TERMS), portals=portals,
-                      hints=(*limit_hint, *shares, *(hint for hint, _ in targets)), nationwide=nationwide,
-                      hint_targets=targets)
+                      hints=(*window_hint, *limit_hint, *shares, *(hint for hint, _ in targets)), nationwide=nationwide,
+                      hint_targets=targets, max_age_days=window)
+
+
+def _window(value: str) -> tuple[int, tuple[str, ...]]:
+    """The days the search looks back, with a hint when the profile asks for something it cannot do (G32)."""
+    if not value:
+        return MAX_AGE_DAYS, ()
+    number = NUMBER.fullmatch(re.sub(r"\s*tage?$", "", value.strip(), flags=re.IGNORECASE))
+    days = int(number.group()) if number else 0
+    if MIN_WINDOW_DAYS <= days <= MAX_WINDOW_DAYS:
+        return days, ()
+    return MAX_AGE_DAYS, (BAD_WINDOW.format(value=value, low=MIN_WINDOW_DAYS, high=MAX_WINDOW_DAYS),)
+
+
+def portal_days(window: int, portals: tuple[str, ...], last_success: dict, today: datetime.date) -> dict[str, int]:
+    """Per portal the days since its last successful run, the day of that run included, never more than the window."""
+    def days(portal: str) -> int:
+        try:
+            since = (today - datetime.date.fromisoformat(str(last_success.get(portal)))).days
+        except ValueError:
+            return window
+        return min(window, max(MIN_WINDOW_DAYS, since + 1))
+    return {portal: days(portal) for portal in portals}
+
+
+def agencies_in(text: str) -> tuple[str, ...]:
+    """Staffing agencies the profile adds to the known ones (G34), section „Vermittler“."""
+    values = [match[2] for match in map(PAIR.match, section_lines(text, AGENCIES_SECTION)) if match]
+    return tuple(dict.fromkeys(name.strip() for value in values for name in value.split(",") if name.strip()))
 
 
 def _postal_code(data_dir: pathlib.Path) -> str | None:

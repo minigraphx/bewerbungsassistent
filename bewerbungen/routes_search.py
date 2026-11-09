@@ -41,27 +41,37 @@ def _list(body, field: str = "treffer") -> list:
     return value
 
 
+def _portal_days(store: Hits, current: search_plan.SearchPlan, today) -> dict[str, int]:
+    """The days each portal searches (G32); older extensions read only max_alter_tage, the window."""
+    return search_plan.portal_days(current.max_age_days, search_plan.ALL_PORTALS, store.last_success(), today)
+
+
 def plan(k, parameter, body):
     store = _hits(k)
     current = search_plan.chosen(search_plan.for_folder(k.daten), store.settings()[PORTALS_OFF])
+    days = _portal_days(store, current, k.heute())
     # The form of address of the setup (MIN-369): the popup of the extension speaks like the app.
-    return json_antwort({"plan": {**current.as_dict(), "anrede": preferences.load(k.daten).address, "zuschauen": store.settings()["zuschauen"],
+    return json_antwort({"plan": {**current.as_dict(), "max_alter_tage_portale": days,
+                                  "anrede": preferences.load(k.daten).address, "zuschauen": store.settings()["zuschauen"],
                                   "eigener_schluessel": connection.has_own_key(), "weitere_seiten": own_sites.active(store)}})
 
 
 def screen(k, parameter, body):
     current = search_plan.for_folder(k.daten)
     store = _hits(k)
-    result = store.screen(_list(body), current.title_exclude, search_plan.MAX_AGE_DAYS, k.register().alle(),
+    result = store.screen(_list(body), current.title_exclude, current.max_age_days, k.register().alle(),
                           own_sites.active_portals(store),
                           near=lambda place: is_near(str(place), current.places, current.postal_codes),
-                          title_positive=current.title_positive)
+                          title_positive=current.title_positive,
+                          max_age_by_portal=_portal_days(store, current, k.heute()))
     return json_antwort(result)
 
 
 def receive(k, parameter, body):
     store = _hits(k)
-    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store)))
+    profile = k.daten / search_plan.PROFILE
+    agencies = search_plan.agencies_in(profile.read_text(encoding="utf-8")) if profile.is_file() else ()
+    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), agencies))
 
 
 def _portal_summary(raw) -> dict:
