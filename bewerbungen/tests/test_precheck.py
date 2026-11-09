@@ -69,11 +69,14 @@ def test_a_degree_with_an_alternative_or_at_the_level_passes():
     assert check("Master in Informatik oder gleichwertige Erfahrung.") == ""
     assert check("Abgeschlossenes Hochschulstudium (Bachelor oder Master).") == ""
     assert check("Erfahrung als Scrum Master und mit Master Data ist ein Plus. Sie arbeiten mit dem Product Owner.") == ""
+    assert check("Erfahrung als Scrum-Master in agilen Teams.") == ""
+    assert check("Sie pflegen die Master-Data im ERP.") == ""
 
 
 def test_an_excluded_technology_as_main_requirement_fails():
     assert check("Wir suchen Verstärkung.", title="Senior Java Developer") == "Schwerpunkt Java, im Suchprofil ausgeschlossen."
     assert check("Mehrjährige Erfahrung mit .NET und C# ist Voraussetzung.") == "Schwerpunkt .NET, im Suchprofil ausgeschlossen."
+    assert check("Mehrjährige Erfahrung mit ASP.NET Core ist Voraussetzung.") == "Schwerpunkt .NET, im Suchprofil ausgeschlossen."
 
 
 def test_an_excluded_technology_on_the_side_passes():

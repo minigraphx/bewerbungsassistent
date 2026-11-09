@@ -32,7 +32,7 @@ LEVEL_NAMES = {1: "A1", 2: "A2", 3: "B1", 4: "B2", 5: "C1", 6: "C2", 7: "Mutters
 MAX_DISTANCE = 40  # characters between a language and its level
 DEGREE_WORDS = (
     (5, "Doktorat", r"\bph\.?\s?d\b|doktorat\w*|\bpromotion\b|promoviert\w*"),
-    (4, "Master", r"(?<!scrum )\bmaster(?:abschluss|studium|degree)?\b(?!\s*data)|\bm\.?\s?sc\b|lizentiat\w*"),
+    (4, "Master", r"(?<!scrum[ -])\bmaster(?:abschluss|studium|degree)?\b(?![\s-]*data)|\bm\.?\s?sc\b|lizentiat\w*"),
     (3, "Bachelor", r"\bbachelor\w*|\bb\.?\s?sc\b|hochschulabschluss|hochschulstudium|universitätsabschluss"
                     r"|abgeschlossene[sn]?\s+(?:\w+\s+)?studium|fh-abschluss|uni-abschluss"),
     (2, "höhere Berufsbildung", r"fachausweis|höhere\w*\s+fachschule|\bhf\b|eidg\.?\s+diplom"),
@@ -142,7 +142,10 @@ def _degree_reason(text: str, person: Person) -> str:
 
 
 def _mentions(text: str, term: str) -> bool:
-    return re.search(rf"(?<!\w){re.escape(term)}(?!\w)", text, re.IGNORECASE) is not None
+    """A whole term; one that starts or ends with a sign, like „.NET“ or „C++“, also inside „ASP.NET“."""
+    before = "" if not term[:1].isalnum() else r"(?<!\w)"
+    after = "" if not term[-1:].isalnum() else r"(?!\w)"
+    return re.search(f"{before}{re.escape(term)}{after}", text, re.IGNORECASE) is not None
 
 
 def _technology_reason(title: str, text: str, person: Person) -> str:
