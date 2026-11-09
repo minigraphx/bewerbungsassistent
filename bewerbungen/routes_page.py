@@ -74,11 +74,12 @@ def _rating(value) -> dict | None:
 
 def _matches(ad: dict, register: list[dict]) -> list[dict]:
     """Applications for this ad. On a portal a link names one ad, whatever the title says (#197): the same link is the
-    same ad, another link another ad, and only an entry without a link is found by a close title and the company.
+    same ad, and another link on the same portal another ad. An entry whose link is on another site, or that has none,
+    is found by a close title and the company, since one job is often saved from another portal or the employer's site.
     Elsewhere several ads can share one address, so the title must be close too, and then the same link or company
     counts. A trial never matches its apprenticeship, though yousty shows both on one page."""
     link = comparable_link(ad["link"])
-    on_portal = portal_of(ad["link"]) is not None
+    portal = portal_of(ad["link"])
     company = company_key(ad["firma"])
     trial = is_trial(ad["link"])
 
@@ -86,7 +87,7 @@ def _matches(ad: dict, register: list[dict]) -> list[dict]:
         if is_trial(entry.get("link") or "", entry.get("art") or "") != trial:
             return False
         same_link = bool(entry.get("link")) and comparable_link(entry["link"]) == link
-        if on_portal and entry.get("link"):
+        if portal is not None and entry.get("link") and portal_of(entry["link"]) == portal:
             return same_link
         if not _close_title(ad["stelle"], entry.get("stelle") or ""):
             return False

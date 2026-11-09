@@ -199,3 +199,23 @@ def test_on_a_portal_an_entry_without_a_link_is_found_by_title_and_company(rated
     status, answer = post(s, "/api/seite/speichern", {**PAGE_AD, "link": JOBS_CH + "222"})
 
     assert status == 200 and answer["neu"] is False and answer["bewerbung"]["id"] == entry["id"]
+
+
+@pytest.mark.parametrize("saved_link", [JOBS_CH + "111", "https://karriere.beispiel-analytik.ch/stellen/ai-engineer"])
+def test_an_entry_with_a_link_on_another_site_is_found_by_title_and_company(rated, saved_link):  # noqa: F811
+    s, _ = rated
+    entry = saved_job(s, link=saved_link)
+
+    status, answer = post(s, "/api/seite/speichern", {**PAGE_AD, "link": LINK})
+
+    assert status == 200 and answer["neu"] is False and answer["bewerbung"]["id"] == entry["id"]
+    assert [e["id"] for e in applications(s) if e.get("firma_schluessel") == "beispiel-analytik"] == [entry["id"]]
+
+
+def test_another_link_on_the_same_portal_is_another_ad_even_with_the_same_title(rated):  # noqa: F811
+    s, _ = rated
+    entry = saved_job(s, link="https://www.jobscout24.ch/de/job/1111111/")
+
+    status, answer = post(s, "/api/seite/speichern", {**PAGE_AD, "link": LINK})
+
+    assert status == 200 and answer["neu"] is True and answer["bewerbung"]["id"] != entry["id"]
