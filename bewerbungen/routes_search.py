@@ -60,7 +60,9 @@ def screen(k, parameter, body):
 
 def receive(k, parameter, body):
     store = _hits(k)
-    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store)))
+    profile = k.daten / search_plan.PROFILE
+    agencies = search_plan.agencies_in(profile.read_text(encoding="utf-8")) if profile.is_file() else ()
+    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), agencies))
 
 
 def _portal_summary(raw) -> dict:

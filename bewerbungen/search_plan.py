@@ -58,6 +58,7 @@ DEFAULT_RADIUS_KM = 25
 MIN_RADIUS_KM = 5
 MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
+AGENCIES_SECTION = "## Vermittler"
 NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
 NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
 PLACE_SHARE = ("{portal}: {limit} Suchen reichen nicht für alle {terms} Begriffe in {places} Orten; pro Ort laufen die ersten "
@@ -462,6 +463,12 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
                       title_exclude=_terms(_value(titles, "ausschluss"), 30), portals=portals,
                       hints=(*limit_hint, *shares, *(hint for hint, _ in targets)), nationwide=nationwide,
                       hint_targets=targets)
+
+
+def agencies_in(text: str) -> tuple[str, ...]:
+    """Staffing agencies the profile adds to the known ones (G34), section „Vermittler“."""
+    values = [match[2] for match in map(PAIR.match, section_lines(text, AGENCIES_SECTION)) if match]
+    return tuple(dict.fromkeys(name.strip() for value in values for name in value.split(",") if name.strip()))
 
 
 def _postal_code(data_dir: pathlib.Path) -> str | None:
