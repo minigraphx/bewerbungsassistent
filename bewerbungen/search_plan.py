@@ -60,6 +60,8 @@ MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
 NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
 NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
+PLACE_SHARE = ("{portal}: {limit} Suchen reichen nicht für alle {terms} Begriffe in {places} Orten; pro Ort laufen die ersten "
+               "{share}. Wichtige Begriffe nach vorne stellen.")
 TOO_MANY_TERMS = "Gesucht werden höchstens {limit} Begriffe. Nicht gesucht: {terms}. Weniger wichtige Begriffe entfernen."
 CORE_LABEL = "kernliste"
 NICHE_LABEL = "nischen"
@@ -418,6 +420,18 @@ def _job_hints(nationwide: bool, portals: tuple[str, ...], cantons: tuple[str, .
                  for portal, known, name, field in gaps if portal in portals and not known)
 
 
+def _place_shares(portals: tuple[str, ...], keywords: int, niches: int,
+                  places_of: dict[str, tuple[str, ...]]) -> tuple[str, ...]:
+    """Where the places of a portal share its limit, how far each gets; as erweiterung/lib/queries.js placeQuotas (#175)."""
+    hints = []
+    for portal, places in places_of.items():
+        free = niches if portal == "jobs.ch" else 0
+        share = max(len(places), MAX_QUERIES - free) // len(places) if places else keywords
+        if portal in portals and share < keywords:
+            hints = [*hints, PLACE_SHARE.format(portal=portal, limit=MAX_QUERIES, terms=keywords, places=len(places), share=share)]
+    return tuple(hints)
+
+
 def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     """The search plan from the profile text; postal_code (from cv.yaml) stands in for missing PLZ."""
     sections = _sections(text)
@@ -441,10 +455,13 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes)
     dropped = (*listed[MAX_KEYWORDS:], *niches[MAX_KEYWORDS:])
     limit_hint = (TOO_MANY_TERMS.format(limit=MAX_KEYWORDS, terms=", ".join(dropped)),) if dropped else ()
+    shares = _place_shares(portals, len(keywords), len(niches[:MAX_KEYWORDS]),
+                           {"jobs.ch": places, "jobscout24": postal_codes, "ictjobs": regions})
     return SearchPlan(keywords=keywords, niche_keywords=niches[:MAX_KEYWORDS],
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
                       title_exclude=_terms(_value(titles, "ausschluss"), 30), portals=portals,
-                      hints=(*limit_hint, *(hint for hint, _ in targets)), nationwide=nationwide, hint_targets=targets)
+                      hints=(*limit_hint, *shares, *(hint for hint, _ in targets)), nationwide=nationwide,
+                      hint_targets=targets)
 
 
 def _postal_code(data_dir: pathlib.Path) -> str | None:
