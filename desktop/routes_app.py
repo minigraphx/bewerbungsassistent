@@ -120,6 +120,16 @@ def _install_then_stop(controls: Controls, found: updates.Update) -> None:
         controls.stop_soon()
 
 
+def quit_app_now(controls: Controls) -> str | None:
+    """Quit as the button does; with an update to install it ends after the install, and its version is returned."""
+    found = _update_for_quit(controls)
+    if found is None or not controls.installing.acquire(blocking=False):
+        controls.stop_soon()
+        return None
+    controls.background(lambda: _install_then_stop(controls, found))
+    return found.version
+
+
 def make_routes(controls: Controls) -> tuple[dict, dict]:
     from server import json_antwort
 
@@ -164,12 +174,8 @@ def make_routes(controls: Controls) -> tuple[dict, dict]:
         return json_antwort({"ok": True})
 
     def quit_app(k, parameter, body):
-        found = _update_for_quit(controls)
-        if found is None or not controls.installing.acquire(blocking=False):
-            controls.stop_soon()
-            return json_antwort({"ok": True})
-        controls.background(lambda: _install_then_stop(controls, found))
-        return json_antwort({"ok": True, "aktualisiert": found.version})
+        updating = quit_app_now(controls)
+        return json_antwort({"ok": True, "aktualisiert": updating} if updating else {"ok": True})
 
     return {"/api/app/version": version}, {"/api/app/aktualisieren": install, "/api/app/spaeter": later,
                                          "/api/app/beenden": quit_app}

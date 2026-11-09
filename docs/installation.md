@@ -23,6 +23,7 @@ Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson
 - [Bei Bedarf](#bei-bedarf)
   - [Updates](#updates)
   - [Mehrere Personen](#mehrere-personen)
+  - [Was im Datenordner liegt](#was-im-datenordner-liegt)
   - [Für Geübte](#für-geübte)
   - [Häufige Fehler](#häufige-fehler)
   - [Hilfe](#hilfe)
@@ -81,7 +82,7 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“. Für die 
 
 ### App einrichten
 
-Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Sie beenden sie im Menü **Mehr** mit **Beenden**.
+Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Sie beenden sie im Menü **Mehr** mit **Beenden**. Schliessen Sie den letzten Tab der App, beendet sie sich nach einer Minute von selbst. Läuft gerade eine Suche oder eine Aufgabe der KI, wartet sie, bis diese fertig ist.
 
 Die Einrichtung hat fünf Schritte und dauert zusammen etwa zehn Minuten. Die Schritte 1 bis 4 stehen hier, Schritt 5 unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen). Jeden Schritt können Sie später ändern; Sie finden die Seite im Menü **Mehr** unter **Einrichtung**.
 
@@ -273,6 +274,70 @@ Die App arbeitet jetzt mit den Unterlagen dieser Person. Eine neue Person erfass
 Bringen Sie vor dem Wechsel zu Ende, was noch offen ist: eine laufende Suche, Tabs mit Bewerbungsformularen und angefangene Einträge im Job-Room. Sonst kann, was dabei herauskommt, bei der falschen Person landen.
 
 Der Zugang zur KI gehört zum Benutzerkonto des Computers, nicht zum Datenordner. Auf demselben Konto nutzen beide Personen also denselben Zugang und dasselbe Budget. Das gilt auch für einen eigenen API-Schlüssel.
+
+### Was im Datenordner liegt
+
+Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Datenordner. Sie können die Dateien mit jedem Texteditor öffnen, die PDFs verschicken oder alles in ein anderes Programm mitnehmen. Welcher Ordner das ist, sehen Sie unter **Mehr**, **Einrichtung**, Schritt **Datenordner**.
+
+**Bevor Sie eine Datei von Hand ändern:** Erstellen Sie zuerst unter **Mehr** mit **Sicherung erstellen** eine Kopie des ganzen Ordners. Eine Datei mit einem Fehler kann die App nicht mehr lesen. Sicherer ist es, Texte in der App unter **Mehr**, **Inhalte als Text** zu ändern: Dort prüft die App jede Änderung, und der alte Stand bleibt als Entwurf erhalten.
+
+<details>
+<summary>Ihre Grundlagen</summary>
+
+- `cv.yaml` – Ihr Lebenslauf mit allen Angaben: Person, Stellen, Ausbildungen, Kenntnisse, Sprachen. Die App ändert ihn unter **Meine Angaben**, den Bildausschnitt unter **Mehr**, **Foto**. Ausserhalb der App ist es eine Textdatei im Format YAML nach dem Schema von JSON Resume, das auch andere Programme für Lebensläufe kennen.
+- Ihr Foto, zum Beispiel `foto.jpg` – die Datei, die in `cv.yaml` unter `basics.image` steht. Sie bleibt ein gewöhnliches Bild.
+- `suchprofil.md` – was Sie suchen: Berufe und Suchbegriffe, Region, Portale, Ausschlüsse. Die App ändert es unter **Meine Angaben** und **Stellen suchen** (**Suche einstellen**, **Was suchen**). Ein Text im Format Markdown, lesbar in jedem Editor.
+- `anschreiben/stil.md` – Ihr Stilprofil: wie Ihre Anschreiben klingen sollen. `anschreiben/bausteine.md` – Ihre Bausteine: Sätze und Beispiele, die die KI in Anschreiben verwenden darf. Beide entstehen unter **Meine Angaben** und lassen sich unter **Inhalte als Text** ändern.
+- `jobs/<name>.yaml` und `varianten.yaml` – Varianten des Lebenslaufs für bestimmte Stellen und ihre Tags. Sie entstehen nur mit Claude; ändern lassen sie sich unter **Inhalte als Text**.
+- `einrichtung.yaml` – Ihre Wahl aus dem ersten Schritt der Einrichtung: Stelle oder Lehrstelle, Sie oder du, RAV.
+- `einwilligung.json` – wann Sie der Nutzung der KI zugestimmt haben und welcher Fassung des Textes.
+- `uebersetzungen.yaml` – welche Übersetzungen im Lebenslauf schon geprüft sind, nur als Prüfsummen, ohne Text. Sie schreibt der Skill `bewerbung` von Claude.
+
+</details>
+
+<details>
+<summary>Ihre Bewerbungen</summary>
+
+- `bewerbungen.yaml` – das Register aller Bewerbungen: Firma, Stelle, Status, Daten, Notizen. Die App ändert es in der **Übersicht**, auf der Seite jeder Bewerbung und beim **Übernehmen** einer Stelle. Ausserhalb der App ist es eine Liste in YAML, die sich in eine Tabelle übertragen lässt.
+- `bewerbungen/<id>/` – ein Ordner pro Bewerbung:
+  - `bewerbungen/<id>/stelle.md` – der Text des Inserats, gespeichert beim **Übernehmen** oder beim Speichern des Inserats mit der Erweiterung.
+  - `bewerbungen/<id>/anschreiben.yaml` – Ihr Anschreiben, entworfen und geändert auf der Seite der Bewerbung.
+  - `bewerbungen/<id>/lebenslauf.pdf` und `bewerbungen/<id>/anschreiben.pdf` – die Unterlagen, die **Unterlagen erstellen** baut. Diese PDFs können Sie direkt verschicken, etwa per E-Mail.
+  - `bewerbungen/<id>/zertifikate.zip` – die für diese Bewerbung gewählten Zertifikate.
+  - `bewerbungen/<id>/eigenes-anschreiben.pdf` – ein Anschreiben, das Sie unter **Eigenes Anschreiben** selbst hochgeladen haben.
+  - `bewerbungen/<id>/freigabe.yaml` – dass Sie das Anschreiben mit **Freigeben** freigegeben haben. Jede Änderung am Anschreiben hebt die Freigabe auf.
+  - `bewerbungen/<id>/pruefung-ki.json` – das Ergebnis der letzten Prüfung durch die KI (**Inhalt prüfen**).
+  - `bewerbungen/<id>/an-formular/` – was ein offenes Bewerbungsformular von der App bekommen hat, darunter `unterlagen.pdf` und `nachweise.pdf`, wenn die App Dateien zu einem PDF zusammenfasst. Der Ordner verschwindet beim Versand.
+  - `bewerbungen/<id>/zum-hochladen/` – alle Dateien der Bewerbung zum Hochladen von Hand, angelegt mit **Dateien im Ordner zeigen**. Auch er verschwindet beim Versand.
+- `versendet/` – jede Fassung, die Sie verschickt haben, genau einmal. Die App legt sie bei **Versand erfassen** oder **Abgeschickt? Ja** ab. Hier finden Sie später, was eine Firma bekommen hat.
+
+</details>
+
+<details>
+<summary>Ihre Dateien und Unterlagen</summary>
+
+- `dokumente/` – Ihre Originale, unverändert:
+  - `dokumente/lebenslauf.pdf` – Ihr fertiger Lebenslauf, hochgeladen unter **Meine Dateien**.
+  - `dokumente/zeugnisse/` und `dokumente/zertifikate/` – Zeugnisse und Zertifikate aus **Meine Angaben** und **Meine Dateien**.
+  - `dokumente/lebenslauf-bisher/` und `dokumente/anschreiben-bisher/` – frühere Lebensläufe und Anschreiben, die Sie unter **Meine Angaben** hochgeladen haben. Die KI liest daraus Vorschläge.
+  - `dokumente/angaben-stand.json` – Ihr Zwischenstand unter **Meine Angaben**, bis Sie die Angaben übernehmen.
+  - `dokumente/einstieg.json` und `dokumente/neu.yaml` – eine eingelesene Datei mit Angaben (Einrichtung, Schritt 3) und die Liste der Unterlagen daraus, die noch nicht übernommen sind.
+
+</details>
+
+<details>
+<summary>Suche, Verlauf und Technisches</summary>
+
+- `suche/` – die Stellensuche unter **Stellen suchen**: `suche/treffer.yaml` mit den Treffern und ihren Bewertungen, `suche/texte/` mit den Texten der Inserate, `suche/letzte-suche.yaml` mit dem letzten Lauf pro Portal und `suche/einstellungen.yaml` mit den Einstellungen der Seite. Wer die Treffer in eine Tabelle übertragen will, findet sie hier.
+- `.entwuerfe/` – jeder frühere Stand Ihrer Dateien, mit `.entwuerfe/index.yaml` als Verzeichnis. Die App zeigt sie unter **Mehr**, **Entwürfe und Versionen**. Von hier holen Sie einen alten Stand zurück.
+- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Erweiterte Einstellungen**.
+- `.sicherung.yaml` – wann Sie zuletzt eine Sicherung erstellt haben, für die Erinnerung.
+- `.build/` – Zwischenstände beim Bauen der PDFs. Sie dürfen den Ordner löschen; die App legt ihn neu an.
+- `.git/` und `.gitignore` – ist Git auf dem Computer installiert, hält die App jeden Versand zusätzlich als Version fest. Die `.gitignore` sagt Git, was nicht hineingehört, etwa `dokumente/` und `suche/`.
+
+Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist nicht an. Auf dem Mac blenden Sie sie mit ⇧⌘. ein, unter Windows im Explorer unter **Anzeigen**, **Einblenden**, **Ausgeblendete Elemente**.
+
+</details>
 
 ### Für Geübte
 
