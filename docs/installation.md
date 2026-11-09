@@ -329,6 +329,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Dateno
 <summary>Suche, Verlauf und Technisches</summary>
 
 - `suche/` – die Stellensuche unter **Stellen suchen**: `suche/treffer.yaml` mit den Treffern und ihren Bewertungen, `suche/texte/` mit den Texten der Inserate, `suche/letzte-suche.yaml` mit dem letzten Lauf pro Portal und `suche/einstellungen.yaml` mit den Einstellungen der Seite. Wer die Treffer in eine Tabelle übertragen will, findet sie hier.
+- `firmen.yaml` – was die App über die Firmen aus Treffern und Bewerbungen bei kununu weiss: die zugeordnete kununu-Seite, Wert, Anzahl Bewertungen und wann geprüft wurde. Sie entsteht unter **Mehr**, **Firmen**.
 - `.entwuerfe/` – jeder frühere Stand Ihrer Dateien, mit `.entwuerfe/index.yaml` als Verzeichnis. Die App zeigt sie unter **Mehr**, **Entwürfe und Versionen**. Von hier holen Sie einen alten Stand zurück.
 - `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Erweiterte Einstellungen**.
 - `.sicherung.yaml` – wann Sie zuletzt eine Sicherung erstellt haben, für die Erinnerung.
