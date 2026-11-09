@@ -31,7 +31,7 @@ import build as lebenslauf_modul
 from ablage import Ablage
 from dateien import sichere_gitignore
 from kontext import Kontext
-from server import Server
+from server import Activity, Server
 from versionen import waehle
 
 SEITEN = {
@@ -94,7 +94,7 @@ def erstelle_kontext(daten: pathlib.Path, build: pathlib.Path | None = None) -> 
 
 def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port: int = 0, kontext: Kontext | None = None,
                     extra_routes: tuple[dict, dict] = ({}, {}), body_limits: dict[str, int] | None = None,
-                    questions_page: bool = False) -> Server:
+                    questions_page: bool = False, activity: Activity | None = None) -> Server:
     """extra_routes: (GET, POST) of the desktop app, e.g. version and update (MIN-342).
     questions_page: the page „Fragen“ (MIN-376); without it neither page, route nor menu entry exist, so no question reaches the AI."""
     k = kontext or erstelle_kontext(daten, build)
@@ -104,8 +104,8 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
                    **routes_ai.POST, **(routes_chat.POST if questions_page else {}), **routes_own_key.POST, **routes_own_files.POST, **routes_sites.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **routes_preferences.POST, **extra_routes[1]}
     limits = {**routes_own_files.BODY_LIMITS, **(body_limits or {})}
     if questions_page:
-        return Server(k, routen_get, routen_post, {**SEITEN, **QUESTIONS_PAGES}, port, limits)
-    return Server(k, routen_get, routen_post, SEITEN, port, limits, hidden_links=(QUESTIONS_LINK,))
+        return Server(k, routen_get, routen_post, {**SEITEN, **QUESTIONS_PAGES}, port, limits, activity=activity)
+    return Server(k, routen_get, routen_post, SEITEN, port, limits, hidden_links=(QUESTIONS_LINK,), activity=activity)
 
 
 def main(argv: list[str] | None = None) -> None:
