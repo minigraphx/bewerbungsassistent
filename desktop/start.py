@@ -18,6 +18,7 @@ import linux_desktop
 import mcp_server
 import native_host
 import native_messaging
+import presence
 import rename_migration
 import settings
 import setup
@@ -212,10 +213,12 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     setup_get, setup_post = routes_setup.make_routes(state)
     angaben_get, angaben_post, limits = routes_angaben.make_routes(state)
     claude_get, claude_post = routes_claude.make_routes(claude_routes(paths))
+    pages = presence.Presence()
+    pages_get, pages_post = presence.make_routes(pages)
     try:
-        server = app.erstelle_server(data, extra_routes=({**app_get, **setup_get, **angaben_get, **claude_get},
-                                                         {**app_post, **setup_post, **angaben_post, **claude_post}), body_limits=limits,
-                                     questions_page=settings.questions_page(paths))
+        server = app.erstelle_server(data, extra_routes=({**app_get, **setup_get, **angaben_get, **claude_get, **pages_get},
+                                                         {**app_post, **setup_post, **angaben_post, **claude_post, **pages_post}),
+                                     body_limits=limits, questions_page=settings.questions_page(paths), activity=pages.request)
         holder["server"] = server
     except (ValueError, OSError) as error:
         log.error("Start nicht möglich: %s", error)
@@ -227,11 +230,14 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     log.info("Bewerbungsbegleiter läuft auf %s, Daten in %s", server.url, data)
     if open_browser:
         webbrowser.open(server.entry_url)
+    watchdog = presence.Watchdog(pages, lambda: routes_app.quit_app_now(controls))
+    watchdog.start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        watchdog.stop()
         server.server_close()
         instance.remove(paths)
     return 0

@@ -275,10 +275,29 @@ window.App = (() => {
     dialog.showModal();
   }
 
+  // Packaged app only (G36): the app quits a minute after its last page went. Each page says it is here and says
+  // goodbye with keepalive, which outlives the page and, unlike sendBeacon, carries the token header.
+  const DA_MS = 20000;
+  function anwesend() {
+    const seite = crypto.randomUUID();
+    const melden = (pfad, keepalive = false) => fetch(pfad, {
+      method: "POST", keepalive,
+      headers: { "Content-Type": "application/json", "X-Token": TOKEN },
+      body: JSON.stringify({ seite }),
+    }).catch(() => { /* the app is gone or busy; the next heartbeat tries again */ });
+    const da = () => melden("/api/app/da");
+    da();
+    setInterval(da, DA_MS);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) da(); });
+    window.addEventListener("pageshow", event => { if (event.persisted) da(); });
+    window.addEventListener("pagehide", () => melden("/api/app/weg", true));
+  }
+
   // Packaged app only (MIN-342): the offer of a new version, button to quit. The plain app has no such route.
   async function desktop() {
     let info;
     try { info = await holen("/api/app/version"); } catch { return; }
+    anwesend();
     const gruppe = document.getElementById("menu-app");
     if (gruppe) {
       const beenden = el("button", { type: "button", class: "beenden" }, "Beenden");
