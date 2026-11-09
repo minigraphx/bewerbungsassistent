@@ -2,8 +2,9 @@
 
 One row per company, grouped by `hits.company_key`, so a choice made for a company holds for all its hits and
 applications. What is known from kununu lives in `firmen.yaml` of the data folder, one entry per company key;
-every change leaves drafts before and after. Reading kununu itself is #189: here the person assigns a kununu page
-by link or picks one of several candidates. Nothing of this goes to the AI.
+every change leaves drafts before and after. The person assigns a kununu page by link or picks one of several
+candidates; the extension reads score and number of reviews on the person's click (#189), and when it cannot, the
+person enters them by hand. Nothing of this goes to the AI.
 """
 import datetime
 import re
@@ -25,6 +26,10 @@ MAX_TEXT = 200
 MAX_CANDIDATES = 10
 BAD_LINK = "Das ist kein Link zu einer Firma bei kununu."
 UNKNOWN_CANDIDATE = "Diese Firma stand nicht zur Wahl. Bitte die Seite neu laden."
+READ_STATES = ("gefunden", "keine", "mehrere", "nicht_gefunden")  # what a reading of kununu can say
+BAD_READING = "Was die Erweiterung bei kununu gelesen hat, passt nicht."
+BAD_VALUE = "Der Wert muss eine Zahl von 1 bis 5 sein."
+BAD_COUNT = "Die Anzahl Bewertungen muss eine ganze Zahl ab 0 sein."
 SEARCH = "https://www.kununu.com/{site}/search?q={name}"
 
 
@@ -103,7 +108,8 @@ def clean(raw) -> dict | None:
         return None
     entry = {"zustand": raw["zustand"], **_reviews(raw), "empfehlung": _number(raw.get("empfehlung"), 0, 100),
              "geprueft_am": _date(raw.get("geprueft_am")), "seite": raw.get("seite") if raw.get("seite") in SITES else "",
-             "link": _link(raw.get("link")), "lernende": _reviews(raw.get("lernende"))}
+             "link": _link(raw.get("link")), "lernende": _reviews(raw.get("lernende")),
+             "von_hand": True if raw.get("von_hand") is True else None}
     listed = raw.get("kandidaten") if isinstance(raw.get("kandidaten"), list) else []
     candidates = [c for c in map(_candidate, listed[:MAX_CANDIDATES]) if c]
     return {k: v for k, v in {**entry, "kandidaten": candidates}.items() if v not in ("", None, {}, [])}
@@ -190,3 +196,50 @@ def choose(k, applications: list[dict], key: str, link, today: datetime.date) ->
         raise ValueError(UNKNOWN_CANDIDATE)
     entry = {"zustand": "zugeordnet", "link": url, "seite": site}
     return _write(k, key, row["name"], entry, "Firma bei kununu gewählt")
+
+
+def _rating(value) -> float:
+    if _number(value, 1, 5) is None:
+        raise ValueError(BAD_VALUE)
+    return value
+
+
+def _count(value) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(BAD_COUNT)
+    return value
+
+
+def _reading(raw, today: datetime.date) -> dict:
+    """A reading as the extension sends it, checked field by field; the date is the app's own."""
+    if not isinstance(raw, dict) or raw.get("zustand") not in READ_STATES:
+        raise ValueError(BAD_READING)
+    state, checked = raw["zustand"], {"geprueft_am": today.isoformat()}
+    if state == "nicht_gefunden":
+        return {"zustand": state, **checked}
+    if state == "mehrere":
+        listed = raw.get("kandidaten") if isinstance(raw.get("kandidaten"), list) else []
+        candidates = [c for c in map(_candidate, listed[:MAX_CANDIDATES]) if c]
+        if not candidates:
+            raise ValueError(BAD_READING)
+        return {"zustand": state, "kandidaten": candidates, **checked}
+    url, site = kununu_link(raw.get("link"))
+    values = {"wert": _rating(raw.get("wert")), "bewertungen": _count(raw.get("bewertungen"))} if state == "gefunden" else {}
+    return {"zustand": state, **values, "link": url, "seite": site, **checked}
+
+
+def store_reading(k, applications: list[dict], key: str, raw, today: datetime.date) -> dict:
+    """What the extension read at kununu on the person's click (#189)."""
+    row = _row(k.daten, applications, key)
+    return _write(k, key, row["name"], _reading(raw, today), "von kununu gelesen")
+
+
+def enter_by_hand(k, applications: list[dict], key: str, raw, today: datetime.date) -> dict:
+    """Score and number of reviews the person read at kununu; the page known so far stays."""
+    row = _row(k.daten, applications, key)
+    values = raw if isinstance(raw, dict) else {}
+    known = row["kununu"] or {}
+    page = {field: known[field] for field in ("link", "seite") if known.get(field)}
+    entry = {"zustand": "gefunden", "wert": _rating(values.get("wert")), "bewertungen": _count(values.get("bewertungen")),
+             **page, "geprueft_am": today.isoformat(), "von_hand": True}
+    return _write(k, key, row["name"], entry, "kununu-Wert von Hand")

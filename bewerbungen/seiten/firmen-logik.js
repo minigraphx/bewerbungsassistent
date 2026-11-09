@@ -38,7 +38,12 @@
   const prozent = zahl => `${Math.round(zahl)} %`;
   const datum = iso => (iso ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}.${iso.slice(0, 4)}` : "");
   const bewertungen = zahl => `${anzahl(zahl)} ${zahl === 1 ? "Bewertung" : "Bewertungen"}`;
-  const seite = k => (k?.seite === "de" ? "kununu.com/de" : "kununu.com/ch");
+  /** Where the value comes from: the site of kununu, and whether the person entered it by hand (#189). */
+  function seite(k) {
+    const ort = k?.seite === "de" ? "kununu.com/de" : "kununu.com/ch";
+    if (!k?.von_hand) return ort;
+    return k.link ? `${ort}, von Hand eingetragen` : "von Hand eingetragen";
+  }
 
   /** „3 Treffer, 2 neu“, „1 Treffer, verworfen“ or „“. */
   function trefferText(treffer) {
@@ -129,7 +134,37 @@
     return { anzahl: firmen.length, gefunden, zuletzt: daten.length ? daten[daten.length - 1] : "" };
   }
 
-  const logik = { WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
+  // „Prüfen“ through the extension (#189).
+  const NICHT_GELESEN = "Der Tab bleibt offen; der Wert lässt sich von Hand eintragen.";
+  const WERT_FALSCH = "Der Wert muss eine Zahl von 1 bis 5 sein.";
+  const ANZAHL_FALSCH = "Die Anzahl Bewertungen muss eine ganze Zahl ab 0 sein.";
+
+  /** What the page says after a check; null when the extension is missing and kununu only opened in a tab. */
+  function pruefErgebnis(antwort, name) {
+    if (antwort?.geoeffnet) return null;
+    if (!antwort || antwort.fehler) return { text: antwort?.fehler || "Die Erweiterung antwortet nicht.", stufe: "warning", vonHand: false };
+    if (!antwort.gelesen) return { text: `Bei kununu liess sich für ${name} kein Wert lesen. ${NICHT_GELESEN}`, stufe: "warning", vonHand: true };
+    const k = antwort.kununu || {};
+    const texte = {
+      gefunden: () => `${name}: kununu ${wert(k.wert)} von 5, ${bewertungen(k.bewertungen)}.`,
+      keine: () => `${name}: bei kununu noch keine Bewertungen.`,
+      nicht_gefunden: () => `${name}: bei kununu nicht gefunden.`,
+      mehrere: () => `${name}: mehrere Treffer bei kununu. Bitte den passenden wählen.`,
+    };
+    return { text: (texte[k.zustand] || texte.nicht_gefunden)(), stufe: "success", vonHand: false };
+  }
+
+  /** Score and count as the person typed them, or the field that is wrong and why. */
+  function vonHandWerte(wertText, anzahlText) {
+    const zahl = String(wertText ?? "").trim().replace(",", ".");
+    const anzahlRoh = String(anzahlText ?? "").trim().replace(/[’'\s]/g, "");
+    const wertZahl = /^\d+(\.\d+)?$/.test(zahl) ? Number(zahl) : NaN;
+    if (!(wertZahl >= 1 && wertZahl <= 5)) return { fehler: WERT_FALSCH, feld: "wert" };
+    if (!/^\d+$/.test(anzahlRoh)) return { fehler: ANZAHL_FALSCH, feld: "bewertungen" };
+    return { wert: wertZahl, bewertungen: Number(anzahlRoh) };
+  }
+
+  const logik = { pruefErgebnis, vonHandWerte, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
                   prozent, datum, bewertungen, seite, trefferText, gefiltert, zaehlen, sortiert, gueltigerFilter,
                   gueltigeSortierung, naechsteSortierung, pruefenLink, zusammenfassung };
   if (typeof module !== "undefined") module.exports = logik;

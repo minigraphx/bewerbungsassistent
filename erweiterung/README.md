@@ -89,9 +89,13 @@ Hat das Suchprofil einen Abschnitt „Lehrbeginn“, sucht die Erweiterung nur a
 - **yousty** liest wie die Stellenportale fertige Seiten per `fetch`, den Inseratstext aus den strukturierten Daten der Seite (schema.org `JobPosting`). Fehlen sie, nimmt sie den Abschnitt „Lehrstellenbeschreibung“ bis „Dein Arbeitsort“, ohne Navigation und Arbeitsort.
 - **Zwillinge:** Dieselbe Lehrstelle auf beiden Portalen (gleicher Betrieb, gleicher Beruf laut Suchprofil, gleicher Ort) wird zu einem Treffer mit zweitem Link.
 
+## Firmen bei kununu prüfen (G35, #189)
+
+Nur auf Klick der Person auf „Prüfen“ (Seite „Firmen“), immer eine Firma: Die Erweiterung öffnet im Hintergrund einen Tab mit der zugeordneten kununu-Seite oder der Suche auf kununu.com/ch nach dem Firmennamen, kununu.com/de nur, wenn /ch nichts findet. Gelesen werden nur die strukturierten Daten der Seite (schema.org `AggregateRating`: Wert und Anzahl Bewertungen; auf der Suche die Liste der Firmen). Eine Firma wird geöffnet und gelesen, mehrere gehen zur Wahl an die App. Hat die Seite diese Daten nicht, etwa eine Prüfseite von kununu, liest die Erweiterung nichts und kommt nie an der Prüfung vorbei: Der Tab kommt nach vorn, und die Person trägt den Wert von Hand ein. An kununu geht nur der Firmenname, an die KI nichts. Das Ergebnis geht über Native Messaging an `/api/firmen/kununu`. Code in `lib/kununu.js` (ohne Browser testbar, Seiten in `tests/fixtures/kununu-*.html` erfunden und nach schema.org gebaut); die echte Form der Seiten bestätigt Andy einmal in seinem Browser.
+
 ## Aufbau
 
-- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `127.0.0.1` und Native Messaging, dazu `activeTab` für die offene Seite nach einem Klick und der optionale Zugriff auf alle Seiten für Formulare und weitere Seiten.
+- `manifest.json`: MV3, Berechtigungen nur für die sechs Portale, `www.kununu.com` (Firmen prüfen, #189), `127.0.0.1` und Native Messaging, dazu `activeTab` für die offene Seite nach einem Klick und der optionale Zugriff auf alle Seiten für Formulare und weitere Seiten.
 - `background.js`: Service Worker; startet die Suche, öffnet und schliesst die Portal-Tabs, meldet den Fortschritt.
 - `lib/`: `queries.js` (Abfragen pro Portal aus dem Suchplan, alle Stichworte zuerst am ersten Ort), `search.js` (Ablauf einer Suche, ohne Browser testbar), `sites.js` (weitere Seiten), `steps.js` (Abbrechen, Sichten), `app.js` (Verbindung zur App), `senders.js` (wer Aufträge geben darf), `progress.js` (Text für den Fortschritt).
 - `portals/`: eine Anpassung pro Portal mit `list(query, page)` und `details(hit)`, dazu `common.js` (HTML zu Text, Alter, Pensum, Abrufe).
