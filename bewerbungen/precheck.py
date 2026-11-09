@@ -45,10 +45,15 @@ MAX_DISTANCE = 40  # characters between a language and its level
 LEVEL_ADJECTIVE = re.compile(r"(?:perfekt|ausgezeichnet|gut|mittler|verhandlungssicher|stilsicher|flie(?:ss|ß)end)"
                              r"(?:e|en|es|er|em)$", re.IGNORECASE)
 NEXT_NOUN = re.compile(r"\s+([A-ZÄÖÜ][\w-]*)")
-LANGUAGE_NOUN = re.compile(r"kenntnis|sprach|speaker|ausdruck|beherrsch|kommunikation|verständnis|niveau|"
+LANGUAGE_NOUN = re.compile(r"kenntnis|sprach|speaker|ausdruck|beherrsch|kommunikation|verständnis|niveau|wort|schrift|"
                            + "|".join(LANGUAGES), re.IGNORECASE)
+# „passen Sie perfekt in unser Team“, „passt ausgezeichnet zu uns“: a level adverb before „in“ or „zu“ and anything
+# but a language or „Wort und Schrift“ is about fitting in. „fliessend in Deutsch“ stays a level.
+LEVEL_ADVERB = re.compile(r"(?:perfekt|ausgezeichnet|gut|verhandlungssicher|stilsicher)$", re.IGNORECASE)
+NEXT_AFTER_PREPOSITION = re.compile(r"\s+(?:in|ins|zu|zum|zur)\s+([\w-]+)", re.IGNORECASE)
 DEGREE_WORDS = (
-    (5, "Doktorat", r"\bph\.?\s?d\b|doktorat\w*|\bpromotion\b|promoviert\w*"),
+    # „Promotion“ alone is mostly marketing („Sales Promotion“, „Promotion-Aktionen“); a doctorate says so.
+    (5, "Doktorat", r"\bph\.?\s?d\b|doktorat\w*|abgeschlossene[nrs]?\s+promotion\b|promoviert\w*|doktortitel"),
     (4, "Master", r"(?<!scrum[ -])\bmaster(?:abschluss|studium|degree)?\b(?![\s-]*data)|\bm\.?\s?sc\b|lizentiat\w*"),
     (3, "Bachelor", r"\bbachelor\w*|\bb\.?\s?sc\b|hochschulabschluss|hochschulstudium|universitätsabschluss"
                     r"|abgeschlossene[sn]?\s+(?:\w+\s+)?studium|fh-abschluss|uni-abschluss"),
@@ -137,7 +142,12 @@ def for_folder(data_dir: pathlib.Path) -> Person:
 
 def _about_another_noun(clause: str, match: re.Match) -> bool:
     noun = NEXT_NOUN.match(clause, match.end())
-    return bool(LEVEL_ADJECTIVE.search(match[0]) and noun and not LANGUAGE_NOUN.search(noun[1]))
+    if LEVEL_ADJECTIVE.search(match[0]) and noun and not LANGUAGE_NOUN.search(noun[1]):
+        return True
+    after = NEXT_AFTER_PREPOSITION.match(clause, match.end())
+    # „ins italienischsprachige Team“ names the team, not the language
+    return bool(LEVEL_ADVERB.search(match[0]) and after
+                and (not LANGUAGE_NOUN.search(after[1]) or "sprachig" in after[1].lower()))
 
 
 def _nearest_level(clause: str, mention: re.Match) -> int | None:

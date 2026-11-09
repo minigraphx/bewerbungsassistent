@@ -161,6 +161,41 @@ def test_a_degree_that_is_required_still_fails_next_to_an_offer():
         == "Verlangt Master, vorhanden ist Bachelor."
 
 
+@pytest.mark.parametrize("text", [
+    "Sie planen und begleiten Promotion-Aktionen am POS.",
+    "Sales Promotion und Key Account Management sind Ihre Stärken.",
+    "Event & Promotion gehören zu Ihrem Alltag.",
+    "Sie bringen Erfahrung in Trade-Promotion mit.",
+    "Sie führen das Promotionsteam an den Messen.",
+    "Promotion und Merchandising im Detailhandel.",
+])
+def test_promotion_in_marketing_is_no_doctorate(text):
+    assert check(text) == ""
+
+
+@pytest.mark.parametrize("text", ["Abgeschlossene Promotion in Chemie.", "Sie sind promoviert.", "PhD in Physics required.",
+                                  "Doktorat in Informatik."])
+def test_a_doctorate_still_counts(text):
+    assert check(text) == "Verlangt Doktorat, vorhanden ist Bachelor."
+
+
+@pytest.mark.parametrize("text", [
+    "Dann passen Sie perfekt in unser englischsprachiges Team.",
+    "Das passt ausgezeichnet zu unserem italienischsprachigen Kundenkreis.",
+    "Sie fügen sich gut in unser italienischsprachiges Team ein.",
+    "Sie passen perfekt zu uns und sprechen Italienisch.",
+    "Sehr gut ins italienischsprachige Team passen Sie mit Erfahrung im Verkauf.",
+])
+def test_a_level_adverb_about_fitting_in_is_no_language_level(text):
+    assert check(text) == ""
+
+
+@pytest.mark.parametrize("text", ["Deutsch und Französisch perfekt in Wort und Schrift.", "Verhandlungssicher in Französisch.",
+                                  "Sie sprechen perfekt Französisch."])
+def test_a_level_adverb_about_the_language_still_counts(text):
+    assert check(text).startswith("Verlangt Französisch auf Niveau C2")
+
+
 def test_swiss_german_and_standard_german_in_cv_yaml_count_as_german():
     cv = {"languages": [{"language": "Schweizerdeutsch", "fluency": "Muttersprache"}, {"language": "Hochdeutsch", "fluency": "C2"}]}
     person = precheck.person_of(cv, "# Suchprofil\n")
