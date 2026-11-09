@@ -176,3 +176,67 @@ test("a stored sorting by the entry date is kept", () => {
     assert.deepEqual(logik.gueltigeSortierung({ spalte: "erfasst", richtung }), { spalte: "erfasst", richtung });
   }
 });
+
+// Changing the stage of several applications at once (#170, G29)
+
+const shownRows = ids => ids.map(id => ({ bewerbung: b(id, "Beworben"), schritt: { art: "warten" } }));
+
+test("a checkbox adds a row to the selection or takes it out, without changing the old selection", () => {
+  const before = new Set(["a"]);
+  const added = logik.toggleOne(before, "b");
+  assert.deepEqual([...added], ["a", "b"]);
+  assert.deepEqual([...logik.toggleOne(added, "a")], ["b"]);
+  assert.deepEqual([...before], ["a"]);
+});
+
+test("select all takes every row of the view, and once all are taken it clears them", () => {
+  const rows = shownRows(["a", "b", "c"]);
+  const all = logik.toggleAll(new Set(["a", "hidden"]), rows);
+  assert.deepEqual([...all].sort(), ["a", "b", "c", "hidden"]);
+  assert.deepEqual([...logik.toggleAll(all, rows)], ["hidden"]);
+});
+
+test("the state of select all only looks at the rows of the view", () => {
+  const rows = shownRows(["a", "b"]);
+  assert.equal(logik.selectionState(new Set(["hidden"]), rows), "none");
+  assert.equal(logik.selectionState(new Set(["a", "hidden"]), rows), "some");
+  assert.equal(logik.selectionState(new Set(["a", "b"]), rows), "all");
+  assert.equal(logik.selectionState(new Set(), []), "none");
+});
+
+test("only the selected rows the view shows are changed, in the order of the list", () => {
+  const rows = shownRows(["c", "a", "b"]);
+  assert.deepEqual(logik.selectedIds(new Set(["a", "c", "hidden"]), rows), ["c", "a"]);
+});
+
+test("rows gone from the register leave the selection", () => {
+  const rows = shownRows(["a"]);
+  assert.deepEqual([...logik.keepKnown(new Set(["a", "gone"]), rows)], ["a"]);
+});
+
+test("the count of the selection is said in words", () => {
+  assert.equal(logik.selectionLabel(0), "Keine ausgewählt");
+  assert.equal(logik.selectionLabel(1), "1 ausgewählt");
+  assert.equal(logik.selectionLabel(4), "4 ausgewählt");
+});
+
+test("the confirmation names how many applications change and to which stage", () => {
+  assert.equal(logik.stageQuestion(1, "Absage"), "1 Bewerbung auf „Absage“ setzen?");
+  assert.equal(logik.stageQuestion(3, "Zurückgezogen"), "3 Bewerbungen auf „Zurückgezogen“ setzen?");
+});
+
+test("each stage belongs to one view", () => {
+  assert.equal(logik.viewOfStage("Gemerkt"), "gemerkt");
+  assert.equal(logik.viewOfStage("Bewerben"), "gemerkt");
+  assert.equal(logik.viewOfStage("Gespräch"), "beworben");
+  assert.equal(logik.viewOfStage("Verworfen"), "abgeschlossen");
+});
+
+test("after the change the status line says where the rows went when they left the view", () => {
+  assert.equal(logik.stageDone(2, "Absage", "Absage", "beworben"),
+    "2 Bewerbungen auf „Absage“ gesetzt. Sie stehen jetzt unter „Abgeschlossen“.");
+  assert.equal(logik.stageDone(1, "Gemerkt", "Gemerkt", "beworben"),
+    "1 Bewerbung auf „Gemerkt“ gesetzt. Sie steht jetzt unter „Gemerkt“.");
+  assert.equal(logik.stageDone(2, "Gespräch", "Einladung", "beworben"), "2 Bewerbungen auf „Einladung“ gesetzt.");
+  assert.equal(logik.stageDone(2, "Absage", "Absage", "alle"), "2 Bewerbungen auf „Absage“ gesetzt.");
+});

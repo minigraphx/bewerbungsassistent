@@ -95,6 +95,31 @@ def speichern(k, parameter, body):
     return json_antwort(gespeichert)
 
 
+def _stage_request(body) -> tuple[list[str], str]:
+    """The ids (each once, in the given order) and the stage of a request from the overview."""
+    if not isinstance(body, dict):
+        raise ValueError("Erwartet: ids der Bewerbungen und status")
+    entry_ids, stage = body.get("ids"), body.get("status")
+    if not isinstance(entry_ids, list) or not all(isinstance(entry_id, str) for entry_id in entry_ids):
+        raise ValueError("ids muss eine Liste von Bewerbungen sein")
+    if not entry_ids:
+        raise ValueError("Keine Bewerbung ausgewählt")
+    if not isinstance(stage, str) or not stage:
+        raise ValueError("Welcher Stand? status fehlt")
+    return list(dict.fromkeys(entry_ids)), stage
+
+
+def set_stage(k, parameter, body):
+    """Several applications to one stage at once (#170): one write, one draft before and one after."""
+    entry_ids, stage = _stage_request(body)
+    register = k.register()
+    register.check_stage_change(entry_ids, stage)  # refused before the draft, so nothing changes
+    count = f"{len(entry_ids)} {'Bewerbung' if len(entry_ids) == 1 else 'Bewerbungen'}"
+    changed = k.mit_entwurf(register.pfad, f"Stand von {count} auf {stage} gesetzt",
+                            lambda: register.set_stage(entry_ids, stage, k.heute()))
+    return json_antwort({"bewerbungen": changed})
+
+
 def neu_anlegen(k, parameter, body):
     if not isinstance(body, dict):
         raise ValueError("firma und stelle erwartet")
@@ -177,6 +202,7 @@ GET = {
 POST = {
     "/api/bewerbung": speichern,
     "/api/bewerbung/neu": neu_anlegen,
+    "/api/bewerbungen/stand": set_stage,
     "/api/anschreiben/freigeben": freigeben,
     "/api/stellentext": stellentext_speichern,
     "/api/unterlagen": unterlagen_bauen,

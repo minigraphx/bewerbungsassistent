@@ -160,8 +160,67 @@
     return alle.slice(0, hoechstens);
   }
 
+  // Changing the stage of several applications at once (#170). A selection is a Set of ids; every change
+  // returns a new one. Only the selected rows the view shows count, so a hidden row is never changed by surprise.
+  const VIEW_LABELS = { gemerkt: "Gemerkt", beworben: "Beworben", abgeschlossen: "Abgeschlossen" };
+  const shownIds = rows => rows.map(z => z.bewerbung.id);
+  const applications = count => (count === 1 ? "1 Bewerbung" : `${count} Bewerbungen`);
+
+  function toggleOne(selected, id) {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  }
+
+  /** Select all in the view; when all of them are selected already, it takes them out again. */
+  function toggleAll(selected, rows) {
+    const ids = shownIds(rows);
+    if (selectionState(selected, rows) === "all") return new Set([...selected].filter(id => !ids.includes(id)));
+    return new Set([...selected, ...ids]);
+  }
+
+  /** "none", "some" or "all" of the rows the view shows: the state of the checkbox „Alle“. */
+  function selectionState(selected, rows) {
+    const taken = selectedIds(selected, rows).length;
+    if (taken === 0) return "none";
+    return taken === rows.length ? "all" : "some";
+  }
+
+  /** The ids a change applies to: selected and shown, in the order of the list. */
+  function selectedIds(selected, rows) {
+    return shownIds(rows).filter(id => selected.has(id));
+  }
+
+  /** Without the ids that are no longer in the register, e.g. after Claude changed it. */
+  function keepKnown(selected, rows) {
+    const known = new Set(shownIds(rows));
+    return new Set([...selected].filter(id => known.has(id)));
+  }
+
+  function selectionLabel(count) {
+    return count === 0 ? "Keine ausgewählt" : `${count} ausgewählt`;
+  }
+
+  function stageQuestion(count, stageName) {
+    return `${applications(count)} auf „${stageName}“ setzen?`;
+  }
+
+  function viewOfStage(stage) {
+    return Object.keys(STAENDE).find(view => STAENDE[view].includes(stage)) || "alle";
+  }
+
+  /** The status line after the change; it says where the rows went when they left the view. */
+  function stageDone(count, stage, stageName, view) {
+    const done = `${applications(count)} auf „${stageName}“ gesetzt.`;
+    const target = viewOfStage(stage);
+    if (view === "alle" || target === view || !VIEW_LABELS[target]) return done;
+    return `${done} ${count === 1 ? "Sie steht" : "Sie stehen"} jetzt unter „${VIEW_LABELS[target]}“.`;
+  }
+
   const logik = { ANSICHTEN, STANDARD_ANSICHT, NACHFRAGEN_NACH_TAGEN, datum, plusTage, naechsterSchritt, mitSchritten, gefiltert,
-                  ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung, abgeschlossenZaehlen, stehtAn };
+                  ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung, abgeschlossenZaehlen, stehtAn,
+                  toggleOne, toggleAll, selectionState, selectedIds, keepKnown, selectionLabel, stageQuestion, viewOfStage, stageDone };
   if (typeof module !== "undefined") module.exports = logik;
   else global.UebersichtLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

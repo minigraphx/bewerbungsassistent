@@ -40,6 +40,8 @@
   let laufendeAnfrage = null;  // { ids } of the run waiting for the extension, for „Trotzdem öffnen“
   let answerTimer = null;
   let wiederhergestellt = false;
+  let auswahl = new Set();  // ids ticked in the list (#170)
+  let staende = [];         // the stages the register knows, for the menu
 
   // Small helpers
 
@@ -104,9 +106,17 @@
 
   // The list
 
+  function auswahlFeld(b) {
+    const name = [b.stelle || "ohne Titel", b.firma].filter(Boolean).join(", ");
+    return el("td", { "data-label": "", class: "table__pick" },
+      el("input", { type: "checkbox", "data-id": b.id, "aria-label": `Auswählen: ${name}`, checked: auswahl.has(b.id),
+                    onchange: () => waehleZeile(b.id) }));
+  }
+
   function zeile({ bewerbung: b, schritt }) {
     const was = schrittText(schritt);
-    return el("tr", {},
+    return el("tr", { "data-selected": auswahl.has(b.id) },
+      auswahlFeld(b),
       el("td", { "data-label": "" }, el("a", { class: "table__main", href: adresse(b) }, b.stelle || "ohne Titel"), el("span", { class: "table__sub" }, wo(b))),
       el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, window.Texte.statusName(b.status, satz))),
       el("td", { "data-label": "Note" }, note(b)),
@@ -115,8 +125,10 @@
       el("td", { "data-label": "Erfasst", class: "num" }, L.datum(b.eingetragen_am)));
   }
 
+  const gezeigteZeilen = () => L.sortiert(L.gefiltert(zeilen, ansicht, $("suche").value), sortierung);
+
   function zeigeListe() {
-    const gezeigte = L.sortiert(L.gefiltert(zeilen, ansicht, $("suche").value), sortierung);
+    const gezeigte = gezeigteZeilen();
     for (const kopf of document.querySelectorAll("th[data-spalte]")) {
       if (sortierung?.spalte === kopf.dataset.spalte) kopf.setAttribute("aria-sort", ARIA_SORT[sortierung.richtung]);
       else kopf.removeAttribute("aria-sort");
@@ -125,6 +137,8 @@
     for (const [name, zahl] of Object.entries(L.ansichtenZaehlen(zeilen))) document.querySelector(`[data-zahl=${name}]`).textContent = String(zahl);
     $("liste").replaceChildren(...gezeigte.map(zeile));
     $("tabelle").hidden = gezeigte.length === 0;
+    $("auswahl-leiste").hidden = gezeigte.length === 0;
+    zeigeAuswahl(gezeigte);
     $("liste-leer").hidden = alle.length > 0;
     $("nichts-gefunden").hidden = alle.length === 0 || gezeigte.length > 0;
     $("nichts-gefunden").textContent = $("suche").value.trim() ? NICHTS_GEFUNDEN : ANSICHT_LEER;
@@ -144,6 +158,70 @@
   function waehleAnsicht(name) {
     ansicht = name;
     zeigeListe();
+  }
+
+  // Changing the stage of the selected applications (#170): only the ticked rows of this view count
+
+  function zeigeAuswahl(gezeigte = gezeigteZeilen()) {
+    for (const feld of $("liste").querySelectorAll("input[data-id]")) {
+      feld.checked = auswahl.has(feld.dataset.id);
+      feld.closest("tr").toggleAttribute("data-selected", feld.checked);
+    }
+    const zustand = L.selectionState(auswahl, gezeigte);
+    $("alle-waehlen").checked = zustand === "all";
+    $("alle-waehlen").indeterminate = zustand === "some";
+    const anzahl = L.selectedIds(auswahl, gezeigte).length;
+    $("auswahl-zahl").textContent = L.selectionLabel(anzahl);
+    $("stand-setzen").disabled = anzahl === 0 || !$("stand-wahl").value;
+  }
+
+  function waehleZeile(id) {
+    auswahl = L.toggleOne(auswahl, id);
+    zeigeAuswahl();
+  }
+
+  function waehleAlle() {
+    auswahl = L.toggleAll(auswahl, gezeigteZeilen());
+    zeigeAuswahl();
+  }
+
+  function fuelleStaende() {
+    const gewaehlt = $("stand-wahl").value;
+    const optionen = staende.map(stand => el("option", { value: stand, selected: stand === gewaehlt }, window.Texte.statusName(stand, satz)));
+    $("stand-wahl").replaceChildren(el("option", { value: "" }, "Stand wählen …"), ...optionen);
+  }
+
+  function frageStand() {
+    const gezeigte = gezeigteZeilen();
+    const ids = L.selectedIds(auswahl, gezeigte);
+    const stand = $("stand-wahl").value;
+    if (!ids.length || !stand) return;
+    const name = window.Texte.statusName(stand, satz);
+    const betroffen = gezeigte.filter(z => ids.includes(z.bewerbung.id)).map(z => [z.bewerbung.stelle, z.bewerbung.firma].filter(Boolean).join(", "));
+    $("stand-titel").textContent = L.stageQuestion(ids.length, name);
+    $("stand-text").replaceChildren(
+      el("ul", { class: "dialog__list" }, betroffen.map(text => el("li", {}, text))),
+      stand === "Absage" ? el("p", {}, "Wo das Datum der Absage fehlt, gilt heute.") : null);
+    $("stand-ok").disabled = false;
+    $("stand-dialog").showModal();
+  }
+
+  async function setzeStand() {
+    const ids = L.selectedIds(auswahl, gezeigteZeilen());
+    const stand = $("stand-wahl").value;
+    $("stand-ok").disabled = true;
+    try {
+      await senden("/api/bewerbungen/stand", { ids, status: stand });
+      $("stand-dialog").close();
+      auswahl = new Set();
+      $("stand-wahl").value = "";
+      meldung(L.stageDone(ids.length, stand, window.Texte.statusName(stand, satz), ansicht), "success");
+      await laden();  // a failed reload says so in the same line
+      $("stand-wahl").focus();  // the button it came from is disabled now
+    } catch (fehler) {
+      $("stand-dialog").close();
+      meldung(fehler.message, "danger");
+    }
   }
 
   // „Das steht an“
@@ -351,7 +429,10 @@
       grundlagen = gefunden;
       gezeigt = JSON.stringify(daten.bewerbungen);
       alle = daten.bewerbungen;
+      staende = daten.status;
       zeilen = L.mitSchritten(alle, gruende, ravGruende);
+      auswahl = L.keepKnown(auswahl, zeilen);
+      fuelleStaende();
       zeige();
     } catch (fehler) {
       meldung("Laden fehlgeschlagen: " + fehler.message, "danger");
@@ -397,6 +478,11 @@
   $("von-hand").addEventListener("click", () => { $("neu-status").textContent = ""; $("neu-dialog").showModal(); $("neu-firma").focus(); });
   $("neu-abbrechen").addEventListener("click", () => $("neu-dialog").close());
   $("neu-form").addEventListener("submit", anlegen);
+  $("alle-waehlen").addEventListener("change", waehleAlle);
+  $("stand-wahl").addEventListener("change", () => zeigeAuswahl());
+  $("stand-setzen").addEventListener("click", frageStand);
+  $("stand-abbrechen").addEventListener("click", () => $("stand-dialog").close());
+  $("stand-ok").addEventListener("click", setzeStand);
   $("doppelt-abbrechen").addEventListener("click", () => { $("doppelt-dialog").close(); meldung(""); });
   $("doppelt-trotzdem").addEventListener("click", () => {
     $("doppelt-dialog").close();

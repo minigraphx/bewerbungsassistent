@@ -181,6 +181,14 @@ def jobroom_angaben(b: dict) -> dict:
     return {k: v for k, v in angaben.items() if v not in (None, "")}
 
 
+def with_stage(entry: dict, stage: str, today: datetime.date) -> dict:
+    """A copy at the new stage; a rejection without a date gets today's, as on the application's page."""
+    changed = {**entry, "status": stage}
+    if stage == "Absage" and not entry.get("absage_am"):
+        return {**changed, "absage_am": today.isoformat()}
+    return changed
+
+
 # Register
 
 
@@ -211,6 +219,25 @@ class Register:
             liste = [neu if b["id"] == neu["id"] else b for b in alle] if neu["id"] in ids else alle + [neu]
             self._schreibe(liste)
         return neu
+
+    def check_stage_change(self, entry_ids: list[str], stage: str, entries: list[dict] | None = None) -> None:
+        """Refuse an unknown stage or id before anything is written (#170)."""
+        if stage not in STATUS:
+            raise ValueError(f"Diesen Stand gibt es nicht: {stage}. Möglich sind {', '.join(STATUS)}.")
+        known = {b["id"] for b in (self.alle() if entries is None else entries)}
+        missing = [entry_id for entry_id in entry_ids if entry_id not in known]
+        if missing:
+            raise ValueError(f"Diese Bewerbungen gibt es nicht: {', '.join(missing)}. Es wurde nichts geändert.")
+
+    def set_stage(self, entry_ids: list[str], stage: str, today: datetime.date) -> list[dict]:
+        """Set one stage for several applications in a single write; returns the changed ones."""
+        wanted = set(entry_ids)
+        with self._sperre:
+            entries = self.alle()
+            self.check_stage_change(entry_ids, stage, entries)
+            updated = [pruefe_bewerbung(with_stage(b, stage, today)) if b["id"] in wanted else b for b in entries]
+            self._schreibe(updated)
+        return [b for b in updated if b["id"] in wanted]
 
     def neu(self, firma: str, stelle: str, **felder) -> dict:
         vorhandene = {b["id"] for b in self.alle()}
