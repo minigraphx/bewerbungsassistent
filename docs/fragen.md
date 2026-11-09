@@ -1,6 +1,6 @@
 # Häufige Fragen
 
-Hier steht genau, was die App vor dem Senden an die KI ersetzt, wo das an Grenzen stösst und warum das Portal ictjobs an oder aus ist. Die Beispiele sind erfunden.
+Hier steht genau, was die App vor dem Senden an die KI ersetzt, wo das an Grenzen stösst, warum das Portal ictjobs an oder aus ist und ob mehrere Personen die App nutzen können. Die Beispiele sind erfunden.
 
 - [Was sieht die KI von mir?](#was-sieht-die-ki-von-mir)
 - [Was ersetzt die App?](#was-ersetzt-die-app)
@@ -12,6 +12,7 @@ Hier steht genau, was die App vor dem Senden an die KI ersetzt, wo das an Grenze
 - [Warum ist ictjobs an oder aus?](#warum-ist-ictjobs-an-oder-aus)
 - [Wie schalte ich ictjobs ein oder aus?](#wie-schalte-ich-ictjobs-ein-oder-aus)
 - [Für Lehrstellen](#für-lehrstellen)
+- [Können mehrere Personen die App nutzen?](#können-mehrere-personen-die-app-nutzen)
 
 ## Was sieht die KI von mir?
 
@@ -102,3 +103,9 @@ Unter Stellen suchen › Suche einstellen › Wo suchen Sie? setzen oder entfern
 ## Für Lehrstellen
 
 Für dich gilt alles, was oben steht. Dazu ersetzt die App bei der Lehrstellensuche auch die Namen deiner Schulen. Das gilt auch, solange noch kein Suchprofil da ist. Gesucht wird auf LENA und yousty, ictjobs gibt es hier nicht.
+
+## Können mehrere Personen die App nutzen?
+
+Ja. Jede Person hat ihren eigenen Datenordner mit Lebenslauf, Anschreiben und Bewerbungen. Am einfachsten hat jede Person ein eigenes Benutzerkonto auf dem Computer und richtet die App dort ein. Dann hat sie auch ihren eigenen Zugang zur KI.
+
+Teilen sich mehrere Personen ein Benutzerkonto, wechseln sie unter Mehr › Einrichtung › Datenordner zum Ordner der anderen Person. Der Zugang zur KI gehört aber zum Benutzerkonto, nicht zum Datenordner: Alle nutzen dann denselben Zugang und dasselbe Budget, auch mit einem eigenen API-Schlüssel. Wie der Wechsel geht und was Sie vorher abschliessen, steht in der Anleitung unter [Mehrere Personen](installation.md#mehrere-personen).
