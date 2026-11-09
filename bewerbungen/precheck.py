@@ -19,8 +19,8 @@ LANGUAGES = {"deutsch": "deutsch", "german": "deutsch", "französisch": "franzö
 LANGUAGE_MENTION = re.compile(r"\b(" + "|".join(sorted(LANGUAGES, key=len, reverse=True)) + r")\w*", re.IGNORECASE)
 # cv.yaml takes any name: „Schweizerdeutsch“ or „Hochdeutsch“ is German.
 LANGUAGE_IN_NAME = re.compile("|".join(sorted(LANGUAGES, key=len, reverse=True)), re.IGNORECASE)
-# „Deutsch oder Französisch fliessend“: one of them is enough.
-ALTERNATIVE = re.compile(r"\s*(?:oder|or|bzw\.?|beziehungsweise|/)\s*", re.IGNORECASE)
+# „Deutsch oder Französisch fliessend“, „Deutsch- und/oder Französischkenntnisse“: one of them is enough.
+ALTERNATIVE = re.compile(r"-?\s*(?:(?:und|and)\s*/\s*)?(?:oder|or|bzw\.?|beziehungsweise|/)\s*", re.IGNORECASE)
 ABBREVIATED_OR = re.compile(r"\bbzw\.", re.IGNORECASE)  # its dot must not end the clause
 # One alternation, longer phrases first, so that „sehr gute“ is not read as „gute“.
 LEVEL_WORDS = (
@@ -127,7 +127,8 @@ def _nearest_level(clause: str, mention: re.Match) -> int | None:
 
 
 def _alternatives(clause: str) -> list[list[re.Match]]:
-    """The languages of a clause in groups; languages joined by „oder“, „or“, „bzw.“ or „/“ share one group."""
+    """The languages of a clause in groups; languages joined by „oder“, „und/oder“, „or“, „bzw.“ or „/“ share one
+    group, also after a hyphen („Deutsch- oder Französischkenntnisse“)."""
     groups: list[list[re.Match]] = []
     for mention in LANGUAGE_MENTION.finditer(clause):
         joined = groups and ALTERNATIVE.fullmatch(clause[groups[-1][-1].end():mention.start()])

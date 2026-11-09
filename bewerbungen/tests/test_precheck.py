@@ -87,7 +87,9 @@ def test_an_excluded_technology_on_the_side_passes():
 
 @pytest.mark.parametrize("text", ["Muttersprache Deutsch oder Französisch, gute Englischkenntnisse.",
                                   "Deutsch oder Französisch als Muttersprache.", "Deutsch oder Französisch fliessend.",
-                                  "Deutsch bzw. Französisch fliessend.", "Deutsch/Französisch fliessend.", "German or French, fluent."])
+                                  "Deutsch bzw. Französisch fliessend.", "Deutsch/Französisch fliessend.", "German or French, fluent.",
+                                  "Sehr gute Deutsch- oder Französischkenntnisse.", "Deutsch und/oder Französisch fliessend.",
+                                  "Fliessende Deutsch- und/oder Französischkenntnisse.", "Fluent German and/or French."])
 def test_languages_joined_by_or_are_alternatives(text):
     assert check(text) == ""
 
@@ -95,6 +97,7 @@ def test_languages_joined_by_or_are_alternatives(text):
 def test_alternatives_fail_only_when_none_fits_and_and_still_needs_both():
     assert check("Italienisch oder Französisch fliessend.") == "Verlangt Italienisch auf Niveau C1, vorhanden ist keine Angabe."
     assert check("Deutsch und Französisch fliessend.") == "Verlangt Französisch auf Niveau C1, vorhanden ist A2."
+    assert check("Sehr gute Deutsch- und Französischkenntnisse.") == "Verlangt Französisch auf Niveau C1, vorhanden ist A2."
 
 
 def test_swiss_german_and_standard_german_in_cv_yaml_count_as_german():
