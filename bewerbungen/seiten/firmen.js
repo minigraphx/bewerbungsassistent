@@ -124,13 +124,13 @@
     const kandidaten = (firma.kununu.kandidaten || []).map(kandidat => el("label", { class: "choice" },
       el("input", { type: "radio", name, value: kandidat.link }),
       el("span", {}, el("span", { class: "choice__name" }, kandidat.name),
-        el("span", { class: "choice__meta" }, [kandidat.ort, kandidat.branche, typeof kandidat.bewertungen === "number" ? logik.bewertungen(kandidat.bewertungen) : ""].filter(Boolean).join(" · "))),
+        el("span", { class: "choice__meta" }, [kandidat.ort, typeof kandidat.bewertungen === "number" ? logik.bewertungen(kandidat.bewertungen) : ""].filter(Boolean).join(" · "))),
       el("a", { href: kandidat.link, target: "_blank", rel: "noopener noreferrer" }, "Bei kununu ansehen",
         el("span", { class: "visually-hidden" }, `: ${kandidat.name}${NEUER_TAB}`))));
     const keine = el("label", { class: "choice" }, el("input", { type: "radio", name, value: "" }), el("span", {}, el("span", { class: "choice__name" }, "Keine davon passt")), el("span", {}));
     const legende = el("legend", { tabindex: "-1" }, `Welche ist ${[firma.name, firma.ort].filter(Boolean).join(", ")}?`);
     return el("tr", { class: "chooser", id: name }, el("td", { colspan: "5", "data-label": "" }, el("fieldset", {}, legende,
-      el("p", { class: "field__hint" }, "Ort und Branche helfen beim Wählen."), ...kandidaten, keine,
+      el("p", { class: "field__hint" }, "Ort und Anzahl Bewertungen helfen beim Wählen."), ...kandidaten, keine,
       el("div", { class: "btn-row" },
         el("button", { type: "button", class: "btn btn--sm btn--primary", onclick: () => zuordnenAusWahl(firma) }, "Zuordnen"),
         el("button", { type: "button", class: "btn btn--sm", onclick: () => { offen = null; zeige(firma.schluessel); } }, "Abbrechen")))));

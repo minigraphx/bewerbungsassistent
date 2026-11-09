@@ -94,7 +94,7 @@ Neutral, wo es geht. Die Spalte «Stellen mit du» entspricht der Spalte du, nur
 | Zustände | Noch nicht geprüft · Wird geprüft … · Noch keine Bewertungen · Nur 3 Bewertungen, wenig aussagekräftig. · Bei kununu nicht gefunden · Mehrere Firmen bei kununu | … · Mehrere Lehrbetriebe bei kununu |
 | Fehler | Nicht geprüft. kununu war nicht erreichbar. Bitte später nochmals prüfen. | gleich |
 | Knöpfe, Links | Prüfen · Neu prüfen · Nochmals prüfen · Bei kununu ansehen · Bei kununu suchen · Selbst zuordnen · Passende wählen · Zuordnen · Abbrechen | gleich |
-| Auswahl | Welche ist Beispiel Holding AG, Zürich? · Keine davon passt · Ort und Branche helfen beim Wählen. | gleich |
+| Auswahl | Welche ist Beispiel Holding AG, Zürich? · Keine davon passt · Ort und Anzahl Bewertungen helfen beim Wählen. | gleich |
 | Dialog | Welche kununu-Seite gehört zu Testlogistik GmbH? · Link zur Firma bei kununu · Bei kununu die Firma öffnen und den Link aus der Adresszeile kopieren. · Das ist kein Link zu einer Firma bei kununu. | … · Link zum Lehrbetrieb bei kununu · Bei kununu den Lehrbetrieb öffnen … · … zu einem Lehrbetrieb bei kununu. |
 | Trefferzeile | kununu 3.8 · kununu 4.6, wenige Bewertungen · kununu: wählen · nicht bei kununu | gleich |
 | Detailspalte | Muster Industrie AG bei kununu · Geprüft am 05.11.2026 · Alle Firmen · Noch nicht bei kununu geprüft. · Jetzt prüfen | … · Alle Lehrbetriebe |

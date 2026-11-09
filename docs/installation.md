@@ -196,7 +196,7 @@ Lässt sich kein Wert lesen, zum Beispiel weil kununu eine Prüfseite zeigt, ble
 
 Welche kununu-Seite zu einer Firma gehört, entscheiden Sie selbst:
 
-- Findet kununu mehrere Firmen, klicken Sie auf **Passende wählen**. Ort und Branche helfen beim Wählen. Wählen Sie die richtige und klicken Sie auf **Zuordnen**. Passt keine, wählen Sie **Keine davon passt**.
+- Findet kununu mehrere Firmen, klicken Sie auf **Passende wählen**. Ort und Anzahl Bewertungen helfen beim Wählen. Wählen Sie die richtige und klicken Sie auf **Zuordnen**. Passt keine, wählen Sie **Keine davon passt**.
 - Findet kununu die Firma nicht, suchen Sie mit **Bei kununu suchen** selbst. Öffnen Sie die Firma bei kununu und kopieren Sie den Link aus der Adresszeile. Klicken Sie in der App auf **Selbst zuordnen**, fügen Sie den Link ein und klicken Sie auf **Zuordnen**. Es gehen Links von kununu.com/ch, kununu.com/de und kununu.de. Danach liest **Prüfen** die Werte von dieser Seite.
 
 Unter **Zu klären** zeigt die Seite die Firmen, bei denen noch eine Wahl offen ist oder die Prüfung nicht ging.
