@@ -128,6 +128,13 @@ def _without_direction(wanted: frozenset[str]) -> Callable[[str], str | None]:
     return change
 
 
+def _without_term(part: str, wanted: frozenset[str]) -> str:
+    """An entry of the core list without the term; „Verkauf/Sales“ is two terms to the plan (#176), so one can go."""
+    terms = search_plan.split_terms(part)
+    kept = [term for term in terms if _words_as_shown(term) != wanted]
+    return part if len(kept) == len(terms) else "/".join(kept)
+
+
 def removed(text: str, name: str) -> str:
     """The profile text without this term; a term that is not there changes nothing."""
     wanted = profession_words(name)
@@ -139,8 +146,8 @@ def removed(text: str, name: str) -> str:
         return _renumbered(text, DIRECTIONS_SECTION, _without_direction(wanted))
     prefix, value = CORE_LIST.match(lines[core].strip()).groups()
     parts = [part.strip() for part in value.split(",") if part.strip()]
-    kept = [part for part in parts if _words_as_shown(part) != wanted]
-    if len(kept) == len(parts):
+    kept = [rest for rest in (_without_term(part, wanted) for part in parts) if rest]
+    if kept == parts:
         return text
     indent = lines[core][:len(lines[core]) - len(lines[core].lstrip())]
     return "\n".join([*lines[:core], f"{indent}{prefix}{', '.join(kept)}".rstrip(), *lines[core + 1:]])

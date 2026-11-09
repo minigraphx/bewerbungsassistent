@@ -83,6 +83,10 @@ FIELD_POSTAL_CODE = "person.postalCode"
 FIELD_APPRENTICESHIP_HOME = "searchApprenticeship.home"
 NATIONWIDE_NOTE = "Gesucht wird in der ganzen Schweiz, Stellen nahe dem Wohnort stehen zuerst. Eingrenzen: Kantone wählen."
 REMARK = re.compile(r"\s*\([^()]*\b(?:priorität|ersatz|falls|wenn|notfalls)\b[^()]*\)\s*$", re.IGNORECASE)
+# A remark such as „Biel (kleine Gemeinden liefern 0 Treffer)“ is no part of the value; portals and the title filter
+# match whole terms, so „Java/.NET“ means two. A gender form such as „Sachbearbeiter/in“ stays one term.
+BRACKETS = re.compile(r"\s*\([^()]*\)")
+SLASH = re.compile(r"\s*/(?!-?(?:in|innen|frau|mann|euse|r)\b)\s*", re.IGNORECASE)
 YEAR = re.compile(r"\b20\d\d\b")
 NUMBER = re.compile(r"\d+")
 
@@ -217,6 +221,31 @@ def _items(text: str, limit: int) -> tuple[str, ...]:
             seen.add(value.lower())
             result.append(value)
     return tuple(result[:limit])
+
+
+def _gender_pair(left: str, right: str) -> bool:
+    """„Koch/Köchin EFZ“ or „Fachfrau/Fachmann“: the words at the slash are one word in two forms."""
+    last, first = left.lower().split()[-1:], right.lower().split()[:1]
+    return bool(last and first) and _neutral_word(last[0]) == _neutral_word(first[0])
+
+
+def _slash_terms(value: str) -> list[str]:
+    terms: list[str] = []
+    for piece in SLASH.split(value):
+        if terms and _gender_pair(terms[-1], piece):
+            terms = [*terms[:-1], f"{terms[-1]}/{piece}"]
+        else:
+            terms = [*terms, piece]
+    return terms
+
+
+def split_terms(text: str) -> list[str]:
+    """The single terms of a value: without remarks in brackets, split on commas and on slashes."""
+    return [part for value in BRACKETS.sub("", text).split(",") for part in _slash_terms(value)]
+
+
+def _terms(text: str, limit: int) -> tuple[str, ...]:
+    return _items(",".join(split_terms(text)), limit)
 
 
 def _directions(lines: list[str]) -> tuple[str, ...]:
@@ -359,7 +388,7 @@ def with_section_line(text: str, title: str, line: str, before: str) -> str:
 
 
 def _job_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
-    core = _items(_value(_pairs(sections.get("keywords", [])), "kernliste"), MAX_KEYWORDS)
+    core = _terms(_value(_pairs(sections.get("keywords", [])), "kernliste"), MAX_KEYWORDS)
     return core or _directions(sections.get("suchrichtungen", []))
 
 
@@ -390,16 +419,16 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     if not keywords:
         raise ValueError(NO_TERMS)
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
-    places = _items(_value(region, "orte"), MAX_PLACES) or _items(_value(region, "wohnort"), 1)
+    places = _terms(_value(region, "orte"), MAX_PLACES) or _terms(_value(region, "wohnort"), 1)
     postal_codes = _items(_value(region, "plz"), MAX_PLACES) or _items(postal_code or "", 1)
     regions = _items(_value(region, "regionen"), MAX_PLACES) or _regions(cantons)
     modes = _modes(sections.get("portale und rhythmus", []))
     portals = tuple(portal for portal in PORTALS if modes.get(portal) != MODE_OFF)
     nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", "regionen"))
     targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes)
-    return SearchPlan(keywords=keywords, niche_keywords=_items(_value(words, "nischen"), MAX_KEYWORDS),
+    return SearchPlan(keywords=keywords, niche_keywords=_terms(_value(words, "nischen"), MAX_KEYWORDS),
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
-                      title_exclude=_items(_value(titles, "ausschluss"), 30), portals=portals,
+                      title_exclude=_terms(_value(titles, "ausschluss"), 30), portals=portals,
                       hints=tuple(hint for hint, _ in targets), nationwide=nationwide, hint_targets=targets)
 
 
