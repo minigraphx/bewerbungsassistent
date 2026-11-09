@@ -3,6 +3,8 @@
 window.App = (() => {
   const DOWNLOAD_BEHALTEN_MS = 600000;
   const NACHSEHEN_MS = 5000;
+  // The FAQ (#108); the website renders the same file with GitHub's heading ids, so an anchor works on both.
+  const FRAGEN_URL = "https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/fragen.md";
   const TOKEN = document.querySelector('meta[name="token"]').content;
 
   /** Claude writes into the app while a page is open (MIN-377): look again as long as the page can be seen. */
@@ -398,6 +400,11 @@ window.App = (() => {
   }
   sicherungHinweis();
 
+  /** A link to one question of the FAQ; `anker` is the GitHub id of its heading. */
+  function fragenLink(anker, text) {
+    return el("a", { href: `${FRAGEN_URL}#${anker}`, target: "_blank", rel: "noopener" }, text);
+  }
+
   return { url, holen, senden, el, status, alsBase64, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe, beobachten,
-           wahl: () => wahl, textsatz };
+           wahl: () => wahl, textsatz, fragenLink };
 })();

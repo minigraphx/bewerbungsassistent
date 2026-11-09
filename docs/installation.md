@@ -460,4 +460,6 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 
 ### Hilfe
 
+Was die App vor dem Senden an die KI ersetzt und warum ictjobs an oder aus ist, steht in den [häufigen Fragen](fragen.md).
+
 Kommen Sie nicht weiter, melden Sie sich bei der Person, die Sie im Pilot begleitet.
