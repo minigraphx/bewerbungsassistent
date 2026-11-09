@@ -87,3 +87,22 @@ jobs:
           for name in "Bewerbungsbegleiter-Setup-$version.exe" "Bewerbungsbegleiter-$version-macOS.zip" "Bewerbungsbegleiter-$version-x86_64.AppImage"; do
             curl -fsS "$UPDATE_URL/$version/$name" | cmp - "pakete/$name"
           done
+
+  # Danach die Webseite neu bauen, damit die Anleitung online zur ausgerollten Version passt (#153). Der Token gilt nur
+  # für das Repo der Webseite (Actions lesen und schreiben) und kommt nicht in den Job mit dem Signaturschlüssel.
+  webseite:
+    needs: ausrollen
+    runs-on: ubuntu-24.04
+    permissions: {}
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Webseite ausrollen
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Das Secret WEBSITE_DISPATCH_TOKEN fehlt; die Webseite von Hand mit 'Run workflow' auf ausrollen.yml und dem Tag $TAG ausrollen."
+            exit 1
+          fi
+          gh workflow run ausrollen.yml --repo minigraphx/bewerbungsbegleiter-webseite --ref main -f "tag=$TAG"
