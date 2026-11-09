@@ -156,6 +156,12 @@
     return { text: (texte[k.zustand] || texte.nicht_gefunden)(), stufe: "success", vonHand: false };
   }
 
+  /** Whether „Von Hand eintragen“ shows: for every company without a stored value, so a check that failed elsewhere
+   *  (Stellen suchen) leads here; for one with a value only after a check of this page could not read it. */
+  function vonHandAnbieten(firma, nichtGelesen = new Set()) {
+    return !MIT_WERT.includes(zustand(firma)) || nichtGelesen.has(firma.schluessel);
+  }
+
   /** Score and count as the person typed them, or the field that is wrong and why. */
   function vonHandWerte(wertText, anzahlText) {
     const zahl = String(wertText ?? "").trim().replace(",", ".");
@@ -225,7 +231,7 @@
              aktionen: zeilenAktionen(firma, z, heute) };
   }
 
-  const logik = { pruefErgebnis, vonHandWerte, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
+  const logik = { pruefErgebnis, vonHandWerte, vonHandAnbieten, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,
                   prozent, datum, bewertungen, seite, trefferText, gefiltert, zaehlen, sortiert, gueltigerFilter,
                   gueltigeSortierung, naechsteSortierung, pruefenLink, zusammenfassung, nachTreffer, marke, firmenZeile };
   if (typeof module !== "undefined") module.exports = logik;

@@ -35,6 +35,7 @@ def test_the_guide_says_how_to_assign_a_company_or_enter_a_value_by_hand():
 
     for step in ("**Selbst zuordnen**", "**Passende wählen**", "**Von Hand eintragen**", "**Zuordnen**"):
         assert step in section
+    assert "den Knopf hat jede Firma, für die noch kein Wert gespeichert ist" in section
 
 
 def test_every_name_in_bold_is_shown_by_the_app():

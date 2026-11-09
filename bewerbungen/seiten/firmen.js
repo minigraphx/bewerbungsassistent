@@ -19,7 +19,7 @@
   let offen = null;      // the company whose choice of several is open
   let zuordnen = null;   // the company of the dialog „Selbst zuordnen“
   let vonHand = null;    // the company of the dialog „Von Hand eintragen“
-  const nichtGelesen = new Set();  // companies whose check found nothing readable: they get „Von Hand eintragen“
+  const nichtGelesen = new Set();  // companies with a value whose new check found nothing readable
 
   const text = (schluessel, werte) => window.Texte.text(schluessel, satz, werte);
   const meldung = (inhalt, stufe = "") => { $("status").textContent = inhalt; $("status").dataset.level = stufe; };
@@ -106,7 +106,7 @@
         { "aria-expanded": String(offen === firma.schluessel), "aria-controls": `wahl-${firma.schluessel}` })],
     };
     const gefunden = [logik.veraltet(firma, heute) ? pruefenKnopf(firma, "Neu prüfen") : null, ansehen];
-    const hand = nichtGelesen.has(firma.schluessel) ? knopf(firma, "Von Hand eintragen", () => oeffneVonHand(firma)) : null;
+    const hand = logik.vonHandAnbieten(firma, nichtGelesen) ? knopf(firma, "Von Hand eintragen", () => oeffneVonHand(firma)) : null;
     return el("div", { class: "btn-row" }, ...(je[zustand] || gefunden).filter(Boolean), hand);
   }
 
