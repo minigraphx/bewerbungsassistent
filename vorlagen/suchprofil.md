@@ -15,6 +15,9 @@ Der regelmässige Lauf (geplante Aufgabe) sucht standardmässig **wöchentlich**
 
 Wochentag: Montag
 
+Zeitfenster: Die App nimmt Inserate der letzten 21 Tage, erlaubt sind 1 bis 60 Tage. Nach einem erfolgreichen Lauf sucht sie pro Portal nur die Tage seit diesem Lauf.
+- Zeitfenster: 21 Tage
+
 Pro Portal festlegen:
 `automatisch` (unbeaufsichtigter Lauf), `mit Nutzer` (nur gemeinsam in einer Sitzung, z.B. wegen Login oder
 Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
@@ -69,6 +72,10 @@ Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 
 ## Zielfirmen mit Karriereseite
 - Beispiel AG: Liste unter `https://jobs.example.ch/`, Links `a[href*="stellen"]`, Ort nach "Standort", Anforderungen ab "Dein Profil". Nur Bern oder Remote.
+
+## Vermittler
+Bei Inseraten von Vermittlern vergleicht die App Titel und Pensum mit den offenen Bewerbungen und zeigt einen Hinweis, wenn es dieselbe Stelle sein könnte. Die bekannten Vermittler kennt sie schon; weitere hier ergänzen.
+- Weitere Vermittler: Beispiel Personal AG
 
 ## Hinweise zu bestimmten Firmen
 - Keine

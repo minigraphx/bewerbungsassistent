@@ -5,6 +5,7 @@ Routen sind Funktionen `(kontext, parameter, body) -> Antwort`. Alle `/api/`-Rou
 GET als Parameter `t`, POST als Header `X-Token` mit JSON-Body. Eine Seite (HTML) enthält es und geht nur mit Sitzung
 hinaus: Der Link mit dem Token (`entry_url`) setzt das Cookie, denn den Port erreichen auch andere Konten des Rechners.
 """
+import contextlib
 import dataclasses
 import http.cookies
 import json
@@ -16,7 +17,7 @@ import secrets
 import urllib.parse
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Callable
+from typing import Any, Callable, ContextManager
 
 SEITEN = pathlib.Path(__file__).resolve().parent / "seiten"
 MAX_BODY = 2 * 1024 * 1024
@@ -70,6 +71,7 @@ def datei_antwort(pfad: pathlib.Path, typ: str | None = None) -> Antwort:
 
 
 Route = Callable[[Any, dict[str, str], Any], Antwort]
+Activity = Callable[[str], ContextManager[Any]]
 
 
 class Server(ThreadingHTTPServer):
@@ -78,13 +80,14 @@ class Server(ThreadingHTTPServer):
 
     def __init__(self, kontext: Any, routen_get: dict[str, Route], routen_post: dict[str, Route],
                  seiten: dict[str, str], port: int = 0, grenzen: dict[str, int] | None = None,
-                 hidden_links: tuple[str, ...] = ()) -> None:
+                 hidden_links: tuple[str, ...] = (), activity: Activity | None = None) -> None:
         self.kontext = kontext
         self.routen_get = routen_get
         self.routen_post = routen_post
         self.seiten = seiten  # Pfad -> Dateiname in seiten/
         self.grenzen = dict(grenzen or {})  # Pfad -> grösste Anfrage, wo MAX_BODY nicht reicht
         self.hidden_links = hidden_links  # links in the fixed menu of the pages to pages that are switched off
+        self.activity = activity or (lambda path: contextlib.nullcontext())  # the desktop app watches for open pages (G36)
         self.token = secrets.token_urlsafe(32)
         self.session = secrets.token_urlsafe(32)
         super().__init__(("127.0.0.1", port), Handler)
@@ -217,6 +220,10 @@ class Handler(BaseHTTPRequestHandler):
         self.close_connection = True
 
     def _ausfuehren(self, route: Route, parameter: dict, body: Any) -> None:
+        with self.server.activity(urllib.parse.urlsplit(self.path).path):
+            self._run_route(route, parameter, body)
+
+    def _run_route(self, route: Route, parameter: dict, body: Any) -> None:
         try:
             antwort = route(self.server.kontext, parameter, body)
         except NichtGefunden as fehler:

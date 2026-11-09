@@ -269,8 +269,9 @@ def test_saving_and_listing_sites(server, with_key):
 
 def test_sichten_and_treffer_accept_a_site_with_a_key(server, with_key):
     own_sites.save(Hits(server.kontext.daten), [SEARCH])
-    assert post(server, "/api/suche/sichten", {"treffer": [own_hit()]})[1]["holen"] == [f"{PORTAL}:abc"]
-    assert post(server, "/api/suche/treffer", {"treffer": [{**own_hit(), "text": "Inserat"}]})[1]["neu"] == 1
+    hit = own_hit(stelle="Software Tester")  # the template profile screens titles by its line Positiv (G31)
+    assert post(server, "/api/suche/sichten", {"treffer": [hit]})[1]["holen"] == [f"{PORTAL}:abc"]
+    assert post(server, "/api/suche/treffer", {"treffer": [{**hit, "text": "Inserat"}]})[1]["neu"] == 1
 
 
 def test_sichten_refuses_a_site_without_a_key(server):
