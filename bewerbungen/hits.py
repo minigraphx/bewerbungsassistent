@@ -20,6 +20,7 @@ from register import slug
 FOLDER = "suche"
 HITS_FILE = "treffer.yaml"
 RUN_FILE = "letzte-suche.yaml"
+LAST_SUCCESS = "erfolgreich_am"
 SETTINGS_FILE = "einstellungen.yaml"
 OWN_SITES = "weitere_seiten"
 PORTALS_OFF = "portale_aus"
@@ -254,13 +255,15 @@ class Hits:
 
     def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
                own_portals: frozenset[str] = frozenset(), near=lambda place: False,
-               title_positive: tuple[str, ...] = ()) -> dict:
+               title_positive: tuple[str, ...] = (), max_age_by_portal: dict[str, int] | None = None) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away. With positive
         terms (G31), a title needs one of them; the others are screened out before their text counts against the limit.
+        `max_age_by_portal` shortens the window per portal after a successful run (G32).
         """
         fetch, nearby, filtered, known, merged = [], [], [], 0, 0
+        ages = max_age_by_portal or {}
         with _LOCK:
             stored = self.all()
             known_keys = {key(h) for h in stored}
@@ -285,8 +288,9 @@ class Hits:
                     filtered.append({"stelle": hit["stelle"], "grund": f"Titel: {term}"})
                 elif title_positive and _title_match(hit["stelle"], title_positive) is None:
                     filtered.append({"stelle": hit["stelle"], "grund": NO_POSITIVE_TERM})
-                elif hit.get("alter_tage") is not None and hit["alter_tage"] > max_age:
-                    filtered.append({"stelle": hit["stelle"], "grund": f"älter als {max_age} Tage"})
+                elif hit.get("alter_tage") is not None and hit["alter_tage"] > ages.get(hit["portal"], max_age):
+                    days = ages.get(hit["portal"], max_age)
+                    filtered.append({"stelle": hit["stelle"], "grund": f"älter als {days} {'Tag' if days == 1 else 'Tage'}"})
                 elif key(hit) not in fetch:
                     fetch.append(key(hit))
                     if near(hit.get("ort", "")):
@@ -389,9 +393,16 @@ class Hits:
             return self._save_settings({**current, "beruf_sterne": {**others, **({name: stars} if stars else {})}})
 
     def save_run(self, summary: dict, today: datetime.date) -> dict:
-        run = {"datum": today.isoformat(), **summary}
+        """The run as the page shows it; each portal without a problem also counts as its last success (G32)."""
+        succeeded = {name: today.isoformat() for name, portal in summary.get("portale", {}).items() if not portal.get("problem")}
+        run = {"datum": today.isoformat(), **summary, LAST_SUCCESS: {**self.last_success(), **succeeded}}
         schreibe_yaml(self.folder / RUN_FILE, run)
         return run
+
+    def last_success(self) -> dict[str, str]:
+        """Portal → date of its last run without a problem."""
+        found = (self.last_run() or {}).get(LAST_SUCCESS)
+        return {str(k): str(v) for k, v in found.items()} if isinstance(found, dict) else {}
 
     def last_run(self) -> dict | None:
         run = lies_yaml(self.folder / RUN_FILE, None)

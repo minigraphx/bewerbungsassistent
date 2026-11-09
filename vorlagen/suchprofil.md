@@ -15,6 +15,9 @@ Der regelmässige Lauf (geplante Aufgabe) sucht standardmässig **wöchentlich**
 
 Wochentag: Montag
 
+Zeitfenster: Die App nimmt Inserate der letzten 21 Tage, erlaubt sind 1 bis 60 Tage. Nach einem erfolgreichen Lauf sucht sie pro Portal nur die Tage seit diesem Lauf.
+- Zeitfenster: 21 Tage
+
 Pro Portal festlegen:
 `automatisch` (unbeaufsichtigter Lauf), `mit Nutzer` (nur gemeinsam in einer Sitzung, z.B. wegen Login oder
 Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.

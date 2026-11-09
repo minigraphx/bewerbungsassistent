@@ -49,7 +49,8 @@ function apprenticeshipQueries(plan) {
  * @returns {{queries: Array<object>, skipped: number}}
  */
 export function buildQueries(portal, plan) {
-  const maxAge = plan.max_alter_tage;
+  // The days since this portal's last successful run (G32); an older app sends only the window.
+  const maxAge = plan.max_alter_tage_portale?.[portal] ?? plan.max_alter_tage;
   const keywords = plan.stichworte || [];
   const niches = plan.nischen || [];
   let all = [];
