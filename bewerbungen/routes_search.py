@@ -54,7 +54,8 @@ def screen(k, parameter, body):
     store = _hits(k)
     result = store.screen(_list(body), current.title_exclude, search_plan.MAX_AGE_DAYS, k.register().alle(),
                           own_sites.active_portals(store),
-                          near=lambda place: is_near(str(place), current.places, current.postal_codes))
+                          near=lambda place: is_near(str(place), current.places, current.postal_codes),
+                          title_positive=current.title_positive)
     return json_antwort(result)
 
 
