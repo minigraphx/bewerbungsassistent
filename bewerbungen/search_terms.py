@@ -1,7 +1,8 @@
 """What a person searches for, and changing it from the page (MIN-375).
 
-An apprenticeship profile names professions. A job profile searches its line „Kernliste“ if it has one, else its numbered
-search directions, where one line can hold several terms and bullets of its own. Everything else in the profile stays as written.
+An apprenticeship profile names professions. A job profile searches its line „Kernliste“ and the other named lines under
+„Keywords“ but the niches if it has any, else its numbered search directions, where one line can hold several terms and
+bullets of its own. Everything else in the profile stays as written.
 """
 import re
 from collections.abc import Callable
@@ -13,6 +14,10 @@ DIRECTIONS_SECTION = "## Suchrichtungen"
 KEYWORDS_KEY = "keywords"
 AFTER_DIRECTIONS = "## Region"
 CORE_LIST = re.compile(r"^(-\s+kernliste[^:]*:\s*)(.*)$", re.IGNORECASE)
+# Every named line under Keywords but the niches is searched (#174), so a term can be removed from any of them;
+# of the core lists only the first counts.
+GROUP_LINE = re.compile(r"^(-\s+[^:]+:\s*)(.*)$")
+OTHER_GROUP = re.compile(r"^-\s+(?!kernliste|nischen)[^:]+:\s*\S", re.IGNORECASE)
 TERMS_AND_REMARK = re.compile(r"^([^(]*?)(\s*\(.*)?$")
 FULL = "Die Suche hat schon {limit} Begriffe, mehr sucht sie nicht. Bitte zuerst einen entfernen."
 
@@ -33,6 +38,16 @@ def _core_list_line(lines: list[str]) -> int | None:
         return None
     first = next((i for i in range(start + 1, end) if CORE_LIST.match(lines[i].strip())), None)
     return first if first is not None and CORE_LIST.match(lines[first].strip())[2].strip(" `,") else None
+
+
+def _group_lines(lines: list[str]) -> list[int]:
+    """The filled lines under Keywords that the plan searches: the core list, then the other named groups."""
+    start, end = search_plan.section_bounds(lines, KEYWORDS_KEY)
+    if start is None:
+        return []
+    core = _core_list_line(lines)
+    others = [i for i in range(start + 1, end) if OTHER_GROUP.match(lines[i].strip())]
+    return [*([core] if core is not None else []), *others]
 
 
 def _words_as_shown(part: str) -> frozenset[str]:
@@ -72,6 +87,7 @@ def added(text: str, name: str, kind: str | None = None) -> str:
     clean = " ".join(name.split())
     lines = text.split("\n")
     core = _core_list_line(lines)
+    core = core if core is not None else next(iter(_group_lines(lines)), None)
     if core is not None:
         return "\n".join([*lines[:core], f"{lines[core].rstrip(' ,')}, {clean}", *lines[core + 1:]])
     start, end = search_plan.section_bounds(lines, DIRECTIONS_SECTION[3:].lower())
@@ -141,16 +157,24 @@ def removed(text: str, name: str) -> str:
     if APPRENTICESHIP_MARK in text:
         return _renumbered(text, search_plan.PROFESSIONS_SECTION, _without_profession(wanted))
     lines = text.split("\n")
-    core = _core_list_line(lines)
-    if core is None:
+    groups = _group_lines(lines)
+    if not groups:
         return _renumbered(text, DIRECTIONS_SECTION, _without_direction(wanted))
-    prefix, value = CORE_LIST.match(lines[core].strip()).groups()
+    changed = [*lines]
+    for index in groups:
+        changed[index] = _without_in_line(lines[index], wanted)
+    return text if changed == lines else "\n".join(changed)
+
+
+def _without_in_line(line: str, wanted: frozenset[str]) -> str:
+    """A line such as „- Kernliste: a, b“ without the term, written as before."""
+    prefix, value = GROUP_LINE.match(line.strip()).groups()
     parts = [part.strip() for part in value.split(",") if part.strip()]
     kept = [rest for rest in (_without_term(part, wanted) for part in parts) if rest]
     if kept == parts:
-        return text
-    indent = lines[core][:len(lines[core]) - len(lines[core].lstrip())]
-    return "\n".join([*lines[:core], f"{indent}{prefix}{', '.join(kept)}".rstrip(), *lines[core + 1:]])
+        return line
+    indent = line[:len(line) - len(line.lstrip())]
+    return f"{indent}{prefix}{', '.join(kept)}".rstrip()
 
 
 def _kept_offers(old: str, new: str) -> str:

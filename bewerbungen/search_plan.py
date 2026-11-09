@@ -45,6 +45,7 @@ ICTJOBS_REGIONS = {
     "NE": "westschweiz", "JU": "westschweiz", "FR": "westschweiz", "TI": "tessin",
 }
 MAX_KEYWORDS = 15
+MAX_LISTED = 100  # terms read from the profile before the limit, so that a hint can name what is not searched
 MAX_PLACES = 6
 MAX_PAGES = 3  # per keyword and place, as in the skill
 MAX_QUERIES = 30  # keyword × place combinations per portal
@@ -59,6 +60,9 @@ MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
 NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
 NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
+TOO_MANY_TERMS = "Gesucht werden höchstens {limit} Begriffe. Nicht gesucht: {terms}. Weniger wichtige Begriffe entfernen."
+CORE_LABEL = "kernliste"
+NICHE_LABEL = "nischen"
 NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
 PROFESSIONS_SECTION = "## Berufe (mit Priorität)"
@@ -248,10 +252,10 @@ def _terms(text: str, limit: int) -> tuple[str, ...]:
     return _items(",".join(split_terms(text)), limit)
 
 
-def _directions(lines: list[str]) -> tuple[str, ...]:
+def _directions(lines: list[str], limit: int = MAX_KEYWORDS) -> tuple[str, ...]:
     """Numbered search directions without the remark in brackets, e.g. „(Priorität 2, …)“."""
     names = [DIRECTION.match(line).group(1) for line in lines if DIRECTION.match(line)]
-    return _items(",".join(re.sub(r"\s*\(.*$", "", name) for name in names), MAX_KEYWORDS)
+    return _items(",".join(re.sub(r"\s*\(.*$", "", name) for name in names), limit)
 
 
 def _modes(lines: list[str]) -> dict[str, str]:
@@ -387,9 +391,16 @@ def with_section_line(text: str, title: str, line: str, before: str) -> str:
     return "\n".join([*lines[:last + 1], line, *lines[last + 1:]])
 
 
+def _listed_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
+    """The first core list, then every other named line under Keywords but the niches (#174); else the search directions."""
+    pairs = _pairs(sections.get("keywords", []))
+    others = [value for label, value in pairs.items() if not label.startswith((CORE_LABEL, NICHE_LABEL))]
+    terms = _terms(",".join([_value(pairs, CORE_LABEL), *others]), MAX_LISTED)
+    return terms or _directions(sections.get("suchrichtungen", []), MAX_LISTED)
+
+
 def _job_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
-    core = _terms(_value(_pairs(sections.get("keywords", [])), "kernliste"), MAX_KEYWORDS)
-    return core or _directions(sections.get("suchrichtungen", []))
+    return _listed_terms(sections)[:MAX_KEYWORDS]
 
 
 def job_terms(text: str) -> tuple[str, ...]:
@@ -415,9 +426,11 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     region = _pairs(sections.get("region", []))
     words = _pairs(sections.get("keywords", []))
     titles = _pairs(sections.get("titelfilter", []))
-    keywords = _job_terms(sections)
+    listed = _listed_terms(sections)
+    keywords = listed[:MAX_KEYWORDS]
     if not keywords:
         raise ValueError(NO_TERMS)
+    niches = _terms(_value(words, NICHE_LABEL), MAX_LISTED)
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     places = _terms(_value(region, "orte"), MAX_PLACES) or _terms(_value(region, "wohnort"), 1)
     postal_codes = _items(_value(region, "plz"), MAX_PLACES) or _items(postal_code or "", 1)
@@ -426,10 +439,12 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     portals = tuple(portal for portal in PORTALS if modes.get(portal) != MODE_OFF)
     nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", "regionen"))
     targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes)
-    return SearchPlan(keywords=keywords, niche_keywords=_terms(_value(words, "nischen"), MAX_KEYWORDS),
+    dropped = (*listed[MAX_KEYWORDS:], *niches[MAX_KEYWORDS:])
+    limit_hint = (TOO_MANY_TERMS.format(limit=MAX_KEYWORDS, terms=", ".join(dropped)),) if dropped else ()
+    return SearchPlan(keywords=keywords, niche_keywords=niches[:MAX_KEYWORDS],
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
                       title_exclude=_terms(_value(titles, "ausschluss"), 30), portals=portals,
-                      hints=tuple(hint for hint, _ in targets), nationwide=nationwide, hint_targets=targets)
+                      hints=(*limit_hint, *(hint for hint, _ in targets)), nationwide=nationwide, hint_targets=targets)
 
 
 def _postal_code(data_dir: pathlib.Path) -> str | None:
