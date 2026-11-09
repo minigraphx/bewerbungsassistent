@@ -47,3 +47,9 @@ test("a value entered by hand says so instead of naming a site of kununu", () =>
     "kununu.com/de, von Hand eingetragen");
   assert.equal(logik.seite({ zustand: "gefunden", seite: "ch" }), "kununu.com/ch");
 });
+
+test("on Stellen suchen a page that could not be read says where to enter the value by hand", () => {
+  assert.equal(logik.pruefErgebnis({ gelesen: false }, "Muster AG", { wo: "Firmen" }).text,
+    "Bei kununu liess sich für Muster AG kein Wert lesen. Der Tab bleibt offen; der Wert lässt sich unter Firmen von Hand eintragen.");
+  assert.equal(logik.pruefErgebnis({ gelesen: false }, "Muster AG", { wo: "Lehrbetriebe" }).vonHand, true);
+});

@@ -139,11 +139,13 @@
   const WERT_FALSCH = "Der Wert muss eine Zahl von 1 bis 5 sein.";
   const ANZAHL_FALSCH = "Die Anzahl Bewertungen muss eine ganze Zahl ab 0 sein.";
 
-  /** What the page says after a check; null when the extension is missing and kununu only opened in a tab. */
-  function pruefErgebnis(antwort, name) {
+  /** What the page says after a check; null when the extension is missing and kununu only opened in a tab.
+   *  `wo` names the page for entering a value by hand when the check ran elsewhere (Stellen suchen). */
+  function pruefErgebnis(antwort, name, { wo = "" } = {}) {
     if (antwort?.geoeffnet) return null;
     if (!antwort || antwort.fehler) return { text: antwort?.fehler || "Die Erweiterung antwortet nicht.", stufe: "warning", vonHand: false };
-    if (!antwort.gelesen) return { text: `Bei kununu liess sich für ${name} kein Wert lesen. ${NICHT_GELESEN}`, stufe: "warning", vonHand: true };
+    const nichtGelesen = wo ? NICHT_GELESEN.replace("von Hand", `unter ${wo} von Hand`) : NICHT_GELESEN;
+    if (!antwort.gelesen) return { text: `Bei kununu liess sich für ${name} kein Wert lesen. ${nichtGelesen}`, stufe: "warning", vonHand: true };
     const k = antwort.kununu || {};
     const texte = {
       gefunden: () => `${name}: kununu ${wert(k.wert)} von 5, ${bewertungen(k.bewertungen)}.`,
