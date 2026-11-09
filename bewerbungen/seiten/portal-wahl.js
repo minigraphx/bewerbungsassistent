@@ -1,7 +1,8 @@
 "use strict";
 // Which portals the search uses (MIN-388): a box per portal, for everybody. Someone in a craft finds nothing on ictjobs.
 window.PortalWahl = (() => {
-  const { senden, el, status } = window.App;
+  const { senden, el, status, fragenLink } = window.App;
+  const SPEZIAL = "ictjobs";
   const $ = id => document.getElementById(id);
 
   function zeile(portal, kaesten, neuLaden) {
@@ -20,7 +21,7 @@ window.PortalWahl = (() => {
       }
     });
     return el("li", {}, el("label", { class: "auswahl" }, kasten, ` ${portal.name}`, el("span", { class: "leise" }, ` (${portal.hinweis})`)),
-      grund(portal));
+      grund(portal), portal.name === SPEZIAL ? el("p", { class: "field__hint" }, fragenLink("warum-ist-ictjobs-an-oder-aus", "Warum ictjobs an oder aus ist")) : null);
   }
 
   // Why ictjobs is on or off (#107), in the form of the text set

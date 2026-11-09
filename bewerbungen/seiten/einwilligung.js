@@ -1,7 +1,7 @@
 "use strict";
 // Consent before the first AI call (MIN-401): the same block on the setup, application and settings page.
 window.Einwilligung = (() => {
-  const { senden, el } = window.App;
+  const { senden, el, fragenLink } = window.App;
 
   function link(stand) {
     return stand.link ? el("p", {}, el("a", { href: stand.link, target: "_blank", rel: "noopener" }, "Datenschutzerklärung lesen")) : null;
@@ -14,6 +14,10 @@ window.Einwilligung = (() => {
       text("einwilligung.ersetzt", document.documentElement.dataset.textsatz));
     window.App.textsatz().then(satz => { absatz.textContent = text("einwilligung.ersetzt", satz); });
     return absatz;
+  }
+
+  function grenzen() {
+    return el("p", { class: "field__hint" }, fragenLink("was-ersetzt-die-app", "Was die App ersetzt und was nicht"));
   }
 
   function wartenderCode(stand) {
@@ -37,7 +41,7 @@ window.Einwilligung = (() => {
         knopf.disabled = !haken.checked;
       }
     });
-    const teile = [link(stand), el("label", { class: "schalter" }, haken, " ", stand.text), ersetzt(), wartenderCode(stand), knopf, meldung];
+    const teile = [link(stand), el("label", { class: "schalter" }, haken, " ", stand.text), ersetzt(), grenzen(), wartenderCode(stand), knopf, meldung];
     ort.replaceChildren(...teile.filter(Boolean));
     ort.hidden = false;
   }
