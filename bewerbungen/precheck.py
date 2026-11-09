@@ -22,9 +22,14 @@ LANGUAGE_IN_NAME = re.compile("|".join(sorted(LANGUAGES, key=len, reverse=True))
 # „Deutsch oder Französisch fliessend“, „Deutsch- und/oder Französischkenntnisse“: one of them is enough.
 ALTERNATIVE = re.compile(r"-?\s*(?:(?:und|and)\s*/\s*)?(?:oder|or|bzw\.?|beziehungsweise|/)\s*", re.IGNORECASE)
 ABBREVIATED_OR = re.compile(r"\bbzw\.", re.IGNORECASE)  # its dot must not end the clause
+ENGLISH_NAMES = r"english|german|french|italian|spanish"
+# „Native“ alone is also a tech term („Cloud-native“, „React Native“, „native Apps“): it counts only next to
+# „speaker“, „level“ and the like, or right beside a language name.
+NATIVE = (r"\bnative[\s-]+(?:speakers?|level|language|proficiency|tongue|" + ENGLISH_NAMES + r")\b"
+          r"|\b(?:" + "|".join(LANGUAGES) + r")\w*[\s:-]+native\b")
 # One alternation, longer phrases first, so that „sehr gute“ is not read as „gute“.
 LEVEL_WORDS = (
-    (7, r"muttersprach\w*|erstsprache|native"),
+    (7, r"muttersprach\w*|erstsprache|" + NATIVE),
     (6, r"\bc2\b|verhandlungssicher\w*|stilsicher\w*|perfekt\w*"),
     (5, r"\bc1\b|sehr\s+gut\w*|flie(?:ss|ß)end\w*|ausgezeichnet\w*|fluent"),
     (4, r"\bb2\b|\bgut\w*|\bgood\b"),
@@ -35,6 +40,13 @@ LEVEL_WORDS = (
 LEVEL = re.compile("|".join(f"(?P<l{level}>{words})" for level, words in LEVEL_WORDS), re.IGNORECASE)
 LEVEL_NAMES = {1: "A1", 2: "A2", 3: "B1", 4: "B2", 5: "C1", 6: "C2", 7: "Muttersprache"}
 MAX_DISTANCE = 40  # characters between a language and its level
+# „die perfekte Ergänzung“, „ein mittleres Unternehmen“: an inflected level adjective before another noun is about
+# that noun. Before a language, „Kenntnisse“ and the like, or lower case („gute mündliche …“), it stays a level.
+LEVEL_ADJECTIVE = re.compile(r"(?:perfekt|ausgezeichnet|gut|mittler|verhandlungssicher|stilsicher|flie(?:ss|ß)end)"
+                             r"(?:e|en|es|er|em)$", re.IGNORECASE)
+NEXT_NOUN = re.compile(r"\s+([A-ZÄÖÜ][\w-]*)")
+LANGUAGE_NOUN = re.compile(r"kenntnis|sprach|speaker|ausdruck|beherrsch|kommunikation|verständnis|niveau|"
+                           + "|".join(LANGUAGES), re.IGNORECASE)
 DEGREE_WORDS = (
     (5, "Doktorat", r"\bph\.?\s?d\b|doktorat\w*|\bpromotion\b|promoviert\w*"),
     (4, "Master", r"(?<!scrum[ -])\bmaster(?:abschluss|studium|degree)?\b(?![\s-]*data)|\bm\.?\s?sc\b|lizentiat\w*"),
@@ -51,6 +63,10 @@ STRONG = re.compile(r"mehrjährig|langjährig|fundiert|ausgewiesen|vertieft|prof
 # Years count as required experience only with experience named; „seit 25 Jahren“ is the age of the company.
 YEARS = re.compile(r"(?<!seit\s)(?<!since\s)\b\d+\+?\s+(?:jahre|years)", re.IGNORECASE)
 EXPERIENCE = re.compile(r"erfahrung|experience|praxis", re.IGNORECASE)
+# What the company offers is no requirement: „Wir bieten Englischkurse bis C2“, „Weiterbildung bis zum Master“.
+OFFERED = re.compile(r"\bwir\s+(?:bieten|unterstützen|finanzieren|fördern|ermöglichen|übernehmen)|unterstützung\s+(?:bei|für)"
+                     r"|finanzierung|weiterbildungsmöglichkeit\w*|weiterbildungsangebot\w*|möglichkeit\s+zu[mr]?\b"
+                     r"|\bwe\s+(?:offer|support|fund|sponsor)\b", re.IGNORECASE)
 SENTENCE = re.compile(r"[\n.;•·]+(?:\s|$)|\n")
 CLAUSE = re.compile(r"[\n.;,•·]+(?:\s|$)|\n")
 EXCLUSIONS_SECTION = "## Ausschlüsse"
@@ -119,9 +135,14 @@ def for_folder(data_dir: pathlib.Path) -> Person:
     return person_of(cv, profile)
 
 
+def _about_another_noun(clause: str, match: re.Match) -> bool:
+    noun = NEXT_NOUN.match(clause, match.end())
+    return bool(LEVEL_ADJECTIVE.search(match[0]) and noun and not LANGUAGE_NOUN.search(noun[1]))
+
+
 def _nearest_level(clause: str, mention: re.Match) -> int | None:
     distances = [(max(match.start() - mention.end(), mention.start() - match.end()), int(match.lastgroup[1:]))
-                 for match in LEVEL.finditer(clause)]
+                 for match in LEVEL.finditer(clause) if not _about_another_noun(clause, match)]
     near = [pair for pair in distances if pair[0] <= MAX_DISTANCE]
     return min(near)[1] if near else None
 
@@ -148,7 +169,7 @@ def _language_reason(text: str, person: Person) -> str:
     if not person.languages:
         return ""
     for clause in CLAUSE.split(ABBREVIATED_OR.sub("bzw", text)):
-        if OPTIONAL.search(clause):
+        if OPTIONAL.search(clause) or OFFERED.search(clause):
             continue
         for group in _alternatives(clause):
             reasons = [_shortfall(clause, mention, person) for mention in group]
@@ -160,7 +181,7 @@ def _language_reason(text: str, person: Person) -> str:
 def _degree_reason(text: str, person: Person) -> str:
     if person.degree is None:
         return ""
-    required = [min(levels) for sentence in SENTENCE.split(text) if not OPTIONAL.search(sentence)
+    required = [min(levels) for sentence in SENTENCE.split(text) if not (OPTIONAL.search(sentence) or OFFERED.search(sentence))
                 for levels in [_degree_levels(sentence)] if levels]
     wanted = max(required, default=0)
     return f"Verlangt {DEGREE_NAMES[wanted]}, vorhanden ist {DEGREE_NAMES[person.degree]}." if wanted > person.degree else ""
