@@ -175,3 +175,27 @@ def test_the_trial_page_fills_in_the_saved_trial(rated):  # noqa: F811
     status, answer = post(s, "/api/seite/speichern", {**TRIAL_AD, "stelle": "Informatiker/in EFZ"})
 
     assert status == 200 and answer["neu"] is False and answer["bewerbung"]["id"] == trial["id"]
+
+
+JOBS_CH = "https://www.jobs.ch/de/stellenangebote/detail/?jobid="
+
+
+@pytest.mark.parametrize("stelle", ["Senior AI Engineer", "AI Engineer (80-100%, f/m/d)", "AI Engineer"])
+def test_on_a_portal_another_link_is_another_ad(rated, stelle):  # noqa: F811
+    s, _ = rated
+    entry = saved_job(s, link=JOBS_CH + "111")
+
+    status, answer = post(s, "/api/seite/speichern", {**PAGE_AD, "stelle": stelle, "link": JOBS_CH + "222"})
+
+    assert status == 200 and answer["neu"] is True and answer["bewerbung"]["id"] != entry["id"]
+    assert not ad_file(s, entry).exists()
+
+
+def test_on_a_portal_an_entry_without_a_link_is_found_by_title_and_company(rated):  # noqa: F811
+    s, _ = rated
+    entry = s.kontext.register().neu(firma="Beispiel Analytik AG", stelle="AI Engineer", firma_schluessel="beispiel-analytik",
+                                     status="Gemerkt")
+
+    status, answer = post(s, "/api/seite/speichern", {**PAGE_AD, "link": JOBS_CH + "222"})
+
+    assert status == 200 and answer["neu"] is False and answer["bewerbung"]["id"] == entry["id"]
