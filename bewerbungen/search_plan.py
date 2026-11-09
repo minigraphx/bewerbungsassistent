@@ -67,8 +67,8 @@ APPRENTICESHIP_MARK = "## Lehrbeginn"
 AGENCIES_SECTION = "## Vermittler"
 NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
 NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
-PLACE_SHARE = ("{portal}: {limit} Suchen reichen nicht für alle {terms} Begriffe in {places} Orten; pro Ort laufen die ersten "
-               "{share}. Wichtige Begriffe nach vorne stellen.")
+PLACE_SHARE = ("{portal}: {limit} Suchen reichen nicht für alle {terms} Begriffe in {places} Orten; {shares}. "
+               "Wichtige Begriffe nach vorne stellen.")
 TOO_MANY_TERMS = "Gesucht werden höchstens {limit} Begriffe. Nicht gesucht: {terms}. Weniger wichtige Begriffe entfernen."
 CORE_LABEL = "kernliste"
 NICHE_LABEL = "nischen"
@@ -435,10 +435,23 @@ def _place_shares(portals: tuple[str, ...], keywords: int, niches: int,
     hints = []
     for portal, places in places_of.items():
         free = niches if portal == "jobs.ch" else 0
-        share = max(len(places), MAX_QUERIES - free) // len(places) if places else keywords
+        budget = max(len(places), MAX_QUERIES - free)
+        share, more = divmod(budget, len(places)) if places else (keywords, 0)
         if portal in portals and share < keywords:
-            hints = [*hints, PLACE_SHARE.format(portal=portal, limit=MAX_QUERIES, terms=keywords, places=len(places), share=share)]
+            hints = [*hints, PLACE_SHARE.format(portal=portal, limit=MAX_QUERIES, terms=keywords, places=len(places),
+                                                shares=_shares_text(places, share, more))]
     return tuple(hints)
+
+
+def _shares_text(places: tuple[str, ...], share: int, more: int) -> str:
+    """The first `more` places get one search more (#195), so one number alone would be wrong for them."""
+    if not more:
+        return f"pro Ort laufen die ersten {share}"
+    return f"in {_listing(places[:more])} laufen die ersten {share + 1}, in {_listing(places[more:])} die ersten {share}"
+
+
+def _listing(names: tuple[str, ...]) -> str:
+    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} und {names[-1]}"
 
 
 def parse(text: str, postal_code: str | None = None) -> SearchPlan:
