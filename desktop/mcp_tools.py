@@ -21,6 +21,7 @@ UPDATABLE_FIELDS = ("status", "notiz", "variante", "passung", "frist", "ort", "p
 EARLY_STATES = ("Gemerkt", "Bewerben", "Verworfen")
 MOVABLE_STATES = ("Gemerkt", "Bewerben")  # what the person discarded stays so until the person brings it back
 UPDATABLE_WHEN_SENT = ("notiz",)
+OWN_STARS = "eigene_sterne"  # same field as bewerbungen/hits.py OWN_STARS; the desktop package does not import it
 HIT_LIST_FIELDS = ("treffer", "hinweise", "art", "portale", "letzte_suche", "paket")
 NOT_FOR_CLAUDE = "Das Register gibt es für Claude nur über list_applications und update_application."
 FIELD_REFUSED = "Dieses Feld ändert nur die Person in der App: {field}"
@@ -113,18 +114,22 @@ def _list_files(send: Send, args: dict) -> dict:
     return {"dateien": [item for item in answer["dateien"] if item["datei"] != REGISTER_FILE]}
 
 
-def _list_hits(send: Send, args: dict) -> dict:
+def _hit_for_claude(hit):
     """The person's own stars per hit stay out: they are never part of what an AI gets (G22)."""
+    return {k: v for k, v in hit.items() if k != OWN_STARS} if isinstance(hit, dict) else hit
+
+
+def _list_hits(send: Send, args: dict) -> dict:
     answer = send("GET", "/api/suche/liste", None)
     listed = {key: answer[key] for key in HIT_LIST_FIELDS if key in answer}
     if isinstance(listed.get("treffer"), list):
-        listed = {**listed, "treffer": [{k: v for k, v in hit.items() if k != "eigene_sterne"} if isinstance(hit, dict) else hit
-                                        for hit in listed["treffer"]]}
+        listed = {**listed, "treffer": [_hit_for_claude(hit) for hit in listed["treffer"]]}
     return listed
 
 
 def _rate_hit(send: Send, args: dict) -> dict:
-    return send("POST", _with_query("/api/suche/bewertung", id=_required(args, "id")), {k: v for k, v in args.items() if k != "id"})
+    return _hit_for_claude(send("POST", _with_query("/api/suche/bewertung", id=_required(args, "id")),
+                                {k: v for k, v in args.items() if k != "id"}))
 
 
 def _read_template(send: Send, args: dict) -> dict:
@@ -138,6 +143,10 @@ def _read_template(send: Send, args: dict) -> dict:
 
 def _post_for_id(path: str) -> Callable[[Send, dict], Any]:
     return lambda send, args: send("POST", _with_query(path, id=_required(args, "id")), {})
+
+
+def _post_hit_for_id(path: str) -> Callable[[Send, dict], Any]:
+    return lambda send, args: _hit_for_claude(_post_for_id(path)(send, args))
 
 
 ID = {"id": {**TEXT, "description": "The id from the list."}}
@@ -163,8 +172,8 @@ TOOLS = (
                                      "neue_luecken": {"type": "array", "items": TEXT}, "auffaellig": {"type": "array", "items": TEXT}, "unsicher": TEXT},
          ("id", "note", "zusammenfassung"), replaces=True),
     Tool("take_over_hit", "Take a hit into the register, status „Gemerkt“. Only what the person wants or what fits well.",
-         _post_for_id("/api/suche/uebernehmen"), ("/api/suche/uebernehmen",), ID, ("id",)),
-    Tool("discard_hit", "Discard a hit; the person can bring it back on the page „Suche“.", _post_for_id("/api/suche/verwerfen"), ("/api/suche/verwerfen",), ID, ("id",), replaces=True),
+         _post_hit_for_id("/api/suche/uebernehmen"), ("/api/suche/uebernehmen",), ID, ("id",)),
+    Tool("discard_hit", "Discard a hit; the person can bring it back on the page „Suche“.", _post_hit_for_id("/api/suche/verwerfen"), ("/api/suche/verwerfen",), ID, ("id",), replaces=True),
     Tool("save_job", "Save an ad from any other page (a company's site, a text the person gives you) in the register with its text; an ad already in the register is not added twice. "
          "The link is kept only for the portals of the plan, LinkedIn and sites the person named; for others it goes to the note (link_gespeichert false): tell the person, "
          "who then enters it.",
