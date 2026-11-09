@@ -32,6 +32,7 @@ MAX_FIELD = 200
 MAX_ID = 200
 MAX_TEXT = 30_000
 MAX_HITS_PER_CALL = 100
+NO_POSITIVE_TERM = "kein Positivbegriff im Titel"
 LEGAL_FORMS = {"ag", "gmbh", "sa", "sarl", "sagl", "ltd", "llc", "inc", "kg", "co", "se", "plc", "bv"}
 TRIAL = "Schnupperlehre"
 CLOSED = {"Absage", "Verworfen", "Zurückgezogen"}
@@ -252,10 +253,12 @@ class Hits:
         schreibe_yaml(self.folder / HITS_FILE, all_hits, "# Treffer der Stellensuche, geschrieben vom Bewerbungsbegleiter\n")
 
     def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
-               own_portals: frozenset[str] = frozenset(), near=lambda place: False) -> dict:
+               own_portals: frozenset[str] = frozenset(), near=lambda place: False,
+               title_positive: tuple[str, ...] = ()) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
-        The same job from another portal needs no text: its link goes to the stored hit right away.
+        The same job from another portal needs no text: its link goes to the stored hit right away. With positive
+        terms (G31), a title needs one of them; the others are screened out before their text counts against the limit.
         """
         fetch, nearby, filtered, known, merged = [], [], [], 0, 0
         with _LOCK:
@@ -280,6 +283,8 @@ class Hits:
                 term = _title_match(hit["stelle"], title_exclude)
                 if term:
                     filtered.append({"stelle": hit["stelle"], "grund": f"Titel: {term}"})
+                elif title_positive and _title_match(hit["stelle"], title_positive) is None:
+                    filtered.append({"stelle": hit["stelle"], "grund": NO_POSITIVE_TERM})
                 elif hit.get("alter_tage") is not None and hit["alter_tage"] > max_age:
                     filtered.append({"stelle": hit["stelle"], "grund": f"älter als {max_age} Tage"})
                 elif key(hit) not in fetch:
