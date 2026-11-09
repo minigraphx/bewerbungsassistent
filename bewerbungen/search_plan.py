@@ -64,6 +64,7 @@ DEFAULT_RADIUS_KM = 25
 MIN_RADIUS_KM = 5
 MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
+AGENCIES_SECTION = "## Vermittler"
 NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
 NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
 PLACE_SHARE = ("{portal}: {limit} Suchen reichen nicht für alle {terms} Begriffe in {places} Orten; pro Ort laufen die ersten "
@@ -494,6 +495,12 @@ def portal_days(window: int, portals: tuple[str, ...], last_success: dict, today
             return window
         return min(window, max(MIN_WINDOW_DAYS, since + 1))
     return {portal: days(portal) for portal in portals}
+
+
+def agencies_in(text: str) -> tuple[str, ...]:
+    """Staffing agencies the profile adds to the known ones (G34), section „Vermittler“."""
+    values = [match[2] for match in map(PAIR.match, section_lines(text, AGENCIES_SECTION)) if match]
+    return tuple(dict.fromkeys(name.strip() for value in values for name in value.split(",") if name.strip()))
 
 
 def _postal_code(data_dir: pathlib.Path) -> str | None:
