@@ -1,12 +1,15 @@
 "use strict";
 // The page Firmen (G35, #188, docs/design/firmen.md): one row per company from hits and applications, with what
-// kununu says. „Prüfen“ opens the company at kununu in a new tab; reading the value there is #189.
+// kununu says. „Prüfen“ reads the value through the extension on the person's click (#189, kununu-pruefen.js), or
+// only opens kununu in a new tab without it; what cannot be read the person enters by hand.
 (() => {
   const { holen, senden, el } = window.App;
   const logik = window.FirmenLogik;
   const $ = id => document.getElementById(id);
   const ARIA_SORT = { aufsteigend: "ascending", absteigend: "descending" };
   const NEUER_TAB = ", öffnet neuen Tab";
+  // Without the extension „Prüfen“ only opens kununu in a new tab.
+  const erweiterungDa = () => Boolean(document.documentElement.dataset.bewerbungsbegleiterErweiterung);
 
   let firmen = [];
   let heute = "";
@@ -15,6 +18,8 @@
   let sortierung = logik.STANDARD_SORTIERUNG;
   let offen = null;      // the company whose choice of several is open
   let zuordnen = null;   // the company of the dialog „Selbst zuordnen“
+  let vonHand = null;    // the company of the dialog „Von Hand eintragen“
+  const nichtGelesen = new Set();  // companies whose check found nothing readable: they get „Von Hand eintragen“
 
   const text = (schluessel, werte) => window.Texte.text(schluessel, satz, werte);
   const meldung = (inhalt, stufe = "") => { $("status").textContent = inhalt; $("status").dataset.level = stufe; };
@@ -24,10 +29,23 @@
       el("span", { class: "visually-hidden" }, `: ${firma.name}${NEUER_TAB}`));
   }
 
+  async function pruefen(firma, knopf) {
+    knopf.disabled = true;
+    meldung(`${firma.name}: wird bei kununu geprüft …`);
+    const ergebnis = logik.pruefErgebnis(await window.KununuPruefen.pruefe(firma), firma.name);
+    knopf.disabled = false;
+    if (!ergebnis) return meldung("");
+    if (ergebnis.vonHand) nichtGelesen.add(firma.schluessel);
+    else nichtGelesen.delete(firma.schluessel);
+    await laden(firma.schluessel).catch(fehler => meldung(fehler.message, "warning"));
+    meldung(ergebnis.text, ergebnis.stufe);
+    if (ergebnis.vonHand) oeffneVonHand(firma);
+  }
+
   function pruefenKnopf(firma, beschriftung) {
     return el("button", { type: "button", class: "btn btn--sm", "data-firma": firma.schluessel,
-      onclick: () => window.open(logik.pruefenLink(firma), "_blank", "noopener,noreferrer") },
-    beschriftung, el("span", { class: "visually-hidden" }, `: ${firma.name}${NEUER_TAB}`));
+      onclick: event => pruefen(firma, event.currentTarget) },
+    beschriftung, el("span", { class: "visually-hidden" }, `: ${firma.name}${erweiterungDa() ? "" : NEUER_TAB}`));
   }
 
   function knopf(firma, beschriftung, aktion, attribute = {}) {
@@ -88,7 +106,8 @@
         { "aria-expanded": String(offen === firma.schluessel), "aria-controls": `wahl-${firma.schluessel}` })],
     };
     const gefunden = [logik.veraltet(firma, heute) ? pruefenKnopf(firma, "Neu prüfen") : null, ansehen];
-    return el("div", { class: "btn-row" }, ...(je[zustand] || gefunden).filter(Boolean));
+    const hand = nichtGelesen.has(firma.schluessel) ? knopf(firma, "Von Hand eintragen", () => oeffneVonHand(firma)) : null;
+    return el("div", { class: "btn-row" }, ...(je[zustand] || gefunden).filter(Boolean), hand);
   }
 
   function zeile(firma) {
@@ -200,6 +219,38 @@
     }
   }
 
+  function oeffneVonHand(firma) {
+    vonHand = firma;
+    $("hand-titel").textContent = `kununu-Wert für ${firma.name} eintragen`;
+    for (const feld of ["wert", "bewertungen"]) {
+      $(`hand-${feld}`).value = "";
+      $(`hand-${feld}`).removeAttribute("aria-invalid");
+      $(`hand-${feld}-fehler`).textContent = "";
+    }
+    $("hand-dialog").showModal();
+  }
+
+  async function vonHandAbschicken(ereignis) {
+    ereignis.preventDefault();
+    const werte = logik.vonHandWerte($("hand-wert").value, $("hand-bewertungen").value);
+    for (const feld of ["wert", "bewertungen"]) {
+      const falsch = werte.feld === feld;
+      $(`hand-${feld}-fehler`).textContent = falsch ? werte.fehler : "";
+      if (falsch) $(`hand-${feld}`).setAttribute("aria-invalid", "true");
+      else $(`hand-${feld}`).removeAttribute("aria-invalid");
+    }
+    if (werte.fehler) return $(`hand-${werte.feld}`).focus();
+    try {
+      await senden("/api/firmen/von-hand", werte, { firma: vonHand.schluessel });
+      $("hand-dialog").close();
+      nichtGelesen.delete(vonHand.schluessel);
+      await laden(vonHand.schluessel);
+      meldung(`${vonHand.name}: kununu-Wert eingetragen.`, "success");
+    } catch (fehler) {
+      $("hand-wert-fehler").textContent = fehler.message;
+    }
+  }
+
   function verbinden() {
     for (const kopf of document.querySelectorAll("th[data-spalte]")) {
       kopf.querySelector("button").addEventListener("click", () => { sortierung = logik.naechsteSortierung(sortierung, kopf.dataset.spalte); zeige(); });
@@ -210,6 +261,8 @@
     $("suche").addEventListener("input", () => zeige());
     $("zuordnen-form").addEventListener("submit", dialogAbschicken);
     $("zuordnen-abbrechen").addEventListener("click", () => { $("zuordnen-dialog").close(); fokusAuf(zuordnen.schluessel); });
+    $("hand-form").addEventListener("submit", vonHandAbschicken);
+    $("hand-abbrechen").addEventListener("click", () => { $("hand-dialog").close(); fokusAuf(vonHand.schluessel); });
   }
 
   verbinden();

@@ -59,10 +59,28 @@
       <div class="dialog__actions"><button type="button" class="btn" id="zuordnen-abbrechen">Abbrechen</button><button type="submit" class="btn btn--primary">Zuordnen</button></div>
     </form>
   </dialog>
+  <dialog class="dialog" id="hand-dialog" aria-labelledby="hand-titel">
+    <form method="dialog" id="hand-form" novalidate>
+      <h2 class="dialog__title" id="hand-titel"></h2>
+      <p class="field__hint">Wert und Anzahl so, wie sie bei kununu stehen.</p>
+      <div class="field">
+        <label class="field__label" for="hand-wert">Wert von 1 bis 5</label>
+        <input class="input" id="hand-wert" inputmode="decimal" autocomplete="off" aria-describedby="hand-wert-fehler">
+        <p class="field__error" id="hand-wert-fehler" role="alert"></p>
+      </div>
+      <div class="field">
+        <label class="field__label" for="hand-bewertungen">Anzahl Bewertungen</label>
+        <input class="input" id="hand-bewertungen" inputmode="numeric" autocomplete="off" aria-describedby="hand-bewertungen-fehler">
+        <p class="field__error" id="hand-bewertungen-fehler" role="alert"></p>
+      </div>
+      <div class="dialog__actions"><button type="button" class="btn" id="hand-abbrechen">Abbrechen</button><button type="submit" class="btn btn--primary">Eintragen</button></div>
+    </form>
+  </dialog>
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>
 <script src="/firmen-logik.js"></script>
+<script src="/kununu-pruefen.js"></script>
 <script src="/firmen.js"></script>
 </body>
 </html>

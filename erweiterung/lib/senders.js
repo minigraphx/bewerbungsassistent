@@ -7,7 +7,7 @@ import { isRavPage } from './rav.js';
 /** What the popup and the app page may ask for. */
 export const ALLOWED = {
   popup: new Set(['suche-starten', 'suche-stoppen', 'status', 'app-oeffnen', 'seite-pruefen', 'seite-speichern']),
-  app: new Set(['suche-starten', 'status', 'bewerben-starten', 'rav-starten', 'zugriff-erlauben', 'zugriff-abgeben']),
+  app: new Set(['suche-starten', 'status', 'bewerben-starten', 'rav-starten', 'zugriff-erlauben', 'zugriff-abgeben', 'kununu-pruefen']),
   erlauben: new Set(['bewerben-weiter']),
 };
 

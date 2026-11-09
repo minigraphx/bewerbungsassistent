@@ -13,6 +13,7 @@ import { RavRun, isRavPage } from './lib/rav.js';
 import { showHits } from './lib/app-tab.js';
 import { reloadForAppVersion, siteAccessControl } from './lib/reload.js';
 import { SearchTabs, currentRun } from './lib/run-state.js';
+import { checkCompany, structuredData } from './lib/kununu.js';
 
 const LOAD_TIMEOUT_MS = 30000;
 const RELOAD_DELAY_MS = 300;
@@ -301,6 +302,39 @@ async function askApp(method, path, data) {
   }
 }
 
+let kununuBusy = false;
+
+/**
+ * „Prüfen“ on the page Firmen (G35, #189): one company at a time, in a tab in the background. What was read goes to
+ * the app; a page that could not be read comes to the front, so the person sees it and can enter the value by hand.
+ */
+async function checkKununu(message) {
+  if (kununuBusy) throw new Error('Es läuft schon eine Prüfung bei kununu.');
+  if (typeof message.firma !== 'string' || !message.firma) throw new Error('Die Firma fehlt.');
+  kununuBusy = true;
+  let tabId = null;
+  try {
+    tabId = (await chrome.tabs.create({ url: 'about:blank', active: false })).id;
+    const open = async (url) => {
+      const loaded = waitForLoad(tabId);
+      await chrome.tabs.update(tabId, { url });
+      await loaded;
+      const [result] = await chrome.scripting.executeScript({ target: { tabId }, func: structuredData });
+      return (result && result.result) || { url, structured: [] };
+    };
+    const reading = await checkCompany({ name: message.name, link: message.link }, open);
+    if (!reading) {
+      await chrome.tabs.update(tabId, { active: true });
+      tabId = null;
+      return { gelesen: false };
+    }
+    return { gelesen: true, kununu: await askApp('POST', '/api/firmen/kununu', { firma: message.firma, ...reading }) };
+  } finally {
+    kununuBusy = false;
+    if (tabId !== null) chrome.tabs.remove(tabId).catch(() => {});
+  }
+}
+
 const FILLER_FILES = ['form/fields.js', 'form/filler.js', 'form/bar.js'];
 
 // Only tabs of the list get these scripts, in all their frames: application systems often sit in embedded frames.
@@ -467,6 +501,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     'rav-starten': (m) => ravRun.start(m),
     'zugriff-erlauben': () => openPermissionForSearch(),
     'zugriff-abgeben': () => siteAccess.release(),
+    'kununu-pruefen': checkKununu,
   };
   const action = message && actions[message.art];
   if (!action) return false;

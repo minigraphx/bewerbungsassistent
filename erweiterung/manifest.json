@@ -15,6 +15,7 @@
     "https://www.ictjobs.ch/*",
     "https://www.berufsberatung.ch/*",
     "https://www.yousty.ch/*",
+    "https://www.kununu.com/*",
     "http://127.0.0.1/*"
   ],
   "optional_host_permissions": ["<all_urls>"],
