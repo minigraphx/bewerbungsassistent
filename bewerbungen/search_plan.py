@@ -45,6 +45,7 @@ ICTJOBS_REGIONS = {
     "NE": "westschweiz", "JU": "westschweiz", "FR": "westschweiz", "TI": "tessin",
 }
 MAX_KEYWORDS = 15
+MAX_TITLE_TERMS = 30
 MAX_LISTED = 100  # terms read from the profile before the limit, so that a hint can name what is not searched
 MAX_PLACES = 6
 MAX_PAGES = 3  # per keyword and place, as in the skill
@@ -114,6 +115,7 @@ class SearchPlan:
     postal_codes: tuple[str, ...] = ()
     regions: tuple[str, ...] = ()
     title_exclude: tuple[str, ...] = ()
+    title_positive: tuple[str, ...] = ()  # G31: a title needs one of these, if there are any
     portals: tuple[str, ...] = PORTALS
     hints: tuple[str, ...] = ()
     kind: str = KIND_JOB
@@ -459,7 +461,8 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
                            {"jobs.ch": places, "jobscout24": postal_codes, "ictjobs": regions})
     return SearchPlan(keywords=keywords, niche_keywords=niches[:MAX_KEYWORDS],
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
-                      title_exclude=_terms(_value(titles, "ausschluss"), 30), portals=portals,
+                      title_exclude=_terms(_value(titles, "ausschluss"), MAX_TITLE_TERMS),
+                      title_positive=_terms(_value(titles, "positiv"), MAX_TITLE_TERMS), portals=portals,
                       hints=(*limit_hint, *shares, *(hint for hint, _ in targets)), nationwide=nationwide,
                       hint_targets=targets)
 
