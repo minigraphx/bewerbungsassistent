@@ -16,17 +16,13 @@ import routes_ai
 import unterlagen
 from ai import tasks
 from dateien import schreibe_atomar
-from hits import CLOSED, DOMAINS, MAX_TEXT, Hits, ad_with_details, bounded_text, company_hint, company_key
-from register import slug
+from hits import (CLOSED, DOMAINS, MAX_TEXT, ROUTE_FRAGMENT, Hits, _close_title, ad_with_details, bounded_text,
+                  comparable_link, company_hint, company_key, portal_of, without_tracking)
 from routes_search import BAD_RATING, note_for, rating_fields
 from server import json_antwort
 
 AD_ID = "seite"
 WEB_SCHEMES = ("http", "https")
-# Say who clicked or which session it was, not which ad; they stay out of the register, and the AI gets no address at all.
-TRACKING = {"refid", "trk", "trackingid", "ref", "src", "source", "gclid", "fbclid", "mc_cid", "mc_eid", "midtoken", "midsig",
-            "lipi", "eid", "token", "otptoken", "sid", "sessionid", "session"}
-ROUTE_FRAGMENT = ("/", "!/")
 MIN_GRADE, MAX_GRADE = 1, 6
 BAD_LINK = "Diese Seite hat keine gültige Webadresse."
 NO_TEXT = "Der Text des Inserats fehlt."
@@ -37,11 +33,6 @@ LINK_NOT_TAKEN = "Adresse von Claude, nicht geprüft: {link}. Stimmt sie, bitte 
 _SAVE = threading.Lock()
 
 
-def _without_tracking(query: str) -> list[tuple[str, str]]:
-    pairs = urllib.parse.parse_qsl(query, keep_blank_values=True)
-    return [(k, v) for k, v in pairs if k.lower() not in TRACKING and not k.lower().startswith("utm_")]
-
-
 def _link(value) -> str:
     link = bounded_text(value, "Link", required=True, limit=1000)
     # Browsers read "\\" as "/" and take the host before "@" differently than urlsplit: refuse both.
@@ -50,7 +41,7 @@ def _link(value) -> str:
     parts = urllib.parse.urlsplit(link)
     if parts.scheme not in WEB_SCHEMES or not parts.hostname:
         raise ValueError(BAD_LINK)
-    query = urllib.parse.urlencode(_without_tracking(parts.query))
+    query = urllib.parse.urlencode(without_tracking(parts.query))
     fragment = parts.fragment if parts.fragment.startswith(ROUTE_FRAGMENT) else ""  # „#/job/12“ names the ad, „#bewerben“ does not
     return urllib.parse.urlunsplit(parts._replace(query=query, fragment=fragment))
 
@@ -80,25 +71,21 @@ def _rating(value) -> dict | None:
             "unsicher": bounded_text(value.get("unsicher"), "Bewertung", limit=500)}
 
 
-def comparable_link(link: str) -> str:
-    """The same ad under another scheme or with other tracking values gives the same text."""
-    parts = urllib.parse.urlsplit(link or "")
-    query = urllib.parse.urlencode(sorted(_without_tracking(parts.query)))
-    fragment = parts.fragment if parts.fragment.startswith(ROUTE_FRAGMENT) else ""
-    return f"{(parts.hostname or '').lower()}{parts.path.rstrip('/')}?{query}#{fragment}"
-
-
 def _matches(ad: dict, register: list[dict]) -> list[dict]:
-    """Applications for this ad: same title, and the same link or company. Several ads can share one address."""
+    """Applications for this ad. On a portal a link names one ad, whatever the title says (#197); elsewhere several ads
+    can share one address, so the title must be close too, and then the same link or company counts."""
     link = comparable_link(ad["link"])
-    company, title = company_key(ad["firma"]), slug(ad["stelle"])
+    on_portal = portal_of(ad["link"]) is not None
+    company = company_key(ad["firma"])
 
     def same(entry: dict) -> bool:
-        if slug(entry.get("stelle") or "") != title:
-            return False
-        if entry.get("link") and comparable_link(entry["link"]) == link:
+        same_link = bool(entry.get("link")) and comparable_link(entry["link"]) == link
+        if on_portal and same_link:
             return True
-        return bool(company) and company in {company_key(entry.get("firma_schluessel") or ""), company_key(entry.get("firma") or "")}
+        if not _close_title(ad["stelle"], entry.get("stelle") or ""):
+            return False
+        return same_link or (bool(company) and company in {company_key(entry.get("firma_schluessel") or ""),
+                                                           company_key(entry.get("firma") or "")})
 
     return [entry for entry in register if same(entry)]
 
@@ -152,7 +139,7 @@ def _store(k, ad: dict, rating: dict | None, link: str | None, note: str = "") -
                 _write_ad(k, existing, ad)
             return {"bewerbung": _summary(existing), "neu": False}
         host = (urllib.parse.urlsplit(ad["link"]).hostname or "").removeprefix("www.")
-        fields = {"firma_schluessel": company_key(ad["firma"]), "ort": ad["ort"], "portal": host, "link": link, "status": "Gemerkt",
+        fields = {"firma_schluessel": company_key(ad["firma"]), "ort": ad["ort"], "portal": portal_of(ad["link"]) or host, "link": link, "status": "Gemerkt",
                   "notiz": "\n".join(part for part in (note_for({"bewertung": rating}), note) if part), "passung": (rating or {}).get("note")}
         entry = k.mit_entwurf(register.pfad, f"Stelle von Seite: {ad['firma']} – {ad['stelle']}",
                               lambda: register.neu(firma=ad["firma"], stelle=ad["stelle"],
