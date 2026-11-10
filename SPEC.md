@@ -52,6 +52,12 @@ Write each requirement as one row under its section, in this format. The fence k
 - G40 [approved, must] Pro Bewerbung wählt die Person, ob sie ein Dossier will oder nur Anschreiben und Lebenslauf als einzelne Dateien. Voreingestellt sind Anschreiben und Lebenslauf. | gate: review
 - G41 [approved, must] Die App ist ohne Einstellungen schnell nutzbar: Jede Wahl hat eine sinnvolle Voreinstellung, und eine Bewerbung lässt sich ohne Konfiguration erstellen. Feinere Einstellungen stehen gesammelt unter „Erweitert“ und bleiben verborgen, bis die Person sie öffnet. | gate: review
 - G42 [approved, must] Unter „Erweitert“ wählt die Person, wie einzelne Elemente im Design dargestellt werden, zum Beispiel die Niveaus als Pillen mit Text oder als Balken. Voreingestellt ist die Darstellung des gewählten Entwurfs. | gate: review
+- G43 [draft, must] Die Suche hält sich standardmässig an ihre Grenzen: höchstens 15 Begriffe und 30 Suchen pro Portal. Reichen sie nicht, nennt die App, was nicht gesucht wird, und bietet „Trotzdem alle suchen“ an. Wählt die Person das, sucht die App alle Begriffe in allen Orten und sagt vorher, dass der Lauf länger dauert und Portale bei vielen Abfragen bremsen oder sperren können. Die Wahl bleibt gespeichert, bis die Person sie zurücknimmt. | gate: review
+- G44 [draft, must] Auf der Seite Treffer gibt es „Alle prüfen“: Die KI bewertet alle noch unbewerteten Treffer in einem Durchgang. Vorher nennt die App die Zahl der Treffer, die geschätzten Kosten, das verbleibende Budget und die ungefähre Dauer, und die Person bestätigt. | gate: review
+- G45 [draft, must] Auf Wunsch schlägt die KI Suchbegriffe und Titelfilter vor und markiert zu allgemeine Begriffe. Die Person übernimmt den Vorschlag ganz oder teilweise oder schreibt, was anders sein soll; ohne ihre Zustimmung ändert sich das Suchprofil nicht. | gate: review
+- G46 [draft, must] Verbrauchtes und freies KI-Budget des laufenden Monats sind in der App jederzeit sichtbar, mindestens beim Darüberfahren oder Fokussieren. | gate: review
+- G47 [draft, must] Unter „Erweitert“ kann die Person Vorabversionen (Beta) erhalten. Dann bietet die App auch Vorabversionen als Update an, sonst nur veröffentlichte Versionen. Voreingestellt sind nur veröffentlichte Versionen. | gate: review
+- G48 [draft, must] Auf macOS fragt die App nach einem Update nicht erneut nach dem Zugriff auf den Schlüsselbund: Alle Versionen tragen dieselbe Signatur-Identität. | gate: review
 
 ## K · Constraints
 
