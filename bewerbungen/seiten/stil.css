@@ -235,6 +235,11 @@ code.pfad { word-break: break-all; }
 #kreis img { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
 .klein { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-4); font-size: 13px; color: var(--text-muted); }
 .klein img { width: 4.65cm; height: 4.65cm; border-radius: 50%; }
+.foto-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.foto-liste li { display: grid; gap: var(--space-2); justify-items: start; }
+.foto-liste img { width: 96px; height: 96px; object-fit: cover; border-radius: var(--radius-full); border: 2px solid var(--line); }
+.foto-liste li[data-aktiv] img { border-color: var(--accent); }
+.foto-liste .foto-aktiv { font-size: 13px; font-weight: 500; color: var(--text-strong); }
 .feld { margin-bottom: var(--space-4); }
 .feld label { display: flex; justify-content: space-between; }
 .feld output { font-variant-numeric: tabular-nums; font-weight: 400; color: var(--text); }

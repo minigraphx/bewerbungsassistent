@@ -1,6 +1,7 @@
 """API-Routen für den Fotoausschnitt (früher lebenslauf/foto_editor.py, MIN-301). Speichern legt Entwürfe an.
 
 Hochladen (#128): wer am Anfang kein Foto gegeben hat, gibt es hier, als JPG oder PNG ohne Metadaten.
+Mehrere Fotos (#129): jedes Hochladen fügt eines hinzu; welches aktiv ist und wo die übrigen liegen, sagt `photos.py`.
 """
 import base64
 import binascii
@@ -13,15 +14,13 @@ import typst
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import fotoausschnitt
 import photo_file
-from dateien import schreibe_atomar
+import photos
 from server import Antwort, json_antwort
 
 MAX_PHOTO_BYTES = 10_000_000
 UPLOAD_ROUTE = "/api/foto/hochladen"
 BODY_LIMITS = {UPLOAD_ROUTE: int(MAX_PHOTO_BYTES * 4 / 3) + 10_000}  # base64 and the JSON around it
-PHOTO_NAME = "foto"  # foto.jpg or foto.png in the data folder, as the skill einstieg puts it
 NO_CV = "Es gibt noch keinen Lebenslauf. Bitte zuerst die Angaben erfassen, dann das Foto."
-DESCRIPTION = "Foto hochgeladen"
 
 
 def _cv(k):
@@ -44,8 +43,16 @@ def optionen(k, parameter, body):
     return json_antwort(fotoausschnitt.lies_foto(_cv(k))[1])
 
 
+def liste(k, parameter, body):
+    return json_antwort({"fotos": photos.listing(k.daten), "max_groesse": MAX_PHOTO_BYTES})
+
+
 def bild(k, parameter, body):
-    foto, _ = fotoausschnitt.lies_foto(_cv(k))
+    """The active photo, or with `datei` one of the listed ones (for the list on the page)."""
+    if parameter.get("datei"):
+        foto = k.daten / photos.listed(k.daten, parameter["datei"])["datei"]
+    else:
+        foto, _ = fotoausschnitt.lies_foto(_cv(k))
     return Antwort(200, mimetypes.guess_type(foto.name)[0] or "application/octet-stream", foto.read_bytes())
 
 
@@ -89,19 +96,9 @@ def _check_decodes(k, name: str, data: bytes) -> None:
             raise ValueError(photo_file.UNREADABLE) from error
 
 
-def _store(k, photo: pathlib.Path, data: bytes) -> None:
-    """Photo and CV change together; drafts of both before and after, as `mit_entwurf` does for one file."""
-    cv = _cv(k)
-    with k.sperre:
-        for path in (cv, photo):
-            if path.is_file():
-                k.ablage.speichere(path, f"Stand vor: {DESCRIPTION}")
-        schreibe_atomar(photo, data)
-        fotoausschnitt.speichere_foto(cv, photo.name)
-        for key in [key for key in k.cache if isinstance(key, tuple) and key[0] == "foto-vorschau"]:
-            del k.cache[key]  # the preview read the old photo
-        for path in (photo, cv):
-            k.ablage.speichere(path, DESCRIPTION)
+def _forget_previews(k) -> None:
+    for key in [key for key in k.cache if isinstance(key, tuple) and key[0] == "foto-vorschau"]:
+        del k.cache[key]
 
 
 def hochladen(k, parameter, body):
@@ -110,14 +107,29 @@ def hochladen(k, parameter, body):
     if not _cv(k).is_file():
         raise ValueError(NO_CV)
     extension, clean = photo_file.without_metadata(data)
-    name = f"{PHOTO_NAME}.{extension}"
-    _check_decodes(k, name, clean)
-    _store(k, k.daten / name, clean)
+    name = photos.upload_name(k.daten, extension, clean)
+    _check_decodes(k, pathlib.Path(name).name, clean)
+    photos.add(k, name, clean)
+    _forget_previews(k)
     return json_antwort(fotoausschnitt.lies_foto(_cv(k))[1])
+
+
+def aktiv(k, parameter, body):
+    if not isinstance(body, dict):
+        raise ValueError("datei erwartet")
+    return json_antwort(photos.activate(k, body.get("datei")))
+
+
+def loeschen(k, parameter, body):
+    if not isinstance(body, dict):
+        raise ValueError("datei erwartet")
+    photos.delete(k, body.get("datei"))
+    return json_antwort({"fotos": photos.listing(k.daten)})
 
 
 GET = {
     "/api/foto/vorhanden": vorhanden,
+    "/api/foto/liste": liste,
     "/api/foto/optionen": optionen,
     "/api/foto/bild": bild,
     "/api/foto/vorschau.png": vorschau,
@@ -125,4 +137,6 @@ GET = {
 POST = {
     "/api/foto/speichern": speichern,
     UPLOAD_ROUTE: hochladen,
+    "/api/foto/aktiv": aktiv,
+    "/api/foto/loeschen": loeschen,
 }

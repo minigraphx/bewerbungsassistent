@@ -158,7 +158,8 @@ function ohneFoto(groesse) {
 
 function mitFoto() {
   el("ohne-foto").hidden = true;
-  el("hochladen").hidden = true;
+  el("hochladen").hidden = false;
+  el("hochladen-weiteres").hidden = false;
   el("anleitung").hidden = false;
   el("editor").hidden = false;
 }
@@ -181,9 +182,53 @@ el("foto-datei").addEventListener("change", async e => {
   }
 });
 
+// Several photos (#129): one is active and goes into new CVs and dossiers; each keeps its own crop
+const fotosMelden = (text, art) => window.App.status(el("fotos-status"), text, art);
+const fotoName = datei => datei.split("/").pop();
+
+async function verwenden(datei) {
+  if (!gleich(stand, gespeichert)) return fotosMelden("Zuerst den Ausschnitt speichern oder zurücksetzen.", "hinweis");
+  try {
+    await window.App.senden("/api/foto/aktiv", { datei });
+    await start();
+    fotosMelden(`${fotoName(datei)} ist jetzt das aktive Foto.`, "ok");
+    window.App.letzteEntwuerfe(el("verlauf"), CV);
+  } catch (fehler) {
+    fotosMelden(fehler.message, "fehler");
+  }
+}
+
+function fotoZeile(foto) {
+  const { el: neu, url } = window.App;
+  const bild = neu("img", { src: url("/api/foto/bild", { datei: foto.datei }), alt: `Foto ${fotoName(foto.datei)}` });
+  if (foto.aktiv) return neu("li", { "data-aktiv": "" }, bild, neu("span", { class: "foto-aktiv" }, "Aktiv"));
+  const nutzen = neu("button", { type: "button", class: "klein" }, "Verwenden");
+  nutzen.addEventListener("click", () => verwenden(foto.datei));
+  const weg = neu("button", { type: "button", class: "klein" }, "Löschen");
+  window.App.bestaetigen(weg, "Wirklich löschen?", async () => {
+    try {
+      zeigeFotos((await window.App.senden("/api/foto/loeschen", { datei: foto.datei })).fotos);
+      status(`${fotoName(foto.datei)} gelöscht. Es bleibt unter Entwürfe.`, "ok");  // the list hides with one photo left
+    } catch (fehler) {
+      fotosMelden(fehler.message, "fehler");
+    }
+  });
+  return neu("li", {}, bild, neu("div", { class: "btn-row" }, nutzen, weg));
+}
+
+function zeigeFotos(fotos) {
+  el("fotos-teil").hidden = fotos.length < 2;  // one photo needs no choice
+  el("fotos").replaceChildren(...fotos.map(fotoZeile));
+}
+
 // Start: Werte aus der Datei und Seitenverhältnis des Originalfotos
 async function start() {
   try {
+    const liste = await window.App.holen("/api/foto/liste");
+    maxGroesse = liste.max_groesse;
+    el("max-groesse").textContent = String(maxGroesse / BYTES_PER_MB);
+    zeigeFotos(liste.fotos);
+    const aktiv = liste.fotos.find(f => f.aktiv);
     const pruefung = await fetch("/api/foto/vorhanden?t=" + encodeURIComponent(TOKEN));
     const foto = await pruefung.json();
     if (!pruefung.ok) throw new Error(foto.fehler);
@@ -194,7 +239,8 @@ async function start() {
     if (!antwort.ok) throw new Error(daten.fehler);
     gespeichert = { ...daten };
     const bild = new Image();
-    bild.src = "/api/foto/bild?t=" + encodeURIComponent(TOKEN);
+    // per photo, so a switch does not reuse the cached size of the one before
+    bild.src = window.App.url("/api/foto/bild", aktiv ? { datei: aktiv.datei } : {});
     await bild.decode();
     seitenverhaeltnis = bild.naturalHeight / bild.naturalWidth;
     setze(gespeichert);
