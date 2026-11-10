@@ -49,7 +49,8 @@
   function leere(element) {
     const z = zustand(element);
     clearTimeout(z.timer);
-    Object.assign(z, { timer: null, faellig: false });
+    // Removing the children removes whatever held the focus, and no browser reliably tells the line.
+    Object.assign(z, { timer: null, faellig: false, fokus: false });
     element.replaceChildren();
     setzeStufe(element, "");
     element.classList.remove("status--closable");

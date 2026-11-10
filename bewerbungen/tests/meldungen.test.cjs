@@ -147,6 +147,34 @@ test("the focus inside a message keeps it until the focus leaves", context => {
   assert.equal(element.textContent, "");
 });
 
+test("a focused button that is removed takes the focus with it, so the next message fades", context => {
+  const element = zeile();
+  meldungen.zeige(element, "Fehler", "fehler");
+  const schliessen = knopf(element);
+
+  schliessen.fire("focusin");
+  schliessen.fire("click");  // the button is gone; browsers send no focusout the line can rely on
+  meldungen.zeige(element, "Gespeichert", "ok");
+  context.mock.timers.tick(meldungen.AUSBLENDEN_MS);
+
+  assert.equal(element.textContent, "");
+});
+
+test("an action used with the keyboard lets its own success fade", context => {
+  const element = zeile();
+  meldungen.zeige(element, "Der Browser lädt die Sicherung herunter.", "", {
+    aktion: { text: "Datei ist gespeichert", ausfuehren: () => meldungen.zeige(element, "Danke, vermerkt.", "ok") },
+  });
+  const aktion = element.childNodes.find(n => n.textContent === "Datei ist gespeichert");
+
+  aktion.fire("focusin");
+  aktion.fire("click");
+  assert.equal(element.textContent, "Danke, vermerkt.");
+  context.mock.timers.tick(meldungen.AUSBLENDEN_MS);
+
+  assert.equal(element.textContent, "");
+});
+
 test("the pointer that leaves before the time is up leaves the message its time", context => {
   const element = zeile();
   meldungen.zeige(element, "Gespeichert", "ok");
