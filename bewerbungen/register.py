@@ -21,6 +21,8 @@ DATEI = "bewerbungen.yaml"
 STATUS = ("Gemerkt", "Bewerben", "Beworben", "Gespräch", "Absage", "Zusage", "Verworfen", "Zurückgezogen")
 FORM_STATES = ("geoeffnet", "ausgefuellt", "abgeschickt")  # MIN-346, how far a form in the browser is
 DOCUMENT_CHOICES = ("einzeln", "dossier")  # G40: cover letter and CV as two files (preset) or a dossier as well
+DOSSIER_DESIGNS = ("siegel", "raster", "register")  # G39, the designs in lebenslauf/themes/dossier-<name>
+DESIGN_PAGES = ("deckblatt", "anschreiben", "lebenslauf", "weitere")  # pages with a design of their own (G41)
 TEXTFELDER = ("art", "formular_link", "firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
               "adresse", "kontaktperson", "kontakt")
 DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am", "rav_eingetragen_am")
@@ -78,13 +80,31 @@ def _uebernimm_jobroom(b: dict) -> dict:
     return {**ohne, **fehlend}
 
 
+def _dossier_design(b: dict) -> tuple[str | None, dict[str, str]]:
+    """The design of the dossier and the pages with another one; both empty means the preset."""
+    choices = ", ".join(DOSSIER_DESIGNS)
+    design = b.get("dossier_design") or None
+    if design is not None and design not in DOSSIER_DESIGNS:
+        raise ValueError(f"dossier_design muss eines von {choices} sein, nicht {design!r}")
+    pages = b.get("dossier_seiten") or {}
+    if not isinstance(pages, dict):
+        raise ValueError("dossier_seiten muss eine Zuordnung von Seite zu Design sein")
+    unknown = sorted(set(pages) - set(DESIGN_PAGES))
+    if unknown:
+        raise ValueError(f"dossier_seiten: unbekannte Seiten {unknown}, möglich sind {', '.join(DESIGN_PAGES)}")
+    wrong = sorted(page for page, name in pages.items() if name not in DOSSIER_DESIGNS)
+    if wrong:
+        raise ValueError(f"dossier_seiten: Design muss eines von {choices} sein ({', '.join(wrong)})")
+    return design, {page: pages[page] for page in DESIGN_PAGES if page in pages}
+
+
 def pruefe_bewerbung(b: dict) -> dict:
     """Bewerbung prüfen und als neues, bereinigtes Dict liefern (leere Felder entfallen)."""
     if not isinstance(b, dict):
         raise ValueError("Bewerbung muss eine Zuordnung sein")
     b = _uebernimm_jobroom(b)
     bekannt = {"id", "status", "versand", "passung", "rav_zuweisung", "zertifikate", "ausfuellen", "unterlagen",
-               *TEXTFELDER, *DATUMSFELDER}
+               "dossier_design", "dossier_seiten", *TEXTFELDER, *DATUMSFELDER}
     unbekannt = set(b) - bekannt
     if unbekannt:
         raise ValueError(f"Unbekannte Felder: {sorted(unbekannt)}")
@@ -105,6 +125,7 @@ def pruefe_bewerbung(b: dict) -> dict:
         raise ValueError(f"ausfuellen muss eines von {', '.join(FORM_STATES)} sein")
     if b.get("unterlagen") not in (None, "", *DOCUMENT_CHOICES):
         raise ValueError(f"unterlagen muss eines von {', '.join(DOCUMENT_CHOICES)} sein, nicht {b['unterlagen']!r}")
+    design, pages = _dossier_design(b)
     neu = {"id": b["id"], "status": status}
     if "zertifikate" in b:
         if not isinstance(b["zertifikate"], list) or not all(isinstance(p, str) for p in b["zertifikate"]):
@@ -114,6 +135,10 @@ def pruefe_bewerbung(b: dict) -> dict:
         neu["ausfuellen"] = b["ausfuellen"]
     if b.get("unterlagen"):
         neu["unterlagen"] = b["unterlagen"]
+    if design:
+        neu["dossier_design"] = design
+    if pages:
+        neu["dossier_seiten"] = pages
     for key in TEXTFELDER:
         if b.get(key) not in (None, ""):
             neu[key] = str(b[key]).strip()
