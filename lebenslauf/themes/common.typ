@@ -95,26 +95,30 @@
 // Rundes Foto. Optionen aus basics.x-image (geprüft in build.py):
 // mirror – an der senkrechten Achse spiegeln; zoom – Vergrösserung ab 1;
 // x, y – Bildausschnitt von 0 (links/oben) bis 1 (rechts/unten), Standard Mitte.
-#let foto-rund(pfad, groesse, optionen) = {
+// Photo in any frame (width, height, corner radius), same options as foto-rund; the dossier
+// designs use it for square photos with rounded corners (docs/design/dossier.md).
+#let foto-form(pfad, breite, hoehe, radius, optionen) = {
   let o = if type(optionen) == dictionary { optionen } else { (:) }
   let zoom = o.at("zoom", default: 1)
   let x = o.at("x", default: 0.5)
   let y = o.at("y", default: 0.5)
-  box(width: groesse, height: groesse, radius: 50%, clip: true, context {
-    // Bild so skalieren, dass es den Kreis in beiden Richtungen mindestens füllt
-    let probe = measure(image(pfad, width: groesse))
-    let m = if probe.height >= groesse {
-      measure(image(pfad, width: groesse * zoom))
+  box(width: breite, height: hoehe, radius: radius, clip: true, context {
+    // Bild so skalieren, dass es den Rahmen in beiden Richtungen mindestens füllt
+    let probe = measure(image(pfad, width: breite))
+    let m = if probe.height >= hoehe {
+      measure(image(pfad, width: breite * zoom))
     } else {
-      measure(image(pfad, height: groesse * zoom))
+      measure(image(pfad, height: hoehe * zoom))
     }
-    // Feste Grösse und eigener Rahmen: sonst begrenzt Typst das Bild auf den Kreis,
-    // und das Spiegeln dreht um die Kreismitte statt um die Bildmitte.
+    // Feste Grösse und eigener Rahmen: sonst begrenzt Typst das Bild auf den Rahmen,
+    // und das Spiegeln dreht um die Rahmenmitte statt um die Bildmitte.
     let bild = image(pfad, width: m.width, height: m.height, fit: "stretch")
     let inhalt = box(width: m.width, height: m.height, if o.at("mirror", default: false) { scale(x: -100%, bild) } else { bild })
-    place(top + left, dx: -(m.width - groesse) * x, dy: -(m.height - groesse) * y, inhalt)
+    place(top + left, dx: -(m.width - breite) * x, dy: -(m.height - hoehe) * y, inhalt)
   })
 }
+
+#let foto-rund(pfad, groesse, optionen) = foto-form(pfad, groesse, groesse, 50%, optionen)
 
 // Einträge eines Abschnitts, die über Seiten laufen dürfen. Landet ein Eintrag auf einer
 // anderen Seite als sein Vorgänger, steht davor `fortsetzung` (z.B. "Berufserfahrung (Fortsetzung)").

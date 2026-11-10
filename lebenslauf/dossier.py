@@ -29,6 +29,12 @@ DEFAULT_THEME = "dossier-siegel"
 ACCENT = re.compile(r"#[0-9a-fA-F]{6}")
 ENTRIES = {"dossier": "dossier-main.typ", "cv": "main.typ", "letter": "anschreiben-main.typ"}
 FILE_NAMES = {"dossier": "dossier.pdf", "cv": "lebenslauf.pdf", "letter": "anschreiben.pdf"}
+OUTLINE = THEMES / "outline.typ"
+# Labels a design may draw as outlines only, e.g. the tabs of Register in the page background
+OUTLINED_LABELS = {
+    "de": {"anschreiben": "Anschreiben", "lebenslauf": "Lebenslauf", "beilagen": "Beilagen", "referenzen": "Referenzen"},
+    "en": {"anschreiben": "Cover letter", "lebenslauf": "CV", "beilagen": "Attachments", "referenzen": "References"},
+}
 
 
 @dataclass(frozen=True)
@@ -69,8 +75,20 @@ def _checked_cv(cv: dict, job: dict | None, language: str) -> dict:
     return result
 
 
+def outlined_labels(language: str, build: pathlib.Path, root: TypstRoot, compiler: typst.Compiler) -> dict[str, str]:
+    """Renders each label as glyph outlines (SVG) and returns its Typst path per key."""
+    folder = build / "outlined"
+    folder.mkdir(exist_ok=True)
+    paths = {}
+    for key, label in OUTLINED_LABELS[language].items():
+        svg = folder / f"{key}.svg"
+        compiler.compile(input=str(root.locate(OUTLINE)), output=str(svg), format="svg", sys_inputs={"label": label})
+        paths[key] = root.typst_path(svg)
+    return paths
+
+
 def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.date, root: TypstRoot,
-            accent: str | None = None) -> dict:
+            style: dict | None = None, outlined: dict | None = None) -> dict:
     """One JSON for all parts: CV, letter, optional pages and the read data extensions."""
     basics = cv.get("basics", {})
     catalogue = icon_catalogue()
@@ -80,7 +98,7 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
     return {
         "language": language,
         "stand": today.strftime("%d.%m.%Y"),
-        "style": {"farbe-akzent": accent} if accent else {},
+        "style": dict(style or {}),
         "cv": cv,
         "person": {
             "name": basics.get("name", ""),
@@ -92,6 +110,9 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
             "steps": dossier_data.steps_done(cv),
         },
         "skills": dossier_data.skill_groups(cv.get("skills")),
+        "timeline": dossier_data.timeline(cv.get("work"), today),
+        "durations": dossier_data.durations(cv, today, language),
+        "outlined": dict(outlined or {}),
         "languages": dossier_data.language_group(cv.get("languages")),
         "interests": interests,
         "letter": {**bereite_vor(letter, cv, today), "heading": dossier_data.letter_heading(letter, language)},
@@ -99,14 +120,10 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
     }
 
 
-def _compile(root: TypstRoot, entry: pathlib.Path, out: pathlib.Path, data: pathlib.Path) -> pathlib.Path:
-    typst.compile(
-        str(root.locate(entry)),
-        output=str(out),
-        root=str(root.path),
-        font_paths=[str(ROOT / "fonts")],
-        sys_inputs={"data": root.typst_path(data)},
-    )
+def _compile(compiler: typst.Compiler, root: TypstRoot, entry: pathlib.Path, out: pathlib.Path,
+             data: pathlib.Path) -> pathlib.Path:
+    compiler.compile(input=str(root.locate(entry)), output=str(out), format="pdf",
+                     sys_inputs={"data": root.typst_path(data)})
     return out
 
 
@@ -132,6 +149,8 @@ def main(argv: list[str] | None = None) -> Result:
     ap.add_argument("--theme", default=DEFAULT_THEME)
     ap.add_argument("--lang", default="de", choices=SPRACHEN)
     ap.add_argument("--akzent", help="Akzentfarbe als #rrggbb (Standard aus dem Design-System)")
+    ap.add_argument("--ohne-zeitachse", action="store_true",
+                    help="Design Raster ohne waagrechte Zeitachse, für sehr strenge Bewerbungssoftware")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("--out-dir", default="build/dossier")
     args = ap.parse_args(argv)
@@ -160,13 +179,19 @@ def main(argv: list[str] | None = None) -> Result:
     if photo:
         cv["basics"]["image"] = root.typst_path(photo)
 
-    data = prepare(cv, letter, pages, args.lang, datetime.date.today(), root, args.akzent)
+    style = {**({"farbe-akzent": args.akzent} if args.akzent else {}),
+             **({"zeitachse": False} if args.ohne_zeitachse else {})}
+    # One compiler for all files of a build: fonts load once
+    compiler = typst.Compiler(root=str(root.path), font_paths=[str(ROOT / "fonts")])
+    data = prepare(cv, letter, pages, args.lang, datetime.date.today(), root, style,
+                   outlined_labels(args.lang, build, root, compiler))
     data_json = build / "dossier.json"
     data_json.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
 
     out = pathlib.Path(args.out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    built = {part: _compile(root, theme / entry, out / FILE_NAMES[part], data_json) for part, entry in ENTRIES.items()}
+    built = {part: _compile(compiler, root, theme / entry, out / FILE_NAMES[part], data_json)
+             for part, entry in ENTRIES.items()}
     for path in built.values():
         print(path)
     return Result(dossier=built["dossier"], cv=built["cv"], letter=built["letter"], data=data_json,

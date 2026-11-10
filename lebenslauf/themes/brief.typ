@@ -22,11 +22,12 @@
 
 // The letter as a part: sets only its own page style and no document metadata, so a dossier can
 // put it between other parts (docs/design/dossier.md). `kopf` replaces name and contact line,
-// `betreff-block` replaces the subject with a strong heading, `fuss` is the page footer.
-#let brief-teil(daten, stil: (:), kopf: auto, betreff-block: none, fuss: none) = {
+// `betreff-block` replaces the subject with a strong heading, `fuss` is the page footer and
+// `hintergrund` the page background (tabs of the design Register).
+#let brief-teil(daten, stil: (:), kopf: auto, betreff-block: none, fuss: none, hintergrund: none) = {
   let s = brief-standard-stil + stil
   let absender = daten.absender
-  page(paper: "a4", margin: s.rand, fill: s.farbe-hintergrund, footer: fuss, {
+  page(paper: "a4", margin: s.rand, fill: s.farbe-hintergrund, footer: fuss, background: hintergrund, {
     set text(font: s.schrift-text, size: s.groesse-text, fill: s.farbe-text, lang: daten.sprache)
     set par(leading: s.zeilen-text, spacing: s.abstand-absatz)
 

@@ -2,7 +2,7 @@
 // the design system, a ring with the initials. This file holds the marks and the CV part.
 #import "../common.typ": *
 #import "../tokens.typ": space, radius
-#import "../dossier.typ": colours-for, labels-for, level-marker, icon
+#import "../dossier.typ": colours-for, labels-for, level-marker, icon, current
 
 #let sizes = (
   name: 34pt,
@@ -52,8 +52,6 @@
     )))
   })
 }
-
-#let current(e) = feld(e, "startDate") != none and feld(e, "endDate") == none
 
 // Dot of the vertical step display: ring for current stations, filled for finished ones
 #let step-dot(open, c) = circle(

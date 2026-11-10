@@ -2,7 +2,7 @@
 // dossier.py as one JSON: cv, letter, pages, person and the read data extensions. Strings from the
 // data are always inserted as text, never evaluated as markup.
 #import "tokens.typ": palette, space, radius
-#import "common.typ": beschriftungen-fuer
+#import "common.typ": beschriftungen-fuer, feld
 
 #let labels = (
   de: (
@@ -11,6 +11,13 @@
     bewerbung: "Bewerbung",
     anschreiben: "Anschreiben",
     lebenslauf: "Lebenslauf",
+    auf-einen-blick: "Auf einen Blick",
+    stelle: "Stelle",
+    unternehmen: "Unternehmen",
+    inhalt: "Inhalt",
+    datum: "Datum",
+    kontakt: "Kontakt",
+    frueher: "früher",
   ),
   en: (
     kurz-vorgestellt: "A short introduction",
@@ -18,6 +25,13 @@
     bewerbung: "Application",
     anschreiben: "Cover letter",
     lebenslauf: "Curriculum vitae",
+    auf-einen-blick: "At a glance",
+    stelle: "Position",
+    unternehmen: "Company",
+    inhalt: "Contents",
+    datum: "Date",
+    kontakt: "Contact",
+    frueher: "earlier",
   ),
 )
 
@@ -44,3 +58,6 @@
   [#metadata((icon: name))<dossier-icon>]
   image(bytes(svg), format: "svg", width: size, height: size)
 }
+
+// A station runs on when it has a start and no end
+#let current(e) = feld(e, "startDate") != none and feld(e, "endDate") == none
