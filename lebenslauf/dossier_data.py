@@ -3,12 +3,15 @@
 Every function returns new values and leaves its input alone. Levels are never invented: an entry without one
 stays `None`, and the theme draws the empty dashed form for it only when its group has a level elsewhere.
 """
+import datetime
 from collections.abc import Iterable
 
 MAX_LEVEL = 6
 CEFR = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6}
 MAX_MONOGRAM = 3
 MAX_STEPS = 6
+TIMELINE_YEARS = 15
+MIN_TICK_GAP = 3
 APPLICATION_AS = {"de": "Bewerbung als", "en": "Application as"}
 DOSSIER_FIELDS = {"lebenslauf", "anschreiben", "gruss", "dank", "kennzahlen", "anlagen"}
 
@@ -153,3 +156,63 @@ def contact(basics: dict) -> list[str]:
 def steps_done(cv: dict) -> int:
     """Past stations for the step path of the cover, at most MAX_STEPS."""
     return min(len(cv.get("work") or []) + len(cv.get("education") or []), MAX_STEPS)
+
+
+def _month(value, end: bool) -> int | None:
+    """Months since year 0 for "2019-03" or 2019; a bare year starts in January and ends in December."""
+    if value in (None, ""):
+        return None
+    parts = str(value).split("-")
+    month = int(parts[1]) if len(parts) > 1 else (12 if end else 1)
+    return int(parts[0]) * 12 + month - 1
+
+
+def _lanes(stations: list[tuple]) -> tuple[list[int], int]:
+    """A lane per station so that overlapping stations lie on top of each other."""
+    ends: list[int] = []
+    lanes = []
+    for _, start, end, _ in stations:
+        lane = next((i for i, last in enumerate(ends) if last < start), len(ends))
+        ends = ends[:lane] + [end] + ends[lane + 1:]
+        lanes.append(lane)
+    return lanes, len(ends)
+
+
+def _ticks(begin: int, total: int, today: datetime.date) -> list[dict]:
+    """Year labels: the first full year, every fifth year and the current one, at least MIN_TICK_GAP apart."""
+    first = (begin + 11) // 12
+    kept = [first]
+    for year in range(first + 1, today.year):
+        if year % 5 == 0 and year - kept[-1] >= MIN_TICK_GAP:
+            kept = kept + [year]
+    if today.year != kept[-1]:
+        crowded = today.year - kept[-1] < MIN_TICK_GAP and len(kept) > 1
+        kept = (kept[:-1] if crowded else kept) + [today.year]
+    return [{"year": y, "at": round((y * 12 - begin) / total, 4)} for y in kept]
+
+
+def timeline(work: Iterable[dict], today: datetime.date) -> dict:
+    """Horizontal axis of the career (design Raster): bars as shares of the axis, numbered like the CV.
+
+    The axis runs from the first start to today, at most TIMELINE_YEARS back; older stations are cut at its
+    start, and those that ended before it are only marked as `earlier`.
+    """
+    now = today.year * 12 + today.month - 1
+    stations = []
+    for number, entry in enumerate(work or [], start=1):
+        start = _month(entry.get("startDate"), end=False)
+        if start is None:
+            continue
+        end = _month(entry.get("endDate"), end=True)
+        stations.append((number, start, min(now if end is None else end, now), end is None))
+    if not stations:
+        return {"bars": [], "ticks": [], "lanes": 0, "earlier": False}
+    first = min(start for _, start, _, _ in stations)
+    begin = max(first, now - TIMELINE_YEARS * 12)
+    total = now + 1 - begin
+    shown = sorted(((n, max(s, begin), e, c) for n, s, e, c in stations if e >= begin), key=lambda s: s[1])
+    lanes, count = _lanes(shown)
+    bars = [{"number": n, "from": round((s - begin) / total, 4), "to": round((e + 1 - begin) / total, 4),
+             "lane": lane, "current": c} for (n, s, e, c), lane in zip(shown, lanes)]
+    return {"bars": sorted(bars, key=lambda b: b["number"]), "ticks": _ticks(begin, total, today),
+            "lanes": count, "earlier": first < begin}

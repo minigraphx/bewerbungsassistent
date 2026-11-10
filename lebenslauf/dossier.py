@@ -70,7 +70,7 @@ def _checked_cv(cv: dict, job: dict | None, language: str) -> dict:
 
 
 def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.date, root: TypstRoot,
-            accent: str | None = None) -> dict:
+            style: dict | None = None) -> dict:
     """One JSON for all parts: CV, letter, optional pages and the read data extensions."""
     basics = cv.get("basics", {})
     catalogue = icon_catalogue()
@@ -80,7 +80,7 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
     return {
         "language": language,
         "stand": today.strftime("%d.%m.%Y"),
-        "style": {"farbe-akzent": accent} if accent else {},
+        "style": dict(style or {}),
         "cv": cv,
         "person": {
             "name": basics.get("name", ""),
@@ -92,6 +92,7 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
             "steps": dossier_data.steps_done(cv),
         },
         "skills": dossier_data.skill_groups(cv.get("skills")),
+        "timeline": dossier_data.timeline(cv.get("work"), today),
         "languages": dossier_data.language_group(cv.get("languages")),
         "interests": interests,
         "letter": {**bereite_vor(letter, cv, today), "heading": dossier_data.letter_heading(letter, language)},
@@ -132,6 +133,8 @@ def main(argv: list[str] | None = None) -> Result:
     ap.add_argument("--theme", default=DEFAULT_THEME)
     ap.add_argument("--lang", default="de", choices=SPRACHEN)
     ap.add_argument("--akzent", help="Akzentfarbe als #rrggbb (Standard aus dem Design-System)")
+    ap.add_argument("--ohne-zeitachse", action="store_true",
+                    help="Design Raster ohne waagrechte Zeitachse, für sehr strenge Bewerbungssoftware")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("--out-dir", default="build/dossier")
     args = ap.parse_args(argv)
@@ -160,7 +163,9 @@ def main(argv: list[str] | None = None) -> Result:
     if photo:
         cv["basics"]["image"] = root.typst_path(photo)
 
-    data = prepare(cv, letter, pages, args.lang, datetime.date.today(), root, args.akzent)
+    style = {**({"farbe-akzent": args.akzent} if args.akzent else {}),
+             **({"zeitachse": False} if args.ohne_zeitachse else {})}
+    data = prepare(cv, letter, pages, args.lang, datetime.date.today(), root, style)
     data_json = build / "dossier.json"
     data_json.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
 
