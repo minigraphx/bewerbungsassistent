@@ -108,7 +108,7 @@ code, pre { font-family: var(--font-mono); }
 
 /* ---------- Navigation (design: AppNav, classes in part 2) ---------- */
 .app-nav__more:has(a[aria-current="page"]) > summary { background: var(--accent); color: var(--on-accent); }
-.menu__group:empty { display: none; }
+.menu__group:empty, .menu__group:not(:has(a, button)) { display: none; }  /* Hilfe without the questions page (#222) */
 
 /* ---------- Layout ---------- */
 main { max-width: var(--width-content); margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-7); }
@@ -660,7 +660,7 @@ label.check input { margin-top: 3px; }
 .overview__bulk-count { color: var(--text-muted); }
 .input.overview__bulk-stage { width: auto; min-height: 32px; padding: 4px 10px; font-size: 14px; }
 .table th.table__pick, .table td.table__pick { width: 1%; padding-right: 0; }
-.table td.table__pick input { margin: 2px 0 0; }
+.table td.table__pick input, .table th.table__pick input { margin: 2px 0 0; }
 .table tbody tr[data-selected] { background: var(--accent-subtle); }
 .dialog__list { margin: var(--space-2) 0 0; padding-left: var(--space-5); }
 .overview .table__main { text-decoration: none; }
@@ -819,6 +819,11 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 /* Consent before the first AI call: a long text beside the tick */
 .einwilligung .schalter { align-items: flex-start; font-weight: 400; }
 .einwilligung .btn { justify-self: start; align-self: flex-start; }
+/* Outside the setup one line opens the text in a dialog (#222) */
+.einwilligung__zeile { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin: 0; }
+.einwilligung__zeile .btn { align-self: center; }
+.dialog.einwilligung[open] { display: grid; gap: var(--space-3); }
+.dialog.einwilligung .dialog__actions .btn { align-self: auto; }
 
 /* Messages that stay until closed (#215, meldungen.js): text, an optional action, the close button at the end */
 .status--closable { display: flex; align-items: center; gap: var(--space-2); }

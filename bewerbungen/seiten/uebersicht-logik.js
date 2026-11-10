@@ -198,6 +198,11 @@
     return new Set([...selected].filter(id => known.has(id)));
   }
 
+  /** The bar to change the stage shows only once a row is ticked (#222, UX finding 15), as in mail programs. */
+  function showBulkBar(count) {
+    return count > 0;
+  }
+
   function selectionLabel(count) {
     return count === 0 ? "Keine ausgewählt" : `${count} ausgewählt`;
   }
@@ -220,7 +225,8 @@
 
   const logik = { ANSICHTEN, STANDARD_ANSICHT, NACHFRAGEN_NACH_TAGEN, datum, plusTage, naechsterSchritt, mitSchritten, gefiltert,
                   ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung, abgeschlossenZaehlen, stehtAn,
-                  toggleOne, toggleAll, selectionState, selectedIds, keepKnown, selectionLabel, stageQuestion, viewOfStage, stageDone };
+                  toggleOne, toggleAll, selectionState, selectedIds, keepKnown, showBulkBar, selectionLabel, stageQuestion, viewOfStage,
+                  stageDone };
   if (typeof module !== "undefined") module.exports = logik;
   else global.UebersichtLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

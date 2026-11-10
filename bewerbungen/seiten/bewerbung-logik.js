@@ -119,7 +119,12 @@
     return punkte.sort((x, y) => x[0].localeCompare(y[0])).map(([wann, was]) => ({ datum: wann, text: was }));
   }
 
-  const logik = { SCHRITTE, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf };
+  /** „Erneut prüfen“ only once there is a check to repeat (#222); null means not checked since the last change. */
+  function erneutPruefen(befunde) {
+    return Array.isArray(befunde);
+  }
+
+  const logik = { SCHRITTE, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf, erneutPruefen };
   if (typeof module !== "undefined") module.exports = logik;
   else global.BewerbungLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

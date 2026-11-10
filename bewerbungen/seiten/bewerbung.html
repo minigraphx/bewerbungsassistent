@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
-<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
+<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einrichtung">Einrichtung</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
 <main class="application">
   <a href="/" class="zurueck" id="zurueck">← Zurück zur Übersicht</a>
   <header class="application__head">
@@ -102,7 +102,7 @@
             </div>
           </details>
         </div>
-        <div class="btn-row"><button type="button" class="btn" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen">Erneut prüfen</button></div>
+        <div class="btn-row"><button type="button" class="btn" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen" hidden>Erneut prüfen</button></div>
         <ul class="befunde" id="befunde"></ul>
         <div class="pdfs" id="pdfs"></div>
         <h3>Beilagen</h3>
@@ -121,7 +121,7 @@
         <div id="versand-info"></div>
         <div id="versand-form">
           <h3 id="versand-titel">Versand erfassen</h3>
-          <p class="field__hint">Nach dem Abschicken von Hand (E-Mail, Post) oder wenn die Leiste im Formular nicht gefragt hat: Die Fassungen werden unter <code>versendet/</code> abgelegt, die Entwürfe als genutzt markiert und alles eingefroren.</p>
+          <p class="field__hint" id="versand-hinweis">Nach dem Abschicken von Hand (E-Mail, Post) oder wenn die Leiste im Formular nicht gefragt hat. Die verschickte Fassung bleibt gespeichert.</p>
           <div class="application__fields">
             <div class="field"><label class="field__label" for="v-datum">Versendet am</label><input class="input" id="v-datum" type="date"></div>
             <div class="field"><label class="field__label" for="v-art">Art</label><select class="input" id="v-art"><option>elektronisch</option><option>schriftlich</option><option>persönlich</option><option>telefonisch</option></select></div>
