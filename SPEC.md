@@ -52,6 +52,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G40 [approved, must] Pro Bewerbung wählt die Person, ob sie ein Dossier will oder nur Anschreiben und Lebenslauf als einzelne Dateien. Voreingestellt sind Anschreiben und Lebenslauf. | gate: review
 - G41 [approved, must] Die App ist ohne Einstellungen schnell nutzbar: Jede Wahl hat eine sinnvolle Voreinstellung, und eine Bewerbung lässt sich ohne Konfiguration erstellen. Feinere Einstellungen stehen gesammelt unter „Erweitert“ und bleiben verborgen, bis die Person sie öffnet. | gate: review
 - G42 [approved, must] Unter „Erweitert“ wählt die Person, wie einzelne Elemente im Design dargestellt werden, zum Beispiel die Niveaus als Pillen mit Text oder als Balken. Voreingestellt ist die Darstellung des gewählten Entwurfs. | gate: review
+- G43 [draft, must] Die Suche hält sich standardmässig an ihre Grenzen: höchstens 15 Begriffe und 30 Suchen pro Portal. Reichen sie nicht, nennt die App, was nicht gesucht wird, und bietet „Trotzdem alle suchen“ an. Wählt die Person das, sucht die App alle Begriffe in allen Orten und sagt vorher, dass der Lauf länger dauert und Portale bei vielen Abfragen bremsen oder sperren können. Die Wahl bleibt gespeichert, bis die Person sie zurücknimmt. | gate: review
 
 ## K · Constraints
 
