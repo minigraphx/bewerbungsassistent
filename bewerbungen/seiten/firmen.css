@@ -1,0 +1,57 @@
+/* The page Firmen (G35, #188, docs/design/firmen.md). kununu is never the fit grade: grey only, always „von 5“,
+   never accent, green or red, no bars. Few reviews carry a dashed line and a sentence, not a colour. */
+.companies-page__head { display: flex; flex-direction: column; gap: var(--space-1); }
+.companies-page__head h1 { margin: 0; font-size: 22px; line-height: 28px; }
+.companies-page__sub, .companies-page__head .field__hint { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.companies-page__head .field__hint { max-width: var(--width-reading); }
+.companies-page__bar { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.companies-page__search { width: 220px; }
+.companies-page__help { margin-left: auto; }
+.companies-page > .status-line:empty { display: none; }
+.companies-page__source { margin: 0; font-size: 13px; line-height: 18px; color: var(--text-muted); }
+
+.rating { display: grid; gap: 2px; }
+.rating__value { color: var(--text-strong); font-size: 14px; }
+.rating__value b { font: 500 16px/20px var(--font-sans); font-variant-numeric: tabular-nums; }
+.rating__meta { color: var(--text-muted); }
+.rating[data-state="few"] .rating__value { padding-left: 6px; border-left: 2px dashed var(--line-strong); color: var(--text); }
+.rating[data-state="few"] .rating__value b { color: var(--text); }
+.rating[data-state="few"] .rating__meta { padding-left: 8px; }
+.rating__state { color: var(--text-strong); }
+.rating__state--quiet { color: var(--text-muted); }
+.companies .status-line { margin: 0; }
+
+.companies__links { display: grid; gap: var(--space-1); }
+.companies__links .line { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.companies__actions .btn-row { justify-content: flex-end; }
+.companies tr.is-open > td { border-bottom: 0; }
+.chooser td { background: var(--surface-subtle); }
+.chooser fieldset { margin: 0; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); display: grid; gap: var(--space-2); max-width: 680px; min-width: 0; }
+.chooser legend { padding: 0 var(--space-1); font: 500 14px/20px var(--font-sans); color: var(--text-strong); }
+.choice { display: grid; grid-template-columns: 18px 1fr auto; gap: var(--space-1) var(--space-3); align-items: start; padding: var(--space-2) 0; border-bottom: 1px solid var(--line); }
+.choice:last-of-type { border-bottom: 0; }
+.choice input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--accent); }
+.choice__name { font-weight: 500; color: var(--text-strong); }
+.choice__meta { display: block; color: var(--text-muted); }
+
+@container (max-width: 760px) {
+  .companies .btn--sm { min-height: var(--control-height); }
+  .companies td.companies__actions { padding-top: var(--space-2); }
+  .companies__actions .btn-row { justify-content: flex-start; flex-wrap: wrap; }
+  .choice { grid-template-columns: 18px 1fr; }
+  .choice > a { grid-column: 2; }
+}
+@media (max-width: 760px) {
+  .companies-page__search { width: 100%; }
+  .companies-page__help { margin-left: 0; }
+}
+
+/* Stellen suchen (#190): the badge after the company name, squarer than status badges, and the company line. */
+.kununu-mark { display: inline-block; margin-left: 6px; padding: 0 5px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  font-size: 12px; line-height: 16px; color: var(--text-muted); white-space: nowrap; vertical-align: 1px; }
+.kununu-mark[data-art="wenige"] { border-style: dashed; }
+.kununu-mark[data-art="leise"] { border-color: transparent; padding: 0; }
+.company-line { display: grid; gap: var(--space-2); padding: var(--space-4) 0; border-top: 1px solid var(--line); }
+.company-line__title { margin: 0; font: 500 14px/20px var(--font-sans); color: var(--text-strong); }
+.company-line__date { margin: 0; font-size: 13px; line-height: 18px; color: var(--text-muted); }
+.company-line .rating__state, .company-line .status-line { margin: 0; }

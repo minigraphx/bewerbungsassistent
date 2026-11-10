@@ -22,6 +22,8 @@
   let stille = null;         // timer: no word from the extension for a while
   let zustand = "neu";       // which hits the list shows
   let gewaehlt = null;       // id of the hit in the detail column
+  let firmen = new Map();    // hit id → its company with what kununu says (#190)
+  let heute = "";
   let satz = "stelle-sie";
   const t = (schluessel, werte) => textAus(schluessel, satz, werte);
   const STUFE = { ok: "success", hinweis: "warning", fehler: "danger" };
@@ -155,6 +157,8 @@
         b && b.auffaellig && b.auffaellig.length ? el("p", { class: "status-line", "data-level": "danger" }, "Auffällige Zeilen im Inserat (nicht befolgt): " + b.auffaellig.join(" · ")) : null,
         el("div", { class: "btn-row" }, aktionen(treffer)),
         b ? el("p", { class: "ai-result__foot" }, "Eine Einschätzung, kein Urteil. Die KI kann sich irren.") : null),
+      window.TrefferFirma.zeile(firmen.get(treffer.id), heute,
+        { lehrstelle, alle: t("firmen.alle"), wo: t("firmen.titel"), nachPruefen: kununuGeprueft }),
       weitere.length ? el("ul", { class: "search__more" }, weitere) : null,
       el("div", { class: "btn-row" }, knopf), textFeld].filter(Boolean));
   }
@@ -177,8 +181,22 @@
       .catch(fehler => meldung(fehler.message, "fehler"));
   }
 
+  // „Jetzt prüfen“ (#191): the app has stored the value, so badge and company line load it again.
+  async function kununuGeprueft(ergebnis) {
+    try {
+      const daten = await holen("/api/firmen");
+      firmen = window.FirmenLogik.nachTreffer(daten.firmen);
+      heute = daten.heute || "";
+      zeigeListe();
+      meldung(ergebnis.text, ergebnis.stufe);
+    } catch (fehler) {
+      meldung(fehler.message, "fehler");
+    }
+  }
+
   function trefferZeile(treffer) {
     const sterne = treffer.beruf ? einstellungen.beruf_sterne[treffer.beruf] : 0;
+    const rahmen = [treffer.ort, treffer.pensum || treffer.lehrbeginn].filter(Boolean).join(" · ");
     const marken = [
       logik.istSchnupperlehre(treffer) ? "Schnupperlehre" : "",
       treffer.hinweis ? "schon im Register" : "",
@@ -189,7 +207,8 @@
       el("span", { class: "hit__grades" }, noten(treffer)),
       el("span", { class: "hit__text" },
         el("span", { class: "hit__title" }, treffer.stelle),
-        el("span", { class: "hit__where" }, [treffer.firma, treffer.ort, treffer.pensum || treffer.lehrbeginn].filter(Boolean).join(" · ")),
+        el("span", { class: "hit__where" }, treffer.firma, window.TrefferFirma.marke(firmen.get(treffer.id)),
+          treffer.firma && rahmen ? " · " : "", rahmen),
         el("span", { class: "hit__meta" }, [treffer.portal + ((treffer.weitere || []).length ? ` +${treffer.weitere.length}` : ""), datum(treffer.gefunden_am)].join(" · "),
           ...marken.map(m => [" · ", el("strong", {}, m)]).flat())));
     knopf.addEventListener("click", () => {
@@ -350,8 +369,11 @@
   async function lade() {
     const nummer = ++ladeNummer;
     try {
-      const daten = await holen("/api/suche/liste");
+      // Without the companies the list still shows, only without kununu.
+      const [daten, firmenDaten] = await Promise.all([holen("/api/suche/liste"), holen("/api/firmen").catch(() => null)]);
       if (nummer !== ladeNummer) return; // a newer load is on its way, and this answer may be older
+      firmen = firmenDaten ? window.FirmenLogik.nachTreffer(firmenDaten.firmen) : new Map();
+      heute = firmenDaten?.heute || "";
       gezeigt = JSON.stringify(daten.treffer);
       alle = daten.treffer;
       einstellungen = daten.einstellungen;

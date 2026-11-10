@@ -16,7 +16,7 @@ from ai import connection, second_look, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
 import routes_career
-from hits import PORTALS_OFF, TRIAL, Hits, bounded_text, company_key, is_near
+from hits import CLOSED, PORTALS_OFF, TRIAL, Hits, bounded_text, company_key, comparable_link, is_near
 from server import json_antwort, pflicht
 
 MAX_PROBLEM = 600
@@ -278,6 +278,23 @@ def note_for(hit: dict) -> str:
     return " ".join(p for p in parts if p)
 
 
+def _saved_with_link(register: list[dict], hit: dict) -> dict | None:
+    """An open entry for the same ad, e.g. saved by the skill jobsuche under a shorter title (#197)."""
+    links = {comparable_link(link, any_fragment=True) for link in (hit["link"], *(o["link"] for o in hit.get("weitere", [])))}
+    return next((entry for entry in register if entry.get("status") not in CLOSED and entry.get("link")
+                 and comparable_link(entry["link"], any_fragment=True) in links), None)
+
+
+def _fill_in_ad(k, store: Hits, hit: dict, entry: dict) -> dict:
+    """The hit belongs to an entry already: it only brings the ad text that is missing there."""
+    taken = store.update(hit["id"], zustand="uebernommen", bewerbung_id=entry["id"])
+    path = unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md"
+    if not path.is_file():
+        ad = store.ad_text(hit["id"])
+        k.mit_entwurf(path, f"Stellentext {entry['firma']}", lambda: schreibe_atomar(path, ad.encode("utf-8")))
+    return taken
+
+
 def take_over(k, parameter, body):
     """Register entry and stelle.md; the hit is marked right after the entry, so a retry never adds a second one."""
     store = _hits(k)
@@ -286,6 +303,9 @@ def take_over(k, parameter, body):
         if hit.get("zustand") == "uebernommen":
             raise ValueError(ALREADY_IN_REGISTER)
         register = k.register()
+        saved = _saved_with_link(register.alle(), hit)
+        if saved is not None:
+            return json_antwort(_fill_in_ad(k, store, hit, saved))
         portals = ", ".join(dict.fromkeys([hit["portal"], *(o["portal"] for o in hit.get("weitere", []))]))
         fields = {"firma_schluessel": company_key(hit["firma"]), "ort": hit.get("ort"), "pensum": hit.get("pensum"),
                   "portal": portals, "link": hit["link"], "status": "Gemerkt", "notiz": note_for(hit),

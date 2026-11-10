@@ -19,6 +19,7 @@ import routes_apply
 import routes_certificates
 import routes_career
 import routes_chat
+import routes_companies
 import routes_own_files
 import routes_own_key
 import routes_rav
@@ -62,6 +63,12 @@ SEITEN = {
     "/treffer": "treffer.html",
     "/treffer.js": "treffer.js",
     "/treffer-logik.js": "treffer-logik.js",
+    "/firmen": "firmen.html",
+    "/firmen.js": "firmen.js",
+    "/firmen-logik.js": "firmen-logik.js",
+    "/kununu-pruefen.js": "kununu-pruefen.js",
+    "/treffer-firma.js": "treffer-firma.js",
+    "/firmen.css": "firmen.css",
     "/formular-logik.js": "formular-logik.js",
     "/beruf-vorschlag.js": "beruf-vorschlag.js",
     "/portal-wahl.js": "portal-wahl.js",
@@ -99,9 +106,9 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
     questions_page: the page „Fragen“ (MIN-376); without it neither page, route nor menu entry exist, so no question reaches the AI."""
     k = kontext or erstelle_kontext(daten, build)
     routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET,
-                  **routes_ai.GET, **(routes_chat.GET if questions_page else {}), **routes_own_key.GET, **routes_own_files.GET, **routes_sites.GET, **routes_search.GET, **routes_backup.GET, **routes_certificates.GET, **routes_apply.GET, **routes_rav.GET, **routes_career.GET, **routes_preferences.GET, **extra_routes[0]}
+                  **routes_ai.GET, **(routes_chat.GET if questions_page else {}), **routes_own_key.GET, **routes_own_files.GET, **routes_sites.GET, **routes_search.GET, **routes_backup.GET, **routes_certificates.GET, **routes_apply.GET, **routes_rav.GET, **routes_career.GET, **routes_preferences.GET, **routes_companies.GET, **extra_routes[0]}
     routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST,
-                   **routes_ai.POST, **(routes_chat.POST if questions_page else {}), **routes_own_key.POST, **routes_own_files.POST, **routes_sites.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **routes_preferences.POST, **extra_routes[1]}
+                   **routes_ai.POST, **(routes_chat.POST if questions_page else {}), **routes_own_key.POST, **routes_own_files.POST, **routes_sites.POST, **routes_search.POST, **routes_page.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **routes_preferences.POST, **routes_companies.POST, **extra_routes[1]}
     limits = {**routes_own_files.BODY_LIMITS, **(body_limits or {})}
     if questions_page:
         return Server(k, routen_get, routen_post, {**SEITEN, **QUESTIONS_PAGES}, port, limits, activity=activity)
