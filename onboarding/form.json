@@ -214,7 +214,8 @@
       "itemTitle": "Sprache",
       "fields": [
         {"id": "language", "label": "Sprache", "type": "text", "required": true, "max": 40},
-        {"id": "fluency", "label": "Niveau", "type": "select", "required": true, "options": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"]}
+        {"id": "fluency", "label": "Niveau", "type": "select", "required": true, "options": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"]},
+        {"id": "x-level", "label": "Stufe fürs Dossier (freiwillig)", "type": "select", "keepUnlessGiven": true, "emptyLabel": "ohne Stufe", "options": ["A1", "A2", "B1", "B2", "C1", "C2"], "hint": "Freiwillig. Hat eine Sprache eine Stufe, zeigt das Dossier bei den Sprachen eine Grafik; Sprachen ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."}
       ]
     },
     {
@@ -230,7 +231,7 @@
       "itemTitle": "Bereich",
       "fields": [
         {"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "required": true, "max": 60},
-        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile)", "type": "list", "required": true, "maxItems": 12, "max": 60},
+        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile, Stufe freiwillig)", "type": "list", "levels": true, "required": true, "maxItems": 12, "max": 60, "hint": "Die Stufe von 1 bis 6 ist freiwillig. Hat eine Kenntnis im Bereich eine Stufe, zeigt das Dossier dort eine Grafik; Kenntnisse ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."},
         {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}
       ]
     },

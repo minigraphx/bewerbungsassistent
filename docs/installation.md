@@ -170,6 +170,8 @@ Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minut
 
 **Tags** bestimmen, wo ein Eintrag erscheint: Ohne Tags steht er in jedem Lebenslauf, mit Tags nur in den Varianten für Stellen mit einem dieser Tags. Tags können Sie Stellen, einzelnen Tätigkeiten, Kenntnissen, Projekten, Lehrtätigkeiten und Zertifikaten geben. Die Seite schlägt die Tags vor, die Sie schon verwenden; neue tippen Sie einfach ein. Tags sind freiwillig.
 
+**Stufen** für Kenntnisse und Sprachen sind ebenfalls freiwillig und gelten nur fürs Dossier: Bei einer Kenntnis wählen Sie 1 bis 6, bei einer Sprache A1 bis C2, mit **ohne Stufe** entfernen Sie sie wieder. Hat ein Eintrag eines Bereichs eine Stufe, zeigt das Dossier dort eine Grafik, und Einträge ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik.
+
 Für die Stellensuche gibt es ausserdem die Abschnitte **Projekte** sowie **Lehre und Training** und ein Feld für Ihre eigene Webseite. Bei Ausbildungen und Zertifikaten können Sie unter **Eigener Text** einen fertigen Satz schreiben; er steht im Lebenslauf anstelle der einzelnen Angaben.
 
 Gibt es Suchprofil, Stilprofil oder Bausteine schon, fragt die App beim Übernehmen pro Datei, ob sie bleibt. Vorgewählt ist **Behalten**. Wählen Sie **Ersetzen**, zeigt die Seite zuerst die Unterschiede: Zeilen mit − fallen weg, Zeilen mit + kommen dazu. Abschliessend klicken Sie auf **Mit dieser Wahl übernehmen**. Der alte Stand bleibt als Entwurf erhalten, und der Lebenslauf nimmt Ihre Angaben in jedem Fall auf.

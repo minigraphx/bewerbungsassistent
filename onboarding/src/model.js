@@ -6,6 +6,8 @@
 // removes them. So tags go out wherever the page holds them, an empty list included; a plain text line keeps its tags.
 // The same holds for sections and fields marked "keepUnlessGiven" in form.json (G25: projects, teaching, the website):
 // they go out wherever the page holds them, empty too, and a state from before G25 sends no key, so cv.yaml keeps them.
+// Levels (#123, G20): a list marked "levels" (keywords) holds lines as text or { text, level } with level "" or "1"–"6".
+// As with tags, a plain line leaves the level to cv.yaml and an empty level removes it.
 // Two-language values {de, en} from cv.yaml (#167) stay as they are on text fields and as lines, and go back unchanged:
 // validate.js lets them pass while cv.yaml holds them, and the app keeps them in the file until the person types anew.
 "use strict";
@@ -78,14 +80,24 @@ const lineText = (line) => (isPlainObject(line) ? (typeof line.text === "string"
 /** True if a line or value holds something: text, or a value in two languages. */
 const hasContent = (value) => Boolean(bilingualOf(value)) || lineText(value).trim() !== "";
 
+/** One line of a list with levels: plain text (level left to the file) or { text, level }; null if it has no text. */
+function cleanLeveledLine(value, compact) {
+  if (typeof value === "string") return compact ? value.trim() : value;
+  const shaped = isPlainObject(value) && Object.keys(value).every((k) => k === "text" || k === "level");
+  if (!shaped || typeof value.text !== "string") return null;
+  const level = typeof value.level === "string" ? value.level : "";
+  return { text: compact ? value.text.trim() : value.text, level: compact ? level.trim() : level };
+}
+
 /** A line the person edited: with its tags, an empty list included, so removing the last tag removes it. */
 function taggedLine(text, tags) {
   return { text, tags };
 }
 
 function cleanList(field, value, compact) {
-  if (field.tags === true) {
-    const lines = value.map((v) => cleanLine(v, compact)).filter((v) => v !== null);
+  if (field.tags === true || field.levels === true) {
+    const clean = field.levels === true ? cleanLeveledLine : cleanLine;
+    const lines = value.map((v) => clean(v, compact)).filter((v) => v !== null);
     return compact ? lines.filter(hasContent) : lines;
   }
   const lines = value.filter((v) => typeof v === "string").map((v) => (compact ? v.trim() : v));
