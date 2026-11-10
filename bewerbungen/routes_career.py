@@ -1,4 +1,11 @@
-"""Routes for what to search for (MIN-375): suggestions from the AI, adding and removing; only for the page of the app."""
+"""Routes for what to search for (MIN-375): suggestions from the AI, adding and removing; only for the page of the app.
+
+A person adds own terms through the same route as a suggestion (#216). Rückgängig after Entfernen brings the former
+profile back only if it differs from the current one in exactly that term; otherwise the term goes back at the end.
+"""
+import hashlib
+import re
+
 import preferences
 import routes_ai
 import search_plan
@@ -13,6 +20,11 @@ BOTH_NEEDED = {search_plan.KIND_APPRENTICESHIP: "Schreib zu beidem etwas: was du
 NOT_VALID = {search_plan.KIND_APPRENTICESHIP: "Das ist kein Beruf mit EFZ oder EBA.",
              search_plan.KIND_JOB: "Das passt nicht als Suchbegriff."}
 NO_NAME = "Welcher Eintrag soll weg?"
+EMPTY = {search_plan.KIND_APPRENTICESHIP: "Bitte einen Beruf mit EFZ oder EBA eintragen.",
+         search_plan.KIND_JOB: "Bitte einen Suchbegriff eintragen."}
+ALREADY = "„{name}“ wird schon gesucht."
+NO_UNDO = "Rückgängig geht hier nicht mehr. Bitte den Begriff neu aufnehmen."
+SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
 def _profile(k):
@@ -52,38 +64,104 @@ def suggest(k, parameter, body):
          "schluessel": search_terms.key(item["profession"])} for item in result["recommendations"]]})
 
 
-def _change(k, path, description: str, change) -> dict:
-    def write() -> None:
+def _write(k, path, description: str, change) -> str:
+    """The text before the change; `change` runs under the lock with the current text."""
+    def write() -> str:
         # read under the lock: two quick clicks, or a change of the offers, must not lose each other's line
         text = path.read_text(encoding="utf-8")
         changed = change(text)
         if changed != text:
             schreibe_atomar(path, changed.encode("utf-8"))
+        return text
 
-    k.mit_entwurf(path, description, write)
+    return k.mit_entwurf(path, description, write)
+
+
+def _answer(k, **extra) -> dict:
     now = searched_now(k)
-    return json_antwort({"berufe": now["gesuchte_berufe"], "schluessel": now["gesuchte_schluessel"]})
+    return json_antwort({"berufe": now["gesuchte_berufe"], "schluessel": now["gesuchte_schluessel"], **extra})
+
+
+def _change(k, path, description: str, change) -> dict:
+    _write(k, path, description, change)
+    return _answer(k)
+
+
+def _removed_name(body) -> str:
+    name = body.get("beruf") if isinstance(body, dict) else None
+    if not isinstance(name, str) or not name.strip() or len(name) > career.MAX_NAME:
+        raise ValueError(NO_NAME)
+    return name.strip()
+
+
+def _digest(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def add(k, parameter, body):
     path = _profile(k)
     kind = preferences.strictest_kind(k.daten)
     name = body.get("beruf") if isinstance(body, dict) else None
+    if name is None or (isinstance(name, str) and not name.strip()):
+        raise ValueError(EMPTY[kind])
     if not career.is_valid_name(name, kind):
         raise ValueError(NOT_VALID[kind])
-    clean = name.strip()
+    clean = " ".join(name.split())
     sought = preferences.load(k.daten).sought
-    return _change(k, path, f"In die Suche aufgenommen: {clean}", lambda text: search_terms.added(text, clean, sought))
+
+    def change(text: str) -> str:
+        if search_terms.is_searched(text, clean):
+            raise ValueError(ALREADY.format(name=clean))
+        return search_terms.added(text, clean, sought)
+
+    return _change(k, path, f"In die Suche aufgenommen: {clean}", change)
 
 
 def remove(k, parameter, body):
+    """Also says how to undo it: the digest of the former profile, whose draft `mit_entwurf` keeps."""
     path = _profile(k)
-    name = body.get("beruf") if isinstance(body, dict) else None
-    if not isinstance(name, str) or not name.strip() or len(name) > career.MAX_NAME:
-        raise ValueError(NO_NAME)
-    clean = name.strip()
-    return _change(k, path, f"Aus der Suche entfernt: {clean}", lambda text: search_terms.removed(text, clean))
+    clean = _removed_name(body)
+    changed = {}
+
+    def change(text: str) -> str:
+        changed["after"] = search_terms.removed(text, clean)
+        return changed["after"]
+
+    before = _write(k, path, f"Aus der Suche entfernt: {clean}", change)
+    return _answer(k, rueckgaengig=_digest(before) if changed["after"] != before else None)
+
+
+def _former_text(k, path, digest: str) -> str | None:
+    found = next((d for d in k.ablage.liste(path) if d.hash == digest), None)
+    return k.ablage.inhalt(found.id).decode("utf-8") if found else None
+
+
+def undo(k, parameter, body):
+    """Rückgängig after Entfernen: the term back at its former place, or at the end if the profile changed since."""
+    path = _profile(k)
+    clean = _removed_name(body)
+    digest = body.get("vorher")
+    if not isinstance(digest, str) or not SHA256.fullmatch(digest):
+        raise ValueError(NO_UNDO)
+    former = _former_text(k, path, digest)
+    kind = preferences.strictest_kind(k.daten)
+    sought = preferences.load(k.daten).sought
+    at_end = {"value": False}
+
+    def change(text: str) -> str:
+        if former is not None and former != text and search_terms.removed(former, clean) == text:
+            return former
+        at_end["value"] = True
+        if search_terms.is_searched(text, clean):
+            return text
+        if not career.is_valid_name(clean, kind):
+            raise ValueError(NO_UNDO)
+        return search_terms.added(text, clean, sought)
+
+    _write(k, path, f"Wieder in die Suche aufgenommen: {clean}", change)
+    return _answer(k, am_ende=at_end["value"])
 
 
 GET: dict = {}
-POST = {"/api/beruf/vorschlag": suggest, "/api/beruf/aufnehmen": add, "/api/beruf/entfernen": remove}
+POST = {"/api/beruf/vorschlag": suggest, "/api/beruf/aufnehmen": add, "/api/beruf/entfernen": remove,
+        "/api/beruf/rueckgaengig": undo}
