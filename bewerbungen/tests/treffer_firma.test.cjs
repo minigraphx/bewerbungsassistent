@@ -28,20 +28,20 @@ test("each hit finds its company by the hits the companies list", () => {
 
 test("a company with a score gets a grey badge with its value, the reviews only for screen readers", () => {
   assert.deepEqual(logik.marke(firma("Muster Industrie AG", gefunden(3.8, 214))),
-    { text: "kununu 3.8", vorlesen: "kununu 3.8 von 5, 214 Bewertungen", art: "wert" });
+    { text: "kununu 3.8 von 5", vorlesen: "kununu 3.8 von 5, 214 Bewertungen", art: "wert" });
   assert.deepEqual(logik.marke(firma("Muster Industrie AG", gefunden(4, 1312))),
-    { text: "kununu 4.0", vorlesen: "kununu 4.0 von 5, 1’312 Bewertungen", art: "wert" });
+    { text: "kununu 4.0 von 5", vorlesen: "kununu 4.0 von 5, 1’312 Bewertungen", art: "wert" });
 });
 
 test("few reviews make the badge dashed and say so", () => {
   assert.deepEqual(logik.marke(firma("Beispiel Bau AG", gefunden(4.6, 3))),
-    { text: "kununu 4.6, wenige Bewertungen", vorlesen: "kununu 4.6 von 5, nur 3 Bewertungen", art: "wenige" });
+    { text: "kununu 4.6 von 5, wenige Bewertungen", vorlesen: "kununu 4.6 von 5, nur 3 Bewertungen", art: "wenige" });
 });
 
 test("a stale value keeps its badge", () => {
   const alt = firma("Muster Industrie AG", gefunden(3.2, 57, { geprueft_am: "2026-07-02" }));
   assert.equal(logik.veraltet(alt, HEUTE), true);
-  assert.equal(logik.marke(alt).text, "kununu 3.2");
+  assert.equal(logik.marke(alt).text, "kununu 3.2 von 5");
 });
 
 test("several companies or none found give a quiet word; other states give no badge", () => {

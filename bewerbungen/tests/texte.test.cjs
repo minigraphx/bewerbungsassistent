@@ -42,8 +42,8 @@ test("for apprenticeships an interview reads as an invitation, the stored status
   assert.equal(texte.statusName("Absage", "lehrstelle-du"), "Absage");
 });
 
-test("a grade is written with a comma", () => {
-  assert.equal(texte.notenText(5.5), "5,5");
+test("a grade is written with a decimal point", () => {
+  assert.equal(texte.notenText(5.5), "5.5");
   assert.equal(texte.notenText(4), "4");
 });
 
