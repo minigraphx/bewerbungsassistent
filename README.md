@@ -48,7 +48,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Fotoausschnitt (freiwillig):** Ausschnitt per Maus oder Tastatur einstellen, mit Vorschau in Druckgrösse.
 
-![Editor für den runden Fotoausschnitt mit Reglern für Zoom und Ausschnitt](docs/bilder/foto.jpg)
+![Editor für den runden Fotoausschnitt mit Reglern für Zoom und Ausschnitt, darunter Ihre Fotos mit dem aktiven Foto und einem zweiten mit den Knöpfen Verwenden und Löschen](docs/bilder/foto.jpg)
 
 **Meine Angaben:** eine Seite in der App, die Schritt für Schritt alles abfragt, was die App braucht, und direkt in den Datenordner speichert. Bestehende Unterlagen lädt man gleich am Anfang hoch: „Aus Unterlagen vorbefüllen“ füllt das Formular aus PDF, Word und Text vor. Der Text geht ohne Name, Adresse und Kontaktangaben an die KI, und jeder Vorschlag bleibt markiert, bis er geprüft ist.
 

@@ -18,13 +18,6 @@
     <p class="field__hint" id="anleitung">Ziehen verschiebt den Ausschnitt, das Mausrad zoomt. Mit der Tastatur: Pfeiltasten verschieben, + und − zoomen, M spiegelt.</p>
   </header>
 
-  <section class="card" id="hochladen" hidden aria-labelledby="hochladen-titel">
-    <h2 id="hochladen-titel">Foto hochladen</h2>
-    <p>Ein Foto als JPG oder PNG, höchstens <span id="max-groesse">10</span> MB. Angaben zu Kamera, Ort und Zeit im Bild werden nicht gespeichert. Danach stellen Sie hier den Ausschnitt ein.</p>
-    <label class="datei-waehlen">Foto wählen<input type="file" id="foto-datei" accept="image/jpeg,image/png"></label>
-    <div id="hochladen-status" class="status" role="status" aria-live="polite"></div>
-  </section>
-
   <div class="card foto-raster" id="editor">
     <div>
       <div id="kreis" tabindex="0" role="img" aria-label="Vorschau des Fotoausschnitts">
@@ -51,6 +44,21 @@
       <div id="status" class="status" role="status" aria-live="polite"></div>
     </div>
   </div>
+  <section class="card" id="fotos-teil" hidden aria-labelledby="fotos-titel">
+    <h2 id="fotos-titel">Ihre Fotos</h2>
+    <p class="field__hint">Neue Lebensläufe und Dossiers nutzen das aktive Foto. Was schon erstellt oder verschickt ist, behält sein Foto. Jedes Foto behält seinen eigenen Ausschnitt.</p>
+    <ul class="foto-liste" id="fotos"></ul>
+    <div id="fotos-status" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="card" id="hochladen" hidden aria-labelledby="hochladen-titel">
+    <h2 id="hochladen-titel">Foto hochladen</h2>
+    <p>Ein Foto als JPG oder PNG, höchstens <span id="max-groesse">10</span> MB. Angaben zu Kamera, Ort und Zeit im Bild werden nicht gespeichert. Danach stellen Sie hier den Ausschnitt ein.</p>
+    <p class="field__hint" id="hochladen-weiteres" hidden>Ein weiteres Foto kommt zu den übrigen dazu und wird das aktive.</p>
+    <label class="datei-waehlen">Foto wählen<input type="file" id="foto-datei" accept="image/jpeg,image/png"></label>
+    <div id="hochladen-status" class="status" role="status" aria-live="polite"></div>
+  </section>
+
   <aside id="verlauf" class="card verlauf" aria-label="Letzte Entwürfe des Lebenslaufs"></aside>
 </main>
 <script src="/texte.js"></script>
