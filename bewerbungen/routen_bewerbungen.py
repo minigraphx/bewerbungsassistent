@@ -38,11 +38,10 @@ def grundlagen(k, parameter, body):
 
 
 def _shown_pdfs(k, b: dict) -> dict[str, pathlib.Path]:
-    """The files the page shows: the two that count, and the dossier only while it is chosen (G40)."""
+    """The files the page shows: the two that count, and the dossier only while it is chosen or once it was sent (G40)."""
     pfade = unterlagen.wirksame_pdfs(k.daten, b)
-    if unterlagen.wants_dossier(b):
-        return {**pfade, unterlagen.DOSSIER: unterlagen.dossier_path(k.daten, b["id"])}
-    return pfade
+    dossier = unterlagen.dossier_file(k.daten, b)
+    return {**pfade, unterlagen.DOSSIER: dossier} if dossier else pfade
 
 
 def details(k, parameter, body):

@@ -49,10 +49,21 @@ def dossier_path(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
     return bewerbungsordner(daten, bewerbung_id) / f"{DOSSIER}.pdf"
 
 
-def dossier_ready(daten: pathlib.Path, bewerbung: dict) -> pathlib.Path | None:
-    """The dossier, as long as it is chosen: one left from an earlier choice does not count."""
-    path = dossier_path(daten, bewerbung["id"])
-    return path if wants_dossier(bewerbung) and path.is_file() else None
+def dossier_file(daten: pathlib.Path, bewerbung: dict) -> pathlib.Path | None:
+    """Where the dossier that counts lies, built or not: once sent the one that went out, before that the built one
+    while it is chosen. None when no dossier counts; one left from an earlier choice does not."""
+    gesendet = ((bewerbung.get("versand") or {}).get("dateien") or {}).get(DOSSIER)
+    if gesendet:
+        return im_ordner(daten, gesendet)
+    if bewerbung.get("versand") or not wants_dossier(bewerbung):
+        return None
+    return dossier_path(daten, bewerbung["id"])
+
+
+def effective_dossier(daten: pathlib.Path, bewerbung: dict) -> pathlib.Path | None:
+    """The dossier that counts, when it exists."""
+    path = dossier_file(daten, bewerbung)
+    return path if path and path.is_file() else None
 
 
 def eigener_lebenslauf(daten: pathlib.Path, bewerbung: dict) -> pathlib.Path | None:

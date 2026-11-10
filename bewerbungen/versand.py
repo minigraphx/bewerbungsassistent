@@ -82,6 +82,9 @@ def _hinweise_firma(alle: list[dict], bewerbung: dict) -> list[str]:
 
 def _aktuelle_dateien(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Path]:
     pdfs = {a: p for a, p in unterlagen.wirksame_pdfs(daten, bewerbung).items() if p.is_file()}
+    dossier = unterlagen.effective_dossier(daten, bewerbung)
+    if dossier:  # G40: goes out next to the two files, which portals with separate uploads still need
+        pdfs = {**pdfs, unterlagen.DOSSIER: dossier}
     zertifikate = unterlagen.bewerbungsordner(daten, bewerbung["id"]) / ZERTIFIKATE_ZIP
     return {**pdfs, "zertifikate": zertifikate} if zertifikate.is_file() else pdfs
 
