@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-8L4VQYV0ZhWjzMWc/DpVphZCo4w3+NLt1VhwVjZv4DA='; style-src 'sha256-XcIPIRDgJm4nIcuG11CgURlnSGDDR/rO4GI75vq+kb8='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ia8jgxp0t3cvYCH1MTXDi1PPGsbfeAv5zAHtLKIaApo='; style-src 'sha256-XcIPIRDgJm4nIcuG11CgURlnSGDDR/rO4GI75vq+kb8='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsbegleiter</title>
@@ -561,6 +561,8 @@ if (typeof module !== "undefined") {
 // they go out wherever the page holds them, empty too, and a state from before G25 sends no key, so cv.yaml keeps them.
 // Levels (#123, G20): a list marked "levels" (keywords) holds lines as text or { text, level } with level "" or "1"–"6".
 // As with tags, a plain line leaves the level to cv.yaml and an empty level removes it.
+// A field with a "preset" (#218) goes out empty too once the person emptied it (#230): dropped, it would read as never
+// filled when the saved answers come back, and the preset would fill it again.
 // Two-language values {de, en} from cv.yaml (#167) stay as they are on text fields and as lines, and go back unchanged:
 // validate.js lets them pass while cv.yaml holds them, and the app keeps them in the file until the person types anew.
 "use strict";
@@ -679,7 +681,7 @@ function pickFields(fields, item, compact) {
       if (!Array.isArray(value)) continue;
       const kept = field.type === "tags" ? cleanTags(value, compact) : cleanList(field, value, compact);
       if (kept.length || field.type === "tags") result[field.id] = kept;
-    } else if (typeof value === "string" && (!compact || value.trim() || field.keepUnlessGiven)) {
+    } else if (typeof value === "string" && (!compact || value.trim() || field.keepUnlessGiven || field.preset !== undefined)) {
       result[field.id] = compact ? value.trim() : value;
     } else if (isBilingual(value)) {
       result[field.id] = { ...value };
