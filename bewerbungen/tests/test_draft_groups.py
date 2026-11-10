@@ -5,6 +5,7 @@ import re
 import draft_groups
 from register import Register
 from sample_folder import BRIEF_ID
+from unterlagen import OWN_CV
 from test_app import get, server  # noqa: F401  (server is a fixture)
 
 
@@ -105,3 +106,13 @@ def test_the_page_shows_groups_with_older_versions_folded(server):
     assert status == 200 and 'id="gruppen"' in html and "<table" not in html
     assert re.search(r'"details"', script) and "Ältere Fassungen" in logic
     assert 'id="datei"' not in html  # no file names on the page
+
+
+def test_the_own_cv_from_meine_dateien_is_a_lebenslauf(server):
+    drafts(server, (OWN_CV, "Eigenes PDF"), ("cv.yaml", "Angaben"))
+
+    found = groups(server)
+
+    assert [g["art"] for g in found] == ["lebenslauf"]
+    assert [d["titel"] for d in found[0]["dokumente"]] == ["Lebenslauf", "Eigener Lebenslauf (PDF)"]
+    assert draft_groups.category(OWN_CV) == "lebenslauf"

@@ -7,14 +7,15 @@ the posting, not the person's own writing, so the page leaves them out.
 import pathlib
 
 import inhalte
-from unterlagen import OWN_LETTER
+from unterlagen import OWN_CV, OWN_LETTER
 
 GROUPS = (("lebenslauf", "Lebenslauf"), ("anschreiben", "Anschreiben"), ("stil", "Stil und Bausteine"),
           ("suchprofil", "Suchprofil"), ("weitere", "Weitere"))
 JOB_AD = "stelle.md"
 LETTERS = {"anschreiben.yaml": "Anschreiben", OWN_LETTER: "Eigenes Anschreiben"}
-STYLE_TITLES = {"anschreiben/stil.md": "Stilprofil", "anschreiben/bausteine.md": "Textbausteine"}
-CV_FILES = ("cv.yaml", "varianten.yaml")
+TITLES = {"anschreiben/stil.md": "Stilprofil", "anschreiben/bausteine.md": "Textbausteine",
+          OWN_CV: "Eigener Lebenslauf (PDF)"}
+CV_FILES = ("cv.yaml", "varianten.yaml", OWN_CV)  # OWN_CV: uploaded on the page Meine Dateien
 
 
 def _parts(rel: str) -> tuple[str, ...]:
@@ -49,8 +50,8 @@ def document_title(rel: str, companies: dict[str, str]) -> str:
     if _is_letter(rel):
         _, entry_id, name = _parts(rel)
         return f"{LETTERS[name]} {companies.get(entry_id) or entry_id}"
-    if rel in STYLE_TITLES:
-        return STYLE_TITLES[rel]
+    if rel in TITLES:
+        return TITLES[rel]
     return inhalte.titel(rel)
 
 
