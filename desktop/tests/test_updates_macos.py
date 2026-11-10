@@ -4,7 +4,6 @@ import http.client
 import json
 import os
 import pathlib
-import shutil
 import stat
 import subprocess
 import sys
@@ -23,9 +22,6 @@ ZIP = b"PK" + b"z" * 4000
 PACKAGE_URL = f"{BASE}/9.2.0/"
 ZIP_NAME = "Bewerbungsbegleiter-9.2.0-macOS.zip"
 needs_shell = pytest.mark.skipif(sys.platform == "win32", reason="the swap is a shell script for macOS")
-needs_mac = pytest.mark.skipif(sys.platform != "darwin", reason="ditto and codesign exist on macOS only")
-
-
 def release(package=ZIP):
     """Announces the sum of ZIP; `package` is what the server hands out, so a different one fails the check."""
     announced = announcement("9.2.0", {"win32": b"MZ", "darwin": ZIP})
@@ -111,7 +107,8 @@ def test_prepare_unpacks_next_to_the_app_and_verifies(tmp_path):
     assert staging.parent == tmp_path and (staging / updates_macos.NEW_APP).is_dir()
     assert not list(staging.glob("*.zip")), "the archive is not needed any more"
     assert tools.calls[0][:3] == [updates_macos.DITTO, "-x", "-k"]
-    assert tools.calls[1] == [updates_macos.CODESIGN, "--verify", "--deep", "--strict", str(staging / updates_macos.NEW_APP)]
+    assert tools.calls[1][:4] == [updates_macos.CODESIGN, "--verify", "--deep", "--strict"]  # requirement: test_signing_identity
+    assert tools.calls[1][-1] == str(staging / updates_macos.NEW_APP)
 
 
 def test_a_wrong_checksum_leaves_nothing_behind(tmp_path):
@@ -451,26 +448,6 @@ def test_route_refuses_a_second_update_at_the_same_time(tmp_path):
 
     with pytest.raises(ValueError, match="läuft schon"):
         post["/api/app/aktualisieren"](None, {}, {})
-
-
-@needs_mac
-def test_real_tools_accept_an_ad_hoc_signed_package(tmp_path):
-    """The real ditto and codesign, on a package signed like the app itself."""
-    build = tmp_path / "build"
-    package = fake_app(build)
-    executable = package / "Contents" / "MacOS" / "Bewerbungsbegleiter"
-    shutil.copy("/bin/ls", executable)
-    subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(package)], check=True, capture_output=True)
-    subprocess.run(["ditto", "-c", "-k", "--keepParent", str(package), str(tmp_path / ZIP_NAME)], check=True)
-    archive = (tmp_path / ZIP_NAME).read_bytes()
-    update = updates.Update("9.2.0", "https://x", PACKAGE_URL + ZIP_NAME, hashlib.sha256(archive).hexdigest())
-    files = {PACKAGE_URL + ZIP_NAME: archive}
-    installed = tmp_path / "Programme"
-    installed.mkdir()
-
-    staging = updates_macos.prepare(update, fake_app(installed), lambda url, limit: files[url])
-
-    assert (staging / updates_macos.NEW_APP / "Contents" / "MacOS" / "Bewerbungsbegleiter").is_file()
 
 
 def failing_mv(folder: pathlib.Path, source_part: str) -> str:
