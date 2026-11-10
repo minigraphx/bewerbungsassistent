@@ -216,3 +216,26 @@ def timeline(work: Iterable[dict], today: datetime.date) -> dict:
              "lane": lane, "current": c} for (n, s, e, c), lane in zip(shown, lanes)]
     return {"bars": sorted(bars, key=lambda b: b["number"]), "ticks": _ticks(begin, total, today),
             "lanes": count, "earlier": first < begin}
+
+
+DURATION_UNITS = {"de": ("J.", "M."), "en": ("yrs", "mos")}
+
+
+def duration(entry: dict, today: datetime.date, language: str) -> str | None:
+    """Length of a station as "7 J. 8 M.", from its dates up to today when it runs on; None without a start."""
+    start = _month(entry.get("startDate"), end=False)
+    if start is None:
+        return None
+    end = _month(entry.get("endDate"), end=True)
+    now = today.year * 12 + today.month - 1
+    months = max(min(now if end is None else end, now) - start + 1, 1)
+    years, rest = divmod(months, 12)
+    year_unit, month_unit = DURATION_UNITS[language]
+    parts = ([f"{years} {year_unit}"] if years else []) + ([f"{rest} {month_unit}"] if rest else [])
+    return " ".join(parts)
+
+
+def durations(cv: dict, today: datetime.date, language: str) -> dict:
+    """Durations per station for the sections with dates, in the order of the CV."""
+    return {key: [duration(entry, today, language) for entry in cv.get(key) or []]
+            for key in ("work", "teaching", "education")}
