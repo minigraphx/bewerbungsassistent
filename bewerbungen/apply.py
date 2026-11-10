@@ -155,7 +155,7 @@ def uploads(data_dir: pathlib.Path, entry: dict) -> dict[str, Upload]:
         found["zertifikate"] = Upload(packed, certificates.upload_name(data_dir))
     references = certificates.files_in(data_dir, REFERENCES_FOLDER)
     joined = {key: Upload(form_copy.copy_path(data_dir, entry["id"], key),  # exists once a form or person asks for it
-                          certificates.upload_name(data_dir, merged_pdf.FILE_LABELS[key], ".pdf"))
+                          certificates.upload_name(data_dir, merged_pdf.label(data_dir, entry, key), ".pdf"))
                for key in merged_pdf.offered(data_dir, entry)}
     return found | {_reference_key(rel): Upload(data_dir / rel, pathlib.PurePath(rel).name) for rel in references} | joined
 

@@ -1,11 +1,14 @@
 """Routes of the setup page (MIN-342): choose the data folder, import the einstieg file.
 
+The step for the einstieg file only shows when such a file lies in Downloads (#219); the overview names the newest.
+
 The app starts on a placeholder folder until a data folder is chosen; then `switch` gives the running
 server the new folder, without a restart. The AI invitation uses the existing routes under /api/ki/.
 """
 import dataclasses
 import datetime
 import pathlib
+import re
 import sys
 from http import HTTPStatus
 from typing import Callable
@@ -17,6 +20,9 @@ import setup
 
 DIALOG_KINDS = ("ordner", "datei")
 UNKNOWN_CHOICE = "Die Wahl der Dateien hat eine unbekannte Form."
+# einstieg.zip or einstieg.json, also as browsers name a second download: „einstieg (1).zip“, „einstieg-1.zip“
+# The template names its download einstieg-<name of the person>; browsers add " (1)" to a second one.
+EINSTIEG_FILE = re.compile(r"einstieg(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?(?: ?\(\d+\))?\.(?:zip|json)", re.IGNORECASE)
 
 
 @dataclasses.dataclass
@@ -36,6 +42,15 @@ class Setup:
 
     def data_dir(self) -> pathlib.Path | None:
         return settings.chosen_data_dir(self.paths)
+
+
+def einstieg_file(downloads: pathlib.Path) -> pathlib.Path | None:
+    """The newest einstieg file in Downloads, or None; a folder that cannot be read has none."""
+    try:
+        found = [entry for entry in downloads.iterdir() if EINSTIEG_FILE.fullmatch(entry.name) and entry.is_file()]
+    except OSError:
+        return None
+    return max(found, key=lambda entry: entry.stat().st_mtime, default=None)
 
 
 def _sync(state: Setup, k) -> bool:
@@ -61,10 +76,11 @@ def make_routes(state: Setup) -> tuple[dict, dict]:
         switched = _sync(state, k) if switched is None else switched
         chosen = state.data_dir()
         has_cv = chosen is not None and (chosen / "cv.yaml").is_file()
+        found = einstieg_file(state.downloads)
         return json_antwort({"eingerichtet": chosen is not None, "datenordner": str(chosen) if chosen else None,
                              "fehlt": chosen is not None and not chosen.is_dir(), "gewechselt": switched,
                              "vorschlag": str(state.suggestion), "lebenslauf": has_cv,
-                             "erweiterung": _extension(state)})
+                             "erweiterung": _extension(state), "einstieg_datei": str(found) if found else None})
 
     def check(k, parameter, body):
         found = setup.check_folder(_path(body), state.forbidden)

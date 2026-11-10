@@ -104,13 +104,15 @@ def test_the_upload_keeps_drafts_of_the_cv(without_photo):
     assert "Foto hochgeladen" in notes and "Stand vor: Foto hochgeladen" in notes
 
 
-def test_a_replaced_photo_is_kept_as_a_draft(without_photo):
+def test_a_second_photo_does_not_replace_the_first(without_photo):
     upload(without_photo, jpeg_with_metadata(orientation=1))
+    first = (without_photo.kontext.daten / "foto.jpg").read_bytes()
     upload(without_photo, jpeg_with_metadata(orientation=3))
 
     drafts = without_photo.kontext.ablage.liste(without_photo.kontext.daten / "foto.jpg")
 
-    assert len(drafts) == 2
+    assert (without_photo.kontext.daten / "foto.jpg").read_bytes() == first  # several photos since #129
+    assert len(drafts) == 1
 
 
 @pytest.mark.parametrize("data, message", [

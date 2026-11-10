@@ -199,7 +199,7 @@ function listLine(label, items) {
 export function describeCheck({ bewertung, vorhanden, hinweis }) {
   const known = vorhanden ? [{ text: `Schon im Register: ${vorhanden.firma} – ${vorhanden.stelle} (${vorhanden.status})`, problem: true }] : [];
   return {
-    titel: `Note ${String(bewertung.note).replace('.', ',')}`,
+    titel: `Note ${bewertung.note}`,
     zeilen: [
       ...known,
       ...(bewertung.zusammenfassung ? [{ text: bewertung.zusammenfassung }] : []),

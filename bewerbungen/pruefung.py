@@ -22,8 +22,8 @@ MONATE = {m: i + 1 for i, m in enumerate(("Januar", "Februar", "März", "April",
                                            "September", "Oktober", "November", "Dezember"))}
 MONATE_EN = {m: i + 1 for i, m in enumerate(("January", "February", "March", "April", "May", "June", "July",
                                               "August", "September", "October", "November", "December"))}
-MAX_SEITEN = {"lebenslauf": 3, "anschreiben": 1}
-NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben"}
+MAX_SEITEN = {"lebenslauf": 3, "anschreiben": 1, "dossier": 8}  # dossier: cover, letter, CV and optional pages
+NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "dossier": "Dossier"}
 MAX_ALTER_TAGE = 14
 CARE_OF = re.compile(r"^(z\.?\s*H\.?(d\.?)?|zu Handen|c/o|Attn\.?:?)\s+", re.IGNORECASE)
 PERSON_LINE = re.compile(r"^(Frau|Herr)\s+((?:(?:Prof\.|Dr\.)\s+)*)(.+)$")
@@ -177,5 +177,8 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
             befunde += contact_person_findings(quelle)
     else:
         befunde.append(Befund("hinweis", "Kein Anschreiben: weder ein Entwurf noch ein eigenes PDF"))
+    dossier = unterlagen.dossier_file(daten, bewerbung)
+    if dossier:  # G40: only while chosen or once sent, so the preset checks what it always did
+        befunde += pruefe_pdf(dossier, "dossier", as_it_is=gesendet)
     reihenfolge = {"fehler": 0, "hinweis": 1, "ok": 2}
     return sorted(befunde, key=lambda b: reihenfolge[b.stufe])
