@@ -25,7 +25,7 @@
   let ki = null;           // /api/ki/status
   let importiert = false;
   let dateiWahl = {};      // per existing Markdown file „behalten“ or „ersetzen“ (G26)
-  let ravBeruehrt = false; // the default for RAV follows the choice until the person picks one
+  let ravBeruehrt = false; // until the person picks one, RAV stays at its preset Nein (#218: employed people are not registered)
   const sitzung = ladeSitzung();  // { bestaetigt, uebersprungen: {vorlage, ki, erweiterung} }
 
   function ladeSitzung() {
@@ -157,7 +157,7 @@
     for (const karte of document.querySelectorAll(".choice-card")) karte.setAttribute("aria-pressed", String(karte.dataset.gesucht === gesucht));
     $("anrede").hidden = gesucht === "lehrstelle";
     $("anrede-lehrstelle").hidden = gesucht !== "lehrstelle";
-    if (!ravBeruehrt) document.querySelector(`input[name=rav][value=${gesucht === "lehrstelle" ? "nein" : "ja"}]`).checked = true;
+    if (!ravBeruehrt) document.querySelector("input[name=rav][value=nein]").checked = true;
   }
 
   function zeigeWahl() {
@@ -521,7 +521,7 @@
     if (!info || bereit()) {
       try { wahl = await holen("/api/einrichtung/wahl"); } catch { wahl = null; }
     }
-    if (!wahl) wahl = { gesucht: "stelle", anrede: "sie", rav: true, gewaehlt: false };
+    if (!wahl) wahl = { gesucht: "stelle", anrede: "sie", rav: false, gewaehlt: false };
     if (info) await ladeKi();
     richteStoreEin();
     window.addEventListener("hashchange", zeige);

@@ -51,7 +51,7 @@ def test_plan_says_the_form_of_address_of_the_setup(search):
 def test_plan_without_profile_is_a_clear_error(server):  # noqa: F811
     status, _, content = get(server, "/api/suche/plan")
     assert status == 400
-    assert "Einstieg" in json.loads(content)["fehler"]
+    assert "Meine Angaben abschliessen" in json.loads(content)["fehler"]
 
 
 def test_extension_flow_screen_send_finish(search):
@@ -112,6 +112,26 @@ def test_take_over_writes_register_and_ad_with_drafts(search):
     ad = (daten / "bewerbungen" / entry["id"] / "stelle.md").read_text(encoding="utf-8")
     assert ad.startswith("Stelle: Python Developer") and ad.endswith("Deutsch fliessend.")
     assert post(search, "/api/suche/uebernehmen", {}, id=hit_id)[0] == 400
+
+
+def test_a_second_merken_speaks_of_ihre_or_deine_bewerbungen(search):
+    post(search, "/api/suche/treffer", {"treffer": [HIT]})
+    hit_id = listing(search)["treffer"][0]["id"]
+    post(search, "/api/suche/uebernehmen", {}, id=hit_id)
+    assert post(search, "/api/suche/uebernehmen", {}, id=hit_id)[1]["fehler"] == "Dieser Treffer ist schon in Ihren Bewerbungen."
+
+    post(search, "/api/einrichtung/wahl", {"gesucht": "stelle", "anrede": "du", "rav": False})
+    assert post(search, "/api/suche/uebernehmen", {}, id=hit_id)[1]["fehler"] == "Dieser Treffer ist schon in deinen Bewerbungen."
+
+
+def test_the_list_says_where_it_searches_and_why_it_cannot_yet(search):
+    found = listing(search)
+    assert found["sperrgrund"] == "" and found["region"]["kantone"] == ["BE", "SO"]
+
+    (search.kontext.daten / "suchprofil.md").unlink()
+    empty = listing(search)
+    assert empty["sperrgrund"] == "Zuerst Meine Angaben abschliessen."
+    assert empty["region"] is None and search_plan.NO_PROFILE not in empty["hinweise"]
 
 
 def test_take_over_twice_at_once_gives_one_application(search):

@@ -22,7 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parent
 SRC = ROOT / "src"
 OUTPUT = ROOT / "dist" / "einstieg.html"
 OUTPUT_APP = ROOT.parent / "bewerbungen" / "seiten" / "angaben.html"
-SCRIPTS = ["validate.js", "model.js", "steps.js", "dom.js", "documents.js", "zip.js", "uploadstore.js", "uploads.js", "app.js"]  # order matters: later files use earlier ones
+SCRIPTS = ["validate.js", "model.js", "presets.js", "steps.js", "dom.js", "documents.js", "zip.js", "uploadstore.js", "uploads.js", "app.js"]  # order matters: later files use earlier ones
 
 
 TITLE = "Einstieg"

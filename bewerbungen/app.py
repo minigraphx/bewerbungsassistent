@@ -67,6 +67,7 @@ SEITEN = {
     "/treffer": "treffer.html",
     "/treffer.js": "treffer.js",
     "/treffer-logik.js": "treffer-logik.js",
+    "/suche-anzeige.js": "suche-anzeige.js",
     "/firmen": "firmen.html",
     "/firmen.js": "firmen.js",
     "/firmen-logik.js": "firmen-logik.js",
