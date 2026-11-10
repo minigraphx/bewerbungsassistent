@@ -25,9 +25,10 @@ TRIAL = "Schnupperlehre"  # register field „art“
 APPRENTICESHIP_MARK = "## Lehrbeginn"  # section only the apprenticeship search profile has
 MODELS = {"rate": "claude-sonnet-5-5", "draft": "claude-opus-5-5", "review": "claude-sonnet-5-5",
           "prefill": "claude-sonnet-5-5", "rate_package": "claude-sonnet-5-5", "form_fields": "claude-haiku-5-5",
-          "form_answers": "claude-sonnet-5-5", "career": "claude-sonnet-5-5", "site_list": "claude-haiku-5-5", "chat": "claude-haiku-5-5"}
+          "form_answers": "claude-sonnet-5-5", "career": "claude-sonnet-5-5", "site_list": "claude-haiku-5-5", "chat": "claude-haiku-5-5",
+          "dossier_texts": "claude-sonnet-5-5"}
 MAX_TOKENS = {"rate": 8000, "draft": 16000, "review": 12000, "prefill": 16000, "rate_package": 12000,
-              "form_fields": 2000, "form_answers": 8000, "career": 4000, "site_list": 6000, "chat": 1500}
+              "form_fields": 2000, "form_answers": 8000, "career": 4000, "site_list": 6000, "chat": 1500, "dossier_texts": 4000}
 GRADES = {g / 2 for g in range(2, 13)}  # 1, 1.5, … 6
 MAX_AD_CHARS = 30_000
 PACKAGE_SIZE = 10
@@ -181,6 +182,20 @@ def _is_draft(data) -> bool:
         return False
     paragraphs = data.get("paragraphs")
     return isinstance(paragraphs, list) and bool(paragraphs) and all(isinstance(p, str) for p in paragraphs)
+
+
+def draft_dossier_texts(gateway: Gateway, material: Material, entry: dict, ad_text: str, letter_text: str,
+                        language: str, model: str | None = None) -> dict:
+    """Greeting and thanks of the dossier (G19); the ad may be empty, a long one is cut like in a package."""
+    ad = (ad_text or "").strip()[:MAX_AD_CHARS]
+    prompt = prompts.dossier_texts_prompt(ad, _details(entry), letter_text, language)
+    answer = _ask(gateway, material, "dossier_texts", prompts.DOSSIER_TEXTS, prompt, prompts.DOSSIER_TEXTS_SCHEMA, model)
+    data = answer.data
+    if not isinstance(data, dict) or not all(isinstance(data.get(key), str) for key in ("greeting", "thanks")):
+        raise AiError(BAD_ANSWER)
+    return {"greeting": data["greeting"].strip(), "thanks": data["thanks"].strip(),
+            "suspicious_lines": _texts(data.get("suspicious_lines")), "model": answer.model,
+            "cost_usd": answer.cost_usd}
 
 
 def review_content(gateway: Gateway, material: Material, ad_text: str, letter_text: str,
