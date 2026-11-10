@@ -36,6 +36,7 @@ Seit der Gestaltung MIN-369 hat die Seite der App das Menü der übrigen Seiten 
 | `src/validate.js`, `validation.py` | dieselben Prüfregeln in JavaScript und Python; gemeinsame Testfälle in `tests/cases.json` |
 | `src/model.js` | Zustand der Vorlage ohne DOM (Datei bauen und lesen) |
 | `src/steps.js` | die fünf Schritte: welche Abschnitte zusammen stehen, pro Zweig |
+| `src/presets.js` | Vorgaben (#218): `preset` in `form.json` (Text, `{"option": n}` oder `{"from": "person.city"}`) füllt ein Feld, das nie einen Wert hatte, auf dem gezeigten Schritt und vor dem Übernehmen; `hiddenFor` fragt ein Feld in einem Zweig nicht mehr, ein Wert von früher bleibt in den Antworten |
 | `src/documents.js`, `documents.py` | Regeln für Unterlagen (Art, Dateityp, Grösse, Anzahl); gemeinsame Testfälle in `tests/cases.json` |
 | `src/zip.js`, `archive.py` | ZIP schreiben und lesen in der Vorlage, sicher lesen beim Import |
 | `src/dom.js`, `src/uploads.js`, `src/app.js`, `src/template.html`, `src/style.css` | Oberfläche |
