@@ -17,13 +17,17 @@
   const offeneFreigabe = daten => Boolean(daten.anschreiben_freigabe?.noetig && !daten.anschreiben_freigabe?.freigegeben);
   const fehler = befunde => (befunde || []).filter(b => b.stufe === "fehler").length;
   const hinweise = befunde => (befunde || []).filter(b => b.stufe === "hinweis").length;
+  /** Both files are built and, with a dossier chosen (G40), the dossier too. */
+  function gebaut(daten) {
+    const pdfs = daten.pdfs || {};
+    return Boolean(pdfs.lebenslauf && pdfs.anschreiben && (daten.bewerbung.unterlagen !== "dossier" || pdfs.dossier));
+  }
 
   /** For each step: { id, erledigt, meta } — meta is the short line under the step. */
   function schritte(daten, { befunde = null, rav = false, du = false } = {}) {
     const b = daten.bewerbung;
     const gesendet = versendet(b);
-    const pdfs = daten.pdfs || {};
-    const gebaut = Boolean(pdfs.lebenslauf && pdfs.anschreiben);
+    const fertig = gebaut(daten);
     const variantenDa = (daten.varianten || []).length > 0;
     const stand = {
       stelle: {
@@ -40,8 +44,8 @@
           : offeneFreigabe(daten) ? "lesen und freigeben" : daten.anschreiben_freigabe?.freigegeben ? "freigegeben" : "vorhanden",
       },
       pruefen: {
-        erledigt: gesendet || (gebaut && befunde !== null && fehler(befunde) === 0),
-        meta: !gebaut ? (gesendet ? "" : "PDFs erstellen") : befunde === null ? "wird geprüft" : fehler(befunde)
+        erledigt: gesendet || (fertig && befunde !== null && fehler(befunde) === 0),
+        meta: !fertig ? (gesendet ? "" : "PDFs erstellen") : befunde === null ? "wird geprüft" : fehler(befunde)
           ? `${fehler(befunde)} Fehler` : hinweise(befunde)
             ? `${hinweise(befunde)} ${hinweise(befunde) === 1 ? "Hinweis" : "Hinweise"}` : "in Ordnung",
       },
@@ -75,11 +79,9 @@
       case "anschreiben":
         if (daten.hat_anschreiben) return { art: "freigeben", ziel: "s-anschreiben" };
         return { art: ki ? "entwerfen" : "eigenes", ziel: "s-anschreiben" };
-      case "pruefen": {
-        const pdfs = daten.pdfs || {};
-        if (!(pdfs.lebenslauf && pdfs.anschreiben)) return { art: "erstellen", ziel: "s-pruefen" };
+      case "pruefen":
+        if (!gebaut(daten)) return { art: "erstellen", ziel: "s-pruefen" };
         return { art: befunde === null ? "pruefen" : "klaeren", ziel: "s-pruefen" };
-      }
       case "abschicken": return { art: b.formular_link || b.link ? "formular" : "versand", ziel: "s-abschicken" };
       case "festhalten":
         if (b.versand) return { art: "jobroom", ziel: "s-festhalten" };

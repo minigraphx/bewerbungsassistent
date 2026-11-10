@@ -80,6 +80,12 @@
       <section class="card" id="s-pruefen" aria-labelledby="pruefen-titel">
         <h2 id="pruefen-titel">Unterlagen prüfen</h2>
         <p>Erstellt den Lebenslauf aus der gewählten Variante und das Anschreiben als PDF und prüft beide. Fehlt noch ein Anschreiben, entwirft die KI zuerst eines, wenn sie eingerichtet ist.</p>
+        <fieldset class="choice-group" id="unterlagen-wahl">
+          <legend>Unterlagen als</legend>
+          <label class="check"><input type="radio" name="unterlagen" value="einzeln" checked> Anschreiben und Lebenslauf (Vorgabe)</label>
+          <label class="check"><input type="radio" name="unterlagen" value="dossier"> Dossier</label>
+          <p class="field__hint">Das Dossier ist ein PDF mit Deckblatt, Anschreiben und Lebenslauf. Anschreiben und Lebenslauf liegen dann im selben Design auch einzeln bereit, für Formulare, die zwei Dateien verlangen.</p>
+        </fieldset>
         <div class="btn-row"><button type="button" class="btn" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen">Erneut prüfen</button></div>
         <ul class="befunde" id="befunde"></ul>
         <div class="pdfs" id="pdfs"></div>
@@ -216,6 +222,7 @@
 <script src="/einwilligung.js"></script>
 <script src="/formular-logik.js"></script>
 <script src="/bewerbung-logik.js"></script>
+<script src="/unterlagen-wahl.js"></script>
 <script src="/eigenes-anschreiben.js"></script>
 <script src="/dateien-ordner.js"></script>
 <script src="/bewerbung.js"></script>

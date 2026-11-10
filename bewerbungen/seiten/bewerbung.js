@@ -6,6 +6,7 @@
   const { holen, senden, el, status, datum, url, bestaetigen, beobachten } = window.App;
   const { fehltAnschreiben, geaenderteFelder } = window.FormularLogik;
   const L = window.BewerbungLogik;
+  const W = window.UnterlagenWahl;
   const { text: textAus } = window.Texte;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
@@ -252,6 +253,8 @@
     $("formular-teil").hidden = Boolean(b.versand) || !(b.formular_link || b.link);
     $("versand-form").hidden = Boolean(b.versand);
     $("erstellen").hidden = Boolean(b.versand);
+    $("unterlagen-wahl").hidden = Boolean(b.versand);
+    for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) knopf.checked = knopf.value === W.gewaehlt(b);
     $("antwort-teil").hidden = !gesendet;
     $("jobroom-teil").hidden = !rav || !gesendet;
     $("s-festhalten").hidden = !gesendet;
@@ -351,8 +354,7 @@
 
   function zeigePdfs(pdfs) {
     const stand = Date.now();
-    const rahmen = [["lebenslauf", "Lebenslauf"], ["anschreiben", "Anschreiben"]]
-      .filter(([art]) => pdfs[art])
+    const rahmen = W.rahmen(pdfs, bewerbung ? W.gewaehlt(bewerbung) : W.VOREINSTELLUNG)
       .map(([art, name]) => el("figure", {}, el("figcaption", {}, name),
         el("iframe", { src: url("/api/pdf", { id: ID, art, stand }), title: name })));
     $("pdfs").replaceChildren(...(rahmen.length ? rahmen : [el("p", { class: "leer" }, "Noch keine Unterlagen erstellt.")]));
@@ -610,6 +612,20 @@
       meldungOben(fehler.message, "fehler");
     }
   });
+  /** G40: saved right away; the PDFs shown follow the choice. */
+  async function waehleUnterlagen(event) {
+    const body = W.zuSpeichern(bewerbung, event.target.value);
+    if (!body) return;
+    try {
+      bewerbung = await senden("/api/bewerbung", body);
+      meldungOben(body.unterlagen === "dossier" ? "Dossier gewählt" : "Anschreiben und Lebenslauf gewählt", "ok");
+      await laden();
+    } catch (fehler) {
+      zeigeAbschnitte();
+      meldungOben("Speichern fehlgeschlagen: " + fehler.message, "fehler");
+    }
+  }
+  for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) knopf.addEventListener("change", waehleUnterlagen);
   $("erstellen").addEventListener("click", async () => {
     $("erstellen").disabled = true; // a second click would pay for a second draft
     try {
