@@ -15,6 +15,7 @@ import threading
 import urllib.parse
 
 from dateien import lies_yaml, schreibe_atomar, schreibe_yaml
+from preferences import SAVED_IN, SIE
 from register import slug
 
 FOLDER = "suche"
@@ -47,7 +48,7 @@ CLOSED = {"Absage", "Verworfen", "Zurückgezogen"}
 AGENCIES = ("Adecco", "Manpower", "Randstad", "Hays", "Michael Page", "Page Personnel", "Robert Half", "Kelly Services",
             "Gi Group", "Universal-Job", "Careerplus", "Coople", "Interiman", "Persona Service", "Yellowshark")
 AGENCY_CLOSED = CLOSED | {"Zusage"}
-AGENCY_TWIN = "Könnte dieselbe Stelle sein wie „{stelle}“ bei {firma} ({status}) im Register."
+AGENCY_TWIN = "Könnte dieselbe Stelle sein wie „{stelle}“ bei {firma} ({status}) {saved_in}."
 TITLE_FILLERS = frozenset({"und", "mit", "für", "fuer", "der", "die", "das", "als", "im", "in", "zur", "zum", "von"})
 MIN_TITLE_OVERLAP = 0.75  # share of the shorter title's words both titles have
 _LOCK = threading.Lock()
@@ -273,13 +274,14 @@ def _close_title(title: str, other: str) -> bool:
     return bool(shared) and shared / min(len(ours), len(theirs)) >= MIN_TITLE_OVERLAP
 
 
-def agency_hint(hit: dict, register: list[dict], agencies: tuple[str, ...]) -> str:
+def agency_hint(hit: dict, register: list[dict], agencies: tuple[str, ...], saved_in: str = SAVED_IN[SIE]) -> str:
     """An agency hides the company: an open entry with a close title and the same pensum may be this job (G34)."""
     if not _is_agency(hit["firma"], (*AGENCIES, *agencies)):
         return ""
     same = [b for b in register if b.get("status") not in AGENCY_CLOSED and b.get("stelle")
             and _close_title(hit["stelle"], b["stelle"]) and _same_pensum(hit, b)]
-    return " ".join(AGENCY_TWIN.format(stelle=b["stelle"], firma=b.get("firma") or "unbekannt", status=b.get("status") or "Gemerkt")
+    return " ".join(AGENCY_TWIN.format(stelle=b["stelle"], firma=b.get("firma") or "unbekannt", status=b.get("status") or "Gemerkt",
+                                       saved_in=saved_in)
                     for b in same[:2])
 
 
@@ -379,7 +381,7 @@ class Hits:
 
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
             own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = (),
-            check=lambda title, text: "") -> dict:
+            check=lambda title, text: "", saved_in: str = SAVED_IN[SIE]) -> dict:
         """Store new hits; the same job from another portal only adds its link. `agencies`: more from the profile (G34).
 
         `check` is the pre-check by fixed rules (G33): its reason stays on the hit as `vorpruefung`, the hit stays too.
@@ -404,7 +406,7 @@ class Hits:
                     continue
                 text = hit.pop("text")
                 entry = {"id": hit_id(hit), **hit, "gefunden_am": today.isoformat(), "zustand": "neu"}
-                hint = company_hint(entry, register) or agency_hint(entry, register, agencies)
+                hint = company_hint(entry, register) or agency_hint(entry, register, agencies, saved_in)
                 if hint:
                     entry["hinweis"] = hint
                 reason = check(entry["stelle"], text) if text else ""

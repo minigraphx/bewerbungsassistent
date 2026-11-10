@@ -14,7 +14,7 @@ from ai import career
 from dateien import schreibe_atomar
 from server import json_antwort
 
-NO_PROFILE = "Es gibt noch kein Suchprofil. Zuerst den Einstieg abschliessen."
+NO_PROFILE = search_plan.NO_PROFILE
 BOTH_NEEDED = {search_plan.KIND_APPRENTICESHIP: "Schreib zu beidem etwas: was du gern machst und was du gut kannst.",
                search_plan.KIND_JOB: "Bitte zu beidem etwas schreiben: Interessen und Fähigkeiten."}
 NOT_VALID = {search_plan.KIND_APPRENTICESHIP: "Das ist kein Beruf mit EFZ oder EBA.",
