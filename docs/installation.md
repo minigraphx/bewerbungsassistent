@@ -99,7 +99,7 @@ Bei Lehrstellen: Wählen Sie **Eine Lehrstelle**, auch wenn Sie die App für Ihr
 
 #### Angaben aus einer Datei
 
-Liegt im Ordner Downloads eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus Claude, zeigt die Einrichtung nach Schritt 1 den Schritt **Datei** mit dieser Datei. Klicken Sie auf **Importieren**, oder auf **Überspringen**, wenn Sie Ihre Angaben lieber unter **Meine Angaben** erfassen. Liegt die Datei anderswo, finden Sie den Import unten auf der Seite unter **Erweitert**, **Datei übernehmen**; die Datei wählen Sie dort mit **Datei wählen …**.
+Liegt im Ordner Downloads eine Datei aus der Einstiegsvorlage oder aus Claude, etwa `einstieg-erika-muster.zip` oder `einstieg.json`, zeigt die Einrichtung nach Schritt 1 den Schritt **Datei** mit dieser Datei. Klicken Sie auf **Importieren**, oder auf **Überspringen**, wenn Sie Ihre Angaben lieber unter **Meine Angaben** erfassen. Liegt die Datei anderswo, finden Sie den Import unten auf der Seite unter **Erweitert**, **Datei übernehmen**; die Datei wählen Sie dort mit **Datei wählen …**.
 
 Liegen Suchprofil, Stilprofil oder Bausteine schon im Datenordner, fragt die App pro Datei, ob sie bleibt. Das geht wie unter [Angaben erfassen](#angaben-erfassen) beschrieben, abschliessend mit **Mit dieser Wahl importieren**.
 

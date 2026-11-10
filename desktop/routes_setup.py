@@ -21,7 +21,8 @@ import setup
 DIALOG_KINDS = ("ordner", "datei")
 UNKNOWN_CHOICE = "Die Wahl der Dateien hat eine unbekannte Form."
 # einstieg.zip or einstieg.json, also as browsers name a second download: „einstieg (1).zip“, „einstieg-1.zip“
-EINSTIEG_FILE = re.compile(r"einstieg(?: ?\(\d+\)|-\d+)?\.(?:zip|json)", re.IGNORECASE)
+# The template names its download einstieg-<name of the person>; browsers add " (1)" to a second one.
+EINSTIEG_FILE = re.compile(r"einstieg(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?(?: ?\(\d+\))?\.(?:zip|json)", re.IGNORECASE)
 
 
 @dataclasses.dataclass

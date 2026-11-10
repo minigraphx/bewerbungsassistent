@@ -246,7 +246,10 @@ def test_the_newest_einstieg_file_in_downloads_is_named(started, tmp_path):
 
 
 @pytest.mark.parametrize("name, found", [("einstieg.zip", True), ("Einstieg.JSON", True), ("einstieg (2).json", True),
-                                         ("einstieg-1.zip", True), ("einstieg.yaml", False), ("mein-einstieg.zip", False)])
+                                         ("einstieg-1.zip", True), ("einstieg.yaml", False), ("mein-einstieg.zip", False),
+                                         # the template names its download after the person (onboarding/src/app.js fileName)
+                                         ("einstieg-erika-muster.zip", True), ("einstieg-erika-muster (1).zip", True),
+                                         ("einstieg-erika-muster.json", True), ("einstieg-erika-muster.pdf", False)])
 def test_which_names_count_as_einstieg_file(tmp_path, name, found):
     (tmp_path / name).write_bytes(b"{}")
 
