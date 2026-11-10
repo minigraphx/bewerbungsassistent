@@ -180,6 +180,32 @@ test("the page asks for the status after a while without progress, not at once",
   assert.ok(logik.STILLE_MS >= 5000 && logik.STILLE_MS <= 60000);
 });
 
+// Own stars per hit (G22, #158): the list sorts by them, by the grade or by date.
+const eigene = [
+  { id: "ohne-alt", gefunden_am: "2026-10-01", bewertung: { note: 6 } },
+  { id: "drei", gefunden_am: "2026-10-02", eigene_sterne: 3, bewertung: { note: 4 } },
+  { id: "fuenf", gefunden_am: "2026-09-01", eigene_sterne: 5 },
+  { id: "ohne-neu", gefunden_am: "2026-10-05", bewertung: { note: 5 } },
+];
+
+test("sorted by own stars, rated hits come first and the rest keeps the grade order", () => {
+  assert.deepEqual(logik.sortiert(eigene, {}, "eigene").map((t) => t.id), ["fuenf", "drei", "ohne-alt", "ohne-neu"]);
+});
+
+test("sorted by date, the newest come first", () => {
+  assert.deepEqual(logik.sortiert(eigene, {}, "datum").map((t) => t.id), ["ohne-neu", "drei", "ohne-alt", "fuenf"]);
+});
+
+test("sorted by grade, own stars do not count", () => {
+  assert.deepEqual(logik.sortiert(eigene, {}, "note").map((t) => t.id), ["ohne-alt", "ohne-neu", "drei", "fuenf"]);
+  assert.deepEqual(logik.sortiert(eigene, {}).map((t) => t.id), ["ohne-alt", "ohne-neu", "drei", "fuenf"]);
+});
+
+test("an unknown order falls back to the grade", () => {
+  assert.equal(logik.gueltigeSortierung("zufall"), "note");
+  assert.equal(logik.gueltigeSortierung("eigene"), "eigene");
+});
+
 test("a hit that failed the pre-check comes below the rest, even with stars or a grade (G33)", () => {
   const hits = [
     { id: "failed", beruf: "Pflege", vorpruefung: "Verlangt Master, vorhanden ist Bachelor.", bewertung: { note: 5 }, nah: true },
@@ -194,4 +220,15 @@ test("a hit that failed the pre-check is rated last, so the limit of a run takes
     { id: "far", zustand: "neu", gefunden_am: "2026-11-01" },
   ]);
   assert.deepEqual(found.map((t) => t.id), ["far", "failed"]);
+});
+
+test("in every order a hit that failed the pre-check stays below the rest, own stars or not (G22, G33)", () => {
+  const hits = [
+    { id: "failed", gefunden_am: "2026-11-05", eigene_sterne: 5, bewertung: { note: 6 }, vorpruefung: "Verlangt Master, vorhanden ist Bachelor." },
+    { id: "starred", gefunden_am: "2026-10-01", eigene_sterne: 2, bewertung: { note: 3 } },
+    { id: "plain", gefunden_am: "2026-10-03", bewertung: { note: 4 } },
+  ];
+  assert.deepEqual(logik.sortiert(hits, {}, "eigene").map((t) => t.id), ["starred", "plain", "failed"]);
+  assert.deepEqual(logik.sortiert(hits, {}, "datum").map((t) => t.id), ["plain", "starred", "failed"]);
+  assert.deepEqual(logik.sortiert(hits, {}, "note").map((t) => t.id), ["plain", "starred", "failed"]);
 });

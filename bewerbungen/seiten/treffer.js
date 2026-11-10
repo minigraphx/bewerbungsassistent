@@ -12,7 +12,7 @@
 
   let alle = [];
   let gezeigt = "";  // the hits as last loaded, to see whether Claude changed them
-  let einstellungen = { auto_bewerten: true, zuschauen: false, beruf_sterne: {} };
+  let einstellungen = { auto_bewerten: true, zuschauen: false, beruf_sterne: {}, sortierung: "note" };
   let paket = 10;
   let grenze = 30;
   let lehrstelle = false;
@@ -144,7 +144,8 @@
         el("h2", { id: "detail-titel" }, treffer.stelle),
         el("p", {}, [treffer.firma, rahmen].filter(Boolean).join(", ")),
         el("p", { class: "search__hint" }, el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, `Inserat auf ${treffer.portal} öffnen`),
-          ` · gefunden ${datum(treffer.gefunden_am)}`, treffer.alter_tage !== undefined ? ` · ${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : "")),
+          ` · gefunden ${datum(treffer.gefunden_am)}`, treffer.alter_tage !== undefined ? ` · ${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : ""),
+        eigeneSterne(treffer)),
       treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Schon im Register"), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
       treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Passt nach den festen Regeln nicht"), el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
       el("article", { class: "ai-result" },
@@ -161,6 +162,24 @@
         { lehrstelle, alle: t("firmen.alle"), wo: t("firmen.titel"), nachPruefen: kununuGeprueft }),
       weitere.length ? el("ul", { class: "search__more" }, weitere) : null,
       el("div", { class: "btn-row" }, knopf), textFeld].filter(Boolean));
+  }
+
+  // Own stars per hit (G22): only for the order of the list; they never go to the AI and leave its grade alone.
+  function eigeneSterne(treffer) {
+    const aktuell = treffer.eigene_sterne || 0;
+    const knoepfe = [1, 2, 3, 4, 5].map(zahl => el("button", {
+      type: "button", "aria-label": `${zahl} von 5 Sternen für diesen Treffer`, "aria-pressed": String(zahl === aktuell),
+      onclick: () => eigeneSterneSetzen(treffer, zahl === aktuell ? 0 : zahl),
+    }, zahl <= aktuell ? "★" : "☆"));
+    return el("p", { role: "group", "aria-label": "Eigene Bewertung" },
+      "Eigene Bewertung: ", el("span", { class: "sterne" }, knoepfe),
+      el("span", { class: "search__hint" }, "Nur für die Reihenfolge der Liste, geht nicht an die KI."));
+  }
+
+  function eigeneSterneSetzen(treffer, anzahl) {
+    senden("/api/suche/sterne", { sterne: anzahl }, { id: treffer.id })
+      .then(neu => { alle = alle.map(x => x.id === neu.id ? neu : x); zeigeListe(); })
+      .catch(fehler => meldung(fehler.message, "fehler"));
   }
 
   // „Jetzt prüfen“ (#191): the app has stored the value, so badge and company line load it again.
@@ -184,6 +203,7 @@
       treffer.hinweis ? "schon im Register" : "",
       treffer.vorpruefung ? "passt nicht: " + treffer.vorpruefung : "",
       sterne ? `${"★".repeat(sterne)}` : "",
+      treffer.eigene_sterne ? `Eigene: ${"★".repeat(treffer.eigene_sterne)}` : "",
     ].filter(Boolean);
     const knopf = el("button", { type: "button", class: "hit", "aria-current": String(treffer.id === gewaehlt) },
       el("span", { class: "hit__grades" }, noten(treffer)),
@@ -206,7 +226,9 @@
     $("art").hidden = !logik.beideArten(alle);
     const art = $("art").hidden ? "" : $("art").value;
     const passend = logik.nachArt(alle.filter(x => x.zustand === zustand), art);
-    const sichtbar = logik.sortiert(passend, einstellungen.beruf_sterne);
+    const sortierung = logik.gueltigeSortierung(einstellungen.sortierung);
+    $("sortierung").value = sortierung;
+    const sichtbar = logik.sortiert(passend, einstellungen.beruf_sterne, sortierung);
     for (const knopf of document.querySelectorAll("[data-zustand]")) knopf.setAttribute("aria-pressed", String(knopf.dataset.zustand === zustand));
     for (const name of ["neu", "uebernommen", "verworfen"]) document.querySelector(`[data-zahl=${name}]`).textContent = String(alle.filter(x => x.zustand === name).length);
     if (!sichtbar.some(x => x.id === gewaehlt)) gewaehlt = sichtbar[0]?.id ?? null;
@@ -440,6 +462,11 @@
   });
   for (const knopf of document.querySelectorAll("[data-zustand]")) knopf.addEventListener("click", () => { zustand = knopf.dataset.zustand; zeigeListe(); });
   $("art").addEventListener("change", zeigeListe);
+  $("sortierung").addEventListener("change", () => {
+    senden("/api/suche/einstellungen", { sortierung: $("sortierung").value })
+      .then(neu => { einstellungen = neu; zeigeListe(); })
+      .catch(fehler => meldung(fehler.message, "fehler"));
+  });
   $("angebot").addEventListener("change", async () => {
     try {
       const { angebote } = await senden("/api/suche/angebot", { wahl: $("angebot").value });
