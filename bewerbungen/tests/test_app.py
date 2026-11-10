@@ -420,7 +420,7 @@ def test_foto_optionen_vorschau_speichern(server):
 
 def test_photo_is_reported_as_present(server):
     status, _, inhalt = get(server, "/api/foto/vorhanden")
-    assert status == 200 and json.loads(inhalt) == {"vorhanden": True}
+    assert status == 200 and json.loads(inhalt)["vorhanden"] is True
 
 
 def test_missing_photo_is_optional_not_an_error(server):
@@ -428,7 +428,7 @@ def test_missing_photo_is_optional_not_an_error(server):
     cv.write_text(cv.read_text(encoding="utf-8").replace("  image: foto.png\n", "", 1), encoding="utf-8")
 
     status, _, inhalt = get(server, "/api/foto/vorhanden")
-    assert status == 200 and json.loads(inhalt) == {"vorhanden": False}
+    assert status == 200 and json.loads(inhalt)["vorhanden"] is False
 
 
 def test_foto_ungueltig(server):

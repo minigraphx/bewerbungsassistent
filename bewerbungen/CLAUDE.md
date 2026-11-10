@@ -7,6 +7,7 @@ Verwaltung und lokale Oberfläche des Bewerbungsbegleiters (MIN-261 Ablauf, MIN-
 - `server.py` – nur 127.0.0.1, Token pro Start (GET `t`, POST `X-Token` + JSON), Seiten nur mit Sitzung (`entry_url` setzt das Cookie), Host-Prüfung, CSP ohne Inline-Skripte; ValueError → 400, KeyError → 404.
 - `kontext.py` – Datenordner, Build-Ordner, Ablage, Versionierung; `mit_entwurf` legt beim Schreiben Entwürfe davor/danach an.
 - `ablage.py` – Entwürfe in `.entwuerfe/` (SHA-256, Index); löschbar solange nicht genutzt.
+- `routen_foto.py`, `photo_file.py` – Seite „Foto“: Ausschnitt und, ohne Foto, Hochladen (#128) als `foto.jpg` oder `foto.png` im Datenordner, höchstens 10 MB, mit Entwürfen von Foto und `cv.yaml` davor und danach. `photo_file` entfernt die Metadaten ohne Bildbibliothek (Segmente und Chunks kopiert, nur die Ausrichtung bleibt als eigenes EXIF); ob das Bild wirklich lesbar ist, prüft ein Probesatz mit Typst. Pillow gibt es nur in den Tests.
 - `versionen.py` – zusätzlicher Git-Commit beim Versand, nur wenn Git installiert ist (nur die genannten Dateien, Ersatz-Autor ohne Git-Konfiguration); ohne Git `OhneGit`. Die eigene Ablage ist auch ohne Git vollständig (MIN-304).
 - `register.py` – `bewerbungen.yaml`, Prüfung, IDs, Job-Room-Angaben (nur abgeleitet, nie gespeichert), Import/Export im Format der Jobliste.
 - `varianten.py` – `varianten.yaml`, Vorschlag per Stichwort-Abgleich.

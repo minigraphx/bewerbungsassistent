@@ -18,6 +18,13 @@
     <p class="field__hint" id="anleitung">Ziehen verschiebt den Ausschnitt, das Mausrad zoomt. Mit der Tastatur: Pfeiltasten verschieben, + und − zoomen, M spiegelt.</p>
   </header>
 
+  <section class="card" id="hochladen" hidden aria-labelledby="hochladen-titel">
+    <h2 id="hochladen-titel">Foto hochladen</h2>
+    <p>Ein Foto als JPG oder PNG, höchstens <span id="max-groesse">10</span> MB. Angaben zu Kamera, Ort und Zeit im Bild werden nicht gespeichert. Danach stellen Sie hier den Ausschnitt ein.</p>
+    <label class="datei-waehlen">Foto wählen<input type="file" id="foto-datei" accept="image/jpeg,image/png"></label>
+    <div id="hochladen-status" class="status" role="status" aria-live="polite"></div>
+  </section>
+
   <div class="card foto-raster" id="editor">
     <div>
       <div id="kreis" tabindex="0" role="img" aria-label="Vorschau des Fotoausschnitts">

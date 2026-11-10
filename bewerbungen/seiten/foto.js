@@ -144,13 +144,44 @@ el("speichern").addEventListener("click", async () => {
 });
 window.addEventListener("beforeunload", e => { if (!gleich(stand, gespeichert)) e.preventDefault(); });
 
-// Without a photo (it is optional) only a plain note is shown instead of the editor
-function ohneFoto() {
+// Without a photo (it is optional) the page offers to upload one instead of the editor (#128)
+const BYTES_PER_MB = 1000000;
+let maxGroesse = 0;
+
+function ohneFoto(groesse) {
+  maxGroesse = groesse;
+  el("max-groesse").textContent = String(groesse / BYTES_PER_MB);
   el("ohne-foto").hidden = false;
+  el("hochladen").hidden = false;
   el("anleitung").hidden = true;
   el("editor").hidden = true;
   gespeichert = { ...stand };  // nothing to save, no warning when leaving
 }
+
+function mitFoto() {
+  el("ohne-foto").hidden = true;
+  el("hochladen").hidden = true;
+  el("anleitung").hidden = false;
+  el("editor").hidden = false;
+}
+
+el("foto-datei").addEventListener("change", async e => {
+  const datei = e.target.files[0];
+  e.target.value = "";
+  if (!datei) return;
+  const melde = (text, art) => window.App.status(el("hochladen-status"), text, art);
+  if (datei.size > maxGroesse) return melde(`${datei.name} ist zu gross, höchstens ${maxGroesse / BYTES_PER_MB} MB.`, "fehler");
+  melde("Foto wird gespeichert …");
+  try {
+    await window.App.senden("/api/foto/hochladen", { name: datei.name, daten: await window.App.alsBase64(datei) });
+    melde("");
+    await start();
+    status("Foto gespeichert. Den Ausschnitt hier einstellen.", "ok");
+    window.App.letzteEntwuerfe(el("verlauf"), CV);
+  } catch (fehler) {
+    melde(fehler.message, "fehler");
+  }
+});
 
 // Start: Werte aus der Datei und Seitenverhältnis des Originalfotos
 async function start() {
@@ -158,7 +189,8 @@ async function start() {
     const pruefung = await fetch("/api/foto/vorhanden?t=" + encodeURIComponent(TOKEN));
     const foto = await pruefung.json();
     if (!pruefung.ok) throw new Error(foto.fehler);
-    if (!foto.vorhanden) return ohneFoto();
+    if (!foto.vorhanden) return ohneFoto(foto.max_groesse);
+    mitFoto();
     const antwort = await fetch("/api/foto/optionen?t=" + encodeURIComponent(TOKEN));
     const daten = await antwort.json();
     if (!antwort.ok) throw new Error(daten.fehler);
