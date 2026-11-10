@@ -125,3 +125,17 @@ test("the portal choice shows the reason of ictjobs from the text set", () => {
   assert.match(script, /`suche\.ictjobs\.\$\{portal\.grund\}`/);
   assert.match(script, /begriff: portal\.begriff/);
 });
+
+test("the empty overview names Merken like the search page does since #220 (#229)", () => {
+  const erwartet = {
+    "stelle-sie": "Noch keine Bewerbungen. Klicken Sie in der Suche bei einer Stelle auf «Merken» oder erfassen Sie eine von Hand.",
+    "stelle-du": "Noch keine Bewerbungen. Klicke in der Suche bei einer Stelle auf «Merken» oder erfasse eine von Hand.",
+    "lehrstelle-du": "Noch keine Bewerbungen. Klicke in der Suche bei einer Lehrstelle auf «Merken» oder erfasse eine von Hand.",
+  };
+  for (const [satz, text] of Object.entries(erwartet)) assert.equal(texte.text("uebersicht.liste-leer", satz), text, satz);
+  const html = seite("uebersicht.html");
+  assert.ok(html.includes(`data-text="uebersicht.liste-leer" hidden>${erwartet["stelle-sie"]}</p>`));
+  for (const alt of ["Übernehmen Sie eine Stelle aus der Suche", "Übernimm eine"]) {
+    assert.ok(!html.includes(alt) && !JSON.stringify(texte.TEXTE["uebersicht.liste-leer"]).includes(alt), alt);
+  }
+});
