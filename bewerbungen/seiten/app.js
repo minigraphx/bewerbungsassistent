@@ -72,9 +72,9 @@ window.App = (() => {
     return e;
   }
 
-  function status(element, text, art = "") {
-    element.textContent = text;
-    element.className = "status " + art;
+  // Every message goes through the one helper (meldungen.js, #215): errors stay until closed, others fade.
+  function status(element, text, art = "", optionen = {}) {
+    window.Meldungen.zeige(element, text, art, optionen);
   }
 
   function alsBase64(datei) {
@@ -345,9 +345,13 @@ window.App = (() => {
     setTimeout(() => URL.revokeObjectURL(adresse), DOWNLOAD_BEHALTEN_MS);  // the browser reads it after the click
   }
 
-  function sicherungsMeldung(art, ...inhalt) {
-    document.getElementById("sicherung-meldung")?.remove();
-    document.querySelector("main")?.prepend(el("p", { id: "sicherung-meldung", class: "status " + art, role: "status" }, ...inhalt));
+  function sicherungsMeldung(art, inhalt, optionen = {}) {
+    let zeile = document.getElementById("sicherung-meldung");
+    if (!zeile) {
+      zeile = el("p", { id: "sicherung-meldung", class: "status", role: "status" });
+      document.querySelector("main")?.prepend(zeile);
+    }
+    status(zeile, inhalt, art, optionen);
   }
 
   async function sicherungGespeichert(datei) {
@@ -359,8 +363,8 @@ window.App = (() => {
   // Without the dialog the page cannot know whether the download arrived, so the person says so.
   async function sicherungAlsDownload(datei) {
     ladeSicherungHerunter(await holeSicherung(), datei);
-    sicherungsMeldung("", `Der Browser lädt ${datei} herunter. `, el("button", { type: "button", onclick: () =>
-      sicherungGespeichert(datei).catch(fehler => sicherungsMeldung("fehler", fehler.message)) }, "Datei ist gespeichert"));
+    sicherungsMeldung("", `Der Browser lädt ${datei} herunter.`, { aktion: { text: "Datei ist gespeichert", ausfuehren: () =>
+      sicherungGespeichert(datei).catch(fehler => sicherungsMeldung("fehler", fehler.message)) } });
   }
 
   async function erstelleSicherung() {

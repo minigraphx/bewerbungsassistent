@@ -44,14 +44,7 @@
   const meldungOben = (text, stufe = "") => zeile($("status-oben"), text, stufe);
   const pruefbar = d => d.pdfs.lebenslauf || d.pdfs.anschreiben;
   const meldeGeladen = d => document.dispatchEvent(new CustomEvent("bewerbung-geladen", { detail: d }));
-  const STUFE = { ok: "success", hinweis: "warning", fehler: "danger" };
-
-  function zeile(element, text, stufe = "") {
-    element.textContent = text;
-    const level = STUFE[stufe] || stufe;
-    if (level) element.dataset.level = level;
-    else delete element.dataset.level;
-  }
+  const zeile = (element, text, stufe = "", optionen = {}) => window.Meldungen.zeige(element, text, stufe, optionen);
 
   function optionen(select, werte, gewaehlt) {
     select.replaceChildren(...werte.map(([wert, text]) => el("option", { value: wert, selected: wert === gewaehlt }, text)));

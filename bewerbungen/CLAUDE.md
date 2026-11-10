@@ -4,6 +4,7 @@ Verwaltung und lokale Oberfläche des Bewerbungsbegleiters (MIN-261 Ablauf, MIN-
 
 ## Aufbau
 - `app.py` – Einstieg: `python app.py <datenordner>`; Server (`server.py`), Routen (`routen_*.py`), Seiten (`seiten/`).
+- `seiten/meldungen.js` – alle Statusmeldungen der Seiten (#215), über `App.status` oder `Meldungen.zeige`: Hinweise und Fehler mit Knopf „Meldung schliessen“, bleiben bis dahin oder bis eine neuere Meldung kommt; andere verschwinden nach etwa acht Sekunden, nicht solange Zeiger oder Fokus darauf liegt; eine Meldung mit Aktion bleibt, bis die Aktion genutzt ist. Jede Seite lädt es vor `app.js`; keine Seite setzt `data-level` oder die Klasse einer Meldung selbst (`tests/meldungen.test.cjs`).
 - `server.py` – nur 127.0.0.1, Token pro Start (GET `t`, POST `X-Token` + JSON), Seiten nur mit Sitzung (`entry_url` setzt das Cookie), Host-Prüfung, CSP ohne Inline-Skripte; ValueError → 400, KeyError → 404.
 - `kontext.py` – Datenordner, Build-Ordner, Ablage, Versionierung; `mit_entwurf` legt beim Schreiben Entwürfe davor/danach an.
 - `ablage.py` – Entwürfe in `.entwuerfe/` (SHA-256, Index); löschbar solange nicht genutzt.

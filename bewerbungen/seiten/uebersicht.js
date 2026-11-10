@@ -45,11 +45,7 @@
 
   // Small helpers
 
-  function meldung(inhalt, stufe = "") {
-    $("lauf-status").textContent = inhalt;
-    if (stufe) $("lauf-status").dataset.level = stufe;
-    else delete $("lauf-status").dataset.level;
-  }
+  const meldung = (inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige($("lauf-status"), inhalt, stufe, optionen);
 
   const t = (schluessel, werte) => text(schluessel, satz, werte);
   const lehrstelle = () => satz === "lehrstelle-du";
@@ -456,8 +452,7 @@
       const b = await senden("/api/bewerbung/neu", { firma: $("neu-firma").value, stelle: $("neu-stelle").value });
       location.href = adresse(b);
     } catch (fehler) {
-      $("neu-status").textContent = fehler.message;
-      $("neu-status").dataset.level = "danger";
+      window.Meldungen.zeige($("neu-status"), fehler.message, "danger");
       $("neu-anlegen").disabled = false;
     }
   }
@@ -475,7 +470,7 @@
     const offen = erinnerung ? erinnerung.ids.filter(id => ravGruende.get(id) === null) : [];
     startRav(offen.slice(0, maxRav), e.currentTarget);
   });
-  $("von-hand").addEventListener("click", () => { $("neu-status").textContent = ""; $("neu-dialog").showModal(); $("neu-firma").focus(); });
+  $("von-hand").addEventListener("click", () => { window.Meldungen.leere($("neu-status")); $("neu-dialog").showModal(); $("neu-firma").focus(); });
   $("neu-abbrechen").addEventListener("click", () => $("neu-dialog").close());
   $("neu-form").addEventListener("submit", anlegen);
   $("alle-waehlen").addEventListener("change", waehleAlle);
