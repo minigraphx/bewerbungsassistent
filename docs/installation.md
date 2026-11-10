@@ -331,7 +331,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Dateno
   - `bewerbungen/<id>/anschreiben.yaml` – Ihr Anschreiben, entworfen und geändert auf der Seite der Bewerbung.
   - `bewerbungen/<id>/lebenslauf.pdf` und `bewerbungen/<id>/anschreiben.pdf` – die Unterlagen, die **Unterlagen erstellen** baut. Diese PDFs können Sie direkt verschicken, etwa per E-Mail.
   - `bewerbungen/<id>/dossier.pdf` – das Dossier mit Deckblatt, Anschreiben und Lebenslauf, wenn Sie unter **Unterlagen prüfen** **Dossier** gewählt haben. Als Design wählen Sie Siegel, Raster oder Register, unter **Erweitert** auch eines pro Seite. Anschreiben und Lebenslauf liegen im Design ihrer Seite auch einzeln daneben.
-  - `bewerbungen/<id>/dossier.yaml` – falls vorhanden, die weiteren Seiten des Dossiers wie Gruss, Dank und Kennzahlen. Ohne diese Datei entfallen diese Seiten.
+  - `bewerbungen/<id>/dossier.yaml` – falls vorhanden, die weiteren Seiten des Dossiers wie Begrüssung, Dank und Kennzahlen. Begrüssung und Dank entwirft die KI unter **Unterlagen prüfen** mit **Von der KI entwerfen**; Sie passen sie dort an und speichern sie mit **Texte speichern**. Ohne Text entfällt die Seite dazu.
   - `bewerbungen/<id>/zertifikate.zip` – die für diese Bewerbung gewählten Zertifikate.
   - `bewerbungen/<id>/eigenes-anschreiben.pdf` – ein Anschreiben, das Sie unter **Eigenes Anschreiben** selbst hochgeladen haben.
   - `bewerbungen/<id>/freigabe.yaml` – dass Sie das Anschreiben mit **Freigeben** freigegeben haben. Jede Änderung am Anschreiben hebt die Freigabe auf.

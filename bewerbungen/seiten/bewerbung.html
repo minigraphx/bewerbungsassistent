@@ -102,6 +102,14 @@
             </div>
           </details>
         </div>
+        <div id="dossier-texte" hidden>
+          <h3>Begrüssung und Dank im Dossier</h3>
+          <p class="field__hint">Die KI entwirft beide Texte aus den Bausteinen, mit Platzhaltern statt Name und Kontakt. Danach lassen sie sich hier anpassen. Ohne Text entfällt die Seite im Dossier.</p>
+          <div class="field"><label class="field__label" for="dossier-gruss">Begrüssung („Kurz vorgestellt“)</label><textarea class="input" id="dossier-gruss" rows="5" maxlength="2000"></textarea></div>
+          <div class="field"><label class="field__label" for="dossier-dank">Dank (letzte Seite)</label><textarea class="input" id="dossier-dank" rows="2" maxlength="2000"></textarea></div>
+          <div class="btn-row"><button type="button" class="btn btn--sm" id="dossier-entwerfen" disabled>Von der KI entwerfen</button><button type="button" class="btn btn--sm" id="dossier-speichern">Texte speichern</button></div>
+          <div id="dossier-status" class="status" role="status" aria-live="polite"></div>
+        </div>
         <div class="btn-row"><button type="button" class="btn" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen">Erneut prüfen</button></div>
         <ul class="befunde" id="befunde"></ul>
         <div class="pdfs" id="pdfs"></div>
@@ -241,6 +249,7 @@
 <script src="/bewerbung-logik.js"></script>
 <script src="/lebenslauf-anpassen.js"></script>
 <script src="/unterlagen-wahl.js"></script>
+<script src="/dossier-texte.js"></script>
 <script src="/eigenes-anschreiben.js"></script>
 <script src="/dateien-ordner.js"></script>
 <script src="/bewerbung.js"></script>
