@@ -804,3 +804,13 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 /* Consent before the first AI call: a long text beside the tick */
 .einwilligung .schalter { align-items: flex-start; font-weight: 400; }
 .einwilligung .btn { justify-self: start; align-self: flex-start; }
+
+/* Messages that stay until closed (#215, meldungen.js): text, an optional action, the close button at the end */
+.status--closable { display: flex; align-items: center; gap: var(--space-2); }
+.status--closable .status__text { flex: 1; min-width: 0; }
+.status__close {
+  flex: none; min-width: 44px; min-height: 44px; margin: -12px -12px -12px 0; padding: 0;
+  border: 0; background: none; color: inherit; font-size: 20px; line-height: 1; cursor: pointer; border-radius: var(--radius-md);
+}
+.status__close:hover { background: var(--surface-subtle); }
+.status__close:focus-visible { outline: 2px solid var(--accent); outline-offset: -6px; }
