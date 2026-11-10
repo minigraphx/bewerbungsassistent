@@ -4,7 +4,7 @@
   const $ = id => document.getElementById(id);
   const meldung = (text, art) => status($("status"), text, art);
 
-  let vorauswahl = new URLSearchParams(location.search).get("datei");
+  const Logik = window.EntwuerfeLogik;
 
   function zeigeText(text) {
     $("pdf-ansicht").hidden = true;
@@ -35,58 +35,84 @@
     }
   }
 
-  async function vergleichen(e, vorher) {
-    const { diff } = await holen("/api/entwurf/vergleich", { a: vorher.id, b: e.id });
+  async function vergleichen(alt, neu) {
+    const { diff } = await holen("/api/entwurf/vergleich", { a: alt.id, b: neu.id });
     zeigeText(diff || "Keine Unterschiede.");
   }
 
-  function aktionen(e, vorher) {
-    const loeschen = el("button", { class: "gefahr", disabled: e.genutzt, title: e.genutzt ? "Genutzt: " + e.genutzt_fuer.join(", ") : "" }, "Löschen");
-    bestaetigen(loeschen, "Wirklich löschen?", async () => {
+  const knopf = (text, aktion) => el("button", { type: "button", class: "btn btn--sm", onclick: () => aktion().catch(f => meldung(f.message, "fehler")) }, text);
+
+  function loeschenKnopf(e) {
+    const knopfLoeschen = el("button", { type: "button", class: "btn btn--sm gefahr", disabled: e.genutzt, title: e.genutzt ? "Genutzt: " + e.genutzt_fuer.join(", ") : "" }, "Löschen");
+    bestaetigen(knopfLoeschen, "Wirklich löschen?", async () => {
       try {
         await senden("/api/entwurf/loeschen", { id: e.id });
         meldung("Entwurf gelöscht", "ok");
         laden();
       } catch (fehler) { meldung(fehler.message, "fehler"); }
     });
-    const herstellen = el("button", {}, "Wiederherstellen");
-    bestaetigen(herstellen, "Datei überschreiben?", async () => {
+    return knopfLoeschen;
+  }
+
+  function zurueckholenKnopf(e, dokument) {
+    const knopfHolen = el("button", { type: "button", class: "btn btn--sm" }, "Zurückholen");
+    bestaetigen(knopfHolen, "Diese Fassung zurückholen?", async () => {
       try {
-        const r = await senden("/api/entwurf/wiederherstellen", { id: e.id });
-        meldung(`${r.datei} wiederhergestellt (der Stand davor ist als Entwurf gesichert)`, "ok");
+        await senden("/api/entwurf/wiederherstellen", { id: e.id });
+        meldung(`${dokument.titel} zurückgeholt (der Stand davor ist als Entwurf gesichert)`, "ok");
         laden();
       } catch (fehler) { meldung(fehler.message, "fehler"); }
     });
-    const knoepfe = [
-      el("button", { onclick: () => ansehen(e).catch(f => meldung(f.message, "fehler")) }, "Ansehen"),
-      e.pdf && !e.datei.endsWith(".pdf") ? el("button", { onclick: () => alsText(e).catch(f => meldung(f.message, "fehler")) }, "Als Text") : null,
-      vorher ? el("button", { onclick: () => vergleichen(e, vorher).catch(f => meldung(f.message, "fehler")) }, "Vergleich mit vorher") : null,
-      herstellen, loeschen,
-    ];
-    return el("div", { class: "knoepfe" }, knoepfe);
+    return knopfHolen;
   }
 
-  function zeige(entwuerfe) {
-    const zeilen = entwuerfe.map((e, i) => {
-      const vorher = entwuerfe.slice(i + 1).find(x => x.datei === e.datei);
-      return el("tr", {},
-        el("td", {}, zeit(e.zeit)), el("td", { title: e.datei }, e.titel), el("td", {}, e.beschreibung),
-        el("td", {}, e.genutzt ? e.genutzt_fuer.join(", ") : "–"), el("td", {}, aktionen(e, vorher)));
-    });
-    $("entwuerfe").replaceChildren(...zeilen);
-    $("leer").hidden = zeilen.length > 0;
+  // One version: when, what, whether it was sent, and what can be done with it
+  function fassung(e, knoepfe) {
+    return el("li", { class: "drafts__version" },
+      el("div", {}, el("time", { datetime: e.zeit }, zeit(e.zeit)), " · ", e.beschreibung || "ohne Beschreibung",
+        e.genutzt ? el("span", { class: "leise", title: e.genutzt_fuer.join(", ") }, " · versendet") : null),
+      el("div", { class: "knoepfe" }, knoepfe.filter(Boolean)));
+  }
+
+  function dokumentKarte(dokument) {
+    const { neueste, aeltere } = Logik.fassungen(dokument);
+    const alsTextKnopf = e => (e.pdf && !e.datei.endsWith(".pdf") ? knopf("Als Text", () => alsText(e)) : null);
+    const oben = fassung(neueste, [knopf("Ansehen", () => ansehen(neueste)), alsTextKnopf(neueste),
+      aeltere.length ? knopf("Vergleich mit vorher", () => vergleichen(aeltere[0], neueste)) : null, loeschenKnopf(neueste)]);
+    const titel = Logik.aeltereTitel(aeltere);
+    const gefaltet = titel ? el("details", { class: "drafts__older" }, el("summary", {}, titel),
+      el("ul", {}, aeltere.map(e => fassung(e, [knopf("Ansehen", () => ansehen(e)), alsTextKnopf(e),
+        knopf("Mit neuester vergleichen", () => vergleichen(e, neueste)), zurueckholenKnopf(e, dokument), loeschenKnopf(e)])))) : null;
+    return el("article", { class: "karte drafts__doc" }, el("h4", {}, dokument.titel), el("ul", {}, [oben]), gefaltet);
+  }
+
+  function zeigeFilter(gruppen) {
+    const knoepfe = Logik.filter(gruppen).map(f => el("button", {
+      type: "button", class: "btn btn--sm", "aria-pressed": String(f.art === filterArt),
+      onclick: () => { filterArt = f.art; zeige(); },
+    }, f.titel, " ", el("span", { class: "num" }, String(f.zahl))));
+    $("filter").replaceChildren(...knoepfe);
+    $("filter").hidden = Boolean(nurDatei) || gruppen.length < 2;
+  }
+
+  let gruppen = [];
+  let filterArt = Logik.ALLE;
+  const nurDatei = new URLSearchParams(location.search).get("datei") || "";
+
+  function zeige() {
+    zeigeFilter(gruppen);
+    const sichtbar = Logik.sichtbar(gruppen, { art: filterArt, datei: nurDatei });
+    $("gruppen").replaceChildren(...sichtbar.map(g => el("section", { class: "drafts__group" },
+      el("h3", {}, g.titel), ...g.dokumente.map(dokumentKarte))));
+    $("leer").hidden = sichtbar.length > 0;
+    $("nur-datei").hidden = !nurDatei;
   }
 
   async function laden() {
     try {
-      const gewaehlt = vorauswahl ?? $("datei").value;
-      vorauswahl = null;
-      history.replaceState(null, "", gewaehlt ? "/entwuerfe?" + new URLSearchParams({ datei: gewaehlt }) : "/entwuerfe");
-      const daten = await holen("/api/entwuerfe", gewaehlt ? { datei: gewaehlt } : {});
-      const dateien = gewaehlt && !daten.dateien.includes(gewaehlt) ? [...daten.dateien, gewaehlt] : daten.dateien;
-      $("datei").replaceChildren(el("option", { value: "" }, "Alle Dateien"),
-        ...dateien.map(d => el("option", { value: d, selected: d === gewaehlt }, d)));
-      zeige(daten.entwuerfe);
+      ({ gruppen } = await holen("/api/entwuerfe"));
+      if (!gruppen.some(g => g.art === filterArt)) filterArt = Logik.ALLE;
+      zeige();
     } catch (fehler) {
       meldung("Laden fehlgeschlagen: " + fehler.message, "fehler");
     }
@@ -106,7 +132,6 @@
     }
   }
 
-  $("datei").addEventListener("change", laden);
   laden();
   versionen();
 })();
