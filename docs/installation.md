@@ -91,7 +91,7 @@ Die Einrichtung hat drei kurze Schritte und dauert zusammen etwa fünf Minuten. 
 
 ![Seite Einrichtung mit den drei Schritten, der Wahl zwischen Stelle und Lehrstelle und der Zeile mit dem Datenordner](bilder/einrichtung-start.jpg)
 
-Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.
+Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Vorgewählt ist **Nein**; mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.
 
 Unten steht, wo Ihre Unterlagen liegen: der Datenordner mit Ihrem Lebenslauf, Ihren Anschreiben und Ihren Bewerbungen. Der Vorschlag unter „Dokumente“ passt meistens. Einen anderen Ordner wählen Sie mit **Ändern** und **Ordner wählen …**. Klicken Sie dann auf **Weiter**; die App legt den Ordner an.
 
@@ -166,7 +166,7 @@ Du suchst eine Lehrstelle? Was bei dir anders ist, steht unter [Für Lehrstellen
 
 ### Angaben erfassen
 
-Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minuten. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Im letzten Schritt, **Übernehmen**, klicken Sie auf **Angaben übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
+Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minuten. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Wo fast alle dasselbe antworten, steht schon eine Vorgabe, die Sie ändern können: Wohnort und Ort im Datum wie Ihr Ort, Pensum 80–100 %, Start nach Vereinbarung, beim Anschreiben jeweils die erste Wahl. Im letzten Schritt, **Übernehmen**, klicken Sie auf **Angaben übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
 
 Ändern können Sie Ihre Angaben jederzeit an derselben Stelle. Die Seite zeigt dann Ihren bisherigen Lebenslauf. Was sie nicht anzeigt, zum Beispiel Ihr Foto, bleibt beim Übernehmen, wie es ist. So geht nichts verloren, was Sie schon verfeinert haben.
 

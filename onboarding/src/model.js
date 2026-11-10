@@ -39,9 +39,17 @@ function sectionsFor(form, track) {
   return form.sections.filter((s) => trackApplies(s, track));
 }
 
-/** Fields of a section shown for a track. */
+/** Fields of a section that apply to a track: shown, or kept unseen (hiddenFor). */
 function fieldsFor(section, track) {
   return section.fields.filter((f) => trackApplies(f, track));
+}
+
+/**
+ * Fields of a section the page shows for a track. A field "hiddenFor" a track is no longer asked (#218: „Verfügbar ab“,
+ * which frühester Start covers), but a value from before stays in the answers and goes on into the Bausteine.
+ */
+function shownFields(section, track) {
+  return fieldsFor(section, track).filter((f) => !(f.hiddenFor || []).includes(track));
 }
 
 function linesToList(text) {
@@ -339,7 +347,7 @@ function knownTags(form, state, fromApp) {
 
 if (typeof module !== "undefined") {
   module.exports = {
-    sectionsFor, fieldsFor, linesToList, listToLines, parseTags, tagsToText, taggedLine, lineText, knownTags, isBilingual, bilingualOf,
+    sectionsFor, fieldsFor, shownFields, linesToList, listToLines, parseTags, tagsToText, taggedLine, lineText, knownTags, isBilingual, bilingualOf,
     collectBundle, draftBundle, isBlankItem, stateFromBundle,
     setValue, addItem, removeItem, applySuggestions, fillFromCv, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
   };
