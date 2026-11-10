@@ -11,7 +11,7 @@
   const message = (kind, text, type = "") => status(section(kind).querySelector(".status"), text, type);
 
   function sizeText(bytes) {
-    if (bytes >= BYTES_PER_MB) return `${(bytes / BYTES_PER_MB).toFixed(1).replace(".", ",")} MB`;
+    if (bytes >= BYTES_PER_MB) return `${(bytes / BYTES_PER_MB).toFixed(1)} MB`;
     return `${Math.max(1, Math.round(bytes / BYTES_PER_KB))} KB`;
   }
 

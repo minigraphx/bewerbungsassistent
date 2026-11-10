@@ -16,6 +16,7 @@ from values import items, text
 
 APPRENTICESHIP_HEADINGS = {"erfahrung": "Schnupperlehren & Erfahrungen", "bildung": "Schule & Eignungstests"}
 TEACHING_EXTRA = ("x-display",)  # teaching is shaped like work; the form shows its display text too (G25)
+LEVEL_KEY = "x-level"  # of a language, read by lebenslauf/dossier_data.py
 NETWORKS = {"linkedin": "LinkedIn", "github": "GitHub", "xing": "XING", "gitlab": "GitLab"}
 
 
@@ -60,8 +61,8 @@ def build_cv(data: dict, track: str, answer_keys: bool = False) -> dict:
         "education": [_pick(e, "studyType", "area", "institution", "startDate", "endDate", "text", keep_end=True)
                       for e in data.get("education", [])],
         "certificates": [tagged(_pick(c, "name", "issuer", "date", "text"), c) for c in data.get("certificates", [])],
-        "languages": [_pick(lang, "language", "fluency") for lang in data.get("languages", [])],
-        "skills": [tagged({"name": text(s["name"]), "keywords": items(s.get("keywords"))}, s)
+        "languages": [_language(lang, answer_keys) for lang in data.get("languages", [])],
+        "skills": [tagged({"name": text(s["name"]), "keywords": _keywords(s.get("keywords"), answer_keys)}, s)
                    for s in data.get("skills", [])],
         "interests": [{"name": name} for name in items(data.get("interests", {}).get("interests"))],
     }
@@ -119,6 +120,33 @@ def _highlight(line, tag_keys: bool) -> str | dict | None:
     if not line_text:
         return None
     return {"text": line_text, "tags": tags} if tags or (tag_keys and "tags" in line) else line_text
+
+
+def _language(entry: dict, answer_keys: bool) -> dict:
+    """A language; with answer_keys an empty x-level stays as "" so that cv_merge.py removes the one of the file."""
+    language = _pick(entry, "language", "fluency", LEVEL_KEY)
+    return {**language, LEVEL_KEY: ""} if answer_keys and LEVEL_KEY in entry and LEVEL_KEY not in language else language
+
+
+def _keywords(lines, answer_keys: bool) -> list:
+    """Keywords as lebenslauf/README.md has them: text, or {name, level} with a level 1–6 (#123).
+
+    With answer_keys a line without level that the page sent as {text, level} becomes {name, level: None}: cv_merge.py
+    removes the level of the file then, while a plain line leaves it alone.
+    """
+    keywords = []
+    for line in lines or []:
+        if isinstance(line, str):
+            keywords += [text(line)] if text(line) else []
+            continue
+        name, level = text(line.get("text")), text(line.get("level"))
+        if not name:
+            continue
+        if level.isdigit():
+            keywords.append({"name": name, "level": int(level)})
+        else:
+            keywords.append({"name": name, "level": None} if answer_keys else name)
+    return keywords
 
 
 def _tagged(cv_entry: dict, entry: dict, tag_keys: bool) -> dict:

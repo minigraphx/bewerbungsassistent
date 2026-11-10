@@ -190,9 +190,9 @@
     if (!firma) return null;
     const z = zustand(firma);
     const k = firma.kununu;
-    if (z === "gefunden") return { text: `kununu ${wert(k.wert)}`, vorlesen: `kununu ${wert(k.wert)} von 5, ${bewertungen(k.bewertungen)}`, art: "wert" };
+    if (z === "gefunden") return { text: `kununu ${wert(k.wert)} von 5`, vorlesen: `kununu ${wert(k.wert)} von 5, ${bewertungen(k.bewertungen)}`, art: "wert" };
     if (z === "wenige") {
-      return { text: `kununu ${wert(k.wert)}, wenige Bewertungen`, vorlesen: `kununu ${wert(k.wert)} von 5, nur ${bewertungen(k.bewertungen)}`, art: "wenige" };
+      return { text: `kununu ${wert(k.wert)} von 5, wenige Bewertungen`, vorlesen: `kununu ${wert(k.wert)} von 5, nur ${bewertungen(k.bewertungen)}`, art: "wenige" };
     }
     if (z === "mehrere") return { text: "kununu: wählen", vorlesen: "kununu: passende Firma wählen", art: "leise" };
     if (z === "nicht_gefunden") return { text: "nicht bei kununu", vorlesen: "bei kununu nicht gefunden", art: "leise" };
