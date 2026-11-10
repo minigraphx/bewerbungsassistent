@@ -305,7 +305,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Dateno
 <summary>Ihre Grundlagen</summary>
 
 - `cv.yaml` – Ihr Lebenslauf mit allen Angaben: Person, Stellen, Ausbildungen, Kenntnisse, Sprachen. Die App ändert ihn unter **Meine Angaben**, den Bildausschnitt unter **Mehr**, **Foto**. Ausserhalb der App ist es eine Textdatei im Format YAML nach dem Schema von JSON Resume, das auch andere Programme für Lebensläufe kennen.
-- Ihr Foto, zum Beispiel `foto.jpg` – die Datei, die in `cv.yaml` unter `basics.image` steht. Sie bleibt ein gewöhnliches Bild.
+- Ihr Foto, zum Beispiel `foto.jpg` – die Datei, die in `cv.yaml` unter `basics.image` steht. Sie bleibt ein gewöhnliches Bild. Haben Sie am Anfang kein Foto gegeben, laden Sie es unter **Mehr**, **Foto** hoch, als JPG oder PNG. Die App speichert es dann als `foto.jpg` oder `foto.png`, ohne die Angaben zu Kamera, Ort und Zeit, die ein Foto sonst mitträgt.
 - `suchprofil.md` – was Sie suchen: Berufe und Suchbegriffe, Region, Portale, Ausschlüsse. Die App ändert es unter **Meine Angaben** und **Stellen suchen** (**Suche einstellen**, **Was suchen**). Ein Text im Format Markdown, lesbar in jedem Editor.
 - `anschreiben/stil.md` – Ihr Stilprofil: wie Ihre Anschreiben klingen sollen. `anschreiben/bausteine.md` – Ihre Bausteine: Sätze und Beispiele, die die KI in Anschreiben verwenden darf. Beide entstehen unter **Meine Angaben** und lassen sich unter **Inhalte als Text** ändern.
 - `jobs/<name>.yaml` und `varianten.yaml` – Varianten des Lebenslaufs für bestimmte Stellen und ihre Tags. Sie entstehen nur mit Claude; ändern lassen sie sich unter **Inhalte als Text**.

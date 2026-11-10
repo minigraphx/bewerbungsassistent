@@ -122,11 +122,21 @@ def speichere_optionen(daten: pathlib.Path, optionen: dict) -> None:
         _schreibe_optionen(daten, geprueft)
 
 
-def _schreibe_optionen(daten: pathlib.Path, geprueft: dict) -> None:
+def speichere_foto(daten: pathlib.Path, bild: str) -> None:
+    """`basics.image` auf ein neues Foto setzen, mit dem Standardausschnitt; der alte passt nicht zu ihm (#128)."""
+    with _SPEICHERN:
+        _schreibe_optionen(daten, dict(STANDARD), bild)
+
+
+def _schreibe_optionen(daten: pathlib.Path, geprueft: dict, bild: str | None = None) -> None:
     text = daten.read_text(encoding="utf-8")
     y = _yaml()
-    dokument = y.load(text)  # frisch geladenes Dokument, nur hier verändert
+    dokument = y.load(text) or CommentedMap()  # frisch geladenes Dokument, nur hier verändert
+    if dokument.get("basics") is None:
+        dokument["basics"] = CommentedMap()
     basics = dokument["basics"]
+    if bild is not None:
+        basics["image"] = bild
     neu = _gerundet(geprueft)
     if "x-image" in basics:
         basics["x-image"] = neu
