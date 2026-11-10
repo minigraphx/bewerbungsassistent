@@ -46,7 +46,7 @@ def started(tmp_path):
     def switch(chosen):
         server.kontext = app.erstelle_kontext(chosen)
 
-    state = routes_setup.Setup(paths=paths, switch=switch, suggestion=folder)
+    state = routes_setup.Setup(paths=paths, switch=switch, suggestion=folder, downloads=folder.parent / "Downloads")
     get_routes, post_routes, limits = routes_angaben.make_routes(state)
     server.routen_get.update(get_routes)
     server.routen_post.update(post_routes)

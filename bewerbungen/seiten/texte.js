@@ -309,6 +309,7 @@
       sie: "Wo sollen Ihre Unterlagen liegen?",
       du: "Wo sollen deine Unterlagen liegen?",
     },
+    "einrichtung.ordner.zeile": { sie: "Ihre Unterlagen liegen in:", du: "Deine Unterlagen liegen in:" },
     "einrichtung.ordner.text": {
       sie: "In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf Ihrem Computer.",
       du: "In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf deinem Computer.",
