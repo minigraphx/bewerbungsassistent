@@ -41,6 +41,7 @@ function page() {
       senden: async () => ({}), el: () => element(), status() {}, datum: String, beobachten() {}, textsatz: async () => "stelle-sie",
     },
     TrefferLogik: logik,
+    Meldungen: { zeige() {}, leere() {} },  // messages have their own tests (meldungen.test.cjs)
     Texte: { text: key => key, anwenden() {} },
     PortalWahl: { zeige() {} },
     Suchbegriffe: { zeige() {} },

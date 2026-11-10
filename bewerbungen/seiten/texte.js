@@ -81,7 +81,7 @@
     "einwilligung.ersetzt": {
       sie: "Bevor ein Text zur KI geht, ersetzt die App Ihre Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Firmen, Ausbildungen und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
       du: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Firmen, Ausbildungen und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
-      lehrstelle: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail und Geburtsdatum sowie deine Schulen durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Betriebe und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
+      lehrstelle: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum sowie deine Schulen durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Betriebe und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
     },
     // Why ictjobs is on or off (#107); the key ends in `grund` from /api/suche/liste
     "suche.ictjobs.aus": {
@@ -309,6 +309,7 @@
       sie: "Wo sollen Ihre Unterlagen liegen?",
       du: "Wo sollen deine Unterlagen liegen?",
     },
+    "einrichtung.ordner.zeile": { sie: "Ihre Unterlagen liegen in:", du: "Deine Unterlagen liegen in:" },
     "einrichtung.ordner.text": {
       sie: "In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf Ihrem Computer.",
       du: "In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf deinem Computer.",
@@ -364,7 +365,8 @@
     return satzOder(satz) === "lehrstelle-du" && status === "Gespräch" ? "Einladung" : status;
   }
 
-  const notenText = note => String(note).replace(".", ",");
+  // A decimal point, as the design system says (4.5, never 4,5; abgleich #1).
+  const notenText = note => String(note);
 
   const texte = { SAETZE, VORGABE, TEXTE, satzOder, text, anwenden, statusName, notenText };
   if (typeof module !== "undefined") module.exports = texte;

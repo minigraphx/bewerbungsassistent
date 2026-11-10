@@ -122,10 +122,12 @@ def speichere_optionen(daten: pathlib.Path, optionen: dict) -> None:
         _schreibe_optionen(daten, geprueft)
 
 
-def speichere_foto(daten: pathlib.Path, bild: str) -> None:
-    """`basics.image` auf ein neues Foto setzen, mit dem Standardausschnitt; der alte passt nicht zu ihm (#128)."""
+def speichere_foto(daten: pathlib.Path, bild: str, optionen: dict | None = None) -> None:
+    """`basics.image` auf ein Foto setzen, mit dessen eigenem Ausschnitt (#129) oder dem Standard; der Ausschnitt
+    des alten Fotos passt nicht zu ihm (#128)."""
+    geprueft = {**STANDARD, **pruefe_foto_optionen(optionen or {})}
     with _SPEICHERN:
-        _schreibe_optionen(daten, dict(STANDARD), bild)
+        _schreibe_optionen(daten, geprueft, bild)
 
 
 def _schreibe_optionen(daten: pathlib.Path, geprueft: dict, bild: str | None = None) -> None:

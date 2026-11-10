@@ -26,6 +26,11 @@ def current(text: str) -> tuple[str, ...]:
     return search_plan.professions_in(text) if APPRENTICESHIP_MARK in text else search_plan.job_terms(text)
 
 
+def is_searched(text: str, name: str) -> bool:
+    """Whether the profile searches this term already, in any form the plan reads as the same."""
+    return profession_words(name) in map(profession_words, current(text))
+
+
 def key(name: str) -> str:
     """The same for two forms of a name, so that a page can compare what it shows with what is searched."""
     return " ".join(sorted(profession_words(name)))

@@ -14,12 +14,13 @@ from pypdf import PdfReader, PdfWriter
 import certificates
 import form_copy
 from dateien import im_ordner, schreibe_atomar
-from unterlagen import wirksame_pdfs
+from unterlagen import effective_dossier, wirksame_pdfs
 
 ALL = "unterlagen"
 PROOFS = "nachweise"
 KEYS = (ALL, PROOFS)
 FILE_LABELS = {ALL: "Unterlagen", PROOFS: "Nachweise"}
+DOSSIER_LABEL = "Dossier"
 MIN_SOURCES = 2  # one file needs no joining: it goes as it is
 REFERENCES_FOLDER = "dokumente/zeugnisse"
 IMAGES = (".jpg", ".jpeg", ".png")
@@ -29,9 +30,10 @@ CANNOT_JOIN = "„{name}“ lässt sich nicht in ein gemeinsames PDF packen. Bit
 
 
 def sources(data_dir: pathlib.Path, entry: dict) -> dict[str, list[pathlib.Path]]:
-    """The files in each joined PDF, in the order a reader expects them."""
+    """The files in each joined PDF, in the order a reader expects them. A chosen dossier already holds letter and CV."""
     pdfs = wirksame_pdfs(data_dir, entry)
-    main = [path for path in (pdfs["anschreiben"], pdfs["lebenslauf"]) if path.is_file()]
+    dossier = effective_dossier(data_dir, entry)
+    main = [dossier] if dossier else [path for path in (pdfs["anschreiben"], pdfs["lebenslauf"]) if path.is_file()]
     references = [data_dir / rel for rel in certificates.files_in(data_dir, REFERENCES_FOLDER)]
     chosen = [im_ordner(data_dir, rel) for rel in entry.get("zertifikate") or []]
     proofs = [*references, *(path for path in chosen if path.is_file())]
@@ -39,7 +41,15 @@ def sources(data_dir: pathlib.Path, entry: dict) -> dict[str, list[pathlib.Path]
 
 
 def offered(data_dir: pathlib.Path, entry: dict) -> list[str]:
-    return [key for key, paths in sources(data_dir, entry).items() if len(paths) >= MIN_SOURCES]
+    """A dossier alone is offered too: a form with one field for all documents wants it (G40)."""
+    dossier = effective_dossier(data_dir, entry) is not None
+    return [key for key, paths in sources(data_dir, entry).items()
+            if len(paths) >= MIN_SOURCES or (key == ALL and dossier)]
+
+
+def label(data_dir: pathlib.Path, entry: dict, key: str) -> str:
+    """Name of the joined PDF for the employer: with a dossier it is the dossier, with proofs added or not."""
+    return DOSSIER_LABEL if key == ALL and effective_dossier(data_dir, entry) else FILE_LABELS[key]
 
 
 def _image_as_pdf(path: pathlib.Path) -> bytes:

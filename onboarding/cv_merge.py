@@ -9,7 +9,9 @@ basics.summary, basics.profiles, education.area, projects and teaching (G25); th
 where the answers give them (convert.build_cv with answer_keys): an empty list removes them, no key keeps those of the
 file, as for answers from before G24. The same holds for projects, teaching and basics.url (G25, keepUnlessGiven in
 form.json): answers from before G25 keep them, an empty list or text removes them. A highlight with tags is written as {text, tags}, one without as plain text, and
-new lists of tags in the short form [a, b].
+new lists of tags in the short form [a, b]. Levels (#123) follow the same rule: a keyword answered as plain text leaves
+its level to the file, {name, level: None} removes it, and a language without the key x-level keeps its own; a level
+the form cannot show stays unless the answer gives one.
 """
 import dataclasses
 import io
@@ -22,10 +24,12 @@ from ruamel.yaml.util import load_yaml_guess_indent
 
 import convert
 from cv_read import (BIRTH, INTERESTS, KEPT_BASICS, KEPT_SECTIONS, LOCATION, SECTIONS, TEXT_BASICS, detail_places,
-                     detail_values, entry_shown, field_text, highlight_shown, item_text, tag_text)
+                     detail_values, entry_shown, field_text, highlight_shown, item_text, keyword_level, line_text,
+                     tag_text)
 
 ABSENT = object()
 TAGS = "tags"
+LEVEL = "level"
 HEADINGS = "x-beschriftungen"
 JOB_ONLY = {"basics": ("label", "url", "summary", "profiles"), "education": ("area",)}
 JOB_ONLY_SECTIONS = frozenset({"projects", "teaching"})
@@ -212,7 +216,8 @@ def _merge_item(old: list, j: int | None, new: object, kind: Kind) -> object:
             if key in LIST_KINDS:
                 _merge_list(item, key, new.get(key, []), LIST_KINDS[key])
             else:
-                _merge_scalar(item, key, new.get(key, ABSENT))
+                value = new.get(key, ABSENT)
+                _merge_scalar(item, key, ABSENT if value == "" else value)  # "": a kept field the answer empties
         return item
     if item_text(item) == new:
         return item
@@ -226,6 +231,8 @@ def _kept_fields(answer: object, kind: Kind) -> tuple[str, ...]:
     """Fields an answer leaves to the file: tags it does not give (a highlight as plain text gives none)."""
     if kind is HIGHLIGHTS:
         return (TAGS,) if not isinstance(answer, dict) or TAGS not in answer else ()
+    if kind is KEYWORDS:
+        return (LEVEL,) if not isinstance(answer, dict) else ()
     return tuple(key for key in kind.fields if key in KEPT_UNLESS_GIVEN and isinstance(answer, dict) and key not in answer)
 
 
@@ -290,6 +297,35 @@ def _merge_highlight(item: object, new: object) -> object:
     return item
 
 
+def _keyword_shown(item: object) -> object:
+    """A keyword as the answers compare it: its text, or {text, level} with a level the form can show."""
+    if not isinstance(item, dict) or "name" not in item:
+        return item_text(item)
+    name, level = line_text(item.get("name")), keyword_level(item.get(LEVEL))
+    return {"text": name, LEVEL: level} if name and level else name
+
+
+def _merge_keyword(item: object, new: object) -> object:
+    """The keyword that continues item with the answer: plain text leaves the level, None removes one the form shows.
+
+    One that is left with nothing but its name becomes plain text again.
+    """
+    name = new["name"] if isinstance(new, dict) else new
+    level = new.get(LEVEL) if isinstance(new, dict) else ABSENT
+    if not isinstance(item, dict) or "name" not in item:
+        same = item_text(item) == name
+        if level is ABSENT or level is None:
+            return item if same else name
+        return _commented({"name": name, LEVEL: level})
+    if line_text(item.get("name")) != name:
+        item["name"] = name
+    if level is not ABSENT and level is not None and keyword_level(item.get(LEVEL)) != level:
+        item[LEVEL] = level
+    elif level is None and LEVEL in item and keyword_level(item[LEVEL]) is not None:
+        del item[LEVEL]
+    return item["name"] if list(item) == ["name"] else item
+
+
 def _no_pairing(i: int, free: list[int], old_shown: list, shown: object) -> int | None:
     return None
 
@@ -338,6 +374,10 @@ def _settled(value: object) -> object:
         return [_settled(item) for item in value]
     if not isinstance(value, dict):
         return value
+    if set(value) == {"name", LEVEL} and value[LEVEL] is None:  # a keyword without level (#123)
+        return value["name"]
+    if "" in value.values():  # a kept field the answers empty, such as x-level: nothing to write
+        return _settled({key: item for key, item in value.items() if item != ""})
     if value.get(TAGS) == []:
         rest = {key: item for key, item in value.items() if key != TAGS}
         return rest["text"] if list(rest) == ["text"] else _settled(rest)
@@ -410,8 +450,9 @@ def _profile_shown(profile: object) -> dict | None:
 
 
 LINES = Kind(item_text, (), _same_place)
+KEYWORDS = Kind(_keyword_shown, (), _same_text_or_place, _merge_keyword)
 TAG_LINES = Kind(tag_text, (), _same_place)
 HIGHLIGHTS = Kind(highlight_shown, (), _same_text_or_place, _merge_highlight)
-LIST_KINDS = {"highlights": HIGHLIGHTS, "keywords": LINES, TAGS: TAG_LINES}
-KEPT_UNLESS_GIVEN = frozenset({TAGS})
+LIST_KINDS = {"highlights": HIGHLIGHTS, "keywords": KEYWORDS, TAGS: TAG_LINES}
+KEPT_UNLESS_GIVEN = frozenset({TAGS, "x-level"})
 PROFILES = Kind(_profile_shown, (), _no_pairing)

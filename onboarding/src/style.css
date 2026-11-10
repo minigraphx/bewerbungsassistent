@@ -140,6 +140,7 @@ button { font: inherit; cursor: pointer; }
 .tagged-line { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
 .tagged-line input { min-width: 0; flex: 3 1 16rem; }
 .tagged-line input.line-tags { flex: 1 1 8rem; }
+.tagged-line select.line-level { flex: 0 1 9rem; width: auto; }
 .tagged-line .bilingual { flex: 1 0 100%; }
 .tagged-line .remove-line { min-width: 40px; min-height: 40px; border: 1px solid var(--line-strong); border-radius: var(--radius-control);
   background: var(--surface); color: var(--danger); flex: 0 0 auto; }

@@ -81,7 +81,7 @@
       "title": "Person und Kontakt",
       "intro": {
         "job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen. Bevor ein Text zur KI geht, ersetzt die App Ihren Namen, Strasse, PLZ, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter. Firmen, Ausbildungen und Jahreszahlen bleiben stehen, damit die KI Ihren Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist.",
-        "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen. Bevor ein Text zur KI geht, ersetzt die App deinen Namen, Strasse, PLZ, Telefon, E-Mail, Geburtsdatum und deine Schulen durch Platzhalter. Betriebe und Jahreszahlen bleiben stehen, damit die KI deinen Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist."
+        "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen. Bevor ein Text zur KI geht, ersetzt die App deinen Namen, Strasse, PLZ, Telefon, E-Mail, Links, Geburtsdatum und deine Schulen durch Platzhalter. Betriebe und Jahreszahlen bleiben stehen, damit die KI deinen Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist."
       },
       "fields": [
         {"id": "name", "label": "Vor- und Nachname", "type": "text", "required": true, "max": 80, "hint": {"job": "Schreiben Sie den Namen genau wie im Lebenslauf, mit denselben Akzenten und Umlauten. In dieser Schreibweise ersetzt die App den Namen, bevor ein Text zur KI geht.", "apprenticeship": "Schreib deinen Namen genau wie im Lebenslauf, mit denselben Akzenten und Umlauten. In dieser Schreibweise ersetzt die App den Namen, bevor ein Text zur KI geht."}},
@@ -214,7 +214,8 @@
       "itemTitle": "Sprache",
       "fields": [
         {"id": "language", "label": "Sprache", "type": "text", "required": true, "max": 40},
-        {"id": "fluency", "label": "Niveau", "type": "select", "required": true, "options": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"]}
+        {"id": "fluency", "label": "Niveau", "type": "select", "required": true, "options": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"]},
+        {"id": "x-level", "label": "Stufe fürs Dossier (freiwillig)", "type": "select", "keepUnlessGiven": true, "emptyLabel": "ohne Stufe", "options": ["A1", "A2", "B1", "B2", "C1", "C2"], "hint": "Freiwillig. Hat eine Sprache eine Stufe, zeigt das Dossier bei den Sprachen eine Grafik; Sprachen ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."}
       ]
     },
     {
@@ -230,7 +231,7 @@
       "itemTitle": "Bereich",
       "fields": [
         {"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "required": true, "max": 60},
-        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile)", "type": "list", "required": true, "maxItems": 12, "max": 60},
+        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile, Stufe freiwillig)", "type": "list", "levels": true, "required": true, "maxItems": 12, "max": 60, "hint": "Die Stufe von 1 bis 6 ist freiwillig. Hat eine Kenntnis im Bereich eine Stufe, zeigt das Dossier dort eine Grafik; Kenntnisse ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."},
         {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}
       ]
     },

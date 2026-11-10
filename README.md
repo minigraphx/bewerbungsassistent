@@ -28,11 +28,11 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Übersicht der Bewerbungen:** Was als Nächstes ansteht, dazu Stand, Passung (Note 1–6) und nächster Schritt jeder Stelle auf einen Blick. Von hier aus bewerben Sie sich über die Formulare der Firmen und tragen abgeschickte Bewerbungen im Job-Room ein; speichern und abschicken tun immer Sie.
 
-![Übersicht mit „Das steht an“: der nächste Schritt als Karte, daneben, was auch noch offen ist, darunter die Liste der gemerkten Bewerbungen mit Stand, Note und nächstem Schritt; Knöpfe für Gemerkt, Beworben, Abgeschlossen und Alle](docs/bilder/uebersicht.jpg)
+![Übersicht mit „Das steht an“: der nächste Schritt als Karte, daneben, was auch noch offen ist, darunter die Liste der Bewerbungen, auf die die Person wartet, mit Stand, Note und nächstem Schritt; Knöpfe für Gemerkt, Beworben, Abgeschlossen und Alle](docs/bilder/uebersicht.jpg)
 
 **Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty, wahlweise nach Lehrstellen, Schnupperlehren oder beidem. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung in Paketen von zehn, nach der Suche von selbst (höchstens 30 pro Suche, abschaltbar) oder auf Knopfdruck. Bei Lehrstellen zählt der eigene Beruf mit Sternen zuerst. Dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis. Inserate von anderen Seiten, etwa LinkedIn, prüft oder speichert die Erweiterung auf Klick.
 
-![Seite Stellen suchen: links die Liste der Treffer mit Note, Firma, Ort, Pensum und Portal, rechts die Einschätzung der KI zum gewählten Treffer mit den Knöpfen Übernehmen, Verwerfen und Neu bewerten](docs/bilder/treffer.jpg)
+![Seite Stellen suchen: links die Liste der Treffer mit Note, Firma, dem Wert bei kununu, Ort, Pensum und Portal, rechts die Einschätzung der KI zum gewählten Treffer mit den Knöpfen Übernehmen, Verwerfen und Neu bewerten](docs/bilder/treffer.jpg)
 
 **Eine Bewerbung in sechs Schritten:** Von der Stelle bis zum Festhalten sehen Sie, wo die Bewerbung steht und was als Nächstes kommt. Ein Anschreiben der KI geht erst weiter, wenn Sie es gelesen und freigegeben haben.
 
@@ -48,7 +48,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Fotoausschnitt (freiwillig):** Ausschnitt per Maus oder Tastatur einstellen, mit Vorschau in Druckgrösse.
 
-![Editor für den runden Fotoausschnitt mit Reglern für Zoom und Ausschnitt](docs/bilder/foto.jpg)
+![Editor für den runden Fotoausschnitt mit Reglern für Zoom und Ausschnitt, darunter Ihre Fotos mit dem aktiven Foto und einem zweiten mit den Knöpfen Verwenden und Löschen](docs/bilder/foto.jpg)
 
 **Meine Angaben:** eine Seite in der App, die Schritt für Schritt alles abfragt, was die App braucht, und direkt in den Datenordner speichert. Bestehende Unterlagen lädt man gleich am Anfang hoch: „Aus Unterlagen vorbefüllen“ füllt das Formular aus PDF, Word und Text vor. Der Text geht ohne Name, Adresse und Kontaktangaben an die KI, und jeder Vorschlag bleibt markiert, bis er geprüft ist.
 

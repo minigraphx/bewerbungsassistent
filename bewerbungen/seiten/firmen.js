@@ -22,7 +22,7 @@
   const nichtGelesen = new Set();  // companies with a value whose new check found nothing readable
 
   const text = (schluessel, werte) => window.Texte.text(schluessel, satz, werte);
-  const meldung = (inhalt, stufe = "") => { $("status").textContent = inhalt; $("status").dataset.level = stufe; };
+  const meldung = (inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige($("status"), inhalt, stufe, optionen);
 
   function extern(href, beschriftung, firma, klasse = "btn btn--sm") {
     return el("a", { class: klasse, href, target: "_blank", rel: "noopener noreferrer" }, beschriftung,

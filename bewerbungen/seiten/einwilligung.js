@@ -36,8 +36,7 @@ window.Einwilligung = (() => {
       try {
         fertig(await senden("/api/ki/einwilligung", { fassung: stand.fassung, zustimmung: haken.checked }));
       } catch (fehler) {
-        meldung.textContent = fehler.message;
-        meldung.dataset.level = "danger";
+        window.Meldungen.zeige(meldung, fehler.message, "danger");
         knopf.disabled = !haken.checked;
       }
     });
