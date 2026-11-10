@@ -16,6 +16,7 @@ import threading
 import time
 from typing import Callable
 
+import settings
 import updates
 import updates_macos
 from version import VERSION
@@ -53,14 +54,26 @@ class Controls:
     start_swap: Callable[..., None] = updates_macos.start_swap
     installing: threading.Lock = dataclasses.field(default_factory=threading.Lock)
     postponed: str = ""  # the version the person put off with "later" in this run
+    paths: settings.Paths | None = None  # where the switch for pre-releases is kept; none in the tests of other parts
     _checked_at: float = 0.0
     _update: updates.Update | None = None
     _lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
 
+    def beta(self) -> bool:
+        return settings.beta_updates(self.paths) if self.paths else False
+
+    def set_beta(self, on: bool) -> None:
+        """Switch pre-releases on or off; the next question for an update asks the server again."""
+        if self.paths is None:
+            raise ValueError("Vorabversionen gibt es nur in der App.")
+        with self._lock:
+            settings.set_beta_updates(self.paths, on)
+            self._checked_at = 0.0
+
     def update(self) -> updates.Update | None:
         with self._lock:
             if time.monotonic() - self._checked_at > CHECK_EVERY_SECONDS or not self._checked_at:
-                self._update = updates.newer(VERSION, updates.latest(self.fetch, self.platform))
+                self._update = updates.newer(VERSION, updates.latest(self.fetch, self.platform, self.beta()))
                 self._checked_at = time.monotonic()
             return self._update
 
@@ -173,9 +186,19 @@ def make_routes(controls: Controls) -> tuple[dict, dict]:
         controls.postponed = found.version
         return json_antwort({"ok": True})
 
+    def beta(k, parameter, body):
+        return json_antwort({"an": controls.beta()})
+
+    def set_beta(k, parameter, body):
+        if not isinstance(body, dict) or not isinstance(body.get("an"), bool):
+            raise ValueError("an erwartet (ja oder nein)")
+        controls.set_beta(body["an"])
+        return json_antwort({"an": controls.beta()})
+
     def quit_app(k, parameter, body):
         updating = quit_app_now(controls)
         return json_antwort({"ok": True, "aktualisiert": updating} if updating else {"ok": True})
 
-    return {"/api/app/version": version}, {"/api/app/aktualisieren": install, "/api/app/spaeter": later,
-                                         "/api/app/beenden": quit_app}
+    return ({"/api/app/version": version, "/api/app/vorabversionen": beta},
+            {"/api/app/aktualisieren": install, "/api/app/spaeter": later, "/api/app/beenden": quit_app,
+             "/api/app/vorabversionen": set_beta})

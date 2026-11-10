@@ -2,11 +2,13 @@ name: Update ausrollen
 
 # Das Veröffentlichen eines Releases rollt das Update aus: Pakete auf den Update-Server, zuletzt die signierte
 # Ankündigung latest.json, damit nie eine Version angekündigt wird, deren Pakete noch fehlen (MIN-403).
+# Eine Vorabversion geht nur in beta.json, die nur Apps mit eingeschalteten Vorabversionen lesen (#212, G47);
+# ein Release geht in latest.json und in beta.json, ausser dort steht schon eine neuere Vorabversion.
 # Bricht der Lauf ab, sehen die Apps weiter die alte Ankündigung; von Hand mit dem Tag nochmals starten.
 # Fremde Actions auf Commits gepinnt: Dieser Job hält den Signaturschlüssel.
 on:
   release:
-    types: [published]
+    types: [prereleased, released]
   workflow_dispatch:
     inputs:
       tag:
@@ -26,9 +28,10 @@ defaults:
 
 jobs:
   ausrollen:
-    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.release.prerelease }}
     runs-on: ubuntu-24.04
     environment: update-ausrollen
+    outputs:
+      prerelease: ${{ steps.release.outputs.prerelease }}
     env:
       TAG: ${{ github.event.release.tag_name || inputs.tag }}
     steps:
@@ -36,11 +39,15 @@ jobs:
         with:
           persist-credentials: false
       - name: Release holen und Ankündigung bauen
+        id: release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          [ "$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)" = "false" ]
+          prerelease=$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)
+          case "$prerelease" in true|false) ;; *) echo "::error::Release $TAG nicht lesbar"; exit 1 ;; esac
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          echo "PRERELEASE=$prerelease" >> "$GITHUB_ENV"
           gh release view "$TAG" --json body --jq .body > notes.md
           gh release download "$TAG" --dir pakete --pattern 'Bewerbungsbegleiter-*' --pattern 'SHA256SUMS*'
           python3 desktop/release_manifest.py payload "$TAG" pakete notes.md payload.json
@@ -58,14 +65,15 @@ jobs:
             exit 1
           fi
           openssl pkeyutl -sign -inkey "$key" -rawin -in payload.json -out payload.sig
-          python3 desktop/release_manifest.py envelope payload.json payload.sig latest.json
-      - name: Hochladen, die Ankündigung zuletzt
+          python3 desktop/release_manifest.py envelope payload.json payload.sig announcement.json
+      - name: Hochladen, die Ankündigungen zuletzt
         # FTP mit Pflicht zu TLS und geprüftem Zertifikat: Nur ein FTP-Konto lässt sich auf einen Ordner beschränken.
         env:
           FTP_PASSWORD: ${{ secrets.UPDATE_FTP_PASSWORD }}
           FTP_HOST: ${{ vars.UPDATE_FTP_HOST }}
           FTP_USER: ${{ vars.UPDATE_FTP_USER }}
           FTP_FOLDER: ${{ vars.UPDATE_FTP_FOLDER }}
+          UPDATE_URL: ${{ vars.UPDATE_URL }}
         run: |
           version="${TAG#v}"
           config="$RUNNER_TEMP/ftp.conf"
@@ -76,14 +84,21 @@ jobs:
           upload -T "pakete/Bewerbungsbegleiter-Setup-$version.exe" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
           upload -T "pakete/Bewerbungsbegleiter-$version-macOS.zip" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
           upload -T "pakete/Bewerbungsbegleiter-$version-x86_64.AppImage" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
-          upload -T latest.json "ftp://$FTP_HOST/$FTP_FOLDER/latest.json.part" \
-            -Q "-*DELE latest.json" -Q "-RNFR latest.json.part" -Q "-RNTO latest.json"
+          # Fehlt beta.json noch (vor der ersten Vorabversion), entsteht sie hier.
+          curl -fsS "$UPDATE_URL/beta.json" -o beta-aktuell.json || rm -f beta-aktuell.json
+          python3 desktop/release_manifest.py channels "$TAG" "$PRERELEASE" beta-aktuell.json > angekuendigt.txt
+          for name in $(cat angekuendigt.txt); do
+            upload -T announcement.json "ftp://$FTP_HOST/$FTP_FOLDER/$name.part" \
+              -Q "-*DELE $name" -Q "-RNFR $name.part" -Q "-RNTO $name"
+          done
       - name: Prüfen, was der Server ausliefert
         env:
           UPDATE_URL: ${{ vars.UPDATE_URL }}
         run: |
           version="${TAG#v}"
-          curl -fsS "$UPDATE_URL/latest.json" | cmp - latest.json
+          for name in $(cat angekuendigt.txt); do
+            curl -fsS "$UPDATE_URL/$name" | cmp - announcement.json
+          done
           for name in "Bewerbungsbegleiter-Setup-$version.exe" "Bewerbungsbegleiter-$version-macOS.zip" "Bewerbungsbegleiter-$version-x86_64.AppImage"; do
             curl -fsS "$UPDATE_URL/$version/$name" | cmp - "pakete/$name"
           done
@@ -92,6 +107,7 @@ jobs:
   # für das Repo der Webseite (Actions lesen und schreiben) und kommt nicht in den Job mit dem Signaturschlüssel.
   webseite:
     needs: ausrollen
+    if: ${{ needs.ausrollen.outputs.prerelease == 'false' }}
     runs-on: ubuntu-24.04
     permissions: {}
     env:

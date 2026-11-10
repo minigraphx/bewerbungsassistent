@@ -199,7 +199,8 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     import routes_setup
     data = start_folder(paths)
     holder: dict = {}
-    controls = routes_app.Controls(stop=lambda: holder["server"].shutdown(), failed_note=paths.app_dir / FAILED_UPDATE_NOTE)
+    controls = routes_app.Controls(stop=lambda: holder["server"].shutdown(), failed_note=paths.app_dir / FAILED_UPDATE_NOTE,
+                                   paths=paths)
 
     def switch(folder: pathlib.Path) -> None:
         new_context = app.erstelle_kontext(folder)

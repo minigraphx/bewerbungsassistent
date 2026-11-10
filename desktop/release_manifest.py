@@ -1,7 +1,9 @@
 """Builds the announcement of a release for the update server (MIN-403).
 
 Step `payload` lists version, notes and the SHA-256 sums of the packages; openssl signs the result in the workflow;
-step `envelope` joins payload and signature into latest.json, which `updates.py` reads.
+step `envelope` joins payload and signature into the announcement, which `updates.py` reads.
+Step `channels` names where it goes (#212, G47): a pre-release only into beta.json, a release into latest.json and,
+unless a newer pre-release is announced there, into beta.json too.
 Standard library only: the job with the signing key installs nothing of its own.
 """
 import base64
@@ -12,6 +14,7 @@ import re
 import sys
 
 TAG = re.compile(r"^v(\d+\.\d+\.\d+)$")
+STABLE, BETA = "latest.json", "beta.json"
 PACKAGES = {
     "win32": ("Bewerbungsbegleiter-Setup-{}.exe", "SHA256SUMS.txt"),
     "darwin": ("Bewerbungsbegleiter-{}-macOS.zip", "SHA256SUMS-macOS.txt"),
@@ -19,7 +22,8 @@ PACKAGES = {
 }
 MAX_NOTES = 2000
 SIGNATURE_BYTES = 64
-USAGE = "usage: release_manifest.py payload <tag> <folder> <notes file> <out> | envelope <payload> <signature> <out>"
+USAGE = ("usage: release_manifest.py payload <tag> <folder> <notes file> <out> | envelope <payload> <signature> <out>"
+         " | channels <tag> <prerelease true|false> <current beta announcement>")
 
 
 class ReleaseError(Exception):
@@ -62,6 +66,32 @@ def build_envelope(payload: bytes, signature: bytes) -> bytes:
     return json.dumps({"payload": base64.b64encode(payload).decode(), "signature": base64.b64encode(signature).decode()}).encode()
 
 
+def _announced_version(raw: bytes | None) -> tuple[int, ...] | None:
+    """The version in an announcement, without checking its signature: it only decides whether beta.json is
+    replaced, and the app checks every signature itself. None when it does not read."""
+    try:
+        payload = json.loads(base64.b64decode(json.loads(raw)["payload"], validate=True))
+        return tuple(int(part) for part in _version(f"v{payload['version']}").split("."))
+    except (TypeError, ValueError, KeyError, ReleaseError, RecursionError):
+        return None
+
+
+def announcements(tag: str, prerelease: bool, current_beta: bytes | None) -> list[str]:
+    """Where the announcement of this release goes; beta.json comes first, the published channel last."""
+    if prerelease:
+        return [BETA]
+    version = tuple(int(part) for part in _version(tag).split("."))
+    beta_ahead = (_announced_version(current_beta) or ()) > version
+    return [STABLE] if beta_ahead else [BETA, STABLE]
+
+
+def _read_if_there(path: str) -> bytes | None:
+    try:
+        return pathlib.Path(path).read_bytes()
+    except OSError:
+        return None
+
+
 def main(args: list[str]) -> int:
     try:
         match args:
@@ -70,6 +100,8 @@ def main(args: list[str]) -> int:
                 pathlib.Path(out).write_bytes(build_payload(tag, pathlib.Path(folder), notes))
             case ["envelope", payload, signature, out]:
                 pathlib.Path(out).write_bytes(build_envelope(pathlib.Path(payload).read_bytes(), pathlib.Path(signature).read_bytes()))
+            case ["channels", tag, prerelease, current] if prerelease in ("true", "false"):
+                print("\n".join(announcements(tag, prerelease == "true", _read_if_there(current))))
             case _:
                 print(USAGE, file=sys.stderr)
                 return 2
