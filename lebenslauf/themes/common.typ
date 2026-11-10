@@ -51,6 +51,9 @@
 // Stichpunkt kann Text oder (text: ..., tags: ...) sein
 #let text-von(x) = if type(x) == dictionary { x.at("text", default: "") } else { str(x) }
 
+// A skill keyword is text or (name: ..., level: ...) for the dossier designs; other themes show the name only
+#let stichwort(k) = if type(k) == dictionary { k.at("name", default: "") } else { str(k) }
+
 // "2022-06" -> "Juni 2022", "2018" -> "2018"
 #let datum(d, b) = {
   if d == none or d == "" { return b.heute }

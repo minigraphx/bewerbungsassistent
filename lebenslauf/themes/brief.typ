@@ -20,45 +20,53 @@
   abstand-unterschrift: 1.6em,
 )
 
-#let brief(daten, stil: (:)) = {
+// The letter as a part: sets only its own page style and no document metadata, so a dossier can
+// put it between other parts (docs/design/dossier.md). `kopf` replaces name and contact line,
+// `betreff-block` replaces the subject with a strong heading, `fuss` is the page footer.
+#let brief-teil(daten, stil: (:), kopf: auto, betreff-block: none, fuss: none) = {
   let s = brief-standard-stil + stil
   let absender = daten.absender
-  set document(title: daten.betreff, author: absender.name)
-  set page(paper: "a4", margin: s.rand, fill: s.farbe-hintergrund)
-  set text(font: s.schrift-text, size: s.groesse-text, fill: s.farbe-text, lang: daten.sprache)
-  set par(leading: s.zeilen-text, spacing: s.abstand-absatz)
+  page(paper: "a4", margin: s.rand, fill: s.farbe-hintergrund, footer: fuss, {
+    set text(font: s.schrift-text, size: s.groesse-text, fill: s.farbe-text, lang: daten.sprache)
+    set par(leading: s.zeilen-text, spacing: s.abstand-absatz)
 
-  // Kopf: Name und Kontaktzeile
-  block(below: 0pt, {
-    text(font: s.schrift-name, weight: 700, size: s.groesse-name, fill: s.farbe-akzent,
-      if s.name-gross [#upper(absender.name)] else [#absender.name])
-    v(0.3em)
-    text(size: s.groesse-kontakt)[#absender.zeile]
-    if s.linie != none {
-      v(0.2em)
-      line(length: 100%, stroke: s.linie + s.farbe-akzent)
-    }
-  })
-  v(s.abstand-kopf)
+    // Kopf: Name und Kontaktzeile
+    if kopf != auto { kopf } else { block(below: 0pt, {
+      text(font: s.schrift-name, weight: 700, size: s.groesse-name, fill: s.farbe-akzent,
+        if s.name-gross [#upper(absender.name)] else [#absender.name])
+      v(0.3em)
+      text(size: s.groesse-kontakt)[#absender.zeile]
+      if s.linie != none {
+        v(0.2em)
+        line(length: 100%, stroke: s.linie + s.farbe-akzent)
+      }
+    }) }
+    v(s.abstand-kopf)
 
-  // Empfänger
-  block(below: 0pt, {
-    set par(spacing: 0pt)
-    for zeile in daten.empfaenger [#zeile \ ]
-  })
-  v(s.abstand-empfaenger)
+    // Empfänger
+    block(below: 0pt, {
+      set par(spacing: 0pt)
+      for zeile in daten.empfaenger [#zeile \ ]
+    })
+    v(s.abstand-empfaenger)
 
-  [#daten.ort_datum]
-  v(1.2em)
-  text(weight: 700)[#daten.betreff]
-  v(0.9em)
-  [#daten.anrede]
-  v(0.4em)
-  for absatz in daten.absaetze [#absatz #parbreak()]
-  // Gruss und Unterschrift nie getrennt
-  block(breakable: false, above: 1.3em, {
-    [#daten.gruss]
-    v(s.abstand-unterschrift)
-    [#daten.unterschrift]
+    [#daten.ort_datum]
+    v(1.2em)
+    if betreff-block != none { betreff-block } else { text(weight: 700)[#daten.betreff] }
+    v(0.9em)
+    [#daten.anrede]
+    v(0.4em)
+    for absatz in daten.absaetze [#absatz #parbreak()]
+    // Gruss und Unterschrift nie getrennt
+    block(breakable: false, above: 1.3em, {
+      [#daten.gruss]
+      v(s.abstand-unterschrift)
+      [#daten.unterschrift]
+    })
   })
+}
+
+#let brief(daten, stil: (:)) = {
+  set document(title: daten.betreff, author: daten.absender.name)
+  brief-teil(daten, stil: stil)
 }

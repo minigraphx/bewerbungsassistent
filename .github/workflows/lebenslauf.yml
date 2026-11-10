@@ -23,6 +23,8 @@ jobs:
           cache-dependency-path: requirements-dev.txt
       - name: Abhängigkeiten
         run: pip install -r ../requirements-dev.txt
+      - name: pdftotext für die Prüfung der Lesereihenfolge
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Tests
         run: python -m pytest -q
       - name: Beispiel-PDFs bauen
@@ -32,6 +34,7 @@ jobs:
           python build.py data/beispiel.yaml --lang en -o build/pdf/beispiel-englisch.pdf
           python build.py data/beispiel.yaml --job jobs/beispiel-daten.yaml -o build/pdf/beispiel-daten.pdf
           python anschreiben.py data/anschreiben-beispiel.yaml -o build/pdf/anschreiben-beispiel.pdf
+          python dossier.py data/dossier-beispiel.yaml --out-dir build/pdf/dossier-siegel
       - uses: actions/upload-artifact@v4
         with:
           name: beispiel-pdfs

@@ -7,6 +7,9 @@ Lebenslauf-Generator des Bewerbungsbegleiters: Inhalt (YAML, JSON-Resume-Schema)
 - `tests/` – pytest (`python -m pytest`), u.a. dass mit `--build-dir` nichts in `build/` des Moduls entsteht.
 - `fotoausschnitt.py` – Fotoausschnitt lesen, prüfen, als Vorschau rendern (wiederverwendeter `typst.Compiler`) und per ruamel.yaml ohne Verlust von Kommentaren speichern. Die Oberfläche dazu liegt im Modul `bewerbungen` (Seite „Foto“), die Entwürfe legt dessen Ablage an.
 - `anschreiben.py` – Anschreiben (YAML) → PDF; Layout `themes/brief.typ`, Stil je Theme in `themes/<name>/anschreiben.typ`, Einstieg `anschreiben-main.typ` (MIN-260).
+- `dossier.py` – Bewerbungsdossier (G16, G39; `docs/design/dossier.md`): Dossier-Datei (YAML: `lebenslauf`, `anschreiben`, `gruss`, `dank`, `kennzahlen`, `anlagen`) → `<build-dir>/dossier.json` → `dossier.pdf`, `lebenslauf.pdf` und `anschreiben.pdf` aus denselben Typst-Teilen. `dossier_data.py` liest die Datenerweiterungen (Niveaus 1–6 oder A1–C2, `x-icon`, `x-monogramm`, Felder der Überschrift im Brief) und prüft sie.
+- `themes/tokens.typ` – Farben, Abstände und Radien aus `docs/design/system/tokens.json` (Test hält sie gleich); `themes/dossier.typ` – Gemeinsames der Dossier-Designs; `themes/icons/` – Lucide-Auswahl (ISC) für Interessen.
+- `themes/dossier-siegel/` – Entwurf „Siegel“: Teile in `theme.typ` (Lebenslauf), `anschreiben.typ` und `teile.typ` (Deckblatt, „Kurz vorgestellt“, „Danke“); Einstiege `main.typ`, `anschreiben-main.typ`, `dossier-main.typ`. Die Teile setzen nur ihren Seitenstil, Metadaten setzt die Hülle.
 - `tailor.py` – Zuschnitt pro Stelle über `tags`, `max_highlights`, `hide`, `basics`, `sections`.
 - `themes/common.typ` – Datumsformat, Beschriftungen DE/EN, Hilfsfunktionen.
 - `themes/zweispaltig/` – Kopf mit rundem Foto, zwei unabhängig laufende Spalten (Design des Canva-Lebenslaufs); ab Seite 2 Hauptspalte links (Seite 1 wird ausgemessen, Einträge sind unteilbar).
