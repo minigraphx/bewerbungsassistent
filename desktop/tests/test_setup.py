@@ -1,9 +1,11 @@
 """Setup of the desktop app (MIN-342): data folder, native dialogs, import of the einstieg file."""
 import json
+import os
 import pathlib
 import re
 import subprocess
 import threading
+import time
 import urllib.request
 
 import pytest
@@ -183,7 +185,7 @@ def started(tmp_path):
         chosen.append(folder)
 
     state = routes_setup.Setup(paths=paths, switch=switch, suggestion=tmp_path / "Dokumente" / "Bewerbungsbegleiter",
-                               choose=lambda kind, start: tmp_path / "gewaehlt")
+                               choose=lambda kind, start: tmp_path / "gewaehlt", downloads=tmp_path / "Downloads")
     get_routes, post_routes = routes_setup.make_routes(state)
     server.routen_get.update(get_routes)
     server.routen_post.update(post_routes)
@@ -221,6 +223,38 @@ def test_first_start_is_not_set_up(started):
 
     assert status == 200 and answer["eingerichtet"] is False
     assert answer["vorschlag"].endswith("Bewerbungsbegleiter") and answer["datenordner"] is None
+
+
+def test_without_an_einstieg_file_in_downloads_the_setup_names_none(started):
+    server, _, _ = started
+
+    assert call(server, "/api/app/einrichtung")[1]["einstieg_datei"] is None
+
+
+def test_the_newest_einstieg_file_in_downloads_is_named(started, tmp_path):
+    server, _, _ = started
+    downloads = tmp_path / "Downloads"
+    downloads.mkdir()
+    for name, age in [("einstieg.json", 300), ("einstieg (1).zip", 100), ("einstieg-notizen.txt", 0), ("lebenslauf.zip", 0)]:
+        (downloads / name).write_bytes(b"{}")
+        os.utime(downloads / name, (time.time() - age, time.time() - age))
+    (downloads / "einstieg.zip").mkdir()  # a folder of that name is no file
+
+    status, answer = call(server, "/api/app/einrichtung")
+
+    assert status == 200 and answer["einstieg_datei"] == str(downloads / "einstieg (1).zip")
+
+
+@pytest.mark.parametrize("name, found", [("einstieg.zip", True), ("Einstieg.JSON", True), ("einstieg (2).json", True),
+                                         ("einstieg-1.zip", True), ("einstieg.yaml", False), ("mein-einstieg.zip", False)])
+def test_which_names_count_as_einstieg_file(tmp_path, name, found):
+    (tmp_path / name).write_bytes(b"{}")
+
+    assert (routes_setup.einstieg_file(tmp_path) == tmp_path / name) is found
+
+
+def test_a_missing_downloads_folder_finds_nothing(tmp_path):
+    assert routes_setup.einstieg_file(tmp_path / "gibt-es-nicht") is None
 
 
 def test_choosing_the_data_folder_switches_without_restart(started, tmp_path):

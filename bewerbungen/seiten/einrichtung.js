@@ -1,22 +1,23 @@
 "use strict";
-// Setup of the packaged app (MIN-342), in five steps (MIN-369): what is sought (job or apprenticeship, form of
-// address, RAV), data folder, einstieg file, AI invitation, browser extension. Each step is a section; the hash
-// says which one is shown, so the browser's back button works. Folder and file are chosen in the system's own
-// dialog; the server reads the file from disk. The choice of the first step is stored in the data folder, so before
-// a folder exists the page keeps it (sessionStorage) and stores it right after the folder.
+// Setup of the packaged app (MIN-342, MIN-369, #219): what is sought (job or apprenticeship, form of address, RAV, with
+// the data folder as one line), AI invitation, browser extension; the einstieg file is a step only when such a file
+// lies in Downloads, otherwise it is reached under „Erweitert“. Each step is a section; the hash says which one is
+// shown, so the browser's back button works. Folder and file are chosen in the system's own dialog; the server reads
+// the file from disk. The first step creates the folder before it stores the choice there. Which steps were skipped
+// the page keeps in sessionStorage.
 (() => {
   const { holen, senden, el } = window.App;
   const { text, anwenden } = window.Texte;
   const $ = id => document.getElementById(id);
   const usd = wert => `${Number(wert || 0).toFixed(2)} USD`;
 
-  const SCHRITTE = [
-    { id: "gesucht", titel: "Gesucht" },
-    { id: "datenordner", titel: "Datenordner" },
-    { id: "vorlage", titel: "Datei" },
-    { id: "ki", titel: "KI" },
-    { id: "erweiterung", titel: "Erweiterung" },
-  ];
+  const L = window.EinrichtungLogik;
+  const TITEL = { gesucht: "Gesucht", vorlage: "Datei", ki: "KI", erweiterung: "Erweiterung" };
+  const FRUEHER = { datenordner: "gesucht" };  // links to steps that are gone
+  const STORE = {
+    chrome: { haupt: "Im Chrome Web Store hinzufügen", leise: "Im Chrome Web Store öffnen", name: "Google Chrome", knopf: "Hinzufügen" },
+    edge: { haupt: "Im Edge-Store hinzufügen", leise: "Im Edge-Store öffnen", name: "Microsoft Edge", knopf: "Abrufen" },
+  };
   const SPEICHER = "bewerbungsassistent-einrichtung";
 
   let info = null;         // /api/app/einrichtung; null in the plain app without setup
@@ -25,7 +26,7 @@
   let importiert = false;
   let dateiWahl = {};      // per existing Markdown file „behalten“ or „ersetzen“ (G26)
   let ravBeruehrt = false; // the default for RAV follows the choice until the person picks one
-  const sitzung = ladeSitzung();  // { wahl, bestaetigt, uebersprungen: {vorlage, ki, erweiterung} }
+  const sitzung = ladeSitzung();  // { bestaetigt, uebersprungen: {vorlage, ki, erweiterung} }
 
   function ladeSitzung() {
     try {
@@ -46,14 +47,13 @@
   const bereit = () => Boolean(info && info.eingerichtet && !info.fehlt);
   const kiVerbunden = () => Boolean(ki && ki.eingerichtet);
   const erweiterungGeladen = () => document.documentElement.dataset.bewerbungsbegleiterErweiterung || "";
-  const erweiterungZustand = () => window.EinrichtungLogik.erweiterungZustand(erweiterungGeladen(), info?.erweiterung?.version,
+  const erweiterungZustand = () => L.erweiterungZustand(erweiterungGeladen(), info?.erweiterung?.version,
                                                                              "bewerbungsbegleiterEntpackt" in document.documentElement.dataset);
   const satz = () => wahl ? (wahl.gesucht === "lehrstelle" ? "lehrstelle-du" : `stelle-${wahl.anrede}`) : "stelle-sie";
 
   function erledigt(id) {
     switch (id) {
-      case "gesucht": return Boolean(wahl && (wahl.gewaehlt || sitzung.bestaetigt));
-      case "datenordner": return bereit();
+      case "gesucht": return Boolean(wahl && (wahl.gewaehlt || sitzung.bestaetigt)) && (!info || bereit());
       case "vorlage": return Boolean(info?.lebenslauf || importiert || sitzung.uebersprungen.vorlage);
       case "ki": return kiVerbunden() || Boolean(sitzung.uebersprungen.ki);
       case "erweiterung": return !info?.erweiterung || Boolean(erweiterungGeladen()) || Boolean(sitzung.uebersprungen.erweiterung);
@@ -76,7 +76,6 @@
     const fertig = erledigt(id);
     switch (id) {
       case "gesucht": return fertig ? zusammenfassung() : "Stelle oder Lehrstelle";
-      case "datenordner": return bereit() ? ordnerName(info.datenordner) : "Dokumente";
       case "vorlage": return info?.lebenslauf || importiert ? "übernommen" : sitzung.uebersprungen.vorlage ? "übersprungen" : "freiwillig";
       case "ki": return kiVerbunden() ? "verbunden" : sitzung.uebersprungen.ki ? "übersprungen" : "Einladungscode";
       case "erweiterung":
@@ -86,20 +85,21 @@
     }
   }
 
-  const sichtbareSchritte = () => info ? SCHRITTE : SCHRITTE.slice(0, 1);  // the plain app only knows the choice
+  const gewuenscht = () => FRUEHER[location.hash.slice(1)] || location.hash.slice(1);
+  // the plain app only knows the choice
+  const sichtbareSchritte = () => L.schritte({ installiert: Boolean(info), einstiegDatei: info?.einstieg_datei, jetzt: gewuenscht() })
+    .map(id => ({ id, titel: TITEL[id] }));
   const ersterOffener = () => sichtbareSchritte().find(s => !erledigt(s.id))?.id || "fertig";
 
   function erreichbar(id) {
     if (id === "gesucht") return true;
     if (!info) return id === "fertig" && erledigt("gesucht");
-    if (bereit()) return true;  // with a folder every step can be visited again
-    const ids = SCHRITTE.map(s => s.id);
-    return ids.indexOf(id) !== -1 && ids.indexOf(id) <= ids.indexOf(ersterOffener());
+    return bereit() && (id in TITEL || id === "fertig");  // every later step needs the folder of the first one
   }
 
   function aktueller() {
-    const gewuenscht = location.hash.slice(1);
-    return gewuenscht && erreichbar(gewuenscht) ? gewuenscht : ersterOffener();
+    const id = gewuenscht();
+    return id && erreichbar(id) ? id : ersterOffener();
   }
 
   function gehe(id) {
@@ -133,12 +133,15 @@
     for (const teil of document.querySelectorAll("[data-schritt]")) teil.hidden = teil.dataset.schritt !== jetzt;
     zeigeSchritte(jetzt);
     anwenden(document, satz());
-    if (jetzt === "gesucht") zeigeWahl();
-    if (jetzt === "datenordner") zeigeOrdner();
+    if (jetzt === "gesucht") {
+      zeigeWahl();
+      zeigeOrdner(location.hash.slice(1) === "datenordner");
+    }
     if (jetzt === "vorlage") zeigeVorlage();
     if (jetzt === "ki") zeigeKi();
     if (jetzt === "erweiterung") zeigeErweiterung();
     if (jetzt === "fertig") zeigeFertig();
+    $("erweitert").hidden = !bereit() || Boolean(info?.einstieg_datei) || jetzt === "vorlage";
   }
 
   // 1. What is sought
@@ -169,20 +172,19 @@
 
   async function speichereWahl(werte) {
     wahl = await senden("/api/einrichtung/wahl", werte);
-    delete sitzung.wahl;
-    merke();
   }
 
   async function bestaetigeWahl() {
     const werte = gewaehlteWahl();
     $("gesucht-weiter").disabled = true;
     try {
-      if (!info || bereit()) {
-        await speichereWahl(werte);
-      } else {
-        wahl = { ...werte, gewaehlt: false };  // stored with the folder
-        sitzung.wahl = werte;
+      if (info && ordnerGeaendert() && await wechsleOrdner()) {
+        zeigeWahl();
+        meldung($("gesucht-status"), "In diesem Ordner war schon eine Wahl gespeichert; sie gilt jetzt. Mit Weiter geht es weiter.", "warning");
+        zeige();
+        return;
       }
+      await speichereWahl(werte);
       sitzung.bestaetigt = true;
       merke();
       if (!info) {
@@ -203,33 +205,36 @@
   for (const knopf of document.querySelectorAll("input[name=rav]")) knopf.addEventListener("change", () => { ravBeruehrt = true; });
   $("gesucht-weiter").addEventListener("click", bestaetigeWahl);
 
-  // 2. Data folder
+  // The data folder, a line of the first step (#219): the proposal fits nearly everyone
 
   let ordnerAngezeigt = false;
+  const ordnerPfad = () => $("ordner").value.trim();
+  const ordnerGeaendert = () => !bereit() || ordnerPfad() !== info.datenordner;
 
-  function ordnerKnopf() {
-    const gleich = bereit() && $("ordner").value.trim() === info.datenordner;
-    $("ordner-uebernehmen").textContent = gleich ? "Weiter" : "Ordner anlegen und weiter";
+  function oeffneOrdner(offen) {
+    $("ordner-feld").hidden = !offen;
+    $("ordner-aendern").setAttribute("aria-expanded", String(offen));
   }
 
-  function zeigeOrdner() {
+  function zeigeOrdner(oeffnen = false) {
+    $("ordner-teil").hidden = !info;
     if (!info) return;
     if (!ordnerAngezeigt) {
       $("ordner").value = info.datenordner || info.vorschlag;
       ordnerAngezeigt = true;
     }
+    $("ordner-zeile").textContent = ordnerPfad() || info.vorschlag;
     $("ordner-fehlt").hidden = !info.fehlt;
     $("ordner-fehlt").textContent = info.fehlt
       ? `Der Datenordner ${info.datenordner} wurde nicht gefunden (z.B. USB-Stick nicht eingesteckt). Sobald er wieder verfügbar ist, diese Seite neu laden; oder einen anderen Ordner wählen.`
       : "";
-    if (bereit()) meldung($("ordner-status"), `Datenordner: ${info.datenordner}`, "success");
-    ordnerKnopf();
+    if (oeffnen || info.fehlt) oeffneOrdner(true);
   }
 
   async function pruefeOrdner() {
-    const pfad = $("ordner").value.trim();
-    ordnerKnopf();
-    if (!pfad || (bereit() && pfad === info.datenordner)) return;
+    const pfad = ordnerPfad();
+    $("ordner-zeile").textContent = pfad || info.vorschlag;
+    if (!pfad || !ordnerGeaendert()) return meldung($("ordner-status"), "");
     try {
       meldung($("ordner-status"), (await senden("/api/app/ordner-pruefen", { pfad })).text, "warning");
     } catch (fehler) {
@@ -249,28 +254,23 @@
     }
   }
 
-  async function uebernehmeOrdner() {
-    if (bereit() && $("ordner").value.trim() === info.datenordner) return naechster("datenordner");
-    $("ordner-uebernehmen").disabled = true;
-    try {
-      info = await senden("/api/app/datenordner", { pfad: $("ordner").value });
-      // The choice belongs into the new folder; a folder that already has one keeps it unless one was just made.
-      if (sitzung.wahl) await speichereWahl(sitzung.wahl);
-      else wahl = await holen("/api/einrichtung/wahl");
-      naechster("datenordner");
-    } catch (fehler) {
-      meldung($("ordner-status"), fehler.message, "danger");
-    } finally {
-      $("ordner-uebernehmen").disabled = false;
-    }
+  /** Creates or switches the folder; true when the new folder brought its own choice (another person's folder). */
+  async function wechsleOrdner() {
+    const vorher = bereit() ? info.datenordner : null;
+    info = await senden("/api/app/datenordner", { pfad: ordnerPfad() });
+    if (!vorher) return false;
+    const dort = await holen("/api/einrichtung/wahl");
+    if (!dort.gewaehlt) return false;
+    wahl = dort;
+    return true;
   }
 
-  $("ordner").addEventListener("input", ordnerKnopf);
+  $("ordner").addEventListener("input", () => { $("ordner-zeile").textContent = ordnerPfad() || info?.vorschlag || ""; });
   $("ordner").addEventListener("change", pruefeOrdner);
   $("ordner-waehlen").addEventListener("click", () => waehle("ordner", "ordner", "ordner-status", pruefeOrdner));
-  $("ordner-uebernehmen").addEventListener("click", uebernehmeOrdner);
+  $("ordner-aendern").addEventListener("click", () => oeffneOrdner($("ordner-feld").hidden));
 
-  // 3. Einstieg file
+  // 2. Einstieg file: a step with a file in Downloads, otherwise under „Erweitert“
 
   function zeigeImport(ergebnis) {
     const zeilen = [
@@ -286,7 +286,7 @@
 
   // ersetzen: null on the first try (existing Markdown files come back as a choice), else the files picked for replacing
   async function importiere(ersetzen = null) {
-    zeigeWahl([]);
+    zeigeDateiWahl([]);
     $("import-ergebnis").replaceChildren();
     meldung($("import-status"), "Wird importiert …");
     try {
@@ -299,12 +299,12 @@
     } catch (fehler) {
       const vorhanden = fehler.status === 409 && fehler.daten?.vorhanden;
       meldung($("import-status"), fehler.message, vorhanden ? "warning" : "danger");
-      zeigeWahl(vorhanden ? fehler.daten.wahl || [] : []);
+      zeigeDateiWahl(vorhanden ? fehler.daten.wahl || [] : []);
     }
   }
 
-  function zeigeWahl(dateien) {
-    dateiWahl = window.EinrichtungLogik.startWahl(dateien);
+  function zeigeDateiWahl(dateien) {
+    dateiWahl = L.startWahl(dateien);
     $("import-wahl").replaceChildren(...dateien.map(dateiFrage));
     $("import-wahl").hidden = !dateien.length;
     $("ersetzen").hidden = !dateien.length;
@@ -323,7 +323,7 @@
 
   function unterschiedeAnsicht(zeilen) {
     if (!zeilen.length) return el("p", { class: "field__hint" }, "Kein Unterschied zum bisherigen Stand.");
-    const { zeilenZeichen } = window.EinrichtungLogik;
+    const { zeilenZeichen } = L;
     return el("div", {},
       el("p", { class: "field__hint" }, "Unterschiede zum bisherigen Stand: Zeilen mit − fallen weg, Zeilen mit + kommen dazu."),
       el("pre", { class: "import-wahl__zeilen" }, zeilen.map(z => el("span", { class: `import-wahl__zeile import-wahl__zeile--${z.art}` },
@@ -331,6 +331,11 @@
   }
 
   function zeigeVorlage() {
+    const gefunden = info?.einstieg_datei || "";
+    $("vorlage-gefunden").hidden = !gefunden;
+    $("vorlage-allgemein").hidden = Boolean(gefunden);
+    $("vorlage-name").textContent = ordnerName(gefunden);
+    if (gefunden && !$("datei").value) $("datei").value = gefunden;
     const vorhanden = Boolean(info?.lebenslauf || importiert);
     $("vorlage-weiter").hidden = !vorhanden;
     $("vorlage-ueberspringen").hidden = vorhanden;
@@ -346,11 +351,11 @@
 
   $("datei-waehlen").addEventListener("click", () => waehle("datei", "datei", "import-status", async () => {}));
   $("importieren").addEventListener("click", () => importiere(null));
-  $("ersetzen").addEventListener("click", () => importiere(window.EinrichtungLogik.zuErsetzen(dateiWahl)));
+  $("ersetzen").addEventListener("click", () => importiere(L.zuErsetzen(dateiWahl)));
   $("vorlage-ueberspringen").addEventListener("click", () => ueberspringe("vorlage"));
   $("vorlage-weiter").addEventListener("click", () => ueberspringe("vorlage"));
 
-  // 4. AI
+  // 3. AI
 
   function zeigeKi() {
     if (!ki) return;
@@ -401,19 +406,32 @@
   $("ki-ueberspringen").addEventListener("click", () => ueberspringe("ki"));
   $("ki-weiter").addEventListener("click", () => ueberspringe("ki"));
 
-  // 5. Browser extension (MIN-339): from the Chrome or Edge store (#75, #87), by hand as developer add-on otherwise
+  // 4. Browser extension (MIN-339): from the store of the own browser (#75, #87, #219), by hand under „Klappt es nicht?“
+
+  function richteStoreEin() {
+    const browser = L.browserVon(navigator.userAgent);
+    const { haupt, leise } = L.storeKnoepfe(browser);
+    const anderer = browser === "andere" ? "Die Erweiterung läuft in Google Chrome und Microsoft Edge. " : "";
+    $("erweiterung-store-text").textContent = `${anderer}Im Store auf „${STORE[haupt].knopf}“ klicken, das dauert eine Minute.`;
+    $("store-haupt").dataset.store = haupt;
+    $("store-haupt").textContent = STORE[haupt].haupt;
+    $("store-leise").dataset.store = leise;
+    $("store-leise").textContent = STORE[leise].leise;
+    $("store-leise-name").textContent = STORE[leise].name;
+  }
 
   function zeigeErweiterung() {
     if (!info?.erweiterung) {
       meldung($("erweiterung-zustand"), "Die Erweiterung gibt es nur in der installierten App.", "warning");
-      $("erweiterung-schritte").hidden = true;
+      $("erweiterung-hand").hidden = true;
+      $("erweiterung-store").hidden = true;
       $("erweiterung-warten").hidden = true;
       $("erweiterung-weiter").disabled = false;
       return;
     }
     $("erweiterung-ordner").textContent = info.erweiterung.ordner;
     const geladen = erweiterungGeladen();
-    $("erweiterung-schritte").hidden = Boolean(geladen);
+    $("erweiterung-hand").hidden = Boolean(geladen);
     $("erweiterung-store").hidden = Boolean(geladen);
     $("erweiterung-warten").hidden = Boolean(geladen);
     $("erweiterung-weiter").disabled = !geladen;
@@ -470,15 +488,23 @@
   // Done
 
   function zeigeFertig() {
-    const zeile = (titel, inhalt, gut) => el("li", { class: `notice${gut ? " notice--success" : ""}` },
-      el("span", { class: "notice__title" }, titel), el("p", { class: "notice__body" }, inhalt));
+    const zeile = (titel, inhalt, gut, knopf = null) => el("li", { class: `notice${gut ? " notice--success" : ""}` },
+      el("span", { class: "notice__title" }, titel), el("p", { class: "notice__body" }, inhalt),
+      knopf ? el("div", { class: "notice__actions" }, el("a", { class: "btn btn--sm", href: knopf.ziel }, knopf.knopf)) : null);
     const geladen = erweiterungGeladen();
-    $("fertig-liste").replaceChildren(
+    const offen = L.offenePunkte({ kiVerbunden: !info || kiVerbunden(), erweiterungMoeglich: Boolean(info?.erweiterung),
+                                   erweiterungGeladen: geladen });
+    const ist = id => offen.find(p => p.id === id);
+    $("fertig-titel").textContent = L.abschlussTitel(offen);
+    $("fertig-text").textContent = offen.length ? "Das fehlt noch. Es lässt sich auch später einrichten." : "";
+    $("fertig-text").hidden = !offen.length;
+    $("fertig-liste").replaceChildren(...[
       zeile("Gesucht", zusammenfassung(), true),
-      zeile("Datenordner", info?.datenordner || "", bereit()),
-      zeile("KI", kiVerbunden() ? "Verbunden" : "Ohne KI, lässt sich später einrichten", kiVerbunden()),
-      zeile("Erweiterung", geladen ? `Geladen, Version ${geladen}` : "Noch nicht geladen, lässt sich später einrichten", Boolean(geladen)),
-    );
+      info ? zeile("Datenordner", info.datenordner || "", bereit()) : null,
+      info ? (ist("ki") ? zeile(ist("ki").titel, ist("ki").text, false, ist("ki")) : zeile("KI", "Verbunden", true)) : null,
+      ist("erweiterung") ? zeile(ist("erweiterung").titel, ist("erweiterung").text, false, ist("erweiterung"))
+        : geladen ? zeile("Erweiterung", `Geladen, Version ${geladen}`, true) : null,
+    ].filter(Boolean));
     $("fertig-weiter").href = info?.lebenslauf ? "/" : "/angaben";
     $("fertig-weiter").textContent = info?.lebenslauf ? "Zur Übersicht" : "Meine Angaben erfassen";
   }
@@ -495,9 +521,9 @@
     if (!info || bereit()) {
       try { wahl = await holen("/api/einrichtung/wahl"); } catch { wahl = null; }
     }
-    if (sitzung.wahl && !(wahl && wahl.gewaehlt)) wahl = { ...sitzung.wahl, gewaehlt: false };
     if (!wahl) wahl = { gesucht: "stelle", anrede: "sie", rav: true, gewaehlt: false };
     if (info) await ladeKi();
+    richteStoreEin();
     window.addEventListener("hashchange", zeige);
     zeige();
   }
