@@ -347,7 +347,7 @@ def setup_routes(paths, tmp_path, shown):
     folder.mkdir(exist_ok=True)
     (folder / "manifest.json").write_text('{"version": "0.1.0"}', encoding="utf-8")
     state = routes_setup.Setup(paths=paths, switch=lambda folder: None, suggestion=tmp_path / "Dokumente",
-                               extension_dir=folder, reveal=shown.append)
+                               extension_dir=folder, reveal=shown.append, downloads=tmp_path / "Downloads")
     return folder, routes_setup.make_routes(state)
 
 

@@ -85,27 +85,25 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“. Für die 
 
 Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Sie beenden sie im Menü **Mehr** mit **Beenden**. Schliessen Sie den letzten Tab der App, beendet sie sich nach einer Minute von selbst. Läuft gerade eine Suche oder eine Aufgabe der KI, wartet sie, bis diese fertig ist.
 
-Die Einrichtung hat fünf Schritte und dauert zusammen etwa zehn Minuten. Die Schritte 1 bis 4 stehen hier, Schritt 5 unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen). Jeden Schritt können Sie später ändern; Sie finden die Seite im Menü **Mehr** unter **Einrichtung**.
+Die Einrichtung hat drei kurze Schritte und dauert zusammen etwa fünf Minuten. Die Schritte 1 und 2 stehen hier, Schritt 3 unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen). Jeden Schritt können Sie später ändern; Sie finden die Seite im Menü **Mehr** unter **Einrichtung**.
 
 #### Schritt 1: Was wird gesucht?
 
-Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room. Klicken Sie dann auf **Weiter**.
+![Seite Einrichtung mit den drei Schritten, der Wahl zwischen Stelle und Lehrstelle und der Zeile mit dem Datenordner](bilder/einrichtung-start.jpg)
+
+Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.
+
+Unten steht, wo Ihre Unterlagen liegen: der Datenordner mit Ihrem Lebenslauf, Ihren Anschreiben und Ihren Bewerbungen. Der Vorschlag unter „Dokumente“ passt meistens. Einen anderen Ordner wählen Sie mit **Ändern** und **Ordner wählen …**. Klicken Sie dann auf **Weiter**; die App legt den Ordner an.
 
 Bei Lehrstellen: Wählen Sie **Eine Lehrstelle**, auch wenn Sie die App für Ihr Kind einrichten.
 
-#### Schritt 2: Datenordner
+#### Angaben aus einer Datei
 
-![Seite Einrichtung mit den fünf Schritten und dem Feld für den Datenordner](bilder/einrichtung-start.jpg)
-
-Hier liegen Ihr Lebenslauf, Ihre Anschreiben und Ihre Bewerbungen. Der Vorschlag unter „Dokumente“ passt meistens: Klicken Sie auf **Ordner anlegen und weiter**. Einen anderen Ordner wählen Sie mit **Ordner wählen …**.
-
-#### Schritt 3: Angaben aus einer Datei
-
-Haben Sie schon eine Datei `einstieg.zip` oder `einstieg.json`, zum Beispiel aus Claude, wählen Sie sie mit **Datei wählen …** und klicken auf **Importieren**. Sonst klicken Sie auf **Überspringen** und erfassen Ihre Angaben später unter **Meine Angaben**.
+Liegt im Ordner Downloads eine Datei aus der Einstiegsvorlage oder aus Claude, etwa `einstieg-erika-muster.zip` oder `einstieg.json`, zeigt die Einrichtung nach Schritt 1 den Schritt **Datei** mit dieser Datei. Klicken Sie auf **Importieren**, oder auf **Überspringen**, wenn Sie Ihre Angaben lieber unter **Meine Angaben** erfassen. Liegt die Datei anderswo, finden Sie den Import unten auf der Seite unter **Erweitert**, **Datei übernehmen**; die Datei wählen Sie dort mit **Datei wählen …**.
 
 Liegen Suchprofil, Stilprofil oder Bausteine schon im Datenordner, fragt die App pro Datei, ob sie bleibt. Das geht wie unter [Angaben erfassen](#angaben-erfassen) beschrieben, abschliessend mit **Mit dieser Wahl importieren**.
 
-#### Schritt 4: KI
+#### Schritt 2: KI
 
 ![Schritt KI einrichten mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
 
@@ -117,16 +115,16 @@ Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlös
 
 ### Browser-Erweiterung hinzufügen
 
-Das ist Schritt 5 der Einrichtung. Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus; abschicken macht sie nie. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**.
+Das ist Schritt 3 der Einrichtung. Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus; abschicken macht sie nie. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**.
 
-In Microsoft Edge und Google Chrome kommt die Erweiterung aus dem Store. Öffnen Sie unten den Teil für Ihren Browser.
+In Microsoft Edge und Google Chrome kommt die Erweiterung aus dem Store. Die App erkennt Ihren Browser und zeigt den Knopf für seinen Store; den anderen Store finden Sie als Link darunter. Öffnen Sie unten den Teil für Ihren Browser. Danach geht es in der App von selbst weiter.
 
-![Schritt Browser-Erweiterung mit den Knöpfen Im Chrome Web Store öffnen und Im Edge-Store öffnen, den Knöpfen In Chrome öffnen und In Edge öffnen, dem Pfad des Ordners und dem Knopf Ordner zeigen](bilder/einrichtung-erweiterung.jpg)
+![Schritt Browser-Erweiterung mit dem Knopf Im Chrome Web Store hinzufügen, dem Link Im Edge-Store öffnen, dem zugeklappten Teil Klappt es nicht? und dem Hinweis, dass es von selbst weitergeht](bilder/einrichtung-erweiterung.jpg)
 
 <details>
 <summary>Für Microsoft Edge</summary>
 
-1. In der App auf **Im Edge-Store öffnen** klicken. Der [Eintrag bei Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp) geht auf.
+1. In der App auf **Im Edge-Store hinzufügen** klicken (in einem anderen Browser: auf den Link **Im Edge-Store öffnen**). Der [Eintrag bei Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp) geht auf.
 2. Auf **Abrufen** klicken und bestätigen.
 
 Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
@@ -136,7 +134,7 @@ Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
 <details>
 <summary>Für Google Chrome</summary>
 
-1. In der App auf **Im Chrome Web Store öffnen** klicken. Der [Eintrag im Chrome Web Store](https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo) geht auf.
+1. In der App auf **Im Chrome Web Store hinzufügen** klicken (in Edge: auf den Link **Im Chrome Web Store öffnen**). Der [Eintrag im Chrome Web Store](https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo) geht auf.
 2. Auf **Hinzufügen** klicken und bestätigen.
 
 Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
@@ -146,7 +144,7 @@ Fertig: In der App erscheint von selbst „Die Erweiterung ist bereit“.
 <details>
 <summary>Ohne Store laden: wenn es über den Store nicht klappt</summary>
 
-In diesem Fall laden Sie die Erweiterung einmal von Hand, in Chrome oder Edge:
+In diesem Fall laden Sie die Erweiterung einmal von Hand, in Chrome oder Edge. Die Schritte stehen in der App unter **Klappt es nicht?**:
 
 1. Auf **In Chrome öffnen** oder **In Edge öffnen** klicken. Die Erweiterungsseite und der Ordner der Erweiterung gehen auf.
 2. Den **Entwicklermodus** einschalten: in Chrome oben rechts, in Edge links.
@@ -157,6 +155,10 @@ In diesem Fall laden Sie die Erweiterung einmal von Hand, in Chrome oder Edge:
 Die Erweiterung steht dann in der Liste, und in der App erscheint von selbst „Die Erweiterung ist bereit“.
 
 </details>
+
+### Am Ende der Einrichtung
+
+Ist noch etwas offen, etwa die KI oder die Erweiterung, steht am Ende **Fast fertig** mit einer Zeile pro offenem Punkt und einem Knopf wie **KI einrichten** oder **Erweiterung laden**. Sie können das auch später nachholen. Ist alles bereit, steht dort **Alles eingerichtet**. Mit **Meine Angaben erfassen** geht es weiter.
 
 ## Mit der App arbeiten
 
@@ -192,7 +194,7 @@ Auf kununu bewerten heutige und frühere Mitarbeitende ihre Firma, bei Lehrbetri
 
 Die App fragt kununu nur, wenn Sie auf **Prüfen** klicken, nie von selbst. An kununu geht dabei nur der Firmenname; Ihre Angaben bleiben auf diesem Computer. Mit der Erweiterung liest die App Wert und Anzahl Bewertungen in einem Tab und trägt sie ein. Ohne Erweiterung öffnet **Prüfen** die Firma bei kununu in einem neuen Tab, und Sie lesen den Wert dort selbst.
 
-Auf **Stellen suchen** steht der Wert als **kununu 3.8** nach dem Firmennamen, gestrichelt bei wenigen Bewertungen. Neben dem Treffer zeigt eine Zeile Wert, Bewertungen und Datum, dazu **Bei kununu ansehen** oder **Jetzt prüfen**. **Jetzt prüfen** tut dasselbe wie **Prüfen** auf der Seite **Firmen**.
+Auf **Stellen suchen** steht der Wert als **kununu 3.8 von 5** nach dem Firmennamen, gestrichelt bei wenigen Bewertungen. Neben dem Treffer zeigt eine Zeile Wert, Bewertungen und Datum, dazu **Bei kununu ansehen** oder **Jetzt prüfen**. **Jetzt prüfen** tut dasselbe wie **Prüfen** auf der Seite **Firmen**.
 
 Lässt sich kein Wert lesen, zum Beispiel weil kununu eine Prüfseite zeigt, bleibt der Tab offen. Klicken Sie dann auf der Seite **Firmen** auf **Von Hand eintragen**; den Knopf hat jede Firma ohne Wert und jede, deren Wert älter als 90 Tage ist. Geben Sie den Wert und die Anzahl Bewertungen so ein, wie sie bei kununu stehen, und klicken Sie auf **Eintragen**.
 
@@ -228,7 +230,7 @@ Ein eigenes Anschreiben laden Sie als PDF auf der Seite der Bewerbung hoch, unte
 <details>
 <summary>Wenn im Formular ein Upload-Feld offen bleibt</summary>
 
-Hat ein Formular nur ein Feld für eine Datei, baut die App daraus ein gemeinsames PDF. Bleibt ein Upload-Feld trotzdem offen, klicken Sie im Balken oder auf der Seite der Bewerbung auf **Dateien im Ordner zeigen**. Die App legt dann alle Dateien der Bewerbung in einen Ordner, öffnet ihn und nennt den Pfad. Von dort ziehen Sie die Datei ins Formular. Oder Sie fügen den Pfad im Datei-Dialog ein: auf dem Mac mit ⇧⌘G, unter Windows im Feld „Dateiname“. Direkt in diesen Ordner kann die App den Datei-Dialog nicht lenken, das lässt der Browser nicht zu.
+Hat ein Formular nur ein Feld für eine Datei, baut die App daraus ein gemeinsames PDF. Haben Sie für die Bewerbung ein Dossier gewählt, ist es das Dossier, mit den Nachweisen dahinter; Formulare mit eigenen Feldern für Lebenslauf und Anschreiben bekommen weiterhin die einzelnen Dateien. Bleibt ein Upload-Feld trotzdem offen, klicken Sie im Balken oder auf der Seite der Bewerbung auf **Dateien im Ordner zeigen**. Die App legt dann alle Dateien der Bewerbung in einen Ordner, öffnet ihn und nennt den Pfad. Von dort ziehen Sie die Datei ins Formular. Oder Sie fügen den Pfad im Datei-Dialog ein: auf dem Mac mit ⇧⌘G, unter Windows im Feld „Dateiname“. Direkt in diesen Ordner kann die App den Datei-Dialog nicht lenken, das lässt der Browser nicht zu.
 
 Ersetzen Sie eine Datei, während ein Formular offen ist, behält das Formular die frühere Fassung. Laden Sie das Formular neu, damit es die aktuelle bekommt. Tauschen Sie die Datei dort nicht von Hand aus: Bei „Abgeschickt? Ja“ hält die App fest, was das Formular von ihr bekommen hat.
 
@@ -289,9 +291,9 @@ Am einfachsten hat jede Person ein eigenes Benutzerkonto auf dem Computer und ri
 Teilen Sie sich ein Benutzerkonto, wechseln Sie so zwischen den Personen:
 
 1. Oben unter **Mehr** auf **Einrichtung** klicken.
-2. In der Liste der Schritte auf **Datenordner** klicken.
+2. Im Schritt **Gesucht** neben dem Datenordner auf **Ändern** klicken.
 3. Mit **Ordner wählen …** den Ordner der anderen Person wählen. Die App meldet dann „Der Ordner enthält schon Bewerbungsdaten; sie werden weiter verwendet.“ Für eine neue Person wählen Sie einen neuen, leeren Ordner.
-4. Auf **Ordner anlegen und weiter** klicken. Der Knopf heisst auch bei einem Ordner so, den es schon gibt; die Unterlagen darin bleiben, wie sie sind.
+4. Auf **Weiter** klicken. Die Unterlagen in einem Ordner, den es schon gibt, bleiben, wie sie sind.
 
 Die App arbeitet jetzt mit den Unterlagen dieser Person. Eine neue Person erfasst danach ihre Angaben unter **Meine Angaben**. Die Einwilligung gehört zum Datenordner: Vor der ersten KI-Nutzung gibt jede Person ihre eigene.
 
@@ -301,7 +303,7 @@ Der Zugang zur KI gehört zum Benutzerkonto des Computers, nicht zum Datenordner
 
 ### Was im Datenordner liegt
 
-Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Datenordner. Sie können die Dateien mit jedem Texteditor öffnen, die PDFs verschicken oder alles in ein anderes Programm mitnehmen. Welcher Ordner das ist, sehen Sie unter **Mehr**, **Einrichtung**, Schritt **Datenordner**.
+Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Datenordner. Sie können die Dateien mit jedem Texteditor öffnen, die PDFs verschicken oder alles in ein anderes Programm mitnehmen. Welcher Ordner das ist, sehen Sie unter **Mehr**, **Einrichtung**, im Schritt **Gesucht**.
 
 **Bevor Sie eine Datei von Hand ändern:** Erstellen Sie zuerst unter **Mehr** mit **Sicherung erstellen** eine Kopie des ganzen Ordners. Eine Datei mit einem Fehler kann die App nicht mehr lesen. Sicherer ist es, Texte in der App unter **Mehr**, **Inhalte als Text** zu ändern: Dort prüft die App jede Änderung, und der alte Stand bleibt als Entwurf erhalten.
 
@@ -348,7 +350,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Dateno
   - `dokumente/zeugnisse/` und `dokumente/zertifikate/` – Zeugnisse und Zertifikate aus **Meine Angaben** und **Meine Dateien**.
   - `dokumente/lebenslauf-bisher/` und `dokumente/anschreiben-bisher/` – frühere Lebensläufe und Anschreiben, die Sie unter **Meine Angaben** hochgeladen haben. Die KI liest daraus Vorschläge.
   - `dokumente/angaben-stand.json` – Ihr Zwischenstand unter **Meine Angaben**, bis Sie die Angaben übernehmen.
-  - `dokumente/einstieg.json` und `dokumente/neu.yaml` – eine eingelesene Datei mit Angaben (Einrichtung, Schritt 3) und die Liste der Unterlagen daraus, die noch nicht übernommen sind.
+  - `dokumente/einstieg.json` und `dokumente/neu.yaml` – eine eingelesene Datei mit Angaben (Einrichtung, Schritt **Datei** oder **Erweitert**) und die Liste der Unterlagen daraus, die noch nicht übernommen sind.
 
 </details>
 
@@ -459,7 +461,7 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 |---|---|
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
 | „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein. Für Vorschläge der KI auf der Seite **Stellen suchen** oder **Lehrstellen suchen** fragt die App direkt im Feld für die Vorschläge nach der Einwilligung; was Sie dort geschrieben haben, bleibt stehen. |
-| „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 4](#schritt-4-ki) ein. |
+| „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 2](#schritt-2-ki) ein. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie im Pilot begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |
 | „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
