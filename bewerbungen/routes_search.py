@@ -27,12 +27,20 @@ BAD_RATING = "Die KI hat diesen Treffer nicht bewertet. Bitte nochmals versuchen
 BAD_OWN_RATING = "Die Bewertung braucht eine Note von 1 bis 6 und eine Zusammenfassung."
 MIN_OWN_GRADE, MAX_OWN_GRADE = 1, 6
 OWN_CLAUDE = "Claude (eigenes Abo)"
-ALREADY_IN_REGISTER = "Dieser Treffer ist schon im Register."
+BLOCKED_WITHOUT_PROFILE = "Zuerst Meine Angaben abschliessen."
+SAVED_IN = {preferences.SIE: "in Ihren Bewerbungen", preferences.DU: "in deinen Bewerbungen"}
+# #220: the page says „Ihre Bewerbungen“, not „Register“, in the form of address of the setup
+ALREADY_SAVED = {preferences.SIE: "Dieser Treffer ist schon in Ihren Bewerbungen.",
+                 preferences.DU: "Dieser Treffer ist schon in deinen Bewerbungen."}
 NO_TEXT = "Für diesen Treffer fehlt der Text des Inserats. Bitte das Inserat öffnen und die Stelle von Hand erfassen."
 
 
 def _hits(k) -> Hits:
     return Hits(k.daten)
+
+
+def _already_saved(k) -> str:
+    return ALREADY_SAVED[preferences.load(k.daten).address]
 
 
 def _list(body, field: str = "treffer") -> list:
@@ -74,7 +82,8 @@ def receive(k, parameter, body):
     agencies = search_plan.agencies_in(profile.read_text(encoding="utf-8")) if profile.is_file() else ()
     person = precheck.for_folder(k.daten)
     return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), agencies,
-                                  check=lambda title, text: precheck.check(title, text, person)))
+                                  check=lambda title, text: precheck.check(title, text, person),
+                                  saved_in=SAVED_IN[preferences.load(k.daten).address]))
 
 
 def _portal_summary(raw) -> dict:
@@ -114,6 +123,7 @@ def overview(k, parameter, body):
     targets: dict[str, str] = {}
     homes: tuple[str, ...] = ()
     postal_codes: tuple[str, ...] = ()
+    region = None
     off = store.settings()[PORTALS_OFF]
     choice = search_plan.portal_choice(search_plan.SearchPlan(keywords=(), kind=kind, portals=portals), off)
     try:
@@ -125,17 +135,28 @@ def overview(k, parameter, body):
         choice = search_plan.portal_choice(profile, off)
         hints, portals, offers = list(current.hints), current.portals, current.offers
         targets, homes, postal_codes = dict(current.hint_targets), current.places, current.postal_codes
+        region = _region(current)
     except search_plan.ProfileGap as gap:
         hints, targets = [str(gap)], {str(gap): gap.field}
     except ValueError as error:
         hints = [str(error)]
+    # #220: without a profile nothing can be searched; the page says so right under „Jetzt suchen“, not in the list
+    blocked = "" if (k.daten / search_plan.PROFILE).is_file() else BLOCKED_WITHOUT_PROFILE
+    hints = [h for h in hints if h != search_plan.NO_PROFILE]
     found = sorted(store.all(), key=lambda h: h.get("gefunden_am", ""), reverse=True)
     return json_antwort({"treffer": [{**hit, "ohne_text": not store.text(hit["id"]).strip(),
                                       "nah": is_near(str(hit.get("ort", "")), homes, postal_codes)} for hit in found],
                          "hinweis_ziele": targets,
                          "angebote": list(offers), **routes_career.searched_now(k),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
-                         "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN})
+                         "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN,
+                         "region": region, "sperrgrund": blocked})
+
+
+def _region(profile: search_plan.SearchPlan) -> dict:
+    """Where the search looks, for the one line that sums up the settings (#220)."""
+    return {"kantone": list(profile.cantons), "orte": list(profile.places), "umkreis_km": profile.radius_km,
+            "schweizweit": profile.nationwide}
 
 
 def text(k, parameter, body):
@@ -304,7 +325,7 @@ def take_over(k, parameter, body):
     with _TAKE_OVER:
         hit = store.get(pflicht(parameter, "id"))
         if hit.get("zustand") == "uebernommen":
-            raise ValueError(ALREADY_IN_REGISTER)
+            raise ValueError(_already_saved(k))
         register = k.register()
         saved = _saved_with_link(register.alle(), hit)
         if saved is not None:
@@ -332,7 +353,7 @@ def choose_offers(k, parameter, body):
     choice = body.get("wahl") if isinstance(body, dict) else None
     path = k.daten / search_plan.PROFILE
     if not path.is_file():
-        raise ValueError("Es gibt noch kein Suchprofil. Zuerst den Einstieg abschliessen.")
+        raise ValueError(search_plan.NO_PROFILE)
     # Read under the lock of the draft: another change in between must not be overwritten.
     k.mit_entwurf(path, "Gesucht im Suchprofil geändert",
                   lambda: schreibe_atomar(path, search_plan.with_offers(path.read_text(encoding="utf-8"), choice).encode("utf-8")))
@@ -343,7 +364,7 @@ def discard(k, parameter, body):
     restore = isinstance(body, dict) and body.get("zurueck") is True
     store, wanted = _hits(k), pflicht(parameter, "id")
     if store.get(wanted).get("zustand") == "uebernommen":  # it could be taken over a second time
-        raise ValueError(ALREADY_IN_REGISTER)
+        raise ValueError(_already_saved(k))
     return json_antwort(store.update(wanted, zustand="neu" if restore else "verworfen"))
 
 

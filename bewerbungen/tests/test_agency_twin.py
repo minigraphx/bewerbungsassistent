@@ -29,7 +29,7 @@ def stored_hint(tmp_path, *ads, agencies=(AGENCY,)) -> list:
 
 def test_an_agency_ad_with_the_title_and_pensum_of_an_open_entry_gets_a_hint(tmp_path):
     [hint] = stored_hint(tmp_path, ad(1, "Python Entwickler (m/w/d) 80-100%"))
-    assert hint == "Könnte dieselbe Stelle sein wie „Python-Entwickler/in“ bei Muster AG (Beworben) im Register."
+    assert hint == "Könnte dieselbe Stelle sein wie „Python-Entwickler/in“ bei Muster AG (Beworben) in Ihren Bewerbungen."
 
 
 def test_another_pensum_or_title_gets_no_hint(tmp_path):

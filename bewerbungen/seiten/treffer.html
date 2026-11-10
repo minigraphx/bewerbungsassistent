@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
-<title>Suche</title>
+<title>Stellen suchen</title>
 <link rel="stylesheet" href="/stil.css">
 <link rel="stylesheet" href="/firmen.css">
 </head>
@@ -16,10 +16,14 @@
     <div class="search__title">
       <h1 id="titel" data-text="nav.suche">Stellen suchen</h1>
       <p id="letzte" class="search__sub"></p>
+      <p id="einstellen-zeile" class="search__summary" hidden><span id="einstellen-text"></span> <button type="button" class="btn btn--quiet btn--sm" id="einstellen-aendern" aria-controls="einstellen">Ändern</button></p>
     </div>
-    <div class="btn-row">
+    <div class="btn-row search__actions">
       <button type="button" class="btn" id="einstellen-knopf" aria-expanded="false" aria-controls="einstellen">Suche einstellen</button>
-      <button type="button" class="btn btn--primary" id="suchen" disabled>Jetzt suchen</button>
+      <div class="search__start">
+        <button type="button" class="btn btn--primary" id="suchen" aria-describedby="suchen-grund" disabled>Jetzt suchen</button>
+        <p id="suchen-grund" class="btn-reason"></p>
+      </div>
     </div>
   </header>
 
@@ -90,7 +94,7 @@
   <div class="search__bar">
     <div role="group" aria-label="Treffer anzeigen" class="overview__views" id="zustaende">
       <button type="button" class="btn btn--sm" data-zustand="neu" aria-pressed="true">Neu <span class="num" data-zahl="neu"></span></button>
-      <button type="button" class="btn btn--sm" data-zustand="uebernommen" aria-pressed="false">Übernommen <span class="num" data-zahl="uebernommen"></span></button>
+      <button type="button" class="btn btn--sm" data-zustand="uebernommen" aria-pressed="false">Gemerkt <span class="num" data-zahl="uebernommen"></span></button>
       <button type="button" class="btn btn--sm" data-zustand="verworfen" aria-pressed="false">Verworfen <span class="num" data-zahl="verworfen"></span></button>
     </div>
     <select class="input search__kind" id="art" aria-label="Art" hidden>
@@ -124,6 +128,7 @@
 <script src="/meldungen.js"></script>
 <script src="/app.js"></script>
 <script src="/treffer-logik.js"></script>
+<script src="/suche-anzeige.js"></script>
 <script src="/firmen-logik.js"></script>
 <script src="/kununu-pruefen.js"></script>
 <script src="/treffer-firma.js"></script>
