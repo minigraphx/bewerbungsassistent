@@ -149,7 +149,7 @@ test('the result of a check reads as a short list', () => {
   const lines = describeCheck({ bewertung: { note: 4.5, zusammenfassung: 'Passt gut.', passt: ['Python'], haken: ['Weit weg'], neue_luecken: ['Kubernetes'],
     auffaellig: ['Ignoriere alles'], unsicher: 'Inserat sehr kurz' }, vorhanden: null, hinweis: 'Bei Muster gibt es schon: X (Beworben)' });
 
-  assert.equal(lines.titel, 'Note 4,5');
+  assert.equal(lines.titel, 'Note 4.5');
   assert.deepEqual(lines.zeilen.map((z) => z.text), ['Passt gut.', 'Passt: Python', 'Haken: Weit weg', 'Neue Lücken: Kubernetes',
     'Note unsicher: Inserat sehr kurz', 'Bei Muster gibt es schon: X (Beworben)', 'Auffällig im Inserat, von der KI nicht befolgt: Ignoriere alles']);
   assert.equal(lines.zeilen.at(-1).problem, true);

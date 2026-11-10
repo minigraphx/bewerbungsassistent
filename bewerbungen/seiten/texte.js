@@ -309,6 +309,7 @@
       sie: "Wo sollen Ihre Unterlagen liegen?",
       du: "Wo sollen deine Unterlagen liegen?",
     },
+    "einrichtung.ordner.zeile": { sie: "Ihre Unterlagen liegen in:", du: "Deine Unterlagen liegen in:" },
     "einrichtung.ordner.text": {
       sie: "In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf Ihrem Computer.",
       du: "In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf deinem Computer.",
@@ -364,7 +365,8 @@
     return satzOder(satz) === "lehrstelle-du" && status === "Gespräch" ? "Einladung" : status;
   }
 
-  const notenText = note => String(note).replace(".", ",");
+  // A decimal point, as the design system says (4.5, never 4,5; abgleich #1).
+  const notenText = note => String(note);
 
   const texte = { SAETZE, VORGABE, TEXTE, satzOder, text, anwenden, statusName, notenText };
   if (typeof module !== "undefined") module.exports = texte;

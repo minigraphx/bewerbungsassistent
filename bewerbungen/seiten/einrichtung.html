@@ -13,7 +13,7 @@
 <main class="einrichtung setup">
   <header class="setup__head">
     <h1>Einrichtung</h1>
-    <p>Fünf Schritte, zusammen etwa zehn Minuten. Jeder lässt sich später ändern. <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md" target="_blank" rel="noopener">Anleitung mit Bildern</a></p>
+    <p>Drei kurze Schritte, zusammen etwa fünf Minuten. Jeder lässt sich später ändern. <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md" target="_blank" rel="noopener">Anleitung mit Bildern</a></p>
   </header>
   <p id="nur-installiert" class="notice notice--warning" role="status" hidden>Die Einrichtung gibt es nur in der installierten App.</p>
   <ol id="schritte" class="steps" aria-label="Schritte der Einrichtung"></ol>
@@ -38,28 +38,26 @@
       <p class="field__hint">Mit Ja hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.</p>
     </fieldset>
     <p class="field__hint">Lässt sich später unter Meine Angaben ändern.</p>
+    <!-- The data folder: the proposal fits nearly everyone, so it is a line with „Ändern“, not a step (#219) -->
+    <div id="ordner-teil" class="setup__folder" hidden>
+      <p class="setup__folder-line"><span data-text="einrichtung.ordner.zeile">Ihre Unterlagen liegen in:</span> <span id="ordner-zeile" class="setup__mono"></span> <button type="button" class="btn btn--quiet btn--sm" id="ordner-aendern" aria-expanded="false" aria-controls="ordner-feld">Ändern</button></p>
+      <p id="ordner-fehlt" class="notice notice--warning" role="alert" hidden></p>
+      <div id="ordner-feld" hidden>
+        <label class="field__label" for="ordner" data-text="einrichtung.ordner.frage">Wo sollen Ihre Unterlagen liegen?</label>
+        <div class="setup__path"><input class="input" id="ordner" spellcheck="false" autocomplete="off"><button type="button" class="btn" id="ordner-waehlen">Ordner wählen …</button></div>
+        <p class="field__hint"><span data-text="einrichtung.ordner.text">In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf Ihrem Computer.</span> Ein Ordner, der gesichert wird, ist gut. Ein Cloud-Ordner wie OneDrive funktioniert auch.</p>
+      </div>
+      <p id="ordner-status" class="status-line" role="status" aria-live="polite"></p>
+    </div>
     <p id="gesucht-status" class="status-line" role="status" aria-live="polite"></p>
     <div class="btn-row setup__actions"><button type="button" class="btn btn--primary" id="gesucht-weiter">Weiter</button></div>
   </section>
 
-  <!-- 2. Data folder -->
-  <section class="card" id="datenordner" data-schritt="datenordner" aria-labelledby="ordner-titel" hidden>
-    <h2 id="ordner-titel" data-text="einrichtung.ordner.frage">Wo sollen Ihre Unterlagen liegen?</h2>
-    <p data-text="einrichtung.ordner.text">In diesem Ordner speichert die App Lebenslauf, Anschreiben, Entwürfe und versendete Fassungen. Er bleibt auf Ihrem Computer.</p>
-    <p id="ordner-fehlt" class="notice notice--warning" role="alert" hidden></p>
-    <div class="field">
-      <label class="field__label" for="ordner">Datenordner</label>
-      <div class="setup__path"><input class="input" id="ordner" spellcheck="false" autocomplete="off"><button type="button" class="btn" id="ordner-waehlen">Ordner wählen …</button></div>
-      <p class="field__hint">Ein Ordner, der gesichert wird, ist gut. Ein Cloud-Ordner wie OneDrive funktioniert auch.</p>
-    </div>
-    <p id="ordner-status" class="status-line" role="status" aria-live="polite"></p>
-    <div class="btn-row setup__actions"><button type="button" class="btn btn--primary" id="ordner-uebernehmen">Ordner anlegen und weiter</button></div>
-  </section>
-
-  <!-- 3. Einstieg file, optional -->
+  <!-- 2. Einstieg file: a step only with such a file in Downloads, otherwise under „Erweitert“ -->
   <section class="card" id="vorlage" data-schritt="vorlage" aria-labelledby="vorlage-titel" hidden>
     <h2 id="vorlage-titel">Angaben aus einer Datei</h2>
-    <p>Wer schon eine Datei <strong>einstieg.zip</strong> oder <strong>einstieg.json</strong> hat, zum Beispiel aus Claude, übernimmt sie hier. Sie liegt meist im Ordner Downloads.</p>
+    <p id="vorlage-gefunden" hidden>Im Ordner Downloads liegt eine Datei mit Angaben: <strong id="vorlage-name"></strong>. Mit <strong>Importieren</strong> übernimmt die App sie.</p>
+    <p id="vorlage-allgemein">Wer schon eine Datei <strong>einstieg.zip</strong> oder <strong>einstieg.json</strong> hat, zum Beispiel aus Claude, übernimmt sie hier. Sie liegt meist im Ordner Downloads.</p>
     <p data-text="einrichtung.vorlage.ohne">Ohne diese Datei überspringen Sie den Schritt und erfassen Ihre Angaben danach unter Meine Angaben, auch aus Unterlagen wie PDF oder Word.</p>
     <div class="field">
       <label class="field__label" for="datei">Datei</label>
@@ -75,7 +73,7 @@
     <div class="btn-row setup__actions setup__actions--split"><button type="button" class="btn btn--quiet" id="vorlage-ueberspringen">Überspringen</button><button type="button" class="btn btn--primary" id="vorlage-weiter">Weiter</button></div>
   </section>
 
-  <!-- 4. AI -->
+  <!-- 3. AI -->
   <section class="card" id="ki" data-schritt="ki" aria-labelledby="ki-titel" hidden>
     <h2 id="ki-titel">KI einrichten</h2>
     <p><span data-text="einrichtung.ki.aufgabe">Die KI schätzt Stellen ein und entwirft Anschreiben.</span> <span id="ki-code-hinweis" data-text="einrichtung.ki.code" hidden>Sie haben von Ihrer Begleitperson einen Einladungscode erhalten.</span></p>
@@ -93,29 +91,33 @@
     <div class="btn-row setup__actions setup__actions--split"><button type="button" class="btn btn--quiet" id="ki-ueberspringen">Ohne KI weiter</button><button type="button" class="btn btn--primary" id="ki-weiter">Weiter</button></div>
   </section>
 
-  <!-- 5. Browser extension -->
+  <!-- 4. Browser extension -->
   <section class="card" id="erweiterung" data-schritt="erweiterung" aria-labelledby="erweiterung-titel" hidden>
     <h2 id="erweiterung-titel">Browser-Erweiterung laden</h2>
     <p>Die Erweiterung sucht auf den Portalen und füllt Bewerbungsformulare aus. Abschicken macht sie nie.</p>
     <div id="erweiterung-store" class="setup__store">
-      <p><strong>Mit Google Chrome oder Microsoft Edge:</strong> Im Store auf „Hinzufügen“ bzw. „Abrufen“ klicken, das dauert eine Minute.</p>
-      <div class="btn-row"><button type="button" class="btn btn--primary" data-store="chrome">Im Chrome Web Store öffnen</button><button type="button" class="btn btn--primary" data-store="edge">Im Edge-Store öffnen</button></div>
-      <p class="field__hint">Klappt das nicht, zum Beispiel mit einem anderen Browser, die Erweiterung von Hand laden; das geht einmal und dauert etwa zwei Minuten:</p>
+      <p id="erweiterung-store-text">Im Store auf „Hinzufügen“ klicken, das dauert eine Minute.</p>
+      <div class="btn-row"><button type="button" class="btn btn--primary" id="store-haupt" data-store="chrome">Im Chrome Web Store hinzufügen</button></div>
+      <p class="field__hint" id="store-leise-zeile">Mit <span id="store-leise-name">Microsoft Edge</span>? <button type="button" class="btn btn--quiet btn--sm" id="store-leise" data-store="edge">Im Edge-Store öffnen</button></p>
     </div>
-    <ol id="erweiterung-schritte" class="setup__instructions">
-      <li>In Chrome oder Edge diese Adresse öffnen:
-        <div class="copy-row setup__copy"><span class="copy-row__value setup__mono">chrome://extensions</span><button type="button" class="btn btn--sm" data-kopieren="chrome://extensions">Kopieren</button></div>
-        <div class="btn-row"><button type="button" class="btn btn--sm" data-browser="chrome">In Chrome öffnen</button><button type="button" class="btn btn--sm" data-browser="edge">In Edge öffnen</button></div></li>
-      <li>Den <strong>Entwicklermodus</strong> einschalten (Chrome: oben rechts, Edge: links). Das ist für den Pilot nötig und ändert sonst nichts am Browser.</li>
-      <li><strong>Entpackte Erweiterung laden</strong> wählen und diesen Ordner angeben:
-        <div class="copy-row setup__copy"><span id="erweiterung-ordner" class="copy-row__value setup__mono"></span><button type="button" class="btn btn--sm" id="pfad-kopieren">Kopieren</button></div>
-        <div class="btn-row"><button type="button" class="btn btn--sm" id="ordner-zeigen">Ordner zeigen</button></div>
-        <p class="field__hint">Im Auswahlfenster auf dem Mac mit Cmd+Shift+G den Pfad einfügen, unter Windows oben in die Adresszeile.</p></li>
-    </ol>
+    <details id="erweiterung-hand" class="setup__more">
+      <summary>Klappt es nicht?</summary>
+      <p class="field__hint">Zum Beispiel mit einem anderen Browser: die Erweiterung von Hand laden. Das geht einmal und dauert etwa zwei Minuten.</p>
+      <ol id="erweiterung-schritte" class="setup__instructions">
+        <li>In Chrome oder Edge diese Adresse öffnen:
+          <div class="copy-row setup__copy"><span class="copy-row__value setup__mono">chrome://extensions</span><button type="button" class="btn btn--sm" data-kopieren="chrome://extensions">Kopieren</button></div>
+          <div class="btn-row"><button type="button" class="btn btn--sm" data-browser="chrome">In Chrome öffnen</button><button type="button" class="btn btn--sm" data-browser="edge">In Edge öffnen</button></div></li>
+        <li>Den <strong>Entwicklermodus</strong> einschalten (Chrome: oben rechts, Edge: links). Das ist für den Pilot nötig und ändert sonst nichts am Browser.</li>
+        <li><strong>Entpackte Erweiterung laden</strong> wählen und diesen Ordner angeben:
+          <div class="copy-row setup__copy"><span id="erweiterung-ordner" class="copy-row__value setup__mono"></span><button type="button" class="btn btn--sm" id="pfad-kopieren">Kopieren</button></div>
+          <div class="btn-row"><button type="button" class="btn btn--sm" id="ordner-zeigen">Ordner zeigen</button></div>
+          <p class="field__hint">Im Auswahlfenster auf dem Mac mit Cmd+Shift+G den Pfad einfügen, unter Windows oben in die Adresszeile.</p></li>
+      </ol>
+    </details>
     <div id="erweiterung-warten" class="progress setup__waiting" role="status" aria-live="polite">
       <div class="progress__head"><strong>Wartet auf die Erweiterung</strong></div>
       <div class="progress__busy" aria-hidden="true"></div>
-      <p class="progress__note">Sobald die Erweiterung geladen ist, geht es hier von selbst weiter.</p>
+      <p class="progress__note">Zurück in diesem Tab geht es von selbst weiter.</p>
     </div>
     <p id="erweiterung-zustand" class="status-line" role="status" aria-live="polite"></p>
     <div class="btn-row setup__actions setup__actions--split"><button type="button" class="btn btn--quiet" id="erweiterung-spaeter">Später einrichten</button><button type="button" class="btn btn--primary" id="erweiterung-weiter" disabled>Weiter</button></div>
@@ -123,10 +125,16 @@
 
   <!-- Done -->
   <section class="card" id="fertig" data-schritt="fertig" aria-labelledby="fertig-titel" hidden>
-    <h2 id="fertig-titel">Alles eingerichtet</h2>
+    <h2 id="fertig-titel">Fast fertig</h2>
+    <p id="fertig-text" class="field__hint"></p>
     <ul id="fertig-liste" class="setup__summary"></ul>
     <div class="btn-row setup__actions"><a id="fertig-weiter" class="btn btn--primary" href="/angaben">Meine Angaben erfassen</a></div>
   </section>
+
+  <details id="erweitert" class="setup__more" hidden>
+    <summary>Erweitert</summary>
+    <p>Angaben aus einer Datei <strong>einstieg.zip</strong> oder <strong>einstieg.json</strong> übernehmen, zum Beispiel aus Claude: <a href="#vorlage">Datei übernehmen</a></p>
+  </details>
 </main>
 <script src="/texte.js"></script>
 <script src="/meldungen.js"></script>
