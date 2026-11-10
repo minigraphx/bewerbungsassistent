@@ -205,3 +205,30 @@ test("an unknown order falls back to the grade", () => {
   assert.equal(logik.gueltigeSortierung("zufall"), "note");
   assert.equal(logik.gueltigeSortierung("eigene"), "eigene");
 });
+
+test("a hit that failed the pre-check comes below the rest, even with stars or a grade (G33)", () => {
+  const hits = [
+    { id: "failed", beruf: "Pflege", vorpruefung: "Verlangt Master, vorhanden ist Bachelor.", bewertung: { note: 5 }, nah: true },
+    { id: "plain", gefunden_am: "2026-11-01" }, { id: "rated", bewertung: { note: 3 } },
+  ];
+  assert.deepEqual(logik.sortiert(hits, { Pflege: 5 }).map((t) => t.id), ["rated", "plain", "failed"]);
+});
+
+test("a hit that failed the pre-check is rated last, so the limit of a run takes the others (G33)", () => {
+  const found = logik.zuBewerten([
+    { id: "failed", zustand: "neu", nah: true, vorpruefung: "Schwerpunkt Java, im Suchprofil ausgeschlossen." },
+    { id: "far", zustand: "neu", gefunden_am: "2026-11-01" },
+  ]);
+  assert.deepEqual(found.map((t) => t.id), ["far", "failed"]);
+});
+
+test("in every order a hit that failed the pre-check stays below the rest, own stars or not (G22, G33)", () => {
+  const hits = [
+    { id: "failed", gefunden_am: "2026-11-05", eigene_sterne: 5, bewertung: { note: 6 }, vorpruefung: "Verlangt Master, vorhanden ist Bachelor." },
+    { id: "starred", gefunden_am: "2026-10-01", eigene_sterne: 2, bewertung: { note: 3 } },
+    { id: "plain", gefunden_am: "2026-10-03", bewertung: { note: 4 } },
+  ];
+  assert.deepEqual(logik.sortiert(hits, {}, "eigene").map((t) => t.id), ["starred", "plain", "failed"]);
+  assert.deepEqual(logik.sortiert(hits, {}, "datum").map((t) => t.id), ["plain", "starred", "failed"]);
+  assert.deepEqual(logik.sortiert(hits, {}, "note").map((t) => t.id), ["plain", "starred", "failed"]);
+});

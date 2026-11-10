@@ -147,6 +147,7 @@
           ` · gefunden ${datum(treffer.gefunden_am)}`, treffer.alter_tage !== undefined ? ` · ${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : ""),
         eigeneSterne(treffer)),
       treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Schon im Register"), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
+      treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Passt nach den festen Regeln nicht"), el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
       el("article", { class: "ai-result" },
         el("header", { class: "ai-result__head" }, el("h3", { class: "ai-result__kind" }, "Einschätzung der KI"),
           el("span", { class: "search__grades" }, noten(treffer, { klein: false }))),
@@ -200,6 +201,7 @@
     const marken = [
       logik.istSchnupperlehre(treffer) ? "Schnupperlehre" : "",
       treffer.hinweis ? "schon im Register" : "",
+      treffer.vorpruefung ? "passt nicht: " + treffer.vorpruefung : "",
       sterne ? `${"★".repeat(sterne)}` : "",
       treffer.eigene_sterne ? `Eigene: ${"★".repeat(treffer.eigene_sterne)}` : "",
     ].filter(Boolean);

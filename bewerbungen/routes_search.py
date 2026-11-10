@@ -8,6 +8,7 @@ with drafts (Entwürfe).
 import threading
 
 import own_sites
+import precheck
 import preferences
 import routes_ai
 import search_plan
@@ -71,7 +72,9 @@ def receive(k, parameter, body):
     store = _hits(k)
     profile = k.daten / search_plan.PROFILE
     agencies = search_plan.agencies_in(profile.read_text(encoding="utf-8")) if profile.is_file() else ()
-    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), agencies))
+    person = precheck.for_folder(k.daten)
+    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), agencies,
+                                  check=lambda title, text: precheck.check(title, text, person)))
 
 
 def _portal_summary(raw) -> dict:

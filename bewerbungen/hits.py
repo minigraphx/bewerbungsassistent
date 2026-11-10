@@ -378,8 +378,12 @@ class Hits:
         return {"holen": fetch, "nah": nearby, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": merged}
 
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
-            own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = ()) -> dict:
-        """Store new hits; the same job from another portal only adds its link. `agencies`: more from the profile (G34)."""
+            own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = (),
+            check=lambda title, text: "") -> dict:
+        """Store new hits; the same job from another portal only adds its link. `agencies`: more from the profile (G34).
+
+        `check` is the pre-check by fixed rules (G33): its reason stays on the hit as `vorpruefung`, the hit stays too.
+        """
         rejected, new, merged = [], 0, 0
         with _LOCK:
             stored = self.all()
@@ -403,6 +407,9 @@ class Hits:
                 hint = company_hint(entry, register) or agency_hint(entry, register, agencies)
                 if hint:
                     entry["hinweis"] = hint
+                reason = check(entry["stelle"], text) if text else ""
+                if reason:
+                    entry["vorpruefung"] = reason
                 if text:
                     schreibe_atomar(self._text_path(entry["id"]), text.encode("utf-8"))
                 stored.append(entry)
