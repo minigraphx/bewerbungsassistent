@@ -11,7 +11,7 @@ import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
 import dossier as dossier_modul
 from dateien import im_ordner
-from register import ID_MUSTER
+from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
 from varianten import Varianten
 
 ORDNER = "bewerbungen"
@@ -43,6 +43,20 @@ def pdf_pfade(daten: pathlib.Path, bewerbung_id: str) -> dict[str, pathlib.Path]
 def wants_dossier(bewerbung: dict) -> bool:
     """Whether the person chose a dossier for this application; without a choice it is the two files (G41)."""
     return bewerbung.get("unterlagen") == DOSSIER
+
+
+def dossier_designs(bewerbung: dict) -> dict[str, str]:
+    """The design of each page (G39): one for all pages as chosen, Siegel without a choice, and under „Erweitert“
+    another one per page."""
+    design = bewerbung.get("dossier_design") or DOSSIER_DESIGNS[0]
+    pages = bewerbung.get("dossier_seiten") or {}
+    return {page: pages.get(page) or design for page in DESIGN_PAGES}
+
+
+def _design_arguments(bewerbung: dict) -> list[str]:
+    """For lebenslauf/dossier.py, whose designs are the themes dossier-<name>."""
+    designs = dossier_designs(bewerbung)
+    return [argument for page, name in designs.items() for argument in (f"--design-{page}", f"dossier-{name}")]
 
 
 def dossier_path(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
@@ -156,8 +170,8 @@ def _baue_dossier(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> 
         build.mkdir(parents=True, exist_ok=True)
         pages = build / f"{bewerbung['id']}-{DOSSIER_PAGES}"
         pages.write_text("{}\n", encoding="utf-8")
-    result = dossier_modul.main([str(pages), *cv, "--brief", str(letter), "--build-dir", str(build),
-                                 "--out-dir", str(folder)])
+    result = dossier_modul.main([str(pages), *cv, "--brief", str(letter), *_design_arguments(bewerbung),
+                                 "--build-dir", str(build), "--out-dir", str(folder)])
     return {"lebenslauf": result.cv, "anschreiben": result.letter, DOSSIER: result.dossier}
 
 

@@ -21,3 +21,15 @@ def update_server(request, monkeypatch):
     import updates
     monkeypatch.setenv(updates.URL_VARIABLE, signed_update.BASE)
     monkeypatch.setattr(updates.update_key, "PUBLIC_KEY", signed_update.PUBLIC_KEY)
+
+
+TEST_CERTIFICATE_SHA1 = "0123456789ABCDEF0123456789ABCDEF01234567"  # invented: no app is signed with it
+
+
+@pytest.fixture(autouse=True)
+def signing_identity_registered(request, monkeypatch):
+    """Every test sees a registered macOS signing identity, as a released app has (#213); some set their own."""
+    if not request.path.is_relative_to(HERE):
+        return
+    import signing_identity
+    monkeypatch.setattr(signing_identity, "CERTIFICATE_SHA1", TEST_CERTIFICATE_SHA1)

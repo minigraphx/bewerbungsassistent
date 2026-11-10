@@ -176,7 +176,7 @@ Gibt es Suchprofil, Stilprofil oder Bausteine schon, fragt die App beim Überneh
 
 ### Stellen suchen und bewerben
 
-1. **Stellen suchen**: Klicken Sie auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Unter **Suche einstellen**, **Wo suchen Sie?**, wählen Sie die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche.
+1. **Stellen suchen**: Klicken Sie auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Unter **Suche einstellen**, **Wo suchen Sie?**, wählen Sie die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche. Darunter stehen Ihre Suchbegriffe: Einen eigenen tragen Sie unter **Eigenen Suchbegriff aufnehmen** ein und klicken auf **Aufnehmen**. Haben Sie einen Begriff aus Versehen entfernt, holt **Rückgängig** in der Meldung ihn an seinen Platz zurück.
 2. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Übernehmen** legt eine Bewerbung an, **Verwerfen** blendet den Treffer aus.
 3. **Bewerben**: Die **Übersicht** zeigt unter **Das steht an**, was als Nächstes zu tun ist, und in der Liste den nächsten Schritt jeder Bewerbung. Öffnen Sie eine Bewerbung und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Der Entwurf ist ein Ausgangspunkt: Lesen Sie ihn, passen Sie ihn mit **Ändern** an die Stelle und die Firma an, und klicken Sie dann auf **Freigeben**. Danach öffnet **Formular öffnen** das Formular der Firma, und die Erweiterung füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe [Fertige Dateien verwenden](#fertige-dateien-verwenden)).
 
@@ -239,7 +239,7 @@ Du installierst alles genau wie oben beschrieben. Lass dir dabei ruhig von deine
 Danach ist Folgendes anders:
 
 1. Unter **Meine Angaben** wählst du die **Lehrstellensuche**. Die Fragen führen dich durch alles, was es braucht.
-2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Lehrstellen suchen** kann dir die KI unter **Welcher Beruf passt zu dir?** Berufe vorschlagen. Fehlt noch die Einwilligung, fragt die App gleich dort danach. Was du geschrieben hast, bleibt stehen, und nach **Einwilligen** kommen die Vorschläge. Du entscheidest, welche du in deine Suche aufnimmst.
+2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Lehrstellen suchen** kann dir die KI unter **Welcher Beruf passt zu dir?** Berufe vorschlagen. Fehlt noch die Einwilligung, fragt die App gleich dort danach. Was du geschrieben hast, bleibt stehen, und nach **Einwilligen** kommen die Vorschläge. Du entscheidest, welche du in deine Suche aufnimmst. Einen Beruf, den du schon kennst, trägst du unter **Eigenen Beruf aufnehmen** selbst ein, mit EFZ oder EBA. Hast du einen Beruf aus Versehen entfernt, holt **Rückgängig** ihn zurück.
 3. Unter **Suche einstellen** wählst du, ob du Lehrstellen, Schnupperlehren oder beides suchst. Die Erweiterung sucht dann auf LENA (berufsberatung.ch) und yousty. Unter **Wo suchst du?** kannst du eines davon ausschalten.
 
 Deine Bewerbung schickst immer du selbst ab.
@@ -325,7 +325,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Dateno
   - `bewerbungen/<id>/stelle.md` – der Text des Inserats, gespeichert beim **Übernehmen** oder beim Speichern des Inserats mit der Erweiterung.
   - `bewerbungen/<id>/anschreiben.yaml` – Ihr Anschreiben, entworfen und geändert auf der Seite der Bewerbung.
   - `bewerbungen/<id>/lebenslauf.pdf` und `bewerbungen/<id>/anschreiben.pdf` – die Unterlagen, die **Unterlagen erstellen** baut. Diese PDFs können Sie direkt verschicken, etwa per E-Mail.
-  - `bewerbungen/<id>/dossier.pdf` – das Dossier mit Deckblatt, Anschreiben und Lebenslauf, wenn Sie unter **Unterlagen prüfen** **Dossier** gewählt haben. Anschreiben und Lebenslauf liegen dann im selben Design auch einzeln daneben.
+  - `bewerbungen/<id>/dossier.pdf` – das Dossier mit Deckblatt, Anschreiben und Lebenslauf, wenn Sie unter **Unterlagen prüfen** **Dossier** gewählt haben. Als Design wählen Sie Siegel, Raster oder Register, unter **Erweitert** auch eines pro Seite. Anschreiben und Lebenslauf liegen im Design ihrer Seite auch einzeln daneben.
   - `bewerbungen/<id>/dossier.yaml` – falls vorhanden, die weiteren Seiten des Dossiers wie Gruss, Dank und Kennzahlen. Ohne diese Datei entfallen diese Seiten.
   - `bewerbungen/<id>/zertifikate.zip` – die für diese Bewerbung gewählten Zertifikate.
   - `bewerbungen/<id>/eigenes-anschreiben.pdf` – ein Anschreiben, das Sie unter **Eigenes Anschreiben** selbst hochgeladen haben.
