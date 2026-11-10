@@ -92,9 +92,11 @@ window.App = (() => {
 
   // Box in editors: the newest drafts of the file being edited, with a link to all of them (MIN-303)
   const LETZTE_ENTWUERFE = 3;
+  const STELLENINSERAT = /^bewerbungen\/[^/]+\/stelle\.md$/;
   async function letzteEntwuerfe(element, datei) {
     element.dataset.datei = datei;
-    const alle = el("a", { href: "/entwuerfe?" + new URLSearchParams({ datei }) }, "Alle Entwürfe dieser Datei");
+    // Job ads have no place on Entwürfe und Versionen (#120), so their box links nowhere
+    const alle = STELLENINSERAT.test(datei) ? null : el("a", { href: "/entwuerfe?" + new URLSearchParams({ datei }) }, "Alle Entwürfe dieser Datei");
     let inhalt;
     try {
       const { entwuerfe } = await holen("/api/entwuerfe", { datei, anzahl: LETZTE_ENTWUERFE });

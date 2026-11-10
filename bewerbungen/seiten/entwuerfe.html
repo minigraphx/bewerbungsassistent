@@ -19,13 +19,9 @@
 
   <section class="card" aria-labelledby="entwuerfe-titel">
   <h2 id="entwuerfe-titel">Entwürfe</h2>
-  <div class="filter">
-    <select id="datei" aria-label="Datei"><option value="">Alle Dateien</option></select>
-  </div>
-  <table>
-    <thead><tr><th>Zeit</th><th>Datei</th><th>Beschreibung</th><th>Genutzt</th><th>Aktionen</th></tr></thead>
-    <tbody id="entwuerfe"></tbody>
-  </table>
+  <div role="group" aria-label="Entwürfe anzeigen" class="overview__views" id="filter"></div>
+  <p id="nur-datei" class="field__hint" hidden>Nur die Fassungen eines Dokuments. <a href="/entwuerfe">Alle Entwürfe zeigen</a></p>
+  <div id="gruppen" class="drafts"></div>
   <p id="leer" class="leer" hidden>Noch keine Entwürfe.</p>
   <div id="status" class="status" role="status" aria-live="polite"></div>
   <section class="pdfs einzeln" id="pdf-ansicht" hidden><figure><figcaption id="pdf-titel"></figcaption><iframe id="pdf" title="Entwurf als PDF"></iframe></figure></section>
@@ -41,6 +37,7 @@
 </main>
 <script src="/texte.js"></script>
 <script src="/app.js"></script>
+<script src="/entwuerfe-logik.js"></script>
 <script src="/entwuerfe.js"></script>
 </body>
 </html>

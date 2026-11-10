@@ -1,4 +1,7 @@
 """API-Routen für Entwürfe und Versionen (MIN-303)."""
+import yaml
+
+import draft_groups
 import inhalte
 import versand
 from dateien import im_ordner
@@ -24,13 +27,23 @@ def _limit(parameter) -> int | None:
     return int(value)
 
 
+def _companies(k) -> dict[str, str]:
+    """Company per application; a register that does not read leaves the folder names, the drafts stay visible."""
+    try:
+        return {b["id"]: b.get("firma", "") for b in k.register().alle()}
+    except (ValueError, TypeError, KeyError, yaml.YAMLError):
+        return {}
+
+
 def entwuerfe(k, parameter, body):
+    """Drafts newest first, and `gruppen` for the page (#120); job ads only when their file is asked for."""
     datei = parameter.get("datei")
     limit = _limit(parameter)
-    alle = k.ablage.liste()
+    alle = [e for e in k.ablage.liste() if not draft_groups.is_job_ad(e.datei)]
     auswahl = k.ablage.liste(im_ordner(k.daten, datei)) if datei else alle
-    return json_antwort({"entwuerfe": [_mit_ansicht(e) for e in auswahl[:limit]],
-                         "dateien": sorted({e.datei for e in alle})})
+    shown = [_mit_ansicht(e) for e in auswahl]
+    return json_antwort({"entwuerfe": shown[:limit], "dateien": sorted({e.datei for e in alle}),
+                         "gruppen": draft_groups.group(shown, _companies(k))})
 
 
 def entwurf(k, parameter, body):

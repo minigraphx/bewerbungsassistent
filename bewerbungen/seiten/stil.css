@@ -804,3 +804,13 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 /* Consent before the first AI call: a long text beside the tick */
 .einwilligung .schalter { align-items: flex-start; font-weight: 400; }
 .einwilligung .btn { justify-self: start; align-self: flex-start; }
+
+/* Entwürfe und Versionen grouped by document (#120) */
+.drafts { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-3); }
+.drafts__group > h3 { margin: 0 0 var(--space-2); }
+.drafts__doc h4 { margin: 0 0 var(--space-2); color: var(--text-strong); }
+.drafts__doc ul { list-style: none; margin: 0; padding: 0; }
+.drafts__version { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; align-items: center; padding: var(--space-2) 0; }
+.drafts__older { margin-top: var(--space-2); }
+.drafts__older > summary { cursor: pointer; font-weight: 500; color: var(--text-strong); }
+.drafts__older .drafts__version { border-top: 1px solid var(--line); }

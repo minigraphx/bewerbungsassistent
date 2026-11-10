@@ -42,9 +42,9 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 ![Abschnitt Unterlagen prüfen: die Befunde der Prüfung, darunter Lebenslauf und Anschreiben als PDF und die Wahl der Beilagen](docs/bilder/pruefung.jpg)
 
-**Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
+**Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an, geordnet nach Lebenslauf, Anschreiben je Bewerbung, Stil und Bausteinen und Suchprofil; ältere Fassungen sind aufklappbar. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
 
-![Liste der Entwürfe mit Zeit, Datei, Beschreibung und Versand](docs/bilder/entwuerfe.jpg)
+![Entwürfe nach Lebenslauf und Anschreiben gruppiert, je Dokument die neueste Fassung und die älteren aufklappbar](docs/bilder/entwuerfe.jpg)
 
 **Fotoausschnitt (freiwillig):** Ausschnitt per Maus oder Tastatur einstellen, mit Vorschau in Druckgrösse.
 
