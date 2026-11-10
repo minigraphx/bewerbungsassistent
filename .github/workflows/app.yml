@@ -121,9 +121,36 @@ jobs:
           case "$GITHUB_REF" in refs/tags/v*) [ -n "$UPDATE_URL" ] || { echo "::error::Variable UPDATE_URL fehlt: Das Release bekäme nie mehr Updates"; exit 1; };; esac
           mkdir -p desktop/build
           python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', ''), 'update_url': os.environ.get('UPDATE_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
-      - name: Paket bauen und testen
+      - name: Paket bauen
+        run: pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
+      - name: Signieren
+        # Immer dieselbe Identität statt ad hoc (#213, G48): So bleibt die Anforderung der Signatur gleich, und der
+        # Schlüsselbund fragt nach einem Update nicht erneut. Die Identität macht desktop/signing_identity.py create.
+        env:
+          P12: ${{ secrets.MACOS_SIGNING_P12 }}
+          MACOS_SIGNING_PASSWORD: ${{ secrets.MACOS_SIGNING_PASSWORD }}
         run: |
-          pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
+          if [ -z "$P12" ] || [ -z "$MACOS_SIGNING_PASSWORD" ]; then
+            echo "::error::Die Secrets MACOS_SIGNING_P12 und MACOS_SIGNING_PASSWORD fehlen. Ad hoc signiert fragte der Schlüsselbund nach jedem Update erneut; einmal 'python desktop/signing_identity.py create <Ordner ausserhalb des Repos>' ausführen und den Schritten folgen."
+            exit 1
+          fi
+          requirement=$(python desktop/signing_identity.py requirement)
+          p12="$RUNNER_TEMP/signatur.p12"
+          keychain="$RUNNER_TEMP/signatur.keychain-db"
+          trap 'security delete-keychain "$keychain" 2>/dev/null; rm -f "$p12"' EXIT
+          (umask 077; printf '%s' "$P12" | base64 --decode > "$p12")
+          sha1=$(python desktop/signing_identity.py check "$p12")
+          password=$(openssl rand -hex 24)
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 3600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$p12" -k "$keychain" -P "$MACOS_SIGNING_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          codesign --force --deep --keychain "$keychain" --sign "$sha1" dist/Bewerbungsbegleiter.app
+          codesign --verify --deep --strict -R "=$requirement" dist/Bewerbungsbegleiter.app
+      - name: Paket testen
+        run: |
           dist/Bewerbungsbegleiter.app/Contents/MacOS/Bewerbungsbegleiter --selbsttest
           cat selbsttest.txt
           python desktop/mcp_smoke.py dist/Bewerbungsbegleiter.app/Contents/MacOS/Bewerbungsbegleiter
@@ -133,7 +160,7 @@ jobs:
           (cd dist-mac && shasum -a 256 "Bewerbungsbegleiter-$VERSION-macOS.zip" > SHA256SUMS-macOS.txt)
           mkdir -p entpackt
           ditto -x -k "dist-mac/Bewerbungsbegleiter-$VERSION-macOS.zip" entpackt
-          codesign --verify --deep --strict entpackt/Bewerbungsbegleiter.app
+          codesign --verify --deep --strict -R "=$(python desktop/signing_identity.py requirement)" entpackt/Bewerbungsbegleiter.app
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

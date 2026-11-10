@@ -29,6 +29,9 @@ DEFAULT_THEME = "dossier-siegel"
 ACCENT = re.compile(r"#[0-9a-fA-F]{6}")
 ENTRIES = {"dossier": "dossier-main.typ", "cv": "main.typ", "letter": "anschreiben-main.typ"}
 FILE_NAMES = {"dossier": "dossier.pdf", "cv": "lebenslauf.pdf", "letter": "anschreiben.pdf"}
+MIX = THEMES / "dossier-mix.typ"  # the dossier when its pages come from more than one design
+# The pages whose design can be chosen on its own (G39): option on the command line → key in dossier.json
+PAGE_DESIGNS = {"deckblatt": "cover", "anschreiben": "letter", "lebenslauf": "cv", "weitere": "pages"}
 OUTLINE = THEMES / "outline.typ"
 # Labels a design may draw as outlines only, e.g. the tabs of Register in the page background
 OUTLINED_LABELS = {
@@ -45,6 +48,29 @@ class Result:
     data: pathlib.Path
     theme: str
     root: TypstRoot
+    entries: dict[str, pathlib.Path]
+
+
+def is_design(name: str) -> bool:
+    return all((THEMES / name / entry).is_file() for entry in ENTRIES.values())
+
+
+def page_designs(theme: str, chosen: dict[str, str | None]) -> dict[str, str]:
+    """The design of each page: the one chosen for it, otherwise the theme."""
+    designs = {key: chosen.get(option) or theme for option, key in PAGE_DESIGNS.items()}
+    unknown = sorted({name for name in designs.values() if not is_design(name)})
+    if unknown:
+        raise ValueError(f"Kein Dossier-Design: {', '.join(unknown)} (es fehlt {', '.join(ENTRIES.values())})")
+    return designs
+
+
+def entries_for(designs: dict[str, str]) -> dict[str, pathlib.Path]:
+    """Typst entry per file: one design alone uses its own entries, a mix the shared one for the dossier.
+    The single files always come from the design of their page."""
+    one = len(set(designs.values())) == 1
+    return {"dossier": THEMES / designs["cover"] / ENTRIES["dossier"] if one else MIX,
+            "cv": THEMES / designs["cv"] / ENTRIES["cv"],
+            "letter": THEMES / designs["letter"] / ENTRIES["letter"]}
 
 
 def icon_catalogue() -> set[str]:
@@ -88,7 +114,7 @@ def outlined_labels(language: str, build: pathlib.Path, root: TypstRoot, compile
 
 
 def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.date, root: TypstRoot,
-            style: dict | None = None, outlined: dict | None = None) -> dict:
+            style: dict | None = None, outlined: dict | None = None, designs: dict | None = None) -> dict:
     """One JSON for all parts: CV, letter, optional pages and the read data extensions."""
     basics = cv.get("basics", {})
     catalogue = icon_catalogue()
@@ -117,6 +143,7 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
         "interests": interests,
         "letter": {**bereite_vor(letter, cv, today), "heading": dossier_data.letter_heading(letter, language)},
         "pages": pages,
+        "designs": dict(designs or {}),
     }
 
 
@@ -130,7 +157,7 @@ def _compile(compiler: typst.Compiler, root: TypstRoot, entry: pathlib.Path, out
 def query(result: Result, selector: str, part: str = "cv") -> list:
     """Values of the metadata a part leaves behind, e.g. `<dossier-level>` for every drawn level graphic."""
     found = typst.query(
-        str(result.root.locate(THEMES / result.theme / ENTRIES[part])),
+        str(result.root.locate(result.entries[part])),
         selector,
         field="value",
         root=str(result.root.path),
@@ -146,7 +173,9 @@ def main(argv: list[str] | None = None) -> Result:
     ap.add_argument("--cv", help="Lebenslauf (YAML); sonst `lebenslauf:` in der Dossier-Datei")
     ap.add_argument("--brief", help="Anschreiben (YAML); sonst `anschreiben:` in der Dossier-Datei")
     ap.add_argument("--job", help="Bewerbungsdatei mit Tags und Überschreibungen (YAML)")
-    ap.add_argument("--theme", default=DEFAULT_THEME)
+    ap.add_argument("--theme", default=DEFAULT_THEME, help="Design aller Seiten, soweit keines eigens gewählt ist")
+    for option in PAGE_DESIGNS:
+        ap.add_argument(f"--design-{option}", help=f"Design für {option} (Standard: --theme)")
     ap.add_argument("--lang", default="de", choices=SPRACHEN)
     ap.add_argument("--akzent", help="Akzentfarbe als #rrggbb (Standard aus dem Design-System)")
     ap.add_argument("--ohne-zeitachse", action="store_true",
@@ -157,9 +186,10 @@ def main(argv: list[str] | None = None) -> Result:
 
     if args.akzent and not ACCENT.fullmatch(args.akzent):
         raise ValueError(f"--akzent muss eine Farbe wie #38495d sein, nicht {args.akzent!r}")
-    theme = THEMES / args.theme
-    if not all((theme / entry).is_file() for entry in ENTRIES.values()):
+    if not is_design(args.theme):
         raise ValueError(f"Theme {args.theme!r} ist kein Dossier-Design (es fehlt {', '.join(ENTRIES.values())})")
+    designs = page_designs(args.theme, {option: getattr(args, f"design_{option}") for option in PAGE_DESIGNS})
+    entries = entries_for(designs)
 
     file_path = pathlib.Path(args.data).resolve()
     file_data = _load_yaml(file_path)
@@ -184,18 +214,17 @@ def main(argv: list[str] | None = None) -> Result:
     # One compiler for all files of a build: fonts load once
     compiler = typst.Compiler(root=str(root.path), font_paths=[str(ROOT / "fonts")])
     data = prepare(cv, letter, pages, args.lang, datetime.date.today(), root, style,
-                   outlined_labels(args.lang, build, root, compiler))
+                   outlined_labels(args.lang, build, root, compiler), designs)
     data_json = build / "dossier.json"
     data_json.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
 
     out = pathlib.Path(args.out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    built = {part: _compile(compiler, root, theme / entry, out / FILE_NAMES[part], data_json)
-             for part, entry in ENTRIES.items()}
+    built = {part: _compile(compiler, root, entry, out / FILE_NAMES[part], data_json) for part, entry in entries.items()}
     for path in built.values():
         print(path)
     return Result(dossier=built["dossier"], cv=built["cv"], letter=built["letter"], data=data_json,
-                  theme=args.theme, root=root)
+                  theme=args.theme, root=root, entries=entries)
 
 
 if __name__ == "__main__":

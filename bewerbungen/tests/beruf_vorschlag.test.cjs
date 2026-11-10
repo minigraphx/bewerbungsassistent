@@ -16,12 +16,12 @@ function element() {
     addEventListener(type, handler) { handlers[type] = handler; },
     replaceChildren(...children) { this.children = children; },
     focus() {},
-    fire(type) { return handlers[type](); },
+    fire(type, event = {}) { return handlers[type]({ preventDefault() {}, ...event }); },
   };
 }
 
 /** The page script in a sandbox: elements by id, a fake App that records what it sends, and a fake consent block. */
-function page({ status = { einwilligung: OPEN } } = {}) {
+function page({ status = { einwilligung: OPEN }, antworten = {} } = {}) {
   const elements = new Map();
   const byId = id => {
     if (!elements.has(id)) elements.set(id, element());
@@ -29,9 +29,10 @@ function page({ status = { einwilligung: OPEN } } = {}) {
   };
   const sent = [];
   const consent = [];
+  const messages = [];
   const App = {
-    el: () => element(),
-    status: (target, text) => { target.textContent = text; },
+    el: (tag, attributes, ...children) => Object.assign(element(), { children }),
+    status: (target, text, art, optionen = {}) => { target.textContent = text; messages.push({ target, text, art, optionen }); },
     textsatz: async () => "lehrstelle-du",
     holen: async pfad => {
       assert.equal(pfad, "/api/ki/status");
@@ -39,7 +40,8 @@ function page({ status = { einwilligung: OPEN } } = {}) {
     },
     senden: async (pfad, body) => {
       sent.push({ pfad, body });
-      return { vorschlaege: [] };
+      if (antworten[pfad] instanceof Error) throw antworten[pfad];
+      return antworten[pfad] || { vorschlaege: [] };
     },
   };
   const Einwilligung = { zeige: (ort, stand, fertig) => { ort.hidden = false; consent.push({ ort, stand, fertig }); } };
@@ -49,7 +51,7 @@ function page({ status = { einwilligung: OPEN } } = {}) {
     CustomEvent: class {},
   };
   vm.runInNewContext(seite("beruf-vorschlag.js"), context);
-  return { byId, sent, consent, suchbegriffe: context.window.Suchbegriffe };
+  return { byId, sent, consent, messages, suchbegriffe: context.window.Suchbegriffe };
 }
 
 async function typeAndAsk(p) {
@@ -101,4 +103,84 @@ test("the page Suche has a place for the consent inside the suggestion box and l
   assert.match(box, /id="vorschlag-einwilligung"/);
   assert.ok(html.indexOf('src="/einwilligung.js"') > 0, "einwilligung.js is loaded");
   assert.ok(html.indexOf('src="/einwilligung.js"') < html.indexOf('src="/beruf-vorschlag.js"'));
+});
+
+// Own terms and Rückgängig (#216)
+
+const LISTE = { berufe: ["Python", "Data Engineer"], schluessel: ["python", "data engineer"] };
+const sentAs = p => JSON.parse(JSON.stringify(p.sent));
+
+test("a term of one's own goes through the same route as a suggestion, and the field empties", async () => {
+  const p = page({ antworten: { "/api/beruf/aufnehmen": LISTE } });
+  await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
+  p.byId("suchliste-neu").value = "  Data   Engineer ";
+
+  await p.byId("suchliste-aufnehmen").fire("click");
+
+  assert.deepEqual(sentAs(p), [{ pfad: "/api/beruf/aufnehmen", body: { beruf: "  Data   Engineer " } }]);
+  assert.equal(p.byId("suchliste-neu").value, "");
+  assert.equal(p.messages.at(-1).text, "„Data Engineer“ ist jetzt in Ihrer Suche.");
+  assert.equal(p.byId("suchliste-neu-label").textContent, "Eigenen Suchbegriff aufnehmen");
+});
+
+test("Enter in the field adds as well, and a refusal keeps what was typed", async () => {
+  const p = page({ antworten: { "/api/beruf/aufnehmen": new Error("„Python“ wird schon gesucht.") } });
+  await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
+  p.byId("suchliste-neu").value = "Python";
+
+  await p.byId("suchliste-neu").fire("keydown", { key: "Enter" });
+
+  assert.equal(p.sent.length, 1);
+  assert.equal(p.byId("suchliste-neu").value, "Python");
+  assert.deepEqual([p.messages.at(-1).text, p.messages.at(-1).art], ["„Python“ wird schon gesucht.", "fehler"]);
+});
+
+test("the field is there also when nothing is searched yet", async () => {
+  const p = page();
+  await p.suchbegriffe.zeige("lehrstelle", [], []);
+
+  assert.equal(p.byId("suchliste").hidden, false);
+  assert.equal(p.byId("suchliste-liste").hidden, true);
+  assert.match(p.byId("suchliste-neu-label").textContent, /EFZ oder EBA/);
+});
+
+test("Entfernen offers Rückgängig, which puts the term back with its former state", async () => {
+  const vorher = "a".repeat(64);
+  const p = page({ antworten: {
+    "/api/beruf/entfernen": { ...LISTE, berufe: ["Data Engineer"], rueckgaengig: vorher },
+    "/api/beruf/rueckgaengig": { ...LISTE, am_ende: false },
+  } });
+  await p.suchbegriffe.zeige("stelle", ["Python", "Data Engineer"], ["python", "data engineer"]);
+  const entfernen = p.byId("suchliste-liste").children[0].children[1];
+
+  await entfernen.fire("click");
+  const meldung = p.messages.at(-1);
+  assert.equal(meldung.text, "„Python“ ist nicht mehr in Ihrer Suche.");
+  assert.equal(meldung.optionen.aktion.text, "Rückgängig");
+  await meldung.optionen.aktion.ausfuehren();
+
+  assert.deepEqual(sentAs(p).at(-1), { pfad: "/api/beruf/rueckgaengig", body: { beruf: "Python", vorher } });
+  assert.equal(p.messages.at(-1).text, "„Python“ ist wieder in Ihrer Suche.");
+});
+
+test("Rückgängig after another change says the term is back at the end", async () => {
+  const p = page({ antworten: {
+    "/api/beruf/entfernen": { ...LISTE, rueckgaengig: "b".repeat(64) },
+    "/api/beruf/rueckgaengig": { ...LISTE, am_ende: true },
+  } });
+  await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
+  await p.byId("suchliste-liste").children[0].children[1].fire("click");
+
+  await p.messages.at(-1).optionen.aktion.ausfuehren();
+
+  assert.equal(p.messages.at(-1).text, "„Python“ ist wieder in Ihrer Suche, am Ende der Liste.");
+});
+
+test("a removal that changed nothing offers nothing to undo", async () => {
+  const p = page({ antworten: { "/api/beruf/entfernen": { ...LISTE, rueckgaengig: null } } });
+  await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
+
+  await p.byId("suchliste-liste").children[0].children[1].fire("click");
+
+  assert.equal(p.messages.at(-1).optionen.aktion, null);
 });

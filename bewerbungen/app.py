@@ -49,6 +49,7 @@ SEITEN = {
     "/dateien-ordner.js": "dateien-ordner.js",
     "/stil.css": "stil.css",
     "/app.js": "app.js",
+    "/meldungen.js": "meldungen.js",
     "/uebersicht.js": "uebersicht.js",
     "/uebersicht-logik.js": "uebersicht-logik.js",
     "/bewerbung.js": "bewerbung.js",

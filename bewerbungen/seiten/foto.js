@@ -13,11 +13,7 @@ const gerundet = o => ({ mirror: o.mirror, zoom: +o.zoom.toFixed(3), x: +o.x.toF
 const gleich = (a, b) => JSON.stringify(gerundet(a)) === JSON.stringify(gerundet(b));
 const begrenzt = (wert, unten, oben) => Math.min(oben, Math.max(unten, wert));
 
-function status(text, art = "") {
-  const s = el("status");
-  s.textContent = text;
-  s.className = "status " + art;
-}
+const status = (text, art = "") => window.Meldungen.zeige(el("status"), text, art);
 
 // Überstand des Bildes über den Kreis, in Kreisdurchmessern (wie foto-rund in common.typ)
 function ueberstand(zoom) {
@@ -48,8 +44,10 @@ function zeige() {
   const ungespeichert = !gleich(stand, gespeichert);
   el("speichern").disabled = !ungespeichert;
   el("zuruecksetzen").disabled = !ungespeichert;
-  if (ungespeichert) status("Nicht gespeichert", "hinweis");
-  else if (el("status").className === "status hinweis") status("");
+  // Only a change of state touches the line, so a drag does not rebuild it (and its close button) on every move
+  const hinweisDa = el("status").dataset.level === "warning";
+  if (ungespeichert && !hinweisDa) status("Nicht gespeichert", "hinweis");
+  else if (!ungespeichert && hinweisDa) status("");
 }
 
 // Vorschau: immer nur eine Anfrage gleichzeitig; Änderungen währenddessen holt die nächste Runde
