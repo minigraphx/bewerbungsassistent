@@ -88,6 +88,20 @@
           <label class="check"><input type="radio" name="unterlagen" value="dossier"> Dossier</label>
           <p class="field__hint">Das Dossier ist ein PDF mit Deckblatt, Anschreiben und Lebenslauf. Anschreiben und Lebenslauf liegen dann im selben Design auch einzeln bereit, für Formulare, die zwei Dateien verlangen.</p>
         </fieldset>
+        <div id="dossier-design" hidden>
+          <div class="field"><label class="field__label" for="d-design">Design des Dossiers</label><select class="input" id="d-design"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select>
+            <p class="field__hint">Ein Design für alle Seiten. Akzentfarbe und Schrift bleiben auf allen Seiten gleich.</p></div>
+          <details id="d-erweitert">
+            <summary>Erweitert</summary>
+            <p class="field__hint">Ein eigenes Design pro Seite. Lebenslauf und Anschreiben als einzelne Dateien erhalten das Design ihrer Seite.</p>
+            <div class="application__fields">
+              <div class="field"><label class="field__label" for="d-seite-deckblatt">Deckblatt</label><select class="input" id="d-seite-deckblatt" data-seite="deckblatt"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
+              <div class="field"><label class="field__label" for="d-seite-anschreiben">Anschreiben</label><select class="input" id="d-seite-anschreiben" data-seite="anschreiben"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
+              <div class="field"><label class="field__label" for="d-seite-lebenslauf">Lebenslauf</label><select class="input" id="d-seite-lebenslauf" data-seite="lebenslauf"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
+              <div class="field"><label class="field__label" for="d-seite-weitere">Weitere Seiten</label><select class="input" id="d-seite-weitere" data-seite="weitere"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
+            </div>
+          </details>
+        </div>
         <div class="btn-row"><button type="button" class="btn" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen">Erneut prüfen</button></div>
         <ul class="befunde" id="befunde"></ul>
         <div class="pdfs" id="pdfs"></div>
@@ -220,6 +234,7 @@
   </dialog>
 </main>
 <script src="/texte.js"></script>
+<script src="/meldungen.js"></script>
 <script src="/app.js"></script>
 <script src="/einwilligung.js"></script>
 <script src="/formular-logik.js"></script>

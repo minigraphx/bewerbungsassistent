@@ -44,14 +44,7 @@
   const meldungOben = (text, stufe = "") => zeile($("status-oben"), text, stufe);
   const pruefbar = d => d.pdfs.lebenslauf || d.pdfs.anschreiben;
   const meldeGeladen = d => document.dispatchEvent(new CustomEvent("bewerbung-geladen", { detail: d }));
-  const STUFE = { ok: "success", hinweis: "warning", fehler: "danger" };
-
-  function zeile(element, text, stufe = "") {
-    element.textContent = text;
-    const level = STUFE[stufe] || stufe;
-    if (level) element.dataset.level = level;
-    else delete element.dataset.level;
-  }
+  const zeile = (element, text, stufe = "", optionen = {}) => window.Meldungen.zeige(element, text, stufe, optionen);
 
   function optionen(select, werte, gewaehlt) {
     select.replaceChildren(...werte.map(([wert, text]) => el("option", { value: wert, selected: wert === gewaehlt }, text)));
@@ -264,6 +257,7 @@
     $("erstellen").hidden = Boolean(b.versand);
     $("unterlagen-wahl").hidden = Boolean(b.versand);
     for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) knopf.checked = knopf.value === W.gewaehlt(b);
+    zeigeDesign(b);
     $("antwort-teil").hidden = !gesendet;
     $("jobroom-teil").hidden = !rav || !gesendet;
     $("s-festhalten").hidden = !gesendet;
@@ -622,20 +616,39 @@
       meldungOben(fehler.message, "fehler");
     }
   });
-  /** G40: saved right away; the PDFs shown follow the choice. */
-  async function waehleUnterlagen(event) {
-    const body = W.zuSpeichern(bewerbung, event.target.value);
-    if (!body) return;
+  /** G39: the design shows only with the dossier; „Erweitert“ stays closed unless a page has its own design. */
+  function zeigeDesign(b) {
+    $("dossier-design").hidden = W.gewaehlt(b) !== "dossier" || Boolean(b.versand);
+    $("d-design").value = W.design(b);
+    const seiten = W.seitenDesigns(b);
+    for (const auswahl of document.querySelectorAll("select[data-seite]")) auswahl.value = seiten[auswahl.dataset.seite];
+    if (W.gemischt(b)) $("d-erweitert").open = true;
+  }
+
+  /** G39, G40: each choice is saved right away; `body` gives what to save, null when nothing changed. */
+  async function speichereWahl(body, gespeichert) {
     try {
-      bewerbung = await senden("/api/bewerbung", body);
-      meldungOben(body.unterlagen === "dossier" ? "Dossier gewählt" : "Anschreiben und Lebenslauf gewählt", "ok");
+      const werte = body();
+      if (!werte) return;
+      bewerbung = await senden("/api/bewerbung", werte);
+      meldungOben(gespeichert(werte), "ok");
       await laden();
     } catch (fehler) {
       zeigeAbschnitte();
       meldungOben("Speichern fehlgeschlagen: " + fehler.message, "fehler");
     }
   }
-  for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) knopf.addEventListener("change", waehleUnterlagen);
+  const NEU_ERSTELLEN = "Mit „Unterlagen erstellen“ entsteht das Dossier im neuen Design.";
+  for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) {
+    knopf.addEventListener("change", event => speichereWahl(() => W.zuSpeichern(bewerbung, event.target.value),
+      body => (body.unterlagen === "dossier" ? "Dossier gewählt" : "Anschreiben und Lebenslauf gewählt")));
+  }
+  $("d-design").addEventListener("change", event => speichereWahl(() => W.designSpeichern(bewerbung, event.target.value),
+    () => `Design für alle Seiten gespeichert. ${NEU_ERSTELLEN}`));
+  for (const auswahl of document.querySelectorAll("select[data-seite]")) {
+    auswahl.addEventListener("change", () => speichereWahl(() => W.seiteSpeichern(bewerbung, auswahl.dataset.seite, auswahl.value),
+      () => `Design der Seite gespeichert. ${NEU_ERSTELLEN}`));
+  }
   $("erstellen").addEventListener("click", async () => {
     $("erstellen").disabled = true; // a second click would pay for a second draft
     try {
