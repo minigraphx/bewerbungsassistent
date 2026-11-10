@@ -162,6 +162,9 @@
       sie: "Die Erweiterung sucht in Ihrem Browser und nur, wenn Sie die Suche starten. Die KI schätzt jeden neuen Treffer als Note von 1 bis 6 ein.",
       du: "Die Erweiterung sucht in deinem Browser und nur, wenn du die Suche startest. Die KI schätzt jeden neuen Treffer als Note von 1 bis 6 ein.",
     },
+    // #220: „Ihre Bewerbungen“ instead of „Register“
+    "suche.schon-titel": { sie: "Schon in Ihren Bewerbungen", du: "Schon in deinen Bewerbungen" },
+    "suche.schon-marke": { sie: "schon in Ihren Bewerbungen", du: "schon in deinen Bewerbungen" },
     "suche.sichtbar": { sie: "Langsamer, dafür sehen Sie, was die Erweiterung tut.", du: "Langsamer, dafür siehst du, was die Erweiterung tut." },
     "suche.laufnotiz": {
       sie: "Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten.",

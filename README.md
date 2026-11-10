@@ -32,7 +32,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty, wahlweise nach Lehrstellen, Schnupperlehren oder beidem. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung in Paketen von zehn, nach der Suche von selbst (höchstens 30 pro Suche, abschaltbar) oder auf Knopfdruck. Bei Lehrstellen zählt der eigene Beruf mit Sternen zuerst. Dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis. Inserate von anderen Seiten, etwa LinkedIn, prüft oder speichert die Erweiterung auf Klick.
 
-![Seite Stellen suchen: links die Liste der Treffer mit Note, Firma, dem Wert bei kununu, Ort, Pensum und Portal, rechts die Einschätzung der KI zum gewählten Treffer mit den Knöpfen Übernehmen, Verwerfen und Neu bewerten](docs/bilder/treffer.jpg)
+![Seite Stellen suchen: links die Liste der Treffer mit Note, Firma, dem Wert bei kununu, Ort, Pensum und Portal, rechts die Einschätzung der KI zum gewählten Treffer mit den Knöpfen Merken, Verwerfen und Neu bewerten](docs/bilder/treffer.jpg)
 
 **Eine Bewerbung in sechs Schritten:** Von der Stelle bis zum Festhalten sehen Sie, wo die Bewerbung steht und was als Nächstes kommt. Ein Anschreiben der KI geht erst weiter, wenn Sie es gelesen und freigegeben haben.
 
@@ -42,9 +42,9 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 ![Abschnitt Unterlagen prüfen: die Befunde der Prüfung, darunter Lebenslauf und Anschreiben als PDF und die Wahl der Beilagen](docs/bilder/pruefung.jpg)
 
-**Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
+**Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an, geordnet nach Lebenslauf, Anschreiben je Bewerbung, Stil und Bausteinen und Suchprofil; ältere Fassungen sind aufklappbar. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
 
-![Liste der Entwürfe mit Zeit, Datei, Beschreibung und Versand](docs/bilder/entwuerfe.jpg)
+![Entwürfe nach Lebenslauf und Anschreiben gruppiert, je Dokument die neueste Fassung und die älteren aufklappbar](docs/bilder/entwuerfe.jpg)
 
 **Fotoausschnitt (freiwillig):** Ausschnitt per Maus oder Tastatur einstellen, mit Vorschau in Druckgrösse.
 

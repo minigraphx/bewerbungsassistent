@@ -72,6 +72,7 @@ PLACE_SHARE = ("{portal}: {limit} Suchen reichen nicht für alle {terms} Begriff
 TOO_MANY_TERMS = "Gesucht werden höchstens {limit} Begriffe. Nicht gesucht: {terms}. Weniger wichtige Begriffe entfernen."
 CORE_LABEL = "kernliste"
 NICHE_LABEL = "nischen"
+NO_PROFILE = "Es gibt noch kein Suchprofil. Zuerst Meine Angaben abschliessen."
 NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
 PROFESSIONS_SECTION = "## Berufe (mit Priorität)"
@@ -539,5 +540,5 @@ def kind_of_folder(data_dir: pathlib.Path) -> str:
 def for_folder(data_dir: pathlib.Path) -> SearchPlan:
     path = data_dir / PROFILE
     if not path.is_file():
-        raise ValueError("Es gibt noch kein Suchprofil. Zuerst den Einstieg abschliessen.")
+        raise ValueError(NO_PROFILE)
     return parse(path.read_text(encoding="utf-8"), _postal_code(data_dir))

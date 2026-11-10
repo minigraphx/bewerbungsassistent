@@ -328,8 +328,8 @@ def test_for_folder_reads_profile_and_postal_code_from_cv(tmp_path):
     assert search_plan.for_folder(tmp_path).postal_codes == ("3600",)
 
 
-def test_for_folder_without_profile_explains_the_einstieg(tmp_path):
-    with pytest.raises(ValueError, match="Einstieg"):
+def test_for_folder_without_profile_says_to_finish_meine_angaben(tmp_path):
+    with pytest.raises(ValueError, match="Meine Angaben abschliessen"):
         search_plan.for_folder(tmp_path)
 
 

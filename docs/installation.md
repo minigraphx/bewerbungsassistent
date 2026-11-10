@@ -91,7 +91,7 @@ Die Einrichtung hat drei kurze Schritte und dauert zusammen etwa fünf Minuten. 
 
 ![Seite Einrichtung mit den drei Schritten, der Wahl zwischen Stelle und Lehrstelle und der Zeile mit dem Datenordner](bilder/einrichtung-start.jpg)
 
-Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.
+Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Vorgewählt ist **Nein**; mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.
 
 Unten steht, wo Ihre Unterlagen liegen: der Datenordner mit Ihrem Lebenslauf, Ihren Anschreiben und Ihren Bewerbungen. Der Vorschlag unter „Dokumente“ passt meistens. Einen anderen Ordner wählen Sie mit **Ändern** und **Ordner wählen …**. Klicken Sie dann auf **Weiter**; die App legt den Ordner an.
 
@@ -166,7 +166,7 @@ Du suchst eine Lehrstelle? Was bei dir anders ist, steht unter [Für Lehrstellen
 
 ### Angaben erfassen
 
-Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minuten. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Im letzten Schritt, **Übernehmen**, klicken Sie auf **Angaben übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
+Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minuten. Vorhandene Unterlagen als PDF oder Word können Sie hochladen. Die KI macht daraus Vorschläge, und Sie prüfen jeden davon. Wo fast alle dasselbe antworten, steht schon eine Vorgabe, die Sie ändern können: Wohnort und Ort im Datum wie Ihr Ort, Pensum 80–100 %, Start nach Vereinbarung, beim Anschreiben jeweils die erste Wahl. Im letzten Schritt, **Übernehmen**, klicken Sie auf **Angaben übernehmen**. Erst danach zählen Ihre Angaben für die Suche.
 
 Ändern können Sie Ihre Angaben jederzeit an derselben Stelle. Die Seite zeigt dann Ihren bisherigen Lebenslauf. Was sie nicht anzeigt, zum Beispiel Ihr Foto, bleibt beim Übernehmen, wie es ist. So geht nichts verloren, was Sie schon verfeinert haben.
 
@@ -180,8 +180,8 @@ Gibt es Suchprofil, Stilprofil oder Bausteine schon, fragt die App beim Überneh
 
 ### Stellen suchen und bewerben
 
-1. **Stellen suchen**: Klicken Sie auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Unter **Suche einstellen**, **Wo suchen Sie?**, wählen Sie die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche. Darunter stehen Ihre Suchbegriffe: Einen eigenen tragen Sie unter **Eigenen Suchbegriff aufnehmen** ein und klicken auf **Aufnehmen**. Haben Sie einen Begriff aus Versehen entfernt, holt **Rückgängig** in der Meldung ihn an seinen Platz zurück.
-2. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Übernehmen** legt eine Bewerbung an, **Verwerfen** blendet den Treffer aus.
+1. **Stellen suchen**: Klicken Sie auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Lässt sich die Suche noch nicht starten, steht der Grund direkt unter dem Knopf, etwa **Zuerst Meine Angaben abschliessen.** Die Einstellungen sind zu Beginn zugeklappt; eine Zeile fasst sie zusammen: Suchbegriffe, Region und Anzahl Portale. Mit **Ändern** oder **Suche einstellen** öffnen Sie sie und wählen unter **Wo suchen Sie?** die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche. Darunter stehen Ihre Suchbegriffe: Einen eigenen tragen Sie unter **Eigenen Suchbegriff aufnehmen** ein und klicken auf **Aufnehmen**. Haben Sie einen Begriff aus Versehen entfernt, holt **Rückgängig** in der Meldung ihn an seinen Platz zurück.
+2. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Merken** legt eine Bewerbung an; die Meldung **Gemerkt.** führt mit **Bewerbung öffnen** direkt zu ihr. **Verwerfen** blendet den Treffer aus. Gemerkte Treffer stehen unter **Gemerkt**.
 3. **Bewerben**: Die **Übersicht** zeigt unter **Das steht an**, was als Nächstes zu tun ist, und in der Liste den nächsten Schritt jeder Bewerbung. Öffnen Sie eine Bewerbung und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Der Entwurf ist ein Ausgangspunkt: Lesen Sie ihn, passen Sie ihn mit **Ändern** an die Stelle und die Firma an, und klicken Sie dann auf **Freigeben**. Danach öffnet **Formular öffnen** das Formular der Firma, und die Erweiterung füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe [Fertige Dateien verwenden](#fertige-dateien-verwenden)).
 
 Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
@@ -325,9 +325,9 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Dateno
 <details>
 <summary>Ihre Bewerbungen</summary>
 
-- `bewerbungen.yaml` – das Register aller Bewerbungen: Firma, Stelle, Status, Daten, Notizen. Die App ändert es in der **Übersicht**, auf der Seite jeder Bewerbung und beim **Übernehmen** einer Stelle. Ausserhalb der App ist es eine Liste in YAML, die sich in eine Tabelle übertragen lässt.
+- `bewerbungen.yaml` – das Register aller Bewerbungen: Firma, Stelle, Status, Daten, Notizen. Die App ändert es in der **Übersicht**, auf der Seite jeder Bewerbung und beim **Merken** einer Stelle. Ausserhalb der App ist es eine Liste in YAML, die sich in eine Tabelle übertragen lässt.
 - `bewerbungen/<id>/` – ein Ordner pro Bewerbung:
-  - `bewerbungen/<id>/stelle.md` – der Text des Inserats, gespeichert beim **Übernehmen** oder beim Speichern des Inserats mit der Erweiterung.
+  - `bewerbungen/<id>/stelle.md` – der Text des Inserats, gespeichert beim **Merken** oder beim Speichern des Inserats mit der Erweiterung.
   - `bewerbungen/<id>/anschreiben.yaml` – Ihr Anschreiben, entworfen und geändert auf der Seite der Bewerbung.
   - `bewerbungen/<id>/lebenslauf.pdf` und `bewerbungen/<id>/anschreiben.pdf` – die Unterlagen, die **Unterlagen erstellen** baut. Diese PDFs können Sie direkt verschicken, etwa per E-Mail.
   - `bewerbungen/<id>/dossier.pdf` – das Dossier mit Deckblatt, Anschreiben und Lebenslauf, wenn Sie unter **Unterlagen prüfen** **Dossier** gewählt haben. Als Design wählen Sie Siegel, Raster oder Register, unter **Erweitert** auch eines pro Seite. Anschreiben und Lebenslauf liegen im Design ihrer Seite auch einzeln daneben.

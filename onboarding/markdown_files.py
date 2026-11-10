@@ -128,6 +128,7 @@ def building_blocks(data: dict, track: str, note: str) -> str:
                  for s in data.get("strengths", [])]
     frame = data.get("frame", {})
     available = "Schnuppern möglich" if track == "apprenticeship" else "Verfügbar ab"
+    available_value = frame.get("availability") if track == "apprenticeship" else _job_start(data)
     how_found = inline(data.get("searchApprenticeship", {}).get("howFound")) if track == "apprenticeship" else ""
     letter = "Motivationsschreiben" if track == "apprenticeship" else "Anschreiben"
     intro = f"{note}. Jede Aussage, die in ein {letter} darf, steht hier einmal, mit Beleg."
@@ -136,9 +137,15 @@ def building_blocks(data: dict, track: str, note: str) -> str:
         ("Stärken", strengths),
         ("Berufswahl", _bullets([how_found])),
         ("Lücken (offen benennen)", _gaps(data)),
-        ("Rahmen", _pairs((available, frame.get("availability")), ("Kündigungsfrist", frame.get("notice")),
+        ("Rahmen", _pairs((available, available_value), ("Kündigungsfrist", frame.get("notice")),
                           ("Lohnvorstellung", frame.get("salary")), ("Referenz", frame.get("reference")))),
     ])
+
+
+def _job_start(data: dict):
+    """„Verfügbar ab“ is no longer asked for jobs (#218): a value from before stays, otherwise frühester Start counts."""
+    given = data.get("frame", {}).get("availability")
+    return given if inline(given) else data.get("searchJob", {}).get("start")
 
 
 def _block(title: str, body: str, evidence) -> str:

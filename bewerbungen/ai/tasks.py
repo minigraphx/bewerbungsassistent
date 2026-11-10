@@ -34,7 +34,7 @@ MAX_AD_CHARS = 30_000
 PACKAGE_SIZE = 10
 MAX_PACKAGE_AD_CHARS = 12_000  # ten long ads must not cost as much as a book; ads are rarely longer
 LABEL_BYTES = 2
-MISSING = "Für die KI fehlt noch {name}. Zuerst den Einstieg abschliessen."
+MISSING = "Für die KI fehlt noch {name}. Zuerst Meine Angaben abschliessen."
 
 
 @dataclasses.dataclass(frozen=True)

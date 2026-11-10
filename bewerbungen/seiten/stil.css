@@ -721,6 +721,11 @@ label.check input { margin-top: 3px; }
 .search__head { display: flex; flex-wrap: wrap; gap: var(--space-4); justify-content: space-between; align-items: flex-end; }
 .search__title { display: flex; flex-direction: column; gap: var(--space-1); }
 .search__title h1 { margin: 0; font-size: 22px; line-height: 28px; }
+.search__actions { align-items: flex-start; }
+.search__start { display: flex; flex-direction: column; align-items: flex-end; max-width: 280px; }
+.search__start .btn-reason { text-align: right; }
+.search__start .btn-reason:empty { display: none; }
+.search__summary { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; color: var(--text-muted); }
 .search__sub, .search__hint { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
 .search__hint { display: block; font-size: 13px; line-height: 18px; }
 .search__settings { display: flex; flex-wrap: wrap; gap: var(--space-5) var(--space-6); padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
@@ -814,6 +819,16 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 /* Consent before the first AI call: a long text beside the tick */
 .einwilligung .schalter { align-items: flex-start; font-weight: 400; }
 .einwilligung .btn { justify-self: start; align-self: flex-start; }
+
+/* Entwürfe und Versionen grouped by document (#120) */
+.drafts { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-3); }
+.drafts__group > h3 { margin: 0 0 var(--space-2); }
+.drafts__doc h4 { margin: 0 0 var(--space-2); color: var(--text-strong); }
+.drafts__doc ul { list-style: none; margin: 0; padding: 0; }
+.drafts__version { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; align-items: center; padding: var(--space-2) 0; }
+.drafts__older { margin-top: var(--space-2); }
+.drafts__older > summary { cursor: pointer; font-weight: 500; color: var(--text-strong); }
+.drafts__older .drafts__version { border-top: 1px solid var(--line); }
 
 /* Messages that stay until closed (#215, meldungen.js): text, an optional action, the close button at the end */
 .status--closable { display: flex; align-items: center; gap: var(--space-2); }

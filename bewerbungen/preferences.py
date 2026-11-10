@@ -26,6 +26,8 @@ HEADER = "# Einrichtung: was gesucht wird, Anrede, RAV. Geschrieben vom Bewerbun
 BAD_SOUGHT = "Bitte wählen: eine Stelle oder eine Lehrstelle."
 BAD_ADDRESS = "Bitte wählen: mit Sie oder mit du."
 BAD_RAV = "Bitte wählen, ob beim RAV gemeldet: Ja oder Nein."
+# Where saved jobs are, in the form of address of the choice: pages say „Ihre Bewerbungen“, not „Register“ (#220)
+SAVED_IN = {SIE: "in Ihren Bewerbungen", DU: "in deinen Bewerbungen"}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -34,6 +36,10 @@ class Choice:
     address: str
     rav: bool
     chosen: bool = False  # False: derived from the search profile, nobody has chosen yet
+
+    @property
+    def saved_in(self) -> str:
+        return SAVED_IN[self.address]
 
     @property
     def text_set(self) -> str:

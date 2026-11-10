@@ -4,8 +4,8 @@
 (() => {
   const { holen, senden, el, status, datum, beobachten, textsatz } = window.App;
   const logik = window.TrefferLogik;
+  const anzeige = window.SucheAnzeige;
   const { text: textAus, anwenden } = window.Texte;
-  const EINSTELLEN_OFFEN = "suche.einstellen";  // remembered per browser: whether the settings stay open
   const $ = id => document.getElementById(id);
   const SEITE = "bewerbungsbegleiter-seite";
   const ERWEITERUNG = "bewerbungsbegleiter-erweiterung";
@@ -18,6 +18,11 @@
   let lehrstelle = false;
   let bewertungslauf = null;  // { halt: bool } while a run is going
   let letzterSuchlauf = "";
+  let erweiterung = null;    // true once the extension answered, false when it stayed silent at the start
+  let suchlaeuft = false;
+  let profilFehlt = "";      // why nothing can be searched yet, from the app (#220)
+  let gesucht = false;       // a search ran before, so an empty list of new hits means „nothing new“
+  let zusammenfassung = "";
   let wartetSeit = null;     // ISO time since the page waits for a search, to tell its run from older ones
   let stille = null;         // timer: no word from the extension for a while
   let zustand = "neu";       // which hits the list shows
@@ -53,7 +58,8 @@
     try {
       const neu = await senden("/api/suche/uebernehmen", {}, { id: t.id });
       anzeigen(neu);
-      meldung(`„${t.stelle}“ ist jetzt im Register.`, "ok");
+      const ziel = "/bewerbung?" + new URLSearchParams({ id: neu.bewerbung_id });
+      meldung(["Gemerkt. ", el("a", { href: ziel }, "Bewerbung öffnen")], "ok");
     } catch (fehler) {
       meldung(fehler.message, "fehler");
       knopf.disabled = false;
@@ -105,7 +111,7 @@
     }
     const b = treffer.bewertung;
     const empfohlen = b && b.note >= 4;
-    const uebernehmen = el("button", { type: "button", class: empfohlen ? "btn btn--primary" : "btn" }, b && !empfohlen ? "Trotzdem übernehmen" : "Übernehmen");
+    const uebernehmen = el("button", { type: "button", class: empfohlen ? "btn btn--primary" : "btn" }, b && !empfohlen ? "Trotzdem merken" : "Merken");
     uebernehmen.addEventListener("click", () => uebernimm(treffer, uebernehmen));
     const bewerten = el("button", { type: "button", class: "btn btn--quiet", disabled: bewertungslauf !== null }, b ? "Neu bewerten" : "Bewerten");
     bewerten.addEventListener("click", () => bewerte(treffer, bewerten));
@@ -139,7 +145,7 @@
         el("p", { class: "search__hint" }, el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, `Inserat auf ${treffer.portal} öffnen`),
           ` · gefunden ${datum(treffer.gefunden_am)}`, treffer.alter_tage !== undefined ? ` · ${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : ""),
         eigeneSterne(treffer)),
-      treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Schon im Register"), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
+      treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, t("suche.schon-titel")), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
       treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Passt nach den festen Regeln nicht"), el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
       el("article", { class: "ai-result" },
         el("header", { class: "ai-result__head" }, el("h3", { class: "ai-result__kind" }, "Einschätzung der KI"),
@@ -193,7 +199,7 @@
     const rahmen = [treffer.ort, treffer.pensum || treffer.lehrbeginn].filter(Boolean).join(" · ");
     const marken = [
       logik.istSchnupperlehre(treffer) ? "Schnupperlehre" : "",
-      treffer.hinweis ? "schon im Register" : "",
+      treffer.hinweis ? t("suche.schon-marke") : "",
       treffer.vorpruefung ? "passt nicht: " + treffer.vorpruefung : "",
       sterne ? `${"★".repeat(sterne)}` : "",
       treffer.eigene_sterne ? `Eigene: ${"★".repeat(treffer.eigene_sterne)}` : "",
@@ -230,8 +236,9 @@
     zeigeDetail(sichtbar.find(x => x.id === gewaehlt));
     $("ergebnisse").hidden = sichtbar.length === 0;
     $("leer").hidden = sichtbar.length > 0;
-    $("leer-titel").textContent = zustand === "neu" ? "Keine neuen Treffer" : zustand === "uebernommen" ? "Noch nichts übernommen" : "Nichts verworfen";
-    $("leer-text").textContent = zustand === "neu" ? t("suche.keine") : "";
+    const leer = anzeige.leer(zustand, gesucht, t("suche.keine"));
+    $("leer-titel").textContent = leer.titel;
+    $("leer-text").textContent = leer.text;
     $("leer-einstellen").hidden = zustand !== "neu";
     zeigeBewerten();
   }
@@ -318,11 +325,7 @@
   }
 
   function zeigeLetzteSuche(lauf, hinweise, ziele) {
-    const portale = Object.keys(lauf?.portale || {});
-    const neu = alle.filter(x => x.zustand === "neu").length;
-    $("letzte").textContent = lauf
-      ? `Letzte Suche am ${datum(lauf.datum)} · ${portale.length === 1 ? portale[0] : `${portale.length} Portale`} · ${alle.length} Treffer, ${neu} neu`
-      : "Noch keine Suche.";
+    $("letzte").textContent = anzeige.letzteSuche(lauf, alle, datum);
     const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem).map(([, p]) => p.problem);
     $("probleme").replaceChildren(
       ...probleme.map(p => el("li", { "data-stufe": "fehler" }, p)),
@@ -374,13 +377,19 @@
       einstellungen = daten.einstellungen;
       paket = daten.paket;
       grenze = daten.grenze;
+      gesucht = Boolean(daten.letzte_suche) || alle.length > 0;
+      profilFehlt = daten.sperrgrund || "";
+      zusammenfassung = anzeige.zusammenfassung({
+        begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle: daten.art === "lehrstelle",
+      });
       zeigeArt(daten.art, daten.angebote || []);
       window.PortalWahl.zeige(daten.portale_wahl || [], lade);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
       zeigeListe();
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {});
       zeigeNichtUebernommen();
-      if (!alle.length && !einstellenGemerkt()) zeigeEinstellen(true);
+      zeigeSuchen();
+      zeigeEinstellen(!$("einstellen").hidden);
     } catch (fehler) {
       meldung(fehler.message, "fehler");
     }
@@ -388,8 +397,16 @@
 
   // Extension: present (marker or message), progress of a running search
   function erweiterungDa() {
-    $("suchen").disabled = false;
+    erweiterung = true;
     $("ohne-erweiterung").hidden = true;
+    zeigeSuchen();
+  }
+
+  /** „Jetzt suchen“ with the reason right under it when it cannot start (#220). */
+  function zeigeSuchen() {
+    const grund = anzeige.sperrgrund({ erweiterung, laeuft: suchlaeuft, profil: profilFehlt });
+    $("suchen").disabled = suchlaeuft || erweiterung !== true || Boolean(grund);
+    $("suchen-grund").textContent = grund;
   }
 
   function laufText(lauf) {
@@ -414,7 +431,8 @@
     $("lauf-box").hidden = !laeuft;
     zeile($("lauf"), laeuft ? text : "");
     if (!laeuft) meldung(text, art);
-    $("suchen").disabled = laeuft;
+    suchlaeuft = laeuft;
+    zeigeSuchen();
     $("suchen").textContent = laeuft ? "Suche läuft …" : "Jetzt suchen";
     $("suchen").setAttribute("aria-busy", String(laeuft));
     const eben = letzterSuchlauf === "laeuft" && lauf.zustand === "fertig";
@@ -446,7 +464,8 @@
   });
 
   $("suchen").addEventListener("click", () => {
-    $("suchen").disabled = true;
+    suchlaeuft = true;
+    zeigeSuchen();
     $("lauf-box").hidden = false;
     zeile($("lauf"), "Suche startet …");
     wartetSeit = new Date().toISOString();
@@ -486,24 +505,35 @@
       .catch(fehler => { meldung(fehler.message, "fehler"); zeigeBewerten(); });
   });
 
-  // Settings: open on request, and at first while there are no hits yet
-  function einstellenGemerkt() {
-    try { return localStorage.getItem(EINSTELLEN_OFFEN) !== null; } catch { return false; }
-  }
-
-  function zeigeEinstellen(offen, merken = false) {
+  // Settings: closed on opening, summed up in one line with „Ändern“ (#220); open only on request
+  function zeigeEinstellen(offen) {
     $("einstellen").hidden = !offen;
     $("einstellen-knopf").setAttribute("aria-expanded", String(offen));
     $("einstellen-knopf").textContent = offen ? "Einstellungen schliessen" : "Suche einstellen";
-    if (merken) { try { localStorage.setItem(EINSTELLEN_OFFEN, offen ? "1" : "0"); } catch { /* without storage it stays as it is now */ } }
+    $("einstellen-text").textContent = zusammenfassung;
+    $("einstellen-zeile").hidden = offen || !zusammenfassung;
   }
 
-  $("einstellen-knopf").addEventListener("click", () => zeigeEinstellen($("einstellen").hidden, true));
-  $("leer-einstellen").addEventListener("click", () => { zeigeEinstellen(true, true); $("einstellen").scrollIntoView({ behavior: "smooth" }); });
-  try { if (localStorage.getItem(EINSTELLEN_OFFEN) === "1") zeigeEinstellen(true); } catch { /* closed by default */ }
+  function oeffneEinstellen() {
+    zeigeEinstellen(true);
+    $("einstellen").scrollIntoView({ behavior: "smooth" });
+  }
+
+  $("einstellen-knopf").addEventListener("click", () => zeigeEinstellen($("einstellen").hidden));
+  $("einstellen-aendern").addEventListener("click", oeffneEinstellen);
+  $("leer-einstellen").addEventListener("click", oeffneEinstellen);
+  zeigeEinstellen(false);
 
   if (document.documentElement.dataset.bewerbungsbegleiterErweiterung) erweiterungDa();
-  else setTimeout(() => { if ($("suchen").disabled && $("lauf-box").hidden) $("ohne-erweiterung").hidden = false; }, 1500);
+  else {
+    zeigeSuchen();
+    setTimeout(() => {
+      if (erweiterung || !$("lauf-box").hidden) return;
+      erweiterung = false;
+      $("ohne-erweiterung").hidden = false;
+      zeigeSuchen();
+    }, 1500);
+  }
   document.addEventListener("suchprofil-geaendert", lade);
-  textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); }).finally(() => { lade(); beobachten(nachsehen); });
+  textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); document.title = t("nav.suche"); }).finally(() => { lade(); beobachten(nachsehen); });
 })();
