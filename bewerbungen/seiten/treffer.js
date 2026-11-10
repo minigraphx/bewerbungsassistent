@@ -26,14 +26,7 @@
   let heute = "";
   let satz = "stelle-sie";
   const t = (schluessel, werte) => textAus(schluessel, satz, werte);
-  const STUFE = { ok: "success", hinweis: "warning", fehler: "danger" };
-
-  function zeile(element, inhalt, stufe = "") {
-    element.textContent = inhalt;
-    const level = STUFE[stufe] || stufe;
-    if (level) element.dataset.level = level;
-    else delete element.dataset.level;
-  }
+  const zeile = (element, inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige(element, inhalt, stufe, optionen);
   const meldung = (inhalt, stufe) => zeile($("status"), inhalt, stufe);
 
   function anzeigen(treffer) {

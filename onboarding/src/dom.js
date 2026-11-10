@@ -81,7 +81,8 @@ function controlView(field, ctx, id, describedBy) {
     const onTags = (tags) => ctx.onChange(tags);
     return el("div", { className: "tags-control" }, tagsInput({ ...common, placeholder: TAG_PLACEHOLDER }, ctx.value, ctx.tagSuggestions, onTags));
   }
-  if (field.type === "list" && field.tags === true) return taggedLinesView(field, ctx, id, describedBy);
+  if (field.type === "list" && field.tags === true) return linesView(field, ctx, id, describedBy, TAGGED_LINES);
+  if (field.type === "list" && field.levels === true) return linesView(field, ctx, id, describedBy, LEVELED_LINES);
   if (field.type === "list") {
     const text = listToLines(ctx.value);
     return el("textarea", {
@@ -93,7 +94,7 @@ function controlView(field, ctx, id, describedBy) {
     // a value from cv.yaml outside the options is shown as it is and stays until the person picks another (#167)
     const own = typeof ctx.value === "string" && ctx.value !== "" && !field.options.includes(ctx.value) ? [ctx.value] : [];
     const select = el("select", { ...common, onchange: (e) => ctx.onChange(e.target.value) }, [
-      el("option", { value: "" }, "– bitte wählen –"),
+      el("option", { value: "" }, field.emptyLabel ?? "– bitte wählen –"),
       ...[...field.options, ...own].map((o) => el("option", { value: o, selected: o === ctx.value }, field.optionLabels?.[o] ?? o)),
     ]);
     return select;
@@ -132,20 +133,47 @@ function tagsInput(attrs, tags, suggestions, onTags) {
   return [input, datalist];
 }
 
-/** A list whose lines take tags (highlights): one row per line with its text and its tags. */
-function taggedLinesView(field, ctx, id, describedBy) {
+const LEVEL_OPTIONS = ["1", "2", "3", "4", "5", "6"];
+const NO_LEVEL = "ohne Stufe";
+
+/** Lines with tags (highlights): the extra of a line is its tags, typed with commas. */
+const TAGGED_LINES = {
+  extraOf: (line) => (line !== null && typeof line === "object" && Array.isArray(line.tags) ? line.tags : []),
+  line: (text, tags) => taggedLine(text, tags),  // looked up on use: a test sandbox may load dom.js without model.js
+  controls(extra, number, ctx, onExtra, disabled) {
+    const attrs = { className: "line-tags", placeholder: "Tags", "aria-label": `Tags zu Zeile ${number}`, onblur: () => ctx.onBlur(), disabled };
+    return tagsInput(attrs, extra, ctx.tagSuggestions, onExtra);
+  },
+};
+
+/** Lines with a level (keywords, #123): an optional level 1–6, no preset, and „ohne Stufe“ removes it. */
+const LEVELED_LINES = {
+  extraOf: (line) => (line !== null && typeof line === "object" && typeof line.level === "string" ? line.level : ""),
+  line: (text, level) => ({ text, level }),
+  controls(extra, number, ctx, onExtra, disabled) {
+    return [el("select", {
+      className: "line-level", "aria-label": `Stufe zu Zeile ${number}`, onblur: () => ctx.onBlur(), disabled,
+      onchange: (e) => onExtra(e.target.value),
+    }, [
+      el("option", { value: "", selected: extra === "" }, NO_LEVEL),
+      ...LEVEL_OPTIONS.map((level) => el("option", { value: level, selected: level === extra }, level)),
+    ])];
+  },
+};
+
+/** A list whose lines take something besides their text (tags, a level): one row per line. */
+function linesView(field, ctx, id, describedBy, kind) {
   const name = forTrack(field.label, ctx.track).split(" (")[0];
   const max = field.maxItems ?? DEFAULT_MAX_LINES;
   let lines = Array.isArray(ctx.value) && ctx.value.length ? ctx.value : [""];
   const rows = el("div", { className: "tagged-lines" });
   const view = el("div", { className: "tagged-list" });
-  const tagsOf = (line) => (line !== null && typeof line === "object" && Array.isArray(line.tags) ? line.tags : []);
   const change = (next, focusAt) => {
     lines = next.length ? next : [""];
     ctx.onChange(lines);
     if (focusAt !== undefined) draw(focusAt);
   };
-  const setLine = (index, text, tags) => change(lines.map((line, i) => (i === index ? taggedLine(text, tags) : line)));
+  const setLine = (index, text, extra) => change(lines.map((line, i) => (i === index ? kind.line(text, extra) : line)));
   const add = el("button", {
     type: "button", className: "add-line", onclick: () => change([...lines, ""], lines.length),
   }, "+ Zeile hinzufügen");
@@ -157,15 +185,14 @@ function taggedLinesView(field, ctx, id, describedBy) {
     const text = el("input", {
       type: "text", id: index === 0 ? id : null, value: original ? "" : lineText(line), "aria-label": `${name}, Zeile ${number}`,
       "aria-describedby": describedBy, onblur: () => ctx.onBlur(),
-      oninput: (e) => setLine(index, e.target.value, tagsOf(lines[index])),
+      oninput: (e) => setLine(index, e.target.value, kind.extraOf(lines[index])),
     });
-    const tagAttrs = { className: "line-tags", placeholder: "Tags", "aria-label": `Tags zu Zeile ${number}`, onblur: () => ctx.onBlur(), disabled: Boolean(original) };
-    const tags = tagsInput(tagAttrs, tagsOf(line), ctx.tagSuggestions, (found) => setLine(index, lineText(lines[index]), found));
+    const extras = kind.controls(kind.extraOf(line), number, ctx, (found) => setLine(index, lineText(lines[index]), found), Boolean(original));
     const remove = el("button", {
       type: "button", className: "remove-line", "aria-label": `Zeile ${number} entfernen`,
       onclick: () => change(lines.filter((_, i) => i !== index), Math.max(0, index - 1)),
     }, "×");
-    return el("div", { className: "tagged-line" }, [text, ...tags, remove, original ? bilingualNote(original, BILINGUAL_TEXT.line) : null]);
+    return el("div", { className: "tagged-line" }, [text, ...extras, remove, original ? bilingualNote(original, BILINGUAL_TEXT.line) : null]);
   }
 
   function draw(focusAt) {

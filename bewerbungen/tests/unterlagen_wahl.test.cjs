@@ -40,3 +40,27 @@ test("with the dossier chosen the documents are built only once the dossier is t
   assert.equal(logik.naechster(daten("dossier", { ...singles, dossier: false })).art, "erstellen");
   assert.equal(step(daten("dossier", { ...singles, dossier: true })).erledigt, true);
 });
+
+test("without a design every page is Siegel and „Erweitert“ stays closed", () => {
+  assert.deepEqual(wahl.seitenDesigns(entry()), { deckblatt: "siegel", anschreiben: "siegel", lebenslauf: "siegel", weitere: "siegel" });
+  assert.equal(wahl.gemischt(entry()), false);
+});
+
+test("one design for all pages puts pages with their own design back to it", () => {
+  assert.equal(wahl.designSpeichern(entry(), "siegel"), null);
+  assert.deepEqual(wahl.designSpeichern(entry(), "raster"), { id: "a", dossier_design: "raster", dossier_seiten: {} });
+  const mixed = entry({ dossier_design: "raster", dossier_seiten: { anschreiben: "siegel" } });
+  assert.deepEqual(wahl.designSpeichern(mixed, "raster"), { id: "a", dossier_design: "raster", dossier_seiten: {} });
+  assert.throws(() => wahl.designSpeichern(entry(), "bunt"), /Siegel, Raster oder Register/);
+});
+
+test("a page keeps its own design only where it differs", () => {
+  const b = entry({ dossier_design: "register" });
+  assert.deepEqual(wahl.seiteSpeichern(b, "lebenslauf", "raster"), { id: "a", dossier_seiten: { lebenslauf: "raster" } });
+  assert.equal(wahl.seiteSpeichern(b, "lebenslauf", "register"), null);
+  const mixed = entry({ dossier_design: "register", dossier_seiten: { lebenslauf: "raster", anschreiben: "siegel" } });
+  assert.deepEqual(wahl.seiteSpeichern(mixed, "lebenslauf", "register"), { id: "a", dossier_seiten: { anschreiben: "siegel" } });
+  assert.equal(wahl.gemischt(mixed), true);
+  assert.deepEqual(wahl.seitenDesigns(mixed), { deckblatt: "register", anschreiben: "siegel", lebenslauf: "raster", weitere: "register" });
+  assert.throws(() => wahl.seiteSpeichern(b, "rueckseite", "raster"), /Seite/);
+});

@@ -41,6 +41,8 @@
       <section id="suchliste" hidden>
         <p id="suchliste-titel" class="field__label"></p>
         <ul id="suchliste-liste" class="suchliste"></ul>
+        <label id="suchliste-neu-label" class="field__label" for="suchliste-neu"></label>
+        <div class="suchliste__neu"><input class="input" id="suchliste-neu" type="text" maxlength="80" autocomplete="off"><button type="button" class="btn btn--sm" id="suchliste-aufnehmen">Aufnehmen</button></div>
         <div id="suchliste-status" class="status" role="status" aria-live="polite" tabindex="-1"></div>
       </section>
       <label class="switch"><input type="checkbox" role="switch" id="auto-bewerten"> <span id="auto-text">Neue Treffer nach der Suche automatisch bewerten</span></label>
@@ -119,6 +121,7 @@
   </div>
 </main>
 <script src="/texte.js"></script>
+<script src="/meldungen.js"></script>
 <script src="/app.js"></script>
 <script src="/treffer-logik.js"></script>
 <script src="/firmen-logik.js"></script>
