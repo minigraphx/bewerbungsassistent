@@ -179,8 +179,11 @@ def _lanes(stations: list[tuple]) -> tuple[list[int], int]:
 
 
 def _ticks(begin: int, total: int, today: datetime.date) -> list[dict]:
-    """Year labels: the first full year, every fifth year and the current one, at least MIN_TICK_GAP apart."""
-    first = (begin + 11) // 12
+    """Year labels at the start of each year on the axis: the first, every fifth and the current one, at least
+    MIN_TICK_GAP apart. An axis that holds no start of a year, as for a first job begun this year, gets its year."""
+    first = -(-begin // 12)
+    if first > today.year:
+        return [{"year": today.year, "at": 0.0}]
     kept = [first]
     for year in range(first + 1, today.year):
         if year % 5 == 0 and year - kept[-1] >= MIN_TICK_GAP:
@@ -201,10 +204,10 @@ def timeline(work: Iterable[dict], today: datetime.date) -> dict:
     stations = []
     for number, entry in enumerate(work or [], start=1):
         start = _month(entry.get("startDate"), end=False)
-        if start is None:
+        if start is None or start > now:  # a job not begun yet has no place on an axis that ends today
             continue
         end = _month(entry.get("endDate"), end=True)
-        stations.append((number, start, min(now if end is None else end, now), end is None))
+        stations.append((number, start, max(start, min(now if end is None else end, now)), end is None))
     if not stations:
         return {"bars": [], "ticks": [], "lanes": 0, "earlier": False}
     first = min(start for _, start, _, _ in stations)
