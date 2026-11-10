@@ -62,6 +62,15 @@ def _letter_text(letter: dict) -> str:
     return "\n\n".join(str(p).strip() for p in parts if p and str(p).strip())
 
 
+def letter_for_ai(k, entry: dict) -> tuple[dict | None, str]:
+    """The letter draft and its text for tasks that only read it; none while an own letter counts.
+
+    With an own letter the draft may say something else than what goes out, and the own letter stays away from the AI.
+    """
+    letter = None if unterlagen.own_letter(k.daten, entry) else _letter(k, entry["id"])
+    return letter, _letter_text(letter) if letter else ""
+
+
 def _kind(k) -> str:
     return preferences.strictest_kind(k.daten)
 
@@ -109,12 +118,11 @@ def form_fields(k, entry: dict, fields: list[form_help.FormField]) -> dict:
     """Help for the open fields of a form. The ad may be missing: then only the assignment runs."""
     path = _folder(k, entry["id"]) / STELLE_FILE
     ad = path.read_text(encoding="utf-8") if path.is_file() else ""
-    # With an own letter the draft may say something else than what goes out, and the own letter stays away from the AI.
-    letter = None if unterlagen.own_letter(k.daten, entry) else _letter(k, entry["id"])
+    letter, text = letter_for_ai(k, entry)
 
     def task():
         gateway, material = ai_gateway(k, entry, letter, partial=True)
-        return form_help.assist(gateway, material, entry, ad, _letter_text(letter) if letter else "", fields)
+        return form_help.assist(gateway, material, entry, ad, text, fields)
 
     return run_ai(task)
 
