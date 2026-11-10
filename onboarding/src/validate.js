@@ -7,6 +7,8 @@
 
 const SINGLE_LINE = new Set(["text", "list", "select", "choice", "tags"]);
 const TAGGED_LINE_KEYS = new Set(["text", "tags"]);
+const LEVELED_LINE_KEYS = new Set(["text", "level"]);
+const LEVELS = ["", "1", "2", "3", "4", "5", "6"];  // "" leaves a line without level (#123)
 const LINE = "Zeile";
 const TAG = "Tag";
 const TAGS_NAME = "Tags";
@@ -57,6 +59,12 @@ function isTaggedLine(value) {
     && (value.tags === undefined || Array.isArray(value.tags));
 }
 
+/** A line with a level, as the page sends it: { text, level } with level as text. */
+function isLeveledLine(value) {
+  return isObject(value) && Object.keys(value).every((k) => LEVELED_LINE_KEYS.has(k)) && typeof value.text === "string"
+    && (value.level === undefined || typeof value.level === "string");
+}
+
 const lineOf = (value) => (isObject(value) ? value.text : value);
 
 /** A value as it counts when compared with cv.yaml: trimmed, blank as "", a line without tags as its text. */
@@ -71,6 +79,11 @@ function storedValue(value) {
 }
 
 function storedLine(value) {
+  if (isObject(value) && "level" in value && Object.keys(value).every((k) => LEVELED_LINE_KEYS.has(k))) {
+    const text = typeof value.text === "string" ? storedValue(value.text) : value.text;
+    const level = typeof value.level === "string" ? value.level.trim() : value.level;
+    return level && text !== "" ? { text, level } : text;
+  }
   if (isObject(value) && "text" in value && Object.keys(value).every((k) => TAGGED_LINE_KEYS.has(k))) {
     const text = typeof value.text === "string" ? storedValue(value.text) : value.text;
     const tags = Array.isArray(value.tags) ? storedValue(value.tags) : value.tags;
@@ -203,7 +216,8 @@ function validateList(form, field, value, path, known, before) {
   const tagged = field.tags === true;
   const lines = loadedLines(field.id, before);
   const inFile = list.map((v) => lines.some((line) => sameValue(line, storedLine(v))));
-  const fits = (v, i) => inFile[i] || typeof v === "string" || (tagged && isTaggedLine(v));
+  const leveled = field.levels === true;
+  const fits = (v, i) => inFile[i] || typeof v === "string" || (tagged && isTaggedLine(v)) || (leveled && isLeveledLine(v));
   if (!list.every(fits)) return [err(path, "type")];
   const items = list.filter((v, i) => inFile[i] || lineOf(v).trim());
   if (!items.length) return field.required ? [err(path, "required")] : [];
@@ -214,7 +228,8 @@ function validateList(form, field, value, path, known, before) {
     if (!text.trim()) return;
     const code = checkText(form, field, null, text);
     if (code) errors.push(err(`${path}.${index}`, code));
-    if (isObject(entry)) errors.push(...validateTags(form, entry.tags, `${path}.${index}.tags`, known));
+    if (isObject(entry) && tagged) errors.push(...validateTags(form, entry.tags, `${path}.${index}.tags`, known));
+    if (isObject(entry) && leveled && !LEVELS.includes((entry.level ?? "").trim())) errors.push(err(`${path}.${index}.level`, "option"));
   });
   return errors;
 }

@@ -8,6 +8,8 @@ texts of education and certificates and basics.url came with G25; a project grou
 Two-language values {de, en} (lebenslauf/README.md) come along as they are on the text fields without a format and on
 highlights (#167): the page shows them without editing them and sends them back, and validation.py lets them pass as
 long as cv.yaml holds them. cv_merge.py reads the file without them, so they stay until the person types a new value.
+Levels (#123, G20): a keyword {name, level} comes as {text, level} with the level 1–6 as text (A1–C2 read as 1–6), a
+language brings its x-level; a level the form cannot show stays out, and the keyword comes as its name.
 """
 import datetime
 import logging
@@ -31,10 +33,12 @@ SECTIONS = {
     "projects": ("name", "description", "group", "tags"),
     "education": ("studyType", "area", "institution", *DATES, "text"),
     "certificates": ("name", "issuer", "date", "text", "tags"),
-    "languages": ("language", "fluency"),
+    "languages": ("language", "fluency", "x-level"),
     "skills": ("name", "keywords", "tags"),
 }
 INTERESTS = ("name",)
+CEFR = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6}  # as lebenslauf/dossier_data.py reads them
+MAX_LEVEL = 6
 FORM = validation.load_form()
 TAG = re.compile(FORM["formats"]["tag"]["pattern"])
 # a bundle without these keys keeps them in the file, an empty value removes them (G25, the rule of tags in G24)
@@ -98,6 +102,24 @@ def line_text(item: object) -> str | None:
     return None if isinstance(item, (dict, list)) else shown_text(item) or None
 
 
+def keyword_level(value: object) -> int | None:
+    """A level the form can show, 1–6 (also written A1–C2); None for none or one it cannot show."""
+    if isinstance(value, str):
+        return CEFR.get(value.strip().upper())
+    if isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= MAX_LEVEL:
+        return value
+    return None
+
+
+def keyword_shown(item: object) -> str | dict | None:
+    """A keyword as the page shows it: its text, or {text, level} with the level as text; None if it cannot."""
+    if not isinstance(item, dict) or "name" not in item:
+        return item_text(item)
+    name = line_text(item.get("name"))
+    level = keyword_level(item.get("level"))
+    return {"text": name, "level": str(level)} if name and level else name
+
+
 def tag_text(item: object) -> str | None:
     """One tag as the form can show it; None if blank, not text, or holding a comma or a control character."""
     text = line_text(item)
@@ -116,7 +138,7 @@ def highlight_shown(item: object) -> str | dict | None:
     return {"text": text, "tags": tags} if text and tags else text
 
 
-LIST_SHOWN = {"highlights": highlight_shown, "keywords": item_text, "tags": tag_text}
+LIST_SHOWN = {"highlights": highlight_shown, "keywords": keyword_shown, "tags": tag_text}
 
 
 def entry_shown(entry: object, fields: tuple[str, ...], bilingual: frozenset[str] = frozenset()) -> dict | None:

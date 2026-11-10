@@ -22,6 +22,8 @@ FORM_PATH = pathlib.Path(__file__).resolve().parent / "form.json"
 FIELD_TYPES = frozenset({"text", "textarea", "list", "select", "choice", "tags"})
 SINGLE_LINE = frozenset({"text", "list", "select", "choice", "tags"})
 TAGGED_LINE_KEYS = frozenset({"text", "tags"})
+LEVELED_LINE_KEYS = frozenset({"text", "level"})
+LEVELS = ("", "1", "2", "3", "4", "5", "6")  # "" leaves a line without level (#123)
 TOP_LEVEL_KEYS = frozenset({"format", "version", "track", "data", "saved"})
 
 
@@ -90,6 +92,10 @@ def comparable(value):
 
 
 def comparable_line(value):
+    if isinstance(value, dict) and "level" in value and set(value) <= LEVELED_LINE_KEYS:
+        text = comparable(value["text"]) if isinstance(value.get("text"), str) else value.get("text")
+        level = value["level"].strip() if isinstance(value["level"], str) else value["level"]
+        return {"text": text, "level": level} if level and text != "" else text
     if isinstance(value, dict) and set(value) <= TAGGED_LINE_KEYS and "text" in value:
         text = comparable(value["text"]) if isinstance(value["text"], str) else value["text"]
         tags = comparable(value["tags"]) if isinstance(value.get("tags"), list) else value.get("tags")
@@ -192,6 +198,12 @@ def is_tagged_line(value) -> bool:
             and isinstance(value.get("tags", []), list))
 
 
+def is_leveled_line(value) -> bool:
+    """A line with a level, as the page sends it: {text, level} with level as text."""
+    return (isinstance(value, dict) and set(value) <= LEVELED_LINE_KEYS and isinstance(value.get("text"), str)
+            and isinstance(value.get("level", ""), str))
+
+
 def line_text(value) -> str:
     return value["text"] if isinstance(value, dict) else value
 
@@ -222,10 +234,11 @@ def _validate_list(form: dict, field: dict, value, path: str, known: frozenset[s
         value = []
     if not isinstance(value, list):
         return [ValidationError(path, "type")]
-    tagged = field.get("tags") is True
+    tagged, leveled = field.get("tags") is True, field.get("levels") is True
     lines = _loaded_lines(field["id"], before)
     in_file = [comparable_line(v) in lines for v in value]
-    if not all(kept or isinstance(v, str) or (tagged and is_tagged_line(v)) for v, kept in zip(value, in_file)):
+    if not all(kept or isinstance(v, str) or (tagged and is_tagged_line(v)) or (leveled and is_leveled_line(v))
+               for v, kept in zip(value, in_file)):
         return [ValidationError(path, "type")]
     items = [v for v, kept in zip(value, in_file) if kept or line_text(v).strip()]
     if not items:
@@ -240,8 +253,10 @@ def _validate_list(form: dict, field: dict, value, path: str, known: frozenset[s
         error = check_text(form, field, None, text)
         if error:
             errors.append(ValidationError(f"{path}.{index}", error))
-        if isinstance(entry, dict):
+        if isinstance(entry, dict) and tagged:
             errors += _validate_tags(form, entry.get("tags"), f"{path}.{index}.tags", known)
+        if isinstance(entry, dict) and leveled and entry.get("level", "").strip() not in LEVELS:
+            errors.append(ValidationError(f"{path}.{index}.level", "option"))
     return errors
 
 
