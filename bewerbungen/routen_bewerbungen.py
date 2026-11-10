@@ -37,15 +37,24 @@ def grundlagen(k, parameter, body):
     return json_antwort({"lebenslauf": own_cv or (k.daten / "cv.yaml").is_file(), "suchprofil": (k.daten / "suchprofil.md").is_file()})
 
 
+def _shown_pdfs(k, b: dict) -> dict[str, pathlib.Path]:
+    """The files the page shows: the two that count, and the dossier only while it is chosen (G40)."""
+    pfade = unterlagen.wirksame_pdfs(k.daten, b)
+    if unterlagen.wants_dossier(b):
+        return {**pfade, unterlagen.DOSSIER: unterlagen.dossier_path(k.daten, b["id"])}
+    return pfade
+
+
 def details(k, parameter, body):
     b = k.register().hole(pflicht(parameter, "id"))
     pfade = unterlagen.wirksame_pdfs(k.daten, b)
+    shown = _shown_pdfs(k, b)
     return json_antwort({
         "bewerbung": b,
         "jobroom": jobroom_angaben(b),
         "stellentext": _stellentext(k, b["id"]),
-        "pdfs": {art: p.is_file() for art, p in pfade.items()},
-        "pdf_stand": {art: p.stat().st_mtime_ns if p.is_file() else None for art, p in pfade.items()},
+        "pdfs": {art: p.is_file() for art, p in shown.items()},
+        "pdf_stand": {art: p.stat().st_mtime_ns if p.is_file() else None for art, p in shown.items()},
         "eigener_lebenslauf": unterlagen.eigener_lebenslauf(k.daten, b) is not None,
         "eigener_lebenslauf_da": (k.daten / unterlagen.OWN_CV).is_file(),
         "eigenes_anschreiben": unterlagen.own_letter(k.daten, b) is not None,
@@ -161,9 +170,12 @@ def unterlagen_bauen(k, parameter, body):
 def pdf(k, parameter, body):
     art = pflicht(parameter, "art")
     wanted = pflicht(parameter, "id")
-    if art not in unterlagen.pdf_pfade(k.daten, wanted):
-        raise ValueError("art muss lebenslauf oder anschreiben sein")
-    return datei_antwort(unterlagen.wirksame_pdfs(k.daten, k.register().hole(wanted))[art], "application/pdf")
+    if art not in unterlagen.pdf_pfade(k.daten, wanted) and art != unterlagen.DOSSIER:
+        raise ValueError("art muss lebenslauf, anschreiben oder dossier sein")
+    shown = _shown_pdfs(k, k.register().hole(wanted))
+    if art not in shown:
+        raise ValueError("Für diese Bewerbung ist kein Dossier gewählt")
+    return datei_antwort(shown[art], "application/pdf")
 
 
 def versendet(k, parameter, body):

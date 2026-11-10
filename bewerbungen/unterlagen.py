@@ -1,5 +1,7 @@
 """Unterlagen einer Bewerbung bauen: Lebenslauf aus der gewählten Variante, Anschreiben aus
 `bewerbungen/<id>/anschreiben.yaml`. Die PDFs liegen in `bewerbungen/<id>/` (nicht in Git, bis zum Versand).
+Wer für die Bewerbung ein Dossier wählt (G40), bekommt dazu `dossier.pdf`; Lebenslauf und Anschreiben entstehen
+dann aus denselben Teilen des Dossiers.
 """
 import pathlib
 import shutil
@@ -7,6 +9,7 @@ import shutil
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
+import dossier as dossier_modul
 from dateien import im_ordner
 from register import ID_MUSTER
 from varianten import Varianten
@@ -19,6 +22,11 @@ OWN_CV = "dokumente/lebenslauf.pdf"  # uploaded on the page „Meine Dateien“,
 OWN_LETTER = "eigenes-anschreiben.pdf"  # uploaded on the page of the application, see own_files.py
 LETTER_SOURCE = "anschreiben.yaml"
 SENT_STAYS = "Diese Bewerbung ist versendet. Was verschickt wurde, bleibt so."
+DOSSIER = "dossier"
+DOSSIER_PAGES = "dossier.yaml"  # optional pages of the dossier (greeting, thanks, figures), written by Claude
+DOSSIER_OWN_FILE = ("Ein Dossier entsteht aus „Meine Angaben“ und dem Entwurf des Anschreibens, nicht aus einem "
+                    "fertigen PDF. Bitte „Anschreiben und Lebenslauf“ wählen oder das eigene PDF entfernen.")
+DOSSIER_NO_LETTER = "Für das Dossier fehlt noch das Anschreiben. Bitte zuerst eines entwerfen."
 
 
 def bewerbungsordner(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
@@ -30,6 +38,21 @@ def bewerbungsordner(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
 def pdf_pfade(daten: pathlib.Path, bewerbung_id: str) -> dict[str, pathlib.Path]:
     ordner = bewerbungsordner(daten, bewerbung_id)
     return {art: ordner / f"{art}.pdf" for art in ARTEN}
+
+
+def wants_dossier(bewerbung: dict) -> bool:
+    """Whether the person chose a dossier for this application; without a choice it is the two files (G41)."""
+    return bewerbung.get("unterlagen") == DOSSIER
+
+
+def dossier_path(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
+    return bewerbungsordner(daten, bewerbung_id) / f"{DOSSIER}.pdf"
+
+
+def dossier_ready(daten: pathlib.Path, bewerbung: dict) -> pathlib.Path | None:
+    """The dossier, as long as it is chosen: one left from an earlier choice does not count."""
+    path = dossier_path(daten, bewerbung["id"])
+    return path if wants_dossier(bewerbung) and path.is_file() else None
 
 
 def eigener_lebenslauf(daten: pathlib.Path, bewerbung: dict) -> pathlib.Path | None:
@@ -91,9 +114,48 @@ def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, 
         )
 
 
+def _cv_arguments(daten: pathlib.Path, bewerbung: dict) -> list[str]:
+    """CV and tailoring for the dossier; it is built from the data, so a finished PDF cannot go in."""
+    if eigener_lebenslauf(daten, bewerbung):
+        raise ValueError(DOSSIER_OWN_FILE)
+    if not (daten / "cv.yaml").is_file():
+        raise ValueError(NO_CV)
+    arguments = ["--cv", str(daten / "cv.yaml")]
+    if not bewerbung.get("variante"):
+        if Varianten(daten).alle():
+            raise ValueError(CHOOSE_VARIANT)
+        return arguments
+    variante = Varianten(daten).hole(bewerbung["variante"])
+    if not variante.get("quelle"):
+        raise ValueError(DOSSIER_OWN_FILE)
+    return [*arguments, "--job", str(im_ordner(daten, variante["quelle"])), "--lang", variante["sprache"]]
+
+
+def _baue_dossier(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> dict[str, pathlib.Path]:
+    """Dossier, CV and letter from the same parts of one design (lebenslauf/dossier.py), into the application's folder."""
+    if own_letter(daten, bewerbung):
+        raise ValueError(DOSSIER_OWN_FILE)
+    cv = _cv_arguments(daten, bewerbung)
+    letter = letter_source(daten, bewerbung["id"])
+    if not letter.is_file():
+        raise ValueError(DOSSIER_NO_LETTER)
+    folder = bewerbungsordner(daten, bewerbung["id"])
+    pages = folder / DOSSIER_PAGES
+    if not pages.is_file():
+        build.mkdir(parents=True, exist_ok=True)
+        pages = build / f"{bewerbung['id']}-{DOSSIER_PAGES}"
+        pages.write_text("{}\n", encoding="utf-8")
+    result = dossier_modul.main([str(pages), *cv, "--brief", str(letter), "--build-dir", str(build),
+                                 "--out-dir", str(folder)])
+    return {"lebenslauf": result.cv, "anschreiben": result.letter, DOSSIER: result.dossier}
+
+
 def baue(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> dict[str, pathlib.Path]:
-    """Lebenslauf und (falls vorhanden) Anschreiben bauen; liefert die Pfade der PDFs."""
+    """Lebenslauf und (falls vorhanden) Anschreiben bauen, mit gewähltem Dossier auch dieses; liefert die Pfade der PDFs."""
     daten = daten.resolve()
+    if wants_dossier(bewerbung):
+        bewerbungsordner(daten, bewerbung["id"]).mkdir(parents=True, exist_ok=True)
+        return _baue_dossier(daten, bewerbung, build)
     pfade_pdf = pdf_pfade(daten, bewerbung["id"])
     pfade_pdf["lebenslauf"].parent.mkdir(parents=True, exist_ok=True)
     eigener = eigener_lebenslauf(daten, bewerbung)
