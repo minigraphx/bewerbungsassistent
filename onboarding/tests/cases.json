@@ -2356,6 +2356,133 @@
           "code": "type"
         }
       ]
+    },
+    {
+      "name": "levels on keywords and languages are valid (#123)",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.0",
+          {
+            "text": "Python",
+            "level": "4"
+          }
+        ],
+        [
+          "data.skills.0.keywords.1",
+          {
+            "text": "SQL",
+            "level": ""
+          }
+        ],
+        [
+          "data.languages.0.x-level",
+          "C2"
+        ],
+        [
+          "data.languages.1.x-level",
+          ""
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "levels in the apprenticeship track are valid",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.languages.0.x-level",
+          "B1"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a keyword level outside 1 to 6",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.0",
+          {
+            "text": "Python",
+            "level": "7"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords.0.level",
+          "code": "option"
+        }
+      ]
+    },
+    {
+      "name": "a keyword level that is no text",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.0",
+          {
+            "text": "Python",
+            "level": 4
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "a level on lines that take none",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.1",
+          {
+            "text": "Datenpipelines",
+            "level": "3"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "a language level outside the list",
+      "base": "job",
+      "set": [
+        [
+          "data.languages.0.x-level",
+          "D1"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "languages.0.x-level",
+          "code": "option"
+        }
+      ]
+    },
+    {
+      "name": "a level on a blank keyword is ignored",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.1",
+          {
+            "text": " ",
+            "level": "3"
+          }
+        ]
+      ],
+      "errors": []
     }
   ],
   "documentCases": [

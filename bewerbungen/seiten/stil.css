@@ -270,6 +270,8 @@ ul.vorschlaege li { padding: 10px 0; border-top: 1px solid var(--line); }
 ul.vorschlaege p { margin: var(--space-1) 0; }
 ul.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--space-2); display: flex; flex-wrap: wrap; gap: 6px var(--space-3); }
 ul.suchliste li { display: flex; align-items: center; gap: 6px; }
+.suchliste__neu { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-bottom: var(--space-2); }
+.suchliste__neu .input { flex: 1 1 220px; min-width: 0; max-width: 360px; }
 .portale { margin: var(--space-2) 0; }
 .portale .auswahl-liste { margin-top: 6px; }
 .portale > summary { cursor: pointer; font-weight: 500; color: var(--text-strong); }

@@ -15,7 +15,7 @@ Sie gehen dem Vorschlag unten vor:
 ## Entscheide zuerst
 
 1. **Hauptort: eine neue Seite «Firmen»** (bei Lehrstellen «Lehrbetriebe»), eine Zeile pro Firma aus allen Treffern und Bewerbungen. Darum gebeten hat der Inhaber, und nur eine eigene Seite hat Platz für die Zustände, die Wahl bei mehreren Treffern und die Prüfung in einem Durchgang. Gruppiert wird nach dem bestehenden Firmen-Schlüssel (`company_key`). Eine Wahl der Person gilt darum für alle Treffer dieser Firma und wird nur einmal gefragt.
-2. **Nebenort: Stellen suchen.** In der Trefferzeile steht eine kleine Marke «kununu 3.8» gleich nach dem Firmennamen. In der Detailspalte folgt unter der KI-Karte eine Firmenzeile mit dem Link «Bei kununu ansehen». Dort wird entschieden, ob man einen Treffer übernimmt, also gehört der Wert dorthin.
+2. **Nebenort: Stellen suchen.** In der Trefferzeile steht eine kleine Marke «kununu 3.8 von 5» gleich nach dem Firmennamen. In der Detailspalte folgt unter der KI-Karte eine Firmenzeile mit dem Link «Bei kununu ansehen». Dort wird entschieden, ob man einen Treffer übernimmt, also gehört der Wert dorthin.
 3. **Nicht auf die Übersicht, kein Block auf der Bewerbung.** Die Tabelle der Übersicht hat schon fünf Spalten und eine Note. Eine zweite Zahl daneben macht sie lauter und lädt dazu ein, laufende Bewerbungen nach dem Ruf der Firma zu ordnen, obwohl der Entscheid längst gefallen ist. Auf der Bewerbung darf der Wert «Firma» in der Seitenspalte zur Zeile auf «Firmen» verlinken, aber ohne Wert dort.
 4. **Zugang:** im Menü «Mehr» als erster Eintrag («Firmen») und als leiser Link «Firmen ansehen» in der Leiste von Stellen suchen. Die Hauptnavigation behält drei Punkte, denn sie folgt dem Ablauf.
 5. **Nicht mit der Note zu verwechseln** (Details unten): Die Note der App bleibt die einzige Zahl mit Balken, Akzentfarbe und Wort. kununu erscheint nie ohne das Wort «kununu» und den Zusatz «von 5», nie mit Balken oder Sternen und nie in Akzent, Grün oder Rot.
@@ -27,7 +27,7 @@ Sie gehen dem Vorschlag unten vor:
 | Teil | Firmen-Seite | Trefferzeile | Detailspalte |
 | --- | --- | --- | --- |
 | Name, Ort | ja | (steht schon da) | ja |
-| kununu-Wert 1–5, eine Stelle nach dem Punkt | «3.8 von 5» | «kununu 3.8» | «3.8 von 5» |
+| kununu-Wert 1–5, eine Stelle nach dem Punkt | «3.8 von 5» | «kununu 3.8 von 5» | «3.8 von 5» |
 | Anzahl Bewertungen | «214 Bewertungen» | nur für Bildschirmleser | ja |
 | Weiterempfehlung | «78 % empfehlen» | nein | ja |
 | Geprüft am | «05.11.2026», ab 90 Tagen «Stand …» mit «Neu prüfen» | nein | ja |
@@ -96,7 +96,7 @@ Neutral, wo es geht. Die Spalte «Stellen mit du» entspricht der Spalte du, nur
 | Knöpfe, Links | Prüfen · Neu prüfen · Nochmals prüfen · Bei kununu ansehen · Bei kununu suchen · Selbst zuordnen · Passende wählen · Zuordnen · Abbrechen | gleich |
 | Auswahl | Welche ist Beispiel Holding AG, Zürich? · Keine davon passt · Ort und Anzahl Bewertungen helfen beim Wählen. | gleich |
 | Dialog | Welche kununu-Seite gehört zu Testlogistik GmbH? · Link zur Firma bei kununu · Bei kununu die Firma öffnen und den Link aus der Adresszeile kopieren. · Das ist kein Link zu einer Firma bei kununu. | … · Link zum Lehrbetrieb bei kununu · Bei kununu den Lehrbetrieb öffnen … · … zu einem Lehrbetrieb bei kununu. |
-| Trefferzeile | kununu 3.8 · kununu 4.6, wenige Bewertungen · kununu: wählen · nicht bei kununu | gleich |
+| Trefferzeile | kununu 3.8 von 5 · kununu 4.6 von 5, wenige Bewertungen · kununu: wählen · nicht bei kununu | gleich |
 | Detailspalte | Muster Industrie AG bei kununu · Geprüft am 05.11.2026 · Alle Firmen · Noch nicht bei kununu geprüft. · Jetzt prüfen | … · Alle Lehrbetriebe |
 | Hilfe, Titel | Wie lese ich kununu? | gleich |
 | Hilfe, Text | Auf kununu bewerten heutige und frühere Mitarbeitende ihre Firma: 5 ist der beste Wert, 1 der schlechteste. Unter 10 Bewertungen sagt der Wert wenig. Die Note der App sagt dagegen, wie gut eine Stelle zu Ihren Angaben passt. | … ihren Lehrbetrieb … wie gut eine Lehrstelle zu deinen Angaben passt. |
@@ -112,7 +112,7 @@ Neutral, wo es geht. Die Spalte «Stellen mit du» entspricht der Spalte du, nur
 - Die Trefferzeile ist ein `<button>`. Darin darf kein Link stehen. Die Marke ist darum nur Text, und ihr Wortlaut für Bildschirmleser gehört zum Namen des Knopfs. Der Link steht in der Detailspalte.
 - Jeder externe Link nennt die Firma und sagt «öffnet neuen Tab» (`visually-hidden`), mit `target="_blank" rel="noopener noreferrer"`. Symbole gibt es keine, wie im System vorgesehen.
 - Prüfen meldet sich über `role=status` / `aria-live="polite"` in der Zeile, ein Durchgang über `Progress`. «Passende wählen» trägt `aria-expanded`. Beim Aufklappen springt der Fokus auf die Legende, nach «Zuordnen» zurück auf die Zeile, wo eine Status-Zeile das Ergebnis meldet.
-- Die Tabelle ist eine `table` mit `th scope`. Unter 760 px wird jede Zeile zur Karte (vorhandene Container-Abfrage von `DataTable`, `data-label`). Die Knöpfe sind dann 40 px hoch und brechen um. Die Marke in der Trefferzeile darf umbrechen, aber nie mitten in «kununu 3.8» (`white-space: nowrap`).
+- Die Tabelle ist eine `table` mit `th scope`. Unter 760 px wird jede Zeile zur Karte (vorhandene Container-Abfrage von `DataTable`, `data-label`). Die Knöpfe sind dann 40 px hoch und brechen um. Die Marke in der Trefferzeile darf umbrechen, aber nie mitten in «kununu 3.8 von 5» (`white-space: nowrap`).
 
 ## Offene Fragen an Andy
 

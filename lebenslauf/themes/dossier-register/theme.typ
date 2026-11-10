@@ -56,8 +56,10 @@
 
 #let words-for(d) = words.at(d.language)
 
-// The parts that get a tab, in order: letter, CV, and the optional pages that have content
-#let tab-parts(d) = ("anschreiben", "lebenslauf") + (if d.pages.at("attachments", default: ()).len() > 0 { ("beilagen",) } else { () }) + (if d.cv.at("references", default: ()).len() > 0 { ("referenzen",) } else { () })
+// The parts that get a tab, in order: letter, CV, and the optional pages that have content. In a dossier with a
+// design per page, Beilagen and Referenzen exist only when the optional pages are those of Register.
+#let own-pages(d) = d.at("designs", default: (:)).at("pages", default: "dossier-register") == "dossier-register"
+#let tab-parts(d) = ("anschreiben", "lebenslauf") + (if own-pages(d) and d.pages.at("attachments", default: ()).len() > 0 { ("beilagen",) } else { () }) + (if own-pages(d) and d.cv.at("references", default: ()).len() > 0 { ("referenzen",) } else { () })
 
 // A label drawn as glyph outlines (dossier.py renders it) and marked as a PDF artifact,
 // so text extraction does not read the tabs into the text
