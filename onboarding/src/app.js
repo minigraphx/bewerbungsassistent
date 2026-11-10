@@ -210,11 +210,21 @@ function refreshErrors() {
 function render() {
   const all = steps();
   if (step >= all.length) step = all.length - 1;
+  fillPresets(all[step]);
   renderNav(all);
   const main = document.getElementById("main");
   const current = all[step];
   main.replaceChildren(viewFor(current), navButtons(all));
   refreshErrors();
+}
+
+/** Presets (#218) for the sections of the step shown; the last step fills every section before taking over. */
+function fillPresets(current) {
+  const sectionIds = current.kind === "group" ? current.group.sections.map((s) => s.id) : current.kind === "finish" ? null : [];
+  const filled = withPresets(form, state, sectionIds);
+  if (filled === state) return;
+  state = filled;
+  scheduleStore();
 }
 
 function viewFor(current) {
@@ -562,7 +572,7 @@ async function restoreUploads() {
 /** One step: its sections one below the other, so every mark and every missing field stays in sight. */
 function groupView(group) {
   const track = state.track;
-  const required = group.sections.some((s) => fieldsFor(s, track).some((f) => f.required));
+  const required = group.sections.some((s) => shownFields(s, track).some((f) => f.required));
   const single = group.sections.length === 1;
   return el("section", { className: "group" }, [
     el("h2", {}, group.title),
@@ -581,7 +591,7 @@ function sectionView(section, single) {
   const attrs = { className: "part", dataset: { section: section.id } };
   if (!section.repeat) {
     const item = state.data[section.id] || {};
-    return el("section", attrs, [...header, suggestionNote(section.id), ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
+    return el("section", attrs, [...header, suggestionNote(section.id), ...shownFields(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
   const max = section.maxItems ?? form.limits.repeatItems;
@@ -589,7 +599,7 @@ function sectionView(section, single) {
   const items = list.map((item, index) => el("fieldset", { className: "item", dataset: { item: `${section.id}.${index}` } }, [
     el("legend", {}, `${itemTitle} ${index + 1}`),
     suggestionNote(`${section.id}.${index}`),
-    ...fieldsFor(section, track).map((f) => fieldFor(section, f, [section.id, index, f.id], item[f.id])),
+    ...shownFields(section, track).map((f) => fieldFor(section, f, [section.id, index, f.id], item[f.id])),
     el("button", {
       type: "button", className: "remove",
       onclick: () => {
