@@ -247,6 +247,15 @@
     }
   }
 
+  /** #119: „Lebenslauf anpassen“ until sent; a finished PDF gets a note instead (the own one has #eigener-cv). */
+  function zeigeAnpassen(b) {
+    const variante = (daten.varianten || []).find(v => v.id === b.variante) || null;
+    const ziel = window.LebenslaufAnpassen.ziel({ variante, eigenesPdf: Boolean(daten.eigener_lebenslauf_da) });
+    $("cv-anpassen").hidden = !ziel.href || Boolean(b.versand);
+    if (ziel.href) $("cv-anpassen").href = ziel.href;
+    $("cv-wie-es-ist").hidden = ziel.wieEsIst !== "variante";
+  }
+
   function zeigeAbschnitte() {
     const b = bewerbung;
     const gesendet = L.versendet(b);
@@ -260,6 +269,7 @@
     $("s-festhalten").hidden = !gesendet;
     zeigeBeenden(b);
     $("s-lebenslauf").hidden = Boolean(b.versand) && !b.variante;
+    zeigeAnpassen(b);
     $("s-stelle").open = !(daten.stellentext || "").trim() && !gesendet;
     if (b.beworben_am && !b.versand && !versandDatumGesetzt) {  // sent already: record it with that date
       $("v-datum").value = b.beworben_am;

@@ -52,6 +52,7 @@ SEITEN = {
     "/uebersicht-logik.js": "uebersicht-logik.js",
     "/bewerbung.js": "bewerbung.js",
     "/bewerbung-logik.js": "bewerbung-logik.js",
+    "/lebenslauf-anpassen.js": "lebenslauf-anpassen.js",
     "/unterlagen-wahl.js": "unterlagen-wahl.js",
     "/entwuerfe.js": "entwuerfe.js",
     "/foto.js": "foto.js",
