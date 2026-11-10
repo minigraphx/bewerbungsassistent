@@ -81,7 +81,7 @@
     "einwilligung.ersetzt": {
       sie: "Bevor ein Text zur KI geht, ersetzt die App Ihre Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Firmen, Ausbildungen und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
       du: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Firmen, Ausbildungen und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
-      lehrstelle: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail und Geburtsdatum sowie deine Schulen durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Betriebe und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
+      lehrstelle: "Bevor ein Text zur KI geht, ersetzt die App deine Angaben zu Name, Adresse, Telefon, E-Mail, Links und Geburtsdatum sowie deine Schulen durch Platzhalter, ebenso Referenzen und Kontaktpersonen. Betriebe und Jahreszahlen bleiben stehen. Ersetzen kann die App nur, was unter Meine Angaben richtig eingetragen ist.",
     },
     // Why ictjobs is on or off (#107); the key ends in `grund` from /api/suche/liste
     "suche.ictjobs.aus": {
