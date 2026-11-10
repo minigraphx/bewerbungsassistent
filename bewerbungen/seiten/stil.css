@@ -270,6 +270,8 @@ ul.vorschlaege li { padding: 10px 0; border-top: 1px solid var(--line); }
 ul.vorschlaege p { margin: var(--space-1) 0; }
 ul.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--space-2); display: flex; flex-wrap: wrap; gap: 6px var(--space-3); }
 ul.suchliste li { display: flex; align-items: center; gap: 6px; }
+.suchliste__neu { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-bottom: var(--space-2); }
+.suchliste__neu .input { flex: 1 1 220px; min-width: 0; max-width: 360px; }
 .portale { margin: var(--space-2) 0; }
 .portale .auswahl-liste { margin-top: 6px; }
 .portale > summary { cursor: pointer; font-weight: 500; color: var(--text-strong); }
@@ -804,3 +806,13 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 /* Consent before the first AI call: a long text beside the tick */
 .einwilligung .schalter { align-items: flex-start; font-weight: 400; }
 .einwilligung .btn { justify-self: start; align-self: flex-start; }
+
+/* Messages that stay until closed (#215, meldungen.js): text, an optional action, the close button at the end */
+.status--closable { display: flex; align-items: center; gap: var(--space-2); }
+.status--closable .status__text { flex: 1; min-width: 0; }
+.status__close {
+  flex: none; min-width: 44px; min-height: 44px; margin: -12px -12px -12px 0; padding: 0;
+  border: 0; background: none; color: inherit; font-size: 20px; line-height: 1; cursor: pointer; border-radius: var(--radius-md);
+}
+.status__close:hover { background: var(--surface-subtle); }
+.status__close:focus-visible { outline: 2px solid var(--accent); outline-offset: -6px; }

@@ -34,7 +34,7 @@ TOP_SHARED = f'<header class="top"><p class="brand">Bewerbungsbegleiter</p><p cl
 # In the app the page shares the menu of the other pages (taken from the overview) and their scripts: app.js for the
 # menu, the text set and the messages of the packaged app; texte.js for the words that follow the setup.
 MENU_SOURCE = ROOT.parent / "bewerbungen" / "seiten" / "uebersicht.html"
-APP_PAGE_SCRIPTS = '<script src="/texte.js"></script>\n<script src="/app.js"></script>\n'
+APP_PAGE_SCRIPTS = '<script src="/texte.js"></script>\n<script src="/meldungen.js"></script>\n<script src="/app.js"></script>\n'
 # DM Sans comes from the app (bewerbungen/app.py FONT_FILES); the shared file loads nothing and uses the system font.
 APP_FONTS = "".join(
     f'@font-face {{ font-family: "DM Sans"; src: url("/fonts/DMSans-{name}.ttf") format("truetype"); '

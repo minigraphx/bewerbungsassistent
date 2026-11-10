@@ -5,8 +5,8 @@ and verifies the signature. After the app has quit, a small script swaps old and
 The old version stays in the hidden folder until the new one confirms its start; without that it comes back.
 If it cannot come back, the folder stays, because it then holds the only working version.
 When the person is quitting (MIN-382), the new version only checks itself and ends, so no browser opens.
-The checksum over HTTPS says the package is ours; codesign says it arrived complete (the app is signed ad hoc,
-so the signature names no one).
+The checksum from the signed announcement says the package is ours; codesign says it arrived complete and is signed
+with our one identity (#213, G48): an app signed by anyone else, or ad hoc, is refused.
 """
 import logging
 import os
@@ -16,6 +16,7 @@ import subprocess
 import sys
 from typing import Callable
 
+import signing_identity
 import updates
 
 log = logging.getLogger(__name__)
@@ -117,7 +118,11 @@ def _unpack_and_verify(archive: pathlib.Path, staging: pathlib.Path, run: Run) -
     new = staging / NEW_APP
     if new.is_symlink() or not (new / INSIDE).is_file():
         raise updates.UpdateError("Das Paket ist unvollständig; Update abgebrochen.")
-    _tool([CODESIGN, "--verify", "--deep", "--strict", str(new)], run,
+    try:
+        requirement = signing_identity.requirement()
+    except signing_identity.IdentityError as error:
+        raise updates.UpdateError("Diese Version kennt die Signatur der App nicht; bitte die neue Version von Hand laden.") from error
+    _tool([CODESIGN, "--verify", "--deep", "--strict", "-R", f"={requirement}", str(new)], run,
           "Die Signatur der neuen Version stimmt nicht; Update abgebrochen.")
 
 

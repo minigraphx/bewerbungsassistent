@@ -39,11 +39,7 @@
     try { sessionStorage.setItem(SPEICHER, JSON.stringify(sitzung)); } catch { /* see ladeSitzung */ }
   }
 
-  function meldung(element, inhalt, stufe = "") {
-    element.textContent = inhalt;
-    if (stufe) element.dataset.level = stufe;
-    else delete element.dataset.level;
-  }
+  const meldung = (element, inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige(element, inhalt, stufe, optionen);
 
   // State of the steps
 

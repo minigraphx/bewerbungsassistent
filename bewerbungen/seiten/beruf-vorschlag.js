@@ -1,5 +1,6 @@
 "use strict";
-// What to search for (MIN-375): the list of what is searched with „Entfernen“, and suggestions from the AI to add to it.
+// What to search for (MIN-375): the list of what is searched with „Entfernen“ and Rückgängig, a field for a term of the
+// person's own (#216), and suggestions from the AI to add to it.
 // Apprenticeships address the person informally and name professions, jobs formally and name search terms.
 window.Suchbegriffe = (() => {
   const { holen, senden, el, status } = window.App;
@@ -18,6 +19,10 @@ window.Suchbegriffe = (() => {
       pruefen: "In der Schnupperlehre",
       liste: "Danach suchst du:",
       entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
+      neuLabel: "Eigenen Beruf aufnehmen (mit EFZ oder EBA, zum Beispiel Koch/Köchin EFZ)",
+      aufgenommen: name => `„${name}“ ist jetzt in deiner Suche.`,
+      zurueck: name => `„${name}“ ist wieder in deiner Suche.`,
+      amEnde: name => `„${name}“ ist wieder in deiner Suche, am Ende der Liste.`,
       einwilligung: "Bevor die KI dir Berufe vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.",
     },
     stelle: {
@@ -33,6 +38,10 @@ window.Suchbegriffe = (() => {
       pruefen: "Im Inserat",
       liste: "Danach suchen Sie:",
       entfernt: name => `„${name}“ ist nicht mehr in Ihrer Suche.`,
+      neuLabel: "Eigenen Suchbegriff aufnehmen",
+      aufgenommen: name => `„${name}“ ist jetzt in Ihrer Suche.`,
+      zurueck: name => `„${name}“ ist wieder in Ihrer Suche.`,
+      amEnde: name => `„${name}“ ist wieder in Ihrer Suche, am Ende der Liste.`,
       einwilligung: "Bevor die KI Stellen vorschlägt, braucht es Ihre Einwilligung. Was Sie geschrieben haben, bleibt stehen.",
     },
     stelleDu: {
@@ -48,9 +57,14 @@ window.Suchbegriffe = (() => {
       pruefen: "Im Inserat",
       liste: "Danach suchst du:",
       entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
+      neuLabel: "Eigenen Suchbegriff aufnehmen",
+      aufgenommen: name => `„${name}“ ist jetzt in deiner Suche.`,
+      zurueck: name => `„${name}“ ist wieder in deiner Suche.`,
+      amEnde: name => `„${name}“ ist wieder in deiner Suche, am Ende der Liste.`,
       einwilligung: "Bevor die KI Stellen vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.",
     },
   };
+  const RUECKGAENGIG = "Rückgängig";
   const texteFuer = (art, satz) => (art === "lehrstelle" ? TEXTE.lehrstelle : satz === "stelle-du" ? TEXTE.stelleDu : TEXTE.stelle);
   let texte = TEXTE.stelle;
   let karten = [];
@@ -74,17 +88,51 @@ window.Suchbegriffe = (() => {
     }
   }
 
+  const meldeListe = (text, art, optionen) => {
+    status($("suchliste-status"), text, art, optionen);
+    $("suchliste-status").focus();
+  };
+
+  async function undo(name, vorher) {
+    try {
+      const { am_ende: amEnde } = await senden("/api/beruf/rueckgaengig", { beruf: name, vorher });
+      meldeListe(amEnde ? texte.amEnde(name) : texte.zurueck(name), "ok");
+      geaendert();
+    } catch (fehler) {
+      meldeListe(fehler.message, "fehler");
+    }
+  }
+
   async function remove(name, button) {
     button.disabled = true;
     try {
-      await senden("/api/beruf/entfernen", { beruf: name });
-      status($("suchliste-status"), texte.entfernt(name), "ok");
-      $("suchliste-status").focus();
+      const { rueckgaengig } = await senden("/api/beruf/entfernen", { beruf: name });
+      // the action keeps the message until it is used or closed (#215)
+      const aktion = rueckgaengig ? { text: RUECKGAENGIG, ausfuehren: () => undo(name, rueckgaengig) } : null;
+      meldeListe(texte.entfernt(name), "ok", { aktion });
       geaendert();
     } catch (fehler) {
-      status($("suchliste-status"), fehler.message, "fehler");
+      meldeListe(fehler.message, "fehler");
     } finally {
       button.disabled = false;
+    }
+  }
+
+  // The server says what is missing or searched already, so the field needs no rules of its own.
+  async function addOwn() {
+    const feld = $("suchliste-neu");
+    const name = feld.value.split(/\s+/).filter(Boolean).join(" ");
+    $("suchliste-aufnehmen").disabled = true;
+    try {
+      await senden("/api/beruf/aufnehmen", { beruf: feld.value });
+      feld.value = "";
+      meldeListe(texte.aufgenommen(name), "ok");
+      geaendert();
+    } catch (fehler) {
+      meldeListe(fehler.message, "fehler");
+      feld.focus();
+    } finally {
+      $("suchliste-aufnehmen").disabled = false;
     }
   }
 
@@ -154,8 +202,11 @@ window.Suchbegriffe = (() => {
   }
 
   function zeigeListe(begriffe) {
-    $("suchliste").hidden = !begriffe.length;
+    $("suchliste").hidden = false;
+    $("suchliste-titel").hidden = !begriffe.length;
+    $("suchliste-liste").hidden = !begriffe.length;
     $("suchliste-titel").textContent = texte.liste;
+    $("suchliste-neu-label").textContent = texte.neuLabel;
     $("suchliste-liste").replaceChildren(...begriffe.map(name => {
       const button = el("button", { type: "button", class: "klein", "aria-label": `${name} entfernen` }, "Entfernen");
       button.addEventListener("click", () => remove(name, button));
@@ -191,5 +242,11 @@ window.Suchbegriffe = (() => {
   }
 
   $("vorschlag-holen").addEventListener("click", ask);
+  $("suchliste-aufnehmen").addEventListener("click", addOwn);
+  $("suchliste-neu").addEventListener("keydown", event => {
+    if (event.key !== "Enter") return undefined;
+    event.preventDefault();
+    return addOwn();
+  });
   return { zeige, texteFuer };
 })();
