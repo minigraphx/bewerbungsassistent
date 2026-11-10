@@ -1,7 +1,11 @@
 """Rule-based pre-check of an ad before rating (G33): languages, degree and excluded technologies.
 
-Fixed rules, no AI. A hit that fails keeps its place in the list, below the others, with the reason. Whatever is
-missing lets the hit pass: an ad without a level, a person without languages or degree in cv.yaml and profile.
+Fixed rules, no AI, unambiguous signals only (Andy, 10.11.2026). A hit is marked only when a sentence states a
+requirement with an explicit marker („zwingend“, „erforderlich“, „muss“, „required“, „obligatoire“ …) and names a CEFR
+level or „Muttersprache“ for a language, a degree without an alternative, or an excluded technology on its own. A hedge
+in the sentence, a level given only as an adjective („gute Kenntnisse“, „fliessend“) or a technology listed among others
+leaves the hit to the AI rating. When in doubt, the hit passes. A marked hit keeps its place, below the others.
+Missing data lets the hit pass: a person without languages or degree in cv.yaml and profile.
 Excluded technologies come from the profile, section „Ausschlüsse“, line „Technologien als Schwerpunkt“.
 """
 import dataclasses
@@ -15,21 +19,22 @@ import search_plan
 LANGUAGES = {"deutsch": "deutsch", "german": "deutsch", "französisch": "französisch", "franzoesisch": "französisch",
              "french": "französisch", "englisch": "englisch", "english": "englisch", "italienisch": "italienisch",
              "italian": "italienisch", "spanisch": "spanisch", "spanish": "spanisch", "portugiesisch": "portugiesisch",
-             "rätoromanisch": "rätoromanisch"}
-LANGUAGE_MENTION = re.compile(r"\b(" + "|".join(sorted(LANGUAGES, key=len, reverse=True)) + r")\w*", re.IGNORECASE)
+             "rätoromanisch": "rätoromanisch", "français": "französisch", "francais": "französisch",
+             "anglais": "englisch", "allemand": "deutsch"}
+# „Deutschland“ is a country, not the language.
+LANGUAGE_MENTION = re.compile(r"\b(" + "|".join(sorted(LANGUAGES, key=len, reverse=True)) + r")(?!land)\w*", re.IGNORECASE)
 # cv.yaml takes any name: „Schweizerdeutsch“ or „Hochdeutsch“ is German.
 LANGUAGE_IN_NAME = re.compile("|".join(sorted(LANGUAGES, key=len, reverse=True)), re.IGNORECASE)
-# „Deutsch oder Französisch fliessend“, „Deutsch- und/oder Französischkenntnisse“: one of them is enough.
+# „Deutsch oder Französisch C1“, „Deutsch- und/oder Französischkenntnisse“: one of them is enough.
 ALTERNATIVE = re.compile(r"-?\s*(?:(?:und|and)\s*/\s*)?(?:oder|or|bzw\.?|beziehungsweise|/)\s*", re.IGNORECASE)
-ABBREVIATED_OR = re.compile(r"\bbzw\.", re.IGNORECASE)  # its dot must not end the clause
-ENGLISH_NAMES = r"english|german|french|italian|spanish"
-# „Native“ alone is also a tech term („Cloud-native“, „React Native“, „native Apps“): it counts only next to
-# „speaker“, „level“ and the like, or right beside a language name.
-NATIVE = (r"\bnative[\s-]+(?:speakers?|level|language|proficiency|tongue|" + ENGLISH_NAMES + r")\b"
-          r"|\b(?:" + "|".join(LANGUAGES) + r")\w*[\s:-]+native\b")
-# One alternation, longer phrases first, so that „sehr gute“ is not read as „gute“.
-LEVEL_WORDS = (
-    (7, r"muttersprach\w*|erstsprache|" + NATIVE),
+# The ad's level: only a CEFR level or mother tongue. Adjectives like „gut“ or „fliessend“ are left to the AI.
+AD_LEVEL = re.compile(r"\b(?P<cefr>[abc][12])\b|(?P<native>muttersprach\w*|erstsprache)", re.IGNORECASE)
+CEFR = {"a1": 1, "a2": 2, "b1": 3, "b2": 4, "c1": 5, "c2": 6}
+NATIVE_LEVEL = 7
+MAX_DISTANCE = 25  # characters between a language and its level within one clause
+# The person's own level may be a word, as cv.yaml and the profile write it („Englisch (gut)“).
+PERSON_LEVEL_WORDS = (
+    (7, r"muttersprach\w*|erstsprache|native"),
     (6, r"\bc2\b|verhandlungssicher\w*|stilsicher\w*|perfekt\w*"),
     (5, r"\bc1\b|sehr\s+gut\w*|flie(?:ss|ß)end\w*|ausgezeichnet\w*|fluent"),
     (4, r"\bb2\b|\bgut\w*|\bgood\b"),
@@ -37,23 +42,21 @@ LEVEL_WORDS = (
     (2, r"\ba2\b|grundkenntnis\w*|basic"),
     (1, r"\ba1\b"),
 )
-LEVEL = re.compile("|".join(f"(?P<l{level}>{words})" for level, words in LEVEL_WORDS), re.IGNORECASE)
+PERSON_LEVEL = re.compile("|".join(f"(?P<l{level}>{words})" for level, words in PERSON_LEVEL_WORDS), re.IGNORECASE)
 LEVEL_NAMES = {1: "A1", 2: "A2", 3: "B1", 4: "B2", 5: "C1", 6: "C2", 7: "Muttersprache"}
-MAX_DISTANCE = 40  # characters between a language and its level
-# „die perfekte Ergänzung“, „sehr gute analytische Fähigkeiten“: an inflected level adjective is about the noun it
-# qualifies, past further adjectives. Only a language or „Kenntnisse“, „Sprache“ and the like keep it a level.
-LEVEL_ADJECTIVE = re.compile(r"(?:perfekt|ausgezeichnet|gut|mittler|verhandlungssicher|stilsicher|flie(?:ss|ß)end)"
-                             r"(?:e|en|es|er|em)$", re.IGNORECASE)
-NEXT_NOUN = re.compile(r"(?:\s+[a-zäöü][\w-]*){0,4}?\s+([A-ZÄÖÜ][\w-]*)")
-# Anchored at the start of the noun: „IT-Kenntnisse“, „Fachkenntnisse“ or „Antwort“ are no language.
-LANGUAGE_NOUN = re.compile(r"(?:fremd|mutter|erst)?sprach|(?:grund)?kenntnis|speaker|ausdruck|beherrsch|kommunikation"
-                           r"|verständnis|niveau|wort\b|schrift", re.IGNORECASE)
-# „passen Sie perfekt in unser Team“, „passt ausgezeichnet zu uns“: a level adverb before „in“ or „zu“ and anything
-# but a language or „Wort und Schrift“ is about fitting in. „fliessend in Deutsch“ stays a level.
-LEVEL_ADVERB = re.compile(r"(?:perfekt|ausgezeichnet|gut|verhandlungssicher|stilsicher)$", re.IGNORECASE)
-NEXT_AFTER_PREPOSITION = re.compile(r"\s+(?:in|ins|zu|zum|zur)\s+([\w-]+)", re.IGNORECASE)
+MANDATORY = re.compile(r"zwingend\w*|vorausgesetzt|voraussetzung\w*|erforderlich\w*|\bmuss\b|\bmüssen\b|\bpflicht\b"
+                       r"|unabdingbar\w*|unerlässlich\w*|\brequired\b|\bmandatory\b|\bmust\b|\bexigée?s?\b|\brequise?s?\b"
+                       r"|obligatoire\w*", re.IGNORECASE)
+HEDGE = re.compile(r"von vorteil|wünschenswert|idealerweise|nice to have|ein plus|\bplus\b|vorteilhaft|erwünscht|optional"
+                   r"|bevorzugt|preferred|souhaitée?s?|un atout|de préférence"
+                   # a marker that is negated says the opposite: „nicht zwingend“, „keine Voraussetzung“
+                   r"|nicht\s+(?:zwingend|erforderlich|vorausgesetzt|unbedingt|notwendig|nötig|pflicht)"
+                   r"|keine\s+(?:voraussetzung|pflicht|bedingung)|kein\s+muss|not\s+(?:required|mandatory|a\s+must)"
+                   r"|pas\s+(?:obligatoire|exigé|requis)", re.IGNORECASE)
+DEGREE_ALTERNATIVE = re.compile(r"gleichwertig|vergleichbar|oder entsprechende|oder mehrjährige|oder ähnlich|or equivalent"
+                                r"|or similar|ou équivalent", re.IGNORECASE)
 DEGREE_WORDS = (
-    # „Promotion“ alone is mostly marketing („Sales Promotion“, „Promotion-Aktionen“); a doctorate says so.
+    # „Promotion“ alone is mostly marketing („Sales Promotion“); a doctorate says so.
     (5, "Doktorat", r"\bph\.?\s?d\b|doktorat\w*|abgeschlossene[nrs]?\s+promotion\b|promoviert\w*|doktortitel"),
     (4, "Master", r"(?<!scrum[ -])\bmaster(?:abschluss|studium|degree)?\b(?![\s-]*data)|\bm\.?\s?sc\b|lizentiat\w*"),
     (3, "Bachelor", r"\bbachelor\w*|\bb\.?\s?sc\b|hochschulabschluss|hochschulstudium|universitätsabschluss"
@@ -62,19 +65,12 @@ DEGREE_WORDS = (
     (1, "Berufslehre", r"\befz\b|berufslehre|lehrabschluss|berufsabschluss|abgeschlossene\s+lehre"),
 )
 DEGREE_NAMES = {level: name for level, name, _ in DEGREE_WORDS}
-OPTIONAL = re.compile(r"von vorteil|wünschenswert|ein plus|nice to have|idealerweise|vorteilhaft|erwünscht|optional"
-                      r"|gleichwertig|vergleichbar|oder entsprechende|oder mehrjährige|or equivalent|or similar", re.IGNORECASE)
-STRONG = re.compile(r"mehrjährig|langjährig|fundiert|ausgewiesen|vertieft|profund|schwerpunkt|expert|voraussetzung"
-                    r"|\bpflicht\b|\bmuss\b|mindestens\s+\d+\s+jahr", re.IGNORECASE)
-# Years count as required experience only with experience named; „seit 25 Jahren“ is the age of the company.
-YEARS = re.compile(r"(?<!seit\s)(?<!since\s)\b\d+\+?\s+(?:jahre|years)", re.IGNORECASE)
-EXPERIENCE = re.compile(r"erfahrung|experience|praxis", re.IGNORECASE)
-# What the company offers is no requirement: „Wir bieten Englischkurse bis C2“, „Weiterbildung bis zum Master“.
-OFFERED = re.compile(r"\bwir\s+(?:bieten|unterstützen|finanzieren|fördern|ermöglichen|übernehmen)|unterstützung\s+(?:bei|für)"
-                     r"|finanzierung|weiterbildungsmöglichkeit\w*|weiterbildungsangebot\w*|möglichkeit\s+zu[mr]?\b"
-                     r"|\bwe\s+(?:offer|support|fund|sponsor)\b", re.IGNORECASE)
-SENTENCE = re.compile(r"[\n.;•·]+(?:\s|$)|\n")
-CLAUSE = re.compile(r"[\n.;,•·]+(?:\s|$)|\n")
+# A technology named next to others („Java, Python und Go“) is listed, not the focus.
+LISTED_BEFORE = re.compile(r"(?:[,/]|\b(?:und|oder|sowie|and|or))\s*$", re.IGNORECASE)
+LISTED_AFTER = re.compile(r"^(?:-\w+)?\s*(?:[,/]|(?:und|oder|sowie|and|or)\b)", re.IGNORECASE)
+ABBREVIATIONS = re.compile(r"\b(bzw|z\.\s?b|eidg|inkl|ca|d\.\s?h|mind|evtl)\.", re.IGNORECASE)
+SENTENCE = re.compile(r"[\n.;!?•·]+(?:\s|$)|\n")
+CLAUSE = re.compile(r",")
 EXCLUSIONS_SECTION = "## Ausschlüsse"
 TECHNOLOGY_LABEL = "technologien"
 LANGUAGES_SECTION = "## Sprachen"
@@ -90,7 +86,7 @@ class Person:
 
 
 def _level_of(text: str) -> int | None:
-    levels = [int(match.lastgroup[1:]) for match in LEVEL.finditer(text)]
+    levels = [int(match.lastgroup[1:]) for match in PERSON_LEVEL.finditer(text)]
     return max(levels) if levels else None
 
 
@@ -141,41 +137,38 @@ def for_folder(data_dir: pathlib.Path) -> Person:
     return person_of(cv, profile)
 
 
-def _names_language(word: str) -> bool:
-    return bool(LANGUAGE_NOUN.match(word) or LANGUAGE_IN_NAME.search(word))
+def _required_sentences(text: str) -> list[str]:
+    """Sentences that state a requirement with an explicit marker and no hedge."""
+    sentences = SENTENCE.split(ABBREVIATIONS.sub(lambda match: match[1].replace(".", ""), text))
+    return [sentence for sentence in sentences if MANDATORY.search(sentence) and not HEDGE.search(sentence)]
 
 
-def _about_another_noun(clause: str, match: re.Match) -> bool:
-    noun = NEXT_NOUN.match(clause, match.end())
-    # „sehr gute englische Texte“ still asks for English; „italienischsprachige Kunden“ does not
-    skipped = [word for word in clause[match.end():noun.start(1)].split() if "sprachig" not in word.lower()] if noun else []
-    if LEVEL_ADJECTIVE.search(match[0]) and noun and not any(map(_names_language, [*skipped, noun[1]])):
-        return True
-    after = NEXT_AFTER_PREPOSITION.match(clause, match.end())
-    # „ins italienischsprachige Team“ names the team, not the language
-    return bool(LEVEL_ADVERB.search(match[0]) and after
-                and (not _names_language(after[1]) or "sprachig" in after[1].lower()))
+def _ad_level(match: re.Match) -> int:
+    return CEFR[match["cefr"].lower()] if match["cefr"] else NATIVE_LEVEL
 
 
-def _nearest_level(clause: str, mention: re.Match) -> int | None:
-    distances = [(max(match.start() - mention.end(), mention.start() - match.end()), int(match.lastgroup[1:]))
-                 for match in LEVEL.finditer(clause) if not _about_another_noun(clause, match)]
-    near = [pair for pair in distances if pair[0] <= MAX_DISTANCE]
-    return min(near)[1] if near else None
+def _wanted_level(sentence: str, mention: re.Match) -> int | None:
+    """The lowest CEFR level or mother tongue next to the language in its clause; none means no level was stated."""
+    bounds = [0, *(match.end() for match in CLAUSE.finditer(sentence)), len(sentence) + 1]
+    start = max(bound for bound in bounds if bound <= mention.start())
+    end = min(bound for bound in bounds if bound > mention.start())
+    clause = sentence[start:end]
+    near = [_ad_level(match) for match in AD_LEVEL.finditer(clause)
+            if max(match.start() + start - mention.end(), mention.start() - match.end() - start) <= MAX_DISTANCE]
+    return min(near) if near else None
 
 
-def _alternatives(clause: str) -> list[list[re.Match]]:
-    """The languages of a clause in groups; languages joined by „oder“, „und/oder“, „or“, „bzw.“ or „/“ share one
-    group, also after a hyphen („Deutsch- oder Französischkenntnisse“)."""
+def _alternatives(sentence: str) -> list[list[re.Match]]:
+    """The languages of a sentence in groups; languages joined by „oder“, „und/oder“, „or“, „bzw“ or „/“ share one."""
     groups: list[list[re.Match]] = []
-    for mention in LANGUAGE_MENTION.finditer(clause):
-        joined = groups and ALTERNATIVE.fullmatch(clause[groups[-1][-1].end():mention.start()])
+    for mention in LANGUAGE_MENTION.finditer(sentence):
+        joined = groups and ALTERNATIVE.fullmatch(sentence[groups[-1][-1].end():mention.start()])
         groups = [*groups[:-1], [*groups[-1], mention]] if joined else [*groups, [mention]]
     return groups
 
 
-def _shortfall(clause: str, mention: re.Match, person: Person) -> str:
-    language, wanted = LANGUAGES[mention[1].lower()], _nearest_level(clause, mention)
+def _shortfall(sentence: str, mention: re.Match, person: Person) -> str:
+    language, wanted = LANGUAGES[mention[1].lower()], _wanted_level(sentence, mention)
     have = person.languages.get(language, 0)
     if wanted and wanted > have:
         return f"Verlangt {language.capitalize()} auf Niveau {LEVEL_NAMES[wanted]}, vorhanden ist {LEVEL_NAMES.get(have, 'keine Angabe')}."
@@ -185,11 +178,9 @@ def _shortfall(clause: str, mention: re.Match, person: Person) -> str:
 def _language_reason(text: str, person: Person) -> str:
     if not person.languages:
         return ""
-    for clause in CLAUSE.split(ABBREVIATED_OR.sub("bzw", text)):
-        if OPTIONAL.search(clause) or OFFERED.search(clause):
-            continue
-        for group in _alternatives(clause):
-            reasons = [_shortfall(clause, mention, person) for mention in group]
+    for sentence in _required_sentences(text):
+        for group in _alternatives(sentence):
+            reasons = [_shortfall(sentence, mention, person) for mention in group]
             if all(reasons):
                 return reasons[0]
     return ""
@@ -198,28 +189,27 @@ def _language_reason(text: str, person: Person) -> str:
 def _degree_reason(text: str, person: Person) -> str:
     if person.degree is None:
         return ""
-    required = [min(levels) for sentence in SENTENCE.split(text) if not (OPTIONAL.search(sentence) or OFFERED.search(sentence))
+    required = [min(levels) for sentence in _required_sentences(text) if not DEGREE_ALTERNATIVE.search(sentence)
                 for levels in [_degree_levels(sentence)] if levels]
     wanted = max(required, default=0)
     return f"Verlangt {DEGREE_NAMES[wanted]}, vorhanden ist {DEGREE_NAMES[person.degree]}." if wanted > person.degree else ""
 
 
-def _mentions(text: str, term: str) -> bool:
+def _term(term: str) -> re.Pattern:
     """A whole term; one that starts or ends with a sign, like „.NET“ or „C++“, also inside „ASP.NET“."""
     before = "" if not term[:1].isalnum() else r"(?<!\w)"
     after = "" if not term[-1:].isalnum() else r"(?!\w)"
-    return re.search(f"{before}{re.escape(term)}{after}", text, re.IGNORECASE) is not None
+    return re.compile(f"{before}{re.escape(term)}{after}", re.IGNORECASE)
 
 
-def _strong(sentence: str) -> bool:
-    return bool(STRONG.search(sentence) or (YEARS.search(sentence) and EXPERIENCE.search(sentence)))
+def _named_alone(sentence: str, term: str) -> bool:
+    return any(not (LISTED_BEFORE.search(sentence[:match.start()]) or LISTED_AFTER.match(sentence[match.end():]))
+               for match in _term(term).finditer(sentence))
 
 
 def _technology_reason(title: str, text: str, person: Person) -> str:
     for term in person.excluded:
-        main = _mentions(title, term) or any(_mentions(sentence, term) and _strong(sentence) and not OPTIONAL.search(sentence)
-                                             for sentence in SENTENCE.split(text))
-        if main:
+        if _term(term).search(title) or any(_named_alone(sentence, term) for sentence in _required_sentences(text)):
             return f"Schwerpunkt {term}, im Suchprofil ausgeschlossen."
     return ""
 

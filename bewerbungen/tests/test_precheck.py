@@ -1,4 +1,4 @@
-"""Rule-based pre-check of an ad before rating (G33), with invented ads, profile and cv.yaml."""
+"""Rule-based pre-check of an ad before rating (G33), unambiguous signals only, with invented ads, profile and cv.yaml."""
 import json
 
 import pytest
@@ -36,204 +36,122 @@ def check(text: str, title: str = "Python Entwickler") -> str:
     return precheck.check(title, text, PERSON)
 
 
+B2_ENGLISH = precheck.Person(languages={"deutsch": 7, "englisch": 4}, degree=3, excluded=("Java",))
+
+
 def test_the_person_comes_from_cv_yaml_and_the_profile():
     assert PERSON.languages == {"deutsch": 7, "englisch": 5, "französisch": 2}
     assert PERSON.degree == 3
     assert PERSON.excluded == ("Java", ".NET")
 
 
-def test_a_language_above_the_persons_level_fails():
-    reason = check("Ihr Profil: Python, SQL. Sehr gute Französischkenntnisse (C1) in Wort und Schrift.")
-    assert reason == "Verlangt Französisch auf Niveau C1, vorhanden ist A2."
+@pytest.mark.parametrize(("text", "reason"), [
+    ("Französisch C1 ist zwingend.", "Verlangt Französisch auf Niveau C1, vorhanden ist A2."),
+    ("Sehr gute Französischkenntnisse (C1) sind Pflicht.", "Verlangt Französisch auf Niveau C1, vorhanden ist A2."),
+    ("Vorausgesetzt: Französisch auf Niveau B2.", "Verlangt Französisch auf Niveau B2, vorhanden ist A2."),
+    ("Italienisch B1 ist erforderlich.", "Verlangt Italienisch auf Niveau B1, vorhanden ist keine Angabe."),
+    ("English C2 is required.", "Verlangt Englisch auf Niveau C2, vorhanden ist C1."),
+    ("Englisch auf Muttersprachniveau ist zwingend.", "Verlangt Englisch auf Niveau Muttersprache, vorhanden ist C1."),
+    ("Français niveau C1 obligatoire.", "Verlangt Französisch auf Niveau C1, vorhanden ist A2."),
+    ("Deutsch und Französisch C1 sind zwingend.", "Verlangt Französisch auf Niveau C1, vorhanden ist A2."),
+    ("Ein abgeschlossener Master ist zwingend.", "Verlangt Master, vorhanden ist Bachelor."),
+    ("Master in Informatik vorausgesetzt.", "Verlangt Master, vorhanden ist Bachelor."),
+    ("Doktorat in Informatik erforderlich.", "Verlangt Doktorat, vorhanden ist Bachelor."),
+    ("Fundierte Java-Kenntnisse sind zwingend.", "Schwerpunkt Java, im Suchprofil ausgeschlossen."),
+    ("Erfahrung mit .NET ist ein Muss, sie muss vorhanden sein.", "Schwerpunkt .NET, im Suchprofil ausgeschlossen."),
+])
+def test_an_explicit_requirement_the_person_does_not_meet_marks_the_hit(text, reason):
+    assert check(text) == reason
 
 
-def test_a_language_at_or_below_the_level_or_only_welcome_passes():
-    assert check("Fliessend Deutsch und gute Englischkenntnisse.") == ""
-    assert check("Deutsch fliessend; Französisch von Vorteil.") == ""
-    assert check("Französisch: Grundkenntnisse reichen.") == ""
-
-
-def test_a_language_the_person_does_not_speak_fails():
-    assert check("Verhandlungssicheres Italienisch ist Pflicht.") == "Verlangt Italienisch auf Niveau C2, vorhanden ist keine Angabe."
-
-
-def test_an_ad_without_a_level_keeps_the_hit():
-    assert check("Wir arbeiten in der ganzen Deutschschweiz. Französisch ist im Team verbreitet.") == ""
-
-
-def test_a_mandatory_degree_the_person_lacks_fails():
-    assert check("Sie bringen einen Masterabschluss in Informatik mit.") == "Verlangt Master, vorhanden ist Bachelor."
-    assert check("Abgeschlossenes Doktorat (PhD) in Physik.") == "Verlangt Doktorat, vorhanden ist Bachelor."
-
-
-def test_a_degree_with_an_alternative_or_at_the_level_passes():
-    assert check("Master in Informatik oder gleichwertige Erfahrung.") == ""
-    assert check("Abgeschlossenes Hochschulstudium (Bachelor oder Master).") == ""
-    assert check("Erfahrung als Scrum Master und mit Master Data ist ein Plus. Sie arbeiten mit dem Product Owner.") == ""
-    assert check("Erfahrung als Scrum-Master in agilen Teams.") == ""
-    assert check("Sie pflegen die Master-Data im ERP.") == ""
-
-
-def test_an_excluded_technology_as_main_requirement_fails():
-    assert check("Wir suchen Verstärkung.", title="Senior Java Developer") == "Schwerpunkt Java, im Suchprofil ausgeschlossen."
-    assert check("Mehrjährige Erfahrung mit .NET und C# ist Voraussetzung.") == "Schwerpunkt .NET, im Suchprofil ausgeschlossen."
-    assert check("Mehrjährige Erfahrung mit ASP.NET Core ist Voraussetzung.") == "Schwerpunkt .NET, im Suchprofil ausgeschlossen."
-
-
-def test_an_excluded_technology_on_the_side_passes():
-    assert check("Python im Zentrum. Java-Kenntnisse sind von Vorteil.") == ""
-    assert check("Unser Stack: Python, Java, Go.") == ""
-
-
-@pytest.mark.parametrize("text", ["Muttersprache Deutsch oder Französisch, gute Englischkenntnisse.",
-                                  "Deutsch oder Französisch als Muttersprache.", "Deutsch oder Französisch fliessend.",
-                                  "Deutsch bzw. Französisch fliessend.", "Deutsch/Französisch fliessend.", "German or French, fluent.",
-                                  "Sehr gute Deutsch- oder Französischkenntnisse.", "Deutsch und/oder Französisch fliessend.",
-                                  "Fliessende Deutsch- und/oder Französischkenntnisse.", "Fluent German and/or French."])
-def test_languages_joined_by_or_are_alternatives(text):
-    assert check(text) == ""
-
-
-def test_alternatives_fail_only_when_none_fits_and_and_still_needs_both():
-    assert check("Italienisch oder Französisch fliessend.") == "Verlangt Italienisch auf Niveau C1, vorhanden ist keine Angabe."
-    assert check("Deutsch und Französisch fliessend.") == "Verlangt Französisch auf Niveau C1, vorhanden ist A2."
-    assert check("Sehr gute Deutsch- und Französischkenntnisse.") == "Verlangt Französisch auf Niveau C1, vorhanden ist A2."
+def test_an_excluded_technology_in_the_title_marks_the_hit():
+    assert check("Python, SQL.", title="Senior Java Developer") == "Schwerpunkt Java, im Suchprofil ausgeschlossen."
+    assert check("Python, SQL.", title="JavaScript Developer") == ""
 
 
 @pytest.mark.parametrize("text", [
+    "Französisch A2 ist zwingend.",  # at the person's level
+    "Deutsch auf Muttersprachniveau ist Pflicht.",
+    "Deutsch oder Französisch auf Niveau C1 ist zwingend.",
+    "Deutsch- oder Französischkenntnisse auf C1 sind Pflicht.",
+    "Deutsch und/oder Französisch C1 erforderlich.",
+    "Bachelor oder Master ist zwingend.",
+    "Ein abgeschlossener Bachelor ist Voraussetzung.",
+])
+def test_an_explicit_requirement_the_person_meets_or_with_an_alternative_passes(text):
+    assert check(text) == ""
+
+
+UNMARKED = [
+    # hedged
+    "Französisch C1 von Vorteil.",
+    "Französisch C1 ist wünschenswert.",
+    "Idealerweise Französisch C1, aber keine Voraussetzung.",
+    "Französisch C1 is nice to have.",
+    "Französisch C1 ist ein Plus.",
+    "Français C1 souhaité.",
+    "Französisch C1 ist nicht zwingend.",
+    "Ein Master ist keine Voraussetzung.",
+    "Masterabschluss von Vorteil, aber nicht erforderlich.",
+    "Master oder gleichwertige Erfahrung erforderlich.",
+    "Java-Kenntnisse sind wünschenswert, aber nicht zwingend.",
+    # a level given only as an adjective, even with a marker
+    "Gute Französischkenntnisse sind zwingend.",
+    "Fliessend Französisch ist Pflicht.",
+    "Verhandlungssicheres Französisch erforderlich.",
+    "Perfekte Französischkenntnisse in Wort und Schrift sind Voraussetzung.",
+    # no marker
+    "Französisch C1.",
+    "Sehr gute Französischkenntnisse (C1) in Wort und Schrift.",
+    "Abgeschlossener Master in Informatik.",
+    "Sie bringen 5 Jahre Erfahrung mit Java mit.",
+    "Seit 25 Jahren setzen wir auf Python und Java.",
+    "Wir bieten Englischkurse bis zum Niveau C2.",
+    "Weiterbildungsmöglichkeiten bis zum Doktorat.",
+    # a technology listed among others
+    "Kenntnisse in Python, Java und SQL sind erforderlich.",
+    "Java oder Kotlin ist zwingend.",
+    "Erfahrung mit Spring/Java ist Voraussetzung.",
+    # the country is no language
+    "Reisebereitschaft nach Deutschland ist zwingend, Englisch C1 von Vorteil.",
+]
+
+
+@pytest.mark.parametrize("text", UNMARKED)
+def test_hedged_and_vague_phrasings_stay_unmarked(text):
+    assert check(text) == ""
+
+
+# The phrasings of the earlier rejects of #185: each one once marked a hit that fits the person.
+EARLIER_REJECTS = [
+    "Erfahrung als Scrum-Master in agilen Teams.",
+    "Erfahrung als Scrum-Master ist zwingend.",
+    "Pflege der Master-Data ist erforderlich.",
+    "Muttersprache Deutsch oder Französisch, gute Englischkenntnisse.",
+    "Deutsch oder Französisch als Muttersprache ist zwingend.",
+    "Sehr gute Deutsch- oder Französischkenntnisse.",
+    "Deutsch und/oder Französisch fliessend.",
     "Sie bauen Cloud-native Lösungen in einem englischsprachigen Team.",
     "Sie entwickeln mit React Native und kommunizieren in Englisch.",
-    "Erfahrung mit cloud native Architekturen und englischer Dokumentation.",
-    "Du entwickelst native Apps im englischsprachigen Team.",
-    "Native-App-Entwickler:in im englischsprachigen Team.",
-    "Kenntnisse in React-Native und Englisch.",
-    "Sie modernisieren eine Cloud-Native-Architektur mit Kunden aus dem englischen Raum.",
-    "Sie sind die perfekte Ergänzung für unser englischsprachiges Team.",
-    "Ein ausgezeichnetes Arbeitsklima im italienischsprachigen Team.",
-    "Gute Lösungen für unsere italienischsprachigen Kunden.",
-    "Ein mittleres Unternehmen mit Kunden aus dem italienischsprachigen Raum.",
-    "Wir bieten Englischkurse bis zum Niveau C2.",
-    "Wir unterstützen Sie mit Italienischkursen bis Niveau B2.",
-])
-def test_a_level_word_that_is_not_about_the_language_keeps_the_hit(text):
-    assert check(text) == ""
-
-
-@pytest.mark.parametrize("text", [
-    "English native speaker required.",
-    "Native speaker of English.",
-    "Englisch auf Niveau native speaker.",
-    "Native English speaker for our documentation.",
-    "Englisch: native level.",
-    "Englisch native, Deutsch gut.",
-    "Native-level English is a must.",
-    "Englisch auf muttersprachlichem Niveau.",
-])
-def test_english_as_a_native_speaker_still_needs_more_than_c1(text):
-    assert check(text) == "Verlangt Englisch auf Niveau Muttersprache, vorhanden ist C1."
-
-
-@pytest.mark.parametrize("text", [
-    "Perfekte Französischkenntnisse in Wort und Schrift.",
-    "Ausgezeichnetes Französisch ist Pflicht.",
-    "Sehr gute Kenntnisse in Französisch.",
-    "Gute mündliche und schriftliche Französischkenntnisse.",
-    "Französisch perfekt.",
-])
-def test_a_level_word_next_to_the_language_still_counts(text):
-    assert check(text).startswith("Verlangt Französisch auf Niveau ")
-
-
-@pytest.mark.parametrize("text", [
-    "Wir unterstützen Ihre Weiterbildung bis zum Master.",
-    "Wir finanzieren Ihnen den Master in Data Science.",
-    "Unterstützung bei Weiterbildungen wie CAS, MAS oder Master.",
-    "Möglichkeit zum berufsbegleitenden Masterstudium.",
-    "Weiterbildungsmöglichkeiten bis zum Doktorat.",
-    "We support your master's degree.",
-])
-def test_a_degree_the_company_offers_is_not_required(text):
-    assert check(text) == ""
-
-
-def test_a_degree_that_is_required_still_fails_next_to_an_offer():
-    assert check("Sie haben einen Masterabschluss in Informatik. Wir bieten flexible Arbeitszeiten.") \
-        == "Verlangt Master, vorhanden ist Bachelor."
-
-
-@pytest.mark.parametrize("text", [
     "Sie planen und begleiten Promotion-Aktionen am POS.",
-    "Sales Promotion und Key Account Management sind Ihre Stärken.",
-    "Event & Promotion gehören zu Ihrem Alltag.",
-    "Sie bringen Erfahrung in Trade-Promotion mit.",
-    "Sie führen das Promotionsteam an den Messen.",
-    "Promotion und Merchandising im Detailhandel.",
-])
-def test_promotion_in_marketing_is_no_doctorate(text):
-    assert check(text) == ""
-
-
-@pytest.mark.parametrize("text", ["Abgeschlossene Promotion in Chemie.", "Sie sind promoviert.", "PhD in Physics required.",
-                                  "Doktorat in Informatik."])
-def test_a_doctorate_still_counts(text):
-    assert check(text) == "Verlangt Doktorat, vorhanden ist Bachelor."
-
-
-@pytest.mark.parametrize("text", [
+    "Sales Promotion und Key Account Management sind Pflicht.",
     "Dann passen Sie perfekt in unser englischsprachiges Team.",
-    "Das passt ausgezeichnet zu unserem italienischsprachigen Kundenkreis.",
-    "Sie fügen sich gut in unser italienischsprachiges Team ein.",
-    "Sie passen perfekt zu uns und sprechen Italienisch.",
-    "Sehr gut ins italienischsprachige Team passen Sie mit Erfahrung im Verkauf.",
-])
-def test_a_level_adverb_about_fitting_in_is_no_language_level(text):
-    assert check(text) == ""
-
-
-@pytest.mark.parametrize("text", ["Deutsch und Französisch perfekt in Wort und Schrift.", "Verhandlungssicher in Französisch.",
-                                  "Sie sprechen perfekt Französisch."])
-def test_a_level_adverb_about_the_language_still_counts(text):
-    assert check(text).startswith("Verlangt Französisch auf Niveau C2")
-
-
-B2_ENGLISH = precheck.Person(languages={"deutsch": 7, "englisch": 4}, degree=None, excluded=())
-
-
-@pytest.mark.parametrize("text", [
+    "Wir unterstützen Ihre Weiterbildung bis zum Master.",
     "Sehr gute analytische Fähigkeiten sowie Englischkenntnisse.",
     "Ausgeprägte Kundenorientierung, sehr gute analytische Fähigkeiten und Englischkenntnisse.",
     "Ausgezeichnete analytische Fähigkeiten und Englisch.",
     "Sehr gute IT-Kenntnisse und Englisch.",
-    "Sehr gute soziale und agile Fähigkeiten und Englisch.",
-    "Sehr gute MS-Office-Kenntnisse sowie Englischkenntnisse.",
-    "Sehr gute PC-Kenntnisse und Englisch.",
-    "Sehr gute Fachkenntnisse und Englisch.",
-    "Ausgezeichnete SAP-Kenntnisse und Englisch.",
-    "Sehr gute Informatikkenntnisse und Englisch.",
-    "Perfekte kommunikative Fähigkeiten und Englisch.",
-])
-def test_a_level_adjective_before_another_noun_is_no_language_level(text):
+    "Gute organisatorische Fähigkeiten und Englischkenntnisse",
+    "Sie arbeiten sehr gut organisiert und sprechen Englisch.",
+    "Sie arbeiten selbstständig, perfektionistisch und kommunizieren auf Englisch.",
+    "Abgeschlossenes Studium (Bachelor). Du betreust Master-Studierende bei ihren Arbeiten.",
+]
+
+
+@pytest.mark.parametrize("text", EARLIER_REJECTS)
+def test_the_phrasings_of_earlier_rejects_stay_unmarked(text):
+    assert check(text) == ""
     assert precheck.check("Analyst", text, B2_ENGLISH) == ""
-
-
-def test_good_skills_beside_a_language_ask_no_level_of_it():
-    b1_english = precheck.Person(languages={"deutsch": 7, "englisch": 3}, degree=None, excluded=())
-    assert precheck.check("Analyst", "Gute organisatorische Fähigkeiten und Englischkenntnisse", b1_english) == ""
-    assert precheck.check("Analyst", "Gute mündliche Englischkenntnisse", b1_english) \
-        == "Verlangt Englisch auf Niveau B2, vorhanden ist B1."
-
-
-@pytest.mark.parametrize("text", [
-    "Sehr gute mündliche und schriftliche Englischkenntnisse.",
-    "Sehr gute Sprachkenntnisse in Englisch.",
-    "Sehr gute Fremdsprachenkenntnisse in Englisch.",
-    "Sehr gute Kenntnisse der englischen Sprache.",
-    "Sehr gute Englisch- und Deutschkenntnisse.",
-    "Ausgezeichnete schriftliche Ausdrucksfähigkeit in Englisch.",
-    "Sehr gute englische Texte schreiben Sie selbständig.",
-])
-def test_a_level_adjective_before_the_language_still_counts(text):
-    assert precheck.check("Analyst", text, B2_ENGLISH) == "Verlangt Englisch auf Niveau C1, vorhanden ist B2."
 
 
 def test_swiss_german_and_standard_german_in_cv_yaml_count_as_german():
@@ -244,15 +162,9 @@ def test_swiss_german_and_standard_german_in_cv_yaml_count_as_german():
     assert precheck.check("Python Entwickler", "Deutsch auf Muttersprachniveau.", person) == ""
 
 
-def test_the_age_of_the_company_is_not_required_experience():
-    assert check("Seit 25 Jahren setzen wir auf Python und Java.") == ""
-    assert check("Since 30 years we build on Python and Java.") == ""
-    assert check("Sie bringen 5 Jahre Erfahrung mit Java mit.") == "Schwerpunkt Java, im Suchprofil ausgeschlossen."
-
-
 def test_missing_person_data_keeps_every_hit():
     nobody = precheck.person_of({}, "# Suchprofil\n")
-    assert precheck.check("Senior Java Developer", "Master Pflicht. Sehr gute Französischkenntnisse (C1).", nobody) == ""
+    assert precheck.check("Senior Java Developer", "Master Pflicht. Französisch C1 ist zwingend.", nobody) == ""
 
 
 def ad(number: int, title: str, text: str) -> dict:
