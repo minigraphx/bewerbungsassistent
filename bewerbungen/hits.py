@@ -15,6 +15,7 @@ import threading
 import urllib.parse
 
 from dateien import lies_yaml, schreibe_atomar, schreibe_yaml
+from preferences import SAVED_IN, SIE
 from register import slug
 
 FOLDER = "suche"
@@ -48,7 +49,6 @@ AGENCIES = ("Adecco", "Manpower", "Randstad", "Hays", "Michael Page", "Page Pers
             "Gi Group", "Universal-Job", "Careerplus", "Coople", "Interiman", "Persona Service", "Yellowshark")
 AGENCY_CLOSED = CLOSED | {"Zusage"}
 AGENCY_TWIN = "Könnte dieselbe Stelle sein wie „{stelle}“ bei {firma} ({status}) {saved_in}."
-SAVED_IN = "in Ihren Bewerbungen"  # the page says „Ihre Bewerbungen“, not „Register“ (#220); du: „in deinen Bewerbungen“
 TITLE_FILLERS = frozenset({"und", "mit", "für", "fuer", "der", "die", "das", "als", "im", "in", "zur", "zum", "von"})
 MIN_TITLE_OVERLAP = 0.75  # share of the shorter title's words both titles have
 _LOCK = threading.Lock()
@@ -274,7 +274,7 @@ def _close_title(title: str, other: str) -> bool:
     return bool(shared) and shared / min(len(ours), len(theirs)) >= MIN_TITLE_OVERLAP
 
 
-def agency_hint(hit: dict, register: list[dict], agencies: tuple[str, ...], saved_in: str = SAVED_IN) -> str:
+def agency_hint(hit: dict, register: list[dict], agencies: tuple[str, ...], saved_in: str = SAVED_IN[SIE]) -> str:
     """An agency hides the company: an open entry with a close title and the same pensum may be this job (G34)."""
     if not _is_agency(hit["firma"], (*AGENCIES, *agencies)):
         return ""
@@ -381,7 +381,7 @@ class Hits:
 
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
             own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = (),
-            check=lambda title, text: "", saved_in: str = SAVED_IN) -> dict:
+            check=lambda title, text: "", saved_in: str = SAVED_IN[SIE]) -> dict:
         """Store new hits; the same job from another portal only adds its link. `agencies`: more from the profile (G34).
 
         `check` is the pre-check by fixed rules (G33): its reason stays on the hit as `vorpruefung`, the hit stays too.

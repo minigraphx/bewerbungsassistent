@@ -188,8 +188,9 @@ test("Register in user texts becomes Ihre Bewerbungen, in the Sie and the du for
   assert.equal(texte.text("suche.schon-marke", "lehrstelle-du"), "schon in deinen Bewerbungen");
   assert.doesNotMatch(CODE, /Register/);
   const routes = fs.readFileSync(path.join(ROOT, "routes_search.py"), "utf8");
-  assert.match(routes, /"Dieser Treffer ist schon in Ihren Bewerbungen\."/);
-  assert.match(routes, /"Dieser Treffer ist schon in deinen Bewerbungen\."/);
+  const preferences = fs.readFileSync(path.join(ROOT, "preferences.py"), "utf8");
+  assert.match(routes, /"Dieser Treffer ist schon \{saved_in\}\."/);
+  assert.match(preferences, /SAVED_IN = \{SIE: "in Ihren Bewerbungen", DU: "in deinen Bewerbungen"\}/);
   assert.doesNotMatch(routes, /schon im Register/);
   assert.doesNotMatch(fs.readFileSync(path.join(ROOT, "hits.py"), "utf8"), /\) im Register\./);
 });

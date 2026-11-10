@@ -28,10 +28,7 @@ BAD_OWN_RATING = "Die Bewertung braucht eine Note von 1 bis 6 und eine Zusammenf
 MIN_OWN_GRADE, MAX_OWN_GRADE = 1, 6
 OWN_CLAUDE = "Claude (eigenes Abo)"
 BLOCKED_WITHOUT_PROFILE = "Zuerst Meine Angaben abschliessen."
-SAVED_IN = {preferences.SIE: "in Ihren Bewerbungen", preferences.DU: "in deinen Bewerbungen"}
-# #220: the page says „Ihre Bewerbungen“, not „Register“, in the form of address of the setup
-ALREADY_SAVED = {preferences.SIE: "Dieser Treffer ist schon in Ihren Bewerbungen.",
-                 preferences.DU: "Dieser Treffer ist schon in deinen Bewerbungen."}
+ALREADY_SAVED = "Dieser Treffer ist schon {saved_in}."  # #220: „Ihre Bewerbungen“ or „deine“, never „Register“
 NO_TEXT = "Für diesen Treffer fehlt der Text des Inserats. Bitte das Inserat öffnen und die Stelle von Hand erfassen."
 
 
@@ -40,7 +37,7 @@ def _hits(k) -> Hits:
 
 
 def _already_saved(k) -> str:
-    return ALREADY_SAVED[preferences.load(k.daten).address]
+    return ALREADY_SAVED.format(saved_in=preferences.load(k.daten).saved_in)
 
 
 def _list(body, field: str = "treffer") -> list:
@@ -83,7 +80,7 @@ def receive(k, parameter, body):
     person = precheck.for_folder(k.daten)
     return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), agencies,
                                   check=lambda title, text: precheck.check(title, text, person),
-                                  saved_in=SAVED_IN[preferences.load(k.daten).address]))
+                                  saved_in=preferences.load(k.daten).saved_in))
 
 
 def _portal_summary(raw) -> dict:
