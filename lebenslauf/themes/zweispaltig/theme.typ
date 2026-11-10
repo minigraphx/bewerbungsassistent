@@ -142,7 +142,7 @@
     weitere-projekte: () => punkte(projekte("more")),
     faehigkeiten: () => punkte(cv.at("skills", default: ()).map(k => {
       let kw = k.at("keywords", default: ())
-      if kw.len() > 0 [#k.name: #kw.join(", ")] else [#k.name]
+      if kw.len() > 0 [#k.name: #kw.map(stichwort).join(", ")] else [#k.name]
     })),
     lehre: () => (cv.at("teaching", default: ()).map(e => station(e)), s.abstand-station),
     sprachen: () => punkte(cv.at("languages", default: ()).map(x => [#x.language – #x.at("fluency", default: "")])),

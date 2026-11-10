@@ -1,0 +1,177 @@
+"""Bewerbungsdossier as one PDF, plus the CV and the cover letter as single files (G16, G39).
+
+The dossier file names the CV and the letter and holds the contents of the optional pages
+(docs/design/dossier.md). All three PDFs come from the same Typst parts of one design.
+
+Examples:
+  python dossier.py data/dossier-beispiel.yaml --out-dir build/dossier
+  python dossier.py ../../daten/dossiers/firma.yaml --build-dir ../../daten/.build --out-dir ../../daten/out/firma
+"""
+import argparse
+import datetime
+import json
+import pathlib
+import re
+from dataclasses import dataclass
+
+import typst
+import yaml
+
+import dossier_data
+from anschreiben import bereite_vor
+from build import ROOT, SPRACHEN, pruefe_beschriftungen, pruefe_foto_optionen, waehle_sprache
+from tailor import tailor
+from typst_root import TypstRoot, typst_root
+
+THEMES = ROOT / "themes"
+ICONS = THEMES / "icons"
+DEFAULT_THEME = "dossier-siegel"
+ACCENT = re.compile(r"#[0-9a-fA-F]{6}")
+ENTRIES = {"dossier": "dossier-main.typ", "cv": "main.typ", "letter": "anschreiben-main.typ"}
+FILE_NAMES = {"dossier": "dossier.pdf", "cv": "lebenslauf.pdf", "letter": "anschreiben.pdf"}
+
+
+@dataclass(frozen=True)
+class Result:
+    dossier: pathlib.Path
+    cv: pathlib.Path
+    letter: pathlib.Path
+    data: pathlib.Path
+    theme: str
+    root: TypstRoot
+
+
+def icon_catalogue() -> set[str]:
+    """Names of the interest icons (Lucide subset in themes/icons)."""
+    return {path.stem for path in ICONS.glob("*.svg")}
+
+
+def _load_yaml(path: pathlib.Path) -> dict:
+    if not path.is_file():
+        raise ValueError(f"Datei nicht gefunden: {path}")
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+def _referenced(base: pathlib.Path, given: str | None, data: dict, key: str) -> pathlib.Path:
+    name = given or data.get(key)
+    if not name:
+        raise ValueError(f"In der Dossier-Datei fehlt {key}: (oder die Option auf der Befehlszeile)")
+    return (pathlib.Path(given) if given else base / name).resolve()
+
+
+def _checked_cv(cv: dict, job: dict | None, language: str) -> dict:
+    result = waehle_sprache(tailor(cv, job), language)
+    basics = result.get("basics", {})
+    if "x-image" in basics:
+        basics["x-image"] = pruefe_foto_optionen(basics["x-image"])
+    if "x-beschriftungen" in result:
+        result["x-beschriftungen"] = pruefe_beschriftungen(result["x-beschriftungen"])
+    return result
+
+
+def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.date, root: TypstRoot,
+            accent: str | None = None) -> dict:
+    """One JSON for all parts: CV, letter, optional pages and the read data extensions."""
+    basics = cv.get("basics", {})
+    catalogue = icon_catalogue()
+    interests = [{**item, "icon": root.typst_path(ICONS / f"{item['icon']}.svg") if item["icon"] else None,
+                  "icon-name": item["icon"]}
+                 for item in dossier_data.interests(cv.get("interests"), catalogue)]
+    return {
+        "language": language,
+        "stand": today.strftime("%d.%m.%Y"),
+        "style": {"farbe-akzent": accent} if accent else {},
+        "cv": cv,
+        "person": {
+            "name": basics.get("name", ""),
+            "label": basics.get("label"),
+            "monogram": dossier_data.monogram(basics),
+            "contact": dossier_data.contact(basics),
+            "photo": basics.get("image"),
+            "photo-options": basics.get("x-image", {}),
+            "steps": dossier_data.steps_done(cv),
+        },
+        "skills": dossier_data.skill_groups(cv.get("skills")),
+        "languages": dossier_data.language_group(cv.get("languages")),
+        "interests": interests,
+        "letter": {**bereite_vor(letter, cv, today), "heading": dossier_data.letter_heading(letter, language)},
+        "pages": pages,
+    }
+
+
+def _compile(root: TypstRoot, entry: pathlib.Path, out: pathlib.Path, data: pathlib.Path) -> pathlib.Path:
+    typst.compile(
+        str(root.locate(entry)),
+        output=str(out),
+        root=str(root.path),
+        font_paths=[str(ROOT / "fonts")],
+        sys_inputs={"data": root.typst_path(data)},
+    )
+    return out
+
+
+def query(result: Result, selector: str, part: str = "cv") -> list:
+    """Values of the metadata a part leaves behind, e.g. `<dossier-level>` for every drawn level graphic."""
+    found = typst.query(
+        str(result.root.locate(THEMES / result.theme / ENTRIES[part])),
+        selector,
+        field="value",
+        root=str(result.root.path),
+        font_paths=[str(ROOT / "fonts")],
+        sys_inputs={"data": result.root.typst_path(result.data)},
+    )
+    return json.loads(found)
+
+
+def main(argv: list[str] | None = None) -> Result:
+    ap = argparse.ArgumentParser(description="Bewerbungsdossier und Einzeldateien als PDF erzeugen")
+    ap.add_argument("data", help="Dossier-Datei (YAML) mit lebenslauf, anschreiben, gruss, dank, kennzahlen, anlagen")
+    ap.add_argument("--cv", help="Lebenslauf (YAML); sonst `lebenslauf:` in der Dossier-Datei")
+    ap.add_argument("--brief", help="Anschreiben (YAML); sonst `anschreiben:` in der Dossier-Datei")
+    ap.add_argument("--job", help="Bewerbungsdatei mit Tags und Überschreibungen (YAML)")
+    ap.add_argument("--theme", default=DEFAULT_THEME)
+    ap.add_argument("--lang", default="de", choices=SPRACHEN)
+    ap.add_argument("--akzent", help="Akzentfarbe als #rrggbb (Standard aus dem Design-System)")
+    ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
+    ap.add_argument("--out-dir", default="build/dossier")
+    args = ap.parse_args(argv)
+
+    if args.akzent and not ACCENT.fullmatch(args.akzent):
+        raise ValueError(f"--akzent muss eine Farbe wie #38495d sein, nicht {args.akzent!r}")
+    theme = THEMES / args.theme
+    if not all((theme / entry).is_file() for entry in ENTRIES.values()):
+        raise ValueError(f"Theme {args.theme!r} ist kein Dossier-Design (es fehlt {', '.join(ENTRIES.values())})")
+
+    file_path = pathlib.Path(args.data).resolve()
+    file_data = _load_yaml(file_path)
+    pages = dossier_data.dossier_pages(file_data)
+    cv_path = _referenced(file_path.parent, args.cv, file_data, "lebenslauf")
+    letter_path = _referenced(file_path.parent, args.brief, file_data, "anschreiben")
+    letter = _load_yaml(letter_path)
+    raw_cv = _load_yaml(cv_path)
+    job = _load_yaml(pathlib.Path(args.job).resolve()) if args.job else None
+    cv = _checked_cv(raw_cv, job, args.lang)
+
+    build = pathlib.Path(args.build_dir).resolve() if args.build_dir else ROOT / "build"
+    build.mkdir(parents=True, exist_ok=True)
+    image = cv.get("basics", {}).get("image")
+    photo = (cv_path.parent / image).resolve() if image else None
+    root = typst_root(build, [THEMES] + ([photo] if photo else []))
+    if photo:
+        cv["basics"]["image"] = root.typst_path(photo)
+
+    data = prepare(cv, letter, pages, args.lang, datetime.date.today(), root, args.akzent)
+    data_json = build / "dossier.json"
+    data_json.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    out = pathlib.Path(args.out_dir).resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    built = {part: _compile(root, theme / entry, out / FILE_NAMES[part], data_json) for part, entry in ENTRIES.items()}
+    for path in built.values():
+        print(path)
+    return Result(dossier=built["dossier"], cv=built["cv"], letter=built["letter"], data=data_json,
+                  theme=args.theme, root=root)
+
+
+if __name__ == "__main__":
+    main()

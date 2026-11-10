@@ -1,0 +1,20 @@
+# Beispiel-Dossier (frei erfunden): welche Dateien hinein gehören und was auf den optionalen Seiten steht.
+# Pfade relativ zu dieser Datei. Fehlt gruss oder dank, entfällt die Seite dazu.
+# Bauen: python dossier.py data/dossier-beispiel.yaml --out-dir build/dossier
+lebenslauf: beispiel.yaml
+anschreiben: anschreiben-beispiel.yaml
+gruss: |
+  Guten Tag. Ich bin Erika Beispiel und entwickle seit zehn Jahren Webanwendungen und Datenpipelines.
+
+  Mich reizt an Ihrer Stelle, dass Daten bei Ihnen direkt in Entscheide fliessen. Auf den nächsten Seiten
+  finden Sie mein Anschreiben und meinen Lebenslauf.
+dank: Danke für Ihre Zeit und Ihr Interesse.
+kennzahlen:
+  - wert: 10
+    text: Jahre Praxis
+  - wert: 3
+    text: Plattformen aufgebaut
+anlagen:
+  - Arbeitszeugnis Beispiel AG
+  - name: Diplom Bachelor Informatik
+    datum: 2015-06

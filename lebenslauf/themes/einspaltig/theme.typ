@@ -41,7 +41,7 @@
     },
     faehigkeiten: () => {
       let sk = cv.at("skills", default: ())
-      if sk.len() > 0 { list(..sk.map(k => [#k.name: #k.at("keywords", default: ()).join(", ")])) }
+      if sk.len() > 0 { list(..sk.map(k => [#k.name: #k.at("keywords", default: ()).map(stichwort).join(", ")])) }
     },
     bildung: () => {
       let l = cv.at("education", default: ()) + cv.at("certificates", default: ())

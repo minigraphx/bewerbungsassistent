@@ -1,5 +1,6 @@
 # Beispieldaten (frei erfunden). Schema: JSON Resume (https://jsonresume.org/schema)
-# plus Erweiterungen: basics.details, projects[].group, teaching, x-display, tags, text.
+# plus Erweiterungen: basics.details, projects[].group, teaching, x-display, tags, text;
+# für die Dossier-Designs languages[].x-level (1–6 oder A1–C2) und interests[].x-icon.
 basics:
   name: Erika Beispiel
   label: Software-Entwicklerin – Web und Daten
@@ -72,12 +73,16 @@ teaching:
 languages:
   - language: Deutsch
     fluency: Muttersprache
+    x-level: C2
   - language: Englisch
     fluency: Fliessend
+    x-level: C1
 
 interests:
   - name: Wandern
+    x-icon: mountain
   - name: Fotografie
+    x-icon: camera
 
 education:
   - studyType: Bachelor
