@@ -16,7 +16,7 @@ Wer die App mit du nutzt, las an einigen Stellen trotzdem Sie:
 
 | # | Thema | Design | App | Vorschlag |
 | --- | --- | --- | --- | --- |
-| 1 | Noten und Dezimalzahlen | `4.5`, „nie 4,5“ | App `4,5` (bewusst, c50db93), Popup der Erweiterung `4.5`, Foto `4,65 cm` neben `1.20×` | Eine Schreibweise überall. Punkt passt zum Design, Komma zum heutigen Test. |
+| 1 | Noten und Dezimalzahlen | `4.5`, „nie 4,5“ | App `4,5` (bewusst, c50db93), Popup der Erweiterung `4.5`, Foto `4,65 cm` neben `1.20×` | Entschieden (10.11.2026, #221): Punkt überall, wie im Design: Note der KI, kununu („kununu 3.8 von 5“), Foto und Dateigrössen. |
 | 2 | Währung der Kosten | CHF | USD, wie Anthropic abrechnet | USD lassen, bis die Vermittlung in CHF abrechnet. |
 | 3 | Kosten pro Antwort | „Claude · CHF 0.01“ im Fuss von KI-Karten und Popup | nur die Kostenzeile der Suche und die Summen in den Einstellungen | offen |
 | 4 | Seitenrand | 32 px oben, 24 px seitlich | 24 px oben, 16 px seitlich | Design übernehmen; kleine Änderung. |

@@ -364,7 +364,8 @@
     return satzOder(satz) === "lehrstelle-du" && status === "Gespräch" ? "Einladung" : status;
   }
 
-  const notenText = note => String(note).replace(".", ",");
+  // A decimal point, as the design system says (4.5, never 4,5; abgleich #1).
+  const notenText = note => String(note);
 
   const texte = { SAETZE, VORGABE, TEXTE, satzOder, text, anwenden, statusName, notenText };
   if (typeof module !== "undefined") module.exports = texte;
