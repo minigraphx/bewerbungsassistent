@@ -40,6 +40,10 @@
     document.getElementById("rang-gebaut").textContent = own ? "Wird nicht verwendet, solange ein PDF da ist" : "Wird verwendet";
     document.querySelector('[data-rang="eigen"]').toggleAttribute("data-aktiv", own);
     document.querySelector('[data-rang="gebaut"]').toggleAttribute("data-aktiv", !own);
+    const adjust = LebenslaufAnpassen.ziel({ eigenesPdf: own });  // #119; a variant belongs to one application
+    document.getElementById("cv-wie-es-ist").hidden = !adjust.wieEsIst;
+    document.getElementById("cv-anpassen").hidden = !adjust.href;
+    if (adjust.href) document.getElementById("cv-anpassen").href = adjust.href;
   }
 
   function show(found) {
