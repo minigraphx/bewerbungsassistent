@@ -34,6 +34,7 @@ log = logging.getLogger("bewerbungsbegleiter")
 
 URL_VARIABLE = "BEWERBUNGSBEGLEITER_UPDATE_URL"
 ANNOUNCEMENT = "latest.json"
+BETA_ANNOUNCEMENT = "beta.json"  # pre-releases and releases, signed with the same key (#212)
 RELEASES_PAGE = "https://github.com/minigraphx/bewerbungsassistent/releases"  # only ever opened by the person
 INSTALLER = re.compile(r"^Bewerbungsbegleiter-Setup-(\d+\.\d+\.\d+)\.exe$")
 MAC_ZIP = re.compile(r"^Bewerbungsbegleiter-(\d+\.\d+\.\d+)-macOS\.zip$")
@@ -139,25 +140,33 @@ def _package(announced: dict, platform: str, version: str, address: str) -> tupl
     return f"{address}/{version}/{name}", digest
 
 
-def latest(fetch: Fetch = _fetch, platform: str = sys.platform) -> Update | None:
-    address = _server_address()
-    if not address:
-        return None
+def _announced(fetch: Fetch, address: str, name: str, platform: str) -> Update | None:
+    """The update one announcement offers; None when it is missing, unsigned or meaningless."""
     try:
-        announced = verified_payload(fetch(f"{address}/{ANNOUNCEMENT}", SMALL_FILE_BYTES), update_key.PUBLIC_KEY)
+        announced = verified_payload(fetch(f"{address}/{name}", SMALL_FILE_BYTES), update_key.PUBLIC_KEY)
     except (urllib.error.URLError, http.client.HTTPException, OSError):
         return None
     except (ValueError, UpdateError) as error:
-        log.warning("Update-Ankündigung abgelehnt: %s", error)
+        log.warning("Update-Ankündigung %s abgelehnt: %s", name, error)
         return None
     version = str(announced.get("version") or "")
     if not VERSION.match(version):
-        log.warning("Update-Ankündigung ohne gültige Version")
+        log.warning("Update-Ankündigung %s ohne gültige Version", name)
         return None
     package_url, digest = _package(announced, platform, version, address)
     page_url = package_url if platform in LOADED_BY_HAND and package_url else RELEASES_PAGE
     return Update(version=version, page_url=page_url, installer_url=package_url, sha256=digest,
                   notes=str(announced.get("notes") or "")[:MAX_NOTES])
+
+
+def latest(fetch: Fetch = _fetch, platform: str = sys.platform, beta: bool = False) -> Update | None:
+    """The newest announced version; pre-releases only for whoever switched them on (#212, G47)."""
+    address = _server_address()
+    if not address:
+        return None
+    names = (ANNOUNCEMENT, BETA_ANNOUNCEMENT) if beta else (ANNOUNCEMENT,)
+    found = [update for update in (_announced(fetch, address, name, platform) for name in names) if update]
+    return max(found, key=lambda update: parse_version(update.version), default=None)
 
 
 def newer(current: str, update: Update | None) -> Update | None:

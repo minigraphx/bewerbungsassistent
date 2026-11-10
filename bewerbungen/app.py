@@ -78,6 +78,7 @@ SEITEN = {
     "/einstellungen": "einstellungen.html",
     "/einstellungen.js": "einstellungen.js",
     "/claude-abo.js": "claude-abo.js",
+    "/vorabversionen.js": "vorabversionen.js",
     "/as-logo.svg": "as-logo.svg",
 }
 # DM Sans for stil.css and „Meine Angaben“ (MIN-369): the same files as the CV, served by the app, never from a CDN (CSP).

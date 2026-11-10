@@ -18,6 +18,7 @@ INSTANCE_FILE = "instanz.json"
 LOG_FILE = "protokoll.txt"
 CLAUDE_ACCESS = "claude_zugang"
 QUESTIONS_PAGE = "fragen_seite"
+BETA_UPDATES = "vorabversionen"
 DEFAULTS_FILE = "voreinstellungen.json"  # written at build time (e.g. address of the mediation), not secret
 
 
@@ -87,6 +88,15 @@ def claude_access(paths: Paths) -> bool:
 
 def set_claude_access(paths: Paths, allowed: bool) -> dict:
     return save(paths, {**load(paths), CLAUDE_ACCESS: allowed})
+
+
+def beta_updates(paths: Paths) -> bool:
+    """Whether pre-releases come as updates too (#212, G47); off until the person turns it on."""
+    return load(paths).get(BETA_UPDATES) is True
+
+
+def set_beta_updates(paths: Paths, on: bool) -> dict:
+    return save(paths, {**load(paths), BETA_UPDATES: on})
 
 
 def questions_page(paths: Paths) -> bool:
