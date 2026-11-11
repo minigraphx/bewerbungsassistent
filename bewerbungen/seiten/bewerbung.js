@@ -16,6 +16,8 @@
   const JOBROOM = [["datum", "Datum"], ["arbeitgeber", "Arbeitgeber"], ["adresse", "Adresse"],
     ["kontaktperson", "Kontaktperson"], ["kontakt", "Telefon / E-Mail"], ["stelle", "Stelle"], ["pensum", "Pensum"],
     ["art", "Art"], ["ergebnis", "Ergebnis"], ["rav_zuweisung", "Zuweisung des RAV"]];
+  // The own store keeps the sent files with or without Git (MIN-304), so this holds either way (#222).
+  const VERSAND_GESPEICHERT = "Die verschickte Fassung bleibt gespeichert.";
   const ANDERSWO_GEAENDERT = "Diese Bewerbung wurde inzwischen auch anderswo geändert. Die Eingaben bleiben stehen, und gespeichert werden nur die geänderten Felder.";
   const FORM_FILES = { lebenslauf: "Lebenslauf", anschreiben: "Anschreiben", zertifikate: "Zertifikate", unterlagen: "Unterlagen (gemeinsames PDF)", nachweise: "Nachweise (gemeinsames PDF)" };
   const PAGE_SOURCE = "bewerbungsbegleiter-seite";
@@ -255,6 +257,7 @@
     $("formular-teil").hidden = Boolean(b.versand) || !(b.formular_link || b.link);
     $("versand-form").hidden = Boolean(b.versand);
     $("erstellen").hidden = Boolean(b.versand);
+    $("pruefen").hidden = !L.erneutPruefen(befunde);
     $("unterlagen-wahl").hidden = Boolean(b.versand);
     for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) knopf.checked = knopf.value === W.gewaehlt(b);
     zeigeDesign(b);
@@ -680,7 +683,7 @@
     try {
       const ergebnis = await senden("/api/versand", { datum: $("v-datum").value, art: $("v-art").value, fassung_formular: $("v-formular").checked }, { id: ID });
       const hinweise = ergebnis.hinweise.length ? " Hinweise: " + ergebnis.hinweise.join(" · ") : "";
-      meldungOben((ergebnis.commit ? "Versand erfasst und eingefroren." : "Versand erfasst.") + hinweise,
+      meldungOben(`Versand erfasst. ${VERSAND_GESPEICHERT}${hinweise}`,
         ergebnis.hinweise.length ? "hinweis" : "ok");
       await laden();
     } catch (fehler) {

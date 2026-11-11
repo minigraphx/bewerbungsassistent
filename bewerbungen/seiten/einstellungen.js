@@ -22,7 +22,7 @@
     $("einwilligung-erteilt").hidden = !erteilt;
     $("einwilligung-offen").hidden = erteilt;
     $("einwilligung-link").replaceChildren(...[window.Einwilligung.link(ki.einwilligung)].filter(Boolean));  // none without a built-in address
-    if (!erteilt) window.Einwilligung.zeige($("einwilligung-offen"), ki.einwilligung, zeigeEinwilligung);
+    if (!erteilt) window.Einwilligung.zeile($("einwilligung-offen"), ki.einwilligung, zeigeEinwilligung);
     status($("einwilligung-meldung"), ki.einladung_fehler || "", ki.einladung_fehler ? "fehler" : "");
   }
 

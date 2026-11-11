@@ -164,7 +164,7 @@ window.Suchbegriffe = (() => {
   // In the box itself, so that what was typed stays and nothing of it goes out before the consent.
   function zeigeEinwilligung(stand) {
     status($("vorschlag-status"), texte.einwilligung, "");
-    window.Einwilligung.zeige($("vorschlag-einwilligung"), stand, neu => {
+    window.Einwilligung.zeile($("vorschlag-einwilligung"), stand, neu => {
       if (neu.einwilligung && !neu.einwilligung.erteilt) return;
       $("vorschlag-einwilligung").hidden = true;
       return vorschlagen();

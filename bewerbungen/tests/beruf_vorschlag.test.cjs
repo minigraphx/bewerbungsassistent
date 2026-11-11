@@ -44,7 +44,7 @@ function page({ status = { einwilligung: OPEN }, antworten = {} } = {}) {
       return antworten[pfad] || { vorschlaege: [] };
     },
   };
-  const Einwilligung = { zeige: (ort, stand, fertig) => { ort.hidden = false; consent.push({ ort, stand, fertig }); } };
+  const Einwilligung = { zeile: (ort, stand, fertig) => { ort.hidden = false; consent.push({ ort, stand, fertig }); } };
   const context = {
     window: { App, Einwilligung },
     document: { getElementById: byId, dispatchEvent() {} },
