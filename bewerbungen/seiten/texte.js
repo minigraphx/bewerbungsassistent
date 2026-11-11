@@ -246,9 +246,9 @@
     "uebersicht.suche": { sie: "Firma oder Stelle", du: "Firma oder Stelle", lehrstelle: "Lehrbetrieb oder Lehrstelle" },
     "uebersicht.spalte": { sie: "Stelle und Firma", du: "Stelle und Firma", lehrstelle: "Lehrstelle und Lehrbetrieb" },
     "uebersicht.liste-leer": {
-      sie: "Noch keine Bewerbungen. Übernehmen Sie eine Stelle aus der Suche oder erfassen Sie eine von Hand.",
-      du: "Noch keine Bewerbungen. Übernimm eine Stelle aus der Suche oder erfasse eine von Hand.",
-      lehrstelle: "Noch keine Bewerbungen. Übernimm eine Lehrstelle aus der Suche oder erfasse eine von Hand.",
+      sie: "Noch keine Bewerbungen. Klicken Sie in der Suche bei einer Stelle auf «Merken» oder erfassen Sie eine von Hand.",
+      du: "Noch keine Bewerbungen. Klicke in der Suche bei einer Stelle auf «Merken» oder erfasse eine von Hand.",
+      lehrstelle: "Noch keine Bewerbungen. Klicke in der Suche bei einer Lehrstelle auf «Merken» oder erfasse eine von Hand.",
     },
     "uebersicht.leer.titel": { sie: "Erste Stellen suchen", du: "Erste Stellen suchen", lehrstelle: "Erste Lehrstellen suchen" },
     "uebersicht.leer.text": {
