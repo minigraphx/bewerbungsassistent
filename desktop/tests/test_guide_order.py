@@ -1,6 +1,6 @@
 """The guide starts with the goal (#223, UX finding 14): five steps to the first application, technical parts later.
 
-docs/installation.md opens with „In 15 Minuten zur ersten Bewerbung“, five numbered steps from installing to the first
+docs/installation.md opens with „Schnellstart für Bewerbungen“ (#235, no time promise), five numbered steps from installing to the first
 application, each with one picture. Data folder, updates, several people and Linux stand under „Bei Bedarf“, and the
 names of files only under „Für Geübte“.
 """
@@ -9,7 +9,7 @@ import re
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 GUIDE = ROOT / "docs" / "installation.md"
-QUICK = "In 15 Minuten zur ersten Bewerbung"
+QUICK = "Schnellstart für Bewerbungen"
 TOP_LEVEL = [QUICK, "Einmal einrichten", "Mit der App arbeiten", "Bei Bedarf"]
 LATER = ["Updates", "Mehrere Personen", "Datenordner", "Unter Linux", "Für Geübte"]
 # Headings the website links to; its build fails on a dead anchor.
@@ -88,6 +88,15 @@ def test_file_names_appear_only_under_fuer_geuebte():
 def test_the_headings_the_website_links_to_are_kept():
     ids = {heading_id(h) for h in re.findall(r"^#{1,6} (.+)$", text(), re.M)}
     assert set(KEPT_IDS) <= ids
+
+
+def test_the_quick_start_promises_no_time_and_nothing_links_to_its_old_anchor():
+    """#235: the website guide build takes no inline HTML anchor, and nothing points to the old title."""
+    assert "15 Minuten" not in text()
+    assert "<a id=" not in text()
+    for path in ROOT.rglob("*.md"):
+        if ".git" not in path.parts and "node_modules" not in path.parts:
+            assert "#in-15-minuten-zur-ersten-bewerbung" not in path.read_text(encoding="utf-8"), path
 
 
 def test_the_guide_says_pilotphase_like_the_website():
