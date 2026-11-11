@@ -256,5 +256,5 @@
   }
 
   document.addEventListener("bewerbung-geladen", folge);
-  window.App.textsatz().then(satz => { du = satz !== "stelle-sie"; }).catch(() => {});
+  window.App.textsatz().then(satz => { du = satz !== "stelle-sie"; });
 })();
