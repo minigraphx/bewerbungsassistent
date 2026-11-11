@@ -198,6 +198,16 @@ Gibt es Suchprofil, Stilprofil oder Bausteine schon, fragt die App beim Überneh
 
 Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
 
+### Suchbegriffe prüfen
+
+Bringt ein Begriff aus dem Titelfilter viele Treffer, die nicht passen, zeigt **Stellen suchen** über der Liste den Hinweis **Ein Begriff lässt viel Unpassendes durch**. Das zählt die App selbst, ohne KI: Sobald mindestens 30 Treffer eine Note haben, prüft sie, ob ein Begriff allein viele davon hereinbringt und die meisten eine Note unter 4 haben. Der Hinweis nennt den Begriff, die Zahlen und Beispiele. Mit **Ausblenden** kommt er für diesen Begriff nicht wieder.
+
+**Suchbegriffe prüfen lassen**, im Hinweis oder unter **Suche einstellen**, bittet die KI um einen Vorschlag. Daneben steht, was das etwa kostet. Unter **Was geht an die KI?** zeigt **Text ansehen** genau den Text, der geschickt würde, ohne ihn zu senden. Die KI bekommt Ihr Suchprofil, Ihren Lebenslauf mit Platzhaltern für Name, Adresse und Kontakte sowie Titel und Note der eingeschätzten Treffer, keine Inseratstexte. Das gibt es vorerst nur bei der Stellensuche.
+
+Die KI schlägt Änderungen vor: einen zu allgemeinen Begriff durch genauere ersetzen, einen fehlenden Suchbegriff aufnehmen oder ein Wort aus unpassenden Titeln ausschliessen. Jede Änderung steht als Karte mit Häkchen, Grund und Beleg; ein Link zeigt die Treffer, auf die sich der Beleg stützt. Darunter steht, wie die Suche danach aussieht. Geändert wird nur, was Sie angehakt haben und übernehmen; bis dahin bleibt das Suchprofil, wie es ist. Passt Ihnen der Vorschlag nicht, schreiben Sie unter **Neu vorschlagen**, was anders sein soll; Ihr Text geht mit dem Vorschlag an die KI.
+
+Nach dem Übernehmen holt **Rückgängig machen** den Stand davor zurück, solange niemand sonst das Suchprofil geändert hat. Der Stand vor jeder Änderung bleibt ausserdem unter **Mehr**, **Entwürfe und Versionen**.
+
 ### Firmen und kununu
 
 Unter **Mehr**, **Firmen** steht jede Firma aus Ihren Treffern und Bewerbungen, dazu, was kununu über sie sagt. Auf **Stellen suchen** führt **Firmen ansehen** dorthin. Bei der Lehrstellensuche heisst die Seite **Lehrbetriebe**.
