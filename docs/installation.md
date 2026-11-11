@@ -8,7 +8,7 @@ Ihre Unterlagen liegen auf Ihrem Computer, nicht auf einem fremden Server.
 
 Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson ein. Was bei dir anders ist, steht unter [Für Lehrstellen](#für-lehrstellen).
 
-## In 15 Minuten zur ersten Bewerbung
+## Schnellstart für Bewerbungen
 
 So kommen Sie von der Installation zur ersten Bewerbung. Jeder Schritt verweist auf die Einzelheiten weiter unten.
 
