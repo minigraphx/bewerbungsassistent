@@ -46,6 +46,7 @@ function page() {
     Texte: { text: key => key, anwenden() {} },
     PortalWahl: { zeige() {} },
     Suchbegriffe: { zeige() {} },
+    SuchbegriffeStart: { zeige() {}, ids: () => null },
     addEventListener: (type, handler) => { if (type === "message") listener = handler; },
     postMessage: message => posted.push(message),
   };

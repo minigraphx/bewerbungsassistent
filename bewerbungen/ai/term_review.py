@@ -21,7 +21,7 @@ CHARS_PER_TOKEN = 3  # German text with names and numbers; rather too many token
 EXPECTED_OUTPUT_TOKENS = 1500
 CENT = 0.01
 FEEDBACK_TOO_LONG = f"Bitte höchstens {MAX_FEEDBACK} Zeichen."
-_TEXTS = {"type": "array", "items": {"type": "string"}}
+_TERM_LIST = {"type": "array", "items": {"type": "string"}}
 
 INSTRUCTIONS = """Aufgabe: Prüfe, wonach die Stellensuche der Person sucht, und schlage Änderungen vor, die mehr passende und weniger unpassende Treffer bringen.
 
@@ -45,7 +45,7 @@ SCHEMA = {"type": "object", "additionalProperties": False, "required": ["summary
     "summary": {"type": "string"}, "changed": {"type": "string"},
     "changes": {"type": "array", "items": {
         "type": "object", "additionalProperties": False, "required": ["area", "remove", "add", "reason"],
-        "properties": {"area": {"type": "string", "enum": list(term_changes.AREAS)}, "remove": _TEXTS, "add": _TEXTS,
+        "properties": {"area": {"type": "string", "enum": list(term_changes.AREAS)}, "remove": _TERM_LIST, "add": _TERM_LIST,
                        "reason": {"type": "string"}}}}}}
 
 
