@@ -25,6 +25,8 @@ LAST_SUCCESS = "erfolgreich_am"
 SETTINGS_FILE = "einstellungen.yaml"
 OWN_SITES = "weitere_seiten"
 PORTALS_OFF = "portale_aus"
+HIDDEN_TERMS = "begriffe_ausgeblendet"  # #210: the hint about a term the person hid, casefolded
+MAX_HIDDEN_TERMS = 30
 MAX_STARS = 5
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
@@ -448,7 +450,8 @@ class Hits:
         return {"auto_bewerten": raw.get("auto_bewerten") is not False, "zuschauen": raw.get("zuschauen") is True, "beruf_sterne": clean,
                 "sortierung": raw.get("sortierung") if raw.get("sortierung") in ORDERS else ORDERS[0],
                 OWN_SITES: raw.get(OWN_SITES) if isinstance(raw.get(OWN_SITES), list) else [],
-                PORTALS_OFF: [p for p in raw[PORTALS_OFF] if isinstance(p, str)] if isinstance(raw.get(PORTALS_OFF), list) else None}
+                PORTALS_OFF: [p for p in raw[PORTALS_OFF] if isinstance(p, str)] if isinstance(raw.get(PORTALS_OFF), list) else None,
+                HIDDEN_TERMS: [t for t in raw[HIDDEN_TERMS] if isinstance(t, str)] if isinstance(raw.get(HIDDEN_TERMS), list) else []}
 
     def _save_settings(self, settings: dict) -> dict:
         schreibe_yaml(self.folder / SETTINGS_FILE, settings)
@@ -465,6 +468,14 @@ class Hits:
     def set_portals_off(self, portals: list[str]) -> dict:
         with _LOCK:
             return self._save_settings({**self.settings(), PORTALS_OFF: portals})
+
+    def hide_term(self, term: str) -> dict:
+        """No more hint about this term; it comes back for a term that is new or changed."""
+        name = bounded_text(term, "Begriff", required=True).casefold()
+        with _LOCK:
+            current = self.settings()
+            hidden = [t for t in current[HIDDEN_TERMS] if t != name][-(MAX_HIDDEN_TERMS - 1):]
+            return self._save_settings({**current, HIDDEN_TERMS: [*hidden, name]})
 
     def set_watching(self, enabled: bool) -> dict:
         with _LOCK:

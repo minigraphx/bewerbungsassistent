@@ -8,6 +8,7 @@
 <title>Stellen suchen</title>
 <link rel="stylesheet" href="/stil.css">
 <link rel="stylesheet" href="/firmen.css">
+<link rel="stylesheet" href="/suchbegriffe.css">
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einrichtung">Einrichtung</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
@@ -52,6 +53,12 @@
       <label class="switch"><input type="checkbox" role="switch" id="auto-bewerten"> <span id="auto-text">Neue Treffer nach der Suche automatisch bewerten</span></label>
       <label class="switch"><input type="checkbox" role="switch" id="zuschauen"> <span>Im sichtbaren Tab suchen <span class="search__hint" data-text="suche.sichtbar">Langsamer, dafür sehen Sie, was die Erweiterung tut.</span></span></label>
     </div>
+    <section id="pruefen-block" class="search__wide terms-check" aria-labelledby="pruefen-titel" hidden>
+      <h2 id="pruefen-titel" class="field__label">Suchbegriffe prüfen</h2>
+      <div class="btn-row"><a class="btn" id="pruefen-knopf" href="/suchbegriffe">Suchbegriffe prüfen lassen</a> <span class="caption" id="pruefen-kosten"></span></div>
+      <p class="field__hint" id="pruefen-satz"></p>
+      <details class="terms-check__what"><summary>Was geht an die KI?</summary><p id="pruefen-was"></p><button type="button" class="btn btn--quiet btn--sm" id="ki-text-ansehen">Text ansehen</button></details>
+    </section>
     <details id="vorschlag" class="search__wide application__details" hidden>
       <summary id="vorschlag-titel"></summary>
       <p id="vorschlag-hilfe" class="field__hint"></p>
@@ -90,6 +97,19 @@
     <ul id="berufe-liste" class="sterne-liste"></ul>
     <p class="field__hint">Die Sterne ordnen die Liste. Die Note ändern sie nicht.</p>
   </section>
+
+  <div id="begriff-hinweis" class="notice" role="region" aria-labelledby="begriff-hinweis-titel" hidden>
+    <span class="notice__title" id="begriff-hinweis-titel">Ein Begriff lässt viel Unpassendes durch</span>
+    <p class="notice__body"><span id="begriff-hinweis-text"></span><br><span class="caption" id="begriff-hinweis-nachsatz"></span></p>
+    <div class="notice__actions"><a class="btn btn--sm" href="/suchbegriffe">Suchbegriffe prüfen lassen</a><button type="button" class="btn btn--quiet btn--sm" id="begriff-hinweis-aus">Ausblenden</button></div>
+  </div>
+  <div id="beleg-filter" class="notice" hidden><p class="notice__body" id="beleg-filter-text"></p><div class="notice__actions"><button type="button" class="btn btn--sm" id="beleg-alle">Alle Treffer zeigen</button></div></div>
+  <dialog id="ki-text" class="dialog terms-dialog" aria-labelledby="ki-text-titel">
+    <h2 class="dialog__title" id="ki-text-titel">Text an die KI</h2>
+    <p class="dialog__text">So geht der Text an die KI. Platzhalter wie {{NAME}} setzt die App erst wieder ein, wenn die Antwort zurückkommt.</p>
+    <pre class="terms-dialog__text" id="ki-text-inhalt"></pre>
+    <div class="dialog__actions"><button type="button" class="btn" id="ki-text-schliessen">Schliessen</button></div>
+  </dialog>
 
   <div class="search__bar">
     <div role="group" aria-label="Treffer anzeigen" class="overview__views" id="zustaende">
@@ -133,6 +153,8 @@
 <script src="/kununu-pruefen.js"></script>
 <script src="/treffer-firma.js"></script>
 <script src="/einwilligung.js"></script>
+<script src="/suchbegriffe-logik.js"></script>
+<script src="/suchbegriffe-start.js"></script>
 <script src="/beruf-vorschlag.js"></script>
 <script src="/portal-wahl.js"></script>
 <script src="/treffer.js"></script>

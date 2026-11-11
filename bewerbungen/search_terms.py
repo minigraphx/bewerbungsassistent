@@ -19,6 +19,9 @@ CORE_LIST = re.compile(r"^(-\s+kernliste[^:]*:\s*)(.*)$", re.IGNORECASE)
 GROUP_LINE = re.compile(r"^(-\s+[^:]+:\s*)(.*)$")
 OTHER_GROUP = re.compile(r"^-\s+(?!kernliste|nischen)[^:]+:\s*\S", re.IGNORECASE)
 TERMS_AND_REMARK = re.compile(r"^([^(]*?)(\s*\(.*)?$")
+TITLE_SECTION = "## Titelfilter"
+TITLE_LABELS = {"positiv": "Positiv", "ausschluss": "Ausschluss"}
+AFTER_TITLES = "## Sprachen"
 FULL = "Die Suche hat schon {limit} Begriffe, mehr sucht sie nicht. Bitte zuerst einen entfernen."
 
 
@@ -180,6 +183,39 @@ def _without_in_line(line: str, wanted: frozenset[str]) -> str:
         return line
     indent = line[:len(line) - len(line.lstrip())]
     return f"{indent}{prefix}{', '.join(kept)}".rstrip()
+
+
+def _title_line(lines: list[str], label: str) -> int | None:
+    """The line of the title filter the search reads for this label: the first one that starts with it."""
+    start, end = search_plan.section_bounds(lines, TITLE_SECTION[3:].lower())
+    if start is None:
+        return None
+    return next((i for i in range(start + 1, end)
+                 if (found := search_plan.PAIR.match(lines[i].strip())) and found[1].strip().lower().startswith(label)), None)
+
+
+def with_title_term(text: str, label: str, term: str) -> str:
+    """The profile with this term at the end of a title filter line (#210); a term that is there changes nothing."""
+    clean = " ".join(term.split())
+    if clean.casefold() in (known.casefold() for known in search_plan.title_terms(text, label)):
+        return text
+    lines = text.split("\n")
+    index = _title_line(lines, label)
+    if index is None:
+        return search_plan.with_section_line(text, TITLE_SECTION, f"- {TITLE_LABELS[label]}: {clean}", AFTER_TITLES)
+    line = lines[index].rstrip(" ,")
+    joined = f"{line} {clean}" if line.endswith(":") else f"{line}, {clean}"
+    return "\n".join([*lines[:index], joined, *lines[index + 1:]])
+
+
+def without_title_term(text: str, label: str, term: str) -> str:
+    """The profile without this term in a title filter line; „Developer/Engineer“ is two terms, so one can go."""
+    lines = text.split("\n")
+    index = _title_line(lines, label)
+    if index is None:
+        return text
+    changed = _without_in_line(lines[index], profession_words(term))
+    return text if changed == lines[index] else "\n".join([*lines[:index], changed, *lines[index + 1:]])
 
 
 def _kept_offers(old: str, new: str) -> str:

@@ -1,0 +1,43 @@
+/* Checking the search terms (#210, docs/design/suchbegriffe.md, option B). A mark always carries its word („neu“,
+   „entfällt“, „zu allgemein“); colour and line only support it. The evidence bar is grey on purpose, never accent,
+   so it does not read like a grade. */
+.caption { font-size: 13px; line-height: 18px; color: var(--text-muted); }
+.terms-check { display: grid; gap: var(--space-2); }
+.terms-check h2 { margin: 0; }
+.terms-check .field__hint, .terms-check__what p { margin: 0; }
+.terms-check__what { display: grid; gap: var(--space-2); }
+.terms-dialog { width: min(720px, calc(100% - 2 * var(--space-4))); }
+.terms-dialog__text { max-height: 50vh; overflow: auto; margin: 0 0 var(--space-5); padding: var(--space-3); white-space: pre-wrap; overflow-wrap: anywhere;
+  font-size: 13px; line-height: 18px; background: var(--surface-subtle); border-radius: var(--radius-md); }
+
+.terms-page { max-width: var(--width-reading); display: grid; gap: var(--space-4); }
+.terms-page h1 { margin: 0; font-size: 22px; line-height: 28px; }
+.terms-page__sub { margin: 0; color: var(--text-muted); }
+.terms-page fieldset { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: var(--space-3); }
+.terms-page .ai-result h2 { margin: 0; font: 700 16px/22px var(--font-sans); color: var(--text-strong); }
+.terms-page .ai-result h2:focus { outline: none; }
+.terms-page .status-line:empty { display: none; }
+
+.change { display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.change__area { margin: 0; font-size: 13px; line-height: 18px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.change .check { margin: 0; font-weight: 500; color: var(--text-strong); }
+.change__reason, .change__evidence p { margin: 0; }
+.change__evidence { display: grid; gap: var(--space-1); font-size: 14px; line-height: 20px; }
+.change__examples { color: var(--text-muted); }
+
+.terms { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin: 0; padding: 0; list-style: none; }
+.term { display: inline-flex; gap: 6px; align-items: baseline; padding: 2px var(--space-2); border: 1px solid var(--line-strong); border-radius: var(--radius-md); font-size: 14px; line-height: 20px; }
+.term__word { font-size: 12px; color: var(--text-muted); }
+.term--new { background: var(--accent-subtle); border-color: var(--accent); }
+.term--gone { border-style: dashed; }
+.term--gone .term__name { text-decoration: line-through; }
+.term--flag { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
+.term--flag .term__word { color: var(--warning); }
+
+.share { position: relative; height: 8px; max-width: 320px; border-radius: var(--radius-full); background: var(--surface-subtle); overflow: hidden; }
+.share__all { position: absolute; inset: 0 auto 0 0; background: var(--line); }
+.share__below { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(135deg, var(--line-strong) 0 3px, var(--line) 3px 6px); }
+
+.terms-outcome { display: grid; gap: var(--space-3); }
+.terms-outcome h3 { margin: 0 0 var(--space-1); font: 500 14px/20px var(--font-sans); }
+.terms-revise { display: grid; gap: var(--space-2); }
