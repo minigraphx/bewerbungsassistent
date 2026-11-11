@@ -834,6 +834,8 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 .drafts__doc ul { list-style: none; margin: 0; padding: 0; }
 .drafts__version { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; align-items: center; padding: var(--space-2) 0; }
 .drafts__older { margin-top: var(--space-2); }
+.drafts__used { margin-top: var(--space-3); }
+.drafts__sent { color: var(--text-muted); }
 .drafts__older > summary { cursor: pointer; font-weight: 500; color: var(--text-strong); }
 .drafts__older .drafts__version { border-top: 1px solid var(--line); }
 

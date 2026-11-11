@@ -2,7 +2,8 @@
 
 Entwürfe und Versionen shows the CV, one letter per application, style and building blocks, and the search
 profile; each document lists its versions newest first. Job ads (`bewerbungen/<id>/stelle.md`) are copies of
-the posting, not the person's own writing, so the page leaves them out.
+the posting, not the person's own writing, so the page leaves them out. A version that went out with an application
+names its company and date (#240), so the page can show only the documents used.
 """
 import pathlib
 
@@ -55,7 +56,13 @@ def document_title(rel: str, companies: dict[str, str]) -> str:
     return inhalte.titel(rel)
 
 
-def _documents(drafts: list[dict], companies: dict[str, str]) -> dict[str, list[dict]]:
+def sent_with(draft: dict, sendings: dict[str, dict]) -> list[dict]:
+    """The applications a version went out with; one whose entry is gone keeps the purpose it was recorded with."""
+    return [{**sendings[p]} if p in sendings else {"firma": None, "datum": None, "zweck": p}
+            for p in draft.get("genutzt_fuer", ())]
+
+
+def _documents(drafts: list[dict], companies: dict[str, str], sendings: dict[str, dict]) -> dict[str, list[dict]]:
     """Documents per category, in the order of their newest version; `drafts` come newest first."""
     by_file: dict[str, list[dict]] = {}
     for draft in drafts:
@@ -63,12 +70,14 @@ def _documents(drafts: list[dict], companies: dict[str, str]) -> dict[str, list[
     documents: dict[str, list[dict]] = {}
     for rel, versions in by_file.items():
         title = document_title(rel, companies)
-        document = {"datei": rel, "titel": title, "fassungen": [{**v, "titel": title} for v in versions]}
+        shown = [{**v, "titel": title, "versendet": sent_with(v, sendings)} for v in versions]
+        document = {"datei": rel, "titel": title, "fassungen": shown,
+                    "verwendet": any(v["versendet"] for v in shown)}
         documents.setdefault(category(rel), []).append(document)
     return documents
 
 
-def group(drafts: list[dict], companies: dict[str, str]) -> list[dict]:
-    """Groups in a fixed order, empty ones left out; job ads never appear."""
-    documents = _documents([d for d in drafts if not is_job_ad(d["datei"])], companies)
+def group(drafts: list[dict], companies: dict[str, str], sendings: dict[str, dict]) -> list[dict]:
+    """Groups in a fixed order, empty ones left out; job ads never appear. `sendings` from `versand.sendings`."""
+    documents = _documents([d for d in drafts if not is_job_ad(d["datei"])], companies, sendings)
     return [{"art": art, "titel": title, "dokumente": documents[art]} for art, title in GROUPS if art in documents]
