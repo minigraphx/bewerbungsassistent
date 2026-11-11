@@ -1,7 +1,7 @@
-"""The pictures of the guide are sharp on retina screens (#228).
+"""The pictures of the guide are sharp on retina screens (#228, #232).
 
 The website shows them in a lightbox and as WebP with srcset, converted from these JPGs at build time. Taken at
-1280 px CSS width with device pixel ratio 2, each picture the guide or the README shows is at least 2200 px wide.
+1280 px CSS width with device pixel ratio 2, each picture the guide, the page on the own subscription or a README shows is at least 2200 px wide.
 """
 import pathlib
 import re
@@ -9,7 +9,8 @@ import struct
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PICTURES = ROOT / "docs" / "bilder"
-PAGES = {ROOT / "docs" / "installation.md": "bilder/", ROOT / "README.md": "docs/bilder/"}
+PAGES = {ROOT / "docs" / "installation.md": "bilder/", ROOT / "README.md": "docs/bilder/",
+         ROOT / "docs" / "eigenes-abo.md": "bilder/", ROOT / "bewerbungen" / "README.md": "../docs/bilder/"}
 MIN_WIDTH = 2200
 MAX_WIDTH = 2560
 # Start-of-frame markers carry the size; DHT (C4), JPG (C8) and DAC (CC) share the range but do not.
@@ -42,6 +43,7 @@ def jpeg_size(data: bytes) -> tuple[int, int]:
 
 def test_the_guide_shows_pictures():
     assert len(referenced()) >= 10
+    assert {"einstellungen-claude.jpg", "fragen.jpg"} <= referenced()
 
 
 def test_every_shown_picture_exists_as_jpg():
