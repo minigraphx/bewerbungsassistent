@@ -1,6 +1,7 @@
 // Design "Raster" (docs/design/dossier.md, design B): bold and data-like. The bands of the design-system
 // cover carry the dossier; the career shows as a numbered horizontal axis. Marks and the CV part.
 #import "../common.typ": *
+#import "../page-fill.typ": spacing, leading, body-size, part-start, part-end
 #import "../tokens.typ": space, radius
 #import "../dossier.typ": colours-for, labels-for, level-marker, icon, current
 #import "../zeichen.typ": own-mark, chosen-mark
@@ -188,20 +189,29 @@
   let with-axis = d.at("style", default: (:)).at("zeitachse", default: true)
   page(paper: "a4", margin: page-margin, fill: c.bg, footer: footer(d, c),
     background: context { if not (single and here().page() == 1) { strip(c) } }, {
-    set text(size: sizes.body, fill: c.text)
-    set par(leading: 0.6em, spacing: 0.8em)
-    set list(marker: text(fill: c.text-muted)[–], indent: 0pt, body-indent: space.space-2, spacing: 0.5em)
-    show heading.where(level: 1): it => block(above: space.space-5, below: space.space-3, sticky: true,
+    let (f, lf) = (spacing("cv"), leading("cv"))
+    set text(size: body-size(sizes.body, "cv"), fill: c.text)
+    set par(leading: 0.6em * lf, spacing: 0.8em * f)
+    set list(marker: text(fill: c.text-muted)[–], indent: 0pt, body-indent: space.space-2, spacing: 0.5em * f)
+    show heading.where(level: 1): it => block(above: space.space-5 * f, below: space.space-3 * f, sticky: true,
       text(size: sizes.section, weight: 700, fill: c.text-strong, it.body))
 
-    let continued(title) = block(above: 0pt, below: space.space-3, sticky: true,
+    let continued(title) = block(above: 0pt, below: space.space-3 * f, sticky: true,
       text(size: sizes.section, weight: 700, fill: c.text-strong)[#title (#b.fortsetzung)])
-    let section(key, items, before: none) = if items != none and items.len() > 0 {
+    // Sections of one-line entries: up to five they stay together with their heading, longer ones never
+    // leave their last entry alone (G50)
+    let short-keys = ("bildung", "faehigkeiten", "sprachen", "projekte", "interessen")
+    // The block takes the heading's space above, which a heading at the start of a block would lose
+    let together(key, items, body) = if key in short-keys and items.len() <= 5 {
+      block(breakable: false, above: space.space-5 * f, body)
+    } else { body }
+    let section(key, items, before: none) = if items != none and items.len() > 0 { together(key, items, {
       heading(level: 1, b.at(key))
       before
-      eintraege(key, items, continued(b.at(key)), abstand: space.space-3)
-    }
+      eintraege(key, items, continued(b.at(key)), abstand: space.space-3 * f, einzeilig: key in short-keys)
+    }) }
 
+    part-start("cv")
     cv-head(d, c, single)
     let summary = feld(basics, "summary")
     if summary != none { section("profil", ([#summary],)) }
@@ -216,5 +226,6 @@
     let projects = cv.at("projects", default: ())
     section("projekte", projects.map(p => [#p.name#if feld(p, "description") != none [ – #p.description]]))
     section("interessen", interests-section(d, c))
+    part-end("cv")
   })
 }

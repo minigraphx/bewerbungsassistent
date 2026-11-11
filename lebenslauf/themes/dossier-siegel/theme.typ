@@ -1,6 +1,7 @@
 // Design "Siegel" (docs/design/dossier.md, design A): calm, one column, the mark is the step dot of
 // the design system, a ring with the initials. This file holds the marks and the CV part.
 #import "../common.typ": *
+#import "../page-fill.typ": spacing, leading, body-size, part-start, part-end
 #import "../tokens.typ": space, radius
 #import "../dossier.typ": colours-for, labels-for, level-marker, icon, current
 #import "../zeichen.typ": mark-or
@@ -69,7 +70,7 @@
 
 #let station(e, b, c, org-key: "name") = grid(
   columns: (label-columns.first(), 7pt, space.space-3, 1fr),
-  inset: (bottom: space.space-4),
+  inset: (bottom: space.space-4 * spacing("cv")),
   text(size: 9pt, fill: c.text-muted)[#zeitraum(e, b)],
   grid.cell(stroke: (right: 0.8pt + c.line), place(top + right, dx: 4pt, dy: 1.5pt, step-dot(current(e), c))),
   [],
@@ -142,19 +143,28 @@
   let cv = d.cv
   let basics = cv.at("basics", default: (:))
   page(paper: "a4", margin: page-margin, fill: c.bg, footer: footer(d, c), {
-    set text(size: sizes.body, fill: c.text)
-    set par(leading: 0.6em, spacing: 0.8em)
-    set list(marker: text(fill: c.text-muted)[–], indent: 0pt, body-indent: space.space-2, spacing: 0.5em)
-    show heading.where(level: 1): it => block(above: space.space-5, below: space.space-3, sticky: true,
+    let (f, lf) = (spacing("cv"), leading("cv"))
+    set text(size: body-size(sizes.body, "cv"), fill: c.text)
+    set par(leading: 0.6em * lf, spacing: 0.8em * f)
+    set list(marker: text(fill: c.text-muted)[–], indent: 0pt, body-indent: space.space-2, spacing: 0.5em * f)
+    show heading.where(level: 1): it => block(above: space.space-5 * f, below: space.space-3 * f, sticky: true,
       text(size: sizes.section, weight: 700, fill: c.text-strong, it.body))
 
-    let continued(title) = block(above: 0pt, below: space.space-3, sticky: true,
+    let continued(title) = block(above: 0pt, below: space.space-3 * f, sticky: true,
       text(size: sizes.section, weight: 700, fill: c.text-strong)[#title (#b.fortsetzung)])
-    let section(key, items) = if items != none and items.len() > 0 {
+    // Sections of one-line entries: up to five they stay together with their heading, longer ones never
+    // leave their last entry alone (G50)
+    let short-keys = ("bildung", "faehigkeiten", "sprachen", "projekte", "interessen")
+    // The block takes the heading's space above, which a heading at the start of a block would lose
+    let together(key, items, body) = if key in short-keys and items.len() <= 5 {
+      block(breakable: false, above: space.space-5 * f, body)
+    } else { body }
+    let section(key, items) = if items != none and items.len() > 0 { together(key, items, {
       heading(level: 1, b.at(key))
-      eintraege(key, items, continued(b.at(key)), abstand: space.space-2)
-    }
+      eintraege(key, items, continued(b.at(key)), abstand: space.space-2 * f, einzeilig: key in short-keys)
+    }) }
 
+    part-start("cv")
     cv-head(d, c, single)
     let summary = feld(basics, "summary")
     if summary != none { section("profil", ([#summary],)) }
@@ -167,5 +177,6 @@
     let projects = cv.at("projects", default: ())
     section("projekte", projects.map(p => [#p.name#if feld(p, "description") != none [ – #p.description]]))
     section("interessen", interests-section(d, c))
+    part-end("cv")
   })
 }
