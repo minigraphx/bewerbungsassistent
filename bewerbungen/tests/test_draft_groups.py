@@ -2,7 +2,10 @@
 import json
 import re
 
+import datetime
+
 import draft_groups
+import versand
 from register import Register
 from sample_folder import BRIEF_ID
 from unterlagen import OWN_CV
@@ -116,3 +119,63 @@ def test_the_own_cv_from_meine_dateien_is_a_lebenslauf(server):
     assert [g["art"] for g in found] == ["lebenslauf"]
     assert [d["titel"] for d in found[0]["dokumente"]] == ["Lebenslauf", "Eigener Lebenslauf (PDF)"]
     assert draft_groups.category(OWN_CV) == "lebenslauf"
+
+
+def send(s, application_id: str, day: datetime.date, *files: str) -> None:
+    """Records a sending the way versand.erfasse_versand does: the register entry and the drafts marked as used."""
+    k = s.kontext
+    register = Register(k.daten)
+    application = register.hole(application_id)
+    register.speichere({**application, "versand": {"datum": day.isoformat(), "art": "elektronisch", "dateien": {}}})
+    k.ablage.markiere_genutzt([k.daten / f for f in files], versand.purpose(application, day))
+
+
+def test_a_sent_version_names_the_company_and_the_date(server):
+    drafts(server, ("cv.yaml", "Angaben"), (f"bewerbungen/{BRIEF_ID}/anschreiben.yaml", "Brief"))
+    send(server, BRIEF_ID, datetime.date(2026, 10, 24), "cv.yaml", f"bewerbungen/{BRIEF_ID}/anschreiben.yaml")
+
+    documents = {d["titel"]: d for g in groups(server) for d in g["dokumente"]}
+
+    cv = documents["Lebenslauf"]
+    assert cv["verwendet"] is True
+    assert cv["fassungen"][0]["versendet"] == [{"firma": "Beispiel AG", "datum": "2026-10-24"}]
+    assert documents["Anschreiben Beispiel AG"]["verwendet"] is True
+
+
+def test_a_document_never_sent_is_not_used(server):
+    drafts(server, ("cv.yaml", "Angaben"), ("suchprofil.md", "Suchprofil"))
+    send(server, BRIEF_ID, datetime.date(2026, 10, 24), "cv.yaml")
+
+    documents = {d["titel"]: d for g in groups(server) for d in g["dokumente"]}
+
+    assert documents["Suchprofil"]["verwendet"] is False
+    assert all(f["versendet"] == [] for f in documents["Suchprofil"]["fassungen"])
+
+
+def test_an_older_sent_version_keeps_its_sending_after_a_newer_draft(server):
+    drafts(server, ("cv.yaml", "eins"))
+    send(server, BRIEF_ID, datetime.date(2026, 10, 24), "cv.yaml")
+    drafts(server, ("cv.yaml", "zwei"))
+
+    cv = groups(server)[0]["dokumente"][0]
+
+    assert cv["verwendet"] is True
+    assert [f["versendet"] for f in cv["fassungen"]][0] == []
+    assert {"firma": "Beispiel AG", "datum": "2026-10-24"} in [v for f in cv["fassungen"] for v in f["versendet"]]
+
+
+def test_a_sending_whose_application_is_gone_still_counts_as_used():
+    version = {"datei": "cv.yaml", "genutzt_fuer": ["Versand: Alt AG – Tester (01.02.2026)"]}
+
+    found = draft_groups.group([version], {}, {})
+
+    document = found[0]["dokumente"][0]
+    assert document["verwendet"] is True
+    assert document["fassungen"][0]["versendet"] == [{"firma": None, "datum": None,
+                                                     "zweck": "Versand: Alt AG – Tester (01.02.2026)"}]
+
+
+def test_the_page_offers_only_used_documents(server):
+    html = get(server, "/entwuerfe")[2].decode("utf-8")
+
+    assert 'id="nur-verwendete"' in html and "Nur verwendete" in html

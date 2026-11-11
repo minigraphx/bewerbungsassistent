@@ -27,11 +27,23 @@ def _limit(parameter) -> int | None:
     return int(value)
 
 
-def _companies(k) -> dict[str, str]:
-    """Company per application; a register that does not read leaves the folder names, the drafts stay visible."""
+def _applications(k) -> list[dict]:
+    """The applications; a register that does not read leaves the folder names, the drafts stay visible."""
     try:
-        return {b["id"]: b.get("firma", "") for b in k.register().alle()}
+        return k.register().alle()
     except (ValueError, TypeError, KeyError, yaml.YAMLError):
+        return []
+
+
+def _companies(applications: list[dict]) -> dict[str, str]:
+    return {b["id"]: b.get("firma", "") for b in applications}
+
+
+def _sendings(applications: list[dict]) -> dict[str, dict]:
+    try:
+        return versand.sendings(applications)
+    except (ValueError, TypeError, KeyError):
+        # A sending date that does not read leaves those versions marked with their purpose only
         return {}
 
 
@@ -42,8 +54,9 @@ def entwuerfe(k, parameter, body):
     alle = [e for e in k.ablage.liste() if not draft_groups.is_job_ad(e.datei)]
     auswahl = k.ablage.liste(im_ordner(k.daten, datei)) if datei else alle
     shown = [_mit_ansicht(e) for e in auswahl]
+    applications = _applications(k)
     return json_antwort({"entwuerfe": shown[:limit], "dateien": sorted({e.datei for e in alle}),
-                         "gruppen": draft_groups.group(shown, _companies(k))})
+                         "gruppen": draft_groups.group(shown, _companies(applications), _sendings(applications))})
 
 
 def entwurf(k, parameter, body):

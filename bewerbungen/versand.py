@@ -32,8 +32,20 @@ FORM_VERSION_KEPT = "Festgehalten ist, was das Formular bekommen hat. Die neuere
 COPY_LEFT = "Die Kopie für das Formular liess sich nicht entfernen: {error}"
 
 
-def _zweck(bewerbung: dict, datum: datetime.date) -> str:
+def purpose(bewerbung: dict, datum: datetime.date) -> str:
+    """What a sending is called on the drafts it used (`genutzt_fuer`) and in Git."""
     return f"Versand: {bewerbung['firma']} – {bewerbung['stelle']} ({datum:%d.%m.%Y})"
+
+
+def sendings(bewerbungen: list[dict]) -> dict[str, dict]:
+    """Company and date of each sent application, by the purpose its drafts carry."""
+    found = {}
+    for bewerbung in bewerbungen:
+        versand = bewerbung.get("versand")
+        if versand:
+            datum = datetime.date.fromisoformat(versand["datum"])
+            found[purpose(bewerbung, datum)] = {"firma": bewerbung.get("firma"), "datum": versand["datum"]}
+    return found
 
 
 def lege_ab(daten: pathlib.Path, pdf: pathlib.Path, datum: datetime.date) -> pathlib.Path:
@@ -129,7 +141,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
         raise ValueError("Lebenslauf-PDF fehlt: zuerst die Unterlagen erstellen und prüfen")
 
     abgelegt = {a: lege_ab(daten, p, datum) for a, p in fassungen.items()}
-    zweck = _zweck(bewerbung, datum)
+    zweck = purpose(bewerbung, datum)
     quellen = _datenquellen(daten, bewerbung, fassungen.get("anschreiben"))
     Ablage(daten).markiere_genutzt(quellen, zweck)
 
@@ -161,7 +173,7 @@ def versendete(daten: pathlib.Path, versionierung: Versionierung) -> list[dict]:
         versand = bewerbung.get("versand")
         if not versand:
             continue
-        zweck = _zweck(bewerbung, datetime.date.fromisoformat(versand["datum"]))
+        zweck = purpose(bewerbung, datetime.date.fromisoformat(versand["datum"]))
         quellen = {e.datei for e in entwuerfe if zweck in e.genutzt_fuer}
         eintraege.append({"nachricht": zweck, "datum": versand["datum"], "commit": commits.get(zweck),
                           "dateien": sorted(quellen | set(versand.get("dateien", {}).values()))})

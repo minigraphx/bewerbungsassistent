@@ -44,7 +44,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an, geordnet nach Lebenslauf, Anschreiben je Bewerbung, Stil und Bausteinen und Suchprofil; ältere Fassungen sind aufklappbar. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
 
-![Entwürfe nach Lebenslauf und Anschreiben gruppiert, je Dokument die neueste Fassung und die älteren aufklappbar](docs/bilder/entwuerfe.jpg)
+![Entwürfe nach Lebenslauf und Anschreiben gruppiert, mit „Nur verwendete“ nur die versendeten Fassungen mit Firma und Datum, die übrigen aufklappbar](docs/bilder/entwuerfe.jpg)
 
 **Fotoausschnitt (freiwillig):** Ausschnitt per Maus oder Tastatur einstellen, mit Vorschau in Druckgrösse.
 
