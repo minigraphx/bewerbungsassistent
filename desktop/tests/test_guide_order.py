@@ -92,3 +92,14 @@ def test_the_headings_the_website_links_to_are_kept():
 
 def test_the_guide_says_pilotphase_like_the_website():
     assert "im Pilot " not in text() and "im Pilot." not in text() and "im Pilot," not in text()
+
+
+def test_the_guide_explains_suchbegriffe_pruefen_with_the_names_of_the_app():
+    """#231: the hint and the view of #210, in the words the app uses."""
+    work = [title for title, _ in sections(3, body("Mit der App arbeiten", 2))]
+    assert "Suchbegriffe prüfen" in work
+    section = body("Suchbegriffe prüfen", 3)
+    for name in ("Ein Begriff lässt viel Unpassendes durch", "Suchbegriffe prüfen lassen", "Ausblenden", "Text ansehen",
+                 "Neu vorschlagen", "Rückgängig machen", "Entwürfe und Versionen", "Was geht an die KI?"):
+        assert f"**{name}**" in section, name
+    assert "nur, was Sie" in section and "übernehmen" in section
