@@ -10,7 +10,7 @@
 .app-nav__more > summary { list-style: none; }
 .app-nav__more > summary::-webkit-details-marker { display: none; }
 .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); }
-.menu__group:empty { display: none; }
+.menu__group:empty, .menu__group:not(:has(a, button)) { display: none; }  /* Hilfe without the questions page (#222) */
 .menu__group + .menu__group { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 .menu__heading { margin: 0; padding: 4px 8px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--muted); }
 .menu a, .menu button { display: block; width: 100%; padding: 6px 8px; border: 0; border-radius: 4px; background: none; color: var(--text-strong); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }

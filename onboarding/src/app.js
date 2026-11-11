@@ -149,6 +149,7 @@ function setStatus(message) {
 }
 
 const TAKE_OVER_TARGET = "uebernehmen";
+const UPLOAD_TARGET = "unterlagen"; // the Übersicht leads here with a CV as PDF (#222): the upload on the start
 const WANTED_NOTE = "Hier ergänzen. Es zählt für die Suche, sobald es unter „Übernehmen“ abgeschlossen ist.";
 let notTakenOver = false;
 let profileHint = false;
@@ -286,6 +287,7 @@ function openFromAddress() {
   const wanted = new URLSearchParams(window.location.hash.slice(1)).get("feld");
   if (!backend || !wanted) return;
   window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  if (wanted === UPLOAD_TARGET) return openUploads();
   if (!state.track || (!pageStateFound && existingBasics.length)) {
     // Imported files without a state of this page: starting over here would ask for everything again.
     profileHint = existingBasics.length > 0;
@@ -301,6 +303,15 @@ function openFromAddress() {
   field.prepend(el("p", { className: "wanted-note" }, WANTED_NOTE));
   field.scrollIntoView({ block: "center" });
   (field.querySelector("input, textarea, select") || field).focus();
+}
+
+/** The start holds the upload in the app; its first category is the CV the person already has. */
+function openUploads() {
+  goTo(0);
+  const button = document.querySelector(`[data-category="${form.documents.categories[0].id}"]`);
+  if (!button) return;
+  button.closest("fieldset").scrollIntoView({ block: "center" });
+  button.focus();
 }
 
 const TRACK_WORDS = { job: "eine Stelle", apprenticeship: "eine Lehrstelle" };

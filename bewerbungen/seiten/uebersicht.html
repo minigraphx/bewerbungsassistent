@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
-<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
+<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einrichtung">Einrichtung</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
 <main class="overview">
   <!-- First start: no CV and no application yet -->
   <section id="erststart" class="overview__start" hidden>
@@ -22,7 +22,7 @@
         <p class="next-step__eyebrow">Nächster Schritt</p>
         <h2 class="next-step__title" id="start-titel">Meine Angaben erfassen</h2>
         <p class="next-step__text" data-text="uebersicht.start.karte">Lebenslauf, gesuchte Stellen und wie Sie schreiben. Das dauert etwa 20 Minuten. Sie können jederzeit unterbrechen, nichts geht verloren.</p>
-        <div class="btn-row"><a class="btn btn--primary" href="/angaben">Angaben erfassen</a><a class="btn btn--quiet" href="/dateien">Ich habe schon einen Lebenslauf als PDF</a></div>
+        <div class="btn-row"><a class="btn btn--primary" href="/angaben">Angaben erfassen</a><a class="btn btn--quiet" href="/angaben#feld=unterlagen">Ich habe schon einen Lebenslauf als PDF</a></div>
         <p class="next-step__after" data-text="uebersicht.start.fuss">Ihre Angaben bleiben auf diesem Computer.</p>
       </section>
       <section class="overview__how" aria-labelledby="wie-titel">
@@ -79,18 +79,18 @@
         <input class="input overview__search" id="suche" type="search" autocomplete="off">
       </div>
     </div>
-    <div class="overview__bulk" id="auswahl-leiste" role="group" aria-label="Stand der ausgewählten Bewerbungen ändern">
-      <label class="check overview__bulk-all"><input type="checkbox" id="alle-waehlen"> Alle in dieser Ansicht</label>
-      <span class="overview__bulk-count" id="auswahl-zahl" role="status" aria-live="polite">Keine ausgewählt</span>
+    <div class="overview__bulk" id="auswahl-leiste" role="group" aria-label="Stand der ausgewählten Bewerbungen ändern" hidden>
+      <span class="overview__bulk-count" id="auswahl-zahl" role="status" aria-live="polite"></span>
       <label class="visually-hidden" for="stand-wahl">Neuer Stand</label>
       <select class="input overview__bulk-stage" id="stand-wahl"><option value="">Stand wählen …</option></select>
       <button type="button" class="btn btn--sm" id="stand-setzen">Stand setzen</button>
+      <label class="check overview__bulk-all"><input type="checkbox" id="alle-waehlen"> Alle in dieser Ansicht</label>
     </div>
     <p id="liste-leer" class="overview__empty" data-text="uebersicht.liste-leer" hidden>Noch keine Bewerbungen. Klicken Sie in der Suche bei einer Stelle auf «Merken» oder erfassen Sie eine von Hand.</p>
     <p id="nichts-gefunden" class="overview__empty" hidden>Keine Bewerbung passt zu dieser Suche.</p>
     <div class="table-wrap" id="tabelle">
       <table class="table">
-        <thead><tr><th class="table__pick"><span class="visually-hidden">Auswahl</span></th><th data-spalte="stelle"><button type="button" class="table__sort" data-text="uebersicht.spalte">Stelle und Firma</button></th><th data-spalte="stand"><button type="button" class="table__sort">Stand</button></th><th data-spalte="note"><button type="button" class="table__sort">Note</button></th><th data-spalte="schritt"><button type="button" class="table__sort">Nächster Schritt</button></th><th class="num" data-spalte="frist"><button type="button" class="table__sort">Frist</button></th><th class="num" data-spalte="erfasst"><button type="button" class="table__sort">Erfasst</button></th></tr></thead>
+        <thead><tr><th class="table__pick"><input type="checkbox" id="alle-kopf" aria-label="Alle in dieser Ansicht auswählen"></th><th data-spalte="stelle"><button type="button" class="table__sort" data-text="uebersicht.spalte">Stelle und Firma</button></th><th data-spalte="stand"><button type="button" class="table__sort">Stand</button></th><th data-spalte="note"><button type="button" class="table__sort">Note</button></th><th data-spalte="schritt"><button type="button" class="table__sort">Nächster Schritt</button></th><th class="num" data-spalte="frist"><button type="button" class="table__sort">Frist</button></th><th class="num" data-spalte="erfasst"><button type="button" class="table__sort">Erfasst</button></th></tr></thead>
         <tbody id="liste"></tbody>
       </table>
     </div>
