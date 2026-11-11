@@ -161,3 +161,10 @@ def test_schools_are_replaced_only_for_apprenticeships():
     assert "Schulhaus Musterberg" not in Pseudonymizer(secrets_from_cv(cv, minor=True)).mask("Schulhaus Musterberg")
     assert Pseudonymizer(secrets_from_cv(cv)).mask("Schulhaus Musterberg") == "Schulhaus Musterberg"
     assert "auch die Namen deiner Schulen" in faq()
+
+
+def test_initials_and_the_logo_file_name_are_replaced_as_the_faq_says():
+    cv = {"basics": {"name": "Léa Müller", "x-monogramm": "LMB", "x-logo": "logos/lea-zeichen.svg"}}
+    masked = Pseudonymizer(secrets_from_cv(cv)).mask("Initialen LMB, Logo logos/lea-zeichen.svg, lmb bleibt")
+    assert masked == "Initialen {{MONOGRAM}}, Logo {{LOGO}}, lmb bleibt"
+    assert "eigene Initialen fürs Dossier, so wie Sie sie geschrieben haben, und den Dateinamen Ihres Logos" in faq()
