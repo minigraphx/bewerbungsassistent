@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="token" content="__TOKEN__">
+<meta name="bewerbungsbegleiter" content="app">
+<title>Suchbegriffe prüfen</title>
+<link rel="stylesheet" href="/stil.css">
+<link rel="stylesheet" href="/suchbegriffe.css">
+</head>
+<body>
+<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einrichtung">Einrichtung</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
+<main class="terms-page">
+  <p><a href="/treffer">Zurück zu den Treffern</a></p>
+  <header>
+    <h1>Suchbegriffe prüfen</h1>
+    <p class="terms-page__sub" id="gesehen"></p>
+  </header>
+
+  <div id="einwilligung" class="einwilligung" hidden></div>
+  <div id="warten" class="progress" role="status" aria-live="polite" hidden>
+    <div class="progress__head"><strong id="warten-titel"></strong></div>
+    <div class="progress__busy" aria-hidden="true"></div>
+    <p class="progress__note" id="warten-notiz"></p>
+    <div><button type="button" class="btn btn--sm" id="abbrechen">Abbrechen</button></div>
+  </div>
+  <div id="meldung" class="notice" hidden><span class="notice__title" id="meldung-titel"></span><p class="notice__body" id="meldung-text"></p><div class="notice__actions" id="meldung-knoepfe"></div></div>
+
+  <section id="vorschlag" class="ai-result" aria-labelledby="vorschlag-kopf" hidden>
+    <div class="ai-result__head">
+      <h2 id="vorschlag-kopf" tabindex="-1"></h2>
+      <button type="button" class="btn btn--quiet btn--sm" id="frueher" hidden></button>
+    </div>
+    <p class="caption" id="runde" hidden></p>
+    <p id="geaendert" hidden></p>
+    <p class="caption" id="ihr-hinweis" hidden></p>
+    <p id="zusammenfassung"></p>
+    <fieldset id="aenderungen-feld">
+      <legend class="visually-hidden">Änderungen zum Übernehmen</legend>
+      <div id="aenderungen"></div>
+    </fieldset>
+    <details class="terms-outcome" id="endstand-block">
+      <summary>So sucht die App danach</summary>
+      <div id="endstand"></div>
+      <p class="caption" id="faellt-weg"></p>
+    </details>
+    <p class="caption" id="grenzen"></p>
+    <div class="btn-row">
+      <button type="button" class="btn btn--primary" id="uebernehmen" aria-describedby="uebernehmen-grund"></button>
+      <button type="button" class="btn" id="verwerfen">Verwerfen</button>
+    </div>
+    <p class="btn-reason" id="uebernehmen-grund"></p>
+    <p class="status-line" id="status" role="status" aria-live="polite"></p>
+    <p class="ai-result__foot"><span id="fuss-satz"></span> <span id="fuss"></span></p>
+  </section>
+
+  <section id="anders" class="terms-revise" aria-labelledby="anders-titel" hidden>
+    <label class="field__label" id="anders-titel" for="anders-text">Was soll anders sein?</label>
+    <textarea class="input" id="anders-text" rows="3" maxlength="1000" placeholder="Zum Beispiel: «Trainer» behalten, ich gebe auch Kurse für Erwachsene."></textarea>
+    <p class="caption" id="anders-hilfe"></p>
+    <div class="btn-row"><button type="button" class="btn" id="neu-vorschlagen">Neu vorschlagen</button> <span class="caption" id="anders-kosten"></span></div>
+  </section>
+</main>
+<script src="/texte.js"></script>
+<script src="/meldungen.js"></script>
+<script src="/app.js"></script>
+<script src="/einwilligung.js"></script>
+<script src="/suchbegriffe-logik.js"></script>
+<script src="/suchbegriffe.js"></script>
+</body>
+</html>

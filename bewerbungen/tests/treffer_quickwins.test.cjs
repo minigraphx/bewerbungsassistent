@@ -70,6 +70,7 @@ function page({ liste = {}, uebernehmen = {}, erweiterung = true } = {}) {
     TrefferFirma: { zeile: () => null, marke: () => null },
     PortalWahl: { zeige() {} },
     Suchbegriffe: { zeige() {} },
+    SuchbegriffeStart: { zeige() {}, ids: () => null },
     addEventListener() {},
     postMessage() {},
     matchMedia: () => ({ matches: false }),

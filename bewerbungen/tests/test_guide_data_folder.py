@@ -15,7 +15,7 @@ import unterlagen
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 GUIDE = ROOT / "docs" / "installation.md"
-HEADING = "### Was im Datenordner liegt"
+HEADING = "#### Was im Datenordner liegt"  # under „Für Geübte“ since #223
 SOURCES = ("bewerbungen/*.py", "bewerbungen/ai/*.py", "onboarding/*.py", "desktop/routes_angaben.py", "desktop/setup.py",
            "desktop/routes_setup.py", "desktop/mcp_tools.py")
 PATH = re.compile(r"[\w.\-/*]+\.(?:yaml|md|json|jsonl|pdf|zip|txt)")

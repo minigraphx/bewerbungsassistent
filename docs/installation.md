@@ -8,6 +8,30 @@ Ihre Unterlagen liegen auf Ihrem Computer, nicht auf einem fremden Server.
 
 Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson ein. Was bei dir anders ist, steht unter [Für Lehrstellen](#für-lehrstellen).
 
+## In 15 Minuten zur ersten Bewerbung
+
+So kommen Sie von der Installation zur ersten Bewerbung. Jeder Schritt verweist auf die Einzelheiten weiter unten.
+
+1. **App installieren und einrichten.** Laden Sie die App auf der [Startseite](./#laden) und starten Sie sie. Die Seite **Einrichtung** fragt, was Sie suchen und ob Sie beim RAV gemeldet sind, und nimmt Ihren Einladungscode für die KI. Mehr unter [App installieren](#app-installieren) und [App einrichten](#app-einrichten).
+
+   ![Seite Einrichtung mit den drei Schritten, der Wahl zwischen Stelle und Lehrstelle und der Zeile mit dem Datenordner](bilder/einrichtung-start.jpg)
+
+2. **Browser-Erweiterung hinzufügen.** Klicken Sie in der Einrichtung auf den Knopf für den Store Ihres Browsers und dort auf **Hinzufügen** oder **Abrufen**. Danach geht es in der App von selbst weiter. Mehr unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen).
+
+   ![Schritt Browser-Erweiterung mit dem Knopf Im Chrome Web Store hinzufügen und dem Link Im Edge-Store öffnen](bilder/einrichtung-erweiterung.jpg)
+
+3. **Angaben erfassen.** Laden Sie unter **Meine Angaben** Ihren bisherigen Lebenslauf hoch und klicken Sie auf **Vorbefüllen**: Die KI füllt die nächsten Schritte aus, und Sie prüfen alles. Wo fast alle dasselbe antworten, steht schon eine Vorgabe. Zum Schluss klicken Sie auf **Angaben übernehmen**. Mehr unter [Angaben erfassen](#angaben-erfassen).
+
+   ![Seite Meine Angaben beim Start: die Schritte links, rechts die Felder zum Hochladen von Lebenslauf, Zeugnissen, Zertifikaten und früheren Anschreiben](bilder/angaben.jpg)
+
+4. **Stellen suchen und merken.** Klicken Sie auf **Stellen suchen** und dann auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, die KI schätzt jeden Treffer ein. Bei einer Stelle, die Ihnen gefällt, klicken Sie auf **Merken** und in der Meldung auf **Bewerbung öffnen**. Mehr unter [Stellen suchen und bewerben](#stellen-suchen-und-bewerben).
+
+   ![Seite Stellen suchen mit der Liste der Treffer und der Einschätzung der KI zum gewählten Treffer](bilder/treffer.jpg)
+
+5. **Unterlagen erstellen und abschicken.** Klicken Sie in der Bewerbung auf **Unterlagen erstellen**; die KI entwirft dabei das Anschreiben. Lesen Sie es, passen Sie es mit **Ändern** an die Firma an und klicken Sie auf **Freigeben**. Mit **Formular öffnen** füllt die Erweiterung das Formular der Firma aus. Sie prüfen es und schicken die Bewerbung selbst ab.
+
+   ![Seite einer Bewerbung mit den sechs Schritten und der Karte Nächster Schritt: Anschreiben lesen und freigeben](bilder/bewerbung.jpg)
+
 **Springen zu**
 
 - [Einmal einrichten](#einmal-einrichten)
@@ -24,7 +48,8 @@ Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson
 - [Bei Bedarf](#bei-bedarf)
   - [Updates](#updates)
   - [Mehrere Personen](#mehrere-personen)
-  - [Was im Datenordner liegt](#was-im-datenordner-liegt)
+  - [Datenordner](#datenordner)
+  - [Unter Linux](#unter-linux)
   - [Für Geübte](#für-geübte)
   - [Häufige Fehler](#häufige-fehler)
   - [Hilfe](#hilfe)
@@ -41,14 +66,14 @@ Diese Kapitel brauchen Sie nur einmal. Sie gelten auch, wenn Sie die App für Ih
 
 ### App installieren
 
-Die App laden Sie auf der [Startseite](./#laden), für Windows, macOS oder Linux.
+Die App laden Sie auf der [Startseite](./#laden), für Windows, macOS oder Linux. Unter Linux geht es etwas anders, siehe [Unter Linux](#unter-linux).
 
-Im Pilot ist die App noch nicht signiert. Darum warnt Ihr Betriebssystem beim ersten Start. Das ist bei dieser Version zu erwarten, und Sie müssen die Warnung einmal bestätigen. Öffnen Sie unten den Teil für Ihren Computer.
+In der Pilotphase ist die App noch nicht signiert. Darum warnt Ihr Betriebssystem beim ersten Start. Das ist bei dieser Version zu erwarten, und Sie müssen die Warnung einmal bestätigen. Öffnen Sie unten den Teil für Ihren Computer.
 
 <details>
 <summary>Für Computer mit Windows</summary>
 
-1. Die Datei `Bewerbungsbegleiter-Setup-<Version>.exe` herunterladen und öffnen. Warnt der Browser beim Herunterladen, behalten Sie die Datei.
+1. Die Setup-Datei für Windows herunterladen und öffnen. Warnt der Browser beim Herunterladen, behalten Sie die Datei.
 2. Erscheint „Der Computer wurde durch Windows geschützt“: auf **Weitere Informationen** klicken, dann auf **Trotzdem ausführen**. Die App ist nicht signiert, darum diese Warnung.
 3. Die Installation durchlaufen. Administratorrechte braucht es nicht. Die App steht danach im Startmenü.
 
@@ -59,25 +84,12 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 <details>
 <summary>Für Mac-Computer mit macOS</summary>
 
-1. Die Datei `Bewerbungsbegleiter-<Version>-macOS.zip` herunterladen und im Finder öffnen.
+1. Die ZIP-Datei für macOS herunterladen und im Finder öffnen.
 2. **Die App in den Ordner „Programme“ ziehen.** Sonst funktionieren spätere Updates nicht.
 3. Die App dort öffnen. macOS warnt und öffnet sie nicht.
 4. **Systemeinstellungen → Datenschutz & Sicherheit** öffnen, nach unten scrollen und bei der App auf **Dennoch öffnen** klicken.
 
 Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
-
-</details>
-
-<details>
-<summary>Für Computer mit Linux (Ubuntu, Linux Mint)</summary>
-
-Zugesagt ist das aktuelle Ubuntu LTS. Linux Mint baut darauf auf und wird mitgeprüft. Auf anderen Systemen wie Fedora, Debian oder Arch läuft die App meist auch, aber ohne Zusage.
-
-1. Die Datei `Bewerbungsbegleiter-<Version>-x86_64.AppImage` herunterladen und in einen festen Ordner legen, zum Beispiel `Programme` in Ihrem Benutzerordner. Dort soll die Datei bleiben: Die App meldet sich beim Start unter diesem Pfad an, für den Einladungslink und die Erweiterung.
-2. Die Datei ausführbar machen: im Dateimanager unter **Eigenschaften** „Als Programm ausführen“ erlauben, oder im Terminal mit `chmod +x Bewerbungsbegleiter-*.AppImage`.
-3. Die Datei doppelt anklicken. Danach steht der Bewerbungsbegleiter auch im Anwendungsmenü.
-
-Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“. Für die Erweiterung braucht es Chrome oder Edge als Paket von der Seite des Herstellers, nicht als Snap oder Flatpak (mehr unter [Häufige Fehler](#häufige-fehler)).
 
 </details>
 
@@ -99,7 +111,7 @@ Bei Lehrstellen: Wählen Sie **Eine Lehrstelle**, auch wenn Sie die App für Ihr
 
 #### Angaben aus einer Datei
 
-Liegt im Ordner Downloads eine Datei aus der Einstiegsvorlage oder aus Claude, etwa `einstieg-erika-muster.zip` oder `einstieg.json`, zeigt die Einrichtung nach Schritt 1 den Schritt **Datei** mit dieser Datei. Klicken Sie auf **Importieren**, oder auf **Überspringen**, wenn Sie Ihre Angaben lieber unter **Meine Angaben** erfassen. Liegt die Datei anderswo, finden Sie den Import unten auf der Seite unter **Erweitert**, **Datei übernehmen**; die Datei wählen Sie dort mit **Datei wählen …**.
+Liegt im Ordner Downloads eine Datei aus der Einstiegsvorlage oder aus Claude, deren Name mit „einstieg“ beginnt, zeigt die Einrichtung nach Schritt 1 den Schritt **Datei** mit dieser Datei. Klicken Sie auf **Importieren**, oder auf **Überspringen**, wenn Sie Ihre Angaben lieber unter **Meine Angaben** erfassen. Liegt die Datei anderswo, finden Sie den Import unten auf der Seite unter **Erweitert**, **Datei übernehmen**; die Datei wählen Sie dort mit **Datei wählen …**.
 
 Liegen Suchprofil, Stilprofil oder Bausteine schon im Datenordner, fragt die App pro Datei, ob sie bleibt. Das geht wie unter [Angaben erfassen](#angaben-erfassen) beschrieben, abschliessend mit **Mit dieser Wahl importieren**.
 
@@ -148,7 +160,7 @@ In diesem Fall laden Sie die Erweiterung einmal von Hand, in Chrome oder Edge. D
 
 1. Auf **In Chrome öffnen** oder **In Edge öffnen** klicken. Die Erweiterungsseite und der Ordner der Erweiterung gehen auf.
 2. Den **Entwicklermodus** einschalten: in Chrome oben rechts, in Edge links.
-3. Den Ordner `erweiterung` auf die Erweiterungsseite ziehen. Geht das nicht: **Entpackte Erweiterung laden** wählen und den Ordner auswählen. Der Knopf **Kopieren** neben dem Pfad hilft dabei: Auf dem Mac fügen Sie den Pfad im Auswahlfenster mit Cmd+Shift+G ein, unter Windows oben in die Adresszeile, unter Linux mit Ctrl+L.
+3. Den Ordner der Erweiterung, den die App geöffnet hat, auf die Erweiterungsseite ziehen. Geht das nicht: **Entpackte Erweiterung laden** wählen und den Ordner auswählen. Der Knopf **Kopieren** neben dem Pfad hilft dabei: Auf dem Mac fügen Sie den Pfad im Auswahlfenster mit Cmd+Shift+G ein, unter Windows oben in die Adresszeile, unter Linux mit Ctrl+L.
 
 ![Erweiterungsseite von Chrome mit eingeschaltetem Entwicklermodus, dem Knopf Entpackte Erweiterung laden und der geladenen Erweiterung](bilder/chrome-erweiterungen.jpg)
 
@@ -252,29 +264,22 @@ Deine Bewerbung schickst immer du selbst ab.
 
 ### Updates
 
-**App:** Gibt es eine neue Version, fragt die App beim Start in einem Fenster nach. Klicken Sie auf **Installieren**, oder auf **Später** und arbeiten Sie weiter. Dann steht oben ein Hinweis mit **Jetzt aktualisieren**, und beim nächsten Start fragt die App wieder. Beim **Beenden** installiert sich die neue Version von selbst im Hintergrund, beim nächsten Start läuft sie. Ihre Daten und Einstellungen bleiben erhalten.
+**App:** Gibt es eine neue Version, fragt die App beim Start in einem Fenster nach. Klicken Sie auf **Installieren**, oder auf **Später** und arbeiten Sie weiter. Dann steht oben ein Hinweis mit **Jetzt aktualisieren**, und beim nächsten Start fragt die App wieder. Beim **Beenden** installiert sich die neue Version von selbst im Hintergrund, beim nächsten Start läuft sie. Ihre Daten und Einstellungen bleiben erhalten. Unter Linux aktualisieren Sie von Hand, siehe [Unter Linux](#unter-linux).
 
 **Vorabversionen:** Neue Versionen gibt es manchmal zuerst zum Ausprobieren. Wer sie testen möchte, schaltet unter **Mehr**, **Erweiterte Einstellungen**, **Vorabversionen** den Schalter **Vorabversionen als Update anbieten** ein. Vorabversionen können noch Fehler haben. Voreingestellt bekommen Sie nur veröffentlichte Versionen.
 
 **Erweiterung:** Aus dem Store hält der Browser die Erweiterung selbst aktuell. Haben Sie sie von Hand geladen, bringt die App die neue Version mit, und die Erweiterung lädt sich von selbst neu, sobald die App läuft und keine Suche oder kein Formular offen ist. Sie müssen nichts tun. Der Entwicklermodus muss dafür eingeschaltet bleiben. Zeigt die Seite „Einrichtung“ trotzdem eine andere Version, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**. Das ist auch beim Wechsel auf die erste Version mit dieser Funktion einmal nötig.
 
 <details>
-<summary>Für Linux: die App von Hand aktualisieren</summary>
-
-Unter Linux installiert sich die App nicht selbst: Auf **Neue Version herunterladen** klicken, die neue AppImage-Datei an die Stelle der alten legen und ausführbar machen. Ihre Daten und Einstellungen bleiben erhalten.
-
-</details>
-
-<details>
 <summary>Wechsel von Version 0.2.10 oder älter: wenn die App bei Ihnen noch Bewerbungsassistent heisst</summary>
 
-Bis Version 0.2.10 hiess die App technisch `Bewerbungsassistent`. Von dort aktualisiert sie sich nicht von selbst: Sie zeigt nur den Link zum Herunterladen. Laden Sie die neue Version einmal von Hand und installieren Sie sie wie unter [App installieren](#app-installieren). Danach geht es wieder von selbst.
+Bis Version 0.2.10 hiess die App technisch „Bewerbungsassistent“. Von dort aktualisiert sie sich nicht von selbst: Sie zeigt nur den Link zum Herunterladen. Laden Sie die neue Version einmal von Hand und installieren Sie sie wie unter [App installieren](#app-installieren). Danach geht es wieder von selbst.
 
 Beim ersten Start übernimmt die neue Version Ihre Einstellungen, den Datenordner und den Zugang zur KI. Der Mac fragt dabei unter Umständen einmal nach Ihrem Passwort für den Schlüsselbund. Lehnen Sie ab, lösen Sie Ihre Einladung neu ein. Eine noch offene alte App wird dabei beendet.
 
 Von Hand bleibt:
 
-- **Mac:** Die alte `Bewerbungsassistent.app` aus „Programme“ löschen. Windows entfernt die alte Version selbst.
+- **Mac:** Die alte App „Bewerbungsassistent“ aus „Programme“ löschen. Windows entfernt die alte Version selbst.
 - **Erweiterung:** Die alte Erweiterung auf der Erweiterungsseite des Browsers entfernen und die neue hinzufügen, wie unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen) beschrieben.
 - **Eigenes Claude-Abo:** Die drei Skills in der App neu herunterladen und in Claude ersetzen, und Claude Desktop einmal neu starten. Haben Sie die App in Claude Code eingetragen: `claude mcp remove bewerbungsassistent` und den Befehl aus den Einstellungen neu ausführen.
 
@@ -301,77 +306,42 @@ Bringen Sie vor dem Wechsel zu Ende, was noch offen ist: eine laufende Suche, Ta
 
 Der Zugang zur KI gehört zum Benutzerkonto des Computers, nicht zum Datenordner. Auf demselben Konto nutzen beide Personen also denselben Zugang und dasselbe Budget. Das gilt auch für einen eigenen API-Schlüssel.
 
-### Was im Datenordner liegt
+### Datenordner
 
 Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei in Ihrem Datenordner. Sie können die Dateien mit jedem Texteditor öffnen, die PDFs verschicken oder alles in ein anderes Programm mitnehmen. Welcher Ordner das ist, sehen Sie unter **Mehr**, **Einrichtung**, im Schritt **Gesucht**.
 
 **Bevor Sie eine Datei von Hand ändern:** Erstellen Sie zuerst unter **Mehr** mit **Sicherung erstellen** eine Kopie des ganzen Ordners. Eine Datei mit einem Fehler kann die App nicht mehr lesen. Sicherer ist es, Texte in der App unter **Mehr**, **Inhalte als Text** zu ändern: Dort prüft die App jede Änderung, und der alte Stand bleibt als Entwurf erhalten.
 
-<details>
-<summary>Ihre Grundlagen</summary>
+Welche Dateien dort liegen und was sie enthalten, steht unter [Was im Datenordner liegt](#was-im-datenordner-liegt).
 
-- `cv.yaml` – Ihr Lebenslauf mit allen Angaben: Person, Stellen, Ausbildungen, Kenntnisse, Sprachen. Die App ändert ihn unter **Meine Angaben**, den Bildausschnitt unter **Mehr**, **Foto**. Ausserhalb der App ist es eine Textdatei im Format YAML nach dem Schema von JSON Resume, das auch andere Programme für Lebensläufe kennen.
-- Ihr Foto, zum Beispiel `foto.jpg` – die Datei, die in `cv.yaml` unter `basics.image` steht. Sie bleibt ein gewöhnliches Bild. Haben Sie am Anfang kein Foto gegeben, laden Sie es unter **Mehr**, **Foto** hoch, als JPG oder PNG. Die App speichert es dann als `foto.jpg` oder `foto.png`, ohne die Angaben zu Kamera, Ort und Zeit, die ein Foto sonst mitträgt.
-- `fotos/` und `fotos.yaml` – weitere Fotos, wenn Sie unter **Mehr**, **Foto** mehr als eines hochladen, und die Liste aller Fotos mit ihrem Ausschnitt. Unter **Ihre Fotos** wählen Sie mit **Verwenden**, welches Foto aktiv ist; neue Lebensläufe und Dossiers nutzen dieses. Was schon erstellt oder verschickt ist, behält sein Foto. Ein Foto, das nicht aktiv ist, entfernen Sie mit **Löschen**; es bleibt unter **Entwürfe und Versionen**.
-- `suchprofil.md` – was Sie suchen: Berufe und Suchbegriffe, Region, Portale, Ausschlüsse. Die App ändert es unter **Meine Angaben** und **Stellen suchen** (**Suche einstellen**, **Was suchen**). Ein Text im Format Markdown, lesbar in jedem Editor.
-- `anschreiben/stil.md` – Ihr Stilprofil: wie Ihre Anschreiben klingen sollen. `anschreiben/bausteine.md` – Ihre Bausteine: Sätze und Beispiele, die die KI in Anschreiben verwenden darf. Beide entstehen unter **Meine Angaben** und lassen sich unter **Inhalte als Text** ändern.
-- `jobs/<name>.yaml` und `varianten.yaml` – Varianten des Lebenslaufs für bestimmte Stellen und ihre Tags. Sie entstehen nur mit Claude; ändern lassen sie sich unter **Inhalte als Text**.
-- `einrichtung.yaml` – Ihre Wahl aus dem ersten Schritt der Einrichtung: Stelle oder Lehrstelle, Sie oder du, RAV.
-- `einwilligung.json` – wann Sie der Nutzung der KI zugestimmt haben und welcher Fassung des Textes.
-- `uebersetzungen.yaml` – welche Übersetzungen im Lebenslauf schon geprüft sind, nur als Prüfsummen, ohne Text. Sie schreibt der Skill `bewerbung` von Claude.
+### Unter Linux
 
-</details>
+#### Installieren
 
-<details>
-<summary>Ihre Bewerbungen</summary>
+Zugesagt ist das aktuelle Ubuntu LTS. Linux Mint baut darauf auf und wird mitgeprüft. Auf anderen Systemen wie Fedora, Debian oder Arch läuft die App meist auch, aber ohne Zusage.
 
-- `bewerbungen.yaml` – das Register aller Bewerbungen: Firma, Stelle, Status, Daten, Notizen. Die App ändert es in der **Übersicht**, auf der Seite jeder Bewerbung und beim **Merken** einer Stelle. Ausserhalb der App ist es eine Liste in YAML, die sich in eine Tabelle übertragen lässt.
-- `bewerbungen/<id>/` – ein Ordner pro Bewerbung:
-  - `bewerbungen/<id>/stelle.md` – der Text des Inserats, gespeichert beim **Merken** oder beim Speichern des Inserats mit der Erweiterung.
-  - `bewerbungen/<id>/anschreiben.yaml` – Ihr Anschreiben, entworfen und geändert auf der Seite der Bewerbung.
-  - `bewerbungen/<id>/lebenslauf.pdf` und `bewerbungen/<id>/anschreiben.pdf` – die Unterlagen, die **Unterlagen erstellen** baut. Diese PDFs können Sie direkt verschicken, etwa per E-Mail.
-  - `bewerbungen/<id>/dossier.pdf` – das Dossier mit Deckblatt, Anschreiben und Lebenslauf, wenn Sie unter **Unterlagen prüfen** **Dossier** gewählt haben. Als Design wählen Sie Siegel, Raster oder Register, unter **Erweitert** auch eines pro Seite. Anschreiben und Lebenslauf liegen im Design ihrer Seite auch einzeln daneben.
-  - `bewerbungen/<id>/dossier.yaml` – falls vorhanden, die weiteren Seiten des Dossiers wie Begrüssung, Dank und Kennzahlen. Begrüssung und Dank entwirft die KI unter **Unterlagen prüfen** mit **Von der KI entwerfen**; Sie passen sie dort an und speichern sie mit **Texte speichern**. Ohne Text entfällt die Seite dazu.
-  - `bewerbungen/<id>/zertifikate.zip` – die für diese Bewerbung gewählten Zertifikate.
-  - `bewerbungen/<id>/eigenes-anschreiben.pdf` – ein Anschreiben, das Sie unter **Eigenes Anschreiben** selbst hochgeladen haben.
-  - `bewerbungen/<id>/freigabe.yaml` – dass Sie das Anschreiben mit **Freigeben** freigegeben haben. Jede Änderung am Anschreiben hebt die Freigabe auf.
-  - `bewerbungen/<id>/pruefung-ki.json` – das Ergebnis der letzten Prüfung durch die KI (**Inhalt prüfen**).
-  - `bewerbungen/<id>/an-formular/` – was ein offenes Bewerbungsformular von der App bekommen hat, darunter `unterlagen.pdf` und `nachweise.pdf`, wenn die App Dateien zu einem PDF zusammenfasst. Der Ordner verschwindet beim Versand.
-  - `bewerbungen/<id>/zum-hochladen/` – alle Dateien der Bewerbung zum Hochladen von Hand, angelegt mit **Dateien im Ordner zeigen**. Auch er verschwindet beim Versand.
-- `versendet/` – jede Fassung, die Sie verschickt haben, genau einmal. Die App legt sie bei **Versand erfassen** oder **Abgeschickt? Ja** ab. Hier finden Sie später, was eine Firma bekommen hat.
+1. Die AppImage-Datei herunterladen und in einen festen Ordner legen, zum Beispiel „Programme“ in Ihrem Benutzerordner. Dort soll die Datei bleiben: Die App meldet sich beim Start unter diesem Pfad an, für den Einladungslink und die Erweiterung.
+2. Die Datei ausführbar machen: im Dateimanager unter **Eigenschaften** „Als Programm ausführen“ erlauben, oder im Terminal mit `chmod +x` und dem Namen der Datei.
+3. Die Datei doppelt anklicken. Danach steht der Bewerbungsbegleiter auch im Anwendungsmenü.
 
-</details>
+Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“. Für die Erweiterung braucht es Chrome oder Edge als Paket von der Seite des Herstellers, nicht als Snap oder Flatpak (mehr unter [Fehler, die nur unter Linux vorkommen](#fehler-die-nur-unter-linux-vorkommen)).
 
-<details>
-<summary>Ihre Dateien und Unterlagen</summary>
+#### Aktualisieren
 
-- `dokumente/` – Ihre Originale, unverändert:
-  - `dokumente/lebenslauf.pdf` – Ihr fertiger Lebenslauf, hochgeladen unter **Meine Dateien**.
-  - `dokumente/zeugnisse/` und `dokumente/zertifikate/` – Zeugnisse und Zertifikate aus **Meine Angaben** und **Meine Dateien**.
-  - `dokumente/lebenslauf-bisher/` und `dokumente/anschreiben-bisher/` – frühere Lebensläufe und Anschreiben, die Sie unter **Meine Angaben** hochgeladen haben. Die KI liest daraus Vorschläge.
-  - `dokumente/angaben-stand.json` – Ihr Zwischenstand unter **Meine Angaben**, bis Sie die Angaben übernehmen.
-  - `dokumente/einstieg.json` und `dokumente/neu.yaml` – eine eingelesene Datei mit Angaben (Einrichtung, Schritt **Datei** oder **Erweitert**) und die Liste der Unterlagen daraus, die noch nicht übernommen sind.
+Unter Linux installiert sich die App nicht selbst: Auf **Neue Version herunterladen** klicken, die neue AppImage-Datei an die Stelle der alten legen und ausführbar machen. Ihre Daten und Einstellungen bleiben erhalten.
 
-</details>
+#### Fehler, die nur unter Linux vorkommen
 
-<details>
-<summary>Suche, Verlauf und Technisches</summary>
-
-- `suche/` – die Stellensuche unter **Stellen suchen**: `suche/treffer.yaml` mit den Treffern und ihren Bewertungen, `suche/texte/` mit den Texten der Inserate, `suche/letzte-suche.yaml` mit dem letzten Lauf pro Portal und `suche/einstellungen.yaml` mit den Einstellungen der Seite. Wer die Treffer in eine Tabelle übertragen will, findet sie hier.
-- `firmen.yaml` – was die App über die Firmen aus Treffern und Bewerbungen bei kununu weiss: die zugeordnete kununu-Seite, Wert, Anzahl Bewertungen und wann geprüft wurde. Sie entsteht unter **Mehr**, **Firmen**.
-- `.entwuerfe/` – jeder frühere Stand Ihrer Dateien, mit `.entwuerfe/index.yaml` als Verzeichnis. Die App zeigt sie unter **Mehr**, **Entwürfe und Versionen**. Von hier holen Sie einen alten Stand zurück.
-- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Erweiterte Einstellungen**.
-- `.sicherung.yaml` – wann Sie zuletzt eine Sicherung erstellt haben, für die Erinnerung.
-- `.build/` – Zwischenstände beim Bauen der PDFs. Sie dürfen den Ordner löschen; die App legt ihn neu an.
-- `.git/` und `.gitignore` – ist Git auf dem Computer installiert, hält die App jeden Versand zusätzlich als Version fest. Die `.gitignore` sagt Git, was nicht hineingehört, etwa `dokumente/` und `suche/`.
-
-Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist nicht an. Auf dem Mac blenden Sie sie mit ⇧⌘. ein, unter Windows im Explorer unter **Anzeigen**, **Einblenden**, **Ausgeblendete Elemente**.
-
-</details>
+| Meldung oder Problem | Was hilft |
+|---|---|
+| Das AppImage startet nicht, und es erscheint ein Hinweis auf FUSE | Unter Ubuntu und Mint `sudo apt install fuse3`, unter Arch `sudo pacman -S fuse3`, unter Fedora `sudo dnf install fuse3`. Danach die Datei erneut öffnen. |
+| Die Erweiterung findet die App nicht | Chrome oder Edge laufen vermutlich als Snap oder Flatpak, etwa das Chromium von Ubuntu. Solche Browser dürfen keine Programme ausserhalb starten. Installieren Sie Chrome oder Edge als `.deb`-Paket von der Seite von Google oder Microsoft und starten Sie danach die App einmal neu. |
+| „Der Zugang liess sich nicht im Schlüsselbund des Systems ablegen“ | Die App legt den Zugang zur KI nur verschlüsselt ab, im Schlüsselbund des Systems. Ubuntu und Mint haben ihn. Auf schlanken Desktops fehlt er manchmal: den GNOME-Schlüsselbund (`gnome-keyring`) oder KWallet installieren, neu anmelden und den Einladungslink nochmals öffnen. |
+| „Für den Auswahldialog fehlt zenity oder kdialog“ | Den Pfad ins Feld darunter tippen, oder `zenity` installieren (`sudo apt install zenity`). |
 
 ### Für Geübte
 
-Beides ist freiwillig. Mit dem Einladungscode allein läuft die App schon. Haben Sie keinen Code, kommen Sie auf einem dieser Wege zur KI.
+Hier steht, was die meisten nie brauchen: zwei Wege zur KI ohne Einladungscode und die Dateien im Datenordner. Beide Wege sind freiwillig; mit dem Einladungscode allein läuft die App schon.
 
 #### Eigenes Claude-Abo (freiwillig)
 
@@ -379,7 +349,7 @@ Wer ein Abo bei Anthropic hat, kann auch in Claude arbeiten und das Ergebnis in 
 
 #### Eigener API-Schlüssel (freiwillig)
 
-Ein eigener Schlüssel lohnt sich, wenn Sie mehr KI nutzen möchten, als Ihr Budget im Pilot erlaubt, oder wenn die Suche zusätzliche Seiten lesen soll. Das geht nur mit eigenem Schlüssel.
+Ein eigener Schlüssel lohnt sich, wenn Sie mehr KI nutzen möchten, als Ihr Budget in der Pilotphase erlaubt, oder wenn die Suche zusätzliche Seiten lesen soll. Das geht nur mit eigenem Schlüssel.
 
 Das ändert sich damit:
 
@@ -443,6 +413,72 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 
 </details>
 
+#### Was im Datenordner liegt
+
+Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner](#datenordner). Öffnen Sie unten den Teil, der Sie interessiert.
+
+<details>
+<summary>Ihre Grundlagen</summary>
+
+- `cv.yaml` – Ihr Lebenslauf mit allen Angaben: Person, Stellen, Ausbildungen, Kenntnisse, Sprachen. Die App ändert ihn unter **Meine Angaben**, den Bildausschnitt unter **Mehr**, **Foto**. Ausserhalb der App ist es eine Textdatei im Format YAML nach dem Schema von JSON Resume, das auch andere Programme für Lebensläufe kennen.
+- Ihr Foto, zum Beispiel `foto.jpg` – die Datei, die in `cv.yaml` unter `basics.image` steht. Sie bleibt ein gewöhnliches Bild. Haben Sie am Anfang kein Foto gegeben, laden Sie es unter **Mehr**, **Foto** hoch, als JPG oder PNG. Die App speichert es dann als `foto.jpg` oder `foto.png`, ohne die Angaben zu Kamera, Ort und Zeit, die ein Foto sonst mitträgt.
+- `fotos/` und `fotos.yaml` – weitere Fotos, wenn Sie unter **Mehr**, **Foto** mehr als eines hochladen, und die Liste aller Fotos mit ihrem Ausschnitt. Unter **Ihre Fotos** wählen Sie mit **Verwenden**, welches Foto aktiv ist; neue Lebensläufe und Dossiers nutzen dieses. Was schon erstellt oder verschickt ist, behält sein Foto. Ein Foto, das nicht aktiv ist, entfernen Sie mit **Löschen**; es bleibt unter **Entwürfe und Versionen**.
+- `suchprofil.md` – was Sie suchen: Berufe und Suchbegriffe, Region, Portale, Ausschlüsse. Die App ändert es unter **Meine Angaben** und **Stellen suchen** (**Suche einstellen**, **Was suchen**). Ein Text im Format Markdown, lesbar in jedem Editor.
+- `anschreiben/stil.md` – Ihr Stilprofil: wie Ihre Anschreiben klingen sollen. `anschreiben/bausteine.md` – Ihre Bausteine: Sätze und Beispiele, die die KI in Anschreiben verwenden darf. Beide entstehen unter **Meine Angaben** und lassen sich unter **Inhalte als Text** ändern.
+- `jobs/<name>.yaml` und `varianten.yaml` – Varianten des Lebenslaufs für bestimmte Stellen und ihre Tags. Sie entstehen nur mit Claude; ändern lassen sie sich unter **Inhalte als Text**.
+- `einrichtung.yaml` – Ihre Wahl aus dem ersten Schritt der Einrichtung: Stelle oder Lehrstelle, Sie oder du, RAV.
+- `einwilligung.json` – wann Sie der Nutzung der KI zugestimmt haben und welcher Fassung des Textes.
+- `uebersetzungen.yaml` – welche Übersetzungen im Lebenslauf schon geprüft sind, nur als Prüfsummen, ohne Text. Sie schreibt der Skill `bewerbung` von Claude.
+
+</details>
+
+<details>
+<summary>Ihre Bewerbungen</summary>
+
+- `bewerbungen.yaml` – das Register aller Bewerbungen: Firma, Stelle, Status, Daten, Notizen. Die App ändert es in der **Übersicht**, auf der Seite jeder Bewerbung und beim **Merken** einer Stelle. Ausserhalb der App ist es eine Liste in YAML, die sich in eine Tabelle übertragen lässt.
+- `bewerbungen/<id>/` – ein Ordner pro Bewerbung:
+  - `bewerbungen/<id>/stelle.md` – der Text des Inserats, gespeichert beim **Merken** oder beim Speichern des Inserats mit der Erweiterung.
+  - `bewerbungen/<id>/anschreiben.yaml` – Ihr Anschreiben, entworfen und geändert auf der Seite der Bewerbung.
+  - `bewerbungen/<id>/lebenslauf.pdf` und `bewerbungen/<id>/anschreiben.pdf` – die Unterlagen, die **Unterlagen erstellen** baut. Diese PDFs können Sie direkt verschicken, etwa per E-Mail.
+  - `bewerbungen/<id>/dossier.pdf` – das Dossier mit Deckblatt, Anschreiben und Lebenslauf, wenn Sie unter **Unterlagen prüfen** **Dossier** gewählt haben. Als Design wählen Sie Siegel, Raster oder Register, unter **Erweitert** auch eines pro Seite. Anschreiben und Lebenslauf liegen im Design ihrer Seite auch einzeln daneben.
+  - `bewerbungen/<id>/dossier.yaml` – falls vorhanden, die weiteren Seiten des Dossiers wie Begrüssung, Dank und Kennzahlen. Begrüssung und Dank entwirft die KI unter **Unterlagen prüfen** mit **Von der KI entwerfen**; Sie passen sie dort an und speichern sie mit **Texte speichern**. Ohne Text entfällt die Seite dazu.
+  - `bewerbungen/<id>/zertifikate.zip` – die für diese Bewerbung gewählten Zertifikate.
+  - `bewerbungen/<id>/eigenes-anschreiben.pdf` – ein Anschreiben, das Sie unter **Eigenes Anschreiben** selbst hochgeladen haben.
+  - `bewerbungen/<id>/freigabe.yaml` – dass Sie das Anschreiben mit **Freigeben** freigegeben haben. Jede Änderung am Anschreiben hebt die Freigabe auf.
+  - `bewerbungen/<id>/pruefung-ki.json` – das Ergebnis der letzten Prüfung durch die KI (**Inhalt prüfen**).
+  - `bewerbungen/<id>/an-formular/` – was ein offenes Bewerbungsformular von der App bekommen hat, darunter `unterlagen.pdf` und `nachweise.pdf`, wenn die App Dateien zu einem PDF zusammenfasst. Der Ordner verschwindet beim Versand.
+  - `bewerbungen/<id>/zum-hochladen/` – alle Dateien der Bewerbung zum Hochladen von Hand, angelegt mit **Dateien im Ordner zeigen**. Auch er verschwindet beim Versand.
+- `versendet/` – jede Fassung, die Sie verschickt haben, genau einmal. Die App legt sie bei **Versand erfassen** oder **Abgeschickt? Ja** ab. Hier finden Sie später, was eine Firma bekommen hat.
+
+</details>
+
+<details>
+<summary>Ihre Dateien und Unterlagen</summary>
+
+- `dokumente/` – Ihre Originale, unverändert:
+  - `dokumente/lebenslauf.pdf` – Ihr fertiger Lebenslauf, hochgeladen unter **Meine Dateien**.
+  - `dokumente/zeugnisse/` und `dokumente/zertifikate/` – Zeugnisse und Zertifikate aus **Meine Angaben** und **Meine Dateien**.
+  - `dokumente/lebenslauf-bisher/` und `dokumente/anschreiben-bisher/` – frühere Lebensläufe und Anschreiben, die Sie unter **Meine Angaben** hochgeladen haben. Die KI liest daraus Vorschläge.
+  - `dokumente/angaben-stand.json` – Ihr Zwischenstand unter **Meine Angaben**, bis Sie die Angaben übernehmen.
+  - `dokumente/einstieg.json` und `dokumente/neu.yaml` – eine eingelesene Datei mit Angaben (Einrichtung, Schritt **Datei** oder **Erweitert**) und die Liste der Unterlagen daraus, die noch nicht übernommen sind.
+
+</details>
+
+<details>
+<summary>Suche, Verlauf und Technisches</summary>
+
+- `suche/` – die Stellensuche unter **Stellen suchen**: `suche/treffer.yaml` mit den Treffern und ihren Bewertungen, `suche/texte/` mit den Texten der Inserate, `suche/letzte-suche.yaml` mit dem letzten Lauf pro Portal und `suche/einstellungen.yaml` mit den Einstellungen der Seite. Wer die Treffer in eine Tabelle übertragen will, findet sie hier.
+- `firmen.yaml` – was die App über die Firmen aus Treffern und Bewerbungen bei kununu weiss: die zugeordnete kununu-Seite, Wert, Anzahl Bewertungen und wann geprüft wurde. Sie entsteht unter **Mehr**, **Firmen**.
+- `.entwuerfe/` – jeder frühere Stand Ihrer Dateien, mit `.entwuerfe/index.yaml` als Verzeichnis. Die App zeigt sie unter **Mehr**, **Entwürfe und Versionen**. Von hier holen Sie einen alten Stand zurück.
+- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Erweiterte Einstellungen**.
+- `.sicherung.yaml` – wann Sie zuletzt eine Sicherung erstellt haben, für die Erinnerung.
+- `.build/` – Zwischenstände beim Bauen der PDFs. Sie dürfen den Ordner löschen; die App legt ihn neu an.
+- `.git/` und `.gitignore` – ist Git auf dem Computer installiert, hält die App jeden Versand zusätzlich als Version fest. Die `.gitignore` sagt Git, was nicht hineingehört, etwa `dokumente/` und `suche/`.
+
+Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist nicht an. Auf dem Mac blenden Sie sie mit ⇧⌘. ein, unter Windows im Explorer unter **Anzeigen**, **Einblenden**, **Ausgeblendete Elemente**.
+
+</details>
+
 ### Häufige Fehler
 
 #### Beim Start
@@ -463,7 +499,7 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 | „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein: **KI einschalten** zeigt den Text dazu. |
 | „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Stellen suchen** oder **Lehrstellen suchen** und unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
 | „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 2](#schritt-2-ki) ein. |
-| „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie im Pilot begleitet. |
+| „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie in der Pilotphase begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |
 | „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
 | „Dieser Schlüssel gilt nicht.“ | Prüfen Sie in der [Console](https://platform.claude.com/settings/keys), ob es ihn noch gibt, oder erstellen Sie einen neuen. Gespeichert wurde nichts. |
@@ -477,20 +513,8 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 | „Die Erweiterung antwortet nicht. Bitte die Seite neu laden.“ | Laden Sie die Seite der App neu. Das kommt vor, wenn die Erweiterung neu geladen oder aktualisiert wurde. Hilft das nicht, prüfen Sie auf der Erweiterungsseite, ob sie eingeschaltet ist. |
 | „Die Erweiterung hat keine Suche am Laufen. Bitte nochmals „Jetzt suchen“ drücken, sonst die Seite neu laden.“ | Die Suche ist unterbrochen worden, und die Seite wartet nicht länger auf sie. Was schon in der App angekommen ist, bleibt. Klicken Sie nochmals auf **Jetzt suchen**; hilft das nicht, laden Sie die Seite neu. |
 
-<details>
-<summary>Für Computer mit Linux: Fehler, die nur dort vorkommen</summary>
-
-| Meldung oder Problem | Was hilft |
-|---|---|
-| Das AppImage startet nicht, und es erscheint ein Hinweis auf FUSE | Unter Ubuntu und Mint `sudo apt install fuse3`, unter Arch `sudo pacman -S fuse3`, unter Fedora `sudo dnf install fuse3`. Danach die Datei erneut öffnen. |
-| Die Erweiterung findet die App nicht | Chrome oder Edge laufen vermutlich als Snap oder Flatpak, etwa das Chromium von Ubuntu. Solche Browser dürfen keine Programme ausserhalb starten. Installieren Sie Chrome oder Edge als `.deb`-Paket von der Seite von Google oder Microsoft und starten Sie danach die App einmal neu. |
-| „Der Zugang liess sich nicht im Schlüsselbund des Systems ablegen“ | Die App legt den Zugang zur KI nur verschlüsselt ab, im Schlüsselbund des Systems. Ubuntu und Mint haben ihn. Auf schlanken Desktops fehlt er manchmal: den GNOME-Schlüsselbund (`gnome-keyring`) oder KWallet installieren, neu anmelden und den Einladungslink nochmals öffnen. |
-| „Für den Auswahldialog fehlt zenity oder kdialog“ | Den Pfad ins Feld darunter tippen, oder `zenity` installieren (`sudo apt install zenity`). |
-
-</details>
-
 ### Hilfe
 
 Was die App vor dem Senden an die KI ersetzt und warum ictjobs an oder aus ist, steht in den [häufigen Fragen](fragen.md).
 
-Kommen Sie nicht weiter, melden Sie sich bei der Person, die Sie im Pilot begleitet.
+Kommen Sie nicht weiter, melden Sie sich bei der Person, die Sie in der Pilotphase begleitet.

@@ -224,7 +224,8 @@
   function zeigeListe() {
     $("art").hidden = !logik.beideArten(alle);
     const art = $("art").hidden ? "" : $("art").value;
-    const passend = logik.nachArt(alle.filter(x => x.zustand === zustand), art);
+    const beleg = window.SuchbegriffeStart.ids();  // the hits behind a piece of evidence, in any state (#210)
+    const passend = logik.nachArt(alle.filter(x => (beleg ? beleg.has(x.id) : x.zustand === zustand)), art);
     const sortierung = logik.gueltigeSortierung(einstellungen.sortierung);
     $("sortierung").value = sortierung;
     const sichtbar = logik.sortiert(passend, einstellungen.beruf_sterne, sortierung);
@@ -385,6 +386,7 @@
       zeigeArt(daten.art, daten.angebote || []);
       window.PortalWahl.zeige(daten.portale_wahl || [], lade);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
+      window.SuchbegriffeStart.zeige(daten.art);
       zeigeListe();
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {});
       zeigeNichtUebernommen();
@@ -535,5 +537,6 @@
     }, 1500);
   }
   document.addEventListener("suchprofil-geaendert", lade);
+  document.addEventListener("suchbegriffe-beleg", zeigeListe);
   textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); document.title = t("nav.suche"); }).finally(() => { lade(); beobachten(nachsehen); });
 })();

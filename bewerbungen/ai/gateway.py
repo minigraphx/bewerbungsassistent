@@ -71,6 +71,12 @@ class Gateway:
         except errors.AnswerError as error:
             raise errors.AnswerError(str(error), cost_usd=cost_usd(model, usage)) from error
 
+    def preview(self, request: Request) -> str:
+        """What `ask` would send, masked the same way, without sending it (G15): read before a call, costs nothing."""
+        pseudonymizer = self._pseudonymizer.extended(secrets_found_in([request.context, request.prompt]))
+        context, prompt = pseudonymizer.mask(request.context), pseudonymizer.mask(request.prompt)
+        return "\n\n".join([request.rules, context, request.instructions, prompt])
+
     @staticmethod
     def _payload(request: Request, context: str, prompt: str) -> dict:
         payload = {
