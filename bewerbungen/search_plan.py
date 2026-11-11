@@ -419,6 +419,16 @@ def job_terms(text: str) -> tuple[str, ...]:
     return _job_terms(_sections(text))
 
 
+def listed_job_terms(text: str) -> tuple[str, ...]:
+    """Every term the profile lists, also beyond the limit, so that a change can say how far over it would go."""
+    return _listed_terms(_sections(text))
+
+
+def title_terms(text: str, label: str) -> tuple[str, ...]:
+    """The terms of one title filter line (G31), „positiv“ or „ausschluss“, as the search reads them."""
+    return _terms(_value(_pairs(_sections(text).get("titelfilter", [])), label), MAX_LISTED)
+
+
 def _job_hints(nationwide: bool, portals: tuple[str, ...], cantons: tuple[str, ...], regions: tuple[str, ...],
                places: tuple[str, ...], postal_codes: tuple[str, ...]) -> tuple[tuple[str, str], ...]:
     """What the person may want to add, each with the field to add it in. No portal is skipped for a missing place."""
