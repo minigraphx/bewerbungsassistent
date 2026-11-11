@@ -1,5 +1,6 @@
 """How the build chooses the density of a part (G49, #236): measured markers, then the smaller of two fixes."""
 import pytest
+import typst
 
 import page_fill
 from page_fill import Fill
@@ -98,3 +99,11 @@ def test_levels_choose_each_part_after_the_one_before():
     chosen = page_fill.levels(query, {"data": "x.json"}, ("letter", "cv"))
     assert chosen == {"data": "x.json", "density-letter": "0", "density-cv": "-1"}
     assert all(s.get("density-letter") == "0" for s in seen if "density-cv" in s)
+
+
+def test_a_document_that_does_not_compile_raises_the_error_typst_compile_raises(tmp_path):
+    # Callers such as the trial build of Inhalte catch typst.TypstError; the query alone raises a bare RuntimeError
+    broken = tmp_path / "broken.typ"
+    broken.write_text("#(5).map(x => x)\n", encoding="utf-8")
+    with pytest.raises(typst.TypstError, match="map"):
+        page_fill.markers(str(broken), str(tmp_path), [], {})

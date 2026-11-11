@@ -76,8 +76,14 @@ def _smallest_fix(probe: Callable[[int], Fill], drawn: Fill, minimum: float) -> 
 
 def markers(entry: str, root: str, font_paths: list[str], sys_inputs: dict) -> list[dict]:
     """The page-fill markers of one document, without writing it."""
-    return json.loads(typst.query(entry, SELECTOR, field="value", root=root, font_paths=font_paths,
-                                  sys_inputs=sys_inputs))
+    try:
+        found = typst.query(entry, SELECTOR, field="value", root=root, font_paths=font_paths, sys_inputs=sys_inputs)
+    except typst.TypstError:
+        raise
+    except RuntimeError as error:
+        # The query raises a bare RuntimeError where compile raises TypstError; callers catch the latter
+        raise typst.TypstError(str(error)) from error
+    return json.loads(found)
 
 
 def levels(query: Callable[[dict], list[dict]], sys_inputs: dict, parts: tuple[str, ...]) -> dict:
