@@ -17,6 +17,7 @@ from ai import connection, second_look, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
 import routes_career
+import routes_window
 from hits import CLOSED, PORTALS_OFF, TRIAL, Hits, bounded_text, company_key, comparable_link, is_near
 from server import json_antwort, pflicht
 
@@ -147,7 +148,7 @@ def overview(k, parameter, body):
                          "angebote": list(offers), **routes_career.searched_now(k),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
                          "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN,
-                         "region": region, "sperrgrund": blocked})
+                         "region": region, "sperrgrund": blocked, "zeitraum": routes_window.display_for(k)})
 
 
 def _region(profile: search_plan.SearchPlan) -> dict:
