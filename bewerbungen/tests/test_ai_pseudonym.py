@@ -329,3 +329,23 @@ def test_the_file_name_of_the_own_logo_is_replaced_like_the_photo():
 
     assert "lea-muster-design" not in masked and "{{LOGO}}" in masked
     assert pseudonym.label("LOGO") == "Logo"
+
+
+def test_edited_initials_of_the_dossier_are_replaced_like_the_name():
+    """#233: x-monogramm in cv.yaml would reach the AI in the CV text; the mark and the colour may stay."""
+    cv = {"basics": {"name": "Lea Muster", "x-monogramm": "LKM", "x-zeichen": "ring", "x-akzent": "#38495d"}}
+    p = Pseudonymizer(secrets_from_cv(cv))
+
+    masked = p.mask("x-monogramm: LKM\nx-zeichen: ring\nx-akzent: '#38495d'")
+
+    assert "LKM" not in masked and "{{MONOGRAM}}" in masked
+    assert "ring" in masked and "#38495d" in masked
+    assert p.unmask(masked).startswith("x-monogramm: LKM")
+    assert pseudonym.label("MONOGRAM") == "Initialen"
+    p.check_clean(masked)
+
+
+def test_initials_are_replaced_only_as_written_so_ordinary_words_stay():
+    p = Pseudonymizer(secrets_from_cv({"basics": {"name": "Ida Tanner", "x-monogramm": "IT"}}))
+
+    assert p.mask("Initialen IT, Leitung it-Support") == "Initialen {{MONOGRAM}}, Leitung it-Support"

@@ -41,8 +41,8 @@ FIELD_LABELS = (("EMAIL", "E-Mail"), ("PHONE", "Telefon"), ("BIRTH", "Geburtsdat
                 ("ORIGIN", "Heimatort, Zivilstand oder Nationalität"), ("STREET", "Adresse"), ("ADDRESS", "Adresse"),
                 ("POSTAL_CODE", "Postleitzahl"), ("TOWN", "Wohnort"), ("PROFILE_USER", "Benutzername"),
                 ("PROFILE", "Link"), ("WEBSITE", "Link"), ("LINK", "Link"), ("PHOTO", "Foto"), ("LOGO", "Logo"),
-                ("SCHOOL", "Schule"), ("REFERENCE", "Referenz"), ("CONTACT_WAY", "Kontaktweg"), ("CONTACT", "Kontaktperson"),
-                ("RECIPIENT", "Kontaktperson"), ("NAME", "Name"))
+                ("MONOGRAM", "Initialen"), ("SCHOOL", "Schule"), ("REFERENCE", "Referenz"), ("CONTACT_WAY", "Kontaktweg"),
+                ("CONTACT", "Kontaktperson"), ("RECIPIENT", "Kontaktperson"), ("NAME", "Name"))
 UNKNOWN_LABEL = "persönliche Angabe"
 
 
@@ -67,7 +67,7 @@ class PseudonymError(Exception):
 class Secret:
     field: str
     value: str
-    kind: str = "text"  # text, name, phone, url, date
+    kind: str = "text"  # text, name, phone, url, date, initials
 
     @property
     def placeholder(self) -> str:
@@ -116,6 +116,12 @@ def _text_pattern(value: str, name: bool = False) -> re.Pattern:
     """A name also in the genitive and without umlauts or accents; other text exactly, but in any case."""
     end = r"(?=s?(?![\w@]))" if name else r"(?![\w@])"
     return re.compile(r"(?<![\w@.])" + _words(value, spellings=name) + end, re.IGNORECASE)
+
+
+def _initials_pattern(value: str) -> re.Pattern:
+    """Initials of the dossier (x-monogramm) only as written: two or three letters in any case would hit ordinary
+    words like „it“ or „eb“."""
+    return re.compile(r"(?<![\w@.])" + re.escape(value.strip()) + r"(?![\w@])")
 
 
 def _digits_pattern(digits: str) -> str:
@@ -177,6 +183,8 @@ def _pattern(secret: Secret) -> re.Pattern:
         return _url_pattern(value)
     if secret.kind == "date":
         return _date_pattern(value)
+    if secret.kind == "initials":
+        return _initials_pattern(value)
     return _text_pattern(value, name=secret.kind == "name")
 
 
