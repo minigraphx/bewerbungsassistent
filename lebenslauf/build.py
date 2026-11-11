@@ -13,6 +13,7 @@ import pathlib
 import typst
 import yaml
 
+import page_fill
 from tailor import tailor
 from typst_root import typst_root
 
@@ -108,13 +109,12 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     out = pathlib.Path(args.out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
     stand = (job or {}).get("stand") or datetime.date.today().strftime("%d.%m.%Y")
-    typst.compile(
-        str(wurzel.locate(ROOT / "themes" / args.theme / "main.typ")),
-        output=str(out),
-        root=str(wurzel.path),
-        font_paths=[str(ROOT / "fonts")],
-        sys_inputs={"data": wurzel.typst_path(daten_json), "lang": args.lang, "stand": stand},
-    )
+    vorlage = str(wurzel.locate(ROOT / "themes" / args.theme / "main.typ"))
+    schriften = [str(ROOT / "fonts")]
+    eingaben = {"data": wurzel.typst_path(daten_json), "lang": args.lang, "stand": stand}
+    # Keine fast leere letzte Seite (G49): Dichte wählen, bevor das PDF entsteht
+    eingaben = page_fill.levels(lambda e: page_fill.markers(vorlage, str(wurzel.path), schriften, e), eingaben, ("cv",))
+    typst.compile(vorlage, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
     print(out)
     return out
 

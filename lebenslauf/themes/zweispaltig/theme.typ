@@ -3,6 +3,7 @@
 // Hauptspalte links (gedruckt liest man nach Seite 1 unten rechts oben links weiter).
 // Masse nach dem Canva-Lebenslauf (Schriftgrössen über Textbreiten, Abstände über Zeilenpositionen gemessen).
 #import "../common.typ": *
+#import "../page-fill.typ": spacing, leading, body-size, part-start, part-end
 
 #let standard-stil = (
   farbe-text: rgb("#38495d"),
@@ -47,8 +48,20 @@
   fortsetzung-links: true,
 )
 
+// Page fill (G49): spacing and leading follow the density the build chose, the body size stays as drawn (8.8 pt)
+#let verdichtet(s) = {
+  let (f, lf) = (spacing("cv"), leading("cv"))
+  let zeilen = ("zeilen-text", "zeilen-station-kopf", "zeilen-kontakt")
+  let abstaende = ("abstand-absatz", "abstand-station", "abstand-abschnitt", "abstand-titel", "abstand-kopf")
+  s + zeilen.map(k => (k, s.at(k) * lf)).to-dict() + abstaende.map(k => (k, s.at(k) * f)).to-dict() + (
+    groesse-text: body-size(s.groesse-text, "cv"))
+}
+
+// Sections of one-line items: up to five they stay together, and a split never leaves one line alone (G50)
+#let kurze-abschnitte = ("projekte", "weitere-projekte", "faehigkeiten", "sprachen", "interessen", "bildung")
+
 #let lebenslauf(cv, sprache: "de", stand: none, stil: (:)) = {
-  let s = standard-stil + stil
+  let s = verdichtet(standard-stil + stil)
   let b = beschriftungen-fuer(cv, sprache)
   let basics = cv.at("basics", default: (:))
   let name = basics.at("name", default: "")
@@ -174,16 +187,31 @@
     (vorne, hinten)
   }
 
+  // Darf nach k Einträgen geteilt werden? Nicht in einem kurzen Abschnitt, und nie bleibt eine Zeile allein (G50)
+  let teilbar(abschnitte, k) = {
+    let vorher = 0
+    for a in abschnitte {
+      let n = a.items.len()
+      if vorher < k and k < vorher + n and a.key in kurze-abschnitte {
+        if n <= 5 or k - vorher == 1 or vorher + n - k == 1 { return false }
+      }
+      vorher += n
+    }
+    true
+  }
+
   // Wie viele Einträge passen in die Höhe? Einträge sind unteilbar, das Messen ist also exakt.
   let passend(abschnitte, breite, hoehe) = {
     let k = abschnitte.map(a => a.items.len()).sum(default: 0)
-    while k > 0 and measure(block(width: breite, spalte(aufteilen(abschnitte, k).first(), pruefen: false))).height > hoehe {
+    while k > 0 and (not teilbar(abschnitte, k)
+      or measure(block(width: breite, spalte(aufteilen(abschnitte, k).first(), pruefen: false))).height > hoehe) {
       k -= 1
     }
     k
   }
 
   // Kopf
+  part-start("cv")
   let foto = feld(basics, "image")
   let teile = name.split(" ")
   let kopf-links = {
@@ -228,7 +256,8 @@
   let links = spalten-daten(s.links)
   let rechts = spalten-daten(s.rechts)
   if not s.fortsetzung-links {
-    grid(columns: (s.spaltenbreite-links, 1fr), column-gutter: s.spaltenabstand, spalte(ganz(links)), spalte(ganz(rechts)))
+    grid(columns: (s.spaltenbreite-links, 1fr), column-gutter: s.spaltenabstand,
+      { spalte(ganz(links)); part-end("cv") }, { spalte(ganz(rechts)); part-end("cv") })
     return
   }
 
@@ -241,13 +270,15 @@
     let breite-rechts = breite - breite-links - s.spaltenabstand
     let (links-1, links-2) = aufteilen(links, passend(links, breite-links, frei))
     let (rechts-1, rechts-2) = aufteilen(rechts, passend(rechts, breite-rechts, frei))
-    grid(columns: (breite-links, breite-rechts), column-gutter: s.spaltenabstand, spalte(links-1), spalte(rechts-1))
+    grid(columns: (breite-links, breite-rechts), column-gutter: s.spaltenabstand,
+      { spalte(links-1); part-end("cv") }, { spalte(rechts-1); part-end("cv") })
     if rechts-2.len() > 0 {
       pagebreak(weak: true)
-      grid(columns: (breite-rechts, breite-links), column-gutter: s.spaltenabstand, spalte(rechts-2), spalte(links-2))
+      grid(columns: (breite-rechts, breite-links), column-gutter: s.spaltenabstand,
+        { spalte(rechts-2); part-end("cv") }, { spalte(links-2); part-end("cv") })
     } else if links-2.len() > 0 {
       pagebreak(weak: true)
-      grid(columns: (breite-links, breite-rechts), column-gutter: s.spaltenabstand, spalte(links-2), [])
+      grid(columns: (breite-links, breite-rechts), column-gutter: s.spaltenabstand, { spalte(links-2); part-end("cv") }, [])
     }
   }
 }

@@ -13,6 +13,7 @@ import pathlib
 import typst
 import yaml
 
+import page_fill
 from build import ROOT
 from typst_root import typst_root
 
@@ -125,13 +126,12 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
         raise ValueError(f"Theme {args.theme!r} hat keine Vorlage für Anschreiben ({vorlage.name})")
     out = pathlib.Path(args.out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
-    typst.compile(
-        str(wurzel.locate(vorlage)),
-        output=str(out),
-        root=str(wurzel.path),
-        font_paths=[str(ROOT / "fonts")],
-        sys_inputs={"data": wurzel.typst_path(daten_json)},
-    )
+    eingang = str(wurzel.locate(vorlage))
+    schriften = [str(ROOT / "fonts")]
+    # Density of the letter chosen before writing it, so its last page is never nearly empty (G49)
+    eingaben = page_fill.levels(lambda e: page_fill.markers(eingang, str(wurzel.path), schriften, e),
+                                {"data": wurzel.typst_path(daten_json)}, ("letter",))
+    typst.compile(eingang, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
     print(out)
     return out
 

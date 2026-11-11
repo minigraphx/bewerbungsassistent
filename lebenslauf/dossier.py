@@ -12,6 +12,7 @@ import datetime
 import json
 import pathlib
 import re
+import dataclasses
 from dataclasses import dataclass
 
 import typst
@@ -19,6 +20,7 @@ import yaml
 
 import dossier_data
 import mark as mark_module
+import page_fill
 from anschreiben import bereite_vor
 from build import ROOT, SPRACHEN, pruefe_beschriftungen, pruefe_foto_optionen, waehle_sprache
 from tailor import tailor
@@ -29,6 +31,8 @@ ICONS = THEMES / "icons"
 DEFAULT_THEME = "dossier-siegel"
 ACCENT = re.compile(r"#[0-9a-fA-F]{6}")
 ENTRIES = {"dossier": "dossier-main.typ", "cv": "main.typ", "letter": "anschreiben-main.typ"}
+# The parts whose density each file chooses (G49), the letter before the CV as it comes first
+FILLED_PARTS = {"dossier": ("letter", "cv"), "cv": ("cv",), "letter": ("letter",)}
 FILE_NAMES = {"dossier": "dossier.pdf", "cv": "lebenslauf.pdf", "letter": "anschreiben.pdf"}
 MIX = THEMES / "dossier-mix.typ"  # the dossier when its pages come from more than one design
 # The pages whose design can be chosen on its own (G39): option on the command line → key in dossier.json
@@ -51,6 +55,7 @@ class Result:
     root: TypstRoot
     entries: dict[str, pathlib.Path]
     logo_missing: bool = False
+    inputs: dict[str, dict] = dataclasses.field(default_factory=dict)  # sys_inputs per file, densities included
 
 
 def is_design(name: str) -> bool:
@@ -151,10 +156,17 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
     }
 
 
+def filled_inputs(root: TypstRoot, entry: pathlib.Path, data: pathlib.Path, parts: tuple[str, ...]) -> dict:
+    """sys_inputs for one file, with the density of each part chosen so no last page is nearly empty (G49)."""
+    located = str(root.locate(entry))
+    fonts = [str(ROOT / "fonts")]
+    return page_fill.levels(lambda inputs: page_fill.markers(located, str(root.path), fonts, inputs),
+                            {"data": root.typst_path(data)}, parts)
+
+
 def _compile(compiler: typst.Compiler, root: TypstRoot, entry: pathlib.Path, out: pathlib.Path,
-             data: pathlib.Path) -> pathlib.Path:
-    compiler.compile(input=str(root.locate(entry)), output=str(out), format="pdf",
-                     sys_inputs={"data": root.typst_path(data)})
+             inputs: dict) -> pathlib.Path:
+    compiler.compile(input=str(root.locate(entry)), output=str(out), format="pdf", sys_inputs=inputs)
     return out
 
 
@@ -166,7 +178,7 @@ def query(result: Result, selector: str, part: str = "cv") -> list:
         field="value",
         root=str(result.root.path),
         font_paths=[str(ROOT / "fonts")],
-        sys_inputs={"data": result.root.typst_path(result.data)},
+        sys_inputs=result.inputs.get(part, {"data": result.root.typst_path(result.data)}),
     )
     return json.loads(found)
 
@@ -243,11 +255,14 @@ def main(argv: list[str] | None = None) -> Result:
 
     out = pathlib.Path(args.out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    built = {part: _compile(compiler, root, entry, out / FILE_NAMES[part], data_json) for part, entry in entries.items()}
+    inputs = {part: filled_inputs(root, entry, data_json, FILLED_PARTS[part]) for part, entry in entries.items()}
+    built = {part: _compile(compiler, root, entry, out / FILE_NAMES[part], inputs[part])
+             for part, entry in entries.items()}
     for path in built.values():
         print(path)
     return Result(dossier=built["dossier"], cv=built["cv"], letter=built["letter"], data=data_json,
-                  theme=args.theme, root=root, entries=entries, logo_missing=chosen_mark["logo-missing"])
+                  theme=args.theme, root=root, entries=entries, logo_missing=chosen_mark["logo-missing"],
+                  inputs=inputs)
 
 
 if __name__ == "__main__":

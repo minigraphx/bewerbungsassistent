@@ -1,5 +1,6 @@
 // Gemeinsames Layout für Anschreiben. Die Themes setzen nur ihren Stil (Farben, Schriften, Grössen).
 // Daten kommen fertig aufbereitet aus anschreiben.py; alle Texte werden als Text eingesetzt, nie als Markup.
+#import "page-fill.typ": spacing, leading, body-size, part-start, part-end
 
 #let brief-standard-stil = (
   farbe-text: black,
@@ -28,8 +29,10 @@
   let s = brief-standard-stil + stil
   let absender = daten.absender
   page(paper: "a4", margin: s.rand, fill: s.farbe-hintergrund, footer: fuss, background: hintergrund, {
-    set text(font: s.schrift-text, size: s.groesse-text, fill: s.farbe-text, lang: daten.sprache)
-    set par(leading: s.zeilen-text, spacing: s.abstand-absatz)
+    let (f, lf) = (spacing("letter"), leading("letter"))
+    set text(font: s.schrift-text, size: body-size(s.groesse-text, "letter"), fill: s.farbe-text, lang: daten.sprache)
+    set par(leading: s.zeilen-text * lf, spacing: s.abstand-absatz * f)
+    part-start("letter")
 
     // Kopf: Name und Kontaktzeile
     if kopf != auto { kopf } else { block(below: 0pt, {
@@ -42,28 +45,29 @@
         line(length: 100%, stroke: s.linie + s.farbe-akzent)
       }
     }) }
-    v(s.abstand-kopf)
+    v(s.abstand-kopf * f)
 
     // Empfänger
     block(below: 0pt, {
       set par(spacing: 0pt)
       for zeile in daten.empfaenger [#zeile \ ]
     })
-    v(s.abstand-empfaenger)
+    v(s.abstand-empfaenger * f)
 
     [#daten.ort_datum]
-    v(1.2em)
+    v(1.2em * f)
     if betreff-block != none { betreff-block } else { text(weight: 700)[#daten.betreff] }
-    v(0.9em)
+    v(0.9em * f)
     [#daten.anrede]
-    v(0.4em)
+    v(0.4em * f)
     for absatz in daten.absaetze [#absatz #parbreak()]
     // Gruss und Unterschrift nie getrennt
-    block(breakable: false, above: 1.3em, {
+    block(breakable: false, above: 1.3em * f, {
       [#daten.gruss]
       v(s.abstand-unterschrift)
       [#daten.unterschrift]
     })
+    part-end("letter")
   })
 }
 

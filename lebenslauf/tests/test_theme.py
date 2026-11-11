@@ -2,6 +2,7 @@
 import pytest
 
 import build
+import page_fill
 from cv_samples import beispiel, lang
 
 
@@ -33,7 +34,9 @@ def test_keine_fortsetzung_bei_einer_seite(baue):
     assert "FORTSETZUNG" not in seiten[0]
 
 
-def test_ganzer_abschnitt_auf_neuer_seite_ohne_fortsetzung(baue):
+def test_ganzer_abschnitt_auf_neuer_seite_ohne_fortsetzung(baue, monkeypatch):
+    # The design as drawn: the page fill (G49) would pull this short last section back onto page 1
+    monkeypatch.setattr(page_fill, "choose", lambda probe: 0)
     seiten = baue(beispiel())
 
     assert len(seiten) == 2

@@ -127,11 +127,13 @@
 // Der erste Eintrag hat oben keinen eigenen Abstand, es gilt der des Titels.
 // `start`: Nummer des ersten Eintrags, wenn nur ein Teil des Abschnitts gesetzt wird (Fortsetzung);
 // `pruefen: false` lässt die Seitenprüfung weg (zum Messen, wo es keine Seite gibt).
-#let eintraege(id, items, fortsetzung, abstand: 0pt, start: 0, pruefen: true) = {
+// `einzeilig`: Einträge sind je eine Zeile; der letzte geht dann nie allein auf die nächste Seite (G50).
+#let eintraege(id, items, fortsetzung, abstand: 0pt, start: 0, pruefen: true, einzeilig: false) = {
   for (i, item) in items.enumerate() {
     let (inhalt, oben) = if type(item) == dictionary { (item.inhalt, item.abstand) } else { (item, abstand) }
     let nr = start + i
-    block(breakable: false, above: if i == 0 { 0pt } else { oben }, below: abstand, {
+    let am-letzten = einzeilig and items.len() > 1 and i == items.len() - 2
+    block(breakable: false, sticky: am-letzten, above: if i == 0 { 0pt } else { oben }, below: abstand, {
       [#metadata((abschnitt: id, nr: nr))<lebenslauf-eintrag>]
       if nr > 0 and pruefen {
         context {
