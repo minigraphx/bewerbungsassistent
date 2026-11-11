@@ -137,6 +137,18 @@ def test_an_old_verfuegbar_ab_is_kept_in_the_import(tmp_path):
     assert "- Verfügbar ab: nach Vereinbarung" in new
 
 
+def test_an_emptied_ort_im_datum_is_taken_over_as_none(form, tmp_path):
+    """The page now sends an emptied preset field as "" (#230); the import takes that as no place, not as an error."""
+    bundle = base_bundle("job")
+    bundle["data"].setdefault("style", {})["place"] = ""
+    assert not [e for e in validation.validate_bundle(form, bundle) if e.path.startswith("style.place")]
+
+    import_bundle.import_answers(tmp_path, bundle, TODAY)
+
+    written = "".join(p.read_text(encoding="utf-8") for p in tmp_path.rglob("*.md"))
+    assert "Gruss:" in written and "Ort im Datum" not in written
+
+
 def test_rav_is_preset_to_nein_in_the_setup_and_keeps_its_explanation():
     page = SETUP_PAGE.read_text(encoding="utf-8")
     script = SETUP_SCRIPT.read_text(encoding="utf-8")
