@@ -22,7 +22,7 @@ from cryptography.hazmat.primitives.serialization import PrivateFormat, pkcs12
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 
 # SHA-1 of the certificate (DER), as codesign names it; set once the identity exists (Andy's step, see `create`).
-CERTIFICATE_SHA1 = ""
+CERTIFICATE_SHA1 = "05F941C78A51D142F9C374F21062FDE8515535B8"
 BUNDLE_ID = "ch.bewerbungsbegleiter.app"  # as in bewerbungsbegleiter.spec
 COMMON_NAME = "Bewerbungsbegleiter Signatur"
 VALID_YEARS = 25  # without a timestamp, codesign checks the certificate's dates when it verifies
