@@ -50,16 +50,41 @@
     return { titel: zustand === "uebernommen" ? "Noch nichts gemerkt" : "Nichts verworfen", text: "" };
   }
 
-  /** The line under the title: the last search; without one only what is there, never „Noch keine Suche.“ beside hits. */
-  function letzteSuche(lauf, alle, datum) {
+  /**
+   * The line under the title: the last search; without one only what is there, never „Noch keine Suche.“ beside hits.
+   * `wann` is the day as the app names it (#208): „heute“, „gestern“ or „am 24.10.2026“; runs store no time.
+   */
+  function letzteSuche(lauf, alle, datum, wann = "") {
     const neu = alle.filter(x => x.zustand === "neu").length;
     const anzahl = `${alle.length} Treffer, ${neu} neu`;
     if (!lauf) return alle.length ? anzahl : "";  // the empty list says „Noch nicht gesucht.“
     const portale = Object.keys(lauf.portale || {});
-    return `Letzte Suche am ${datum(lauf.datum)} · ${portale.length === 1 ? portale[0] : `${portale.length} Portale`} · ${anzahl}`;
+    const tag = wann || `am ${datum(lauf.datum)}`;
+    return `Letzte Suche ${tag} · ${portale.length === 1 ? portale[0] : `${portale.length} Portale`} · ${anzahl}`;
   }
 
-  const anzeige = { OHNE_ERWEITERUNG, NOCH_NICHT, zusammenfassung, regionText, sperrgrund, leer, letzteSuche };
+  /** A problem line; a portal that will catch up says from when (#208), the app words the sentence. */
+  function problemZeile(problem, nachholen = "") {
+    return nachholen ? `${problem} ${nachholen}` : problem;
+  }
+
+  const WAHL_TAGE = [7, 14, 21, 30, 45, 60];
+  const VORGABE_TAGE = 21;
+
+  /** The choices of „Inserate der letzten“; another value from the profile stays as its own choice. */
+  function zeitfensterWahl(aktuell) {
+    const tage = WAHL_TAGE.includes(aktuell) || !Number.isInteger(aktuell) ? WAHL_TAGE : [...WAHL_TAGE, aktuell].sort((a, b) => a - b);
+    return tage.map(wert => ({ wert, text: `${wert} Tage${wert === VORGABE_TAGE ? " (Vorgabe)" : ""}` }));
+  }
+
+  /** One portal under „Stand der Portale“ in the settings. */
+  function portalStand(zeile) {
+    const zuletzt = zeile.problem ? "Problem bei der letzten Suche" : zeile.zuletzt ? `zuletzt ${zeile.zuletzt}` : "noch nie gesucht";
+    return `${zeile.portal}: ${zuletzt} · nächste Suche ab ${zeile.ab}`;
+  }
+
+  const anzeige = { OHNE_ERWEITERUNG, NOCH_NICHT, zusammenfassung, regionText, sperrgrund, leer, letzteSuche, problemZeile,
+    zeitfensterWahl, portalStand };
   if (typeof module !== "undefined") module.exports = anzeige;
   else global.SucheAnzeige = anzeige;
 })(typeof window !== "undefined" ? window : globalThis);

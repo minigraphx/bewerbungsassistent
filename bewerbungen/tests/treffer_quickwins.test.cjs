@@ -202,3 +202,38 @@ test("Einstieg abschliessen becomes Meine Angaben abschliessen", () => {
   }
   assert.match(fs.readFileSync(path.join(ROOT, "search_plan.py"), "utf8"), /Zuerst Meine Angaben abschliessen\./);
 });
+
+test("the last search names its day, and a catching up portal says from when (#208)", () => {
+  const lauf = { datum: "2026-11-09", portale: { "job-room": {}, "jobs.ch": {}, jobscout24: {} } };
+  assert.equal(anzeige.letzteSuche(lauf, [HIT], String, "gestern"), "Letzte Suche gestern · 3 Portale · 1 Treffer, 1 neu");
+  assert.equal(anzeige.letzteSuche(lauf, [HIT], d => `x${d}`), "Letzte Suche am x2026-11-09 · 3 Portale · 1 Treffer, 1 neu");
+  assert.equal(anzeige.problemZeile("Seite verändert.", "Sobald die Suche dort wieder geht, holt sie die Inserate ab 06.11.2026 nach."),
+    "Seite verändert. Sobald die Suche dort wieder geht, holt sie die Inserate ab 06.11.2026 nach.");
+  assert.equal(anzeige.problemZeile("Seite verändert."), "Seite verändert.");
+});
+
+test("the window choices keep a value of the profile, and each portal reads as a sentence (#208)", () => {
+  assert.deepEqual(anzeige.zeitfensterWahl(21).map(w => w.text),
+    ["7 Tage", "14 Tage", "21 Tage (Vorgabe)", "30 Tage", "45 Tage", "60 Tage"]);
+  assert.deepEqual(anzeige.zeitfensterWahl(10).map(w => w.wert), [7, 10, 14, 21, 30, 45, 60]);
+  assert.equal(anzeige.portalStand({ portal: "job-room", zuletzt: "gestern", ab: "09.11.2026", problem: false }),
+    "job-room: zuletzt gestern · nächste Suche ab 09.11.2026");
+  assert.equal(anzeige.portalStand({ portal: "jobs.ch", zuletzt: "am 06.11.2026", ab: "06.11.2026", problem: true }),
+    "jobs.ch: Problem bei der letzten Suche · nächste Suche ab 06.11.2026");
+  assert.equal(anzeige.portalStand({ portal: "ictjobs", zuletzt: "", ab: "21.10.2026", problem: false }),
+    "ictjobs: noch nie gesucht · nächste Suche ab 21.10.2026");
+});
+
+test("the second line shows only with a sentence, the link only when it helps (#208)", async () => {
+  const p = page({ liste: { treffer: [HIT], letzte_suche: { datum: "2026-10-24", portale: { "jobs.ch": {} } },
+    zeitraum: { letzte: "am 24.10.2026", zeile: "Die nächste Suche nimmt nur die letzten 14 Tage, ab 28.10.2026.", zeitfenster_aendern: true, nachholen: {} } } });
+  await settle();
+  assert.equal(p.$("zeitraum").hidden, false);
+  assert.equal(p.$("zeitraum-text").textContent, "Die nächste Suche nimmt nur die letzten 14 Tage, ab 28.10.2026.");
+  assert.equal(p.$("zeitraum-aendern").hidden, false);
+  assert.match(p.$("letzte").textContent, /^Letzte Suche am 24\.10\.2026/);
+  const ruhig = page({ liste: { treffer: [HIT], letzte_suche: { datum: "2026-11-09", portale: { "jobs.ch": {} } },
+    zeitraum: { letzte: "gestern", zeile: "", zeitfenster_aendern: false, nachholen: {} } } });
+  await settle();
+  assert.equal(ruhig.$("zeitraum").hidden, true);
+});

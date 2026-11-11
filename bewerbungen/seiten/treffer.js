@@ -325,9 +325,19 @@
     return el("li", { "data-stufe": "hinweis" }, inhalt);
   }
 
-  function zeigeLetzteSuche(lauf, hinweise, ziele) {
-    $("letzte").textContent = anzeige.letzteSuche(lauf, alle, datum);
-    const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem).map(([, p]) => p.problem);
+  // #208: a second line only when the next search starts elsewhere than the last one did (option A).
+  function zeigeZeitraum(zeitraum) {
+    $("zeitraum").hidden = !zeitraum.zeile;
+    $("zeitraum-text").textContent = zeitraum.zeile || "";
+    $("zeitraum-aendern").hidden = !zeitraum.zeitfenster_aendern;
+  }
+
+  function zeigeLetzteSuche(lauf, hinweise, ziele, zeitraum = {}) {
+    $("letzte").textContent = anzeige.letzteSuche(lauf, alle, datum, zeitraum.letzte);
+    zeigeZeitraum(zeitraum);
+    const nachholen = zeitraum.nachholen || {};
+    const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem)
+      .map(([name, p]) => anzeige.problemZeile(p.problem, nachholen[name]));
     $("probleme").replaceChildren(
       ...probleme.map(p => el("li", { "data-stufe": "fehler" }, p)),
       ...hinweise.map(h => hinweisZeile(h, ziele)));
@@ -388,7 +398,7 @@
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
       window.SuchbegriffeStart.zeige(daten.art);
       zeigeListe();
-      zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {});
+      zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {}, daten.zeitraum || {});
       zeigeNichtUebernommen();
       zeigeSuchen();
       zeigeEinstellen(!$("einstellen").hidden);

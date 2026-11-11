@@ -17,6 +17,7 @@
     <nav class="page__toc" aria-label="Abschnitte">
       <a href="#kosten">Kosten der KI</a>
       <a href="#einwilligung">Einwilligung</a>
+      <a href="#zeitfenster" id="zeitfenster-link" hidden>Zeitfenster der Suche</a>
       <a href="#schluessel-teil">Eigener API-Schlüssel</a>
       <a href="#claude-abo">Claude mit eigenem Abo</a>
       <a href="#vorabversionen">Vorabversionen</a>
@@ -43,6 +44,15 @@
       <div class="knoepfe"><button type="button" id="einwilligung-widerruf" class="gefahr">Einwilligung widerrufen</button></div>
     </div>
     <div id="einwilligung-meldung" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="card" id="zeitfenster" aria-labelledby="zeitfenster-titel" hidden>
+    <h2 id="zeitfenster-titel">Zeitfenster der Suche</h2>
+    <p class="hilfe">So weit geht die erste Suche zurück, und die Suche nach einer längeren Pause. Sonst sucht jedes Portal nur, was seit seiner letzten Suche dazugekommen ist.</p>
+    <label for="zeitfenster-tage">Inserate der letzten</label>
+    <select id="zeitfenster-tage"></select>
+    <div id="zeitfenster-meldung" class="status" role="status" aria-live="polite"></div>
+    <details id="zeitfenster-portale-teil" hidden><summary>Stand der Portale</summary><ul id="zeitfenster-portale"></ul></details>
   </section>
 
   <section class="card" id="schluessel-teil" aria-labelledby="schluessel-titel">
@@ -135,6 +145,8 @@
 <script src="/app.js"></script>
 <script src="/einwilligung.js"></script>
 <script src="/einstellungen.js"></script>
+<script src="/suche-anzeige.js"></script>
+<script src="/zeitfenster.js"></script>
 <script src="/claude-abo.js"></script>
 <script src="/vorabversionen.js"></script>
 </body>
