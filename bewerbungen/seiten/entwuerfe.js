@@ -66,28 +66,36 @@
     return knopfHolen;
   }
 
-  // One version: when, what, whether it was sent, and what can be done with it
+  // One version: when, what, with which application it went out, and what can be done with it
   function fassung(e, knoepfe) {
+    const versendet = Logik.versandText(e);
     return el("li", { class: "drafts__version" },
       el("div", {}, el("time", { datetime: e.zeit }, zeit(e.zeit)), " · ", e.beschreibung || "ohne Beschreibung",
-        e.genutzt ? el("span", { class: "leise", title: e.genutzt_fuer.join(", ") }, " · versendet") : null),
+        versendet ? el("span", { class: "drafts__sent" }, " · " + versendet) : null),
       el("div", { class: "knoepfe" }, knoepfe.filter(Boolean)));
   }
 
+  // The buttons of a version: the newest compares with the one before it, any other with the newest and can come back
+  function knoepfe(e, dokument) {
+    const [neueste, vorher] = dokument.fassungen;
+    const textKnopf = e.pdf && !e.datei.endsWith(".pdf") ? knopf("Als Text", () => alsText(e)) : null;
+    const vergleich = e === neueste
+      ? (vorher ? knopf("Vergleich mit vorher", () => vergleichen(vorher, neueste)) : null)
+      : knopf("Mit neuester vergleichen", () => vergleichen(e, neueste));
+    return [knopf("Ansehen", () => ansehen(e)), textKnopf, vergleich, e === neueste ? null : zurueckholenKnopf(e, dokument),
+      loeschenKnopf(e)];
+  }
+
   function dokumentKarte(dokument) {
-    const { neueste, aeltere } = Logik.fassungen(dokument);
-    const alsTextKnopf = e => (e.pdf && !e.datei.endsWith(".pdf") ? knopf("Als Text", () => alsText(e)) : null);
-    const oben = fassung(neueste, [knopf("Ansehen", () => ansehen(neueste)), alsTextKnopf(neueste),
-      aeltere.length ? knopf("Vergleich mit vorher", () => vergleichen(aeltere[0], neueste)) : null, loeschenKnopf(neueste)]);
-    const titel = Logik.aeltereTitel(aeltere);
-    const gefaltet = titel ? el("details", { class: "drafts__older" }, el("summary", {}, titel),
-      el("ul", {}, aeltere.map(e => fassung(e, [knopf("Ansehen", () => ansehen(e)), alsTextKnopf(e),
-        knopf("Mit neuester vergleichen", () => vergleichen(e, neueste)), zurueckholenKnopf(e, dokument), loeschenKnopf(e)])))) : null;
-    return el("article", { class: "karte drafts__doc" }, el("h4", {}, dokument.titel), el("ul", {}, [oben]), gefaltet);
+    const { oben, gefaltet, faltTitel } = Logik.ansicht(dokument, { nurVerwendet: nurVerwendet && !nurDatei });
+    const gefaltetTeil = faltTitel ? el("details", { class: "drafts__older" }, el("summary", {}, faltTitel),
+      el("ul", {}, gefaltet.map(e => fassung(e, knoepfe(e, dokument))))) : null;
+    return el("article", { class: "karte drafts__doc" }, el("h4", {}, dokument.titel),
+      el("ul", {}, oben.map(e => fassung(e, knoepfe(e, dokument)))), gefaltetTeil);
   }
 
   function zeigeFilter(gruppen) {
-    const knoepfe = Logik.filter(gruppen).map(f => el("button", {
+    const knoepfe = Logik.filter(gruppen, { nurVerwendet }).map(f => el("button", {
       type: "button", class: "btn btn--sm", "aria-pressed": String(f.art === filterArt),
       onclick: () => { filterArt = f.art; zeige(); },
     }, f.titel, " ", el("span", { class: "num" }, String(f.zahl))));
@@ -99,12 +107,30 @@
   let filterArt = Logik.ALLE;
   const nurDatei = new URLSearchParams(location.search).get("datei") || "";
 
+  // "Nur verwendete" stays across reloads; without storage (private window) it simply starts off
+  const NUR_VERWENDETE = "entwuerfe.nurVerwendet";
+  function gemerkt() {
+    try { return Logik.gespeichert(localStorage.getItem(NUR_VERWENDETE)); } catch { return false; }
+  }
+  function merken(an) {
+    try { localStorage.setItem(NUR_VERWENDETE, Logik.speicherwert(an)); } catch { /* the choice lasts until reload */ }
+  }
+  let nurVerwendet = gemerkt();
+  $("nur-verwendete").checked = nurVerwendet;
+  $("nur-verwendete").addEventListener("change", () => {
+    nurVerwendet = $("nur-verwendete").checked;
+    merken(nurVerwendet);
+    zeige();
+  });
+
   function zeige() {
     zeigeFilter(gruppen);
-    const sichtbar = Logik.sichtbar(gruppen, { art: filterArt, datei: nurDatei });
+    const sichtbar = Logik.sichtbar(gruppen, { art: filterArt, datei: nurDatei, nurVerwendet: nurVerwendet && !nurDatei });
     $("gruppen").replaceChildren(...sichtbar.map(g => el("section", { class: "drafts__group" },
       el("h3", {}, g.titel), ...g.dokumente.map(dokumentKarte))));
     $("leer").hidden = sichtbar.length > 0;
+    $("leer").textContent = nurVerwendet && !nurDatei && gruppen.length ? "Noch nichts mit einer Bewerbung versendet." : "Noch keine Entwürfe.";
+    $("nur-verwendete").closest("label").hidden = Boolean(nurDatei);
     $("nur-datei").hidden = !nurDatei;
   }
 
