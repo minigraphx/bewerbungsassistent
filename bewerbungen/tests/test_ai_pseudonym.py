@@ -318,3 +318,14 @@ def test_the_stop_message_has_no_technical_names():
     found = re.search(r"\((.*)\)", str(stopped.value)).group(1)
     assert found == "Adresse, Name, Telefon"
     assert not re.search(r"[A-Z]{2,}|_", found)
+
+
+def test_the_file_name_of_the_own_logo_is_replaced_like_the_photo():
+    """G18: a logo may carry a name in its file name; the logo itself never goes to the AI."""
+    cv = {"basics": {"name": "Lea Muster", "image": "foto.jpg", "x-logo": "logos/lea-muster-design.svg"}}
+    p = Pseudonymizer(secrets_from_cv(cv))
+
+    masked = p.mask("x-logo: logos/lea-muster-design.svg")
+
+    assert "lea-muster-design" not in masked and "{{LOGO}}" in masked
+    assert pseudonym.label("LOGO") == "Logo"

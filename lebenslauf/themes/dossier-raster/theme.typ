@@ -3,6 +3,7 @@
 #import "../common.typ": *
 #import "../tokens.typ": space, radius
 #import "../dossier.typ": colours-for, labels-for, level-marker, icon, current
+#import "../zeichen.typ": own-mark, chosen-mark
 
 #let sizes = (
   initials: 96pt,
@@ -37,7 +38,14 @@
 #let strip(c) = place(top + left, dx: page-margin.x, dy: -cut,
   block(width: 100% - 2 * page-margin.x, bands(14pt + cut, c)))
 
-#let footer(d, c) = text(size: sizes.small, fill: c.text-muted)[#d.person.name#if d.at("stand", default: none) != none [ · #d.stand]]
+// Footer of following pages; a chosen mark or logo stands small before the name (new with G18)
+#let footer(d, c) = {
+  let words = text(size: sizes.small, fill: c.text-muted)[#d.person.name#if d.at("stand", default: none) != none [ · #d.stand]]
+  if own-mark(d) {
+    grid(columns: (auto, 1fr), column-gutter: space.space-2, align: horizon,
+      chosen-mark(d, c, 14pt, 44pt, 14pt, "footer"), words)
+  } else { words }
+}
 
 // Level 1–6 as the grade bar of six fields; without a level the fields are dashed
 #let grade-bar(level, c) = {

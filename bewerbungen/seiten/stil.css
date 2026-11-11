@@ -846,3 +846,51 @@ button.hit[aria-current="true"] { background: var(--accent-subtle); }
 }
 .status__close:hover { background: var(--surface-subtle); }
 .status__close:focus-visible { outline: 2px solid var(--accent); outline-offset: -6px; }
+
+/* Mark and accent colour of the dossier (G18, docs/design/monogramm.md, option B) */
+.mark-summary { display: flex; gap: var(--space-3); align-items: center; margin: var(--space-2) 0 var(--space-3); }
+.mark-summary__cover { flex: none; width: 40px; }
+.mark-summary__cover svg { display: block; width: 40px; height: 56px; }
+.mark-summary .field__hint { margin: 0; }
+.mark-editor { margin: var(--space-3) 0 var(--space-4); }
+.mark-editor h3 { margin: var(--space-4) 0 var(--space-2); font-size: 16px; line-height: 24px; }
+.mark-editor__layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--space-5); align-items: start; }
+.mark-preview { position: sticky; top: var(--space-4); margin: 0; }
+.mark-preview svg { display: block; width: 100%; height: auto; }
+.mark-group { border: 0; padding: 0; margin: 0 0 var(--space-4); min-width: 0; }
+.mark-group legend { font-weight: 600; margin-bottom: var(--space-2); }
+.mark-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.mark-tile { display: flex; gap: var(--space-3); align-items: center; min-height: 72px; padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; }
+.mark-tile:has(input:checked) { border: 2px solid var(--accent); background: var(--accent-subtle); padding: calc(var(--space-2) - 1px) calc(var(--space-3) - 1px); }
+.mark-tile:has(input:disabled) { cursor: default; color: var(--text-muted); }
+.mark-tile:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.mark-tile input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--accent); }
+.mark-tile__mark { flex: none; width: 48px; }
+.mark-tile__mark svg { display: block; width: 48px; height: 36px; }
+.mark-tile__text { display: flex; flex-direction: column; font-size: 14px; line-height: 20px; }
+.mark-tile__reason { color: var(--text-muted); }
+.mark-swatches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); margin-bottom: var(--space-2); }
+.mark-swatch { display: flex; gap: var(--space-2); align-items: center; min-height: 48px; padding: var(--space-1) var(--space-2);
+  border: 1px solid transparent; border-radius: var(--radius-md); cursor: pointer; font-size: 14px; line-height: 20px; }
+.mark-swatch:has(input:checked) { border: 2px solid var(--accent); background: var(--accent-subtle); }
+.mark-swatch:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.mark-swatch input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--accent); }
+.mark-swatch__chip { flex: none; width: 40px; height: 40px; }
+.mark-swatch__chip--own { display: block; border: 1px dashed var(--line-strong); border-radius: var(--radius-md); }
+.mark-swatch__more { display: block; color: var(--text-muted); }
+.mark-own { margin: var(--space-2) 0 var(--space-3); }
+.mark-own__row { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+.mark-own__row input[type="color"] { width: 44px; height: 40px; padding: 2px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
+.mark-own__hex { max-width: 120px; }
+.mark-initials { max-width: 120px; text-transform: uppercase; }
+.mark-logo { margin: 0 0 var(--space-4); }
+.mark-logo__current { display: flex; gap: var(--space-3); align-items: center; margin: var(--space-2) 0; }
+.mark-logo__current img { max-width: 160px; max-height: 64px; object-fit: contain; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); }
+.mark-logo__hints { margin: var(--space-1) 0 var(--space-2); padding-left: var(--space-4); }
+.mark-logo__file:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (max-width: 760px) {
+  .mark-editor__layout { grid-template-columns: minmax(0, 1fr); }
+  .mark-preview { position: static; order: -1; max-width: 320px; }
+  .mark-tiles, .mark-swatches { grid-template-columns: minmax(0, 1fr); }
+}

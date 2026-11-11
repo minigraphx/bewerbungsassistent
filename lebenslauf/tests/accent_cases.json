@@ -1,0 +1,19 @@
+{
+  "_comment": "Own accent colours of the dossier (G18): the same answers from lebenslauf/mark.py and bewerbungen/seiten/zeichen-logik.js",
+  "cases": [
+    {"farbe": "#38495d", "ok": true, "schrift": "weiss"},
+    {"farbe": "#7a2e3a", "ok": true, "schrift": "weiss"},
+    {"farbe": "#2f5d50", "ok": true, "schrift": "weiss"},
+    {"farbe": "#1d5c6b", "ok": true, "schrift": "weiss"},
+    {"farbe": "#5b3f6b", "ok": true, "schrift": "weiss"},
+    {"farbe": "#7a5418", "ok": true, "schrift": "weiss"},
+    {"farbe": "#3a3d42", "ok": true, "schrift": "weiss"},
+    {"farbe": "#E0B84A", "ok": false, "problem": "zu-hell", "vorschlag": "#927119"},
+    {"farbe": "#7f7f7f", "ok": false, "problem": "mittelton", "vorschlag": "#757575"},
+    {"farbe": "#ffffff", "ok": false, "problem": "zu-hell", "vorschlag": "#757575"},
+    {"farbe": "#f0c040", "ok": false, "problem": "zu-hell", "vorschlag": "#95700c"},
+    {"farbe": "#2e7d32", "ok": true, "schrift": "weiss"},
+    {"farbe": "#000000", "ok": true, "schrift": "weiss"}
+  ],
+  "invalid": ["38495d", "#38495", "#gggggg", "", "rot"]
+}

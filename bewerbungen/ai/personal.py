@@ -96,7 +96,8 @@ def secrets_from_cv(cv: dict, minor: bool = False) -> list[Secret]:
     result = name_secrets("NAME", _text(basics.get("name")))
     result += [Secret("EMAIL", _text(basics.get("email"))), Secret("PHONE", _text(basics.get("phone")), "phone"),
                Secret("WEBSITE", _text(basics.get("url")), "url"), Secret("ADDRESS", _text(location.get("address"))),
-               Secret("PHOTO", _text(basics.get("image")))]
+               Secret("PHOTO", _text(basics.get("image"))),
+               Secret("LOGO", _text(basics.get("x-logo")))]
     if postal and not (postal.isdigit() and int(postal) in YEAR_RANGE):
         result.append(Secret("POSTAL_CODE", postal))
     for index, profile in enumerate(basics.get("profiles") or [], 1):

@@ -4,6 +4,7 @@
 #import "../common.typ": *
 #import "../tokens.typ": space, radius
 #import "../dossier.typ": colours-for, labels-for, level-marker, current
+#import "../zeichen.typ": own-mark, chosen-mark, mark-marker
 
 #let words = (
   de: (
@@ -89,6 +90,15 @@
   }
 }
 
+// Dot and initials of the tag, or the chosen mark or logo in their place (two cells of the tag's grid)
+#let tag-mark(d, c, small) = if own-mark(d) {
+  (grid.cell(colspan: 2, chosen-mark(d, c, if small { 18pt } else { 40pt }, if small { 72pt } else { 140pt },
+    if small { 22pt } else { 44pt }, if small { "footer" } else { "cover" })),)
+} else {
+  (mark-marker("passend", if small { "footer" } else { "cover" }) + circle(radius: if small { 3pt } else { 5pt }, fill: c.accent),
+   text(size: if small { 14pt } else { sizes.initials }, weight: 700, fill: c.text-strong)[#d.person.monogram])
+}
+
 // The mark: a tag with the filled dot of the status badge, initials, name and "Dossier · 11.2026"
 #let tag(d, c, small: false) = box(
   stroke: 1pt + c.line-strong,
@@ -100,8 +110,7 @@
     column-gutter: space.space-2,
     row-gutter: space.space-2,
     align: horizon,
-    circle(radius: if small { 3pt } else { 5pt }, fill: c.accent),
-    text(size: if small { 14pt } else { sizes.initials }, weight: 700, fill: c.text-strong)[#d.person.monogram],
+    ..tag-mark(d, c, small),
     grid.cell(colspan: 2, {
       text(size: if small { 8pt } else { 10pt }, weight: 500, fill: c.text-strong)[#d.person.name]
       if not small and d.at("stand", default: none) != none {

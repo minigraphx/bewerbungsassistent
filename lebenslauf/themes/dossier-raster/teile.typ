@@ -4,6 +4,15 @@
 #import "../tokens.typ": space, radius
 #import "../dossier.typ": colours-for, labels-for
 #import "theme.typ": bands, top-bands, strip, footer, sizes, page-margin, cut
+#import "../zeichen.typ": mark-or, mark-of
+
+// The mark in the accent band: the initials, a chosen variant in on-accent, or the logo on a white field
+#let band-mark(d, c) = if mark-of(d).variant == "logo" {
+  rect(fill: c.surface, radius: 6pt, inset: 8pt, mark-or(d, c, 100pt, 190pt, 90pt, "cover", none))
+} else {
+  mark-or(d, c, 100pt, 190pt, 90pt, "cover", mono: c.on-accent,
+    text(size: sizes.initials, weight: 700, fill: c.on-accent)[#d.person.monogram])
+}
 
 // Three punched dots in the accent band, in the paper colour
 #let punched(c) = stack(dir: ltr, spacing: space.space-2, ..range(3).map(_ => circle(radius: 6pt, fill: c.bg)))
@@ -36,7 +45,7 @@
     top-bands(300pt, c,
       first: {
         place(top + right, punched(c))
-        align(bottom + left, text(size: sizes.initials, weight: 700, fill: c.on-accent)[#d.person.monogram])
+        align(bottom + left, band-mark(d, c))
       },
       last: align(bottom, step-path(d.person.steps, c)))
     text(size: sizes.name, weight: 700, fill: c.text-strong)[#d.person.name]
