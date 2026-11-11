@@ -20,6 +20,7 @@ HERE = pathlib.Path(__file__).parent
 CASES = json.loads((HERE / "accent_cases.json").read_text(encoding="utf-8"))
 PNG_LOGO = HERE / "halbe.png"
 DESIGNS = ("dossier-siegel", "dossier-raster", "dossier-register")
+NS = 'xmlns="http://www.w3.org/2000/svg"'
 SVG_LOGO = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 110"><rect width="110" height="110" rx="20" '
             'fill="#a35a2b"/></svg>')
 
@@ -188,6 +189,8 @@ def test_a_missing_logo_falls_back_to_the_design_mark_and_says_so(make):
     '<svg xmlns="http://www.w3.org/2000/svg"><foreignObject><p>x</p></foreignObject></svg>',
     '<svg xmlns="http://www.w3.org/2000/svg"><style>@import url(https://example.com/x.css);</style></svg>',
     '<!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]><svg xmlns="http://www.w3.org/2000/svg">&x;</svg>',
+    f'<svg {NS} xmlns:s="http://www.w3.org/2000/svg"><s:script>alert(1)</s:script><rect width="9" height="9"/></svg>',
+    f'<svg {NS} xmlns:h="http://www.w3.org/2000/svg"><h:foreignObject><p>x</p></h:foreignObject></svg>',
 ])
 def test_an_svg_with_script_or_outside_links_is_refused_and_never_drawn(make, svg):
     assert mark.svg_problem(svg)
@@ -198,6 +201,50 @@ def test_an_svg_with_script_or_outside_links_is_refused_and_never_drawn(make, sv
 def test_a_plain_svg_with_inner_references_is_fine():
     assert mark.svg_problem('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'
                             '<defs><linearGradient id="g"/></defs><rect fill="url(#g)"/><use xlink:href="#g"/></svg>') is None
+
+
+INKSCAPE = ('<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n<!-- Created with an editor -->\n'
+            f'<svg {NS} xmlns:xlink="http://www.w3.org/1999/xlink" '
+            'xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" '
+            'xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 40 40">'
+            '<metadata><rdf:RDF><cc:Work rdf:about=""><cc:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>'
+            '</cc:Work></rdf:RDF></metadata><sodipodi:namedview pagecolor="#ffffff"/>'
+            '<style>.a{fill:url(#g)}</style><defs><linearGradient id="g"/></defs>'
+            '<rect class="a" style="fill:url(\'#g\');stroke:#000" width="40" height="40"/>'
+            '<image xlink:href="data:image/png;base64,iVBORw0KGgo=" width="1" height="1"/></svg>')
+
+
+def test_an_svg_from_an_editor_with_metadata_and_inner_links_is_fine():
+    assert mark.svg_problem(INKSCAPE) is None
+
+
+@pytest.mark.parametrize(("svg", "message"), [
+    (f'<svg {NS} xmlns:s="http://www.w3.org/2000/svg"><s:script>alert(1)</s:script></svg>', "SVG_SCRIPT"),
+    (f'<svg {NS} xmlns:h="http://www.w3.org/2000/svg"><h:foreignObject><p>x</p></h:foreignObject></svg>', "SVG_SCRIPT"),
+    (f'<svg {NS} xmlns:s="http://www.w3.org/2000/svg" s:onload="alert(1)"><rect width="9" height="9"/></svg>',
+     "SVG_SCRIPT"),
+    (f'<svg {NS} onload="alert(1)"/>', "SVG_SCRIPT"),
+    (f'<svg {NS} xmlns:x="http://www.w3.org/1999/xlink"><a x:href=" jav&#x61;script:alert(1)"><rect/></a></svg>',
+     "SVG_SCRIPT"),
+    (f'<svg {NS}><rect style="fill:url(javascript:alert(1))"/></svg>', "SVG_SCRIPT"),
+    ('<!DOCTYPE svg [<!ENTITY x "y">]>' f'<svg {NS}><text>&x;</text></svg>', "SVG_UNCHECKABLE"),
+    ('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+     f'<svg {NS}/>', "SVG_UNCHECKABLE"),
+    ('<?xml-stylesheet href="https://example.com/x.css"?>' f'<svg {NS}/>', "SVG_UNCHECKABLE"),
+    (f'<svg {NS}><rect></svg>', "SVG_UNCHECKABLE"),
+    (f'<svg {NS}><image href="data:image/svg+xml;base64,PHN2Zy8+" width="9" height="9"/></svg>', "SVG_UNCHECKABLE"),
+    (f'<svg {NS} xmlns:x="http://www.w3.org/1999/xlink"><image x:href="https://example.com/a.png"/></svg>', "SVG_REMOTE"),
+    (f'<svg {NS}><image src="//example.com/a.png"/></svg>', "SVG_REMOTE"),
+    (f'<svg {NS}><g xml:base="https://example.com/"><use href="a.svg#x"/></g></svg>', "SVG_REMOTE"),
+    (f'<svg {NS}><a><set attributeName="xlink:href" to="https://example.com/a.png"/></a></svg>', "SVG_REMOTE"),
+    (f'<svg {NS}><rect style="fill: URL( \'https://example.com/p.svg#a\' )"/></svg>', "SVG_REMOTE"),
+    (f'<svg {NS}><rect fill="url(https://example.com/p.svg#a)"/></svg>', "SVG_REMOTE"),
+    (f'<svg {NS} xmlns:s="http://www.w3.org/2000/svg"><s:style>@import "x.css";</s:style></svg>', "SVG_REMOTE"),
+    (f'<svg {NS}><style><![CDATA[rect{{fill:url(http://example.com/a#b)}}]]></style></svg>', "SVG_REMOTE"),
+])
+def test_each_way_to_hide_a_script_or_an_outside_link_is_refused(svg, message):
+    """Names count without their prefix; nothing is expanded or fetched while checking (review of #124)."""
+    assert mark.svg_problem(svg) == getattr(mark, message, message)
 
 
 def test_a_logo_outside_the_folder_or_of_another_kind_is_not_used(tmp_path):

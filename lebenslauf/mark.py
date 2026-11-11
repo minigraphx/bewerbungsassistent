@@ -9,6 +9,8 @@ import math
 import pathlib
 import re
 
+import svg_check
+
 FITTING = "passend"
 VARIANTS = (FITTING, "ring", "block", "verschraenkt", "linie", "punkt", "logo")
 LOGO = "logo"
@@ -33,12 +35,9 @@ LIGHTNESS_STEP = 0.01
 COLOUR = re.compile(r"#[0-9a-f]{6}")
 BAD_COLOUR = "Bitte eine Farbe wie #38495d eingeben."
 BAD_VARIANT = "Unbekanntes Zeichen: {value!r}. Erlaubt: " + ", ".join(VARIANTS)
-SVG_REMOTE = "Dieses SVG lädt Inhalte aus dem Internet. Bitte das Logo als PNG speichern und nochmals wählen."
-SVG_SCRIPT = "Dieses SVG enthält ein Skript. Bitte das Logo als PNG speichern und nochmals wählen."
-# Scripts, event handlers and embedded HTML; and anything fetched from outside: links, url(), @import, entities
-SVG_ACTIVE = re.compile(r"<\s*(?:script|foreignObject)\b|\son[a-z]+\s*=|javascript:", re.IGNORECASE)
-SVG_OUTSIDE = re.compile(r"(?:href|src)\s*=\s*[\"']\s*(?!#|data:)|url\(\s*[\"']?\s*(?!#|data:)[^)\s]"
-                         r"|@import|<!ENTITY|\bSYSTEM\b", re.IGNORECASE)
+SVG_REMOTE = svg_check.REMOTE
+SVG_SCRIPT = svg_check.SCRIPT
+SVG_UNCHECKABLE = svg_check.UNCHECKABLE
 TOO_LIGHT = "Zu hell: Ring, Linien und Punkte wären auf dem Papier kaum zu sehen. Gespeichert wird diese Farbe nicht."
 MID_TONE = "Weder weisse noch dunkle Schrift ist auf dieser Farbe gut lesbar. Gespeichert wird sie nicht."
 
@@ -128,12 +127,8 @@ def accent_check(value: object) -> dict:
 
 
 def svg_problem(text: str) -> str | None:
-    """Why an SVG may not be the logo, or None: no script and nothing loaded from outside."""
-    if SVG_ACTIVE.search(text):
-        return SVG_SCRIPT
-    if SVG_OUTSIDE.search(text):
-        return SVG_REMOTE
-    return None
+    """Why an SVG may not be the logo, or None: no script, nothing loaded from outside (svg_check.py)."""
+    return svg_check.problem(text)
 
 
 def variant(value: object) -> str:
