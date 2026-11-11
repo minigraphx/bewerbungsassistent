@@ -18,6 +18,7 @@ import typst
 import yaml
 
 import dossier_data
+import mark as mark_module
 from anschreiben import bereite_vor
 from build import ROOT, SPRACHEN, pruefe_beschriftungen, pruefe_foto_optionen, waehle_sprache
 from tailor import tailor
@@ -49,6 +50,7 @@ class Result:
     theme: str
     root: TypstRoot
     entries: dict[str, pathlib.Path]
+    logo_missing: bool = False
 
 
 def is_design(name: str) -> bool:
@@ -114,7 +116,8 @@ def outlined_labels(language: str, build: pathlib.Path, root: TypstRoot, compile
 
 
 def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.date, root: TypstRoot,
-            style: dict | None = None, outlined: dict | None = None, designs: dict | None = None) -> dict:
+            style: dict | None = None, outlined: dict | None = None, designs: dict | None = None,
+            mark: dict | None = None) -> dict:
     """One JSON for all parts: CV, letter, optional pages and the read data extensions."""
     basics = cv.get("basics", {})
     catalogue = icon_catalogue()
@@ -134,6 +137,7 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
             "photo": basics.get("image"),
             "photo-options": basics.get("x-image", {}),
             "steps": dossier_data.steps_done(cv),
+            "mark": dict(mark or {"variant": mark_module.FITTING, "logo": None}),
         },
         "skills": dossier_data.skill_groups(cv.get("skills")),
         "timeline": dossier_data.timeline(cv.get("work"), today),
@@ -167,6 +171,18 @@ def query(result: Result, selector: str, part: str = "cv") -> list:
     return json.loads(found)
 
 
+def _mark(cv: dict, base: pathlib.Path, args: argparse.Namespace) -> dict:
+    """The mark of cv.yaml (G18), with --zeichen and --logo from the command line going first."""
+    basics = dict(cv.get("basics", {}))
+    if args.logo:
+        logo = pathlib.Path(args.logo).resolve()
+        base, basics["x-logo"] = logo.parent, logo.name
+        basics.setdefault("x-zeichen", mark_module.LOGO)
+    if args.zeichen:
+        basics["x-zeichen"] = args.zeichen
+    return mark_module.settings(basics, base, dossier_data.monogram(basics))
+
+
 def main(argv: list[str] | None = None) -> Result:
     ap = argparse.ArgumentParser(description="Bewerbungsdossier und Einzeldateien als PDF erzeugen")
     ap.add_argument("data", help="Dossier-Datei (YAML) mit lebenslauf, anschreiben, gruss, dank, kennzahlen, anlagen")
@@ -177,7 +193,10 @@ def main(argv: list[str] | None = None) -> Result:
     for option in PAGE_DESIGNS:
         ap.add_argument(f"--design-{option}", help=f"Design für {option} (Standard: --theme)")
     ap.add_argument("--lang", default="de", choices=SPRACHEN)
-    ap.add_argument("--akzent", help="Akzentfarbe als #rrggbb (Standard aus dem Design-System)")
+    ap.add_argument("--akzent", help="Akzentfarbe als #rrggbb (Standard: basics.x-akzent, sonst die Hauptfarbe "
+                                     "des Designs auf dem Deckblatt)")
+    ap.add_argument("--zeichen", choices=mark_module.VARIANTS, help="Zeichen (Standard: basics.x-zeichen, sonst passend)")
+    ap.add_argument("--logo", help="Eigenes Logo als PNG, JPG oder SVG (Standard: basics.x-logo)")
     ap.add_argument("--ohne-zeitachse", action="store_true",
                     help="Design Raster ohne waagrechte Zeitachse, für sehr strenge Bewerbungssoftware")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
@@ -205,16 +224,20 @@ def main(argv: list[str] | None = None) -> Result:
     build.mkdir(parents=True, exist_ok=True)
     image = cv.get("basics", {}).get("image")
     photo = (cv_path.parent / image).resolve() if image else None
-    root = typst_root(build, [THEMES] + ([photo] if photo else []))
+    chosen_mark = _mark(cv, cv_path.parent, args)
+    logo = chosen_mark["logo"]
+    root = typst_root(build, [THEMES] + ([photo] if photo else []) + ([logo] if logo else []))
     if photo:
         cv["basics"]["image"] = root.typst_path(photo)
 
-    style = {**({"farbe-akzent": args.akzent} if args.akzent else {}),
-             **({"zeitachse": False} if args.ohne_zeitachse else {})}
+    accent = args.akzent.lower() if args.akzent else mark_module.accent_for(cv.get("basics", {}), designs["cover"])
+    style = {"farbe-akzent": accent, **({"zeitachse": False} if args.ohne_zeitachse else {})}
+    drawn_mark = {"variant": chosen_mark["variant"],
+                  "logo": root.typst_path(logo) if logo is not None else None}
     # One compiler for all files of a build: fonts load once
     compiler = typst.Compiler(root=str(root.path), font_paths=[str(ROOT / "fonts")])
     data = prepare(cv, letter, pages, args.lang, datetime.date.today(), root, style,
-                   outlined_labels(args.lang, build, root, compiler), designs)
+                   outlined_labels(args.lang, build, root, compiler), designs, drawn_mark)
     data_json = build / "dossier.json"
     data_json.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
 
@@ -224,7 +247,7 @@ def main(argv: list[str] | None = None) -> Result:
     for path in built.values():
         print(path)
     return Result(dossier=built["dossier"], cv=built["cv"], letter=built["letter"], data=data_json,
-                  theme=args.theme, root=root, entries=entries)
+                  theme=args.theme, root=root, entries=entries, logo_missing=chosen_mark["logo-missing"])
 
 
 if __name__ == "__main__":

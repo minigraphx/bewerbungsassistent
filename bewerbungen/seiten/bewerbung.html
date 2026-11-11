@@ -91,8 +91,33 @@
         <div id="dossier-design" hidden>
           <div class="field"><label class="field__label" for="d-design">Design des Dossiers</label><select class="input" id="d-design"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select>
             <p class="field__hint">Ein Design für alle Seiten. Akzentfarbe und Schrift bleiben auf allen Seiten gleich.</p></div>
+          <div class="mark-summary" id="d-zeichen-kurz" hidden><span class="mark-summary__cover" id="d-zeichen-mini" aria-hidden="true"></span><p class="field__hint" id="d-zeichen-satz"></p></div>
           <details id="d-erweitert">
             <summary>Erweitert</summary>
+            <section class="mark-editor" id="d-zeichen-teil" aria-labelledby="d-zeichen-titel" hidden>
+              <h3 id="d-zeichen-titel">Zeichen und Farbe</h3>
+              <div class="mark-editor__layout">
+                <div class="mark-editor__fields">
+                  <fieldset class="mark-group" id="d-zeichen-wahl"><legend>Zeichen</legend><div class="mark-tiles" id="d-zeichen-liste"></div></fieldset>
+                  <div class="mark-logo" id="d-logo-teil">
+                    <p class="field__hint" id="d-logo-hinweis">PNG, JPG oder SVG, höchstens 5 MB. Am besten quer und mit durchsichtigem Hintergrund. Ein eigenes Zeichen, kein Firmenlogo. Das Logo bleibt auf diesem Computer und geht nie an die KI.</p>
+                    <div class="mark-logo__current" id="d-logo-aktuell" hidden><img id="d-logo-bild" alt=""><p class="field__hint" id="d-logo-info"></p></div>
+                    <ul class="field__hint mark-logo__hints" id="d-logo-hinweise"></ul>
+                    <div class="btn-row"><input type="file" id="d-logo-datei" class="visually-hidden mark-logo__file" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" aria-describedby="d-logo-hinweis"><label class="btn btn--sm" for="d-logo-datei" id="d-logo-waehlen">Logo wählen</label><button type="button" class="btn btn--sm" id="d-logo-entfernen" hidden>Logo entfernen</button></div>
+                  </div>
+                  <div class="field"><label class="field__label" for="d-initialen">Initialen</label><input class="input mark-initials" id="d-initialen" maxlength="3" autocomplete="off" aria-describedby="d-initialen-hinweis"><p class="field__hint" id="d-initialen-hinweis">1 bis 3 Buchstaben. Leer: aus dem Namen.</p></div>
+                  <fieldset class="mark-group" id="d-akzent-wahl"><legend>Akzentfarbe</legend><div class="mark-swatches" id="d-akzent-liste"></div>
+                    <div class="mark-own" id="d-eigene-farbe-teil" hidden><label class="field__label" for="d-eigene-farbe">Eigene Farbe</label><div class="mark-own__row"><input type="color" id="d-eigene-farbe-wahl" aria-label="Farbe wählen" value="#38495d"><input class="input mark-own__hex" id="d-eigene-farbe" placeholder="#38495d" maxlength="7" autocomplete="off" aria-describedby="d-eigene-farbe-pruefung"><button type="button" class="btn btn--sm" id="d-eigene-farbe-speichern">Farbe übernehmen</button></div>
+                      <p class="field__hint" id="d-eigene-farbe-pruefung" aria-live="polite"></p><button type="button" class="btn btn--sm" id="d-vorschlag" hidden>Vorschlag übernehmen</button></div>
+                    <p class="field__hint">«Passend zum Design» ist die Farbe des Designs: Siegel Schieferblau, Raster Weinrot, Register Tannengrün. Sie wechselt mit dem Design; eine benannte Farbe bleibt. Schrift auf der Farbe wählt die App selbst, weiss oder dunkel.</p></fieldset>
+                  <p class="field__hint">Gilt für alle Dossiers. Schon erstellte bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu.</p>
+                  <div class="btn-row"><button type="button" class="btn btn--sm" id="d-zeichen-zuruecksetzen">Zurück zur Voreinstellung</button></div>
+                  <p class="status-line" id="d-zeichen-status" role="status" aria-live="polite"></p>
+                </div>
+                <figure class="mark-preview"><div id="d-vorschau" role="img"></div><figcaption class="field__hint" id="d-vorschau-text"></figcaption></figure>
+              </div>
+              <h3>Design pro Seite</h3>
+            </section>
             <p class="field__hint">Ein eigenes Design pro Seite. Lebenslauf und Anschreiben als einzelne Dateien erhalten das Design ihrer Seite.</p>
             <div class="application__fields">
               <div class="field"><label class="field__label" for="d-seite-deckblatt">Deckblatt</label><select class="input" id="d-seite-deckblatt" data-seite="deckblatt"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
@@ -250,6 +275,8 @@
 <script src="/lebenslauf-anpassen.js"></script>
 <script src="/unterlagen-wahl.js"></script>
 <script src="/dossier-texte.js"></script>
+<script src="/zeichen-logik.js"></script>
+<script src="/zeichen.js"></script>
 <script src="/eigenes-anschreiben.js"></script>
 <script src="/dateien-ordner.js"></script>
 <script src="/bewerbung.js"></script>

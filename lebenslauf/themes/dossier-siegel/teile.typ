@@ -5,19 +5,31 @@
 #import "../tokens.typ": space, radius
 #import "../dossier.typ": colours-for, labels-for
 #import "theme.typ": ring, footer, sizes, page-margin
+#import "../zeichen.typ": mark-or, mark-of, own-mark
 
 #let open-steps = 2
 
+// The node of the step path: ring and block are the node themselves; the other marks and a logo stand on a
+// field in the paper colour where the line ends
+#let node(d, c) = {
+  let drawn = mark-or(d, c, 76pt, 150pt, 76pt, "cover", ring(d.person.monogram, 76pt, c))
+  if mark-of(d).variant in ("passend", "ring", "block") { drawn }
+  else { box(fill: c.bg, inset: (x: space.space-3), drawn) }
+}
+
 // Horizontal step path: one filled dot per past station (counted in dossier.py, at most six),
-// then the ring with the initials, then open dots for what comes next
-#let step-path(done, monogram, c) = {
+// then the mark, then open dots for what comes next
+#let step-path(d, c) = {
+  let done = d.person.steps
   [#metadata((done: done))<dossier-steps>]
   let dot(filled) = circle(radius: 5pt, fill: if filled { c.accent } else { c.bg },
     stroke: if filled { none } else { 1.4pt + c.accent })
-  let marks = range(done).map(_ => dot(true)) + (ring(monogram, 76pt, c),) + range(open-steps).map(_ => dot(false))
+  let marks = range(done).map(_ => dot(true)) + (node(d, c),) + range(open-steps).map(_ => dot(false))
   box(width: 100%, height: 76pt, {
     place(left + horizon, line(length: 100%, stroke: 1.4pt + c.accent))
-    grid(columns: (1fr,) * marks.len(), align: center + horizon, rows: 76pt, ..marks)
+    // A wider mark or logo takes the width it needs; the ring keeps the even spacing it always had
+    let columns = range(marks.len()).map(i => if i == done and own-mark(d) { auto } else { 1fr })
+    grid(columns: columns, align: center + horizon, rows: 76pt, ..marks)
   })
 }
 
@@ -36,7 +48,7 @@
   let heading = d.letter.heading
   page(paper: "a4", margin: page-margin, fill: c.bg, footer: none, {
     v(space.space-7 * 2)
-    step-path(d.person.steps, d.person.monogram, c)
+    step-path(d, c)
     v(space.space-7)
     text(size: sizes.name, weight: 700, fill: c.text-strong)[#d.person.name]
     if d.person.label != none {
@@ -97,7 +109,7 @@
     align(center, {
       text(size: 20pt, weight: 700, fill: c.text-strong)[#thanks]
       v(space.space-6)
-      ring(d.person.monogram, 56pt, c)
+      mark-or(d, c, 56pt, 110pt, 56pt, "thanks", ring(d.person.monogram, 56pt, c))
       v(space.space-4)
       text(size: 12pt, weight: 700, fill: c.text-strong)[#d.person.name]
       v(space.space-2, weak: true)

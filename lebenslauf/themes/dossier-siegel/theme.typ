@@ -3,6 +3,7 @@
 #import "../common.typ": *
 #import "../tokens.typ": space, radius
 #import "../dossier.typ": colours-for, labels-for, level-marker, icon, current
+#import "../zeichen.typ": mark-or
 
 #let sizes = (
   name: 34pt,
@@ -23,12 +24,12 @@
   align(center + horizon, text(size: size * 0.34, weight: 700, fill: c.text-strong)[#monogram]),
 ))
 
-// Footer of every page but the cover: small ring, name and date
+// Footer of every page but the cover: the small mark (the ring unless the person chose another), name and date
 #let footer(d, c) = grid(
   columns: (auto, 1fr),
   column-gutter: space.space-2,
   align: horizon,
-  ring(d.person.monogram, 16pt, c),
+  mark-or(d, c, 16pt, 48pt, 16pt, "footer", ring(d.person.monogram, 16pt, c)),
   text(size: sizes.small, fill: c.text-muted)[#d.person.name#if d.at("stand", default: none) != none [ · #d.stand]],
 )
 

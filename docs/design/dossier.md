@@ -13,7 +13,7 @@ Umgesetzt in G16 und G39 bis G42: Grundlagen und „Siegel“ #109, „Raster“
 ## Grundsätze
 
 - **Eine Schrift:** DM Sans in 400, 400 kursiv, 500 und 700 (SIL Open Font License 1.1, liegt schon in `lebenslauf/fonts/`). Daten und Dauer stehen in DM Sans mit tabellarischen Ziffern statt in einer Monospace.
-- **Eine Akzentfarbe:** Standard ist Schieferblau `#38495d` (`accent`), als Parameter. Dazu kommen nur die Farben des Systems: `text-strong`, `text`, `text-muted`, `accent-subtle`, `surface-subtle`, `line` und `line-strong`. Das Papier ist `bg` `#fdfcfa`, wie im Theme „zweispaltig“.
+- **Eine Akzentfarbe:** Jedes Design hat seine Hauptfarbe (Siegel Schieferblau `#38495d`, Raster Weinrot `#7a2e3a`, Register Tannengrün `#2f5d50`, G18); die Person kann eine andere wählen. Dazu kommen nur die Farben des Systems: `text-strong`, `text`, `text-muted`, `accent-subtle`, `surface-subtle`, `line` und `line-strong`. Das Papier ist `bg` `#fdfcfa`, wie im Theme „zweispaltig“.
 - **Abstände und Radien aus den Tokens:** Abstände 4, 8, 12, 16, 24, 32 und 48 pt; Ränder der Seite 48 pt (`space-7`). Radien 6 (`radius-md`) für Fotos und Felder, 10 (`radius-lg`) für Karten und Bänder; voll rund nur für Punkte und Statusmarken.
 - **Motive des Systems statt eigener Ornamente:**
   - Schrittpunkt und Schrittweg aus dem Cover.
@@ -43,6 +43,7 @@ Die Teile sind in Typst dieselben Funktionen. Das Dossier ruft sie nur hinterein
 | `languages[].x-level` | Niveau 1–6, auch als Stufe A1–C2 erfassbar; `fluency` bleibt als Text und wird immer gedruckt |
 | `interests[].x-icon` | nur Entwürfe A und B: Name aus einem festen, kleinen Katalog; fehlt er, steht nur das Wort |
 | `basics.x-monogramm` | eigene Initialen für das Zeichen (1–3 Buchstaben); sonst aus dem Namen |
+| `basics.x-zeichen`, `basics.x-logo`, `basics.x-akzent` | Zeichen, eigenes Logo und Akzentfarbe, einmal pro Person (G18, `docs/design/monogramm.md`); ohne Wahl das Zeichen und die Hauptfarbe des Designs |
 | Anschreiben: `firma`, `stelle`, `pensum`, `referenz` | für die Überschrift; fehlen sie, gelten die erste Zeile von `empfaenger` und der `betreff` |
 | Dossier-Datei: `gruss`, `dank`, `kennzahlen`, `anlagen` | Inhalte der optionalen Seiten; was fehlt, entfällt als Seite |
 
@@ -53,7 +54,7 @@ Die Teile sind in Typst dieselben Funktionen. Das Dossier ruft sie nur hinterein
 
 ### Akzentfarbe
 
-Die Akzentfarbe ist der Parameter `stil.farbe-akzent`, Standard `#38495d`. Die Entwürfe setzen ihn als `--d-accent: var(--accent)`. Weitere Grundsätze:
+Die Akzentfarbe ist der Parameter `stil.farbe-akzent`: die gewählte Farbe (`basics.x-akzent` oder `--akzent`), sonst die Hauptfarbe des Designs auf dem Deckblatt; sie gilt für alle Seiten, auch bei einem Design pro Seite. Die Entwürfe setzen ihn als `--d-accent: var(--accent)`. Weitere Grundsätze:
 - Text auf Akzentflächen folgt `on-accent`. Bei einer anderen Wunschfarbe berechnet das Theme Weiss oder `text-strong` nach Kontrast, nie fest weiss.
 - Als Textfarbe dient die Akzentfarbe nur bei mindestens 4.5:1 auf dem Papier.
 - `accent-subtle` wird aus der Akzentfarbe abgeleitet (`color.mix` mit Weiss).
@@ -141,7 +142,7 @@ Die Laufbahn erscheint als Zeitachse, Kennzahlen sind gross gesetzt.
 
 **Farbe.** Je Seite eine Akzentfläche, das Band; dazu `text-strong` und `accent-subtle` als Nachbarbänder wie im Cover. In der Zeitachse sind laufende Stationen akzentfarbig, abgeschlossene in `line`.
 
-**Erkennungszeichen.** Das Bänderband mit den Initialen im Akzentfeld. Auf Folgeseiten ist es eine schmale, oben angeschnittene Leiste aus denselben drei Bändern.
+**Erkennungszeichen.** Das Bänderband mit den Initialen im Akzentfeld. Auf Folgeseiten ist es eine schmale, oben angeschnittene Leiste aus denselben drei Bändern. Hat die Person ein Zeichen oder ein Logo gewählt, steht es zudem klein im Fuss der Folgeseiten, vor Name und Datum (G18).
 
 **Niveaus.** Der Notenbalken des Systems aus sechs Feldern: gefüllt in Akzentfarbe, leer in `line`. Ohne Angabe sind die Felder gestrichelt, wie bei einer unsicheren Note.
 

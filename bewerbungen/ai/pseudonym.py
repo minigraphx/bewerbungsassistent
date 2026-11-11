@@ -40,8 +40,8 @@ UMLAUT_PAIRS = {"ae": "ä", "oe": "ö", "ue": "ü"}  # and „Mueller“ stored,
 FIELD_LABELS = (("EMAIL", "E-Mail"), ("PHONE", "Telefon"), ("BIRTH", "Geburtsdatum"), ("SOCIAL_NUMBER", "AHV-Nummer"),
                 ("ORIGIN", "Heimatort, Zivilstand oder Nationalität"), ("STREET", "Adresse"), ("ADDRESS", "Adresse"),
                 ("POSTAL_CODE", "Postleitzahl"), ("TOWN", "Wohnort"), ("PROFILE_USER", "Benutzername"),
-                ("PROFILE", "Link"), ("WEBSITE", "Link"), ("LINK", "Link"), ("PHOTO", "Foto"), ("SCHOOL", "Schule"),
-                ("REFERENCE", "Referenz"), ("CONTACT_WAY", "Kontaktweg"), ("CONTACT", "Kontaktperson"),
+                ("PROFILE", "Link"), ("WEBSITE", "Link"), ("LINK", "Link"), ("PHOTO", "Foto"), ("LOGO", "Logo"),
+                ("SCHOOL", "Schule"), ("REFERENCE", "Referenz"), ("CONTACT_WAY", "Kontaktweg"), ("CONTACT", "Kontaktperson"),
                 ("RECIPIENT", "Kontaktperson"), ("NAME", "Name"))
 UNKNOWN_LABEL = "persönliche Angabe"
 

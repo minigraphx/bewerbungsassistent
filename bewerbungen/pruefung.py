@@ -14,6 +14,7 @@ import yaml
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
+import mark_settings
 import unterlagen
 
 PLATZHALTER = re.compile(r"TODO|XXX|\{\{|\}\}|\[\[|Lorem ipsum|<Firma>|<Stelle>|<Name>", re.IGNORECASE)
@@ -22,6 +23,8 @@ MONATE = {m: i + 1 for i, m in enumerate(("Januar", "Februar", "März", "April",
                                            "September", "Oktober", "November", "Dezember"))}
 MONATE_EN = {m: i + 1 for i, m in enumerate(("January", "February", "March", "April", "May", "June", "July",
                                               "August", "September", "October", "November", "December"))}
+LOGO_MISSING = ("Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeichen des Designs. "
+                "Logo wählen unter «Erweitert».")
 MAX_SEITEN = {"lebenslauf": 3, "anschreiben": 1, "dossier": 8}  # dossier: cover, letter, CV and optional pages
 NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "dossier": "Dossier"}
 MAX_ALTER_TAGE = 14
@@ -180,5 +183,7 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
     dossier = unterlagen.dossier_file(daten, bewerbung)
     if dossier:  # G40: only while chosen or once sent, so the preset checks what it always did
         befunde += pruefe_pdf(dossier, "dossier", as_it_is=gesendet)
+        if not gesendet and mark_settings.state_of_logo(daten) == "fehlt":
+            befunde.append(Befund("hinweis", LOGO_MISSING))
     reihenfolge = {"fehler": 0, "hinweis": 1, "ok": 2}
     return sorted(befunde, key=lambda b: reihenfolge[b.stufe])
