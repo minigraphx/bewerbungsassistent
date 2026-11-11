@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-76O2eCISQMxtkS1r+WK327qrdvfBixb7boH38dMotZY='; style-src 'sha256-K9vgZME/gsvfuhmNlgJWpBRI4dX/C02VJ9dsCJl69ho='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sTlsNAcjhuKyHKUJe9E+pzWVOZNLpiWKzAMVjPLpBq4='; style-src 'sha256-EwuQ4HTzI1f3F95zrfneLrbV9IcpolRmZtCgJU113lk='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -244,7 +244,7 @@ button { font: inherit; cursor: pointer; }
 .app-nav__more > summary { list-style: none; }
 .app-nav__more > summary::-webkit-details-marker { display: none; }
 .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); }
-.menu__group:empty { display: none; }
+.menu__group:empty, .menu__group:not(:has(a, button)) { display: none; }  /* Hilfe without the questions page (#222) */
 .menu__group + .menu__group { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 .menu__heading { margin: 0; padding: 4px 8px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--muted); }
 .menu a, .menu button { display: block; width: 100%; padding: 6px 8px; border: 0; border-radius: 4px; background: none; color: var(--text-strong); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
@@ -270,7 +270,7 @@ button { font: inherit; cursor: pointer; }
 </style>
 </head>
 <body>
-<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a><a href="/einrichtung">Einrichtung</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
+<nav class="app-nav" aria-label="Hauptnavigation"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><ul class="app-nav__list"><li><a class="app-nav__link" href="/">Übersicht</a></li><li><a class="app-nav__link" href="/treffer" data-text="nav.suche">Stellen suchen</a></li><li><a class="app-nav__link" href="/angaben">Meine Angaben</a></li></ul><details class="app-nav__more"><summary>Mehr</summary><div class="menu"><div class="menu__group"><p class="menu__heading">Suche</p><a href="/firmen" data-text="nav.firmen">Firmen</a></div><div class="menu__group"><p class="menu__heading">Unterlagen</p><a href="/dateien">Meine Dateien</a><a href="/entwuerfe">Entwürfe und Versionen</a><a href="/foto">Foto</a></div><div class="menu__group"><p class="menu__heading">Hilfe</p><a href="/fragen">Fragen an die KI</a></div><div class="menu__group"><p class="menu__heading">Für Geübte</p><a href="/inhalte">Inhalte als Text</a><a href="/einrichtung">Einrichtung</a><a href="/einstellungen">Erweiterte Einstellungen</a></div><div class="menu__group" id="menu-app"></div></div></details></nav>
 <main class="layout">
   <div class="side">
     <h1>Meine Angaben</h1>
@@ -2341,6 +2341,7 @@ function setStatus(message) {
 }
 
 const TAKE_OVER_TARGET = "uebernehmen";
+const UPLOAD_TARGET = "unterlagen"; // the Übersicht leads here with a CV as PDF (#222): the upload on the start
 const WANTED_NOTE = "Hier ergänzen. Es zählt für die Suche, sobald es unter „Übernehmen“ abgeschlossen ist.";
 let notTakenOver = false;
 let profileHint = false;
@@ -2478,6 +2479,7 @@ function openFromAddress() {
   const wanted = new URLSearchParams(window.location.hash.slice(1)).get("feld");
   if (!backend || !wanted) return;
   window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  if (wanted === UPLOAD_TARGET) return openUploads();
   if (!state.track || (!pageStateFound && existingBasics.length)) {
     // Imported files without a state of this page: starting over here would ask for everything again.
     profileHint = existingBasics.length > 0;
@@ -2493,6 +2495,15 @@ function openFromAddress() {
   field.prepend(el("p", { className: "wanted-note" }, WANTED_NOTE));
   field.scrollIntoView({ block: "center" });
   (field.querySelector("input, textarea, select") || field).focus();
+}
+
+/** The start holds the upload in the app; its first category is the CV the person already has. */
+function openUploads() {
+  goTo(0);
+  const button = document.querySelector(`[data-category="${form.documents.categories[0].id}"]`);
+  if (!button) return;
+  button.closest("fieldset").scrollIntoView({ block: "center" });
+  button.focus();
 }
 
 const TRACK_WORDS = { job: "eine Stelle", apprenticeship: "eine Lehrstelle" };

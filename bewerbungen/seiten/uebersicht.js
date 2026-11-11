@@ -133,7 +133,6 @@
     for (const [name, zahl] of Object.entries(L.ansichtenZaehlen(zeilen))) document.querySelector(`[data-zahl=${name}]`).textContent = String(zahl);
     $("liste").replaceChildren(...gezeigte.map(zeile));
     $("tabelle").hidden = gezeigte.length === 0;
-    $("auswahl-leiste").hidden = gezeigte.length === 0;
     zeigeAuswahl(gezeigte);
     $("liste-leer").hidden = alle.length > 0;
     $("nichts-gefunden").hidden = alle.length === 0 || gezeigte.length > 0;
@@ -164,9 +163,12 @@
       feld.closest("tr").toggleAttribute("data-selected", feld.checked);
     }
     const zustand = L.selectionState(auswahl, gezeigte);
-    $("alle-waehlen").checked = zustand === "all";
-    $("alle-waehlen").indeterminate = zustand === "some";
+    for (const alle of [$("alle-waehlen"), $("alle-kopf")]) {
+      alle.checked = zustand === "all";
+      alle.indeterminate = zustand === "some";
+    }
     const anzahl = L.selectedIds(auswahl, gezeigte).length;
+    $("auswahl-leiste").hidden = !L.showBulkBar(anzahl);
     $("auswahl-zahl").textContent = L.selectionLabel(anzahl);
     $("stand-setzen").disabled = anzahl === 0 || !$("stand-wahl").value;
   }
@@ -474,6 +476,7 @@
   $("neu-abbrechen").addEventListener("click", () => $("neu-dialog").close());
   $("neu-form").addEventListener("submit", anlegen);
   $("alle-waehlen").addEventListener("change", waehleAlle);
+  $("alle-kopf").addEventListener("change", waehleAlle);
   $("stand-wahl").addEventListener("change", () => zeigeAuswahl());
   $("stand-setzen").addEventListener("click", frageStand);
   $("stand-abbrechen").addEventListener("click", () => $("stand-dialog").close());

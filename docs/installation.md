@@ -243,7 +243,7 @@ Du installierst alles genau wie oben beschrieben. Lass dir dabei ruhig von deine
 Danach ist Folgendes anders:
 
 1. Unter **Meine Angaben** wählst du die **Lehrstellensuche**. Die Fragen führen dich durch alles, was es braucht.
-2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Lehrstellen suchen** kann dir die KI unter **Welcher Beruf passt zu dir?** Berufe vorschlagen. Fehlt noch die Einwilligung, fragt die App gleich dort danach. Was du geschrieben hast, bleibt stehen, und nach **Einwilligen** kommen die Vorschläge. Du entscheidest, welche du in deine Suche aufnimmst. Einen Beruf, den du schon kennst, trägst du unter **Eigenen Beruf aufnehmen** selbst ein, mit EFZ oder EBA. Hast du einen Beruf aus Versehen entfernt, holt **Rückgängig** ihn zurück.
+2. Weisst du noch nicht, welcher Beruf passt? Auf der Seite **Lehrstellen suchen** kann dir die KI unter **Welcher Beruf passt zu dir?** Berufe vorschlagen. Fehlt noch die Einwilligung, steht dort **Die KI ist noch aus.** Ein Klick auf **KI einschalten** zeigt den Text dazu. Was du geschrieben hast, bleibt stehen, und nach **Einwilligen** kommen die Vorschläge. Du entscheidest, welche du in deine Suche aufnimmst. Einen Beruf, den du schon kennst, trägst du unter **Eigenen Beruf aufnehmen** selbst ein, mit EFZ oder EBA. Hast du einen Beruf aus Versehen entfernt, holt **Rückgängig** ihn zurück.
 3. Unter **Suche einstellen** wählst du, ob du Lehrstellen, Schnupperlehren oder beides suchst. Die Erweiterung sucht dann auf LENA (berufsberatung.ch) und yousty. Unter **Wo suchst du?** kannst du eines davon ausschalten.
 
 Deine Bewerbung schickst immer du selbst ab.
@@ -460,7 +460,8 @@ Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, lösc
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
-| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein. Für Vorschläge der KI auf der Seite **Stellen suchen** oder **Lehrstellen suchen** fragt die App direkt im Feld für die Vorschläge nach der Einwilligung; was Sie dort geschrieben haben, bleibt stehen. |
+| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein: **KI einschalten** zeigt den Text dazu. |
+| „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Stellen suchen** oder **Lehrstellen suchen** und unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
 | „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 2](#schritt-2-ki) ein. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie im Pilot begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |

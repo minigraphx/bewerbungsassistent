@@ -102,10 +102,11 @@
   }
 
   function zeigeStatus(s) {
-    $("ki-status").textContent = statusText(s);
     const einwilligungOffen = Boolean(s.einwilligung && !s.einwilligung.erteilt);
+    $("ki-status").textContent = statusText(s);
+    $("ki-status").hidden = einwilligungOffen;  // the line of the consent says that the AI is off
     $("ki-einwilligung").hidden = !einwilligungOffen;
-    if (einwilligungOffen) window.Einwilligung.zeige($("ki-einwilligung"), s.einwilligung, zeigeStatus);
+    if (einwilligungOffen) window.Einwilligung.zeile($("ki-einwilligung"), s.einwilligung, zeigeStatus);
     $("ki-einladung").hidden = s.eingerichtet || !s.einladung || einwilligungOffen;
     frei(s.eingerichtet && !einwilligungOffen);
     if (s.einladung_fehler) meldung(s.einladung_fehler, "fehler");
