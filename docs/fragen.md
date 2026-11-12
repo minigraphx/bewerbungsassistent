@@ -27,7 +27,7 @@ Aus Ihren Angaben unter Meine Angaben:
 - Ihren Namen, auch Vor- und Nachnamen einzeln, weitere Vornamen und jeden Teil eines Doppelnamens
 - Adresse, Postleitzahl, Telefon, E-Mail, Webseite, Profil-Links und die Benutzernamen darin, Geburtsdatum
 - die Namen Ihrer Referenzen
-- eigene Initialen fürs Dossier, so wie Sie sie geschrieben haben, und den Dateinamen Ihres Logos; das Logo selbst geht nie zur KI
+- die eigenen Initialen fürs Dossier aus dem Feld dafür (gleiche Buchstaben anderswo, etwa IT oder HR, bleiben stehen) und den Dateinamen Ihres Logos; das Logo selbst geht nie zur KI
 
 Aus der Bewerbung und dem Anschreiben:
 
