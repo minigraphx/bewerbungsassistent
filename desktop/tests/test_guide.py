@@ -74,3 +74,43 @@ def test_the_guide_explains_each_signature_message_of_a_macos_update():
 
     assert len(messages) == 2
     assert [message for message in messages if f"„{message}“" not in troubles] == []
+
+
+JUMP_LIST = "**Springen zu**"
+QUICK_START = "## Schnellstart für Bewerbungen"
+JUMP_ENTRY = re.compile(r"^ *- \[([^\]]+)\]\(#([^)\s]+)\)$")
+
+
+def jump_list(text):
+    """(title, anchor) of each entry under „Springen zu“, in order."""
+    lines = text[text.index(JUMP_LIST) + len(JUMP_LIST):].lstrip("\n").split("\n")
+    entries = []
+    for line in lines:
+        found = JUMP_ENTRY.match(line)
+        if not found:
+            break
+        entries.append((found.group(1), found.group(2)))
+    return entries
+
+
+def test_the_jump_list_stands_right_before_the_quick_start_and_lists_every_chapter():
+    """#252: at phone width the list was far down, after the five pictures; every h2 and h3 is in it."""
+    text = GUIDE.read_text(encoding="utf-8")
+    entries = jump_list(text)
+    chapters = re.findall(r"^#{2,3} (.+)$", without_code(text), re.M)
+    after_list = text[text.index(JUMP_LIST):].split("\n\n", 2)[2].lstrip("\n")
+
+    assert after_list.startswith(QUICK_START + "\n")
+    assert entries[0] == ("Schnellstart für Bewerbungen", heading_id("Schnellstart für Bewerbungen"))
+    assert [title for title, _ in entries] == chapters
+    assert [anchor for _, anchor in entries] == [heading_id(chapter) for chapter in chapters]
+
+
+def test_every_quick_start_step_ends_with_where_to_read_more():
+    quick = GUIDE.read_text(encoding="utf-8").split(QUICK_START + "\n", 1)[1].split("\n## ", 1)[0]
+    steps = re.split(r"^\d+\. ", quick, flags=re.M)[1:]
+
+    assert len(steps) == 5
+    assert [n for n, step in enumerate(steps, 1) if "Mehr unter [" not in step] == []
+    assert ("Mehr unter [Stellen suchen und bewerben](#stellen-suchen-und-bewerben) und "
+            "[Fertige Dateien verwenden](#fertige-dateien-verwenden).") in steps[4]

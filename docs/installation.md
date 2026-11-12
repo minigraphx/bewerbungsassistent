@@ -8,6 +8,31 @@ Ihre Unterlagen liegen auf Ihrem Computer, nicht auf einem fremden Server.
 
 Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson ein. Was bei dir anders ist, steht unter [Für Lehrstellen](#für-lehrstellen).
 
+**Springen zu**
+
+- [Schnellstart für Bewerbungen](#schnellstart-für-bewerbungen)
+- [Einmal einrichten](#einmal-einrichten)
+  - [Was Sie brauchen](#was-sie-brauchen)
+  - [App installieren](#app-installieren)
+  - [App einrichten](#app-einrichten)
+  - [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen)
+  - [Am Ende der Einrichtung](#am-ende-der-einrichtung)
+- [Mit der App arbeiten](#mit-der-app-arbeiten)
+  - [Angaben erfassen](#angaben-erfassen)
+  - [Stellen suchen und bewerben](#stellen-suchen-und-bewerben)
+  - [Suchbegriffe prüfen](#suchbegriffe-prüfen)
+  - [Firmen und kununu](#firmen-und-kununu)
+  - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
+  - [Für Lehrstellen](#für-lehrstellen)
+- [Bei Bedarf](#bei-bedarf)
+  - [Updates](#updates)
+  - [Mehrere Personen](#mehrere-personen)
+  - [Datenordner](#datenordner)
+  - [Unter Linux](#unter-linux)
+  - [Für Geübte](#für-geübte)
+  - [Häufige Fehler](#häufige-fehler)
+  - [Hilfe](#hilfe)
+
 ## Schnellstart für Bewerbungen
 
 So kommen Sie von der Installation zur ersten Bewerbung. Jeder Schritt verweist auf die Einzelheiten weiter unten.
@@ -28,31 +53,9 @@ So kommen Sie von der Installation zur ersten Bewerbung. Jeder Schritt verweist 
 
    ![Seite Stellen suchen mit der Liste der Treffer und der Einschätzung der KI zum gewählten Treffer](bilder/treffer.jpg)
 
-5. **Unterlagen erstellen und abschicken.** Klicken Sie in der Bewerbung auf **Unterlagen erstellen**; die KI entwirft dabei das Anschreiben. Lesen Sie es, passen Sie es mit **Ändern** an die Firma an und klicken Sie auf **Freigeben**. Mit **Formular öffnen** füllt die Erweiterung das Formular der Firma aus. Sie prüfen es und schicken die Bewerbung selbst ab.
+5. **Unterlagen erstellen und abschicken.** Klicken Sie in der Bewerbung auf **Unterlagen erstellen**; die KI entwirft dabei das Anschreiben. Lesen Sie es, passen Sie es mit **Ändern** an die Firma an und klicken Sie auf **Freigeben**. Mit **Formular öffnen** füllt die Erweiterung das Formular der Firma aus. Sie prüfen es und schicken die Bewerbung selbst ab. Mehr unter [Stellen suchen und bewerben](#stellen-suchen-und-bewerben) und [Fertige Dateien verwenden](#fertige-dateien-verwenden).
 
    ![Seite einer Bewerbung mit den sechs Schritten und der Karte Nächster Schritt: Anschreiben lesen und freigeben](bilder/bewerbung.jpg)
-
-**Springen zu**
-
-- [Einmal einrichten](#einmal-einrichten)
-  - [Was Sie brauchen](#was-sie-brauchen)
-  - [App installieren](#app-installieren)
-  - [App einrichten](#app-einrichten)
-  - [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen)
-- [Mit der App arbeiten](#mit-der-app-arbeiten)
-  - [Angaben erfassen](#angaben-erfassen)
-  - [Stellen suchen und bewerben](#stellen-suchen-und-bewerben)
-  - [Firmen und kununu](#firmen-und-kununu)
-  - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
-  - [Für Lehrstellen](#für-lehrstellen)
-- [Bei Bedarf](#bei-bedarf)
-  - [Updates](#updates)
-  - [Mehrere Personen](#mehrere-personen)
-  - [Datenordner](#datenordner)
-  - [Unter Linux](#unter-linux)
-  - [Für Geübte](#für-geübte)
-  - [Häufige Fehler](#häufige-fehler)
-  - [Hilfe](#hilfe)
 
 ## Einmal einrichten
 

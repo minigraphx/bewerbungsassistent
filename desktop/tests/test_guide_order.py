@@ -47,7 +47,9 @@ def heading_id(heading: str) -> str:
 def test_the_guide_starts_with_the_way_to_the_first_application():
     assert [title for title, _ in sections(2, text())] == TOP_LEVEL
     intro = text().split("\n## ", 1)[0]
-    assert "Springen zu" not in intro, "the steps come before the table of contents"
+    # #252: the jump list closes the intro, so on a phone it comes before the five pictures, not after them
+    assert intro.rstrip().endswith("- [Hilfe](#hilfe)") and "**Springen zu**" in intro
+    assert not re.search(r"^\d+\. ", intro, re.M), "the steps belong under the quick start"
 
 
 def test_five_numbered_steps_each_with_one_picture_that_exists():
