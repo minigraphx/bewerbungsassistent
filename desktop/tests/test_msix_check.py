@@ -80,7 +80,7 @@ def test_the_summary_lists_all_five_checks_in_order():
     results = [msix_check.Result(name, index % 2 == 0, f"seen {index}") for index, name in enumerate(msix_check.CHECKS)]
     summary = msix_check.summary(results)
 
-    assert msix_check.CHECKS == ("registry", "manifest", "host", "link", "claude")
+    assert msix_check.CHECKS == ("registry", "manifest", "host", "link", "claude", "host-manifest")
     assert [line.split()[1].rstrip(":") for line in summary.splitlines()[2:]] == list(msix_check.CHECKS)
 
 
@@ -94,3 +94,32 @@ def test_the_alias_passes_only_when_the_host_behind_it_answers_ok(tmp_path):
 
     assert passed.passed and "sieht die laufende App: ja" in passed.seen
     assert not silent.passed and "keine Antwort" in silent.seen
+
+
+def test_the_host_from_the_manifest_passes_only_through_the_manifest_path(tmp_path):
+    target = tmp_path / "bewerbungsbegleiter.exe"
+    answer = {"id": 1, "ok": True, "daten": {"app": "http://127.0.0.1:1"}}
+
+    through = msix_check.check_manifest_host(target, send=lambda exe: answer if exe == target else None)
+    missing = msix_check.check_manifest_host(None, send=lambda exe: answer)
+
+    assert through.line().startswith("PASS host-manifest:") and str(target) in through.seen
+    assert missing.line().startswith("FAIL host-manifest:")
+
+
+def test_the_host_started_from_the_package_passes_when_it_answers(tmp_path):
+    packaged = tmp_path / "Bewerbungsbegleiter.exe"
+
+    assert msix_check.check_host(packaged, send=lambda exe: {"id": 1, "ok": True, "daten": {}}).passed
+    assert not msix_check.check_host(packaged, send=lambda exe: None).passed
+
+
+def test_after_uninstalling_a_key_left_behind_is_reported():
+    left = {msix_check.HOST_KEYS["Chrome"]: "    (Default)    REG_SZ    C:\\Muster\\host.json\n"}
+    query = lambda key: left.get(key, "ERROR: The system was unable to find the specified registry key or value.")
+
+    kept = msix_check.check_uninstall(query)
+    clean = msix_check.check_uninstall(lambda key: "ERROR: not found")
+
+    assert kept.line().startswith("FAIL uninstall:") and "Chrome" in kept.seen
+    assert clean.line().startswith("PASS uninstall:")

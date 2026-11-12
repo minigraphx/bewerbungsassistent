@@ -19,7 +19,7 @@ import threading
 import urllib.request
 from typing import BinaryIO, Callable
 
-CHECKS = ("registry", "manifest", "host", "link", "claude")
+CHECKS = ("registry", "manifest", "host", "link", "claude", "host-manifest")
 APP_NAME = "Bewerbungsbegleiter"  # as settings.APP_NAME
 INSTANCE_FILE = "instanz.json"  # as settings.INSTANCE_FILE
 EXECUTABLE = f"{APP_NAME}.exe"
@@ -91,7 +91,7 @@ def running_app(places: list[pathlib.Path]) -> tuple[pathlib.Path, int, str] | N
 
 
 def summary(results: list[Result]) -> str:
-    return "MSIX-Versuch (#255)\n\n" + "\n".join(result.line() for result in results)
+    return "MSIX-Versuch (#255, #256)\n\n" + "\n".join(result.line() for result in results)
 
 
 def reg_query(key: str) -> str:
@@ -138,22 +138,38 @@ def ping(executable: pathlib.Path, timeout: float = HOST_TIMEOUT) -> dict | None
     return reply[0]
 
 
-def check_host(target: pathlib.Path | None, packaged: pathlib.Path, send: Callable = ping) -> Result:
-    executable = target or packaged
+def _ping_seen(executable: pathlib.Path, send: Callable) -> tuple[dict | None, str]:
     try:
         reply = send(executable)
     except OSError as error:
-        reply, problem = None, f"Start nicht möglich: {error}"
-    else:
-        problem = "keine Antwort"
+        return None, f"Start nicht möglich: {error}"
     if not reply:
-        seen = problem
-    else:
-        data = reply.get("daten") or {}
-        seen = (f"Antwort ok={reply.get('ok')}, Version {data.get('version')}, "
-                f"sieht die laufende App: {'ja' if data.get('app') else 'nein'}")
-    via = "über das Manifest" if target else "direkt aus dem Paketordner, weil kein Manifest sichtbar ist"
-    return Result("host", bool(target and reply and reply.get("ok")), f"{executable} {via}: {seen}")
+        return None, "keine Antwort"
+    data = reply.get("daten") or {}
+    return reply, (f"Antwort ok={reply.get('ok')}, Version {data.get('version')}, "
+                   f"sieht die laufende App: {'ja' if data.get('app') else 'nein'}")
+
+
+def check_host(packaged: pathlib.Path, send: Callable = ping) -> Result:
+    """The host started from outside, straight from the package folder."""
+    reply, seen = _ping_seen(packaged, send)
+    return Result("host", bool(reply and reply.get("ok")), f"{packaged}: {seen}")
+
+
+def check_manifest_host(target: pathlib.Path | None, send: Callable = ping) -> Result:
+    """The host started the way Chrome does: from the path in the manifest the registry key points to."""
+    if target is None:
+        return Result("host-manifest", False, "kein Pfad, weil Registry-Eintrag oder Manifest fehlt")
+    reply, seen = _ping_seen(target, send)
+    return Result("host-manifest", bool(reply and reply.get("ok")), f"{target}: {seen}")
+
+
+def check_uninstall(query: Callable[[str], str]) -> Result:
+    """After Remove-AppxPackage: are the keys of the host and the link gone?"""
+    keys = {**HOST_KEYS, "Link": LINK_KEY}
+    left = [name for name, key in keys.items() if default_value(query(key))]
+    seen = f"bleibt: {', '.join(left)}" if left else "keiner der Schlüssel bleibt"
+    return Result("uninstall", not left, seen)
 
 
 def check_alias(alias: pathlib.Path, send: Callable = ping) -> Result:
@@ -224,19 +240,26 @@ def run(family: str, install_location: pathlib.Path, environ: dict) -> list[Resu
     keep_open(roaming, local, family)
     registry, manifest_path = check_registry(reg_query)
     manifest, target = check_manifest(manifest_path)
-    host = check_host(target, install_location / EXECUTABLE)
-    return [registry, manifest, host, check_link(reg_query), check_claude(roaming, local, family)]
+    host = check_host(install_location / EXECUTABLE)
+    link, claude = check_link(reg_query), check_claude(roaming, local, family)
+    return [registry, manifest, host, link, claude, check_manifest_host(target)]
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Checks of the MSIX trial (#255)")
-    ap.add_argument("--family", required=True, help="PackageFamilyName of the installed package")
-    ap.add_argument("--install-location", required=True, type=pathlib.Path)
+    ap.add_argument("--family", help="PackageFamilyName of the installed package")
+    ap.add_argument("--install-location", type=pathlib.Path)
     ap.add_argument("--alias", type=pathlib.Path, help="only try the host through this app execution alias")
+    ap.add_argument("--after-uninstall", action="store_true", help="only check whether the keys are gone")
     args = ap.parse_args(argv)
+    if args.after_uninstall:
+        print(check_uninstall(reg_query).line())
+        return 0
     if args.alias:
         print(check_alias(args.alias).line())
         return 0
+    if not (args.family and args.install_location):
+        ap.error("--family und --install-location fehlen")
     text = summary(run(args.family, args.install_location, dict(os.environ)))
     print(text)
     if os.environ.get("GITHUB_STEP_SUMMARY"):

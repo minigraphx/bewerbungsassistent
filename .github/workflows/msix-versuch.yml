@@ -6,6 +6,12 @@ name: MSIX-Versuch
 
 on:
   workflow_dispatch:
+    inputs:
+      variante:
+        description: "standard wie #255; registry ohne Virtualisierung der Registry (#256); registry-und-dateien auch ohne die von AppData"
+        type: choice
+        options: [standard, registry, registry-und-dateien]
+        default: standard
 
 permissions:
   contents: read
@@ -20,6 +26,7 @@ jobs:
     env:
       IDENTITY_NAME: BewerbungsbegleiterVersuch
       PUBLISHER: CN=Bewerbungsbegleiter Versuch
+      VARIANTE: ${{ inputs.variante || 'standard' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -46,8 +53,9 @@ jobs:
             $graphics.Dispose(); $bitmap.Dispose()
           }
           $icon.Dispose()
-          (Get-Content desktop\msix\AppxManifest.xml -Raw).Replace('@VERSION@', "$version.0") |
-            Set-Content (Join-Path $stage 'AppxManifest.xml') -Encoding utf8
+          python desktop/msix/manifest.py desktop/msix/AppxManifest.xml $version $env:VARIANTE (Join-Path $stage 'AppxManifest.xml')
+          if ($LASTEXITCODE -ne 0) { throw "Manifest nicht erstellt" }
+          "Variante $env:VARIANTE"; Get-Content (Join-Path $stage 'AppxManifest.xml')
           "STAGE=$stage" >> $env:GITHUB_ENV
       - name: Packen und signieren (Wegwerf-Zertifikat)
         run: |
@@ -95,7 +103,8 @@ jobs:
         run: |
           "Protokoll, wie Windows es aus dem Paketmanifest einträgt:"
           reg query HKCU\Software\Classes\bewerbungsbegleiter /s
-          $log = Join-Path $env:LOCALAPPDATA "Packages\$env:FAMILY\LocalCache\Roaming\Bewerbungsbegleiter\protokoll.txt"
+          $log = @((Join-Path $env:LOCALAPPDATA "Packages\$env:FAMILY\LocalCache\Roaming\Bewerbungsbegleiter\protokoll.txt"),
+                   (Join-Path $env:APPDATA 'Bewerbungsbegleiter\protokoll.txt')) | Where-Object { Test-Path $_ } | Select-Object -First 1
           $before = if (Test-Path $log) { (Get-Content $log).Count } else { 0 }
           try { Start-Process 'bewerbungsbegleiter://einladung?code=VERSUCH-0000' } catch { "Link nicht geöffnet: $_" }
           Start-Sleep 15
@@ -104,6 +113,14 @@ jobs:
           $alias = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\bewerbungsbegleiter.exe'
           python desktop/msix/msix_check.py --family $env:FAMILY --install-location $env:INSTALL_LOCATION --alias $alias
           $global:LASTEXITCODE = 0
+      - name: Deinstallieren, dann Schlüssel prüfen
+        if: always()
+        run: |
+          Get-Process Bewerbungsbegleiter -ErrorAction SilentlyContinue | Stop-Process -Force
+          Get-AppxPackage -Name $env:IDENTITY_NAME | Remove-AppxPackage
+          "Paket noch da: $([bool](Get-AppxPackage -Name $env:IDENTITY_NAME))"
+          python desktop/msix/msix_check.py --after-uninstall | Tee-Object -Variable line
+          if ($env:GITHUB_STEP_SUMMARY) { "``````n$line`n``````" >> $env:GITHUB_STEP_SUMMARY }
       - name: Was MSIX umgeleitet hat
         if: always()
         run: |
