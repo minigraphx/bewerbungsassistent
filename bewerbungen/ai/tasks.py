@@ -13,7 +13,7 @@ import yaml
 from ai import prompts
 from ai.errors import BAD_ANSWER, AiError, AnswerError
 from ai.gateway import Answer, Gateway, Request
-from ai.personal import secrets_from_application, secrets_from_building_blocks, secrets_from_cv
+from ai.personal import secrets_from_application, secrets_from_building_blocks, secrets_from_cv, with_written_monogram
 from ai.pseudonym import Pseudonymizer
 from ai.usage import UsageLog
 import preferences
@@ -73,7 +73,7 @@ def load_material(data_dir: pathlib.Path, partial: bool = False) -> Material:
         raise AiError("cv.yaml lässt sich nicht lesen.") from error
     if not isinstance(cv, dict):
         raise AiError("cv.yaml lässt sich nicht lesen.")
-    return Material(cv, texts["cv"], texts["profile"], texts["style"], texts["blocks"], missing,
+    return Material(with_written_monogram(cv, texts["cv"]), texts["cv"], texts["profile"], texts["style"], texts["blocks"], missing,
                     preferences.load(data_dir).address,
                     preferences.strictest_kind(data_dir) == preferences.APPRENTICESHIP)
 

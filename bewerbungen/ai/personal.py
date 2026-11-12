@@ -32,6 +32,8 @@ YEAR = re.compile(r"\b(?:19|20)\d\d\b")
 LABELLED = re.compile(r"\b(?:heimatort|bürgerort|zivilstand|nationalität|staatsangehörigkeit)\b\s*:?\s*([^\n,;]{2,60})",
                       re.IGNORECASE)
 SOCIAL_NUMBER = re.compile(r"\b756[.\s]?\d{4}[.\s]?\d{4}[.\s]?\d{2}\b")
+# The initials as written under basics, quoted or not; for files from before #248, where NO was read as False
+MONOGRAM_FIELD = re.compile(r"^[ \t]+x-monogramm[ \t]*:[ \t]*([\"']?)(?P<value>[^\W\d_]{1,3})\1[ \t]*(?:#.*)?$", re.MULTILINE)
 
 
 def _text(value) -> str:
@@ -86,6 +88,15 @@ def _birth_secrets(details: list) -> list[Secret]:
             result.append(Secret("BIRTH_DATE", m.group(1).strip(), "date"))
         result += [Secret("BIRTH_DATE", d.group(0), "date") for d in DATE_LIKE.finditer(text) if parse_date(d.group(0))]
     return result
+
+
+def with_written_monogram(cv: dict, text: str) -> dict:
+    """cv with the initials as cv.yaml writes them, when YAML 1.1 read them as something else (NO as False, #248)."""
+    basics = cv.get("basics") if isinstance(cv.get("basics"), dict) else None
+    if basics is None or "x-monogramm" not in basics or isinstance(basics["x-monogramm"], str):
+        return cv
+    found = MONOGRAM_FIELD.search(text)
+    return {**cv, "basics": {**basics, "x-monogramm": found.group("value")}} if found else cv
 
 
 def secrets_from_cv(cv: dict, minor: bool = False) -> list[Secret]:
