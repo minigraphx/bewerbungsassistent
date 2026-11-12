@@ -1,6 +1,6 @@
 // Page fill (G49, G50, #236): no nearly empty last page. The build (page_fill.py) picks a density level per part
 // from sys.inputs ("density-cv", "density-letter"): 0 is the design as drawn, a positive level tightens spacing,
-// leading and the body size (never below 9 pt, never above the design's own size), a negative level widens the
+// leading and the body size (never below 10 pt, G53, never above the design's own size), a negative level widens the
 // spacing between blocks so content flows onto the last page. The parts leave markers so the build can measure.
 
 #let density(part) = int(sys.inputs.at("density-" + part, default: "0"))
@@ -14,10 +14,13 @@
 // Leading only tightens; wider lines would look loose rather than calm
 #let leading(part) = 1 - 0.04 * calc.max(density(part), 0)
 
-// Body text a little smaller when tightening, never below 9 pt or below the design's own size
+// The smallest body text (G53): smaller would be hard to read in print
+#let min-body = 10pt
+
+// Body text a little smaller when tightening, never below 10 pt
 #let body-size(size, part) = {
-  let level = density(part)
-  if level <= 0 { size } else { calc.max(size - 0.12pt * level, calc.min(size, 9pt)) }
+  let level = calc.max(density(part), 0)
+  calc.max(size - 0.12pt * level, min-body)
 }
 
 #let margin-of(m, side) = {

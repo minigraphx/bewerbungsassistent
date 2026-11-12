@@ -52,7 +52,7 @@
 
 #let cefr = ("A1", "A2", "B1", "B2", "C1", "C2")
 
-#let sizes = (initials: 28pt, position: 20pt, name: 26pt, section: 12pt, body: 9.5pt, small: 8pt)
+#let sizes = (initials: 28pt, position: 20pt, name: 26pt, section: 12pt, body: 10pt, small: 8pt)
 #let page-margin = (left: space.space-7, right: space.space-7 + space.space-4, top: space.space-7,
   bottom: space.space-7 + space.space-3)
 

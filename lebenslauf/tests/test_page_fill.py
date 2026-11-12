@@ -9,15 +9,16 @@ import yaml
 import anschreiben
 import build
 import dossier
-from page_fill_samples import (MIN_FILL_RULE, content_lines, cv_of_length, example_cv, last_page_fill,
-                               letter_of_length, lone_headings, page_count, section_pages, thin_continuations)
+from page_fill_samples import (CV_BODY, LETTER_BODY, MIN_BODY_SIZE, MIN_FILL_RULE, content_lines, cv_of_length,
+                               example_cv, last_page_fill, letter_of_length, lone_headings, page_count,
+                               section_pages, text_sizes, thin_continuations)
 from dossier_samples import flat, pdftotext
 
 SINGLE = ("zweispaltig", "einspaltig")
 DOSSIER = ("dossier-siegel", "dossier-raster", "dossier-register")
 DESIGNS = SINGLE + DOSSIER
 ONE_COLUMN = ("einspaltig",) + DOSSIER  # sections follow each other, so a section's pages can be read in order
-CV_LENGTHS = (0, 12, 20, 24, 32)  # extra lines of experience over the example CV
+CV_LENGTHS = (0, 12, 20, 24, 32)  # extra lines of experience over the example CV; 0 has none of CV_BODY
 LETTER_LENGTHS = (5, 7, 9)  # extra paragraphs over the example letter
 # The lengths at which the designs as drawn put only their last section or two on a new page
 SPILL = {"zweispaltig": 0, "einspaltig": 24, "dossier-siegel": 24, "dossier-raster": 24, "dossier-register": 20}
@@ -150,6 +151,20 @@ def test_a_letter_with_a_nearly_empty_second_page_gets_more_space(built):
 def test_the_spilling_cv_takes_the_smaller_fix(built, design):
     result = built("cv", design, SPILL[design])["result"]
     _assert_smallest_fix(result, "cv", "cv")
+
+
+
+# G53: body text stays at 10 pt or more, also where page fill tightens
+
+
+@pytest.mark.parametrize("design", DESIGNS)
+@pytest.mark.parametrize("kind, lengths, marker", [("cv", CV_LENGTHS[1:], CV_BODY), ("letter", LETTER_LENGTHS, LETTER_BODY)])
+def test_body_text_is_never_smaller_than_ten_points(built, design, kind, lengths, marker):
+    for length in lengths:
+        for name, (pdf, first, last) in _documents(built, kind, design, length):
+            sizes = text_sizes(pdf, marker, first, last)
+            assert sizes, f"{design} {name} {length}: no body text found"
+            assert min(sizes) >= MIN_BODY_SIZE, f"{design} {name} {length}: body text at {min(sizes)} pt"
 
 
 # G50: headings with their content, short sections together
