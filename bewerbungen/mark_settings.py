@@ -10,12 +10,14 @@ import pathlib
 
 import yaml
 from ruamel.yaml.comments import CommentedMap
+from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
 import pfade  # noqa: F401  (makes the module lebenslauf importable)
 import dossier_data
 import fotoausschnitt
 import logo_file
 import mark
+from ai.personal import with_written_monogram
 from dateien import im_ordner, relativ, schreibe_atomar
 
 CV = "cv.yaml"
@@ -45,10 +47,22 @@ def _cv(k) -> pathlib.Path:
 
 def basics(daten: pathlib.Path) -> dict:
     try:
-        found = (yaml.safe_load((daten / CV).read_text(encoding="utf-8")) or {}).get("basics")
+        text = (daten / CV).read_text(encoding="utf-8")
+        found = with_written_monogram(yaml.safe_load(text) or {}, text).get("basics")
     except (OSError, yaml.YAMLError, AttributeError):
         return {}
     return found if isinstance(found, dict) else {}
+
+
+def _as_text(value: object) -> object:
+    """A string that YAML 1.1 (PyYAML) would read as something else, like NO or ON, is written in quotes (#248)."""
+    if not isinstance(value, str):
+        return value
+    try:
+        read_back = yaml.safe_load(value)
+    except yaml.YAMLError:
+        read_back = None
+    return value if read_back == value else DoubleQuotedScalarString(value)
 
 
 def write_basics(path: pathlib.Path, changes: dict) -> None:
@@ -61,7 +75,9 @@ def write_basics(path: pathlib.Path, changes: dict) -> None:
         if value is None:
             document["basics"].pop(key, None)
         else:
-            document["basics"][key] = value
+            document["basics"][key] = _as_text(value)
+    if "x-monogramm" in document["basics"]:  # written unquoted before #248
+        document["basics"]["x-monogramm"] = _as_text(document["basics"]["x-monogramm"])
     out = io.StringIO()
     y.dump(document, out)
     schreibe_atomar(path, out.getvalue().encode("utf-8"))

@@ -7,14 +7,18 @@ import base64
 import datetime
 import io
 import json
+import re
 
 import pytest
 import yaml
 from PIL import Image
 
+import dossier_data
 import logo_file
 import mark_settings
 import pruefung
+from ai.personal import secrets_from_cv
+from ai.pseudonym import Pseudonymizer, Secret
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 
 SVG = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 110"><rect width="110" height="110" rx="20" '
@@ -169,3 +173,30 @@ def test_a_missing_logo_shows_in_the_check_of_a_dossier(server):  # noqa: F811
     assert pruefung.LOGO_MISSING in found
     assert pruefung.LOGO_MISSING not in [b.text for b in pruefung.pruefe(
         server.kontext.daten, {**entry, "unterlagen": "einzeln"}, datetime.date(2026, 11, 11))]
+
+
+# #248: initials that YAML 1.1 reads as yes, no or null stay text; PyYAML (safe_load) is YAML 1.1
+YAML_11_WORDS = ("NO", "ON", "OFF", "Y", "N", "YES", "No", "on")
+
+
+@pytest.mark.parametrize("initials", YAML_11_WORDS)
+def test_initials_that_read_as_yes_or_no_are_saved_as_text(server, initials):  # noqa: F811
+    status, _ = post(server, "/api/dossier/zeichen", {"initialen": initials})
+    found = basics(server)
+
+    assert status == 200 and found["x-monogramm"] == initials
+    assert dossier_data.monogram(found) == initials
+    assert Secret("MONOGRAM", initials, "initials") in secrets_from_cv({"basics": found})
+    masked = Pseudonymizer(secrets_from_cv({"basics": found})).mask(
+        (server.kontext.daten / "cv.yaml").read_text(encoding="utf-8"))
+    assert re.search(r"x-monogramm: ([\"']?)\{\{MONOGRAM\}\}\1\n", masked)
+
+
+def test_initials_written_unquoted_before_the_fix_still_show_and_get_quoted(server):  # noqa: F811
+    cv = server.kontext.daten / "cv.yaml"
+    cv.write_text(cv.read_text(encoding="utf-8").replace("basics:\n", "basics:\n  x-monogramm: NO\n", 1),
+                  encoding="utf-8")
+
+    assert state(server)["initialen"] == "NO"
+    post(server, "/api/dossier/zeichen", {"zeichen": "ring"})
+    assert basics(server)["x-monogramm"] == "NO"  # the next save writes them in quotes

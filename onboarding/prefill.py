@@ -15,7 +15,8 @@ import validation
 from ai import prompts, tasks
 from ai.errors import AiError
 from ai.gateway import Gateway
-from ai.personal import people_secrets, secrets_from_building_blocks, secrets_from_cv, secrets_in_own_documents
+from ai.personal import (people_secrets, secrets_from_building_blocks, secrets_from_cv, secrets_in_own_documents,
+                         with_written_monogram)
 from ai.pseudonym import Pseudonymizer, Secret
 from ai.usage import UsageLog
 from dateien import im_ordner, lies_yaml
@@ -143,11 +144,14 @@ def _person_secrets(data: dict, track: str) -> list[Secret]:
 
 def _existing_cv(data_dir: pathlib.Path) -> dict:
     """A broken cv.yaml stops the request: its personal values could not be masked."""
+    path = im_ordner(data_dir, "cv.yaml")
     try:
-        cv = lies_yaml(im_ordner(data_dir, "cv.yaml"), {})
+        cv = lies_yaml(path, {})
     except yaml.YAMLError as error:
         raise AiError(BROKEN_CV) from error
-    return cv if isinstance(cv, dict) else {}
+    if not isinstance(cv, dict):
+        return {}
+    return with_written_monogram(cv, path.read_text(encoding="utf-8")) if cv else cv
 
 
 def _secrets(data_dir: pathlib.Path, track: str, data: dict, texts: list[str]) -> list[Secret]:
