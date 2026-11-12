@@ -63,6 +63,12 @@ Write each requirement as one row under its section, in this format. The fence k
 - G51 [approved, must] Das Anschreiben hat genau eine Seite, der Lebenslauf höchstens zwei. Unter „Erweitert“ kann die Person für den Lebenslauf drei Seiten erlauben. Wird eine Grenze überschritten, gilt dasselbe Vorgehen wie bei einer fast leeren Seite: erst zusammenziehen, dann Kürzungen vorschlagen. | gate: test
 - G52 [approved, must] Die Prüfung vor dem Versand misst jedes erzeugte PDF in jedem Design: Seitenzahl, Füllung der letzten Seite, allein stehende Überschriften, Text ausserhalb des Satzspiegels und überlappende Elemente. Verstösst ein Dokument gegen eine Regel, nennt die Prüfung Dokument, Seite und Grund, und versenden lässt es sich erst, nachdem die Person die Meldung bestätigt hat. | gate: test
 - G53 [approved, must] Der Fliesstext von Lebenslauf, Anschreiben und Dossier ist nie kleiner als 10 pt, auch nicht beim Zusammenziehen nach G49; diese Untergrenze ersetzt die 9 pt in G49. | gate: test
+- G54 [draft, must] Die App führt mit einer Seitenleiste statt einer Kopfzeile mit „Mehr“: Heute, Stellen, Bewerbungen, Meine Angaben, Lebenslauf und Dateien, Fragen an die KI und Einstellungen; unten stehen das KI-Budget und der Zustand der Erweiterung, und eine Marke erscheint nur, wo etwas wartet. Unter 900 px Breite wird die Seitenleiste zur Kopfzeile mit den vier Hauptzielen und „Menü“. Das AS-Logo erscheint einfarbig unter Einstellungen, Über die App; das ersetzt den Ort in G4. | gate: review
+- G55 [draft, must] Die Seiten heissen „Heute“ (bisher Übersicht), „Stellen“ (bisher Stellen suchen und Treffer), „Bewerbungen“ (die Liste der Bewerbungen als eigene Seite) und „Lebenslauf und Dateien“ (bisher Meine Dateien und Foto, mit dem Einstieg zu den früheren Fassungen). Wo G21, G27, G29, G38 und G44 die alten Namen nennen, gelten die neuen; was diese Zeilen verlangen, bleibt. | gate: review
+- G56 [draft, must] Die Liste der Firmen nach G35 ist ein Reiter der Seite Stellen, neben Neu, Gemerkt und Verworfen. | gate: review
+- G57 [draft, must] Das Zeitfenster der Suche (G32) und „Weitere Seiten durchsuchen“ stehen auf der Seite „Suche einstellen“, nicht mehr in den Einstellungen. | gate: review
+- G58 [draft, must] Bei jedem Treffer entscheidet die Person mit „Bewerbung vorbereiten“ als Hauptknopf, „Merken“ oder „Verwerfen“. | gate: review
+- G59 [draft, must] Bei jedem Treffer entscheidet die Person mit „Bewerbung vorbereiten“ als Hauptknopf, „Merken“ oder „Verwerfen“. | gate: review
 
 ## K · Constraints
 
