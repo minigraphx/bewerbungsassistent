@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Stellen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+body{margin:0}
+button,input,select{font:inherit}
+a{color:#27333f}a:hover{color:#38495d}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1120px; background: #fdfcfa; font-family: 'DM Sans', system-ui, sans-serif; color: #38495d; font-size: 16px; line-height: 24px">
+<div style="flex: 1 0 248px; background: #ffffff; border-right: 1px solid #d9dde3">
+<dc-import name="Seitenleiste" active="stellen" hint-size="248px,620px"></dc-import>
+</div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 40px 48px; display: flex; flex-direction: column; gap: 20px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px">
+<div style="flex: 1 1 420px; display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 700; color: #27333f">Stellen</h1>
+<p style="margin: 0">8 neue Stellen aus der Suche vom 10.11.2026 auf 4 Portalen.</p>
+<p style="margin: 0; font-size: 14px; line-height: 20px; color: #5a6879">Gesucht: Python, TypeScript, Softwareentwicklung und 2 weitere · Kantone BE und SO · nicht gezeigt: Schichtarbeit, Muster Bau</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="Sucheinstellung.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; font-weight: 500; text-decoration: none">Suche einstellen</a>
+<button type="button" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 6px; background: #38495d; color: #ffffff; font-weight: 500">Jetzt suchen</button>
+</div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #d9dde3">
+<div role="tablist" aria-label="Ansicht" style="display: flex; flex-wrap: wrap; gap: 4px">
+<button type="button" role="tab" aria-selected="true" style="min-height: 44px; padding: 0 14px; border: 0; border-bottom: 3px solid #38495d; background: transparent; color: #27333f; font-weight: 700">Neu <span style="font-weight: 400">8</span></button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 14px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #38495d">Gemerkt <span style="color: #5a6879">4</span></button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 14px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #38495d">Verworfen <span style="color: #5a6879">12</span></button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 14px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #38495d">Firmen</button>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding-bottom: 6px; font-size: 15px">
+<label for="sort" style="color: #5a6879">Reihenfolge</label>
+<select id="sort" style="min-height: 40px; padding: 0 10px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f"><option>Beste Passung zuerst</option><option>Neueste zuerst</option><option>Eigene Bewertung zuerst</option></select>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px">
+
+<section aria-label="Liste der Stellen" style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 16px; background: #f4f2ee; border-radius: 10px; font-size: 15px; line-height: 22px">
+<span style="flex: 1 1 220px; color: #27333f">2 Stellen sind noch nicht geprüft.<br><span style="font-size: 13px; color: #5a6879">Etwa USD 0.06 und 1 Minute. Danach bleiben USD 6.74 im Budget.</span></span>
+<button type="button" style="min-height: 40px; padding: 0 14px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-weight: 500">Alle prüfen</button>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px; overflow: hidden">
+<sc-for list="{{hits}}" as="h" hint-placeholder-count="7">
+<li style="display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-top: {{h.border}}; background: {{h.bg}}">
+<input type="checkbox" aria-label="{{h.pick}}" style="width: 18px; height: 18px; margin: 3px 0 0; accent-color: #38495d">
+<a href="#" style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; text-decoration: none; color: #38495d">
+<span style="font-weight: 500; color: #27333f">{{h.title}}</span>
+<span style="font-size: 15px; line-height: 22px">{{h.firm}}</span>
+<span style="font-size: 13px; line-height: 18px; color: #5a6879">{{h.meta}}</span>
+</a>
+<span style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+<span style="font-size: 20px; line-height: 24px; font-weight: 700; color: #27333f; font-variant-numeric: tabular-nums">{{h.grade}}</span>
+<span role="img" aria-label="{{h.word}}" style="display: block; width: 64px; height: 10px; background: linear-gradient(90deg, #38495d 0, #38495d {{h.pct}}, #d9dde3 {{h.pct}}, #d9dde3 100%); -webkit-mask: repeating-linear-gradient(90deg, #000 0, #000 9px, transparent 9px, transparent 11px); mask: repeating-linear-gradient(90deg, #000 0, #000 9px, transparent 9px, transparent 11px)"></span>
+<span style="font-size: 13px; line-height: 18px; color: #5a6879">{{h.word}}</span>
+</span>
+</li>
+</sc-for>
+</ul>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 15px; line-height: 22px; color: #5a6879">
+<span>Mehrere auf einmal:</span>
+<button type="button" style="min-height: 40px; padding: 0 14px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-weight: 500">Alle ab Note 4.5 merken</button>
+<button type="button" style="min-height: 40px; padding: 0 14px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-weight: 500">Angehakte verwerfen</button>
+</div>
+</section>
+
+<section aria-labelledby="dt" style="flex: 1.3 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="dt" style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 700; color: #27333f">Senior Data Engineer</h2>
+<p style="margin: 0">Muster Daten AG, Bern · 80–100 %</p>
+<p style="margin: 0; font-size: 14px; line-height: 20px; color: #5a6879"><a href="#">Inserat auf jobs.ch öffnen</a> · seit 2 Tagen online · kununu 3.8 von 5 · <a href="#">Firma ansehen</a></p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: #e8edf3; border-radius: 10px">
+<span style="font-size: 14px; line-height: 20px; font-weight: 500">Was möchten Sie mit dieser Stelle tun?</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="Lebenslauf.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 6px; background: #38495d; color: #ffffff; font-weight: 500; text-decoration: none">Bewerbung vorbereiten</a>
+<button type="button" style="min-height: 44px; padding: 0 18px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-weight: 500">Merken</button>
+<button type="button" style="min-height: 44px; padding: 0 18px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-weight: 500">Verwerfen</button>
+</div>
+</div>
+
+<article aria-labelledby="ki" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+<h3 id="ki" style="margin: 0; font-size: 16px; line-height: 22px; font-weight: 700; color: #27333f">Einschätzung der KI</h3>
+<span style="display: inline-flex; align-items: center; gap: 8px"><span style="font-size: 20px; line-height: 24px; font-weight: 700; color: #27333f">5</span><span role="img" aria-label="Note 5 von 6" style="display: block; width: 64px; height: 10px; background: linear-gradient(90deg, #38495d 0, #38495d 83%, #d9dde3 83%, #d9dde3 100%); -webkit-mask: repeating-linear-gradient(90deg, #000 0, #000 9px, transparent 9px, transparent 11px); mask: repeating-linear-gradient(90deg, #000 0, #000 9px, transparent 9px, transparent 11px)"></span><span style="font-size: 14px; color: #5a6879">passt gut</span></span>
+</div>
+<p style="margin: 0">Fachlich passend, die offenen Punkte sind überschaubar.</p>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h4 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 700; color: #27333f">Was passt</h4>
+<ul style="margin: 0; padding-left: 18px"><li>Python und SQL</li><li>Ort und Pensum</li></ul>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h4 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 700; color: #27333f">Was fehlt oder unsicher ist</h4>
+<ul style="margin: 0; padding-left: 18px"><li>Englisch eine Stufe unter dem Verlangten</li><li>Pikettdienst alle vier Wochen</li></ul>
+<a href="#" style="font-size: 14px; line-height: 20px">Stellen mit Pikettdienst künftig nicht zeigen</a>
+</div>
+</div>
+<details style="font-size: 14px; line-height: 20px; color: #5a6879"><summary style="color: #27333f">Wie lese ich die Note?</summary><p style="margin: 8px 0 0">6 ist die beste Note, 1 die schlechteste. Ab 4.5 passt eine Stelle gut. Die KI hat diese Stelle dreimal bewertet (5, 4.5 und 5); es zählt die mittlere Note.</p></details>
+<p style="margin: 0; padding-top: 12px; border-top: 1px solid #d9dde3; font-size: 13px; line-height: 18px; color: #5a6879">Eine Einschätzung, kein Urteil. Die KI kann sich irren. · <a href="#">Neu prüfen</a> · <a href="#">Was an die KI ging</a></p>
+</article>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 15px; line-height: 22px">
+<span id="ew" style="color: #27333f; font-weight: 500">Ihre eigene Bewertung</span>
+<div role="radiogroup" aria-labelledby="ew" style="display: flex; font-size: 24px; line-height: 24px">
+<button type="button" role="radio" aria-checked="false" aria-label="1 Stern" style="min-width: 40px; min-height: 44px; border: 0; background: transparent; color: #38495d">★</button>
+<button type="button" role="radio" aria-checked="false" aria-label="2 Sterne" style="min-width: 40px; min-height: 44px; border: 0; background: transparent; color: #38495d">★</button>
+<button type="button" role="radio" aria-checked="false" aria-label="3 Sterne" style="min-width: 40px; min-height: 44px; border: 0; background: transparent; color: #38495d">★</button>
+<button type="button" role="radio" aria-checked="true" aria-label="4 Sterne" style="min-width: 40px; min-height: 44px; border: 0; background: transparent; color: #38495d">★</button>
+<button type="button" role="radio" aria-checked="false" aria-label="5 Sterne" style="min-width: 40px; min-height: 44px; border: 0; background: transparent; color: #7c8794">☆</button>
+</div>
+<span style="font-size: 13px; line-height: 18px; color: #5a6879">Ihr Urteil, getrennt von der Note der KI. Geht nicht an die KI.</span>
+</div>
+</section>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1120}}'>
+class Component extends DCLogic {
+renderVals() {
+const word = (g) => g >= 5.5 ? 'passt sehr gut' : g >= 4.5 ? 'passt gut' : g >= 4 ? 'passt knapp' : 'passt wenig';
+const hit = (title, firm, meta, g, sel, first) => ({
+title: title, firm: firm, meta: meta,
+grade: g ? String(g) : '–',
+word: g ? word(g) : 'noch nicht geprüft',
+pct: g ? Math.round(g / 6 * 100) + '%' : '0%',
+pick: title + ' anhaken',
+bg: sel ? '#e8edf3' : '#ffffff',
+border: first ? '0' : '1px solid #d9dde3'
+});
+return { hits: [
+hit('Senior Data Engineer', 'Muster Daten AG · Bern · 80–100 %', 'jobs.ch · 05.11.2026', 5, true, true),
+hit('Data Scientist', 'Beispiel Pharma · Basel · 100 %', 'job-room · 05.11.2026', 4.5, false, false),
+hit('Analytics Engineer', 'Muster Telekom · Bern · 80 %', 'jobscout24 · 05.11.2026', 4, false, false),
+hit('BI-Entwickler:in', 'Beispiel Medien · Zürich · 60–80 %', 'ictjobs · 05.11.2026', 3.5, false, false),
+hit('Sachbearbeiter:in Controlling', 'Muster Bau · Thun · 100 %', 'jobs.ch · 05.11.2026', 2.5, false, false),
+hit('Backend-Entwickler:in Python', 'Muster Software · Solothurn · 100 %', 'ictjobs · 05.11.2026', 0, false, false),
+hit('Dateningenieur:in', 'Vorbild Industrie · Olten · 80 %', 'job-room · 05.11.2026', 0, false, false)
+] };
+}
+}
+</script>
+</body>
+</html>

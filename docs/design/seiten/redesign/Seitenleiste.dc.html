@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Seitenleiste</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<nav aria-label="Hauptnavigation" style="box-sizing: border-box; width: 100%; padding: 20px 12px 24px; display: flex; flex-direction: column; gap: 2px; font-family: 'DM Sans', system-ui, sans-serif; color: #38495d; font-size: 16px; line-height: 22px">
+<a href="Main.dc.html" style="padding: 4px 12px 16px; font-size: 17px; font-weight: 700; color: #27333f; text-decoration: none">Bewerbungsbegleiter</a>
+<sc-for list="{{items}}" as="item" hint-placeholder-count="8">
+<sc-if value="{{item.isHead}}" hint-placeholder-val="{{false}}">
+<p style="margin: 18px 0 4px; padding: 0 12px; font-size: 13px; line-height: 18px; font-weight: 500; color: #5a6879">{{item.label}}</p>
+</sc-if>
+<sc-if value="{{item.isLink}}" hint-placeholder-val="{{true}}">
+<a href="{{item.href}}" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; background: {{item.bg}}; color: {{item.fg}}; font-weight: {{item.fw}}">
+<span>{{item.label}}</span>
+<sc-if value="{{item.hasBadge}}" hint-placeholder-val="{{false}}">
+<span style="font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums">{{item.badge}}</span>
+</sc-if>
+</a>
+</sc-if>
+</sc-for>
+<div style="margin: 24px 4px 0; padding: 12px; border: 1px solid #d9dde3; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 18px; color: #5a6879">
+<span style="color: #27333f; font-weight: 500">KI-Budget im November</span>
+<div role="img" aria-label="{{budgetLabel}}" style="height: 6px; border-radius: 999px; background: #d9dde3"><div style="width: {{budgetPct}}; height: 6px; border-radius: 999px; background: #38495d"></div></div>
+<span style="font-variant-numeric: tabular-nums">{{budgetText}}</span>
+<div style="display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid #d9dde3"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #2e6b3a"></span><span>Erweiterung verbunden</span></div>
+</div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["heute","stellen","bewerbungen","angaben","dateien","fragen","einstellungen"],"default":"heute"},"leer":{"editor":"boolean","default":false},"$preview":{"width":248,"height":620}}'>
+class Component extends DCLogic {
+renderVals() {
+const active = this.props.active ?? 'heute';
+const leer = this.props.leer === true || this.props.leer === 'true';
+const head = (label) => ({ isHead: true, isLink: false, label: label });
+const link = (id, label, href, badge) => ({
+isHead: false, isLink: true, label: label, href: href,
+badge: leer ? '' : (badge || ''), hasBadge: !leer && !!badge,
+bg: active === id ? '#38495d' : 'transparent',
+fg: active === id ? '#ffffff' : '#38495d',
+fw: active === id ? 500 : 400
+});
+return {
+budgetPct: leer ? '0%' : '32%',
+budgetText: leer ? 'USD 10.00 frei' : 'USD 3.20 von 10.00 gebraucht',
+budgetLabel: leer ? 'Noch nichts gebraucht' : '32 Prozent des Budgets gebraucht',
+items: [
+link('heute', 'Heute', 'Main.dc.html', '4 offen'),
+link('stellen', 'Stellen', 'Suche.dc.html', '8 neu'),
+link('bewerbungen', 'Bewerbungen', 'Bewerbungen.dc.html', ''),
+head('Meine Unterlagen'),
+link('angaben', 'Meine Angaben', 'Angaben.dc.html', ''),
+link('dateien', 'Lebenslauf und Dateien', 'Unterlagen.dc.html', ''),
+head('Hilfe'),
+link('fragen', 'Fragen an die KI', '#', ''),
+link('einstellungen', 'Einstellungen', 'Einstellungen.dc.html', '')
+] };
+}
+}
+</script>
+</body>
+</html>

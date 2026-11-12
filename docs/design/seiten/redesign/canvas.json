@@ -1,0 +1,41 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Main.dc.html": {"expand": "fill", "h": 940, "title": "A1 · Heute", "w": 1360, "x": 0, "y": 0},
+    "ErsterStart.dc.html": {"expand": "fill", "h": 940, "title": "A2 · Heute beim ersten Start", "w": 1360, "x": 1440, "y": 0},
+    "Suche.dc.html": {"expand": "fill", "h": 1120, "title": "A3 · Stellen: entscheiden statt verwalten", "w": 1360, "x": 2880, "y": 0},
+    "Sucheinstellung.dc.html": {"expand": "fill", "h": 1120, "title": "A4 · Suche einstellen", "w": 1360, "x": 4320, "y": 0},
+    "Bewerbungen.dc.html": {"expand": "fill", "h": 960, "title": "A5 · Bewerbungen", "w": 1360, "x": 0, "y": 1400},
+    "Lebenslauf.dc.html": {"expand": "fill", "h": 1160, "title": "A6 · Bewerbung, Schritt Lebenslauf: Inhalt und Aussehen getrennt", "w": 1360, "x": 1440, "y": 1400},
+    "Bewerbung.dc.html": {"expand": "fill", "h": 1160, "title": "A7 · Bewerbung, Schritt Prüfen", "w": 1360, "x": 2880, "y": 1400},
+    "Angaben.dc.html": {"expand": "fill", "h": 1160, "title": "A8 · Meine Angaben", "w": 1360, "x": 4320, "y": 1400},
+    "Unterlagen.dc.html": {"expand": "fill", "h": 1060, "title": "A9 · Lebenslauf und Dateien", "w": 1360, "x": 0, "y": 2840},
+    "Einstellungen.dc.html": {"expand": "fill", "h": 1100, "title": "A10 · Einstellungen", "w": 1360, "x": 1440, "y": 2840},
+    "HeuteSchmal.dc.html": {"expand": "fill", "h": 1280, "title": "A11 · Heute, schmales Fenster (760)", "w": 760, "x": 2880, "y": 2840},
+    "Seitenleiste.dc.html": {"h": 620, "title": "Baustein: Seitenleiste", "w": 248, "x": 3720, "y": 2840},
+    "WebStart.dc.html": {"expand": "fill", "h": 2900, "page": "web", "title": "W1 · Startseite", "w": 1280, "x": 0, "y": 0},
+    "WebAblauf.dc.html": {"expand": "fill", "h": 2900, "page": "web", "title": "W2 · So funktioniert es", "w": 1280, "x": 1360, "y": 0},
+    "WebLehrstellen.dc.html": {"expand": "fill", "h": 2100, "page": "web", "title": "W3 · Für Lehrstellen", "w": 1280, "x": 2720, "y": 0},
+    "WebDaten.dc.html": {"expand": "fill", "h": 2300, "page": "web", "title": "W4 · Ihre Daten", "w": 1280, "x": 4080, "y": 0},
+    "WebKosten.dc.html": {"expand": "fill", "h": 1900, "page": "web", "title": "W5 · Kosten und Pilotphase", "w": 1280, "x": 0, "y": 3500},
+    "WebLaden.dc.html": {"expand": "fill", "h": 2100, "page": "web", "title": "W6 · App laden", "w": 1280, "x": 1360, "y": 3500},
+    "WebHilfe.dc.html": {"expand": "fill", "h": 1700, "page": "web", "title": "W7 · Hilfe", "w": 1280, "x": 2720, "y": 3500},
+    "Web404.dc.html": {"expand": "fill", "h": 1100, "page": "web", "title": "W8 · Fehlerseite", "w": 1280, "x": 4080, "y": 3500},
+    "WebStart390.dc.html": {"h": 6400, "page": "web", "title": "W9 · Startseite am Handy (390)", "w": 390, "x": 5440, "y": 0},
+    "WebKopf.dc.html": {"h": 130, "page": "web", "title": "Baustein: Kopf", "w": 1280, "x": 5920, "y": 0},
+    "WebFuss.dc.html": {"h": 620, "page": "web", "title": "Baustein: Abschluss und Fuss", "w": 1280, "x": 5920, "y": 300}
+  },
+  "createdOnFiles": {"at": "2026-11-12T19:00:00Z", "v": 1},
+  "designSystems": [
+    {"artifact": "https://claude.ai/artifact/YRZfoh86amQ1SiGFZopzBs", "copiedAt": "2026-11-12T19:00:00Z", "namespace": "bewerbungsassistent", "title": "Bewerbungsassistent", "version": "1794013099-8575"}
+  ],
+  "launch": {"view": "canvas", "page": "app"},
+  "notes": {
+    "app": {"kind": "title1", "maxW": 5680, "text": "App ab Version 0.5", "x": 0, "y": -380},
+    "web": {"kind": "title1", "maxW": 5360, "page": "web", "text": "Webseite ab Version 0.5: mehrere Seiten statt One-Pager", "x": 0, "y": -380}
+  },
+  "order": ["Main.dc.html", "ErsterStart.dc.html", "Suche.dc.html", "Sucheinstellung.dc.html", "Bewerbungen.dc.html", "Lebenslauf.dc.html", "Bewerbung.dc.html", "Angaben.dc.html", "Unterlagen.dc.html", "Einstellungen.dc.html", "HeuteSchmal.dc.html", "Seitenleiste.dc.html", "WebStart.dc.html", "WebAblauf.dc.html", "WebLehrstellen.dc.html", "WebDaten.dc.html", "WebKosten.dc.html", "WebLaden.dc.html", "WebHilfe.dc.html", "Web404.dc.html", "WebStart390.dc.html", "WebKopf.dc.html", "WebFuss.dc.html"],
+  "pages": [{"id": "app", "name": "App"}, {"id": "web", "name": "Webseite"}],
+  "title": "Design ab 0.5: App und Webseite"
+}
