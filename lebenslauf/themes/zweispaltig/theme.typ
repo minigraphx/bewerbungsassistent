@@ -12,7 +12,7 @@
   schrift-titel: "Liberation Sans",
   schrift-text: "DM Sans",
   // Schriftgrössen
-  groesse-text: 8.8pt,
+  groesse-text: 10pt,
   groesse-kontakt: 8.95pt,
   groesse-name: 40.6pt,
   groesse-label: 11.85pt,
@@ -48,7 +48,7 @@
   fortsetzung-links: true,
 )
 
-// Page fill (G49): spacing and leading follow the density the build chose, the body size stays as drawn (8.8 pt)
+// Page fill (G49): spacing and leading follow the density the build chose, the body size stays as drawn (10 pt, G53)
 #let verdichtet(s) = {
   let (f, lf) = (spacing("cv"), leading("cv"))
   let zeilen = ("zeilen-text", "zeilen-station-kopf", "zeilen-kontakt")

@@ -1,9 +1,9 @@
-"""No nearly empty last page (G49, #236): choose how dense a part is set before the PDF is written.
+"""No nearly empty last page (G49, G53, #236): choose how dense a part is set before the PDF is written.
 
 Every part (CV, letter) leaves markers (themes/page-fill.typ): its first page, and where its content ends within the
 page's content area. When a part runs over more than one page and its last page is less than a third full, the build
 tries both fixes within the design and takes the smaller change: tighter (spacing, leading, body size never below
-9 pt) until the content fits on one page fewer, or wider spacing until the last page is full enough. No content is
+10 pt) until the content fits on one page fewer, or wider spacing until the last page is full enough. No content is
 removed; when neither works, the part stays as the design draws it.
 """
 import dataclasses

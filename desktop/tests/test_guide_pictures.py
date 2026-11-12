@@ -7,6 +7,9 @@ import pathlib
 import re
 import struct
 
+import pytest
+from PIL import Image
+
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PICTURES = ROOT / "docs" / "bilder"
 PAGES = {ROOT / "docs" / "installation.md": "bilder/", ROOT / "README.md": "docs/bilder/",
@@ -15,6 +18,10 @@ MIN_WIDTH = 2200
 MAX_WIDTH = 2560
 # Start-of-frame markers carry the size; DHT (C4), JPG (C8) and DAC (CC) share the range but do not.
 FRAME_MARKERS = set(range(0xC0, 0xD0)) - {0xC4, 0xC8, 0xCC}
+# The first picture on the website's start page (#246): no empty band below the content
+CROPPED = ("uebersicht.jpg",)
+MAX_EMPTY_BOTTOM = 0.05  # of the height
+CONTENT_CONTRAST = 24  # grey levels from the page background, above JPEG noise
 
 
 def referenced() -> set[str]:
@@ -73,6 +80,31 @@ def test_pictures_carry_no_metadata():
                 break
             pos += 2 + struct.unpack(">H", data[pos + 2:pos + 4])[0]
     assert not carrying, f"mit Metadaten: {carrying}"
+
+
+def lowest_content_row(picture: Image.Image) -> int:
+    """The lowest row that differs from the page background, taken from the bottom row."""
+    grey = picture.convert("L")
+    width, height = grey.size
+    bottom = [grey.getpixel((x, height - 1)) for x in range(width)]
+    background = max(set(bottom), key=bottom.count)
+    for y in range(height - 1, -1, -1):
+        if any(abs(grey.getpixel((x, y)) - background) > CONTENT_CONTRAST for x in range(0, width, 2)):
+            return y
+    return 0
+
+
+@pytest.mark.parametrize("name", CROPPED)
+def test_a_cropped_picture_ends_where_its_content_ends(name):
+    with Image.open(PICTURES / name) as picture:
+        empty = (picture.height - 1 - lowest_content_row(picture)) / picture.height
+    assert empty <= MAX_EMPTY_BOTTOM, f"{name}: {empty:.0%} empty at the bottom"
+
+
+def test_finding_the_content_sees_a_line_above_an_empty_band():
+    picture = Image.new("L", (40, 100), 250)
+    picture.paste(40, (5, 30, 35, 32))
+    assert lowest_content_row(picture) == 31
 
 
 def test_reading_the_size_finds_the_frame():

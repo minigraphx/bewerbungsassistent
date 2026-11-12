@@ -10,7 +10,7 @@
   name: 34pt,
   position: 28pt,
   section: 12pt,
-  body: 9.5pt,
+  body: 10pt,
   small: 8pt,
 )
 

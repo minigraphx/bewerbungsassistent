@@ -35,12 +35,13 @@ def test_keine_fortsetzung_bei_einer_seite(baue):
 
 
 def test_ganzer_abschnitt_auf_neuer_seite_ohne_fortsetzung(baue, monkeypatch):
-    # The design as drawn: the page fill (G49) would pull this short last section back onto page 1
+    # The design as drawn: the page fill (G49) would pull these short last sections back onto page 1.
+    # At 10 pt body text (G53) the last two sections of the left column move over whole.
     monkeypatch.setattr(page_fill, "choose", lambda probe: 0)
     seiten = baue(beispiel())
 
     assert len(seiten) == 2
-    assert seiten[1].lstrip().startswith("INTERESSEN")
+    assert seiten[1].lstrip().startswith("WEITERE PROJEKTE")
     assert "FORTSETZUNG" not in "".join(seiten)
 
 

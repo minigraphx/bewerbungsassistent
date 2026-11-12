@@ -1,7 +1,7 @@
 """The person's own logo for the dossier (G18, docs/design/monogramm.md): checked on upload, never changed in its pixels.
 
 PNG and JPG lose their metadata like a photo (photo_file.py); an SVG must carry no script and load nothing from
-outside. To see shape, transparency and colours, Typst renders a small PNG of the logo, which this file decodes;
+outside. A plain SVG DOCTYPE from an older editor is taken off before the check, so a stored logo never has one (#243). To see shape, transparency and colours, Typst renders a small PNG of the logo, which this file decodes;
 no image library is needed. The logo stays on the computer: nothing here goes to the AI.
 """
 import collections
@@ -15,6 +15,7 @@ import typst
 import pfade  # noqa: F401  (makes the module lebenslauf importable)
 import mark
 import photo_file
+import svg_check
 
 MAX_BYTES = 5_000_000
 GOOD_WIDTH = 1000  # pixels; below that a hint, no refusal
@@ -41,7 +42,8 @@ def kind(data: bytes) -> str:
     except ValueError:
         pass
     head = data[:2048].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
-    if (head.startswith(b"<svg") or head.startswith(b"<?xml") or head.startswith(b"<!--")) and b"<svg" in data[:65536].lower():
+    starts = (b"<svg", b"<?xml", b"<!--", b"<!doctype")
+    if head.startswith(starts) and b"<svg" in data[:65536].lower():
         return "svg"
     raise ValueError(FORMAT)
 
@@ -56,10 +58,11 @@ def cleaned(data: bytes) -> tuple[str, bytes]:
             text = data.decode("utf-8")
         except UnicodeDecodeError as error:
             raise ValueError(UNREADABLE) from error
+        text = svg_check.without_doctype(text)
         problem = mark.svg_problem(text)
         if problem:
             raise ValueError(problem)
-        return found, data
+        return found, text.encode("utf-8")
     return photo_file.without_metadata(data)
 
 

@@ -12,6 +12,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 import yaml
+from pypdf import PdfReader
 
 import build
 
@@ -25,6 +26,9 @@ HEADINGS = {h.casefold() for h in ("Profil", "Berufserfahrung", "Projekte", "Wei
                                    "Referenzen")}
 CONTINUED = "Fortsetzung"
 MIN_FILL_RULE = 1 / 3  # G49, measured in the PDF; page_fill.MIN_FILL is the same rule inside the build
+MIN_BODY_SIZE = 10.0  # pt, G53: body text never smaller, also when page fill tightens
+CV_BODY = "Aufbau und Betrieb einer Auswertung"  # the invented highlights of station()
+LETTER_BODY = "In meiner letzten Stelle"  # the invented paragraphs of letter_of_length()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -120,6 +124,20 @@ def last_page_fill(pdf, first_page: int = 1, last_page: int | None = None) -> fl
     top, bottom = min(following), max(full)
     on_last = [line.bottom for line in content if line.page == last]
     return (max(on_last) - top) / (bottom - top) if on_last else 0.0
+
+
+def text_sizes(pdf, marker: str, first_page: int = 1, last_page: int | None = None) -> list[float]:
+    """The font sizes in pt, as printed, of the text runs that start with marker on pages first_page to last_page."""
+    pages = PdfReader(pdf).pages
+    sizes = []
+
+    def visit(text, cm, tm, font, size):
+        if text.strip().startswith(marker):
+            sizes.append(round(size * abs(tm[3] * cm[3]), 2))
+
+    for page in pages[first_page - 1:last_page or len(pages)]:
+        page.extract_text(visitor_text=visit)
+    return sizes
 
 
 def page_count(pdf) -> int:
