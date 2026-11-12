@@ -94,6 +94,20 @@ jobs:
           Get-Process Bewerbungsbegleiter -ErrorAction SilentlyContinue | Format-Table Id, Path
       - name: Fünf Prüfungen
         run: python desktop/msix/msix_check.py --family $env:FAMILY --install-location $env:INSTALL_LOCATION
+      - name: Auswege ohne Freigabe des Stores (Protokoll und App-Alias aus dem Paketmanifest)
+        if: always()
+        run: |
+          "Protokoll, wie Windows es aus dem Paketmanifest einträgt:"
+          reg query HKCU\Software\Classes\bewerbungsbegleiter /s
+          $log = Join-Path $env:LOCALAPPDATA "Packages\$env:FAMILY\LocalCache\Roaming\Bewerbungsbegleiter\protokoll.txt"
+          $before = if (Test-Path $log) { (Get-Content $log).Count } else { 0 }
+          try { Start-Process 'bewerbungsbegleiter://einladung?code=VERSUCH-0000' } catch { "Link nicht geöffnet: $_" }
+          Start-Sleep 15
+          "Protokoll der App nach dem Link (neue Zeilen):"
+          if (Test-Path $log) { Get-Content $log | Select-Object -Skip $before }
+          $alias = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\bewerbungsbegleiter.exe'
+          python desktop/msix/msix_check.py --family $env:FAMILY --install-location $env:INSTALL_LOCATION --alias $alias
+          $global:LASTEXITCODE = 0
       - name: Was MSIX umgeleitet hat
         if: always()
         run: |

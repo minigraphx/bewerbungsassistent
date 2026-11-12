@@ -156,6 +156,20 @@ def check_host(target: pathlib.Path | None, packaged: pathlib.Path, send: Callab
     return Result("host", bool(target and reply and reply.get("ok")), f"{executable} {via}: {seen}")
 
 
+def check_alias(alias: pathlib.Path, send: Callable = ping) -> Result:
+    """Way out for the host: the app execution alias of the package, started from outside like a browser would."""
+    if not alias.exists():
+        return Result("alias", False, f"{alias} fehlt")
+    try:
+        reply = send(alias)
+    except OSError as error:
+        return Result("alias", False, f"{alias}: Start nicht möglich: {error}")
+    ok = bool(reply and reply.get("ok"))
+    data = (reply or {}).get("daten") or {}
+    seen = f"Antwort ok={ok}, sieht die laufende App: {'ja' if data.get('app') else 'nein'}" if reply else "keine Antwort"
+    return Result("alias", ok, f"{alias}: {seen}")
+
+
 def check_link(query: Callable[[str], str]) -> Result:
     command = default_value(query(LINK_KEY))
     if not command:
@@ -218,7 +232,11 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Checks of the MSIX trial (#255)")
     ap.add_argument("--family", required=True, help="PackageFamilyName of the installed package")
     ap.add_argument("--install-location", required=True, type=pathlib.Path)
+    ap.add_argument("--alias", type=pathlib.Path, help="only try the host through this app execution alias")
     args = ap.parse_args(argv)
+    if args.alias:
+        print(check_alias(args.alias).line())
+        return 0
     text = summary(run(args.family, args.install_location, dict(os.environ)))
     print(text)
     if os.environ.get("GITHUB_STEP_SUMMARY"):

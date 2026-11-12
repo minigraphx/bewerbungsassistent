@@ -82,3 +82,15 @@ def test_the_summary_lists_all_five_checks_in_order():
 
     assert msix_check.CHECKS == ("registry", "manifest", "host", "link", "claude")
     assert [line.split()[1].rstrip(":") for line in summary.splitlines()[2:]] == list(msix_check.CHECKS)
+
+
+def test_the_alias_passes_only_when_the_host_behind_it_answers_ok(tmp_path):
+    alias = tmp_path / "bewerbungsbegleiter.exe"
+    assert msix_check.check_alias(alias).line().startswith("FAIL alias:")
+    alias.write_bytes(b"")
+
+    passed = msix_check.check_alias(alias, send=lambda exe: {"id": 1, "ok": True, "daten": {"app": "http://127.0.0.1:1"}})
+    silent = msix_check.check_alias(alias, send=lambda exe: None)
+
+    assert passed.passed and "sieht die laufende App: ja" in passed.seen
+    assert not silent.passed and "keine Antwort" in silent.seen
