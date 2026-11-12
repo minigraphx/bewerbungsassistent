@@ -22,6 +22,9 @@ FRAME_MARKERS = set(range(0xC0, 0xD0)) - {0xC4, 0xC8, 0xCC}
 CROPPED = ("uebersicht.jpg",)
 MAX_EMPTY_BOTTOM = 0.05  # of the height
 CONTENT_CONTRAST = 24  # grey levels from the page background, above JPEG noise
+# Taken by the website at the release tag, shown on no page of this repo (#267): first pages of lebenslauf.pdf
+# and anschreiben.pdf from `lebenslauf/dossier.py lebenslauf/data/dossier-beispiel.yaml`, invented data
+WEBSITE_ONLY = ("beispiel-unterlagen.jpg",)
 
 
 def referenced() -> set[str]:
@@ -30,6 +33,10 @@ def referenced() -> set[str]:
         pattern = re.compile(r"!\[[^\]]*\]\(" + re.escape(prefix) + r"([^)\s]+)\)")
         names.update(pattern.findall(page.read_text(encoding="utf-8")))
     return names
+
+
+def checked() -> set[str]:
+    return referenced() | set(WEBSITE_ONLY)
 
 
 def jpeg_size(data: bytes) -> tuple[int, int]:
@@ -54,13 +61,13 @@ def test_the_guide_shows_pictures():
 
 
 def test_every_shown_picture_exists_as_jpg():
-    missing = sorted(name for name in referenced() if not (PICTURES / name).is_file())
+    missing = sorted(name for name in checked() if not (PICTURES / name).is_file())
     assert not missing, f"fehlen: {missing}"
-    assert all(name.endswith(".jpg") for name in referenced())
+    assert all(name.endswith(".jpg") for name in checked())
 
 
 def test_every_shown_picture_is_taken_at_double_resolution():
-    widths = {name: jpeg_size((PICTURES / name).read_bytes())[0] for name in sorted(referenced())}
+    widths = {name: jpeg_size((PICTURES / name).read_bytes())[0] for name in sorted(checked())}
     too_small = {name: width for name, width in widths.items() if not MIN_WIDTH <= width <= MAX_WIDTH}
     assert not too_small, f"nicht {MIN_WIDTH} bis {MAX_WIDTH} px breit: {too_small}"
 
@@ -68,7 +75,7 @@ def test_every_shown_picture_is_taken_at_double_resolution():
 def test_pictures_carry_no_metadata():
     """No EXIF (APP1) or other application segments beyond JFIF (APP0): no camera, place or time, no program name."""
     carrying = []
-    for name in sorted(referenced()):
+    for name in sorted(checked()):
         data = (PICTURES / name).read_bytes()
         pos = 2
         while pos + 4 <= len(data) and data[pos] == 0xFF:
