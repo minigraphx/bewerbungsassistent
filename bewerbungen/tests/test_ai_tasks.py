@@ -11,6 +11,7 @@ import httpx2
 import pytest
 
 from ai import errors, prompts, tasks
+from ai.personal import secrets_from_cv
 from ai.connection import find_connection
 from ai.gateway import Gateway, Request
 from ai.pseudonym import Pseudonymizer
@@ -565,3 +566,15 @@ def test_no_keychain_library_is_fine(monkeypatch):
     from ai import connection as module
     monkeypatch.setattr(module, "_keyring", lambda: None)
     module.adopt_old_keychain()
+
+
+def test_initials_written_unquoted_before_248_are_still_masked(daten):
+    """#248: an old cv.yaml has `x-monogramm: NO` unquoted, which PyYAML reads as False; the field text counts."""
+    cv = daten / "cv.yaml"
+    cv.write_text(cv.read_text(encoding="utf-8").replace("basics:\n", "basics:\n  x-monogramm: NO\n", 1),
+                  encoding="utf-8")
+    material = tasks.load_material(daten)
+
+    masked = Pseudonymizer(secrets_from_cv(material.cv, minor=material.minor)).mask(material.cv_text)
+
+    assert "x-monogramm: {{MONOGRAM}}\n" in masked
