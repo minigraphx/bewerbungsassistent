@@ -16,6 +16,7 @@ Hier liegen die Ergebnisse der Neugestaltung, damit die Umsetzung ohne Zugang zu
 | `abgleich.md` | Wo die App vom Design abweicht und was davon auf einen Entscheid wartet. |
 | `entwurf/*.jpg` | Bilder aller Zeichenflächen, gerendert am 05.11.2026 (Tabelle unten). |
 | `seiten/*.dc.html` | Quellen der Zeichenflächen. Sie laufen nur in der Zeichenfläche (Format von Claude Design) und dienen als Referenz für Aufbau, Zustände und Texte. |
+| `seiten/redesign/`, `entwurf/redesign/` | Neugestaltung der App ab 0.3: Quellen, `canvas.json` und Bilder (Abschnitt unten). |
 
 Originale, privat für das Konto des Projekts: [Design System](https://claude.ai/artifact/YRZfoh86amQ1SiGFZopzBs), [Zeichenflächen](https://claude.ai/artifact/9XMb7JTKoWzuyngdwyzemR), [Textkatalog](https://claude.ai/artifact/2vVWbr5YyJ56psyLa1Zjda).
 
@@ -89,6 +90,29 @@ Jeder Schritt ein eigener Pull Request.
 | [webseite.jpg](entwurf/webseite.jpg) | Webseite der App, Startseite | 1280 px | [Webseite.dc.html](seiten/Webseite.dc.html) |
 
 Weitere Zustände der Seiten (etwa leer, ohne KI, dunkel) sind in den Zeichenflächen über die Einstellungen jeder Seite wählbar und in `texte.md` beschrieben.
+
+## Neugestaltung der App ab 0.3
+
+Entwurf für die App ab Version 0.3 (Original privat: [Zeichenfläche](https://claude.ai/artifact/6mVmnS9HoVpw9L39FhkNcs), Seite «App»). Die Quellen liegen als eigener Satz in `seiten/redesign/`, neben denen von MIN-369, die bleiben, wie sie sind. `canvas.json` ist die Anordnung der Zeichenfläche. Sie nennt auch die Seite «Webseite» (W1 bis W9); deren Quellen gehören zum Repo der Webseite und liegen nicht hier.
+
+Was sich gegenüber der heutigen App ändert und welche Spec-Zeilen das braucht, steht in `abgleich.md`, Abschnitt «Neugestaltung ab 0.3».
+
+Die Bilder sind am 12.11.2026 aus den Quellen gerendert, in der Breite der Zeichenfläche und mit allen Daten aus den Quellen. Alle Namen, Firmen und Dokumente sind erfunden.
+
+| Id | Bild | Seite und Zustand | Breite | Quelle |
+| --- | --- | --- | --- | --- |
+| A1 | [main.jpg](entwurf/redesign/main.jpg) | Heute: nächster Schritt, Danach, Termine und Fristen, Ihr Stand | 1360 px | [Main.dc.html](seiten/redesign/Main.dc.html) |
+| A2 | [ersterstart.jpg](entwurf/redesign/ersterstart.jpg) | Heute beim ersten Start: vier Schritte zur ersten Bewerbung | 1360 px | [ErsterStart.dc.html](seiten/redesign/ErsterStart.dc.html) |
+| A3 | [suche.jpg](entwurf/redesign/suche.jpg) | Stellen: Reiter Neu, Gemerkt, Verworfen, Firmen; Entscheid pro Treffer | 1360 px | [Suche.dc.html](seiten/redesign/Suche.dc.html) |
+| A4 | [sucheinstellung.jpg](entwurf/redesign/sucheinstellung.jpg) | Suche einstellen: vier Karten und Erweitert | 1360 px | [Sucheinstellung.dc.html](seiten/redesign/Sucheinstellung.dc.html) |
+| A5 | [bewerbungen.jpg](entwurf/redesign/bewerbungen.jpg) | Bewerbungen als eigene Seite | 1360 px | [Bewerbungen.dc.html](seiten/redesign/Bewerbungen.dc.html) |
+| A6 | [lebenslauf.jpg](entwurf/redesign/lebenslauf.jpg) | Bewerbung, Schritt Lebenslauf: Inhalt und Aussehen getrennt | 1360 px | [Lebenslauf.dc.html](seiten/redesign/Lebenslauf.dc.html) |
+| A7 | [bewerbung.jpg](entwurf/redesign/bewerbung.jpg) | Bewerbung, Schritt Prüfen | 1360 px | [Bewerbung.dc.html](seiten/redesign/Bewerbung.dc.html) |
+| A8 | [angaben.jpg](entwurf/redesign/angaben.jpg) | Meine Angaben | 1360 px | [Angaben.dc.html](seiten/redesign/Angaben.dc.html) |
+| A9 | [unterlagen.jpg](entwurf/redesign/unterlagen.jpg) | Lebenslauf und Dateien | 1360 px | [Unterlagen.dc.html](seiten/redesign/Unterlagen.dc.html) |
+| A10 | [einstellungen.jpg](entwurf/redesign/einstellungen.jpg) | Einstellungen mit Abschnitten links | 1360 px | [Einstellungen.dc.html](seiten/redesign/Einstellungen.dc.html) |
+| A11 | [heuteschmal.jpg](entwurf/redesign/heuteschmal.jpg) | Heute im schmalen Fenster: Kopfzeile statt Seitenleiste | 760 px | [HeuteSchmal.dc.html](seiten/redesign/HeuteSchmal.dc.html) |
+| Baustein | [seitenleiste.jpg](entwurf/redesign/seitenleiste.jpg) | Seitenleiste, von allen Seiten eingebunden | 248 px | [Seitenleiste.dc.html](seiten/redesign/Seitenleiste.dc.html) |
 
 ## Webseite
 

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Suche einstellen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+body{margin:0}
+button,input,select{font:inherit}
+a{color:#27333f}a:hover{color:#38495d}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1120px; background: #fdfcfa; font-family: 'DM Sans', system-ui, sans-serif; color: #38495d; font-size: 16px; line-height: 24px">
+<div style="flex: 1 0 248px; background: #ffffff; border-right: 1px solid #d9dde3">
+<dc-import name="Seitenleiste" active="stellen" hint-size="248px,620px"></dc-import>
+</div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 24px 40px 48px">
+<div style="max-width: 760px; display: flex; flex-direction: column; gap: 20px">
+
+<header style="display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0; font-size: 14px; line-height: 20px; color: #5a6879"><a href="Suche.dc.html">Stellen</a> › Suche einstellen</p>
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 700; color: #27333f">Suche einstellen</h1>
+<p style="margin: 0; color: #5a6879">So sucht die App heute. Jeder Teil lässt sich einzeln ändern, der frühere Stand bleibt erhalten.</p>
+</header>
+
+<section aria-labelledby="was" style="display: flex; flex-direction: column; gap: 12px; padding: 20px 24px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px"><h2 id="was" style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; color: #27333f">Welche Stellen passen zu Ihnen?</h2><a href="#">Ändern</a></div>
+<ul aria-label="Suchbegriffe" style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{terms}}" as="t" hint-placeholder-count="5">
+<li style="padding: 4px 12px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-size: 15px; line-height: 22px">{{t}}</li>
+</sc-for>
+</ul>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 16px; border-radius: 6px; background: #f4f2ee; font-size: 15px; line-height: 22px">
+<span style="flex: 1 1 280px; color: #27333f">Unsicher, ob die Begriffe stimmen? Die KI prüft sie anhand Ihrer Treffer.<br><span style="font-size: 13px; color: #5a6879">Etwa USD 0.01. Es ändert sich nichts, bis Sie etwas übernehmen.</span></span>
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-weight: 500">Suchbegriffe prüfen lassen</button>
+</div>
+</section>
+
+<section aria-labelledby="wo" style="display: flex; flex-direction: column; gap: 8px; padding: 20px 24px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px"><h2 id="wo" style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; color: #27333f">Region und Pensum</h2><a href="#">Ändern</a></div>
+<dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 24px">
+<dt style="color: #5a6879">Region</dt><dd style="margin: 0; color: #27333f">Kantone Bern und Solothurn</dd>
+<dt style="color: #5a6879">Pensum</dt><dd style="margin: 0; color: #27333f">80 bis 100 %</dd>
+</dl>
+</section>
+
+<section aria-labelledby="nicht" style="display: flex; flex-direction: column; gap: 12px; padding: 20px 24px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px"><h2 id="nicht" style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; color: #27333f">Was Sie nicht sehen wollen</h2><a href="#">Ändern</a></div>
+<dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 24px">
+<dt style="color: #5a6879">Im Inserat</dt><dd style="margin: 0; color: #27333f">Schichtarbeit, Pikettdienst</dd>
+<dt style="color: #5a6879">Firmen</dt><dd style="margin: 0; color: #27333f">Muster Bau</dd>
+</dl>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: 6px; background: #f4f2ee; font-size: 15px; line-height: 22px">
+<span style="color: #27333f">Aus den Stellen, die Sie verworfen haben: 5 davon waren im Aussendienst.</span>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px">
+<button type="button" style="min-height: 40px; padding: 0 14px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-weight: 500">«Aussendienst» nicht mehr zeigen</button>
+<a href="#">Die 5 Stellen ansehen</a>
+<a href="#">Nicht jetzt</a>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="portale" style="display: flex; flex-direction: column; gap: 8px; padding: 20px 24px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px"><h2 id="portale" style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; color: #27333f">Wo suchen Sie?</h2><a href="#">Ändern</a></div>
+<dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 24px">
+<dt style="color: #5a6879">Portale</dt><dd style="margin: 0; color: #27333f">job-room, jobs.ch, jobscout24, ictjobs</dd>
+<dt style="color: #5a6879">Weitere Seiten</dt><dd style="margin: 0; color: #27333f">2 eigene Adressen, zum Beispiel die offenen Stellen einer Firma</dd>
+</dl>
+</section>
+
+<details style="padding: 16px 24px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<summary style="font-size: 18px; line-height: 24px; font-weight: 700; color: #27333f">Erweitert</summary>
+<dl style="margin: 12px 0 0; display: grid; grid-template-columns: auto 1fr auto; gap: 8px 24px; align-items: baseline">
+<dt style="color: #5a6879">Zeitfenster</dt><dd style="margin: 0; color: #27333f">Inserate der letzten 21 Tage</dd><dd style="margin: 0"><a href="#">Ändern</a></dd>
+<dt style="color: #5a6879">Titelfilter</dt><dd style="margin: 0; color: #27333f">Titel enthält eines von 8 Wörtern, keines von 3</dd><dd style="margin: 0"><a href="#">Ändern</a></dd>
+<dt style="color: #5a6879">Grenzen</dt><dd style="margin: 0; color: #27333f">Höchstens 30 Suchen pro Portal und Lauf</dd><dd style="margin: 0"><a href="#">Trotzdem alle suchen</a></dd>
+</dl>
+</details>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-top: 4px">
+<span style="font-size: 14px; line-height: 20px; color: #5a6879">5 von 15 Suchbegriffen · bis 10 von 30 Suchen pro Portal · letzte Suche am 10.11.2026</span>
+<button type="button" style="min-height: 44px; padding: 0 20px; border: 0; border-radius: 6px; background: #38495d; color: #ffffff; font-weight: 500">Jetzt suchen</button>
+</div>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1120}}'>
+class Component extends DCLogic {
+renderVals() {
+return { terms: ['Python', 'TypeScript', 'Softwareentwicklung', 'Data Engineer', 'Backend'] };
+}
+}
+</script>
+</body>
+</html>
