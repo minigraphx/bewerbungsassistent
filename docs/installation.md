@@ -68,13 +68,13 @@ Diese Kapitel brauchen Sie nur einmal. Sie gelten auch, wenn Sie die App für Ih
 
 Die App laden Sie auf der [Startseite](./#laden), für Windows, macOS oder Linux. Unter Linux geht es etwas anders, siehe [Unter Linux](#unter-linux).
 
-In der Pilotphase ist die App noch nicht signiert. Darum warnt Ihr Betriebssystem beim ersten Start. Das ist bei dieser Version zu erwarten, und Sie müssen die Warnung einmal bestätigen. Öffnen Sie unten den Teil für Ihren Computer.
+Unter macOS trägt die App eine eigene Signatur des Projekts, nicht von Apple. Darum fragt macOS beim ersten Öffnen einmal nach. Updates nimmt die App nur an, wenn sie genau diese Signatur tragen. Unter Windows ist die App nicht signiert, darum warnt Windows (SmartScreen) beim ersten Start. Beide Warnungen sind zu erwarten, und Sie bestätigen sie nur einmal. Öffnen Sie unten den Teil für Ihren Computer.
 
 <details>
 <summary>Für Computer mit Windows</summary>
 
 1. Die Setup-Datei für Windows herunterladen und öffnen. Warnt der Browser beim Herunterladen, behalten Sie die Datei.
-2. Erscheint „Der Computer wurde durch Windows geschützt“: auf **Weitere Informationen** klicken, dann auf **Trotzdem ausführen**. Die App ist nicht signiert, darum diese Warnung.
+2. Erscheint „Der Computer wurde durch Windows geschützt“: auf **Weitere Informationen** klicken, dann auf **Trotzdem ausführen**. Die App ist unter Windows nicht signiert, darum diese Warnung von SmartScreen.
 3. Die Installation durchlaufen. Administratorrechte braucht es nicht. Die App steht danach im Startmenü.
 
 Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
@@ -86,8 +86,10 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
 1. Die ZIP-Datei für macOS herunterladen und im Finder öffnen.
 2. **Die App in den Ordner „Programme“ ziehen.** Sonst funktionieren spätere Updates nicht.
-3. Die App dort öffnen. macOS warnt und öffnet sie nicht.
+3. Die App dort öffnen. macOS warnt und öffnet sie nicht, weil ihre Signatur nicht von Apple stammt.
 4. **Systemeinstellungen → Datenschutz & Sicherheit** öffnen, nach unten scrollen und bei der App auf **Dennoch öffnen** klicken.
+
+Das braucht es nur beim ersten Öffnen. Updates tragen dieselbe Signatur, darum fragt macOS danach nicht mehr.
 
 Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
@@ -498,6 +500,9 @@ Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist ni
 |---|---|
 | „Diese Seite öffnet sich nur über die App“ | Sie haben die Adresse von Hand geöffnet oder in einem anderen Browser. Öffnen Sie den Bewerbungsbegleiter über sein Programmsymbol, auch wenn er schon läuft. Andere Konten auf demselben Rechner kommen so nicht an Ihre Daten. |
 | Windows blockiert die Datei, und **Trotzdem ausführen** fehlt | Vermutlich ist [Smart App Control](https://support.microsoft.com/de-de/windows/smart-app-control-frequently-asked-questions-285ea03d-fa88-4d56-882e-6698afdb7003) aktiv. Es blockiert nicht signierte Programme, und laut Microsoft gibt es keine Ausnahme für einzelne Programme. Die App läuft dann nur, wenn Sie es in der Windows-Sicherheit ausschalten. Das gilt für alle Programme; entscheiden Sie das bewusst, bei Jugendlichen zusammen mit der Begleitperson. |
+| macOS öffnet die App beim ersten Mal nicht | Die App trägt die eigene Signatur des Projekts, nicht eine von Apple. Öffnen Sie **Systemeinstellungen → Datenschutz & Sicherheit** und klicken Sie bei der App auf **Dennoch öffnen**. Das braucht es nur einmal. |
+| „Die Signatur der neuen Version stimmt nicht; Update abgebrochen.“ (macOS) | Das Update trägt nicht die Signatur des Projekts, darum installiert die App es nicht. Ihre Version läuft weiter wie bisher. Versuchen Sie es später nochmals; kommt die Meldung wieder, laden Sie die neue Version von der [Startseite](./#laden) und melden Sie es unter [Hilfe](#hilfe). |
+| „Diese Version kennt die Signatur der App nicht; bitte die neue Version von Hand laden.“ (macOS) | Ihre Version ist älter als die erste mit der Signatur des Projekts. Laden Sie die neue Version einmal von der [Startseite](./#laden) und installieren Sie sie wie unter [App installieren](#app-installieren). Danach geht es wieder von selbst. |
 | „Zuerst in den Ordner Programme verschieben“ (macOS) | Beenden Sie die App, ziehen Sie sie in den Ordner „Programme“ und starten Sie sie von dort. |
 | „Der Datenordner … wurde nicht gefunden“ | Liegt er auf einem USB-Stick, stecken Sie ihn ein und laden die Seite neu. Oder wählen Sie einen anderen Ordner. |
 | Die Seite der App reagiert nicht mehr | Starten Sie die App neu. Ihre Daten bleiben erhalten. |

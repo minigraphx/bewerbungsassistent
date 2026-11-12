@@ -61,7 +61,7 @@ Deinstallation über Einstellungen → Apps. Der Datenordner in Dokumente bleibt
 
 1. `Bewerbungsbegleiter-<Version>-macOS.zip` aus dem Release laden und im Finder öffnen.
 2. **Die App in den Ordner „Programme“ ziehen.** Sonst startet macOS sie aus einem Ersatzordner, und das Update in der App geht nicht.
-3. Beim ersten Start warnt macOS: Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“ (die App ist im Pilot nur ad hoc signiert).
+3. Beim ersten Start warnt macOS: Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“ (die App trägt die selbst signierte Identität des Projekts aus `signing_identity.py`, nicht eine Developer ID von Apple).
 4. Die App öffnet sich im Browser mit der Einrichtung, wie unter Windows.
 
 Löschen: die App aus „Programme“ in den Papierkorb legen. Der Datenordner in Dokumente bleibt erhalten.
