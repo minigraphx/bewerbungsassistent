@@ -1,0 +1,121 @@
+# Trial only (#255): does the app still reach browsers, the invitation link and Claude Desktop once it is an MSIX?
+# Builds like app.yml, packs with a placeholder identity, signs with a throwaway certificate made in this job and
+# trusted only on this runner, installs, starts the app like a person and runs desktop/msix/msix_check.py.
+# Nothing here is released or kept: no key, certificate or secret leaves the job.
+name: MSIX-Versuch
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  msix:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      IDENTITY_NAME: BewerbungsbegleiterVersuch
+      PUBLISHER: CN=Bewerbungsbegleiter Versuch
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Abhängigkeiten
+        run: pip install -r requirements.txt -r desktop/requirements.txt
+      - name: Paket bauen
+        run: pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
+      - name: Paketordner vorbereiten
+        run: |
+          $version = python -c "import sys; sys.path.insert(0, 'desktop'); import version; print(version.VERSION)"
+          $stage = Join-Path $env:RUNNER_TEMP 'msix'
+          Copy-Item dist\Bewerbungsbegleiter $stage -Recurse
+          $assets = New-Item -ItemType Directory -Force (Join-Path $stage 'Assets')
+          Add-Type -AssemblyName System.Drawing
+          $icon = [System.Drawing.Image]::FromFile((Resolve-Path erweiterung\icons\icon128.png))
+          foreach ($logo in @(@('StoreLogo', 50), @('Square44x44Logo', 44), @('Square150x150Logo', 150))) {
+            $bitmap = New-Object System.Drawing.Bitmap $logo[1], $logo[1]
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.InterpolationMode = 'HighQualityBicubic'
+            $graphics.DrawImage($icon, 0, 0, $logo[1], $logo[1])
+            $bitmap.Save((Join-Path $assets "$($logo[0]).png"), [System.Drawing.Imaging.ImageFormat]::Png)
+            $graphics.Dispose(); $bitmap.Dispose()
+          }
+          $icon.Dispose()
+          (Get-Content desktop\msix\AppxManifest.xml -Raw).Replace('@VERSION@', "$version.0") |
+            Set-Content (Join-Path $stage 'AppxManifest.xml') -Encoding utf8
+          "STAGE=$stage" >> $env:GITHUB_ENV
+      - name: Packen und signieren (Wegwerf-Zertifikat)
+        run: |
+          $kit = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $kit) { throw "makeappx nicht gefunden" }
+          $bin = $kit.DirectoryName
+          $package = Join-Path $env:RUNNER_TEMP 'Bewerbungsbegleiter-Versuch.msix'
+          & "$bin\makeappx.exe" pack /o /d $env:STAGE /p $package
+          if ($LASTEXITCODE -ne 0) { throw "makeappx fehlgeschlagen" }
+          $cert = New-SelfSignedCertificate -Type Custom -Subject $env:PUBLISHER -KeyUsage DigitalSignature `
+            -CertStoreLocation Cert:\CurrentUser\My -NotAfter (Get-Date).AddDays(1) `
+            -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
+          & "$bin\signtool.exe" sign /fd SHA256 /sha1 $cert.Thumbprint /s My $package
+          if ($LASTEXITCODE -ne 0) { throw "signtool fehlgeschlagen" }
+          $cer = Join-Path $env:RUNNER_TEMP 'versuch.cer'
+          Export-Certificate -Cert $cert -FilePath $cer | Out-Null
+          Import-Certificate -FilePath $cer -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null
+          "PACKAGE=$package" >> $env:GITHUB_ENV
+      - name: Claude Desktop vorhanden (Ordner und leere Einstellungen wie nach dessen Installation)
+        run: |
+          $claude = New-Item -ItemType Directory -Force (Join-Path $env:APPDATA 'Claude')
+          '{"mcpServers": {}}' | Set-Content (Join-Path $claude 'claude_desktop_config.json') -Encoding utf8
+      - name: Installieren
+        run: |
+          Add-AppxPackage -Path $env:PACKAGE
+          $installed = Get-AppxPackage -Name $env:IDENTITY_NAME
+          if (-not $installed) { throw "Paket nicht installiert" }
+          "FAMILY=$($installed.PackageFamilyName)" >> $env:GITHUB_ENV
+          "INSTALL_LOCATION=$($installed.InstallLocation)" >> $env:GITHUB_ENV
+          $installed | Format-List Name, PackageFamilyName, InstallLocation, Version
+      - name: Starten wie eine Person (Startmenü-Eintrag)
+        run: |
+          Start-Process explorer.exe "shell:AppsFolder\$env:FAMILY!Bewerbungsbegleiter"
+          $places = @((Join-Path $env:APPDATA 'Bewerbungsbegleiter\instanz.json'),
+                      (Join-Path $env:LOCALAPPDATA "Packages\$env:FAMILY\LocalCache\Roaming\Bewerbungsbegleiter\instanz.json"))
+          $deadline = (Get-Date).AddSeconds(120)
+          while ((Get-Date) -lt $deadline -and -not ($places | Where-Object { Test-Path $_ })) { Start-Sleep 2 }
+          $found = $places | Where-Object { Test-Path $_ }
+          if ($found) { "App läuft, Instanzdatei: $found" } else { "Keine Instanzdatei nach 120 s; die Prüfungen melden es" }
+          Get-Process Bewerbungsbegleiter -ErrorAction SilentlyContinue | Format-Table Id, Path
+      - name: Fünf Prüfungen
+        run: python desktop/msix/msix_check.py --family $env:FAMILY --install-location $env:INSTALL_LOCATION
+      - name: Auswege ohne Freigabe des Stores (Protokoll und App-Alias aus dem Paketmanifest)
+        if: always()
+        run: |
+          "Protokoll, wie Windows es aus dem Paketmanifest einträgt:"
+          reg query HKCU\Software\Classes\bewerbungsbegleiter /s
+          $log = Join-Path $env:LOCALAPPDATA "Packages\$env:FAMILY\LocalCache\Roaming\Bewerbungsbegleiter\protokoll.txt"
+          $before = if (Test-Path $log) { (Get-Content $log).Count } else { 0 }
+          try { Start-Process 'bewerbungsbegleiter://einladung?code=VERSUCH-0000' } catch { "Link nicht geöffnet: $_" }
+          Start-Sleep 15
+          "Protokoll der App nach dem Link (neue Zeilen):"
+          if (Test-Path $log) { Get-Content $log | Select-Object -Skip $before }
+          $alias = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\bewerbungsbegleiter.exe'
+          python desktop/msix/msix_check.py --family $env:FAMILY --install-location $env:INSTALL_LOCATION --alias $alias
+          $global:LASTEXITCODE = 0
+      - name: Was MSIX umgeleitet hat
+        if: always()
+        run: |
+          $cache = Join-Path $env:LOCALAPPDATA "Packages\$env:FAMILY\LocalCache"
+          if (Test-Path $cache) { Get-ChildItem $cache -Recurse -File | Select-Object -ExpandProperty FullName }
+          $log = @((Join-Path $env:APPDATA 'Bewerbungsbegleiter'), (Join-Path $cache 'Roaming\Bewerbungsbegleiter')) |
+            ForEach-Object { Get-ChildItem $_ -Filter *.log -ErrorAction SilentlyContinue } | Select-Object -First 1
+          if ($log) { Get-Content $log.FullName -Tail 40 }
+      - name: Aufräumen
+        if: always()
+        run: |
+          Get-Process Bewerbungsbegleiter -ErrorAction SilentlyContinue | Stop-Process -Force
+          Get-AppxPackage -Name $env:IDENTITY_NAME | Remove-AppxPackage
+          Get-ChildItem Cert:\CurrentUser\My, Cert:\LocalMachine\TrustedPeople |
+            Where-Object Subject -eq $env:PUBLISHER | Remove-Item
