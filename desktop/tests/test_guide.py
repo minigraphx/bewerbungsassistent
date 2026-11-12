@@ -49,3 +49,28 @@ def test_the_guide_is_titled_and_written_in_swiss_spelling():
     text = GUIDE.read_text(encoding="utf-8")
 
     assert text.startswith("# Anleitung\n") and "ß" not in text
+
+
+def guide_section(heading):
+    """The text under a level-3 heading of the guide, up to the next one."""
+    text = GUIDE.read_text(encoding="utf-8")
+    start = text.index(f"\n### {heading}\n")
+    end = text.find("\n### ", start + 1)
+    return text[start:end if end != -1 else None]
+
+
+def test_the_guide_says_how_the_app_is_signed():
+    install = guide_section("App installieren")
+
+    assert "noch nicht signiert" not in GUIDE.read_text(encoding="utf-8")
+    assert "eigene Signatur des Projekts" in install and "nicht von Apple" in install
+    assert "Unter Windows ist die App nicht signiert" in install and "SmartScreen" in install
+
+
+def test_the_guide_explains_each_signature_message_of_a_macos_update():
+    source = (ROOT / "desktop" / "updates_macos.py").read_text(encoding="utf-8")
+    messages = re.findall(r'"([^"]*Signatur[^"]*)"', source)
+    troubles = guide_section("Häufige Fehler")
+
+    assert len(messages) == 2
+    assert [message for message in messages if f"„{message}“" not in troubles] == []
