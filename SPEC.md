@@ -62,6 +62,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G50 [approved, must] Keine Überschrift steht ohne ihren Inhalt: Eine Abschnittsüberschrift steht mit mindestens dem ersten Eintrag auf derselben Seite. Kurze Abschnitte wie Interessen und Sprachen (bis fünf Zeilen) und einzelne Einträge werden nicht über zwei Seiten getrennt, und eine Fortsetzung auf der nächsten Seite trägt mindestens zwei Zeilen Inhalt. | gate: test
 - G51 [approved, must] Das Anschreiben hat genau eine Seite, der Lebenslauf höchstens zwei. Unter „Erweitert“ kann die Person für den Lebenslauf drei Seiten erlauben. Wird eine Grenze überschritten, gilt dasselbe Vorgehen wie bei einer fast leeren Seite: erst zusammenziehen, dann Kürzungen vorschlagen. | gate: test
 - G52 [approved, must] Die Prüfung vor dem Versand misst jedes erzeugte PDF in jedem Design: Seitenzahl, Füllung der letzten Seite, allein stehende Überschriften, Text ausserhalb des Satzspiegels und überlappende Elemente. Verstösst ein Dokument gegen eine Regel, nennt die Prüfung Dokument, Seite und Grund, und versenden lässt es sich erst, nachdem die Person die Meldung bestätigt hat. | gate: test
+- G53 [draft, must] Der Fliesstext von Lebenslauf, Anschreiben und Dossier ist nie kleiner als 10 pt, auch nicht beim Zusammenziehen nach G49; diese Untergrenze ersetzt die 9 pt in G49. | gate: test
 
 ## K · Constraints
 
