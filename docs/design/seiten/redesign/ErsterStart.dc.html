@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Heute beim ersten Start</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+body{margin:0}
+button,input,select{font:inherit}
+a{color:#27333f}a:hover{color:#38495d}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 940px; background: #fdfcfa; font-family: 'DM Sans', system-ui, sans-serif; color: #38495d; font-size: 16px; line-height: 24px">
+<div style="flex: 1 0 248px; background: #ffffff; border-right: 1px solid #d9dde3">
+<dc-import name="Seitenleiste" active="heute" leer="{{yes}}" hint-size="248px,620px"></dc-import>
+</div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 40px 48px">
+<div style="max-width: 1040px; display: flex; flex-direction: column; gap: 32px">
+
+<header style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.01em; color: #27333f">Willkommen</h1>
+<p style="margin: 0; max-width: 680px">Die App hilft Ihnen, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei Ihnen.</p>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px">
+
+<section aria-labelledby="weg" style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<h2 id="weg" style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; color: #27333f">Ihr Weg zur ersten Bewerbung</h2>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
+
+<li style="display: flex; gap: 16px; padding: 16px 20px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<span aria-hidden="true" style="flex: 0 0 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: #2e6b3a; color: #ffffff"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg></span>
+<div style="display: flex; flex-direction: column"><span style="font-weight: 700; color: #27333f">Einrichtung <span style="font-weight: 400; color: #2e6b3a">· erledigt</span></span><span style="font-size: 15px; line-height: 22px; color: #5a6879">Der Zugang zur KI und die Erweiterung im Browser sind bereit.</span></div>
+</li>
+
+<li aria-current="step" style="display: flex; gap: 16px; padding: 24px 20px; background: #e8edf3; border-radius: 10px">
+<span aria-hidden="true" style="flex: 0 0 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: #38495d; color: #ffffff; font-weight: 700">2</span>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 14px; line-height: 20px; font-weight: 500">Nächster Schritt · etwa 20 Minuten</span>
+<span style="font-size: 22px; line-height: 28px; font-weight: 700; color: #27333f">Meine Angaben erfassen</span>
+<span style="max-width: 520px">Ihr Werdegang, was Sie suchen und wie Sie schreiben. Sie können jederzeit unterbrechen, nichts geht verloren.</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px">
+<a href="Angaben.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 6px; background: #38495d; color: #ffffff; font-weight: 500; text-decoration: none">Lebenslauf hochladen und vorbefüllen</a>
+<a href="Angaben.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; font-weight: 500; text-decoration: none">Von Hand ausfüllen</a>
+</div>
+</div>
+</li>
+
+<li style="display: flex; gap: 16px; padding: 16px 20px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<span aria-hidden="true" style="flex: 0 0 32px; height: 32px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; border: 2px solid #7c8794; color: #5a6879; font-weight: 700">3</span>
+<div style="display: flex; flex-direction: column"><span style="font-weight: 700; color: #27333f">Stellen suchen <span style="font-weight: 400; color: #5a6879">· kommt danach</span></span><span style="font-size: 15px; line-height: 22px; color: #5a6879">Die Erweiterung sucht auf den Portalen. Zu jeder Stelle sehen Sie eine Einschätzung.</span></div>
+</li>
+
+<li style="display: flex; gap: 16px; padding: 16px 20px; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<span aria-hidden="true" style="flex: 0 0 32px; height: 32px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; border: 2px solid #7c8794; color: #5a6879; font-weight: 700">4</span>
+<div style="display: flex; flex-direction: column"><span style="font-weight: 700; color: #27333f">Erste Bewerbung vorbereiten <span style="font-weight: 400; color: #5a6879">· kommt danach</span></span><span style="font-size: 15px; line-height: 22px; color: #5a6879">Lebenslauf und Anschreiben für die Stelle. Abschicken machen Sie selbst, das Formular ist vorausgefüllt.</span></div>
+</li>
+
+</ol>
+</section>
+
+<aside aria-labelledby="gzw" style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<h2 id="gzw" style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; color: #27333f">Gut zu wissen</h2>
+<ul style="margin: 0; padding: 4px 20px; list-style: none; background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px; font-size: 15px; line-height: 22px">
+<li style="padding: 12px 0"><strong style="color: #27333f">Ihre Angaben bleiben auf diesem Computer.</strong> Name, Adresse und Kontakt werden ersetzt, bevor ein Text zur KI geht.</li>
+<li style="padding: 12px 0; border-top: 1px solid #d9dde3"><strong style="color: #27333f">Die KI schlägt vor, Sie entscheiden.</strong> Noten sind Einschätzungen, Anschreiben sind Entwürfe.</li>
+<li style="padding: 12px 0; border-top: 1px solid #d9dde3"><strong style="color: #27333f">Nichts geht automatisch weg.</strong> Jede Bewerbung schicken Sie selbst ab.</li>
+</ul>
+<a href="#" style="font-size: 15px">Anleitung mit Bildern öffnen</a>
+</aside>
+
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":940}}'>
+class Component extends DCLogic {
+renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

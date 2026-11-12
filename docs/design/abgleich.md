@@ -119,3 +119,20 @@ Jede Datei in `seiten/`. „Bild“ heisst: Bild des Designs und Aufnahme der Ap
 - Die Erweiterung lief nicht: Popup, Formularleiste und Erlaubnis-Seite sind nur im Code verglichen.
 - Nicht gerendert: laufende Suche, Editor auf der Seite Foto, Bewerbung mit offenem Formular, Dialog „Läuft schon eine Bewerbung“.
 - Texte: Der Abgleich mit `texte.md` lief stichprobenweise, nicht Satz für Satz.
+
+## Neugestaltung ab 0.3
+
+Stand 12.11.2026, Item #258. Verglichen wurden die Quellen in `seiten/redesign/` mit `main`. Die Spec-Zeilen G54 bis G58 sind Entwürfe (Pull Request #202) und warten auf Andys Freigabe. Bis dahin wird keine dieser Änderungen umgesetzt. Die Umsetzung ist in die Items #259 bis #266 aufgeteilt.
+
+| Bild | Heute in der App | Im Entwurf | Spec-Zeilen | Item |
+| --- | --- | --- | --- | --- |
+| Alle, Baustein Seitenleiste, A11 | Kopfzeile mit Übersicht, Stellen suchen, Meine Angaben und „Mehr“ | Seitenleiste mit Heute, Stellen, Bewerbungen, Meine Angaben, Lebenslauf und Dateien, Fragen an die KI und Einstellungen; unten KI-Budget und Zustand der Erweiterung, Marken nur, wo etwas wartet. Unter 900 px eine Kopfzeile mit vier Zielen und „Menü“ (A11). Das AS-Logo wandert unter Einstellungen, Über die App. | G54 (ersetzt den Ort in G4) | #259 |
+| A1, A2 | Seite „Übersicht“ | „Heute“: nächster Schritt, Danach, Termine und Fristen, RAV-Hinweis nur bei RAV ja, Ihr Stand. Beim ersten Start vier Schritte bis zur ersten Bewerbung. | G55 (Name); G38 bleibt | #260 |
+| A5 | Liste der Bewerbungen auf der Übersicht | Eigene Seite „Bewerbungen“ mit den Filtern, Verwerfen mehrerer, Stelle selbst erfassen und dem Durchgang durch gemerkte Stellen | G55 (Name); G27, G29, G38 bleiben | #261 |
+| A3 | „Stellen suchen“ und Treffer, Firmen auf eigener Seite | „Stellen“ mit den Reitern Neu, Gemerkt, Verworfen und Firmen; pro Treffer „Bewerbung vorbereiten“ als Hauptknopf, „Merken“, „Verwerfen“; Alle prüfen und Sterne bleiben | G55 (Name), G56 (Firmen als Reiter), G58 (Hauptknopf); G22, G35, G44 bleiben | #262 |
+| A4 | Suchbegriffe auf eigener Seite, Zeitfenster und weitere Seiten in den Einstellungen | Eine Seite „Suche einstellen“ in vier Karten und Erweitert, mit Zeitfenster und „Weitere Seiten durchsuchen“ | G57 (Umzug); G32, G45 bleiben | #263 |
+| A9 | „Meine Dateien“ und „Foto“ getrennt, Rangliste der Lebensläufe | Eine Seite „Lebenslauf und Dateien“: Wahl zwischen dem Lebenslauf der App und einem eigenen PDF, Zeugnisse in einer Liste, mehrere Fotos mit einem aktiven, Einstieg zu früheren Fassungen | G55 (Name); G21 bleibt | #264 |
+| A10 | Erweiterte Einstellungen als eine lange Seite | Abschnitte links: Zugang zur KI als Wahl, Budget, Sprache, Erweitert und Über die App mit dem Logo | G54 (Logo); G4, G41, G42, G46, G47, G51 bleiben | #265 |
+| A6, A7, A8 | Bewerbung in Schritten, Meine Angaben | Gleiche Inhalte im neuen Rahmen; im Schritt Lebenslauf (A6) Inhalt und Aussehen getrennt | keine neue Zeile | mit #259, sonst später |
+
+Die Anleitung, ihre Bilder in `docs/bilder/` und die Begleit-Items für die Webseite folgen mit #266, wenn die Seiten umgesetzt sind.

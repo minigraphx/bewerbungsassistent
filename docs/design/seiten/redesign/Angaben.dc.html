@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Meine Angaben</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+body{margin:0}
+button,input,select{font:inherit}
+a{color:#27333f}a:hover{color:#38495d}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1160px; background: #fdfcfa; font-family: 'DM Sans', system-ui, sans-serif; color: #38495d; font-size: 16px; line-height: 24px">
+<div style="flex: 1 0 248px; background: #ffffff; border-right: 1px solid #d9dde3">
+<dc-import name="Seitenleiste" active="angaben" hint-size="248px,620px"></dc-import>
+</div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 40px 48px">
+<div style="max-width: 860px; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 700; color: #27333f">Meine Angaben</h1>
+<p style="margin: 0; color: #5a6879">Daraus entstehen Lebenslauf, Suche und Anschreiben. Alles wird laufend gespeichert, zuletzt um 10:42.</p>
+</header>
+
+<section aria-labelledby="vor" style="display: flex; flex-direction: column; gap: 16px; padding: 24px; background: #e8edf3; border-radius: 10px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">Am schnellsten</p>
+<h2 id="vor" style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 700; color: #27333f">Aus Ihren Unterlagen vorbefüllen</h2>
+<p style="margin: 0; max-width: 640px">Lebenslauf, Zeugnisse, Zertifikate und frühere Anschreiben, alles zusammen. Die KI liest sie und füllt nur leere Felder. Sie prüfen jeden Abschnitt.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 16px 20px; border: 2px dashed #7c8794; border-radius: 10px; background: #ffffff">
+<span style="flex: 1 1 240px; color: #27333f">Dateien hierher ziehen<br><span style="font-size: 13px; line-height: 18px; color: #5a6879">PDF, Word, Text oder Bild. Die App ordnet sie selbst ein.</span></span>
+<button type="button" style="min-height: 44px; padding: 0 18px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; color: #27333f; font-weight: 500">Dateien wählen</button>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none; font-size: 15px; line-height: 22px">
+<li style="display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 6px 0"><span style="flex: 1 1 200px; color: #27333f; font-weight: 500">Lebenslauf Erika Beispiel</span><span>erkannt als Lebenslauf · 2 Seiten</span><a href="#">Entfernen</a></li>
+<li style="display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 6px 0; border-top: 1px solid #d9dde3"><span style="flex: 1 1 200px; color: #27333f; font-weight: 500">Arbeitszeugnis Beispiel AG</span><span>erkannt als Arbeitszeugnis · 2 Seiten</span><a href="#">Entfernen</a></li>
+</ul>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px">
+<button type="button" style="min-height: 44px; padding: 0 20px; border: 0; border-radius: 6px; background: #38495d; color: #ffffff; font-weight: 500">Aus 2 Dateien vorbefüllen</button>
+<span style="font-size: 13px; line-height: 18px">Etwa USD 0.04 und 1 Minute.</span>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 20px">Ihr Name, Ihre Adresse und Ihre Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und PDFs bleiben auf Ihrem Computer. <a href="#">Text ansehen, wie er gesendet würde</a></p>
+</section>
+
+<section aria-labelledby="abs" style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px">
+<h2 id="abs" style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; color: #27333f">Ihre Angaben in fünf Abschnitten</h2>
+<span style="font-size: 14px; line-height: 20px; color: #5a6879">3 vollständig, 1 mit Hinweis, 1 noch offen</span>
+</div>
+<div style="background: #ffffff; border: 1px solid #d9dde3; border-radius: 10px">
+<sc-for list="{{parts}}" as="p" hint-placeholder-count="5">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 14px 20px; border-top: {{p.border}}">
+<div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column">
+<span style="font-weight: 700; color: #27333f">{{p.name}}</span>
+<span style="font-size: 15px; line-height: 22px">{{p.sum}}</span>
+</div>
+<span style="flex: 0 0 auto; padding: 2px 10px; border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 500; background: {{p.bg}}; color: {{p.fg}}">{{p.state}}</span>
+<a href="#" style="flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid #7c8794; border-radius: 6px; background: #ffffff; font-weight: 500; text-decoration: none">{{p.action}}</a>
+</div>
+</sc-for>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; font-size: 15px; line-height: 22px; color: #5a6879">
+<span>Gesucht wird eine Stelle · Anrede Sie · beim RAV gemeldet · <a href="Einstellungen.dc.html">ändern</a></span>
+<span>Für Geübte: <a href="#">Inhalte als Text bearbeiten</a></span>
+</div>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1160}}'>
+class Component extends DCLogic {
+renderVals() {
+const part = (name, sum, kind, first) => ({
+name: name, sum: sum,
+state: kind === 'ok' ? 'Vollständig' : kind === 'hint' ? '1 Hinweis' : 'Noch offen',
+bg: kind === 'ok' ? '#e6f2e8' : kind === 'hint' ? '#fff4dc' : '#f4f2ee',
+fg: kind === 'ok' ? '#2e6b3a' : kind === 'hint' ? '#8a5a00' : '#38495d',
+action: kind === 'todo' ? 'Ausfüllen' : 'Bearbeiten',
+border: first ? '0' : '1px solid #d9dde3'
+});
+return { parts: [
+part('Person und Kontakt', 'Name, Adresse, Telefon, E-Mail, Foto', 'ok', true),
+part('Werdegang', '2 Stellen, 1 Ausbildung, 1 Kurs, 2 Projekte', 'ok', false),
+part('Können', '2 Sprachen, 9 Kenntnisse · bei Englisch fehlt das Niveau', 'hint', false),
+part('Was Sie suchen', 'Python, TypeScript und 3 weitere · Kantone BE und SO · 80 bis 100 %', 'ok', false),
+part('Wie Sie schreiben', 'Kurzprofil, Lücken im Werdegang, Ton der Anschreiben', 'todo', false)
+] };
+}
+}
+</script>
+</body>
+</html>
