@@ -5,7 +5,7 @@
 #let standard-stil = (
   farbe-akzent: rgb("#2f5d4a"),
   schrift: "DM Sans",
-  groesse-text: 9.5pt,
+  groesse-text: 10pt,
   reihenfolge: ("profil", "erfahrung", "lehre", "projekte", "faehigkeiten", "bildung", "sprachen", "interessen"),
 )
 

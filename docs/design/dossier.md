@@ -96,7 +96,7 @@ Das System hat noch keine Symbolsammlung, und Bedeutung tragen Wörter. Darum gi
 4. Lebenslauf, zwei Seiten.
 5. *Optional* „Danke“: ein Satz Dank, der Ring, Kontakt und ein schmales Band unten.
 
-**Typografie.** Nur DM Sans. Name 34 pt 700, Stelle im Brief 28 pt 700, Abschnitte 12 pt 700, Text 9.5–10 pt, Nebentext in `text-muted`.
+**Typografie.** Nur DM Sans. Name 34 pt 700, Stelle im Brief 28 pt 700, Abschnitte 12 pt 700, Text 10 pt (nie kleiner, G53), Nebentext in `text-muted`.
 
 **Farbe.** Akzent für Ring, Schrittweg, Punkte und das Band. Die Karte der Grussseite ist auf `surface-subtle`, keine zweite Akzentfläche.
 
