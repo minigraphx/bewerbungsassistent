@@ -105,7 +105,20 @@ def test_an_svg_logo_is_kept_as_it_is(server):  # noqa: F811
     assert (server.kontext.daten / basics(server)["x-logo"]).read_text(encoding="utf-8") == SVG
 
 
+SVG11 = '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+
+
+@pytest.mark.parametrize("start", ["", '<?xml version="1.0" encoding="UTF-8"?>\n'])
+def test_an_svg_logo_with_a_plain_doctype_is_stored_without_it(server, start):  # noqa: F811
+    """Older editor exports carry the SVG 1.1 DOCTYPE; the stored logo never does (#243)."""
+    status, answer = upload(server, (start + SVG11 + "\n" + SVG).encode())
+    assert status == 200 and answer["logo"]["vektor"] is True
+    assert (server.kontext.daten / basics(server)["x-logo"]).read_text(encoding="utf-8") == start + "\n" + SVG
+
+
 @pytest.mark.parametrize(("data", "reason"), [
+    ((SVG11[:-1] + ' [<!ENTITY x "y">]>' + SVG).encode(), "nicht sicher prüfen"),
+    (b'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "https://example.com/svg11.dtd">' + SVG.encode(), "nicht sicher prüfen"),
     (b"GIF89a....", "kein Bild in PNG, JPG oder SVG"),
     (b'<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/a.png"/></svg>', "lädt Inhalte aus dem Internet"),
     (b'<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>', "enthält ein Skript"),
