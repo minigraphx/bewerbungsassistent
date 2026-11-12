@@ -345,7 +345,26 @@ def test_edited_initials_of_the_dossier_are_replaced_like_the_name():
     p.check_clean(masked)
 
 
-def test_initials_are_replaced_only_as_written_so_ordinary_words_stay():
+def test_initials_are_replaced_only_in_their_field_so_abbreviations_stay():
+    """#244: initials like IT or HR are also ordinary abbreviations; only the monogram field holds them as initials."""
+    p = Pseudonymizer(secrets_from_cv({"basics": {"name": "Ida Tanner", "x-monogramm": "IT"}}))
+    ad = "IT-Support im HR-Team, Initialen IT, Leitung it-Support"
+
+    assert p.mask(ad) == ad
+    p.check_clean(ad)
+    assert not p.finds(ad)
+
+
+@pytest.mark.parametrize(("text", "masked"), [
+    ("basics:\n  x-monogramm: IT\n  label: IT-Support", "basics:\n  x-monogramm: {{MONOGRAM}}\n  label: IT-Support"),
+    ("  x-monogramm: 'IT'  # eigene", "  x-monogramm: '{{MONOGRAM}}'  # eigene"),
+    ('x-monogramm: "IT"', 'x-monogramm: "{{MONOGRAM}}"'),
+    ('{"x-monogramm": "IT", "label": "IT"}', '{"x-monogramm": "{{MONOGRAM}}", "label": "IT"}'),
+])
+def test_the_monogram_field_still_hides_the_initials(text, masked):
     p = Pseudonymizer(secrets_from_cv({"basics": {"name": "Ida Tanner", "x-monogramm": "IT"}}))
 
-    assert p.mask("Initialen IT, Leitung it-Support") == "Initialen {{MONOGRAM}}, Leitung it-Support"
+    assert p.mask(text) == masked
+    assert p.unmask(p.mask(text)) == text
+    with pytest.raises(pseudonym.PseudonymError, match="Initialen"):
+        p.check_clean(text)

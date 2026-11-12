@@ -118,10 +118,24 @@ def _text_pattern(value: str, name: bool = False) -> re.Pattern:
     return re.compile(r"(?<![\w@.])" + _words(value, spellings=name) + end, re.IGNORECASE)
 
 
+# Where the app itself writes the initials of the dossier (#244): the field in cv.yaml, as YAML text and as JSON.
+# Anywhere else the same letters are an ordinary abbreviation like IT or HR and stay.
+INITIALS_PLACES = (r"x-monogramm[ \t]*:[ \t]*", r'"x-monogramm"\s*:\s*')
+
+
 def _initials_pattern(value: str) -> re.Pattern:
-    """Initials of the dossier (x-monogramm) only as written: two or three letters in any case would hit ordinary
-    words like „it“ or „eb“."""
-    return re.compile(r"(?<![\w@.])" + re.escape(value.strip()) + r"(?![\w@])")
+    """Initials of the dossier (x-monogramm) only in their field and only as written; the group `value` is what
+    gets replaced, the field name stays."""
+    places = "|".join(INITIALS_PLACES)
+    return re.compile(rf"(?<![\w-])(?:{places})(?P<quote>[\"']?)(?P<value>{re.escape(value.strip())})(?P=quote)(?![\w@])")
+
+
+def _replaced(match: re.Match, placeholder: str) -> str:
+    """The placeholder for the whole match, or only for its group `value` where the pattern names its place."""
+    if "value" not in match.re.groupindex:
+        return placeholder
+    start, end = match.start("value") - match.start(), match.end("value") - match.start()
+    return match.group(0)[:start] + placeholder + match.group(0)[end:]
 
 
 def _digits_pattern(digits: str) -> str:
@@ -223,7 +237,7 @@ class Pseudonymizer:
     def mask(self, text: str) -> str:
         result = NEUTRALIZE_BRACES.sub("{ ", _norm(text))
         for rule in self._rules:
-            result = rule.pattern.sub(rule.secret.placeholder, result)
+            result = rule.pattern.sub(lambda m, rule=rule: _replaced(m, rule.secret.placeholder), result)
         return result
 
     def check_clean(self, texts: list[str] | str) -> None:
