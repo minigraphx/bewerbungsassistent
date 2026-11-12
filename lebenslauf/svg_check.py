@@ -22,6 +22,20 @@ RASTER_DATA = re.compile(r"data:image/(?:png|jpe?g|gif|webp)[;,]")
 CSS_URL = re.compile(r"url\((['\"]?)(.*?)\1\)")
 INVISIBLE = re.compile(r"[\s\x00-\x1f]+")
 
+# The DOCTYPEs of SVG 1.0 and 1.1 as editors export them (#243): public id → the file name of its DTD at the W3C
+SVG_DTDS = {
+    "-//W3C//DTD SVG 1.0//EN": "www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd",
+    "-//W3C//DTD SVG 1.1//EN": "www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd",
+    "-//W3C//DTD SVG 1.1 Basic//EN": "www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd",
+    "-//W3C//DTD SVG 1.1 Tiny//EN": "www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd",
+}
+# What may stand before a DOCTYPE: a byte order mark, the XML declaration, comments and white space
+PROLOG = re.compile(r"\ufeff?(?:<\?xml\s[^?>]*\?>)?(?:\s|<!--(?:(?!--).)*-->)*", re.S)
+# Only the plain forms: no internal subset, since the declaration has to end right after its ids
+DOCTYPE = re.compile(r"<!DOCTYPE\s+svg"
+                     r"(?:\s+PUBLIC\s+(?P<q1>[\"'])(?P<public>[^\"']*)(?P=q1)\s+(?P<q2>[\"'])(?P<system>[^\"']*)(?P=q2)"
+                     r"|\s+SYSTEM\s+(?P<q3>[\"'])(?P<only_system>[^\"']*)(?P=q3))?\s*>")
+
 
 class Refused(Exception):
     """Stops the parse at the first problem; the message is for the person."""
@@ -108,6 +122,30 @@ class _Checker:
 
 def _refuse(*_) -> None:
     raise Refused(UNCHECKABLE)
+
+
+def _known_dtd(system: str) -> bool:
+    return any(system in (f"http://{dtd}", f"https://{dtd}") for dtd in SVG_DTDS.values())
+
+
+def _plain(doctype: re.Match) -> bool:
+    public, system = doctype.group("public"), doctype.group("system")
+    if public is not None:
+        return public in SVG_DTDS and system in (f"http://{SVG_DTDS[public]}", f"https://{SVG_DTDS[public]}")
+    only_system = doctype.group("only_system")
+    return only_system is None or _known_dtd(only_system)
+
+
+def without_doctype(text: str) -> str:
+    """The SVG without its DOCTYPE when that is a plain SVG 1.0 or 1.1 one, as older editors export it.
+
+    Any other DOCTYPE stays, so problem() refuses the file as before; problem() itself still refuses every DOCTYPE.
+    Nothing in a plain one is used: it declares no entity, and its DTD only names the SVG elements."""
+    prolog = PROLOG.match(text)
+    doctype = DOCTYPE.match(text, prolog.end())
+    if doctype is None or not _plain(doctype):
+        return text
+    return text[:doctype.start()] + text[doctype.end():]
 
 
 def problem(text: str) -> str | None:

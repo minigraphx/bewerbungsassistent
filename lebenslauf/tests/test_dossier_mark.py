@@ -14,6 +14,7 @@ import yaml
 import dossier
 import dossier_data
 import mark
+import svg_check
 from dossier_samples import EXAMPLE, example_cv, example_letter, flat, page_texts
 
 HERE = pathlib.Path(__file__).parent
@@ -258,3 +259,51 @@ def test_a_logo_outside_the_folder_or_of_another_kind_is_not_used(tmp_path):
 def test_the_logo_is_fitted_never_stretched():
     zeichen = (dossier.THEMES / "zeichen.typ").read_text(encoding="utf-8")
     assert 'fit: "contain"' in zeichen
+
+
+# A plain SVG DOCTYPE from an editor's export is taken off; anything more stays refused (#243, G18)
+
+SVG11 = '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+EXPORT = ('<?xml version="1.0" encoding="utf-8"?>\n<!-- Generator: an editor -->\n' + SVG11 + '\n'
+          f'<svg {NS} viewBox="0 0 40 40"><rect width="40" height="40" fill="#a35a2b"/></svg>')
+
+
+@pytest.mark.parametrize("doctype", [
+    SVG11,
+    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">',
+    "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1 Basic//EN' 'https://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd'>",
+    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN"\n  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd" >',
+    '<!DOCTYPE svg SYSTEM "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">',
+    "<!DOCTYPE svg>",
+])
+def test_a_plain_svg_doctype_is_taken_off_and_the_rest_checked(doctype):
+    svg = f'<?xml version="1.0"?>{doctype}<svg {NS}><rect width="9" height="9"/></svg>'
+    assert mark.svg_problem(svg) == mark.SVG_UNCHECKABLE  # the check itself still refuses every DOCTYPE
+    stripped = svg_check.without_doctype(svg)
+    assert "DOCTYPE" not in stripped and mark.svg_problem(stripped) is None
+    assert stripped == f'<?xml version="1.0"?><svg {NS}><rect width="9" height="9"/></svg>'
+
+
+def test_an_editor_export_with_a_comment_before_its_doctype_is_taken_off():
+    stripped = svg_check.without_doctype(EXPORT)
+    assert "DOCTYPE" not in stripped and mark.svg_problem(stripped) is None
+
+
+@pytest.mark.parametrize("svg", [
+    SVG11[:-1] + ' [<!ENTITY x "y">]>' f'<svg {NS}><text>&x;</text></svg>',
+    SVG11[:-1] + ' []>' f'<svg {NS}/>',
+    '<!DOCTYPE svg PUBLIC "-//Evil//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">' f'<svg {NS}/>',
+    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "https://example.com/svg11.dtd">' f'<svg {NS}/>',
+    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "file:///etc/passwd">' f'<svg {NS}/>',
+    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">' f'<svg {NS}/>',
+    '<!DOCTYPE svg SYSTEM "https://example.com/svg11.dtd">' f'<svg {NS}/>',
+    '<!DOCTYPE html PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">' f'<svg {NS}/>',
+    '<!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]>' f'<svg {NS}>&x;</svg>',
+    f'<svg {NS}/>' + SVG11,
+])
+def test_any_other_doctype_stays_and_is_refused(svg):
+    assert mark.svg_problem(svg_check.without_doctype(svg)) == mark.SVG_UNCHECKABLE
+
+
+def test_an_svg_without_doctype_is_left_as_it_is():
+    assert svg_check.without_doctype(INKSCAPE) == INKSCAPE
