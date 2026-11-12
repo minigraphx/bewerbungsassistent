@@ -67,6 +67,15 @@ def test_the_guide_says_how_the_app_is_signed():
     assert "Unter Windows ist die App nicht signiert" in install and "SmartScreen" in install
 
 
+def test_the_guide_says_macos_opens_the_app_only_once_it_is_confirmed():
+    """#253: macOS does not open the app at all until the person confirms it in the system settings."""
+    install = guide_section("App installieren")
+
+    assert ("Darum öffnet macOS sie beim ersten Mal erst, wenn Sie es in den Systemeinstellungen bestätigen."
+            in install)
+    assert "fragt macOS beim ersten Öffnen einmal nach" not in install
+
+
 def test_the_guide_explains_each_signature_message_of_a_macos_update():
     source = (ROOT / "desktop" / "updates_macos.py").read_text(encoding="utf-8")
     messages = re.findall(r'"([^"]*Signatur[^"]*)"', source)
