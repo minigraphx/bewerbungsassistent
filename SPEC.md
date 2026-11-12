@@ -67,4 +67,4 @@ Write each requirement as one row under its section, in this format. The fence k
 ## K · Constraints
 
 ## RG · Rigor proposals
-- RG27931 [draft, aim] Review how to prevent repeated "row:G33" (#185). No remedy or red/green proof has been established. Source: rigor-auto:%7B%22version%22%3A1%2C%22unproved%22%3Atrue%2C%22key%22%3A%22row%3AG33%22%2C%22evidence%22%3A%7B%22items%22%3A%5B%7B%22id%22%3A185%2C%22commits%22%3A%5B%2288f7b553289cbff5476fa8218753319377cd5b2e%22%2C%2208dcadb1c2fa69903f053c587c6e7eba3b48f215%22%5D%7D%5D%2C%22occurrences%22%3A2%2C%22neverAgain%22%3Afalse%2C%22events%22%3A%5B2675%2C2793%5D%7D%7D | gate: review
+- RG27931 [wont, aim] Review how to prevent repeated "row:G33" (#185). No remedy or red/green proof has been established. Source: rigor-auto:%7B%22version%22%3A1%2C%22unproved%22%3Atrue%2C%22key%22%3A%22row%3AG33%22%2C%22evidence%22%3A%7B%22items%22%3A%5B%7B%22id%22%3A185%2C%22commits%22%3A%5B%2288f7b553289cbff5476fa8218753319377cd5b2e%22%2C%2208dcadb1c2fa69903f053c587c6e7eba3b48f215%22%5D%7D%5D%2C%22occurrences%22%3A2%2C%22neverAgain%22%3Afalse%2C%22events%22%3A%5B2675%2C2793%5D%7D%7D | gate: review
