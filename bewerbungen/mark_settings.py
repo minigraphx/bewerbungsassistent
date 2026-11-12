@@ -17,7 +17,6 @@ import dossier_data
 import fotoausschnitt
 import logo_file
 import mark
-from ai.personal import with_written_monogram
 from dateien import im_ordner, relativ, schreibe_atomar
 
 CV = "cv.yaml"
@@ -48,7 +47,7 @@ def _cv(k) -> pathlib.Path:
 def basics(daten: pathlib.Path) -> dict:
     try:
         text = (daten / CV).read_text(encoding="utf-8")
-        found = with_written_monogram(yaml.safe_load(text) or {}, text).get("basics")
+        found = dossier_data.with_written_monogram(yaml.safe_load(text) or {}, text).get("basics")
     except (OSError, yaml.YAMLError, AttributeError):
         return {}
     return found if isinstance(found, dict) else {}

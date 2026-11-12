@@ -228,7 +228,7 @@ def main(argv: list[str] | None = None) -> Result:
     cv_path = _referenced(file_path.parent, args.cv, file_data, "lebenslauf")
     letter_path = _referenced(file_path.parent, args.brief, file_data, "anschreiben")
     letter = _load_yaml(letter_path)
-    raw_cv = _load_yaml(cv_path)
+    raw_cv = dossier_data.with_written_monogram(_load_yaml(cv_path), cv_path.read_text(encoding="utf-8"))
     job = _load_yaml(pathlib.Path(args.job).resolve()) if args.job else None
     cv = _checked_cv(raw_cv, job, args.lang)
 

@@ -13,11 +13,13 @@ import yaml
 from ai import prompts
 from ai.errors import BAD_ANSWER, AiError, AnswerError
 from ai.gateway import Answer, Gateway, Request
-from ai.personal import secrets_from_application, secrets_from_building_blocks, secrets_from_cv, with_written_monogram
+from ai.personal import secrets_from_application, secrets_from_building_blocks, secrets_from_cv
 from ai.pseudonym import Pseudonymizer
 from ai.usage import UsageLog
+import pfade  # noqa: F401  (makes the module lebenslauf importable)
 import preferences
 from dateien import im_ordner
+from dossier_data import with_written_monogram
 
 FILES = {"cv": "cv.yaml", "profile": "suchprofil.md", "style": "anschreiben/stil.md",
          "blocks": "anschreiben/bausteine.md"}

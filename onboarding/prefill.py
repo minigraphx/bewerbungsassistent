@@ -15,11 +15,11 @@ import validation
 from ai import prompts, tasks
 from ai.errors import AiError
 from ai.gateway import Gateway
-from ai.personal import (people_secrets, secrets_from_building_blocks, secrets_from_cv, secrets_in_own_documents,
-                         with_written_monogram)
+from ai.personal import people_secrets, secrets_from_building_blocks, secrets_from_cv, secrets_in_own_documents
 from ai.pseudonym import Pseudonymizer, Secret
 from ai.usage import UsageLog
 from dateien import im_ordner, lies_yaml
+from dossier_data import with_written_monogram
 from import_documents import pending_documents
 
 SECTIONS = ("summary", "work", "education", "certificates", "languages", "skills", "interests", "strengths", "style")

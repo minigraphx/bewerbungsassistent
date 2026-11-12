@@ -4,6 +4,7 @@ Every function returns new values and leaves its input alone. Levels are never i
 stays `None`, and the theme draws the empty dashed form for it only when its group has a level elsewhere.
 """
 import datetime
+import re
 from collections.abc import Iterable
 
 MAX_LEVEL = 6
@@ -14,6 +15,8 @@ TIMELINE_YEARS = 15
 MIN_TICK_GAP = 3
 APPLICATION_AS = {"de": "Bewerbung als", "en": "Application as"}
 DOSSIER_FIELDS = {"lebenslauf", "anschreiben", "gruss", "dank", "kennzahlen", "anlagen"}
+# The initials as written under basics, quoted or not; for files from before #248, where NO was read as False
+MONOGRAM_FIELD = re.compile(r"^[ \t]+x-monogramm[ \t]*:[ \t]*([\"']?)(?P<value>[^\W\d_]{1,3})\1[ \t]*(?:#.*)?$", re.MULTILINE)
 
 
 def parse_level(value, where: str) -> int | None:
@@ -55,6 +58,15 @@ def language_group(languages: Iterable[dict]) -> dict:
               "level": parse_level(entry.get("x-level"), f"languages {entry.get('language', '')}")}
              for entry in languages or []]
     return {"graphic": _with_graphic(items), "items": items}
+
+
+def with_written_monogram(cv: dict, text: str) -> dict:
+    """cv with the initials as cv.yaml writes them, when YAML 1.1 read them as something else (NO as False, #248)."""
+    basics = cv.get("basics") if isinstance(cv.get("basics"), dict) else None
+    if basics is None or "x-monogramm" not in basics or isinstance(basics["x-monogramm"], str):
+        return cv
+    found = MONOGRAM_FIELD.search(text)
+    return {**cv, "basics": {**basics, "x-monogramm": found.group("value")}} if found else cv
 
 
 def monogram(basics: dict) -> str:

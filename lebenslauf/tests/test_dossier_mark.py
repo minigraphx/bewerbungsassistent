@@ -26,8 +26,10 @@ SVG_LOGO = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 110"><rect
             'fill="#a35a2b"/></svg>')
 
 
-def build(folder: pathlib.Path, *options: str, basics: dict | None = None, files: dict | None = None) -> dossier.Result:
-    """Writes CV (with extra basics), letter, dossier file and further files to folder and builds all three PDFs."""
+def build(folder: pathlib.Path, *options: str, basics: dict | None = None, files: dict | None = None,
+          cv_text=lambda text: text) -> dossier.Result:
+    """Writes CV (with extra basics, its text passed through cv_text), letter, dossier file and further files to
+    folder and builds all three PDFs."""
     folder.mkdir(parents=True)
     cv = example_cv()
     cv["basics"] = {**cv["basics"], **(basics or {})}
@@ -38,7 +40,7 @@ def build(folder: pathlib.Path, *options: str, basics: dict | None = None, files
             shutil.copy(content, target)
         else:
             target.write_text(content, encoding="utf-8")
-    (folder / "cv.yaml").write_text(yaml.safe_dump(cv, allow_unicode=True), encoding="utf-8")
+    (folder / "cv.yaml").write_text(cv_text(yaml.safe_dump(cv, allow_unicode=True)), encoding="utf-8")
     (folder / "brief.yaml").write_text(yaml.safe_dump({**example_letter(), "lebenslauf": "cv.yaml"}, allow_unicode=True),
                                        encoding="utf-8")
     file_data = {**yaml.safe_load(EXAMPLE.read_text(encoding="utf-8")), "lebenslauf": "cv.yaml", "anschreiben": "brief.yaml"}
@@ -153,6 +155,16 @@ def test_initials_of_three_letters_and_an_unknown_mark_are_checked(make):
     with pytest.raises(ValueError, match="Unbekanntes Zeichen"):
         make(basics={"x-zeichen": "stern"})
     assert dossier_data.monogram({"name": "Erika Beispiel", "x-monogramm": "EKB"}) == "EKB"
+
+
+@pytest.mark.parametrize("initials", ("NO", "ON", "OFF", "YES"))
+def test_initials_written_unquoted_before_248_are_drawn_as_written(make, initials):
+    """#250: YAML 1.1 (PyYAML) reads an unquoted NO as False; the dossier takes the letters from the field text."""
+    unquoted = lambda text: text.replace(f"x-monogramm: '{initials}'", f"x-monogramm: {initials}")  # noqa: E731
+    result = make("--theme", "dossier-siegel", basics={"x-zeichen": "ring", "x-monogramm": initials}, cv_text=unquoted)
+
+    assert json.loads(result.data.read_text(encoding="utf-8"))["person"]["monogram"] == initials
+    assert initials in flat(page_texts(result.dossier)[0])
 
 
 # Own logo
