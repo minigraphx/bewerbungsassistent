@@ -71,7 +71,7 @@ Diese Kapitel brauchen Sie nur einmal. Sie gelten auch, wenn Sie die App für Ih
 
 Die App laden Sie auf der [Startseite](./#laden), für Windows, macOS oder Linux. Unter Linux geht es etwas anders, siehe [Unter Linux](#unter-linux).
 
-Unter macOS trägt die App eine eigene Signatur des Projekts, nicht von Apple. Darum fragt macOS beim ersten Öffnen einmal nach. Updates nimmt die App nur an, wenn sie genau diese Signatur tragen. Unter Windows ist die App nicht signiert, darum warnt Windows (SmartScreen) beim ersten Start. Beide Warnungen sind zu erwarten, und Sie bestätigen sie nur einmal. Öffnen Sie unten den Teil für Ihren Computer.
+Unter macOS trägt die App eine eigene Signatur des Projekts, nicht von Apple. Darum öffnet macOS sie beim ersten Mal erst, wenn Sie es in den Systemeinstellungen bestätigen. Updates nimmt die App nur an, wenn sie genau diese Signatur tragen. Unter Windows ist die App nicht signiert, darum warnt Windows (SmartScreen) beim ersten Start. Beide Warnungen sind zu erwarten, und Sie bestätigen sie nur einmal. Öffnen Sie unten den Teil für Ihren Computer.
 
 <details>
 <summary>Für Computer mit Windows</summary>
