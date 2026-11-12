@@ -4,7 +4,7 @@ Stand 12.11.2026. Board-Item #255, erster Schritt von #47 (Windows-App als MSIX 
 
 ## Wie geprüft wurde
 
-Der Workflow `.github/workflows/msix-versuch.yml` läuft nur von Hand oder auf einem Pull Request, der ihn selbst oder `desktop/msix/` ändert, nie auf Tags oder `main`. `app.yml` und der Build des Releases bleiben unverändert.
+Der Workflow `.github/workflows/msix-versuch.yml` läuft nur von Hand (`workflow_dispatch`), nie auf Tags, Pushes oder Pull Requests. `app.yml` und der Build des Releases bleiben unverändert.
 
 1. Er baut die App wie `app.yml`: Python 3.12, `desktop/bewerbungsbegleiter.spec`.
 2. Er packt sie mit `makeappx` nach `desktop/msix/AppxManifest.xml`, mit einer Platzhalter-Identität: Name `BewerbungsbegleiterVersuch`, Publisher `CN=Bewerbungsbegleiter Versuch`. Als Fähigkeit steht nur `runFullTrust` im Manifest, die jede Desktop-App im Store braucht. Keine eingeschränkte Fähigkeit, die eine Freigabe des Stores bräuchte.
@@ -13,7 +13,7 @@ Der Workflow `.github/workflows/msix-versuch.yml` läuft nur von Hand oder auf e
 5. Er installiert das Paket mit `Add-AppxPackage` und startet die App über ihren Eintrag im Startmenü (`shell:AppsFolder\<Paketfamilie>!Bewerbungsbegleiter`).
 6. `desktop/msix/msix_check.py` prüft danach von aussen, aus einem gewöhnlichen Prozess ohne Paket, wie ein Browser oder Claude Desktop.
 
-**Lauf:** https://github.com/minigraphx/bewerbungsassistent/actions/runs/43288103014 (Commit 71117f3, alle fünf Prüfungen gemeldet, dazu die Auswege). Der erste Lauf ohne Auswege, https://github.com/minigraphx/bewerbungsassistent/actions/runs/43285911021, zeigte dieselben fünf Ergebnisse.
+**Lauf:** https://github.com/minigraphx/bewerbungsassistent/actions/runs/43288103014 (Commit 71117f3, alle fünf Prüfungen gemeldet, dazu die Auswege). Der erste Lauf ohne Auswege, https://github.com/minigraphx/bewerbungsassistent/actions/runs/43285911021, zeigte dieselben fünf Ergebnisse. Beide Läufe kamen über einen vorübergehenden Auslöser auf einem Entwurf eines Pull Requests zustande, weil GitHub einen neuen Workflow erst von Hand starten lässt, wenn er auf `main` liegt. Nach dem Merge startet man ihn unter Actions von `main` aus.
 
 ## Ergebnisse
 

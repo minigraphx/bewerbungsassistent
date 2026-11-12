@@ -6,10 +6,6 @@ name: MSIX-Versuch
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - .github/workflows/msix-versuch.yml
-      - desktop/msix/**
 
 permissions:
   contents: read
