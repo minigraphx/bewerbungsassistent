@@ -57,12 +57,6 @@ def state(k, parameter, body):
     return json_antwort(display_for(k))
 
 
-def frame(k, parameter, body):
-    """Workload, exclusions and title filters for Suche einstellen (#263); empty without a profile."""
-    path = k.daten / search_plan.PROFILE
-    return json_antwort(search_plan.frame(path.read_text(encoding="utf-8") if path.is_file() else ""))
-
-
 def change(k, parameter, body):
     days = _days(body)
     if preferences.load(k.daten).sought == search_plan.KIND_APPRENTICESHIP:
@@ -81,5 +75,5 @@ def change(k, parameter, body):
     return json_antwort(display_for(k))
 
 
-GET = {"/api/suche/zeitfenster": state, "/api/suche/rahmen": frame}
+GET = {"/api/suche/zeitfenster": state}
 POST = {"/api/suche/zeitfenster": change}

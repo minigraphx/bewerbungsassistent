@@ -59,19 +59,38 @@
   </section>
 
   <section class="card" id="karte-region" aria-labelledby="region-titel">
-    <div class="settings-page__head"><h2 id="region-titel">Region und Pensum</h2><a id="region-aendern" href="/angaben#feld=searchJob.cantons">Ändern</a></div>
+    <div class="settings-page__head"><h2 id="region-titel">Region und Pensum</h2><button type="button" class="btn btn--quiet btn--sm" id="region-aendern" aria-expanded="false" aria-controls="region-form">Ändern</button></div>
     <dl class="facts">
       <dt>Region</dt><dd id="region-text"></dd>
       <dt id="pensum-titel">Pensum</dt><dd id="pensum-text"></dd>
     </dl>
+    <form id="region-form" class="settings-page__sub settings-page__edit" hidden>
+      <label class="field"><span class="field__label">Wohnort</span><input class="input" id="region-wohnort" type="text" maxlength="80" autocomplete="off"></label>
+      <fieldset class="choice-group">
+        <legend>Kantone</legend>
+        <ul id="region-kantone" class="kantone-liste"></ul>
+        <p class="field__hint" id="kantone-hinweis"></p>
+      </fieldset>
+      <label class="field" id="region-umkreis-feld" hidden><span class="field__label">Umkreis um den Wohnort</span><select class="input settings-page__select" id="region-umkreis"></select></label>
+      <label class="field" id="region-pensum-feld"><span class="field__label">Pensum (z.B. 80–100 %)</span><input class="input" id="region-pensum" type="text" maxlength="80" autocomplete="off"></label>
+      <div class="btn-row"><button type="submit" class="btn btn--primary btn--sm">Speichern</button><button type="button" class="btn btn--sm" id="region-abbrechen">Abbrechen</button></div>
+    </form>
+    <div id="region-meldung" class="status" role="status" aria-live="polite"></div>
   </section>
 
   <section class="card" id="karte-nicht" aria-labelledby="nicht-titel">
-    <div class="settings-page__head"><h2 id="nicht-titel" data-text="einstellen.nicht">Was Sie nicht sehen wollen</h2><a href="/angaben#feld=searchJob.exclusions">Ändern</a></div>
+    <div class="settings-page__head"><h2 id="nicht-titel" data-text="einstellen.nicht">Was Sie nicht sehen wollen</h2><button type="button" class="btn btn--quiet btn--sm" id="nicht-aendern" aria-expanded="false" aria-controls="nicht-form">Ändern</button></div>
     <dl class="facts">
       <dt>Im Inserat</dt><dd id="ausschluss-text"></dd>
       <dt>Im Titel</dt><dd id="titel-ausschluss-text"></dd>
     </dl>
+    <form id="nicht-form" class="settings-page__sub settings-page__edit" hidden>
+      <label class="field"><span class="field__label">Im Inserat, eins pro Zeile</span><textarea class="input" id="nicht-inserat" rows="4" spellcheck="false"></textarea></label>
+      <label class="field"><span class="field__label">Im Titel, eins pro Zeile</span><textarea class="input" id="nicht-im-titel" rows="4" spellcheck="false"></textarea></label>
+      <p class="field__hint">Ein Titel mit einem dieser Wörter kommt nicht in die Liste.</p>
+      <div class="btn-row"><button type="submit" class="btn btn--primary btn--sm">Speichern</button><button type="button" class="btn btn--sm" id="nicht-abbrechen">Abbrechen</button></div>
+    </form>
+    <div id="nicht-meldung" class="status" role="status" aria-live="polite"></div>
   </section>
 
   <section class="card" id="karte-wo" aria-labelledby="wo-titel">
@@ -111,8 +130,15 @@
       <details id="zeitfenster-portale-teil" hidden><summary>Stand der Portale</summary><ul id="zeitfenster-portale"></ul></details>
     </section>
     <section id="titelfilter" class="settings-page__sub" aria-labelledby="titelfilter-titel" hidden>
-      <div class="settings-page__head"><h3 id="titelfilter-titel">Titelfilter</h3><a href="/angaben#feld=searchJob.titleExclude">Ändern</a></div>
+      <div class="settings-page__head"><h3 id="titelfilter-titel">Titelfilter</h3><button type="button" class="btn btn--quiet btn--sm" id="titelfilter-aendern" aria-expanded="false" aria-controls="titelfilter-form">Ändern</button></div>
       <p class="field__hint" id="titelfilter-text"></p>
+      <form id="titelfilter-form" class="settings-page__sub settings-page__edit" hidden>
+        <label class="field"><span class="field__label">Titel, die passen, eins pro Zeile</span><textarea class="input" id="titelfilter-positiv" rows="4" spellcheck="false"></textarea></label>
+        <p class="field__hint">Steht hier etwas, nimmt die Suche nur Stellen, in deren Titel einer dieser Begriffe vorkommt.</p>
+        <label class="field"><span class="field__label">Titel, die nicht passen, eins pro Zeile</span><textarea class="input" id="titelfilter-ausschluss" rows="4" spellcheck="false"></textarea></label>
+        <div class="btn-row"><button type="submit" class="btn btn--primary btn--sm">Speichern</button><button type="button" class="btn btn--sm" id="titelfilter-abbrechen">Abbrechen</button></div>
+      </form>
+      <div id="titelfilter-meldung" class="status" role="status" aria-live="polite"></div>
     </section>
     <section class="settings-page__sub" aria-labelledby="ablauf-titel">
       <h3 id="ablauf-titel">Ablauf</h3>
@@ -148,6 +174,8 @@
 <script src="/portal-wahl.js"></script>
 <script src="/zeitfenster.js"></script>
 <script src="/weitere-seiten.js"></script>
+<script src="/suche-rahmen-logik.js"></script>
+<script src="/suche-rahmen.js"></script>
 <script src="/suche-einstellen.js"></script>
 </body>
 </html>
