@@ -7,6 +7,7 @@ import yaml
 
 import letter_approval
 import pruefung
+import routes_missing_ads
 import unterlagen
 import versand
 from dateien import im_ordner, schreibe_atomar
@@ -52,6 +53,7 @@ def details(k, parameter, body):
         "bewerbung": b,
         "jobroom": jobroom_angaben(b),
         "stellentext": _stellentext(k, b["id"]),
+        "text_fehlt": routes_missing_ads.note_for_saved(k, b),
         "pdfs": {art: p.is_file() for art, p in shown.items()},
         "pdf_stand": {art: p.stat().st_mtime_ns if p.is_file() else None for art, p in shown.items()},
         "eigener_lebenslauf": unterlagen.eigener_lebenslauf(k.daten, b) is not None,

@@ -80,7 +80,20 @@
     return parts.length ? `Durchgang fertig: ${parts.join(", ")}.` : "Durchgang fertig.";
   }
 
-  const logic = { dates, stand, waiting, passQueue, passProgress, passResult };
+  const NO_AD = "Zu dieser Stelle fehlt der Inseratstext.";
+  const WEB_LINK = /^https?:\/\//i;
+
+  /**
+   * The ad the pass shows (G38): the text, or the lines saying it is missing, why and how to get it (G37), with the
+   * link to the ad when it is a web address. `missing` is `text_fehlt` of /api/bewerbung.
+   */
+  function passAd(job, text, missing) {
+    if (!missing && (text || "").trim()) return { text: text.trim() };
+    const lines = [NO_AD, missing && missing.grund, missing && missing.weg].filter(Boolean);
+    return { zeilen: lines, link: WEB_LINK.test(job.link || "") ? job.link : "" };
+  }
+
+  const logic = { dates, stand, waiting, passQueue, passProgress, passResult, passAd };
   if (typeof module !== "undefined") module.exports = logic;
   else global.HeuteLogic = logic;
 })(typeof window !== "undefined" ? window : globalThis);

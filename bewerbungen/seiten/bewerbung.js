@@ -268,7 +268,10 @@
     zeigeBeenden(b);
     $("s-lebenslauf").hidden = Boolean(b.versand) && !b.variante;
     zeigeAnpassen(b);
-    $("s-stelle").open = !(daten.stellentext || "").trim() && !gesendet;
+    $("s-stelle").open = (!(daten.stellentext || "").trim() || Boolean(daten.text_fehlt)) && !gesendet;
+    // Why the ad text is missing and how to get it (G37); the extension loads it at the start where the portal allows.
+    $("stellentext-fehlt").textContent = daten.text_fehlt ? `${daten.text_fehlt.grund} ${daten.text_fehlt.weg}` : "";
+    $("stellentext-fehlt").hidden = !daten.text_fehlt;
     if (b.beworben_am && !b.versand && !versandDatumGesetzt) {  // sent already: record it with that date
       $("v-datum").value = b.beworben_am;
       versandDatumGesetzt = true;

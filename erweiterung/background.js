@@ -14,12 +14,16 @@ import { showHits } from './lib/app-tab.js';
 import { reloadForAppVersion, siteAccessControl } from './lib/reload.js';
 import { SearchTabs, currentRun } from './lib/run-state.js';
 import { checkCompany, structuredData } from './lib/kununu.js';
+import { fetchMissingAds, isNewStart } from './lib/missing-ads.js';
 
 const LOAD_TIMEOUT_MS = 30000;
 const RELOAD_DELAY_MS = 300;
 const RELOADED_FOR = 'neu-geladen-fuer';
+const ADS_FETCHED_FOR = 'inserate-geholt-fuer';
 const appPorts = new Set();
 let running = false;
+let fetchingAds = false;
+let adsCheckedOrigin = null; // the app page whose start was last looked at; a new start comes with a new port
 let searchCancelled = false;
 let versionChecked = false;
 let watchedTab = null; // with „Zuschauen“ (MIN-370): the visible tab of the search
@@ -128,7 +132,7 @@ const siteAccess = {
 
 /** A search, a list of open forms, a run waiting for access or the entries for the Job-Room: a reload would lose them. */
 async function isBusy() {
-  if (running) return true;
+  if (running || fetchingAds) return true;
   const session = await chrome.storage.session.get([FORMS_KEY, RAV_KEY, PENDING_KEY]);
   return Object.keys(session[FORMS_KEY] || {}).length > 0 || Boolean(session[RAV_KEY]) || Boolean(session[PENDING_KEY]);
 }
@@ -227,6 +231,44 @@ async function status() {
   } catch (error) {
     return { verbunden: false, fehler: error.message || explain(''), lauf };
   } finally {
+    app.close();
+  }
+}
+
+const adTabs = {
+  async openTab(url) {
+    const tab = await chrome.tabs.create({ url, active: false });
+    try {
+      await waitForLoad(tab.id);
+    } catch (error) {
+      await chrome.tabs.remove(tab.id).catch(() => {});
+      throw error;
+    }
+    return tab.id;
+  },
+  inject: browserTabs.inject,
+  run: browserTabs.run,
+  closeTab: (tabId) => chrome.tabs.remove(tabId),
+};
+
+/**
+ * Missing ad texts (G37, #275): once per start of the app, the first time one of its pages connects. A search that
+ * runs is left alone; the app hands out each job once per start, so a second page asking gets nothing.
+ */
+async function fetchAdsAtStart(pageUrl) {
+  const origin = pageUrl ? new URL(pageUrl).origin : null;
+  if (running || fetchingAds || origin === adsCheckedOrigin) return;
+  adsCheckedOrigin = origin;
+  fetchingAds = true;
+  const app = new AppConnection();
+  try {
+    const hello = await app.hello();
+    const last = (await chrome.storage.session.get(ADS_FETCHED_FOR))[ADS_FETCHED_FOR] || null;
+    if (!isNewStart(hello, last)) return;
+    await chrome.storage.session.set({ [ADS_FETCHED_FOR]: hello.einstieg });
+    await fetchMissingAds({ app, browser: adTabs, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) });
+  } finally {
+    fetchingAds = false;
     app.close();
   }
 }
@@ -529,5 +571,6 @@ chrome.runtime.onConnect.addListener((port) => {
     // A page that connects during a run has missed its start; how a run ended it asks with „status“ when it waits.
     runNow().then((lauf) => { if (lauf && lauf.zustand === 'laeuft') send(port, { art: 'lauf', lauf }); });
     checkVersionOnce();
+    fetchAdsAtStart(port.sender && port.sender.url).catch(() => {}); // what was not loaded the app names itself
   });
 });
