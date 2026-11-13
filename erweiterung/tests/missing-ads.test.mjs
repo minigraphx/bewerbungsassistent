@@ -110,3 +110,18 @@ test('once per start of the app: the same entry address is not asked again', () 
   assert.equal(isNewStart({ ...hello, einstieg: 'http://127.0.0.1:5001/?t=def' }, hello.einstieg), true);
   assert.equal(isNewStart({ app: null, einstieg: null }, null), false, 'an app that does not run is not started for this');
 });
+
+test('„Alle prüfen“ asks the app for exactly its hits and loads them (#209)', async () => {
+  const app = fakeApp([HIT]);
+  const browser = fakeBrowser(() => ({ ok: true, value: { text: 'Inserat' } }));
+
+  const result = await fetchMissingAds(deps(app, browser), { treffer: [HIT.id] });
+
+  assert.deepEqual(app.calls[0], ['POST', LIST_PATH, { treffer: [HIT.id] }]);
+  assert.deepEqual(result, { geladen: 1, fehlgeschlagen: 0 });
+});
+
+test('only the app page may ask for the texts of its hits', async () => {
+  const { ALLOWED } = await import('../lib/senders.js');
+  assert.ok(ALLOWED.app.has('inserate-holen') && !ALLOWED.popup.has('inserate-holen'));
+});
