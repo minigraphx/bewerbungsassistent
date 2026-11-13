@@ -2,7 +2,8 @@
 // What the sidebar shows (#259, G54), without DOM so it can be tested: which destination a page belongs to,
 // the badges and the AI budget at the bottom.
 (function (global) {
-  // Pages without their own place in the sidebar belong to the destination they are reached from.
+  // Pages without their own place in the sidebar belong to the destination they are reached from. The setup
+  // (/einrichtung) is reached from Einstellungen but is no part of it, so it marks nothing (#279).
   const TARGET_OF_PAGE = {
     "/": "heute",
     "/bewerbungen": "bewerbungen", "/bewerbung": "bewerbungen",
@@ -10,7 +11,7 @@
     "/angaben": "angaben", "/inhalte": "angaben",
     "/dateien": "dateien", "/foto": "dateien", "/entwuerfe": "dateien",
     "/fragen": "fragen",
-    "/einstellungen": "einstellungen", "/einrichtung": "einstellungen",
+    "/einstellungen": "einstellungen",
   };
   const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
                   "November", "Dezember"];

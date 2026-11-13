@@ -40,6 +40,41 @@ test("dates and deadlines come from the register, today and later, soonest first
   assert.deepEqual(H.dates([], TODAY), []);
 });
 
+test("a deadline counts until the application is sent, from today on (#269)", () => {
+  const rows = L.mitSchritten([
+    b("ready", "Bewerben", { frist: "2026-11-25", stelle: "Planer:in", firma: "Muster AG" }),
+    b("due", "Gemerkt", { frist: TODAY, stelle: "Analyst:in", firma: "Beispiel GmbH" }),
+    b("sent", "Beworben", { frist: "2026-11-14" }),
+  ]);
+  assert.deepEqual(H.dates(rows, TODAY).map(entry => [entry.day, entry.text]), [
+    ["12.11.", "Frist für Analyst:in, Beispiel GmbH"],
+    ["25.11.", "Frist für Planer:in, Muster AG"],
+  ]);
+});
+
+test("the follow-up date stays while the Job-Room entry is still open (#269)", () => {
+  const job = b("r", "Beworben", { beworben_am: "2026-11-05", firma: "Beispiel Logistik" });
+  const rows = L.mitSchritten([job], new Map(), new Map([["r", null]]));
+  assert.equal(rows[0].schritt.art, "rav");
+  assert.deepEqual(H.dates(rows, TODAY), [
+    { date: "2026-11-19", day: "19.11.", text: "Nachfragen bei Beispiel Logistik, falls keine Antwort da ist" },
+  ]);
+});
+
+test("an interview date shows even before the stage is changed, and replaces the follow-up (#269)", () => {
+  const rows = L.mitSchritten([b("i", "Beworben", { beworben_am: "2026-11-05", gespraech_am: "2026-11-16", firma: "Muster Bank" })]);
+  assert.deepEqual(H.dates(rows, TODAY).map(entry => entry.text), ["Gespräch bei Muster Bank"]);
+  const past = L.mitSchritten([b("p", "Beworben", { beworben_am: "2026-11-05", gespraech_am: "2026-11-10" })]);
+  assert.deepEqual(H.dates(past, TODAY), [], "a past interview neither shows nor brings the follow-up back");
+});
+
+test("the list is cut after the soonest dates, never before them (#269)", () => {
+  const rows = L.mitSchritten(["2026-12-05", "2026-11-13", "2026-11-30", "2026-11-14", "2026-12-01", "2026-11-20"]
+    .map((frist, index) => b(`f${index}`, "Gemerkt", { frist })));
+  assert.deepEqual(H.dates(rows, TODAY, { max: 5 }).map(entry => entry.date),
+    ["2026-11-13", "2026-11-14", "2026-11-20", "2026-11-30", "2026-12-01"]);
+});
+
 test("the stand counts each stage with a short hint", () => {
   const rows = L.mitSchritten([
     b("m1", "Gemerkt", { frist: "2026-11-16" }), b("m2", "Gemerkt", { frist: "2026-12-01" }), b("m3", "Bewerben"),
