@@ -2483,6 +2483,165 @@
         ]
       ],
       "errors": []
+    },
+    {
+      "name": "a search window within 1 to 60 days",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.window",
+          "60"
+        ],
+        [
+          "data.searchJob.portalsOff",
+          [
+            "ictjobs"
+          ]
+        ],
+        [
+          "data.searchJob.titlePositive",
+          [
+            "Entwickler/Developer",
+            "Data"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a search window beyond 60 days",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.window",
+          "61"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.window",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a search window of no days",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.window",
+          "0"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.window",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a search window in words",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.window",
+          "drei Wochen"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.window",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "a portal the search does not know",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.portalsOff",
+          [
+            "LinkedIn"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.portalsOff.0",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "every portal switched off",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.portalsOff",
+          [
+            "job-room",
+            "jobs.ch",
+            "jobscout24",
+            "ictjobs"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.portalsOff",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
+      "name": "more positive title terms than the search takes",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.titlePositive",
+          [
+            "Titel 0",
+            "Titel 1",
+            "Titel 2",
+            "Titel 3",
+            "Titel 4",
+            "Titel 5",
+            "Titel 6",
+            "Titel 7",
+            "Titel 8",
+            "Titel 9",
+            "Titel 10",
+            "Titel 11",
+            "Titel 12",
+            "Titel 13",
+            "Titel 14",
+            "Titel 15",
+            "Titel 16",
+            "Titel 17",
+            "Titel 18",
+            "Titel 19",
+            "Titel 20",
+            "Titel 21",
+            "Titel 22",
+            "Titel 23",
+            "Titel 24",
+            "Titel 25",
+            "Titel 26",
+            "Titel 27",
+            "Titel 28",
+            "Titel 29",
+            "Titel 30"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.titlePositive",
+          "code": "maxItems"
+        }
+      ]
     }
   ],
   "documentCases": [

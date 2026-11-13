@@ -53,9 +53,19 @@ def merged_text(form: dict, text: str, rel: str, track: str, before: dict, after
     now = basics_slots.read_slots(new_text, rel, track)
     current = basics_slots.read_slots(text, rel, track)
     new_lines = new_text.split("\n")
-    changes = [(slot, current[key][1][1], [new_lines[n] for n in found[1]])
-               for key, (slot, found) in now.items() if found[0] != was[key][1][0]]
+    changes = [change for key, (slot, found) in now.items() if found[0] != was[key][1][0]
+               for change in _changes(slot, text, current[key][1][1], found, new_lines)]
     return _applied(text, changes) if changes else text
+
+
+def _changes(slot: basics_slots.Slot, text: str, old: tuple[int, ...], found: basics_slots.Found,
+             new_lines: list[str]) -> list[tuple[basics_slots.Slot, tuple[int, ...], list[str]]]:
+    """The lines of the slot written anew, or with `write` only those that differ from the new value."""
+    if slot.write is None:
+        return [(slot, old, [new_lines[n] for n in found[1]])]
+    lines = text.split("\n")
+    replaced, added = slot.write([(n, lines[n]) for n in old], found[0])
+    return [*((slot, (n, ), rows) for n, rows in replaced.items()), *([(slot, (), added)] if added else [])]
 
 
 def _applied(text: str, changes: list[tuple[basics_slots.Slot, tuple[int, ...], list[str]]]) -> str:

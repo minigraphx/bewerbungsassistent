@@ -499,13 +499,19 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
                       hint_targets=targets, max_age_days=window)
 
 
+def window_days(value: str) -> int | None:
+    """The days of a window such as „14 Tage“, or None if the search cannot take it (G32); Meine Angaben reads it so too."""
+    number = NUMBER.fullmatch(re.sub(r"\s*tage?$", "", value.strip(), flags=re.IGNORECASE))
+    days = int(number.group()) if number else 0
+    return days if MIN_WINDOW_DAYS <= days <= MAX_WINDOW_DAYS else None
+
+
 def _window(value: str) -> tuple[int, tuple[str, ...]]:
     """The days the search looks back, with a hint when the profile asks for something it cannot do (G32)."""
     if not value:
         return MAX_AGE_DAYS, ()
-    number = NUMBER.fullmatch(re.sub(r"\s*tage?$", "", value.strip(), flags=re.IGNORECASE))
-    days = int(number.group()) if number else 0
-    if MIN_WINDOW_DAYS <= days <= MAX_WINDOW_DAYS:
+    days = window_days(value)
+    if days is not None:
         return days, ()
     return MAX_AGE_DAYS, (BAD_WINDOW.format(value=value, low=MIN_WINDOW_DAYS, high=MAX_WINDOW_DAYS),)
 

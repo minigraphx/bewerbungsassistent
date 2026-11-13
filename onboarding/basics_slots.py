@@ -6,12 +6,15 @@ everything else in the file is the person's own and stays as it is. The same slo
 file just written by `markdown_files.py`, so reading back and merging see the same values. A slot without `fields`
 only keeps a line up to date that the app derives from other answers (the gaps also listed in the search profile);
 a hidden one marks lines the app writes from cv.yaml and the work evidence, which the form does not read back.
+A slot with `write` changes only the lines of its file that differ from the new value, such as one row of the table of
+portals (#291), instead of writing all its lines anew.
 """
 import dataclasses
 import re
 from typing import Callable
 
 import markdown_files
+import search_plan
 
 PROFILE = "suchprofil.md"
 STYLE = "anschreiben/stil.md"
@@ -33,9 +36,13 @@ ADDRESS_OPTIONS = ("Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form")
 NO_GAPS = markdown_files.GAPS_LATER
 LIST_SEPARATOR = ", "
 
+TABLE_ROW = re.compile(r"^\|([^|]*)\|([^|]*)\|")
+TABLE_HEAD = re.compile(r"^\|\s*portal\s*\|\s*modus\s*\|$|^\|[\s|:-]+\|$", re.IGNORECASE)
+
 Lines = list[tuple[int, str]]  # (line number in the file, line without the line break)
 Found = tuple[tuple | None, tuple[int, ...]]  # (one value per field, or None if not understood; lines understood)
 NOTHING: Found = (None, ())
+Writes = tuple[dict[int, list[str]], list[str]]  # (lines in place of a line by its number, lines added to the section)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -46,6 +53,8 @@ class Slot:
     fields: tuple[str, ...] = ()  # empty: the slot only keeps a derived line up to date
     repeat: bool = False  # the value is a list of entries, each with one value per field
     hidden: bool = False  # its lines are in the app's own format and need not be listed as unknown
+    keeps_empty: bool = False  # an empty list is an answer too, such as no portal switched off
+    write: Callable[[Lines, tuple | None], Writes] | None = None  # changes only the lines that differ
 
     @property
     def key(self) -> str:
@@ -153,6 +162,51 @@ def _evidence(value: str) -> str:
     return "" if value == markdown_files.OWN_STATEMENT else value
 
 
+def window(lines: Lines) -> Found:
+    """„- Zeitfenster: 14 Tage“ as the number of days, read as the search reads it; others stay unknown."""
+    found, numbers = pair(markdown_files.WINDOW_LABEL)(lines)
+    days = search_plan.window_days(found[0]) if found else None
+    return ((str(days),), numbers) if days else NOTHING
+
+
+def _portal_rows(lines: Lines) -> dict[str, tuple[int, str]]:
+    """The rows of the job portals by portal: (line number, mode); a later row counts, as in the search."""
+    rows = {}
+    for number, line in _top(lines):
+        match = TABLE_ROW.match(line)
+        name = match.group(1).strip().lower() if match else ""
+        if name in search_plan.PORTALS:
+            rows = {**rows, name: (number, match.group(2).strip().lower())}
+    return rows
+
+
+def portals(lines: Lines) -> Found:
+    """The job portals switched off („aus“) in the table under „Portale und Rhythmus“, with its head (#291)."""
+    rows = _portal_rows(lines)
+    if not rows:
+        return NOTHING
+    off = [portal for portal in search_plan.PORTALS if portal in rows and rows[portal][1] == search_plan.MODE_OFF]
+    head = tuple(n for n, line in _top(lines) if TABLE_HEAD.match(line))
+    return ((off,), tuple(sorted({*head, *(n for n, _ in rows.values())})))
+
+
+def write_portals(lines: Lines, found: tuple | None) -> Writes:
+    """Only the rows whose portal goes on or off; a missing portal searches, so a row is added only to switch it off."""
+    off = set(found[0]) if found else set()
+    rows = _portal_rows(lines)
+    if not rows:
+        table = [markdown_files.portal_row(p, p in off) for p in search_plan.PORTALS]
+        return ({}, ["", *markdown_files.PORTAL_HEAD, *table] if off else [])
+    replaced = {n: [markdown_files.portal_row(p, p in off)] for p, (n, mode) in rows.items()
+                if (mode == search_plan.MODE_OFF) != (p in off)}
+    missing = [markdown_files.portal_row(p, True) for p in search_plan.PORTALS if p in off and p not in rows]
+    if missing:
+        last = max(n for n, _ in rows.values())
+        line = dict(lines)[last]
+        replaced = {**replaced, last: [*replaced.get(last, [line]), *missing]}
+    return replaced, []
+
+
 _FIXED_TONE = frozenset({"- Aussagen mit konkreten Beispielen belegen; Lücken offen und knapp benennen, mit Lernbereitschaft.",
                          "- Schweizer Schreibweise (ss statt ß)."})
 _GAPS = bullets(frozenset({NO_GAPS}))
@@ -171,7 +225,10 @@ def _profile_job() -> list[Slot]:
             Slot("Suchrichtungen", pair("Ausschluss", True), search, ("exclusions",)),
             *_region_job(),
             Slot("Keywords", pair("Kernliste", True), search, ("keywords",)),
+            Slot("Titelfilter", pair("Positiv", True), search, ("titlePositive",)),
             Slot("Titelfilter", pair("Ausschluss", True), search, ("titleExclude",)),
+            Slot(markdown_files.RHYTHM, window, search, ("window",)),
+            Slot(markdown_files.RHYTHM, portals, search, ("portalsOff",), keeps_empty=True, write=write_portals),
             Slot("Rahmen", pair("Frühester Start"), search, ("start",)),
             Slot("Rahmen", pair("Pensum"), search, ("workload",)),
             Slot("Rahmen", pair("Befristung möglich"), search, ("temporary",)),
