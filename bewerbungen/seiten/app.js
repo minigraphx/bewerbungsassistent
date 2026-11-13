@@ -6,6 +6,9 @@ window.App = (() => {
   // The FAQ (#108); the website renders the same file with GitHub's heading ids, so an anchor works on both.
   const FRAGEN_URL = "https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/fragen.md";
   const TOKEN = document.querySelector('meta[name="token"]').content;
+  // The window „KI einrichten“ (G60, #272): an answer with this action, or an address with ?ki=einrichten, opens it.
+  const KI_EINRICHTEN = "ki-einrichten";
+  const KI_SKRIPTE = [["Texte", "/texte.js"], ["Einwilligung", "/einwilligung.js"], ["KiZugang", "/ki-zugang.js"], ["KiFenster", "/ki-fenster.js"]];
 
   /** Claude writes into the app while a page is open (MIN-377): look again as long as the page can be seen. */
   function beobachten(nachsehen) {
@@ -22,6 +25,7 @@ window.App = (() => {
     const typ = antwort.headers.get("Content-Type") || "";
     const daten = typ.includes("json") ? await antwort.json() : {};
     if (!antwort.ok) {
+      if (daten.aktion === KI_EINRICHTEN) kiEinrichten().catch(() => { /* the message of the page still says it */ });
       const fehler = new Error(daten.fehler || antwort.statusText);
       fehler.status = antwort.status;
       fehler.daten = daten;
@@ -141,7 +145,12 @@ window.App = (() => {
 
   // Text set from the setup (MIN-369): the pages fill their data-text elements, the menu names the search.
   // Without the route (or before a choice) the page keeps the words it was written with: a job, Sie.
-  const wahl = holen("/api/einrichtung/wahl").catch(() => null);
+  let wahl = holen("/api/einrichtung/wahl").catch(() => null);
+  /** After the setup stored a new choice: what follows, such as the window „KI einrichten“, speaks in its set. */
+  function wahlNeuLaden() {
+    wahl = holen("/api/einrichtung/wahl").catch(() => null);
+    return wahl;
+  }
   async function textsatz() {
     const gewaehlt = await wahl;
     return gewaehlt ? gewaehlt.textsatz : "stelle-sie";
@@ -166,14 +175,49 @@ window.App = (() => {
   }
   zurueck();
 
-  // Until a data folder is chosen (or when it is gone), every page leads to the setup.
+  // Until a data folder is chosen (or when it is gone), every page leads to the setup, with a request for the window
+  // „KI einrichten“; true when it leaves.
   async function zurEinrichtung() {
-    if (location.pathname === "/einrichtung") return;
+    if (location.pathname === "/einrichtung") return false;
     try {
       const info = await holen("/api/app/einrichtung");
-      if (!info.eingerichtet || info.fehlt) location.replace("/einrichtung");
-      else if (info.gewechselt) location.reload();  // the folder is back: show its data, not the placeholder's
+      if (!info.eingerichtet || info.fehlt) {
+        location.replace("/einrichtung" + location.search);
+        return true;
+      }
+      if (info.gewechselt) location.reload();  // the folder is back: show its data, not the placeholder's
     } catch { /* plain app without setup */ }
+    return false;
+  }
+
+  function ladeSkript(src) {
+    return new Promise((resolve, reject) => {
+      document.head.append(el("script", { src, onload: resolve, onerror: () => reject(new Error(`${src} liess sich nicht laden.`)) }));
+    });
+  }
+
+  /** Opens the window „KI einrichten“ over the page, loading its scripts once; resolves with the AI status it closed with. */
+  async function kiEinrichten() {
+    for (const [name, src] of KI_SKRIPTE) {
+      if (!window[name]) await ladeSkript(src);
+    }
+    return window.KiFenster.oeffnen();
+  }
+
+  /** Did the address ask for the window (an invitation link)? The request leaves the address, so a reload asks no more. */
+  function kiAnfrageNehmen() {
+    const suche = new URLSearchParams(location.search);
+    if (suche.get("ki") !== "einrichten") return false;
+    suche.delete("ki");
+    const rest = suche.toString();
+    history.replaceState(history.state, "", location.pathname + (rest ? `?${rest}` : "") + location.hash);
+    return true;
+  }
+
+  // The setup page takes the request itself: before the data folder there is nowhere to keep the consent.
+  function kiAusAdresse() {
+    if (location.pathname === "/einrichtung" || !kiAnfrageNehmen()) return;
+    kiEinrichten().catch(() => { /* without its scripts the page stays as it is */ });
   }
 
   // "About the app" under Einstellungen (#81, G54): the AS logo marks the author; name and app icon stay as they are.
@@ -276,7 +320,7 @@ window.App = (() => {
   // Packaged app only (MIN-342): the offer of a new version, button to quit. The plain app has no such route.
   async function desktop() {
     let info;
-    try { info = await holen("/api/app/version"); } catch { return; }
+    try { info = await holen("/api/app/version"); } catch { kiAusAdresse(); return; }
     anwesend();
     const ort = document.getElementById("ueber-die-app");
     if (ort) {
@@ -294,7 +338,8 @@ window.App = (() => {
       ort.hidden = false;
       document.getElementById("ueber-link")?.removeAttribute("hidden");
     }
-    await zurEinrichtung();
+    if (await zurEinrichtung()) return;
+    kiAusAdresse();
     if (!info.update) return;
     if (info.update.fragen) updateDialog(info.update);
     else updateBanner(info.update);
@@ -390,5 +435,5 @@ window.App = (() => {
   }
 
   return { url, holen, senden, el, status, alsBase64, datum, zeitpunkt, bestaetigen, pdfAdresse, letzteEntwuerfe, beobachten,
-           wahl: () => wahl, textsatz, fragenLink };
+           wahl: () => wahl, wahlNeuLaden, textsatz, fragenLink, kiEinrichten, kiAnfrageNehmen };
 })();

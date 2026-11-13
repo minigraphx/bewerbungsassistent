@@ -24,8 +24,13 @@ class AnswerError(AiError):
         self.cost_usd = cost_usd
 
 
-NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. In der App die Einladung einlösen "
-              "oder unter „Erweiterte Einstellungen“ einen eigenen Schlüssel eintragen.")
+class SetupNeeded(AiError):
+    """The AI is not set up or not agreed to: the page opens the window „KI einrichten“ (G60)."""
+
+
+SETUP_ACTION = "ki-einrichten"  # what the answer of a route tells the page to open
+NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. Unter „KI einrichten“ den Einladungscode, "
+              "das eigene Claude-Abo oder einen eigenen Schlüssel wählen.")
 ACCESS_DENIED = ("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen "
                  "prüfen. Sonst bei der Begleitperson im Pilot melden.")
 NO_CREDIT = ("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. "

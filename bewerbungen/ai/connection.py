@@ -15,7 +15,7 @@ import urllib.parse
 
 import anthropic
 
-from ai.errors import NOT_SET_UP, AiError
+from ai.errors import NOT_SET_UP, AiError, SetupNeeded
 
 log = logging.getLogger("bewerbungsbegleiter")
 
@@ -141,11 +141,11 @@ def find_connection(environ: dict | None = None, keyring_access=None) -> Connect
     if url:
         access = (env.get(ACCESS_VARIABLE) or "").strip() or (keyring_access or _keyring_access)()
         if not access:
-            raise AiError(NOT_SET_UP)
+            raise SetupNeeded(NOT_SET_UP)
         return Connection(url, access)
     key = (env.get(KEY_VARIABLE) or "").strip()
     if not key:
-        raise AiError(NOT_SET_UP)
+        raise SetupNeeded(NOT_SET_UP)
     return Connection(None, key)
 
 

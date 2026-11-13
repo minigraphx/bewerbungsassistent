@@ -23,17 +23,17 @@ function abschnitt(id) {
 }
 
 test("without an einstieg file in Downloads the step Datei is not among the steps", () => {
-  assert.deepEqual(logik.schritte({ installiert: true, einstiegDatei: null }), ["gesucht", "ki", "erweiterung"]);
+  assert.deepEqual(logik.schritte({ installiert: true, einstiegDatei: null }), ["gesucht", "erweiterung"]);
 });
 
 test("with an einstieg file in Downloads the step Datei comes after the first step", () => {
   assert.deepEqual(logik.schritte({ installiert: true, einstiegDatei: "/Users/x/Downloads/einstieg.zip" }),
-    ["gesucht", "vorlage", "ki", "erweiterung"]);
+    ["gesucht", "vorlage", "erweiterung"]);
 });
 
 test("opened from Erweitert, the step Datei shows in the list while it is the current one", () => {
   assert.deepEqual(logik.schritte({ installiert: true, einstiegDatei: null, jetzt: "vorlage" }),
-    ["gesucht", "vorlage", "ki", "erweiterung"]);
+    ["gesucht", "vorlage", "erweiterung"]);
 });
 
 test("the plain app only knows the first step, and the data folder is never a step of its own", () => {
@@ -83,8 +83,8 @@ test("loading by hand sits in a collapsed Klappt es nicht?", () => {
 
 test("the end says Fast fertig and lists what is open, with one button each", () => {
   const offen = logik.offenePunkte({ kiVerbunden: false, erweiterungMoeglich: true, erweiterungGeladen: "" });
-  assert.deepEqual(offen.map(p => [p.id, p.knopf, p.ziel]),
-    [["ki", "KI einrichten", "#ki"], ["erweiterung", "Erweiterung laden", "#erweiterung"]]);
+  assert.deepEqual(offen.map(p => [p.id, p.knopf, p.ziel || p.aktion]),
+    [["ki", "KI einrichten", "ki-einrichten"], ["erweiterung", "Erweiterung laden", "#erweiterung"]]);
   assert.equal(logik.abschlussTitel(offen), "Fast fertig");
   assert.deepEqual(logik.offenePunkte({ kiVerbunden: true, erweiterungMoeglich: true, erweiterungGeladen: "" }).map(p => p.id),
     ["erweiterung"]);

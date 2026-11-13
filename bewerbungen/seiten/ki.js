@@ -1,6 +1,6 @@
 "use strict";
 // AI support on the application page (MIN-334, MIN-338). The server pseudonymizes every request;
-// this page only shows the answers, as text.
+// this page only shows the answers, as text. Without a set up AI the buttons open the window „KI einrichten“ (G60).
 (() => {
   const { holen, senden, el, status, bestaetigen } = window.App;
   const { notenHinweis } = window.FormularLogik;
@@ -12,6 +12,7 @@
   const NACH_ENTWURF = "Jetzt „Unterlagen erstellen“ und das PDF lesen.";
   const NACH_ERSTELLEN = "Das PDF steht unten; bitte lesen.";
   let briefDa = true; // until the page has loaded, better ask once too often
+  let bereit = false;  // set up and agreed to; until then a button opens the window „KI einrichten“
 
   const meldung = (text, art) => status($("ki-meldung"), text, art);
   const kosten = usd => (usd === null || usd === undefined) ? "Kosten unbekannt" : `ca. ${usd.toFixed(2)} USD`;
@@ -76,6 +77,10 @@
   }
 
   async function ausfuehren(pfad, text, zeigen) {
+    if (!bereit) {
+      window.App.kiEinrichten().catch(fehler => meldung(fehler.message, "fehler"));
+      return null;
+    }
     frei(false);
     meldung(text + " … das kann bis zu einer Minute dauern.");
     try {
@@ -94,7 +99,7 @@
 
   function statusText(s) {
     if (s.einwilligung && !s.einwilligung.erteilt) return "Die KI ist noch aus: Vor der ersten Nutzung braucht es die Einwilligung.";
-    if (!s.eingerichtet) return s.einladung ? "Die KI ist noch nicht eingerichtet: Einladungscode unten eingeben." : s.hinweis;
+    if (!s.eingerichtet) return "Die KI ist noch nicht eingerichtet. ";
     if (!s.vermittlung) return `KI eingerichtet (direkt, Entwicklung). Diesen Monat ${kosten(s.kosten_usd)}.`;
     const budget = typeof s.budget_usd === "number"
       ? ` Budget diesen Monat: ${kosten(s.verbraucht_usd)} von ${s.budget_usd.toFixed(2)} USD.` : "";
@@ -103,12 +108,14 @@
 
   function zeigeStatus(s) {
     const einwilligungOffen = Boolean(s.einwilligung && !s.einwilligung.erteilt);
-    $("ki-status").textContent = statusText(s);
+    const einrichten = s.eingerichtet ? null
+      : el("button", { type: "button", class: "btn btn--quiet btn--sm", onclick: () => window.App.kiEinrichten() }, "KI einrichten");
+    $("ki-status").replaceChildren(statusText(s), ...(einrichten ? [einrichten] : []));
     $("ki-status").hidden = einwilligungOffen;  // the line of the consent says that the AI is off
     $("ki-einwilligung").hidden = !einwilligungOffen;
     if (einwilligungOffen) window.Einwilligung.zeile($("ki-einwilligung"), s.einwilligung, zeigeStatus);
-    $("ki-einladung").hidden = s.eingerichtet || !s.einladung || einwilligungOffen;
-    frei(s.eingerichtet && !einwilligungOffen);
+    bereit = Boolean(s.eingerichtet && !einwilligungOffen);
+    frei(true);
     if (s.einladung_fehler) meldung(s.einladung_fehler, "fehler");
   }
 
@@ -120,21 +127,8 @@
     }
   }
 
-  async function einloesen() {
-    $("ki-einloesen").disabled = true;
-    try {
-      zeigeStatus(await senden("/api/ki/einladung", { code: $("ki-code").value }));
-      $("ki-code").value = "";
-      meldung("Einladung eingelöst. Die KI ist bereit.", "ok");
-    } catch (fehler) {
-      meldung(fehler.message, "fehler");
-    } finally {
-      $("ki-einloesen").disabled = false;
-    }
-  }
-
   if (!ID) return;
-  $("ki-einloesen").addEventListener("click", einloesen);
+  document.addEventListener("ki-fenster-geschlossen", ladeStatus);
   $("ki-bewerten").addEventListener("click", () => ausfuehren("/api/ki/bewerten", "Passung wird bewertet", zeigeBewertung));
   document.addEventListener("bewerbung-geladen", event => { briefDa = event.detail.hat_anschreiben; });
   document.addEventListener("anschreiben-entworfen", event => {
