@@ -9,6 +9,7 @@ import shutil
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
+import cv_design
 import dossier as dossier_modul
 from dateien import im_ordner
 from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
@@ -114,22 +115,23 @@ def wirksame_pdfs(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Pat
     return {art: gilt(art, gebaut) for art, gebaut in pdf_pfade(daten, bewerbung["id"]).items()}
 
 
-def _baue_ganzen_lebenslauf(daten: pathlib.Path, build: pathlib.Path, ziel: pathlib.Path) -> None:
+def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], build: pathlib.Path, ziel: pathlib.Path) -> None:
     """Variants come from Claude; whoever works in the app alone has none and still needs a CV. With variants, the person chooses."""
     if Varianten(daten).alle():
         raise ValueError(CHOOSE_VARIANT)
     if not (daten / "cv.yaml").is_file():
         raise ValueError(NO_CV)
-    lebenslauf_modul.main([str(daten / "cv.yaml"), "--build-dir", str(build), "-o", str(ziel)])
+    lebenslauf_modul.main([str(daten / "cv.yaml"), *design, "--build-dir", str(build), "-o", str(ziel)])
 
 
 def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, ziel: pathlib.Path) -> None:
+    design = cv_design.theme_arguments(cv_design.for_application(daten, bewerbung))  # G61, resolved at each build
     if not bewerbung.get("variante"):
-        return _baue_ganzen_lebenslauf(daten, build, ziel)
+        return _baue_ganzen_lebenslauf(daten, design, build, ziel)
     variante = Varianten(daten).hole(bewerbung["variante"])
     if variante.get("quelle"):
         lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(im_ordner(daten, variante["quelle"])),
-                               "--lang", variante["sprache"], "--build-dir", str(build), "-o", str(ziel)])
+                               "--lang", variante["sprache"], *design, "--build-dir", str(build), "-o", str(ziel)])
     elif variante.get("datei"):
         shutil.copyfile(im_ordner(daten, variante["datei"]), ziel)
     elif not ziel.is_file():

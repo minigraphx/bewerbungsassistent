@@ -891,6 +891,18 @@ button.files__photo img { width: 100%; height: 100%; object-fit: cover; display:
 .files .files__links .files__link:hover { background: none; color: var(--accent-hover); }
 .files .status:empty { display: none; }
 @media (max-width: 760px) { .files__grid { grid-template-columns: 1fr; } .files__sheet { display: none; } }
+/* „Aussehen wählen“ (G61): one tile per design, a small sheet that shows its layout */
+.design-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
+.design-tile { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-4) var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface); color: var(--text-strong); text-align: center; cursor: pointer; }
+.design-tile:hover { background: var(--surface-subtle); }
+.design-tile:has(input:checked) { border: 2px solid var(--accent); padding: calc(var(--space-4) - 1px) calc(var(--space-3) - 1px); background: var(--accent-subtle); }
+.design-tile:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.design-tile__name { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 500; }
+.design-tile__name input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.design-tile__text { font: 400 14px/20px var(--font-sans); color: var(--text-muted); }
+.design-tile__sheet { width: 56px; height: 78px; box-sizing: border-box; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background-color: var(--surface); background-repeat: no-repeat; }
+.design-tile__sheet--zweispaltig { background-image: linear-gradient(var(--accent), var(--accent)), linear-gradient(var(--line), var(--line)), repeating-linear-gradient(var(--line) 0 3px, transparent 3px 8px); background-position: 6px 7px, 6px 22px, 24px 22px; background-size: 42px 8px, 14px 46px, 24px 46px; }
+.design-tile__sheet--einspaltig { background-image: linear-gradient(var(--accent), var(--accent)), repeating-linear-gradient(var(--line) 0 3px, transparent 3px 8px); background-position: 6px 7px, 6px 22px; background-size: 26px 6px, 42px 46px; }
 
 /* Consent before the first AI call: a long text beside the tick */
 .einwilligung .schalter { align-items: flex-start; font-weight: 400; }

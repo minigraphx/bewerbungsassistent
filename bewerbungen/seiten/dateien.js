@@ -1,6 +1,7 @@
 "use strict";
 // Page „Lebenslauf und Dateien“ (#264, A9, G55): the choice between the CV of the app and an own PDF, certificates
-// and references in one list, the photos (G21) and the way to earlier versions. What it shows: dateien-logik.js.
+// and references in one list, the photos (G21), the design of the CV (G61, „Aussehen wählen“) and the way to earlier
+// versions. What it shows: dateien-logik.js.
 (() => {
   const { holen, senden, el, status, url, bestaetigen, alsBase64 } = App;
   const Logic = window.DateienLogik;
@@ -9,6 +10,7 @@
   let maxPhotoBytes = 0;
   let found = { lebenslauf: [], zertifikat: [], zeugnis: [] };
   let wantsOwn = false;
+  let design = Logic.PRESET_DESIGN;
 
   const cvMessage = (text, type = "") => status($("cv-status"), text, type);
   const proofMessage = (text, type = "") => status($("nachweise-status"), text, type);
@@ -159,6 +161,44 @@
     }
   }
 
+  function showDesign() {
+    $("cv-design").textContent = `Design: ${Logic.designName(design)}`;
+  }
+
+  function designTile(choice) {
+    const radio = el("input", { type: "radio", name: "aussehen", value: choice.id, checked: choice.id === design });
+    return el("label", { class: "design-tile" },
+      el("span", { class: `design-tile__sheet design-tile__sheet--${choice.id}`, "aria-hidden": "true" }),
+      el("span", { class: "design-tile__name" }, radio, choice.name),
+      el("span", { class: "design-tile__text" }, choice.text));
+  }
+
+  function openDesigns() {
+    $("aussehen-liste").replaceChildren(...Logic.DESIGNS.map(designTile));
+    $("aussehen-dialog").showModal();
+    $("aussehen-liste").querySelector("input:checked")?.focus();
+  }
+
+  async function chooseDesign() {
+    const chosen = $("aussehen-liste").querySelector("input:checked")?.value;
+    try {
+      const body = Logic.designToSave(design, chosen);
+      $("aussehen-dialog").close();
+      if (!body) return;
+      design = (await senden("/api/dateien/aussehen", body)).design;
+      showDesign();
+      cvMessage(Logic.designSaved(design), "ok");
+    } catch (error) {
+      $("aussehen-dialog").close();
+      cvMessage(`Aussehen nicht gespeichert: ${error.message}`, "fehler");
+    }
+  }
+
+  async function loadDesign() {
+    design = (await holen("/api/dateien/aussehen")).design;
+    showDesign();
+  }
+
   function onFiles(input, handle) {
     input.addEventListener("change", async () => {
       const files = [...input.files];
@@ -181,6 +221,9 @@
     for (const card of document.querySelectorAll("[data-cv]")) card.addEventListener("click", () => chooseCv(card.dataset.cv));
     $("cv-dialog-nein").addEventListener("click", () => $("cv-dialog").close());
     $("cv-dialog-ja").addEventListener("click", removeOwnCv);
+    $("cv-aussehen").addEventListener("click", openDesigns);
+    $("aussehen-nein").addEventListener("click", () => $("aussehen-dialog").close());
+    $("aussehen-ja").addEventListener("click", chooseDesign);
     onFiles($("cv-input"), files => upload(files, () => "lebenslauf", cvMessage));
     onFiles($("nachweise-input"), uploadProofs);
     onFiles($("foto-input"), files => (files[0] ? addPhoto(files[0]) : null));
@@ -197,6 +240,7 @@
     const listing = await holen("/api/dateien");
     maxBytes = listing.max_groesse;
     showFiles(listing);
+    await loadDesign().catch(error => cvMessage(`Aussehen nicht geladen: ${error.message}`, "fehler"));
     await loadPhotos().catch(error => photoMessage(error.message, "fehler"));
   }
 
