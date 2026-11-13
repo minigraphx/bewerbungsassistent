@@ -88,12 +88,12 @@ function page({ liste = {}, uebernehmen = {}, erweiterung = true } = {}) {
 
 const settle = async () => { for (let i = 0; i < 5; i += 1) await new Promise(resolve => setImmediate(resolve)); };
 
-test("the browser tab and the page both say Stellen suchen", async () => {
-  assert.match(HTML, /<title>Stellen suchen<\/title>/);
-  assert.match(HTML, /<h1 id="titel" data-text="nav.suche">Stellen suchen<\/h1>/);
+test("the browser tab and the page both say Stellen (G55, #262)", async () => {
+  assert.match(HTML, /<title>Stellen<\/title>/);
+  assert.match(HTML, /<h1 id="titel" data-text="nav.stellen">Stellen<\/h1>/);
   const p = page();
   await settle();
-  assert.equal(p.document.title, "Stellen suchen");
+  assert.equal(p.document.title, "Stellen");
 });
 
 test("Suche einstellen is closed on opening and sums itself up in one line with Ändern", async () => {
@@ -180,7 +180,7 @@ test("Übernehmen becomes Merken, and the message reads Gemerkt. with a link to 
   assert.equal(gemerkt.inhalt[1].tag, "a");
   assert.equal(gemerkt.inhalt[1].attrs.href, "/bewerbung?id=b7");
   assert.equal(textOf(gemerkt.inhalt[1]), "Bewerbung öffnen");
-  assert.match(HTML, /data-zustand="uebernommen" aria-pressed="false">Gemerkt </);
+  assert.match(HTML, /data-zustand="uebernommen">Gemerkt </);
 });
 
 test("Register in user texts becomes Ihre Bewerbungen, in the Sie and the du form", () => {

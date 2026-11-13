@@ -17,8 +17,8 @@ from varianten import Varianten
 ORDNER = "bewerbungen"
 ARTEN = ("lebenslauf", "anschreiben")
 CHOOSE_VARIANT = "Keine Lebenslauf-Variante gewählt. Bitte unter „Angaben“ eine wählen und speichern."
-NO_CV = "Noch kein Lebenslauf. Bitte unter „Meine Angaben“ erfassen oder unter „Meine Dateien“ als PDF hochladen."
-OWN_CV = "dokumente/lebenslauf.pdf"  # uploaded on the page „Meine Dateien“, see own_files.py
+NO_CV = "Noch kein Lebenslauf. Bitte unter „Meine Angaben“ erfassen oder unter „Lebenslauf und Dateien“ als PDF hochladen."
+OWN_CV = "dokumente/lebenslauf.pdf"  # uploaded on the page „Lebenslauf und Dateien“, see own_files.py
 OWN_LETTER = "eigenes-anschreiben.pdf"  # uploaded on the page of the application, see own_files.py
 LETTER_SOURCE = "anschreiben.yaml"
 SENT_STAYS = "Diese Bewerbung ist versendet. Was verschickt wurde, bleibt so."

@@ -49,7 +49,7 @@ meine-daten/
 
 ### Eigene Dateien (MIN-346)
 
-Wer fertige Unterlagen hat, legt sie auf der Seite „Meine Dateien“ ab und verwendet sie unverändert:
+Wer fertige Unterlagen hat, legt sie auf der Seite „Lebenslauf und Dateien“ ab und verwendet sie unverändert:
 
 - **Lebenslauf:** ein PDF, gespeichert als `dokumente/lebenslauf.pdf`. Es gilt für jede Bewerbung ohne gewählte Variante und ersetzt dort den gebauten Lebenslauf, ohne „Unterlagen erstellen“. Eine gewählte Variante geht vor.
 - **Zertifikate und Zeugnisse:** PDF, JPG oder PNG, in denselben Ordnern wie die Unterlagen aus „Meine Angaben“. Zertifikate werden pro Bewerbung gewählt. Wird ein gewähltes Zertifikat ersetzt oder entfernt, gilt das für alle noch nicht versendeten Bewerbungen.

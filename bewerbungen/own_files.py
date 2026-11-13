@@ -38,6 +38,7 @@ NOT_WHAT_IT_SAYS = "Diese Datei ist kein echtes {typ}. Vielleicht wurde sie nur 
 TOO_LARGE = "Die Datei ist zu gross, höchstens {mb} MB."
 NOT_THERE = "Diese Datei gibt es nicht (mehr)."
 CANNOT_SHOW = "Diese Datei lässt sich hier nicht anzeigen."
+SAME_NAME_THERE = "Dort gibt es schon eine Datei mit gleichen Namen. Bitte zuerst eine der beiden umbenennen."
 
 
 def clean_name(raw: object) -> str:
@@ -114,6 +115,20 @@ def listing(data_dir: pathlib.Path) -> dict[str, list[dict]]:
     cv = [CV_FILE] if (data_dir / CV_FILE).is_file() else []
     in_folders = {kind: certificates.files_in(data_dir, folder) for kind, folder in FOLDERS.items()}
     return {kind: [_describe(data_dir, rel) for rel in files] for kind, files in {CV_KIND: cv, **in_folders}.items()}
+
+
+def kind_target(data_dir: pathlib.Path, rel: str, kind: object) -> str:
+    """Where a listed certificate or reference goes when the person gives it another kind; never onto another file."""
+    if kind not in FOLDERS:
+        raise ValueError(UNKNOWN_KIND)
+    if rel == CV_FILE:
+        raise ValueError(NOT_THERE)
+    if pathlib.PurePosixPath(rel).parent == pathlib.PurePosixPath(FOLDERS[kind]):
+        return rel
+    target = relative_target(data_dir, kind, pathlib.PurePosixPath(rel).name)
+    if (data_dir / target).exists():
+        raise ValueError(SAME_NAME_THERE)
+    return target
 
 
 def checked_listed(data_dir: pathlib.Path, rel: object) -> pathlib.Path:

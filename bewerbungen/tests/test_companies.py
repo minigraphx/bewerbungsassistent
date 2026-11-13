@@ -170,9 +170,9 @@ def test_none_of_them_means_not_found(server):  # noqa: F811
 
 
 def test_the_page_is_reached_from_the_search(server):  # noqa: F811
-    # The sidebar (G54) has no place for Firmen; until it becomes a tab of Stellen (#262) the search links to it.
+    # Firmen is the fourth tab of Stellen (G56, #262), next to Neu, Gemerkt and Verworfen.
     from test_app import anfrage, session_header
     status, _, page, _ = anfrage(server, "GET", "/firmen", headers=session_header(server))
     assert status == 200 and "/firmen.js" in page.decode("utf-8")
     search = anfrage(server, "GET", "/treffer", headers=session_header(server))[2].decode("utf-8")
-    assert 'href="/firmen" data-text="suche.firmen">Firmen ansehen</a>' in search
+    assert '<a class="tabs__tab" href="/firmen" data-reiter="firmen" data-text="nav.firmen">Firmen</a>' in search

@@ -408,7 +408,7 @@
     const zeilen = verfuegbar.map(datei => el("li", {}, el("label", { class: "check" },
       el("input", { type: "checkbox", value: datei, checked: gewaehlt ? gewaehlt.includes(datei) : gruende.has(datei) }),
       datei.split("/").pop(), gruende.has(datei) ? el("span", { class: "leise" }, ` (${gruende.get(datei)})`) : null)));
-    $("zertifikate").replaceChildren(...(zeilen.length ? zeilen : [el("li", { class: "leer" }, "Noch keine Zertifikate hochgeladen. Das geht unter ", el("a", { href: "/dateien" }, "Meine Dateien"), ".")]));
+    $("zertifikate").replaceChildren(...(zeilen.length ? zeilen : [el("li", { class: "leer" }, "Noch keine Zertifikate hochgeladen. Das geht unter ", el("a", { href: "/dateien" }, "Lebenslauf und Dateien"), ".")]));
     $("zertifikate-speichern").hidden = !zeilen.length;
     status($("zertifikate-status"), !gewaehlt && vorschlag.length ? "Vorschlag, noch nicht gespeichert." : "");
   }
