@@ -5,7 +5,7 @@
   // Pages without their own place in the sidebar belong to the destination they are reached from.
   const TARGET_OF_PAGE = {
     "/": "heute",
-    "/bewerbung": "bewerbungen",
+    "/bewerbungen": "bewerbungen", "/bewerbung": "bewerbungen",
     "/treffer": "stellen", "/suchbegriffe": "stellen", "/firmen": "stellen",
     "/angaben": "angaben", "/inhalte": "angaben",
     "/dateien": "dateien", "/foto": "dateien", "/entwuerfe": "dateien",

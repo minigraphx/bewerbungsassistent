@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="/heute.css">
 </head>
 <body>
-<nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/#liste-teil" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
+<nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/bewerbungen" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
 <main class="overview">
   <!-- First start: no CV and no application yet (A2) -->
   <section id="erststart" class="today" hidden>
@@ -74,56 +74,13 @@
       <h2 id="stand-titel" data-text="heute.stand">Ihr Stand</h2>
       <div class="today__tiles">
         <a class="tile" href="/treffer" data-stand="neu"><span class="tile__label" data-text="heute.stand.neu">Neue Stellen</span><span class="tile__count" id="stand-neu-zahl"></span><span class="tile__hint" id="stand-neu-hinweis"></span></a>
-        <a class="tile" href="#liste-teil" data-stand="gemerkt"><span class="tile__label">Gemerkt</span><span class="tile__count" id="stand-gemerkt-zahl"></span><span class="tile__hint" id="stand-gemerkt-hinweis"></span></a>
-        <a class="tile" href="#liste-teil" data-stand="beworben"><span class="tile__label">Beworben</span><span class="tile__count" id="stand-beworben-zahl"></span><span class="tile__hint" id="stand-beworben-hinweis"></span></a>
-        <a class="tile" href="#liste-teil" data-stand="abgeschlossen"><span class="tile__label">Abgeschlossen</span><span class="tile__count" id="stand-abgeschlossen-zahl"></span><span class="tile__hint" id="stand-abgeschlossen-hinweis"></span></a>
+        <a class="tile" href="/bewerbungen#gemerkt" data-stand="gemerkt"><span class="tile__label">Gemerkt</span><span class="tile__count" id="stand-gemerkt-zahl"></span><span class="tile__hint" id="stand-gemerkt-hinweis"></span></a>
+        <a class="tile" href="/bewerbungen#beworben" data-stand="beworben"><span class="tile__label">Beworben</span><span class="tile__count" id="stand-beworben-zahl"></span><span class="tile__hint" id="stand-beworben-hinweis"></span></a>
+        <a class="tile" href="/bewerbungen#abgeschlossen" data-stand="abgeschlossen"><span class="tile__label">Abgeschlossen</span><span class="tile__count" id="stand-abgeschlossen-zahl"></span><span class="tile__hint" id="stand-abgeschlossen-hinweis"></span></a>
       </div>
     </section>
   </section>
   <p id="lauf-status" class="status-line" role="status" aria-live="polite"></p>
-
-  <section id="liste-teil" class="overview__list" aria-labelledby="liste-titel" hidden>
-    <div class="overview__list-head">
-      <h2 id="liste-titel">Bewerbungen</h2>
-      <button type="button" class="btn" id="von-hand" data-text="uebersicht.von-hand">Stelle von Hand erfassen</button>
-      <div class="overview__tools">
-        <div role="group" aria-label="Anzeigen" class="overview__views" id="ansichten">
-          <button type="button" class="btn btn--sm" data-ansicht="gemerkt" aria-pressed="false">Gemerkt <span class="num" data-zahl="gemerkt"></span></button>
-          <button type="button" class="btn btn--sm" data-ansicht="beworben" aria-pressed="true">Beworben <span class="num" data-zahl="beworben"></span></button>
-          <button type="button" class="btn btn--sm" data-ansicht="abgeschlossen" aria-pressed="false">Abgeschlossen <span class="num" data-zahl="abgeschlossen"></span></button>
-          <button type="button" class="btn btn--sm" data-ansicht="alle" aria-pressed="false">Alle <span class="num" data-zahl="alle"></span></button>
-        </div>
-        <label class="visually-hidden" for="suche">Suchen</label>
-        <input class="input overview__search" id="suche" type="search" autocomplete="off">
-      </div>
-    </div>
-    <div class="overview__bulk" id="auswahl-leiste" role="group" aria-label="Stand der ausgewählten Bewerbungen ändern" hidden>
-      <span class="overview__bulk-count" id="auswahl-zahl" role="status" aria-live="polite"></span>
-      <label class="visually-hidden" for="stand-wahl">Neuer Stand</label>
-      <select class="input overview__bulk-stage" id="stand-wahl"><option value="">Stand wählen …</option></select>
-      <button type="button" class="btn btn--sm" id="stand-setzen">Stand setzen</button>
-      <label class="check overview__bulk-all"><input type="checkbox" id="alle-waehlen"> Alle in dieser Ansicht</label>
-    </div>
-    <p id="liste-leer" class="overview__empty" data-text="uebersicht.liste-leer" hidden>Noch keine Bewerbungen. Klicken Sie in der Suche bei einer Stelle auf «Merken» oder erfassen Sie eine von Hand.</p>
-    <p id="nichts-gefunden" class="overview__empty" hidden>Keine Bewerbung passt zu dieser Suche.</p>
-    <div class="table-wrap" id="tabelle">
-      <table class="table">
-        <thead><tr><th class="table__pick"><input type="checkbox" id="alle-kopf" aria-label="Alle in dieser Ansicht auswählen"></th><th data-spalte="stelle"><button type="button" class="table__sort" data-text="uebersicht.spalte">Stelle und Firma</button></th><th data-spalte="stand"><button type="button" class="table__sort">Stand</button></th><th data-spalte="note"><button type="button" class="table__sort">Note</button></th><th data-spalte="schritt"><button type="button" class="table__sort">Nächster Schritt</button></th><th class="num" data-spalte="frist"><button type="button" class="table__sort">Frist</button></th><th class="num" data-spalte="erfasst"><button type="button" class="table__sort">Erfasst</button></th></tr></thead>
-        <tbody id="liste"></tbody>
-      </table>
-    </div>
-    <p id="liste-fuss" class="overview__foot" hidden></p>
-  </section>
-
-  <dialog class="dialog" id="neu-dialog" aria-labelledby="neu-titel">
-    <form method="dialog" id="neu-form">
-      <h2 class="dialog__title" id="neu-titel" data-text="uebersicht.von-hand">Stelle von Hand erfassen</h2>
-      <div class="field"><label class="field__label" for="neu-firma" data-text="uebersicht.feld-firma">Firma</label><input class="input" id="neu-firma" autocomplete="off" required></div>
-      <div class="field"><label class="field__label" for="neu-stelle" data-text="uebersicht.feld-stelle">Stelle</label><input class="input" id="neu-stelle" autocomplete="off" required></div>
-      <p id="neu-status" class="status-line" role="status" aria-live="polite"></p>
-      <div class="dialog__actions"><button type="button" class="btn" id="neu-abbrechen">Abbrechen</button><button type="submit" class="btn btn--primary" id="neu-anlegen">Anlegen</button></div>
-    </form>
-  </dialog>
 
   <dialog class="dialog pass" id="pass-dialog" aria-labelledby="pass-titel">
     <p class="pass__progress" id="pass-fortschritt"></p>
@@ -138,11 +95,6 @@
     <h2 class="dialog__title" id="doppelt-titel"></h2>
     <div class="dialog__text" id="doppelt-text"></div>
     <div class="dialog__actions"><button type="button" class="btn" id="doppelt-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="doppelt-trotzdem">Trotzdem öffnen</button></div>
-  </dialog>
-  <dialog class="dialog" id="stand-dialog" aria-labelledby="stand-titel" aria-describedby="stand-text">
-    <h2 class="dialog__title" id="stand-titel"></h2>
-    <div class="dialog__text" id="stand-text"></div>
-    <div class="dialog__actions"><button type="button" class="btn" id="stand-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="stand-ok">Stand setzen</button></div>
   </dialog>
 </main>
 <script src="/texte.js"></script>

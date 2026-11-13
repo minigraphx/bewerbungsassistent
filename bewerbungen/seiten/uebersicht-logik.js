@@ -160,6 +160,27 @@
     return alle.slice(0, hoechstens);
   }
 
+  const PASS_TITLE = "Gemerkte Stellen in einem Durchgang bewerten";
+
+  /**
+   * What a step is called, in the list of Bewerbungen and on Heute: { titel, zusatz }. `anzahl` is how many a grouped
+   * item stands for; `t(key, values)` gives the text of texte.js in the form of the person.
+   */
+  function schrittText(schritt, anzahl, t) {
+    switch (schritt.art) {
+      case "abschicken": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen abschicken`, zusatz: "Formulare sind bereit" } : { titel: "Abschicken", zusatz: "Formular ist bereit" };
+      case "freigeben": return { titel: "Anschreiben lesen und freigeben", zusatz: "Entwurf ist fertig" };
+      case "unterlagen": return { titel: "Unterlagen erstellen", zusatz: "Lebenslauf-PDF fehlt" };
+      case "link": return { titel: "Link zum Formular eintragen", zusatz: "dann füllt die Erweiterung es aus" };
+      case "offen": return { titel: schritt.grund || "Bewerbung öffnen", zusatz: "" };
+      case "rav": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen im Job-Room eintragen`, zusatz: "fürs RAV" } : { titel: "Im Job-Room eintragen", zusatz: "fürs RAV" };
+      case "gespraech": return { titel: t("bewerbung.gespraech"), zusatz: schritt.frist ? datum(schritt.frist) : "Termin eintragen" };
+      case "entscheiden": return anzahl > 1 ? { titel: PASS_TITLE, zusatz: t("heute.durchgang.unter", { anzahl }) } : { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
+      case "warten": return { titel: "Antwort abwarten", zusatz: schritt.zusatz ? `nachfragen ab ${datum(schritt.zusatz)}` : "" };
+      default: return { titel: "", zusatz: "" };
+    }
+  }
+
   // Changing the stage of several applications at once (#170). A selection is a Set of ids; every change
   // returns a new one. Only the selected rows the view shows count, so a hidden row is never changed by surprise.
   const VIEW_LABELS = { gemerkt: "Gemerkt", beworben: "Beworben", abgeschlossen: "Abgeschlossen" };
@@ -226,7 +247,7 @@
   const logik = { ANSICHTEN, STANDARD_ANSICHT, NACHFRAGEN_NACH_TAGEN, datum, plusTage, naechsterSchritt, mitSchritten, gefiltert,
                   ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung, abgeschlossenZaehlen, stehtAn,
                   toggleOne, toggleAll, selectionState, selectedIds, keepKnown, showBulkBar, selectionLabel, stageQuestion, viewOfStage,
-                  stageDone };
+                  stageDone, schrittText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.UebersichtLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

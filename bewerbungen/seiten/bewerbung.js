@@ -77,6 +77,7 @@
     const b = bewerbung;
     document.title = `${b.stelle} – ${b.firma}`;
     $("titel").textContent = b.stelle || "Bewerbung";
+    $("pfad-stelle").textContent = b.stelle || "Bewerbung";
     $("untertitel").textContent = [[b.firma, b.ort].filter(Boolean).join(", "), b.frist ? `Abgabe bis ${datum(b.frist)}` : ""].filter(Boolean).join(" · ");
     $("kopf-status").hidden = false;
     $("kopf-status").dataset.status = b.status;
@@ -129,11 +130,11 @@
       versand: ["Abschicken und festhalten", t("bewerbung.versand"), [knopf("Versand erfassen", zuAbschnitt("versand-titel"))]],
       nachtragen: ["Versand festhalten", `Beworben am ${datum(b.beworben_am)}, aber der Versand ist noch nicht festgehalten. «Versand erfassen» legt die Fassung ab, die verschickt wurde.`, [knopf("Versand erfassen", zuAbschnitt("versand-titel"))]],
       jobroom: ["Im Job-Room eintragen", t("bewerbung.jobroom"), [knopf("Job-Room öffnen", e => oeffneJobroom(e.currentTarget))]],
-      warten: ["Antwort abwarten", b.beworben_am ? t("bewerbung.warten", { datum: datum(plusTage(b.beworben_am, NACHFRAGEN_NACH_TAGEN)) }) : "Die Antwort lässt sich unten eintragen, sobald sie kommt.", [el("a", { class: "btn btn--primary", href: "/" }, "Zur Übersicht")]],
+      warten: ["Antwort abwarten", b.beworben_am ? t("bewerbung.warten", { datum: datum(plusTage(b.beworben_am, NACHFRAGEN_NACH_TAGEN)) }) : "Die Antwort lässt sich unten eintragen, sobald sie kommt.", [el("a", { class: "btn btn--primary", href: "/bewerbungen" }, "Zu den Bewerbungen")]],
       gespraech: [t("bewerbung.gespraech"), b.gespraech_am ? `Termin am ${datum(b.gespraech_am)}. Inserat und Anschreiben stehen auf dieser Seite.` : "Den Termin bei den Angaben eintragen, dann steht er hier und in der Übersicht.",
         [b.gespraech_am ? knopf("Inserat lesen", zuAbschnitt("s-stelle")) : knopf("Termin eintragen", () => oeffneAngaben("f-gespraech_am"))]],
-      absage: ["Absage erhalten", t("bewerbung.absage"), [el("a", { class: "btn btn--primary", href: "/" }, "Zur Übersicht")]],
-      zusage: ["Zusage erhalten", "Die Unterlagen dieser Bewerbung bleiben gespeichert.", [el("a", { class: "btn btn--primary", href: "/" }, "Zur Übersicht")]],
+      absage: ["Absage erhalten", t("bewerbung.absage"), [el("a", { class: "btn btn--primary", href: "/bewerbungen" }, "Zu den Bewerbungen")]],
+      zusage: ["Zusage erhalten", "Die Unterlagen dieser Bewerbung bleiben gespeichert.", [el("a", { class: "btn btn--primary", href: "/bewerbungen" }, "Zu den Bewerbungen")]],
     };
     const [titel, text, knoepfe] = karten[n.art];
     $("naechster-zeile").textContent = n.art === "jobroom" ? "Nächster Schritt · fürs RAV" : "Nächster Schritt";

@@ -15,7 +15,7 @@ const navOf = html => html.match(/<nav class="app-nav"[\s\S]*?<\/nav>/)[0];
 const DESTINATIONS = [
   ["heute", "/", "Heute"],
   ["stellen", "/treffer", "Stellen"],
-  ["bewerbungen", "/#liste-teil", "Bewerbungen"],
+  ["bewerbungen", "/bewerbungen", "Bewerbungen"],
   ["angaben", "/angaben", "Meine Angaben"],
   ["dateien", "/dateien", "Lebenslauf und Dateien"],
   ["fragen", "/fragen", "Fragen an die KI"],

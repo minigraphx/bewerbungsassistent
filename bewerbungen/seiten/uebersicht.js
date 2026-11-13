@@ -1,10 +1,10 @@
 "use strict";
-// Heute (MIN-369, #260): the next step, Danach, dates and deadlines, the stand by stage, then the applications in
-// six columns until the Bewerbungen page has its own (#261). The next step per application comes from uebersicht-logik.js,
+// Heute (MIN-369, #260): the next step, Danach, dates and deadlines and the stand by stage; the list of applications
+// has its own page since #261 (bewerbungen.js). The next step per application comes from uebersicht-logik.js,
 // dates and the stand from heute-logic.js. Forms and Job-Room entries open through the
 // browser extension (MIN-346, MIN-347): one application from its card, several together from one item.
 (() => {
-  const { holen, senden, el, beobachten, textsatz } = window.App;
+  const { holen, el, beobachten, textsatz } = window.App;
   const { text } = window.Texte;
   const L = window.UebersichtLogik;
   const H = window.HeuteLogic;
@@ -17,17 +17,8 @@
   const RAV_ACTION = "rav-starten";
   const NO_EXTENSION = "Zum Ausfüllen im Browser braucht es die Erweiterung (siehe Einrichtung).";
   const ANSWER_TIMEOUT_MS = 60000;
-  const ANSICHT = "uebersicht.ansicht";  // view, search and scroll position stay when going to another page
-  const MIT_FUSS = ["gemerkt", "beworben"];  // views that do not show the finished ones name them below the list
-  const NICHTS_GEFUNDEN = "Keine Bewerbung passt zu dieser Suche.";
-  const ANSICHT_LEER = "In dieser Ansicht ist keine Bewerbung.";
-  const ARIA_SORT = { auf: "ascending", ab: "descending" };
   const MAX_AUCH = 3;
   const MAX_DATES = 5;
-  const PASS_TITLE = "Gemerkte Stellen in einem Durchgang bewerten";
-  const STAND_VIEWS = ["gemerkt", "beworben", "abgeschlossen"];
-  const GESCHLOSSEN_WORT = { Zusage: ["Zusage", "Zusagen"], Absage: ["Absage", "Absagen"], Verworfen: ["verworfen", "verworfen"],
-                             "Zurückgezogen": ["zurückgezogen", "zurückgezogen"] };
 
   let satz = "stelle-sie";
   let rav = false;
@@ -40,13 +31,8 @@
   let maxRav = 0;
   let erinnerung = null;
   let neueTreffer = null;  // { anzahl, letzte } or null
-  let ansicht = L.STANDARD_ANSICHT;
-  let sortierung = null;  // { spalte, richtung } or null for the order of the app
   let laufendeAnfrage = null;  // { ids } of the run waiting for the extension, for „Trotzdem öffnen“
   let answerTimer = null;
-  let wiederhergestellt = false;
-  let auswahl = new Set();  // ids ticked in the list (#170)
-  let staende = [];         // the stages the register knows, for the menu
 
   // Small helpers
 
@@ -55,177 +41,8 @@
   const t = (schluessel, werte) => text(schluessel, satz, werte);
   const lehrstelle = () => satz === "lehrstelle-du";
   const adresse = b => "/bewerbung?id=" + encodeURIComponent(b.id);
-  const wo = b => [b.firma, b.ort].filter(Boolean).join(", ");
 
-  function merken() {
-    try {
-      const scroll = wiederhergestellt ? Math.round(window.scrollY) : gemerkt().scroll;
-      localStorage.setItem(ANSICHT, JSON.stringify({ ansicht, suche: $("suche").value, scroll, sortierung }));
-    } catch { /* without storage the default view applies */ }
-  }
-
-  function gemerkt() {
-    try {
-      const a = JSON.parse(localStorage.getItem(ANSICHT) || "{}");
-      return { ansicht: L.gueltigeAnsicht(a.ansicht), suche: typeof a.suche === "string" ? a.suche : "",
-               scroll: Number.isFinite(a.scroll) && a.scroll > 0 ? a.scroll : 0, sortierung: L.gueltigeSortierung(a.sortierung) };
-    } catch {
-      return { ansicht: L.STANDARD_ANSICHT, suche: "", scroll: 0, sortierung: null };
-    }
-  }
-
-  // What a step is called, in the list and on the card
-
-  function schrittText(schritt, anzahl = 1) {
-    switch (schritt.art) {
-      case "abschicken": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen abschicken`, zusatz: "Formulare sind bereit" } : { titel: "Abschicken", zusatz: "Formular ist bereit" };
-      case "freigeben": return { titel: "Anschreiben lesen und freigeben", zusatz: "Entwurf ist fertig" };
-      case "unterlagen": return { titel: "Unterlagen erstellen", zusatz: "Lebenslauf-PDF fehlt" };
-      case "link": return { titel: "Link zum Formular eintragen", zusatz: "dann füllt die Erweiterung es aus" };
-      case "offen": return { titel: schritt.grund || "Bewerbung öffnen", zusatz: "" };
-      case "rav": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen im Job-Room eintragen`, zusatz: "fürs RAV" } : { titel: "Im Job-Room eintragen", zusatz: "fürs RAV" };
-      case "gespraech": return { titel: t("bewerbung.gespraech"), zusatz: schritt.frist ? L.datum(schritt.frist) : "Termin eintragen" };
-      case "entscheiden": return anzahl > 1 ? { titel: PASS_TITLE, zusatz: t("heute.durchgang.unter", { anzahl }) } : { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
-      case "warten": return { titel: "Antwort abwarten", zusatz: schritt.zusatz ? `nachfragen ab ${L.datum(schritt.zusatz)}` : "" };
-      default: return { titel: "", zusatz: "" };
-    }
-  }
-
-  // Note 1–6 as in the design: value, six bars, a word
-  function notenWort(note) {
-    return note >= 5.5 ? "passt sehr gut" : note >= 4.5 ? "passt gut" : note >= 4 ? "passt knapp" : "passt wenig";
-  }
-
-  function note(b) {
-    if (typeof b.passung !== "number") return el("span", { class: "table__sub" }, "keine Note");
-    const balken = [1, 2, 3, 4, 5, 6].map(k => el("i", { class: b.passung >= k ? "on" : b.passung >= k - 0.5 ? "half" : "" }));
-    return el("span", { class: "grade-meter grade-meter--sm", "aria-label": `Note ${window.Texte.notenText(b.passung)} von 6, ${notenWort(b.passung)}` },
-      el("span", { class: "grade-meter__value" }, window.Texte.notenText(b.passung)),
-      el("span", { class: "grade-meter__bar", "aria-hidden": "true" }, balken),
-      el("span", { class: "grade-meter__word", "aria-hidden": "true" }, notenWort(b.passung)));
-  }
-
-  // The list
-
-  function auswahlFeld(b) {
-    const name = [b.stelle || "ohne Titel", b.firma].filter(Boolean).join(", ");
-    return el("td", { "data-label": "", class: "table__pick" },
-      el("input", { type: "checkbox", "data-id": b.id, "aria-label": `Auswählen: ${name}`, checked: auswahl.has(b.id),
-                    onchange: () => waehleZeile(b.id) }));
-  }
-
-  function zeile({ bewerbung: b, schritt }) {
-    const was = schrittText(schritt);
-    return el("tr", { "data-selected": auswahl.has(b.id) },
-      auswahlFeld(b),
-      el("td", { "data-label": "" }, el("a", { class: "table__main", href: adresse(b) }, b.stelle || "ohne Titel"), el("span", { class: "table__sub" }, wo(b))),
-      el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, window.Texte.statusName(b.status, satz))),
-      el("td", { "data-label": "Note" }, note(b)),
-      el("td", { "data-label": "Nächster Schritt", class: "table__next" }, was.titel || "–", was.zusatz ? el("span", { class: "table__sub" }, was.zusatz) : null),
-      el("td", { "data-label": "Frist", class: "num" }, L.datum(schritt.frist)),
-      el("td", { "data-label": "Erfasst", class: "num" }, L.datum(b.eingetragen_am)));
-  }
-
-  const gezeigteZeilen = () => L.sortiert(L.gefiltert(zeilen, ansicht, $("suche").value), sortierung);
-
-  function zeigeListe() {
-    const gezeigte = gezeigteZeilen();
-    for (const kopf of document.querySelectorAll("th[data-spalte]")) {
-      if (sortierung?.spalte === kopf.dataset.spalte) kopf.setAttribute("aria-sort", ARIA_SORT[sortierung.richtung]);
-      else kopf.removeAttribute("aria-sort");
-    }
-    for (const knopf of document.querySelectorAll("[data-ansicht]")) knopf.setAttribute("aria-pressed", String(knopf.dataset.ansicht === ansicht));
-    for (const [name, zahl] of Object.entries(L.ansichtenZaehlen(zeilen))) document.querySelector(`[data-zahl=${name}]`).textContent = String(zahl);
-    $("liste").replaceChildren(...gezeigte.map(zeile));
-    $("tabelle").hidden = gezeigte.length === 0;
-    zeigeAuswahl(gezeigte);
-    $("liste-leer").hidden = alle.length > 0;
-    $("nichts-gefunden").hidden = alle.length === 0 || gezeigte.length > 0;
-    $("nichts-gefunden").textContent = $("suche").value.trim() ? NICHTS_GEFUNDEN : ANSICHT_LEER;
-    const fertig = L.abgeschlossenZaehlen(zeilen);
-    const teile = Object.entries(fertig).map(([status, n]) => `${n} ${(GESCHLOSSEN_WORT[status] || [status, status])[n === 1 ? 0 : 1]}`);
-    $("liste-fuss").hidden = !MIT_FUSS.includes(ansicht) || teile.length === 0;
-    $("liste-fuss").replaceChildren(`Abgeschlossen: ${teile.join(", ")}. `,
-      el("button", { type: "button", class: "link", onclick: () => waehleAnsicht("abgeschlossen") }, "Anzeigen"));
-    merken();
-  }
-
-  function sortiereNach(spalte) {
-    sortierung = L.naechsteSortierung(sortierung, spalte);
-    zeigeListe();
-  }
-
-  function waehleAnsicht(name) {
-    ansicht = name;
-    zeigeListe();
-  }
-
-  // Changing the stage of the selected applications (#170): only the ticked rows of this view count
-
-  function zeigeAuswahl(gezeigte = gezeigteZeilen()) {
-    for (const feld of $("liste").querySelectorAll("input[data-id]")) {
-      feld.checked = auswahl.has(feld.dataset.id);
-      feld.closest("tr").toggleAttribute("data-selected", feld.checked);
-    }
-    const zustand = L.selectionState(auswahl, gezeigte);
-    for (const alle of [$("alle-waehlen"), $("alle-kopf")]) {
-      alle.checked = zustand === "all";
-      alle.indeterminate = zustand === "some";
-    }
-    const anzahl = L.selectedIds(auswahl, gezeigte).length;
-    $("auswahl-leiste").hidden = !L.showBulkBar(anzahl);
-    $("auswahl-zahl").textContent = L.selectionLabel(anzahl);
-    $("stand-setzen").disabled = anzahl === 0 || !$("stand-wahl").value;
-  }
-
-  function waehleZeile(id) {
-    auswahl = L.toggleOne(auswahl, id);
-    zeigeAuswahl();
-  }
-
-  function waehleAlle() {
-    auswahl = L.toggleAll(auswahl, gezeigteZeilen());
-    zeigeAuswahl();
-  }
-
-  function fuelleStaende() {
-    const gewaehlt = $("stand-wahl").value;
-    const optionen = staende.map(stand => el("option", { value: stand, selected: stand === gewaehlt }, window.Texte.statusName(stand, satz)));
-    $("stand-wahl").replaceChildren(el("option", { value: "" }, "Stand wählen …"), ...optionen);
-  }
-
-  function frageStand() {
-    const gezeigte = gezeigteZeilen();
-    const ids = L.selectedIds(auswahl, gezeigte);
-    const stand = $("stand-wahl").value;
-    if (!ids.length || !stand) return;
-    const name = window.Texte.statusName(stand, satz);
-    const betroffen = gezeigte.filter(z => ids.includes(z.bewerbung.id)).map(z => [z.bewerbung.stelle, z.bewerbung.firma].filter(Boolean).join(", "));
-    $("stand-titel").textContent = L.stageQuestion(ids.length, name);
-    $("stand-text").replaceChildren(
-      el("ul", { class: "dialog__list" }, betroffen.map(text => el("li", {}, text))),
-      stand === "Absage" ? el("p", {}, "Wo das Datum der Absage fehlt, gilt heute.") : null);
-    $("stand-ok").disabled = false;
-    $("stand-dialog").showModal();
-  }
-
-  async function setzeStand() {
-    const ids = L.selectedIds(auswahl, gezeigteZeilen());
-    const stand = $("stand-wahl").value;
-    $("stand-ok").disabled = true;
-    try {
-      await senden("/api/bewerbungen/stand", { ids, status: stand });
-      $("stand-dialog").close();
-      auswahl = new Set();
-      $("stand-wahl").value = "";
-      meldung(L.stageDone(ids.length, stand, window.Texte.statusName(stand, satz), ansicht), "success");
-      await laden();  // a failed reload says so in the same line
-      $("stand-wahl").focus();  // the button it came from is disabled now
-    } catch (fehler) {
-      $("stand-dialog").close();
-      meldung(fehler.message, "danger");
-    }
-  }
+  const schrittText = (schritt, anzahl = 1) => L.schrittText(schritt, anzahl, t);
 
   // „Das steht an“
 
@@ -378,15 +195,10 @@
     const ohneAngaben = !grundlagen.lebenslauf && alle.length === 0;
     $("erststart").hidden = !ohneAngaben;
     $("steht-an").hidden = ohneAngaben;
-    $("liste-teil").hidden = ohneAngaben;
     window.Texte.anwenden(document, satz);
-    $("suche").placeholder = t("uebersicht.suche");
     zeigeRavHinweis();
     if (ohneAngaben) zeigeEinrichtung();
-    else {
-      zeigeStehtAn();
-      zeigeListe();
-    }
+    else zeigeStehtAn();
   }
 
   /** First step of the way: done when the AI is set up and the extension answers (the sidebar asks both). */
@@ -493,10 +305,7 @@
       grundlagen = gefunden;
       gezeigt = JSON.stringify(daten.bewerbungen);
       alle = daten.bewerbungen;
-      staende = daten.status;
       zeilen = L.mitSchritten(alle, gruende, ravGruende);
-      auswahl = L.keepKnown(auswahl, zeilen);
-      fuelleStaende();
       zeige();
     } catch (fehler) {
       meldung("Laden fehlgeschlagen: " + fehler.message, "danger");
@@ -511,45 +320,12 @@
     } catch { /* the app is closing; the next action says so */ }
   }
 
-  // Adding one by hand
-
-  async function anlegen(event) {
-    event.preventDefault();
-    $("neu-anlegen").disabled = true;
-    try {
-      const b = await senden("/api/bewerbung/neu", { firma: $("neu-firma").value, stelle: $("neu-stelle").value });
-      location.href = adresse(b);
-    } catch (fehler) {
-      window.Meldungen.zeige($("neu-status"), fehler.message, "danger");
-      $("neu-anlegen").disabled = false;
-    }
-  }
-
   // Wiring
 
-  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-  let scrollTimer = null;
-  window.addEventListener("scroll", () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(merken, 150); }, { passive: true });
-  window.addEventListener("pagehide", merken);
-  $("suche").addEventListener("input", zeigeListe);
-  for (const knopf of document.querySelectorAll("[data-ansicht]")) knopf.addEventListener("click", () => waehleAnsicht(knopf.dataset.ansicht));
-  for (const kopf of document.querySelectorAll("th[data-spalte]")) kopf.querySelector("button").addEventListener("click", () => sortiereNach(kopf.dataset.spalte));
   $("rav-hinweis-knopf").addEventListener("click", e => {
     const offen = erinnerung ? erinnerung.ids.filter(id => ravGruende.get(id) === null) : [];
     startRav(offen.slice(0, maxRav), e.currentTarget);
   });
-  for (const kachel of document.querySelectorAll("[data-stand]")) {
-    if (STAND_VIEWS.includes(kachel.dataset.stand)) kachel.addEventListener("click", () => waehleAnsicht(kachel.dataset.stand));
-  }
-  $("von-hand").addEventListener("click", () => { window.Meldungen.leere($("neu-status")); $("neu-dialog").showModal(); $("neu-firma").focus(); });
-  $("neu-abbrechen").addEventListener("click", () => $("neu-dialog").close());
-  $("neu-form").addEventListener("submit", anlegen);
-  $("alle-waehlen").addEventListener("change", waehleAlle);
-  $("alle-kopf").addEventListener("change", waehleAlle);
-  $("stand-wahl").addEventListener("change", () => zeigeAuswahl());
-  $("stand-setzen").addEventListener("click", frageStand);
-  $("stand-abbrechen").addEventListener("click", () => $("stand-dialog").close());
-  $("stand-ok").addEventListener("click", setzeStand);
   $("doppelt-abbrechen").addEventListener("click", () => { $("doppelt-dialog").close(); meldung(""); });
   $("doppelt-trotzdem").addEventListener("click", () => {
     $("doppelt-dialog").close();
@@ -566,12 +342,7 @@
   beobachten(nachsehen);
 
   (async () => {
-    const ansichtGemerkt = gemerkt();
-    ansicht = ansichtGemerkt.ansicht;
-    $("suche").value = ansichtGemerkt.suche;
-    sortierung = ansichtGemerkt.sortierung;
     satz = await textsatz();
     await laden();
-    requestAnimationFrame(() => { window.scrollTo(0, ansichtGemerkt.scroll); wiederhergestellt = true; });
   })();
 })();

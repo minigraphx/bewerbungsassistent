@@ -133,7 +133,7 @@ test("the empty overview names Merken like the search page does since #220 (#229
     "lehrstelle-du": "Noch keine Bewerbungen. Klicke in der Suche bei einer Lehrstelle auf «Merken» oder erfasse eine von Hand.",
   };
   for (const [satz, text] of Object.entries(erwartet)) assert.equal(texte.text("uebersicht.liste-leer", satz), text, satz);
-  const html = seite("uebersicht.html");
+  const html = seite("bewerbungen.html");
   assert.ok(html.includes(`data-text="uebersicht.liste-leer" hidden>${erwartet["stelle-sie"]}</p>`));
   for (const alt of ["Übernehmen Sie eine Stelle aus der Suche", "Übernimm eine"]) {
     assert.ok(!html.includes(alt) && !JSON.stringify(texte.TEXTE["uebersicht.liste-leer"]).includes(alt), alt);
