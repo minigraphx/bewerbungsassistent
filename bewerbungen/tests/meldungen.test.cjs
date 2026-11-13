@@ -327,7 +327,8 @@ test("no page sets the level or the class of a message itself", () => {
 test("no page builds a warning or error line without the close button", () => {
   for (const name of scripts) {
     const code = fs.readFileSync(path.join(SEITEN, name), "utf8");
-    assert.doesNotMatch(code, /["']data-stufe["']\s*:\s*["'](fehler|hinweis)["']/, name);
+    // Any level set by hand, literal or computed, would skip the close button for a warning or an error.
+    assert.doesNotMatch(code, /["']data-stufe["']\s*:/, name);
   }
 });
 
