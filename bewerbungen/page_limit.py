@@ -1,22 +1,19 @@
 """How many pages the CV may have (G51): two, or three where the person allows it under Einstellungen > Erweitert.
 
-Stored in the data folder (`unterlagen.yaml`), so it moves with the person's files; written with drafts before and
-after. Every build of the CV takes it (unterlagen.py), and the check before sending measures against it
-(pruefung.py). The cover letter always has one page.
+Stored in the data folder (`unterlagen.yaml`, shared with the photo switch of G62, see document_settings.py), so it
+moves with the person's files; written with drafts before and after. Every build of the CV takes it (unterlagen.py),
+and the check before sending measures against it (pruefung.py). The cover letter always has one page.
 """
 import pathlib
 
-import yaml
-
 import pfade  # noqa: F401  (makes the module lebenslauf importable)
+import document_settings
 import page_fill
-from dateien import schreibe_atomar
 
-FILE = "unterlagen.yaml"
+FILE = document_settings.FILE
 KEY = "lebenslauf_seiten"
 DEFAULT = page_fill.LIMITS["cv"]
 MOST = max(page_fill.CV_PAGES)
-HEADER = "# Unterlagen: Seiten des Lebenslaufs. Geschrieben vom Bewerbungsbegleiter.\n"
 BAD_PAGES = "Bitte wählen: zwei oder drei Seiten für den Lebenslauf."
 
 
@@ -30,10 +27,9 @@ def parse(values) -> int:
 
 def load(data_dir: pathlib.Path) -> int:
     """The stored pages; without a choice, or with a broken file, two."""
-    path = data_dir / FILE
     try:
-        return parse(yaml.safe_load(path.read_text(encoding="utf-8"))) if path.is_file() else DEFAULT
-    except (OSError, yaml.YAMLError, ValueError):
+        return parse(document_settings.read(data_dir))
+    except ValueError:
         return DEFAULT
 
 
@@ -44,8 +40,6 @@ def as_dict(pages: int) -> dict:
 def save(k, values) -> int:
     """Store the choice, with drafts before and after like every file in the data folder."""
     pages = parse(values)
-    path = k.daten / FILE
-    text = HEADER + yaml.safe_dump(as_dict(pages), allow_unicode=True, sort_keys=False)
     description = f"Lebenslauf: höchstens {'drei' if pages == 3 else 'zwei'} Seiten"
-    k.mit_entwurf(path, description, lambda: schreibe_atomar(path, text.encode("utf-8")))
+    document_settings.write(k, KEY, pages, description)
     return pages

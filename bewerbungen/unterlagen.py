@@ -14,6 +14,7 @@ import build as lebenslauf_modul
 import cv_design
 import dossier as dossier_modul
 import page_limit
+import photo_shown
 from dateien import im_ordner
 from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
 from tailor import tailor
@@ -119,9 +120,10 @@ def wirksame_pdfs(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Pat
     return {art: gilt(art, gebaut) for art, gebaut in pdf_pfade(daten, bewerbung["id"]).items()}
 
 
-def _pages(daten: pathlib.Path) -> list[str]:
-    """The pages the CV may have (G51), as the person chose under Einstellungen > Erweitert."""
-    return ["--lebenslauf-seiten", str(page_limit.load(daten))]
+def _cv_options(daten: pathlib.Path) -> list[str]:
+    """The pages the CV may have (G51), as the person chose under Einstellungen > Erweitert, and without the photo
+    where the person turned off „Im Lebenslauf zeigen“ (G62). Read at each build, so only new documents follow."""
+    return ["--lebenslauf-seiten", str(page_limit.load(daten)), *photo_shown.build_arguments(daten)]
 
 
 def tailored_cv(daten: pathlib.Path, bewerbung: dict) -> dict:
@@ -143,7 +145,8 @@ def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], build: pathl
         raise ValueError(CHOOSE_VARIANT)
     if not (daten / "cv.yaml").is_file():
         raise ValueError(NO_CV)
-    lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *_pages(daten), "--build-dir", str(build), "-o", str(ziel)])
+    lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *_cv_options(daten), "--build-dir", str(build),
+                           "-o", str(ziel)])
 
 
 def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, ziel: pathlib.Path) -> None:
@@ -153,7 +156,7 @@ def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, 
     variante = Varianten(daten).hole(bewerbung["variante"])
     if variante.get("quelle"):
         lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(im_ordner(daten, variante["quelle"])),
-                               "--lang", variante["sprache"], *design, *_pages(daten), "--build-dir", str(build),
+                               "--lang", variante["sprache"], *design, *_cv_options(daten), "--build-dir", str(build),
                                "-o", str(ziel)])
     elif variante.get("datei"):
         shutil.copyfile(im_ordner(daten, variante["datei"]), ziel)
@@ -196,7 +199,7 @@ def _baue_dossier(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> 
         pages = build / f"{bewerbung['id']}-{DOSSIER_PAGES}"
         pages.write_text("{}\n", encoding="utf-8")
     result = dossier_modul.main([str(pages), *cv, "--brief", str(letter), *_design_arguments(bewerbung),
-                                 *_pages(daten), "--build-dir", str(build), "--out-dir", str(folder)])
+                                 *_cv_options(daten), "--build-dir", str(build), "--out-dir", str(folder)])
     return {"lebenslauf": result.cv, "anschreiben": result.letter, DOSSIER: result.dossier}
 
 
