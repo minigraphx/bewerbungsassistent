@@ -301,7 +301,8 @@ function describeParts(form, track, error) {
   } else if (section) {
     params.maxItems = section.maxItems ?? form.limits.repeatItems;
   }
-  const text = (MESSAGES[error.code] || error.code).replace(/\{(\w+)\}/g, (_, k) => params[k]);
+  const own = field && field.messages ? field.messages[error.code] : undefined; // in the search's own words (#291)
+  const text = own || (MESSAGES[error.code] || error.code).replace(/\{(\w+)\}/g, (_, k) => params[k]);
   return { where, text };
 }
 

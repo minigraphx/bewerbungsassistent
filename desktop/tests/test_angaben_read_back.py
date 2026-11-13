@@ -18,7 +18,16 @@ PROFILE = """# Suchprofil
 Von Hand geschrieben, für die Suche.
 
 ## Portale und Rhythmus
+Wochentag: Montag
 - Zeitfenster: 14 Tage
+
+| Portal | Modus |
+|---|---|
+| job-room | automatisch |
+| jobs.ch | mit Nutzer |
+| jobscout24 | aus |
+| ictjobs | automatisch |
+| LinkedIn | mit Nutzer |
 
 ## Suchrichtungen
 1. Software-Entwicklung (Priorität 1)
@@ -162,8 +171,8 @@ def test_lines_the_form_does_not_know_are_named_with_their_file(started):
 
     lines = {(group["datei"], line) for group in other for line in group["zeilen"]}
     assert ("suchprofil.md", "- Orte (jobs.ch, LinkedIn): Thun, Bern") in lines
-    assert ("suchprofil.md", "- Positiv: Entwickler, Developer") in lines
-    assert ("suchprofil.md", "- Zeitfenster: 14 Tage") in lines
+    assert ("suchprofil.md", "| LinkedIn | mit Nutzer |") in lines
+    assert ("suchprofil.md", "Wochentag: Montag") in lines
     assert ("anschreiben/stil.md", "- Keine Superlative.") in lines
     assert ("anschreiben/bausteine.md", "- Notiz von Hand ohne Form") in lines
     assert ("suchprofil.md", "- Pensum: 60–80 %") not in lines  # the form shows it
@@ -278,3 +287,128 @@ def test_a_base_of_unknown_form_changes_nothing_it_cannot_read(started, base):
 
     assert status in (200, 400), answer
     assert (folder / "suchprofil.md").read_text(encoding="utf-8") == PROFILE
+
+
+# #291: search window, portals and the positive title terms are fields of their own.
+
+def test_window_portals_and_positive_titles_come_back_as_fields(started):
+    server, folder, _ = started
+    write_basics(folder)
+
+    back = read_back(server)
+
+    search = back["daten"]["searchJob"]
+    assert search["window"] == "14"
+    assert search["portalsOff"] == ["jobscout24"]
+    assert search["titlePositive"] == ["Entwickler", "Developer"]
+    lines = {line for group in back["fremd"] for line in group["zeilen"]}
+    for known in ("- Zeitfenster: 14 Tage", "- Positiv: Entwickler, Developer", "| jobs.ch | mit Nutzer |",
+                  "| jobscout24 | aus |", "| Portal | Modus |"):
+        assert known not in lines
+
+
+def test_a_profile_without_portal_rows_has_no_portal_switched_off(started):
+    server, folder, _ = started
+    (folder / "suchprofil.md").write_text(PROFILE.replace("| jobscout24 | aus |\n", ""), encoding="utf-8")
+
+    search = read_back(server)["daten"]["searchJob"]
+
+    assert search["portalsOff"] == []
+
+
+@pytest.mark.parametrize("change, before, after", [
+    (("window", "30"), "- Zeitfenster: 14 Tage", "- Zeitfenster: 30 Tage"),
+    (("titlePositive", ["Entwickler", "Developer", "Data"]), "- Positiv: Entwickler, Developer",
+     "- Positiv: Entwickler, Developer, Data"),
+    (("portalsOff", ["jobscout24", "ictjobs"]), "| ictjobs | automatisch |", "| ictjobs | aus |"),
+    (("portalsOff", []), "| jobscout24 | aus |", "| jobscout24 | automatisch |"),
+])
+def test_changing_one_of_them_writes_only_its_line_with_drafts(started, change, before, after):
+    server, folder, _ = started
+    write_basics(folder)
+    read = read_back(server)
+    bundle = bundle_from(read)
+    bundle["data"]["searchJob"][change[0]] = change[1]
+
+    status, answer = save(server, bundle, read["daten"])
+
+    assert status == 200, answer
+    assert (folder / "suchprofil.md").read_text(encoding="utf-8") == PROFILE.replace(before, after)
+    assert len(drafts_of(folder, "suchprofil.md")) == 2  # before and after
+
+
+def test_the_search_plan_reads_what_the_fields_wrote_into_a_profile_without_them(started):
+    import search_plan
+    server, folder, _ = started
+    write_basics(folder)
+    bare = PROFILE.split("## Portale und Rhythmus")[0] + "## Suchrichtungen" + PROFILE.split("## Suchrichtungen")[1]
+    bare = bare.replace("- Positiv: Entwickler, Developer\n", "")
+    (folder / "suchprofil.md").write_text(bare, encoding="utf-8")
+    read = read_back(server)
+    bundle = bundle_from(read)
+    bundle["data"]["searchJob"] = {**bundle["data"]["searchJob"], "window": "30", "portalsOff": ["ictjobs"],
+                                   "titlePositive": ["Entwickler"]}
+
+    status, answer = save(server, bundle, read["daten"])
+
+    assert status == 200, answer
+    text = (folder / "suchprofil.md").read_text(encoding="utf-8")
+    kept = [line for line in bare.split("\n") if line]
+    assert [line for line in text.split("\n") if line in kept] == kept
+    assert text.endswith("## Portale und Rhythmus\n- Zeitfenster: 30 Tage\n\n| Portal | Modus |\n|---|---|\n"
+                         "| job-room | automatisch |\n| jobs.ch | automatisch |\n| jobscout24 | automatisch |\n"
+                         "| ictjobs | aus |\n")
+    assert "- Positiv: Entwickler\n" in text
+    plan = search_plan.parse(text)
+    assert plan.max_age_days == 30 and plan.title_positive == ("Entwickler",)
+    assert plan.portals == ("job-room", "jobs.ch", "jobscout24")
+
+
+@pytest.mark.parametrize("field, value", [("window", "90"), ("window", "zwei Wochen"),
+                                          ("portalsOff", ["job-room", "jobs.ch", "jobscout24", "ictjobs"]),
+                                          ("portalsOff", ["LinkedIn"])])
+def test_values_the_search_cannot_take_are_refused(started, field, value):
+    server, folder, _ = started
+    write_basics(folder)
+    read = read_back(server)
+    bundle = bundle_from(read)
+    bundle["data"]["searchJob"][field] = value
+
+    status, answer = save(server, bundle, read["daten"])
+
+    assert status == 400, answer
+    assert (folder / "suchprofil.md").read_text(encoding="utf-8") == PROFILE
+
+
+@pytest.mark.parametrize("line, row", [("- Zeitfenster: 90 Tage", None),
+                                       (None, "| job-room | aus |\n| jobs.ch | aus |\n| jobscout24 | aus |\n| ictjobs | aus |\n")])
+def test_a_window_or_portals_the_search_cannot_use_stay_in_the_file_only(started, line, row):
+    server, folder, _ = started
+    text = PROFILE.replace("- Zeitfenster: 14 Tage", line) if line else PROFILE
+    if row:
+        start = text.index("| job-room |")
+        text = text[:start] + row + text[text.index("| LinkedIn |"):]
+    (folder / "suchprofil.md").write_text(text, encoding="utf-8")
+
+    back = read_back(server)
+
+    field = "window" if line else "portalsOff"
+    assert field not in back["daten"]["searchJob"]
+    lines = {shown for group in back["fremd"] for shown in group["zeilen"]}
+    assert (line or "| ictjobs | aus |") in lines
+
+
+def test_switching_off_a_portal_without_a_row_adds_its_row_to_the_table(started):
+    server, folder, _ = started
+    write_basics(folder)
+    profile = folder / "suchprofil.md"
+    profile.write_text(PROFILE.replace("| ictjobs | automatisch |\n", ""), encoding="utf-8")
+    read = read_back(server)
+    bundle = bundle_from(read)
+    bundle["data"]["searchJob"]["portalsOff"] = ["jobscout24", "ictjobs"]
+
+    status, answer = save(server, bundle, read["daten"])
+
+    assert status == 200, answer
+    assert profile.read_text(encoding="utf-8") == PROFILE.replace("| ictjobs | automatisch |\n", "").replace(
+        "| jobscout24 | aus |\n", "| jobscout24 | aus |\n| ictjobs | aus |\n")

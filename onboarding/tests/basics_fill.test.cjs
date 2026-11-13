@@ -55,3 +55,48 @@ test("suggestions on a section taken from the files no longer apply", () => {
 
   assert.deepEqual(filled.suggested, { "person.name": true });
 });
+
+// #291: search window, portals and the positive title terms come from the search profile as fields of their own.
+const { findAll, loadScripts } = require("./fake_dom.cjs");
+const { validateBundle, describe } = require("../src/validate.js");
+const cases = JSON.parse(fs.readFileSync(path.join(__dirname, "cases.json"), "utf8"));
+const page = loadScripts(["validate.js", "model.js", "dom.js"]);
+const searchField = (id) => form.sections.find((s) => s.id === "searchJob").fields.find((f) => f.id === id);
+const plain = (value) => JSON.parse(JSON.stringify(value));
+const boxes = (node) => findAll(node, (n) => n.tagName === "input" && n.type === "checkbox");
+
+test("window, portals switched off and positive title terms are taken from the search profile", () => {
+  const read = { searchJob: { home: "Thun", window: "14", portalsOff: ["jobscout24"], titlePositive: ["Entwickler", "Data"] } };
+
+  const filled = model.fillFromBasics(form, kept(), read);
+
+  assert.deepEqual(filled.data.searchJob, read.searchJob);
+});
+
+test("the portals show as boxes ticked for every portal that searches", () => {
+  const changes = [];
+  const node = page.fieldView(searchField("portalsOff"), {
+    track: "job", value: ["jobscout24"], path: "searchJob.portalsOff", onChange: (v) => changes.push(v), onBlur() {},
+  });
+  const shown = boxes(node);
+
+  assert.deepEqual(shown.map((box) => [box.value, Boolean(box.checked)]),
+    [["job-room", true], ["jobs.ch", true], ["jobscout24", false], ["ictjobs", true]]);
+  shown[3].checked = false;
+  shown[3].onchange({ target: shown[3] });
+  assert.deepEqual(plain(changes.at(-1)), ["jobscout24", "ictjobs"]);
+  shown[2].checked = true;
+  shown[2].onchange({ target: shown[2] });
+  assert.deepEqual(plain(changes.at(-1)), ["ictjobs"]);
+});
+
+test("a window the search cannot use and no portal left are refused with the search's own words", () => {
+  const bundle = structuredClone(cases.bases.job);
+  bundle.data.searchJob = { ...bundle.data.searchJob, window: "61", portalsOff: ["job-room", "jobs.ch", "jobscout24", "ictjobs"] };
+
+  const errors = validateBundle(form, bundle);
+
+  assert.deepEqual(errors.map((e) => [e.path, e.code]), [["searchJob.window", "format"], ["searchJob.portalsOff", "maxItems"]]);
+  assert.equal(describe(form, "job", errors[1]),
+    "Suche, Portale für die Suche: Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts.");
+});

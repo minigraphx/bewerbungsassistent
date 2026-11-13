@@ -5,6 +5,7 @@
 const MAX_TAG_OPTIONS = 50;
 const DEFAULT_MAX_LINES = 20;
 const TAG_PLACEHOLDER = "z.B. daten, führung";
+const SWITCHED_OFF = "switchedOff"; // control of a list that names the options switched off (#291)
 const LANGUAGE_NAMES = { de: "Deutsch", en: "Englisch" };
 const BILINGUAL_TEXT = {
   lead: "Zweisprachig, hier nicht änderbar:",
@@ -63,18 +64,20 @@ function fieldView(field, ctx) {
   const label = forTrack(field.label, ctx.track) + (field.required ? " *" : "");
   const control = controlView(field, ctx, id, describedBy);
   const isCantons = field.control === "cantons";
-  const isGroup = field.type === "choice" || isCantons;
+  const isSwitches = field.control === SWITCHED_OFF;
+  const isGroup = field.type === "choice" || isCantons || isSwitches;
   return el("div", { className: `field field-${field.type}`, dataset: { path: ctx.path } }, [
     isGroup ? null : el("label", { for: id }, label),
     isGroup ? null : hint ? el("p", { className: "hint", id: hintId }, hint) : null,
     ...[].concat(isCantons ? cantonsView(field, ctx, label, hint, hintId, errorId)
-      : isGroup ? choiceView(field, ctx, id, label, hint, hintId, errorId) : control),
+      : isSwitches ? switchedOffView(field, ctx, label, hint, hintId, errorId)
+        : isGroup ? choiceView(field, ctx, id, label, hint, hintId, errorId) : control),
     el("p", { className: "error", id: errorId, role: "alert" }),
   ]);
 }
 
 function controlView(field, ctx, id, describedBy) {
-  if (field.control === "cantons") return null;
+  if (field.control === "cantons" || field.control === SWITCHED_OFF) return null;
   const common = { id, "aria-describedby": describedBy, "aria-required": field.required ? "true" : null, onblur: () => ctx.onBlur() };
   if (field.type === "textarea") return textInput("textarea", { ...common, rows: 4 }, ctx);
   if (field.type === "tags") {
@@ -229,6 +232,28 @@ function cantonsView(field, ctx, label, hint, hintId, errorId) {
         onchange: changed, onblur: () => ctx.onBlur(),
       }),
       el("span", {}, canton.name),
+    ]))),
+  ]);
+}
+
+/**
+ * Boxes ticked for every option that is on, while the answer lists those switched off (#291): the portals of the
+ * search, where nothing listed means every portal searches, as in the search profile.
+ */
+function switchedOffView(field, ctx, label, hint, hintId, errorId) {
+  let off = Array.isArray(ctx.value) ? ctx.value : [];
+  const changed = (e) => {
+    const option = e.target.value;
+    const others = off.filter((value) => value !== option);
+    off = field.options.filter((value) => (value === option ? !e.target.checked : others.includes(value)));
+    ctx.onChange(off);
+  };
+  return el("fieldset", { className: "choice switches", "aria-describedby": [hintId, errorId].filter(Boolean).join(" ") }, [
+    el("legend", {}, label),
+    hint ? el("p", { className: "hint", id: hintId }, hint) : null,
+    el("div", { className: "canton-list" }, field.options.map((option) => el("label", { className: "option" }, [
+      el("input", { type: "checkbox", value: option, checked: !off.includes(option), onchange: changed, onblur: () => ctx.onBlur() }),
+      el("span", {}, field.optionLabels?.[option] ?? option),
     ]))),
   ]);
 }

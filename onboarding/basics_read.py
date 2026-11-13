@@ -73,8 +73,8 @@ def _value(form: dict, track: str, slot: basics_slots.Slot, found: tuple) -> dic
     """The answers of a slot for the form, or None if the form cannot take them."""
     if slot.repeat:
         return _entries(form, track, slot, found[0])
-    pairs = {f: v for f, v in zip(slot.fields, found) if v not in ("", [])}
-    if not pairs or not all(_fits(form, track, slot.form_section, f, v) for f, v in pairs.items()):
+    pairs = {f: v for f, v in zip(slot.fields, found) if slot.keeps_empty or v not in ("", [])}
+    if not pairs or not all(v in ("", []) or _fits(form, track, slot.form_section, f, v) for f, v in pairs.items()):
         return None
     return pairs
 

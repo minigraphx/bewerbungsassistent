@@ -20,7 +20,9 @@
     "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"},
     "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"},
     "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"},
-    "tag": {"pattern": "^[^,\\x00-\\x1f\\x7f-\\x9f]+$", "example": "daten"}
+    "tag": {"pattern": "^[^,\\x00-\\x1f\\x7f-\\x9f]+$", "example": "daten"},
+    "days": {"pattern": "^([1-9]|[1-5][0-9]|60)$", "example": "21"},
+    "portal": {"pattern": "^(job-room|jobs\\.ch|jobscout24|ictjobs)$", "example": "jobs.ch"}
   },
   "documents": {
     "title": "Unterlagen",
@@ -263,7 +265,10 @@
         {"id": "start", "label": "Frühester Start (z.B. 1. März)", "type": "text", "required": true, "max": 40, "preset": "nach Vereinbarung"},
         {"id": "temporary", "label": "Befristete Stelle möglich?", "type": "select", "options": ["ja", "nein"]},
         {"id": "keywords", "label": "Stichworte für die Suche (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 15, "max": 60},
+        {"id": "titlePositive", "label": "Titel, die passen (freiwillig, z.B. Entwickler)", "type": "list", "maxItems": 30, "max": 80, "hint": "Steht hier etwas, nimmt die Suche nur Stellen, in deren Titel einer dieser Begriffe vorkommt."},
         {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 15, "max": 60},
+        {"id": "window", "label": "Zeitfenster der Suche in Tagen (freiwillig)", "type": "text", "format": "days", "hint": "So viele Tage zurück nimmt die Suche Inserate, 1 bis 60. Ohne Angabe sind es 21 Tage.", "messages": {"format": "Bitte eine Zahl von 1 bis 60."}},
+        {"id": "portalsOff", "label": "Portale für die Suche", "type": "list", "format": "portal", "maxItems": 3, "control": "switchedOff", "options": ["job-room", "jobs.ch", "jobscout24", "ictjobs"], "optionLabels": {"job-room": "job-room (Stellen der RAV, alle Berufe)", "jobs.ch": "jobs.ch (alle Berufe)", "jobscout24": "jobscout24 (alle Berufe)", "ictjobs": "ictjobs (nur Informatik)"}, "hint": "Die App sucht auf jedem angehakten Portal. Haben Sie die Portale schon unter „Suche einstellen“ gewählt, gilt die Wahl dort.", "messages": {"maxItems": "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts."}},
         {"id": "targetCompanies", "label": "Wunschfirmen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 15, "max": 100}
       ]
     },

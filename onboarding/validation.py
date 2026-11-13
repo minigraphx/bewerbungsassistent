@@ -328,7 +328,8 @@ def describe(form: dict, track: str, error: ValidationError) -> str:
         section = next((s for s in form["sections"] if s["id"] == error.path.split(".")[0]), None)
         if section:
             params["maxItems"] = section.get("maxItems", form["limits"]["repeatItems"])
-    text = MESSAGES.get(error.code, error.code).format(**params)
+    own = (field or {}).get("messages", {})  # a field may say it in its own words, as the search does (#291)
+    text = own.get(error.code) or MESSAGES.get(error.code, error.code).format(**params)
     return f"{where}: {text}" if where else text
 
 

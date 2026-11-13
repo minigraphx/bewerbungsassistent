@@ -3,6 +3,8 @@
 Values are written as single lines (`inline`), so text from the bundle cannot open headings or
 lists of its own. Section layout follows the templates in `vorlagen/`.
 """
+import paths  # noqa: F401  (makes the module bewerbungen importable)
+from search_plan import MODE_OFF, PORTALS
 from values import highlight_texts, items, text
 
 APPRENTICESHIP_SOURCES = [
@@ -31,6 +33,12 @@ DEFAULT_GREETING = "Freundliche Grüsse"
 GAPS_LATER = ("- Noch keine. Die App ergänzt sie nach und nach, wenn Inserate etwas verlangen, das fehlt; "
               "jede Lücke bestätigt die Person. Sie dienen dazu, die Passung von Stellen ehrlich zu bewerten.")
 OWN_STATEMENT = "eigene Angabe"
+RHYTHM = "Portale und Rhythmus"  # where the search reads its window and which portals are off (search_plan.py)
+WINDOW_LABEL = "Zeitfenster"
+WINDOW_LINE = "- Zeitfenster: {days} Tage"  # as the card on Suche einstellen writes it (routes_window.py)
+PORTAL_HEAD = ("| Portal | Modus |", "|---|---|")
+PORTAL_ROW = "| {portal} | {mode} |"
+MODE_ON = "automatisch"
 
 
 def inline(value) -> str:
@@ -57,7 +65,9 @@ def _search_job(data: dict) -> list[tuple[str, list[str]]]:
         ("Region", _pairs(("Wohnort", search.get("home")), ("Pendelgrenze", search.get("commute")),
                           ("Kantone (job-room)", _joined(items(search.get("cantons")))), ("Remote", search.get("remote")))),
         ("Keywords", _pairs(("Kernliste", _joined(items(search.get("keywords")))))),
-        ("Titelfilter", _pairs(("Ausschluss", _joined(items(search.get("titleExclude")))))),
+        ("Titelfilter", _pairs(("Positiv", _joined(items(search.get("titlePositive")))),
+                               ("Ausschluss", _joined(items(search.get("titleExclude")))))),
+        (RHYTHM, _rhythm(search)),
         ("Sprachen", _bullets([_joined(_languages(data))])),
         ("Abschluss und Erfahrung", _bullets([_education_summary(data)])),
         ("Stärken", _bullets([_joined(_strength_names(data))])),
@@ -66,6 +76,20 @@ def _search_job(data: dict) -> list[tuple[str, list[str]]]:
                           ("Befristung möglich", search.get("temporary")))),
         ("Zielfirmen mit Karriereseite", _bullets(items(search.get("targetCompanies")))),
     ]
+
+
+def portal_row(portal: str, off: bool) -> str:
+    return PORTAL_ROW.format(portal=portal, mode=MODE_OFF if off else MODE_ON)
+
+
+def _rhythm(search: dict) -> list[str]:
+    """The window, and the table of portals only when one is off: without it every portal searches (#291)."""
+    days = inline(search.get("window"))
+    off = set(items(search.get("portalsOff")))
+    window = [WINDOW_LINE.format(days=days)] if days else []
+    if not off & set(PORTALS):
+        return window
+    return [*window, "", *PORTAL_HEAD, *(portal_row(p, p in off) for p in PORTALS)]
 
 
 def _search_apprenticeship(data: dict) -> list[tuple[str, list[str]]]:
