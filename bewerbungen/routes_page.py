@@ -11,6 +11,7 @@ any. „Bewerben“ opens that address and fills in the person's data, so only k
 import threading
 import urllib.parse
 
+import missing_ads
 import own_sites
 import routes_ai
 import unterlagen
@@ -130,7 +131,9 @@ def _write_ad(k, entry: dict, ad: dict) -> None:
 
 
 def _has_ad(k, entry: dict) -> bool:
-    return (unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md").is_file()
+    """Only the lines of details on top are no ad (G37): saving the page brings the text."""
+    path = unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md"
+    return path.is_file() and missing_ads.has_ad(path.read_text(encoding="utf-8"))
 
 
 def _store(k, ad: dict, rating: dict | None, link: str | None, note: str = "") -> dict:

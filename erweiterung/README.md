@@ -29,6 +29,8 @@ Die App nimmt über den Host nur diese vier Anfragen und die zwei für die offen
 
 **Zuschauen (MIN-370):** Die Suche läuft im Hintergrund. Mit dem Häkchen unter „Suche einstellen“ läuft sie im sichtbaren Tab, damit man mitverfolgen kann, was die Erweiterung tut. Die Einstellung kommt mit dem Suchplan, gilt also auch für einen Start im Popup. Ein Balken sagt, dass der Browser gesteuert wird, und bietet „Suche abbrechen“. Einen Tab der Suche zu schliessen, ob zugeschaut oder nicht, bricht die Suche ebenfalls ab; was schon an die App ging, bleibt. Wer im Tab etwas anklickt, kann die Abfragen stören, darum die Bitte im Balken: Das betroffene Portal meldet dann ein Problem, die übrigen laufen weiter.
 
+**Fehlende Inseratstexte (G37, #275):** Beim ersten Kontakt einer Seite der App nach deren Start fragt die Erweiterung, welchen gemerkten Stellen (Gemerkt, Bewerben) und neuen Treffern der Text fehlt (`POST /api/inserate/holen`), und lädt ihn wie bei der Suche: ein Tab pro Portal im Hintergrund, mit Pause dazwischen (`lib/missing-ads.js`). Automatisch geladen wird nur auf den Portalen mit eigener Anpassung; andere Seiten wie LinkedIn oder die weiteren Seiten nennt die App mit Grund und Weg, den Text selbst zu holen. Texte und Gründe gehen an die App (`POST /api/inserate/texte`), nie an die KI. Die App gibt jede Stelle einmal pro Start heraus und nimmt Texte nur für diese an; ein vorhandener Text bleibt. Läuft gerade eine Suche, wartet das bis zum nächsten Start.
+
 ## Weitere Seiten durchsuchen (MIN-348)
 
 Nur mit eigenem API-Schlüssel, die Adressen trägt die Person in der App unter „Erweiterte Einstellungen“ ein.
