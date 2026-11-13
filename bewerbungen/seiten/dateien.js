@@ -8,7 +8,7 @@
   const $ = id => document.getElementById(id);
   let maxBytes = 0;
   let maxPhotoBytes = 0;
-  let found = { lebenslauf: [], zertifikat: [], zeugnis: [] };
+  let found = { lebenslauf: [], zeugnis: [], diplom: [], zertifikat: [] };
   let wantsOwn = false;
   let design = Logic.PRESET_DESIGN;
 

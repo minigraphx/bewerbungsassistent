@@ -483,7 +483,8 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 
 - `dokumente/` – Ihre Originale, unverändert:
   - `dokumente/lebenslauf.pdf` – Ihr fertiger Lebenslauf, hochgeladen unter **Meine Dateien**.
-  - `dokumente/zeugnisse/` und `dokumente/zertifikate/` – Zeugnisse und Zertifikate aus **Meine Angaben** und **Meine Dateien**.
+  - `dokumente/zeugnisse/` und `dokumente/zertifikate/` – Zeugnisse und Zertifikate aus **Meine Angaben** und **Meine Dateien**. Diplome liegen bei den Zertifikaten.
+  - `dokumente/arten.yaml` – welche Dateien bei den Zertifikaten Diplome sind, wie Sie es auf **Lebenslauf und Dateien** eingestellt haben.
   - `dokumente/lebenslauf-bisher/` und `dokumente/anschreiben-bisher/` – frühere Lebensläufe und Anschreiben, die Sie unter **Meine Angaben** hochgeladen haben. Die KI liest daraus Vorschläge.
   - `dokumente/angaben-stand.json` – Ihr Zwischenstand unter **Meine Angaben**, bis Sie die Angaben übernehmen.
   - `dokumente/einstieg.json` und `dokumente/neu.yaml` – eine eingelesene Datei mit Angaben (Einrichtung, Schritt **Datei** oder **Erweitert**) und die Liste der Unterlagen daraus, die noch nicht übernommen sind.

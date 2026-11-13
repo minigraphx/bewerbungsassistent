@@ -10,13 +10,16 @@ import re
 import unicodedata
 
 import certificates
+import proof_kinds
 from apply import REFERENCES_FOLDER
 from unterlagen import OWN_CV
 
 CV_KIND = "lebenslauf"
 CERTIFICATE_KIND = "zertifikat"
+DIPLOMA_KIND = proof_kinds.DIPLOMA
 REFERENCE_KIND = "zeugnis"
-FOLDERS = {CERTIFICATE_KIND: certificates.FOLDER, REFERENCE_KIND: REFERENCES_FOLDER}
+FOLDERS = {CERTIFICATE_KIND: certificates.FOLDER, DIPLOMA_KIND: certificates.FOLDER, REFERENCE_KIND: REFERENCES_FOLDER}
+FOLDER_KINDS = {certificates.FOLDER: CERTIFICATE_KIND, REFERENCES_FOLDER: REFERENCE_KIND}  # without an entry (G63)
 KINDS = (CV_KIND, *FOLDERS)
 CV_FILE = OWN_CV
 MAX_FILE_BYTES = 15_000_000  # as for uploads under „Meine Angaben“ (onboarding/form.json)
@@ -110,11 +113,18 @@ def _describe(data_dir: pathlib.Path, rel: str) -> dict:
     return {"datei": rel, "name": pathlib.PurePosixPath(rel).name, "groesse": (data_dir / rel).stat().st_size}
 
 
+def kind_of(recorded: dict[str, str], rel: str) -> str:
+    """The kind of a file in one of the folders: what is recorded for it, else what its folder says."""
+    return recorded.get(rel, FOLDER_KINDS[str(pathlib.PurePosixPath(rel).parent)])
+
+
 def listing(data_dir: pathlib.Path) -> dict[str, list[dict]]:
     """What is there, by kind."""
     cv = [CV_FILE] if (data_dir / CV_FILE).is_file() else []
-    in_folders = {kind: certificates.files_in(data_dir, folder) for kind, folder in FOLDERS.items()}
-    return {kind: [_describe(data_dir, rel) for rel in files] for kind, files in {CV_KIND: cv, **in_folders}.items()}
+    recorded = proof_kinds.load(data_dir)
+    in_folders = [rel for folder in FOLDER_KINDS for rel in certificates.files_in(data_dir, folder)]
+    by_kind = {kind: [rel for rel in in_folders if kind_of(recorded, rel) == kind] for kind in FOLDERS}
+    return {kind: [_describe(data_dir, rel) for rel in files] for kind, files in {CV_KIND: cv, **by_kind}.items()}
 
 
 def kind_target(data_dir: pathlib.Path, rel: str, kind: object) -> str:

@@ -33,9 +33,30 @@ test("the kind of a new file is guessed from its name", () => {
                       "Referenz Muster.pdf", "Arbeitsbestätigung.pdf", "reference letter.pdf"]) {
     assert.equal(logic.guessKind(name), "zeugnis", name);
   }
-  for (const name of ["Zertifikat Python.pdf", "Diplom Informatik.pdf", "Scrum Master.pdf", "Kurs.png"]) {
+  for (const name of ["Zertifikat Python.pdf", "Scrum Master.pdf", "Kurs.png", "Masterclass Excel.pdf"]) {
     assert.equal(logic.guessKind(name), "zertifikat", name);
   }
+});
+
+// G63 (#282): three kinds, the diploma guessed from its name.
+test("certificates and references know three kinds: Arbeitszeugnis, Diplom and Zertifikat", () => {
+  assert.deepEqual(logic.KINDS, ["zeugnis", "diplom", "zertifikat"]);
+  assert.deepEqual(logic.KINDS.map(kind => logic.KIND_LABELS[kind]), ["Arbeitszeugnis", "Diplom", "Zertifikat"]);
+});
+
+test("a diploma is guessed from its name, also a Fähigkeitszeugnis", () => {
+  for (const name of ["Diplom Informatik.pdf", "diploma_2019.pdf", "Fähigkeitszeugnis Kauffrau.pdf", "EFZ_Logistiker.pdf",
+                      "Bachelor of Science.pdf", "Master of Arts.pdf", "Maturitätszeugnis.jpg", "Berufsattest EBA.png"]) {
+    assert.equal(logic.guessKind(name), "diplom", name);
+  }
+});
+
+test("rows of the list keep the kind the server gives them", () => {
+  const rows = logic.oneList({
+    zertifikat: [{ datei: "dokumente/zertifikate/Diplom Informatik.pdf", name: "Diplom Informatik.pdf", groesse: 1 }],
+    diplom: [{ datei: "dokumente/zertifikate/Kurs.pdf", name: "Kurs.pdf", groesse: 1 }],
+  });
+  assert.deepEqual(rows.map(row => [row.name, row.art]), [["Diplom Informatik.pdf", "zertifikat"], ["Kurs.pdf", "diplom"]]);
 });
 
 test("certificates and references are one list, sorted by name, each with its kind", () => {

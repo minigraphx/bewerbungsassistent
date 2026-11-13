@@ -5,10 +5,14 @@
   const BYTES_PER_MB = 1000000;
   const BYTES_PER_KB = 1000;
   const CERTIFICATE = "zertifikat";
+  const DIPLOMA = "diplom";
   const REFERENCE = "zeugnis";
-  const KINDS = [CERTIFICATE, REFERENCE];
-  const KIND_LABELS = { [CERTIFICATE]: "Zertifikat oder Diplom", [REFERENCE]: "Zeugnis" };
-  // A reference says so in its name more often than a certificate does; the person corrects the rest.
+  // G63: the order of the spec; the ids stay those of the folders (own_files.py), only the labels are new.
+  const KINDS = [REFERENCE, DIPLOMA, CERTIFICATE];
+  const KIND_LABELS = { [REFERENCE]: "Arbeitszeugnis", [DIPLOMA]: "Diplom", [CERTIFICATE]: "Zertifikat" };
+  // A Fähigkeitszeugnis or Maturitätszeugnis is a diploma, so the diploma is asked first. "Master" alone stays out:
+  // a Scrum Master is a certificate. The person corrects the rest.
+  const DIPLOMA_NAME = /diplom|f(?:ä|ae|a)higkeitszeugnis|(?:^|[^a-zäöü])matur|bachelor|master of|berufsattest|lizentiat|(?:^|[^a-z])(?:efz|eba)(?:[^a-z]|$)/i;
   const REFERENCE_NAME = /zeugnis|referenz|arbeitsbest[aä]tigung|reference|testimonial/i;
 
   /** Which card is chosen: an own PDF counts as long as it is there; without one, the person may be about to add it. */
@@ -28,7 +32,9 @@
   }
 
   function guessKind(name) {
-    return REFERENCE_NAME.test(name || "") ? REFERENCE : CERTIFICATE;
+    const text = name || "";
+    if (DIPLOMA_NAME.test(text)) return DIPLOMA;
+    return REFERENCE_NAME.test(text) ? REFERENCE : CERTIFICATE;
   }
 
   /** Certificates and references from GET /api/dateien as one list by name; the CV has its own card. */
