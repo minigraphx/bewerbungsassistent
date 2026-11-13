@@ -68,9 +68,14 @@ test("the page marks the destination it belongs to", () => {
   const cases = {
     "/": "heute", "/bewerbung": "bewerbungen", "/treffer": "stellen", "/suchbegriffe": "stellen", "/firmen": "stellen", "/suche-einstellen": "stellen",
     "/angaben": "angaben", "/inhalte": "angaben", "/dateien": "dateien", "/foto": "dateien", "/entwuerfe": "dateien",
-    "/fragen": "fragen", "/einstellungen": "einstellungen", "/einrichtung": "einstellungen", "/unbekannt": null,
+    "/fragen": "fragen", "/einstellungen": "einstellungen", "/unbekannt": null,
   };
   for (const [page, target] of Object.entries(cases)) assert.equal(sidebar.activeTarget(page), target, page);
+});
+
+// The setup is no section of the settings, so a highlighted „Einstellungen“ would mislead there (#279).
+test("the setup page marks no destination as current", () => {
+  assert.equal(sidebar.activeTarget("/einrichtung"), null);
 });
 
 test("a badge stands only where something waits", () => {
