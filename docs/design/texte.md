@@ -34,7 +34,7 @@ Nur der Link zur Suche und der Satz zum Datenschutz unterscheiden sich; der Rest
 | Einstellungen, Daten und Sicherung | Angaben und Bewerbungen liegen im Datenordner auf diesem Computer. Eine Sicherung packt ihn in eine ZIP-Datei, am besten für einen USB-Stick. · Sicherung erstellen · Einrichtung: Datenordner, Erweiterung und KI · Für Geübte: Inhalte als Text bearbeiten | gleich |
 | Einstellungen, Über die App | Bewerbungsbegleiter · Version 0.9.3 · von Andreas Schmidt · Beenden | gleich |
 | Meine Dateien, Foto | Das Foto im Lebenslauf: Foto wählen und zuschneiden | gleich |
-| Zurück-Links | ← Zurück zur Übersicht · ← Zurück zu Meine Angaben · ← Zurück zu Entwürfe und Versionen | gleich |
+| Zurück-Links | ← Zurück zu Meine Angaben · ← Zurück zu Entwürfe und Versionen | gleich |
 | Fuss jeder KI-Karte | Eine Einschätzung, kein Urteil. Die KI kann sich irren. · Claude · CHF 0.02 · 05.11.2026 | gleich |
 | Unter jedem Editor | Jede Änderung wird als Entwurf gespeichert und lässt sich zurückholen. | gleich |
 | Datenschutz beim Vorbefüllen | Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und Scans bleiben auf Ihrem Computer. | Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und Scans bleiben auf deinem Computer. |
@@ -57,7 +57,9 @@ Die Unterschiede liegen in der Anrede, in den Sätzen der Nächster-Schritt-Kart
 | Ihr Stand | Ihr Stand · Neue Stellen 8, aus der Suche vom 10.11. (oder: noch keine Suche) · Gemerkt 3, 1 Frist in dieser Woche · Beworben 2, 1 Gespräch · Abgeschlossen 3, 1 Zusage, 2 Absagen | Dein Stand · Neue Lehrstellen … · 1 Einladung |
 | Durchgang | 1 von 3 · Stelle · Firma, Ort · Note 5 · Frist 20.11.2026 · Inserat · Zu dieser Stelle fehlt der Inseratstext. Inserat öffnen · Bewerbung öffnen · Durchgang beenden · Später · Verwerfen · Bewerben | gleich |
 | Durchgang fertig | Durchgang fertig: 2 zum Bewerben, 1 verworfen, 1 für später. | gleich |
-| Liste (bis zur Seite Bewerbungen) | Bewerbungen · Stelle von Hand erfassen · Gemerkt 4 · Beworben 2 · Abgeschlossen 1 · Alle 7 · Firma oder Stelle | Lehrstelle von Hand erfassen · Lehrbetrieb oder Lehrstelle |
+| Seite Bewerbungen (A5, #261) | Bewerbungen · Stelle selbst erfassen · Gemerkt 4 · Beworben 2 · Abgeschlossen 1 · Alle 7 · Suchen · Firma oder Stelle · Stelle und Firma · Stand · Note · Nächster Schritt · Bis wann · Erfasst | Lehrstelle selbst erfassen · Lehrbetrieb oder Lehrstelle · Lehrstelle und Lehrbetrieb |
+| Bewerbungen, unter der Liste | Angehakte verwerfen · Zuerst Bewerbungen anhaken. · 2 angehakt · Anderer Stand … · Stand setzen · Gemerkte in einem Durchgang bewerten | gleich |
+| Bewerbungen, Verwerfen | 3 Bewerbungen verwerfen? · 1 schon verschickte wird zurückgezogen. · 1 abgeschlossene bleibt, wie sie ist. · Abbrechen · Verwerfen · 2 Bewerbungen verworfen, 1 zurückgezogen. | gleich |
 | Liste, Fuss | Abgeschlossen: 1 Zusage, 5 Absagen, 1 zurückgezogen. Anzeigen | gleich |
 | Liste leer | Noch keine Bewerbungen. Übernehmen Sie eine Stelle aus der Suche oder erfassen Sie eine von Hand. | Noch keine Bewerbungen. Übernimm eine Lehrstelle aus der Suche oder erfasse eine von Hand. |
 | Leer, Karte | Erste Stellen suchen · Ihre Angaben sind übernommen. Die Erweiterung sucht jetzt auf den Portalen, die KI schätzt jeden Treffer ein. Ein Suchlauf dauert einige Minuten. · Stellen suchen | Erste Lehrstellen suchen · … · Lehrstellen suchen |
@@ -110,7 +112,7 @@ Der Text des Anschreibens bleibt in beiden Zweigen in der Sie-Form an die Firma 
 
 | Ort | Sie (Stellen) | du (Lehrstellen) |
 | --- | --- | --- |
-| Zurück-Link | ← Zurück zur Übersicht | gleich |
+| Pfad | Bewerbungen › Sachbearbeiterin Einkauf | Bewerbungen › Kauffrau EFZ |
 | Kopf | Sachbearbeiterin Einkauf 80 % · Muster AG, Zürich · Abgabe bis 20.11.2026 | Kauffrau EFZ · Muster Versicherung AG, Bern · Lehrbeginn August 2027 · Abgabe bis 20.11.2026 |
 | Schritte | Stelle · Lebenslauf · Anschreiben · Prüfen · Abschicken · Festhalten | Lehrstelle · Lebenslauf · Anschreiben · Prüfen · Abschicken · Festhalten |
 | Schritte, Zusatz | übernommen 03.11. · Variante Einkauf · Entwurf lesen · freigegeben · 1 Hinweis geklärt · machen Sie selbst · am 06.11.2026 · beworben | gleich, ausser: machst du selbst |
