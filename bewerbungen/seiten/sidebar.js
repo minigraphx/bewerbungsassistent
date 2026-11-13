@@ -78,9 +78,13 @@
     return status;
   }
 
+  // Asked once per page; Heute reads the same answers for its first step (#260).
+  const aiAnswer = aiStatus().catch(() => null);  // the app is closing: no budget, and the first step stays open
+  let reportExtension = () => {};
+  const extensionAnswer = new Promise(resolve => { reportExtension = resolve; });
+
   async function fillBudget() {
-    let view = null;
-    try { view = S.budgetView(await aiStatus()); } catch { /* the app is closing; nothing to show */ }
+    const view = S.budgetView(await aiAnswer);
     $("nav-budget").hidden = $("nav-budget-short").hidden = !view;
     if (!view) return;
     $("nav-budget-title").textContent = view.title;
@@ -98,6 +102,7 @@
     $("nav-extension-text").textContent = connected ? "Erweiterung verbunden" : "Erweiterung nicht verbunden";
     $("nav-extension-setup").hidden = connected;
     line.hidden = false;
+    reportExtension(connected);
   }
 
   function watchExtension() {
@@ -113,6 +118,7 @@
     }, EXTENSION_WAIT_MS);
   }
 
+  window.Sidebar = { aiStatus: aiAnswer, extension: extensionAnswer };
   markCurrent();
   menu();
   watchExtension();

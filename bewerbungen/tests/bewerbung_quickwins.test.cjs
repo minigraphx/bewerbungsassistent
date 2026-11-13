@@ -128,10 +128,10 @@ test("Versand erfassen names neither the folder versendet/ nor eingefroren and s
   assert.match(code, /Die verschickte Fassung bleibt gespeichert\./);
 });
 
-test("on the Übersicht the PDF link leads to the upload in Meine Angaben", () => {
+test("on the first start the CV upload leads to the upload in Meine Angaben (#260, A2)", () => {
   const html = lies("uebersicht.html");
-  assert.match(html, /<a class="btn btn--quiet" href="\/angaben#feld=unterlagen">Ich habe schon einen Lebenslauf als PDF<\/a>/);
-  assert.doesNotMatch(html, /href="\/dateien">Ich habe schon einen Lebenslauf als PDF/);
+  assert.match(html, /<a class="btn btn--primary" href="\/angaben#feld=unterlagen">Lebenslauf hochladen und vorbefüllen<\/a>/);
+  assert.doesNotMatch(html, /href="\/dateien">[^<]*Lebenslauf/);
   const app = fs.readFileSync(path.join(ONBOARDING, "app.js"), "utf8");
   assert.match(app, /const UPLOAD_TARGET = "unterlagen";/);
   assert.match(app, /if \(wanted === UPLOAD_TARGET\) return openUploads\(\);/);
