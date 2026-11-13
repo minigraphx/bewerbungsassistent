@@ -5,69 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
-<title>Übersicht</title>
+<title>Heute</title>
 <link rel="stylesheet" href="/stil.css">
+<link rel="stylesheet" href="/heute.css">
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/#liste-teil" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
 <main class="overview">
-  <!-- First start: no CV and no application yet -->
-  <section id="erststart" class="overview__start" hidden>
-    <header class="overview__welcome">
+  <!-- First start: no CV and no application yet (A2) -->
+  <section id="erststart" class="today" hidden>
+    <header class="today__head">
       <h1>Willkommen</h1>
       <p data-text="uebersicht.start.text">Die App hilft Ihnen, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei Ihnen.</p>
     </header>
-    <div class="overview__start-row">
-      <section class="next-step overview__card" aria-labelledby="start-titel">
-        <p class="next-step__eyebrow">Nächster Schritt</p>
-        <h2 class="next-step__title" id="start-titel">Meine Angaben erfassen</h2>
-        <p class="next-step__text" data-text="uebersicht.start.karte">Lebenslauf, gesuchte Stellen und wie Sie schreiben. Das dauert etwa 20 Minuten. Sie können jederzeit unterbrechen, nichts geht verloren.</p>
-        <div class="btn-row"><a class="btn btn--primary" href="/angaben">Angaben erfassen</a><a class="btn btn--quiet" href="/angaben#feld=unterlagen">Ich habe schon einen Lebenslauf als PDF</a></div>
-        <p class="next-step__after" data-text="uebersicht.start.fuss">Ihre Angaben bleiben auf diesem Computer.</p>
-      </section>
-      <section class="overview__how" aria-labelledby="wie-titel">
-        <h2 id="wie-titel">So geht es weiter</h2>
-        <ol class="steps steps--vertical" aria-label="Ablauf">
-          <li class="steps__item" data-state="current" aria-current="step"><span class="steps__dot"></span><span class="steps__label">Angaben erfassen</span><span class="steps__meta">etwa 20 Minuten</span></li>
-          <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label" data-text="nav.suche">Stellen suchen</span><span class="steps__meta">die Erweiterung sucht auf den Portalen</span></li>
-          <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Unterlagen vorbereiten</span><span class="steps__meta" data-text="uebersicht.start.unterlagen">Lebenslauf und Anschreiben pro Stelle</span></li>
-          <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Abschicken</span><span class="steps__meta" data-text="uebersicht.start.abschicken">machen Sie selbst, das Formular ist vorausgefüllt</span></li>
-          <li class="steps__item" data-state="todo"><span class="steps__dot"></span><span class="steps__label">Festhalten</span><span class="steps__meta" id="festhalten" data-text="uebersicht.start.festhalten-rav">für Sie und fürs RAV</span></li>
+    <div class="today__columns">
+      <section class="today__main" aria-labelledby="weg-titel">
+        <h2 id="weg-titel" data-text="heute.weg">Ihr Weg zur ersten Bewerbung</h2>
+        <ol class="path">
+          <li class="path__step" data-state="todo" data-step="einrichtung" id="weg-einrichtung"><span class="path__mark" aria-hidden="true">1</span><div class="path__body"><p class="path__title"><strong>Einrichtung</strong> <span class="path__state" id="weg-einrichtung-stand">· noch offen</span></p><p class="path__text" id="weg-einrichtung-text" data-text="heute.start.einrichtung">Den Zugang zur KI und die Erweiterung im Browser richten Sie in der Einrichtung ein.</p><a class="path__link" id="weg-einrichtung-link" href="/einrichtung">Einrichtung öffnen</a></div></li>
+          <li class="path__step" data-state="current" aria-current="step" data-step="angaben"><span class="path__mark" aria-hidden="true">2</span><div class="path__body"><p class="path__eyebrow">Nächster Schritt · etwa 20 Minuten</p><h3 class="path__heading">Meine Angaben erfassen</h3><p class="path__text" data-text="uebersicht.start.karte">Ihr Werdegang, was Sie suchen und wie Sie schreiben. Sie können jederzeit unterbrechen, nichts geht verloren.</p><div class="btn-row"><a class="btn btn--primary" href="/angaben#feld=unterlagen">Lebenslauf hochladen und vorbefüllen</a><a class="btn" href="/angaben">Von Hand ausfüllen</a></div></div></li>
+          <li class="path__step" data-state="todo" data-step="suchen"><span class="path__mark" aria-hidden="true">3</span><div class="path__body"><p class="path__title"><strong data-text="nav.suche">Stellen suchen</strong> <span class="path__state">· kommt danach</span></p><p class="path__text" data-text="heute.start.suchen">Die Erweiterung sucht auf den Portalen. Zu jeder Stelle sehen Sie eine Einschätzung.</p></div></li>
+          <li class="path__step" data-state="todo" data-step="bewerbung"><span class="path__mark" aria-hidden="true">4</span><div class="path__body"><p class="path__title"><strong>Erste Bewerbung vorbereiten</strong> <span class="path__state">· kommt danach</span></p><p class="path__text" data-text="heute.start.bewerbung">Lebenslauf und Anschreiben für die Stelle. Abschicken machen Sie selbst, das Formular ist vorausgefüllt.</p></div></li>
         </ol>
       </section>
+      <aside class="today__side" aria-labelledby="wissen-titel">
+        <h2 id="wissen-titel">Gut zu wissen</h2>
+        <ul class="today__box today__facts">
+          <li><strong data-text="heute.wissen.computer">Ihre Angaben bleiben auf diesem Computer.</strong> Name, Adresse und Kontakt werden ersetzt, bevor ein Text zur KI geht.</li>
+          <li><strong data-text="heute.wissen.entscheiden">Die KI schlägt vor, Sie entscheiden.</strong> Noten sind Einschätzungen, Anschreiben sind Entwürfe.</li>
+          <li><strong>Nichts geht automatisch weg.</strong> <span data-text="heute.wissen.weg">Jede Bewerbung schicken Sie selbst ab.</span></li>
+        </ul>
+        <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md" target="_blank" rel="noopener">Anleitung mit Bildern öffnen</a>
+      </aside>
     </div>
   </section>
 
-  <div id="rav-hinweis" class="notice notice--warning" role="status" hidden>
-    <span class="notice__title">Bald Monatsende</span>
-    <p class="notice__body" id="rav-hinweis-text"></p>
-    <div class="notice__actions"><button type="button" class="btn btn--sm" id="rav-hinweis-knopf">Jetzt eintragen</button></div>
-  </div>
-
-  <section id="steht-an" class="overview__now" aria-labelledby="steht-an-titel" hidden>
-    <div class="overview__head">
-      <h1 id="steht-an-titel">Das steht an</h1>
-      <button type="button" class="btn" id="von-hand" data-text="uebersicht.von-hand">Stelle von Hand erfassen</button>
-    </div>
-    <div class="overview__now-row">
-      <section id="karte" class="next-step overview__card" aria-labelledby="karte-titel" hidden>
+  <!-- Heute (A1) -->
+  <section id="steht-an" class="today" aria-labelledby="steht-an-titel" hidden>
+    <header class="today__head">
+      <h1 id="steht-an-titel">Das steht heute an</h1>
+      <p class="today__line" id="heute-zeile"></p>
+    </header>
+    <section id="karte" class="next-step next-step--row" aria-labelledby="karte-titel" hidden>
+      <div class="next-step__body">
         <p class="next-step__eyebrow" id="karte-zeile"></p>
         <h2 class="next-step__title" id="karte-titel"></h2>
         <p class="next-step__text" id="karte-text"></p>
-        <div class="btn-row" id="karte-knoepfe"></div>
         <p class="next-step__after" id="karte-fuss" hidden></p>
+      </div>
+      <div class="btn-row" id="karte-knoepfe"></div>
+    </section>
+    <div class="today__columns">
+      <section id="auch" class="today__main" aria-labelledby="danach-titel" hidden>
+        <h2 id="danach-titel">Danach</h2>
+        <ul id="auch-liste" class="today__box today__tasks"></ul>
       </section>
-      <section id="auch" class="overview__more" aria-labelledby="auch-titel" hidden>
-        <h2 id="auch-titel">Auch noch offen</h2>
-        <ul id="auch-liste" class="overview__more-list"></ul>
+      <section id="termine" class="today__side" aria-labelledby="termine-titel">
+        <h2 id="termine-titel">Termine und Fristen</h2>
+        <ul id="termine-liste" class="today__box today__dates" hidden></ul>
+        <p id="termine-leer" class="today__empty">Keine Termine in den nächsten Tagen.</p>
+        <div id="rav-hinweis" class="today__rav" role="status" hidden>
+          <p><strong>Fürs RAV:</strong> <span id="rav-hinweis-text"></span></p>
+          <button type="button" class="link" id="rav-hinweis-knopf">Im Job-Room eintragen</button>
+        </div>
       </section>
     </div>
+    <section class="today__stand" aria-labelledby="stand-titel">
+      <h2 id="stand-titel" data-text="heute.stand">Ihr Stand</h2>
+      <div class="today__tiles">
+        <a class="tile" href="/treffer" data-stand="neu"><span class="tile__label" data-text="heute.stand.neu">Neue Stellen</span><span class="tile__count" id="stand-neu-zahl"></span><span class="tile__hint" id="stand-neu-hinweis"></span></a>
+        <a class="tile" href="#liste-teil" data-stand="gemerkt"><span class="tile__label">Gemerkt</span><span class="tile__count" id="stand-gemerkt-zahl"></span><span class="tile__hint" id="stand-gemerkt-hinweis"></span></a>
+        <a class="tile" href="#liste-teil" data-stand="beworben"><span class="tile__label">Beworben</span><span class="tile__count" id="stand-beworben-zahl"></span><span class="tile__hint" id="stand-beworben-hinweis"></span></a>
+        <a class="tile" href="#liste-teil" data-stand="abgeschlossen"><span class="tile__label">Abgeschlossen</span><span class="tile__count" id="stand-abgeschlossen-zahl"></span><span class="tile__hint" id="stand-abgeschlossen-hinweis"></span></a>
+      </div>
+    </section>
   </section>
   <p id="lauf-status" class="status-line" role="status" aria-live="polite"></p>
 
   <section id="liste-teil" class="overview__list" aria-labelledby="liste-titel" hidden>
     <div class="overview__list-head">
       <h2 id="liste-titel">Bewerbungen</h2>
+      <button type="button" class="btn" id="von-hand" data-text="uebersicht.von-hand">Stelle von Hand erfassen</button>
       <div class="overview__tools">
         <div role="group" aria-label="Anzeigen" class="overview__views" id="ansichten">
           <button type="button" class="btn btn--sm" data-ansicht="gemerkt" aria-pressed="false">Gemerkt <span class="num" data-zahl="gemerkt"></span></button>
@@ -107,6 +125,15 @@
     </form>
   </dialog>
 
+  <dialog class="dialog pass" id="pass-dialog" aria-labelledby="pass-titel">
+    <p class="pass__progress" id="pass-fortschritt"></p>
+    <h2 class="dialog__title" id="pass-titel"></h2>
+    <p class="pass__meta" id="pass-firma"></p>
+    <div class="pass__ad" id="pass-inserat"></div>
+    <p class="pass__open"><a id="pass-oeffnen" href="/">Bewerbung öffnen</a></p>
+    <p id="pass-status" class="status-line" role="status" aria-live="polite"></p>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" id="pass-ende">Durchgang beenden</button><button type="button" class="btn" id="pass-spaeter">Später</button><button type="button" class="btn" id="pass-verwerfen">Verwerfen</button><button type="button" class="btn btn--primary" id="pass-bewerben">Bewerben</button></div>
+  </dialog>
   <dialog class="dialog" id="doppelt-dialog" aria-labelledby="doppelt-titel" aria-describedby="doppelt-text">
     <h2 class="dialog__title" id="doppelt-titel"></h2>
     <div class="dialog__text" id="doppelt-text"></div>
@@ -124,6 +151,8 @@
 <script src="/uebersicht-logik.js"></script>
 <script src="/sidebar-logic.js"></script>
 <script src="/sidebar.js"></script>
+<script src="/heute-logic.js"></script>
+<script src="/pass.js"></script>
 <script src="/uebersicht.js"></script>
 </body>
 </html>

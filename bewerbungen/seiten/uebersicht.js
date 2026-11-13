@@ -1,11 +1,13 @@
 "use strict";
-// Overview (MIN-369): „Das steht an“ with the next step, then the applications in six columns.
-// The next step per application comes from uebersicht-logik.js. Forms and Job-Room entries open through the
+// Heute (MIN-369, #260): the next step, Danach, dates and deadlines, the stand by stage, then the applications in
+// six columns until the Bewerbungen page has its own (#261). The next step per application comes from uebersicht-logik.js,
+// dates and the stand from heute-logic.js. Forms and Job-Room entries open through the
 // browser extension (MIN-346, MIN-347): one application from its card, several together from one item.
 (() => {
   const { holen, senden, el, beobachten, textsatz } = window.App;
   const { text } = window.Texte;
   const L = window.UebersichtLogik;
+  const H = window.HeuteLogic;
   const $ = id => document.getElementById(id);
 
   const PAGE_SOURCE = "bewerbungsbegleiter-seite";
@@ -21,6 +23,9 @@
   const ANSICHT_LEER = "In dieser Ansicht ist keine Bewerbung.";
   const ARIA_SORT = { auf: "ascending", ab: "descending" };
   const MAX_AUCH = 3;
+  const MAX_DATES = 5;
+  const PASS_TITLE = "Gemerkte Stellen in einem Durchgang bewerten";
+  const STAND_VIEWS = ["gemerkt", "beworben", "abgeschlossen"];
   const GESCHLOSSEN_WORT = { Zusage: ["Zusage", "Zusagen"], Absage: ["Absage", "Absagen"], Verworfen: ["verworfen", "verworfen"],
                              "Zurückgezogen": ["zurückgezogen", "zurückgezogen"] };
 
@@ -80,7 +85,7 @@
       case "offen": return { titel: schritt.grund || "Bewerbung öffnen", zusatz: "" };
       case "rav": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen im Job-Room eintragen`, zusatz: "fürs RAV" } : { titel: "Im Job-Room eintragen", zusatz: "fürs RAV" };
       case "gespraech": return { titel: t("bewerbung.gespraech"), zusatz: schritt.frist ? L.datum(schritt.frist) : "Termin eintragen" };
-      case "entscheiden": return { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
+      case "entscheiden": return anzahl > 1 ? { titel: PASS_TITLE, zusatz: t("heute.durchgang.unter", { anzahl }) } : { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
       case "warten": return { titel: "Antwort abwarten", zusatz: schritt.zusatz ? `nachfragen ab ${L.datum(schritt.zusatz)}` : "" };
       default: return { titel: "", zusatz: "" };
     }
@@ -224,10 +229,15 @@
 
   // „Das steht an“
 
-  function aktion(eintrag, klein = false) {
+  function aktion(eintrag, danach = false) {
     const art = eintrag.art;
     const ids = eintrag.eintraege.map(z => z.bewerbung.id);
-    const klasse = klein ? "btn btn--sm" : "btn btn--primary";
+    const klasse = danach ? "btn" : "btn btn--primary";
+    if (art === "entscheiden" && ids.length > 1) {
+      const knopf = el("button", { type: "button", class: klasse }, "Durchgang beginnen");
+      knopf.addEventListener("click", () => window.Pass.start(H.passQueue(zeilen), durchgangFertig));
+      return knopf;
+    }
     if (art === "abschicken") {
       const knopf = el("button", { type: "button", class: klasse }, ids.length > 1 ? "Formulare öffnen" : "Formular öffnen");
       knopf.addEventListener("click", () => startRun(ids.slice(0, maxPerRun), false, knopf));
@@ -238,8 +248,9 @@
       knopf.addEventListener("click", () => startRav(ids.slice(0, maxRav), knopf));
       return knopf;
     }
-    if (art === "freigeben") return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) + "#s-anschreiben" }, klein ? "Lesen" : "Anschreiben lesen");
-    return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) }, klein ? "Öffnen" : "Bewerbung öffnen");
+    if (art === "freigeben") return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) + "#s-anschreiben" }, "Anschreiben lesen");
+    if (art === "link") return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) }, "Link eintragen");
+    return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) }, "Bewerbung öffnen");
   }
 
   function kartenText(eintrag) {
@@ -251,7 +262,8 @@
       case "unterlagen": return t("uebersicht.karte.unterlagen");
       case "link": return "Ohne Link zum Bewerbungsformular kann die Erweiterung es nicht öffnen und ausfüllen.";
       case "gespraech": return schritt.frist ? `Termin am ${L.datum(schritt.frist)}. Inserat, Anschreiben und Notizen stehen in der Bewerbung.` : "Den Termin in der Bewerbung eintragen, dann steht er hier.";
-      case "entscheiden": return "Bewerben oder verwerfen? Note und Inserat stehen in der Bewerbung.";
+      case "entscheiden": return eintrag.eintraege.length > 1 ? t("heute.durchgang.unter", { anzahl: eintrag.eintraege.length })
+        : "Bewerben oder verwerfen? Note und Inserat stehen in der Bewerbung.";
       default: return schritt.grund || "";
     }
   }
@@ -267,35 +279,78 @@
     $("karte-text").textContent = kartenText(eintrag);
     $("karte-knoepfe").replaceChildren(aktion(eintrag));
     const fristen = eintrag.eintraege.map(z => z.schritt.frist).filter(Boolean).sort();
-    const fuss = anzahl > 1 ? eintrag.eintraege.map(z => z.bewerbung.firma).join(", ")
+    const fuss = anzahl > 1 && eintrag.art !== "entscheiden" ? eintrag.eintraege.map(z => z.bewerbung.firma).join(", ")
       : fristen.length && eintrag.art !== "gespraech" ? `Frist ${L.datum(fristen[0])}` : "";
     $("karte-fuss").hidden = !fuss;
     $("karte-fuss").textContent = fuss;
   }
 
+  // Danach: what comes after the next step, each with its own button
+
   function auchZeile(titel, unter, knopf) {
-    return el("li", { class: "overview__more-item" },
-      el("span", {}, el("strong", {}, titel), unter ? el("span", { class: "table__sub" }, unter) : null), knopf);
+    return el("li", { class: "today__task" },
+      el("span", { class: "today__task-text" }, el("strong", {}, titel), unter ? el("span", { class: "today__meta" }, unter) : null), knopf);
+  }
+
+  function auchUnter(e) {
+    const anzahl = e.eintraege.length;
+    if (e.art === "entscheiden" && anzahl > 1) return t("heute.durchgang.unter", { anzahl });
+    if (anzahl > 1) return e.eintraege.map(z => z.bewerbung.firma).join(", ");
+    const { bewerbung: b, schritt } = e.eintraege[0];
+    const wann = schritt.frist ? `Frist ${L.datum(schritt.frist)}` : schrittText(schritt).zusatz;
+    return [[b.stelle, b.firma].filter(Boolean).join(", "), wann].filter(Boolean).join(" · ");
   }
 
   function zeigeAuch(eintraege) {
-    const punkte = eintraege.map(e => {
-      const was = schrittText(e.eintraege[0].schritt, e.eintraege.length);
-      const b = e.eintraege[0].bewerbung;
-      const unter = e.eintraege.length > 1 ? e.eintraege.map(z => z.bewerbung.firma).join(", ")
-        : [b.firma, e.eintraege[0].schritt.frist ? L.datum(e.eintraege[0].schritt.frist) : was.zusatz].filter(Boolean).join(" · ");
-      return auchZeile(was.titel, unter, aktion(e, true));
-    });
+    const punkte = eintraege.map(e => auchZeile(schrittText(e.eintraege[0].schritt, e.eintraege.length).titel, auchUnter(e), aktion(e, true)));
     if (neueTreffer && neueTreffer.anzahl > 0 && punkte.length < MAX_AUCH) {
       const unter = neueTreffer.letzte ? `Suche vom ${L.datum(neueTreffer.letzte.slice(0, 10))}` : "";
-      punkte.push(auchZeile(`${neueTreffer.anzahl} neue Treffer ansehen`, unter, el("a", { class: "btn btn--sm", href: "/treffer" }, "Ansehen")));
+      punkte.push(auchZeile(`${neueTreffer.anzahl} neue Treffer ansehen`, unter, el("a", { class: "btn", href: "/treffer" }, "Treffer ansehen")));
     }
     $("auch").hidden = punkte.length === 0;
     $("auch-liste").replaceChildren(...punkte);
   }
 
+  // The line under the title, Termine und Fristen, Ihr Stand
+
+  function heuteIso() {
+    const jetzt = new Date();
+    return [jetzt.getFullYear(), jetzt.getMonth() + 1, jetzt.getDate()].map(n => String(n).padStart(2, "0")).join("-");
+  }
+
+  function zeigeZeile() {
+    const tag = new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" });
+    const { key, values } = H.waiting(L.stehtAn(zeilen, Infinity).length);
+    $("heute-zeile").textContent = `${tag} · ${t(key, values)}`;
+  }
+
+  function zeigeTermine() {
+    const termine = H.dates(zeilen, heuteIso(), { max: MAX_DATES, interview: window.Texte.statusName("Gespräch", satz) });
+    $("termine-liste").replaceChildren(...termine.map(termin =>
+      el("li", { class: "today__date" }, el("span", { class: "today__day" }, termin.day), el("span", {}, termin.text))));
+    $("termine-liste").hidden = termine.length === 0;
+    $("termine-leer").hidden = termine.length > 0;
+  }
+
+  function zeigeStand() {
+    const gespraech = lehrstelle() ? ["Einladung", "Einladungen"] : ["Gespräch", "Gespräche"];
+    const treffer = neueTreffer ? { count: neueTreffer.anzahl, last: neueTreffer.letzte } : null;
+    for (const [name, { count, hint }] of Object.entries(H.stand(zeilen, treffer, heuteIso(), { interview: gespraech }))) {
+      $(`stand-${name}-zahl`).textContent = String(count);
+      $(`stand-${name}-hinweis`).textContent = hint;
+    }
+  }
+
+  function durchgangFertig(anzahl) {
+    meldung(H.passResult(anzahl), "success");
+    if ((anzahl.bewerben || 0) + (anzahl.verworfen || 0) > 0) laden();
+  }
+
   function zeigeStehtAn() {
     const an = L.stehtAn(zeilen, MAX_AUCH + 1);
+    zeigeZeile();
+    zeigeTermine();
+    zeigeStand();
     if (alle.length === 0) {
       $("karte").hidden = false;
       $("karte-zeile").textContent = "Nächster Schritt";
@@ -314,7 +369,8 @@
     const offen = erinnerung ? erinnerung.ids.filter(id => ravGruende.get(id) === null) : [];
     $("rav-hinweis").hidden = !rav || offen.length === 0;
     if (offen.length) {
-      $("rav-hinweis-text").textContent = `${offen.length} ${offen.length === 1 ? "Bewerbung" : "Bewerbungen"} aus dem ${erinnerung.monat} fehlen noch im Job-Room. Das RAV erhält die Einträge bis zum ${erinnerung.frist}.`;
+      const anzahl = `${offen.length} ${offen.length === 1 ? "Bewerbung" : "Bewerbungen"}`;
+      $("rav-hinweis-text").textContent = t("heute.rav", { anzahl, monat: erinnerung.monat, frist: erinnerung.frist });
     }
   }
 
@@ -323,14 +379,24 @@
     $("erststart").hidden = !ohneAngaben;
     $("steht-an").hidden = ohneAngaben;
     $("liste-teil").hidden = ohneAngaben;
-    $("festhalten").dataset.text = rav ? "uebersicht.start.festhalten-rav" : "uebersicht.start.festhalten";
     window.Texte.anwenden(document, satz);
     $("suche").placeholder = t("uebersicht.suche");
     zeigeRavHinweis();
-    if (!ohneAngaben) {
+    if (ohneAngaben) zeigeEinrichtung();
+    else {
       zeigeStehtAn();
       zeigeListe();
     }
+  }
+
+  /** First step of the way: done when the AI is set up and the extension answers (the sidebar asks both). */
+  async function zeigeEinrichtung() {
+    if (!window.Sidebar) return;
+    const [ki, erweiterung] = await Promise.all([window.Sidebar.aiStatus, window.Sidebar.extension]);
+    const bereit = Boolean(ki && ki.eingerichtet) && erweiterung;
+    $("weg-einrichtung").dataset.state = bereit ? "done" : "todo";
+    $("weg-einrichtung-stand").textContent = bereit ? "· erledigt" : "· noch offen";
+    $("weg-einrichtung-link").hidden = bereit;
   }
 
   // Opening forms and Job-Room entries through the extension
@@ -472,6 +538,9 @@
     const offen = erinnerung ? erinnerung.ids.filter(id => ravGruende.get(id) === null) : [];
     startRav(offen.slice(0, maxRav), e.currentTarget);
   });
+  for (const kachel of document.querySelectorAll("[data-stand]")) {
+    if (STAND_VIEWS.includes(kachel.dataset.stand)) kachel.addEventListener("click", () => waehleAnsicht(kachel.dataset.stand));
+  }
   $("von-hand").addEventListener("click", () => { window.Meldungen.leere($("neu-status")); $("neu-dialog").showModal(); $("neu-firma").focus(); });
   $("neu-abbrechen").addEventListener("click", () => $("neu-dialog").close());
   $("neu-form").addEventListener("submit", anlegen);
