@@ -58,6 +58,7 @@
   --width-reading: 760px;
   --width-dialog: 520px;
   --width-popup: 320px;
+  --width-sidebar: 248px;
   --control-height: 40px;
   --font-sans: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -105,10 +106,6 @@ code, pre { font-family: var(--font-mono); }
 .num, td.zahl { font-variant-numeric: tabular-nums; }
 .muted, .leise, p.hilfe { color: var(--text-muted); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-
-/* ---------- Navigation (design: AppNav, classes in part 2) ---------- */
-.app-nav__more:has(a[aria-current="page"]) > summary { background: var(--accent); color: var(--on-accent); }
-.menu__group:empty, .menu__group:not(:has(a, button)) { display: none; }  /* Hilfe without the questions page (#222) */
 
 /* ---------- Layout ---------- */
 main { max-width: var(--width-content); margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-7); }
@@ -473,26 +470,68 @@ th[aria-sort="descending"] .table__sort::after { content: "↓"; }
 .dialog__text { margin: 0 0 var(--space-5); }
 .dialog__actions { display: flex; flex-wrap: wrap-reverse; gap: var(--space-2); justify-content: flex-end; }
 
-/* ---------- AppNav ---------- */
-.app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--line); background: var(--surface); }
-.app-nav__brand { margin-right: auto; padding: var(--space-2) var(--space-1); font-weight: 700; color: var(--text-strong); text-decoration: none; }
-.app-nav__list { display: flex; flex-wrap: wrap; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
-.app-nav__link, .app-nav__more > summary { display: block; padding: 6px var(--space-3); border-radius: var(--radius-md); color: var(--text-strong); font-weight: 500; text-decoration: none; cursor: pointer; }
-.app-nav__link:hover, .app-nav__more > summary:hover { background: var(--surface-subtle); color: var(--text-strong); }
-.app-nav__link[aria-current="page"] { background: var(--accent); color: var(--on-accent); }
-.app-nav__count { margin-left: var(--space-1); padding: 0 6px; border-radius: var(--radius-full); background: var(--accent-subtle); color: var(--text-strong); font-size: 13px; }
-.app-nav__more { position: relative; }
-.app-nav__more > summary { list-style: none; }
-.app-nav__more > summary::-webkit-details-marker { display: none; }
-.menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; padding: var(--space-2); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-menu); }
-.menu__group + .menu__group { margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--line); }
-.menu__heading { margin: 0; padding: var(--space-1) var(--space-2); font: 500 13px/18px var(--font-sans); color: var(--text-muted); }
-.menu a, .menu button { display: block; width: 100%; padding: 6px var(--space-2); border: 0; border-radius: var(--radius-sm); background: none; color: var(--text-strong); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
-.menu a:hover, .menu button:hover { background: var(--surface-subtle); }
-.menu__meta { padding: var(--space-1) var(--space-2); font-size: 13px; color: var(--text-muted); }
-.menu__about { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); padding: var(--space-1) var(--space-2); }
-.menu__about .menu__heading, .menu__about .menu__meta { margin: 0; padding: 0; line-height: 18px; }
-.menu__logo { flex: none; width: 28px; height: 28px; }
+/* ---------- Sidebar (G54, #259): a header below 900 px, the sidebar from there ---------- */
+.app-nav { position: relative; background: var(--surface); border-bottom: 1px solid var(--line); color: var(--text); }
+.app-nav__top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); padding: var(--space-2) var(--space-4); }
+.app-nav__brand { margin-right: auto; font-size: 17px; font-weight: 700; color: var(--text-strong); text-decoration: none; }
+.app-nav__budget-short { font-size: 13px; line-height: 18px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.app-nav__menu { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: var(--surface); color: var(--text-strong); font: 500 16px/22px var(--font-sans); cursor: pointer; }
+.app-nav__menu:hover, .app-nav__menu[aria-expanded="true"] { background: var(--surface-subtle); }
+.app-nav__list { margin: 0; padding: 0; list-style: none; }
+.app-nav > .app-nav__list { display: flex; gap: var(--space-1); padding: 0 var(--space-3); overflow-x: auto; scrollbar-width: thin; white-space: nowrap; font-size: 15px; line-height: 20px; }
+.app-nav > .app-nav__list .app-nav__head { display: none; }
+.app-nav > .app-nav__list .app-nav__link { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 44px; padding: 0 10px; border-bottom: 3px solid transparent; color: var(--text); text-decoration: none; }
+.app-nav > .app-nav__list .app-nav__link:hover { color: var(--text-strong); border-bottom-color: var(--line); }
+.app-nav > .app-nav__list .app-nav__link[aria-current="page"] { border-bottom-color: var(--accent); color: var(--text-strong); font-weight: 700; }
+.app-nav > .app-nav__list .app-nav__count-long { display: none; }
+.app-nav > .app-nav__list .app-nav__count-short::before { content: "· "; }
+.app-nav > .app-nav__list .app-nav__count { font-size: inherit; }
+.app-nav__more { display: none; position: absolute; right: var(--space-4); top: calc(100% + var(--space-1)); z-index: 10; width: min(280px, calc(100vw - 2 * var(--space-4))); padding: var(--space-2); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-menu); }
+.app-nav[data-open] .app-nav__more { display: block; }
+.app-nav__more .app-nav__list { display: flex; flex-direction: column; gap: 2px; }
+.app-nav__more .app-nav__link { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-3); border-radius: var(--radius-md); color: var(--text); text-decoration: none; }
+.app-nav__more .app-nav__link:hover { background: var(--surface-subtle); color: var(--text-strong); }
+.app-nav__more .app-nav__link[aria-current="page"] { background: var(--accent); color: var(--on-accent); font-weight: 500; }
+.app-nav__head { margin: var(--space-4) 0 var(--space-1); padding: 0 var(--space-3); font: 500 13px/18px var(--font-sans); color: var(--text-muted); }
+.app-nav__more .app-nav__head:first-child { margin-top: 0; }
+.app-nav__count { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.app-nav__count-short { display: none; }
+.app-nav > .app-nav__list .app-nav__count-short { display: inline; }
+.app-nav__status:has(> :not([hidden])) { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-5) 0 0; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-lg); font-size: 13px; line-height: 18px; color: var(--text-muted); }
+.app-nav__budget { display: flex; flex-direction: column; gap: var(--space-2); }
+.app-nav__budget-title { color: var(--text-strong); font-weight: 500; }
+.app-nav__bar { height: 6px; border-radius: var(--radius-full); background: var(--line); overflow: hidden; }
+.app-nav__bar-fill { width: 0; height: 6px; border-radius: var(--radius-full); background: var(--accent); }
+.app-nav__extension { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--space-1) var(--space-2); margin: 0; }
+.app-nav__extension > a { grid-column: 2; }
+.app-nav__budget:not([hidden]) + .app-nav__extension { padding-top: var(--space-2); border-top: 1px solid var(--line); }
+.app-nav__dot { flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--line-strong); }
+.app-nav__extension[data-state="connected"] .app-nav__dot { background: var(--success); }
+@media (max-width: 479px) { .app-nav__budget-short { order: 3; flex-basis: 100%; } }  /* the budget wraps, Menü stays up right */
+@media (min-width: 900px) {
+  body:has(> .app-nav) { padding-left: var(--width-sidebar); }
+  .app-nav { position: fixed; top: 0; bottom: 0; left: 0; z-index: 5; width: var(--width-sidebar); display: flex; flex-direction: column; gap: 2px; padding: var(--space-5) var(--space-3); overflow-y: auto; border-bottom: 0; border-right: 1px solid var(--line); font-size: 16px; line-height: 22px; }
+  .app-nav__top { display: block; padding: var(--space-1) var(--space-3) var(--space-4); }
+  .app-nav__budget-short, .app-nav__menu { display: none !important; }
+  .app-nav > .app-nav__list { flex-direction: column; gap: 2px; padding: 0; overflow: visible; white-space: normal; font-size: 16px; line-height: 22px; }
+  .app-nav > .app-nav__list .app-nav__head { display: block; }
+  .app-nav > .app-nav__list .app-nav__link { display: flex; justify-content: space-between; gap: var(--space-2); padding: 0 var(--space-3); border-bottom: 0; border-radius: var(--radius-md); }
+  .app-nav > .app-nav__list .app-nav__link:hover { background: var(--surface-subtle); }
+  .app-nav > .app-nav__list .app-nav__link[aria-current="page"] { background: var(--accent); color: var(--on-accent); font-weight: 500; }
+  .app-nav > .app-nav__list .app-nav__count-long { display: inline; }
+  .app-nav > .app-nav__list .app-nav__count { font-size: 13px; }
+  .app-nav > .app-nav__list .app-nav__count-short { display: none; }
+  .app-nav__more { display: block; position: static; width: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+  .app-nav__more .app-nav__head:first-child { margin-top: var(--space-4); }
+  .app-nav__more > .app-nav__list .app-nav__head { margin-top: var(--space-4); }
+}
+/* Über die App under Einstellungen: the logo in one colour, as the file brings it */
+.about { display: flex; align-items: center; gap: var(--space-3); }
+.about p { margin: 0; }
+.about__logo { flex: none; width: 40px; height: 40px; }
+.about__name { font-weight: 500; color: var(--text-strong); }
+.about__meta { font-size: 13px; line-height: 18px; color: var(--text-muted); }
+/* ---------- end of sidebar ---------- */
 
 /* ---------- AiResult ---------- */
 .ai-result { display: grid; gap: var(--space-4); padding: var(--space-4) var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }

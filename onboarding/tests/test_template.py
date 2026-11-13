@@ -84,7 +84,8 @@ def test_page_of_the_app_has_the_menu_and_scripts_of_the_app():
     shared = build_template.build()
 
     assert build_template.app_menu() in app_page and 'class="app-nav"' not in shared
-    assert re.findall(r'<script src="([^"]+)"', app_page) == ["/texte.js", "/meldungen.js", "/app.js"]
+    assert re.findall(r'<script src="([^"]+)"', app_page) == [
+        "/texte.js", "/meldungen.js", "/app.js", "/uebersicht-logik.js", "/sidebar-logic.js", "/sidebar.js"]
     assert "script-src 'self' 'sha256-" in app_page and "script-src 'self'" not in shared
 
 
