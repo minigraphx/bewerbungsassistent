@@ -210,7 +210,7 @@ def test_the_access_of_the_mediation_stays_when_the_own_key_goes(keychain):
 def test_status_without_key(server, keychain):
     status, answer = get(server, "/api/schluessel")
     assert status == 200 and answer["gesetzt"] is False
-    assert answer["kosten"] == {"monat_usd": 0, "gesamt_usd": 0, "aufrufe": 0}
+    assert answer["kosten"] == {"monat_usd": 0, "gesamt_usd": 0, "aufrufe": 0, "aufgaben": {}}
 
 
 def test_saving_needs_the_confirmation(server, keychain, api):
@@ -240,7 +240,22 @@ def test_costs_come_from_the_local_log(server, keychain):
     log.path.write_text(f'{{"time":"{this_month}-02T10:00:00","cost_usd":0.5}}\n'
                         '{"time":"2020-01-02T10:00:00","cost_usd":1.25}\n{"time":"2020-01-03T10:00:00","cost_usd":null}\n',
                         encoding="utf-8")
-    assert get(server, "/api/schluessel")[1]["kosten"] == {"monat_usd": 0.5, "gesamt_usd": 1.75, "aufrufe": 3}
+    assert get(server, "/api/schluessel")[1]["kosten"] == {"monat_usd": 0.5, "gesamt_usd": 1.75, "aufrufe": 3,
+                                                           "aufgaben": {"weitere": {"aufrufe": 1, "usd": 0.5}}}
+
+
+def test_the_costs_of_the_month_are_split_by_task_for_the_budget_g46(server, keychain):
+    log = routes_own_key.UsageLog(server.kontext.daten)
+    log.path.parent.mkdir(parents=True, exist_ok=True)
+    month = server.kontext.heute().strftime("%Y-%m")
+    log.path.write_text(f'{{"time":"{month}-02T10:00:00","task":"rate","cost_usd":0.25}}\n'
+                        f'{{"time":"{month}-03T10:00:00","task":"rate","cost_usd":0.5}}\n'
+                        f'{{"time":"{month}-04T10:00:00","task":"draft","cost_usd":null}}\n'
+                        '{"time":"2020-01-02T10:00:00","task":"rate","cost_usd":9}\n'
+                        f'{{"time":"{month}-05T10:00:00","task":["kaputt"],"cost_usd":null}}\n',
+                        encoding="utf-8")
+    tasks = get(server, "/api/schluessel")[1]["kosten"]["aufgaben"]
+    assert tasks == {"rate": {"aufrufe": 2, "usd": 0.75}, "draft": {"aufrufe": 1, "usd": 0}, "weitere": {"aufrufe": 1, "usd": 0}}
 
 
 def test_the_key_appears_in_no_file_answer_or_log(server, keychain, api, caplog, tmp_path):

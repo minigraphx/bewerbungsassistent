@@ -1,0 +1,60 @@
+/* Einstellungen (#265, A10): sections on the left, one shown at a time once the page script runs.
+   Tokens of the design system only (stil.css). */
+
+.settings { gap: var(--space-5); }
+.settings h1 { margin: 0; font-size: 22px; line-height: 28px; }
+.settings__layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: var(--space-6); align-items: start; }
+.settings__nav { position: sticky; top: var(--space-4); display: flex; flex-direction: column; gap: 2px; }
+.settings__nav a { padding: 10px var(--space-3); border-radius: var(--radius-md); color: var(--text); font-size: 15px; line-height: 20px; text-decoration: none; }
+.settings__nav a:hover { background: var(--surface-subtle); color: var(--text-strong); }
+.settings__nav a[aria-current] { background: var(--accent-subtle); color: var(--text-strong); font-weight: 700; }
+.settings__panels { min-width: 0; max-width: var(--width-reading); display: flex; flex-direction: column; gap: var(--space-5); }
+.settings__panel { display: flex; flex-direction: column; gap: var(--space-5); }
+.settings[data-tabs] .settings__panel:not([data-aktiv]) { display: none; }
+.settings .card { gap: var(--space-3); }
+.settings .card > h2 { margin: 0; padding: 0; border: 0; font-size: 18px; line-height: 24px; }
+.settings .card > p, .settings .card > ul, .settings .card .knoepfe, .settings .card .btn-row { margin: 0; }
+.settings .status:empty { display: none; }
+.settings__card-head { display: flex; flex-direction: column; gap: var(--space-1); }
+.settings__card-head h2 { margin: 0; padding: 0; border: 0; font-size: 18px; line-height: 24px; }
+.settings__card-head p { margin: 0; }
+.settings__code { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.settings__code .input { flex: 1 1 220px; min-width: 0; max-width: 320px; font-family: var(--font-mono); }
+.settings__state { display: flex; align-items: center; gap: var(--space-2); }
+.settings__state::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--line-strong); }
+.settings__state[data-state="connected"]::before { background: var(--success); }
+.settings__state[data-state="missing"]::before { background: var(--warning); }
+
+/* The choice of the way to the AI (ki-zugang.js), also for the window of G60 */
+.access-choice { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; margin: 0; padding: 0; border: 0; }
+label.access-choice__option {
+  display: flex; gap: var(--space-3); align-items: flex-start; margin: 0; padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface);
+  font: 400 16px/24px var(--font-sans); color: var(--text); cursor: pointer;
+}
+label.access-choice__option:hover { background: var(--surface-subtle); }
+label.access-choice__option:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-subtle); }
+label.access-choice__option:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.access-choice__radio { flex: none; margin-top: 3px; }
+.access-choice__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.access-choice__title { color: var(--text-strong); font-weight: 700; }
+.access-choice__line { font-size: 14px; line-height: 20px; color: var(--text); overflow-wrap: anywhere; }
+.access-choice__line a { color: inherit; text-underline-offset: 3px; }
+
+/* Budget (G46) */
+.budget__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-1) var(--space-3); }
+.budget__headline { font-size: 18px; line-height: 24px; color: var(--text-strong); }
+.budget__bar { height: 8px; border-radius: var(--radius-full); background: var(--line); overflow: hidden; }
+.budget__fill { width: 0; height: 100%; border-radius: var(--radius-full); background: var(--accent); }
+.budget__rows { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-1) var(--space-3); margin: 0; font-size: 14px; line-height: 20px; }
+.budget__rows:empty { display: none; }
+.budget__rows dt { color: var(--text); }
+.budget__rows dd { margin: 0; text-align: right; color: var(--text-strong); }
+
+@media (max-width: 760px) {
+  .settings__layout { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  .settings__nav { position: static; flex-direction: row; flex-wrap: wrap; gap: var(--space-2); }
+  .settings__nav a { padding: 6px var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-full); font-size: 14px; }
+  .settings__nav a[aria-current] { border-color: var(--accent); }
+  .settings .card { padding: var(--space-4); }
+}

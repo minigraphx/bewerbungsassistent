@@ -124,7 +124,7 @@ Liegen Suchprofil, Stilprofil oder Bausteine schon im Datenordner, fragt die App
 
 ![Schritt KI einrichten mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
 
-Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Widerrufen können Sie jederzeit unter **Erweiterte Einstellungen**.
+Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Widerrufen können Sie jederzeit unter **Einstellungen**, **KI und Budget**.
 
 Bei Lehrstellen: Ein Elternteil oder die gesetzliche Vertretung richtet die App ein und bestätigt das hier.
 
@@ -281,7 +281,7 @@ Deine Bewerbung schickst immer du selbst ab.
 
 **App:** Gibt es eine neue Version, fragt die App beim Start in einem Fenster nach. Klicken Sie auf **Installieren**, oder auf **Später** und arbeiten Sie weiter. Dann steht oben ein Hinweis mit **Jetzt aktualisieren**, und beim nächsten Start fragt die App wieder. Beim **Beenden** installiert sich die neue Version von selbst im Hintergrund, beim nächsten Start läuft sie. Ihre Daten und Einstellungen bleiben erhalten. Unter Linux aktualisieren Sie von Hand, siehe [Unter Linux](#unter-linux).
 
-**Vorabversionen:** Neue Versionen gibt es manchmal zuerst zum Ausprobieren. Wer sie testen möchte, schaltet unter **Mehr**, **Erweiterte Einstellungen**, **Vorabversionen** den Schalter **Vorabversionen als Update anbieten** ein. Vorabversionen können noch Fehler haben. Voreingestellt bekommen Sie nur veröffentlichte Versionen.
+**Vorabversionen:** Neue Versionen gibt es manchmal zuerst zum Ausprobieren. Wer sie testen möchte, schaltet unter **Einstellungen**, **Erweitert**, **Vorabversionen** den Schalter **Vorabversionen als Update anbieten** ein. Vorabversionen können noch Fehler haben. Voreingestellt bekommen Sie nur veröffentlichte Versionen.
 
 **Erweiterung:** Aus dem Store hält der Browser die Erweiterung selbst aktuell. Haben Sie sie von Hand geladen, bringt die App die neue Version mit, und die Erweiterung lädt sich von selbst neu, sobald die App läuft und keine Suche oder kein Formular offen ist. Sie müssen nichts tun. Der Entwicklermodus muss dafür eingeschaltet bleiben. Zeigt die Seite „Einrichtung“ trotzdem eine andere Version, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**. Das ist auch beim Wechsel auf die erste Version mit dieser Funktion einmal nötig.
 
@@ -422,7 +422,7 @@ Die Suche liest pro Seite und Lauf höchstens zehn Ergebnisseiten und dreissig I
 <details>
 <summary>Schlüssel entfernen</summary>
 
-Klicken Sie unter **Erweiterte Einstellungen** auf **Schlüssel entfernen**. Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab. Die weiteren Seiten werden dann nicht mehr durchsucht.
+Klicken Sie unter **Einstellungen**, **KI und Budget**, **Eigener Schlüssel von Anthropic** auf **Schlüssel entfernen**. Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab. Die weiteren Seiten werden dann nicht mehr durchsucht.
 
 Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, löschen Sie ihn auch in der Console.
 
@@ -486,7 +486,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 - `suche/` – die Stellensuche unter **Stellen suchen**: `suche/treffer.yaml` mit den Treffern und ihren Bewertungen, `suche/texte/` mit den Texten der Inserate, `suche/letzte-suche.yaml` mit dem letzten Lauf pro Portal und `suche/einstellungen.yaml` mit den Einstellungen der Seite. Wer die Treffer in eine Tabelle übertragen will, findet sie hier.
 - `firmen.yaml` – was die App über die Firmen aus Treffern und Bewerbungen bei kununu weiss: die zugeordnete kununu-Seite, Wert, Anzahl Bewertungen und wann geprüft wurde. Sie entsteht unter **Mehr**, **Firmen**.
 - `.entwuerfe/` – jeder frühere Stand Ihrer Dateien, mit `.entwuerfe/index.yaml` als Verzeichnis. Die App zeigt sie unter **Mehr**, **Entwürfe und Versionen**. Von hier holen Sie einen alten Stand zurück.
-- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Erweiterte Einstellungen**.
+- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Einstellungen**, **KI und Budget**, nach Aufgaben aufgeteilt.
 - `.sicherung.yaml` – wann Sie zuletzt eine Sicherung erstellt haben, für die Erinnerung.
 - `.build/` – Zwischenstände beim Bauen der PDFs. Sie dürfen den Ordner löschen; die App legt ihn neu an.
 - `.git/` und `.gitignore` – ist Git auf dem Computer installiert, hält die App jeden Versand zusätzlich als Version fest. Die `.gitignore` sagt Git, was nicht hineingehört, etwa `dokumente/` und `suche/`.
@@ -515,8 +515,8 @@ Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist ni
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
-| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**, ein: **KI einschalten** zeigt den Text dazu. |
-| „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Stellen suchen** oder **Lehrstellen suchen** und unter **Erweiterte Einstellungen**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
+| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**, ein: **KI einschalten** zeigt den Text dazu. |
+| „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Stellen suchen** oder **Lehrstellen suchen** und unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
 | „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 2](#schritt-2-ki) ein. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie in der Pilotphase begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |
