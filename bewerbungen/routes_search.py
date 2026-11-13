@@ -334,16 +334,23 @@ def _fill_in_ad(k, store: Hits, hit: dict, entry: dict) -> dict:
 
 
 def take_over(k, parameter, body):
-    """Register entry and stelle.md; the hit is marked right after the entry, so a retry never adds a second one."""
     store = _hits(k)
+    return json_antwort(take_over_hit(k, store, pflicht(parameter, "id")))
+
+
+def take_over_hit(k, store: Hits, wanted: str, may_take=lambda hit: True) -> dict | None:
+    """Register entry and stelle.md; the hit is marked right after the entry, so a retry never adds a second one.
+    `may_take` is asked under the lock, so a hit that changed in between stays; then the answer is None."""
     with _TAKE_OVER:
-        hit = store.get(pflicht(parameter, "id"))
+        hit = store.get(wanted)
+        if not may_take(hit):
+            return None
         if hit.get("zustand") == "uebernommen":
             raise ValueError(_already_saved(k))
         register = k.register()
         saved = _saved_with_link(register.alle(), hit)
         if saved is not None:
-            return json_antwort(_fill_in_ad(k, store, hit, saved))
+            return _fill_in_ad(k, store, hit, saved)
         portals = ", ".join(dict.fromkeys([hit["portal"], *(o["portal"] for o in hit.get("weitere", []))]))
         fields = {"firma_schluessel": company_key(hit["firma"]), "ort": hit.get("ort"), "pensum": hit.get("pensum"),
                   "portal": portals, "link": hit["link"], "status": "Gemerkt", "notiz": note_for(hit),
@@ -359,7 +366,7 @@ def take_over(k, parameter, body):
     ad = store.ad_text(hit["id"])
     path = unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md"
     k.mit_entwurf(path, f"Stellentext {entry['firma']}", lambda: schreibe_atomar(path, ad.encode("utf-8")))
-    return json_antwort(taken)
+    return taken
 
 
 def choose_offers(k, parameter, body):
