@@ -24,10 +24,16 @@ Nur der Link zur Suche und der Satz zum Datenschutz unterscheiden sich; der Rest
 
 | Ort | Sie (Stellen) | du (Lehrstellen) |
 | --- | --- | --- |
-| Navigation, Suche | Stellen suchen | Lehrstellen suchen |
-| Navigation, übrige | Bewerbungsbegleiter · Übersicht · Meine Angaben · Mehr | gleich |
-| Menü Mehr | Unterlagen: Meine Dateien, Entwürfe und Versionen, Foto · Hilfe: Fragen an die KI, Einrichtung · Für Geübte: Inhalte als Text, Erweiterte Einstellungen · Sicherung erstellen · Beenden · Version 0.9.3 | gleich |
-| Zähler am Link Suche | 3 von 10 | gleich |
+| Seitenleiste, Suche | Stellen | Lehrstellen |
+| Seitenleiste, übrige (G54) | Bewerbungsbegleiter · Heute · Bewerbungen · Meine Unterlagen: Meine Angaben, Lebenslauf und Dateien · Hilfe: Fragen an die KI, Einstellungen | gleich |
+| Marken in der Seitenleiste | 4 offen · 8 neu (schmal: Heute · 4, Stellen · 8 neu) | gleich |
+| KI-Budget in der Seitenleiste | KI-Budget im November · USD 3.20 von 10.00 gebraucht · USD 10.00 frei · 32 Prozent des Budgets gebraucht · Noch nichts gebraucht (schmal: KI-Budget: USD 6.80 frei) | gleich |
+| KI-Kosten mit eigenem Schlüssel | KI-Kosten im November · USD 1.50 mit eigenem Schlüssel (schmal: KI-Kosten: USD 1.50) | gleich |
+| Erweiterung in der Seitenleiste | Erweiterung verbunden · Erweiterung nicht verbunden · Einrichten | gleich |
+| Kopfzeile unter 900 px | Menü | gleich |
+| Einstellungen, Daten und Sicherung | Angaben und Bewerbungen liegen im Datenordner auf diesem Computer. Eine Sicherung packt ihn in eine ZIP-Datei, am besten für einen USB-Stick. · Sicherung erstellen · Einrichtung: Datenordner, Erweiterung und KI · Für Geübte: Inhalte als Text bearbeiten | gleich |
+| Einstellungen, Über die App | Bewerbungsbegleiter · Version 0.9.3 · von Andreas Schmidt · Beenden | gleich |
+| Meine Dateien, Foto | Das Foto im Lebenslauf: Foto wählen und zuschneiden | gleich |
 | Zurück-Links | ← Zurück zur Übersicht · ← Zurück zu Meine Angaben · ← Zurück zu Entwürfe und Versionen | gleich |
 | Fuss jeder KI-Karte | Eine Einschätzung, kein Urteil. Die KI kann sich irren. · Claude · CHF 0.02 · 05.11.2026 | gleich |
 | Unter jedem Editor | Jede Änderung wird als Entwurf gespeichert und lässt sich zurückholen. | gleich |

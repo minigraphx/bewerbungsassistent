@@ -116,12 +116,14 @@ def test_logo_is_served_by_the_app_as_a_single_colour_vector(server):
     assert set(re.findall(r"#[0-9a-fA-F]{6}", svg)) == {"#27333f", "#f0f3f6"}  # text colour, light and dark
 
 
-def test_menu_shows_the_logo_under_about_the_app():
+def test_settings_show_the_logo_under_about_the_app():
     script = (server_modul.SEITEN / "app.js").read_text(encoding="utf-8")
+    settings = (server_modul.SEITEN / "einstellungen.html").read_text(encoding="utf-8")
 
-    assert 'src: "/as-logo.svg"' in script and "Über die App" in script
-    # the about block only counts when the app menu actually appends it
-    assert re.search(r"gruppe\.append\([^;]*ueberDieApp\(info\.version\)", script)
+    assert 'src: "/as-logo.svg"' in script and '<h2 id="ueber-titel">Über die App</h2>' in settings
+    # the about block only counts when the packaged app actually appends it to that section (G54)
+    assert 'getElementById("ueber-die-app")' in script
+    assert re.search(r"ort\.append\([^;]*ueberDieApp\(info\.version\)", script)
 
 
 def test_a_new_version_is_asked_about_in_a_dialog_first():
@@ -519,10 +521,11 @@ def test_all_pages_share_one_menu():
 
     assert len(navs) >= 7 and len(set(navs.values())) == 1, navs
     nav = next(iter(navs.values()))
-    for link in ("/", "/treffer", "/angaben"):
-        assert f'href="{link}"' in nav.split("<details")[0]
-    for link in ("/dateien", "/einrichtung", "/inhalte", "/entwuerfe", "/foto", "/einstellungen"):
-        assert f'href="{link}"' in nav.split("<details")[1]
+    main, more = nav.split('<div class="app-nav__more"')  # below 900 px only the first part stays outside „Menü“ (G54)
+    for link in ("/", "/treffer", "/#liste-teil", "/angaben"):
+        assert f'href="{link}"' in main
+    for link in ("/dateien", "/fragen", "/einstellungen"):
+        assert f'href="{link}"' in more
 
 
 @pytest.fixture
@@ -594,6 +597,13 @@ def test_the_page_for_questions_is_off_unless_switched_on(server):
     for path in PAGES_WITH_MENU:
         status, _, content = get(server, path)
         assert status == 200 and b"/fragen" not in content, path
+
+
+def test_every_script_of_the_pages_is_served(server):
+    for path in PAGES_WITH_MENU:
+        page = get(server, path)[2].decode("utf-8")
+        for script in re.findall(r'<script src="([^"]+)"', page):
+            assert get(server, script)[0] == 200, (path, script)
 
 
 @pytest.mark.questions_page
