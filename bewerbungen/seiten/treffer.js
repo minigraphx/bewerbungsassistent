@@ -1,5 +1,6 @@
 "use strict";
-// Hits of the job search (MIN-339): list, rate with the AI in packages (MIN-372), take over into the register, discard.
+// Stellen (MIN-339, #262): the hits of the job search in the tabs Neu, Gemerkt and Verworfen, rated with the AI in
+// packages (MIN-372); per hit Bewerbung vorbereiten, Merken or Verwerfen (G58). Firmen is the fourth tab, its own page.
 // The search itself runs in the browser extension; this page starts it through app-bridge.js.
 (() => {
   const { holen, senden, el, status, datum, beobachten, textsatz } = window.App;
@@ -23,9 +24,11 @@
   let profilFehlt = "";      // why nothing can be searched yet, from the app (#220)
   let gesucht = false;       // a search ran before, so an empty list of new hits means „nothing new“
   let zusammenfassung = "";
+  let geladen = false;       // the list and the reason a search cannot start are known
+  let sucheVerlangt = location.hash === "#jetzt-suchen";  // „Jetzt suchen“ on Suche einstellen leads here (#263)
   let wartetSeit = null;     // ISO time since the page waits for a search, to tell its run from older ones
   let stille = null;         // timer: no word from the extension for a while
-  let zustand = "neu";       // which hits the list shows
+  let zustand = logik.reiterAus(location.hash);  // which hits the list shows, from the tab in the address
   let gewaehlt = null;       // id of the hit in the detail column
   let firmen = new Map();    // hit id → its company with what kununu says (#190)
   let heute = "";
@@ -60,6 +63,20 @@
       anzeigen(neu);
       const ziel = "/bewerbung?" + new URLSearchParams({ id: neu.bewerbung_id });
       meldung(["Gemerkt. ", el("a", { href: ziel }, "Bewerbung öffnen")], "ok");
+    } catch (fehler) {
+      meldung(fehler.message, "fehler");
+      knopf.disabled = false;
+      lade();
+    }
+  }
+
+  /** Bewerbung vorbereiten (G58): saved like Merken, set to Bewerben, then the application opens. */
+  async function bereiteVor(t, knopf) {
+    knopf.disabled = true;
+    try {
+      const neu = await senden("/api/suche/uebernehmen", {}, { id: t.id });
+      await senden("/api/bewerbungen/stand", { ids: [neu.bewerbung_id], status: "Bewerben" });
+      location.href = "/bewerbung?" + new URLSearchParams({ id: neu.bewerbung_id });
     } catch (fehler) {
       meldung(fehler.message, "fehler");
       knopf.disabled = false;
@@ -102,20 +119,31 @@
     return [note(b.note, { unsicher, ...optionen })];
   }
 
-  function aktionen(treffer) {
+  /** What to do with the hit (G58): a new one gets the question and three buttons, the others one way on. */
+  function entscheidung(treffer) {
     if (treffer.zustand === "uebernommen") {
-      return [el("a", { class: "btn btn--primary", href: "/bewerbung?" + new URLSearchParams({ id: treffer.bewerbung_id }) }, "Zur Bewerbung")];
+      return el("div", { class: "decision" }, el("div", { class: "btn-row" },
+        el("a", { class: "btn btn--primary", href: "/bewerbung?" + new URLSearchParams({ id: treffer.bewerbung_id }) }, "Zur Bewerbung")));
     }
     if (treffer.zustand === "verworfen") {
-      return [el("button", { type: "button", class: "btn", onclick: () => verwirf(treffer, true) }, "Zurückholen")];
+      return el("div", { class: "decision" }, el("div", { class: "btn-row" },
+        el("button", { type: "button", class: "btn", onclick: () => verwirf(treffer, true) }, "Zurückholen")));
     }
-    const b = treffer.bewertung;
-    const empfohlen = b && b.note >= 4;
-    const uebernehmen = el("button", { type: "button", class: empfohlen ? "btn btn--primary" : "btn" }, b && !empfohlen ? "Trotzdem merken" : "Merken");
-    uebernehmen.addEventListener("click", () => uebernimm(treffer, uebernehmen));
-    const bewerten = el("button", { type: "button", class: "btn btn--quiet", disabled: bewertungslauf !== null }, b ? "Neu bewerten" : "Bewerten");
-    bewerten.addEventListener("click", () => bewerte(treffer, bewerten));
-    return [uebernehmen, el("button", { type: "button", class: "btn btn--quiet", onclick: () => verwirf(treffer, false) }, "Verwerfen"), bewerten];
+    const vorbereiten = el("button", { type: "button", class: "btn btn--primary" }, "Bewerbung vorbereiten");
+    vorbereiten.addEventListener("click", () => bereiteVor(treffer, vorbereiten));
+    const merken = el("button", { type: "button", class: "btn" }, "Merken");
+    merken.addEventListener("click", () => uebernimm(treffer, merken));
+    const verwerfen = el("button", { type: "button", class: "btn", onclick: () => verwirf(treffer, false) }, "Verwerfen");
+    return el("div", { class: "decision" }, el("p", { class: "decision__question" }, t("suche.entscheiden")),
+      el("div", { class: "btn-row" }, vorbereiten, merken, verwerfen));
+  }
+
+  /** Bewerten or Neu bewerten, only for new hits and never during a rating run. */
+  function bewertenKnopf(treffer) {
+    if (treffer.zustand !== "neu") return null;
+    const knopf = el("button", { type: "button", class: "btn btn--quiet btn--sm", disabled: bewertungslauf !== null }, treffer.bewertung ? "Neu bewerten" : "Bewerten");
+    knopf.addEventListener("click", () => bewerte(treffer, knopf));
+    return knopf;
   }
 
   function inseratKnopf(treffer) {
@@ -143,8 +171,8 @@
         el("h2", { id: "detail-titel" }, treffer.stelle),
         el("p", {}, [treffer.firma, rahmen].filter(Boolean).join(", ")),
         el("p", { class: "search__hint" }, el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, `Inserat auf ${treffer.portal} öffnen`),
-          ` · gefunden ${datum(treffer.gefunden_am)}`, treffer.alter_tage !== undefined ? ` · ${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : ""),
-        eigeneSterne(treffer)),
+          ` · gefunden ${datum(treffer.gefunden_am)}`, treffer.alter_tage !== undefined ? ` · ${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : "")),
+      entscheidung(treffer),
       treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, t("suche.schon-titel")), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
       treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Passt nach den festen Regeln nicht"), el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
       el("article", { class: "ai-result" },
@@ -155,8 +183,9 @@
         b ? el("div", { class: "ai-result__cols" }, liste("Was passt", b.passt), liste("Was fehlt oder unsicher ist", b.haken)) : null,
         b && b.nachpruefung ? el("p", { class: "search__hint" }, logik.nachpruefungText(b, notenText)) : null,
         b && b.auffaellig && b.auffaellig.length ? el("p", { class: "status-line", "data-level": "danger" }, "Auffällige Zeilen im Inserat (nicht befolgt): " + b.auffaellig.join(" · ")) : null,
-        el("div", { class: "btn-row" }, aktionen(treffer)),
-        b ? el("p", { class: "ai-result__foot" }, "Eine Einschätzung, kein Urteil. Die KI kann sich irren.") : null),
+        b ? el("p", { class: "ai-result__foot" }, "Eine Einschätzung, kein Urteil. Die KI kann sich irren. ", bewertenKnopf(treffer))
+          : el("div", { class: "btn-row" }, bewertenKnopf(treffer))),
+      eigeneSterne(treffer),
       window.TrefferFirma.zeile(firmen.get(treffer.id), heute,
         { lehrstelle, alle: t("firmen.alle"), wo: t("firmen.titel"), nachPruefen: kununuGeprueft }),
       weitere.length ? el("ul", { class: "search__more" }, weitere) : null,
@@ -170,9 +199,9 @@
       type: "button", "aria-label": `${zahl} von 5 Sternen für diesen Treffer`, "aria-pressed": String(zahl === aktuell),
       onclick: () => eigeneSterneSetzen(treffer, zahl === aktuell ? 0 : zahl),
     }, zahl <= aktuell ? "★" : "☆"));
-    return el("p", { role: "group", "aria-label": "Eigene Bewertung" },
-      "Eigene Bewertung: ", el("span", { class: "sterne" }, knoepfe),
-      el("span", { class: "search__hint" }, "Nur für die Reihenfolge der Liste, geht nicht an die KI."));
+    return el("div", { class: "own-rating", role: "group", "aria-label": t("suche.eigene") },
+      el("p", { class: "own-rating__line" }, el("span", { class: "own-rating__label" }, t("suche.eigene")), el("span", { class: "sterne" }, knoepfe)),
+      el("p", { class: "search__hint" }, t("suche.eigene-hinweis")));
   }
 
   function eigeneSterneSetzen(treffer, anzahl) {
@@ -229,7 +258,10 @@
     const sortierung = logik.gueltigeSortierung(einstellungen.sortierung);
     $("sortierung").value = sortierung;
     const sichtbar = logik.sortiert(passend, einstellungen.beruf_sterne, sortierung);
-    for (const knopf of document.querySelectorAll("[data-zustand]")) knopf.setAttribute("aria-pressed", String(knopf.dataset.zustand === zustand));
+    for (const reiter of document.querySelectorAll("#reiter [data-zustand]")) {
+      if (reiter.dataset.zustand === zustand) reiter.setAttribute("aria-current", "page");
+      else reiter.removeAttribute("aria-current");
+    }
     for (const name of ["neu", "uebernommen", "verworfen"]) document.querySelector(`[data-zahl=${name}]`).textContent = String(alle.filter(x => x.zustand === name).length);
     if (!sichtbar.some(x => x.id === gewaehlt)) gewaehlt = sichtbar[0]?.id ?? null;
     $("liste").classList.toggle("search__list--two", lehrstelle);  // two grades: the same width for every row
@@ -248,15 +280,14 @@
     const ids = logik.zuBewerten(alle).map(t => t.id);
     const laeuft = bewertungslauf !== null;
     $("bewerten-box").hidden = !laeuft;
+    $("offen-box").hidden = laeuft || ids.length === 0 || zustand !== "neu";
+    $("offen-zahl").textContent = logik.offenText(ids.length, lehrstelle);
     $("bewerten-knoepfe").replaceChildren(...(laeuft ? [] : logik.knoepfe(ids.length, paket, grenze).map(knopf => {
       return el("button", { type: "button", class: "btn btn--sm", onclick: () => starteBewertung(ids.slice(0, knopf.anzahl)) }, knopf.text);
     })));
     const proTreffer = logik.kostenProTreffer(alle);
     const kosten = ids.length && proTreffer !== null ? `Bisher etwa ${proTreffer.toFixed(3)} USD pro Treffer.` : "";
     $("kosten-hinweis").textContent = laeuft ? "" : logik.alleBewertet(alle) ? "Alle Treffer sind bewertet." : kosten;
-    $("auto-bewerten").checked = einstellungen.auto_bewerten;
-    $("zuschauen").checked = einstellungen.zuschauen;
-    $("auto-text").textContent = `Neue Treffer nach der Suche automatisch bewerten (höchstens ${grenze} pro Suche)`;
     zeigeBerufe();
   }
 
@@ -355,13 +386,6 @@
     return namen.join(", ").replace(/, ([^,]*)$/, " und $1");
   }
 
-  // The page follows the search profile: apprenticeships search other portals and know trial apprenticeships.
-  function zeigeArt(art, angebote) {
-    lehrstelle = art === "lehrstelle";
-    $("angebot-wahl").hidden = !lehrstelle;
-    $("angebot").value = logik.wahlAus(angebote);
-    $("suchen").textContent = "Jetzt suchen";
-  }
 
   // Only the desktop app has „Meine Angaben“; without it there is nothing to say.
   async function zeigeNichtUebernommen() {
@@ -401,15 +425,14 @@
       zusammenfassung = anzeige.zusammenfassung({
         begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle: daten.art === "lehrstelle",
       });
-      zeigeArt(daten.art, daten.angebote || []);
-      window.PortalWahl.zeige(daten.portale_wahl || [], lade);
-      window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
+      lehrstelle = daten.art === "lehrstelle";
       window.SuchbegriffeStart.zeige(daten.art);
       zeigeListe();
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {}, daten.zeitraum || {});
       zeigeNichtUebernommen();
+      geladen = true;
       zeigeSuchen();
-      zeigeEinstellen(!$("einstellen").hidden);
+      zeigeEinstellen();
     } catch (fehler) {
       meldung(fehler.message, "fehler");
     }
@@ -427,6 +450,10 @@
     const grund = anzeige.sperrgrund({ erweiterung, laeuft: suchlaeuft, profil: profilFehlt });
     $("suchen").disabled = suchlaeuft || erweiterung !== true || Boolean(grund);
     $("suchen-grund").textContent = grund;
+    if (!sucheVerlangt || !geladen || erweiterung === null) return;
+    sucheVerlangt = false;  // once: the reason under the button says why it did not start
+    history.replaceState(null, "", location.pathname + location.search);
+    if (!$("suchen").disabled) starteSuche();
   }
 
   function laufText(lauf) {
@@ -483,7 +510,7 @@
     }
   });
 
-  $("suchen").addEventListener("click", () => {
+  function starteSuche() {
     suchlaeuft = true;
     zeigeSuchen();
     $("lauf-box").hidden = false;
@@ -491,58 +518,26 @@
     wartetSeit = new Date().toISOString();
     warte();
     window.postMessage({ quelle: SEITE, art: "suche-starten" }, location.origin);
-  });
-  for (const knopf of document.querySelectorAll("[data-zustand]")) knopf.addEventListener("click", () => { zustand = knopf.dataset.zustand; zeigeListe(); });
+  }
+  $("suchen").addEventListener("click", starteSuche);
+  // The tabs are links (#gemerkt), so the page Firmen can lead to a tab and the back button returns to the last one.
+  window.addEventListener("hashchange", () => { zustand = logik.reiterAus(location.hash); zeigeListe(); });
   $("art").addEventListener("change", zeigeListe);
   $("sortierung").addEventListener("change", () => {
     senden("/api/suche/einstellungen", { sortierung: $("sortierung").value })
       .then(neu => { einstellungen = neu; zeigeListe(); })
       .catch(fehler => meldung(fehler.message, "fehler"));
   });
-  $("angebot").addEventListener("change", async () => {
-    try {
-      const { angebote } = await senden("/api/suche/angebot", { wahl: $("angebot").value });
-      meldung(`Gesucht wird: ${logik.sucheText(angebote).replace(/ suchen$/, "")}.`, "ok");
-    } catch (fehler) {
-      meldung(fehler.message, "fehler");
-      lade();
-    }
-  });
   $("anhalten").addEventListener("click", () => {
     if (bewertungslauf) bewertungslauf.halt = true;
     $("anhalten").disabled = true;
     meldung("Wird nach dem laufenden Paket angehalten …");
   });
-  $("auto-bewerten").addEventListener("change", event => {
-    senden("/api/suche/einstellungen", { auto_bewerten: event.target.checked })
-      .then(neu => { einstellungen = neu; })
-      .catch(fehler => { meldung(fehler.message, "fehler"); zeigeBewerten(); });
-  });
-
-  $("zuschauen").addEventListener("change", event => {
-    senden("/api/suche/einstellungen", { zuschauen: event.target.checked })
-      .then(neu => { einstellungen = neu; })
-      .catch(fehler => { meldung(fehler.message, "fehler"); zeigeBewerten(); });
-  });
-
-  // Settings: closed on opening, summed up in one line with „Ändern“ (#220); open only on request
-  function zeigeEinstellen(offen) {
-    $("einstellen").hidden = !offen;
-    $("einstellen-knopf").setAttribute("aria-expanded", String(offen));
-    $("einstellen-knopf").textContent = offen ? "Einstellungen schliessen" : "Suche einstellen";
+  // The settings are their own page (#263); here one line sums them up, with „Ändern“ leading there (#220)
+  function zeigeEinstellen() {
     $("einstellen-text").textContent = zusammenfassung;
-    $("einstellen-zeile").hidden = offen || !zusammenfassung;
+    $("einstellen-zeile").hidden = !zusammenfassung;
   }
-
-  function oeffneEinstellen() {
-    zeigeEinstellen(true);
-    $("einstellen").scrollIntoView({ behavior: "smooth" });
-  }
-
-  $("einstellen-knopf").addEventListener("click", () => zeigeEinstellen($("einstellen").hidden));
-  $("einstellen-aendern").addEventListener("click", oeffneEinstellen);
-  $("leer-einstellen").addEventListener("click", oeffneEinstellen);
-  zeigeEinstellen(false);
 
   if (document.documentElement.dataset.bewerbungsbegleiterErweiterung) erweiterungDa();
   else {
@@ -556,5 +551,5 @@
   }
   document.addEventListener("suchprofil-geaendert", lade);
   document.addEventListener("suchbegriffe-beleg", zeigeListe);
-  textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); document.title = t("nav.suche"); }).finally(() => { lade(); beobachten(nachsehen); });
+  textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); document.title = t("nav.stellen"); }).finally(() => { lade(); beobachten(nachsehen); });
 })();

@@ -552,3 +552,13 @@ def for_folder(data_dir: pathlib.Path) -> SearchPlan:
     if not path.is_file():
         raise ValueError(NO_PROFILE)
     return parse(path.read_text(encoding="utf-8"), _postal_code(data_dir))
+
+
+def frame(text: str) -> dict:
+    """What the page Suche einstellen shows beside the terms (#263): workload, what an ad must not be, title filters."""
+    sections = _sections(text)
+    directions = _pairs(sections.get("suchrichtungen", []))
+    return {"pensum": _value(_pairs(sections.get("rahmen", [])), "pensum")[:MAX_VALUE],
+            "ausschluss": list(_items(_value(directions, "ausschluss"), MAX_LISTED)),
+            "titel_ausschluss": list(title_terms(text, "ausschluss")),
+            "titel_positiv": list(title_terms(text, "positiv"))}

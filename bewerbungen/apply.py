@@ -37,11 +37,11 @@ REFERENCE_KEY_LENGTH = 12
 ALREADY_SENT = "Schon versendet"
 NOT_OPEN = "Status „{status}“"
 NO_LINK = "Kein Link zum Formular: öffnen und Link eintragen"
-NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Meine Dateien“ hochladen"
+NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Lebenslauf und Dateien“ hochladen"
 NOT_APPROVED = "Anschreiben noch nicht freigegeben: öffnen, lesen und „Freigeben“"
 UNKNOWN_FILE = "Diese Datei gehört nicht zu dieser Bewerbung."
 UNKNOWN_PART = "Dieser Teil der Datei fehlt."
-NO_FILES = "Für diese Bewerbung gibt es noch keine Dateien. Bitte zuerst „Unterlagen erstellen“ oder unter „Meine Dateien“ hochladen."
+NO_FILES = "Für diese Bewerbung gibt es noch keine Dateien. Bitte zuerst „Unterlagen erstellen“ oder unter „Lebenslauf und Dateien“ hochladen."
 FOLDER_FAILED = "Der Ordner liess sich nicht vorbereiten. Bitte nochmals versuchen."
 
 

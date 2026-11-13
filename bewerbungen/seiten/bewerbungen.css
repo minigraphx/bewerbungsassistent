@@ -1,0 +1,23 @@
+/* Bewerbungen (#261, A5): title with the button, views as tabs beside the search, the list, and below it the ticked
+   ones and the pass. Tabs come from stellen.css, the pass from heute.css; only tokens from stil.css. */
+
+.applications { gap: var(--space-4); }
+.applications__head { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; align-items: center; }
+.applications__bar { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); align-items: flex-end; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.applications__views { flex: 1 1 auto; border-bottom: 0; }
+.applications__views .tabs__tab { min-height: 0; border-width: 0 0 2px; border-radius: 0; background: none; font: inherit; font-weight: 500; cursor: pointer; }
+.applications__views .tabs__tab[aria-pressed="true"] { color: var(--text-strong); font-weight: 700; border-bottom-color: var(--accent); }
+.applications__search { display: flex; gap: var(--space-2); align-items: center; padding-bottom: var(--space-2); }
+.applications__search-label { color: var(--text-muted); font-size: 14px; line-height: 20px; }
+.applications__search .input { width: 220px; }
+.applications .table td.table__pick { padding-right: 0; }
+.applications__foot { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); align-items: center; justify-content: space-between; }
+.applications__bulk { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; }
+.applications__hint { color: var(--text-muted); font-size: 14px; line-height: 20px; }
+.applications__stage { display: inline-flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.applications__stage[hidden], .applications__foot .link[hidden] { display: none; }
+
+@media (max-width: 599px) {
+  .applications__search { flex: 1 1 100%; }
+  .applications__search .input { flex: 1 1 auto; width: auto; min-width: 0; }
+}

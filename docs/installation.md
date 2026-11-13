@@ -199,7 +199,7 @@ Gibt es Suchprofil, Stilprofil oder Bausteine schon, fragt die App beim Überneh
 
 1. **Stellen suchen**: Klicken Sie auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, in Ihrem Browser und nur, wenn Sie die Suche starten. Ohne gewählte Kantone sucht sie in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst. Lässt sich die Suche noch nicht starten, steht der Grund direkt unter dem Knopf, etwa **Zuerst Meine Angaben abschliessen.** Die Einstellungen sind zu Beginn zugeklappt; eine Zeile fasst sie zusammen: Suchbegriffe, Region und Anzahl Portale. Mit **Ändern** oder **Suche einstellen** öffnen Sie sie und wählen unter **Wo suchen Sie?** die Portale. Passen Ihre Begriffe nicht zur Informatik, ist ictjobs zu Beginn ausgeschaltet. Pro Portal holt ein Lauf höchstens 150 neue Inserate, der Rest kommt bei der nächsten Suche. Darunter stehen Ihre Suchbegriffe: Einen eigenen tragen Sie unter **Eigenen Suchbegriff aufnehmen** ein und klicken auf **Aufnehmen**. Haben Sie einen Begriff aus Versehen entfernt, holt **Rückgängig** in der Meldung ihn an seinen Platz zurück.
 2. **Bewerten** lässt die KI einschätzen, wie gut eine Stelle zu Ihnen passt. **Merken** legt eine Bewerbung an; die Meldung **Gemerkt.** führt mit **Bewerbung öffnen** direkt zu ihr. **Verwerfen** blendet den Treffer aus. Gemerkte Treffer stehen unter **Gemerkt**.
-3. **Bewerben**: Die **Übersicht** zeigt unter **Das steht an**, was als Nächstes zu tun ist, und in der Liste den nächsten Schritt jeder Bewerbung. Öffnen Sie eine Bewerbung und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Der Entwurf ist ein Ausgangspunkt: Lesen Sie ihn, passen Sie ihn mit **Ändern** an die Stelle und die Firma an, und klicken Sie dann auf **Freigeben**. Danach öffnet **Formular öffnen** das Formular der Firma, und die Erweiterung füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe [Fertige Dateien verwenden](#fertige-dateien-verwenden)).
+3. **Bewerben**: **Heute** zeigt, was als Nächstes zu tun ist, und die Seite **Bewerbungen** den nächsten Schritt jeder Bewerbung. Öffnen Sie eine Bewerbung und klicken Sie auf **Unterlagen erstellen**. Fehlt noch ein Anschreiben, entwirft die KI dabei zuerst eines; das kann bis zu einer Minute dauern. Der Entwurf ist ein Ausgangspunkt: Lesen Sie ihn, passen Sie ihn mit **Ändern** an die Stelle und die Firma an, und klicken Sie dann auf **Freigeben**. Danach öffnet **Formular öffnen** das Formular der Firma, und die Erweiterung füllt es aus. Haben Sie schon einen fertigen Lebenslauf, entfällt das Erstellen (siehe [Fertige Dateien verwenden](#fertige-dateien-verwenden)).
 
 Abgeschickt wird eine Bewerbung immer von Ihnen selbst.
 
@@ -215,7 +215,7 @@ Nach dem Übernehmen holt **Rückgängig machen** den Stand davor zurück, solan
 
 ### Firmen und kununu
 
-Unter **Mehr**, **Firmen** steht jede Firma aus Ihren Treffern und Bewerbungen, dazu, was kununu über sie sagt. Auf **Stellen suchen** führt **Firmen ansehen** dorthin. Bei der Lehrstellensuche heisst die Seite **Lehrbetriebe**.
+Unter **Mehr**, **Firmen** steht jede Firma aus Ihren Treffern und Bewerbungen, dazu, was kununu über sie sagt. Auf **Stellen** ist **Firmen** ein Reiter neben **Neu**, **Gemerkt** und **Verworfen**. Bei der Lehrstellensuche heisst die Seite **Lehrbetriebe**.
 
 Auf kununu bewerten heutige und frühere Mitarbeitende ihre Firma, bei Lehrbetrieben auch Lernende. 5 ist der beste Wert, 1 der schlechteste. Die Werte stammen von diesen Mitarbeitenden, nicht von der App. Unter 10 Bewertungen sagt ein Wert wenig, die App schreibt dann „wenig aussagekräftig“. Nach 90 Tagen gilt er als veraltet, und die App bietet **Neu prüfen** an. Die Note der App ist etwas anderes: Sie sagt, wie gut eine Stelle zu Ihren Angaben passt.
 
@@ -451,7 +451,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 <details>
 <summary>Ihre Bewerbungen</summary>
 
-- `bewerbungen.yaml` – das Register aller Bewerbungen: Firma, Stelle, Status, Daten, Notizen. Die App ändert es in der **Übersicht**, auf der Seite jeder Bewerbung und beim **Merken** einer Stelle. Ausserhalb der App ist es eine Liste in YAML, die sich in eine Tabelle übertragen lässt.
+- `bewerbungen.yaml` – das Register aller Bewerbungen: Firma, Stelle, Status, Daten, Notizen. Die App ändert es auf der Seite **Bewerbungen**, auf der Seite jeder Bewerbung und beim **Merken** einer Stelle. Ausserhalb der App ist es eine Liste in YAML, die sich in eine Tabelle übertragen lässt.
 - `bewerbungen/<id>/` – ein Ordner pro Bewerbung:
   - `bewerbungen/<id>/stelle.md` – der Text des Inserats, gespeichert beim **Merken** oder beim Speichern des Inserats mit der Erweiterung.
   - `bewerbungen/<id>/anschreiben.yaml` – Ihr Anschreiben, entworfen und geändert auf der Seite der Bewerbung.

@@ -34,11 +34,13 @@ function element(tag = "div", attrs = {}, children = []) {
 /** Text of an element made with App.el, children included. */
 const textOf = node => (node && typeof node === "object" ? (node.children || []).flat().map(textOf).join("") : String(node ?? ""));
 
-function page({ liste = {}, uebernehmen = {}, erweiterung = true } = {}) {
+function page({ liste = {}, uebernehmen = {}, erweiterung = true, hash = "" } = {}) {
   const elements = new Map();
   const $ = id => { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); };
-  for (const id of ["lauf-box", "bewerten-box", "einstellen"]) $(id).hidden = true;  // hidden in treffer.html
+  for (const id of ["lauf-box", "bewerten-box"]) $(id).hidden = true;  // hidden in treffer.html
   const messages = [];
+  const posted = [];
+  const replaced = [];
   const timers = [];
   const daten = {
     treffer: [], einstellungen: { auto_bewerten: false, zuschauen: false, beruf_sterne: {}, sortierung: "note" },
@@ -72,41 +74,60 @@ function page({ liste = {}, uebernehmen = {}, erweiterung = true } = {}) {
     Suchbegriffe: { zeige() {} },
     SuchbegriffeStart: { zeige() {}, ids: () => null },
     addEventListener() {},
-    postMessage() {},
+    postMessage(nachricht) { posted.push(nachricht); },
     matchMedia: () => ({ matches: false }),
   };
   const context = {
     window, document, URLSearchParams, console,
     localStorage: { getItem: () => "1", setItem() {} },  // an old „keep open“ must not open the settings any more
-    location: { origin: ORIGIN },
+    location: { origin: ORIGIN, hash, pathname: "/treffer", search: "" },
+    history: { replaceState: (...args) => replaced.push(args) },
     setTimeout: (f, ms) => { timers.push({ f, ms }); return timers.length; },
     clearTimeout() {},
   };
   vm.runInNewContext(CODE, context);
-  return { $, messages, document, timers };
+  return { $, messages, document, timers, posted, replaced };
 }
 
 const settle = async () => { for (let i = 0; i < 5; i += 1) await new Promise(resolve => setImmediate(resolve)); };
 
-test("the browser tab and the page both say Stellen suchen", async () => {
-  assert.match(HTML, /<title>Stellen suchen<\/title>/);
-  assert.match(HTML, /<h1 id="titel" data-text="nav.suche">Stellen suchen<\/h1>/);
+test("the browser tab and the page both say Stellen (G55, #262)", async () => {
+  assert.match(HTML, /<title>Stellen<\/title>/);
+  assert.match(HTML, /<h1 id="titel" data-text="nav.stellen">Stellen<\/h1>/);
   const p = page();
   await settle();
-  assert.equal(p.document.title, "Stellen suchen");
+  assert.equal(p.document.title, "Stellen");
 });
 
-test("Suche einstellen is closed on opening and sums itself up in one line with Ändern", async () => {
+test("the settings sum themselves up in one line, and Ändern leads to Suche einstellen (#263)", async () => {
   const p = page({ liste: { treffer: [] } });
   await settle();
-  assert.equal(p.$("einstellen").hidden, true);
   assert.equal(p.$("einstellen-zeile").hidden, false);
   assert.equal(p.$("einstellen-text").textContent, "Sucht nach Data Engineer, Analyst · ganze Schweiz, nahe Bern zuerst · 4 Portale");
-  assert.match(HTML, /id="einstellen-zeile"[^>]*hidden><span id="einstellen-text"><\/span> <button[^>]*id="einstellen-aendern"[^>]*>Ändern<\/button>/);
+  assert.match(HTML, /id="einstellen-zeile"[^>]*hidden><span id="einstellen-text"><\/span> <a [^>]*id="einstellen-aendern" href="\/suche-einstellen">Ändern<\/a>/);
+  assert.match(HTML, /<a class="btn" id="einstellen-knopf" href="\/suche-einstellen">Suche einstellen<\/a>/);
+  assert.match(HTML, /<a class="btn" id="leer-einstellen" href="\/suche-einstellen">Suche einstellen<\/a>/);
+});
 
-  p.$("einstellen-aendern").fire("click");
-  assert.equal(p.$("einstellen").hidden, false);
-  assert.equal(p.$("einstellen-zeile").hidden, true);
+test("Jetzt suchen on Suche einstellen starts the search once Stellen can (#263)", async () => {
+  const p = page({ hash: "#jetzt-suchen" });
+  await settle();
+  assert.deepEqual(p.posted.map(n => n.art), ["suche-starten"]);
+  assert.equal(p.replaced.length, 1);  // the address loses #jetzt-suchen, so reloading does not search again
+  const ohne = page({ hash: "#jetzt-suchen", liste: { sperrgrund: "Zuerst Meine Angaben abschliessen." } });
+  await settle();
+  assert.deepEqual(ohne.posted, []);
+  assert.equal(ohne.$("suchen-grund").textContent, "Zuerst Meine Angaben abschliessen.");
+  const gewoehnlich = page();
+  await settle();
+  assert.deepEqual(gewoehnlich.posted, []);
+});
+
+test("the title filters read as one sentence on Suche einstellen (#263)", () => {
+  assert.equal(anzeige.titelfilterText(["a", "b"], ["c"]), "Titel enthält eines von 2 Wörtern, keines von 1");
+  assert.equal(anzeige.titelfilterText(["a"], []), "Titel enthält eines von 1 Wort");
+  assert.equal(anzeige.titelfilterText([], ["c", "d", "e"]), "Titel enthält keines von 3 Wörtern");
+  assert.equal(anzeige.titelfilterText([], []), "");
 });
 
 test("the summary names cantons, a radius for apprenticeships, a missing term and caps a long list", () => {
@@ -180,7 +201,7 @@ test("Übernehmen becomes Merken, and the message reads Gemerkt. with a link to 
   assert.equal(gemerkt.inhalt[1].tag, "a");
   assert.equal(gemerkt.inhalt[1].attrs.href, "/bewerbung?id=b7");
   assert.equal(textOf(gemerkt.inhalt[1]), "Bewerbung öffnen");
-  assert.match(HTML, /data-zustand="uebernommen" aria-pressed="false">Gemerkt </);
+  assert.match(HTML, /data-zustand="uebernommen">Gemerkt </);
 });
 
 test("Register in user texts becomes Ihre Bewerbungen, in the Sie and the du form", () => {

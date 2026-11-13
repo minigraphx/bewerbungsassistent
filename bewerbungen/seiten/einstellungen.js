@@ -14,7 +14,6 @@
     $("kosten-monat").textContent = usd(stand.kosten.monat_usd);
     $("kosten-gesamt").textContent = usd(stand.kosten.gesamt_usd);
     $("kosten-aufrufe").textContent = String(stand.kosten.aufrufe);
-    if (stand.gesetzt) ladeSeiten();
   }
 
   function zeigeEinwilligung(ki) {
@@ -28,39 +27,6 @@
 
   function ladeEinwilligung() {
     holen("/api/ki/status").then(zeigeEinwilligung, fehler => status($("einwilligung-meldung"), fehler.message, "fehler"));
-  }
-
-  function zeigeSeiten(stand) {
-    $("max-seiten").textContent = String(stand.max_seiten);
-    $("seiten").value = stand.seiten.map(seite => seite.adresse).join("\n");
-    $("zugriff").hidden = !stand.seiten.length;
-  }
-
-  async function ladeSeiten() {
-    try {
-      zeigeSeiten(await holen("/api/suche/weitere-seiten"));
-    } catch (fehler) {
-      status($("seiten-meldung"), fehler.message, "fehler");
-    }
-  }
-
-  async function seitenSpeichern() {
-    const seiten = $("seiten").value.split("\n").map(zeile => zeile.trim()).filter(Boolean);
-    try {
-      zeigeSeiten(await senden("/api/suche/weitere-seiten", { seiten }));
-      status($("seiten-meldung"), seiten.length ? "Gespeichert. Die Seiten kommen bei der nächsten Suche dazu." : "Gespeichert.", "ok");
-    } catch (fehler) {
-      status($("seiten-meldung"), fehler.message, "fehler");
-    }
-  }
-
-  function zugriffErlauben() {
-    if (!hatErweiterung()) {
-      status($("seiten-meldung"), "Die Browser-Erweiterung antwortet nicht. Bitte diese Seite im Browser mit der Erweiterung öffnen.", "hinweis");
-      return;
-    }
-    anErweiterung("zugriff-erlauben");
-    status($("seiten-meldung"), "Die Erweiterung hat eine eigene Seite geöffnet. Bitte dort erlauben.", "ok");
   }
 
   function pruefeBereit() {
@@ -110,17 +76,12 @@
           : "Die Erweiterung hat den Zugriff auf alle Seiten abgegeben.";
       status($("zugriff-meldung"), text, daten.antwort && daten.antwort.fehler ? "fehler" : "ok");
     }
-    if (daten.frage === "zugriff-erlauben" && daten.antwort && daten.antwort.fehler) {
-      status($("seiten-meldung"), daten.antwort.fehler, "fehler");
-    }
   });
 
   $("bestaetigt").addEventListener("change", pruefeBereit);
   $("schluessel").addEventListener("input", pruefeBereit);
   $("speichern").addEventListener("click", speichern);
   $("entfernen").addEventListener("click", entfernen);
-  $("seiten-speichern").addEventListener("click", seitenSpeichern);
-  $("zugriff").addEventListener("click", zugriffErlauben);
   holen("/api/schluessel").then(zeige).catch(fehler => status($("meldung"), fehler.message, "fehler"));
   bestaetigen($("einwilligung-widerruf"), "Wirklich widerrufen? Nochmals klicken", async () => {
     try {

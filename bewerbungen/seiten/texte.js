@@ -13,14 +13,20 @@
     "nav.suche": { sie: "Stellen suchen", du: "Stellen suchen", lehrstelle: "Lehrstellen suchen" },
     "nav.stellen": { sie: "Stellen", du: "Stellen", lehrstelle: "Lehrstellen" },
     // Other pages (step 6)
-    "dateien.variante": { sie: "Wenn Sie in einer Bewerbung eine Variante wählen, gilt sie dort.", du: "Wenn du in einer Bewerbung eine Variante wählst, gilt sie dort." },
-    "dateien.eigen-titel": { sie: "Ihr eigenes PDF", du: "Dein eigenes PDF" },
-    "dateien.eigen": { sie: "Sonst gilt der Lebenslauf, den Sie hier hochladen.", du: "Sonst gilt der Lebenslauf, den du hier hochlädst." },
+    "dateien.cv-titel": { sie: "Ihr Lebenslauf", du: "Dein Lebenslauf" },
+    "dateien.app": { sie: "Aus Ihren Angaben, für jede Stelle passend gewichtet. Empfohlen.", du: "Aus deinen Angaben, für jede Stelle passend gewichtet. Empfohlen." },
+    "dateien.eigen": { sie: "Es geht unverändert an jede Firma. Ändern können Sie es nur ausserhalb der App.", du: "Es geht unverändert an jede Firma. Ändern kannst du es nur ausserhalb der App." },
+    "dateien.app-wie": { sie: "Aus Meine Angaben. Für jede Stelle passen Sie ihn in der Bewerbung an.", du: "Aus Meine Angaben. Für jede Stelle passt du ihn in der Bewerbung an." },
+    "dateien.ihr-pdf": { sie: "Ihr PDF", du: "Dein PDF" },
     "dateien.wie-es-ist": {
       sie: "Ihr PDF wird so verwendet, wie es ist. Ändern Sie es dort, wo Sie es erstellt haben, und laden Sie es neu hoch.",
       du: "Dein PDF wird so verwendet, wie es ist. Ändere es dort, wo du es erstellt hast, und lade es neu hoch.",
     },
-    "dateien.gebaut": { sie: "Ohne eigenes PDF erstellt die App den Lebenslauf aus Ihren Angaben.", du: "Ohne eigenes PDF erstellt die App den Lebenslauf aus deinen Angaben." },
+    "dateien.ordnet": { sie: "PDF, JPG oder PNG. Die App ordnet sie selbst ein, Sie können das ändern.", du: "PDF, JPG oder PNG. Die App ordnet sie selbst ein, du kannst das ändern." },
+    "dateien.zurueck-zur-app": {
+      sie: "Danach erstellt die App Ihren Lebenslauf aus Ihren Angaben. Das PDF lässt sich unter Frühere Fassungen zurückholen.",
+      du: "Danach erstellt die App deinen Lebenslauf aus deinen Angaben. Das PDF lässt sich unter Frühere Fassungen zurückholen.",
+    },
     "entwuerfe.intro": {
       sie: "Jedes Speichern legt eine Fassung an. Sie können jede ansehen, mit einer anderen vergleichen und zurückholen.",
       du: "Jedes Speichern legt eine Fassung an. Du kannst jede ansehen, mit einer anderen vergleichen und zurückholen.",
@@ -39,9 +45,19 @@
     "fragen.label": { sie: "Ihre Frage", du: "Deine Frage" },
     "fragen.sprecher": { sie: "Sie", du: "Du" },
     "suche.wo": { sie: "Wo suchen Sie?", du: "Wo suchst du?" },
+    // Suche einstellen (#263, A4): the cards
+    "einstellen.was": { sie: "Welche Stellen passen zu Ihnen?", du: "Welche Stellen passen zu dir?", lehrstelle: "Welche Lehrstellen passen zu dir?" },
+    "einstellen.nicht": { sie: "Was Sie nicht sehen wollen", du: "Was du nicht sehen willst" },
+    "einstellen.ohne-schluessel": {
+      sie: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den tragen Sie in den Einstellungen ein.",
+      du: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den trägst du in den Einstellungen ein.",
+    },
+    // Stellen (#262, A3): the decision per hit (G58) and the own stars under the AI (G22)
+    "suche.entscheiden": { sie: "Was möchten Sie mit dieser Stelle tun?", du: "Was möchtest du mit dieser Stelle tun?", lehrstelle: "Was möchtest du mit dieser Lehrstelle tun?" },
+    "suche.eigene": { sie: "Ihre eigene Bewertung", du: "Deine eigene Bewertung" },
+    "suche.eigene-hinweis": { sie: "Ihr Urteil, getrennt von der Note der KI. Geht nicht an die KI.", du: "Dein Urteil, getrennt von der Note der KI. Geht nicht an die KI." },
     // Firmen with kununu (G35, #188, docs/design/firmen.md); „Firma“ stays neutral, apprenticeships say „Lehrbetrieb“
     "nav.firmen": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
-    "suche.firmen": { sie: "Firmen ansehen", du: "Firmen ansehen", lehrstelle: "Lehrbetriebe ansehen" },
     "firmen.titel": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
     "firmen.alle": { sie: "Alle Firmen", du: "Alle Firmen", lehrstelle: "Alle Lehrbetriebe" },
     "firmen.zeile": {
@@ -241,7 +257,7 @@
     },
 
     // Overview (step 3)
-    "uebersicht.von-hand": { sie: "Stelle von Hand erfassen", du: "Stelle von Hand erfassen", lehrstelle: "Lehrstelle von Hand erfassen" },
+    "uebersicht.von-hand": { sie: "Stelle selbst erfassen", du: "Stelle selbst erfassen", lehrstelle: "Lehrstelle selbst erfassen" },
     "uebersicht.feld-firma": { sie: "Firma", du: "Firma", lehrstelle: "Lehrbetrieb" },
     "uebersicht.feld-stelle": { sie: "Stelle", du: "Stelle", lehrstelle: "Lehrstelle" },
     "uebersicht.suche": { sie: "Firma oder Stelle", du: "Firma oder Stelle", lehrstelle: "Lehrbetrieb oder Lehrstelle" },

@@ -1,0 +1,54 @@
+/* Stellen (#262, A3): tabs, the hits without a grade above the list, the decision per hit and the own stars.
+   Only tokens from stil.css. */
+
+.tabs { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); border-bottom: 1px solid var(--line); }
+.search__bar .tabs { flex: 1 1 auto; border-bottom: 0; }
+.tabs__tab { display: inline-flex; gap: var(--space-1); align-items: center; padding: var(--space-2) var(--space-1); border-bottom: 2px solid transparent; color: var(--text); text-decoration: none; font-weight: 500; }
+.tabs__tab:hover { color: var(--text-strong); border-bottom-color: var(--line-strong); }
+.tabs__tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.tabs__tab[aria-current="page"] { color: var(--text-strong); font-weight: 700; border-bottom-color: var(--accent); }
+.tabs__tab .num { color: var(--text-muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+.tabs__tab .num:empty { display: none; }
+.search__order { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+
+/* The column with the list: hits without a grade first */
+.search__column { flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.search__column .search__list { flex: none; }
+.search__open { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--surface-subtle); }
+.search__open[hidden] { display: none; }
+.search__open-text { margin: 0; flex: 1 1 220px; color: var(--text-strong); }
+.search__open-text .search__hint { display: block; }
+
+/* The decision per hit (G58) */
+.decision { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-lg); background: var(--accent-subtle); }
+.decision__question { margin: 0; color: var(--text-strong); }
+.decision .btn-row { margin: 0; }
+.ai-result__foot .btn { margin-left: var(--space-1); }
+
+/* The own stars (G22) under the AI */
+.own-rating { display: flex; flex-direction: column; gap: var(--space-1); }
+.own-rating p { margin: 0; }
+.own-rating__line { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.own-rating__label { font-weight: 500; color: var(--text-strong); }
+.own-rating .sterne button { font-size: 22px; }
+
+.companies-page .tabs { margin-top: var(--space-2); }
+
+/* Suche einstellen (#263, A4): four cards and Erweitert in one reading column */
+.settings-page { max-width: var(--width-reading); }
+.settings-page__crumb { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.settings-page__head { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: baseline; justify-content: space-between; }
+.settings-page__head h2, .settings-page__head h3 { margin: 0; padding: 0; border: 0; }
+.settings-page__head h2 { font-size: 18px; line-height: 24px; }
+.settings-page__head h3 { font-size: 16px; line-height: 22px; color: var(--text-strong); }
+.settings-page__sub { display: flex; flex-direction: column; gap: var(--space-3); }
+.settings-page__sub h3 { margin: 0; font-size: 16px; line-height: 22px; color: var(--text-strong); }
+.settings-page__sub p, .settings-page__sub .btn-row, .settings-page .card fieldset { margin: 0; }
+.settings-page__ask { padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--surface-subtle); }
+.settings-page__more > summary { cursor: pointer; font-size: 18px; line-height: 24px; font-weight: 700; color: var(--text-strong); }
+.settings-page__more[open] > summary { margin-bottom: var(--space-2); }
+.settings-page__select { max-width: 240px; }
+.settings-page__foot { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-4); align-items: center; justify-content: space-between; }
+.settings-page__foot p { margin: 0; flex: 1 1 240px; color: var(--text-muted); }
+.settings-page__more > p, .settings-page__more > .settings-page__sub { margin: var(--space-3) 0 0; }
+.settings-page__more > .settings-page__sub { padding-top: var(--space-3); border-top: 1px solid var(--line); }

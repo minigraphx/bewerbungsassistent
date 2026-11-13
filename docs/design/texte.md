@@ -34,7 +34,7 @@ Nur der Link zur Suche und der Satz zum Datenschutz unterscheiden sich; der Rest
 | Einstellungen, Daten und Sicherung | Angaben und Bewerbungen liegen im Datenordner auf diesem Computer. Eine Sicherung packt ihn in eine ZIP-Datei, am besten für einen USB-Stick. · Sicherung erstellen · Einrichtung: Datenordner, Erweiterung und KI · Für Geübte: Inhalte als Text bearbeiten | gleich |
 | Einstellungen, Über die App | Bewerbungsbegleiter · Version 0.9.3 · von Andreas Schmidt · Beenden | gleich |
 | Meine Dateien, Foto | Das Foto im Lebenslauf: Foto wählen und zuschneiden | gleich |
-| Zurück-Links | ← Zurück zur Übersicht · ← Zurück zu Meine Angaben · ← Zurück zu Entwürfe und Versionen | gleich |
+| Zurück-Links | ← Zurück zu Meine Angaben · ← Zurück zu Entwürfe und Versionen | gleich |
 | Fuss jeder KI-Karte | Eine Einschätzung, kein Urteil. Die KI kann sich irren. · Claude · CHF 0.02 · 05.11.2026 | gleich |
 | Unter jedem Editor | Jede Änderung wird als Entwurf gespeichert und lässt sich zurückholen. | gleich |
 | Datenschutz beim Vorbefüllen | Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und Scans bleiben auf Ihrem Computer. | Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und Scans bleiben auf deinem Computer. |
@@ -57,7 +57,9 @@ Die Unterschiede liegen in der Anrede, in den Sätzen der Nächster-Schritt-Kart
 | Ihr Stand | Ihr Stand · Neue Stellen 8, aus der Suche vom 10.11. (oder: noch keine Suche) · Gemerkt 3, 1 Frist in dieser Woche · Beworben 2, 1 Gespräch · Abgeschlossen 3, 1 Zusage, 2 Absagen | Dein Stand · Neue Lehrstellen … · 1 Einladung |
 | Durchgang | 1 von 3 · Stelle · Firma, Ort · Note 5 · Frist 20.11.2026 · Inserat · Zu dieser Stelle fehlt der Inseratstext. Inserat öffnen · Bewerbung öffnen · Durchgang beenden · Später · Verwerfen · Bewerben | gleich |
 | Durchgang fertig | Durchgang fertig: 2 zum Bewerben, 1 verworfen, 1 für später. | gleich |
-| Liste (bis zur Seite Bewerbungen) | Bewerbungen · Stelle von Hand erfassen · Gemerkt 4 · Beworben 2 · Abgeschlossen 1 · Alle 7 · Firma oder Stelle | Lehrstelle von Hand erfassen · Lehrbetrieb oder Lehrstelle |
+| Seite Bewerbungen (A5, #261) | Bewerbungen · Stelle selbst erfassen · Gemerkt 4 · Beworben 2 · Abgeschlossen 1 · Alle 7 · Suchen · Firma oder Stelle · Stelle und Firma · Stand · Note · Nächster Schritt · Bis wann · Erfasst | Lehrstelle selbst erfassen · Lehrbetrieb oder Lehrstelle · Lehrstelle und Lehrbetrieb |
+| Bewerbungen, unter der Liste | Angehakte verwerfen · Zuerst Bewerbungen anhaken. · 2 angehakt · Anderer Stand … · Stand setzen · Gemerkte in einem Durchgang bewerten | gleich |
+| Bewerbungen, Verwerfen | 3 Bewerbungen verwerfen? · 1 schon verschickte wird zurückgezogen. · 1 abgeschlossene bleibt, wie sie ist. · Abbrechen · Verwerfen · 2 Bewerbungen verworfen, 1 zurückgezogen. | gleich |
 | Liste, Fuss | Abgeschlossen: 1 Zusage, 5 Absagen, 1 zurückgezogen. Anzeigen | gleich |
 | Liste leer | Noch keine Bewerbungen. Übernehmen Sie eine Stelle aus der Suche oder erfassen Sie eine von Hand. | Noch keine Bewerbungen. Übernimm eine Lehrstelle aus der Suche oder erfasse eine von Hand. |
 | Leer, Karte | Erste Stellen suchen · Ihre Angaben sind übernommen. Die Erweiterung sucht jetzt auf den Portalen, die KI schätzt jeden Treffer ein. Ein Suchlauf dauert einige Minuten. · Stellen suchen | Erste Lehrstellen suchen · … · Lehrstellen suchen |
@@ -68,13 +70,13 @@ Die Unterschiede liegen in der Anrede, in den Sätzen der Nächster-Schritt-Kart
 | Gut zu wissen | Ihre Angaben bleiben auf diesem Computer. Name, Adresse und Kontakt werden ersetzt, bevor ein Text zur KI geht. · Die KI schlägt vor, Sie entscheiden. Noten sind Einschätzungen, Anschreiben sind Entwürfe. · Nichts geht automatisch weg. Jede Bewerbung schicken Sie selbst ab. · Anleitung mit Bildern öffnen | Deine Angaben … · Die KI schlägt vor, du entscheidest. … · Jede Bewerbung schickst du selbst ab. |
 | Dialog Doppelbewerbung | Bei Muster AG läuft schon eine Bewerbung · Sachbearbeiterin Einkauf, beworben am 28.10.2026. Möchten Sie das Formular für «Assistentin Einkauf» trotzdem öffnen? · Abbrechen · Trotzdem öffnen | Bei Muster AG läuft schon eine Bewerbung · Kauffrau EFZ, beworben am 28.10.2026. Möchtest du das Formular für «Schnupperlehre Kauffrau» trotzdem öffnen? · Abbrechen · Trotzdem öffnen |
 
-## Stellen suchen
+## Stellen
 
 Bei Lehrstellen kommen eigene Teile dazu (Was suchst du, Deine Berufe, zwei Noten); die übrigen Unterschiede sind Anrede und Wortwahl.
 
 | Ort | Sie (Stellen) | du (Lehrstellen) |
 | --- | --- | --- |
-| Titel | Stellen suchen | Lehrstellen suchen |
+| Titel | Stellen | Lehrstellen |
 | Zeile unter dem Titel | Letzte Suche heute, 08:12 · 4 Portale · 23 Treffer, 12 neu | Letzte Suche heute, 08:12 · LENA und yousty · 14 Treffer, 4 neu |
 | Während der Suche | Suche läuft seit 08:12. | gleich |
 | Knöpfe | Suche einstellen · Jetzt suchen · Suche läuft … | gleich |
@@ -87,7 +89,9 @@ Bei Lehrstellen kommen eigene Teile dazu (Was suchst du, Deine Berufe, zwei Note
 | Suchlauf | Die Erweiterung sucht auf den Portalen · 2 von 4 Portalen · jobs.ch: fertig, 8 Treffer · job-room.ch: läuft · jobscout24.ch: wartet | gleich, mit LENA, yousty, Berufsberatung.ch, Karriereseiten |
 | Einschätzen | KI schätzt Treffer ein · 3 von 10 · Anhalten | gleich |
 | Unter dem Fortschritt | Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten. Bisher CHF 0.03. | Ein Suchlauf dauert einige Minuten. Du kannst währenddessen weiterarbeiten. Bisher CHF 0.03. |
-| Filter | Neu 12 · Übernommen 4 · Verworfen 7 | Neu 4 · Übernommen 4 · Verworfen 7 |
+| Reiter | Neu 12 · Gemerkt 4 · Verworfen 7 · Firmen | Neu 4 · Gemerkt 4 · Verworfen 7 · Lehrbetriebe |
+| Über der Liste | 2 Stellen sind noch nicht geprüft. · Bisher etwa 0.030 USD pro Treffer. · Bewerten (2) | 2 Lehrstellen sind noch nicht geprüft. · … |
+| Reihenfolge | Reihenfolge · Nach Note der KI · Nach eigener Bewertung · Nach Datum | gleich |
 | Notenhilfe, Titel | Wie lese ich die Note? | Wie lese ich die Noten? |
 | Notenhilfe, Text | Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein. | Schweizer Noten: 6 ist die beste, 1 die schlechteste Note. Die Note «Beruf» sagt, wie gut der Beruf zu dir passt, die Note «Lehrstelle», wie gut dieser Lehrbetrieb passt. Ab 4 passt es genügend. Die KI kann sich irren. |
 | Keine Treffer | Keine neuen Treffer · Die Portale haben nichts Neues gemeldet. Versuchen Sie weitere Suchbegriffe oder eine grössere Umgebung. · Suche einstellen | Keine neuen Treffer · Die Portale haben nichts Neues gemeldet. Nimm weitere Berufe dazu oder suche in einer grösseren Umgebung. · Suche einstellen |
@@ -97,7 +101,9 @@ Bei Lehrstellen kommen eigene Teile dazu (Was suchst du, Deine Berufe, zwei Note
 | Detail, schon im Register | Schon im Register · Bei Demo Handel AG ist die Stelle «Einkaufsassistentin 60–80 %» gemerkt. | Schon im Register · Bei Demo Handel AG ist die Lehrstelle «Kauffrau EFZ» gemerkt. |
 | Detail, KI-Karte | Einschätzung der KI · Was passt · Was fehlt oder unsicher ist | gleich |
 | Detail, Nachprüfung | Dreimal einzeln nachgeprüft: 5, 5 und 4.5. · Die Einschätzungen gehen auseinander. · Unter Note 4 wird nicht nachgeprüft. | Dreimal einzeln nachgeprüft: 5, 5 und 5. · Die Einschätzungen gehen auseinander. · Unter Note 4 beim Beruf wird nicht nachgeprüft. |
-| Detail, Knöpfe | Übernehmen (ab Note 4) · Trotzdem übernehmen (unter 4) · Verwerfen | gleich |
+| Detail, Entscheid | Was möchten Sie mit dieser Stelle tun? · Bewerbung vorbereiten · Merken · Verwerfen (gemerkt: Zur Bewerbung, verworfen: Zurückholen) | Was möchtest du mit dieser Lehrstelle tun? · gleich |
+| Detail, KI-Karte, Fuss | Eine Einschätzung, kein Urteil. Die KI kann sich irren. · Neu bewerten | gleich |
+| Detail, eigene Bewertung | Ihre eigene Bewertung · Ihr Urteil, getrennt von der Note der KI. Geht nicht an die KI. | Deine eigene Bewertung · Dein Urteil, getrennt von der Note der KI. Geht nicht an die KI. |
 | Detail, Beispiel der KI | Englisch verhandlungssicher verlangt, im Profil «gut» | Du hast Kauffrau/Kaufmann mit drei Sternen gewählt (KI schreibt in der Du-Form, Regel 8) |
 
 ## Bewerbung
@@ -106,7 +112,7 @@ Der Text des Anschreibens bleibt in beiden Zweigen in der Sie-Form an die Firma 
 
 | Ort | Sie (Stellen) | du (Lehrstellen) |
 | --- | --- | --- |
-| Zurück-Link | ← Zurück zur Übersicht | gleich |
+| Pfad | Bewerbungen › Sachbearbeiterin Einkauf | Bewerbungen › Kauffrau EFZ |
 | Kopf | Sachbearbeiterin Einkauf 80 % · Muster AG, Zürich · Abgabe bis 20.11.2026 | Kauffrau EFZ · Muster Versicherung AG, Bern · Lehrbeginn August 2027 · Abgabe bis 20.11.2026 |
 | Schritte | Stelle · Lebenslauf · Anschreiben · Prüfen · Abschicken · Festhalten | Lehrstelle · Lebenslauf · Anschreiben · Prüfen · Abschicken · Festhalten |
 | Schritte, Zusatz | übernommen 03.11. · Variante Einkauf · Entwurf lesen · freigegeben · 1 Hinweis geklärt · machen Sie selbst · am 06.11.2026 · beworben | gleich, ausser: machst du selbst |

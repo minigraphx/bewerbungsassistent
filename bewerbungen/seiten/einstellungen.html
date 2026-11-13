@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
-<nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/#liste-teil" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
+<nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/bewerbungen" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
 <main class="page page--side">
   <aside class="page__aside">
     <h1>Erweiterte Einstellungen</h1>
@@ -17,7 +17,6 @@
     <nav class="page__toc" aria-label="Abschnitte">
       <a href="#kosten">Kosten der KI</a>
       <a href="#einwilligung">Einwilligung</a>
-      <a href="#zeitfenster" id="zeitfenster-link" hidden>Zeitfenster der Suche</a>
       <a href="#schluessel-teil">Eigener API-Schlüssel</a>
       <a href="#claude-abo">Claude mit eigenem Abo</a>
       <a href="#vorabversionen">Vorabversionen</a>
@@ -48,15 +47,6 @@
     <div id="einwilligung-meldung" class="status" role="status" aria-live="polite"></div>
   </section>
 
-  <section class="card" id="zeitfenster" aria-labelledby="zeitfenster-titel" hidden>
-    <h2 id="zeitfenster-titel">Zeitfenster der Suche</h2>
-    <p class="hilfe">So weit geht die erste Suche zurück, und die Suche nach einer längeren Pause. Sonst sucht jedes Portal nur, was seit seiner letzten Suche dazugekommen ist.</p>
-    <label for="zeitfenster-tage">Inserate der letzten</label>
-    <select id="zeitfenster-tage"></select>
-    <div id="zeitfenster-meldung" class="status" role="status" aria-live="polite"></div>
-    <details id="zeitfenster-portale-teil" hidden><summary>Stand der Portale</summary><ul id="zeitfenster-portale"></ul></details>
-  </section>
-
   <section class="card" id="schluessel-teil" aria-labelledby="schluessel-titel">
   <h2 id="schluessel-titel">Eigener API-Schlüssel</h2>
   <p class="hilfe"><span data-text="einstellungen.schluessel">Sie brauchen das nicht, die App läuft auch ohne. Mit einem eigenen Schlüssel von Anthropic gehen die KI-Aufrufe direkt an die Claude API statt über die Vermittlung. Namen und andere persönliche Angaben werden auch dann vor dem Senden ersetzt.</span> <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md#eigener-api-schlüssel-freiwillig" target="_blank" rel="noopener">Anleitung: woher der Schlüssel kommt und was er kostet</a></p>
@@ -66,17 +56,7 @@
     <div class="knoepfe"><button type="button" id="entfernen" class="gefahr">Schlüssel entfernen</button></div>
     <p class="hilfe">Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab.</p>
 
-    <h3>Weitere Seiten durchsuchen</h3>
-    <p class="hilfe"><span data-text="einstellungen.seiten-adressen">Die Suche läuft dann auch auf diesen Seiten, sobald Sie sie starten. Tragen Sie die Adresse so ein, wie sie im Browser steht, eine pro Zeile,</span> höchstens <span id="max-seiten"></span>. <span data-text="einstellungen.seiten-suche">Hat die Seite ein Suchfeld, sucht die App dort mit den Begriffen aus Ihrem Suchprofil. Sonst liest sie die Stellen, die auf der Seite stehen, zum Beispiel die offenen Stellen einer Firma. Die KI liest die Stellen aus dem Text der Seite.</span></p>
-    <p class="hilfe">Beispiel: <code>https://www.beispiel.ch/stellen</code></p>
-    <label for="seiten">Adressen</label>
-    <textarea id="seiten" rows="5" spellcheck="false" autocomplete="off"></textarea>
-    <p class="hilfe" data-text="einstellungen.seiten-grenzen">Pro Seite höchstens zehn Suchen und dreissig Inserate pro Lauf, mit Pausen dazwischen. Nur Links auf dieselbe Seite werden übernommen. Anmeldungen und CAPTCHAs bleiben bei Ihnen: Verlangt eine Seite das, überspringt die Suche sie. LinkedIn verbietet Automatisierung und kann Konten einschränken oder sperren.</p>
-    <div class="knoepfe">
-      <button type="button" id="seiten-speichern" class="haupt">Seiten speichern</button>
-      <button type="button" id="zugriff" hidden>Zugriff in der Erweiterung erlauben</button>
-    </div>
-    <div id="seiten-meldung" class="status" role="status" aria-live="polite"></div>
+    <p class="hilfe">Mit dem Schlüssel durchsucht die Suche auch weitere Seiten. Die Adressen stehen unter <a href="/suche-einstellen#weitere-seiten">Suche einstellen</a>.</p>
   </div>
 
   <div id="ohne-schluessel" hidden>
@@ -164,8 +144,6 @@
 <script src="/sidebar.js"></script>
 <script src="/einwilligung.js"></script>
 <script src="/einstellungen.js"></script>
-<script src="/suche-anzeige.js"></script>
-<script src="/zeitfenster.js"></script>
 <script src="/claude-abo.js"></script>
 <script src="/vorabversionen.js"></script>
 </body>

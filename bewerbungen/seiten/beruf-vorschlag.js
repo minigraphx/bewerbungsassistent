@@ -7,7 +7,7 @@ window.Suchbegriffe = (() => {
   const $ = id => document.getElementById(id);
   const TEXTE = {
     lehrstelle: {
-      titel: "Welcher Beruf passt zu dir?",
+      titel: "Berufe von der KI vorschlagen lassen",
       hilfe: "Du weisst noch nicht, welchen Beruf du suchen sollst? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt dir passende Berufe vor und nennt dir ihre Namen für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Probier Berufe in einer Schnupperlehre aus, und auch die Berufsberatung hilft dir persönlich weiter.",
       interessen: "Was machst du gern? (Interessen)",
       staerken: "Was kannst du gut? (Fähigkeiten)",
@@ -26,7 +26,7 @@ window.Suchbegriffe = (() => {
       einwilligung: "Bevor die KI dir Berufe vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.",
     },
     stelle: {
-      titel: "Welche Stellen passen zu Ihnen?",
+      titel: "Stellen von der KI vorschlagen lassen",
       hilfe: "Sie wissen noch nicht genau, wonach Sie suchen sollen, vielleicht nur „etwas Administratives“? Schreiben Sie ein paar Stichworte zu Ihren Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf Ihren Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfen Sie die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft Ihnen persönlich weiter.",
       interessen: "Was machen Sie gern? (Interessen)",
       staerken: "Was können Sie gut? (Fähigkeiten)",
@@ -45,7 +45,7 @@ window.Suchbegriffe = (() => {
       einwilligung: "Bevor die KI Stellen vorschlägt, braucht es Ihre Einwilligung. Was Sie geschrieben haben, bleibt stehen.",
     },
     stelleDu: {
-      titel: "Welche Stellen passen zu dir?",
+      titel: "Stellen von der KI vorschlagen lassen",
       hilfe: "Du weisst noch nicht genau, wonach du suchen sollst, vielleicht nur „etwas Administratives“? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf deinen Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfe die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft dir persönlich weiter.",
       interessen: "Was machst du gern? (Interessen)",
       staerken: "Was kannst du gut? (Fähigkeiten)",

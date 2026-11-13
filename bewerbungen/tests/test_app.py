@@ -78,7 +78,7 @@ def test_lauscht_nur_lokal(server):
     assert server.server_address[0] == "127.0.0.1"
 
 
-@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/dateien", "/entwuerfe", "/foto", "/inhalte", "/treffer"])
+@pytest.mark.parametrize("pfad", ["/", "/bewerbung", "/bewerbungen", "/dateien", "/entwuerfe", "/foto", "/inhalte", "/treffer"])
 def test_seiten_mit_token_und_csp(server, pfad):
     status, typ, inhalt, antwort = anfrage(server, "GET", pfad, headers=session_header(server))
 
@@ -522,7 +522,7 @@ def test_all_pages_share_one_menu():
     assert len(navs) >= 7 and len(set(navs.values())) == 1, navs
     nav = next(iter(navs.values()))
     main, more = nav.split('<div class="app-nav__more"')  # below 900 px only the first part stays outside „Menü“ (G54)
-    for link in ("/", "/treffer", "/#liste-teil", "/angaben"):
+    for link in ("/", "/treffer", "/bewerbungen", "/angaben"):
         assert f'href="{link}"' in main
     for link in ("/dateien", "/fragen", "/einstellungen"):
         assert f'href="{link}"' in more
@@ -586,7 +586,7 @@ def test_details_say_when_the_documents_were_built(server):
     assert isinstance(built["anschreiben"], int) and built["anschreiben"] != stand["anschreiben"]
 
 
-PAGES_WITH_MENU = ["/", "/bewerbung", "/dateien", "/entwuerfe", "/foto", "/inhalte", "/treffer", "/einstellungen", "/einrichtung"]
+PAGES_WITH_MENU = ["/", "/bewerbung", "/bewerbungen", "/dateien", "/entwuerfe", "/foto", "/inhalte", "/treffer", "/einstellungen", "/einrichtung"]
 
 
 def test_the_page_for_questions_is_off_unless_switched_on(server):
