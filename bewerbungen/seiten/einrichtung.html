@@ -13,7 +13,9 @@
 <main class="einrichtung setup">
   <header class="setup__head">
     <h1>Einrichtung</h1>
-    <p>Drei kurze Schritte, zusammen etwa fünf Minuten. Jeder lässt sich später ändern. <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md" target="_blank" rel="noopener">Anleitung mit Bildern</a></p>
+    <p>Zwei kurze Schritte, zusammen etwa drei Minuten. Jeder lässt sich später ändern. <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md" target="_blank" rel="noopener">Anleitung mit Bildern</a></p>
+    <!-- The AI is no step (G60): this text opens the window „KI einrichten“ over the page -->
+    <p id="ki-zeile" class="setup__ki" hidden><span id="ki-zeile-text"></span> <button type="button" class="btn btn--quiet btn--sm" id="ki-einrichten">KI einrichten</button></p>
   </header>
   <p id="nur-installiert" class="notice notice--warning" role="status" hidden>Die Einrichtung gibt es nur in der installierten App.</p>
   <ol id="schritte" class="steps" aria-label="Schritte der Einrichtung"></ol>
@@ -73,25 +75,7 @@
     <div class="btn-row setup__actions setup__actions--split"><button type="button" class="btn btn--quiet" id="vorlage-ueberspringen">Überspringen</button><button type="button" class="btn btn--primary" id="vorlage-weiter">Weiter</button></div>
   </section>
 
-  <!-- 3. AI -->
-  <section class="card" id="ki" data-schritt="ki" aria-labelledby="ki-titel" hidden>
-    <h2 id="ki-titel">KI einrichten</h2>
-    <p><span data-text="einrichtung.ki.aufgabe">Die KI schätzt Stellen ein und entwirft Anschreiben.</span> <span id="ki-code-hinweis" data-text="einrichtung.ki.code" hidden>Sie haben von Ihrer Begleitperson einen Einladungscode erhalten.</span></p>
-    <div id="ki-einwilligung" class="field einwilligung" hidden></div>
-    <div id="ki-einladung" class="field" hidden>
-      <label class="field__label" for="ki-code">Einladungscode</label>
-      <div class="setup__path setup__path--code"><input class="input setup__code" id="ki-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button type="button" class="btn" id="ki-einloesen">Einladung einlösen</button></div>
-    </div>
-    <p id="ki-zustand" class="status-line" role="status" aria-live="polite"></p>
-    <details id="ki-ohne" class="setup__more">
-      <summary>Ich habe keinen Code</summary>
-      <p data-text="einrichtung.ki.ohne">Ohne KI funktionieren Suche, Unterlagen und Versand trotzdem. Anschreiben laden Sie dann selbst hoch, und Treffer bekommen keine Note.</p>
-      <p><span data-text="einrichtung.ki.selbst">Mit einem eigenen Schlüssel von Anthropic oder Ihrem Claude-Abo zahlen Sie die Kosten selbst:</span> <a href="/einstellungen#ki">Einstellungen</a>.</p>
-    </details>
-    <div class="btn-row setup__actions setup__actions--split"><button type="button" class="btn btn--quiet" id="ki-ueberspringen">Ohne KI weiter</button><button type="button" class="btn btn--primary" id="ki-weiter">Weiter</button></div>
-  </section>
-
-  <!-- 4. Browser extension -->
+  <!-- 3. Browser extension -->
   <section class="card" id="erweiterung" data-schritt="erweiterung" aria-labelledby="erweiterung-titel" hidden>
     <h2 id="erweiterung-titel">Browser-Erweiterung laden</h2>
     <p>Die Erweiterung sucht auf den Portalen und füllt Bewerbungsformulare aus. Abschicken macht sie nie.</p>
@@ -143,6 +127,8 @@
 <script src="/sidebar-logic.js"></script>
 <script src="/sidebar.js"></script>
 <script src="/einwilligung.js"></script>
+<script src="/ki-zugang.js"></script>
+<script src="/ki-fenster.js"></script>
 <script src="/einrichtung-logik.js"></script>
 <script src="/einrichtung.js"></script>
 </body>

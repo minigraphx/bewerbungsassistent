@@ -11,6 +11,7 @@ import urllib.parse
 SCHEME = "bewerbungsbegleiter"
 CODE = re.compile(r"[A-Za-z0-9 -]{4,40}")
 REGISTRY_KEY = rf"Software\Classes\{SCHEME}"
+SETUP_REQUEST = "ki=einrichten"  # the page opens the window „KI einrichten“ (G60) for an invitation link
 
 
 def invitation_code(argument: str | None) -> str | None:

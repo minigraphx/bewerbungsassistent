@@ -12,10 +12,10 @@ import preferences
 import unterlagen
 from ai import consent, form_help, invitation, tasks
 from ai.connection import find_connection, make_client, mediation_url, own_key
-from ai.errors import AiError
+from ai.errors import SETUP_ACTION, AiError, SetupNeeded
 from ai.usage import UsageLog
 from dateien import schreibe_atomar
-from server import json_antwort, pflicht
+from server import ActionError, json_antwort, pflicht
 
 LETTER_FILE = "anschreiben.yaml"
 STELLE_FILE = "stelle.md"
@@ -93,9 +93,12 @@ def ai_gateway(k, entry: dict | None = None, letter: dict | None = None, partial
 
 
 def run_ai(task):
-    """AI errors are meant for the person: they become 400 with the German message."""
+    """AI errors are meant for the person: they become 400 with the German message. Without a set up and agreed AI the
+    answer also tells the page to open the window „KI einrichten“ (G60)."""
     try:
         return task()
+    except SetupNeeded as error:
+        raise ActionError(str(error), SETUP_ACTION) from error
     except AiError as error:
         raise ValueError(str(error)) from error
 

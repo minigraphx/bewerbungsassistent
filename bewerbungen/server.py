@@ -46,6 +46,14 @@ class NichtGefunden(KeyError):
     pass
 
 
+class ActionError(ValueError):
+    """A 400 whose answer also names what the page can do about it, such as opening the window „KI einrichten“."""
+
+    def __init__(self, message: str, action: str) -> None:
+        super().__init__(message)
+        self.action = action
+
+
 @dataclasses.dataclass(frozen=True)
 class Antwort:
     status: int
@@ -119,8 +127,8 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(antwort.inhalt)
 
-    def _fehler(self, status: int, meldung: str) -> None:
-        self._senden(json_antwort({"fehler": meldung}, status))
+    def _fehler(self, status: int, meldung: str, action: str | None = None) -> None:
+        self._senden(json_antwort({"fehler": meldung, **({"aktion": action} if action else {})}, status))
 
     def _host_erlaubt(self) -> bool:
         port = self.server.server_address[1]
@@ -231,7 +239,7 @@ class Handler(BaseHTTPRequestHandler):
         except KeyError as fehler:
             return self._fehler(HTTPStatus.NOT_FOUND, str(fehler.args[0] if fehler.args else fehler))
         except ValueError as fehler:
-            return self._fehler(HTTPStatus.BAD_REQUEST, str(fehler))
+            return self._fehler(HTTPStatus.BAD_REQUEST, str(fehler), getattr(fehler, "action", None))
         except Exception:
             log.exception("Fehler bei %s %s", self.command, self.path)
             return self._fehler(HTTPStatus.INTERNAL_SERVER_ERROR, "Interner Fehler, Details in der Konsole")

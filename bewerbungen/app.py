@@ -113,6 +113,7 @@ SEITEN = {
     "/einstellungen-logik.js": "einstellungen-logik.js",
     "/einstellungen.css": "einstellungen.css",
     "/ki-zugang.js": "ki-zugang.js",
+    "/ki-fenster.js": "ki-fenster.js",
     "/claude-abo.js": "claude-abo.js",
     "/vorabversionen.js": "vorabversionen.js",
     "/seitengrenze.js": "seitengrenze.js",

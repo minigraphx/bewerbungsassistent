@@ -11,13 +11,13 @@ import os
 import pathlib
 
 import search_plan
-from ai.errors import AiError
+from ai.errors import SetupNeeded
 from dateien import schreibe_atomar
 
 FILE = "einwilligung.json"
 VERSION = "2026-11"
 PAGE_VARIABLE = "BEWERBUNGSBEGLEITER_DATENSCHUTZ_URL"
-MISSING = "Vor der ersten KI-Nutzung braucht es die Einwilligung: unter „Erweiterte Einstellungen“, Abschnitt „Einwilligung“."
+MISSING = "Vor der ersten KI-Nutzung braucht es die Einwilligung: unter „KI einrichten“."
 STALE_PAGE = "Der Text hat sich geändert. Bitte die Seite neu laden und nochmals lesen."
 _SENDING = ("Ich habe die Datenschutzerklärung gelesen und bin einverstanden, dass Texte aus {whose} Unterlagen für die "
             "KI-Funktionen an Anthropic gehen, auch in die USA. Sie können indirekt auf {hints} hindeuten.")
@@ -46,7 +46,7 @@ def is_given(data_dir: pathlib.Path, kind: str) -> bool:
 
 def require(data_dir: pathlib.Path, kind: str) -> None:
     if not is_given(data_dir, kind):
-        raise AiError(MISSING)
+        raise SetupNeeded(MISSING)
 
 
 def give(data_dir: pathlib.Path, kind: str, version: str, now: datetime.datetime) -> None:

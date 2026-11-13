@@ -37,9 +37,9 @@ Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson
 
 So kommen Sie von der Installation zur ersten Bewerbung. Jeder Schritt verweist auf die Einzelheiten weiter unten.
 
-1. **App installieren und einrichten.** Laden Sie die App auf der [Startseite](./#laden) und starten Sie sie. Die Seite **Einrichtung** fragt, was Sie suchen und ob Sie beim RAV gemeldet sind, und nimmt Ihren Einladungscode für die KI. Mehr unter [App installieren](#app-installieren) und [App einrichten](#app-einrichten).
+1. **App installieren und einrichten.** Laden Sie die App auf der [Startseite](./#laden) und starten Sie sie. Die Seite **Einrichtung** fragt, was Sie suchen und ob Sie beim RAV gemeldet sind, und nimmt mit **KI einrichten**, falls Sie einen haben, Ihren Einladungscode für die KI. Mehr unter [App installieren](#app-installieren) und [App einrichten](#app-einrichten).
 
-   ![Seite Einrichtung mit den drei Schritten, der Wahl zwischen Stelle und Lehrstelle und der Zeile mit dem Datenordner](bilder/einrichtung-start.jpg)
+   ![Seite Einrichtung mit den zwei Schritten, der Wahl zwischen Stelle und Lehrstelle und der Zeile mit dem Datenordner](bilder/einrichtung-start.jpg)
 
 2. **Browser-Erweiterung hinzufügen.** Klicken Sie in der Einrichtung auf den Knopf für den Store Ihres Browsers und dort auf **Hinzufügen** oder **Abrufen**. Danach geht es in der App von selbst weiter. Mehr unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen).
 
@@ -102,11 +102,11 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
 Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Sie beenden sie im Menü **Mehr** mit **Beenden**. Schliessen Sie den letzten Tab der App, beendet sie sich nach einer Minute von selbst. Läuft gerade eine Suche oder eine Aufgabe der KI, wartet sie, bis diese fertig ist.
 
-Die Einrichtung hat drei kurze Schritte und dauert zusammen etwa fünf Minuten. Die Schritte 1 und 2 stehen hier, Schritt 3 unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen). Jeden Schritt können Sie später ändern; Sie finden die Seite im Menü **Mehr** unter **Einrichtung**.
+Die Einrichtung hat zwei kurze Schritte und dauert zusammen etwa drei Minuten. Schritt 1 steht hier, Schritt 2 unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen). Die KI ist kein Schritt: Sie richten sie mit **KI einrichten** ein, wann Sie wollen (siehe [KI einrichten](#ki-einrichten)). Jeden Schritt können Sie später ändern; Sie finden die Seite im Menü **Mehr** unter **Einrichtung**.
 
 #### Schritt 1: Was wird gesucht?
 
-![Seite Einrichtung mit den drei Schritten, der Wahl zwischen Stelle und Lehrstelle und der Zeile mit dem Datenordner](bilder/einrichtung-start.jpg)
+![Seite Einrichtung mit den zwei Schritten, der Wahl zwischen Stelle und Lehrstelle und der Zeile mit dem Datenordner](bilder/einrichtung-start.jpg)
 
 Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Vorgewählt ist **Nein**; mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.
 
@@ -120,19 +120,27 @@ Liegt im Ordner Downloads eine Datei aus der Einstiegsvorlage oder aus Claude, d
 
 Liegen Suchprofil, Stilprofil oder Bausteine schon im Datenordner, fragt die App pro Datei, ob sie bleibt. Das geht wie unter [Angaben erfassen](#angaben-erfassen) beschrieben, abschliessend mit **Mit dieser Wahl importieren**.
 
-#### Schritt 2: KI
+#### KI einrichten
 
-![Schritt KI einrichten mit dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
+![Fenster KI einrichten über der Seite Einrichtung, mit der Wahl zwischen Einladungscode, eigenem Claude-Abo und eigenem Schlüssel und dem Feld für den Einladungscode](bilder/einrichtung-ki.jpg)
+
+Die KI richten Sie in einem Fenster über der Seite ein. Es öffnet sich, wenn Sie oben in der Einrichtung auf **KI einrichten** klicken, wenn Sie eine KI-Funktion nutzen, bevor die KI eingerichtet ist, und wenn Sie einen Einladungslink öffnen.
 
 Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Widerrufen können Sie jederzeit unter **Einstellungen**, **KI und Budget**.
 
-Bei Lehrstellen: Ein Elternteil oder die gesetzliche Vertretung richtet die App ein und bestätigt das hier.
+Bei Lehrstellen: Ein Elternteil oder die gesetzliche Vertretung richtet die App ein und bestätigt das in der Einwilligung.
 
-Tragen Sie danach den Einladungscode ein und klicken Sie auf **Einladung einlösen**. Haben Sie stattdessen einen Einladungslink erhalten, genügt ein Klick darauf; der Code wird nach der Einwilligung eingelöst. Ohne Code geht es mit **Ohne KI weiter**. Suche, Unterlagen und Versand funktionieren dann trotzdem. Mit einem eigenen Claude-Abo oder einem eigenen API-Schlüssel kommen Sie auch so zur KI (siehe [Für Geübte](#für-geübte)).
+Danach wählen Sie den Weg zur KI:
+
+- **Einladungscode:** den Code eintragen und auf **Einladung einlösen** klicken. Haben Sie einen Einladungslink erhalten, genügt ein Klick darauf; das Fenster öffnet sich, und der Code wird nach der Einwilligung eingelöst.
+- **Eigenes Claude-Abo:** Die Schritte dafür stehen unter **Einstellungen**; das Fenster führt mit **In den Einstellungen einrichten** dorthin (siehe [Für Geübte](#für-geübte)).
+- **Eigener Schlüssel von Anthropic:** Wer einen eigenen API-Schlüssel hat, bestätigt die Hinweise, fügt den Schlüssel ein und klickt auf **Prüfen und speichern** (siehe [Für Geübte](#für-geübte)).
+
+Ist die KI eingerichtet, schliessen Sie das Fenster mit **Weiter**. Ohne Code schliessen Sie es mit **Schliessen**; Suche, Unterlagen und Versand funktionieren dann trotzdem. In beiden Fällen sind Sie wieder dort, wo Sie waren.
 
 ### Browser-Erweiterung hinzufügen
 
-Das ist Schritt 3 der Einrichtung. Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus; abschicken macht sie nie. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**.
+Das ist Schritt 2 der Einrichtung. Die Erweiterung sucht in Ihrem Browser nach Stellen und füllt Bewerbungsformulare aus; abschicken macht sie nie. Ausserdem liest sie auf Klick das Inserat ein, das Sie gerade offen haben, zum Beispiel auf LinkedIn oder der Karriereseite einer Firma: Inserat öffnen, auf ihr Symbol klicken, **Stelle speichern**.
 
 In Microsoft Edge und Google Chrome kommt die Erweiterung aus dem Store. Die App erkennt Ihren Browser und zeigt den Knopf für seinen Store; den anderen Store finden Sie als Link darunter. Öffnen Sie unten den Teil für Ihren Browser. Danach geht es in der App von selbst weiter.
 
@@ -516,9 +524,9 @@ Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist ni
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
-| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Willigen Sie unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**, ein: **KI einschalten** zeigt den Text dazu. |
+| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten) mit dem Text der Einwilligung. Sie können auch unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**, einwilligen: **KI einschalten** zeigt den Text dazu. |
 | „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Stellen suchen** oder **Lehrstellen suchen** und unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
-| „Die KI ist noch nicht eingerichtet.“ | Lösen Sie den Einladungscode in [Schritt 2](#schritt-2-ki) ein. |
+| „Die KI ist noch nicht eingerichtet.“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten). Lösen Sie dort den Einladungscode ein, oder wählen Sie das eigene Claude-Abo oder einen eigenen Schlüssel. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie in der Pilotphase begleitet. |
 | „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |
 | „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
