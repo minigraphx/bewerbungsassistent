@@ -18,11 +18,13 @@
     return date.toISOString().slice(0, 10);
   }
 
+  // An interview date counts once the application is sent, even if the stage still says Beworben; with one set,
+  // following up no longer applies. The follow-up date comes with the step, also while the Job-Room entry is open.
   function datesOf({ bewerbung: b, schritt }, interview) {
     const found = [];
     if (SAVED.includes(b.status) && b.frist) found.push({ date: b.frist, text: `Frist für ${[b.stelle, b.firma].filter(Boolean).join(", ")}` });
-    if (b.status === "Gespräch" && b.gespraech_am) found.push({ date: b.gespraech_am, text: `${interview} bei ${b.firma}` });
-    if (schritt.art === "warten" && schritt.zusatz) found.push({ date: schritt.zusatz, text: `Nachfragen bei ${b.firma}, falls keine Antwort da ist` });
+    if (APPLIED.includes(b.status) && b.gespraech_am) found.push({ date: b.gespraech_am, text: `${interview} bei ${b.firma}` });
+    else if (b.status === "Beworben" && schritt.zusatz) found.push({ date: schritt.zusatz, text: `Nachfragen bei ${b.firma}, falls keine Antwort da ist` });
     return found;
   }
 
