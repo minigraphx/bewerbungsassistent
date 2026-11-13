@@ -618,7 +618,7 @@
         el("div", {}, `Passt: ${v.treffer.join(", ")}`),
         v.fehlt.length ? el("div", { class: "leise" }, `Fehlt in dieser Variante: ${v.fehlt.join(", ")}`) : null,
         el("button", { type: "button", class: "btn btn--sm", onclick: () => waehleVariante(v.id) }, "Übernehmen")))
-        : [el("p", { class: "leer" }, "Keine passende Variante gefunden – neue Variante anlegen (Skill „bewerbung“).")]));
+        : [el("p", { class: "leer" }, "Keine passende Variante gefunden. Mit «Lebenslauf erstellen» entsteht eine für diese Stelle.")]));
     } catch (fehler) {
       meldungOben(fehler.message, "fehler");
     }
@@ -675,6 +675,7 @@
   document.addEventListener("anschreiben-geprueft", laden);
   document.addEventListener("anschreiben-geaendert", laden);
   document.addEventListener("eigenes-anschreiben-geaendert", nachsehen);
+  document.addEventListener("lebenslauf-erstellt", laden);  // G17: the new variant is chosen
   document.addEventListener("bewerbung-geladen", event => zeigeFormularFassung(event.detail));
   document.addEventListener("bewerbung-gespeichert", event => {
     bewerbung = event.detail;
