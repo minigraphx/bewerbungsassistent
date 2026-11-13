@@ -265,19 +265,10 @@
       lehrstelle: "Die App hilft dir, passende Lehrstellen und Schnupperlehren zu finden und deine Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei dir.",
     },
     "uebersicht.start.karte": {
-      sie: "Lebenslauf, gesuchte Stellen und wie Sie schreiben. Das dauert etwa 20 Minuten. Sie können jederzeit unterbrechen, nichts geht verloren.",
-      du: "Lebenslauf, gesuchte Stellen und wie du schreibst. Das dauert etwa 20 Minuten. Du kannst jederzeit unterbrechen, nichts geht verloren.",
-      lehrstelle: "Schule, gesuchte Berufe und wie du schreibst. Das dauert etwa 20 Minuten. Du kannst jederzeit unterbrechen, nichts geht verloren.",
+      sie: "Ihr Werdegang, was Sie suchen und wie Sie schreiben. Sie können jederzeit unterbrechen, nichts geht verloren.",
+      du: "Dein Werdegang, was du suchst und wie du schreibst. Du kannst jederzeit unterbrechen, nichts geht verloren.",
+      lehrstelle: "Deine Schule, welche Berufe du suchst und wie du schreibst. Du kannst jederzeit unterbrechen, nichts geht verloren.",
     },
-    "uebersicht.start.fuss": { sie: "Ihre Angaben bleiben auf diesem Computer.", du: "Deine Angaben bleiben auf diesem Computer." },
-    "uebersicht.start.unterlagen": {
-      sie: "Lebenslauf und Anschreiben pro Stelle", du: "Lebenslauf und Anschreiben pro Stelle", lehrstelle: "Lebenslauf und Anschreiben pro Lehrstelle",
-    },
-    "uebersicht.start.abschicken": {
-      sie: "machen Sie selbst, das Formular ist vorausgefüllt", du: "machst du selbst, das Formular ist vorausgefüllt",
-    },
-    "uebersicht.start.festhalten-rav": { sie: "für Sie und fürs RAV", du: "für dich und fürs RAV" },
-    "uebersicht.start.festhalten": { sie: "damit Sie den Überblick behalten", du: "damit du den Überblick behältst" },
     "uebersicht.karte.abschicken": {
       sie: "Die Unterlagen sind bereit. Die Erweiterung öffnet das Formular und füllt es aus. Abschicken machen Sie selbst.",
       du: "Die Unterlagen sind bereit. Die Erweiterung öffnet das Formular und füllt es aus. Abschicken machst du selbst.",
@@ -310,6 +301,40 @@
     "uebersicht.doppelt": {
       sie: "Möchten Sie das Formular trotzdem öffnen?", du: "Möchtest du das Formular trotzdem öffnen?",
     },
+
+    // Heute and the first start (#260, A1 and A2)
+    "heute.wartet.nichts": { sie: "Gerade wartet nichts auf Sie.", du: "Gerade wartet nichts auf dich." },
+    "heute.wartet.eins": { sie: "Eine Sache wartet auf Sie.", du: "Eine Sache wartet auf dich." },
+    "heute.wartet.viele": { sie: "{anzahl} Dinge warten auf Sie, das wichtigste zuoberst.", du: "{anzahl} Dinge warten auf dich, das wichtigste zuoberst." },
+    "heute.stand": { sie: "Ihr Stand", du: "Dein Stand" },
+    "heute.stand.neu": { sie: "Neue Stellen", du: "Neue Stellen", lehrstelle: "Neue Lehrstellen" },
+    "heute.durchgang.unter": {
+      sie: "{anzahl} gemerkte Stellen · bewerben oder verwerfen, eine nach der anderen",
+      du: "{anzahl} gemerkte Stellen · bewerben oder verwerfen, eine nach der anderen",
+      lehrstelle: "{anzahl} gemerkte Lehrstellen · bewerben oder verwerfen, eine nach der anderen",
+    },
+    "heute.rav": {
+      sie: "Noch nicht im Job-Room eingetragen: {anzahl} vom {monat}. Das RAV erhält die Einträge bis zum {frist}.",
+      du: "Noch nicht im Job-Room eingetragen: {anzahl} vom {monat}. Das RAV erhält die Einträge bis zum {frist}.",
+    },
+    "heute.weg": { sie: "Ihr Weg zur ersten Bewerbung", du: "Dein Weg zur ersten Bewerbung" },
+    "heute.start.einrichtung": {
+      sie: "Den Zugang zur KI und die Erweiterung im Browser richten Sie in der Einrichtung ein.",
+      du: "Den Zugang zur KI und die Erweiterung im Browser richtest du in der Einrichtung ein.",
+    },
+    "heute.start.suchen": {
+      sie: "Die Erweiterung sucht auf den Portalen. Zu jeder Stelle sehen Sie eine Einschätzung.",
+      du: "Die Erweiterung sucht auf den Portalen. Zu jeder Stelle siehst du eine Einschätzung.",
+      lehrstelle: "Die Erweiterung sucht auf den Portalen. Zu jeder Lehrstelle siehst du eine Einschätzung.",
+    },
+    "heute.start.bewerbung": {
+      sie: "Lebenslauf und Anschreiben für die Stelle. Abschicken machen Sie selbst, das Formular ist vorausgefüllt.",
+      du: "Lebenslauf und Anschreiben für die Stelle. Abschicken machst du selbst, das Formular ist vorausgefüllt.",
+      lehrstelle: "Lebenslauf und Anschreiben für die Lehrstelle. Abschicken machst du selbst, das Formular ist vorausgefüllt.",
+    },
+    "heute.wissen.computer": { sie: "Ihre Angaben bleiben auf diesem Computer.", du: "Deine Angaben bleiben auf diesem Computer." },
+    "heute.wissen.entscheiden": { sie: "Die KI schlägt vor, Sie entscheiden.", du: "Die KI schlägt vor, du entscheidest." },
+    "heute.wissen.weg": { sie: "Jede Bewerbung schicken Sie selbst ab.", du: "Jede Bewerbung schickst du selbst ab." },
 
     // Setup (step 2 of the redesign)
     "einrichtung.ordner.frage": {

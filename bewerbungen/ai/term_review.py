@@ -1,4 +1,4 @@
-"""The AI looks at what a job search searches for and proposes changes (#210, G45), with the cheap model.
+"""The AI looks at what a job search searches for and proposes changes (#210, G45), with the model `measure_terms.py` chose.
 
 It gets the CV and the search profile (masked like every call), the three areas with their terms, the evidence the
 app counted and the titles of the rated hits with their grades, never the ad texts. It answers with changes, not a
@@ -18,7 +18,7 @@ TASK = "terms"
 MAX_TITLES = 150
 MAX_FEEDBACK = 1000
 CHARS_PER_TOKEN = 3  # German text with names and numbers; rather too many tokens than too few
-EXPECTED_OUTPUT_TOKENS = 1500
+EXPECTED_OUTPUT_TOKENS = 1500  # Sonnet at medium used 900 to 1200 (#274)
 CENT = 0.01
 FEEDBACK_TOO_LONG = f"Bitte höchstens {MAX_FEEDBACK} Zeichen."
 _TERM_LIST = {"type": "array", "items": {"type": "string"}}
@@ -100,10 +100,12 @@ def prompt(current: term_changes.Terms, hits: list[dict], feedback: str = "",
     return "\n\n".join(parts)
 
 
-def request(material: tasks.Material, text: str, model: str | None = None) -> Request:
+def request(material: tasks.Material, text: str, model: str | None = None, effort: str | None = None,
+            max_tokens: int | None = None) -> Request:
     return Request(task=TASK, model=model or tasks.MODELS[TASK], rules=prompts.rules(material.address),
                    context=context(material), instructions=INSTRUCTIONS, prompt=text,
-                   max_tokens=tasks.MAX_TOKENS[TASK], schema=SCHEMA)
+                   max_tokens=max_tokens or tasks.MAX_TOKENS[TASK], schema=SCHEMA,
+                   effort=effort or tasks.EFFORTS[TASK])
 
 
 def estimate_usd(sent: str, model: str) -> float:
@@ -113,8 +115,8 @@ def estimate_usd(sent: str, model: str) -> float:
 
 
 def review(gateway: Gateway, material: tasks.Material, current: term_changes.Terms, avoided: tuple[str, ...],
-           text: str, model: str | None = None) -> dict:
-    answer = gateway.ask(request(material, text, model))
+           text: str, model: str | None = None, effort: str | None = None, max_tokens: int | None = None) -> dict:
+    answer = gateway.ask(request(material, text, model, effort, max_tokens))
     data = answer.data
     if not isinstance(data, dict) or not isinstance(data.get("changes"), list):
         raise AnswerError(BAD_ANSWER, cost_usd=answer.cost_usd)
@@ -122,4 +124,4 @@ def review(gateway: Gateway, material: tasks.Material, current: term_changes.Ter
     changed = data["changed"].strip() if isinstance(data.get("changed"), str) else ""
     return {"summary": summary, "changed": changed,
             "changes": term_changes.cleaned_changes(data["changes"], current, avoided),
-            "model": answer.model, "cost_usd": answer.cost_usd}
+            "model": answer.model, "cost_usd": answer.cost_usd, "output_tokens": answer.usage.output_tokens}

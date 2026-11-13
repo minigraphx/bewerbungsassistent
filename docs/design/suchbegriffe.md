@@ -4,7 +4,7 @@ Gehört zu G45 (#210) und berührt G15, G31, G41 und G43. Gewählt hat Andy am 1
 
 ## Worum es geht
 
-Ein günstiger KI-Schritt schlägt Suchbegriffe und Titelfilter vor, positiv und ausgeschlossen, und markiert zu allgemeine Begriffe. Grundlage sind Suchprofil, Lebenslauf und die eingeschätzten Treffer mit ihren Noten. Die Person übernimmt alles, einen Teil oder schreibt, was anders sein soll. Ohne ihre Zustimmung ändert sich am Suchprofil nichts.
+Ein KI-Schritt schlägt Suchbegriffe und Titelfilter vor, positiv und ausgeschlossen, und markiert zu allgemeine Begriffe. Grundlage sind Suchprofil, Lebenslauf und die eingeschätzten Treffer mit ihren Noten. Die Person übernimmt alles, einen Teil oder schreibt, was anders sein soll. Ohne ihre Zustimmung ändert sich am Suchprofil nichts.
 
 ## Zahlen rechnet die App, die KI begründet
 
@@ -45,7 +45,7 @@ Die App prüft jede Änderung, bevor die Person sie sieht (`bewerbungen/term_cha
 
 ## Kosten und was an die KI geht
 
-- Neben dem Knopf steht die Schätzung, «Etwa 0.01 USD», aus der Länge des Texts und dem Preis des günstigen Modells, auf den Cent aufgerundet, mindestens ein Cent. Währung wie sonst in der App: USD, bis ein eigener Entscheid etwas anderes sagt.
+- Neben dem Knopf steht die Schätzung, «Etwa 0.03 USD», aus der Länge des Texts und dem Preis des Modells, auf den Cent aufgerundet, mindestens ein Cent. Währung wie sonst in der App: USD, bis ein eigener Entscheid etwas anderes sagt.
 - Im Fuss der Karte steht, was der Aufruf gekostet hat, ab dem zweiten Vorschlag auch «bisher».
 - «Was geht an die KI?» klappt einen Satz auf. «Text ansehen» öffnet den Text mit Platzhaltern, so wie er gesendet würde (G15). Ansehen sendet nichts.
 - An die KI gehen: Suchprofil und Lebenslauf mit Platzhaltern, die drei Bereiche mit ihren Begriffen, die Belege der App und Titel und Note der eingeschätzten Treffer (höchstens 150, die neuesten zuerst), nie Inseratstexte. Stilprofil und Bausteine nicht. Bei «Neu vorschlagen» dazu der letzte Vorschlag und der Text der Person. Die Datenschutzerklärung auf dem Hosting nennt das.

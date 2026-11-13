@@ -26,11 +26,11 @@ def system_text(payload) -> str:
     return "\n".join(block["text"] for block in payload["system"])
 
 
-def test_a_question_goes_out_cheap_and_short(daten):  # noqa: F811
+def test_a_question_goes_to_sonnet_with_room_to_think(daten):  # noqa: F811
     answer, payload = ask(daten)
     assert answer["text"] == "Üben Sie die Vorstellung."
-    assert payload["model"] == tasks.MODELS["chat"] == "claude-haiku-5-5"
-    assert payload["max_tokens"] == tasks.MAX_TOKENS["chat"] <= 2000
+    assert payload["model"] == tasks.MODELS["chat"] == "claude-sonnet-5-5"
+    assert payload["max_tokens"] == tasks.MAX_TOKENS["chat"]
     assert "Wie bereite ich mich" in payload["messages"][0]["content"]
     assert "tools" not in payload
 

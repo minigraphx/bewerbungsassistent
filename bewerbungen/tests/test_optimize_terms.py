@@ -165,7 +165,15 @@ def test_only_changes_that_hold_come_back_with_evidence_counted_by_the_app(job_s
     assert "Engineer" not in answer["endstand"]["positiv"] and answer["entfaellt"] == ["Engineer"]
     assert profile_of(job_search) == before, "nothing changes without adoption"
     sent = json.dumps(ai.messages.calls, ensure_ascii=False)
-    assert ai.messages.calls[0]["model"] == "claude-haiku-5-5" and "<treffer>" in sent and "Stilprofil" not in sent
+    assert "<treffer>" in sent and "Stilprofil" not in sent
+
+
+def test_the_review_leaves_room_for_thinking_before_the_answer(job_search, ai):
+    """Measured with measure_terms.py (#274): Sonnet at medium answers with about 1000 tokens, Haiku thought past 3000."""
+    propose(job_search)
+    call = ai.messages.calls[0]
+    assert call["model"] == "claude-sonnet-5-5" and call["output_config"]["effort"] == "medium"
+    assert call["max_tokens"] >= 8000
 
 
 def test_the_evidence_link_finds_exactly_those_hits(job_search):
