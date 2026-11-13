@@ -30,6 +30,7 @@ class Request:
     prompt: str  # the variable part, e.g. the job ad: masked
     max_tokens: int
     schema: dict | None = None  # JSON schema for structured answers
+    effort: str | None = None  # the model's default when None; defaults differ between models, so a task names it
 
 
 @dataclasses.dataclass(frozen=True)
@@ -88,8 +89,13 @@ class Gateway:
             ],
             "messages": [{"role": "user", "content": prompt}],
         }
+        output_config = {}
         if request.schema is not None:
-            payload["output_config"] = {"format": {"type": "json_schema", "schema": request.schema}}
+            output_config["format"] = {"type": "json_schema", "schema": request.schema}
+        if request.effort is not None:
+            output_config["effort"] = request.effort
+        if output_config:
+            payload["output_config"] = output_config
         return payload
 
     @staticmethod
