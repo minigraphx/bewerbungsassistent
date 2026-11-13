@@ -39,7 +39,22 @@
         </div>
         <div id="vorschlaege" class="application__suggestions"></div>
         <p class="field__hint" id="cv-wie-es-ist" hidden>Diese Variante ist ein fertiges PDF und wird so verwendet, wie es ist.</p>
-        <div class="btn-row"><a class="btn btn--quiet" id="cv-anpassen" href="/angaben" hidden>Lebenslauf anpassen</a></div>
+        <div class="btn-row"><button type="button" class="btn" id="cv-erstellen-oeffnen" aria-expanded="false" aria-controls="cv-erstellen" hidden>Lebenslauf erstellen</button><a class="btn btn--quiet" id="cv-anpassen" href="/angaben" hidden>Lebenslauf anpassen</a></div>
+        <div class="cv-create" id="cv-erstellen" hidden>
+          <h3 class="cv-create__title">Lebenslauf für diese Stelle</h3>
+          <p class="field__hint">Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.</p>
+          <h4 class="cv-create__step">1 · Inhalt</h4>
+          <div id="cv-erstellen-stationen"></div>
+          <div class="field"><label class="field__label" for="cv-erstellen-beruf">Berufsbezeichnung</label><input class="input" id="cv-erstellen-beruf" maxlength="120" autocomplete="off"></div>
+          <div class="field"><label class="field__label" for="cv-erstellen-profil">Kurzprofil</label><textarea class="input" id="cv-erstellen-profil" maxlength="2000"></textarea>
+            <p class="field__hint">Aus Ihren Angaben. Kürzen und umstellen geht hier; <a href="/angaben">Angaben selbst ändern</a> geht unter Meine Angaben.</p></div>
+          <h4 class="cv-create__step" id="cv-erstellen-aussehen-titel">2 · Aussehen</h4>
+          <div class="design-tiles cv-create__designs" id="cv-erstellen-designs" role="radiogroup" aria-labelledby="cv-erstellen-aussehen-titel"></div>
+          <p class="field__hint">Gilt nur für diese Bewerbung. Ein Dossier hat sein eigenes Design, unten bei «Unterlagen prüfen».</p>
+          <div class="field"><label class="field__label" for="cv-erstellen-name">Name der Fassung</label><input class="input" id="cv-erstellen-name" maxlength="120" autocomplete="off"></div>
+          <div class="btn-row"><button type="button" class="btn btn--primary" id="cv-erstellen-speichern">Lebenslauf übernehmen</button><button type="button" class="btn btn--quiet" id="cv-erstellen-abbrechen">Abbrechen</button><a class="btn btn--quiet" id="cv-erstellen-pdf" target="_blank" rel="noopener" hidden>Als PDF öffnen</a></div>
+          <p class="status-line" id="cv-erstellen-status" role="status" aria-live="polite"></p>
+        </div>
       </section>
 
       <section class="card" id="s-anschreiben" aria-labelledby="anschreiben-titel">
@@ -273,6 +288,8 @@
 <script src="/formular-logik.js"></script>
 <script src="/bewerbung-logik.js"></script>
 <script src="/lebenslauf-anpassen.js"></script>
+<script src="/lebenslauf-erstellen-logik.js"></script>
+<script src="/lebenslauf-erstellen.js"></script>
 <script src="/unterlagen-wahl.js"></script>
 <script src="/dossier-texte.js"></script>
 <script src="/zeichen-logik.js"></script>

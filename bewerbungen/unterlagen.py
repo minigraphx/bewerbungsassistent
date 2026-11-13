@@ -140,7 +140,7 @@ def tailored_cv(daten: pathlib.Path, bewerbung: dict) -> dict:
 
 
 def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], build: pathlib.Path, ziel: pathlib.Path) -> None:
-    """Variants come from Claude; whoever works in the app alone has none and still needs a CV. With variants, the person chooses."""
+    """Variants come from Claude or „Lebenslauf erstellen“ (G17); without any the whole CV is built. With variants, the person chooses."""
     if Varianten(daten).alle():
         raise ValueError(CHOOSE_VARIANT)
     if not (daten / "cv.yaml").is_file():
@@ -165,6 +165,15 @@ def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, 
             f"Variante {variante['id']!r} ist extern ({variante['extern']}): "
             f"bitte das PDF als {ziel.relative_to(daten.resolve())} ablegen"
         )
+
+
+def build_cv(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> pathlib.Path:
+    """Only the CV, from the variant and in the design the application has; for a CV just created on its page (G17)."""
+    daten = daten.resolve()
+    ziel = pdf_pfade(daten, bewerbung["id"])["lebenslauf"]
+    ziel.parent.mkdir(parents=True, exist_ok=True)
+    _baue_lebenslauf(daten, bewerbung, build, ziel)
+    return ziel
 
 
 def _cv_arguments(daten: pathlib.Path, bewerbung: dict) -> list[str]:
