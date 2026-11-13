@@ -115,3 +115,31 @@ test("the switch is there once a photo exists and starts on (G62)", () => {
   assert.match(html, /<input type="checkbox" id="foto-zeigen"[^>]*>\s*<span>Im Lebenslauf zeigen<\/span>/);
   assert.ok(html.indexOf('id="fotos"') < html.indexOf('id="foto-zeigen"'), "the switch sits with the photos");
 });
+
+// G61 (#280): „Aussehen wählen“ picks the design the app builds the CV with.
+test("the designs of the CV are two columns (preset) and one column", () => {
+  assert.deepEqual(logic.DESIGNS.map(design => design.id), ["zweispaltig", "einspaltig"]);
+  assert.equal(logic.PRESET_DESIGN, "zweispaltig");
+  assert.equal(logic.designName("einspaltig"), "Einspaltig");
+  assert.equal(logic.designName("unbekannt"), "Zweispaltig", "an unknown design reads as the preset");
+  for (const design of logic.DESIGNS) assert.ok(design.text.length > 10, design.id);
+});
+
+test("only a changed design is saved, and only one the app knows", () => {
+  assert.deepEqual(logic.designToSave("zweispaltig", "einspaltig"), { design: "einspaltig" });
+  assert.equal(logic.designToSave("einspaltig", "einspaltig"), null);
+  assert.throws(() => logic.designToSave("zweispaltig", "dossier-siegel"), /Zweispaltig oder Einspaltig/);
+});
+
+test("after saving, the page says that what exists stays as it is", () => {
+  const text = logic.designSaved("einspaltig");
+  assert.match(text, /Einspaltig/);
+  assert.match(text, /bleibt/);
+});
+
+test("Aussehen wählen sits beside Ansehen and opens the choice of the design", () => {
+  const html = read("dateien.html");
+  assert.match(html, /id="cv-ansehen"[\s\S]*id="cv-aussehen"[^>]*>Aussehen wählen<[\s\S]*id="cv-anpassen"/);
+  assert.match(html, /<dialog[^>]*id="aussehen-dialog"[\s\S]*role="radiogroup"[\s\S]*id="aussehen-ja"/);
+  assert.match(html, /id="cv-design"/);
+});

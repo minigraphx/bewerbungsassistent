@@ -54,8 +54,30 @@
     return { visible: photos.length > 0, checked: shown !== false };
   }
 
+  // G61: the designs that build a CV on their own, the preset first (register.CV_DESIGNS). Siegel, Raster and
+  // Register stay the design of a dossier, chosen per application.
+  const DESIGNS = [
+    { id: "zweispaltig", name: "Zweispaltig", text: "Foto und Kontakt im Kopf, zwei Spalten. Viel auf wenig Platz." },
+    { id: "einspaltig", name: "Einspaltig", text: "Schlicht, alles untereinander. Liest sich auch in Bewerbungsportalen gut." },
+  ];
+  const PRESET_DESIGN = DESIGNS[0].id;
+  const findDesign = id => DESIGNS.find(design => design.id === id) || DESIGNS[0];
+  const designName = id => findDesign(id).name;
+
+  /** Body for POST /api/dateien/aussehen, or null when nothing changes. */
+  function designToSave(current, chosen) {
+    if (!DESIGNS.some(design => design.id === chosen)) {
+      throw new Error(`Bitte ${DESIGNS.map(design => design.name).join(" oder ")} wählen.`);
+    }
+    return chosen === current ? null : { design: chosen };
+  }
+
+  function designSaved(id) {
+    return `Neue Unterlagen entstehen jetzt im Design ${designName(id)}. Was schon erstellt oder versendet ist, bleibt, wie es ist.`;
+  }
+
   const logic = { KINDS, KIND_LABELS, cvChoice, needsRemoval, variantNote, guessKind, oneList, sizeText, photoSummary,
-                  photoSwitch };
+                  photoSwitch, DESIGNS, PRESET_DESIGN, designName, designToSave, designSaved };
   if (typeof module !== "undefined") module.exports = logic;
   else global.DateienLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

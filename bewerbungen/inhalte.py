@@ -14,6 +14,7 @@ import yaml
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
+import cv_design
 import photo_shown
 from dateien import relativ
 import textdokument
@@ -104,9 +105,10 @@ def _probebau(funktion, argumente: list[str]) -> None:
         raise ValueError(f"Probebau fehlgeschlagen: {fehler}") from None
 
 
-def _baue_lebenslauf(cv_pfad: pathlib.Path, job: pathlib.Path | None, build: pathlib.Path) -> pathlib.Path:
+def _baue_lebenslauf(cv_pfad: pathlib.Path, job: pathlib.Path | None, build: pathlib.Path, design: str) -> pathlib.Path:
     out = build / "inhalt-probe" / "vorschau.pdf"
-    argumente = [str(cv_pfad), "--build-dir", str(build), "-o", str(out)] + (["--job", str(job)] if job else [])
+    argumente = [str(cv_pfad), *cv_design.theme_arguments(design), "--build-dir", str(build), "-o", str(out)]
+    argumente += ["--job", str(job)] if job else []
     _probebau(lebenslauf_modul.main, argumente)
     return out
 
@@ -121,14 +123,14 @@ def pruefe_inhalt(daten: pathlib.Path, rel: str, text: str, build: pathlib.Path)
         return ziel
     wert = _yaml(text)
     if rel == "cv.yaml":
-        return _baue_lebenslauf(_lebenslauf_fuer_probebau(daten, wert, build), None, build)
+        return _baue_lebenslauf(_lebenslauf_fuer_probebau(daten, wert, build), None, build, cv_design.load(daten))
     if rel.startswith("jobs/"):
         if not isinstance(wert, dict):
             raise ValueError("Ein Zuschnitt ist eine Zuordnung (tags, basics, …)")
         job = build / "inhalt-probe" / "job.yaml"
         cv = _lebenslauf_fuer_probebau(daten, _yaml((daten / "cv.yaml").read_text(encoding="utf-8")), build)
         job.write_text(text, encoding="utf-8")
-        return _baue_lebenslauf(cv, job, build)
+        return _baue_lebenslauf(cv, job, build, cv_design.load(daten))
     if rel.endswith("anschreiben.yaml"):
         brief = anschreiben_modul.pruefe_brief(wert)
         probe = build / "inhalt-probe" / "anschreiben.yaml"
