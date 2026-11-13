@@ -87,6 +87,8 @@ SEITEN = {
     "/kununu-pruefen.js": "kununu-pruefen.js",
     "/treffer-firma.js": "treffer-firma.js",
     "/firmen.css": "firmen.css",
+    "/stellen.css": "stellen.css",
+    "/stellen-reiter.js": "stellen-reiter.js",
     "/heute.css": "heute.css",
     "/formular-logik.js": "formular-logik.js",
     "/beruf-vorschlag.js": "beruf-vorschlag.js",

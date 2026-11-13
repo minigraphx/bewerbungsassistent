@@ -45,9 +45,12 @@
     "fragen.label": { sie: "Ihre Frage", du: "Deine Frage" },
     "fragen.sprecher": { sie: "Sie", du: "Du" },
     "suche.wo": { sie: "Wo suchen Sie?", du: "Wo suchst du?" },
+    // Stellen (#262, A3): the decision per hit (G58) and the own stars under the AI (G22)
+    "suche.entscheiden": { sie: "Was möchten Sie mit dieser Stelle tun?", du: "Was möchtest du mit dieser Stelle tun?", lehrstelle: "Was möchtest du mit dieser Lehrstelle tun?" },
+    "suche.eigene": { sie: "Ihre eigene Bewertung", du: "Deine eigene Bewertung" },
+    "suche.eigene-hinweis": { sie: "Ihr Urteil, getrennt von der Note der KI. Geht nicht an die KI.", du: "Dein Urteil, getrennt von der Note der KI. Geht nicht an die KI." },
     // Firmen with kununu (G35, #188, docs/design/firmen.md); „Firma“ stays neutral, apprenticeships say „Lehrbetrieb“
     "nav.firmen": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
-    "suche.firmen": { sie: "Firmen ansehen", du: "Firmen ansehen", lehrstelle: "Lehrbetriebe ansehen" },
     "firmen.titel": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
     "firmen.alle": { sie: "Alle Firmen", du: "Alle Firmen", lehrstelle: "Alle Lehrbetriebe" },
     "firmen.zeile": {

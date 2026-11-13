@@ -150,7 +150,27 @@
     return { zustand: "fehler", fehler: KEIN_LAUF };
   }
 
-  const logik = { STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, kostenProTreffer, nachpruefungText };
+  // The tabs of Stellen (G56) by the address: /treffer#gemerkt shows the saved hits, the page Firmen links there.
+  const REITER = { neu: "neu", gemerkt: "uebernommen", verworfen: "verworfen" };
+
+  /** Which hits a hash like „#gemerkt“ shows; anything else shows the new ones. */
+  function reiterAus(hash) {
+    const name = String(hash || "").replace(/^#/, "");
+    return Object.hasOwn(REITER, name) ? REITER[name] : "neu";
+  }
+
+  /** The hash of a state of the hits, the reverse of reiterAus. */
+  function reiterName(zustand) {
+    return Object.keys(REITER).find(name => REITER[name] === zustand) || "neu";
+  }
+
+  /** The line above the list that names the hits without a grade (G44). */
+  function offenText(anzahl, lehrstelle) {
+    const wort = lehrstelle ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
+    return anzahl === 1 ? `1 ${wort[0]} ist noch nicht geprüft.` : `${anzahl} ${wort[1]} sind noch nicht geprüft.`;
+  }
+
+  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, kostenProTreffer, nachpruefungText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

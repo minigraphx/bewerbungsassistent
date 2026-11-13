@@ -68,13 +68,13 @@ Die Unterschiede liegen in der Anrede, in den Sätzen der Nächster-Schritt-Kart
 | Gut zu wissen | Ihre Angaben bleiben auf diesem Computer. Name, Adresse und Kontakt werden ersetzt, bevor ein Text zur KI geht. · Die KI schlägt vor, Sie entscheiden. Noten sind Einschätzungen, Anschreiben sind Entwürfe. · Nichts geht automatisch weg. Jede Bewerbung schicken Sie selbst ab. · Anleitung mit Bildern öffnen | Deine Angaben … · Die KI schlägt vor, du entscheidest. … · Jede Bewerbung schickst du selbst ab. |
 | Dialog Doppelbewerbung | Bei Muster AG läuft schon eine Bewerbung · Sachbearbeiterin Einkauf, beworben am 28.10.2026. Möchten Sie das Formular für «Assistentin Einkauf» trotzdem öffnen? · Abbrechen · Trotzdem öffnen | Bei Muster AG läuft schon eine Bewerbung · Kauffrau EFZ, beworben am 28.10.2026. Möchtest du das Formular für «Schnupperlehre Kauffrau» trotzdem öffnen? · Abbrechen · Trotzdem öffnen |
 
-## Stellen suchen
+## Stellen
 
 Bei Lehrstellen kommen eigene Teile dazu (Was suchst du, Deine Berufe, zwei Noten); die übrigen Unterschiede sind Anrede und Wortwahl.
 
 | Ort | Sie (Stellen) | du (Lehrstellen) |
 | --- | --- | --- |
-| Titel | Stellen suchen | Lehrstellen suchen |
+| Titel | Stellen | Lehrstellen |
 | Zeile unter dem Titel | Letzte Suche heute, 08:12 · 4 Portale · 23 Treffer, 12 neu | Letzte Suche heute, 08:12 · LENA und yousty · 14 Treffer, 4 neu |
 | Während der Suche | Suche läuft seit 08:12. | gleich |
 | Knöpfe | Suche einstellen · Jetzt suchen · Suche läuft … | gleich |
@@ -87,7 +87,9 @@ Bei Lehrstellen kommen eigene Teile dazu (Was suchst du, Deine Berufe, zwei Note
 | Suchlauf | Die Erweiterung sucht auf den Portalen · 2 von 4 Portalen · jobs.ch: fertig, 8 Treffer · job-room.ch: läuft · jobscout24.ch: wartet | gleich, mit LENA, yousty, Berufsberatung.ch, Karriereseiten |
 | Einschätzen | KI schätzt Treffer ein · 3 von 10 · Anhalten | gleich |
 | Unter dem Fortschritt | Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten. Bisher CHF 0.03. | Ein Suchlauf dauert einige Minuten. Du kannst währenddessen weiterarbeiten. Bisher CHF 0.03. |
-| Filter | Neu 12 · Übernommen 4 · Verworfen 7 | Neu 4 · Übernommen 4 · Verworfen 7 |
+| Reiter | Neu 12 · Gemerkt 4 · Verworfen 7 · Firmen | Neu 4 · Gemerkt 4 · Verworfen 7 · Lehrbetriebe |
+| Über der Liste | 2 Stellen sind noch nicht geprüft. · Bisher etwa 0.030 USD pro Treffer. · Bewerten (2) | 2 Lehrstellen sind noch nicht geprüft. · … |
+| Reihenfolge | Reihenfolge · Nach Note der KI · Nach eigener Bewertung · Nach Datum | gleich |
 | Notenhilfe, Titel | Wie lese ich die Note? | Wie lese ich die Noten? |
 | Notenhilfe, Text | Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein. | Schweizer Noten: 6 ist die beste, 1 die schlechteste Note. Die Note «Beruf» sagt, wie gut der Beruf zu dir passt, die Note «Lehrstelle», wie gut dieser Lehrbetrieb passt. Ab 4 passt es genügend. Die KI kann sich irren. |
 | Keine Treffer | Keine neuen Treffer · Die Portale haben nichts Neues gemeldet. Versuchen Sie weitere Suchbegriffe oder eine grössere Umgebung. · Suche einstellen | Keine neuen Treffer · Die Portale haben nichts Neues gemeldet. Nimm weitere Berufe dazu oder suche in einer grösseren Umgebung. · Suche einstellen |
@@ -97,7 +99,9 @@ Bei Lehrstellen kommen eigene Teile dazu (Was suchst du, Deine Berufe, zwei Note
 | Detail, schon im Register | Schon im Register · Bei Demo Handel AG ist die Stelle «Einkaufsassistentin 60–80 %» gemerkt. | Schon im Register · Bei Demo Handel AG ist die Lehrstelle «Kauffrau EFZ» gemerkt. |
 | Detail, KI-Karte | Einschätzung der KI · Was passt · Was fehlt oder unsicher ist | gleich |
 | Detail, Nachprüfung | Dreimal einzeln nachgeprüft: 5, 5 und 4.5. · Die Einschätzungen gehen auseinander. · Unter Note 4 wird nicht nachgeprüft. | Dreimal einzeln nachgeprüft: 5, 5 und 5. · Die Einschätzungen gehen auseinander. · Unter Note 4 beim Beruf wird nicht nachgeprüft. |
-| Detail, Knöpfe | Übernehmen (ab Note 4) · Trotzdem übernehmen (unter 4) · Verwerfen | gleich |
+| Detail, Entscheid | Was möchten Sie mit dieser Stelle tun? · Bewerbung vorbereiten · Merken · Verwerfen (gemerkt: Zur Bewerbung, verworfen: Zurückholen) | Was möchtest du mit dieser Lehrstelle tun? · gleich |
+| Detail, KI-Karte, Fuss | Eine Einschätzung, kein Urteil. Die KI kann sich irren. · Neu bewerten | gleich |
+| Detail, eigene Bewertung | Ihre eigene Bewertung · Ihr Urteil, getrennt von der Note der KI. Geht nicht an die KI. | Deine eigene Bewertung · Dein Urteil, getrennt von der Note der KI. Geht nicht an die KI. |
 | Detail, Beispiel der KI | Englisch verhandlungssicher verlangt, im Profil «gut» | Du hast Kauffrau/Kaufmann mit drei Sternen gewählt (KI schreibt in der Du-Form, Regel 8) |
 
 ## Bewerbung
