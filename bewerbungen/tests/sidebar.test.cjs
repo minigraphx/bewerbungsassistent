@@ -91,10 +91,12 @@ test("the budget of the mediation shows what is used, with a decimal point", () 
   assert.deepEqual(sidebar.budgetView(status), {
     title: "KI-Budget im November", text: "USD 3.20 von 10.00 gebraucht", short: "KI-Budget: USD 6.80 frei",
     percent: 32, label: "32 Prozent des Budgets gebraucht",
+    detail: "USD 6.80 frei", warning: "", state: "ok", narrow: "KI-Budget: USD 6.80 frei",
   });
   assert.deepEqual(sidebar.budgetView({ ...status, verbraucht_usd: 0 }), {
     title: "KI-Budget im November", text: "USD 10.00 frei", short: "KI-Budget: USD 10.00 frei",
     percent: 0, label: "Noch nichts gebraucht",
+    detail: "Noch nichts gebraucht", warning: "", state: "ok", narrow: "KI-Budget: USD 10.00 frei",
   });
   const over = sidebar.budgetView({ ...status, verbraucht_usd: 12 });
   assert.equal(over.percent, 100);
@@ -104,6 +106,7 @@ test("the budget of the mediation shows what is used, with a decimal point", () 
 test("with an own key the sidebar shows the costs of the month, and nothing without AI", () => {
   assert.deepEqual(sidebar.budgetView({ monat: "2026-03", eingerichtet: true, vermittlung: false, eigener_schluessel: true, kosten_usd: 1.5 }), {
     title: "KI-Kosten im März", text: "USD 1.50 mit eigenem Schlüssel", short: "KI-Kosten: USD 1.50", percent: null, label: "",
+    detail: "Kein Budget der Vermittlung", warning: "", state: "own", narrow: "KI-Kosten: USD 1.50 · kein Budget der Vermittlung",
   });
   assert.equal(sidebar.budgetView({ monat: "2026-11", eingerichtet: false }), null);
   assert.equal(sidebar.budgetView({ monat: "2026-11", eingerichtet: true, vermittlung: true, hinweis: "nicht erreichbar" }), null);

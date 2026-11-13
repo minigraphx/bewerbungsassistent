@@ -87,9 +87,14 @@
     const view = S.budgetView(await aiAnswer);
     $("nav-budget").hidden = $("nav-budget-short").hidden = !view;
     if (!view) return;
+    $("nav-budget").dataset.state = $("nav-budget-short").dataset.state = view.state;
     $("nav-budget-title").textContent = view.title;
     $("nav-budget-text").textContent = view.text;
-    $("nav-budget-short").textContent = view.short;
+    $("nav-budget-detail").textContent = view.detail;
+    const warning = $("nav-budget-warning");
+    warning.textContent = view.warning;
+    warning.hidden = !view.warning;
+    $("nav-budget-short").textContent = view.narrow;
     const bar = $("nav-budget-bar");
     bar.hidden = view.percent === null;
     bar.setAttribute("aria-label", view.label);
