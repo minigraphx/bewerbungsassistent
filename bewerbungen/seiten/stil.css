@@ -889,6 +889,8 @@ button.files__photo img { width: 100%; height: 100%; object-fit: cover; display:
 .files__links { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
 .files .files__links .files__link { min-height: 0; padding: 0; border: 0; background: none; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-weight: 400; }
 .files .files__links .files__link:hover { background: none; color: var(--accent-hover); }
+.files__show { align-items: center; min-height: 40px; margin: 0; }
+.files__show input { margin: 0; }
 .files .status:empty { display: none; }
 @media (max-width: 760px) { .files__grid { grid-template-columns: 1fr; } .files__sheet { display: none; } }
 

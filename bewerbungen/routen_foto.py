@@ -2,6 +2,7 @@
 
 Hochladen (#128): wer am Anfang kein Foto gegeben hat, gibt es hier, als JPG oder PNG ohne Metadaten.
 Mehrere Fotos (#129): jedes Hochladen fügt eines hinzu; welches aktiv ist und wo die übrigen liegen, sagt `photos.py`.
+Ob neue Unterlagen das aktive Foto zeigen (G62), sagt `photo_shown.py`.
 """
 import base64
 import binascii
@@ -14,6 +15,7 @@ import typst
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import fotoausschnitt
 import photo_file
+import photo_shown
 import photos
 from server import Antwort, json_antwort
 
@@ -44,7 +46,8 @@ def optionen(k, parameter, body):
 
 
 def liste(k, parameter, body):
-    return json_antwort({"fotos": photos.listing(k.daten), "max_groesse": MAX_PHOTO_BYTES})
+    return json_antwort({"fotos": photos.listing(k.daten), "max_groesse": MAX_PHOTO_BYTES,
+                         photo_shown.FIELD: photo_shown.load(k.daten)})
 
 
 def bild(k, parameter, body):
@@ -120,6 +123,11 @@ def aktiv(k, parameter, body):
     return json_antwort(photos.activate(k, body.get("datei")))
 
 
+def shown(k, parameter, body):
+    """„Im Lebenslauf zeigen“ (G62): only new documents follow it."""
+    return json_antwort(photo_shown.as_dict(photo_shown.save(k, body)))
+
+
 def loeschen(k, parameter, body):
     if not isinstance(body, dict):
         raise ValueError("datei erwartet")
@@ -139,4 +147,5 @@ POST = {
     UPLOAD_ROUTE: hochladen,
     "/api/foto/aktiv": aktiv,
     "/api/foto/loeschen": loeschen,
+    "/api/foto/zeigen": shown,
 }

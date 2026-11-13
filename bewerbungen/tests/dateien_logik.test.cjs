@@ -97,3 +97,21 @@ test("each data-text of the page is known and starts as the Sie text", () => {
   assert.ok(elements.length >= 8);
   for (const [, , key, content] of elements) assert.equal(content, texts.text(key, "stelle-sie"), key);
 });
+
+test("with the photo switched off the card says new documents have none (G62)", () => {
+  const one = [{ datei: "foto.jpg", aktiv: true }];
+  const two = [...one, { datei: "fotos/b.jpg", aktiv: false }];
+  assert.equal(logic.photoSummary(one, false), "1 Foto. Neue Unterlagen entstehen ohne Foto.");
+  assert.equal(logic.photoSummary(two, false), "2 Fotos. Neue Unterlagen entstehen ohne Foto.");
+  assert.equal(logic.photoSummary(one, true), "1 Foto, es wird verwendet.");
+  assert.equal(logic.photoSummary([], false), "Noch kein Foto. Ein Foto ist freiwillig.");
+});
+
+test("the switch is there once a photo exists and starts on (G62)", () => {
+  assert.equal(logic.photoSwitch([], undefined).visible, false);
+  assert.deepEqual(logic.photoSwitch([{ datei: "foto.jpg", aktiv: true }], undefined), { visible: true, checked: true });
+  assert.deepEqual(logic.photoSwitch([{ datei: "foto.jpg", aktiv: true }], false), { visible: true, checked: false });
+  const html = read("dateien.html");
+  assert.match(html, /<input type="checkbox" id="foto-zeigen"[^>]*>\s*<span>Im Lebenslauf zeigen<\/span>/);
+  assert.ok(html.indexOf('id="fotos"') < html.indexOf('id="foto-zeigen"'), "the switch sits with the photos");
+});
