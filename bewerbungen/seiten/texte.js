@@ -45,6 +45,13 @@
     "fragen.label": { sie: "Ihre Frage", du: "Deine Frage" },
     "fragen.sprecher": { sie: "Sie", du: "Du" },
     "suche.wo": { sie: "Wo suchen Sie?", du: "Wo suchst du?" },
+    // Suche einstellen (#263, A4): the cards
+    "einstellen.was": { sie: "Welche Stellen passen zu Ihnen?", du: "Welche Stellen passen zu dir?", lehrstelle: "Welche Lehrstellen passen zu dir?" },
+    "einstellen.nicht": { sie: "Was Sie nicht sehen wollen", du: "Was du nicht sehen willst" },
+    "einstellen.ohne-schluessel": {
+      sie: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den tragen Sie in den Einstellungen ein.",
+      du: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den trägst du in den Einstellungen ein.",
+    },
     // Stellen (#262, A3): the decision per hit (G58) and the own stars under the AI (G22)
     "suche.entscheiden": { sie: "Was möchten Sie mit dieser Stelle tun?", du: "Was möchtest du mit dieser Stelle tun?", lehrstelle: "Was möchtest du mit dieser Lehrstelle tun?" },
     "suche.eigene": { sie: "Ihre eigene Bewertung", du: "Deine eigene Bewertung" },

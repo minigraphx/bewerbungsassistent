@@ -33,3 +33,22 @@
 .own-rating .sterne button { font-size: 22px; }
 
 .companies-page .tabs { margin-top: var(--space-2); }
+
+/* Suche einstellen (#263, A4): four cards and Erweitert in one reading column */
+.settings-page { max-width: var(--width-reading); }
+.settings-page__crumb { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.settings-page__head { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: baseline; justify-content: space-between; }
+.settings-page__head h2, .settings-page__head h3 { margin: 0; padding: 0; border: 0; }
+.settings-page__head h2 { font-size: 18px; line-height: 24px; }
+.settings-page__head h3 { font-size: 16px; line-height: 22px; color: var(--text-strong); }
+.settings-page__sub { display: flex; flex-direction: column; gap: var(--space-3); }
+.settings-page__sub h3 { margin: 0; font-size: 16px; line-height: 22px; color: var(--text-strong); }
+.settings-page__sub p, .settings-page__sub .btn-row, .settings-page .card fieldset { margin: 0; }
+.settings-page__ask { padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--surface-subtle); }
+.settings-page__more > summary { cursor: pointer; font-size: 18px; line-height: 24px; font-weight: 700; color: var(--text-strong); }
+.settings-page__more[open] > summary { margin-bottom: var(--space-2); }
+.settings-page__select { max-width: 240px; }
+.settings-page__foot { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-4); align-items: center; justify-content: space-between; }
+.settings-page__foot p { margin: 0; flex: 1 1 240px; color: var(--text-muted); }
+.settings-page__more > p, .settings-page__more > .settings-page__sub { margin: var(--space-3) 0 0; }
+.settings-page__more > .settings-page__sub { padding-top: var(--space-3); border-top: 1px solid var(--line); }

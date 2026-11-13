@@ -24,6 +24,8 @@
   let profilFehlt = "";      // why nothing can be searched yet, from the app (#220)
   let gesucht = false;       // a search ran before, so an empty list of new hits means „nothing new“
   let zusammenfassung = "";
+  let geladen = false;       // the list and the reason a search cannot start are known
+  let sucheVerlangt = location.hash === "#jetzt-suchen";  // „Jetzt suchen“ on Suche einstellen leads here (#263)
   let wartetSeit = null;     // ISO time since the page waits for a search, to tell its run from older ones
   let stille = null;         // timer: no word from the extension for a while
   let zustand = logik.reiterAus(location.hash);  // which hits the list shows, from the tab in the address
@@ -286,9 +288,6 @@
     const proTreffer = logik.kostenProTreffer(alle);
     const kosten = ids.length && proTreffer !== null ? `Bisher etwa ${proTreffer.toFixed(3)} USD pro Treffer.` : "";
     $("kosten-hinweis").textContent = laeuft ? "" : logik.alleBewertet(alle) ? "Alle Treffer sind bewertet." : kosten;
-    $("auto-bewerten").checked = einstellungen.auto_bewerten;
-    $("zuschauen").checked = einstellungen.zuschauen;
-    $("auto-text").textContent = `Neue Treffer nach der Suche automatisch bewerten (höchstens ${grenze} pro Suche)`;
     zeigeBerufe();
   }
 
@@ -387,13 +386,6 @@
     return namen.join(", ").replace(/, ([^,]*)$/, " und $1");
   }
 
-  // The page follows the search profile: apprenticeships search other portals and know trial apprenticeships.
-  function zeigeArt(art, angebote) {
-    lehrstelle = art === "lehrstelle";
-    $("angebot-wahl").hidden = !lehrstelle;
-    $("angebot").value = logik.wahlAus(angebote);
-    $("suchen").textContent = "Jetzt suchen";
-  }
 
   // Only the desktop app has „Meine Angaben“; without it there is nothing to say.
   async function zeigeNichtUebernommen() {
@@ -433,15 +425,14 @@
       zusammenfassung = anzeige.zusammenfassung({
         begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle: daten.art === "lehrstelle",
       });
-      zeigeArt(daten.art, daten.angebote || []);
-      window.PortalWahl.zeige(daten.portale_wahl || [], lade);
-      window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
+      lehrstelle = daten.art === "lehrstelle";
       window.SuchbegriffeStart.zeige(daten.art);
       zeigeListe();
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {}, daten.zeitraum || {});
       zeigeNichtUebernommen();
+      geladen = true;
       zeigeSuchen();
-      zeigeEinstellen(!$("einstellen").hidden);
+      zeigeEinstellen();
     } catch (fehler) {
       meldung(fehler.message, "fehler");
     }
@@ -459,6 +450,10 @@
     const grund = anzeige.sperrgrund({ erweiterung, laeuft: suchlaeuft, profil: profilFehlt });
     $("suchen").disabled = suchlaeuft || erweiterung !== true || Boolean(grund);
     $("suchen-grund").textContent = grund;
+    if (!sucheVerlangt || !geladen || erweiterung === null) return;
+    sucheVerlangt = false;  // once: the reason under the button says why it did not start
+    history.replaceState(null, "", location.pathname + location.search);
+    if (!$("suchen").disabled) starteSuche();
   }
 
   function laufText(lauf) {
@@ -515,7 +510,7 @@
     }
   });
 
-  $("suchen").addEventListener("click", () => {
+  function starteSuche() {
     suchlaeuft = true;
     zeigeSuchen();
     $("lauf-box").hidden = false;
@@ -523,7 +518,8 @@
     wartetSeit = new Date().toISOString();
     warte();
     window.postMessage({ quelle: SEITE, art: "suche-starten" }, location.origin);
-  });
+  }
+  $("suchen").addEventListener("click", starteSuche);
   // The tabs are links (#gemerkt), so the page Firmen can lead to a tab and the back button returns to the last one.
   window.addEventListener("hashchange", () => { zustand = logik.reiterAus(location.hash); zeigeListe(); });
   $("art").addEventListener("change", zeigeListe);
@@ -532,50 +528,16 @@
       .then(neu => { einstellungen = neu; zeigeListe(); })
       .catch(fehler => meldung(fehler.message, "fehler"));
   });
-  $("angebot").addEventListener("change", async () => {
-    try {
-      const { angebote } = await senden("/api/suche/angebot", { wahl: $("angebot").value });
-      meldung(`Gesucht wird: ${logik.sucheText(angebote).replace(/ suchen$/, "")}.`, "ok");
-    } catch (fehler) {
-      meldung(fehler.message, "fehler");
-      lade();
-    }
-  });
   $("anhalten").addEventListener("click", () => {
     if (bewertungslauf) bewertungslauf.halt = true;
     $("anhalten").disabled = true;
     meldung("Wird nach dem laufenden Paket angehalten …");
   });
-  $("auto-bewerten").addEventListener("change", event => {
-    senden("/api/suche/einstellungen", { auto_bewerten: event.target.checked })
-      .then(neu => { einstellungen = neu; })
-      .catch(fehler => { meldung(fehler.message, "fehler"); zeigeBewerten(); });
-  });
-
-  $("zuschauen").addEventListener("change", event => {
-    senden("/api/suche/einstellungen", { zuschauen: event.target.checked })
-      .then(neu => { einstellungen = neu; })
-      .catch(fehler => { meldung(fehler.message, "fehler"); zeigeBewerten(); });
-  });
-
-  // Settings: closed on opening, summed up in one line with „Ändern“ (#220); open only on request
-  function zeigeEinstellen(offen) {
-    $("einstellen").hidden = !offen;
-    $("einstellen-knopf").setAttribute("aria-expanded", String(offen));
-    $("einstellen-knopf").textContent = offen ? "Einstellungen schliessen" : "Suche einstellen";
+  // The settings are their own page (#263); here one line sums them up, with „Ändern“ leading there (#220)
+  function zeigeEinstellen() {
     $("einstellen-text").textContent = zusammenfassung;
-    $("einstellen-zeile").hidden = offen || !zusammenfassung;
+    $("einstellen-zeile").hidden = !zusammenfassung;
   }
-
-  function oeffneEinstellen() {
-    zeigeEinstellen(true);
-    $("einstellen").scrollIntoView({ behavior: "smooth" });
-  }
-
-  $("einstellen-knopf").addEventListener("click", () => zeigeEinstellen($("einstellen").hidden));
-  $("einstellen-aendern").addEventListener("click", oeffneEinstellen);
-  $("leer-einstellen").addEventListener("click", oeffneEinstellen);
-  zeigeEinstellen(false);
 
   if (document.documentElement.dataset.bewerbungsbegleiterErweiterung) erweiterungDa();
   else {

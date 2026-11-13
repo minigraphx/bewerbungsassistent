@@ -98,7 +98,7 @@ test("with consent given, Vorschlagen asks the AI right away", async () => {
 });
 
 test("the page Suche has a place for the consent inside the suggestion box and loads its script", () => {
-  const html = seite("treffer.html");
+  const html = seite("suche-einstellen.html");
   const box = html.slice(html.indexOf('<details id="vorschlag"'), html.indexOf("</details>", html.indexOf('<details id="vorschlag"')));
   assert.match(box, /id="vorschlag-einwilligung"/);
   assert.ok(html.indexOf('src="/einwilligung.js"') > 0, "einwilligung.js is loaded");

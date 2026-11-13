@@ -6,7 +6,7 @@
   const TARGET_OF_PAGE = {
     "/": "heute",
     "/bewerbung": "bewerbungen",
-    "/treffer": "stellen", "/suchbegriffe": "stellen", "/firmen": "stellen",
+    "/treffer": "stellen", "/suchbegriffe": "stellen", "/firmen": "stellen", "/suche-einstellen": "stellen",
     "/angaben": "angaben", "/inhalte": "angaben",
     "/dateien": "dateien", "/foto": "dateien", "/entwuerfe": "dateien",
     "/fragen": "fragen",

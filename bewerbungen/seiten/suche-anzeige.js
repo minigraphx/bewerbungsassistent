@@ -1,5 +1,5 @@
 "use strict";
-// What the page Stellen suchen says about itself (#220, UX findings 8 and 9): the one line that sums up the closed
+// What the page Stellen says about itself (#220, UX findings 8 and 9): the one line that sums up the
 // settings, why „Jetzt suchen“ cannot start, the empty list before the first search and the line of the last search.
 // No DOM, so it can be tested (tests/treffer_quickwins.test.cjs).
 (function (global) {
@@ -83,7 +83,15 @@
     return `${zeile.portal}: ${zuletzt} · nächste Suche ab ${zeile.ab}`;
   }
 
-  const anzeige = { OHNE_ERWEITERUNG, NOCH_NICHT, zusammenfassung, regionText, sperrgrund, leer, letzteSuche, problemZeile,
+  /** The title filters in one sentence for Suche einstellen (#263, A4); empty without any. */
+  function titelfilterText(positiv = [], ausschluss = []) {
+    const woerter = anzahl => `${anzahl} ${anzahl === 1 ? "Wort" : "Wörtern"}`;
+    if (positiv.length && ausschluss.length) return `Titel enthält eines von ${woerter(positiv.length)}, keines von ${ausschluss.length}`;
+    if (positiv.length) return `Titel enthält eines von ${woerter(positiv.length)}`;
+    return ausschluss.length ? `Titel enthält keines von ${woerter(ausschluss.length)}` : "";
+  }
+
+  const anzeige = { OHNE_ERWEITERUNG, NOCH_NICHT, zusammenfassung, regionText, titelfilterText, sperrgrund, leer, letzteSuche, problemZeile,
     zeitfensterWahl, portalStand };
   if (typeof module !== "undefined") module.exports = anzeige;
   else global.SucheAnzeige = anzeige;
