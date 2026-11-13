@@ -170,7 +170,13 @@
     return anzahl === 1 ? `1 ${wort[0]} ist noch nicht geprüft.` : `${anzahl} ${wort[1]} sind noch nicht geprüft.`;
   }
 
-  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, kostenProTreffer, nachpruefungText };
+  /** Why a hit has no ad text and how to get it (G37), as the notice in the details shows it; null when it has one. */
+  function fehlenderText(treffer) {
+    const fehlt = treffer.ohne_text ? treffer.text_fehlt : null;
+    return fehlt ? { titel: "Inseratstext fehlt", text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
+  }
+
+  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, kostenProTreffer, nachpruefungText, fehlenderText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

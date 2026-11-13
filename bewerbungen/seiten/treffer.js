@@ -160,6 +160,10 @@
     return [knopf, textFeld];
   }
 
+  function fehltHinweis(fehlt) {
+    return fehlt ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, fehlt.titel), el("p", { class: "notice__body" }, fehlt.text)) : null;
+  }
+
   function zeigeDetail(treffer) {
     if (!treffer) return $("detail").replaceChildren();
     const b = treffer.bewertung;
@@ -175,6 +179,7 @@
       entscheidung(treffer),
       treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, t("suche.schon-titel")), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
       treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Passt nach den festen Regeln nicht"), el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
+      fehltHinweis(logik.fehlenderText(treffer)),
       el("article", { class: "ai-result" },
         el("header", { class: "ai-result__head" }, el("h3", { class: "ai-result__kind" }, "Einschätzung der KI"),
           el("span", { class: "search__grades" }, noten(treffer, { klein: false }))),

@@ -232,3 +232,11 @@ test("in every order a hit that failed the pre-check stays below the rest, own s
   assert.deepEqual(logik.sortiert(hits, {}, "datum").map((t) => t.id), ["plain", "starred", "failed"]);
   assert.deepEqual(logik.sortiert(hits, {}, "note").map((t) => t.id), ["plain", "starred", "failed"]);
 });
+
+test("a hit without its ad text says why and how to get it (G37)", () => {
+  const fehlt = { grund: "Die Seite auf jobscout24 hatte keinen lesbaren Text.", weg: "Das Inserat öffnen und es mit der Erweiterung speichern." };
+  assert.deepEqual(logik.fehlenderText({ ohne_text: true, text_fehlt: fehlt }),
+    { titel: "Inseratstext fehlt", text: `${fehlt.grund} ${fehlt.weg}` });
+  assert.equal(logik.fehlenderText({ ohne_text: false, text_fehlt: null }), null);
+  assert.equal(logik.fehlenderText({ ohne_text: true }), null, "an older answer without a reason shows nothing new");
+});

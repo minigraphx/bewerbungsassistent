@@ -8,8 +8,6 @@
   const $ = id => document.getElementById(id);
   const DIALOG = "pass-dialog";
   const STAGE = { bewerben: "Bewerben", verworfen: "Verworfen" };
-  const NO_AD = "Zu dieser Stelle fehlt der Inseratstext.";
-  const WEB_LINK = /^https?:\/\//i;
 
   let queue = [];
   let index = 0;
@@ -29,10 +27,13 @@
     return [[b.firma, b.ort].filter(Boolean).join(", "), grade, deadline].filter(Boolean).join(" · ");
   }
 
-  function adContent(b, text) {
-    if ((text || "").trim()) return [text.trim()];
-    const link = WEB_LINK.test(b.link || "") ? el("a", { href: b.link, target: "_blank", rel: "noopener" }, "Inserat öffnen") : null;
-    return [el("p", {}, NO_AD, link ? " " : "", link)];
+  // The fetched ad, or why it is missing and how to get it (G37); the extension loads it at the start of the app.
+  function adContent(b, text, missing) {
+    const ad = H.passAd(b, text, missing);
+    if (ad.text) return [ad.text];
+    const link = ad.link ? el("a", { href: ad.link, target: "_blank", rel: "noopener" }, "Inserat öffnen") : null;
+    const [first, ...rest] = ad.zeilen;
+    return [el("p", {}, first, link ? " " : "", link), ...rest.map(line => el("p", { class: "pass__missing" }, line))];
   }
 
   async function show() {
@@ -42,10 +43,10 @@
     $("pass-fortschritt").textContent = H.passProgress(index, queue.length);
     $("pass-oeffnen").href = address(id);
     try {
-      const { bewerbung: b, stellentext } = await holen("/api/bewerbung", { id });
+      const { bewerbung: b, stellentext, text_fehlt: missing } = await holen("/api/bewerbung", { id });
       $("pass-titel").textContent = b.stelle || "ohne Titel";
       $("pass-firma").textContent = meta(b);
-      $("pass-inserat").replaceChildren(...adContent(b, stellentext));
+      $("pass-inserat").replaceChildren(...adContent(b, stellentext, missing));
       setBusy(false);
     } catch (error) {
       $("pass-titel").textContent = "Stelle nicht geladen";

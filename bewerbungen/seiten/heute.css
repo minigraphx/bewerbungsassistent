@@ -74,4 +74,5 @@
 .pass__meta { margin: 0 0 var(--space-3); color: var(--text-muted); }
 .pass__ad { max-height: 45vh; overflow: auto; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-subtle); font-size: 14px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .pass__ad p { margin: 0; white-space: normal; }
+.pass__ad .pass__missing { margin-top: var(--space-2); color: var(--text-muted); }
 .pass__open { margin: var(--space-2) 0 0; font-size: 14px; }

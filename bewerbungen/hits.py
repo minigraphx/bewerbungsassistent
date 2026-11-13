@@ -434,6 +434,18 @@ class Hits:
                     return stored[index]
         raise KeyError(f"Treffer {wanted!r} nicht gefunden")
 
+    def fill_text(self, wanted: str, text: str, check=lambda title, text: "") -> bool:
+        """The text of a new hit that had none (G37); a text that is there stays. `check`: the pre-check (G33)."""
+        with _LOCK:
+            hit = next((h for h in self.all() if h["id"] == wanted), None)
+            if hit is None or hit.get("zustand") != "neu" or not text.strip() or self.text(wanted).strip():
+                return False
+            schreibe_atomar(self._text_path(wanted), text.encode("utf-8"))
+        reason = check(hit["stelle"], text)
+        if reason:
+            self.update(wanted, vorpruefung=reason)
+        return True
+
     def update_many(self, fields_by_id: dict[str, dict]) -> list[dict]:
         """One write for many hits; a hit that is gone by now is left out."""
         with _LOCK:
