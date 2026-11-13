@@ -107,12 +107,41 @@
     };
     const gefunden = [logik.pruefungFaellig(firma, heute) ? pruefenKnopf(firma, "Neu prüfen") : null, ansehen];
     const hand = logik.vonHandAnbieten(firma, heute, nichtGelesen) ? knopf(firma, "Von Hand eintragen", () => oeffneVonHand(firma)) : null;
-    return el("div", { class: "btn-row" }, ...(je[zustand] || gefunden).filter(Boolean), hand);
+    return el("div", { class: "btn-row" }, ...(je[zustand] || gefunden).filter(Boolean), hand, sucheKnopf(firma));
+  }
+
+  // Excluded companies (#226, G65): their hits leave the search; the row stays, so the person can take it back here.
+  function sucheKnopf(firma) {
+    const name = el("span", { class: "visually-hidden" }, `: ${firma.name}`);
+    return firma.ausgeschlossen
+      ? el("button", { type: "button", class: "btn btn--sm", onclick: () => zeigeWieder(firma) }, "Wieder zeigen", name)
+      : el("button", { type: "button", class: "btn btn--sm btn--quiet", onclick: () => schliesseAus(firma) }, "Nicht mehr zeigen", name);
+  }
+
+  async function schliesseAus(firma) {
+    try {
+      await senden("/api/firmen/ausschliessen", { name: firma.name });
+      await laden(firma.schluessel);
+      meldung(text("firmen.ausgeschlossen", { firma: firma.name }), "success");
+    } catch (fehler) {
+      meldung(`${firma.name}: nicht ausgeschlossen. ${fehler.message}`, "warning");
+    }
+  }
+
+  async function zeigeWieder(firma) {
+    try {
+      await senden("/api/firmen/wieder-zeigen", { schluessel: firma.schluessel });
+      await laden(firma.schluessel);
+      meldung(`${firma.name}: Die Suche zeigt die Inserate wieder.`, "success");
+    } catch (fehler) {
+      meldung(`${firma.name}: nicht wieder gezeigt. ${fehler.message}`, "warning");
+    }
   }
 
   function zeile(firma) {
     return el("tr", { "data-schluessel": firma.schluessel, class: offen === firma.schluessel ? "is-open" : null },
-      el("td", { "data-label": "" }, el("span", { class: "table__main" }, firma.name), firma.ort ? el("span", { class: "table__sub" }, firma.ort) : null),
+      el("td", { "data-label": "" }, el("span", { class: "table__main" }, firma.name), firma.ort ? el("span", { class: "table__sub" }, firma.ort) : null,
+        firma.ausgeschlossen ? el("span", { class: "table__sub" }, "Nicht mehr in der Suche") : null),
       el("td", { "data-label": "kununu" }, kununuZelle(firma)),
       el("td", { "data-label": "Treffer und Bewerbungen" }, verknuepft(firma)),
       el("td", { "data-label": "Geprüft", class: "num" }, geprueft(firma)),

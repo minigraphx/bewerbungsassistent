@@ -194,7 +194,8 @@
           : el("div", { class: "btn-row" }, bewertenKnopf(treffer))),
       eigeneSterne(treffer),
       window.TrefferFirma.zeile(firmen.get(treffer.id), heute,
-        { lehrstelle, alle: t("firmen.alle"), wo: t("firmen.titel"), nachPruefen: kununuGeprueft }),
+        { lehrstelle, alle: t("firmen.alle"), wo: t("firmen.titel"), nachPruefen: kununuGeprueft,
+          ausschliessen: { text: t("firmen.ausschliessen"), aktion: () => schliesseAus(treffer) } }),
       weitere.length ? el("ul", { class: "search__more" }, weitere) : null,
       el("div", { class: "btn-row" }, knopf), textFeld].filter(Boolean));
   }
@@ -215,6 +216,30 @@
     senden("/api/suche/sterne", { sterne: anzahl }, { id: treffer.id })
       .then(neu => { alle = alle.map(x => x.id === neu.id ? neu : x); zeigeListe(); })
       .catch(fehler => meldung(fehler.message, "fehler"));
+  }
+
+  // „Diese Firma nicht mehr zeigen“ (#226, G65): its hits leave the list; „Rückgängig“ brings them back.
+  async function schliesseAus(treffer) {
+    try {
+      const antwort = await senden("/api/firmen/ausschliessen", { name: treffer.firma });
+      if (gewaehlt === treffer.id) gewaehlt = null;
+      await lade();
+      zeile($("status"), t("firmen.ausgeschlossen", { firma: treffer.firma }), "ok", {
+        aktion: { text: "Rückgängig", ausfuehren: () => zeigeWieder(antwort.firma.schluessel) },
+      });
+    } catch (fehler) {
+      meldung(`${treffer.firma}: nicht ausgeschlossen. ${fehler.message}`, "fehler");
+      zeigeListe();
+    }
+  }
+
+  async function zeigeWieder(schluessel) {
+    try {
+      await senden("/api/firmen/wieder-zeigen", { schluessel });
+      await lade();
+    } catch (fehler) {
+      meldung(`Die Firma wird nicht wieder gezeigt. ${fehler.message}`, "fehler");
+    }
   }
 
   // „Jetzt prüfen“ (#191): the app has stored the value, so badge and company line load it again.

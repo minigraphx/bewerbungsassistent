@@ -10,12 +10,13 @@ import datetime
 import re
 import urllib.parse
 
+import excluded_companies
 from dateien import lies_yaml, schreibe_yaml
-from hits import Hits, company_key
+from excluded_companies import key_of
+from hits import Hits
 
 FILE = "firmen.yaml"
 HEADER = "# Firmen mit kununu-Bewertung, geschrieben vom Bewerbungsbegleiter\n"
-UNKNOWN_COMPANY = "unbekannt"  # what hits.validate stores without a company
 STATES = ("gefunden", "keine", "mehrere", "nicht_gefunden", "fehler", "zugeordnet")
 SITES = ("ch", "de")
 KUNUNU_HOSTS = ("kununu.com", "www.kununu.com")
@@ -123,14 +124,9 @@ def stored(data_dir) -> dict[str, dict]:
     return {key: value for key, value in entries.items() if value}
 
 
-def _key(name) -> str:
-    key = company_key(name if isinstance(name, str) else "")
-    return "" if key in ("", UNKNOWN_COMPANY) else key
-
-
 def _company(name: str, ort: str) -> tuple[str, str, str]:
     """(key, name, place) of a hit or an application; no key without a company."""
-    return _key(name), name.strip(), ort.strip()
+    return key_of(name), name.strip(), ort.strip()
 
 
 def _merged(group: list[tuple[str, str, dict, dict | None]]) -> dict:
@@ -142,17 +138,20 @@ def _merged(group: list[tuple[str, str, dict, dict | None]]) -> dict:
 
 
 def rows(data_dir, applications: list[dict]) -> list[dict]:
-    """One row per company with its hits, its applications and what kununu says, in no particular order."""
+    """One row per company with its hits, its applications and what kununu says, in no particular order. An excluded
+    company (#226) keeps its row, marked, so the person can take it back here."""
     seen = [(*_company(e.get("firma") or "", e.get("ort") or ""),
              {"id": e.get("id"), "stelle": e.get("stelle") or "", "status": e.get("status") or ""}, None) for e in applications]
     seen += [(*_company(h.get("firma") or "", h.get("ort") or ""), None,
               {"id": h.get("id"), "stelle": h.get("stelle") or "", "zustand": h.get("zustand") or "neu"}) for h in Hits(data_dir).all()]
     keys = list(dict.fromkeys(key for key, *_ in seen if key))
     known = stored(data_dir)
+    excluded = excluded_companies.keys(data_dir)
     result = []
     for key in keys:
         row = _merged([(name, place, entry, hit) for k, name, place, entry, hit in seen if k == key])
-        result.append({"schluessel": key, **row, "kununu": known.get(key), "suche": search_link(row["name"])})
+        result.append({"schluessel": key, **row, "kununu": known.get(key), "suche": search_link(row["name"]),
+                       "ausgeschlossen": key in excluded})
     return result
 
 

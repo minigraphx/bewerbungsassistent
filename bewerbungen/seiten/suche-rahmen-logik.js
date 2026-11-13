@@ -18,6 +18,12 @@
     return { titel_positiv: zeilen(felder.positiv), titel_ausschluss: zeilen(felder.ausschluss) };
   }
 
+  /** The excluded companies (#226, G65): the whole list, one per line; the app drops repeats. */
+  const firmenKoerper = text => ({ firmen: zeilen(text) });
+
+  /** Whether saving the card writes the search profile; an apprenticeship's Was nicht has only the companies. */
+  const mitProfil = (karte, lehrstelle) => !(karte === "nicht" && lehrstelle);
+
   const umkreisGewaehlt = aktuell => (Number.isInteger(aktuell) ? aktuell : UMKREIS_VORGABE);
 
   function umkreisWahl(aktuell) {
@@ -31,7 +37,7 @@
       : "Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst.";
   }
 
-  const logik = { zeilen, alsText, koerper, umkreisWahl, umkreisGewaehlt, kantoneHinweis, titelfilterLeer };
+  const logik = { zeilen, alsText, koerper, firmenKoerper, mitProfil, umkreisWahl, umkreisGewaehlt, kantoneHinweis, titelfilterLeer };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SucheRahmenLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

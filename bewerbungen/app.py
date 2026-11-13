@@ -55,6 +55,7 @@ SEITEN = {
     "/dateien.js": "dateien.js",
     "/dateien-logik.js": "dateien-logik.js",
     "/eigenes-anschreiben.js": "eigenes-anschreiben.js",
+    "/firma-ausschliessen.js": "firma-ausschliessen.js",
     "/dateien-ordner.js": "dateien-ordner.js",
     "/stil.css": "stil.css",
     "/app.js": "app.js",
