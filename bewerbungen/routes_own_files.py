@@ -6,6 +6,7 @@ import pathlib
 import certificates
 import cv_design
 import own_files
+import proof_kinds
 import unterlagen
 import versand
 from dateien import schreibe_atomar
@@ -17,7 +18,8 @@ UPLOAD_ROUTE = "/api/dateien/hochladen"
 LETTER_ROUTE = "/api/dateien/anschreiben"
 BODY_LIMITS = {route: int(own_files.MAX_FILE_BYTES * BASE64_OVERHEAD) + JSON_OVERHEAD_BYTES
                for route in (UPLOAD_ROUTE, LETTER_ROUTE)}
-KIND_NAMES = {own_files.CERTIFICATE_KIND: "Zertifikat", own_files.REFERENCE_KIND: "Zeugnis"}
+KIND_NAMES = {own_files.CERTIFICATE_KIND: "Zertifikat", own_files.DIPLOMA_KIND: "Diplom",
+              own_files.REFERENCE_KIND: "Arbeitszeugnis"}
 UNREADABLE = "Die Datei liess sich nicht lesen. Bitte nochmals versuchen."
 NO_APPLICATION = "Bewerbung mit id erwartet."
 
@@ -60,6 +62,17 @@ def refresh_chosen(k, rel: str) -> None:
     k.ablage.speichere(register.pfad, description)
 
 
+def _save_kinds(k, recorded: dict[str, str], updated: dict[str, str], description: str) -> None:
+    """Call with `k.sperre` held, with the record read before the change: an unreadable one stops it before it starts."""
+    if updated == recorded:
+        return
+    record = k.daten / proof_kinds.FILE
+    if record.is_file():
+        k.ablage.speichere(record, f"Stand vor: {description}")
+    proof_kinds.save(k.daten, updated)
+    k.ablage.speichere(record, description)
+
+
 def overview(k, parameter, body):
     return json_antwort({**own_files.listing(k.daten), "max_groesse": own_files.MAX_FILE_BYTES})
 
@@ -72,12 +85,17 @@ def upload(k, parameter, body):
     own_files.check_upload(kind, name, data)
     rel = own_files.relative_target(k.daten, kind, name)
     path = k.daten / rel
+    description = f"{name} hochgeladen"
 
     def write():
+        recorded = proof_kinds.load(k.daten)
+        is_new = not path.is_file()
         schreibe_atomar(path, data)
+        if is_new and kind in own_files.FOLDERS:  # a file uploaded again keeps the kind the person gave it (G63)
+            _save_kinds(k, recorded, proof_kinds.with_kind(recorded, rel, kind), description)
         refresh_chosen(k, rel)
 
-    k.mit_entwurf(path, f"{name} hochgeladen", write)
+    k.mit_entwurf(path, description, write)
     return json_antwort(own_files.listing(k.daten))
 
 
@@ -89,34 +107,46 @@ def show(k, parameter, body):
 def remove(k, parameter, body):
     rel = _body(body).get("datei")
     path = own_files.checked_listed(k.daten, rel)
+    description = f"{path.name} entfernt"
 
     def write():
+        recorded = proof_kinds.load(k.daten)
         path.unlink(missing_ok=True)
+        _save_kinds(k, recorded, proof_kinds.without(recorded, rel), description)
         refresh_chosen(k, rel)
 
-    k.mit_entwurf(path, f"{path.name} entfernt", write)
+    k.mit_entwurf(path, description, write)
     return json_antwort(own_files.listing(k.daten))
 
 
 def change_kind(k, parameter, body):
-    """A certificate becomes a reference or the other way round: the file moves to the folder of its kind."""
+    """A file gets another kind (G63). To or from Arbeitszeugnis it moves to the folder of its kind; between Diplom
+    and Zertifikat it stays where it is, with its place in the choices and ZIPs, and only the record changes."""
     request = _body(body)
     rel = request.get("datei")
+    kind = request.get("art")
     source = own_files.checked_listed(k.daten, rel)
-    target_rel = own_files.kind_target(k.daten, rel, request.get("art"))
-    if target_rel == rel:
-        return json_antwort(own_files.listing(k.daten))
-    target = k.daten / target_rel
-    description = f"{source.name} als {KIND_NAMES[request['art']]} eingeordnet"
+    target_rel = own_files.kind_target(k.daten, rel, kind)
+    description = f"{source.name} als {KIND_NAMES[kind]} eingeordnet"
 
-    def write():
-        target.parent.mkdir(parents=True, exist_ok=True)
-        source.rename(target)
-        refresh_chosen(k, rel)
-        k.ablage.speichere(target, description)
-
-    k.mit_entwurf(source, description, write)
+    with k.sperre:
+        recorded = proof_kinds.load(k.daten)
+        if own_files.kind_of(recorded, rel) != kind:
+            if target_rel != rel:
+                _move(k, rel, target_rel, description)
+            moved = proof_kinds.with_kind(proof_kinds.without(recorded, rel), target_rel, kind)
+            _save_kinds(k, recorded, moved, description)
     return json_antwort(own_files.listing(k.daten))
+
+
+def _move(k, rel: str, target_rel: str, description: str) -> None:
+    """Call with `k.sperre` held. Drafts before and after, so the move can be undone from „Entwürfe und Versionen“."""
+    source, target = k.daten / rel, k.daten / target_rel
+    k.ablage.speichere(source, f"Stand vor: {description}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    source.rename(target)
+    refresh_chosen(k, rel)
+    k.ablage.speichere(target, description)
 
 
 def _letter_of(k, request: dict) -> tuple[dict, pathlib.Path]:
