@@ -139,18 +139,17 @@ test("on the first start the CV upload leads to the upload in Meine Angaben (#26
   assert.ok(angaben.includes("function openUploads()"), "angaben.html is built from the changed source");
 });
 
-test("the bulk bar appears only once a row is selected: n ausgewählt · Stand setzen", () => {
+test("the other stages appear only once a row is ticked, after the count and Angehakte verwerfen (#170, #261)", () => {
   assert.equal(uebersichtLogik.showBulkBar(0), false);
   assert.equal(uebersichtLogik.showBulkBar(1), true);
-  assert.equal(uebersichtLogik.selectionLabel(2), "2 ausgewählt");
-  const html = lies("uebersicht.html");
-  const bar = html.slice(html.indexOf('id="auswahl-leiste"'), html.indexOf("</div>", html.indexOf('id="auswahl-leiste"')));
+  const html = lies("bewerbungen.html");
+  const bar = html.slice(html.indexOf('id="auswahl-leiste"'), html.indexOf("</span>\n", html.indexOf('id="auswahl-leiste"')));
   assert.match(bar, /^id="auswahl-leiste"[^>]*hidden>/);
-  assert.ok(bar.indexOf('id="auswahl-zahl"') < bar.indexOf('id="stand-setzen"'), "count first, then Stand setzen");
+  assert.ok(html.indexOf('id="auswahl-zahl"') < html.indexOf('id="stand-setzen"'), "count first, then Stand setzen");
   assert.doesNotMatch(html, /Keine ausgewählt/);
   assert.match(html, /<th class="table__pick"><input type="checkbox" id="alle-kopf" aria-label="Alle in dieser Ansicht auswählen"><\/th>/);
-  const code = lies("uebersicht.js");
-  assert.match(code, /\$\("auswahl-leiste"\)\.hidden = !L\.showBulkBar\(anzahl\);/);
+  const code = lies("bewerbungen.js");
+  assert.match(code, /\$\("auswahl-leiste"\)\.hidden = !L\.showBulkBar\(ids\.length\);/);
   assert.doesNotMatch(code, /\$\("auswahl-leiste"\)\.hidden = gezeigte\.length === 0/);
 });
 

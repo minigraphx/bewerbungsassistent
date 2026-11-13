@@ -257,7 +257,7 @@
     },
 
     // Overview (step 3)
-    "uebersicht.von-hand": { sie: "Stelle von Hand erfassen", du: "Stelle von Hand erfassen", lehrstelle: "Lehrstelle von Hand erfassen" },
+    "uebersicht.von-hand": { sie: "Stelle selbst erfassen", du: "Stelle selbst erfassen", lehrstelle: "Lehrstelle selbst erfassen" },
     "uebersicht.feld-firma": { sie: "Firma", du: "Firma", lehrstelle: "Lehrbetrieb" },
     "uebersicht.feld-stelle": { sie: "Stelle", du: "Stelle", lehrstelle: "Lehrstelle" },
     "uebersicht.suche": { sie: "Firma oder Stelle", du: "Firma oder Stelle", lehrstelle: "Lehrbetrieb oder Lehrstelle" },

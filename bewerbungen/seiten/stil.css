@@ -709,6 +709,9 @@ label.check input { margin-top: 3px; }
 /* ---------- Application ---------- */
 .application { display: flex; flex-direction: column; gap: var(--space-5); }
 .application > a.zurueck { margin: 0; align-self: flex-start; }
+.crumbs { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }  /* the path above an application (#261) */
+.crumbs a { color: var(--text); }
+.crumbs a:hover { color: var(--text-strong); }
 .application > .status-line { margin: 0; }
 .application > .status-line:empty { display: none; }
 .application__head { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); justify-content: space-between; align-items: flex-start; }
