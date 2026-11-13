@@ -24,7 +24,7 @@ Stehen die Werkzeuge des Connectors `bewerbungsbegleiter` bereit, arbeitet diese
 | Zuschnitt, Variantenliste, Anschreiben schreiben | `write_file` (`jobs/<name>.yaml`, `varianten.yaml`, `bewerbungen/<id>/anschreiben.yaml`); Formate mit `read_template` |
 | Unterlagen erstellen und formal prüfen | `build_documents`, `check_documents` |
 
-Zeigt `get_application` `eigener_lebenslauf_da`, hat die Person unter „Meine Dateien“ einen fertigen Lebenslauf abgelegt. Er gilt unverändert für jede Bewerbung ohne Variante, und `build_documents` baut dort keinen neuen. Eine Variante setzt Claude dann nur, wenn die Person das will. Die Datei selbst erreicht Claude nicht.
+Zeigt `get_application` `eigener_lebenslauf_da`, hat die Person unter „Lebenslauf und Dateien“ einen fertigen Lebenslauf abgelegt. Er gilt unverändert für jede Bewerbung ohne Variante, und `build_documents` baut dort keinen neuen. Eine Variante setzt Claude dann nur, wenn die Person das will. Die Datei selbst erreicht Claude nicht.
 
 Zeigt `get_application` `eigenes_anschreiben: true`, hat die Person für diese Bewerbung ein eigenes Anschreiben hochgeladen. Es gilt anstelle von `anschreiben.yaml`, und `build_documents` baut keines. Lesen kann Claude es nicht, und den Inhalt prüft die Person selbst. `check_documents` meldet dazu nur Formales. Schritt 3 entfällt, solange die Person kein anderes will; ein neuer Entwurf zählt erst, wenn sie die Datei in der App entfernt.
 

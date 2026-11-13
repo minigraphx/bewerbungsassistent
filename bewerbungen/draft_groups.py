@@ -16,7 +16,7 @@ JOB_AD = "stelle.md"
 LETTERS = {"anschreiben.yaml": "Anschreiben", OWN_LETTER: "Eigenes Anschreiben"}
 TITLES = {"anschreiben/stil.md": "Stilprofil", "anschreiben/bausteine.md": "Textbausteine",
           OWN_CV: "Eigener Lebenslauf (PDF)"}
-CV_FILES = ("cv.yaml", "varianten.yaml", OWN_CV)  # OWN_CV: uploaded on the page Meine Dateien
+CV_FILES = ("cv.yaml", "varianten.yaml", OWN_CV)  # OWN_CV: uploaded on the page Lebenslauf und Dateien
 
 
 def _parts(rel: str) -> tuple[str, ...]:
