@@ -41,7 +41,7 @@
     <p class="progress__note" data-text="suche.laufnotiz">Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten.</p>
   </div>
   <div id="bewerten-box" class="progress" role="status" aria-live="polite" hidden>
-    <div class="progress__head"><strong>KI schätzt Treffer ein</strong><span class="num" id="bewerten-zahl"></span></div>
+    <div class="progress__head"><strong id="bewerten-titel">KI schätzt Treffer ein</strong><span class="num" id="bewerten-zahl"></span></div>
     <div class="progress__busy" aria-hidden="true"></div>
     <div><button type="button" class="btn btn--sm" id="anhalten">Anhalten</button></div>
   </div>
@@ -91,12 +91,17 @@
     <div class="search__column">
       <div id="offen-box" class="search__open" hidden>
         <p class="search__open-text"><span id="offen-zahl"></span> <span id="kosten-hinweis" class="search__hint"></span></p>
-        <span id="bewerten-knoepfe" class="btn-row"></span>
+        <button type="button" class="btn btn--sm" id="alle-pruefen">Alle prüfen</button>
       </div>
       <section class="search__list" aria-label="Trefferliste" id="liste"></section>
     </div>
     <section class="search__detail" aria-labelledby="detail-titel" id="detail"></section>
   </div>
+  <dialog class="dialog" id="alle-dialog" aria-labelledby="alle-titel" aria-describedby="alle-text">
+    <h2 class="dialog__title" id="alle-titel"></h2>
+    <div class="dialog__text" id="alle-text"></div>
+    <div class="dialog__actions"><button type="button" class="btn" id="alle-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="alle-ok">Jetzt prüfen</button></div>
+  </dialog>
 </main>
 <script src="/texte.js"></script>
 <script src="/meldungen.js"></script>

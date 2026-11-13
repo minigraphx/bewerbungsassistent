@@ -13,14 +13,6 @@
         || (b.gefunden_am || "").localeCompare(a.gefunden_am || ""));
   }
 
-  /** The buttons depend on how many hits are open: „Alle“ only when there are more than one package. */
-  function knoepfe(offen, paket, grenze) {
-    if (offen === 0) return [];
-    if (offen <= paket) return [{ text: `Bewerten (${offen})`, anzahl: offen }];
-    const alle = offen > grenze ? { text: `Nächste ${grenze} bewerten`, anzahl: grenze } : { text: `Alle bewerten (${offen})`, anzahl: offen };
-    return [{ text: `Nächste ${paket} bewerten`, anzahl: paket }, alle];
-  }
-
   /** True once every new hit has a grade; hits without text stay open, so the message does not claim too much. */
   function alleBewertet(treffer) {
     const neue = treffer.filter(t => t.zustand === "neu");
@@ -88,10 +80,53 @@
     return stand;
   }
 
-  /** Average cost per hit so far, from the ratings themselves; null while there are none. */
-  function kostenProTreffer(treffer) {
-    const kosten = treffer.map(t => t.bewertung?.kosten_usd).filter(k => typeof k === "number");
-    return kosten.length ? kosten.reduce((summe, k) => summe + k, 0) / kosten.length : null;
+  // „Alle prüfen“ (G44, #209): the words around the estimate of GET /api/suche/alle-pruefen.
+  const money = usd => `USD ${Number(usd).toFixed(2)}`;
+  const minutes = n => (n === 1 ? "1 Minute" : `${n} Minuten`);
+  const jobs = (n, apprenticeship) => {
+    const word = apprenticeship ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
+    return `${n} ${n === 1 ? word[0] : word[1]}`;
+  };
+  const withBudget = s => typeof s.budget_usd === "number";
+
+  /** The second line of the box above the list, as in design A3; empty without an estimate. */
+  function estimateLine(s, apprenticeship = false) {
+    if (!s || !s.anzahl) return "";
+    const about = `Etwa ${money(s.kosten_usd)} und ${minutes(s.dauer_minuten)}.`;
+    if (!withBudget(s)) return about;
+    if (s.reicht_fuer !== null && s.reicht_fuer !== undefined) return `${about} Das Budget reicht für etwa ${jobs(s.reicht_fuer, apprenticeship)}.`;
+    return `${about} Danach bleiben ${money(s.danach_usd)} im Budget.`;
+  }
+
+  /** What the question before the run says; `withExtension`: the extension answered, so it can load missing texts. */
+  function confirmation(s, apprenticeship, withExtension) {
+    const sentences = [`Die KI prüft ${jobs(s.anzahl, apprenticeship)}, die noch keine Note haben.`,
+      `Das kostet etwa ${money(s.kosten_usd)} und dauert etwa ${minutes(s.dauer_minuten)}.`];
+    if (withBudget(s)) sentences.push(`Im Budget sind noch ${money(s.budget_usd)}, danach etwa ${money(s.danach_usd)}.`);
+    const toLoad = s.laden.length;
+    if (toLoad) {
+      sentences.push(withExtension ? `Für ${jobs(toLoad, apprenticeship)} holt die Erweiterung zuerst den Text des Inserats.`
+        : `Für ${jobs(toLoad, apprenticeship)} fehlt der Text. Ohne Erweiterung ${toLoad === 1 ? "bleibt sie" : "bleiben sie"} offen.`);
+    }
+    const tight = withBudget(s) && s.reicht_fuer !== null && s.reicht_fuer !== undefined;
+    const warning = tight ? `Das Budget von ${money(s.budget_usd)} reicht für etwa ${s.reicht_fuer} von ${jobs(s.anzahl, apprenticeship)}. `
+      + "Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt." : "";
+    const without = s.nicht_ladbar.length;
+    return {
+      title: `${jobs(s.anzahl, apprenticeship)} prüfen?`, sentences, warning,
+      notLoadableTitle: without ? `${jobs(without, apprenticeship)} ohne Text ${without === 1 ? "bleibt" : "bleiben"} offen:` : "",
+      notLoadable: s.nicht_ladbar.map(t => `${[t.stelle, t.firma].filter(Boolean).join(", ")}: ${t.grund}`),
+    };
+  }
+
+  /** The message after a run; `rest` hits are still without a grade, also when the budget ended the run. */
+  function schlussText(stand, rest) {
+    const teile = [`${stand.bewertet} von ${stand.von} Treffern bewertet`];
+    if (stand.offen.length) teile.push(`${stand.offen.length} ohne brauchbare Antwort, die lassen sich einzeln nochmals versuchen`);
+    if (stand.ohneText) teile.push(`${stand.ohneText} ohne Inseratstext`);
+    if (stand.gestoppt) teile.push("angehalten");
+    if (rest) teile.push(`noch ${rest} offen`);
+    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)} USD.`;
   }
 
   /** What the details say about the second look at a good grade (MIN-389); empty when there was none. */
@@ -176,7 +211,7 @@
     return fehlt ? { titel: "Inseratstext fehlt", text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
   }
 
-  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, knoepfe, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, kostenProTreffer, nachpruefungText, fehlenderText };
+  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, estimateLine, confirmation, schlussText, nachpruefungText, fehlenderText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

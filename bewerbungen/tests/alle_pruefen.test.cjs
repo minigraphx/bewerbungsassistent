@@ -11,45 +11,45 @@ const read = name => fs.readFileSync(path.join(__dirname, "..", "seiten", name),
 const ESTIMATE = { anzahl: 2, kosten_usd: 0.06, dauer_minuten: 1, laden: [], nicht_ladbar: [], budget_usd: 6.8, danach_usd: 6.74, reicht_fuer: null };
 
 test("the line above the list names cost, duration and the budget afterwards, as in the design", () => {
-  assert.equal(logik.schaetzungText(ESTIMATE), "Etwa USD 0.06 und 1 Minute. Danach bleiben USD 6.74 im Budget.");
-  assert.equal(logik.schaetzungText({ ...ESTIMATE, dauer_minuten: 3, budget_usd: null, danach_usd: null }), "Etwa USD 0.06 und 3 Minuten.");
-  assert.equal(logik.schaetzungText({ ...ESTIMATE, reicht_fuer: 1, danach_usd: 0 }), "Etwa USD 0.06 und 1 Minute. Das Budget reicht für etwa 1 Stelle.");
-  assert.equal(logik.schaetzungText(null), "");
+  assert.equal(logik.estimateLine(ESTIMATE), "Etwa USD 0.06 und 1 Minute. Danach bleiben USD 6.74 im Budget.");
+  assert.equal(logik.estimateLine({ ...ESTIMATE, dauer_minuten: 3, budget_usd: null, danach_usd: null }), "Etwa USD 0.06 und 3 Minuten.");
+  assert.equal(logik.estimateLine({ ...ESTIMATE, reicht_fuer: 1, danach_usd: 0 }), "Etwa USD 0.06 und 1 Minute. Das Budget reicht für etwa 1 Stelle.");
+  assert.equal(logik.estimateLine(null), "");
 });
 
 test("the question before the run names number, cost, budget and duration", () => {
-  const frage = logik.bestaetigung({ ...ESTIMATE, anzahl: 12, kosten_usd: 0.35, dauer_minuten: 3, budget_usd: 6.8, danach_usd: 6.45 }, false, true);
-  assert.equal(frage.titel, "12 Stellen prüfen?");
-  assert.deepEqual(frage.saetze, [
+  const question = logik.confirmation({ ...ESTIMATE, anzahl: 12, kosten_usd: 0.35, dauer_minuten: 3, budget_usd: 6.8, danach_usd: 6.45 }, false, true);
+  assert.equal(question.title, "12 Stellen prüfen?");
+  assert.deepEqual(question.sentences, [
     "Die KI prüft 12 Stellen, die noch keine Note haben.",
     "Das kostet etwa USD 0.35 und dauert etwa 3 Minuten.",
     "Im Budget sind noch USD 6.80, danach etwa USD 6.45.",
   ]);
-  assert.equal(frage.warnung, "");
-  assert.deepEqual(frage.nichtLadbar, []);
-  assert.equal(logik.bestaetigung({ ...ESTIMATE, anzahl: 1 }, true, true).titel, "1 Lehrstelle prüfen?");
+  assert.equal(question.warning, "");
+  assert.deepEqual(question.notLoadable, []);
+  assert.equal(logik.confirmation({ ...ESTIMATE, anzahl: 1 }, true, true).title, "1 Lehrstelle prüfen?");
 });
 
 test("without a budget to name, the question leaves the budget out", () => {
-  const frage = logik.bestaetigung({ ...ESTIMATE, budget_usd: null, danach_usd: null }, false, true);
-  assert.equal(frage.saetze.length, 2);
+  const question = logik.confirmation({ ...ESTIMATE, budget_usd: null, danach_usd: null }, false, true);
+  assert.equal(question.sentences.length, 2);
 });
 
 test("a budget too small is a warning that the run stops when it is used up", () => {
-  const frage = logik.bestaetigung({ ...ESTIMATE, anzahl: 20, budget_usd: 0.1, danach_usd: 0, reicht_fuer: 4 }, false, true);
-  assert.equal(frage.warnung, "Das Budget von USD 0.10 reicht für etwa 4 von 20 Stellen. Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt.");
+  const question = logik.confirmation({ ...ESTIMATE, anzahl: 20, budget_usd: 0.1, danach_usd: 0, reicht_fuer: 4 }, false, true);
+  assert.equal(question.warning, "Das Budget von USD 0.10 reicht für etwa 4 von 20 Stellen. Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt.");
 });
 
 test("hits without text: the extension loads them first, the others stay open with their reason", () => {
-  const schaetzung = { ...ESTIMATE, anzahl: 3, laden: ["a", "b"],
+  const estimate = { ...ESTIMATE, anzahl: 3, laden: ["a", "b"],
     nicht_ladbar: [{ id: "c", stelle: "Data Analyst", firma: "Muster AG", grund: "example.ch ist keines der Portale, die automatisches Laden erlauben." }] };
-  const frage = logik.bestaetigung(schaetzung, false, true);
-  assert.ok(frage.saetze.includes("Für 2 Stellen holt die Erweiterung zuerst den Text des Inserats."));
-  assert.equal(frage.nichtLadbarTitel, "1 Stelle ohne Text bleibt offen:");
-  assert.deepEqual(frage.nichtLadbar, ["Data Analyst, Muster AG: example.ch ist keines der Portale, die automatisches Laden erlauben."]);
-  const ohne = logik.bestaetigung(schaetzung, false, false);
-  assert.ok(ohne.saetze.includes("Für 2 Stellen fehlt der Text. Ohne Erweiterung bleiben sie offen."));
-  assert.ok(logik.bestaetigung({ ...schaetzung, laden: ["a"] }, false, false).saetze.includes("Für 1 Stelle fehlt der Text. Ohne Erweiterung bleibt sie offen."));
+  const question = logik.confirmation(estimate, false, true);
+  assert.ok(question.sentences.includes("Für 2 Stellen holt die Erweiterung zuerst den Text des Inserats."));
+  assert.equal(question.notLoadableTitle, "1 Stelle ohne Text bleibt offen:");
+  assert.deepEqual(question.notLoadable, ["Data Analyst, Muster AG: example.ch ist keines der Portale, die automatisches Laden erlauben."]);
+  const offline = logik.confirmation(estimate, false, false);
+  assert.ok(offline.sentences.includes("Für 2 Stellen fehlt der Text. Ohne Erweiterung bleiben sie offen."));
+  assert.ok(logik.confirmation({ ...estimate, laden: ["a"] }, false, false).sentences.includes("Für 1 Stelle fehlt der Text. Ohne Erweiterung bleibt sie offen."));
 });
 
 test("after the run the page says how many are left, also when the budget ran out", () => {

@@ -37,12 +37,27 @@ def _missing(k, store: Hits) -> list[dict]:
     return [*missing_ads.saved_without_ad(k.register().alle(), _ad_of(k), store), *missing_ads.hits_without_ad(store)]
 
 
+def _wanted_hits(body) -> list[str] | None:
+    """The hits „Alle prüfen“ asks for (#209); None when the extension asks at the start of the app."""
+    if not isinstance(body, dict) or "treffer" not in body:
+        return None
+    wanted = body["treffer"]
+    if not isinstance(wanted, list) or not all(isinstance(ident, str) and 0 < len(ident) <= MAX_ID for ident in wanted):
+        raise ValueError("treffer erwartet (Liste von Kennungen)")
+    return wanted[:MAX_ITEMS]
+
+
 def hand_out(k, parameter, body):
-    """The jobs to load now; each one once per start, so a second page asking at the same time gets nothing."""
+    """The jobs to load now; each one once per start, so a second page asking at the same time gets nothing. Hits the
+    person asks for with „Alle prüfen“ are handed out again: what failed at the start may load now."""
+    wanted = _wanted_hits(body)
     with _LOCK:
         given = k.cache.get(HANDED_OUT, frozenset())
-        fresh = [job for job in _missing(k, Hits(k.daten))
-                 if missing_ads.loadable(job) and (job["art"], job["id"]) not in given]
+        missing = [job for job in _missing(k, Hits(k.daten)) if missing_ads.loadable(job)]
+        if wanted is None:
+            fresh = [job for job in missing if (job["art"], job["id"]) not in given]
+        else:
+            fresh = [job for job in missing if job["art"] == missing_ads.TREFFER and job["id"] in wanted]
         k.cache[HANDED_OUT] = given | {(job["art"], job["id"]) for job in fresh}
     return json_antwort({"laden": fresh})
 
@@ -120,8 +135,7 @@ def note_for_saved(k, entry: dict) -> dict | None:
 
 
 def note_for_hit(k, hit: dict) -> dict:
-    job = {"art": missing_ads.TREFFER, "id": hit["id"], "portal": hit["portal"], "portal_id": hit["portal_id"], "link": hit["link"]}
-    return missing_ads.note(job, _failure(k, missing_ads.TREFFER, hit["id"]))
+    return missing_ads.note(missing_ads.hit_job(hit), _failure(k, missing_ads.TREFFER, hit["id"]))
 
 
 GET: dict = {}
