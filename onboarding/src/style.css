@@ -218,3 +218,11 @@ button { font: inherit; cursor: pointer; }
 .diff__line--weg { background: var(--danger-soft); }
 .diff__line--neu { background: var(--success-soft); }
 .diff__line--gap { color: var(--muted); }
+
+/* Lines of search profile, style profile or building blocks the form does not know (#217) */
+.other-lines { margin: 16px 0 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-subtle); }
+.other-lines summary { cursor: pointer; font-size: 14px; line-height: 20px; color: var(--text); }
+.other-lines[open] summary { margin-bottom: 8px; }
+.other-lines__heading { margin: 12px 0 4px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--muted); }
+.other-lines pre { margin: 0; font: inherit; font-size: 13px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.other-lines p:last-child { margin: 12px 0 0; font-size: 14px; line-height: 20px; }

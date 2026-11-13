@@ -71,6 +71,8 @@ let choice = null; // in the app: what the setup chose (MIN-369) { track, anrede
 let pageStateFound = false; // in the app: this page has kept answers before (not only the track of the setup)
 let folderTags = []; // in the app: tags already in cv.yaml, varianten.yaml and jobs/ of the data folder (G24)
 let cvAnswers = null; // in the app: the answers read from cv.yaml; what it holds never blocks (#167, G23)
+let basicsRead = null; // in the app: what the page read back from the Markdown basics, sent along to merge (#217)
+let basicsLines = []; // in the app: lines of the basics the form does not know, shown as text (#217)
 const backend = typeof createAppBackend === "function" ? createAppBackend() : null; // only in the page of the app
 
 // Storage: optional convenience; the page works without it.
@@ -97,6 +99,8 @@ async function loadStored() {
       notTakenOver = Boolean(overview.stand && overview.stand.offen === true);
       // Answers not taken over yet are newer than cv.yaml; otherwise the file counts (G23).
       if (!notTakenOver) state = fillFromCv(form, state, overview.lebenslauf);
+      if (!notTakenOver) state = fillFromBasics(form, state, overview.grundlagen && overview.grundlagen.daten);
+      takeBasics(overview.grundlagen);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
       folderTags = Array.isArray(overview.tags) ? overview.tags : [];
@@ -108,6 +112,20 @@ async function loadStored() {
   } catch (error) {
     if (backend) appProblem = error.message;
     else setStatus("Gespeicherte Eingaben konnten nicht gelesen werden.");
+  }
+}
+
+/** What the app read back from the Markdown basics: the answers to merge against and the lines kept as they are. */
+function takeBasics(basics) {
+  basicsRead = basics && typeof basics.daten === "object" ? basics.daten : null;
+  basicsLines = basics && Array.isArray(basics.fremd) ? basics.fremd : [];
+}
+
+async function readBasicsAgain() {
+  try {
+    takeBasics((await backend.overview()).grundlagen);
+  } catch (error) {
+    takeBasics(null); // without what is in the files, the next take-over asks per file again (G26)
   }
 }
 
@@ -602,7 +620,7 @@ function sectionView(section, single) {
   const attrs = { className: "part", dataset: { section: section.id } };
   if (!section.repeat) {
     const item = state.data[section.id] || {};
-    return el("section", attrs, [...header, suggestionNote(section.id), ...shownFields(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
+    return el("section", attrs, [...header, suggestionNote(section.id), ...shownFields(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id])), otherLinesView(section.id)]);
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
   const max = section.maxItems ?? form.limits.repeatItems;
@@ -628,7 +646,27 @@ function sectionView(section, single) {
       },
     }, `+ ${itemTitle} hinzufügen`)
     : el("p", { className: "hint" }, `Höchstens ${max} Einträge.`);
-  return el("section", attrs, [...header, ...items, add]);
+  return el("section", attrs, [...header, ...items, add, otherLinesView(section.id)]);
+}
+
+/** Lines of the basics the form does not know (#217): shown as text with the way to change them; saving keeps them. */
+function otherLinesView(sectionId) {
+  const groups = basicsLines.filter((group) => group.abschnitt === sectionId);
+  if (!groups.length) return null;
+  const files = [...new Map(groups.map((group) => [group.datei, group.titel])).entries()];
+  const count = groups.reduce((sum, group) => sum + group.zeilen.length, 0);
+  return el("details", { className: "other-lines" }, [
+    el("summary", {}, `${count === 1 ? "Eine weitere Zeile" : `${count} weitere Zeilen`} aus ${files.map(([, title]) => `„${title}“`).join(" und ")}`),
+    el("p", { className: "hint" }, "Diese Zeilen kennt das Formular nicht. Beim Speichern bleiben sie, wie sie sind."),
+    ...groups.map((group) => el("div", { className: "other-lines__group" }, [
+      el("p", { className: "other-lines__heading" }, `${group.titel}, ${group.ueberschrift}`),
+      el("pre", {}, group.zeilen.join("\n")),
+    ])),
+    el("p", {}, files.map(([datei, title], index) => [
+      index ? " · " : "",
+      el("a", { href: `/inhalte?${new URLSearchParams({ datei, ansicht: "text" })}` }, `${title} unter „Inhalte als Text“ ändern`),
+    ]).flat()),
+  ]);
 }
 
 /** After a rerender: focus the first control inside the first selector that matches (headings get focus too). */
@@ -765,11 +803,12 @@ async function takeOver(replace) {
     window.clearTimeout(autosaveTimer);
     storeNow();
     const sent = state; // a change while this runs is not taken over
-    const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
+    const result = await backend.takeOver(collectBundle(form, state, new Date()), replace, basicsRead);
     const present = [...result.geschrieben, ...(result.unveraendert || []), ...(result.nicht_ersetzt || [])];
     existingBasics = present.length ? present : existingBasics;
     notTakenOver = state !== sent || Boolean(result.unvollstaendig);
     storeNow();
+    await readBasicsAgain();
     done.hidden = false;
     done.replaceChildren(
       result.unvollstaendig
@@ -849,6 +888,7 @@ async function loadFile(event) {
     const loaded = isZip ? await readUploadZip(file) : { bundle: await file.text(), uploads: [] };
     state = stateFromBundle(form, JSON.parse(loaded.bundle));
     notTakenOver = true;
+    basicsRead = null; // a file to take over: existing basics are a choice per file again (G26)
     forgetPrefillRun();
     if (!backend) uploads = loaded.uploads;
     uploadMessages = [];
@@ -877,6 +917,7 @@ function clearAll() {
   clearStored();
   state = { track: null, data: {} };
   notTakenOver = false;
+  basicsRead = null;
   forgetPrefillRun();
   if (!backend) {
     uploads = [];

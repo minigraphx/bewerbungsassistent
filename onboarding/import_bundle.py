@@ -9,6 +9,8 @@ are only replaced with --force, and every file is saved as a draft before and af
 Replacing keeps what the form cannot show: the answers merge into the CV (`cv_merge.py`), and `search_terms.py`
 keeps the terms of the search. The pages of the app pass a `MarkdownChoice` instead (G26): cv.yaml always merges,
 and each existing Markdown file is replaced only when chosen; without a choice they come back with their diffs.
+The page „Meine Angaben“ also passes what it read back from the Markdown files (#217): then they merge like cv.yaml,
+only what changed is written (`basics_merge.py`), and a file without a change is not written at all.
 
 If documents came along and answers are only missing (not wrong), the basics are not written yet: the
 answers are kept as `dokumente/einstieg.json` and the skill einstieg completes them from the documents.
@@ -24,6 +26,7 @@ import sys
 
 import paths  # noqa: F401  (makes the module bewerbungen importable)
 import archive
+import basics_merge
 import convert
 import cv_merge
 import cv_read
@@ -103,17 +106,19 @@ def import_file(data_dir: pathlib.Path, bundle_path: pathlib.Path, today: dateti
 
 
 def import_answers(data_dir: pathlib.Path, bundle: object, today: datetime.date, force: bool = False,
-                   choice: MarkdownChoice | None = None) -> ImportResult:
-    """The same for answers from the page „Meine Angaben“ of the app; documents are already in the data folder."""
+                   choice: MarkdownChoice | None = None, base: object = None) -> ImportResult:
+    """The same for answers from the page „Meine Angaben“ of the app; documents are already in the data folder.
+    `base` is what the page read back from the Markdown files; with it they merge instead of being replaced."""
     raw = json.dumps(bundle, ensure_ascii=False, indent=2).encode("utf-8", "surrogatepass")
     if len(raw) > MAX_BYTES:
         raise ImportRejected([f"Die Angaben sind zu gross (höchstens {MAX_BYTES // 1000} KB)."])
     has_documents = bool(import_documents.pending_documents(data_dir.resolve()))
-    return _import(validation.load_form(), bundle, raw, (), has_documents, data_dir, today, force, choice)
+    return _import(validation.load_form(), bundle, raw, (), has_documents, data_dir, today, force, choice, base)
 
 
 def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.Document, ...], has_documents: bool,
-            data_dir: pathlib.Path, today: datetime.date, force: bool, choice: MarkdownChoice | None) -> ImportResult:
+            data_dir: pathlib.Path, today: datetime.date, force: bool, choice: MarkdownChoice | None,
+            base: object = None) -> ImportResult:
     # tags already in the data folder never block saving, only typed ones keep to the limits (G24); nor do the values
     # cv.yaml holds, only those typed or changed keep to the rules (#167, G23)
     errors = validation.validate_bundle(form, bundle, known=frozenset(known_tags.known_tags(data_dir, form)),
@@ -124,7 +129,7 @@ def _import(form: dict, bundle: object, raw: bytes | None, found: tuple[archive.
         raise ImportRejected([validation.describe(form, track, e) for e in errors])
     data_dir = data_dir.resolve()
     written, kept, unchanged, not_replaced = (
-        ([], (), (), ()) if incomplete else _write_basics(form, bundle, data_dir, today, force, choice))
+        ([], (), (), ()) if incomplete else _write_basics(form, bundle, data_dir, today, force, choice, base))
     data_dir.mkdir(parents=True, exist_ok=True)
     stored = import_documents.store_documents(data_dir, found, today, raw if incomplete else None)
     if not incomplete:
@@ -158,16 +163,29 @@ def _keeping_cv_content(files: dict[str, str], bundle: dict, data_dir: pathlib.P
     return {**files, CV: text}, ()
 
 
+def _merging_markdown(form: dict, files: dict[str, str], bundle: dict, base: object,
+                      data_dir: pathlib.Path) -> tuple[dict[str, str], frozenset[str]]:
+    """The Markdown files merged with what the page read back; one without a change drops out (#217)."""
+    if base is None:
+        return files, frozenset()
+    merged = basics_merge.merged_files(form, bundle, base, data_dir)
+    return ({rel: merged.get(rel) or content for rel, content in files.items()
+             if not (rel in merged and merged[rel] is None)}, frozenset(merged))
+
+
 def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datetime.date, force: bool,
-                  choice: MarkdownChoice | None) -> tuple[list[str], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+                  choice: MarkdownChoice | None,
+                  base: object = None) -> tuple[list[str], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     files = convert.convert_bundle(form, bundle, today)
     merging = force or choice is not None
     files, unchanged = _keeping_cv_content(files, bundle, data_dir, today) if merging else (files, ())
-    merged, kept = _keeping_search_terms(files, data_dir) if merging else (files, ())
+    files, merged_rels = _merging_markdown(form, files, bundle, base, data_dir)
+    keeping = merging and search_plan.PROFILE not in merged_rels
+    merged, kept = _keeping_search_terms(files, data_dir) if keeping else (files, ())
     encoded = _encode(merged)
     existing = [rel for rel in encoded if im_ordner(data_dir, rel).exists()]
     if choice is not None:
-        not_replaced = _not_replaced(choice, existing, merged, data_dir)
+        not_replaced = _not_replaced(choice, [rel for rel in existing if rel not in merged_rels], merged, data_dir)
         encoded = {rel: content for rel, content in encoded.items() if rel not in not_replaced}
         existing = [rel for rel in existing if rel not in not_replaced]
         kept = kept if search_plan.PROFILE in encoded else ()

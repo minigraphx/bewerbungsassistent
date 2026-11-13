@@ -102,7 +102,8 @@ def test_state_is_kept_in_the_data_folder(started):
     server, folder, _ = started
     derived = {"track": "job", "anrede": "sie", "rav": True, "gewaehlt": False}
     assert call(server, "/api/angaben/stand") == (200, {"stand": None, "unterlagen": [], "vorhanden": [], "wahl": derived,
-                                                   "lebenslauf": None, "tags": []})
+                                                   "lebenslauf": None, "tags": [],
+                                                   "grundlagen": {"daten": {}, "fremd": []}})
 
     state = {"track": "job", "data": {"person": {"name": "Erika Beispiel"}}, "step": 2}
     assert call(server, "/api/angaben/stand", {"stand": state})[0] == 200

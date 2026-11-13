@@ -316,10 +316,31 @@ function fillFromCv(form, state, cv) {
       data[section.id] = pickFields(cvFields(section), value, true);
     }
   }
+  return withoutMarksOn(state, data, sections);
+}
+
+/** The new data; suggestions on the sections just taken from a file no longer apply. */
+function withoutMarksOn(state, data, sections) {
   if (!state.suggested) return { ...state, data };
   const filled = new Set(sections.map((s) => s.id));
   const marks = Object.entries(state.suggested).filter(([key]) => !filled.has(key.split(".")[0]));
   return { ...state, data, suggested: Object.fromEntries(marks) };
+}
+
+/** New state with the sections the app read back from search profile, style profile and building blocks (#217).
+ *  Only sections of files that exist come; what a file holds replaces what the page kept, as for cv.yaml. */
+function fillFromBasics(form, state, basics) {
+  if (!isPlainObject(basics)) return state;
+  const sections = form.sections.filter((s) => !s.cv && Object.prototype.hasOwnProperty.call(basics, s.id));
+  const data = { ...state.data };
+  for (const section of sections) {
+    const value = basics[section.id];
+    data[section.id] = section.repeat
+      ? (Array.isArray(value) ? value : []).map((item) => pickFields(section.fields, item, true))
+        .filter((item) => Object.keys(item).length)
+      : pickFields(section.fields, value, true);
+  }
+  return withoutMarksOn(state, data, sections);
 }
 
 // Suggestions for tags: those the app found in the data folder (cv.yaml, varianten.yaml, jobs/) and those typed here.
@@ -351,6 +372,6 @@ if (typeof module !== "undefined") {
   module.exports = {
     sectionsFor, fieldsFor, shownFields, linesToList, listToLines, parseTags, tagsToText, taggedLine, lineText, knownTags, isBilingual, bilingualOf,
     collectBundle, draftBundle, isBlankItem, stateFromBundle,
-    setValue, addItem, removeItem, applySuggestions, fillFromCv, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
+    setValue, addItem, removeItem, applySuggestions, fillFromCv, fillFromBasics, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
   };
 }
