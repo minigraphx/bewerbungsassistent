@@ -33,7 +33,8 @@ ALLOWED = {("GET", "/api/suche/plan"), ("POST", "/api/suche/sichten"), ("POST", 
            ("POST", "/api/bewerben/stand"), ("POST", "/api/bewerben/abgeschickt"),
            ("POST", "/api/bewerben/felder"), ("POST", "/api/bewerben/ordner"),
            ("POST", "/api/rav/start"), ("GET", "/api/rav/angaben"), ("POST", "/api/rav/eingetragen"),
-           ("POST", "/api/firmen/kununu")}  # what the extension read at kununu on the person's click (#189)
+           ("POST", "/api/firmen/kununu"),  # what the extension read at kununu on the person's click (#189)
+           ("POST", "/api/inserate/holen"), ("POST", "/api/inserate/texte")}  # missing ad texts at the start (G37)  # what the extension read at kununu on the person's click (#189)
 MAX_IN = 8 * 1024 * 1024
 MAX_OUT = 1024 * 1024  # limit of the browser for messages to the extension
 START_TIMEOUT = 40

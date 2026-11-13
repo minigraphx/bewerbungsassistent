@@ -66,6 +66,16 @@ test("the line under the title says how many things wait, in words up to twelve"
   assert.equal(texte.text("heute.wartet.viele", "stelle-du", { anzahl: "Vier" }), "Vier Dinge warten auf dich, das wichtigste zuoberst.");
 });
 
+test("the pass shows the fetched ad, or why it is missing and how to get it (G37, G38)", () => {
+  const job = { link: "https://www.job-room.ch/job-search/abc" };
+  assert.deepEqual(H.passAd(job, "Stelle: Data Analyst\n\nWir suchen.", null), { text: "Stelle: Data Analyst\n\nWir suchen." });
+  const missing = { grund: "linkedin.com ist keines der Portale, die automatisches Laden erlauben.", weg: "Das Inserat öffnen." };
+  assert.deepEqual(H.passAd(job, "Stelle: Data Analyst", missing),
+    { zeilen: ["Zu dieser Stelle fehlt der Inseratstext.", missing.grund, missing.weg], link: job.link });
+  assert.deepEqual(H.passAd({ link: "" }, "", null), { zeilen: ["Zu dieser Stelle fehlt der Inseratstext."], link: "" });
+  assert.equal(H.passAd({ link: "javascript:alert(1)" }, "", null).link, "", "only web links are offered");
+});
+
 test("the pass takes the saved jobs one after the other, the closest deadline first", () => {
   const rows = L.mitSchritten([b("m1", "Gemerkt"), b("m2", "Gemerkt", { frist: "2026-11-20" }), b("x", "Bewerben"), b("w", "Beworben")]);
   assert.deepEqual(H.passQueue(rows), ["m2", "m1"]);

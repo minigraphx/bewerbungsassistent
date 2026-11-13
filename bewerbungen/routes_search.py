@@ -7,6 +7,7 @@ with drafts (Entwürfe).
 """
 import threading
 
+import missing_ads
 import own_sites
 import precheck
 import preferences
@@ -17,6 +18,7 @@ from ai import connection, second_look, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
 import routes_career
+import routes_missing_ads
 import routes_window
 from hits import CLOSED, PORTALS_OFF, TRIAL, Hits, bounded_text, company_key, comparable_link, is_near
 from server import json_antwort, pflicht
@@ -142,13 +144,19 @@ def overview(k, parameter, body):
     blocked = "" if (k.daten / search_plan.PROFILE).is_file() else BLOCKED_WITHOUT_PROFILE
     hints = [h for h in hints if h != search_plan.NO_PROFILE]
     found = sorted(store.all(), key=lambda h: h.get("gefunden_am", ""), reverse=True)
-    return json_antwort({"treffer": [{**hit, "ohne_text": not store.text(hit["id"]).strip(),
-                                      "nah": is_near(str(hit.get("ort", "")), homes, postal_codes)} for hit in found],
+    return json_antwort({"treffer": [_listed(k, store, hit, homes, postal_codes) for hit in found],
                          "hinweis_ziele": targets,
                          "angebote": list(offers), **routes_career.searched_now(k),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
                          "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN,
                          "region": region, "sperrgrund": blocked, "zeitraum": routes_window.display_for(k)})
+
+
+def _listed(k, store: Hits, hit: dict, homes: tuple[str, ...], postal_codes: tuple[str, ...]) -> dict:
+    """A hit as the page lists it; without its text, with the reason and the way to get it (G37)."""
+    missing = not store.text(hit["id"]).strip()
+    note = routes_missing_ads.note_for_hit(k, hit) if missing and hit.get("zustand") == "neu" else None
+    return {**hit, "ohne_text": missing, "text_fehlt": note, "nah": is_near(str(hit.get("ort", "")), homes, postal_codes)}
 
 
 def _region(profile: search_plan.SearchPlan) -> dict:
@@ -311,7 +319,7 @@ def _fill_in_ad(k, store: Hits, hit: dict, entry: dict) -> dict:
     """The hit belongs to an entry already: it only brings the ad text that is missing there."""
     taken = store.update(hit["id"], zustand="uebernommen", bewerbung_id=entry["id"])
     path = unterlagen.bewerbungsordner(k.daten, entry["id"]) / "stelle.md"
-    if not path.is_file():
+    if not missing_ads.has_ad(path.read_text(encoding="utf-8") if path.is_file() else ""):
         ad = store.ad_text(hit["id"])
         k.mit_entwurf(path, f"Stellentext {entry['firma']}", lambda: schreibe_atomar(path, ad.encode("utf-8")))
     return taken
