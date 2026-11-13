@@ -139,16 +139,6 @@ window.App = (() => {
     });
   }
 
-  function navigation() {
-    const pfad = location.pathname;
-    for (const a of document.querySelectorAll(".app-nav a[href]:not(.app-nav__brand)")) {
-      if (a.getAttribute("href") === pfad || (pfad === "/bewerbung" && a.getAttribute("href") === "/")) {
-        a.setAttribute("aria-current", "page");
-      }
-    }
-  }
-  navigation();
-
   // Text set from the setup (MIN-369): the pages fill their data-text elements, the menu names the search.
   // Without the route (or before a choice) the page keeps the words it was written with: a job, Sie.
   const wahl = holen("/api/einrichtung/wahl").catch(() => null);
@@ -160,20 +150,6 @@ window.App = (() => {
     document.documentElement.dataset.textsatz = satz;
     window.Texte?.anwenden(document, satz);
   });
-
-  // Menu: closes with Escape and with a click elsewhere
-  function menue() {
-    const details = document.querySelector(".app-nav details.app-nav__more");
-    if (!details) return;
-    document.addEventListener("click", e => { if (!details.contains(e.target)) details.open = false; });
-    document.addEventListener("keydown", e => {
-      if (e.key === "Escape" && details.open) {
-        details.open = false;
-        details.querySelector("summary").focus();
-      }
-    });
-  }
-  menue();
 
   // „Zurück“: zur vorherigen Seite der App (behält dort Sortierung und Scrollposition), sonst zur Übersicht
   function zurueck() {
@@ -200,14 +176,14 @@ window.App = (() => {
     } catch { /* plain app without setup */ }
   }
 
-  // "About the app" in the menu (#81): the AS logo marks the author; name and app icon stay as they are.
+  // "About the app" under Einstellungen (#81, G54): the AS logo marks the author; name and app icon stay as they are.
   function ueberDieApp(version) {
-    return el("div", { class: "menu__about" },
-      el("img", { class: "menu__logo", src: "/as-logo.svg", width: "28", height: "28", alt: "Logo AS" }),
+    return el("div", { class: "about" },
+      el("img", { class: "about__logo", src: "/as-logo.svg", width: "40", height: "40", alt: "Logo AS" }),
       el("div", {},
-        el("p", { class: "menu__heading" }, "Über die App"),
-        el("p", { class: "menu__meta version" }, `Version ${version}`),
-        el("p", { class: "menu__meta" }, "von Andreas Schmidt")));
+        el("p", { class: "about__name" }, "Bewerbungsbegleiter"),
+        el("p", { class: "about__meta version" }, `Version ${version}`),
+        el("p", { class: "about__meta" }, "von Andreas Schmidt")));
   }
 
   // A new version (#32, G8): the first page after a start asks in a dialog; after "later" a banner stays for this run.
@@ -302,8 +278,8 @@ window.App = (() => {
     let info;
     try { info = await holen("/api/app/version"); } catch { return; }
     anwesend();
-    const gruppe = document.getElementById("menu-app");
-    if (gruppe) {
+    const ort = document.getElementById("ueber-die-app");
+    if (ort) {
       const beenden = el("button", { type: "button", class: "beenden" }, "Beenden");
       bestaetigen(beenden, "Wirklich beenden?", async () => {
         let ergebnis = {};
@@ -314,7 +290,9 @@ window.App = (() => {
           : el("main", {}, el("h1", {}, "Bewerbungsbegleiter beendet"),
             el("p", {}, "Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick.")));
       });
-      gruppe.append(beenden, ueberDieApp(info.version));
+      ort.append(ueberDieApp(info.version), el("div", { class: "knoepfe" }, beenden));
+      ort.hidden = false;
+      document.getElementById("ueber-link")?.removeAttribute("hidden");
     }
     await zurEinrichtung();
     if (!info.update) return;
@@ -370,7 +348,6 @@ window.App = (() => {
   }
 
   async function erstelleSicherung() {
-    document.querySelector(".app-nav details.app-nav__more")?.removeAttribute("open");
     try {
       const { datei } = await holen("/api/sicherung/stand");
       if (!window.showSaveFilePicker) {
@@ -389,10 +366,11 @@ window.App = (() => {
     }
   }
 
-  function sicherungMenue() {
-    document.getElementById("menu-app")?.prepend(el("button", { type: "button", onclick: erstelleSicherung }, "Sicherung erstellen"));
+  // Under Einstellungen, Daten und Sicherung (G54); the overview offers it as well when one is due.
+  function sicherungKnopf() {
+    document.getElementById("daten-knoepfe")?.prepend(el("button", { type: "button", onclick: erstelleSicherung }, "Sicherung erstellen"));
   }
-  sicherungMenue();
+  sicherungKnopf();
 
   // A calm hint in the overview only, and nothing at all when the question fails.
   async function sicherungHinweis() {
