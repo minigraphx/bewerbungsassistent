@@ -1,10 +1,15 @@
-"""No nearly empty last page (G49, G53, #236): choose how dense a part is set before the PDF is written.
+"""No nearly empty last page and no page over the limit (G49, G51, G53, #236): choose how dense a part is set before
+the PDF is written.
 
 Every part (CV, letter) leaves markers (themes/page-fill.typ): its first page, and where its content ends within the
 page's content area. When a part runs over more than one page and its last page is less than a third full, the build
 tries both fixes within the design and takes the smaller change: tighter (spacing, leading, body size never below
 10 pt) until the content fits on one page fewer, or wider spacing until the last page is full enough. No content is
 removed; when neither works, the part stays as the design draws it.
+
+A part over its page limit (G51: the letter one page, the CV two, or three where the person allows it) is tightened
+first, until it fits the limit. When even the tightest level does not, the page fill above decides, and the check
+before sending names what could be cut (cuts.py); content only goes when the person removes it.
 """
 import dataclasses
 import functools
@@ -20,6 +25,9 @@ AIM = 0.4
 TIGHTER = (1, 2, 3, 4, 5)
 WIDER = (-1, -2, -3, -4, -5)
 SELECTOR = "<page-fill>"
+LIMITS = {"cv": 2, "letter": 1}  # pages per part (G51)
+CV_PAGES = (2, 3)  # what the person can allow for the CV under „Erweitert“
+BAD_CV_PAGES = "Der Lebenslauf hat zwei oder drei Seiten."
 
 
 @dataclasses.dataclass(frozen=True)
@@ -47,13 +55,43 @@ def measure(markers: list[dict], part: str) -> Fill:
     return Fill(pages=last_page - min(starts) + 1, last=max(0.0, (end["y"] - end["top"]) / area))
 
 
-def choose(probe: Callable[[int], Fill]) -> int:
-    """The density level of a part: 0 when the design fits, otherwise the smaller of the two fixes that works.
+def limits(cv_pages: int = LIMITS["cv"]) -> dict[str, int]:
+    """The page limit of each part, with the CV pages the person allows."""
+    if cv_pages not in CV_PAGES:
+        raise ValueError(BAD_CV_PAGES)
+    return {**LIMITS, "cv": cv_pages}
+
+
+def choose(probe: Callable[[int], Fill], limit: int | None = None) -> int:
+    """The density level of a part: within its page limit first, then so its last page is not nearly empty."""
+    probe = functools.cache(probe)
+    if limit is not None and probe(0).pages > limit:
+        fitting = _within_limit(probe, limit)
+        if fitting is not None:
+            return fitting
+    return _filled(probe)
+
+
+def _within_limit(probe: Callable[[int], Fill], limit: int) -> int | None:
+    """The smallest tightening that fits the limit; tighter still while that leaves the last page nearly empty."""
+    first = enough = None
+    for level in TIGHTER:
+        fill = probe(level)
+        if fill.pages > limit:
+            continue
+        if fill.fills(AIM):
+            return level
+        first = first if first is not None else level
+        enough = enough if enough is not None or not fill.enough else level
+    return enough if enough is not None else first
+
+
+def _filled(probe: Callable[[int], Fill]) -> int:
+    """The level for the page fill alone: 0 when the design fits, otherwise the smaller of the two fixes that works.
 
     Both fixes are tried step by step from the smallest change, so the first that works is the smaller one; at the
     same step tightening goes first, because a page fewer is the shorter document. A fix that reaches the aim goes
     before one that only reaches the rule; a design that already meets the rule stays when no fix reaches the aim."""
-    probe = functools.cache(probe)
     drawn = probe(0)
     if drawn.fills(AIM):
         return 0
@@ -86,11 +124,12 @@ def markers(entry: str, root: str, font_paths: list[str], sys_inputs: dict) -> l
     return json.loads(found)
 
 
-def levels(query: Callable[[dict], list[dict]], sys_inputs: dict, parts: tuple[str, ...]) -> dict:
+def levels(query: Callable[[dict], list[dict]], sys_inputs: dict, parts: tuple[str, ...],
+           limits: dict[str, int] = LIMITS) -> dict:
     """sys_inputs with each part's density, chosen one part after the other (the letter before the CV)."""
     chosen = dict(sys_inputs)
     for part in parts:
         def probe(level: int, part: str = part) -> Fill:
             return measure(query({**chosen, f"density-{part}": str(level)}), part)
-        chosen[f"density-{part}"] = str(choose(probe))
+        chosen[f"density-{part}"] = str(choose(probe, limits.get(part)))
     return chosen

@@ -6,13 +6,17 @@ dann aus denselben Teilen des Dossiers.
 import pathlib
 import shutil
 
+import yaml
+
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
 import cv_design
 import dossier as dossier_modul
+import page_limit
 from dateien import im_ordner
 from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
+from tailor import tailor
 from varianten import Varianten
 
 ORDNER = "bewerbungen"
@@ -115,13 +119,31 @@ def wirksame_pdfs(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Pat
     return {art: gilt(art, gebaut) for art, gebaut in pdf_pfade(daten, bewerbung["id"]).items()}
 
 
+def _pages(daten: pathlib.Path) -> list[str]:
+    """The pages the CV may have (G51), as the person chose under Einstellungen > Erweitert."""
+    return ["--lebenslauf-seiten", str(page_limit.load(daten))]
+
+
+def tailored_cv(daten: pathlib.Path, bewerbung: dict) -> dict:
+    """The CV as built for this application, tailored to its variant; empty when it cannot be read."""
+    try:
+        cv = yaml.safe_load((daten / "cv.yaml").read_text(encoding="utf-8"))
+        variante = Varianten(daten).hole(bewerbung["variante"]) if bewerbung.get("variante") else {}
+        if not variante.get("quelle"):
+            return cv if isinstance(cv, dict) else {}
+        job = yaml.safe_load(im_ordner(daten, variante["quelle"]).read_text(encoding="utf-8"))
+        return lebenslauf_modul.waehle_sprache(tailor(cv, job), variante.get("sprache") or "de")
+    except (OSError, yaml.YAMLError, KeyError, ValueError, TypeError, AttributeError):
+        return {}
+
+
 def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], build: pathlib.Path, ziel: pathlib.Path) -> None:
     """Variants come from Claude; whoever works in the app alone has none and still needs a CV. With variants, the person chooses."""
     if Varianten(daten).alle():
         raise ValueError(CHOOSE_VARIANT)
     if not (daten / "cv.yaml").is_file():
         raise ValueError(NO_CV)
-    lebenslauf_modul.main([str(daten / "cv.yaml"), *design, "--build-dir", str(build), "-o", str(ziel)])
+    lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *_pages(daten), "--build-dir", str(build), "-o", str(ziel)])
 
 
 def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, ziel: pathlib.Path) -> None:
@@ -131,7 +153,8 @@ def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, 
     variante = Varianten(daten).hole(bewerbung["variante"])
     if variante.get("quelle"):
         lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(im_ordner(daten, variante["quelle"])),
-                               "--lang", variante["sprache"], *design, "--build-dir", str(build), "-o", str(ziel)])
+                               "--lang", variante["sprache"], *design, *_pages(daten), "--build-dir", str(build),
+                               "-o", str(ziel)])
     elif variante.get("datei"):
         shutil.copyfile(im_ordner(daten, variante["datei"]), ziel)
     elif not ziel.is_file():
@@ -173,7 +196,7 @@ def _baue_dossier(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> 
         pages = build / f"{bewerbung['id']}-{DOSSIER_PAGES}"
         pages.write_text("{}\n", encoding="utf-8")
     result = dossier_modul.main([str(pages), *cv, "--brief", str(letter), *_design_arguments(bewerbung),
-                                 "--build-dir", str(build), "--out-dir", str(folder)])
+                                 *_pages(daten), "--build-dir", str(build), "--out-dir", str(folder)])
     return {"lebenslauf": result.cv, "anschreiben": result.letter, DOSSIER: result.dossier}
 
 
