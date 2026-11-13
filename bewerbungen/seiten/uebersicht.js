@@ -67,6 +67,9 @@
     }
     if (art === "freigeben") return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) + "#s-anschreiben" }, "Anschreiben lesen");
     if (art === "link") return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) }, "Link eintragen");
+    if (art === "gespraech" && !eintrag.eintraege[0].schritt.frist) {
+      return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) + "#termin" }, "Termin eintragen");
+    }
     return el("a", { class: klasse, href: adresse(eintrag.eintraege[0].bewerbung) }, "Bewerbung öffnen");
   }
 
@@ -78,7 +81,8 @@
       case "freigeben": return t("uebersicht.karte.freigeben");
       case "unterlagen": return t("uebersicht.karte.unterlagen");
       case "link": return "Ohne Link zum Bewerbungsformular kann die Erweiterung es nicht öffnen und ausfüllen.";
-      case "gespraech": return schritt.frist ? `Termin am ${L.datum(schritt.frist)}. Inserat, Anschreiben und Notizen stehen in der Bewerbung.` : "Den Termin in der Bewerbung eintragen, dann steht er hier.";
+      case "gespraech": return schritt.frist ? `Termin am ${L.datum(schritt.frist)}. Inserat, Anschreiben und Notizen stehen in der Bewerbung.`
+        : t("heute.gespraech.ohne-termin", { firma: eintrag.eintraege[0].bewerbung.firma || "Die Firma" });
       case "entscheiden": return eintrag.eintraege.length > 1 ? t("heute.durchgang.unter", { anzahl: eintrag.eintraege.length })
         : "Bewerben oder verwerfen? Note und Inserat stehen in der Bewerbung.";
       default: return schritt.grund || "";

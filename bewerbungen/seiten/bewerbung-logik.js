@@ -87,7 +87,7 @@
         if (b.versand) return { art: "jobroom", ziel: "s-festhalten" };
         return { art: b.beworben_am ? "nachtragen" : "versand", ziel: "s-abschicken" };
       default:
-        if (b.status === "Gespräch") return { art: "gespraech", ziel: "s-festhalten" };
+        if (b.status === "Gespräch" || (b.status === "Beworben" && b.gespraech_am)) return { art: "gespraech", ziel: "s-festhalten" };
         if (b.status === "Absage") return { art: "absage", ziel: "s-festhalten" };
         if (b.status === "Zusage") return { art: "zusage", ziel: "s-festhalten" };
         return { art: "warten", ziel: "s-festhalten" };

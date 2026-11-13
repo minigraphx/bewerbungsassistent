@@ -59,6 +59,9 @@ test("after sending: the Job-Room with RAV, waiting without", () => {
   assert.equal(stand(gesendet, { rav: false }).festhalten, true);
   assert.equal(logik.schritte(gesendet)[4].meta, "am 06.11.2026");
   assert.equal(naechster({ ...gesendet, bewerbung: { ...gesendet.bewerbung, status: "Gespräch" } }), "gespraech");
+  const termin = { ...gesendet, bewerbung: { ...gesendet.bewerbung, gespraech_am: "2026-11-20" } };
+  assert.equal(naechster(termin, { rav: false }), "gespraech", "an interview date counts before the stage is changed (#268)");
+  assert.equal(naechster(termin, { rav: true }), "jobroom");
 });
 
 test("the address decides who sends", () => {

@@ -319,6 +319,11 @@
     "heute.wartet.nichts": { sie: "Gerade wartet nichts auf Sie.", du: "Gerade wartet nichts auf dich." },
     "heute.wartet.eins": { sie: "Eine Sache wartet auf Sie.", du: "Eine Sache wartet auf dich." },
     "heute.wartet.viele": { sie: "{anzahl} Dinge warten auf Sie, das wichtigste zuoberst.", du: "{anzahl} Dinge warten auf dich, das wichtigste zuoberst." },
+    "heute.gespraech.termin": { sie: "Termin fürs Gespräch eintragen", du: "Termin fürs Gespräch eintragen", lehrstelle: "Termin für die Einladung eintragen" },
+    "heute.gespraech.ohne-termin": {
+      sie: "{firma} hat Sie eingeladen. Mit dem Termin erinnert die App Sie rechtzeitig an die Vorbereitung.",
+      du: "{firma} hat dich eingeladen. Mit dem Termin erinnert dich die App rechtzeitig an die Vorbereitung.",
+    },
     "heute.stand": { sie: "Ihr Stand", du: "Dein Stand" },
     "heute.stand.neu": { sie: "Neue Stellen", du: "Neue Stellen", lehrstelle: "Neue Lehrstellen" },
     "heute.durchgang.unter": {

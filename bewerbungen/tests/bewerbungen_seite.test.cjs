@@ -99,10 +99,10 @@ test("the line next to the button says to tick first, then how many are ticked",
 test("Bis wann shows the deadline, the follow-up date or a dash", () => {
   const rows = L.mitSchritten([
     b("m", "Gemerkt", { frist: "2026-11-20" }), b("w", "Beworben", { beworben_am: "2026-11-10" }),
-    b("g", "Gespräch"), b("z", "Zusage"),
+    b("g", "Gespräch"), b("z", "Zusage"), b("i", "Beworben", { beworben_am: "2026-11-02", gespraech_am: "2026-11-19" }),
   ]);
   const due = Object.fromEntries(rows.map(row => [row.bewerbung.id, A.dueText(row)]));
-  assert.deepEqual(due, { m: "20.11.2026", w: "nachfragen ab 24.11.2026", g: "offen", z: "–" });
+  assert.deepEqual(due, { m: "20.11.2026", w: "nachfragen ab 24.11.2026", g: "offen", z: "–", i: "19.11.2026" });
 });
 
 test("a view comes from the address, so Heute can open the list at Gemerkt", () => {

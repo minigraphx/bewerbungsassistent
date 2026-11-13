@@ -7,6 +7,7 @@
   const CLOSED = [["Zusage", "Zusage", "Zusagen"], ["Absage", "Absage", "Absagen"], ["Verworfen", "verworfen", "verworfen"],
                   ["Zurückgezogen", "zurückgezogen", "zurückgezogen"]];
   const WEEK_DAYS = 7;
+  const PREPARE_DAYS_AHEAD = 2;  // „rechtzeitig“ in A1: time to read the ad and the letter again
   const NUMBER_WORDS = ["", "Eine", "Zwei", "Drei", "Vier", "Fünf", "Sechs", "Sieben", "Acht", "Neun", "Zehn", "Elf", "Zwölf"];
 
   const day = iso => `${iso.slice(8, 10)}.${iso.slice(5, 7)}.`;
@@ -18,19 +19,27 @@
     return date.toISOString().slice(0, 10);
   }
 
+  /** The reminder to prepare an interview (#268): two days ahead, today when that has passed, never on the day. */
+  function preparation(date, today, text) {
+    const day = addDays(date, -PREPARE_DAYS_AHEAD) > today ? addDays(date, -PREPARE_DAYS_AHEAD) : today;
+    return day < date ? [{ date: day, text: `${text} vorbereiten` }] : [];
+  }
+
   // An interview date counts once the application is sent, even if the stage still says Beworben; with one set,
   // following up no longer applies. The follow-up date comes with the step, also while the Job-Room entry is open.
-  function datesOf({ bewerbung: b, schritt }, interview) {
+  function datesOf({ bewerbung: b, schritt }, interview, today) {
     const found = [];
     if (SAVED.includes(b.status) && b.frist) found.push({ date: b.frist, text: `Frist für ${[b.stelle, b.firma].filter(Boolean).join(", ")}` });
-    if (APPLIED.includes(b.status) && b.gespraech_am) found.push({ date: b.gespraech_am, text: `${interview} bei ${b.firma}` });
-    else if (b.status === "Beworben" && schritt.zusatz) found.push({ date: schritt.zusatz, text: `Nachfragen bei ${b.firma}, falls keine Antwort da ist` });
+    if (APPLIED.includes(b.status) && b.gespraech_am) {
+      const text = `${interview} bei ${b.firma}`;
+      found.push(...preparation(b.gespraech_am, today, text), { date: b.gespraech_am, text });
+    } else if (b.status === "Beworben" && schritt.zusatz) found.push({ date: schritt.zusatz, text: `Nachfragen bei ${b.firma}, falls keine Antwort da ist` });
     return found;
   }
 
-  /** Termine und Fristen: deadlines, interviews and follow-ups from today on, soonest first. */
+  /** Termine und Fristen: deadlines, interviews with their preparation and follow-ups from today on, soonest first. */
   function dates(rows, today, { max = 5, interview = "Gespräch" } = {}) {
-    return rows.flatMap(row => datesOf(row, interview))
+    return rows.flatMap(row => datesOf(row, interview, today))
       .filter(entry => /^\d{4}-\d{2}-\d{2}$/.test(entry.date) && entry.date >= today)
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, max)
