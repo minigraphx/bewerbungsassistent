@@ -74,6 +74,37 @@ def test_second_start_finds_the_running_app(paths, tmp_path, monkeypatch):
         server.server_close()
 
 
+def test_an_invitation_link_opens_the_window_for_the_ai():
+    """G60 (#272): the page shows the consent, the code waiting for it or the AI set up, in the window „KI einrichten“."""
+    entry = "http://127.0.0.1:8765/?t=token"
+
+    assert start.browser_address(entry, "ABCD-EFGH") == f"{entry}&{urlscheme.SETUP_REQUEST}"
+    assert start.browser_address(entry, None) == entry
+    assert urlscheme.SETUP_REQUEST == "ki=einrichten"
+
+
+def test_an_invitation_link_to_the_running_app_opens_its_window(paths, tmp_path, monkeypatch):
+    import app
+    monkeypatch.delenv("BEWERBUNGSBEGLEITER_KI_URL", raising=False)
+    data = tmp_path / "daten"
+    data.mkdir()
+    server = app.erstelle_server(data)
+    threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
+    try:
+        instance.write(paths, server.server_address[1], server.token)
+        running = instance.find(paths)
+        opened = []
+        monkeypatch.setattr(start.webbrowser, "open", opened.append)
+        monkeypatch.setattr(start.settings, "app_dir", lambda: paths.app_dir)
+
+        assert start.main(["bewerbungsbegleiter://einladung?code=ABCD-EFGH"]) == 0
+
+        assert opened == [f"{running.entry_url}&ki=einrichten"]
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
 def test_stale_instance_file_is_ignored(paths):
     paths.app_dir.mkdir(parents=True)
     paths.instance.write_text(json.dumps({"port": 1, "token": "x"}), encoding="utf-8")

@@ -64,6 +64,11 @@ def _redeem(kontext, code: str) -> None:
         log.warning("Einladung nicht eingelöst: %s", error)
 
 
+def browser_address(entry_url: str, code: str | None) -> str:
+    """With an invitation the page opens the window „KI einrichten“ (G60): the consent, or the AI that is set up."""
+    return f"{entry_url}&{urlscheme.SETUP_REQUEST}" if code else entry_url
+
+
 def _adopt_keychain() -> None:
     from ai.connection import adopt_old_keychain
     log.info("App-Ordner unter dem neuen Namen übernommen")
@@ -119,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
         if problem:
             log.warning("Einladung nicht eingelöst: %s", problem)
         if not args.kein_browser:
-            webbrowser.open(running.entry_url)
+            webbrowser.open(browser_address(running.entry_url, code))
         return 0
     return serve(paths, code, open_browser=not args.kein_browser)
 
@@ -230,7 +235,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
         _redeem(server.kontext, code)
     log.info("Bewerbungsbegleiter läuft auf %s, Daten in %s", server.url, data)
     if open_browser:
-        webbrowser.open(server.entry_url)
+        webbrowser.open(browser_address(server.entry_url, code))
     watchdog = presence.Watchdog(pages, lambda: routes_app.quit_app_now(controls))
     watchdog.start()
     try:

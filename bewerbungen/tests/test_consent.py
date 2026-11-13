@@ -171,11 +171,18 @@ def test_the_invitation_link_waits_visibly_and_survives_choosing_the_folder(serv
     assert new.cache[routes_ai.WAITING_CODE] == "ABCD-EFGH"
 
 
-@pytest.mark.parametrize("page", ["/einrichtung", "/einstellungen", "/bewerbung"])
+@pytest.mark.parametrize("page", ["/einstellungen", "/bewerbung"])
 def test_the_pages_with_the_consent_block_load_its_script(server, page):  # noqa: F811
     assert b'id="ki-einwilligung"' in get(server, page)[2] or b'id="einwilligung-offen"' in get(server, page)[2]
     assert b'src="/einwilligung.js"' in get(server, page)[2]
     assert get(server, "/einwilligung.js")[0] == 200
+
+
+def test_the_setup_shows_the_consent_in_the_window_ki_einrichten(server):  # noqa: F811
+    page = get(server, "/einrichtung")[2]
+    assert b'id="ki-einwilligung"' not in page, "no step KI (G60)"
+    for script in (b'src="/einwilligung.js"', b'src="/ki-zugang.js"', b'src="/ki-fenster.js"'):
+        assert script in page
 
 
 @pytest.mark.parametrize("setup, profile, expected", [

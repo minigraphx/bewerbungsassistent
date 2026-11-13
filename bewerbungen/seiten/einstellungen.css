@@ -25,22 +25,6 @@
 .settings__state[data-state="connected"]::before { background: var(--success); }
 .settings__state[data-state="missing"]::before { background: var(--warning); }
 
-/* The choice of the way to the AI (ki-zugang.js), also for the window of G60 */
-.access-choice { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; margin: 0; padding: 0; border: 0; }
-label.access-choice__option {
-  display: flex; gap: var(--space-3); align-items: flex-start; margin: 0; padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface);
-  font: 400 16px/24px var(--font-sans); color: var(--text); cursor: pointer;
-}
-label.access-choice__option:hover { background: var(--surface-subtle); }
-label.access-choice__option:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-subtle); }
-label.access-choice__option:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
-.access-choice__radio { flex: none; margin-top: 3px; }
-.access-choice__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.access-choice__title { color: var(--text-strong); font-weight: 700; }
-.access-choice__line { font-size: 14px; line-height: 20px; color: var(--text); overflow-wrap: anywhere; }
-.access-choice__line a { color: inherit; text-underline-offset: 3px; }
-
 /* Budget (G46) */
 .budget__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-1) var(--space-3); }
 .budget__headline { font-size: 18px; line-height: 24px; color: var(--text-strong); }

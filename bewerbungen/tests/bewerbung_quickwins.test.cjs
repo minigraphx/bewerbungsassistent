@@ -108,13 +108,13 @@ test("Abbrechen closes the dialog without agreeing", () => {
   assert.deepEqual(sent, []);
 });
 
-test("application, search and settings use the line; only the setup keeps the full block", () => {
+test("application, search and settings use the line; only the window KI einrichten keeps the full block", () => {
   for (const [name, ort] of [["ki.js", "ki-einwilligung"], ["beruf-vorschlag.js", "vorschlag-einwilligung"], ["einstellungen.js", "einwilligung-offen"]]) {
     const code = lies(name);
     assert.match(code, new RegExp(`Einwilligung\\.zeile\\(\\$\\("${ort}"\\)`), name);
     assert.doesNotMatch(code, /Einwilligung\.zeige\(/, name);
   }
-  assert.match(lies("einrichtung.js"), /Einwilligung\.zeige\(\$\("ki-einwilligung"\)/);
+  assert.match(lies("ki-fenster.js"), /Einwilligung\.zeige\(parts\.consent,/);
 });
 
 test("Versand erfassen names neither the folder versendet/ nor eingefroren and says the sent version stays", () => {

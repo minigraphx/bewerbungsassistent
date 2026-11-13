@@ -15,10 +15,10 @@ import search_plan
 import term_changes
 import term_evidence
 from ai import tasks, term_review
-from ai.errors import AiError
+from ai.errors import SETUP_ACTION, AiError, SetupNeeded
 from dateien import schreibe_atomar
 from hits import HIDDEN_TERMS, Hits
-from server import json_antwort, pflicht
+from server import ActionError, json_antwort, pflicht
 
 CACHE_KEY = "suchbegriffe-vorschlaege"
 KEPT_PROPOSALS = 10
@@ -114,7 +114,8 @@ def _keep(k, proposal: dict) -> None:
 
 def _failed(error: AiError) -> ValueError:
     cost = getattr(error, "cost_usd", None)
-    return ValueError(FAILED.format(reason=error, cost=CHARGED.format(cost=cost) if cost else NOT_CHARGED))
+    message = FAILED.format(reason=error, cost=CHARGED.format(cost=cost) if cost else NOT_CHARGED)
+    return ActionError(message, SETUP_ACTION) if isinstance(error, SetupNeeded) else ValueError(message)
 
 
 def _by_effect(changes: tuple, found: dict) -> tuple:

@@ -380,9 +380,9 @@
       sie: "Ohne KI funktionieren Suche, Unterlagen und Versand trotzdem. Anschreiben laden Sie dann selbst hoch, und Treffer bekommen keine Note.",
       du: "Ohne KI funktionieren Suche, Unterlagen und Versand trotzdem. Anschreiben lädst du dann selbst hoch, und Treffer bekommen keine Note.",
     },
-    "einrichtung.ki.selbst": {
-      sie: "Mit einem eigenen Schlüssel von Anthropic oder Ihrem Claude-Abo zahlen Sie die Kosten selbst:",
-      du: "Mit einem eigenen Schlüssel von Anthropic oder deinem Claude-Abo zahlst du die Kosten selbst:",
+    "ki-fenster.abo": {
+      sie: "Claude arbeitet dann mit Ihrem eigenen Konto bei Anthropic. Die Schritte dafür, mit den Skills und der Verbindung zu Claude Desktop, stehen in den Einstellungen.",
+      du: "Claude arbeitet dann mit deinem eigenen Konto bei Anthropic. Die Schritte dafür, mit den Skills und der Verbindung zu Claude Desktop, stehen in den Einstellungen.",
     },
   };
 

@@ -122,7 +122,7 @@
         ? t("bewerbung.freigeben-offen", { aussagen: offeneAussagen().length === 1 ? "Eine Aussage hat" : `${offeneAussagen().length} Aussagen haben` })
         : t("bewerbung.freigeben"), [knopf("Anschreiben lesen", zuAbschnitt("s-anschreiben"))]],
       entwerfen: ["Anschreiben entwerfen", "Die KI entwirft das Anschreiben aus dem Inserat und den Angaben. Jede Aussage nennt ihren Beleg; was sich nicht belegen lässt, kommt nicht in den Brief.", [knopf("Anschreiben entwerfen", () => $("ki-entwerfen").click()), knopf("Eigenes Anschreiben verwenden", zuAbschnitt("eigenes-anschreiben"), false)]],
-      eigenes: ["Anschreiben hinzufügen", t("bewerbung.eigenes"), [knopf("Eigenes Anschreiben hochladen", () => $("anschreiben-datei").click()), el("a", { class: "btn btn--quiet", href: "/einrichtung#ki" }, "KI einrichten")]],
+      eigenes: ["Anschreiben hinzufügen", t("bewerbung.eigenes"), [knopf("Eigenes Anschreiben hochladen", () => $("anschreiben-datei").click()), knopf("KI einrichten", () => window.App.kiEinrichten(), false)]],
       erstellen: ["Unterlagen erstellen", "Lebenslauf und Anschreiben werden als PDF erstellt und danach automatisch geprüft. Die PDFs stehen dann zum Lesen bereit.", [knopf("Unterlagen erstellen", () => $("erstellen").click())]],
       pruefen: ["Unterlagen prüfen", "Die Prüfung läuft.", []],
       klaeren: ["Unterlagen prüfen", `Die Prüfung hat ${fehlerZahl === 1 ? "einen Fehler" : `${fehlerZahl} Fehler`} gefunden. ${fehlerZahl === 1 ? "Er steht" : "Sie stehen"} bei den Unterlagen.`, [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
@@ -698,6 +698,11 @@
     satz = satzJetzt;
     rav = wahl ? Boolean(wahl.rav) : true;
     kiBereit = Boolean(kiStatus && kiStatus.eingerichtet && kiStatus.einwilligung?.erteilt);
+    // After the window „KI einrichten“ (G60) the next step may be the draft instead of an own letter
+    document.addEventListener("ki-fenster-geschlossen", event => {
+      kiBereit = Boolean(event.detail?.eingerichtet && event.detail.einwilligung?.erteilt);
+      if (daten) zeigeNaechster();
+    });
     await laden();
     beobachten(nachsehen);
   })();

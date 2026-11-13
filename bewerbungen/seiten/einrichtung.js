@@ -1,7 +1,8 @@
 "use strict";
 // Setup of the packaged app (MIN-342, MIN-369, #219): what is sought (job or apprenticeship, form of address, RAV, with
-// the data folder as one line), AI invitation, browser extension; the einstieg file is a step only when such a file
-// lies in Downloads, otherwise it is reached under „Erweitert“. Each step is a section; the hash says which one is
+// the data folder as one line), browser extension; the einstieg file is a step only when such a file lies in Downloads,
+// otherwise it is reached under „Erweitert“. The AI is no step (G60, #272): the text „KI einrichten“ opens its window
+// over the page, as does an invitation link once the data folder is there to keep the consent. Each step is a section; the hash says which one is
 // shown, so the browser's back button works. Folder and file are chosen in the system's own dialog; the server reads
 // the file from disk. The first step creates the folder before it stores the choice there. Which steps were skipped
 // the page keeps in sessionStorage.
@@ -12,8 +13,9 @@
   const usd = wert => `${Number(wert || 0).toFixed(2)} USD`;
 
   const L = window.EinrichtungLogik;
-  const TITEL = { gesucht: "Gesucht", vorlage: "Datei", ki: "KI", erweiterung: "Erweiterung" };
-  const FRUEHER = { datenordner: "gesucht" };  // links to steps that are gone
+  const TITEL = { gesucht: "Gesucht", vorlage: "Datei", erweiterung: "Erweiterung" };
+  const FRUEHER = { datenordner: "gesucht" };  // links to steps that are gone; #ki opens the window instead
+  const KI_ANKER = "ki";
   const STORE = {
     chrome: { haupt: "Im Chrome Web Store hinzufügen", leise: "Im Chrome Web Store öffnen", name: "Google Chrome", knopf: "Hinzufügen" },
     edge: { haupt: "Im Edge-Store hinzufügen", leise: "Im Edge-Store öffnen", name: "Microsoft Edge", knopf: "Abrufen" },
@@ -26,7 +28,7 @@
   let importiert = false;
   let dateiWahl = {};      // per existing Markdown file „behalten“ or „ersetzen“ (G26)
   let ravBeruehrt = false; // until the person picks one, RAV stays at its preset Nein (#218: employed people are not registered)
-  const sitzung = ladeSitzung();  // { bestaetigt, uebersprungen: {vorlage, ki, erweiterung} }
+  const sitzung = ladeSitzung();  // { bestaetigt, uebersprungen: {vorlage, erweiterung}, kiAnfrage }
 
   function ladeSitzung() {
     try {
@@ -55,7 +57,6 @@
     switch (id) {
       case "gesucht": return Boolean(wahl && (wahl.gewaehlt || sitzung.bestaetigt)) && (!info || bereit());
       case "vorlage": return Boolean(info?.lebenslauf || importiert || sitzung.uebersprungen.vorlage);
-      case "ki": return kiVerbunden() || Boolean(sitzung.uebersprungen.ki);
       case "erweiterung": return !info?.erweiterung || Boolean(erweiterungGeladen()) || Boolean(sitzung.uebersprungen.erweiterung);
       default: return false;
     }
@@ -77,7 +78,6 @@
     switch (id) {
       case "gesucht": return fertig ? zusammenfassung() : "Stelle oder Lehrstelle";
       case "vorlage": return info?.lebenslauf || importiert ? "übernommen" : sitzung.uebersprungen.vorlage ? "übersprungen" : "freiwillig";
-      case "ki": return kiVerbunden() ? "verbunden" : sitzung.uebersprungen.ki ? "übersprungen" : "Einladungscode";
       case "erweiterung":
         if (!info?.erweiterung) return "nur in der installierten App";
         return erweiterungGeladen() ? "geladen" : sitzung.uebersprungen.erweiterung ? "später" : "1 bis 2 Minuten";
@@ -138,10 +138,10 @@
       zeigeOrdner(location.hash.slice(1) === "datenordner");
     }
     if (jetzt === "vorlage") zeigeVorlage();
-    if (jetzt === "ki") zeigeKi();
     if (jetzt === "erweiterung") zeigeErweiterung();
     if (jetzt === "fertig") zeigeFertig();
     $("erweitert").hidden = !bereit() || Boolean(info?.einstieg_datei) || jetzt === "vorlage";
+    zeigeKiZeile();
   }
 
   // 1. What is sought
@@ -172,6 +172,7 @@
 
   async function speichereWahl(werte) {
     wahl = await senden("/api/einrichtung/wahl", werte);
+    window.App.wahlNeuLaden();
   }
 
   async function bestaetigeWahl() {
@@ -194,6 +195,7 @@
         return;
       }
       naechster("gesucht");
+      kiWennAngefragt();
     } catch (fehler) {
       meldung($("gesucht-status"), fehler.message, "danger");
     } finally {
@@ -262,6 +264,7 @@
     const dort = await holen("/api/einrichtung/wahl");
     if (!dort.gewaehlt) return false;
     wahl = dort;
+    window.App.wahlNeuLaden();
     return true;
   }
 
@@ -356,32 +359,11 @@
   $("vorlage-ueberspringen").addEventListener("click", () => ueberspringe("vorlage"));
   $("vorlage-weiter").addEventListener("click", () => ueberspringe("vorlage"));
 
-  // 3. AI
+  // The AI: a line with „KI einrichten“, the window over the page (G60)
 
-  function zeigeKi() {
-    if (!ki) return;
-    let zustand = ki.hinweis || "Die KI ist nicht eingerichtet.";
-    if (ki.eingerichtet) {
-      zustand = ki.vermittlung && ki.budget_usd !== undefined
-        ? `Verbunden. Diesen Monat verbraucht: ${usd(ki.verbraucht_usd)} von ${usd(ki.budget_usd)}.`
-        : "Verbunden.";
-    } else if (ki.einladung) {
-      zustand = "Noch nicht verbunden: Einladungscode eingeben.";
-    }
-    // Without an invitation in this build the notes on an own key and the Claude subscription are the way in.
-    const ohneEinladung = !ki.eingerichtet && !ki.einladung;
-    const einwilligungOffen = Boolean(ki.einwilligung && !ki.einwilligung.erteilt);
-    meldung($("ki-zustand"), ohneEinladung || einwilligungOffen ? "" : zustand, ki.eingerichtet ? "success" : "");
-    if (ki.einladung_fehler) meldung($("ki-zustand"), ki.einladung_fehler, "danger");
-    $("ki-einwilligung").hidden = !einwilligungOffen;
-    if (einwilligungOffen) window.Einwilligung.zeige($("ki-einwilligung"), ki.einwilligung, neu => { ki = neu; zeigeKi(); });
-    $("ki-einladung").hidden = ki.eingerichtet || !ki.einladung || einwilligungOffen;
-    $("ki-code-hinweis").hidden = ki.eingerichtet || !ki.einladung;
-    $("ki-ohne").hidden = ki.eingerichtet;
-    $("ki-ohne").open = ohneEinladung || $("ki-ohne").open;
-    $("ki-ohne").querySelector("summary").hidden = ohneEinladung;
-    $("ki-ueberspringen").hidden = ki.eingerichtet;
-    $("ki-weiter").hidden = !ki.eingerichtet;
+  function zeigeKiZeile() {
+    $("ki-zeile").hidden = !bereit();
+    $("ki-zeile-text").textContent = kiVerbunden() ? "Die KI ist eingerichtet." : "Die KI ist noch nicht eingerichtet. Das geht jederzeit.";
   }
 
   async function ladeKi() {
@@ -389,25 +371,37 @@
     catch (fehler) { ki = { eingerichtet: false, hinweis: fehler.message }; }
   }
 
-  async function loeseEin() {
-    $("ki-einloesen").disabled = true;
-    try {
-      ki = await senden("/api/ki/einladung", { code: $("ki-code").value });
-      $("ki-code").value = "";
-      zeigeKi();
-      zeigeSchritte("ki");
-    } catch (fehler) {
-      meldung($("ki-zustand"), fehler.message, "danger");
-    } finally {
-      $("ki-einloesen").disabled = false;
+  /** The window keeps the consent in the data folder, so it waits for the first step; the page stays where it is. */
+  async function oeffneKi() {
+    if (!bereit()) {
+      sitzung.kiAnfrage = true;
+      merke();
+      return;
     }
+    ki = (await window.App.kiEinrichten().catch(() => null)) || ki;
+    zeige();
   }
 
-  $("ki-einloesen").addEventListener("click", loeseEin);
-  $("ki-ueberspringen").addEventListener("click", () => ueberspringe("ki"));
-  $("ki-weiter").addEventListener("click", () => ueberspringe("ki"));
+  /** An invitation link (?ki=einrichten) or an old link to the step KI asks for the window. */
+  function nimmKiAnfrage() {
+    if (location.hash.slice(1) === KI_ANKER) {
+      history.replaceState(history.state, "", location.pathname + location.search);
+      sitzung.kiAnfrage = true;
+    }
+    if (window.App.kiAnfrageNehmen()) sitzung.kiAnfrage = true;
+    merke();
+  }
 
-  // 4. Browser extension (MIN-339): from the store of the own browser (#75, #87, #219), by hand under „Klappt es nicht?“
+  function kiWennAngefragt() {
+    if (!sitzung.kiAnfrage || !bereit()) return;
+    sitzung.kiAnfrage = false;
+    merke();
+    oeffneKi();
+  }
+
+  $("ki-einrichten").addEventListener("click", oeffneKi);
+
+  // 3. Browser extension (MIN-339): from the store of the own browser (#75, #87, #219), by hand under „Klappt es nicht?“
 
   function richteStoreEin() {
     const browser = L.browserVon(navigator.userAgent);
@@ -489,9 +483,12 @@
   // Done
 
   function zeigeFertig() {
+    const handlung = knopf => (knopf.aktion
+      ? el("button", { type: "button", class: "btn btn--sm", onclick: oeffneKi }, knopf.knopf)
+      : el("a", { class: "btn btn--sm", href: knopf.ziel }, knopf.knopf));
     const zeile = (titel, inhalt, gut, knopf = null) => el("li", { class: `notice${gut ? " notice--success" : ""}` },
       el("span", { class: "notice__title" }, titel), el("p", { class: "notice__body" }, inhalt),
-      knopf ? el("div", { class: "notice__actions" }, el("a", { class: "btn btn--sm", href: knopf.ziel }, knopf.knopf)) : null);
+      knopf ? el("div", { class: "notice__actions" }, handlung(knopf)) : null);
     const geladen = erweiterungGeladen();
     const offen = L.offenePunkte({ kiVerbunden: !info || kiVerbunden(), erweiterungMoeglich: Boolean(info?.erweiterung),
                                    erweiterungGeladen: geladen });
@@ -525,8 +522,14 @@
     if (!wahl) wahl = { gesucht: "stelle", anrede: "sie", rav: false, gewaehlt: false };
     if (info) await ladeKi();
     richteStoreEin();
-    window.addEventListener("hashchange", zeige);
+    nimmKiAnfrage();
+    window.addEventListener("hashchange", () => {
+      nimmKiAnfrage();
+      zeige();
+      kiWennAngefragt();
+    });
     zeige();
+    kiWennAngefragt();
   }
 
   start();
