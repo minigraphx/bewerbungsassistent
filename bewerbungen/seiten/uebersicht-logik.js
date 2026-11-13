@@ -34,7 +34,10 @@
     return `${t}.${m}.${j}`;
   }
 
-  /** { art, frist?, zusatz?, grund? } — art is one of RANG; frist an ISO date that orders and shows in the list. */
+  /**
+   * { art, frist?, zusatz?, grund? } — art is one of RANG; frist an ISO date that orders and shows in the list; zusatz,
+   * for a sent application, the date to follow up from, also while the Job-Room entry is still open (#269).
+   */
   function naechsterSchritt(b, { grund, ravGrund } = {}) {
     const ravOffen = ravGrund === null;
     switch (b.status) {
@@ -46,9 +49,10 @@
         if (typeof grund === "string" && grund.startsWith(OHNE_LINK)) return { art: "link", frist: b.frist };
         if (typeof grund === "string" && grund.startsWith(OHNE_FREIGABE)) return { art: "freigeben", frist: b.frist };
         return { art: "offen", frist: b.frist, grund: grund || "" };
-      case "Beworben":
-        if (ravOffen) return { art: "rav" };
-        return { art: "warten", zusatz: b.beworben_am ? plusTage(b.beworben_am, NACHFRAGEN_NACH_TAGEN) : "" };
+      case "Beworben": {
+        const nachfragen = b.beworben_am ? plusTage(b.beworben_am, NACHFRAGEN_NACH_TAGEN) : "";
+        return { art: ravOffen ? "rav" : "warten", zusatz: nachfragen };
+      }
       case "Gespräch":
         return { art: "gespraech", frist: b.gespraech_am };
       default:
