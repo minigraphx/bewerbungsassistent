@@ -61,6 +61,15 @@ def pruefe_foto_optionen(optionen: dict) -> dict:
     return dict(optionen)
 
 
+PHOTO_FIELDS = ("image", "x-image")
+
+
+def without_photo(cv: dict) -> dict:
+    """The CV without photo and crop (G62): the person chose not to show the photo in new documents."""
+    basics = {key: value for key, value in (cv.get("basics") or {}).items() if key not in PHOTO_FIELDS}
+    return {**cv, "basics": basics}
+
+
 def pruefe_beschriftungen(werte) -> dict:
     """`x-beschriftungen` prüfen: eigene Überschriften je Abschnitt, z.B. {erfahrung: Schnupperlehren}."""
     if not isinstance(werte, dict):
@@ -84,6 +93,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     ap.add_argument("--lang", default="de", choices=SPRACHEN)
     ap.add_argument("--lebenslauf-seiten", type=int, default=page_fill.LIMITS["cv"], choices=page_fill.CV_PAGES,
                     help="Höchstens so viele Seiten (G51); länger wird enger gesetzt")
+    ap.add_argument("--ohne-foto", action="store_true", help="Ohne Foto, auch wenn cv.yaml eines nennt (G62)")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("-o", "--out", default="build/lebenslauf.pdf")
     args = ap.parse_args(argv)
@@ -92,6 +102,8 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     cv = yaml.safe_load(data_path.read_text(encoding="utf-8"))
     job = yaml.safe_load(pathlib.Path(args.job).read_text(encoding="utf-8")) if args.job else None
     cv = waehle_sprache(tailor(cv, job), args.lang)
+    if args.ohne_foto:
+        cv = without_photo(cv)
     if "x-image" in cv.get("basics", {}):
         cv["basics"]["x-image"] = pruefe_foto_optionen(cv["basics"]["x-image"])
     if "x-beschriftungen" in cv:

@@ -1,7 +1,7 @@
 "use strict";
 // Page „Lebenslauf und Dateien“ (#264, A9, G55): the choice between the CV of the app and an own PDF, certificates
-// and references in one list, the photos (G21), the design of the CV (G61, „Aussehen wählen“) and the way to earlier
-// versions. What it shows: dateien-logik.js.
+// and references in one list, the photos (G21) with „Im Lebenslauf zeigen“ (G62), the design of the CV (G61,
+// „Aussehen wählen“) and the way to earlier versions. What it shows: dateien-logik.js.
 (() => {
   const { holen, senden, el, status, url, bestaetigen, alsBase64 } = App;
   const Logic = window.DateienLogik;
@@ -127,16 +127,33 @@
     return el("li", {}, button);
   }
 
-  function showPhotos(photos) {
+  function showPhotos(photos, shown) {
+    const toggle = Logic.photoSwitch(photos, shown);
     $("fotos").replaceChildren(...photos.map(photoButton));
-    $("fotos-text").textContent = Logic.photoSummary(photos);
+    $("fotos-text").textContent = Logic.photoSummary(photos, toggle.checked);
     $("foto-ausschnitt").hidden = !photos.length;
+    $("foto-zeigen-zeile").hidden = !toggle.visible;
+    $("foto-zeigen").checked = toggle.checked;
   }
 
   async function loadPhotos() {
     const listing = await holen("/api/foto/liste");
     maxPhotoBytes = listing.max_groesse;
-    showPhotos(listing.fotos);
+    showPhotos(listing.fotos, listing.zeigen);
+  }
+
+  // Only new documents follow the switch (G62); what is built or sent keeps its photo.
+  async function showInCv() {
+    const shown = $("foto-zeigen").checked;
+    try {
+      await senden("/api/foto/zeigen", { zeigen: shown });
+      await loadPhotos();
+      photoMessage(shown ? "Neue Unterlagen zeigen das Foto. Was schon erstellt ist, bleibt, wie es ist."
+        : "Neue Unterlagen entstehen ohne Foto. Was schon erstellt ist, bleibt, wie es ist.", "ok");
+    } catch (error) {
+      photoMessage(`Foto im Lebenslauf nicht geändert: ${error.message}`, "fehler");
+      $("foto-zeigen").checked = !shown;
+    }
   }
 
   async function usePhoto(file) {
@@ -227,6 +244,7 @@
     onFiles($("cv-input"), files => upload(files, () => "lebenslauf", cvMessage));
     onFiles($("nachweise-input"), uploadProofs);
     onFiles($("foto-input"), files => (files[0] ? addPhoto(files[0]) : null));
+    $("foto-zeigen").addEventListener("change", showInCv);
     dropZone($("ablage-zone"));
   }
 

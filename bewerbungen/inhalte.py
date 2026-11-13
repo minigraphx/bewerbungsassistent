@@ -15,6 +15,7 @@ import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
 import cv_design
+import photo_shown
 from dateien import relativ
 import textdokument
 from register import pruefe_bewerbung
@@ -84,6 +85,8 @@ def _lebenslauf_fuer_probebau(daten: pathlib.Path, cv: dict, build: pathlib.Path
     """Lebenslauf in den Build-Ordner schreiben; das Foto mit absolutem Pfad, damit es gefunden wird."""
     if not isinstance(cv, dict) or not isinstance(cv.get("basics"), dict):
         raise ValueError("Der Lebenslauf braucht einen Abschnitt basics")
+    if not photo_shown.load(daten):
+        cv = lebenslauf_modul.without_photo(cv)  # the preview as new documents will be (G62)
     bild = cv["basics"].get("image")
     basics = {**cv["basics"], "image": str((daten / bild).resolve())} if bild else cv["basics"]
     ziel = build / "inhalt-probe" / "cv.yaml"

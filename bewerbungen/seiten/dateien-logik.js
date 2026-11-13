@@ -1,6 +1,6 @@
 "use strict";
 // What „Lebenslauf und Dateien“ shows (#264, A9), without DOM so it can be tested (tests/dateien_logik.test.cjs):
-// the choice of the CV, certificates and references in one list, the photos.
+// the choice of the CV, certificates and references in one list, the photos and whether the CV shows one.
 (function (global) {
   const BYTES_PER_MB = 1000000;
   const BYTES_PER_KB = 1000;
@@ -42,10 +42,16 @@
     return `${Math.max(1, Math.round(bytes / BYTES_PER_KB))} KB`;
   }
 
-  function photoSummary(photos) {
+  function photoSummary(photos, shown = true) {
     if (!photos.length) return "Noch kein Foto. Ein Foto ist freiwillig.";
-    if (photos.length === 1) return "1 Foto, es wird verwendet.";
-    return `${photos.length} Fotos, das umrandete wird verwendet.`;
+    const count = photos.length === 1 ? "1 Foto" : `${photos.length} Fotos`;
+    if (!shown) return `${count}. Neue Unterlagen entstehen ohne Foto.`;
+    return photos.length === 1 ? `${count}, es wird verwendet.` : `${count}, das umrandete wird verwendet.`;
+  }
+
+  /** „Im Lebenslauf zeigen“ (G62): there once a photo exists, on unless the person turned it off. */
+  function photoSwitch(photos, shown) {
+    return { visible: photos.length > 0, checked: shown !== false };
   }
 
   // G61: the designs that build a CV on their own, the preset first (register.CV_DESIGNS). Siegel, Raster and
@@ -71,7 +77,7 @@
   }
 
   const logic = { KINDS, KIND_LABELS, cvChoice, needsRemoval, variantNote, guessKind, oneList, sizeText, photoSummary,
-                  DESIGNS, PRESET_DESIGN, designName, designToSave, designSaved };
+                  photoSwitch, DESIGNS, PRESET_DESIGN, designName, designToSave, designSaved };
   if (typeof module !== "undefined") module.exports = logic;
   else global.DateienLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);
