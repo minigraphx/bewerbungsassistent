@@ -101,6 +101,20 @@ def test_shared_context_comes_first_and_is_cached(daten):
     assert "<inserat>" in payload["messages"][0]["content"]
 
 
+def test_effort_is_sent_only_when_the_task_names_one(daten):
+    client = FakeClient(reply={"ok": True})
+    gateway, _ = gateway_for(daten, client)
+    base = dict(task="terms", model="claude-sonnet-5-5", rules="Regeln", context="", instructions="Aufgabe",
+                prompt="Frage", max_tokens=100, schema={"type": "object"})
+
+    gateway.ask(Request(**base))
+    gateway.ask(Request(**base, effort="medium"))
+
+    without, with_effort = (call["output_config"] for call in client.messages.calls)
+    assert "effort" not in without and with_effort["effort"] == "medium"
+    assert with_effort["format"]["type"] == "json_schema"
+
+
 def test_draft_uses_the_contact_person_and_gives_a_letter_file(daten):
     client = FakeClient(reply=DRAFT)
     gateway, material = gateway_for(daten, client, ENTRY)

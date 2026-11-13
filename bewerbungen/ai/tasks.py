@@ -28,10 +28,13 @@ APPRENTICESHIP_MARK = "## Lehrbeginn"  # section only the apprenticeship search 
 MODELS = {"rate": "claude-sonnet-5-5", "draft": "claude-opus-5-5", "review": "claude-sonnet-5-5",
           "prefill": "claude-sonnet-5-5", "rate_package": "claude-sonnet-5-5", "form_fields": "claude-haiku-5-5",
           "form_answers": "claude-sonnet-5-5", "career": "claude-sonnet-5-5", "site_list": "claude-haiku-5-5", "chat": "claude-haiku-5-5",
-          "dossier_texts": "claude-sonnet-5-5", "terms": "claude-haiku-5-5"}
+          "dossier_texts": "claude-sonnet-5-5", "terms": "claude-sonnet-5-5"}
 MAX_TOKENS = {"rate": 8000, "draft": 16000, "review": 12000, "prefill": 16000, "rate_package": 12000,
               "form_fields": 2000, "form_answers": 8000, "career": 4000, "site_list": 6000, "chat": 1500, "dossier_texts": 4000,
-              "terms": 3000}
+              "terms": 8000}
+# Thinking counts toward max_tokens. For the terms Haiku thought past 3000 tokens and the answer broke off; Sonnet at
+# medium answered better with about 1000 (measure_terms.py, #274).
+EFFORTS = {"terms": "medium"}
 GRADES = {g / 2 for g in range(2, 13)}  # 1, 1.5, … 6
 MAX_AD_CHARS = 30_000
 PACKAGE_SIZE = 10
