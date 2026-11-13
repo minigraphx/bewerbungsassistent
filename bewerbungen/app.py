@@ -55,6 +55,8 @@ SEITEN = {
     "/meldungen.js": "meldungen.js",
     "/uebersicht.js": "uebersicht.js",
     "/uebersicht-logik.js": "uebersicht-logik.js",
+    "/sidebar.js": "sidebar.js",
+    "/sidebar-logic.js": "sidebar-logic.js",
     "/bewerbung.js": "bewerbung.js",
     "/bewerbung-logik.js": "bewerbung-logik.js",
     "/lebenslauf-anpassen.js": "lebenslauf-anpassen.js",
@@ -105,7 +107,7 @@ log = logging.getLogger("bewerbungsbegleiter")
 
 
 QUESTIONS_PAGES = {"/fragen": "fragen.html", "/fragen.js": "fragen.js"}
-QUESTIONS_LINK = '<a href="/fragen">Fragen an die KI</a>'
+QUESTIONS_LINK = '<li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li>'
 
 
 def erstelle_kontext(daten: pathlib.Path, build: pathlib.Path | None = None) -> Kontext:

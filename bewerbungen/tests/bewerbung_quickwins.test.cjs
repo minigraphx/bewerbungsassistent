@@ -154,16 +154,12 @@ test("the bulk bar appears only once a row is selected: n ausgewählt · Stand s
   assert.doesNotMatch(code, /\$\("auswahl-leiste"\)\.hidden = gezeigte\.length === 0/);
 });
 
-test("in the menu Mehr, Einrichtung sits next to Erweiterte Einstellungen, no longer under Hilfe", () => {
+test("Einrichtung is reached from the settings, never from Hilfe in the sidebar (G54)", () => {
   const pages = fs.readdirSync(SEITEN).filter(name => name.endsWith(".html"));
   assert.ok(pages.length >= 12);
   for (const name of pages) {
-    const nav = lies(name).match(/<nav[ >][\s\S]*?<\/nav>/)[0];
-    const gruppen = nav.split('<div class="menu__group"').slice(1);
-    const hilfe = gruppen.find(g => g.includes(">Hilfe<"));
-    assert.ok(hilfe && !hilfe.includes('href="/einrichtung"'), `${name}: Einrichtung under Hilfe`);
-    assert.match(nav, /<a href="\/einrichtung">Einrichtung<\/a><a href="\/einstellungen">Erweiterte Einstellungen<\/a>/, name);
+    const nav = lies(name).match(/<nav class="app-nav"[\s\S]*?<\/nav>/)[0];
+    assert.doesNotMatch(nav, /href="\/einrichtung"/, name);
   }
-  // Without the questions page the server takes its link out, and Hilfe would stand there empty
-  assert.match(lies("stil.css"), /\.menu__group:not\(:has\(a, button\)\) \{ display: none; \}/);
+  assert.match(lies("einstellungen.html"), /<a href="\/einrichtung">Einrichtung: Datenordner, Erweiterung und KI<\/a>/);
 });

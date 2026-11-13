@@ -31,10 +31,12 @@ APP_SCRIPTS = ["appbackend.js", "prefill.js", "replacechoice.js"]  # only in the
 PRIVACY = "Alles bleibt auf diesem Gerät. Die Seite verschickt nichts; am Schluss entsteht eine Datei zum Speichern."
 HEAD_APP = '<meta name="token" content="__TOKEN__">\n<meta name="bewerbungsbegleiter" content="app">'
 TOP_SHARED = f'<header class="top"><p class="brand">Bewerbungsbegleiter</p><p class="privacy">{PRIVACY}</p></header>'
-# In the app the page shares the menu of the other pages (taken from the overview) and their scripts: app.js for the
-# menu, the text set and the messages of the packaged app; texte.js for the words that follow the setup.
+# In the app the page shares the sidebar of the other pages (taken from the overview) and their scripts: app.js for the
+# text set and the messages of the packaged app; texte.js for the words that follow the setup; sidebar.js with the
+# overview logic it counts with for the badges, the budget and the extension (#259).
 MENU_SOURCE = ROOT.parent / "bewerbungen" / "seiten" / "uebersicht.html"
-APP_PAGE_SCRIPTS = '<script src="/texte.js"></script>\n<script src="/meldungen.js"></script>\n<script src="/app.js"></script>\n'
+APP_PAGE_SCRIPTS = "".join(f'<script src="/{name}"></script>\n' for name in (
+    "texte.js", "meldungen.js", "app.js", "uebersicht-logik.js", "sidebar-logic.js", "sidebar.js"))
 # DM Sans comes from the app (bewerbungen/app.py FONT_FILES); the shared file loads nothing and uses the system font.
 APP_FONTS = "".join(
     f'@font-face {{ font-family: "DM Sans"; src: url("/fonts/DMSans-{name}.ttf") format("truetype"); '

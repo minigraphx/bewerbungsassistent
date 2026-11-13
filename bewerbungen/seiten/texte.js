@@ -11,6 +11,7 @@
   const TEXTE = {
     // Navigation (step 3)
     "nav.suche": { sie: "Stellen suchen", du: "Stellen suchen", lehrstelle: "Lehrstellen suchen" },
+    "nav.stellen": { sie: "Stellen", du: "Stellen", lehrstelle: "Lehrstellen" },
     // Other pages (step 6)
     "dateien.variante": { sie: "Wenn Sie in einer Bewerbung eine Variante wählen, gilt sie dort.", du: "Wenn du in einer Bewerbung eine Variante wählst, gilt sie dort." },
     "dateien.eigen-titel": { sie: "Ihr eigenes PDF", du: "Dein eigenes PDF" },

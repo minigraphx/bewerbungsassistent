@@ -69,6 +69,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G57 [approved, must] Das Zeitfenster der Suche (G32) und „Weitere Seiten durchsuchen“ stehen auf der Seite „Suche einstellen“, nicht mehr in den Einstellungen. | gate: review
 - G58 [approved, must] Bei jedem Treffer entscheidet die Person mit „Bewerbung vorbereiten“ als Hauptknopf, „Merken“ oder „Verwerfen“. | gate: review
 - G59 [wont, must] Bei jedem Treffer entscheidet die Person mit „Bewerbung vorbereiten“ als Hauptknopf, „Merken“ oder „Verwerfen“. | gate: review
+- G60 [approved, must] Die Einrichtung hat keinen eigenen Schritt KI mehr. Der Text «KI einrichten» im Fenster der Einrichtung öffnet die Einrichtung der KI als Fenster über der Seite: Einwilligung, bei Lehrstellen die Bestätigung eines Elternteils, dann Einladungscode, eigenes Claude-Abo oder eigener Schlüssel. Dasselbe Fenster öffnet sich, wenn die KI noch nicht eingerichtet ist und eine KI-Funktion sie braucht oder die Person einen Einladungslink öffnet. Ist die KI eingerichtet oder schliesst die Person das Fenster, geht es dort weiter, wo sie war. | gate: review
 
 ## K · Constraints
 
