@@ -61,6 +61,13 @@ def pruefe_foto_optionen(optionen: dict) -> dict:
     return dict(optionen)
 
 
+def json_value(value) -> str:
+    """A value JSON has no type for: a date YAML reads from 2022-06-01 without quotes goes to Typst as its text (#181)."""
+    if isinstance(value, datetime.date):
+        return value.isoformat()
+    raise TypeError(f"{type(value).__name__} lässt sich nicht als JSON schreiben")
+
+
 PHOTO_FIELDS = ("image", "x-image")
 
 
@@ -118,7 +125,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     if foto:
         cv["basics"]["image"] = wurzel.typst_path(foto)
     daten_json = build / "cv.json"
-    daten_json.write_text(json.dumps(cv, ensure_ascii=False, indent=1), encoding="utf-8")
+    daten_json.write_text(json.dumps(cv, ensure_ascii=False, indent=1, default=json_value), encoding="utf-8")
 
     out = pathlib.Path(args.out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)

@@ -3,6 +3,9 @@
 // `known` names the tags already in the data folder (G24), which never block saving. In the same way `loaded`, the
 // answers the app read from cv.yaml (G23), never blocks saving: an entry, a value or a line the file holds at that place
 // is not checked, two-language values {de, en} included, and a section or list may keep as many entries as the file has.
+// Since G30 (#181) the rules take everything cv.yaml may hold: the fields of the CV sections have no limit of length
+// or count (fieldRules, entryLimit), a field marked "bilingual" takes {de, en} with each language checked as its text,
+// and dates may be full (2024-08-15). Tags keep their rules (G24).
 "use strict";
 
 const SINGLE_LINE = new Set(["text", "list", "select", "choice", "tags"]);
@@ -13,6 +16,7 @@ const LINE = "Zeile";
 const TAG = "Tag";
 const TAGS_NAME = "Tags";
 const TOP_LEVEL_KEYS = new Set(["format", "version", "track", "data", "saved"]);
+const VALUE_LANGUAGES = ["de", "en"]; // of a two-language value, as lebenslauf/README.md writes it
 
 const MESSAGES = {
   required: "Bitte ausfüllen.",
@@ -30,6 +34,37 @@ const MESSAGES = {
 
 const isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const err = (path, code) => ({ path, code });
+
+/** A two-language value as cv.yaml writes it: { de, en } with text in each. */
+function isTwoLanguage(value) {
+  const keys = isObject(value) ? Object.keys(value) : [];
+  return keys.length > 0 && keys.every((k) => VALUE_LANGUAGES.includes(k) && typeof value[k] === "string");
+}
+
+/** A two-language value trimmed, in the order de, en, without an empty language; null if it holds no text. */
+function twoLanguageValue(value) {
+  if (!isTwoLanguage(value)) return null;
+  const texts = VALUE_LANGUAGES.filter((k) => typeof value[k] === "string" && value[k].trim()).map((k) => [k, value[k].trim()]);
+  return texts.length ? Object.fromEntries(texts) : null;
+}
+
+/** The texts of a value that hold something: the text itself, or each language of a two-language value. */
+function valueTexts(value) {
+  const texts = isTwoLanguage(value) ? Object.values(value) : typeof value === "string" ? [value] : [];
+  return texts.filter((text) => text.trim());
+}
+
+const inCv = (section, field) => Boolean(section.cv) && (!field || field.cv !== false);
+
+/** The rules of a field as they hold for what the person types: in the CV without limit of length or count (G30). */
+function fieldRules(form, section, field) {
+  return inCv(section, field) ? { ...field, max: Infinity, maxItems: Infinity } : field;
+}
+
+/** How many entries a repeated section takes; the CV takes as many as cv.yaml may hold (G30). */
+function entryLimit(form, section) {
+  return inCv(section) ? Infinity : section.maxItems ?? form.limits.repeatItems;
+}
 
 function applies(item, track) {
   return !item.tracks || item.tracks.includes(track);
@@ -53,9 +88,10 @@ function tagRules(form) {
   return { type: "tags", format: "tag", max: form.limits.tag, maxItems: form.limits.tags };
 }
 
-/** A line with tags, as cv.yaml writes it: { text, tags }. */
-function isTaggedLine(value) {
-  return isObject(value) && Object.keys(value).every((k) => TAGGED_LINE_KEYS.has(k)) && typeof value.text === "string"
+/** A line with tags, as cv.yaml writes it: { text, tags }; with twoLanguages its text may be { de, en }. */
+function isTaggedLine(value, twoLanguages) {
+  return isObject(value) && Object.keys(value).every((k) => TAGGED_LINE_KEYS.has(k))
+    && (typeof value.text === "string" || (Boolean(twoLanguages) && isTwoLanguage(value.text)))
     && (value.tags === undefined || Array.isArray(value.tags));
 }
 
@@ -65,7 +101,7 @@ function isLeveledLine(value) {
     && (value.level === undefined || typeof value.level === "string");
 }
 
-const lineOf = (value) => (isObject(value) ? value.text : value);
+const lineOf = (value) => (isObject(value) && "text" in value ? value.text : value);
 
 /** A value as it counts when compared with cv.yaml: trimmed, blank as "", a line without tags as its text. */
 function storedValue(value) {
@@ -75,6 +111,7 @@ function storedValue(value) {
     const lines = value.map(storedLine).filter((line) => line !== "");
     return lines.length ? lines : "";
   }
+  if (isTwoLanguage(value)) return twoLanguageValue(value) || "";
   return value;
 }
 
@@ -85,11 +122,11 @@ function storedLine(value) {
     return level && text !== "" ? { text, level } : text;
   }
   if (isObject(value) && "text" in value && Object.keys(value).every((k) => TAGGED_LINE_KEYS.has(k))) {
-    const text = typeof value.text === "string" ? storedValue(value.text) : value.text;
+    const text = typeof value.text === "string" || isObject(value.text) ? storedValue(value.text) : value.text;
     const tags = Array.isArray(value.tags) ? storedValue(value.tags) : value.tags;
     return tags && text !== "" ? { text, tags } : text;
   }
-  return typeof value === "string" ? storedValue(value) : value;
+  return typeof value === "string" || isObject(value) ? storedValue(value) : value;
 }
 
 /** Deep equality of JSON values; the order of keys does not count. */
@@ -153,7 +190,7 @@ function validateSection(form, section, track, value, known, before) {
   if (value == null) return [];
   if (!Array.isArray(value)) return [err(sid, "type")];
   const errors = [];
-  if (value.length > Math.max(section.maxItems ?? form.limits.repeatItems, before.length)) errors.push(err(sid, "maxItems"));
+  if (value.length > Math.max(entryLimit(form, section), before.length)) errors.push(err(sid, "maxItems"));
   value.forEach((item, index) => {
     const path = `${sid}.${index}`;
     if (!isObject(item)) errors.push(err(path, "type"));
@@ -163,7 +200,7 @@ function validateSection(form, section, track, value, known, before) {
 }
 
 function validateItem(form, section, track, item, path, known, before) {
-  const fields = section.fields.filter((f) => applies(f, track));
+  const fields = section.fields.filter((f) => applies(f, track)).map((f) => fieldRules(form, section, f));
   const ids = new Set(fields.map((f) => f.id));
   const errors = Object.keys(item).filter((k) => !ids.has(k)).map((k) => err(`${path}.${k}`, "unknown"));
   const same = isLoadedEntry(section, track, item, before);
@@ -179,9 +216,10 @@ function validateField(form, field, track, item, path, known, before) {
   if (field.type === "tags") return validateTags(form, value, path, known);
   if (field.type === "list") return validateList(form, field, value, path, known, before);
   const text = value ?? "";
-  if (typeof text !== "string") return [err(path, "type")];
-  if (!text.trim()) return isRequired(field, item) ? [err(path, "required")] : [];
-  const code = checkText(form, field, track, text);
+  if (typeof text !== "string" && !(field.bilingual && isTwoLanguage(text))) return [err(path, "type")];
+  const texts = valueTexts(text);
+  if (!texts.length) return isRequired(field, item) ? [err(path, "required")] : [];
+  const code = texts.map((t) => checkText(form, field, track, t)).find(Boolean);
   if (code) return [err(path, code)];
   if (field.notBefore && isBefore(text, item[field.notBefore])) return [err(path, "notBefore")];
   return [];
@@ -190,7 +228,7 @@ function validateField(form, field, track, item, path, known, before) {
 /** Required, unless the field named by requiredUnless holds text: a free text stands in for what it replaces (G25). */
 function isRequired(field, item) {
   const other = field.requiredUnless === undefined ? undefined : item[field.requiredUnless];
-  return Boolean(field.required) && !(typeof other === "string" && other.trim());
+  return Boolean(field.required) && !valueTexts(other).length;
 }
 
 /** A list of tags: known ones may be longer or more than the limits allow, typed ones may not. */
@@ -214,19 +252,21 @@ function validateList(form, field, value, path, known, before) {
   const list = value ?? [];
   if (!Array.isArray(list)) return [err(path, "type")];
   const tagged = field.tags === true;
+  const twoLanguages = Boolean(field.bilingual);
   const lines = loadedLines(field.id, before);
   const inFile = list.map((v) => lines.some((line) => sameValue(line, storedLine(v))));
   const leveled = field.levels === true;
-  const fits = (v, i) => inFile[i] || typeof v === "string" || (tagged && isTaggedLine(v)) || (leveled && isLeveledLine(v));
+  const fits = (v, i) => inFile[i] || typeof v === "string" || (tagged && isTaggedLine(v, twoLanguages))
+    || (leveled && isLeveledLine(v)) || (twoLanguages && isTwoLanguage(v));
   if (!list.every(fits)) return [err(path, "type")];
-  const items = list.filter((v, i) => inFile[i] || lineOf(v).trim());
+  const items = list.filter((v, i) => inFile[i] || valueTexts(lineOf(v)).length);
   if (!items.length) return field.required ? [err(path, "required")] : [];
   const errors = [];
   if (items.length > Math.max(field.maxItems ?? form.limits.listItems, loadedCount(field.id, before))) errors.push(err(path, "maxItems"));
   list.forEach((entry, index) => {
-    const text = inFile[index] ? "" : lineOf(entry);
-    if (!text.trim()) return;
-    const code = checkText(form, field, null, text);
+    const texts = inFile[index] ? [] : valueTexts(lineOf(entry));
+    if (!texts.length) return;
+    const code = texts.map((text) => checkText(form, field, null, text)).find(Boolean);
     if (code) errors.push(err(`${path}.${index}`, code));
     if (isObject(entry) && tagged) errors.push(...validateTags(form, entry.tags, `${path}.${index}.tags`, known));
     if (isObject(entry) && leveled && !LEVELS.includes((entry.level ?? "").trim())) errors.push(err(`${path}.${index}.level`, "option"));
@@ -244,12 +284,13 @@ function checkText(form, field, track, value) {
   return null;
 }
 
+/** True if end lies before start, compared as far as both go: a year by year, a month by month (G30). */
 function isBefore(end, start) {
-  if (typeof start !== "string" || !start.trim()) return false;
+  if (typeof start !== "string" || !start.trim() || typeof end !== "string") return false;
   const e = end.trim();
   const s = start.trim();
-  if (e.length === 4 || s.length === 4) return e.slice(0, 4) < s.slice(0, 4);
-  return e < s;
+  const common = Math.min(e.length, s.length);
+  return e.slice(0, common) < s.slice(0, common);
 }
 
 function locate(form, track, path) {
@@ -307,5 +348,5 @@ function describeParts(form, track, error) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { validateBundle, describe, messageText, applies, forTrack, isTrack };
+  module.exports = { validateBundle, describe, messageText, applies, forTrack, isTrack, fieldRules, entryLimit };
 }

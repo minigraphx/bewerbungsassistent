@@ -88,12 +88,10 @@ def changed_lines(before: str, after: str) -> list[str]:
     return [line for line in difflib.ndiff(before.splitlines(), after.splitlines()) if line[:2] in ("- ", "+ ")]
 
 
-def test_the_rules_of_the_form_reject_the_file_when_typed_anew(tmp_path):
+def test_since_g30_the_rules_of_the_form_take_the_file_even_when_typed_anew(tmp_path):
     bundle = bundle_from(write_cv(tmp_path))
 
-    codes = {e.code for e in validation.validate_bundle(FORM, bundle)}
-
-    assert {"type", "format", "max", "maxItems", "option", "required"} <= codes
+    assert validation.validate_bundle(FORM, bundle) == []
 
 
 def test_the_answers_read_from_the_file_pass_against_the_file(tmp_path):
@@ -164,9 +162,9 @@ def test_a_two_language_value_is_replaced_only_when_edited(tmp_path):
 
 
 @pytest.mark.parametrize("change, message", [
-    (lambda data: data["work"][2].update(startDate="2009-03-01"), "Ungültiges Format"),
-    (lambda data: data["languages"].append({"language": "Sprache 8", "fluency": "Gut (B2)"}), "Zu viele Einträge"),
-    (lambda data: data["work"][2].update(position="x" * 101), "Zu lang"),
+    (lambda data: data["work"][2].update(startDate="2009-13-01"), "Ungültiges Format"),
+    (lambda data: data["work"][2].update(position="Prakti-\nkantin"), "ohne Zeilenumbruch"),
+    (lambda data: data["work"][2].update(startDate="", endDate=""), "Bitte ausfüllen"),
 ])
 def test_values_typed_on_the_page_still_follow_the_rules(tmp_path, change, message):
     path = write_cv(tmp_path)

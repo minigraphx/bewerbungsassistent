@@ -45,16 +45,16 @@ test("two-language values come into the page and go back as they are", () => {
   assert.deepEqual(data.work[0].highlights, [LINE, TAGGED, "Wartung der Plattform"]);
 });
 
-test("the CV as opened passes against the CV, and fails without it", () => {
+test("the CV as opened passes against the CV, and without it fails only where the file misses a value", () => {
   const bundle = model.collectBundle(form, opened(), NOW);
   const cvSections = ["person", "summary", "work", "languages"];
   const only = { ...bundle, data: Object.fromEntries(cvSections.map((id) => [id, bundle.data[id]])) };
   const cvErrors = (errors) => errors.filter((e) => cvSections.includes(e.path.split(".")[0]));
 
   assert.deepEqual(cvErrors(validateBundle(form, only, [], fromCv())), []);
+  // since G30 (#181) the rules take two languages, full dates and a fluency in own words
   assert.deepEqual(cvErrors(validateBundle(form, only, [])).map((e) => `${e.path}|${e.code}`).sort(), [
-    "languages.0.fluency|option", "summary.summary|type", "work.0.endDate|format", "work.0.highlights|type",
-    "work.0.position|type", "work.0.startDate|format", "work.1.startDate|required",
+    "work.1.startDate|required",
   ]);
 });
 
@@ -67,56 +67,47 @@ test("changing one field of an entry keeps its other values from the CV passing"
   assert.deepEqual(errors, []);
 });
 
-test("a two-language value shows both languages, says where to change it, and starts empty", () => {
+// Since G30 (#181) the page edits both languages; full_cv_edit.test.cjs tests that in detail.
+test("a two-language value shows both languages to edit", () => {
   const view = page.fieldView(field("work", "position"), { track: "job", value: POSITION, path: "work.0.position", onChange: () => {}, onBlur: () => {} });
 
-  const [input] = byTag(view, "input");
-  const note = findAll(view, (n) => n.className === "hint bilingual")[0];
-  assert.equal(input.value, "");
-  assert.match(textOf(note), /Software-Entwicklerin/);
-  assert.match(textOf(note), /Software developer/);
-  assert.match(textOf(note), /Inhalte als Text/);
-  assert.match(textOf(note), /nicht änderbar/);
+  assert.deepEqual(byTag(view, "input").map((input) => input.value), ["Software-Entwicklerin", "Software developer"]);
+  assert.doesNotMatch(textOf(view), /nicht änderbar/);
 });
 
-test("typing replaces a two-language value, clearing the input again keeps it", () => {
+test("editing one language of a two-language value keeps the other", () => {
   const changes = [];
   const view = page.fieldView(field("summary", "summary"), {
     track: "job", value: fromCv().summary.summary, path: "summary.summary", onChange: (v) => changes.push(plain(v)), onBlur: () => {},
   });
-  const [area] = byTag(view, "textarea");
+  const [german] = byTag(view, "textarea");
 
-  area.oninput({ target: { value: "Neuer Satz." } });
-  area.oninput({ target: { value: "" } });
+  german.oninput({ target: { value: "Neuer Satz." } });
 
-  assert.deepEqual(changes, ["Neuer Satz.", fromCv().summary.summary]);
+  assert.deepEqual(changes, [{ de: "Neuer Satz.", en: "Developer with experience." }]);
 });
 
-test("a two-language highlight shows both languages and its tags cannot be changed here", () => {
+test("a two-language highlight shows both languages and keeps its tags when its text changes", () => {
   const changes = [];
   const view = page.fieldView(field("work", "highlights"), {
     track: "job", value: [LINE, TAGGED, "Wartung der Plattform"], path: "work.0.highlights",
     onChange: (v) => changes.push(plain(v)), onBlur: () => {},
   });
 
-  const notes = findAll(view, (n) => n.className === "hint bilingual");
-  assert.equal(notes.length, 2);
-  assert.match(textOf(notes[1]), /Internal training/);
   const rows = findAll(view, (n) => n.className === "tagged-line");
-  const [text, tags] = byTag(rows[1], "input");
-  assert.equal(text.value, "");
-  assert.equal(tags.disabled, true);
+  const [german, english, tags] = byTag(rows[1], "input");
+  assert.equal(english.value, "Internal training");
+  assert.notEqual(tags.disabled, true);
 
-  text.oninput({ target: { value: "Schulungen für das Team" } });
-  assert.deepEqual(changes.at(-1)[1], { text: "Schulungen für das Team", tags: ["bildung"] });
+  german.oninput({ target: { value: "Schulungen für das Team" } });
+  assert.deepEqual(changes.at(-1)[1], { text: { de: "Schulungen für das Team", en: "Internal training" }, tags: ["bildung"] });
   assert.deepEqual(changes.at(-1)[0], LINE);
 });
 
-test("a choice outside the list is shown as chosen", () => {
+test("a fluency outside the suggestions is shown as it is", () => {
   const view = page.fieldView(field("languages", "fluency"), { track: "job", value: "fliessend", path: "languages.0.fluency", onChange: () => {}, onBlur: () => {} });
 
-  const chosen = byTag(view, "option").filter((o) => o.selected).map((o) => o.value);
-  assert.deepEqual(chosen, ["fliessend"]);
+  assert.equal(byTag(view, "input")[0].value, "fliessend");
 });
 
 test("an entry with only two-language values is not blank", () => {

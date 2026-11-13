@@ -142,7 +142,19 @@ button { font: inherit; cursor: pointer; }
 .tagged-line input { min-width: 0; flex: 3 1 16rem; }
 .tagged-line input.line-tags { flex: 1 1 8rem; }
 .tagged-line select.line-level { flex: 0 1 9rem; width: auto; }
-.tagged-line .bilingual { flex: 1 0 100%; }
+.tagged-line .line-languages { flex: 3 1 16rem; min-width: 0; }
+.language-row { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; }
+.language-row .language-name { flex: 0 0 5rem; font-size: 13px; line-height: 18px; color: var(--muted); }
+.language-row input, .language-row textarea { flex: 1 1 auto; min-width: 0; }
+.tagged-line .language-row input { flex: 1 1 auto; }
+.language-toggle { min-height: 32px; padding: 0 12px; margin-top: 6px; border: 1px solid var(--line); border-radius: var(--radius-control);
+  background: var(--surface); color: var(--text-strong); font-size: 14px; }
+.language-toggle:hover { background: var(--surface-subtle); }
+.tagged-line .language-toggle { margin-top: 0; min-height: 40px; flex: 0 0 auto; }
+@media (max-width: 480px) {
+  .language-row { flex-wrap: wrap; gap: 2px; }
+  .language-row .language-name { flex-basis: 100%; }
+}
 .tagged-line .remove-line { min-width: 40px; min-height: 40px; border: 1px solid var(--line-strong); border-radius: var(--radius-control);
   background: var(--surface); color: var(--danger); flex: 0 0 auto; }
 .add-line { min-height: 32px; padding: 0 12px; border: 1px dashed var(--line-strong); border-radius: var(--radius-control);

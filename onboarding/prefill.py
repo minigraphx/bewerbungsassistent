@@ -51,11 +51,19 @@ def _sections(form: dict, track: str) -> list[dict]:
     return [s for s in form["sections"] if s["id"] in SECTIONS and validation.applies(s, track)]
 
 
+def _choices(field: dict, track: str) -> list[str] | None:
+    """The only values a suggestion may take: the options of a select, and the suggestions of a field the person may
+    also fill in own words (the fluency, G30); None for a free field."""
+    if field["type"] == "select":
+        return validation.for_track(field["options"], track)
+    return field.get("suggestions")
+
+
 def _field_guide(field: dict, track: str) -> str:
     if field["type"] == "list":
         return f"{field['id']} ({SEVERAL_VALUES})"
-    if field["type"] == "select":
-        return f"{field['id']} ({ONLY_VALUES.format(values=', '.join(validation.for_track(field['options'], track)))})"
+    if choices := _choices(field, track):
+        return f"{field['id']} ({ONLY_VALUES.format(values=', '.join(choices))})"
     return field["id"]
 
 
@@ -187,7 +195,8 @@ def _clean_values(form: dict, section: dict, track: str, raw: dict) -> tuple[dic
         if not text:
             continue
         text = text if field["type"] == "textarea" else " ".join(text.split())
-        if validation.check_text(form, field, track, text) is None:
+        choices = _choices(field, track)
+        if validation.check_text(form, field, track, text) is None and (choices is None or text in choices):
             values[field["id"]] = text
         else:
             dropped += 1

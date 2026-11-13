@@ -1,5 +1,5 @@
 {
-  "_comment": "Shared validation cases for validation.py and validate.js. All values are invented. A case starts from a base bundle, applies 'set' ([path, value]) and 'remove' (path), and expects exactly 'errors' (path and code, order irrelevant). A value {\"$repeat\": s, \"times\": n} stands for s repeated n times. A case may name 'known' tags (already in the data folder, G24): the limits for typed tags do not apply to them; its values may be placeholders too. A case may give 'loaded', the answers read from cv.yaml (G23): an entry, a value or a line the file already holds is not checked, and a list or section may keep as many entries as loaded.",
+  "_comment": "Shared validation cases for validation.py and validate.js. All values are invented. A case starts from a base bundle, applies 'set' ([path, value]) and 'remove' (path), and expects exactly 'errors' (path and code, order irrelevant). A value {\"$repeat\": s, \"times\": n} stands for s repeated n times. A case may name 'known' tags (already in the data folder, G24): the limits for typed tags do not apply to them; its values may be placeholders too. A case may give 'loaded', the answers read from cv.yaml (G23): an entry, a value or a line the file already holds is not checked, and a list or section may keep as many entries as loaded. Since G30 (#181) the fields of the CV sections have no limit of length or count, a field marked 'bilingual' takes {de, en}, and dates may be full.",
   "bases": {
     "job": {
       "format": "bewerbungsassistent-einstieg",
@@ -410,13 +410,13 @@
       "base": "job",
       "set": [
         [
-          "data.languages.0.fluency",
+          "data.searchJob.remote",
           "super"
         ]
       ],
       "errors": [
         {
-          "path": "languages.0.fluency",
+          "path": "searchJob.remote",
           "code": "option"
         }
       ]
@@ -437,16 +437,16 @@
       "base": "job",
       "set": [
         [
-          "data.person.name",
+          "data.strengths.0.strength",
           {
             "$repeat": "x",
-            "times": 81
+            "times": 61
           }
         ]
       ],
       "errors": [
         {
-          "path": "person.name",
+          "path": "strengths.0.strength",
           "code": "max"
         }
       ]
@@ -456,16 +456,22 @@
       "base": "job",
       "set": [
         [
-          "data.work.0.highlights.0",
+          "data.searchJob.keywords",
+          [
+            "x"
+          ]
+        ],
+        [
+          "data.searchJob.keywords.0",
           {
             "$repeat": "x",
-            "times": 201
+            "times": 61
           }
         ]
       ],
       "errors": [
         {
-          "path": "work.0.highlights.0",
+          "path": "searchJob.keywords.0",
           "code": "max"
         }
       ]
@@ -514,50 +520,42 @@
       "base": "job",
       "set": [
         [
-          "data.languages",
+          "data.strengths",
           [
             {
-              "language": "A",
-              "fluency": "Muttersprache"
+              "strength": "Stärke 1",
+              "example": "Ein Beispiel aus der Praxis."
             },
             {
-              "language": "B",
-              "fluency": "Muttersprache"
+              "strength": "Stärke 2",
+              "example": "Ein Beispiel aus der Praxis."
             },
             {
-              "language": "C",
-              "fluency": "Muttersprache"
+              "strength": "Stärke 3",
+              "example": "Ein Beispiel aus der Praxis."
             },
             {
-              "language": "D",
-              "fluency": "Muttersprache"
+              "strength": "Stärke 4",
+              "example": "Ein Beispiel aus der Praxis."
             },
             {
-              "language": "E",
-              "fluency": "Muttersprache"
+              "strength": "Stärke 5",
+              "example": "Ein Beispiel aus der Praxis."
             },
             {
-              "language": "F",
-              "fluency": "Muttersprache"
+              "strength": "Stärke 6",
+              "example": "Ein Beispiel aus der Praxis."
             },
             {
-              "language": "G",
-              "fluency": "Muttersprache"
-            },
-            {
-              "language": "H",
-              "fluency": "Muttersprache"
-            },
-            {
-              "language": "I",
-              "fluency": "Muttersprache"
+              "strength": "Stärke 7",
+              "example": "Ein Beispiel aus der Praxis."
             }
           ]
         ]
       ],
       "errors": [
         {
-          "path": "languages",
+          "path": "strengths",
           "code": "maxItems"
         }
       ]
@@ -1120,7 +1118,7 @@
       ]
     },
     {
-      "name": "a tagged highlight that is too long",
+      "name": "a tagged highlight longer than the old limit passes (G30)",
       "base": "job",
       "set": [
         [
@@ -1140,12 +1138,7 @@
           }
         ]
       ],
-      "errors": [
-        {
-          "path": "work.0.highlights.1",
-          "code": "max"
-        }
-      ]
+      "errors": []
     },
     {
       "name": "a tagged highlight with another field",
@@ -1634,7 +1627,7 @@
       ]
     },
     {
-      "name": "a too long display",
+      "name": "a display longer than the old limit passes (G30)",
       "base": "job",
       "set": [
         [
@@ -1655,12 +1648,7 @@
           }
         ]
       ],
-      "errors": [
-        {
-          "path": "teaching.0.x-display",
-          "code": "max"
-        }
-      ]
+      "errors": []
     },
     {
       "name": "an education entry with only a free text passes",
@@ -1859,7 +1847,7 @@
       "errors": []
     },
     {
-      "name": "a full date typed anew next to a loaded one",
+      "name": "a full date typed anew passes (G30)",
       "base": "job",
       "set": [
         [
@@ -1877,12 +1865,7 @@
           }
         ]
       },
-      "errors": [
-        {
-          "path": "work.1.startDate",
-          "code": "format"
-        }
-      ]
+      "errors": []
     },
     {
       "name": "a fluency outside the list loaded from the CV",
@@ -1904,7 +1887,7 @@
       "errors": []
     },
     {
-      "name": "a fluency outside the list not in the CV",
+      "name": "a fluency in own words passes (G30)",
       "base": "job",
       "set": [
         [
@@ -1920,12 +1903,7 @@
           }
         ]
       },
-      "errors": [
-        {
-          "path": "languages.1.fluency",
-          "code": "option"
-        }
-      ]
+      "errors": []
     },
     {
       "name": "a text over the limit loaded from the CV",
@@ -1968,7 +1946,7 @@
       "errors": []
     },
     {
-      "name": "a text over the limit typed anew",
+      "name": "a text of the CV over the old limit passes (G30)",
       "base": "job",
       "set": [
         [
@@ -1989,12 +1967,7 @@
           }
         ]
       },
-      "errors": [
-        {
-          "path": "work.1.position",
-          "code": "max"
-        }
-      ]
+      "errors": []
     },
     {
       "name": "more entries than the form allows, as many as loaded",
@@ -2085,7 +2058,7 @@
       "errors": []
     },
     {
-      "name": "one entry more than loaded beyond the limit",
+      "name": "more entries of the CV than the old limit pass (G30)",
       "base": "job",
       "set": [
         [
@@ -2174,12 +2147,7 @@
           }
         ]
       },
-      "errors": [
-        {
-          "path": "languages",
-          "code": "maxItems"
-        }
-      ]
+      "errors": []
     },
     {
       "name": "more highlights than the form allows, as many as loaded",
@@ -2328,7 +2296,7 @@
       "errors": []
     },
     {
-      "name": "a two-language value not in the CV",
+      "name": "two-language values typed anew pass (G30)",
       "base": "job",
       "set": [
         [
@@ -2346,16 +2314,7 @@
           }
         ]
       ],
-      "errors": [
-        {
-          "path": "work.0.position",
-          "code": "type"
-        },
-        {
-          "path": "work.0.highlights",
-          "code": "type"
-        }
-      ]
+      "errors": []
     },
     {
       "name": "levels on keywords and languages are valid (#123)",
@@ -2642,6 +2601,350 @@
           "code": "maxItems"
         }
       ]
+    },
+    {
+      "name": "a text of the person longer than the old limit passes (G30)",
+      "base": "job",
+      "set": [
+        [
+          "data.person.name",
+          {
+            "$repeat": "x",
+            "times": 81
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a highlight longer than the old limit passes (G30)",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.0",
+          {
+            "$repeat": "x",
+            "times": 201
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "more languages than the old limit pass (G30)",
+      "base": "job",
+      "set": [
+        [
+          "data.languages",
+          [
+            {
+              "language": "Sprache 1",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 2",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 3",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 4",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 5",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 6",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 7",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 8",
+              "fluency": "Gut (B2)"
+            },
+            {
+              "language": "Sprache 9",
+              "fluency": "Gut (B2)"
+            }
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "more highlights and profile links than the old limits pass (G30)",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights",
+          [
+            "Punkt 1",
+            "Punkt 2",
+            "Punkt 3",
+            "Punkt 4",
+            "Punkt 5",
+            "Punkt 6",
+            "Punkt 7",
+            "Punkt 8"
+          ]
+        ],
+        [
+          "data.person.profiles",
+          [
+            "https://example.ch/profil-1",
+            "https://example.ch/profil-2",
+            "https://example.ch/profil-3",
+            "https://example.ch/profil-4",
+            "https://example.ch/profil-5",
+            "https://example.ch/profil-6",
+            "https://example.ch/profil-7"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a two-language value on a field without languages",
+      "base": "job",
+      "set": [
+        [
+          "data.person.email",
+          {
+            "de": "erika@example.ch",
+            "en": "erika@example.ch"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "person.email",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "a two-language value with a line break",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.position",
+          {
+            "de": "Software-\nEntwicklerin",
+            "en": "Software developer"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.position",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "a two-language value without text where one is required",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.position",
+          {
+            "de": " ",
+            "en": ""
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.position",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "a two-language free text stands in for the required fields",
+      "base": "job",
+      "set": [
+        [
+          "data.education.0.text",
+          {
+            "de": "Bachelor in Informatik",
+            "en": "Bachelor in computer science"
+          }
+        ]
+      ],
+      "remove": [
+        "data.education.0.studyType",
+        "data.education.0.institution"
+      ],
+      "errors": []
+    },
+    {
+      "name": "a two-language highlight, plain and with tags",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights",
+          [
+            {
+              "de": "Plattform",
+              "en": "Platform"
+            },
+            {
+              "text": {
+                "de": "Software-Entwicklerin",
+                "en": "Software developer"
+              },
+              "tags": [
+                "daten"
+              ]
+            },
+            "Datenpipelines"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a two-language line on a list without languages",
+      "base": "job",
+      "set": [
+        [
+          "data.interests.interests",
+          [
+            {
+              "de": "Wandern",
+              "en": "Hiking"
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "interests.interests",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "a two-language highlight with a line break",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.highlights.0",
+          {
+            "de": "Plattform",
+            "en": "Plat-\nform"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.highlights.0",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "full dates pass (G30)",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.startDate",
+          "2019-03-15"
+        ],
+        [
+          "data.certificates.0.date",
+          "2023-05-02"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a full date with a day out of range",
+      "base": "job",
+      "set": [
+        [
+          "data.work.0.startDate",
+          "2019-03-32"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.0.startDate",
+          "code": "format"
+        }
+      ]
+    },
+    {
+      "name": "an end in the month of a full start is not before it",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.startDate",
+          "2015-06-15"
+        ],
+        [
+          "data.work.1.endDate",
+          "2015-06"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "an end the day before a full start",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.startDate",
+          "2015-06-15"
+        ],
+        [
+          "data.work.1.endDate",
+          "2015-06-14"
+        ]
+      ],
+      "errors": [
+        {
+          "path": "work.1.endDate",
+          "code": "notBefore"
+        }
+      ]
+    },
+    {
+      "name": "a station with a display instead of its dates (G30)",
+      "base": "job",
+      "set": [
+        [
+          "data.work.1.x-display",
+          "2015 bis 2019"
+        ]
+      ],
+      "remove": [
+        "data.work.1.startDate",
+        "data.work.1.endDate"
+      ],
+      "errors": []
+    },
+    {
+      "name": "a two-language fluency (G30)",
+      "base": "job",
+      "set": [
+        [
+          "data.languages.0.fluency",
+          {
+            "de": "Muttersprache",
+            "en": "Native"
+          }
+        ]
+      ],
+      "errors": []
     }
   ],
   "documentCases": [

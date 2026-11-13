@@ -10,8 +10,9 @@
 // As with tags, a plain line leaves the level to cv.yaml and an empty level removes it.
 // A field with a "preset" (#218) goes out empty too once the person emptied it (#230): dropped, it would read as never
 // filled when the saved answers come back, and the preset would fill it again.
-// Two-language values {de, en} from cv.yaml (#167) stay as they are on text fields and as lines, and go back unchanged:
-// validate.js lets them pass while cv.yaml holds them, and the app keeps them in the file until the person types anew.
+// Two-language values {de, en} (#167, G30): on the fields marked "bilingual" in form.json and as lines of highlights the
+// person edits both languages and can add them; they go out trimmed and without an empty language, and one without
+// any text counts as empty.
 "use strict";
 
 /** A loaded file that is no bundle of this form; the message is German and shown as is. */
@@ -24,6 +25,13 @@ const LANGUAGES = ["de", "en"];
 function isBilingual(value) {
   const keys = isPlainObject(value) ? Object.keys(value) : [];
   return keys.length > 0 && keys.every((k) => LANGUAGES.includes(k) && typeof value[k] === "string");
+}
+
+/** A two-language value as it goes out: trimmed, in the order de, en, without an empty language; null if empty. */
+function twoLanguageText(value) {
+  if (!isBilingual(value)) return null;
+  const texts = LANGUAGES.filter((k) => typeof value[k] === "string" && value[k].trim()).map((k) => [k, value[k].trim()]);
+  return texts.length ? Object.fromEntries(texts) : null;
 }
 
 /** The two languages of a value or of a line ({ de, en } or { text: { de, en }, tags }); null for plain text. */
@@ -80,15 +88,18 @@ function cleanTags(value, compact) {
 /** One line of a list with tags: plain text (tags left to the file) or { text, tags }; null if it has no text. */
 function cleanLine(value, compact) {
   if (typeof value === "string") return compact ? value.trim() : value;
-  if (isBilingual(value)) return { ...value };
-  if (isPlainObject(value) && isBilingual(value.text)) return { text: { ...value.text }, tags: cleanTags(value.tags, compact) };
+  if (isBilingual(value)) return compact ? twoLanguageText(value) : { ...value };
+  if (isPlainObject(value) && isBilingual(value.text)) {
+    const text = compact ? twoLanguageText(value.text) : { ...value.text };
+    return text ? { text, tags: cleanTags(value.tags, compact) } : null;
+  }
   if (!isPlainObject(value) || typeof value.text !== "string") return null;
   return { text: compact ? value.text.trim() : value.text, tags: cleanTags(value.tags, compact) };
 }
 
 const lineText = (line) => (isPlainObject(line) ? (typeof line.text === "string" ? line.text : "") : String(line ?? ""));
-/** True if a line or value holds something: text, or a value in two languages. */
-const hasContent = (value) => Boolean(bilingualOf(value)) || lineText(value).trim() !== "";
+/** True if a line or value holds something: text, in one language or two. */
+const hasContent = (value) => Boolean(twoLanguageText(bilingualOf(value))) || lineText(value).trim() !== "";
 
 /** One line of a list with levels: plain text (level left to the file) or { text, level }; null if it has no text. */
 function cleanLeveledLine(value, compact) {
@@ -131,7 +142,9 @@ function pickFields(fields, item, compact) {
     } else if (typeof value === "string" && (!compact || value.trim() || field.keepUnlessGiven || field.preset !== undefined)) {
       result[field.id] = compact ? value.trim() : value;
     } else if (isBilingual(value)) {
-      result[field.id] = { ...value };
+      const text = compact ? twoLanguageText(value) : { ...value };
+      if (text) result[field.id] = text;
+      else if (field.keepUnlessGiven || field.preset !== undefined) result[field.id] = "";
     }
   }
   return result;

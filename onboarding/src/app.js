@@ -624,7 +624,7 @@ function sectionView(section, single) {
     return el("section", attrs, [...header, suggestionNote(section.id), ...shownFields(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id])), otherLinesView(section.id)]);
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
-  const max = section.maxItems ?? form.limits.repeatItems;
+  const max = entryLimit(form, section); // the CV takes as many entries as cv.yaml may hold (G30)
   const itemTitle = forTrack(section.itemTitle, track);
   const items = list.map((item, index) => el("fieldset", { className: "item", dataset: { item: `${section.id}.${index}` } }, [
     el("legend", {}, `${itemTitle} ${index + 1}`),
@@ -686,7 +686,7 @@ function focusFirst(...selectors) {
 
 function fieldFor(section, field, path, value) {
   const pathText = path.join(".");
-  return fieldView(field, {
+  return fieldView(fieldRules(form, section, field), {
     track: state.track, value, path: pathText, cantons: form.cantons, tagSuggestions: knownTags(form, state, folderTags),
     onChange: (v) => update(setValue(state, path, v)),
     onBlur: () => { touched = new Set(touched).add(pathText); refreshErrors(); },

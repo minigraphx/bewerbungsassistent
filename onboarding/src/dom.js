@@ -6,13 +6,9 @@ const MAX_TAG_OPTIONS = 50;
 const DEFAULT_MAX_LINES = 20;
 const TAG_PLACEHOLDER = "z.B. daten, führung";
 const SWITCHED_OFF = "switchedOff"; // control of a list that names the options switched off (#291)
-const LANGUAGE_NAMES = { de: "Deutsch", en: "Englisch" };
-const BILINGUAL_TEXT = {
-  lead: "Zweisprachig, hier nicht änderbar:",
-  where: "Beide Sprachen lassen sich unter „Inhalte als Text“ (Menü „Mehr“) ändern.",
-  field: "Eine Eingabe hier ersetzt beide.",
-  line: "Eine Eingabe in der Zeile ersetzt beide.",
-};
+const LANGUAGE_NAMES = { de: "Deutsch", en: "Englisch" }; // of a value in two languages, as cv.yaml writes it
+const ADD_ENGLISH = "+ Englisch";
+const DROP_ENGLISH = "Englisch entfernen";
 
 /** Create an element; attrs are properties (on* handlers, dataset, aria via setAttribute). */
 function el(tag, attrs, children) {
@@ -33,22 +29,57 @@ function el(tag, attrs, children) {
 let idCounter = 0;
 const nextId = (prefix) => `${prefix}-${++idCounter}`;
 
-/** The note under a value from cv.yaml in two languages (#167): both shown, edited elsewhere, replaced by typing. */
-function bilingualNote(value, replacing) {
-  const languages = Object.entries(value).map(([key, text]) => `${LANGUAGE_NAMES[key] || key} „${text.trim()}“`).join(", ");
-  return el("p", { className: "hint bilingual" }, `${BILINGUAL_TEXT.lead} ${languages}. ${BILINGUAL_TEXT.where} ${replacing}`);
+/** One input per language of a value { de, en }, each labelled with its language; onText(language, text). */
+function languageInputs(tag, attrs, name, value, onText) {
+  return Object.keys(LANGUAGE_NAMES).map((language, index) => el(tag, {
+    ...attrs, id: index === 0 ? attrs.id : null, value: value[language] || "", "aria-label": `${name}, ${LANGUAGE_NAMES[language]}`,
+    oninput: (e) => onText(language, e.target.value),
+  }));
+}
+
+/** The inputs of languageInputs, each in a row with the name of its language. */
+function languageRows(inputs) {
+  const names = Object.values(LANGUAGE_NAMES);
+  return inputs.map((input, index) => el("div", { className: "language-row" }, [
+    el("span", { className: "language-name", "aria-hidden": "true" }, names[index]), input,
+  ]));
 }
 
 /**
- * A text control on a value that may come in two languages: it starts empty then, and emptying it again keeps the
- * two languages, so only typing replaces them.
+ * A text control on a value that may be in two languages (G30): a value { de, en } gets one input per language, and a
+ * field marked "bilingual": true in form.json can add English to a plain text and drop it again. A field marked
+ * "edit" (the name, the address) edits two languages it has but offers none.
  */
-function textInput(tag, attrs, ctx) {
-  const original = isBilingual(ctx.value) ? ctx.value : null;
-  const input = el(tag, {
-    ...attrs, value: original ? "" : ctx.value || "", oninput: (e) => ctx.onChange(original && e.target.value === "" ? original : e.target.value),
-  });
-  return original ? [input, bilingualNote(original, BILINGUAL_TEXT.field)] : input;
+function textInput(tag, attrs, ctx, field, name) {
+  let value = ctx.value;
+  const view = el("div", { className: "text-control" });
+  const list = field.suggestions ? el("datalist", { id: nextId("suggest") }, field.suggestions.map((s) => el("option", { value: s }))) : null;
+  const shared = { ...attrs, list: list ? list.id : null };
+  const change = (next) => { value = next; ctx.onChange(next); };
+  const redraw = (next, focus) => { change(next); draw(focus); };
+
+  function draw(focus) {
+    if (!isBilingual(value)) {
+      const input = el(tag, { ...shared, value: typeof value === "string" ? value : "", oninput: (e) => change(e.target.value) });
+      const add = field.bilingual === true ? el("button", {
+        type: "button", className: "language-toggle", "aria-label": `${name}: Englisch ergänzen`,
+        onclick: () => redraw({ de: typeof value === "string" ? value : "", en: "" }, 1),
+      }, ADD_ENGLISH) : null;
+      view.replaceChildren(...[input, add, list].filter(Boolean));
+      if (focus !== undefined) input.focus();
+      return;
+    }
+    const inputs = languageInputs(tag, shared, name, value, (language, text) => change({ ...value, [language]: text }));
+    const drop = el("button", {
+      type: "button", className: "language-toggle", "aria-label": `${name}: Englisch entfernen`,
+      onclick: () => redraw(value.de || value.en || "", 0),
+    }, DROP_ENGLISH);
+    view.replaceChildren(...languageRows(inputs), ...[drop, list].filter(Boolean));
+    if (focus !== undefined) inputs[focus].focus();
+  }
+
+  draw();
+  return view;
 }
 
 /**
@@ -79,7 +110,8 @@ function fieldView(field, ctx) {
 function controlView(field, ctx, id, describedBy) {
   if (field.control === "cantons" || field.control === SWITCHED_OFF) return null;
   const common = { id, "aria-describedby": describedBy, "aria-required": field.required ? "true" : null, onblur: () => ctx.onBlur() };
-  if (field.type === "textarea") return textInput("textarea", { ...common, rows: 4 }, ctx);
+  const name = forTrack(field.label, ctx.track).split(" (")[0];
+  if (field.type === "textarea") return textInput("textarea", { ...common, rows: 4 }, ctx, field, name);
   if (field.type === "tags") {
     const onTags = (tags) => ctx.onChange(tags);
     return el("div", { className: "tags-control" }, tagsInput({ ...common, placeholder: TAG_PLACEHOLDER }, ctx.value, ctx.tagSuggestions, onTags));
@@ -104,7 +136,7 @@ function controlView(field, ctx, id, describedBy) {
   }
   if (field.type === "choice") return null;
   const type = field.format === "email" ? "email" : field.format === "phone" ? "tel" : "text";
-  return textInput("input", { ...common, type, placeholder: field.placeholder || "", autocomplete: autocompleteFor(ctx.path) }, ctx);
+  return textInput("input", { ...common, type, placeholder: field.placeholder || "", autocomplete: autocompleteFor(ctx.path) }, ctx, field, name);
 }
 
 /**
@@ -176,33 +208,49 @@ function linesView(field, ctx, id, describedBy, kind) {
     ctx.onChange(lines);
     if (focusAt !== undefined) draw(focusAt);
   };
+  const valueOf = (line) => bilingualOf(line) || lineText(line); // its text, or its two languages (G30)
   const setLine = (index, text, extra) => change(lines.map((line, i) => (i === index ? kind.line(text, extra) : line)));
   const add = el("button", {
     type: "button", className: "add-line", onclick: () => change([...lines, ""], lines.length),
   }, "+ Zeile hinzufügen");
+  const languages = field.bilingual === true && kind === TAGGED_LINES;
+  let firstInputs = [];
 
-  // a line in two languages (#167) starts empty and keeps its tags until the person types a new text
+  // a line in two languages (#167, G30) has an input per language; a list marked "bilingual" adds and drops English
   function row(line, index) {
     const number = index + 1;
-    const original = bilingualOf(line);
-    const text = el("input", {
-      type: "text", id: index === 0 ? id : null, value: original ? "" : lineText(line), "aria-label": `${name}, Zeile ${number}`,
-      "aria-describedby": describedBy, onblur: () => ctx.onBlur(),
-      oninput: (e) => setLine(index, e.target.value, kind.extraOf(lines[index])),
-    });
-    const extras = kind.controls(kind.extraOf(line), number, ctx, (found) => setLine(index, lineText(lines[index]), found), Boolean(original));
+    const both = bilingualOf(line);
+    const attrs = { type: "text", id: index === 0 ? id : null, "aria-describedby": describedBy, onblur: () => ctx.onBlur() };
+    const inputs = both
+      ? languageInputs("input", attrs, `${name}, Zeile ${number}`, both,
+        (language, text) => setLine(index, { ...bilingualOf(lines[index]), [language]: text }, kind.extraOf(lines[index])))
+      : [el("input", { ...attrs, value: lineText(line), "aria-label": `${name}, Zeile ${number}`,
+        oninput: (e) => setLine(index, e.target.value, kind.extraOf(lines[index])) })];
+    const extras = kind.controls(kind.extraOf(line), number, ctx, (found) => setLine(index, valueOf(lines[index]), found), false);
+    const toggle = languages ? el("button", {
+      type: "button", className: "language-toggle",
+      "aria-label": both ? `Englisch aus Zeile ${number} entfernen` : `Zeile ${number} auf Englisch ergänzen`,
+      onclick: () => {
+        const current = lines[index];
+        const text = both ? both.de || both.en || "" : { de: lineText(current), en: "" };
+        change(lines.map((l, i) => (i === index ? kind.line(text, kind.extraOf(current)) : l)), index);
+      },
+    }, both ? "− EN" : "+ EN") : null;
     const remove = el("button", {
       type: "button", className: "remove-line", "aria-label": `Zeile ${number} entfernen`,
       onclick: () => change(lines.filter((_, i) => i !== index), Math.max(0, index - 1)),
     }, "×");
-    return el("div", { className: "tagged-line" }, [text, ...extras, remove, original ? bilingualNote(original, BILINGUAL_TEXT.line) : null]);
+    firstInputs = [...firstInputs, inputs[both ? 1 : 0]];
+    const text = both ? el("div", { className: "line-languages" }, languageRows(inputs)) : inputs[0];
+    return el("div", { className: "tagged-line" }, [text, ...extras, toggle, remove].filter(Boolean));
   }
 
   function draw(focusAt) {
+    firstInputs = [];
     rows.replaceChildren(...lines.map(row));
     view.replaceChildren(rows, ...(lines.length < max ? [add] : []));
-    const target = focusAt === undefined ? null : rows.children[Math.min(focusAt, lines.length - 1)];
-    if (target) target.children[0].focus();
+    const target = focusAt === undefined ? null : firstInputs[Math.min(focusAt, lines.length - 1)];
+    if (target) target.focus();
   }
 
   draw();
