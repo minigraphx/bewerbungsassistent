@@ -143,14 +143,14 @@
 
   /**
    * What „Das steht an“ shows: the first thing to do as the big card, the next few below. Two or more
-   * applications that are ready to send (or to enter in the Job-Room) become one item, so they open together.
+   * applications that are ready to send (or to enter in the Job-Room, or saved to decide) become one item.
    * Items: { art, eintraege: [{bewerbung, schritt}] } — one entry, or several for a group.
    */
   function stehtAn(zeilen, hoechstens = 4) {
     const zuTun = zeilen.filter(z => !["warten", "fertig"].includes(z.schritt.art));
     const gruppen = [];
     const einzeln = [];
-    for (const art of ["abschicken", "rav"]) {
+    for (const art of ["abschicken", "rav", "entscheiden"]) {  // saved jobs together are the pass of G38
       const gleiche = zuTun.filter(z => z.schritt.art === art);
       if (gleiche.length >= GRUPPE_AB) gruppen.push({ art, eintraege: gleiche });
     }

@@ -40,33 +40,32 @@ Nur der Link zur Suche und der Satz zum Datenschutz unterscheiden sich; der Rest
 | Datenschutz beim Vorbefüllen | Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und Scans bleiben auf Ihrem Computer. | Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI geht. Bilder und Scans bleiben auf deinem Computer. |
 | Marke Für Geübte | Für Geübte | gleich |
 
-## Übersicht
+## Heute
 
-Die Unterschiede liegen in den Sätzen der Nächster-Schritt-Karten und im leeren Zustand; die RAV-Erinnerung gibt es nur bei Stellen.
+Die Unterschiede liegen in der Anrede, in den Sätzen der Nächster-Schritt-Karten und im leeren Zustand; den RAV-Hinweis gibt es nur bei Stellen.
 
 | Ort | Sie (Stellen) | du (Lehrstellen) |
 | --- | --- | --- |
-| Banner RAV | Bald Monatsende · Für November sind 4 von 8 Arbeitsbemühungen im Job-Room eingetragen. · Jetzt eintragen | gleich, nur mit RAV |
-| Titel | Das steht an | gleich |
-| Knopf oben | Stelle von Hand erfassen | Lehrstelle von Hand erfassen |
+| Titel und Zeile | Das steht heute an · Freitag, 13. November · Vier Dinge warten auf Sie, das wichtigste zuoberst. (auch: Eine Sache wartet auf Sie. · Gerade wartet nichts auf Sie.) | Das steht heute an · … · Vier Dinge warten auf dich, das wichtigste zuoberst. |
 | Karte, Kopfzeile | Nächster Schritt · Sachbearbeiterin Einkauf, Muster AG | gleich (mit Lehrstelle und Lehrbetrieb) |
 | Karte, Titel | Anschreiben lesen und freigeben | gleich |
 | Karte, Text | Der Entwurf ist fertig. Achten Sie besonders auf die eine Aussage, für die es noch keinen Beleg gibt. | Der Entwurf ist fertig. Achte besonders auf die eine Aussage, für die es noch keinen Beleg gibt. |
-| Karte, Knopf und Fuss | Anschreiben lesen · Danach: PDFs erstellen und prüfen · Abgabe bis 20.11.2026 | gleich |
-| Auch noch offen | Auch noch offen · Gespräch vorbereiten · 12 neue Treffer ansehen · Lebenslauf-Variante wählen · Öffnen · Ansehen | gleich, zusätzlich: Schnupperlehre vorbereiten |
-| Liste, Titel und Filter | Bewerbungen · Laufend 5 · Abgeschlossen 7 · Alle 12 | gleich |
-| Liste, Suchfeld | Firma oder Stelle | Lehrbetrieb oder Lehrstelle |
-| Liste, Spalten | Stelle und Firma · Stand · Note · Nächster Schritt · Frist | Lehrstelle und Lehrbetrieb · Stand · Noten · Nächster Schritt · Frist |
-| Liste, Nächster Schritt | Anschreiben lesen · Lebenslauf-Variante wählen · Gespräch vorbereiten · Antwort abwarten, nachfragen ab 18.11.2026 · Entscheiden: bewerben oder verwerfen | gleich |
+| Danach | Danach · Link zum Formular eintragen · Stelle, Firma · Frist 20.11.2026 · Link eintragen · Anschreiben lesen · Bewerbung öffnen · 12 neue Treffer ansehen · Treffer ansehen | gleich, zusätzlich: Einladung vorbereiten |
+| Danach, Durchgang | Gemerkte Stellen in einem Durchgang bewerten · 3 gemerkte Stellen · bewerben oder verwerfen, eine nach der anderen · Durchgang beginnen | gleich, mit gemerkten Lehrstellen |
+| Termine und Fristen | Termine und Fristen · 18.11. Gespräch bei Muster Bank · 20.11. Frist für Netzplaner:in, Beispiel Energie AG · 24.11. Nachfragen bei Beispiel Versicherung, falls keine Antwort da ist · Keine Termine in den nächsten Tagen. | gleich, mit Einladung statt Gespräch |
+| RAV-Hinweis | Fürs RAV: Noch nicht im Job-Room eingetragen: 3 Bewerbungen vom Oktober. Das RAV erhält die Einträge bis zum 5. November. · Im Job-Room eintragen | nur bei Stellen |
+| Ihr Stand | Ihr Stand · Neue Stellen 8, aus der Suche vom 10.11. (oder: noch keine Suche) · Gemerkt 3, 1 Frist in dieser Woche · Beworben 2, 1 Gespräch · Abgeschlossen 3, 1 Zusage, 2 Absagen | Dein Stand · Neue Lehrstellen … · 1 Einladung |
+| Durchgang | 1 von 3 · Stelle · Firma, Ort · Note 5 · Frist 20.11.2026 · Inserat · Zu dieser Stelle fehlt der Inseratstext. Inserat öffnen · Bewerbung öffnen · Durchgang beenden · Später · Verwerfen · Bewerben | gleich |
+| Durchgang fertig | Durchgang fertig: 2 zum Bewerben, 1 verworfen, 1 für später. | gleich |
+| Liste (bis zur Seite Bewerbungen) | Bewerbungen · Stelle von Hand erfassen · Gemerkt 4 · Beworben 2 · Abgeschlossen 1 · Alle 7 · Firma oder Stelle | Lehrstelle von Hand erfassen · Lehrbetrieb oder Lehrstelle |
 | Liste, Fuss | Abgeschlossen: 1 Zusage, 5 Absagen, 1 zurückgezogen. Anzeigen | gleich |
 | Liste leer | Noch keine Bewerbungen. Übernehmen Sie eine Stelle aus der Suche oder erfassen Sie eine von Hand. | Noch keine Bewerbungen. Übernimm eine Lehrstelle aus der Suche oder erfasse eine von Hand. |
-| Leer, Karte | Erste Stellen suchen · Ihre Angaben sind übernommen. Die Erweiterung sucht jetzt auf den Portalen, die KI schätzt jeden Treffer ein. Ein Suchlauf dauert einige Minuten. · Stellen suchen | Erste Lehrstellen suchen · Deine Angaben sind übernommen. Die Erweiterung sucht jetzt auf den Portalen, die KI schätzt jeden Treffer ein. Ein Suchlauf dauert einige Minuten. · Lehrstellen suchen |
-| Erster Start, Titel | Willkommen | gleich |
-| Erster Start, Text | Der Assistent hilft Ihnen, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei Ihnen. | Der Assistent hilft dir, passende Lehrstellen und Schnupperlehren zu finden und deine Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei dir. |
-| Erster Start, Karte | Meine Angaben erfassen · Lebenslauf, gesuchte Stellen und wie Sie schreiben. Das dauert etwa 20 Minuten. Sie können jederzeit unterbrechen, nichts geht verloren. | Meine Angaben erfassen · Schule, gesuchte Berufe und wie du schreibst. Das dauert etwa 20 Minuten. Du kannst jederzeit unterbrechen, nichts geht verloren. |
-| Erster Start, Knöpfe | Angaben erfassen · Ich habe schon einen Lebenslauf als PDF | gleich |
-| Erster Start, Fuss | Ihre Angaben bleiben auf diesem Computer. | Deine Angaben bleiben auf diesem Computer. |
-| So geht es weiter | Angaben erfassen, etwa 20 Minuten · Stellen suchen, die Erweiterung sucht auf den Portalen · Unterlagen vorbereiten, Lebenslauf und Anschreiben pro Stelle · Abschicken, machen Sie selbst, das Formular ist vorausgefüllt · Festhalten, für Sie und fürs RAV | Angaben erfassen, etwa 20 Minuten · Lehrstellen suchen, die Erweiterung sucht auf den Portalen · Unterlagen vorbereiten, Lebenslauf und Anschreiben pro Lehrstelle · Abschicken, machst du selbst, das Formular ist vorausgefüllt · Festhalten, damit du den Überblick behältst |
+| Leer, Karte | Erste Stellen suchen · Ihre Angaben sind übernommen. Die Erweiterung sucht jetzt auf den Portalen, die KI schätzt jeden Treffer ein. Ein Suchlauf dauert einige Minuten. · Stellen suchen | Erste Lehrstellen suchen · … · Lehrstellen suchen |
+| Erster Start, Titel und Text | Willkommen · Die App hilft Ihnen, passende Stellen zu finden und Unterlagen vorzubereiten. Abschicken und entscheiden bleibt immer bei Ihnen. | Willkommen · Die App hilft dir, … bleibt immer bei dir. |
+| Erster Start, Weg | Ihr Weg zur ersten Bewerbung · 1 Einrichtung · noch offen (oder: erledigt) · Den Zugang zur KI und die Erweiterung im Browser richten Sie in der Einrichtung ein. · Einrichtung öffnen | Dein Weg zur ersten Bewerbung · … richtest du in der Einrichtung ein. |
+| Erster Start, Schritt 2 | Nächster Schritt · etwa 20 Minuten · Meine Angaben erfassen · Ihr Werdegang, was Sie suchen und wie Sie schreiben. Sie können jederzeit unterbrechen, nichts geht verloren. · Lebenslauf hochladen und vorbefüllen · Von Hand ausfüllen | Dein Werdegang, was du suchst und wie du schreibst. Du kannst jederzeit unterbrechen, nichts geht verloren. |
+| Erster Start, Schritte 3 und 4 | Stellen suchen · kommt danach · Die Erweiterung sucht auf den Portalen. Zu jeder Stelle sehen Sie eine Einschätzung. · Erste Bewerbung vorbereiten · kommt danach · Lebenslauf und Anschreiben für die Stelle. Abschicken machen Sie selbst, das Formular ist vorausgefüllt. | Lehrstellen suchen · … siehst du … · Abschicken machst du selbst … |
+| Gut zu wissen | Ihre Angaben bleiben auf diesem Computer. Name, Adresse und Kontakt werden ersetzt, bevor ein Text zur KI geht. · Die KI schlägt vor, Sie entscheiden. Noten sind Einschätzungen, Anschreiben sind Entwürfe. · Nichts geht automatisch weg. Jede Bewerbung schicken Sie selbst ab. · Anleitung mit Bildern öffnen | Deine Angaben … · Die KI schlägt vor, du entscheidest. … · Jede Bewerbung schickst du selbst ab. |
 | Dialog Doppelbewerbung | Bei Muster AG läuft schon eine Bewerbung · Sachbearbeiterin Einkauf, beworben am 28.10.2026. Möchten Sie das Formular für «Assistentin Einkauf» trotzdem öffnen? · Abbrechen · Trotzdem öffnen | Bei Muster AG läuft schon eine Bewerbung · Kauffrau EFZ, beworben am 28.10.2026. Möchtest du das Formular für «Schnupperlehre Kauffrau» trotzdem öffnen? · Abbrechen · Trotzdem öffnen |
 
 ## Stellen suchen
