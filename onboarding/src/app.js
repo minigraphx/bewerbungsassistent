@@ -125,6 +125,7 @@ async function readBasicsAgain() {
   try {
     takeBasics((await backend.overview()).grundlagen);
   } catch (error) {
+    setStatus(`Suchprofil, Stilprofil und Bausteine liessen sich nicht neu lesen: ${error.message}`);
     takeBasics(null); // without what is in the files, the next take-over asks per file again (G26)
   }
 }

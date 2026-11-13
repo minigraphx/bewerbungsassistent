@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-EHxpZkHDnF8G1nioXgb2UUYbaxqH+IiNccX1zf5RzYQ='; style-src 'sha256-ldn0nnqsslO3qY9I3BJU58rNmiyDsvp/yAmeksmODQw='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-jX8DAA+NSTXHN6xFqGf9W9ISTk5Yic9KKbh44FtfSCY='; style-src 'sha256-ldn0nnqsslO3qY9I3BJU58rNmiyDsvp/yAmeksmODQw='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -2388,6 +2388,7 @@ async function readBasicsAgain() {
   try {
     takeBasics((await backend.overview()).grundlagen);
   } catch (error) {
+    setStatus(`Suchprofil, Stilprofil und Bausteine liessen sich nicht neu lesen: ${error.message}`);
     takeBasics(null); // without what is in the files, the next take-over asks per file again (G26)
   }
 }

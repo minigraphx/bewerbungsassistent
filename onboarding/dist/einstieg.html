@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PnDTr3gh/RHyY8teiUC4bxWaSb5GETg5mkY1DEJYvYM='; style-src 'sha256-yxC8Kt32qDLqiiqxQ/ybme+fEZ4LqWCIcVNUTA3tLQU='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-7VHQ0cT5WniDJSnxn63H8yy5iqSjnihPoE60ma5s2Do='; style-src 'sha256-yxC8Kt32qDLqiiqxQ/ybme+fEZ4LqWCIcVNUTA3tLQU='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsbegleiter</title>
@@ -2032,6 +2032,7 @@ async function readBasicsAgain() {
   try {
     takeBasics((await backend.overview()).grundlagen);
   } catch (error) {
+    setStatus(`Suchprofil, Stilprofil und Bausteine liessen sich nicht neu lesen: ${error.message}`);
     takeBasics(null); // without what is in the files, the next take-over asks per file again (G26)
   }
 }
