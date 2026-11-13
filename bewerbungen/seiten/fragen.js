@@ -5,7 +5,7 @@
   const $ = id => document.getElementById(id);
   const ZUEGE_MIT = 12;  // the server takes no more of them; the page keeps the whole conversation
   const texte = {
-    aus: "Für Fragen braucht es die KI der App: unter „Einrichtung“ der Einladungscode oder unter „Erweiterte Einstellungen“ ein eigener Schlüssel. Wer Claude mit dem eigenen Abo nutzt, fragt direkt dort.",
+    aus: "Für Fragen braucht es die KI der App: unter „Einstellungen“, „Zugang zur KI“ der Einladungscode oder ein eigener Schlüssel. Wer Claude mit dem eigenen Abo nutzt, fragt direkt dort.",
     uebrig: n => `Heute noch ${n === 1 ? "1 Frage" : `${n} Fragen`}.`,
     leer: "Bitte zuerst die Frage schreiben.",
     beispiele: ["Was fehlt noch in meinen Angaben?", "Wie bereite ich mich auf ein Vorstellungsgespräch vor?", "Wie gehe ich im Anschreiben mit einer Lücke um?"],

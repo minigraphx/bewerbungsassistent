@@ -1,4 +1,4 @@
-"""Routes of the page „Erweiterte Einstellungen“ (MIN-348): the person's own API key and what it costs.
+"""Routes of the page „Einstellungen“ (MIN-348, #265): the person's own API key and what the AI costs.
 
 The key only comes in, it never goes out again: no route answers with it, not even in part. The extension cannot
 reach these routes (list in `desktop/native_host.py`).
@@ -9,6 +9,20 @@ from routes_ai import run_ai
 from server import json_antwort
 
 CONFIRM_FIRST = "Bitte zuerst die Hinweise lesen und bestätigen."
+OTHER_TASK = "weitere"  # a line without a readable task still counts, the page names it „Weitere“
+
+
+def _by_task(entries: list[dict], month: str) -> dict:
+    """Calls and known costs of the month per task, for the budget on the page (G46)."""
+    result: dict[str, dict] = {}
+    for entry in entries:
+        if not str(entry.get("time", "")).startswith(month):
+            continue
+        task = entry.get("task") if isinstance(entry.get("task"), str) and entry.get("task") else OTHER_TASK
+        cost = entry.get("cost_usd") if isinstance(entry.get("cost_usd"), (int, float)) else 0
+        before = result.get(task, {"aufrufe": 0, "usd": 0})
+        result = {**result, task: {"aufrufe": before["aufrufe"] + 1, "usd": round(before["usd"] + cost, 6)}}
+    return result
 
 
 def _costs(k) -> dict:
@@ -16,7 +30,8 @@ def _costs(k) -> dict:
     entries = UsageLog(k.daten).entries()
     month = k.heute().strftime("%Y-%m")
     total = sum(entry.get("cost_usd") or 0 for entry in entries)
-    return {"monat_usd": UsageLog(k.daten).month_total_usd(month), "gesamt_usd": round(total, 6), "aufrufe": len(entries)}
+    return {"monat_usd": UsageLog(k.daten).month_total_usd(month), "gesamt_usd": round(total, 6), "aufrufe": len(entries),
+            "aufgaben": _by_task(entries, month)}
 
 
 def _state(k) -> dict:
