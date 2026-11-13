@@ -26,10 +26,12 @@
       <div class="files__now-text">
         <strong>So entsteht er</strong>
         <span data-text="dateien.app-wie">Aus Meine Angaben. Für jede Stelle passen Sie ihn in der Bewerbung an.</span>
+        <span class="field__hint" id="cv-design">Design: Zweispaltig</span>
         <span class="field__hint" id="cv-varianten" hidden></span>
       </div>
       <div class="btn-row">
         <a class="btn btn--primary" id="cv-ansehen" href="/inhalte?datei=cv.yaml">Ansehen</a>
+        <button type="button" class="btn" id="cv-aussehen" aria-haspopup="dialog">Aussehen wählen</button>
         <a class="btn" id="cv-anpassen" href="/angaben">Inhalt ändern</a>
       </div>
     </div>
@@ -84,6 +86,13 @@
     <h2 class="dialog__title" id="cv-dialog-titel">Eigenes PDF entfernen?</h2>
     <p class="dialog__text" data-text="dateien.zurueck-zur-app">Danach erstellt die App Ihren Lebenslauf aus Ihren Angaben. Das PDF lässt sich unter Frühere Fassungen zurückholen.</p>
     <div class="dialog__actions"><button type="button" class="btn" id="cv-dialog-nein">Abbrechen</button><button type="button" class="btn btn--primary" id="cv-dialog-ja">PDF entfernen</button></div>
+  </dialog>
+
+  <dialog class="dialog design-dialog" id="aussehen-dialog" aria-labelledby="aussehen-titel" aria-describedby="aussehen-text">
+    <h2 class="dialog__title" id="aussehen-titel">Aussehen des Lebenslaufs</h2>
+    <p class="dialog__text" id="aussehen-text">Gilt für alle neuen Unterlagen. Was schon erstellt oder versendet ist, bleibt, wie es ist. Ein Dossier hat sein eigenes Design, gewählt bei der Bewerbung.</p>
+    <div class="design-tiles" id="aussehen-liste" role="radiogroup" aria-labelledby="aussehen-titel"></div>
+    <div class="dialog__actions"><button type="button" class="btn" id="aussehen-nein">Abbrechen</button><button type="button" class="btn btn--primary" id="aussehen-ja">Übernehmen</button></div>
   </dialog>
 </main>
 <script src="/texte.js"></script>

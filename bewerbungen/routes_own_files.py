@@ -4,6 +4,7 @@ import binascii
 import pathlib
 
 import certificates
+import cv_design
 import own_files
 import unterlagen
 import versand
@@ -164,6 +165,23 @@ def remove_letter(k, parameter, body):
     return _letter_answer(k, entry)
 
 
-GET = {"/api/dateien": overview, "/api/dateien/ansehen": show}
+def _design_answer(k):
+    return json_antwort({"design": cv_design.load(k.daten), "designs": list(cv_design.CV_DESIGNS)})
+
+
+def design(k, parameter, body):
+    """G61: the design new CVs are built with."""
+    return _design_answer(k)
+
+
+def choose_design(k, parameter, body):
+    """Saving builds nothing: what is built or sent stays as it is, the next build takes the new design."""
+    chosen = cv_design.parse(_body(body).get("design"))
+    k.mit_entwurf(k.daten / cv_design.FILE, cv_design.DRAFT, lambda: cv_design.save(k.daten, chosen))
+    return _design_answer(k)
+
+
+DESIGN_ROUTE = "/api/dateien/aussehen"
+GET = {"/api/dateien": overview, "/api/dateien/ansehen": show, DESIGN_ROUTE: design}
 POST = {UPLOAD_ROUTE: upload, "/api/dateien/entfernen": remove, "/api/dateien/art": change_kind, LETTER_ROUTE: upload_letter,
-        "/api/dateien/anschreiben/entfernen": remove_letter}
+        "/api/dateien/anschreiben/entfernen": remove_letter, DESIGN_ROUTE: choose_design}

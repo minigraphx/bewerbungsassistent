@@ -451,6 +451,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 - `anschreiben/stil.md` – Ihr Stilprofil: wie Ihre Anschreiben klingen sollen. `anschreiben/bausteine.md` – Ihre Bausteine: Sätze und Beispiele, die die KI in Anschreiben verwenden darf. Beide entstehen unter **Meine Angaben** und lassen sich unter **Inhalte als Text** ändern.
 - `jobs/<name>.yaml` und `varianten.yaml` – Varianten des Lebenslaufs für bestimmte Stellen und ihre Tags. Sie entstehen nur mit Claude; ändern lassen sie sich unter **Inhalte als Text**.
 - `einrichtung.yaml` – Ihre Wahl aus dem ersten Schritt der Einrichtung: Stelle oder Lehrstelle, Sie oder du, RAV.
+- `aussehen.yaml` – das Design Ihres Lebenslaufs, gewählt auf der Seite **Lebenslauf und Dateien** mit **Aussehen wählen**: Zweispaltig (Vorgabe) oder Einspaltig. Neue Lebensläufe entstehen in diesem Design; was schon erstellt oder verschickt ist, bleibt, wie es ist. Ein Dossier hat sein eigenes Design, gewählt bei der Bewerbung.
 - `unterlagen.yaml` – ob Ihr Lebenslauf drei statt zwei Seiten haben darf, wenn Sie unter **Einstellungen**, **Erweitert** **Drei Seiten für den Lebenslauf erlauben** einschalten.
 - `einwilligung.json` – wann Sie der Nutzung der KI zugestimmt haben und welcher Fassung des Textes.
 - `uebersetzungen.yaml` – welche Übersetzungen im Lebenslauf schon geprüft sind, nur als Prüfsummen, ohne Text. Sie schreibt der Skill `bewerbung` von Claude.
