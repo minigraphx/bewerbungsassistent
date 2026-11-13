@@ -31,12 +31,13 @@ test("dates and deadlines come from the register, today and later, soonest first
     b("done", "Absage", { frist: "2026-11-15" }),
   ]);
   assert.deepEqual(H.dates(rows, TODAY), [
+    { date: "2026-11-16", day: "16.11.", text: "Gespräch bei Muster Bank vorbereiten" },
     { date: "2026-11-18", day: "18.11.", text: "Gespräch bei Muster Bank" },
     { date: "2026-11-20", day: "20.11.", text: "Frist für Netzplaner:in, Beispiel Energie AG" },
     { date: "2026-11-24", day: "24.11.", text: "Nachfragen bei Beispiel Versicherung, falls keine Antwort da ist" },
   ]);
   assert.equal(H.dates(rows, TODAY, { max: 1 }).length, 1);
-  assert.equal(H.dates(rows, TODAY, { interview: "Einladung" })[0].text, "Einladung bei Muster Bank");
+  assert.equal(H.dates(rows, TODAY, { interview: "Einladung" })[1].text, "Einladung bei Muster Bank");
   assert.deepEqual(H.dates([], TODAY), []);
 });
 
@@ -63,9 +64,49 @@ test("the follow-up date stays while the Job-Room entry is still open (#269)", (
 
 test("an interview date shows even before the stage is changed, and replaces the follow-up (#269)", () => {
   const rows = L.mitSchritten([b("i", "Beworben", { beworben_am: "2026-11-05", gespraech_am: "2026-11-16", firma: "Muster Bank" })]);
-  assert.deepEqual(H.dates(rows, TODAY).map(entry => entry.text), ["Gespräch bei Muster Bank"]);
+  assert.deepEqual(H.dates(rows, TODAY).map(entry => entry.text), ["Gespräch bei Muster Bank vorbereiten", "Gespräch bei Muster Bank"]);
   const past = L.mitSchritten([b("p", "Beworben", { beworben_am: "2026-11-05", gespraech_am: "2026-11-10" })]);
   assert.deepEqual(H.dates(past, TODAY), [], "a past interview neither shows nor brings the follow-up back");
+});
+
+test("an interview date brings a reminder to prepare it two days ahead (#268)", () => {
+  const interview = gespraech_am => L.mitSchritten([b("i", "Beworben", { beworben_am: "2026-11-02", gespraech_am, firma: "Muster Bank" })]);
+  const shown = (rows, options) => H.dates(rows, TODAY, options).map(entry => [entry.day, entry.text]);
+  assert.deepEqual(shown(interview("2026-11-20")), [["18.11.", "Gespräch bei Muster Bank vorbereiten"], ["20.11.", "Gespräch bei Muster Bank"]]);
+  assert.deepEqual(shown(interview("2026-11-13")), [["12.11.", "Gespräch bei Muster Bank vorbereiten"], ["13.11.", "Gespräch bei Muster Bank"]],
+    "an interview tomorrow is prepared today");
+  assert.deepEqual(shown(interview(TODAY)), [["12.11.", "Gespräch bei Muster Bank"]], "on the day itself only the interview");
+  assert.deepEqual(shown(interview("2026-11-20"), { interview: "Einladung" }).map(([, text]) => text),
+    ["Einladung bei Muster Bank vorbereiten", "Einladung bei Muster Bank"]);
+  const talk = L.mitSchritten([b("g", "Gespräch", { gespraech_am: "2026-11-25", firma: "Beispiel AG" })]);
+  assert.deepEqual(shown(talk), [["23.11.", "Gespräch bei Beispiel AG vorbereiten"], ["25.11.", "Gespräch bei Beispiel AG"]]);
+});
+
+test("with an interview date the next step is to prepare it, no longer to wait and follow up (#268)", () => {
+  const job = b("i", "Beworben", { beworben_am: "2026-11-02", gespraech_am: "2026-11-20", firma: "Muster Bank" });
+  const [row] = L.mitSchritten([job]);
+  assert.deepEqual(row.schritt, { art: "gespraech", frist: "2026-11-20" });
+  const t = (key, values) => texte.text(key, "stelle-sie", values);
+  assert.deepEqual(L.schrittText(row.schritt, 1, t), { titel: "Gespräch vorbereiten", zusatz: "20.11.2026" });
+  const [first] = L.stehtAn(L.mitSchritten([b("w", "Beworben", { beworben_am: "2026-11-01" }), job]));
+  assert.deepEqual([first.art, first.eintraege[0].bewerbung.id], ["gespraech", "i"], "Heute shows the interview first");
+  const [withRav] = L.mitSchritten([job], new Map(), new Map([["i", null]]));
+  assert.equal(withRav.schritt.art, "rav", "an open Job-Room entry still comes first, as on the application");
+});
+
+test("an interview without a date asks for it, so the app can remind in time (#268, A1)", () => {
+  const [row] = L.mitSchritten([b("g", "Gespräch", { firma: "Muster Bank" })]);
+  const titel = satz => L.schrittText(row.schritt, 1, (key, values) => texte.text(key, satz, values)).titel;
+  assert.equal(titel("stelle-sie"), "Termin fürs Gespräch eintragen");
+  assert.equal(titel("lehrstelle-du"), "Termin für die Einladung eintragen");
+  assert.equal(texte.text("heute.gespraech.ohne-termin", "stelle-sie", { firma: "Muster Bank" }),
+    "Muster Bank hat Sie eingeladen. Mit dem Termin erinnert die App Sie rechtzeitig an die Vorbereitung.");
+  assert.equal(texte.text("heute.gespraech.ohne-termin", "stelle-du", { firma: "Muster Bank" }),
+    "Muster Bank hat dich eingeladen. Mit dem Termin erinnert dich die App rechtzeitig an die Vorbereitung.");
+  const page = read("uebersicht.js");
+  assert.match(page, /"Termin eintragen"/);
+  assert.match(page, /#termin/);
+  assert.match(read("bewerbung.js"), /location\.hash === "#termin"/, "the application opens its facts at the date field");
 });
 
 test("the list is cut after the soonest dates, never before them (#269)", () => {
@@ -151,7 +192,8 @@ test("the first start shows four steps to the first application and what is good
 test("every text Heute speaks to the person with exists in both forms", () => {
   for (const key of ["heute.wartet.nichts", "heute.wartet.eins", "heute.wartet.viele", "heute.stand", "heute.weg",
                      "heute.durchgang.unter", "heute.start.einrichtung", "heute.start.suchen", "heute.start.bewerbung",
-                     "heute.wissen.computer", "heute.wissen.entscheiden", "heute.wissen.weg", "heute.rav"]) {
+                     "heute.wissen.computer", "heute.wissen.entscheiden", "heute.wissen.weg", "heute.rav",
+                     "heute.gespraech.termin", "heute.gespraech.ohne-termin"]) {
     assert.ok(texte.TEXTE[key], key);
   }
   const html = read("uebersicht.html");

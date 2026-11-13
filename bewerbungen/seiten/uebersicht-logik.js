@@ -50,6 +50,8 @@
         if (typeof grund === "string" && grund.startsWith(OHNE_FREIGABE)) return { art: "freigeben", frist: b.frist };
         return { art: "offen", frist: b.frist, grund: grund || "" };
       case "Beworben": {
+        // An interview date counts before the stage says Gespräch (#268); an open Job-Room entry still comes first.
+        if (b.gespraech_am && !ravOffen) return { art: "gespraech", frist: b.gespraech_am };
         const nachfragen = b.beworben_am ? plusTage(b.beworben_am, NACHFRAGEN_NACH_TAGEN) : "";
         return { art: ravOffen ? "rav" : "warten", zusatz: nachfragen };
       }
@@ -178,7 +180,8 @@
       case "link": return { titel: "Link zum Formular eintragen", zusatz: "dann füllt die Erweiterung es aus" };
       case "offen": return { titel: schritt.grund || "Bewerbung öffnen", zusatz: "" };
       case "rav": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen im Job-Room eintragen`, zusatz: "fürs RAV" } : { titel: "Im Job-Room eintragen", zusatz: "fürs RAV" };
-      case "gespraech": return { titel: t("bewerbung.gespraech"), zusatz: schritt.frist ? datum(schritt.frist) : "Termin eintragen" };
+      case "gespraech": return schritt.frist ? { titel: t("bewerbung.gespraech"), zusatz: datum(schritt.frist) }
+        : { titel: t("heute.gespraech.termin"), zusatz: "" };
       case "entscheiden": return anzahl > 1 ? { titel: PASS_TITLE, zusatz: t("heute.durchgang.unter", { anzahl }) } : { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
       case "warten": return { titel: "Antwort abwarten", zusatz: schritt.zusatz ? `nachfragen ab ${datum(schritt.zusatz)}` : "" };
       default: return { titel: "", zusatz: "" };

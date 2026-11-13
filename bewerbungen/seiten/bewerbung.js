@@ -707,6 +707,8 @@
       if (daten) zeigeNaechster();
     });
     await laden();
+    // Heute links here with #termin when an interview has no date yet (#268)
+    if (location.hash === "#termin" && bewerbung) oeffneAngaben("f-gespraech_am");
     beobachten(nachsehen);
   })();
 })();
