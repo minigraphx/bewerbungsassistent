@@ -46,6 +46,11 @@ class FakeElement {
     }
   }
   replaceChildren(...nodes) { this.childNodes = []; this.append(...nodes); }
+  remove() {
+    if (!this.parentNode) return;
+    this.parentNode.childNodes = this.parentNode.childNodes.filter(n => n !== this);
+    this.parentNode = null;
+  }
   contains(node) {
     for (let n = node; n; n = n.parentNode) if (n === this) return true;
     return false;
@@ -265,6 +270,48 @@ test("lines of the older kind keep their class for the look", () => {
   assert.ok(element.classList.contains("ok") && !element.classList.contains("fehler"));
 });
 
+// Lines in a list of findings (the search page's problems and hints, the import result): the same close button
+
+const liste = () => fakeDocument().createElement("ul");
+
+for (const [stufe, level] of [["fehler", "danger"], ["hinweis", "warning"]]) {
+  test(`a ${stufe} line in a list can be closed and leaves the other lines`, () => {
+    const ul = liste();
+    const geschlossen = [];
+    const zeile = meldungen.listenZeile(ul.ownerDocument, "jobs.ch: 36 Suchen ausgelassen (höchstens 30).", stufe,
+      { beiSchliessen: () => geschlossen.push(stufe) });
+    const andere = meldungen.listenZeile(ul.ownerDocument, "Andere Zeile", stufe);
+    ul.append(zeile, andere);
+
+    assert.equal(zeile.tagName, "LI");
+    assert.equal(zeile.dataset.stufe, stufe);  // keeps the look of `.befunde` lines
+    assert.equal(zeile.dataset.level, level);
+    assert.ok(zeile.classList.contains("status--closable"));
+    const schliessen = knopf(zeile);
+    assert.equal(schliessen.getAttribute("aria-label"), SCHLIESSEN);
+    assert.equal(schliessen.getAttribute("type"), "button");
+    schliessen.fire("click");
+    assert.deepEqual(ul.childNodes, [andere]);
+    assert.deepEqual(geschlossen, [stufe]);
+  });
+}
+
+test("a success line in a list has nothing to close", () => {
+  const zeile = meldungen.listenZeile(fakeDocument(), "Angelegt: cv.yaml", "ok");
+  assert.equal(zeile.dataset.stufe, "ok");
+  assert.equal(knopf(zeile), null);
+  assert.match(zeile.textContent, /Angelegt: cv.yaml/);
+});
+
+test("a list line can hold a link", () => {
+  const document = fakeDocument();
+  const link = document.createElement("a");
+  link.append("Wohnort fehlt");
+  const zeile = meldungen.listenZeile(document, link, "hinweis");
+  assert.equal(zeile.find("A"), link);
+  assert.ok(knopf(zeile));
+});
+
 // Every page uses the one helper
 
 const scripts = fs.readdirSync(SEITEN).filter(name => name.endsWith(".js") && name !== "meldungen.js");
@@ -274,6 +321,13 @@ test("no page sets the level or the class of a message itself", () => {
   for (const name of scripts) {
     const code = fs.readFileSync(path.join(SEITEN, name), "utf8");
     assert.doesNotMatch(code, /\.dataset\.level\s*=(?!=)|delete [^;]*\.dataset\.level|className\s*=\s*["'`]status/, name);
+  }
+});
+
+test("no page builds a warning or error line without the close button", () => {
+  for (const name of scripts) {
+    const code = fs.readFileSync(path.join(SEITEN, name), "utf8");
+    assert.doesNotMatch(code, /["']data-stufe["']\s*:\s*["'](fehler|hinweis)["']/, name);
   }
 });
 

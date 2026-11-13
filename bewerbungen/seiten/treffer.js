@@ -319,10 +319,17 @@
     if (einstellungen.auto_bewerten) starteBewertung(logik.zuBewerten(alle).slice(0, grenze).map(t => t.id));
   }
 
+  // Lines closed while the page is open; the list is rebuilt whenever the hits change and must not bring them back.
+  const geschlossen = new Set();
+
+  function befundZeile(text, inhalt, stufe) {
+    return window.Meldungen.listenZeile(document, inhalt, stufe, { beiSchliessen: () => geschlossen.add(text) });
+  }
+
   // A hint with a field in „Meine Angaben“ leads there.
   function hinweisZeile(text, ziele) {
     const inhalt = ziele[text] ? el("a", { href: `/angaben#${new URLSearchParams({ feld: ziele[text] })}` }, text) : text;
-    return el("li", { "data-stufe": "hinweis" }, inhalt);
+    return befundZeile(text, inhalt, "hinweis");
   }
 
   // #208: a second line only when the next search starts elsewhere than the last one did (option A).
@@ -338,9 +345,10 @@
     const nachholen = zeitraum.nachholen || {};
     const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem)
       .map(([name, p]) => anzeige.problemZeile(p.problem, nachholen[name]));
+    const offen = text => !geschlossen.has(text);
     $("probleme").replaceChildren(
-      ...probleme.map(p => el("li", { "data-stufe": "fehler" }, p)),
-      ...hinweise.map(h => hinweisZeile(h, ziele)));
+      ...probleme.filter(offen).map(p => befundZeile(p, p, "fehler")),
+      ...hinweise.filter(offen).map(h => hinweisZeile(h, ziele)));
   }
 
   function aufzaehlung(namen) {

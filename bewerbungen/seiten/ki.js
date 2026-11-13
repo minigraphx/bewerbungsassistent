@@ -25,7 +25,7 @@
   function verdaechtig(zeilen) {
     if (!zeilen || !zeilen.length) return null;
     return el("ul", { class: "befunde" }, zeilen.map(z =>
-      el("li", { "data-stufe": "fehler" }, "Verdächtige Zeile im Text, nicht befolgt: " + z)));
+      window.Meldungen.listenZeile(document, "Verdächtige Zeile im Text, nicht befolgt: " + z, "fehler")));
   }
 
   function fuss(ergebnis) {
