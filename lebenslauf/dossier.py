@@ -156,12 +156,14 @@ def prepare(cv: dict, letter: dict, pages: dict, language: str, today: datetime.
     }
 
 
-def filled_inputs(root: TypstRoot, entry: pathlib.Path, data: pathlib.Path, parts: tuple[str, ...]) -> dict:
-    """sys_inputs for one file, with the density of each part chosen so no last page is nearly empty (G49)."""
+def filled_inputs(root: TypstRoot, entry: pathlib.Path, data: pathlib.Path, parts: tuple[str, ...],
+                  limits: dict[str, int] = page_fill.LIMITS) -> dict:
+    """sys_inputs for one file, with the density of each part chosen so it keeps its page limit (G51) and no last
+    page is nearly empty (G49)."""
     located = str(root.locate(entry))
     fonts = [str(ROOT / "fonts")]
     return page_fill.levels(lambda inputs: page_fill.markers(located, str(root.path), fonts, inputs),
-                            {"data": root.typst_path(data)}, parts)
+                            {"data": root.typst_path(data)}, parts, limits)
 
 
 def _compile(compiler: typst.Compiler, root: TypstRoot, entry: pathlib.Path, out: pathlib.Path,
@@ -211,6 +213,8 @@ def main(argv: list[str] | None = None) -> Result:
     ap.add_argument("--logo", help="Eigenes Logo als PNG, JPG oder SVG (Standard: basics.x-logo)")
     ap.add_argument("--ohne-zeitachse", action="store_true",
                     help="Design Raster ohne waagrechte Zeitachse, für sehr strenge Bewerbungssoftware")
+    ap.add_argument("--lebenslauf-seiten", type=int, default=page_fill.LIMITS["cv"], choices=page_fill.CV_PAGES,
+                    help="Höchstens so viele Seiten für den Lebenslauf (G51); länger wird enger gesetzt")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("--out-dir", default="build/dossier")
     args = ap.parse_args(argv)
@@ -255,7 +259,8 @@ def main(argv: list[str] | None = None) -> Result:
 
     out = pathlib.Path(args.out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    inputs = {part: filled_inputs(root, entry, data_json, FILLED_PARTS[part]) for part, entry in entries.items()}
+    limits = page_fill.limits(args.lebenslauf_seiten)
+    inputs = {part: filled_inputs(root, entry, data_json, FILLED_PARTS[part], limits) for part, entry in entries.items()}
     built = {part: _compile(compiler, root, entry, out / FILE_NAMES[part], inputs[part])
              for part, entry in entries.items()}
     for path in built.values():

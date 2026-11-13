@@ -147,10 +147,29 @@ def test_a_letter_with_a_nearly_empty_second_page_gets_more_space(built):
     assert _assert_smallest_fix(result, "letter", "letter") < 0
 
 
+def _assert_smallest_fit(result, file: str, part: str) -> int:
+    """Over its page limit (G51), the part takes the smallest tightening that fits, unless that leaves the last page
+    nearly empty and a tighter one does not."""
+    import page_fill
+    level = int(result.inputs[file][f"density-{part}"])
+    limit = page_fill.LIMITS[part]
+    chosen = _fill_at(result, file, part, level)
+    assert level > 0 and chosen.pages <= limit, f"level {level}: {chosen.pages} pages"
+    for smaller in range(1, level):
+        fill = _fill_at(result, file, part, smaller)
+        assert not (fill.pages <= limit and fill.fills(page_fill.AIM)), f"level {smaller} would have done"
+    return level
+
+
 @pytest.mark.parametrize("design", DOSSIER)
 def test_the_spilling_cv_takes_the_smaller_fix(built, design):
+    """Within the page limit the smaller fix of G49; over it the smallest tightening that fits (G51)."""
+    import page_fill
     result = built("cv", design, SPILL[design])["result"]
-    _assert_smallest_fix(result, "cv", "cv")
+    if _fill_at(result, "cv", "cv", 0).pages > page_fill.LIMITS["cv"]:
+        _assert_smallest_fit(result, "cv", "cv")
+    else:
+        _assert_smallest_fix(result, "cv", "cv")
 
 
 

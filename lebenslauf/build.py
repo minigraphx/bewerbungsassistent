@@ -82,6 +82,8 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     ap.add_argument("--job", help="Bewerbungsdatei mit Tags und Überschreibungen (YAML)")
     ap.add_argument("--theme", default="zweispaltig")
     ap.add_argument("--lang", default="de", choices=SPRACHEN)
+    ap.add_argument("--lebenslauf-seiten", type=int, default=page_fill.LIMITS["cv"], choices=page_fill.CV_PAGES,
+                    help="Höchstens so viele Seiten (G51); länger wird enger gesetzt")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("-o", "--out", default="build/lebenslauf.pdf")
     args = ap.parse_args(argv)
@@ -112,8 +114,9 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     vorlage = str(wurzel.locate(ROOT / "themes" / args.theme / "main.typ"))
     schriften = [str(ROOT / "fonts")]
     eingaben = {"data": wurzel.typst_path(daten_json), "lang": args.lang, "stand": stand}
-    # Keine fast leere letzte Seite (G49): Dichte wählen, bevor das PDF entsteht
-    eingaben = page_fill.levels(lambda e: page_fill.markers(vorlage, str(wurzel.path), schriften, e), eingaben, ("cv",))
+    # Within the page limit (G51) and no nearly empty last page (G49): density chosen before the PDF is written
+    eingaben = page_fill.levels(lambda e: page_fill.markers(vorlage, str(wurzel.path), schriften, e), eingaben, ("cv",),
+                                page_fill.limits(args.lebenslauf_seiten))
     typst.compile(vorlage, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
     print(out)
     return out

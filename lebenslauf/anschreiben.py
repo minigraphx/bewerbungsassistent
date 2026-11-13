@@ -128,7 +128,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     out.parent.mkdir(parents=True, exist_ok=True)
     eingang = str(wurzel.locate(vorlage))
     schriften = [str(ROOT / "fonts")]
-    # Density of the letter chosen before writing it, so its last page is never nearly empty (G49)
+    # Density of the letter chosen before writing it: one page (G51), and never a nearly empty last page (G49)
     eingaben = page_fill.levels(lambda e: page_fill.markers(eingang, str(wurzel.path), schriften, e),
                                 {"data": wurzel.typst_path(daten_json)}, ("letter",))
     typst.compile(eingang, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
