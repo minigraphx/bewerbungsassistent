@@ -155,7 +155,7 @@ def test_removing_nothing_offers_nothing_to_undo(job_seeker):
 
 
 def test_the_list_has_a_field_to_add_and_the_removal_offers_rueckgaengig():
-    html = (SEITEN / "treffer.html").read_text(encoding="utf-8")
+    html = (SEITEN / "suche-einstellen.html").read_text(encoding="utf-8")
     script = (SEITEN / "beruf-vorschlag.js").read_text(encoding="utf-8")
     box = html[html.index('<section id="suchliste"'):html.index("</section>", html.index('<section id="suchliste"'))]
 

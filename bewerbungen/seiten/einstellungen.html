@@ -17,7 +17,6 @@
     <nav class="page__toc" aria-label="Abschnitte">
       <a href="#kosten">Kosten der KI</a>
       <a href="#einwilligung">Einwilligung</a>
-      <a href="#zeitfenster" id="zeitfenster-link" hidden>Zeitfenster der Suche</a>
       <a href="#schluessel-teil">Eigener API-Schlüssel</a>
       <a href="#claude-abo">Claude mit eigenem Abo</a>
       <a href="#vorabversionen">Vorabversionen</a>
@@ -48,15 +47,6 @@
     <div id="einwilligung-meldung" class="status" role="status" aria-live="polite"></div>
   </section>
 
-  <section class="card" id="zeitfenster" aria-labelledby="zeitfenster-titel" hidden>
-    <h2 id="zeitfenster-titel">Zeitfenster der Suche</h2>
-    <p class="hilfe">So weit geht die erste Suche zurück, und die Suche nach einer längeren Pause. Sonst sucht jedes Portal nur, was seit seiner letzten Suche dazugekommen ist.</p>
-    <label for="zeitfenster-tage">Inserate der letzten</label>
-    <select id="zeitfenster-tage"></select>
-    <div id="zeitfenster-meldung" class="status" role="status" aria-live="polite"></div>
-    <details id="zeitfenster-portale-teil" hidden><summary>Stand der Portale</summary><ul id="zeitfenster-portale"></ul></details>
-  </section>
-
   <section class="card" id="schluessel-teil" aria-labelledby="schluessel-titel">
   <h2 id="schluessel-titel">Eigener API-Schlüssel</h2>
   <p class="hilfe"><span data-text="einstellungen.schluessel">Sie brauchen das nicht, die App läuft auch ohne. Mit einem eigenen Schlüssel von Anthropic gehen die KI-Aufrufe direkt an die Claude API statt über die Vermittlung. Namen und andere persönliche Angaben werden auch dann vor dem Senden ersetzt.</span> <a href="https://github.com/minigraphx/bewerbungsassistent/blob/main/docs/installation.md#eigener-api-schlüssel-freiwillig" target="_blank" rel="noopener">Anleitung: woher der Schlüssel kommt und was er kostet</a></p>
@@ -66,17 +56,7 @@
     <div class="knoepfe"><button type="button" id="entfernen" class="gefahr">Schlüssel entfernen</button></div>
     <p class="hilfe">Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab.</p>
 
-    <h3>Weitere Seiten durchsuchen</h3>
-    <p class="hilfe"><span data-text="einstellungen.seiten-adressen">Die Suche läuft dann auch auf diesen Seiten, sobald Sie sie starten. Tragen Sie die Adresse so ein, wie sie im Browser steht, eine pro Zeile,</span> höchstens <span id="max-seiten"></span>. <span data-text="einstellungen.seiten-suche">Hat die Seite ein Suchfeld, sucht die App dort mit den Begriffen aus Ihrem Suchprofil. Sonst liest sie die Stellen, die auf der Seite stehen, zum Beispiel die offenen Stellen einer Firma. Die KI liest die Stellen aus dem Text der Seite.</span></p>
-    <p class="hilfe">Beispiel: <code>https://www.beispiel.ch/stellen</code></p>
-    <label for="seiten">Adressen</label>
-    <textarea id="seiten" rows="5" spellcheck="false" autocomplete="off"></textarea>
-    <p class="hilfe" data-text="einstellungen.seiten-grenzen">Pro Seite höchstens zehn Suchen und dreissig Inserate pro Lauf, mit Pausen dazwischen. Nur Links auf dieselbe Seite werden übernommen. Anmeldungen und CAPTCHAs bleiben bei Ihnen: Verlangt eine Seite das, überspringt die Suche sie. LinkedIn verbietet Automatisierung und kann Konten einschränken oder sperren.</p>
-    <div class="knoepfe">
-      <button type="button" id="seiten-speichern" class="haupt">Seiten speichern</button>
-      <button type="button" id="zugriff" hidden>Zugriff in der Erweiterung erlauben</button>
-    </div>
-    <div id="seiten-meldung" class="status" role="status" aria-live="polite"></div>
+    <p class="hilfe">Mit dem Schlüssel durchsucht die Suche auch weitere Seiten. Die Adressen stehen unter <a href="/suche-einstellen#weitere-seiten">Suche einstellen</a>.</p>
   </div>
 
   <div id="ohne-schluessel" hidden>
@@ -164,8 +144,6 @@
 <script src="/sidebar.js"></script>
 <script src="/einwilligung.js"></script>
 <script src="/einstellungen.js"></script>
-<script src="/suche-anzeige.js"></script>
-<script src="/zeitfenster.js"></script>
 <script src="/claude-abo.js"></script>
 <script src="/vorabversionen.js"></script>
 </body>

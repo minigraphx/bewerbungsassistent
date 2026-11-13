@@ -1,6 +1,6 @@
 "use strict";
-// On „Stellen suchen“ (#210): the hint after a search, counted by the app without AI, the way to the check with its
-// cost and what goes to the AI (G15), and the list narrowed to the hits behind a piece of evidence („#beleg=…“).
+// On Stellen (#210): the hint after a search, counted by the app without AI, and the list narrowed to the hits behind a
+// piece of evidence („#beleg=…“). The way to the check with its cost (G15) is on Suche einstellen (#263).
 window.SuchbegriffeStart = (() => {
   const { holen, senden, status, textsatz } = window.App;
   const L = window.SuchbegriffeLogik;
@@ -26,33 +26,16 @@ window.SuchbegriffeStart = (() => {
 
   /** Called with each load of the list; only a job search has it. */
   async function zeige(art) {
-    const stelle = art !== "lehrstelle";
-    $("pruefen-block").hidden = !stelle;
-    if (!stelle) {
+    if (art === "lehrstelle") {
       $("begriff-hinweis").hidden = true;
       return;
     }
     try {
       const [antwort, satz] = await Promise.all([holen("/api/suchbegriffe/hinweis"), textsatz()]);
       const texte = L.texte(satz);
-      $("pruefen-block").hidden = !antwort.verfuegbar;
-      $("pruefen-kosten").textContent = L.schaetzung(antwort.kosten_usd);
-      $("pruefen-satz").textContent = texte.satz;
-      $("pruefen-was").textContent = texte.wasGeht;
       zeigeHinweis(antwort.verfuegbar ? antwort.hinweis : null, antwort.kosten_usd, texte);
     } catch {
       $("begriff-hinweis").hidden = true;  // the hint is extra; the list works without it
-    }
-  }
-
-  async function textAnsehen() {
-    try {
-      const { text } = await holen("/api/suchbegriffe/text");
-      $("ki-text-inhalt").textContent = text;
-      $("ki-text").showModal();
-      $("ki-text-schliessen").focus();
-    } catch (fehler) {
-      status($("status"), fehler.message, "fehler");
     }
   }
 
@@ -76,8 +59,6 @@ window.SuchbegriffeStart = (() => {
     geaendert();
   }
 
-  $("ki-text-ansehen").addEventListener("click", textAnsehen);
-  $("ki-text-schliessen").addEventListener("click", () => $("ki-text").close());
   $("beleg-alle").addEventListener("click", () => {
     history.replaceState(null, "", location.pathname + location.search);
     belegLaden();

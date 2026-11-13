@@ -66,7 +66,7 @@ test("every page loads the sidebar after app.js, with the overview logic it coun
 
 test("the page marks the destination it belongs to", () => {
   const cases = {
-    "/": "heute", "/bewerbung": "bewerbungen", "/treffer": "stellen", "/suchbegriffe": "stellen", "/firmen": "stellen",
+    "/": "heute", "/bewerbung": "bewerbungen", "/treffer": "stellen", "/suchbegriffe": "stellen", "/firmen": "stellen", "/suche-einstellen": "stellen",
     "/angaben": "angaben", "/inhalte": "angaben", "/dateien": "dateien", "/foto": "dateien", "/entwuerfe": "dateien",
     "/fragen": "fragen", "/einstellungen": "einstellungen", "/einrichtung": "einstellungen", "/unbekannt": null,
   };

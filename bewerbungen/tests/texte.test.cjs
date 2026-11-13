@@ -85,8 +85,9 @@ test("a job with du gets the search suggestions with du", () => {
   const context = { window: { App: { senden() {}, el() {}, status() {} } }, document: { getElementById: () => ({ addEventListener() {} }), dispatchEvent() {} }, CustomEvent: class {} };
   vm.runInNewContext(seite("beruf-vorschlag.js"), context);
   const { texteFuer } = context.window.Suchbegriffe;
-  assert.match(texteFuer("stelle", "stelle-sie").titel, /zu Ihnen/);
-  assert.match(texteFuer("stelle", "stelle-du").titel, /zu dir/);
+  // The card on Suche einstellen asks the question; the box under it names what the AI does, without address (#263)
+  assert.match(texteFuer("stelle", "stelle-sie").hilfe, /^Sie wissen/);
+  assert.match(texteFuer("stelle", "stelle-du").hilfe, /^Du weisst/);
   assert.match(texteFuer("lehrstelle", "lehrstelle-du").titel, /Beruf/);
   for (const [name, wert] of Object.entries(texteFuer("stelle", "stelle-du"))) {
     assert.doesNotMatch(typeof wert === "function" ? wert("Muster") : wert, SIE_FORM, name);

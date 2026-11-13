@@ -15,7 +15,7 @@ MAX_LINK_LENGTH = 1000  # longer ones would be cut when stored and lead elsewher
 
 
 def _state(store: hits.Hits) -> dict:
-    return {"seiten": own_sites.configured(store), "max_seiten": own_sites.MAX_SITES}
+    return {"seiten": own_sites.configured(store), "max_seiten": own_sites.MAX_SITES, "eigener_schluessel": connection.own_key() is not None}
 
 
 def listing(k, parameter, body):
