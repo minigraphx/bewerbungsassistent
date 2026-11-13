@@ -110,3 +110,49 @@ test('once per start of the app: the same entry address is not asked again', () 
   assert.equal(isNewStart({ ...hello, einstieg: 'http://127.0.0.1:5001/?t=def' }, hello.einstieg), true);
   assert.equal(isNewStart({ app: null, einstieg: null }, null), false, 'an app that does not run is not started for this');
 });
+
+test('„Alle prüfen“ asks the app for exactly its hits and loads them (#209)', async () => {
+  const app = fakeApp([HIT]);
+  const browser = fakeBrowser(() => ({ ok: true, value: { text: 'Inserat' } }));
+
+  const result = await fetchMissingAds(deps(app, browser), { treffer: [HIT.id] });
+
+  assert.deepEqual(app.calls[0], ['POST', LIST_PATH, { treffer: [HIT.id] }]);
+  assert.deepEqual(result, { geladen: 1, fehlgeschlagen: 0 });
+});
+
+test('only the app page may ask for the texts of its hits', async () => {
+  const { ALLOWED } = await import('../lib/senders.js');
+  assert.ok(ALLOWED.app.has('inserate-holen') && !ALLOWED.popup.has('inserate-holen'));
+});
+
+test('„Alle prüfen“ without hits asks nothing, and nothing loads while a search runs', async () => {
+  const { fetchHitAds, ADS_DURING_SEARCH } = await import('../lib/missing-ads.js');
+  const app = fakeApp([HIT]);
+  const browser = fakeBrowser(() => ({ ok: true, value: { text: 'Inserat' } }));
+  const idle = { ...deps(app, browser), searching: () => false };
+
+  assert.deepEqual(await fetchHitAds({ ids: [] }, idle), { geladen: 0, fehlgeschlagen: 0 });
+  assert.deepEqual(await fetchHitAds({ ids: [3, ''] }, idle), { geladen: 0, fehlgeschlagen: 0 });
+  assert.equal(app.calls.length, 0);
+  await assert.rejects(fetchHitAds({ ids: [HIT.id] }, { ...idle, searching: () => true }), { message: ADS_DURING_SEARCH });
+  assert.equal(app.calls.length, 0);
+  assert.deepEqual(await fetchHitAds({ ids: [HIT.id, 7] }, idle), { geladen: 1, fehlgeschlagen: 0 });
+  assert.deepEqual(app.calls[0], ['POST', LIST_PATH, { treffer: [HIT.id] }]);
+});
+
+test('ad loadings run one after the other, and a failed one fails only its caller', async () => {
+  const { adQueue } = await import('../lib/missing-ads.js');
+  const queue = adQueue();
+  const order = [];
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const first = queue.run(() => gate.then(() => { order.push('erste'); throw new Error('kaputt'); }));
+  const second = queue.run(async () => { order.push('zweite'); return 'ok'; });
+  assert.equal(queue.busy(), true);
+  release();
+  await assert.rejects(first, { message: 'kaputt' });
+  assert.equal(await second, 'ok');
+  assert.deepEqual(order, ['erste', 'zweite']);
+  assert.equal(queue.busy(), false);
+});

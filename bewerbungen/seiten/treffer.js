@@ -18,6 +18,8 @@
   let grenze = 30;
   let lehrstelle = false;
   let bewertungslauf = null;  // { halt: bool } while a run is going
+  let estimate = null;        // what „Alle prüfen“ would rate, cost and take (G44, #209), from the app
+  let adsFetched = null;      // resolves with the extension's answer while it loads missing texts
   let letzterSuchlauf = "";
   let erweiterung = null;    // true once the extension answered, false when it stayed silent at the start
   let suchlaeuft = false;
@@ -281,19 +283,82 @@
     zeigeBewerten();
   }
 
+  /** The box above the list (design A3): how many hits have no grade, the estimate and „Alle prüfen“. */
   function zeigeBewerten() {
-    const ids = logik.zuBewerten(alle).map(t => t.id);
+    const anzahl = estimate ? estimate.anzahl : logik.zuBewerten(alle).length;
     const laeuft = bewertungslauf !== null;
     $("bewerten-box").hidden = !laeuft;
-    $("offen-box").hidden = laeuft || ids.length === 0 || zustand !== "neu";
-    $("offen-zahl").textContent = logik.offenText(ids.length, lehrstelle);
-    $("bewerten-knoepfe").replaceChildren(...(laeuft ? [] : logik.knoepfe(ids.length, paket, grenze).map(knopf => {
-      return el("button", { type: "button", class: "btn btn--sm", onclick: () => starteBewertung(ids.slice(0, knopf.anzahl)) }, knopf.text);
-    })));
-    const proTreffer = logik.kostenProTreffer(alle);
-    const kosten = ids.length && proTreffer !== null ? `Bisher etwa ${proTreffer.toFixed(3)} USD pro Treffer.` : "";
-    $("kosten-hinweis").textContent = laeuft ? "" : logik.alleBewertet(alle) ? "Alle Treffer sind bewertet." : kosten;
+    $("offen-box").hidden = laeuft || anzahl === 0 || zustand !== "neu";
+    $("offen-zahl").textContent = logik.offenText(anzahl, lehrstelle);
+    $("kosten-hinweis").textContent = logik.estimateLine(estimate, lehrstelle);
+    $("alle-pruefen").disabled = laeuft;
     zeigeBerufe();
+  }
+
+  /** The estimate depends on the hits and the budget; without it the box still counts the hits. */
+  async function loadEstimate() {
+    try {
+      estimate = await holen("/api/suche/alle-pruefen");
+    } catch (error) {
+      estimate = null;
+      zeigeBewerten();
+      return { estimate, problem: reportEstimateProblem(error) };
+    }
+    zeigeBewerten();
+    return { estimate, problem: "" };
+  }
+
+  /** Without an estimate the box says why, in place of cost and duration. */
+  function reportEstimateProblem(error) {
+    const text = `Die Schätzung fehlt: ${error.message}`;
+    $("kosten-hinweis").textContent = text;
+    return text;
+  }
+
+  async function askRateAll() {
+    const { estimate: fresh, problem } = await loadEstimate();
+    if (problem) return meldung(problem, "fehler");
+    if (!fresh.anzahl) return meldung("Keine Treffer ohne Note.", "hinweis");
+    const question = logik.confirmation(fresh, lehrstelle, erweiterung === true);
+    $("alle-titel").textContent = question.title;
+    const withoutText = question.notLoadable.length
+      ? [el("p", {}, question.notLoadableTitle), el("ul", { class: "dialog__list" }, question.notLoadable.map(line => el("li", {}, line)))] : [];
+    const warning = question.warning ? [el("div", { class: "notice notice--warning" }, el("p", { class: "notice__body" }, question.warning))] : [];
+    $("alle-text").replaceChildren(...question.sentences.map(sentence => el("p", {}, sentence)), ...warning, ...withoutText);
+    $("alle-dialog").showModal();
+  }
+
+  /** The extension loads the missing texts of these hits (#275 at a click); what it says about them, for the end. */
+  async function fetchAds(ids) {
+    if (erweiterung !== true) return "";
+    $("bewerten-titel").textContent = "Die Erweiterung holt die Inserate";
+    $("bewerten-zahl").textContent = String(ids.length);
+    const answer = await new Promise(resolve => {
+      adsFetched = resolve;
+      window.postMessage({ quelle: SEITE, art: "inserate-holen", ids }, location.origin);
+    });
+    adsFetched = null;
+    $("bewerten-titel").textContent = "KI schätzt Treffer ein";
+    if (answer.fehler) return ` Die Inserate liessen sich nicht holen: ${answer.fehler}`;
+    return answer.fehlgeschlagen ? ` ${answer.fehlgeschlagen} Inserate liessen sich nicht laden.` : "";
+  }
+
+  /** „Alle prüfen“ after the person confirmed: missing texts first, then every hit without a grade. */
+  async function rateAll() {
+    if (bewertungslauf || !estimate) return;
+    const run = { halt: false };
+    bewertungslauf = run;
+    $("anhalten").disabled = false;
+    zeigeListe();
+    meldung("");
+    const loadNote = estimate.laden.length ? await fetchAds(estimate.laden) : "";
+    await lade();
+    bewertungslauf = null;
+    if (run.halt) {
+      zeigeListe();
+      return meldung(`Angehalten, bevor die KI etwas geprüft hat.${loadNote}`, "hinweis");
+    }
+    await starteBewertung(logik.zuBewerten(alle).map(t => t.id), loadNote);
   }
 
   function sterneWaehlen(beruf, anzahl) {
@@ -315,18 +380,8 @@
     }));
   }
 
-  function schlussText(stand) {
-    const teile = [`${stand.bewertet} von ${stand.von} Treffern bewertet`];
-    if (stand.offen.length) teile.push(`${stand.offen.length} ohne brauchbare Antwort, die lassen sich einzeln nochmals versuchen`);
-    if (stand.ohneText) teile.push(`${stand.ohneText} ohne Inseratstext`);
-    if (stand.gestoppt) teile.push("angehalten");
-    const rest = logik.zuBewerten(alle).length;
-    if (rest && !stand.gestoppt && !stand.fehler) teile.push(`noch ${rest} offen`);
-    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)} USD.`;
-  }
-
   /** Rate in packages with progress; one run at a time. The list updates after every package. */
-  async function starteBewertung(ids) {
+  async function starteBewertung(ids, suffix = "") {
     if (bewertungslauf || !ids.length) return;
     const lauf = { halt: false };
     bewertungslauf = lauf;
@@ -347,8 +402,10 @@
     });
     bewertungslauf = null;
     zeigeListe();
-    if (stand.fehler) meldung(`${stand.fehler} ${schlussText(stand)}`, "fehler");
-    else meldung(schlussText(stand), stand.offen.length || stand.gestoppt ? "hinweis" : "ok");
+    loadEstimate();
+    const summary = logik.schlussText(stand, logik.zuBewerten(alle).length) + suffix;
+    if (stand.fehler) meldung(`${stand.fehler} ${summary}`, "fehler");
+    else meldung(summary, stand.offen.length || stand.gestoppt || suffix ? "hinweis" : "ok");
   }
 
   function bewerteNachSuche() {
@@ -433,6 +490,7 @@
       lehrstelle = daten.art === "lehrstelle";
       window.SuchbegriffeStart.zeige(daten.art);
       zeigeListe();
+      loadEstimate();
       zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {}, daten.zeitraum || {});
       zeigeNichtUebernommen();
       geladen = true;
@@ -508,6 +566,8 @@
     erweiterungDa();
     if (daten.art === "lauf") {
       folge(daten.lauf);
+    } else if (daten.art === "antwort" && daten.frage === "inserate-holen") {
+      if (adsFetched) adsFetched(daten.antwort || {});
     } else if (daten.art === "antwort" && daten.frage === "status") {
       if (wartetSeit) folge(logik.laufNachStatus(daten.antwort, wartetSeit));
     } else if (daten.art === "antwort" && daten.antwort?.fehler) {
@@ -533,6 +593,9 @@
       .then(neu => { einstellungen = neu; zeigeListe(); })
       .catch(fehler => meldung(fehler.message, "fehler"));
   });
+  $("alle-pruefen").addEventListener("click", askRateAll);
+  $("alle-abbrechen").addEventListener("click", () => $("alle-dialog").close());
+  $("alle-ok").addEventListener("click", () => { $("alle-dialog").close(); rateAll(); });
   $("anhalten").addEventListener("click", () => {
     if (bewertungslauf) bewertungslauf.halt = true;
     $("anhalten").disabled = true;

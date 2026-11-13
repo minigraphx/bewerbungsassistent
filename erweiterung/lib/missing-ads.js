@@ -48,9 +48,38 @@ async function loadPortal(portal, jobs, deps) {
   return results;
 }
 
-/** Asks the app what it is missing, loads it and hands back texts and reasons. */
-export async function fetchMissingAds(deps) {
-  const answer = await deps.app.request('POST', LIST_PATH, {});
+export const ADS_DURING_SEARCH = 'Während einer Suche holt die Erweiterung keine Inserate. Nach der Suche bitte nochmals „Alle prüfen“ drücken.';
+
+/**
+ * One loading of ad texts after the other, so the start of the app and „Alle prüfen“ never load the same ad at once.
+ * A failed job fails its own caller only; `busy()` says whether a job waits or runs.
+ */
+export function adQueue() {
+  let tail = Promise.resolve();
+  let jobs = 0;
+  const run = (job) => {
+    jobs += 1;
+    const work = tail.then(job).finally(() => { jobs -= 1; });
+    tail = work.then(() => 'fertig', (error) => `fehlgeschlagen: ${error.message}`);
+    return work;
+  };
+  return { run, busy: () => jobs > 0 };
+}
+
+/** „Alle prüfen“ (#209): the texts of exactly these hits; the app hands out only those it lacks and may load. */
+export async function fetchHitAds(message, deps) {
+  const ids = Array.isArray(message && message.ids) ? message.ids.filter((id) => typeof id === 'string' && id) : [];
+  if (!ids.length) return { geladen: 0, fehlgeschlagen: 0 };
+  if (deps.searching()) throw new Error(ADS_DURING_SEARCH);
+  return fetchMissingAds(deps, { treffer: ids });
+}
+
+/**
+ * Asks the app what it is missing, loads it and hands back texts and reasons. `wanted` names the hits of „Alle prüfen“
+ * (#209), `{ treffer: [ids] }`; without it the app hands out what it lacks at its start.
+ */
+export async function fetchMissingAds(deps, wanted = {}) {
+  const answer = await deps.app.request('POST', LIST_PATH, wanted);
   const jobs = Array.isArray(answer && answer.laden) ? answer.laden : [];
   let loaded = 0;
   let failed = 0;

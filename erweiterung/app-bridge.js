@@ -48,6 +48,7 @@
     if (!data || data.quelle !== 'bewerbungsbegleiter-seite') return;
     if (['zugriff-erlauben', 'zugriff-abgeben', 'suche-starten', 'status'].includes(data.art)) ask({ art: data.art });
     if (data.art === 'rav-starten') ask({ art: data.art, ids: data.ids });
+    if (data.art === 'inserate-holen') ask({ art: data.art, ids: data.ids });
     if (data.art === 'bewerben-starten') ask({ art: data.art, ids: data.ids, bestaetigt: data.bestaetigt });
     if (data.art === 'kununu-pruefen') ask({ art: data.art, firma: data.firma, name: data.name, link: data.link });
   });

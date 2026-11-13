@@ -73,6 +73,11 @@ def saved_without_ad(register: list[dict], ad_of, store: Hits) -> list[dict]:
     return jobs
 
 
+def hit_job(hit: dict) -> dict:
+    """A hit as a job to load: its portal and id come from the search, not from the link."""
+    return {"art": TREFFER, "id": hit["id"], "portal": hit["portal"], "portal_id": hit["portal_id"], "link": hit["link"]}
+
+
 def hits_without_ad(store: Hits) -> list[dict]:
     return [_job(TREFFER, hit["id"], hit["link"], hit["portal_id"]) for hit in store.all()
             if hit.get("zustand") == "neu" and not store.text(hit["id"]).strip()]

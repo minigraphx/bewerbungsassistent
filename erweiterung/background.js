@@ -14,7 +14,7 @@ import { showHits } from './lib/app-tab.js';
 import { reloadForAppVersion, siteAccessControl } from './lib/reload.js';
 import { SearchTabs, currentRun } from './lib/run-state.js';
 import { checkCompany, structuredData } from './lib/kununu.js';
-import { fetchMissingAds, isNewStart } from './lib/missing-ads.js';
+import { adQueue, fetchHitAds, fetchMissingAds, isNewStart } from './lib/missing-ads.js';
 
 const LOAD_TIMEOUT_MS = 30000;
 const RELOAD_DELAY_MS = 300;
@@ -23,6 +23,7 @@ const ADS_FETCHED_FOR = 'inserate-geholt-fuer';
 const appPorts = new Set();
 let running = false;
 let fetchingAds = false;
+const adLoads = adQueue();
 let adsCheckedOrigin = null; // the app page whose start was last looked at; a new start comes with a new port
 let searchCancelled = false;
 let versionChecked = false;
@@ -132,7 +133,7 @@ const siteAccess = {
 
 /** A search, a list of open forms, a run waiting for access or the entries for the Job-Room: a reload would lose them. */
 async function isBusy() {
-  if (running || fetchingAds) return true;
+  if (running || fetchingAds || adLoads.busy()) return true;
   const session = await chrome.storage.session.get([FORMS_KEY, RAV_KEY, PENDING_KEY]);
   return Object.keys(session[FORMS_KEY] || {}).length > 0 || Boolean(session[RAV_KEY]) || Boolean(session[PENDING_KEY]);
 }
@@ -266,11 +267,25 @@ async function fetchAdsAtStart(pageUrl) {
     const last = (await chrome.storage.session.get(ADS_FETCHED_FOR))[ADS_FETCHED_FOR] || null;
     if (!isNewStart(hello, last)) return;
     await chrome.storage.session.set({ [ADS_FETCHED_FOR]: hello.einstieg });
-    await fetchMissingAds({ app, browser: adTabs, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) });
+    await adLoads.run(() => fetchMissingAds({ app, browser: adTabs, sleep }));
   } finally {
     fetchingAds = false;
     app.close();
   }
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** „Alle prüfen“ (#209): the texts of these hits before the AI rates them, after any loading that already runs. */
+function fetchAdsForHits(message) {
+  return adLoads.run(async () => {
+    const app = new AppConnection();
+    try {
+      return await fetchHitAds(message, { app, browser: adTabs, sleep, searching: () => running });
+    } finally {
+      app.close();
+    }
+  });
 }
 
 /** A page of the app is open, so the app runs: it may have just replaced the folder. Once per life of this worker. */
@@ -544,6 +559,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     'zugriff-erlauben': () => openPermissionForSearch(),
     'zugriff-abgeben': () => siteAccess.release(),
     'kununu-pruefen': checkKununu,
+    'inserate-holen': fetchAdsForHits,
   };
   const action = message && actions[message.art];
   if (!action) return false;

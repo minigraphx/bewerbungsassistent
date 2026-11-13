@@ -38,15 +38,6 @@ test("only new hits with a text and without a rating are rated, the newest first
   assert.deepEqual(found.map((t) => t.id), ["jung", "alt"]);
 });
 
-test("the buttons follow the number of open hits", () => {
-  assert.deepEqual(logik.knoepfe(0, 10, 30), []);
-  assert.deepEqual(logik.knoepfe(1, 10, 30), [{ text: "Bewerten (1)", anzahl: 1 }]);
-  assert.deepEqual(logik.knoepfe(10, 10, 30), [{ text: "Bewerten (10)", anzahl: 10 }]);
-  assert.deepEqual(logik.knoepfe(11, 10, 30), [{ text: "Nächste 10 bewerten", anzahl: 10 }, { text: "Alle bewerten (11)", anzahl: 11 }]);
-  assert.deepEqual(logik.knoepfe(30, 10, 30)[1], { text: "Alle bewerten (30)", anzahl: 30 });
-  assert.deepEqual(logik.knoepfe(31, 10, 30)[1], { text: "Nächste 30 bewerten", anzahl: 30 });
-});
-
 test("own stars come before the grade", () => {
   const hits = [
     { id: "a", beruf: "Koch", bewertung: { note: 6 } },
@@ -108,11 +99,6 @@ test("stopping ends the run after the running package", async () => {
   const stand = await logik.bewerteAlle(["a", "b", "c"], m);
   assert.equal(sent, 1);
   assert.equal(stand.gestoppt, true);
-});
-
-test("the cost per hit comes from the ratings so far", () => {
-  assert.equal(logik.kostenProTreffer([{ bewertung: {} }, {}]), null);
-  assert.equal(logik.kostenProTreffer([{ bewertung: { kosten_usd: 0.02 } }, { bewertung: { kosten_usd: 0.04 } }]), 0.03);
 });
 
 test("all rated only when every new hit has a grade", () => {
