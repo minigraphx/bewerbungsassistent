@@ -8,7 +8,6 @@
   const SEITE = "bewerbungsbegleiter-seite";
   const anErweiterung = art => window.postMessage({ quelle: SEITE, art }, location.origin);
   const hatErweiterung = () => Boolean(document.documentElement.dataset.bewerbungsbegleiterErweiterung);
-  const WAY_PANELS = { einladung: "zugang-einladung", abo: "claude-abo", schluessel: "schluessel-teil" };
   const SOUGHT = { stelle: "Stelle", lehrstelle: "Lehrstelle" };
 
   let ki = null;
@@ -44,7 +43,7 @@
   function showWay(way) {
     shownWay = way;
     choice?.choose(way);
-    for (const [name, id] of Object.entries(WAY_PANELS)) $(id).hidden = name !== way;
+    for (const [name, id] of Object.entries(L.WAY_CARDS)) $(id).hidden = name !== way;
   }
 
   function showInvitation() {

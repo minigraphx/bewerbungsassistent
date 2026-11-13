@@ -1,5 +1,5 @@
 // Einstellungen in sections (#265, A10): sections on the left, access to the AI as a choice, the budget of the month
-// (G46), Erweitert with the pre-releases (G41, G47) and Über die App with the logo (G4).
+// (G46) with a row per task, Erweitert with the pre-releases (G41, G47) and Über die App with the logo (G4).
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -15,6 +15,12 @@ const panel = (html, id) => {
   assert.ok(start > 0, `panel ${id}`);
   const next = html.indexOf('class="settings__panel"', start);
   return html.slice(start, next > 0 ? next : html.indexOf("</main>"));
+};
+// A card inside a panel, up to its end; cards hold no sections of their own.
+const card = (html, id) => {
+  const start = html.indexOf(`<section class="card" id="${id}"`);
+  assert.ok(start >= 0, `card ${id}`);
+  return html.slice(start, html.indexOf("</section>", start));
 };
 
 const MEDIATION = { monat: "2026-11", eingerichtet: true, vermittlung: true, eigener_schluessel: false,
@@ -132,20 +138,78 @@ test("without an answer of the AI the local costs still show", () => {
   assert.equal(view.total, "Seit Beginn USD 0.00 in 0 Aufrufen");
 });
 
-test("the panels hold what the criterion names", () => {
+test("KI und Budget: the access to the AI is a choice of invitation code, own Claude subscription and own key", () => {
+  const ki = panel(read("einstellungen.html"), "ki");
+  const choice = card(ki, "zugang");
+  assert.match(choice, /<h2 id="zugang-titel">Zugang zur KI<\/h2>/);
+  assert.match(choice, /<fieldset class="access-choice" id="zugang-wahl">/);
+  assert.match(read("einstellungen.js"), /KiZugang\.render\(\$\("zugang-wahl"\)/, "the page draws the choice into its fieldset");
+  const ways = access.options({ abo: true }).map(option => option.value);
+  assert.deepEqual(ways, ["einladung", "abo", "schluessel"]);
+  assert.deepEqual(Object.keys(logic.WAY_CARDS), ways, "every way has the card that asks for what it needs");
+  const invitation = card(ki, logic.WAY_CARDS.einladung);
+  assert.match(invitation, /<h2 id="einladung-titel">Einladungscode<\/h2>/);
+  assert.match(invitation, /<input class="input" id="einladung-code"/);
+  assert.match(invitation, /id="einladung-einloesen"[^>]*>Einladung einlösen<\/button>/);
+  const subscription = card(ki, logic.WAY_CARDS.abo);
+  assert.match(subscription, /<h2 id="abo-titel">Claude mit eigenem Abo<\/h2>/);
+  assert.match(subscription, /<ul id="abo-skills"><\/ul>/);
+  assert.match(subscription, /id="abo-einschalten"[^>]*>Zugang einschalten<\/button>/);
+  const key = card(ki, logic.WAY_CARDS.schluessel);
+  assert.match(key, /<h2 id="schluessel-titel">Eigener API-Schlüssel<\/h2>/);
+  assert.match(key, /<input id="schluessel" type="password"/);
+  assert.match(key, /id="speichern"[^>]*>Prüfen und speichern<\/button>/);
+  for (const way of ways) assert.match(ki, new RegExp(`<section class="card" id="${logic.WAY_CARDS[way]}"[^>]*hidden>`),
+    `${way} shows only once chosen`);
+});
+
+test("KI und Budget: the budget of the month (G46) with a bar and a row per task", () => {
+  const budget = card(panel(read("einstellungen.html"), "ki"), "kosten");
+  assert.match(budget, /<h2 id="kosten-titel">Budget<\/h2>/);
+  assert.match(budget, /id="budget-zeile"/);
+  assert.match(budget, /id="budget-neu"/);
+  assert.match(budget, /<div class="budget__bar" id="budget-balken" role="img" hidden><div class="budget__fill" id="budget-fuellung">/);
+  assert.match(budget, /<dl class="budget__rows" id="budget-aufgaben"><\/dl>/);
+  assert.match(budget, /id="budget-hinweis"/);
+  assert.match(budget, /id="budget-gesamt"/);
+  const script = read("einstellungen.js");
+  assert.match(script, /\$\("budget-aufgaben"\)\.replaceChildren\(\.\.\.view\.rows\.flatMap\(row => \[/, "one row per task");
+  assert.match(script, /el\("dt", \{\}, `\$\{row\.label\} \(\$\{row\.count\}\)`\), el\("dd", \{ class: "num" \}, row\.usd\)/);
+  assert.ok(logic.budgetView(MEDIATION, COSTS).rows.length > 1, "the costs of the month come split by task");
+});
+
+test("Erweitert: the finer settings stay hidden until opened (G41) and hold the pre-releases (G47)", () => {
   const html = read("einstellungen.html");
-  const ki = panel(html, "ki");
-  assert.match(ki, /id="zugang-wahl"/);
-  assert.match(ki, /id="zugang-einladung"/);
-  assert.match(ki, /<section class="card" id="claude-abo"/);
-  assert.match(ki, /id="schluessel-teil"/);
-  assert.match(ki, /id="einwilligung"/);
-  assert.match(ki, /<section class="card" id="kosten"/);
-  assert.match(ki, /id="budget-balken"/);
   const advanced = panel(html, "erweitert");
-  assert.match(advanced, /id="vorabversionen"/);
-  assert.match(advanced, /href="\/inhalte"/);
-  assert.match(panel(html, "ueber"), /<section class="card" id="ueber-die-app" aria-labelledby="ueber-titel" hidden>/);
+  assert.match(advanced, /<h2 id="erweitert-titel">Erweitert<\/h2>/);
+  assert.match(advanced, /Ohne sie läuft die App mit den Voreinstellungen\./);
+  assert.match(advanced, /<a href="\/inhalte">Inhalte als Text bearbeiten<\/a>/);
+  assert.notEqual(logic.sectionOf(""), "erweitert", "the page opens elsewhere");
+  assert.match(read("einstellungen.css"), /\.settings\[data-tabs\] \.settings__panel:not\(\[data-aktiv\]\) \{ display: none; \}/,
+    "a section not chosen stays hidden");
+  const beta = card(advanced, "vorabversionen");
+  assert.match(beta, /<h2 id="beta-titel">Vorabversionen<\/h2>/);
+  assert.match(beta, /<label class="schalter"><input type="checkbox" id="beta-an"> Vorabversionen als Update anbieten<\/label>/,
+    "off by default: only released versions");
+  assert.match(html, /<script src="\/vorabversionen\.js"><\/script>/);
+  assert.match(read("vorabversionen.js"), /senden\("\/api\/app\/vorabversionen", \{ an \}\)/);
+});
+
+test("Über die App: the logo, the name and the version (G4)", () => {
+  const about = card(panel(read("einstellungen.html"), "ueber"), "ueber-die-app");
+  assert.match(about, /<h2 id="ueber-titel">Über die App<\/h2>/);
+  const script = read("app.js");
+  assert.match(script, /el\("img", \{ class: "about__logo", src: "\/as-logo\.svg"[^}]*alt: "Logo AS" \}\)/);
+  assert.match(script, /el\("p", \{ class: "about__name" \}, "Bewerbungsbegleiter"\)/);
+  assert.match(script, /const ort = document\.getElementById\("ueber-die-app"\)/);
+  assert.match(script, /ort\.append\(ueberDieApp\(info\.version\)/);
+  const logo = read("as-logo.svg");
+  const colours = new Set(logo.replace(/@media[^{]*\{[^}]*\}\}/g, "").match(/#[0-9a-fA-F]{3,8}\b/g));
+  assert.equal(colours.size, 1, "the logo is one colour");
+});
+
+test("the remaining sections lead to where their settings live", () => {
+  const html = read("einstellungen.html");
   assert.match(panel(html, "daten"), /<section class="card" id="daten" aria-labelledby="daten-titel">/);
   assert.match(panel(html, "suche"), /href="\/suche-einstellen"/);
   assert.match(panel(html, "erweiterung"), /href="\/einrichtung#erweiterung"/);

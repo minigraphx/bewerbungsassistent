@@ -18,6 +18,8 @@
     vorabversionen: "erweitert", daten: "daten", "ueber-die-app": "ueber",
   };
   const WAY_OF_ANCHOR = { "schluessel-teil": "schluessel", "claude-abo": "abo", einladung: "einladung" };
+  // The card under the choice that asks for what the chosen way needs.
+  const WAY_CARDS = { einladung: "zugang-einladung", abo: "claude-abo", schluessel: "schluessel-teil" };
   const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
                   "November", "Dezember"];
   // The tasks of the cost log (bewerbungen/ai/tasks.py MODELS) as the person knows them.
@@ -115,7 +117,7 @@
     };
   }
 
-  const logic = { SECTIONS, sectionOf, wayOf, currentWay, invitationState, budgetView };
+  const logic = { SECTIONS, WAY_CARDS, sectionOf, wayOf, currentWay, invitationState, budgetView };
   if (typeof module !== "undefined") module.exports = logic;
   else global.EinstellungenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);
