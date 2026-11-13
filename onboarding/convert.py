@@ -12,10 +12,11 @@ import yaml
 
 import markdown_files
 from cv_read import KEPT_BASICS, KEPT_SECTIONS
+from validation import bilingual_value
 from values import items, text
 
 APPRENTICESHIP_HEADINGS = {"erfahrung": "Schnupperlehren & Erfahrungen", "bildung": "Schule & Eignungstests"}
-TEACHING_EXTRA = ("x-display",)  # teaching is shaped like work; the form shows its display text too (G25)
+DISPLAY = ("x-display",)  # the text a station shows instead of its dates (teaching G25, work G30)
 LEVEL_KEY = "x-level"  # of a language, read by lebenslauf/dossier_data.py
 NETWORKS = {"linkedin": "LinkedIn", "github": "GitHub", "xing": "XING", "gitlab": "GitLab"}
 
@@ -56,13 +57,13 @@ def build_cv(data: dict, track: str, answer_keys: bool = False) -> dict:
     tagged = functools.partial(_tagged, tag_keys=tag_keys)
     sections = {
         "work": [_work(w, tag_keys) for w in data.get("work", [])],
-        "teaching": [_work(t, tag_keys, TEACHING_EXTRA) for t in data.get("teaching", [])],
+        "teaching": [_work(t, tag_keys) for t in data.get("teaching", [])],
         "projects": [tagged(_pick(p, "name", "description", "group"), p) for p in data.get("projects", [])],
         "education": [_pick(e, "studyType", "area", "institution", "startDate", "endDate", "text", keep_end=True)
                       for e in data.get("education", [])],
         "certificates": [tagged(_pick(c, "name", "issuer", "date", "text"), c) for c in data.get("certificates", [])],
         "languages": [_language(lang, answer_keys) for lang in data.get("languages", [])],
-        "skills": [tagged({"name": text(s["name"]), "keywords": _keywords(s.get("keywords"), answer_keys)}, s)
+        "skills": [tagged({"name": value(s["name"]), "keywords": _keywords(s.get("keywords"), answer_keys)}, s)
                    for s in data.get("skills", [])],
         "interests": [{"name": name} for name in items(data.get("interests", {}).get("interests"))],
     }
@@ -78,14 +79,14 @@ def _basics(person: dict, summary: dict) -> dict:
     details = [f"geboren {text(person.get('birthDate'))}" if text(person.get("birthDate")) else "",
                text(person.get("nationality"))]
     basics = {
-        "name": text(person.get("name")),
-        "label": text(person.get("label")),
+        "name": value(person.get("name")),
+        "label": value(person.get("label")),
         "email": text(person.get("email")),
         "url": text(person.get("url")),
         "phone": text(person.get("phone")),
         "location": location,
         "details": [d for d in details if d],
-        "summary": text(summary.get("summary")),
+        "summary": value(summary.get("summary")),
         "profiles": [_profile(url) for url in items(person.get("profiles"))],
     }
     return {key: value for key, value in basics.items() if value}
@@ -106,17 +107,21 @@ def _profile(url: str) -> dict:
     return {"network": network, "url": full}
 
 
-def _work(entry: dict, tag_keys: bool, extra: tuple[str, ...] = ()) -> dict:
-    work = _pick(entry, "position", "name", "location", "startDate", "endDate", *extra, keep_end=True)
+def _work(entry: dict, tag_keys: bool) -> dict:
+    """A station; with tag_keys an emptied display stays as "" so that cv_merge.py removes the one of the file, while
+    answers without the key (from before G30 for work) leave it to the file."""
+    work = _pick(entry, "position", "name", "location", "startDate", "endDate", *DISPLAY, keep_end=True)
+    work = {**work, **{key: "" for key in DISPLAY if tag_keys and key in entry and key not in work}}
     highlights = [line for line in (_highlight(h, tag_keys) for h in entry.get("highlights") or []) if line]
     return _tagged({**work, "highlights": highlights} if highlights else work, entry, tag_keys)
 
 
 def _highlight(line, tag_keys: bool) -> str | dict | None:
-    """A highlight as lebenslauf/README.md has it: text, or {text, tags} when it has tags (G24)."""
-    if not isinstance(line, dict):
-        return text(line) or None
-    line_text, tags = text(line.get("text")), items(line.get("tags"))
+    """A highlight as lebenslauf/README.md has it: text, or {text, tags} when it has tags (G24); the text may be
+    {de, en} (G30)."""
+    if not isinstance(line, dict) or bilingual_value(line):
+        return value(line) or None
+    line_text, tags = value(line.get("text")), items(line.get("tags"))
     if not line_text:
         return None
     return {"text": line_text, "tags": tags} if tags or (tag_keys and "tags" in line) else line_text
@@ -154,10 +159,15 @@ def _tagged(cv_entry: dict, entry: dict, tag_keys: bool) -> dict:
     return {**cv_entry, "tags": tags} if tags or (tag_keys and "tags" in entry) else cv_entry
 
 
+def value(answer) -> str | dict:
+    """A text answer as cv.yaml takes it: trimmed text, or {de, en} for one in two languages (G30)."""
+    return bilingual_value(answer) or text(answer)
+
+
 def _pick(entry: dict, *keys: str, keep_end: bool = False) -> dict:
     """Selected non-empty text fields; with keep_end an empty endDate means 'ongoing' (None)."""
-    picked = {key: text(entry.get(key)) for key in keys}
-    result = {key: value for key, value in picked.items() if value}
+    picked = {key: value(entry.get(key)) for key in keys}
+    result = {key: found for key, found in picked.items() if found}
     if keep_end and result.get("startDate") and not result.get("endDate"):
         result["endDate"] = None
     return result

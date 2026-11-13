@@ -9,7 +9,10 @@ holds no comma and no control character. The limits of length and count hold for
 data folder (`known`, see known_tags.py) never block saving. In the same way the values already in cv.yaml (`loaded`,
 the answers cv_read.py reads from it, G23) never block saving: an entry, a value or a line the file holds at that place
 is not checked, two-language values {de, en} included, and a section or list may keep as many entries as the file has.
-What the person types or changes keeps to the rules.
+What the person types or changes keeps to the rules. Since G30 (#181) those rules take everything cv.yaml may hold:
+the fields of the CV sections have no limit of length or count (`field_rules`, `entry_limit`; the limits in form.json
+still bound suggestions from documents, prefill.py), a field marked "bilingual" takes {de, en} with each language
+checked as its text, and dates may be full (2024-08-15). Tags keep their rules (G24).
 """
 import dataclasses
 import json
@@ -25,6 +28,8 @@ TAGGED_LINE_KEYS = frozenset({"text", "tags"})
 LEVELED_LINE_KEYS = frozenset({"text", "level"})
 LEVELS = ("", "1", "2", "3", "4", "5", "6")  # "" leaves a line without level (#123)
 TOP_LEVEL_KEYS = frozenset({"format", "version", "track", "data", "saved"})
+LANGUAGES = ("de", "en")  # of a two-language value, as lebenslauf/README.md writes it
+UNBOUNDED = {"max": math.inf, "maxItems": math.inf}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -35,6 +40,36 @@ class ValidationError:
 
 def load_form(path: pathlib.Path = FORM_PATH) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def is_bilingual(value) -> bool:
+    """A two-language value as lebenslauf/README.md writes it: {de, en} with text in each."""
+    return (isinstance(value, dict) and bool(value) and set(value) <= set(LANGUAGES)
+            and all(isinstance(text, str) for text in value.values()))
+
+
+def bilingual_value(value) -> dict | None:
+    """A two-language value as the form shows and compares it: trimmed, in the order de, en, without an empty
+    language; None if it is none or holds no text."""
+    if not is_bilingual(value):
+        return None
+    texts = {key: value[key].strip() for key in LANGUAGES if key in value and value[key].strip()}
+    return texts or None
+
+
+def in_cv(section: dict, field: dict | None = None) -> bool:
+    """True for a section of the CV (and a field of it that goes into cv.yaml)."""
+    return bool(section.get("cv")) and (field is None or field.get("cv") is not False)
+
+
+def field_rules(form: dict, section: dict, field: dict) -> dict:
+    """The rules of a field as they hold for what the person types: in the CV without limit of length or count (G30)."""
+    return {**field, **UNBOUNDED} if in_cv(section, field) else field
+
+
+def entry_limit(form: dict, section: dict) -> float:
+    """How many entries a repeated section takes; the CV takes as many as cv.yaml may hold (G30)."""
+    return math.inf if in_cv(section) else section.get("maxItems", form["limits"]["repeatItems"])
 
 
 def applies(item: dict, track: str) -> bool:
@@ -98,6 +133,8 @@ def comparable(value):
     if isinstance(value, list):
         lines = [line for line in map(comparable_line, value) if line != ""]
         return lines or ""
+    if is_bilingual(value):
+        return bilingual_value(value) or ""
     return value
 
 
@@ -107,10 +144,10 @@ def comparable_line(value):
         level = value["level"].strip() if isinstance(value["level"], str) else value["level"]
         return {"text": text, "level": level} if level and text != "" else text
     if isinstance(value, dict) and set(value) <= TAGGED_LINE_KEYS and "text" in value:
-        text = comparable(value["text"]) if isinstance(value["text"], str) else value["text"]
+        text = comparable(value["text"]) if isinstance(value["text"], (str, dict)) else value["text"]
         tags = comparable(value["tags"]) if isinstance(value.get("tags"), list) else value.get("tags")
         return {"text": text, "tags": tags} if tags and text != "" else text
-    return comparable(value) if isinstance(value, str) else value
+    return comparable(value) if isinstance(value, (str, dict)) else value
 
 
 def _is_loaded_entry(section: dict, track: str, item: dict, before: list[dict]) -> bool:
@@ -146,7 +183,7 @@ def _validate_section(form: dict, section: dict, track: str, value, known: froze
     if not isinstance(value, list):
         return [ValidationError(sid, "type")]
     errors = []
-    if len(value) > max(section.get("maxItems", form["limits"]["repeatItems"]), len(before)):
+    if len(value) > max(entry_limit(form, section), len(before)):
         errors.append(ValidationError(sid, "maxItems"))
     for index, item in enumerate(value):
         path = f"{sid}.{index}"
@@ -159,7 +196,7 @@ def _validate_section(form: dict, section: dict, track: str, value, known: froze
 
 def _validate_item(form: dict, section: dict, track: str, item: dict, path: str,
                    known: frozenset[str], before: list[dict]) -> list[ValidationError]:
-    fields = {f["id"]: f for f in section["fields"] if applies(f, track)}
+    fields = {f["id"]: field_rules(form, section, f) for f in section["fields"] if applies(f, track)}
     errors = [ValidationError(f"{path}.{key}", "unknown") for key in item if key not in fields]
     same = _is_loaded_entry(section, track, item, before)
     for field in fields.values():
@@ -179,11 +216,12 @@ def _validate_field(form: dict, field: dict, track: str, item: dict, path: str,
         return _validate_list(form, field, value, path, known, before)
     if value is None:
         value = ""
-    if not isinstance(value, str):
+    if not isinstance(value, str) and not (field.get("bilingual") and is_bilingual(value)):
         return [ValidationError(path, "type")]
-    if not value.strip():
+    texts = value_texts(value)
+    if not texts:
         return [ValidationError(path, "required")] if is_required(field, item) else []
-    error = check_text(form, field, track, value)
+    error = next(filter(None, (check_text(form, field, track, text) for text in texts)), None)
     if error:
         return [ValidationError(path, error)]
     if field.get("notBefore") and _is_before(value, item.get(field["notBefore"])):
@@ -191,10 +229,15 @@ def _validate_field(form: dict, field: dict, track: str, item: dict, path: str,
     return []
 
 
+def value_texts(value) -> list[str]:
+    """The texts of a value that hold something: the text itself, or each language of a two-language value."""
+    texts = value.values() if is_bilingual(value) else [value] if isinstance(value, str) else []
+    return [text for text in texts if text.strip()]
+
+
 def is_required(field: dict, item: dict) -> bool:
     """Required, unless the field named by requiredUnless holds text: a free text stands in for what it replaces."""
-    other = item.get(field.get("requiredUnless"))
-    return bool(field.get("required")) and not (isinstance(other, str) and other.strip())
+    return bool(field.get("required")) and not value_texts(item.get(field.get("requiredUnless")))
 
 
 def tag_rules(form: dict) -> dict:
@@ -202,10 +245,11 @@ def tag_rules(form: dict) -> dict:
     return {"type": "tags", "format": "tag", "max": form["limits"]["tag"], "maxItems": form["limits"]["tags"]}
 
 
-def is_tagged_line(value) -> bool:
-    """A line with tags, as cv.yaml writes it: {text, tags}."""
-    return (isinstance(value, dict) and set(value) <= TAGGED_LINE_KEYS and isinstance(value.get("text"), str)
-            and isinstance(value.get("tags", []), list))
+def is_tagged_line(value, bilingual: bool = False) -> bool:
+    """A line with tags, as cv.yaml writes it: {text, tags}; with bilingual its text may be {de, en}."""
+    text = value.get("text") if isinstance(value, dict) else None
+    return (isinstance(value, dict) and set(value) <= TAGGED_LINE_KEYS and isinstance(value.get("tags", []), list)
+            and (isinstance(text, str) or (bilingual and is_bilingual(text))))
 
 
 def is_leveled_line(value) -> bool:
@@ -214,8 +258,8 @@ def is_leveled_line(value) -> bool:
             and isinstance(value.get("level", ""), str))
 
 
-def line_text(value) -> str:
-    return value["text"] if isinstance(value, dict) else value
+def line_text(value):
+    return value["text"] if isinstance(value, dict) and "text" in value else value
 
 
 def _validate_tags(form: dict, value, path: str, known: frozenset[str]) -> list[ValidationError]:
@@ -244,23 +288,24 @@ def _validate_list(form: dict, field: dict, value, path: str, known: frozenset[s
         value = []
     if not isinstance(value, list):
         return [ValidationError(path, "type")]
-    tagged, leveled = field.get("tags") is True, field.get("levels") is True
+    tagged, leveled, bilingual = field.get("tags") is True, field.get("levels") is True, bool(field.get("bilingual"))
     lines = _loaded_lines(field["id"], before)
     in_file = [comparable_line(v) in lines for v in value]
-    if not all(kept or isinstance(v, str) or (tagged and is_tagged_line(v)) or (leveled and is_leveled_line(v))
+    if not all(kept or isinstance(v, str) or (tagged and is_tagged_line(v, bilingual))
+               or (leveled and is_leveled_line(v)) or (bilingual and is_bilingual(v))
                for v, kept in zip(value, in_file)):
         return [ValidationError(path, "type")]
-    items = [v for v, kept in zip(value, in_file) if kept or line_text(v).strip()]
+    items = [v for v, kept in zip(value, in_file) if kept or value_texts(line_text(v))]
     if not items:
         return [ValidationError(path, "required")] if field.get("required") else []
     errors = []
     if len(items) > max(field.get("maxItems", form["limits"]["listItems"]), _loaded_count(field["id"], before)):
         errors.append(ValidationError(path, "maxItems"))
     for index, (entry, kept) in enumerate(zip(value, in_file)):
-        text = "" if kept else line_text(entry)
-        if not text.strip():
+        texts = [] if kept else value_texts(line_text(entry))
+        if not texts:
             continue
-        error = check_text(form, field, None, text)
+        error = next(filter(None, (check_text(form, field, None, text) for text in texts)), None)
         if error:
             errors.append(ValidationError(f"{path}.{index}", error))
         if isinstance(entry, dict) and tagged:
@@ -288,14 +333,13 @@ def check_text(form: dict, field: dict, track: str | None, value: str) -> str | 
     return None
 
 
-def _is_before(end: str, start) -> bool:
-    """True if `end` lies before `start`; year-only dates compare by year."""
-    if not isinstance(start, str) or not start.strip():
+def _is_before(end, start) -> bool:
+    """True if `end` lies before `start`, compared as far as both go: a year by year, a month by month (G30)."""
+    if not isinstance(start, str) or not start.strip() or not isinstance(end, str):
         return False
     end, start = end.strip(), start.strip()
-    if len(end) == 4 or len(start) == 4:
-        return end[:4] < start[:4]
-    return end < start
+    common = min(len(end), len(start))
+    return end[:common] < start[:common]
 
 
 LINE, TAG, TAGS_NAME = "Zeile", "Tag", "Tags"

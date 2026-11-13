@@ -5,9 +5,9 @@ anything the form shows does not come back at all. All of it stays in the file: 
 without touching the rest. The keys below are the field ids of form.json (sections marked "cv"). Tags (G24) come
 along on entries and on highlights; a highlight with tags is {text, tags}, as in the file. Projects, teaching, the free
 texts of education and certificates and basics.url came with G25; a project group the form does not offer stays out.
-Two-language values {de, en} (lebenslauf/README.md) come along as they are on the text fields without a format and on
-highlights (#167): the page shows them without editing them and sends them back, and validation.py lets them pass as
-long as cv.yaml holds them. cv_merge.py reads the file without them, so they stay until the person types a new value.
+Two-language values {de, en} (lebenslauf/README.md) come along on the fields marked "bilingual" in form.json and on
+highlights (#167), trimmed and without an empty language; the page edits both languages and can add them (#181, G30).
+A two-language value with no text in either language stays out, and in the file.
 Levels (#123, G20): a keyword {name, level} comes as {text, level} with the level 1–6 as text (A1–C2 read as 1–6), a
 language brings its x-level; a level the form cannot show stays out, and the keyword comes as its name.
 """
@@ -19,6 +19,7 @@ import re
 import yaml
 
 import validation
+from validation import bilingual_value
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ TEXT_BASICS = ("name", "label", "email", "url", "phone")
 LOCATION = ("address", "postalCode", "city")
 DATES = ("startDate", "endDate")
 SECTIONS = {
-    "work": ("position", "name", "location", *DATES, "highlights", "tags"),
+    "work": ("position", "name", "location", *DATES, "x-display", "highlights", "tags"),
     "teaching": ("position", "name", "location", *DATES, "x-display", "highlights", "tags"),
     "projects": ("name", "description", "group", "tags"),
     "education": ("studyType", "area", "institution", *DATES, "text"),
@@ -45,10 +46,8 @@ TAG = re.compile(FORM["formats"]["tag"]["pattern"])
 KEPT_SECTIONS = frozenset(s["id"] for s in FORM["sections"] if s.get("cv") and s.get("keepUnlessGiven"))
 KEPT_BASICS = frozenset(f["id"] for s in FORM["sections"] if s["id"] == "person"
                         for f in s["fields"] if f.get("keepUnlessGiven"))
-LANGUAGES = frozenset({"de", "en"})
-# per section the fields that take a two-language value: plain texts (no dates, links or choices) and highlights
-BILINGUAL = {s["id"]: frozenset(f["id"] for f in s["fields"]
-                                if (f["type"] in ("text", "textarea") and not f.get("format")) or f.get("tags") is True)
+# per section the fields that take a two-language value (form.json marks them "bilingual")
+BILINGUAL = {s["id"]: frozenset(f["id"] for f in s["fields"] if f.get("bilingual"))
              for s in FORM["sections"] if s.get("cv")}
 CHOICES = {"group": next(f["options"] for s in FORM["sections"] if s["id"] == "projects"
                          for f in s["fields"] if f["id"] == "group")}
@@ -69,20 +68,14 @@ def shown_text(value: object) -> str | None:
     return None
 
 
-def is_bilingual(value: object) -> bool:
-    """A two-language value as lebenslauf/README.md writes it: {de, en} with text in each."""
-    return (isinstance(value, dict) and bool(value) and set(value) <= LANGUAGES
-            and all(isinstance(text, str) for text in value.values()))
-
-
 def bilingual_line(item: object) -> dict | None:
     """A highlight in two languages as the page gets it: {de, en}, or {text: {de, en}, tags} with its tags."""
-    if is_bilingual(item):
-        return dict(item)
-    if not isinstance(item, dict) or not is_bilingual(item.get("text")):
+    if text := bilingual_value(item):
+        return text
+    if not isinstance(item, dict) or not (text := bilingual_value(item.get("text"))):
         return None
     tags = shown_tags(item.get("tags"))
-    return {"text": dict(item["text"]), "tags": tags} if tags else dict(item["text"])
+    return {"text": text, "tags": tags} if tags else text
 
 
 def field_text(key: str, value: object) -> str | None:
@@ -156,8 +149,8 @@ def entry_shown(entry: object, fields: tuple[str, ...], bilingual: frozenset[str
                 shown[key] = lines
         elif text := field_text(key, value):
             shown[key] = text
-        elif key in bilingual and is_bilingual(value):
-            shown[key] = dict(value)
+        elif key in bilingual and (texts := bilingual_value(value)):
+            shown[key] = texts
     return shown or None
 
 

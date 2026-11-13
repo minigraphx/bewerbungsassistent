@@ -22,7 +22,7 @@ import dossier_data
 import mark as mark_module
 import page_fill
 from anschreiben import bereite_vor
-from build import ROOT, SPRACHEN, pruefe_beschriftungen, pruefe_foto_optionen, waehle_sprache, without_photo
+from build import ROOT, SPRACHEN, json_value, pruefe_beschriftungen, pruefe_foto_optionen, waehle_sprache, without_photo
 from tailor import tailor
 from typst_root import TypstRoot, typst_root
 
@@ -257,7 +257,7 @@ def main(argv: list[str] | None = None) -> Result:
     data = prepare(cv, letter, pages, args.lang, datetime.date.today(), root, style,
                    outlined_labels(args.lang, build, root, compiler), designs, drawn_mark)
     data_json = build / "dossier.json"
-    data_json.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+    data_json.write_text(json.dumps(data, ensure_ascii=False, indent=1, default=json_value), encoding="utf-8")
 
     out = pathlib.Path(args.out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)

@@ -11,7 +11,9 @@ file, as for answers from before G24. The same holds for projects, teaching and 
 form.json): answers from before G25 keep them, an empty list or text removes them. A highlight with tags is written as {text, tags}, one without as plain text, and
 new lists of tags in the short form [a, b]. Levels (#123) follow the same rule: a keyword answered as plain text leaves
 its level to the file, {name, level: None} removes it, and a language without the key x-level keeps its own; a level
-the form cannot show stays unless the answer gives one.
+the form cannot show stays unless the answer gives one. Two-language values {de, en} are answers since G30 (#181):
+an edited one is written into its map, so its form (block or {de: …, en: …}) stays, and a new one is written in the
+short form; a value the person left as it was stays byte for byte.
 """
 import dataclasses
 import io
@@ -23,9 +25,10 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.util import load_yaml_guess_indent
 
 import convert
-from cv_read import (BIRTH, INTERESTS, KEPT_BASICS, KEPT_SECTIONS, LOCATION, SECTIONS, TEXT_BASICS, detail_places,
-                     detail_values, entry_shown, field_text, highlight_shown, item_text, keyword_level, line_text,
-                     tag_text)
+from cv_read import (BILINGUAL, BIRTH, INTERESTS, KEPT_BASICS, KEPT_SECTIONS, LOCATION, SECTIONS, TEXT_BASICS,
+                     bilingual_line, detail_places, detail_values, entry_shown, field_text, highlight_shown, item_text,
+                     keyword_level, line_text, shown_text, tag_text)
+from validation import LANGUAGES, bilingual_value, is_bilingual
 
 ABSENT = object()
 TAGS = "tags"
@@ -127,14 +130,33 @@ def _merge_basics(doc: CommentedMap, new: dict, job: bool) -> bool:
 
 def _merge_scalar(entry: dict, key: str, new: object) -> bool:
     """Set or remove one text field; a value the form could not show stays unless the answers give one."""
-    old_text = field_text(key, entry.get(key)) if key in entry else ""
+    old_text = _shown_value(key, entry.get(key)) if key in entry else ""
     new_text = "" if new is ABSENT or new is None else new
     if (old_text is None and not new_text) or old_text == new_text:
         return False
     if new is ABSENT:
         del entry[key]
-    else:
-        entry[key] = new
+    elif not _put_languages(entry[key] if key in entry else None, new):
+        entry[key] = _commented(new)
+    return True
+
+
+def _shown_value(key: str, value: object) -> object:
+    """A field as the answers compare it: its text, its two languages, or None where the form cannot show it."""
+    text = field_text(key, value)
+    return text if text is not None else bilingual_value(value)
+
+
+def _put_languages(old: object, new: object) -> bool:
+    """Write a two-language answer into the map that holds the old one, so its form and comments stay; False if
+    either is not in two languages."""
+    if not isinstance(old, CommentedMap) or not is_bilingual(old) or not is_bilingual(new):
+        return False
+    for language in LANGUAGES:
+        if language in new and (old.get(language) or "").strip() != new[language]:
+            old[language] = new[language]
+        elif language not in new and language in old:
+            del old[language]
     return True
 
 
@@ -267,7 +289,8 @@ def _same_place(i: int, free: list[int], old_shown: list, shown: object) -> int 
 
 
 def _line_text(shown: object) -> object:
-    return shown["text"] if isinstance(shown, dict) else shown
+    """The text of a line as shown: plain, or {de, en}; a line with tags has it under "text"."""
+    return shown.get("text", shown) if isinstance(shown, dict) else shown
 
 
 def _same_text_or_place(i: int, free: list[int], old_shown: list, shown: object) -> int | None:
@@ -277,17 +300,29 @@ def _same_text_or_place(i: int, free: list[int], old_shown: list, shown: object)
     return same if same is not None else _same_place(i, free, old_shown, shown)
 
 
+def _highlight_value(item: object) -> object:
+    """The text of a highlight as the answers compare it: plain or {de, en} (G30); None where there is none."""
+    text = item["text"] if isinstance(item, dict) and "text" in item else item
+    return bilingual_value(text) or shown_text(text)
+
+
 def _merge_highlight(item: object, new: object) -> object:
     """The highlight that continues item with the answer: its text, its tags if it gives them, other fields kept.
 
-    One that loses its last tag becomes plain text again, unless it holds more than its text.
+    One that loses its last tag becomes plain text again, unless it holds more than its text. The text may be in two
+    languages, as a line {de, en} or as {text: {de, en}, tags}.
     """
-    text = new["text"] if isinstance(new, dict) else new
-    tags = new.get(TAGS) if isinstance(new, dict) else None  # None: the answer leaves the tags to the file
-    if not isinstance(item, dict):
-        return item if item_text(item) == text and not tags else _commented({"text": text, TAGS: tags} if tags else text)
-    if item_text(item) != text:
-        item["text"] = text
+    given = isinstance(new, dict) and "text" in new
+    text = new["text"] if given else new
+    tags = new.get(TAGS) if given else None  # None: the answer leaves the tags to the file
+    if not isinstance(item, dict) or is_bilingual(item):
+        if _highlight_value(item) == text and not tags:
+            return item
+        if not tags and _put_languages(item, text):
+            return item
+        return _commented({"text": text, TAGS: tags} if tags else text)
+    if _highlight_value(item) != text and not _put_languages(item.get("text"), text):
+        item["text"] = _commented(text)
     if tags is None:
         return item
     had_tags = TAGS in item
@@ -385,8 +420,13 @@ def _settled(value: object) -> object:
 
 
 def _commented(value: object) -> object:
-    """New answers as round-trip nodes, so blank lines and comments can attach to them."""
+    """New answers as round-trip nodes, so blank lines and comments can attach to them; a value in two languages in
+    the short form {de: …, en: …}, as lebenslauf/README.md writes it."""
     value = _settled(value)
+    if is_bilingual(value) and not isinstance(value, CommentedMap):
+        node = CommentedMap(value)
+        node.fa.set_flow_style()
+        return node
     if isinstance(value, dict) and not isinstance(value, CommentedMap):
         return CommentedMap((key, _new_value(key, item)) for key, item in value.items())
     if isinstance(value, list) and not isinstance(value, CommentedSeq):
@@ -441,7 +481,13 @@ def _merge_headings(doc: CommentedMap, new_cv: dict) -> bool:
 
 def _entry_kind(key: str, fields: tuple[str, ...], job: bool) -> Kind:
     owned = tuple(field for field in fields if job or field not in JOB_ONLY.get(key, ()))
-    return Kind(lambda entry: entry_shown(entry, owned), owned, _same_identity(IDENTITY[key]))
+    bilingual = BILINGUAL.get(key, frozenset())
+    return Kind(lambda entry: entry_shown(entry, owned, bilingual), owned, _same_identity(IDENTITY[key]))
+
+
+def _highlight_shown(item: object) -> object:
+    """A highlight as the answers compare it, in two languages too (G30)."""
+    return highlight_shown(item) or bilingual_line(item)
 
 
 def _profile_shown(profile: object) -> dict | None:
@@ -452,7 +498,7 @@ def _profile_shown(profile: object) -> dict | None:
 LINES = Kind(item_text, (), _same_place)
 KEYWORDS = Kind(_keyword_shown, (), _same_text_or_place, _merge_keyword)
 TAG_LINES = Kind(tag_text, (), _same_place)
-HIGHLIGHTS = Kind(highlight_shown, (), _same_text_or_place, _merge_highlight)
+HIGHLIGHTS = Kind(_highlight_shown, (), _same_text_or_place, _merge_highlight)
 LIST_KINDS = {"highlights": HIGHLIGHTS, "keywords": KEYWORDS, TAGS: TAG_LINES}
-KEPT_UNLESS_GIVEN = frozenset({TAGS, "x-level"})
+KEPT_UNLESS_GIVEN = frozenset({TAGS, "x-level", "x-display"})
 PROFILES = Kind(_profile_shown, (), _no_pairing)
