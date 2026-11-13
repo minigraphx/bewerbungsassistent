@@ -48,6 +48,7 @@ SEITEN = {
     "/foto": "foto.html",
     "/dateien": "dateien.html",
     "/dateien.js": "dateien.js",
+    "/dateien-logik.js": "dateien-logik.js",
     "/eigenes-anschreiben.js": "eigenes-anschreiben.js",
     "/dateien-ordner.js": "dateien-ordner.js",
     "/stil.css": "stil.css",

@@ -1,4 +1,4 @@
-"""„Lebenslauf anpassen“ where the CV is shown (#119): on the page of an application and under „Meine Dateien“."""
+"""„Lebenslauf anpassen“ where the CV is shown (#119): on the page of an application and under „Lebenslauf und Dateien“ (#264)."""
 import pathlib
 import re
 import subprocess
@@ -24,12 +24,13 @@ def test_the_application_page_has_the_button_and_the_note(server):
     assert html.index("/lebenslauf-anpassen.js") < html.index("/bewerbung.js")
 
 
-def test_meine_dateien_has_the_button_and_the_note(server):
+def test_lebenslauf_und_dateien_has_the_button_and_the_note(server):
     html = page(server, "/dateien")
+    built = html[html.index('id="cv-app"'):html.index('id="cv-eigen"')]
+    own = html[html.index('id="cv-eigen"'):html.index('id="cv-status"')]
 
-    assert re.search(r'<a [^>]*id="cv-anpassen"[^>]*>Lebenslauf anpassen</a>', html)
-    assert 'id="cv-wie-es-ist" data-text="dateien.wie-es-ist"' in html
-    assert html.index("/lebenslauf-anpassen.js") < html.index("/dateien.js")
+    assert re.search(r'<a [^>]*id="cv-anpassen" href="/angaben"[^>]*>Inhalt ändern</a>', built)
+    assert 'id="cv-wie-es-ist" data-text="dateien.wie-es-ist"' in own and "so verwendet, wie es ist" in own
 
 
 def test_the_script_is_served(server):

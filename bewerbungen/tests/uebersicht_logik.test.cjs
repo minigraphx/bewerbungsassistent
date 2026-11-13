@@ -4,7 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const logik = require("../seiten/uebersicht-logik.js");
 
-const NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Meine Dateien“ hochladen";
+const NO_CV = "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Lebenslauf und Dateien“ hochladen";
 const NO_LINK = "Kein Link zum Formular: öffnen und Link eintragen";
 const b = (id, status, felder = {}) => ({ id, firma: `Firma ${id}`, stelle: `Stelle ${id}`, status, eingetragen_am: "2026-11-01", ...felder });
 

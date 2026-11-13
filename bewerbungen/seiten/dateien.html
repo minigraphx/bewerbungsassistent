@@ -4,57 +4,87 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="token" content="__TOKEN__">
-<title>Meine Dateien</title>
+<title>Lebenslauf und Dateien</title>
 <link rel="stylesheet" href="/stil.css">
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/#liste-teil" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
-<main class="page">
+<main class="page files">
   <header class="page__head">
-    <h1>Meine Dateien</h1>
-    <p>Fertige Unterlagen, die so verwendet werden, wie sie sind. Diese Dateien bleiben auf diesem Computer und gehen nie an die KI.</p>
-    <p class="field__hint">Hochgeladen werden sie nur beim Ausfüllen eines Formulars. Name, Adresse und Kontakt fürs Formular kommen aus <a href="/angaben">Meine Angaben</a>.</p>
-    <p class="field__hint">Das Foto im Lebenslauf: <a href="/foto">Foto wählen und zuschneiden</a>.</p>
+    <h1>Lebenslauf und Dateien</h1>
+    <p>Diese Dateien bleiben auf diesem Computer und gehen nie an die KI.</p>
   </header>
 
-  <section class="page__section" aria-labelledby="rang-titel">
-    <h2 id="rang-titel">Welcher Lebenslauf wird verwendet?</h2>
-    <ol class="rank" id="rang">
-      <li class="rank__item" data-rang="variante"><span class="rank__head"><span class="rank__nr">1</span><strong>Gewählte Variante</strong></span><span data-text="dateien.variante">Wenn Sie in einer Bewerbung eine Variante wählen, gilt sie dort.</span><span class="rank__state" id="rang-variante"></span></li>
-      <li class="rank__item" data-rang="eigen"><span class="rank__head"><span class="rank__nr">2</span><strong data-text="dateien.eigen-titel">Ihr eigenes PDF</strong></span><span data-text="dateien.eigen">Sonst gilt der Lebenslauf, den Sie hier hochladen.</span><span class="rank__state" id="rang-eigen"></span></li>
-      <li class="rank__item" data-rang="gebaut"><span class="rank__head"><span class="rank__nr">3</span><strong>Aus Meine Angaben</strong></span><span data-text="dateien.gebaut">Ohne eigenes PDF erstellt die App den Lebenslauf aus Ihren Angaben.</span><span class="rank__state" id="rang-gebaut"></span></li>
-    </ol>
-    <p class="hilfe" id="cv-wie-es-ist" data-text="dateien.wie-es-ist" hidden>Ihr PDF wird so verwendet, wie es ist. Ändern Sie es dort, wo Sie es erstellt haben, und laden Sie es neu hoch.</p>
-    <div class="btn-row"><a class="btn btn--quiet" id="cv-anpassen" href="/angaben" hidden>Lebenslauf anpassen</a></div>
+  <section class="card files__cv" aria-labelledby="cv-titel">
+    <h2 id="cv-titel" data-text="dateien.cv-titel">Ihr Lebenslauf</h2>
+    <div class="choice-cards" role="group" aria-labelledby="cv-titel">
+      <button type="button" class="choice-card" data-cv="app" aria-pressed="true"><strong>Die App erstellt ihn</strong><span data-text="dateien.app">Aus Ihren Angaben, für jede Stelle passend gewichtet. Empfohlen.</span></button>
+      <button type="button" class="choice-card" data-cv="eigen" aria-pressed="false"><strong>Ich nehme mein eigenes PDF</strong><span data-text="dateien.eigen">Es geht unverändert an jede Firma. Ändern können Sie es nur ausserhalb der App.</span></button>
+    </div>
+    <div class="files__now" id="cv-app">
+      <span class="files__sheet" aria-hidden="true"></span>
+      <div class="files__now-text">
+        <strong>So entsteht er</strong>
+        <span data-text="dateien.app-wie">Aus Meine Angaben. Für jede Stelle passen Sie ihn in der Bewerbung an.</span>
+        <span class="field__hint" id="cv-varianten" hidden></span>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn--primary" id="cv-ansehen" href="/inhalte?datei=cv.yaml">Ansehen</a>
+        <a class="btn" id="cv-anpassen" href="/angaben">Inhalt ändern</a>
+      </div>
+    </div>
+    <div class="files__now" id="cv-eigen" hidden>
+      <span class="files__sheet" aria-hidden="true"></span>
+      <div class="files__now-text">
+        <strong data-text="dateien.ihr-pdf">Ihr PDF</strong>
+        <ul class="datei-liste" id="cv-datei"></ul>
+        <span class="field__hint" id="cv-wie-es-ist" data-text="dateien.wie-es-ist">Ihr PDF wird so verwendet, wie es ist. Ändern Sie es dort, wo Sie es erstellt haben, und laden Sie es neu hoch.</span>
+      </div>
+      <div class="btn-row">
+        <label class="btn datei-waehlen" id="cv-waehlen">PDF wählen<input type="file" id="cv-input" accept=".pdf,application/pdf"></label>
+      </div>
+    </div>
+    <div class="status" id="cv-status" role="status" aria-live="polite"></div>
   </section>
 
-  <div class="page__grid">
+  <div class="files__grid">
+    <section class="card files__proofs" aria-labelledby="nachweise-titel">
+      <h2 id="nachweise-titel">Zeugnisse und Zertifikate</h2>
+      <p class="field__hint">Bei jeder Bewerbung schlägt die App vor, welche Zertifikate passen. Zeugnisse gehen beim Ausfüllen eines Formulars mit.</p>
+      <div class="files__drop" id="ablage-zone">
+        <span>Dateien hierher ziehen</span>
+        <label class="btn datei-waehlen">Dateien wählen<input type="file" id="nachweise-input" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></label>
+        <span class="field__hint" data-text="dateien.ordnet">PDF, JPG oder PNG. Die App ordnet sie selbst ein, Sie können das ändern.</span>
+      </div>
+      <ul class="datei-liste files__list" id="nachweise"></ul>
+      <div class="status" id="nachweise-status" role="status" aria-live="polite"></div>
+    </section>
 
-  <section class="card eigene-dateien" data-art="lebenslauf">
-    <h2>Lebenslauf</h2>
-    <p class="hilfe">Ein PDF. Es gilt für alle Bewerbungen, bei denen keine Variante gewählt ist, ohne „Unterlagen erstellen“. Ein neues PDF ersetzt das bisherige.</p>
-    <label class="datei-waehlen">PDF wählen<input type="file" accept=".pdf,application/pdf"></label>
-    <ul class="datei-liste"></ul>
-    <div class="status" role="status" aria-live="polite"></div>
-  </section>
+    <div class="files__side">
+      <section class="card" aria-labelledby="foto-titel">
+        <h2 id="foto-titel">Foto</h2>
+        <ul class="files__photos" id="fotos"></ul>
+        <p class="field__hint" id="fotos-text"></p>
+        <div class="files__links">
+          <label class="datei-waehlen files__link">Foto hinzufügen<input type="file" id="foto-input" accept="image/jpeg,image/png"></label>
+          <a href="/foto" id="foto-ausschnitt">Ausschnitt anpassen</a>
+        </div>
+        <div class="status" id="fotos-status" role="status" aria-live="polite"></div>
+      </section>
 
-  <section class="card eigene-dateien" data-art="zertifikat">
-    <h2>Zertifikate und Diplome</h2>
-    <p class="hilfe">PDF, JPG oder PNG. Welche zu einer Stelle passen, steht zur Wahl auf der Seite der Bewerbung. Eine Datei mit gleichem Namen ersetzt die bisherige.</p>
-    <label class="datei-waehlen">Dateien wählen<input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></label>
-    <ul class="datei-liste"></ul>
-    <div class="status" role="status" aria-live="polite"></div>
-  </section>
-
-  <section class="card eigene-dateien" data-art="zeugnis">
-    <h2>Arbeitszeugnisse und Zeugnisse</h2>
-    <p class="hilfe">PDF, JPG oder PNG. Sie stehen beim Ausfüllen eines Formulars bereit. Eine Datei mit gleichem Namen ersetzt die bisherige.</p>
-    <label class="datei-waehlen">Dateien wählen<input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></label>
-    <ul class="datei-liste"></ul>
-    <div class="status" role="status" aria-live="polite"></div>
-  </section>
+      <section class="card" aria-labelledby="fassungen-titel">
+        <h2 id="fassungen-titel">Frühere Fassungen</h2>
+        <p>Nichts geht verloren: Jede versendete Fassung bleibt mit Datum erhalten, ersetzte und entfernte Dateien auch.</p>
+        <a href="/entwuerfe">Frühere Fassungen ansehen</a>
+      </section>
+    </div>
   </div>
-  <p class="field__hint">Ersetzte und entfernte Dateien lassen sich unter <a href="/entwuerfe">Entwürfe und Versionen</a> zurückholen.</p>
+
+  <dialog class="dialog" id="cv-dialog" aria-labelledby="cv-dialog-titel">
+    <h2 class="dialog__title" id="cv-dialog-titel">Eigenes PDF entfernen?</h2>
+    <p class="dialog__text" data-text="dateien.zurueck-zur-app">Danach erstellt die App Ihren Lebenslauf aus Ihren Angaben. Das PDF lässt sich unter Frühere Fassungen zurückholen.</p>
+    <div class="dialog__actions"><button type="button" class="btn" id="cv-dialog-nein">Abbrechen</button><button type="button" class="btn btn--primary" id="cv-dialog-ja">PDF entfernen</button></div>
+  </dialog>
 </main>
 <script src="/texte.js"></script>
 <script src="/meldungen.js"></script>
@@ -62,7 +92,7 @@
 <script src="/uebersicht-logik.js"></script>
 <script src="/sidebar-logic.js"></script>
 <script src="/sidebar.js"></script>
-<script src="/lebenslauf-anpassen.js"></script>
+<script src="/dateien-logik.js"></script>
 <script src="/dateien.js"></script>
 </body>
 </html>
