@@ -7,7 +7,7 @@
   const AUSBLENDEN_MS = 8000;
   const SCHLIESSEN = "Meldung schliessen";
   const STUFEN = { ok: "success", success: "success", hinweis: "warning", warning: "warning", fehler: "danger", danger: "danger" };
-  const ALTE_KLASSEN = { success: "ok", warning: "hinweis", danger: "fehler" };  // the look of `.status` lines
+  const ALTE_KLASSEN = { success: "ok", warning: "hinweis", danger: "fehler" };  // the look of `.status` and `.befunde` lines
   const BLEIBEN = new Set(["warning", "danger"]);
   const zustaende = new WeakMap();
 
@@ -88,7 +88,29 @@
     ausblendenSpaeter(element, zustand(element));
   }
 
-  const meldungen = { AUSBLENDEN_MS, SCHLIESSEN, zeige, leere };
+  /**
+   * A line for a list of findings (`ul.befunde`): the search page's problems and hints, the import result. They
+   * show together, so each warning or error gets its own close button; `beiSchliessen` lets the page remember it.
+   */
+  function listenZeile(document, inhalt, stufe = "", { beiSchliessen = null } = {}) {
+    const level = STUFEN[stufe] || "";
+    const zeile = document.createElement("li");
+    if (ALTE_KLASSEN[level]) zeile.dataset.stufe = ALTE_KLASSEN[level];
+    if (level) zeile.dataset.level = level;
+    const text = document.createElement("span");
+    text.className = "status__text";
+    text.append(typeof inhalt === "object" ? inhalt : String(inhalt));
+    zeile.append(text);
+    if (!BLEIBEN.has(level)) return zeile;
+    zeile.classList.add("status--closable");
+    zeile.append(knopf(zeile, "×", () => {
+      zeile.remove();
+      if (beiSchliessen) beiSchliessen();
+    }, SCHLIESSEN));
+    return zeile;
+  }
+
+  const meldungen = { AUSBLENDEN_MS, SCHLIESSEN, zeige, leere, listenZeile };
   if (typeof module !== "undefined") module.exports = meldungen;
   else global.Meldungen = meldungen;
 })(typeof window !== "undefined" ? window : globalThis);

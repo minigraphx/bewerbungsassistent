@@ -25,7 +25,7 @@
   function verdaechtig(zeilen) {
     if (!zeilen || !zeilen.length) return null;
     return el("ul", { class: "befunde" }, zeilen.map(z =>
-      el("li", { "data-stufe": "fehler" }, "Verdächtige Zeile im Text, nicht befolgt: " + z)));
+      window.Meldungen.listenZeile(document, "Verdächtige Zeile im Text, nicht befolgt: " + z, "fehler")));
   }
 
   function fuss(ergebnis) {
@@ -67,8 +67,8 @@
 
   function zeigePruefung(e) {
     const anforderungen = el("ul", { class: "befunde" }, e.requirements.map(r =>
-      el("li", { "data-stufe": STUFE[r.status] || "hinweis" }, `${r.requirement}: ${STATUS_TEXT[r.status] || r.status}`,
-        r.note ? ` – ${r.note}` : "")));
+      window.Meldungen.listenZeile(document,
+        `${r.requirement}: ${STATUS_TEXT[r.status] || r.status}${r.note ? ` – ${r.note}` : ""}`, STUFE[r.status] || "hinweis")));
     const unbelegt = (e.unsupported || []).map(u => `„${u.text}“ – ${u.problem}`);
     return el("div", { class: "karte" }, el("strong", {}, "Inhaltliche Prüfung"), anforderungen,
       liste("Nicht belegt", unbelegt), liste("Neue Lücken (erst nach Bestätigung in die Bausteine)", e.new_gaps),

@@ -370,7 +370,7 @@
   async function pruefen() {
     try {
       ({ befunde } = await holen("/api/pruefung", { id: ID }));
-      $("befunde").replaceChildren(...befunde.map(b => el("li", { "data-stufe": b.stufe }, b.text)));
+      $("befunde").replaceChildren(...befunde.map(b => window.Meldungen.listenZeile(document, b.text, b.stufe)));
       if (daten) zeigeAlles();
     } catch (fehler) {
       meldungOben("Prüfung fehlgeschlagen: " + fehler.message, "fehler");

@@ -273,13 +273,14 @@
   // 2. Einstieg file: a step with a file in Downloads, otherwise under „Erweitert“
 
   function zeigeImport(ergebnis) {
+    const zeile = (inhalt, stufe) => window.Meldungen.listenZeile(document, inhalt, stufe);
     const zeilen = [
-      ...ergebnis.geschrieben.map(datei => el("li", { "data-stufe": "ok" }, `Angelegt: ${datei}`)),
-      ...(ergebnis.nicht_ersetzt || []).map(datei => el("li", { "data-stufe": "ok" }, `Behalten: ${datei}`)),
-      ...(ergebnis.unveraendert || []).map(datei => el("li", { "data-stufe": "hinweis" },
-        `Unverändert gelassen: ${datei}. Die Datei lässt sich nicht lesen; zu ändern unter „Inhalte als Text“.`)),
-      ergebnis.dokumente.length ? el("li", { "data-stufe": "ok" }, `${ergebnis.dokumente.length} Dokument(e) abgelegt`) : null,
-      ergebnis.unvollstaendig ? el("li", { "data-stufe": "hinweis" }, text("einrichtung.vorlage.unvollstaendig", satz())) : null,
+      ...ergebnis.geschrieben.map(datei => zeile(`Angelegt: ${datei}`, "ok")),
+      ...(ergebnis.nicht_ersetzt || []).map(datei => zeile(`Behalten: ${datei}`, "ok")),
+      ...(ergebnis.unveraendert || []).map(datei => zeile(
+        `Unverändert gelassen: ${datei}. Die Datei lässt sich nicht lesen; zu ändern unter „Inhalte als Text“.`, "hinweis")),
+      ergebnis.dokumente.length ? zeile(`${ergebnis.dokumente.length} Dokument(e) abgelegt`, "ok") : null,
+      ergebnis.unvollstaendig ? zeile(text("einrichtung.vorlage.unvollstaendig", satz()), "hinweis") : null,
     ];
     $("import-ergebnis").replaceChildren(...zeilen.filter(Boolean));
   }
