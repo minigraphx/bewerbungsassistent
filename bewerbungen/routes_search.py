@@ -7,6 +7,7 @@ with drafts (Entwürfe).
 """
 import threading
 
+import excluded_companies
 import missing_ads
 import own_sites
 import precheck
@@ -72,7 +73,8 @@ def screen(k, parameter, body):
                           own_sites.active_portals(store),
                           near=lambda place: is_near(str(place), current.places, current.postal_codes),
                           title_positive=current.title_positive,
-                          max_age_by_portal=_portal_days(store, current, k.heute()))
+                          max_age_by_portal=_portal_days(store, current, k.heute()),
+                          excluded=excluded_companies.keys(k.daten))
     return json_antwort(result)
 
 
@@ -83,7 +85,7 @@ def receive(k, parameter, body):
     person = precheck.for_folder(k.daten)
     return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), agencies,
                                   check=lambda title, text: precheck.check(title, text, person),
-                                  saved_in=preferences.load(k.daten).saved_in))
+                                  saved_in=preferences.load(k.daten).saved_in, excluded=excluded_companies.keys(k.daten)))
 
 
 def _portal_summary(raw) -> dict:
@@ -143,7 +145,9 @@ def overview(k, parameter, body):
     # #220: without a profile nothing can be searched; the page says so right under „Jetzt suchen“, not in the list
     blocked = "" if (k.daten / search_plan.PROFILE).is_file() else BLOCKED_WITHOUT_PROFILE
     hints = [h for h in hints if h != search_plan.NO_PROFILE]
-    found = sorted(store.all(), key=lambda h: h.get("gefunden_am", ""), reverse=True)
+    # Hits of an excluded company stay stored but leave the list (#226); taking the company back shows them again.
+    found = sorted(excluded_companies.shown(store.all(), excluded_companies.keys(k.daten)),
+                   key=lambda h: h.get("gefunden_am", ""), reverse=True)
     return json_antwort({"treffer": [_listed(k, store, hit, homes, postal_codes) for hit in found],
                          "hinweis_ziele": targets,
                          "angebote": list(offers), **routes_career.searched_now(k),

@@ -11,18 +11,20 @@
   const meldung = (inhalt, stufe) => status($("status"), inhalt, stufe);
   let ladeNummer = 0;
 
-  function zeigeRahmen(daten, rahmen, lehrstelle) {
+  function zeigeRahmen(daten, rahmen, lehrstelle, ausgeschlossen) {
     $("region-text").textContent = anzeige.regionText(daten.region, lehrstelle) || NICHTS;
     $("pensum-titel").hidden = lehrstelle;
     $("pensum-text").hidden = lehrstelle;
     $("pensum-text").textContent = rahmen.pensum || NICHTS;
-    $("karte-nicht").hidden = lehrstelle;
+    // Excluded companies (#226, G65) hold for apprenticeships too; the exclusions of the profile only for jobs.
+    for (const teil of $("karte-nicht").querySelectorAll(".nur-stelle")) teil.hidden = lehrstelle;
+    $("firmen-ausgeschlossen-text").textContent = ausgeschlossen.map(firma => firma.name).join(", ") || NICHTS;
     $("ausschluss-text").textContent = rahmen.ausschluss.join(", ") || NICHTS;
     $("titel-ausschluss-text").textContent = rahmen.titel_ausschluss.join(", ") || NICHTS;
     const filter = anzeige.titelfilterText(rahmen.titel_positiv, rahmen.titel_ausschluss);
     $("titelfilter").hidden = lehrstelle;
     $("titelfilter-text").textContent = filter || window.SucheRahmenLogik.titelfilterLeer;
-    window.SucheRahmen.zeige(rahmen, lehrstelle);
+    window.SucheRahmen.zeige(rahmen, lehrstelle, ausgeschlossen);
   }
 
   function zeigeAblauf(daten) {
@@ -50,7 +52,8 @@
   async function lade() {
     const nummer = ++ladeNummer;
     try {
-      const [daten, rahmen] = await Promise.all([holen("/api/suche/liste"), holen("/api/suche/rahmen")]);
+      const [daten, rahmen, firmen] = await Promise.all([holen("/api/suche/liste"), holen("/api/suche/rahmen"),
+        holen("/api/firmen/ausgeschlossen")]);
       if (nummer !== ladeNummer) return;  // a newer load is on its way
       const lehrstelle = daten.art === "lehrstelle";
       $("ohne-profil").hidden = !daten.sperrgrund;
@@ -59,7 +62,7 @@
       $("angebot").value = logik.wahlAus(daten.angebote || []);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
       window.PortalWahl.zeige(daten.portale_wahl || [], lade);
-      zeigeRahmen(daten, rahmen, lehrstelle);
+      zeigeRahmen(daten, rahmen, lehrstelle, firmen.firmen);
       zeigeAblauf(daten);
       zeigePruefen(lehrstelle);
       $("zusammenfassung").textContent = anzeige.zusammenfassung({

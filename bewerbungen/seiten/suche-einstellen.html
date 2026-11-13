@@ -81,13 +81,18 @@
   <section class="card" id="karte-nicht" aria-labelledby="nicht-titel">
     <div class="settings-page__head"><h2 id="nicht-titel" data-text="einstellen.nicht">Was Sie nicht sehen wollen</h2><button type="button" class="btn btn--quiet btn--sm" id="nicht-aendern" aria-expanded="false" aria-controls="nicht-form">Ändern</button></div>
     <dl class="facts">
-      <dt>Im Inserat</dt><dd id="ausschluss-text"></dd>
-      <dt>Im Titel</dt><dd id="titel-ausschluss-text"></dd>
+      <dt class="nur-stelle">Im Inserat</dt><dd class="nur-stelle" id="ausschluss-text"></dd>
+      <dt class="nur-stelle">Im Titel</dt><dd class="nur-stelle" id="titel-ausschluss-text"></dd>
+      <dt id="firmen-ausgeschlossen-titel" data-text="firmen.titel">Firmen</dt><dd id="firmen-ausgeschlossen-text"></dd>
     </dl>
     <form id="nicht-form" class="settings-page__sub settings-page__edit" hidden>
-      <label class="field"><span class="field__label">Im Inserat, eins pro Zeile</span><textarea class="input" id="nicht-inserat" rows="4" spellcheck="false"></textarea></label>
-      <label class="field"><span class="field__label">Im Titel, eins pro Zeile</span><textarea class="input" id="nicht-im-titel" rows="4" spellcheck="false"></textarea></label>
-      <p class="field__hint">Ein Titel mit einem dieser Wörter kommt nicht in die Liste.</p>
+      <div class="nur-stelle settings-page__sub">
+        <label class="field"><span class="field__label">Im Inserat, eins pro Zeile</span><textarea class="input" id="nicht-inserat" rows="4" spellcheck="false"></textarea></label>
+        <label class="field"><span class="field__label">Im Titel, eins pro Zeile</span><textarea class="input" id="nicht-im-titel" rows="4" spellcheck="false"></textarea></label>
+        <p class="field__hint">Ein Titel mit einem dieser Wörter kommt nicht in die Liste.</p>
+      </div>
+      <label class="field"><span class="field__label"><span data-text="firmen.titel">Firmen</span>, eine pro Zeile</span><textarea class="input" id="nicht-firmen" rows="4" spellcheck="false" aria-describedby="nicht-firmen-hinweis"></textarea></label>
+      <p class="field__hint" id="nicht-firmen-hinweis" data-text="firmen.liste-hinweis">Inserate dieser Firmen zeigt die Suche nicht mehr. Mit oder ohne AG oder GmbH, gross oder klein: Die App erkennt die Firma.</p>
       <div class="btn-row"><button type="submit" class="btn btn--primary btn--sm">Speichern</button><button type="button" class="btn btn--sm" id="nicht-abbrechen">Abbrechen</button></div>
     </form>
     <div id="nicht-meldung" class="status" role="status" aria-live="polite"></div>

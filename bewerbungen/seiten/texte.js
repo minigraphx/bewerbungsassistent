@@ -59,6 +59,18 @@
     // Firmen with kununu (G35, #188, docs/design/firmen.md); „Firma“ stays neutral, apprenticeships say „Lehrbetrieb“
     "nav.firmen": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
     "firmen.titel": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
+    // Excluded companies (#226, G65): from a hit, from Firmen and from an application
+    "firmen.ausschliessen": { sie: "Diese Firma nicht mehr zeigen", du: "Diese Firma nicht mehr zeigen", lehrstelle: "Diesen Lehrbetrieb nicht mehr zeigen" },
+    "firmen.ausgeschlossen": {
+      sie: "Inserate von {firma} zeigt die Suche nicht mehr. Unter Suche einstellen können Sie die Firma wieder zeigen.",
+      du: "Inserate von {firma} zeigt die Suche nicht mehr. Unter Suche einstellen kannst du die Firma wieder zeigen.",
+      lehrstelle: "Lehrstellen von {firma} zeigt die Suche nicht mehr. Unter Suche einstellen kannst du den Lehrbetrieb wieder zeigen.",
+    },
+    "firmen.liste-hinweis": {
+      sie: "Inserate dieser Firmen zeigt die Suche nicht mehr. Mit oder ohne AG oder GmbH, gross oder klein: Die App erkennt die Firma.",
+      du: "Inserate dieser Firmen zeigt die Suche nicht mehr. Mit oder ohne AG oder GmbH, gross oder klein: Die App erkennt die Firma.",
+      lehrstelle: "Lehrstellen dieser Lehrbetriebe zeigt die Suche nicht mehr. Mit oder ohne AG oder GmbH, gross oder klein: Die App erkennt den Lehrbetrieb.",
+    },
     "firmen.alle": { sie: "Alle Firmen", du: "Alle Firmen", lehrstelle: "Alle Lehrbetriebe" },
     "firmen.zeile": {
       sie: "{anzahl} Firmen aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",

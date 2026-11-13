@@ -1,6 +1,7 @@
 "use strict";
 // Region und Pensum, Was nicht and the title filter on Suche einstellen (#286, G64): „Ändern“ opens the card's own
 // form, „Speichern“ writes to the search profile with drafts, and the page loads anew. Logic in suche-rahmen-logik.js.
+// Was nicht also holds the excluded companies (#226, G65), saved to their own list in the data folder.
 window.SucheRahmen = (() => {
   const { senden, status, el } = window.App;
   const L = window.SucheRahmenLogik;
@@ -8,7 +9,7 @@ window.SucheRahmen = (() => {
   const KARTEN = ["region", "nicht", "titelfilter"];
   const GESPEICHERT = "Gespeichert. Gilt ab der nächsten Suche.";
   const NICHT_GESPEICHERT = "Nicht gespeichert.";
-  let stand = { werte: {}, alleKantone: [], lehrstelle: false };
+  let stand = { werte: {}, alleKantone: [], lehrstelle: false, firmen: [] };
 
   function kantone(gewaehlt) {
     const an = new Set(gewaehlt || []);
@@ -33,6 +34,7 @@ window.SucheRahmen = (() => {
     if (karte === "nicht") {
       $("nicht-inserat").value = L.alsText(werte.ausschluss);
       $("nicht-im-titel").value = L.alsText(werte.titel_ausschluss);
+      $("nicht-firmen").value = L.alsText(stand.firmen.map(firma => firma.name));
       return;
     }
     $("titelfilter-positiv").value = L.alsText(werte.titel_positiv);
@@ -44,7 +46,7 @@ window.SucheRahmen = (() => {
       const gewaehlt = [...$("region-kantone").querySelectorAll("input:checked")].map(kasten => kasten.value);
       return { wohnort: $("region-wohnort").value, kantone: gewaehlt, umkreis: $("region-umkreis").value, pensum: $("region-pensum").value };
     }
-    if (karte === "nicht") return { inserat: $("nicht-inserat").value, titel: $("nicht-im-titel").value };
+    if (karte === "nicht") return { inserat: $("nicht-inserat").value, titel: $("nicht-im-titel").value, firmen: $("nicht-firmen").value };
     return { positiv: $("titelfilter-positiv").value, ausschluss: $("titelfilter-ausschluss").value };
   }
 
@@ -55,7 +57,7 @@ window.SucheRahmen = (() => {
     form.hidden = !offen;
     knopf.hidden = offen;
     knopf.setAttribute("aria-expanded", String(offen));
-    if (offen) form.querySelector("input, textarea").focus();
+    if (offen) [...form.querySelectorAll("input, textarea")].find(feld => !feld.closest("[hidden]"))?.focus();
     else knopf.focus();
   }
 
@@ -63,7 +65,9 @@ window.SucheRahmen = (() => {
     event.preventDefault();
     const meldung = $(`${karte}-meldung`);
     try {
-      await senden("/api/suche/rahmen", L.koerper(karte, felder(karte), stand.lehrstelle));
+      const werte = felder(karte);
+      if (L.mitProfil(karte, stand.lehrstelle)) await senden("/api/suche/rahmen", L.koerper(karte, werte, stand.lehrstelle));
+      if (karte === "nicht") await senden("/api/firmen/ausgeschlossen", L.firmenKoerper(werte.firmen));
       oeffne(karte, false);
       status(meldung, GESPEICHERT, "ok");
       document.dispatchEvent(new CustomEvent("suchprofil-geaendert"));
@@ -73,8 +77,8 @@ window.SucheRahmen = (() => {
   }
 
   /** The values of the profile; a form that is open keeps what the person is typing. */
-  function zeige(rahmen, lehrstelle) {
-    stand = { werte: rahmen.werte || {}, alleKantone: rahmen.alle_kantone || [], lehrstelle };
+  function zeige(rahmen, lehrstelle, firmen = []) {
+    stand = { werte: rahmen.werte || {}, alleKantone: rahmen.alle_kantone || [], lehrstelle, firmen };
   }
 
   for (const karte of KARTEN) {

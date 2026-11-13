@@ -336,14 +336,16 @@ class Hits:
 
     def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
                own_portals: frozenset[str] = frozenset(), near=lambda place: False,
-               title_positive: tuple[str, ...] = (), max_age_by_portal: dict[str, int] | None = None) -> dict:
+               title_positive: tuple[str, ...] = (), max_age_by_portal: dict[str, int] | None = None,
+               excluded: frozenset[str] = frozenset()) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away. With positive
         terms (G31), a title needs one of them; the others are screened out before their text counts against the limit.
-        `max_age_by_portal` shortens the window per portal after a successful run (G32).
+        `max_age_by_portal` shortens the window per portal after a successful run (G32). `excluded`: company keys
+        the person no longer wants to see (#226); their hits are only counted.
         """
-        fetch, nearby, filtered, known, merged = [], [], [], 0, 0
+        fetch, nearby, filtered, known, merged, left_out = [], [], [], 0, 0, 0
         ages = max_age_by_portal or {}
         with _LOCK:
             stored = self.all()
@@ -358,6 +360,9 @@ class Hits:
                     continue
                 if key(hit) in known_keys or comparable_link(hit["link"], any_fragment=True) in known_links:
                     known += 1
+                    continue
+                if company_key(hit["firma"]) in excluded:
+                    left_out += 1
                     continue
                 twin = _find_twin(hit, stored)
                 if twin is not None:
@@ -379,14 +384,16 @@ class Hits:
                         nearby.append(key(hit))
             if merged:
                 self._write(stored)
-        return {"holen": fetch, "nah": nearby, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": merged}
+        return {"holen": fetch, "nah": nearby, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": merged,
+                "ausgeschlossen": left_out}
 
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
             own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = (),
-            check=lambda title, text: "", saved_in: str = SAVED_IN[SIE]) -> dict:
+            check=lambda title, text: "", saved_in: str = SAVED_IN[SIE], excluded: frozenset[str] = frozenset()) -> dict:
         """Store new hits; the same job from another portal only adds its link. `agencies`: more from the profile (G34).
 
         `check` is the pre-check by fixed rules (G33): its reason stays on the hit as `vorpruefung`, the hit stays too.
+        A hit of an `excluded` company (#226) is not stored, even when the screening let it through.
         """
         rejected, new, merged = [], 0, 0
         with _LOCK:
@@ -398,7 +405,7 @@ class Hits:
                 except ValueError as error:
                     rejected.append(str(error))
                     continue
-                if key(hit) in by_key:
+                if key(hit) in by_key or company_key(hit["firma"]) in excluded:
                     continue
                 twin = _find_twin(hit, stored)
                 if twin is not None:

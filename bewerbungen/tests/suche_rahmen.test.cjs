@@ -39,3 +39,14 @@ test("the cantons hint says what an empty choice means for each kind", () => {
 test("the title filter line says when there is none", () => {
   assert.equal(L.titelfilterLeer, "Kein Titelfilter");
 });
+
+test("the excluded companies go as one list, one per line (#226, G65)", () => {
+  assert.deepEqual(L.firmenKoerper("Muster Bau AG\n\n  Beispiel Holz  \n"), { firmen: ["Muster Bau AG", "Beispiel Holz"] });
+  assert.deepEqual(L.firmenKoerper(""), { firmen: [] });
+});
+
+test("an apprenticeship's Was nicht saves only the companies, not the profile", () => {
+  assert.equal(L.mitProfil("nicht", false), true);
+  assert.equal(L.mitProfil("nicht", true), false);
+  assert.equal(L.mitProfil("region", true), true);
+});

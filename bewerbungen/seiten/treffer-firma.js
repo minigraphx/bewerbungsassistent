@@ -43,8 +43,9 @@
   }
 
   /** The company line under the AI's assessment; `alle` names the link to the page Firmen or Lehrbetriebe, `wo` that
-   *  page for a value by hand, and `nachPruefen` gets the result of „Jetzt prüfen“. */
-  function zeile(firma, heute, { lehrstelle = false, alle = "Alle Firmen", wo = "", nachPruefen = null } = {}) {
+   *  page for a value by hand, and `nachPruefen` gets the result of „Jetzt prüfen“. With `ausschliessen` ({text,
+   *  aktion}) the line offers to show the company's hits no more (#226, G65). */
+  function zeile(firma, heute, { lehrstelle = false, alle = "Alle Firmen", wo = "", nachPruefen = null, ausschliessen = null } = {}) {
     if (!firma) return null;
     const z = logik.firmenZeile(firma, heute, { lehrstelle });
     const satz = z.zustand === "fehler" ? el("p", { class: "status-line", "data-level": "warning" }, z.satz)
@@ -54,7 +55,9 @@
       z.wert ? wertBlock(z) : null, satz,
       z.datum ? el("p", { class: "company-line__date" }, z.datum) : null,
       el("div", { class: "btn-row" }, ...z.aktionen.map(a => aktion(firma, a, { wo, nachPruefen })),
-        el("a", { class: "btn btn--sm btn--quiet", href: "/firmen" }, alle)));
+        el("a", { class: "btn btn--sm btn--quiet", href: "/firmen" }, alle),
+        ausschliessen ? el("button", { type: "button", class: "btn btn--sm btn--quiet",
+          onclick: event => { event.currentTarget.disabled = true; ausschliessen.aktion(); } }, ausschliessen.text) : null));
   }
 
   window.TrefferFirma = { marke, zeile };

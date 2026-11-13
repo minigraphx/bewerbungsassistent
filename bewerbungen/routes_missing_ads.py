@@ -6,6 +6,7 @@ is there stays. The pages read `text_fehlt` through `note_for_saved` and `note_f
 """
 import threading
 
+import excluded_companies
 import missing_ads
 import precheck
 import unterlagen
@@ -34,7 +35,7 @@ def _ad_of(k):
 
 
 def _missing(k, store: Hits) -> list[dict]:
-    return [*missing_ads.saved_without_ad(k.register().alle(), _ad_of(k), store), *missing_ads.hits_without_ad(store)]
+    return [*missing_ads.saved_without_ad(k.register().alle(), _ad_of(k), store), *missing_ads.hits_without_ad(store, excluded_companies.keys(k.daten))]
 
 
 def _wanted_hits(body) -> list[str] | None:

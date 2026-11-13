@@ -6,6 +6,7 @@ afterwards, read from the mediation's account. The run itself goes package by pa
 `/api/suche/bewerten-paket`; the mediation refuses a package once the budget is used up, and what was rated stays.
 Nothing here calls the AI; the extension and Claude cannot reach the route.
 """
+import excluded_companies
 import missing_ads
 import preferences
 import rate_all
@@ -44,7 +45,7 @@ def budget_left() -> float | None:
 def _open_hits(k, store: Hits) -> tuple[list[int | None], list[str], list[dict]]:
     """Lengths of the ads to rate (None: still to load), the hits to load first and the hits that cannot be loaded."""
     lengths, to_load, not_loadable = [], [], []
-    for hit in store.all():
+    for hit in excluded_companies.shown(store.all(), excluded_companies.keys(k.daten)):
         if hit.get("zustand") != NEW or hit.get("bewertung"):
             continue
         text = store.text(hit["id"]).strip()

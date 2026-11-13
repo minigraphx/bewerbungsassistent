@@ -8,7 +8,7 @@ here goes to the AI.
 import re
 import urllib.parse
 
-from hits import DOMAINS, Hits, checked_link, portal_of
+from hits import DOMAINS, Hits, checked_link, company_key, portal_of
 
 TREFFER, BEWERBUNG = "treffer", "bewerbung"
 KINDS = (TREFFER, BEWERBUNG)
@@ -78,9 +78,11 @@ def hit_job(hit: dict) -> dict:
     return {"art": TREFFER, "id": hit["id"], "portal": hit["portal"], "portal_id": hit["portal_id"], "link": hit["link"]}
 
 
-def hits_without_ad(store: Hits) -> list[dict]:
+def hits_without_ad(store: Hits, excluded: frozenset[str] = frozenset()) -> list[dict]:
+    """New hits without a text; none of a company the person excluded (#226)."""
     return [_job(TREFFER, hit["id"], hit["link"], hit["portal_id"]) for hit in store.all()
-            if hit.get("zustand") == "neu" and not store.text(hit["id"]).strip()]
+            if hit.get("zustand") == "neu" and not store.text(hit["id"]).strip()
+            and company_key(hit.get("firma") or "") not in excluded]
 
 
 def note(job: dict, failure: str | None) -> dict:
