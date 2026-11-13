@@ -101,6 +101,12 @@ def test_shared_context_comes_first_and_is_cached(daten):
     assert "<inserat>" in payload["messages"][0]["content"]
 
 
+def test_every_task_may_use_all_the_output_the_mediation_allows():
+    """Thinking counts toward max_tokens; a lower limit only turns a long thought into an error, it saves nothing."""
+    assert set(tasks.MAX_TOKENS) == set(tasks.MODELS)
+    assert set(tasks.MAX_TOKENS.values()) == {tasks.MEDIATION_MAX_TOKENS} and tasks.MEDIATION_MAX_TOKENS == 16_000
+
+
 def test_effort_is_sent_only_when_the_task_names_one(daten):
     client = FakeClient(reply={"ok": True})
     gateway, _ = gateway_for(daten, client)
