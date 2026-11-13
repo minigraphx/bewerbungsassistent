@@ -17,6 +17,13 @@
                   "November", "Dezember"];
   // Asking for the budget reaches the mediation, so a tab asks again only after a while.
   const BUDGET_MAX_AGE_MS = 5 * 60 * 1000;
+  // From this share used the sidebar warns in words (#211): a bar in another colour alone is easy to miss.
+  const NEARLY_USED_SHARE = 0.8;
+  const WARNINGS = {
+    low: { long: "Budget fast aufgebraucht", short: "fast aufgebraucht" },
+    empty: { long: "Budget aufgebraucht", short: "aufgebraucht" },
+  };
+  const NO_MEDIATION_BUDGET = { long: "Kein Budget der Vermittlung", short: "kein Budget der Vermittlung" };
 
   function activeTarget(page) {
     return TARGET_OF_PAGE[page] || null;
@@ -43,31 +50,53 @@
     return name ? `im ${name}` : "in diesem Monat";
   }
 
+  function budgetState(spent, budget) {
+    if (spent >= budget) return "empty";
+    return spent >= budget * NEARLY_USED_SHARE ? "low" : "ok";
+  }
+
   function mediationBudget(status, when) {
     const budget = status.budget_usd;
     const spent = Math.max(0, Number(status.verbraucht_usd) || 0);
     const percent = Math.min(100, Math.round((spent / budget) * 100));
+    const left = `USD ${usd(Math.max(0, budget - spent))} frei`;
+    const state = budgetState(spent, budget);
+    const warning = WARNINGS[state];
+    const short = `KI-Budget: ${left}`;
     return {
       title: `KI-Budget ${when}`,
       text: spent > 0 ? `USD ${usd(spent)} von ${usd(budget)} gebraucht` : `USD ${usd(budget)} frei`,
-      short: `KI-Budget: USD ${usd(Math.max(0, budget - spent))} frei`,
+      short,
       percent,
       label: spent > 0 ? `${percent} Prozent des Budgets gebraucht` : "Noch nichts gebraucht",
+      detail: spent > 0 ? left : "Noch nichts gebraucht",
+      warning: warning ? warning.long : "",
+      state,
+      narrow: warning ? `${short} · ${warning.short}` : short,
     };
   }
 
-  /** The AI at the bottom of the sidebar, from GET /api/ki/status; null when there is nothing to show. */
+  function ownKeyCosts(status, when) {
+    const costs = usd(Math.max(0, Number(status.kosten_usd) || 0));
+    const short = `KI-Kosten: USD ${costs}`;
+    return {
+      title: `KI-Kosten ${when}`, text: `USD ${costs} mit eigenem Schlüssel`, short, percent: null, label: "",
+      detail: NO_MEDIATION_BUDGET.long, warning: "", state: "own", narrow: `${short} · ${NO_MEDIATION_BUDGET.short}`,
+    };
+  }
+
+  /**
+   * The AI at the bottom of the sidebar, from GET /api/ki/status; null when there is nothing to show. `detail` is
+   * what is left (or that no budget applies), `warning` names a budget nearly or wholly used, `narrow` is the line
+   * of the header below 900 px.
+   */
   function budgetView(status) {
     if (!status || !status.eingerichtet) return null;
     const when = monthName(status.monat);
     if (status.vermittlung && typeof status.budget_usd === "number" && status.budget_usd > 0) {
       return mediationBudget(status, when);
     }
-    if (!status.vermittlung && status.eigener_schluessel) {
-      const costs = usd(Math.max(0, Number(status.kosten_usd) || 0));
-      return { title: `KI-Kosten ${when}`, text: `USD ${costs} mit eigenem Schlüssel`, short: `KI-Kosten: USD ${costs}`,
-               percent: null, label: "" };
-    }
+    if (!status.vermittlung && status.eigener_schluessel) return ownKeyCosts(status, when);
     return null;
   }
 
@@ -78,7 +107,7 @@
     return age >= 0 && age <= maxAge;
   }
 
-  const logic = { BUDGET_MAX_AGE_MS, activeTarget, badges, budgetView, isFresh };
+  const logic = { BUDGET_MAX_AGE_MS, NEARLY_USED_SHARE, activeTarget, badges, budgetView, isFresh };
   if (typeof module !== "undefined") module.exports = logic;
   else global.SidebarLogic = logic;
 })(typeof window !== "undefined" ? window : globalThis);

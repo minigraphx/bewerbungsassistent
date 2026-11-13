@@ -32,6 +32,9 @@
 .app-nav__budget-title { color: var(--text-strong); font-weight: 500; }
 .app-nav__bar { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .app-nav__bar-fill { width: 0; height: 6px; border-radius: 999px; background: var(--accent); }
+/* A budget nearly or wholly used is named in words (#211). */
+.app-nav__budget-warning { color: var(--text-strong); font-weight: 700; }
+.app-nav__budget-short:is([data-state="low"], [data-state="empty"]) { color: var(--text-strong); font-weight: 700; }
 .app-nav__extension { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 8px; margin: 0; }
 .app-nav__extension > a { grid-column: 2; }
 .app-nav__budget:not([hidden]) + .app-nav__extension { padding-top: 8px; border-top: 1px solid var(--line); }
