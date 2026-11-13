@@ -13,14 +13,20 @@
     "nav.suche": { sie: "Stellen suchen", du: "Stellen suchen", lehrstelle: "Lehrstellen suchen" },
     "nav.stellen": { sie: "Stellen", du: "Stellen", lehrstelle: "Lehrstellen" },
     // Other pages (step 6)
-    "dateien.variante": { sie: "Wenn Sie in einer Bewerbung eine Variante wählen, gilt sie dort.", du: "Wenn du in einer Bewerbung eine Variante wählst, gilt sie dort." },
-    "dateien.eigen-titel": { sie: "Ihr eigenes PDF", du: "Dein eigenes PDF" },
-    "dateien.eigen": { sie: "Sonst gilt der Lebenslauf, den Sie hier hochladen.", du: "Sonst gilt der Lebenslauf, den du hier hochlädst." },
+    "dateien.cv-titel": { sie: "Ihr Lebenslauf", du: "Dein Lebenslauf" },
+    "dateien.app": { sie: "Aus Ihren Angaben, für jede Stelle passend gewichtet. Empfohlen.", du: "Aus deinen Angaben, für jede Stelle passend gewichtet. Empfohlen." },
+    "dateien.eigen": { sie: "Es geht unverändert an jede Firma. Ändern können Sie es nur ausserhalb der App.", du: "Es geht unverändert an jede Firma. Ändern kannst du es nur ausserhalb der App." },
+    "dateien.app-wie": { sie: "Aus Meine Angaben. Für jede Stelle passen Sie ihn in der Bewerbung an.", du: "Aus Meine Angaben. Für jede Stelle passt du ihn in der Bewerbung an." },
+    "dateien.ihr-pdf": { sie: "Ihr PDF", du: "Dein PDF" },
     "dateien.wie-es-ist": {
       sie: "Ihr PDF wird so verwendet, wie es ist. Ändern Sie es dort, wo Sie es erstellt haben, und laden Sie es neu hoch.",
       du: "Dein PDF wird so verwendet, wie es ist. Ändere es dort, wo du es erstellt hast, und lade es neu hoch.",
     },
-    "dateien.gebaut": { sie: "Ohne eigenes PDF erstellt die App den Lebenslauf aus Ihren Angaben.", du: "Ohne eigenes PDF erstellt die App den Lebenslauf aus deinen Angaben." },
+    "dateien.ordnet": { sie: "PDF, JPG oder PNG. Die App ordnet sie selbst ein, Sie können das ändern.", du: "PDF, JPG oder PNG. Die App ordnet sie selbst ein, du kannst das ändern." },
+    "dateien.zurueck-zur-app": {
+      sie: "Danach erstellt die App Ihren Lebenslauf aus Ihren Angaben. Das PDF lässt sich unter Frühere Fassungen zurückholen.",
+      du: "Danach erstellt die App deinen Lebenslauf aus deinen Angaben. Das PDF lässt sich unter Frühere Fassungen zurückholen.",
+    },
     "entwuerfe.intro": {
       sie: "Jedes Speichern legt eine Fassung an. Sie können jede ansehen, mit einer anderen vergleichen und zurückholen.",
       du: "Jedes Speichern legt eine Fassung an. Du kannst jede ansehen, mit einer anderen vergleichen und zurückholen.",

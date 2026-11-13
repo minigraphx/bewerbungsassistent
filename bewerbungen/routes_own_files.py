@@ -1,4 +1,4 @@
-"""Routes of the page „Meine Dateien“ and of the own cover letter (MIN-346). Neither the extension nor Claude reach them."""
+"""Routes of the page „Lebenslauf und Dateien“ and of the own cover letter (MIN-346). Neither the extension nor Claude reach them."""
 import base64
 import binascii
 import pathlib
@@ -16,6 +16,7 @@ UPLOAD_ROUTE = "/api/dateien/hochladen"
 LETTER_ROUTE = "/api/dateien/anschreiben"
 BODY_LIMITS = {route: int(own_files.MAX_FILE_BYTES * BASE64_OVERHEAD) + JSON_OVERHEAD_BYTES
                for route in (UPLOAD_ROUTE, LETTER_ROUTE)}
+KIND_NAMES = {own_files.CERTIFICATE_KIND: "Zertifikat", own_files.REFERENCE_KIND: "Zeugnis"}
 UNREADABLE = "Die Datei liess sich nicht lesen. Bitte nochmals versuchen."
 NO_APPLICATION = "Bewerbung mit id erwartet."
 
@@ -96,6 +97,27 @@ def remove(k, parameter, body):
     return json_antwort(own_files.listing(k.daten))
 
 
+def change_kind(k, parameter, body):
+    """A certificate becomes a reference or the other way round: the file moves to the folder of its kind."""
+    request = _body(body)
+    rel = request.get("datei")
+    source = own_files.checked_listed(k.daten, rel)
+    target_rel = own_files.kind_target(k.daten, rel, request.get("art"))
+    if target_rel == rel:
+        return json_antwort(own_files.listing(k.daten))
+    target = k.daten / target_rel
+    description = f"{source.name} als {KIND_NAMES[request['art']]} eingeordnet"
+
+    def write():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        source.rename(target)
+        refresh_chosen(k, rel)
+        k.ablage.speichere(target, description)
+
+    k.mit_entwurf(source, description, write)
+    return json_antwort(own_files.listing(k.daten))
+
+
 def _letter_of(k, request: dict) -> tuple[dict, pathlib.Path]:
     wanted = request.get("id")
     if not isinstance(wanted, str):
@@ -143,5 +165,5 @@ def remove_letter(k, parameter, body):
 
 
 GET = {"/api/dateien": overview, "/api/dateien/ansehen": show}
-POST = {UPLOAD_ROUTE: upload, "/api/dateien/entfernen": remove, LETTER_ROUTE: upload_letter,
+POST = {UPLOAD_ROUTE: upload, "/api/dateien/entfernen": remove, "/api/dateien/art": change_kind, LETTER_ROUTE: upload_letter,
         "/api/dateien/anschreiben/entfernen": remove_letter}
