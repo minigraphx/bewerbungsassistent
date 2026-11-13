@@ -124,7 +124,7 @@ def test_the_form_has_projects_and_teaching_with_tags_like_work():
     assert projects["group"]["type"] == "select" and projects["group"]["options"] == ["main", "more"]
     assert projects["tags"] == work["tags"] == teaching["tags"]
     assert teaching["highlights"]["tags"] is True
-    assert set(teaching) == {*work, "x-display"} - {"evidence"}
+    assert set(teaching) == set(work) - {"evidence"}
 
 
 def test_education_and_certificates_have_a_free_text_and_the_person_a_website():
@@ -153,7 +153,7 @@ def test_projects_teaching_texts_and_website_are_read_into_the_form():
     assert data["education"][0]["text"] == "Bachelor of Science in Informatik, Beispiel-Hochschule"
     assert data["education"][1] == {"text": "Matura, Gymnasium Beispiel, 2010"}
     assert data["certificates"][1] == {"text": "Kurs in Projektleitung, 2021"}
-    assert "x-display" not in data["work"][0]
+    assert data["work"][0]["x-display"] == "seit 2019"  # shown on work too since G30 (#181)
 
 
 def test_saving_without_a_change_keeps_the_file_byte_for_byte(tmp_path):

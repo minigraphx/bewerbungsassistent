@@ -243,7 +243,7 @@ test("rows are added up to the limit and removed with their tags", () => {
   assert.equal(lineRows(node).length, 3);
   assert.deepEqual(plain(changes.at(-1)), ["Eins", { text: "Zwei", tags: ["daten"] }, ""]);
 
-  const remove = findAll(lineRows(node)[1], (n) => n.tagName === "button")[0];
+  const remove = findAll(lineRows(node)[1], (n) => n.tagName === "button" && n.className === "remove-line")[0];
   remove.click();
   assert.equal(lineRows(node).length, 2);
   assert.deepEqual(plain(changes.at(-1)), ["Eins", ""]);

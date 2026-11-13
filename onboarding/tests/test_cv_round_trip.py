@@ -190,7 +190,7 @@ def test_the_form_is_filled_from_the_cv():
                         {"text": "Aufbau von Datenpipelines mit Airflow", "tags": ["daten"]}],
          "tags": ["web", "daten"]},
         {"position": "Junior-Entwicklerin", "name": "Muster GmbH", "location": "Zürich", "startDate": "2015",
-         "endDate": "2019", "highlights": ["Wartung von Webshops"]},
+         "endDate": "2019", "x-display": "2015 bis 2019", "highlights": ["Wartung von Webshops"]},
     ]
     assert data["education"] == [{"studyType": "Bachelor", "area": "Informatik", "institution": "Beispiel-Hochschule",
                                   "startDate": "2011", "endDate": "2015",
