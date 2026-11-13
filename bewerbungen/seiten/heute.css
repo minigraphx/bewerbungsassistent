@@ -1,0 +1,77 @@
+/* Heute and the first start (#260, A1 and A2): only tokens from stil.css, no colours of its own. */
+
+.today { display: flex; flex-direction: column; gap: var(--space-5); }
+.today[hidden] { display: none; }
+.today__head { display: flex; flex-direction: column; gap: var(--space-1); max-width: var(--width-reading); }
+.today__head p { margin: 0; }
+.today__line { color: var(--text-muted); }
+.today__line:empty { display: none; }
+.today h2:not([class]) { margin: 0 0 var(--space-3); padding: 0; border: 0; font-size: 18px; line-height: 24px; }
+.today__columns { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: flex-start; }
+.today__main { flex: 3 1 420px; min-width: 0; }
+.today__side { flex: 2 1 260px; min-width: 0; }
+.today__main[hidden], .today__side[hidden] { display: none; }
+.today__box { margin: 0; padding: 0 var(--space-4); list-style: none; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.today__empty { margin: 0; color: var(--text-muted); }
+
+/* The next step as one row: text on the left, the button on the right */
+.next-step--row { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; justify-content: space-between; }
+.next-step--row[hidden] { display: none; }
+.next-step--row .next-step__body { flex: 1 1 360px; min-width: 0; }
+.next-step--row .next-step__text { margin-bottom: 0; }
+.next-step--row .btn-row { flex: none; }
+
+/* Danach */
+.today__task { display: flex; gap: var(--space-3); justify-content: space-between; align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+.today__task:last-child { border-bottom: 0; }
+.today__task-text { display: flex; flex-direction: column; min-width: 0; }
+.today__task strong { color: var(--text-strong); font-weight: 500; }
+.today__meta { font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.today__task .btn { flex: none; }
+
+/* Termine und Fristen */
+.today__date { display: grid; grid-template-columns: 56px 1fr; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+.today__date:last-child { border-bottom: 0; }
+.today__day { font-weight: 700; color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.today__rav { margin-top: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--warning-bg); color: var(--text-strong); }
+.today__rav[hidden] { display: none; }
+.today__rav p { margin: 0 0 var(--space-1); }
+
+/* Ihr Stand */
+.today__tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-3); }
+.tile { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3) var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); color: var(--text); text-decoration: none; }
+.tile:hover { border-color: var(--accent); color: var(--text); }
+.tile__label { font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.tile__count { font: 700 28px/34px var(--font-sans); color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.tile__hint { min-height: 20px; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+
+/* The way to the first application */
+.path { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.path__step { display: grid; grid-template-columns: 32px 1fr; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.path__step[data-state="current"] { padding: var(--space-5); border-color: var(--accent-subtle); background: var(--accent-subtle); }
+.path__step[data-state="done"] .path__title { color: var(--text-muted); }
+.path__mark { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid var(--line-strong); border-radius: var(--radius-full); font-weight: 700; color: var(--text-strong); background: var(--surface); }
+.path__step[data-state="current"] .path__mark { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.path__step[data-state="done"] .path__mark { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+.path__body { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.path__body p { margin: 0; }
+.path__title { color: var(--text-strong); }
+.path__state { color: var(--text-muted); font-weight: 400; }
+.path__eyebrow { font: 500 14px/20px var(--font-sans); color: var(--text); }
+.path__heading { margin: 0; font: 700 22px/28px var(--font-sans); color: var(--text-strong); }
+.path__text { color: var(--text-muted); max-width: 60ch; }
+.path__step[data-state="current"] .path__text { color: var(--text); margin-bottom: var(--space-3); }
+.path__link { align-self: flex-start; }
+.path__link[hidden] { display: none; }
+.today__facts li { padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+.today__facts li:last-child { border-bottom: 0; }
+.today__facts strong { display: block; color: var(--text-strong); }
+.today__side > a { display: inline-block; margin-top: var(--space-3); }
+
+/* The pass over saved jobs (G38) */
+.pass { width: min(720px, calc(100vw - 2 * var(--space-4))); }
+.pass__progress { margin: 0 0 var(--space-1); font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.pass__meta { margin: 0 0 var(--space-3); color: var(--text-muted); }
+.pass__ad { max-height: 45vh; overflow: auto; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-subtle); font-size: 14px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pass__ad p { margin: 0; white-space: normal; }
+.pass__open { margin: var(--space-2) 0 0; font-size: 14px; }
