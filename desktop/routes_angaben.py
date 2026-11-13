@@ -7,6 +7,8 @@ Suggestions from documents (`onboarding/prefill.py`) run outside the lock, becau
 The page opens on the cv.yaml of the data folder (`onboarding/cv_read.py`, G23), and taking over merges into it.
 Existing Markdown files are kept unless the person chooses to replace them, after seeing the diff (G26).
 It suggests the tags already in the data folder (`onboarding/known_tags.py`, G24).
+It also reads search profile, style profile and building blocks back into the form (`onboarding/basics_read.py`,
+#217); taking over with what it read merges into them, only what changed (`onboarding/basics_merge.py`).
 """
 import base64
 import binascii
@@ -98,6 +100,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     from dateien import schreibe_atomar
     from server import json_antwort
     import archive
+    import basics_read
     import cv_read
     import documents
     import import_bundle
@@ -114,9 +117,12 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
 
     def overview(k, parameter, body):
         folder = ready_data_dir(state, k)
+        choice = _choice(folder)
+        cv_answers = cv_read.read_form_data(folder)
         return json_antwort({"stand": _read_state(folder), "unterlagen": import_documents.pending_documents(folder),
-                             "vorhanden": _existing_basics(folder), "wahl": _choice(folder),
-                             "lebenslauf": cv_read.read_form_data(folder), "tags": known_tags.known_tags(folder, form)})
+                             "vorhanden": _existing_basics(folder), "wahl": choice, "lebenslauf": cv_answers,
+                             "grundlagen": basics_read.read_back(form, folder, choice["track"], cv_answers),
+                             "tags": known_tags.known_tags(folder, form)})
 
     def not_taken_over(k, parameter, body):
         stored = _read_state(ready_data_dir(state, k))
@@ -162,7 +168,8 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
         request = _body(body)
         force, choice = replace_request(request.get("ersetzen"))
         try:
-            result = import_bundle.import_answers(folder, request.get("bundle"), state.today(), force=force, choice=choice)
+            result = import_bundle.import_answers(folder, request.get("bundle"), state.today(), force=force, choice=choice,
+                                                  base=request.get("grundlagen"))
         except import_bundle.ImportRejected as rejected:
             return rejected_answer(rejected, json_antwort)
         if not result.incomplete:

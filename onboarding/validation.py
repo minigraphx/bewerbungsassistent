@@ -72,6 +72,16 @@ def validate_bundle(form: dict, bundle, known: frozenset[str] = frozenset(),
     return errors
 
 
+def field_errors(form: dict, field: dict, track: str, value) -> list[ValidationError]:
+    """The errors of one value on its own, as for a value read back from the basics (#217)."""
+    return _validate_field(form, field, track, {field["id"]: value}, field["id"], frozenset(), [])
+
+
+def section_errors(form: dict, section: dict, track: str, value) -> list[ValidationError]:
+    """The errors of one section on its own, as for entries read back from the basics (#217)."""
+    return _validate_section(form, section, track, value, frozenset(), [])
+
+
 def loaded_entries(section: dict, loaded: dict | None) -> list[dict]:
     """The entries of a section as read from cv.yaml; one entry for a section that does not repeat."""
     value = loaded.get(section["id"]) if isinstance(loaded, dict) and section.get("cv") else None

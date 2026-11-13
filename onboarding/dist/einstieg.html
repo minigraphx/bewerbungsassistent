@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-d6K0YWQ+l7enkZidxMmeNqWzRweVMk8nbhuKgsJZC5Q='; style-src 'sha256-XcIPIRDgJm4nIcuG11CgURlnSGDDR/rO4GI75vq+kb8='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-7VHQ0cT5WniDJSnxn63H8yy5iqSjnihPoE60ma5s2Do='; style-src 'sha256-yxC8Kt32qDLqiiqxQ/ybme+fEZ4LqWCIcVNUTA3tLQU='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsbegleiter</title>
@@ -227,6 +227,14 @@ button { font: inherit; cursor: pointer; }
 .diff__line--weg { background: var(--danger-soft); }
 .diff__line--neu { background: var(--success-soft); }
 .diff__line--gap { color: var(--muted); }
+
+/* Lines of search profile, style profile or building blocks the form does not know (#217) */
+.other-lines { margin: 16px 0 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-subtle); }
+.other-lines summary { cursor: pointer; font-size: 14px; line-height: 20px; color: var(--text); }
+.other-lines[open] summary { margin-bottom: 8px; }
+.other-lines__heading { margin: 12px 0 4px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--muted); }
+.other-lines pre { margin: 0; font: inherit; font-size: 13px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.other-lines p:last-child { margin: 12px 0 0; font-size: 14px; line-height: 20px; }
 </style>
 </head>
 <body>
@@ -869,10 +877,31 @@ function fillFromCv(form, state, cv) {
       data[section.id] = pickFields(cvFields(section), value, true);
     }
   }
+  return withoutMarksOn(state, data, sections);
+}
+
+/** The new data; suggestions on the sections just taken from a file no longer apply. */
+function withoutMarksOn(state, data, sections) {
   if (!state.suggested) return { ...state, data };
   const filled = new Set(sections.map((s) => s.id));
   const marks = Object.entries(state.suggested).filter(([key]) => !filled.has(key.split(".")[0]));
   return { ...state, data, suggested: Object.fromEntries(marks) };
+}
+
+/** New state with the sections the app read back from search profile, style profile and building blocks (#217).
+ *  Only sections of files that exist come; what a file holds replaces what the page kept, as for cv.yaml. */
+function fillFromBasics(form, state, basics) {
+  if (!isPlainObject(basics)) return state;
+  const sections = form.sections.filter((s) => !s.cv && Object.prototype.hasOwnProperty.call(basics, s.id));
+  const data = { ...state.data };
+  for (const section of sections) {
+    const value = basics[section.id];
+    data[section.id] = section.repeat
+      ? (Array.isArray(value) ? value : []).map((item) => pickFields(section.fields, item, true))
+        .filter((item) => Object.keys(item).length)
+      : pickFields(section.fields, value, true);
+  }
+  return withoutMarksOn(state, data, sections);
 }
 
 // Suggestions for tags: those the app found in the data folder (cv.yaml, varianten.yaml, jobs/) and those typed here.
@@ -904,7 +933,7 @@ if (typeof module !== "undefined") {
   module.exports = {
     sectionsFor, fieldsFor, shownFields, linesToList, listToLines, parseTags, tagsToText, taggedLine, lineText, knownTags, isBilingual, bilingualOf,
     collectBundle, draftBundle, isBlankItem, stateFromBundle,
-    setValue, addItem, removeItem, applySuggestions, fillFromCv, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
+    setValue, addItem, removeItem, applySuggestions, fillFromCv, fillFromBasics, cleanSuggestions, confirmSuggestions, uncheckedSuggestions, BundleError,
   };
 }
 
@@ -1949,6 +1978,8 @@ let choice = null; // in the app: what the setup chose (MIN-369) { track, anrede
 let pageStateFound = false; // in the app: this page has kept answers before (not only the track of the setup)
 let folderTags = []; // in the app: tags already in cv.yaml, varianten.yaml and jobs/ of the data folder (G24)
 let cvAnswers = null; // in the app: the answers read from cv.yaml; what it holds never blocks (#167, G23)
+let basicsRead = null; // in the app: what the page read back from the Markdown basics, sent along to merge (#217)
+let basicsLines = []; // in the app: lines of the basics the form does not know, shown as text (#217)
 const backend = typeof createAppBackend === "function" ? createAppBackend() : null; // only in the page of the app
 
 // Storage: optional convenience; the page works without it.
@@ -1975,6 +2006,8 @@ async function loadStored() {
       notTakenOver = Boolean(overview.stand && overview.stand.offen === true);
       // Answers not taken over yet are newer than cv.yaml; otherwise the file counts (G23).
       if (!notTakenOver) state = fillFromCv(form, state, overview.lebenslauf);
+      if (!notTakenOver) state = fillFromBasics(form, state, overview.grundlagen && overview.grundlagen.daten);
+      takeBasics(overview.grundlagen);
       uploads = overview.unterlagen;
       existingBasics = overview.vorhanden;
       folderTags = Array.isArray(overview.tags) ? overview.tags : [];
@@ -1986,6 +2019,21 @@ async function loadStored() {
   } catch (error) {
     if (backend) appProblem = error.message;
     else setStatus("Gespeicherte Eingaben konnten nicht gelesen werden.");
+  }
+}
+
+/** What the app read back from the Markdown basics: the answers to merge against and the lines kept as they are. */
+function takeBasics(basics) {
+  basicsRead = basics && typeof basics.daten === "object" ? basics.daten : null;
+  basicsLines = basics && Array.isArray(basics.fremd) ? basics.fremd : [];
+}
+
+async function readBasicsAgain() {
+  try {
+    takeBasics((await backend.overview()).grundlagen);
+  } catch (error) {
+    setStatus(`Suchprofil, Stilprofil und Bausteine liessen sich nicht neu lesen: ${error.message}`);
+    takeBasics(null); // without what is in the files, the next take-over asks per file again (G26)
   }
 }
 
@@ -2480,7 +2528,7 @@ function sectionView(section, single) {
   const attrs = { className: "part", dataset: { section: section.id } };
   if (!section.repeat) {
     const item = state.data[section.id] || {};
-    return el("section", attrs, [...header, suggestionNote(section.id), ...shownFields(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id]))]);
+    return el("section", attrs, [...header, suggestionNote(section.id), ...shownFields(section, track).map((f) => fieldFor(section, f, [section.id, f.id], item[f.id])), otherLinesView(section.id)]);
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
   const max = section.maxItems ?? form.limits.repeatItems;
@@ -2506,7 +2554,27 @@ function sectionView(section, single) {
       },
     }, `+ ${itemTitle} hinzufügen`)
     : el("p", { className: "hint" }, `Höchstens ${max} Einträge.`);
-  return el("section", attrs, [...header, ...items, add]);
+  return el("section", attrs, [...header, ...items, add, otherLinesView(section.id)]);
+}
+
+/** Lines of the basics the form does not know (#217): shown as text with the way to change them; saving keeps them. */
+function otherLinesView(sectionId) {
+  const groups = basicsLines.filter((group) => group.abschnitt === sectionId);
+  if (!groups.length) return null;
+  const files = [...new Map(groups.map((group) => [group.datei, group.titel])).entries()];
+  const count = groups.reduce((sum, group) => sum + group.zeilen.length, 0);
+  return el("details", { className: "other-lines" }, [
+    el("summary", {}, `${count === 1 ? "Eine weitere Zeile" : `${count} weitere Zeilen`} aus ${files.map(([, title]) => `„${title}“`).join(" und ")}`),
+    el("p", { className: "hint" }, "Diese Zeilen kennt das Formular nicht. Beim Speichern bleiben sie, wie sie sind."),
+    ...groups.map((group) => el("div", { className: "other-lines__group" }, [
+      el("p", { className: "other-lines__heading" }, `${group.titel}, ${group.ueberschrift}`),
+      el("pre", {}, group.zeilen.join("\n")),
+    ])),
+    el("p", {}, files.map(([datei, title], index) => [
+      index ? " · " : "",
+      el("a", { href: `/inhalte?${new URLSearchParams({ datei, ansicht: "text" })}` }, `${title} unter „Inhalte als Text“ ändern`),
+    ]).flat()),
+  ]);
 }
 
 /** After a rerender: focus the first control inside the first selector that matches (headings get focus too). */
@@ -2643,11 +2711,12 @@ async function takeOver(replace) {
     window.clearTimeout(autosaveTimer);
     storeNow();
     const sent = state; // a change while this runs is not taken over
-    const result = await backend.takeOver(collectBundle(form, state, new Date()), replace);
+    const result = await backend.takeOver(collectBundle(form, state, new Date()), replace, basicsRead);
     const present = [...result.geschrieben, ...(result.unveraendert || []), ...(result.nicht_ersetzt || [])];
     existingBasics = present.length ? present : existingBasics;
     notTakenOver = state !== sent || Boolean(result.unvollstaendig);
     storeNow();
+    await readBasicsAgain();
     done.hidden = false;
     done.replaceChildren(
       result.unvollstaendig
@@ -2727,6 +2796,7 @@ async function loadFile(event) {
     const loaded = isZip ? await readUploadZip(file) : { bundle: await file.text(), uploads: [] };
     state = stateFromBundle(form, JSON.parse(loaded.bundle));
     notTakenOver = true;
+    basicsRead = null; // a file to take over: existing basics are a choice per file again (G26)
     forgetPrefillRun();
     if (!backend) uploads = loaded.uploads;
     uploadMessages = [];
@@ -2755,6 +2825,7 @@ function clearAll() {
   clearStored();
   state = { track: null, data: {} };
   notTakenOver = false;
+  basicsRead = null;
   forgetPrefillRun();
   if (!backend) {
     uploads = [];
