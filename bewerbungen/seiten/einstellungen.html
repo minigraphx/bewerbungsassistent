@@ -184,6 +184,13 @@
     </ul>
   </section>
 
+  <section class="card" id="seitengrenze" aria-labelledby="seitengrenze-titel">
+    <h2 id="seitengrenze-titel">Länge des Lebenslaufs</h2>
+    <p class="hilfe">Der Lebenslauf hat höchstens zwei Seiten, das Anschreiben genau eine. Ist etwas länger, setzt die App es enger. Reicht das nicht, nennt die Prüfung, was sich kürzen lässt. Ohne Zustimmung fällt nichts weg.</p>
+    <label class="schalter"><input type="checkbox" id="drei-seiten"> Drei Seiten für den Lebenslauf erlauben</label>
+    <div id="seitengrenze-meldung" class="status" role="status" aria-live="polite"></div>
+  </section>
+
   <section class="card" id="vorabversionen" aria-labelledby="beta-titel" hidden>
     <h2 id="beta-titel">Vorabversionen</h2>
     <p class="hilfe">Neue Versionen gibt es manchmal zuerst als Vorabversion zum Ausprobieren. Vorabversionen können noch Fehler haben. Eingeschaltet bietet die App auch Vorabversionen als Update an, sonst nur veröffentlichte Versionen. Ausschalten behält die installierte Version; das nächste Update kommt dann mit der nächsten veröffentlichten Version, die neuer ist.</p>
@@ -213,5 +220,6 @@
 <script src="/einstellungen.js"></script>
 <script src="/claude-abo.js"></script>
 <script src="/vorabversionen.js"></script>
+<script src="/seitengrenze.js"></script>
 </body>
 </html>

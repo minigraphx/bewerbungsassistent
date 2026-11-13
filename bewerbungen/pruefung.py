@@ -9,12 +9,16 @@ import dataclasses
 import datetime
 import pathlib
 import re
+from collections.abc import Callable
 
 import yaml
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
+import pfade  # noqa: F401  (makes the module lebenslauf importable)
+import cuts
 import mark_settings
+import page_limit
 import unterlagen
 
 PLATZHALTER = re.compile(r"TODO|XXX|\{\{|\}\}|\[\[|Lorem ipsum|<Firma>|<Stelle>|<Name>", re.IGNORECASE)
@@ -25,7 +29,9 @@ MONATE_EN = {m: i + 1 for i, m in enumerate(("January", "February", "March", "Ap
                                               "August", "September", "October", "November", "December"))}
 LOGO_MISSING = ("Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeichen des Designs. "
                 "Logo wählen unter «Erweitert».")
-MAX_SEITEN = {"lebenslauf": 3, "anschreiben": 1, "dossier": 8}  # dossier: cover, letter, CV and optional pages
+# G51: the letter one page, the CV two unless three are allowed (page_limit); dossier: cover, letter, CV and more
+MAX_SEITEN = {"lebenslauf": page_limit.DEFAULT, "anschreiben": 1, "dossier": 8}
+ALLOW_THREE = "Drei Seiten lassen sich unter «Einstellungen», «Erweitert» erlauben."
 NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "dossier": "Dossier"}
 MAX_ALTER_TAGE = 14
 CARE_OF = re.compile(r"^(z\.?\s*H\.?(d\.?)?|zu Handen|c/o|Attn\.?:?)\s+", re.IGNORECASE)
@@ -44,8 +50,27 @@ def _seiten(pdf: pathlib.Path) -> list[str]:
     return [seite.extract_text() or "" for seite in PdfReader(pdf).pages]
 
 
-def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False) -> list[Befund]:
-    """With `as_it_is` the person uploaded the file to use it unchanged: what is not broken is their decision."""
+def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, cut: Callable[[], list[str]]) -> Befund:
+    """A document over its page limit (G51). A built one was tightened already, so the finding names what could be
+    cut; the person decides, nothing is cut for them."""
+    name = NAMEN[art]
+    if as_it_is or art == "dossier":
+        return Befund("hinweis", f"{name}: {pages} Seiten, empfohlen höchstens {limit} Seite(n)")
+    allowed = "ist eine" if limit == 1 else f"sind höchstens {limit}"
+    pronoun = "er" if art == "lebenslauf" else "es"
+    text = f"{name}: {pages} Seiten, erlaubt {allowed}. Auch enger gesetzt passt {pronoun} nicht."
+    named = cut()
+    if named:
+        text += f" Kürzen lässt sich: {', '.join(named)}."
+    if art == "lebenslauf" and limit < page_limit.MOST:
+        text += f" {ALLOW_THREE}"
+    return Befund("fehler" if art == "anschreiben" else "hinweis", text)
+
+
+def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int | None = None,
+               cut: Callable[[], list[str]] = list) -> list[Befund]:
+    """With `as_it_is` the person uploaded the file to use it unchanged: what is not broken is their decision.
+    `limit` is the page limit (MAX_SEITEN without one); `cut` names what could be cut when a document is over it."""
     name = NAMEN[art]
     content_stufe = "hinweis" if as_it_is else "fehler"
     if not pdf.is_file():
@@ -60,9 +85,9 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False) -> list[Befu
         befunde.append(Befund(content_stufe, f"{name}: kaum Text extrahierbar – Bewerbungssoftware (ATS) liest es nicht"))
     else:
         befunde.append(Befund("ok", f"{name}: Text extrahierbar ({len(seiten)} Seite{'n' if len(seiten) != 1 else ''})"))
-    if len(seiten) > MAX_SEITEN[art]:
-        stufe = "fehler" if art == "anschreiben" and not as_it_is else "hinweis"
-        befunde.append(Befund(stufe, f"{name}: {len(seiten)} Seiten, empfohlen höchstens {MAX_SEITEN[art]} Seite(n)"))
+    limit = limit or MAX_SEITEN[art]
+    if len(seiten) > limit:
+        befunde.append(_over_limit(art, len(seiten), limit, as_it_is, cut))
     if PLATZHALTER.search(text):
         befunde.append(Befund(content_stufe, f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
     return befunde
@@ -159,6 +184,15 @@ def contact_person_findings(letter: pathlib.Path) -> list[Befund]:
     return check_contact_person(data.get("empfaenger"), data.get("anrede")) if isinstance(data, dict) else []
 
 
+def _letter_text(letter: pathlib.Path) -> str:
+    try:
+        data = yaml.safe_load(letter.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, yaml.YAMLError):
+        return ""
+    text = data.get("text") if isinstance(data, dict) else None
+    return text if isinstance(text, str) else ""
+
+
 def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[Befund]:
     """Alle Prüfungen einer Bewerbung; Fehler zuerst."""
     pfade = unterlagen.wirksame_pdfs(daten, bewerbung)
@@ -166,9 +200,11 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
     as_it_is = unterlagen.eigener_lebenslauf(daten, bewerbung) is not None or gesendet
     letter_as_it_is = unterlagen.own_letter(daten, bewerbung) is not None or gesendet
     quelle = unterlagen.letter_source(daten, bewerbung["id"])
-    befunde = pruefe_pdf(pfade["lebenslauf"], "lebenslauf", as_it_is=as_it_is)
+    befunde = pruefe_pdf(pfade["lebenslauf"], "lebenslauf", as_it_is=as_it_is, limit=page_limit.load(daten),
+                         cut=lambda: cuts.for_cv(unterlagen.tailored_cv(daten, bewerbung)))
     if pfade["anschreiben"].is_file() or quelle.is_file():
-        befunde += pruefe_pdf(pfade["anschreiben"], "anschreiben", as_it_is=letter_as_it_is)
+        befunde += pruefe_pdf(pfade["anschreiben"], "anschreiben", as_it_is=letter_as_it_is,
+                              cut=lambda: cuts.for_letter(_letter_text(quelle)))
         if pfade["anschreiben"].is_file():
             try:
                 text = "\n".join(_seiten(pfade["anschreiben"]))

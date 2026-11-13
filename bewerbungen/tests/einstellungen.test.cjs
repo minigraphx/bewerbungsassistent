@@ -238,3 +238,16 @@ test("the page styles use the tokens of the design system only", () => {
 test("the subscription section shows only as the chosen way", () => {
   assert.doesNotMatch(read("claude-abo.js"), /\$\("claude-abo"\)\.hidden = false/);
 });
+
+test("Erweitert: a switch allows three pages for the CV (G51), off by default", () => {
+  const html = read("einstellungen.html");
+  const length = card(panel(html, "erweitert"), "seitengrenze");
+  assert.match(length, /<h2 id="seitengrenze-titel">Länge des Lebenslaufs<\/h2>/);
+  assert.match(length, /höchstens zwei Seiten, das Anschreiben genau eine/);
+  assert.match(length, /<label class="schalter"><input type="checkbox" id="drei-seiten"> Drei Seiten für den Lebenslauf erlauben<\/label>/);
+  assert.equal(logic.sectionOf("#seitengrenze"), "erweitert");
+  assert.match(html, /<script src="\/seitengrenze\.js"><\/script>/);
+  const script = read("seitengrenze.js");
+  assert.match(script, /senden\("\/api\/unterlagen\/seitengrenze", \{ lebenslauf_seiten: an \? 3 : 2 \}\)/);
+  assert.match(script, /holen\("\/api\/unterlagen\/seitengrenze"\)/);
+});

@@ -15,7 +15,7 @@
   // Anchors that other pages and the guide link to, from the time the page was one long list.
   const SECTION_OF_ANCHOR = {
     kosten: "ki", einwilligung: "ki", "schluessel-teil": "ki", "claude-abo": "ki", einladung: "ki", zugang: "ki",
-    vorabversionen: "erweitert", daten: "daten", "ueber-die-app": "ueber",
+    vorabversionen: "erweitert", seitengrenze: "erweitert", daten: "daten", "ueber-die-app": "ueber",
   };
   const WAY_OF_ANCHOR = { "schluessel-teil": "schluessel", "claude-abo": "abo", einladung: "einladung" };
   // The card under the choice that asks for what the chosen way needs.
