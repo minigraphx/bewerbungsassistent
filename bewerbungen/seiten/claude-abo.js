@@ -7,7 +7,6 @@
   const TITEL = { einstieg: "Einstieg", jobsuche: "Stellensuche", bewerbung: "Bewerbung" };
 
   function zeige(stand) {
-    $("claude-abo").hidden = false;
     $("abo-aus").hidden = stand.zugang;
     $("abo-an").hidden = !stand.zugang;
     const veraltet = stand.desktop_veraltet;

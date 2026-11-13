@@ -31,7 +31,7 @@ Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ih
 Sie brauchen ein bezahltes Abo, weil [Claude in Chrome](https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome) nur damit läuft.
 
 1. **App laden und starten**, wie in der [Anleitung](installation.md) beschrieben. Die Einladung können Sie überspringen. Die [Browser-Erweiterung des Bewerbungsbegleiters](installation.md#browser-erweiterung-hinzufügen) brauchen Sie, um Inserate von LinkedIn und anderen Seiten einzulesen.
-2. **Skills hochladen:** In der App im Menü „Mehr“, „Erweiterte Einstellungen“, Abschnitt „Claude mit eigenem Abo“, laden Sie `einstieg.zip`, `jobsuche.zip` und `bewerbung.zip` herunter. In Claude: [Anpassen, Skills, „+“, Skill hochladen](https://support.claude.com/en/articles/12512180-use-skills-in-claude). Einmal pro Datei; entpacken ist nicht nötig.
+2. **Skills hochladen:** In der App unter „Einstellungen“, „KI und Budget“, wählen Sie bei „Zugang zur KI“ „Eigenes Claude-Abo“ und laden im Abschnitt „Claude mit eigenem Abo“ `einstieg.zip`, `jobsuche.zip` und `bewerbung.zip` herunter. In Claude: [Anpassen, Skills, „+“, Skill hochladen](https://support.claude.com/en/articles/12512180-use-skills-in-claude). Einmal pro Datei; entpacken ist nicht nötig.
 3. **Zugang einschalten:** Im selben Abschnitt. Hinweise lesen, Häkchen setzen, „Zugang einschalten“.
 
    ![Abschnitt „Claude mit eigenem Abo“ in den erweiterten Einstellungen, mit den drei Skills zum Herunterladen, den Hinweisen vor dem Einschalten und dem Knopf „Zugang einschalten“](bilder/einstellungen-claude.jpg)
@@ -69,7 +69,7 @@ Claude übernimmt die Stelle ins Register, schlägt eine Lebenslauf-Variante vor
 
 | Meldung oder Beobachtung | Was hilft |
 |---|---|
-| „Der Zugang für Claude ist ausgeschaltet.“ | In der App unter „Erweiterte Einstellungen“ einschalten. |
+| „Der Zugang für Claude ist ausgeschaltet.“ | In der App unter „Einstellungen“, „KI und Budget“, „Eigenes Claude-Abo“ einschalten. |
 | Claude kennt die Werkzeuge `bewerbungsbegleiter` nicht | Claude Desktop ganz beenden und neu öffnen. Unter Connectors nachsehen, ob der Eintrag erscheint. |
 | „Die Einstellungen von Claude Desktop lassen sich nicht lesen.“ | Die Datei selbst ergänzen. Text und Pfad stehen unter „Claude Code oder von Hand eintragen“. |
 | „Die App startet nicht.“ | App von Hand öffnen und nochmals versuchen. |

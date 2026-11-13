@@ -31,7 +31,7 @@ Die App nimmt über den Host nur diese vier Anfragen und die zwei für die offen
 
 ## Weitere Seiten durchsuchen (MIN-348)
 
-Nur mit eigenem API-Schlüssel, die Adressen trägt die Person in der App unter „Erweiterte Einstellungen“ ein.
+Nur mit eigenem API-Schlüssel, die Adressen trägt die Person in der App unter „Suche einstellen“ ein.
 
 - **Zugriff:** Das braucht den optionalen Zugriff auf alle Seiten. Die Erlaubnis gibt die Person selbst, in einem eigenen Tab (`erlauben.html?fuer=suche`). Fehlt sie, läuft die Suche auf den Portalen trotzdem und nennt die fehlende Erlaubnis in der Zusammenfassung.
 - **Ablauf:** Die Person trägt nur die Adresse ein (MIN-387). `lib/sites.js` öffnet sie im Tab, schickt Text und Linktexte an die App (`POST /api/suche/seite-lesen`) und sucht danach über das Suchformular der Seite, wenn es eines gibt: nur `method=get`, nur auf derselben Seite, ohne Passwortfeld; das Ausfüllen und Abschicken ersetzt ein Aufruf der fertigen Adresse, die Seite wird nicht bedient. Adressen mit `{begriff}` und `{ort}` laufen wie bisher. Die App nennt die Stellen zurück; deren Inserate liest die Erweiterung ebenfalls im Tab, mit einer Pause dazwischen. Danach gehen sie denselben Weg wie die Treffer der Portale.

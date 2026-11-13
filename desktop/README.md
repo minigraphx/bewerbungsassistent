@@ -20,7 +20,7 @@ Die App ist zugleich der **Native-Messaging-Host** für die [Erweiterung](../erw
 
 ## Claude mit dem eigenen Abo
 
-Mit `--mcp` ist die App ein lokaler MCP-Server über stdin und stdout (MIN-377), für Claude Desktop und Claude Code. `mcp_server.py` spricht das Protokoll, `mcp_tools.py` legt fest, was Claude erreicht: Das ist die Grenze. Kein Versand, kein RAV, keine Formulare, keine Schlüssel. Der Zugang ist aus, bis die Person ihn unter „Erweiterte Einstellungen“ einschaltet (`routes_claude.py`, `claude_setup.py`). Anleitung für Nutzer: [`docs/eigenes-abo.md`](../docs/eigenes-abo.md). Eine App darf ein Abo nicht selbst nutzen, darum bleibt die KI auf diesem Weg in Claude.
+Mit `--mcp` ist die App ein lokaler MCP-Server über stdin und stdout (MIN-377), für Claude Desktop und Claude Code. `mcp_server.py` spricht das Protokoll, `mcp_tools.py` legt fest, was Claude erreicht: Das ist die Grenze. Kein Versand, kein RAV, keine Formulare, keine Schlüssel. Der Zugang ist aus, bis die Person ihn unter „Einstellungen“, „Zugang zur KI“ einschaltet (`routes_claude.py`, `claude_setup.py`). Anleitung für Nutzer: [`docs/eigenes-abo.md`](../docs/eigenes-abo.md). Eine App darf ein Abo nicht selbst nutzen, darum bleibt die KI auf diesem Weg in Claude.
 
 ## Updates
 

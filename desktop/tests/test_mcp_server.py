@@ -162,7 +162,7 @@ def test_tools_that_replace_something_say_so(paths):
 def test_without_the_switch_in_the_app_no_tool_runs(tmp_path):
     mcp, host = server(settings.Paths(tmp_path))
     result = call(mcp, "get_search_plan")
-    assert result["isError"] is True and "Erweiterte Einstellungen" in result["content"][0]["text"]
+    assert result["isError"] is True and "Einstellungen, KI und Budget" in result["content"][0]["text"]
     assert host.calls == []
 
 
