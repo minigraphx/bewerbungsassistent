@@ -1,4 +1,4 @@
-"""Zeitfenster der Suche (#208, G32): what Stellen suchen and Erweiterte Einstellungen say about the window, and changing it.
+"""Zeitfenster der Suche (#208, G32): what Stellen and Suche einstellen (#263) say about the window, and changing it.
 
 The window is the line `- Zeitfenster: N Tage` under „Portale und Rhythmus“ in the search profile; the card writes it
 there, with a draft before and after. Only for the job search: apprenticeship portals search without a date.
@@ -57,6 +57,12 @@ def state(k, parameter, body):
     return json_antwort(display_for(k))
 
 
+def frame(k, parameter, body):
+    """Workload, exclusions and title filters for Suche einstellen (#263); empty without a profile."""
+    path = k.daten / search_plan.PROFILE
+    return json_antwort(search_plan.frame(path.read_text(encoding="utf-8") if path.is_file() else ""))
+
+
 def change(k, parameter, body):
     days = _days(body)
     if preferences.load(k.daten).sought == search_plan.KIND_APPRENTICESHIP:
@@ -75,5 +81,5 @@ def change(k, parameter, body):
     return json_antwort(display_for(k))
 
 
-GET = {"/api/suche/zeitfenster": state}
+GET = {"/api/suche/zeitfenster": state, "/api/suche/rahmen": frame}
 POST = {"/api/suche/zeitfenster": change}

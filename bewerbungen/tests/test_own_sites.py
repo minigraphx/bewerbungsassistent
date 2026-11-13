@@ -259,12 +259,14 @@ def test_the_plan_names_sites_with_a_key(server, with_key):
 
 def test_saving_sites_needs_the_key(server):
     assert post(server, "/api/suche/weitere-seiten", {"seiten": [SEARCH]})[0] == 400
+    assert get(server, "/api/suche/weitere-seiten")[1]["eigener_schluessel"] is False  # Suche einstellen says why (#263)
 
 
 def test_saving_and_listing_sites(server, with_key):
     status, answer = post(server, "/api/suche/weitere-seiten", {"seiten": [SEARCH]})
     assert status == 200 and answer["seiten"] == [{"portal": PORTAL, "adresse": SEARCH}]
     assert get(server, "/api/suche/weitere-seiten")[1]["seiten"] == answer["seiten"]
+    assert answer["eigener_schluessel"] is True
 
 
 def test_sichten_and_treffer_accept_a_site_with_a_key(server, with_key):
