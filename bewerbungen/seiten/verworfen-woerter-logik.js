@@ -26,11 +26,9 @@
   function ausAdresse(hash) {
     const gefunden = ADRESSE.exec(hash || "");
     if (!gefunden) return null;
-    try {
-      return decodeURIComponent(gefunden[1]).trim() || null;
-    } catch {
-      return null;
-    }
+    // URLSearchParams never throws on a broken escape, unlike decodeURIComponent; such a word finds no hits.
+    const wort = new URLSearchParams(`w=${gefunden[1].replace(/\+/g, "%2B")}`).get("w");
+    return wort.includes("�") ? null : wort.trim() || null;
   }
 
   const logik = { satz, andere, knopf, link, adresse, uebernommen, filterText, ausAdresse };

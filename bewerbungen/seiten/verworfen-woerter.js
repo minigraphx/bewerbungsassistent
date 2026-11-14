@@ -7,6 +7,8 @@
   const L = window.VerworfenWoerterLogik;
   const $ = id => document.getElementById(id);
   const ROUTE = "/api/suche/verworfen-woerter";
+  const NICHT_GELADEN = "Der Vorschlag aus den verworfenen Stellen fehlt.";
+  const NICHT_GESPEICHERT = "Nicht gespeichert.";
   let vorschlag = null;
 
   function zeige(neu, satz) {
@@ -24,8 +26,9 @@
     try {
       const [{ vorschlaege }, satz] = await Promise.all([holen(ROUTE), textsatz()]);
       zeige(vorschlaege[0] || null, satz);
-    } catch {
+    } catch (fehler) {
       zeige(null);  // the proposal is extra; the card works without it
+      status($("nicht-meldung"), `${NICHT_GELADEN} ${fehler.message}`, "fehler");
     }
   }
 
@@ -36,7 +39,7 @@
       await senden(`${ROUTE}/${pfad}`, { wort });
       danach(wort);
     } catch (fehler) {
-      status($("nicht-meldung"), fehler.message, "fehler");
+      status($("nicht-meldung"), `${NICHT_GESPEICHERT} ${fehler.message}`, "fehler");
       lade();
     }
   }
