@@ -88,3 +88,25 @@ test("an application can be discarded before sending and withdrawn after, also p
   for (const status of ["Beworben", "Gespräch"]) assert.equal(endFor(status).stand, "Zurückgezogen");
   for (const status of ["Absage", "Zusage", "Verworfen", "Zurückgezogen"]) assert.equal(endFor(status), null);
 });
+
+// G52 (#237): a layout breach waits for the person before the application goes out
+test("an unconfirmed layout breach keeps the check open, a confirmed one does not", () => {
+  const gebaut = daten({}, { pdfs: { lebenslauf: true, anschreiben: true }, hat_anschreiben: true, anschreiben_freigabe: { noetig: true, freigegeben: true } });
+  const offen = [{ stufe: "hinweis", text: "Lebenslauf, Seite 2: …", schluessel: "abc:fuellung:2", bestaetigt: false }];
+  const bestaetigt = [{ ...offen[0], bestaetigt: true }];
+
+  assert.equal(stand(gebaut, { befunde: offen }).pruefen, false);
+  assert.equal(naechster(gebaut, { befunde: offen }), "bestaetigen");
+  assert.equal(naechster(gebaut, { befunde: [...offen, { stufe: "fehler", text: "x" }] }), "klaeren");
+  assert.equal(logik.schritte(gebaut, { befunde: offen })[3].meta, "1 Meldung bestätigen");
+  assert.equal(stand(gebaut, { befunde: bestaetigt }).pruefen, true);
+  assert.equal(logik.schritte(gebaut, { befunde: bestaetigt })[3].meta, "1 Hinweis");
+});
+
+test("a breach to confirm gets the button, a confirmed one says so and other findings stay as they are", () => {
+  assert.deepEqual(logik.befundZeile({ stufe: "hinweis", text: "Lebenslauf, Seite 2: …", schluessel: "k", bestaetigt: false }),
+    { text: "Lebenslauf, Seite 2: …", stufe: "hinweis", knopf: "So lassen" });
+  assert.deepEqual(logik.befundZeile({ stufe: "hinweis", text: "Lebenslauf, Seite 2: …", schluessel: "k", bestaetigt: true }),
+    { text: "Lebenslauf, Seite 2: … Bestätigt: so lassen.", stufe: "ok", knopf: null });
+  assert.deepEqual(logik.befundZeile({ stufe: "fehler", text: "Firma fehlt" }), { text: "Firma fehlt", stufe: "fehler", knopf: null });
+});
