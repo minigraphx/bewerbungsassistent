@@ -401,7 +401,7 @@
       if (daten) zeigeAlles();
     } catch (fehler) {
       knopf.disabled = false;
-      meldungOben("Nicht bestätigt: " + fehler.message, "fehler");
+      meldungOben("Meldung der Prüfung nicht bestätigt: " + fehler.message, "fehler");
     }
   }
 
