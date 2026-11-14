@@ -162,6 +162,28 @@ def test_swiss_german_and_standard_german_in_cv_yaml_count_as_german():
     assert precheck.check("Python Entwickler", "Deutsch auf Muttersprachniveau.", person) == ""
 
 
+TWO_LANGUAGE_CV = {"languages": [{"language": {"de": "Englisch", "en": "English"},
+                                  "fluency": {"de": "Gut", "en": "Fluent"}}]}
+
+
+def test_a_two_language_fluency_is_read_in_german_by_default():
+    person = precheck.person_of(TWO_LANGUAGE_CV, "# Suchprofil\n")
+
+    assert person.languages == {"englisch": 4}
+    assert precheck.check("Analyst", "Englisch C1 ist zwingend.", person) == "Verlangt Englisch auf Niveau C1, vorhanden ist B2."
+
+
+def test_a_two_language_fluency_is_read_in_the_language_asked_for():
+    assert precheck.person_of(TWO_LANGUAGE_CV, "# Suchprofil\n", language="en").languages == {"englisch": 5}
+
+
+def test_a_two_language_fluency_from_the_data_folder_is_read_in_german(tmp_path):
+    (tmp_path / "cv.yaml").write_text(yaml.safe_dump(TWO_LANGUAGE_CV, allow_unicode=True), encoding="utf-8")
+
+    assert precheck.for_folder(tmp_path).languages == {"englisch": 4}
+    assert precheck.for_folder(tmp_path, language="en").languages == {"englisch": 5}
+
+
 def test_missing_person_data_keeps_every_hit():
     nobody = precheck.person_of({}, "# Suchprofil\n")
     assert precheck.check("Senior Java Developer", "Master Pflicht. Französisch C1 ist zwingend.", nobody) == ""
