@@ -85,6 +85,10 @@
       <dt class="nur-stelle">Im Titel</dt><dd class="nur-stelle" id="titel-ausschluss-text"></dd>
       <dt id="firmen-ausgeschlossen-titel" data-text="firmen.titel">Firmen</dt><dd id="firmen-ausgeschlossen-text"></dd>
     </dl>
+    <div id="wort-vorschlag" class="notice word-proposal" hidden>
+      <p class="notice__body"><span id="wort-vorschlag-text"></span> <span id="wort-vorschlag-andere"></span></p>
+      <div class="notice__actions"><button type="button" class="btn btn--sm" id="wort-vorschlag-ja"></button><a id="wort-vorschlag-ansehen" href="/treffer"></a><button type="button" class="btn btn--quiet btn--sm" id="wort-vorschlag-nein">Nicht jetzt</button></div>
+    </div>
     <form id="nicht-form" class="settings-page__sub settings-page__edit" hidden>
       <div class="nur-stelle settings-page__sub">
         <label class="field"><span class="field__label">Im Inserat, eins pro Zeile</span><textarea class="input" id="nicht-inserat" rows="4" spellcheck="false"></textarea></label>
@@ -181,6 +185,8 @@
 <script src="/weitere-seiten.js"></script>
 <script src="/suche-rahmen-logik.js"></script>
 <script src="/suche-rahmen.js"></script>
+<script src="/verworfen-woerter-logik.js"></script>
+<script src="/verworfen-woerter.js"></script>
 <script src="/suche-einstellen.js"></script>
 </body>
 </html>

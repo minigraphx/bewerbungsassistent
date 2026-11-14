@@ -21,6 +21,7 @@ Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson
   - [Angaben erfassen](#angaben-erfassen)
   - [Stellen suchen und bewerben](#stellen-suchen-und-bewerben)
   - [Suchbegriffe prüfen](#suchbegriffe-prüfen)
+  - [Ein Wort aus verworfenen Stellen ausschliessen](#ein-wort-aus-verworfenen-stellen-ausschliessen)
   - [Firmen und kununu](#firmen-und-kununu)
   - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
   - [Für Lehrstellen](#für-lehrstellen)
@@ -220,6 +221,10 @@ Bringt ein Begriff aus dem Titelfilter viele Treffer, die nicht passen, zeigt **
 Die KI schlägt Änderungen vor: einen zu allgemeinen Begriff durch genauere ersetzen, einen fehlenden Suchbegriff aufnehmen oder ein Wort aus unpassenden Titeln ausschliessen. Jede Änderung steht als Karte mit Häkchen, Grund und Beleg; ein Link zeigt die Treffer, auf die sich der Beleg stützt. Darunter steht, wie die Suche danach aussieht. Geändert wird nur, was Sie angehakt haben und übernehmen; bis dahin bleibt das Suchprofil, wie es ist. Passt Ihnen der Vorschlag nicht, schreiben Sie unter **Neu vorschlagen**, was anders sein soll; Ihr Text geht mit dem Vorschlag an die KI.
 
 Nach dem Übernehmen holt **Rückgängig machen** den Stand davor zurück, solange niemand sonst das Suchprofil geändert hat. Der Stand vor jeder Änderung bleibt ausserdem unter **Mehr**, **Entwürfe und Versionen**.
+
+### Ein Wort aus verworfenen Stellen ausschliessen
+
+Haben mindestens drei Stellen, die Sie verworfen haben, dasselbe Wort im Titel, schlägt **Suche einstellen** unter **Was Sie nicht sehen wollen** vor, es auszuschliessen, etwa: **Aus den Stellen, die Sie verworfen haben: 3 haben «Aussendienst» im Titel.** Darunter steht, wie viele Stellen, die Sie nicht verworfen haben, das Wort auch im Titel haben. Das zählt die App selbst, ohne KI und ohne Kosten. Wörter aus **Titel, die passen** schlägt sie nie vor. **«Aussendienst» nicht mehr zeigen** setzt das Wort unter **Im Titel**; das gilt ab der nächsten Suche, und der frühere Stand bleibt als Entwurf erhalten. **Die 3 Stellen ansehen** zeigt genau diese Stellen auf **Stellen**. **Nicht jetzt** legt den Vorschlag beiseite, bis weitere verworfene Stellen das Wort haben. Ohne einen dieser Klicks ändert sich nichts. Das gibt es nur bei der Stellensuche.
 
 ### Firmen und kununu
 
