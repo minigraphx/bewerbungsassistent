@@ -27,6 +27,7 @@ OWN_SITES = "weitere_seiten"
 PORTALS_OFF = "portale_aus"
 HIDDEN_TERMS = "begriffe_ausgeblendet"  # #210: the hint about a term the person hid, casefolded
 MAX_HIDDEN_TERMS = 30
+HIDDEN_WORDS = "woerter_ausgeblendet"  # #225: title words put aside with „Nicht jetzt“, casefolded, with their count then
 MAX_STARS = 5
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
@@ -296,6 +297,13 @@ def ad_with_details(hit: dict, body: str) -> str:
     return f"{head}\n\n{body}" if body else head
 
 
+def _hidden_words(raw) -> dict[str, int]:
+    """The file is data the person may have edited: only words with a count stay."""
+    if not isinstance(raw, dict):
+        return {}
+    return {key: value for key, value in raw.items() if isinstance(key, str) and type(value) is int and value >= 0}
+
+
 @dataclasses.dataclass(frozen=True)
 class Hits:
     data_dir: pathlib.Path
@@ -470,7 +478,8 @@ class Hits:
                 "sortierung": raw.get("sortierung") if raw.get("sortierung") in ORDERS else ORDERS[0],
                 OWN_SITES: raw.get(OWN_SITES) if isinstance(raw.get(OWN_SITES), list) else [],
                 PORTALS_OFF: [p for p in raw[PORTALS_OFF] if isinstance(p, str)] if isinstance(raw.get(PORTALS_OFF), list) else None,
-                HIDDEN_TERMS: [t for t in raw[HIDDEN_TERMS] if isinstance(t, str)] if isinstance(raw.get(HIDDEN_TERMS), list) else []}
+                HIDDEN_TERMS: [t for t in raw[HIDDEN_TERMS] if isinstance(t, str)] if isinstance(raw.get(HIDDEN_TERMS), list) else [],
+                HIDDEN_WORDS: _hidden_words(raw.get(HIDDEN_WORDS))}
 
     def _save_settings(self, settings: dict) -> dict:
         schreibe_yaml(self.folder / SETTINGS_FILE, settings)
@@ -495,6 +504,14 @@ class Hits:
             current = self.settings()
             hidden = [t for t in current[HIDDEN_TERMS] if t != name][-(MAX_HIDDEN_TERMS - 1):]
             return self._save_settings({**current, HIDDEN_TERMS: [*hidden, name]})
+
+    def hide_word(self, word: str, count: int) -> dict:
+        """No proposal for this title word until more dismissed hits have it than now (#225)."""
+        name = bounded_text(word, "Wort", required=True).casefold()
+        with _LOCK:
+            current = self.settings()
+            others = [(key, value) for key, value in current[HIDDEN_WORDS].items() if key != name]
+            return self._save_settings({**current, HIDDEN_WORDS: {**dict(others[-(MAX_HIDDEN_TERMS - 1):]), name: count}})
 
     def set_watching(self, enabled: bool) -> dict:
         with _LOCK:
