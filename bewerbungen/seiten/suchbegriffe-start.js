@@ -39,18 +39,29 @@ window.SuchbegriffeStart = (() => {
     }
   }
 
+  /** The hits a link names: those behind a term (#210) or the dismissed ones with a title word (#225, G66). */
+  async function belegHolen(begriff, wort) {
+    if (begriff) {
+      const antwort = await holen("/api/suchbegriffe/beleg", { begriff });
+      return { ...antwort, text: `Gezeigt: ${antwort.ids.length} Treffer, die nur über «${antwort.begriff}» hereinkamen.` };
+    }
+    const antwort = await holen("/api/suche/verworfen-woerter/beleg", { wort });
+    return { begriff: antwort.wort, ids: antwort.ids, text: window.VerworfenWoerterLogik.filterText(antwort.ids.length, antwort.wort) };
+  }
+
   async function belegLaden() {
     const begriff = L.belegAusAdresse(location.hash);
-    if (!begriff) {
+    const wort = window.VerworfenWoerterLogik.ausAdresse(location.hash);
+    if (!begriff && !wort) {
       beleg = null;
       $("beleg-filter").hidden = true;
       geaendert();
       return;
     }
     try {
-      const antwort = await holen("/api/suchbegriffe/beleg", { begriff });
+      const antwort = await belegHolen(begriff, wort);
       beleg = { begriff: antwort.begriff, ids: new Set(antwort.ids) };
-      $("beleg-filter-text").textContent = `Gezeigt: ${antwort.ids.length} Treffer, die nur über «${antwort.begriff}» hereinkamen.`;
+      $("beleg-filter-text").textContent = antwort.text;
       $("beleg-filter").hidden = false;
     } catch (fehler) {
       beleg = null;

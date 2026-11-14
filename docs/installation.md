@@ -221,6 +221,10 @@ Die KI schlägt Änderungen vor: einen zu allgemeinen Begriff durch genauere ers
 
 Nach dem Übernehmen holt **Rückgängig machen** den Stand davor zurück, solange niemand sonst das Suchprofil geändert hat. Der Stand vor jeder Änderung bleibt ausserdem unter **Mehr**, **Entwürfe und Versionen**.
 
+### Ein Wort aus verworfenen Stellen ausschliessen
+
+Haben mindestens drei Stellen, die Sie verworfen haben, dasselbe Wort im Titel, schlägt **Suche einstellen** unter **Was Sie nicht sehen wollen** vor, es auszuschliessen, etwa: **Aus den Stellen, die Sie verworfen haben: 3 haben «Aussendienst» im Titel.** Darunter steht, wie viele Stellen, die Sie nicht verworfen haben, das Wort auch im Titel haben. Das zählt die App selbst, ohne KI und ohne Kosten. Wörter aus **Titel, die passen** schlägt sie nie vor. **«Aussendienst» nicht mehr zeigen** setzt das Wort unter **Im Titel**; das gilt ab der nächsten Suche, und der frühere Stand bleibt als Entwurf erhalten. **Die 3 Stellen ansehen** zeigt genau diese Stellen auf **Stellen**. **Nicht jetzt** legt den Vorschlag beiseite, bis weitere verworfene Stellen das Wort haben. Ohne einen dieser Klicks ändert sich nichts. Das gibt es nur bei der Stellensuche.
+
 ### Firmen und kununu
 
 Unter **Mehr**, **Firmen** steht jede Firma aus Ihren Treffern und Bewerbungen, dazu, was kununu über sie sagt. Auf **Stellen** ist **Firmen** ein Reiter neben **Neu**, **Gemerkt** und **Verworfen**. Bei der Lehrstellensuche heisst die Seite **Lehrbetriebe**.

@@ -48,6 +48,10 @@
     // Suche einstellen (#263, A4): the cards
     "einstellen.was": { sie: "Welche Stellen passen zu Ihnen?", du: "Welche Stellen passen zu dir?", lehrstelle: "Welche Lehrstellen passen zu dir?" },
     "einstellen.nicht": { sie: "Was Sie nicht sehen wollen", du: "Was du nicht sehen willst" },
+    "einstellen.verworfen": {
+      sie: "Aus den Stellen, die Sie verworfen haben: {anzahl} haben «{wort}» im Titel.",
+      du: "Aus den Stellen, die du verworfen hast: {anzahl} haben «{wort}» im Titel.",
+    },
     "einstellen.ohne-schluessel": {
       sie: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den tragen Sie in den Einstellungen ein.",
       du: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den trägst du in den Einstellungen ein.",
