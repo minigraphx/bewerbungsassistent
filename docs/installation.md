@@ -21,6 +21,7 @@ Du suchst eine Lehrstelle? Die App richten deine Eltern oder deine Begleitperson
   - [Angaben erfassen](#angaben-erfassen)
   - [Stellen suchen und bewerben](#stellen-suchen-und-bewerben)
   - [Suchbegriffe prüfen](#suchbegriffe-prüfen)
+  - [Ein Wort aus verworfenen Stellen ausschliessen](#ein-wort-aus-verworfenen-stellen-ausschliessen)
   - [Firmen und kununu](#firmen-und-kununu)
   - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
   - [Für Lehrstellen](#für-lehrstellen)
