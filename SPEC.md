@@ -85,6 +85,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G79 [approved, must] Den MCP-Server der App nutzen ausser Claude auch andere KI-Programme, die MCP unterstützen, zum Beispiel ChatGPT Desktop oder LM Studio mit einem lokalen Modell. Unter Einstellungen › KI zeigt die App pro Programm, wie es angebunden wird. Was die KI über den Server erreicht, bleibt für alle Programme gleich begrenzt wie für Claude. | gate: review
 - G80 [approved, must] Ein Einladungscode für die Vermittlung ist ein einmaliges Probeguthaben von CHF 5; es wird nicht monatlich erneuert. Ist es aufgebraucht, sagt die App das und dass die Person einen neuen Code anfordern kann. | gate: review
 - G82 [draft, must] Auf Stellen merkt die Person in einem Schritt alle neuen, von der KI bewerteten Treffer ab einer gewählten Note (voreingestellt 4.5). Vorher nennt die App Zahl und Treffer, die Person bestätigt oder bricht ab; Gemerkte, Verworfene und Treffer ohne Note bleiben. | gate: review
+- G83 [draft, must] Bei einem Treffer übernimmt die Person einen Punkt unter «Was fehlt oder unsicher ist» mit einem Klick als Ausschluss ins Suchprofil; die App zeigt vorher, was sie einträgt, die Person bestätigt oder ändert es, mit Entwurf und Rückgängig. | gate: review
 
 ## K · Constraints
 
