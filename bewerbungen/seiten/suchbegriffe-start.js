@@ -1,6 +1,7 @@
 "use strict";
 // On Stellen (#210): the hint after a search, counted by the app without AI, and the list narrowed to the hits behind a
-// piece of evidence („#beleg=…“). The way to the check with its cost (G15) is on Suche einstellen (#263).
+// piece of evidence („#beleg=…“) or to the dismissed hits with one title word („#verworfen=…“, #225, G66). The way to
+// the check with its cost (G15) is on Suche einstellen (#263).
 window.SuchbegriffeStart = (() => {
   const { holen, senden, status, textsatz } = window.App;
   const L = window.SuchbegriffeLogik;
