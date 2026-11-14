@@ -1,6 +1,7 @@
 """Suggestions from documents (MIN-367): only placeholders reach the AI, and answers are checked against the form."""
 import datetime
 import json
+import re
 import types
 
 import pytest
@@ -130,6 +131,24 @@ def test_date_ranges_reach_the_ai_as_dates(tmp_path):
     assert "09.2015 - 06.2019" in sent(client)
 
 
+# the prompt names a date form by the same words as the labels of the form (onboarding/tests/test_date_labels.py)
+DATE_RULE = "- Daten als Jahr, Jahr-Monat oder ganzes Datum: 2019, 2019-03 oder 2019-03-15."
+
+
+def date_rule(instructions: str) -> str:
+    return next(line for line in instructions.splitlines() if line.startswith("- Daten als"))
+
+
+def test_the_ai_is_told_every_date_form_the_form_accepts(folder):
+    client = FakeClient(reply=empty_answer())
+    run(folder, client)
+    rule = date_rule(client.messages.calls[0]["system"][1]["text"])
+
+    assert rule.startswith(DATE_RULE)
+    examples = re.findall(r"[0-9]{4}(?:-[0-9]{2}){0,2}", rule)
+    assert [len(example) for example in examples] == [4, 7, 10]
+    assert all(re.fullmatch(FORM["formats"]["date"]["pattern"], example) for example in examples)
+
 def test_suggestions_keep_their_source_and_file_name(folder):
     client = FakeClient(reply=empty_answer(work=[WORK]))
     result = run(folder, client)
@@ -150,6 +169,8 @@ def test_placeholders_in_answers_are_restored(folder):
     ({"startDate": "letztes Jahr"}, False),  # bad date: this value goes, the rest stays
     ({"location": "x" * 61}, False),
     ({"evidence": "Zeile\nzwei"}, True),  # newlines in single-line fields become spaces
+    ({"startDate": "2019-03-15"}, True),  # a full date, as the form accepts it (G30)
+    ({"startDate": "2019-13-01"}, False),
 ])
 def test_values_that_do_not_fit_the_form_are_dropped(folder, change, kept):
     client = FakeClient(reply=empty_answer(work=[{**WORK, **change}]))
