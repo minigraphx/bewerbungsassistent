@@ -29,7 +29,8 @@ test("the link leads to exactly these hits and reads back", () => {
   assert.equal(adresse, "/treffer#verworfen=B%C3%BCro%20%26%20Co");
   assert.equal(L.ausAdresse(adresse.slice("/treffer".length)), "Büro & Co");
   assert.equal(L.ausAdresse("#beleg=Engineer"), null);
-  assert.equal(L.ausAdresse("#verworfen=%E0%A4%A"), null);
+  assert.equal(L.ausAdresse("#verworfen=%E0%A4%A"), null);  // a broken escape finds nothing instead of throwing
+  assert.equal(L.ausAdresse("#verworfen=C++"), "C++");  // typed by hand: a plus stays a plus
   assert.equal(L.ausAdresse(""), null);
 });
 
