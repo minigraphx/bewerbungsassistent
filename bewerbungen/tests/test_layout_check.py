@@ -328,3 +328,14 @@ def test_nothing_is_confirmed_after_sending(datenordner, tmp_path):
 
     with pytest.raises(ValueError, match=layout_confirmed.ALREADY_SENT):
         layout_confirmed.confirm(datenordner, entry, "abc:fuellung:2", ["abc:fuellung:2"])
+
+
+def test_a_pdf_that_cannot_be_measured_still_waits_for_the_person(tmp_path, monkeypatch):
+    def broken(pdf, part, headings=()):
+        raise ValueError("kaputte Schrift")
+    monkeypatch.setattr(pruefung.layout_check, "check", broken)
+
+    found = pruefung.layout_findings(pdf_of(tmp_path, lines(5)), "anschreiben")
+
+    assert [(f.stufe, bool(f.schluessel)) for f in found] == [("hinweis", True)]
+    assert found[0].text.startswith("Anschreiben: Der Satz der Seiten liess sich nicht messen (kaputte Schrift).")
