@@ -477,6 +477,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
   - `bewerbungen/<id>/eigenes-anschreiben.pdf` – ein Anschreiben, das Sie unter **Eigenes Anschreiben** selbst hochgeladen haben.
   - `bewerbungen/<id>/freigabe.yaml` – dass Sie das Anschreiben mit **Freigeben** freigegeben haben. Jede Änderung am Anschreiben hebt die Freigabe auf.
   - `bewerbungen/<id>/pruefung-ki.json` – das Ergebnis der letzten Prüfung durch die KI (**Inhalt prüfen**).
+  - `bewerbungen/<id>/pruefung-bestaetigt.yaml` – welche Meldungen der Prüfung zum Satz der PDFs Sie unter **Unterlagen prüfen** mit **So lassen** bestätigt haben, etwa eine fast leere letzte Seite. Nur als Prüfsummen, ohne Text. Ein neu erstelltes PDF braucht eine neue Bestätigung, und erst danach öffnet sich ein Formular.
   - `bewerbungen/<id>/an-formular/` – was ein offenes Bewerbungsformular von der App bekommen hat, darunter `unterlagen.pdf` und `nachweise.pdf`, wenn die App Dateien zu einem PDF zusammenfasst. Der Ordner verschwindet beim Versand.
   - `bewerbungen/<id>/zum-hochladen/` – alle Dateien der Bewerbung zum Hochladen von Hand, angelegt mit **Dateien im Ordner zeigen**. Auch er verschwindet beim Versand.
 - `versendet/` – jede Fassung, die Sie verschickt haben, genau einmal. Die App legt sie bei **Versand erfassen** oder **Abgeschickt? Ja** ab. Hier finden Sie später, was eine Firma bekommen hat.

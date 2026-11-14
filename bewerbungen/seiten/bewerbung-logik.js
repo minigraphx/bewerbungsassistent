@@ -17,10 +17,26 @@
   const offeneFreigabe = daten => Boolean(daten.anschreiben_freigabe?.noetig && !daten.anschreiben_freigabe?.freigegeben);
   const fehler = befunde => (befunde || []).filter(b => b.stufe === "fehler").length;
   const hinweise = befunde => (befunde || []).filter(b => b.stufe === "hinweis").length;
+  /** Layout breaches the person has not confirmed yet (G52): until then no form opens. */
+  const offen = befunde => (befunde || []).filter(b => b.schluessel && !b.bestaetigt).length;
+  const BESTAETIGEN = "So lassen";
   /** Both files are built and, with a dossier chosen (G40), the dossier too. */
   function gebaut(daten) {
     const pdfs = daten.pdfs || {};
     return Boolean(pdfs.lebenslauf && pdfs.anschreiben && (daten.bewerbung.unterlagen !== "dossier" || pdfs.dossier));
+  }
+
+  function pruefenMeta(befunde) {
+    if (fehler(befunde)) return `${fehler(befunde)} Fehler`;
+    if (offen(befunde)) return `${offen(befunde)} ${offen(befunde) === 1 ? "Meldung" : "Meldungen"} bestätigen`;
+    if (hinweise(befunde)) return `${hinweise(befunde)} ${hinweise(befunde) === 1 ? "Hinweis" : "Hinweise"}`;
+    return "in Ordnung";
+  }
+
+  /** One finding of the check as a line: { text, stufe, knopf } — knopf confirms a layout breach (G52). */
+  function befundZeile(b) {
+    if (b.schluessel && b.bestaetigt) return { text: `${b.text} Bestätigt: so lassen.`, stufe: "ok", knopf: null };
+    return { text: b.text, stufe: b.stufe, knopf: b.schluessel ? BESTAETIGEN : null };
   }
 
   /** For each step: { id, erledigt, meta } — meta is the short line under the step. */
@@ -44,10 +60,8 @@
           : offeneFreigabe(daten) ? "lesen und freigeben" : daten.anschreiben_freigabe?.freigegeben ? "freigegeben" : "vorhanden",
       },
       pruefen: {
-        erledigt: gesendet || (fertig && befunde !== null && fehler(befunde) === 0),
-        meta: !fertig ? (gesendet ? "" : "PDFs erstellen") : befunde === null ? "wird geprüft" : fehler(befunde)
-          ? `${fehler(befunde)} Fehler` : hinweise(befunde)
-            ? `${hinweise(befunde)} ${hinweise(befunde) === 1 ? "Hinweis" : "Hinweise"}` : "in Ordnung",
+        erledigt: gesendet || (fertig && befunde !== null && fehler(befunde) === 0 && offen(befunde) === 0),
+        meta: !fertig ? (gesendet ? "" : "PDFs erstellen") : befunde === null ? "wird geprüft" : pruefenMeta(befunde),
       },
       abschicken: {
         erledigt: gesendet,
@@ -81,7 +95,8 @@
         return { art: ki ? "entwerfen" : "eigenes", ziel: "s-anschreiben" };
       case "pruefen":
         if (!gebaut(daten)) return { art: "erstellen", ziel: "s-pruefen" };
-        return { art: befunde === null ? "pruefen" : "klaeren", ziel: "s-pruefen" };
+        if (befunde === null) return { art: "pruefen", ziel: "s-pruefen" };
+        return { art: fehler(befunde) ? "klaeren" : "bestaetigen", ziel: "s-pruefen" };
       case "abschicken": return { art: b.formular_link || b.link ? "formular" : "versand", ziel: "s-abschicken" };
       case "festhalten":
         if (b.versand) return { art: "jobroom", ziel: "s-festhalten" };
@@ -124,7 +139,8 @@
     return Array.isArray(befunde);
   }
 
-  const logik = { SCHRITTE, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf, erneutPruefen };
+  const logik = { SCHRITTE, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf, erneutPruefen,
+    befundZeile };
   if (typeof module !== "undefined") module.exports = logik;
   else global.BewerbungLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -5,6 +5,7 @@ import pathlib
 
 import yaml
 
+import layout_confirmed
 import letter_approval
 import pruefung
 import routes_missing_ads
@@ -192,6 +193,18 @@ def pruefen(k, parameter, body):
     return json_antwort({"befunde": [dataclasses.asdict(x) for x in pruefung.pruefe(k.daten, b, k.heute())]})
 
 
+def bestaetigen(k, parameter, body):
+    """The person has looked at a layout breach and sends it as it is (G52)."""
+    if not isinstance(body, dict) or not isinstance(body.get("schluessel"), str):
+        raise ValueError("id und schluessel erwartet")
+    with k.sperre:
+        entry = k.register().hole(pflicht(body, "id"))
+        current = [b.schluessel for b in pruefung.pruefe(k.daten, entry, k.heute()) if b.schluessel]
+        layout_confirmed.confirm(k.daten, entry, body["schluessel"], current)
+        befunde = pruefung.pruefe(k.daten, entry, k.heute())
+    return json_antwort({"befunde": [dataclasses.asdict(x) for x in befunde]})
+
+
 def versenden(k, parameter, body):
     if not isinstance(body, dict):
         raise ValueError("datum und art erwartet")
@@ -220,4 +233,5 @@ POST = {
     "/api/stellentext": stellentext_speichern,
     "/api/unterlagen": unterlagen_bauen,
     "/api/versand": versenden,
+    "/api/pruefung/bestaetigen": bestaetigen,
 }
