@@ -95,7 +95,13 @@ python build.py ../../bewerbungsassistent-daten/cv.yaml \
   -o ../../bewerbungsassistent-daten/out/ki.pdf
 ```
 
-Lokale Oberfläche:
+Die ganze App aus dem Repo, mit Einrichtung und „Meine Angaben“; den Datenordner wählt man in der Einrichtung:
+
+```bash
+PYTHONPATH=bewerbungen:lebenslauf:onboarding python desktop/start.py
+```
+
+Nur die Oberfläche für einen Datenordner, ohne den Teil der App aus `desktop/`. Einrichtung und „Meine Angaben“ sagen dort, dass es sie nur in der App gibt:
 
 ```bash
 cd bewerbungen
