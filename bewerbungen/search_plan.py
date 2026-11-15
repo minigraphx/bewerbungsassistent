@@ -47,12 +47,15 @@ ICTJOBS_REGIONS = {
     "GL": "nord-ostschweiz-fl", "GR": "graubuenden", "VS": "wallis", "GE": "westschweiz", "VD": "westschweiz",
     "NE": "westschweiz", "JU": "westschweiz", "FR": "westschweiz", "TI": "tessin",
 }
+# G43: the search reads every term and place of the profile; these two only bound what the person adds in the app.
 MAX_KEYWORDS = 15
 MAX_TITLE_TERMS = 30  # a term review proposes no more; the search reads every term the lines hold (#302)
-MAX_LISTED = 100  # terms read from the profile before the limit, so that a hint can name what is not searched
+MAX_LISTED = 100  # title filters and exclusions read from the profile
 MAX_PLACES = 6
 MAX_PAGES = 3  # per keyword and place, as in the skill
-MAX_QUERIES = 30  # keyword × place combinations per portal
+# Extensions from before the stages (G43) stop after this many searches per portal instead of running all at once;
+# newer ones run every search in stages (search_stages.py).
+MAX_QUERIES = 30
 MAX_TEXTS = 150  # new ads per portal and run: a search all over Switzerland can find thousands; the rest comes next run
 MAX_AGE_DAYS = 21  # G32: the window by default; the profile can set it („Zeitfenster“ under „Portale und Rhythmus“)
 MIN_WINDOW_DAYS = 1
@@ -76,9 +79,6 @@ APPRENTICESHIP_MARK = "## Lehrbeginn"
 AGENCIES_SECTION = "## Vermittler"
 NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
 NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
-PLACE_SHARE = ("{portal}: {limit} Suchen reichen nicht für alle {terms} Begriffe in {places} Orten; {shares}. "
-               "Wichtige Begriffe nach vorne stellen.")
-TOO_MANY_TERMS = "Gesucht werden höchstens {limit} Begriffe. Nicht gesucht: {terms}. Weniger wichtige Begriffe entfernen."
 CORE_LABEL = "kernliste"
 NICHE_LABEL = "nischen"
 NO_PROFILE = "Es gibt noch kein Suchprofil. Zuerst Meine Angaben abschliessen."
@@ -238,8 +238,8 @@ def _value(pairs: dict[str, str], *prefixes: str) -> str:
     return next((v for label, v in pairs.items() for p in prefixes if label.startswith(p)), "")
 
 
-def _items(text: str, limit: int, chars: int = MAX_VALUE) -> tuple[str, ...]:
-    """Comma-separated values: trimmed, without duplicates (ignoring case), bounded in number and length."""
+def _items(text: str, limit: int | None, chars: int = MAX_VALUE) -> tuple[str, ...]:
+    """Comma-separated values: trimmed, without duplicates (ignoring case), bounded in length and, given a limit, in number."""
     seen, result = set(), []
     for raw in text.split(","):
         value = " ".join(raw.replace("`", "").split())[:chars]
@@ -270,11 +270,11 @@ def split_terms(text: str) -> list[str]:
     return [part for value in BRACKETS.sub("", text).split(",") for part in _slash_terms(value)]
 
 
-def _terms(text: str, limit: int) -> tuple[str, ...]:
+def _terms(text: str, limit: int | None) -> tuple[str, ...]:
     return _items(",".join(split_terms(text)), limit)
 
 
-def _directions(lines: list[str], limit: int = MAX_KEYWORDS) -> tuple[str, ...]:
+def _directions(lines: list[str], limit: int | None = MAX_KEYWORDS) -> tuple[str, ...]:
     """Numbered search directions without the remark in brackets, e.g. „(Priorität 2, …)“."""
     names = [DIRECTION.match(line).group(1) for line in lines if DIRECTION.match(line)]
     return _items(",".join(DIRECTION_REMARK.sub("", name) for name in names), limit, MAX_DIRECTION)
@@ -417,20 +417,17 @@ def _listed_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
     """The first core list, then every other named line under Keywords but the niches (#174); else the search directions."""
     pairs = _pairs(sections.get("keywords", []))
     others = [value for label, value in pairs.items() if not label.startswith((CORE_LABEL, NICHE_LABEL))]
-    terms = _terms(",".join([_value(pairs, CORE_LABEL), *others]), MAX_LISTED)
-    return terms or _directions(sections.get("suchrichtungen", []), MAX_LISTED)
-
-
-def _job_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
-    return _listed_terms(sections)[:MAX_KEYWORDS]
+    terms = _terms(",".join([_value(pairs, CORE_LABEL), *others]), None)
+    return terms or _directions(sections.get("suchrichtungen", []), None)
 
 
 def job_terms(text: str) -> tuple[str, ...]:
-    return _job_terms(_sections(text))
+    """Every term the search reads (G43), also beyond what the app lets the person add."""
+    return _listed_terms(_sections(text))
 
 
 def listed_job_terms(text: str) -> tuple[str, ...]:
-    """Every term the profile lists, also beyond the limit, so that a change can say how far over it would go."""
+    """Every term the profile lists, so that a change can say how far over the limit of adding it would go."""
     return _listed_terms(_sections(text))
 
 
@@ -450,36 +447,13 @@ def _job_hints(nationwide: bool, portals: tuple[str, ...], cantons: tuple[str, .
                  for portal, known, name, field in gaps if portal in portals and not known)
 
 
-def _place_shares(portals: tuple[str, ...], keywords: int, niches: int,
-                  places_of: dict[str, tuple[str, ...]]) -> tuple[str, ...]:
-    """Where the places of a portal share its limit, how far each gets; as erweiterung/lib/queries.js placeQuotas (#175)."""
-    hints = []
-    for portal, places in places_of.items():
-        free = niches if portal == "jobs.ch" else 0
-        budget = max(len(places), MAX_QUERIES - free)
-        share, more = divmod(budget, len(places)) if places else (keywords, 0)
-        if portal in portals and share < keywords:
-            hints = [*hints, PLACE_SHARE.format(portal=portal, limit=MAX_QUERIES, terms=keywords, places=len(places),
-                                                shares=_shares_text(places, share, more))]
-    return tuple(hints)
-
-
-def _shares_text(places: tuple[str, ...], share: int, more: int) -> str:
-    """The first `more` places get one search more (#195), so one number alone would be wrong for them."""
-    if not more:
-        return f"pro Ort laufen die ersten {share}"
-    return f"in {_listing(places[:more])} laufen die ersten {share + 1}, in {_listing(places[more:])} die ersten {share}"
-
-
-def _listing(names: tuple[str, ...]) -> str:
-    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} und {names[-1]}"
-
-
 def _own_places(region: dict[str, str]) -> dict[str, tuple[str, ...]]:
-    """Where a portal searches instead of Wohnort and Kantone, one line each (Orte, PLZ, Regionen); empty without."""
-    return {"jobs.ch": _terms(_value(region, "orte"), MAX_PLACES),
-            "jobscout24": _items(_value(region, "plz"), MAX_PLACES),
-            "ictjobs": _items(_value(region, "regionen"), MAX_PLACES)}
+    """Where a portal searches instead of Wohnort and Kantone, one line each (Orte, PLZ, Regionen); empty without.
+
+    Every place of a line counts (G43); MAX_PLACES only bounds what Suche einstellen writes."""
+    return {"jobs.ch": _terms(_value(region, "orte"), None),
+            "jobscout24": _items(_value(region, "plz"), None),
+            "ictjobs": _items(_value(region, "regionen"), None)}
 
 
 def own_places(text: str) -> dict[str, tuple[str, ...]]:
@@ -495,11 +469,10 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     region = _pairs(sections.get("region", []))
     words = _pairs(sections.get("keywords", []))
     titles = _pairs(sections.get("titelfilter", []))
-    listed = _listed_terms(sections)
-    keywords = listed[:MAX_KEYWORDS]
+    keywords = _listed_terms(sections)
     if not keywords:
         raise ValueError(NO_TERMS)
-    niches = _terms(_value(words, NICHE_LABEL), MAX_LISTED)
+    niches = _terms(_value(words, NICHE_LABEL), None)
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     own = _own_places(region)
     places = own["jobs.ch"] or _terms(_value(region, "wohnort"), 1)
@@ -509,16 +482,12 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     portals = tuple(portal for portal in PORTALS if modes.get(portal) != MODE_OFF)
     nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", "regionen"))
     targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes)
-    dropped = (*listed[MAX_KEYWORDS:], *niches[MAX_KEYWORDS:])
-    limit_hint = (TOO_MANY_TERMS.format(limit=MAX_KEYWORDS, terms=", ".join(dropped)),) if dropped else ()
-    shares = _place_shares(portals, len(keywords), len(niches[:MAX_KEYWORDS]),
-                           {"jobs.ch": places, "jobscout24": postal_codes, "ictjobs": regions})
     window, window_hint = _window(_value(_pairs(sections.get("portale und rhythmus", [])), "zeitfenster"))
-    return SearchPlan(keywords=keywords, niche_keywords=niches[:MAX_KEYWORDS],
+    return SearchPlan(keywords=keywords, niche_keywords=niches,
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
                       title_exclude=_terms(_value(titles, "ausschluss"), MAX_LISTED),
                       title_positive=_terms(_value(titles, "positiv"), MAX_LISTED), portals=portals,
-                      hints=(*window_hint, *limit_hint, *shares, *(hint for hint, _ in targets)), nationwide=nationwide,
+                      hints=(*window_hint, *(hint for hint, _ in targets)), nationwide=nationwide,
                       hint_targets=targets, max_age_days=window)
 
 

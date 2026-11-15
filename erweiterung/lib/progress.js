@@ -1,8 +1,16 @@
 // Progress and result of a run as short German lines for the popup.
 
+/** Where a search stands among all of its portal (G43): „Suche 32 von 67, Etappe 2 von 3“; empty from an older run. */
+export function position(step) {
+  if (!step.abfragen) return '';
+  const stage = step.etappen > 1 ? `, Etappe ${step.etappe} von ${step.etappen}` : '';
+  return `Suche ${step.nummer} von ${step.abfragen}${stage}`;
+}
+
 const PHASES = {
   start: () => 'Suche startet …',
-  suche: (s) => `${s.portal}: suche „${s.stichwort}“, Seite ${s.seite} (${s.gefunden} bisher)`,
+  suche: (s) => [`${s.portal}: suche „${s.stichwort}“, Seite ${s.seite} (${s.gefunden} bisher)`, position(s)].filter(Boolean).join(' · '),
+  pause: (s) => `${s.portal}: Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${s.sekunden} Sekunden`,
   texte: (s) => `${s.portal}: lese Inserate (${s.fertig} von ${s.von})`,
 };
 
@@ -37,7 +45,8 @@ const OFFER_BUTTONS = {
 
 /**
  * What the popup says about the search before it starts: the plan is known only while the app runs.
- * @param {{art?: string, portale?: string[]}|null} plan
+ * Before a long run it adds what the app announces (G43): searches, stages and the rough duration.
+ * @param {{art?: string, portale?: string[], umfang?: {lang: boolean, text: string}}|null} plan
  * @returns {{button: string, text: string}}
  */
 export function describePlan(plan) {
@@ -46,7 +55,8 @@ export function describePlan(plan) {
   }
   const sites = (plan.weitere_seiten || []).map((site) => site.portal);
   const portals = [...(plan.portale || []), ...sites].join(', ').replace(/, ([^,]*)$/, ' und $1');
+  const long = plan.umfang?.lang ? ` ${plan.umfang.text}` : '';
   return plan.art === 'lehrstelle'
-    ? { button: OFFER_BUTTONS[(plan.angebote || []).join('+')] || OFFER_BUTTONS.lehrstelle, text: `Sucht auf ${portals} nach deinem Suchprofil. Die Treffer gehen in die App.` }
-    : { button: 'Stellen suchen', text: `Sucht auf ${portals} nach dem Suchprofil. Die Treffer gehen in die App.` };
+    ? { button: OFFER_BUTTONS[(plan.angebote || []).join('+')] || OFFER_BUTTONS.lehrstelle, text: `Sucht auf ${portals} nach deinem Suchprofil. Die Treffer gehen in die App.${long}` }
+    : { button: 'Stellen suchen', text: `Sucht auf ${portals} nach dem Suchprofil. Die Treffer gehen in die App.${long}` };
 }

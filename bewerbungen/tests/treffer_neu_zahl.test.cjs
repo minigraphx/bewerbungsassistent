@@ -89,6 +89,7 @@ function page({ hits = [NEW_HIT], art = "stelle", hash = "", failing = [], zeitr
       status() {}, datum: String, beobachten: callback => { watch = callback; }, textsatz: async () => "stelle-sie",
     },
     TrefferLogik: logik,
+    SuchlaufLogik: require("../seiten/suchlauf-logik.js"),
     SucheAnzeige: anzeige,
     Texte: texte,
     SidebarLogic: sidebarLogic,

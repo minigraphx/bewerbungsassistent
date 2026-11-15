@@ -80,27 +80,25 @@ test('jobscout24 and ictjobs need a place and skip niches', () => {
   assert.deepEqual(queries('ictjobs', PLAN).map((q) => q.region), ['grossraum-bern', 'grossraum-bern']);
 });
 
-test('number of queries is bounded by the plan, and the rest is counted', () => {
-  assert.deepEqual(buildQueries('jobs.ch', { ...PLAN, max_abfragen: 2 }).skipped, 3);
-  assert.equal(queries('jobs.ch', { ...PLAN, max_abfragen: 2 }).length, 2);
-  assert.equal(buildQueries('jobs.ch', PLAN).skipped, 0);
+test('the limit an older app sends leaves no query out (G43)', () => {
+  assert.equal(queries('jobs.ch', { ...PLAN, max_abfragen: 2 }).length, 5);
 });
 
-test('skipped queries are named in the summary', async () => {
+test('a run with the old limit in its plan searches everything and names nothing as left out', async () => {
   const browser = fakeBrowser(() => ({ ok: true, value: { hits: [], more: false } }));
   const summary = await searchPortal('jobs.ch', { ...PLAN, max_abfragen: 2 }, deps(fakeApp(), browser));
-  assert.match(summary.problem, /3 Suchen ausgelassen/);
+  assert.equal(browser.log.filter(([method]) => method === 'list').length, 5);
+  assert.equal(summary.problem, '');
 });
 
 test('chunks splits into parts', () => {
   assert.deepEqual(chunks([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]]);
 });
 
-test('the whole of Switzerland comes right after the home and is not cut first by the limit', () => {
-  const plan = { ...PLAN, schweizweit: true, kantone: [], stichworte: ['A', 'B'], nischen: [], orte: ['Thun', 'Bern'], max_abfragen: 4 };
-  const { queries: kept, skipped } = buildQueries('jobs.ch', plan);
-  assert.deepEqual(kept.map((q) => [q.keyword, q.place]), [['A', 'Thun'], ['B', 'Thun'], ['A', undefined], ['B', undefined]]);
-  assert.equal(skipped, 2);
+test('the whole of Switzerland comes right after the home, before the other places', () => {
+  const plan = { ...PLAN, schweizweit: true, kantone: [], stichworte: ['A', 'B'], nischen: [], orte: ['Thun', 'Bern'] };
+  assert.deepEqual(queries('jobs.ch', plan).map((q) => [q.keyword, q.place]),
+    [['A', 'Thun'], ['B', 'Thun'], ['A', undefined], ['B', undefined], ['A', 'Bern'], ['B', 'Bern']]);
 });
 
 test('hits near the home get their text first, across all parts of the list', async () => {

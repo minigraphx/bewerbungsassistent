@@ -65,6 +65,7 @@ function page({ liste = {}, uebernehmen = {}, erweiterung = true, hash = "" } = 
       status() {}, datum: String, beobachten() {}, textsatz: async () => "stelle-sie",
     },
     TrefferLogik: logik,
+    SuchlaufLogik: require("../seiten/suchlauf-logik.js"),
     SucheAnzeige: anzeige,
     Texte: texte,
     Meldungen: { zeige: (el, inhalt, stufe) => messages.push({ el, inhalt, stufe }), leere() {} },
@@ -158,6 +159,19 @@ test("the reason a disabled Jetzt suchen is disabled stands directly under it", 
   await settle();
   assert.equal(bereit.$("suchen").disabled, false);
   assert.equal(bereit.$("suchen-grund").textContent, "");
+});
+
+test("before a long run the page says under Jetzt suchen how many searches and stages and how long (G43)", async () => {
+  assert.match(HTML, /<p id="suchen-grund" class="btn-reason"><\/p>\s*<p id="suchen-umfang" class="btn-reason" hidden><\/p>/);
+  const text = "Diese Suche dauert etwa 23 Minuten: 193 Suchen in 7 Etappen, mit je einer Minute Pause dazwischen.";
+  const lang = page({ liste: { umfang: { lang: true, text, suchen: 193, etappen: 7, minuten: 23 } } });
+  await settle();
+  assert.equal(lang.$("suchen-umfang").textContent, text);
+  assert.equal(lang.$("suchen-umfang").hidden, false);
+
+  const kurz = page({ liste: { umfang: { lang: false, text: "", suchen: 12, etappen: 4, minuten: 1 } } });
+  await settle();
+  assert.equal(kurz.$("suchen-umfang").hidden, true);
 });
 
 test("without a search profile the app gives the short reason and keeps it out of the hints", () => {

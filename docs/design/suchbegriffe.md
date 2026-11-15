@@ -39,7 +39,7 @@ Die App prüft jede Änderung, bevor die Person sie sieht (`bewerbungen/term_cha
 
 - **Nichts ohne Zustimmung.** Erst «Übernehmen» schreibt, und nur die angehakten Änderungen.
 - **Nichts geht verloren.** Vor dem Schreiben sichert die App das Suchprofil als Entwurf. Danach gibt es «Rückgängig machen», solange niemand sonst das Suchprofil geändert hat; sonst liegt der frühere Stand unter «Entwürfe und Versionen».
-- **Grenzen der Suche (G43).** Die Zeile «Danach: 6 von 15 Suchbegriffen · bis 12 von 30 Suchen pro Portal» steht immer da. Geht eine Auswahl über 15 Suchbegriffe, 30 Begriffe pro Titelfilter oder 30 Suchen pro Portal und wird es mehr als heute, ist der Knopf gesperrt und sagt warum. Ein Profil, das heute schon darüber liegt, bleibt bedienbar, solange die Auswahl es nicht verschlimmert.
+- **Grenzen der Suche (G43).** Die Zeile «Danach: 6 von 15 Suchbegriffen · bis 12 Suchen pro Portal» steht immer da; Suchen pro Portal haben keine Grenze mehr, sie laufen in Etappen (#290). Geht eine Auswahl über 15 Suchbegriffe oder 30 Begriffe pro Titelfilter und wird es mehr als heute, ist der Knopf gesperrt und sagt warum. Ein Profil, das heute schon darüber liegt, bleibt bedienbar, solange die Auswahl es nicht verschlimmert.
 - **Veraltet.** Ändert die Person ihre Begriffe, während ein Vorschlag offen ist, gilt er nicht mehr: «Vorschlag veraltet» mit «Neu vorschlagen».
 - Ein Vorschlag lebt nur, solange die App läuft. Die Seite nennt eine Änderung nur über ihre Stelle im Vorschlag; was die Seite schickt, kann keine eigene Änderung werden.
 
