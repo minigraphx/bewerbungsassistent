@@ -7,7 +7,8 @@ file just written by `markdown_files.py`, so reading back and merging see the sa
 only keeps a line up to date that the app derives from other answers (the gaps also listed in the search profile);
 a hidden one marks lines the app writes from cv.yaml and the work evidence, which the form does not read back.
 A slot with `write` changes only the lines of its file that differ from the new value, such as one row of the table of
-portals (#291), instead of writing all its lines anew.
+portals (#291), instead of writing all its lines anew. The exclusions under „Suchrichtungen“ are read as the search
+reads them, indented under a direction too as in vorlagen/suchprofil.md (#309), and keep their place when written.
 """
 import dataclasses
 import re
@@ -24,6 +25,7 @@ TITLES = {PROFILE: "Suchprofil", STYLE: "Stilprofil", BLOCKS: "Bausteine"}
 JOB, APPRENTICESHIP = "job", "apprenticeship"
 
 PAIR = re.compile(r"^- ([^:]+): (.*)$")
+LABELLED = re.compile(r"^(\s*-\s+)([^:]+):\s*(.*)$")  # as search_plan.PAIR, at any indentation
 NUMBERED = re.compile(r"^\d+\. (.+?)(?: \(Priorität \d+\))?$")
 BULLET = re.compile(r"^- (.+)$")
 QUOTED = re.compile(r"^- „(.*)“$")
@@ -35,6 +37,7 @@ FORMAL_ALWAYS = f"- Immer {markdown_files.SALUTATION_FORMAL}"
 ADDRESS_OPTIONS = ("Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form")  # as in form.json, style.address
 NO_GAPS = markdown_files.GAPS_LATER
 LIST_SEPARATOR = ", "
+EXCLUSION = "ausschluss"  # the label as the search finds it (search_plan.frame)
 
 TABLE_ROW = re.compile(r"^\|([^|]*)\|([^|]*)\|")
 TABLE_HEAD = re.compile(r"^\|\s*portal\s*\|\s*modus\s*\|$|^\|[\s|:-]+\|$", re.IGNORECASE)
@@ -87,6 +90,35 @@ def pair(label: str, as_list: bool = False) -> Callable[[Lines], Found]:
                 return ((value.split(LIST_SEPARATOR) if as_list else value,), (number,))
         return NOTHING
     return read
+
+
+def _labelled_line(lines: Lines, prefix: str) -> tuple[int, re.Match] | None:
+    """The first line, indented ones too, whose label starts with `prefix` in any case: the line the search reads."""
+    return next(((n, m) for n, line in lines
+                 if (m := LABELLED.match(line)) and m.group(2).strip().lower().startswith(prefix)), None)
+
+
+def labelled(prefix: str) -> Callable[[Lines], Found]:
+    """A list in a line such as „   - Ausschluss: a, b“, found and split as the search does."""
+    def read(lines: Lines) -> Found:
+        hit = _labelled_line(lines, prefix)
+        if hit is None:
+            return NOTHING
+        number, match = hit
+        return ([v.strip() for v in match.group(3).split(",") if v.strip()],), (number,)
+    return read
+
+
+def write_labelled(prefix: str, label: str) -> Callable[[Lines, tuple | None], Writes]:
+    """The value in the line found, with its indentation and label as written; without a line, a new one with `label`."""
+    def write(lines: Lines, found: tuple | None) -> Writes:
+        value = markdown_files.inline(LIST_SEPARATOR.join(found[0])) if found else ""
+        hit = _labelled_line(lines, prefix)
+        if hit is None:
+            return {}, [f"- {label}: {value}"] if value else []
+        number, match = hit
+        return {number: [f"{match.group(1)}{match.group(2).strip()}: {value}"] if value else []}, []
+    return write
 
 
 def numbered(lines: Lines) -> Found:
@@ -222,7 +254,8 @@ def _region_job() -> list[Slot]:
 def _profile_job() -> list[Slot]:
     search = "searchJob"
     return [Slot("Suchrichtungen", numbered, search, ("directions",)),
-            Slot("Suchrichtungen", pair("Ausschluss", True), search, ("exclusions",)),
+            Slot("Suchrichtungen", labelled(EXCLUSION), search, ("exclusions",),
+                 write=write_labelled(EXCLUSION, "Ausschluss")),
             *_region_job(),
             Slot("Keywords", pair("Kernliste", True), search, ("keywords",)),
             Slot("Titelfilter", pair("Positiv", True), search, ("titlePositive",)),
