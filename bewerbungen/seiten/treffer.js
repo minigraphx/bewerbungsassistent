@@ -24,6 +24,7 @@
   let erweiterung = null;    // true once the extension answered, false when it stayed silent at the start
   let suchlaeuft = false;
   let profilFehlt = "";      // why nothing can be searched yet, from the app (#220)
+  let umfang = null;         // how big the next run is (G43), from the app
   let gesucht = false;       // a search ran before, so an empty list of new hits means „nothing new“
   let zusammenfassung = "";
   let suchStand = { lauf: null, wann: "" };  // the last search from the app, for the summary under the title
@@ -530,6 +531,7 @@
       grenze = daten.grenze;
       gesucht = Boolean(daten.letzte_suche) || alle.length > 0;
       profilFehlt = daten.sperrgrund || "";
+      umfang = daten.umfang || null;
       zusammenfassung = anzeige.zusammenfassung({
         begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle: daten.art === "lehrstelle",
       });
@@ -559,6 +561,9 @@
     const grund = anzeige.sperrgrund({ erweiterung, laeuft: suchlaeuft, profil: profilFehlt });
     $("suchen").disabled = suchlaeuft || erweiterung !== true || Boolean(grund);
     $("suchen-grund").textContent = grund;
+    const ansage = window.SuchlaufLogik.umfangText(umfang, grund);
+    $("suchen-umfang").textContent = ansage;
+    $("suchen-umfang").hidden = !ansage;
     if (!sucheVerlangt || !geladen || erweiterung === null) return;
     sucheVerlangt = false;  // once: the reason under the button says why it did not start
     history.replaceState(null, "", location.pathname + location.search);
@@ -569,10 +574,7 @@
     if (lauf.zustand === "fehler") return [lauf.fehler || "Die Suche ist abgebrochen.", "fehler"];
     if (lauf.zustand === "fertig" && lauf.ergebnis?.abgebrochen) return ["Suche abgebrochen. Was schon gefunden war, ist da.", "hinweis"];
     if (lauf.zustand === "fertig") return ["Suche fertig.", "ok"];
-    const s = lauf.schritt || {};
-    if (s.phase === "suche") return [`${s.portal}: suche „${s.stichwort}“, Seite ${s.seite} …`, ""];
-    if (s.phase === "texte") return [`${s.portal}: lese Inserate (${s.fertig} von ${s.von}) …`, ""];
-    return ["Suche startet …", ""];
+    return [window.SuchlaufLogik.laufZeile(lauf.schritt || {}), ""];
   }
 
   // The extension's worker may stop and lose this page's connection: without word for a while, the page asks.

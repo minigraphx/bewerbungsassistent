@@ -93,6 +93,7 @@ SEITEN = {
     "/treffer": "treffer.html",
     "/treffer.js": "treffer.js",
     "/treffer-logik.js": "treffer-logik.js",
+    "/suchlauf-logik.js": "suchlauf-logik.js",
     "/suche-anzeige.js": "suche-anzeige.js",
     "/zeitfenster.js": "zeitfenster.js",
     "/suche-rahmen-logik.js": "suche-rahmen-logik.js",

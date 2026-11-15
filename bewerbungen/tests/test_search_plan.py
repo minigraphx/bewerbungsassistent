@@ -300,12 +300,12 @@ def test_as_dict_of_an_apprenticeship_plan():
     assert data["stichworte"][0] == "Fachfrau Gesundheit EFZ"
 
 
-def test_values_are_trimmed_bounded_and_deduplicated():
+def test_values_are_trimmed_and_deduplicated_and_every_one_is_searched():
     text = "# Suchprofil\n\n## Keywords\n- Kernliste: Python, python , " + ", ".join(f"K{i}" for i in range(40)) + "\n"
     plan = search_plan.parse(text)
     assert plan.keywords[0] == "Python"
     assert "python" not in plan.keywords
-    assert len(plan.keywords) == search_plan.MAX_KEYWORDS
+    assert len(plan.keywords) == 41, "G43: no fixed maximum of terms"
 
 
 def test_unknown_canton_codes_are_ignored():

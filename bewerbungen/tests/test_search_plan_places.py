@@ -1,4 +1,4 @@
-"""Several places share the query limit of a portal, and the plan says how far each gets (#175)."""
+"""Several places of a portal keep their order in the plan (#175); each searches every keyword (G43)."""
 import search_plan
 
 KEYWORDS = ("Python", "TypeScript", "Go", "Rust", "Kotlin", "Swift", "SQL", "Linux", "Docker", "Kubernetes",
@@ -26,18 +26,9 @@ def test_the_plan_keeps_every_place_in_profile_order():
     assert plan["max_abfragen"] == search_plan.MAX_QUERIES == 30
 
 
-def test_the_plan_says_how_many_keywords_each_place_searches():
-    hints = search_plan.parse(PROFILE).hints
-    assert ("jobs.ch: 30 Suchen reichen nicht für alle 15 Begriffe in 4 Orten; pro Ort laufen die ersten 6. "
-            "Wichtige Begriffe nach vorne stellen.") in hints
-    assert ("jobscout24: 30 Suchen reichen nicht für alle 15 Begriffe in 4 Orten; in 3000 und 3600 laufen die ersten 8, "
-            "in 2500 und 4500 die ersten 7. Wichtige Begriffe nach vorne stellen.") in hints  # #195: the real shares
-    assert not any(hint.startswith("ictjobs:") for hint in hints), "one region searches every keyword"
-
-
-def test_the_hint_goes_with_its_portal():
-    hints = search_plan.chosen(search_plan.parse(PROFILE), ["jobs.ch"]).hints
-    assert [hint.split(":")[0] for hint in hints] == ["jobscout24"]
+def test_every_place_searches_every_keyword_so_no_place_shares_a_limit():
+    """G43 replaced the shared limit and its hint (#175, #195) with stages: nothing is left to share."""
+    assert search_plan.parse(PROFILE).hints == ()
 
 
 def test_few_keywords_need_no_hint():

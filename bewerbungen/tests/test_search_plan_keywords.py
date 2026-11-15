@@ -1,4 +1,4 @@
-"""Every keyword line of the profile is searched, and what the limit drops is named (#174)."""
+"""Every keyword line of the profile is searched (#174), every term of it (G43)."""
 import json
 
 import search_plan
@@ -34,17 +34,11 @@ def test_a_second_named_group_is_searched_after_the_core_list():
     assert plan.hints == ()
 
 
-def test_terms_over_the_limit_are_named_in_a_hint():
+def test_terms_beyond_what_the_app_lets_one_add_are_all_searched():
     plan = search_plan.parse(profile(CORE))
-    assert plan.keywords == CORE[:search_plan.MAX_KEYWORDS]
-    dropped = (*CORE[search_plan.MAX_KEYWORDS:], *SECOND)
-    assert plan.hints == (f"Gesucht werden höchstens 15 Begriffe. Nicht gesucht: {', '.join(dropped)}. "
-                          "Weniger wichtige Begriffe entfernen.",)
-
-
-def test_the_hint_stays_with_any_choice_of_portals():
-    plan = search_plan.chosen(search_plan.parse(profile(CORE)), ["jobs.ch", "jobscout24"])
-    assert any("Nicht gesucht" in h for h in plan.hints)
+    assert len(CORE) > search_plan.MAX_KEYWORDS
+    assert plan.keywords == (*CORE, *SECOND), "G43: no fixed maximum, so no term is dropped"
+    assert plan.hints == ()
 
 
 def test_a_term_of_the_second_group_can_be_removed_as_the_page_shows_it():
@@ -52,7 +46,8 @@ def test_a_term_of_the_second_group_can_be_removed_as_the_page_shows_it():
     assert search_plan.parse(changed).keywords == (*CORE[:3], "Projektleitung IT")
 
 
-def test_the_page_suche_shows_the_dropped_terms(server):  # noqa: F811
+def test_the_plan_for_the_extension_carries_every_term(server):  # noqa: F811
     (server.kontext.daten / "suchprofil.md").write_text(profile(CORE), encoding="utf-8")
-    hints = json.loads(get(server, "/api/suche/liste")[2])["hinweise"]
-    assert any("Nicht gesucht" in h and "Scrum Master" in h for h in hints)
+    plan = json.loads(get(server, "/api/suche/plan")[2])["plan"]
+    assert plan["stichworte"] == [*CORE, *SECOND]
+    assert not any("Nicht gesucht" in h for h in plan["hinweise"])
