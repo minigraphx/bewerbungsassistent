@@ -58,14 +58,15 @@
   /**
    * Rate ids in packages. A package without a usable answer costs nobody else: its hits are tried again one by one.
    * An error of connection, access or credit ends the run, what was rated stays.
-   * mittel: { paket, sende(ids) → answer, angehalten() → bool, fortschritt(stand, hits) }.
+   * mittel: { paket, sende(ids) → answer, angehalten() → bool, fortschritt(stand, hits), beginnt?(stand, ids) }.
    */
-  async function bewerteAlle(ids, { paket, sende, angehalten, fortschritt }) {
+  async function bewerteAlle(ids, { paket, sende, angehalten, fortschritt, beginnt = () => {} }) {
     let stand = { bewertet: 0, ohneText: 0, kosten: 0, offen: [], fehler: "", gestoppt: false, von: ids.length };
     const runden = [...pakete(ids, paket).map(gruppe => ({ gruppe, nochmals: gruppe.length > 1 }))];
     while (runden.length) {
       if (angehalten()) return { ...stand, gestoppt: true };
       const { gruppe, nochmals } = runden.shift();
+      beginnt(stand, gruppe);
       let antwort;
       try {
         antwort = await sende(gruppe);
@@ -78,6 +79,22 @@
       fortschritt(stand, antwort.bewertet);
     }
     return stand;
+  }
+
+  // G43 (#284): a package is one call to the AI, so the line names its hits and, after a few seconds, how long it runs.
+  const SEKUNDEN_AB = 3;
+
+  /** „Stellen 11 bis 20 von 25 prüfen …“ for the package going out now; `sekunden` since it went out. */
+  function pruefSchritt(stand, gruppe, sekunden) {
+    const erste = stand.bewertet + 1;
+    const welche = gruppe.length > 1 ? `Stellen ${erste} bis ${erste + gruppe.length - 1}` : `Stelle ${erste}`;
+    const dauer = sekunden >= SEKUNDEN_AB ? `, seit ${sekunden} Sekunden` : "";
+    return `${welche} von ${stand.von} prüfen${dauer} …`;
+  }
+
+  /** „Inserat 4 von 9 holen …“ while the extension loads the missing ads; empty before it says how many. */
+  function inseratSchritt(stand) {
+    return stand.von ? `Inserat ${stand.fertig + 1} von ${stand.von} holen …` : "";
   }
 
   // „Alle prüfen“ (G44, #209): the words around the estimate of GET /api/suche/alle-pruefen, in its currency: CHF
@@ -220,7 +237,7 @@
     return fehlt ? { titel: "Inseratstext fehlt", text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
   }
 
-  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, estimateLine, confirmation, schlussText, nachpruefungText, fehlenderText };
+  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, confirmation, schlussText, nachpruefungText, fehlenderText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

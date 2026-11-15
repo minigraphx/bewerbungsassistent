@@ -16,7 +16,7 @@ const PHASES = {
   start: () => 'Suche startet …',
   suche: (s) => [`${s.portal}: suche „${s.stichwort}“${place(s)}, Seite ${s.seite} (${s.gefunden} bisher)`, position(s)].filter(Boolean).join(' · '),
   pause: (s) => `${s.portal}: Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${s.sekunden} Sekunden`,
-  texte: (s) => `${s.portal}: lese Inserate (${s.fertig} von ${s.von})`,
+  texte: (s) => `${s.portal}: lese Inserat ${s.fertig + 1} von ${s.von}`,
 };
 
 /**
