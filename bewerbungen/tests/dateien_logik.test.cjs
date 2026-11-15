@@ -29,7 +29,7 @@ test("applications with a variant are named, none says nothing", () => {
 });
 
 test("the kind of a new file is guessed from its name", () => {
-  for (const name of ["Arbeitszeugnis Beispiel AG.pdf", "Zwischenzeugnis.png", "Schulzeugnis 2025.jpg",
+  for (const name of ["Arbeitszeugnis Beispiel AG.pdf", "Zwischenzeugnis.png", "Schulzeugnis 2025.jpg", "Schulzeugnis_2024.pdf",
                       "Referenz Muster.pdf", "Arbeitsbestätigung.pdf", "reference letter.pdf"]) {
     assert.equal(logic.guessKind(name), "zeugnis", name);
   }
@@ -38,10 +38,16 @@ test("the kind of a new file is guessed from its name", () => {
   }
 });
 
-// G63 (#282): three kinds, the diploma guessed from its name.
-test("certificates and references know three kinds: Arbeitszeugnis, Diplom and Zertifikat", () => {
+// G63 (#282, #292): three kinds, the diploma guessed from its name. Work and school reports are both a Zeugnis.
+test("certificates and references know three kinds: Zeugnis, Diplom and Zertifikat", () => {
   assert.deepEqual(logic.KINDS, ["zeugnis", "diplom", "zertifikat"]);
-  assert.deepEqual(logic.KINDS.map(kind => logic.KIND_LABELS[kind]), ["Arbeitszeugnis", "Diplom", "Zertifikat"]);
+  assert.deepEqual(logic.KINDS.map(kind => logic.KIND_LABELS[kind]), ["Zeugnis", "Diplom", "Zertifikat"]);
+});
+
+test("the hint on the page names Zeugnisse, not only work references", () => {
+  const page = read("dateien.html");
+  assert.match(page, /Zeugnisse gehen beim Ausfüllen eines Formulars mit/);
+  assert.doesNotMatch(page, /Arbeitszeugnis/);
 });
 
 test("a diploma is guessed from its name, also a Fähigkeitszeugnis", () => {
