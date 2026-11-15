@@ -84,6 +84,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G77 [approved, must] Beim Erstellen eines Lebenslaufs nach G17 wählt die Person unter «Aussehen» für diesen Lebenslauf auch, ob er ein Foto trägt, sowie Farbe und Zeichen. Voreingestellt ist, was auf «Lebenslauf und Dateien» gilt (G61, G62). | gate: review
 - G79 [approved, must] Den MCP-Server der App nutzen ausser Claude auch andere KI-Programme, die MCP unterstützen, zum Beispiel ChatGPT Desktop oder LM Studio mit einem lokalen Modell. Unter Einstellungen › KI zeigt die App pro Programm, wie es angebunden wird. Was die KI über den Server erreicht, bleibt für alle Programme gleich begrenzt wie für Claude. | gate: review
 - G80 [approved, must] Ein Einladungscode für die Vermittlung ist ein einmaliges Probeguthaben von CHF 5; es wird nicht monatlich erneuert. Ist es aufgebraucht, sagt die App das und dass die Person einen neuen Code anfordern kann. | gate: review
+- G88 [draft, must] Der MCP-Server der App bringt den Ablauf der Skills Einstieg, Jobsuche und Bewerbung als MCP-Prompts mit. Die Person richtet nur den Server ein, in Claude wie in anderen KI-Programmen, und wählt dort den Ablauf, etwa «Bewerbung für eine Stelle». Die Skill-ZIPs bleiben vorerst für Programme ohne MCP-Prompts; Inhalt und Werkzeuge sind in beiden gleich. | gate: review
 
 ## K · Constraints
 
