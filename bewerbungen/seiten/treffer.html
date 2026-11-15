@@ -95,6 +95,11 @@
         <button type="button" class="btn btn--sm" id="alle-pruefen">Alle prüfen</button>
       </div>
       <section class="search__list" aria-label="Trefferliste" id="liste"></section>
+      <div class="search__bulk" id="ab-note-zeile">
+        <span>Mehrere auf einmal:</span>
+        <label class="search__bulk-grade" for="ab-note">Ab Note <select class="input" id="ab-note"></select></label>
+        <button type="button" class="btn btn--sm" id="ab-note-knopf">Alle ab Note 4.5 merken</button>
+      </div>
     </div>
     <section class="search__detail" aria-labelledby="detail-titel" id="detail"></section>
   </div>
@@ -102,6 +107,11 @@
     <h2 class="dialog__title" id="alle-titel"></h2>
     <div class="dialog__text" id="alle-text"></div>
     <div class="dialog__actions"><button type="button" class="btn" id="alle-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="alle-ok">Jetzt prüfen</button></div>
+  </dialog>
+  <dialog class="dialog" id="ab-note-dialog" aria-labelledby="ab-note-titel" aria-describedby="ab-note-text">
+    <h2 class="dialog__title" id="ab-note-titel"></h2>
+    <div class="dialog__text" id="ab-note-text"></div>
+    <div class="dialog__actions"><button type="button" class="btn" id="ab-note-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="ab-note-ok">Merken</button></div>
   </dialog>
 </main>
 <script src="/texte.js"></script>
@@ -121,5 +131,7 @@
 <script src="/suchbegriffe-start.js"></script>
 <script src="/firmen-ausschluss.js"></script>
 <script src="/treffer.js"></script>
+<script src="/merken-ab-note-logik.js"></script>
+<script src="/merken-ab-note.js"></script>
 </body>
 </html>
