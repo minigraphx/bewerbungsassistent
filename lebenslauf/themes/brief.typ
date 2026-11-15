@@ -1,6 +1,7 @@
 // Gemeinsames Layout für Anschreiben. Die Themes setzen nur ihren Stil (Farben, Schriften, Grössen).
 // Daten kommen fertig aufbereitet aus anschreiben.py; alle Texte werden als Text eingesetzt, nie als Markup.
 #import "page-fill.typ": spacing, leading, body-size, part-start, part-end
+#import "type-area.typ": type-area
 
 #let brief-standard-stil = (
   farbe-text: black,
@@ -28,7 +29,8 @@
 #let brief-teil(daten, stil: (:), kopf: auto, betreff-block: none, fuss: none, hintergrund: none) = {
   let s = brief-standard-stil + stil
   let absender = daten.absender
-  page(paper: "a4", margin: s.rand, fill: s.farbe-hintergrund, footer: fuss, background: hintergrund, {
+  page(paper: "a4", margin: s.rand, fill: s.farbe-hintergrund, footer: fuss, background: hintergrund,
+    foreground: type-area(), {
     let (f, lf) = (spacing("letter"), leading("letter"))
     set text(font: s.schrift-text, size: body-size(s.groesse-text, "letter"), fill: s.farbe-text, lang: daten.sprache)
     set par(leading: s.zeilen-text * lf, spacing: s.abstand-absatz * f)

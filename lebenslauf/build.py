@@ -14,6 +14,7 @@ import typst
 import yaml
 
 import page_fill
+import type_area
 from tailor import tailor
 from typst_root import typst_root
 
@@ -137,6 +138,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     eingaben = page_fill.levels(lambda e: page_fill.markers(vorlage, str(wurzel.path), schriften, e), eingaben, ("cv",),
                                 page_fill.limits(args.lebenslauf_seiten))
     typst.compile(vorlage, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
+    type_area.record(out, vorlage, str(wurzel.path), schriften, eingaben)  # the margins for the check (#304)
     print(out)
     return out
 
