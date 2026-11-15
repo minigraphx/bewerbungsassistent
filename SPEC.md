@@ -90,6 +90,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G85 [approved, must] Vor «Aus Unterlagen vorbefüllen» zeigt die App, was der Lauf etwa kostet und wie lange er etwa dauert, geschätzt ohne KI aus Zahl und Umfang der gewählten Dateien; mit Guthaben über die Vermittlung auch, wie viel danach etwa übrig bleibt. An die KI geht erst etwas, wenn die Person danach auf «Vorbefüllen» klickt. | gate: review
 - G86 [approved, must] Auf «Suche einstellen» kann die Person die KI aus ihren verworfenen Treffern Ausschlussgründe vorschlagen lassen, etwa Pensum, Branche, Arbeitsort oder Wörter im Titel. An die KI gehen nur Titel, Firma, Ort und Pensum der verworfenen Inserate, ohne Angaben zur Person. Jeder Vorschlag nennt die Treffer, auf die er sich stützt; übernommen wird er nur mit Klick der Person. Die Datenschutzerklärung nennt diese Daten, bevor es gebaut ausgeliefert wird. | gate: review
 - G87 [approved, must] Auf «Suche einstellen» ordnet die Person ihre Suchbegriffe per Ziehen, auch mit der Tastatur. Die Suche sucht sie in dieser Reihenfolge, die wichtigsten zuerst; neue Begriffe kommen ans Ende. | gate: review
+- G88 [approved, must] Der MCP-Server der App bringt den Ablauf der Skills Einstieg, Jobsuche und Bewerbung als MCP-Prompts mit. Die Person richtet nur den Server ein, in Claude wie in anderen KI-Programmen, und wählt dort den Ablauf, etwa «Bewerbung für eine Stelle». Die Skill-ZIPs bleiben vorerst für Programme ohne MCP-Prompts; Inhalt und Werkzeuge sind in beiden gleich. | gate: review
 
 ## K · Constraints
 
