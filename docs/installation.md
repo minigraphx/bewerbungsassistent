@@ -23,6 +23,7 @@ Du suchst eine Lehrstelle? Eingerichtet wird die App für dich von einer erwachs
   - [Lebenslauf für eine Stelle erstellen](#lebenslauf-für-eine-stelle-erstellen)
   - [Suchbegriffe prüfen](#suchbegriffe-prüfen)
   - [Ein Wort aus verworfenen Stellen ausschliessen](#ein-wort-aus-verworfenen-stellen-ausschliessen)
+  - [Einen Punkt der Einschätzung ausschliessen](#einen-punkt-der-einschätzung-ausschliessen)
   - [Firmen und kununu](#firmen-und-kununu)
   - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
   - [Für Lehrstellen](#für-lehrstellen)
@@ -240,6 +241,10 @@ Nach dem Übernehmen holt **Rückgängig machen** den Stand davor zurück, solan
 ### Ein Wort aus verworfenen Stellen ausschliessen
 
 Haben mindestens drei Stellen, die Sie verworfen haben, dasselbe Wort im Titel, schlägt **Suche einstellen** unter **Was Sie nicht sehen wollen** vor, es auszuschliessen, etwa: **Aus den Stellen, die Sie verworfen haben: 3 haben «Aussendienst» im Titel.** Darunter steht, wie viele Stellen, die Sie nicht verworfen haben, das Wort auch im Titel haben. Das zählt die App selbst, ohne KI und ohne Kosten. Wörter aus **Titel, die passen** schlägt sie nie vor. **«Aussendienst» nicht mehr zeigen** setzt das Wort unter **Im Titel**; das gilt ab der nächsten Suche, und der frühere Stand bleibt als Entwurf erhalten. **Die 3 Stellen ansehen** zeigt genau diese Stellen auf **Stellen**. **Nicht jetzt** legt den Vorschlag beiseite, bis weitere verworfene Stellen das Wort haben. Ohne einen dieser Klicks ändert sich nichts. Das gibt es nur bei der Stellensuche.
+
+### Einen Punkt der Einschätzung ausschliessen
+
+In der **Einschätzung der KI** steht neben jedem Punkt unter **Was fehlt oder unsicher ist** der Knopf **Künftig nicht zeigen**. Er zeigt, was die App auf **Suche einstellen** unter **Was Sie nicht sehen wollen** einträgt: Kommt ein Wort des Punkts im Titel der Stelle vor, etwa «Pikettdienst», schlägt sie dieses Wort **Im Titel** vor; sonst den Punkt selbst **Im Inserat**. Das sucht die App selbst aus, ohne KI und ohne Kosten. Sie wählen den Ort, ändern den Eintrag und klicken auf **Eintragen**; mit **Abbrechen** bleibt alles, wie es ist. **Im Titel** gilt ab der nächsten Suche, **Im Inserat** liest die KI bei jeder weiteren Einschätzung als Ausschluss mit. **Rückgängig** in der Meldung danach nimmt genau diesen Eintrag wieder heraus; der Stand davor bleibt ausserdem als Entwurf erhalten. Das gibt es nur bei der Stellensuche.
 
 ### Firmen und kununu
 
