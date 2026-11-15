@@ -61,6 +61,17 @@ export function buildQueries(portal, plan) {
   return { queries: [...(rounds[0] || []), ...free, ...everywhere, ...rounds.slice(1).flat()] };
 }
 
+/**
+ * The place a query searches, for the progress (G43): its town, postcode, region or cantons; '' for a query without one.
+ * @param {object} query  as buildQueries returns it
+ * @returns {string}
+ */
+export function placeOf(query) {
+  const single = query.place || query.postalCode || query.region || query.canton;
+  if (single) return String(single);
+  return (query.cantons || []).join(', ');
+}
+
 /** Split a list into parts of at most `size` items. */
 export function chunks(items, size) {
   const parts = [];

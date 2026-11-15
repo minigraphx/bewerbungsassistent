@@ -7,9 +7,14 @@ export function position(step) {
   return `Suche ${step.nummer} von ${step.abfragen}${stage}`;
 }
 
+/** „ in Bern“ for the place being searched (G43); empty for a query without place or from an older run. */
+export function place(step) {
+  return step.ort ? ` in ${step.ort}` : '';
+}
+
 const PHASES = {
   start: () => 'Suche startet …',
-  suche: (s) => [`${s.portal}: suche „${s.stichwort}“, Seite ${s.seite} (${s.gefunden} bisher)`, position(s)].filter(Boolean).join(' · '),
+  suche: (s) => [`${s.portal}: suche „${s.stichwort}“${place(s)}, Seite ${s.seite} (${s.gefunden} bisher)`, position(s)].filter(Boolean).join(' · '),
   pause: (s) => `${s.portal}: Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${s.sekunden} Sekunden`,
   texte: (s) => `${s.portal}: lese Inserate (${s.fertig} von ${s.von})`,
 };
