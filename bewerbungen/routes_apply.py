@@ -24,7 +24,7 @@ OPENED, FILLED, SENT = FORM_STATES
 TOO_MANY = f"Pro Durchgang gehen höchstens {apply.MAX_PER_RUN} Bewerbungen."
 NONE_CHOSEN = "Bitte zuerst Bewerbungen ankreuzen."
 BAD_STATE = "Dieser Stand ist unbekannt."
-CONFIRM_FIRST = "Bitte zuerst unter «Unterlagen prüfen» ansehen und mit «So lassen» bestätigen."
+CONFIRM_FIRST = "Bitte zuerst unter «Unterlagen erstellen und prüfen» ansehen und mit «So lassen» bestätigen."
 
 
 def _body_id(body) -> str:

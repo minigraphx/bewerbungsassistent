@@ -6,6 +6,7 @@
 <meta name="token" content="__TOKEN__">
 <title>Bewerbung</title>
 <link rel="stylesheet" href="/stil.css">
+<link rel="stylesheet" href="/unterlagen.css">
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/bewerbungen" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span><span class="num" id="nav-budget-detail"></span><strong class="app-nav__budget-warning" id="nav-budget-warning" hidden></strong></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
@@ -50,7 +51,7 @@
             <p class="field__hint">Aus Ihren Angaben. Kürzen und umstellen geht hier; <a href="/angaben">Angaben selbst ändern</a> geht unter Meine Angaben.</p></div>
           <h4 class="cv-create__step" id="cv-erstellen-aussehen-titel">2 · Aussehen</h4>
           <div class="design-tiles cv-create__designs" id="cv-erstellen-designs" role="radiogroup" aria-labelledby="cv-erstellen-aussehen-titel"></div>
-          <p class="field__hint">Gilt nur für diese Bewerbung. Ein Dossier hat sein eigenes Design, unten bei «Unterlagen prüfen».</p>
+          <p class="field__hint">Gilt nur für diese Bewerbung. Ein Dossier hat sein eigenes Design, unter «Dossier gestalten».</p>
           <div class="field"><label class="field__label" for="cv-erstellen-name">Name der Fassung</label><input class="input" id="cv-erstellen-name" maxlength="120" autocomplete="off"></div>
           <div class="btn-row"><button type="button" class="btn btn--primary" id="cv-erstellen-speichern">Lebenslauf übernehmen</button><button type="button" class="btn btn--quiet" id="cv-erstellen-abbrechen">Abbrechen</button><a class="btn btn--quiet" id="cv-erstellen-pdf" target="_blank" rel="noopener" hidden>Als PDF öffnen</a></div>
           <p class="status-line" id="cv-erstellen-status" role="status" aria-live="polite"></p>
@@ -58,7 +59,7 @@
       </section>
 
       <section class="card" id="s-anschreiben" aria-labelledby="anschreiben-titel">
-        <h2 id="anschreiben-titel">Anschreiben</h2>
+        <h2 id="anschreiben-titel" tabindex="-1">Anschreiben</h2>
         <p id="anschreiben-stand"></p>
         <div class="letter" id="anschreiben-text" hidden></div>
         <article class="ai-result" id="ki-pruefung-teil" aria-labelledby="ki-pruefung-titel" hidden>
@@ -91,18 +92,22 @@
       </section>
 
       <section class="card" id="s-pruefen" aria-labelledby="pruefen-titel">
-        <h2 id="pruefen-titel">Unterlagen prüfen</h2>
-        <p>Erstellt den Lebenslauf aus der gewählten Variante und das Anschreiben als PDF und prüft beide. Fehlt noch ein Anschreiben, entwirft die KI zuerst eines, wenn sie eingerichtet ist.</p>
-        <fieldset class="choice-group" id="unterlagen-wahl">
+        <h2 id="pruefen-titel" tabindex="-1">Unterlagen erstellen und prüfen</h2>
+        <p class="field__hint">Erstellt Lebenslauf und Anschreiben als PDF und prüft sie. Fehlt noch ein Anschreiben, entwirft die KI zuerst eines, wenn sie eingerichtet ist.</p>
+        <fieldset class="form-tiles" id="unterlagen-wahl">
           <legend>Unterlagen als</legend>
-          <label class="check"><input type="radio" name="unterlagen" value="einzeln" checked> Anschreiben und Lebenslauf (Vorgabe)</label>
-          <label class="check"><input type="radio" name="unterlagen" value="dossier"> Dossier</label>
-          <p class="field__hint">Das Dossier ist ein PDF mit Deckblatt, Anschreiben und Lebenslauf. Anschreiben und Lebenslauf liegen dann im selben Design auch einzeln bereit, für Formulare, die zwei Dateien verlangen.</p>
+          <label class="form-tile"><input type="radio" name="unterlagen" value="einzeln" checked><span class="form-tile__name">Anschreiben und Lebenslauf</span><span class="form-tile__text">Zwei PDF. Vorgabe.</span></label>
+          <label class="form-tile"><input type="radio" name="unterlagen" value="dossier"><span class="form-tile__name">Dossier</span><span class="form-tile__text">Ein PDF mit Deckblatt, Anschreiben und Lebenslauf. Beide liegen im selben Design auch einzeln bereit, für Formulare mit zwei Feldern.</span></label>
         </fieldset>
+        <div class="dossier-line" id="dossier-kurz" hidden>
+          <span class="dossier-line__cover" id="d-zeichen-mini" aria-hidden="true"></span>
+          <p class="dossier-line__text"><strong id="dossier-kurz-design">Design Siegel</strong> <span id="d-zeichen-satz"></span> <span id="dossier-kurz-texte"></span></p>
+          <button type="button" class="btn" id="dossier-gestalten" aria-expanded="false" aria-controls="dossier-gestalten-teil">Dossier gestalten</button>
+        </div>
+        <div class="dossier-panel" id="dossier-gestalten-teil" hidden>
         <div id="dossier-design" hidden>
           <div class="field"><label class="field__label" for="d-design">Design des Dossiers</label><select class="input" id="d-design"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select>
             <p class="field__hint">Ein Design für alle Seiten. Akzentfarbe und Schrift bleiben auf allen Seiten gleich.</p></div>
-          <div class="mark-summary" id="d-zeichen-kurz" hidden><span class="mark-summary__cover" id="d-zeichen-mini" aria-hidden="true"></span><p class="field__hint" id="d-zeichen-satz"></p></div>
           <details id="d-erweitert">
             <summary>Erweitert</summary>
             <section class="mark-editor" id="d-zeichen-teil" aria-labelledby="d-zeichen-titel" hidden>
@@ -146,13 +151,18 @@
           <div class="btn-row"><button type="button" class="btn btn--sm" id="dossier-entwerfen" disabled>Von der KI entwerfen</button><button type="button" class="btn btn--sm" id="dossier-speichern">Texte speichern</button></div>
           <div id="dossier-status" class="status" role="status" aria-live="polite"></div>
         </div>
-        <div class="btn-row"><button type="button" class="btn" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen" hidden>Erneut prüfen</button></div>
+        </div>
+        <div class="btn-row"><button type="button" class="btn btn--primary" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen" hidden>Erneut prüfen</button></div>
+        <p class="status-line" id="befunde-ansage" role="status" aria-live="polite"></p>
         <ul class="befunde" id="befunde"></ul>
-        <div class="pdfs" id="pdfs"></div>
-        <h3>Beilagen</h3>
-        <p class="field__hint">Nur die Zertifikate, die zur Stelle passen, kommen als eine ZIP-Datei mit. Die Vorschläge stammen aus dem Vergleich der Dateinamen mit dem Inserat.</p>
-        <ul class="auswahl-liste" id="zertifikate"></ul>
-        <div class="btn-row"><button type="button" class="btn btn--sm" id="zertifikate-speichern" hidden>Auswahl speichern</button><span id="zertifikate-status" class="status" role="status"></span></div>
+        <details class="befunde-ok" id="befunde-ok" hidden><summary id="befunde-ok-titel"></summary><ul class="befunde" id="befunde-ok-liste"></ul></details>
+        <div class="doc-tiles" id="pdfs"></div>
+        <div class="attach-line"><p class="attach-line__text" id="beilagen-zeile">Beilagen</p><button type="button" class="btn btn--quiet" id="beilagen-aendern" aria-expanded="false" aria-controls="beilagen-liste">Beilagen ändern</button></div>
+        <div class="attach-list" id="beilagen-liste" hidden>
+          <p class="field__hint">Nur die Zertifikate, die zur Stelle passen, kommen als eine ZIP-Datei mit. Die Vorschläge stammen aus dem Vergleich der Dateinamen mit dem Inserat.</p>
+          <ul class="auswahl-liste" id="zertifikate"></ul>
+          <div class="btn-row"><button type="button" class="btn btn--sm" id="zertifikate-speichern" hidden>Auswahl speichern</button><span id="zertifikate-status" class="status" role="status"></span></div>
+        </div>
       </section>
 
       <section class="card" id="s-abschicken" aria-labelledby="abschicken-titel">
@@ -293,6 +303,8 @@
 <script src="/lebenslauf-erstellen-logik.js"></script>
 <script src="/lebenslauf-erstellen.js"></script>
 <script src="/unterlagen-wahl.js"></script>
+<script src="/unterlagen-ergebnis.js"></script>
+<script src="/unterlagen-schritt.js"></script>
 <script src="/dossier-texte.js"></script>
 <script src="/zeichen-logik.js"></script>
 <script src="/zeichen.js"></script>

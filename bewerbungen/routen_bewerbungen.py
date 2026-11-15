@@ -2,11 +2,13 @@
 import dataclasses
 import datetime
 import pathlib
+from http import HTTPStatus
 
 import yaml
 
 import layout_confirmed
 import letter_approval
+import pdf_thumbnail
 import pruefung
 import routes_missing_ads
 import unterlagen
@@ -14,7 +16,7 @@ import versand
 from dateien import im_ordner, schreibe_atomar
 from own_files import MAX_FILE_BYTES
 from register import STATUS, jobroom_angaben
-from server import datei_antwort, json_antwort, pflicht
+from server import Antwort, NichtGefunden, datei_antwort, json_antwort, pflicht
 from varianten import vorschlagen
 
 EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen", "rav_eingetragen_am")
@@ -169,7 +171,7 @@ def unterlagen_bauen(k, parameter, body):
     return json_antwort({"gebaut": sorted(gebaut)})
 
 
-def pdf(k, parameter, body):
+def _shown_pdf(k, parameter) -> pathlib.Path:
     art = pflicht(parameter, "art")
     wanted = pflicht(parameter, "id")
     if art not in unterlagen.pdf_pfade(k.daten, wanted) and art != unterlagen.DOSSIER:
@@ -177,7 +179,19 @@ def pdf(k, parameter, body):
     shown = _shown_pdfs(k, k.register().hole(wanted))
     if art not in shown:
         raise ValueError("Für diese Bewerbung ist kein Dossier gewählt")
-    return datei_antwort(shown[art], "application/pdf")
+    return shown[art]
+
+
+def pdf(k, parameter, body):
+    return datei_antwort(_shown_pdf(k, parameter), "application/pdf")
+
+
+def thumbnail(k, parameter, body):
+    """Page 1 as PNG for the tile of the document (#321)."""
+    path = _shown_pdf(k, parameter)
+    if not path.is_file():
+        raise NichtGefunden(f"{path.name} nicht gefunden")
+    return Antwort(HTTPStatus.OK, "image/png", pdf_thumbnail.cached(k.cache, path, k.build))
 
 
 def versendet(k, parameter, body):
@@ -222,6 +236,7 @@ GET = {
     "/api/bewerbung": details,
     "/api/varianten/vorschlag": varianten_vorschlag,
     "/api/pdf": pdf,
+    "/api/pdf/miniatur": thumbnail,
     "/api/versendet": versendet,
     "/api/pruefung": pruefen,
 }

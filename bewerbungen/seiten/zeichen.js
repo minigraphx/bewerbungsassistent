@@ -250,7 +250,8 @@
       }
     }
     const bereit = zeigen && zustand !== null && zustand.lebenslauf;
-    $("d-zeichen-kurz").hidden = !bereit;
+    $("d-zeichen-mini").hidden = !bereit;
+    $("d-zeichen-satz").hidden = !bereit;
     $("d-zeichen-teil").hidden = !bereit;
     if (bereit) zeigeAlles();
   }

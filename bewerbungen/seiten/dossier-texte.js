@@ -21,6 +21,7 @@
     $("dossier-gruss").value = texte.gruss;
     $("dossier-dank").value = texte.dank;
     geladen = { gruss: texte.gruss, dank: texte.dank };
+    $("dossier-kurz-texte").textContent = window.UnterlagenErgebnis.textsState(geladen);
   }
 
   function leer(texte) {
