@@ -66,7 +66,7 @@ def test_a_refused_profile_value_leaves_the_companies_as_they_were_and_says_so(s
     assert stored(listed) == ["Muster Bau AG"]
 
 
-def test_when_the_companies_cannot_be_written_the_profile_goes_back_and_the_message_says_so(server, monkeypatch):  # noqa: F811
+def test_when_the_companies_cannot_be_written_the_profile_goes_back_and_the_message_says_so(server, monkeypatch, caplog):  # noqa: F811
     path, listed = setup(server, JOB, ["Muster Bau AG"])
 
     def broken(*_):
@@ -77,6 +77,7 @@ def test_when_the_companies_cannot_be_written_the_profile_goes_back_and_the_mess
 
     assert status == 400, answer
     assert answer["fehler"] == "Die Firmen liessen sich nicht speichern. Inserat und Titel bleiben wie vorher."
+    assert any("Datenträger voll" in str(record.exc_info[1]) for record in caplog.records if record.exc_info)
     assert path.read_text(encoding="utf-8") == JOB
     assert stored(listed) == ["Muster Bau AG"]
 
