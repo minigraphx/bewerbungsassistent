@@ -7,6 +7,8 @@ pip install -r ../requirements.txt
 python app.py ../../meine-daten
 ```
 
+So startet nur die Oberfläche, ohne den Teil der App aus `../desktop/`: Einrichtung und „Meine Angaben“ sagen dann, dass es sie nur in der App gibt (#308). Die ganze App startet aus dem Repo mit `PYTHONPATH=bewerbungen:lebenslauf:onboarding python desktop/start.py` (im Hauptordner des Repos); den Datenordner wählt man dort in der Einrichtung.
+
 Die Oberfläche läuft nur auf `127.0.0.1` und öffnet sich im Browser:
 
 | Seite | Inhalt |
