@@ -27,6 +27,8 @@ ALREADY = "„{name}“ wird schon gesucht."
 TOO_LONG = "„{value}…“ ist zu lang: höchstens {limit} Zeichen."
 NO_UNDO = "Rückgängig geht hier nicht mehr. Bitte den Begriff neu aufnehmen."
 SHA256 = re.compile(r"[0-9a-f]{64}")
+# The longest entry the page can show, and so remove: a direction as long as Meine Angaben takes it (#316).
+MAX_SHOWN = max(search_plan.MAX_DIRECTION, search_plan.MAX_PROFESSION_NAME, search_plan.MAX_VALUE)
 
 
 def _profile(k):
@@ -92,7 +94,7 @@ def _change(k, path, description: str, change) -> dict:
 
 def _removed_name(body) -> str:
     name = body.get("beruf") if isinstance(body, dict) else None
-    if not isinstance(name, str) or not name.strip() or len(name) > career.MAX_NAME:
+    if not isinstance(name, str) or not name.strip() or len(name) > MAX_SHOWN:
         raise ValueError(NO_NAME)
     return name.strip()
 
@@ -109,7 +111,7 @@ def _own_term(name: object, kind: str) -> str:
     clean = " ".join(name.split()) if isinstance(name, str) else ""
     if len(clean) > chars:
         raise ValueError(TOO_LONG.format(value=clean[:20], limit=chars))
-    if not career.is_valid_name(name, kind, chars):
+    if not career.is_own_term(name, kind, chars):
         raise ValueError(NOT_VALID[kind])
     return clean
 
@@ -165,7 +167,7 @@ def undo(k, parameter, body):
         at_end["value"] = True
         if search_terms.is_searched(text, clean):
             return text
-        if not career.is_valid_name(clean, kind, profile_limits.of_term(kind).chars):
+        if not career.is_own_term(clean, kind, profile_limits.of_term(kind).chars):
             raise ValueError(NO_UNDO)
         return search_terms.added(text, clean, sought)
 

@@ -493,19 +493,50 @@
       "errors": []
     },
     {
+      "name": "as many directions as the search takes (#316)",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.directions",
+          ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "as many professions as the search takes (#316)",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.searchApprenticeship.professions",
+          ["Koch EFZ", "Maler EFZ", "Gärtner EFZ", "Florist EFZ", "Bäcker EFZ", "Coiffeur EFZ", "Logistiker EFZ", "Schreiner EFZ"]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "too many professions",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.searchApprenticeship.professions",
+          ["Koch EFZ", "Maler EFZ", "Gärtner EFZ", "Florist EFZ", "Bäcker EFZ", "Coiffeur EFZ", "Logistiker EFZ", "Schreiner EFZ", "Maurer EFZ"]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchApprenticeship.professions",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
       "name": "too many list items",
       "base": "job",
       "set": [
         [
           "data.searchJob.directions",
-          [
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f"
-          ]
+          ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"]
         ]
       ],
       "errors": [

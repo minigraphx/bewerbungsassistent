@@ -8,6 +8,7 @@ import threading
 import pytest
 
 import routes_ai
+import routes_career
 import search_plan
 import search_terms
 from ai import career, errors, tasks
@@ -207,7 +208,7 @@ def test_removing_a_profession_through_the_route(apprentice):
     assert any(apprentice.kontext.ablage.liste()), "drafts before and after"
 
 
-@pytest.mark.parametrize("name", [None, 5, "", "x" * 200])
+@pytest.mark.parametrize("name", [None, 5, "", "x" * (routes_career.MAX_SHOWN + 1)])
 def test_removing_refuses_what_is_no_name(apprentice, name):
     assert post(apprentice, "/api/beruf/entfernen", {"beruf": name})[0] == 400
 
