@@ -43,7 +43,8 @@ function page() {
     TrefferLogik: logik,
     SuchlaufLogik: require("../seiten/suchlauf-logik.js"),
     SucheAnzeige: require("../seiten/suche-anzeige.js"),
-    Meldungen: { zeige() {}, leere() {} },  // messages have their own tests (meldungen.test.cjs)
+    // Messages have their own tests (meldungen.test.cjs); here the element keeps the text it was given.
+    Meldungen: { zeige(element, inhalt) { element.textContent = inhalt; }, leere() {} },
     Texte: { text: key => key, anwenden() {} },
     PortalWahl: { zeige() {} },
     Suchbegriffe: { zeige() {} },
@@ -124,4 +125,18 @@ test("a status while nobody waits changes nothing", async () => {
   const before = p.loads();
   p.fromExtension({ art: "antwort", frage: "status", antwort: { verbunden: false, fehler: "Die App läuft nicht." } });
   assert.equal(p.loads(), before);
+});
+
+test("the line of a running search on Stellen names portal, term, place and stage (G43, #284)", async () => {
+  const p = page();
+  await settle();
+  const schritt = { portal: "jobs.ch", phase: "suche", stichwort: "Begriff2", ort: "Nordstadt", seite: 1, gefunden: 4,
+    nummer: 32, abfragen: 67, etappe: 2, etappen: 3 };
+  p.fromExtension({ art: "lauf", lauf: { zustand: "laeuft", beginn: new Date().toISOString(), schritt } });
+  assert.equal(p.$("lauf-box").hidden, false);
+  assert.equal(p.$("lauf").textContent, "jobs.ch: suche „Begriff2“ in Nordstadt, Seite 1 · Suche 32 von 67, Etappe 2 von 3 …");
+  p.fromExtension({ art: "lauf", lauf: { zustand: "laeuft", schritt: { portal: "jobs.ch", phase: "pause", etappe: 3, etappen: 3, sekunden: 40 } } });
+  assert.equal(p.$("lauf").textContent, "jobs.ch: Pause vor Etappe 3 von 3, noch 40 Sekunden …");
+  p.fromExtension({ art: "lauf", lauf: { zustand: "laeuft", schritt: { portal: "jobs.ch", phase: "texte", fertig: 3, von: 9 } } });
+  assert.equal(p.$("lauf").textContent, "jobs.ch: lese Inserat 4 von 9 …");
 });

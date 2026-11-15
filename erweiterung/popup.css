@@ -108,7 +108,9 @@ button.link:hover { background: none; color: var(--accent); }
 .portals li { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; }
 .portals li[data-state="current"] { color: var(--text-strong); font-weight: 500; }
 .portals li[data-state="done"] .portal__state { color: var(--good); }
-.portal__state { color: var(--muted); font-weight: 400; }
+.portals li > span:first-child { flex: none; }
+/* The running portal's state is the whole step with term, place and stage, so it wraps under itself. */
+.portal__state { color: var(--muted); font-weight: 400; text-align: right; }
 
 .ad__title { margin: 4px 0 0; color: var(--text-strong); font-weight: 500; }
 #seite-korrigieren { margin: 2px 0 4px; font-size: 13px; }

@@ -24,8 +24,14 @@ test("the progress names the search, its stage and the pause between stages", ()
     "jobs.ch: Pause vor Etappe 3 von 7, noch 50 Sekunden …");
 });
 
+test("the progress names the place being searched, a query without place stays as it was", () => {
+  const step = { portal: "jobs.ch", phase: "suche", stichwort: "Begriff13", ort: "Nordstadt", seite: 1, nummer: 32, abfragen: 193, etappe: 2, etappen: 7 };
+  assert.equal(logik.laufZeile(step), "jobs.ch: suche „Begriff13“ in Nordstadt, Seite 1 · Suche 32 von 193, Etappe 2 von 7 …");
+  assert.equal(logik.laufZeile({ ...step, ort: "" }), "jobs.ch: suche „Begriff13“, Seite 1 · Suche 32 von 193, Etappe 2 von 7 …");
+});
+
 test("the progress of an older extension without counts still reads", () => {
   assert.equal(logik.laufZeile({ portal: "jobs.ch", phase: "suche", stichwort: "Begriff1", seite: 2 }), "jobs.ch: suche „Begriff1“, Seite 2 …");
-  assert.equal(logik.laufZeile({ portal: "jobs.ch", phase: "texte", fertig: 3, von: 9 }), "jobs.ch: lese Inserate (3 von 9) …");
+  assert.equal(logik.laufZeile({ portal: "jobs.ch", phase: "texte", fertig: 3, von: 9 }), "jobs.ch: lese Inserat 4 von 9 …");
   assert.equal(logik.laufZeile({}), "Suche startet …");
 });

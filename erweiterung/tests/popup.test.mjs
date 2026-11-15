@@ -38,7 +38,7 @@ test('while a search runs, portals before the current one are done and later one
     { name: 'karriere.muster-ag.ch', state: 'waiting', text: 'wartet' },
   ]);
   const reading = portalRows(PLAN, { zustand: 'laeuft', schritt: { phase: 'texte', portal: 'jobs.ch', fertig: 3, von: 9 } });
-  assert.equal(reading[0].text, 'liest Inserate, 3 von 9');
+  assert.equal(reading[0].text, 'lese Inserat 4 von 9');
   assert.ok(portalRows(PLAN, { zustand: 'laeuft' }).every((row) => row.state === 'waiting'));
   assert.deepEqual(portalRows(null, run), [{ name: 'job-room', state: 'current', text: 'Seite 2' }]);
   assert.deepEqual(portalRows(PLAN, { zustand: 'fertig' }), []);

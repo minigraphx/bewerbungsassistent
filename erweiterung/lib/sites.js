@@ -37,6 +37,7 @@ export function siteQueries(site, plan) {
     : places.map((place) => ({ keyword: '', place }));
   const queries = combos.map(({ keyword, place }) => ({
     keyword,
+    place,
     url: site.adresse.replaceAll('{begriff}', encodeURIComponent(keyword)).replaceAll('{ort}', encodeURIComponent(place)),
   }));
   return { queries: queries.slice(0, MAX_SITE_QUERIES), skipped: Math.max(0, queries.length - MAX_SITE_QUERIES) };
@@ -53,7 +54,7 @@ export function formQueries(form, plan) {
     form.hidden.forEach(([name, value]) => url.searchParams.set(name, value));
     url.searchParams.set(form.term, keyword);
     if (place) url.searchParams.set(form.place, place);
-    return { keyword, url: url.href };
+    return { keyword, place, url: url.href };
   });
   const limit = MAX_SITE_QUERIES - 1;
   return { queries: queries.slice(0, limit), skipped: Math.max(0, queries.length - limit) };
@@ -147,9 +148,10 @@ function pageOpener(plan, site, deps) {
 }
 
 /** One page into the list of hits; returns what stops this site, or ''. */
-async function visit(url, keyword, site, found, pages, deps) {
+async function visit({ url, keyword, place }, site, found, pages, deps) {
   stopIfCancelled(deps);
-  deps.report({ portal: site.portal, phase: 'suche', stichwort: keyword || site.portal, seite: 1, gefunden: found.size });
+  const where = place ? { ort: place } : {};
+  deps.report({ portal: site.portal, phase: 'suche', stichwort: keyword || site.portal, ...where, seite: 1, gefunden: found.size });
   const page = await pages.go(url);
   const problem = pageProblem(page, site);
   if (problem) return { problem };
@@ -166,7 +168,7 @@ async function visit(url, keyword, site, found, pages, deps) {
 async function runQueries({ queries, skipped }, site, found, pages, deps) {
   const notes = skipped ? [`${skipped} Suchen ausgelassen (höchstens ${queries.length}).`] : [];
   for (const query of queries) {
-    const { problem } = await visit(query.url, query.keyword, site, found, pages, deps);
+    const { problem } = await visit(query, site, found, pages, deps);
     if (problem) return [...notes, problem];
   }
   return notes;
@@ -174,7 +176,7 @@ async function runQueries({ queries, skipped }, site, found, pages, deps) {
 
 /** Only the address: the page itself, then its search form, if that stays on the site. */
 async function listFromAddress(site, plan, found, pages, deps) {
-  const { page, problem } = await visit(site.adresse, '', site, found, pages, deps);
+  const { page, problem } = await visit({ url: site.adresse, keyword: '' }, site, found, pages, deps);
   if (problem) return [problem];
   const form = page.searchForm;
   if (!form || !onSite({ host: new URL(form.action).hostname }, site)) return [];

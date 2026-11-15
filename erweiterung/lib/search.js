@@ -1,7 +1,7 @@
 // One search run: plan from the app, per portal a background tab, result lists, screening by the app,
 // full texts of the new hits, hits to the app, summary. Only started by the person (popup or app page).
 
-import { ADAPTERS, buildQueries, chunks, hitKey } from './queries.js';
+import { ADAPTERS, buildQueries, chunks, hitKey, placeOf } from './queries.js';
 import { followKey, searchSites } from './sites.js';
 import { CANCELLED, screen, stopIfCancelled } from './steps.js';
 
@@ -9,7 +9,7 @@ export const DELAY_MS = 600; // between requests to a portal, to stay gentle
 // G43: per portal at most this many searches in a row, then a longer pause; the plan of the app may set both.
 export const STAGE_SIZE = 30;
 export const STAGE_PAUSE_S = 60;
-const PAUSE_SLICE_S = 10;
+const PAUSE_SLICE_S = 5; // G43: the progress line changes at least this often
 export const SEND_SIZE = 10;
 const COMMON = 'portals/common.js';
 
@@ -43,9 +43,11 @@ async function searchOne(portal, plan, query, tab, found, position, deps) {
       return `${portal}: ${opened.fehler}`;
     }
   }
+  const place = placeOf(query);
+  const where = place ? { ort: place } : {};
   for (let page = 1; page <= plan.max_seiten; page += 1) {
     stopIfCancelled(deps);
-    deps.report({ portal, phase: 'suche', stichwort: query.keyword, seite: page, gefunden: found.size, ...position });
+    deps.report({ portal, phase: 'suche', stichwort: query.keyword, ...where, seite: page, gefunden: found.size, ...position });
     const result = await deps.browser.run(tab, portal, 'list', [query, page]);
     await deps.sleep(DELAY_MS);
     if (!result.ok) {

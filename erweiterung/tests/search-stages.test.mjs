@@ -109,7 +109,7 @@ test('the progress names the search, the stage and the pause', async () => {
   await run.done;
   const searching = run.reports.filter((step) => step.phase === 'suche');
   assert.deepEqual(searching.map((step) => step.nummer), Array.from({ length: 67 }, (_, i) => i + 1));
-  assert.deepEqual(searching[31], { portal: 'jobs.ch', phase: 'suche', stichwort: 'Begriff13', seite: 1, gefunden: 0,
+  assert.deepEqual(searching[31], { portal: 'jobs.ch', phase: 'suche', stichwort: 'Begriff13', ort: 'Südstadt', seite: 1, gefunden: 0,
     nummer: 32, abfragen: 67, etappe: 2, etappen: 3 });
   const pauses = run.reports.filter((step) => step.phase === 'pause');
   assert.ok(pauses.length >= 2);
@@ -126,8 +126,9 @@ test('the popup and the progress line read the stage and the pause', () => {
   const pause = { portal: 'jobs.ch', phase: 'pause', etappe: 3, etappen: 3, sekunden: 40 };
   assert.equal(describeRun({ zustand: 'laeuft', schritt: pause }).step, 'jobs.ch: Pause vor Etappe 3 von 3, noch 40 Sekunden');
   const rows = portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: pause });
-  assert.equal(rows[0].text, 'Pause vor Etappe 3 von 3');
-  assert.equal(portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: step })[0].text, 'Suche 32 von 67, Seite 1');
+  assert.equal(rows[0].text, 'Pause vor Etappe 3 von 3, noch 40 Sekunden');
+  assert.equal(portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: step })[0].text,
+    'suche „Begriff2“, Seite 1 (4 bisher) · Suche 32 von 67, Etappe 2 von 3');
 });
 
 test('before a long run the popup says what the app announces', () => {
