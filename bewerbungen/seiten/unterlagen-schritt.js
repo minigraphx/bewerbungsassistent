@@ -55,10 +55,10 @@
   function showTiles(entryId, daten, stand) {
     const entry = daten.bewerbung;
     const tiles = R.tiles(daten.pdfs, W.gewaehlt(entry), { ownCv: Boolean(daten.eigener_lebenslauf), sent: Boolean(entry.versand) });
-    $("pdfs").replaceChildren(...tiles.map(tile => el("article", { class: "doc-tile" },
+    $("pdfs").replaceChildren(...tiles.map(tile => el("article", { class: "doc-tile", "aria-labelledby": `doc-tile-${tile.art}` },
       el("img", { class: "doc-tile__thumb", src: url("/api/pdf/miniatur", { id: entryId, art: tile.art, stand }), alt: tile.alt, ...THUMB }),
       el("div", { class: "doc-tile__body" },
-        el("h3", { class: "doc-tile__name" }, tile.name),
+        el("h3", { class: "doc-tile__name", id: `doc-tile-${tile.art}` }, tile.name),
         el("div", { class: "doc-tile__links" },
           el("a", { class: "btn btn--sm doc-tile__link", href: url("/api/pdf", { id: entryId, art: tile.art, stand }), target: "_blank", rel: "noopener" }, tile.open),
           adaptLink(tile.adapt))))));

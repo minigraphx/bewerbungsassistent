@@ -58,7 +58,7 @@
   function attachmentsLine(available, chosen, suggested) {
     if (!available.length) return "Beilagen: noch keine Zertifikate hochgeladen.";
     const files = chosen || suggested;
-    if (!files.length) return "Beilagen: keine.";
+    if (!files.length) return "Beilagen: keine gewählt.";
     const names = files.map(fileName).join(", ");
     return chosen ? `Beilagen: ${names}` : `Beilagen: ${names} (Vorschlag, noch nicht gespeichert)`;
   }

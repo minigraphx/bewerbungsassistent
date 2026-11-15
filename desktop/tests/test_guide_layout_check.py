@@ -12,7 +12,8 @@ STEP = "**Unterlagen erstellen und prüfen**"  # the step's name since #321
 
 def _check_sentence() -> str:
     applying = body("Stellen suchen und bewerben", 3)
-    found = [sentence for sentence in applying.split(". ") if STEP in sentence]
+    # the step is also named where the form is chosen; the check is the sentence that says what the app checks
+    found = [sentence for sentence in applying.split(". ") if STEP in sentence and "prüft" in sentence]
     assert found, "Stellen suchen und bewerben nennt die Prüfung unter «Unterlagen erstellen und prüfen» nicht"
     return found[0]
 

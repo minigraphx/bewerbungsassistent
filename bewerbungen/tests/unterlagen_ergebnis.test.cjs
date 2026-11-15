@@ -66,10 +66,10 @@ test("the findings are summed up in one sentence for the status line", () => {
 test("the attachments fit in one line", () => {
   const available = ["dokumente/zertifikate/Diplom-Muster.pdf", "dokumente/zertifikate/Zertifikat-Beispiel.pdf"];
   assert.equal(R.attachmentsLine([], null, []), "Beilagen: noch keine Zertifikate hochgeladen.");
-  assert.equal(R.attachmentsLine(available, [], []), "Beilagen: keine.");
+  assert.equal(R.attachmentsLine(available, [], []), "Beilagen: keine gewählt.");
   assert.equal(R.attachmentsLine(available, [available[0]], []), "Beilagen: Diplom-Muster.pdf");
   assert.equal(R.attachmentsLine(available, null, [available[1]]), "Beilagen: Zertifikat-Beispiel.pdf (Vorschlag, noch nicht gespeichert)");
-  assert.equal(R.attachmentsLine(available, null, []), "Beilagen: keine.");
+  assert.equal(R.attachmentsLine(available, null, []), "Beilagen: keine gewählt.");
 });
 
 test("the dossier line names design and the state of greeting and thanks", () => {
@@ -98,7 +98,8 @@ test("before creating the form shows as two tiles, the dossier as one line and t
   assert.match(step, /<div class="dossier-panel" id="dossier-gestalten-teil" hidden>/);
   assert.match(step, /<button type="button" class="btn btn--quiet" id="beilagen-aendern" aria-expanded="false" aria-controls="beilagen-liste">Beilagen ändern<\/button>/);
   assert.match(step, /<div class="attach-list" id="beilagen-liste" hidden>/);
-  assert.match(step, /<p class="status-line" id="befunde-ansage" role="status" aria-live="polite"><\/p>/);
+  // the announcement is for screen readers; the collapsed summary already shows the count
+  assert.match(step, /<p class="status-line visually-hidden" id="befunde-ansage" role="status" aria-live="polite"><\/p>/);
   assert.ok(step.indexOf('id="dossier-kurz"') < step.indexOf('id="erstellen"'), "the dossier line comes before the button");
   assert.ok(step.indexOf('id="erstellen"') < step.indexOf('id="beilagen-aendern"'), "the attachments line comes after it");
   assert.doesNotMatch(step, /<iframe/);
@@ -172,6 +173,12 @@ test("each tile has page 1 with its alt text, Als PDF öffnen and the link to wh
   assert.deepEqual(images.map(i => i.attrs.alt), ["Dossier, Seite 1", "Anschreiben, Seite 1", "Lebenslauf, Seite 1"]);
   assert.ok(images.every(i => i.attrs.src.startsWith("/api/pdf/miniatur?")));
   assert.equal(all(byId.pdfs, n => textOf(n) === "Als PDF öffnen" && n.tagName === "A").length, 3);
+  for (const tile of tiles) {
+    const heading = all(tile, n => n.tagName === "H3")[0];
+    assert.ok(heading.attrs.id, "the heading has an id");
+    assert.equal(tile.attrs["aria-labelledby"], heading.attrs.id, "the tile is named by its heading");
+  }
+  assert.equal(new Set(tiles.map(t => t.attrs["aria-labelledby"])).size, 3, "each tile has its own heading id");
 
   link(byId.pdfs, "Für diese Stelle anpassen").click();
   assert.equal(state.focused, byId["f-variante"], "the CV leads to the variant choice");
