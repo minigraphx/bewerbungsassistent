@@ -4,11 +4,13 @@ Each value is one line `- Label: value` in its section of suchprofil.md: the lin
 (onboarding/basics_slots.py) and the search reads (search_plan.py). A change replaces the first line whose label
 starts the way the search looks for it, keeping the label and indentation as written; an empty list removes the line,
 and a missing line goes to the end of its section. Every other line of the profile stays as it is. A value is taken
-within the limits of the field in Meine Angaben that reads the same line (`profile_limits.py`, #302).
+within the limits of the field in Meine Angaben that reads the same line (`profile_limits.py`, #302). The place
+lines of single portals (Orte, PLZ, Regionen) have no field there; `portal_places.py` checks them (#301).
 """
 import dataclasses
 import re
 
+import portal_places
 import profile_limits
 import search_plan
 
@@ -49,6 +51,8 @@ FIELDS = {
     "titel_positiv": Field("Titel, die passen", "## Titelfilter", "positiv", "Positiv", "## Sprachen", "titlePositive"),
     "titel_ausschluss": Field("Titel, die nicht passen", "## Titelfilter", "ausschluss", "Ausschluss", "## Sprachen",
                               "titleExclude"),
+    **{key: Field(portal_places.NAMES[key], "## Region", key, f"{label} ({portal_places.PORTAL_OF[key]})",
+                  "## Keywords", "") for key, label in (("orte", "Orte"), ("plz", "PLZ"), ("regionen", "Regionen"))},
 }
 TEXT_FIELDS = ("wohnort", "pensum")
 OPTIONAL_FOR_JOBS = ("wohnort",)  # without it the search uses the cantons or Orte; an apprenticeship searches around it
@@ -84,7 +88,7 @@ def values(text: str) -> dict:
     radius = search_plan.NUMBER.search(_raw(text, "umkreis_km"))
     return {"wohnort": _raw(text, "wohnort"), "kantone": list(dict.fromkeys(cantons)),
             "umkreis_km": int(radius.group()) if radius else None, "pensum": _raw(text, "pensum"),
-            **{key: _listed(_raw(text, key)) for key in ("ausschluss", *TITLE_LISTS)}}
+            **{key: _listed(_raw(text, key)) for key in ("ausschluss", *TITLE_LISTS, *portal_places.KEYS)}}
 
 
 def lengths(text: str) -> dict[str, int]:
@@ -143,11 +147,13 @@ def _checked_radius(value) -> str:
     return f"{value} km"
 
 
-def _written(key: str, value, kind: str) -> str:
+def _written(key: str, value, kind: str, text: str) -> str:
     """The value as it goes into its line; empty means the line goes."""
     field = FIELDS[key]
     if key == "umkreis_km":
         return _checked_radius(value)
+    if key in portal_places.KEYS:
+        return ", ".join(portal_places.checked(key, value, _listed(_raw(text, key))))
     limit = profile_limits.of(kind, field.form_id)
     if key in TEXT_FIELDS:
         return _checked_text(field, value, kind != search_plan.KIND_JOB or key not in OPTIONAL_FOR_JOBS, limit)
@@ -183,7 +189,7 @@ def with_values(text: str, change: dict) -> str:
     """The profile with these values; ValueError with a message for the person if the search cannot take one."""
     kind = kind_of(text)
     _check_kind(change, kind)
-    written = {key: _written(key, value, kind) for key, value in change.items()}
+    written = {key: _written(key, value, kind, text) for key, value in change.items()}
     result = text
     for key, value in written.items():
         field = FIELDS[key]
