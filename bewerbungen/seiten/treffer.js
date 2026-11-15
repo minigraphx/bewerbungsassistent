@@ -109,6 +109,10 @@
     return eintraege && eintraege.length ? el("div", {}, el("h3", {}, titel), el("ul", {}, eintraege.map(e => el("li", {}, e)))) : null;
   }
 
+  // A point of a job's rating can become an exclusion (#224, G83); an apprenticeship's search has none.
+  const haken = treffer => window.HakenAusschluss.liste(treffer, "Was fehlt oder unsicher ist",
+    { anbieten: !lehrstelle, satz });
+
   const notenText = window.Texte.notenText;
   const notenWort = n => (n >= 5.5 ? "passt sehr gut" : n >= 4.5 ? "passt gut" : n >= 4 ? "passt knapp" : "passt wenig");
 
@@ -198,7 +202,7 @@
           el("span", { class: "search__grades" }, noten(treffer, { klein: false }))),
         b ? el("p", {}, b.zusammenfassung) : el("p", { class: "search__hint" }, "Noch nicht bewertet."),
         b && b.unsicher ? el("p", { class: "status-line", "data-level": "warning" }, `Note unsicher: ${b.unsicher}`) : null,
-        b ? el("div", { class: "ai-result__cols" }, liste("Was passt", b.passt), liste("Was fehlt oder unsicher ist", b.haken)) : null,
+        b ? el("div", { class: "ai-result__cols" }, liste("Was passt", b.passt), haken(treffer)) : null,
         b && b.nachpruefung ? el("p", { class: "search__hint" }, logik.nachpruefungText(b, notenText)) : null,
         b && b.auffaellig && b.auffaellig.length ? el("p", { class: "status-line", "data-level": "danger" }, "Auffällige Zeilen im Inserat (nicht befolgt): " + b.auffaellig.join(" · ")) : null,
         b ? el("p", { class: "ai-result__foot" }, "Eine Einschätzung, kein Urteil. Die KI kann sich irren. ", bewertenKnopf(treffer))

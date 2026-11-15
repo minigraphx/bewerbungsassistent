@@ -67,3 +67,18 @@
 .search__bulk[hidden] { display: none; }
 .search__bulk-grade { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-strong); }
 .search__bulk-grade .input { width: auto; }
+
+/* A point of the rating as an exclusion (#224, G83) */
+.exclusion-point__action { margin-top: var(--space-1); }
+.exclusion-point__done { font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.exclusion-adopt { display: grid; gap: var(--space-2); margin-top: var(--space-2); padding: var(--space-3); border: 1px solid var(--line); border-radius: 8px; }
+.exclusion-adopt[hidden] { display: none; }
+.exclusion-adopt p { margin: 0; }
+.exclusion-adopt__form { display: grid; gap: var(--space-2); }
+.exclusion-adopt fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: var(--space-1); }
+.exclusion-adopt legend { font-weight: 700; padding: 0; }
+.exclusion-adopt .choice { grid-template-columns: 18px 1fr; padding: var(--space-1) 0; border-bottom: 0; }
+
+@media (max-width: 480px) {
+  .exclusion-point .btn { min-height: 44px; }
+}

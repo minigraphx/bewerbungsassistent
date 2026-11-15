@@ -23,6 +23,7 @@ Du suchst eine Lehrstelle? Eingerichtet wird die App für dich von einer erwachs
   - [Lebenslauf für eine Stelle erstellen](#lebenslauf-für-eine-stelle-erstellen)
   - [Suchbegriffe prüfen](#suchbegriffe-prüfen)
   - [Ein Wort aus verworfenen Stellen ausschliessen](#ein-wort-aus-verworfenen-stellen-ausschliessen)
+  - [Einen Punkt der Einschätzung ausschliessen](#einen-punkt-der-einschätzung-ausschliessen)
   - [Firmen und kununu](#firmen-und-kununu)
   - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
   - [Für Lehrstellen](#für-lehrstellen)
@@ -240,6 +241,12 @@ Nach dem Übernehmen holt **Rückgängig machen** den Stand davor zurück, solan
 ### Ein Wort aus verworfenen Stellen ausschliessen
 
 Haben mindestens drei Stellen, die Sie verworfen haben, dasselbe Wort im Titel, schlägt **Suche einstellen** unter **Was Sie nicht sehen wollen** vor, es auszuschliessen, etwa: **Aus den Stellen, die Sie verworfen haben: 3 haben «Aussendienst» im Titel.** Darunter steht, wie viele Stellen, die Sie nicht verworfen haben, das Wort auch im Titel haben. Das zählt die App selbst, ohne KI und ohne Kosten. Wörter aus **Titel, die passen** schlägt sie nie vor. **«Aussendienst» nicht mehr zeigen** setzt das Wort unter **Im Titel**; das gilt ab der nächsten Suche, und der frühere Stand bleibt als Entwurf erhalten. **Die 3 Stellen ansehen** zeigt genau diese Stellen auf **Stellen**. **Nicht jetzt** legt den Vorschlag beiseite, bis weitere verworfene Stellen das Wort haben. Ohne einen dieser Klicks ändert sich nichts. Das gibt es nur bei der Stellensuche.
+
+### Einen Punkt der Einschätzung ausschliessen
+
+In der **Einschätzung der KI** steht unter jedem Punkt bei **Was fehlt oder unsicher ist** der Knopf **Künftig nicht zeigen**. Ein Klick zeigt, was die App auf **Suche einstellen** unter **Was Sie nicht sehen wollen** einträgt, direkt beim Punkt: Kommt ein Wort des Punkts im Titel der Stelle vor, etwa «Pikettdienst», schlägt sie dieses Wort **Im Titel** vor; sonst den Punkt bis zum ersten Komma oder Strichpunkt **Im Inserat**. Das sucht die App selbst aus, ohne KI und ohne Kosten. Sie wählen den Ort, ändern den Eintrag und klicken auf **Eintragen**; mit **Abbrechen** oder der Taste Esc bleibt alles, wie es ist. **Im Titel** gilt ab der nächsten Suche, **Im Inserat** liest die KI bei jeder weiteren Einschätzung als Ausschluss mit; die Stelle kommt aber weiter in die Liste. Geht etwas nicht, steht der Grund im Formular über den Knöpfen. **Rückgängig** in der Bestätigung, die an Stelle des Formulars erscheint, nimmt genau diesen Eintrag wieder heraus; der Stand davor bleibt ausserdem als Entwurf erhalten. Ist ein Punkt schon ausgeschlossen, steht statt des Knopfs **Ausgeschlossen**. Das gibt es nur bei der Stellensuche.
+
+![Einschätzung der KI auf der Seite Stellen mit dem geöffneten Formular unter dem Punkt Pikettdienst alle vier Wochen: Wo eintragen? mit Im Titel und Im Inserat, das Feld Was nicht vorkommen soll mit dem Vorschlag Pikettdienst und die Knöpfe Eintragen und Abbrechen](bilder/ausschluss-uebernehmen.jpg)
 
 ### Firmen und kununu
 
