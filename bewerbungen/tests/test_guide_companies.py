@@ -18,7 +18,9 @@ def _section() -> str:
 def test_the_guide_says_where_the_page_is_and_what_kununu_values_mean():
     section = _section()
 
-    assert "**Mehr**, **Firmen**" in section and "**Lehrbetriebe**" in section
+    # Since the sidebar of 0.5 (#266) Firmen is a tab of Stellen, no longer an entry of the menu Mehr
+    assert "Auf **Stellen**, im Reiter **Firmen**" in section and "**Lehrbetriebe**" in section
+    assert "**Mehr**" not in section
     assert "Mitarbeitende" in section and "nicht von der App" in section
     assert "Unter 10 Bewertungen" in section and "90 Tagen" in section
 
