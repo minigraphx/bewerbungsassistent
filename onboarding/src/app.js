@@ -7,7 +7,7 @@ const MAX_FILE_BYTES = 1000000;
 const ZIP_OVERHEAD_BYTES = 1000000;
 const AUTOSAVE_DELAY_MS = 400;
 const REQUIRED_NOTE = "Felder mit * müssen ausgefüllt sein.";
-const EXISTING_DOCUMENTS_NOTE = "Sie haben schon einen Lebenslauf, Arbeitszeugnisse oder frühere Anschreiben? "
+const EXISTING_DOCUMENTS_NOTE = "Sie haben schon einen Lebenslauf, Zeugnisse oder frühere Anschreiben? "
   + "Dann müssen Sie nichts abtippen: Im Schritt „Unterlagen“ laden Sie sie hoch. Die App übernimmt daraus Angaben, "
   + "Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.";
 const UNSAVED_UPLOADS = "Hochgeladene Unterlagen sind noch nicht gespeichert.";

@@ -1,5 +1,8 @@
 """The built template is current, self-contained and cannot send data anywhere."""
+import json
 import re
+
+import pytest
 
 import build_template
 
@@ -87,6 +90,20 @@ def test_page_of_the_app_has_the_menu_and_scripts_of_the_app():
     assert re.findall(r'<script src="([^"]+)"', app_page) == [
         "/texte.js", "/meldungen.js", "/app.js", "/uebersicht-logik.js", "/sidebar-logic.js", "/sidebar.js"]
     assert "script-src 'self' 'sha256-" in app_page and "script-src 'self'" not in shared
+
+
+@pytest.mark.parametrize("output", [build_template.OUTPUT, build_template.OUTPUT_APP], ids=["einstieg", "angaben"])
+def test_both_tracks_upload_zeugnisse_work_and_school_reports_alike(output):
+    # G63, #314: a Zeugnis is a work or a school report, so the job track no longer says Arbeitszeugnisse.
+    page = output.read_text(encoding="utf-8")
+    definition = json.loads(page.split('id="form-definition">', 1)[1].split("</script>", 1)[0])
+    [category] = [c for c in definition["documents"]["categories"] if c["id"] == "zeugnisse"]
+    job_intro = definition["documents"]["intro"]["job"]
+
+    assert category["title"] == "Zeugnisse"
+    assert category["hint"]["job"] == "Arbeits- und Schulzeugnisse, auch Zwischenzeugnisse"
+    assert "Arbeitszeugnisse" not in job_intro and "Zeugnisse" in job_intro
+    assert "Arbeitszeugnisse" not in page
 
 
 def test_the_form_speaks_of_the_app_not_of_an_assistant():

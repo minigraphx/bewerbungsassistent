@@ -24,7 +24,7 @@ test("documents must be a list", () => {
 test("messages name category and file", () => {
   const entries = [{ category: "zeugnisse", name: "gross.pdf", size: 20000000 }];
   const [error] = validateDocuments(form, entries);
-  assert.equal(describeDocument(form, "job", entries, error), "Arbeitszeugnisse, gross.pdf: Die Datei ist zu gross (höchstens 15 MB).");
+  assert.equal(describeDocument(form, "job", entries, error), "Zeugnisse, gross.pdf: Die Datei ist zu gross (höchstens 15 MB).");
 });
 
 test("a wrong type names what the category accepts", () => {

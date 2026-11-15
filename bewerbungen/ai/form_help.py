@@ -26,7 +26,7 @@ QUESTION = "frage"
 FILE = "datei"
 KINDS = (UNCLEAR, QUESTION, FILE)
 FILE_KEYS = {
-    "lebenslauf": "Lebenslauf, CV", "anschreiben": "Anschreiben, Motivationsschreiben", "zeugnis": "Arbeitszeugnisse",
+    "lebenslauf": "Lebenslauf, CV", "anschreiben": "Anschreiben, Motivationsschreiben", "zeugnis": "Zeugnisse (Arbeits- und Schulzeugnisse)",
     "zertifikate": "Zertifikate, Diplome, Kursbestätigungen", "nachweise": "Zeugnisse und Zertifikate zusammen in einem Feld",
     "unterlagen": "alle Bewerbungsunterlagen zusammen in einem Feld",
 }
