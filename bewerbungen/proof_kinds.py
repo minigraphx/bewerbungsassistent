@@ -1,4 +1,4 @@
-"""Which kind a certificate or reference is (G63, #282): Arbeitszeugnis, Diplom or Zertifikat.
+"""Which kind a certificate or reference is (G63, #282): Zeugnis, Diplom or Zertifikat.
 
 References keep their own folder, since they go along with every application. Diplomas share the folder of the
 certificates: both are chosen per application and packed into its ZIP, so the choice and the ZIP stay as they were.

@@ -42,8 +42,8 @@ def test_the_move_can_be_undone_from_the_drafts(server):  # noqa: F811
 
     before = json.loads(get(server, "/api/entwuerfe", datei=CERTIFICATE)[2])["entwuerfe"]
     after = json.loads(get(server, "/api/entwuerfe", datei=REFERENCE)[2])["entwuerfe"]
-    assert [d["beschreibung"] for d in before] == ["Stand vor: Arbeitszeugnis Beispiel AG.pdf als Arbeitszeugnis eingeordnet"]
-    assert [d["beschreibung"] for d in after] == ["Arbeitszeugnis Beispiel AG.pdf als Arbeitszeugnis eingeordnet"]
+    assert [d["beschreibung"] for d in before] == ["Stand vor: Arbeitszeugnis Beispiel AG.pdf als Zeugnis eingeordnet"]
+    assert [d["beschreibung"] for d in after] == ["Arbeitszeugnis Beispiel AG.pdf als Zeugnis eingeordnet"]
 
 
 def test_a_chosen_certificate_no_longer_goes_along_once_it_is_a_reference(server):  # noqa: F811
@@ -103,7 +103,7 @@ def test_only_listed_certificates_and_references_change_kind(server, datei, art)
     assert (daten / "cv.yaml").is_file()
 
 
-# G63 (#282): Arbeitszeugnis, Diplom and Zertifikat. Diplomas share the folder of the certificates, so the choice per
+# G63 (#282, #292): Zeugnis, Diplom and Zertifikat. Diplomas share the folder of the certificates, so the choice per
 # application and its ZIP stay; what tells them apart is recorded per file.
 DIPLOMA = "dokumente/zertifikate/Diplom Informatik.pdf"
 

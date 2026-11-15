@@ -7,9 +7,10 @@
   const CERTIFICATE = "zertifikat";
   const DIPLOMA = "diplom";
   const REFERENCE = "zeugnis";
-  // G63: the order of the spec; the ids stay those of the folders (own_files.py), only the labels are new.
+  // G63: the order of the spec; the ids stay those of the folders (own_files.py), only the labels are new. A school
+  // report is a Zeugnis as much as a work reference, so the label names neither (#292).
   const KINDS = [REFERENCE, DIPLOMA, CERTIFICATE];
-  const KIND_LABELS = { [REFERENCE]: "Arbeitszeugnis", [DIPLOMA]: "Diplom", [CERTIFICATE]: "Zertifikat" };
+  const KIND_LABELS = { [REFERENCE]: "Zeugnis", [DIPLOMA]: "Diplom", [CERTIFICATE]: "Zertifikat" };
   // A Fähigkeitszeugnis or Maturitätszeugnis is a diploma, so the diploma is asked first. "Master" alone stays out:
   // a Scrum Master is a certificate. The person corrects the rest.
   const DIPLOMA_NAME = /diplom|f(?:ä|ae|a)higkeitszeugnis|(?:^|[^a-zäöü])matur|bachelor|master of|berufsattest|lizentiat|(?:^|[^a-z])(?:efz|eba)(?:[^a-z]|$)/i;
