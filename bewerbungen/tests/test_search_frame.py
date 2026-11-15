@@ -4,6 +4,7 @@ import pathlib
 
 import pytest
 
+import profile_limits
 import search_frame
 import search_plan
 from test_ai_tasks import VORLAGEN
@@ -193,3 +194,9 @@ def test_every_field_the_script_reads_is_one_element_of_the_page():
     for karte in ("region", "nicht", "titelfilter"):
         named |= {f"{karte}-{teil}" for teil in ("form", "aendern", "abbrechen", "meldung")}
     assert named - set(ids) == set()
+
+
+def test_every_card_field_has_its_field_in_meine_angaben():
+    for key, field in search_frame.FIELDS.items():
+        for kind in field.kinds if field.form_id else ():
+            assert profile_limits.of(kind, field.form_id).chars > 0, key
