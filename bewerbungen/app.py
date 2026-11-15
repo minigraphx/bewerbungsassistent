@@ -137,6 +137,11 @@ GITIGNORE = [".entwuerfe/", ".build/", "bewerbungen/*/*.pdf", "bewerbungen/*/*.z
 log = logging.getLogger("bewerbungsbegleiter")
 
 
+# Pages whose routes only the desktop part registers (desktop/start.py), by the route each page loads first.
+# Without that route the page would load empty and fail on every save, so a note takes its place (#308).
+DESKTOP_ONLY_PAGE = "nur-in-der-app.html"
+DESKTOP_PAGES = {"/angaben": ("/api/angaben/stand", DESKTOP_ONLY_PAGE)}
+
 QUESTIONS_PAGES = {"/fragen": "fragen.html", "/fragen.js": "fragen.js"}
 QUESTIONS_LINK = '<li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li>'
 
@@ -163,8 +168,10 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
                    **routes_ai.POST, **routes_dossier.POST, **routes_mark.POST, **(routes_chat.POST if questions_page else {}), **routes_own_key.POST, **routes_own_files.POST, **routes_cv_creation.POST, **routes_sites.POST, **routes_search.POST, **routes_page.POST, **routes_missing_ads.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **routes_preferences.POST, **routes_page_limit.POST, **routes_companies.POST, **routes_terms.POST, **routes_window.POST, **routes_frame.POST, **routes_dismissed_words.POST, **extra_routes[1]}
     limits = {**routes_own_files.BODY_LIMITS, **routen_foto.BODY_LIMITS, **routes_mark.BODY_LIMITS, **(body_limits or {})}
     if questions_page:
-        return Server(k, routen_get, routen_post, {**SEITEN, **QUESTIONS_PAGES}, port, limits, activity=activity)
-    return Server(k, routen_get, routen_post, SEITEN, port, limits, hidden_links=(QUESTIONS_LINK,), activity=activity)
+        return Server(k, routen_get, routen_post, {**SEITEN, **QUESTIONS_PAGES}, port, limits, activity=activity,
+                      stand_ins=DESKTOP_PAGES)
+    return Server(k, routen_get, routen_post, SEITEN, port, limits, hidden_links=(QUESTIONS_LINK,), activity=activity,
+                  stand_ins=DESKTOP_PAGES)
 
 
 def main(argv: list[str] | None = None) -> None:
