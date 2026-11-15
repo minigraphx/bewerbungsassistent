@@ -66,6 +66,14 @@ def test_meine_angaben_keeps_its_form_where_the_desktop_part_registers_the_route
     assert ANGABEN_NOTE not in html
 
 
+def test_meine_angaben_follows_routes_registered_after_the_server_is_built(plain):
+    plain.routen_get["/api/angaben/stand"] = lambda k, parameter, body: {}
+
+    html = get(plain, "/angaben")[2].decode("utf-8")
+
+    assert "/api/angaben/stand" in html and ANGABEN_NOTE not in html
+
+
 def test_the_note_keeps_the_menu_with_meine_angaben_marked(plain):
     html = get(plain, "/angaben")[2].decode("utf-8")
     nav = re.search(r"<nav[ >].*?</nav>", html, re.S).group(0)
