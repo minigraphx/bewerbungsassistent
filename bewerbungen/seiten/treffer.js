@@ -111,7 +111,7 @@
 
   // A point of a job's rating can become an exclusion (#224, G83); an apprenticeship's search has none.
   const haken = treffer => window.HakenAusschluss.liste(treffer, "Was fehlt oder unsicher ist",
-    { anbieten: !lehrstelle, melde: (text, stufe, optionen) => zeile($("status"), text, stufe, optionen), du: satz === "stelle-du" });
+    { anbieten: !lehrstelle, meldung:(text, stufe, optionen) => zeile($("status"), text, stufe, optionen), du: satz === "stelle-du" });
 
   const notenText = window.Texte.notenText;
   const notenWort = n => (n >= 5.5 ? "passt sehr gut" : n >= 4.5 ? "passt gut" : n >= 4 ? "passt knapp" : "passt wenig");
