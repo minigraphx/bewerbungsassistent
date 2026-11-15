@@ -29,10 +29,13 @@ window.KiFenster = (() => {
     return abo?.zugang ? "abo" : null;
   }
 
+  const USED_UP = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen.";
+
   function doneLine(ki) {
-    const budget = ki.vermittlung && typeof ki.budget_usd === "number"
-      ? ` Diesen Monat verbraucht: ${Number(ki.verbraucht_usd || 0).toFixed(2)} von ${ki.budget_usd.toFixed(2)} USD.` : "";
-    return `${DONE}${budget}`;
+    if (!ki.vermittlung || typeof ki.guthaben_chf !== "number") return DONE;
+    const spent = Number(ki.verbraucht_chf || 0);
+    const credit = ` Guthaben: CHF ${spent.toFixed(2)} von ${ki.guthaben_chf.toFixed(2)} verbraucht.`;
+    return `${DONE}${credit}${spent >= ki.guthaben_chf ? USED_UP : ""}`;
   }
 
   /** Texts that speak to the person, in the set of the setup (Sie, du, Lehrstelle). */

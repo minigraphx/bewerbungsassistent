@@ -3,7 +3,7 @@
 The conversation lives only on the page and comes along with each question; nothing is stored but the usual usage line
 without content. The AI sees what every task sees (CV, profile, style, building blocks), never the register or anything
 for the RAV, and it has no tools. The topic is bounded by its instructions, the cost by the model, short answers, the
-length of what goes along and a number per day; with the mediation its monthly budget counts on top.
+length of what goes along and a number per day; with the mediation the one-time credit of the code counts on top.
 """
 import datetime
 

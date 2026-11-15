@@ -15,7 +15,7 @@
   <h1>Einstellungen</h1>
   <div class="settings__layout">
   <nav class="settings__nav" aria-label="Bereiche der Einstellungen">
-    <a href="#ki">KI und Budget</a>
+    <a href="#ki">KI und Guthaben</a>
     <a href="#suche">Suche und Portale</a>
     <a href="#erweiterung">Browser-Erweiterung</a>
     <a href="#wahl">Stelle, Lehrstelle, RAV</a>
@@ -25,7 +25,7 @@
   </nav>
   <div class="settings__panels">
 
-  <section class="settings__panel" id="bereich-ki" aria-label="KI und Budget">
+  <section class="settings__panel" id="bereich-ki" aria-label="KI und Guthaben">
   <section class="card" id="zugang" aria-labelledby="zugang-titel">
     <div class="settings__card-head">
       <h2 id="zugang-titel">Zugang zur KI</h2>
@@ -37,7 +37,8 @@
 
   <section class="card" id="zugang-einladung" aria-labelledby="einladung-titel" hidden>
     <h2 id="einladung-titel">Einladungscode</h2>
-    <p id="einladung-aktiv" hidden>Die KI läuft über die Vermittlung des Pilots. Was sie diesen Monat gekostet hat, steht unter Budget.</p>
+    <p id="einladung-aktiv" hidden>Die KI läuft über die Vermittlung des Pilots, mit dem einmaligen Guthaben des Einladungscodes. Was davon verbraucht ist, steht unter Guthaben.</p>
+    <p id="einladung-aufgebraucht" hidden>Das Guthaben des Einladungscodes ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter: anfordern und hier einlösen.</p>
     <p id="einladung-schluessel" hidden>Solange ein eigener Schlüssel gespeichert ist, gehen die KI-Aufrufe direkt an Anthropic und nicht über die Einladung.</p>
     <p id="einladung-keine" hidden>Diese App hat keine Vermittlung eingebaut. Ein Einladungscode geht hier nicht.</p>
     <div id="einladung-eingeben" class="field" hidden>
@@ -126,7 +127,7 @@
   </section>
 
   <section class="card" id="kosten" aria-labelledby="kosten-titel">
-    <h2 id="kosten-titel">Budget</h2>
+    <h2 id="kosten-titel">Guthaben</h2>
     <div class="budget__head"><strong class="budget__headline num" id="budget-zeile"></strong><span class="field__hint" id="budget-neu" hidden></span></div>
     <div class="budget__bar" id="budget-balken" role="img" hidden><div class="budget__fill" id="budget-fuellung"></div></div>
     <dl class="budget__rows" id="budget-aufgaben"></dl>

@@ -11,7 +11,7 @@ import routes_ai
 import routes_search
 import search_plan
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
-from ai.errors import BUDGET_USED, AiError
+from ai.errors import CREDIT_USED, AiError
 from test_ai_tasks import VORLAGEN, FakeClient, PackageClient, rating_entry
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 
@@ -287,12 +287,12 @@ def test_package_with_an_unusable_answer_tells_the_page_to_go_one_by_one(search,
 
 def test_package_stops_on_errors_of_access_or_budget(search, monkeypatch):
     def refuse():
-        raise AiError(BUDGET_USED)
+        raise AiError(CREDIT_USED)
 
     monkeypatch.setattr(routes_ai, "new_client", refuse)
     ids = many_hits(search, 2)
     status, answer = post(search, "/api/suche/bewerten-paket", {"ids": ids})
-    assert status == 400 and answer["fehler"] == BUDGET_USED
+    assert status == 400 and answer["fehler"] == CREDIT_USED
 
 
 def test_package_leaves_out_hits_without_text(search, monkeypatch):
@@ -514,7 +514,7 @@ def test_a_failed_second_look_keeps_the_package_grade_and_says_so(search, monkey
     def rate(gateway, material, ads, model=None):
         calls.append(len(ads))
         if len(ads) == 1:
-            raise AiError(BUDGET_USED)
+            raise AiError(CREDIT_USED)
         return real_rate(gateway, material, ads, model)
 
     monkeypatch.setattr(routes_search.tasks, "rate_package", rate)

@@ -10,11 +10,11 @@ window.SuchbegriffeStart = (() => {
 
   const geaendert = () => document.dispatchEvent(new CustomEvent("suchbegriffe-beleg"));
 
-  function zeigeHinweis(hinweis, kosten, texte) {
+  function zeigeHinweis(hinweis, kosten, waehrung, texte) {
     $("begriff-hinweis").hidden = !hinweis;
     if (!hinweis) return;
     $("begriff-hinweis-text").textContent = L.hinweisText(hinweis);
-    $("begriff-hinweis-nachsatz").textContent = `${texte.hinweisNachsatz} ${L.schaetzung(kosten)}.`;
+    $("begriff-hinweis-nachsatz").textContent = `${texte.hinweisNachsatz} ${L.schaetzung(kosten, waehrung)}.`;
     $("begriff-hinweis-aus").onclick = async () => {
       try {
         await senden("/api/suchbegriffe/ausblenden", { begriff: hinweis.begriff });
@@ -34,7 +34,7 @@ window.SuchbegriffeStart = (() => {
     try {
       const [antwort, satz] = await Promise.all([holen("/api/suchbegriffe/hinweis"), textsatz()]);
       const texte = L.texte(satz);
-      zeigeHinweis(antwort.verfuegbar ? antwort.hinweis : null, antwort.kosten_usd, texte);
+      zeigeHinweis(antwort.verfuegbar ? antwort.hinweis : null, antwort.kosten_usd, antwort.waehrung, texte);
     } catch {
       $("begriff-hinweis").hidden = true;  // the hint is extra; the list works without it
     }

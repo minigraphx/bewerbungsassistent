@@ -1,4 +1,5 @@
-"""Used and remaining AI budget always visible in the sidebar (#211, G46), with invented amounts.
+"""Used and remaining AI credit always visible in the sidebar (#211, G46), in CHF with the mediation (G80), with
+invented amounts.
 
 The view is computed in seiten/sidebar-logic.js without DOM; node evaluates it here for each invented status.
 """
@@ -15,7 +16,7 @@ from test_app import get, server  # noqa: F401  (server is a fixture)
 
 PAGES = Path(__file__).resolve().parent.parent / "seiten"
 LOGIC = PAGES / "sidebar-logic.js"
-MEDIATION = {"monat": "2026-11", "eingerichtet": True, "vermittlung": True, "budget_usd": 10}
+MEDIATION = {"monat": "2026-11", "eingerichtet": True, "vermittlung": True, "guthaben_chf": 10}
 
 
 def view(status: dict | None) -> dict | None:
@@ -31,52 +32,52 @@ def nav_of(name: str) -> str:
 
 
 def test_the_sidebar_names_what_is_used_and_what_is_left():
-    shown = view({**MEDIATION, "verbraucht_usd": 3.2})
+    shown = view({**MEDIATION, "verbraucht_chf": 3.2})
 
-    assert shown["text"] == "USD 3.20 von 10.00 gebraucht"
-    assert shown["detail"] == "USD 6.80 frei"
-    assert shown["narrow"] == "KI-Budget: USD 6.80 frei"
+    assert shown["text"] == "CHF 3.20 von 10.00 gebraucht"
+    assert shown["detail"] == "CHF 6.80 frei"
+    assert shown["narrow"] == "KI-Guthaben: CHF 6.80 frei"
     assert shown["warning"] == "" and shown["state"] == "ok"
 
 
-def test_an_unused_budget_says_that_nothing_is_used():
-    shown = view({**MEDIATION, "verbraucht_usd": 0})
+def test_an_unused_credit_says_that_nothing_is_used():
+    shown = view({**MEDIATION, "verbraucht_chf": 0})
 
-    assert shown["text"] == "USD 10.00 frei"
+    assert shown["text"] == "CHF 10.00 frei"
     assert shown["detail"] == "Noch nichts gebraucht"
     assert shown["warning"] == ""
 
 
 @pytest.mark.parametrize("spent", [8, 9.99])
-def test_a_nearly_used_budget_says_so_in_words(spent):
-    shown = view({**MEDIATION, "verbraucht_usd": spent})
+def test_a_nearly_used_credit_says_so_in_words(spent):
+    shown = view({**MEDIATION, "verbraucht_chf": spent})
 
     assert shown["state"] == "low"
-    assert shown["warning"] == "Budget fast aufgebraucht"
+    assert shown["warning"] == "Guthaben fast aufgebraucht"
     assert shown["narrow"].endswith(" · fast aufgebraucht")
 
 
 def test_below_the_mark_there_is_no_warning():
-    assert view({**MEDIATION, "verbraucht_usd": 7.9})["warning"] == ""
+    assert view({**MEDIATION, "verbraucht_chf": 7.9})["warning"] == ""
 
 
 @pytest.mark.parametrize("spent", [10, 12.5])
-def test_a_used_up_budget_says_so_in_words(spent):
-    shown = view({**MEDIATION, "verbraucht_usd": spent})
+def test_a_used_up_credit_says_so_in_words(spent):
+    shown = view({**MEDIATION, "verbraucht_chf": spent})
 
     assert shown["state"] == "empty"
-    assert shown["warning"] == "Budget aufgebraucht"
-    assert shown["detail"] == "USD 0.00 frei"
-    assert shown["narrow"] == "KI-Budget: USD 0.00 frei · aufgebraucht"
+    assert shown["warning"] == "Guthaben aufgebraucht: neuen Code anfordern"
+    assert shown["detail"] == "CHF 0.00 frei"
+    assert shown["narrow"] == "KI-Guthaben: CHF 0.00 frei · aufgebraucht"
 
 
-def test_with_an_own_key_no_budget_of_the_mediation_applies():
+def test_with_an_own_key_no_credit_of_the_mediation_applies():
     shown = view({"monat": "2026-03", "eingerichtet": True, "vermittlung": False, "eigener_schluessel": True,
                   "kosten_usd": 1.5})
 
     assert shown["text"] == "USD 1.50 mit eigenem Schlüssel"
-    assert shown["detail"] == "Kein Budget der Vermittlung"
-    assert shown["narrow"] == "KI-Kosten: USD 1.50 · kein Budget der Vermittlung"
+    assert shown["detail"] == "Kein Guthaben der Vermittlung"
+    assert shown["narrow"] == "KI-Kosten: USD 1.50 · kein Guthaben der Vermittlung"
     assert shown["warning"] == "" and shown["state"] == "own"
 
 
@@ -96,14 +97,14 @@ def test_every_page_has_room_for_the_rest_and_the_warning_in_words():
         assert nav_of(name) == nav, name
 
 
-def test_the_status_reads_the_budget_of_the_month_from_the_mediation(server, monkeypatch):  # noqa: F811
+def test_the_status_reads_the_credit_from_the_mediation(server, monkeypatch):  # noqa: F811
     monkeypatch.setenv(URL_VARIABLE, "https://ki.example.ch")
     monkeypatch.setenv(ACCESS_VARIABLE, "bwa_invented")
     asked = []
 
     def account(url, access):
         asked.append(url)
-        return {"month": "2026-11", "spent_usd": 8.4, "budget_usd": 10}
+        return {"credit_chf": 10, "spent_chf": 8.4}
 
     monkeypatch.setattr(routes_ai.invitation, "account", account)
 
@@ -111,5 +112,5 @@ def test_the_status_reads_the_budget_of_the_month_from_the_mediation(server, mon
     answer = json.loads(body)
 
     assert status == 200 and asked == ["https://ki.example.ch"]
-    assert answer["budget_usd"] == 10 and answer["verbraucht_usd"] == 8.4
-    assert view(answer)["warning"] == "Budget fast aufgebraucht"
+    assert answer["guthaben_chf"] == 10 and answer["verbraucht_chf"] == 8.4
+    assert view(answer)["warning"] == "Guthaben fast aufgebraucht"

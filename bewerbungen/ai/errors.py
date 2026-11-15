@@ -32,10 +32,11 @@ SETUP_ACTION = "ki-einrichten"  # what the answer of a route tells the page to o
 NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. Unter „KI einrichten“ den Einladungscode, "
               "das eigene Claude-Abo oder einen eigenen Schlüssel wählen.")
 ACCESS_DENIED = ("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen "
-                 "prüfen. Sonst bei der Begleitperson im Pilot melden.")
+                 "prüfen. Sonst bitte einen neuen Einladungscode anfordern.")
 NO_CREDIT = ("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. "
-             "Sonst bei der Begleitperson im Pilot melden.")
-BUDGET_USED = "Das Budget für die KI ist für diesen Monat aufgebraucht. Ab dem nächsten Monat geht es wieder."
+             "Sonst bitte später nochmals versuchen.")
+CREDIT_USED = ("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
+               "Einstellungen, KI und Guthaben einlösen. Alles andere funktioniert weiterhin.")
 RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} Sekunden nochmals versuchen."
 TIMEOUT = "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen."
 OFFLINE = "Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?"
@@ -45,7 +46,7 @@ REFUSED = "Die KI hat diese Anfrage abgelehnt. Bitte den Text prüfen, zum Beisp
 TOO_LONG = "Die Antwort der KI war zu lang und ist unvollständig. Bitte nochmals versuchen."
 BAD_ANSWER = "Die Antwort der KI liess sich nicht lesen. Bitte nochmals versuchen."
 DEFAULT_RETRY_SECONDS = 60
-BUDGET_STATUS = 402  # the mediation (MIN-344) answers 402 when the monthly budget is used up
+CREDIT_STATUS = 402  # the mediation answers 402 once the one-time credit of the code is used up (G80)
 MAX_LOGGED_REASON = 400
 LONG_TOKEN = re.compile(r"[A-Za-z0-9_-]{24,}")  # a key or an access never reaches the log, not even inside a message
 NO_CREDIT_WORDS = "credit balance"  # how the API says it, with status 400, to someone with an own key (MIN-348)
@@ -63,8 +64,8 @@ def from_sdk(error: Exception) -> AiError:
         seconds = _retry_after(error)
         return AiError(RATE_LIMITED.format(seconds=seconds), retry_after=seconds)
     if isinstance(error, anthropic.APIStatusError):
-        if error.status_code == BUDGET_STATUS:
-            return AiError(BUDGET_USED)
+        if error.status_code == CREDIT_STATUS:
+            return AiError(CREDIT_USED)
         if error.status_code >= 500:
             return AiError(SERVER)
         log.warning("KI-Anfrage abgelehnt, Status %s: %s", error.status_code, _reason(error))

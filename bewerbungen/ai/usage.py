@@ -17,11 +17,22 @@ _WRITE_LOCK = threading.Lock()  # calls can run side by side (ai/second_look.py)
 PER_MILLION = 1_000_000
 CACHE_WRITE_FACTOR = 1.25
 CACHE_READ_FACTOR = 0.1
+# With the mediation one USD billed by Anthropic counts as one CHF of the credit (Andy, 13.11.2026; G80, G46). The
+# mediation counts with the same number (`vermittlung/pricing.py`); a test keeps both equal. The pages show the USD
+# amounts of the cost log in CHF without converting them, so a change here must reach them too.
+CHF_PER_USD = 1.0
+MEDIATION_CURRENCY = "CHF"
+OWN_CURRENCY = "USD"
 PRICES_USD = {  # model: (input, output) per million tokens
     "claude-opus-5-5": (4.0, 20.0),
     "claude-sonnet-5-5": (2.0, 10.0),
     "claude-haiku-5-5": (0.1, 0.5),
 }
+
+
+def currency(via_mediation: bool) -> str:
+    """With the mediation the person sees CHF; with an own key what Anthropic bills, USD."""
+    return MEDIATION_CURRENCY if via_mediation else OWN_CURRENCY
 
 
 @dataclasses.dataclass(frozen=True)

@@ -1,12 +1,14 @@
 # KI-Vermittlung
 
-Modul des [Bewerbungsbegleiters](../README.md) für den Pilot (MIN-344): Die App der Teilnehmenden ruft die KI über diese Vermittlung auf. Auf den Rechnern liegt kein API-Schlüssel; jede Person hat einen eigenen Zugang mit Budget.
+Modul des [Bewerbungsbegleiters](../README.md) für den Pilot (MIN-344): Die App der Teilnehmenden ruft die KI über diese Vermittlung auf. Auf den Rechnern liegt kein API-Schlüssel; jeder eingelöste Code ist ein eigener Zugang mit einmaligem Guthaben in CHF (G80).
 
 - **Schnittstelle** wie die Messages API von Anthropic (`POST /v1/messages`, auch Streaming). Die App nutzt das Anthropic SDK mit der Adresse der Vermittlung als `base_url`.
 - **Zugang pro Person:** Einladungscode (16 Zeichen, standardmässig 45 Tage gültig, nur einmal) → die App löst ihn ein (`POST /v1/invitations/redeem`) und legt den Zugang im Schlüsselbund ab. Codes und Zugänge stehen nur als Hash in der Datenbank. Sperren für alle Geräte einer Person oder für eines.
-- **Grenzen:** Budget pro Monat (sonst Antwort 402, die App sagt „Budget aufgebraucht“), Anfragen pro Minute und gleichzeitig, nur freigegebene Modelle, höchstens `VERMITTLUNG_MAX_TOKENS` Ausgabe-Tokens, nur Text (keine Bilder, keine Tools). Texte selbst lassen sich nicht einschränken: Wer einen Zugang hat, kann beliebigen Text schicken, begrenzt durch Budget und Limits.
-- **Kosten** pro Aufruf: Person, Modell, Tokens, Kosten. **Inhalte werden nie gespeichert oder protokolliert**; sie sind schon in der App pseudonymisiert (MIN-334).
-- `GET /v1/account` zeigt der App Monat, Verbrauch und Budget.
+- **Guthaben:** Jeder Code bringt ein einmaliges Guthaben, standardmässig CHF 5; es erneuert sich nicht. Ein USD, den Anthropic verrechnet, zählt als ein CHF (`CHF_PER_USD` in `pricing.py`, ohne Wechselkurs; was übrig bleibt, trägt den Server). Ist es aufgebraucht, antwortet die Vermittlung mit 402 und dem Typ `credit_used_up`, und die App sagt, dass die Person einen neuen Code anfordern kann.
+- **Grenzen:** das Guthaben, Anfragen pro Minute und gleichzeitig, nur freigegebene Modelle, höchstens `VERMITTLUNG_MAX_TOKENS` Ausgabe-Tokens, nur Text (keine Bilder, keine Tools). Texte selbst lassen sich nicht einschränken: Wer einen Zugang hat, kann beliebigen Text schicken, begrenzt durch Guthaben und Limits.
+- **Kosten** pro Aufruf: Person, Zugang, Modell, Tokens, Kosten in USD, wie Anthropic sie verrechnet. **Inhalte werden nie gespeichert oder protokolliert**; sie sind schon in der App pseudonymisiert (MIN-334).
+- `GET /v1/account` zeigt der App Guthaben und Verbrauch in CHF (`credit_chf`, `spent_chf`).
+- **Ältere Datenbanken** (mit Budget pro Monat) übernimmt die Vermittlung beim Start: Jeder bestehende Zugang bekommt ab diesem Zeitpunkt ein Guthaben von CHF 5, offene Codes auch; Kostenprotokolle bleiben, die alte Spalte `budget_usd` bleibt ungenutzt stehen.
 
 ## Betrieb
 
@@ -27,7 +29,7 @@ Ohne Container (z.B. Hosting mit Python 3.12): `pip install -r requirements.txt`
 | `VERMITTLUNG_DB` | `/data/vermittlung.sqlite` | Datenbank (Personen, Zugänge, Kosten) |
 | `VERMITTLUNG_HOST`, `VERMITTLUNG_PORT` | `0.0.0.0`, `8080` | Adresse im Container |
 | `VERMITTLUNG_ANFRAGEN_PRO_MINUTE` | `20` | pro Person |
-| `VERMITTLUNG_GLEICHZEITIG` | `5` | Anfragen pro Person, die gleichzeitig laufen; begrenzt, wie weit parallele Anfragen das Budget überschreiten können |
+| `VERMITTLUNG_GLEICHZEITIG` | `5` | Anfragen pro Person, die gleichzeitig laufen; begrenzt, wie weit parallele Anfragen das Guthaben überschreiten können |
 | `VERMITTLUNG_MAX_TOKENS` | `16000` | höchstens so viele Ausgabe-Tokens pro Anfrage |
 | `VERMITTLUNG_HINTER_PROXY` | `1` | Adresse der Person aus `X-Forwarded-For` (für das Limit beim Einlösen) |
 
@@ -52,24 +54,24 @@ sudo nginx -t && sudo systemctl reload nginx
 
 Neue Fassung: `deploy/deploy.sh <ssh-host>` baut ein Image mit dem Git-Stand als Tag und startet den Dienst neu. Verwaltung dann mit `sudo docker exec bewerbungsassistent-vermittlung-vermittlung-1 python admin.py …`.
 
-Im Anthropic-Konto für die Vermittlung einen eigenen Workspace mit Ausgabenlimit anlegen; das ist die zweite Sicherung neben den Budgets hier.
+Im Anthropic-Konto für die Vermittlung einen eigenen Workspace mit Ausgabenlimit anlegen; das ist die zweite Sicherung neben den Guthaben hier.
 
 ## Verwaltung
 
 Auf dem Server (im Container: `docker compose exec vermittlung python admin.py …`):
 
 ```bash
-python admin.py invite T01 --budget 20     # Person anlegen, Code und Link ausgeben (45 Tage gültig)
+python admin.py invite T01                 # Person anlegen, Code und Link ausgeben (CHF 5 einmalig, 45 Tage gültig)
+python admin.py invite T01 --credit 10     # anderes einmaliges Guthaben in CHF, höchstens 100
 python admin.py invite T01 --months 2      # andere Gültigkeit: --days, --weeks oder --months, höchstens 12 Monate
-python admin.py accesses T01               # Geräte mit Zugang und Einwilligung (Fassung und Art der Suche)
+python admin.py accesses T01               # Geräte mit Zugang, Guthaben und Einwilligung (Fassung und Art der Suche)
 python admin.py revoke T01 [--access 3]    # alle Zugänge und offenen Einladungen sperren, oder einen Zugang
-python admin.py budget T01 30              # Budget pro Monat in USD
-python admin.py costs [--month 2026-11]    # Kosten pro Person
+python admin.py costs [--month 2026-11]    # Kosten pro Person im Monat, in CHF
 python admin.py due                        # Personen, deren Daten zu löschen sind
 python admin.py forget T01 [--yes]         # gesperrte Person löschen; ohne --yes nur anzeigen
 ```
 
-Kostenprotokolle löschen: nach der Auswertung, spätestens 30 Tage nach der Sperrung (so steht es in der Datenschutzerklärung). `forget` entfernt Person, Zugänge, Einladungen und Kostenprotokolle und lehnt ab, solange ein Zugang aktiv ist, weil das Monatsbudget aus den Protokollen berechnet wird. Gelöscht wird nichts von selbst: `due` zeigt, wer fällig ist.
+Kostenprotokolle löschen: nach der Auswertung, spätestens 30 Tage nach der Sperrung (so steht es in der Datenschutzerklärung). `forget` entfernt Person, Zugänge, Einladungen und Kostenprotokolle und lehnt ab, solange ein Zugang aktiv ist, weil das verbrauchte Guthaben aus den Protokollen berechnet wird. Gelöscht wird nichts von selbst: `due` zeigt, wer fällig ist.
 
 `--months` zählt Kalendermonate: vom 31. Januar einen Monat weiter ist der 28. Februar.
 

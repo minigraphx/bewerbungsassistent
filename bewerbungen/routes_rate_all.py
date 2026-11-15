@@ -1,9 +1,10 @@
 """„Alle prüfen“ on Stellen (G44, #209): what the page names before the person confirms.
 
 The route counts the new hits without a grade, says which of them the extension loads first and which it may not load
-(with the reason), and estimates cost and duration with `rate_all`. With the mediation it adds the budget left now and
-afterwards, read from the mediation's account. The run itself goes package by package through
-`/api/suche/bewerten-paket`; the mediation refuses a package once the budget is used up, and what was rated stays.
+(with the reason), and estimates cost and duration with `rate_all`. With the mediation the amounts are in CHF (G46) and
+it adds the credit of the code left now and afterwards, read from the mediation's account; with an own key they are in
+USD. The run itself goes package by package through `/api/suche/bewerten-paket`; the mediation refuses a package once
+the credit is used up (G80), and what was rated stays.
 Nothing here calls the AI; the extension and Claude cannot reach the route.
 """
 import excluded_companies
@@ -11,8 +12,8 @@ import missing_ads
 import preferences
 import rate_all
 import routes_missing_ads
-from ai import invitation, prompts, tasks
-from ai.connection import find_connection
+from ai import invitation, prompts, tasks, usage
+from ai.connection import currency_now, find_connection
 from ai.errors import AiError
 from hits import Hits
 from server import json_antwort
@@ -27,8 +28,8 @@ def _context_chars(k) -> int:
     return texts + len(prompts.rules(preferences.load(k.daten).address))
 
 
-def budget_left() -> float | None:
-    """What stays of the month's budget with the mediation; None with an own key, without AI or without an answer."""
+def credit_left() -> float | None:
+    """What stays of the credit of the code in CHF; None with an own key, without AI or without an answer."""
     try:
         connection = find_connection()
         if not connection.via_mediation:
@@ -36,10 +37,10 @@ def budget_left() -> float | None:
         account = invitation.account(connection.base_url, connection.access)
     except AiError:
         return None
-    budget, spent = account.get("budget_usd"), account.get("spent_usd")
-    if not all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in (budget, spent)):
+    credit, spent = account.get("credit_chf"), account.get("spent_chf")
+    if not all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in (credit, spent)):
         return None
-    return max(0.0, budget - spent)
+    return max(0.0, credit - spent)
 
 
 def _open_hits(k, store: Hits) -> tuple[list[int | None], list[str], list[dict]]:
@@ -63,12 +64,15 @@ def _open_hits(k, store: Hits) -> tuple[list[int | None], list[str], list[dict]]
 def overview(k, parameter, body):
     lengths, to_load, not_loadable = _open_hits(k, Hits(k.daten))
     found = rate_all.estimate(lengths, _context_chars(k))
-    left = budget_left() if found.count else None
-    after = None if left is None else round(max(0.0, left - found.cost_usd), 2)
-    return json_antwort({"anzahl": found.count, "kosten_usd": found.cost_usd, "dauer_minuten": found.minutes,
-                         "laden": to_load, "nicht_ladbar": not_loadable,
-                         "budget_usd": None if left is None else round(left, 2), "danach_usd": after,
-                         "reicht_fuer": rate_all.enough_for(found, left)})
+    left = credit_left() if found.count else None
+    currency = currency_now()
+    rate = usage.CHF_PER_USD if currency == usage.MEDIATION_CURRENCY else 1.0
+    cost = round(found.cost_usd * rate, 2)
+    after = None if left is None else round(max(0.0, left - cost), 2)
+    return json_antwort({"anzahl": found.count, "kosten": cost, "dauer_minuten": found.minutes,
+                         "waehrung": currency, "laden": to_load, "nicht_ladbar": not_loadable,
+                         "guthaben": None if left is None else round(left, 2), "danach": after,
+                         "reicht_fuer": rate_all.enough_for(found, None if left is None else left / rate)})
 
 
 GET = {"/api/suche/alle-pruefen": overview}

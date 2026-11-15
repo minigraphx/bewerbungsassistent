@@ -15,6 +15,7 @@ import search_plan
 import term_changes
 import term_evidence
 from ai import tasks, term_review
+from ai.connection import currency_now
 from ai.errors import SETUP_ACTION, AiError, SetupNeeded
 from dateien import schreibe_atomar
 from hits import HIDDEN_TERMS, Hits
@@ -29,7 +30,7 @@ GONE = "Dieser Vorschlag gilt nicht mehr. Bitte neu vorschlagen lassen."
 STALE = "Vorschlag veraltet. Die Suchbegriffe haben sich seit dem Vorschlag geändert. Bitte neu vorschlagen lassen."
 FEEDBACK_NEEDED = "Bitte schreiben, was anders sein soll."
 FAILED = "Kein Vorschlag. {reason} {cost} Am Suchprofil hat sich nichts geändert."
-CHARGED = "Berechnet: {cost:.2f} USD."
+CHARGED = "Berechnet: {cost:.2f} {currency}."
 NOT_CHARGED = "Nichts berechnet."
 NO_UNDO = ("Rückgängig geht nicht mehr: Das Suchprofil hat sich seither geändert. Der frühere Stand liegt unter "
            "Entwürfe und Versionen.")
@@ -73,7 +74,7 @@ def hint(k, parameter, body):
     strong = term_evidence.strongest(hits, current.positive)
     shown = strong if strong is not None and strong.term.casefold() not in store.settings()[HIDDEN_TERMS] else None
     return json_antwort({"verfuegbar": True, "hinweis": shown.as_dict() if shown else None,
-                         "kosten_usd": _estimate(_preview(k, current, hits)),
+                         "kosten_usd": _estimate(_preview(k, current, hits)), "waehrung": currency_now(),
                          "treffer": len(term_evidence.rated(hits)), "seit": term_evidence.since(hits)})
 
 
@@ -86,7 +87,7 @@ def hide(k, parameter, body):
 def sent_text(k, parameter, body):
     _, text = _profile(k)
     preview = _preview(k, term_changes.terms_of(text), Hits(k.daten).all())
-    return json_antwort({"text": preview, "kosten_usd": _estimate(preview)})
+    return json_antwort({"text": preview, "kosten_usd": _estimate(preview), "waehrung": currency_now()})
 
 
 def evidence_ids(k, parameter, body):
@@ -112,9 +113,13 @@ def _keep(k, proposal: dict) -> None:
     k.cache[CACHE_KEY] = (*_proposals(k), proposal)[-KEPT_PROPOSALS:]
 
 
+def charged(cost: float) -> str:
+    return CHARGED.format(cost=cost, currency=currency_now())
+
+
 def _failed(error: AiError) -> ValueError:
     cost = getattr(error, "cost_usd", None)
-    message = FAILED.format(reason=error, cost=CHARGED.format(cost=cost) if cost else NOT_CHARGED)
+    message = FAILED.format(reason=error, cost=charged(cost) if cost else NOT_CHARGED)
     return ActionError(message, SETUP_ACTION) if isinstance(error, SetupNeeded) else ValueError(message)
 
 
@@ -168,7 +173,8 @@ def propose(k, parameter, body):
         "vorschlag": proposal["id"], "runde": proposal["round"], "zusammenfassung": result["summary"],
         "geaendert": result["changed"] if former else "", "hinweis": feedback,
         "aenderungen": [_change_view(i, change, found) for i, change in enumerate(changes)],
-        "kosten_usd": result["cost_usd"], "kosten_bisher": round(spent, 6), "modell": result["model"],
+        "kosten_usd": result["cost_usd"], "kosten_bisher": round(spent, 6), "waehrung": currency_now(),
+        "modell": result["model"],
         "datum": k.heute().isoformat(), "treffer": len(term_evidence.rated(hits)), "seit": term_evidence.since(hits),
         "jetzt": current.as_dict(), **_outcome(text, changes)})
 

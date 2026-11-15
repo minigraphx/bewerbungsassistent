@@ -1,6 +1,6 @@
 """„Alle prüfen“ on Stellen (G44, #209): before the run the app names the number of hits, the estimated cost from the
-current prices, what stays of the budget and the rough duration; hits without text are loaded first where the portal
-allows it, and a run that hits the end of the budget leaves the rest open. All data is invented, the AI is simulated."""
+current prices, what stays of the credit and the rough duration; hits without text are loaded first where the portal
+allows it, and a run that hits the end of the credit leaves the rest open. All data is invented, the AI is simulated."""
 import datetime
 import json
 import shutil
@@ -11,7 +11,7 @@ import rate_all
 import routes_ai
 from ai import usage
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
-from ai.errors import BUDGET_USED, AiError
+from ai.errors import CREDIT_USED, AiError
 from hits import Hits
 from test_ai_tasks import VORLAGEN, PackageClient, rating_entry
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
@@ -54,12 +54,12 @@ def estimate(search) -> dict:
     return json.loads(content)
 
 
-def mediation(monkeypatch, spent: float, budget: float):
+def mediation(monkeypatch, spent: float, credit: float):
     monkeypatch.delenv(KEY_VARIABLE, raising=False)
     monkeypatch.setenv(URL_VARIABLE, "https://ki.example.ch")
     monkeypatch.setenv(ACCESS_VARIABLE, "bwa_test")
     monkeypatch.setattr(routes_ai.invitation, "account",
-                        lambda url, access: {"month": "2026-11", "spent_usd": spent, "budget_usd": budget})
+                        lambda url, access: {"credit_chf": credit, "spent_chf": spent})
 
 
 def test_the_estimate_counts_every_new_hit_without_a_grade(search, monkeypatch):
@@ -72,18 +72,18 @@ def test_the_estimate_counts_every_new_hit_without_a_grade(search, monkeypatch):
     answer = estimate(search)
 
     assert answer["anzahl"] == len(open_ids) == 2
-    assert answer["kosten_usd"] > 0
+    assert answer["kosten"] > 0
     assert answer["dauer_minuten"] >= 1
 
 
 def test_the_cost_comes_from_the_current_prices(search, monkeypatch):
     hits(search, 12)
-    before = estimate(search)["kosten_usd"]
+    before = estimate(search)["kosten"]
     model = rate_all.MODEL
     price_in, price_out = usage.PRICES_USD[model]
     monkeypatch.setitem(usage.PRICES_USD, model, (price_in * 2, price_out * 2))
 
-    after = estimate(search)["kosten_usd"]
+    after = estimate(search)["kosten"]
 
     assert after == pytest.approx(before * 2, rel=0.05)
 
@@ -95,37 +95,37 @@ def test_more_hits_cost_more_and_take_longer(search):
     many = estimate(search)
 
     assert many["anzahl"] == few["anzahl"] + 25
-    assert many["kosten_usd"] > few["kosten_usd"]
+    assert many["kosten"] > few["kosten"]
     assert many["dauer_minuten"] > few["dauer_minuten"]
 
 
-def test_with_the_mediation_it_names_the_budget_left_now_and_afterwards(search, monkeypatch):
+def test_with_the_mediation_it_names_the_credit_left_now_and_afterwards(search, monkeypatch):
     hits(search, 3)
-    mediation(monkeypatch, spent=1.5, budget=20)
+    mediation(monkeypatch, spent=1.5, credit=5)
 
     answer = estimate(search)
 
-    assert answer["budget_usd"] == pytest.approx(18.5)
-    assert answer["danach_usd"] == pytest.approx(18.5 - answer["kosten_usd"])
-    assert answer["reicht_fuer"] is None, "the budget is enough for all"
+    assert answer["guthaben"] == pytest.approx(3.5)
+    assert answer["danach"] == pytest.approx(3.5 - answer["kosten"])
+    assert answer["reicht_fuer"] is None, "the credit is enough for all"
 
 
-def test_a_budget_too_small_says_for_how_many_it_is_enough(search, monkeypatch):
+def test_a_credit_too_small_says_for_how_many_it_is_enough(search, monkeypatch):
     hits(search, 20)
-    mediation(monkeypatch, spent=19.99, budget=20)
+    mediation(monkeypatch, spent=4.99, credit=5)
 
     answer = estimate(search)
 
     assert 0 <= answer["reicht_fuer"] < answer["anzahl"]
-    assert answer["danach_usd"] == 0
+    assert answer["danach"] == 0
 
 
-def test_with_an_own_key_there_is_no_budget_to_name(search):
+def test_with_an_own_key_there_is_no_credit_to_name(search):
     hits(search, 2)
 
     answer = estimate(search)
 
-    assert answer["budget_usd"] is None and answer["danach_usd"] is None and answer["reicht_fuer"] is None
+    assert answer["guthaben"] is None and answer["danach"] is None and answer["reicht_fuer"] is None
 
 
 def test_hits_without_text_are_loaded_first_unless_the_portal_forbids_it(search):
@@ -159,14 +159,14 @@ def test_a_bad_list_of_hits_to_load_is_refused(search, body):
     assert post(search, HOLEN, body)[0] == 400
 
 
-def test_when_the_budget_runs_out_the_rated_stay_and_the_rest_is_named(search, monkeypatch):
+def test_when_the_credit_runs_out_the_rated_stay_and_the_rest_is_named(search, monkeypatch):
     ids = hits(search, 14)
     calls = []
 
     def client():
         calls.append(1)
         if len(calls) > 1:
-            raise AiError(BUDGET_USED)
+            raise AiError(CREDIT_USED)
         return PackageClient(lambda labels: [rating_entry(label, 3) for label in labels])
 
     monkeypatch.setattr(routes_ai, "new_client", client)
@@ -175,6 +175,6 @@ def test_when_the_budget_runs_out_the_rated_stay_and_the_rest_is_named(search, m
 
     status, answer = post(search, "/api/suche/bewerten-paket", {"ids": second})
 
-    assert status == 400 and answer["fehler"] == BUDGET_USED
+    assert status == 400 and answer["fehler"] == CREDIT_USED
     assert sum(1 for hit in listing(search) if hit.get("bewertung")) == 10
     assert estimate(search)["anzahl"] == 4

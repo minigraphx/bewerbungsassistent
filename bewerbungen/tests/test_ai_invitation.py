@@ -94,9 +94,9 @@ def test_own_key_on_linux_names_the_missing_keychain_service(monkeypatch):
 
 
 def test_account_sends_the_access():
-    fake = opener({"month": "2026-11", "spent_usd": 0.5, "budget_usd": 20})
+    fake = opener({"credit_chf": 5.0, "spent_chf": 0.5})
 
-    assert invitation.account(URL, "bwa_x", opener=fake)["budget_usd"] == 20
+    assert invitation.account(URL, "bwa_x", opener=fake)["credit_chf"] == 5.0
     assert fake.requests[0].get_header("X-api-key") == "bwa_x"
 
 

@@ -1,6 +1,6 @@
 "use strict";
 // The sidebar of every page (#259, G54): marks where the page belongs, opens „Menü“ below 900 px, fills the badges,
-// the AI budget and the state of the extension. Every part stays hidden when its question fails.
+// the AI credit and the state of the extension. Every part stays hidden when its question fails.
 (() => {
   const S = window.SidebarLogic;
   const L = window.UebersichtLogik;
@@ -123,7 +123,8 @@
     }, EXTENSION_WAIT_MS);
   }
 
-  window.Sidebar = { aiStatus: aiAnswer, extension: extensionAnswer };
+  // The currency of AI costs on this page: CHF with the mediation, USD with an own key (G46).
+  window.Sidebar = { aiStatus: aiAnswer, extension: extensionAnswer, currency: aiAnswer.then(S.currencyOf) };
   markCurrent();
   menu();
   watchExtension();

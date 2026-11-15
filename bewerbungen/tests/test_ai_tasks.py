@@ -160,7 +160,7 @@ def response(status, headers=None):
     (anthropic.RateLimitError("x", response=response(429, {"retry-after": "30"}), body=None), "in 30 Sekunden"),
     (anthropic.AuthenticationError("x", response=response(401), body=None), "Zugang zur KI gilt nicht mehr"),
     (anthropic.PermissionDeniedError("x", response=response(403), body=None), "Zugang zur KI gilt nicht mehr"),
-    (anthropic.APIStatusError("x", response=response(402), body=None), "Budget"),
+    (anthropic.APIStatusError("x", response=response(402), body=None), "Guthaben des Einladungscodes ist aufgebraucht"),
     (anthropic.InternalServerError("x", response=response(500), body=None), "später nochmals"),
     (anthropic.APITimeoutError(request=httpx2.Request("POST", "https://ki.example")), "nicht rechtzeitig"),
     (anthropic.APIConnectionError(request=httpx2.Request("POST", "https://ki.example")), "Internet"),
