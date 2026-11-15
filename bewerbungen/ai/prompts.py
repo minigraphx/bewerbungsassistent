@@ -96,7 +96,7 @@ PREFILL = """Aufgabe: Fülle die Felder des Formulars aus den Unterlagen vor. Di
 
 - entries: Jeder Eintrag nennt in section seinen Abschnitt und in fields seine Felder als Paare aus field und value. Nur Abschnitte und Felder aus der Liste unten, mit genau diesen Namen. Felder ohne Angabe lässt du weg, einen Abschnitt ohne Angaben ebenso.
 - source: Bei jedem Eintrag die Nummer der Unterlage (document, z.B. 1 für „Unterlage 1“) und die Stelle darin (place, z.B. „Seite 2, Berufserfahrung“). Ohne Quelle kein Eintrag.
-- Daten als Jahr oder Jahr-Monat: 2019 oder 2019-03. Ist eine Station noch nicht beendet, bleibt endDate leer.
+- Daten als Jahr, Jahr-Monat oder ganzes Datum: 2019, 2019-03 oder 2019-03-15. Ist eine Station noch nicht beendet, bleibt endDate leer.
 - work: eine Station pro Stelle, neueste zuerst; highlights knapp, höchstens sechs; evidence nennt den Beleg, falls es einen gibt (z.B. „Arbeitszeugnis“).
 - education, certificates, languages: wie in den Unterlagen. fluency nur aus den erlaubten Werten; steht das Niveau nirgends, bleibt es leer.
 - skills: Gruppen mit einem kurzen Namen und Stichworten.
