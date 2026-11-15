@@ -46,7 +46,9 @@ test("the excluded companies go as one list, one per line (#226, G65)", () => {
 });
 
 test("an apprenticeship's Was nicht saves only the companies, not the profile", () => {
-  assert.equal(L.mitProfil("nicht", false), true);
-  assert.equal(L.mitProfil("nicht", true), false);
-  assert.equal(L.mitProfil("region", true), true);
+  const felder = { inserat: "Schicht", titel: "Praktikum", firmen: "Muster Bau AG" };
+  assert.deepEqual(L.anfrage("nicht", felder, false),
+    { pfad: "/api/suche/was-nicht", koerper: { ausschluss: ["Schicht"], titel_ausschluss: ["Praktikum"], firmen: ["Muster Bau AG"] } });
+  assert.deepEqual(L.anfrage("nicht", felder, true), { pfad: "/api/suche/was-nicht", koerper: { firmen: ["Muster Bau AG"] } });
+  assert.equal(L.anfrage("region", { wohnort: "Bern", kantone: [], umkreis: "25" }, true).pfad, "/api/suche/rahmen");
 });

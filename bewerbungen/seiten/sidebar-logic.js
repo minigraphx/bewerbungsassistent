@@ -24,6 +24,8 @@
     empty: { long: "Budget aufgebraucht", short: "aufgebraucht" },
   };
   const NO_MEDIATION_BUDGET = { long: "Kein Budget der Vermittlung", short: "kein Budget der Vermittlung" };
+  // Fired on the document when a page changed which hits the list shows, so „N neu“ counts again (#303).
+  const HITS_CHANGED = "treffer-geaendert";
 
   function activeTarget(page) {
     return TARGET_OF_PAGE[page] || null;
@@ -107,7 +109,7 @@
     return age >= 0 && age <= maxAge;
   }
 
-  const logic = { BUDGET_MAX_AGE_MS, NEARLY_USED_SHARE, activeTarget, badges, budgetView, isFresh };
+  const logic = { BUDGET_MAX_AGE_MS, NEARLY_USED_SHARE, HITS_CHANGED, activeTarget, badges, budgetView, isFresh };
   if (typeof module !== "undefined") module.exports = logic;
   else global.SidebarLogic = logic;
 })(typeof window !== "undefined" ? window : globalThis);

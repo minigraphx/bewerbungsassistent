@@ -63,8 +63,19 @@
     // Firmen with kununu (G35, #188, docs/design/firmen.md); „Firma“ stays neutral, apprenticeships say „Lehrbetrieb“
     "nav.firmen": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
     "firmen.titel": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
-    // Excluded companies (#226, G65): from a hit, from Firmen and from an application
+    // Excluded companies (#226, G65): the same words from a hit, from Firmen and from an application (#303)
     "firmen.ausschliessen": { sie: "Diese Firma nicht mehr zeigen", du: "Diese Firma nicht mehr zeigen", lehrstelle: "Diesen Lehrbetrieb nicht mehr zeigen" },
+    "firmen.wieder-zeigen": { sie: "Diese Firma wieder zeigen", du: "Diese Firma wieder zeigen", lehrstelle: "Diesen Lehrbetrieb wieder zeigen" },
+    "firmen.wieder-gezeigt": {
+      sie: "Inserate von {firma} zeigt die Suche wieder.",
+      du: "Inserate von {firma} zeigt die Suche wieder.",
+      lehrstelle: "Lehrstellen von {firma} zeigt die Suche wieder.",
+    },
+    "firmen.nicht-geaendert": {
+      sie: "Die Suche zeigt die Inserate von {firma} wie vorher.",
+      du: "Die Suche zeigt die Inserate von {firma} wie vorher.",
+      lehrstelle: "Die Suche zeigt die Lehrstellen von {firma} wie vorher.",
+    },
     "firmen.ausgeschlossen": {
       sie: "Inserate von {firma} zeigt die Suche nicht mehr. Unter Suche einstellen können Sie die Firma wieder zeigen.",
       du: "Inserate von {firma} zeigt die Suche nicht mehr. Unter Suche einstellen kannst du die Firma wieder zeigen.",
