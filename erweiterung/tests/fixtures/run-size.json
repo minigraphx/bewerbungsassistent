@@ -1,0 +1,34 @@
+{
+  "note": "Searches per portal for invented plans (G43): erweiterung/lib/queries.js builds them, bewerbungen/search_stages.py counts them for the announcement. Both read this file.",
+  "cases": [
+    {
+      "name": "many terms in several places",
+      "plan": {
+        "art": "stelle", "portale": ["job-room", "jobs.ch", "jobscout24", "ictjobs"],
+        "stichworte": ["Begriff1", "Begriff2", "Begriff3", "Begriff4", "Begriff5", "Begriff6", "Begriff7", "Begriff8",
+                       "Begriff9", "Begriff10", "Begriff11", "Begriff12", "Begriff13", "Begriff14", "Begriff15", "Begriff16"],
+        "nischen": ["Nische1", "Nische2", "Nische3"], "kantone": ["BE", "SO"],
+        "orte": ["Nordstadt", "Südstadt", "Oststadt", "Weststadt"], "plz": ["1111", "2222", "3333"],
+        "regionen": ["grossraum-bern"], "schweizweit": false
+      },
+      "searches": {"job-room": 19, "jobs.ch": 67, "jobscout24": 48, "ictjobs": 16}
+    },
+    {
+      "name": "all of Switzerland around the home",
+      "plan": {
+        "art": "stelle", "portale": ["job-room", "jobs.ch", "jobscout24", "ictjobs"],
+        "stichworte": ["Begriff1", "Begriff2"], "nischen": ["Nische1"], "kantone": [], "orte": ["Nordstadt"],
+        "plz": ["1111"], "regionen": [], "schweizweit": true
+      },
+      "searches": {"job-room": 3, "jobs.ch": 5, "jobscout24": 4, "ictjobs": 2}
+    },
+    {
+      "name": "apprenticeships and trial apprenticeships in cantons",
+      "plan": {
+        "art": "lehrstelle", "portale": ["LENA", "yousty"], "stichworte": ["Beruf1 EFZ", "Beruf2 EFZ", "Beruf3 EBA"],
+        "orte": [], "kantone": ["BE", "SO", "FR"], "angebote": ["lehrstelle", "schnupperlehre"]
+      },
+      "searches": {"LENA": 18, "yousty": 18}
+    }
+  ]
+}

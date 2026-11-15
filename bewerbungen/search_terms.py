@@ -22,7 +22,7 @@ TERMS_AND_REMARK = re.compile(r"^([^(]*?)(\s*\(.*)?$")
 TITLE_SECTION = "## Titelfilter"
 TITLE_LABELS = {"positiv": "Positiv", "ausschluss": "Ausschluss"}
 AFTER_TITLES = "## Sprachen"
-FULL = "Die Suche hat schon {limit} Begriffe, mehr sucht sie nicht. Bitte zuerst einen entfernen."
+FULL = "Die Suche hat schon {limit} Begriffe, mehr gehen hier nicht. Bitte zuerst einen entfernen."
 
 
 def current(text: str) -> tuple[str, ...]:

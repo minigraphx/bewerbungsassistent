@@ -22,7 +22,7 @@ REGION_NAMES = {
 }
 NOT_A_LIST = "{name}: bitte als Liste senden."
 TOO_LONG = "„{value}…“ ist zu lang: höchstens {limit} Zeichen."
-TOO_MANY = "{name}: höchstens {limit} Einträge, mehr liest die Suche nicht."
+TOO_MANY = "{name}: höchstens {limit} Einträge."
 BAD_POSTAL_CODE = "„{value}“ ist keine Postleitzahl: bitte vier Ziffern."
 BAD_REGION = "Unbekannte Region für ictjobs: {value}."
 NAMES = {"orte": "Orte für jobs.ch", "plz": "PLZ für jobscout24", "regionen": "Regionen für ictjobs"}
