@@ -148,7 +148,7 @@ def test_an_entry_already_there_is_refused_and_nothing_is_written(search, rated)
     ("0", "ausschluss", "Pikettdienst", "Diesen Punkt gibt es in der Einschätzung nicht mehr."),
     (0, "ort", "Pikettdienst", "Bitte «Im Titel» oder «Im Inserat» wählen."),
     (0, "ausschluss", "   ", "Bitte angeben, was nicht mehr kommen soll."),
-    (0, "ausschluss", "Pikett, Nacht", "Bitte ohne Komma: Ein Eintrag ist ein Ausschluss."),
+    (0, "ausschluss", "Pikett, Nacht", "Bitte ohne Komma, ein Ausschluss pro Eintrag."),
     (0, "ausschluss", "x" * 81, "„xxxxxxxxxxxxxxxxxxxx…“ ist zu lang: höchstens 80 Zeichen."),
 ])
 def test_a_bad_confirmation_is_refused_and_nothing_is_written(search, rated, point, kind, value, message):  # noqa: F811
@@ -236,6 +236,13 @@ def test_the_buttons_are_big_enough_to_tap_on_a_phone():
     assert phone, "a block for phones"
     rule = re.search(r"\.exclusion-point \.btn[^{]*\{[^}]*min-height: 44px", phone.group(1))
     assert rule, "the buttons of a point are at least 44 px high on a phone"
+
+
+def test_the_places_in_the_form_have_no_line_between_them():
+    css = (PAGES / "stellen.css").read_text(encoding="utf-8")
+
+    assert re.search(r"\.exclusion-adopt \.choice \{[^}]*border-bottom: 0;", css), \
+        "the two places read as one choice, not as the list of firmen.css"
 
 
 def test_the_guide_says_where_the_confirmation_and_undo_appear():
