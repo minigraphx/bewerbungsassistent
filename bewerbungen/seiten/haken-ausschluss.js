@@ -7,10 +7,10 @@
   const L = window.HakenAusschlussLogik;
   const ROUTE = "/api/suche/haken-ausschluss";
 
-  function rueckgaengig(art, wert, melde) {
+  function rueckgaengig(art, wert, meldung) {
     senden(`${ROUTE}/rueckgaengig`, { art, wert })
-      .then(() => melde(L.zurueck(art, wert), "ok"))
-      .catch(fehler => melde(`${L.NICHT_ZURUECK} ${fehler.message}`, "fehler"));
+      .then(() => meldung(L.zurueck(art, wert), "ok"))
+      .catch(fehler => meldung(`${L.NICHT_ZURUECK} ${fehler.message}`, "fehler"));
   }
 
   function schliesse(formular, knopf) {
@@ -27,7 +27,7 @@
       el("span", {}, el("span", { class: "choice__name" }, text)), el("span", {})));
   }
 
-  function zeigeFormular(treffer, vorschlag, knopf, formular, { melde, du }) {
+  function zeigeFormular(treffer, vorschlag, knopf, formular, { meldung, du }) {
     const name = `haken-art-${treffer.id}`;
     const hinweis = el("p", { class: "field__hint" }, L.hinweis(vorschlag.art));
     const feld = el("input", { class: "input", type: "text", value: vorschlag.wert, spellcheck: "false" });
@@ -45,11 +45,11 @@
       try {
         const antwort = await senden(ROUTE, { id: treffer.id, punkt: vorschlag.punkt, art, wert: feld.value });
         schliesse(formular, knopf);
-        melde(L.uebernommen(antwort.art, antwort.wert), "ok",
-          { aktion: { text: L.RUECKGAENGIG, ausfuehren: () => rueckgaengig(antwort.art, antwort.wert, melde) } });
+        meldung(L.uebernommen(antwort.art, antwort.wert), "ok",
+          { aktion: { text: L.RUECKGAENGIG, ausfuehren: () => rueckgaengig(antwort.art, antwort.wert, meldung) } });
       } catch (fehler) {
         eintragen.disabled = false;
-        melde(`${L.NICHT_GESPEICHERT} ${fehler.message}`, "fehler");
+        meldung(`${L.NICHT_GESPEICHERT} ${fehler.message}`, "fehler");
       }
     });
     formular.replaceChildren(form);
@@ -63,12 +63,12 @@
       const vorschlag = await holen(ROUTE, { id: treffer.id, punkt });
       zeigeFormular(treffer, vorschlag, knopf, formular, optionen);
     } catch (fehler) {
-      optionen.melde(`${L.NICHT_GELADEN} ${fehler.message}`, "fehler");
+      optionen.meldung(`${L.NICHT_GELADEN} ${fehler.message}`, "fehler");
     }
   }
 
   /** The column of the rating; without `anbieten` (apprenticeships) only the list. */
-  function liste(treffer, titel, { anbieten, melde, du = false }) {
+  function liste(treffer, titel, { anbieten, meldung, du = false }) {
     const punkte = (treffer.bewertung && treffer.bewertung.haken) || [];
     if (!punkte.length) return null;
     if (!anbieten) return el("div", {}, el("h3", {}, titel), el("ul", {}, punkte.map(p => el("li", {}, p))));
@@ -76,7 +76,7 @@
     const zeilen = punkte.map((punkt, index) => {
       const knopf = el("button", { type: "button", class: "btn btn--quiet btn--sm exclusion-adopt__open",
         "aria-label": L.knopfLabel(punkt), "aria-expanded": "false" }, L.KNOPF);
-      knopf.addEventListener("click", () => oeffne(treffer, index, knopf, formular, { melde, du }));
+      knopf.addEventListener("click", () => oeffne(treffer, index, knopf, formular, { meldung, du }));
       return el("li", {}, el("span", {}, punkt), " ", knopf);
     });
     return el("div", {}, el("h3", {}, titel), el("ul", {}, zeilen), formular);
