@@ -1,6 +1,6 @@
 # Wo Anschreiben und Lebenslauf entstehen
 
-Gehört zu #238. Vorschlag zur Wahl durch Andy, noch nicht entschieden. Die Zeichenflächen liegen in Claude Design (Original privat: [Zeichenfläche](https://claude.ai/artifact/KxQLkEiqTsQe69wJwePzEa), Designsystem Bewerbungsassistent): ein Board mit dem heutigen Stand, drei Boards pro Option. Sie bauen auf A6 und A7 der Neugestaltung auf (`README.md`, Abschnitt «Neugestaltung der App ab 0.3»). Alle Personen, Firmen und Daten sind erfunden.
+Gehört zu #238. Vorschlag zur Wahl durch Andy, entschieden am 15.11.2026 (Abschnitt «Entscheid»). Die Zeichenflächen liegen in Claude Design (Original privat: [Zeichenfläche](https://claude.ai/artifact/KxQLkEiqTsQe69wJwePzEa), Designsystem Bewerbungsassistent): ein Board mit dem heutigen Stand, drei Boards pro Option. Sie bauen auf A6 und A7 der Neugestaltung auf (`README.md`, Abschnitt «Neugestaltung der App ab 0.3»). Alle Personen, Firmen und Daten sind erfunden.
 
 **Frage:** Der Schritt, der die Unterlagen erstellt, wirkt auch mit «Erweitert» sehr lang. Gehört das Erstellen von Anschreiben und Lebenslauf dorthin oder an getrennte Orte?
 
@@ -56,3 +56,14 @@ Boards B1 bis B3.
 
 - Bei B ist zu entscheiden, ob die Form (Dossier oder zwei PDF) wie heute pro Bewerbung mit der Vorgabe «Anschreiben und Lebenslauf» beginnt (G40) oder ob die Person auf «Lebenslauf und Dateien» auch die Form als eigene Vorgabe setzen kann. Das wäre eine Änderung an G40.
 - Die Anleitung (`docs/installation.md`) und ihre Bilder ändern sich erst mit dem Bau; dann braucht es ein Begleit-Item für die Webseite.
+
+## Entscheid
+
+Andy hat am 15.11.2026 **Option A** gewählt. Der Lebenslauf entsteht getrennt vom Anschreiben, weil meist mehrere Stellen denselben Lebenslauf teilen. Aus dem Schritt der Bewerbung führt deshalb ein Klick an den Ort, wo der Lebenslauf angepasst wird.
+
+Umgesetzt wird das in zwei Items:
+
+- **#321:** kürzerer Schritt «Unterlagen erstellen und prüfen» mit Kacheln für die Form, einer Zeile zum Dossier und pro Dokument einer Kachel mit Link an den Ort, wo es angepasst wird (G40, G41).
+- **#322:** Dialog «Dossier gestalten» mit den Gruppen «Für diese Bewerbung» und «Für alle Dossiers» (G18, G19, G39).
+
+Eine neue Spec-Zeile braucht es nicht; die offene Frage zu G40 betraf nur Option B.
