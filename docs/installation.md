@@ -39,7 +39,7 @@ Du suchst eine Lehrstelle? Eingerichtet wird die App für dich von einer erwachs
 
 So kommen Sie von der Installation zur ersten Bewerbung. Jeder Schritt verweist auf die Einzelheiten weiter unten.
 
-1. **App installieren und einrichten.** Laden Sie die App auf der [Startseite](./#laden) und starten Sie sie. Die Seite **Einrichtung** fragt, was Sie suchen und ob Sie beim RAV gemeldet sind. Die KI ist kein Schritt der Einrichtung: Mit **KI einrichten** lösen Sie, falls Sie einen haben, Ihren Einladungscode für die KI ein, ein einmaliges Probeguthaben von CHF 5. Das geht auch später, wann Sie sie brauchen. Mehr unter [App installieren](#app-installieren) und [App einrichten](#app-einrichten).
+1. **App installieren und einrichten.** Laden Sie die App auf der Seite [App laden](laden.html) und starten Sie sie. Die Seite **Einrichtung** fragt, was Sie suchen und ob Sie beim RAV gemeldet sind. Die KI ist kein Schritt der Einrichtung: Mit **KI einrichten** lösen Sie, falls Sie einen haben, Ihren Einladungscode für die KI ein, ein einmaliges Probeguthaben von CHF 5. Das geht auch später, wann Sie sie brauchen. Mehr unter [App installieren](#app-installieren) und [App einrichten](#app-einrichten).
 
    ![Seite Einrichtung mit den zwei Schritten Gesucht und Erweiterung, der Wahl zwischen Stelle und Lehrstelle, dem Link KI einrichten und der Zeile mit dem Datenordner; links die Seitenleiste der App](bilder/einrichtung-start.jpg)
 
@@ -71,7 +71,7 @@ Diese Kapitel brauchen Sie nur einmal. Sie gelten auch, wenn Sie die App für Ih
 
 ### App installieren
 
-Die App laden Sie auf der [Startseite](./#laden), für Windows, macOS oder Linux. Unter Linux geht es etwas anders, siehe [Unter Linux](#unter-linux).
+Die App laden Sie auf der Seite [App laden](laden.html), für Windows, macOS oder Linux. Unter Linux geht es etwas anders, siehe [Unter Linux](#unter-linux).
 
 Unter macOS trägt die App eine eigene Signatur des Projekts, nicht von Apple. Darum öffnet macOS sie beim ersten Mal erst, wenn Sie es in den Systemeinstellungen bestätigen. Updates nimmt die App nur an, wenn sie genau diese Signatur tragen. Unter Windows ist die App nicht signiert, darum warnt Windows (SmartScreen) beim ersten Start. Beide Warnungen sind zu erwarten, und Sie bestätigen sie nur einmal. Öffnen Sie unten den Teil für Ihren Computer.
 
@@ -539,8 +539,8 @@ Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist ni
 | „Diese Seite öffnet sich nur über die App“ | Sie haben die Adresse von Hand geöffnet oder in einem anderen Browser. Öffnen Sie den Bewerbungsbegleiter über sein Programmsymbol, auch wenn er schon läuft. Andere Konten auf demselben Rechner kommen so nicht an Ihre Daten. |
 | Windows blockiert die Datei, und **Trotzdem ausführen** fehlt | Vermutlich ist [Smart App Control](https://support.microsoft.com/de-de/windows/smart-app-control-frequently-asked-questions-285ea03d-fa88-4d56-882e-6698afdb7003) aktiv. Es blockiert nicht signierte Programme, und laut Microsoft gibt es keine Ausnahme für einzelne Programme. Die App läuft dann nur, wenn Sie es in der Windows-Sicherheit ausschalten. Das gilt für alle Programme; entscheiden Sie das bewusst, bei Jugendlichen als Elternteil oder gesetzliche Vertretung. |
 | macOS öffnet die App beim ersten Mal nicht | Die App trägt die eigene Signatur des Projekts, nicht eine von Apple. Öffnen Sie **Systemeinstellungen → Datenschutz & Sicherheit** und klicken Sie bei der App auf **Dennoch öffnen**. Das braucht es nur einmal. |
-| „Die Signatur der neuen Version stimmt nicht; Update abgebrochen.“ (macOS) | Das Update trägt nicht die Signatur des Projekts, darum installiert die App es nicht. Ihre Version läuft weiter wie bisher. Versuchen Sie es später nochmals; kommt die Meldung wieder, laden Sie die neue Version von der [Startseite](./#laden) und melden Sie es unter [Hilfe](#hilfe). |
-| „Diese Version kennt die Signatur der App nicht; bitte die neue Version von Hand laden.“ (macOS) | Ihre Version ist älter als die erste mit der Signatur des Projekts. Laden Sie die neue Version einmal von der [Startseite](./#laden) und installieren Sie sie wie unter [App installieren](#app-installieren). Danach geht es wieder von selbst. |
+| „Die Signatur der neuen Version stimmt nicht; Update abgebrochen.“ (macOS) | Das Update trägt nicht die Signatur des Projekts, darum installiert die App es nicht. Ihre Version läuft weiter wie bisher. Versuchen Sie es später nochmals; kommt die Meldung wieder, laden Sie die neue Version von der Seite [App laden](laden.html) und melden Sie es unter [Hilfe](#hilfe). |
+| „Diese Version kennt die Signatur der App nicht; bitte die neue Version von Hand laden.“ (macOS) | Ihre Version ist älter als die erste mit der Signatur des Projekts. Laden Sie die neue Version einmal von der Seite [App laden](laden.html) und installieren Sie sie wie unter [App installieren](#app-installieren). Danach geht es wieder von selbst. |
 | „Zuerst in den Ordner Programme verschieben“ (macOS) | Beenden Sie die App, ziehen Sie sie in den Ordner „Programme“ und starten Sie sie von dort. |
 | „Der Datenordner … wurde nicht gefunden“ | Liegt er auf einem USB-Stick, stecken Sie ihn ein und laden die Seite neu. Oder wählen Sie einen anderen Ordner. |
 | Die Seite der App reagiert nicht mehr | Starten Sie die App neu. Ihre Daten bleiben erhalten. |

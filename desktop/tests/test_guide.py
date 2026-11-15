@@ -85,6 +85,23 @@ def test_the_guide_explains_each_signature_message_of_a_macos_update():
     assert [message for message in messages if f"„{message}“" not in troubles] == []
 
 
+DOWNLOAD_PAGE = "laden.html"
+DOWNLOAD_LABEL = "App laden"
+START_PAGE_ANCHOR = re.compile(r"(\.?/|(\./)?index\.html)?#laden")
+LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
+
+
+def test_every_download_link_points_to_the_download_page():
+    """#273: the website moves downloads to laden.html and drops #laden from its start page."""
+    links = LINK.findall(without_code(GUIDE.read_text(encoding="utf-8")))
+    to_start_page = [target for _, target in links if START_PAGE_ANCHOR.fullmatch(target)]
+    downloads = [target for label, target in links if label == DOWNLOAD_LABEL]
+
+    assert to_start_page == []
+    assert [label for label, _ in links if label == "Startseite"] == []
+    assert len(downloads) == 4 and set(downloads) == {DOWNLOAD_PAGE}
+
+
 JUMP_LIST = "**Springen zu**"
 QUICK_START = "## Schnellstart für Bewerbungen"
 JUMP_ENTRY = re.compile(r"^ *- \[([^\]]+)\]\(#([^)\s]+)\)$")
