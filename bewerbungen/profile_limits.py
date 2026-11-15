@@ -13,6 +13,9 @@ import search_plan
 HERE = pathlib.Path(__file__).resolve().parent
 FORM_PATHS = (HERE / "form.json", HERE.parent / "onboarding" / "form.json")
 SECTIONS = {search_plan.KIND_JOB: "searchJob", search_plan.KIND_APPRENTICESHIP: "searchApprenticeship"}
+# Where Suche einstellen adds an own term (#310): a job term joins the Kernliste, and without one it becomes a direction,
+# whose field takes longer lines; so the keywords decide.
+TERM_FIELDS = {search_plan.KIND_JOB: "keywords", search_plan.KIND_APPRENTICESHIP: "professions"}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -39,3 +42,8 @@ def of(kind: str, field_id: str) -> Limit:
     limits = form["limits"]
     return Limit(field.get("maxItems", limits["listItems"]),
                  field.get("max", limits["textarea" if field["type"] == "textarea" else "text"]))
+
+
+def of_term(kind: str) -> Limit:
+    """The limits of a search term the person adds on Suche einstellen, as Meine Angaben takes it (#310)."""
+    return of(kind, TERM_FIELDS[kind])

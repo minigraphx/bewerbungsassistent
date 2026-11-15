@@ -8,7 +8,7 @@ import re
 from collections.abc import Callable
 
 import search_plan
-from search_plan import APPRENTICESHIP_MARK, DIRECTION, MAX_KEYWORDS, MAX_VALUE, profession_words
+from search_plan import APPRENTICESHIP_MARK, DIRECTION, MAX_KEYWORDS, MAX_PROFESSION_NAME, MAX_VALUE, profession_words
 
 DIRECTIONS_SECTION = "## Suchrichtungen"
 KEYWORDS_KEY = "keywords"
@@ -58,9 +58,9 @@ def _group_lines(lines: list[str]) -> list[int]:
     return [*([core] if core is not None else []), *others]
 
 
-def _words_as_shown(part: str) -> frozenset[str]:
+def _words_as_shown(part: str, chars: int = MAX_VALUE) -> frozenset[str]:
     """The words of an entry as the plan cuts it, because the page can only name it like that."""
-    return profession_words(" ".join(part.replace("`", "").split())[:MAX_VALUE])
+    return profession_words(" ".join(part.replace("`", "").split())[:chars])
 
 
 def _as_apprenticeship(text: str) -> str:
@@ -137,7 +137,7 @@ def _renumbered(text: str, title: str, change: Callable[[str], str | None]) -> s
 
 def _without_profession(wanted: frozenset[str]) -> Callable[[str], str | None]:
     def change(body: str) -> str | None:
-        return None if _words_as_shown(search_plan.REMARK.sub("", body)) == wanted else body
+        return None if _words_as_shown(search_plan.REMARK.sub("", body), MAX_PROFESSION_NAME) == wanted else body
     return change
 
 

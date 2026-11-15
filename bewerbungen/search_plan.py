@@ -58,6 +58,7 @@ MAX_WINDOW_DAYS = 60
 BAD_WINDOW = ("Zeitfenster „{value}“ geht nicht: erlaubt sind {low} bis {high} Tage. Gesucht werden die letzten "
               f"{MAX_AGE_DAYS} Tage.")
 MAX_VALUE = 80
+MAX_PROFESSION_NAME = 100  # as Meine Angaben takes a profession: official names with a specialisation are long (#310)
 MAX_PROFESSIONS = 8
 MAX_APPRENTICESHIP_PAGES = 20  # the lists are short pages, and only the search area is asked for
 DEFAULT_RADIUS_KM = 25
@@ -286,7 +287,7 @@ def _regions(cantons: tuple[str, ...]) -> tuple[str, ...]:
 
 def _professions(lines: list[str]) -> tuple[str, ...]:
     """Numbered professions without the remark at the end; a specialisation in brackets stays."""
-    names = (" ".join(REMARK.sub("", m.group(1)).split())[:MAX_VALUE] for m in map(DIRECTION.match, lines) if m)
+    names = (" ".join(REMARK.sub("", m.group(1)).split())[:MAX_PROFESSION_NAME] for m in map(DIRECTION.match, lines) if m)
     return tuple(dict.fromkeys(name for name in names if name))[:MAX_PROFESSIONS]
 
 
