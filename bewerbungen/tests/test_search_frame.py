@@ -4,6 +4,7 @@ import pathlib
 
 import pytest
 
+import profile_limits
 import search_frame
 import search_plan
 from test_ai_tasks import VORLAGEN
@@ -84,7 +85,7 @@ def test_whitespace_and_line_breaks_cannot_reach_another_line():
     ({"kantone": "BE"}, "Kantone"),
     ({"pensum": ""}, "Pensum"),
     ({"wohnort": "  "}, "Wohnort"),
-    ({"pensum": "x" * 81}, "80 Zeichen"),
+    ({"pensum": "x" * 41}, "40 Zeichen"),  # as Meine Angaben takes it (#302)
     ({"titel_positiv": [f"Wort{n}" for n in range(31)]}, "30"),
     ({"ausschluss": ["ok", 3]}, "Ausschl"),
     ({"umkreis_km": 2}, "km"),
@@ -154,6 +155,19 @@ def test_the_frame_says_the_kind_and_the_values_to_edit(server):  # noqa: F811
     assert frame["art"] == search_plan.KIND_APPRENTICESHIP and frame["werte"]["wohnort"] == "Bern"
 
 
+def test_the_frame_says_how_long_the_fields_may_be_as_meine_angaben_takes_them(server):  # noqa: F811
+    (server.kontext.daten / "suchprofil.md").write_text(JOB, encoding="utf-8")
+    frame = json.loads(get(server, "/api/suche/rahmen")[2])
+    assert frame["laengen"] == {"wohnort": 60, "pensum": 40}
+
+
+def test_title_lines_count_as_lines_and_the_search_reads_every_term():
+    lines = [f"Titel{n}/Title{n}" for n in range(30)]  # 60 terms in the 30 lines Meine Angaben takes
+    changed = search_frame.with_values(JOB, {"titel_ausschluss": lines})
+    assert search_frame.values(changed)["titel_ausschluss"] == lines
+    assert len(search_plan.parse(changed).title_exclude) == 60
+
+
 def test_neither_the_extension_nor_claude_can_change_the_frame():
     desktop = pathlib.Path(__file__).resolve().parents[2] / "desktop"
     for name in ("native_host.py", "mcp_tools.py"):
@@ -180,3 +194,9 @@ def test_every_field_the_script_reads_is_one_element_of_the_page():
     for karte in ("region", "nicht", "titelfilter"):
         named |= {f"{karte}-{teil}" for teil in ("form", "aendern", "abbrechen", "meldung")}
     assert named - set(ids) == set()
+
+
+def test_every_card_field_has_its_field_in_meine_angaben():
+    for key, field in search_frame.FIELDS.items():
+        for kind in field.kinds if field.form_id else ():
+            assert profile_limits.of(kind, field.form_id).chars > 0, key
