@@ -666,6 +666,7 @@
     }, 1500);
   }
   document.addEventListener("suchprofil-geaendert", lade);
+  document.addEventListener("treffer-gemerkt", lade);  // after „Alle ab Note … merken“ (#214)
   document.addEventListener("suchbegriffe-beleg", zeigeListe);
   textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); document.title = t("nav.stellen"); }).finally(() => { lade(); beobachten(nachsehen); });
 })();

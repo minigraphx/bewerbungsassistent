@@ -61,3 +61,9 @@
 .settings-page__foot p { margin: 0; flex: 1 1 240px; color: var(--text-muted); }
 .settings-page__more > p, .settings-page__more > .settings-page__sub { margin: var(--space-3) 0 0; }
 .settings-page__more > .settings-page__sub { padding-top: var(--space-3); border-top: 1px solid var(--line); }
+
+/* Several hits at once (#214, A3): all from a chosen grade on */
+.search__bulk { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); color: var(--text-muted); }
+.search__bulk[hidden] { display: none; }
+.search__bulk-grade { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-strong); }
+.search__bulk-grade .input { width: auto; }
