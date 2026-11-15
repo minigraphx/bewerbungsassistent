@@ -151,8 +151,8 @@ test("each point has a quiet button on its own line that controls the box inside
   for (const point of points(column)) {
     const knopf = button(point);
     assert.equal(knopf.textContent, "Künftig nicht zeigen");
-    assert.match(knopf.className, /\bbtn\b/);
-    assert.doesNotMatch(knopf.className, /btn--quiet|btn--primary/);
+    assert.equal(knopf.className, "btn btn--sm btn--quiet", "quiet, so the rating list keeps reading as content");
+    assert.equal(knopf.getAttribute("aria-label"), `Künftig nicht zeigen: ${point.children[0].textContent}`);
     assert.equal(knopf.getAttribute("aria-expanded"), "false");
     assert.equal(knopf.getAttribute("aria-controls"), box(point).id);
     assert.ok(box(point).id && box(point).hidden);
@@ -186,7 +186,12 @@ test("the form opens inside the clicked point, names the real card and puts the 
 
   assert.equal(form.hidden, false);
   assert.equal(button(first).getAttribute("aria-expanded"), "true");
-  assert.match(form.textContent, /unter «Was Sie nicht sehen wollen» ein/);
+  assert.match(form.textContent,
+    /Die App trägt den Eintrag unten auf «Suche einstellen» unter «Was Sie nicht sehen wollen» ein\. Sie können ihn vorher ändern\./);
+  assert.equal(first.find(node => node.tagName === "LEGEND").textContent, "Wo eintragen?");
+  assert.equal(first.find(node => node.className === "field__label").textContent, "Was nicht vorkommen soll");
+  assert.equal(byText(first, "Eintragen").className, "btn btn--sm btn--primary");
+  assert.equal(byText(first, "Abbrechen").className, "btn btn--sm");
   assert.equal(doc.activeElement, input);
   assert.deepEqual(input.selection, ["Pikettdienst".length, "Pikettdienst".length]);
   const radios = first.all().filter(node => node.getAttribute("type") === "radio");
@@ -201,7 +206,7 @@ test("the form opens inside the clicked point, names the real card and puts the 
 test("the du form names the card as the du set of texts does", async () => {
   const { first } = await opened({ satz: "stelle-du" });
 
-  assert.match(box(first).textContent, /unter «Was du nicht sehen willst» ein\. Du kannst es vorher ändern\./);
+  assert.match(box(first).textContent, /unter «Was du nicht sehen willst» ein\. Du kannst ihn vorher ändern\./);
 });
 
 test("the hint follows the chosen place", async () => {
@@ -209,7 +214,8 @@ test("the hint follows the chosen place", async () => {
   const inserat = first.all().find(node => node.getAttribute("value") === "ausschluss");
   inserat.click();
 
-  assert.match(box(first).textContent, /bei jeder weiteren Einschätzung/);
+  assert.match(box(first).textContent,
+    /Solche Stellen kommen weiter in die Liste\. Die KI liest es bei jeder weiteren Einschätzung als Ausschluss mit\./);
 });
 
 test("Escape closes the form and returns the focus to the button", async () => {
@@ -239,7 +245,7 @@ test("the button toggles: a second click closes the form instead of rebuilding i
 test("an error shows above the buttons, keeps the form open and returns the focus to the field", async () => {
   const page = await opened();
   const { first, doc, calls, answers } = page;
-  answers.senden.push(new Error("Bitte ohne Komma: Ein Eintrag ist ein Ausschluss."));
+  answers.senden.push(new Error("Bitte ohne Komma, ein Ausschluss pro Eintrag."));
   field(first).value = "Pikett, Nacht";
   byText(first, "Eintragen").click();
   await settle();
@@ -248,7 +254,8 @@ test("an error shows above the buttons, keeps the form open and returns the focu
   assert.match(error.textContent, /Nicht gespeichert\. Bitte ohne Komma/);
   assert.ok(position(first, error) < position(first, byText(first, "Eintragen")), "above the buttons");
   assert.equal(doc.activeElement, field(first));
-  assert.ok(field(first).getAttribute("aria-describedby").split(" ").includes(error.id));
+  assert.equal(field(first).getAttribute("aria-describedby"),
+    `${error.id} ${box(first).id}-intro ${box(first).id}-hinweis`, "the error is read first");
   assert.equal(field(first).getAttribute("aria-invalid"), "true");
   assert.equal(box(first).hidden, false);
   assert.equal(calls.meldungen, 0, "nothing goes to the message at the top of the page");
@@ -263,8 +270,12 @@ test("success replaces the form with the confirmation and Rückgängig, as a sta
   const confirmation = box(first);
   assert.equal(confirmation.getAttribute("role"), "status");
   assert.equal(doc.activeElement, confirmation);
-  assert.equal(confirmation.textContent, "«Pikettdienst» steht jetzt unter «Im Titel». Gilt ab der nächsten Suche.Rückgängig");
-  assert.ok(byText(first, "Rückgängig"));
+  assert.equal(confirmation.textContent,
+    "«Pikettdienst» steht jetzt auf «Suche einstellen» unter «Im Titel». Gilt ab der nächsten Suche.Rückgängig");
+  const message = confirmation.find(node => node.tagName === "P");
+  assert.ok(message.id, "the confirmation paragraph has an id");
+  assert.equal(confirmation.getAttribute("aria-labelledby"), message.id, "the box is named by its confirmation");
+  assert.equal(byText(first, "Rückgängig").className, "btn btn--sm");
   assert.equal(field(first), null, "the form is gone");
   assert.match(first.textContent, /Ausgeschlossen/);
   assert.equal(byText(first, "Künftig nicht zeigen"), null);
@@ -279,7 +290,9 @@ test("Rückgängig takes the entry back in the same box and offers the button ag
   await settle();
 
   assert.deepEqual(calls.senden[1], [`${ROUTE}/rueckgaengig`, { art: "titel_ausschluss", wert: "Pikettdienst" }]);
-  assert.match(box(first).textContent, /«Pikettdienst» steht nicht mehr unter «Im Titel»\./);
+  assert.equal(box(first).textContent, "«Pikettdienst» steht nicht mehr auf «Suche einstellen» unter «Im Titel».");
+  const message = box(first).find(node => node.tagName === "P");
+  assert.equal(box(first).getAttribute("aria-labelledby"), message.id, "the box is named by the undo message");
   assert.equal(box(first).getAttribute("role"), "status");
   assert.equal(doc.activeElement, box(first));
   assert.ok(byText(first, "Künftig nicht zeigen"));

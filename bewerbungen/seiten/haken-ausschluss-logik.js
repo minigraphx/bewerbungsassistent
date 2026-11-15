@@ -7,12 +7,14 @@
   const INSERAT = "ausschluss";
   const ARTEN = [
     { art: TITEL, text: "Im Titel", hinweis: "Ein Titel mit diesem Wort kommt bei der nächsten Suche nicht mehr in die Liste." },
-    { art: INSERAT, text: "Im Inserat", hinweis: "Die KI liest es bei jeder weiteren Einschätzung als Ausschluss mit." },
+    { art: INSERAT, text: "Im Inserat", hinweis: "Solche Stellen kommen weiter in die Liste. "
+      + "Die KI liest es bei jeder weiteren Einschätzung als Ausschluss mit." },
   ];
+  const SEITE = "Suche einstellen";
   const KNOPF = "Künftig nicht zeigen";
   const AUSGESCHLOSSEN = "Ausgeschlossen";
-  const WO = "Wo eintragen";
-  const FELD = "Eintrag";
+  const WO = "Wo eintragen?";
+  const FELD = "Was nicht vorkommen soll";
   const EINTRAGEN = "Eintragen";
   const ABBRECHEN = "Abbrechen";
   const RUECKGAENGIG = "Rückgängig";
@@ -23,13 +25,13 @@
 
   const ort = art => (ARTEN.find(a => a.art === art) || ARTEN[1]).text;
   const hinweis = art => (ARTEN.find(a => a.art === art) || ARTEN[1]).hinweis;
-  const knopfLabel = punkt => `${KNOPF}: «${punkt}» als Ausschluss übernehmen`;
+  const knopfLabel = punkt => `${KNOPF}: ${punkt}`;
   /** The intro of the form; `karte` is the card's title from texte.js (einstellen.nicht) in the person's address. */
-  const frage = (karte, du) => `So trägt die App es auf «Suche einstellen» unter «${karte}» ein. `
-    + (du ? "Du kannst es vorher ändern." : "Sie können es vorher ändern.");
+  const frage = (karte, du) => `Die App trägt den Eintrag unten auf «${SEITE}» unter «${karte}» ein. `
+    + (du ? "Du kannst ihn vorher ändern." : "Sie können ihn vorher ändern.");
   const ab = art => (art === TITEL ? "Gilt ab der nächsten Suche." : "Gilt ab der nächsten Einschätzung.");
-  const uebernommen = (art, wert) => `«${wert}» steht jetzt unter «${ort(art)}». ${ab(art)}`;
-  const zurueck = (art, wert) => `«${wert}» steht nicht mehr unter «${ort(art)}».`;
+  const uebernommen = (art, wert) => `«${wert}» steht jetzt auf «${SEITE}» unter «${ort(art)}». ${ab(art)}`;
+  const zurueck = (art, wert) => `«${wert}» steht nicht mehr auf «${SEITE}» unter «${ort(art)}».`;
 
   const logik = { TITEL, INSERAT, ARTEN, KNOPF, AUSGESCHLOSSEN, WO, FELD, EINTRAGEN, ABBRECHEN, RUECKGAENGIG,
     NICHT_GELADEN, NICHT_GESPEICHERT, NICHT_ZURUECK, STAND_FEHLT, ort, hinweis, knopfLabel, frage, uebernommen, zurueck };

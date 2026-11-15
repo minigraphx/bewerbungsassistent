@@ -12,22 +12,31 @@
     zeile.aktion.replaceChildren(ja ? el("span", { class: "exclusion-point__done" }, L.AUSGESCHLOSSEN) : zeile.knopf);
   }
 
-  /** Shows feedback in the point's box as a status and moves the focus there. */
-  function zeigeImPunkt(zeile, ...inhalt) {
+  /** The paragraph that names the box, so a screen reader announces it when the focus lands there. */
+  const nachricht = (zeile, text, attribute = {}) => el("p", { ...attribute, id: `${zeile.box.id}-nachricht` }, text);
+
+  function leereBox(zeile) {
+    zeile.box.removeAttribute("role");
+    zeile.box.removeAttribute("aria-labelledby");
+  }
+
+  /** Shows feedback in the point's box as a status named by its first paragraph and moves the focus there. */
+  function zeigeImPunkt(zeile, meldung, ...weitere) {
     zeile.offen = false;
-    zeile.box.replaceChildren(...inhalt.filter(Boolean));  // replaceChildren would write a missing part as „null“
+    zeile.box.replaceChildren(meldung, ...weitere.filter(Boolean));  // replaceChildren would write a missing part as „null“
     zeile.box.setAttribute("role", "status");
+    zeile.box.setAttribute("aria-labelledby", meldung.id);
     zeile.box.hidden = false;
     zeile.knopf.setAttribute("aria-expanded", "false");
     zeile.box.focus();
   }
 
-  const reportInPoint = (zeile, text) => zeigeImPunkt(zeile, el("p", { class: "field__error" }, text));
+  const reportInPoint = (zeile, text) => zeigeImPunkt(zeile, nachricht(zeile, text, { class: "field__error" }));
 
   function schliesse(zeile) {
     zeile.offen = false;
     zeile.box.replaceChildren();
-    zeile.box.removeAttribute("role");
+    leereBox(zeile);
     zeile.box.hidden = true;
     zeile.knopf.setAttribute("aria-expanded", "false");
     zeile.knopf.focus();
@@ -36,7 +45,7 @@
   function zeigeBestaetigung(zeile, antwort, fehlerText = "") {
     const zurueck = el("button", { type: "button", class: "btn btn--sm" }, L.RUECKGAENGIG);
     zurueck.addEventListener("click", () => nimmZurueck(zeile, antwort));
-    zeigeImPunkt(zeile, el("p", {}, L.uebernommen(antwort.art, antwort.wert)),
+    zeigeImPunkt(zeile, nachricht(zeile, L.uebernommen(antwort.art, antwort.wert)),
       fehlerText ? el("p", { class: "field__error" }, fehlerText) : null, el("div", { class: "btn-row" }, zurueck));
   }
 
@@ -46,18 +55,18 @@
     try {
       await senden(`${ROUTE}/rueckgaengig`, { art: antwort.art, wert: antwort.wert });
       setzeAusgeschlossen(zeile, false);
-      zeigeImPunkt(zeile, el("p", {}, L.zurueck(antwort.art, antwort.wert)));
+      zeigeImPunkt(zeile, nachricht(zeile, L.zurueck(antwort.art, antwort.wert)));
     } catch (fehler) {
       reportUndo(zeile, antwort, `${L.NICHT_ZURUECK} ${fehler.message}`);
     }
   }
 
-  /** The error above the buttons; the field points to it and gets the focus back. */
+  /** The error above the buttons; the field points to it first and gets the focus back. */
   function reportInForm(teile, text) {
     teile.fehler.textContent = text;
     teile.fehler.hidden = false;
     teile.feld.setAttribute("aria-invalid", "true");
-    teile.feld.setAttribute("aria-describedby", `${teile.intro.id} ${teile.hinweis.id} ${teile.fehler.id}`);
+    teile.feld.setAttribute("aria-describedby", `${teile.fehler.id} ${teile.intro.id} ${teile.hinweis.id}`);
     teile.feld.focus();
   }
 
@@ -89,7 +98,7 @@
     const form = el("form", { class: "exclusion-adopt__form" }, intro,
       el("fieldset", {}, el("legend", {}, L.WO), arten(`${id}-art`, auswahl, hinweis)), hinweis,
       el("label", { class: "field", for: feld.id }, el("span", { class: "field__label" }, L.FELD), feld), fehler,
-      el("div", { class: "btn-row" }, el("button", { type: "submit", class: "btn btn--sm" }, L.EINTRAGEN),
+      el("div", { class: "btn-row" }, el("button", { type: "submit", class: "btn btn--sm btn--primary" }, L.EINTRAGEN),
         el("button", { type: "button", class: "btn btn--sm", onclick: () => schliesse(zeile) }, L.ABBRECHEN)));
     form.addEventListener("submit", ereignis => {
       ereignis.preventDefault();
@@ -100,7 +109,7 @@
 
   function zeigeFormular(zeile, vorschlag) {
     const { form, feld } = formular(zeile, vorschlag);
-    zeile.box.removeAttribute("role");
+    leereBox(zeile);
     zeile.box.replaceChildren(form);
     zeile.box.hidden = false;
     zeile.knopf.setAttribute("aria-expanded", "true");
@@ -121,7 +130,8 @@
   function punktZeile(treffer, punkt, index, kontext) {
     const boxId = `haken-${treffer.id}-${index}`;
     const box = el("div", { class: "exclusion-adopt", id: boxId, tabindex: "-1", hidden: true });
-    const knopf = el("button", { type: "button", class: "btn btn--sm", "aria-label": L.knopfLabel(punkt),
+    // Quiet, so the list of the rating keeps reading as content; stellen.css keeps it 44 px high on phones.
+    const knopf = el("button", { type: "button", class: "btn btn--sm btn--quiet", "aria-label": L.knopfLabel(punkt),
       "aria-expanded": "false", "aria-controls": boxId }, L.KNOPF);
     const zeile = { treffer, index, box, knopf, aktion: el("div", { class: "exclusion-point__action" }, knopf),
       offen: false, ...kontext };
