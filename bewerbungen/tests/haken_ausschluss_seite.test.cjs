@@ -221,6 +221,21 @@ test("Escape closes the form and returns the focus to the button", async () => {
   assert.equal(doc.activeElement, button(first));
 });
 
+test("the button toggles: a second click closes the form instead of rebuilding it over the edits", async () => {
+  const { first, doc, calls } = await opened();
+  field(first).value = "Pikett";
+  button(first).click();
+  await settle();
+
+  assert.equal(box(first).hidden, true);
+  assert.equal(button(first).getAttribute("aria-expanded"), "false");
+  assert.equal(doc.activeElement, button(first));
+  assert.equal(calls.holen.filter(([route]) => route === ROUTE).length, 1, "no new proposal is fetched");
+  button(first).click();
+  await settle();
+  assert.equal(box(first).hidden, false, "a third click opens it again");
+});
+
 test("an error shows above the buttons, keeps the form open and returns the focus to the field", async () => {
   const page = await opened();
   const { first, doc, calls, answers } = page;

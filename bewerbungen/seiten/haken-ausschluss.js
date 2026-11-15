@@ -125,7 +125,8 @@
       "aria-expanded": "false", "aria-controls": boxId }, L.KNOPF);
     const zeile = { treffer, index, box, knopf, aktion: el("div", { class: "exclusion-point__action" }, knopf),
       offen: false, ...kontext };
-    knopf.addEventListener("click", () => oeffne(zeile));
+    // A second click closes the open form; reopening it would rebuild it over what the person typed.
+    knopf.addEventListener("click", () => (zeile.offen ? schliesse(zeile) : oeffne(zeile)));
     box.addEventListener("keydown", ereignis => {
       if (ereignis.key !== "Escape" || !zeile.offen) return;
       ereignis.preventDefault();
