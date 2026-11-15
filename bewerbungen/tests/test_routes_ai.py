@@ -136,14 +136,14 @@ def test_invitation_is_offered_and_redeemed(server, monkeypatch):  # noqa: F811
     assert status == 200 and redeemed == [("https://ki.example.ch", "ABCD-EFGH")]
 
 
-def test_status_shows_the_budget_of_the_mediation(server, monkeypatch):  # noqa: F811
+def test_status_shows_the_credit_of_the_mediation(server, monkeypatch):  # noqa: F811
     monkeypatch.setenv(URL_VARIABLE, "https://ki.example.ch")
     monkeypatch.setenv(ACCESS_VARIABLE, "bwa_x")
     monkeypatch.setattr(routes_ai.invitation, "account",
-                        lambda url, access: {"month": "2026-11", "spent_usd": 1.5, "budget_usd": 20})
+                        lambda url, access: {"credit_chf": 5.0, "spent_chf": 1.5})
 
     status, _, inhalt = get(server, "/api/ki/status")
 
     antwort = json.loads(inhalt)
-    assert antwort["vermittlung"] is True and antwort["budget_usd"] == 20 and antwort["verbraucht_usd"] == 1.5
+    assert antwort["vermittlung"] is True and antwort["guthaben_chf"] == 5.0 and antwort["verbraucht_chf"] == 1.5
     assert b"bwa_x" not in inhalt

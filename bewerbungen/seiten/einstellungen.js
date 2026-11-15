@@ -1,5 +1,5 @@
 "use strict";
-// Page „Einstellungen“ (MIN-348, #265): sections on the left, the way to the AI as a choice, the budget of the month.
+// Page „Einstellungen“ (MIN-348, #265): sections on the left, the way to the AI as a choice, the credit of the code.
 // The key field is sent once and emptied; the key never comes back.
 (() => {
   const { holen, senden, status, bestaetigen, el } = window.App;
@@ -48,7 +48,8 @@
 
   function showInvitation() {
     const state = L.invitationState(ki);
-    for (const name of ["aktiv", "schluessel", "keine", "eingeben"]) $(`einladung-${name}`).hidden = name !== state;
+    for (const name of ["aktiv", "aufgebraucht", "schluessel", "keine"]) $(`einladung-${name}`).hidden = name !== state;
+    $("einladung-eingeben").hidden = !["eingeben", "aufgebraucht"].includes(state);  // a used-up credit takes a new code (G80)
   }
 
   function showAccess() {
@@ -91,7 +92,7 @@
     }
   }
 
-  // ---------- Budget (G46) ----------
+  // ---------- Guthaben (G46, G80) ----------
   function showBudget() {
     if (!costs) return;
     const view = L.budgetView(ki, costs);
@@ -100,7 +101,7 @@
     $("budget-neu").textContent = view.renewal || "";
     $("budget-neu").hidden = !view.renewal;
     $("budget-balken").hidden = view.percent === null;
-    $("budget-balken").setAttribute("aria-label", view.percent === null ? "" : `${view.percent} Prozent des Budgets gebraucht`);
+    $("budget-balken").setAttribute("aria-label", view.percent === null ? "" : `${view.percent} Prozent des Guthabens gebraucht`);
     $("budget-fuellung").style.width = `${view.percent || 0}%`;
     $("budget-aufgaben").replaceChildren(...view.rows.flatMap(row => [
       el("dt", {}, `${row.label} (${row.count})`), el("dd", { class: "num" }, row.usd)]));

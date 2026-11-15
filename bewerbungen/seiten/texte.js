@@ -405,8 +405,8 @@
       lehrstelle: "Die KI schätzt Lehrstellen ein und entwirft Anschreiben.",
     },
     "einrichtung.ki.code": {
-      sie: "Sie haben von Ihrer Begleitperson einen Einladungscode erhalten.",
-      du: "Du hast von deiner Begleitperson einen Einladungscode erhalten.",
+      sie: "Haben Sie einen Einladungscode? Er bringt ein einmaliges Guthaben von CHF 5 für die KI.",
+      du: "Hast du einen Einladungscode? Er bringt ein einmaliges Guthaben von CHF 5 für die KI.",
     },
     "einrichtung.ki.ohne": {
       sie: "Ohne KI funktionieren Suche, Unterlagen und Versand trotzdem. Anschreiben laden Sie dann selbst hoch, und Treffer bekommen keine Note.",

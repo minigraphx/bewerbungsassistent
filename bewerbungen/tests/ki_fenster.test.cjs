@@ -16,7 +16,7 @@ const PARENT_TEXT = "Ich bin Elternteil oder gesetzliche Vertretung und mindeste
 const CONSENT = { erteilt: false, fassung: "2026-11", text: PARENT_TEXT, link: "https://example.ch/datenschutz" };
 const NOT_SET_UP = { eingerichtet: false, einladung: true, hinweis: "Die KI ist noch nicht eingerichtet.", einwilligung: CONSENT };
 const AGREED = { ...NOT_SET_UP, einwilligung: { ...CONSENT, erteilt: true } };
-const SET_UP = { eingerichtet: true, vermittlung: true, budget_usd: 5, verbraucht_usd: 0.4, einwilligung: { ...CONSENT, erteilt: true } };
+const SET_UP = { eingerichtet: true, vermittlung: true, guthaben_chf: 5, verbraucht_chf: 0.4, einwilligung: { ...CONSENT, erteilt: true } };
 
 const keep = item => item !== null && item !== undefined && item !== false;
 const textOf = node => (node && typeof node === "object" ? node.children.map(textOf).join("") : String(node ?? ""));
@@ -324,4 +324,18 @@ test("the window uses the tokens of the design system only", () => {
   assert.ok(rules.length > 100, "rules for the window in stil.css");
   assert.doesNotMatch(rules.slice(0, rules.indexOf("\n\n")), /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/);
   assert.match(css, /label\.access-choice__option \{/, "the choice is styled on every page, not only in the settings");
+});
+
+test("the window names the credit in CHF and, once it is used up, the way to a new code (G80)", async () => {
+  const shows = async ki => {
+    const w = windowWith({ "/api/ki/status": ki, "/api/claude/stand": new Error("none") });
+    w.open();
+    await settle();
+    return textOf(w.dialog());
+  };
+  const running = await shows(SET_UP);
+  assert.ok(running.includes("Guthaben: CHF 0.40 von 5.00 verbraucht."));
+  assert.ok(!running.includes("aufgebraucht"));
+  const usedUp = await shows({ ...SET_UP, verbraucht_chf: 5 });
+  assert.ok(usedUp.includes("Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen."));
 });

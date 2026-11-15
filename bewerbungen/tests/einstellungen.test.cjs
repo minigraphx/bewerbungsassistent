@@ -24,7 +24,7 @@ const card = (html, id) => {
 };
 
 const MEDIATION = { monat: "2026-11", eingerichtet: true, vermittlung: true, eigener_schluessel: false,
-                    budget_usd: 10, verbraucht_usd: 3.2, kosten_usd: 3.2 };
+                    guthaben_chf: 10, verbraucht_chf: 3.2, kosten_usd: 3.2 };
 const OWN_KEY = { monat: "2026-11", eingerichtet: true, vermittlung: false, eigener_schluessel: true, kosten_usd: 1.5 };
 const NOTHING = { monat: "2026-11", eingerichtet: false, einladung: true, kosten_usd: 0 };
 const COSTS = {
@@ -37,7 +37,7 @@ const COSTS = {
 
 test("the sections stand on the left in the order of the design, Über die App last", () => {
   assert.deepEqual(logic.SECTIONS.map(section => section.label), [
-    "KI und Budget", "Suche und Portale", "Browser-Erweiterung", "Stelle, Lehrstelle, RAV",
+    "KI und Guthaben", "Suche und Portale", "Browser-Erweiterung", "Stelle, Lehrstelle, RAV",
     "Daten und Sicherung", "Erweitert", "Über die App"]);
   const html = read("einstellungen.html");
   const nav = html.match(/<nav class="settings__nav"[\s\S]*?<\/nav>/)[0];
@@ -75,8 +75,9 @@ test("the chosen way follows what the app actually uses", () => {
   assert.equal(logic.currentWay(null, null), null);
 });
 
-test("the invitation says what applies: running, enter a code, behind the own key, or not built in", () => {
+test("the invitation says what applies: running, used up, enter a code, behind the own key, or not built in", () => {
   assert.equal(logic.invitationState(MEDIATION), "aktiv");
+  assert.equal(logic.invitationState({ ...MEDIATION, verbraucht_chf: 10 }), "aufgebraucht");
   assert.equal(logic.invitationState(NOTHING), "eingeben");
   assert.equal(logic.invitationState(OWN_KEY), "schluessel");
   assert.equal(logic.invitationState({ ...NOTHING, einladung: false }), "keine");
@@ -99,25 +100,27 @@ test("the way in use says so in its line", () => {
   assert.doesNotMatch(access.line(access.options({ abo: true })[0], "schluessel"), /Eingerichtet/);
 });
 
-test("the budget of the mediation: used of the budget, the next one and what it went to", () => {
+test("the credit of the mediation: used of the credit, once, in CHF, and what it went to", () => {
   const view = logic.budgetView(MEDIATION, COSTS);
-  assert.equal(view.title, "Budget im November");
-  assert.equal(view.headline, "USD 3.20 von 10.00 gebraucht");
-  assert.equal(view.renewal, "Neues Budget am 01.12.2026");
+  assert.equal(view.title, "Guthaben");
+  assert.equal(view.headline, "CHF 3.20 von 10.00 gebraucht");
+  assert.equal(view.renewal, null);
   assert.equal(view.percent, 32);
   assert.deepEqual(view.rows, [
-    { label: "Stellen einschätzen", count: 71, usd: "USD 2.10" },
-    { label: "Anschreiben entwerfen", count: 6, usd: "USD 0.90" },
-    { label: "Fragen an die KI", count: 14, usd: "USD 0.20" },
-    { label: "Weitere", count: 1, usd: "USD 0.00" },
+    { label: "Stellen einschätzen", count: 71, usd: "CHF 2.10" },
+    { label: "Anschreiben entwerfen", count: 6, usd: "CHF 0.90" },
+    { label: "Fragen an die KI", count: 14, usd: "CHF 0.20" },
+    { label: "Weitere", count: 1, usd: "CHF 0.00" },
   ]);
-  assert.equal(view.note, "Ist das Budget aufgebraucht, läuft die App weiter, nur ohne KI. Protokolliert werden Kosten, keine Inhalte.");
-  assert.equal(view.total, "Seit Beginn USD 7.45 in 120 Aufrufen");
+  assert.equal(view.note, "Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, "
+    + "nur ohne KI, bis ein neuer Einladungscode eingelöst ist. Protokolliert werden Kosten, keine Inhalte.");
+  assert.equal(view.total, "Seit Beginn CHF 7.45 in 120 Aufrufen");
 });
 
-test("December rolls over into the next year, and a spent budget fills the bar", () => {
-  const view = logic.budgetView({ ...MEDIATION, monat: "2026-12", verbraucht_usd: 12 }, COSTS);
-  assert.equal(view.renewal, "Neues Budget am 01.01.2027");
+test("a new month renews nothing, and a spent credit fills the bar", () => {
+  const view = logic.budgetView({ ...MEDIATION, monat: "2026-12", verbraucht_chf: 12 }, COSTS);
+  assert.equal(view.renewal, null);
+  assert.equal(view.title, "Guthaben");
   assert.equal(view.percent, 100);
 });
 
@@ -138,7 +141,7 @@ test("without an answer of the AI the local costs still show", () => {
   assert.equal(view.total, "Seit Beginn USD 0.00 in 0 Aufrufen");
 });
 
-test("KI und Budget: the access to the AI is a choice of invitation code, own Claude subscription and own key", () => {
+test("KI und Guthaben: the access to the AI is a choice of invitation code, own Claude subscription and own key", () => {
   const ki = panel(read("einstellungen.html"), "ki");
   const choice = card(ki, "zugang");
   assert.match(choice, /<h2 id="zugang-titel">Zugang zur KI<\/h2>/);
@@ -163,9 +166,9 @@ test("KI und Budget: the access to the AI is a choice of invitation code, own Cl
     `${way} shows only once chosen`);
 });
 
-test("KI und Budget: the budget of the month (G46) with a bar and a row per task", () => {
+test("KI und Guthaben: the credit (G46) with a bar and a row per task", () => {
   const budget = card(panel(read("einstellungen.html"), "ki"), "kosten");
-  assert.match(budget, /<h2 id="kosten-titel">Budget<\/h2>/);
+  assert.match(budget, /<h2 id="kosten-titel">Guthaben<\/h2>/);
   assert.match(budget, /id="budget-zeile"/);
   assert.match(budget, /id="budget-neu"/);
   assert.match(budget, /<div class="budget__bar" id="budget-balken" role="img" hidden><div class="budget__fill" id="budget-fuellung">/);

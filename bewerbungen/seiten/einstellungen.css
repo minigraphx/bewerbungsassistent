@@ -25,7 +25,7 @@
 .settings__state[data-state="connected"]::before { background: var(--success); }
 .settings__state[data-state="missing"]::before { background: var(--warning); }
 
-/* Budget (G46) */
+/* Guthaben and costs (G46) */
 .budget__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-1) var(--space-3); }
 .budget__headline { font-size: 18px; line-height: 24px; color: var(--text-strong); }
 .budget__bar { height: 8px; border-radius: var(--radius-full); background: var(--line); overflow: hidden; }

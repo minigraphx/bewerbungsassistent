@@ -1,6 +1,6 @@
 "use strict";
 // What the sidebar shows (#259, G54), without DOM so it can be tested: which destination a page belongs to,
-// the badges and the AI budget at the bottom.
+// the badges and the AI credit at the bottom (G46, G80).
 (function (global) {
   // Pages without their own place in the sidebar belong to the destination they are reached from. The setup
   // (/einrichtung) is reached from Einstellungen but is no part of it, so it marks nothing (#279).
@@ -15,15 +15,19 @@
   };
   const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
                   "November", "Dezember"];
-  // Asking for the budget reaches the mediation, so a tab asks again only after a while.
+  // Asking for the credit reaches the mediation, so a tab asks again only after a while.
   const BUDGET_MAX_AGE_MS = 5 * 60 * 1000;
   // From this share used the sidebar warns in words (#211): a bar in another colour alone is easy to miss.
   const NEARLY_USED_SHARE = 0.8;
+  // The credit of a code is not renewed (G80): once used up, a new code brings a new one.
   const WARNINGS = {
-    low: { long: "Budget fast aufgebraucht", short: "fast aufgebraucht" },
-    empty: { long: "Budget aufgebraucht", short: "aufgebraucht" },
+    low: { long: "Guthaben fast aufgebraucht", short: "fast aufgebraucht" },
+    empty: { long: "Guthaben aufgebraucht: neuen Code anfordern", short: "aufgebraucht" },
   };
-  const NO_MEDIATION_BUDGET = { long: "Kein Budget der Vermittlung", short: "kein Budget der Vermittlung" };
+  const NO_MEDIATION_CREDIT = { long: "Kein Guthaben der Vermittlung", short: "kein Guthaben der Vermittlung" };
+  // With the mediation the person sees CHF (G46); one USD billed counts as one CHF (ai/usage.py CHF_PER_USD).
+  const MEDIATION_CURRENCY = "CHF";
+  const OWN_CURRENCY = "USD";
   // Fired on the document when a page changed which hits the list shows, so „N neu“ counts again (#303).
   const HITS_CHANGED = "treffer-geaendert";
 
@@ -46,31 +50,36 @@
   // A decimal point, as the design system says.
   const usd = value => value.toFixed(2);
 
+  /** The currency of the AI costs a page shows, from GET /api/ki/status (may be null). */
+  function currencyOf(status) {
+    return status && status.eingerichtet && status.vermittlung ? MEDIATION_CURRENCY : OWN_CURRENCY;
+  }
+
   function monthName(month) {
     const found = /^\d{4}-(\d{2})$/.exec(month || "");
     const name = found ? MONTHS[Number(found[1]) - 1] : undefined;
     return name ? `im ${name}` : "in diesem Monat";
   }
 
-  function budgetState(spent, budget) {
-    if (spent >= budget) return "empty";
-    return spent >= budget * NEARLY_USED_SHARE ? "low" : "ok";
+  function creditState(spent, credit) {
+    if (spent >= credit) return "empty";
+    return spent >= credit * NEARLY_USED_SHARE ? "low" : "ok";
   }
 
-  function mediationBudget(status, when) {
-    const budget = status.budget_usd;
-    const spent = Math.max(0, Number(status.verbraucht_usd) || 0);
-    const percent = Math.min(100, Math.round((spent / budget) * 100));
-    const left = `USD ${usd(Math.max(0, budget - spent))} frei`;
-    const state = budgetState(spent, budget);
+  function mediationCredit(status) {
+    const credit = status.guthaben_chf;
+    const spent = Math.max(0, Number(status.verbraucht_chf) || 0);
+    const percent = Math.min(100, Math.round((spent / credit) * 100));
+    const left = `${MEDIATION_CURRENCY} ${usd(Math.max(0, credit - spent))} frei`;
+    const state = creditState(spent, credit);
     const warning = WARNINGS[state];
-    const short = `KI-Budget: ${left}`;
+    const short = `KI-Guthaben: ${left}`;
     return {
-      title: `KI-Budget ${when}`,
-      text: spent > 0 ? `USD ${usd(spent)} von ${usd(budget)} gebraucht` : `USD ${usd(budget)} frei`,
+      title: "KI-Guthaben",
+      text: spent > 0 ? `${MEDIATION_CURRENCY} ${usd(spent)} von ${usd(credit)} gebraucht` : `${MEDIATION_CURRENCY} ${usd(credit)} frei`,
       short,
       percent,
-      label: spent > 0 ? `${percent} Prozent des Budgets gebraucht` : "Noch nichts gebraucht",
+      label: spent > 0 ? `${percent} Prozent des Guthabens gebraucht` : "Noch nichts gebraucht",
       detail: spent > 0 ? left : "Noch nichts gebraucht",
       warning: warning ? warning.long : "",
       state,
@@ -80,25 +89,24 @@
 
   function ownKeyCosts(status, when) {
     const costs = usd(Math.max(0, Number(status.kosten_usd) || 0));
-    const short = `KI-Kosten: USD ${costs}`;
+    const short = `KI-Kosten: ${OWN_CURRENCY} ${costs}`;
     return {
-      title: `KI-Kosten ${when}`, text: `USD ${costs} mit eigenem Schlüssel`, short, percent: null, label: "",
-      detail: NO_MEDIATION_BUDGET.long, warning: "", state: "own", narrow: `${short} · ${NO_MEDIATION_BUDGET.short}`,
+      title: `KI-Kosten ${when}`, text: `${OWN_CURRENCY} ${costs} mit eigenem Schlüssel`, short, percent: null, label: "",
+      detail: NO_MEDIATION_CREDIT.long, warning: "", state: "own", narrow: `${short} · ${NO_MEDIATION_CREDIT.short}`,
     };
   }
 
   /**
    * The AI at the bottom of the sidebar, from GET /api/ki/status; null when there is nothing to show. `detail` is
-   * what is left (or that no budget applies), `warning` names a budget nearly or wholly used, `narrow` is the line
-   * of the header below 900 px.
+   * what is left (or that no credit applies), `warning` names a credit nearly or wholly used, `narrow` is the line
+   * of the header below 900 px. The credit of the mediation is once per code, so it names no month.
    */
   function budgetView(status) {
     if (!status || !status.eingerichtet) return null;
-    const when = monthName(status.monat);
-    if (status.vermittlung && typeof status.budget_usd === "number" && status.budget_usd > 0) {
-      return mediationBudget(status, when);
+    if (status.vermittlung && typeof status.guthaben_chf === "number" && status.guthaben_chf > 0) {
+      return mediationCredit(status);
     }
-    if (!status.vermittlung && status.eigener_schluessel) return ownKeyCosts(status, when);
+    if (!status.vermittlung && status.eigener_schluessel) return ownKeyCosts(status, monthName(status.monat));
     return null;
   }
 
@@ -109,7 +117,7 @@
     return age >= 0 && age <= maxAge;
   }
 
-  const logic = { BUDGET_MAX_AGE_MS, NEARLY_USED_SHARE, HITS_CHANGED, activeTarget, badges, budgetView, isFresh };
+  const logic = { BUDGET_MAX_AGE_MS, NEARLY_USED_SHARE, HITS_CHANGED, activeTarget, badges, budgetView, currencyOf, isFresh };
   if (typeof module !== "undefined") module.exports = logic;
   else global.SidebarLogic = logic;
 })(typeof window !== "undefined" ? window : globalThis);

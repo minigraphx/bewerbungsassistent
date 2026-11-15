@@ -200,7 +200,7 @@
       return;
     }
     $("gesehen").textContent = texte.gesehen(vorab.treffer, vorab.seit);
-    $("anders-kosten").textContent = vorab.kosten_usd ? L.schaetzung(vorab.kosten_usd) : "";
+    $("anders-kosten").textContent = vorab.kosten_usd ? L.schaetzung(vorab.kosten_usd, vorab.waehrung) : "";
     const offen = await einwilligungOffen();
     if (!offen) {
       holeVorschlag();

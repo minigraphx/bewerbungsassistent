@@ -10,7 +10,6 @@
   const { holen, senden, el } = window.App;
   const { text, anwenden } = window.Texte;
   const $ = id => document.getElementById(id);
-  const usd = wert => `${Number(wert || 0).toFixed(2)} USD`;
 
   const L = window.EinrichtungLogik;
   const TITEL = { gesucht: "Gesucht", vorlage: "Datei", erweiterung: "Erweiterung" };
