@@ -1,0 +1,103 @@
+"""The guide shows the redesigned app of 0.5 (#266): its page names, who sets it up for a child, the trial code and help.
+
+The sidebar replaced the menu Mehr; the page Meine Dateien is now Lebenslauf und Dateien with the kinds Zeugnis, Diplom
+and Zertifikat (G63); the apprenticeship track calls the page Lehrstellen. A parent or legal guardian sets the app up
+for a child, as the consent in the app says (bewerbungen/ai/consent.py). An invitation code is a one-off trial credit of
+CHF 5 (G80), requested by e-mail, never handed out by a Begleitperson. The website links the section on the CV for one
+application (#118), so its heading stays as it is.
+"""
+import re
+
+from test_guide_order import QUICK, body, heading_id, sections, text
+
+GUARDIAN = "Elternteil oder gesetzliche Vertretung"
+HELP_PAGE = "(https://bewerbungsbegleiter.ch/hilfe.html#kontakt)"
+CV_SECTION = "Lebenslauf für eine Stelle erstellen"
+CV_ANCHOR = "lebenslauf-für-eine-stelle-erstellen"
+
+
+def quick_step(number: int) -> str:
+    return re.split(r"^\d+\. ", body(QUICK, 2), flags=re.M)[number]
+
+
+def table_row(section: str, message: str) -> str:
+    rows = [line for line in section.splitlines() if line.startswith(f"| „{message}“")]
+    assert len(rows) == 1, message
+    return rows[0]
+
+
+def test_the_guide_names_the_pages_of_the_sidebar_and_no_menu_mehr():
+    guide = text()
+
+    for old in ("**Mehr**", "Menü **Mehr**", "Meine Dateien", "Stellen suchen**", "Lehrstellen suchen",
+                "Arbeitszeugnisse und Zeugnisse", "Kosten der KI", "Erweiterten Einstellungen"):
+        assert old not in guide, old
+    assert "**Lehrstellen**" in body("Für Lehrstellen", 3)
+    assert "Klicken Sie auf **Stellen**" in quick_step(4)
+
+
+def test_a_parent_or_legal_guardian_sets_the_app_up_for_a_child():
+    guide = text()
+    intro = guide.split("\n## ", 1)[0]
+
+    assert "Begleitperson" not in guide and "deine Eltern" not in guide
+    assert GUARDIAN in intro
+    assert GUARDIAN in body("KI einrichten", 4)
+    assert GUARDIAN in body("Für Lehrstellen", 3)
+
+
+def test_the_invitation_code_is_a_trial_credit_requested_by_email():
+    need = body("Was Sie brauchen", 3)
+
+    for words in ("Probeguthaben von CHF 5", "per E-Mail", "solange es Codes gibt", "neuen Code an", HELP_PAGE):
+        assert words in need, words
+    assert "Pilotphase begleitet" not in text()
+
+
+def test_quick_start_step_one_names_the_code_as_an_optional_trial_credit():
+    first = quick_step(1)
+
+    assert "kein Schritt der Einrichtung" in first and "Probeguthaben von CHF 5" in first
+    assert "**KI einrichten**" in first and "wann Sie sie brauchen" in first
+
+
+def test_access_no_longer_valid_points_to_a_new_code():
+    row = table_row(body("Häufige Fehler", 3), "Der Zugang zur KI gilt nicht mehr.")
+
+    assert "neuen Einladungscode" in row and "(#hilfe)" in row
+
+
+def test_help_links_the_contact_page_of_the_website():
+    help_section = body("Hilfe", 3)
+
+    assert HELP_PAGE in help_section and "Einladungscode" in help_section
+
+
+def test_the_cv_for_one_application_has_its_own_section_with_the_picture():
+    work = [title for title, _ in sections(3, body("Mit der App arbeiten", 2))]
+    assert CV_SECTION in work and heading_id(CV_SECTION) == CV_ANCHOR
+    section = body(CV_SECTION, 3)
+
+    for words in ("**Lebenslauf erstellen**", "Stationen", "Reihenfolge", "**Zweispaltig**", "**Einspaltig**",
+                  "**Name der Fassung**", "**Lebenslauf übernehmen**", "**Lebenslauf-Variante**", "**Aussehen wählen**",
+                  "**Lebenslauf und Dateien**", "alle neuen Lebensläufe", "](bilder/bewerbung.jpg)"):
+        assert words in section, words
+    assert f"(#{CV_ANCHOR})" in quick_step(5)
+
+
+def test_lebenslauf_und_dateien_shows_the_kinds_zeugnis_diplom_zertifikat():
+    files = body("Fertige Dateien verwenden", 3)
+
+    for words in ("**Lebenslauf und Dateien**", "**Ich nehme mein eigenes PDF**", "**Zeugnisse und Zertifikate**",
+                  "**Zeugnis**", "**Diplom**", "**Zertifikat**", "](bilder/meine-dateien.jpg)"):
+        assert words in files, words
+
+
+def test_the_pictures_say_what_they_show_today():
+    guide = text()
+
+    assert "Zeugnisse mit dem Hinweis Arbeits- und Schulzeugnisse, auch Zwischenzeugnisse](bilder/angaben.jpg)" in guide
+    check = body("Stellen suchen und bewerben", 3)
+    assert "](bilder/pruefung.jpg)" in check and "**So lassen**" in check
+    picture = check.split("](bilder/pruefung.jpg)", 1)[0].rsplit("![", 1)[1]
+    assert "Lebenslauf: 3 Seiten" in picture and "So lassen" in picture
