@@ -251,6 +251,10 @@ def test_the_guide_says_where_the_confirmation_and_undo_appear():
     section = section[:section.index("\n### ", 1)]
 
     assert "Ein Klick zeigt, was die App" in section and "einträgt" in section
-    assert "**Rückgängig** in der Bestätigung darunter" in section
+    assert "sonst den Punkt bis zum ersten Komma oder Strichpunkt **Im Inserat**" in section
+    assert "**Im Inserat** liest die KI bei jeder weiteren Einschätzung als Ausschluss mit; " \
+           "die Stelle kommt aber weiter in die Liste" in section
+    assert "**Rückgängig** in der Bestätigung, die an Stelle des Formulars erscheint" in section
     assert "«Was Sie nicht sehen wollen»" in section or "**Was Sie nicht sehen wollen**" in section
     assert "**Ausgeschlossen**" in section
+    assert re.search(r"!\[[^\]]+\]\(bilder/ausschluss-uebernehmen\.jpg\)", section), "the open form as a picture"
