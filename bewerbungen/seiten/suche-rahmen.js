@@ -1,7 +1,8 @@
 "use strict";
 // Region und Pensum, Was nicht and the title filter on Suche einstellen (#286, G64): „Ändern“ opens the card's own
 // form, „Speichern“ writes to the search profile with drafts, and the page loads anew. Logic in suche-rahmen-logik.js.
-// Was nicht also holds the excluded companies (#226, G65), saved to their own list in the data folder.
+// Was nicht also holds the excluded companies (#226, G65), saved to their own list in the data folder, in the same
+// request as the profile (#303).
 window.SucheRahmen = (() => {
   const { senden, status, el } = window.App;
   const L = window.SucheRahmenLogik;
@@ -65,12 +66,13 @@ window.SucheRahmen = (() => {
     event.preventDefault();
     const meldung = $(`${karte}-meldung`);
     try {
-      const werte = felder(karte);
-      if (L.mitProfil(karte, stand.lehrstelle)) await senden("/api/suche/rahmen", L.koerper(karte, werte, stand.lehrstelle));
-      if (karte === "nicht") await senden("/api/firmen/ausgeschlossen", L.firmenKoerper(werte.firmen));
+      const { pfad, koerper } = L.anfrage(karte, felder(karte), stand.lehrstelle);
+      await senden(pfad, koerper);
       oeffne(karte, false);
       status(meldung, GESPEICHERT, "ok");
       document.dispatchEvent(new CustomEvent("suchprofil-geaendert"));
+      // Listed hits of a company that is now excluded or back leave or join the list.
+      if (karte === "nicht") document.dispatchEvent(new CustomEvent(window.SidebarLogic.HITS_CHANGED));
     } catch (fehler) {
       status(meldung, `${NICHT_GESPEICHERT} ${fehler.message}`, "fehler");
     }

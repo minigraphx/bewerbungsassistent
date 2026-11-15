@@ -218,27 +218,30 @@
       .catch(fehler => meldung(fehler.message, "fehler"));
   }
 
-  // „Diese Firma nicht mehr zeigen“ (#226, G65): its hits leave the list; „Rückgängig“ brings them back.
+  // Excluding a company (#226, G65): its hits leave the list; the message offers to show them again, in the
+  // same words as Firmen and the application (#303).
   async function schliesseAus(treffer) {
+    const name = treffer.firma;
     try {
-      const antwort = await senden("/api/firmen/ausschliessen", { name: treffer.firma });
+      const firma = await window.FirmenAusschluss.ausschliessen(name);
       if (gewaehlt === treffer.id) gewaehlt = null;
       await lade();
-      zeile($("status"), t("firmen.ausgeschlossen", { firma: treffer.firma }), "ok", {
-        aktion: { text: "Rückgängig", ausfuehren: () => zeigeWieder(antwort.firma.schluessel) },
+      zeile($("status"), t("firmen.ausgeschlossen", { firma: name }), "ok", {
+        aktion: { text: t("firmen.wieder-zeigen"), ausfuehren: () => zeigeWieder(firma.schluessel, name) },
       });
     } catch (fehler) {
-      meldung(`${treffer.firma}: nicht ausgeschlossen. ${fehler.message}`, "fehler");
+      meldung(`${t("firmen.nicht-geaendert", { firma: name })} ${fehler.message}`, "fehler");
       zeigeListe();
     }
   }
 
-  async function zeigeWieder(schluessel) {
+  async function zeigeWieder(schluessel, name) {
     try {
-      await senden("/api/firmen/wieder-zeigen", { schluessel });
+      await window.FirmenAusschluss.wiederZeigen(schluessel);
       await lade();
+      meldung(t("firmen.wieder-gezeigt", { firma: name }), "ok");
     } catch (fehler) {
-      meldung(`Die Firma wird nicht wieder gezeigt. ${fehler.message}`, "fehler");
+      meldung(`${t("firmen.nicht-geaendert", { firma: name })} ${fehler.message}`, "fehler");
     }
   }
 

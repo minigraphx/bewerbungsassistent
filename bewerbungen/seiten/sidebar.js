@@ -130,4 +130,5 @@
   fillBudget();
   if (L) fillBadges();
   document.addEventListener("visibilitychange", () => { if (!document.hidden && L) fillBadges(); });
+  if (L) document.addEventListener(S.HITS_CHANGED, fillBadges);
 })();
