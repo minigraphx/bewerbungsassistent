@@ -37,7 +37,7 @@ def _caught(title: str, excluded: tuple[str, ...]) -> bool:
     return any(has_word(title, term) for term in excluded)
 
 
-def _blocked(positive: tuple[str, ...], excluded: tuple[str, ...]) -> frozenset[str]:
+def blocked(positive: tuple[str, ...], excluded: tuple[str, ...]) -> frozenset[str]:
     """Words never proposed: fillers, every word of a positive term and the words already excluded."""
     words = {word.casefold() for term in (*positive, *excluded) for word in WORD.findall(term)}
     return frozenset(words | TITLE_FILLERS)
@@ -65,7 +65,7 @@ def proposals(hits: list[dict], positive: tuple[str, ...], excluded: tuple[str, 
     dismissed = [hit for hit in open_hits if hit.get("zustand") == DISMISSED]
     kept = [hit for hit in open_hits if hit.get("zustand") != DISMISSED]
     found = []
-    for key, spellings in _spellings(dismissed, _blocked(positive, excluded)).items():
+    for key, spellings in _spellings(dismissed, blocked(positive, excluded)).items():
         word = spellings.most_common(1)[0][0]
         ids = with_word(dismissed, word)
         if len(ids) >= MIN_DISMISSED and len(ids) > hidden.get(key, 0):
