@@ -135,6 +135,15 @@ test("Enter in the field adds as well, and a refusal keeps what was typed", asyn
   assert.deepEqual([p.messages.at(-1).text, p.messages.at(-1).art], ["„Python“ wird schon gesucht.", "fehler"]);
 });
 
+test("the field takes a term as long as the server says Meine Angaben takes it (#310)", async () => {
+  const p = page();
+  await p.suchbegriffe.zeige("stelle", ["Python"], ["python"], 60);
+
+  assert.equal(p.byId("suchliste-neu").maxLength, 60);
+  assert.doesNotMatch(seite("suche-einstellen.html"), /id="suchliste-neu"[^>]*maxlength/);
+  assert.match(seite("suche-einstellen.js"), /Suchbegriffe\.zeige\([^)]*daten\.begriff_laenge\)/);
+});
+
 test("the field is there also when nothing is searched yet", async () => {
   const p = page();
   await p.suchbegriffe.zeige("lehrstelle", [], []);
