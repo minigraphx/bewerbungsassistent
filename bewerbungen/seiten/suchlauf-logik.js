@@ -22,7 +22,7 @@
   function laufZeile(s) {
     if (s.phase === "suche") return `${[`${s.portal}: suche „${s.stichwort}“${ort(s)}, Seite ${s.seite}`, stelle(s)].filter(Boolean).join(" · ")} …`;
     if (s.phase === "pause") return `${s.portal}: Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${s.sekunden} Sekunden …`;
-    if (s.phase === "texte") return `${s.portal}: lese Inserate (${s.fertig} von ${s.von}) …`;
+    if (s.phase === "texte") return `${s.portal}: lese Inserat ${s.fertig + 1} von ${s.von} …`;
     return "Suche startet …";
   }
 

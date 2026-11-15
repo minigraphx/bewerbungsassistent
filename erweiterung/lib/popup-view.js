@@ -68,7 +68,7 @@ function currentText(step) {
   if (step.phase === 'suche' && step.abfragen) return `Suche ${step.nummer} von ${step.abfragen}, Seite ${step.seite}`;
   if (step.phase === 'suche') return `Seite ${step.seite}`;
   if (step.phase === 'pause') return `Pause vor Etappe ${step.etappe} von ${step.etappen}`;
-  if (step.phase === 'texte') return `liest Inserate, ${step.fertig} von ${step.von}`;
+  if (step.phase === 'texte') return `liest Inserat ${step.fertig + 1} von ${step.von}`;
   return 'startet';
 }
 

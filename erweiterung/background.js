@@ -281,7 +281,8 @@ function fetchAdsForHits(message) {
   return adLoads.run(async () => {
     const app = new AppConnection();
     try {
-      return await fetchHitAds(message, { app, browser: adTabs, sleep, searching: () => running });
+      const report = (stand) => { for (const port of appPorts) send(port, { art: 'inserate-stand', stand }); };
+      return await fetchHitAds(message, { app, browser: adTabs, sleep, report, searching: () => running });
     } finally {
       app.close();
     }
