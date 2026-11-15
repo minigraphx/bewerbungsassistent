@@ -1,6 +1,6 @@
 # Seiten ausgleichen
 
-Gehört zu #239. Vorschlag zur Wahl durch Andy, noch nicht entschieden. Die Zeichenflächen liegen in Claude Design (Original privat: [Zeichenfläche](https://claude.ai/artifact/NvC1i9e973R7Kn74ir4bvc), Designsystem Bewerbungsassistent): ein Board mit dem heutigen Stand, zwei Boards pro Option. Sie bauen auf A6 und A7 der Neugestaltung auf (`README.md`, Abschnitt «Neugestaltung der App ab 0.3»). Alle Personen, Firmen und Daten sind erfunden.
+Gehört zu #239. Vorschlag zur Wahl durch Andy, entschieden am 15.11.2026 (Abschnitt «Entscheid»). Die Zeichenflächen liegen in Claude Design (Original privat: [Zeichenfläche](https://claude.ai/artifact/NvC1i9e973R7Kn74ir4bvc), Designsystem Bewerbungsassistent): ein Board mit dem heutigen Stand, zwei Boards pro Option. Sie bauen auf A6 und A7 der Neugestaltung auf (`README.md`, Abschnitt «Neugestaltung der App ab 0.3»). Alle Personen, Firmen und Daten sind erfunden.
 
 **Frage:** Was kann jedes Design tun, damit seine Seiten ausgeglichen sind (enger setzen, weiter setzen, Inhalt verschieben oder kürzen)? Was sieht die Person davon, was wählt sie, und was gehört unter «Erweitert»?
 
@@ -89,3 +89,15 @@ Boards C1 und C2.
 - Unabhängig von der Option: Soll ein Anschreiben über einer Seite weiter weiter gesetzt werden? Heute füllt die App die zweite Seite, die Prüfung nennt sie trotzdem als Fehler. Vorschlag: so eng wie möglich lassen, damit der Fehler sichtbar bleibt. Das wäre eine Änderung an `page_fill.choose` und braucht Andys Entscheid zu G49 und G51.
 - Ob «Lieber eine Seite weniger» und «Lieber mit mehr Luft» unter Erweitert nötig sind, zeigt sich erst mit echten Lebensläufen im Pilot. Option A geht auch ohne Item 3.
 - Die Anleitung (`docs/installation.md`) und ihre Bilder ändern sich erst mit dem Bau; dann braucht es ein Begleit-Item für die Webseite.
+
+## Entscheid
+
+Andy hat am 15.11.2026 **Option A** gewählt. Dazu die offene Frage zum Anschreiben: Ein Anschreiben über einer Seite setzt die App eng und nie weiter, damit die Person sieht, wie wenig zu viel ist.
+
+Festgehalten in den freigegebenen Spec-Zeilen G92, G93 und G94 (`SPEC.md`), umgesetzt in drei Items:
+
+- **#323:** Kürzungen zum Anhaken oder drei Seiten erlauben, beides nur für diese Bewerbung (G92).
+- **#324:** Jedes Dokument nennt seine Seitenzahl und, nur wenn die App den Satz verändert hat, kurz wie (G93).
+- **#325:** Anschreiben über einer Seite eng gesetzt; die Prüfung nennt die Zeilen zu viel, mit «Im Anschreiben kürzen» und «So lassen» (G94).
+
+Die Richtung des Ausgleichs unter Erweitert (Bauen, Punkt 3) ist nicht beauftragt; Option A geht auch ohne sie.
