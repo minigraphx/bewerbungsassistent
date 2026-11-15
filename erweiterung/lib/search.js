@@ -1,7 +1,7 @@
 // One search run: plan from the app, per portal a background tab, result lists, screening by the app,
 // full texts of the new hits, hits to the app, summary. Only started by the person (popup or app page).
 
-import { ADAPTERS, buildQueries, chunks, hitKey } from './queries.js';
+import { ADAPTERS, buildQueries, chunks, hitKey, placeOf } from './queries.js';
 import { followKey, searchSites } from './sites.js';
 import { CANCELLED, screen, stopIfCancelled } from './steps.js';
 
@@ -43,9 +43,11 @@ async function searchOne(portal, plan, query, tab, found, position, deps) {
       return `${portal}: ${opened.fehler}`;
     }
   }
+  const place = placeOf(query);
+  const where = place ? { ort: place } : {};
   for (let page = 1; page <= plan.max_seiten; page += 1) {
     stopIfCancelled(deps);
-    deps.report({ portal, phase: 'suche', stichwort: query.keyword, seite: page, gefunden: found.size, ...position });
+    deps.report({ portal, phase: 'suche', stichwort: query.keyword, ...where, seite: page, gefunden: found.size, ...position });
     const result = await deps.browser.run(tab, portal, 'list', [query, page]);
     await deps.sleep(DELAY_MS);
     if (!result.ok) {
