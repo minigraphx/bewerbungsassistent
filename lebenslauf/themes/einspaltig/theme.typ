@@ -1,6 +1,7 @@
 // Theme "einspaltig": schlicht, eine Spalte, kein Foto. Gut für Bewerbungssoftware (ATS).
 #import "../common.typ": *
 #import "../page-fill.typ": spacing, leading, body-size, part-start, part-end
+#import "../type-area.typ": type-area
 
 #let standard-stil = (
   farbe-akzent: rgb("#2f5d4a"),
@@ -17,7 +18,7 @@
   let (f, lf) = (spacing("cv"), leading("cv"))
 
   set document(title: name, author: name)
-  set page(paper: "a4", margin: 2cm, footer: align(right, text(size: 7.5pt, if stand != none { name + ", " + stand } else { name })))
+  set page(paper: "a4", margin: 2cm, foreground: type-area(), footer: align(right, text(size: 7.5pt, if stand != none { name + ", " + stand } else { name })))
   set text(font: s.schrift, size: body-size(s.groesse-text, "cv"), lang: sprache)
   set par(leading: 0.55em * lf, spacing: 0.7em * f)
   set list(marker: [–], indent: 0.3em, spacing: 0.45em * f)

@@ -14,6 +14,7 @@ import typst
 import yaml
 
 import page_fill
+import type_area
 from build import ROOT
 from typst_root import typst_root
 
@@ -132,6 +133,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     eingaben = page_fill.levels(lambda e: page_fill.markers(eingang, str(wurzel.path), schriften, e),
                                 {"data": wurzel.typst_path(daten_json)}, ("letter",))
     typst.compile(eingang, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
+    type_area.record(out, eingang, str(wurzel.path), schriften, eingaben)  # the margins for the check (#304)
     print(out)
     return out
 

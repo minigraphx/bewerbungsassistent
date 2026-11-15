@@ -3,6 +3,7 @@
 // data are always inserted as text, never evaluated as markup.
 #import "tokens.typ": palette, space, radius
 #import "common.typ": beschriftungen-fuer, feld
+#import "type-area.typ": type-area
 
 #let labels = (
   de: (
@@ -45,6 +46,7 @@
 // Wrapper for the whole file: only the wrapper sets metadata and the base text; parts set their pages
 #let document-wrapper(d, title, body) = {
   set document(title: title, author: d.person.name)
+  set page(foreground: type-area())
   set text(font: "DM Sans", lang: d.language, number-type: "lining", number-width: "tabular")
   body
 }
