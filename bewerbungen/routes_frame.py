@@ -14,7 +14,7 @@ SAVED = "Suche einstellen: {fields}"
 
 def _answer(text: str) -> dict:
     return {**search_plan.frame(text), "art": search_frame.kind_of(text), "werte": search_frame.values(text),
-            "alle_kantone": list(search_plan.CANTONS)}
+            "laengen": search_frame.lengths(text), "alle_kantone": list(search_plan.CANTONS)}
 
 
 def frame(k, parameter, body):

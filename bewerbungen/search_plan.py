@@ -46,7 +46,7 @@ ICTJOBS_REGIONS = {
     "NE": "westschweiz", "JU": "westschweiz", "FR": "westschweiz", "TI": "tessin",
 }
 MAX_KEYWORDS = 15
-MAX_TITLE_TERMS = 30
+MAX_TITLE_TERMS = 30  # a term review proposes no more; the search reads every term the lines hold (#302)
 MAX_LISTED = 100  # terms read from the profile before the limit, so that a hint can name what is not searched
 MAX_PLACES = 6
 MAX_PAGES = 3  # per keyword and place, as in the skill
@@ -493,8 +493,8 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     window, window_hint = _window(_value(_pairs(sections.get("portale und rhythmus", [])), "zeitfenster"))
     return SearchPlan(keywords=keywords, niche_keywords=niches[:MAX_KEYWORDS],
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
-                      title_exclude=_terms(_value(titles, "ausschluss"), MAX_TITLE_TERMS),
-                      title_positive=_terms(_value(titles, "positiv"), MAX_TITLE_TERMS), portals=portals,
+                      title_exclude=_terms(_value(titles, "ausschluss"), MAX_LISTED),
+                      title_positive=_terms(_value(titles, "positiv"), MAX_LISTED), portals=portals,
                       hints=(*window_hint, *limit_hint, *shares, *(hint for hint, _ in targets)), nationwide=nationwide,
                       hint_targets=targets, max_age_days=window)
 
