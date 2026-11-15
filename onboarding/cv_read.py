@@ -7,7 +7,9 @@ along on entries and on highlights; a highlight with tags is {text, tags}, as in
 texts of education and certificates and basics.url came with G25; a project group the form does not offer stays out.
 Two-language values {de, en} (lebenslauf/README.md) come along on the fields marked "bilingual" in form.json and on
 highlights (#167), trimmed and without an empty language; the page edits both languages and can add them (#181, G30).
-A two-language value with no text in either language stays out, and in the file.
+A two-language value with no text in either language stays out, and in the file. Keywords and interests take two
+languages too (#299): a keyword {de, en} comes as such, {name: {de, en}, level} as {text: {de, en}, level}, and an
+interest whose name is {de, en} as its two languages.
 Levels (#123, G20): a keyword {name, level} comes as {text, level} with the level 1–6 as text (A1–C2 read as 1–6), a
 language brings its x-level; a level the form cannot show stays out, and the keyword comes as its name.
 """
@@ -49,6 +51,8 @@ KEPT_BASICS = frozenset(f["id"] for s in FORM["sections"] if s["id"] == "person"
 # per section the fields that take a two-language value (form.json marks them "bilingual")
 BILINGUAL = {s["id"]: frozenset(f["id"] for f in s["fields"] if f.get("bilingual"))
              for s in FORM["sections"] if s.get("cv")}
+# the interests of the form are the names of the entries of cv.yaml
+INTEREST_BILINGUAL = frozenset({"name"}) if "interests" in BILINGUAL["interests"] else frozenset()
 CHOICES = {"group": next(f["options"] for s in FORM["sections"] if s["id"] == "projects"
                          for f in s["fields"] if f["id"] == "group")}
 
@@ -131,6 +135,16 @@ def highlight_shown(item: object) -> str | dict | None:
     return {"text": text, "tags": tags} if text and tags else text
 
 
+def bilingual_keyword(item: object) -> dict | None:
+    """A keyword in two languages as the page gets it: {de, en}, or {text: {de, en}, level} with a level it shows."""
+    if text := bilingual_value(item):
+        return text
+    if not isinstance(item, dict) or not (text := bilingual_value(item.get("name"))):
+        return None
+    level = keyword_level(item.get("level"))
+    return {"text": text, "level": str(level)} if level else text
+
+
 LIST_SHOWN = {"highlights": highlight_shown, "keywords": keyword_shown, "tags": tag_text}
 
 
@@ -143,7 +157,7 @@ def entry_shown(entry: object, fields: tuple[str, ...], bilingual: frozenset[str
     for key in fields:
         value = entry.get(key)
         if key in LIST_SHOWN:
-            read = _with_bilingual_line if key == "highlights" and key in bilingual else LIST_SHOWN[key]
+            read = BILINGUAL_LINES[key] if key in BILINGUAL_LINES and key in bilingual else LIST_SHOWN[key]
             lines = [line for line in map(read, value) if line] if isinstance(value, list) else []
             if lines:
                 shown[key] = lines
@@ -156,6 +170,13 @@ def entry_shown(entry: object, fields: tuple[str, ...], bilingual: frozenset[str
 
 def _with_bilingual_line(item: object) -> str | dict | None:
     return highlight_shown(item) or bilingual_line(item)
+
+
+def _with_bilingual_keyword(item: object) -> str | dict | None:
+    return keyword_shown(item) or bilingual_keyword(item)
+
+
+BILINGUAL_LINES = {"highlights": _with_bilingual_line, "keywords": _with_bilingual_keyword}
 
 
 def detail_places(details: list) -> tuple[int | None, int | None]:
@@ -179,7 +200,7 @@ def form_data(cv: dict) -> dict:
     """The answers of the CV sections of the form; every one of them, empty ones included."""
     basics = cv.get("basics") if isinstance(cv.get("basics"), dict) else {}
     entries = {key: _entries(cv.get(key), fields, BILINGUAL[key]) for key, fields in SECTIONS.items()}
-    names = [item["name"] for item in _entries(cv.get("interests"), INTERESTS)]
+    names = [item["name"] for item in _entries(cv.get("interests"), INTERESTS, INTEREST_BILINGUAL)]
     summary = entry_shown(basics, ("summary",), BILINGUAL["summary"]) or {}
     return {"person": _person(basics), "summary": summary, **entries,
             "interests": {"interests": names} if names else {}}

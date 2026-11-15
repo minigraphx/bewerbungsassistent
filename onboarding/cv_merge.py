@@ -13,7 +13,9 @@ new lists of tags in the short form [a, b]. Levels (#123) follow the same rule: 
 its level to the file, {name, level: None} removes it, and a language without the key x-level keeps its own; a level
 the form cannot show stays unless the answer gives one. Two-language values {de, en} are answers since G30 (#181):
 an edited one is written into its map, so its form (block or {de: …, en: …}) stays, and a new one is written in the
-short form; a value the person left as it was stays byte for byte.
+short form; a value the person left as it was stays byte for byte. Keywords and interests follow since #299: a
+keyword may be {de, en} or {name: {de, en}, level}, an interest's name {de, en}, and an entry whose name keeps one
+of its texts still continues the old one, so an interest keeps its x-icon.
 """
 import dataclasses
 import io
@@ -25,8 +27,8 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.util import load_yaml_guess_indent
 
 import convert
-from cv_read import (BILINGUAL, BIRTH, INTERESTS, KEPT_BASICS, KEPT_SECTIONS, LOCATION, SECTIONS, TEXT_BASICS,
-                     bilingual_line, detail_places, detail_values, entry_shown, field_text, highlight_shown, item_text,
+from cv_read import (BILINGUAL, BIRTH, INTEREST_BILINGUAL, INTERESTS, KEPT_BASICS, KEPT_SECTIONS, LOCATION, SECTIONS,
+                     TEXT_BASICS, bilingual_line, detail_places, detail_values, entry_shown, field_text, highlight_shown, item_text,
                      keyword_level, line_text, shown_text, tag_text)
 from validation import LANGUAGES, bilingual_value, is_bilingual
 
@@ -254,7 +256,7 @@ def _kept_fields(answer: object, kind: Kind) -> tuple[str, ...]:
     if kind is HIGHLIGHTS:
         return (TAGS,) if not isinstance(answer, dict) or TAGS not in answer else ()
     if kind is KEYWORDS:
-        return (LEVEL,) if not isinstance(answer, dict) else ()
+        return (LEVEL,) if not isinstance(answer, dict) or "name" not in answer else ()
     return tuple(key for key in kind.fields if key in KEPT_UNLESS_GIVEN and isinstance(answer, dict) and key not in answer)
 
 
@@ -332,28 +334,34 @@ def _merge_highlight(item: object, new: object) -> object:
     return item
 
 
+def _keyword_text(value: object) -> object:
+    """The text of a keyword as the answers compare it: plain or {de, en} (#299); None where there is none."""
+    return bilingual_value(value) or line_text(value)
+
+
 def _keyword_shown(item: object) -> object:
     """A keyword as the answers compare it: its text, or {text, level} with a level the form can show."""
     if not isinstance(item, dict) or "name" not in item:
-        return item_text(item)
-    name, level = line_text(item.get("name")), keyword_level(item.get(LEVEL))
+        return bilingual_value(item) or item_text(item)
+    name, level = _keyword_text(item.get("name")), keyword_level(item.get(LEVEL))
     return {"text": name, LEVEL: level} if name and level else name
 
 
 def _merge_keyword(item: object, new: object) -> object:
     """The keyword that continues item with the answer: plain text leaves the level, None removes one the form shows.
 
-    One that is left with nothing but its name becomes plain text again.
+    One that is left with nothing but its name becomes plain text again. The name may be in two languages, as a line
+    {de, en} or as {name: {de, en}, level}; an edited one is written into its map.
     """
-    name = new["name"] if isinstance(new, dict) else new
-    level = new.get(LEVEL) if isinstance(new, dict) else ABSENT
+    given = isinstance(new, dict) and "name" in new
+    name = new["name"] if given else new
+    level = new.get(LEVEL) if given else ABSENT
     if not isinstance(item, dict) or "name" not in item:
-        same = item_text(item) == name
         if level is ABSENT or level is None:
-            return item if same else name
+            return item if _keyword_shown(item) == name or _put_languages(item, name) else _commented(name)
         return _commented({"name": name, LEVEL: level})
-    if line_text(item.get("name")) != name:
-        item["name"] = name
+    if _keyword_text(item.get("name")) != name and not _put_languages(item.get("name"), name):
+        item["name"] = _commented(name)
     if level is not ABSENT and level is not None and keyword_level(item.get(LEVEL)) != level:
         item[LEVEL] = level
     elif level is None and LEVEL in item and keyword_level(item[LEVEL]) is not None:
@@ -365,13 +373,19 @@ def _no_pairing(i: int, free: list[int], old_shown: list, shown: object) -> int 
     return None
 
 
+def _texts(value: object) -> set[str]:
+    """The texts of a shown value: the text, or each language of {de, en}."""
+    return set(value.values()) if isinstance(value, dict) else {value} if isinstance(value, str) and value else set()
+
+
 def _same_identity(identity: tuple[str, ...]) -> Pairing:
-    """An edited entry still continues the old one when one of its identifying fields is the same."""
+    """An edited entry still continues the old one when one of its identifying fields is the same, or keeps one of
+    its texts in two languages (#299: the English of an interest changed, or added to it)."""
 
     def pairing(i: int, free: list[int], old_shown: list, shown: object) -> int | None:
         if not shown:
             return None
-        fits = [k for k in free if any(shown.get(key) and old_shown[k].get(key) == shown.get(key) for key in identity)]
+        fits = [k for k in free if any(_texts(shown.get(key)) & _texts(old_shown[k].get(key)) for key in identity)]
         return i if i in fits else next(iter(fits), None)
 
     return pairing
@@ -481,7 +495,7 @@ def _merge_headings(doc: CommentedMap, new_cv: dict) -> bool:
 
 def _entry_kind(key: str, fields: tuple[str, ...], job: bool) -> Kind:
     owned = tuple(field for field in fields if job or field not in JOB_ONLY.get(key, ()))
-    bilingual = BILINGUAL.get(key, frozenset())
+    bilingual = INTEREST_BILINGUAL if key == "interests" else BILINGUAL.get(key, frozenset())
     return Kind(lambda entry: entry_shown(entry, owned, bilingual), owned, _same_identity(IDENTITY[key]))
 
 

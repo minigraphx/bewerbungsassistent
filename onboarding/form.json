@@ -234,7 +234,7 @@
       "itemTitle": "Bereich",
       "fields": [
         {"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "bilingual": true, "required": true, "max": 60},
-        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile, Stufe freiwillig)", "type": "list", "levels": true, "required": true, "maxItems": 12, "max": 60, "hint": "Die Stufe von 1 bis 6 ist freiwillig. Hat eine Kenntnis im Bereich eine Stufe, zeigt das Dossier dort eine Grafik; Kenntnisse ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."},
+        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile, Stufe freiwillig)", "type": "list", "levels": true, "bilingual": true, "required": true, "maxItems": 12, "max": 60, "hint": "Die Stufe von 1 bis 6 ist freiwillig. Hat eine Kenntnis im Bereich eine Stufe, zeigt das Dossier dort eine Grafik; Kenntnisse ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."},
         {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}
       ]
     },
@@ -247,7 +247,7 @@
         "apprenticeship": "Was machst du in der Freizeit? Hat ein Hobby mit deinem Wunschberuf zu tun, schreib das bei den Stärken dazu."
       },
       "fields": [
-        {"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "maxItems": 8, "max": 60}
+        {"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "bilingual": true, "maxItems": 8, "max": 60}
       ]
     },
     {

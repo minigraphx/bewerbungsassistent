@@ -12,7 +12,8 @@
 // filled when the saved answers come back, and the preset would fill it again.
 // Two-language values {de, en} (#167, G30): on the fields marked "bilingual" in form.json and as lines of highlights the
 // person edits both languages and can add them; they go out trimmed and without an empty language, and one without
-// any text counts as empty.
+// any text counts as empty. Keywords and interests take them as lines too (#299): { de, en }, and a keyword with a
+// level { text: { de, en }, level }.
 "use strict";
 
 /** A loaded file that is no bundle of this form; the message is German and shown as is. */
@@ -102,12 +103,20 @@ const lineText = (line) => (isPlainObject(line) ? (typeof line.text === "string"
 const hasContent = (value) => Boolean(twoLanguageText(bilingualOf(value))) || lineText(value).trim() !== "";
 
 /** One line of a list with levels: plain text (level left to the file) or { text, level }; null if it has no text. */
+// its text may be { de, en } (#299)
 function cleanLeveledLine(value, compact) {
-  if (typeof value === "string") return compact ? value.trim() : value;
+  if (typeof value === "string" || isBilingual(value)) return cleanPlainLine(value, compact);
   const shaped = isPlainObject(value) && Object.keys(value).every((k) => k === "text" || k === "level");
-  if (!shaped || typeof value.text !== "string") return null;
+  if (!shaped || (typeof value.text !== "string" && !isBilingual(value.text))) return null;
+  const text = cleanPlainLine(value.text, compact);
   const level = typeof value.level === "string" ? value.level : "";
-  return { text: compact ? value.text.trim() : value.text, level: compact ? level.trim() : level };
+  return text === null ? null : { text, level: compact ? level.trim() : level };
+}
+
+/** A line of a plain list: text, or { de, en } on a list marked "bilingual" (#299); null if it holds no text. */
+function cleanPlainLine(value, compact) {
+  if (typeof value === "string") return compact ? value.trim() : value;
+  return isBilingual(value) ? (compact ? twoLanguageText(value) : { ...value }) : null;
 }
 
 /** A line the person edited: with its tags, an empty list included, so removing the last tag removes it. */
@@ -121,8 +130,9 @@ function cleanList(field, value, compact) {
     const lines = value.map((v) => clean(v, compact)).filter((v) => v !== null);
     return compact ? lines.filter(hasContent) : lines;
   }
-  const lines = value.filter((v) => typeof v === "string").map((v) => (compact ? v.trim() : v));
-  return compact ? lines.filter((v) => v) : lines;
+  const lines = value.filter((v) => typeof v === "string" || (field.bilingual === true && isBilingual(v)))
+    .map((v) => cleanPlainLine(v, compact));
+  return compact ? lines.filter((v) => v !== null && hasContent(v)) : lines;
 }
 
 /** Copy of an item with only known fields of the right type. */
