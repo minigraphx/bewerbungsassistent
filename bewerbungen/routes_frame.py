@@ -29,6 +29,7 @@ REFUSED = "{part}: {reason} {kept}"
 PROFILE_KEPT = "Inserat und Titel bleiben wie vorher."
 COMPANIES_KEPT = "Die Firmen bleiben wie vorher."
 HALF_SAVED = "Die Firmen sind nicht gespeichert, Inserat und Titel sind gespeichert. Bitte nochmals speichern."
+NOT_WRITTEN = f"Die Firmen liessen sich nicht speichern. {PROFILE_KEPT}"
 
 
 def _answer(text: str) -> dict:
@@ -104,9 +105,11 @@ def not_wanted(k, parameter, body):
     before, changed = _write_profile(k, path, change)
     try:
         companies = excluded_companies.replace(k, names)
-    except Exception:
+    except Exception as error:
+        log.exception("Ausgeschlossene Firmen liessen sich nicht speichern")
         _take_back(k, path, change, before)
-        raise
+        # A ValueError reaches the page as this text; the server logs nothing for it, hence the log above.
+        raise ValueError(NOT_WRITTEN) from error
     return json_antwort({**_answer(changed), "firmen": companies})
 
 
