@@ -9,7 +9,7 @@ window.SucheRahmen = (() => {
   const KARTEN = ["region", "nicht", "titelfilter"];
   const GESPEICHERT = "Gespeichert. Gilt ab der nächsten Suche.";
   const NICHT_GESPEICHERT = "Nicht gespeichert.";
-  let stand = { werte: {}, alleKantone: [], lehrstelle: false, firmen: [] };
+  let stand = { werte: {}, laengen: {}, alleKantone: [], lehrstelle: false, firmen: [] };
 
   function kantone(gewaehlt) {
     const an = new Set(gewaehlt || []);
@@ -17,7 +17,14 @@ window.SucheRahmen = (() => {
       el("label", { class: "check" }, el("input", { type: "checkbox", value: kanton, checked: an.has(kanton) }), ` ${kanton}`))));
   }
 
+  /** As long as Meine Angaben takes the value (#302); the server checks it again. */
+  function begrenze(id, laenge) {
+    if (Number.isInteger(laenge)) $(id).maxLength = laenge;
+  }
+
   function fuelleRegion(werte) {
+    begrenze("region-wohnort", stand.laengen.wohnort);
+    begrenze("region-pensum", stand.laengen.pensum);
     $("region-wohnort").value = werte.wohnort || "";
     kantone(werte.kantone);
     $("kantone-hinweis").textContent = L.kantoneHinweis(stand.lehrstelle);
@@ -78,7 +85,7 @@ window.SucheRahmen = (() => {
 
   /** The values of the profile; a form that is open keeps what the person is typing. */
   function zeige(rahmen, lehrstelle, firmen = []) {
-    stand = { werte: rahmen.werte || {}, alleKantone: rahmen.alle_kantone || [], lehrstelle, firmen };
+    stand = { werte: rahmen.werte || {}, laengen: rahmen.laengen || {}, alleKantone: rahmen.alle_kantone || [], lehrstelle, firmen };
   }
 
   for (const karte of KARTEN) {
