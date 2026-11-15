@@ -12,7 +12,7 @@ const FEW_SECONDS_MS = 5000;
 test('while reading ads the popup names the ad it reads now', () => {
   const step = { phase: 'texte', portal: 'jobs.ch', fertig: 3, von: 9 };
   assert.equal(describeRun({ zustand: 'laeuft', schritt: step }).step, 'jobs.ch: lese Inserat 4 von 9');
-  assert.equal(portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: step })[0].text, 'liest Inserat 4 von 9');
+  assert.equal(portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: step })[0].text, 'lese Inserat 4 von 9');
 });
 
 test('the pause between stages counts down in steps of a few seconds', async () => {

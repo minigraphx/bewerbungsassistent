@@ -12,12 +12,24 @@ export function place(step) {
   return step.ort ? ` in ${step.ort}` : '';
 }
 
-const PHASES = {
-  start: () => 'Suche startet …',
-  suche: (s) => [`${s.portal}: suche „${s.stichwort}“${place(s)}, Seite ${s.seite} (${s.gefunden} bisher)`, position(s)].filter(Boolean).join(' · '),
-  pause: (s) => `${s.portal}: Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${s.sekunden} Sekunden`,
-  texte: (s) => `${s.portal}: lese Inserat ${s.fertig + 1} von ${s.von}`,
+// An older extension reports a search step without term or count, so each part stays out when it is missing.
+const STEPS = {
+  suche: (s) => [
+    `${s.stichwort ? `suche „${s.stichwort}“${place(s)}, ` : ''}Seite ${s.seite}${s.gefunden === undefined ? '' : ` (${s.gefunden} bisher)`}`,
+    position(s),
+  ].filter(Boolean).join(' · '),
+  pause: (s) => `Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${s.sekunden} Sekunden`,
+  texte: (s) => `lese Inserat ${s.fertig + 1} von ${s.von}`,
 };
+
+/**
+ * What the current portal does right now, without its name: the popup shows it in the portal's row, after the name.
+ * @returns {string} empty for a step that has not reached a portal yet
+ */
+export function stepText(step) {
+  const text = STEPS[step.phase];
+  return text ? text(step) : '';
+}
 
 /**
  * @param {{zustand: string, schritt?: object, ergebnis?: object, fehler?: string}} run
@@ -27,7 +39,8 @@ export function describeRun(run) {
   if (run.zustand === 'fehler') return { step: run.fehler || 'Die Suche ist abgebrochen.', portals: [], hints: [] };
   if (run.zustand === 'laeuft') {
     const step = run.schritt || { phase: 'start' };
-    return { step: (PHASES[step.phase] || PHASES.start)(step), portals: [], hints: [] };
+    const text = stepText(step);
+    return { step: text ? `${step.portal}: ${text}` : 'Suche startet …', portals: [], hints: [] };
   }
   const result = run.ergebnis || { portale: {}, hinweise: [] };
   const entries = Object.entries(result.portale || {});
