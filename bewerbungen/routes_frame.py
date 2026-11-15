@@ -9,6 +9,7 @@ import pathlib
 from typing import Callable
 
 import excluded_companies
+import portal_places
 import search_frame
 import search_plan
 from dateien import schreibe_atomar
@@ -31,8 +32,11 @@ HALF_SAVED = "Die Firmen sind nicht gespeichert, Inserat und Titel sind gespeich
 
 
 def _answer(text: str) -> dict:
-    return {**search_plan.frame(text), "art": search_frame.kind_of(text), "werte": search_frame.values(text),
-            "laengen": search_frame.lengths(text), "alle_kantone": list(search_plan.CANTONS)}
+    values = search_frame.values(text)
+    return {**search_plan.frame(text), "art": search_frame.kind_of(text), "werte": values,
+            "laengen": search_frame.lengths(text), "alle_kantone": list(search_plan.CANTONS),
+            "orte_pro_portal": portal_places.shown(text),
+            "alle_regionen": portal_places.region_choices(values["regionen"])}
 
 
 def frame(k, parameter, body):

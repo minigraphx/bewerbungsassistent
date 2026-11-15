@@ -52,3 +52,25 @@ test("an apprenticeship's Was nicht saves only the companies, not the profile", 
   assert.deepEqual(L.anfrage("nicht", felder, true), { pfad: "/api/suche/was-nicht", koerper: { firmen: ["Muster Bau AG"] } });
   assert.equal(L.anfrage("region", { wohnort: "Bern", kantone: [], umkreis: "25" }, true).pfad, "/api/suche/rahmen");
 });
+
+test("the region card sends the place lines of the portals it shows, and only those (#301)", () => {
+  const felder = { wohnort: "Thun", kantone: ["BE"], pensum: "80 %", orte: "Thun\n\n Biel ", regionen: [] };
+  assert.deepEqual(L.koerper("region", felder, false),
+    { wohnort: "Thun", kantone: ["BE"], pensum: "80 %", orte: ["Thun", "Biel"], regionen: [] });
+  assert.deepEqual(L.koerper("region", { wohnort: "Thun", kantone: [], pensum: "" }, false),
+    { wohnort: "Thun", kantone: [], pensum: "" });
+  assert.deepEqual(L.koerper("region", { ...felder, umkreis: "25" }, true), { wohnort: "Thun", kantone: ["BE"], umkreis_km: 25 });
+});
+
+test("the closed card says per portal where it searches instead of Wohnort and Kantone (#301)", () => {
+  const liste = [{ portal: "jobs.ch", orte: ["Bern", "Thun"] }, { portal: "ictjobs", orte: ["Grossraum Bern"] }];
+  assert.equal(L.proPortalText(liste), "jobs.ch: Bern, Thun · ictjobs: Grossraum Bern");
+  assert.equal(L.proPortalText([]), "");
+  assert.equal(L.proPortalText(undefined), "");
+});
+
+test("a place field shows only while its portal has its own line (#301)", () => {
+  assert.deepEqual(L.portalFelder({ orte: ["Bern"], plz: [], regionen: ["solothurn"] }, false), ["orte", "regionen"]);
+  assert.deepEqual(L.portalFelder({ orte: ["Bern"] }, true), []);
+  assert.deepEqual(L.portalFelder({}, false), []);
+});

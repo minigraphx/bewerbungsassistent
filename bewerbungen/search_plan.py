@@ -466,6 +466,18 @@ def _listing(names: tuple[str, ...]) -> str:
     return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} und {names[-1]}"
 
 
+def _own_places(region: dict[str, str]) -> dict[str, tuple[str, ...]]:
+    """Where a portal searches instead of Wohnort and Kantone, one line each (Orte, PLZ, Regionen); empty without."""
+    return {"jobs.ch": _terms(_value(region, "orte"), MAX_PLACES),
+            "jobscout24": _items(_value(region, "plz"), MAX_PLACES),
+            "ictjobs": _items(_value(region, "regionen"), MAX_PLACES)}
+
+
+def own_places(text: str) -> dict[str, tuple[str, ...]]:
+    """What a job profile's own place lines make each portal search, exactly as `parse` reads them (#301)."""
+    return _own_places(_pairs(_sections(text).get("region", [])))
+
+
 def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     """The search plan from the profile text; postal_code (from cv.yaml) stands in for missing PLZ."""
     sections = _sections(text)
@@ -480,9 +492,10 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
         raise ValueError(NO_TERMS)
     niches = _terms(_value(words, NICHE_LABEL), MAX_LISTED)
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
-    places = _terms(_value(region, "orte"), MAX_PLACES) or _terms(_value(region, "wohnort"), 1)
-    postal_codes = _items(_value(region, "plz"), MAX_PLACES) or _items(postal_code or "", 1)
-    regions = _items(_value(region, "regionen"), MAX_PLACES) or _regions(cantons)
+    own = _own_places(region)
+    places = own["jobs.ch"] or _terms(_value(region, "wohnort"), 1)
+    postal_codes = own["jobscout24"] or _items(postal_code or "", 1)
+    regions = own["ictjobs"] or _regions(cantons)
     modes = _modes(sections.get("portale und rhythmus", []))
     portals = tuple(portal for portal in PORTALS if modes.get(portal) != MODE_OFF)
     nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", "regionen"))
