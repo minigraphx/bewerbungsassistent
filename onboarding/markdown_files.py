@@ -199,8 +199,12 @@ def _education_summary(data: dict) -> str:
                      for e in data.get("education", []))
 
 
+def numbered_line(number: int, value: str) -> str:
+    return f"{number}. {inline(value)} (Priorität {number})"
+
+
 def _numbered(values) -> list[str]:
-    return [f"{n}. {inline(v)} (Priorität {n})" for n, v in enumerate(items(values), 1)]
+    return [numbered_line(n, v) for n, v in enumerate(items(values), 1)]
 
 
 def _pairs(*pairs: tuple[str, object]) -> list[str]:
