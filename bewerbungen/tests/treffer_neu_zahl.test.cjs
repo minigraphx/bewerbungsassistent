@@ -1,5 +1,6 @@
 // „N neu“ in the sidebar after a hit changes its state on Stellen and Lehrstellen (#311): the page tells the
 // sidebar to count again whenever the number of new hits changes, as excluding a company does since #303.
+// The summary under the title („N Treffer, M neu“) follows the same changes without a reload (#317).
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -39,9 +40,11 @@ const nodes = node => (node && typeof node === "object" ? [node, ...(node.childr
  * The page with a stand-in app that keeps the hits like the real one: Merken and Verwerfen change the stored
  * state, and every load returns the stored hits. `failing` names routes that are refused.
  */
-function page({ hits = [NEW_HIT], art = "stelle", hash = "", failing = [] } = {}) {
+function page({ hits = [NEW_HIT], art = "stelle", hash = "", failing = [], zeitraum = {} } = {}) {
   const elements = new Map();
   const $ = id => { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); };
+  const selected = new Map();
+  const select = selector => { if (!selected.has(selector)) selected.set(selector, element()); return selected.get(selector); };
   for (const id of ["lauf-box", "bewerten-box"]) $(id).hidden = true;
   const stored = structuredClone(hits);
   const fired = [];
@@ -58,7 +61,7 @@ function page({ hits = [NEW_HIT], art = "stelle", hash = "", failing = [] } = {}
     "/api/bewerbungen/stand": () => ({}),
   };
   const document = {
-    title: "", getElementById: $, querySelectorAll: () => [], querySelector: () => element(), addEventListener() {},
+    title: "", getElementById: $, querySelectorAll: () => [], querySelector: select, addEventListener() {},
     dispatchEvent: event => fired.push(event.type),
     documentElement: { dataset: { bewerbungsbegleiterErweiterung: "1" } },
   };
@@ -70,7 +73,7 @@ function page({ hits = [NEW_HIT], art = "stelle", hash = "", failing = [] } = {}
             treffer: structuredClone(stored), einstellungen: { auto_bewerten: false, zuschauen: false, beruf_sterne: {}, sortierung: "note" },
             paket: 10, grenze: 30, art, portale: ["jobs.ch"], portale_wahl: [], gesuchte_berufe: ["Data Engineer"],
             gesuchte_schluessel: [], hinweise: [], hinweis_ziele: {}, letzte_suche: { datum: "2026-11-01", portale: { "jobs.ch": {} } },
-            region: { kantone: [], orte: ["Bern"], umkreis_km: 25, schweizweit: false }, sperrgrund: "",
+            region: { kantone: [], orte: ["Bern"], umkreis_km: 25, schweizweit: false }, sperrgrund: "", zeitraum,
           };
         }
         if (pfad === "/api/firmen") return { firmen: [], heute: "2026-11-02" };
@@ -119,7 +122,9 @@ function page({ hits = [NEW_HIT], art = "stelle", hash = "", failing = [] } = {}
     await settle();
   };
   const addHit = hit => stored.push(structuredClone(hit));
-  return { fired, press, addHit, look: async () => { await watch(); await settle(); } };
+  const summary = () => $("letzte").textContent;
+  const newTab = () => select("[data-zahl=neu]").textContent;
+  return { fired, press, addHit, summary, newTab, look: async () => { await watch(); await settle(); } };
 }
 
 const settle = async () => { for (let i = 0; i < 10; i += 1) await new Promise(resolve => setImmediate(resolve)); };
@@ -190,4 +195,57 @@ test("hits that arrive while the page is open count again, an unchanged list doe
   p.addHit(OTHER_HIT);
   await p.look();
   assert.deepEqual(p.fired, [CHANGED]);
+});
+
+const LAST_RUN = "Letzte Suche am 2026-11-01 · jobs.ch · ";
+
+test("Merken updates the summary under the title, as the tab shows it", async () => {
+  const p = page();
+  await settle();
+  assert.equal(p.summary(), `${LAST_RUN}1 Treffer, 1 neu`);
+  await p.press("Merken");
+  assert.equal(p.summary(), `${LAST_RUN}1 Treffer, 0 neu`);
+  assert.equal(p.newTab(), "0");
+});
+
+test("Verwerfen updates the summary under the title", async () => {
+  const p = page();
+  await settle();
+  await p.press("Verwerfen");
+  assert.equal(p.summary(), `${LAST_RUN}1 Treffer, 0 neu`);
+  assert.equal(p.newTab(), "0");
+});
+
+test("Zurückholen updates the summary under the title", async () => {
+  const p = page({ hits: [{ ...NEW_HIT, zustand: "verworfen" }], hash: "#verworfen" });
+  await settle();
+  assert.equal(p.summary(), `${LAST_RUN}1 Treffer, 0 neu`);
+  await p.press("Zurückholen");
+  assert.equal(p.summary(), `${LAST_RUN}1 Treffer, 1 neu`);
+  assert.equal(p.newTab(), "1");
+});
+
+test("on Lehrstellen the summary follows Merken and Verwerfen too", async () => {
+  const p = page({ hits: [NEW_HIT, OTHER_HIT], art: "lehrstelle" });
+  await settle();
+  await p.press("Merken");
+  assert.equal(p.summary(), `${LAST_RUN}2 Treffer, 1 neu`);
+  await p.press("Verwerfen");
+  assert.equal(p.summary(), `${LAST_RUN}2 Treffer, 0 neu`);
+  assert.equal(p.newTab(), "0");
+});
+
+test("the summary keeps the day of the last search when the count changes", async () => {
+  const p = page({ zeitraum: { letzte: "heute" } });
+  await settle();
+  await p.press("Merken");
+  assert.equal(p.summary(), "Letzte Suche heute · jobs.ch · 1 Treffer, 0 neu");
+});
+
+test("a refused Merken or Verwerfen leaves the summary as it was", async () => {
+  const p = page({ failing: ["/api/suche/uebernehmen", "/api/suche/verwerfen"] });
+  await settle();
+  await p.press("Verwerfen");
+  await p.press("Merken");
+  assert.equal(p.summary(), `${LAST_RUN}1 Treffer, 1 neu`);
 });
