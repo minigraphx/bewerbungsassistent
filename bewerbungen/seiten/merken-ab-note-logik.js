@@ -42,7 +42,13 @@
     return `${erste} ${zweite}`;
   }
 
-  const logik = { NOTEN, VORGABE, gueltigeNote, knopfText, bestaetigung, keinerText, ergebnisText };
+  const SCHRITTE = { fragen: "laden", merken: "merken" };
+
+  /** A failed step says what did not work before the reason the app gives. */
+  const fehlerText = (schritt, note, grund) =>
+    `Die Treffer ab Note ${notenText(note)} liessen sich nicht ${SCHRITTE[schritt]}: ${grund}`;
+
+  const logik = { NOTEN, VORGABE, gueltigeNote, knopfText, bestaetigung, keinerText, ergebnisText, fehlerText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.MerkenAbNoteLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

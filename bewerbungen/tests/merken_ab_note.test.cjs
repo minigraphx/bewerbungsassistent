@@ -40,6 +40,13 @@ test("the message after saving names hits that changed in between", () => {
   assert.equal(logik.keinerText(5.5), "Keine neuen Treffer mit Note 5.5 oder besser.");
 });
 
+test("a failure names the step and the grade before the reason", () => {
+  assert.equal(logik.fehlerText("fragen", 4.5, "Keine Verbindung."),
+    "Die Treffer ab Note 4.5 liessen sich nicht laden: Keine Verbindung.");
+  assert.equal(logik.fehlerText("merken", 4, "Keine Verbindung."),
+    "Die Treffer ab Note 4 liessen sich nicht merken: Keine Verbindung.");
+});
+
 test("the page asks before saving and never uses ß", () => {
   const html = read("treffer.html");
   assert.match(html, /<dialog class="dialog" id="ab-note-dialog"/);

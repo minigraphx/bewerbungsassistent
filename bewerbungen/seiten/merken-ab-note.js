@@ -22,7 +22,7 @@
     try {
       vorschau = await holen("/api/suche/ab-note", { note: String(note()) });
     } catch (fehler) {
-      return meldung(fehler.message, "fehler");
+      return meldung(L.fehlerText("fragen", note(), fehler.message), "fehler");
     }
     if (!vorschau.anzahl) return meldung(L.keinerText(vorschau.note), "hinweis");
     const frage = L.bestaetigung(vorschau);
@@ -41,7 +41,7 @@
       const antwort = await senden("/api/suche/ab-note", { note: vorschau.note, ids });
       meldung(L.ergebnisText(antwort), antwort.uebersprungen.length ? "hinweis" : "ok");
     } catch (fehler) {
-      meldung(fehler.message, "fehler");
+      meldung(L.fehlerText("merken", vorschau.note, fehler.message), "fehler");
     } finally {
       $("ab-note-knopf").disabled = false;
       document.dispatchEvent(new CustomEvent("treffer-gemerkt"));
