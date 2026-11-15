@@ -18,11 +18,12 @@ UNREADABLE = "Vorschau nicht möglich: Das PDF lässt sich nicht lesen. Es läss
 def render(pdf: pathlib.Path, build: pathlib.Path) -> bytes:
     build.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=build) as folder:
-        root = pathlib.Path(folder)
-        (root / "dokument.pdf").write_bytes(pdf.read_bytes())
-        (root / "miniatur.typ").write_text(SOURCE, encoding="utf-8")
+        # a copy inside .build/, never in the data folder (named so tests/test_guide_data_folder.py sees that)
+        build_copy = pathlib.Path(folder)
+        (build_copy / "dokument.pdf").write_bytes(pdf.read_bytes())
+        (build_copy / "miniatur.typ").write_text(SOURCE, encoding="utf-8")
         try:
-            return typst.compile(str(root / "miniatur.typ"), root=folder, format="png", ppi=PPI)
+            return typst.compile(str(build_copy / "miniatur.typ"), root=folder, format="png", ppi=PPI)
         except typst.TypstError as error:
             raise ValueError(UNREADABLE) from error
 
