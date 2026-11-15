@@ -223,8 +223,8 @@ window.Suchbegriffe = (() => {
     });
   }
 
-  /** Called with each load of the page's data. */
-  async function zeige(art, begriffe, schluessel) {
+  /** Called with each load of the page's data; `laenge` is what Meine Angaben takes per term (#310), the server checks it again. */
+  async function zeige(art, begriffe, schluessel, laenge) {
     texte = texteFuer(art, await window.App.textsatz());
     $("vorschlag-titel").textContent = texte.titel;
     $("vorschlag-hilfe").textContent = texte.hilfe;
@@ -237,6 +237,7 @@ window.Suchbegriffe = (() => {
       $("vorschlag").open = true;
       schonGeoeffnet = true;
     }
+    if (Number.isInteger(laenge)) $("suchliste-neu").maxLength = laenge;
     zeigeListe(begriffe);
     zeigeKarten(schluessel);
   }
