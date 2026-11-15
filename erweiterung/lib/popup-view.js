@@ -1,5 +1,6 @@
 // What the popup shows (MIN-369): the words of the text set, the last search, the portals of a running search and the
 // rating of the open page. No DOM; tested in tests/popup.test.mjs.
+import { stepText } from './progress.js';
 
 /** The text set follows the setup of the app: an apprenticeship is always du, a job Sie unless du was chosen. */
 export function textSet(plan) {
@@ -64,13 +65,8 @@ export function lastSearch(run, now = new Date()) {
   return { text: `Letzte Suche ${dayWord(when, now)}, ${time}${stopped} · ${newHits(fresh)}`, problem: false };
 }
 
-function currentText(step) {
-  if (step.phase === 'suche' && step.abfragen) return `Suche ${step.nummer} von ${step.abfragen}, Seite ${step.seite}`;
-  if (step.phase === 'suche') return `Seite ${step.seite}`;
-  if (step.phase === 'pause') return `Pause vor Etappe ${step.etappe} von ${step.etappen}`;
-  if (step.phase === 'texte') return `liest Inserat ${step.fertig + 1} von ${step.von}`;
-  return 'startet';
-}
+// The row of the running portal is the only place the popup shows the step, so it carries the whole line (G43).
+const currentText = (step) => stepText(step) || 'startet';
 
 /** The portals of the plan in their order; further sites at the end, as the search runs them. */
 export function planPortals(plan) {

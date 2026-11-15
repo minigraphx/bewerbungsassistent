@@ -126,8 +126,9 @@ test('the popup and the progress line read the stage and the pause', () => {
   const pause = { portal: 'jobs.ch', phase: 'pause', etappe: 3, etappen: 3, sekunden: 40 };
   assert.equal(describeRun({ zustand: 'laeuft', schritt: pause }).step, 'jobs.ch: Pause vor Etappe 3 von 3, noch 40 Sekunden');
   const rows = portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: pause });
-  assert.equal(rows[0].text, 'Pause vor Etappe 3 von 3');
-  assert.equal(portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: step })[0].text, 'Suche 32 von 67, Seite 1');
+  assert.equal(rows[0].text, 'Pause vor Etappe 3 von 3, noch 40 Sekunden');
+  assert.equal(portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: step })[0].text,
+    'suche „Begriff2“, Seite 1 (4 bisher) · Suche 32 von 67, Etappe 2 von 3');
 });
 
 test('before a long run the popup says what the app announces', () => {
