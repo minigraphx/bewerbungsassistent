@@ -1,4 +1,4 @@
-// Which searches run per portal: keyword × place from the plan of the app, with the limits of the skill.
+// Which searches run per portal: keyword × place from the plan of the app.
 
 /** Portal → its adapter file and the page the search tab opens. */
 export const ADAPTERS = {
@@ -20,15 +20,6 @@ const PLACE = {
   ictjobs: ['regionen', 'region'],
 };
 
-/**
- * How many keywords each place may search (#175): the limit without the niches, shared evenly, the first places
- * taking the remainder, and at least one each. Otherwise the limit would run out in the first places.
- */
-export function placeQuotas(places, limit) {
-  const budget = Math.max(places, limit);
-  return Array.from({ length: places }, (_, i) => Math.floor(budget / places) + (i < budget % places ? 1 : 0));
-}
-
 /** Every profession around the place of residence, or without one in each canton. */
 function apprenticeshipQueries(plan) {
   const years = plan.lehrbeginn_jahre || [];
@@ -41,41 +32,33 @@ function apprenticeshipQueries(plan) {
 }
 
 /**
- * Queries of one portal. job-room searches all cantons at once; the others once per place, the home first. Each
- * place searches its top keywords within its share of the limit, so every place gets searched.
+ * Queries of one portal, all of them (G43): the search runs them in stages instead of leaving some out.
+ * job-room searches all cantons at once; the others once per place, the home first.
  * Niche keywords run without place on jobs.ch only: on jobscout24 and ictjobs they would need one to stay few.
+ * bewerbungen/search_stages.py counts them the same way for the announcement (tests/fixtures/run-size.json).
  * @param {string} portal
  * @param {object} plan  as /api/suche/plan returns it
- * @returns {{queries: Array<object>, skipped: number}}
+ * @returns {{queries: Array<object>}}
  */
 export function buildQueries(portal, plan) {
   // The days since this portal's last successful run (G32); an older app sends only the window.
   const maxAge = plan.max_alter_tage_portale?.[portal] ?? plan.max_alter_tage;
   const keywords = plan.stichworte || [];
   const niches = plan.nischen || [];
-  let all = [];
-  let capped = 0; // queries a place's share leaves out, counted with the ones the limit cuts
-  if (APPRENTICESHIP_PORTALS.has(portal)) {
-    all = apprenticeshipQueries(plan);
-  } else if (portal === 'job-room') {
-    all = [
+  if (APPRENTICESHIP_PORTALS.has(portal)) return { queries: apprenticeshipQueries(plan) };
+  if (portal === 'job-room') {
+    return { queries: [
       ...keywords.map((keyword) => ({ keyword, cantons: plan.kantone || [], maxAge })),
       ...niches.map((keyword) => ({ keyword, cantons: [], maxAge })),
-    ];
-  } else if (PLACE[portal]) {
-    const [field, key] = PLACE[portal];
-    const free = portal === 'jobs.ch' ? niches.map((keyword) => ({ keyword, maxAge })) : [];
-    const places = plan[field] || [];
-    const quotas = placeQuotas(places.length, (plan.max_abfragen || Infinity) - free.length);
-    const rounds = places.map((place, i) => keywords.slice(0, quotas[i]).map((keyword) => ({ keyword, [key]: place, maxAge })));
-    capped = places.length * keywords.length - rounds.flat().length;
-    // No place for this portal, or no region chosen at all: the whole of Switzerland, right after the home,
-    // so the limit of queries does not take it first.
-    const everywhere = plan.schweizweit || !rounds.length ? keywords.map((keyword) => ({ keyword, maxAge })) : [];
-    all = [...(rounds[0] || []), ...free, ...everywhere, ...rounds.slice(1).flat()];
+    ] };
   }
-  const limit = plan.max_abfragen || all.length;
-  return { queries: all.slice(0, limit), skipped: Math.max(0, all.length - limit) + capped };
+  if (!PLACE[portal]) return { queries: [] };
+  const [field, key] = PLACE[portal];
+  const free = portal === 'jobs.ch' ? niches.map((keyword) => ({ keyword, maxAge })) : [];
+  const rounds = (plan[field] || []).map((place) => keywords.map((keyword) => ({ keyword, [key]: place, maxAge })));
+  // No place for this portal, or no region chosen at all: the whole of Switzerland, right after the home.
+  const everywhere = plan.schweizweit || !rounds.length ? keywords.map((keyword) => ({ keyword, maxAge })) : [];
+  return { queries: [...(rounds[0] || []), ...free, ...everywhere, ...rounds.slice(1).flat()] };
 }
 
 /** Split a list into parts of at most `size` items. */

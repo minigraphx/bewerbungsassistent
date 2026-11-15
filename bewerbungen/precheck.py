@@ -14,6 +14,8 @@ import re
 
 import yaml
 
+import pfade  # noqa: F401  (makes the module lebenslauf importable)
+import build as cv_build
 import search_plan
 
 LANGUAGES = {"deutsch": "deutsch", "german": "deutsch", "französisch": "französisch", "franzoesisch": "französisch",
@@ -75,6 +77,7 @@ EXCLUSIONS_SECTION = "## Ausschlüsse"
 TECHNOLOGY_LABEL = "technologien"
 LANGUAGES_SECTION = "## Sprachen"
 DEGREE_SECTION = "## Abschluss und Erfahrung"
+DEFAULT_LANGUAGE = "de"  # the language of an application when nothing else says
 NAMED_LEVEL = re.compile(r"([A-Za-zÄÖÜäöüé]+)\s*\(([^()]*)\)")
 
 
@@ -94,8 +97,10 @@ def _degree_levels(text: str) -> list[int]:
     return [level for level, _, words in DEGREE_WORDS if re.search(words, text, re.IGNORECASE)]
 
 
-def _languages(cv: dict, profile: str) -> dict[str, int]:
-    found = [(entry.get("language"), entry.get("fluency")) for entry in cv.get("languages") or [] if isinstance(entry, dict)]
+def _languages(cv: dict, profile: str, language: str) -> dict[str, int]:
+    # Since #181 a name or level may hold German and English; the application's language decides which one counts.
+    entries = [entry for entry in cv.get("languages") or [] if isinstance(entry, dict)]
+    found = [tuple(cv_build.waehle_sprache(entry.get(field), language) for field in ("language", "fluency")) for entry in entries]
     found += [match.groups() for line in search_plan.section_lines(profile, LANGUAGES_SECTION) for match in NAMED_LEVEL.finditer(line)]
     known: dict[str, int] = {}
     for name, fluency in found:
@@ -119,12 +124,12 @@ def _excluded(profile: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(term.strip() for value in values for term in search_plan.split_terms(value) if term.strip()))
 
 
-def person_of(cv: dict, profile: str) -> Person:
+def person_of(cv: dict, profile: str, language: str = DEFAULT_LANGUAGE) -> Person:
     cv = cv if isinstance(cv, dict) else {}
-    return Person(languages=_languages(cv, profile), degree=_degree(cv, profile), excluded=_excluded(profile))
+    return Person(languages=_languages(cv, profile, language), degree=_degree(cv, profile), excluded=_excluded(profile))
 
 
-def for_folder(data_dir: pathlib.Path) -> Person:
+def for_folder(data_dir: pathlib.Path, language: str = DEFAULT_LANGUAGE) -> Person:
     """The person as cv.yaml and the profile describe them; an unreadable file counts as missing data."""
     try:
         cv = yaml.safe_load((data_dir / "cv.yaml").read_text(encoding="utf-8")) or {}
@@ -134,7 +139,7 @@ def for_folder(data_dir: pathlib.Path) -> Person:
         profile = (data_dir / search_plan.PROFILE).read_text(encoding="utf-8")
     except OSError:
         profile = ""
-    return person_of(cv, profile)
+    return person_of(cv, profile, language)
 
 
 def _required_sentences(text: str) -> list[str]:

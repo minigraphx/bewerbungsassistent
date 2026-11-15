@@ -10,7 +10,7 @@ import yaml
 import letter_approval
 import preferences
 import unterlagen
-from ai import consent, form_help, invitation, tasks
+from ai import consent, form_help, invitation, tasks, usage
 from ai.connection import find_connection, make_client, mediation_url, own_key
 from ai.errors import SETUP_ACTION, AiError, SetupNeeded
 from ai.usage import UsageLog
@@ -143,11 +143,11 @@ def _status(k) -> dict:
             invite = False
         return {**result, "eingerichtet": False, "hinweis": str(error), "einladung": invite}
     result = {**result, "eingerichtet": True, "vermittlung": connection.via_mediation,
-              "eigener_schluessel": own_key() is not None}
+              "eigener_schluessel": own_key() is not None, "waehrung": usage.currency(connection.via_mediation)}
     if connection.via_mediation:
         try:
             konto = invitation.account(connection.base_url, connection.access)
-            result = {**result, "budget_usd": konto.get("budget_usd"), "verbraucht_usd": konto.get("spent_usd")}
+            result = {**result, "guthaben_chf": konto.get("credit_chf"), "verbraucht_chf": konto.get("spent_chf")}
         except AiError as error:
             result = {**result, "hinweis": str(error)}
     return result

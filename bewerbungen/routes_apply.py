@@ -24,6 +24,7 @@ OPENED, FILLED, SENT = FORM_STATES
 TOO_MANY = f"Pro Durchgang gehen höchstens {apply.MAX_PER_RUN} Bewerbungen."
 NONE_CHOSEN = "Bitte zuerst Bewerbungen ankreuzen."
 BAD_STATE = "Dieser Stand ist unbekannt."
+CONFIRM_FIRST = "Bitte zuerst unter «Unterlagen prüfen» ansehen und mit «So lassen» bestätigen."
 
 
 def _body_id(body) -> str:
@@ -42,8 +43,12 @@ def _problem(k, entry: dict) -> str | None:
     reason = apply.blocker(k.daten, entry)
     if reason:
         return reason
-    errors = [b.text for b in pruefung.pruefe(k.daten, entry, k.heute()) if b.stufe == "fehler"]
-    return f"Prüfung: {errors[0]}" if errors else None
+    findings = pruefung.pruefe(k.daten, entry, k.heute())
+    errors = [b.text for b in findings if b.stufe == "fehler"]
+    if errors:
+        return f"Prüfung: {errors[0]}"
+    open_ = [b.text for b in findings if b.schluessel and not b.bestaetigt]
+    return f"Prüfung: {open_[0]} {CONFIRM_FIRST}" if open_ else None
 
 
 def _chosen_ids(body) -> list[str]:

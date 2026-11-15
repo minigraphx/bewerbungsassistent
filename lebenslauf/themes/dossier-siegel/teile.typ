@@ -6,6 +6,7 @@
 #import "../dossier.typ": colours-for, labels-for
 #import "theme.typ": ring, footer, sizes, page-margin
 #import "../zeichen.typ": mark-or, mark-of, own-mark
+#import "../type-area.typ": type-area
 
 #let open-steps = 2
 
@@ -43,10 +44,13 @@
   align(left + top, body),
 ))
 
+#let cover-band = 120pt
+
 #let cover(d) = {
   let c = colours-for(d)
   let heading = d.letter.heading
-  page(paper: "a4", margin: page-margin, fill: c.bg, footer: none, {
+  // The contact band at the foot carries text in the bottom margin on purpose
+  page(paper: "a4", margin: page-margin, fill: c.bg, footer: none, foreground: type-area(foot: cover-band), {
     v(space.space-7 * 2)
     step-path(d, c)
     v(space.space-7)
@@ -67,7 +71,7 @@
       v(space.space-2, weak: true)
       text(size: 13pt, fill: c.text)[#heading.company]
     }
-    band(120pt, c, {
+    band(cover-band, c, {
       set text(size: 10pt, fill: c.on-accent)
       set par(leading: 0.7em, spacing: 0.7em)
       for item in d.person.contact [#item #parbreak()]

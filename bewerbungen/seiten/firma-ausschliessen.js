@@ -1,10 +1,10 @@
 "use strict";
 // On the page of an application (#226, G65): show the company's hits no more in the search, or show them again.
-// The application itself stays as it is; only the search and the list of hits leave the company out.
+// The application itself stays as it is; only the search and the list of hits leave the company out. The same
+// words as on a hit and on Firmen (#303).
 (() => {
-  const { holen, senden } = window.App;
+  const { holen } = window.App;
   const $ = id => document.getElementById(id);
-  const WIEDER = "Wieder in der Suche zeigen";
   let satz = "stelle-sie";
   let firma = "";
   let stand = null;  // { schluessel, ausgeschlossen } of the company as last loaded
@@ -16,7 +16,7 @@
     const knopf = $("firma-ausschliessen");
     knopf.hidden = !stand || !stand.schluessel;
     knopf.disabled = false;
-    if (stand) knopf.textContent = stand.ausgeschlossen ? WIEDER : t("firmen.ausschliessen");
+    if (stand) knopf.textContent = t(stand.ausgeschlossen ? "firmen.wieder-zeigen" : "firmen.ausschliessen");
   }
 
   async function lade(name) {
@@ -38,14 +38,14 @@
     $("firma-ausschliessen").disabled = true;
     try {
       if (stand.ausgeschlossen) {
-        stand = (await senden("/api/firmen/wieder-zeigen", { schluessel: stand.schluessel })).firma;
-        meldung(`${firma}: Die Suche zeigt die Inserate wieder.`, "ok");
+        stand = await window.FirmenAusschluss.wiederZeigen(stand.schluessel);
+        meldung(t("firmen.wieder-gezeigt", { firma }), "ok");
       } else {
-        stand = (await senden("/api/firmen/ausschliessen", { name: firma })).firma;
+        stand = await window.FirmenAusschluss.ausschliessen(firma);
         meldung(t("firmen.ausgeschlossen", { firma }), "ok");
       }
     } catch (fehler) {
-      meldung(`${firma}: nicht geändert. ${fehler.message}`, "fehler");
+      meldung(`${t("firmen.nicht-geaendert", { firma })} ${fehler.message}`, "fehler");
     }
     zeige();
   }

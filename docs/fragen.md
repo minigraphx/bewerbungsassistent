@@ -99,7 +99,7 @@ Unter dem Häkchen steht meist in einem Satz, warum ictjobs gerade an oder aus i
 
 ## Wie schalte ich ictjobs ein oder aus?
 
-Unter Stellen suchen › Suche einstellen › Wo suchen Sie? setzen oder entfernen Sie das Häkchen bei ictjobs. Ab der ersten Änderung gilt Ihre Wahl für alle Portale, auch wenn sich Ihre Suchbegriffe später ändern; die App schaltet dann nichts mehr von selbst um. Mindestens ein Portal bleibt an, sonst findet die Suche nichts.
+Unter Stellen › Suche einstellen › Wo suchen Sie? setzen oder entfernen Sie das Häkchen bei ictjobs. Ab der ersten Änderung gilt Ihre Wahl für alle Portale, auch wenn sich Ihre Suchbegriffe später ändern; die App schaltet dann nichts mehr von selbst um. Mindestens ein Portal bleibt an, sonst findet die Suche nichts.
 
 ## Für Lehrstellen
 
@@ -109,4 +109,4 @@ Für dich gilt alles, was oben steht. Dazu ersetzt die App bei der Lehrstellensu
 
 Ja. Jede Person hat ihren eigenen Datenordner mit Lebenslauf, Anschreiben und Bewerbungen. Am einfachsten hat jede Person ein eigenes Benutzerkonto auf dem Computer und richtet die App dort ein. Dann hat sie auch ihren eigenen Zugang zur KI.
 
-Teilen sich mehrere Personen ein Benutzerkonto, wechseln sie unter Mehr › Einrichtung › Datenordner zum Ordner der anderen Person. Der Zugang zur KI gehört aber zum Benutzerkonto, nicht zum Datenordner: Alle nutzen dann denselben Zugang und dasselbe Budget, auch mit einem eigenen API-Schlüssel. Wie der Wechsel geht und was Sie vorher abschliessen, steht in der Anleitung unter [Mehrere Personen](installation.md#mehrere-personen).
+Teilen sich mehrere Personen ein Benutzerkonto, wechseln sie unter Einstellungen › Daten und Sicherung › Einrichtung: Datenordner, Erweiterung und KI zum Ordner der anderen Person. Der Zugang zur KI gehört aber zum Benutzerkonto, nicht zum Datenordner: Alle nutzen dann denselben Zugang und dasselbe Guthaben, auch mit einem eigenen API-Schlüssel. Wie der Wechsel geht und was Sie vorher abschliessen, steht in der Anleitung unter [Mehrere Personen](installation.md#mehrere-personen).

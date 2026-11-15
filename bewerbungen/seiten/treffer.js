@@ -24,9 +24,11 @@
   let erweiterung = null;    // true once the extension answered, false when it stayed silent at the start
   let suchlaeuft = false;
   let profilFehlt = "";      // why nothing can be searched yet, from the app (#220)
+  let umfang = null;         // how big the next run is (G43), from the app
   let gesucht = false;       // a search ran before, so an empty list of new hits means „nothing new“
   let zusammenfassung = "";
-  let geladen = false;       // the list and the reason a search cannot start are known
+  let suchStand = { lauf: null, wann: "" };  // the last search from the app, for the summary under the title
+  let geladen = false;      // the list and the reason a search cannot start are known
   let sucheVerlangt = location.hash === "#jetzt-suchen";  // „Jetzt suchen“ on Suche einstellen leads here (#263)
   let wartetSeit = null;     // ISO time since the page waits for a search, to tell its run from older ones
   let stille = null;         // timer: no word from the extension for a while
@@ -42,6 +44,15 @@
   function anzeigen(treffer) {
     alle = alle.map(t => (t.id === treffer.id ? treffer : t));
     zeigeListe();
+  }
+
+  // The sidebar counts „N neu“ once when the page opens. Merken, Verwerfen, Zurückholen and hits that arrive later
+  // change that number while the page stays open, so it is told to count again whenever the number moved (#311).
+  let neuGezaehlt = null;
+  function meldeNeueZahl() {
+    const neu = alle.filter(x => x.zustand === "neu").length;
+    if (geladen && neu !== neuGezaehlt && window.SidebarLogic) document.dispatchEvent(new CustomEvent(window.SidebarLogic.HITS_CHANGED));
+    neuGezaehlt = neu;
   }
 
   async function bewerte(t, knopf) {
@@ -218,27 +229,30 @@
       .catch(fehler => meldung(fehler.message, "fehler"));
   }
 
-  // „Diese Firma nicht mehr zeigen“ (#226, G65): its hits leave the list; „Rückgängig“ brings them back.
+  // Excluding a company (#226, G65): its hits leave the list; the message offers to show them again, in the
+  // same words as Firmen and the application (#303).
   async function schliesseAus(treffer) {
+    const name = treffer.firma;
     try {
-      const antwort = await senden("/api/firmen/ausschliessen", { name: treffer.firma });
+      const firma = await window.FirmenAusschluss.ausschliessen(name);
       if (gewaehlt === treffer.id) gewaehlt = null;
       await lade();
-      zeile($("status"), t("firmen.ausgeschlossen", { firma: treffer.firma }), "ok", {
-        aktion: { text: "Rückgängig", ausfuehren: () => zeigeWieder(antwort.firma.schluessel) },
+      zeile($("status"), t("firmen.ausgeschlossen", { firma: name }), "ok", {
+        aktion: { text: t("firmen.wieder-zeigen"), ausfuehren: () => zeigeWieder(firma.schluessel, name) },
       });
     } catch (fehler) {
-      meldung(`${treffer.firma}: nicht ausgeschlossen. ${fehler.message}`, "fehler");
+      meldung(`${t("firmen.nicht-geaendert", { firma: name })} ${fehler.message}`, "fehler");
       zeigeListe();
     }
   }
 
-  async function zeigeWieder(schluessel) {
+  async function zeigeWieder(schluessel, name) {
     try {
-      await senden("/api/firmen/wieder-zeigen", { schluessel });
+      await window.FirmenAusschluss.wiederZeigen(schluessel);
       await lade();
+      meldung(t("firmen.wieder-gezeigt", { firma: name }), "ok");
     } catch (fehler) {
-      meldung(`Die Firma wird nicht wieder gezeigt. ${fehler.message}`, "fehler");
+      meldung(`${t("firmen.nicht-geaendert", { firma: name })} ${fehler.message}`, "fehler");
     }
   }
 
@@ -295,6 +309,8 @@
       else reiter.removeAttribute("aria-current");
     }
     for (const name of ["neu", "uebernommen", "verworfen"]) document.querySelector(`[data-zahl=${name}]`).textContent = String(alle.filter(x => x.zustand === name).length);
+    zeigeZahlen();
+    meldeNeueZahl();
     if (!sichtbar.some(x => x.id === gewaehlt)) gewaehlt = sichtbar[0]?.id ?? null;
     $("liste").classList.toggle("search__list--two", lehrstelle);  // two grades: the same width for every row
     $("liste").replaceChildren(...sichtbar.map(trefferZeile));
@@ -320,7 +336,7 @@
     zeigeBerufe();
   }
 
-  /** The estimate depends on the hits and the budget; without it the box still counts the hits. */
+  /** The estimate depends on the hits and the credit; without it the box still counts the hits. */
   async function loadEstimate() {
     try {
       estimate = await holen("/api/suche/alle-pruefen");
@@ -428,7 +444,7 @@
     bewertungslauf = null;
     zeigeListe();
     loadEstimate();
-    const summary = logik.schlussText(stand, logik.zuBewerten(alle).length) + suffix;
+    const summary = logik.schlussText(stand, logik.zuBewerten(alle).length, await window.Sidebar.currency) + suffix;
     if (stand.fehler) meldung(`${stand.fehler} ${summary}`, "fehler");
     else meldung(summary, stand.offen.length || stand.gestoppt || suffix ? "hinweis" : "ok");
   }
@@ -457,8 +473,14 @@
     $("zeitraum-aendern").hidden = !zeitraum.zeitfenster_aendern;
   }
 
+  // „N Treffer, M neu“ under the title counts the list as it is now, so Merken and Verwerfen move it at once (#317).
+  function zeigeZahlen() {
+    $("letzte").textContent = anzeige.letzteSuche(suchStand.lauf, alle, datum, suchStand.wann);
+  }
+
   function zeigeLetzteSuche(lauf, hinweise, ziele, zeitraum = {}) {
-    $("letzte").textContent = anzeige.letzteSuche(lauf, alle, datum, zeitraum.letzte);
+    suchStand = { lauf, wann: zeitraum.letzte };
+    zeigeZahlen();
     zeigeZeitraum(zeitraum);
     const nachholen = zeitraum.nachholen || {};
     const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem)
@@ -509,6 +531,7 @@
       grenze = daten.grenze;
       gesucht = Boolean(daten.letzte_suche) || alle.length > 0;
       profilFehlt = daten.sperrgrund || "";
+      umfang = daten.umfang || null;
       zusammenfassung = anzeige.zusammenfassung({
         begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle: daten.art === "lehrstelle",
       });
@@ -538,6 +561,9 @@
     const grund = anzeige.sperrgrund({ erweiterung, laeuft: suchlaeuft, profil: profilFehlt });
     $("suchen").disabled = suchlaeuft || erweiterung !== true || Boolean(grund);
     $("suchen-grund").textContent = grund;
+    const ansage = window.SuchlaufLogik.umfangText(umfang, grund);
+    $("suchen-umfang").textContent = ansage;
+    $("suchen-umfang").hidden = !ansage;
     if (!sucheVerlangt || !geladen || erweiterung === null) return;
     sucheVerlangt = false;  // once: the reason under the button says why it did not start
     history.replaceState(null, "", location.pathname + location.search);
@@ -548,10 +574,7 @@
     if (lauf.zustand === "fehler") return [lauf.fehler || "Die Suche ist abgebrochen.", "fehler"];
     if (lauf.zustand === "fertig" && lauf.ergebnis?.abgebrochen) return ["Suche abgebrochen. Was schon gefunden war, ist da.", "hinweis"];
     if (lauf.zustand === "fertig") return ["Suche fertig.", "ok"];
-    const s = lauf.schritt || {};
-    if (s.phase === "suche") return [`${s.portal}: suche „${s.stichwort}“, Seite ${s.seite} …`, ""];
-    if (s.phase === "texte") return [`${s.portal}: lese Inserate (${s.fertig} von ${s.von}) …`, ""];
-    return ["Suche startet …", ""];
+    return [window.SuchlaufLogik.laufZeile(lauf.schritt || {}), ""];
   }
 
   // The extension's worker may stop and lose this page's connection: without word for a while, the page asks.

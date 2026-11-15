@@ -1,6 +1,7 @@
 "use strict";
 // On Stellen (#210): the hint after a search, counted by the app without AI, and the list narrowed to the hits behind a
-// piece of evidence („#beleg=…“). The way to the check with its cost (G15) is on Suche einstellen (#263).
+// piece of evidence („#beleg=…“) or to the dismissed hits with one title word („#verworfen=…“, #225, G66). The way to
+// the check with its cost (G15) is on Suche einstellen (#263).
 window.SuchbegriffeStart = (() => {
   const { holen, senden, status, textsatz } = window.App;
   const L = window.SuchbegriffeLogik;
@@ -9,11 +10,11 @@ window.SuchbegriffeStart = (() => {
 
   const geaendert = () => document.dispatchEvent(new CustomEvent("suchbegriffe-beleg"));
 
-  function zeigeHinweis(hinweis, kosten, texte) {
+  function zeigeHinweis(hinweis, kosten, waehrung, texte) {
     $("begriff-hinweis").hidden = !hinweis;
     if (!hinweis) return;
     $("begriff-hinweis-text").textContent = L.hinweisText(hinweis);
-    $("begriff-hinweis-nachsatz").textContent = `${texte.hinweisNachsatz} ${L.schaetzung(kosten)}.`;
+    $("begriff-hinweis-nachsatz").textContent = `${texte.hinweisNachsatz} ${L.schaetzung(kosten, waehrung)}.`;
     $("begriff-hinweis-aus").onclick = async () => {
       try {
         await senden("/api/suchbegriffe/ausblenden", { begriff: hinweis.begriff });
@@ -33,24 +34,35 @@ window.SuchbegriffeStart = (() => {
     try {
       const [antwort, satz] = await Promise.all([holen("/api/suchbegriffe/hinweis"), textsatz()]);
       const texte = L.texte(satz);
-      zeigeHinweis(antwort.verfuegbar ? antwort.hinweis : null, antwort.kosten_usd, texte);
+      zeigeHinweis(antwort.verfuegbar ? antwort.hinweis : null, antwort.kosten_usd, antwort.waehrung, texte);
     } catch {
       $("begriff-hinweis").hidden = true;  // the hint is extra; the list works without it
     }
   }
 
+  /** The hits a link names: those behind a term (#210) or the dismissed ones with a title word (#225, G66). */
+  async function belegHolen(begriff, wort) {
+    if (begriff) {
+      const antwort = await holen("/api/suchbegriffe/beleg", { begriff });
+      return { ...antwort, text: `Gezeigt: ${antwort.ids.length} Treffer, die nur über «${antwort.begriff}» hereinkamen.` };
+    }
+    const antwort = await holen("/api/suche/verworfen-woerter/beleg", { wort });
+    return { begriff: antwort.wort, ids: antwort.ids, text: window.VerworfenWoerterLogik.filterText(antwort.ids.length, antwort.wort) };
+  }
+
   async function belegLaden() {
     const begriff = L.belegAusAdresse(location.hash);
-    if (!begriff) {
+    const wort = window.VerworfenWoerterLogik.ausAdresse(location.hash);
+    if (!begriff && !wort) {
       beleg = null;
       $("beleg-filter").hidden = true;
       geaendert();
       return;
     }
     try {
-      const antwort = await holen("/api/suchbegriffe/beleg", { begriff });
+      const antwort = await belegHolen(begriff, wort);
       beleg = { begriff: antwort.begriff, ids: new Set(antwort.ids) };
-      $("beleg-filter-text").textContent = `Gezeigt: ${antwort.ids.length} Treffer, die nur über «${antwort.begriff}» hereinkamen.`;
+      $("beleg-filter-text").textContent = antwort.text;
       $("beleg-filter").hidden = false;
     } catch (fehler) {
       beleg = null;

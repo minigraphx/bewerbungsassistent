@@ -27,13 +27,13 @@
   "documents": {
     "title": "Unterlagen",
     "intro": {
-      "job": "Haben Sie schon einen Lebenslauf, Arbeitszeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Die App übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.",
+      "job": "Haben Sie schon einen Lebenslauf, Zeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Die App übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.",
       "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Die App übernimmt daraus später, was passt, und fragt nur nach, was fehlt."
     },
     "categories": [
       {"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 10,
         "fileTypes": ["document"]},
-      {"id": "zeugnisse", "title": {"job": "Arbeitszeugnisse", "apprenticeship": "Zeugnisse"}, "hint": {"job": "Arbeitszeugnisse und Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20,
+      {"id": "zeugnisse", "title": "Zeugnisse", "hint": {"job": "Arbeits- und Schulzeugnisse, auch Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20,
         "fileTypes": ["document", "image"]},
       {"id": "zertifikate", "title": "Zertifikate und Diplome", "hint": "Diplome, Kursbestätigungen, Sprachzertifikate, Eignungstests", "maxFiles": 30,
         "fileTypes": ["document", "image"]},
@@ -123,8 +123,8 @@
         {"id": "position", "label": {"job": "Funktion", "apprenticeship": "Beruf oder Tätigkeit (z.B. Schnupperlehre Fachfrau Gesundheit)"}, "type": "text", "bilingual": true, "required": true, "max": 100},
         {"id": "name", "label": {"job": "Firma", "apprenticeship": "Betrieb, Verein oder Familie"}, "type": "text", "bilingual": true, "required": true, "max": 100},
         {"id": "location", "label": "Ort", "type": "text", "bilingual": true, "max": 60},
-        {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "required": true, "requiredUnless": "x-display", "format": "date"},
-        {"id": "endDate", "label": "Bis (leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"},
+        {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "required": true, "requiredUnless": "x-display", "format": "date"},
+        {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"},
         {"id": "x-display", "label": "Anzeige statt Zeitraum (freiwillig, z.B. seit 2020)", "type": "text", "bilingual": true, "keepUnlessGiven": true, "max": 40, "hint": "Steht im Lebenslauf anstelle von „Von“ und „Bis“. Damit kann „Von“ leer bleiben."},
         {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile, Tags freiwillig)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile, Tags freiwillig)"}, "type": "list", "bilingual": true, "tags": true, "maxItems": 6, "hint": {"job": "Eine Zeile mit Tags kommt nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Eine Zeile mit Tags kommt nur in Fassungen für Lehrstellen mit einem dieser Tags."}},
         {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}},
@@ -144,8 +144,8 @@
         {"id": "position", "label": "Funktion (z.B. Kursleiterin Programmieren)", "type": "text", "bilingual": true, "required": true, "max": 100},
         {"id": "name", "label": "Schule, Firma oder Verein", "type": "text", "bilingual": true, "required": true, "max": 100},
         {"id": "location", "label": "Ort", "type": "text", "bilingual": true, "max": 60},
-        {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "required": true, "requiredUnless": "x-display", "format": "date"},
-        {"id": "endDate", "label": "Bis (leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"},
+        {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "required": true, "requiredUnless": "x-display", "format": "date"},
+        {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"},
         {"id": "x-display", "label": "Anzeige statt Zeitraum (freiwillig, z.B. seit 2020)", "type": "text", "bilingual": true, "keepUnlessGiven": true, "max": 40, "hint": "Steht im Lebenslauf anstelle von „Von“ und „Bis“. Damit kann „Von“ leer bleiben."},
         {"id": "highlights", "label": "Inhalte und Erfolge (eine pro Zeile, Tags freiwillig)", "type": "list", "bilingual": true, "tags": true, "maxItems": 6, "hint": "Eine Zeile mit Tags kommt nur in Fassungen für Stellen mit einem dieser Tags."},
         {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}
@@ -181,8 +181,8 @@
         {"id": "studyType", "label": {"job": "Abschluss (z.B. Kaufmann EFZ, Bachelor)", "apprenticeship": "Schulstufe und Niveau (z.B. Sekundarschule, Niveau A)"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100},
         {"id": "area", "label": "Fachrichtung (freiwillig)", "type": "text", "bilingual": true, "max": 100, "tracks": ["job"]},
         {"id": "institution", "label": {"job": "Schule oder Lehrbetrieb, Ort", "apprenticeship": "Name der Schule, Ort"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100},
-        {"id": "startDate", "label": "Von (Jahr oder Jahr-Monat)", "type": "text", "format": "date"},
-        {"id": "endDate", "label": "Bis (leer = laufend)", "type": "text", "format": "date", "notBefore": "startDate"},
+        {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "format": "date"},
+        {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = laufend)", "type": "text", "format": "date", "notBefore": "startDate"},
         {"id": "text", "label": "Eigener Text (freiwillig)", "type": "text", "bilingual": true, "max": 200, "hint": {"job": "Ein fertiger Satz, der im Lebenslauf anstelle von Abschluss, Fachrichtung, Schule und Zeitraum steht, z.B. „Bachelor of Science in Informatik, Beispiel-Hochschule, 2011–2015“. Mit eigenem Text dürfen Abschluss und Schule leer bleiben.", "apprenticeship": "Ein fertiger Satz, der im Lebenslauf anstelle von Schulstufe, Schule und Zeitraum steht, z.B. „Sekundarschule Niveau A, Oberstufe Muster, seit 2023“. Mit eigenem Text dürfen Schulstufe und Schule leer bleiben."}}
       ]
     },
@@ -199,7 +199,7 @@
       "fields": [
         {"id": "name", "label": {"job": "Bezeichnung", "apprenticeship": "Test (z.B. Multicheck Gesundheit)"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100},
         {"id": "issuer", "label": "Anbieter (freiwillig)", "type": "text", "bilingual": true, "max": 100},
-        {"id": "date", "label": "Datum (Jahr oder Jahr-Monat)", "type": "text", "format": "date"},
+        {"id": "date", "label": "Datum (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "format": "date"},
         {"id": "text", "label": "Eigener Text (freiwillig)", "type": "text", "bilingual": true, "max": 200, "hint": {"job": "Ein fertiger Satz, der im Lebenslauf anstelle von Bezeichnung, Anbieter und Datum steht, z.B. „Scrum Master (PSM I), 2022“. Mit eigenem Text darf die Bezeichnung leer bleiben.", "apprenticeship": "Ein fertiger Satz, der im Lebenslauf anstelle von Test, Anbieter und Datum steht, z.B. „Multicheck Gesundheit, 2026“. Mit eigenem Text darf der Test leer bleiben."}},
         {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}
       ]
@@ -234,7 +234,7 @@
       "itemTitle": "Bereich",
       "fields": [
         {"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "bilingual": true, "required": true, "max": 60},
-        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile, Stufe freiwillig)", "type": "list", "levels": true, "required": true, "maxItems": 12, "max": 60, "hint": "Die Stufe von 1 bis 6 ist freiwillig. Hat eine Kenntnis im Bereich eine Stufe, zeigt das Dossier dort eine Grafik; Kenntnisse ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."},
+        {"id": "keywords", "label": "Kenntnisse (eine pro Zeile, Stufe freiwillig)", "type": "list", "levels": true, "bilingual": true, "required": true, "maxItems": 12, "max": 60, "hint": "Die Stufe von 1 bis 6 ist freiwillig. Hat eine Kenntnis im Bereich eine Stufe, zeigt das Dossier dort eine Grafik; Kenntnisse ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."},
         {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}
       ]
     },
@@ -247,7 +247,7 @@
         "apprenticeship": "Was machst du in der Freizeit? Hat ein Hobby mit deinem Wunschberuf zu tun, schreib das bei den Stärken dazu."
       },
       "fields": [
-        {"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "maxItems": 8, "max": 60}
+        {"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "bilingual": true, "maxItems": 8, "max": 60}
       ]
     },
     {
@@ -256,8 +256,8 @@
       "tracks": ["job"],
       "intro": {"job": "Danach sucht die App Stellen für Sie."},
       "fields": [
-        {"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Suche“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 5},
-        {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 10},
+        {"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Suche“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 15},
+        {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 30, "max": 80},
         {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60, "preset": {"from": "person.city"}},
         {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100},
         {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Ohne Auswahl sucht die App in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst."},
@@ -267,7 +267,7 @@
         {"id": "temporary", "label": "Befristete Stelle möglich?", "type": "select", "options": ["ja", "nein"]},
         {"id": "keywords", "label": "Stichworte für die Suche (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 15, "max": 60},
         {"id": "titlePositive", "label": "Titel, die passen (freiwillig, z.B. Entwickler)", "type": "list", "maxItems": 30, "max": 80, "hint": "Steht hier etwas, nimmt die Suche nur Stellen, in deren Titel einer dieser Begriffe vorkommt."},
-        {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 15, "max": 60},
+        {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 30, "max": 80},
         {"id": "window", "label": "Zeitfenster der Suche in Tagen (freiwillig)", "type": "text", "format": "days", "hint": "So viele Tage zurück nimmt die Suche Inserate, 1 bis 60. Ohne Angabe sind es 21 Tage.", "messages": {"format": "Bitte eine Zahl von 1 bis 60."}},
         {"id": "portalsOff", "label": "Portale für die Suche", "type": "list", "format": "portal", "maxItems": 3, "control": "switchedOff", "options": ["job-room", "jobs.ch", "jobscout24", "ictjobs"], "optionLabels": {"job-room": "job-room (Stellen der RAV, alle Berufe)", "jobs.ch": "jobs.ch (alle Berufe)", "jobscout24": "jobscout24 (alle Berufe)", "ictjobs": "ictjobs (nur Informatik)"}, "hint": "Die App sucht auf jedem angehakten Portal. Haben Sie die Portale schon unter „Suche einstellen“ gewählt, gilt die Wahl dort.", "messages": {"maxItems": "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts."}},
         {"id": "targetCompanies", "label": "Wunschfirmen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 15, "max": 100}
@@ -279,7 +279,7 @@
       "tracks": ["apprenticeship"],
       "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"},
       "fields": [
-        {"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "hint": "Du weisst noch nicht, welcher Beruf passt? Lass das Feld leer. In der App schlägt dir danach die KI unter „Suche“ Berufe vor, die zu deinen Interessen und Fähigkeiten passen.", "maxItems": 5, "max": 100},
+        {"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "hint": "Du weisst noch nicht, welcher Beruf passt? Lass das Feld leer. In der App schlägt dir danach die KI unter „Suche“ Berufe vor, die zu deinen Interessen und Fähigkeiten passen.", "maxItems": 8, "max": 100},
         {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600},
         {"id": "offers", "label": "Was suchst du?", "type": "select", "options": ["Lehrstellen", "Schnupperlehren", "Lehrstellen und Schnupperlehren"], "hint": "Viele suchen zuerst eine Schnupperlehre. Das lässt sich später auf der Seite „Suche“ ändern. Ohne Auswahl sucht die Erweiterung Lehrstellen."},
         {"id": "start", "label": "Lehrbeginn", "type": "choice", "required": true, "allowOwn": true, "max": 40, "options": {

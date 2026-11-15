@@ -114,12 +114,16 @@ def test_an_empty_first_core_list_counts_as_none_like_in_the_plan():
     assert search_terms.current(search_terms.added(text, "Büroassistenz")) == ("Empfang", "Büroassistenz")
 
 
-@pytest.mark.parametrize("template", ["## Suchrichtungen\n1. {long} (Priorität 1)\n2. Empfang\n", "## Keywords\n- Kernliste: {long}, Empfang\n",
-                                      "## Berufe (mit Priorität)\n1. {long} EFZ\n2. Empfang EFZ\n\n## Lehrbeginn\n- 2027\n"])
-def test_a_long_entry_can_be_removed_by_what_the_page_shows(template):
-    text = template.format(long="Softwareentwicklung im Bereich Datenanalyse und Machine Learning für KMU in der Region Bern")
+@pytest.mark.parametrize("template, cut", [
+    ("## Suchrichtungen\n1. {long} (Priorität 1)\n2. Empfang\n", search_plan.MAX_DIRECTION),  # #316
+    ("## Keywords\n- Kernliste: {long}, Empfang\n", search_plan.MAX_VALUE),
+    ("## Berufe (mit Priorität)\n1. {long} EFZ\n2. Empfang EFZ\n\n## Lehrbeginn\n- 2027\n", search_plan.MAX_PROFESSION_NAME),  # #310
+])
+def test_a_long_entry_can_be_removed_by_what_the_page_shows(template, cut):
+    long = "Softwareentwicklung im Bereich Datenanalyse und Machine Learning für KMU in der Region Bern und Umgebung"
+    text = template.format(long=f"{long} {long}" + " x" * cut)  # longer than any cut
     shown = search_terms.current(text)[0]
-    assert len(shown) == search_plan.MAX_VALUE
+    assert len(shown) == cut
     assert search_terms.current(search_terms.removed(text, shown))[0].startswith("Empfang")
 
 

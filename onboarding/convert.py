@@ -65,7 +65,7 @@ def build_cv(data: dict, track: str, answer_keys: bool = False) -> dict:
         "languages": [_language(lang, answer_keys) for lang in data.get("languages", [])],
         "skills": [tagged({"name": value(s["name"]), "keywords": _keywords(s.get("keywords"), answer_keys)}, s)
                    for s in data.get("skills", [])],
-        "interests": [{"name": name} for name in items(data.get("interests", {}).get("interests"))],
+        "interests": [{"name": name} for name in _lines(data.get("interests", {}).get("interests"))],
     }
     cv.update({key: value for key, value in sections.items()
                if value or (answer_keys and key in KEPT_SECTIONS and key in data)})
@@ -133,18 +133,24 @@ def _language(entry: dict, answer_keys: bool) -> dict:
     return {**language, LEVEL_KEY: ""} if answer_keys and LEVEL_KEY in entry and LEVEL_KEY not in language else language
 
 
+def _lines(lines) -> list[str | dict]:
+    """Non-empty lines of a plain list, as text or {de, en} (#299)."""
+    return [line for line in map(value, lines or []) if line]
+
+
 def _keywords(lines, answer_keys: bool) -> list:
-    """Keywords as lebenslauf/README.md has them: text, or {name, level} with a level 1–6 (#123).
+    """Keywords as lebenslauf/README.md has them: text, or {name, level} with a level 1–6 (#123); the text may be
+    {de, en} (#299).
 
     With answer_keys a line without level that the page sent as {text, level} becomes {name, level: None}: cv_merge.py
     removes the level of the file then, while a plain line leaves it alone.
     """
     keywords = []
     for line in lines or []:
-        if isinstance(line, str):
-            keywords += [text(line)] if text(line) else []
+        if isinstance(line, str) or bilingual_value(line):
+            keywords += [value(line)] if value(line) else []
             continue
-        name, level = text(line.get("text")), text(line.get("level"))
+        name, level = value(line.get("text")), text(line.get("level"))
         if not name:
             continue
         if level.isdigit():

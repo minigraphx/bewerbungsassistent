@@ -12,7 +12,7 @@ from ai.gateway import Gateway, Request
 
 MAX_TEXT = 1000
 MAX_RECOMMENDATIONS = 6
-MAX_NAME = search_plan.MAX_VALUE
+MAX_NAME = search_plan.MAX_PROFESSION_NAME
 MAX_LINE = 400
 BASIC_TRAINING = re.compile(r"[^\x00-\x1f\x85\u2028\u2029#<>]* (?:EFZ|EBA)(?:, Fachrichtung [^\x00-\x1f\x85\u2028\u2029#<>]+)?")
 FIELDS = {"interessen": "interests", "staerken": "strengths", "vermeiden": "avoid"}
@@ -27,17 +27,31 @@ TOO_LONG = f"Bitte je Feld höchstens {MAX_TEXT} Zeichen."
 ANSWERS_EXPECTED = "Interessen und Stärken erwartet."
 
 
-def is_profession(name: object) -> bool:
-    return isinstance(name, str) and len(name) <= MAX_NAME and bool(BASIC_TRAINING.fullmatch(name.strip()))
+def _written_length(name: str) -> int:
+    """As long as the name goes into the profile, with single spaces."""
+    return len(" ".join(name.split()))
 
 
-def is_job_term(name: object) -> bool:
-    return (isinstance(name, str) and len(name) <= MAX_TERM and len(name.split()) <= MAX_TERM_WORDS
-            and bool(JOB_TERM.fullmatch(name.strip())))
+def is_profession(name: object, max_chars: int = MAX_NAME) -> bool:
+    return isinstance(name, str) and _written_length(name) <= max_chars and bool(BASIC_TRAINING.fullmatch(name.strip()))
+
+
+def is_job_term(name: object, max_chars: int = MAX_TERM, max_words: int | None = MAX_TERM_WORDS) -> bool:
+    """A suggestion of the AI stays short; an own term may be as long as Meine Angaben takes it (#310, #316)."""
+    return (isinstance(name, str) and _written_length(name) <= max_chars
+            and (max_words is None or len(name.split()) <= max_words) and bool(JOB_TERM.fullmatch(name.strip())))
 
 
 def is_valid_name(name: object, kind: str) -> bool:
+    """A suggestion of the AI."""
     return is_profession(name) if kind == search_plan.KIND_APPRENTICESHIP else is_job_term(name)
+
+
+def is_own_term(name: object, kind: str, max_chars: int) -> bool:
+    """A term the person adds: within the limits Meine Angaben sets for its field, which count no words (#316)."""
+    if kind == search_plan.KIND_APPRENTICESHIP:
+        return is_profession(name, max_chars)
+    return is_job_term(name, max_chars, max_words=None)
 
 
 def clean_answers(body: object) -> dict[str, str]:

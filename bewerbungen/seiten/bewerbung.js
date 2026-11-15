@@ -126,6 +126,7 @@
       erstellen: ["Unterlagen erstellen", "Lebenslauf und Anschreiben werden als PDF erstellt und danach automatisch geprüft. Die PDFs stehen dann zum Lesen bereit.", [knopf("Unterlagen erstellen", () => $("erstellen").click())]],
       pruefen: ["Unterlagen prüfen", "Die Prüfung läuft.", []],
       klaeren: ["Unterlagen prüfen", `Die Prüfung hat ${fehlerZahl === 1 ? "einen Fehler" : `${fehlerZahl} Fehler`} gefunden. ${fehlerZahl === 1 ? "Er steht" : "Sie stehen"} bei den Unterlagen.`, [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
+      bestaetigen: ["Unterlagen ansehen", "Die Prüfung meldet etwas am Satz der PDFs, mit Dokument und Seite. Erst nach «So lassen» öffnet sich ein Formular.", [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
       formular: [`Formular bei ${b.firma} ausfüllen`, t("bewerbung.formular"), [knopf("Formular öffnen", e => oeffneFormular(e.currentTarget, false)), knopf("Per E-Mail beworben? Versand erfassen", zuAbschnitt("versand-titel"), false)]],
       versand: ["Abschicken und festhalten", t("bewerbung.versand"), [knopf("Versand erfassen", zuAbschnitt("versand-titel"))]],
       nachtragen: ["Versand festhalten", `Beworben am ${datum(b.beworben_am)}, aber der Versand ist noch nicht festgehalten. «Versand erfassen» legt die Fassung ab, die verschickt wurde.`, [knopf("Versand erfassen", zuAbschnitt("versand-titel"))]],
@@ -371,13 +372,36 @@
     $("pdfs").replaceChildren(...(rahmen.length ? rahmen : [el("p", { class: "leer" }, "Noch keine Unterlagen erstellt.")]));
   }
 
+  function zeigeBefunde() {
+    $("befunde").replaceChildren(...befunde.map(b => {
+      const zeile = L.befundZeile(b);
+      const inhalt = zeile.knopf
+        ? el("span", {}, zeile.text, " ", el("button", { type: "button", class: "btn btn--sm", onclick: e => soLassen(e.currentTarget, b.schluessel) }, zeile.knopf))
+        : zeile.text;
+      return window.Meldungen.listenZeile(document, inhalt, zeile.stufe);
+    }));
+  }
+
   async function pruefen() {
     try {
       ({ befunde } = await holen("/api/pruefung", { id: ID }));
-      $("befunde").replaceChildren(...befunde.map(b => window.Meldungen.listenZeile(document, b.text, b.stufe)));
+      zeigeBefunde();
       if (daten) zeigeAlles();
     } catch (fehler) {
       meldungOben("Prüfung fehlgeschlagen: " + fehler.message, "fehler");
+    }
+  }
+
+  // G52: the person has looked at the PDF and sends it as it is; only then does a form open
+  async function soLassen(knopf, schluessel) {
+    knopf.disabled = true;
+    try {
+      ({ befunde } = await senden("/api/pruefung/bestaetigen", { id: ID, schluessel }));
+      zeigeBefunde();
+      if (daten) zeigeAlles();
+    } catch (fehler) {
+      knopf.disabled = false;
+      meldungOben("Meldung der Prüfung nicht bestätigt: " + fehler.message, "fehler");
     }
   }
 

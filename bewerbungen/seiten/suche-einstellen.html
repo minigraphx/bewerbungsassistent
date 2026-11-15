@@ -33,7 +33,7 @@
       <p id="suchliste-titel" class="field__label"></p>
       <ul id="suchliste-liste" class="suchliste"></ul>
       <label id="suchliste-neu-label" class="field__label" for="suchliste-neu"></label>
-      <div class="suchliste__neu"><input class="input" id="suchliste-neu" type="text" maxlength="80" autocomplete="off"><button type="button" class="btn btn--sm" id="suchliste-aufnehmen">Aufnehmen</button></div>
+      <div class="suchliste__neu"><input class="input" id="suchliste-neu" type="text" autocomplete="off"><button type="button" class="btn btn--sm" id="suchliste-aufnehmen">Aufnehmen</button></div>
       <div id="suchliste-status" class="status" role="status" aria-live="polite" tabindex="-1"></div>
     </section>
     <section id="pruefen-block" class="settings-page__ask terms-check" aria-labelledby="pruefen-titel" hidden>
@@ -62,17 +62,35 @@
     <div class="settings-page__head"><h2 id="region-titel">Region und Pensum</h2><button type="button" class="btn btn--quiet btn--sm" id="region-aendern" aria-expanded="false" aria-controls="region-form">Ändern</button></div>
     <dl class="facts">
       <dt>Region</dt><dd id="region-text"></dd>
+      <dt id="portale-orte-titel" hidden>Eigene Orte pro Portal</dt><dd id="portale-orte-text" hidden></dd>
       <dt id="pensum-titel">Pensum</dt><dd id="pensum-text"></dd>
     </dl>
     <form id="region-form" class="settings-page__sub settings-page__edit" hidden>
-      <label class="field"><span class="field__label">Wohnort</span><input class="input" id="region-wohnort" type="text" maxlength="80" autocomplete="off"></label>
+      <label class="field"><span class="field__label">Wohnort</span><input class="input" id="region-wohnort" type="text" autocomplete="off"></label>
       <fieldset class="choice-group">
         <legend>Kantone</legend>
         <ul id="region-kantone" class="kantone-liste"></ul>
         <p class="field__hint" id="kantone-hinweis"></p>
       </fieldset>
+      <fieldset class="choice-group settings-page__sub" id="region-portale" hidden>
+        <legend>Eigene Orte pro Portal</legend>
+        <p class="field__hint">Diese Portale suchen hier statt am Wohnort und in den Kantonen.</p>
+        <div id="region-orte-feld">
+          <label class="field"><span class="field__label">Orte für jobs.ch, einer pro Zeile</span><textarea class="input" id="region-orte" rows="3" spellcheck="false" aria-describedby="region-orte-hinweis"></textarea></label>
+          <p class="field__hint" id="region-orte-hinweis">Höchstens 6. Leer: jobs.ch sucht am Wohnort.</p>
+        </div>
+        <div id="region-plz-feld">
+          <label class="field"><span class="field__label">PLZ für jobscout24, eine pro Zeile</span><textarea class="input" id="region-plz" rows="3" spellcheck="false" inputmode="numeric" aria-describedby="region-plz-hinweis"></textarea></label>
+          <p class="field__hint" id="region-plz-hinweis">Höchstens 6. Leer: jobscout24 sucht an der PLZ aus Meine Angaben.</p>
+        </div>
+        <fieldset class="choice-group" id="region-regionen-feld" aria-describedby="region-regionen-hinweis">
+          <legend>Regionen für ictjobs</legend>
+          <ul id="region-regionen" class="regionen-liste"></ul>
+          <p class="field__hint" id="region-regionen-hinweis">Höchstens 6. Keine gewählt: ictjobs sucht in den Regionen der gewählten Kantone.</p>
+        </fieldset>
+      </fieldset>
       <label class="field" id="region-umkreis-feld" hidden><span class="field__label">Umkreis um den Wohnort</span><select class="input settings-page__select" id="region-umkreis"></select></label>
-      <label class="field" id="region-pensum-feld"><span class="field__label">Pensum (z.B. 80–100 %)</span><input class="input" id="region-pensum" type="text" maxlength="80" autocomplete="off"></label>
+      <label class="field" id="region-pensum-feld"><span class="field__label">Pensum (z.B. 80–100 %)</span><input class="input" id="region-pensum" type="text" autocomplete="off"></label>
       <div class="btn-row"><button type="submit" class="btn btn--primary btn--sm">Speichern</button><button type="button" class="btn btn--sm" id="region-abbrechen">Abbrechen</button></div>
     </form>
     <div id="region-meldung" class="status" role="status" aria-live="polite"></div>
@@ -85,6 +103,10 @@
       <dt class="nur-stelle">Im Titel</dt><dd class="nur-stelle" id="titel-ausschluss-text"></dd>
       <dt id="firmen-ausgeschlossen-titel" data-text="firmen.titel">Firmen</dt><dd id="firmen-ausgeschlossen-text"></dd>
     </dl>
+    <div id="wort-vorschlag" class="notice word-proposal" hidden>
+      <p class="notice__body"><span id="wort-vorschlag-text"></span> <span id="wort-vorschlag-andere"></span></p>
+      <div class="notice__actions"><button type="button" class="btn btn--sm" id="wort-vorschlag-ja"></button><a id="wort-vorschlag-ansehen" href="/treffer"></a><button type="button" class="btn btn--quiet btn--sm" id="wort-vorschlag-nein">Nicht jetzt</button></div>
+    </div>
     <form id="nicht-form" class="settings-page__sub settings-page__edit" hidden>
       <div class="nur-stelle settings-page__sub">
         <label class="field"><span class="field__label">Im Inserat, eins pro Zeile</span><textarea class="input" id="nicht-inserat" rows="4" spellcheck="false"></textarea></label>
@@ -181,6 +203,8 @@
 <script src="/weitere-seiten.js"></script>
 <script src="/suche-rahmen-logik.js"></script>
 <script src="/suche-rahmen.js"></script>
+<script src="/verworfen-woerter-logik.js"></script>
+<script src="/verworfen-woerter.js"></script>
 <script src="/suche-einstellen.js"></script>
 </body>
 </html>

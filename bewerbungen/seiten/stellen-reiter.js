@@ -6,9 +6,15 @@
   if (!tabs || !tabs.dataset.zaehlen || !window.App) return;
   const STATES = ["neu", "uebernommen", "verworfen"];
 
-  window.App.holen("/api/suche/liste").then(({ treffer }) => {
-    for (const state of STATES) {
-      tabs.querySelector(`[data-zahl="${state}"]`).textContent = String(treffer.filter(hit => hit.zustand === state).length);
-    }
-  }).catch(() => { /* no search profile yet: the tabs stay without numbers */ });
+  function count() {
+    window.App.holen("/api/suche/liste").then(({ treffer }) => {
+      for (const state of STATES) {
+        tabs.querySelector(`[data-zahl="${state}"]`).textContent = String(treffer.filter(hit => hit.zustand === state).length);
+      }
+    }).catch(() => { /* no search profile yet: the tabs stay without numbers */ });
+  }
+
+  count();
+  // Excluding a company or taking it back on this page changes the list (#303).
+  if (window.SidebarLogic) document.addEventListener(window.SidebarLogic.HITS_CHANGED, count);
 })();

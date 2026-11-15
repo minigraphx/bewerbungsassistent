@@ -41,7 +41,7 @@
       const [antwort, satz] = await Promise.all([holen("/api/suchbegriffe/hinweis"), textsatz()]);
       const texte = L.texte(satz);
       $("pruefen-block").hidden = !antwort.verfuegbar;
-      $("pruefen-kosten").textContent = L.schaetzung(antwort.kosten_usd);
+      $("pruefen-kosten").textContent = L.schaetzung(antwort.kosten_usd, antwort.waehrung);
       $("pruefen-satz").textContent = texte.satz;
       $("pruefen-was").textContent = texte.wasGeht;
     } catch {
@@ -60,7 +60,7 @@
       $("ohne-profil-text").textContent = daten.sperrgrund || "";
       $("angebot-wahl").hidden = !lehrstelle;
       $("angebot").value = logik.wahlAus(daten.angebote || []);
-      window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || []);
+      window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || [], daten.begriff_laenge);
       window.PortalWahl.zeige(daten.portale_wahl || [], lade);
       zeigeRahmen(daten, rahmen, lehrstelle, firmen.firmen);
       zeigeAblauf(daten);

@@ -36,7 +36,7 @@ class RateLimiter:
 
 
 class ParallelLimiter:
-    """The budget is checked before a call and charged after it, so calls running at once could all overspend."""
+    """The credit is checked before a call and charged after it, so calls running at once could all overspend."""
 
     def __init__(self, at_once: int) -> None:
         self._at_once = at_once

@@ -19,7 +19,7 @@ def test_messages_name_category_and_file(form):
     entries = [{"category": "zeugnisse", "name": "gross.pdf", "size": 20_000_000}]
     [error] = documents.validate_documents(form, entries)
 
-    assert documents.describe(form, "job", entries, error) == "Arbeitszeugnisse, gross.pdf: Die Datei ist zu gross (höchstens 15 MB)."
+    assert documents.describe(form, "job", entries, error) == "Zeugnisse, gross.pdf: Die Datei ist zu gross (höchstens 15 MB)."
 
 
 @pytest.mark.parametrize("category, expected", [

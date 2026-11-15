@@ -6,6 +6,10 @@ import { followKey, searchSites } from './sites.js';
 import { CANCELLED, screen, stopIfCancelled } from './steps.js';
 
 export const DELAY_MS = 600; // between requests to a portal, to stay gentle
+// G43: per portal at most this many searches in a row, then a longer pause; the plan of the app may set both.
+export const STAGE_SIZE = 30;
+export const STAGE_PAUSE_S = 60;
+const PAUSE_SLICE_S = 10;
 export const SEND_SIZE = 10;
 const COMMON = 'portals/common.js';
 
@@ -28,39 +32,59 @@ async function openResults(portal, plan, query, tab, deps) {
   return target;
 }
 
+/** One query, page by page; the problem it ran into, or ''. `position` says where it stands in the stages. */
+async function searchOne(portal, plan, query, tab, found, position, deps) {
+  if (ADAPTERS[portal].opensPages) {
+    stopIfCancelled(deps);
+    const opened = await openResults(portal, plan, query, tab, deps);
+    await deps.sleep(DELAY_MS);
+    if (!opened.ok) {
+      if (opened.changed) throw Object.assign(new Error(opened.fehler), { changed: true });
+      return `${portal}: ${opened.fehler}`;
+    }
+  }
+  for (let page = 1; page <= plan.max_seiten; page += 1) {
+    stopIfCancelled(deps);
+    deps.report({ portal, phase: 'suche', stichwort: query.keyword, seite: page, gefunden: found.size, ...position });
+    const result = await deps.browser.run(tab, portal, 'list', [query, page]);
+    await deps.sleep(DELAY_MS);
+    if (!result.ok) {
+      if (result.changed) throw Object.assign(new Error(result.fehler), { changed: true });
+      return `${portal}: ${result.fehler}`;
+    }
+    for (const hit of result.value.hits) found.set(hitKey(hit), hit);
+    if (!result.value.more) break;
+  }
+  return '';
+}
+
+/**
+ * The longer pause before a stage, in slices: each slice reports the time left, so the progress moves and a
+ * cancel takes effect within a slice.
+ */
+async function stagePause(portal, stage, stages, seconds, deps) {
+  for (let left = seconds; left > 0; left -= PAUSE_SLICE_S) {
+    stopIfCancelled(deps);
+    deps.report({ portal, phase: 'pause', etappe: stage, etappen: stages, sekunden: left });
+    await deps.sleep(Math.min(PAUSE_SLICE_S, left) * 1000);
+  }
+}
+
+/** Every query of the portal (G43), never all at once: stages of at most the plan's size, a longer pause between them. */
 async function listAll(portal, plan, tab, deps) {
   const found = new Map();
-  let problem = '';
-  const { queries, skipped } = buildQueries(portal, plan);
-  if (skipped) {
-    problem = `${portal}: ${skipped} Suchen ausgelassen (höchstens ${queries.length}). Im Suchprofil weniger Stichworte oder Orte angeben.`;
-  }
-  for (const query of queries) {
-    if (ADAPTERS[portal].opensPages) {
-      stopIfCancelled(deps);
-      const opened = await openResults(portal, plan, query, tab, deps);
-      await deps.sleep(DELAY_MS);
-      if (!opened.ok) {
-        if (opened.changed) throw Object.assign(new Error(opened.fehler), { changed: true });
-        problem = [problem, `${portal}: ${opened.fehler}`].filter(Boolean).join(' ');
-        continue;
-      }
-    }
-    for (let page = 1; page <= plan.max_seiten; page += 1) {
-      stopIfCancelled(deps);
-      deps.report({ portal, phase: 'suche', stichwort: query.keyword, seite: page, gefunden: found.size });
-      const result = await deps.browser.run(tab, portal, 'list', [query, page]);
-      await deps.sleep(DELAY_MS);
-      if (!result.ok) {
-        if (result.changed) throw Object.assign(new Error(result.fehler), { changed: true });
-        problem = [problem, `${portal}: ${result.fehler}`].filter(Boolean).join(' ');
-        break;
-      }
-      for (const hit of result.value.hits) found.set(hitKey(hit), hit);
-      if (!result.value.more) break;
+  const problems = [];
+  const { queries } = buildQueries(portal, plan);
+  const size = plan.etappe_abfragen || STAGE_SIZE;
+  const stages = chunks(queries, size);
+  for (const [index, stage] of stages.entries()) {
+    if (index > 0) await stagePause(portal, index + 1, stages.length, plan.etappe_pause_sekunden ?? STAGE_PAUSE_S, deps);
+    for (const [offset, query] of stage.entries()) {
+      const position = { nummer: index * size + offset + 1, abfragen: queries.length, etappe: index + 1, etappen: stages.length };
+      problems.push(await searchOne(portal, plan, query, tab, found, position, deps));
     }
   }
-  return { found, problem };
+  return { found, problem: problems.filter(Boolean).join(' ') };
 }
 
 /**

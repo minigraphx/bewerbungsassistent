@@ -16,6 +16,7 @@ import urllib.parse
 import anthropic
 
 from ai.errors import NOT_SET_UP, AiError, SetupNeeded
+from ai.usage import currency
 
 log = logging.getLogger("bewerbungsbegleiter")
 
@@ -147,6 +148,14 @@ def find_connection(environ: dict | None = None, keyring_access=None) -> Connect
     if not key:
         raise SetupNeeded(NOT_SET_UP)
     return Connection(None, key)
+
+
+def currency_now() -> str:
+    """The currency the person sees for AI costs now: CHF with the mediation (G46), else USD; USD without any AI."""
+    try:
+        return currency(find_connection().via_mediation)
+    except AiError:
+        return currency(False)
 
 
 def make_client(connection: Connection) -> anthropic.Anthropic:

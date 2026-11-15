@@ -19,7 +19,7 @@ LETTER_ROUTE = "/api/dateien/anschreiben"
 BODY_LIMITS = {route: int(own_files.MAX_FILE_BYTES * BASE64_OVERHEAD) + JSON_OVERHEAD_BYTES
                for route in (UPLOAD_ROUTE, LETTER_ROUTE)}
 KIND_NAMES = {own_files.CERTIFICATE_KIND: "Zertifikat", own_files.DIPLOMA_KIND: "Diplom",
-              own_files.REFERENCE_KIND: "Arbeitszeugnis"}
+              own_files.REFERENCE_KIND: "Zeugnis"}
 UNREADABLE = "Die Datei liess sich nicht lesen. Bitte nochmals versuchen."
 NO_APPLICATION = "Bewerbung mit id erwartet."
 
@@ -120,7 +120,7 @@ def remove(k, parameter, body):
 
 
 def change_kind(k, parameter, body):
-    """A file gets another kind (G63). To or from Arbeitszeugnis it moves to the folder of its kind; between Diplom
+    """A file gets another kind (G63). To or from Zeugnis it moves to the folder of its kind; between Diplom
     and Zertifikat it stays where it is, with its place in the choices and ZIPs, and only the record changes."""
     request = _body(body)
     rel = request.get("datei")

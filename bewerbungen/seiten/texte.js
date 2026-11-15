@@ -48,6 +48,10 @@
     // Suche einstellen (#263, A4): the cards
     "einstellen.was": { sie: "Welche Stellen passen zu Ihnen?", du: "Welche Stellen passen zu dir?", lehrstelle: "Welche Lehrstellen passen zu dir?" },
     "einstellen.nicht": { sie: "Was Sie nicht sehen wollen", du: "Was du nicht sehen willst" },
+    "einstellen.verworfen": {
+      sie: "Aus den Stellen, die Sie verworfen haben: {anzahl} haben «{wort}» im Titel.",
+      du: "Aus den Stellen, die du verworfen hast: {anzahl} haben «{wort}» im Titel.",
+    },
     "einstellen.ohne-schluessel": {
       sie: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den tragen Sie in den Einstellungen ein.",
       du: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den trägst du in den Einstellungen ein.",
@@ -59,8 +63,19 @@
     // Firmen with kununu (G35, #188, docs/design/firmen.md); „Firma“ stays neutral, apprenticeships say „Lehrbetrieb“
     "nav.firmen": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
     "firmen.titel": { sie: "Firmen", du: "Firmen", lehrstelle: "Lehrbetriebe" },
-    // Excluded companies (#226, G65): from a hit, from Firmen and from an application
+    // Excluded companies (#226, G65): the same words from a hit, from Firmen and from an application (#303)
     "firmen.ausschliessen": { sie: "Diese Firma nicht mehr zeigen", du: "Diese Firma nicht mehr zeigen", lehrstelle: "Diesen Lehrbetrieb nicht mehr zeigen" },
+    "firmen.wieder-zeigen": { sie: "Diese Firma wieder zeigen", du: "Diese Firma wieder zeigen", lehrstelle: "Diesen Lehrbetrieb wieder zeigen" },
+    "firmen.wieder-gezeigt": {
+      sie: "Inserate von {firma} zeigt die Suche wieder.",
+      du: "Inserate von {firma} zeigt die Suche wieder.",
+      lehrstelle: "Lehrstellen von {firma} zeigt die Suche wieder.",
+    },
+    "firmen.nicht-geaendert": {
+      sie: "Die Suche zeigt die Inserate von {firma} wie vorher.",
+      du: "Die Suche zeigt die Inserate von {firma} wie vorher.",
+      lehrstelle: "Die Suche zeigt die Lehrstellen von {firma} wie vorher.",
+    },
     "firmen.ausgeschlossen": {
       sie: "Inserate von {firma} zeigt die Suche nicht mehr. Unter Suche einstellen können Sie die Firma wieder zeigen.",
       du: "Inserate von {firma} zeigt die Suche nicht mehr. Unter Suche einstellen kannst du die Firma wieder zeigen.",
@@ -390,8 +405,8 @@
       lehrstelle: "Die KI schätzt Lehrstellen ein und entwirft Anschreiben.",
     },
     "einrichtung.ki.code": {
-      sie: "Sie haben von Ihrer Begleitperson einen Einladungscode erhalten.",
-      du: "Du hast von deiner Begleitperson einen Einladungscode erhalten.",
+      sie: "Haben Sie einen Einladungscode? Er bringt ein einmaliges Guthaben von CHF 5 für die KI.",
+      du: "Hast du einen Einladungscode? Er bringt ein einmaliges Guthaben von CHF 5 für die KI.",
     },
     "einrichtung.ki.ohne": {
       sie: "Ohne KI funktionieren Suche, Unterlagen und Versand trotzdem. Anschreiben laden Sie dann selbst hoch, und Treffer bekommen keine Note.",

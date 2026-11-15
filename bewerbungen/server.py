@@ -88,13 +88,17 @@ class Server(ThreadingHTTPServer):
 
     def __init__(self, kontext: Any, routen_get: dict[str, Route], routen_post: dict[str, Route],
                  seiten: dict[str, str], port: int = 0, grenzen: dict[str, int] | None = None,
-                 hidden_links: tuple[str, ...] = (), activity: Activity | None = None) -> None:
+                 hidden_links: tuple[str, ...] = (), activity: Activity | None = None,
+                 stand_ins: dict[str, tuple[str, str]] | None = None) -> None:
         self.kontext = kontext
         self.routen_get = routen_get
         self.routen_post = routen_post
         self.seiten = seiten  # Pfad -> Dateiname in seiten/
         self.grenzen = dict(grenzen or {})  # Pfad -> grösste Anfrage, wo MAX_BODY nicht reicht
         self.hidden_links = hidden_links  # links in the fixed menu of the pages to pages that are switched off
+        # page -> (route it needs, file shown while that route is missing); decided per request, since the
+        # desktop app and its tests register routes after the server is built (#308)
+        self.stand_ins = dict(stand_ins or {})
         self.activity = activity or (lambda path: contextlib.nullcontext())  # the desktop app watches for open pages (G36)
         self.token = secrets.token_urlsafe(32)
         self.session = secrets.token_urlsafe(32)
@@ -150,6 +154,12 @@ class Handler(BaseHTTPRequestHandler):
             return Antwort(HTTPStatus.OK, "text/html; charset=utf-8", html.encode("utf-8"), kopf)
         return datei_antwort(pfad)
 
+    def _page_file(self, path: str) -> str:
+        needed = self.server.stand_ins.get(path)
+        if needed and needed[0] not in self.server.routen_get:
+            return needed[1]
+        return self.server.seiten[path]
+
     def _session_cookie_name(self) -> str:
         return SESSION_COOKIE.format(port=self.server.server_address[1])
 
@@ -163,7 +173,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _page_with_proof(self, teile: urllib.parse.SplitResult) -> Antwort:
         """A page holds the token. It goes out with the session; the link with the token starts the session."""
-        datei = self.server.seiten[teile.path]
+        datei = self._page_file(teile.path)
         if not datei.endswith(".html"):
             return self._seite(datei)
         query = urllib.parse.parse_qsl(teile.query, keep_blank_values=True)

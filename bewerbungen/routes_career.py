@@ -7,6 +7,7 @@ import hashlib
 import re
 
 import preferences
+import profile_limits
 import routes_ai
 import search_plan
 import search_terms
@@ -23,8 +24,11 @@ NO_NAME = "Welcher Eintrag soll weg?"
 EMPTY = {search_plan.KIND_APPRENTICESHIP: "Bitte einen Beruf mit EFZ oder EBA eintragen.",
          search_plan.KIND_JOB: "Bitte einen Suchbegriff eintragen."}
 ALREADY = "„{name}“ wird schon gesucht."
+TOO_LONG = "„{value}…“ ist zu lang: höchstens {limit} Zeichen."
 NO_UNDO = "Rückgängig geht hier nicht mehr. Bitte den Begriff neu aufnehmen."
 SHA256 = re.compile(r"[0-9a-f]{64}")
+# The longest entry the page can show, and so remove: a direction as long as Meine Angaben takes it (#316).
+MAX_SHOWN = max(search_plan.MAX_DIRECTION, search_plan.MAX_PROFESSION_NAME, search_plan.MAX_VALUE)
 
 
 def _profile(k):
@@ -42,7 +46,8 @@ def searched_now(k) -> dict:
     """What the profile names, also if the plan cannot search yet: the page lists it and compares its suggestions with it."""
     path = k.daten / search_plan.PROFILE
     names = _searched(path) if path.is_file() else []
-    return {"gesuchte_berufe": names, "gesuchte_schluessel": [search_terms.key(name) for name in names]}
+    return {"gesuchte_berufe": names, "gesuchte_schluessel": [search_terms.key(name) for name in names],
+            "begriff_laenge": profile_limits.of_term(preferences.strictest_kind(k.daten)).chars}
 
 
 def suggest(k, parameter, body):
@@ -89,7 +94,7 @@ def _change(k, path, description: str, change) -> dict:
 
 def _removed_name(body) -> str:
     name = body.get("beruf") if isinstance(body, dict) else None
-    if not isinstance(name, str) or not name.strip() or len(name) > career.MAX_NAME:
+    if not isinstance(name, str) or not name.strip() or len(name) > MAX_SHOWN:
         raise ValueError(NO_NAME)
     return name.strip()
 
@@ -98,15 +103,23 @@ def _digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def _own_term(name: object, kind: str) -> str:
+    """The term as it goes into the profile, as long as Meine Angaben takes it in its field (#310)."""
+    if name is None or (isinstance(name, str) and not name.strip()):
+        raise ValueError(EMPTY[kind])
+    chars = profile_limits.of_term(kind).chars
+    clean = " ".join(name.split()) if isinstance(name, str) else ""
+    if len(clean) > chars:
+        raise ValueError(TOO_LONG.format(value=clean[:20], limit=chars))
+    if not career.is_own_term(name, kind, chars):
+        raise ValueError(NOT_VALID[kind])
+    return clean
+
+
 def add(k, parameter, body):
     path = _profile(k)
     kind = preferences.strictest_kind(k.daten)
-    name = body.get("beruf") if isinstance(body, dict) else None
-    if name is None or (isinstance(name, str) and not name.strip()):
-        raise ValueError(EMPTY[kind])
-    if not career.is_valid_name(name, kind):
-        raise ValueError(NOT_VALID[kind])
-    clean = " ".join(name.split())
+    clean = _own_term(body.get("beruf") if isinstance(body, dict) else None, kind)
     sought = preferences.load(k.daten).sought
 
     def change(text: str) -> str:
@@ -154,7 +167,7 @@ def undo(k, parameter, body):
         at_end["value"] = True
         if search_terms.is_searched(text, clean):
             return text
-        if not career.is_valid_name(clean, kind):
+        if not career.is_own_term(clean, kind, profile_limits.of_term(kind).chars):
             raise ValueError(NO_UNDO)
         return search_terms.added(text, clean, sought)
 

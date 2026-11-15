@@ -1,4 +1,4 @@
-// Every configured place gets its share of the query limit (#175), with invented places and terms.
+// Every configured place searches every keyword (#175, G43: no limit, stages instead), with invented places and terms.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
@@ -28,16 +28,15 @@ for (const [portal, field, key] of [['jobs.ch', 'orte', 'place'], ['jobscout24',
     const found = perPlace(queries, key);
     assert.deepEqual([...found.keys()].sort(), [...PLAN[field]].sort());
     for (const [place, keywords] of found) {
-      assert.ok(keywords.length >= 6, `${place} gets ${keywords.length} keywords`);
-      assert.deepEqual(keywords, KEYWORDS.slice(0, keywords.length), `${place} searches the top keywords first`);
+      assert.deepEqual(keywords, KEYWORDS, `${place} searches every keyword in profile order`);
     }
   });
 
-  test(`${portal} stays within the query limit and counts the rest`, () => {
-    const { queries, skipped } = buildQueries(portal, PLAN);
+  test(`${portal} runs every query beyond the old limit of the plan`, () => {
+    const { queries } = buildQueries(portal, PLAN);
     const niches = portal === 'jobs.ch' ? NICHES.length : 0;
-    assert.equal(queries.length, PLAN.max_abfragen);
-    assert.equal(skipped, KEYWORDS.length * PLAN[field].length + niches - PLAN.max_abfragen);
+    assert.equal(queries.length, KEYWORDS.length * PLAN[field].length + niches);
+    assert.ok(queries.length > PLAN.max_abfragen);
   });
 }
 

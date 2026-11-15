@@ -1,6 +1,8 @@
 """Automatische Prüfung vor dem Absenden (MIN-262).
 
-Prüft die PDFs formal: Text extrahierbar (Bewerbungssoftware/ATS), Seitenzahl, Platzhalter, und im Anschreiben
+Prüft die PDFs formal: Text extrahierbar (Bewerbungssoftware/ATS), Seitenzahl, Platzhalter, in jedem erzeugten PDF
+den Satz (G52, layout_check.py: Füllung der letzten Seite, allein stehende Überschriften, Text am Rand, Überlappungen),
+und im Anschreiben
 Firma, Stelle, Datum, eine einheitliche Anrede (Du/Sie) und die Ansprechperson in Adresse und Anrede. Der inhaltliche Abgleich mit den Anforderungen der
 Stelle und mit den Belegen ist Aufgabe des Skills `bewerbung` (LLM). Der Nutzer sieht sich nur die PDFs an,
 die Befunde stehen daneben.
@@ -17,6 +19,8 @@ from pypdf.errors import PdfReadError
 
 import pfade  # noqa: F401  (makes the module lebenslauf importable)
 import cuts
+import layout_check
+import layout_confirmed
 import mark_settings
 import page_limit
 import unterlagen
@@ -44,13 +48,16 @@ WRONG_FORMS = {"Frau": ("Sehr geehrter", "Lieber", "Herr"), "Herr": ("Sehr geehr
 class Befund:
     stufe: str  # ok | hinweis | fehler
     text: str
+    schluessel: str | None = None  # a layout breach the person confirms before sending (G52, layout_confirmed)
+    bestaetigt: bool = False
 
 
 def _seiten(pdf: pathlib.Path) -> list[str]:
     return [seite.extract_text() or "" for seite in PdfReader(pdf).pages]
 
 
-def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, cut: Callable[[], list[str]]) -> Befund:
+def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, cut: Callable[[], list[str]],
+                key: str | None = None) -> Befund:
     """A document over its page limit (G51). A built one was tightened already, so the finding names what could be
     cut; the person decides, nothing is cut for them."""
     name = NAMEN[art]
@@ -64,13 +71,32 @@ def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, cut: Callable[
         text += f" Kürzen lässt sich: {', '.join(named)}."
     if art == "lebenslauf" and limit < page_limit.MOST:
         text += f" {ALLOW_THREE}"
-    return Befund("fehler" if art == "anschreiben" else "hinweis", text)
+    if art == "anschreiben":
+        return Befund("fehler", text)
+    return Befund("hinweis", text, schluessel=key)
+
+
+def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = ()) -> list[Befund]:
+    """The breaches of the layout rules in a generated PDF, each with its own key (G52)."""
+    name = NAMEN[art]
+    try:
+        breaches = layout_check.check(pdf, art, headings=headings)
+    except (PdfReadError, ValueError, OSError, KeyError, IndexError, TypeError) as fehler:
+        return [Befund("hinweis", f"{name}: Der Satz der Seiten liess sich nicht messen ({fehler}). Bitte das PDF "
+                                  "selbst ansehen.", schluessel=layout_confirmed.key(pdf, "messung", 1))]
+    found, seen = [], {}
+    for breach in breaches:
+        number = seen[(breach.rule, breach.page)] = seen.get((breach.rule, breach.page), -1) + 1
+        found.append(Befund("hinweis", f"{name}, Seite {breach.page}: {breach.reason}",
+                            schluessel=layout_confirmed.key(pdf, breach.rule, breach.page, number)))
+    return found
 
 
 def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int | None = None,
-               cut: Callable[[], list[str]] = list) -> list[Befund]:
-    """With `as_it_is` the person uploaded the file to use it unchanged: what is not broken is their decision.
-    `limit` is the page limit (MAX_SEITEN without one); `cut` names what could be cut when a document is over it."""
+               cut: Callable[[], list[str]] = list, headings: tuple[str, ...] = ()) -> list[Befund]:
+    """With `as_it_is` the person uploaded the file to use it unchanged: what is not broken is their decision, and
+    only a generated PDF is measured for its layout. `limit` is the page limit (MAX_SEITEN without one); `cut` names
+    what could be cut when a document is over it; `headings` are the CV's own section headings."""
     name = NAMEN[art]
     content_stufe = "hinweis" if as_it_is else "fehler"
     if not pdf.is_file():
@@ -87,9 +113,12 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int |
         befunde.append(Befund("ok", f"{name}: Text extrahierbar ({len(seiten)} Seite{'n' if len(seiten) != 1 else ''})"))
     limit = limit or MAX_SEITEN[art]
     if len(seiten) > limit:
-        befunde.append(_over_limit(art, len(seiten), limit, as_it_is, cut))
+        key = None if as_it_is else layout_confirmed.key(pdf, "seiten", limit + 1)
+        befunde.append(_over_limit(art, len(seiten), limit, as_it_is, cut, key))
     if PLATZHALTER.search(text):
         befunde.append(Befund(content_stufe, f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
+    if not as_it_is:
+        befunde += layout_findings(pdf, art, headings)
     return befunde
 
 
@@ -193,6 +222,17 @@ def _letter_text(letter: pathlib.Path) -> str:
     return text if isinstance(text, str) else ""
 
 
+def _own_headings(cv: object) -> tuple[str, ...]:
+    """The section headings a CV names itself (`x-beschriftungen`, MIN-335)."""
+    labels = cv.get("x-beschriftungen") if isinstance(cv, dict) else None
+    return tuple(v for v in labels.values() if isinstance(v, str)) if isinstance(labels, dict) else ()
+
+
+def _with_confirmations(daten: pathlib.Path, entry_id: str, befunde: list[Befund]) -> list[Befund]:
+    done = layout_confirmed.confirmed(daten, entry_id)
+    return [dataclasses.replace(b, bestaetigt=True) if b.schluessel in done else b for b in befunde]
+
+
 def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[Befund]:
     """Alle Prüfungen einer Bewerbung; Fehler zuerst."""
     pfade = unterlagen.wirksame_pdfs(daten, bewerbung)
@@ -200,8 +240,10 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
     as_it_is = unterlagen.eigener_lebenslauf(daten, bewerbung) is not None or gesendet
     letter_as_it_is = unterlagen.own_letter(daten, bewerbung) is not None or gesendet
     quelle = unterlagen.letter_source(daten, bewerbung["id"])
+    cv = unterlagen.tailored_cv(daten, bewerbung)
+    headings = _own_headings(cv)
     befunde = pruefe_pdf(pfade["lebenslauf"], "lebenslauf", as_it_is=as_it_is, limit=page_limit.load(daten),
-                         cut=lambda: cuts.for_cv(unterlagen.tailored_cv(daten, bewerbung)))
+                         cut=lambda: cuts.for_cv(cv), headings=headings)
     if pfade["anschreiben"].is_file() or quelle.is_file():
         befunde += pruefe_pdf(pfade["anschreiben"], "anschreiben", as_it_is=letter_as_it_is,
                               cut=lambda: cuts.for_letter(_letter_text(quelle)))
@@ -218,8 +260,8 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
         befunde.append(Befund("hinweis", "Kein Anschreiben: weder ein Entwurf noch ein eigenes PDF"))
     dossier = unterlagen.dossier_file(daten, bewerbung)
     if dossier:  # G40: only while chosen or once sent, so the preset checks what it always did
-        befunde += pruefe_pdf(dossier, "dossier", as_it_is=gesendet)
+        befunde += pruefe_pdf(dossier, "dossier", as_it_is=gesendet, headings=headings)
         if not gesendet and mark_settings.state_of_logo(daten) == "fehlt":
             befunde.append(Befund("hinweis", LOGO_MISSING))
     reihenfolge = {"fehler": 0, "hinweis": 1, "ok": 2}
-    return sorted(befunde, key=lambda b: reihenfolge[b.stufe])
+    return sorted(_with_confirmations(daten, bewerbung["id"], befunde), key=lambda b: reihenfolge[b.stufe])

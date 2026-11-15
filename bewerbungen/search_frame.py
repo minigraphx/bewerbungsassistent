@@ -3,14 +3,17 @@
 Each value is one line `- Label: value` in its section of suchprofil.md: the lines Meine Angaben reads and writes
 (onboarding/basics_slots.py) and the search reads (search_plan.py). A change replaces the first line whose label
 starts the way the search looks for it, keeping the label and indentation as written; an empty list removes the line,
-and a missing line goes to the end of its section. Every other line of the profile stays as it is.
+and a missing line goes to the end of its section. Every other line of the profile stays as it is. A value is taken
+within the limits of the field in Meine Angaben that reads the same line (`profile_limits.py`, #302). The place
+lines of single portals (Orte, PLZ, Regionen) have no field there; `portal_places.py` checks them (#301).
 """
 import dataclasses
 import re
 
+import portal_places
+import profile_limits
 import search_plan
 
-MAX_EXCLUSIONS = 30
 PAIR_LINE = re.compile(r"^(\s*)-\s+([^:]+):\s*(.*)$")
 ONLY_JOBS = "„{name}“ gilt nur für die Stellensuche."
 ONLY_APPRENTICESHIPS = "Den Umkreis gibt es nur bei der Lehrstellensuche."
@@ -31,19 +34,25 @@ class Field:
     prefix: str  # what the label starts with, as search_plan reads it
     label: str  # for a line that is not there yet
     before: str  # where a missing section goes; at the end if this one is missing too
+    form_id: str  # the field of Meine Angaben that reads the line; empty for one without limits there
     kinds: tuple[str, ...] = (search_plan.KIND_JOB,)
     label_apprenticeship: str = ""
 
 
 BOTH = (search_plan.KIND_JOB, search_plan.KIND_APPRENTICESHIP)
 FIELDS = {
-    "wohnort": Field("den Wohnort", "## Region", "wohnort", "Wohnort", "## Keywords", BOTH),
-    "kantone": Field("Kantone", "## Region", "kantone", "Kantone (job-room)", "## Keywords", BOTH, "Kantone"),
-    "umkreis_km": Field("Umkreis", "## Region", "umkreis", "Umkreis", "## Schule", (search_plan.KIND_APPRENTICESHIP,)),
-    "pensum": Field("das Pensum", "## Rahmen", "pensum", "Pensum", "## Zielfirmen mit Karriereseite"),
-    "ausschluss": Field("Ausschlüsse", "## Suchrichtungen", "ausschluss", "Ausschluss", "## Region"),
-    "titel_positiv": Field("Titel, die passen", "## Titelfilter", "positiv", "Positiv", "## Sprachen"),
-    "titel_ausschluss": Field("Titel, die nicht passen", "## Titelfilter", "ausschluss", "Ausschluss", "## Sprachen"),
+    "wohnort": Field("den Wohnort", "## Region", "wohnort", "Wohnort", "## Keywords", "home", BOTH),
+    "kantone": Field("Kantone", "## Region", "kantone", "Kantone (job-room)", "## Keywords", "cantons", BOTH,
+                     "Kantone"),
+    "umkreis_km": Field("Umkreis", "## Region", "umkreis", "Umkreis", "## Schule", "",
+                        (search_plan.KIND_APPRENTICESHIP,)),
+    "pensum": Field("das Pensum", "## Rahmen", "pensum", "Pensum", "## Zielfirmen mit Karriereseite", "workload"),
+    "ausschluss": Field("Ausschlüsse", "## Suchrichtungen", "ausschluss", "Ausschluss", "## Region", "exclusions"),
+    "titel_positiv": Field("Titel, die passen", "## Titelfilter", "positiv", "Positiv", "## Sprachen", "titlePositive"),
+    "titel_ausschluss": Field("Titel, die nicht passen", "## Titelfilter", "ausschluss", "Ausschluss", "## Sprachen",
+                              "titleExclude"),
+    **{key: Field(portal_places.NAMES[key], "## Region", key, f"{label} ({portal_places.PORTAL_OF[key]})",
+                  "## Keywords", "") for key, label in (("orte", "Orte"), ("plz", "PLZ"), ("regionen", "Regionen"))},
 }
 TEXT_FIELDS = ("wohnort", "pensum")
 OPTIONAL_FOR_JOBS = ("wohnort",)  # without it the search uses the cantons or Orte; an apprenticeship searches around it
@@ -79,7 +88,13 @@ def values(text: str) -> dict:
     radius = search_plan.NUMBER.search(_raw(text, "umkreis_km"))
     return {"wohnort": _raw(text, "wohnort"), "kantone": list(dict.fromkeys(cantons)),
             "umkreis_km": int(radius.group()) if radius else None, "pensum": _raw(text, "pensum"),
-            **{key: _listed(_raw(text, key)) for key in ("ausschluss", *TITLE_LISTS)}}
+            **{key: _listed(_raw(text, key)) for key in ("ausschluss", *TITLE_LISTS, *portal_places.KEYS)}}
+
+
+def lengths(text: str) -> dict[str, int]:
+    """How long the single-line fields of the cards may be, as Meine Angaben takes them."""
+    kind = kind_of(text)
+    return {key: profile_limits.of(kind, FIELDS[key].form_id).chars for key in TEXT_FIELDS if kind in FIELDS[key].kinds}
 
 
 def _one_line(value: str) -> str:
@@ -87,39 +102,40 @@ def _one_line(value: str) -> str:
     return " ".join(value.split())
 
 
-def _checked_text(field: Field, value, required: bool) -> str:
+def _checked_text(field: Field, value, required: bool, limit: profile_limits.Limit) -> str:
     if not isinstance(value, str) or (required and not _one_line(value)):
         raise ValueError(REQUIRED.format(name=field.name))
-    return _bounded(_one_line(value))
+    return _bounded(_one_line(value), limit)
 
 
-def _bounded(value: str) -> str:
-    if len(value) > search_plan.MAX_VALUE:
-        raise ValueError(TOO_LONG.format(value=value[:20], limit=search_plan.MAX_VALUE))
+def _bounded(value: str, limit: profile_limits.Limit) -> str:
+    if len(value) > limit.chars:
+        raise ValueError(TOO_LONG.format(value=value[:20], limit=limit.chars))
     return value
 
 
-def _checked_list(field: Field, value) -> list[str]:
+def _checked_list(field: Field, value, limit: profile_limits.Limit) -> list[str]:
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
         raise ValueError(NOT_A_LIST.format(name=field.name))
     unique: dict[str, str] = {}
-    for item in (_bounded(_one_line(item)) for item in value if _one_line(item)):
+    for item in (_bounded(_one_line(item), limit) for item in value if _one_line(item)):
         unique.setdefault(item.lower(), item)  # the first spelling counts, as the search reads it
     return list(unique.values())
 
 
-def _checked_cantons(field: Field, value) -> list[str]:
-    cantons = [item.upper() for item in _checked_list(field, value)]
+def _checked_cantons(field: Field, value, limit: profile_limits.Limit) -> list[str]:
+    cantons = [item.upper() for item in _checked_list(field, value, limit)]
     wrong = next((c for c in cantons if c not in search_plan.CANTONS), None)
     if wrong:
         raise ValueError(BAD_CANTON.format(value=wrong))
     return cantons
 
 
-def _checked_terms(field: Field, value, limit: int, count) -> list[str]:
-    items = _checked_list(field, value)
-    if count(items) > limit:
-        raise ValueError(TOO_MANY.format(name=field.name, limit=limit))
+def _checked_terms(field: Field, value, limit: profile_limits.Limit) -> list[str]:
+    """One entry per line, counted as Meine Angaben counts them: a slash stays inside its entry."""
+    items = _checked_list(field, value, limit)
+    if len(items) > limit.lines:
+        raise ValueError(TOO_MANY.format(name=field.name, limit=limit.lines))
     return items
 
 
@@ -131,19 +147,19 @@ def _checked_radius(value) -> str:
     return f"{value} km"
 
 
-def _written(key: str, value, kind: str) -> str:
+def _written(key: str, value, kind: str, text: str) -> str:
     """The value as it goes into its line; empty means the line goes."""
     field = FIELDS[key]
-    if key in TEXT_FIELDS:
-        return _checked_text(field, value, kind != search_plan.KIND_JOB or key not in OPTIONAL_FOR_JOBS)
     if key == "umkreis_km":
         return _checked_radius(value)
+    if key in portal_places.KEYS:
+        return ", ".join(portal_places.checked(key, value, _listed(_raw(text, key))))
+    limit = profile_limits.of(kind, field.form_id)
+    if key in TEXT_FIELDS:
+        return _checked_text(field, value, kind != search_plan.KIND_JOB or key not in OPTIONAL_FOR_JOBS, limit)
     if key == "kantone":
-        return ", ".join(_checked_cantons(field, value))
-    if key in TITLE_LISTS:
-        terms = _checked_terms(field, value, search_plan.MAX_TITLE_TERMS, lambda items: len(search_plan.split_terms(", ".join(items))))
-        return ", ".join(terms)
-    return ", ".join(_checked_terms(field, value, MAX_EXCLUSIONS, len))
+        return ", ".join(_checked_cantons(field, value, limit))
+    return ", ".join(_checked_terms(field, value, limit))
 
 
 def _with_line(text: str, field: Field, label: str, value: str) -> str:
@@ -173,7 +189,7 @@ def with_values(text: str, change: dict) -> str:
     """The profile with these values; ValueError with a message for the person if the search cannot take one."""
     kind = kind_of(text)
     _check_kind(change, kind)
-    written = {key: _written(key, value, kind) for key, value in change.items()}
+    written = {key: _written(key, value, kind, text) for key, value in change.items()}
     result = text
     for key, value in written.items():
         field = FIELDS[key]

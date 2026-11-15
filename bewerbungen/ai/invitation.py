@@ -1,8 +1,9 @@
 """Redeem an invitation of the mediation and keep the access in the system's keychain (MIN-344).
 
-The code comes from the person who runs the pilot. The app sends it once to the mediation and gets an
-access back, which goes straight into the keychain (Windows Credential Manager, macOS Keychain) and is
-never shown. `account` reads month, spent and budget for the status line.
+A code is a one-time credit of CHF 5 (G80); once it is used up, the person asks for a new one. The app sends
+the code once to the mediation and gets an access back, which goes straight into the keychain (Windows
+Credential Manager, macOS Keychain) and is never shown; a new code replaces it. `account` reads the credit and
+what is spent of it, in CHF.
 """
 import json
 import logging
@@ -86,5 +87,5 @@ def redeem(base_url: str, code: str, opener: Opener = _open, keep: Callable[[str
 
 
 def account(base_url: str, access: str, opener: Opener = _open) -> dict:
-    """{"month", "spent_usd", "budget_usd"} of the person."""
+    """{"credit_chf", "spent_chf"} of the access."""
     return _call(base_url.rstrip("/") + ACCOUNT_PATH, opener, access=access)

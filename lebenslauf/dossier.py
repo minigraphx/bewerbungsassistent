@@ -21,6 +21,7 @@ import yaml
 import dossier_data
 import mark as mark_module
 import page_fill
+import type_area
 from anschreiben import bereite_vor
 from build import ROOT, SPRACHEN, json_value, pruefe_beschriftungen, pruefe_foto_optionen, waehle_sprache, without_photo
 from tailor import tailor
@@ -168,7 +169,9 @@ def filled_inputs(root: TypstRoot, entry: pathlib.Path, data: pathlib.Path, part
 
 def _compile(compiler: typst.Compiler, root: TypstRoot, entry: pathlib.Path, out: pathlib.Path,
              inputs: dict) -> pathlib.Path:
-    compiler.compile(input=str(root.locate(entry)), output=str(out), format="pdf", sys_inputs=inputs)
+    located = str(root.locate(entry))
+    compiler.compile(input=located, output=str(out), format="pdf", sys_inputs=inputs)
+    type_area.record(out, located, str(root.path), [str(ROOT / "fonts")], inputs)  # the margins for the check (#304)
     return out
 
 

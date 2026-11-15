@@ -2,7 +2,7 @@
 
   POST /v1/messages              Messages API (also streaming), access in x-api-key or Authorization: Bearer
   POST /v1/invitations/redeem    {"code", "device", "consent"} → {"access"}; the app keeps the access in the keychain
-  GET  /v1/account               month, spent and budget of the person
+  GET  /v1/account               credit and what is spent of it, in CHF (G80: once per code, never renewed)
   GET  /health                   for the container
 
 Contents are passed through and never stored or logged. Runs behind a TLS proxy (Caddy).
@@ -17,13 +17,14 @@ from typing import Callable
 from limits import ParallelLimiter, RateLimiter
 from policy import Policy, PolicyError
 from pricing import cost_usd
-from store import Access, Store, StoreError, month_of
+from store import Access, Store, StoreError
 from upstream import JSON_TYPE, Upstream, error_body
 
 MAX_BODY = 2 * 1024 * 1024
 MAX_LOGGED_REASON = 200
 DEFAULT_AT_ONCE = 5  # the app runs three checks of a job at once, plus what the person starts meanwhile
 BUSY_RETRY_SECONDS = 5
+CREDIT_USED_UP = "credit_used_up"  # with status 402; the app tells the person to ask for a new code
 log = logging.getLogger("vermittlung")
 
 
@@ -92,9 +93,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def _account(self) -> None:
         access = self._access()
-        month = month_of(self.mediation.now())
-        self._send_json(200, {"month": month, "spent_usd": self.mediation.store.spent(access.person, month),
-                              "budget_usd": access.budget_usd})
+        self._send_json(200, {"credit_chf": access.credit_chf, "spent_chf": self.mediation.store.spent_chf(access)})
 
     def _redeem(self) -> None:
         wait = self.mediation.redeems.acquire(self._client_address())
@@ -118,8 +117,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         with self.mediation.parallel.slot(access.person) as free:
             if not free:
                 raise Failure(429, "rate_limit_error", "too many requests at once", BUSY_RETRY_SECONDS)
-            if self.mediation.store.spent(access.person, month_of(self.mediation.now())) >= access.budget_usd:
-                raise Failure(402, "budget_exceeded", "monthly budget used up")
+            if self.mediation.store.spent_chf(access) >= access.credit_chf:
+                raise Failure(402, CREDIT_USED_UP, "trial credit used up")
             try:
                 payload = self.mediation.policy.check(self._body())
             except PolicyError as error:

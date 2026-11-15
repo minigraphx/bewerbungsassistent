@@ -21,12 +21,11 @@ MAX_TERMS_PER_CHANGE = 6
 MAX_REASON = 400
 MIN_AVOIDED_WORD = career.MIN_AVOIDED_WORD
 NOTHING_CHOSEN = "Mindestens eine Änderung anhaken."
-OVER_KEYWORDS = "Mit dieser Auswahl wären es {count} Suchbegriffe, gesucht werden höchstens {limit}. Bitte weniger Änderungen anhaken."
+OVER_KEYWORDS = "Mit dieser Auswahl wären es {count} Suchbegriffe, höchstens {limit} gehen. Bitte weniger Änderungen anhaken."
 OVER_TITLES = "Mit dieser Auswahl hätte «{area}» {count} Begriffe, höchstens {limit} gehen. Bitte weniger Änderungen anhaken."
-OVER_QUERIES = ("Mit dieser Auswahl wären es bis {count} Suchen pro Portal, höchstens {limit} laufen. "
-                "Bitte weniger Änderungen anhaken.")
 NO_TERMS_LEFT = "Danach stünde kein Suchbegriff mehr in der Suche. Bitte weniger Änderungen anhaken."
-LIMITS_LINE = "Danach: {keywords} von {max_keywords} Suchbegriffen · bis {queries} von {max_queries} Suchen pro Portal"
+# G43: every search runs, in stages; the line says how many there would be, no longer up to a limit.
+LIMITS_LINE = "Danach: {keywords} von {max_keywords} Suchbegriffen · bis {queries} Suchen pro Portal"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -147,21 +146,18 @@ def places_factor(text: str) -> int:
 
 def limits(before: Terms, after: Terms, places: int) -> dict:
     """The line about the limits, and why the choice cannot be taken over: only what goes over a limit and grows."""
-    queries_before, queries_after = len(before.keywords) * places, len(after.keywords) * places
     checks = (
         (len(after.keywords), len(before.keywords), search_plan.MAX_KEYWORDS,
          OVER_KEYWORDS.format(count=len(after.keywords), limit=search_plan.MAX_KEYWORDS)),
         *((len(after.of(area)), len(before.of(area)), search_plan.MAX_TITLE_TERMS,
            OVER_TITLES.format(area=AREA_NAMES[area], count=len(after.of(area)), limit=search_plan.MAX_TITLE_TERMS))
           for area in (POSITIVE, EXCLUDE)),
-        (queries_after, queries_before, search_plan.MAX_QUERIES,
-         OVER_QUERIES.format(count=queries_after, limit=search_plan.MAX_QUERIES)),
     )
     blocked = next((message for count, earlier, limit, message in checks if count > limit and count > earlier), None)
     if not after.keywords:
         blocked = NO_TERMS_LEFT
     line = LIMITS_LINE.format(keywords=len(after.keywords), max_keywords=search_plan.MAX_KEYWORDS,
-                              queries=min(queries_after, search_plan.MAX_QUERIES), max_queries=search_plan.MAX_QUERIES)
+                              queries=len(after.keywords) * places)
     return {"zeile": line, "gesperrt": blocked}
 
 

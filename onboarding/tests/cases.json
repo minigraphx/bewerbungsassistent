@@ -493,19 +493,50 @@
       "errors": []
     },
     {
+      "name": "as many directions as the search takes (#316)",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.directions",
+          ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "as many professions as the search takes (#316)",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.searchApprenticeship.professions",
+          ["Koch EFZ", "Maler EFZ", "Gärtner EFZ", "Florist EFZ", "Bäcker EFZ", "Coiffeur EFZ", "Logistiker EFZ", "Schreiner EFZ"]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "too many professions",
+      "base": "apprenticeship",
+      "set": [
+        [
+          "data.searchApprenticeship.professions",
+          ["Koch EFZ", "Maler EFZ", "Gärtner EFZ", "Florist EFZ", "Bäcker EFZ", "Coiffeur EFZ", "Logistiker EFZ", "Schreiner EFZ", "Maurer EFZ"]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchApprenticeship.professions",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
       "name": "too many list items",
       "base": "job",
       "set": [
         [
           "data.searchJob.directions",
-          [
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f"
-          ]
+          ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"]
         ]
       ],
       "errors": [
@@ -2603,6 +2634,246 @@
       ]
     },
     {
+      "name": "as many exclusions and title exclusions as Suche einstellen takes (#302)",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.exclusions",
+          [
+            "Ausschluss 0",
+            "Ausschluss 1",
+            "Ausschluss 2",
+            "Ausschluss 3",
+            "Ausschluss 4",
+            "Ausschluss 5",
+            "Ausschluss 6",
+            "Ausschluss 7",
+            "Ausschluss 8",
+            "Ausschluss 9",
+            "Ausschluss 10",
+            "Ausschluss 11",
+            "Ausschluss 12",
+            "Ausschluss 13",
+            "Ausschluss 14",
+            "Ausschluss 15",
+            "Ausschluss 16",
+            "Ausschluss 17",
+            "Ausschluss 18",
+            "Ausschluss 19",
+            "Ausschluss 20",
+            "Ausschluss 21",
+            "Ausschluss 22",
+            "Ausschluss 23",
+            "Ausschluss 24",
+            "Ausschluss 25",
+            "Ausschluss 26",
+            "Ausschluss 27",
+            "Ausschluss 28",
+            "Ausschluss 29"
+          ]
+        ],
+        [
+          "data.searchJob.titleExclude",
+          [
+            "Titel 0",
+            "Titel 1",
+            "Titel 2",
+            "Titel 3",
+            "Titel 4",
+            "Titel 5",
+            "Titel 6",
+            "Titel 7",
+            "Titel 8",
+            "Titel 9",
+            "Titel 10",
+            "Titel 11",
+            "Titel 12",
+            "Titel 13",
+            "Titel 14",
+            "Titel 15",
+            "Titel 16",
+            "Titel 17",
+            "Titel 18",
+            "Titel 19",
+            "Titel 20",
+            "Titel 21",
+            "Titel 22",
+            "Titel 23",
+            "Titel 24",
+            "Titel 25",
+            "Titel 26",
+            "Titel 27",
+            "Titel 28",
+            "Titel 29"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "more exclusions and title exclusions than Suche einstellen takes (#302)",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.exclusions",
+          [
+            "Ausschluss 0",
+            "Ausschluss 1",
+            "Ausschluss 2",
+            "Ausschluss 3",
+            "Ausschluss 4",
+            "Ausschluss 5",
+            "Ausschluss 6",
+            "Ausschluss 7",
+            "Ausschluss 8",
+            "Ausschluss 9",
+            "Ausschluss 10",
+            "Ausschluss 11",
+            "Ausschluss 12",
+            "Ausschluss 13",
+            "Ausschluss 14",
+            "Ausschluss 15",
+            "Ausschluss 16",
+            "Ausschluss 17",
+            "Ausschluss 18",
+            "Ausschluss 19",
+            "Ausschluss 20",
+            "Ausschluss 21",
+            "Ausschluss 22",
+            "Ausschluss 23",
+            "Ausschluss 24",
+            "Ausschluss 25",
+            "Ausschluss 26",
+            "Ausschluss 27",
+            "Ausschluss 28",
+            "Ausschluss 29",
+            "Ausschluss 30"
+          ]
+        ],
+        [
+          "data.searchJob.titleExclude",
+          [
+            "Titel 0",
+            "Titel 1",
+            "Titel 2",
+            "Titel 3",
+            "Titel 4",
+            "Titel 5",
+            "Titel 6",
+            "Titel 7",
+            "Titel 8",
+            "Titel 9",
+            "Titel 10",
+            "Titel 11",
+            "Titel 12",
+            "Titel 13",
+            "Titel 14",
+            "Titel 15",
+            "Titel 16",
+            "Titel 17",
+            "Titel 18",
+            "Titel 19",
+            "Titel 20",
+            "Titel 21",
+            "Titel 22",
+            "Titel 23",
+            "Titel 24",
+            "Titel 25",
+            "Titel 26",
+            "Titel 27",
+            "Titel 28",
+            "Titel 29",
+            "Titel 30"
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.exclusions",
+          "code": "maxItems"
+        },
+        {
+          "path": "searchJob.titleExclude",
+          "code": "maxItems"
+        }
+      ]
+    },
+    {
+      "name": "exclusions as long as the search reads them (#302)",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.exclusions",
+          [
+            "x"
+          ]
+        ],
+        [
+          "data.searchJob.exclusions.0",
+          {
+            "$repeat": "x",
+            "times": 80
+          }
+        ],
+        [
+          "data.searchJob.titleExclude",
+          [
+            "x"
+          ]
+        ],
+        [
+          "data.searchJob.titleExclude.0",
+          {
+            "$repeat": "x",
+            "times": 80
+          }
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "exclusions longer than the search reads them (#302)",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.exclusions",
+          [
+            "x"
+          ]
+        ],
+        [
+          "data.searchJob.exclusions.0",
+          {
+            "$repeat": "x",
+            "times": 81
+          }
+        ],
+        [
+          "data.searchJob.titleExclude",
+          [
+            "x"
+          ]
+        ],
+        [
+          "data.searchJob.titleExclude.0",
+          {
+            "$repeat": "x",
+            "times": 81
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.exclusions.0",
+          "code": "max"
+        },
+        {
+          "path": "searchJob.titleExclude.0",
+          "code": "max"
+        }
+      ]
+    },
+    {
       "name": "a text of the person longer than the old limit passes (G30)",
       "base": "job",
       "set": [
@@ -2816,6 +3087,178 @@
       "base": "job",
       "set": [
         [
+          "data.searchJob.directions",
+          [
+            {
+              "de": "Software-Entwicklung",
+              "en": "Software development"
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.directions",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "two-language keywords, plain and with a level (#299)",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords",
+          [
+            {
+              "de": "Buchhaltung",
+              "en": "Accounting"
+            },
+            {
+              "text": {
+                "de": "Lohnwesen",
+                "en": "Payroll"
+              },
+              "level": "4"
+            },
+            {
+              "text": {
+                "de": "Excel",
+                "en": "Excel"
+              },
+              "level": ""
+            },
+            "SQL"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a two-language keyword with a line break",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.0",
+          {
+            "text": {
+              "de": "Buch-\nhaltung",
+              "en": "Accounting"
+            },
+            "level": ""
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords.0",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "a two-language keyword with a level outside 1 to 6",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.0",
+          {
+            "text": {
+              "de": "Lohnwesen",
+              "en": "Payroll"
+            },
+            "level": "7"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords.0.level",
+          "code": "option"
+        }
+      ]
+    },
+    {
+      "name": "a two-language keyword without text where one is required",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords",
+          [
+            {
+              "text": {
+                "de": " ",
+                "en": ""
+              },
+              "level": ""
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "two-language interests (#299)",
+      "base": "job",
+      "set": [
+        [
+          "data.interests.interests",
+          [
+            {
+              "de": "Wandern",
+              "en": "Hiking"
+            },
+            "Lesen"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a two-language interest with a line break",
+      "base": "job",
+      "set": [
+        [
+          "data.interests.interests.0",
+          {
+            "de": "Wandern",
+            "en": "Hi-\nking"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "interests.interests.0",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "two-language keywords and interests loaded from the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords",
+          [
+            {
+              "de": "Buchhaltung",
+              "en": "Accounting"
+            },
+            {
+              "text": {
+                "de": "Lohnwesen",
+                "en": "Payroll"
+              },
+              "level": "4"
+            }
+          ]
+        ],
+        [
           "data.interests.interests",
           [
             {
@@ -2825,12 +3268,35 @@
           ]
         ]
       ],
-      "errors": [
-        {
-          "path": "interests.interests",
-          "code": "type"
+      "loaded": {
+        "skills": [
+          {
+            "name": "Programme",
+            "keywords": [
+              {
+                "de": "Buchhaltung",
+                "en": "Accounting"
+              },
+              {
+                "text": {
+                  "de": "Lohnwesen",
+                  "en": "Payroll"
+                },
+                "level": "4"
+              }
+            ]
+          }
+        ],
+        "interests": {
+          "interests": [
+            {
+              "de": "Wandern",
+              "en": "Hiking"
+            }
+          ]
         }
-      ]
+      },
+      "errors": []
     },
     {
       "name": "a two-language highlight with a line break",

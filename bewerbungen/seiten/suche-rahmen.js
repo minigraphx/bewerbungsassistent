@@ -1,7 +1,8 @@
 "use strict";
 // Region und Pensum, Was nicht and the title filter on Suche einstellen (#286, G64): „Ändern“ opens the card's own
 // form, „Speichern“ writes to the search profile with drafts, and the page loads anew. Logic in suche-rahmen-logik.js.
-// Was nicht also holds the excluded companies (#226, G65), saved to their own list in the data folder.
+// Was nicht also holds the excluded companies (#226, G65), saved to their own list in the data folder, in the same
+// request as the profile (#303).
 window.SucheRahmen = (() => {
   const { senden, status, el } = window.App;
   const L = window.SucheRahmenLogik;
@@ -9,7 +10,7 @@ window.SucheRahmen = (() => {
   const KARTEN = ["region", "nicht", "titelfilter"];
   const GESPEICHERT = "Gespeichert. Gilt ab der nächsten Suche.";
   const NICHT_GESPEICHERT = "Nicht gespeichert.";
-  let stand = { werte: {}, alleKantone: [], lehrstelle: false, firmen: [] };
+  let stand = { werte: {}, laengen: {}, alleKantone: [], alleRegionen: [], lehrstelle: false, firmen: [] };
 
   function kantone(gewaehlt) {
     const an = new Set(gewaehlt || []);
@@ -17,7 +18,40 @@ window.SucheRahmen = (() => {
       el("label", { class: "check" }, el("input", { type: "checkbox", value: kanton, checked: an.has(kanton) }), ` ${kanton}`))));
   }
 
+  function regionen(gewaehlt) {
+    const an = new Set(gewaehlt || []);
+    $("region-regionen").replaceChildren(...stand.alleRegionen.map(region => el("li", {},
+      el("label", { class: "check" }, el("input", { type: "checkbox", value: region.wert, checked: an.has(region.wert) }), ` ${region.name}`))));
+  }
+
+  /** The place lines of single portals (#301): only those the profile has, as they go before Wohnort and Kantone. */
+  function fuellePortale(werte) {
+    const sichtbar = L.portalFelder(werte, stand.lehrstelle);
+    for (const feld of ["orte", "plz", "regionen"]) $(`region-${feld}-feld`).hidden = !sichtbar.includes(feld);
+    $("region-portale").hidden = !sichtbar.length;
+    $("region-orte").value = L.alsText(werte.orte);
+    $("region-plz").value = L.alsText(werte.plz);
+    regionen(werte.regionen);
+  }
+
+  function portalFelder() {
+    const gezeigt = feld => !$("region-portale").hidden && !$(`region-${feld}-feld`).hidden;
+    const werte = {
+      orte: $("region-orte").value,
+      plz: $("region-plz").value,
+      regionen: [...$("region-regionen").querySelectorAll("input:checked")].map(kasten => kasten.value),
+    };
+    return Object.fromEntries(Object.entries(werte).filter(([feld]) => gezeigt(feld)));
+  }
+
+  /** As long as Meine Angaben takes the value (#302); the server checks it again. */
+  function begrenze(id, laenge) {
+    if (Number.isInteger(laenge)) $(id).maxLength = laenge;
+  }
+
   function fuelleRegion(werte) {
+    begrenze("region-wohnort", stand.laengen.wohnort);
+    begrenze("region-pensum", stand.laengen.pensum);
     $("region-wohnort").value = werte.wohnort || "";
     kantone(werte.kantone);
     $("kantone-hinweis").textContent = L.kantoneHinweis(stand.lehrstelle);
@@ -26,6 +60,7 @@ window.SucheRahmen = (() => {
     $("region-umkreis").value = String(L.umkreisGewaehlt(werte.umkreis_km));
     $("region-pensum-feld").hidden = stand.lehrstelle;
     $("region-pensum").value = werte.pensum || "";
+    fuellePortale(werte);
   }
 
   function fuelle(karte) {
@@ -44,7 +79,8 @@ window.SucheRahmen = (() => {
   function felder(karte) {
     if (karte === "region") {
       const gewaehlt = [...$("region-kantone").querySelectorAll("input:checked")].map(kasten => kasten.value);
-      return { wohnort: $("region-wohnort").value, kantone: gewaehlt, umkreis: $("region-umkreis").value, pensum: $("region-pensum").value };
+      return { wohnort: $("region-wohnort").value, kantone: gewaehlt, umkreis: $("region-umkreis").value, pensum: $("region-pensum").value,
+        ...portalFelder() };
     }
     if (karte === "nicht") return { inserat: $("nicht-inserat").value, titel: $("nicht-im-titel").value, firmen: $("nicht-firmen").value };
     return { positiv: $("titelfilter-positiv").value, ausschluss: $("titelfilter-ausschluss").value };
@@ -65,12 +101,13 @@ window.SucheRahmen = (() => {
     event.preventDefault();
     const meldung = $(`${karte}-meldung`);
     try {
-      const werte = felder(karte);
-      if (L.mitProfil(karte, stand.lehrstelle)) await senden("/api/suche/rahmen", L.koerper(karte, werte, stand.lehrstelle));
-      if (karte === "nicht") await senden("/api/firmen/ausgeschlossen", L.firmenKoerper(werte.firmen));
+      const { pfad, koerper } = L.anfrage(karte, felder(karte), stand.lehrstelle);
+      await senden(pfad, koerper);
       oeffne(karte, false);
       status(meldung, GESPEICHERT, "ok");
       document.dispatchEvent(new CustomEvent("suchprofil-geaendert"));
+      // Listed hits of a company that is now excluded or back leave or join the list.
+      if (karte === "nicht") document.dispatchEvent(new CustomEvent(window.SidebarLogic.HITS_CHANGED));
     } catch (fehler) {
       status(meldung, `${NICHT_GESPEICHERT} ${fehler.message}`, "fehler");
     }
@@ -78,7 +115,12 @@ window.SucheRahmen = (() => {
 
   /** The values of the profile; a form that is open keeps what the person is typing. */
   function zeige(rahmen, lehrstelle, firmen = []) {
-    stand = { werte: rahmen.werte || {}, alleKantone: rahmen.alle_kantone || [], lehrstelle, firmen };
+    stand = { werte: rahmen.werte || {}, laengen: rahmen.laengen || {}, alleKantone: rahmen.alle_kantone || [],
+      alleRegionen: rahmen.alle_regionen || [], lehrstelle, firmen };
+    const proPortal = lehrstelle ? "" : L.proPortalText(rahmen.orte_pro_portal);
+    $("portale-orte-titel").hidden = !proPortal;
+    $("portale-orte-text").hidden = !proPortal;
+    $("portale-orte-text").textContent = proPortal;
   }
 
   for (const karte of KARTEN) {

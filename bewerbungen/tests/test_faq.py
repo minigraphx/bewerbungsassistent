@@ -169,3 +169,14 @@ def test_initials_and_the_logo_file_name_are_replaced_as_the_faq_says():
     assert masked == "x-monogramm: {{MONOGRAM}}\nx-logo: {{LOGO}}\nLMB-Team bleibt"
     assert ("die eigenen Initialen fürs Dossier aus dem Feld dafür (gleiche Buchstaben anderswo, etwa IT oder HR, "
             "bleiben stehen) und den Dateinamen Ihres Logos") in faq()
+
+
+def test_the_folder_switch_names_the_settings_path_of_the_app():
+    """The menu Mehr is gone since the redesign (#318); the path must be the one the settings page shows."""
+    section = "Einstellungen", "Daten und Sicherung"
+    link = "Einrichtung: Datenordner, Erweiterung und KI"
+    settings = (PAGES / "einstellungen.html").read_text(encoding="utf-8")
+    assert all(f">{step}<" in settings for step in (*section, link))
+    assert "Mehr ›" not in faq()
+    several = faq().split("## Können mehrere Personen die App nutzen?")[1].split("\n## ")[0]
+    assert f"unter {' › '.join(section)} › {link} zum Ordner der anderen Person" in several

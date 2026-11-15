@@ -55,7 +55,7 @@ def estimate(ad_lengths: list[int | None], context_chars: int, model: str = MODE
 
 
 def enough_for(estimate_: Estimate, left_usd: float | None) -> int | None:
-    """For how many hits the budget left is enough; None when it is enough for all or there is no budget."""
+    """For how many hits the credit left (in USD) is enough; None when it is enough for all or there is no credit."""
     if left_usd is None or estimate_.count == 0 or left_usd >= estimate_.cost_usd:
         return None
     return max(0, math.floor(left_usd / (estimate_.cost_usd / estimate_.count)))

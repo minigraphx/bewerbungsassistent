@@ -111,30 +111,31 @@
   }
 
   // Excluded companies (#226, G65): their hits leave the search; the row stays, so the person can take it back here.
+  // The same words as on a hit and on an application (#303).
   function sucheKnopf(firma) {
     const name = el("span", { class: "visually-hidden" }, `: ${firma.name}`);
     return firma.ausgeschlossen
-      ? el("button", { type: "button", class: "btn btn--sm", onclick: () => zeigeWieder(firma) }, "Wieder zeigen", name)
-      : el("button", { type: "button", class: "btn btn--sm btn--quiet", onclick: () => schliesseAus(firma) }, "Nicht mehr zeigen", name);
+      ? el("button", { type: "button", class: "btn btn--sm", onclick: () => zeigeWieder(firma) }, text("firmen.wieder-zeigen"), name)
+      : el("button", { type: "button", class: "btn btn--sm btn--quiet", onclick: () => schliesseAus(firma) }, text("firmen.ausschliessen"), name);
   }
 
   async function schliesseAus(firma) {
     try {
-      await senden("/api/firmen/ausschliessen", { name: firma.name });
+      await window.FirmenAusschluss.ausschliessen(firma.name);
       await laden(firma.schluessel);
       meldung(text("firmen.ausgeschlossen", { firma: firma.name }), "success");
     } catch (fehler) {
-      meldung(`${firma.name}: nicht ausgeschlossen. ${fehler.message}`, "warning");
+      meldung(`${text("firmen.nicht-geaendert", { firma: firma.name })} ${fehler.message}`, "warning");
     }
   }
 
   async function zeigeWieder(firma) {
     try {
-      await senden("/api/firmen/wieder-zeigen", { schluessel: firma.schluessel });
+      await window.FirmenAusschluss.wiederZeigen(firma.schluessel);
       await laden(firma.schluessel);
-      meldung(`${firma.name}: Die Suche zeigt die Inserate wieder.`, "success");
+      meldung(text("firmen.wieder-gezeigt", { firma: firma.name }), "success");
     } catch (fehler) {
-      meldung(`${firma.name}: nicht wieder gezeigt. ${fehler.message}`, "warning");
+      meldung(`${text("firmen.nicht-geaendert", { firma: firma.name })} ${fehler.message}`, "warning");
     }
   }
 

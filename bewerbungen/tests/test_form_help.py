@@ -263,6 +263,16 @@ def test_a_file_field_gets_a_kind_of_file_and_the_ai_sees_only_the_page(daten):
     assert "Dossier" in client.sent() and "Erika" not in client.calls[0]["messages"][0]["content"]
 
 
+def test_the_ai_learns_that_a_zeugnis_is_a_work_or_a_school_report(daten):
+    # G63, #314: a field for school reports gets the same kind as one for work references.
+    client = Scripted(assign("zeugnis"))
+
+    run(daten, client, [file_field(label="Zeugnisse")])
+
+    assert "- zeugnis: Zeugnisse (Arbeits- und Schulzeugnisse)" in client.sent()
+    assert "Arbeitszeugnisse" not in client.sent()
+
+
 @pytest.mark.parametrize("key", ["unklar", "email", "../cv.yaml", 5])
 def test_only_known_kinds_of_file_are_assigned(daten, key):
     assert run(daten, Scripted(assign(key)), [file_field()])["dateien"] == {}
