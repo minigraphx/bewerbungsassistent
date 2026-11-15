@@ -36,15 +36,22 @@ def is_profession(name: object, max_chars: int = MAX_NAME) -> bool:
     return isinstance(name, str) and _written_length(name) <= max_chars and bool(BASIC_TRAINING.fullmatch(name.strip()))
 
 
-def is_job_term(name: object, max_chars: int = MAX_TERM) -> bool:
-    """`max_chars`: a suggestion of the AI stays short; an own term may be as long as Meine Angaben takes it (#310)."""
-    return (isinstance(name, str) and _written_length(name) <= max_chars and len(name.split()) <= MAX_TERM_WORDS
-            and bool(JOB_TERM.fullmatch(name.strip())))
+def is_job_term(name: object, max_chars: int = MAX_TERM, max_words: int | None = MAX_TERM_WORDS) -> bool:
+    """A suggestion of the AI stays short; an own term may be as long as Meine Angaben takes it (#310, #316)."""
+    return (isinstance(name, str) and _written_length(name) <= max_chars
+            and (max_words is None or len(name.split()) <= max_words) and bool(JOB_TERM.fullmatch(name.strip())))
 
 
-def is_valid_name(name: object, kind: str, max_chars: int | None = None) -> bool:
-    check = is_profession if kind == search_plan.KIND_APPRENTICESHIP else is_job_term
-    return check(name) if max_chars is None else check(name, max_chars)
+def is_valid_name(name: object, kind: str) -> bool:
+    """A suggestion of the AI."""
+    return is_profession(name) if kind == search_plan.KIND_APPRENTICESHIP else is_job_term(name)
+
+
+def is_own_term(name: object, kind: str, max_chars: int) -> bool:
+    """A term the person adds: within the limits Meine Angaben sets for its field, which count no words (#316)."""
+    if kind == search_plan.KIND_APPRENTICESHIP:
+        return is_profession(name, max_chars)
+    return is_job_term(name, max_chars, max_words=None)
 
 
 def clean_answers(body: object) -> dict[str, str]:

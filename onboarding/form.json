@@ -256,7 +256,7 @@
       "tracks": ["job"],
       "intro": {"job": "Danach sucht die App Stellen für Sie."},
       "fields": [
-        {"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Suche“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 5},
+        {"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Suche“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 15},
         {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 30, "max": 80},
         {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60, "preset": {"from": "person.city"}},
         {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100},
@@ -279,7 +279,7 @@
       "tracks": ["apprenticeship"],
       "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"},
       "fields": [
-        {"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "hint": "Du weisst noch nicht, welcher Beruf passt? Lass das Feld leer. In der App schlägt dir danach die KI unter „Suche“ Berufe vor, die zu deinen Interessen und Fähigkeiten passen.", "maxItems": 5, "max": 100},
+        {"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "hint": "Du weisst noch nicht, welcher Beruf passt? Lass das Feld leer. In der App schlägt dir danach die KI unter „Suche“ Berufe vor, die zu deinen Interessen und Fähigkeiten passen.", "maxItems": 8, "max": 100},
         {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600},
         {"id": "offers", "label": "Was suchst du?", "type": "select", "options": ["Lehrstellen", "Schnupperlehren", "Lehrstellen und Schnupperlehren"], "hint": "Viele suchen zuerst eine Schnupperlehre. Das lässt sich später auf der Seite „Suche“ ändern. Ohne Auswahl sucht die Erweiterung Lehrstellen."},
         {"id": "start", "label": "Lehrbeginn", "type": "choice", "required": true, "allowOwn": true, "max": 40, "options": {
