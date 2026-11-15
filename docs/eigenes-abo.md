@@ -10,7 +10,7 @@ Die KI-Knöpfe in der App (zum Beispiel „Bewerten“ oder „Entwurf erstellen
 
 ## Was Sie wissen sollten
 
-- **Klartext:** Claude liest Lebenslauf, Suchprofil, Bausteine und Bewerbungen im Klartext. Die Pseudonymisierung der App gilt auf diesem Weg nicht. Dateien unter „Meine Dateien“ und ein hochgeladenes Anschreiben erreicht die Verbindung zur App nicht.
+- **Klartext:** Claude liest Lebenslauf, Suchprofil, Bausteine und Bewerbungen im Klartext. Die Pseudonymisierung der App gilt auf diesem Weg nicht. Dateien unter „Lebenslauf und Dateien“ und ein hochgeladenes Anschreiben erreicht die Verbindung zur App nicht.
 - **Ihr Vertrag:** Es gilt Ihr eigener Vertrag mit Anthropic, auch in den USA. Ob Ihre Chats zum Training dienen, stellen Sie in Claude unter den Einstellungen zum Datenschutz ein.
 - **Alter:** Claude setzt laut den [Bedingungen von Anthropic](https://www.anthropic.com/legal/consumer-terms) mindestens 18 Jahre voraus. Für jüngere Lehrstellensuchende passt dieser Weg nicht; sie nutzen die App mit Einladung.
 - **Kosten und Grenzen:** Die Nutzung zählt auf die Grenzen Ihres Abos. Eine Suche über mehrere Portale braucht viel davon.
@@ -24,7 +24,7 @@ Abschicken, „Versand erfassen“, Anmeldungen und alles zum RAV bleiben bei Ih
 
 **Claude in Chrome:** Die Grenzen oben gelten für die Verbindung zur App. Claude in Chrome bedient den Browser und ist daran nicht gebunden: Es könnte auch in der App klicken, zum Beispiel auf „Versand erfassen“. Die Skills weisen Claude an, die Seiten der App nicht zu bedienen. Das ist eine Anweisung, keine technische Sperre. Ziehen Sie den Tab der App darum nicht in die [Tab-Gruppe von Claude](https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome), starten Sie Claude in Chrome nicht in diesem Tab, und lehnen Sie ab, falls Claude dort etwas tun will. Wer jede Aktion selbst freigeben will, stellt das in den [Berechtigungen von Claude in Chrome](https://support.claude.com/en/articles/12902446-claude-in-chrome-permissions-guide) ein.
 
-**Zurück:** Änderungen an Ihren Texten und am Register sichert die App als Entwurf; unter „Entwürfe“ kommen Sie zurück. Nicht dabei sind die Trefferliste auf der Seite „Stellen suchen“ und neu gebaute PDFs, die sich aus den Texten wieder bauen lassen.
+**Zurück:** Änderungen an Ihren Texten und am Register sichert die App als Entwurf; unter „Entwürfe und Versionen“ kommen Sie zurück. Nicht dabei sind die Trefferliste auf der Seite „Stellen“ und neu gebaute PDFs, die sich aus den Texten wieder bauen lassen.
 
 ## Einrichten
 
@@ -34,7 +34,7 @@ Sie brauchen ein bezahltes Abo, weil [Claude in Chrome](https://support.claude.c
 2. **Skills hochladen:** In der App unter „Einstellungen“, „KI und Guthaben“, wählen Sie bei „Zugang zur KI“ „Eigenes Claude-Abo“ und laden im Abschnitt „Claude mit eigenem Abo“ `einstieg.zip`, `jobsuche.zip` und `bewerbung.zip` herunter. In Claude: [Anpassen, Skills, „+“, Skill hochladen](https://support.claude.com/en/articles/12512180-use-skills-in-claude). Einmal pro Datei; entpacken ist nicht nötig.
 3. **Zugang einschalten:** Im selben Abschnitt. Hinweise lesen, Häkchen setzen, „Zugang einschalten“.
 
-   ![Abschnitt „Claude mit eigenem Abo“ in den erweiterten Einstellungen, mit den drei Skills zum Herunterladen, den Hinweisen vor dem Einschalten und dem Knopf „Zugang einschalten“](bilder/einstellungen-claude.jpg)
+   ![Abschnitt „Claude mit eigenem Abo“ unter Einstellungen, KI und Guthaben, mit den drei Skills zum Herunterladen, den Hinweisen vor dem Einschalten und dem Knopf „Zugang einschalten“](bilder/einstellungen-claude.jpg)
 
 4. **Claude mit der App verbinden:** „In Claude Desktop eintragen“ klicken und Claude Desktop einmal ganz beenden und neu öffnen. Die App ändert nur ihren eigenen Eintrag und legt die alte Datei daneben. Claude Code statt Desktop: Der Befehl steht unter „Claude Code oder von Hand eintragen“. Claude Code liest Skills aus dem Ordner `~/.claude/skills/`; entpacken Sie die drei ZIP-Dateien dort.
 5. **Browser verbinden:** In Chrome die Erweiterung [Claude in Chrome](https://claude.com/claude-in-chrome) installieren und anmelden. In Claude Desktop unter Einstellungen, Anpassen, Connectors den Eintrag „Claude in Chrome“ einschalten. In Claude Code: `claude --chrome`.
@@ -53,7 +53,7 @@ Claude fragt nach, was fehlt, und speichert Lebenslauf, Suchprofil, Stil und Bau
 
 > Suche neue Stellen nach meinem Suchprofil und bewerte sie.
 
-Claude holt in der App den Suchplan, liest die gewählten Portale in Chrome, gibt die Inserate an die App und bewertet sie. Die Treffer stehen danach in der App unter „Stellen suchen“, mit Note und Begründung. Kommt ein Portal mit einer Anmeldung oder einem CAPTCHA, ist das Ihre Aufgabe.
+Claude holt in der App den Suchplan, liest die gewählten Portale in Chrome, gibt die Inserate an die App und bewertet sie. Die Treffer stehen danach in der App unter „Stellen“, mit Note und Begründung. Kommt ein Portal mit einer Anmeldung oder einem CAPTCHA, ist das Ihre Aufgabe.
 
 **Inserat einlesen.** Für LinkedIn und jede andere Seite: Inserat selbst öffnen, auf das Symbol der Erweiterung klicken, Stelle und Firma prüfen und **Stelle speichern** klicken. Das braucht keine KI. Die Stelle steht danach in der App unter „Bewerbungen“, und Claude findet sie dort:
 

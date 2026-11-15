@@ -99,7 +99,7 @@ Unter dem Häkchen steht meist in einem Satz, warum ictjobs gerade an oder aus i
 
 ## Wie schalte ich ictjobs ein oder aus?
 
-Unter Stellen suchen › Suche einstellen › Wo suchen Sie? setzen oder entfernen Sie das Häkchen bei ictjobs. Ab der ersten Änderung gilt Ihre Wahl für alle Portale, auch wenn sich Ihre Suchbegriffe später ändern; die App schaltet dann nichts mehr von selbst um. Mindestens ein Portal bleibt an, sonst findet die Suche nichts.
+Unter Stellen › Suche einstellen › Wo suchen Sie? setzen oder entfernen Sie das Häkchen bei ictjobs. Ab der ersten Änderung gilt Ihre Wahl für alle Portale, auch wenn sich Ihre Suchbegriffe später ändern; die App schaltet dann nichts mehr von selbst um. Mindestens ein Portal bleibt an, sonst findet die Suche nichts.
 
 ## Für Lehrstellen
 

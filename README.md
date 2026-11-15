@@ -26,25 +26,25 @@ Die App ist eine Erleichterung, keine Bewerbungsmaschine. Sie nimmt Routinearbei
 
 Alle Bilder zeigen frei erfundene Beispieldaten.
 
-**Übersicht der Bewerbungen:** Was als Nächstes ansteht, dazu Stand, Passung (Note 1–6) und nächster Schritt jeder Stelle auf einen Blick. Von hier aus bewerben Sie sich über die Formulare der Firmen und tragen abgeschickte Bewerbungen im Job-Room ein; speichern und abschicken tun immer Sie.
+**Heute:** Was als Nächstes ansteht, dazu Termine, Fristen und der Stand aller Stellen auf einen Blick. Von hier aus bewerben Sie sich über die Formulare der Firmen und tragen abgeschickte Bewerbungen im Job-Room ein; speichern und abschicken tun immer Sie.
 
-![Übersicht mit „Das steht an“: der nächste Schritt als Karte, daneben, was auch noch offen ist, darunter die Liste der Bewerbungen, auf die die Person wartet, mit Stand, Note und nächstem Schritt; Knöpfe für Gemerkt, Beworben, Abgeschlossen und Alle](docs/bilder/uebersicht.jpg)
+![Seite Heute mit „Das steht heute an“: der nächste Schritt als Karte, darunter unter „Danach“ die weiteren offenen Schritte mit je einem Knopf, daneben Termine und Fristen und unten „Ihr Stand“ mit neuen, gemerkten, beworbenen und abgeschlossenen Stellen; links die Seitenleiste mit dem KI-Guthaben](docs/bilder/uebersicht.jpg)
 
 **Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty, wahlweise nach Lehrstellen, Schnupperlehren oder beidem. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung in Paketen von zehn, nach der Suche von selbst (höchstens 30 pro Suche, abschaltbar) oder auf Knopfdruck. Bei Lehrstellen zählt der eigene Beruf mit Sternen zuerst. Dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis. Inserate von anderen Seiten, etwa LinkedIn, prüft oder speichert die Erweiterung auf Klick.
 
-![Seite Stellen suchen: links die Liste der Treffer mit Note, Firma, dem Wert bei kununu, Ort, Pensum und Portal, rechts die Einschätzung der KI zum gewählten Treffer mit den Knöpfen Merken, Verwerfen und Neu bewerten](docs/bilder/treffer.jpg)
+![Seite Stellen: links die Liste der Treffer mit Note, Firma, dem Wert bei kununu, Ort, Pensum und Portal, rechts zum gewählten Treffer die Knöpfe Bewerbung vorbereiten, Merken und Verwerfen und die Einschätzung der KI](docs/bilder/treffer.jpg)
 
-**Eine Bewerbung in sechs Schritten:** Von der Stelle bis zum Festhalten sehen Sie, wo die Bewerbung steht und was als Nächstes kommt. Ein Anschreiben der KI geht erst weiter, wenn Sie es gelesen und freigegeben haben.
+**Eine Bewerbung in sechs Schritten:** Von der Stelle bis zum Festhalten sehen Sie, wo die Bewerbung steht und was als Nächstes kommt. Ein Anschreiben der KI geht erst weiter, wenn Sie es gelesen und freigegeben haben. Den Lebenslauf stellen Sie für die Stelle zusammen: welche Stationen in welcher Reihenfolge, ein- oder zweispaltig.
 
-![Seite einer Bewerbung mit den sechs Schritten, der Karte „Nächster Schritt“ und den Angaben zur Stelle](docs/bilder/bewerbung.jpg)
+![Seite einer Bewerbung mit den sechs Schritten, der Karte „Nächster Schritt“, den Angaben zur Stelle und dem geöffneten Teil „Lebenslauf für diese Stelle“ mit Stationen, Kurzprofil und den Designs Zweispaltig und Einspaltig](docs/bilder/bewerbung.jpg)
 
-**Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass im Anschreiben noch die Firma einer anderen Bewerbung steht.
+**Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass der Lebenslauf eine Seite zu lang ist, und nennt, was sich kürzen liesse; gekürzt wird nur durch Sie, oder Sie bestätigen mit „So lassen“.
 
-![Abschnitt Unterlagen prüfen: die Befunde der Prüfung, darunter Lebenslauf und Anschreiben als PDF und die Wahl der Beilagen](docs/bilder/pruefung.jpg)
+![Abschnitt Unterlagen prüfen: der Befund „Lebenslauf: 3 Seiten, erlaubt sind höchstens 2“ mit Vorschlägen zum Kürzen und dem Knopf So lassen, darunter die bestandenen Prüfungen, Lebenslauf und Anschreiben als PDF und die Wahl der Beilagen](docs/bilder/pruefung.jpg)
 
 **Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an, geordnet nach Lebenslauf, Anschreiben je Bewerbung, Stil und Bausteinen und Suchprofil; ältere Fassungen sind aufklappbar. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
 
-![Entwürfe nach Lebenslauf und Anschreiben gruppiert, mit „Nur verwendete“ nur die versendeten Fassungen mit Firma und Datum, die übrigen aufklappbar](docs/bilder/entwuerfe.jpg)
+![Seite Entwürfe und Versionen: Filter nach Lebenslauf, Anschreiben, Stil und Bausteinen, Suchprofil und Weiteren, der Schalter „Nur verwendete“ und die Entwürfe nach Lebenslauf und Anschreiben gruppiert, ältere Fassungen aufklappbar](docs/bilder/entwuerfe.jpg)
 
 **Fotoausschnitt (freiwillig):** Ausschnitt per Maus oder Tastatur einstellen, mit Vorschau in Druckgrösse.
 
