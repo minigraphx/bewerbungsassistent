@@ -5,7 +5,9 @@ anything else to the exclusions the rating reads. The person confirms or edits; 
 """
 import json
 import pathlib
+import re
 import shutil
+import subprocess
 
 import pytest
 
@@ -21,6 +23,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 PAGES = ROOT / "bewerbungen" / "seiten"
 ROUTE = "/api/suche/haken-ausschluss"
 UNDO = ROUTE + "/rueckgaengig"
+POINTS_ROUTE = ROUTE + "/punkte"
 POINTS = ["Pikettdienst alle vier Wochen", "Englisch eine Stufe unter dem Verlangten",
           "Python nur am Rand, vor allem Java", "Reisetätigkeit; oft im Ausland"]
 
@@ -188,4 +191,59 @@ def test_the_page_offers_each_point_of_the_rating():
     script = (PAGES / "treffer.js").read_text(encoding="utf-8")
 
     assert page.index('src="/haken-ausschluss-logik.js"') < page.index('src="/haken-ausschluss.js"') < page.index('src="/treffer.js"')
+    assert page.index('src="/texte.js"') < page.index('src="/haken-ausschluss.js"')
     assert "HakenAusschluss.liste(" in script
+
+
+def excluded_points(s, hit_id):
+    status, _, content = get(s, POINTS_ROUTE, id=hit_id)
+    return status, json.loads(content)
+
+
+def test_the_page_learns_which_points_are_excluded_already(search, rated):  # noqa: F811
+    assert excluded_points(search, rated) == (200, {"ausgeschlossen": [False, False, False, False]})
+    assert adopt(search, rated, 0, "titel_ausschluss", "Pikettdienst")[0] == 200
+    assert adopt(search, rated, 1, "ausschluss", "englisch")[0] == 200
+
+    assert excluded_points(search, rated)[1] == {"ausgeschlossen": [True, True, False, False]}
+
+
+def test_a_point_counts_as_excluded_only_for_a_whole_word(search, rated):  # noqa: F811
+    assert adopt(search, rated, 1, "ausschluss", "Stufe unter")[0] == 200
+    assert adopt(search, rated, 3, "ausschluss", "Reise")[0] == 200
+
+    assert excluded_points(search, rated)[1]["ausgeschlossen"] == [False, True, False, False]
+
+
+def test_an_apprenticeship_search_names_no_excluded_points(search, rated):  # noqa: F811
+    shutil.copy(VORLAGEN / "suchprofil-lehrstelle.md", search.kontext.daten / search_plan.PROFILE)
+
+    assert excluded_points(search, rated)[0] == 400
+
+
+def test_the_feedback_stays_inside_the_point_on_the_page():
+    """Runs the page part with a small stand-in DOM: form in the point, errors inline, confirmation with undo."""
+    result = subprocess.run(["node", "--test", "tests/haken_ausschluss_seite.test.cjs"], cwd=ROOT / "bewerbungen",
+                            capture_output=True, text=True, timeout=120)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_the_buttons_are_big_enough_to_tap_on_a_phone():
+    css = (PAGES / "stellen.css").read_text(encoding="utf-8")
+    phone = re.search(r"@media \(max-width: 480px\) \{(.*?)\n\}", css, re.S)
+
+    assert phone, "a block for phones"
+    rule = re.search(r"\.exclusion-point \.btn[^{]*\{[^}]*min-height: 44px", phone.group(1))
+    assert rule, "the buttons of a point are at least 44 px high on a phone"
+
+
+def test_the_guide_says_where_the_confirmation_and_undo_appear():
+    guide = (ROOT / "docs" / "installation.md").read_text(encoding="utf-8")
+    section = guide[guide.index("### Einen Punkt der Einschätzung ausschliessen"):]
+    section = section[:section.index("\n### ", 1)]
+
+    assert "Ein Klick zeigt, was die App" in section and "einträgt" in section
+    assert "**Rückgängig** in der Bestätigung darunter" in section
+    assert "«Was Sie nicht sehen wollen»" in section or "**Was Sie nicht sehen wollen**" in section
+    assert "**Ausgeschlossen**" in section

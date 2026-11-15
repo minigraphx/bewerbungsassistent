@@ -3,7 +3,8 @@
 `GET /api/suche/haken-ausschluss?id=…&punkt=N` says what the app would add for point N under „Was fehlt oder unsicher
 ist“ (`rating_exclusion.py`) and changes nothing. The person confirms or edits it; `POST` then writes it through
 `search_frame`, the path Suche einstellen uses, with drafts before and after. Rückgängig takes out exactly that entry
-again, also with drafts. Nothing here calls the AI; neither the extension nor Claude reach the routes: they are not
+again, also with drafts. `GET …/punkte` names the points an entry already excludes, so the page shows
+«Ausgeschlossen» there. Nothing here calls the AI; neither the extension nor Claude reach the routes: they are not
 listed in desktop/native_host.py or desktop/mcp_tools.py.
 """
 import pathlib
@@ -70,6 +71,16 @@ def preview(k, parameter, body):
                          "wert": found.value, "werte": _shown(text)})
 
 
+def excluded_points(k, parameter, body):
+    """Per point of the hit's rating, whether an entry already excludes it, so the page shows «Ausgeschlossen»."""
+    _, text = _job_profile(k)
+    hit = Hits(k.daten).get(parameter.get("id") if isinstance(parameter.get("id"), str) else "")
+    points = (hit.get("bewertung") or {}).get("haken") or []
+    entries = [entry for values in _shown(text).values() for entry in values]
+    return json_antwort({"ausgeschlossen": [isinstance(point, str) and rating_exclusion.is_excluded(point, entries)
+                                            for point in points]})
+
+
 def _entry(body: dict) -> tuple[str, str]:
     kind, value = body.get("art"), body.get("wert")
     if kind not in rating_exclusion.KINDS:
@@ -133,5 +144,5 @@ def undo(k, parameter, body):
     return json_antwort({"art": kind, "wert": value, "werte": _shown(changed)})
 
 
-GET = {"/api/suche/haken-ausschluss": preview}
+GET = {"/api/suche/haken-ausschluss": preview, "/api/suche/haken-ausschluss/punkte": excluded_points}
 POST = {"/api/suche/haken-ausschluss": adopt, "/api/suche/haken-ausschluss/rueckgaengig": undo}

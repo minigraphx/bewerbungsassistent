@@ -38,6 +38,11 @@ def shortened(point: str, chars: int) -> str:
     return cut.rstrip(TRAILING)
 
 
+def is_excluded(point: str, entries: list[str]) -> bool:
+    """Whether an entry of the title filter or the exclusions stands in the point as a whole word or phrase."""
+    return any(dismissed_words.has_word(point, entry) for entry in entries if entry.strip())
+
+
 def propose(point: str, title: str, positive: tuple[str, ...], excluded_titles: tuple[str, ...],
             chars: int) -> Proposal:
     """A title word if the title has one worth excluding, else the shortened point for the exclusions."""
