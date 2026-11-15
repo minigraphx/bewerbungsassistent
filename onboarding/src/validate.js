@@ -5,7 +5,8 @@
 // is not checked, two-language values {de, en} included, and a section or list may keep as many entries as the file has.
 // Since G30 (#181) the rules take everything cv.yaml may hold: the fields of the CV sections have no limit of length
 // or count (fieldRules, entryLimit), a field marked "bilingual" takes {de, en} with each language checked as its text,
-// and dates may be full (2024-08-15). Tags keep their rules (G24).
+// and dates may be full (2024-08-15). Tags keep their rules (G24). Keywords and interests take { de, en } as lines
+// since #299, a keyword with a level as { text: { de, en }, level }.
 "use strict";
 
 const SINGLE_LINE = new Set(["text", "list", "select", "choice", "tags"]);
@@ -95,9 +96,11 @@ function isTaggedLine(value, twoLanguages) {
     && (value.tags === undefined || Array.isArray(value.tags));
 }
 
-/** A line with a level, as the page sends it: { text, level } with level as text. */
-function isLeveledLine(value) {
-  return isObject(value) && Object.keys(value).every((k) => LEVELED_LINE_KEYS.has(k)) && typeof value.text === "string"
+/** A line with a level, as the page sends it: { text, level } with level as text; with twoLanguages its text may be
+ *  { de, en } (#299). */
+function isLeveledLine(value, twoLanguages) {
+  return isObject(value) && Object.keys(value).every((k) => LEVELED_LINE_KEYS.has(k))
+    && (typeof value.text === "string" || (Boolean(twoLanguages) && isTwoLanguage(value.text)))
     && (value.level === undefined || typeof value.level === "string");
 }
 
@@ -117,7 +120,7 @@ function storedValue(value) {
 
 function storedLine(value) {
   if (isObject(value) && "level" in value && Object.keys(value).every((k) => LEVELED_LINE_KEYS.has(k))) {
-    const text = typeof value.text === "string" ? storedValue(value.text) : value.text;
+    const text = typeof value.text === "string" || isObject(value.text) ? storedValue(value.text) : value.text;
     const level = typeof value.level === "string" ? value.level.trim() : value.level;
     return level && text !== "" ? { text, level } : text;
   }
@@ -257,7 +260,7 @@ function validateList(form, field, value, path, known, before) {
   const inFile = list.map((v) => lines.some((line) => sameValue(line, storedLine(v))));
   const leveled = field.levels === true;
   const fits = (v, i) => inFile[i] || typeof v === "string" || (tagged && isTaggedLine(v, twoLanguages))
-    || (leveled && isLeveledLine(v)) || (twoLanguages && isTwoLanguage(v));
+    || (leveled && isLeveledLine(v, twoLanguages)) || (twoLanguages && isTwoLanguage(v));
   if (!list.every(fits)) return [err(path, "type")];
   const items = list.filter((v, i) => inFile[i] || valueTexts(lineOf(v)).length);
   if (!items.length) return field.required ? [err(path, "required")] : [];

@@ -12,7 +12,8 @@ is not checked, two-language values {de, en} included, and a section or list may
 What the person types or changes keeps to the rules. Since G30 (#181) those rules take everything cv.yaml may hold:
 the fields of the CV sections have no limit of length or count (`field_rules`, `entry_limit`; the limits in form.json
 still bound suggestions from documents, prefill.py), a field marked "bilingual" takes {de, en} with each language
-checked as its text, and dates may be full (2024-08-15). Tags keep their rules (G24).
+checked as its text, and dates may be full (2024-08-15). Tags keep their rules (G24). Keywords and interests take
+{de, en} as lines since #299, a keyword with a level as {text: {de, en}, level}.
 """
 import dataclasses
 import json
@@ -140,7 +141,7 @@ def comparable(value):
 
 def comparable_line(value):
     if isinstance(value, dict) and "level" in value and set(value) <= LEVELED_LINE_KEYS:
-        text = comparable(value["text"]) if isinstance(value.get("text"), str) else value.get("text")
+        text = comparable(value["text"]) if isinstance(value.get("text"), (str, dict)) else value.get("text")
         level = value["level"].strip() if isinstance(value["level"], str) else value["level"]
         return {"text": text, "level": level} if level and text != "" else text
     if isinstance(value, dict) and set(value) <= TAGGED_LINE_KEYS and "text" in value:
@@ -252,10 +253,12 @@ def is_tagged_line(value, bilingual: bool = False) -> bool:
             and (isinstance(text, str) or (bilingual and is_bilingual(text))))
 
 
-def is_leveled_line(value) -> bool:
-    """A line with a level, as the page sends it: {text, level} with level as text."""
-    return (isinstance(value, dict) and set(value) <= LEVELED_LINE_KEYS and isinstance(value.get("text"), str)
-            and isinstance(value.get("level", ""), str))
+def is_leveled_line(value, bilingual: bool = False) -> bool:
+    """A line with a level, as the page sends it: {text, level} with level as text; with bilingual its text may be
+    {de, en} (#299)."""
+    text = value.get("text") if isinstance(value, dict) else None
+    return (isinstance(value, dict) and set(value) <= LEVELED_LINE_KEYS and isinstance(value.get("level", ""), str)
+            and (isinstance(text, str) or (bilingual and is_bilingual(text))))
 
 
 def line_text(value):
@@ -292,7 +295,7 @@ def _validate_list(form: dict, field: dict, value, path: str, known: frozenset[s
     lines = _loaded_lines(field["id"], before)
     in_file = [comparable_line(v) in lines for v in value]
     if not all(kept or isinstance(v, str) or (tagged and is_tagged_line(v, bilingual))
-               or (leveled and is_leveled_line(v)) or (bilingual and is_bilingual(v))
+               or (leveled and is_leveled_line(v, bilingual)) or (bilingual and is_bilingual(v))
                for v, kept in zip(value, in_file)):
         return [ValidationError(path, "type")]
     items = [v for v, kept in zip(value, in_file) if kept or value_texts(line_text(v))]
