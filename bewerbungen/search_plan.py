@@ -15,7 +15,9 @@ import re
 
 import yaml
 
-PORTALS = ("job-room", "jobs.ch", "jobscout24", "ictjobs")
+import form_limits
+
+PORTALS =("job-room", "jobs.ch", "jobscout24", "ictjobs")
 APPRENTICESHIP_PORTALS = ("LENA", "yousty")
 ALL_PORTALS = PORTALS + APPRENTICESHIP_PORTALS
 PORTAL_HINTS = {"job-room": "Stellen der RAV, alle Berufe", "jobs.ch": "alle Berufe", "jobscout24": "alle Berufe",
@@ -61,8 +63,14 @@ MAX_WINDOW_DAYS = 60
 BAD_WINDOW = ("Zeitfenster „{value}“ geht nicht: erlaubt sind {low} bis {high} Tage. Gesucht werden die letzten "
               f"{MAX_AGE_DAYS} Tage.")
 MAX_VALUE = 80
-MAX_PROFESSION_NAME = 100  # as Meine Angaben takes a profession: official names with a specialisation are long (#310)
-MAX_PROFESSIONS = 8
+# As Meine Angaben takes them (#310, #316): official names with a specialisation are long, and a direction is one line
+# of the form that may hold several terms. Its count is the form's too, which takes as many as the search does.
+_PROFESSIONS = form_limits.of(form_limits.APPRENTICESHIP_SECTION, "professions")
+_DIRECTIONS = form_limits.of(form_limits.JOB_SECTION, "directions")
+MAX_PROFESSION_NAME = _PROFESSIONS.chars
+MAX_PROFESSIONS = _PROFESSIONS.lines
+MAX_DIRECTION = _DIRECTIONS.chars
+MAX_DIRECTIONS = _DIRECTIONS.lines
 MAX_APPRENTICESHIP_PAGES = 20  # the lists are short pages, and only the search area is asked for
 DEFAULT_RADIUS_KM = 25
 MIN_RADIUS_KM = 5
@@ -230,11 +238,11 @@ def _value(pairs: dict[str, str], *prefixes: str) -> str:
     return next((v for label, v in pairs.items() for p in prefixes if label.startswith(p)), "")
 
 
-def _items(text: str, limit: int | None) -> tuple[str, ...]:
+def _items(text: str, limit: int | None, chars: int = MAX_VALUE) -> tuple[str, ...]:
     """Comma-separated values: trimmed, without duplicates (ignoring case), bounded in length and, given a limit, in number."""
     seen, result = set(), []
     for raw in text.split(","):
-        value = " ".join(raw.replace("`", "").split())[:MAX_VALUE]
+        value = " ".join(raw.replace("`", "").split())[:chars]
         if value and value.lower() not in seen:
             seen.add(value.lower())
             result.append(value)
@@ -269,7 +277,7 @@ def _terms(text: str, limit: int | None) -> tuple[str, ...]:
 def _directions(lines: list[str], limit: int | None = MAX_KEYWORDS) -> tuple[str, ...]:
     """Numbered search directions without the remark in brackets, e.g. „(Priorität 2, …)“."""
     names = [DIRECTION.match(line).group(1) for line in lines if DIRECTION.match(line)]
-    return _items(",".join(DIRECTION_REMARK.sub("", name) for name in names), limit)
+    return _items(",".join(DIRECTION_REMARK.sub("", name) for name in names), limit, MAX_DIRECTION)
 
 
 def _modes(lines: list[str]) -> dict[str, str]:

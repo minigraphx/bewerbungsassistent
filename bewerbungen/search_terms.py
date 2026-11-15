@@ -8,7 +8,8 @@ import re
 from collections.abc import Callable
 
 import search_plan
-from search_plan import APPRENTICESHIP_MARK, DIRECTION, MAX_KEYWORDS, MAX_PROFESSION_NAME, MAX_VALUE, profession_words
+from search_plan import (APPRENTICESHIP_MARK, DIRECTION, MAX_DIRECTION, MAX_DIRECTIONS, MAX_KEYWORDS, MAX_PROFESSION_NAME,
+                         MAX_VALUE, profession_words)
 
 DIRECTIONS_SECTION = "## Suchrichtungen"
 KEYWORDS_KEY = "keywords"
@@ -23,6 +24,7 @@ TITLE_SECTION = "## Titelfilter"
 TITLE_LABELS = {"positiv": "Positiv", "ausschluss": "Ausschluss"}
 AFTER_TITLES = "## Sprachen"
 FULL = "Die Suche hat schon {limit} Begriffe, mehr gehen hier nicht. Bitte zuerst einen entfernen."
+FULL_DIRECTIONS = "Die Suche hat schon {limit} Suchrichtungen. Bitte zuerst eine entfernen."
 
 
 def current(text: str) -> tuple[str, ...]:
@@ -100,6 +102,8 @@ def added(text: str, name: str, kind: str | None = None) -> str:
         return "\n".join([*lines[:core], f"{lines[core].rstrip(' ,')}, {clean}", *lines[core + 1:]])
     start, end = search_plan.section_bounds(lines, DIRECTIONS_SECTION[3:].lower())
     used = 0 if start is None else sum(bool(DIRECTION.match(row.strip())) for row in lines[start:end])
+    if used >= MAX_DIRECTIONS:  # lines, not terms: one line can repeat a term or hold several (#316)
+        raise ValueError(FULL_DIRECTIONS.format(limit=MAX_DIRECTIONS))
     return search_plan.with_section_line(text, DIRECTIONS_SECTION, f"{used + 1}. {clean}", AFTER_DIRECTIONS)
 
 
@@ -145,7 +149,7 @@ def _without_direction(wanted: frozenset[str]) -> Callable[[str], str | None]:
     def change(body: str) -> str | None:
         terms, remark = TERMS_AND_REMARK.match(body).groups()
         parts = [part.strip() for part in terms.split(",") if part.strip()]
-        kept = [part for part in parts if _words_as_shown(part) != wanted]
+        kept = [part for part in parts if _words_as_shown(part, MAX_DIRECTION) != wanted]
         if len(kept) == len(parts):
             return body
         return f"{', '.join(kept)}{remark or ''}" if kept else None
