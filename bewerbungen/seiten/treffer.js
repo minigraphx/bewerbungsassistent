@@ -26,7 +26,8 @@
   let profilFehlt = "";      // why nothing can be searched yet, from the app (#220)
   let gesucht = false;       // a search ran before, so an empty list of new hits means „nothing new“
   let zusammenfassung = "";
-  let geladen = false;       // the list and the reason a search cannot start are known
+  let suchStand = { lauf: null, wann: "" };  // the last search from the app, for the summary under the title
+  let geladen = false;      // the list and the reason a search cannot start are known
   let sucheVerlangt = location.hash === "#jetzt-suchen";  // „Jetzt suchen“ on Suche einstellen leads here (#263)
   let wartetSeit = null;     // ISO time since the page waits for a search, to tell its run from older ones
   let stille = null;         // timer: no word from the extension for a while
@@ -307,6 +308,7 @@
       else reiter.removeAttribute("aria-current");
     }
     for (const name of ["neu", "uebernommen", "verworfen"]) document.querySelector(`[data-zahl=${name}]`).textContent = String(alle.filter(x => x.zustand === name).length);
+    zeigeZahlen();
     meldeNeueZahl();
     if (!sichtbar.some(x => x.id === gewaehlt)) gewaehlt = sichtbar[0]?.id ?? null;
     $("liste").classList.toggle("search__list--two", lehrstelle);  // two grades: the same width for every row
@@ -470,8 +472,14 @@
     $("zeitraum-aendern").hidden = !zeitraum.zeitfenster_aendern;
   }
 
+  // „N Treffer, M neu“ under the title counts the list as it is now, so Merken and Verwerfen move it at once (#317).
+  function zeigeZahlen() {
+    $("letzte").textContent = anzeige.letzteSuche(suchStand.lauf, alle, datum, suchStand.wann);
+  }
+
   function zeigeLetzteSuche(lauf, hinweise, ziele, zeitraum = {}) {
-    $("letzte").textContent = anzeige.letzteSuche(lauf, alle, datum, zeitraum.letzte);
+    suchStand = { lauf, wann: zeitraum.letzte };
+    zeigeZahlen();
     zeigeZeitraum(zeitraum);
     const nachholen = zeitraum.nachholen || {};
     const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem)
