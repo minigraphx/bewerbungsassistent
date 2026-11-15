@@ -44,6 +44,15 @@
     zeigeListe();
   }
 
+  // The sidebar counts „N neu“ once when the page opens. Merken, Verwerfen, Zurückholen and hits that arrive later
+  // change that number while the page stays open, so it is told to count again whenever the number moved (#311).
+  let neuGezaehlt = null;
+  function meldeNeueZahl() {
+    const neu = alle.filter(x => x.zustand === "neu").length;
+    if (geladen && neu !== neuGezaehlt && window.SidebarLogic) document.dispatchEvent(new CustomEvent(window.SidebarLogic.HITS_CHANGED));
+    neuGezaehlt = neu;
+  }
+
   async function bewerte(t, knopf) {
     if (knopf) knopf.disabled = true;
     meldung(`KI bewertet „${t.stelle}“ …`);
@@ -298,6 +307,7 @@
       else reiter.removeAttribute("aria-current");
     }
     for (const name of ["neu", "uebernommen", "verworfen"]) document.querySelector(`[data-zahl=${name}]`).textContent = String(alle.filter(x => x.zustand === name).length);
+    meldeNeueZahl();
     if (!sichtbar.some(x => x.id === gewaehlt)) gewaehlt = sichtbar[0]?.id ?? null;
     $("liste").classList.toggle("search__list--two", lehrstelle);  // two grades: the same width for every row
     $("liste").replaceChildren(...sichtbar.map(trefferZeile));
