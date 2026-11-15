@@ -226,3 +226,19 @@ def test_a_used_up_credit_is_named_before_alle_pruefen_and_not_counted_as_enough
     assert question["warning"] == ("Das Guthaben ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter; "
                                    "ohne prüft die KI keine Stelle.")
 
+
+
+def _ki_page_status(status: dict) -> str:
+    """Runs `statusText` of the page „KI“ as written, without the rest of the page."""
+    script = (PAGES / "ki.js").read_text(encoding="utf-8")
+    function = re.search(r"\n  function statusText\(s\) \{.*?\n  \}\n", script, re.S)[0]
+    code = f"const kosten = x => x; {function}; process.stdout.write(statusText(JSON.parse(process.argv[1])));"
+    return subprocess.run(["node", "-e", code, json.dumps(status)], capture_output=True, text=True, timeout=60,
+                          check=True).stdout
+
+
+def test_the_ki_page_names_the_way_to_a_new_code_once_the_credit_is_used_up():
+    assert _ki_page_status(CREDIT) == "KI eingerichtet (über die Vermittlung). Guthaben: CHF 3.20 von 5.00 verbraucht."
+    assert _ki_page_status(USED_UP) == ("KI eingerichtet (über die Vermittlung). Guthaben: CHF 5.00 von 5.00 verbraucht. "
+                                        "Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter "
+                                        "Einstellungen, KI und Guthaben einlösen.")
