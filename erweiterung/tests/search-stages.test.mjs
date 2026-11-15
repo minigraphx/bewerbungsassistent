@@ -109,7 +109,7 @@ test('the progress names the search, the stage and the pause', async () => {
   await run.done;
   const searching = run.reports.filter((step) => step.phase === 'suche');
   assert.deepEqual(searching.map((step) => step.nummer), Array.from({ length: 67 }, (_, i) => i + 1));
-  assert.deepEqual(searching[31], { portal: 'jobs.ch', phase: 'suche', stichwort: 'Begriff13', seite: 1, gefunden: 0,
+  assert.deepEqual(searching[31], { portal: 'jobs.ch', phase: 'suche', stichwort: 'Begriff13', ort: 'Südstadt', seite: 1, gefunden: 0,
     nummer: 32, abfragen: 67, etappe: 2, etappen: 3 });
   const pauses = run.reports.filter((step) => step.phase === 'pause');
   assert.ok(pauses.length >= 2);
