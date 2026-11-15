@@ -58,24 +58,32 @@ def merged_text(form: dict, text: str, rel: str, track: str, before: dict, after
     return _applied(text, changes) if changes else text
 
 
+# (slot, lines it replaces, new lines, the line they go after instead)
+Change = tuple[basics_slots.Slot, tuple[int, ...], list[str], int | None]
+
+
 def _changes(slot: basics_slots.Slot, text: str, old: tuple[int, ...], found: basics_slots.Found,
-             new_lines: list[str]) -> list[tuple[basics_slots.Slot, tuple[int, ...], list[str]]]:
-    """The lines of the slot written anew, or with `write` only those that differ from the new value."""
+             new_lines: list[str]) -> list[Change]:
+    """The lines of the slot written anew, or with `write` only those that differ from the new value; `write` sees
+    every line of the section, as the slot read them."""
     if slot.write is None:
-        return [(slot, old, [new_lines[n] for n in found[1]])]
-    lines = text.split("\n")
-    replaced, added = slot.write([(n, lines[n]) for n in old], found[0])
-    return [*((slot, (n, ), rows) for n, rows in replaced.items()), *([(slot, (), added)] if added else [])]
+        return [(slot, old, [new_lines[n] for n in found[1]], None)]
+    section = basics_slots.sections(text).get(slot.section, [])
+    replaced, added, after = slot.write(section, found[0])
+    return [*((slot, (n, ), rows, None) for n, rows in replaced.items()), *([(slot, (), added, None)] if added else []),
+            *((slot, (), rows, n) for n, rows in after.items())]
 
 
-def _applied(text: str, changes: list[tuple[basics_slots.Slot, tuple[int, ...], list[str]]]) -> str:
+def _applied(text: str, changes: list[Change]) -> str:
     lines = text.split("\n")
     ends = _section_ends(lines)
     replaced: dict[int, list[str]] = {}
     added: dict[int, list[str]] = {}
     appended: dict[str, list[str]] = {}
-    for slot, old, new in changes:
-        if old:
+    for slot, old, new, after in changes:
+        if after is not None:
+            added = {**added, after: [*added.get(after, []), *new]}
+        elif old:
             replaced = {**replaced, old[0]: new, **{n: [] for n in old[1:]}}
         elif slot.section in ends:
             end = ends[slot.section]

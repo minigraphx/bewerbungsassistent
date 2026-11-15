@@ -9,8 +9,10 @@ a hidden one marks lines the app writes from cv.yaml and the work evidence, whic
 A slot with `write` changes only the lines of its file that differ from the new value, such as one row of the table of
 portals (#291), instead of writing all its lines anew. The exclusions under „Suchrichtungen“ are read as the search
 reads them, indented under a direction too as in vorlagen/suchprofil.md (#309), and keep their place when written.
+So are the title filters, and the numbered directions and professions with whatever their bracket holds (#313).
 """
 import dataclasses
+import difflib
 import re
 from typing import Callable
 
@@ -26,7 +28,7 @@ JOB, APPRENTICESHIP = "job", "apprenticeship"
 
 PAIR = re.compile(r"^- ([^:]+): (.*)$")
 LABELLED = re.compile(r"^(\s*-\s+)([^:]+):\s*(.*)$")  # as search_plan.PAIR, at any indentation
-NUMBERED = re.compile(r"^\d+\. (.+?)(?: \(Priorität \d+\))?$")
+NUMBERED = re.compile(r"^(\s*)(\d+)\.\s+(.+)$")  # as search_plan.DIRECTION, at any indentation
 BULLET = re.compile(r"^- (.+)$")
 QUOTED = re.compile(r"^- „(.*)“$")
 GREETING = re.compile(r"^- Gruss: „(.*)“(?:; Ort im Datum: (.*))?\.$")
@@ -37,7 +39,8 @@ FORMAL_ALWAYS = f"- Immer {markdown_files.SALUTATION_FORMAL}"
 ADDRESS_OPTIONS = ("Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form")  # as in form.json, style.address
 NO_GAPS = markdown_files.GAPS_LATER
 LIST_SEPARATOR = ", "
-EXCLUSION = "ausschluss"  # the label as the search finds it (search_plan.frame)
+EXCLUSION = "ausschluss"  # the labels as the search finds them (search_plan.frame, search_plan.title_terms)
+POSITIVE = "positiv"
 
 TABLE_ROW = re.compile(r"^\|([^|]*)\|([^|]*)\|")
 TABLE_HEAD = re.compile(r"^\|\s*portal\s*\|\s*modus\s*\|$|^\|[\s|:-]+\|$", re.IGNORECASE)
@@ -45,7 +48,8 @@ TABLE_HEAD = re.compile(r"^\|\s*portal\s*\|\s*modus\s*\|$|^\|[\s|:-]+\|$", re.IG
 Lines = list[tuple[int, str]]  # (line number in the file, line without the line break)
 Found = tuple[tuple | None, tuple[int, ...]]  # (one value per field, or None if not understood; lines understood)
 NOTHING: Found = (None, ())
-Writes = tuple[dict[int, list[str]], list[str]]  # (lines in place of a line by its number, lines added to the section)
+# (lines in place of a line by its number, lines added to the section, lines added after a line by its number)
+Writes = tuple[dict[int, list[str]], list[str], dict[int, list[str]]]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -115,16 +119,106 @@ def write_labelled(prefix: str, label: str) -> Callable[[Lines, tuple | None], W
         value = markdown_files.inline(LIST_SEPARATOR.join(found[0])) if found else ""
         hit = _labelled_line(lines, prefix)
         if hit is None:
-            return {}, [f"- {label}: {value}"] if value else []
+            return {}, [f"- {label}: {value}"] if value else [], {}
         number, match = hit
-        return {number: [f"{match.group(1)}{match.group(2).strip()}: {value}"] if value else []}, []
+        return {number: [f"{match.group(1)}{match.group(2).strip()}: {value}"] if value else []}, [], {}
     return write
 
 
-def numbered(lines: Lines) -> Found:
-    found = [(n, NUMBERED.match(line)) for n, line in _top(lines)]
-    found = [(n, m.group(1).strip()) for n, m in found if m and "(Priorität" not in m.group(1)]
-    return ((([v for _, v in found]),), tuple(n for n, _ in found)) if found else NOTHING
+@dataclasses.dataclass(frozen=True)
+class Entry:
+    """One numbered line, such as „2. Schulung (Priorität 2, auch mit Lücken)“."""
+    number: int  # of the line in the file
+    line: str
+    indent: str
+    position: int
+    name: str  # as the search reads it
+    written: str  # the name as it stands in the line
+    remark: str  # the rest of the line, such as „ (Priorität 2, auch mit Lücken)“
+
+
+def _entries(lines: Lines, remark: re.Pattern) -> list[Entry]:
+    found = []
+    for number, line in lines:
+        match = NUMBERED.match(line)
+        rest = match.group(3).rstrip() if match else ""
+        cut = remark.search(rest)
+        written = rest[:cut.start()] if cut else rest
+        if " ".join(written.split()):
+            found = [*found, Entry(number, line, match.group(1), int(match.group(2)), " ".join(written.split()),
+                                   written, rest[len(written):])]
+    return found
+
+
+def numbered(remark: re.Pattern) -> Callable[[Lines], Found]:
+    """Numbered lines at any indentation, each without the remark `remark` finds, as the search reads them."""
+    def read(lines: Lines) -> Found:
+        found = _entries(lines, remark)
+        return (([e.name for e in found],), tuple(e.number for e in found)) if found else NOTHING
+    return read
+
+
+def _aligned(names: list[str], values: list[str]) -> list[tuple[int | None, str]]:
+    """Each new value with the index of the entry it keeps or renames, or None for a new one."""
+    plan: list[tuple[int | None, str]] = []
+    for _, i1, i2, j1, j2 in difflib.SequenceMatcher(None, names, values, autojunk=False).get_opcodes():
+        pairs = min(i2 - i1, j2 - j1)
+        plan = [*plan, *((i1 + k, values[j1 + k]) for k in range(pairs)), *((None, v) for v in values[j1 + pairs:j2])]
+    return plan
+
+
+def _moved(plan: list[tuple[int | None, str]], names: list[str]) -> list[tuple[int | None, str, bool]]:
+    """The plan with a new value that is a dropped entry moved elsewhere taking that entry, so its remark stays;
+    True where the entry keeps its own line."""
+    dropped = [i for i in range(len(names)) if i not in {index for index, _ in plan}]
+    result: list[tuple[int | None, str, bool]] = []
+    for index, value in plan:
+        moved = next((i for i in dropped if names[i] == value), None) if index is None else None
+        dropped = [i for i in dropped if i != moved]
+        result = [*result, (index if moved is None else moved, value, index is not None)]
+    return result
+
+
+def _renumbered(entry: Entry, value: str, position: int) -> str:
+    """The entry at its new place; a priority follows only if it was the same as the number, as in search_terms."""
+    written = entry.written if value == entry.name else markdown_files.inline(value)
+    if written == entry.written and position == entry.position:
+        return entry.line
+    remark = re.sub(rf"\(Priorität {entry.position}(?!\d)", f"(Priorität {position}", entry.remark, count=1)
+    return f"{entry.indent}{position}. {written}{remark}"
+
+
+def _block_end(lines: Lines, number: int) -> int:
+    """The last of the lines indented right below line `number`, or that line."""
+    end = number
+    for n, line in lines:
+        if n > number and not line[:1].isspace():
+            break
+        end = max(end, n)
+    return end
+
+
+def write_numbered(remark: re.Pattern) -> Callable[[Lines, tuple | None], Writes]:
+    """Only the numbered lines that change. A kept or renamed entry keeps its line with its remark and the lines below
+    it; a new one goes before the next kept entry, or after the lines indented below the last one."""
+    def write(lines: Lines, found: tuple | None) -> Writes:
+        values = list(found[0]) if found else []
+        old = _entries(lines, remark)
+        if not old:
+            return {}, [markdown_files.numbered_line(p, v) for p, v in enumerate(values, 1)], {}
+        replaced: dict[int, list[str]] = {e.number: [] for e in old}
+        pending: list[str] = []
+        plan = _moved(_aligned([e.name for e in old], values), [e.name for e in old])
+        for position, (index, value, kept) in enumerate(plan, 1):
+            if not kept:
+                pending = [*pending, markdown_files.numbered_line(position, value) if index is None
+                           else _renumbered(old[index], value, position)]
+            else:
+                replaced = {**replaced, old[index].number: [*pending, _renumbered(old[index], value, position)]}
+                pending = []
+        changed = {e.number: replaced[e.number] for e in old if replaced[e.number] != [e.line]}
+        return changed, [], {_block_end(lines, old[-1].number): pending} if pending else {}
+    return write
 
 
 def bullets(skip: frozenset[str] = frozenset()) -> Callable[[Lines], Found]:
@@ -228,7 +322,7 @@ def write_portals(lines: Lines, found: tuple | None) -> Writes:
     rows = _portal_rows(lines)
     if not rows:
         table = [markdown_files.portal_row(p, p in off) for p in search_plan.PORTALS]
-        return ({}, ["", *markdown_files.PORTAL_HEAD, *table] if off else [])
+        return {}, ["", *markdown_files.PORTAL_HEAD, *table] if off else [], {}
     replaced = {n: [markdown_files.portal_row(p, p in off)] for p, (n, mode) in rows.items()
                 if (mode == search_plan.MODE_OFF) != (p in off)}
     missing = [markdown_files.portal_row(p, True) for p in search_plan.PORTALS if p in off and p not in rows]
@@ -236,7 +330,7 @@ def write_portals(lines: Lines, found: tuple | None) -> Writes:
         last = max(n for n, _ in rows.values())
         line = dict(lines)[last]
         replaced = {**replaced, last: [*replaced.get(last, [line]), *missing]}
-    return replaced, []
+    return replaced, [], {}
 
 
 _FIXED_TONE = frozenset({"- Aussagen mit konkreten Beispielen belegen; Lücken offen und knapp benennen, mit Lernbereitschaft.",
@@ -253,13 +347,15 @@ def _region_job() -> list[Slot]:
 
 def _profile_job() -> list[Slot]:
     search = "searchJob"
-    return [Slot("Suchrichtungen", numbered, search, ("directions",)),
+    directions = search_plan.DIRECTION_REMARK
+    return [Slot("Suchrichtungen", numbered(directions), search, ("directions",), write=write_numbered(directions)),
             Slot("Suchrichtungen", labelled(EXCLUSION), search, ("exclusions",),
                  write=write_labelled(EXCLUSION, "Ausschluss")),
             *_region_job(),
             Slot("Keywords", pair("Kernliste", True), search, ("keywords",)),
-            Slot("Titelfilter", pair("Positiv", True), search, ("titlePositive",)),
-            Slot("Titelfilter", pair("Ausschluss", True), search, ("titleExclude",)),
+            Slot("Titelfilter", labelled(POSITIVE), search, ("titlePositive",), write=write_labelled(POSITIVE, "Positiv")),
+            Slot("Titelfilter", labelled(EXCLUSION), search, ("titleExclude",),
+                 write=write_labelled(EXCLUSION, "Ausschluss")),
             Slot(markdown_files.RHYTHM, window, search, ("window",)),
             Slot(markdown_files.RHYTHM, portals, search, ("portalsOff",), keeps_empty=True, write=write_portals),
             Slot("Rahmen", pair("Frühester Start"), search, ("start",)),
@@ -275,7 +371,8 @@ def _profile_apprenticeship() -> list[Slot]:
     return [Slot("Person", pair("Begleitperson"), search, ("companion",)),
             Slot("Gesucht", first_bullet, search, ("offers",)),
             Slot("Lehrbeginn", first_bullet, search, ("start",)),
-            Slot("Berufe (mit Priorität)", numbered, search, ("professions",)),
+            Slot("Berufe (mit Priorität)", numbered(search_plan.REMARK), search, ("professions",),
+                 write=write_numbered(search_plan.REMARK)),
             Slot("Berufswahl", first_bullet, search, ("howFound",)),
             Slot("Region", pair("Wohnort"), search, ("home",)),
             Slot("Region", pair("Schulweg"), search, ("commute",)),

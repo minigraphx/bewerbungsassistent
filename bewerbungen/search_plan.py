@@ -97,6 +97,7 @@ FIELD_POSTAL_CODE = "person.postalCode"
 FIELD_APPRENTICESHIP_HOME = "searchApprenticeship.home"
 NATIONWIDE_NOTE = "Gesucht wird in der ganzen Schweiz, Stellen nahe dem Wohnort stehen zuerst. Eingrenzen: Kantone wählen."
 REMARK = re.compile(r"\s*\([^()]*\b(?:priorität|ersatz|falls|wenn|notfalls)\b[^()]*\)\s*$", re.IGNORECASE)
+DIRECTION_REMARK = re.compile(r"\s*\(.*$")  # a search direction ends at its first bracket, unlike a profession
 # A remark such as „Biel (kleine Gemeinden liefern 0 Treffer)“ is no part of the value; portals and the title filter
 # match whole terms, so „Java/.NET“ means two. A gender form such as „Sachbearbeiter/in“ stays one term.
 BRACKETS = re.compile(r"\s*\([^()]*\)")
@@ -267,7 +268,7 @@ def _terms(text: str, limit: int) -> tuple[str, ...]:
 def _directions(lines: list[str], limit: int = MAX_KEYWORDS) -> tuple[str, ...]:
     """Numbered search directions without the remark in brackets, e.g. „(Priorität 2, …)“."""
     names = [DIRECTION.match(line).group(1) for line in lines if DIRECTION.match(line)]
-    return _items(",".join(re.sub(r"\s*\(.*$", "", name) for name in names), limit)
+    return _items(",".join(DIRECTION_REMARK.sub("", name) for name in names), limit)
 
 
 def _modes(lines: list[str]) -> dict[str, str]:
