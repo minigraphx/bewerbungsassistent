@@ -118,6 +118,7 @@ function controlView(field, ctx, id, describedBy) {
   }
   if (field.type === "list" && field.tags === true) return linesView(field, ctx, id, describedBy, TAGGED_LINES);
   if (field.type === "list" && field.levels === true) return linesView(field, ctx, id, describedBy, LEVELED_LINES);
+  if (field.type === "list" && field.bilingual === true) return linesView(field, ctx, id, describedBy, PLAIN_LINES);
   if (field.type === "list") {
     const text = listToLines(ctx.value);
     return el("textarea", {
@@ -196,7 +197,14 @@ const LEVELED_LINES = {
   },
 };
 
-/** A list whose lines take something besides their text (tags, a level): one row per line. */
+/** Lines with nothing besides their text (interests, #299): a row per line, so that each can get English. */
+const PLAIN_LINES = {
+  extraOf: () => null,
+  line: (text) => text,
+  controls: () => [],
+};
+
+/** A list whose lines take something besides their text (tags, a level) or two languages: one row per line. */
 function linesView(field, ctx, id, describedBy, kind) {
   const name = forTrack(field.label, ctx.track).split(" (")[0];
   const max = field.maxItems ?? DEFAULT_MAX_LINES;
@@ -213,7 +221,7 @@ function linesView(field, ctx, id, describedBy, kind) {
   const add = el("button", {
     type: "button", className: "add-line", onclick: () => change([...lines, ""], lines.length),
   }, "+ Zeile hinzufügen");
-  const languages = field.bilingual === true && kind === TAGGED_LINES;
+  const languages = field.bilingual === true;
   let firstInputs = [];
 
   // a line in two languages (#167, G30) has an input per language; a list marked "bilingual" adds and drops English

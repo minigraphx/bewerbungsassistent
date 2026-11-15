@@ -2816,6 +2816,178 @@
       "base": "job",
       "set": [
         [
+          "data.searchJob.directions",
+          [
+            {
+              "de": "Software-Entwicklung",
+              "en": "Software development"
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "searchJob.directions",
+          "code": "type"
+        }
+      ]
+    },
+    {
+      "name": "two-language keywords, plain and with a level (#299)",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords",
+          [
+            {
+              "de": "Buchhaltung",
+              "en": "Accounting"
+            },
+            {
+              "text": {
+                "de": "Lohnwesen",
+                "en": "Payroll"
+              },
+              "level": "4"
+            },
+            {
+              "text": {
+                "de": "Excel",
+                "en": "Excel"
+              },
+              "level": ""
+            },
+            "SQL"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a two-language keyword with a line break",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.0",
+          {
+            "text": {
+              "de": "Buch-\nhaltung",
+              "en": "Accounting"
+            },
+            "level": ""
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords.0",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "a two-language keyword with a level outside 1 to 6",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords.0",
+          {
+            "text": {
+              "de": "Lohnwesen",
+              "en": "Payroll"
+            },
+            "level": "7"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords.0.level",
+          "code": "option"
+        }
+      ]
+    },
+    {
+      "name": "a two-language keyword without text where one is required",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords",
+          [
+            {
+              "text": {
+                "de": " ",
+                "en": ""
+              },
+              "level": ""
+            }
+          ]
+        ]
+      ],
+      "errors": [
+        {
+          "path": "skills.0.keywords",
+          "code": "required"
+        }
+      ]
+    },
+    {
+      "name": "two-language interests (#299)",
+      "base": "job",
+      "set": [
+        [
+          "data.interests.interests",
+          [
+            {
+              "de": "Wandern",
+              "en": "Hiking"
+            },
+            "Lesen"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "name": "a two-language interest with a line break",
+      "base": "job",
+      "set": [
+        [
+          "data.interests.interests.0",
+          {
+            "de": "Wandern",
+            "en": "Hi-\nking"
+          }
+        ]
+      ],
+      "errors": [
+        {
+          "path": "interests.interests.0",
+          "code": "newline"
+        }
+      ]
+    },
+    {
+      "name": "two-language keywords and interests loaded from the CV",
+      "base": "job",
+      "set": [
+        [
+          "data.skills.0.keywords",
+          [
+            {
+              "de": "Buchhaltung",
+              "en": "Accounting"
+            },
+            {
+              "text": {
+                "de": "Lohnwesen",
+                "en": "Payroll"
+              },
+              "level": "4"
+            }
+          ]
+        ],
+        [
           "data.interests.interests",
           [
             {
@@ -2825,12 +2997,35 @@
           ]
         ]
       ],
-      "errors": [
-        {
-          "path": "interests.interests",
-          "code": "type"
+      "loaded": {
+        "skills": [
+          {
+            "name": "Programme",
+            "keywords": [
+              {
+                "de": "Buchhaltung",
+                "en": "Accounting"
+              },
+              {
+                "text": {
+                  "de": "Lohnwesen",
+                  "en": "Payroll"
+                },
+                "level": "4"
+              }
+            ]
+          }
+        ],
+        "interests": {
+          "interests": [
+            {
+              "de": "Wandern",
+              "en": "Hiking"
+            }
+          ]
         }
-      ]
+      },
+      "errors": []
     },
     {
       "name": "a two-language highlight with a line break",
