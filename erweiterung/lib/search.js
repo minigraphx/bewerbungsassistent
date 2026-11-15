@@ -9,7 +9,7 @@ export const DELAY_MS = 600; // between requests to a portal, to stay gentle
 // G43: per portal at most this many searches in a row, then a longer pause; the plan of the app may set both.
 export const STAGE_SIZE = 30;
 export const STAGE_PAUSE_S = 60;
-const PAUSE_SLICE_S = 10;
+const PAUSE_SLICE_S = 5; // G43: the progress line changes at least this often
 export const SEND_SIZE = 10;
 const COMMON = 'portals/common.js';
 

@@ -32,6 +32,6 @@ test("the progress names the place being searched, a query without place stays a
 
 test("the progress of an older extension without counts still reads", () => {
   assert.equal(logik.laufZeile({ portal: "jobs.ch", phase: "suche", stichwort: "Begriff1", seite: 2 }), "jobs.ch: suche „Begriff1“, Seite 2 …");
-  assert.equal(logik.laufZeile({ portal: "jobs.ch", phase: "texte", fertig: 3, von: 9 }), "jobs.ch: lese Inserate (3 von 9) …");
+  assert.equal(logik.laufZeile({ portal: "jobs.ch", phase: "texte", fertig: 3, von: 9 }), "jobs.ch: lese Inserat 4 von 9 …");
   assert.equal(logik.laufZeile({}), "Suche startet …");
 });

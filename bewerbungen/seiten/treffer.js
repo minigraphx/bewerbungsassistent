@@ -379,6 +379,7 @@
       window.postMessage({ quelle: SEITE, art: "inserate-holen", ids }, location.origin);
     });
     adsFetched = null;
+    $("bewerten-schritt").textContent = "";
     $("bewerten-titel").textContent = "KI schätzt Treffer ein";
     if (answer.fehler) return ` Die Inserate liessen sich nicht holen: ${answer.fehler}`;
     return answer.fehlgeschlagen ? ` ${answer.fehlgeschlagen} Inserate liessen sich nicht laden.` : "";
@@ -421,6 +422,21 @@
     }));
   }
 
+  // G43 (#284): one package is one call to the AI; the line ticks every second while it runs. Without a package, it clears.
+  let pruefUhr = null;
+  function zeigePruefSchritt(stand, gruppe) {
+    clearInterval(pruefUhr);
+    const zeile = $("bewerten-schritt");
+    if (!stand) {
+      zeile.textContent = "";
+      return;
+    }
+    const seit = Date.now();
+    const zeige = () => { zeile.textContent = logik.pruefSchritt(stand, gruppe, Math.floor((Date.now() - seit) / 1000)); };
+    zeige();
+    pruefUhr = setInterval(zeige, 1000);
+  }
+
   /** Rate in packages with progress; one run at a time. The list updates after every package. */
   async function starteBewertung(ids, suffix = "") {
     if (bewertungslauf || !ids.length) return;
@@ -434,6 +450,7 @@
       paket,
       sende: gruppe => senden("/api/suche/bewerten-paket", { ids: gruppe }),
       angehalten: () => lauf.halt,
+      beginnt: zeigePruefSchritt,
       fortschritt: (zwischen, treffer) => {
         const neu = new Map(treffer.map(t => [t.id, t]));
         alle = alle.map(t => (neu.has(t.id) ? { ...neu.get(t.id), ohne_text: false } : t));
@@ -441,6 +458,7 @@
         $("bewerten-zahl").textContent = `${zwischen.bewertet} von ${ids.length}`;
       },
     });
+    zeigePruefSchritt(null);
     bewertungslauf = null;
     zeigeListe();
     loadEstimate();
@@ -614,6 +632,8 @@
     erweiterungDa();
     if (daten.art === "lauf") {
       folge(daten.lauf);
+    } else if (daten.art === "inserate-stand") {
+      if (adsFetched) $("bewerten-schritt").textContent = logik.inseratSchritt(daten.stand || {});
     } else if (daten.art === "antwort" && daten.frage === "inserate-holen") {
       if (adsFetched) adsFetched(daten.antwort || {});
     } else if (daten.art === "antwort" && daten.frage === "status") {

@@ -32,14 +32,17 @@ async function loadOne(tab, portal, job, deps) {
   return result.ok ? { art: job.art, id: job.id, text: (result.value && result.value.text) || '' } : failure(job, result.fehler);
 }
 
-/** The texts of one portal; a portal that does not open gives its reason to each of its jobs. */
-async function loadPortal(portal, jobs, deps) {
+/** The texts of one portal; a portal that does not open gives its reason to each of its jobs. `tick` before each ad. */
+async function loadPortal(portal, jobs, deps, tick) {
   const results = [];
   let tab = null;
   try {
     tab = await deps.browser.openTab(ADAPTERS[portal].start, false);
     await deps.browser.inject(tab, [COMMON, ADAPTERS[portal].file]);
-    for (const job of jobs) results.push(await loadOne(tab, portal, job, deps));
+    for (const job of jobs) {
+      tick();
+      results.push(await loadOne(tab, portal, job, deps));
+    }
   } catch (error) {
     results.push(...jobs.slice(results.length).map((job) => failure(job, error.message)));
   } finally {
@@ -77,14 +80,22 @@ export async function fetchHitAds(message, deps) {
 /**
  * Asks the app what it is missing, loads it and hands back texts and reasons. `wanted` names the hits of „Alle prüfen“
  * (#209), `{ treffer: [ids] }`; without it the app hands out what it lacks at its start.
+ * `deps.report`, if given, hears before each ad how many of all are loaded (G43): `{ fertig, von }`.
  */
 export async function fetchMissingAds(deps, wanted = {}) {
   const answer = await deps.app.request('POST', LIST_PATH, wanted);
   const jobs = Array.isArray(answer && answer.laden) ? answer.laden : [];
+  const groups = byPortal(jobs);
+  const total = [...groups.values()].reduce((sum, list) => sum + list.length, 0);
+  let started = 0;
+  const tick = () => {
+    deps.report?.({ fertig: started, von: total });
+    started += 1;
+  };
   let loaded = 0;
   let failed = 0;
-  for (const [portal, list] of byPortal(jobs)) {
-    const results = await loadPortal(portal, list, deps);
+  for (const [portal, list] of groups) {
+    const results = await loadPortal(portal, list, deps, tick);
     loaded += results.filter((r) => r.text).length;
     failed += results.filter((r) => !r.text).length;
     for (const part of chunks(results, SEND_SIZE)) await deps.app.request('POST', LOAD_PATH, { texte: part });
