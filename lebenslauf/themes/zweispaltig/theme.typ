@@ -4,6 +4,7 @@
 // Masse nach dem Canva-Lebenslauf (Schriftgrössen über Textbreiten, Abstände über Zeilenpositionen gemessen).
 #import "../common.typ": *
 #import "../page-fill.typ": spacing, leading, body-size, part-start, part-end
+#import "../type-area.typ": type-area
 
 #let standard-stil = (
   farbe-text: rgb("#38495d"),
@@ -70,6 +71,7 @@
   set page(
     paper: "a4",
     margin: s.rand,
+    foreground: type-area(),
     fill: s.farbe-hintergrund,
     footer-descent: s.fusszeile-abstand,
     footer: align(center, {
