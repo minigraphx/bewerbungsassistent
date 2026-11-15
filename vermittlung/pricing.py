@@ -1,13 +1,16 @@
 """Prices and costs per call. USD per million tokens (Claude API, as of 11.2026).
 
 Cache writes cost 1.25 times the input price, cache reads 0.1 times. The same table is in the app
-(`bewerbungen/ai/usage.py`); a test keeps both equal.
+(`bewerbungen/ai/usage.py`); a test keeps both equal. Credits are in CHF (G80, G46).
 """
 import dataclasses
 
 PER_MILLION = 1_000_000
 CACHE_WRITE_FACTOR = 1.25
 CACHE_READ_FACTOR = 0.1
+# Andy's decision (13.11.2026): one USD billed by Anthropic counts as one CHF of the credit, without an exchange
+# rate, so what is left over pays for the server. The app counts with the same number.
+CHF_PER_USD = 1.0
 PRICES_USD = {  # model: (input, output) per million tokens
     "claude-opus-5-5": (4.0, 20.0),
     "claude-sonnet-5-5": (2.0, 10.0),
@@ -43,3 +46,8 @@ def cost_usd(model: str, usage: Usage) -> float:
     total = (usage.input_tokens * price_in + usage.cache_creation_input_tokens * price_in * CACHE_WRITE_FACTOR
              + usage.cache_read_input_tokens * price_in * CACHE_READ_FACTOR + usage.output_tokens * price_out)
     return round(total / PER_MILLION, 6)
+
+
+def cost_chf(usd: float) -> float:
+    """What a cost billed in USD takes from a credit."""
+    return usd * CHF_PER_USD

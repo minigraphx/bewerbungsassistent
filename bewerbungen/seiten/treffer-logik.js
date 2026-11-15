@@ -57,7 +57,7 @@
 
   /**
    * Rate ids in packages. A package without a usable answer costs nobody else: its hits are tried again one by one.
-   * An error of connection, access or budget ends the run, what was rated stays.
+   * An error of connection, access or credit ends the run, what was rated stays.
    * mittel: { paket, sende(ids) → answer, angehalten() → bool, fortschritt(stand, hits) }.
    */
   async function bewerteAlle(ids, { paket, sende, angehalten, fortschritt }) {
@@ -80,36 +80,45 @@
     return stand;
   }
 
-  // „Alle prüfen“ (G44, #209): the words around the estimate of GET /api/suche/alle-pruefen.
-  const money = usd => `USD ${Number(usd).toFixed(2)}`;
+  // „Alle prüfen“ (G44, #209): the words around the estimate of GET /api/suche/alle-pruefen, in its currency: CHF
+  // with the mediation and its credit (G46, G80), USD with an own key.
+  const currencyOf = s => (s && s.waehrung) || "USD";
+  const money = (amount, currency) => `${currency} ${Number(amount).toFixed(2)}`;
   const minutes = n => (n === 1 ? "1 Minute" : `${n} Minuten`);
   const jobs = (n, apprenticeship) => {
     const word = apprenticeship ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
     return `${n} ${n === 1 ? word[0] : word[1]}`;
   };
-  const withBudget = s => typeof s.budget_usd === "number";
+  const withCredit = s => typeof s.guthaben === "number";
+  const usedUp = s => withCredit(s) && s.guthaben <= 0;
+  const USED_UP_LINE = "Das Guthaben ist aufgebraucht: neuen Code anfordern.";
+  const USED_UP_WARNING = "Das Guthaben ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter; "
+    + "ohne prüft die KI keine Stelle.";
 
   /** The second line of the box above the list, as in design A3; empty without an estimate. */
   function estimateLine(s, apprenticeship = false) {
     if (!s || !s.anzahl) return "";
-    const about = `Etwa ${money(s.kosten_usd)} und ${minutes(s.dauer_minuten)}.`;
-    if (!withBudget(s)) return about;
-    if (s.reicht_fuer !== null && s.reicht_fuer !== undefined) return `${about} Das Budget reicht für etwa ${jobs(s.reicht_fuer, apprenticeship)}.`;
-    return `${about} Danach bleiben ${money(s.danach_usd)} im Budget.`;
+    const currency = currencyOf(s);
+    const about = `Etwa ${money(s.kosten, currency)} und ${minutes(s.dauer_minuten)}.`;
+    if (!withCredit(s)) return about;
+    if (usedUp(s)) return `${about} ${USED_UP_LINE}`;
+    if (s.reicht_fuer !== null && s.reicht_fuer !== undefined) return `${about} Das Guthaben reicht für etwa ${jobs(s.reicht_fuer, apprenticeship)}.`;
+    return `${about} Danach bleiben ${money(s.danach, currency)} im Guthaben.`;
   }
 
   /** What the question before the run says; `withExtension`: the extension answered, so it can load missing texts. */
   function confirmation(s, apprenticeship, withExtension) {
+    const currency = currencyOf(s);
     const sentences = [`Die KI prüft ${jobs(s.anzahl, apprenticeship)}, die noch keine Note haben.`,
-      `Das kostet etwa ${money(s.kosten_usd)} und dauert etwa ${minutes(s.dauer_minuten)}.`];
-    if (withBudget(s)) sentences.push(`Im Budget sind noch ${money(s.budget_usd)}, danach etwa ${money(s.danach_usd)}.`);
+      `Das kostet etwa ${money(s.kosten, currency)} und dauert etwa ${minutes(s.dauer_minuten)}.`];
+    if (withCredit(s)) sentences.push(`Im Guthaben sind noch ${money(s.guthaben, currency)}, danach etwa ${money(s.danach, currency)}.`);
     const toLoad = s.laden.length;
     if (toLoad) {
       sentences.push(withExtension ? `Für ${jobs(toLoad, apprenticeship)} holt die Erweiterung zuerst den Text des Inserats.`
         : `Für ${jobs(toLoad, apprenticeship)} fehlt der Text. Ohne Erweiterung ${toLoad === 1 ? "bleibt sie" : "bleiben sie"} offen.`);
     }
-    const tight = withBudget(s) && s.reicht_fuer !== null && s.reicht_fuer !== undefined;
-    const warning = tight ? `Das Budget von ${money(s.budget_usd)} reicht für etwa ${s.reicht_fuer} von ${jobs(s.anzahl, apprenticeship)}. `
+    const tight = withCredit(s) && s.reicht_fuer !== null && s.reicht_fuer !== undefined;
+    const warning = usedUp(s) ? USED_UP_WARNING : tight ? `Das Guthaben von ${money(s.guthaben, currency)} reicht für etwa ${s.reicht_fuer} von ${jobs(s.anzahl, apprenticeship)}. `
       + "Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt." : "";
     const without = s.nicht_ladbar.length;
     return {
@@ -119,14 +128,14 @@
     };
   }
 
-  /** The message after a run; `rest` hits are still without a grade, also when the budget ended the run. */
-  function schlussText(stand, rest) {
+  /** The message after a run; `rest` hits are still without a grade, also when the credit ended the run. */
+  function schlussText(stand, rest, currency = "USD") {
     const teile = [`${stand.bewertet} von ${stand.von} Treffern bewertet`];
     if (stand.offen.length) teile.push(`${stand.offen.length} ohne brauchbare Antwort, die lassen sich einzeln nochmals versuchen`);
     if (stand.ohneText) teile.push(`${stand.ohneText} ohne Inseratstext`);
     if (stand.gestoppt) teile.push("angehalten");
     if (rest) teile.push(`noch ${rest} offen`);
-    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)} USD.`;
+    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)} ${currency}.`;
   }
 
   /** What the details say about the second look at a good grade (MIN-389); empty when there was none. */

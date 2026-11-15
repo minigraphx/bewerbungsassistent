@@ -15,7 +15,8 @@
   let bereit = false;  // set up and agreed to; until then a button opens the window „KI einrichten“
 
   const meldung = (text, art) => status($("ki-meldung"), text, art);
-  const kosten = usd => (usd === null || usd === undefined) ? "Kosten unbekannt" : `ca. ${usd.toFixed(2)} USD`;
+  let waehrung = "USD";  // CHF with the mediation (G46), from the status; the amounts count 1:1
+  const kosten = betrag => (betrag === null || betrag === undefined) ? "Kosten unbekannt" : `ca. ${betrag.toFixed(2)} ${waehrung}`;
   const frei = an => KNOEPFE.forEach(k => { $(k).disabled = !an; });
 
   function liste(titel, eintraege) {
@@ -101,12 +102,16 @@
     if (s.einwilligung && !s.einwilligung.erteilt) return "Die KI ist noch aus: Vor der ersten Nutzung braucht es die Einwilligung.";
     if (!s.eingerichtet) return "Die KI ist noch nicht eingerichtet. ";
     if (!s.vermittlung) return `KI eingerichtet (direkt, Entwicklung). Diesen Monat ${kosten(s.kosten_usd)}.`;
-    const budget = typeof s.budget_usd === "number"
-      ? ` Budget diesen Monat: ${kosten(s.verbraucht_usd)} von ${s.budget_usd.toFixed(2)} USD.` : "";
-    return `KI eingerichtet (über die Vermittlung).${budget}${s.hinweis ? " " + s.hinweis : ""}`;
+    const verbraucht = Number(s.verbraucht_chf || 0);
+    const aufgebraucht = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen.";
+    const guthaben = typeof s.guthaben_chf === "number"
+      ? ` Guthaben: CHF ${verbraucht.toFixed(2)} von ${s.guthaben_chf.toFixed(2)} verbraucht.${verbraucht >= s.guthaben_chf ? aufgebraucht : ""}`
+      : "";
+    return `KI eingerichtet (über die Vermittlung).${guthaben}${s.hinweis ? " " + s.hinweis : ""}`;
   }
 
   function zeigeStatus(s) {
+    waehrung = s.waehrung || "USD";
     const einwilligungOffen = Boolean(s.einwilligung && !s.einwilligung.erteilt);
     const einrichten = s.eingerichtet ? null
       : el("button", { type: "button", class: "btn btn--quiet btn--sm", onclick: () => window.App.kiEinrichten() }, "KI einrichten");

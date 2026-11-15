@@ -66,7 +66,7 @@ Diese Kapitel brauchen Sie nur einmal. Sie gelten auch, wenn Sie die App für Ih
 
 - einen Computer mit Windows, macOS oder Linux,
 - den Browser Chrome oder Edge,
-- für die KI-Unterstützung einen Einladungscode von Ihrer Begleitperson. Haben Sie ein eigenes Claude-Abo oder einen eigenen API-Schlüssel, geht es auch ohne Code (siehe [Für Geübte](#für-geübte)).
+- für die KI-Unterstützung einen Einladungscode. Er bringt ein einmaliges Guthaben von CHF 5; ist es aufgebraucht, fordern Sie einen neuen Code an. Haben Sie ein eigenes Claude-Abo oder einen eigenen API-Schlüssel, geht es auch ohne Code (siehe [Für Geübte](#für-geübte)).
 
 ### App installieren
 
@@ -127,7 +127,7 @@ Liegen Suchprofil, Stilprofil oder Bausteine schon im Datenordner, fragt die App
 
 Die KI richten Sie in einem Fenster über der Seite ein. Es öffnet sich, wenn Sie oben in der Einrichtung auf **KI einrichten** klicken, wenn Sie eine KI-Funktion nutzen, bevor die KI eingerichtet ist, und wenn Sie einen Einladungslink öffnen.
 
-Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Widerrufen können Sie jederzeit unter **Einstellungen**, **KI und Budget**.
+Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Widerrufen können Sie jederzeit unter **Einstellungen**, **KI und Guthaben**.
 
 Bei Lehrstellen: Ein Elternteil oder die gesetzliche Vertretung richtet die App ein und bestätigt das in der Einwilligung.
 
@@ -332,7 +332,7 @@ Die App arbeitet jetzt mit den Unterlagen dieser Person. Eine neue Person erfass
 
 Bringen Sie vor dem Wechsel zu Ende, was noch offen ist: eine laufende Suche, Tabs mit Bewerbungsformularen und angefangene Einträge im Job-Room. Sonst kann, was dabei herauskommt, bei der falschen Person landen.
 
-Der Zugang zur KI gehört zum Benutzerkonto des Computers, nicht zum Datenordner. Auf demselben Konto nutzen beide Personen also denselben Zugang und dasselbe Budget. Das gilt auch für einen eigenen API-Schlüssel.
+Der Zugang zur KI gehört zum Benutzerkonto des Computers, nicht zum Datenordner. Auf demselben Konto nutzen beide Personen also denselben Zugang und dasselbe Guthaben. Das gilt auch für einen eigenen API-Schlüssel.
 
 ### Datenordner
 
@@ -377,7 +377,7 @@ Wer ein Abo bei Anthropic hat, kann auch in Claude arbeiten und das Ergebnis in 
 
 #### Eigener API-Schlüssel (freiwillig)
 
-Ein eigener Schlüssel lohnt sich, wenn Sie mehr KI nutzen möchten, als Ihr Budget in der Pilotphase erlaubt, oder wenn die Suche zusätzliche Seiten lesen soll. Das geht nur mit eigenem Schlüssel.
+Ein eigener Schlüssel lohnt sich, wenn Sie mehr KI nutzen möchten, als das Guthaben Ihres Einladungscodes erlaubt, oder wenn die Suche zusätzliche Seiten lesen soll. Das geht nur mit eigenem Schlüssel.
 
 Das ändert sich damit:
 
@@ -435,7 +435,7 @@ Die Suche liest pro Seite und Lauf höchstens zehn Ergebnisseiten und dreissig I
 <details>
 <summary>Schlüssel entfernen</summary>
 
-Klicken Sie unter **Einstellungen**, **KI und Budget**, **Eigener Schlüssel von Anthropic** auf **Schlüssel entfernen**. Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab. Die weiteren Seiten werden dann nicht mehr durchsucht.
+Klicken Sie unter **Einstellungen**, **KI und Guthaben**, **Eigener Schlüssel von Anthropic** auf **Schlüssel entfernen**. Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab. Die weiteren Seiten werden dann nicht mehr durchsucht.
 
 Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, löschen Sie ihn auch in der Console.
 
@@ -504,7 +504,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 - `firmen.yaml` – was die App über die Firmen aus Treffern und Bewerbungen bei kununu weiss: die zugeordnete kununu-Seite, Wert, Anzahl Bewertungen und wann geprüft wurde. Sie entsteht unter **Mehr**, **Firmen**.
 - `firmen-ausgeschlossen.yaml` – die Firmen, deren Inserate die Suche nicht mehr zeigt, ein Name pro Zeile. Sie entsteht mit **Diese Firma nicht mehr zeigen** bei einem Treffer, einer Bewerbung oder unter **Mehr**, **Firmen**, und **Diese Firma wieder zeigen** nimmt eine Firma dort wieder heraus; Sie ändern sie unter **Suche einstellen**, **Was Sie nicht sehen wollen**.
 - `.entwuerfe/` – jeder frühere Stand Ihrer Dateien, mit `.entwuerfe/index.yaml` als Verzeichnis. Die App zeigt sie unter **Mehr**, **Entwürfe und Versionen**. Von hier holen Sie einen alten Stand zurück.
-- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Einstellungen**, **KI und Budget**, nach Aufgaben aufgeteilt.
+- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Einstellungen**, **KI und Guthaben**, nach Aufgaben aufgeteilt.
 - `.sicherung.yaml` – wann Sie zuletzt eine Sicherung erstellt haben, für die Erinnerung.
 - `.build/` – Zwischenstände beim Bauen der PDFs. Sie dürfen den Ordner löschen; die App legt ihn neu an.
 - `.git/` und `.gitignore` – ist Git auf dem Computer installiert, hält die App jeden Versand zusätzlich als Version fest. Die `.gitignore` sagt Git, was nicht hineingehört, etwa `dokumente/` und `suche/`.
@@ -533,11 +533,11 @@ Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist ni
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
-| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten) mit dem Text der Einwilligung. Sie können auch unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**, einwilligen: **KI einschalten** zeigt den Text dazu. |
-| „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Stellen suchen** oder **Lehrstellen suchen** und unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
+| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten) mit dem Text der Einwilligung. Sie können auch unter **Einstellungen**, **KI und Guthaben**, Abschnitt **Einwilligung**, einwilligen: **KI einschalten** zeigt den Text dazu. |
+| „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Stellen suchen** oder **Lehrstellen suchen** und unter **Einstellungen**, **KI und Guthaben**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
 | „Die KI ist noch nicht eingerichtet.“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten). Lösen Sie dort den Einladungscode ein, oder wählen Sie das eigene Claude-Abo oder einen eigenen Schlüssel. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Melden Sie sich bei der Person, die Sie in der Pilotphase begleitet. |
-| „Das Budget für die KI ist für diesen Monat aufgebraucht.“ | Ab dem nächsten Monat geht es wieder. Alles andere funktioniert weiterhin. |
+| „Das Guthaben des Einladungscodes ist aufgebraucht.“ | Das Guthaben eines Codes gilt einmal und erneuert sich nicht. Fordern Sie einen neuen Einladungscode an und lösen Sie ihn unter **Einstellungen**, **KI und Guthaben**, **Einladungscode** ein. Alles andere funktioniert weiterhin. |
 | „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
 | „Dieser Schlüssel gilt nicht.“ | Prüfen Sie in der [Console](https://platform.claude.com/settings/keys), ob es ihn noch gibt, oder erstellen Sie einen neuen. Gespeichert wurde nichts. |
 | „Das Guthaben bei Anthropic reicht nicht mehr.“ | Laden Sie unter [Billing](https://platform.claude.com/settings/billing) nach, oder entfernen Sie den eigenen Schlüssel. |

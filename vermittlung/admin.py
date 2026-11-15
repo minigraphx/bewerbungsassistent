@@ -1,11 +1,11 @@
 """Administration of the mediation (MIN-344), on the server: `python admin.py <command>`.
 
-  invite T01 [--budget 20] [--days 45 | --weeks 6 | --months 2]
-                                 Person anlegen (falls neu) und Einladungscode ausgeben (Standard 45 Tage)
+  invite T01 [--credit 5] [--days 45 | --weeks 6 | --months 2]
+                                 Person anlegen (falls neu) und Einladungscode ausgeben: einmaliges Guthaben
+                                 in CHF (Standard 5, G80), gültig 45 Tage; aufgebraucht braucht es einen neuen Code
   revoke T01 [--access 3]        alle Zugänge und offenen Einladungen der Person sperren, oder nur einen Zugang
-  budget T01 30                  Budget pro Monat in USD ändern
-  accesses T01                   Zugänge mit Gerät, erstellt, zuletzt genutzt, Einwilligung, gesperrt
-  costs [--month 2026-11]        Kosten pro Person im Monat
+  accesses T01                   Zugänge mit Gerät, Guthaben, erstellt, zuletzt genutzt, Einwilligung, gesperrt
+  costs [--month 2026-11]        Kosten pro Person im Monat in CHF (1 USD von Anthropic zählt als 1 CHF)
   due                            Personen, deren Daten zu löschen sind (Sperrung vor 30 Tagen oder länger)
   forget T01 [--yes]             gesperrte Person samt Kostenprotokollen löschen; ohne --yes nur anzeigen
 
@@ -17,9 +17,9 @@ import datetime
 import os
 import sys
 
-from store import INVITATION_DAYS, MAX_INVITATION_DAYS, RETENTION_DAYS, Store, StoreError, month_of
+from store import (INVITATION_DAYS, MAX_INVITATION_DAYS, RETENTION_DAYS, TRIAL_CREDIT_CHF, Store, StoreError,
+                   check_credit, month_of)
 
-DEFAULT_BUDGET_USD = 20.0
 LINK = "bewerbungsbegleiter://einladung?code={code}"
 
 
@@ -46,11 +46,13 @@ def invite(store: Store, args, now: datetime.datetime) -> str:
     days = validity_days(args, now)
     if not 1 <= days <= MAX_INVITATION_DAYS:
         raise StoreError(f"Gültigkeit: 1 bis {MAX_INVITATION_DAYS} Tage (höchstens 12 Monate).")
+    check_credit(args.credit)
     if not store.has_person(args.person):
-        store.add_person(args.person, args.budget, now)
-    code = store.create_invitation(args.person, now, days)
+        store.add_person(args.person, now)
+    code = store.create_invitation(args.person, now, days, args.credit)
     until = (now + datetime.timedelta(days=days)).astimezone(datetime.timezone.utc).strftime("%d.%m.%Y")
-    return f"Code für {args.person}: {code}\nLink: {LINK.format(code=code)}\nGültig bis {until} (UTC), nur einmal."
+    return (f"Code für {args.person}: {code}\nLink: {LINK.format(code=code)}\nGültig bis {until} (UTC), nur einmal."
+            f"\nGuthaben CHF {args.credit:.2f}, einmalig.")
 
 
 def revoke(store: Store, args, now: datetime.datetime) -> str:
@@ -59,14 +61,10 @@ def revoke(store: Store, args, now: datetime.datetime) -> str:
     return f"{count} Zugang/Zugänge von {args.person} gesperrt, {voided} offene Einladung(en) ungültig."
 
 
-def budget(store: Store, args, now: datetime.datetime) -> str:
-    store.set_budget(args.person, args.usd)
-    return f"Budget von {args.person}: {args.usd:.2f} USD pro Monat."
-
-
 def accesses(store: Store, args, now: datetime.datetime) -> str:
     rows = store.accesses(args.person)
-    lines = [f"{r['id']:>4}  {r['device']:<20} erstellt {r['created']}  zuletzt {r['last_used'] or '–'}"
+    lines = [f"{r['id']:>4}  {r['device']:<20} Guthaben CHF {r['spent_chf']:.2f} von {r['credit_chf']:.2f}"
+             f"  erstellt {r['created']}  zuletzt {r['last_used'] or '–'}"
              f"  Einwilligung {r['consent'] or '–'}"
              f"{'  GESPERRT ' + r['revoked'] if r['revoked'] else ''}" for r in rows]
     return "\n".join(lines) or f"{args.person} hat keine Zugänge."
@@ -75,8 +73,7 @@ def accesses(store: Store, args, now: datetime.datetime) -> str:
 def costs(store: Store, args, now: datetime.datetime) -> str:
     month = args.month or month_of(now)
     rows = store.costs(month)
-    lines = [f"{r['person']:<8} {r['calls']:>5} Aufrufe  {r['cost_usd']:>8.2f} von {r['budget_usd']:.2f} USD"
-             for r in rows]
+    lines = [f"{r['person']:<8} {r['calls']:>5} Aufrufe  {r['cost_chf']:>8.2f} CHF" for r in rows]
     return f"Kosten {month}:\n" + ("\n".join(lines) or "keine Personen")
 
 
@@ -103,7 +100,8 @@ def parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="command", required=True)
     p = sub.add_parser("invite", help="Person anlegen und Einladungscode ausgeben")
     p.add_argument("person")
-    p.add_argument("--budget", type=float, default=DEFAULT_BUDGET_USD, help="USD pro Monat")
+    p.add_argument("--credit", type=float, default=TRIAL_CREDIT_CHF,
+                   help=f"einmaliges Guthaben in CHF (Standard {TRIAL_CREDIT_CHF:.0f})")
     validity = p.add_mutually_exclusive_group()
     validity.add_argument("--days", type=int, help=f"Gültigkeit in Tagen (Standard {INVITATION_DAYS})")
     validity.add_argument("--weeks", type=int, help="Gültigkeit in Wochen")
@@ -113,14 +111,10 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("person")
     p.add_argument("--access", type=int, help="nur diesen Zugang (ID aus accesses)")
     p.set_defaults(run=revoke)
-    p = sub.add_parser("budget", help="Budget pro Monat ändern")
-    p.add_argument("person")
-    p.add_argument("usd", type=float)
-    p.set_defaults(run=budget)
     p = sub.add_parser("accesses", help="Zugänge einer Person")
     p.add_argument("person")
     p.set_defaults(run=accesses)
-    p = sub.add_parser("costs", help="Kosten pro Person im Monat")
+    p = sub.add_parser("costs", help="Kosten pro Person im Monat, in CHF")
     p.add_argument("--month", help="JJJJ-MM, Standard: laufender Monat (UTC)")
     p.set_defaults(run=costs)
     p = sub.add_parser("due", help="Personen, deren Daten zu löschen sind")

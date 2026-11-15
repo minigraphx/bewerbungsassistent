@@ -2,7 +2,8 @@
 
 Invitation codes and accesses are stored only as SHA-256 hashes: both are long random values, so a
 plain hash is enough. The usage table holds person, model, tokens and cost of each call, never content.
-Times are UTC; a month is "YYYY-MM" in UTC.
+Each code is a one-time credit in CHF (G80); its access may spend it from `credit_since` on and is never
+renewed, a used-up access needs a new code. Times are UTC; a month is "YYYY-MM" in UTC.
 """
 import dataclasses
 import datetime
@@ -12,7 +13,7 @@ import secrets
 import sqlite3
 import threading
 
-from pricing import Usage
+from pricing import Usage, cost_chf
 
 CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # without 0/O and 1/I, easy to type
 CODE_LENGTH = 16  # 80 bits
@@ -21,13 +22,16 @@ INVITATION_DAYS = 45  # long enough for a round of applications
 MAX_INVITATION_DAYS = 365
 CONSENT_RECEIPT = re.compile(r"\d{4}-\d{2} [a-z]{1,20}")  # version and kind of search, nothing about the person
 RETENTION_DAYS = 30  # cost logs go at the latest this long after the last access was revoked
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS people (name TEXT PRIMARY KEY, budget_usd REAL NOT NULL, created TEXT NOT NULL);
+TRIAL_CREDIT_CHF = 5.0  # G80: what one code is worth, once
+MAX_CREDIT_CHF = 100.0  # a typo in the admin command must not hand out a fortune
+SCHEMA = f"""
+CREATE TABLE IF NOT EXISTS people (name TEXT PRIMARY KEY, created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS invitations (code_hash TEXT PRIMARY KEY, person TEXT NOT NULL REFERENCES people(name),
-    created TEXT NOT NULL, expires TEXT NOT NULL, used TEXT);
+    created TEXT NOT NULL, expires TEXT NOT NULL, used TEXT, credit_chf REAL NOT NULL DEFAULT {TRIAL_CREDIT_CHF});
 CREATE TABLE IF NOT EXISTS accesses (id INTEGER PRIMARY KEY, token_hash TEXT UNIQUE NOT NULL,
     person TEXT NOT NULL REFERENCES people(name), device TEXT NOT NULL, created TEXT NOT NULL,
-    last_used TEXT, revoked TEXT, consent TEXT NOT NULL DEFAULT '');
+    last_used TEXT, revoked TEXT, consent TEXT NOT NULL DEFAULT '',
+    credit_chf REAL NOT NULL DEFAULT {TRIAL_CREDIT_CHF}, credit_since TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS usage (id INTEGER PRIMARY KEY, time TEXT NOT NULL, person TEXT NOT NULL,
     access_id INTEGER NOT NULL, model TEXT NOT NULL, input_tokens INTEGER NOT NULL, output_tokens INTEGER NOT NULL,
     cache_creation_input_tokens INTEGER NOT NULL, cache_read_input_tokens INTEGER NOT NULL,
@@ -45,7 +49,8 @@ class StoreError(ValueError):
 class Access:
     id: int
     person: str
-    budget_usd: float
+    credit_chf: float
+    credit_since: str
 
 
 def _hash(value: str) -> str:
@@ -64,21 +69,42 @@ def month_of(moment: datetime.datetime) -> str:
     return moment.astimezone(datetime.timezone.utc).strftime("%Y-%m")
 
 
+def check_credit(credit_chf: float) -> None:
+    if not 0 < credit_chf <= MAX_CREDIT_CHF:
+        raise StoreError(f"Guthaben: mehr als CHF 0 und höchstens CHF {MAX_CREDIT_CHF:.0f}.")
+
+
 class Store:
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, now: datetime.datetime | None = None) -> None:
         self._db = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
         self._db.row_factory = sqlite3.Row
         self._lock = threading.Lock()
         with self._lock:
             self._db.execute("PRAGMA foreign_keys = ON")
             self._db.executescript(SCHEMA)
-            self._add_consent_column()
+            self._add_missing_columns()
+            self._start_open_credits(now or datetime.datetime.now(datetime.timezone.utc))
+            self._legacy_budget = "budget_usd" in self._columns("people")
 
-    def _add_consent_column(self) -> None:
-        """`CREATE TABLE IF NOT EXISTS` leaves a database from before MIN-401 as it is."""
-        columns = {row["name"] for row in self._db.execute("PRAGMA table_info(accesses)")}
-        if "consent" not in columns:
+    def _columns(self, table: str) -> set[str]:
+        return {row["name"] for row in self._db.execute(f"PRAGMA table_info({table})")}
+
+    def _add_missing_columns(self) -> None:
+        """`CREATE TABLE IF NOT EXISTS` leaves a database from before MIN-401 or G80 as it is."""
+        accesses = self._columns("accesses")
+        if "consent" not in accesses:
             self._db.execute("ALTER TABLE accesses ADD COLUMN consent TEXT NOT NULL DEFAULT ''")
+        if "credit_chf" not in accesses:
+            self._db.execute(f"ALTER TABLE accesses ADD COLUMN credit_chf REAL NOT NULL DEFAULT {TRIAL_CREDIT_CHF}")
+        if "credit_since" not in accesses:
+            self._db.execute("ALTER TABLE accesses ADD COLUMN credit_since TEXT NOT NULL DEFAULT ''")
+        if "credit_chf" not in self._columns("invitations"):
+            self._db.execute(f"ALTER TABLE invitations ADD COLUMN credit_chf REAL NOT NULL DEFAULT {TRIAL_CREDIT_CHF}")
+
+    def _start_open_credits(self, now: datetime.datetime) -> None:
+        """Accesses from the time of the monthly budget keep working with a fresh credit from now on; their cost
+        logs stay. A new access always has its start, so this runs once per old access."""
+        self._db.execute("UPDATE accesses SET credit_since = ? WHERE credit_since = ''", (_iso(now),))
 
     def _run(self, sql: str, args: tuple = ()) -> sqlite3.Cursor:
         with self._lock:
@@ -86,39 +112,37 @@ class Store:
 
     # people
 
-    def add_person(self, name: str, budget_usd: float, now: datetime.datetime) -> None:
+    def add_person(self, name: str, now: datetime.datetime) -> None:
         name = name.strip()
         if not name:
             raise StoreError("Name der Person fehlt (am besten ein Kürzel wie T01, kein echter Name).")
-        if budget_usd < 0:
-            raise StoreError("Budget darf nicht negativ sein.")
+        # a database from before G80 still has the monthly budget column; nothing reads it any more
+        sql = ("INSERT INTO people (name, budget_usd, created) VALUES (?, 0, ?)" if self._legacy_budget
+               else "INSERT INTO people (name, created) VALUES (?, ?)")
         try:
-            self._run("INSERT INTO people VALUES (?, ?, ?)", (name, budget_usd, _iso(now)))
+            self._run(sql, (name, _iso(now)))
         except sqlite3.IntegrityError as error:
             raise StoreError(f"Person {name} gibt es schon.") from error
 
     def has_person(self, name: str) -> bool:
         return self._run("SELECT 1 FROM people WHERE name = ?", (name,)).fetchone() is not None
 
-    def set_budget(self, name: str, budget_usd: float) -> None:
-        if budget_usd < 0:
-            raise StoreError("Budget darf nicht negativ sein.")
-        if self._run("UPDATE people SET budget_usd = ? WHERE name = ?", (budget_usd, name)).rowcount != 1:
-            raise StoreError(f"Person {name} gibt es nicht.")
-
     def people(self) -> list[dict]:
-        return [dict(row) for row in self._run("SELECT name, budget_usd, created FROM people ORDER BY name")]
+        return [dict(row) for row in self._run("SELECT name, created FROM people ORDER BY name")]
 
     # invitations and accesses
 
-    def create_invitation(self, name: str, now: datetime.datetime, days: int = INVITATION_DAYS) -> str:
+    def create_invitation(self, name: str, now: datetime.datetime, days: int = INVITATION_DAYS,
+                          credit_chf: float = TRIAL_CREDIT_CHF) -> str:
         if not 1 <= days <= MAX_INVITATION_DAYS:
             raise StoreError(f"Gültigkeit in Tagen: 1 bis {MAX_INVITATION_DAYS}.")
+        check_credit(credit_chf)
         if not self.has_person(name):
             raise StoreError(f"Person {name} gibt es nicht.")
         code = "".join(secrets.choice(CODE_ALPHABET) for _ in range(CODE_LENGTH))
         expires = now + datetime.timedelta(days=days)
-        self._run("INSERT INTO invitations VALUES (?, ?, ?, ?, NULL)", (_hash(code), name, _iso(now), _iso(expires)))
+        self._run("INSERT INTO invitations (code_hash, person, created, expires, used, credit_chf) "
+                  "VALUES (?, ?, ?, ?, NULL, ?)", (_hash(code), name, _iso(now), _iso(expires), credit_chf))
         return "-".join(code[i:i + CODE_GROUP] for i in range(0, CODE_LENGTH, CODE_GROUP))
 
     def redeem(self, code: str, device: str, now: datetime.datetime, consent: str = "") -> str:
@@ -133,11 +157,13 @@ class Store:
             try:
                 row = self._db.execute(
                     "UPDATE invitations SET used = ? WHERE code_hash = ? AND used IS NULL AND expires > ? "
-                    "RETURNING person", (_iso(now), code_hash, _iso(now))).fetchone()
+                    "RETURNING person, credit_chf", (_iso(now), code_hash, _iso(now))).fetchone()
                 if row is None:
                     raise StoreError("Der Code gilt nicht (falsch, schon benutzt oder abgelaufen).")
-                self._db.execute("INSERT INTO accesses (token_hash, person, device, created, consent) VALUES (?, ?, ?, ?, ?)",
-                                 (_hash(token), row["person"], device.strip()[:60] or "Gerät", _iso(now), receipt))
+                self._db.execute("INSERT INTO accesses (token_hash, person, device, created, consent, credit_chf, "
+                                 "credit_since) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                 (_hash(token), row["person"], device.strip()[:60] or "Gerät", _iso(now), receipt,
+                                  row["credit_chf"], _iso(now)))
                 self._db.execute("COMMIT")
             except Exception:
                 self._db.execute("ROLLBACK")
@@ -146,12 +172,12 @@ class Store:
 
     def authenticate(self, token: str, now: datetime.datetime) -> Access | None:
         row = self._run(
-            "SELECT a.id, a.person, p.budget_usd FROM accesses a JOIN people p ON p.name = a.person "
-            "WHERE a.token_hash = ? AND a.revoked IS NULL", (_hash(token),)).fetchone()
+            "SELECT id, person, credit_chf, credit_since FROM accesses WHERE token_hash = ? AND revoked IS NULL",
+            (_hash(token),)).fetchone()
         if row is None:
             return None
         self._run("UPDATE accesses SET last_used = ? WHERE id = ?", (_iso(now), row["id"]))
-        return Access(row["id"], row["person"], row["budget_usd"])
+        return Access(row["id"], row["person"], row["credit_chf"], row["credit_since"])
 
     def revoke(self, name: str, now: datetime.datetime, access_id: int | None = None) -> int:
         """Revoke all accesses of a person, or one of them; returns how many were revoked."""
@@ -166,8 +192,14 @@ class Store:
         return self._run("UPDATE invitations SET used = ? WHERE person = ? AND used IS NULL", (_iso(now), name)).rowcount
 
     def accesses(self, name: str) -> list[dict]:
-        return [dict(row) for row in self._run(
-            "SELECT id, device, created, last_used, revoked, consent FROM accesses WHERE person = ? ORDER BY id", (name,))]
+        """The accesses of a person, each with its credit and what it spent of it, in CHF."""
+        rows = self._run(
+            "SELECT a.id, a.device, a.created, a.last_used, a.revoked, a.consent, a.credit_chf, a.credit_since, "
+            "COALESCE(SUM(u.cost_usd), 0) AS spent_usd FROM accesses a "
+            "LEFT JOIN usage u ON u.access_id = a.id AND u.time >= a.credit_since "
+            "WHERE a.person = ? GROUP BY a.id ORDER BY a.id", (name,))
+        return [{**{key: row[key] for key in row.keys() if key != "spent_usd"},
+                 "spent_chf": round(cost_chf(row["spent_usd"]), 6)} for row in rows]
 
     # deletion
 
@@ -217,13 +249,22 @@ class Store:
                   (_iso(now), access.person, access.id, model, *dataclasses.astuple(usage), cost, status, request_id))
 
     def spent(self, name: str, month: str) -> float:
+        """What Anthropic billed for a person in a month, in USD; for the operator's accounts."""
         row = self._run("SELECT COALESCE(SUM(cost_usd), 0) AS total FROM usage WHERE person = ? AND time LIKE ?",
                         (name, month + "%")).fetchone()
         return round(row["total"], 6)
 
+    def spent_chf(self, access: Access) -> float:
+        """What an access spent of its credit, in CHF, over all months: the credit is never renewed."""
+        row = self._run("SELECT COALESCE(SUM(cost_usd), 0) AS total FROM usage WHERE access_id = ? AND time >= ?",
+                        (access.id, access.credit_since)).fetchone()
+        return round(cost_chf(row["total"]), 6)
+
     def costs(self, month: str) -> list[dict]:
-        return [dict(row) for row in self._run(
-            "SELECT p.name AS person, p.budget_usd, COUNT(u.id) AS calls, "
-            "COALESCE(SUM(u.cost_usd), 0) AS cost_usd FROM people p "
+        """Calls and costs per person in a month, in CHF."""
+        rows = self._run(
+            "SELECT p.name AS person, COUNT(u.id) AS calls, COALESCE(SUM(u.cost_usd), 0) AS cost_usd FROM people p "
             "LEFT JOIN usage u ON u.person = p.name AND u.time LIKE ? GROUP BY p.name ORDER BY p.name",
-            (month + "%",))]
+            (month + "%",))
+        return [{"person": row["person"], "calls": row["calls"], "cost_chf": round(cost_chf(row["cost_usd"]), 6)}
+                for row in rows]

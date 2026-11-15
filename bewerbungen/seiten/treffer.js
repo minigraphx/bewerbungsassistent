@@ -323,7 +323,7 @@
     zeigeBerufe();
   }
 
-  /** The estimate depends on the hits and the budget; without it the box still counts the hits. */
+  /** The estimate depends on the hits and the credit; without it the box still counts the hits. */
   async function loadEstimate() {
     try {
       estimate = await holen("/api/suche/alle-pruefen");
@@ -431,7 +431,7 @@
     bewertungslauf = null;
     zeigeListe();
     loadEstimate();
-    const summary = logik.schlussText(stand, logik.zuBewerten(alle).length) + suffix;
+    const summary = logik.schlussText(stand, logik.zuBewerten(alle).length, await window.Sidebar.currency) + suffix;
     if (stand.fehler) meldung(`${stand.fehler} ${summary}`, "fehler");
     else meldung(summary, stand.offen.length || stand.gestoppt || suffix ? "hinweis" : "ok");
   }

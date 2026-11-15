@@ -44,9 +44,9 @@
     return tag ? `${Number(tag)}.${Number(monat)}.${jahr}` : String(iso);
   }
 
-  /** Never less than a cent: a call that costs less is still not free. */
-  const geld = usd => `${Math.max(Number(usd) || 0, 0.01).toFixed(2)} USD`;
-  const schaetzung = usd => `Etwa ${geld(usd)}`;
+  /** Never less than a cent: a call that costs less is still not free. CHF with the mediation (G46), counted 1:1. */
+  const geld = (betrag, waehrung = "USD") => `${Math.max(Number(betrag) || 0, 0.01).toFixed(2)} ${waehrung}`;
+  const schaetzung = (betrag, waehrung) => `Etwa ${geld(betrag, waehrung)}`;
 
   function hinweisText(beleg) {
     const beispiele = beleg.beispiele.length ? `, zum Beispiel ${beleg.beispiele.join(", ")}` : "";
@@ -90,8 +90,8 @@
   const RUECKGAENGIG_FERTIG = "Rückgängig gemacht. Es gilt wieder der Stand vor dem Vorschlag.";
 
   function fuss(vorschlag) {
-    const teile = [vorschlag.modell ? "Claude" : "", geld(vorschlag.kosten_usd), datum(vorschlag.datum)];
-    if (vorschlag.runde > 1) teile.push(`bisher ${geld(vorschlag.kosten_bisher)}`);
+    const teile = [vorschlag.modell ? "Claude" : "", geld(vorschlag.kosten_usd, vorschlag.waehrung), datum(vorschlag.datum)];
+    if (vorschlag.runde > 1) teile.push(`bisher ${geld(vorschlag.kosten_bisher, vorschlag.waehrung)}`);
     return teile.filter(Boolean).join(" · ");
   }
 

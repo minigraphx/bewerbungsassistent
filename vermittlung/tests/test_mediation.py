@@ -73,7 +73,7 @@ def setup(tmp_path):
                           calls=RateLimiter(3), redeems=RateLimiter(5), now=lambda: clock["now"])
     server = Server(("127.0.0.1", 0), mediation)
     threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True).start()
-    store.add_person("T01", 1.0, NOW)
+    store.add_person("T01", NOW)
     code = store.create_invitation("T01", NOW)
     yield {"server": server, "store": store, "fake": fake, "db": db, "code": code, "clock": clock,
            "url": f"http://127.0.0.1:{server.server_address[1]}"}
@@ -197,9 +197,9 @@ def test_revoked_access_is_refused(setup):
         ask(client)
 
 
-def test_used_budget_answers_402(setup):
+def test_used_credit_answers_402(setup):
+    setup["code"] = setup["store"].create_invitation("T01", NOW, credit_chf=0.003)
     client = app_client(setup, access_for(setup))
-    setup["store"].set_budget("T01", 0.003)
     ask(client)
 
     with pytest.raises(anthropic.APIStatusError) as error:
@@ -283,12 +283,12 @@ def test_upstream_errors_pass_through_without_cost(setup):
     assert error.value.status_code == 529 and setup["store"].spent("T01", "2026-11") == 0
 
 
-def test_account_shows_month_and_budget(setup):
+def test_account_shows_the_credit(setup):
     access = access_for(setup)
 
     answer = raw(setup, "GET", "/v1/account", headers={"authorization": f"Bearer {access}"})
 
-    assert answer.json() == {"month": "2026-11", "spent_usd": 0, "budget_usd": 1.0}
+    assert answer.json() == {"credit_chf": 5.0, "spent_chf": 0}
     assert raw(setup, "GET", "/v1/account").status_code == 401
 
 
@@ -319,18 +319,20 @@ def test_admin_commands(tmp_path):
     db = str(tmp_path / "a.sqlite")
     now = lambda: NOW  # noqa: E731
 
-    invitation = admin.main(["--db", db, "invite", "T02", "--budget", "15"], now)
+    invitation = admin.main(["--db", db, "invite", "T02", "--credit", "15"], now)
     code = invitation.split("Code für T02: ")[1].split("\n")[0]
     Store(db).redeem(code, "PC", NOW)
 
     assert "bewerbungsbegleiter://einladung?code=" in invitation
-    assert "15.00" in admin.main(["--db", db, "costs"], now)
+    assert "T02" in admin.main(["--db", db, "costs"], now)
     assert "PC" in admin.main(["--db", db, "accesses", "T02"], now)
+    assert "von 15.00" in admin.main(["--db", db, "accesses", "T02"], now)
     assert admin.main(["--db", db, "revoke", "T02"], now).startswith("1 ")
     assert "GESPERRT" in admin.main(["--db", db, "accesses", "T02"], now)
-    assert "15.00" in admin.main(["--db", db, "costs", "--month", "2026-11"], now)
-    with pytest.raises(SystemExit, match="gibt es nicht"):
-        admin.main(["--db", db, "budget", "T99", "5"], now)
+    assert "0.00 CHF" in admin.main(["--db", db, "costs", "--month", "2026-11"], now)
+    with pytest.raises(SystemExit, match="Guthaben"):
+        admin.main(["--db", db, "invite", "T03", "--credit", "0"], now)
+    assert not Store(db).has_person("T03"), "a refused code leaves no person behind"
 
 
 def test_revoking_a_person_voids_open_invitations(tmp_path):
@@ -404,7 +406,7 @@ def test_upstream_errors_are_logged_by_type_and_not_by_message(setup, caplog):
 
 def _person_with_usage(store, name="T01"):
     from pricing import Usage
-    store.add_person(name, 20, NOW)
+    store.add_person(name, NOW)
     token = store.redeem(store.create_invitation(name, NOW), "Mac", NOW)
     store.create_invitation(name, NOW)  # a second code, not redeemed
     access = store.authenticate(token, NOW)
@@ -443,7 +445,7 @@ def test_forget_unknown_person_is_an_error(tmp_path):
 
 def test_forget_works_for_a_person_who_never_redeemed(tmp_path):
     store = Store(str(tmp_path / "a.sqlite"))
-    store.add_person("T01", 20, NOW)
+    store.add_person("T01", NOW)
     store.create_invitation("T01", NOW)
     assert store.forget("T01") == {"usage": 0, "accesses": 0, "invitations": 1}
 
@@ -507,7 +509,7 @@ def test_rate_limiter_lets_go_of_addresses_that_went_quiet():
 
 def _invited(db: str, name: str = "T03") -> str:
     store = Store(db)
-    store.add_person(name, 10.0, NOW)
+    store.add_person(name, NOW)
     return store.create_invitation(name, NOW)
 
 

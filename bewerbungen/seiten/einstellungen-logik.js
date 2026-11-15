@@ -1,9 +1,9 @@
 "use strict";
 // What the page „Einstellungen“ shows (#265, A10), without DOM so it can be tested: its sections, which section an
-// anchor opens, which way to the AI is in use and the budget of the month (G46).
+// anchor opens, which way to the AI is in use, the credit of the code (G46, G80) or the costs of the month.
 (function (global) {
   const SECTIONS = [
-    { id: "ki", label: "KI und Budget" },
+    { id: "ki", label: "KI und Guthaben" },
     { id: "suche", label: "Suche und Portale" },
     { id: "erweiterung", label: "Browser-Erweiterung" },
     { id: "wahl", label: "Stelle, Lehrstelle, RAV" },
@@ -31,7 +31,11 @@
     career: "Suchbegriffe vorschlagen", terms: "Suchbegriffe prüfen", site_list: "Weitere Seiten lesen",
   };
   const OTHER = "Weitere";
-  const MEDIATION_NOTE = "Ist das Budget aufgebraucht, läuft die App weiter, nur ohne KI. Protokolliert werden Kosten, keine Inhalte.";
+  const MEDIATION_NOTE = "Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, "
+    + "nur ohne KI, bis ein neuer Einladungscode eingelöst ist. Protokolliert werden Kosten, keine Inhalte.";
+  // With the mediation the person sees CHF (G46); one USD billed counts as one CHF (ai/usage.py CHF_PER_USD).
+  const MEDIATION_CURRENCY = "CHF";
+  const OWN_CURRENCY = "USD";
   const OWN_NOTE = "Massgebend ist die Abrechnung von Anthropic. Protokolliert werden Kosten, keine Inhalte.";
 
   const anchor = hash => String(hash || "").replace(/^#/, "");
@@ -56,16 +60,24 @@
     return null;
   }
 
-  /** What the part „Einladungscode“ says: it runs, a code can be entered, the own key wins, or there is no mediation. */
+  const viaMediation = ki => Boolean(ki && ki.eingerichtet && ki.vermittlung);
+  const hasCredit = ki => viaMediation(ki) && typeof ki.guthaben_chf === "number" && ki.guthaben_chf > 0;
+  const creditUsedUp = ki => hasCredit(ki) && (Number(ki.verbraucht_chf) || 0) >= ki.guthaben_chf;
+
+  /**
+   * What the part „Einladungscode“ says: it runs, its credit is used up (a new code can be entered, G80), a code can
+   * be entered, the own key wins, or there is no mediation.
+   */
   function invitationState(ki) {
     if (!ki) return "keine";
-    if (ki.eingerichtet && ki.vermittlung) return "aktiv";
+    if (creditUsedUp(ki)) return "aufgebraucht";
+    if (viaMediation(ki)) return "aktiv";
     if (ki.eingerichtet && ki.eigener_schluessel) return "schluessel";
     return ki.einladung ? "eingeben" : "keine";
   }
 
   // A decimal point, as the design system says.
-  const usd = value => `USD ${Math.max(0, Number(value) || 0).toFixed(2)}`;
+  const money = (value, currency) => `${currency} ${Math.max(0, Number(value) || 0).toFixed(2)}`;
   const amount = value => Math.max(0, Number(value) || 0).toFixed(2);
 
   function monthParts(month) {
@@ -74,14 +86,7 @@
     return { year: Number(found[1]), month: Number(found[2]) };
   }
 
-  function renewal(month) {
-    const parts = monthParts(month);
-    if (!parts) return null;
-    const next = parts.month === 12 ? { year: parts.year + 1, month: 1 } : { year: parts.year, month: parts.month + 1 };
-    return `Neues Budget am 01.${String(next.month).padStart(2, "0")}.${next.year}`;
-  }
-
-  function rows(tasks) {
+  function rows(tasks, currency) {
     const grouped = Object.entries(tasks || {}).reduce((sum, [task, value]) => {
       const label = TASK_LABELS[task] || OTHER;
       const before = sum[label] || { count: 0, cost: 0 };
@@ -91,29 +96,34 @@
     }, {});
     return Object.entries(grouped)
       .sort(([labelA, a], [labelB, b]) => (labelA === OTHER) - (labelB === OTHER) || b.cost - a.cost || b.count - a.count)
-      .map(([label, value]) => ({ label, count: value.count, usd: usd(value.cost) }));
+      .map(([label, value]) => ({ label, count: value.count, usd: money(value.cost, currency) }));
   }
 
-  /** The card „Budget“ from GET /api/ki/status (may be null) and the costs of GET /api/schluessel. */
+  /**
+   * The card „Guthaben“ from GET /api/ki/status (may be null) and the costs of GET /api/schluessel: with the mediation
+   * the credit of the code, once and in CHF; otherwise the costs of the month in USD. The costs of the log count 1:1.
+   */
   function budgetView(ki, costs) {
-    const parts = monthParts(ki && ki.monat);
-    const when = parts ? `im ${MONTHS[parts.month - 1]}` : "in diesem Monat";
     const local = costs || {};
+    const currency = viaMediation(ki) ? MEDIATION_CURRENCY : OWN_CURRENCY;
     const common = {
-      rows: rows(local.aufgaben),
-      total: `Seit Beginn ${usd(local.gesamt_usd)} in ${Number.isInteger(local.aufrufe) ? local.aufrufe : 0} Aufrufen`,
+      rows: rows(local.aufgaben, currency),
+      total: `Seit Beginn ${money(local.gesamt_usd, currency)} in ${Number.isInteger(local.aufrufe) ? local.aufrufe : 0} Aufrufen`,
+      renewal: null,
     };
-    if (ki && ki.vermittlung && typeof ki.budget_usd === "number" && ki.budget_usd > 0) {
-      const spent = Math.max(0, Number(ki.verbraucht_usd) || 0);
+    if (hasCredit(ki)) {
+      const spent = Math.max(0, Number(ki.verbraucht_chf) || 0);
       return {
-        ...common, title: `Budget ${when}`, headline: `USD ${amount(spent)} von ${amount(ki.budget_usd)} gebraucht`,
-        renewal: renewal(ki.monat), percent: Math.min(100, Math.round((spent / ki.budget_usd) * 100)), note: MEDIATION_NOTE,
+        ...common, title: "Guthaben", headline: `${MEDIATION_CURRENCY} ${amount(spent)} von ${amount(ki.guthaben_chf)} gebraucht`,
+        percent: Math.min(100, Math.round((spent / ki.guthaben_chf) * 100)), note: MEDIATION_NOTE,
       };
     }
+    const parts = monthParts(ki && ki.monat);
+    const when = parts ? `im ${MONTHS[parts.month - 1]}` : "in diesem Monat";
     const own = Boolean(ki && ki.eingerichtet && ki.eigener_schluessel);
     return {
-      ...common, title: `Kosten ${when}`, headline: `${usd(local.monat_usd)}${own ? " mit eigenem Schlüssel" : ""}`,
-      renewal: null, percent: null, note: OWN_NOTE,
+      ...common, title: `Kosten ${when}`, headline: `${money(local.monat_usd, currency)}${own ? " mit eigenem Schlüssel" : ""}`,
+      percent: null, note: OWN_NOTE,
     };
   }
 

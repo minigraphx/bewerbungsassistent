@@ -41,7 +41,7 @@
       const [antwort, satz] = await Promise.all([holen("/api/suchbegriffe/hinweis"), textsatz()]);
       const texte = L.texte(satz);
       $("pruefen-block").hidden = !antwort.verfuegbar;
-      $("pruefen-kosten").textContent = L.schaetzung(antwort.kosten_usd);
+      $("pruefen-kosten").textContent = L.schaetzung(antwort.kosten_usd, antwort.waehrung);
       $("pruefen-satz").textContent = texte.satz;
       $("pruefen-was").textContent = texte.wasGeht;
     } catch {
