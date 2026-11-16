@@ -34,7 +34,7 @@ WINDOWS_KEYS = (r"Software\Google\Chrome\NativeMessagingHosts", r"Software\Micro
 SOURCE_MODULES = ("desktop", "bewerbungen", "lebenslauf", "onboarding")
 
 
-def manifest(executable: pathlib.Path) -> dict:
+def manifest(executable: pathlib.PurePath) -> dict:
     return {"name": HOST_NAME, "description": "Bewerbungsbegleiter", "path": str(executable), "type": "stdio",
             "allowed_origins": [f"chrome-extension://{extension_id}/" for extension_id in EXTENSION_IDS]}
 
@@ -95,7 +95,7 @@ def forget_old_host(platform: str = sys.platform, home: pathlib.Path | None = No
         log.warning("Native Messaging: alter Eintrag nicht entfernt (%s)", error)
 
 
-def register(paths: Paths, executable: pathlib.Path, platform: str = sys.platform, home: pathlib.Path | None = None,
+def register(paths: Paths, executable: pathlib.PurePath, platform: str = sys.platform, home: pathlib.Path | None = None,
              set_registry: Callable[[str, str], None] = _set_registry) -> list[str]:
     """Write the host manifest for every installed browser; returns where it was registered."""
     text = json.dumps(manifest(executable), indent=1)

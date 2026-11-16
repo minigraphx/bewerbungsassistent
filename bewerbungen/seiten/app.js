@@ -221,12 +221,14 @@ window.App = (() => {
   }
 
   // "About the app" under Einstellungen (#81, G54): the AS logo marks the author; name and app icon stay as they are.
-  function ueberDieApp(version) {
+  // In the Store package (#344) the Store brings updates, so the app offers none and says so here only.
+  function ueberDieApp(version, store) {
     return el("div", { class: "about" },
       el("img", { class: "about__logo", src: "/as-logo.svg", width: "40", height: "40", alt: "Logo AS" }),
       el("div", {},
         el("p", { class: "about__name" }, "Bewerbungsbegleiter"),
         el("p", { class: "about__meta version" }, `Version ${version}`),
+        store && el("p", { class: "about__meta" }, "Updates kommen über den Microsoft Store."),
         el("p", { class: "about__meta" }, "von Andreas Schmidt")));
   }
 
@@ -334,7 +336,7 @@ window.App = (() => {
           : el("main", {}, el("h1", {}, "Bewerbungsbegleiter beendet"),
             el("p", {}, "Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick.")));
       });
-      ort.append(ueberDieApp(info.version), el("div", { class: "knoepfe" }, beenden));
+      ort.append(ueberDieApp(info.version, info.store), el("div", { class: "knoepfe" }, beenden));
       ort.hidden = false;
       document.getElementById("ueber-link")?.removeAttribute("hidden");
     }

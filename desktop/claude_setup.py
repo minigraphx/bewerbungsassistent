@@ -28,7 +28,7 @@ def desktop_config(platform: str, environ: dict, home: pathlib.Path) -> pathlib.
     return home / ".config" / "Claude" / CONFIG_NAME
 
 
-def server_command(executable: pathlib.Path) -> list[str]:
+def server_command(executable: pathlib.PurePath) -> list[str]:
     return [str(executable), "--mcp"]
 
 
