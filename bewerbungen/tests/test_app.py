@@ -123,7 +123,7 @@ def test_settings_show_the_logo_under_about_the_app():
     assert 'src: "/as-logo.svg"' in script and '<h2 id="ueber-titel">Über die App</h2>' in settings
     # the about block only counts when the packaged app actually appends it to that section (G54)
     assert 'getElementById("ueber-die-app")' in script
-    assert re.search(r"ort\.append\([^;]*ueberDieApp\(info\.version\)", script)
+    assert re.search(r"ort\.append\([^;]*ueberDieApp\(info\.version, info\.store\)", script)
 
 
 def test_a_new_version_is_asked_about_in_a_dialog_first():
