@@ -73,7 +73,8 @@ def _material(k, entry: dict, stand: object) -> tuple[str, list[cv_suggestions.S
 
 
 def _names(refs: tuple, stations: dict) -> str:
-    names = [f"«{', '.join(part for part in (stations[ref].title, stations[ref].organization) if part)}»" for ref in refs]
+    names = [f"«{', '.join(part for part in (stations[ref].title, stations[ref].organization) if part)}»"
+             for ref in refs]
     return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} und {names[-1]}"
 
 
