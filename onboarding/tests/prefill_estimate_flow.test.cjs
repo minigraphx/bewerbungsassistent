@@ -12,7 +12,7 @@ const { loadScripts } = require("./fake_dom.cjs");
 const SRC = path.join(__dirname, "..", "src");
 const form = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "form.json"), "utf8"));
 const SCRIPTS = ["../../bewerbungen/seiten/dateien-logik.js", "validate.js", "model.js", "dom.js", "documents.js",
-  "uploads.js", "kindguess.js", "droparea.js"];
+  "uploads.js", "kindguess.js", "droparea.js", "prefill.js"];
 const SETTLE_MS = 500;
 const ANSWER = { anzahl: 1, kosten: 0.04, dauer_minuten: 1, waehrung: "USD", guthaben: null, danach: null, nicht_gelesen: [], gekuerzt: [] };
 
@@ -142,6 +142,54 @@ test("an answer overtaken by a later change does not count", async () => {
   answers[1](ANSWER);
   await settle();
   assert.equal(read("prefillEstimate").answer.anzahl, 1);
+});
+
+test("estimating again keeps the old figures, and says it estimates only after about 400 ms", async () => {
+  let finish;
+  let pending = false;
+  const { page, read, advance, settle } = sandbox([SCAN], { answer: () => (pending
+    ? new Promise((resolve) => { finish = resolve; }) : Promise.resolve(ANSWER)) });
+  page.requestEstimate();
+  await settle();
+  pending = true;
+  page.requestEstimate();
+  await settle();
+  const held = read("prefillEstimate");
+  assert.equal(held.phase, "estimating");
+  assert.equal(held.slow, false);
+  assert.deepEqual(held.held, { phase: "ready", answer: ANSWER, problem: null });
+  await advance(300);
+  assert.equal(read("prefillEstimate").slow, false);
+  await advance(150);
+  assert.equal(read("prefillEstimate").slow, true);
+  finish({ ...ANSWER, anzahl: 2 });
+  await settle();
+  assert.deepEqual(read("prefillEstimate"), { phase: "ready", answer: { ...ANSWER, anzahl: 2 }, problem: null });
+});
+
+test("a quick answer never says that it estimates", async () => {
+  const { page, read, advance, settle } = sandbox([SCAN]);
+  page.requestEstimate();
+  await settle();
+  await advance(1000);
+  assert.equal(read("prefillEstimate").phase, "ready");
+});
+
+test("after „Neu schätzen“ the focus goes to „Vorbefüllen“ if it can run, else back to „Neu schätzen“", () => {
+  const { page } = sandbox([]);
+  const choose = (found, more = {}) => page.estimateFocus({ focused: true, kept: null, retried: true, settled: true,
+    usable: (selector) => found.includes(selector), ...more });
+  assert.equal(choose(["#prefill", "#prefill-retry", "#prefill-status"]), "#prefill");
+  assert.equal(choose(["#prefill-retry", "#prefill-status"]), "#prefill-retry");
+  assert.equal(choose(["#prefill-status"]), "#prefill-status");
+  // while it still estimates the focus waits on what it was on, else on the line
+  assert.equal(choose(["#prefill", "#prefill-status"], { settled: false, kept: "#prefill-retry" }), "#prefill-status");
+  assert.equal(choose(["#prefill-retry", "#prefill-status"], { settled: false, kept: "#prefill-retry" }), "#prefill-retry");
+  // focus elsewhere on the page is never taken
+  assert.equal(choose(["#prefill"], { focused: false }), null);
+  // without „Neu schätzen“ a control that went is found again, else the line
+  assert.equal(choose(["#prefill-by-hand", "#prefill-status"], { retried: false, kept: "#prefill-by-hand" }), "#prefill-by-hand");
+  assert.equal(choose(["#prefill-status"], { retried: false, kept: "#prefill" }), "#prefill-status");
 });
 
 test("without files there is nothing to estimate", async () => {

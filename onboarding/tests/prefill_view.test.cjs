@@ -39,13 +39,15 @@ test("while running the button is busy and the running text stands right after t
   assert.equal(row.children[row.children.indexOf(actions) + 1], status);
 });
 
-test("a problem of the run is an alert after the line", () => {
+test("a problem of the run is an alert right under the buttons, above the line", () => {
   const node = card({ ...IDLE, problem: "Vor der ersten KI-Nutzung braucht es die Einwilligung." });
   const problem = byId(node, "prefill-problem");
   assert.equal(problem.getAttribute("role"), "alert");
   assert.match(problem.textContent, /Einwilligung/);
   const row = parentOf(node, problem);
-  assert.equal(row.children[row.children.indexOf(problem) - 1], byId(node, "prefill-status"));
+  const actions = parentOf(node, byId(node, "prefill"));
+  assert.equal(row.children[row.children.indexOf(problem) - 1], actions);
+  assert.equal(row.children[row.children.indexOf(problem) + 1], byId(node, "prefill-status"));
 });
 
 test("before running there is no busy state", () => {

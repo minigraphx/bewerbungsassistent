@@ -395,7 +395,7 @@ function prefillCardContext() {
     form, track: state.track, uploads, messages: uploadMessages, run: prefillRun, notes: uploadNotes,
     announcement: uploadAnnouncement, estimate: prefillEstimate, hasName: hasName(), titleOf: sectionTitle,
     onRun: runPrefill, onGoTo: goToSection, onAddFiles: addDroppedFiles, onChangeKind: changeUploadKind,
-    onLeaveKind: leaveUploadKind, onRemove: removeDroppedUpload, onByHand: () => goTo(1), onEstimate: requestEstimate,
+    onLeaveKind: leaveUploadKind, onRemove: removeDroppedUpload, onByHand: () => goTo(1), onEstimate: retryEstimate,
   };
 }
 
@@ -462,10 +462,15 @@ function renderKeepingFocus() {
   if (path) focusFirst(`[data-path="${path}"]`);
 }
 
-/** The running text stands right after the button, which may sit at the bottom edge of the window. */
+/**
+ * The running text stands right after the button, which may sit at the bottom edge of the window. The focus goes to
+ * it: the button is drawn anew, disabled, and the focus would fall to the page.
+ */
 function revealPrefillStatus() {
-  const status = document.getElementById("prefill-status");
-  if (status) status.scrollIntoView({ block: "nearest" });
+  const status = document.getElementById(STATUS_ID);
+  if (!status) return;
+  status.scrollIntoView({ block: "nearest" });
+  status.focus({ preventScroll: true });
 }
 
 async function runPrefill() {
@@ -492,7 +497,9 @@ async function runPrefill() {
     finished = { problem: error.message, report: null };
   }
   prefillRun = { running: false, ...finished };
+  const onStatus = document.activeElement?.id === STATUS_ID;
   renderKeepingFocus();
+  if (onStatus) document.getElementById(STATUS_ID)?.focus(); // drawn anew, the line keeps the focus it was given
   if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished);
 }
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-TKF9fMzPbd/whAZIm81j5SbZ8BLnETPkv80bQKV0Sqg='; style-src 'sha256-WfRU0BLFXf9KMwIpQAiJ+ydHc+QZp/3aXDkC/Q5Jkc0='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sNrLpSC3qnvtgc3Ee0maHWqt8nuFAmuaPE5jgUrST1k='; style-src 'sha256-6RejD9M5SibtRaQcafZhvgO79sHps4FeNoqLiN4Ovt0='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -345,11 +345,15 @@ button { font: inherit; cursor: pointer; }
 .drop-status { margin: 8px 0 0; font-size: 14px; line-height: 20px; }
 .drop-status, .prefill-card #upload-messages { overflow-wrap: anywhere; }  /* long file names in the messages too */
 /* Cost and time under „Vorbefüllen“ (G85, #271) */
-.prefill-card__status { overflow-wrap: anywhere; }
+.prefill-card__status { overflow-wrap: anywhere; outline-offset: 4px; }  /* the focus ring clear of the text */
 .prefill-card__status > p { margin: 0 0 4px; }
 .prefill-card__status > p:first-child:not(.error) { color: var(--text-strong); font-weight: 500; }
-.prefill-card__credit.warning { color: var(--danger); font-weight: 500; }
+.prefill-card__credit.warning { color: var(--text-strong); font-weight: 500; }  /* the run stays possible: no red */
+.prefill-card__status:has(+ .prefill-card__left-out:not(:empty)) { margin-bottom: 4px; }
+.prefill-card__left-out { overflow-wrap: anywhere; }
+.prefill-card__left-out > p { margin: 0 0 4px; }
 .prefill-card__files { margin: 0 0 8px; padding-left: 20px; font-size: 14px; line-height: 20px; }
+.prefill-card #prefill-problem { margin: 0 0 8px; }
 .prefill-card__status a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
 @media (min-width: 480px) {
   .drop-file__kind { width: 17.5em; }  /* one width for every row, wide enough for „Früheres Motivationsschreiben“ */
@@ -2727,16 +2731,37 @@ function removeDroppedUpload(index) {
 
 let prefillEstimate = { phase: "none", answer: null, problem: null };
 let estimateTurn = 0; // only the answer to the latest change counts
+let estimateRetried = false; // „Neu schätzen“ was pressed: once the answer is there the focus goes on to the run
 const RUN_AREA = ".prefill-card__run";
 const RUN_ACTIONS = ".prefill-card__actions";
+const SLOW_ESTIMATE_MS = 400; // a quicker answer replaces the old figures at once, without a line in between
+const HELD_PHASES = ["ready", "failed"]; // what stays shown for that moment; „uploading“ would no longer be true
 
 const documentWorkPending = () => uploadsUnderway > 0 || Object.keys(kindChoices).length > 0;
 
 /** Estimate again once the work on the documents so far is done; meanwhile the line says what it waits for. */
 function requestEstimate() {
   const turn = ++estimateTurn;
-  setEstimate({ phase: filesArriving > 0 ? "uploading" : "estimating", answer: null, problem: null });
+  if (filesArriving > 0) setEstimate({ phase: "uploading", answer: null, problem: null });
+  else startEstimating();
   return uploadTurn.then(() => estimateWhenSettled(turn));
+}
+
+/** „Neu schätzen“ after a failed estimate. */
+function retryEstimate() {
+  estimateRetried = true;
+  return requestEstimate();
+}
+
+/** The estimate shown before stays for a moment; only an answer slower than that says that it estimates. */
+function startEstimating() {
+  if (prefillEstimate.phase === "estimating") return;
+  const held = HELD_PHASES.includes(prefillEstimate.phase) ? prefillEstimate : null;
+  const next = { phase: "estimating", answer: null, problem: null, held, slow: false };
+  setEstimate(next);
+  window.setTimeout(() => {
+    if (prefillEstimate === next) setEstimate({ ...next, slow: true });
+  }, SLOW_ESTIMATE_MS);
 }
 
 async function estimateWhenSettled(turn) {
@@ -2745,7 +2770,7 @@ async function estimateWhenSettled(turn) {
     setEstimate({ phase: "none", answer: null, problem: null });
     return;
   }
-  setEstimate({ phase: "estimating", answer: null, problem: null });
+  startEstimating();
   let next;
   try {
     next = { phase: "ready", answer: await backend.estimatePrefill(state.track), problem: null };
@@ -2763,10 +2788,7 @@ function setEstimate(next) {
   });
 }
 
-/**
- * The run area is drawn anew in place, not the page: a select being arrowed through stays as it is. The status keeps
- * its node, so a screen reader reads the new line; the focus stays on its control or, if that went, on the line.
- */
+/** The run area is drawn anew in place, not the page: a select being arrowed through stays as it is. */
 function drawEstimate() {
   const area = document.querySelector(RUN_AREA);
   const context = area && prefillCardContext();
@@ -2774,18 +2796,49 @@ function drawEstimate() {
   const focused = area.contains(document.activeElement);
   const kept = focused ? controlSelector(document.activeElement) : null;
   const fresh = prefillRunArea(context);
+  if (!drawInPlace(area, fresh)) area.replaceWith(fresh);
+  focusAfterEstimate(focused, kept);
+}
+
+/** The status keeps its node and only takes the new lines and busy state, so a screen reader reads the new line. */
+function drawInPlace(area, fresh) {
   const status = area.querySelector(`#${STATUS_ID}`);
   const freshStatus = fresh.querySelector(`#${STATUS_ID}`);
-  if (!status || !freshStatus) {
-    area.replaceWith(fresh);
-  } else {
-    area.querySelector(RUN_ACTIONS).replaceWith(fresh.querySelector(RUN_ACTIONS));
-    status.replaceChildren(...freshStatus.childNodes);
-  }
-  if (!focused || area.contains(document.activeElement)) return;
-  const control = kept && document.querySelector(kept);
-  if (control && !control.disabled) control.focus();
-  else (document.getElementById(STATUS_ID) || document.getElementById("main")).focus();
+  if (!status || !freshStatus) return false;
+  area.querySelector(RUN_ACTIONS).replaceWith(fresh.querySelector(RUN_ACTIONS));
+  status.replaceChildren(...freshStatus.childNodes);
+  const busy = freshStatus.getAttribute("aria-busy");
+  if (busy) status.setAttribute("aria-busy", busy);
+  else status.removeAttribute("aria-busy");
+  const files = area.querySelector(`#${FILES_ID}`);
+  const freshFiles = fresh.querySelector(`#${FILES_ID}`);
+  if (files) files.replaceWith(freshFiles);
+  else status.after(freshFiles);
+  return true;
+}
+
+const usableControl = (selector) => {
+  const node = document.querySelector(selector);
+  return Boolean(node) && !node.disabled;
+};
+
+function focusAfterEstimate(focused, kept) {
+  const settled = !estimatePending(prefillEstimate);
+  const target = estimateFocus({ focused, kept, retried: estimateRetried, settled, usable: usableControl });
+  if (settled || !focused) estimateRetried = false;
+  const node = target && document.querySelector(target);
+  if (node && node !== document.activeElement) node.focus();
+}
+
+/**
+ * Where the focus goes after the run area is drawn anew; never away from elsewhere on the page. After „Neu schätzen“
+ * and its answer to „Vorbefüllen“ if it can run, else back to „Neu schätzen“; otherwise it stays on its control or,
+ * if that went, on the line. usable(selector) says whether that control is there and enabled.
+ */
+function estimateFocus({ focused, kept, retried, settled, usable }) {
+  if (!focused) return null;
+  const order = retried && settled ? ["#prefill", `#${RETRY_ID}`, `#${STATUS_ID}`] : [kept, `#${STATUS_ID}`];
+  return [...order, "#main"].find((selector) => selector && usable(selector)) || null;
 }
 
 // Only in the page „Meine Angaben“ of the app: suggestions from uploaded documents, marked until they are checked.
@@ -2855,12 +2908,22 @@ const ESTIMATE_WORDS = {
 };
 const ESTIMATE_NONE = { phase: "none", answer: null, problem: null };
 const STATUS_ID = "prefill-status";
+const FILES_ID = "prefill-files";
+const RETRY_ID = "prefill-retry";
 
 const minutesText = (n) => (n === 1 ? "1 Minute" : `${n} Minuten`);
 const moneyText = (amount, currency) => `${currency || "USD"} ${Number(amount).toFixed(2)}`;
 const withCredit = (answer) => typeof answer.guthaben === "number";
 const creditUsedUp = (answer) => withCredit(answer) && answer.guthaben <= 0;
 const readyAnswer = (estimate) => (estimate && estimate.phase === "ready" ? estimate.answer : null);
+const estimatePending = (estimate) => Boolean(estimate) && ["uploading", "estimating"].includes(estimate.phase);
+
+/** What the line shows: for the first moment of estimating again the estimate before it, so a quick answer does not flicker. */
+function shownEstimate(estimate) {
+  const current = estimate || ESTIMATE_NONE;
+  if (current.phase !== "estimating" || current.slow) return current;
+  return current.held || { ...current, quiet: true };
+}
 
 /** Whether „Vorbefüllen“ can start now: the estimate stands, a file goes to the AI and there is credit left. */
 function runAllowed(ctx) {
@@ -2892,27 +2955,31 @@ function namedList(title, lines) {
 }
 
 function readyLines(answer, text) {
-  const lines = answer.anzahl
+  return answer.anzahl
     ? [el("p", {}, `${ESTIMATE_WORDS.files(answer.anzahl)} ${TrefferLogik.estimateLine({ ...answer, guthaben: null })}`), creditLine(answer)]
     : [el("p", {}, text.noneReadable)];
-  return [
-    ...lines,
-    ...namedList(ESTIMATE_WORDS.notRead, (answer.nicht_gelesen || []).map((s) => `${s.name}: ${s.grund}`)),
-    ...namedList(ESTIMATE_WORDS.shortened, answer.gekuerzt || []),
-  ];
 }
 
 /** What stands under the button: the running text, else the estimate in its state. */
 function estimateLines(ctx, text) {
   if (ctx.run.running) return [el("p", {}, text.running(ctx.run.minutes))];
-  const estimate = ctx.estimate || ESTIMATE_NONE;
+  const estimate = shownEstimate(ctx.estimate);
   if (estimate.phase === "uploading") return [el("p", {}, ESTIMATE_WORDS.uploading)];
   if (estimate.phase === "failed") {
     return [el("p", { className: "error" }, ESTIMATE_WORDS.failed(estimate.problem)),
-      el("button", { type: "button", className: "link", onclick: ctx.onEstimate }, ESTIMATE_WORDS.retry)];
+      el("button", { type: "button", id: RETRY_ID, className: "link", onclick: ctx.onEstimate }, ESTIMATE_WORDS.retry)];
   }
   if (estimate.phase === "ready") return readyLines(estimate.answer, text);
-  return [el("p", {}, ESTIMATE_WORDS.estimating)];
+  return estimate.quiet ? [] : [el("p", {}, ESTIMATE_WORDS.estimating)];
+}
+
+/** The files left out or shortened, beside the status: read when the button is, not again at every change. */
+function filesView(ctx) {
+  const answer = ctx.run.running ? null : readyAnswer(shownEstimate(ctx.estimate));
+  return el("div", { id: FILES_ID, className: "prefill-card__left-out" }, answer ? [
+    ...namedList(ESTIMATE_WORDS.notRead, (answer.nicht_gelesen || []).map((s) => `${s.name}: ${s.grund}`)),
+    ...namedList(ESTIMATE_WORDS.shortened, answer.gekuerzt || []),
+  ] : []);
 }
 
 function prefillReport(answer, merged) {
@@ -2945,7 +3012,8 @@ function reportView(report, ctx, text) {
  * The card on the start (MIN-369, G84): one area for all documents, a row per file with its kind, then „Vorbefüllen“
  * or „Lieber von Hand ausfüllen“. Without files only intro, area and hint, and filling in by hand leads.
  * ctx: { form, track, uploads, messages, notes (datei → recognised by name), announcement,
- *        run: { running, minutes, problem, report }, estimate: { phase: none|uploading|estimating|ready|failed, answer, problem },
+ *        run: { running, minutes, problem, report }, estimate: { phase: none|uploading|estimating|ready|failed, answer, problem,
+ *        while estimating also held (the estimate before) and slow (the answer takes longer than a moment) },
  *        hasName, titleOf(id), onRun(), onGoTo(id), onAddFiles(FileList), onChangeKind(upload, category), onRemove(index),
  *        onByHand(), onEstimate() }
  */
@@ -2971,25 +3039,30 @@ function prefillCard(ctx) {
 }
 
 /**
- * The buttons, right under them what the run costs and takes or what it waits for (G85), then a problem of the run.
- * Without any file for the AI there is no run button; filling in by hand leads.
+ * The buttons, right under them a problem of the run, then what the run costs and takes or what it waits for (G85)
+ * and which files are left out. Without any file for the AI there is no run button; filling in by hand leads.
  */
 function prefillRunArea(ctx) {
   const text = PREFILL_TEXT[ctx.track];
   const hasFiles = ctx.uploads.length > 0;
-  const answer = readyAnswer(ctx.estimate);
+  const answer = readyAnswer(shownEstimate(ctx.estimate));
   const canRun = hasFiles && ctx.hasName && !(answer && answer.anzahl === 0);
   const uploading = Boolean(ctx.estimate) && ctx.estimate.phase === "uploading"; // also the very first files
+  const withLine = hasFiles || uploading;
   return el("div", { className: "prefill-card__run" }, [
     el("div", { className: "prefill-card__actions" }, [
       canRun ? el("button", {
         type: "button", className: `primary${ctx.run.running ? " busy" : ""}`, id: "prefill", disabled: !runAllowed(ctx),
-        "aria-busy": ctx.run.running ? "true" : null, "aria-describedby": STATUS_ID, onclick: ctx.onRun,
+        "aria-busy": ctx.run.running ? "true" : null, "aria-describedby": `${STATUS_ID} ${FILES_ID}`, onclick: ctx.onRun,
       }, ctx.run.running ? text.busy : text.run) : null,
       el("button", { type: "button", id: "prefill-by-hand", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
     ]),
-    hasFiles || uploading ? el("div", { id: STATUS_ID, className: "prefill-card__status", role: "status", tabIndex: -1 }, estimateLines(ctx, text)) : null,
     ctx.run.problem ? el("p", { id: "prefill-problem", className: "error", role: "alert" }, ctx.run.problem) : null,
+    withLine ? el("div", {
+      id: STATUS_ID, className: "prefill-card__status", role: "status", tabIndex: -1,
+      "aria-busy": !ctx.run.running && estimatePending(ctx.estimate) ? "true" : null,
+    }, estimateLines(ctx, text)) : null,
+    withLine ? filesView(ctx) : null,
   ]);
 }
 
@@ -3500,7 +3573,7 @@ function prefillCardContext() {
     form, track: state.track, uploads, messages: uploadMessages, run: prefillRun, notes: uploadNotes,
     announcement: uploadAnnouncement, estimate: prefillEstimate, hasName: hasName(), titleOf: sectionTitle,
     onRun: runPrefill, onGoTo: goToSection, onAddFiles: addDroppedFiles, onChangeKind: changeUploadKind,
-    onLeaveKind: leaveUploadKind, onRemove: removeDroppedUpload, onByHand: () => goTo(1), onEstimate: requestEstimate,
+    onLeaveKind: leaveUploadKind, onRemove: removeDroppedUpload, onByHand: () => goTo(1), onEstimate: retryEstimate,
   };
 }
 
@@ -3567,10 +3640,15 @@ function renderKeepingFocus() {
   if (path) focusFirst(`[data-path="${path}"]`);
 }
 
-/** The running text stands right after the button, which may sit at the bottom edge of the window. */
+/**
+ * The running text stands right after the button, which may sit at the bottom edge of the window. The focus goes to
+ * it: the button is drawn anew, disabled, and the focus would fall to the page.
+ */
 function revealPrefillStatus() {
-  const status = document.getElementById("prefill-status");
-  if (status) status.scrollIntoView({ block: "nearest" });
+  const status = document.getElementById(STATUS_ID);
+  if (!status) return;
+  status.scrollIntoView({ block: "nearest" });
+  status.focus({ preventScroll: true });
 }
 
 async function runPrefill() {
@@ -3597,7 +3675,9 @@ async function runPrefill() {
     finished = { problem: error.message, report: null };
   }
   prefillRun = { running: false, ...finished };
+  const onStatus = document.activeElement?.id === STATUS_ID;
   renderKeepingFocus();
+  if (onStatus) document.getElementById(STATUS_ID)?.focus(); // drawn anew, the line keeps the focus it was given
   if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished);
 }
 

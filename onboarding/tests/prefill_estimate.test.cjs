@@ -30,20 +30,53 @@ function card({ estimate = ready(ANSWER), run = IDLE, track = "job", hasName = t
 const byId = (node, id) => findAll(node, (n) => n.id === id)[0];
 const parentOf = (root, child) => findAll(root, (n) => n.children.includes(child))[0];
 const status = (node) => byId(node, "prefill-status");
+const files = (node) => byId(node, "prefill-files");
 const paragraphs = (node) => findAll(status(node), (n) => n.tagName === "p").map((p) => p.textContent);
-const items = (node) => findAll(status(node), (n) => n.tagName === "li").map((li) => li.textContent);
+const fileParagraphs = (node) => findAll(files(node), (n) => n.tagName === "p").map((p) => p.textContent);
+const items = (node) => findAll(files(node), (n) => n.tagName === "li").map((li) => li.textContent);
 const buttonsNamed = (node, name) => findAll(node, (n) => n.tagName === "button" && n.textContent === name);
+const estimating = (more = {}) => ({ phase: "estimating", answer: null, problem: null, held: null, slow: true, ...more });
 
-test("the line stands right under the button, in a status the button points to", () => {
+test("the line stands right under the button, in a status the button points to with the file lists", () => {
   const node = card();
   const button = byId(node, "prefill");
   const line = status(node);
   assert.equal(line.getAttribute("role"), "status");
-  assert.equal(button.getAttribute("aria-describedby"), "prefill-status");
+  assert.equal(button.getAttribute("aria-describedby"), "prefill-status prefill-files");
   const actions = parentOf(node, button);
   const row = parentOf(node, actions);
   assert.equal(row.children[row.children.indexOf(actions) + 1], line);
+  assert.equal(row.children[row.children.indexOf(line) + 1], files(node));
   assert.notEqual(button.disabled, true);
+});
+
+test("the status holds only the sentences: the file lists stand beside it and are not read out at each change", () => {
+  const answer = { ...ANSWER, anzahl: 1, nicht_gelesen: [{ name: "Zeugnis_Scan.png", grund: "Bild: bleibt hier." }],
+    gekuerzt: ["Lebenslauf_Erika_Beispiel.pdf"] };
+  const node = card({ estimate: ready(answer) });
+  assert.deepEqual(findAll(status(node), (n) => n.tagName === "ul"), []);
+  assert.equal(findAll(files(node), (n) => n.tagName === "ul").length, 2);
+  assert.equal(files(node).getAttribute("role"), null);
+  assert.equal(files(node).getAttribute("aria-live"), null);
+});
+
+test("the status is busy while files upload or the estimate is pending, and not otherwise", () => {
+  const busy = (estimate) => status(card({ estimate })).getAttribute("aria-busy");
+  assert.equal(busy({ phase: "uploading", answer: null, problem: null }), "true");
+  assert.equal(busy(estimating()), "true");
+  assert.equal(busy(estimating({ slow: false, held: ready(ANSWER) })), "true");
+  assert.equal(busy(ready(ANSWER)), null);
+  assert.equal(busy({ phase: "failed", answer: null, problem: "Die App antwortet nicht." }), null);
+});
+
+test("for the first moment of estimating again the old figures stay, with the run disabled", () => {
+  const node = card({ estimate: estimating({ slow: false, held: ready(ANSWER) }) });
+  assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa USD 0.04 und 1 Minute."]);
+  assert.equal(byId(node, "prefill").disabled, true);
+  const none = { ...ANSWER, anzahl: 0, kosten: 0 };
+  assert.equal(byId(card({ estimate: estimating({ slow: false, held: ready(none) }) }), "prefill"), undefined);
+  assert.deepEqual(paragraphs(card({ estimate: estimating({ slow: false }) })), []);
+  assert.deepEqual(paragraphs(card({ estimate: estimating({ held: ready(ANSWER) }) })), ["Kosten und Dauer werden geschätzt …"]);
 });
 
 test("it names the files for the AI and cost and time worded exactly as „Alle prüfen“", () => {
@@ -84,9 +117,9 @@ test("while files are uploading or the estimate is pending, the run waits with t
     const uploading = card({ track, estimate: { phase: "uploading", answer: null, problem: null } });
     assert.deepEqual(paragraphs(uploading), ["Die Dateien werden noch hochgeladen. Danach nennt die App Kosten und Dauer."]);
     assert.equal(byId(uploading, "prefill").disabled, true);
-    const estimating = card({ track, estimate: { phase: "estimating", answer: null, problem: null } });
-    assert.deepEqual(paragraphs(estimating), ["Kosten und Dauer werden geschätzt …"]);
-    assert.equal(byId(estimating, "prefill").disabled, true);
+    const pending = card({ track, estimate: estimating() });
+    assert.deepEqual(paragraphs(pending), ["Kosten und Dauer werden geschätzt …"]);
+    assert.equal(byId(pending, "prefill").disabled, true);
   }
 });
 
@@ -104,8 +137,8 @@ test("files that will not go to the AI or only in part are named with today's re
   const answer = { ...ANSWER, anzahl: 1, nicht_gelesen: [{ name: "Zeugnis_Scan.png", grund: "Bild: bleibt hier." }],
     gekuerzt: ["Lebenslauf_Erika_Beispiel.pdf"] };
   const node = card({ estimate: ready(answer) });
-  assert.deepEqual(paragraphs(node), ["1 Datei geht an die KI. Etwa USD 0.04 und 1 Minute.", "Geht nicht an die KI:",
-    "Nur der Anfang geht an die KI, die Datei ist zu lang:"]);
+  assert.deepEqual(paragraphs(node), ["1 Datei geht an die KI. Etwa USD 0.04 und 1 Minute."]);
+  assert.deepEqual(fileParagraphs(node), ["Geht nicht an die KI:", "Nur der Anfang geht an die KI, die Datei ist zu lang:"]);
   assert.deepEqual(items(node), ["Zeugnis_Scan.png: Bild: bleibt hier.", "Lebenslauf_Erika_Beispiel.pdf"]);
 });
 
@@ -118,7 +151,8 @@ test("when no file can be read there is no run button, only filling in by hand",
   for (const [track, text] of Object.entries(texts)) {
     const node = card({ track, estimate: ready(none) });
     assert.equal(byId(node, "prefill"), undefined);
-    assert.deepEqual(paragraphs(node), [text, "Geht nicht an die KI:"]);
+    assert.deepEqual(paragraphs(node), [text]);
+    assert.deepEqual(fileParagraphs(node), ["Geht nicht an die KI:"]);
     assert.equal(buttonsNamed(node, "Lieber von Hand ausfüllen")[0].className, "primary");
   }
 });
@@ -148,7 +182,7 @@ test("while running, the text names the estimated minutes", () => {
   assert.match(paragraphs(one)[0], /Das dauert etwa 1 Minute;/);
 });
 
-test("a failed run says why in an alert of its own, below the line", () => {
+test("a failed run says why in an alert of its own, above the line", () => {
   const node = card({ run: { ...IDLE, problem: "Vor der ersten KI-Nutzung braucht es die Einwilligung." } });
   const problem = byId(node, "prefill-problem");
   assert.equal(problem.getAttribute("role"), "alert");

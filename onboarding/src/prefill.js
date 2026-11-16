@@ -65,12 +65,22 @@ const ESTIMATE_WORDS = {
 };
 const ESTIMATE_NONE = { phase: "none", answer: null, problem: null };
 const STATUS_ID = "prefill-status";
+const FILES_ID = "prefill-files";
+const RETRY_ID = "prefill-retry";
 
 const minutesText = (n) => (n === 1 ? "1 Minute" : `${n} Minuten`);
 const moneyText = (amount, currency) => `${currency || "USD"} ${Number(amount).toFixed(2)}`;
 const withCredit = (answer) => typeof answer.guthaben === "number";
 const creditUsedUp = (answer) => withCredit(answer) && answer.guthaben <= 0;
 const readyAnswer = (estimate) => (estimate && estimate.phase === "ready" ? estimate.answer : null);
+const estimatePending = (estimate) => Boolean(estimate) && ["uploading", "estimating"].includes(estimate.phase);
+
+/** What the line shows: for the first moment of estimating again the estimate before it, so a quick answer does not flicker. */
+function shownEstimate(estimate) {
+  const current = estimate || ESTIMATE_NONE;
+  if (current.phase !== "estimating" || current.slow) return current;
+  return current.held || { ...current, quiet: true };
+}
 
 /** Whether „Vorbefüllen“ can start now: the estimate stands, a file goes to the AI and there is credit left. */
 function runAllowed(ctx) {
@@ -102,27 +112,31 @@ function namedList(title, lines) {
 }
 
 function readyLines(answer, text) {
-  const lines = answer.anzahl
+  return answer.anzahl
     ? [el("p", {}, `${ESTIMATE_WORDS.files(answer.anzahl)} ${TrefferLogik.estimateLine({ ...answer, guthaben: null })}`), creditLine(answer)]
     : [el("p", {}, text.noneReadable)];
-  return [
-    ...lines,
-    ...namedList(ESTIMATE_WORDS.notRead, (answer.nicht_gelesen || []).map((s) => `${s.name}: ${s.grund}`)),
-    ...namedList(ESTIMATE_WORDS.shortened, answer.gekuerzt || []),
-  ];
 }
 
 /** What stands under the button: the running text, else the estimate in its state. */
 function estimateLines(ctx, text) {
   if (ctx.run.running) return [el("p", {}, text.running(ctx.run.minutes))];
-  const estimate = ctx.estimate || ESTIMATE_NONE;
+  const estimate = shownEstimate(ctx.estimate);
   if (estimate.phase === "uploading") return [el("p", {}, ESTIMATE_WORDS.uploading)];
   if (estimate.phase === "failed") {
     return [el("p", { className: "error" }, ESTIMATE_WORDS.failed(estimate.problem)),
-      el("button", { type: "button", className: "link", onclick: ctx.onEstimate }, ESTIMATE_WORDS.retry)];
+      el("button", { type: "button", id: RETRY_ID, className: "link", onclick: ctx.onEstimate }, ESTIMATE_WORDS.retry)];
   }
   if (estimate.phase === "ready") return readyLines(estimate.answer, text);
-  return [el("p", {}, ESTIMATE_WORDS.estimating)];
+  return estimate.quiet ? [] : [el("p", {}, ESTIMATE_WORDS.estimating)];
+}
+
+/** The files left out or shortened, beside the status: read when the button is, not again at every change. */
+function filesView(ctx) {
+  const answer = ctx.run.running ? null : readyAnswer(shownEstimate(ctx.estimate));
+  return el("div", { id: FILES_ID, className: "prefill-card__left-out" }, answer ? [
+    ...namedList(ESTIMATE_WORDS.notRead, (answer.nicht_gelesen || []).map((s) => `${s.name}: ${s.grund}`)),
+    ...namedList(ESTIMATE_WORDS.shortened, answer.gekuerzt || []),
+  ] : []);
 }
 
 function prefillReport(answer, merged) {
@@ -155,7 +169,8 @@ function reportView(report, ctx, text) {
  * The card on the start (MIN-369, G84): one area for all documents, a row per file with its kind, then „Vorbefüllen“
  * or „Lieber von Hand ausfüllen“. Without files only intro, area and hint, and filling in by hand leads.
  * ctx: { form, track, uploads, messages, notes (datei → recognised by name), announcement,
- *        run: { running, minutes, problem, report }, estimate: { phase: none|uploading|estimating|ready|failed, answer, problem },
+ *        run: { running, minutes, problem, report }, estimate: { phase: none|uploading|estimating|ready|failed, answer, problem,
+ *        while estimating also held (the estimate before) and slow (the answer takes longer than a moment) },
  *        hasName, titleOf(id), onRun(), onGoTo(id), onAddFiles(FileList), onChangeKind(upload, category), onRemove(index),
  *        onByHand(), onEstimate() }
  */
@@ -181,25 +196,30 @@ function prefillCard(ctx) {
 }
 
 /**
- * The buttons, right under them what the run costs and takes or what it waits for (G85), then a problem of the run.
- * Without any file for the AI there is no run button; filling in by hand leads.
+ * The buttons, right under them a problem of the run, then what the run costs and takes or what it waits for (G85)
+ * and which files are left out. Without any file for the AI there is no run button; filling in by hand leads.
  */
 function prefillRunArea(ctx) {
   const text = PREFILL_TEXT[ctx.track];
   const hasFiles = ctx.uploads.length > 0;
-  const answer = readyAnswer(ctx.estimate);
+  const answer = readyAnswer(shownEstimate(ctx.estimate));
   const canRun = hasFiles && ctx.hasName && !(answer && answer.anzahl === 0);
   const uploading = Boolean(ctx.estimate) && ctx.estimate.phase === "uploading"; // also the very first files
+  const withLine = hasFiles || uploading;
   return el("div", { className: "prefill-card__run" }, [
     el("div", { className: "prefill-card__actions" }, [
       canRun ? el("button", {
         type: "button", className: `primary${ctx.run.running ? " busy" : ""}`, id: "prefill", disabled: !runAllowed(ctx),
-        "aria-busy": ctx.run.running ? "true" : null, "aria-describedby": STATUS_ID, onclick: ctx.onRun,
+        "aria-busy": ctx.run.running ? "true" : null, "aria-describedby": `${STATUS_ID} ${FILES_ID}`, onclick: ctx.onRun,
       }, ctx.run.running ? text.busy : text.run) : null,
       el("button", { type: "button", id: "prefill-by-hand", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
     ]),
-    hasFiles || uploading ? el("div", { id: STATUS_ID, className: "prefill-card__status", role: "status", tabIndex: -1 }, estimateLines(ctx, text)) : null,
     ctx.run.problem ? el("p", { id: "prefill-problem", className: "error", role: "alert" }, ctx.run.problem) : null,
+    withLine ? el("div", {
+      id: STATUS_ID, className: "prefill-card__status", role: "status", tabIndex: -1,
+      "aria-busy": !ctx.run.running && estimatePending(ctx.estimate) ? "true" : null,
+    }, estimateLines(ctx, text)) : null,
+    withLine ? filesView(ctx) : null,
   ]);
 }
 
