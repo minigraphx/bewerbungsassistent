@@ -1,7 +1,8 @@
 """Page 1 of a document as a small PNG for the step «Unterlagen erstellen und prüfen» (#321).
 
 Typst reads PDFs as images since 0.14, so the thumbnail needs no PDF renderer of its own. A broken own PDF gives a
-message instead; the page then shows the alt text.
+message instead; the page then shows the alt text. The preview of „Lebenslauf erstellen“ (G76) renders its pages the
+same way, from a PDF that only lives in memory, at other widths.
 """
 import pathlib
 import tempfile
@@ -10,22 +11,30 @@ import typst
 
 WIDTH_PT = 144
 PPI = 144  # 288 px wide: sharp at 72 to 144 CSS pixels on a retina screen
-SOURCE = ('#set page(width: auto, height: auto, margin: 0pt)\n'
-          f'#image("dokument.pdf", page: 1, width: {WIDTH_PT}pt)\n')
 UNREADABLE = "Vorschau nicht möglich: Das PDF lässt sich nicht lesen. Es lässt sich trotzdem als PDF öffnen."
 
 
-def render(pdf: pathlib.Path, build: pathlib.Path) -> bytes:
+def source(page: int, width_pt: int) -> str:
+    return ('#set page(width: auto, height: auto, margin: 0pt)\n'
+            f'#image("dokument.pdf", page: {int(page)}, width: {int(width_pt)}pt)\n')
+
+
+def render_bytes(pdf: bytes, build: pathlib.Path, page: int = 1, width_pt: int = WIDTH_PT) -> bytes:
+    """One page of a PDF as PNG, `width_pt` wide at PPI."""
     build.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=build) as folder:
         # a copy inside .build/, never in the data folder (named so tests/test_guide_data_folder.py sees that)
         build_copy = pathlib.Path(folder)
-        (build_copy / "dokument.pdf").write_bytes(pdf.read_bytes())
-        (build_copy / "miniatur.typ").write_text(SOURCE, encoding="utf-8")
+        (build_copy / "dokument.pdf").write_bytes(pdf)
+        (build_copy / "miniatur.typ").write_text(source(page, width_pt), encoding="utf-8")
         try:
             return typst.compile(str(build_copy / "miniatur.typ"), root=folder, format="png", ppi=PPI)
         except typst.TypstError as error:
             raise ValueError(UNREADABLE) from error
+
+
+def render(pdf: pathlib.Path, build: pathlib.Path) -> bytes:
+    return render_bytes(pdf.read_bytes(), build)
 
 
 def cached(cache: dict, pdf: pathlib.Path, build: pathlib.Path) -> bytes:

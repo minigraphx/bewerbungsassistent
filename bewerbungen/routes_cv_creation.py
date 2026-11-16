@@ -3,6 +3,7 @@
 Neither the extension nor Claude reach them (desktop/native_host.py and desktop/mcp_tools.py list what they may).
 """
 import cv_creation
+import routes_cv_preview
 import routes_cv_suggestions
 import unterlagen
 from server import json_antwort, pflicht
@@ -62,5 +63,5 @@ def create(k, parameter, body):
                          "hinweis": note})
 
 
-GET = {ROUTE: show, **routes_cv_suggestions.GET}
-POST = {ROUTE: create, **routes_cv_suggestions.POST}
+GET = {ROUTE: show, **routes_cv_suggestions.GET, **routes_cv_preview.GET}
+POST = {ROUTE: create, **routes_cv_suggestions.POST, **routes_cv_preview.POST}

@@ -289,6 +289,10 @@
     "lebenslauf.ki-nochmals": { sie: "Nochmals vorschlagen", du: "Nochmals vorschlagen" },
     "lebenslauf.ki-einschalten": { sie: "KI einschalten", du: "KI einschalten" },
     "lebenslauf.ki-zum-stellentext": { sie: "Zum Stellentext", du: "Zum Stellentext" },
+    "lebenslauf.vorschau-hinweis": {
+      sie: "Die Vorschau folgt Ihrer Wahl. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      du: "Die Vorschau folgt deiner Wahl. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+    },
     "bewerbung.angaben": { sie: "Angaben zur Stelle", du: "Angaben zur Stelle", lehrstelle: "Angaben zur Lehrstelle" },
     "bewerbung.stellentext": { sie: "Stellentext", du: "Stellentext", lehrstelle: "Inseratstext" },
     "bewerbung.gespraech": { sie: "Gespräch vorbereiten", du: "Gespräch vorbereiten", lehrstelle: "Einladung vorbereiten" },

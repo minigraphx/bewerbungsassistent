@@ -22,6 +22,19 @@
   const aiMessage = (text, type = "") => status($("cv-erstellen-ki-status"), text, type);
   // bewerbung.js loads again, so the new variant stands in the list and is chosen.
   const announceCreated = () => document.dispatchEvent(new CustomEvent("lebenslauf-erstellt"));
+  const fields = () => ({ id: ID, berufsbezeichnung: $("cv-erstellen-beruf").value,
+                          kurzprofil: $("cv-erstellen-profil").value, bezeichnung: $("cv-erstellen-name").value });
+
+  /** The choice as it stands goes to the preview (G76, lebenslauf-vorschau.js); `now` skips its pause. */
+  function draft({ now = false } = {}) {
+    let detail;
+    try {
+      detail = { body: Logic.request(state, fields()), now };
+    } catch (error) {
+      detail = { body: null, reason: error.message };
+    }
+    document.dispatchEvent(new CustomEvent("lebenslauf-entwurf", { detail }));
+  }
 
   function moveButton(section, station, step, allowed) {
     const label = step < 0 ? "Nach oben" : "Nach unten";
@@ -54,7 +67,7 @@
   function designTile(choice) {
     const radio = el("input", { type: "radio", name: "cv-erstellen-design", value: choice.id,
                                 checked: choice.id === state.design,
-                                onchange: () => { state = Logic.choose(state, choice.id); } });
+                                onchange: () => { state = Logic.choose(state, choice.id); draft(); } });
     return el("label", { class: "design-tile" },
       el("span", { class: `design-tile__sheet design-tile__sheet--${choice.id}`, "aria-hidden": "true" }),
       el("span", { class: "design-tile__name" }, radio, choice.name),
@@ -63,6 +76,11 @@
 
   /** Redraw the stations; keeps the focus on the button or box the person just used. */
   function change(next) {
+    redraw(next);
+    draft();
+  }
+
+  function redraw(next) {
     const focused = document.activeElement?.dataset?.key || null;
     const summaryBefore = Logic.summary(state);
     state = next;
@@ -199,16 +217,19 @@
   function showForm(answer) {
     state = Logic.start(answer);
     $("cv-erstellen-profil").value = answer.kurzprofil;
-    change(state);
+    redraw(state);
     $("cv-erstellen-designs").replaceChildren(...Logic.DESIGNS.map(designTile));
     $("cv-erstellen-beruf").value = answer.berufsbezeichnung;
     $("cv-erstellen-name").value = answer.bezeichnung;
+    draft({ now: true });
   }
 
   function setOpen(open) {
+    const wasOpen = !$("cv-erstellen").hidden;
     $("cv-erstellen").hidden = !open;
     $("cv-erstellen-oeffnen").setAttribute("aria-expanded", String(open));
     if (!open) opened += 1;
+    if (wasOpen && !open) document.dispatchEvent(new CustomEvent("lebenslauf-entwurf", { detail: { closed: true } }));
   }
 
   async function open() {
@@ -244,8 +265,7 @@
   async function save() {
     $("cv-erstellen-speichern").disabled = true;
     try {
-      const body = Logic.request(state, { id: ID, berufsbezeichnung: $("cv-erstellen-beruf").value,
-                                          kurzprofil: $("cv-erstellen-profil").value, bezeichnung: $("cv-erstellen-name").value });
+      const body = Logic.request(state, fields());
       message("Lebenslauf wird erstellt …");
       const answer = await senden(ROUTE, body);
       message(Logic.savedText(answer), answer.gebaut ? "ok" : "hinweis");
@@ -272,4 +292,7 @@
   $("cv-erstellen-ki-stellentext").addEventListener("click", toAd);
   $("cv-erstellen-ki-neu-schaetzen").addEventListener("click", estimate);
   $("cv-erstellen-ki-text").addEventListener("toggle", showSentText);
+  // The name of the version is not in the PDF, so only these two texts change the preview.
+  $("cv-erstellen-beruf").addEventListener("input", () => draft());
+  $("cv-erstellen-profil").addEventListener("input", () => draft());
 })();

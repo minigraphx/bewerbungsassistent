@@ -103,7 +103,8 @@ def test_the_cv_for_one_application_has_its_own_section_with_the_picture():
 
     for words in ("**Lebenslauf erstellen**", "Stationen", "Reihenfolge", "**Zweispaltig**", "**Einspaltig**",
                   "**Name der Fassung**", "**Lebenslauf übernehmen**", "**Lebenslauf-Variante**", "**Aussehen wählen**",
-                  "**Lebenslauf und Dateien**", "alle neuen Lebensläufe", "](bilder/bewerbung.jpg)"):
+                  "**Lebenslauf und Dateien**", "alle neuen Lebensläufe", "](bilder/bewerbung.jpg)",
+                  "**Vorschau · 2 Seiten**", "**Gross ansehen**", "an die KI geht nichts"):
         assert words in section, words
     assert f"(#{CV_ANCHOR})" in quick_step(5)
 

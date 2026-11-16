@@ -125,8 +125,8 @@ async function answer(queue, fallback) {
 function setup({ form = FORM, satz = "stelle-sie" } = {}) {
   const doc = { activeElement: null, listeners: {}, createElement: tag => new FakeElement(doc, tag),
                 addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); },
-                dispatchEvent() {} };
-  const calls = { holen: [], senden: [], status: [], einrichten: 0 };
+                dispatchEvent(event) { calls.events.push(event); } };
+  const calls = { holen: [], senden: [], status: [], einrichten: 0, events: [] };
   const answers = { senden: [], form: [], estimate: [] };
   function el(tag, attributes = {}, ...children) {
     const element = doc.createElement(tag);
@@ -162,7 +162,7 @@ function setup({ form = FORM, satz = "stelle-sie" } = {}) {
     Texte,
   };
   const context = { window, document: doc, location: { search: "?id=b1" }, URLSearchParams, console,
-                    CustomEvent: class { constructor(type) { this.type = type; } } };
+                    CustomEvent: class { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } } };
   vm.createContext(context);
   for (const name of ["treffer-logik.js", "lebenslauf-erstellen-logik.js", "lebenslauf-erstellen.js"]) {
     vm.runInContext(fs.readFileSync(path.join(SEITEN, name), "utf8"), context);
@@ -419,4 +419,56 @@ test("when the app cannot tell whether the AI is on now, the box says why instea
   assert.deepEqual(aiStatus(page.calls).at(-1), ["cv-erstellen-ki-status", "Die App antwortet nicht.", "fehler"]);
   assert.equal(page.doc.activeElement, button);
   assert.equal(page.calls.senden.length, 0);
+});
+
+// G76 (#294): every change of content and looks goes to the preview (lebenslauf-vorschau.js) as a draft.
+const drafts = calls => calls.events.filter(event => event.type === "lebenslauf-entwurf")
+  .map(event => JSON.parse(JSON.stringify(event.detail)));
+
+test("opening hands the choice to the preview at once", async () => {
+  const { calls } = await opened();
+
+  const last = drafts(calls).at(-1);
+  assert.equal(last.now, true);
+  assert.deepEqual(last.body, { id: "b1", stand: "abc", stationen: { work: [0, 1] }, design: "zweispaltig",
+                                berufsbezeichnung: "Entwicklerin", kurzprofil: "Erster Satz. Zweiter Satz.", bezeichnung: "Daten" });
+});
+
+test("each change of stations, order, texts and looks hands a new draft to the preview", async () => {
+  const { $, calls } = await opened();
+  const before = drafts(calls).length;
+
+  $("cv-erstellen-stationen").querySelectorAll("input")[1].dispatch("change");
+  assert.deepEqual(drafts(calls).at(-1).body.stationen, { work: [0] });
+  [...$("cv-erstellen-stationen").querySelectorAll("button")].find(b => b.getAttribute("data-key") === "work-0-1").click();
+  $("cv-erstellen-beruf").value = "Leiterin";
+  $("cv-erstellen-beruf").dispatch("input");
+  assert.equal(drafts(calls).at(-1).body.berufsbezeichnung, "Leiterin");
+  $("cv-erstellen-profil").value = "Neu.";
+  $("cv-erstellen-profil").dispatch("input");
+  assert.equal(drafts(calls).at(-1).body.kurzprofil, "Neu.");
+  [...$("cv-erstellen-designs").querySelectorAll("input")].find(i => i.getAttribute("value") === "einspaltig").dispatch("change");
+
+  const sent = drafts(calls).slice(before);
+  assert.equal(sent.length, 5);
+  assert.ok(sent.every(draft => !draft.now), "changes wait for a pause");
+  assert.equal(sent.at(-1).body.design, "einspaltig");
+});
+
+test("without any station the preview gets the reason instead of a body", async () => {
+  const { $, calls } = await opened();
+
+  for (const box of $("cv-erstellen-stationen").querySelectorAll("input")) box.dispatch("change");
+
+  const last = drafts(calls).at(-1);
+  assert.equal(last.body, null);
+  assert.equal(last.reason, "Bitte mindestens eine Station wählen.");
+});
+
+test("closing the panel tells the preview to stop", async () => {
+  const { $, calls } = await opened();
+
+  $("cv-erstellen-abbrechen").click();
+
+  assert.deepEqual(drafts(calls).at(-1), { closed: true });
 });

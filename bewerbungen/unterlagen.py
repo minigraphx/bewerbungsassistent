@@ -170,15 +170,19 @@ def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], options: lis
     lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *options, "--build-dir", str(build), "-o", str(ziel)])
 
 
+def _build_tailored(daten: pathlib.Path, bewerbung: dict, job: pathlib.Path, lang: str, design: list[str],
+                    build: pathlib.Path, ziel: pathlib.Path) -> None:
+    lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(job), "--lang", lang, *design,
+                           *_cv_options(daten, bewerbung), "--build-dir", str(build), "-o", str(ziel)])
+
+
 def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, ziel: pathlib.Path) -> None:
     design = cv_design.theme_arguments(cv_design.for_application(daten, bewerbung))  # G61, resolved at each build
     if not bewerbung.get("variante"):
         return _baue_ganzen_lebenslauf(daten, design, _cv_options(daten, bewerbung), build, ziel)
     variante = Varianten(daten).hole(bewerbung["variante"])
     if variante.get("quelle"):
-        lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(im_ordner(daten, variante["quelle"])),
-                               "--lang", variante["sprache"], *design, *_cv_options(daten, bewerbung),
-                               "--build-dir", str(build), "-o", str(ziel)])
+        _build_tailored(daten, bewerbung, im_ordner(daten, variante["quelle"]), variante["sprache"], design, build, ziel)
     elif variante.get("datei"):
         shutil.copyfile(im_ordner(daten, variante["datei"]), ziel)
     elif not ziel.is_file():
@@ -195,6 +199,16 @@ def build_cv(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> pathl
     ziel.parent.mkdir(parents=True, exist_ok=True)
     _baue_lebenslauf(daten, bewerbung, build, ziel)
     return ziel
+
+
+def build_cv_preview(daten: pathlib.Path, bewerbung: dict, job: pathlib.Path, design: str, build: pathlib.Path,
+                     ziel: pathlib.Path) -> None:
+    """The CV a choice in „Lebenslauf erstellen“ gives before it is taken (G76): the tailoring not saved yet, built
+    like `build_cv` with the application's page limit, cuts and photo, into a file the caller owns and removes."""
+    daten = daten.resolve()
+    if not (daten / "cv.yaml").is_file():
+        raise ValueError(NO_CV)
+    _build_tailored(daten, bewerbung, job, "de", cv_design.theme_arguments(design), build, ziel)
 
 
 def _cv_arguments(daten: pathlib.Path, bewerbung: dict) -> list[str]:
