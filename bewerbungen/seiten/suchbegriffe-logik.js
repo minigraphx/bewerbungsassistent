@@ -46,7 +46,6 @@
 
   /** Never less than a cent: a call that costs less is still not free. CHF with the mediation (G46), counted 1:1. */
   const geld = (betrag, waehrung = "USD") => `${Math.max(Number(betrag) || 0, 0.01).toFixed(2)} ${waehrung}`;
-  const schaetzung = (betrag, waehrung) => `Etwa ${geld(betrag, waehrung)}`;
 
   function hinweisText(beleg) {
     const beispiele = beleg.beispiele.length ? `, zum Beispiel ${beleg.beispiele.join(", ")}` : "";
@@ -106,7 +105,7 @@
     }));
   }
 
-  const api = { texte, datum, geld, schaetzung, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
+  const api = { texte, datum, geld, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
     belegAusAdresse, hauptknopf, kopf, marken, uebernommen, RUECKGAENGIG_FERTIG, fuss, runde, endstand };
   if (typeof module !== "undefined") module.exports = api;
   else root.SuchbegriffeLogik = api;

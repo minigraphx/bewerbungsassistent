@@ -1,20 +1,35 @@
 "use strict";
 // On Stellen (#210): the hint after a search, counted by the app without AI, and the list narrowed to the hits behind a
 // piece of evidence („#beleg=…“) or to the dismissed hits with one title word („#verworfen=…“, #225, G66). The way to
-// the check with its cost (G15) is on Suche einstellen (#263).
+// the check with its cost (G15) is on Suche einstellen (#263); the hint words the same estimate (#334).
 window.SuchbegriffeStart = (() => {
-  const { holen, senden, status, textsatz } = window.App;
+  const { el, holen, senden, status, textsatz } = window.App;
   const L = window.SuchbegriffeLogik;
   const $ = id => document.getElementById(id);
   let beleg = null;  // { begriff, ids: Set } while the list shows only these hits
 
   const geaendert = () => document.dispatchEvent(new CustomEvent("suchbegriffe-beleg"));
 
-  function zeigeHinweis(hinweis, kosten, waehrung, texte) {
-    $("begriff-hinweis").hidden = !hinweis;
-    if (!hinweis) return;
+  /** The cost line of GET /api/suchbegriffe/schaetzung in the words of TrefferLogik.costLine, or why it is missing. */
+  async function kostenZeile() {
+    const logik = window.TrefferLogik;
+    try {
+      return logik.costLine(await holen("/api/suchbegriffe/schaetzung"));
+    } catch (fehler) {
+      return { text: logik.estimateFailedText(fehler.message), usedUp: false };
+    }
+  }
+
+  /** The estimate comes first, so the hint appears whole; it is only asked for when there is a hint. */
+  async function zeigeHinweis(hinweis, texte) {
+    if (!hinweis) {
+      $("begriff-hinweis").hidden = true;
+      return;
+    }
+    const zeile = await kostenZeile();
+    const kosten = zeile.usedUp ? window.Texte.withCodeRequestLink(zeile.text, el) : [zeile.text];
     $("begriff-hinweis-text").textContent = L.hinweisText(hinweis);
-    $("begriff-hinweis-nachsatz").textContent = `${texte.hinweisNachsatz} ${L.schaetzung(kosten, waehrung)}.`;
+    $("begriff-hinweis-nachsatz").replaceChildren(`${texte.hinweisNachsatz} `, ...kosten);
     $("begriff-hinweis-aus").onclick = async () => {
       try {
         await senden("/api/suchbegriffe/ausblenden", { begriff: hinweis.begriff });
@@ -23,6 +38,7 @@ window.SuchbegriffeStart = (() => {
         status($("status"), fehler.message, "fehler");
       }
     };
+    $("begriff-hinweis").hidden = false;
   }
 
   /** Called with each load of the list; only a job search has it. */
@@ -34,7 +50,7 @@ window.SuchbegriffeStart = (() => {
     try {
       const [antwort, satz] = await Promise.all([holen("/api/suchbegriffe/hinweis"), textsatz()]);
       const texte = L.texte(satz);
-      zeigeHinweis(antwort.verfuegbar ? antwort.hinweis : null, antwort.kosten_usd, antwort.waehrung, texte);
+      await zeigeHinweis(antwort.verfuegbar ? antwort.hinweis : null, texte);
     } catch {
       $("begriff-hinweis").hidden = true;  // the hint is extra; the list works without it
     }

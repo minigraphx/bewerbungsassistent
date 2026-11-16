@@ -56,8 +56,11 @@
     return null;
   }
 
-  /** The cost before the run, worded like „Alle prüfen“ (G44, G46, G80); `trefferLogik` is TrefferLogik. */
-  const kosten = (stand, trefferLogik) => trefferLogik.estimateLine(stand);
+  /**
+   * The cost before the run, worded like every one-request line (G44, G46, G80, #334): over the credit it names what is
+   * left; the button stays (#319). `trefferLogik` is TrefferLogik.
+   */
+  const kosten = (stand, trefferLogik) => trefferLogik.costLine(stand).text;
 
   // The app keeps only proposals that rest on at least two hits (exclusion_reasons.MIN_HITS).
   const stuetze = vorschlag => `Aus ${vorschlag.treffer.length} verworfenen Stellen:`;

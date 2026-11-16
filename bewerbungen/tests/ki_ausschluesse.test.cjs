@@ -89,6 +89,11 @@ test("the cost line is the one of „Alle prüfen“, with the request link once
   assert.equal(L.kosten({ ...STAND, waehrung: "USD", guthaben: null, danach: null }, TrefferLogik), "Etwa USD 0.02 und 1 Minute.");
 });
 
+test("over the credit the cost line names what is left, not CHF 0.00 after (#334)", () => {
+  assert.equal(L.kosten({ ...STAND, kosten: 0.03, guthaben: 0.01, danach: 0 }, TrefferLogik),
+    "Etwa CHF 0.03 und 1 Minute. Im Guthaben sind noch CHF 0.01, das reicht vielleicht nicht.");
+});
+
 test("each proposal names the hits it rests on", () => {
   assert.equal(L.stuetze(VORSCHLAG), "Aus 2 verworfenen Stellen:");
   assert.equal(L.stuetze({ ...VORSCHLAG, treffer: [...TREFFER, { ...TREFFER[0], id: "c" }] }), "Aus 3 verworfenen Stellen:");

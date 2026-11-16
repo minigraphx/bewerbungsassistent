@@ -41,7 +41,6 @@ test("the result marks new terms and ignores case", () => {
 test("Sie and du, costs never under a cent", () => {
   assert.match(L.texte("stelle-du").satz, /du entscheidest/);
   assert.match(L.texte("stelle-sie").satz, /Sie entscheiden/);
-  assert.equal(L.schaetzung(0.0004), "Etwa 0.01 USD");
   assert.equal(L.texte("stelle-sie").gesehen(130, "2026-10-20"),
     "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 130 Treffer seit dem 20.10.2026 angesehen. Geändert wird nur, was angehakt ist.");
   assert.equal(L.fuss({ modell: "claude-haiku-5-5", kosten_usd: 0.004, datum: "2026-11-11", runde: 2, kosten_bisher: 0.008 }),

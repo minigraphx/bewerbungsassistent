@@ -66,7 +66,10 @@ def _estimate(text: str) -> float:
 
 
 def hint(k, parameter, body):
-    """What the page shows after a search: the strongest case, unless the person hid it, and what a check costs."""
+    """What the page shows after a search: the strongest case, unless the person hid it.
+
+    No amount: the pages ask `estimate`, which prices in the currency of the way (#334).
+    """
     try:
         _, text = _profile(k)
     except ValueError:
@@ -76,7 +79,6 @@ def hint(k, parameter, body):
     strong = term_evidence.strongest(hits, current.positive)
     shown = strong if strong is not None and strong.term.casefold() not in store.settings()[HIDDEN_TERMS] else None
     return json_antwort({"verfuegbar": True, "hinweis": shown.as_dict() if shown else None,
-                         "kosten_usd": _estimate(_preview(k, current, hits)), "waehrung": currency_now(),
                          "treffer": len(term_evidence.rated(hits)), "seit": term_evidence.since(hits)})
 
 
