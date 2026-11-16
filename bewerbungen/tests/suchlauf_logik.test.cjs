@@ -22,7 +22,7 @@ test("the progress names the search, its stage and the pause between stages", ()
   assert.deepEqual(logik.laufZeile(step), ["jobs.ch: suche „Begriff13“, Seite 1", "Suche 32 von 193, Etappe 2 von 7 …"]);
   assert.deepEqual(logik.laufZeile({ ...step, nummer: 2, abfragen: 4, etappe: 1, etappen: 1 }), ["jobs.ch: suche „Begriff13“, Seite 1", "Suche 2 von 4 …"]);
   assert.deepEqual(logik.laufZeile({ portal: "jobs.ch", phase: "pause", etappe: 3, etappen: 7, sekunden: 50 }),
-    ["jobs.ch: Pause vor Etappe 3 von 7, noch 50 Sekunden …"]);
+    ["jobs.ch: Pause vor Etappe 3 von 7, noch 50\u00a0Sekunden …"]);
 });
 
 test("the progress names the place being searched, a query without place stays as it was", () => {
