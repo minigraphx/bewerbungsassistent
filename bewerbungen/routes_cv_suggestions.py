@@ -1,6 +1,7 @@
 """Suggestions of the AI for „Lebenslauf erstellen“ (#293, G75); what goes to the AI and what holds: ai/cv_suggestions.py.
 
-The form says with `ki` whether the AI can suggest (`ai_state`). `POST …/vorschlag` asks the AI and writes nothing:
+The form says with `ki` whether the AI can suggest (`ai_state`). Opening sends nothing (G95): `…/schaetzung` prices the
+exact text that would go, as „Alle prüfen“ does, without an AI client. `POST …/vorschlag` asks the AI and writes nothing:
 the page applies the suggestion, and only „Lebenslauf übernehmen“ saves, through routes_cv_creation, which checks
 every station against `cv.yaml` again. A suggestion stays in `k.cache` for its application, the state of Meine Angaben,
 the chosen stations and the ad, so opening the panel again does not pay twice. `…/text` shows the text with
@@ -12,6 +13,7 @@ import hashlib
 import cv_creation
 import missing_ads
 import routes_ai
+import routes_rate_all
 import routes_terms
 import unterlagen
 from ai import cv_suggestions, tasks
@@ -36,7 +38,7 @@ def _ad(k, entry_id: str) -> str:
 
 
 def ai_state(k, entry: dict) -> str:
-    """Whether the panel can ask the AI on opening; without it the panel works as before."""
+    """Whether the panel can offer the AI's suggestion; without it the panel works as before."""
     if not routes_ai.usable(k):
         return OFF
     return READY if _ad(k, entry["id"]) else NO_AD
@@ -130,9 +132,8 @@ def propose(k, parameter, body):
     return json_antwort(view)
 
 
-def sent_text(k, parameter, body):
-    """The text with placeholders, as it would go to the AI; nothing is sent."""
-    entry = k.register().hole(pflicht(parameter, "id"))
+def _sent(k, entry: dict) -> str:
+    """The text with placeholders exactly as a suggestion would send it now; built without an AI client."""
     ad, stations, summary = _material(k, entry, None)
 
     def task() -> str:
@@ -140,8 +141,21 @@ def sent_text(k, parameter, body):
         gateway = tasks.make_gateway(k.daten, material, client=None, entry=entry)
         return cv_suggestions.preview(gateway, ad, stations, summary)
 
-    return json_antwort({"text": routes_ai.run_ai(task)})
+    return routes_ai.run_ai(task)
 
 
-GET = {f"{ROUTE}/text": sent_text}
+def sent_text(k, parameter, body):
+    """The text with placeholders, as it would go to the AI; nothing is sent."""
+    return json_antwort({"text": _sent(k, k.register().hole(pflicht(parameter, "id")))})
+
+
+def estimate(k, parameter, body):
+    """Cost and time before the click (G95), worded on the page like „Alle prüfen“; nothing is sent."""
+    sent = _sent(k, _open_entry(k, pflicht(parameter, "id")))
+    money = routes_rate_all.priced(cv_suggestions.estimate_usd(sent), with_credit=True)
+    return json_antwort({"anzahl": 1, **money.fields(), "dauer_minuten": cv_suggestions.EXPECTED_MINUTES,
+                         "reicht_fuer": None})
+
+
+GET = {f"{ROUTE}/text": sent_text, f"{ROUTE}/schaetzung": estimate}
 POST = {f"{ROUTE}/vorschlag": propose}

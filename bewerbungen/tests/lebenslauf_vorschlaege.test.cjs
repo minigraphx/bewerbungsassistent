@@ -5,6 +5,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const L = require("../seiten/lebenslauf-erstellen-logik.js");
 const Texte = require("../seiten/texte.js");
+const Treffer = require("../seiten/treffer-logik.js");
 
 const ANSWER = {
   stand: "abc", ki: "bereit", eigene_variante: null,
@@ -67,8 +68,8 @@ test("changes by hand stay when a recommendation is undone", () => {
   assert.deepEqual(section(state, "projects").chosen, [0, 1]);
 });
 
-test("the AI suggests on opening only when it can and the application has no CV of its own yet", () => {
-  assert.equal(L.autoSuggest(ANSWER), true);
+test("opening never asks the AI: the person sees text and cost first (G95, G15)", () => {
+  assert.equal(L.autoSuggest(ANSWER), false);
   assert.equal(L.autoSuggest({ ...ANSWER, eigene_variante: "b1" }), false);
   assert.equal(L.autoSuggest({ ...ANSWER, ki: "aus" }), false);
   assert.equal(L.autoSuggest({ ...ANSWER, ki: "ohne_inserat" }), false);
@@ -129,7 +130,37 @@ test("the box speaks to each text set, and an apprenticeship reads Lehrstelle", 
                "Für diese Bewerbung ist Ihre Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».");
   assert.equal(t("lebenslauf.ki-gespeichert", "stelle-du"),
                "Für diese Bewerbung ist deine Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».");
-  assert.equal(t("lebenslauf.ki-bereit", "lehrstelle-du"),
-               "Die KI kann für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vorschlagen.");
+  for (const satz of ["stelle-sie", "stelle-du"]) {
+    assert.equal(t("lebenslauf.ki-bereit", satz), "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil "
+                 + "vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».");
+  }
+  assert.equal(t("lebenslauf.ki-bereit", "lehrstelle-du"), "Die KI kann für diese Lehrstelle Stationen, Reihenfolge und "
+               + "Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».");
   assert.equal(t("lebenslauf.ki-holen", "stelle-sie"), "Vorschläge holen");
+  assert.equal(t("lebenslauf.ki-schaetzen", "stelle-sie"), "Kosten und Dauer werden geschätzt …");
+  assert.equal(t("lebenslauf.ki-neu-schaetzen", "lehrstelle-du"), "Neu schätzen");
+});
+
+// What GET /api/lebenslauf/erstellen/schaetzung answers, worded by TrefferLogik.estimateLine (G95).
+const OWN_KEY = { anzahl: 1, kosten: 0.03, waehrung: "USD", guthaben: null, danach: null, dauer_minuten: 1, reicht_fuer: null };
+const CODE = { ...OWN_KEY, kosten: 0.04, waehrung: "CHF", guthaben: 4.25, danach: 4.21 };
+
+test("the cost line before the click is the estimate line of Alle prüfen", () => {
+  assert.deepEqual(L.costLine(OWN_KEY, Treffer.estimateLine), { text: "Etwa USD 0.03 und 1 Minute.", usedUp: false });
+  assert.deepEqual(L.costLine(CODE, Treffer.estimateLine),
+                   { text: "Etwa CHF 0.04 und 1 Minute. Danach bleiben CHF 4.21 im Guthaben.", usedUp: false });
+});
+
+test("over the credit the line says it may not be enough; the button stays usable", () => {
+  assert.deepEqual(L.costLine({ ...CODE, guthaben: 0.02, danach: 0 }, Treffer.estimateLine), {
+    text: "Etwa CHF 0.04 und 1 Minute. Im Guthaben sind noch CHF 0.02, das reicht vielleicht nicht.", usedUp: false });
+});
+
+test("with the credit used up the line says where to ask for a new code, and the button is locked", () => {
+  assert.deepEqual(L.costLine({ ...CODE, guthaben: 0, danach: 0 }, Treffer.estimateLine), {
+    text: "Etwa CHF 0.04 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern.", usedUp: true });
+});
+
+test("a failed estimate names its reason", () => {
+  assert.equal(L.estimateFailedText("Die App antwortet nicht."), "Die Schätzung fehlt: Die App antwortet nicht.");
 });

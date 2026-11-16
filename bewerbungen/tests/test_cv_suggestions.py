@@ -6,14 +6,17 @@ move up and shorten, never add: a recommendation that names anything this reques
 The AI is simulated; nothing goes to the network.
 """
 import json
+import pathlib
 import re
 
 import pytest
 import yaml
 
+import rate_all
 import routes_ai
+import routes_rate_all
 import routes_terms
-from ai import cv_suggestions
+from ai import cv_suggestions, tasks
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
 from ai.errors import SETUP_ACTION
 from register import Register
@@ -319,3 +322,61 @@ def test_the_text_for_the_ai_can_be_read_without_sending_it(with_ad, ai):
     assert text.startswith(cv_suggestions.RULES) and "datenatlas" in text and FIRST in text
     assert "petra@example.ch" not in text
     assert ai.messages.calls == []
+
+
+# Before the click (G95): text and cost, nothing sent
+
+@pytest.fixture
+def no_client(monkeypatch, connected):
+    created = []
+
+    def refuse():
+        created.append(True)
+        raise AssertionError("an AI client was created")
+
+    monkeypatch.setattr(routes_ai, "new_client", refuse)
+    return created
+
+
+def estimate(s) -> dict:
+    status, _, body = get(s, f"{ROUTE}/schaetzung", id=BRIEF_ID)
+    assert status == 200, body
+    return json.loads(body)
+
+
+def test_opening_the_panel_and_the_estimate_create_no_ai_client(with_ad, no_client):
+    assert form(with_ad)["ki"] == "bereit"
+    found = estimate(with_ad)
+
+    assert no_client == []
+    assert found["anzahl"] == 1 and found["dauer_minuten"] == 1
+    assert found["kosten"] >= 0.01 and found["waehrung"] == "USD"
+    assert found["guthaben"] is None and found["danach"] is None and found["reicht_fuer"] is None
+
+
+def test_the_estimate_prices_exactly_the_text_that_would_go(with_ad, no_client):
+    _, _, body = get(with_ad, f"{ROUTE}/text", id=BRIEF_ID)
+    sent = json.loads(body)["text"]
+
+    expected = rate_all.cents_up(rate_all.call_usd(len(sent), cv_suggestions.EXPECTED_OUTPUT_TOKENS,
+                                                   tasks.MODELS[cv_suggestions.TASK]))
+    assert estimate(with_ad)["kosten"] == expected
+    assert cv_suggestions.EXPECTED_OUTPUT_TOKENS >= 1500, "rather too high than too low"
+
+
+def test_the_estimate_names_the_credit_of_the_code(with_ad, no_client, monkeypatch):
+    monkeypatch.setattr(routes_rate_all, "credit_left", lambda: 0.02)
+    found = estimate(with_ad)
+    assert found["guthaben"] == 0.02 and found["danach"] == 0
+
+
+def test_without_an_ad_there_is_nothing_to_estimate(server, no_client):  # noqa: F811
+    status, _, body = get(server, f"{ROUTE}/schaetzung", id=BRIEF_ID)
+    assert status == 400 and "Stellentext" in json.loads(body)["fehler"]
+    assert no_client == []
+
+
+def test_neither_the_extension_nor_claude_reach_the_routes():
+    root = pathlib.Path(__file__).resolve().parents[2]
+    for name in ("native_host.py", "mcp_tools.py"):
+        assert ROUTE not in (root / "desktop" / name).read_text(encoding="utf-8"), name

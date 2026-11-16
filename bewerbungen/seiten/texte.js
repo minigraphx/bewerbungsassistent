@@ -269,10 +269,12 @@
       sie: "Für Vorschläge der KI fehlt noch der Stellentext.", du: "Für Vorschläge der KI fehlt noch der Stellentext.",
     },
     "lebenslauf.ki-bereit": {
-      sie: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen.",
-      du: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen.",
-      lehrstelle: "Die KI kann für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vorschlagen.",
+      sie: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      du: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      lehrstelle: "Die KI kann für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
     },
+    "lebenslauf.ki-schaetzen": { sie: "Kosten und Dauer werden geschätzt …", du: "Kosten und Dauer werden geschätzt …" },
+    "lebenslauf.ki-neu-schaetzen": { sie: "Neu schätzen", du: "Neu schätzen" },
     "lebenslauf.ki-gespeichert": {
       sie: "Für diese Bewerbung ist Ihre Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».",
       du: "Für diese Bewerbung ist deine Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».",

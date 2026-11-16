@@ -11,6 +11,7 @@ import dataclasses
 import re
 import secrets
 
+import rate_all
 from ai import prompts, tasks
 from ai.errors import BAD_ANSWER, AnswerError
 from ai.gateway import Gateway, Request
@@ -18,6 +19,9 @@ from ai.gateway import Gateway, Request
 TASK = "cv_suggestions"
 MAX_RECOMMENDATIONS = 5
 MAX_REASON = 300
+# Five recommendations with their reasons are some 600 tokens; the rest is room for thinking, so it errs high.
+EXPECTED_OUTPUT_TOKENS = 2000
+EXPECTED_MINUTES = 1
 LABEL_BYTES = 2
 SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=\S)")
 
@@ -180,6 +184,11 @@ def propose(gateway: Gateway, ad: str, stations: list[Station], summary: str) ->
     except AnswerError as error:
         raise AnswerError(str(error), cost_usd=answer.cost_usd) from error
     return {"recommendations": found, "model": answer.model, "cost_usd": answer.cost_usd}
+
+
+def estimate_usd(sent: str) -> float:
+    """Before the click (G95): from the length of the text that would go and the price of the model, rounded up."""
+    return rate_all.cents_up(rate_all.call_usd(len(sent), EXPECTED_OUTPUT_TOKENS, tasks.MODELS[TASK]))
 
 
 def preview(gateway: Gateway, ad: str, stations: list[Station], summary: str) -> str:

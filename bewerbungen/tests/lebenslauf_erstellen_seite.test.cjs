@@ -1,5 +1,6 @@
-// The box „Vorschläge der KI“ in „Lebenslauf erstellen“ (#293, G75) with a small stand-in DOM: what it says in each
-// state, where the focus goes around a request and what the live region hears. Invented data, the AI is faked.
+// The box „Vorschläge der KI“ in „Lebenslauf erstellen“ (#293, G75, G95) with a small stand-in DOM: opening sends
+// nothing and shows text and cost first; what the box says in each state, where the focus goes around a request and
+// what the live region hears. Invented data, the AI is faked.
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -21,6 +22,7 @@ const FORM = {
   ],
   berufsbezeichnung: "Entwicklerin", kurzprofil: "Erster Satz. Zweiter Satz.", design: "zweispaltig", bezeichnung: "Daten",
 };
+const ESTIMATE = { anzahl: 1, kosten: 0.03, waehrung: "USD", guthaben: null, danach: null, dauer_minuten: 1, reicht_fuer: null };
 const SUGGESTION = { kosten_usd: 0.01, waehrung: "CHF", wiederholt: false, kosten_text: COST, empfehlungen: [
   { nummer: 0, was: "«Junior, Muster GmbH» weglassen", grund: "Keine Webstelle.",
     weglassen: [{ abschnitt: "work", index: 1 }], voran: [], kurzprofil: null },
@@ -98,10 +100,12 @@ function page(doc, el) {
         el("p", { id: "cv-erstellen-ki-zeile" }),
         el("ul", { id: "cv-erstellen-ki-liste", hidden: true }),
         el("div", { id: "cv-erstellen-ki-knoepfe", hidden: true },
-          el("button", { id: "cv-erstellen-ki-knopf", type: "button", class: "btn" }),
+          el("button", { id: "cv-erstellen-ki-knopf", type: "button", class: "btn", "aria-describedby": "cv-erstellen-ki-kosten" }),
+          el("span", { id: "cv-erstellen-ki-kosten", class: "caption" }),
+          el("button", { id: "cv-erstellen-ki-neu-schaetzen", type: "button", class: "btn btn--quiet", hidden: true }, "Neu schätzen"),
           el("button", { id: "cv-erstellen-ki-stellentext", type: "button", class: "btn btn--quiet", hidden: true })),
-        el("p", { id: "cv-erstellen-ki-status", tabindex: "-1" }),
-        el("details", { id: "cv-erstellen-ki-text" }, el("pre", { id: "cv-erstellen-ki-text-inhalt" }))),
+        el("details", { id: "cv-erstellen-ki-text" }, el("pre", { id: "cv-erstellen-ki-text-inhalt" })),
+        el("p", { id: "cv-erstellen-ki-status", tabindex: "-1" })),
       el("div", { id: "cv-erstellen-stationen" }),
       el("input", { id: "cv-erstellen-beruf" }), el("textarea", { id: "cv-erstellen-profil" }),
       el("div", { id: "cv-erstellen-designs" }), el("input", { id: "cv-erstellen-name" }),
@@ -110,12 +114,20 @@ function page(doc, el) {
     el("details", { id: "s-stelle" }, el("textarea", { id: "stellentext" })));
 }
 
+/** A queued answer is a value, an Error to throw, or a function whose promise the route waits for. */
+async function answer(queue, fallback) {
+  const next = queue.shift();
+  const value = typeof next === "function" ? await next() : next === undefined ? fallback : next;
+  if (value instanceof Error) throw value;
+  return value;
+}
+
 function setup({ form = FORM, satz = "stelle-sie" } = {}) {
   const doc = { activeElement: null, listeners: {}, createElement: tag => new FakeElement(doc, tag),
                 addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); },
                 dispatchEvent() {} };
-  const calls = { senden: [], status: [], einrichten: 0 };
-  const answers = { senden: [], form: [form] };
+  const calls = { holen: [], senden: [], status: [], einrichten: 0 };
+  const answers = { senden: [], form: [], estimate: [] };
   function el(tag, attributes = {}, ...children) {
     const element = doc.createElement(tag);
     for (const [name, value] of Object.entries(attributes)) {
@@ -135,17 +147,14 @@ function setup({ form = FORM, satz = "stelle-sie" } = {}) {
       url: route => route,
       textsatz: async () => satz,
       holen: async route => {
-        if (route !== ROUTE) return { text: "" };
-        const next = answers.form.shift() || form;
-        if (next instanceof Error) throw next;
-        return next;
+        calls.holen.push(route);
+        if (route === ROUTE) return answer(answers.form, form);
+        if (route === `${ROUTE}/schaetzung`) return answer(answers.estimate, ESTIMATE);
+        return { text: "" };
       },
       senden: async (route, body) => {
         calls.senden.push([route, JSON.parse(JSON.stringify(body))]);
-        const next = answers.senden.shift();
-        const value = typeof next === "function" ? await next() : next;
-        if (value instanceof Error) throw value;
-        return value || SUGGESTION;
+        return answer(answers.senden, SUGGESTION);
       },
       status: (element, text, type = "") => { calls.status.push([element.id, text, type]); },
       kiEinrichten: async () => { calls.einrichten += 1; },
@@ -155,8 +164,9 @@ function setup({ form = FORM, satz = "stelle-sie" } = {}) {
   const context = { window, document: doc, location: { search: "?id=b1" }, URLSearchParams, console,
                     CustomEvent: class { constructor(type) { this.type = type; } } };
   vm.createContext(context);
-  vm.runInContext(fs.readFileSync(path.join(SEITEN, "lebenslauf-erstellen-logik.js"), "utf8"), context);
-  vm.runInContext(fs.readFileSync(path.join(SEITEN, "lebenslauf-erstellen.js"), "utf8"), context);
+  for (const name of ["treffer-logik.js", "lebenslauf-erstellen-logik.js", "lebenslauf-erstellen.js"]) {
+    vm.runInContext(fs.readFileSync(path.join(SEITEN, name), "utf8"), context);
+  }
   const $ = id => doc.getElementById(id);
   return { doc, calls, answers, $ };
 }
@@ -166,6 +176,8 @@ const visible = node => { for (let n = node; n; n = n.parent) if (n.hidden) retu
 const aiStatus = calls => calls.status.filter(([id]) => id === "cv-erstellen-ki-status");
 const boxes = $ => $("cv-erstellen-ki-liste").querySelectorAll("input");
 const text = (key, satz = "stelle-sie") => Texte.text(key, satz);
+const estimates = calls => calls.holen.filter(route => route === `${ROUTE}/schaetzung`).length;
+const SAVED = { ...FORM, eigene_variante: "b1-daten" };
 
 /** A deferred answer: the request runs until `release` is called. */
 function pending(value) {
@@ -189,46 +201,118 @@ async function pressed(page) {
   return button;
 }
 
-test("the page markup names the box by text set and lets the focus land on the status line", () => {
+test("the page markup: line, button with its cost line, the text for the AI, status, note", () => {
   const html = fs.readFileSync(path.join(SEITEN, "bewerbung.html"), "utf8");
-  assert.match(html, /<h5 [^>]*id="cv-erstellen-ki-titel"[^>]*data-text="lebenslauf.ki-titel"|<h5 [^>]*data-text="lebenslauf.ki-titel"[^>]*id="cv-erstellen-ki-titel"/);
-  assert.match(html, /<p [^>]*id="cv-erstellen-ki-status"[^>]*tabindex="-1"/);
-  assert.match(html, /<button type="button" class="btn btn--quiet" id="cv-erstellen-ki-stellentext" data-text="lebenslauf.ki-zum-stellentext" hidden>/);
+  const box = html.slice(html.indexOf('id="cv-erstellen-ki"'), html.indexOf('id="cv-erstellen-stationen"'));
+  const order = ['id="cv-erstellen-ki-zeile"', 'id="cv-erstellen-ki-knoepfe"', 'id="cv-erstellen-ki-kosten"',
+                 'id="cv-erstellen-ki-text"', 'id="cv-erstellen-ki-status"', 'class="cv-create__ai-note"'];
+  const places = order.map(part => box.indexOf(part));
+  assert.ok(places.every(place => place > 0), places.join());
+  assert.deepEqual([...places].sort((a, b) => a - b), places);
+  assert.match(box, /<h5 [^>]*id="cv-erstellen-ki-titel" data-text="lebenslauf.ki-titel"/);
+  assert.match(box, /<button type="button" class="btn" id="cv-erstellen-ki-knopf" aria-describedby="cv-erstellen-ki-kosten">/);
+  assert.match(box, /<span class="caption" id="cv-erstellen-ki-kosten"><\/span>/);
+  assert.match(box, /<button type="button" class="btn btn--quiet" id="cv-erstellen-ki-neu-schaetzen" data-text="lebenslauf.ki-neu-schaetzen" hidden>/);
+  assert.match(box, /<button type="button" class="btn btn--quiet" id="cv-erstellen-ki-stellentext" data-text="lebenslauf.ki-zum-stellentext" hidden>/);
+  assert.match(box, /<p [^>]*id="cv-erstellen-ki-status"[^>]*tabindex="-1"/);
+  assert.match(html, /<script src="\/treffer-logik.js"><\/script>\s*<script src="\/lebenslauf-erstellen-logik.js">/);
 });
 
-test("opening applies the suggestion, says once what it did and cost, and keeps the focus on the first station", async () => {
+test("opening sends nothing to the AI and shows the button, what it costs and the text for the AI", async () => {
   const { $, calls, doc } = await opened();
 
-  assert.equal($("cv-erstellen-ki-zeile").textContent, text("lebenslauf.ki-angewendet"));
-  assert.equal(boxes($).length, 2);
-  assert.ok(boxes($).every(box => box.checked));
-  assert.deepEqual(aiStatus(calls).filter(([, said]) => said), [
-    ["cv-erstellen-ki-status", `Vorschlag der KI angewendet: 2 Empfehlungen. ${COST}`, "ok"]]);
+  assert.deepEqual(calls.senden, []);
+  assert.equal($("cv-erstellen-ki-zeile").textContent, text("lebenslauf.ki-bereit"));
+  assert.equal($("cv-erstellen-ki-knopf").textContent, "Vorschläge holen");
+  assert.ok(visible($("cv-erstellen-ki-knopf")));
+  assert.equal($("cv-erstellen-ki-knopf").getAttribute("aria-disabled"), null);
+  assert.equal($("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.ok(visible($("cv-erstellen-ki-text")));
   assert.equal(doc.activeElement, $("cv-erstellen-stationen").querySelector("input"));
-  assert.equal($("cv-erstellen-ki-knoepfe").hidden, true);
+  assert.deepEqual(aiStatus(calls).filter(([, said]) => said), []);
 });
 
-test("a repeat from the cache says what it did and nothing about costs", async () => {
-  const { calls, answers, $ } = setup();
-  answers.senden.push({ ...SUGGESTION, kosten_usd: 0, wiederholt: true, kosten_text: "" });
-  $("cv-erstellen-oeffnen").click();
+test("while the estimate runs the line says so and the button waits for it", async () => {
+  const page = setup();
+  const slow = pending(ESTIMATE);
+  page.answers.estimate.push(slow.answer);
+  page.$("cv-erstellen-oeffnen").click();
   await settle();
-  assert.deepEqual(aiStatus(calls).filter(([, said]) => said).map(([, said]) => said),
-                   ["Vorschlag der KI angewendet: 2 Empfehlungen."]);
+  const button = page.$("cv-erstellen-ki-knopf");
+
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Kosten und Dauer werden geschätzt …");
+  assert.equal(button.getAttribute("aria-disabled"), "true");
+  button.click();
+  await settle();
+  assert.deepEqual(page.calls.senden, []);
+
+  slow.release();
+  await settle();
+  assert.equal(button.getAttribute("aria-disabled"), null);
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
 });
 
-test("with a saved CV for this application nothing is applied on opening; the AI can propose anew", async () => {
-  const { $, calls } = await opened({ form: { ...FORM, eigene_variante: "b1-daten" } });
+test("over the credit the line warns and the button stays usable", async () => {
+  const page = setup();
+  page.answers.estimate.push({ ...ESTIMATE, kosten: 0.04, waehrung: "CHF", guthaben: 0.02, danach: 0 });
+  page.$("cv-erstellen-oeffnen").click();
+  await settle();
 
-  assert.equal(calls.senden.length, 0);
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent,
+               "Etwa CHF 0.04 und 1 Minute. Im Guthaben sind noch CHF 0.02, das reicht vielleicht nicht.");
+  assert.equal(page.$("cv-erstellen-ki-knopf").disabled, false);
+  assert.equal(page.$("cv-erstellen-ki-knopf").getAttribute("aria-disabled"), null);
+});
+
+test("with the credit used up the button is locked and the line links where to ask for a new code", async () => {
+  const page = setup();
+  page.answers.estimate.push({ ...ESTIMATE, kosten: 0.04, waehrung: "CHF", guthaben: 0, danach: 0 });
+  page.$("cv-erstellen-oeffnen").click();
+  await settle();
+  const line = page.$("cv-erstellen-ki-kosten");
+
+  assert.equal(line.textContent,
+               "Etwa CHF 0.04 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.");
+  const link = line.querySelector("a");
+  assert.equal(link.getAttribute("href"), Texte.CODE_REQUEST_URL);
+  assert.equal(page.$("cv-erstellen-ki-knopf").disabled, true);
+  page.$("cv-erstellen-ki-knopf").click();
+  await settle();
+  assert.deepEqual(page.calls.senden, []);
+});
+
+test("a failed estimate says why, offers Neu schätzen and leaves Vorschläge holen usable", async () => {
+  const page = setup();
+  page.answers.estimate.push(new Error("Die App antwortet nicht."));
+  page.$("cv-erstellen-oeffnen").click();
+  await settle();
+  const again = page.$("cv-erstellen-ki-neu-schaetzen");
+
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Die Schätzung fehlt: Die App antwortet nicht.");
+  assert.ok(visible(again));
+  assert.equal(page.$("cv-erstellen-ki-knopf").getAttribute("aria-disabled"), null);
+  assert.equal(page.$("cv-erstellen-ki-knopf").disabled, false);
+
+  again.click();
+  await settle();
+  assert.equal(estimates(page.calls), 2);
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal(again.hidden, true);
+});
+
+test("with a saved CV for this application the box says so and offers Neu vorschlagen lassen with its cost", async () => {
+  const { $, calls } = await opened({ form: SAVED });
+
+  assert.deepEqual(calls.senden, []);
   assert.equal($("cv-erstellen-ki-zeile").textContent, text("lebenslauf.ki-gespeichert"));
   assert.match($("cv-erstellen-ki-zeile").textContent, /Ihre Auswahl gespeichert/);
   assert.equal($("cv-erstellen-ki-knopf").textContent, "Neu vorschlagen lassen");
-  assert.ok(visible($("cv-erstellen-ki-knopf")));
+  assert.equal($("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.ok(visible($("cv-erstellen-ki-text")));
 });
 
-test("while the AI runs the button stays where it is, marked busy, and a second press asks nothing", async () => {
-  const page = await opened({ form: { ...FORM, eigene_variante: "b1-daten" } });
+test("after the click the button stays, marked busy, the status says the AI suggests, and a second press asks nothing", async () => {
+  const page = await opened();
   const { $, calls, answers, doc } = page;
   const slow = pending(SUGGESTION);
   answers.senden.push(slow.answer);
@@ -238,8 +322,8 @@ test("while the AI runs the button stays where it is, marked busy, and a second 
   assert.equal(doc.activeElement, button);
   assert.equal(button.getAttribute("aria-disabled"), "true");
   assert.equal(button.disabled, false, "a disabled button loses the focus");
-  assert.notEqual($("cv-erstellen-ki-zeile").textContent, text("lebenslauf.ki-gespeichert"));
-  assert.doesNotMatch($("cv-erstellen-ki-zeile").textContent, /kann/);
+  assert.equal($("cv-erstellen-ki-zeile").hidden, true);
+  assert.deepEqual(aiStatus(calls).at(-1), ["cv-erstellen-ki-status", "Die KI schlägt vor …", ""]);
   button.click();
   await settle();
   assert.equal(calls.senden.length, 1);
@@ -248,11 +332,22 @@ test("while the AI runs the button stays where it is, marked busy, and a second 
   await settle();
   assert.equal($("cv-erstellen-ki-knoepfe").hidden, true);
   assert.equal(doc.activeElement, boxes($)[0]);
+  assert.ok(boxes($).every(box => box.checked));
+  assert.equal($("cv-erstellen-ki-zeile").hidden, false);
   assert.equal($("cv-erstellen-ki-zeile").textContent, text("lebenslauf.ki-angewendet"));
+  assert.deepEqual(aiStatus(calls).at(-1),
+                   ["cv-erstellen-ki-status", `Vorschlag der KI angewendet: 2 Empfehlungen. ${COST}`, "ok"]);
+});
+
+test("a repeat from the cache says what it did and nothing about costs", async () => {
+  const page = await opened();
+  page.answers.senden.push({ ...SUGGESTION, kosten_usd: 0, wiederholt: true, kosten_text: "" });
+  await pressed(page);
+  assert.equal(aiStatus(page.calls).at(-1)[1], "Vorschlag der KI angewendet: 2 Empfehlungen.");
 });
 
 test("with nothing to recommend the focus goes to the status line that says so", async () => {
-  const page = await opened({ form: { ...FORM, eigene_variante: "b1-daten" } });
+  const page = await opened({ form: SAVED });
   page.answers.senden.push({ ...SUGGESTION, empfehlungen: [] });
 
   await pressed(page);
@@ -261,8 +356,8 @@ test("with nothing to recommend the focus goes to the status line that says so",
   assert.match(aiStatus(page.calls).at(-1)[1], /^Die KI schlägt für diese Stelle nichts anderes vor\./);
 });
 
-test("on an error the focus stays on the button, now Nochmals vorschlagen, and the live region hears it once", async () => {
-  const page = await opened({ form: { ...FORM, eigene_variante: "b1-daten" } });
+test("on an error the focus stays on the button, now Nochmals vorschlagen, and the error goes to the status once", async () => {
+  const page = await opened({ form: SAVED });
   const failure = "Kein Vorschlag der KI. Die KI antwortet gerade nicht. Nichts berechnet. Die Auswahl bleibt, wie sie ist.";
   page.answers.senden.push(new Error(failure));
   const before = aiStatus(page.calls).length;
@@ -273,40 +368,46 @@ test("on an error the focus stays on the button, now Nochmals vorschlagen, and t
   assert.ok(visible(button));
   assert.equal(button.textContent, "Nochmals vorschlagen");
   assert.equal(button.getAttribute("aria-disabled"), null);
-  assert.deepEqual(aiStatus(page.calls).slice(before), [["cv-erstellen-ki-status", failure, "fehler"]]);
+  assert.deepEqual(aiStatus(page.calls).slice(before), [["cv-erstellen-ki-status", "Die KI schlägt vor …", ""],
+                                                        ["cv-erstellen-ki-status", failure, "fehler"]]);
 });
 
-test("without the job ad the box says what is missing and leads to the Stellentext", async () => {
+test("without the job ad the box says what is missing, leads to the Stellentext and estimates nothing", async () => {
   const { $, doc, calls } = await opened({ form: { ...FORM, ki: "ohne_inserat" } });
 
   assert.equal($("cv-erstellen-ki-zeile").textContent, "Für Vorschläge der KI fehlt noch der Stellentext.");
   assert.ok(visible($("cv-erstellen-ki-stellentext")));
   assert.equal(visible($("cv-erstellen-ki-knopf")), false);
+  assert.equal($("cv-erstellen-ki-kosten").textContent, "");
   $("cv-erstellen-ki-stellentext").click();
   assert.equal($("s-stelle").open, true);
   assert.equal($("s-stelle").scrolled, 1);
   assert.equal(doc.activeElement, $("stellentext"));
   assert.equal(calls.senden.length, 0);
+  assert.equal(estimates(calls), 0);
 });
 
 test("without AI the box offers to switch it on, worded for an apprenticeship", async () => {
-  const { $ } = await opened({ form: { ...FORM, ki: "aus" }, satz: "lehrstelle-du" });
+  const { $, calls } = await opened({ form: { ...FORM, ki: "aus" }, satz: "lehrstelle-du" });
 
   assert.equal($("cv-erstellen-ki-zeile").textContent,
                "Mit KI schlägt die App für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vor.");
   assert.equal($("cv-erstellen-ki-knopf").textContent, "KI einschalten");
   assert.equal(visible($("cv-erstellen-ki-stellentext")), false);
+  assert.equal(estimates(calls), 0);
 });
 
-test("once the AI is switched on, it suggests and the focus goes to the first recommendation", async () => {
+test("once the AI is switched on, the box shows the button and its cost, sends nothing, and keeps the focus", async () => {
   const page = await opened({ form: { ...FORM, ki: "aus" } });
   page.answers.form.push(FORM);
 
-  await pressed(page);
+  const button = await pressed(page);
 
   assert.equal(page.calls.einrichten, 1);
-  assert.equal(page.calls.senden.length, 1);
-  assert.equal(page.doc.activeElement, boxes(page.$)[0]);
+  assert.deepEqual(page.calls.senden, []);
+  assert.equal(button.textContent, "Vorschläge holen");
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal(page.doc.activeElement, button);
 });
 
 test("when the app cannot tell whether the AI is on now, the box says why instead of staying silent", async () => {

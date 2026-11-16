@@ -1,8 +1,9 @@
 "use strict";
 // „Lebenslauf erstellen“ on the page of an application (G17, #118): stations and summary from Meine Angaben, the
 // design apart from them. What it shows and sends: lebenslauf-erstellen-logik.js; what the route writes: cv_creation.py.
-// With AI set up and a job ad, the AI's suggestion is applied on opening (#293, G75); each recommendation is a box the
-// person unticks to undo it as a whole. What goes to the AI: ai/cv_suggestions.py.
+// With AI set up and a job ad, opening sends nothing (G95): the box shows «Vorschläge holen», its cost and the text
+// that would go; after the click the AI's suggestion is applied (#293, G75), each recommendation a box the person
+// unticks to undo it as a whole. What goes to the AI: ai/cv_suggestions.py.
 (() => {
   const { holen, senden, el, status, url, kiEinrichten, textsatz } = window.App;
   const Logic = window.LebenslaufErstellenLogik;
@@ -87,7 +88,9 @@
   /** The box: its line, the recommendations and at most one offer of Logic.aiOffer. */
   function showAi(line, shown = null) {
     const toAd = shown?.action === "stellentext";
+    const asks = shown?.action === "vorschlagen";
     $("cv-erstellen-ki").hidden = false;
+    $("cv-erstellen-ki-zeile").hidden = false;
     $("cv-erstellen-ki-zeile").textContent = line;
     $("cv-erstellen-ki-liste").hidden = !state.recommendations.length;
     $("cv-erstellen-ki-liste").replaceChildren(...state.recommendations.map(idea));
@@ -96,7 +99,42 @@
     $("cv-erstellen-ki-knopf").textContent = shown && !toAd ? say(shown.button) : "";
     $("cv-erstellen-ki-knopf").removeAttribute("aria-disabled");
     $("cv-erstellen-ki-stellentext").hidden = !toAd;
+    if (!asks) {
+      $("cv-erstellen-ki-knopf").disabled = false;
+      $("cv-erstellen-ki-kosten").textContent = "";
+      $("cv-erstellen-ki-neu-schaetzen").hidden = true;
+    }
     $("cv-erstellen-ki-text").hidden = ki !== "bereit";
+  }
+
+  function showCost(found) {
+    const line = Logic.costLine(found, window.TrefferLogik.estimateLine);
+    $("cv-erstellen-ki-kosten").replaceChildren(...(line.usedUp ? window.Texte.withCodeRequestLink(line.text, el) : [line.text]));
+    // An empty credit locks the button; over the credit it stays, the mediation then says what is missing.
+    $("cv-erstellen-ki-knopf").disabled = line.usedUp;
+  }
+
+  /** Cost and time of the text that would go (G95), before the click; the button waits for them. */
+  async function estimate() {
+    const mine = opened;
+    const button = $("cv-erstellen-ki-knopf");
+    const again = $("cv-erstellen-ki-neu-schaetzen");
+    button.setAttribute("aria-disabled", "true");
+    button.disabled = false;
+    $("cv-erstellen-ki-kosten").textContent = say("lebenslauf.ki-schaetzen");
+    try {
+      const found = await holen(`${ROUTE}/schaetzung`, { id: ID });
+      if (mine !== opened) return;
+      showCost(found);
+      if (document.activeElement === again && !button.disabled) button.focus();
+      again.hidden = true;
+    } catch (error) {
+      if (mine !== opened) return;
+      $("cv-erstellen-ki-kosten").textContent = Logic.estimateFailedText(error.message);
+      again.hidden = false;
+    } finally {
+      if (mine === opened) button.removeAttribute("aria-disabled");
+    }
   }
 
   function showSuggested(answer, fromButton) {
@@ -113,7 +151,8 @@
     if (running === mine) return;
     running = mine;
     $("cv-erstellen-ki-knopf").setAttribute("aria-disabled", "true");
-    $("cv-erstellen-ki-zeile").textContent = say("lebenslauf.ki-laeuft");
+    $("cv-erstellen-ki-zeile").hidden = true;
+    aiMessage(say("lebenslauf.ki-laeuft"));
     try {
       const answer = await senden(`${ROUTE}/vorschlag`, { id: ID, stand: state.stand });
       if (mine !== opened) return;
@@ -131,12 +170,16 @@
   function startAi(answer, { fromButton = false } = {}) {
     ki = answer.ki;
     offer = Logic.aiOffer(answer);
-    if (!Logic.autoSuggest(answer)) return showAi(say(offer.line), offer);
-    showAi("");
-    return suggest({ fromButton });
+    if (Logic.autoSuggest(answer)) {
+      showAi("");
+      return suggest({ fromButton });
+    }
+    showAi(say(offer.line), offer);
+    return offer.action === "vorschlagen" ? estimate() : null;
   }
 
   async function aiButton() {
+    if ($("cv-erstellen-ki-knopf").getAttribute("aria-disabled") === "true") return null;
     if (offer.action === "vorschlagen") return suggest({ fromButton: true });
     try {
       await kiEinrichten();
@@ -227,5 +270,6 @@
   $("cv-erstellen-speichern").addEventListener("click", save);
   $("cv-erstellen-ki-knopf").addEventListener("click", aiButton);
   $("cv-erstellen-ki-stellentext").addEventListener("click", toAd);
+  $("cv-erstellen-ki-neu-schaetzen").addEventListener("click", estimate);
   $("cv-erstellen-ki-text").addEventListener("toggle", showSentText);
 })();

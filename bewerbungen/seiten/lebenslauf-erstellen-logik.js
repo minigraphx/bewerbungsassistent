@@ -110,8 +110,26 @@
     return own ? own.kurzprofil : state.summaryBase;
   }
 
-  /** Without a CV of its own yet: a saved one is the person's choice, which the AI does not overwrite on opening. */
-  const autoSuggest = answer => answer.ki === "bereit" && !answer.eigene_variante;
+  /**
+   * Whether opening the panel asks the AI at once. Never (G95, Andy on 16.11.2026): the person first sees the text
+   * that would go and what it costs (G15), and only „Vorschläge holen“ sends it. The single place that decides.
+   */
+  const autoSuggest = () => false;
+
+  /**
+   * The line beside the button from GET …/schaetzung, worded by `estimateLine` (TrefferLogik, as „Alle prüfen“).
+   * Over the credit it names what is left instead of what stays; `usedUp` locks the button.
+   */
+  function costLine(estimate, estimateLine) {
+    const credit = typeof estimate.guthaben === "number" ? estimate.guthaben : null;
+    const usedUp = credit !== null && credit <= 0;
+    if (credit === null || usedUp || estimate.kosten <= credit) return { text: estimateLine(estimate), usedUp };
+    const about = estimateLine({ ...estimate, guthaben: null });
+    const left = `${estimate.waehrung} ${credit.toFixed(2)}`;
+    return { text: `${about} Im Guthaben sind noch ${left}, das reicht vielleicht nicht.`, usedUp };
+  }
+
+  const estimateFailedText = reason => `Die Schätzung fehlt: ${reason}`;
 
   /** What the box offers when the suggestion is not applied on opening: line, button and what the button does. */
   function aiOffer(answer) {
@@ -150,7 +168,7 @@
   }
 
   const logic = { DESIGNS, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
-                  autoSuggest, APPLIED_LINE, aiOffer, suggestedText, recommendationText };
+                  autoSuggest, APPLIED_LINE, aiOffer, costLine, estimateFailedText, suggestedText, recommendationText };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufErstellenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);
