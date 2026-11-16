@@ -13,8 +13,14 @@
   let gewaehlt = new Set();
   let abgebrochen = false;
 
-  function meldung(titel, text, knoepfe = []) {
+  /**
+   * An empty title is hidden, for a text that names its own subject, like the server's «Kein Vorschlag. …» (#348).
+   * `stufe` gives the look of stil.css (warning, danger, success); every notice without one is neutral again.
+   */
+  function meldung(titel, text, knoepfe = [], stufe = "") {
+    $("meldung").className = stufe ? `notice notice--${stufe}` : "notice";
     $("meldung").hidden = false;
+    $("meldung-titel").hidden = !titel;
     $("meldung-titel").textContent = titel;
     $("meldung-text").textContent = text;
     $("meldung-knoepfe").replaceChildren(...knoepfe);
@@ -45,6 +51,17 @@
     $("anders-kosten").replaceChildren(...(zeile.usedUp ? window.Texte.withCodeRequestLink(zeile.text, el) : [zeile.text]));
   }
 
+  /**
+   * A failed proposal as a warning (#348). #meldung is no live region, so the focus goes to «Nochmals versuchen»,
+   * which screen readers announce with the server text that describes it.
+   */
+  function zeigeFehlschlag(text, body) {
+    const nochmals = knopf("Nochmals versuchen", () => holeVorschlag(body));
+    nochmals.setAttribute("aria-describedby", "meldung-text");
+    meldung("", text, [nochmals], "warning");
+    $("meldung-knoepfe").querySelector("button")?.focus();
+  }
+
   async function holeVorschlag(body = {}) {
     abgebrochen = false;
     $("meldung").hidden = true;
@@ -57,7 +74,7 @@
       zeige(neu);
       zeigeAndersKosten();
     } catch (fehler) {
-      if (!abgebrochen) meldung("Kein Vorschlag", fehler.message, [knopf("Nochmals versuchen", () => holeVorschlag(body))]);
+      if (!abgebrochen) zeigeFehlschlag(fehler.message, body);
     } finally {
       warten(false);
     }
