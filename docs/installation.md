@@ -593,7 +593,7 @@ Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist ni
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Bitte zuerst unter «Unterlagen erstellen und prüfen» ansehen und mit «So lassen» bestätigen.“ | Die Prüfung hat am Satz eines PDFs etwas gefunden; davor steht, was und auf welcher Seite. Öffnen Sie die Bewerbung und sehen Sie sich unter **Unterlagen erstellen und prüfen** das genannte Dokument mit **Als PDF öffnen** an. Passt es so, klicken Sie beim Befund auf **So lassen**. Sonst ändern Sie den Text und klicken nochmals auf **Unterlagen erstellen**; die neuen PDFs prüft die App wieder. |
-| „Bitte zuerst unter «Unterlagen erstellen und prüfen» kürzen oder drei Seiten erlauben.“ | Der Lebenslauf ist auch eng gesetzt länger als erlaubt. Öffnen Sie die Bewerbung, haken Sie unter **Unterlagen erstellen und prüfen** beim Befund an, was für diese Bewerbung wegfallen soll, und klicken Sie auf **Gekürzt neu erstellen**, oder klicken Sie auf **Drei Seiten erlauben**. |
+| „Bitte zuerst unter «Unterlagen erstellen und prüfen» kürzen oder drei Seiten erlauben.“ | Der Lebenslauf ist auch so eng wie möglich gesetzt länger als erlaubt. Öffnen Sie die Bewerbung, haken Sie unter **Unterlagen erstellen und prüfen** beim Befund an, was für diese Bewerbung wegfallen soll, und klicken Sie auf **Gekürzt neu erstellen**, oder klicken Sie auf **Drei Seiten erlauben**. |
 
 ### Hilfe
 

@@ -14,6 +14,7 @@ import pruefung
 import unterlagen
 from register import Register
 from sample_folder import BRIEF_ID
+from varianten import Varianten
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 
 TODAY = __import__("datetime").date(2026, 10, 25)
@@ -116,6 +117,22 @@ def test_a_built_cv_over_two_pages_is_named_with_what_could_be_cut(datenordner, 
                              "nicht.")
     assert found[0].kuerzen["optionen"][0]["text"].endswith("bei «Software-Entwicklerin, Beispiel AG» (2019–heute)")
     assert found[0].kuerzen["drei_seiten"] is True  # G92: for this application, not under «Erweitert»
+
+
+def test_a_finished_file_variant_over_two_pages_claims_no_tightening(datenordner, tmp_path, monkeypatch):
+    # the app copies a finished file as it is, so the finding must not say it was set tighter (#349)
+    (datenordner / "fertig.pdf").write_bytes(b"%PDF-1.4 kein echtes PDF")
+    Varianten(datenordner).speichere({"id": "fertig", "datei": "fertig.pdf", "beschreibung": "Fertiges PDF"})
+    register = Register(datenordner)
+    register.speichere({**register.hole(BRIEF_ID), "variante": "fertig"})
+    entry = register.hole(BRIEF_ID)
+    unterlagen.baue(datenordner, entry, tmp_path / "build")
+    monkeypatch.setattr(pruefung, "_seiten", lambda pdf: ["Text " * 100] * (3 if pdf.name == "lebenslauf.pdf" else 1))
+
+    found = [f for f in pruefung.pruefe(datenordner, entry, TODAY) if "erlaubt sind höchstens 2" in f.text]
+
+    assert [f.text for f in found] == ["Lebenslauf: 3 Seiten, erlaubt sind höchstens 2."]
+    assert found[0].kuerzen is None and found[0].cv_over is None
 
 
 def test_with_three_pages_allowed_a_three_page_cv_is_fine(datenordner, tmp_path, monkeypatch):

@@ -105,12 +105,12 @@ def _letter_over_limit(pdf: pathlib.Path, pages: int, key: str | None, letter: s
 
 def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, key: str | None = None) -> Befund:
     """A document over its page limit (G51) that the app cannot cut: an own or sent file, the dossier as a whole, or
-    a CV variant that is a finished file."""
+    a CV variant that is a finished file. The app copies a finished file as it is, so its finding claims no
+    tightening (#349)."""
     name = NAMEN[art]
     if as_it_is or art == "dossier":
         return Befund("hinweis", f"{name}: {pages} Seiten, empfohlen höchstens {limit} Seite(n)")
-    return Befund("hinweis", f"{name}: {pages} Seiten, erlaubt sind höchstens {limit}. Auch enger gesetzt passt er "
-                             "nicht.", schluessel=key)
+    return Befund("hinweis", f"{name}: {pages} Seiten, erlaubt sind höchstens {limit}.", schluessel=key)
 
 
 def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = (),
