@@ -45,7 +45,7 @@
     "document": {"labels": ["PDF", "Word (.docx, .doc)", "Textdateien (.txt)"], "extensions": ["pdf", "docx", "doc", "txt"]},
     "image": {"labels": ["Bilder (.jpg, .png)"], "extensions": ["jpg", "jpeg", "png"]}
   },
-    "namePattern": "^(?!\\.)[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f]{1,120}(?<![. ])$",
+    "namePattern": "^(?!\\.)(?=[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f]{1,120}$)[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f]*[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f. ]$",
     "maxFileBytes": 15000000,
     "maxTotalBytes": 60000000
   },

@@ -119,3 +119,41 @@ def test_both_tracks_upload_zeugnisse_work_and_school_reports_alike(output):
 
 def test_the_form_speaks_of_the_app_not_of_an_assistant():
     assert not re.search(r"\b(der|dem|den|des) Assistent", build_template.build(), re.IGNORECASE)
+
+
+LOOKBEHINDS = ("(?<=", "(?<!")
+PAGES = (build_template.OUTPUT, build_template.OUTPUT_APP)
+
+
+def _strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from _strings(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _strings(item)
+
+
+def _page_scripts():
+    for page in PAGES:
+        html = page.read_text(encoding="utf-8")
+        for index, script in enumerate(re.findall(r"<script\b[^>]*>(.*?)</script>", html, re.DOTALL)):
+            yield f"{page.name} script {index}", script
+    for name in re.findall(r'src="/([^"]+)"', build_template.APP_PAGE_SCRIPTS):
+        yield name, (build_template.OUTPUT_APP.parent / name).read_text(encoding="utf-8")
+
+
+def test_form_patterns_have_no_lookbehind(form):
+    """Safari before 16.4 throws a SyntaxError on a lookbehind in new RegExp (#327)."""
+    found = [text for text in _strings(form) if any(mark in text for mark in LOOKBEHINDS)]
+
+    assert found == []
+
+
+def test_page_scripts_build_no_lookbehind():
+    """Safari before 16.4 rejects a script with a lookbehind, so no page regex may use one (#327)."""
+    found = [where for where, script in _page_scripts() if any(mark in script for mark in LOOKBEHINDS)]
+
+    assert found == []
