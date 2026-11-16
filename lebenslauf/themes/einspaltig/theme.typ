@@ -2,6 +2,8 @@
 #import "../common.typ": *
 #import "../page-fill.typ": spacing, leading, body-size, part-start, part-end
 #import "../type-area.typ": type-area
+#import "../cv-look.typ": accent-of, accent-marker, has-mark, footer-mark
+#import "../tokens.typ": accent-text
 
 #let standard-stil = (
   farbe-akzent: rgb("#2f5d4a"),
@@ -12,13 +14,20 @@
 
 #let lebenslauf(cv, sprache: "de", stand: none, stil: (:)) = {
   let s = standard-stil + stil
+  // A colour chosen for this CV (G77): headings and title in it only where it reads well as text
+  let akzent = accent-of(cv, s.farbe-akzent)
+  let s = s + (farbe-akzent: accent-text(akzent))
   let b = beschriftungen-fuer(cv, sprache)
   let basics = cv.at("basics", default: (:))
   let name = basics.at("name", default: "")
   let (f, lf) = (spacing("cv"), leading("cv"))
+  let fuss-text = text(size: 7.5pt, if stand != none { name + ", " + stand } else { name })
+  let fuss = if has-mark(cv) {
+    grid(columns: 2, column-gutter: 5pt, align: horizon, footer-mark(cv, akzent, 12pt), fuss-text)
+  } else { fuss-text }
 
   set document(title: name, author: name)
-  set page(paper: "a4", margin: 2cm, foreground: type-area(), footer: align(right, text(size: 7.5pt, if stand != none { name + ", " + stand } else { name })))
+  set page(paper: "a4", margin: 2cm, foreground: type-area(), footer: align(right, fuss))
   set text(font: s.schrift, size: body-size(s.groesse-text, "cv"), lang: sprache)
   set par(leading: 0.55em * lf, spacing: 0.7em * f)
   set list(marker: [–], indent: 0.3em, spacing: 0.45em * f)
@@ -61,6 +70,7 @@
   )
 
   part-start("cv")
+  accent-marker(akzent)
   text(size: 22pt, weight: 700)[#name]
   linebreak()
   if feld(basics, "label") != none { text(size: 11pt, fill: s.farbe-akzent)[#basics.label]; linebreak() }

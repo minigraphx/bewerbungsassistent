@@ -108,7 +108,13 @@ function page(doc, el) {
         el("p", { id: "cv-erstellen-ki-status", tabindex: "-1" })),
       el("div", { id: "cv-erstellen-stationen" }),
       el("input", { id: "cv-erstellen-beruf" }), el("textarea", { id: "cv-erstellen-profil" }),
-      el("div", { id: "cv-erstellen-designs" }), el("input", { id: "cv-erstellen-name" }),
+      el("div", { id: "cv-erstellen-designs" }),
+      el("div", { id: "cv-erstellen-look" }, el("input", { id: "cv-erstellen-foto", type: "checkbox" }),
+        el("button", { id: "cv-erstellen-farbe-oeffnen", type: "button", "aria-expanded": "false" })),
+      el("p", { id: "cv-erstellen-foto-grund", hidden: true }), el("p", { id: "cv-erstellen-farbe-stand" }),
+      el("div", { id: "cv-erstellen-farbe", hidden: true },
+        el("div", { id: "cv-erstellen-zeichen" }), el("div", { id: "cv-erstellen-akzent" })),
+      el("input", { id: "cv-erstellen-name" }),
       el("p", { id: "cv-erstellen-status" }), el("button", { id: "cv-erstellen-speichern" }),
       el("button", { id: "cv-erstellen-abbrechen" }), el("a", { id: "cv-erstellen-pdf" })),
     el("details", { id: "s-stelle" }, el("textarea", { id: "stellentext" })));
@@ -124,6 +130,7 @@ async function answer(queue, fallback) {
 
 function setup({ form = FORM, satz = "stelle-sie" } = {}) {
   const doc = { activeElement: null, listeners: {}, createElement: tag => new FakeElement(doc, tag),
+                createElementNS: (_, tag) => new FakeElement(doc, tag),
                 addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); },
                 dispatchEvent(event) { calls.events.push(event); } };
   const calls = { holen: [], senden: [], status: [], einrichten: 0, events: [] };
@@ -164,7 +171,7 @@ function setup({ form = FORM, satz = "stelle-sie" } = {}) {
   const context = { window, document: doc, location: { search: "?id=b1" }, URLSearchParams, console,
                     CustomEvent: class { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } } };
   vm.createContext(context);
-  for (const name of ["treffer-logik.js", "lebenslauf-erstellen-logik.js", "lebenslauf-erstellen.js"]) {
+  for (const name of ["treffer-logik.js", "zeichen-logik.js", "lebenslauf-erstellen-logik.js", "lebenslauf-erstellen.js"]) {
     vm.runInContext(fs.readFileSync(path.join(SEITEN, name), "utf8"), context);
   }
   const $ = id => doc.getElementById(id);
@@ -483,6 +490,80 @@ test("«Neu laden» in the preview closes the panel and opens it again with Mein
   assert.equal($("cv-erstellen").hidden, false, "the panel is open again");
   assert.ok(drafts(calls).some(draft => draft.closed), "the old preview stopped");
   assert.equal(drafts(calls).at(-1).now, true, "the new choice is built at once");
+});
+
+// G77 (#295): photo, colour and mark of this CV under «Aussehen», each change a new draft for the preview.
+const LOOKED = { ...FORM, aussehen: { foto: true, zeichen: "passend", akzent: "passend" },
+                 aussehen_angebot: { foto_vorhanden: true, initialen: "EB", logo: false } };
+
+test("the panel shows «Mit Foto» as given and names mark and colour beside the button", async () => {
+  const { $ } = await opened({ form: LOOKED });
+
+  assert.equal($("cv-erstellen-look").hidden, false);
+  assert.equal($("cv-erstellen-foto").checked, true);
+  assert.equal($("cv-erstellen-foto").disabled, false);
+  assert.equal($("cv-erstellen-farbe-stand").textContent, "Ohne Zeichen, Farbe: Passend zum Design");
+  assert.equal($("cv-erstellen-farbe").hidden, true);
+});
+
+test("without a look in the answer the controls stay away and the request is as before", async () => {
+  const { $ } = await opened();
+
+  assert.equal($("cv-erstellen-look").hidden, true);
+  assert.equal($("cv-erstellen-farbe-stand").hidden, true);
+});
+
+test("«Farbe und Zeichen ändern» opens marks and colours, says so, and puts the focus on the chosen mark", async () => {
+  const { $, doc } = await opened({ form: LOOKED });
+
+  $("cv-erstellen-farbe-oeffnen").click();
+
+  assert.equal($("cv-erstellen-farbe").hidden, false);
+  assert.equal($("cv-erstellen-farbe-oeffnen").getAttribute("aria-expanded"), "true");
+  const marks = $("cv-erstellen-zeichen").querySelectorAll("input");
+  assert.deepEqual(marks.map(input => input.getAttribute("value")),
+                   ["passend", "ring", "block", "verschraenkt", "linie", "punkt", "logo"]);
+  assert.equal(marks.find(input => input.getAttribute("value") === "logo").disabled, true);
+  assert.equal($("cv-erstellen-akzent").querySelectorAll("input").length, 8);
+  assert.equal(doc.activeElement, marks[0]);
+  $("cv-erstellen-farbe-oeffnen").click();
+  assert.equal($("cv-erstellen-farbe").hidden, true);
+  assert.equal($("cv-erstellen-farbe-oeffnen").getAttribute("aria-expanded"), "false");
+});
+
+test("photo, mark and colour each hand a new draft to the preview and keep the focus", async () => {
+  const { $, calls, doc } = await opened({ form: LOOKED });
+  $("cv-erstellen-farbe-oeffnen").click();
+
+  $("cv-erstellen-foto").checked = false;
+  $("cv-erstellen-foto").dispatch("change");
+  assert.deepEqual(drafts(calls).at(-1).body.aussehen, { foto: false, zeichen: "passend", akzent: "passend" });
+  const ring = $("cv-erstellen-zeichen").querySelectorAll("input").find(input => input.getAttribute("value") === "ring");
+  ring.focus();
+  ring.dispatch("change");
+  assert.equal(drafts(calls).at(-1).body.aussehen.zeichen, "ring");
+  assert.equal(doc.activeElement.id, "cv-erstellen-zeichen-ring", "the focus stays on the mark just chosen");
+  $("cv-erstellen-akzent").querySelectorAll("input").find(input => input.getAttribute("value") === "#7a2e3a").dispatch("change");
+  assert.deepEqual(drafts(calls).at(-1).body.aussehen, { foto: false, zeichen: "ring", akzent: "#7a2e3a" });
+  assert.equal($("cv-erstellen-farbe-stand").textContent, "Zeichen: Ring, Farbe: Weinrot");
+});
+
+test("with Einspaltig «Mit Foto» cannot be ticked and says why", async () => {
+  const { $ } = await opened({ form: LOOKED });
+
+  $("cv-erstellen-designs").querySelectorAll("input").find(i => i.getAttribute("value") === "einspaltig").dispatch("change");
+
+  assert.equal($("cv-erstellen-foto").disabled, true);
+  assert.equal($("cv-erstellen-foto-grund").hidden, false);
+  assert.equal($("cv-erstellen-foto-grund").textContent, "Einspaltig zeigt kein Foto.");
+});
+
+test("the texts of the look speak Sie or du", () => {
+  assert.match(text("lebenslauf.foto-fehlt"), /fügen Sie/);
+  assert.match(text("lebenslauf.foto-fehlt", "stelle-du"), /fügst du/);
+  assert.equal(text("lebenslauf.zeichen-logo"), "Ihr Logo");
+  assert.equal(text("lebenslauf.zeichen-logo", "stelle-du"), "Dein Logo");
+  assert.match(text("lebenslauf.zeichen-hinweis", "stelle-du"), /deinen Initialen/);
 });
 
 test("the title and the intro of the panel speak Sie or du and name an apprenticeship", () => {

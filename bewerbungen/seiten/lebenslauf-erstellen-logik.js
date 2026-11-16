@@ -20,6 +20,15 @@
     bereit: { line: "lebenslauf.ki-bereit", button: "lebenslauf.ki-holen", action: "vorschlagen" },
   };
 
+  // G77: photo, colour and mark of this CV. Names and colours of marks are the dossier's (zeichen-logik.js); without
+  // a choice each CV design keeps its own colour, as its theme draws it, and has no mark. Looked up when used, as
+  // the page loads zeichen-logik.js after this file.
+  const FITTING = "passend";
+  const LOGO = "logo";
+  const OWN_COLOURS = { zweispaltig: "#38495d", einspaltig: "#2f5d4a" };
+  const NO_OFFER = { foto_vorhanden: false, initialen: "", logo: false };
+  const marks = () => (typeof module !== "undefined" ? require("./zeichen-logik.js") : global.ZeichenLogik);
+
   const withChosen = (section, picked) => ({ ...section, chosen: section.order.filter(index => picked.has(index)) });
 
   /** The state from GET /api/lebenslauf/erstellen: the stations in the order shown, chosen ones first. */
@@ -31,8 +40,12 @@
       order: part.stationen.map(station => station.index),
       chosen: part.stationen.filter(station => station.gewaehlt).map(station => station.index),
     }));
-    return { stand: answer.stand, sections, base: sections, design: answer.design, summaryBase: answer.kurzprofil,
-             recommendations: [], manual: [] };
+    const state = { stand: answer.stand, sections, base: sections, design: answer.design, summaryBase: answer.kurzprofil,
+                    recommendations: [], manual: [], look: answer.aussehen || null,
+                    lookOffer: answer.aussehen_angebot || NO_OFFER };
+    // A mark stored earlier that cannot be drawn any more (the logo is gone) starts as none
+    const stored = state.look && markChoices(state).find(choice => choice.id === state.look.zeichen);
+    return state.look && (!stored || stored.locked) ? { ...state, look: { ...state.look, zeichen: FITTING } } : state;
   }
 
   const changeSection = (sections, name, change) =>
@@ -153,11 +166,64 @@
     return { ...state, design };
   }
 
+  /**
+   * The marks to choose, each with the reason it cannot be chosen or null. `name` of „none“ and the logo, and the
+   * logo's reason, are keys of texte.js; the other names and reasons are the dossier's words.
+   */
+  function markChoices(state) {
+    const Z = marks();
+    const initials = [...(state.lookOffer.initialen || "")];
+    return [
+      { id: FITTING, name: "lebenslauf.zeichen-ohne", locked: null },
+      ...Z.VARIANTEN.filter(v => v.wert !== Z.PASSEND).map(v => ({
+        id: v.wert, name: v.name, locked: v.wert === "verschraenkt" && initials.length !== 2 ? Z.NUR_ZWEI : null })),
+      { id: LOGO, name: "lebenslauf.zeichen-logo", locked: state.lookOffer.logo ? null : "lebenslauf.logo-fehlt" },
+    ];
+  }
+
+  /** The colours: the design's own (its name a key of texte.js), then the checked swatches of the dossier. */
+  function accentChoices(state) {
+    return [{ id: FITTING, name: "lebenslauf.farbe-passend", colour: OWN_COLOURS[state.design] || OWN_COLOURS.zweispaltig },
+            ...marks().FARBEN.map(swatch => ({ id: swatch.farbe, name: swatch.name, colour: swatch.farbe }))];
+  }
+
+  /** Change one part of the look: {foto}, {zeichen} or {akzent}; what the panel does not offer is refused. */
+  function setLook(state, change) {
+    if ("zeichen" in change) {
+      const found = markChoices(state).find(choice => choice.id === change.zeichen);
+      if (!found) throw new Error("Dieses Zeichen gibt es nicht.");
+      if (found.locked) throw new Error("Für dieses Zeichen fehlt noch etwas, etwa ein Logo.");
+    }
+    if ("akzent" in change && !accentChoices(state).some(choice => choice.id === change.akzent)) {
+      throw new Error("Diese Farbe steht nicht zur Wahl.");
+    }
+    if ("foto" in change && typeof change.foto !== "boolean") throw new Error("Bitte mit oder ohne Foto wählen.");
+    return { ...state, look: { ...state.look, ...change } };
+  }
+
+  /** Whether „Mit Foto“ can be ticked, and if not, the key of texte.js that says why. */
+  function photoChoice(state) {
+    if (!state.lookOffer.foto_vorhanden) return { available: false, checked: false, reason: "lebenslauf.foto-fehlt" };
+    const checked = Boolean(state.look && state.look.foto);
+    if (state.design === "einspaltig") return { available: false, checked, reason: "lebenslauf.foto-einspaltig" };
+    return { available: true, checked, reason: null };
+  }
+
+  /** The line beside „Farbe und Zeichen ändern“; `say` turns keys of texte.js into words. */
+  function lookLine(state, say) {
+    const look = state.look || { zeichen: FITTING, akzent: FITTING };
+    const markChoice = markChoices(state).find(choice => choice.id === look.zeichen) || markChoices(state)[0];
+    const colour = accentChoices(state).find(choice => choice.id === look.akzent) || accentChoices(state)[0];
+    const markPart = markChoice.id === FITTING ? say(markChoice.name) : `Zeichen: ${say(markChoice.name)}`;
+    return `${markPart}, Farbe: ${say(colour.name)}`;
+  }
+
   /** Body for POST /api/lebenslauf/erstellen; the texts come from the fields as they are when saving. */
   function request(state, { id, berufsbezeichnung, kurzprofil, bezeichnung }) {
     if (!state.sections.some(section => section.chosen.length)) throw new Error(NOTHING_CHOSEN);
     const stationen = Object.fromEntries(state.sections.map(section => [section.name, [...section.chosen]]));
-    return { id, stand: state.stand, stationen, design: state.design, berufsbezeichnung, kurzprofil, bezeichnung };
+    return { id, stand: state.stand, stationen, design: state.design, berufsbezeichnung, kurzprofil, bezeichnung,
+             ...(state.look ? { aussehen: { ...state.look } } : {}) };
   }
 
   function savedText({ variante, gebaut, hinweis }) {
@@ -168,7 +234,8 @@
   }
 
   const logic = { DESIGNS, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
-                  autoSuggest, APPLIED_LINE, aiOffer, costLine, estimateFailedText, suggestedText, recommendationText };
+                  autoSuggest, APPLIED_LINE, aiOffer, costLine, estimateFailedText, suggestedText, recommendationText,
+                  markChoices, accentChoices, setLook, photoChoice, lookLine };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufErstellenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

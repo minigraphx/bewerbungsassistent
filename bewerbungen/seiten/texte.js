@@ -297,6 +297,35 @@
       sie: "Meine Angaben haben sich inzwischen geändert. Öffnen Sie «Lebenslauf erstellen» neu, damit die Vorschau sie zeigt.",
       du: "Meine Angaben haben sich inzwischen geändert. Öffne «Lebenslauf erstellen» neu, damit die Vorschau sie zeigt.",
     },
+    // Photo, colour and mark of the CV just created (G77)
+    "lebenslauf.mit-foto": { sie: "Mit Foto", du: "Mit Foto" },
+    "lebenslauf.foto-fehlt": {
+      sie: "Noch kein Foto. Fotos fügen Sie unter «Lebenslauf und Dateien» hinzu.",
+      du: "Noch kein Foto. Fotos fügst du unter «Lebenslauf und Dateien» hinzu.",
+    },
+    "lebenslauf.foto-einspaltig": { sie: "Einspaltig zeigt kein Foto.", du: "Einspaltig zeigt kein Foto." },
+    "lebenslauf.farbe-zeichen": { sie: "Farbe und Zeichen ändern", du: "Farbe und Zeichen ändern" },
+    "lebenslauf.zeichen-titel": { sie: "Zeichen", du: "Zeichen" },
+    "lebenslauf.zeichen-hinweis": {
+      sie: "Klein in der Fusszeile jeder Seite, aus Ihren Initialen oder Ihrem Logo.",
+      du: "Klein in der Fusszeile jeder Seite, aus deinen Initialen oder deinem Logo.",
+    },
+    "lebenslauf.zeichen-ohne": { sie: "Ohne Zeichen", du: "Ohne Zeichen" },
+    "lebenslauf.zeichen-logo": { sie: "Ihr Logo", du: "Dein Logo" },
+    "lebenslauf.logo-fehlt": {
+      sie: "Zuerst ein Logo hochladen, unter «Dossier gestalten».",
+      du: "Zuerst ein Logo hochladen, unter «Dossier gestalten».",
+    },
+    "lebenslauf.farbe-titel": { sie: "Farbe", du: "Farbe" },
+    "lebenslauf.farbe-hinweis": {
+      sie: "Für Linien und Überschriften. Alle Farben sind gut lesbar.",
+      du: "Für Linien und Überschriften. Alle Farben sind gut lesbar.",
+    },
+    "lebenslauf.farbe-passend": { sie: "Passend zum Design", du: "Passend zum Design" },
+    "lebenslauf.dossier-farbe": {
+      sie: "Ein Dossier hat Farbe und Zeichen aus «Dossier gestalten». Das Foto nimmt es von hier.",
+      du: "Ein Dossier hat Farbe und Zeichen aus «Dossier gestalten». Das Foto nimmt es von hier.",
+    },
     "lebenslauf.erstellen-titel": {
       sie: "Lebenslauf für diese Stelle", du: "Lebenslauf für diese Stelle", lehrstelle: "Lebenslauf für diese Lehrstelle",
     },

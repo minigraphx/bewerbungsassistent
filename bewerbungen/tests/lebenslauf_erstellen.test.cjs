@@ -70,6 +70,69 @@ test("the design is one of the two that build a CV alone", () => {
   assert.throws(() => L.choose(state, "dossier-siegel"), /Zweispaltig oder Einspaltig/);
 });
 
+// Photo, colour and mark of this CV (G77, #295)
+
+const LOOKED = { ...ANSWER, aussehen: { foto: true, zeichen: "passend", akzent: "passend" },
+                 aussehen_angebot: { foto_vorhanden: true, initialen: "EB", logo: false } };
+
+test("the look starts as the answer gives it and goes along with the request", () => {
+  const state = L.start(LOOKED);
+  assert.deepEqual(L.request(state, { id: "b1", ...texts }).aussehen, { foto: true, zeichen: "passend", akzent: "passend" });
+});
+
+test("photo, mark and colour each change on their own and the state before stays", () => {
+  const before = L.start(LOOKED);
+  const after = L.setLook(L.setLook(L.setLook(before, { foto: false }), { zeichen: "ring" }), { akzent: "#7a2e3a" });
+  assert.deepEqual(after.look, { foto: false, zeichen: "ring", akzent: "#7a2e3a" });
+  assert.deepEqual(before.look, { foto: true, zeichen: "passend", akzent: "passend" });
+});
+
+test("a mark or colour the panel does not offer is refused", () => {
+  const state = L.start(LOOKED);
+  assert.throws(() => L.setLook(state, { zeichen: "stern" }), /Zeichen/);
+  assert.throws(() => L.setLook(state, { zeichen: "logo" }), /Logo/);
+  assert.throws(() => L.setLook(state, { akzent: "#ff00ff" }), /Farbe/);
+});
+
+test("the photo can be chosen only with a photo and a design that shows one", () => {
+  assert.deepEqual(L.photoChoice(L.start(LOOKED)), { available: true, checked: true, reason: null });
+  assert.deepEqual(L.photoChoice(L.choose(L.start(LOOKED), "einspaltig")),
+                   { available: false, checked: true, reason: "lebenslauf.foto-einspaltig" });
+  const without = L.start({ ...LOOKED, aussehen_angebot: { ...LOOKED.aussehen_angebot, foto_vorhanden: false } });
+  assert.deepEqual(L.photoChoice(without), { available: false, checked: false, reason: "lebenslauf.foto-fehlt" });
+});
+
+test("the marks say why one cannot be chosen: two letters for Verschränkt, a logo for the logo", () => {
+  const marks = L.markChoices(L.start({ ...LOOKED, aussehen_angebot: { ...LOOKED.aussehen_angebot, initialen: "EBX" } }));
+  assert.deepEqual(marks.map(m => m.id), ["passend", "ring", "block", "verschraenkt", "linie", "punkt", "logo"]);
+  assert.equal(marks[0].name, "lebenslauf.zeichen-ohne");
+  assert.equal(marks.find(m => m.id === "verschraenkt").locked, "Nur mit zwei Buchstaben");
+  assert.equal(marks.find(m => m.id === "logo").locked, "lebenslauf.logo-fehlt");
+  assert.equal(marks.find(m => m.id === "ring").locked, null);
+  const withLogo = L.markChoices(L.start({ ...LOOKED, aussehen_angebot: { ...LOOKED.aussehen_angebot, logo: true } }));
+  assert.equal(withLogo.find(m => m.id === "logo").locked, null);
+});
+
+test("the colours are the design's own and the checked swatches of the dossier", () => {
+  const colours = L.accentChoices(L.start(LOOKED));
+  assert.deepEqual(colours[0], { id: "passend", name: "lebenslauf.farbe-passend", colour: "#38495d" });
+  assert.equal(L.accentChoices(L.choose(L.start(LOOKED), "einspaltig"))[0].colour, "#2f5d4a");
+  assert.deepEqual(colours.slice(1).map(c => c.name),
+                   ["Schieferblau", "Weinrot", "Tannengrün", "Petrol", "Aubergine", "Bronze", "Graphit"]);
+});
+
+test("a stored mark that cannot be drawn any more starts as none", () => {
+  const state = L.start({ ...LOOKED, aussehen: { foto: true, zeichen: "logo", akzent: "#7a2e3a" } });
+  assert.deepEqual(state.look, { foto: true, zeichen: "passend", akzent: "#7a2e3a" });
+});
+
+test("the line beside the button names mark and colour", () => {
+  const say = key => ({ "lebenslauf.zeichen-ohne": "Ohne Zeichen", "lebenslauf.farbe-passend": "Passend zum Design" })[key] || key;
+  assert.equal(L.lookLine(L.start(LOOKED), say), "Ohne Zeichen, Farbe: Passend zum Design");
+  assert.equal(L.lookLine(L.setLook(L.setLook(L.start(LOOKED), { zeichen: "ring" }), { akzent: "#7a2e3a" }), say),
+               "Zeichen: Ring, Farbe: Weinrot");
+});
+
 test("the message after saving says whether the PDF is there", () => {
   assert.match(L.savedText({ variante: { beschreibung: "Daten" }, gebaut: true, hinweis: null }), /«Daten».*PDF/);
   assert.equal(L.savedText({ variante: { beschreibung: "Daten" }, gebaut: false, hinweis: "Später." }), "Später.");

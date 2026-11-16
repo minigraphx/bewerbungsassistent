@@ -69,6 +69,25 @@
             <p class="field__hint">Aus Ihren Angaben. Kürzen und umstellen geht hier; <a href="/angaben">Angaben selbst ändern</a> geht unter Meine Angaben.</p></div>
           <h4 class="cv-create__step" id="cv-erstellen-aussehen-titel">2 · Aussehen</h4>
           <div class="design-tiles cv-create__designs" id="cv-erstellen-designs" role="radiogroup" aria-labelledby="cv-erstellen-aussehen-titel"></div>
+          <div class="cv-create__look" id="cv-erstellen-look">
+            <label class="check cv-create__photo"><input type="checkbox" id="cv-erstellen-foto" aria-describedby="cv-erstellen-foto-grund"><span data-text="lebenslauf.mit-foto">Mit Foto</span></label>
+            <button type="button" class="btn btn--quiet cv-create__look-toggle" id="cv-erstellen-farbe-oeffnen" aria-expanded="false" aria-controls="cv-erstellen-farbe" aria-describedby="cv-erstellen-farbe-stand" data-text="lebenslauf.farbe-zeichen">Farbe und Zeichen ändern</button>
+          </div>
+          <p class="field__hint" id="cv-erstellen-foto-grund" hidden></p>
+          <p class="field__hint" id="cv-erstellen-farbe-stand"></p>
+          <div class="cv-create__mark" id="cv-erstellen-farbe" hidden>
+            <fieldset class="cv-create__mark-group" aria-describedby="cv-erstellen-zeichen-hinweis">
+              <legend data-text="lebenslauf.zeichen-titel">Zeichen</legend>
+              <p class="field__hint" id="cv-erstellen-zeichen-hinweis" data-text="lebenslauf.zeichen-hinweis">Klein in der Fusszeile jeder Seite, aus Ihren Initialen oder Ihrem Logo.</p>
+              <div class="cv-create__marks" id="cv-erstellen-zeichen"></div>
+            </fieldset>
+            <fieldset class="cv-create__mark-group" aria-describedby="cv-erstellen-farbe-hinweis">
+              <legend data-text="lebenslauf.farbe-titel">Farbe</legend>
+              <p class="field__hint" id="cv-erstellen-farbe-hinweis" data-text="lebenslauf.farbe-hinweis">Für Linien und Überschriften. Alle Farben sind gut lesbar.</p>
+              <div class="mark-swatches" id="cv-erstellen-akzent"></div>
+            </fieldset>
+            <p class="field__hint cv-create__mark-dossier" data-text="lebenslauf.dossier-farbe">Ein Dossier hat Farbe und Zeichen aus «Dossier gestalten». Das Foto nimmt es von hier.</p>
+          </div>
           <p class="field__hint">Gilt nur für diese Bewerbung. Ein Dossier hat sein eigenes Design, unter «Dossier gestalten».</p>
           <div class="field"><label class="field__label" for="cv-erstellen-name">Name der Fassung</label><input class="input" id="cv-erstellen-name" maxlength="120" autocomplete="off"></div>
           </div>

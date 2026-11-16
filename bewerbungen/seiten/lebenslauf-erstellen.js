@@ -10,6 +10,7 @@
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const ROUTE = "/api/lebenslauf/erstellen";
+  const SVG = "http://www.w3.org/2000/svg";
   let state = null;
   let opened = 0; // an answer of the AI for a panel opened before is not applied any more
   let running = null; // the opening whose request to the AI still runs
@@ -68,10 +69,75 @@
       el("ul", { class: "cv-create__list" }, section.order.map(index => stationRow(section, byIndex.get(index)))));
   }
 
+  // Photo, colour and mark of this CV (G77). Names that are keys of texte.js speak Sie or du; the rest are the
+  // dossier's words (zeichen-logik.js).
+  const word = value => (typeof value === "string" && value.startsWith("lebenslauf.") ? say(value) : value);
+
+  function chip(colour) {
+    const svg = document.createElementNS(SVG, "svg");
+    const rect = document.createElementNS(SVG, "rect");
+    for (const [name, value] of Object.entries({ viewBox: "0 0 40 40", class: "mark-swatch__chip", "aria-hidden": "true",
+                                                 focusable: "false" })) svg.setAttribute(name, value);
+    for (const [name, value] of Object.entries({ width: 40, height: 40, rx: 6, fill: colour })) rect.setAttribute(name, value);
+    svg.append(rect);
+    return svg;
+  }
+
+  function changeLook(change) {
+    state = Logic.setLook(state, change);
+    showLook();
+    draft();
+  }
+
+  function markOption(choice) {
+    const id = `cv-erstellen-zeichen-${choice.id}`;
+    const reason = choice.locked ? el("span", { class: "cv-create__mark-reason", id: `${id}-grund` }, word(choice.locked)) : null;
+    return el("label", { class: "check cv-create__mark-option", for: id },
+      el("input", { type: "radio", name: "cv-erstellen-zeichen", id, value: choice.id, disabled: Boolean(choice.locked),
+                    checked: state.look.zeichen === choice.id, "aria-describedby": reason ? `${id}-grund` : null,
+                    onchange: () => changeLook({ zeichen: choice.id }) }),
+      el("span", {}, word(choice.name), reason));
+  }
+
+  function accentOption(choice) {
+    const id = `cv-erstellen-akzent-${choice.id.replace("#", "")}`;
+    return el("label", { class: "mark-swatch", for: id },
+      el("input", { type: "radio", name: "cv-erstellen-akzent", id, value: choice.id, checked: state.look.akzent === choice.id,
+                    onchange: () => changeLook({ akzent: choice.id }) }),
+      chip(choice.colour), el("span", {}, word(choice.name)));
+  }
+
+  /** The photo box, the line beside the button and, while open, the marks and colours as the state has them. */
+  function showLook() {
+    // An answer without a look (an older app part) leaves photo, colour and mark out, as before G77
+    $("cv-erstellen-look").hidden = !state.look;
+    $("cv-erstellen-farbe-stand").hidden = !state.look;
+    if (!state.look) return;
+    const photo = Logic.photoChoice(state);
+    $("cv-erstellen-foto").checked = photo.checked;
+    $("cv-erstellen-foto").disabled = !photo.available;
+    $("cv-erstellen-foto-grund").hidden = !photo.reason;
+    $("cv-erstellen-foto-grund").textContent = photo.reason ? say(photo.reason) : "";
+    $("cv-erstellen-farbe-stand").textContent = Logic.lookLine(state, word);
+    if ($("cv-erstellen-farbe").hidden) return;
+    const focused = document.activeElement?.id;
+    $("cv-erstellen-zeichen").replaceChildren(...Logic.markChoices(state).map(markOption));
+    $("cv-erstellen-akzent").replaceChildren(...Logic.accentChoices(state).map(accentOption));
+    if (focused) document.getElementById(focused)?.focus();
+  }
+
+  function toggleLook() {
+    const open = $("cv-erstellen-farbe").hidden;
+    $("cv-erstellen-farbe").hidden = !open;
+    $("cv-erstellen-farbe-oeffnen").setAttribute("aria-expanded", String(open));
+    showLook();
+    if (open) [...$("cv-erstellen-zeichen").querySelectorAll("input")].find(input => input.checked)?.focus();
+  }
+
   function designTile(choice) {
     const radio = el("input", { type: "radio", name: "cv-erstellen-design", value: choice.id,
                                 checked: choice.id === state.design,
-                                onchange: () => { state = Logic.choose(state, choice.id); draft(); } });
+                                onchange: () => { state = Logic.choose(state, choice.id); showLook(); draft(); } });
     return el("label", { class: "design-tile" },
       el("span", { class: `design-tile__sheet design-tile__sheet--${choice.id}`, "aria-hidden": "true" }),
       el("span", { class: "design-tile__name" }, radio, choice.name),
@@ -223,6 +289,9 @@
     $("cv-erstellen-profil").value = answer.kurzprofil;
     redraw(state);
     $("cv-erstellen-designs").replaceChildren(...Logic.DESIGNS.map(designTile));
+    $("cv-erstellen-farbe").hidden = true;
+    $("cv-erstellen-farbe-oeffnen").setAttribute("aria-expanded", "false");
+    showLook();
     $("cv-erstellen-beruf").value = answer.berufsbezeichnung;
     $("cv-erstellen-name").value = answer.bezeichnung;
     draft({ now: true });
@@ -301,6 +370,8 @@
   $("cv-erstellen-ki-stellentext").addEventListener("click", toAd);
   $("cv-erstellen-ki-neu-schaetzen").addEventListener("click", estimate);
   $("cv-erstellen-ki-text").addEventListener("toggle", showSentText);
+  $("cv-erstellen-foto").addEventListener("change", event => changeLook({ foto: event.target.checked }));
+  $("cv-erstellen-farbe-oeffnen").addEventListener("click", toggleLook);
   // The name of the version is not in the PDF, so only these two texts change the preview.
   $("cv-erstellen-beruf").addEventListener("input", () => draft());
   $("cv-erstellen-profil").addEventListener("input", () => draft());
