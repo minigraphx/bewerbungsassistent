@@ -312,3 +312,65 @@ test("the hint in «Lebenslauf für diese Stelle» and the dossier sentence in �
   assert.doesNotMatch(html, /Unterlagen prüfen/);
   assert.match(lies("dateien.html"), /Ein Dossier hat sein eigenes Design, gewählt in der Bewerbung unter «Dossier gestalten»\./);
 });
+
+// G93, #324: how the app balanced the pages, in a few words on each tile
+
+test("each document names its pages and, only where the app changed the setting, how", () => {
+  const note = (art, seiten, ausgleich) => R.pageNote(art, { seiten, ausgleich });
+  assert.deepEqual(note("anschreiben", 1, { letter: "slightly-tighter" }), ["1 Seite", "etwas enger gesetzt"]);
+  assert.deepEqual(note("lebenslauf", 2, { cv: "tighter" }), ["2 Seiten", "enger gesetzt"]);
+  assert.deepEqual(note("lebenslauf", 3, { cv: "tightest" }), ["3 Seiten", "so eng wie möglich"]);
+  assert.deepEqual(note("lebenslauf", 2, { cv: "wider" }), ["2 Seiten", "etwas grosszügiger gesetzt"]);
+  assert.deepEqual(note("lebenslauf", 2, {}), ["2 Seiten"], "no change, no text");
+  assert.deepEqual(note("lebenslauf", 2, { cv: "unknown" }), ["2 Seiten"]);
+  assert.deepEqual(R.pageNote("lebenslauf", undefined), [], "nothing before the document is there");
+});
+
+test("the dossier names which of its parts the app balanced", () => {
+  const line = notes => {
+    const tile = R.tiles(ALL, "dossier", { notes }).find(t => t.art === "dossier");
+    return [tile.name, ...tile.note].join(" · ");
+  };
+  assert.equal(line({ dossier: { seiten: 7, ausgleich: { cv: "slightly-tighter" } } }),
+    "Dossier · 7 Seiten · Lebenslauf etwas enger gesetzt");
+  assert.equal(line({ dossier: { seiten: 8, ausgleich: { cv: "tightest", letter: "tighter" } } }),
+    "Dossier · 8 Seiten · Anschreiben enger gesetzt · Lebenslauf so eng wie möglich", "in the order of the dossier");
+  assert.equal(line({ dossier: { seiten: 6, ausgleich: {} } }), "Dossier · 6 Seiten");
+  const single = R.tiles(ALL, "dossier", { notes: { lebenslauf: { seiten: 2, ausgleich: { cv: "wider" } } } })
+    .find(t => t.art === "lebenslauf");
+  assert.deepEqual(single.note, ["2 Seiten", "etwas grosszügiger gesetzt"], "a single file names no part");
+});
+
+test("the tile shows the note under its name, the «·» hidden from screen readers, and no colour for the state", () => {
+  const { S, byId } = page();
+  const seiten = { lebenslauf: { seiten: 3, ausgleich: { cv: "tightest" } }, anschreiben: { seiten: 1, ausgleich: {} } };
+  S.showTiles("a", { bewerbung: { id: "a" }, pdfs: { lebenslauf: true, anschreiben: true }, seiten }, 1);
+  const [cv, letter] = byId.pdfs.children;
+  const note = all(cv, n => n.attrs.class === "doc-tile__note")[0];
+  assert.ok(note, "the CV tile has a note");
+  assert.equal(cv.attrs["aria-describedby"], undefined, "the note follows the name as text, so it is not read twice");
+  const shown = n => (n && typeof n === "object" ? (n.attrs.class === "visually-hidden" ? "" : n.children.map(shown).join("")) : String(n ?? ""));
+  const heard = n => (n && typeof n === "object" ? (n.attrs["aria-hidden"] === "true" ? "" : n.children.map(heard).join("")) : String(n ?? ""));
+  assert.equal(shown(note), "3 Seiten · so eng wie möglich");
+  assert.equal(heard(note), "3 Seiten, so eng wie möglich");
+  const dots = all(note, n => textOf(n).trim() === "·");
+  assert.ok(dots.length === 1 && dots[0].attrs["aria-hidden"] === "true", "the separator is aria-hidden");
+  assert.equal(textOf(dots[0]), " · ", "the «·» stays on the line of the part before it");
+  const parts = note.children.filter(n => typeof n === "object" && n.attrs.class === "doc-tile__part");
+  assert.deepEqual(parts.map(textOf), ["3 Seiten", "so eng wie möglich"], "each part breaks as a whole");
+  assert.ok(!Object.keys(note.attrs).some(name => name === "data-level" || name === "style"), "no colour carries meaning");
+  assert.equal(shown(all(letter, n => n.attrs.class === "doc-tile__note")[0]), "1 Seite");
+
+  S.showTiles("a", { bewerbung: { id: "a" }, pdfs: { lebenslauf: true }, seiten: {} }, 2);
+  const tile = byId.pdfs.children[0];
+  assert.equal(all(tile, n => n.attrs.class === "doc-tile__note").length, 0, "without a count, no note");
+  assert.equal(tile.attrs["aria-describedby"], undefined);
+});
+
+test("a part of the note never breaks inside, and a long word cannot be split", () => {
+  const css = lies("unterlagen.css");
+  assert.match(css, /\.doc-tile__part \{ display: inline-block; max-width: 100%; \}/);
+  const note = css.split("\n").find(line => line.includes(".doc-tile__note {"));
+  assert.ok(note, "the note has its rule");
+  assert.doesNotMatch(note, /overflow-wrap/);
+});

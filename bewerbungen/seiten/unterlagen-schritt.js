@@ -58,17 +58,35 @@
     return el("a", attributes, adapt.text);
   }
 
+  /**
+   * Pages and how they were balanced (G93), in plain words without a colour. Each part breaks only as a whole, and the
+   * no-break space keeps the «·» on the line of the part before it. Screen readers skip the «·» and hear a comma.
+   */
+  function noteLine(tile) {
+    if (!tile.note.length) return null;
+    const parts = tile.note.flatMap((part, index) => {
+      const whole = el("span", { class: "doc-tile__part" }, part);
+      return index === 0 ? [whole]
+        : [el("span", { "aria-hidden": "true" }, " · "), el("span", { class: "visually-hidden" }, ", "), whole];
+    });
+    return el("p", { class: "doc-tile__note" }, ...parts);
+  }
+
   /** One tile per built document; `stand` makes the browser load a rebuilt file anew. */
   function showTiles(entryId, daten, stand) {
     const entry = daten.bewerbung;
-    const tiles = R.tiles(daten.pdfs, W.gewaehlt(entry), { ownCv: Boolean(daten.eigener_lebenslauf), sent: Boolean(entry.versand) });
-    $("pdfs").replaceChildren(...tiles.map(tile => el("article", { class: "doc-tile", "aria-labelledby": `doc-tile-${tile.art}` },
-      el("img", { class: "doc-tile__thumb", src: url("/api/pdf/miniatur", { id: entryId, art: tile.art, stand }), alt: tile.alt, ...THUMB }),
-      el("div", { class: "doc-tile__body" },
-        el("h3", { class: "doc-tile__name", id: `doc-tile-${tile.art}` }, tile.name),
-        el("div", { class: "doc-tile__links" },
-          el("a", { class: "btn btn--sm doc-tile__link", href: url("/api/pdf", { id: entryId, art: tile.art, stand }), target: "_blank", rel: "noopener" }, tile.open),
-          adaptLink(tile.adapt))))));
+    const tiles = R.tiles(daten.pdfs, W.gewaehlt(entry),
+      { ownCv: Boolean(daten.eigener_lebenslauf), sent: Boolean(entry.versand), notes: daten.seiten });
+    $("pdfs").replaceChildren(...tiles.map(tile => {
+      return el("article", { class: "doc-tile", "aria-labelledby": `doc-tile-${tile.art}` },
+        el("img", { class: "doc-tile__thumb", src: url("/api/pdf/miniatur", { id: entryId, art: tile.art, stand }), alt: tile.alt, ...THUMB }),
+        el("div", { class: "doc-tile__body" },
+          el("h3", { class: "doc-tile__name", id: `doc-tile-${tile.art}` }, tile.name),
+          noteLine(tile),
+          el("div", { class: "doc-tile__links" },
+            el("a", { class: "btn btn--sm doc-tile__link", href: url("/api/pdf", { id: entryId, art: tile.art, stand }), target: "_blank", rel: "noopener" }, tile.open),
+            adaptLink(tile.adapt))));
+    }));
   }
 
   /** `row` draws one finding as a list line (with «So lassen» where it applies, bewerbung.js). */

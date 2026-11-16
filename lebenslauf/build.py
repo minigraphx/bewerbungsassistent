@@ -14,6 +14,7 @@ import typst
 import yaml
 
 import cuts
+import fill_record
 import page_fill
 import type_area
 from tailor import tailor
@@ -103,6 +104,11 @@ def pruefe_beschriftungen(werte) -> dict:
 
 
 def main(argv: list[str] | None = None) -> pathlib.Path:
+    return run(argv).pdf
+
+
+def run(argv: list[str] | None = None) -> fill_record.Built:
+    """Builds the CV and returns the PDF with the density level its pages got (G93)."""
     ap = argparse.ArgumentParser()
     ap.add_argument("data", help="Stamm-Lebenslauf (YAML, JSON-Resume-Schema)")
     ap.add_argument("--job", help="Bewerbungsdatei mit Tags und Überschreibungen (YAML)")
@@ -150,7 +156,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     typst.compile(vorlage, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
     type_area.record(out, vorlage, str(wurzel.path), schriften, eingaben)  # the margins for the check (#304)
     print(out)
-    return out
+    return fill_record.write(out, fill_record.levels_of(eingaben))
 
 
 if __name__ == "__main__":

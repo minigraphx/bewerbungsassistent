@@ -40,7 +40,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass der Lebenslauf eine Seite zu lang ist, und nennt, was sich kürzen liesse; gekürzt wird nur durch Sie, oder Sie bestätigen mit „So lassen“.
 
-![Abschnitt „Unterlagen erstellen und prüfen“: der Befund „Lebenslauf: 3 Seiten, erlaubt sind höchstens 2“ mit Vorschlägen zum Kürzen und dem Knopf So lassen, darunter zugeklappt die bestandenen Prüfungen, je eine Kachel für Lebenslauf und Anschreiben mit der ersten Seite, die Zeile der gewählten Form mit „Form ändern“ und die Zeile der Beilagen](docs/bilder/pruefung.jpg)
+![Abschnitt „Unterlagen erstellen und prüfen“: der Befund „Lebenslauf: 3 Seiten, erlaubt sind höchstens 2“ mit Kürzungen zum Anhaken und den Knöpfen „Gekürzt neu erstellen“ und „Drei Seiten erlauben“, darunter zugeklappt die bestandenen Prüfungen, je eine Kachel für Lebenslauf und Anschreiben mit der ersten Seite und der Zahl der Seiten, beim Anschreiben „1 Seite · etwas enger gesetzt“, die Zeile der gewählten Form mit „Form ändern“ und die Zeile der Beilagen](docs/bilder/pruefung.jpg)
 
 **Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an, geordnet nach Lebenslauf, Anschreiben je Bewerbung, Stil und Bausteinen und Suchprofil; ältere Fassungen sind aufklappbar. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
 
