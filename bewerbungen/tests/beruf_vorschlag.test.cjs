@@ -21,7 +21,7 @@ function element() {
 }
 
 /** The page script in a sandbox: elements by id, a fake App that records what it sends, and a fake consent block. */
-function page({ status = { einwilligung: OPEN }, antworten = {} } = {}) {
+function page({ status = { einwilligung: OPEN }, antworten = {}, satz = "lehrstelle-du" } = {}) {
   const elements = new Map();
   const byId = id => {
     if (!elements.has(id)) elements.set(id, element());
@@ -33,7 +33,7 @@ function page({ status = { einwilligung: OPEN }, antworten = {} } = {}) {
   const App = {
     el: (tag, attributes, ...children) => Object.assign(element(), { children }),
     status: (target, text, art, optionen = {}) => { target.textContent = text; messages.push({ target, text, art, optionen }); },
-    textsatz: async () => "lehrstelle-du",
+    textsatz: async () => satz,
     holen: async pfad => {
       assert.equal(pfad, "/api/ki/status");
       return status;
@@ -45,14 +45,18 @@ function page({ status = { einwilligung: OPEN }, antworten = {} } = {}) {
     },
   };
   const Einwilligung = { zeile: (ort, stand, fertig) => { ort.hidden = false; consent.push({ ort, stand, fertig }); } };
+  // The rows and their order are suchliste.js's (tests/suchliste.test.cjs); here only what this page hands it.
+  const Suchliste = { zeige(liste, begriffe, optionen) { Object.assign(this, { liste, begriffe, optionen }); } };
   const context = {
-    window: { App, Einwilligung },
+    window: { App, Einwilligung, Suchliste },
     document: { getElementById: byId, dispatchEvent() {} },
     CustomEvent: class {},
   };
   vm.runInNewContext(seite("beruf-vorschlag.js"), context);
-  return { byId, sent, consent, messages, suchbegriffe: context.window.Suchbegriffe };
+  return { byId, sent, consent, messages, suchliste: Suchliste, suchbegriffe: context.window.Suchbegriffe };
 }
+
+const entferne = p => p.suchliste.optionen.entfernen(p.suchliste.begriffe[0], element());
 
 async function typeAndAsk(p) {
   await p.suchbegriffe.zeige("lehrstelle", [], []);
@@ -160,9 +164,7 @@ test("Entfernen offers Rückgängig, which puts the term back with its former st
     "/api/beruf/rueckgaengig": { ...LISTE, am_ende: false },
   } });
   await p.suchbegriffe.zeige("stelle", ["Python", "Data Engineer"], ["python", "data engineer"]);
-  const entfernen = p.byId("suchliste-liste").children[0].children[1];
-
-  await entfernen.fire("click");
+  await entferne(p);
   const meldung = p.messages.at(-1);
   assert.equal(meldung.text, "„Python“ ist nicht mehr in Ihrer Suche.");
   assert.equal(meldung.optionen.aktion.text, "Rückgängig");
@@ -178,7 +180,7 @@ test("Rückgängig after another change says the term is back at the end", async
     "/api/beruf/rueckgaengig": { ...LISTE, am_ende: true },
   } });
   await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
-  await p.byId("suchliste-liste").children[0].children[1].fire("click");
+  await entferne(p);
 
   await p.messages.at(-1).optionen.aktion.ausfuehren();
 
@@ -189,7 +191,37 @@ test("a removal that changed nothing offers nothing to undo", async () => {
   const p = page({ antworten: { "/api/beruf/entfernen": { ...LISTE, rueckgaengig: null } } });
   await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
 
-  await p.byId("suchliste-liste").children[0].children[1].fire("click");
+  await entferne(p);
 
   assert.equal(p.messages.at(-1).optionen.aktion, null);
+});
+
+// The order (#285, G87)
+
+test("the list goes to suchliste.js in the order the server sends, with the message line and Entfernen", async () => {
+  const p = page();
+  await p.suchbegriffe.zeige("stelle", ["Data Engineer", "Python"], ["data engineer", "python"]);
+
+  assert.equal(p.suchliste.liste, p.byId("suchliste-liste"));
+  assert.deepEqual([...p.suchliste.begriffe], ["Data Engineer", "Python"]);
+  assert.equal(p.suchliste.optionen.status, p.byId("suchliste-status"));
+  assert.equal(typeof p.suchliste.optionen.entfernen, "function");
+  assert.equal(typeof p.suchliste.optionen.geaendert, "function");
+});
+
+test("the hint says the search runs from the top, in the person's form of address, once there is something to order", async () => {
+  const cases = [
+    ["stelle", "stelle-sie", "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Ziehen Sie die wichtigsten nach oben oder verschieben Sie sie mit den Pfeilen."],
+    ["stelle", "stelle-du", "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen."],
+    ["lehrstelle", "lehrstelle-du", "Gesucht wird von oben nach unten; neue Berufe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen."],
+  ];
+  for (const [art, satz, text] of cases) {
+    const p = page({ satz });
+    await p.suchbegriffe.zeige(art, ["Koch/Köchin EFZ", "Maler/in EFZ"], []);
+    assert.equal(p.byId("suchliste-hinweis").textContent, text);
+    assert.equal(p.byId("suchliste-hinweis").hidden, false);
+
+    await p.suchbegriffe.zeige(art, ["Koch/Köchin EFZ"], []);
+    assert.equal(p.byId("suchliste-hinweis").hidden, true);
+  }
 });

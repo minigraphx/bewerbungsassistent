@@ -270,8 +270,20 @@ details#vorschlag textarea { width: 100%; }
 ul.vorschlaege { list-style: none; padding: 0; margin: var(--space-3) 0 0; }
 ul.vorschlaege li { padding: 10px 0; border-top: 1px solid var(--line); }
 ul.vorschlaege p { margin: var(--space-1) 0; }
-ul.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--space-2); display: flex; flex-wrap: wrap; gap: 6px var(--space-3); }
-ul.suchliste li { display: flex; align-items: center; gap: 6px; }
+/* The searched terms, the most important first (#285, G87): a handle to drag, the place, the term, its buttons. */
+ol.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); max-width: var(--width-reading); }
+.suchliste__eintrag { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); padding: 0 var(--space-2) 0 0; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
+.suchliste__eintrag:only-child { padding-left: var(--space-3); }
+.suchliste__eintrag--zieht, .suchliste__eintrag--verschoben { border-color: var(--accent); background: var(--accent-subtle); box-shadow: var(--shadow-menu); }
+.suchliste__griff { flex: none; box-sizing: border-box; min-width: 44px; min-height: 44px; padding: 13px 16px; cursor: grab; touch-action: none; color: var(--line-strong); background: radial-gradient(circle, currentColor 1.5px, transparent 2px) 0 0 / 6px 6px repeat content-box; }
+.suchliste__eintrag--zieht .suchliste__griff { cursor: grabbing; }
+.suchliste__nummer { min-width: 1.5em; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.suchliste__name { flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; padding: 10px 0; }
+.suchliste__knoepfe { display: flex; align-items: center; gap: var(--space-1); margin-left: auto; }
+.suchliste button { min-height: 44px; }
+.suchliste__pfeil { min-width: 44px; padding: 0; font-size: 18px; }
+.suchliste__pfeil[aria-disabled="true"] { opacity: .4; cursor: default; }
+.suchliste__pfeil[aria-disabled="true"]:hover { background: var(--surface); }
 .suchliste__neu { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-bottom: var(--space-2); }
 .suchliste__neu .input { flex: 1 1 220px; min-width: 0; max-width: 360px; }
 .portale { margin: var(--space-2) 0; }
