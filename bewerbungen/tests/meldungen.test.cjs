@@ -365,3 +365,44 @@ test("every page loads the helper before app.js", () => {
     assert.ok(helper >= 0 && helper < html.indexOf('<script src="/app.js"></script>'), name);
   }
 });
+
+// At phone width a closable line keeps its text readable (#335)
+
+/** The bodies of every `@media <query> {…}` block in `css`, and the css without any media block. */
+function mediaBlocks(css, query) {
+  const bodies = [];
+  let outside = "";
+  let rest = css;
+  for (let start = rest.indexOf("@media"); start >= 0; start = rest.indexOf("@media")) {
+    const open = rest.indexOf("{", start);
+    let depth = 1;
+    let end = open + 1;
+    for (; depth > 0 && end < rest.length; end += 1) depth += rest[end] === "{" ? 1 : rest[end] === "}" ? -1 : 0;
+    if (rest.slice(start, open).includes(query)) bodies.push(rest.slice(open + 1, end - 1));
+    outside += rest.slice(0, start);
+    rest = rest.slice(end);
+  }
+  return { bodies, outside: outside + rest };
+}
+
+test("at 375 px every closable line puts its text on its own row, buttons and close below", () => {
+  const { bodies } = mediaBlocks(fs.readFileSync(path.join(SEITEN, "stil.css"), "utf8"), "(max-width: 600px)");
+  const phone = bodies.join("\n");
+  assert.match(phone, /(^|[\s}])\.status--closable \{ flex-wrap: wrap; \}/);
+  assert.match(phone, /(^|[\s}])\.status--closable \.status__text \{ flex-basis: 100%; \}/);
+});
+
+test("at 1280 px a closable line stays one row: text, buttons, close", () => {
+  const { outside } = mediaBlocks(fs.readFileSync(path.join(SEITEN, "stil.css"), "utf8"), "(max-width: 600px)");
+  assert.match(outside, /\.status--closable \{ display: flex; align-items: center; gap: var\(--space-2\); \}/);
+  assert.match(outside, /\.status--closable \.status__text \{ flex: 1; min-width: 0; \}/);
+  assert.doesNotMatch(outside, /status--closable[^{]*\{[^}]*flex-wrap/);
+  assert.doesNotMatch(outside, /status__text[^{]*\{[^}]*flex-basis/);
+});
+
+test("no page styles a closable line by its id", () => {
+  for (const name of fs.readdirSync(SEITEN).filter(file => file.endsWith(".css"))) {
+    const css = fs.readFileSync(path.join(SEITEN, name), "utf8");
+    assert.doesNotMatch(css, /#[\w-]+(\.status--closable| \.status__text)/, name);
+  }
+});

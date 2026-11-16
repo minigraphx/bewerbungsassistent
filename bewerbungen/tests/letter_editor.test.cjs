@@ -233,10 +233,12 @@ test("the styles follow the brief: column, longest rule, 44 px targets and a sta
   assert.doesNotMatch(css, /[:\s]#[0-9a-f]{3,8};|rgb\(|hsl\(/i, "only existing tokens");
 });
 
-test("at 375 px the saved and error lines keep their text full width, the button wraps below", () => {
-  const phone = lies("letter-editor.css").split("@media (max-width: 600px)")[1] || "";
-  assert.match(phone, /#brief-editor-status\.status--closable, #brief-gespeichert\.status--closable \{ flex-wrap: wrap; \}/);
-  assert.match(phone, /#brief-editor-status \.status__text, #brief-gespeichert \.status__text \{ flex-basis: 100%; \}/);
+test("at 375 px the saved and error lines wrap by the shared closable rule, not by their ids", () => {
+  const css = lies("letter-editor.css");
+  assert.doesNotMatch(css, /#brief-editor-status|#brief-gespeichert/);
+  assert.doesNotMatch(css, /status--closable|status__text/);
+  assert.match(html, /id="brief-editor-status"/);
+  assert.match(html, /id="brief-gespeichert"/);
 });
 
 test("the group «Längster Absatz» has a button «Anschreiben ändern» that calls the editor", () => {
