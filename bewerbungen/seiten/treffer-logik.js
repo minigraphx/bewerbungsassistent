@@ -100,8 +100,11 @@
   // „Alle prüfen“ (G44, #209): the words around the estimate of GET /api/suche/alle-pruefen, in its currency: CHF
   // with the mediation and its credit (G46, G80), USD with an own key.
   const currencyOf = s => (s && s.waehrung) || "USD";
-  const money = (amount, currency) => `${currency} ${Number(amount).toFixed(2)}`;
-  const minutes = n => (n === 1 ? "1 Minute" : `${n} Minuten`);
+  // A no-break space between number and unit (#336): at 375 px «1» stood at the end of a line and «Minute» began the
+  // next. Screen readers read it as a space, so the spoken words stay the same.
+  const NBSP = "\u00a0";
+  const money = (amount, currency) => `${currency}${NBSP}${Number(amount).toFixed(2)}`;
+  const minutes = n => `${n}${NBSP}${n === 1 ? "Minute" : "Minuten"}`;
   const jobs = (n, apprenticeship) => {
     const word = apprenticeship ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
     return `${n} ${n === 1 ? word[0] : word[1]}`;
@@ -168,7 +171,7 @@
     if (stand.ohneText) teile.push(`${stand.ohneText} ohne Inseratstext`);
     if (stand.gestoppt) teile.push("angehalten");
     if (rest) teile.push(`noch ${rest} offen`);
-    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)} ${currency}.`;
+    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)}${NBSP}${currency}.`;
   }
 
   /** What the details say about the second look at a good grade (MIN-389); empty when there was none. */
