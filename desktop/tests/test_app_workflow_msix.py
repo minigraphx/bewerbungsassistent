@@ -1,4 +1,4 @@
-"""The release builds the Store package next to the Windows installer (#343, G6).
+"""The release builds the Store package next to the Windows installer (#343, G6), only as an artifact (#353).
 
 The Windows job itself cannot run here; these tests read the workflow and check how the MSIX job is wired.
 """
@@ -70,9 +70,20 @@ def test_every_run_keeps_the_package_as_an_artifact(job):
     assert upload["with"]["path"] == "dist-msix/"
 
 
-def test_only_a_tag_attaches_the_package_to_the_draft_release(job):
-    release = step_named(job["steps"], "Release-Entwurf")
+def test_the_package_never_goes_into_the_release(job):
+    """Unsigned, it does not install outside the Store; Partner Center takes it from the artifact (#353)."""
+    assert not [step for step in job["steps"] if "gh release" in step.get("run", "")]
+    assert not [step for step in job["steps"] if "Release" in step.get("name", "")]
+    assert "GH_TOKEN" not in yaml.safe_dump(job)
+
+
+def test_the_msix_job_may_only_read_the_repo(job):
+    assert job["permissions"] == {"contents": "read"}
+
+
+@pytest.mark.parametrize(("name", "folder"), [("windows", "dist-installer"), ("macos", "dist-mac"), ("linux", "dist-linux")])
+def test_a_tag_still_attaches_the_other_assets_to_the_draft_release(workflow, name, folder):
+    release = step_named(workflow["jobs"][name]["steps"], "Release-Entwurf")
 
     assert release["if"] == ON_TAG
-    assert "gh release upload" in release["run"] and "dist-msix" in release["run"]
-    assert [step for step in job["steps"] if "gh release" in step.get("run", "")] == [release]
+    assert "gh release upload" in release["run"] and folder in release["run"]
