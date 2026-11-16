@@ -211,7 +211,7 @@ test("Über die App: the logo, the name and the version (G4)", () => {
   assert.match(script, /el\("img", \{ class: "about__logo", src: "\/as-logo\.svg"[^}]*alt: "Logo AS" \}\)/);
   assert.match(script, /el\("p", \{ class: "about__name" \}, "Bewerbungsbegleiter"\)/);
   assert.match(script, /const ort = document\.getElementById\("ueber-die-app"\)/);
-  assert.match(script, /ort\.append\(ueberDieApp\(info\.version\)/);
+  assert.match(script, /ort\.append\(ueberDieApp\(info\.version, info\.store\)/);
   const logo = read("as-logo.svg");
   const colours = new Set(logo.replace(/@media[^{]*\{[^}]*\}\}/g, "").match(/#[0-9a-fA-F]{3,8}\b/g));
   assert.equal(colours.size, 1, "the logo is one colour");

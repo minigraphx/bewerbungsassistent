@@ -16,6 +16,7 @@ import extension
 import instance
 import linux_desktop
 import mcp_server
+import msix_package
 import native_host
 import native_messaging
 import presence
@@ -134,7 +135,10 @@ def _install_dir() -> pathlib.Path:
     return pathlib.Path(sys.executable).parent if getattr(sys, "frozen", False) else bundle_dir()
 
 
-def _host_executable(paths: settings.Paths) -> pathlib.Path:
+def _host_executable(paths: settings.Paths) -> pathlib.PurePath:
+    """What browsers and Claude start; in the Store package the alias, since the program's folder changes with each update."""
+    if getattr(sys, "frozen", False) and msix_package.running_packaged():
+        return msix_package.alias_path()
     if getattr(sys, "frozen", False):
         return linux_desktop.launch_path(pathlib.Path(sys.executable), dict(os.environ))
     return native_messaging.launcher(paths, sys.platform, bundle_dir(), pathlib.Path(sys.executable))
@@ -183,8 +187,10 @@ def claude_routes(paths: settings.Paths) -> "routes_claude.ClaudeRoutes":
 
 
 def register_link(platform: str = sys.platform) -> None:
-    """The invitation link opens the packed app; macOS declares it in the bundle, the others register it here."""
+    """The invitation link opens the packed app; macOS and the Store package declare it, the others register it here."""
     if not getattr(sys, "frozen", False):
+        return
+    if platform == "win32" and msix_package.running_packaged():
         return
     if platform == "win32":
         urlscheme.register_windows(sys.executable)

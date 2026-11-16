@@ -5,6 +5,8 @@ this process, so every new start asks once more.
 
 Quitting also installs a waiting update, in the background and without opening the app again; whatever goes wrong
 there, the app still ends and the update is offered again.
+
+In the package of the Microsoft Store (#344) the Store brings updates: no check, no download, no pre-releases.
 """
 import dataclasses
 import logging
@@ -14,8 +16,10 @@ import sys
 import tempfile
 import threading
 import time
+from http import HTTPStatus
 from typing import Callable
 
+import msix_package
 import settings
 import updates
 import updates_macos
@@ -29,6 +33,7 @@ SELF_UPDATING = ("win32", "darwin")
 FROZEN = getattr(sys, "frozen", False)
 FAILED_BEFORE = "Das Update auf Version {version} liess sich nicht starten, die bisherige Version läuft weiter. Bitte die neue Version von Hand laden."
 UPDATE_RUNNING = "Das Update läuft schon."
+BY_THE_STORE = "Updates kommen über den Microsoft Store."
 
 
 def _own_app() -> pathlib.Path | None:
@@ -55,6 +60,7 @@ class Controls:
     installing: threading.Lock = dataclasses.field(default_factory=threading.Lock)
     postponed: str = ""  # the version the person put off with "later" in this run
     paths: settings.Paths | None = None  # where the switch for pre-releases is kept; none in the tests of other parts
+    store: bool = dataclasses.field(default_factory=lambda: msix_package.running_packaged())
     _checked_at: float = 0.0
     _update: updates.Update | None = None
     _lock: threading.Lock = dataclasses.field(default_factory=threading.Lock)
@@ -71,6 +77,8 @@ class Controls:
             self._checked_at = 0.0
 
     def update(self) -> updates.Update | None:
+        if self.store:
+            return None
         with self._lock:
             if time.monotonic() - self._checked_at > CHECK_EVERY_SECONDS or not self._checked_at:
                 self._update = updates.newer(VERSION, updates.latest(self.fetch, self.platform, self.beta()))
@@ -199,6 +207,22 @@ def make_routes(controls: Controls) -> tuple[dict, dict]:
         updating = quit_app_now(controls)
         return json_antwort({"ok": True, "aktualisiert": updating} if updating else {"ok": True})
 
-    return ({"/api/app/version": version, "/api/app/vorabversionen": beta},
-            {"/api/app/aktualisieren": install, "/api/app/spaeter": later, "/api/app/beenden": quit_app,
-             "/api/app/vorabversionen": set_beta})
+    routes = ({"/api/app/version": version, "/api/app/vorabversionen": beta},
+              {"/api/app/aktualisieren": install, "/api/app/spaeter": later, "/api/app/beenden": quit_app,
+               "/api/app/vorabversionen": set_beta})
+    return _left_to_the_store(*routes) if controls.store else routes
+
+
+def _left_to_the_store(get: dict, post: dict) -> tuple[dict, dict]:
+    """The page hides the pre-releases when their route is missing, and shows the note when the version says store."""
+    from server import json_antwort
+
+    def version(k, parameter, body):
+        return json_antwort({"version": VERSION, "update": None, "store": True})
+
+    def refused(status: HTTPStatus):
+        return lambda k, parameter, body: json_antwort({"fehler": BY_THE_STORE}, status)
+
+    missing = refused(HTTPStatus.NOT_FOUND)
+    return ({**get, "/api/app/version": version, "/api/app/vorabversionen": missing},
+            {**post, "/api/app/aktualisieren": refused(HTTPStatus.CONFLICT), "/api/app/vorabversionen": missing})
