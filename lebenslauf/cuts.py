@@ -154,13 +154,23 @@ def without(stored, cut_id: str) -> dict:
     return {**(stored if isinstance(stored, dict) else {}), STORED_POINTS: records, STORED_SECTIONS: sections}
 
 
+def _paragraphs(text: str) -> list[str]:
+    from anschreiben import absaetze  # here, since build.py imports this module and anschreiben imports build
+    return absaetze(text or "")
+
+
+def longest_paragraph(text: str) -> int | None:
+    """The place of a letter's longest paragraph, counted from 0, as the page shows them (G94); None without text."""
+    paragraphs = _paragraphs(text)
+    return max(range(len(paragraphs)), key=lambda place: len(paragraphs[place])) if paragraphs else None
+
+
 def for_letter(text: str) -> list[str]:
     """The candidate to cut from a letter: its longest paragraph, named by its first words."""
-    from anschreiben import absaetze  # here, since build.py imports this module and anschreiben imports build
-    paragraphs = absaetze(text or "")
+    paragraphs = _paragraphs(text)
     if not paragraphs:
         return []
-    longest = max(paragraphs, key=len)
+    longest = paragraphs[longest_paragraph(text)]
     words = longest.split()
     opening = " ".join(words[:OPENING_WORDS]) + (" …" if len(words) > OPENING_WORDS else "")
     return [f"der längste Absatz («{opening}»)"]

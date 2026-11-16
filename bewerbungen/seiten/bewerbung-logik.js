@@ -22,6 +22,21 @@
   /** A CV over its limit (G92): cut or allowed three pages, never confirmed as it is. */
   const zuLang = befunde => (befunde || []).some(b => b.kuerzen && !b.bestaetigt);
   const BESTAETIGEN = "So lassen";
+  // G94: a letter over one page leads to the step Anschreiben, where its longest paragraph carries a visible label
+  const CUT_IN_LETTER = "Im Anschreiben kürzen";
+  const LONGEST_LABEL = "Längster Absatz";
+  const letterOver = befunde => (befunde || []).find(b => b.letter_cut && !b.bestaetigt) || null;
+
+  /** The place of the paragraph the step Anschreiben marks, while a letter over one page is neither cut nor confirmed. */
+  function longestParagraph(befunde) {
+    const place = letterOver(befunde)?.letter_cut.paragraph;
+    return Number.isInteger(place) ? place : null;
+  }
+  /** A letter over one page left as it is stays a hint (G94), so the line matches «1 Hinweis» above it. */
+  function letterKept({ pages, lines }) {
+    const over = lines > 0 ? `, etwa ${lines} ${lines === 1 ? "Zeile" : "Zeilen"} zu viel` : "";
+    return `Anschreiben: ${pages} Seiten${over}. Bestätigt: so lassen.`;
+  }
   /** Both files are built and, with a dossier chosen (G40), the dossier too. */
   function gebaut(daten) {
     const pdfs = daten.pdfs || {};
@@ -38,10 +53,13 @@
 
   /**
    * One finding of the check as a line: { text, stufe, knopf } — knopf confirms a layout breach (G52). A CV over its
-   * limit brings `kuerzen` instead, the cuts to tick (G92, kuerzen.js).
+   * limit brings `kuerzen` instead, the cuts to tick (G92, kuerzen.js); a letter over one page also offers
+   * `cutInLetter`, before «So lassen» (G94).
    */
   function befundZeile(b) {
     if (b.kuerzen && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: null, kuerzen: b.kuerzen };
+    if (b.letter_cut && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: BESTAETIGEN, cutInLetter: CUT_IN_LETTER };
+    if (b.letter_cut) return { text: letterKept(b.letter_cut), stufe: "hinweis", knopf: null };
     if (b.schluessel && b.bestaetigt) return { text: `${b.text} Bestätigt: so lassen.`, stufe: "ok", knopf: null };
     return { text: b.text, stufe: b.stufe, knopf: b.schluessel ? BESTAETIGEN : null };
   }
@@ -147,8 +165,8 @@
     return Array.isArray(befunde);
   }
 
-  const logik = { SCHRITTE, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf, erneutPruefen,
-    befundZeile };
+  const logik = { SCHRITTE, LONGEST_LABEL, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf,
+    erneutPruefen, befundZeile, longestParagraph };
   if (typeof module !== "undefined") module.exports = logik;
   else global.BewerbungLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

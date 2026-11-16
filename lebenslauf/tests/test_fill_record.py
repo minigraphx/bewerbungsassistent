@@ -18,7 +18,7 @@ CHOSEN = 2
 @pytest.fixture
 def chosen_level(monkeypatch):
     """Every part gets the same level, so the test knows what the build should report."""
-    monkeypatch.setattr(page_fill, "choose", lambda probe, limit=None: CHOSEN)
+    monkeypatch.setattr(page_fill, "choose", lambda probe, limit=None, tight_over_limit=False: CHOSEN)
 
 
 def test_the_cv_build_returns_its_level_and_keeps_it_beside_the_pdf(tmp_path, chosen_level):

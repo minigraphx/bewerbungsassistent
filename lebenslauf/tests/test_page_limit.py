@@ -56,6 +56,36 @@ def test_a_letter_over_one_page_is_tightened_onto_one():
     probe = _probe({0: Fill(2, 0.2), -1: Fill(2, 0.5), 4: Fill(1, 0.95)}, Fill(2, 0.1))
     assert page_fill.choose(probe) == -1, "the page fill alone would widen the second page"
     assert page_fill.choose(probe, limit=page_fill.LIMITS["letter"]) == 4
+    assert page_fill.choose(probe, limit=page_fill.LIMITS["letter"], tight_over_limit=True) == 4
+
+
+def test_a_letter_that_no_tightening_brings_onto_one_page_is_set_as_tight_as_possible():
+    """G94: so the person sees how little is too much; never spread to fill its second page."""
+    probe = _probe({0: Fill(2, 0.2), -1: Fill(2, 0.5), -2: Fill(2, 0.6)}, Fill(2, 0.1))
+    assert page_fill.choose(probe, limit=1) == -1, "the page fill alone would widen the second page"
+    assert page_fill.choose(probe, limit=1, tight_over_limit=True) == page_fill.TIGHTER[-1]
+
+
+def test_a_one_page_letter_keeps_its_balancing():
+    probe = _probe({0: Fill(1, 0.3), 1: Fill(1, 0.25), -1: Fill(1, 0.4)}, Fill(1, 0.3))
+    assert page_fill.choose(probe, limit=1, tight_over_limit=True) == page_fill.choose(probe, limit=1) == 0
+
+
+def test_levels_set_only_the_letter_tight_when_it_stays_over_its_limit():
+    def query(inputs: dict) -> list[dict]:
+        found = []
+        for part, start, pages in (("letter", 1, 2), ("cv", 3, 3)):
+            level = int(inputs.get(f"density-{part}", "0"))
+            # never within the limit; one step wider fills the last page
+            y = 600.0 if level < 0 else 150.0
+            found += [{"part": part, "edge": "start", "page": start},
+                      {"part": part, "edge": "end", "page": start + pages - 1, "y": y, "top": 100.0,
+                       "bottom": 100.0, "height": 1000.0}]
+        return found
+
+    chosen = page_fill.levels(query, {}, ("letter", "cv"))
+    assert chosen["density-letter"] == str(page_fill.TIGHTER[-1])
+    assert chosen["density-cv"] == "-1", "a CV over its limit is cut by the person (G92), its pages stay balanced"
 
 
 def test_the_limits_allow_a_three_page_cv_only_when_asked():
@@ -157,3 +187,9 @@ def test_the_cut_of_a_letter_names_its_longest_paragraph():
     text = "Kurz und klar.\n\nDieser Absatz ist deutlich länger als der erste und erzählt sehr viel.\n\nAuch kurz."
     assert cuts.for_letter(text) == ["der längste Absatz («Dieser Absatz ist deutlich länger …»)"]
     assert cuts.for_letter("") == []
+
+
+def test_the_longest_paragraph_of_a_letter_is_found_by_its_place():
+    text = "Kurz.\n\nDieser Absatz ist deutlich länger als die anderen.\r\n\r\nAuch kurz."
+    assert cuts.longest_paragraph(text) == 1
+    assert cuts.longest_paragraph("") is None

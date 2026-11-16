@@ -9,6 +9,8 @@ import yaml
 import anschreiben
 import build
 import dossier
+import fill_record
+import page_fill
 from page_fill_samples import (CV_BODY, LETTER_BODY, MIN_BODY_SIZE, MIN_FILL_RULE, content_lines, cv_of_length,
                                example_cv, last_page_fill, letter_of_length, lone_headings, page_count,
                                section_pages, text_sizes, thin_continuations)
@@ -99,10 +101,15 @@ def test_the_last_page_of_a_cv_is_at_least_a_third_full(built, design, length):
 
 @pytest.mark.parametrize("design", DESIGNS)
 @pytest.mark.parametrize("length", LETTER_LENGTHS)
-def test_the_last_page_of_a_letter_is_at_least_a_third_full(built, design, length):
+def test_a_letter_over_one_page_is_set_as_tight_as_possible_and_never_wider(built, design, length):
+    """G94 for the letter, before G49: its second page stays as short as it is, so the person sees how little is
+    too much. The level is the one the build recorded beside each PDF (fill_record)."""
     for name, (pdf, first, last) in _documents(built, "letter", design, length):
-        fill = last_page_fill(pdf, first, last)
-        assert fill is None or fill >= MIN_FILL_RULE, f"{design} {name}: last page {fill:.0%} full"
+        level = fill_record.read(pdf)["letter"]
+        pages = (last or page_count(pdf)) - first + 1
+        assert level >= 0, f"{design} {name}: set wider ({level})"
+        if pages > 1:
+            assert level == page_fill.TIGHTER[-1], f"{design} {name}: {pages} pages at level {level}"
 
 
 # G49: the smaller of the two fixes
@@ -141,10 +148,11 @@ def test_a_letter_that_just_spills_is_tightened_onto_one_page(built):
     assert _assert_smallest_fix(result, "letter", "letter") > 0
 
 
-def test_a_letter_with_a_nearly_empty_second_page_gets_more_space(built):
+def test_a_letter_over_one_page_in_a_dossier_is_set_as_tight_as_possible(built):
     result = built("letter", "dossier-raster", 7)["result"]
     assert page_count(result.letter) == 2
-    assert _assert_smallest_fix(result, "letter", "letter") < 0
+    tightest = str(page_fill.TIGHTER[-1])
+    assert result.inputs["letter"]["density-letter"] == result.inputs["dossier"]["density-letter"] == tightest
 
 
 def _assert_smallest_fit(result, file: str, part: str) -> int:

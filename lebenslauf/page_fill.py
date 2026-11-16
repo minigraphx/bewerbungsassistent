@@ -8,8 +8,9 @@ tries both fixes within the design and takes the smaller change: tighter (spacin
 removed; when neither works, the part stays as the design draws it.
 
 A part over its page limit (G51: the letter one page, the CV two, or three where the person allows it) is tightened
-first, until it fits the limit. When even the tightest level does not, the page fill above decides, and the check
-before sending names what could be cut (cuts.py); content only goes when the person removes it.
+first, until it fits the limit. When even the tightest level does not, the page fill above decides for the CV, while
+the letter stays at the tightest level (G94); the check before sending names what could be cut (cuts.py), and content
+only goes when the person removes it.
 """
 import dataclasses
 import functools
@@ -27,6 +28,8 @@ WIDER = (-1, -2, -3, -4, -5)
 SLIGHTLY = 2  # up to this level a reader barely sees the tightening (G93)
 SELECTOR = "<page-fill>"
 LIMITS = {"cv": 2, "letter": 1}  # pages per part (G51)
+# Parts set as tight as possible when they stay over their limit (G94); the CV is cut by the person instead (G92)
+TIGHT_OVER_LIMIT = frozenset({"letter"})
 CV_PAGES = (2, 3)  # what the person can allow for the CV under „Erweitert“
 BAD_CV_PAGES = "Der Lebenslauf hat zwei oder drei Seiten."
 
@@ -74,13 +77,18 @@ def limits(cv_pages: int = LIMITS["cv"]) -> dict[str, int]:
     return {**LIMITS, "cv": cv_pages}
 
 
-def choose(probe: Callable[[int], Fill], limit: int | None = None) -> int:
-    """The density level of a part: within its page limit first, then so its last page is not nearly empty."""
+def choose(probe: Callable[[int], Fill], limit: int | None = None, tight_over_limit: bool = False) -> int:
+    """The density level of a part: within its page limit first, then so its last page is not nearly empty.
+
+    With `tight_over_limit`, a part that even the tightest level cannot bring within its limit stays at that level
+    instead of being balanced (G94, the letter): the person sees how little is too much."""
     probe = functools.cache(probe)
     if limit is not None and probe(0).pages > limit:
         fitting = _within_limit(probe, limit)
         if fitting is not None:
             return fitting
+        if tight_over_limit:
+            return TIGHTER[-1]
     return _filled(probe)
 
 
@@ -143,5 +151,5 @@ def levels(query: Callable[[dict], list[dict]], sys_inputs: dict, parts: tuple[s
     for part in parts:
         def probe(level: int, part: str = part) -> Fill:
             return measure(query({**chosen, f"density-{part}": str(level)}), part)
-        chosen[f"density-{part}"] = str(choose(probe, limits.get(part)))
+        chosen[f"density-{part}"] = str(choose(probe, limits.get(part), tight_over_limit=part in TIGHT_OVER_LIMIT))
     return chosen

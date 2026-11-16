@@ -24,7 +24,7 @@ def pages(server, art: str) -> int:
 @pytest.fixture
 def level(monkeypatch):
     def choose(chosen: int):
-        monkeypatch.setattr(page_fill, "choose", lambda probe, limit=None: chosen)
+        monkeypatch.setattr(page_fill, "choose", lambda probe, limit=None, tight_over_limit=False: chosen)
     return choose
 
 
