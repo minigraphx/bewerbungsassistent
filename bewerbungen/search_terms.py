@@ -3,6 +3,8 @@
 An apprenticeship profile names professions. A job profile searches its line „Kernliste“ and the other named lines under
 „Keywords“ but the niches if it has any, else its numbered search directions, where one line can hold several terms and
 bullets of its own. Everything else in the profile stays as written.
+The order set on Suche einstellen (G87) is a section of its own, „Reihenfolge der Suche“, which the plan reads before
+the lines the terms come from; a term it does not name comes after, so a new one goes to the end.
 """
 import re
 from collections.abc import Callable
@@ -25,6 +27,9 @@ TITLE_LABELS = {"positiv": "Positiv", "ausschluss": "Ausschluss"}
 AFTER_TITLES = "## Sprachen"
 FULL = "Die Suche hat schon {limit} Begriffe, mehr gehen hier nicht. Bitte zuerst einen entfernen."
 FULL_DIRECTIONS = "Die Suche hat schon {limit} Suchrichtungen. Bitte zuerst eine entfernen."
+ORDER_NOTE = ("Die Suche sucht die Begriffe in dieser Reihenfolge, die wichtigsten zuerst; neue kommen ans Ende. "
+              "Ändern auf „Suche einstellen“.")
+ORDER_CHANGED = "Die Liste hat sich inzwischen geändert und ist neu geladen. Bitte nochmals verschieben."
 
 
 def current(text: str) -> tuple[str, ...]:
@@ -84,7 +89,13 @@ def added(text: str, name: str, kind: str | None = None) -> str:
 
     With `kind` an apprenticeship, a profile that searches nothing yet becomes an apprenticeship profile (#147): the
     setup chose it, but a profile without a start lacks „## Lehrbeginn“. A profile with terms keeps its kind.
+    A new term goes to the end of the saved order too (G87), also when an old line of the order still names it.
     """
+    changed = _added(text, name, kind)
+    return changed if changed == text else _without_in_order(changed, profession_words(name))
+
+
+def _added(text: str, name: str, kind: str | None) -> str:
     if APPRENTICESHIP_MARK not in text and kind == search_plan.KIND_APPRENTICESHIP and not current(text):
         text = _as_apprenticeship(text)
     if APPRENTICESHIP_MARK in text:
@@ -164,8 +175,12 @@ def _without_term(part: str, wanted: frozenset[str]) -> str:
 
 
 def removed(text: str, name: str) -> str:
-    """The profile text without this term; a term that is not there changes nothing."""
+    """The profile text without this term, in the saved order too; a term that is not there changes nothing."""
     wanted = profession_words(name)
+    return _without_in_order(_removed(text, wanted), wanted)
+
+
+def _removed(text: str, wanted: frozenset[str]) -> str:
     if APPRENTICESHIP_MARK in text:
         return _renumbered(text, search_plan.PROFESSIONS_SECTION, _without_profession(wanted))
     lines = text.split("\n")
@@ -176,6 +191,53 @@ def removed(text: str, name: str) -> str:
     for index in groups:
         changed[index] = _without_in_line(lines[index], wanted)
     return text if changed == lines else "\n".join(changed)
+
+
+def _without_in_order(text: str, wanted: frozenset[str]) -> str:
+    """The saved order without this term, the rest numbered anew; without the section nothing changes."""
+    def change(body: str) -> str | None:
+        return None if profession_words(body) == wanted else body
+    return _renumbered(text, search_plan.ORDER_SECTION, change)
+
+
+def _order_block(names: tuple[str, ...]) -> list[str]:
+    return [search_plan.ORDER_SECTION, ORDER_NOTE, *(f"{place}. {name}" for place, name in enumerate(names, 1)), ""]
+
+
+def _with_order(text: str, names: tuple[str, ...]) -> str:
+    """The profile with this order as its section, in place of the old one, or else before „## Region“ or at the end."""
+    lines = text.split("\n")
+    start, end = search_plan.section_bounds(lines, search_plan.ORDER_KEY)
+    block = _order_block(names)
+    if start is not None:
+        return "\n".join([*lines[:start], *block, *lines[end:]])
+    place = next((i for i, row in enumerate(lines) if row.strip() == AFTER_DIRECTIONS), None)
+    if place is None:
+        return "\n".join([text.rstrip(), "", *block])
+    return "\n".join([*lines[:place], *block, *lines[place:]])
+
+
+def reordered(text: str, names: list[str]) -> str:
+    """The profile with the searched terms in this order (G87); `names` must be exactly the terms searched now.
+
+    The order names each term as the search reads it, so whatever the page sends, only known terms are written."""
+    known = current(text)
+    if sorted(map(key, names)) != sorted(map(key, known)):
+        raise ValueError(ORDER_CHANGED)
+    rest, ordered = known, ()
+    for name in names:
+        index = next(i for i, term in enumerate(rest) if profession_words(term) == profession_words(name))
+        rest, ordered = (*rest[:index], *rest[index + 1:]), (*ordered, rest[index])
+    return _with_order(text, ordered)
+
+
+def _kept_order(old: str, new: str) -> str:
+    """The order of the old profile, if the new one has none: the form does not show it."""
+    lines = search_plan.section_lines(old, search_plan.ORDER_SECTION)
+    if not lines or search_plan.section_lines(new, search_plan.ORDER_SECTION):
+        return new
+    names = tuple(found[1] for found in map(DIRECTION.match, (line.strip() for line in lines)) if found)
+    return _with_order(new, names) if names else new
 
 
 def _without_in_line(line: str, wanted: frozenset[str]) -> str:
@@ -234,7 +296,8 @@ def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
     """A profile from the form replaces the old one: what the old one searched stays, after what the form names.
 
     Terms are added and removed on the page without the form knowing, so the form cannot mean to drop them. Whoever
-    does not want one any more removes it on the page. A different kind of search shares nothing.
+    does not want one any more removes it on the page. The order set there stays too (G87). A different kind of
+    search shares nothing.
     """
     if (APPRENTICESHIP_MARK in old) != (APPRENTICESHIP_MARK in new):
         return new, ()
@@ -247,5 +310,6 @@ def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
         if changed != text:
             kept = [*kept, term]
         text = changed
+    text = _kept_order(old, text)
     return (_kept_offers(old, text) if APPRENTICESHIP_MARK in new else text), tuple(kept)
 

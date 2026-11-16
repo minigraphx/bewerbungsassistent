@@ -86,6 +86,9 @@ NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
 PROFESSIONS_SECTION = "## Berufe (mit Priorität)"
 PROFESSIONS_KEY = PROFESSIONS_SECTION[3:].lower()
+# G87: the order set on Suche einstellen, its own section so that the lines the terms come from stay as written.
+ORDER_SECTION = "## Reihenfolge der Suche"
+ORDER_KEY = ORDER_SECTION[3:].lower()
 FILLER_WORDS = frozenset({"fachrichtung", "schwerpunkt", "und", "mit", "im", "der", "die", "das"})
 OFFER_APPRENTICESHIP = "lehrstelle"
 OFFER_TRIAL = "schnupperlehre"
@@ -293,10 +296,22 @@ def _regions(cantons: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(ICTJOBS_REGIONS[c] for c in cantons if c in ICTJOBS_REGIONS))
 
 
-def _professions(lines: list[str]) -> tuple[str, ...]:
-    """Numbered professions without the remark at the end; a specialisation in brackets stays."""
+def _professions(sections: dict[str, list[str]]) -> tuple[str, ...]:
+    """Numbered professions without the remark at the end, in the saved order; a specialisation in brackets stays."""
+    lines = sections.get(PROFESSIONS_KEY, [])
     names = (" ".join(REMARK.sub("", m.group(1)).split())[:MAX_PROFESSION_NAME] for m in map(DIRECTION.match, lines) if m)
-    return tuple(dict.fromkeys(name for name in names if name))[:MAX_PROFESSIONS]
+    return _in_order(tuple(dict.fromkeys(name for name in names if name)), sections)[:MAX_PROFESSIONS]
+
+
+def _in_order(terms: tuple[str, ...], sections: dict[str, list[str]]) -> tuple[str, ...]:
+    """The terms the saved order names first, in that order; the others after them as the profile lists them (G87).
+
+    Without the section nothing moves, so an older profile searches as before; a name the order has but the profile
+    no longer has counts for nothing."""
+    order = [profession_words(m.group(1)) for m in map(DIRECTION.match, sections.get(ORDER_KEY, [])) if m]
+    rank = {words: place for place, words in reversed(list(enumerate(order)))}  # a name listed twice keeps its first place
+    ranked = sorted((term for term in terms if profession_words(term) in rank), key=lambda term: rank[profession_words(term)])
+    return (*ranked, *(term for term in terms if profession_words(term) not in rank))
 
 
 def _neutral_word(word: str) -> str:
@@ -322,7 +337,7 @@ def profession_words(name: str) -> frozenset[str]:
 
 
 def professions_in(text: str) -> tuple[str, ...]:
-    return _professions(_sections(text).get(PROFESSIONS_KEY, []))
+    return _professions(_sections(text))
 
 
 def _radius(value: str) -> int:
@@ -351,7 +366,7 @@ def with_offers(text: str, choice: str) -> str:
 
 
 def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
-    professions = _professions(sections.get(PROFESSIONS_KEY, []))
+    professions = _professions(sections)
     if not professions:
         raise ValueError(NO_PROFESSION)
     region = _pairs(sections.get("region", []))
@@ -414,11 +429,13 @@ def with_section_line(text: str, title: str, line: str, before: str) -> str:
 
 
 def _listed_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
-    """The first core list, then every other named line under Keywords but the niches (#174); else the search directions."""
+    """The first core list, then every other named line under Keywords but the niches (#174); else the search directions.
+
+    Either way in the saved order, if the profile has one (G87)."""
     pairs = _pairs(sections.get("keywords", []))
     others = [value for label, value in pairs.items() if not label.startswith((CORE_LABEL, NICHE_LABEL))]
     terms = _terms(",".join([_value(pairs, CORE_LABEL), *others]), None)
-    return terms or _directions(sections.get("suchrichtungen", []), None)
+    return _in_order(terms or _directions(sections.get("suchrichtungen", []), None), sections)
 
 
 def job_terms(text: str) -> tuple[str, ...]:

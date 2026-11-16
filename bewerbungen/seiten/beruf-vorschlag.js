@@ -1,6 +1,6 @@
 "use strict";
 // What to search for (MIN-375): the list of what is searched with „Entfernen“ and Rückgängig, a field for a term of the
-// person's own (#216), and suggestions from the AI to add to it.
+// person's own (#216), and suggestions from the AI to add to it. The rows and their order are suchliste.js's (G87).
 // Apprenticeships address the person informally and name professions, jobs formally and name search terms.
 window.Suchbegriffe = (() => {
   const { holen, senden, el, status } = window.App;
@@ -18,6 +18,7 @@ window.Suchbegriffe = (() => {
       neu: "In deiner Suche. Die nächste Suche sucht auch danach.",
       pruefen: "In der Schnupperlehre",
       liste: "Danach suchst du:",
+      ordnen: "Die Suche sucht von oben nach unten, neue Berufe kommen ans Ende. Zieh die wichtigsten nach oben, oder verschieb sie mit den Pfeilen.",
       entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
       neuLabel: "Eigenen Beruf aufnehmen (mit EFZ oder EBA, zum Beispiel Koch/Köchin EFZ)",
       aufgenommen: name => `„${name}“ ist jetzt in deiner Suche.`,
@@ -37,6 +38,7 @@ window.Suchbegriffe = (() => {
       neu: "In Ihrer Suche. Die nächste Suche sucht auch danach.",
       pruefen: "Im Inserat",
       liste: "Danach suchen Sie:",
+      ordnen: "Die Suche sucht von oben nach unten, neue Begriffe kommen ans Ende. Ziehen Sie die wichtigsten nach oben, oder verschieben Sie sie mit den Pfeilen.",
       entfernt: name => `„${name}“ ist nicht mehr in Ihrer Suche.`,
       neuLabel: "Eigenen Suchbegriff aufnehmen",
       aufgenommen: name => `„${name}“ ist jetzt in Ihrer Suche.`,
@@ -56,6 +58,7 @@ window.Suchbegriffe = (() => {
       neu: "In deiner Suche. Die nächste Suche sucht auch danach.",
       pruefen: "Im Inserat",
       liste: "Danach suchst du:",
+      ordnen: "Die Suche sucht von oben nach unten, neue Begriffe kommen ans Ende. Zieh die wichtigsten nach oben, oder verschieb sie mit den Pfeilen.",
       entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
       neuLabel: "Eigenen Suchbegriff aufnehmen",
       aufgenommen: name => `„${name}“ ist jetzt in deiner Suche.`,
@@ -206,12 +209,10 @@ window.Suchbegriffe = (() => {
     $("suchliste-titel").hidden = !begriffe.length;
     $("suchliste-liste").hidden = !begriffe.length;
     $("suchliste-titel").textContent = texte.liste;
+    $("suchliste-hinweis").textContent = texte.ordnen;
+    $("suchliste-hinweis").hidden = begriffe.length < 2;
     $("suchliste-neu-label").textContent = texte.neuLabel;
-    $("suchliste-liste").replaceChildren(...begriffe.map(name => {
-      const button = el("button", { type: "button", class: "klein", "aria-label": `${name} entfernen` }, "Entfernen");
-      button.addEventListener("click", () => remove(name, button));
-      return el("li", {}, el("span", {}, name), button);
-    }));
+    window.Suchliste.zeige($("suchliste-liste"), begriffe, { status: $("suchliste-status"), entfernen: remove, geaendert });
   }
 
   // The server compares forms of a name; the cards follow what it says is searched now.

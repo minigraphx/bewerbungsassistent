@@ -116,6 +116,15 @@ def test_lebenslauf_und_dateien_shows_the_kinds_zeugnis_diplom_zertifikat():
         assert words in files, words
 
 
+def test_suche_einstellen_says_the_order_of_the_terms_and_how_to_change_it():
+    # G87, #285: from the top, new ones at the end, by dragging or with the arrows, also with the keyboard
+    for part, term in ((body("Stellen suchen und bewerben", 3), "Begriff"), (body("Für Lehrstellen", 3), "Beruf")):
+        assert "von oben nach unten" in part and "die wichtigsten zuerst" in part, part
+        assert f"ein neuer {term} kommt ans Ende" in part, part
+        assert "an seinen Platz" in part and "Pfeilen" in part and "Tastatur" in part, part
+        assert "der frühere Stand bleibt als Entwurf erhalten" in part, part
+
+
 def test_the_pictures_say_what_they_show_today():
     guide = text()
 

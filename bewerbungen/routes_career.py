@@ -2,6 +2,7 @@
 
 A person adds own terms through the same route as a suggestion (#216). Rückgängig after Entfernen brings the former
 profile back only if it differs from the current one in exactly that term; otherwise the term goes back at the end.
+The order of the terms (G87) comes as the whole list and is refused unless it holds exactly the terms searched now.
 """
 import hashlib
 import re
@@ -26,6 +27,9 @@ EMPTY = {search_plan.KIND_APPRENTICESHIP: "Bitte einen Beruf mit EFZ oder EBA ei
 ALREADY = "„{name}“ wird schon gesucht."
 TOO_LONG = "„{value}…“ ist zu lang: höchstens {limit} Zeichen."
 NO_UNDO = "Rückgängig geht hier nicht mehr. Bitte den Begriff neu aufnehmen."
+NO_ORDER = "Diese Reihenfolge geht nicht. Bitte die Seite neu laden."
+ORDER_SAVED = "Reihenfolge der Suche geändert"
+MAX_ORDERED = 200  # far above what a profile lists; bounds only what a request can make the server compare
 SHA256 = re.compile(r"[0-9a-f]{64}")
 # The longest entry the page can show, and so remove: a direction as long as Meine Angaben takes it (#316).
 MAX_SHOWN = max(search_plan.MAX_DIRECTION, search_plan.MAX_PROFESSION_NAME, search_plan.MAX_VALUE)
@@ -175,6 +179,21 @@ def undo(k, parameter, body):
     return _answer(k, am_ende=at_end["value"])
 
 
+def _order(body) -> list[str]:
+    names = body.get("berufe") if isinstance(body, dict) else None
+    if (not isinstance(names, list) or len(names) > MAX_ORDERED
+            or not all(isinstance(name, str) and name.strip() and len(name) <= MAX_SHOWN for name in names)):
+        raise ValueError(NO_ORDER)
+    return names
+
+
+def reorder(k, parameter, body):
+    """The order from Suche einstellen (G87): all terms searched now, the most important first, or nothing changes."""
+    path = _profile(k)
+    names = _order(body)
+    return _change(k, path, ORDER_SAVED, lambda text: search_terms.reordered(text, names))
+
+
 GET: dict = {}
 POST = {"/api/beruf/vorschlag": suggest, "/api/beruf/aufnehmen": add, "/api/beruf/entfernen": remove,
-        "/api/beruf/rueckgaengig": undo}
+        "/api/beruf/rueckgaengig": undo, "/api/beruf/reihenfolge": reorder}

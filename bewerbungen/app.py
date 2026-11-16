@@ -125,6 +125,8 @@ SEITEN = {
     "/heute.css": "heute.css",
     "/formular-logik.js": "formular-logik.js",
     "/beruf-vorschlag.js": "beruf-vorschlag.js",
+    "/suchliste-logik.js": "suchliste-logik.js",
+    "/suchliste.js": "suchliste.js",
     "/portal-wahl.js": "portal-wahl.js",
     "/suchbegriffe": "suchbegriffe.html",
     "/suchbegriffe.js": "suchbegriffe.js",

@@ -333,6 +333,15 @@ def write_portals(lines: Lines, found: tuple | None) -> Writes:
     return replaced, [], {}
 
 
+def every_line(lines: Lines) -> Found:
+    """Each line of a section the app writes itself and the form has no field for, such as the order of the search."""
+    return None, tuple(n for n, _ in lines)
+
+
+# G87: Suche einstellen writes it, the form keeps it as it is (search_terms.kept_on_replace when a profile is replaced).
+_ORDER = Slot(search_plan.ORDER_SECTION[3:], every_line, hidden=True)
+
+
 _FIXED_TONE = frozenset({"- Aussagen mit konkreten Beispielen belegen; Lücken offen und knapp benennen, mit Lernbereitschaft.",
                          "- Schweizer Schreibweise (ss statt ß)."})
 _GAPS = bullets(frozenset({NO_GAPS}))
@@ -363,7 +372,7 @@ def _profile_job() -> list[Slot]:
             Slot("Rahmen", pair("Befristung möglich"), search, ("temporary",)),
             Slot("Zielfirmen mit Karriereseite", bullets(), search, ("targetCompanies",)),
             Slot("Stärken", first_bullet),
-            Slot("Typische Haken (offen benennen)", _GAPS)]
+            Slot("Typische Haken (offen benennen)", _GAPS), _ORDER]
 
 
 def _profile_apprenticeship() -> list[Slot]:
@@ -380,7 +389,7 @@ def _profile_apprenticeship() -> list[Slot]:
             Slot("Region", pair("Umkreis"), search, ("radius",)),
             Slot("Schule", pair("Berufsmaturität"), search, ("vocationalBaccalaureate",)),
             Slot("Stärken", first_bullet),
-            Slot("Typische Haken (offen benennen)", _GAPS)]
+            Slot("Typische Haken (offen benennen)", _GAPS), _ORDER]
 
 
 def _style(track: str) -> list[Slot]:
