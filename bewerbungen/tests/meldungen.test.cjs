@@ -385,11 +385,21 @@ function mediaBlocks(css, query) {
   return { bodies, outside: outside + rest };
 }
 
-test("at 375 px every closable line puts its text on its own row, buttons and close below", () => {
+test("at 375 px a closable line with an action puts its text on its own row, the action and close below", () => {
   const { bodies } = mediaBlocks(fs.readFileSync(path.join(SEITEN, "stil.css"), "utf8"), "(max-width: 600px)");
   const phone = bodies.join("\n");
-  assert.match(phone, /(^|[\s}])\.status--closable \{ flex-wrap: wrap; \}/);
-  assert.match(phone, /(^|[\s}])\.status--closable \.status__text \{ flex-basis: 100%; \}/);
+  assert.match(phone, /(^|[\s}])\.status--closable:has\(\.status__action\) \{ flex-wrap: wrap; \}/);
+  assert.match(phone, /(^|[\s}])\.status--closable:has\(\.status__action\) \.status__text \{ flex-basis: 100%; \}/);
+});
+
+test("a closable line with only the close button keeps it beside its text at every width", () => {
+  const css = fs.readFileSync(path.join(SEITEN, "stil.css"), "utf8");
+  for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!/flex-wrap:\s*wrap|flex-basis:\s*100%/.test(body)) continue;
+    for (const selector of selectors.split(",").filter(part => /status--closable|status__text/.test(part))) {
+      assert.match(selector, /\.status--closable:has\(\.status__action\)/, selector.trim());
+    }
+  }
 });
 
 test("at 1280 px a closable line stays one row: text, buttons, close", () => {
