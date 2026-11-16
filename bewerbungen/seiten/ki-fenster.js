@@ -109,7 +109,7 @@ window.KiFenster = (() => {
       part.show(ki);
     }
     parts.done.hidden = now !== "fertig";
-    if (now === "fertig") parts.done.textContent = doneLine(ki);
+    if (now === "fertig") parts.done.replaceChildren(...window.Texte.withCodeRequestLink(doneLine(ki), el));
     parts.without.hidden = now === "fertig";
     parts.close.textContent = now === "fertig" ? "Weiter" : "Schliessen";
     parts.close.className = now === "fertig" ? "btn btn--primary" : "btn";

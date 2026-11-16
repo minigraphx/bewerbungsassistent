@@ -205,6 +205,9 @@
   $("schluessel").addEventListener("input", pruefeBereit);
   $("speichern").addEventListener("click", speichern);
   $("entfernen").addEventListener("click", entfernen);
+  // The words stay in the page; „anfordern“ becomes the link to where a new code is requested (#315).
+  const usedUp = $("einladung-aufgebraucht");
+  usedUp.replaceChildren(...window.Texte.withCodeRequestLink(usedUp.textContent, el));
   $("einladung-code").addEventListener("input", event => { $("einladung-einloesen").disabled = !event.target.value.trim(); });
   $("einladung-einloesen").addEventListener("click", redeem);
   bestaetigen($("einwilligung-widerruf"), "Wirklich widerrufen? Nochmals klicken", async () => {

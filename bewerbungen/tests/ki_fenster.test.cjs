@@ -339,3 +339,12 @@ test("the window names the credit in CHF and, once it is used up, the way to a n
   const usedUp = await shows({ ...SET_UP, verbraucht_chf: 5 });
   assert.ok(usedUp.includes("Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen."));
 });
+
+test("once the credit is used up, „anfordern“ in the window links to the contact of the help page (#315)", async () => {
+  const w = windowWith({ "/api/ki/status": { ...SET_UP, verbraucht_chf: 5 }, "/api/claude/stand": new Error("none") });
+  w.open();
+  await settle();
+  const links = visible(w.dialog(), n => n.tag === "a" && textOf(n) === "anfordern");
+  assert.equal(links.length, 1);
+  assert.deepEqual(plain(links[0].attrs), { href: "https://bewerbungsbegleiter.ch/hilfe.html#kontakt", target: "_blank", rel: "noopener" });
+});

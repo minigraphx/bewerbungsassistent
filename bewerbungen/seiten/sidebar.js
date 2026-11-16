@@ -92,7 +92,7 @@
     $("nav-budget-text").textContent = view.text;
     $("nav-budget-detail").textContent = view.detail;
     const warning = $("nav-budget-warning");
-    warning.textContent = view.warning;
+    warning.replaceChildren(...window.Texte.withCodeRequestLink(view.warning, window.App.el));
     warning.hidden = !view.warning;
     $("nav-budget-short").textContent = view.narrow;
     const bar = $("nav-budget-bar");
