@@ -106,6 +106,8 @@ code, pre { font-family: var(--font-mono); }
 .num, td.zahl { font-variant-numeric: tabular-nums; }
 .muted, .leise, p.hilfe { color: var(--text-muted); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* #337: a part of a «·» line breaks to the next line only as a whole, with the «·» it carries */
+.whole-part { display: inline-block; max-width: 100%; }
 
 /* ---------- Layout ---------- */
 main { max-width: var(--width-content); margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-7); }
@@ -558,6 +560,8 @@ th[aria-sort="descending"] .table__sort::after { content: "↓"; }
 .ai-result__cols h3 { margin: 0 0 var(--space-1); font: 700 14px/20px var(--font-sans); }
 .ai-result__cols ul { margin: 0; padding-left: 20px; display: grid; gap: var(--space-1); }
 .ai-result__foot { margin: 0; padding-top: var(--space-3); border-top: 1px solid var(--line); font-size: 13px; line-height: 18px; color: var(--text-muted); }
+/* #337: model, cost and date on a line of their own under the sentence; the space before it keeps them apart when read */
+.ai-result__meta { display: block; }
 .claim { display: grid; gap: 2px; padding: var(--space-2) 0; border-bottom: 1px solid var(--line); }
 .claim:last-child { border-bottom: 0; }
 .claim__text { color: var(--text-strong); }

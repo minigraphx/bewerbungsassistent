@@ -93,6 +93,20 @@
       a.beleg ? beleg(a.beleg) : null);
   }
 
+  /**
+   * Each part breaks only as a whole and carries the «·» after it, as on the dossier tile (#331, #337): a line may break
+   * beside an inline-block despite a no-break space, so a «·» of its own could start a line. The plain space between two
+   * parts is the only place a line breaks. Screen readers skip the «·» and hear a comma.
+   */
+  function fussZeile(teile) {
+    const letzter = teile.length - 1;
+    const ganze = teile.map((teil, index) => (index === letzter
+      ? el("span", { class: "whole-part" }, teil)
+      : el("span", { class: "whole-part" },
+        teil, el("span", { "aria-hidden": "true" }, "\u00a0·"), el("span", { class: "visually-hidden" }, ","))));
+    return ganze.flatMap((teil, index) => (index === 0 ? [teil] : [" ", teil]));
+  }
+
   function zeigeEndstand(antwort) {
     const bloecke = L.endstand(vorschlag.jetzt, antwort.endstand).map(b => el("div", {},
       el("h3", {}, b.name),
@@ -154,7 +168,7 @@
     $("zusammenfassung").textContent = v.zusammenfassung;
     $("aenderungen").replaceChildren(...v.aenderungen.map(karte));
     $("fuss-satz").textContent = texte.fuss;
-    $("fuss").textContent = L.fuss(v);
+    $("fuss").replaceChildren(...fussZeile(L.fussTeile(v)));
     zeigeEndstand(v);
     $("vorschlag-kopf").focus();
   }

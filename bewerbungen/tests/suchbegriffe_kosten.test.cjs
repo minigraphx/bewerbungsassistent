@@ -288,3 +288,59 @@ test("beside „Neu vorschlagen“ a used-up credit links where to ask and the b
   assert.equal(button.disabled, undefined);
   assert.equal(button.getAttribute("aria-disabled"), null);
 });
+
+// #337: the footer of the proposal card never starts a line with «·»; each «·» ends the part before it (#331 pattern)
+const CHANGE = { nummer: 1, bereich_name: "Suchbegriffe", zu_allgemein: false, satz: "«Trainer» aufnehmen",
+  entfaellt: [], neu: ["Trainer"], grund: "Steht im Lebenslauf.", beleg: null };
+const TERMS = { suchbegriffe: ["Python"], positiv: [], ausschluss: [] };
+const PROPOSAL = { vorschlag: "v1", aenderungen: [CHANGE], zusammenfassung: "Eine Änderung.", treffer: 40,
+  seit: "2026-11-01", jetzt: TERMS, endstand: { ...TERMS, suchbegriffe: ["Python", "Trainer"] }, entfaellt: [],
+  grenzen: { zeile: "", gesperrt: null }, modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF",
+  datum: "2026-11-16", runde: 1 };
+
+const footerOf = async proposal => (await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"], {
+  "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
+  "/api/suchbegriffe/vorschlag": proposal, [ESTIMATE]: MEDIATION,
+})).$("fuss");
+
+const isEl = n => n instanceof FakeElement;
+const shownText = n => (isEl(n) ? (n.className === "visually-hidden" ? "" : n.children.map(shownText).join("")) : n.data);
+const heardText = n => (isEl(n) ? (n.getAttribute("aria-hidden") === "true" ? "" : n.children.map(heardText).join("")) : n.data);
+
+for (const [name, proposal, words] of [
+  ["one proposal", PROPOSAL, ["Claude", "CHF\u00a00.03", "16.11.2026"]],
+  ["a second proposal", { ...PROPOSAL, runde: 2, kosten_bisher: 0.06 }, ["Claude", "CHF\u00a00.03", "16.11.2026", "bisher CHF\u00a00.06"]],
+]) {
+  test(`after ${name} each «·» of the footer is glued to the part before it, a line breaks only after «· »`, async () => {
+    const footer = await footerOf(proposal);
+    const parts = footer.children.filter(isEl);
+    assert.ok(parts.length === words.length && parts.every(n => n.className === "whole-part"), "the footer holds only whole parts");
+    assert.deepEqual(footer.children.filter(n => !isEl(n)).map(n => n.data), words.slice(1).map(() => " "),
+      "a plain space between two parts is the only place a line may break");
+    assert.deepEqual(parts.map(shownText), words.map((word, i) => (i < words.length - 1 ? `${word}\u00a0·` : word)),
+      "the «·» sits inside the part before it, after a no-break space");
+    for (const part of parts.slice(0, -1)) {
+      const [dot, comma] = part.children.slice(-2);
+      assert.equal(dot.getAttribute("aria-hidden"), "true", "the «·» is hidden from screen readers");
+      assert.equal(comma.className, "visually-hidden");
+    }
+    assert.equal(heardText(footer), words.join(", "), "screen readers hear the parts in order, with commas");
+  });
+}
+
+test("a whole part breaks to the next line only as a whole, in the shared style of every page", () => {
+  const css = fs.readFileSync(path.join(SEITEN, "stil.css"), "utf8");
+  const rule = css.split("\n").find(line => line.startsWith(".whole-part {"));
+  assert.ok(rule, ".whole-part has its rule in stil.css");
+  assert.match(rule, /display: inline-block; max-width: 100%;/);
+  assert.match(fs.readFileSync(path.join(SEITEN, "suchbegriffe.html"), "utf8"), /<link rel="stylesheet" href="\/stil\.css">/);
+});
+
+test("the meta of the footer stands on a line of its own, after the sentence and a space for screen readers", () => {
+  const html = fs.readFileSync(path.join(SEITEN, "suchbegriffe.html"), "utf8");
+  assert.match(html, /<span id="fuss-satz"><\/span> <span id="fuss" class="ai-result__meta"><\/span>/);
+  const css = fs.readFileSync(path.join(SEITEN, "stil.css"), "utf8");
+  const rule = css.split("\n").find(line => line.startsWith(".ai-result__meta {"));
+  assert.ok(rule, ".ai-result__meta has its rule in stil.css");
+  assert.match(rule, /display: block;/);
+});

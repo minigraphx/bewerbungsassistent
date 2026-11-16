@@ -43,10 +43,13 @@ test("Sie and du, costs never under a cent", () => {
   assert.match(L.texte("stelle-sie").satz, /Sie entscheiden/);
   assert.equal(L.texte("stelle-sie").gesehen(130, "2026-10-20"),
     "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 130 Treffer seit dem 20.10.2026 angesehen. Geändert wird nur, was angehakt ist.");
-  assert.equal(L.fuss({ modell: "claude-haiku-5-5", kosten_usd: 0.004, datum: "2026-11-11", runde: 2, kosten_bisher: 0.008 }),
-    "Claude · USD\u00a00.01 · 11.11.2026 · bisher USD\u00a00.01");
-  assert.equal(L.fuss({ modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF", datum: "2026-11-16", runde: 1 }),
-    "Claude · CHF\u00a00.03 · 16.11.2026");
-  assert.equal(L.fuss({ modell: "claude-sonnet-5-5", kosten_usd: 0.02, waehrung: "CHF", datum: "2026-11-16", runde: 2,
-    kosten_bisher: 0.05 }), "Claude · CHF\u00a00.02 · 16.11.2026 · bisher CHF\u00a00.05");
+  // #337: the footer comes as parts, so the page can glue each «·» to the part before it
+  assert.deepEqual(L.fussTeile({ modell: "claude-haiku-5-5", kosten_usd: 0.004, datum: "2026-11-11", runde: 2, kosten_bisher: 0.008 }),
+    ["Claude", "USD\u00a00.01", "11.11.2026", "bisher USD\u00a00.01"]);
+  assert.deepEqual(L.fussTeile({ modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF", datum: "2026-11-16", runde: 1 }),
+    ["Claude", "CHF\u00a00.03", "16.11.2026"]);
+  assert.deepEqual(L.fussTeile({ modell: "claude-sonnet-5-5", kosten_usd: 0.02, waehrung: "CHF", datum: "2026-11-16", runde: 2,
+    kosten_bisher: 0.05 }), ["Claude", "CHF\u00a00.02", "16.11.2026", "bisher CHF\u00a00.05"]);
+  assert.deepEqual(L.fussTeile({ kosten_usd: 0.02, waehrung: "CHF", datum: "2026-11-16", runde: 1 }), ["CHF\u00a00.02", "16.11.2026"],
+    "without a model no empty part");
 });
