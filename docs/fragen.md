@@ -18,7 +18,7 @@ Hier steht genau, was die App vor dem Senden an die KI ersetzt, wo das an Grenze
 
 Bevor ein Text zur KI geht, ersetzt die App Ihre persönlichen Angaben durch Platzhalter. Aus «Léa Müller-Brändli, 079 123 45 67» wird «{{NAME}}, {{PHONE}}». In der Antwort setzt die App Ihre Angaben wieder ein. Die KI erfährt so, was Sie können, aber nicht, wer Sie sind.
 
-Das gilt für jeden Aufruf der KI, zum Beispiel beim Bewerten der Treffer, beim Entwurf und bei der Prüfung des Anschreibens, bei der Hilfe in Bewerbungsformularen und beim Einlesen Ihrer Angaben aus einer Datei.
+Das gilt für jeden Aufruf der KI, zum Beispiel beim Bewerten der Treffer, beim Entwurf und bei der Prüfung des Anschreibens, bei der Hilfe in Bewerbungsformularen und beim Einlesen Ihrer Angaben aus einer Datei. Schlägt die KI auf **Suche einstellen** Gründe aus verworfenen Stellen vor, bekommt sie nur Titel, Firma, Ort und Pensum dieser Stellen, nichts von Ihnen.
 
 ## Was ersetzt die App?
 

@@ -3,8 +3,8 @@
 `GET /api/suche/haken-ausschluss?id=…&punkt=N` says what the app would add for point N under „Was fehlt oder unsicher
 ist“ (`rating_exclusion.py`) and changes nothing. The person confirms or edits it; `POST` then writes it through
 `search_frame`, the path Suche einstellen uses, with drafts before and after. Rückgängig takes out exactly that entry
-again, also with drafts. `GET …/punkte` names the points an entry already excludes, so the page shows
-«Ausgeschlossen» there. Nothing here calls the AI; neither the extension nor Claude reach the routes: they are not
+again, also with drafts; `add_entry` and `remove_entry` do the same for the AI's proposals (#319). `GET …/punkte`
+names the points an entry already excludes, so the page shows «Ausgeschlossen» there. Nothing here calls the AI; neither the extension nor Claude reach the routes: they are not
 listed in desktop/native_host.py or desktop/mcp_tools.py.
 """
 import pathlib
@@ -108,12 +108,11 @@ def _write(k, path: pathlib.Path, description: str, change) -> str:
     return k.mit_entwurf(path, description, write)
 
 
-def adopt(k, parameter, body):
-    """Adds the confirmed or edited entry to the title filter or the exclusions of the ad."""
-    body = body if isinstance(body, dict) else {}
+def add_entry(k, kind: str, value: str, adopted: str = ADOPTED) -> dict:
+    """Adds an entry to the title filter or the exclusions of the ad, with drafts; also for the AI's proposals (#319).
+    `adopted` describes the draft, with {value} and {place}."""
     path, text = _job_profile(k)
-    _point(k, body.get("id"), body.get("punkt"))
-    kind, value = _entry(body)
+    kind, value = _entry({"art": kind, "wert": value})
     place = rating_exclusion.PLACES[kind]
 
     def added(current: str) -> str:
@@ -122,15 +121,14 @@ def adopt(k, parameter, body):
         return search_frame.with_values(current, {kind: [*search_frame.values(current)[kind], value]})
 
     added(text)  # refuse before any draft is made
-    changed = _write(k, path, ADOPTED.format(value=value, place=place), added)
-    return json_antwort({"art": kind, "wert": value, "werte": _shown(changed)})
+    changed = _write(k, path, adopted.format(value=value, place=place), added)
+    return {"art": kind, "wert": value, "werte": _shown(changed)}
 
 
-def undo(k, parameter, body):
-    """Takes out exactly the adopted entry, wherever it stands in its list now."""
-    body = body if isinstance(body, dict) else {}
+def remove_entry(k, kind, value, undone: str = UNDONE) -> dict:
+    """Takes out exactly this entry, wherever it stands in its list now, with drafts."""
     path, text = _job_profile(k)
-    kind, value = _entry(body)
+    kind, value = _entry({"art": kind, "wert": value})
     place = rating_exclusion.PLACES[kind]
 
     def removed(current: str) -> str:
@@ -140,8 +138,23 @@ def undo(k, parameter, body):
         return search_frame.with_values(current, {kind: kept})
 
     removed(text)
-    changed = _write(k, path, UNDONE.format(value=value, place=place), removed)
-    return json_antwort({"art": kind, "wert": value, "werte": _shown(changed)})
+    changed = _write(k, path, undone.format(value=value, place=place), removed)
+    return {"art": kind, "wert": value, "werte": _shown(changed)}
+
+
+def adopt(k, parameter, body):
+    """Adds the confirmed or edited entry to the title filter or the exclusions of the ad."""
+    body = body if isinstance(body, dict) else {}
+    _job_profile(k)
+    _point(k, body.get("id"), body.get("punkt"))
+    kind, value = _entry(body)
+    return json_antwort(add_entry(k, kind, value))
+
+
+def undo(k, parameter, body):
+    """Takes out exactly the adopted entry, wherever it stands in its list now."""
+    body = body if isinstance(body, dict) else {}
+    return json_antwort(remove_entry(k, body.get("art"), body.get("wert")))
 
 
 GET = {"/api/suche/haken-ausschluss": preview, "/api/suche/haken-ausschluss/punkte": excluded_points}
