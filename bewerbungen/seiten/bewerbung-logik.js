@@ -32,10 +32,13 @@
     const place = letterOver(befunde)?.letter_cut.paragraph;
     return Number.isInteger(place) ? place : null;
   }
-  /** A letter over one page left as it is stays a hint (G94), so the line matches «1 Hinweis» above it. */
-  function letterKept({ pages, lines }) {
+  /**
+   * A letter over one page (G94) or a CV over its limit with no cut left (#330) left as it is stays a hint, so the line
+   * matches «1 Hinweis» above it.
+   */
+  function keptOver(name, { pages, lines }) {
     const over = lines > 0 ? `, etwa ${lines} ${lines === 1 ? "Zeile" : "Zeilen"} zu viel` : "";
-    return `Anschreiben: ${pages} Seiten${over}. Bestätigt: so lassen.`;
+    return `${name}: ${pages} Seiten${over}. Bestätigt: so lassen.`;
   }
   /** Both files are built and, with a dossier chosen (G40), the dossier too. */
   function gebaut(daten) {
@@ -54,12 +57,15 @@
   /**
    * One finding of the check as a line: { text, stufe, knopf } — knopf confirms a layout breach (G52). A CV over its
    * limit brings `kuerzen` instead, the cuts to tick (G92, kuerzen.js); a letter over one page also offers
-   * `cutInLetter`, before «So lassen» (G94).
+   * `cutInLetter`, before «So lassen» (G94). A CV over its limit with no cut left waits on «So lassen» alone, as a
+   * `decision` (#330).
    */
   function befundZeile(b) {
     if (b.kuerzen && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: null, kuerzen: b.kuerzen };
     if (b.letter_cut && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: BESTAETIGEN, cutInLetter: CUT_IN_LETTER };
-    if (b.letter_cut) return { text: letterKept(b.letter_cut), stufe: "hinweis", knopf: null };
+    if (b.letter_cut) return { text: keptOver("Anschreiben", b.letter_cut), stufe: "hinweis", knopf: null };
+    if (b.cv_over && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: BESTAETIGEN, decision: true };
+    if (b.cv_over) return { text: keptOver("Lebenslauf", b.cv_over), stufe: "hinweis", knopf: null };
     if (b.schluessel && b.bestaetigt) return { text: `${b.text} Bestätigt: so lassen.`, stufe: "ok", knopf: null };
     return { text: b.text, stufe: b.stufe, knopf: b.schluessel ? BESTAETIGEN : null };
   }

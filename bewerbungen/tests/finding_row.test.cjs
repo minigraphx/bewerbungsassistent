@@ -86,6 +86,36 @@ test("the buttons call their actions; «So lassen» hands over its button", () =
   assert.deepEqual(calls, ["cut", "So lassen"]);
 });
 
+const cvOver = {
+  stufe: "hinweis", schluessel: "abc:seiten:4", bestaetigt: false, cv_over: { lines: 7, pages: 4 },
+  text: "Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch enger gesetzt sind es etwa 7 Zeilen zu viel. Weiter kürzen lässt sich nur unter «Meine Angaben».",
+};
+
+test("a CV over three pages with no cut left has no «×» and «So lassen» alone on its own row (#330)", () => {
+  const { F, lines } = setup();
+  const kept = [];
+  const li = F.row(cvOver, logik.befundZeile(cvOver), { onCut() { kept.push("cut"); }, onKeep: b => kept.push(b.textContent) });
+  assert.equal(lines[0].options.schliessbar, false);
+  const [content] = li.elements;
+  const [sentence, row] = content.elements;
+  assert.equal(sentence.textContent, cvOver.text);
+  assert.match(row.className, /\bbtn-row\b/);
+  assert.deepEqual(row.elements.map(b => [b.textContent, b.className]), [["So lassen", "btn btn--sm"]]);
+  buttons(li).forEach(b => b.click());
+  assert.deepEqual(kept, ["So lassen"]);
+  assert.equal(li.getAttribute("data-offen"), "", "it waits, so the focus can come to it after another «So lassen»");
+});
+
+test("confirmed, the CV over three pages is a hint line that takes the focus", () => {
+  const { F, el, doc, lines } = setup();
+  const done = { ...cvOver, bestaetigt: true };
+  const list = el("ul", {}, F.row(done, logik.befundZeile(done), { onCut() {}, onKeep() {} }));
+  assert.equal(lines[0].li.getAttribute("data-stufe"), "hinweis");
+  assert.equal(list.elements[0].textContent, "Lebenslauf: 4 Seiten, etwa 7 Zeilen zu viel. Bestätigt: so lassen.");
+  F.focusAfterConfirm(list, done.schluessel);
+  assert.equal(doc.activeElement, list.elements[0]);
+});
+
 test("the longest paragraph: the group named by its label, then the paragraph, then «Anschreiben ändern»", () => {
   const { F, el } = setup();
   const paragraph = el("p", {}, "Bei der Beispiel GmbH habe ich eine Plattform für Kundendaten aufgebaut.");

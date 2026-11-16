@@ -58,6 +58,9 @@ class Befund:
     # A letter over one page (G94): about how many lines are over and the place of its longest paragraph, which the
     # step Anschreiben marks; cut there or confirmed with «So lassen»
     letter_cut: dict | None = None
+    # A CV still over its limit with three pages allowed and no cut left (G92, #330): the lines over and its pages;
+    # nothing is left to offer, so the person confirms it with «So lassen»
+    cv_over: dict | None = None
 
 
 def _seiten(pdf: pathlib.Path) -> list[str]:
@@ -79,7 +82,8 @@ def _cv_over_limit(pdf: pathlib.Path, pages: int, limit: int, key: str | None, o
     text = f"Lebenslauf: {pages} Seiten, erlaubt sind höchstens {limit}. {tighter}"
     choice = offer(limit)
     if not choice["optionen"] and not choice["drei_seiten"]:
-        return Befund("hinweis", f"{text} {ONLY_IN_BASICS}")
+        # a hint alone would let it go out unseen; with nothing left to offer, it waits on «So lassen» (#330)
+        return Befund("hinweis", f"{text} {ONLY_IN_BASICS}", schluessel=key, cv_over={"lines": lines, "pages": pages})
     return Befund("hinweis", text, schluessel=key, kuerzen={"zeilen": lines, **choice})
 
 
@@ -153,8 +157,9 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int |
         if art == "lebenslauf" and offer is not None and not as_it_is:
             over = _cv_over_limit(pdf, len(seiten), limit, key, offer)
             befunde.append(over)
-            # the last page is the one being cut away: its fill waits until the CV keeps its limit (G92)
-            skipped = frozenset({"fuellung"}) if over.kuerzen else skipped
+            # the last page is the one being cut away: its fill waits until the CV keeps its limit (G92); kept over it,
+            # the one «So lassen» covers that page too (#330)
+            skipped = frozenset({"fuellung"}) if over.kuerzen or over.cv_over else skipped
         elif art == "anschreiben" and not as_it_is:
             befunde.append(_letter_over_limit(pdf, len(seiten), key, letter))
             # G94: its second page is as short as the tightest setting leaves it, on purpose
@@ -275,13 +280,14 @@ def _own_headings(cv: object) -> tuple[str, ...]:
 
 
 def _with_confirmations(daten: pathlib.Path, entry_id: str, befunde: list[Befund]) -> list[Befund]:
-    """Confirmed breaches; a letter over one page the person leaves as it is (G94) no longer counts as an error."""
+    """Confirmed breaches; a letter over one page the person leaves as it is (G94) no longer counts as an error, and a
+    CV kept over its limit (#330) stays a hint."""
     done = layout_confirmed.confirmed(daten, entry_id)
     return [_confirmed(b) if b.schluessel in done else b for b in befunde]
 
 
 def _confirmed(befund: Befund) -> Befund:
-    stufe = "hinweis" if befund.letter_cut else befund.stufe
+    stufe = "hinweis" if befund.letter_cut or befund.cv_over else befund.stufe
     return dataclasses.replace(befund, bestaetigt=True, stufe=stufe)
 
 

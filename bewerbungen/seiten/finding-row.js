@@ -10,17 +10,20 @@
 
   /**
    * One finding as a list line: `b` from /api/pruefung, `zeile` from BewerbungLogik.befundZeile. A letter over one page
-   * waits on a decision, so it has no «×» and its buttons stand on a row of their own, the cut first (as the CV, G92).
-   * Each line with a key carries it, so the focus can find the line again after the list is drawn anew.
+   * waits on a decision, so it has no «×» and its buttons stand on a row of their own, the cut first (as the CV, G92);
+   * so does a CV over its limit with no cut left, with «So lassen» alone (#330). Each line with a key carries it, so
+   * the focus can find the line again after the list is drawn anew.
    */
   function row(b, zeile, { onCut, onKeep }) {
     const keep = zeile.knopf
       ? el("button", { type: "button", class: "btn btn--sm", onclick: event => onKeep(event.currentTarget) }, zeile.knopf) : null;
-    const content = zeile.cutInLetter
-      ? el("span", { class: "cut-finding" }, el("span", {}, zeile.text), el("div", { class: "btn-row" },
-        el("button", { type: "button", class: "btn btn--sm btn--primary", onclick: onCut }, zeile.cutInLetter), keep))
+    const cut = zeile.cutInLetter
+      ? el("button", { type: "button", class: "btn btn--sm btn--primary", onclick: onCut }, zeile.cutInLetter) : null;
+    const decision = Boolean(zeile.cutInLetter || zeile.decision);
+    const content = decision
+      ? el("span", { class: "cut-finding" }, el("span", {}, zeile.text), el("div", { class: "btn-row" }, cut, keep))
       : keep ? el("span", {}, zeile.text, " ", keep) : zeile.text;
-    const line = window.Meldungen.listenZeile(document, content, zeile.stufe, zeile.cutInLetter ? { schliessbar: false } : {});
+    const line = window.Meldungen.listenZeile(document, content, zeile.stufe, decision ? { schliessbar: false } : {});
     return keyed(line, b);
   }
 
