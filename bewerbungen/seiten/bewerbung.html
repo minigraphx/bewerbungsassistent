@@ -51,6 +51,15 @@
           <h3 class="cv-create__title">Lebenslauf für diese Stelle</h3>
           <p class="field__hint">Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.</p>
           <h4 class="cv-create__step">1 · Inhalt</h4>
+          <section class="cv-create__ai" id="cv-erstellen-ki" aria-labelledby="cv-erstellen-ki-titel" hidden>
+            <h5 class="cv-create__ai-title" id="cv-erstellen-ki-titel" data-text="lebenslauf.ki-titel">Vorschläge der KI für diese Stelle</h5>
+            <p class="cv-create__ai-line" id="cv-erstellen-ki-zeile"></p>
+            <ul class="cv-create__ideas" id="cv-erstellen-ki-liste" hidden></ul>
+            <div class="btn-row" id="cv-erstellen-ki-knoepfe" hidden><button type="button" class="btn" id="cv-erstellen-ki-knopf" aria-describedby="cv-erstellen-ki-kosten"></button><span class="caption" id="cv-erstellen-ki-kosten"></span><button type="button" class="btn btn--quiet" id="cv-erstellen-ki-neu-schaetzen" data-text="lebenslauf.ki-neu-schaetzen" hidden>Neu schätzen</button><button type="button" class="btn btn--quiet" id="cv-erstellen-ki-stellentext" data-text="lebenslauf.ki-zum-stellentext" hidden>Zum Stellentext</button></div>
+            <details class="cv-create__ai-text" id="cv-erstellen-ki-text"><summary>Text an die KI ansehen</summary><pre class="cv-create__ai-sent" id="cv-erstellen-ki-text-inhalt"></pre></details>
+            <p class="status-line" id="cv-erstellen-ki-status" role="status" aria-live="polite" tabindex="-1"></p>
+            <p class="cv-create__ai-note"><span data-text="lebenslauf.ki-grenze">Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in Ihren Angaben steht.</span> <a href="/angaben">Angaben selbst ändern</a></p>
+          </section>
           <div id="cv-erstellen-stationen"></div>
           <div class="field"><label class="field__label" for="cv-erstellen-beruf">Berufsbezeichnung</label><input class="input" id="cv-erstellen-beruf" maxlength="120" autocomplete="off"></div>
           <div class="field"><label class="field__label" for="cv-erstellen-profil">Kurzprofil</label><textarea class="input" id="cv-erstellen-profil" maxlength="2000"></textarea>
@@ -320,6 +329,7 @@
 <script src="/formular-logik.js"></script>
 <script src="/bewerbung-logik.js"></script>
 <script src="/lebenslauf-anpassen.js"></script>
+<script src="/treffer-logik.js"></script>
 <script src="/lebenslauf-erstellen-logik.js"></script>
 <script src="/lebenslauf-erstellen.js"></script>
 <script src="/unterlagen-wahl.js"></script>

@@ -252,6 +252,43 @@
     },
 
     // Application page (step 4)
+    "lebenslauf.ki-grenze": {
+      sie: "Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in Ihren Angaben steht.",
+      du: "Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in deinen Angaben steht.",
+    },
+    "lebenslauf.ki-titel": {
+      sie: "Vorschläge der KI für diese Stelle", du: "Vorschläge der KI für diese Stelle",
+      lehrstelle: "Vorschläge der KI für diese Lehrstelle",
+    },
+    "lebenslauf.ki-aus": {
+      sie: "Mit KI schlägt die App für diese Stelle Stationen, Reihenfolge und Kurzprofil vor.",
+      du: "Mit KI schlägt die App für diese Stelle Stationen, Reihenfolge und Kurzprofil vor.",
+      lehrstelle: "Mit KI schlägt die App für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vor.",
+    },
+    "lebenslauf.ki-ohne-inserat": {
+      sie: "Für Vorschläge der KI fehlt noch der Stellentext.", du: "Für Vorschläge der KI fehlt noch der Stellentext.",
+    },
+    "lebenslauf.ki-bereit": {
+      sie: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      du: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      lehrstelle: "Die KI kann für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+    },
+    "lebenslauf.ki-schaetzen": { sie: "Kosten und Dauer werden geschätzt …", du: "Kosten und Dauer werden geschätzt …" },
+    "lebenslauf.ki-neu-schaetzen": { sie: "Neu schätzen", du: "Neu schätzen" },
+    "lebenslauf.ki-gespeichert": {
+      sie: "Für diese Bewerbung ist Ihre Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».",
+      du: "Für diese Bewerbung ist deine Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».",
+    },
+    "lebenslauf.ki-angewendet": {
+      sie: "Schon angewendet. Ohne Häkchen gilt eine Empfehlung als Ganzes nicht mehr.",
+      du: "Schon angewendet. Ohne Häkchen gilt eine Empfehlung als Ganzes nicht mehr.",
+    },
+    "lebenslauf.ki-laeuft": { sie: "Die KI schlägt vor …", du: "Die KI schlägt vor …" },
+    "lebenslauf.ki-holen": { sie: "Vorschläge holen", du: "Vorschläge holen" },
+    "lebenslauf.ki-neu": { sie: "Neu vorschlagen lassen", du: "Neu vorschlagen lassen" },
+    "lebenslauf.ki-nochmals": { sie: "Nochmals vorschlagen", du: "Nochmals vorschlagen" },
+    "lebenslauf.ki-einschalten": { sie: "KI einschalten", du: "KI einschalten" },
+    "lebenslauf.ki-zum-stellentext": { sie: "Zum Stellentext", du: "Zum Stellentext" },
     "bewerbung.angaben": { sie: "Angaben zur Stelle", du: "Angaben zur Stelle", lehrstelle: "Angaben zur Lehrstelle" },
     "bewerbung.stellentext": { sie: "Stellentext", du: "Stellentext", lehrstelle: "Inseratstext" },
     "bewerbung.gespraech": { sie: "Gespräch vorbereiten", du: "Gespräch vorbereiten", lehrstelle: "Einladung vorbereiten" },

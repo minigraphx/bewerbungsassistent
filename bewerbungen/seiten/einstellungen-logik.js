@@ -29,7 +29,7 @@
     chat: "Fragen an die KI", prefill: "Angaben vorbefüllen",
     form_fields: "Formulare ausfüllen", form_answers: "Formulare ausfüllen",
     career: "Suchbegriffe vorschlagen", terms: "Suchbegriffe prüfen", site_list: "Weitere Seiten lesen",
-    exclusions: "Ausschlüsse vorschlagen",
+    exclusions: "Ausschlüsse vorschlagen", cv_suggestions: "Lebenslauf für eine Stelle",
   };
   const OTHER = "Weitere";
   const MEDIATION_NOTE = "Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, "

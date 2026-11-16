@@ -936,8 +936,24 @@ button.files__photo img { width: 100%; height: 100%; object-fit: cover; display:
 .cv-create__name { display: block; color: var(--text-strong); overflow-wrap: anywhere; }
 .cv-create__detail { display: block; font: 400 14px/20px var(--font-sans); color: var(--text-muted); overflow-wrap: anywhere; }
 .cv-create__move { display: flex; flex: none; gap: var(--space-1); }
-.cv-create__move .btn { min-width: 36px; justify-content: center; }
+.cv-create__move .btn { min-width: 44px; min-height: 44px; justify-content: center; }
 .cv-create__designs { margin-bottom: var(--space-2); }
+/* Suggestions of the AI (#293, G75, design A6): applied on opening, each recommendation a box to undo it. */
+.cv-create__ai { margin: 0 0 var(--space-4); padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.application .card .cv-create__ai-title { margin: 0; font: 700 16px/22px var(--font-sans); color: var(--text-strong); }
+.cv-create__ai-line { margin: var(--space-1) 0 0; color: var(--text); }
+.cv-create__ai-line:empty { display: none; }
+.cv-create__ideas { list-style: none; margin: var(--space-2) 0 0; padding: 0; }
+.cv-create__idea + .cv-create__idea { border-top: 1px solid var(--line); }
+.cv-create__idea .check { min-height: 44px; padding: 10px 0; margin: 0; box-sizing: border-box; cursor: pointer; }
+.cv-create__idea-what { display: block; color: var(--text-strong); overflow-wrap: anywhere; }
+.cv-create__idea-why { display: block; font: 400 14px/20px var(--font-sans); color: var(--text-muted); overflow-wrap: anywhere; }
+.cv-create__ai .btn-row { margin-top: var(--space-3); }
+.cv-create__ai-note { margin: var(--space-3) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--line); font: 400 13px/18px var(--font-sans); color: var(--text-muted); }
+.cv-create__ai-note a { display: flex; align-items: center; width: fit-content; min-height: 44px; }
+.cv-create__ai-text { margin-top: var(--space-1); font: 400 13px/18px var(--font-sans); color: var(--text-muted); }
+.cv-create__ai-text summary { display: list-item; min-height: 44px; padding-top: 13px; box-sizing: border-box; cursor: pointer; }
+.cv-create__ai-sent { max-height: 320px; overflow: auto; margin: 0; padding: var(--space-2); white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-subtle); border-radius: var(--radius-md); font: 400 13px/18px var(--font-mono); color: var(--text); }
 .cv-create textarea.input { width: 100%; box-sizing: border-box; }
 .application .card .cv-create .field { margin-top: var(--space-4); }
 .application .card .cv-create .btn-row { margin-top: var(--space-4); }
