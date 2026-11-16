@@ -89,9 +89,39 @@ def test_a_file_of_the_same_name_in_the_new_folder_is_never_overwritten(started)
 
     status, answer = change(server, "dokumente/zertifikate/Scan.pdf", "zeugnisse")
 
-    assert status == 400 and answer["fehler"]
+    assert status == 400 and answer["fehler"] == "Unter Zeugnisse liegt schon eine Datei namens Scan.pdf."
     assert kept.read_bytes() == b"schon abgelegt"
     assert (folder / "dokumente" / "zertifikate" / "Scan.pdf").read_bytes() == PDF
+
+
+def kinds_record(folder) -> dict:
+    record = folder / "dokumente" / "arten.yaml"
+    return yaml.safe_load(record.read_text(encoding="utf-8")) or {} if record.is_file() else {}
+
+
+def test_a_moved_file_leaves_no_kind_behind_in_the_record_of_kinds(started):
+    server, folder, _ = started
+    upload(server, name="Scan.pdf", category="zertifikate")
+    upload(server, name="Diplom_alt.pdf", category="zertifikate", data=PDF + b"alt")
+    record = folder / "dokumente" / "arten.yaml"
+    record.write_text("dokumente/zertifikate/Scan.pdf: diplom\ndokumente/zertifikate/Diplom_alt.pdf: diplom\n",
+                      encoding="utf-8")
+
+    status, answer = change(server, "dokumente/zertifikate/Scan.pdf", "zeugnisse")
+
+    assert status == 200, answer
+    assert kinds_record(folder) == {"dokumente/zertifikate/Diplom_alt.pdf": "diplom"}
+
+
+def test_an_unreadable_record_of_kinds_stops_the_change_before_the_file_moves(started):
+    server, folder, _ = started
+    upload(server, name="Scan.pdf", category="zertifikate")
+    (folder / "dokumente" / "arten.yaml").write_text("- keine: [Liste\n", encoding="utf-8")
+
+    status, answer = change(server, "dokumente/zertifikate/Scan.pdf", "zeugnisse")
+
+    assert status == 400 and "arten.yaml" in answer["fehler"]
+    assert (folder / "dokumente" / "zertifikate" / "Scan.pdf").is_file()
 
 
 @pytest.mark.parametrize("datei, category", [

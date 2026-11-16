@@ -4,8 +4,10 @@
 "use strict";
 
 const ANNOUNCE_DELAY_MS = 100; // a status region that changes after it is drawn is read out
+const KIND_SETTLE_MS = 500; // a new kind counts once the select has been left alone this long
 let uploadNotes = {}; // datei → true when recognised by its name, false when not sure; files filed before have none
 let uploadAnnouncement = "";
+let kindChoices = {}; // datei → timer of a kind not yet settled
 
 /** Say what happened in the status region of the card, also when the page was just drawn anew. */
 function announceUploads(text) {
@@ -66,11 +68,32 @@ async function sendDropped(chosen) {
     }
   }
   setUploads(list, problems);
-  if (added.length) announceUploads(addedStatus(form, state.track, added));
+  announceUploads(added.length ? addedStatus(form, state.track, added) : ""); // never an old „Hinzugefügt“ beside a refusal
   focusInCard();
 }
 
+/**
+ * Arrow keys on a closed select fire „change“ at every step (Windows): the file moves only once the choice has
+ * settled, to the kind it settled on, and only that kind is announced.
+ */
 function changeUploadKind(upload, category) {
+  const waiting = kindChoices[upload.datei];
+  if (waiting) window.clearTimeout(waiting);
+  kindChoices = {
+    ...kindChoices,
+    [upload.datei]: window.setTimeout(() => settleUploadKind(upload, category), KIND_SETTLE_MS),
+  };
+}
+
+function settleUploadKind(upload, category) {
+  const { [upload.datei]: _done, ...others } = kindChoices;
+  kindChoices = others;
+  const current = uploads.find((u) => u.datei === upload.datei);
+  if (!current || current.category === category) return Promise.resolve();
+  return moveUploadKind(current, category);
+}
+
+function moveUploadKind(upload, category) {
   const problem = kindChangeProblem(form, state.track, uploads, upload, category);
   if (problem) {
     setUploads(uploads, [problem]); // drawn anew, the select shows the old kind again

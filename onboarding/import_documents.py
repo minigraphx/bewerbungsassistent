@@ -84,11 +84,11 @@ def remove_pending(data_dir: pathlib.Path, rel: str) -> None:
     _forget_pending(data_dir, rel)
 
 
-def move_pending(data_dir: pathlib.Path, rel: str, category: str) -> str:
+def move_pending(data_dir: pathlib.Path, rel: str, category: str, kind_name: str) -> str:
     """Move a pending document into the folder of another kind (G84) and return its new path.
 
-    The entry in `neu.yaml` keeps its place and its other fields; a file of the same name there is never replaced.
-    The caller checks the category and the limits first.
+    The entry in `neu.yaml` keeps its place and its other fields; a file of the same name there is never replaced,
+    and the refusal names the kind (`kind_name`, e.g. „Zeugnisse“). The caller checks the category and the limits first.
     """
     if rel not in {d["datei"] for d in pending_documents(data_dir)}:
         raise ValueError("Diese Unterlage gibt es nicht (mehr).")
@@ -98,7 +98,7 @@ def move_pending(data_dir: pathlib.Path, rel: str, category: str) -> str:
     if moved == rel:
         return rel
     if target.exists():
-        raise ValueError(f"Bei dieser Art liegt schon eine Datei namens {source.name}.")
+        raise ValueError(f"Unter {kind_name} liegt schon eine Datei namens {source.name}.")
     target.parent.mkdir(parents=True, exist_ok=True)
     source.rename(target)
     path = im_ordner(data_dir, PENDING)

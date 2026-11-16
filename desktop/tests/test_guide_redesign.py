@@ -110,6 +110,9 @@ def test_the_pictures_say_what_they_show_today():
     # G84, #270: one drop area, each file with its kind to correct
     assert "mit einer Fläche Dateien hierher ziehen und dem Knopf Dateien wählen" in guide
     assert "jede mit ihrer Art zum Ändern und Entfernen" in guide and "](bilder/angaben.jpg)" in guide
+    picture = guide.split("](bilder/angaben.jpg)", 1)[0].rsplit("![", 1)[1]
+    assert "gleich nach dem Hinzufügen" in picture
+    assert "dem Hinweis «Am Namen erkannt» oder, beim Scan, «Nicht sicher erkannt, bitte prüfen»" in picture
     check = body("Stellen suchen und bewerben", 3)
     assert "](bilder/pruefung.jpg)" in check and "**So lassen**" in check
     picture = check.split("](bilder/pruefung.jpg)", 1)[0].rsplit("![", 1)[1]

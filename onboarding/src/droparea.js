@@ -82,8 +82,17 @@ function planDrop(form, track, current, chosen) {
     accepted.push({ index, category, name, size: file.size, sure });
     return null;
   });
-  const limits = [...leftOut].map(([category, count]) => leftOutMessage(form, track, category, count));
+  const limits = [...leftOut].map(([category, count]) => dropLeftOut(form, track, category, count));
   return { accepted, messages: [...messages, ...limits] };
+}
+
+/** „Lebensläufe: höchstens 10 Dateien.“: the kind in the plural, not the title of a section of the saved file. */
+function kindLimit(form, track, category) {
+  return `${kindPlural(form, track, category)}: höchstens ${documentCategories(form).get(category).maxFiles} Dateien.`;
+}
+
+function dropLeftOut(form, track, category, count) {
+  return `${kindLimit(form, track, category)} ${count === 1 ? "Eine Datei wurde" : `${count} Dateien wurden`} nicht hinzugefügt.`;
 }
 
 function kindFailed(reason) {
@@ -99,15 +108,15 @@ function kindChangeProblem(form, track, uploads, upload, category) {
   }
   const { count, maxFiles } = categoryRoom(form, uploads, category);
   if (count < maxFiles) return null;
-  return `${forTrack(target.title, track)}: höchstens ${maxFiles} Dateien. ${DROP_TEXT[track].firstRemove}`;
+  return `${kindLimit(form, track, category)} ${DROP_TEXT[track].firstRemove}`;
 }
 
 function addedStatus(form, track, added) {
-  return `Hinzugefügt: ${added.map((u) => `${u.name} als ${kindLabel(form, track, u.category)}`).join(", ")}.`;
+  return `Hinzugefügt: ${added.map((u) => `${u.name} als ${kindInSentence(form, track, u.category)}`).join(", ")}.`;
 }
 
 function changedStatus(form, track, name, category) {
-  return `${name} ist jetzt als ${kindLabel(form, track, category)} eingeordnet.`;
+  return `${name} ist jetzt als ${kindInSentence(form, track, category)} eingeordnet.`;
 }
 
 function removedStatus(name) {
@@ -187,10 +196,15 @@ function kindSelect(ctx, upload) {
   }, options);
 }
 
+/** A file name wraps after „_“, „-“ and „.“ first, so „Lebenslauf_Erika_Beispiel.pdf“ breaks between its words. */
+function nameWithBreaks(name) {
+  return String(name).split(/(?<=[_.\-])/).flatMap((part, i) => (i ? [el("wbr", {}), part] : [part]));
+}
+
 function fileRowView(ctx, upload, index) {
   return el("li", { className: "drop-file" }, [
     el("div", { className: "drop-file__info" }, [
-      el("span", { className: "drop-file__name" }, upload.name),
+      el("span", { className: "drop-file__name" }, nameWithBreaks(upload.name)),
       el("span", { className: "drop-file__size" }, formatSize(upload.size)),
       ...rowNotes(ctx, upload),
     ]),

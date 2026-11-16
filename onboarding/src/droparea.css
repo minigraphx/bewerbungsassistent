@@ -11,17 +11,20 @@
 .prefill-card > .hint { margin: 0 0 8px; font-size: 14px; line-height: 20px; }
 .drop-files { list-style: none; margin: 8px 0 0; padding: 0; }
 .drop-file { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 0; border-top: 1px solid var(--line); }
-.drop-file__info { flex: 1 1 240px; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
-.drop-file__name { min-width: 0; overflow-wrap: anywhere; color: var(--text-strong); font-weight: 500; }
+.drop-file__info { flex: 1 1 160px; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.drop-file__name { min-width: 0; overflow-wrap: break-word; color: var(--text-strong); font-weight: 500; }
 .drop-file__size { color: var(--muted); font-size: 14px; white-space: nowrap; }
 .drop-file__note { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; line-height: 18px; }
 .drop-file__actions { display: flex; flex: 0 1 auto; align-items: center; gap: 8px; max-width: 100%; }
 .drop-file__kind { min-width: 0; max-width: 100%; width: auto; padding: 0 8px; }
-.drop-file .remove { padding: 0 12px; }
+.drop-file .remove { flex: none; padding: 0 12px; }
 .drop-status:empty { display: none; }
 .drop-status { margin: 8px 0 0; font-size: 14px; line-height: 20px; }
 .drop-status, .prefill-card #upload-messages { overflow-wrap: anywhere; }  /* long file names in the messages too */
+@media (min-width: 480px) {
+  .drop-file__kind { width: 17.5em; }  /* one width for every row, wide enough for „Früheres Motivationsschreiben“ */
+}
 @media (max-width: 479px) {
-  .drop-file__actions { flex: 1 1 100%; }
-  .drop-file__kind { flex: 1 1 auto; }
+  .drop-file__actions { flex: 1 1 100%; flex-wrap: wrap; }
+  .drop-file__kind { flex: 1 1 16.5em; }  /* „Früheres Motivationsschreiben“ stays whole; „Entfernen“ may go below */
 }

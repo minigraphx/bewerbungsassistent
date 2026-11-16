@@ -108,6 +108,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     import import_documents
     import known_tags
     import prefill
+    import proof_kinds
     import routes_ai
     import validation
 
@@ -176,12 +177,27 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
             raise ValueError("Diese Unterlage gibt es nicht (mehr).")
         entries = [{"category": category if d["datei"] == rel else d["category"], "name": d["name"], "size": d["size"]}
                    for d in known]
+        track = _track(form, request.get("track"))
         errors = documents.validate_documents(form, entries)
         if errors:
-            track = _track(form, request.get("track"))
             raise ValueError(" ".join(documents.describe(form, track, entries, e) for e in errors))
-        moved = import_documents.move_pending(folder, rel, category)
+        recorded = proof_kinds.load(folder)  # an unreadable record stops the change before the file moves
+        kind_name = validation.for_track(documents.categories(form)[category]["kindPlural"], track)
+        moved = import_documents.move_pending(folder, rel, category, kind_name)
+        if moved != rel:
+            _forget_recorded_kind(k, folder, recorded, rel)
         return json_antwort({"datei": moved, "unterlagen": import_documents.pending_documents(folder)})
+
+    def _forget_recorded_kind(k, folder: pathlib.Path, recorded: dict[str, str], rel: str) -> None:
+        """A kind recorded for the old path („Diplom“, G63) no longer holds: the new folder gives the kind now."""
+        updated = proof_kinds.without(recorded, rel)
+        if updated == recorded:
+            return
+        record = folder / proof_kinds.FILE
+        description = f"Art von {pathlib.PurePosixPath(rel).name} vergessen"
+        k.ablage.speichere(record, f"Stand vor: {description}")
+        proof_kinds.save(folder, updated)
+        k.ablage.speichere(record, description)
 
     def take_over(k, parameter, body):
         folder = ready_data_dir(state, k)

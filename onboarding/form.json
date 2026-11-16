@@ -32,13 +32,14 @@
     },
     "categories": [
       {"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 10,
-        "kindLabel": "Lebenslauf", "fileTypes": ["document"]},
+        "kindLabel": "Lebenslauf", "kindPlural": "Lebensläufe", "fileTypes": ["document"]},
       {"id": "zeugnisse", "title": "Zeugnisse", "hint": {"job": "Arbeits- und Schulzeugnisse, auch Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20,
-        "kindLabel": {"job": "Zeugnis", "apprenticeship": "Zeugnis oder Bericht"}, "fileTypes": ["document", "image"]},
+        "kindLabel": {"job": "Zeugnis", "apprenticeship": "Zeugnis oder Bericht"}, "kindPlural": "Zeugnisse", "fileTypes": ["document", "image"]},
       {"id": "zertifikate", "title": "Zertifikate und Diplome", "hint": "Diplome, Kursbestätigungen, Sprachzertifikate, Eignungstests", "maxFiles": 30,
-        "kindLabel": "Zertifikat oder Diplom", "fileTypes": ["document", "image"]},
+        "kindLabel": "Zertifikat oder Diplom", "kindPlural": "Zertifikate und Diplome", "fileTypes": ["document", "image"]},
       {"id": "anschreiben-bisher", "title": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "hint": "daraus übernimmt die App Ton und eigene Formulierungen", "maxFiles": 10,
-        "kindLabel": {"job": "Früheres Anschreiben", "apprenticeship": "Früheres Motivationsschreiben"}, "fileTypes": ["document"]}
+        "kindLabel": {"job": "Früheres Anschreiben", "apprenticeship": "Früheres Motivationsschreiben"},
+        "kindPlural": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "fileTypes": ["document"]}
     ],
     "fileTypes": {
     "document": {"labels": ["PDF", "Word (.docx, .doc)", "Textdateien (.txt)"], "extensions": ["pdf", "docx", "doc", "txt"]},

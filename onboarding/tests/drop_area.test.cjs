@@ -266,6 +266,12 @@ test("each row has name, size, how it was recognised, a labelled kind and „Ent
   assert.match(byTag(image2, "li")[2].textContent, /Bild: bleibt auf deinem Computer, die KI liest es nicht\./);
 });
 
+test("a long file name may wrap between its parts, and reads as it is", () => {
+  const name = byTag(card(uploads, { notes }), "li").map((row) => findAll(row, (n) => n.className === "drop-file__name")[0])[0];
+  assert.equal(name.textContent, "Lebenslauf_2025.pdf");
+  same(name.children.map((n) => n.tagName || n.textContent), ["Lebenslauf_", "wbr", "2025.", "wbr", "pdf"]);
+});
+
 test("changing the kind and removing go to the page, with the row they belong to", () => {
   const changed = [];
   const removed = [];
@@ -296,6 +302,33 @@ test("adding, changing and removing are announced in words", () => {
   assert.equal(page.kindFailed("Die App antwortet nicht."), "Die Art liess sich nicht ändern: Die App antwortet nicht.");
 });
 
+test("in a sentence an earlier letter is written small, in the list of kinds it stays capitalised", () => {
+  assert.equal(page.addedStatus(form, "job", [{ name: "Brief.pdf", category: LETTER }]), "Hinzugefügt: Brief.pdf als früheres Anschreiben.");
+  assert.equal(page.changedStatus(form, "job", "Brief.pdf", LETTER), "Brief.pdf ist jetzt als früheres Anschreiben eingeordnet.");
+  assert.equal(page.changedStatus(form, "apprenticeship", "Brief.pdf", LETTER),
+    "Brief.pdf ist jetzt als früheres Motivationsschreiben eingeordnet.");
+  same(page.kindOptions(form, "apprenticeship", "Brief.pdf").map((o) => o.label),
+    ["Lebenslauf", "Zeugnis oder Bericht", "Zertifikat oder Diplom", "Früheres Motivationsschreiben"]);
+});
+
+test("a full kind is named in the plural", () => {
+  const filled = (category, count) => Array.from({ length: count }, (_, i) => ({ category, name: `Datei ${i}.pdf`, size: 10 }));
+  const cases = [
+    [CV, "Lebenslauf.pdf", "job", "Lebensläufe: höchstens 10 Dateien."],
+    [REFERENCE, "Zeugnis.pdf", "job", "Zeugnisse: höchstens 20 Dateien."],
+    [CERTIFICATE, "Diplom.pdf", "job", "Zertifikate und Diplome: höchstens 30 Dateien."],
+    [LETTER, "Anschreiben.pdf", "job", "Frühere Anschreiben: höchstens 10 Dateien."],
+    [LETTER, "Motivationsschreiben.pdf", "apprenticeship", "Frühere Motivationsschreiben: höchstens 10 Dateien."],
+  ];
+  for (const [category, name, track, limit] of cases) {
+    const current = filled(category, form.documents.categories.find((c) => c.id === category).maxFiles);
+    same(page.planDrop(form, track, current, [{ name, size: 10 }]).messages, [`${limit} Eine Datei wurde nicht hinzugefügt.`]);
+    const scan = { category: category === CERTIFICATE ? REFERENCE : CERTIFICATE, name: "Scan.pdf", size: 10, datei: "x" };
+    assert.equal(page.kindChangeProblem(form, track, [...current, scan], scan, category),
+      `${limit} ${track === "job" ? "Entfernen Sie zuerst eine." : "Entferne zuerst eine."}`);
+  }
+});
+
 test("a change to a full or forbidden kind is refused before anything moves", () => {
   const references = Array.from({ length: 20 }, (_, i) => ({ category: REFERENCE, name: `Zeugnis ${i}.pdf`, size: 10 }));
   const scan = { category: CERTIFICATE, name: "Scan.pdf", size: 10, datei: "dokumente/zertifikate/Scan.pdf" };
@@ -312,7 +345,9 @@ test("a change to a full or forbidden kind is refused before anything moves", ()
 test("the card keeps every control at least 44 px, the rows wrap at 375 px and stay one line at 1280 px", () => {
   const css = fs.readFileSync(path.join(__dirname, "..", "src", "droparea.css"), "utf8");
   assert.match(css, /\.prefill-card :is\(button, select\)[^{]*\{[^}]*min-height: 44px;[^}]*min-width: 44px;/);
-  assert.match(css, /\.drop-file__name[^{]*\{[^}]*overflow-wrap: anywhere;/);
+  assert.match(css, /\.drop-file__name[^{]*\{[^}]*overflow-wrap: break-word;/); // between its parts first (<wbr>)
   assert.match(css, /\.drop-file \{[^}]*flex-wrap: wrap;/);
   assert.match(css, /\.drop-status, \.prefill-card #upload-messages \{ overflow-wrap: anywhere; \}/);
+  assert.match(css, /\.drop-file__info \{[^}]*flex: 1 1 160px;/);
+  assert.match(css, /@media \(min-width: 480px\) \{\s*\.drop-file__kind \{ width: 17\.5em; \}/); // the selects line up
 });

@@ -47,6 +47,16 @@ function kindLabel(form, track, category) {
   return forTrack(documentCategories(form).get(category).kindLabel, track);
 }
 
+/** The singular name inside a sentence: „als früheres Anschreiben“, while the list of kinds keeps the capital. */
+function kindInSentence(form, track, category) {
+  return kindLabel(form, track, category).replace(/^Früheres\b/, "früheres");
+}
+
+/** The plural name of a kind for its limit, e.g. „Lebensläufe“ (form.json kindPlural). */
+function kindPlural(form, track, category) {
+  return forTrack(documentCategories(form).get(category).kindPlural, track);
+}
+
 /** The kinds a file may have by its type, in the order of form.json: [{ id, label }]. */
 function kindOptions(form, track, name) {
   const ext = documentExtension(name);
