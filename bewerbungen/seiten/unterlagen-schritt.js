@@ -38,7 +38,8 @@
 
   const ADAPT = {
     variant: () => goTo("s-lebenslauf", $("f-variante")),
-    letter: () => goTo("s-anschreiben", $("anschreiben-titel")),
+    // the editor of the step (#332), looked up at click time; without a letter to edit it returns false
+    letter: () => window.LetterEditor.open() || goTo("s-anschreiben", $("anschreiben-titel")),
   };
 
   function adaptLink(adapt) {

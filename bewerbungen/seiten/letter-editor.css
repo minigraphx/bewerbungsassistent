@@ -5,7 +5,7 @@
 .letter-editor .field { margin: 0; }
 .letter-editor__title { margin: 0; font-size: 16px; line-height: 24px; color: var(--text-strong); }
 .letter-editor__text { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; margin: 0; padding: 0; border: 0; }
-.letter-editor__text legend { padding: 0; margin-bottom: var(--space-1); }
+.letter-editor__text legend { padding: 0; margin-bottom: var(--space-2); }
 .letter-editor__goal { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-strong); }
 .letter-editor__paragraphs { display: flex; flex-direction: column; gap: var(--space-3); }
 .letter-editor__paragraph { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }

@@ -147,6 +147,7 @@ function page() {
     UnterlagenErgebnis: R,
     UnterlagenWahl: require("../seiten/unterlagen-wahl.js"),
     DossierDialog: { open: from => state.dialogOpenedFrom.push(from) },
+    LetterEditor: { open: () => false },  // no letter to edit here; letter_editor.test.cjs covers the editor
   };
   vm.runInNewContext(lies("unterlagen-schritt.js"), { window, document: { getElementById: id => byId[id] } });
   return { S: window.UnterlagenSchritt, byId, state, checkedTile };

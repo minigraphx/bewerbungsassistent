@@ -26,7 +26,6 @@
   let open = false;
   let leaving = false;    // «Neu laden» was asked for, so no question on unload
   let readView = {};
-  let locked = {};
   let reload = async () => {};
   let satz = "stelle-sie";
   window.App.textsatz().then(chosen => { satz = chosen; });
@@ -51,10 +50,31 @@
     showGoal();
   }
 
+  /**
+   * The page and ki.js set `disabled` on these buttons themselves, so the editor locks them with aria-disabled and
+   * stops their clicks before any handler, including a click from code (the card «Nächster Schritt»).
+   */
+  function guard(event) {
+    if (!LOCKED.some(id => event.target === $(id))) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }
+
   function lock() {
     READ_VIEW.forEach(id => { $(id).hidden = true; });
-    LOCKED.forEach(id => { $(id).disabled = true; });
+    LOCKED.forEach(id => {
+      $(id).setAttribute("aria-disabled", "true");
+      $(id).setAttribute("aria-describedby", "brief-offen-hinweis");
+    });
     $("brief-offen-hinweis").hidden = false;
+  }
+
+  function unlock() {
+    LOCKED.forEach(id => {
+      $(id).removeAttribute("aria-disabled");
+      $(id).removeAttribute("aria-describedby");
+    });
+    $("brief-offen-hinweis").hidden = true;
   }
 
   function autosize(field) {
@@ -159,8 +179,8 @@
       window.Meldungen.zeige($("brief-gespeichert"), "");
       say("");
       ask(false, false);
-      locked = Object.fromEntries(LOCKED.map(id => [id, $(id).disabled]));
       open = true;
+      document.addEventListener("click", guard, true);
       $("brief-editor").hidden = false;
       $("anschreiben-aendern").setAttribute("aria-expanded", "true");
       render();
@@ -174,9 +194,9 @@
   function close(focusOpener = true) {
     open = false;
     $("brief-editor").hidden = true;
+    document.removeEventListener("click", guard, true);
     READ_VIEW.forEach(id => { $(id).hidden = readView[id]; });
-    LOCKED.forEach(id => { $(id).disabled = Boolean(locked[id]); });
-    $("brief-offen-hinweis").hidden = true;
+    unlock();
     $("anschreiben-aendern").setAttribute("aria-expanded", "false");
     say("");
     if (focusOpener) $("anschreiben-aendern").focus();
@@ -266,6 +286,7 @@
 
   window.LetterEditor = {
     update, cut,
+    isOpen: () => open,
     connect: reloadPage => { reload = reloadPage; },
     open: () => openEditor(false),
     openAtLongest: () => openEditor(true),

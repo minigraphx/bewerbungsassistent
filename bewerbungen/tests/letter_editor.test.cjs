@@ -55,8 +55,12 @@ class FakeNode {
   querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
   addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); }
   dispatch(type, extra = {}) {
-    const event = { type, target: this, currentTarget: this, defaultPrevented: false, preventDefault() { event.defaultPrevented = true; }, ...extra };
-    for (const h of this.listeners[type] || []) h(event);
+    const event = { type, target: this, currentTarget: this, defaultPrevented: false, stopped: false,
+                    preventDefault() { event.defaultPrevented = true; }, stopPropagation() { event.stopped = true; },
+                    stopImmediatePropagation() { event.stopped = true; }, ...extra };
+    // the capture phase on the document runs first, as in a browser
+    for (const h of [...(this.doc.capture[type] || [])]) if (!event.stopped) h(event);
+    for (const h of this.listeners[type] || []) if (!event.stopped) h(event);
     return event;
   }
   click() { if (!this.disabled) this.dispatch("click"); }
@@ -79,7 +83,7 @@ const LETTER = {
 const OVER = { stufe: "fehler", schluessel: "k", bestaetigt: false, text: "zu lang", letter_cut: { lines: 4, paragraph: 1 } };
 
 function page({ satz = "stelle-sie", answer = { geaendert: true }, failWith = null } = {}) {
-  const doc = { activeElement: null, scrolled: [] };
+  const doc = { activeElement: null, scrolled: [], capture: {} };
   const byId = Object.fromEntries(IDS.map(id => [id, new FakeNode(doc, "div", { id })]));
   byId["brief-editor"].hidden = true;
   byId["brief-verwerfen"].hidden = true;
@@ -125,7 +129,14 @@ function page({ satz = "stelle-sie", answer = { geaendert: true }, failWith = nu
     },
     addEventListener: (type, handler) => { (state.windowHandlers[type] ||= []).push(handler); },
   };
-  const context = { window, document: { getElementById: id => byId[id] || null, get activeElement() { return doc.activeElement; } },
+  const document = {
+    getElementById: id => byId[id] || null, get activeElement() { return doc.activeElement; },
+    addEventListener: (type, handler, capture) => { if (capture === true) (doc.capture[type] ||= []).push(handler); },
+    removeEventListener: (type, handler, capture) => {
+      if (capture === true) doc.capture[type] = (doc.capture[type] || []).filter(h => h !== handler);
+    },
+  };
+  const context = { window, document,
     location: { search: "?id=muster-ag", reload: () => { state.reloaded = true; } }, CSS: { supports: () => false },
     URLSearchParams };
   vm.runInNewContext(lies("letter-editor.js"), context);
@@ -141,10 +152,25 @@ function page({ satz = "stelle-sie", answer = { geaendert: true }, failWith = nu
   const type = (field, text) => { field.value = text; field.dispatch("input"); };
   const settle = () => new Promise(resolve => setImmediate(resolve));
   const unload = () => { const e = { defaultPrevented: false, preventDefault() { e.defaultPrevented = true; } }; (state.windowHandlers.beforeunload || []).forEach(h => h(e)); return e; };
-  return { E, byId, doc, state, update, fields, type, settle, unload };
+  return { E, byId, doc, document, window, state, update, fields, type, settle, unload };
 }
 
 const labelText = field => field.parentNode.querySelector("label").textContent;
+
+/** unterlagen-schritt.js on the same page, so a tile link reaches the real editor (#332). */
+function tileStep(p) {
+  const extra = Object.fromEntries(["beilagen-liste", "dossier-gestalten", "form-dossier", "form-aendern", "pdfs",
+    "unterlagen-wahl", "s-lebenslauf", "s-anschreiben", "f-variante"].map(id => [id, new FakeNode(p.doc, "div", { id })]));
+  extra["beilagen-aendern"] = new FakeNode(p.doc, "button", { id: "beilagen-aendern", "aria-controls": "beilagen-liste" });
+  const window = Object.assign(p.window, {
+    App: { ...p.window.App, url: (pfad, query) => `${pfad}?${new URLSearchParams(query)}` },
+    UnterlagenErgebnis: require("../seiten/unterlagen-ergebnis.js"),
+    UnterlagenWahl: require("../seiten/unterlagen-wahl.js"),
+  });
+  const document = { ...p.document, getElementById: id => extra[id] || p.document.getElementById(id) };
+  vm.runInNewContext(lies("unterlagen-schritt.js"), { window, document });
+  return { S: window.UnterlagenSchritt, pdfs: extra.pdfs };
+}
 const hintOf = (p, field) => p.byId["brief-absaetze"].all().find(n => n.id === field.getAttribute("aria-describedby"));
 
 // Markup of the page
@@ -253,23 +279,92 @@ test("«Anschreiben ändern» opens the editor with one field per paragraph and 
   assert.equal(p.byId["brief-editor-intro"].textContent, Texte.text("anschreiben.editor-intro", "stelle-sie"));
 });
 
-test("while open the read view hides and the buttons that would use the letter are disabled", async () => {
+const LOCKED = ["ki-entwerfen", "ki-pruefen", "erstellen", "pruefen"];
+
+test("while open the read view hides and the buttons that would use the letter are locked, not disabled", async () => {
   const p = page();
   await p.settle();
   p.update();
-  p.byId.pruefen.disabled = true;  // was disabled before, so it stays after
+  p.byId.pruefen.disabled = true;  // the page disabled it; the editor leaves `disabled` alone
   p.E.open();
+  assert.equal(p.E.isOpen(), true);
   for (const id of ["anschreiben-text", "ki-pruefung-teil", "freigabe-zeile", "freigabe-status"]) assert.equal(p.byId[id].hidden, true, id);
-  for (const id of ["ki-entwerfen", "ki-pruefen", "erstellen", "pruefen"]) assert.equal(p.byId[id].disabled, true, id);
+  for (const id of LOCKED) {
+    assert.equal(p.byId[id].getAttribute("aria-disabled"), "true", id);
+    assert.equal(p.byId[id].getAttribute("aria-describedby"), "brief-offen-hinweis", id);
+  }
+  assert.equal(p.byId.erstellen.disabled, false, "the editor never sets disabled");
+  p.byId.erstellen.click();
+  assert.equal(p.state.built, 0, "a click on a locked button does not reach its handler");
   assert.equal(p.byId["brief-offen-hinweis"].hidden, false);
   p.update();  // a reload while open draws the read view again; the editor hides it again
   assert.equal(p.byId["anschreiben-text"].hidden, true);
   p.byId["brief-abbrechen"].click();
+  assert.equal(p.E.isOpen(), false);
   assert.equal(p.byId["anschreiben-text"].hidden, false);
   assert.equal(p.byId["ki-pruefung-teil"].hidden, true, "back as the page drew it");
-  assert.equal(p.byId.erstellen.disabled, false);
-  assert.equal(p.byId.pruefen.disabled, true);
+  for (const id of LOCKED) {
+    assert.equal(p.byId[id].getAttribute("aria-disabled"), null, id);
+    assert.equal(p.byId[id].getAttribute("aria-describedby"), null, id);
+  }
+  assert.equal(p.byId.pruefen.disabled, true, "still as the page set it");
   assert.equal(p.byId["brief-offen-hinweis"].hidden, true);
+  p.byId.erstellen.click();
+  assert.equal(p.state.built, 1, "closed, the click goes through again");
+});
+
+test("ki.js turning its buttons on while the editor is open does not let «Anschreiben entwerfen» through", async () => {
+  // ki.js sets `disabled` itself whenever its status loads; this is its line
+  assert.match(lies("ki.js"), /const frei = an => KNOEPFE\.forEach\(k => \{ \$\(k\)\.disabled = !an; \}\);/);
+  const p = page();
+  await p.settle();
+  p.update();
+  let drafted = 0;
+  p.byId["ki-entwerfen"].addEventListener("click", () => { drafted += 1; });
+  p.E.open();
+  for (const id of ["ki-bewerten", "ki-entwerfen", "ki-pruefen"]) if (p.byId[id]) p.byId[id].disabled = false;  // frei(true)
+  p.byId["ki-entwerfen"].click();
+  assert.equal(drafted, 0);
+  const programmatic = p.byId.erstellen.dispatch("click");  // the «Nächster Schritt» card clicks it from code
+  assert.equal(programmatic.defaultPrevented, true);
+  assert.equal(p.state.built, 0);
+});
+
+test("a build that ends while the editor is open leaves «Unterlagen erstellen» usable after closing", async () => {
+  const p = page();
+  await p.settle();
+  p.update();
+  p.byId.erstellen.disabled = true;  // a build is running
+  p.E.open();
+  p.byId.erstellen.disabled = false;  // the build ends (bewerbung.js, finally)
+  p.byId["brief-abbrechen"].click();
+  assert.equal(p.byId.erstellen.disabled, false);
+  assert.equal(p.byId.erstellen.getAttribute("aria-disabled"), null);
+});
+
+test("the tile link «Anschreiben ändern» opens the editor with the focus on its title", async () => {
+  const p = page();
+  await p.settle();
+  p.update();
+  const tiles = tileStep(p);
+  tiles.S.showTiles("muster-ag", { bewerbung: { id: "muster-ag" }, pdfs: { lebenslauf: true, anschreiben: true } }, 1);
+  const link = tiles.pdfs.all().find(n => n.tagName === "A" && n.textContent === "Anschreiben ändern");
+  const event = link.dispatch("click");
+  assert.equal(event.defaultPrevented, true);
+  assert.equal(p.byId["brief-editor"].hidden, false);
+  assert.equal(p.doc.activeElement, p.byId["brief-editor-titel"]);
+  assert.equal(p.doc.scrolled.at(-1)[0], p.byId["brief-editor-titel"]);
+});
+
+test("without a letter to edit, the tile link still leads to the step", async () => {
+  const p = page();
+  await p.settle();
+  p.update(null);
+  const tiles = tileStep(p);
+  tiles.S.showTiles("muster-ag", { bewerbung: { id: "muster-ag" }, pdfs: { lebenslauf: true, anschreiben: true } }, 1);
+  tiles.pdfs.all().find(n => n.tagName === "A" && n.textContent === "Anschreiben ändern").dispatch("click");
+  assert.equal(p.byId["brief-editor"].hidden, true);
+  assert.equal(p.doc.activeElement, p.byId["anschreiben-titel"]);
 });
 
 test("each field has its line hint, referenced by aria-describedby; an empty one falls away", async () => {
