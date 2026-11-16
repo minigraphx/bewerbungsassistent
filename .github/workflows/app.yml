@@ -44,6 +44,13 @@ jobs:
           python -c "import json, os; json.dump({'ki_url': os.environ.get('KI_URL', ''), 'datenschutz_url': os.environ.get('DATENSCHUTZ_URL', ''), 'update_url': os.environ.get('UPDATE_URL', '')}, open('desktop/build/voreinstellungen.json', 'w'))"
       - name: Paket bauen
         run: pyinstaller --noconfirm desktop/bewerbungsbegleiter.spec
+      - name: PyInstaller-Ausgabe für das Store-Paket
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-app
+          path: dist/Bewerbungsbegleiter/
+          include-hidden-files: true
+          retention-days: 7
       - name: Selbsttest des Pakets
         run: |
           $p = Start-Process dist\Bewerbungsbegleiter\Bewerbungsbegleiter.exe -ArgumentList '--selbsttest' -Wait -PassThru
@@ -102,6 +109,74 @@ jobs:
           gh release view "v$env:VERSION" 2>$null
           if ($LASTEXITCODE -ne 0) { gh release create "v$env:VERSION" --draft --generate-notes --title "Bewerbungsbegleiter $env:VERSION" }
           gh release upload "v$env:VERSION" (Get-ChildItem dist-installer\*).FullName --clobber
+
+  msix:
+    # Store-Paket (#343, G6) aus derselben PyInstaller-Ausgabe wie der Installer, mit der Variante, die #256 bewiesen
+    # hat. Unsigniert: Der Store signiert es. Ein eigener Job, damit eine fehlende Variable nur ihn scheitern lässt.
+    # Ohne die Variablen (auf main, von Hand) baut er mit der Platzhalter-Identität aus #255, nur als Artefakt.
+    needs: windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: windows-app
+          path: ${{ runner.temp }}/msix
+      - name: Manifest (Identität aus den Variablen des Repos)
+        env:
+          MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME }}
+          MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER }}
+          MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          $version = python -c "import sys; sys.path.insert(0, 'desktop'); import version; print(version.VERSION)"
+          $stage = Join-Path $env:RUNNER_TEMP 'msix'
+          if (-not (Test-Path (Join-Path $stage 'Bewerbungsbegleiter.exe'))) { throw "PyInstaller-Ausgabe fehlt" }
+          python desktop/msix/manifest.py desktop/msix/AppxManifest.xml $version store (Join-Path $stage 'AppxManifest.xml')
+          if ($LASTEXITCODE -ne 0) { throw "Manifest nicht erstellt" }
+          Get-Content (Join-Path $stage 'AppxManifest.xml')
+          "VERSION=$version" >> $env:GITHUB_ENV
+          "STAGE=$stage" >> $env:GITHUB_ENV
+      - name: Logos
+        run: |
+          $assets = New-Item -ItemType Directory -Force (Join-Path $env:STAGE 'Assets')
+          Add-Type -AssemblyName System.Drawing
+          $icon = [System.Drawing.Image]::FromFile((Resolve-Path erweiterung\icons\icon128.png))
+          foreach ($logo in @(@('StoreLogo', 50), @('Square44x44Logo', 44), @('Square150x150Logo', 150))) {
+            $bitmap = New-Object System.Drawing.Bitmap $logo[1], $logo[1]
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.InterpolationMode = 'HighQualityBicubic'
+            $graphics.DrawImage($icon, 0, 0, $logo[1], $logo[1])
+            $bitmap.Save((Join-Path $assets "$($logo[0]).png"), [System.Drawing.Imaging.ImageFormat]::Png)
+            $graphics.Dispose(); $bitmap.Dispose()
+          }
+          $icon.Dispose()
+      - name: Packen
+        run: |
+          $kit = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $kit) { throw "makeappx nicht gefunden" }
+          New-Item -ItemType Directory -Force dist-msix | Out-Null
+          $package = "dist-msix\Bewerbungsbegleiter-$env:VERSION.msix"
+          & "$($kit.FullName)" pack /o /d $env:STAGE /p $package
+          if ($LASTEXITCODE -ne 0) { throw "makeappx fehlgeschlagen" }
+          Get-Item $package | Format-Table Name, Length
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: msix
+          path: dist-msix/
+      - name: Release-Entwurf
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "v$env:VERSION" 2>$null
+          if ($LASTEXITCODE -ne 0) { gh release create "v$env:VERSION" --draft --generate-notes --title "Bewerbungsbegleiter $env:VERSION" }
+          gh release upload "v$env:VERSION" "dist-msix\Bewerbungsbegleiter-$env:VERSION.msix" --clobber
 
   macos:
     runs-on: macos-latest
