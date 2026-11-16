@@ -15,7 +15,17 @@ const SEITEN = path.join(__dirname, "..", "seiten");
 const ROUTE = "/api/lebenslauf/erstellen/vorschau";
 const BODY = { id: "b1", stand: "abc", stationen: { work: [0] }, design: "zweispaltig", berufsbezeichnung: "Entwicklerin",
                kurzprofil: "Baut Webseiten.", bezeichnung: "Web" };
-const FAILED = "Die Vorschau lässt sich gerade nicht erstellen. basics.x-image: unbekannte Felder";
+const FAILED = "Die Vorschau lässt sich nicht erstellen: In Meine Angaben steht etwas, das die App nicht lesen kann.";
+const RAW = "basics.x-image: unbekannte Felder";
+const EMPTY = "Noch keine Station angehakt. Die Vorschau erscheint, sobald mindestens eine angehakt ist.";
+const CHANGED_SIE = "Meine Angaben haben sich inzwischen geändert. Öffnen Sie «Lebenslauf erstellen» neu, damit die Vorschau sie zeigt.";
+const CHANGED_DU = "Meine Angaben haben sich inzwischen geändert. Öffne «Lebenslauf erstellen» neu, damit die Vorschau sie zeigt.";
+
+/** An error as App.senden throws it: the server's message, its status and the whole answer. */
+function failure(message, status, aktion) {
+  return Object.assign(new Error(message), { status, daten: { fehler: message, ...(aktion ? { aktion } : {}) } });
+}
+const say = satz => key => Texte.text(key, satz);
 
 test("the title names the pages, without a preview just the word", () => {
   assert.equal(Logic.title(2), "Vorschau · 2 Seiten");
@@ -23,10 +33,31 @@ test("the title names the pages, without a preview just the word", () => {
   assert.equal(Logic.title(null), "Vorschau");
 });
 
-test("a reason from the page is worded like one from the server", () => {
-  assert.equal(Logic.failedText("Bitte mindestens eine Station wählen."),
-               "Die Vorschau lässt sich gerade nicht erstellen. Bitte mindestens eine Station wählen.");
-  assert.equal(Logic.failedText(FAILED), FAILED);
+test("no station ticked is an empty state, the same for Sie and du, and a reason from the page stands alone", () => {
+  assert.deepEqual(Logic.ofDraft({ body: null, empty: true }), { text: EMPTY });
+  assert.deepEqual(Logic.ofDraft({ body: null, reason: "Bitte Zweispaltig oder Einspaltig wählen." }),
+                   { text: "Bitte Zweispaltig oder Einspaltig wählen." });
+});
+
+test("what Meine Angaben hold and the app cannot read points there, the raw message only as details", () => {
+  const shown = Logic.problem(failure(RAW, 400, Logic.CHECK_DATA), say("stelle-sie"));
+  assert.deepEqual(shown, { text: FAILED, link: true, details: RAW });
+  assert.doesNotMatch(shown.text, /gerade/);
+});
+
+test("Meine Angaben changed elsewhere asks to open the panel again, in Sie or du, with «Neu laden»", () => {
+  const changed = failure("Meine Angaben haben sich inzwischen geändert.", 400, Logic.REOPEN);
+  assert.deepEqual(Logic.problem(changed, say("stelle-sie")), { text: CHANGED_SIE, reload: true });
+  assert.deepEqual(Logic.problem(changed, say("stelle-du")), { text: CHANGED_DU, reload: true });
+});
+
+test("«gerade» only where trying again can help: the app does not answer", () => {
+  const unreachable = Logic.problem(new TypeError("Failed to fetch"), say("stelle-sie"));
+  assert.match(unreachable.text, /^Die Vorschau lässt sich gerade nicht erstellen/);
+  assert.match(Logic.problem(failure("Interner Fehler", 500), say("stelle-sie")).text, /gerade/);
+  assert.match(Logic.NOT_SHOWN, /gerade/);
+  const refused = Logic.problem(failure("Bitte die Bewerbung neu laden.", 400), say("stelle-sie"));
+  assert.equal(refused.text, "Die Vorschau lässt sich nicht erstellen. Bitte die Bewerbung neu laden.");
 });
 
 test("the live region speaks only when the pages change, a build fails or works again", () => {
@@ -95,10 +126,12 @@ class FakeElement extends FakeNode {
   querySelectorAll(selector) { return this.all().filter(node => node.tagName === selector.toUpperCase()); }
 }
 
-function setup() {
+function setup({ satz = "stelle-sie" } = {}) {
   const doc = { activeElement: null, listeners: {}, createElement: tag => new FakeElement(doc, tag),
-                addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); } };
-  const calls = { senden: [] };
+                documentElement: { dataset: { textsatz: satz } },
+                addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); },
+                dispatchEvent(event) { calls.events.push(event.type); } };
+  const calls = { senden: [], events: [] };
   const answers = [];
   const clock = { now: 0, timers: [] };
   function el(tag, attributes = {}, ...children) {
@@ -117,7 +150,12 @@ function setup() {
     el("aside", { id: "cv-vorschau" },
       el("h3", { id: "cv-vorschau-titel" }, "Vorschau"),
       el("img", { id: "cv-vorschau-bild", hidden: true }),
-      el("p", { id: "cv-vorschau-fehler", hidden: true }),
+      el("div", { id: "cv-vorschau-problem", hidden: true },
+        el("p", { id: "cv-vorschau-fehler" }),
+        el("a", { id: "cv-vorschau-angaben", href: "/angaben", hidden: true }, "Meine Angaben öffnen"),
+        el("button", { id: "cv-vorschau-neu", type: "button", hidden: true }, "Neu laden"),
+        el("details", { id: "cv-vorschau-genauer", hidden: true },
+          el("summary", {}, "Genauer"), el("p", { id: "cv-vorschau-genauer-text" }))),
       el("div", { id: "cv-vorschau-links", hidden: true },
         el("button", { id: "cv-vorschau-gross", type: "button" }, "Gross ansehen"),
         el("a", { id: "cv-vorschau-pdf" }, "Als PDF öffnen")),
@@ -142,9 +180,11 @@ function setup() {
       },
     },
     LebenslaufVorschauLogik: Logic,
+    Texte,
   };
   const context = {
     window, document: doc, location: { search: "?id=b1" }, URLSearchParams, console,
+    CustomEvent: class { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } },
     setTimeout: (run, delay) => { clock.timers.push({ at: clock.now + delay, run }); return clock.timers.length; },
     clearTimeout: handle => { if (clock.timers[handle - 1]) clock.timers[handle - 1].run = null; },
   };
@@ -221,9 +261,12 @@ test("a newer request wins: the answer of an older one is dropped", async () => 
   assert.equal(page.$("cv-vorschau-titel").textContent, "Vorschau · 2 Seiten");
 });
 
-test("a failed build shows its message instead of the old preview and says it once", async () => {
+const visible = node => { for (let n = node; n; n = n.parent) if (n.hidden) return false; return true; };
+
+test("a failed build points to Meine Angaben instead of the old preview, details folded, said once", async () => {
   const page = setup();
-  page.answers.push({ schluessel: "k1", seiten: 2 }, new Error(FAILED), new Error(FAILED));
+  const broken = () => failure(RAW, 400, Logic.CHECK_DATA);
+  page.answers.push({ schluessel: "k1", seiten: 2 }, broken(), broken());
   page.draft({ body: BODY, now: true });
   await settle();
 
@@ -233,10 +276,15 @@ test("a failed build shows its message instead of the old preview and says it on
   assert.equal(page.$("cv-vorschau-bild").hidden, true);
   assert.equal(page.$("cv-vorschau-bild").src, "", "the old page is gone, not only hidden");
   assert.equal(page.$("cv-vorschau-links").hidden, true);
-  assert.equal(page.$("cv-vorschau-fehler").hidden, false);
+  assert.equal(visible(page.$("cv-vorschau-fehler")), true);
   assert.equal(page.$("cv-vorschau-fehler").textContent, FAILED);
+  assert.equal(visible(page.$("cv-vorschau-angaben")), true);
+  assert.equal(page.$("cv-vorschau-angaben").href, "/angaben");
+  assert.equal(visible(page.$("cv-vorschau-genauer")), true);
+  assert.equal(page.$("cv-vorschau-genauer-text").textContent, RAW);
+  assert.equal(page.$("cv-vorschau-neu").hidden, true);
   assert.equal(page.$("cv-vorschau-titel").textContent, "Vorschau");
-  assert.equal(page.$("cv-vorschau-status").textContent, FAILED);
+  assert.equal(page.$("cv-vorschau-status").textContent, FAILED, "the first sentence only");
 
   page.$("cv-vorschau-status").textContent = "";
   page.draft({ body: BODY, now: true });
@@ -244,19 +292,49 @@ test("a failed build shows its message instead of the old preview and says it on
   assert.equal(page.$("cv-vorschau-status").textContent, "", "the same failure again stays quiet");
 });
 
-test("a choice the page cannot send fails at once without a request", async () => {
-  const page = setup();
+test("no station ticked shows the empty state at once without a request, nothing else", async () => {
+  const page = setup({ satz: "stelle-du" });
   page.answers.push({ schluessel: "k1", seiten: 2 });
   page.draft({ body: BODY, now: true });
   await settle();
 
-  page.draft({ body: null, reason: "Bitte mindestens eine Station wählen." });
+  page.draft({ body: null, empty: true });
   await page.advance(Logic.DELAY_MS);
 
   assert.equal(page.calls.senden.length, 1);
-  assert.equal(page.$("cv-vorschau-fehler").textContent,
-               "Die Vorschau lässt sich gerade nicht erstellen. Bitte mindestens eine Station wählen.");
+  assert.equal(page.$("cv-vorschau-fehler").textContent, EMPTY);
+  assert.equal(page.$("cv-vorschau-status").textContent, EMPTY);
   assert.equal(page.$("cv-vorschau-bild").hidden, true);
+  for (const id of ["cv-vorschau-angaben", "cv-vorschau-neu", "cv-vorschau-genauer"]) {
+    assert.equal(visible(page.$(id)), false, id);
+  }
+});
+
+test("Meine Angaben changed elsewhere: the words of the person's set and «Neu laden», which opens the panel anew", async () => {
+  const page = setup({ satz: "stelle-du" });
+  page.answers.push(failure("Meine Angaben haben sich inzwischen geändert.", 400, Logic.REOPEN));
+
+  page.draft({ body: BODY, now: true });
+  await settle();
+
+  assert.equal(page.$("cv-vorschau-fehler").textContent, CHANGED_DU);
+  assert.equal(visible(page.$("cv-vorschau-neu")), true);
+  assert.equal(page.$("cv-vorschau-angaben").hidden, true);
+  page.$("cv-vorschau-neu").click();
+  assert.deepEqual(page.calls.events, ["lebenslauf-neu-oeffnen"]);
+});
+
+test("a preview after a problem hides the problem with its link, button and details", async () => {
+  const page = setup();
+  page.answers.push(failure(RAW, 400, Logic.CHECK_DATA), { schluessel: "k1", seiten: 1 });
+  page.draft({ body: BODY, now: true });
+  await settle();
+  page.draft({ body: BODY, now: true });
+  await settle();
+
+  assert.equal(page.$("cv-vorschau-problem").hidden, true);
+  assert.equal(page.$("cv-vorschau-bild").hidden, false);
+  assert.equal(page.$("cv-vorschau-status").textContent, "Die Vorschau ist wieder da, 1 Seite.");
 });
 
 test("a page that does not load shows a message instead of a broken image", async () => {
@@ -268,8 +346,8 @@ test("a page that does not load shows a message instead of a broken image", asyn
   page.$("cv-vorschau-bild").dispatch("error");
 
   assert.equal(page.$("cv-vorschau-bild").hidden, true);
-  assert.equal(page.$("cv-vorschau-fehler").hidden, false);
-  assert.match(page.$("cv-vorschau-fehler").textContent, /^Die Vorschau lässt sich gerade nicht/);
+  assert.equal(visible(page.$("cv-vorschau-fehler")), true);
+  assert.equal(page.$("cv-vorschau-fehler").textContent, Logic.NOT_SHOWN);
 });
 
 test("updates never move the focus and announce only a new page count", async () => {
@@ -326,6 +404,14 @@ test("«Gross ansehen» shows every page large in a dialog and gives the focus b
   assert.equal(page.$("cv-vorschau-dialog-titel").textContent, "Vorschau · 2 Seiten");
   assert.equal(page.$("cv-vorschau-dialog-pdf").href, `${ROUTE}/pdf?id=b1&schluessel=k1`);
   assert.equal(page.doc.activeElement, page.$("cv-vorschau-schliessen"));
+  assert.deepEqual(images.map(image => image.getAttribute("loading")), [null, "lazy"], "page 1 loads at once");
+  const waiting = page.$("cv-vorschau-seiten").querySelectorAll("p");
+  assert.deepEqual(waiting.map(line => [line.textContent, line.getAttribute("aria-hidden"), line.hidden]),
+                   [["Seite wird geladen …", "true", false], ["Seite wird geladen …", "true", false]]);
+  images[0].dispatch("load");
+  assert.equal(waiting[0].hidden, true, "a loaded page covers its line");
+  images[1].dispatch("error");
+  assert.equal(waiting[1].textContent, "Diese Seite lässt sich gerade nicht anzeigen.");
 
   page.$("cv-vorschau-schliessen").click();
   assert.equal(dialog.open, false);
@@ -344,9 +430,14 @@ test("the page markup: preview beside the choice, a live region, the dialog, scr
   const html = fs.readFileSync(path.join(SEITEN, "bewerbung.html"), "utf8");
   const panel = html.slice(html.indexOf('id="cv-erstellen"'), html.indexOf('id="s-anschreiben"'));
   for (const id of ["cv-vorschau", "cv-vorschau-titel", "cv-vorschau-bild", "cv-vorschau-fehler", "cv-vorschau-links",
-                    "cv-vorschau-gross", "cv-vorschau-pdf", "cv-vorschau-dossier", "cv-vorschau-status"]) {
+                    "cv-vorschau-gross", "cv-vorschau-pdf", "cv-vorschau-dossier", "cv-vorschau-status",
+                    "cv-vorschau-problem", "cv-vorschau-genauer", "cv-vorschau-genauer-text"]) {
     assert.ok(panel.includes(`id="${id}"`), id);
   }
+  assert.match(panel, /<a [^>]*id="cv-vorschau-angaben"[^>]*href="\/angaben"[^>]*>Meine Angaben öffnen<\/a>/);
+  assert.match(panel, /<button type="button" [^>]*id="cv-vorschau-neu"[^>]*>Neu laden<\/button>/);
+  assert.match(panel, /<details [^>]*id="cv-vorschau-genauer"[^>]*><summary>Genauer<\/summary>/);
+  assert.match(panel, /id="cv-vorschau-dossier"[^>]*>Die Vorschau zeigt den Lebenslauf allein\. Im Dossier bekommt er das Design des Dossiers\.</);
   assert.match(panel, /<p [^>]*id="cv-vorschau-status"[^>]*role="status"/);
   assert.match(panel, /<aside [^>]*id="cv-vorschau"[^>]*aria-labelledby="cv-vorschau-titel"/);
   assert.ok(panel.indexOf('id="cv-vorschau"') < panel.indexOf('id="cv-erstellen-speichern"'),
@@ -355,4 +446,9 @@ test("the page markup: preview beside the choice, a live region, the dialog, scr
   assert.ok(html.indexOf('id="cv-vorschau-schliessen"') < html.indexOf('id="cv-vorschau-seiten"'),
             "«Schliessen» above the pages: its focus shows the first page");
   assert.match(html, /<script src="\/lebenslauf-vorschau-logik.js"><\/script>\s*<script src="\/lebenslauf-vorschau.js">/);
+});
+
+test("while the preview shows a page, its own «Als PDF öffnen» stands alone: the one in the footer gives way", () => {
+  const css = fs.readFileSync(path.join(SEITEN, "lebenslauf-vorschau.css"), "utf8");
+  assert.match(css, /\.cv-create:has\(#cv-vorschau-bild:not\(\[hidden\]\)\) #cv-erstellen-pdf\s*\{\s*display:\s*none;?\s*\}/);
 });

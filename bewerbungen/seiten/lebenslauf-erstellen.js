@@ -25,11 +25,15 @@
   const fields = () => ({ id: ID, berufsbezeichnung: $("cv-erstellen-beruf").value,
                           kurzprofil: $("cv-erstellen-profil").value, bezeichnung: $("cv-erstellen-name").value });
 
-  /** The choice as it stands goes to the preview (G76, lebenslauf-vorschau.js); `now` skips its pause. */
+  /**
+   * The choice as it stands goes to the preview (G76, lebenslauf-vorschau.js); `now` skips its pause. Without a
+   * station the preview shows its empty state.
+   */
   function draft({ now = false } = {}) {
     let detail;
     try {
-      detail = { body: Logic.request(state, fields()), now };
+      detail = state.sections.some(section => section.chosen.length)
+        ? { body: Logic.request(state, fields()), now } : { body: null, empty: true };
     } catch (error) {
       detail = { body: null, reason: error.message };
     }
@@ -287,6 +291,11 @@
   });
   $("cv-erstellen-oeffnen").addEventListener("click", open);
   $("cv-erstellen-abbrechen").addEventListener("click", () => setOpen(false));
+  // «Neu laden» in the preview, after Meine Angaben changed elsewhere: the form comes anew.
+  document.addEventListener("lebenslauf-neu-oeffnen", () => {
+    setOpen(false);
+    open();
+  });
   $("cv-erstellen-speichern").addEventListener("click", save);
   $("cv-erstellen-ki-knopf").addEventListener("click", aiButton);
   $("cv-erstellen-ki-stellentext").addEventListener("click", toAd);

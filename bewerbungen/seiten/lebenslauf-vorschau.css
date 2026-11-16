@@ -14,7 +14,19 @@
 .cv-create__sheet:has(.cv-create__page:not([hidden])) { background: #fff; }
 .cv-create__page { display: block; width: 100%; height: 100%; object-fit: contain; transition: opacity 120ms ease-out; }
 .cv-create__preview[aria-busy="true"] .cv-create__page { opacity: 0.55; }
-.cv-create__preview-error { margin: 0; padding: var(--space-4); font: 400 15px/22px var(--font-sans); color: var(--text-strong); text-align: center; overflow-wrap: anywhere; }
+/* a problem with a link, a button and details grows the sheet instead of being cut at the A4 edge */
+.cv-create__sheet:has(.cv-create__problem:not([hidden])) { aspect-ratio: auto; min-height: 220px; }
+.cv-create__problem { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-4); text-align: center; }
+.cv-create__preview-error { margin: 0; font: 400 15px/22px var(--font-sans); color: var(--text-strong); overflow-wrap: anywhere; }
+.cv-create__problem-link { display: inline-flex; align-items: center; min-height: 44px; font: 600 15px/22px var(--font-sans); }
+.cv-create__problem .btn { min-height: 44px; }
+.cv-create__problem-details { align-self: stretch; text-align: start; font: 400 14px/20px var(--font-sans); color: var(--text-muted); }
+/* stays a list item, so the disclosure triangle shows that it opens */
+.cv-create__problem-details summary { padding: 12px 0; text-align: center; cursor: pointer; }
+.cv-create__problem-raw { margin: 0; overflow-wrap: anywhere; }
+.cv-create__problem[hidden], .cv-create__problem-link[hidden], .cv-create__problem .btn[hidden] { display: none; }
+/* the preview has its own «Als PDF öffnen»; the footer's link to the saved PDF would read as the same */
+.cv-create:has(#cv-vorschau-bild:not([hidden])) #cv-erstellen-pdf { display: none; }
 .cv-create__preview-links { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); }
 .cv-create__preview-links .btn { min-height: 44px; }
 .application .card .cv-create__preview-note { margin: 0; font: 400 14px/20px var(--font-sans); color: var(--text-muted); }
@@ -38,6 +50,10 @@
 .cv-preview-dialog__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .cv-preview-dialog__actions .btn { min-height: 44px; }
 .cv-preview-dialog__pages { display: flex; flex-direction: column; gap: var(--space-4); }
+/* each page sits on white paper with «Seite wird geladen …» over it until the image is there */
+.cv-preview-dialog__frame { display: grid; align-items: center; justify-items: center; }
+.cv-preview-dialog__frame > * { grid-area: 1 / 1; }
 .cv-preview-dialog__page { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; }
+.cv-preview-dialog .cv-preview-dialog__loading { margin: 0; padding: var(--space-4); font: 400 15px/22px var(--font-sans); color: #5c6670; text-align: center; }
 
 @media (prefers-reduced-motion: reduce) { .cv-create__page { transition: none; } }

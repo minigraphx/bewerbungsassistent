@@ -104,8 +104,11 @@ def test_the_cv_for_one_application_has_its_own_section_with_the_picture():
     for words in ("**Lebenslauf erstellen**", "Stationen", "Reihenfolge", "**Zweispaltig**", "**Einspaltig**",
                   "**Name der Fassung**", "**Lebenslauf übernehmen**", "**Lebenslauf-Variante**", "**Aussehen wählen**",
                   "**Lebenslauf und Dateien**", "alle neuen Lebensläufe", "](bilder/bewerbung.jpg)",
-                  "**Vorschau · 2 Seiten**", "**Gross ansehen**", "an die KI geht nichts"):
+                  "**Vorschau · 2 Seiten**", "**Gross ansehen**", "an die KI geht nichts",
+                  "auf dem Handy direkt über **Lebenslauf übernehmen**", "Ist keine Station angehakt",
+                  "steht in Meine Angaben etwas, das die App nicht lesen kann"):
         assert words in section, words
+    assert "gerade nicht bauen" not in section, "the old wording of a failed preview is gone"
     assert f"(#{CV_ANCHOR})" in quick_step(5)
 
 

@@ -32,9 +32,9 @@ HEADER = "# Lebenslauf für eine Bewerbung, erstellt auf ihrer Seite (G17). Gesc
 
 NO_CV = "Noch keine Angaben. Bitte zuerst „Meine Angaben“ ausfüllen."
 UNREADABLE = "Meine Angaben lassen sich nicht lesen. Bitte unter „Meine Angaben“ prüfen."
-CHANGED = "Meine Angaben haben sich inzwischen geändert. Bitte „Lebenslauf erstellen“ neu öffnen."
+CHANGED = "Meine Angaben haben sich inzwischen geändert. Bitte «Lebenslauf erstellen» neu öffnen."
 NOTHING_CHOSEN = "Bitte mindestens eine Station wählen."
-WRONG_STATION = "Diese Station gibt es in Meinen Angaben nicht. Bitte „Lebenslauf erstellen“ neu öffnen."
+WRONG_STATION = "Diese Station gibt es in Meinen Angaben nicht. Bitte «Lebenslauf erstellen» neu öffnen."
 
 
 @dataclasses.dataclass(frozen=True)

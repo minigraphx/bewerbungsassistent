@@ -455,14 +455,12 @@ test("each change of stations, order, texts and looks hands a new draft to the p
   assert.equal(sent.at(-1).body.design, "einspaltig");
 });
 
-test("without any station the preview gets the reason instead of a body", async () => {
+test("without any station the preview gets an empty state, not a failure", async () => {
   const { $, calls } = await opened();
 
   for (const box of $("cv-erstellen-stationen").querySelectorAll("input")) box.dispatch("change");
 
-  const last = drafts(calls).at(-1);
-  assert.equal(last.body, null);
-  assert.equal(last.reason, "Bitte mindestens eine Station wählen.");
+  assert.deepEqual(drafts(calls).at(-1), { body: null, empty: true });
 });
 
 test("closing the panel tells the preview to stop", async () => {
@@ -471,4 +469,28 @@ test("closing the panel tells the preview to stop", async () => {
   $("cv-erstellen-abbrechen").click();
 
   assert.deepEqual(drafts(calls).at(-1), { closed: true });
+});
+
+test("«Neu laden» in the preview closes the panel and opens it again with Meine Angaben as they are now", async () => {
+  const page = await opened();
+  const { $, calls, doc } = page;
+  const before = calls.holen.filter(route => route === ROUTE).length;
+
+  for (const handler of doc.listeners["lebenslauf-neu-oeffnen"] || []) handler({});
+  await settle();
+
+  assert.equal(calls.holen.filter(route => route === ROUTE).length, before + 1, "the form is fetched anew");
+  assert.equal($("cv-erstellen").hidden, false, "the panel is open again");
+  assert.ok(drafts(calls).some(draft => draft.closed), "the old preview stopped");
+  assert.equal(drafts(calls).at(-1).now, true, "the new choice is built at once");
+});
+
+test("the title and the intro of the panel speak Sie or du and name an apprenticeship", () => {
+  assert.equal(text("lebenslauf.erstellen-titel"), "Lebenslauf für diese Stelle");
+  assert.equal(text("lebenslauf.erstellen-titel", "lehrstelle-du"), "Lebenslauf für diese Lehrstelle");
+  assert.match(text("lebenslauf.erstellen-intro"), /aus Ihren Angaben.*wählen Sie getrennt/);
+  assert.match(text("lebenslauf.erstellen-intro", "stelle-du"), /aus deinen Angaben.*wählst du getrennt/);
+  const html = fs.readFileSync(path.join(SEITEN, "bewerbung.html"), "utf8");
+  assert.match(html, /<h3 class="cv-create__title" data-text="lebenslauf.erstellen-titel">/);
+  assert.match(html, /<p class="field__hint" data-text="lebenslauf.erstellen-intro">/);
 });

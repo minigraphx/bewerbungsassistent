@@ -9,7 +9,7 @@ from http import HTTPStatus
 import cv_creation
 import cv_preview
 import unterlagen
-from server import Antwort, json_antwort, pflicht
+from server import ActionError, Antwort, json_antwort, pflicht
 
 ROUTE = "/api/lebenslauf/erstellen/vorschau"
 WRONG_PAGE = "Die Seite muss eine Zahl sein."
@@ -22,12 +22,29 @@ def _open_entry(k, entry_id: str) -> dict:
     return entry
 
 
+# Answers the page turns into a next step (cv_preview.CHECK_DATA, cv_preview.REOPEN); other refusals stay plain.
+_ACTIONS = {cv_creation.UNREADABLE: cv_preview.CHECK_DATA, cv_creation.CHANGED: cv_preview.REOPEN,
+            cv_creation.WRONG_STATION: cv_preview.REOPEN}
+
+
+def _choice(k, body: dict) -> tuple[dict, cv_creation.Choice]:
+    try:
+        cv, stand = cv_creation.load_cv(k.daten)
+        return cv, cv_creation.parse(cv, stand, body)
+    except ActionError:
+        raise
+    except ValueError as error:
+        action = _ACTIONS.get(str(error))
+        if action is None:
+            raise
+        raise ActionError(str(error), action) from error
+
+
 def create(k, parameter, body):
     """Built outside the lock: the preview has its own temporary folder and writes nothing shared."""
     body = body if isinstance(body, dict) else {}
     entry = _open_entry(k, pflicht(body, "id"))
-    cv, stand = cv_creation.load_cv(k.daten)
-    choice = cv_creation.parse(cv, stand, body)
+    cv, choice = _choice(k, body)
     preview = cv_preview.build(k.daten, entry, cv, choice, k.build)
     cv_preview.remember(k.cache, entry["id"], preview)
     return json_antwort({"schluessel": preview.key, "seiten": preview.pages})

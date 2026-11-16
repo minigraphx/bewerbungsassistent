@@ -4,16 +4,39 @@
 (function (global) {
   // Long enough that typing in Kurzprofil builds once per pause, short enough to feel like it follows.
   const DELAY_MS = 600;
-  const FAILED = "Die Vorschau lässt sich gerade nicht erstellen.";
+  // Answers of the server that name a next step (cv_preview.py).
+  const CHECK_DATA = "angaben-pruefen";
+  const REOPEN = "neu-oeffnen";
+  // «gerade» only where trying again can help.
   const NOT_SHOWN = "Die Vorschau lässt sich gerade nicht anzeigen. Bitte nochmals ändern oder die Seite neu laden.";
+  const UNREACHABLE = "Die Vorschau lässt sich gerade nicht erstellen: Die App antwortet nicht. Bitte nochmals ändern oder später versuchen.";
+  const UNREADABLE = "Die Vorschau lässt sich nicht erstellen: In Meine Angaben steht etwas, das die App nicht lesen kann.";
+  const REFUSED = "Die Vorschau lässt sich nicht erstellen.";
+  const EMPTY = "Noch keine Station angehakt. Die Vorschau erscheint, sobald mindestens eine angehakt ist.";
 
   const pagesText = pages => `${pages} ${pages === 1 ? "Seite" : "Seiten"}`;
 
   /** The heading over the preview: with the pages once there is one. */
   const title = pages => (pages ? `Vorschau · ${pagesText(pages)}` : "Vorschau");
 
-  /** A reason from the page (no station chosen) worded like the server's own message. */
-  const failedText = reason => (String(reason).startsWith(FAILED) ? String(reason) : `${FAILED} ${reason}`);
+  /**
+   * What stands instead of the preview when a choice cannot be sent: {text}. No station ticked is a state, not a
+   * failure; another reason from the page stands as it is.
+   */
+  const ofDraft = ({ empty, reason }) => ({ text: empty ? EMPTY : String(reason) });
+
+  /**
+   * What stands instead of the preview after a request failed (an Error as App.senden throws it): {text} and, where
+   * there is a next step, `link` (Meine Angaben), `reload` («Neu laden») or `details` (the raw message under
+   * «Genauer»). `say` gives the words of the person's text set.
+   */
+  function problem(error, say) {
+    const action = error && error.daten ? error.daten.aktion : undefined;
+    if (action === CHECK_DATA) return { text: UNREADABLE, link: true, details: error.message };
+    if (action === REOPEN) return { text: say("lebenslauf.vorschau-geaendert"), reload: true };
+    if (!error || !error.status || error.status >= 500) return { text: UNREACHABLE };
+    return { text: `${REFUSED} ${error.message}` };
+  }
 
   const pageAlt = (page, pages) => `Lebenslauf, Seite ${page} von ${pages}`;
 
@@ -29,7 +52,7 @@
     return before.pages === after.pages ? "" : `Die Vorschau hat jetzt ${pagesText(after.pages)}.`;
   }
 
-  const logic = { DELAY_MS, NOT_SHOWN, title, failedText, pageAlt, announcement };
+  const logic = { DELAY_MS, CHECK_DATA, REOPEN, NOT_SHOWN, title, ofDraft, problem, pageAlt, announcement };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufVorschauLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

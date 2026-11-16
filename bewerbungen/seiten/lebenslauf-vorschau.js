@@ -25,6 +25,9 @@
     if (said) $("cv-vorschau-status").textContent = said;
   }
 
+  // The words of the person's set (Sie or du); app.js sets it once the setup is known.
+  const say = key => window.Texte.text(key, document.documentElement.dataset.textsatz || "stelle-sie");
+
   function show(answer) {
     current = { key: answer.schluessel, pages: answer.seiten };
     const image = $("cv-vorschau-bild");
@@ -32,26 +35,31 @@
     image.alt = Logic.pageAlt(1, current.pages);
     image.hidden = false;
     $("cv-vorschau-titel").textContent = Logic.title(current.pages);
-    $("cv-vorschau-fehler").hidden = true;
+    $("cv-vorschau-problem").hidden = true;
     $("cv-vorschau-fehler").textContent = "";
+    $("cv-vorschau-genauer-text").textContent = "";
     $("cv-vorschau-pdf").href = url(`${ROUTE}/pdf`, { id: ID, schluessel: current.key });
     $("cv-vorschau-links").hidden = false;
     if ($("cv-vorschau-dialog").open) fillLarge();
     announce({ pages: current.pages });
   }
 
-  function fail(reason) {
+  /** shown: {text, link, reload, details} from the logic; the live region says the text only. */
+  function fail(shown) {
     current = null;
     const image = $("cv-vorschau-bild");
     image.hidden = true;
     image.removeAttribute("src");
     image.alt = "";
-    const text = Logic.failedText(reason);
     $("cv-vorschau-titel").textContent = Logic.title(null);
-    $("cv-vorschau-fehler").textContent = text;
-    $("cv-vorschau-fehler").hidden = false;
+    $("cv-vorschau-fehler").textContent = shown.text;
+    $("cv-vorschau-angaben").hidden = !shown.link;
+    $("cv-vorschau-neu").hidden = !shown.reload;
+    $("cv-vorschau-genauer").hidden = !shown.details;
+    $("cv-vorschau-genauer-text").textContent = shown.details || "";
+    $("cv-vorschau-problem").hidden = false;
     $("cv-vorschau-links").hidden = true;
-    announce({ failed: text });
+    announce({ failed: shown.text });
   }
 
   async function refresh(body) {
@@ -62,7 +70,7 @@
       const answer = await senden(ROUTE, body);
       if (mine === asked) show(answer);
     } catch (error) {
-      if (mine === asked) fail(error.message);
+      if (mine === asked) fail(Logic.problem(error, say));
     } finally {
       if (mine === asked) busy(false);
     }
@@ -75,7 +83,10 @@
     busy(false);
   }
 
-  /** detail: {body, now} to build, {body: null, reason} when the choice cannot be sent, {closed} when it closes. */
+  /**
+   * detail: {body, now} to build, {body: null, empty} without a station, {body: null, reason} when the choice cannot
+   * be sent otherwise, {closed} when the panel closes.
+   */
   function onDraft({ detail = {} }) {
     clearTimeout(timer);
     timer = null;
@@ -83,7 +94,7 @@
     if (!detail.body) {
       asked += 1;
       busy(false);
-      return fail(detail.reason);
+      return fail(Logic.ofDraft(detail));
     }
     if (detail.now) return refresh(detail.body);
     busy(true); // the preview on the page is about to change
@@ -91,13 +102,22 @@
     return null;
   }
 
+  /** One large page over its line «Seite wird geladen …», which goes once the page is there. */
+  function largePage(page, pages) {
+    const waiting = el("p", { class: "cv-preview-dialog__loading", "aria-hidden": "true" }, "Seite wird geladen …");
+    // Page 1 is in view when the dialog opens; the others load as they scroll into view.
+    const image = el("img", { class: "cv-preview-dialog__page", src: pageUrl(page, "gross"), alt: Logic.pageAlt(page, pages),
+                              width: "1190", height: "1683", loading: page === 1 ? null : "lazy" });
+    image.addEventListener("load", () => { waiting.hidden = true; });
+    image.addEventListener("error", () => { waiting.textContent = "Diese Seite lässt sich gerade nicht anzeigen."; });
+    return el("div", { class: "cv-preview-dialog__frame" }, image, waiting);
+  }
+
   function fillLarge() {
     const { pages } = current;
     $("cv-vorschau-dialog-titel").textContent = Logic.title(pages);
     $("cv-vorschau-dialog-pdf").href = $("cv-vorschau-pdf").href;
-    $("cv-vorschau-seiten").replaceChildren(...Array.from({ length: pages }, (_, i) => el("img", {
-      class: "cv-preview-dialog__page", src: pageUrl(i + 1, "gross"), alt: Logic.pageAlt(i + 1, pages),
-      width: "1190", height: "1683", loading: "lazy" })));
+    $("cv-vorschau-seiten").replaceChildren(...Array.from({ length: pages }, (_, i) => largePage(i + 1, pages)));
   }
 
   function openLarge() {
@@ -108,8 +128,10 @@
   }
 
   $("cv-vorschau-bild").addEventListener("error", () => {
-    if (current) fail(Logic.NOT_SHOWN);
+    if (current) fail({ text: Logic.NOT_SHOWN });
   });
+  // lebenslauf-erstellen.js closes the panel and opens it with Meine Angaben as they are now.
+  $("cv-vorschau-neu").addEventListener("click", () => document.dispatchEvent(new CustomEvent("lebenslauf-neu-oeffnen")));
   $("cv-vorschau-gross").addEventListener("click", openLarge);
   $("cv-vorschau-schliessen").addEventListener("click", () => $("cv-vorschau-dialog").close());
   // Esc closes the dialog too; either way the focus goes back to «Gross ansehen».

@@ -10,6 +10,8 @@ import struct
 import pypdf
 import pytest
 
+import cv_creation
+import cv_preview
 import routes_ai
 import unterlagen
 from register import Register
@@ -133,7 +135,7 @@ def test_nothing_goes_to_the_ai_for_the_preview(server, monkeypatch):  # noqa: F
     assert created == []
 
 
-def test_a_failed_build_answers_with_a_clear_message_and_leaves_nothing_behind(server):  # noqa: F811
+def test_a_failed_build_points_to_meine_angaben_with_the_details_and_leaves_nothing_behind(server):  # noqa: F811
     daten, build = server.kontext.daten, server.kontext.build
     cv = daten / "cv.yaml"
     cv.write_text(cv.read_text(encoding="utf-8").replace("basics:\n", "basics:\n  x-image: {spiegel: ja}\n", 1),
@@ -142,12 +144,12 @@ def test_a_failed_build_answers_with_a_clear_message_and_leaves_nothing_behind(s
     status, answer = post(server, PREVIEW, choice(form(server)))
 
     assert status == 400
-    assert answer["fehler"].startswith("Die Vorschau lässt sich gerade nicht erstellen.")
-    assert "x-image" in answer["fehler"]
+    assert answer["aktion"] == cv_preview.CHECK_DATA, "the page names Meine Angaben and shows the details"
+    assert "x-image" in answer["fehler"], "the details under «Genauer»"
     assert not [path for path in build.rglob("*") if "vorschau" in path.name]
 
 
-def test_a_build_that_breaks_inside_gets_the_message_too(server, monkeypatch):  # noqa: F811
+def test_a_build_that_breaks_inside_points_to_meine_angaben_without_its_internals(server, monkeypatch):  # noqa: F811
     def broken(argv):
         raise OSError("disk full")
 
@@ -155,14 +157,33 @@ def test_a_build_that_breaks_inside_gets_the_message_too(server, monkeypatch):  
 
     status, answer = post(server, PREVIEW, choice(form(server)))
 
-    assert status == 400
-    assert answer["fehler"].startswith("Die Vorschau lässt sich gerade nicht erstellen.")
+    assert status == 400 and answer["aktion"] == cv_preview.CHECK_DATA
     assert "disk full" not in answer["fehler"]
+
+
+def test_meine_angaben_that_cannot_be_read_point_there_too(server):  # noqa: F811
+    opened = form(server)
+    (server.kontext.daten / "cv.yaml").write_text("basics: [kaputt\n", encoding="utf-8")
+
+    status, answer = post(server, PREVIEW, choice(opened))
+
+    assert status == 400 and answer["aktion"] == cv_preview.CHECK_DATA
+
+
+def test_meine_angaben_changed_elsewhere_asks_to_open_the_panel_again(server):  # noqa: F811
+    status, answer = post(server, PREVIEW, choice(form(server), stand="anders"))
+
+    assert status == 400 and answer["aktion"] == cv_preview.REOPEN
+    assert answer["fehler"] == cv_creation.CHANGED
+
+
+def test_the_sentences_that_name_the_panel_quote_it_with_guillemets():
+    for sentence in (cv_creation.CHANGED, cv_creation.WRONG_STATION):
+        assert "«Lebenslauf erstellen»" in sentence and "„" not in sentence
 
 
 @pytest.mark.parametrize("changes", [
     {"stationen": {"work": [], "education": []}},
-    {"stand": "anders"},
     {"design": "dossier-siegel"},
 ])
 def test_a_choice_that_cannot_be_built_is_refused_with_its_reason(server, changes):  # noqa: F811

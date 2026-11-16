@@ -20,6 +20,7 @@ from pypdf.errors import PdfReadError
 import cv_creation
 import pdf_thumbnail
 import unterlagen
+from server import ActionError
 
 log = logging.getLogger("bewerbungsbegleiter")
 
@@ -27,8 +28,10 @@ CACHE_TAG = "cv-vorschau"
 IMAGE_TAG = "cv-vorschau-seite"
 KEEP = 3  # answers to requests still under way stay reachable; a newer request wins on the page
 SIZES = {"klein": 300, "gross": 595}  # points wide: beside the choice, and A4 width for «Gross ansehen»
-FAILED = "Die Vorschau lässt sich gerade nicht erstellen."
-BROKEN = f"{FAILED} Der Lebenslauf liess sich nicht setzen. Bitte nochmals ändern oder später versuchen."
+# The page words the problem itself (lebenslauf-vorschau-logik.js); `fehler` is the detail under «Genauer».
+CHECK_DATA = "angaben-pruefen"  # Meine Angaben hold something the build cannot read
+REOPEN = "neu-oeffnen"  # Meine Angaben changed since the panel opened
+BROKEN = "Der Lebenslauf liess sich nicht setzen."
 GONE = "Diese Vorschau gibt es nicht mehr. Bitte die Seite neu laden."
 WRONG_SIZE = "Bitte klein oder gross wählen."
 
@@ -44,11 +47,15 @@ def _pages(pdf: bytes) -> int:
     try:
         return len(PdfReader(io.BytesIO(pdf)).pages)
     except (PdfReadError, ValueError, KeyError, IndexError, TypeError) as error:
-        raise ValueError(BROKEN) from error
+        raise ActionError(BROKEN, CHECK_DATA) from error
 
 
 def build(daten: pathlib.Path, entry: dict, cv: dict, choice: cv_creation.Choice, build_dir: pathlib.Path) -> Preview:
-    """The CV of the choice as PDF in memory; ValueError with a German message when it cannot be built."""
+    """The CV of the choice as PDF in memory; ActionError(CHECK_DATA) with the reason when it cannot be built.
+
+    The choice itself was checked before (cv_creation.parse), so what fails here comes from Meine Angaben: a field
+    the build does not know, a photo that is gone, text Typst cannot set.
+    """
     build_dir.mkdir(parents=True, exist_ok=True)
     try:
         with tempfile.TemporaryDirectory(dir=build_dir, prefix="vorschau-") as folder:
@@ -59,10 +66,10 @@ def build(daten: pathlib.Path, entry: dict, cv: dict, choice: cv_creation.Choice
             unterlagen.build_cv_preview(daten, entry, job, choice.design, build_folder / "satz", target)
             pdf = target.read_bytes()
     except ValueError as error:
-        raise ValueError(f"{FAILED} {error}") from error
+        raise ActionError(str(error), CHECK_DATA) from error
     except (TypeError, KeyError, OSError, yaml.YAMLError, typst.TypstError) as error:
         log.warning("preview of the CV for %s failed: %r", entry["id"], error)
-        raise ValueError(BROKEN) from error
+        raise ActionError(BROKEN, CHECK_DATA) from error
     return Preview(key=hashlib.sha256(pdf).hexdigest()[:16], pdf=pdf, pages=_pages(pdf))
 
 
