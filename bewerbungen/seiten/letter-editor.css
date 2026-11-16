@@ -1,0 +1,26 @@
+/* The letter editor in the step Anschreiben (G94, #332), as the binding brief of the UI/UX review says: one column as
+   wide as the letter, a field per paragraph, existing tokens only, so both themes come from stil.css. */
+.letter-editor { display: flex; flex-direction: column; gap: var(--space-4); }
+.letter-editor[hidden] { display: none; }
+.letter-editor .field { margin: 0; }
+.letter-editor__title { margin: 0; font-size: 16px; line-height: 24px; color: var(--text-strong); }
+.letter-editor__text { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; margin: 0; padding: 0; border: 0; }
+.letter-editor__text legend { padding: 0; margin-bottom: var(--space-1); }
+.letter-editor__goal { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-strong); }
+.letter-editor__paragraphs { display: flex; flex-direction: column; gap: var(--space-3); }
+.letter-editor__paragraph { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.letter-editor__paragraph--longest { padding-left: var(--space-3); border-left: 3px solid var(--accent); }
+.letter-editor__label { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); }
+/* like .letter-longest__label in the read view */
+.letter-editor__longest { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+/* three lines at least, growing with the text; letter-editor.js sets the height where field-sizing is missing */
+.letter-editor__field { width: 100%; min-height: calc(4.5em + 2 * var(--space-2) + 2px); field-sizing: content; resize: vertical; font-family: inherit; font-size: 16px; line-height: 1.5; }
+.letter-editor__meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-3); }
+.letter-editor__remove, .letter-editor__add { min-height: 44px; }
+.letter-editor__add { align-self: flex-start; }
+.letter-editor__as-text { margin: 0; }
+.letter-editor__question { flex-basis: 100%; margin: 0; font-weight: 500; color: var(--text-strong); }
+@media (max-width: 600px) {
+  .letter-editor__actions { flex-direction: column; align-items: stretch; }
+  .letter-editor__actions .btn { width: 100%; }
+}

@@ -383,6 +383,29 @@
       sie: "Meine Angaben und Varianten bleiben, wie sie sind. Weggelassenes holen Sie im Schritt Lebenslauf zurück.",
       du: "Meine Angaben und Varianten bleiben, wie sie sind. Weggelassenes holst du im Schritt Lebenslauf zurück.",
     },
+    // The letter editor in the step Anschreiben (G94, #332); an apprenticeship keeps «Anschreiben»
+    "anschreiben.editor-intro": {
+      sie: "Passen Sie den Text an die Stelle und die Firma an. Jeder Absatz hat ein eigenes Feld.",
+      du: "Pass den Text an die Stelle und die Firma an. Jeder Absatz hat ein eigenes Feld.",
+      lehrstelle: "Pass den Text an die Lehrstelle und den Lehrbetrieb an. Jeder Absatz hat ein eigenes Feld.",
+    },
+    "anschreiben.editor-freigabe": {
+      sie: "Mit dem Speichern ist die Freigabe aufgehoben; geben Sie das Anschreiben danach neu frei.",
+      du: "Mit dem Speichern ist die Freigabe aufgehoben; gib das Anschreiben danach neu frei.",
+    },
+    "anschreiben.editor-als-text": { sie: "Empfänger, Ort und Datum ändern Sie als Text.", du: "Empfänger, Ort und Datum änderst du als Text." },
+    "anschreiben.gespeichert": {
+      sie: "Gespeichert. Erstellen Sie die Unterlagen neu, damit PDF und Prüfung den neuen Text zeigen.",
+      du: "Gespeichert. Erstelle die Unterlagen neu, damit PDF und Prüfung den neuen Text zeigen.",
+    },
+    "anschreiben.nicht-erreichbar": {
+      sie: "Nicht gespeichert: Die App antwortet nicht. Der Text bleibt hier; versuchen Sie es nochmals.",
+      du: "Nicht gespeichert: Die App antwortet nicht. Der Text bleibt hier; versuch es nochmals.",
+    },
+    "anschreiben.geaendert": {
+      sie: "Nicht gespeichert: Das Anschreiben hat sich inzwischen geändert, etwa durch einen neuen Entwurf. Kopieren Sie, was Sie behalten möchten, und laden Sie die Seite neu.",
+      du: "Nicht gespeichert: Das Anschreiben hat sich inzwischen geändert, etwa durch einen neuen Entwurf. Kopier, was du behalten möchtest, und lade die Seite neu.",
+    },
     "bewerbung.freigeben-offen": {
       sie: "Der Entwurf ist fertig. {aussagen} noch keinen Beleg in Ihren Angaben; gelb markiert.",
       du: "Der Entwurf ist fertig. {aussagen} noch keinen Beleg in deinen Angaben; gelb markiert.",

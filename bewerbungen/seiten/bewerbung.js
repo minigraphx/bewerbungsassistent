@@ -11,6 +11,7 @@
   const S = window.UnterlagenSchritt;
   const K = window.KuerzenLogik;
   const KU = window.Kuerzen;
+  const E = window.LetterEditor;
   const { text: textAus } = window.Texte;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
@@ -196,35 +197,27 @@
     return el("p", {}, ...teile, rest);
   }
 
-  /** «Im Anschreiben kürzen»: to the step Anschreiben, the focus on the marked paragraph (G94). */
-  function toLongestParagraph() {
-    const target = $(FindingRow.LONGEST_ID) || $("anschreiben-titel");
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-    target.focus({ preventScroll: true });
-  }
-
   function zeigeBrief() {
     const brief = daten.anschreiben_text;
     const zeigen = Boolean(brief) && !daten.eigenes_anschreiben && !bewerbung.versand;
     const marked = L.longestParagraph(befunde);
-    const editHref = "/inhalte?" + new URLSearchParams({ datei: `bewerbungen/${ID}/anschreiben.yaml`, ansicht: "text" });
     $("anschreiben-text").hidden = !zeigen;
     if (zeigen) {
       $("anschreiben-text").replaceChildren(
         brief.betreff ? el("p", {}, el("strong", {}, brief.betreff)) : null,
         brief.anrede ? el("p", {}, brief.anrede) : null,
-        ...brief.absaetze.map((text, place) => (place === marked ? FindingRow.longest(absatz(text), editHref) : absatz(text))),
+        ...brief.absaetze.map((text, place) => (place === marked ? FindingRow.longest(absatz(text), E.openAtLongest) : absatz(text))),
         brief.gruss ? el("p", {}, brief.gruss) : null);
     }
     const freigabe = daten.anschreiben_freigabe || {};
     $("freigabe-zeile").hidden = !zeigen;
     $("freigeben").hidden = !freigabe.noetig || freigabe.freigegeben;
-    $("anschreiben-aendern").href = editHref;
     // the page draws this again after each load and check; a live region would say an unchanged line again
     window.Meldungen.zeigeNeu($("freigabe-status"), !zeigen || !freigabe.noetig ? ""
       : freigabe.freigegeben ? `Freigegeben am ${datum(freigabe.am)}. Eine Änderung am Text hebt die Freigabe auf.`
         : "Noch nicht freigegeben. Erst mit der Freigabe öffnet die Erweiterung das Formular.", freigabe.freigegeben ? "ok" : "");
     zeigeKiPruefung(zeigen);
+    E.update({ letter: brief, findings: befunde, approval: freigabe, shown: zeigen });  // hidden again while editing (#332)
   }
 
   function zeigeKiPruefung(briefSichtbar) {
@@ -399,7 +392,7 @@
       li.setAttribute("aria-labelledby", K.SENTENCE_ID);
       return window.FindingRow.keyed(li, b);
     }
-    return window.FindingRow.row(b, zeile, { onCut: toLongestParagraph, onKeep: knopf => soLassen(knopf, b.schluessel) });
+    return window.FindingRow.row(b, zeile, { onCut: E.cut, onKeep: knopf => soLassen(knopf, b.schluessel) });
   }
 
   function zeigeBefunde() {
@@ -735,6 +728,7 @@
   });
   $("pruefen").addEventListener("click", pruefen);
   $("freigeben").addEventListener("click", freigeben);
+  E.connect(laden);
   document.addEventListener("anschreiben-geprueft", laden);
   document.addEventListener("anschreiben-geaendert", laden);
   document.addEventListener("eigenes-anschreiben-geaendert", nachsehen);
