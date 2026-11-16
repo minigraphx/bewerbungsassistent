@@ -146,6 +146,7 @@ function page() {
     App: { el, url: (p, q) => `${p}?${new URLSearchParams(q)}` },
     UnterlagenErgebnis: R,
     UnterlagenWahl: require("../seiten/unterlagen-wahl.js"),
+    DotLine: require("../seiten/dot-line.js"),
     DossierDialog: { open: from => state.dialogOpenedFrom.push(from) },
     LetterEditor: { open: () => false },  // no letter to edit here; letter_editor.test.cjs covers the editor
   };
@@ -381,7 +382,7 @@ test("each «·» is glued to the part before it, and a line breaks only after �
   ]) {
     const note = dossierNote(ausgleich);
     const parts = note.children.filter(n => typeof n === "object");
-    assert.ok(parts.every(n => n.attrs.class === "doc-tile__part"), "the note holds only whole parts");
+    assert.ok(parts.every(n => n.attrs.class === "whole-part"), "the note holds only whole parts of the shared helper (#340)");
     assert.deepEqual(note.children.filter(n => typeof n !== "object"), words.slice(1).map(() => " "),
       "a plain space between two parts is the only place a line may break");
     assert.deepEqual(parts.map(shown), words.map((word, i) => (i < words.length - 1 ? `${word} ·` : word)),
@@ -399,8 +400,11 @@ const ruleOf = (css, selector) => {
 };
 
 test("a part of the note breaks to the next line only as a whole, and a long word cannot be split", () => {
+  // #340: the shared .whole-part of stil.css, which the page of an application loads
+  assert.match(ruleOf(lies("stil.css"), ".whole-part"), /display: inline-block; max-width: 100%;/);
+  assert.match(lies("bewerbung.html"), /<link rel="stylesheet" href="\/stil\.css">/);
   const css = lies("unterlagen.css");
-  assert.match(ruleOf(css, ".doc-tile__part"), /display: inline-block; max-width: 100%;/);
+  assert.ok(!css.includes(".doc-tile__part"), "no rule of its own for the parts of the tile");
   assert.doesNotMatch(ruleOf(css, ".doc-tile__note"), /overflow-wrap/);
 });
 

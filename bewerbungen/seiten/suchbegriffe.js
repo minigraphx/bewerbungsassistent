@@ -93,19 +93,8 @@
       a.beleg ? beleg(a.beleg) : null);
   }
 
-  /**
-   * Each part breaks only as a whole and carries the «·» after it, as on the dossier tile (#331, #337): a line may break
-   * beside an inline-block despite a no-break space, so a «·» of its own could start a line. The plain space between two
-   * parts is the only place a line breaks. Screen readers skip the «·» and hear a comma.
-   */
-  function fussZeile(teile) {
-    const letzter = teile.length - 1;
-    const ganze = teile.map((teil, index) => (index === letzter
-      ? el("span", { class: "whole-part" }, teil)
-      : el("span", { class: "whole-part" },
-        teil, el("span", { "aria-hidden": "true" }, "\u00a0·"), el("span", { class: "visually-hidden" }, ","))));
-    return ganze.flatMap((teil, index) => (index === 0 ? [teil] : [" ", teil]));
-  }
+  /** A «·» line of whole parts (#340, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
 
   function zeigeEndstand(antwort) {
     const bloecke = L.endstand(vorschlag.jetzt, antwort.endstand).map(b => el("div", {},
@@ -113,7 +102,7 @@
       el("ul", { class: "terms" }, ...b.begriffe.map(x => marke({ begriff: x.begriff, wort: x.neu ? "neu" : "", art: x.neu ? "new" : "kept" })))));
     $("endstand").replaceChildren(...bloecke);
     $("faellt-weg").textContent = antwort.entfaellt.length ? `Fällt weg: ${antwort.entfaellt.join(", ")}` : "";
-    $("grenzen").textContent = antwort.grenzen.zeile;
+    $("grenzen").replaceChildren(...dotLine(antwort.grenzen.teile));
     $("uebernehmen").textContent = L.hauptknopf(gewaehlt.size, vorschlag.aenderungen.length);
     $("uebernehmen").disabled = Boolean(antwort.grenzen.gesperrt);
     $("uebernehmen-grund").textContent = antwort.grenzen.gesperrt || "";
@@ -136,9 +125,9 @@
   }
 
   function zeigeKopf(v) {
-    $("vorschlag-kopf").textContent = L.kopf(v.aenderungen.length);
+    $("vorschlag-kopf").replaceChildren(...dotLine(L.kopfTeile(v.aenderungen.length)));
     $("runde").hidden = v.runde < 2;
-    $("runde").textContent = L.runde(v, satz);
+    $("runde").replaceChildren(...dotLine(L.rundeTeile(v, satz)));
     $("geaendert").hidden = !v.geaendert;
     $("geaendert").textContent = v.geaendert ? `Geändert gegenüber Vorschlag ${v.runde - 1}: ${v.geaendert}` : "";
     $("ihr-hinweis").hidden = !v.hinweis;
@@ -168,7 +157,7 @@
     $("zusammenfassung").textContent = v.zusammenfassung;
     $("aenderungen").replaceChildren(...v.aenderungen.map(karte));
     $("fuss-satz").textContent = texte.fuss;
-    $("fuss").replaceChildren(...fussZeile(L.fussTeile(v)));
+    $("fuss").replaceChildren(...dotLine(L.fussTeile(v)));
     zeigeEndstand(v);
     $("vorschlag-kopf").focus();
   }

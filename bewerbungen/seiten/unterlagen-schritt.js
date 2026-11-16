@@ -60,19 +60,12 @@
   }
 
   /**
-   * Pages and how they were balanced (G93), in plain words without a colour. Each part breaks only as a whole and
-   * carries the «·» after it (#331): a line may break beside an inline-block despite a no-break space, so a «·» of its
-   * own could stand alone on a line. The plain space between two parts is the only place a line breaks. Screen readers
-   * skip the «·» and hear a comma.
+   * Pages and how they were balanced (G93), in plain words without a colour, as a «·» line of whole parts (#331, #340,
+   * dot-line.js): «so eng wie möglich» is never split and no line starts with «·»; screen readers hear commas.
    */
   function noteLine(tile) {
     if (!tile.note.length) return null;
-    const last = tile.note.length - 1;
-    const parts = tile.note.map((part, index) => (index === last
-      ? el("span", { class: "doc-tile__part" }, part)
-      : el("span", { class: "doc-tile__part" },
-        part, el("span", { "aria-hidden": "true" }, "\u00a0·"), el("span", { class: "visually-hidden" }, ","))));
-    return el("p", { class: "doc-tile__note" }, ...parts.flatMap((part, index) => (index === 0 ? [part] : [" ", part])));
+    return el("p", { class: "doc-tile__note" }, ...window.DotLine.render(tile.note, el));
   }
 
   /** One tile per built document; `stand` makes the browser load a rebuilt file anew. */
