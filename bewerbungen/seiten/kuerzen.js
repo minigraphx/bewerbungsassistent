@@ -53,14 +53,23 @@
     return fieldset;
   }
 
-  /** The list in the step Lebenslauf; hidden without anything left out, and without buttons once sent. */
+  /**
+   * In the step Lebenslauf: the list of what is left out and, below it, the line for three pages; each hidden when
+   * empty, and without buttons once sent.
+   */
   function showLeftOut(kuerzungen, { entryId, sent, after }) {
     const rows = K.leftOut(kuerzungen);
+    const three = K.threePages(kuerzungen);
+    const takeBackButton = (entry, index) => sent ? null : el("button", {
+      type: "button", class: "btn btn--sm", "aria-label": `${entry.button}: ${entry.text}`,
+      onclick: event => takeBack(event.currentTarget, entry, index),
+    }, entry.button);
     $("weggelassen").hidden = !rows.length;
     $("weggelassen-liste").replaceChildren(...rows.map((entry, index) => el("li", { class: "cut-list__row" },
-      el("span", { class: "cut-list__text" }, entry.text),
-      sent ? null : el("button", { type: "button", class: "btn btn--sm", "aria-label": `${entry.button}: ${entry.text}`,
-        onclick: event => takeBack(event.currentTarget, entry, index) }, entry.button))));
+      el("span", { class: "cut-list__text" }, entry.text), takeBackButton(entry, index))));
+    $("drei-seiten-zeile").hidden = !three;
+    $("drei-seiten-zeile").replaceChildren(...(three
+      ? [el("span", { class: "cut-list__text" }, three.text), takeBackButton(three, rows.length)] : []));
 
     async function takeBack(button, entry, index) {
       button.disabled = true;

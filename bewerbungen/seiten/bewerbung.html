@@ -40,12 +40,13 @@
         </div>
         <div id="vorschlaege" class="application__suggestions"></div>
         <p class="field__hint" id="cv-wie-es-ist" hidden>Diese Variante ist ein fertiges PDF und wird so verwendet, wie es ist.</p>
+        <div class="btn-row"><button type="button" class="btn" id="cv-erstellen-oeffnen" aria-expanded="false" aria-controls="cv-erstellen" hidden>Lebenslauf erstellen</button><a class="btn btn--quiet" id="cv-anpassen" href="/angaben" hidden>Lebenslauf anpassen</a></div>
         <section class="cut-list" id="weggelassen" aria-labelledby="weggelassen-titel" hidden>
           <h3 class="cut-list__title" id="weggelassen-titel">Für diese Bewerbung weggelassen</h3>
           <ul class="cut-list__rows" id="weggelassen-liste"></ul>
-          <p class="status-line" id="weggelassen-status" role="status" aria-live="polite"></p>
         </section>
-        <div class="btn-row"><button type="button" class="btn" id="cv-erstellen-oeffnen" aria-expanded="false" aria-controls="cv-erstellen" hidden>Lebenslauf erstellen</button><a class="btn btn--quiet" id="cv-anpassen" href="/angaben" hidden>Lebenslauf anpassen</a></div>
+        <p class="cut-list__row cut-list__three" id="drei-seiten-zeile" hidden></p>
+        <p class="status-line" id="weggelassen-status" role="status" aria-live="polite"></p>
         <div class="cv-create" id="cv-erstellen" hidden>
           <h3 class="cv-create__title">Lebenslauf für diese Stelle</h3>
           <p class="field__hint">Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.</p>

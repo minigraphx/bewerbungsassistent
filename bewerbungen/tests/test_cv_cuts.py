@@ -102,6 +102,21 @@ def test_the_cv_finding_cannot_be_confirmed_with_so_lassen(server, three_pages, 
     assert routes_apply.CUT_FIRST in problem
 
 
+def test_the_last_page_fill_of_a_cv_being_cut_waits_until_three_pages_are_allowed(datenordner, tmp_path, three_pages,
+                                                                                  monkeypatch):
+    fill = layout_check.Breach(3, "fuellung", "nur zu 27 % gefüllt, verlangt ist mindestens ein Drittel.")
+    monkeypatch.setattr(layout_check, "check", lambda pdf, part, headings=(): [fill] if part == "lebenslauf" else [])
+    entry = _built(datenordner, tmp_path)
+    page_three = "Lebenslauf, Seite 3: nur zu 27 %"
+
+    being_cut = [f.text for f in pruefung.pruefe(datenordner, entry, TODAY)]
+    cut_choice.store_choice(datenordner, entry, [], True)
+    three_allowed = [f.text for f in pruefung.pruefe(datenordner, entry, TODAY)]
+
+    assert not any(text.startswith(page_three) for text in being_cut), "the page being cut asks for no «So lassen»"
+    assert any(text.startswith(page_three) for text in three_allowed)
+
+
 def test_a_dossier_gets_the_same_finding(datenordner, tmp_path, three_pages):
     register = Register(datenordner)
     register.speichere({**register.hole(BRIEF_ID), "unterlagen": "dossier"})

@@ -146,3 +146,7 @@ def test_the_pictures_say_what_they_show_today():
     assert "Lebenslauf: 3 Seiten" in picture and "Gekürzt neu erstellen" in picture
     assert "Drei Seiten erlauben" in picture and "So lassen" not in picture
     assert "**Gekürzt neu erstellen**" in check and "**Zurückholen**" in check
+    assert "**Drei Seiten erlaubt, nur für diese Bewerbung.** mit **Zurücknehmen**" in check
+    assert "**Zurücknehmen** bei **Drei Seiten erlaubt** gilt wieder die Grenze von zwei Seiten." in check
+    assert "die nächste Kürzung ist angehakt.**" in check and "Meine Angaben und Varianten bleiben" in check
+    assert "Schliessen" not in picture and "×" not in picture

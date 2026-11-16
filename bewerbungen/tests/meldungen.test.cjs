@@ -303,6 +303,32 @@ test("a success line in a list has nothing to close", () => {
   assert.match(zeile.textContent, /Angelegt: cv.yaml/);
 });
 
+test("a list line that must stay has no close button (G92: the cuts of a CV over its limit)", () => {
+  const zeile = meldungen.listenZeile(fakeDocument(), "Lebenslauf: 3 Seiten, erlaubt sind höchstens 2.", "hinweis",
+    { schliessbar: false });
+  assert.equal(zeile.dataset.level, "warning");
+  assert.equal(knopf(zeile), null);
+  assert.ok(!zeile.classList.contains("status--closable"));
+});
+
+test("a message shown again unchanged is not written anew, so a live region does not say it twice", () => {
+  const element = zeile();
+  meldungen.zeigeNeu(element, "Noch nicht freigegeben.", "hinweis");
+  const first = element.childNodes[0];
+
+  meldungen.zeigeNeu(element, "Noch nicht freigegeben.", "hinweis");
+  assert.equal(element.childNodes[0], first);
+
+  meldungen.zeigeNeu(element, "Noch nicht freigegeben.", "ok");
+  assert.notEqual(element.childNodes[0], first, "another level is another message");
+  const second = element.childNodes[0];
+  meldungen.zeigeNeu(element, "Freigegeben am 16.11.2026.", "ok");
+  assert.notEqual(element.childNodes[0], second);
+  assert.match(element.textContent, /Freigegeben am/);
+  meldungen.zeigeNeu(element, "", "");
+  assert.equal(element.textContent, "");
+});
+
 test("a list line can hold a link", () => {
   const document = fakeDocument();
   const link = document.createElement("a");

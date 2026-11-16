@@ -98,11 +98,13 @@ def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, cut: Callable[
     return Befund("hinweis", text, schluessel=key)  # a CV variant that is a finished file: the app cannot cut it
 
 
-def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = ()) -> list[Befund]:
-    """The breaches of the layout rules in a generated PDF, each with its own key (G52)."""
+def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = (),
+                    skipped: frozenset[str] = frozenset()) -> list[Befund]:
+    """The breaches of the layout rules in a generated PDF, each with its own key (G52); `skipped` names rules
+    not to report."""
     name = NAMEN[art]
     try:
-        breaches = layout_check.check(pdf, art, headings=headings)
+        breaches = [b for b in layout_check.check(pdf, art, headings=headings) if b.rule not in skipped]
     except (PdfReadError, ValueError, OSError, KeyError, IndexError, TypeError) as fehler:
         return [Befund("hinweis", f"{name}: Der Satz der Seiten liess sich nicht messen ({fehler}). Bitte das PDF "
                                   "selbst ansehen.", schluessel=layout_confirmed.key(pdf, "messung", 1))]
@@ -136,16 +138,20 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int |
     else:
         befunde.append(Befund("ok", f"{name}: Text extrahierbar ({len(seiten)} Seite{'n' if len(seiten) != 1 else ''})"))
     limit = limit or MAX_SEITEN[art]
+    skipped = frozenset()
     if len(seiten) > limit:
         key = None if as_it_is else layout_confirmed.key(pdf, "seiten", limit + 1)
         if art == "lebenslauf" and offer is not None and not as_it_is:
-            befunde.append(_cv_over_limit(pdf, len(seiten), limit, key, offer))
+            over = _cv_over_limit(pdf, len(seiten), limit, key, offer)
+            befunde.append(over)
+            # the last page is the one being cut away: its fill waits until the CV keeps its limit (G92)
+            skipped = frozenset({"fuellung"}) if over.kuerzen else skipped
         else:
             befunde.append(_over_limit(art, len(seiten), limit, as_it_is, cut, key))
     if PLATZHALTER.search(text):
         befunde.append(Befund(content_stufe, f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
     if not as_it_is:
-        befunde += layout_findings(pdf, art, headings)
+        befunde += layout_findings(pdf, art, headings, skipped)
     return befunde
 
 

@@ -115,6 +115,11 @@
     if (abschnitt.tagName === "DETAILS") abschnitt.open = true;
     abschnitt.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  // G92: the card about a CV over its limit leads to the cuts, so the focus goes there too
+  const zuBefund = () => {
+    zuAbschnitt("s-pruefen")();
+    S.focusFirstFinding();
+  };
 
   function zeigeNaechster() {
     const n = L.naechster(daten, { befunde, rav, ki: kiBereit });
@@ -131,7 +136,7 @@
       erstellen: ["Unterlagen erstellen", R.NEXT_CREATE, [knopf("Unterlagen erstellen", () => $("erstellen").click())]],
       pruefen: [R.STEP_TITLE, "Die Prüfung läuft.", []],
       klaeren: [R.STEP_TITLE, R.nextClarify(fehlerZahl), [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
-      kuerzen: [K.NEXT_TITLE, t("bewerbung.kuerzen"), [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
+      kuerzen: [K.NEXT_TITLE, t("bewerbung.kuerzen"), [knopf("Zur Prüfung", zuBefund)]],
       bestaetigen: ["Unterlagen ansehen", "Die Prüfung meldet etwas am Satz der PDFs, mit Dokument und Seite. Erst nach «So lassen» öffnet sich ein Formular.", [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
       formular: [`Formular bei ${b.firma} ausfüllen`, t("bewerbung.formular"), [knopf("Formular öffnen", e => oeffneFormular(e.currentTarget, false)), knopf("Per E-Mail beworben? Versand erfassen", zuAbschnitt("versand-titel"), false)]],
       versand: ["Abschicken und festhalten", t("bewerbung.versand"), [knopf("Versand erfassen", zuAbschnitt("versand-titel"))]],
@@ -206,7 +211,8 @@
     $("freigabe-zeile").hidden = !zeigen;
     $("freigeben").hidden = !freigabe.noetig || freigabe.freigegeben;
     $("anschreiben-aendern").href = "/inhalte?" + new URLSearchParams({ datei: `bewerbungen/${ID}/anschreiben.yaml`, ansicht: "text" });
-    zeile($("freigabe-status"), !zeigen || !freigabe.noetig ? ""
+    // the page draws this again after each load and check; a live region would say an unchanged line again
+    window.Meldungen.zeigeNeu($("freigabe-status"), !zeigen || !freigabe.noetig ? ""
       : freigabe.freigegeben ? `Freigegeben am ${datum(freigabe.am)}. Eine Änderung am Text hebt die Freigabe auf.`
         : "Noch nicht freigegeben. Erst mit der Freigabe öffnet die Erweiterung das Formular.", freigabe.freigegeben ? "ok" : "");
     zeigeKiPruefung(zeigen);
@@ -379,7 +385,10 @@
     const zeile = L.befundZeile(b);
     if (zeile.kuerzen) {  // G92: the cuts to tick instead of «So lassen»
       const chooser = KU.chooser(zeile.kuerzen, { entryId: ID, note: t("kuerzen.hinweis"), after: nachKuerzen });
-      return window.Meldungen.listenZeile(document, el("span", { class: "cut-finding" }, zeile.text, chooser), zeile.stufe);
+      const satz = el("span", { id: K.SENTENCE_ID }, zeile.text);
+      const li = window.Meldungen.listenZeile(document, el("span", { class: "cut-finding" }, satz, chooser), zeile.stufe, { schliessbar: false });
+      li.setAttribute("aria-labelledby", K.SENTENCE_ID);
+      return li;
     }
     const inhalt = zeile.knopf
       ? el("span", {}, zeile.text, " ", el("button", { type: "button", class: "btn btn--sm", onclick: e => soLassen(e.currentTarget, b.schluessel) }, zeile.knopf))
@@ -412,7 +421,8 @@
   async function nachKuerzen(aktion, antwort) {
     await laden();
     await laufendePruefung;
-    meldungOben(K.doneMessage(aktion, antwort), antwort.neu_erstellt ? "ok" : "hinweis");
+    const over = K.stillOver(befunde);
+    meldungOben(K.doneMessage(aktion, antwort, over), K.doneLevel(aktion, antwort, over));
     if (aktion !== "zurueck") S.focusFirstFinding();
   }
 
