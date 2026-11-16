@@ -95,6 +95,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G93 [approved, must] In der Prüfung nennt jedes erstellte Dokument seine Seitenzahl und, nur wenn die App den Satz verändert hat, in wenigen Worten wie, etwa «1 Seite · etwas enger gesetzt», «2 Seiten · etwas grosszügiger gesetzt» oder «3 Seiten · so eng wie möglich»; beim Dossier etwa «Dossier · 7 Seiten · Lebenslauf etwas enger gesetzt». | gate: review
 - G94 [approved, must] Ein Anschreiben über einer Seite setzt die App so eng wie möglich und nie weiter. Die Prüfung nennt, wie viele Zeilen zu viel sind; «Im Anschreiben kürzen» führt in den Schritt Anschreiben, wo der längste Absatz markiert ist; «So lassen» bestätigt es, wie es ist. | gate: test
 - G95 [draft, must] Abweichend von G75 geht beim Öffnen des Lebenslaufs nichts an die KI: Die Person holt den Vorschlag mit einem Klick und sieht davor, welcher Text an die KI geht (G15) und was es etwa kostet und dauert (G44). Danach ist der Vorschlag angewendet, mit den Empfehlungen nach G75. | gate: review
+- G96 [draft, must] Ein Lebenslauf, der auch so eng wie möglich gesetzt mehr Seiten hat als erlaubt, wird wie ein zu langes Anschreiben (G94) so eng wie möglich gesetzt und nie grosszügiger; die Kachel nennt dann «so eng wie möglich». | gate: review
 
 ## K · Constraints
 
