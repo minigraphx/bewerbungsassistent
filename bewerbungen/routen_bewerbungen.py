@@ -11,6 +11,7 @@ import anschreiben
 import cut_choice
 import layout_confirmed
 import letter_approval
+import letter_edit
 import page_note
 import pdf_thumbnail
 import pruefung
@@ -91,7 +92,9 @@ def _letter_text(k, entry_id: str) -> dict | None:
     # split as the build and the check do, so the place of the longest paragraph (G94) is the same here
     paragraphs = anschreiben.absaetze(str(letter.get("text") or ""))
     return {"betreff": str(letter.get("betreff") or ""), "anrede": str(letter.get("anrede") or ""),
-            "absaetze": [" ".join(part.split()) for part in paragraphs], "gruss": str(letter.get("gruss") or "")}
+            "absaetze": [" ".join(part.split()) for part in paragraphs], "gruss": str(letter.get("gruss") or ""),
+            # the editor (#332) sends the fingerprint back, so a letter changed meanwhile is not overwritten
+            "fingerabdruck": letter_approval.fingerprint(path), "zeichen_pro_zeile": letter_edit.CHARS_PER_LINE}
 
 
 def freigeben(k, parameter, body):
