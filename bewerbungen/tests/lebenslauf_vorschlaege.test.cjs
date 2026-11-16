@@ -146,21 +146,21 @@ const OWN_KEY = { anzahl: 1, kosten: 0.03, waehrung: "USD", guthaben: null, dana
 const CODE = { ...OWN_KEY, kosten: 0.04, waehrung: "CHF", guthaben: 4.25, danach: 4.21 };
 
 test("the cost line before the click is the estimate line of Alle prüfen", () => {
-  assert.deepEqual(L.costLine(OWN_KEY, Treffer.estimateLine), { text: "Etwa USD 0.03 und 1 Minute.", usedUp: false });
-  assert.deepEqual(L.costLine(CODE, Treffer.estimateLine),
+  assert.deepEqual(Treffer.costLine(OWN_KEY), { text: "Etwa USD 0.03 und 1 Minute.", usedUp: false });
+  assert.deepEqual(Treffer.costLine(CODE),
                    { text: "Etwa CHF 0.04 und 1 Minute. Danach bleiben CHF 4.21 im Guthaben.", usedUp: false });
 });
 
 test("over the credit the line says it may not be enough; the button stays usable", () => {
-  assert.deepEqual(L.costLine({ ...CODE, guthaben: 0.02, danach: 0 }, Treffer.estimateLine), {
+  assert.deepEqual(Treffer.costLine({ ...CODE, guthaben: 0.02, danach: 0 }), {
     text: "Etwa CHF 0.04 und 1 Minute. Im Guthaben sind noch CHF 0.02, das reicht vielleicht nicht.", usedUp: false });
 });
 
 test("with the credit used up the line says where to ask for a new code, and the button is locked", () => {
-  assert.deepEqual(L.costLine({ ...CODE, guthaben: 0, danach: 0 }, Treffer.estimateLine), {
+  assert.deepEqual(Treffer.costLine({ ...CODE, guthaben: 0, danach: 0 }), {
     text: "Etwa CHF 0.04 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern.", usedUp: true });
 });
 
 test("a failed estimate names its reason", () => {
-  assert.equal(L.estimateFailedText("Die App antwortet nicht."), "Die Schätzung fehlt: Die App antwortet nicht.");
+  assert.equal(Treffer.estimateFailedText("Die App antwortet nicht."), "Die Schätzung fehlt: Die App antwortet nicht.");
 });

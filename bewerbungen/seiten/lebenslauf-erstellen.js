@@ -209,7 +209,7 @@
   }
 
   function showCost(found) {
-    const line = Logic.costLine(found, window.TrefferLogik.estimateLine);
+    const line = window.TrefferLogik.costLine(found);
     $("cv-erstellen-ki-kosten").replaceChildren(...(line.usedUp ? window.Texte.withCodeRequestLink(line.text, el) : [line.text]));
     // An empty credit locks the button; over the credit it stays, the mediation then says what is missing.
     $("cv-erstellen-ki-knopf").disabled = line.usedUp;
@@ -231,7 +231,7 @@
       again.hidden = true;
     } catch (error) {
       if (mine !== opened) return;
-      $("cv-erstellen-ki-kosten").textContent = Logic.estimateFailedText(error.message);
+      $("cv-erstellen-ki-kosten").textContent = window.TrefferLogik.estimateFailedText(error.message);
       again.hidden = false;
     } finally {
       if (mine === opened) button.removeAttribute("aria-disabled");
