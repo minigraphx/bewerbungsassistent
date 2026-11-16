@@ -1046,6 +1046,8 @@ label.access-choice__option:has(input:focus-visible) { outline: 2px solid var(--
 }
 .status__close:hover { background: var(--surface-subtle); }
 .status__close:focus-visible { outline: 2px solid var(--accent); outline-offset: -6px; }
+/* at phone width a line with an action puts its text on its own row, the action and «×» below; beside a button the text would shrink to a word per line */
+@media (max-width: 600px) { .status--closable:has(.status__action) { flex-wrap: wrap; } .status--closable:has(.status__action) .status__text { flex-basis: 100%; } }
 
 /* Mark and accent colour of the dossier (G18, docs/design/monogramm.md, option B) */
 .mark-preview { position: sticky; top: var(--space-4); margin: 0; }
