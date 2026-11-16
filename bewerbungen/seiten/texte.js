@@ -289,6 +289,21 @@
     "lebenslauf.ki-nochmals": { sie: "Nochmals vorschlagen", du: "Nochmals vorschlagen" },
     "lebenslauf.ki-einschalten": { sie: "KI einschalten", du: "KI einschalten" },
     "lebenslauf.ki-zum-stellentext": { sie: "Zum Stellentext", du: "Zum Stellentext" },
+    "lebenslauf.vorschau-hinweis": {
+      sie: "Die Vorschau folgt Ihrer Wahl. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      du: "Die Vorschau folgt deiner Wahl. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+    },
+    "lebenslauf.vorschau-geaendert": {
+      sie: "Meine Angaben haben sich inzwischen geändert. Öffnen Sie «Lebenslauf erstellen» neu, damit die Vorschau sie zeigt.",
+      du: "Meine Angaben haben sich inzwischen geändert. Öffne «Lebenslauf erstellen» neu, damit die Vorschau sie zeigt.",
+    },
+    "lebenslauf.erstellen-titel": {
+      sie: "Lebenslauf für diese Stelle", du: "Lebenslauf für diese Stelle", lehrstelle: "Lebenslauf für diese Lehrstelle",
+    },
+    "lebenslauf.erstellen-intro": {
+      sie: "Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.",
+      du: "Die App baut ihn aus deinen Angaben. Was drinsteht und wie er aussieht, wählst du getrennt. Danach steht er wie jede Variante zur Wahl.",
+    },
     "bewerbung.angaben": { sie: "Angaben zur Stelle", du: "Angaben zur Stelle", lehrstelle: "Angaben zur Lehrstelle" },
     "bewerbung.stellentext": { sie: "Stellentext", du: "Stellentext", lehrstelle: "Inseratstext" },
     "bewerbung.gespraech": { sie: "Gespräch vorbereiten", du: "Gespräch vorbereiten", lehrstelle: "Einladung vorbereiten" },
