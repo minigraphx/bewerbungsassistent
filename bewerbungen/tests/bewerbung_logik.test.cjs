@@ -128,7 +128,7 @@ test("a CV over its limit gets the cuts instead of «So lassen»", () => {
 // G92 (#330): three pages allowed, still over and no cut left: it waits on «So lassen», alone on its own row
 const zuLangOhneKuerzung = {
   stufe: "hinweis", schluessel: "abc:seiten:4", bestaetigt: false, cv_over: { lines: 7, pages: 4 },
-  text: "Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch enger gesetzt sind es etwa 7 Zeilen zu viel. Weiter kürzen lässt sich nur unter «Meine Angaben».",
+  text: "Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch enger gesetzt sind es etwa 7 Zeilen zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter «Meine Angaben», für alle.",
 };
 
 test("a CV over three pages with no cut left waits on «So lassen» as a decision", () => {

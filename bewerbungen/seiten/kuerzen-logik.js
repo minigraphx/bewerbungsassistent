@@ -12,7 +12,7 @@
   const TAKE_BACK = "Zurücknehmen";
   const THREE_ALLOWED = "Drei Seiten erlaubt, nur für diese Bewerbung.";
   const NOT_ENOUGH = "Der Lebenslauf ist noch zu lang; die nächste Kürzung ist angehakt.";
-  const NONE_LEFT = "Der Lebenslauf ist noch zu lang; weiter kürzen lässt sich nur unter «Meine Angaben».";
+  const NONE_LEFT = "Der Lebenslauf ist noch zu lang; weiter kürzen lässt sich mit «Lebenslauf erstellen» oder unter «Meine Angaben».";
   const SENTENCE_ID = "befund-kuerzen-satz";  // names the finding without the rows and buttons in it
   const THREE_ID = "drei-seiten";  // cut_choice.THREE_PAGES
   const LEFT_OUT_TITLE = "Für diese Bewerbung weggelassen";

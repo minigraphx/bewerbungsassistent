@@ -37,7 +37,8 @@ LOGO_MISSING = ("Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeiche
                 "Logo wählen unter «Erweitert».")
 # G51: the letter one page, the CV two unless three are allowed (page_limit); dossier: cover, letter, CV and more
 MAX_SEITEN = {"lebenslauf": page_limit.DEFAULT, "anschreiben": 1, "dossier": 8}
-ONLY_IN_BASICS = "Weiter kürzen lässt sich nur unter «Meine Angaben»."
+ONLY_IN_BASICS = ("Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter "
+                  "«Meine Angaben», für alle.")
 NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "dossier": "Dossier"}
 MAX_ALTER_TAGE = 14
 CARE_OF = re.compile(r"^(z\.?\s*H\.?(d\.?)?|zu Handen|c/o|Attn\.?:?)\s+", re.IGNORECASE)

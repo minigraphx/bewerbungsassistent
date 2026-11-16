@@ -262,7 +262,8 @@ def test_with_three_pages_and_no_cut_left_the_finding_names_the_lines_and_waits(
     assert not _over(found)
     [finding] = _kept_over(found)
     assert finding.text == ("Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch enger gesetzt sind es etwa 7 Zeilen "
-                            "zu viel. Weiter kürzen lässt sich nur unter «Meine Angaben».")
+                            "zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, "
+                            "oder unter «Meine Angaben», für alle.")
     assert finding.schluessel and not finding.bestaetigt
     assert finding.cv_over == {"lines": 7, "pages": 4}
     problem = routes_apply._problem(types.SimpleNamespace(daten=datenordner, heute=lambda: TODAY), entry)

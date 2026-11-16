@@ -114,7 +114,7 @@ test("a cut that was not enough with no cut left says so instead of a ticked nex
   assert.equal(K.noCutLeft([{ ...keptOver, bestaetigt: true }]), false);
   assert.equal(K.noCutLeft(undefined), false);
   assert.equal(K.doneMessage("kuerzen", { neu_erstellt: true }, false, true),
-    "Gekürzt und neu erstellt. Der Lebenslauf ist noch zu lang; weiter kürzen lässt sich nur unter «Meine Angaben».");
+    "Gekürzt und neu erstellt. Der Lebenslauf ist noch zu lang; weiter kürzen lässt sich mit «Lebenslauf erstellen» oder unter «Meine Angaben».");
   assert.equal(K.doneLevel("kuerzen", { neu_erstellt: true }, false, true), "hinweis");
   assert.equal(K.doneMessage("drei-seiten", { neu_erstellt: true }, false, true), "Drei Seiten erlaubt und neu erstellt.");
   assert.match(page("bewerbung.js"), /K\.doneMessage\(aktion, antwort, over, noneLeft\)/);
