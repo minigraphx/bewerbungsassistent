@@ -1,6 +1,9 @@
 "use strict";
 // „Lebenslauf erstellen“ on the page of an application (G17, #118): which stations, in which order, and the design,
 // apart from each other. Every change returns a new state. No DOM (tests/lebenslauf_erstellen.test.cjs).
+// The AI's suggestion (#293, G75) is applied on top of the stations as Meine Angaben gives them; the person's own
+// changes are replayed after it, so undoing one recommendation brings back exactly its changes and keeps the rest
+// (tests/lebenslauf_vorschlaege.test.cjs).
 (function (global) {
   // G61: the designs that build a CV alone (register.CV_DESIGNS); Siegel, Raster and Register stay the dossier's.
   const DESIGNS = [
@@ -8,6 +11,11 @@
     { id: "einspaltig", name: "Einspaltig", text: "Schlicht, alles untereinander." },
   ];
   const NOTHING_CHOSEN = "Bitte mindestens eine Station wählen.";
+  const AI_LINES = {
+    aus: "Mit KI schlägt die App für diese Stelle Stationen, Reihenfolge und Kurzprofil vor.",
+    ohne_inserat: "Für Vorschläge der KI fehlt noch der Stellentext.",
+    bereit: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen.",
+  };
 
   const withChosen = (section, picked) => ({ ...section, chosen: section.order.filter(index => picked.has(index)) });
 
@@ -20,24 +28,24 @@
       order: part.stationen.map(station => station.index),
       chosen: part.stationen.filter(station => station.gewaehlt).map(station => station.index),
     }));
-    return { stand: answer.stand, sections, design: answer.design };
+    return { stand: answer.stand, sections, base: sections, design: answer.design, summaryBase: answer.kurzprofil,
+             recommendations: [], manual: [] };
   }
 
-  const changeSection = (state, name, change) =>
-    ({ ...state, sections: state.sections.map(section => (section.name === name ? change(section) : section)) });
+  const changeSection = (sections, name, change) =>
+    sections.map(section => (section.name === name ? change(section) : section));
 
-  function toggle(state, name, index) {
-    return changeSection(state, name, section => {
+  function pick(sections, { name, index, chosen }) {
+    return changeSection(sections, name, section => {
       const picked = new Set(section.chosen);
-      if (picked.has(index)) picked.delete(index);
-      else picked.add(index);
+      if (chosen) picked.add(index);
+      else picked.delete(index);
       return withChosen(section, picked);
     });
   }
 
-  /** One place up (-1) or down (+1); at the edge it stays. */
-  function move(state, name, index, step) {
-    return changeSection(state, name, section => {
+  function swap(sections, { name, index, step }) {
+    return changeSection(sections, name, section => {
       const from = section.order.indexOf(index);
       const to = from + step;
       if (from < 0 || to < 0 || to >= section.order.length) return section;
@@ -47,11 +55,69 @@
     });
   }
 
+  /** The active recommendations: their stations left out, the ones they move up first, in their order. */
+  function recommended(sections, recommendations) {
+    const active = recommendations.filter(r => r.on);
+    const out = active.flatMap(r => r.weglassen);
+    const up = active.flatMap(r => r.voran);
+    return sections.map(section => {
+      const first = up.filter(ref => ref.abschnitt === section.name && section.order.includes(ref.index))
+        .map(ref => ref.index);
+      const order = [...first, ...section.order.filter(index => !first.includes(index))];
+      const gone = new Set(out.filter(ref => ref.abschnitt === section.name).map(ref => ref.index));
+      return withChosen({ ...section, order }, new Set(section.chosen.filter(index => !gone.has(index))));
+    });
+  }
+
+  function computed(state) {
+    const sections = state.manual.reduce((current, step) => (step.kind === "pick" ? pick(current, step) : swap(current, step)),
+      recommended(state.base, state.recommendations));
+    return { ...state, sections };
+  }
+
+  function toggle(state, name, index) {
+    const section = state.sections.find(part => part.name === name);
+    const chosen = !(section && section.chosen.includes(index));
+    return computed({ ...state, manual: [...state.manual, { kind: "pick", name, index, chosen }] });
+  }
+
+  /** One place up (-1) or down (+1); at the edge it stays. */
+  function move(state, name, index, step) {
+    return computed({ ...state, manual: [...state.manual, { kind: "move", name, index, step }] });
+  }
+
   function canMove(state, name, index) {
     const section = state.sections.find(part => part.name === name);
     const place = section ? section.order.indexOf(index) : -1;
     return { up: place > 0, down: place >= 0 && place < section.order.length - 1 };
   }
+
+  /** The suggestion of POST /api/lebenslauf/erstellen/vorschlag, every recommendation applied. */
+  function suggest(state, answer) {
+    return computed({ ...state, recommendations: answer.empfehlungen.map(r => ({ ...r, on: true })) });
+  }
+
+  function setRecommendation(state, number, on) {
+    return computed({ ...state, recommendations: state.recommendations.map(r => (r.nummer === number ? { ...r, on } : r)) });
+  }
+
+  /** The summary the recommendations give; the one of Meine Angaben when none changes it. */
+  function summary(state) {
+    const own = state.recommendations.find(r => r.on && typeof r.kurzprofil === "string");
+    return own ? own.kurzprofil : state.summaryBase;
+  }
+
+  /** Without a CV of its own yet: a saved one is the person's choice, which the AI does not overwrite on opening. */
+  const autoSuggest = answer => answer.ki === "bereit" && !answer.eigene_variante;
+
+  const aiLine = ki => AI_LINES[ki] || AI_LINES.aus;
+
+  function suggestedText(count) {
+    if (!count) return "Die KI schlägt für diese Stelle nichts anderes vor.";
+    return `Vorschlag der KI angewendet: ${count} ${count === 1 ? "Empfehlung" : "Empfehlungen"}.`;
+  }
+
+  const recommendationText = (recommendation, on) => `${on ? "Wieder angewendet" : "Zurückgenommen"}: ${recommendation.was}.`;
 
   function choose(state, design) {
     if (!DESIGNS.some(choice => choice.id === design)) {
@@ -74,7 +140,8 @@
       : `Gespeichert als ${name}. Er gilt jetzt für diese Bewerbung.`;
   }
 
-  const logic = { DESIGNS, start, toggle, move, canMove, choose, request, savedText };
+  const logic = { DESIGNS, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
+                  autoSuggest, aiLine, suggestedText, recommendationText };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufErstellenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

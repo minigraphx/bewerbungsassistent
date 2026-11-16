@@ -68,7 +68,8 @@ def _text(value: object) -> str:
     return "" if value is None else str(value).strip()
 
 
-def _sections(cv: dict) -> dict[str, list]:
+def sections(cv: dict) -> dict[str, list]:
+    """The station sections of `cv.yaml` that have entries, in the order the page shows them."""
     return {name: cv[name] for name in SECTIONS if isinstance(cv.get(name), list) and cv[name]}
 
 
@@ -119,16 +120,33 @@ def _chosen_indices(entries: list, wanted: object) -> list[int]:
     return taken
 
 
+def _station_row(entries: list, index: int, chosen: bool) -> dict:
+    """A station as the page names it: title, company or school, and time."""
+    entry = entries[index] if isinstance(entries[index], dict) else {}
+    title = _title(entry) or f"Eintrag {index + 1}"
+    return {"index": index, "titel": title, "zusatz": _subtitle(entry, title), "zeit": _time(entry), "gewaehlt": chosen}
+
+
+def station_texts(entry: object) -> list[str]:
+    """What a station says beyond its name: description, summary and highlights, each as one line."""
+    if not isinstance(entry, dict):
+        return []
+    lines = [_text(entry.get(key)) for key in ("description", "summary")]
+    for point in entry.get("highlights") or []:
+        lines.append(_text(point.get("text") if isinstance(point, dict) else point))
+    return [" ".join(line.split()) for line in lines if line]
+
+
 def _station_rows(entries: list, chosen: list[int]) -> list[dict]:
     order = chosen + [i for i in range(len(entries)) if i not in chosen]
+    return [_station_row(entries, index, index in chosen) for index in order]
 
-    def row(index: int) -> dict:
-        entry = entries[index] if isinstance(entries[index], dict) else {}
-        title = _title(entry) or f"Eintrag {index + 1}"
-        return {"index": index, "titel": title, "zusatz": _subtitle(entry, title), "zeit": _time(entry),
-                "gewaehlt": index in chosen}
 
-    return [row(index) for index in order]
+
+def summary_of(cv: dict) -> str:
+    """The summary of Meine Angaben, never the one of a tailoring."""
+    basics = cv.get("basics") if isinstance(cv.get("basics"), dict) else {}
+    return _text(basics.get("summary"))
 
 
 def job_path(data_dir: pathlib.Path, variant_id: str) -> pathlib.Path:
@@ -173,7 +191,7 @@ def form(data_dir: pathlib.Path, entry: dict) -> dict:
     own_basics = job.get("basics") if isinstance(job.get("basics"), dict) else {}
     parts = [{"abschnitt": name, "titel": SECTIONS[name],
               "stationen": _station_rows(entries, _chosen_indices(entries, select.get(name)))}
-             for name, entries in _sections(cv).items()]
+             for name, entries in sections(cv).items()]
     return {"abschnitte": parts, "stand": stand,
             "berufsbezeichnung": _text(own_basics.get("label", basics.get("label"))),
             "kurzprofil": _text(own_basics.get("summary", basics.get("summary"))),
@@ -203,11 +221,11 @@ def parse(cv: dict, stand: str, body: dict) -> Choice:
     """The choice as the page sends it; ValueError with a German message, before anything is written."""
     if body.get("stand") != stand:
         raise ValueError(CHANGED)
-    sections = _sections(cv)
+    present = sections(cv)
     wanted = body.get("stationen")
-    if not isinstance(wanted, dict) or not set(wanted) <= set(sections):
+    if not isinstance(wanted, dict) or not set(wanted) <= set(present):
         raise ValueError(WRONG_STATION)
-    stations = {name: _indices(value, len(sections[name])) for name, value in wanted.items()}
+    stations = {name: _indices(value, len(present[name])) for name, value in wanted.items()}
     if not any(stations.values()):
         raise ValueError(NOTHING_CHOSEN)
     return Choice(stations=stations, label=_string(body, "berufsbezeichnung", MAX_NAME, "Die Berufsbezeichnung"),
@@ -218,9 +236,9 @@ def parse(cv: dict, stand: str, body: dict) -> Choice:
 
 def tailoring(cv: dict, entry_id: str, choice: Choice) -> dict:
     """The tailoring for lebenslauf/tailor.py; the design stays out of it."""
-    sections = _sections(cv)
+    present = sections(cv)
     return {"created_for": entry_id, "basics": {"label": choice.label, "summary": choice.summary},
-            "select": {name: [identity(sections[name][i]) for i in indices]
+            "select": {name: [identity(present[name][i]) for i in indices]
                        for name, indices in choice.stations.items()}}
 
 

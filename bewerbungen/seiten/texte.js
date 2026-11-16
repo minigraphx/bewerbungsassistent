@@ -252,6 +252,10 @@
     },
 
     // Application page (step 4)
+    "lebenslauf.ki-grenze": {
+      sie: "Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in Ihren Angaben steht.",
+      du: "Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in deinen Angaben steht.",
+    },
     "bewerbung.angaben": { sie: "Angaben zur Stelle", du: "Angaben zur Stelle", lehrstelle: "Angaben zur Lehrstelle" },
     "bewerbung.stellentext": { sie: "Stellentext", du: "Stellentext", lehrstelle: "Inseratstext" },
     "bewerbung.gespraech": { sie: "Gespräch vorbereiten", du: "Gespräch vorbereiten", lehrstelle: "Einladung vorbereiten" },

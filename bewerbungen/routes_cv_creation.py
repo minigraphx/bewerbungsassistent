@@ -3,6 +3,7 @@
 Neither the extension nor Claude reach them (desktop/native_host.py and desktop/mcp_tools.py list what they may).
 """
 import cv_creation
+import routes_cv_suggestions
 import unterlagen
 from server import json_antwort, pflicht
 
@@ -18,7 +19,8 @@ def _open_entry(k, entry_id: str) -> dict:
 
 
 def show(k, parameter, body):
-    return json_antwort(cv_creation.form(k.daten, k.register().hole(pflicht(parameter, "id"))))
+    entry = k.register().hole(pflicht(parameter, "id"))
+    return json_antwort({**cv_creation.form(k.daten, entry), "ki": routes_cv_suggestions.ai_state(k, entry)})
 
 
 def _write(k, entry: dict, choice: cv_creation.Choice, job: dict) -> dict:
@@ -60,5 +62,5 @@ def create(k, parameter, body):
                          "hinweis": note})
 
 
-GET = {ROUTE: show}
-POST = {ROUTE: create}
+GET = {ROUTE: show, **routes_cv_suggestions.GET}
+POST = {ROUTE: create, **routes_cv_suggestions.POST}
