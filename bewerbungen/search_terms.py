@@ -3,12 +3,15 @@
 An apprenticeship profile names professions. A job profile searches its line „Kernliste“ and the other named lines under
 „Keywords“ but the niches if it has any, else its numbered search directions, where one line can hold several terms and
 bullets of its own. Everything else in the profile stays as written.
-The order set on Suche einstellen (G87) is a section of its own, „Reihenfolge der Suche“, which the plan reads before
-the lines the terms come from; a term it does not name comes after, so a new one goes to the end.
+The order set on Suche einstellen (G87) moves professions and search directions within their numbered list, since
+the number is their priority (`numbered_order`). Terms from Keywords get a section of their own, „Reihenfolge der
+Suche“, which the plan reads before the lines they come from; a term it does not name comes after, so a new one goes
+to the end, as a new line of a numbered list does.
 """
 import re
 from collections.abc import Callable
 
+import numbered_order
 import search_plan
 from search_plan import (APPRENTICESHIP_MARK, DIRECTION, MAX_DIRECTION, MAX_DIRECTIONS, MAX_KEYWORDS, MAX_PROFESSION_NAME,
                          MAX_VALUE, profession_words)
@@ -217,10 +220,32 @@ def _with_order(text: str, names: tuple[str, ...]) -> str:
     return "\n".join([*lines[:place], *block, *lines[place:]])
 
 
+def _without_order(text: str) -> str:
+    lines = text.split("\n")
+    start, end = search_plan.section_bounds(lines, search_plan.ORDER_KEY)
+    return text if start is None else "\n".join([*lines[:start], *lines[end:]])
+
+
+def _profession_parts(body: str) -> tuple[list[numbered_order.Part], str]:
+    name = search_plan.REMARK.sub("", body)
+    return [(name, _words_as_shown(name, MAX_PROFESSION_NAME))], body[len(name):]
+
+
+def _direction_parts(body: str) -> tuple[list[numbered_order.Part], str]:
+    terms, remark = TERMS_AND_REMARK.match(body).groups()
+    return [(part.strip(), _words_as_shown(part, MAX_DIRECTION)) for part in terms.split(",") if part.strip()], remark or ""
+
+
+def _searches_groups(text: str) -> bool:
+    return APPRENTICESHIP_MARK not in text and bool(_group_lines(text.split("\n")))
+
+
 def reordered(text: str, names: list[str]) -> str:
     """The profile with the searched terms in this order (G87); `names` must be exactly the terms searched now.
 
-    The order names each term as the search reads it, so whatever the page sends, only known terms are written."""
+    The order names each term as the search reads it, so whatever the page sends, only known terms are written.
+    Professions and search directions move within their numbered list, whose number is the priority the rating
+    reads; terms from Keywords get the section, and search directions naming them follow it."""
     known = current(text)
     if sorted(map(key, names)) != sorted(map(key, known)):
         raise ValueError(ORDER_CHANGED)
@@ -228,13 +253,19 @@ def reordered(text: str, names: list[str]) -> str:
     for name in names:
         index = next(i for i, term in enumerate(rest) if profession_words(term) == profession_words(name))
         rest, ordered = (*rest[:index], *rest[index + 1:]), (*ordered, rest[index])
-    return _with_order(text, ordered)
+    words = tuple(map(profession_words, ordered))
+    if APPRENTICESHIP_MARK in text:
+        return _without_order(numbered_order.placed(text, search_plan.PROFESSIONS_SECTION, words, _profession_parts))
+    if not _searches_groups(text):
+        return _without_order(numbered_order.placed(text, DIRECTIONS_SECTION, words, _direction_parts))
+    return numbered_order.aligned(_with_order(text, ordered), DIRECTIONS_SECTION, words, _direction_parts)
 
 
 def _kept_order(old: str, new: str) -> str:
-    """The order of the old profile, if the new one has none: the form does not show it."""
+    """The order of the old profile, if the new one has none: the form does not show it. A numbered list from the
+    form carries its own order."""
     lines = search_plan.section_lines(old, search_plan.ORDER_SECTION)
-    if not lines or search_plan.section_lines(new, search_plan.ORDER_SECTION):
+    if not lines or search_plan.section_lines(new, search_plan.ORDER_SECTION) or not _searches_groups(new):
         return new
     names = tuple(found[1] for found in map(DIRECTION.match, (line.strip() for line in lines)) if found)
     return _with_order(new, names) if names else new

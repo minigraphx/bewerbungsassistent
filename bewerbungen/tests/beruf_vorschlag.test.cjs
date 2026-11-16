@@ -211,15 +211,14 @@ test("the list goes to suchliste.js in the order the server sends, with the mess
 
 test("the hint says the search runs from the top, in the person's form of address, once there is something to order", async () => {
   const cases = [
-    ["stelle", "stelle-sie", /neue Begriffe kommen ans Ende\. Ziehen Sie die wichtigsten nach oben/],
-    ["stelle", "stelle-du", /neue Begriffe kommen ans Ende\. Zieh die wichtigsten nach oben/],
-    ["lehrstelle", "lehrstelle-du", /neue Berufe kommen ans Ende\. Zieh die wichtigsten nach oben/],
+    ["stelle", "stelle-sie", "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Ziehen Sie die wichtigsten nach oben oder verschieben Sie sie mit den Pfeilen."],
+    ["stelle", "stelle-du", "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen."],
+    ["lehrstelle", "lehrstelle-du", "Gesucht wird von oben nach unten; neue Berufe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen."],
   ];
   for (const [art, satz, text] of cases) {
     const p = page({ satz });
     await p.suchbegriffe.zeige(art, ["Koch/Köchin EFZ", "Maler/in EFZ"], []);
-    assert.match(p.byId("suchliste-hinweis").textContent, /^Die Suche sucht von oben nach unten/);
-    assert.match(p.byId("suchliste-hinweis").textContent, text);
+    assert.equal(p.byId("suchliste-hinweis").textContent, text);
     assert.equal(p.byId("suchliste-hinweis").hidden, false);
 
     await p.suchbegriffe.zeige(art, ["Koch/Köchin EFZ"], []);

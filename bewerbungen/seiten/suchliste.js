@@ -8,7 +8,11 @@ window.Suchliste = (() => {
   const L = window.SuchlisteLogik;
   const ROUTE = "/api/beruf/reihenfolge";
   const ZIEHT = "suchliste__eintrag--zieht";
+  const VERSCHOBEN = "suchliste__eintrag--verschoben";
+  const HERVOR_MS = 1000;
   let liste = null;
+  let hervor = null;  // the term just moved, which stands out for a moment so sighted people see where it went
+  let hervorZeit = null;
   let begriffe = [];
   let optionen = {};
   let zeilen = [];  // per term its row and buttons, to find the focused one again after drawing anew
@@ -45,7 +49,8 @@ window.Suchliste = (() => {
       : { entfernen: knopf("entfernen", name) };
     const griff = ordnen ? el("span", { class: "suchliste__griff", "aria-hidden": "true", title: "Ziehen, um zu verschieben" }) : null;
     if (griff) griff.addEventListener("pointerdown", event => beginne(event, name));
-    const klasse = ziehen && ziehen.name === name ? `suchliste__eintrag ${ZIEHT}` : "suchliste__eintrag";
+    const zusatz = ziehen && ziehen.name === name ? ZIEHT : (hervor === name ? VERSCHOBEN : "");
+    const klasse = zusatz ? `suchliste__eintrag ${zusatz}` : "suchliste__eintrag";
     const li = el("li", { class: klasse, "data-begriff": name }, griff,
       el("span", { class: "suchliste__nummer" }, `${index + 1}.`), el("span", { class: "suchliste__name" }, name),
       el("span", { class: "suchliste__knoepfe" }, ...Object.values(knoepfe)));
@@ -73,8 +78,21 @@ window.Suchliste = (() => {
       });
   }
 
+  function hebeHervor(name) {
+    if (hervorZeit !== null) clearTimeout(hervorZeit);
+    hervor = name;
+    zeichne();
+    hervorZeit = setTimeout(() => {
+      hervor = null;
+      hervorZeit = null;
+      const zeile = zeilen.find(z => z.name === name);
+      if (zeile) zeile.li.className = zeile.li.className.replace(` ${VERSCHOBEN}`, "");
+    }, HERVOR_MS);
+  }
+
   function gezogen(name, vorher) {
     if (begriffe.join("\n") === vorher.join("\n")) return;
+    hebeHervor(name);
     status(optionen.status, L.ansage(name, begriffe.indexOf(name) + 1, begriffe.length), "ok");
     speichere();
   }

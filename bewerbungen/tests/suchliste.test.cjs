@@ -127,7 +127,9 @@ function setup({ fail = false } = {}) {
       status: (target, text, art) => { calls.meldungen.push({ target, text, art }); },
     },
   };
-  const context = { window, document: doc, console };
+  const timers = [];
+  const context = { window, document: doc, console,
+    setTimeout: (run, ms) => { timers.push({ run, ms }); return timers.length; }, clearTimeout: id => { timers[id - 1].run = () => {}; } };
   vm.createContext(context);
   vm.runInContext(fs.readFileSync(path.join(SEITEN, "suchliste-logik.js"), "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(SEITEN, "suchliste.js"), "utf8"), context);
@@ -135,7 +137,7 @@ function setup({ fail = false } = {}) {
   const status = el("div");
   const options = { status, entfernen: (name, button) => calls.entfernt.push([name, button]), geaendert: () => { calls.geaendert += 1; } };
   window.Suchliste.zeige(list, TERMS, options);
-  return { doc, list, status, calls, window, options };
+  return { doc, list, status, calls, window, options, timers };
 }
 
 const settle = async () => { for (let i = 0; i < 5; i += 1) await new Promise(resolve => setImmediate(resolve)); };
@@ -215,6 +217,45 @@ test("dragging the handle moves the term under the pointer and saves once it is 
   assert.equal(calls.meldungen.at(-1).text, "„Logistiker“ steht jetzt an Stelle 1 von 5.");
   assert.ok(!rows(list)[0].className.includes("suchliste__eintrag--zieht"));
   assert.equal(doc.listening("pointermove"), 0);
+});
+
+const MOVED = "suchliste__eintrag--verschoben";
+const marked = list => rows(list).filter(row => row.className.includes(MOVED)).map(row => row.getAttribute("data-begriff"));
+
+test("the moved row stands out for about a second, also when the page draws the list anew", async () => {
+  const { list, timers, window, options } = setup();
+
+  control(list, "Betreuer", "hoch").click();
+  await settle();
+  assert.deepEqual(marked(list), ["Betreuer"]);
+  window.Suchliste.zeige(list, ["Pflegefachmann", "Betreuer", "Fachmann Gesundheit", "Logistiker", "Koch"], options);
+  assert.deepEqual(marked(list), ["Betreuer"]);
+
+  const last = timers.at(-1);
+  assert.ok(last.ms >= 800 && last.ms <= 1500, `${last.ms} ms`);
+  last.run();
+  assert.deepEqual(marked(list), []);
+});
+
+test("a second move hands the highlight to the newly moved term", async () => {
+  const { list, timers } = setup();
+  control(list, "Betreuer", "hoch").click();
+  control(list, "Koch", "hoch").click();
+  await settle();
+
+  assert.deepEqual(marked(list), ["Koch"]);
+  timers[0].run();
+  assert.deepEqual(marked(list), ["Koch"], "the first timer does not end the second highlight");
+});
+
+test("a dropped row stands out too", async () => {
+  const { list, doc } = setup();
+  handle(list, "Koch").dispatch("pointerdown", { clientY: 4 * ROW_HEIGHT + 10 });
+  doc.fire("pointermove", { clientY: 5 });
+  doc.fire("pointerup", { clientY: 5 });
+  await settle();
+
+  assert.deepEqual(marked(list), ["Koch"]);
 });
 
 test("Escape while dragging puts the term back and saves nothing", async () => {

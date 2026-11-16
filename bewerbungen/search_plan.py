@@ -297,14 +297,17 @@ def _regions(cantons: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def _professions(sections: dict[str, list[str]]) -> tuple[str, ...]:
-    """Numbered professions without the remark at the end, in the saved order; a specialisation in brackets stays."""
+    """Numbered professions without the remark at the end, in the order of their list; a specialisation in brackets stays.
+
+    The list is the priority the rating reads, so moving a profession moves its line (G87) and no saved order applies."""
     lines = sections.get(PROFESSIONS_KEY, [])
     names = (" ".join(REMARK.sub("", m.group(1)).split())[:MAX_PROFESSION_NAME] for m in map(DIRECTION.match, lines) if m)
-    return _in_order(tuple(dict.fromkeys(name for name in names if name)), sections)[:MAX_PROFESSIONS]
+    return tuple(dict.fromkeys(name for name in names if name))[:MAX_PROFESSIONS]
 
 
 def _in_order(terms: tuple[str, ...], sections: dict[str, list[str]]) -> tuple[str, ...]:
-    """The terms the saved order names first, in that order; the others after them as the profile lists them (G87).
+    """Terms from unnumbered lines: the ones the saved order names first, in that order; the others after them as the
+    profile lists them (G87).
 
     Without the section nothing moves, so an older profile searches as before; a name the order has but the profile
     no longer has counts for nothing."""
@@ -431,11 +434,11 @@ def with_section_line(text: str, title: str, line: str, before: str) -> str:
 def _listed_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
     """The first core list, then every other named line under Keywords but the niches (#174); else the search directions.
 
-    Either way in the saved order, if the profile has one (G87)."""
+    Terms from Keywords in the saved order, if the profile has one (G87); numbered directions carry their order."""
     pairs = _pairs(sections.get("keywords", []))
     others = [value for label, value in pairs.items() if not label.startswith((CORE_LABEL, NICHE_LABEL))]
     terms = _terms(",".join([_value(pairs, CORE_LABEL), *others]), None)
-    return _in_order(terms or _directions(sections.get("suchrichtungen", []), None), sections)
+    return _in_order(terms, sections) if terms else _directions(sections.get("suchrichtungen", []), None)
 
 
 def job_terms(text: str) -> tuple[str, ...]:
