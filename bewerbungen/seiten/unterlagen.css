@@ -95,15 +95,18 @@
 
 .doc-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
 .doc-tiles:empty { display: none; }
-.doc-tile { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
-.doc-tile__thumb { flex: none; width: 96px; height: auto; aspect-ratio: 210 / 297; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; object-fit: contain; font-size: 12px; line-height: 16px; color: var(--text-muted); }
-.doc-tile__body { display: flex; flex: 1 1 auto; flex-direction: column; gap: var(--space-2); min-width: 0; }
-.application .card .doc-tile__name { margin: 0; font-size: 15px; line-height: 22px; }
+/* #331: the note runs under the thumbnail across the whole tile, wide enough for its longest change on one line;
+   the links row takes the extra height, so the name keeps its gap to the links and the notes of a row line up at the foot */
+.doc-tile { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr auto; grid-template-areas: "thumb name" "thumb links" "note note"; gap: var(--space-2) var(--space-3); align-items: start; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.doc-tile__thumb { grid-area: thumb; width: 96px; height: auto; aspect-ratio: 210 / 297; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; object-fit: contain; font-size: 12px; line-height: 16px; color: var(--text-muted); }
+/* name, note and links stay in this order for screen readers; the grid of the tile places them */
+.doc-tile__body { display: contents; }
+.application .card .doc-tile__name { grid-area: name; margin: 0; font-size: 15px; line-height: 22px; }
 /* G93: words, never a colour, say what the app did to the pages */
-.application .card .doc-tile__note { margin: calc(-1 * var(--space-1)) 0 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
-/* a part breaks to the next line as a whole, so «so eng wie möglich» is never split */
+.application .card .doc-tile__note { grid-area: note; margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+/* a part breaks to the next line as a whole with its «·», so «so eng wie möglich» is never split */
 .application .card .doc-tile__part { display: inline-block; max-width: 100%; }
-.doc-tile__links { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+.doc-tile__links { grid-area: links; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
 /* «Für diese Stelle anpassen» is wider than a tile at 1280 px; buttons do not wrap by default */
 .doc-tile__link { min-height: 44px; max-width: 100%; white-space: normal; text-align: left; }
 /* the same inset as «Als PDF öffnen» (btn--sm), so both texts start in one line */

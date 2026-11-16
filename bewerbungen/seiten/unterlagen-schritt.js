@@ -59,17 +59,19 @@
   }
 
   /**
-   * Pages and how they were balanced (G93), in plain words without a colour. Each part breaks only as a whole, and the
-   * no-break space keeps the «·» on the line of the part before it. Screen readers skip the «·» and hear a comma.
+   * Pages and how they were balanced (G93), in plain words without a colour. Each part breaks only as a whole and
+   * carries the «·» after it (#331): a line may break beside an inline-block despite a no-break space, so a «·» of its
+   * own could stand alone on a line. The plain space between two parts is the only place a line breaks. Screen readers
+   * skip the «·» and hear a comma.
    */
   function noteLine(tile) {
     if (!tile.note.length) return null;
-    const parts = tile.note.flatMap((part, index) => {
-      const whole = el("span", { class: "doc-tile__part" }, part);
-      return index === 0 ? [whole]
-        : [el("span", { "aria-hidden": "true" }, " · "), el("span", { class: "visually-hidden" }, ", "), whole];
-    });
-    return el("p", { class: "doc-tile__note" }, ...parts);
+    const last = tile.note.length - 1;
+    const parts = tile.note.map((part, index) => (index === last
+      ? el("span", { class: "doc-tile__part" }, part)
+      : el("span", { class: "doc-tile__part" },
+        part, el("span", { "aria-hidden": "true" }, "\u00a0·"), el("span", { class: "visually-hidden" }, ","))));
+    return el("p", { class: "doc-tile__note" }, ...parts.flatMap((part, index) => (index === 0 ? [part] : [" ", part])));
   }
 
   /** One tile per built document; `stand` makes the browser load a rebuilt file anew. */
