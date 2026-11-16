@@ -29,7 +29,7 @@ Gemessen auf `main` vom 14.11.2026 mit den erfundenen Lebensläufen und Anschrei
 
 - Der Ausgleich wirkt: Keine gebaute Seite ist mehr fast leer, und kein Inhalt fällt weg.
 - Die Person sieht davon nichts. Weder steht irgendwo, dass enger gesetzt wurde (bis zu 40 % kleinere Abstände), noch dass dasselbe in einem anderen Design auf weniger Seiten käme.
-- Reicht es nicht, steht unter «Unterlagen erstellen» ein Hinweis von fünf Zeilen (bei 375 px zehn): «Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch enger gesetzt passt er nicht. Kürzen lässt sich: …». Der einzige Knopf ist «So lassen». Kürzen muss die Person in Meine Angaben oder im Schritt Lebenslauf, drei Seiten erlaubt sie unter Einstellungen, Erweitert.
+- Reicht es nicht, steht unter «Unterlagen erstellen» ein Hinweis von fünf Zeilen (bei 375 px zehn): «Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch enger gesetzt passt er nicht. Kürzen lässt sich: …» (seit #333: «Auch so eng wie möglich gesetzt …»). Der einzige Knopf ist «So lassen». Kürzen muss die Person in Meine Angaben oder im Schritt Lebenslauf, drei Seiten erlaubt sie unter Einstellungen, Erweitert.
 - Ein Anschreiben über einer Seite setzt die App weiter, damit die zweite Seite gefüllt aussieht (Stufe −3 bis −4). Die Prüfung nennt es trotzdem als Fehler.
 - Gut und zu behalten: Der Ausgleich braucht keine Einstellung (G41), Inhalt fällt nur durch die Person weg (G49), und die Kürzungen nennen konkrete Stationen.
 

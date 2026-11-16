@@ -79,7 +79,9 @@ def test_the_check_names_the_lines_over_and_offers_the_cuts_with_three_pages(dat
 
     assert len(found) == 1
     finding = found[0]
-    assert finding.text == "Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch enger gesetzt sind es etwa 7 Zeilen zu viel."
+    # G96, #333: the lines are counted on the CV set as tight as possible, as for the letter
+    assert finding.text == ("Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch so eng wie möglich gesetzt sind es "
+                            "etwa 7 Zeilen zu viel.")
     assert finding.kuerzen["zeilen"] == 7
     assert finding.kuerzen["optionen"][0]["text"] == FIRST_CUT
     assert "Abschnitt «Interessen»" in [o["text"] for o in finding.kuerzen["optionen"]]
@@ -261,9 +263,9 @@ def test_with_three_pages_and_no_cut_left_the_finding_names_the_lines_and_waits(
 
     assert not _over(found)
     [finding] = _kept_over(found)
-    assert finding.text == ("Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch enger gesetzt sind es etwa 7 Zeilen "
-                            "zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, "
-                            "oder unter «Meine Angaben», für alle.")
+    assert finding.text == ("Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch so eng wie möglich gesetzt sind es "
+                            "etwa 7 Zeilen zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für "
+                            "diese Bewerbung, oder unter «Meine Angaben», für alle.")
     assert finding.schluessel and not finding.bestaetigt
     assert finding.cv_over == {"lines": 7, "pages": 4}
     problem = routes_apply._problem(types.SimpleNamespace(daten=datenordner, heute=lambda: TODAY), entry)

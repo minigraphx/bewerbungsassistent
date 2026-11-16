@@ -76,11 +76,12 @@ def _lines_over(pdf: pathlib.Path, limit: int) -> int:
 
 
 def _cv_over_limit(pdf: pathlib.Path, pages: int, limit: int, key: str | None, offer: Callable[[int], dict]) -> Befund:
-    """A built CV over its limit (G92): how many lines are over, and the choice of cuts or three pages."""
+    """A built CV over its limit (G92), set as tight as possible (G96): how many lines are over, and the choice of
+    cuts or three pages."""
     lines = _lines_over(pdf, limit)
-    tighter = (f"Auch enger gesetzt sind es etwa {lines} {'Zeile' if lines == 1 else 'Zeilen'} zu viel." if lines
-               else "Auch enger gesetzt passt er nicht.")
-    text = f"Lebenslauf: {pages} Seiten, erlaubt sind höchstens {limit}. {tighter}"
+    tight = (f"Auch so eng wie möglich gesetzt sind es etwa {lines} {'Zeile' if lines == 1 else 'Zeilen'} zu viel."
+             if lines else "Auch so eng wie möglich gesetzt passt er nicht.")
+    text = f"Lebenslauf: {pages} Seiten, erlaubt sind höchstens {limit}. {tight}"
     choice = offer(limit)
     if not choice["optionen"] and not choice["drei_seiten"]:
         # a hint alone would let it go out unseen; with nothing left to offer, it waits on «So lassen» (#330)

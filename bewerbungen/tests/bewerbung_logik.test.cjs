@@ -113,7 +113,7 @@ test("a breach to confirm gets the button, a confirmed one says so and other fin
 
 // G92 (#323): a CV over its limit is cut or allowed three pages, never confirmed with «So lassen»
 const zuLang = {
-  stufe: "hinweis", text: "Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch enger gesetzt sind es etwa 7 Zeilen zu viel.",
+  stufe: "hinweis", text: "Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch so eng wie möglich gesetzt sind es etwa 7 Zeilen zu viel.",
   schluessel: "abc:seiten:3", bestaetigt: false,
   kuerzen: { zeilen: 7, optionen: [{ id: "stichpunkte:a", text: "3 Stichpunkte bei «Leiterin, Muster AG» (2015–2018)" }], drei_seiten: true },
 };
@@ -128,7 +128,7 @@ test("a CV over its limit gets the cuts instead of «So lassen»", () => {
 // G92 (#330): three pages allowed, still over and no cut left: it waits on «So lassen», alone on its own row
 const zuLangOhneKuerzung = {
   stufe: "hinweis", schluessel: "abc:seiten:4", bestaetigt: false, cv_over: { lines: 7, pages: 4 },
-  text: "Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch enger gesetzt sind es etwa 7 Zeilen zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter «Meine Angaben», für alle.",
+  text: "Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch so eng wie möglich gesetzt sind es etwa 7 Zeilen zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter «Meine Angaben», für alle.",
 };
 
 test("a CV over three pages with no cut left waits on «So lassen» as a decision", () => {

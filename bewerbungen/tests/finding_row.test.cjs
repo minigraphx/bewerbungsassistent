@@ -87,7 +87,7 @@ test("the buttons call their actions; «So lassen» hands over its button", () =
 
 const cvOver = {
   stufe: "hinweis", schluessel: "abc:seiten:4", bestaetigt: false, cv_over: { lines: 7, pages: 4 },
-  text: "Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch enger gesetzt sind es etwa 7 Zeilen zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter «Meine Angaben», für alle.",
+  text: "Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch so eng wie möglich gesetzt sind es etwa 7 Zeilen zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter «Meine Angaben», für alle.",
 };
 
 test("a CV over three pages with no cut left has no «×» and «So lassen» alone on its own row (#330)", () => {

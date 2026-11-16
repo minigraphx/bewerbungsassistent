@@ -163,6 +163,7 @@ def test_the_pictures_say_what_they_show_today():
             "**5 Seiten · so eng wie möglich**.") in check
     assert "Passt ein Lebenslauf auch so eng wie möglich nicht" not in check
     assert "beim Lebenslauf 3 Seiten · so eng wie möglich" in picture
+    assert "Ist der Lebenslauf auch so eng wie möglich gesetzt zu lang, nennt der Befund" in check
     # G94, #325: a letter over one page stays as tight as possible, cut in the letter or left as it is
     assert "Ein zu langes Anschreiben bleibt so eng gesetzt, etwa **2 Seiten · so eng wie möglich**." in check
     assert ("**Im Anschreiben kürzen** führt zum Schritt **Anschreiben**, wo über dem längsten Absatz **Längster Absatz** "
