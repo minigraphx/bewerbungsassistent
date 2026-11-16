@@ -29,13 +29,27 @@ class Estimate:
     minutes: int
 
 
-def _tokens(chars: int) -> int:
+def tokens(chars: int) -> int:
     return chars // CHARS_PER_TOKEN + 1
 
 
-def _call_usd(input_chars: int, ads: int, model: str) -> float:
+def call_usd(input_chars: int, output_tokens: int, model: str) -> float:
+    """One call at the full input price, as if nothing were cached; also for „Vorbefüllen“ (G85)."""
     price_in, price_out = PRICES_USD[model]
-    return (_tokens(input_chars) * price_in + ads * OUTPUT_TOKENS_PER_AD * price_out) / PER_MILLION
+    return (tokens(input_chars) * price_in + output_tokens * price_out) / PER_MILLION
+
+
+def _call_usd(input_chars: int, ads: int, model: str) -> float:
+    return call_usd(input_chars, ads * OUTPUT_TOKENS_PER_AD, model)
+
+
+def cents_up(usd: float) -> float:
+    """Rounded up to the cent, at least one: an estimate never says „nothing“."""
+    return max(CENT, math.ceil(usd / CENT) * CENT)
+
+
+def whole_minutes(seconds: float) -> int:
+    return max(1, math.ceil(seconds / SECONDS_PER_MINUTE))
 
 
 def estimate(ad_lengths: list[int | None], context_chars: int, model: str = MODEL) -> Estimate:
@@ -51,7 +65,7 @@ def estimate(ad_lengths: list[int | None], context_chars: int, model: str = MODE
     average = sum(lengths) // len(lengths)
     cost += looked_at * second_look.RUNS * _call_usd(fixed + average, 1, model)
     seconds = len(packages) * PACKAGE_SECONDS + looked_at * SECOND_LOOK_SECONDS
-    return Estimate(len(lengths), max(CENT, math.ceil(cost / CENT) * CENT), max(1, math.ceil(seconds / SECONDS_PER_MINUTE)))
+    return Estimate(len(lengths), cents_up(cost), whole_minutes(seconds))
 
 
 def enough_for(estimate_: Estimate, left_usd: float | None) -> int | None:

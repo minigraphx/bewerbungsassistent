@@ -3,7 +3,9 @@
 The port of the app changes with every start, so the browser's own storage would be lost: the state of the
 form and the documents go straight to the data folder (`dokumente/`, not in Git). Taking over uses the same
 checks as importing a file (`onboarding/import_bundle.py`), with drafts of what it replaces.
-Suggestions from documents (`onboarding/prefill.py`) run outside the lock, because the AI takes a while.
+Suggestions from documents (`onboarding/prefill.py`) run outside the lock, because the AI takes a while. Before them
+the page names cost and time (G85, `onboarding/prefill_estimate.py`), read here without the AI; neither the extension
+nor Claude reach that route.
 The page opens on the cv.yaml of the data folder (`onboarding/cv_read.py`, G23), and taking over merges into it.
 Existing Markdown files are kept unless the person chooses to replace them, after seeing the diff (G26).
 It suggests the tags already in the data folder (`onboarding/known_tags.py`, G24).
@@ -25,6 +27,7 @@ log = logging.getLogger(__name__)
 STATE_FILE = "dokumente/angaben-stand.json"
 UPLOAD_ROUTE = "/api/angaben/unterlage"
 PREFILL_ROUTE = "/api/angaben/vorbefuellen"
+PREFILL_ESTIMATE_ROUTE = f"{PREFILL_ROUTE}/schaetzung"  # cost and time before the run, without the AI (G85)
 KIND_ROUTE = "/api/angaben/unterlage-art"  # the person corrects the guessed kind of a document (G84)
 BASE64_OVERHEAD = 4 / 3
 JSON_OVERHEAD_BYTES = 10_000
@@ -108,8 +111,11 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     import import_documents
     import known_tags
     import prefill
+    import prefill_estimate
     import proof_kinds
+    import read_documents
     import routes_ai
+    import routes_rate_all
     import validation
 
     form = validation.load_form()
@@ -215,6 +221,17 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
                              "nicht_ersetzt": list(result.not_replaced),
                              "hinweis": CV_KEPT if result.kept_files else ""})
 
+    def estimate_prefill(k, parameter, body):
+        """What „Vorbefüllen“ would send, read here as the run reads it: nothing is masked, sent, marked or written."""
+        folder = ready_data_dir(state, k)
+        track = _track(form, parameter.get("track"))
+        reading = read_documents.collect_texts(folder, import_documents.pending_documents(folder))
+        found = prefill_estimate.estimate(form, track, reading)
+        money = routes_rate_all.priced(found.cost_usd, bool(found.count))
+        return json_antwort({"anzahl": found.count, **money.fields(), "dauer_minuten": found.minutes,
+                             "nicht_gelesen": [{"name": s.name, "grund": s.reason} for s in reading.skipped],
+                             "gekuerzt": [t.name for t in reading.texts if t.shortened]})
+
     def prefill_documents(k, parameter, body):
         """Suggestions only: nothing is written to the person's files, the page shows them for checking."""
         folder = ready_data_dir(state, k)
@@ -237,7 +254,8 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
             import_documents.mark_read(folder, result["datei"])
         return json_antwort(result)
 
-    return ({"/api/angaben/stand": overview, "/api/angaben/offen": not_taken_over},
+    return ({"/api/angaben/stand": overview, "/api/angaben/offen": not_taken_over,
+             PREFILL_ESTIMATE_ROUTE: estimate_prefill},
             _one_at_a_time({"/api/angaben/stand": keep_state, "/api/angaben/stand-loeschen": discard_state,
                             UPLOAD_ROUTE: add_document, "/api/angaben/unterlage-entfernen": remove_document,
                             KIND_ROUTE: change_kind,

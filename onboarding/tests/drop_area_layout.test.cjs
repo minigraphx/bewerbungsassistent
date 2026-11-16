@@ -12,8 +12,16 @@ const { pathToFileURL } = require("node:url");
 const ROOT = path.join(__dirname, "..", "..");
 const PAGE = path.join(ROOT, "bewerbungen", "seiten", "angaben.html");
 const FONTS = path.join(ROOT, "lebenslauf", "fonts");
-const SCRIPTS = ["bewerbungen/seiten/dateien-logik.js", ...["validate.js", "model.js", "dom.js", "documents.js", "uploads.js",
-  "kindguess.js", "droparea.js", "prefill.js"].map((name) => `onboarding/src/${name}`)];
+const SCRIPTS = ["bewerbungen/seiten/dateien-logik.js", "bewerbungen/seiten/treffer-logik.js", "bewerbungen/seiten/texte.js",
+  ...["validate.js", "model.js", "dom.js", "documents.js", "uploads.js", "kindguess.js", "droparea.js", "prefill.js"]
+    .map((name) => `onboarding/src/${name}`)];
+// The line under „Vorbefüllen“ (G85, #271) at its longest: credit used up with the link, and a file left out.
+const ESTIMATES = {
+  job: { anzahl: 3, kosten: 0.07, dauer_minuten: 2, waehrung: "CHF", guthaben: 0, danach: 0, gekuerzt: ["Lebenslauf_Muster.pdf"],
+    nicht_gelesen: [{ name: "Multicheck.png", grund: "Bild: Darin lässt sich nichts unkenntlich machen, darum geht es nicht an die KI. Angaben von Hand ergänzen." }] },
+  apprenticeship: { anzahl: 3, kosten: 0.07, dauer_minuten: 2, waehrung: "CHF", guthaben: 4.25, danach: 4.18, gekuerzt: [], nicht_gelesen: [] },
+};
+const MIN_TARGET_PX = 44;
 const CHROMES = [process.env.CHROME_PATH, "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"];
 const CHROME = CHROMES.find((candidate) => candidate && fs.existsSync(candidate));
@@ -33,8 +41,9 @@ const MEASURE = `
   for (const track of ["job", "apprenticeship"]) {
     const start = el("section", { className: "start start--app" }, [prefillCard({
       form, track, uploads: UPLOADS, messages: [], notes: {}, announcement: "", hasName: true,
-      run: { running: false, waiting: false, problem: null, report: null }, titleOf: (id) => id,
-      onRun() {}, onGoTo() {}, onAddFiles() {}, onChangeKind() {}, onRemove() {}, onByHand() {},
+      run: { running: false, problem: null, report: null }, titleOf: (id) => id,
+      estimate: { phase: "ready", answer: ESTIMATES[track], problem: null },
+      onRun() {}, onGoTo() {}, onAddFiles() {}, onChangeKind() {}, onRemove() {}, onByHand() {}, onEstimate() {},
     })]);
     start.dataset.track = track;
     main.append(start);
@@ -55,6 +64,12 @@ const MEASURE = `
         selectWidth: select.clientWidth, removeCut: row.querySelector(".remove").scrollWidth > row.querySelector(".remove").clientWidth,
         needed: longest + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + ${ARROW_PX} };
     }),
+    run: (() => {
+      const [button, line] = [box(start.querySelector("#prefill")), box(start.querySelector("#prefill-status"))];
+      return { buttonBottom: button.bottom, buttonLeft: button.left, lineTop: line.top, lineLeft: line.left,
+        controls: [...start.querySelectorAll(".prefill-card__run :is(button, a)")]
+          .map((c) => ({ name: c.textContent, width: box(c).width, height: box(c).height })) };
+    })(),
   }));
   const measured = JSON.stringify({ cards, pageWidth: document.documentElement.scrollWidth, fonts: document.fonts.check("16px 'DM Sans'") });
   if (parent !== window) return parent.postMessage(measured, "*");
@@ -78,6 +93,7 @@ function measure(width) {
     .replace("</body>", () => `<script>${SCRIPTS.map((name) => fs.readFileSync(path.join(ROOT, name), "utf8")).join("\n;\n")}
       const FORM = ${fs.readFileSync(path.join(ROOT, "onboarding", "form.json"), "utf8")};
       const UPLOADS = ${JSON.stringify(UPLOADS)};
+      const ESTIMATES = ${JSON.stringify(ESTIMATES)};
       ${MEASURE}</script></body>`);
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), "drop-area-layout-"));
   try {
@@ -124,4 +140,30 @@ test("at 375 px the kind goes below the name, whole, and nothing scrolls sideway
       assert.ok(row.actionsRight <= row.rowRight + 0.5, `${track}: ${row.name} stays in the card`);
     }
   }
+});
+
+function targetsAreLargeEnough(cards) {
+  for (const { track, run } of cards) {
+    assert.ok(run.controls.some((c) => c.name.startsWith("anfordern")) || track !== "job", `${track}: the link to a new code is there`);
+    for (const control of run.controls) {
+      assert.ok(control.width >= MIN_TARGET_PX && control.height >= MIN_TARGET_PX,
+        `${track}: „${control.name}“ is at least 44×44 px (${control.width}×${control.height})`);
+    }
+  }
+}
+
+test("at 1280 px the cost line sits right under „Vorbefüllen“, and every control there is 44 px", { skip: SKIP }, () => {
+  const { cards } = measure(1280);
+  for (const { track, run } of cards) {
+    assert.ok(run.lineTop >= run.buttonBottom, `${track}: the line is below the button`);
+    assert.ok(run.lineTop - run.buttonBottom <= 24, `${track}: right below it (${run.lineTop - run.buttonBottom} px)`);
+    assert.ok(Math.abs(run.lineLeft - run.buttonLeft) <= 1, `${track}: aligned with the button`);
+  }
+  targetsAreLargeEnough(cards);
+});
+
+test("at 375 px the cost line and its controls fit without sideways scroll", { skip: SKIP }, () => {
+  const { cards, pageWidth } = measure(375);
+  assert.ok(pageWidth <= 375, `no horizontal scroll (${pageWidth} px)`);
+  targetsAreLargeEnough(cards);
 });

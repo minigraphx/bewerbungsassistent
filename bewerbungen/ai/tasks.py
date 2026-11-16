@@ -215,10 +215,15 @@ def review_content(gateway: Gateway, material: Material, ad_text: str, letter_te
     return {**data, "model": answer.model, "cost_usd": answer.cost_usd}
 
 
+def prefill_instructions(field_guide: str) -> str:
+    """The task and the fields of the form; also counted by the estimate before „Vorbefüllen“ (G85)."""
+    return f"{prompts.PREFILL}\n\n{prompts.PREFILL_FIELDS}\n{field_guide}"
+
+
 def suggest_from_documents(gateway: Gateway, prompt: str, field_guide: str, model: str | None = None) -> dict:
     """Suggestions for the form from uploaded documents. There are no files of the person yet, so no shared context."""
     answer = gateway.ask(Request(task="prefill", model=model or MODELS["prefill"], rules=prompts.PREFILL_RULES,
-                                 context="", instructions=f"{prompts.PREFILL}\n\n{prompts.PREFILL_FIELDS}\n{field_guide}", prompt=prompt,
+                                 context="", instructions=prefill_instructions(field_guide), prompt=prompt,
                                  max_tokens=MAX_TOKENS["prefill"], schema=prompts.PREFILL_SCHEMA))
     if not isinstance(answer.data, dict):
         raise AiError(BAD_ANSWER)

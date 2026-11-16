@@ -21,6 +21,13 @@
 .drop-status:empty { display: none; }
 .drop-status { margin: 8px 0 0; font-size: 14px; line-height: 20px; }
 .drop-status, .prefill-card #upload-messages { overflow-wrap: anywhere; }  /* long file names in the messages too */
+/* Cost and time under „Vorbefüllen“ (G85, #271) */
+.prefill-card__status { overflow-wrap: anywhere; }
+.prefill-card__status > p { margin: 0 0 4px; }
+.prefill-card__status > p:first-child:not(.error) { color: var(--text-strong); font-weight: 500; }
+.prefill-card__credit.warning { color: var(--danger); font-weight: 500; }
+.prefill-card__files { margin: 0 0 8px; padding-left: 20px; font-size: 14px; line-height: 20px; }
+.prefill-card__status a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
 @media (min-width: 480px) {
   .drop-file__kind { width: 17.5em; }  /* one width for every row, wide enough for „Früheres Motivationsschreiben“ */
 }

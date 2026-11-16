@@ -23,7 +23,9 @@ const APP_STATE = `
   let uploadTurn = Promise.resolve();
   function inTurn(work) { uploadTurn = uploadTurn.then(work); return uploadTurn; }
   function focusFirst(...selectors) { focused.push(selectors[0]); }
+  function prefillCardContext() { return null; } // appestimate.js draws nothing here
   const backend = {
+    estimatePrefill: async () => ({ anzahl: 0, kosten: 0, dauer_minuten: 0, waehrung: "USD", nicht_gelesen: [], gekuerzt: [] }),
     changeDocumentKind: async (track, datei, category) => {
       moves.push(category);
       const name = datei.split("/").pop();
@@ -43,8 +45,11 @@ function sandbox(files) {
   };
   const page = loadScripts(SCRIPTS, { window: clock, FORM: form });
   page.document.getElementById = () => null; // no page drawn: the announcement is only kept
+  page.document.querySelector = () => null;
   vm.runInContext(APP_STATE, page);
-  vm.runInContext(fs.readFileSync(path.join(SRC, "appuploads.js"), "utf8"), page, { filename: "appuploads.js" });
+  for (const name of ["appuploads.js", "appestimate.js"]) {
+    vm.runInContext(fs.readFileSync(path.join(SRC, name), "utf8"), page, { filename: name });
+  }
   page.UPLOADS = files;
   vm.runInContext("uploads = UPLOADS", page);
   const read = (name) => JSON.parse(JSON.stringify(vm.runInContext(name, page)));

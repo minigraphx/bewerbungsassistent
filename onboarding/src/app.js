@@ -65,7 +65,7 @@ let replaceChoices = {}; // in the app: per existing Markdown file "keep" or "re
 let uploadTurn = Promise.resolve(); // in the app: uploads and removals wait for each other
 let appProblem = null; // in the app: why the data folder cannot be used, shown on the first page
 let uploadsUnderway = 0; // in the app: choices of files not yet in the data folder
-let prefillRun = { running: false, waiting: false, problem: null, report: null }; // in the app: suggestions from documents
+let prefillRun = { running: false, problem: null, report: null }; // in the app: suggestions from documents
 let prefillTurn = 0; // a run that was overtaken by discarding or loading other answers no longer counts
 let choice = null; // in the app: what the setup chose (MIN-369) { track, anrede, rav, gewaehlt }
 let pageStateFound = false; // in the app: this page has kept answers before (not only the track of the setup)
@@ -383,15 +383,20 @@ function appStartView() {
     profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
     appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
     choiceCard(),
-    prefillCard({
-      form, track: state.track, uploads, messages: uploadMessages, run: prefillRun, notes: uploadNotes,
-      announcement: uploadAnnouncement, hasName: hasName(), titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
-      onAddFiles: addDroppedFiles, onChangeKind: changeUploadKind, onLeaveKind: leaveUploadKind, onRemove: removeDroppedUpload,
-      onByHand: () => goTo(1),
-    }),
+    prefillCard(prefillCardContext()),
     existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
     ...loadFileLine(),
   ]);
+}
+
+/** What the card on the start of the app shows; also for drawing its run area anew (appestimate.js). */
+function prefillCardContext() {
+  return {
+    form, track: state.track, uploads, messages: uploadMessages, run: prefillRun, notes: uploadNotes,
+    announcement: uploadAnnouncement, estimate: prefillEstimate, hasName: hasName(), titleOf: sectionTitle,
+    onRun: runPrefill, onGoTo: goToSection, onAddFiles: addDroppedFiles, onChangeKind: changeUploadKind,
+    onLeaveKind: leaveUploadKind, onRemove: removeDroppedUpload, onByHand: () => goTo(1), onEstimate: requestEstimate,
+  };
 }
 
 function sharedStartView() {
@@ -447,7 +452,7 @@ const hasName = () => Boolean(((state.data.person || {}).name || "").trim()) || 
 
 function forgetPrefillRun() {
   prefillTurn += 1;
-  prefillRun = { running: false, waiting: false, problem: null, report: null };
+  prefillRun = { running: false, problem: null, report: null };
 }
 
 /** The person may be typing elsewhere meanwhile: the new values must show at once, and the focus stays. */
@@ -464,13 +469,15 @@ function revealPrefillStatus() {
 }
 
 async function runPrefill() {
+  if (!runAllowed(prefillCardContext())) return; // the estimate changed since the button was drawn (G85)
   const turn = ++prefillTurn;
   const track = state.track;
   const isCurrent = () => turn === prefillTurn && track === state.track;
+  const minutes = prefillEstimate.answer.dauer_minuten;
   let finished;
   try {
     const answer = await startPrefill({
-      show: (run) => { prefillRun = run; renderKeepingFocus(); },
+      show: () => { prefillRun = { running: true, minutes, problem: null, report: null }; renderKeepingFocus(); },
       reveal: revealPrefillStatus,
       pendingUploads: backend ? pendingDocumentWork : () => (uploadsUnderway ? uploadTurn : null),
       isCurrent,
@@ -484,7 +491,7 @@ async function runPrefill() {
     if (turn !== prefillTurn) return;
     finished = { problem: error.message, report: null };
   }
-  prefillRun = { running: false, waiting: false, ...finished };
+  prefillRun = { running: false, ...finished };
   renderKeepingFocus();
   if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished);
 }
@@ -902,7 +909,11 @@ async function loadFile(event) {
     touched = new Set();
     goTo(1);
     storeNow();
-    if (backend) await inTurn(() => sendDocuments(loaded.uploads, []));
+    if (backend) {
+      const sent = inTurn(() => sendDocuments(loaded.uploads, []));
+      requestEstimate();
+      await sent;
+    }
     else keepUploadsNow();
   } catch (error) {
     const known = error instanceof BundleError || error instanceof UploadError || error instanceof ZipError;
@@ -953,4 +964,5 @@ loadStored().then(() => {
   render();
   restoreUploads();
   openFromAddress();
+  if (backend) requestEstimate(); // documents from an earlier visit are still in the data folder
 });

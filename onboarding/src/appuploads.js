@@ -8,6 +8,7 @@ const KIND_SETTLE_MS = 500; // a new kind counts once the select has been left a
 let uploadNotes = {}; // datei → true when recognised by its name, false when not sure; files filed before have none
 let uploadAnnouncement = "";
 let kindChoices = {}; // datei → timer of a kind not yet settled
+let filesArriving = 0; // drops still on their way, as against kinds being moved
 
 /** Say what happened in the status region of the card, also when the page was just drawn anew. */
 function announceUploads(text) {
@@ -33,13 +34,17 @@ function focusInCard(...selectors) {
 function addDroppedFiles(fileList) {
   const chosen = Array.from(fileList);
   uploadsUnderway += 1;
-  return inTurn(async () => {
+  filesArriving += 1;
+  const work = inTurn(async () => {
     try {
       await sendDropped(chosen);
     } finally {
       uploadsUnderway -= 1;
+      filesArriving -= 1;
     }
   });
+  requestEstimate(); // what the run costs is said again once the files are in (G85)
+  return work;
 }
 
 async function sendDropped(chosen) {
@@ -81,6 +86,7 @@ function changeUploadKind(upload, category) {
   if (waiting) window.clearTimeout(waiting.timer);
   const timer = window.setTimeout(() => settleUploadKind(upload.datei), KIND_SETTLE_MS);
   kindChoices = { ...kindChoices, [upload.datei]: { timer, category } };
+  requestEstimate(); // the kind may change what is read; the run waits until it settled
 }
 
 /** The select lost the focus: its kind is saved now, not after the wait. */
@@ -109,8 +115,10 @@ function settleUploadKind(datei) {
   const { [datei]: waiting, ...others } = kindChoices;
   kindChoices = others;
   const current = uploads.find((u) => u.datei === datei);
-  if (!waiting || !current || current.category === waiting.category) return Promise.resolve();
-  return moveUploadKind(current, waiting.category);
+  const moved = !waiting || !current || current.category === waiting.category
+    ? Promise.resolve() : moveUploadKind(current, waiting.category);
+  if (waiting) requestEstimate(); // also when it settled on the kind it had: the run must not stay disabled
+  return moved;
 }
 
 function moveUploadKind(upload, category) {
@@ -174,7 +182,7 @@ function pointerReleased() {
 function removeDroppedUpload(index) {
   const removed = uploads[index];
   const next = uploads[index + 1];
-  return inTurn(async () => {
+  const work = inTurn(async () => {
     try {
       setUploads((await backend.removeDocument(removed.datei)).unterlagen, []);
       announceUploads(removedStatus(removed.name));
@@ -183,4 +191,6 @@ function removeDroppedUpload(index) {
     }
     focusInCard(...(next ? [kindSelector(next.datei)] : []));
   });
+  requestEstimate();
+  return work;
 }

@@ -252,6 +252,11 @@ def _kind(form: dict, category: str, track: str) -> str:
     return validation.for_track(known.get(category, "Unterlage"), track)
 
 
+def documents_prompt(form: dict, track: str, texts: tuple[read_documents.DocumentText, ...]) -> str:
+    """What goes to the AI of the documents, before masking; the estimate (G85) counts the same text."""
+    return prompts.prefill_prompt([(_kind(form, t.category, track), t.text) for t in texts])
+
+
 def suggest(form: dict, data_dir: pathlib.Path, track: object, data: dict, new_client) -> dict:
     """Suggestions from the pending documents. `new_client` is called only when something is really sent."""
     if not isinstance(track, str) or track not in form["tracks"]:
@@ -267,7 +272,7 @@ def suggest(form: dict, data_dir: pathlib.Path, track: object, data: dict, new_c
         return result
     secrets = _secrets(data_dir, track, data, [t.text for t in reading.texts])
     gateway = Gateway(new_client(), Pseudonymizer(secrets), UsageLog(data_dir))
-    prompt = prompts.prefill_prompt([(_kind(form, t.category, track), t.text) for t in reading.texts])
+    prompt = documents_prompt(form, track, reading.texts)
     answer = tasks.suggest_from_documents(gateway, prompt, field_guide(form, track))
     files = [t.name for t in reading.texts]
     suggestions, dropped = clean_answer(form, track, from_entries(form, track, answer), files)
