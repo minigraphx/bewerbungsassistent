@@ -59,7 +59,7 @@
       zeige(neu);
       zeigeAndersKosten();
     } catch (fehler) {
-      if (!abgebrochen) meldung("", fehler.message,[knopf("Nochmals versuchen", () => holeVorschlag(body))]);
+      if (!abgebrochen) meldung("", fehler.message, [knopf("Nochmals versuchen", () => holeVorschlag(body))]);
     } finally {
       warten(false);
     }
