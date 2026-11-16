@@ -96,8 +96,8 @@
 .doc-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
 .doc-tiles:empty { display: none; }
 /* #331: the note runs under the thumbnail across the whole tile, wide enough for its longest change on one line;
-   the last row takes the height of a taller tile beside it, so the note stays right under the thumbnail */
-.doc-tile { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "thumb name" "thumb links" "note note"; gap: var(--space-2) var(--space-3); align-items: start; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+   the links row takes the extra height, so the name keeps its gap to the links and the notes of a row line up at the foot */
+.doc-tile { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr auto; grid-template-areas: "thumb name" "thumb links" "note note"; gap: var(--space-2) var(--space-3); align-items: start; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
 .doc-tile__thumb { grid-area: thumb; width: 96px; height: auto; aspect-ratio: 210 / 297; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; object-fit: contain; font-size: 12px; line-height: 16px; color: var(--text-muted); }
 /* name, note and links stay in this order for screen readers; the grid of the tile places them */
 .doc-tile__body { display: contents; }

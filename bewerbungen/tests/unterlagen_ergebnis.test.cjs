@@ -408,6 +408,9 @@ test("the note runs under the thumbnail across the whole tile, so the longest ch
   const tile = ruleOf(css, ".doc-tile");
   assert.match(tile, /display: grid;/);
   assert.match(tile, /grid-template-areas: "thumb name" "thumb links" "note note";/);
+  assert.match(tile, /grid-template-rows: auto 1fr auto;/,
+    "the links row takes any extra height, so the name keeps its gap to the links and the notes of a row line up at the foot");
+  assert.match(tile, /align-items: start;/);
   assert.match(ruleOf(css, ".doc-tile__body"), /display: contents;/, "name, note and links keep their order for screen readers");
   assert.match(ruleOf(css, ".doc-tile__thumb"), /grid-area: thumb;/);
   assert.match(ruleOf(css, ".doc-tile__name"), /grid-area: name;/);
