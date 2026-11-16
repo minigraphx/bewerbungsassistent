@@ -74,45 +74,100 @@ async function sendDropped(chosen) {
 
 /**
  * Arrow keys on a closed select fire „change“ at every step (Windows): the file moves only once the choice has
- * settled, to the kind it settled on, and only that kind is announced.
+ * settled, to the kind it settled on, and only that kind is announced. Leaving the select settles it at once.
  */
 function changeUploadKind(upload, category) {
   const waiting = kindChoices[upload.datei];
-  if (waiting) window.clearTimeout(waiting);
-  kindChoices = {
-    ...kindChoices,
-    [upload.datei]: window.setTimeout(() => settleUploadKind(upload, category), KIND_SETTLE_MS),
-  };
+  if (waiting) window.clearTimeout(waiting.timer);
+  const timer = window.setTimeout(() => settleUploadKind(upload.datei), KIND_SETTLE_MS);
+  kindChoices = { ...kindChoices, [upload.datei]: { timer, category } };
 }
 
-function settleUploadKind(upload, category) {
-  const { [upload.datei]: _done, ...others } = kindChoices;
+/** The select lost the focus: its kind is saved now, not after the wait. */
+function leaveUploadKind(upload) {
+  const waiting = kindChoices[upload.datei];
+  if (!waiting) return Promise.resolve();
+  window.clearTimeout(waiting.timer);
+  return settleUploadKind(upload.datei);
+}
+
+/** Every kind still waiting is saved now, e.g. before the prefill reads the files or the page moves on. */
+function settlePendingKinds() {
+  return Promise.all(Object.keys(kindChoices).map((datei) => {
+    window.clearTimeout(kindChoices[datei].timer);
+    return settleUploadKind(datei);
+  }));
+}
+
+/** What the prefill waits for before it reads the files: uploads, removals and kinds not yet saved. */
+function pendingDocumentWork() {
+  settlePendingKinds();
+  return uploadsUnderway ? uploadTurn : null;
+}
+
+function settleUploadKind(datei) {
+  const { [datei]: waiting, ...others } = kindChoices;
   kindChoices = others;
-  const current = uploads.find((u) => u.datei === upload.datei);
-  if (!current || current.category === category) return Promise.resolve();
-  return moveUploadKind(current, category);
+  const current = uploads.find((u) => u.datei === datei);
+  if (!waiting || !current || current.category === waiting.category) return Promise.resolve();
+  return moveUploadKind(current, waiting.category);
 }
 
 function moveUploadKind(upload, category) {
   const problem = kindChangeProblem(form, state.track, uploads, upload, category);
-  if (problem) {
-    setUploads(uploads, [problem]); // drawn anew, the select shows the old kind again
-    focusInCard(kindSelector(upload.datei));
-    return Promise.resolve();
-  }
+  uploadsUnderway += 1;
   return inTurn(async () => {
     try {
-      const answer = await backend.changeDocumentKind(state.track, upload.datei, category);
+      const answer = problem ? null : await backend.changeDocumentKind(state.track, upload.datei, category);
+      await pointerReleased(); // drawn anew under a pressed button, the click would get lost
+      if (problem) return redrawKinds(uploads, [problem], upload.datei); // the select shows the old kind again
       const { [upload.datei]: _guess, ...others } = uploadNotes; // the person decided, the guess no longer counts
       uploadNotes = others;
-      setUploads(answer.unterlagen, []);
+      redrawKinds(answer.unterlagen, [], answer.datei);
       announceUploads(changedStatus(form, state.track, upload.name, category));
-      focusInCard(kindSelector(answer.datei));
     } catch (error) {
-      setUploads(uploads, [kindFailed(error.message)]);
-      focusInCard(kindSelector(upload.datei));
+      await pointerReleased();
+      redrawKinds(uploads, [kindFailed(error.message)], upload.datei);
+    } finally {
+      uploadsUnderway -= 1;
     }
   });
+}
+
+/** Draw the list anew; the focus stays on the control the person went on to, else it goes back to the select. */
+function redrawKinds(list, messages, datei) {
+  const kept = controlSelector(document.activeElement);
+  setUploads(list, messages);
+  if (kept) focusFirst(kept, kindSelector(datei));
+  else focusInCard(kindSelector(datei));
+}
+
+/** A selector that finds a control again after the page is drawn anew: by its id or its label; null for none. */
+function controlSelector(node) {
+  if (!node || typeof node.closest !== "function" || !node.closest(DROP_CARD)) return null;
+  if (node.id) return `#${node.id}`;
+  const label = node.getAttribute("aria-label");
+  return label ? `[aria-label="${label.replace(/["\\]/g, "\\$&")}"]` : null;
+}
+
+let pointerPressed = false;
+let pointerWaiters = [];
+
+/** A press on the page is followed to its release, so nothing is drawn anew between the two (trackPointer). */
+function trackPointer(doc) {
+  doc.addEventListener("pointerdown", () => { pointerPressed = true; }, true);
+  const release = () => {
+    pointerPressed = false;
+    const waiting = pointerWaiters;
+    pointerWaiters = [];
+    window.setTimeout(() => waiting.forEach((resolve) => resolve()), 0); // after the click of this press
+  };
+  doc.addEventListener("pointerup", release, true);
+  doc.addEventListener("pointercancel", release, true);
+}
+
+function pointerReleased() {
+  return pointerPressed ? new Promise((resolve) => { pointerWaiters = [...pointerWaiters, resolve]; }) : Promise.resolve();
 }
 
 /** After „Entfernen“ the focus goes to the select of the next row, else to „Dateien wählen“. */

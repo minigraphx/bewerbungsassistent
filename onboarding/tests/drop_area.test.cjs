@@ -266,6 +266,21 @@ test("each row has name, size, how it was recognised, a labelled kind and „Ent
   assert.match(byTag(image2, "li")[2].textContent, /Bild: bleibt auf deinem Computer, die KI liest es nicht\./);
 });
 
+test("no script of the page uses a lookbehind, which Safari before 16.4 refuses with the whole script", () => {
+  const LOOKBEHIND = /\(\?<[=!]/;
+  const src = path.join(__dirname, "..", "src");
+  for (const name of fs.readdirSync(src).filter((n) => n.endsWith(".js"))) {
+    assert.doesNotMatch(fs.readFileSync(path.join(src, name), "utf8"), LOOKBEHIND, name);
+  }
+  for (const built of ["../../bewerbungen/seiten/angaben.html", "../dist/einstieg.html"]) {
+    // Only what runs: the form definition is data, its patterns go through new RegExp at run time.
+    const scripts = [...fs.readFileSync(path.join(__dirname, built), "utf8").matchAll(/<script(?![^>]*application\/json)[^>]*>([\s\S]*?)<\/script>/g)];
+    assert.ok(scripts.length, built);
+    for (const [, code] of scripts) assert.doesNotMatch(code, LOOKBEHIND, built);
+  }
+  same(page.nameWithBreaks("a_b-c.d.pdf").filter((p) => typeof p === "string"), ["a_", "b-", "c.", "d.", "pdf"]);
+});
+
 test("a long file name may wrap between its parts, and reads as it is", () => {
   const name = byTag(card(uploads, { notes }), "li").map((row) => findAll(row, (n) => n.className === "drop-file__name")[0])[0];
   assert.equal(name.textContent, "Lebenslauf_2025.pdf");
@@ -275,8 +290,14 @@ test("a long file name may wrap between its parts, and reads as it is", () => {
 test("changing the kind and removing go to the page, with the row they belong to", () => {
   const changed = [];
   const removed = [];
-  const node = card(uploads, { onChangeKind: (upload, category) => changed.push([upload.name, category]), onRemove: (i) => removed.push(i) });
+  const left = [];
+  const node = card(uploads, {
+    onChangeKind: (upload, category) => changed.push([upload.name, category]), onRemove: (i) => removed.push(i),
+    onLeaveKind: (upload) => left.push(upload.name),
+  });
   const select = byTag(node, "select")[1];
+  select.onblur();
+  same(left, ["Scan_001.pdf"]);
   select.onchange({ target: { value: REFERENCE } });
   byTag(byTag(node, "li")[3], "button")[0].onclick();
   same(changed, [["Scan_001.pdf", REFERENCE]]);

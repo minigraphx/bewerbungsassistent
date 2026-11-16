@@ -20,7 +20,8 @@ const APP_STATE = `
   const steps = () => [{ kind: "start" }];
   const drawn = []; const moves = []; const focused = [];
   function setUploads(list, messages) { uploads = list; drawn.push(messages); }
-  function inTurn(work) { return work(); }
+  let uploadTurn = Promise.resolve();
+  function inTurn(work) { uploadTurn = uploadTurn.then(work); return uploadTurn; }
   function focusFirst(...selectors) { focused.push(selectors[0]); }
   const backend = {
     changeDocumentKind: async (track, datei, category) => {
@@ -95,6 +96,74 @@ test("a full kind passed on the way is no refusal, only the kind it settles on c
   await advance(SETTLE_MS);
   assert.deepEqual(read("drawn").pop(), ["Zeugnisse: höchstens 20 Dateien. Entfernen Sie zuerst eine."]);
   assert.deepEqual(read("moves"), ["lebenslauf-bisher"]);
+});
+
+test("leaving the select saves its kind at once, without the wait", async () => {
+  const { page, read, advance } = sandbox([SCAN]);
+  page.changeUploadKind(SCAN, "zeugnisse");
+  await page.leaveUploadKind(SCAN);
+  assert.deepEqual(read("moves"), ["zeugnisse"]);
+  assert.equal(read("uploadAnnouncement"), "Scan_001.pdf ist jetzt als Zeugnis eingeordnet.");
+  await advance(SETTLE_MS);
+  assert.deepEqual(read("moves"), ["zeugnisse"]); // the wait that was running moves nothing more
+  await page.leaveUploadKind(SCAN); // left again without a change: nothing to save
+  assert.deepEqual(read("moves"), ["zeugnisse"]);
+});
+
+test("after a move saved on leaving, the focus stays where the person went, else on the select", async () => {
+  const { page, read } = sandbox([SCAN]);
+  const control = (label, id = "") => ({ id, closest: () => ({}), getAttribute: () => label });
+  page.document.activeElement = control("Scan_001.pdf entfernen");
+  page.changeUploadKind(SCAN, "zeugnisse");
+  await page.leaveUploadKind(SCAN);
+  assert.equal(read("focused").pop(), '[aria-label="Scan_001.pdf entfernen"]');
+
+  const moved = read("uploads")[0];
+  page.document.activeElement = control(null, "prefill");
+  page.changeUploadKind(moved, "zertifikate");
+  await page.leaveUploadKind(moved);
+  assert.equal(read("focused").pop(), "#prefill");
+
+  page.document.activeElement = { id: "", closest: () => null, getAttribute: () => null }; // left the card
+  page.changeUploadKind(read("uploads")[0], "zeugnisse");
+  await page.settlePendingKinds();
+  assert.equal(read("focused").pop(), 'select[data-datei="dokumente/zeugnisse/Scan_001.pdf"]');
+});
+
+test("the prefill waits for a kind still waiting, and reads the file under its new kind", async () => {
+  const { page, read } = sandbox([SCAN]);
+  page.changeUploadKind(SCAN, "lebenslauf-bisher");
+  const pending = page.pendingDocumentWork();
+  assert.ok(pending, "the prefill has something to wait for");
+  assert.equal(read("uploadsUnderway"), 1);
+  await pending;
+  assert.deepEqual(read("moves"), ["lebenslauf-bisher"]);
+  assert.deepEqual(read("uploads").map((u) => u.category), ["lebenslauf-bisher"]);
+  assert.equal(read("uploadsUnderway"), 0);
+  assert.equal(page.pendingDocumentWork(), null); // nothing left to wait for
+});
+
+test("leaving the page saves every kind still waiting", async () => {
+  const { page, read } = sandbox([SCAN]);
+  page.changeUploadKind(SCAN, "zeugnisse");
+  await page.settlePendingKinds();
+  assert.deepEqual(read("moves"), ["zeugnisse"]);
+});
+
+test("a move saved while a button is pressed is drawn only after its click", async () => {
+  const { page, read, advance } = sandbox([SCAN]);
+  const listeners = {};
+  page.trackPointer({ addEventListener: (type, handler) => { listeners[type] = handler; } });
+  listeners.pointerdown();
+  page.changeUploadKind(SCAN, "zeugnisse");
+  const saved = page.leaveUploadKind(SCAN);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(read("moves"), ["zeugnisse"]); // saved at once
+  assert.deepEqual(read("drawn"), []); // but not drawn while the button is down
+  listeners.pointerup();
+  await advance(0); // the click of this press comes first
+  await saved;
+  assert.deepEqual(read("drawn"), [[]]);
 });
 
 test("a drop that adds nothing clears what the status said before", async () => {

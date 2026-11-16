@@ -192,13 +192,14 @@ function kindSelect(ctx, upload) {
   }, option.label));
   return el("select", {
     className: "drop-file__kind", "aria-label": `Art von ${upload.name}`, dataset: { datei: upload.datei },
-    onchange: (e) => ctx.onChangeKind(upload, e.target.value),
+    onchange: (e) => ctx.onChangeKind(upload, e.target.value), onblur: () => ctx.onLeaveKind(upload),
   }, options);
 }
 
 /** A file name wraps after „_“, „-“ and „.“ first, so „Lebenslauf_Erika_Beispiel.pdf“ breaks between its words. */
 function nameWithBreaks(name) {
-  return String(name).split(/(?<=[_.\-])/).flatMap((part, i) => (i ? [el("wbr", {}), part] : [part]));
+  // No lookbehind: Safari before 16.4 refuses it while parsing, and with it the whole inlined script.
+  return String(name).match(/[^_.\-]*[_.\-]?/g).filter(Boolean).flatMap((part, i) => (i ? [el("wbr", {}), part] : [part]));
 }
 
 function fileRowView(ctx, upload, index) {
