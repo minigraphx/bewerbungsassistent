@@ -18,6 +18,7 @@ import term_evidence
 from ai import tasks, term_review
 from ai.connection import currency_now
 from ai.errors import SETUP_ACTION, AiError, SetupNeeded
+from amount_text import money_text
 from dateien import schreibe_atomar
 from hits import HIDDEN_TERMS, Hits
 from server import ActionError, json_antwort, pflicht
@@ -32,8 +33,10 @@ GONE = "Dieser Vorschlag gilt nicht mehr. Bitte neu vorschlagen lassen."
 STALE = "Vorschlag veraltet. Die Suchbegriffe haben sich seit dem Vorschlag geändert. Bitte neu vorschlagen lassen."
 FEEDBACK_NEEDED = "Bitte schreiben, was anders sein soll."
 FAILED = "Kein Vorschlag. {reason} {cost} Am Suchprofil hat sich nichts geändert."
-CHARGED = "Berechnet: {cost:.2f} {currency}."
+CHARGED = "Berechnet: {cost}."
 NOT_CHARGED = "Nichts berechnet."
+UNDER_A_CENT = "weniger als {cent}"
+CENT = 0.01
 NO_UNDO = ("Rückgängig geht nicht mehr: Das Suchprofil hat sich seither geändert. Der frühere Stand liegt unter "
            "Entwürfe und Versionen.")
 ADOPTED = "Suchbegriffe nach Vorschlag der KI: {count} {word}"
@@ -134,7 +137,11 @@ def _keep(k, proposal: dict) -> None:
 
 
 def charged(cost: float) -> str:
-    return CHARGED.format(cost=cost, currency=currency_now())
+    """A call under half a cent still cost something, so it never reads as CHF 0.00 (#339)."""
+    currency = currency_now()
+    if round(cost, 2) < CENT:
+        return CHARGED.format(cost=UNDER_A_CENT.format(cent=money_text(CENT, currency)))
+    return CHARGED.format(cost=money_text(cost, currency))
 
 
 def _failed(error: AiError) -> ValueError:

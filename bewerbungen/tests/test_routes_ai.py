@@ -104,7 +104,7 @@ def test_ai_errors_are_german_messages(ki, monkeypatch):
 
     status, antwort = post(ki, "/api/ki/bewerten", {}, id=BRIEF_ID)
 
-    assert status == 400 and "30 Sekunden" in antwort["fehler"]
+    assert status == 400 and "30\u00a0Sekunden" in antwort["fehler"]
 
 
 def test_missing_basics_are_named(ki, monkeypatch):

@@ -77,7 +77,7 @@ test('the popup row of the running portal names portal, term, place, stage, paus
 
   const next = (schritt) => browser.changed.forEach((listener) => listener({ lauf: { newValue: { zustand: 'laeuft', schritt } } }, 'session'));
   next({ portal: 'job-room', phase: 'pause', etappe: 3, etappen: 3, sekunden: 40 });
-  assert.equal(currentRow(document), 'job-room Pause vor Etappe 3 von 3, noch 40 Sekunden');
+  assert.equal(currentRow(document), 'job-room Pause vor Etappe 3 von 3, noch 40\u00a0Sekunden');
   next({ portal: 'job-room', phase: 'texte', fertig: 3, von: 9 });
   assert.equal(currentRow(document), 'job-room lese Inserat 4 von 9');
 });

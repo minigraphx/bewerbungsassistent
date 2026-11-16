@@ -41,6 +41,11 @@ def test_the_app_counts_the_same_searches_per_portal_as_the_extension():
         assert search_stages.searches_per_portal(case["plan"]) == case["searches"], case["name"]
 
 
+def test_the_announcement_is_the_one_the_extension_shows():
+    for case in CASES:
+        assert search_stages.size(case["plan"])["text"] == case.get("announcement", ""), case["name"]
+
+
 def test_a_long_run_names_searches_stages_and_the_rough_duration():
     plan = search_plan.chosen(search_plan.parse(profile()), ["job-room", "jobscout24", "ictjobs"]).as_dict()
     size = search_stages.size(plan)
@@ -48,7 +53,7 @@ def test_a_long_run_names_searches_stages_and_the_rough_duration():
     assert (size["suchen"], size["etappen"], size["lang"]) == (193, 7, True)
     seconds = 193 * search_stages.SECONDS_PER_SEARCH + 6 * search_stages.STAGE_PAUSE_SECONDS
     assert size["minuten"] == -(-seconds // 60) == 23
-    assert size["text"] == ("Diese Suche dauert etwa 23 Minuten: 193 Suchen in 7 Etappen, mit je einer Minute Pause "
+    assert size["text"] == ("Diese Suche dauert etwa 23\u00a0Minuten: 193 Suchen in 7 Etappen, mit je einer Minute Pause "
                             "dazwischen. Viele neue Inserate machen sie länger.")
 
 

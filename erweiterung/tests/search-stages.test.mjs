@@ -124,15 +124,18 @@ test('the popup and the progress line read the stage and the pause', () => {
   const single = { ...step, nummer: 3, abfragen: 5, etappe: 1, etappen: 1 };
   assert.equal(describeRun({ zustand: 'laeuft', schritt: single }).step, 'jobs.ch: suche „Begriff2“, Seite 1 (4 bisher) · Suche 3 von 5');
   const pause = { portal: 'jobs.ch', phase: 'pause', etappe: 3, etappen: 3, sekunden: 40 };
-  assert.equal(describeRun({ zustand: 'laeuft', schritt: pause }).step, 'jobs.ch: Pause vor Etappe 3 von 3, noch 40 Sekunden');
+  assert.equal(describeRun({ zustand: 'laeuft', schritt: pause }).step, 'jobs.ch: Pause vor Etappe 3 von 3, noch 40\u00a0Sekunden');
   const rows = portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: pause });
-  assert.equal(rows[0].text, 'Pause vor Etappe 3 von 3, noch 40 Sekunden');
+  assert.equal(rows[0].text, 'Pause vor Etappe 3 von 3, noch 40\u00a0Sekunden');
+  assert.equal(describeRun({ zustand: 'laeuft', schritt: { ...pause, sekunden: 1 } }).step,
+    'jobs.ch: Pause vor Etappe 3 von 3, noch 1\u00a0Sekunde');
   assert.equal(portalRows({ portale: ['jobs.ch'] }, { zustand: 'laeuft', schritt: step })[0].text,
     'suche „Begriff2“, Seite 1 (4 bisher) · Suche 32 von 67, Etappe 2 von 3');
 });
 
 test('before a long run the popup says what the app announces', () => {
-  const text = 'Diese Suche dauert etwa 15 Minuten: 150 Suchen in 6 Etappen, mit je einer Minute Pause dazwischen.';
+  const { announcement: text } = CASES.find((c) => c.announcement);
+  assert.ok(text.includes('16\u00a0Minuten'), text);
   const long = describePlan({ art: 'stelle', portale: ['jobs.ch'], umfang: { lang: true, text } });
   assert.ok(long.text.endsWith(` ${text}`), long.text);
   const short = describePlan({ art: 'stelle', portale: ['jobs.ch'], umfang: { lang: false, text: '' } });

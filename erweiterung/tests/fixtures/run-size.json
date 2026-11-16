@@ -1,5 +1,5 @@
 {
-  "note": "Searches per portal for invented plans (G43): erweiterung/lib/queries.js builds them, bewerbungen/search_stages.py counts them for the announcement. Both read this file.",
+  "note": "Searches per portal for invented plans (G43): erweiterung/lib/queries.js builds them, bewerbungen/search_stages.py counts them for the announcement, which the popup shows as the app wrote it (#339). Both read this file.",
   "cases": [
     {
       "name": "many terms in several places",
@@ -11,7 +11,8 @@
         "orte": ["Nordstadt", "Südstadt", "Oststadt", "Weststadt"], "plz": ["1111", "2222", "3333"],
         "regionen": ["grossraum-bern"], "schweizweit": false
       },
-      "searches": {"job-room": 19, "jobs.ch": 67, "jobscout24": 48, "ictjobs": 16}
+      "searches": {"job-room": 19, "jobs.ch": 67, "jobscout24": 48, "ictjobs": 16},
+      "announcement": "Diese Suche dauert etwa 16\u00a0Minuten: 150 Suchen in 7 Etappen, mit je einer Minute Pause dazwischen. Viele neue Inserate machen sie länger."
     },
     {
       "name": "all of Switzerland around the home",

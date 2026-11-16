@@ -12,13 +12,16 @@ export function place(step) {
   return step.ort ? ` in ${step.ort}` : '';
 }
 
+// Number and unit never part at the end of a line (#339), as in the app's cost lines; read aloud as a space.
+const seconds = (n) => `${n}\u00a0${n === 1 ? 'Sekunde' : 'Sekunden'}`;
+
 // An older extension reports a search step without term or count, so each part stays out when it is missing.
 const STEPS = {
   suche: (s) => [
     `${s.stichwort ? `suche „${s.stichwort}“${place(s)}, ` : ''}Seite ${s.seite}${s.gefunden === undefined ? '' : ` (${s.gefunden} bisher)`}`,
     position(s),
   ].filter(Boolean).join(' · '),
-  pause: (s) => `Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${s.sekunden} Sekunden`,
+  pause: (s) => `Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${seconds(s.sekunden)}`,
   texte: (s) => `lese Inserat ${s.fertig + 1} von ${s.von}`,
 };
 
