@@ -13,8 +13,10 @@
   let gewaehlt = new Set();
   let abgebrochen = false;
 
+  /** An empty title is hidden, for a text that names its own subject, like the server's «Kein Vorschlag. …» (#348). */
   function meldung(titel, text, knoepfe = []) {
     $("meldung").hidden = false;
+    $("meldung-titel").hidden = !titel;
     $("meldung-titel").textContent = titel;
     $("meldung-text").textContent = text;
     $("meldung-knoepfe").replaceChildren(...knoepfe);
@@ -57,7 +59,7 @@
       zeige(neu);
       zeigeAndersKosten();
     } catch (fehler) {
-      if (!abgebrochen) meldung("Kein Vorschlag", fehler.message, [knopf("Nochmals versuchen", () => holeVorschlag(body))]);
+      if (!abgebrochen) meldung("", fehler.message,[knopf("Nochmals versuchen", () => holeVorschlag(body))]);
     } finally {
       warten(false);
     }
