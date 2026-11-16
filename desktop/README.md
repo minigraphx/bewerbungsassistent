@@ -58,7 +58,7 @@ Die Anleitung für Teilnehmende steht in [`docs/installation.md`](../docs/instal
 3. Installation ohne Administratorrechte, nach `%LOCALAPPDATA%\Programs\Bewerbungsbegleiter`; Eintrag im Startmenü.
 4. Die App öffnet sich im Browser mit der Einrichtung: Datenordner bestätigen, Einstiegsdatei importieren, falls vorhanden, Einladungscode eingeben (oder den Einladungslink anklicken).
 
-Deinstallation über Einstellungen → Apps. Der Datenordner in Dokumente bleibt erhalten.
+Deinstallation über Einstellungen → Apps. Sie entfernt auch die Verbindung zu den Browsern (die Einträge unter `NativeMessagingHosts` für Chrome, Edge, Chromium und Brave). Der Datenordner in Dokumente bleibt erhalten.
 
 ## Installation im Pilot (macOS)
 
