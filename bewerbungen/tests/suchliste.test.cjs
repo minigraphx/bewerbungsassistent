@@ -285,7 +285,8 @@ test("a refused order says why and lets the page load the saved one", async () =
   control(list, "Betreuer", "hoch").click();
   await settle();
 
-  assert.deepEqual(calls.meldungen.at(-1), { target: status, text: "Die Liste hat sich inzwischen geändert.", art: "fehler" });
+  assert.deepEqual(calls.meldungen.at(-1),
+    { target: status, text: "Reihenfolge nicht gespeichert: Die Liste hat sich inzwischen geändert.", art: "fehler" });
   assert.equal(calls.geaendert, 1);
 });
 

@@ -70,7 +70,7 @@ window.Suchliste = (() => {
     offen += 1;
     kette = kette
       .then(() => senden(ROUTE, { berufe: reihenfolge }))
-      .catch(fehler => status(optionen.status, fehler.message, "fehler"))
+      .catch(fehler => status(optionen.status, `Reihenfolge nicht gespeichert: ${fehler.message}`, "fehler"))
       .finally(() => {
         offen -= 1;
         // after a refusal too: the page loads what the server has saved
