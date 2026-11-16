@@ -200,6 +200,7 @@
   function anders() {
     const hinweis = $("anders-text").value.trim();
     if (!hinweis) {
+      $("anders-text").setAttribute("aria-invalid", "true");
       status($("anders-status"), "Bitte schreiben, was anders sein soll.", "fehler", { input: $("anders-text") });
       $("anders-text").focus();
       return;

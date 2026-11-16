@@ -129,6 +129,23 @@ test("a change in a box or a radio clears it as well, also from inside an elemen
   assert.equal(line.textContent, "");
 });
 
+test("clearing an error watched through a container drops aria-invalid of the fields inside it", () => {
+  const { document, line } = setup();
+  const group = document.createElement("div");
+  const first = document.createElement("textarea");
+  const second = document.createElement("textarea");
+  group.append(first, second);
+  group.querySelectorAll = selector => (selector === "[aria-invalid]"
+    ? group.children.filter(child => child.hasAttribute("aria-invalid")) : []);
+  first.setAttribute("aria-invalid", "true");
+  meldungen.zeige(line, "Das Anschreiben braucht mindestens einen Absatz mit Text.", "fehler", { input: group });
+
+  type(second, "Neuer Absatz");
+
+  assert.equal(line.textContent, "");
+  assert.equal(first.getAttribute("aria-invalid"), null, "the field marked inside the container is valid again");
+});
+
 test("any of several fields clears it", () => {
   const { document, line, field } = setup();
   const other = document.createElement("input");
@@ -298,11 +315,29 @@ test("on /suchbegriffe a successful „Neu vorschlagen“ clears it", async () =
   assert.equal(JSON.stringify(page.sent.at(-1).body), JSON.stringify({ vorher: "v1", hinweis: "«Trainer» behalten" }));
 });
 
+test("on /suchbegriffe the field is marked invalid with its error and valid again after one input", async () => {
+  const page = await termsPage(termsAnswers(PROPOSAL));
+  await page.ask();
+  assert.equal(page.$("anders-text").getAttribute("aria-invalid"), "true");
+
+  type(page.$("anders-text"), "T");
+
+  assert.equal(page.$("anders-text").getAttribute("aria-invalid"), null);
+  assert.equal(page.$("anders-status").textContent, "");
+});
+
+test("on /suchbegriffe the field is described by its hint and its error line", () => {
+  const html = source("suchbegriffe.html");
+  const field = html.match(/<textarea [^>]*id="anders-text"[^>]*>/)[0];
+  assert.match(field, /aria-describedby="anders-hilfe anders-status"/);
+  assert.match(html, /id="anders-hilfe"/);
+  assert.match(html, /id="anders-status"/);
+});
+
 test("on /suchbegriffe the line for the field is a live region inside the revise section, after the button", () => {
   const html = source("suchbegriffe.html");
   const section = html.slice(html.indexOf('<section id="anders"'), html.indexOf("</section>", html.indexOf('<section id="anders"')));
   assert.match(section, /id="neu-vorschlagen"[\s\S]*<p class="status-line" id="anders-status" role="status" aria-live="polite"><\/p>/);
-  assert.doesNotMatch(section, /aria-describedby="[^"]*anders-status/, "the field does not repeat the live region");
 });
 
 // The other input errors of the app use the same helper (inventory of #341)

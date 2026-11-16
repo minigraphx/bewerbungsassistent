@@ -127,7 +127,11 @@
     stopWatching(z);
     if (element.textContent !== eingabe.shown) return;
     leere(element);
-    eingabe.fields.forEach(field => field.removeAttribute("aria-invalid"));
+    eingabe.fields.forEach(field => {
+      field.removeAttribute("aria-invalid");
+      // A container (a fieldset, the paragraphs of a letter) may hold the field the page marked.
+      field.querySelectorAll?.("[aria-invalid]").forEach(node => node.removeAttribute("aria-invalid"));
+    });
   }
 
   /** A refusal of the values sent (the server's ValueError), not a failure to reach the app or the server's own error. */
