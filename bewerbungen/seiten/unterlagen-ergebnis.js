@@ -1,6 +1,6 @@
 "use strict";
 // The step «Unterlagen erstellen und prüfen» (#321, option A in docs/design/unterlagen-erstellen.md, G40, G41) without
-// DOM: one tile per built document with the link to where it is adapted, the findings with the passed checks counted
+// DOM: one tile per built document with its pages, how they were balanced (G93) and the link to where it is adapted, the findings with the passed checks counted
 // apart, and the short lines for the dossier and the attachments (tests/unterlagen_ergebnis.test.cjs).
 (function (global) {
   const W = typeof module !== "undefined" ? require("./unterlagen-wahl.js") : global.UnterlagenWahl;
@@ -14,6 +14,15 @@
     letter: { text: "Anschreiben ändern", target: "letter" },
     dossier: { text: "Dossier gestalten", target: "dossier" },
   };
+  // How the page fill changed the setting (lebenslauf/page_fill.change); levels the server does not name stay silent
+  const CHANGES = {
+    "slightly-tighter": "etwas enger gesetzt",
+    tighter: "enger gesetzt",
+    tightest: "so eng wie möglich",
+    wider: "etwas grosszügiger gesetzt",
+  };
+  const PARTS = ["letter", "cv"];
+  const PART_NAMES = { letter: "Anschreiben", cv: "Lebenslauf" };
   const NEXT_CREATE = `Die App erstellt Lebenslauf und Anschreiben als PDF und prüft sie gleich. Danach stehen sie unter «${STEP_TITLE}» zum Ansehen bereit.`;
 
   const fileName = file => file.split("/").pop();
@@ -24,10 +33,23 @@
     return art === "anschreiben" ? ADAPT.letter : ADAPT.dossier;
   }
 
+  /**
+   * The pages and, only where the app changed the setting, how (G93): `info` is `{seiten, ausgleich}` from the server,
+   * `ausgleich` names the change per part. The dossier names the part, in the order of its pages.
+   */
+  function pageNote(art, info) {
+    if (!info || !Number.isInteger(info.seiten)) return [];
+    const changes = info.ausgleich || {};
+    const words = PARTS.filter(part => CHANGES[changes[part]])
+      .map(part => (art === "dossier" ? `${PART_NAMES[part]} ${CHANGES[changes[part]]}` : CHANGES[changes[part]]));
+    return [plural(info.seiten, "Seite", "Seiten"), ...words];
+  }
+
   /** One tile per built document in the order of the choice; nothing is adapted once the application is sent. */
-  function tiles(pdfs, choice, { ownCv = false, sent = false } = {}) {
+  function tiles(pdfs, choice, { ownCv = false, sent = false, notes = {} } = {}) {
     return W.rahmen(pdfs, choice).map(([art, name]) => ({
       art, name, alt: `${name}, Seite 1`, open: OPEN, adapt: sent ? null : adaptFor(art, ownCv),
+      note: pageNote(art, (notes || {})[art]),
     }));
   }
 
@@ -99,7 +121,7 @@
       : `Die Prüfung hat ${errors} Fehler gefunden. Sie stehen unter «${STEP_TITLE}».`;
   }
 
-  const logic = { STEP_TITLE, OPEN, NEXT_CREATE, tiles, findingGroups, announcement, attachmentsLine, designLine,
+  const logic = { STEP_TITLE, OPEN, NEXT_CREATE, pageNote, tiles, findingGroups, announcement, attachmentsLine, designLine,
     formLine, built, textsState, nextClarify };
   if (typeof module !== "undefined") module.exports = logic;
   else global.UnterlagenErgebnis = logic;

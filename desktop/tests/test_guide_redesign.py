@@ -150,3 +150,6 @@ def test_the_pictures_say_what_they_show_today():
     assert "**Zurücknehmen** bei **Drei Seiten erlaubt** gilt wieder die Grenze von zwei Seiten." in check
     assert "die nächste Kürzung ist angehakt.**" in check and "Meine Angaben und Varianten bleiben" in check
     assert "Schliessen" not in picture and "×" not in picture
+    # G93, #324: each tile names its pages and how the app balanced them
+    assert "beim Anschreiben 1 Seite · etwas enger gesetzt" in picture
+    assert "**1 Seite · etwas enger gesetzt**" in check and "**7 Seiten · Lebenslauf etwas enger gesetzt**" in check

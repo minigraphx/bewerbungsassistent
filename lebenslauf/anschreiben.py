@@ -13,6 +13,7 @@ import pathlib
 import typst
 import yaml
 
+import fill_record
 import page_fill
 import type_area
 from build import ROOT
@@ -104,6 +105,11 @@ def lade_cv(brief_pfad: pathlib.Path, brief: dict, cv_pfad: str | None) -> dict 
 
 
 def main(argv: list[str] | None = None) -> pathlib.Path:
+    return run(argv).pdf
+
+
+def run(argv: list[str] | None = None) -> fill_record.Built:
+    """Builds the letter and returns the PDF with the density level its page got (G93)."""
     ap = argparse.ArgumentParser(description="Anschreiben als PDF erzeugen")
     ap.add_argument("data", help="Anschreiben (YAML)")
     ap.add_argument("--cv", help="Lebenslauf (YAML) für den Absender; sonst `lebenslauf:` im Anschreiben")
@@ -135,7 +141,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     typst.compile(eingang, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
     type_area.record(out, eingang, str(wurzel.path), schriften, eingaben)  # the margins for the check (#304)
     print(out)
-    return out
+    return fill_record.write(out, fill_record.levels_of(eingaben))
 
 
 if __name__ == "__main__":

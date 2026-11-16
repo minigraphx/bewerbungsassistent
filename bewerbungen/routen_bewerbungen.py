@@ -9,6 +9,7 @@ import yaml
 import cut_choice
 import layout_confirmed
 import letter_approval
+import page_note
 import pdf_thumbnail
 import pruefung
 import routes_missing_ads
@@ -60,6 +61,7 @@ def details(k, parameter, body):
         "text_fehlt": routes_missing_ads.note_for_saved(k, b),
         "pdfs": {art: p.is_file() for art, p in shown.items()},
         "pdf_stand": {art: p.stat().st_mtime_ns if p.is_file() else None for art, p in shown.items()},
+        "seiten": page_note.notes(k.cache, k.daten, b, shown),
         "eigener_lebenslauf": unterlagen.eigener_lebenslauf(k.daten, b) is not None,
         "eigener_lebenslauf_da": (k.daten / unterlagen.OWN_CV).is_file(),
         "eigenes_anschreiben": unterlagen.own_letter(k.daten, b) is not None,

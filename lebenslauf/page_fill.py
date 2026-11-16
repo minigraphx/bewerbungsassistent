@@ -24,6 +24,7 @@ MIN_FILL = 1 / 3
 AIM = 0.4
 TIGHTER = (1, 2, 3, 4, 5)
 WIDER = (-1, -2, -3, -4, -5)
+SLIGHTLY = 2  # up to this level a reader barely sees the tightening (G93)
 SELECTOR = "<page-fill>"
 LIMITS = {"cv": 2, "letter": 1}  # pages per part (G51)
 CV_PAGES = (2, 3)  # what the person can allow for the CV under „Erweitert“
@@ -41,6 +42,17 @@ class Fill:
     @property
     def enough(self) -> bool:
         return self.fills(MIN_FILL)
+
+
+def change(level: int) -> str | None:
+    """How a density level changed what the design draws, in the steps the check names (G93): none at 0."""
+    if level == 0:
+        return None
+    if level < 0:
+        return "wider"
+    if level >= TIGHTER[-1]:
+        return "tightest"
+    return "slightly-tighter" if level <= SLIGHTLY else "tighter"
 
 
 def measure(markers: list[dict], part: str) -> Fill:
