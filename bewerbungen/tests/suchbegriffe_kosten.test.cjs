@@ -335,3 +335,12 @@ test("a whole part breaks to the next line only as a whole, in the shared style 
   assert.match(rule, /display: inline-block; max-width: 100%;/);
   assert.match(fs.readFileSync(path.join(SEITEN, "suchbegriffe.html"), "utf8"), /<link rel="stylesheet" href="\/stil\.css">/);
 });
+
+test("the meta of the footer stands on a line of its own, after the sentence and a space for screen readers", () => {
+  const html = fs.readFileSync(path.join(SEITEN, "suchbegriffe.html"), "utf8");
+  assert.match(html, /<span id="fuss-satz"><\/span> <span id="fuss" class="ai-result__meta"><\/span>/);
+  const css = fs.readFileSync(path.join(SEITEN, "stil.css"), "utf8");
+  const rule = css.split("\n").find(line => line.startsWith(".ai-result__meta {"));
+  assert.ok(rule, ".ai-result__meta has its rule in stil.css");
+  assert.match(rule, /display: block;/);
+});
