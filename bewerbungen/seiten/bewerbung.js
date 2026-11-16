@@ -678,6 +678,7 @@
   // #322: the dialog «Dossier gestalten» saved the design or the texts; an empty message only reloads
   document.addEventListener("dossier-uebernommen", async event => {
     await laden();
+    window.DossierDialog.refocus();
     if (event.detail.meldung) meldungOben(event.detail.meldung, "ok");
   });
   $("erstellen").addEventListener("click", async () => {

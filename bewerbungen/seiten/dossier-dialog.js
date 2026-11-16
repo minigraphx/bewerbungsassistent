@@ -14,6 +14,7 @@
   let entry = null;   // the application as last loaded
   let draft = null;   // { design, seiten } while the dialog is open
   let opener = null;
+  let openerId = null; // the page may draw the opener anew after «Übernehmen»; its id finds the new one
   let leaving = false; // true while the dialog closes on purpose: discarded, saved, or nothing typed
 
   const texts = () => window.DossierTexte;
@@ -36,6 +37,7 @@
   function open(from) {
     if (!entry) return;
     opener = from;
+    openerId = from && from.id ? from.id : null;
     draft = W.entwurf(entry);
     $("d-erweitert").open = W.gemischt(entry);
     $("dossier-verwerfen").hidden = true;
@@ -94,6 +96,14 @@
     });
   }
 
+  /** After the page has drawn the step anew, a focus left on nothing goes back to the button that opened the dialog. */
+  function refocus() {
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    const target = openerId ? $(openerId) : null;
+    if (target) target.focus();
+  }
+
   function keepFocus(event) {
     if (event.key !== "Tab") return;
     const stops = tabStops();
@@ -137,5 +147,5 @@
   });
   document.addEventListener("bewerbung-geladen", event => { entry = event.detail.bewerbung; });
 
-  window.DossierDialog = { open };
+  window.DossierDialog = { open, refocus };
 })();

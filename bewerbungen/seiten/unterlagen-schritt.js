@@ -44,7 +44,8 @@
   function adaptLink(adapt) {
     if (!adapt) return null;
     if (adapt.target === "dossier") {
-      return el("button", { type: "button", class: "btn btn--quiet doc-tile__link", "aria-haspopup": "dialog",
+      // one id across redraws, so the focus finds it again after «Übernehmen» (DossierDialog.refocus)
+      return el("button", { type: "button", id: "doc-dossier-gestalten", class: "btn btn--quiet doc-tile__link", "aria-haspopup": "dialog",
         onclick: event => openDialog(event.currentTarget) }, adapt.text);
     }
     const attributes = { class: "btn btn--quiet doc-tile__link", href: adapt.href || ANCHOR[adapt.target] };

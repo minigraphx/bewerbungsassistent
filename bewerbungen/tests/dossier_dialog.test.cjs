@@ -117,10 +117,11 @@ function fakePage({ textsChanged = false, failSave = false } = {}) {
       },
       click: () => n.dispatch("click"),
       focus: () => { state.focused = n; },
-      get isConnected() { return true; },
+      get isConnected() { return n.connected !== false; },
     };
     return n;
   }
+  const body = node("body");
   const radios = W.DESIGNS.map(value => node("input", { type: "radio", name: "d-design", value, checked: false }));
   const selects = W.SEITEN.map(seite => node("select", { value: "siegel", dataset: { seite } }));
   const byId = Object.fromEntries(["d-erweitert", "dossier-aktionen", "dossier-abbrechen", "dossier-uebernehmen",
@@ -139,6 +140,7 @@ function fakePage({ textsChanged = false, failSave = false } = {}) {
   const opener = node("button", { id: "dossier-gestalten" });
   const docHandlers = {};
   const document = {
+    body,
     getElementById: id => byId[id] || null,
     addEventListener: (type, handler) => { (docHandlers[type] ||= []).push(handler); },
     dispatchEvent: event => { state.events.push({ type: event.type, detail: event.detail }); (docHandlers[event.type] || []).forEach(h => h(event)); },
@@ -165,7 +167,7 @@ function fakePage({ textsChanged = false, failSave = false } = {}) {
   vm.runInNewContext(lies("dossier-dialog.js"), { window, document, CustomEvent: class { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } } });
   const load = entry => document.dispatchEvent({ type: "bewerbung-geladen", detail: { bewerbung: entry } });
   const settle = () => new Promise(resolve => setImmediate(resolve));
-  return { D: window.DossierDialog, byId, dialog, radios, selects, opener, state, load, settle };
+  return { D: window.DossierDialog, byId, dialog, radios, selects, opener, state, load, settle, node, body };
 }
 
 const ENTRY = { id: "muster-ag", unterlagen: "dossier", dossier_design: "raster" };
@@ -322,6 +324,40 @@ test("Tab and Shift+Tab stay inside the dialog", () => {
   assert.equal(p.state.focused, p.byId["dossier-uebernehmen"], "from the first control to the last");
   p.selects[0].focus();
   assert.equal(p.dialog.dispatch("keydown", { key: "Tab", shiftKey: false }).defaultPrevented, false, "in between the browser moves on");
+});
+
+test("after «Übernehmen» from the tile link the focus finds the tile drawn anew, not the page", async () => {
+  const p = fakePage({ textsChanged: true });
+  p.load(ENTRY);
+  const tile = p.node("button", { id: "doc-dossier-gestalten" });
+  p.byId["doc-dossier-gestalten"] = tile;
+  p.D.open(tile);
+  p.byId["dossier-uebernehmen"].click();
+  await p.settle();
+  // the page loads anew and draws the tiles again: the old button is gone, and the focus with it
+  tile.connected = false;
+  p.state.focused = p.body;
+  const drawn = p.node("button", { id: "doc-dossier-gestalten" });
+  p.byId["doc-dossier-gestalten"] = drawn;
+  p.D.refocus();
+  assert.equal(p.state.focused, drawn);
+});
+
+test("refocus leaves a focus the person has moved on", async () => {
+  const p = fakePage();
+  p.load(ENTRY);
+  p.D.open(p.opener);
+  p.byId["dossier-abbrechen"].click();
+  await p.settle();
+  const elsewhere = p.node("input", { id: "f-notiz" });
+  elsewhere.focus();
+  p.D.refocus();
+  assert.equal(p.state.focused, elsewhere);
+});
+
+test("the tile link keeps one id, and the page calls refocus once it has drawn the step anew", () => {
+  assert.match(lies("unterlagen-schritt.js"), /el\("button", \{ type: "button", id: "doc-dossier-gestalten", class: "btn btn--quiet doc-tile__link"/);
+  assert.match(lies("bewerbung.js"), /document\.addEventListener\("dossier-uebernommen", async event => \{\s*await laden\(\);\s*window\.DossierDialog\.refocus\(\);/);
 });
 
 test("the page reloads after «Übernehmen» and the preview follows the draft", () => {
