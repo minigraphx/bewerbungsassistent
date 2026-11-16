@@ -7,6 +7,9 @@
 ; Der Name bis Version 0.2.10 (MIN-395)
 #define OldName "Bewerbungsassistent"
 #define OldScheme "bewerbungsassistent"
+; Host-Namen für die Browser wie in native_messaging.py (HOST_NAME, OLD_HOST_NAME)
+#define HostName "bewerbungsbegleiter"
+#define OldHostName "bewerbungsassistent"
 #ifndef AppVersion
   #define AppVersion "0.0.0"
 #endif
@@ -60,6 +63,17 @@ Root: HKCU; Subkey: "Software\Classes\{#OldScheme}"; ValueType: none; Flags: del
 Root: HKCU; Subkey: "Software\Classes\bewerbungsbegleiter"; ValueType: string; ValueName: ""; ValueData: "URL:Bewerbungsbegleiter"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\bewerbungsbegleiter"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
 Root: HKCU; Subkey: "Software\Classes\bewerbungsbegleiter\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""
+; Die Verbindung zur Erweiterung schreibt die App bei jedem Start (native_messaging.py). Der Installer legt
+; nichts an (dontcreatekey) und löscht bei der Deinstallation nur den eigenen Schlüssel, nie den Ordner des Browsers.
+Root: HKCU; Subkey: "Software\Google\Chrome\NativeMessagingHosts\{#HostName}"; ValueType: none; Flags: dontcreatekey uninsdeletekey
+Root: HKCU; Subkey: "Software\Microsoft\Edge\NativeMessagingHosts\{#HostName}"; ValueType: none; Flags: dontcreatekey uninsdeletekey
+Root: HKCU; Subkey: "Software\Chromium\NativeMessagingHosts\{#HostName}"; ValueType: none; Flags: dontcreatekey uninsdeletekey
+Root: HKCU; Subkey: "Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\{#HostName}"; ValueType: none; Flags: dontcreatekey uninsdeletekey
+; Unter dem alten Namen, falls die neue Version nie gestartet wurde und ihn darum nicht entfernt hat
+Root: HKCU; Subkey: "Software\Google\Chrome\NativeMessagingHosts\{#OldHostName}"; ValueType: none; Flags: dontcreatekey uninsdeletekey
+Root: HKCU; Subkey: "Software\Microsoft\Edge\NativeMessagingHosts\{#OldHostName}"; ValueType: none; Flags: dontcreatekey uninsdeletekey
+Root: HKCU; Subkey: "Software\Chromium\NativeMessagingHosts\{#OldHostName}"; ValueType: none; Flags: dontcreatekey uninsdeletekey
+Root: HKCU; Subkey: "Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\{#OldHostName}"; ValueType: none; Flags: dontcreatekey uninsdeletekey
 
 [Run]
 ; Läuft auch beim stillen Update, damit die neue Version gleich wieder offen ist (ausser mit /NOSTART, für die CI)
