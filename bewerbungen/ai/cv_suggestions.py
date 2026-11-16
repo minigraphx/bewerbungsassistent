@@ -5,7 +5,8 @@ organisation, time, and their description and highlights) and the sentences of t
 contact, no location, no other section, no other file of the person: the request has no shared context and its own
 fixed rules; the person's files serve only the masking of the gateway. Each station and each sentence gets a label that
 is new for every request, and the answer names labels only. So a recommendation can leave out, move up and drop or
-reorder sentences of what Meine Angaben has, never add: `cleaned` drops a recommendation whole when it names anything this request did not send.
+reorder sentences of what Meine Angaben has, never add: `cleaned` drops a recommendation whole when it names anything
+this request did not send.
 """
 import dataclasses
 import re
