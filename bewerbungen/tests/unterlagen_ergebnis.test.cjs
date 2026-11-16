@@ -341,25 +341,24 @@ test("the dossier names which of its parts the app balanced", () => {
   assert.deepEqual(single.note, ["2 Seiten", "etwas grosszügiger gesetzt"], "a single file names no part");
 });
 
+const shown = n => (n && typeof n === "object" ? (n.attrs.class === "visually-hidden" ? "" : n.children.map(shown).join("")) : String(n ?? ""));
+const heard = n => (n && typeof n === "object" ? (n.attrs["aria-hidden"] === "true" ? "" : n.children.map(heard).join("")) : String(n ?? ""));
+const noteOf = tile => all(tile, n => n.attrs.class === "doc-tile__note")[0];
+
 test("the tile shows the note under its name, the «·» hidden from screen readers, and no colour for the state", () => {
   const { S, byId } = page();
   const seiten = { lebenslauf: { seiten: 3, ausgleich: { cv: "tightest" } }, anschreiben: { seiten: 1, ausgleich: {} } };
   S.showTiles("a", { bewerbung: { id: "a" }, pdfs: { lebenslauf: true, anschreiben: true }, seiten }, 1);
   const [cv, letter] = byId.pdfs.children;
-  const note = all(cv, n => n.attrs.class === "doc-tile__note")[0];
+  const note = noteOf(cv);
   assert.ok(note, "the CV tile has a note");
   assert.equal(cv.attrs["aria-describedby"], undefined, "the note follows the name as text, so it is not read twice");
-  const shown = n => (n && typeof n === "object" ? (n.attrs.class === "visually-hidden" ? "" : n.children.map(shown).join("")) : String(n ?? ""));
-  const heard = n => (n && typeof n === "object" ? (n.attrs["aria-hidden"] === "true" ? "" : n.children.map(heard).join("")) : String(n ?? ""));
   assert.equal(shown(note), "3 Seiten · so eng wie möglich");
   assert.equal(heard(note), "3 Seiten, so eng wie möglich");
   const dots = all(note, n => textOf(n).trim() === "·");
   assert.ok(dots.length === 1 && dots[0].attrs["aria-hidden"] === "true", "the separator is aria-hidden");
-  assert.equal(textOf(dots[0]), " · ", "the «·» stays on the line of the part before it");
-  const parts = note.children.filter(n => typeof n === "object" && n.attrs.class === "doc-tile__part");
-  assert.deepEqual(parts.map(textOf), ["3 Seiten", "so eng wie möglich"], "each part breaks as a whole");
   assert.ok(!Object.keys(note.attrs).some(name => name === "data-level" || name === "style"), "no colour carries meaning");
-  assert.equal(shown(all(letter, n => n.attrs.class === "doc-tile__note")[0]), "1 Seite");
+  assert.equal(shown(noteOf(letter)), "1 Seite");
 
   S.showTiles("a", { bewerbung: { id: "a" }, pdfs: { lebenslauf: true }, seiten: {} }, 2);
   const tile = byId.pdfs.children[0];
@@ -367,10 +366,51 @@ test("the tile shows the note under its name, the «·» hidden from screen read
   assert.equal(tile.attrs["aria-describedby"], undefined);
 });
 
-test("a part of the note never breaks inside, and a long word cannot be split", () => {
+// #331: a «·» never stands alone on a line, and a change never breaks inside its words
+
+test("each «·» is glued to the part before it, and a line breaks only after «· »", () => {
+  const { S, byId } = page();
+  const dossierNote = ausgleich => {
+    S.showTiles("a", { bewerbung: { id: "a", unterlagen: "dossier" }, pdfs: { dossier: true }, seiten: { dossier: { seiten: 7, ausgleich } } }, 1);
+    return noteOf(byId.pdfs.children[0]);
+  };
+  for (const [ausgleich, words] of [
+    [{ cv: "tightest" }, ["7 Seiten", "Lebenslauf so eng wie möglich"]],
+    [{ letter: "slightly-tighter", cv: "tightest" }, ["7 Seiten", "Anschreiben etwas enger gesetzt", "Lebenslauf so eng wie möglich"]],
+  ]) {
+    const note = dossierNote(ausgleich);
+    const parts = note.children.filter(n => typeof n === "object");
+    assert.ok(parts.every(n => n.attrs.class === "doc-tile__part"), "the note holds only whole parts");
+    assert.deepEqual(note.children.filter(n => typeof n !== "object"), words.slice(1).map(() => " "),
+      "a plain space between two parts is the only place a line may break");
+    assert.deepEqual(parts.map(shown), words.map((word, i) => (i < words.length - 1 ? `${word} ·` : word)),
+      "the «·» sits inside the part before it, after a no-break space");
+    assert.equal(shown(note), words.join(" · "));
+    assert.equal(heard(note), words.join(", "), "screen readers hear commas, never the «·»");
+  }
+});
+
+/** The declarations of the first rule in `css` whose selector ends with `selector`. */
+const ruleOf = (css, selector) => {
+  const line = css.split("\n").find(l => l.trimStart().split("{")[0].trim().endsWith(selector));
+  assert.ok(line, `${selector} has its rule`);
+  return line.slice(line.indexOf("{") + 1, line.lastIndexOf("}"));
+};
+
+test("a part of the note breaks to the next line only as a whole, and a long word cannot be split", () => {
   const css = lies("unterlagen.css");
-  assert.match(css, /\.doc-tile__part \{ display: inline-block; max-width: 100%; \}/);
-  const note = css.split("\n").find(line => line.includes(".doc-tile__note {"));
-  assert.ok(note, "the note has its rule");
-  assert.doesNotMatch(note, /overflow-wrap/);
+  assert.match(ruleOf(css, ".doc-tile__part"), /display: inline-block; max-width: 100%;/);
+  assert.doesNotMatch(ruleOf(css, ".doc-tile__note"), /overflow-wrap/);
+});
+
+test("the note runs under the thumbnail across the whole tile, so the longest change fits on one line", () => {
+  const css = lies("unterlagen.css");
+  const tile = ruleOf(css, ".doc-tile");
+  assert.match(tile, /display: grid;/);
+  assert.match(tile, /grid-template-areas: "thumb name" "thumb links" "note note";/);
+  assert.match(ruleOf(css, ".doc-tile__body"), /display: contents;/, "name, note and links keep their order for screen readers");
+  assert.match(ruleOf(css, ".doc-tile__thumb"), /grid-area: thumb;/);
+  assert.match(ruleOf(css, ".doc-tile__name"), /grid-area: name;/);
+  assert.match(ruleOf(css, ".doc-tile__links"), /grid-area: links;/);
+  assert.match(ruleOf(css, ".doc-tile__note"), /grid-area: note;/);
 });
