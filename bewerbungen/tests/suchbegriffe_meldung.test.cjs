@@ -39,8 +39,19 @@ class FakeElement extends FakeNode {
   addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); }
   click() { for (const handler of this.listeners.click || []) handler(); }
   querySelectorAll() { return []; }
-  focus() {}
+  /** Only a tag name as selector: the first such element below this one, depth first. */
+  querySelector(tag) {
+    for (const child of this.children.filter(node => node instanceof FakeElement)) {
+      if (child.tagName === tag.toUpperCase()) return child;
+      const below = child.querySelector(tag);
+      if (below) return below;
+    }
+    return null;
+  }
+  focus() { focused = this; }
 }
+
+let focused = null;  // the stand-in for document.activeElement, reset with each page
 
 function el(tag, attributes = {}, ...children) {
   const element = new FakeElement(tag);
@@ -62,10 +73,12 @@ const settled = async () => {
  * per call. Gives the elements and the bodies sent to the proposal route.
  */
 async function opened(answers) {
+  focused = null;
   const elements = new Map();
   const doc = {
     getElementById(id) {
-      if (!elements.has(id)) elements.set(id, el("div"));
+      // #meldung starts as in suchbegriffe.html, so a neutral notice after a warning has to undo it
+      if (!elements.has(id)) elements.set(id, el("div", id === "meldung" ? { class: "notice" } : {}));
       return elements.get(id);
     },
   };
@@ -91,7 +104,7 @@ async function opened(answers) {
     vm.runInContext(fs.readFileSync(path.join(SEITEN, name), "utf8"), context);
   }
   await settled();
-  return { $: id => doc.getElementById(id), sent };
+  return { $: id => doc.getElementById(id), sent, focused: () => focused };
 }
 
 /** What a sighted person reads in a part of the notice: hidden parts drop out. */
@@ -120,6 +133,31 @@ test("«Nochmals versuchen» asks again with the same body, and a second failure
   assert.equal(page.$("meldung-titel").hidden, true);
   assert.equal(page.$("meldung-text").textContent, FAILED);
   assert.deepEqual(buttonsOf(page).map(button => button.textContent), ["Nochmals versuchen"]);
+  assert.equal(page.$("meldung").className, "notice notice--warning");
+  assert.equal(page.focused(), buttonsOf(page)[0], "the focus is on the new «Nochmals versuchen»");
+});
+
+test("a failed proposal is a warning, and screen readers hear it from «Nochmals versuchen», which takes the focus",
+  async () => {
+    const page = await opened({ "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
+      [PROPOSAL]: new Error(FAILED) });
+    assert.equal(page.$("meldung").className, "notice notice--warning");
+    assert.equal(page.$("meldung-titel").hidden, true);
+    const retry = buttonsOf(page)[0];
+    assert.equal(retry.textContent, "Nochmals versuchen");
+    assert.equal(retry.getAttribute("aria-describedby"), "meldung-text", "the button is described by the server text");
+    assert.equal(page.focused(), retry, "#meldung is no live region, so the focus brings the text to screen readers");
+  });
+
+test("a notice after the failed proposal, like «Verworfen», is neutral again and shows its title", async () => {
+  const page = await opened({ "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
+    [PROPOSAL]: new Error(FAILED) });
+  page.$("verwerfen").click();
+  assert.equal(page.$("meldung").className, "notice");
+  assert.equal(page.$("meldung-titel").hidden, false);
+  assert.equal(page.$("meldung-titel").textContent, "Verworfen");
+  assert.equal(page.$("meldung-text").textContent, "Am Suchprofil hat sich nichts geändert.");
+  assert.equal(buttonsOf(page)[0].getAttribute("aria-describedby"), null, "only the retry is described by the text");
 });
 
 test("a notice with a real title shows it again after the failed proposal hid it", async () => {
@@ -132,6 +170,7 @@ test("a notice with a real title shows it again after the failed proposal hid it
   buttonsOf(page)[0].click();
   await settled();
   page.$("abbrechen").click();
+  assert.equal(page.$("meldung").className, "notice", "a cancel is no warning");
   assert.equal(page.$("meldung-titel").hidden, false);
   assert.equal(page.$("meldung-titel").textContent, "Abgebrochen");
   assert.equal(page.$("meldung-text").textContent, "Am Suchprofil hat sich nichts geändert.");
@@ -141,6 +180,7 @@ test("a notice with a real title shows it again after the failed proposal hid it
 test("the notice for an apprenticeship search keeps its title", async () => {
   const page = await opened({ "/api/suchbegriffe/hinweis": { verfuegbar: false } });
   assert.equal(page.$("meldung-titel").hidden, false);
+  assert.equal(page.$("meldung").className, "notice");
   assert.equal(page.$("meldung-titel").textContent, "Nur bei der Stellensuche");
   assert.equal(page.$("meldung-text").textContent, "Suchbegriffe prüfen gibt es vorerst nur bei der Stellensuche.");
 });
@@ -149,6 +189,7 @@ test("the consent notice has no title, so none takes place", async () => {
   const page = await opened({ "/api/suchbegriffe/hinweis": HINT,
     "/api/ki/status": { einwilligung: { erteilt: false } } });
   assert.equal(page.$("meldung").hidden, false);
+  assert.equal(page.$("meldung").className, "notice");
   assert.equal(page.$("meldung-titel").hidden, true);
   assert.notEqual(page.$("meldung-text").textContent, "");
 });
