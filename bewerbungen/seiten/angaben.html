@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-22ufcuvOkrcDw9T5rPs2GrvCcKRocp6r+Vh2XV0EWqk='; style-src 'sha256-TZbYG0B0E7Lh9nFZ5viwF7C/RjKLBIC9f+u01A63kWg='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-rmF0zoNUgyv0MGoYNFV0sbWYT7V5QP2SEZKSwU42F1M='; style-src 'sha256-0RVP9A6Chc6phgV9BUvwSsGaXqEbsB7xrwVWYo3BhZY='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -196,15 +196,9 @@ button { font: inherit; cursor: pointer; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 #replace { margin-left: 8px; }
 .suggestion { background: var(--accent-soft); color: var(--text-strong); padding: 8px 12px; border-radius: var(--radius-control); font-size: 14px; line-height: 20px; margin: 0 0 10px; }
-/* Start in the app: documents and „Vorbefüllen“ in one card */
+/* Start in the app: documents and „Vorbefüllen“ in one card; the drop area is in droparea.css */
 .prefill-card h2 { font-size: 18px; line-height: 24px; }
 .start--app > p { margin: 16px 0 0; }
-.prefill-card .upload-category .hint { font-size: 13px; line-height: 18px; }
-.prefill-card__files { margin: 8px 0 0; }
-.prefill-card .upload-category { border: 0; border-top: 1px solid var(--line); border-radius: 0; margin: 0; padding: 12px 0; }
-.prefill-card .upload-category legend { float: left; width: 100%; padding: 0; margin: 0 0 2px; font-size: 15px; }
-.prefill-card .upload-category .hint { clear: both; }
-.prefill-card .upload-category .add { width: auto; min-height: 32px; border-style: solid; font-size: 14px; }
 .prefill-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 16px 0 12px; padding-top: 16px; border-top: 1px solid var(--line); }
 .prefill-card__actions .link { font-weight: 500; }
 .prefill-card #prefill:disabled:not(.busy), #take-over:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -327,6 +321,36 @@ button { font: inherit; cursor: pointer; }
 .dialog .btn { display: inline-block; padding: 8px 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--text-strong); font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; }
 .dialog .btn--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 .dialog .btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+/* Only in the page „Meine Angaben“ of the app (G84, design A8): one drop area, one row per file. */
+.prefill-card :is(button, select) { min-height: 44px; min-width: 44px; }
+.prefill-card .link { display: inline-flex; align-items: center; }
+.drop-area { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 16px 0 8px; padding: 16px 20px;
+  border: 2px dashed var(--line-strong); border-radius: var(--radius); background: var(--surface); }
+.prefill-card[data-dragging="true"] .drop-area { border-color: var(--accent); background: var(--accent-soft); }
+.drop-area__text { flex: 1 1 200px; margin: 0; color: var(--text-strong); }
+.drop-area__choose { padding: 0 18px; border: 1px solid var(--line-strong); border-radius: var(--radius-control);
+  background: var(--surface); color: var(--text-strong); font-weight: 500; }
+.drop-area__choose:hover { background: var(--surface-subtle); }
+.prefill-card > .hint { margin: 0 0 8px; font-size: 14px; line-height: 20px; }
+.drop-files { list-style: none; margin: 8px 0 0; padding: 0; }
+.drop-file { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+.drop-file__info { flex: 1 1 160px; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.drop-file__name { min-width: 0; overflow-wrap: break-word; color: var(--text-strong); font-weight: 500; }
+.drop-file__size { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.drop-file__note { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; line-height: 18px; }
+.drop-file__actions { display: flex; flex: 0 1 auto; align-items: center; gap: 8px; max-width: 100%; }
+.drop-file__kind { min-width: 0; max-width: 100%; width: auto; padding: 0 8px; }
+.drop-file .remove { flex: none; padding: 0 12px; }
+.drop-status:empty { display: none; }
+.drop-status { margin: 8px 0 0; font-size: 14px; line-height: 20px; }
+.drop-status, .prefill-card #upload-messages { overflow-wrap: anywhere; }  /* long file names in the messages too */
+@media (min-width: 480px) {
+  .drop-file__kind { width: 17.5em; }  /* one width for every row, wide enough for „Früheres Motivationsschreiben“ */
+}
+@media (max-width: 479px) {
+  .drop-file__actions { flex: 1 1 100%; flex-wrap: wrap; }
+  .drop-file__kind { flex: 1 1 16.5em; }  /* „Früheres Motivationsschreiben“ stays whole; „Entfernen“ may go below */
+}
 </style>
 </head>
 <body>
@@ -339,13 +363,14 @@ button { font: inherit; cursor: pointer; }
   </div>
   <div id="main" class="content" tabindex="-1"><noscript><p>Diese Vorlage braucht JavaScript. Bitte in einem aktuellen Browser öffnen.</p></noscript></div>
 </main>
-<script type="application/json" id="form-definition">{"format": "bewerbungsassistent-einstieg", "version": 1, "tracks": {"job": "Stellensuche", "apprenticeship": "Lehrstellensuche"}, "limits": {"text": 200, "textarea": 2000, "listItems": 20, "repeatItems": 20, "tag": 40, "tags": 10}, "formats": {"email": {"pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "example": "vorname.nachname@example.ch"}, "phone": {"pattern": "^\\+?[0-9 ()/-]{6,30}$", "example": "079 000 00 00"}, "date": {"pattern": "^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$", "example": "2024, 2024-08 oder 2024-08-15"}, "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"}, "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"}, "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"}, "tag": {"pattern": "^[^,\\x00-\\x1f\\x7f-\\x9f]+$", "example": "daten"}, "days": {"pattern": "^([1-9]|[1-5][0-9]|60)$", "example": "21"}, "portal": {"pattern": "^(job-room|jobs\\.ch|jobscout24|ictjobs)$", "example": "jobs.ch"}}, "documents": {"title": "Unterlagen", "intro": {"job": "Haben Sie schon einen Lebenslauf, Zeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Die App übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.", "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Die App übernimmt daraus später, was passt, und fragt nur nach, was fehlt."}, "categories": [{"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 10, "fileTypes": ["document"]}, {"id": "zeugnisse", "title": "Zeugnisse", "hint": {"job": "Arbeits- und Schulzeugnisse, auch Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20, "fileTypes": ["document", "image"]}, {"id": "zertifikate", "title": "Zertifikate und Diplome", "hint": "Diplome, Kursbestätigungen, Sprachzertifikate, Eignungstests", "maxFiles": 30, "fileTypes": ["document", "image"]}, {"id": "anschreiben-bisher", "title": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "hint": "daraus übernimmt die App Ton und eigene Formulierungen", "maxFiles": 10, "fileTypes": ["document"]}], "fileTypes": {"document": {"labels": ["PDF", "Word (.docx, .doc)", "Textdateien (.txt)"], "extensions": ["pdf", "docx", "doc", "txt"]}, "image": {"labels": ["Bilder (.jpg, .png)"], "extensions": ["jpg", "jpeg", "png"]}}, "namePattern": "^(?!\\.)[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f]{1,120}(?<![. ])$", "maxFileBytes": 15000000, "maxTotalBytes": 60000000}, "cantons": [{"code": "AG", "name": "Aargau"}, {"code": "AR", "name": "Appenzell Ausserrhoden"}, {"code": "AI", "name": "Appenzell Innerrhoden"}, {"code": "BL", "name": "Basel-Landschaft"}, {"code": "BS", "name": "Basel-Stadt"}, {"code": "BE", "name": "Bern"}, {"code": "FR", "name": "Freiburg"}, {"code": "GE", "name": "Genf"}, {"code": "GL", "name": "Glarus"}, {"code": "GR", "name": "Graubünden"}, {"code": "JU", "name": "Jura"}, {"code": "LU", "name": "Luzern"}, {"code": "NE", "name": "Neuenburg"}, {"code": "NW", "name": "Nidwalden"}, {"code": "OW", "name": "Obwalden"}, {"code": "SH", "name": "Schaffhausen"}, {"code": "SZ", "name": "Schwyz"}, {"code": "SO", "name": "Solothurn"}, {"code": "SG", "name": "St. Gallen"}, {"code": "TI", "name": "Tessin"}, {"code": "TG", "name": "Thurgau"}, {"code": "UR", "name": "Uri"}, {"code": "VD", "name": "Waadt"}, {"code": "VS", "name": "Wallis"}, {"code": "ZG", "name": "Zug"}, {"code": "ZH", "name": "Zürich"}], "sections": [{"id": "person", "cv": true, "title": "Person und Kontakt", "intro": {"job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen. Bevor ein Text zur KI geht, ersetzt die App Ihren Namen, Strasse, PLZ, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter. Firmen, Ausbildungen und Jahreszahlen bleiben stehen, damit die KI Ihren Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist.", "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen. Bevor ein Text zur KI geht, ersetzt die App deinen Namen, Strasse, PLZ, Telefon, E-Mail, Links, Geburtsdatum und deine Schulen durch Platzhalter. Betriebe und Jahreszahlen bleiben stehen, damit die KI deinen Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist."}, "fields": [{"id": "name", "label": "Vor- und Nachname", "type": "text", "bilingual": "edit", "required": true, "max": 80, "hint": {"job": "Schreiben Sie den Namen genau wie im Lebenslauf, mit denselben Akzenten und Umlauten. In dieser Schreibweise ersetzt die App den Namen, bevor ein Text zur KI geht.", "apprenticeship": "Schreib deinen Namen genau wie im Lebenslauf, mit denselben Akzenten und Umlauten. In dieser Schreibweise ersetzt die App den Namen, bevor ein Text zur KI geht."}}, {"id": "label", "label": "Berufsbezeichnung unter dem Namen (freiwillig)", "type": "text", "bilingual": true, "max": 100, "tracks": ["job"], "placeholder": "z.B. Kaufmann EFZ – Buchhaltung und Administration"}, {"id": "address", "label": "Strasse und Nummer", "type": "text", "bilingual": "edit", "max": 100}, {"id": "postalCode", "label": "PLZ", "type": "text", "format": "postalCode"}, {"id": "city", "label": "Ort", "type": "text", "bilingual": "edit", "required": true, "max": 60}, {"id": "phone", "label": "Telefon", "type": "text", "format": "phone"}, {"id": "email", "label": "E-Mail", "type": "text", "required": true, "format": "email", "hint": {"apprenticeship": "Die Adresse soll seriös wirken, z.B. vorname.nachname@…"}}, {"id": "birthDate", "label": "Geburtsdatum (freiwillig)", "type": "text", "max": 30, "hint": {"apprenticeship": "Bei Lehrstellen ist das Geburtsdatum üblich."}}, {"id": "nationality", "label": "Nationalität (freiwillig)", "type": "text", "max": 60}, {"id": "url", "label": "Eigene Webseite (freiwillig)", "type": "text", "format": "url", "tracks": ["job"], "keepUnlessGiven": true}, {"id": "profiles", "label": "Profil-Links, z.B. LinkedIn (freiwillig, ein Link pro Zeile)", "type": "list", "format": "url", "maxItems": 5, "tracks": ["job"]}]}, {"id": "summary", "cv": true, "title": "Kurzprofil", "tracks": ["job"], "intro": {"job": "Zwei bis drei Sätze oben im Lebenslauf: Erfahrung, Schwerpunkte, was Sie besonders gut können. Sie können das auch leer lassen."}, "fields": [{"id": "summary", "label": "Kurzprofil (freiwillig)", "type": "textarea", "bilingual": true, "max": 600}]}, {"id": "work", "cv": true, "title": {"job": "Berufliche Stationen", "apprenticeship": "Schnupperlehren, Ferienjobs und Ämter"}, "intro": {"job": "Die neueste Station zuerst. Pro Station zwei bis vier Tätigkeiten oder Erfolge, möglichst konkret.", "apprenticeship": "Zum Beispiel Schnupperlehren, Babysitten, Nachhilfe oder Leiterin im Verein. Das Neueste zuerst."}, "repeat": true, "itemTitle": {"job": "Station", "apprenticeship": "Erfahrung"}, "fields": [{"id": "position", "label": {"job": "Funktion", "apprenticeship": "Beruf oder Tätigkeit (z.B. Schnupperlehre Fachfrau Gesundheit)"}, "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "name", "label": {"job": "Firma", "apprenticeship": "Betrieb, Verein oder Familie"}, "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "location", "label": "Ort", "type": "text", "bilingual": true, "max": 60}, {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "required": true, "requiredUnless": "x-display", "format": "date"}, {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "x-display", "label": "Anzeige statt Zeitraum (freiwillig, z.B. seit 2020)", "type": "text", "bilingual": true, "keepUnlessGiven": true, "max": 40, "hint": "Steht im Lebenslauf anstelle von „Von“ und „Bis“. Damit kann „Von“ leer bleiben."}, {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile, Tags freiwillig)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile, Tags freiwillig)"}, "type": "list", "bilingual": true, "tags": true, "maxItems": 6, "hint": {"job": "Eine Zeile mit Tags kommt nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Eine Zeile mit Tags kommt nur in Fassungen für Lehrstellen mit einem dieser Tags."}}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100, "cv": false}]}, {"id": "teaching", "cv": true, "keepUnlessGiven": true, "title": "Lehre und Training", "tracks": ["job"], "intro": {"job": "Kurse, Schulungen und Trainings, die Sie geben oder gegeben haben. Das Neueste zuerst. Sie stehen im Lebenslauf unter „Lehre & Training“."}, "repeat": true, "itemTitle": "Lehrtätigkeit", "fields": [{"id": "position", "label": "Funktion (z.B. Kursleiterin Programmieren)", "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "name", "label": "Schule, Firma oder Verein", "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "location", "label": "Ort", "type": "text", "bilingual": true, "max": 60}, {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "required": true, "requiredUnless": "x-display", "format": "date"}, {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "x-display", "label": "Anzeige statt Zeitraum (freiwillig, z.B. seit 2020)", "type": "text", "bilingual": true, "keepUnlessGiven": true, "max": 40, "hint": "Steht im Lebenslauf anstelle von „Von“ und „Bis“. Damit kann „Von“ leer bleiben."}, {"id": "highlights", "label": "Inhalte und Erfolge (eine pro Zeile, Tags freiwillig)", "type": "list", "bilingual": true, "tags": true, "maxItems": 6, "hint": "Eine Zeile mit Tags kommt nur in Fassungen für Stellen mit einem dieser Tags."}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}]}, {"id": "projects", "cv": true, "keepUnlessGiven": true, "title": "Projekte", "tracks": ["job"], "intro": {"job": "Eigene Projekte, zum Beispiel aus Freizeit, Studium oder Open Source. Hauptprojekte stehen im Lebenslauf unter „Projekte“, die anderen unter „Weitere Projekte“."}, "repeat": true, "itemTitle": "Projekt", "fields": [{"id": "name", "label": "Name des Projekts", "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "description", "label": "Kurzbeschreibung (freiwillig, z.B. Visualisierung offener Daten mit Python)", "type": "text", "bilingual": true, "max": 200}, {"id": "group", "label": "Gruppe (freiwillig)", "type": "select", "options": ["main", "more"], "optionLabels": {"main": "Hauptprojekte", "more": "Weitere Projekte"}, "hint": "Ohne Auswahl steht das Projekt bei den Hauptprojekten."}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}]}, {"id": "education", "cv": true, "title": {"job": "Ausbildung und Weiterbildung", "apprenticeship": "Schule"}, "intro": {"job": "Abschlüsse, die neueste zuerst.", "apprenticeship": "Deine aktuelle Schule zuerst, dann frühere (z.B. Primarschule)."}, "repeat": true, "itemTitle": {"job": "Ausbildung", "apprenticeship": "Schule"}, "fields": [{"id": "studyType", "label": {"job": "Abschluss (z.B. Kaufmann EFZ, Bachelor)", "apprenticeship": "Schulstufe und Niveau (z.B. Sekundarschule, Niveau A)"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100}, {"id": "area", "label": "Fachrichtung (freiwillig)", "type": "text", "bilingual": true, "max": 100, "tracks": ["job"]}, {"id": "institution", "label": {"job": "Schule oder Lehrbetrieb, Ort", "apprenticeship": "Name der Schule, Ort"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100}, {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "format": "date"}, {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = laufend)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "text", "label": "Eigener Text (freiwillig)", "type": "text", "bilingual": true, "max": 200, "hint": {"job": "Ein fertiger Satz, der im Lebenslauf anstelle von Abschluss, Fachrichtung, Schule und Zeitraum steht, z.B. „Bachelor of Science in Informatik, Beispiel-Hochschule, 2011–2015“. Mit eigenem Text dürfen Abschluss und Schule leer bleiben.", "apprenticeship": "Ein fertiger Satz, der im Lebenslauf anstelle von Schulstufe, Schule und Zeitraum steht, z.B. „Sekundarschule Niveau A, Oberstufe Muster, seit 2023“. Mit eigenem Text dürfen Schulstufe und Schule leer bleiben."}}]}, {"id": "certificates", "cv": true, "title": {"job": "Kurse und Zertifikate", "apprenticeship": "Eignungstests"}, "intro": {"job": "Kurse und Zertifikate mit Anbieter und Datum.", "apprenticeship": "Zum Beispiel Multicheck oder Basic-Check. Du entscheidest, ob ein Test in den Lebenslauf kommt; sonst lass diesen Teil leer."}, "repeat": true, "itemTitle": {"job": "Kurs", "apprenticeship": "Test"}, "fields": [{"id": "name", "label": {"job": "Bezeichnung", "apprenticeship": "Test (z.B. Multicheck Gesundheit)"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100}, {"id": "issuer", "label": "Anbieter (freiwillig)", "type": "text", "bilingual": true, "max": 100}, {"id": "date", "label": "Datum (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "format": "date"}, {"id": "text", "label": "Eigener Text (freiwillig)", "type": "text", "bilingual": true, "max": 200, "hint": {"job": "Ein fertiger Satz, der im Lebenslauf anstelle von Bezeichnung, Anbieter und Datum steht, z.B. „Scrum Master (PSM I), 2022“. Mit eigenem Text darf die Bezeichnung leer bleiben.", "apprenticeship": "Ein fertiger Satz, der im Lebenslauf anstelle von Test, Anbieter und Datum steht, z.B. „Multicheck Gesundheit, 2026“. Mit eigenem Text darf der Test leer bleiben."}}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}]}, {"id": "languages", "cv": true, "title": "Sprachen", "intro": {"job": "Muttersprache und weitere Sprachen.", "apprenticeship": "Deine Muttersprache und die Sprachen aus der Schule."}, "repeat": true, "maxItems": 8, "itemTitle": "Sprache", "fields": [{"id": "language", "label": "Sprache", "type": "text", "bilingual": true, "required": true, "max": 40}, {"id": "fluency", "label": "Niveau", "type": "text", "bilingual": true, "required": true, "max": 40, "suggestions": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"], "hint": {"job": "Wählen Sie einen Vorschlag oder schreiben Sie das Niveau mit eigenen Worten.", "apprenticeship": "Wähl einen Vorschlag oder schreib das Niveau mit eigenen Worten."}}, {"id": "x-level", "label": "Stufe fürs Dossier (freiwillig)", "type": "select", "keepUnlessGiven": true, "emptyLabel": "ohne Stufe", "options": ["A1", "A2", "B1", "B2", "C1", "C2"], "hint": "Freiwillig. Hat eine Sprache eine Stufe, zeigt das Dossier bei den Sprachen eine Grafik; Sprachen ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."}]}, {"id": "skills", "cv": true, "title": "Kenntnisse", "intro": {"job": "Fachliche Kenntnisse, nach Bereich gruppiert.", "apprenticeship": "Zum Beispiel Computerprogramme, Werkzeuge oder besondere Kenntnisse."}, "repeat": true, "maxItems": 8, "itemTitle": "Bereich", "fields": [{"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "bilingual": true, "required": true, "max": 60}, {"id": "keywords", "label": "Kenntnisse (eine pro Zeile, Stufe freiwillig)", "type": "list", "levels": true, "bilingual": true, "required": true, "maxItems": 12, "max": 60, "hint": "Die Stufe von 1 bis 6 ist freiwillig. Hat eine Kenntnis im Bereich eine Stufe, zeigt das Dossier dort eine Grafik; Kenntnisse ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}]}, {"id": "interests", "cv": true, "title": "Hobbys und Interessen", "intro": {"job": "Freiwillig. Sie stehen am Ende des Lebenslaufs.", "apprenticeship": "Was machst du in der Freizeit? Hat ein Hobby mit deinem Wunschberuf zu tun, schreib das bei den Stärken dazu."}, "fields": [{"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "bilingual": true, "maxItems": 8, "max": 60}]}, {"id": "searchJob", "title": "Suche", "tracks": ["job"], "intro": {"job": "Danach sucht die App Stellen für Sie."}, "fields": [{"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Suche“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 15}, {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 30, "max": 80}, {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60, "preset": {"from": "person.city"}}, {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100}, {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Ohne Auswahl sucht die App in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst."}, {"id": "remote", "label": "Homeoffice erwünscht?", "type": "select", "options": ["ja", "teilweise", "nein"]}, {"id": "workload", "label": "Pensum (z.B. 80–100 %)", "type": "text", "required": true, "max": 40, "preset": "80–100 %"}, {"id": "start", "label": "Frühester Start (z.B. 1. März)", "type": "text", "required": true, "max": 40, "preset": "nach Vereinbarung"}, {"id": "temporary", "label": "Befristete Stelle möglich?", "type": "select", "options": ["ja", "nein"]}, {"id": "keywords", "label": "Stichworte für die Suche (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 15, "max": 60}, {"id": "titlePositive", "label": "Titel, die passen (freiwillig, z.B. Entwickler)", "type": "list", "maxItems": 30, "max": 80, "hint": "Steht hier etwas, nimmt die Suche nur Stellen, in deren Titel einer dieser Begriffe vorkommt."}, {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 30, "max": 80}, {"id": "window", "label": "Zeitfenster der Suche in Tagen (freiwillig)", "type": "text", "format": "days", "hint": "So viele Tage zurück nimmt die Suche Inserate, 1 bis 60. Ohne Angabe sind es 21 Tage.", "messages": {"format": "Bitte eine Zahl von 1 bis 60."}}, {"id": "portalsOff", "label": "Portale für die Suche", "type": "list", "format": "portal", "maxItems": 3, "control": "switchedOff", "options": ["job-room", "jobs.ch", "jobscout24", "ictjobs"], "optionLabels": {"job-room": "job-room (Stellen der RAV, alle Berufe)", "jobs.ch": "jobs.ch (alle Berufe)", "jobscout24": "jobscout24 (alle Berufe)", "ictjobs": "ictjobs (nur Informatik)"}, "hint": "Die App sucht auf jedem angehakten Portal. Haben Sie die Portale schon unter „Suche einstellen“ gewählt, gilt die Wahl dort.", "messages": {"maxItems": "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts."}}, {"id": "targetCompanies", "label": "Wunschfirmen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 15, "max": 100}]}, {"id": "searchApprenticeship", "title": "Lehrstellensuche", "tracks": ["apprenticeship"], "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"}, "fields": [{"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "hint": "Du weisst noch nicht, welcher Beruf passt? Lass das Feld leer. In der App schlägt dir danach die KI unter „Suche“ Berufe vor, die zu deinen Interessen und Fähigkeiten passen.", "maxItems": 8, "max": 100}, {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600}, {"id": "offers", "label": "Was suchst du?", "type": "select", "options": ["Lehrstellen", "Schnupperlehren", "Lehrstellen und Schnupperlehren"], "hint": "Viele suchen zuerst eine Schnupperlehre. Das lässt sich später auf der Seite „Suche“ ändern. Ohne Auswahl sucht die Erweiterung Lehrstellen."}, {"id": "start", "label": "Lehrbeginn", "type": "choice", "required": true, "allowOwn": true, "max": 40, "options": {"apprenticeship": ["August 2027", "August 2028", "2027 oder 2028", "Noch offen"]}}, {"id": "home", "label": "Wohnort", "type": "text", "required": true, "max": 60, "preset": {"from": "person.city"}}, {"id": "radius", "label": "Wie weit um deinen Wohnort soll gesucht werden?", "type": "select", "options": ["10 km", "25 km", "50 km"], "hint": "Ohne Auswahl sucht die Erweiterung im Umkreis von 25 km."}, {"id": "commute", "label": "Wie lange darf dein Weg zum Lehrbetrieb höchstens dauern? (z.B. 45 Minuten mit ÖV)", "type": "text", "required": true, "max": 100}, {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Die Erweiterung sucht im Umkreis deines Wohnorts. Die Kantone helfen der App beim Einordnen."}, {"id": "vocationalBaccalaureate", "label": "Berufsmaturität geplant?", "type": "select", "options": ["ja", "vielleicht", "nein"]}, {"id": "companion", "label": "Begleitperson (freiwillig, z.B. Mutter, liest mit)", "type": "text", "max": 100}]}, {"id": "strengths", "title": "Stärken mit Beispiel", "intro": {"job": "Drei bis fünf Stärken, die zur gesuchten Stelle passen. Zu jeder ein Erlebnis: Situation, was Sie getan haben, Ergebnis. Aus diesen Beispielen entstehen die Anschreiben.", "apprenticeship": "Drei Stärken, die zum Wunschberuf passen. Zu jeder ein Erlebnis aus Schule, Schnupperlehre, Verein oder Familie. Daraus entstehen deine Motivationsschreiben."}, "repeat": true, "maxItems": 6, "itemTitle": "Stärke", "fields": [{"id": "strength", "label": "Stärke (z.B. zuverlässig)", "type": "text", "required": true, "max": 60}, {"id": "example", "label": "Beispiel", "type": "textarea", "required": true, "max": 600}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Zeugnis, Rückmeldung einer Lehrperson)", "type": "text", "max": 100}]}, {"id": "gaps", "title": "Lücken", "intro": {"job": "Was fehlt Ihnen für die Wunschstellen? Damit bewertet die App bei der Stellensuche ehrlich, wie gut eine Stelle passt, und Anschreiben benennen Lücken offen und knapp, statt sie zu verstecken. Am Anfang wissen Sie das oft noch nicht; dann einfach weiter. Die App ergänzt Lücken nach und nach, wenn ein Inserat etwas verlangt, das fehlt, und fragt Sie dabei.", "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe. Damit bewertet die App bei der Suche ehrlich, wie gut eine Lehrstelle zu dir passt. Weisst du es noch nicht, einfach weiter: Die App ergänzt das nach und nach und fragt dich dabei."}, "fields": [{"id": "gaps", "label": "Lücken (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 8}]}, {"id": "style", "title": "Ton und Stil", "intro": {"job": "Wie sollen Ihre Anschreiben klingen? Wählen Sie, was am besten passt, oder schreiben Sie es mit eigenen Worten.", "apprenticeship": "Motivationsschreiben schreibt man meist in der Sie-Form. Es soll trotzdem nach dir klingen: Wähle, was am besten passt, oder schreib es mit eigenen Worten."}, "fields": [{"id": "address", "label": "Anrede", "type": "select", "required": true, "tracks": ["job"], "options": ["Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form"], "preset": {"option": 0}}, {"id": "tone", "label": "Ton", "type": "choice", "required": true, "allowOwn": true, "max": 100, "preset": {"option": 0}, "options": {"job": ["Sachlich und freundlich", "Persönlich und herzlich", "Kurz und direkt"], "apprenticeship": ["Freundlich und offen", "Begeistert", "Ruhig und sachlich"]}}, {"id": "opening", "label": "Einstieg: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "preset": {"option": 0}, "options": {"job": ["Mit grossem Interesse habe ich Ihr Inserat für … gelesen.", "Ihre Stelle als … spricht mich an, weil …", "Seit … arbeite ich als … – genau das suchen Sie."], "apprenticeship": ["Seit meiner Schnupperlehre bei … weiss ich, dass ich … werden möchte.", "Mit grossem Interesse bewerbe ich mich um die Lehrstelle als …", "Ich interessiere mich schon lange für …, darum bewerbe ich mich bei Ihnen."]}}, {"id": "closing", "label": "Schluss: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "preset": {"option": 0}, "options": {"job": ["Über ein persönliches Gespräch freue ich mich.", "Gerne erzähle ich Ihnen in einem Gespräch mehr.", "Ich freue mich auf Ihre Rückmeldung."], "apprenticeship": ["Gerne komme ich zu einer Schnupperlehre zu Ihnen.", "Über eine Einladung zu einem Gespräch freue ich mich sehr.", "Ich freue mich auf Ihre Antwort."]}}, {"id": "greeting", "label": "Gruss (leer = „Freundliche Grüsse“)", "type": "text", "max": 60}, {"id": "place", "label": "Ort im Datum (z.B. Bern)", "type": "text", "max": 60, "preset": {"from": "person.city"}}, {"id": "phrases", "label": "Eigene Formulierungen, die gut passen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 10}]}, {"id": "frame", "title": "Rahmen", "intro": {"job": "Angaben für den Schluss der Anschreiben.", "apprenticeship": "Angaben für den Schluss deiner Motivationsschreiben."}, "fields": [{"id": "availability", "label": {"job": "Verfügbar ab", "apprenticeship": "Wann kannst du schnuppern? (z.B. Herbstferien, Mittwochnachmittag)"}, "type": "text", "max": 100, "hiddenFor": ["job"]}, {"id": "notice", "label": "Kündigungsfrist (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "salary", "label": "Lohnvorstellung (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "reference", "label": "Referenzperson mit Kontakt (freiwillig, nur mit ihrem Einverständnis)", "type": "text", "max": 150}]}]}</script>
+<script type="application/json" id="form-definition">{"format": "bewerbungsassistent-einstieg", "version": 1, "tracks": {"job": "Stellensuche", "apprenticeship": "Lehrstellensuche"}, "limits": {"text": 200, "textarea": 2000, "listItems": 20, "repeatItems": 20, "tag": 40, "tags": 10}, "formats": {"email": {"pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "example": "vorname.nachname@example.ch"}, "phone": {"pattern": "^\\+?[0-9 ()/-]{6,30}$", "example": "079 000 00 00"}, "date": {"pattern": "^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$", "example": "2024, 2024-08 oder 2024-08-15"}, "url": {"pattern": "^(https?://|www\\.)[^\\s]+$", "example": "https://www.linkedin.com/in/…"}, "postalCode": {"pattern": "^[0-9]{4,5}$", "example": "3000"}, "canton": {"pattern": "^[A-Z]{2}$", "example": "BE"}, "tag": {"pattern": "^[^,\\x00-\\x1f\\x7f-\\x9f]+$", "example": "daten"}, "days": {"pattern": "^([1-9]|[1-5][0-9]|60)$", "example": "21"}, "portal": {"pattern": "^(job-room|jobs\\.ch|jobscout24|ictjobs)$", "example": "jobs.ch"}}, "documents": {"title": "Unterlagen", "intro": {"job": "Haben Sie schon einen Lebenslauf, Zeugnisse, Zertifikate oder frühere Anschreiben? Laden Sie sie hier hoch. Die App übernimmt daraus später Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.", "apprenticeship": "Hast du schon einen Lebenslauf, Zeugnisse, Zertifikate oder ein Motivationsschreiben? Lade sie hier hoch. Die App übernimmt daraus später, was passt, und fragt nur nach, was fehlt."}, "categories": [{"id": "lebenslauf-bisher", "title": "Bisheriger Lebenslauf", "hint": "auch ein LinkedIn-Profil als PDF", "maxFiles": 10, "kindLabel": "Lebenslauf", "kindPlural": "Lebensläufe", "fileTypes": ["document"]}, {"id": "zeugnisse", "title": "Zeugnisse", "hint": {"job": "Arbeits- und Schulzeugnisse, auch Zwischenzeugnisse", "apprenticeship": "Schulzeugnisse und Schnupperlehr-Berichte"}, "maxFiles": 20, "kindLabel": {"job": "Zeugnis", "apprenticeship": "Zeugnis oder Bericht"}, "kindPlural": "Zeugnisse", "fileTypes": ["document", "image"]}, {"id": "zertifikate", "title": "Zertifikate und Diplome", "hint": "Diplome, Kursbestätigungen, Sprachzertifikate, Eignungstests", "maxFiles": 30, "kindLabel": "Zertifikat oder Diplom", "kindPlural": "Zertifikate und Diplome", "fileTypes": ["document", "image"]}, {"id": "anschreiben-bisher", "title": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "hint": "daraus übernimmt die App Ton und eigene Formulierungen", "maxFiles": 10, "kindLabel": {"job": "Früheres Anschreiben", "apprenticeship": "Früheres Motivationsschreiben"}, "kindPlural": {"job": "Frühere Anschreiben", "apprenticeship": "Frühere Motivationsschreiben"}, "fileTypes": ["document"]}], "fileTypes": {"document": {"labels": ["PDF", "Word (.docx, .doc)", "Textdateien (.txt)"], "extensions": ["pdf", "docx", "doc", "txt"]}, "image": {"labels": ["Bilder (.jpg, .png)"], "extensions": ["jpg", "jpeg", "png"]}}, "namePattern": "^(?!\\.)[^/\\\\:*?\"<>|\\x00-\\x1f\\x7f]{1,120}(?<![. ])$", "maxFileBytes": 15000000, "maxTotalBytes": 60000000}, "cantons": [{"code": "AG", "name": "Aargau"}, {"code": "AR", "name": "Appenzell Ausserrhoden"}, {"code": "AI", "name": "Appenzell Innerrhoden"}, {"code": "BL", "name": "Basel-Landschaft"}, {"code": "BS", "name": "Basel-Stadt"}, {"code": "BE", "name": "Bern"}, {"code": "FR", "name": "Freiburg"}, {"code": "GE", "name": "Genf"}, {"code": "GL", "name": "Glarus"}, {"code": "GR", "name": "Graubünden"}, {"code": "JU", "name": "Jura"}, {"code": "LU", "name": "Luzern"}, {"code": "NE", "name": "Neuenburg"}, {"code": "NW", "name": "Nidwalden"}, {"code": "OW", "name": "Obwalden"}, {"code": "SH", "name": "Schaffhausen"}, {"code": "SZ", "name": "Schwyz"}, {"code": "SO", "name": "Solothurn"}, {"code": "SG", "name": "St. Gallen"}, {"code": "TI", "name": "Tessin"}, {"code": "TG", "name": "Thurgau"}, {"code": "UR", "name": "Uri"}, {"code": "VD", "name": "Waadt"}, {"code": "VS", "name": "Wallis"}, {"code": "ZG", "name": "Zug"}, {"code": "ZH", "name": "Zürich"}], "sections": [{"id": "person", "cv": true, "title": "Person und Kontakt", "intro": {"job": "Diese Angaben stehen oben im Lebenslauf. Freiwillige Felder können Sie leer lassen. Bevor ein Text zur KI geht, ersetzt die App Ihren Namen, Strasse, PLZ, Telefon, E-Mail, Links und Geburtsdatum durch Platzhalter. Firmen, Ausbildungen und Jahreszahlen bleiben stehen, damit die KI Ihren Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist.", "apprenticeship": "Diese Angaben stehen oben in deinem Lebenslauf. Freiwillige Felder kannst du leer lassen. Bevor ein Text zur KI geht, ersetzt die App deinen Namen, Strasse, PLZ, Telefon, E-Mail, Links, Geburtsdatum und deine Schulen durch Platzhalter. Betriebe und Jahreszahlen bleiben stehen, damit die KI deinen Werdegang versteht. Ersetzen kann die App nur, was hier richtig eingetragen ist."}, "fields": [{"id": "name", "label": "Vor- und Nachname", "type": "text", "bilingual": "edit", "required": true, "max": 80, "hint": {"job": "Schreiben Sie den Namen genau wie im Lebenslauf, mit denselben Akzenten und Umlauten. In dieser Schreibweise ersetzt die App den Namen, bevor ein Text zur KI geht.", "apprenticeship": "Schreib deinen Namen genau wie im Lebenslauf, mit denselben Akzenten und Umlauten. In dieser Schreibweise ersetzt die App den Namen, bevor ein Text zur KI geht."}}, {"id": "label", "label": "Berufsbezeichnung unter dem Namen (freiwillig)", "type": "text", "bilingual": true, "max": 100, "tracks": ["job"], "placeholder": "z.B. Kaufmann EFZ – Buchhaltung und Administration"}, {"id": "address", "label": "Strasse und Nummer", "type": "text", "bilingual": "edit", "max": 100}, {"id": "postalCode", "label": "PLZ", "type": "text", "format": "postalCode"}, {"id": "city", "label": "Ort", "type": "text", "bilingual": "edit", "required": true, "max": 60}, {"id": "phone", "label": "Telefon", "type": "text", "format": "phone"}, {"id": "email", "label": "E-Mail", "type": "text", "required": true, "format": "email", "hint": {"apprenticeship": "Die Adresse soll seriös wirken, z.B. vorname.nachname@…"}}, {"id": "birthDate", "label": "Geburtsdatum (freiwillig)", "type": "text", "max": 30, "hint": {"apprenticeship": "Bei Lehrstellen ist das Geburtsdatum üblich."}}, {"id": "nationality", "label": "Nationalität (freiwillig)", "type": "text", "max": 60}, {"id": "url", "label": "Eigene Webseite (freiwillig)", "type": "text", "format": "url", "tracks": ["job"], "keepUnlessGiven": true}, {"id": "profiles", "label": "Profil-Links, z.B. LinkedIn (freiwillig, ein Link pro Zeile)", "type": "list", "format": "url", "maxItems": 5, "tracks": ["job"]}]}, {"id": "summary", "cv": true, "title": "Kurzprofil", "tracks": ["job"], "intro": {"job": "Zwei bis drei Sätze oben im Lebenslauf: Erfahrung, Schwerpunkte, was Sie besonders gut können. Sie können das auch leer lassen."}, "fields": [{"id": "summary", "label": "Kurzprofil (freiwillig)", "type": "textarea", "bilingual": true, "max": 600}]}, {"id": "work", "cv": true, "title": {"job": "Berufliche Stationen", "apprenticeship": "Schnupperlehren, Ferienjobs und Ämter"}, "intro": {"job": "Die neueste Station zuerst. Pro Station zwei bis vier Tätigkeiten oder Erfolge, möglichst konkret.", "apprenticeship": "Zum Beispiel Schnupperlehren, Babysitten, Nachhilfe oder Leiterin im Verein. Das Neueste zuerst."}, "repeat": true, "itemTitle": {"job": "Station", "apprenticeship": "Erfahrung"}, "fields": [{"id": "position", "label": {"job": "Funktion", "apprenticeship": "Beruf oder Tätigkeit (z.B. Schnupperlehre Fachfrau Gesundheit)"}, "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "name", "label": {"job": "Firma", "apprenticeship": "Betrieb, Verein oder Familie"}, "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "location", "label": "Ort", "type": "text", "bilingual": true, "max": 60}, {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "required": true, "requiredUnless": "x-display", "format": "date"}, {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "x-display", "label": "Anzeige statt Zeitraum (freiwillig, z.B. seit 2020)", "type": "text", "bilingual": true, "keepUnlessGiven": true, "max": 40, "hint": "Steht im Lebenslauf anstelle von „Von“ und „Bis“. Damit kann „Von“ leer bleiben."}, {"id": "highlights", "label": {"job": "Tätigkeiten und Erfolge (eine pro Zeile, Tags freiwillig)", "apprenticeship": "Was hast du gemacht? (eine Sache pro Zeile, Tags freiwillig)"}, "type": "list", "bilingual": true, "tags": true, "maxItems": 6, "hint": {"job": "Eine Zeile mit Tags kommt nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Eine Zeile mit Tags kommt nur in Fassungen für Lehrstellen mit einem dieser Tags."}}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Arbeitszeugnis, Schnupperbericht)", "type": "text", "max": 100, "cv": false}]}, {"id": "teaching", "cv": true, "keepUnlessGiven": true, "title": "Lehre und Training", "tracks": ["job"], "intro": {"job": "Kurse, Schulungen und Trainings, die Sie geben oder gegeben haben. Das Neueste zuerst. Sie stehen im Lebenslauf unter „Lehre & Training“."}, "repeat": true, "itemTitle": "Lehrtätigkeit", "fields": [{"id": "position", "label": "Funktion (z.B. Kursleiterin Programmieren)", "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "name", "label": "Schule, Firma oder Verein", "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "location", "label": "Ort", "type": "text", "bilingual": true, "max": 60}, {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "required": true, "requiredUnless": "x-display", "format": "date"}, {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = bis heute)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "x-display", "label": "Anzeige statt Zeitraum (freiwillig, z.B. seit 2020)", "type": "text", "bilingual": true, "keepUnlessGiven": true, "max": 40, "hint": "Steht im Lebenslauf anstelle von „Von“ und „Bis“. Damit kann „Von“ leer bleiben."}, {"id": "highlights", "label": "Inhalte und Erfolge (eine pro Zeile, Tags freiwillig)", "type": "list", "bilingual": true, "tags": true, "maxItems": 6, "hint": "Eine Zeile mit Tags kommt nur in Fassungen für Stellen mit einem dieser Tags."}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}]}, {"id": "projects", "cv": true, "keepUnlessGiven": true, "title": "Projekte", "tracks": ["job"], "intro": {"job": "Eigene Projekte, zum Beispiel aus Freizeit, Studium oder Open Source. Hauptprojekte stehen im Lebenslauf unter „Projekte“, die anderen unter „Weitere Projekte“."}, "repeat": true, "itemTitle": "Projekt", "fields": [{"id": "name", "label": "Name des Projekts", "type": "text", "bilingual": true, "required": true, "max": 100}, {"id": "description", "label": "Kurzbeschreibung (freiwillig, z.B. Visualisierung offener Daten mit Python)", "type": "text", "bilingual": true, "max": 200}, {"id": "group", "label": "Gruppe (freiwillig)", "type": "select", "options": ["main", "more"], "optionLabels": {"main": "Hauptprojekte", "more": "Weitere Projekte"}, "hint": "Ohne Auswahl steht das Projekt bei den Hauptprojekten."}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}]}, {"id": "education", "cv": true, "title": {"job": "Ausbildung und Weiterbildung", "apprenticeship": "Schule"}, "intro": {"job": "Abschlüsse, die neueste zuerst.", "apprenticeship": "Deine aktuelle Schule zuerst, dann frühere (z.B. Primarschule)."}, "repeat": true, "itemTitle": {"job": "Ausbildung", "apprenticeship": "Schule"}, "fields": [{"id": "studyType", "label": {"job": "Abschluss (z.B. Kaufmann EFZ, Bachelor)", "apprenticeship": "Schulstufe und Niveau (z.B. Sekundarschule, Niveau A)"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100}, {"id": "area", "label": "Fachrichtung (freiwillig)", "type": "text", "bilingual": true, "max": 100, "tracks": ["job"]}, {"id": "institution", "label": {"job": "Schule oder Lehrbetrieb, Ort", "apprenticeship": "Name der Schule, Ort"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100}, {"id": "startDate", "label": "Von (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "format": "date"}, {"id": "endDate", "label": "Bis (Jahr, Jahr-Monat oder ganzes Datum; leer = laufend)", "type": "text", "format": "date", "notBefore": "startDate"}, {"id": "text", "label": "Eigener Text (freiwillig)", "type": "text", "bilingual": true, "max": 200, "hint": {"job": "Ein fertiger Satz, der im Lebenslauf anstelle von Abschluss, Fachrichtung, Schule und Zeitraum steht, z.B. „Bachelor of Science in Informatik, Beispiel-Hochschule, 2011–2015“. Mit eigenem Text dürfen Abschluss und Schule leer bleiben.", "apprenticeship": "Ein fertiger Satz, der im Lebenslauf anstelle von Schulstufe, Schule und Zeitraum steht, z.B. „Sekundarschule Niveau A, Oberstufe Muster, seit 2023“. Mit eigenem Text dürfen Schulstufe und Schule leer bleiben."}}]}, {"id": "certificates", "cv": true, "title": {"job": "Kurse und Zertifikate", "apprenticeship": "Eignungstests"}, "intro": {"job": "Kurse und Zertifikate mit Anbieter und Datum.", "apprenticeship": "Zum Beispiel Multicheck oder Basic-Check. Du entscheidest, ob ein Test in den Lebenslauf kommt; sonst lass diesen Teil leer."}, "repeat": true, "itemTitle": {"job": "Kurs", "apprenticeship": "Test"}, "fields": [{"id": "name", "label": {"job": "Bezeichnung", "apprenticeship": "Test (z.B. Multicheck Gesundheit)"}, "type": "text", "bilingual": true, "required": true, "requiredUnless": "text", "max": 100}, {"id": "issuer", "label": "Anbieter (freiwillig)", "type": "text", "bilingual": true, "max": 100}, {"id": "date", "label": "Datum (Jahr, Jahr-Monat oder ganzes Datum)", "type": "text", "format": "date"}, {"id": "text", "label": "Eigener Text (freiwillig)", "type": "text", "bilingual": true, "max": 200, "hint": {"job": "Ein fertiger Satz, der im Lebenslauf anstelle von Bezeichnung, Anbieter und Datum steht, z.B. „Scrum Master (PSM I), 2022“. Mit eigenem Text darf die Bezeichnung leer bleiben.", "apprenticeship": "Ein fertiger Satz, der im Lebenslauf anstelle von Test, Anbieter und Datum steht, z.B. „Multicheck Gesundheit, 2026“. Mit eigenem Text darf der Test leer bleiben."}}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}]}, {"id": "languages", "cv": true, "title": "Sprachen", "intro": {"job": "Muttersprache und weitere Sprachen.", "apprenticeship": "Deine Muttersprache und die Sprachen aus der Schule."}, "repeat": true, "maxItems": 8, "itemTitle": "Sprache", "fields": [{"id": "language", "label": "Sprache", "type": "text", "bilingual": true, "required": true, "max": 40}, {"id": "fluency", "label": "Niveau", "type": "text", "bilingual": true, "required": true, "max": 40, "suggestions": ["Muttersprache", "Verhandlungssicher (C2)", "Sehr gut (C1)", "Gut (B2)", "Mittel (B1)", "Grundkenntnisse (A1–A2)"], "hint": {"job": "Wählen Sie einen Vorschlag oder schreiben Sie das Niveau mit eigenen Worten.", "apprenticeship": "Wähl einen Vorschlag oder schreib das Niveau mit eigenen Worten."}}, {"id": "x-level", "label": "Stufe fürs Dossier (freiwillig)", "type": "select", "keepUnlessGiven": true, "emptyLabel": "ohne Stufe", "options": ["A1", "A2", "B1", "B2", "C1", "C2"], "hint": "Freiwillig. Hat eine Sprache eine Stufe, zeigt das Dossier bei den Sprachen eine Grafik; Sprachen ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."}]}, {"id": "skills", "cv": true, "title": "Kenntnisse", "intro": {"job": "Fachliche Kenntnisse, nach Bereich gruppiert.", "apprenticeship": "Zum Beispiel Computerprogramme, Werkzeuge oder besondere Kenntnisse."}, "repeat": true, "maxItems": 8, "itemTitle": "Bereich", "fields": [{"id": "name", "label": "Bereich (z.B. Programme, Werkzeuge, Maschinen)", "type": "text", "bilingual": true, "required": true, "max": 60}, {"id": "keywords", "label": "Kenntnisse (eine pro Zeile, Stufe freiwillig)", "type": "list", "levels": true, "bilingual": true, "required": true, "maxItems": 12, "max": 60, "hint": "Die Stufe von 1 bis 6 ist freiwillig. Hat eine Kenntnis im Bereich eine Stufe, zeigt das Dossier dort eine Grafik; Kenntnisse ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik."}, {"id": "tags", "label": "Tags (freiwillig, mit Komma getrennt)", "type": "tags", "hint": {"job": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Stellen mit einem dieser Tags.", "apprenticeship": "Ohne Tags ist der Eintrag in jedem Lebenslauf, mit Tags nur in Fassungen für Lehrstellen mit einem dieser Tags."}}]}, {"id": "interests", "cv": true, "title": "Hobbys und Interessen", "intro": {"job": "Freiwillig. Sie stehen am Ende des Lebenslaufs.", "apprenticeship": "Was machst du in der Freizeit? Hat ein Hobby mit deinem Wunschberuf zu tun, schreib das bei den Stärken dazu."}, "fields": [{"id": "interests", "label": "Hobbys (eins pro Zeile)", "type": "list", "bilingual": true, "maxItems": 8, "max": 60}]}, {"id": "searchJob", "title": "Suche", "tracks": ["job"], "intro": {"job": "Danach sucht die App Stellen für Sie."}, "fields": [{"id": "directions", "label": "Gesuchte Stellen oder Tätigkeiten (eine pro Zeile, die wichtigste zuerst)", "type": "list", "hint": "Sie wissen noch nicht genau, was infrage kommt? Lassen Sie das Feld leer. In der App schlägt Ihnen danach die KI unter „Suche“ Stellen vor, die zu Ihren Interessen und Fähigkeiten passen.", "maxItems": 15}, {"id": "exclusions", "label": "Was auf keinen Fall? (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 30, "max": 80}, {"id": "home", "label": "Wohnort für die Suche", "type": "text", "required": true, "max": 60, "preset": {"from": "person.city"}}, {"id": "commute", "label": "Längster Arbeitsweg (z.B. 45 Minuten mit ÖV)", "type": "text", "max": 100}, {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Ohne Auswahl sucht die App in der ganzen Schweiz; Stellen nahe Ihrem Wohnort stehen dann zuerst."}, {"id": "remote", "label": "Homeoffice erwünscht?", "type": "select", "options": ["ja", "teilweise", "nein"]}, {"id": "workload", "label": "Pensum (z.B. 80–100 %)", "type": "text", "required": true, "max": 40, "preset": "80–100 %"}, {"id": "start", "label": "Frühester Start (z.B. 1. März)", "type": "text", "required": true, "max": 40, "preset": "nach Vereinbarung"}, {"id": "temporary", "label": "Befristete Stelle möglich?", "type": "select", "options": ["ja", "nein"]}, {"id": "keywords", "label": "Stichworte für die Suche (freiwillig, eins pro Zeile)", "type": "list", "maxItems": 15, "max": 60}, {"id": "titlePositive", "label": "Titel, die passen (freiwillig, z.B. Entwickler)", "type": "list", "maxItems": 30, "max": 80, "hint": "Steht hier etwas, nimmt die Suche nur Stellen, in deren Titel einer dieser Begriffe vorkommt."}, {"id": "titleExclude", "label": "Titel, die nicht passen (freiwillig, z.B. Praktikum)", "type": "list", "maxItems": 30, "max": 80}, {"id": "window", "label": "Zeitfenster der Suche in Tagen (freiwillig)", "type": "text", "format": "days", "hint": "So viele Tage zurück nimmt die Suche Inserate, 1 bis 60. Ohne Angabe sind es 21 Tage.", "messages": {"format": "Bitte eine Zahl von 1 bis 60."}}, {"id": "portalsOff", "label": "Portale für die Suche", "type": "list", "format": "portal", "maxItems": 3, "control": "switchedOff", "options": ["job-room", "jobs.ch", "jobscout24", "ictjobs"], "optionLabels": {"job-room": "job-room (Stellen der RAV, alle Berufe)", "jobs.ch": "jobs.ch (alle Berufe)", "jobscout24": "jobscout24 (alle Berufe)", "ictjobs": "ictjobs (nur Informatik)"}, "hint": "Die App sucht auf jedem angehakten Portal. Haben Sie die Portale schon unter „Suche einstellen“ gewählt, gilt die Wahl dort.", "messages": {"maxItems": "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts."}}, {"id": "targetCompanies", "label": "Wunschfirmen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 15, "max": 100}]}, {"id": "searchApprenticeship", "title": "Lehrstellensuche", "tracks": ["apprenticeship"], "intro": {"apprenticeship": "Welche Lehrstelle suchst du, und wo?"}, "fields": [{"id": "professions", "label": "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "type": "list", "hint": "Du weisst noch nicht, welcher Beruf passt? Lass das Feld leer. In der App schlägt dir danach die KI unter „Suche“ Berufe vor, die zu deinen Interessen und Fähigkeiten passen.", "maxItems": 8, "max": 100}, {"id": "howFound", "label": "Wie bist du auf diese Berufe gekommen? (freiwillig)", "type": "textarea", "max": 600}, {"id": "offers", "label": "Was suchst du?", "type": "select", "options": ["Lehrstellen", "Schnupperlehren", "Lehrstellen und Schnupperlehren"], "hint": "Viele suchen zuerst eine Schnupperlehre. Das lässt sich später auf der Seite „Suche“ ändern. Ohne Auswahl sucht die Erweiterung Lehrstellen."}, {"id": "start", "label": "Lehrbeginn", "type": "choice", "required": true, "allowOwn": true, "max": 40, "options": {"apprenticeship": ["August 2027", "August 2028", "2027 oder 2028", "Noch offen"]}}, {"id": "home", "label": "Wohnort", "type": "text", "required": true, "max": 60, "preset": {"from": "person.city"}}, {"id": "radius", "label": "Wie weit um deinen Wohnort soll gesucht werden?", "type": "select", "options": ["10 km", "25 km", "50 km"], "hint": "Ohne Auswahl sucht die Erweiterung im Umkreis von 25 km."}, {"id": "commute", "label": "Wie lange darf dein Weg zum Lehrbetrieb höchstens dauern? (z.B. 45 Minuten mit ÖV)", "type": "text", "required": true, "max": 100}, {"id": "cantons", "label": "Kantone (freiwillig)", "type": "list", "format": "canton", "maxItems": 26, "control": "cantons", "hint": "Die Erweiterung sucht im Umkreis deines Wohnorts. Die Kantone helfen der App beim Einordnen."}, {"id": "vocationalBaccalaureate", "label": "Berufsmaturität geplant?", "type": "select", "options": ["ja", "vielleicht", "nein"]}, {"id": "companion", "label": "Begleitperson (freiwillig, z.B. Mutter, liest mit)", "type": "text", "max": 100}]}, {"id": "strengths", "title": "Stärken mit Beispiel", "intro": {"job": "Drei bis fünf Stärken, die zur gesuchten Stelle passen. Zu jeder ein Erlebnis: Situation, was Sie getan haben, Ergebnis. Aus diesen Beispielen entstehen die Anschreiben.", "apprenticeship": "Drei Stärken, die zum Wunschberuf passen. Zu jeder ein Erlebnis aus Schule, Schnupperlehre, Verein oder Familie. Daraus entstehen deine Motivationsschreiben."}, "repeat": true, "maxItems": 6, "itemTitle": "Stärke", "fields": [{"id": "strength", "label": "Stärke (z.B. zuverlässig)", "type": "text", "required": true, "max": 60}, {"id": "example", "label": "Beispiel", "type": "textarea", "required": true, "max": 600}, {"id": "evidence", "label": "Beleg (freiwillig, z.B. Zeugnis, Rückmeldung einer Lehrperson)", "type": "text", "max": 100}]}, {"id": "gaps", "title": "Lücken", "intro": {"job": "Was fehlt Ihnen für die Wunschstellen? Damit bewertet die App bei der Stellensuche ehrlich, wie gut eine Stelle passt, und Anschreiben benennen Lücken offen und knapp, statt sie zu verstecken. Am Anfang wissen Sie das oft noch nicht; dann einfach weiter. Die App ergänzt Lücken nach und nach, wenn ein Inserat etwas verlangt, das fehlt, und fragt Sie dabei.", "apprenticeship": "Was fehlt dir noch für deine Wunschberufe? Zum Beispiel noch keine Schnupperlehre in einem der Berufe. Damit bewertet die App bei der Suche ehrlich, wie gut eine Lehrstelle zu dir passt. Weisst du es noch nicht, einfach weiter: Die App ergänzt das nach und nach und fragt dich dabei."}, "fields": [{"id": "gaps", "label": "Lücken (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 8}]}, {"id": "style", "title": "Ton und Stil", "intro": {"job": "Wie sollen Ihre Anschreiben klingen? Wählen Sie, was am besten passt, oder schreiben Sie es mit eigenen Worten.", "apprenticeship": "Motivationsschreiben schreibt man meist in der Sie-Form. Es soll trotzdem nach dir klingen: Wähle, was am besten passt, oder schreib es mit eigenen Worten."}, "fields": [{"id": "address", "label": "Anrede", "type": "select", "required": true, "tracks": ["job"], "options": ["Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form"], "preset": {"option": 0}}, {"id": "tone", "label": "Ton", "type": "choice", "required": true, "allowOwn": true, "max": 100, "preset": {"option": 0}, "options": {"job": ["Sachlich und freundlich", "Persönlich und herzlich", "Kurz und direkt"], "apprenticeship": ["Freundlich und offen", "Begeistert", "Ruhig und sachlich"]}}, {"id": "opening", "label": "Einstieg: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "preset": {"option": 0}, "options": {"job": ["Mit grossem Interesse habe ich Ihr Inserat für … gelesen.", "Ihre Stelle als … spricht mich an, weil …", "Seit … arbeite ich als … – genau das suchen Sie."], "apprenticeship": ["Seit meiner Schnupperlehre bei … weiss ich, dass ich … werden möchte.", "Mit grossem Interesse bewerbe ich mich um die Lehrstelle als …", "Ich interessiere mich schon lange für …, darum bewerbe ich mich bei Ihnen."]}}, {"id": "closing", "label": "Schluss: Welcher Satz passt am besten?", "type": "choice", "required": true, "allowOwn": true, "max": 200, "preset": {"option": 0}, "options": {"job": ["Über ein persönliches Gespräch freue ich mich.", "Gerne erzähle ich Ihnen in einem Gespräch mehr.", "Ich freue mich auf Ihre Rückmeldung."], "apprenticeship": ["Gerne komme ich zu einer Schnupperlehre zu Ihnen.", "Über eine Einladung zu einem Gespräch freue ich mich sehr.", "Ich freue mich auf Ihre Antwort."]}}, {"id": "greeting", "label": "Gruss (leer = „Freundliche Grüsse“)", "type": "text", "max": 60}, {"id": "place", "label": "Ort im Datum (z.B. Bern)", "type": "text", "max": 60, "preset": {"from": "person.city"}}, {"id": "phrases", "label": "Eigene Formulierungen, die gut passen (freiwillig, eine pro Zeile)", "type": "list", "maxItems": 10}]}, {"id": "frame", "title": "Rahmen", "intro": {"job": "Angaben für den Schluss der Anschreiben.", "apprenticeship": "Angaben für den Schluss deiner Motivationsschreiben."}, "fields": [{"id": "availability", "label": {"job": "Verfügbar ab", "apprenticeship": "Wann kannst du schnuppern? (z.B. Herbstferien, Mittwochnachmittag)"}, "type": "text", "max": 100, "hiddenFor": ["job"]}, {"id": "notice", "label": "Kündigungsfrist (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "salary", "label": "Lohnvorstellung (freiwillig)", "type": "text", "max": 60, "tracks": ["job"]}, {"id": "reference", "label": "Referenzperson mit Kontakt (freiwillig, nur mit ihrem Einverständnis)", "type": "text", "max": 150}]}]}</script>
 <script src="/texte.js"></script>
 <script src="/meldungen.js"></script>
 <script src="/app.js"></script>
 <script src="/uebersicht-logik.js"></script>
 <script src="/sidebar-logic.js"></script>
 <script src="/sidebar.js"></script>
+<script src="/dateien-logik.js"></script>
 <script>// Validation of onboarding bundles against form.json, for the browser.
 // Mirrors validation.py; both run the shared cases in tests/cases.json. The limits of tags hold for typed tags only:
 // `known` names the tags already in the data folder (G24), which never block saving. In the same way `loaded`, the
@@ -2189,10 +2214,489 @@ function createAppBackend() {
     discard: () => post("/api/angaben/stand-loeschen", {}),
     addDocument: (track, category, name, bytes) => post("/api/angaben/unterlage", { track, category, name, data: toBase64(bytes) }),
     removeDocument: (datei) => post("/api/angaben/unterlage-entfernen", { datei }),
+    changeDocumentKind: (track, datei, category) => post("/api/angaben/unterlage-art", { track, datei, category }),
     prefill: (track, data) => post("/api/angaben/vorbefuellen", { track, data }),
     // grundlagen: what the page read back from the Markdown basics; with it they merge, only what changed (#217)
     takeOver: (bundle, ersetzen, grundlagen) => post("/api/angaben/uebernehmen", { bundle, ersetzen, ...(grundlagen ? { grundlagen } : {}) }),
   };
+}
+
+// Only in the page „Meine Angaben“ of the app (G84): the kind of a document, guessed from its name and file type.
+// Nothing else is looked at, and nothing leaves the computer: no content, no AI, no request. The person corrects it.
+// Diplomas and references are named as on „Lebenslauf und Dateien“ (DateienLogik, bewerbungen/seiten/dateien-logik.js).
+"use strict";
+
+const GUESS_CV = "lebenslauf-bisher";
+const GUESS_LETTER = "anschreiben-bisher";
+const GUESS_CERTIFICATE = "zertifikate";
+const GUESS_REFERENCE = "zeugnisse";
+const IMAGE_TYPE = "image";
+// The names are folded first (foldDocumentName), so umlauts and accents are plain letters here.
+const CV_NAME = /lebenslauf|curriculum|vitae|(?:^|[^a-z])cv(?:[^a-z]|$)|resume|linkedin|profile/;
+const LETTER_NAME = /anschreiben|bewerbungsschreiben|motivationsschreiben|motivationsbrief|begleitschreiben|cover ?letter|lettre de motivation/;
+const CERTIFICATE_NAME = /zertifikat|zertifizierung|certificate|kursbest(?:a|ae)tigung|teilnahmebest(?:a|ae)tigung|sprachdiplom|goethe|delf|dalf|cambridge|toefl|ielts|multicheck|stellwerk|basic ?check/;
+const SCHNUPPER_NAME = /schnupper/;
+// First match wins; „Bewerbung“ alone is no cover letter. Images are never a CV or a letter.
+const GUESS_RULES = [
+  { category: GUESS_CV, documentsOnly: true, matches: (name) => CV_NAME.test(name) },
+  { category: GUESS_LETTER, documentsOnly: true, matches: (name) => LETTER_NAME.test(name) },
+  { category: GUESS_CERTIFICATE, matches: (name) => DateienLogik.DIPLOMA_NAME.test(name) || CERTIFICATE_NAME.test(name) },
+  { category: GUESS_REFERENCE, matches: (name) => DateienLogik.REFERENCE_NAME.test(name) || SCHNUPPER_NAME.test(name) },
+];
+
+/** The name without its extension, in small letters without accents, with _ - . as spaces. */
+function foldDocumentName(name) {
+  const text = String(name);
+  const dot = text.lastIndexOf(".");
+  const stem = dot > 0 ? text.slice(0, dot) : text;
+  return stem.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+    .replace(/[_.\-]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function isImageName(form, name) {
+  return form.documents.fileTypes[IMAGE_TYPE].extensions.includes(documentExtension(name));
+}
+
+/** { category, sure }: sure when a rule matched; without one it is a certificate or diploma, to be checked. */
+function guessDocumentKind(form, name) {
+  const folded = foldDocumentName(name);
+  const image = isImageName(form, name);
+  const rule = GUESS_RULES.find((r) => !(image && r.documentsOnly) && r.matches(folded));
+  return rule ? { category: rule.category, sure: true } : { category: GUESS_CERTIFICATE, sure: false };
+}
+
+/** The singular name of a kind for a row, e.g. „Zeugnis“ (form.json kindLabel). */
+function kindLabel(form, track, category) {
+  return forTrack(documentCategories(form).get(category).kindLabel, track);
+}
+
+/** The singular name inside a sentence: „als früheres Anschreiben“, while the list of kinds keeps the capital. */
+function kindInSentence(form, track, category) {
+  return kindLabel(form, track, category).replace(/^Früheres\b/, "früheres");
+}
+
+/** The plural name of a kind for its limit, e.g. „Lebensläufe“ (form.json kindPlural). */
+function kindPlural(form, track, category) {
+  return forTrack(documentCategories(form).get(category).kindPlural, track);
+}
+
+/** The kinds a file may have by its type, in the order of form.json: [{ id, label }]. */
+function kindOptions(form, track, name) {
+  const ext = documentExtension(name);
+  return form.documents.categories
+    .filter((category) => allowedExtensions(form, category).includes(ext))
+    .map((category) => ({ id: category.id, label: kindLabel(form, track, category.id) }));
+}
+
+// Only in the page „Meine Angaben“ of the app (G84, design A8): one area for all documents, each file filed under the
+// kind kindguess.js guesses, one row per file to correct it. File names are only ever set as text.
+// Depends on dom.js, documents.js, uploads.js and kindguess.js (inlined before this file by build_template.py).
+"use strict";
+
+const DROP_TEXT = {
+  job: {
+    intro: "Lebenslauf, Zeugnisse, Zertifikate und frühere Anschreiben, alles zusammen. Die KI liest sie und füllt nur leere Felder. Sie prüfen jeden Abschnitt.",
+    hint: "PDF, Word, Text oder Bild. Die App ordnet jede Datei selbst ein, Sie können das ändern.",
+    image: "Bild: bleibt auf Ihrem Computer, die KI liest es nicht.",
+    firstRemove: "Entfernen Sie zuerst eine.",
+  },
+  apprenticeship: {
+    intro: "Lebenslauf, Zeugnisse, Zertifikate und frühere Motivationsschreiben, alles zusammen. Die KI liest sie und füllt nur leere Felder. Du prüfst jeden Abschnitt.",
+    hint: "PDF, Word, Text oder Bild. Die App ordnet jede Datei selbst ein, du kannst das ändern.",
+    image: "Bild: bleibt auf deinem Computer, die KI liest es nicht.",
+    firstRemove: "Entferne zuerst eine.",
+  },
+};
+const DROP_WORDS = {
+  area: "Dateien hierher ziehen",
+  choose: "Dateien wählen",
+  remove: "Entfernen",
+  sure: "Am Namen erkannt",
+  unsure: "Nicht sicher erkannt, bitte prüfen",
+  oldWord: "Altes Word-Format: die KI liest es nicht. Als PDF speichern und neu hochladen.",
+  unreadable: "Die Datei liess sich nicht lesen. Bitte nochmals wählen.",
+};
+const OLD_WORD_EXTENSION = "doc";
+const DROP_CARD = ".prefill-card";
+const CHOOSE_ID = "drop-choose";
+
+const fillIn = (template, params) => template.replace(/\{(\w+)\}/g, (_, key) => params[key]);
+
+/** Every file type of the area, e.g. „PDF, Word (.docx, .doc), Textdateien (.txt), Bilder (.jpg, .png)“. */
+function allTypesText(form) {
+  return Object.values(form.documents.fileTypes).flatMap((type) => type.labels).join(", ");
+}
+
+function allExtensions(form) {
+  return Object.values(form.documents.fileTypes).flatMap((type) => type.extensions);
+}
+
+/** Today's message for a rule (DOCUMENT_MESSAGES), without the kind in front. */
+function documentText(form, code) {
+  const rules = form.documents;
+  return fillIn(DOCUMENT_MESSAGES[code] || code, {
+    maxFileMB: Math.floor(rules.maxFileBytes / BYTES_PER_MB), maxTotalMB: Math.floor(rules.maxTotalBytes / BYTES_PER_MB),
+    allowed: allTypesText(form),
+  });
+}
+
+/** Why a file cannot come in whatever its kind; null if it may. */
+function fileProblem(form, taken, entry) {
+  const rules = form.documents;
+  if (!new RegExp(rules.namePattern, "u").test(entry.name)) return documentText(form, "name");
+  if (!allExtensions(form).includes(documentExtension(entry.name))) return documentText(form, "extension");
+  if (!Number.isInteger(entry.size) || entry.size <= 0 || entry.size > rules.maxFileBytes) return documentText(form, "size");
+  if (taken.some((u) => u.name.toLowerCase() === entry.name.toLowerCase())) return documentText(form, "duplicate");
+  return null;
+}
+
+/**
+ * Which dropped or chosen files (each { name, size }) to add, each under the kind of its guess, checked against the
+ * rules together with what is there. Returns { accepted: [{ index, category, name, size, sure }], messages }: one line
+ * per refused file, and one per kind whose limit left files out.
+ */
+function planDrop(form, track, current, chosen) {
+  const accepted = [];
+  const messages = [];
+  const leftOut = new Map();
+  chosen.forEach((file, index) => {
+    const name = safeDocumentName(file.name);
+    const problem = fileProblem(form, [...current, ...accepted], { name, size: file.size });
+    if (problem) return messages.push(`${name}: ${problem}`);
+    const { category, sure } = guessDocumentKind(form, name);
+    const entries = [...current, ...accepted, { category, name, size: file.size }]
+      .map(({ category: c, name: n, size }) => ({ category: c, name: n, size }));
+    const [error] = validateDocuments(form, entries).filter((e) => isAbout(e, entries.length - 1, category));
+    if (error && error.code === "maxFiles") return leftOut.set(category, (leftOut.get(category) || 0) + 1);
+    if (error) return messages.push(`${name}: ${documentText(form, error.code)}`);
+    accepted.push({ index, category, name, size: file.size, sure });
+    return null;
+  });
+  const limits = [...leftOut].map(([category, count]) => dropLeftOut(form, track, category, count));
+  return { accepted, messages: [...messages, ...limits] };
+}
+
+/** „Lebensläufe: höchstens 10 Dateien.“: the kind in the plural, not the title of a section of the saved file. */
+function kindLimit(form, track, category) {
+  return `${kindPlural(form, track, category)}: höchstens ${documentCategories(form).get(category).maxFiles} Dateien.`;
+}
+
+function dropLeftOut(form, track, category, count) {
+  return `${kindLimit(form, track, category)} ${count === 1 ? "Eine Datei wurde" : `${count} Dateien wurden`} nicht hinzugefügt.`;
+}
+
+function kindFailed(reason) {
+  return `Die Art liess sich nicht ändern: ${reason}`;
+}
+
+/** Why a file cannot change to a kind, before anything moves; null if it can. */
+function kindChangeProblem(form, track, uploads, upload, category) {
+  const target = documentCategories(form).get(category);
+  if (!target) return kindFailed(DOCUMENT_MESSAGES.category);
+  if (!allowedExtensions(form, target).includes(documentExtension(upload.name))) {
+    return kindFailed(fillIn(DOCUMENT_MESSAGES.extension, { allowed: allowedText(form, target) }));
+  }
+  const { count, maxFiles } = categoryRoom(form, uploads, category);
+  if (count < maxFiles) return null;
+  return `${kindLimit(form, track, category)} ${DROP_TEXT[track].firstRemove}`;
+}
+
+function addedStatus(form, track, added) {
+  return `Hinzugefügt: ${added.map((u) => `${u.name} als ${kindInSentence(form, track, u.category)}`).join(", ")}.`;
+}
+
+function changedStatus(form, track, name, category) {
+  return `${name} ist jetzt als ${kindInSentence(form, track, category)} eingeordnet.`;
+}
+
+function removedStatus(name) {
+  return `${name} entfernt.`;
+}
+
+/** The select of a row, to give it the focus again after the page is drawn anew. */
+const kindSelector = (datei) => `select[data-datei="${String(datei).replace(/["\\]/g, "\\$&")}"]`;
+const CHOOSE_SELECTOR = `#${CHOOSE_ID}`;
+
+/** The area with „Dateien wählen“: one dialog for several files of every allowed type. */
+function dropAreaView(ctx) {
+  const accept = allExtensions(ctx.form).map((ext) => `.${ext}`).join(",");
+  const input = el("input", {
+    type: "file", multiple: true, accept, className: "visually-hidden", tabIndex: -1, "aria-hidden": "true",
+    onchange: (e) => ctx.onAddFiles(e.target.files),
+  });
+  return el("div", { className: "drop-area" }, [
+    el("p", { className: "drop-area__text" }, DROP_WORDS.area),
+    el("button", { type: "button", id: CHOOSE_ID, className: "drop-area__choose", onclick: () => input.click() }, DROP_WORDS.choose),
+    input,
+  ]);
+}
+
+/** Files dropped on the card are added; the browser must not open them instead. */
+function dropHandlers(ctx) {
+  const dragging = (card, on) => {
+    if (card && card.dataset) card.dataset.dragging = on ? "true" : "";
+  };
+  return {
+    ondragover: (e) => {
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+      dragging(e.currentTarget, true);
+    },
+    ondragleave: (e) => {
+      const card = e.currentTarget;
+      if (card && !(e.relatedTarget && card.contains(e.relatedTarget))) dragging(card, false);
+    },
+    ondrop: (e) => {
+      e.preventDefault();
+      dragging(e.currentTarget, false);
+      const files = e.dataTransfer && e.dataTransfer.files;
+      if (files && files.length) ctx.onAddFiles(files);
+    },
+  };
+}
+
+/** Outside the card a dropped file would replace the page; the page takes no drop there. */
+function guardPageDrops(doc) {
+  const outside = (e) => !(e.target && typeof e.target.closest === "function" && e.target.closest(DROP_CARD));
+  doc.addEventListener("dragover", (e) => {
+    if (!outside(e)) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
+  });
+  doc.addEventListener("drop", (e) => e.preventDefault());
+}
+
+function rowNotes(ctx, upload) {
+  const guess = ctx.notes[upload.datei];
+  const ext = documentExtension(upload.name);
+  return [
+    guess === undefined ? null : el("p", { className: "drop-file__note" }, guess ? DROP_WORDS.sure : DROP_WORDS.unsure),
+    isImageName(ctx.form, upload.name) ? el("p", { className: "drop-file__note" }, DROP_TEXT[ctx.track].image) : null,
+    ext === OLD_WORD_EXTENSION ? el("p", { className: "drop-file__note" }, DROP_WORDS.oldWord) : null,
+  ];
+}
+
+function kindSelect(ctx, upload) {
+  const options = kindOptions(ctx.form, ctx.track, upload.name).map((option) => el("option", {
+    value: option.id, selected: option.id === upload.category,
+  }, option.label));
+  return el("select", {
+    className: "drop-file__kind", "aria-label": `Art von ${upload.name}`, dataset: { datei: upload.datei },
+    onchange: (e) => ctx.onChangeKind(upload, e.target.value), onblur: () => ctx.onLeaveKind(upload),
+  }, options);
+}
+
+/** A file name wraps after „_“, „-“ and „.“ first, so „Lebenslauf_Erika_Beispiel.pdf“ breaks between its words. */
+function nameWithBreaks(name) {
+  // No lookbehind: Safari before 16.4 refuses it while parsing, and with it the whole inlined script.
+  return String(name).match(/[^_.\-]*[_.\-]?/g).filter(Boolean).flatMap((part, i) => (i ? [el("wbr", {}), part] : [part]));
+}
+
+function fileRowView(ctx, upload, index) {
+  return el("li", { className: "drop-file" }, [
+    el("div", { className: "drop-file__info" }, [
+      el("span", { className: "drop-file__name" }, nameWithBreaks(upload.name)),
+      el("span", { className: "drop-file__size" }, formatSize(upload.size)),
+      ...rowNotes(ctx, upload),
+    ]),
+    el("div", { className: "drop-file__actions" }, [
+      kindSelect(ctx, upload),
+      el("button", {
+        type: "button", className: "remove", "aria-label": `${upload.name} entfernen`, onclick: () => ctx.onRemove(index),
+      }, DROP_WORDS.remove),
+    ]),
+  ]);
+}
+
+function dropFilesView(ctx) {
+  return ctx.uploads.length ? el("ul", { className: "drop-files" }, ctx.uploads.map((u, i) => fileRowView(ctx, u, i))) : null;
+}
+
+// Only in the page „Meine Angaben“ of the app (G84): what the drop area does with the data folder. Adding, changing
+// the kind and removing wait for each other (inTurn), and the list of the app is the truth afterwards.
+// Uses the state of app.js (uploads, setUploads, inTurn, focusFirst), which is inlined after this file.
+"use strict";
+
+const ANNOUNCE_DELAY_MS = 100; // a status region that changes after it is drawn is read out
+const KIND_SETTLE_MS = 500; // a new kind counts once the select has been left alone this long
+let uploadNotes = {}; // datei → true when recognised by its name, false when not sure; files filed before have none
+let uploadAnnouncement = "";
+let kindChoices = {}; // datei → timer of a kind not yet settled
+
+/** Say what happened in the status region of the card, also when the page was just drawn anew. */
+function announceUploads(text) {
+  uploadAnnouncement = text;
+  const region = document.getElementById("upload-status");
+  if (!region) return;
+  region.textContent = "";
+  window.setTimeout(() => {
+    const now = document.getElementById("upload-status");
+    if (now && uploadAnnouncement === text) now.textContent = text;
+  }, ANNOUNCE_DELAY_MS);
+}
+
+function forgetUploadAnnouncement() {
+  uploadAnnouncement = "";
+}
+
+/** The person may have moved on while a large file was on its way. */
+function focusInCard(...selectors) {
+  if (steps()[step].kind === "start") focusFirst(...selectors, CHOOSE_SELECTOR);
+}
+
+function addDroppedFiles(fileList) {
+  const chosen = Array.from(fileList);
+  uploadsUnderway += 1;
+  return inTurn(async () => {
+    try {
+      await sendDropped(chosen);
+    } finally {
+      uploadsUnderway -= 1;
+    }
+  });
+}
+
+async function sendDropped(chosen) {
+  const { accepted, messages } = planDrop(form, state.track, uploads, chosen);
+  const problems = [...messages];
+  const added = [];
+  let list = uploads;
+  for (const entry of accepted) {
+    let data;
+    try {
+      data = new Uint8Array(await chosen[entry.index].arrayBuffer());
+    } catch (error) {
+      problems.push(`${entry.name}: ${DROP_WORDS.unreadable}`);
+      continue;
+    }
+    try {
+      const before = new Set(list.map((u) => u.datei));
+      list = (await backend.addDocument(state.track, entry.category, entry.name, data)).unterlagen;
+      const stored = list.find((u) => !before.has(u.datei));
+      if (stored) {
+        uploadNotes = { ...uploadNotes, [stored.datei]: entry.sure };
+        added.push(stored);
+      }
+    } catch (error) {
+      problems.push(`${entry.name}: ${error.message}`);
+    }
+  }
+  setUploads(list, problems);
+  announceUploads(added.length ? addedStatus(form, state.track, added) : ""); // never an old „Hinzugefügt“ beside a refusal
+  focusInCard();
+}
+
+/**
+ * Arrow keys on a closed select fire „change“ at every step (Windows): the file moves only once the choice has
+ * settled, to the kind it settled on, and only that kind is announced. Leaving the select settles it at once.
+ */
+function changeUploadKind(upload, category) {
+  const waiting = kindChoices[upload.datei];
+  if (waiting) window.clearTimeout(waiting.timer);
+  const timer = window.setTimeout(() => settleUploadKind(upload.datei), KIND_SETTLE_MS);
+  kindChoices = { ...kindChoices, [upload.datei]: { timer, category } };
+}
+
+/** The select lost the focus: its kind is saved now, not after the wait. */
+function leaveUploadKind(upload) {
+  const waiting = kindChoices[upload.datei];
+  if (!waiting) return Promise.resolve();
+  window.clearTimeout(waiting.timer);
+  return settleUploadKind(upload.datei);
+}
+
+/** Every kind still waiting is saved now, e.g. before the prefill reads the files or the page moves on. */
+function settlePendingKinds() {
+  return Promise.all(Object.keys(kindChoices).map((datei) => {
+    window.clearTimeout(kindChoices[datei].timer);
+    return settleUploadKind(datei);
+  }));
+}
+
+/** What the prefill waits for before it reads the files: uploads, removals and kinds not yet saved. */
+function pendingDocumentWork() {
+  settlePendingKinds();
+  return uploadsUnderway ? uploadTurn : null;
+}
+
+function settleUploadKind(datei) {
+  const { [datei]: waiting, ...others } = kindChoices;
+  kindChoices = others;
+  const current = uploads.find((u) => u.datei === datei);
+  if (!waiting || !current || current.category === waiting.category) return Promise.resolve();
+  return moveUploadKind(current, waiting.category);
+}
+
+function moveUploadKind(upload, category) {
+  const problem = kindChangeProblem(form, state.track, uploads, upload, category);
+  uploadsUnderway += 1;
+  return inTurn(async () => {
+    try {
+      const answer = problem ? null : await backend.changeDocumentKind(state.track, upload.datei, category);
+      await pointerReleased(); // drawn anew under a pressed button, the click would get lost
+      if (problem) return redrawKinds(uploads, [problem], upload.datei); // the select shows the old kind again
+      const { [upload.datei]: _guess, ...others } = uploadNotes; // the person decided, the guess no longer counts
+      uploadNotes = others;
+      redrawKinds(answer.unterlagen, [], answer.datei);
+      announceUploads(changedStatus(form, state.track, upload.name, category));
+    } catch (error) {
+      await pointerReleased();
+      redrawKinds(uploads, [kindFailed(error.message)], upload.datei);
+    } finally {
+      uploadsUnderway -= 1;
+    }
+  });
+}
+
+/** Draw the list anew; the focus stays on the control the person went on to, else it goes back to the select. */
+function redrawKinds(list, messages, datei) {
+  const kept = controlSelector(document.activeElement);
+  setUploads(list, messages);
+  if (kept) focusFirst(kept, kindSelector(datei));
+  else focusInCard(kindSelector(datei));
+}
+
+/** A selector that finds a control again after the page is drawn anew: by its id or its label; null for none. */
+function controlSelector(node) {
+  if (!node || typeof node.closest !== "function" || !node.closest(DROP_CARD)) return null;
+  if (node.id) return `#${node.id}`;
+  const label = node.getAttribute("aria-label");
+  return label ? `[aria-label="${label.replace(/["\\]/g, "\\$&")}"]` : null;
+}
+
+let pointerPressed = false;
+let pointerWaiters = [];
+
+/** A press on the page is followed to its release, so nothing is drawn anew between the two (trackPointer). */
+function trackPointer(doc) {
+  doc.addEventListener("pointerdown", () => { pointerPressed = true; }, true);
+  const release = () => {
+    pointerPressed = false;
+    const waiting = pointerWaiters;
+    pointerWaiters = [];
+    window.setTimeout(() => waiting.forEach((resolve) => resolve()), 0); // after the click of this press
+  };
+  doc.addEventListener("pointerup", release, true);
+  doc.addEventListener("pointercancel", release, true);
+}
+
+function pointerReleased() {
+  return pointerPressed ? new Promise((resolve) => { pointerWaiters = [...pointerWaiters, resolve]; }) : Promise.resolve();
+}
+
+/** After „Entfernen“ the focus goes to the select of the next row, else to „Dateien wählen“. */
+function removeDroppedUpload(index) {
+  const removed = uploads[index];
+  const next = uploads[index + 1];
+  return inTurn(async () => {
+    try {
+      setUploads((await backend.removeDocument(removed.datei)).unterlagen, []);
+      announceUploads(removedStatus(removed.name));
+    } catch (error) {
+      setUploads(uploads, [error.message]);
+    }
+    focusInCard(...(next ? [kindSelector(next.datei)] : []));
+  });
 }
 
 // Only in the page „Meine Angaben“ of the app: suggestions from uploaded documents, marked until they are checked.
@@ -2202,7 +2706,6 @@ function createAppBackend() {
 const PREFILL_TEXT = {
   job: {
     title: "Aus Ihren Unterlagen vorbefüllen",
-    text: "Laden Sie Lebenslauf und Zeugnisse hoch. Die KI liest sie und füllt die nächsten Schritte aus, nur leere Felder. Sie prüfen alles.",
     run: "Vorbefüllen",
     byHand: "Lieber von Hand ausfüllen",
     privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer.",
@@ -2226,7 +2729,6 @@ const PREFILL_TEXT = {
   },
   apprenticeship: {
     title: "Aus deinen Unterlagen vorbefüllen",
-    text: "Lade dein Zeugnis oder einen Lebenslauf hoch. Die KI liest sie und füllt die nächsten Schritte aus, nur leere Felder. Du prüfst alles.",
     run: "Vorbefüllen",
     byHand: "Lieber von Hand ausfüllen",
     privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer.",
@@ -2277,20 +2779,26 @@ function reportView(report, ctx, text) {
 }
 
 /**
- * The card on the start (MIN-369): documents per category, then „Vorbefüllen“ or „Lieber von Hand ausfüllen“.
- * ctx: { form, track, uploads, messages, run: { running, problem, report }, hasName, titleOf(id), onRun(), onGoTo(id),
- *        onAdd(category, FileList), onRemove(index), onByHand() }
+ * The card on the start (MIN-369, G84): one area for all documents, a row per file with its kind, then „Vorbefüllen“
+ * or „Lieber von Hand ausfüllen“. Without files only intro, area and hint, and filling in by hand leads.
+ * ctx: { form, track, uploads, messages, notes (datei → recognised by name), announcement, run: { running, problem, report },
+ *        hasName, titleOf(id), onRun(), onGoTo(id), onAddFiles(FileList), onChangeKind(upload, category), onRemove(index),
+ *        onByHand() }
  */
 function prefillCard(ctx) {
   const text = PREFILL_TEXT[ctx.track];
   const uploadText = UPLOAD_TEXT[ctx.track];
-  const canRun = ctx.uploads.length > 0 && ctx.hasName;
-  return el("section", { className: "card prefill-card", "aria-labelledby": "prefill-title" }, [
+  const hasFiles = ctx.uploads.length > 0;
+  const canRun = hasFiles && ctx.hasName;
+  return el("section", { className: "card prefill-card", "aria-labelledby": "prefill-title", ...dropHandlers(ctx) }, [
     el("h2", { id: "prefill-title" }, text.title),
-    el("p", {}, text.text),
+    el("p", {}, DROP_TEXT[ctx.track].intro),
+    dropAreaView(ctx),
+    el("p", { className: "hint" }, DROP_TEXT[ctx.track].hint),
     el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
-    el("div", { className: "prefill-card__files" }, ctx.form.documents.categories.map((category) => categoryView(ctx, category, uploadText))),
-    ctx.uploads.length && !ctx.hasName
+    dropFilesView(ctx),
+    el("p", { id: "upload-status", className: "drop-status", role: "status" }, ctx.announcement || ""),
+    hasFiles && !ctx.hasName
       ? el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)])
       : null,
     el("div", { className: "prefill-card__run" }, [
@@ -2304,7 +2812,7 @@ function prefillCard(ctx) {
       runLine(ctx.run, text),
     ]),
     ctx.run.report ? reportView(ctx.run.report, ctx, text) : null,
-    el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`),
+    hasFiles ? el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`) : null,
   ]);
 }
 
@@ -2613,6 +3121,10 @@ function update(newState, { rerender = false } = {}) {
 function goTo(newStep) {
   step = Math.max(0, Math.min(newStep, steps().length - 1));
   uploadMessages = [];
+  if (backend) {
+    forgetUploadAnnouncement();
+    settlePendingKinds(); // a kind still waiting is saved before the page moves on
+  }
   scheduleStore();
   render();
   document.getElementById("main").focus();
@@ -2752,12 +3264,12 @@ function openFromAddress() {
   (field.querySelector("input, textarea, select") || field).focus();
 }
 
-/** The start holds the upload in the app; its first category is the CV the person already has. */
+/** The start holds the one drop area of the app (G84), where the CV the person already has goes too. */
 function openUploads() {
   goTo(0);
-  const button = document.querySelector(`[data-category="${form.documents.categories[0].id}"]`);
+  const button = document.querySelector(CHOOSE_SELECTOR);
   if (!button) return;
-  button.closest("fieldset").scrollIntoView({ block: "center" });
+  button.closest(".drop-area").scrollIntoView({ block: "center" });
   button.focus();
 }
 
@@ -2808,9 +3320,10 @@ function appStartView() {
     appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
     choiceCard(),
     prefillCard({
-      form, track: state.track, uploads, messages: uploadMessages, run: prefillRun,
-      hasName: hasName(), titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
-      onAdd: addUploads, onRemove: removeUpload, onByHand: () => goTo(1),
+      form, track: state.track, uploads, messages: uploadMessages, run: prefillRun, notes: uploadNotes,
+      announcement: uploadAnnouncement, hasName: hasName(), titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
+      onAddFiles: addDroppedFiles, onChangeKind: changeUploadKind, onLeaveKind: leaveUploadKind, onRemove: removeDroppedUpload,
+      onByHand: () => goTo(1),
     }),
     existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
     ...loadFileLine(),
@@ -2895,7 +3408,7 @@ async function runPrefill() {
     const answer = await startPrefill({
       show: (run) => { prefillRun = run; renderKeepingFocus(); },
       reveal: revealPrefillStatus,
-      pendingUploads: () => (uploadsUnderway ? uploadTurn : null),
+      pendingUploads: backend ? pendingDocumentWork : () => (uploadsUnderway ? uploadTurn : null),
       isCurrent,
       ask: () => backend.prefill(track, state.data),
     });
@@ -3366,6 +3879,11 @@ window.addEventListener("beforeunload", (event) => {
   event.preventDefault();
   event.returnValue = UNSAVED_UPLOADS; // older browsers show a dialog only with a value
 });
+
+if (backend) {
+  guardPageDrops(document); // a file dropped beside the drop area must not replace the page (G84)
+  trackPointer(document); // a kind saved while a button is pressed waits for its click
+}
 
 loadStored().then(() => {
   render();

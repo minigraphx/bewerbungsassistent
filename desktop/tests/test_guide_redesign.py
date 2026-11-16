@@ -36,6 +36,17 @@ def test_the_guide_names_the_pages_of_the_sidebar_and_no_menu_mehr():
     assert "Klicken Sie auf **Stellen**" in quick_step(4)
 
 
+def test_meine_angaben_takes_every_document_in_one_area_and_the_person_corrects_the_kind():
+    # G84, #270: the words of the page, so the guide matches what the person sees
+    for part in (quick_step(3), body("Angaben erfassen", 3)):
+        assert "**Dateien hierher ziehen**" in part and "**Dateien wählen**" in part
+        assert "Art" in part and "ändern" in part.lower()
+    entering = body("Angaben erfassen", 3)
+    for words in ("**Am Namen erkannt**", "**Nicht sicher erkannt, bitte prüfen**", "**Zeugnis**",
+                  "**Zertifikat oder Diplom**", "**Entfernen**", "ohne KI"):
+        assert words in entering, words
+
+
 def test_a_parent_or_legal_guardian_sets_the_app_up_for_a_child():
     guide = text()
     intro = guide.split("\n## ", 1)[0]
@@ -96,7 +107,12 @@ def test_lebenslauf_und_dateien_shows_the_kinds_zeugnis_diplom_zertifikat():
 def test_the_pictures_say_what_they_show_today():
     guide = text()
 
-    assert "Zeugnisse mit dem Hinweis Arbeits- und Schulzeugnisse, auch Zwischenzeugnisse](bilder/angaben.jpg)" in guide
+    # G84, #270: one drop area, each file with its kind to correct
+    assert "mit einer Fläche Dateien hierher ziehen und dem Knopf Dateien wählen" in guide
+    assert "jede mit ihrer Art zum Ändern und Entfernen" in guide and "](bilder/angaben.jpg)" in guide
+    picture = guide.split("](bilder/angaben.jpg)", 1)[0].rsplit("![", 1)[1]
+    assert "gleich nach dem Hinzufügen" in picture
+    assert "dem Hinweis «Am Namen erkannt» oder, beim Scan, «Nicht sicher erkannt, bitte prüfen»" in picture
     check = body("Stellen suchen und bewerben", 3)
     assert "](bilder/pruefung.jpg)" in check and "**So lassen**" in check
     picture = check.split("](bilder/pruefung.jpg)", 1)[0].rsplit("![", 1)[1]

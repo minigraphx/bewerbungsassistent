@@ -5,7 +5,6 @@
 const PREFILL_TEXT = {
   job: {
     title: "Aus Ihren Unterlagen vorbefüllen",
-    text: "Laden Sie Lebenslauf und Zeugnisse hoch. Die KI liest sie und füllt die nächsten Schritte aus, nur leere Felder. Sie prüfen alles.",
     run: "Vorbefüllen",
     byHand: "Lieber von Hand ausfüllen",
     privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer.",
@@ -29,7 +28,6 @@ const PREFILL_TEXT = {
   },
   apprenticeship: {
     title: "Aus deinen Unterlagen vorbefüllen",
-    text: "Lade dein Zeugnis oder einen Lebenslauf hoch. Die KI liest sie und füllt die nächsten Schritte aus, nur leere Felder. Du prüfst alles.",
     run: "Vorbefüllen",
     byHand: "Lieber von Hand ausfüllen",
     privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer.",
@@ -80,20 +78,26 @@ function reportView(report, ctx, text) {
 }
 
 /**
- * The card on the start (MIN-369): documents per category, then „Vorbefüllen“ or „Lieber von Hand ausfüllen“.
- * ctx: { form, track, uploads, messages, run: { running, problem, report }, hasName, titleOf(id), onRun(), onGoTo(id),
- *        onAdd(category, FileList), onRemove(index), onByHand() }
+ * The card on the start (MIN-369, G84): one area for all documents, a row per file with its kind, then „Vorbefüllen“
+ * or „Lieber von Hand ausfüllen“. Without files only intro, area and hint, and filling in by hand leads.
+ * ctx: { form, track, uploads, messages, notes (datei → recognised by name), announcement, run: { running, problem, report },
+ *        hasName, titleOf(id), onRun(), onGoTo(id), onAddFiles(FileList), onChangeKind(upload, category), onRemove(index),
+ *        onByHand() }
  */
 function prefillCard(ctx) {
   const text = PREFILL_TEXT[ctx.track];
   const uploadText = UPLOAD_TEXT[ctx.track];
-  const canRun = ctx.uploads.length > 0 && ctx.hasName;
-  return el("section", { className: "card prefill-card", "aria-labelledby": "prefill-title" }, [
+  const hasFiles = ctx.uploads.length > 0;
+  const canRun = hasFiles && ctx.hasName;
+  return el("section", { className: "card prefill-card", "aria-labelledby": "prefill-title", ...dropHandlers(ctx) }, [
     el("h2", { id: "prefill-title" }, text.title),
-    el("p", {}, text.text),
+    el("p", {}, DROP_TEXT[ctx.track].intro),
+    dropAreaView(ctx),
+    el("p", { className: "hint" }, DROP_TEXT[ctx.track].hint),
     el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
-    el("div", { className: "prefill-card__files" }, ctx.form.documents.categories.map((category) => categoryView(ctx, category, uploadText))),
-    ctx.uploads.length && !ctx.hasName
+    dropFilesView(ctx),
+    el("p", { id: "upload-status", className: "drop-status", role: "status" }, ctx.announcement || ""),
+    hasFiles && !ctx.hasName
       ? el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)])
       : null,
     el("div", { className: "prefill-card__run" }, [
@@ -107,7 +111,7 @@ function prefillCard(ctx) {
       runLine(ctx.run, text),
     ]),
     ctx.run.report ? reportView(ctx.run.report, ctx, text) : null,
-    el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`),
+    hasFiles ? el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`) : null,
   ]);
 }
 

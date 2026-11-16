@@ -83,7 +83,8 @@
     return `Neue Unterlagen entstehen jetzt im Design ${designName(id)}. Was schon erstellt oder versendet ist, bleibt, wie es ist.`;
   }
 
-  const logic = { KINDS, KIND_LABELS, cvChoice, needsRemoval, variantNote, guessKind, oneList, sizeText, photoSummary,
+  // DIPLOMA_NAME and REFERENCE_NAME are also the guess on „Meine Angaben“ (G84, onboarding/src/kindguess.js).
+  const logic = { KINDS, KIND_LABELS, DIPLOMA_NAME, REFERENCE_NAME, cvChoice, needsRemoval, variantNote, guessKind, oneList, sizeText, photoSummary,
                   photoSwitch, DESIGNS, PRESET_DESIGN, designName, designToSave, designSaved };
   if (typeof module !== "undefined") module.exports = logic;
   else global.DateienLogik = logic;
