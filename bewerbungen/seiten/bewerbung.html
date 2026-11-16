@@ -102,61 +102,15 @@
         <div class="dossier-line" id="dossier-kurz" hidden>
           <span class="dossier-line__cover" id="d-zeichen-mini" aria-hidden="true"></span>
           <p class="dossier-line__text"><strong id="dossier-kurz-design">Design Siegel</strong> <span id="d-zeichen-satz"></span> <span id="dossier-kurz-texte"></span></p>
-          <button type="button" class="btn" id="dossier-gestalten" aria-expanded="false" aria-controls="dossier-gestalten-teil">Dossier gestalten</button>
-        </div>
-        <div class="dossier-panel" id="dossier-gestalten-teil" hidden>
-        <div id="dossier-design" hidden>
-          <div class="field"><label class="field__label" for="d-design">Design des Dossiers</label><select class="input" id="d-design"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select>
-            <p class="field__hint">Ein Design für alle Seiten. Akzentfarbe und Schrift bleiben auf allen Seiten gleich.</p></div>
-          <details id="d-erweitert">
-            <summary>Erweitert</summary>
-            <section class="mark-editor" id="d-zeichen-teil" aria-labelledby="d-zeichen-titel" hidden>
-              <h3 id="d-zeichen-titel">Zeichen und Farbe</h3>
-              <div class="mark-editor__layout">
-                <div class="mark-editor__fields">
-                  <fieldset class="mark-group" id="d-zeichen-wahl"><legend>Zeichen</legend><div class="mark-tiles" id="d-zeichen-liste"></div></fieldset>
-                  <div class="mark-logo" id="d-logo-teil">
-                    <p class="field__hint" id="d-logo-hinweis">PNG, JPG oder SVG, höchstens 5 MB. Am besten quer und mit durchsichtigem Hintergrund. Ein eigenes Zeichen, kein Firmenlogo. Das Logo bleibt auf diesem Computer und geht nie an die KI.</p>
-                    <div class="mark-logo__current" id="d-logo-aktuell" hidden><img id="d-logo-bild" alt=""><p class="field__hint" id="d-logo-info"></p></div>
-                    <ul class="field__hint mark-logo__hints" id="d-logo-hinweise"></ul>
-                    <div class="btn-row"><input type="file" id="d-logo-datei" class="visually-hidden mark-logo__file" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" aria-describedby="d-logo-hinweis"><label class="btn btn--sm" for="d-logo-datei" id="d-logo-waehlen">Logo wählen</label><button type="button" class="btn btn--sm" id="d-logo-entfernen" hidden>Logo entfernen</button></div>
-                  </div>
-                  <div class="field"><label class="field__label" for="d-initialen">Initialen</label><input class="input mark-initials" id="d-initialen" maxlength="3" autocomplete="off" aria-describedby="d-initialen-hinweis"><p class="field__hint" id="d-initialen-hinweis">1 bis 3 Buchstaben. Leer: aus dem Namen.</p></div>
-                  <fieldset class="mark-group" id="d-akzent-wahl"><legend>Akzentfarbe</legend><div class="mark-swatches" id="d-akzent-liste"></div>
-                    <div class="mark-own" id="d-eigene-farbe-teil" hidden><label class="field__label" for="d-eigene-farbe">Eigene Farbe</label><div class="mark-own__row"><input type="color" id="d-eigene-farbe-wahl" aria-label="Farbe wählen" value="#38495d"><input class="input mark-own__hex" id="d-eigene-farbe" placeholder="#38495d" maxlength="7" autocomplete="off" aria-describedby="d-eigene-farbe-pruefung"><button type="button" class="btn btn--sm" id="d-eigene-farbe-speichern">Farbe übernehmen</button></div>
-                      <p class="field__hint" id="d-eigene-farbe-pruefung" aria-live="polite"></p><button type="button" class="btn btn--sm" id="d-vorschlag" hidden>Vorschlag übernehmen</button></div>
-                    <p class="field__hint">«Passend zum Design» ist die Farbe des Designs: Siegel Schieferblau, Raster Weinrot, Register Tannengrün. Sie wechselt mit dem Design; eine benannte Farbe bleibt. Schrift auf der Farbe wählt die App selbst, weiss oder dunkel.</p></fieldset>
-                  <p class="field__hint">Gilt für alle Dossiers. Schon erstellte bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu.</p>
-                  <div class="btn-row"><button type="button" class="btn btn--sm" id="d-zeichen-zuruecksetzen">Zurück zur Voreinstellung</button></div>
-                  <p class="status-line" id="d-zeichen-status" role="status" aria-live="polite"></p>
-                </div>
-                <figure class="mark-preview"><div id="d-vorschau" role="img"></div><figcaption class="field__hint" id="d-vorschau-text"></figcaption></figure>
-              </div>
-              <h3>Design pro Seite</h3>
-            </section>
-            <p class="field__hint">Ein eigenes Design pro Seite. Lebenslauf und Anschreiben als einzelne Dateien erhalten das Design ihrer Seite.</p>
-            <div class="application__fields">
-              <div class="field"><label class="field__label" for="d-seite-deckblatt">Deckblatt</label><select class="input" id="d-seite-deckblatt" data-seite="deckblatt"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
-              <div class="field"><label class="field__label" for="d-seite-anschreiben">Anschreiben</label><select class="input" id="d-seite-anschreiben" data-seite="anschreiben"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
-              <div class="field"><label class="field__label" for="d-seite-lebenslauf">Lebenslauf</label><select class="input" id="d-seite-lebenslauf" data-seite="lebenslauf"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
-              <div class="field"><label class="field__label" for="d-seite-weitere">Weitere Seiten</label><select class="input" id="d-seite-weitere" data-seite="weitere"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
-            </div>
-          </details>
-        </div>
-        <div id="dossier-texte" hidden>
-          <h3>Begrüssung und Dank im Dossier</h3>
-          <p class="field__hint">Die KI entwirft beide Texte aus den Bausteinen, mit Platzhaltern statt Name und Kontakt. Danach lassen sie sich hier anpassen. Ohne Text entfällt die Seite im Dossier.</p>
-          <div class="field"><label class="field__label" for="dossier-gruss">Begrüssung („Kurz vorgestellt“)</label><textarea class="input" id="dossier-gruss" rows="5" maxlength="2000"></textarea></div>
-          <div class="field"><label class="field__label" for="dossier-dank">Dank (letzte Seite)</label><textarea class="input" id="dossier-dank" rows="2" maxlength="2000"></textarea></div>
-          <div class="btn-row"><button type="button" class="btn btn--sm" id="dossier-entwerfen" disabled>Von der KI entwerfen</button><button type="button" class="btn btn--sm" id="dossier-speichern">Texte speichern</button></div>
-          <div id="dossier-status" class="status" role="status" aria-live="polite"></div>
-        </div>
+          <button type="button" class="btn" id="dossier-gestalten" aria-haspopup="dialog">Dossier gestalten</button>
         </div>
         <div class="btn-row"><button type="button" class="btn btn--primary" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen" hidden>Erneut prüfen</button></div>
+        <p class="status-line" id="dossier-meldung" role="status" aria-live="polite"></p>
         <p class="status-line visually-hidden" id="befunde-ansage" role="status" aria-live="polite"></p>
         <ul class="befunde" id="befunde"></ul>
         <details class="befunde-ok" id="befunde-ok" hidden><summary id="befunde-ok-titel"></summary><ul class="befunde" id="befunde-ok-liste"></ul></details>
         <div class="doc-tiles" id="pdfs"></div>
+        <div class="attach-line" id="form-zeile" hidden><p class="attach-line__text" id="form-zeile-text"></p><div class="form-line__actions"><button type="button" class="btn btn--quiet" id="form-dossier" aria-haspopup="dialog" hidden>Dossier gestalten</button><button type="button" class="btn btn--quiet" id="form-aendern">Form ändern</button></div></div>
         <div class="attach-line"><p class="attach-line__text" id="beilagen-zeile">Beilagen</p><button type="button" class="btn btn--quiet" id="beilagen-aendern" aria-expanded="false" aria-controls="beilagen-liste">Beilagen ändern</button></div>
         <div class="attach-list" id="beilagen-liste" hidden>
           <p class="field__hint">Nur die Zertifikate, die zur Stelle passen, kommen als eine ZIP-Datei mit. Die Vorschläge stammen aus dem Vergleich der Dateinamen mit dem Inserat.</p>
@@ -289,6 +243,66 @@
     <div class="dialog__text" id="doppelt-text"></div>
     <div class="dialog__actions"><button type="button" class="btn" id="doppelt-abbrechen" autofocus>Abbrechen</button><button type="button" class="btn btn--primary" id="doppelt-trotzdem">Trotzdem öffnen</button></div>
   </dialog>
+
+  <dialog class="dialog dossier-dialog" id="dossier-dialog" aria-labelledby="dossier-dialog-titel">
+    <h2 class="dialog__title dossier-dialog__title" id="dossier-dialog-titel">Dossier gestalten</h2>
+    <div class="dossier-dialog__body">
+      <div class="dossier-dialog__groups">
+        <section class="dossier-group" aria-labelledby="dossier-bewerbung-titel">
+          <h3 class="dossier-group__title" id="dossier-bewerbung-titel">Für diese Bewerbung</h3>
+          <p class="field__hint">Gilt nur für dieses Dossier und wird mit «Übernehmen» gespeichert. Ein Entwurf der KI ist sofort gespeichert.</p>
+          <h4 class="dossier-group__label" id="d-design-titel">Design</h4>
+          <div class="design-tiles dossier-designs" id="d-design" role="radiogroup" aria-labelledby="d-design-titel">
+            <label class="design-tile"><span class="design-tile__sheet design-tile__sheet--siegel" aria-hidden="true"></span><span class="design-tile__name"><input type="radio" name="d-design" value="siegel" checked>Siegel</span><span class="design-tile__text">Persönlich und ruhig, Ring mit Initialen</span></label>
+            <label class="design-tile"><span class="design-tile__sheet design-tile__sheet--raster" aria-hidden="true"></span><span class="design-tile__name"><input type="radio" name="d-design" value="raster">Raster</span><span class="design-tile__text">Plakativ, Bänder mit Initialen</span></label>
+            <label class="design-tile"><span class="design-tile__sheet design-tile__sheet--register" aria-hidden="true"></span><span class="design-tile__name"><input type="radio" name="d-design" value="register">Register</span><span class="design-tile__text">Geordnet wie eine Akte, Reiter am Rand</span></label>
+          </div>
+          <p class="field__hint">Ein Design für alle Seiten. Akzentfarbe und Schrift bleiben auf allen Seiten gleich.</p>
+          <details class="dossier-pages" id="d-erweitert"><summary>Design pro Seite</summary>
+            <p class="field__hint">Ein eigenes Design pro Seite. Lebenslauf und Anschreiben als einzelne Dateien erhalten das Design ihrer Seite.</p>
+            <div class="application__fields" id="d-seiten">
+              <div class="field"><label class="field__label" for="d-seite-deckblatt">Deckblatt</label><select class="input" id="d-seite-deckblatt" data-seite="deckblatt"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
+              <div class="field"><label class="field__label" for="d-seite-anschreiben">Anschreiben</label><select class="input" id="d-seite-anschreiben" data-seite="anschreiben"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
+              <div class="field"><label class="field__label" for="d-seite-lebenslauf">Lebenslauf</label><select class="input" id="d-seite-lebenslauf" data-seite="lebenslauf"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
+              <div class="field"><label class="field__label" for="d-seite-weitere">Weitere Seiten</label><select class="input" id="d-seite-weitere" data-seite="weitere"><option value="siegel">Siegel</option><option value="raster">Raster</option><option value="register">Register</option></select></div>
+            </div>
+          </details>
+          <div class="dossier-texts" id="dossier-texte">
+            <h4 class="dossier-group__label">Begrüssung und Dank</h4>
+            <p class="field__hint">Die KI entwirft beide Texte aus den Bausteinen, mit Platzhaltern statt Name und Kontakt. Danach lassen sie sich hier anpassen. Ohne Text entfällt die Seite im Dossier.</p>
+            <div class="field"><label class="field__label" for="dossier-gruss">Begrüssung („Kurz vorgestellt“)</label><textarea class="input" id="dossier-gruss" rows="5" maxlength="2000"></textarea></div>
+            <div class="field"><label class="field__label" for="dossier-dank">Dank (letzte Seite)</label><textarea class="input" id="dossier-dank" rows="2" maxlength="2000"></textarea></div>
+            <div class="btn-row"><button type="button" class="btn btn--sm" id="dossier-entwerfen" aria-describedby="dossier-ki-aus" disabled>Von der KI entwerfen</button><p class="field__hint" id="dossier-ki-aus" hidden>Für einen Entwurf zuerst die KI unter «Anschreiben» einrichten. Die Texte lassen sich auch selbst schreiben.</p></div>
+            <div id="dossier-status" class="status" role="status" aria-live="polite"></div>
+          </div>
+        </section>
+        <section class="dossier-group" id="d-zeichen-teil" aria-labelledby="d-zeichen-titel" hidden>
+          <h3 class="dossier-group__title" id="d-zeichen-titel">Für alle Dossiers</h3>
+          <p class="field__hint">Zeichen und Farbe gelten für alle Dossiers. Jede Wahl ist sofort gespeichert; «Abbrechen» nimmt sie nicht zurück. Schon erstellte Dossiers bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu.</p>
+          <fieldset class="mark-group" id="d-zeichen-wahl"><legend>Zeichen</legend><div class="mark-tiles" id="d-zeichen-liste"></div></fieldset>
+          <div class="mark-logo" id="d-logo-teil">
+            <p class="field__hint" id="d-logo-hinweis">PNG, JPG oder SVG, höchstens 5 MB. Am besten quer und mit durchsichtigem Hintergrund. Ein eigenes Zeichen, kein Firmenlogo. Das Logo bleibt auf diesem Computer und geht nie an die KI.</p>
+            <div class="mark-logo__current" id="d-logo-aktuell" hidden><img id="d-logo-bild" alt=""><p class="field__hint" id="d-logo-info"></p></div>
+            <ul class="field__hint mark-logo__hints" id="d-logo-hinweise"></ul>
+            <div class="btn-row"><input type="file" id="d-logo-datei" class="visually-hidden mark-logo__file" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" aria-describedby="d-logo-hinweis"><label class="btn btn--sm" for="d-logo-datei" id="d-logo-waehlen">Logo wählen</label><button type="button" class="btn btn--sm" id="d-logo-entfernen" hidden>Logo entfernen</button></div>
+          </div>
+          <div class="field"><label class="field__label" for="d-initialen">Initialen</label><input class="input mark-initials" id="d-initialen" maxlength="3" autocomplete="off" aria-describedby="d-initialen-hinweis"><p class="field__hint" id="d-initialen-hinweis">1 bis 3 Buchstaben. Leer: aus dem Namen.</p></div>
+          <fieldset class="mark-group" id="d-akzent-wahl"><legend>Akzentfarbe</legend><div class="mark-swatches" id="d-akzent-liste"></div>
+            <div class="mark-own" id="d-eigene-farbe-teil" hidden><label class="field__label" for="d-eigene-farbe">Eigene Farbe</label><div class="mark-own__row"><input type="color" id="d-eigene-farbe-wahl" aria-label="Farbe wählen" value="#38495d"><input class="input mark-own__hex" id="d-eigene-farbe" placeholder="#38495d" maxlength="7" autocomplete="off" aria-describedby="d-eigene-farbe-pruefung"><button type="button" class="btn btn--sm" id="d-eigene-farbe-speichern">Farbe übernehmen</button></div>
+              <p class="field__hint" id="d-eigene-farbe-pruefung" aria-live="polite"></p><button type="button" class="btn btn--sm" id="d-vorschlag" hidden>Vorschlag übernehmen</button></div>
+            <p class="field__hint">«Passend zum Design» ist die Farbe des Designs: Siegel Schieferblau, Raster Weinrot, Register Tannengrün. Sie wechselt mit dem Design; eine benannte Farbe bleibt. Schrift auf der Farbe wählt die App selbst, weiss oder dunkel.</p></fieldset>
+          <div class="btn-row"><button type="button" class="btn btn--sm" id="d-zeichen-zuruecksetzen">Zurück zur Voreinstellung</button></div>
+          <p class="status-line" id="d-zeichen-status" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+      <figure class="mark-preview dossier-dialog__preview" id="d-vorschau-teil" hidden><div id="d-vorschau" role="img"></div><figcaption class="field__hint" id="d-vorschau-text"></figcaption></figure>
+    </div>
+    <div class="dossier-dialog__footer">
+      <p class="status-line" id="dossier-dialog-status" role="status" aria-live="polite"></p>
+      <div class="dialog__actions" id="dossier-aktionen"><button type="button" class="btn" id="dossier-abbrechen">Abbrechen</button><button type="button" class="btn btn--primary" id="dossier-uebernehmen">Übernehmen</button></div>
+      <div class="dialog__actions dossier-dialog__ask" id="dossier-verwerfen" role="group" aria-labelledby="dossier-verwerfen-frage" hidden><p class="dossier-dialog__question" id="dossier-verwerfen-frage">Änderungen verwerfen?</p><button type="button" class="btn" id="dossier-weiter">Weiter bearbeiten</button><button type="button" class="btn btn--danger" id="dossier-verwerfen-ja">Verwerfen</button></div>
+    </div>
+  </dialog>
 </main>
 <script src="/texte.js"></script>
 <script src="/meldungen.js"></script>
@@ -308,6 +322,8 @@
 <script src="/dossier-texte.js"></script>
 <script src="/zeichen-logik.js"></script>
 <script src="/zeichen.js"></script>
+<script src="/dossier-dialog-logik.js"></script>
+<script src="/dossier-dialog.js"></script>
 <script src="/eigenes-anschreiben.js"></script>
 <script src="/dateien-ordner.js"></script>
 <script src="/bewerbung.js"></script>

@@ -46,21 +46,41 @@ test("without a design every page is Siegel and „Erweitert“ stays closed", (
   assert.equal(wahl.gemischt(entry()), false);
 });
 
-test("one design for all pages puts pages with their own design back to it", () => {
-  assert.equal(wahl.designSpeichern(entry(), "siegel"), null);
-  assert.deepEqual(wahl.designSpeichern(entry(), "raster"), { id: "a", dossier_design: "raster", dossier_seiten: {} });
-  const mixed = entry({ dossier_design: "raster", dossier_seiten: { anschreiben: "siegel" } });
-  assert.deepEqual(wahl.designSpeichern(mixed, "raster"), { id: "a", dossier_design: "raster", dossier_seiten: {} });
-  assert.throws(() => wahl.designSpeichern(entry(), "bunt"), /Siegel, Raster oder Register/);
+// #322: the dialog «Dossier gestalten» keeps the choice as a draft and saves it with «Übernehmen»
+const ALL_RASTER = { deckblatt: "raster", anschreiben: "raster", lebenslauf: "raster", weitere: "raster" };
+
+test("the draft starts from the application", () => {
+  const mixed = entry({ dossier_design: "register", dossier_seiten: { lebenslauf: "raster" } });
+  assert.deepEqual(wahl.entwurf(mixed), { design: "register",
+    seiten: { deckblatt: "register", anschreiben: "register", lebenslauf: "raster", weitere: "register" } });
 });
 
-test("a page keeps its own design only where it differs", () => {
+test("one design for all pages in the draft puts pages with their own design back to it", () => {
+  const mixed = wahl.entwurf(entry({ dossier_design: "siegel", dossier_seiten: { anschreiben: "register" } }));
+  assert.deepEqual(wahl.entwurfDesign(mixed, "raster"), { design: "raster", seiten: ALL_RASTER });
+  assert.deepEqual(mixed.seiten.anschreiben, "register", "the draft before stays as it was");
+  assert.throws(() => wahl.entwurfDesign(mixed, "bunt"), /Siegel, Raster oder Register/);
+});
+
+test("one page of the draft gets its own design", () => {
+  const draft = wahl.entwurf(entry({ dossier_design: "register" }));
+  const changed = wahl.entwurfSeite(draft, "lebenslauf", "raster");
+  assert.equal(changed.seiten.lebenslauf, "raster");
+  assert.equal(draft.seiten.lebenslauf, "register", "the draft before stays as it was");
+  assert.throws(() => wahl.entwurfSeite(draft, "rueckseite", "raster"), /Seite/);
+  assert.throws(() => wahl.entwurfSeite(draft, "lebenslauf", "bunt"), /Siegel, Raster oder Register/);
+});
+
+test("«Übernehmen» saves the draft only when it differs, each page apart only where it differs", () => {
   const b = entry({ dossier_design: "register" });
-  assert.deepEqual(wahl.seiteSpeichern(b, "lebenslauf", "raster"), { id: "a", dossier_seiten: { lebenslauf: "raster" } });
-  assert.equal(wahl.seiteSpeichern(b, "lebenslauf", "register"), null);
+  assert.equal(wahl.entwurfSpeichern(b, wahl.entwurf(b)), null);
+  assert.deepEqual(wahl.entwurfSpeichern(entry(), wahl.entwurfDesign(wahl.entwurf(entry()), "raster")),
+    { id: "a", dossier_design: "raster", dossier_seiten: {} });
+  assert.deepEqual(wahl.entwurfSpeichern(b, wahl.entwurfSeite(wahl.entwurf(b), "lebenslauf", "raster")),
+    { id: "a", dossier_design: "register", dossier_seiten: { lebenslauf: "raster" } });
   const mixed = entry({ dossier_design: "register", dossier_seiten: { lebenslauf: "raster", anschreiben: "siegel" } });
-  assert.deepEqual(wahl.seiteSpeichern(mixed, "lebenslauf", "register"), { id: "a", dossier_seiten: { anschreiben: "siegel" } });
+  assert.deepEqual(wahl.entwurfSpeichern(mixed, wahl.entwurfSeite(wahl.entwurf(mixed), "lebenslauf", "register")),
+    { id: "a", dossier_design: "register", dossier_seiten: { anschreiben: "siegel" } });
   assert.equal(wahl.gemischt(mixed), true);
   assert.deepEqual(wahl.seitenDesigns(mixed), { deckblatt: "register", anschreiben: "siegel", lebenslauf: "raster", weitere: "register" });
-  assert.throws(() => wahl.seiteSpeichern(b, "rueckseite", "raster"), /Seite/);
 });

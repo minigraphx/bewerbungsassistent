@@ -139,16 +139,25 @@ def test_a_mixed_dossier_keeps_one_accent_colour_and_the_shared_fonts(server, bu
 # The page
 
 
-def test_the_page_offers_the_designs_with_the_pages_under_erweitert(server):
+def test_the_dialog_offers_the_designs_as_tiles_with_the_pages_under_design_pro_seite(server):
     _, _, page = get(server, "/bewerbung", id=BRIEF_ID)
     html = page.decode("utf-8")
+    dialog = html[html.index('<dialog class="dialog dossier-dialog"'):]
+    dialog = dialog[:dialog.index("</dialog>")]
 
-    assert '<div id="dossier-design" hidden>' in html
-    assert re.search(r'<details id="d-erweitert">\s*<summary>Erweitert</summary>', html)
-    for name in ("Siegel", "Raster", "Register"):
-        assert f">{name}</option>" in html
+    assert '<div class="design-tiles dossier-designs" id="d-design" role="radiogroup"' in dialog
+    assert re.search(r'<details class="dossier-pages" id="d-erweitert"><summary>Design pro Seite</summary>', dialog)
+    for design, name in (("siegel", "Siegel"), ("raster", "Raster"), ("register", "Register")):
+        assert f'<input type="radio" name="d-design" value="{design}"' in dialog
+        assert f">{name}</option>" in dialog
     for seite in ("deckblatt", "anschreiben", "lebenslauf", "weitere"):
-        assert f'data-seite="{seite}"' in html
+        assert f'data-seite="{seite}"' in dialog
+
+
+def test_the_page_serves_the_dialog_scripts(server):
+    for script in ("/dossier-dialog-logik.js", "/dossier-dialog.js"):
+        status, kind, body = get(server, script)
+        assert status == 200 and "javascript" in kind and b"DossierDialog" in body, script
 
 
 def test_the_page_logic():

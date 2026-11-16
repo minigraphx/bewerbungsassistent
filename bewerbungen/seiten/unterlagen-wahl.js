@@ -19,7 +19,7 @@
   /** The built PDFs to show as [art, name], in the order of the choice. */
   const rahmen = (pdfs, wahl) => REIHENFOLGE[wahl].filter(art => pdfs[art]).map(art => [art, NAMEN[art]]);
 
-  // G39, G41: one design for all pages (Siegel without a choice), under „Erweitert“ one per page
+  // G39, G41: one design for all pages (Siegel without a choice), under «Design pro Seite» one per page
   const DESIGNS = ["siegel", "raster", "register"];
   const SEITEN = ["deckblatt", "anschreiben", "lebenslauf", "weitere"];
 
@@ -33,28 +33,34 @@
   /** The design of each page as { seite: design }. */
   const seitenDesigns = b => Object.fromEntries(SEITEN.map(seite => [seite, abweichend(b)[seite] || design(b)]));
 
-  /** Whether a page has a design of its own; then „Erweitert“ shows open. */
+  /** Whether a page has a design of its own; then «Design pro Seite» shows open. */
   const gemischt = b => SEITEN.some(seite => seitenDesigns(b)[seite] !== design(b));
 
-  /** Body for one design for all pages: pages with their own design go back to it. Null when nothing changes. */
-  function designSpeichern(b, neu) {
+  // #322: the dialog «Dossier gestalten» keeps the designs as a draft { design, seiten } until «Übernehmen»
+  const entwurf = b => ({ design: design(b), seiten: seitenDesigns(b) });
+
+  /** One design for all pages: pages with their own design go back to it. */
+  function entwurfDesign(draft, neu) {
     pruefeDesign(neu);
-    if (neu === design(b) && !gemischt(b)) return null;
-    return { id: b.id, dossier_design: neu, dossier_seiten: {} };
+    return { design: neu, seiten: Object.fromEntries(SEITEN.map(seite => [seite, neu])) };
   }
 
-  /** Body for the design of one page; pages with the common design are not stored apart. Null when unchanged. */
-  function seiteSpeichern(b, seite, neu) {
+  function entwurfSeite(draft, seite, neu) {
     pruefeDesign(neu);
     if (!SEITEN.includes(seite)) throw new Error(`Unbekannte Seite: ${seite}`);
-    if (seitenDesigns(b)[seite] === neu) return null;
-    const alle = { ...seitenDesigns(b), [seite]: neu };
-    const eigene = Object.fromEntries(Object.entries(alle).filter(([, name]) => name !== design(b)));
-    return { id: b.id, dossier_seiten: eigene };
+    return { design: draft.design, seiten: { ...draft.seiten, [seite]: neu } };
+  }
+
+  /** Body for POST /api/bewerbung; pages with the common design are not stored apart. Null when nothing changes. */
+  function entwurfSpeichern(b, draft) {
+    const same = draft.design === design(b) && SEITEN.every(seite => draft.seiten[seite] === seitenDesigns(b)[seite]);
+    if (same) return null;
+    const eigene = Object.fromEntries(Object.entries(draft.seiten).filter(([, name]) => name !== draft.design));
+    return { id: b.id, dossier_design: draft.design, dossier_seiten: eigene };
   }
 
   const logik = { VOREINSTELLUNG, WAHL, gewaehlt, zuSpeichern, rahmen, DESIGNS, SEITEN, design, seitenDesigns, gemischt,
-                  designSpeichern, seiteSpeichern };
+                  entwurf, entwurfDesign, entwurfSeite, entwurfSpeichern };
   if (typeof module !== "undefined") module.exports = logik;
   else global.UnterlagenWahl = logik;
 })(typeof window !== "undefined" ? window : globalThis);

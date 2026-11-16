@@ -174,5 +174,6 @@ def test_the_page_offers_the_texts_only_with_a_dossier(dossier):
     html = get(dossier, "/bewerbung", id=BRIEF_ID)[2].decode("utf-8")
     script = get(dossier, "/dossier-texte.js")
 
-    assert 'id="dossier-texte" hidden' in html and 'src="/dossier-texte.js"' in html
+    dialog = html[html.index('id="dossier-dialog"'):]
+    assert 'id="dossier-texte"' in dialog[:dialog.index("</dialog>")] and 'src="/dossier-texte.js"' in html
     assert script[0] == 200 and b"/api/dossier/texte" in script[2] and b"/api/ki/dossier-texte" in script[2]

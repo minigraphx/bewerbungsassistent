@@ -63,11 +63,25 @@
     return chosen ? `Beilagen: ${names}` : `Beilagen: ${names} (Vorschlag, noch nicht gespeichert)`;
   }
 
-  function designLine(entry) {
+  function designName(entry) {
     const design = entry.dossier_design || "siegel";
     const own = Object.values(entry.dossier_seiten || {}).some(name => name && name !== design);
-    return own ? "Design pro Seite" : `Design ${DESIGN_NAMES[design] || DESIGN_NAMES.siegel}`;
+    return own ? null : DESIGN_NAMES[design] || DESIGN_NAMES.siegel;
   }
+
+  function designLine(entry) {
+    const name = designName(entry);
+    return name ? `Design ${name}` : "Design pro Seite";
+  }
+
+  /** After creating, the form tiles and the dossier line collapse into this one line (#322, board A3). */
+  function formLine(entry) {
+    if (W.gewaehlt(entry) !== "dossier") return "Form: Anschreiben und Lebenslauf";
+    return `Form: Dossier, ${designName(entry) || "Design pro Seite"}`;
+  }
+
+  /** Whether the main file of the chosen form is there: the dossier itself, or one of the two files. */
+  const built = (pdfs, choice) => Boolean(choice === "dossier" ? pdfs.dossier : pdfs.lebenslauf || pdfs.anschreiben);
 
   /** The state of greeting and thanks; an empty text leaves its page out of the dossier (G19). */
   function textsState({ gruss = "", dank = "" }) {
@@ -86,7 +100,7 @@
   }
 
   const logic = { STEP_TITLE, OPEN, NEXT_CREATE, tiles, findingGroups, announcement, attachmentsLine, designLine,
-    textsState, nextClarify };
+    formLine, built, textsState, nextClarify };
   if (typeof module !== "undefined") module.exports = logic;
   else global.UnterlagenErgebnis = logic;
 })(typeof window !== "undefined" ? window : globalThis);

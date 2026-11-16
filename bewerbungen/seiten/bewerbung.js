@@ -263,10 +263,8 @@
     $("versand-form").hidden = Boolean(b.versand);
     $("erstellen").hidden = Boolean(b.versand);
     $("pruefen").hidden = !L.erneutPruefen(befunde);
-    $("unterlagen-wahl").hidden = Boolean(b.versand);
     for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) knopf.checked = knopf.value === W.gewaehlt(b);
-    zeigeDesign(b);
-    S.showDossierLine(b);
+    S.showForm(b, R.built(daten.pdfs, W.gewaehlt(b)));
     $("antwort-teil").hidden = !gesendet;
     $("jobroom-teil").hidden = !rav || !gesendet;
     $("s-festhalten").hidden = !gesendet;
@@ -660,16 +658,7 @@
       meldungOben(fehler.message, "fehler");
     }
   });
-  /** G39: the design shows only with the dossier; „Erweitert“ stays closed unless a page has its own design. */
-  function zeigeDesign(b) {
-    $("dossier-design").hidden = W.gewaehlt(b) !== "dossier" || Boolean(b.versand);
-    $("d-design").value = W.design(b);
-    const seiten = W.seitenDesigns(b);
-    for (const auswahl of document.querySelectorAll("select[data-seite]")) auswahl.value = seiten[auswahl.dataset.seite];
-    if (W.gemischt(b)) $("d-erweitert").open = true;
-  }
-
-  /** G39, G40: each choice is saved right away; `body` gives what to save, null when nothing changed. */
+  /** G40: the form is saved right away; `body` gives what to save, null when nothing changed. */
   async function speichereWahl(body, gespeichert) {
     try {
       const werte = body();
@@ -682,23 +671,23 @@
       meldungOben("Speichern fehlgeschlagen: " + fehler.message, "fehler");
     }
   }
-  const NEU_ERSTELLEN = "Mit „Unterlagen erstellen“ entsteht das Dossier im neuen Design.";
   for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) {
     knopf.addEventListener("change", event => speichereWahl(() => W.zuSpeichern(bewerbung, event.target.value),
       body => (body.unterlagen === "dossier" ? "Dossier gewählt" : "Anschreiben und Lebenslauf gewählt")));
   }
-  $("d-design").addEventListener("change", event => speichereWahl(() => W.designSpeichern(bewerbung, event.target.value),
-    () => `Design für alle Seiten gespeichert. ${NEU_ERSTELLEN}`));
-  for (const auswahl of document.querySelectorAll("select[data-seite]")) {
-    auswahl.addEventListener("change", () => speichereWahl(() => W.seiteSpeichern(bewerbung, auswahl.dataset.seite, auswahl.value),
-      () => `Design der Seite gespeichert. ${NEU_ERSTELLEN}`));
-  }
+  // #322: the dialog «Dossier gestalten» saved the design or the texts; an empty message only reloads
+  document.addEventListener("dossier-uebernommen", async event => {
+    await laden();
+    window.DossierDialog.refocus();
+    if (event.detail.meldung) status($("dossier-meldung"), event.detail.meldung, "ok");
+  });
   $("erstellen").addEventListener("click", async () => {
     $("erstellen").disabled = true; // a second click would pay for a second draft
     try {
       const offen = await entwirfFehlendes();
       meldungOben("Unterlagen werden erstellt …");
       await senden("/api/unterlagen", {}, { id: ID });
+      S.closeForm();
       await laden();
       await laufendePruefung;
       meldungOben(offen ? `Unterlagen erstellt. ${offen}` : "Unterlagen erstellt", offen ? "hinweis" : "ok");
