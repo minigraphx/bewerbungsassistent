@@ -123,6 +123,22 @@
     return `${about} Danach bleiben ${money(s.danach, currency)} im Guthaben.`;
   }
 
+  /**
+   * The line beside a button that sends one request (#293, #329): `estimateLine`, but over the credit it names what is
+   * left instead of what stays. `usedUp` locks the button; over the credit it stays, the mediation then says what is
+   * missing.
+   */
+  function costLine(estimate) {
+    const used = usedUp(estimate);
+    const enough = !withCredit(estimate) || estimate.kosten <= estimate.guthaben;
+    if (used || enough) return { text: estimateLine(estimate), usedUp: used };
+    const about = estimateLine({ ...estimate, guthaben: null });
+    const left = money(estimate.guthaben, currencyOf(estimate));
+    return { text: `${about} Im Guthaben sind noch ${left}, das reicht vielleicht nicht.`, usedUp: used };
+  }
+
+  const estimateFailedText = reason => `Die Schätzung fehlt: ${reason}`;
+
   /** What the question before the run says; `withExtension`: the extension answered, so it can load missing texts. */
   function confirmation(s, apprenticeship, withExtension) {
     const currency = currencyOf(s);
@@ -237,7 +253,7 @@
     return fehlt ? { titel: "Inseratstext fehlt", text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
   }
 
-  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, confirmation, schlussText, nachpruefungText, fehlenderText };
+  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, costLine, estimateFailedText, confirmation, schlussText, nachpruefungText, fehlenderText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

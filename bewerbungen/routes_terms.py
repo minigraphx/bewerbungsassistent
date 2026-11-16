@@ -11,6 +11,7 @@ import secrets
 
 import preferences
 import routes_ai
+import routes_rate_all
 import search_plan
 import term_changes
 import term_evidence
@@ -25,6 +26,7 @@ CACHE_KEY = "suchbegriffe-vorschlaege"
 KEPT_PROPOSALS = 10
 ID_BYTES = 12
 SHA256 = re.compile(r"[0-9a-f]{64}")
+MINUTES = 1  # one call, mostly under 30 seconds
 ONLY_JOBS = "Suchbegriffe prüfen gibt es vorerst nur bei der Stellensuche."
 GONE = "Dieser Vorschlag gilt nicht mehr. Bitte neu vorschlagen lassen."
 STALE = "Vorschlag veraltet. Die Suchbegriffe haben sich seit dem Vorschlag geändert. Bitte neu vorschlagen lassen."
@@ -76,6 +78,22 @@ def hint(k, parameter, body):
     return json_antwort({"verfuegbar": True, "hinweis": shown.as_dict() if shown else None,
                          "kosten_usd": _estimate(_preview(k, current, hits)), "waehrung": currency_now(),
                          "treffer": len(term_evidence.rated(hits)), "seit": term_evidence.since(hits)})
+
+
+def estimate(k, parameter, body):
+    """Cost and time of a check before the click, priced like „Alle prüfen“ (#329, G44, G46, G80); nothing is sent.
+
+    `anzahl` is the one request that goes, whatever the number of hits in it, as with the CV suggestions.
+    """
+    try:
+        _, text = _profile(k)
+    except ValueError:
+        return json_antwort({"verfuegbar": False})
+    hits = Hits(k.daten).all()
+    sent = routes_ai.run_ai(lambda: _preview(k, term_changes.terms_of(text), hits))
+    money = routes_rate_all.priced(_estimate(sent), with_credit=True)
+    return json_antwort({"verfuegbar": True, "anzahl": 1, **money.fields(), "dauer_minuten": MINUTES,
+                         "reicht_fuer": None})
 
 
 def hide(k, parameter, body):
@@ -243,7 +261,8 @@ def undo(k, parameter, body):
     return json_antwort({"jetzt": term_changes.terms_of(path.read_text(encoding="utf-8")).as_dict()})
 
 
-GET = {"/api/suchbegriffe/hinweis": hint, "/api/suchbegriffe/text": sent_text, "/api/suchbegriffe/beleg": evidence_ids}
+GET = {"/api/suchbegriffe/hinweis": hint, "/api/suchbegriffe/schaetzung": estimate,
+       "/api/suchbegriffe/text": sent_text, "/api/suchbegriffe/beleg": evidence_ids}
 POST = {"/api/suchbegriffe/ausblenden": hide, "/api/suchbegriffe/vorschlag": propose,
         "/api/suchbegriffe/endstand": outcome, "/api/suchbegriffe/uebernehmen": adopt,
         "/api/suchbegriffe/rueckgaengig": undo}
