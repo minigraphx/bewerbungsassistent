@@ -34,10 +34,13 @@ window.KiFenster = (() => {
   const withCredit = ki => Boolean(ki.vermittlung) && typeof ki.guthaben_chf === "number";
   const creditUsedUp = ki => withCredit(ki) && Number(ki.verbraucht_chf || 0) >= ki.guthaben_chf;
 
+  // Written like TrefferLogik.money (#347), which pages without a search do not load; app.js loads this window anywhere.
+  const chf = amount => `CHF\u00a0${amount.toFixed(2)}`;
+
   function doneLine(ki) {
     if (!withCredit(ki)) return DONE;
     const spent = Number(ki.verbraucht_chf || 0);
-    const credit = ` Guthaben: CHF\u00a0${spent.toFixed(2)} von ${ki.guthaben_chf.toFixed(2)} verbraucht.`;
+    const credit = ` Guthaben: ${chf(spent)} von ${chf(ki.guthaben_chf)} verbraucht.`;
     return `${DONE}${credit}${creditUsedUp(ki) ? USED_UP : ""}`;
   }
 

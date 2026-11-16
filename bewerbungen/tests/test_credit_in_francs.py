@@ -115,10 +115,10 @@ def test_the_sidebar_shows_used_and_free_credit_in_francs_without_a_month():
     shown = node("sidebar-logic.js", "L.budgetView(a[0])", {**CREDIT, "monat": "2026-11"})
 
     assert shown["title"] == "KI-Guthaben"
-    assert shown["text"] == "CHF\u00a03.20 von 5.00 gebraucht"
+    assert shown["text"] == "CHF\u00a03.20 von CHF\u00a05.00 verbraucht"
     assert shown["detail"] == "CHF\u00a01.80 frei"
     assert shown["narrow"] == "KI-Guthaben: CHF\u00a01.80 frei"
-    assert shown["label"] == "64 Prozent des Guthabens gebraucht"
+    assert shown["label"] == "64 Prozent des Guthabens verbraucht"
 
 
 def test_the_sidebar_warns_in_words_about_a_credit_nearly_or_wholly_used():
@@ -149,7 +149,7 @@ def test_the_settings_card_shows_the_credit_once_without_renewal():
                 {"monat_usd": 3.2, "gesamt_usd": 3.2, "aufrufe": 9, "aufgaben": {"rate": {"aufrufe": 9, "usd": 3.2}}})
 
     assert view["title"] == "Guthaben"
-    assert view["headline"] == "CHF\u00a03.20 von 5.00 gebraucht"
+    assert view["headline"] == "CHF\u00a03.20 von CHF\u00a05.00 verbraucht"
     assert view["renewal"] is None
     assert view["rows"] == [{"label": "Stellen einschätzen", "count": 9, "usd": "CHF\u00a03.20"}]
     assert view["total"] == "Seit Beginn CHF\u00a03.20 in 9 Aufrufen"
@@ -201,7 +201,7 @@ def test_the_words_of_alle_pruefen_are_in_francs_and_say_guthaben():
     assert line == "Etwa CHF\u00a00.06 und 1\u00a0Minute. Danach bleiben CHF\u00a03.44 im Guthaben."
     assert "Im Guthaben sind noch CHF\u00a00.10, danach etwa CHF\u00a03.44." in question["sentences"]
     assert question["warning"].startswith("Das Guthaben von CHF\u00a00.10 reicht für etwa 1 von 2 Stellen.")
-    assert after == "2 von 2 Treffern bewertet. Kosten: 0.06\u00a0CHF."
+    assert after == "2 von 2 Treffern bewertet. Kosten: CHF\u00a00.06."
 
 
 # the other amounts of the mediation
@@ -232,16 +232,17 @@ def test_a_used_up_credit_is_named_before_alle_pruefen_and_not_counted_as_enough
 
 
 def _ki_page_status(status: dict) -> str:
-    """Runs `statusText` of the page „KI“ as written, without the rest of the page."""
+    """Runs `statusText` of the page „KI“ as written, with `money` from treffer-logik.js."""
     script = (PAGES / "ki.js").read_text(encoding="utf-8")
     function = re.search(r"\n  function statusText\(s\) \{.*?\n  \}\n", script, re.S)[0]
-    code = f"const kosten = x => x; {function}; process.stdout.write(statusText(JSON.parse(process.argv[1])));"
-    return subprocess.run(["node", "-e", code, json.dumps(status)], capture_output=True, text=True, timeout=60,
-                          check=True).stdout
+    code = (f"const {{ money }} = require(process.argv[2]); const kosten = x => x; {function}; "
+            "process.stdout.write(statusText(JSON.parse(process.argv[1])));")
+    return subprocess.run(["node", "-e", code, json.dumps(status), str(PAGES / "treffer-logik.js")],
+                          capture_output=True, text=True, timeout=60, check=True).stdout
 
 
 def test_the_ki_page_names_the_way_to_a_new_code_once_the_credit_is_used_up():
-    assert _ki_page_status(CREDIT) == "KI eingerichtet (über die Vermittlung). Guthaben: CHF\u00a03.20 von 5.00 verbraucht."
-    assert _ki_page_status(USED_UP) == ("KI eingerichtet (über die Vermittlung). Guthaben: CHF\u00a05.00 von 5.00 verbraucht. "
+    assert _ki_page_status(CREDIT) == "KI eingerichtet (über die Vermittlung). Guthaben: CHF\u00a03.20 von CHF\u00a05.00 verbraucht."
+    assert _ki_page_status(USED_UP) == ("KI eingerichtet (über die Vermittlung). Guthaben: CHF\u00a05.00 von CHF\u00a05.00 verbraucht. "
                                         "Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter "
                                         "Einstellungen, KI und Guthaben einlösen.")

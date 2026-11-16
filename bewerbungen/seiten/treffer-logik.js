@@ -88,7 +88,7 @@
   function pruefSchritt(stand, gruppe, sekunden) {
     const erste = stand.bewertet + 1;
     const welche = gruppe.length > 1 ? `Stellen ${erste} bis ${erste + gruppe.length - 1}` : `Stelle ${erste}`;
-    const dauer = sekunden >= SEKUNDEN_AB ? `, seit ${sekunden} Sekunden` : "";
+    const dauer = sekunden >= SEKUNDEN_AB ? `, seit ${seconds(sekunden)}` : "";
     return `${welche} von ${stand.von} prüfen${dauer} …`;
   }
 
@@ -105,6 +105,7 @@
   const NBSP = "\u00a0";
   const money = (amount, currency) => `${currency}${NBSP}${Number(amount).toFixed(2)}`;
   const minutes = n => `${n}${NBSP}${n === 1 ? "Minute" : "Minuten"}`;
+  const seconds = n => `${n}${NBSP}${n === 1 ? "Sekunde" : "Sekunden"}`;
   const jobs = (n, apprenticeship) => {
     const word = apprenticeship ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
     return `${n} ${n === 1 ? word[0] : word[1]}`;
@@ -171,7 +172,7 @@
     if (stand.ohneText) teile.push(`${stand.ohneText} ohne Inseratstext`);
     if (stand.gestoppt) teile.push("angehalten");
     if (rest) teile.push(`noch ${rest} offen`);
-    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)}${NBSP}${currency}.`;
+    return `${teile.join(", ")}. Kosten: ${money(stand.kosten, currency)}.`;
   }
 
   /** What the details say about the second look at a good grade (MIN-389); empty when there was none. */
@@ -256,7 +257,7 @@
     return fehlt ? { titel: "Inseratstext fehlt", text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
   }
 
-  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, costLine, estimateFailedText, confirmation, schlussText, nachpruefungText, fehlenderText };
+  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, costLine, estimateFailedText, confirmation, schlussText, nachpruefungText, fehlenderText, money, minutes, seconds };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

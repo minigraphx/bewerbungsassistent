@@ -56,10 +56,10 @@ test("hits without text: the extension loads them first, the others stay open wi
 
 test("after the run the page says how many are left, also when the credit ran out", () => {
   const stand = { bewertet: 10, von: 14, offen: [], ohneText: 0, kosten: 0.123, fehler: "Das Guthaben des Einladungscodes ist aufgebraucht.", gestoppt: false };
-  assert.equal(logik.schlussText(stand, 4, "CHF"), "10 von 14 Treffern bewertet, noch 4 offen. Kosten: 0.12\u00a0CHF.");
-  assert.equal(logik.schlussText(stand, 4), "10 von 14 Treffern bewertet, noch 4 offen. Kosten: 0.12\u00a0USD.");
-  assert.equal(logik.schlussText({ ...stand, fehler: "", gestoppt: true }, 4), "10 von 14 Treffern bewertet, angehalten, noch 4 offen. Kosten: 0.12\u00a0USD.");
-  assert.equal(logik.schlussText({ ...stand, bewertet: 14, fehler: "" }, 0), "14 von 14 Treffern bewertet. Kosten: 0.12\u00a0USD.");
+  assert.equal(logik.schlussText(stand, 4, "CHF"), "10 von 14 Treffern bewertet, noch 4 offen. Kosten: CHF\u00a00.12.");
+  assert.equal(logik.schlussText(stand, 4), "10 von 14 Treffern bewertet, noch 4 offen. Kosten: USD\u00a00.12.");
+  assert.equal(logik.schlussText({ ...stand, fehler: "", gestoppt: true }, 4), "10 von 14 Treffern bewertet, angehalten, noch 4 offen. Kosten: USD\u00a00.12.");
+  assert.equal(logik.schlussText({ ...stand, bewertet: 14, fehler: "" }, 0), "14 von 14 Treffern bewertet. Kosten: USD\u00a00.12.");
 });
 
 test("the page offers one button „Alle prüfen“ and asks before it starts", () => {

@@ -2,6 +2,9 @@
 // What the page Stellen says about a search run (G43): the announcement before a long run, and the progress line while
 // the extension runs the searches in stages. No DOM, so it can be tested.
 (function (global) {
+  // Durations read like the cost lines (#347): the page loads treffer-logik.js first.
+  const { seconds } = typeof module !== "undefined" ? require("./treffer-logik.js") : global.TrefferLogik;
+
   /** The announcement under „Jetzt suchen“, only for a long run and only while nothing blocks the start. */
   function umfangText(umfang, sperrgrund) {
     return umfang?.lang && !sperrgrund ? umfang.text : "";
@@ -24,7 +27,7 @@
       const teile = [`${s.portal}: suche „${s.stichwort}“${ort(s)}, Seite ${s.seite}`, stelle(s)].filter(Boolean);
       return teile.map((teil, index) => (index === teile.length - 1 ? `${teil} …` : teil));
     }
-    if (s.phase === "pause") return [`${s.portal}: Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${s.sekunden} Sekunden …`];
+    if (s.phase === "pause") return [`${s.portal}: Pause vor Etappe ${s.etappe} von ${s.etappen}, noch ${seconds(s.sekunden)} …`];
     if (s.phase === "texte") return [`${s.portal}: lese Inserat ${s.fertig + 1} von ${s.von} …`];
     return ["Suche startet …"];
   }

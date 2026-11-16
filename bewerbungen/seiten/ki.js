@@ -4,6 +4,8 @@
 (() => {
   const { holen, senden, el, status, bestaetigen } = window.App;
   const { notenHinweis } = window.FormularLogik;
+  // Amounts as on every page that names costs (#347): currency first; bewerbung.html loads treffer-logik.js before.
+  const { money } = window.TrefferLogik;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const KNOEPFE = ["ki-bewerten", "ki-entwerfen", "ki-pruefen"];
@@ -16,7 +18,7 @@
 
   const meldung = (text, art) => status($("ki-meldung"), text, art);
   let waehrung = "USD";  // CHF with the mediation (G46), from the status; the amounts count 1:1
-  const kosten = betrag => (betrag === null || betrag === undefined) ? "Kosten unbekannt" : `ca. ${betrag.toFixed(2)}\u00a0${waehrung}`;
+  const kosten = betrag => (betrag === null || betrag === undefined) ? "Kosten unbekannt" : `etwa ${money(betrag, waehrung)}`;
   const frei = an => KNOEPFE.forEach(k => { $(k).disabled = !an; });
 
   function liste(titel, eintraege) {
@@ -106,7 +108,7 @@
     const verbraucht = Number(s.verbraucht_chf || 0);
     const aufgebraucht = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen.";
     const guthaben = typeof s.guthaben_chf === "number"
-      ? ` Guthaben: CHF\u00a0${verbraucht.toFixed(2)} von ${s.guthaben_chf.toFixed(2)} verbraucht.${verbraucht >= s.guthaben_chf ? aufgebraucht : ""}`
+      ? ` Guthaben: ${money(verbraucht, "CHF")} von ${money(s.guthaben_chf, "CHF")} verbraucht.${verbraucht >= s.guthaben_chf ? aufgebraucht : ""}`
       : "";
     return `KI eingerichtet (über die Vermittlung).${guthaben}${s.hinweis ? " " + s.hinweis : ""}`;
   }

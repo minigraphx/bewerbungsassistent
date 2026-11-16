@@ -11,7 +11,7 @@ test("the line names the hits of the package the AI rates now", () => {
 });
 
 test("a package that takes longer says how long it runs, so the line keeps changing", () => {
-  assert.equal(logik.pruefSchritt({ bewertet: 0, von: 3 }, ["a", "b", "c"], 12), "Stellen 1 bis 3 von 3 prüfen, seit 12 Sekunden …");
+  assert.equal(logik.pruefSchritt({ bewertet: 0, von: 3 }, ["a", "b", "c"], 12), "Stellen 1 bis 3 von 3 prüfen, seit 12\u00a0Sekunden …");
 });
 
 test("the run says before each package which hits go out", async () => {

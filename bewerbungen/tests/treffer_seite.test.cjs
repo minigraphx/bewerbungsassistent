@@ -140,7 +140,7 @@ test("the line of a running search on Stellen names portal, term, place and stag
   // #342: the step and the count are whole parts of a «·» line
   assert.equal(p.$("lauf").textContent, seenLine(["jobs.ch: suche „Begriff2“ in Nordstadt, Seite 1", "Suche 32 von 67, Etappe 2 von 3 …"]));
   p.fromExtension({ art: "lauf", lauf: { zustand: "laeuft", schritt: { portal: "jobs.ch", phase: "pause", etappe: 3, etappen: 3, sekunden: 40 } } });
-  assert.equal(p.$("lauf").textContent, "jobs.ch: Pause vor Etappe 3 von 3, noch 40 Sekunden …");
+  assert.equal(p.$("lauf").textContent, "jobs.ch: Pause vor Etappe 3 von 3, noch 40\u00a0Sekunden …");
   p.fromExtension({ art: "lauf", lauf: { zustand: "laeuft", schritt: { portal: "jobs.ch", phase: "texte", fertig: 3, von: 9 } } });
   assert.equal(p.$("lauf").textContent, "jobs.ch: lese Inserat 4 von 9 …");
 });

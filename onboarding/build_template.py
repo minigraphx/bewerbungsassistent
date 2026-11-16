@@ -25,6 +25,7 @@ OUTPUT_APP = ROOT.parent / "bewerbungen" / "seiten" / "angaben.html"
 SCRIPTS = ["validate.js", "model.js", "presets.js", "steps.js", "dom.js", "documents.js", "zip.js", "uploadstore.js", "uploads.js", "app.js"]  # order matters: later files use earlier ones
 
 
+NBSP = "\u00a0"
 TITLE = "Einstieg"
 TITLE_APP = "Meine Angaben"
 # only in the app; loaded before app.js. The drop area (G84) guesses kinds with the names of „Lebenslauf und Dateien“,
@@ -70,6 +71,7 @@ def build(app: bool = False) -> str:
     script = "\n".join((SRC / name).read_text(encoding="utf-8") for name in names)
     form = json.dumps(json.loads((ROOT / "form.json").read_text(encoding="utf-8")), ensure_ascii=False)
     form = form.replace("</", "<\\/")  # keep the JSON from closing its script element
+    form = form.replace(NBSP, "\\u00a0")  # visible as an escape in the page, as in form.json (#347)
     csp = "; ".join([
         "default-src 'none'",
         f"script-src 'self' {_sha256(script)}" if app else f"script-src {_sha256(script)}",
