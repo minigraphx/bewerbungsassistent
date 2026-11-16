@@ -322,9 +322,10 @@
       du: "Für Linien und Überschriften. Alle Farben sind gut lesbar.",
     },
     "lebenslauf.farbe-passend": { sie: "Passend zum Design", du: "Passend zum Design" },
-    "lebenslauf.dossier-farbe": {
-      sie: "Ein Dossier hat Farbe und Zeichen aus «Dossier gestalten». Das Foto nimmt es von hier.",
-      du: "Ein Dossier hat Farbe und Zeichen aus «Dossier gestalten». Das Foto nimmt es von hier.",
+    "lebenslauf.farbe-passend-zeile": { sie: "passend zum Design", du: "passend zum Design" },
+    "lebenslauf.aussehen-hinweis": {
+      sie: "Gilt nur für diese Bewerbung. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier.",
+      du: "Gilt nur für diese Bewerbung. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier.",
     },
     "lebenslauf.erstellen-titel": {
       sie: "Lebenslauf für diese Stelle", du: "Lebenslauf für diese Stelle", lehrstelle: "Lebenslauf für diese Lehrstelle",

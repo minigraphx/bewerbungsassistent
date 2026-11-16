@@ -960,6 +960,10 @@ button.files__photo img { width: 100%; height: 100%; object-fit: cover; display:
 .cv-create__mark-option input { width: 18px; height: 18px; margin: 3px 0 0; flex: none; accent-color: var(--accent); }
 .cv-create__mark-option:has(input:disabled) { color: var(--text-muted); cursor: default; }
 .cv-create__mark-reason { display: block; font: 400 13px/18px var(--font-sans); color: var(--text-muted); }
+.cv-create__mark-note { display: block; font: 400 13px/18px var(--font-sans); color: var(--text-muted); }
+.cv-create__mark .mark-swatch--wide { grid-column: 1 / -1; }
+/* Dark chips stay visible on a dark surface */
+.cv-create__mark .mark-swatch__chip rect { stroke: var(--line-strong); stroke-width: 1; }
 /* Suggestions of the AI (#293, G75, design A6): applied on opening, each recommendation a box to undo it. */
 .cv-create__ai { margin: 0 0 var(--space-4); padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
 .application .card .cv-create__ai-title { margin: 0; font: 700 16px/22px var(--font-sans); color: var(--text-strong); }

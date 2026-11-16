@@ -97,7 +97,7 @@ test("a mark or colour the panel does not offer is refused", () => {
 test("the photo can be chosen only with a photo and a design that shows one", () => {
   assert.deepEqual(L.photoChoice(L.start(LOOKED)), { available: true, checked: true, reason: null });
   assert.deepEqual(L.photoChoice(L.choose(L.start(LOOKED), "einspaltig")),
-                   { available: false, checked: true, reason: "lebenslauf.foto-einspaltig" });
+                   { available: false, checked: false, reason: "lebenslauf.foto-einspaltig" });
   const without = L.start({ ...LOOKED, aussehen_angebot: { ...LOOKED.aussehen_angebot, foto_vorhanden: false } });
   assert.deepEqual(L.photoChoice(without), { available: false, checked: false, reason: "lebenslauf.foto-fehlt" });
 });
@@ -113,12 +113,35 @@ test("the marks say why one cannot be chosen: two letters for Verschränkt, a lo
   assert.equal(withLogo.find(m => m.id === "logo").locked, null);
 });
 
-test("the colours are the design's own and the checked swatches of the dossier", () => {
+test("a blocked «Mit Foto» shows no tick, and the choice comes back with Zweispaltig", () => {
+  const single = L.choose(L.start(LOOKED), "einspaltig");
+  assert.equal(L.photoChoice(single).checked, false);
+  assert.equal(single.look.foto, true, "the choice itself stays");
+  assert.equal(L.photoChoice(L.choose(single, "zweispaltig")).checked, true);
+});
+
+test("the colours are the design's own, named by its swatch, and the other swatches of the dossier", () => {
   const colours = L.accentChoices(L.start(LOOKED));
-  assert.deepEqual(colours[0], { id: "passend", name: "lebenslauf.farbe-passend", colour: "#38495d" });
-  assert.equal(L.accentChoices(L.choose(L.start(LOOKED), "einspaltig"))[0].colour, "#2f5d4a");
-  assert.deepEqual(colours.slice(1).map(c => c.name),
-                   ["Schieferblau", "Weinrot", "Tannengrün", "Petrol", "Aubergine", "Bronze", "Graphit"]);
+  assert.deepEqual(colours[0], { id: "passend", name: "lebenslauf.farbe-passend", colour: "#38495d", note: "Schieferblau" });
+  assert.deepEqual(colours.slice(1).map(c => c.name), ["Weinrot", "Tannengrün", "Petrol", "Aubergine", "Bronze", "Graphit"]);
+  const single = L.accentChoices(L.choose(L.start(LOOKED), "einspaltig"));
+  assert.deepEqual(single[0], { id: "passend", name: "lebenslauf.farbe-passend", colour: "#2f5d4a", note: "Tannengrün" });
+  assert.deepEqual(single.slice(1).map(c => c.name), ["Schieferblau", "Weinrot", "Petrol", "Aubergine", "Bronze", "Graphit"]);
+});
+
+test("a colour that is now the design's own becomes «Passend zum Design», on start and on a new design", () => {
+  const stored = L.start({ ...LOOKED, aussehen: { foto: true, zeichen: "passend", akzent: "#38495d" } });
+  assert.equal(stored.look.akzent, "passend");
+  const green = L.setLook(L.start(LOOKED), { akzent: "#2f5d50" });
+  assert.equal(L.choose(green, "einspaltig").look.akzent, "passend");
+  assert.equal(L.choose(L.setLook(L.start(LOOKED), { akzent: "#7a2e3a" }), "einspaltig").look.akzent, "#7a2e3a");
+});
+
+test("each mark of initials has its sentence; none and the logo have none", () => {
+  const notes = Object.fromEntries(L.markChoices(L.start(LOOKED)).map(m => [m.id, m.note]));
+  assert.deepEqual(notes, { passend: null, ring: "Initialen im Ring", block: "Initialen in einer Fläche",
+                            verschraenkt: "Zwei Buchstaben ineinander", linie: "Initialen auf einer Linie",
+                            punkt: "Punkt vor den Initialen", logo: null });
 });
 
 test("a stored mark that cannot be drawn any more starts as none", () => {
@@ -127,10 +150,11 @@ test("a stored mark that cannot be drawn any more starts as none", () => {
 });
 
 test("the line beside the button names mark and colour", () => {
-  const say = key => ({ "lebenslauf.zeichen-ohne": "Ohne Zeichen", "lebenslauf.farbe-passend": "Passend zum Design" })[key] || key;
-  assert.equal(L.lookLine(L.start(LOOKED), say), "Ohne Zeichen, Farbe: Passend zum Design");
+  const say = key => ({ "lebenslauf.zeichen-ohne": "Ohne Zeichen", "lebenslauf.farbe-passend-zeile": "passend zum Design" })[key] || key;
+  assert.deepEqual(L.lookParts(L.start(LOOKED), say), ["Ohne Zeichen", "Farbe: passend zum Design"]);
+  assert.equal(L.lookLine(L.start(LOOKED), say), "Ohne Zeichen · Farbe: passend zum Design");
   assert.equal(L.lookLine(L.setLook(L.setLook(L.start(LOOKED), { zeichen: "ring" }), { akzent: "#7a2e3a" }), say),
-               "Zeichen: Ring, Farbe: Weinrot");
+               "Zeichen: Ring · Farbe: Weinrot");
 });
 
 test("the message after saving says whether the PDF is there", () => {

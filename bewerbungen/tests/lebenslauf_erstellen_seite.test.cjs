@@ -502,8 +502,68 @@ test("the panel shows «Mit Foto» as given and names mark and colour beside the
   assert.equal($("cv-erstellen-look").hidden, false);
   assert.equal($("cv-erstellen-foto").checked, true);
   assert.equal($("cv-erstellen-foto").disabled, false);
-  assert.equal($("cv-erstellen-farbe-stand").textContent, "Ohne Zeichen, Farbe: Passend zum Design");
+  assert.equal(spoken($("cv-erstellen-farbe-stand")), "Ohne Zeichen, Farbe: passend zum Design");
+  assert.equal(seen($("cv-erstellen-farbe-stand")), "Ohne Zeichen · Farbe: passend zum Design");
   assert.equal($("cv-erstellen-farbe").hidden, true);
+});
+
+/** What the eye sees: without visually hidden text. What a screen reader hears: without aria-hidden text. */
+const seen = node => (node.className === "visually-hidden" ? "" : node.children
+  ? node.children.map(seen).join("") : node.textContent);
+const spoken = node => (node.getAttribute?.("aria-hidden") === "true" ? "" : node.children
+  ? node.children.map(spoken).join("") : node.textContent);
+const option = (box, value) => box.querySelectorAll("input").find(input => input.getAttribute("value") === value);
+const label = input => input.parent;
+
+test("each mark of initials has its sentence below, linked to its radio; a locked one has its reason below that", async () => {
+  const { $ } = await opened({ form: LOOKED });
+  $("cv-erstellen-farbe-oeffnen").click();
+  const byId = $;
+
+  const ring = option($("cv-erstellen-zeichen"), "ring");
+  assert.equal(ring.getAttribute("aria-describedby"), "cv-erstellen-zeichen-ring-satz");
+  assert.equal(byId("cv-erstellen-zeichen-ring-satz").textContent, "Initialen im Ring");
+  assert.equal(byId("cv-erstellen-zeichen-ring-satz").className, "cv-create__mark-note");
+  assert.equal(option($("cv-erstellen-zeichen"), "passend").getAttribute("aria-describedby"), null);
+  const logo = option($("cv-erstellen-zeichen"), "logo");
+  assert.equal(logo.getAttribute("aria-describedby"), "cv-erstellen-zeichen-logo-grund");
+  assert.equal(label(logo).querySelectorAll("span").some(span => span.className === "cv-create__mark-note"), false);
+});
+
+test("«Passend zum Design» spans the row, names the swatch it is, and that swatch is not offered twice", async () => {
+  const { $ } = await opened({ form: LOOKED });
+  $("cv-erstellen-farbe-oeffnen").click();
+
+  const inputs = $("cv-erstellen-akzent").querySelectorAll("input");
+  assert.equal(inputs.length, 7);
+  assert.equal(option($("cv-erstellen-akzent"), "#38495d"), undefined, "Schieferblau is the design's own");
+  const fitting = option($("cv-erstellen-akzent"), "passend");
+  assert.match(label(fitting).className, /mark-swatch--wide/);
+  assert.equal(fitting.getAttribute("aria-describedby"), "cv-erstellen-akzent-passend-farbe");
+  assert.equal($("cv-erstellen-akzent-passend-farbe").textContent, "Schieferblau");
+  const css = fs.readFileSync(path.join(SEITEN, "stil.css"), "utf8");
+  assert.match(css, /\.mark-swatch--wide \{[^}]*grid-column: 1 \/ -1/);
+  assert.match(css, /\.cv-create__mark \.mark-swatch__chip rect \{[^}]*stroke: var\(--line-strong\)/);
+});
+
+test("a blocked «Mit Foto» shows no tick, and back with Zweispaltig the tick returns", async () => {
+  const { $ } = await opened({ form: LOOKED });
+  const design = value => $("cv-erstellen-designs").querySelectorAll("input").find(i => i.getAttribute("value") === value);
+
+  design("einspaltig").dispatch("change");
+  assert.equal($("cv-erstellen-foto").checked, false);
+  design("zweispaltig").dispatch("change");
+  assert.equal($("cv-erstellen-foto").checked, true);
+});
+
+test("the panel says the dossier rule once, in the hint below Aussehen", () => {
+  const html = fs.readFileSync(path.join(SEITEN, "bewerbung.html"), "utf8");
+  assert.doesNotMatch(html, /lebenslauf\.dossier-farbe/);
+  assert.throws(() => text("lebenslauf.dossier-farbe"), /Unbekannter Text/);
+  const hint = "Gilt nur für diese Bewerbung. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier.";
+  assert.equal(text("lebenslauf.aussehen-hinweis"), hint);
+  assert.equal(text("lebenslauf.aussehen-hinweis", "stelle-du"), hint);
+  assert.match(html, /<p class="field__hint" data-text="lebenslauf.aussehen-hinweis">Gilt nur für diese Bewerbung\. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier\.<\/p>/);
 });
 
 test("without a look in the answer the controls stay away and the request is as before", async () => {
@@ -524,7 +584,7 @@ test("«Farbe und Zeichen ändern» opens marks and colours, says so, and puts t
   assert.deepEqual(marks.map(input => input.getAttribute("value")),
                    ["passend", "ring", "block", "verschraenkt", "linie", "punkt", "logo"]);
   assert.equal(marks.find(input => input.getAttribute("value") === "logo").disabled, true);
-  assert.equal($("cv-erstellen-akzent").querySelectorAll("input").length, 8);
+  assert.equal($("cv-erstellen-akzent").querySelectorAll("input").length, 7);
   assert.equal(doc.activeElement, marks[0]);
   $("cv-erstellen-farbe-oeffnen").click();
   assert.equal($("cv-erstellen-farbe").hidden, true);
@@ -545,7 +605,7 @@ test("photo, mark and colour each hand a new draft to the preview and keep the f
   assert.equal(doc.activeElement.id, "cv-erstellen-zeichen-ring", "the focus stays on the mark just chosen");
   $("cv-erstellen-akzent").querySelectorAll("input").find(input => input.getAttribute("value") === "#7a2e3a").dispatch("change");
   assert.deepEqual(drafts(calls).at(-1).body.aussehen, { foto: false, zeichen: "ring", akzent: "#7a2e3a" });
-  assert.equal($("cv-erstellen-farbe-stand").textContent, "Zeichen: Ring, Farbe: Weinrot");
+  assert.equal(seen($("cv-erstellen-farbe-stand")), "Zeichen: Ring · Farbe: Weinrot");
 });
 
 test("with Einspaltig «Mit Foto» cannot be ticked and says why", async () => {

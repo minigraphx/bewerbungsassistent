@@ -308,7 +308,7 @@ test("after creating, the page waits for the check and moves the focus", () => {
 
 test("the hint in «Lebenslauf für diese Stelle» and the dossier sentence in «Aussehen des Lebenslaufs» name «Dossier gestalten»", () => {
   const html = lies("bewerbung.html");
-  assert.match(html, /Gilt nur für diese Bewerbung\. Ein Dossier hat sein eigenes Design, unter «Dossier gestalten»\./);
+  assert.match(html, /Gilt nur für diese Bewerbung\. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier\./);
   assert.doesNotMatch(html, /Unterlagen prüfen/);
   assert.match(lies("dateien.html"), /Ein Dossier hat sein eigenes Design, gewählt in der Bewerbung unter «Dossier gestalten»\./);
 });

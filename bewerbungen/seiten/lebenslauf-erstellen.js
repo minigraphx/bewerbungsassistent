@@ -78,7 +78,10 @@
     const rect = document.createElementNS(SVG, "rect");
     for (const [name, value] of Object.entries({ viewBox: "0 0 40 40", class: "mark-swatch__chip", "aria-hidden": "true",
                                                  focusable: "false" })) svg.setAttribute(name, value);
-    for (const [name, value] of Object.entries({ width: 40, height: 40, rx: 6, fill: colour })) rect.setAttribute(name, value);
+    // Inset by half the outline, so the 1px stroke of stil.css is not cut at the edge
+    for (const [name, value] of Object.entries({ x: 0.5, y: 0.5, width: 39, height: 39, rx: 6, fill: colour })) {
+      rect.setAttribute(name, value);
+    }
     svg.append(rect);
     return svg;
   }
@@ -91,20 +94,30 @@
 
   function markOption(choice) {
     const id = `cv-erstellen-zeichen-${choice.id}`;
+    const note = choice.note ? el("span", { class: "cv-create__mark-note", id: `${id}-satz` }, choice.note) : null;
     const reason = choice.locked ? el("span", { class: "cv-create__mark-reason", id: `${id}-grund` }, word(choice.locked)) : null;
+    const described = [note, reason].filter(Boolean).map(part => part.id).join(" ");
     return el("label", { class: "check cv-create__mark-option", for: id },
       el("input", { type: "radio", name: "cv-erstellen-zeichen", id, value: choice.id, disabled: Boolean(choice.locked),
-                    checked: state.look.zeichen === choice.id, "aria-describedby": reason ? `${id}-grund` : null,
+                    checked: state.look.zeichen === choice.id, "aria-describedby": described || null,
                     onchange: () => changeLook({ zeichen: choice.id }) }),
-      el("span", {}, word(choice.name), reason));
+      el("span", {}, word(choice.name), note, reason));
   }
 
   function accentOption(choice) {
     const id = `cv-erstellen-akzent-${choice.id.replace("#", "")}`;
-    return el("label", { class: "mark-swatch", for: id },
+    const note = choice.note ? el("span", { class: "mark-swatch__more", id: `${id}-farbe` }, choice.note) : null;
+    return el("label", { class: note ? "mark-swatch mark-swatch--wide" : "mark-swatch", for: id },
       el("input", { type: "radio", name: "cv-erstellen-akzent", id, value: choice.id, checked: state.look.akzent === choice.id,
-                    onchange: () => changeLook({ akzent: choice.id }) }),
-      chip(choice.colour), el("span", {}, word(choice.name)));
+                    "aria-describedby": note ? note.id : null, onchange: () => changeLook({ akzent: choice.id }) }),
+      chip(choice.colour), el("span", {}, word(choice.name), note));
+  }
+
+  /** „Ohne Zeichen · Farbe: …“: screen readers skip the «·» and hear a comma; the no-break space keeps it on the line. */
+  function lookLine() {
+    const [mark, colour] = Logic.lookParts(state, word);
+    return [el("span", {}, mark), el("span", { "aria-hidden": "true" }, " · "),
+            el("span", { class: "visually-hidden" }, ", "), el("span", {}, colour)];
   }
 
   /** The photo box, the line beside the button and, while open, the marks and colours as the state has them. */
@@ -118,7 +131,7 @@
     $("cv-erstellen-foto").disabled = !photo.available;
     $("cv-erstellen-foto-grund").hidden = !photo.reason;
     $("cv-erstellen-foto-grund").textContent = photo.reason ? say(photo.reason) : "";
-    $("cv-erstellen-farbe-stand").textContent = Logic.lookLine(state, word);
+    $("cv-erstellen-farbe-stand").replaceChildren(...lookLine());
     if ($("cv-erstellen-farbe").hidden) return;
     const focused = document.activeElement?.id;
     $("cv-erstellen-zeichen").replaceChildren(...Logic.markChoices(state).map(markOption));

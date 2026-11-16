@@ -45,7 +45,8 @@
                     lookOffer: answer.aussehen_angebot || NO_OFFER };
     // A mark stored earlier that cannot be drawn any more (the logo is gone) starts as none
     const stored = state.look && markChoices(state).find(choice => choice.id === state.look.zeichen);
-    return state.look && (!stored || stored.locked) ? { ...state, look: { ...state.look, zeichen: FITTING } } : state;
+    const drawable = state.look && (!stored || stored.locked) ? { ...state, look: { ...state.look, zeichen: FITTING } } : state;
+    return withOfferedColour(drawable);
   }
 
   const changeSection = (sections, name, change) =>
@@ -163,28 +164,49 @@
     if (!DESIGNS.some(choice => choice.id === design)) {
       throw new Error(`Bitte ${DESIGNS.map(choice => choice.name).join(" oder ")} wählen.`);
     }
-    return { ...state, design };
+    return withOfferedColour({ ...state, design });
   }
 
   /**
-   * The marks to choose, each with the reason it cannot be chosen or null. `name` of „none“ and the logo, and the
-   * logo's reason, are keys of texte.js; the other names and reasons are the dossier's words.
+   * The marks to choose, each with its sentence (`note`, none for „none“ and the logo) and the reason it cannot be
+   * chosen or null. `name` of „none“ and the logo, and the logo's reason, are keys of texte.js; the other names,
+   * sentences and reasons are the dossier's words.
    */
   function markChoices(state) {
     const Z = marks();
     const initials = [...(state.lookOffer.initialen || "")];
     return [
-      { id: FITTING, name: "lebenslauf.zeichen-ohne", locked: null },
+      { id: FITTING, name: "lebenslauf.zeichen-ohne", note: null, locked: null },
       ...Z.VARIANTEN.filter(v => v.wert !== Z.PASSEND).map(v => ({
-        id: v.wert, name: v.name, locked: v.wert === "verschraenkt" && initials.length !== 2 ? Z.NUR_ZWEI : null })),
-      { id: LOGO, name: "lebenslauf.zeichen-logo", locked: state.lookOffer.logo ? null : "lebenslauf.logo-fehlt" },
+        id: v.wert, name: v.name, note: v.satz,
+        locked: v.wert === "verschraenkt" && initials.length !== 2 ? Z.NUR_ZWEI : null })),
+      { id: LOGO, name: "lebenslauf.zeichen-logo", note: null,
+        locked: state.lookOffer.logo ? null : "lebenslauf.logo-fehlt" },
     ];
   }
 
-  /** The colours: the design's own (its name a key of texte.js), then the checked swatches of the dossier. */
+  const rgb = hex => [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16));
+  const distance = (one, two) => rgb(one).reduce((sum, part, at) => sum + (part - rgb(two)[at]) ** 2, 0);
+
+  /** The dossier swatch the design's own colour is, or comes nearest to: offered once, as „Passend zum Design“. */
+  function ownSwatch(design) {
+    const own = OWN_COLOURS[design] || OWN_COLOURS.zweispaltig;
+    return marks().FARBEN.reduce((best, swatch) => (distance(swatch.farbe, own) < distance(best.farbe, own) ? swatch : best));
+  }
+
+  /** The colours: the design's own (its name a key of texte.js, `note` its swatch), then the other swatches. */
   function accentChoices(state) {
-    return [{ id: FITTING, name: "lebenslauf.farbe-passend", colour: OWN_COLOURS[state.design] || OWN_COLOURS.zweispaltig },
-            ...marks().FARBEN.map(swatch => ({ id: swatch.farbe, name: swatch.name, colour: swatch.farbe }))];
+    const own = ownSwatch(state.design);
+    return [{ id: FITTING, name: "lebenslauf.farbe-passend", colour: OWN_COLOURS[state.design] || OWN_COLOURS.zweispaltig,
+              note: own.name },
+            ...marks().FARBEN.filter(swatch => swatch !== own)
+              .map(swatch => ({ id: swatch.farbe, name: swatch.name, colour: swatch.farbe }))];
+  }
+
+  /** A colour the design now offers as its own (stored, or kept from the other design) becomes „Passend zum Design“. */
+  function withOfferedColour(state) {
+    if (!state.look || accentChoices(state).some(choice => choice.id === state.look.akzent)) return state;
+    return { ...state, look: { ...state.look, akzent: FITTING } };
   }
 
   /** Change one part of the look: {foto}, {zeichen} or {akzent}; what the panel does not offer is refused. */
@@ -201,22 +223,26 @@
     return { ...state, look: { ...state.look, ...change } };
   }
 
-  /** Whether „Mit Foto“ can be ticked, and if not, the key of texte.js that says why. */
+  /**
+   * Whether „Mit Foto“ can be ticked, and if not, the key of texte.js that says why. A blocked box shows no tick;
+   * the choice itself stays in the look, so it comes back with a design that shows a photo.
+   */
   function photoChoice(state) {
     if (!state.lookOffer.foto_vorhanden) return { available: false, checked: false, reason: "lebenslauf.foto-fehlt" };
-    const checked = Boolean(state.look && state.look.foto);
-    if (state.design === "einspaltig") return { available: false, checked, reason: "lebenslauf.foto-einspaltig" };
-    return { available: true, checked, reason: null };
+    if (state.design === "einspaltig") return { available: false, checked: false, reason: "lebenslauf.foto-einspaltig" };
+    return { available: true, checked: Boolean(state.look && state.look.foto), reason: null };
   }
 
-  /** The line beside „Farbe und Zeichen ändern“; `say` turns keys of texte.js into words. */
-  function lookLine(state, say) {
+  /** The two parts of the line beside „Farbe und Zeichen ändern“; `say` turns keys of texte.js into words. */
+  function lookParts(state, say) {
     const look = state.look || { zeichen: FITTING, akzent: FITTING };
     const markChoice = markChoices(state).find(choice => choice.id === look.zeichen) || markChoices(state)[0];
     const colour = accentChoices(state).find(choice => choice.id === look.akzent) || accentChoices(state)[0];
     const markPart = markChoice.id === FITTING ? say(markChoice.name) : `Zeichen: ${say(markChoice.name)}`;
-    return `${markPart}, Farbe: ${say(colour.name)}`;
+    return [markPart, `Farbe: ${colour.id === FITTING ? say("lebenslauf.farbe-passend-zeile") : say(colour.name)}`];
   }
+
+  const lookLine = (state, say) => lookParts(state, say).join(" · ");
 
   /** Body for POST /api/lebenslauf/erstellen; the texts come from the fields as they are when saving. */
   function request(state, { id, berufsbezeichnung, kurzprofil, bezeichnung }) {
@@ -235,7 +261,7 @@
 
   const logic = { DESIGNS, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
                   autoSuggest, APPLIED_LINE, aiOffer, costLine, estimateFailedText, suggestedText, recommendationText,
-                  markChoices, accentChoices, setLook, photoChoice, lookLine };
+                  markChoices, accentChoices, setLook, photoChoice, lookParts, lookLine };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufErstellenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);
