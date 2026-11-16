@@ -136,7 +136,7 @@
     }[gezeichnet];
   }
 
-  /** The sentence under the design choice: what counts now, and where to change it. */
+  /** The sentence under the design choice: what counts now, and where to change it; the parts of a «·» line (#342). */
   function satzUnterDesign(zustand, seiten, du = false) {
     const deckblatt = seiten.deckblatt;
     const gemischt = new Set(Object.values(seiten)).size > 1;
@@ -149,13 +149,13 @@
     if (gemischt) {
       if (farbe.quelle === PASSEND) akzent += `, passend zum Deckblatt in ${name}`;
     } else if (!eigenesZeichen && farbe.quelle === PASSEND) {
-      beides = ` · beides passend zu ${name}`;
+      beides = `beides passend zu ${name}`;
     } else if (!eigenesZeichen) {
       zeichen += `, passend zu ${name}`;
     } else if (farbe.quelle === PASSEND) {
       akzent += `, passend zu ${name}`;
     }
-    return `Zeichen: ${zeichen} · Akzentfarbe: ${akzent}${beides}`;
+    return [`Zeichen: ${zeichen}`, `Akzentfarbe: ${akzent}`, beides].filter(Boolean);
   }
 
   /** What a screen reader hears for the preview. */

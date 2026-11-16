@@ -118,10 +118,10 @@ window.SucheRahmen = (() => {
   function zeige(rahmen, lehrstelle, firmen = []) {
     stand = { werte: rahmen.werte || {}, laengen: rahmen.laengen || {}, alleKantone: rahmen.alle_kantone || [],
       alleRegionen: rahmen.alle_regionen || [], lehrstelle, firmen };
-    const proPortal = lehrstelle ? "" : L.proPortalText(rahmen.orte_pro_portal);
-    $("portale-orte-titel").hidden = !proPortal;
-    $("portale-orte-text").hidden = !proPortal;
-    $("portale-orte-text").textContent = proPortal;
+    const proPortal = lehrstelle ? [] : L.proPortalText(rahmen.orte_pro_portal);
+    $("portale-orte-titel").hidden = !proPortal.length;
+    $("portale-orte-text").hidden = !proPortal.length;
+    $("portale-orte-text").replaceChildren(...window.DotLine.render(proPortal, el));
   }
 
   for (const karte of KARTEN) {

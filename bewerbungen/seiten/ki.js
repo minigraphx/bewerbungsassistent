@@ -31,7 +31,8 @@
   }
 
   function fuss(ergebnis) {
-    return el("p", { class: "leise" }, `Modell ${ergebnis.model} · ${kosten(ergebnis.cost_usd)}`);
+    // a «·» line of whole parts (#342, dot-line.js)
+    return el("p", { class: "leise" }, window.DotLine.render([`Modell ${ergebnis.model}`, kosten(ergebnis.cost_usd)], el));
   }
 
   async function uebernimmNote(knopf, note) {

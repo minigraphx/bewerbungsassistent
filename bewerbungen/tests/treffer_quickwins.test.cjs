@@ -9,6 +9,8 @@ const vm = require("node:vm");
 const anzeige = require("../seiten/suche-anzeige.js");
 const logik = require("../seiten/treffer-logik.js");
 const texte = require("../seiten/texte.js");
+const DotLine = require("../seiten/dot-line.js");
+const { shown, heard, wholeParts, seenLine } = require("./dot_line_text.cjs");
 
 const SEITEN = path.join(__dirname, "..", "seiten");
 const ROOT = path.join(__dirname, "..");
@@ -67,6 +69,7 @@ function page({ liste = {}, uebernehmen = {}, erweiterung = true, hash = "" } = 
     TrefferLogik: logik,
     SuchlaufLogik: require("../seiten/suchlauf-logik.js"),
     SucheAnzeige: anzeige,
+    DotLine,
     Texte: texte,
     Meldungen: { zeige: (el, inhalt, stufe) => messages.push({ el, inhalt, stufe }), leere() {} },
     FirmenLogik: { nachTreffer: () => new Map() },
@@ -104,7 +107,11 @@ test("the settings sum themselves up in one line, and Ändern leads to Suche ein
   const p = page({ liste: { treffer: [] } });
   await settle();
   assert.equal(p.$("einstellen-zeile").hidden, false);
-  assert.equal(p.$("einstellen-text").textContent, "Sucht nach Data Engineer, Analyst · ganze Schweiz, nahe Bern zuerst · 4 Portale");
+  // #342: a «·» line of whole parts, so no line starts with «·»; a screen reader hears commas
+  const summary = ["Sucht nach Data Engineer, Analyst", "ganze Schweiz, nahe Bern zuerst", "4 Portale"];
+  assert.deepEqual(wholeParts(p.$("einstellen-text")), summary);
+  assert.equal(shown(p.$("einstellen-text")), seenLine(summary));
+  assert.equal(heard(p.$("einstellen-text")), summary.join(", "));
   assert.match(HTML, /id="einstellen-zeile"[^>]*hidden><span id="einstellen-text"><\/span> <a [^>]*id="einstellen-aendern" href="\/suche-einstellen">Ändern<\/a>/);
   assert.match(HTML, /<a class="btn" id="einstellen-knopf" href="\/suche-einstellen">Suche einstellen<\/a>/);
   assert.match(HTML, /<a class="btn" id="leer-einstellen" href="\/suche-einstellen">Suche einstellen<\/a>/);
@@ -131,13 +138,38 @@ test("the title filters read as one sentence on Suche einstellen (#263)", () => 
   assert.equal(anzeige.titelfilterText([], []), "");
 });
 
+/** The first element below `node` with `className` in its class, depth first. */
+function find(node, className) {
+  if (!node || typeof node !== "object") return null;
+  if (String((node.attrs || {}).class || "").split(" ").includes(className)) return node;
+  for (const child of (node.children || []).flat()) {
+    const found = find(child, className);
+    if (found) return found;
+  }
+  return null;
+}
+
+test("the hit row and the detail join their «·» lines as whole parts (#342)", async () => {
+  const hit = { ...HIT, ort: "Bern", pensum: "80–100%", alter_tage: 3, eigene_sterne: 2 };
+  const p = page({ liste: { treffer: [hit] } });
+  await settle();
+  const row = p.$("liste").children[0];
+  assert.deepEqual(wholeParts(find(row, "hit__where")), ["Muster AG", "Bern", "80–100%"]);
+  assert.deepEqual(wholeParts(find(row, "hit__meta")), ["jobs.ch", "2026-11-01", "Eigene: ★★"]);
+  assert.equal(heard(find(row, "hit__meta")), "jobs.ch, 2026-11-01, Eigene: ★★");
+  row.fire("click");
+  const head = find(p.$("detail").children[0], "search__detail-head");
+  assert.deepEqual(wholeParts(head.children[1]), ["Muster AG, Bern", "80–100%"]);
+  assert.deepEqual(wholeParts(find(head, "search__hint")), ["Inserat auf jobs.ch öffnen", "gefunden 2026-11-01", "3 Tage online"]);
+});
+
 test("the summary names cantons, a radius for apprenticeships, a missing term and caps a long list", () => {
-  assert.equal(anzeige.zusammenfassung({ begriffe: ["A"], region: { kantone: ["BE", "SO"], orte: ["Bern"] }, portale: 1 }),
-    "Sucht nach A · Kantone BE und SO · 1 Portal");
-  assert.equal(anzeige.zusammenfassung({ begriffe: ["Koch EFZ"], region: { orte: ["Thun"], umkreis_km: 25 }, portale: 2, lehrstelle: true }),
-    "Sucht nach Koch EFZ · 25 km um Thun · 2 Portale");
-  assert.equal(anzeige.zusammenfassung({ begriffe: [], region: null, portale: 4 }), "Noch keine Suchbegriffe · 4 Portale");
-  assert.equal(anzeige.zusammenfassung({ begriffe: ["A", "B", "C", "D", "E"], portale: 4 }), "Sucht nach A, B, C und 2 weiteren · 4 Portale");
+  assert.deepEqual(anzeige.zusammenfassung({ begriffe: ["A"], region: { kantone: ["BE", "SO"], orte: ["Bern"] }, portale: 1 }),
+    ["Sucht nach A", "Kantone BE und SO", "1 Portal"]);
+  assert.deepEqual(anzeige.zusammenfassung({ begriffe: ["Koch EFZ"], region: { orte: ["Thun"], umkreis_km: 25 }, portale: 2, lehrstelle: true }),
+    ["Sucht nach Koch EFZ", "25 km um Thun", "2 Portale"]);
+  assert.deepEqual(anzeige.zusammenfassung({ begriffe: [], region: null, portale: 4 }), ["Noch keine Suchbegriffe", "4 Portale"]);
+  assert.deepEqual(anzeige.zusammenfassung({ begriffe: ["A", "B", "C", "D", "E"], portale: 4 }), ["Sucht nach A, B, C und 2 weiteren", "4 Portale"]);
 });
 
 test("the reason a disabled Jetzt suchen is disabled stands directly under it", async () => {
@@ -185,7 +217,7 @@ test("before the first search the list says Noch nicht gesucht, not Keine neuen 
   await settle();
   assert.equal(p.$("leer-titel").textContent, "Noch nicht gesucht.");
   assert.equal(p.$("leer-text").textContent, "Die erste Suche dauert einige Minuten.");
-  assert.notEqual(p.$("letzte").textContent, "Noch keine Suche.");
+  assert.notEqual(shown(p.$("letzte")), "Noch keine Suche.");
 
   const danach = page({ liste: { treffer: [], letzte_suche: { datum: "2026-11-01", portale: { "jobs.ch": {} } } } });
   await settle();
@@ -195,8 +227,8 @@ test("before the first search the list says Noch nicht gesucht, not Keine neuen 
 test("Noch keine Suche never shows when hits exist", async () => {
   const p = page({ liste: { treffer: [HIT], letzte_suche: null } });
   await settle();
-  assert.equal(p.$("letzte").textContent, "1 Treffer, 1 neu");
-  assert.equal(anzeige.letzteSuche(null, [HIT], String).includes("Noch keine Suche"), false);
+  assert.equal(shown(p.$("letzte")), "1 Treffer, 1 neu");
+  assert.deepEqual(anzeige.letzteSuche(null, [HIT], String), ["1 Treffer, 1 neu"]);
 });
 
 test("Übernehmen becomes Merken, and the message reads Gemerkt. with a link to the new application", async () => {
@@ -240,8 +272,9 @@ test("Einstieg abschliessen becomes Meine Angaben abschliessen", () => {
 
 test("the last search names its day, and a catching up portal says from when (#208)", () => {
   const lauf = { datum: "2026-11-09", portale: { "job-room": {}, "jobs.ch": {}, jobscout24: {} } };
-  assert.equal(anzeige.letzteSuche(lauf, [HIT], String, "gestern"), "Letzte Suche gestern · 3 Portale · 1 Treffer, 1 neu");
-  assert.equal(anzeige.letzteSuche(lauf, [HIT], d => `x${d}`), "Letzte Suche am x2026-11-09 · 3 Portale · 1 Treffer, 1 neu");
+  assert.deepEqual(anzeige.letzteSuche(lauf, [HIT], String, "gestern"), ["Letzte Suche gestern", "3 Portale", "1 Treffer, 1 neu"]);
+  assert.deepEqual(anzeige.letzteSuche(lauf, [HIT], d => `x${d}`), ["Letzte Suche am x2026-11-09", "3 Portale", "1 Treffer, 1 neu"]);
+  assert.deepEqual(anzeige.letzteSuche(null, [], String), [], "nothing to say before the first search");
   assert.equal(anzeige.problemZeile("Seite verändert.", "Sobald die Suche dort wieder geht, holt sie die Inserate ab 06.11.2026 nach."),
     "Seite verändert. Sobald die Suche dort wieder geht, holt sie die Inserate ab 06.11.2026 nach.");
   assert.equal(anzeige.problemZeile("Seite verändert."), "Seite verändert.");
@@ -251,12 +284,12 @@ test("the window choices keep a value of the profile, and each portal reads as a
   assert.deepEqual(anzeige.zeitfensterWahl(21).map(w => w.text),
     ["7 Tage", "14 Tage", "21 Tage (Vorgabe)", "30 Tage", "45 Tage", "60 Tage"]);
   assert.deepEqual(anzeige.zeitfensterWahl(10).map(w => w.wert), [7, 10, 14, 21, 30, 45, 60]);
-  assert.equal(anzeige.portalStand({ portal: "job-room", zuletzt: "gestern", ab: "09.11.2026", problem: false }),
-    "job-room: zuletzt gestern · nächste Suche ab 09.11.2026");
-  assert.equal(anzeige.portalStand({ portal: "jobs.ch", zuletzt: "am 06.11.2026", ab: "06.11.2026", problem: true }),
-    "jobs.ch: Problem bei der letzten Suche · nächste Suche ab 06.11.2026");
-  assert.equal(anzeige.portalStand({ portal: "ictjobs", zuletzt: "", ab: "21.10.2026", problem: false }),
-    "ictjobs: noch nie gesucht · nächste Suche ab 21.10.2026");
+  assert.deepEqual(anzeige.portalStand({ portal: "job-room", zuletzt: "gestern", ab: "09.11.2026", problem: false }),
+    ["job-room: zuletzt gestern", "nächste Suche ab 09.11.2026"]);
+  assert.deepEqual(anzeige.portalStand({ portal: "jobs.ch", zuletzt: "am 06.11.2026", ab: "06.11.2026", problem: true }),
+    ["jobs.ch: Problem bei der letzten Suche", "nächste Suche ab 06.11.2026"]);
+  assert.deepEqual(anzeige.portalStand({ portal: "ictjobs", zuletzt: "", ab: "21.10.2026", problem: false }),
+    ["ictjobs: noch nie gesucht", "nächste Suche ab 21.10.2026"]);
 });
 
 test("the second line shows only with a sentence, the link only when it helps (#208)", async () => {
@@ -266,7 +299,7 @@ test("the second line shows only with a sentence, the link only when it helps (#
   assert.equal(p.$("zeitraum").hidden, false);
   assert.equal(p.$("zeitraum-text").textContent, "Die nächste Suche nimmt nur die letzten 14 Tage, ab 28.10.2026.");
   assert.equal(p.$("zeitraum-aendern").hidden, false);
-  assert.match(p.$("letzte").textContent, /^Letzte Suche am 24\.10\.2026/);
+  assert.match(shown(p.$("letzte")), /^Letzte Suche am 24\.10\.2026/);
   const ruhig = page({ liste: { treffer: [HIT], letzte_suche: { datum: "2026-11-09", portale: { "jobs.ch": {} } },
     zeitraum: { letzte: "gestern", zeile: "", zeitfenster_aendern: false, nachholen: {} } } });
   await settle();

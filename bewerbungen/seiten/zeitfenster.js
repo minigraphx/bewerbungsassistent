@@ -16,7 +16,8 @@
       .map(wahl => el("option", { value: String(wahl.wert) }, wahl.text)));
     $("zeitfenster-tage").value = String(stand.zeitfenster);
     $("zeitfenster-portale-teil").hidden = !stand.portale.length;
-    $("zeitfenster-portale").replaceChildren(...stand.portale.map(zeile => el("li", {}, anzeige.portalStand(zeile))));
+    $("zeitfenster-portale").replaceChildren(...stand.portale.map(zeile =>
+      el("li", {}, window.DotLine.render(anzeige.portalStand(zeile), el))));
   }
 
   async function speichere() {

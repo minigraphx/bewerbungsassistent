@@ -182,7 +182,7 @@
       case "rav": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen im Job-Room eintragen`, zusatz: "fürs RAV" } : { titel: "Im Job-Room eintragen", zusatz: "fürs RAV" };
       case "gespraech": return schritt.frist ? { titel: t("bewerbung.gespraech"), zusatz: datum(schritt.frist) }
         : { titel: t("heute.gespraech.termin"), zusatz: "" };
-      case "entscheiden": return anzahl > 1 ? { titel: PASS_TITLE, zusatz: t("heute.durchgang.unter", { anzahl }) } : { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
+      case "entscheiden": return anzahl > 1 ? { titel: PASS_TITLE, zusatz: t("heute.durchgang.unter") } : { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
       case "warten": return { titel: "Antwort abwarten", zusatz: schritt.zusatz ? `nachfragen ab ${datum(schritt.zusatz)}` : "" };
       default: return { titel: "", zusatz: "" };
     }

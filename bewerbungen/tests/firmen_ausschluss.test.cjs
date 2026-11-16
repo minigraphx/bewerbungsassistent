@@ -8,6 +8,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 const texte = require("../seiten/texte.js");
 const sidebarLogic = require("../seiten/sidebar-logic.js");
+const DotLine = require("../seiten/dot-line.js");
 
 const PAGES = path.join(__dirname, "..", "seiten");
 const read = name => fs.readFileSync(path.join(PAGES, name), "utf8");
@@ -60,7 +61,7 @@ class FakeEvent {
 
 function context(document, extra) {
   const window = {
-    App: {}, SidebarLogic: sidebarLogic, Texte: texte,
+    App: {}, SidebarLogic: sidebarLogic, Texte: texte, DotLine,
     addEventListener() {}, ...extra,
   };
   return vm.createContext({

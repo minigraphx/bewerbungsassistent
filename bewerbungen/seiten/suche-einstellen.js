@@ -79,9 +79,9 @@
       zeigeRahmen(daten, rahmen, lehrstelle, firmen.firmen);
       zeigeAblauf(daten);
       zeigePruefen(lehrstelle, nummer);
-      $("zusammenfassung").textContent = anzeige.zusammenfassung({
+      $("zusammenfassung").replaceChildren(...window.DotLine.render(anzeige.zusammenfassung({
         begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle,
-      });
+      }), el));
     } catch (fehler) {
       meldung(fehler.message, "fehler");
     }

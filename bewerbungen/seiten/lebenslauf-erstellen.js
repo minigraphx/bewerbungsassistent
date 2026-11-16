@@ -6,6 +6,8 @@
 // unticks to undo it as a whole. What goes to the AI: ai/cv_suggestions.py.
 (() => {
   const { holen, senden, el, status, url, kiEinrichten, textsatz } = window.App;
+  /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
   const Logic = window.LebenslaufErstellenLogik;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
@@ -54,11 +56,11 @@
     const { up, down } = Logic.canMove(state, section.name, station.index);
     const box = el("input", { type: "checkbox", checked: chosen, "data-key": `${section.name}-${station.index}`,
                               onchange: () => change(Logic.toggle(state, section.name, station.index)) });
-    const detail = [station.zusatz, station.zeit].filter(Boolean).join(" · ");
+    const detail = [station.zusatz, station.zeit].filter(Boolean);
     return el("li", { class: "cv-create__station" },
       el("label", { class: "check cv-create__pick" }, box,
         el("span", {}, el("span", { class: "cv-create__name" }, station.titel),
-          detail ? el("span", { class: "cv-create__detail" }, detail) : null)),
+          detail.length ? el("span", { class: "cv-create__detail" }, dotLine(detail)) : null)),
       el("span", { class: "cv-create__move" }, moveButton(section, station, -1, up), moveButton(section, station, 1, down)));
   }
 
@@ -113,12 +115,8 @@
       chip(choice.colour), el("span", {}, word(choice.name), note));
   }
 
-  /** „Ohne Zeichen · Farbe: …“: screen readers skip the «·» and hear a comma; the no-break space keeps it on the line. */
-  function lookLine() {
-    const [mark, colour] = Logic.lookParts(state, word);
-    return [el("span", {}, mark), el("span", { "aria-hidden": "true" }, " · "),
-            el("span", { class: "visually-hidden" }, ", "), el("span", {}, colour)];
-  }
+  /** „Ohne Zeichen · Farbe: …“ beside „Farbe und Zeichen ändern“. */
+  const lookLine = () => dotLine(Logic.lookParts(state, word));
 
   /** The photo box, the line beside the button and, while open, the marks and colours as the state has them. */
   function showLook() {

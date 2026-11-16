@@ -21,10 +21,11 @@
     for (const id of ["pass-bewerben", "pass-verwerfen", "pass-spaeter"]) $(id).disabled = busy;
   }
 
+  /** Company, grade and deadline as a «·» line of whole parts (#342, dot-line.js). */
   function meta(b) {
     const grade = typeof b.passung === "number" ? `Note ${window.Texte.notenText(b.passung)}` : "";
     const deadline = b.frist ? `Frist ${L.datum(b.frist)}` : "";
-    return [[b.firma, b.ort].filter(Boolean).join(", "), grade, deadline].filter(Boolean).join(" · ");
+    return window.DotLine.render([[b.firma, b.ort].filter(Boolean).join(", "), grade, deadline], el);
   }
 
   // The fetched ad, or why it is missing and how to get it (G37); the extension loads it at the start of the app.
@@ -45,7 +46,7 @@
     try {
       const { bewerbung: b, stellentext, text_fehlt: missing } = await holen("/api/bewerbung", { id });
       $("pass-titel").textContent = b.stelle || "ohne Titel";
-      $("pass-firma").textContent = meta(b);
+      $("pass-firma").replaceChildren(...meta(b));
       $("pass-inserat").replaceChildren(...adContent(b, stellentext, missing));
       setBusy(false);
     } catch (error) {

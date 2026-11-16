@@ -26,7 +26,8 @@ test("the question names how many hits and which ones, and what stays", () => {
     { id: "b", stelle: "Python Entwicklerin", firma: "", note: 4 },
   ] });
   assert.equal(frage.titel, "2 Treffer ab Note 4 merken?");
-  assert.deepEqual(frage.zeilen, ["Data Engineer, Muster Daten AG · Note 5.5", "Python Entwicklerin · Note 4"]);
+  // each row as the parts of a «·» line (#342)
+  assert.deepEqual(frage.zeilen, [["Data Engineer, Muster Daten AG", "Note 5.5"], ["Python Entwicklerin", "Note 4"]]);
   assert.match(frage.nachsatz, /ohne Note/);
   assert.equal(frage.ok, "2 Treffer merken");
   assert.equal(logik.bestaetigung({ note: 5, anzahl: 1, treffer: [{ stelle: "X", firma: "Y", note: 5 }] }).einleitung,

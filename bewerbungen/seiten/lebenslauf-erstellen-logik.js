@@ -218,7 +218,10 @@
     return { available: true, checked: Boolean(state.look && state.look.foto), reason: null };
   }
 
-  /** The two parts of the line beside „Farbe und Zeichen ändern“; `say` turns keys of texte.js into words. */
+  /**
+   * The two parts of the line beside „Farbe und Zeichen ändern“, joined by the page with dot-line.js (#342); `say`
+   * turns keys of texte.js into words.
+   */
   function lookParts(state, say) {
     const look = state.look || { zeichen: FITTING, akzent: FITTING };
     const markChoice = markChoices(state).find(choice => choice.id === look.zeichen) || markChoices(state)[0];
@@ -226,8 +229,6 @@
     const markPart = markChoice.id === FITTING ? say(markChoice.name) : `Zeichen: ${say(markChoice.name)}`;
     return [markPart, `Farbe: ${colour.id === FITTING ? say("lebenslauf.farbe-passend-zeile") : say(colour.name)}`];
   }
-
-  const lookLine = (state, say) => lookParts(state, say).join(" · ");
 
   /** Body for POST /api/lebenslauf/erstellen; the texts come from the fields as they are when saving. */
   function request(state, { id, berufsbezeichnung, kurzprofil, bezeichnung }) {
@@ -246,7 +247,7 @@
 
   const logic = { DESIGNS, NOTHING_CHOSEN, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
                   autoSuggest, APPLIED_LINE, aiOffer, suggestedText, recommendationText,
-                  markChoices, accentChoices, setLook, photoChoice, lookParts, lookLine };
+                  markChoices, accentChoices, setLook, photoChoice, lookParts };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufErstellenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

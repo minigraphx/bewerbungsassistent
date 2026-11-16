@@ -108,10 +108,14 @@
       lehrstelle: "Lehrstellen dieser Lehrbetriebe zeigt die Suche nicht mehr. Mit oder ohne AG oder GmbH, gross oder klein: Die App erkennt den Lehrbetrieb.",
     },
     "firmen.alle": { sie: "Alle Firmen", du: "Alle Firmen", lehrstelle: "Alle Lehrbetriebe" },
+    // the first two parts of the «·» line under the title on Firmen (#342)
     "firmen.zeile": {
-      sie: "{anzahl} Firmen aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",
-      du: "{anzahl} Firmen aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",
-      lehrstelle: "{anzahl} Lehrbetriebe aus Treffern und Bewerbungen · {gefunden} bei kununu gefunden",
+      sie: "{anzahl} Firmen aus Treffern und Bewerbungen",
+      du: "{anzahl} Firmen aus Treffern und Bewerbungen",
+      lehrstelle: "{anzahl} Lehrbetriebe aus Treffern und Bewerbungen",
+    },
+    "firmen.zeile.gefunden": {
+      sie: "{gefunden} bei kununu gefunden", du: "{gefunden} bei kununu gefunden", lehrstelle: "{gefunden} bei kununu gefunden",
     },
     "firmen.nur-name": {
       sie: "Prüfen öffnet die Firma bei kununu in einem neuen Tab. Nur der Firmenname geht an kununu. Ihre Angaben bleiben auf diesem Computer.",
@@ -488,10 +492,14 @@
     },
     "heute.stand": { sie: "Ihr Stand", du: "Dein Stand" },
     "heute.stand.neu": { sie: "Neue Stellen", du: "Neue Stellen", lehrstelle: "Neue Lehrstellen" },
+    // the two parts of the «·» line of a pass through the saved jobs (#342)
+    "heute.durchgang.anzahl": {
+      sie: "{anzahl} gemerkte Stellen", du: "{anzahl} gemerkte Stellen", lehrstelle: "{anzahl} gemerkte Lehrstellen",
+    },
     "heute.durchgang.unter": {
-      sie: "{anzahl} gemerkte Stellen · bewerben oder verwerfen, eine nach der anderen",
-      du: "{anzahl} gemerkte Stellen · bewerben oder verwerfen, eine nach der anderen",
-      lehrstelle: "{anzahl} gemerkte Lehrstellen · bewerben oder verwerfen, eine nach der anderen",
+      sie: "bewerben oder verwerfen, eine nach der anderen",
+      du: "bewerben oder verwerfen, eine nach der anderen",
+      lehrstelle: "bewerben oder verwerfen, eine nach der anderen",
     },
     "heute.rav": {
       sie: "Noch nicht im Job-Room eingetragen: {anzahl} vom {monat}. Das RAV erhält die Einträge bis zum {frist}.",
