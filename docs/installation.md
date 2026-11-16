@@ -23,6 +23,7 @@ Du suchst eine Lehrstelle? Eingerichtet wird die App für dich von einer erwachs
   - [Lebenslauf für eine Stelle erstellen](#lebenslauf-für-eine-stelle-erstellen)
   - [Suchbegriffe prüfen](#suchbegriffe-prüfen)
   - [Ein Wort aus verworfenen Stellen ausschliessen](#ein-wort-aus-verworfenen-stellen-ausschliessen)
+  - [Gründe aus verworfenen Stellen von der KI](#gründe-aus-verworfenen-stellen-von-der-ki)
   - [Einen Punkt der Einschätzung ausschliessen](#einen-punkt-der-einschätzung-ausschliessen)
   - [Firmen und kununu](#firmen-und-kununu)
   - [Fertige Dateien verwenden](#fertige-dateien-verwenden)
@@ -241,6 +242,12 @@ Nach dem Übernehmen holt **Rückgängig machen** den Stand davor zurück, solan
 ### Ein Wort aus verworfenen Stellen ausschliessen
 
 Haben mindestens drei Stellen, die Sie verworfen haben, dasselbe Wort im Titel, schlägt **Suche einstellen** unter **Was Sie nicht sehen wollen** vor, es auszuschliessen, etwa: **Aus den Stellen, die Sie verworfen haben: 3 haben «Aussendienst» im Titel.** Darunter steht, wie viele Stellen, die Sie nicht verworfen haben, das Wort auch im Titel haben. Das zählt die App selbst, ohne KI und ohne Kosten. Wörter aus **Titel, die passen** schlägt sie nie vor. **«Aussendienst» nicht mehr zeigen** setzt das Wort unter **Im Titel**; das gilt ab der nächsten Suche, und der frühere Stand bleibt als Entwurf erhalten. **Die 3 Stellen ansehen** zeigt genau diese Stellen auf **Stellen**. **Nicht jetzt** legt den Vorschlag beiseite, bis weitere verworfene Stellen das Wort haben. Ohne einen dieser Klicks ändert sich nichts. Das gibt es nur bei der Stellensuche.
+
+### Gründe aus verworfenen Stellen von der KI
+
+Unter **Was Sie nicht sehen wollen** auf **Suche einstellen** steht **Gründe aus verworfenen Stellen**. Ab drei verworfenen Stellen bittet **Gründe vorschlagen lassen** die KI, Gründe zu finden, die mehrere davon teilen, etwa das Pensum, den Arbeitsort, ein Wort im Titel oder ein Gebiet wie «Detailhandel». Daneben steht, was das etwa kostet und, mit einem Einladungscode, was danach im Guthaben bleibt. Die KI bekommt nur Titel, Firma, Ort und Pensum der verworfenen Stellen: keinen Lebenslauf, kein Suchprofil, nichts über Sie. Unter **Was geht an die KI?** zeigt **Text ansehen** genau den Text, der geschickt würde, ohne ihn zu senden. Gezählt werden nur verworfene Stellen, die das Suchprofil noch nicht ausschliesst: Stellen, deren Titel ein Wort unter **Im Titel** hat, zählen nicht mit. Mit weniger als drei solchen Stellen steht dort nur, ab wann es geht; dann geht nichts an die KI. Nach einem Lauf heisst der Knopf **Neu vorschlagen lassen**.
+
+Jeder Vorschlag nennt den Ausschluss, wohin er kommt (**Im Titel** oder **Im Inserat**), den Grund und die verworfenen Stellen, auf die er sich stützt, etwa **Aus 3 verworfenen Stellen:** mit Titel, Firma, Ort und Pensum. Die App zeigt nur Vorschläge, die sich auf mindestens zwei Ihrer verworfenen Stellen stützen, und keine, die schon ausgeschlossen sind oder Wörter aus **Titel, die passen** treffen. **Übernehmen** trägt den Ausschluss ein; der frühere Stand bleibt als Entwurf erhalten. **Im Titel** gilt ab der nächsten Suche, **Im Inserat** ab der nächsten Einschätzung. **Rückgängig** im Vorschlag nimmt genau diesen Eintrag wieder heraus. Tragen Sie denselben Ausschluss anderswo ein oder nehmen ihn heraus, etwa mit **Ändern**, zeigt der Vorschlag das gleich an. Bis Sie auf **Übernehmen** klicken, bleibt das Suchprofil, wie es ist. Ist die KI noch nicht eingerichtet, öffnet sich **KI einrichten**; ist das Guthaben des Einladungscodes aufgebraucht, sagt die Meldung, wo Sie einen neuen Code anfordern. Das gibt es nur bei der Stellensuche.
 
 ### Einen Punkt der Einschätzung ausschliessen
 

@@ -52,6 +52,27 @@
       sie: "Aus den Stellen, die Sie verworfen haben: {anzahl} haben «{wort}» im Titel.",
       du: "Aus den Stellen, die du verworfen hast: {anzahl} haben «{wort}» im Titel.",
     },
+    // Exclusion reasons from dismissed hits by the AI (#319, G86); jobs only
+    "einstellen.ki-ausschluesse": {
+      sie: "Die KI sucht in den {anzahl} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst, nach gemeinsamen Gründen, etwa Pensum, Branche, Arbeitsort oder Wörter im Titel. Ins Suchprofil kommt nur, was Sie übernehmen.",
+      du: "Die KI sucht in den {anzahl} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst, nach gemeinsamen Gründen, etwa Pensum, Branche, Arbeitsort oder Wörter im Titel. Ins Suchprofil kommt nur, was du übernimmst.",
+    },
+    "einstellen.ki-ausschluesse-rest": {
+      sie: "Die Vorschläge unten können Sie weiter übernehmen oder zurücknehmen. Neue gibt es wieder ab {mindestens} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst.",
+      du: "Die Vorschläge unten kannst du weiter übernehmen oder zurücknehmen. Neue gibt es wieder ab {mindestens} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst.",
+    },
+    "einstellen.ki-ausschluesse-was": {
+      sie: "Nur Titel, Firma, Ort und Pensum der verworfenen Stellen. Kein Lebenslauf, kein Suchprofil, nichts über Sie.",
+      du: "Nur Titel, Firma, Ort und Pensum der verworfenen Stellen. Kein Lebenslauf, kein Suchprofil, nichts über dich.",
+    },
+    "einstellen.ki-ausschluesse-leer": {
+      sie: "Ab {mindestens} verworfenen Stellen kann die KI hier vorschlagen, was Sie künftig nicht mehr sehen wollen.",
+      du: "Ab {mindestens} verworfenen Stellen kann die KI hier vorschlagen, was du künftig nicht mehr sehen willst.",
+    },
+    "einstellen.ki-ausschluesse-fertig": {
+      sie: "Am Suchprofil ändert sich erst etwas, wenn Sie {welchen} übernehmen.",
+      du: "Am Suchprofil ändert sich erst etwas, wenn du {welchen} übernimmst.",
+    },
     "einstellen.ohne-schluessel": {
       sie: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den tragen Sie in den Einstellungen ein.",
       du: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den trägst du in den Einstellungen ein.",
