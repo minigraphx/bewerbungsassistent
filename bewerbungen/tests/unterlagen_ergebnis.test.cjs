@@ -94,8 +94,9 @@ test("before creating the form shows as two tiles, the dossier as one line and t
   const html = lies("bewerbung.html");
   const step = html.slice(html.indexOf('id="s-pruefen"'), html.indexOf('id="s-abschicken"'));
   assert.equal((step.match(/<label class="form-tile">/g) || []).length, 2);
-  assert.match(step, /<button type="button" class="btn" id="dossier-gestalten" aria-expanded="false" aria-controls="dossier-gestalten-teil">Dossier gestalten<\/button>/);
-  assert.match(step, /<div class="dossier-panel" id="dossier-gestalten-teil" hidden>/);
+  // #322: «Dossier gestalten» opens a dialog; the step no longer carries the controls
+  assert.match(step, /<button type="button" class="btn" id="dossier-gestalten" aria-haspopup="dialog">Dossier gestalten<\/button>/);
+  assert.doesNotMatch(step, /dossier-gestalten-teil|dossier-panel/);
   assert.match(step, /<button type="button" class="btn btn--quiet" id="beilagen-aendern" aria-expanded="false" aria-controls="beilagen-liste">Beilagen ändern<\/button>/);
   assert.match(step, /<div class="attach-list" id="beilagen-liste" hidden>/);
   // the announcement is for screen readers; the collapsed summary already shows the count
@@ -108,7 +109,7 @@ test("before creating the form shows as two tiles, the dossier as one line and t
 
 /** A stand-in DOM for unterlagen-schritt.js: the elements it looks up by id, the ones it builds, focus and clicks. */
 function page() {
-  const state = { focused: null, scrolled: [] };
+  const state = { focused: null, scrolled: [], dialogOpenedFrom: [] };
   function node(tag, attrs = {}) {
     const handlers = {};
     const n = {
@@ -120,18 +121,21 @@ function page() {
       replaceChildren: (...items) => { n.children = items; },
       focus: () => { state.focused = n; },
       scrollIntoView: () => state.scrolled.push(n.attrs.id),
+      querySelector: () => n.children[0] || null,
       get firstElementChild() { return n.children[0] || null; },
     };
     return n;
   }
-  const ids = ["dossier-gestalten", "dossier-gestalten-teil", "beilagen-aendern", "beilagen-liste", "pdfs", "befunde",
+  const ids = ["dossier-gestalten", "beilagen-aendern", "beilagen-liste", "pdfs", "befunde",
     "befunde-ok", "befunde-ok-liste", "befunde-ok-titel", "befunde-ansage", "beilagen-zeile", "dossier-kurz",
-    "dossier-kurz-design", "s-lebenslauf", "f-variante", "s-anschreiben", "anschreiben-titel", "d-design"];
+    "dossier-kurz-design", "s-lebenslauf", "f-variante", "s-anschreiben", "anschreiben-titel", "unterlagen-wahl",
+    "form-zeile", "form-zeile-text", "form-dossier", "form-aendern"];
   const byId = Object.fromEntries(ids.map(id => [id, node("div", { id })]));
-  byId["dossier-gestalten"].attrs = { id: "dossier-gestalten", "aria-expanded": "false", "aria-controls": "dossier-gestalten-teil" };
   byId["beilagen-aendern"].attrs = { id: "beilagen-aendern", "aria-expanded": "false", "aria-controls": "beilagen-liste" };
-  byId["dossier-gestalten-teil"].hidden = true;
   byId["beilagen-liste"].hidden = true;
+  byId["form-zeile"].hidden = true;
+  const checkedTile = node("input", { type: "radio", value: "dossier" });
+  byId["unterlagen-wahl"].children = [checkedTile];
   const el = (tag, attrs = {}, ...kids) => {
     const n = node(tag, Object.fromEntries(Object.entries(attrs).filter(([k]) => !k.startsWith("on"))));
     if (attrs.onclick) n.addEventListener("click", attrs.onclick);
@@ -142,25 +146,31 @@ function page() {
     App: { el, url: (p, q) => `${p}?${new URLSearchParams(q)}` },
     UnterlagenErgebnis: R,
     UnterlagenWahl: require("../seiten/unterlagen-wahl.js"),
+    DossierDialog: { open: from => state.dialogOpenedFrom.push(from) },
   };
   vm.runInNewContext(lies("unterlagen-schritt.js"), { window, document: { getElementById: id => byId[id] } });
-  return { S: window.UnterlagenSchritt, byId, state };
+  return { S: window.UnterlagenSchritt, byId, state, checkedTile };
 }
 
 const all = (n, match) => (n && typeof n === "object" ? [...(match(n) ? [n] : []), ...n.children.flatMap(c => all(c, match))] : []);
 const textOf = n => (n && typeof n === "object" ? n.children.map(textOf).join("") : String(n ?? ""));
 const link = (root, text) => all(root, n => n.tagName === "A" && textOf(n) === text)[0];
 
-test("«Dossier gestalten» and «Beilagen ändern» open their part in place and say so with aria-expanded", () => {
+test("«Beilagen ändern» opens its part in place and says so with aria-expanded", () => {
   const { byId } = page();
-  for (const [button, panel] of [["dossier-gestalten", "dossier-gestalten-teil"], ["beilagen-aendern", "beilagen-liste"]]) {
-    byId[button].click();
-    assert.equal(byId[button].getAttribute("aria-expanded"), "true", button);
-    assert.equal(byId[panel].hidden, false, panel);
-    byId[button].click();
-    assert.equal(byId[button].getAttribute("aria-expanded"), "false", button);
-    assert.equal(byId[panel].hidden, true, panel);
-  }
+  byId["beilagen-aendern"].click();
+  assert.equal(byId["beilagen-aendern"].getAttribute("aria-expanded"), "true");
+  assert.equal(byId["beilagen-liste"].hidden, false);
+  byId["beilagen-aendern"].click();
+  assert.equal(byId["beilagen-aendern"].getAttribute("aria-expanded"), "false");
+  assert.equal(byId["beilagen-liste"].hidden, true);
+});
+
+test("«Dossier gestalten» in the dossier line and in the closing line opens the dialog from that button", () => {
+  const { byId, state } = page();
+  byId["dossier-gestalten"].click();
+  byId["form-dossier"].click();
+  assert.deepEqual(state.dialogOpenedFrom, [byId["dossier-gestalten"], byId["form-dossier"]]);
 });
 
 test("each tile has page 1 with its alt text, Als PDF öffnen and the link to where it is adapted", () => {
@@ -185,10 +195,10 @@ test("each tile has page 1 with its alt text, Als PDF öffnen and the link to wh
   assert.deepEqual(state.scrolled, ["s-lebenslauf"]);
   link(byId.pdfs, "Anschreiben ändern").click();
   assert.equal(state.focused, byId["anschreiben-titel"]);
-  link(byId.pdfs, "Dossier gestalten").click();
-  assert.equal(byId["dossier-gestalten-teil"].hidden, false);
-  assert.equal(byId["dossier-gestalten"].getAttribute("aria-expanded"), "true");
-  assert.equal(state.focused, byId["d-design"]);
+  const design = all(byId.pdfs, n => n.tagName === "BUTTON" && textOf(n) === "Dossier gestalten")[0];
+  assert.equal(design.attrs["aria-haspopup"], "dialog", "the dossier tile opens the dialog, so it is a button");
+  design.click();
+  assert.deepEqual(state.dialogOpenedFrom, [design], "focus comes back to the tile");
 });
 
 test("an own CV links to Lebenslauf und Dateien", () => {
@@ -213,17 +223,81 @@ test("after creating the findings are announced and the focus goes to the first 
   assert.equal(state.focused, byId["befunde-ok-titel"], "with nothing to do, the passed checks get the focus");
 });
 
-test("the dossier line shows only with the dossier chosen and not sent, and closes its part otherwise", () => {
+test("before creating, the dossier line shows only with the dossier chosen and not sent", () => {
   const { S, byId } = page();
-  S.showDossierLine({ unterlagen: "dossier", dossier_design: "register" });
+  S.showForm({ unterlagen: "dossier", dossier_design: "register" }, false);
+  assert.equal(byId["unterlagen-wahl"].hidden, false);
   assert.equal(byId["dossier-kurz"].hidden, false);
   assert.equal(byId["dossier-kurz-design"].textContent, "Design Register");
-  byId["dossier-gestalten"].click();
-  S.showDossierLine({ unterlagen: "einzeln" });
+  assert.equal(byId["form-zeile"].hidden, true);
+  S.showForm({ unterlagen: "einzeln" }, false);
   assert.equal(byId["dossier-kurz"].hidden, true);
-  assert.equal(byId["dossier-gestalten-teil"].hidden, true);
-  S.showDossierLine({ unterlagen: "dossier", versand: { datum: "2026-11-01" } });
+  S.showForm({ unterlagen: "dossier", versand: { datum: "2026-11-01" } }, true);
   assert.equal(byId["dossier-kurz"].hidden, true);
+  assert.equal(byId["unterlagen-wahl"].hidden, true);
+  assert.equal(byId["form-zeile"].hidden, true, "once sent the form cannot change");
+});
+
+test("the closing line names the form and the design of the dossier", () => {
+  assert.equal(R.formLine({ unterlagen: "dossier" }), "Form: Dossier, Siegel");
+  assert.equal(R.formLine({ unterlagen: "dossier", dossier_design: "raster" }), "Form: Dossier, Raster");
+  assert.equal(R.formLine({ unterlagen: "dossier", dossier_design: "raster", dossier_seiten: { deckblatt: "siegel" } }),
+    "Form: Dossier, Design pro Seite");
+  assert.equal(R.formLine({}), "Form: Anschreiben und Lebenslauf");
+});
+
+test("the documents count as created when the main file of the chosen form is there", () => {
+  assert.equal(R.built({ lebenslauf: true }, "einzeln"), true);
+  assert.equal(R.built({ anschreiben: true }, "einzeln"), true);
+  assert.equal(R.built({}, "einzeln"), false);
+  assert.equal(R.built({ lebenslauf: true, anschreiben: true }, "dossier"), false, "the dossier itself is missing");
+  assert.equal(R.built(ALL, "dossier"), true);
+});
+
+test("after creating, the tiles and the dossier line collapse into one line beside the attachments", () => {
+  const { S, byId } = page();
+  S.showForm({ unterlagen: "dossier", dossier_design: "siegel" }, true);
+  assert.equal(byId["unterlagen-wahl"].hidden, true);
+  assert.equal(byId["dossier-kurz"].hidden, true);
+  assert.equal(byId["form-zeile"].hidden, false);
+  assert.equal(byId["form-zeile-text"].textContent, "Form: Dossier, Siegel");
+  assert.equal(byId["form-dossier"].hidden, false, "«Dossier gestalten» stays reachable");
+  S.showForm({ unterlagen: "einzeln" }, true);
+  assert.equal(byId["form-zeile-text"].textContent, "Form: Anschreiben und Lebenslauf");
+  assert.equal(byId["form-dossier"].hidden, true, "without a dossier there is nothing to design");
+});
+
+test("«Form ändern» opens the tiles again with the focus on the chosen one, until the next creating", () => {
+  const { S, byId, state, checkedTile } = page();
+  S.showForm({ unterlagen: "dossier" }, true);
+  byId["form-aendern"].click();
+  assert.equal(byId["unterlagen-wahl"].hidden, false);
+  assert.equal(byId["dossier-kurz"].hidden, false);
+  assert.equal(byId["form-zeile"].hidden, true);
+  assert.equal(state.focused, checkedTile);
+  S.showForm({ unterlagen: "einzeln" }, true);
+  assert.equal(byId["unterlagen-wahl"].hidden, false, "a new choice keeps the tiles open");
+  S.closeForm();
+  S.showForm({ unterlagen: "einzeln" }, true);
+  assert.equal(byId["unterlagen-wahl"].hidden, true, "after creating anew they collapse again");
+  assert.equal(byId["form-zeile"].hidden, false);
+});
+
+test("the closing line sits with the attachments line, after the documents", () => {
+  const html = lies("bewerbung.html");
+  const step = html.slice(html.indexOf('id="s-pruefen"'), html.indexOf('id="s-abschicken"'));
+  assert.match(step, /<div class="attach-line" id="form-zeile" hidden><p class="attach-line__text" id="form-zeile-text"><\/p>/);
+  assert.match(step, /<button type="button" class="btn btn--quiet" id="form-dossier" aria-haspopup="dialog" hidden>Dossier gestalten<\/button>/);
+  assert.match(step, /<button type="button" class="btn btn--quiet" id="form-aendern">Form ändern<\/button>/);
+  assert.ok(step.indexOf('id="pdfs"') < step.indexOf('id="form-zeile"'));
+  assert.ok(step.indexOf('id="form-zeile"') < step.indexOf('id="beilagen-zeile"'));
+});
+
+test("after creating, the page collapses the form before it loads anew", () => {
+  const code = lies("bewerbung.js");
+  const create = code.slice(code.indexOf('$("erstellen").addEventListener'), code.indexOf('$("pruefen").addEventListener'));
+  assert.match(create, /await senden\("\/api\/unterlagen"[^\n]*\n\s*S\.closeForm\(\);\n\s*await laden\(\);/);
+  assert.match(code, /S\.showForm\(b, R\.built\(daten\.pdfs, W\.gewaehlt\(b\)\)\);/);
 });
 
 test("after creating, the page waits for the check and moves the focus", () => {

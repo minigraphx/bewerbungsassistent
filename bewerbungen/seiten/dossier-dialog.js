@@ -1,0 +1,141 @@
+"use strict";
+// The dialog «Dossier gestalten» (#322, board A2 of docs/design/unterlagen-erstellen.md, G18, G19, G39). «Für diese
+// Bewerbung» (design, design per page, greeting and thanks) is a draft until «Übernehmen»; «Für alle Dossiers» (sign
+// and colour, zeichen.js) is saved at once as before. The cover preview follows the draft through the event
+// «dossier-entwurf». Typed texts are not lost unasked: «Abbrechen» and Escape ask «Änderungen verwerfen?» first.
+(() => {
+  const { senden, status } = window.App;
+  const W = window.UnterlagenWahl;
+  const L = window.DossierDialogLogik;
+  const $ = id => document.getElementById(id);
+  const dialog = $("dossier-dialog");
+  const FOCUSABLE = "button, [href], input, select, textarea, summary, [tabindex]:not([tabindex='-1'])";
+
+  let entry = null;   // the application as last loaded
+  let draft = null;   // { design, seiten } while the dialog is open
+  let opener = null;
+  let leaving = false; // true while the dialog closes on purpose: discarded, saved, or nothing typed
+
+  const texts = () => window.DossierTexte;
+  const radios = () => [...$("d-design").querySelectorAll("input")];
+  const pageSelects = () => [...$("d-seiten").querySelectorAll("select")];
+  const tellPreview = seiten => document.dispatchEvent(new CustomEvent("dossier-entwurf", { detail: seiten }));
+
+  function showDraft() {
+    for (const radio of radios()) radio.checked = radio.value === draft.design;
+    for (const select of pageSelects()) select.value = draft.seiten[select.dataset.seite];
+    tellPreview(draft.seiten);
+  }
+
+  function ask(shown) {
+    $("dossier-verwerfen").hidden = !shown;
+    $("dossier-aktionen").hidden = shown;
+    (shown ? $("dossier-weiter") : $("dossier-abbrechen")).focus();
+  }
+
+  function open(from) {
+    if (!entry) return;
+    opener = from;
+    draft = W.entwurf(entry);
+    $("d-erweitert").open = W.gemischt(entry);
+    $("dossier-verwerfen").hidden = true;
+    $("dossier-aktionen").hidden = false;
+    status($("dossier-dialog-status"), "");
+    showDraft();
+    texts().oeffnen();
+    dialog.showModal();
+    const chosen = radios().find(radio => radio.checked);
+    if (chosen) chosen.focus();
+  }
+
+  function leave() {
+    leaving = true;
+    dialog.close();
+  }
+
+  function cancel() {
+    if (L.cancelAction(texts().geaendert()) === "ask") ask(true);
+    else leave();
+  }
+
+  function discard() {
+    texts().verwerfen();
+    leave();
+  }
+
+  async function apply() {
+    $("dossier-uebernehmen").disabled = true;
+    let designSaved = false;
+    try {
+      const body = W.entwurfSpeichern(entry, draft);
+      if (body) {
+        entry = await senden("/api/bewerbung", body);
+        designSaved = true;
+      }
+      const saved = await texts().speichern();
+      const message = L.savedMessage(designSaved, saved);
+      leave();
+      if (message) document.dispatchEvent(new CustomEvent("dossier-uebernommen", { detail: { meldung: message } }));
+    } catch (error) {
+      status($("dossier-dialog-status"), `Nicht übernommen: ${error.message}`, "fehler");
+      // a saved design shows on the page even if the texts failed
+      if (designSaved) document.dispatchEvent(new CustomEvent("dossier-uebernommen", { detail: { meldung: "" } }));
+    } finally {
+      $("dossier-uebernehmen").disabled = false;
+    }
+  }
+
+  /** A radio group takes one Tab stop, at its checked radio; hidden and disabled controls take none. */
+  function tabStops() {
+    return [...dialog.querySelectorAll(FOCUSABLE)].filter(item => {
+      if (item.disabled || item.hidden) return false;
+      if (item.getClientRects && !item.getClientRects().length) return false;
+      return !(item.type === "radio" && !item.checked && radios().includes(item));
+    });
+  }
+
+  function keepFocus(event) {
+    if (event.key !== "Tab") return;
+    const stops = tabStops();
+    const target = L.wrapIndex(stops.indexOf(document.activeElement), stops.length, event.shiftKey);
+    if (target === -1) return;
+    event.preventDefault();
+    stops[target].focus();
+  }
+
+  $("d-design").addEventListener("change", event => {
+    draft = W.entwurfDesign(draft, event.target.value);
+    showDraft();
+  });
+  $("d-seiten").addEventListener("change", event => {
+    draft = W.entwurfSeite(draft, event.target.dataset.seite, event.target.value);
+    tellPreview(draft.seiten);
+  });
+  $("dossier-abbrechen").addEventListener("click", cancel);
+  $("dossier-uebernehmen").addEventListener("click", apply);
+  $("dossier-weiter").addEventListener("click", () => ask(false));
+  $("dossier-verwerfen-ja").addEventListener("click", discard);
+  dialog.addEventListener("keydown", keepFocus);
+  // Escape steps back from the question, or cancels like «Abbrechen»
+  dialog.addEventListener("cancel", event => {
+    event.preventDefault();
+    if (!$("dossier-verwerfen").hidden) ask(false);
+    else cancel();
+  });
+  // Chrome holds back only one close request without user activation in between, so a second Escape closes the
+  // dialog regardless. With typed texts it opens again with the question: they are never lost unasked.
+  dialog.addEventListener("close", () => {
+    if (!leaving && texts().geaendert()) {
+      dialog.showModal();
+      ask(true);
+      return;
+    }
+    leaving = false;
+    draft = null;
+    tellPreview(null);
+    if (opener && opener.isConnected) opener.focus();
+  });
+  document.addEventListener("bewerbung-geladen", event => { entry = event.detail.bewerbung; });
+
+  window.DossierDialog = { open };
+})();

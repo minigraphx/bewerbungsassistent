@@ -77,13 +77,14 @@ test("a design draws its own mark for „passend“, a missing logo and blocked 
 
 test("the page has the section with real radio groups, a file field and a live status line", () => {
   const html = lies("bewerbung.html");
-  assert.match(html, /<h3 id="d-zeichen-titel">Zeichen und Farbe<\/h3>/);
+  // #322: the group «Für alle Dossiers» in the dialog «Dossier gestalten», after «Für diese Bewerbung»
+  assert.match(html, /<h3 class="dossier-group__title" id="d-zeichen-titel">Für alle Dossiers<\/h3>/);
   assert.match(html, /<fieldset class="mark-group" id="d-zeichen-wahl"><legend>Zeichen<\/legend>/);
   assert.match(html, /<fieldset class="mark-group" id="d-akzent-wahl"><legend>Akzentfarbe<\/legend>/);
   assert.match(html, /<input type="file" id="d-logo-datei"[^>]*accept="\.png,\.jpg,\.jpeg,\.svg/);
   assert.match(html, /id="d-zeichen-status" role="status" aria-live="polite"/);
-  assert.match(html, /Gilt für alle Dossiers\. Schon erstellte bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu\./);
+  assert.match(html, /Schon erstellte Dossiers bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu\./);
   assert.match(html, /Zurück zur Voreinstellung/);
-  assert.ok(html.indexOf("Zeichen und Farbe") < html.indexOf("Design pro Seite"));
+  assert.ok(html.indexOf("Design pro Seite") < html.indexOf("Für alle Dossiers"));
   assert.doesNotMatch(lies("zeichen.js"), /innerHTML|style=/);
 });

@@ -1,29 +1,35 @@
 "use strict";
 // The DOM of the step «Unterlagen erstellen und prüfen» (#321, option A in docs/design/unterlagen-erstellen.md):
-// «Dossier gestalten» and «Beilagen ändern» open in place, each built document is a tile with page 1 as a thumbnail
-// and a link to where it is adapted, and the findings come with the passed checks collapsed. What to show comes from
-// unterlagen-ergebnis.js; bewerbung.js decides when.
+// «Beilagen ändern» opens in place, «Dossier gestalten» opens the dialog (#322, dossier-dialog.js), each built
+// document is a tile with page 1 as a thumbnail and a link to where it is adapted, and the findings come with the
+// passed checks collapsed. After creating, the form collapses into one line beside the attachments (board A3). What
+// to show comes from unterlagen-ergebnis.js; bewerbung.js decides when.
 (() => {
   const { el, url } = window.App;
   const R = window.UnterlagenErgebnis;
   const W = window.UnterlagenWahl;
   const $ = id => document.getElementById(id);
   const THUMB = { width: "96", height: "136" };  // A4 upright; CSS sets the size, these keep the space while loading
-  const ANCHOR = { variant: "#s-lebenslauf", letter: "#s-anschreiben", dossier: "#dossier-kurz" };
+  const ANCHOR = { variant: "#s-lebenslauf", letter: "#s-anschreiben" };
+  let formOpen = false;  // «Form ändern» shows the tiles again until the next creating
+  let shownEntry = null;
+  let shownBuilt = false;
 
   function disclosure(buttonId) {
     const button = $(buttonId);
     const panel = $(button.getAttribute("aria-controls"));
-    const set = open => {
+    button.addEventListener("click", () => {
+      const open = button.getAttribute("aria-expanded") !== "true";
       button.setAttribute("aria-expanded", String(open));
       panel.hidden = !open;
-    };
-    button.addEventListener("click", () => set(button.getAttribute("aria-expanded") !== "true"));
-    return { open: () => set(true), close: () => set(false) };
+    });
   }
 
-  const dossierPanel = disclosure("dossier-gestalten");
   disclosure("beilagen-aendern");
+
+  /** The dialog gives the focus back to the button that opened it. */
+  const openDialog = from => window.DossierDialog.open(from);
+  for (const id of ["dossier-gestalten", "form-dossier"]) $(id).addEventListener("click", event => openDialog(event.currentTarget));
 
   function goTo(section, target) {
     $(section).scrollIntoView({ behavior: "smooth", block: "start" });
@@ -33,14 +39,14 @@
   const ADAPT = {
     variant: () => goTo("s-lebenslauf", $("f-variante")),
     letter: () => goTo("s-anschreiben", $("anschreiben-titel")),
-    dossier: () => {
-      dossierPanel.open();
-      goTo("dossier-kurz", $("d-design"));
-    },
   };
 
   function adaptLink(adapt) {
     if (!adapt) return null;
+    if (adapt.target === "dossier") {
+      return el("button", { type: "button", class: "btn btn--quiet doc-tile__link", "aria-haspopup": "dialog",
+        onclick: event => openDialog(event.currentTarget) }, adapt.text);
+    }
     const attributes = { class: "btn btn--quiet doc-tile__link", href: adapt.href || ANCHOR[adapt.target] };
     if (!adapt.href) {
       attributes.onclick = event => {
@@ -86,13 +92,35 @@
     $("beilagen-zeile").textContent = R.attachmentsLine(available, chosen, suggested);
   }
 
-  /** The dossier line shows while the dossier is chosen and not sent; otherwise its panel closes too. */
-  function showDossierLine(entry) {
-    const shown = W.gewaehlt(entry) === "dossier" && !entry.versand;
-    $("dossier-kurz").hidden = !shown;
+  /**
+   * Before creating: the form as two tiles and, with the dossier, its line. Once the chosen form is `built`, both
+   * collapse into one closing line until «Form ändern». Once sent, the form cannot change.
+   */
+  function showForm(entry, built) {
+    shownEntry = entry;
+    shownBuilt = built;
+    const sent = Boolean(entry.versand);
+    const collapsed = built && !formOpen && !sent;
+    const dossier = W.gewaehlt(entry) === "dossier";
+    $("unterlagen-wahl").hidden = sent || collapsed;
+    $("dossier-kurz").hidden = !dossier || sent || collapsed;
     $("dossier-kurz-design").textContent = R.designLine(entry);
-    if (!shown) dossierPanel.close();
+    $("form-zeile").hidden = !collapsed;
+    $("form-zeile-text").textContent = R.formLine(entry);
+    $("form-dossier").hidden = !dossier;
   }
 
-  window.UnterlagenSchritt = { showTiles, showFindings, focusFirstFinding, showAttachmentsLine, showDossierLine };
+  /** After creating anew the form collapses again. */
+  function closeForm() {
+    formOpen = false;
+  }
+
+  $("form-aendern").addEventListener("click", () => {
+    formOpen = true;
+    if (shownEntry) showForm(shownEntry, shownBuilt);
+    const chosen = $("unterlagen-wahl").querySelector("input:checked");
+    if (chosen) chosen.focus();
+  });
+
+  window.UnterlagenSchritt = { showTiles, showFindings, focusFirstFinding, showAttachmentsLine, showForm, closeForm };
 })();

@@ -1,15 +1,15 @@
 "use strict";
-// Greeting and thanks of the dossier (G19) on the application page: shown while the dossier is chosen and not sent.
-// The AI drafts both texts (the server replaces name and contacts by placeholders); the person adjusts and saves them.
-// An empty text leaves its page out of the dossier.
+// Greeting and thanks of the dossier (G19) in the dialog «Dossier gestalten» (#322, dossier-dialog.js): the AI drafts
+// both texts (the server replaces name and contacts by placeholders); the person adjusts them, and «Übernehmen» saves
+// them. An empty text leaves its page out of the dossier. The dossier line shows their state.
 (() => {
   const { holen, senden, status, bestaetigen } = window.App;
   const W = window.UnterlagenWahl;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const NACH_SPEICHERN = "Für das PDF „Unterlagen erstellen“.";
-  const KI_AUS = "Für einen Entwurf zuerst die KI oben unter „Anschreiben“ einrichten. Die Texte lassen sich auch selbst schreiben.";
-  let geladen = null; // texts as last loaded or saved; null while the section is hidden
+  const KI_AUS = "Für einen Entwurf zuerst die KI unter „Anschreiben“ einrichten. Die Texte lassen sich auch selbst schreiben.";
+  let geladen = null; // texts as last loaded or saved; null while no dossier is chosen
   let kiBereit = false;
 
   const meldung = (text, art) => status($("dossier-status"), text, art);
@@ -17,47 +17,55 @@
   const hatText = () => Boolean(eingaben().gruss.trim() || eingaben().dank.trim());
   const geaendert = () => geladen !== null && JSON.stringify(eingaben()) !== JSON.stringify(geladen);
 
-  function zeigeTexte(texte) {
-    $("dossier-gruss").value = texte.gruss;
-    $("dossier-dank").value = texte.dank;
+  function merke(texte) {
     geladen = { gruss: texte.gruss, dank: texte.dank };
     $("dossier-kurz-texte").textContent = window.UnterlagenErgebnis.textsState(geladen);
   }
 
-  function leer(texte) {
-    const fehlt = [!texte.gruss && "Begrüssung", !texte.dank && "Dank"].filter(Boolean);
-    return fehlt.length ? ` Ohne ${fehlt.join(" und ")} entfällt die Seite dazu.` : "";
+  function fuelle(texte) {
+    $("dossier-gruss").value = texte.gruss;
+    $("dossier-dank").value = texte.dank;
   }
 
   async function ladeTexte() {
     try {
-      zeigeTexte(await holen("/api/dossier/texte", { id: ID }));
-      if (!kiBereit) meldung(KI_AUS);
+      merke(await holen("/api/dossier/texte", { id: ID }));
+      return true;
     } catch (fehler) {
       meldung("Begrüssung und Dank nicht lesbar: " + fehler.message, "fehler");
+      return false;
     }
   }
 
-  /** Follows the page: visible with a chosen dossier until sent; the texts load when the section opens. */
+  /** Follows the page: with a chosen dossier until sent the texts load once, for the line and the dialog. */
   function folge(event) {
     const b = event.detail.bewerbung;
     const zeigen = W.gewaehlt(b) === "dossier" && !b.versand;
-    $("dossier-texte").hidden = !zeigen;
     if (!zeigen) geladen = null;
-    else if (geladen === null) ladeTexte();
+    else if (geladen === null) ladeTexte().then(ok => { if (ok) fuelle(geladen); });
   }
 
+  /** When the dialog opens: the texts as saved, read anew, unless unsaved ones are still in the fields. */
+  async function oeffnen() {
+    meldung("");
+    if (!kiBereit) meldung(KI_AUS);
+    if (geaendert()) return;
+    if (geladen) fuelle(geladen);
+    const vorher = JSON.stringify(eingaben());
+    if (await ladeTexte() && JSON.stringify(eingaben()) === vorher) fuelle(geladen);
+  }
+
+  /** Saves changed texts with «Übernehmen»; null when nothing changed. Errors go to the dialog. */
   async function speichern() {
-    $("dossier-speichern").disabled = true;
-    try {
-      const texte = await senden("/api/dossier/texte", eingaben(), { id: ID });
-      zeigeTexte(texte);
-      meldung(`Gespeichert. ${NACH_SPEICHERN}${leer(texte)}`, "ok");
-    } catch (fehler) {
-      meldung("Speichern fehlgeschlagen: " + fehler.message, "fehler");
-    } finally {
-      $("dossier-speichern").disabled = false;
-    }
+    if (!geaendert()) return null;
+    const texte = await senden("/api/dossier/texte", eingaben(), { id: ID });
+    merke(texte);
+    fuelle(texte);
+    return texte;
+  }
+
+  function verwerfen() {
+    if (geladen) fuelle(geladen);
   }
 
   async function entwerfen() {
@@ -65,7 +73,8 @@
     meldung("Begrüssung und Dank werden entworfen … das kann bis zu einer Minute dauern.");
     try {
       const ergebnis = await senden("/api/ki/dossier-texte", {}, { id: ID });
-      zeigeTexte(ergebnis);
+      merke(ergebnis);
+      fuelle(ergebnis);
       const verdaechtig = (ergebnis.suspicious_lines || []).length
         ? ` Verdächtige Zeilen im Inserat, nicht befolgt: ${ergebnis.suspicious_lines.join(" · ")}` : "";
       meldung(`Entworfen und gespeichert; ein früherer Stand liegt unter „Entwürfe“. Bitte lesen und anpassen. ${NACH_SPEICHERN}${verdaechtig}`,
@@ -82,14 +91,14 @@
       const s = await holen("/api/ki/status");
       kiBereit = Boolean(s.eingerichtet && s.einwilligung?.erteilt);
     } catch {
-      kiBereit = false; // the AI section above says why
+      kiBereit = false; // the AI section of the page says why
     }
     $("dossier-entwerfen").disabled = !kiBereit;
   }
 
+  window.DossierTexte = { oeffnen, geaendert, speichern, verwerfen };
   if (!ID) return;
   document.addEventListener("bewerbung-geladen", folge);
-  $("dossier-speichern").addEventListener("click", speichern);
   bestaetigen($("dossier-entwerfen"), "Vorhandene Texte ersetzen? Nochmals klicken", entwerfen, () => hatText() || geaendert());
   ladeKi();
 })();

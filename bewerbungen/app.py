@@ -86,6 +86,8 @@ SEITEN = {
     "/dossier-texte.js": "dossier-texte.js",
     "/zeichen-logik.js": "zeichen-logik.js",
     "/zeichen.js": "zeichen.js",
+    "/dossier-dialog-logik.js": "dossier-dialog-logik.js",
+    "/dossier-dialog.js": "dossier-dialog.js",
     "/entwuerfe.js": "entwuerfe.js",
     "/entwuerfe-logik.js": "entwuerfe-logik.js",
     "/foto.js": "foto.js",

@@ -19,8 +19,44 @@
 .dossier-line__text { display: flex; flex: 1 1 180px; flex-direction: column; gap: 2px; min-width: 0; margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
 .dossier-line__text strong { color: var(--text-strong); }
 .dossier-line__text span:empty { display: none; }
-.dossier-panel { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3) 0 var(--space-3) var(--space-4); border-left: 2px solid var(--line); }
-.dossier-panel[hidden] { display: none; }
+
+/* The dialog «Dossier gestalten» (#322, board A2): head, a body that scrolls, the buttons always at the bottom */
+.dossier-dialog { width: min(960px, calc(100% - 2 * var(--space-4))); max-width: none; max-height: calc(100dvh - 2 * var(--space-4)); padding: 0; overflow: hidden; }
+.dossier-dialog[open] { display: flex; flex-direction: column; }
+.dossier-dialog__title { flex: none; margin: 0; padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--line); }
+.dossier-dialog__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--space-5); align-items: start; padding: var(--space-4) var(--space-5); }
+.dossier-dialog__preview { position: sticky; top: 0; }
+.dossier-dialog__preview[hidden] { display: none; }
+.dossier-group { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; margin: 0 0 var(--space-5); }
+.dossier-group[hidden] { display: none; }
+.dossier-group + .dossier-group { padding-top: var(--space-4); border-top: 1px solid var(--line); }
+.dossier-group > .field__hint, .dossier-group__label { margin: 0; }
+.application .dossier-group__title, .dossier-group__title { margin: 0; font-size: 16px; line-height: 24px; }
+.dossier-group__label { font-size: 15px; line-height: 22px; font-weight: 600; color: var(--text-strong); }
+.dossier-designs { margin-bottom: 0; }
+.dossier-pages > summary { min-height: 44px; display: list-item; box-sizing: border-box; padding: var(--space-2) 0; cursor: pointer; font-weight: 500; }
+.dossier-texts { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
+.dossier-texts > p, .dossier-texts .field { margin: 0; }
+.dossier-dialog__footer { flex: none; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; justify-content: flex-end; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--line); background: var(--surface); }
+.dossier-dialog__footer .status-line { flex: 1 1 220px; margin: 0; }
+.dossier-dialog__footer .status-line:empty { display: none; }
+.dossier-dialog__footer .dialog__actions[hidden] { display: none; }
+.dossier-dialog__ask { align-items: center; }
+.dossier-dialog__question { margin: 0 var(--space-2) 0 0; font-weight: 600; color: var(--text-strong); }
+
+/* The three designs as small covers, each in its own main colour (docs/design/dossier.md) */
+.design-tile__sheet--siegel { background-image: radial-gradient(circle at 50% 36%, transparent 0 6px, #38495d 6px 8px, transparent 8px), linear-gradient(#38495d, #38495d), linear-gradient(#38495d, #38495d); background-position: 0 0, 6px 28px, 0 66px; background-size: 100% 100%, 42px 1px, 100% 12px; }
+.design-tile__sheet--raster { background-image: linear-gradient(#7a2e3a, #7a2e3a), linear-gradient(#27333f, #27333f), linear-gradient(#efe1e3, #efe1e3), repeating-linear-gradient(var(--line) 0 3px, transparent 3px 8px); background-position: 4px 4px, 31px 4px, 36px 4px, 6px 44px; background-size: 25px 30px, 3px 30px, 14px 30px, 40px 26px; }
+.design-tile__sheet--register { background-image: linear-gradient(#2f5d50, #2f5d50), linear-gradient(#e0e9e6, #e0e9e6), linear-gradient(#e0e9e6, #e0e9e6), repeating-linear-gradient(var(--line) 0 3px, transparent 3px 8px); background-position: right 0 top 18px, right 0 top 34px, right 0 top 50px, 6px 34px; background-size: 4px 12px, 4px 12px, 4px 12px, 36px 34px; }
+
+.form-line__actions { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+.attach-line[hidden] { display: none; }
+
+/* the preview goes above the groups once both no longer fit side by side */
+@media (max-width: 760px) {
+  .dossier-dialog__body { grid-template-columns: minmax(0, 1fr); }
+  .dossier-dialog__preview { position: static; order: -1; max-width: 240px; }
+}
 
 .befunde-ok > summary { display: list-item; box-sizing: border-box; min-height: 44px; padding: var(--space-3) 0; cursor: pointer; font-size: 14px; line-height: 20px; color: var(--success); }
 .befunde-ok[hidden] { display: none; }
@@ -49,7 +85,20 @@
   #s-pruefen .btn, #s-pruefen .input, #s-pruefen summary, #s-pruefen label.check { min-height: 44px; }
   #s-pruefen summary { display: list-item; box-sizing: border-box; padding: var(--space-3) 0; }
   #s-pruefen label.check { display: flex; align-items: center; }
-  .dossier-panel { padding-left: var(--space-3); }
+  /* a phone: full screen, the buttons fixed at the bottom above the home bar */
+  .dossier-dialog { inset: 0; width: 100%; max-width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; border-radius: 0; }
+  .dossier-dialog__title { padding: var(--space-3) var(--space-4); }
+  .dossier-dialog__body { gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+  .dossier-dialog__footer { padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom)); }
+  .dossier-dialog__footer .dialog__actions { flex: 1 1 100%; flex-wrap: nowrap; }
+  .dossier-dialog__footer .btn { flex: 1 1 0; min-height: 44px; }
+  .dossier-dialog__footer .dossier-dialog__ask { flex-wrap: wrap; }
+  .dossier-dialog__question { flex: 1 1 100%; }
+  .dossier-dialog .btn, .dossier-dialog .input { min-height: 44px; }
+  .dossier-designs { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  .dossier-designs .design-tile { display: grid; grid-template-columns: auto 1fr; column-gap: var(--space-3); align-items: center; text-align: left; padding: var(--space-2) var(--space-3); }
+  .dossier-designs .design-tile:has(input:checked) { padding: calc(var(--space-2) - 1px) calc(var(--space-3) - 1px); }
+  .dossier-designs .design-tile__sheet { grid-row: span 2; }
   /* «Erneut prüfen» wraps under the primary button; its text starts at the edge like the button above */
   #s-pruefen #pruefen.btn--quiet { padding-left: 0; }
 }

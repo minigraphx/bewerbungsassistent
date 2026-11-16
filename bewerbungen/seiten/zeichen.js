@@ -1,7 +1,8 @@
 "use strict";
 // Mark and accent colour of the dossier (G18, option B of docs/design/monogramm.md) on the application page: a sentence
-// under the design choice, and under „Erweitert“ the section „Zeichen und Farbe“ with a simplified preview. The
-// choice is stored once per person and saved at once. Names and rules in zeichen-logik.js.
+// and a small cover in the dossier line, and in the dialog «Dossier gestalten» the group «Für alle Dossiers» beside a
+// simplified cover preview (#322). The choice is stored once per person and saved at once; the preview follows the
+// design drafted in the dialog. Names and rules in zeichen-logik.js.
 (() => {
   const { holen, senden, status, el, url, alsBase64 } = window.App;
   const Z = window.ZeichenLogik;
@@ -16,7 +17,9 @@
   const EIGENE = "eigen";
 
   let zustand = null; // state of /api/dossier/zeichen, null until the section first shows
-  let seiten = { deckblatt: "siegel", anschreiben: "siegel", lebenslauf: "siegel", weitere: "siegel" };
+  let gespeichert = { deckblatt: "siegel", anschreiben: "siegel", lebenslauf: "siegel", weitere: "siegel" };
+  let entwurf = null; // the page designs drafted in the dialog, null while it is closed
+  let seiten = gespeichert;
   let du = false;
 
   const meldung = (text, art) => status($("d-zeichen-status"), text, art);
@@ -240,7 +243,8 @@
   async function folge(event) {
     const b = event.detail.bewerbung;
     const zeigen = W.gewaehlt(b) === "dossier" && !b.versand;
-    seiten = W.seitenDesigns(b);
+    gespeichert = W.seitenDesigns(b);
+    seiten = entwurf || gespeichert;
     if (zeigen && zustand === null) {
       try {
         zustand = await holen("/api/dossier/zeichen");
@@ -253,9 +257,21 @@
     $("d-zeichen-mini").hidden = !bereit;
     $("d-zeichen-satz").hidden = !bereit;
     $("d-zeichen-teil").hidden = !bereit;
+    $("d-vorschau-teil").hidden = !bereit;
     if (bereit) zeigeAlles();
   }
 
+  /** The dialog drafts the designs; the tiles, colours and preview that depend on the cover's design follow. */
+  function folgeEntwurf(event) {
+    entwurf = event.detail;
+    seiten = entwurf || gespeichert;
+    if (zustand === null || !zustand.lebenslauf) return;
+    zeigeZeichen();
+    zeigeFarben();
+    zeigeVorschau();
+  }
+
   document.addEventListener("bewerbung-geladen", folge);
+  document.addEventListener("dossier-entwurf", folgeEntwurf);
   window.App.textsatz().then(satz => { du = satz !== "stelle-sie"; });
 })();
