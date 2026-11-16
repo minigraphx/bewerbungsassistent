@@ -6,14 +6,16 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const logik = require("../seiten/treffer-logik.js");
+const { shown, seenLine } = require("./dot_line_text.cjs");
 
 const CODE = fs.readFileSync(path.join(__dirname, "..", "seiten", "treffer.js"), "utf8");
 const ORIGIN = "http://127.0.0.1:1";
 
-/** An element that takes whatever the page does with it; only what the tests read is kept. */
-function element() {
+/** An element that takes whatever the page does with it; only what the tests read is kept, App.el's parts too. */
+function element(attrs = {}, children = []) {
   const handlers = {};
-  const store = { hidden: false, disabled: false, textContent: "", dataset: {}, attributes: {}, value: "" };
+  const store = { hidden: false, disabled: false, textContent: "", dataset: {}, attributes: {}, value: "", attrs, children,
+    className: "" };
   const target = function () {};
   return new Proxy(target, {
     get(_, name) {
@@ -38,13 +40,14 @@ function page() {
   const window = {
     App: {
       holen: async pfad => { if (pfad === "/api/suche/liste") loads += 1; throw new Error("nicht in diesem Test"); },
-      senden: async () => ({}), el: () => element(), status() {}, datum: String, beobachten() {}, textsatz: async () => "stelle-sie",
+      senden: async () => ({}), el: (tag, attrs, ...children) => element(attrs || {}, children.flat()), status() {}, datum: String, beobachten() {}, textsatz: async () => "stelle-sie",
     },
     TrefferLogik: logik,
     SuchlaufLogik: require("../seiten/suchlauf-logik.js"),
     SucheAnzeige: require("../seiten/suche-anzeige.js"),
-    // Messages have their own tests (meldungen.test.cjs); here the element keeps the text it was given.
-    Meldungen: { zeige(element, inhalt) { element.textContent = inhalt; }, leere() {} },
+    // Messages have their own tests (meldungen.test.cjs); here the element keeps the text the eye would see.
+    Meldungen: { zeige(element, inhalt) { element.textContent = shown({ children: [inhalt] }); }, leere() {} },
+    DotLine: require("../seiten/dot-line.js"),
     Texte: { text: key => key, anwenden() {} },
     PortalWahl: { zeige() {} },
     Suchbegriffe: { zeige() {} },
@@ -134,7 +137,8 @@ test("the line of a running search on Stellen names portal, term, place and stag
     nummer: 32, abfragen: 67, etappe: 2, etappen: 3 };
   p.fromExtension({ art: "lauf", lauf: { zustand: "laeuft", beginn: new Date().toISOString(), schritt } });
   assert.equal(p.$("lauf-box").hidden, false);
-  assert.equal(p.$("lauf").textContent, "jobs.ch: suche „Begriff2“ in Nordstadt, Seite 1 · Suche 32 von 67, Etappe 2 von 3 …");
+  // #342: the step and the count are whole parts of a «·» line
+  assert.equal(p.$("lauf").textContent, seenLine(["jobs.ch: suche „Begriff2“ in Nordstadt, Seite 1", "Suche 32 von 67, Etappe 2 von 3 …"]));
   p.fromExtension({ art: "lauf", lauf: { zustand: "laeuft", schritt: { portal: "jobs.ch", phase: "pause", etappe: 3, etappen: 3, sekunden: 40 } } });
   assert.equal(p.$("lauf").textContent, "jobs.ch: Pause vor Etappe 3 von 3, noch 40 Sekunden …");
   p.fromExtension({ art: "lauf", lauf: { zustand: "laeuft", schritt: { portal: "jobs.ch", phase: "texte", fertig: 3, von: 9 } } });

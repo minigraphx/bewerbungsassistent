@@ -11,6 +11,8 @@ const anzeige = require("../seiten/suche-anzeige.js");
 const logik = require("../seiten/treffer-logik.js");
 const texte = require("../seiten/texte.js");
 const sidebarLogic = require("../seiten/sidebar-logic.js");
+const DotLine = require("../seiten/dot-line.js");
+const { shown, seenLine } = require("./dot_line_text.cjs");
 
 const CODE = fs.readFileSync(path.join(__dirname, "..", "seiten", "treffer.js"), "utf8");
 const ORIGIN = "http://127.0.0.1:1";
@@ -91,6 +93,7 @@ function page({ hits = [NEW_HIT], art = "stelle", hash = "", failing = [], zeitr
     TrefferLogik: logik,
     SuchlaufLogik: require("../seiten/suchlauf-logik.js"),
     SucheAnzeige: anzeige,
+    DotLine,
     Texte: texte,
     SidebarLogic: sidebarLogic,
     Meldungen: { zeige() {}, leere() {} },
@@ -123,7 +126,7 @@ function page({ hits = [NEW_HIT], art = "stelle", hash = "", failing = [], zeitr
     await settle();
   };
   const addHit = hit => stored.push(structuredClone(hit));
-  const summary = () => $("letzte").textContent;
+  const summary = () => shown($("letzte"));
   const newTab = () => select("[data-zahl=neu]").textContent;
   return { fired, press, addHit, summary, newTab, look: async () => { await watch(); await settle(); } };
 }
@@ -198,7 +201,8 @@ test("hits that arrive while the page is open count again, an unchanged list doe
   assert.deepEqual(p.fired, [CHANGED]);
 });
 
-const LAST_RUN = "Letzte Suche am 2026-11-01 · jobs.ch · ";
+// A «·» line of whole parts (#342): each «·» is glued to the part before it
+const LAST_RUN = seenLine(["Letzte Suche am 2026-11-01", "jobs.ch", ""]);
 
 test("Merken updates the summary under the title, as the tab shows it", async () => {
   const p = page();
@@ -240,7 +244,7 @@ test("the summary keeps the day of the last search when the count changes", asyn
   const p = page({ zeitraum: { letzte: "heute" } });
   await settle();
   await p.press("Merken");
-  assert.equal(p.summary(), "Letzte Suche heute · jobs.ch · 1 Treffer, 0 neu");
+  assert.equal(p.summary(), seenLine(["Letzte Suche heute", "jobs.ch", "1 Treffer, 0 neu"]));
 });
 
 test("a refused Merken or Verwerfen leaves the summary as it was", async () => {

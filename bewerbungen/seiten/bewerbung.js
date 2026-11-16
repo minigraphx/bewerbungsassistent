@@ -4,6 +4,8 @@
 // the folder for uploads keep their own scripts (ki.js, eigenes-anschreiben.js, dateien-ordner.js).
 (() => {
   const { holen, senden, el, status, datum, url, bestaetigen, beobachten } = window.App;
+  /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
   const { fehltAnschreiben, geaenderteFelder } = window.FormularLogik;
   const L = window.BewerbungLogik;
   const W = window.UnterlagenWahl;
@@ -84,7 +86,7 @@
     document.title = `${b.stelle} – ${b.firma}`;
     $("titel").textContent = b.stelle || "Bewerbung";
     $("pfad-stelle").textContent = b.stelle || "Bewerbung";
-    $("untertitel").textContent = [[b.firma, b.ort].filter(Boolean).join(", "), b.frist ? `Abgabe bis ${datum(b.frist)}` : ""].filter(Boolean).join(" · ");
+    $("untertitel").replaceChildren(...dotLine([[b.firma, b.ort].filter(Boolean).join(", "), b.frist ? `Abgabe bis ${datum(b.frist)}` : ""]));
     $("kopf-status").hidden = false;
     $("kopf-status").dataset.status = b.status;
     $("kopf-status").textContent = window.Texte.statusName(b.status, satz);
@@ -150,7 +152,7 @@
       zusage: ["Zusage erhalten", "Die Unterlagen dieser Bewerbung bleiben gespeichert.", [el("a", { class: "btn btn--primary", href: "/bewerbungen" }, "Zu den Bewerbungen")]],
     };
     const [titel, text, knoepfe] = karten[n.art];
-    $("naechster-zeile").textContent = n.art === "jobroom" ? "Nächster Schritt · fürs RAV" : "Nächster Schritt";
+    $("naechster-zeile").replaceChildren(...dotLine(["Nächster Schritt", n.art === "jobroom" ? "fürs RAV" : ""]));
     $("naechster-titel").textContent = titel;
     $("naechster-text").textContent = text;
     $("naechster-knoepfe").replaceChildren(...knoepfe);

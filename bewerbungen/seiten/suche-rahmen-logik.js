@@ -58,9 +58,12 @@
   const portalFelder = (werte, lehrstelle) =>
     (lehrstelle ? [] : PORTAL_FELDER.filter(feld => Array.isArray(werte[feld]) && werte[feld].length));
 
-  /** The closed card's line: per portal with its own line, where it searches instead of Wohnort and Kantone. */
+  /**
+   * The closed card's line: per portal with its own line, where it searches instead of Wohnort and Kantone; the parts of
+   * a «·» line (#342).
+   */
   const proPortalText = liste => (Array.isArray(liste) ? liste : [])
-    .map(eintrag => `${eintrag.portal}: ${eintrag.orte.join(", ")}`).join(" · ");
+    .map(eintrag => `${eintrag.portal}: ${eintrag.orte.join(", ")}`);
 
   const logik = { zeilen, alsText, koerper, firmenKoerper, anfrage, umkreisWahl, umkreisGewaehlt, kantoneHinweis, titelfilterLeer,
     portalFelder, proPortalText };

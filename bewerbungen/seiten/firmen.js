@@ -22,6 +22,8 @@
   const nichtGelesen = new Set();  // companies with a value whose new check found nothing readable
 
   const text = (schluessel, werte) => window.Texte.text(schluessel, satz, werte);
+  /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
   const meldung = (inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige($("status"), inhalt, stufe, optionen);
 
   function extern(href, beschriftung, firma, klasse = "btn btn--sm") {
@@ -61,7 +63,7 @@
     const k = firma.kununu;
     const wenige = zustand === "wenige";
     const meta = wenige ? `Nur ${logik.bewertungen(k.bewertungen)}, wenig aussagekräftig.`
-      : [logik.bewertungen(k.bewertungen), typeof k.empfehlung === "number" ? `${logik.prozent(k.empfehlung)} empfehlen` : ""].filter(Boolean).join(" · ");
+      : dotLine([logik.bewertungen(k.bewertungen), typeof k.empfehlung === "number" ? `${logik.prozent(k.empfehlung)} empfehlen` : ""]);
     return el("div", { class: "rating", "data-state": wenige ? "few" : null },
       el("span", { class: "rating__value" }, el("b", {}, logik.wert(k.wert)), " von 5"),
       el("span", { class: "rating__meta" }, meta), lernende(k), el("span", { class: "rating__meta" }, logik.seite(k)));
@@ -154,7 +156,7 @@
     const kandidaten = (firma.kununu.kandidaten || []).map(kandidat => el("label", { class: "choice" },
       el("input", { type: "radio", name, value: kandidat.link }),
       el("span", {}, el("span", { class: "choice__name" }, kandidat.name),
-        el("span", { class: "choice__meta" }, [kandidat.ort, typeof kandidat.bewertungen === "number" ? logik.bewertungen(kandidat.bewertungen) : ""].filter(Boolean).join(" · "))),
+        el("span", { class: "choice__meta" }, dotLine([kandidat.ort, typeof kandidat.bewertungen === "number" ? logik.bewertungen(kandidat.bewertungen) : ""]))),
       el("a", { href: kandidat.link, target: "_blank", rel: "noopener noreferrer" }, "Bei kununu ansehen",
         el("span", { class: "visually-hidden" }, `: ${kandidat.name}${NEUER_TAB}`))));
     const keine = el("label", { class: "choice" }, el("input", { type: "radio", name, value: "" }), el("span", {}, el("span", { class: "choice__name" }, "Keine davon passt")), el("span", {}));
@@ -180,7 +182,8 @@
 
   function zeigeKopfzeile() {
     const { anzahl, gefunden, zuletzt } = logik.zusammenfassung(firmen);
-    $("zeile").textContent = [text("firmen.zeile", { anzahl, gefunden }), zuletzt ? `zuletzt geprüft am ${logik.datum(zuletzt)}` : ""].filter(Boolean).join(" · ");
+    $("zeile").replaceChildren(...dotLine([text("firmen.zeile", { anzahl }), text("firmen.zeile.gefunden", { gefunden }),
+      zuletzt ? `zuletzt geprüft am ${logik.datum(zuletzt)}` : ""]));
     const zahlen = logik.zaehlen(firmen);
     for (const knopf of document.querySelectorAll("[data-filter]")) {
       knopf.setAttribute("aria-pressed", String(knopf.dataset.filter === filter));

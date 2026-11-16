@@ -28,7 +28,8 @@
     const frage = L.bestaetigung(vorschau);
     $("ab-note-titel").textContent = frage.titel;
     $("ab-note-text").replaceChildren(el("p", {}, frage.einleitung),
-      el("ul", { class: "dialog__list" }, frage.zeilen.map(zeile => el("li", {}, zeile))), el("p", {}, frage.nachsatz));
+      el("ul", { class: "dialog__list" }, frage.zeilen.map(zeile => el("li", {}, window.DotLine.render(zeile, el)))),
+      el("p", {}, frage.nachsatz));
     $("ab-note-ok").textContent = frage.ok;
     $("ab-note-dialog").showModal();
   }

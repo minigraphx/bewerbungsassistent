@@ -8,6 +8,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const Texte = require("../seiten/texte.js");
+const { wholeParts, seenLine } = require("./dot_line_text.cjs");
 
 const SEITEN = path.join(__dirname, "..", "seiten");
 const ROUTE = "/api/lebenslauf/erstellen";
@@ -171,7 +172,7 @@ function setup({ form = FORM, satz = "stelle-sie" } = {}) {
   const context = { window, document: doc, location: { search: "?id=b1" }, URLSearchParams, console,
                     CustomEvent: class { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } } };
   vm.createContext(context);
-  for (const name of ["treffer-logik.js", "zeichen-logik.js", "lebenslauf-erstellen-logik.js", "lebenslauf-erstellen.js"]) {
+  for (const name of ["dot-line.js", "treffer-logik.js", "zeichen-logik.js", "lebenslauf-erstellen-logik.js", "lebenslauf-erstellen.js"]) {
     vm.runInContext(fs.readFileSync(path.join(SEITEN, name), "utf8"), context);
   }
   const $ = id => doc.getElementById(id);
@@ -503,6 +504,8 @@ test("the panel shows «Mit Foto» as given and names mark and colour beside the
   assert.equal($("cv-erstellen-foto").checked, true);
   assert.equal($("cv-erstellen-foto").disabled, false);
   assert.equal(spoken($("cv-erstellen-farbe-stand")), "Ohne Zeichen, Farbe: passend zum Design");
+  // #342: a «·» line of whole parts from dot-line.js, so no line starts with «·»
+  assert.deepEqual(wholeParts($("cv-erstellen-farbe-stand")), ["Ohne Zeichen", "Farbe: passend zum Design"]);
   assert.equal(seen($("cv-erstellen-farbe-stand")), "Ohne Zeichen · Farbe: passend zum Design");
   assert.equal($("cv-erstellen-farbe").hidden, true);
 });
@@ -605,7 +608,15 @@ test("photo, mark and colour each hand a new draft to the preview and keep the f
   assert.equal(doc.activeElement.id, "cv-erstellen-zeichen-ring", "the focus stays on the mark just chosen");
   $("cv-erstellen-akzent").querySelectorAll("input").find(input => input.getAttribute("value") === "#7a2e3a").dispatch("change");
   assert.deepEqual(drafts(calls).at(-1).body.aussehen, { foto: false, zeichen: "ring", akzent: "#7a2e3a" });
+  assert.equal(seen($("cv-erstellen-farbe-stand")), seenLine(["Zeichen: Ring", "Farbe: Weinrot"]));
   assert.equal(seen($("cv-erstellen-farbe-stand")), "Zeichen: Ring · Farbe: Weinrot");
+});
+
+test("each station names company and time as whole parts of a «·» line (#342)", async () => {
+  const { $ } = await opened();
+  const details = $("cv-erstellen-stationen").all().filter(node => node.className === "cv-create__detail");
+  assert.deepEqual(details.map(wholeParts), [["Beispiel AG", "2019 – heute"], ["Muster GmbH", "2015 – 2019"]]);
+  assert.deepEqual(details.map(spoken), ["Beispiel AG, 2019 – heute", "Muster GmbH, 2015 – 2019"]);
 });
 
 test("with Einspaltig «Mit Foto» cannot be ticked and says why", async () => {

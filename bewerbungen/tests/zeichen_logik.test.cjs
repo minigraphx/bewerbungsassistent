@@ -35,27 +35,28 @@ test("interlaced is blocked without exactly two letters", () => {
   assert.equal(Z.gesperrt("ring", "LMB"), "");
 });
 
+// The sentence comes as the parts of a «·» line (#342), the page joins them with dot-line.js.
 test("the sentence under the design names mark and colour of each design without a choice", () => {
-  assert.equal(Z.satzUnterDesign(zustand(), ALLE("siegel")),
-    "Zeichen: Ring mit LB · Akzentfarbe: Schieferblau · beides passend zu Siegel");
-  assert.equal(Z.satzUnterDesign(zustand(), ALLE("raster")),
-    "Zeichen: Initialen im Band · Akzentfarbe: Weinrot · beides passend zu Raster");
-  assert.equal(Z.satzUnterDesign(zustand(), ALLE("register")),
-    "Zeichen: Punkt mit LB im Anhänger · Akzentfarbe: Tannengrün · beides passend zu Register");
+  assert.deepEqual(Z.satzUnterDesign(zustand(), ALLE("siegel")),
+    ["Zeichen: Ring mit LB", "Akzentfarbe: Schieferblau", "beides passend zu Siegel"]);
+  assert.deepEqual(Z.satzUnterDesign(zustand(), ALLE("raster")),
+    ["Zeichen: Initialen im Band", "Akzentfarbe: Weinrot", "beides passend zu Raster"]);
+  assert.deepEqual(Z.satzUnterDesign(zustand(), ALLE("register")),
+    ["Zeichen: Punkt mit LB im Anhänger", "Akzentfarbe: Tannengrün", "beides passend zu Register"]);
 });
 
 test("the sentence with pages in several designs, an own choice and a logo", () => {
   const gemischt = { ...ALLE("siegel"), deckblatt: "raster" };
-  assert.equal(Z.satzUnterDesign(zustand(), gemischt),
-    "Zeichen: passend zum Design jeder Seite · Akzentfarbe: Weinrot, passend zum Deckblatt in Raster");
-  assert.equal(Z.satzUnterDesign(zustand({ zeichen: "ring", akzent: "#38495d" }), ALLE("siegel")),
-    "Zeichen: Ring mit LB · Akzentfarbe: Schieferblau");
+  assert.deepEqual(Z.satzUnterDesign(zustand(), gemischt),
+    ["Zeichen: passend zum Design jeder Seite", "Akzentfarbe: Weinrot, passend zum Deckblatt in Raster"]);
+  assert.deepEqual(Z.satzUnterDesign(zustand({ zeichen: "ring", akzent: "#38495d" }), ALLE("siegel")),
+    ["Zeichen: Ring mit LB", "Akzentfarbe: Schieferblau"]);
   const logo = { farbe: "#a35a2b" };
-  assert.equal(Z.satzUnterDesign(zustand({ zeichen: "logo", akzent: "#a35a2b", logo }), ALLE("raster")),
-    "Zeichen: Ihr Logo · Akzentfarbe: Aus dem Logo (#a35a2b)");
-  assert.match(Z.satzUnterDesign(zustand({ zeichen: "logo", logo }), ALLE("raster"), true), /^Zeichen: Dein Logo/);
-  assert.equal(Z.satzUnterDesign(zustand({ akzent: "#1d5c6b" }), ALLE("register")),
-    "Zeichen: Punkt mit LB im Anhänger, passend zu Register · Akzentfarbe: Petrol");
+  assert.deepEqual(Z.satzUnterDesign(zustand({ zeichen: "logo", akzent: "#a35a2b", logo }), ALLE("raster")),
+    ["Zeichen: Ihr Logo", "Akzentfarbe: Aus dem Logo (#a35a2b)"]);
+  assert.match(Z.satzUnterDesign(zustand({ zeichen: "logo", logo }), ALLE("raster"), true)[0], /^Zeichen: Dein Logo/);
+  assert.deepEqual(Z.satzUnterDesign(zustand({ akzent: "#1d5c6b" }), ALLE("register")),
+    ["Zeichen: Punkt mit LB im Anhänger, passend zu Register", "Akzentfarbe: Petrol"]);
 });
 
 test("„Passend zum Design“ follows the design, a named colour stays", () => {

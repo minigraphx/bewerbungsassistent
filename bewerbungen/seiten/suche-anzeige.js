@@ -28,10 +28,10 @@
     return orte.length ? `ganze Schweiz, nahe ${orte[0]} zuerst` : "ganze Schweiz";
   }
 
-  /** The closed settings in one line: terms, region, number of portals (the page adds „Ändern“). */
+  /** The closed settings as the parts of one «·» line (#342): terms, region, number of portals (the page adds „Ändern“). */
   function zusammenfassung({ begriffe = [], region = null, portale = 0, lehrstelle = false } = {}) {
     const anzahl = portale === 1 ? "1 Portal" : `${portale} Portale`;
-    return [begriffeText(begriffe, lehrstelle), regionText(region, lehrstelle), anzahl].filter(Boolean).join(" · ");
+    return [begriffeText(begriffe, lehrstelle), regionText(region, lehrstelle), anzahl].filter(Boolean);
   }
 
   /**
@@ -53,14 +53,15 @@
   /**
    * The line under the title: the last search; without one only what is there, never „Noch keine Suche.“ beside hits.
    * `wann` is the day as the app names it (#208): „heute“, „gestern“ or „am 24.10.2026“; runs store no time.
+   * The parts of a «·» line (#342).
    */
   function letzteSuche(lauf, alle, datum, wann = "") {
     const neu = alle.filter(x => x.zustand === "neu").length;
     const anzahl = `${alle.length} Treffer, ${neu} neu`;
-    if (!lauf) return alle.length ? anzahl : "";  // the empty list says „Noch nicht gesucht.“
+    if (!lauf) return alle.length ? [anzahl] : [];  // the empty list says „Noch nicht gesucht.“
     const portale = Object.keys(lauf.portale || {});
     const tag = wann || `am ${datum(lauf.datum)}`;
-    return `Letzte Suche ${tag} · ${portale.length === 1 ? portale[0] : `${portale.length} Portale`} · ${anzahl}`;
+    return [`Letzte Suche ${tag}`, portale.length === 1 ? portale[0] : `${portale.length} Portale`, anzahl];
   }
 
   /** A problem line; a portal that will catch up says from when (#208), the app words the sentence. */
@@ -77,10 +78,10 @@
     return tage.map(wert => ({ wert, text: `${wert} Tage${wert === VORGABE_TAGE ? " (Vorgabe)" : ""}` }));
   }
 
-  /** One portal under „Stand der Portale“ in the settings. */
+  /** One portal under „Stand der Portale“ in the settings, as the parts of a «·» line (#342). */
   function portalStand(zeile) {
     const zuletzt = zeile.problem ? "Problem bei der letzten Suche" : zeile.zuletzt ? `zuletzt ${zeile.zuletzt}` : "noch nie gesucht";
-    return `${zeile.portal}: ${zuletzt} · nächste Suche ab ${zeile.ab}`;
+    return [`${zeile.portal}: ${zuletzt}`, `nächste Suche ab ${zeile.ab}`];
   }
 
   /** The title filters in one sentence for Suche einstellen (#263, A4); empty without any. */

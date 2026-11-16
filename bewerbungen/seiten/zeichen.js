@@ -8,6 +8,8 @@
   const Z = window.ZeichenLogik;
   const W = window.UnterlagenWahl;
   const $ = id => document.getElementById(id);
+  /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
   const NS = "http://www.w3.org/2000/svg";
   const PAPIER = "#fdfcfa";
   const DUNKEL = "#27333f";
@@ -160,7 +162,7 @@
     if (logo) {
       $("d-logo-bild").src = logoAdresse();
       const groesse = logo.vektor ? "Vektorgrafik" : `${logo.breite} × ${logo.hoehe} Pixel`;
-      $("d-logo-info").textContent = `${du ? "Dein" : "Ihr"} Logo · ${groesse}${logo.durchsichtig ? ", durchsichtig" : ""}`;
+      $("d-logo-info").replaceChildren(...dotLine([du ? "Dein Logo" : "Ihr Logo", `${groesse}${logo.durchsichtig ? ", durchsichtig" : ""}`]));
     }
     $("d-logo-hinweise").replaceChildren(...(logo ? logo.hinweise : []).map(h => el("li", {}, h)));
   }
@@ -173,7 +175,7 @@
     const mini = vorschauSvg(design);
     mini.setAttribute("viewBox", "0 0 107 150");
     $("d-zeichen-mini").replaceChildren(mini);
-    $("d-zeichen-satz").textContent = Z.satzUnterDesign(zustand, seiten, du);
+    $("d-zeichen-satz").replaceChildren(...dotLine(Z.satzUnterDesign(zustand, seiten, du)));
   }
 
   function zeigeAlles() {

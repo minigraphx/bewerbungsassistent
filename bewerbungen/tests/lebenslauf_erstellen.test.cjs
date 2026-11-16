@@ -152,9 +152,9 @@ test("a stored mark that cannot be drawn any more starts as none", () => {
 test("the line beside the button names mark and colour", () => {
   const say = key => ({ "lebenslauf.zeichen-ohne": "Ohne Zeichen", "lebenslauf.farbe-passend-zeile": "passend zum Design" })[key] || key;
   assert.deepEqual(L.lookParts(L.start(LOOKED), say), ["Ohne Zeichen", "Farbe: passend zum Design"]);
-  assert.equal(L.lookLine(L.start(LOOKED), say), "Ohne Zeichen · Farbe: passend zum Design");
-  assert.equal(L.lookLine(L.setLook(L.setLook(L.start(LOOKED), { zeichen: "ring" }), { akzent: "#7a2e3a" }), say),
-               "Zeichen: Ring · Farbe: Weinrot");
+  assert.deepEqual(L.lookParts(L.setLook(L.setLook(L.start(LOOKED), { zeichen: "ring" }), { akzent: "#7a2e3a" }), say),
+                   ["Zeichen: Ring", "Farbe: Weinrot"]);
+  assert.equal(L.lookLine, undefined, "the page joins the parts with dot-line.js (#342)");
 });
 
 test("the message after saving says whether the PDF is there", () => {

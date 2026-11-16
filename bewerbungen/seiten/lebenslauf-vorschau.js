@@ -13,6 +13,9 @@
   let timer = null;
   let asked = 0; // the latest request; an answer to an older one is dropped
   let shown = null; // {pages} or {failed}: what the live region compares against
+
+  /** The heading as a «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
+  const showTitle = (id, pages) => $(id).replaceChildren(...window.DotLine.render(Logic.title(pages), el));
   let current = null; // {key, pages} of the preview on the page
 
   const busy = on => $("cv-vorschau").setAttribute("aria-busy", String(on));
@@ -34,7 +37,7 @@
     image.src = pageUrl(1);
     image.alt = Logic.pageAlt(1, current.pages);
     image.hidden = false;
-    $("cv-vorschau-titel").textContent = Logic.title(current.pages);
+    showTitle("cv-vorschau-titel", current.pages);
     $("cv-vorschau-problem").hidden = true;
     $("cv-vorschau-fehler").textContent = "";
     $("cv-vorschau-genauer-text").textContent = "";
@@ -51,7 +54,7 @@
     image.hidden = true;
     image.removeAttribute("src");
     image.alt = "";
-    $("cv-vorschau-titel").textContent = Logic.title(null);
+    showTitle("cv-vorschau-titel", null);
     $("cv-vorschau-fehler").textContent = shown.text;
     $("cv-vorschau-angaben").hidden = !shown.link;
     $("cv-vorschau-neu").hidden = !shown.reload;
@@ -115,7 +118,7 @@
 
   function fillLarge() {
     const { pages } = current;
-    $("cv-vorschau-dialog-titel").textContent = Logic.title(pages);
+    showTitle("cv-vorschau-dialog-titel", pages);
     $("cv-vorschau-dialog-pdf").href = $("cv-vorschau-pdf").href;
     $("cv-vorschau-seiten").replaceChildren(...Array.from({ length: pages }, (_, i) => largePage(i + 1, pages)));
   }

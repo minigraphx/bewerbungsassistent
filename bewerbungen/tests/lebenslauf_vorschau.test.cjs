@@ -10,6 +10,8 @@ const path = require("node:path");
 const vm = require("node:vm");
 const Logic = require("../seiten/lebenslauf-vorschau-logik.js");
 const Texte = require("../seiten/texte.js");
+const DotLine = require("../seiten/dot-line.js");
+const { shown, heard, wholeParts, seenLine } = require("./dot_line_text.cjs");
 
 const SEITEN = path.join(__dirname, "..", "seiten");
 const ROUTE = "/api/lebenslauf/erstellen/vorschau";
@@ -28,9 +30,10 @@ function failure(message, status, aktion) {
 const say = satz => key => Texte.text(key, satz);
 
 test("the title names the pages, without a preview just the word", () => {
-  assert.equal(Logic.title(2), "Vorschau · 2 Seiten");
-  assert.equal(Logic.title(1), "Vorschau · 1 Seite");
-  assert.equal(Logic.title(null), "Vorschau");
+  // the parts of a «·» line (#342), joined by the page with dot-line.js
+  assert.deepEqual(Logic.title(2), ["Vorschau", "2 Seiten"]);
+  assert.deepEqual(Logic.title(1), ["Vorschau", "1 Seite"]);
+  assert.deepEqual(Logic.title(null), ["Vorschau"]);
 });
 
 test("no station ticked is an empty state, the same for Sie and du, and a reason from the page stands alone", () => {
@@ -180,6 +183,7 @@ function setup({ satz = "stelle-sie" } = {}) {
       },
     },
     LebenslaufVorschauLogik: Logic,
+    DotLine,
     Texte,
   };
   const context = {
@@ -217,7 +221,8 @@ test("opening builds at once and shows page 1, the page count and both ways to l
   await settle();
 
   assert.deepEqual(page.calls.senden, [[ROUTE, BODY]]);
-  assert.equal(page.$("cv-vorschau-titel").textContent, "Vorschau · 2 Seiten");
+  assert.deepEqual(wholeParts(page.$("cv-vorschau-titel")), ["Vorschau", "2 Seiten"]);
+  assert.equal(heard(page.$("cv-vorschau-titel")), "Vorschau, 2 Seiten");
   assert.equal(page.$("cv-vorschau-bild").hidden, false);
   assert.equal(page.$("cv-vorschau-bild").src, `${ROUTE}/seite?id=b1&schluessel=k1&seite=1`);
   assert.equal(page.$("cv-vorschau-bild").alt, "Lebenslauf, Seite 1 von 2");
@@ -258,7 +263,7 @@ test("a newer request wins: the answer of an older one is dropped", async () => 
   await settle();
 
   assert.match(page.$("cv-vorschau-bild").src, /schluessel=neu/);
-  assert.equal(page.$("cv-vorschau-titel").textContent, "Vorschau · 2 Seiten");
+  assert.equal(shown(page.$("cv-vorschau-titel")), seenLine(["Vorschau", "2 Seiten"]));
 });
 
 const visible = node => { for (let n = node; n; n = n.parent) if (n.hidden) return false; return true; };
@@ -401,7 +406,7 @@ test("«Gross ansehen» shows every page large in a dialog and gives the focus b
   const images = page.$("cv-vorschau-seiten").querySelectorAll("img");
   assert.deepEqual(images.map(image => image.src), [1, 2].map(n => `${ROUTE}/seite?id=b1&schluessel=k1&seite=${n}&groesse=gross`));
   assert.deepEqual(images.map(image => image.alt), ["Lebenslauf, Seite 1 von 2", "Lebenslauf, Seite 2 von 2"]);
-  assert.equal(page.$("cv-vorschau-dialog-titel").textContent, "Vorschau · 2 Seiten");
+  assert.deepEqual(wholeParts(page.$("cv-vorschau-dialog-titel")), ["Vorschau", "2 Seiten"]);
   assert.equal(page.$("cv-vorschau-dialog-pdf").href, `${ROUTE}/pdf?id=b1&schluessel=k1`);
   assert.equal(page.doc.activeElement, page.$("cv-vorschau-schliessen"));
   assert.deepEqual(images.map(image => image.getAttribute("loading")), [null, "lazy"], "page 1 loads at once");

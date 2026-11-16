@@ -41,7 +41,7 @@ TOP_SHARED = f'<header class="top"><p class="brand">Bewerbungsbegleiter</p><p cl
 # overview logic it counts with for the badges, the budget and the extension (#259).
 MENU_SOURCE = ROOT.parent / "bewerbungen" / "seiten" / "uebersicht.html"
 APP_PAGE_SCRIPTS = "".join(f'<script src="/{name}"></script>\n' for name in (
-    "texte.js", "meldungen.js", "app.js", "uebersicht-logik.js", "sidebar-logic.js", "sidebar.js", "dateien-logik.js",
+    "texte.js", "meldungen.js", "dot-line.js", "app.js", "uebersicht-logik.js", "sidebar-logic.js", "sidebar.js", "dateien-logik.js",
     "treffer-logik.js"))
 # DM Sans comes from the app (bewerbungen/app.py FONT_FILES); the shared file loads nothing and uses the system font.
 APP_FONTS = "".join(

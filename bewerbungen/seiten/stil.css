@@ -944,7 +944,8 @@ button.files__photo img { width: 100%; height: 100%; object-fit: cover; display:
 .cv-create__station + .cv-create__station { border-top: 1px solid var(--line); }
 .cv-create__pick { flex: 1 1 auto; min-width: 0; margin: 0; }
 .cv-create__name { display: block; color: var(--text-strong); overflow-wrap: anywhere; }
-.cv-create__detail { display: block; font: 400 14px/20px var(--font-sans); color: var(--text-muted); overflow-wrap: anywhere; }
+/* break-word, not anywhere: a narrow row must not break between a company and the no-break «·» after it (#342) */
+.cv-create__detail { display: block; font: 400 14px/20px var(--font-sans); color: var(--text-muted); overflow-wrap: break-word; }
 .cv-create__move { display: flex; flex: none; gap: var(--space-1); }
 .cv-create__move .btn { min-width: 44px; min-height: 44px; justify-content: center; }
 .cv-create__designs { margin-bottom: var(--space-2); }

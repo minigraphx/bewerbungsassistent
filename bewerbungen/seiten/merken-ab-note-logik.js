@@ -22,7 +22,8 @@
     return {
       titel: `${treffer(vorschau.anzahl)} ab Note ${note} merken?`,
       einleitung: vorschau.anzahl === 1 ? "Dieser Treffer kommt unter Gemerkt:" : "Diese Treffer kommen unter Gemerkt:",
-      zeilen: vorschau.treffer.map(t => `${t.stelle}${t.firma ? `, ${t.firma}` : ""} · Note ${notenText(t.note)}`),
+      // each row as the parts of a «·» line (#342)
+      zeilen: vorschau.treffer.map(t => [`${t.stelle}${t.firma ? `, ${t.firma}` : ""}`, `Note ${notenText(t.note)}`]),
       nachsatz: "Treffer ohne Note und solche, die schon gemerkt oder verworfen sind, bleiben, wie sie sind.",
       ok: `${treffer(vorschau.anzahl)} merken`,
     };

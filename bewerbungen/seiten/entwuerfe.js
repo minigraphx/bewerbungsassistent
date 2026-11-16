@@ -1,6 +1,8 @@
 "use strict";
 (() => {
   const { holen, senden, el, status, url, datum, bestaetigen, pdfAdresse, zeitpunkt: zeit } = window.App;
+  /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
   const $ = id => document.getElementById(id);
   const meldung = (text, art) => status($("status"), text, art);
 
@@ -24,7 +26,7 @@
     meldung("PDF wird erstellt …");
     try {
       $("pdf").src = await pdfAdresse("/api/entwurf/pdf", { id: e.id });
-      $("pdf-titel").textContent = `${e.titel} · ${zeit(e.zeit)}`;
+      $("pdf-titel").replaceChildren(...dotLine([e.titel, zeit(e.zeit)]));
       $("ansicht").hidden = true;
       $("pdf-ansicht").hidden = false;
       $("pdf-ansicht").scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -70,8 +72,8 @@
   function fassung(e, knoepfe) {
     const versendet = Logik.versandText(e);
     return el("li", { class: "drafts__version" },
-      el("div", {}, el("time", { datetime: e.zeit }, zeit(e.zeit)), " · ", e.beschreibung || "ohne Beschreibung",
-        versendet ? el("span", { class: "drafts__sent" }, " · " + versendet) : null),
+      el("div", {}, dotLine([el("time", { datetime: e.zeit }, zeit(e.zeit)), e.beschreibung || "ohne Beschreibung",
+        versendet ? el("span", { class: "drafts__sent" }, versendet) : null])),
       el("div", { class: "knoepfe" }, knoepfe.filter(Boolean)));
   }
 
@@ -149,7 +151,7 @@
       const daten = await holen("/api/versionen");
       $("versionen-hinweis").textContent = daten.hinweis;
       const karten = daten.versionen.map(v => el("div", { class: "karte" },
-        el("strong", {}, v.nachricht), el("div", { class: "leise" }, v.commit ? `${datum(v.datum)} · Git ${v.commit.slice(0, 10)}` : datum(v.datum)),
+        el("strong", {}, v.nachricht), el("div", { class: "leise" }, dotLine([datum(v.datum), v.commit ? `Git ${v.commit.slice(0, 10)}` : ""])),
         el("ul", {}, v.dateien.map(d => el("li", {}, d.startsWith("versendet/")
           ? el("a", { href: url("/api/versendet", { datei: d }), target: "_blank", rel: "noopener" }, d) : d)))));
       $("versionen").replaceChildren(...(karten.length ? karten : [el("p", { class: "leer" }, "Noch nichts versendet.")]));

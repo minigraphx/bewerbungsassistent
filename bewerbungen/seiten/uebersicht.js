@@ -39,6 +39,10 @@
   const meldung = (inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige($("lauf-status"), inhalt, stufe, optionen);
 
   const t = (schluessel, werte) => text(schluessel, satz, werte);
+  /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
+  /** „5 gemerkte Stellen · bewerben oder verwerfen, …“ as the parts of a «·» line. */
+  const durchgang = anzahl => [t("heute.durchgang.anzahl", { anzahl }), t("heute.durchgang.unter")];
   const lehrstelle = () => satz === "lehrstelle-du";
   const adresse = b => "/bewerbung?id=" + encodeURIComponent(b.id);
 
@@ -83,7 +87,7 @@
       case "link": return "Ohne Link zum Bewerbungsformular kann die Erweiterung es nicht öffnen und ausfüllen.";
       case "gespraech": return schritt.frist ? `Termin am ${L.datum(schritt.frist)}. Inserat, Anschreiben und Notizen stehen in der Bewerbung.`
         : t("heute.gespraech.ohne-termin", { firma: eintrag.eintraege[0].bewerbung.firma || "Die Firma" });
-      case "entscheiden": return eintrag.eintraege.length > 1 ? t("heute.durchgang.unter", { anzahl: eintrag.eintraege.length })
+      case "entscheiden": return eintrag.eintraege.length > 1 ? durchgang(eintrag.eintraege.length)
         : "Bewerben oder verwerfen? Note und Inserat stehen in der Bewerbung.";
       default: return schritt.grund || "";
     }
@@ -95,9 +99,10 @@
     const erste = eintrag.eintraege[0].bewerbung;
     const anzahl = eintrag.eintraege.length;
     const was = schrittText(eintrag.eintraege[0].schritt, anzahl);
-    $("karte-zeile").textContent = anzahl > 1 ? "Nächster Schritt" : `Nächster Schritt · ${[erste.stelle, erste.firma].filter(Boolean).join(", ")}`;
+    $("karte-zeile").replaceChildren(...dotLine(["Nächster Schritt", anzahl > 1 ? "" : [erste.stelle, erste.firma].filter(Boolean).join(", ")]));
     $("karte-titel").textContent = was.titel;
-    $("karte-text").textContent = kartenText(eintrag);
+    const karte = kartenText(eintrag);
+    $("karte-text").replaceChildren(...(Array.isArray(karte) ? dotLine(karte) : [karte]));
     $("karte-knoepfe").replaceChildren(aktion(eintrag));
     const fristen = eintrag.eintraege.map(z => z.schritt.frist).filter(Boolean).sort();
     const fuss = anzahl > 1 && eintrag.art !== "entscheiden" ? eintrag.eintraege.map(z => z.bewerbung.firma).join(", ")
@@ -110,22 +115,24 @@
 
   function auchZeile(titel, unter, knopf) {
     return el("li", { class: "today__task" },
-      el("span", { class: "today__task-text" }, el("strong", {}, titel), unter ? el("span", { class: "today__meta" }, unter) : null), knopf);
+      el("span", { class: "today__task-text" }, el("strong", {}, titel),
+        unter.length ? el("span", { class: "today__meta" }, dotLine(unter)) : null), knopf);
   }
 
+  /** The line under a task as the parts of a «·» line. */
   function auchUnter(e) {
     const anzahl = e.eintraege.length;
-    if (e.art === "entscheiden" && anzahl > 1) return t("heute.durchgang.unter", { anzahl });
-    if (anzahl > 1) return e.eintraege.map(z => z.bewerbung.firma).join(", ");
+    if (e.art === "entscheiden" && anzahl > 1) return durchgang(anzahl);
+    if (anzahl > 1) return [e.eintraege.map(z => z.bewerbung.firma).join(", ")];
     const { bewerbung: b, schritt } = e.eintraege[0];
     const wann = schritt.frist ? `Frist ${L.datum(schritt.frist)}` : schrittText(schritt).zusatz;
-    return [[b.stelle, b.firma].filter(Boolean).join(", "), wann].filter(Boolean).join(" · ");
+    return [[b.stelle, b.firma].filter(Boolean).join(", "), wann].filter(Boolean);
   }
 
   function zeigeAuch(eintraege) {
     const punkte = eintraege.map(e => auchZeile(schrittText(e.eintraege[0].schritt, e.eintraege.length).titel, auchUnter(e), aktion(e, true)));
     if (neueTreffer && neueTreffer.anzahl > 0 && punkte.length < MAX_AUCH) {
-      const unter = neueTreffer.letzte ? `Suche vom ${L.datum(neueTreffer.letzte.slice(0, 10))}` : "";
+      const unter = neueTreffer.letzte ? [`Suche vom ${L.datum(neueTreffer.letzte.slice(0, 10))}`] : [];
       punkte.push(auchZeile(`${neueTreffer.anzahl} neue Treffer ansehen`, unter, el("a", { class: "btn", href: "/treffer" }, "Treffer ansehen")));
     }
     $("auch").hidden = punkte.length === 0;
@@ -142,7 +149,7 @@
   function zeigeZeile() {
     const tag = new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" });
     const { key, values } = H.waiting(L.stehtAn(zeilen, Infinity).length);
-    $("heute-zeile").textContent = `${tag} · ${t(key, values)}`;
+    $("heute-zeile").replaceChildren(...dotLine([tag, t(key, values)]));
   }
 
   function zeigeTermine() {
@@ -211,7 +218,7 @@
     const [ki, erweiterung] = await Promise.all([window.Sidebar.aiStatus, window.Sidebar.extension]);
     const bereit = Boolean(ki && ki.eingerichtet) && erweiterung;
     $("weg-einrichtung").dataset.state = bereit ? "done" : "todo";
-    $("weg-einrichtung-stand").textContent = bereit ? "· erledigt" : "· noch offen";
+    $("weg-einrichtung-stand").textContent = bereit ? "erledigt" : "noch offen";
     $("weg-einrichtung-link").hidden = bereit;
   }
 

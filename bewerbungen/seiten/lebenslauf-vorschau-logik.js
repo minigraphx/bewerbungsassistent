@@ -16,8 +16,8 @@
 
   const pagesText = pages => `${pages} ${pages === 1 ? "Seite" : "Seiten"}`;
 
-  /** The heading over the preview: with the pages once there is one. */
-  const title = pages => (pages ? `Vorschau · ${pagesText(pages)}` : "Vorschau");
+  /** The heading over the preview: with the pages once there is one; the parts of a «·» line (#342). */
+  const title = pages => (pages ? ["Vorschau", pagesText(pages)] : ["Vorschau"]);
 
   /**
    * What stands instead of the preview when a choice cannot be sent: {text}. No station ticked is a state, not a

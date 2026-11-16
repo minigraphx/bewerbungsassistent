@@ -26,7 +26,7 @@
   let profilFehlt = "";      // why nothing can be searched yet, from the app (#220)
   let umfang = null;         // how big the next run is (G43), from the app
   let gesucht = false;       // a search ran before, so an empty list of new hits means „nothing new“
-  let zusammenfassung = "";
+  let zusammenfassung = [];  // the parts of the line that sums up the settings
   let suchStand = { lauf: null, wann: "" };  // the last search from the app, for the summary under the title
   let geladen = false;      // the list and the reason a search cannot start are known
   let sucheVerlangt = location.hash === "#jetzt-suchen";  // „Jetzt suchen“ on Suche einstellen leads here (#263)
@@ -39,6 +39,8 @@
   let satz = "stelle-sie";
   const t = (schluessel, werte) => textAus(schluessel, satz, werte);
   const zeile = (element, inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige(element, inhalt, stufe, optionen);
+  /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
   const meldung = (inhalt, stufe) => zeile($("status"), inhalt, stufe);
 
   function anzeigen(treffer) {
@@ -184,15 +186,16 @@
   function zeigeDetail(treffer) {
     if (!treffer) return $("detail").replaceChildren();
     const b = treffer.bewertung;
-    const rahmen = [treffer.ort, treffer.pensum || treffer.lehrbeginn].filter(Boolean).join(" · ");
     const weitere = (treffer.weitere || []).map(w => el("li", {}, el("a", { href: w.link, target: "_blank", rel: "noopener" }, `Auch auf ${w.portal}`)));
     const [knopf, textFeld] = inseratKnopf(treffer);
+    const online = treffer.alter_tage !== undefined ? `${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : "";
     $("detail").replaceChildren(...[
       el("div", { class: "search__detail-head" },
         el("h2", { id: "detail-titel" }, treffer.stelle),
-        el("p", {}, [treffer.firma, rahmen].filter(Boolean).join(", ")),
-        el("p", { class: "search__hint" }, el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, `Inserat auf ${treffer.portal} öffnen`),
-          ` · gefunden ${datum(treffer.gefunden_am)}`, treffer.alter_tage !== undefined ? ` · ${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : "")),
+        el("p", {}, dotLine([[treffer.firma, treffer.ort].filter(Boolean).join(", "), treffer.pensum || treffer.lehrbeginn])),
+        el("p", { class: "search__hint" }, dotLine([
+          el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, `Inserat auf ${treffer.portal} öffnen`),
+          `gefunden ${datum(treffer.gefunden_am)}`, online]))),
       entscheidung(treffer),
       treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, t("suche.schon-titel")), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
       treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Passt nach den festen Regeln nicht"), el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
@@ -275,7 +278,9 @@
 
   function trefferZeile(treffer) {
     const sterne = treffer.beruf ? einstellungen.beruf_sterne[treffer.beruf] : 0;
-    const rahmen = [treffer.ort, treffer.pensum || treffer.lehrbeginn].filter(Boolean).join(" · ");
+    const marke = window.TrefferFirma.marke(firmen.get(treffer.id));
+    // the kununu badge belongs to the company name, so the two break only together
+    const firma = treffer.firma && marke ? el("span", {}, treffer.firma, marke) : treffer.firma;
     const marken = [
       logik.istSchnupperlehre(treffer) ? "Schnupperlehre" : "",
       treffer.hinweis ? t("suche.schon-marke") : "",
@@ -287,10 +292,9 @@
       el("span", { class: "hit__grades" }, noten(treffer)),
       el("span", { class: "hit__text" },
         el("span", { class: "hit__title" }, treffer.stelle),
-        el("span", { class: "hit__where" }, treffer.firma, window.TrefferFirma.marke(firmen.get(treffer.id)),
-          treffer.firma && rahmen ? " · " : "", rahmen),
-        el("span", { class: "hit__meta" }, [treffer.portal + ((treffer.weitere || []).length ? ` +${treffer.weitere.length}` : ""), datum(treffer.gefunden_am)].join(" · "),
-          ...marken.map(m => [" · ", el("strong", {}, m)]).flat())));
+        el("span", { class: "hit__where" }, dotLine([firma || marke, treffer.ort, treffer.pensum || treffer.lehrbeginn])),
+        el("span", { class: "hit__meta" }, dotLine([treffer.portal + ((treffer.weitere || []).length ? ` +${treffer.weitere.length}` : ""),
+          datum(treffer.gefunden_am), ...marken.map(m => el("strong", {}, m))]))));
     knopf.addEventListener("click", () => {
       gewaehlt = treffer.id;
       zeigeListe();
@@ -497,7 +501,7 @@
 
   // „N Treffer, M neu“ under the title counts the list as it is now, so Merken and Verwerfen move it at once (#317).
   function zeigeZahlen() {
-    $("letzte").textContent = anzeige.letzteSuche(suchStand.lauf, alle, datum, suchStand.wann);
+    $("letzte").replaceChildren(...dotLine(anzeige.letzteSuche(suchStand.lauf, alle, datum, suchStand.wann)));
   }
 
   function zeigeLetzteSuche(lauf, hinweise, ziele, zeitraum = {}) {
@@ -596,7 +600,7 @@
     if (lauf.zustand === "fehler") return [lauf.fehler || "Die Suche ist abgebrochen.", "fehler"];
     if (lauf.zustand === "fertig" && lauf.ergebnis?.abgebrochen) return ["Suche abgebrochen. Was schon gefunden war, ist da.", "hinweis"];
     if (lauf.zustand === "fertig") return ["Suche fertig.", "ok"];
-    return [window.SuchlaufLogik.laufZeile(lauf.schritt || {}), ""];
+    return [dotLine(window.SuchlaufLogik.laufZeile(lauf.schritt || {})), ""];
   }
 
   // The extension's worker may stop and lose this page's connection: without word for a while, the page asks.
@@ -675,8 +679,8 @@
   });
   // The settings are their own page (#263); here one line sums them up, with „Ändern“ leading there (#220)
   function zeigeEinstellen() {
-    $("einstellen-text").textContent = zusammenfassung;
-    $("einstellen-zeile").hidden = !zusammenfassung;
+    $("einstellen-text").replaceChildren(...dotLine(zusammenfassung));
+    $("einstellen-zeile").hidden = !zusammenfassung.length;
   }
 
   if (document.documentElement.dataset.bewerbungsbegleiterErweiterung) erweiterungDa();

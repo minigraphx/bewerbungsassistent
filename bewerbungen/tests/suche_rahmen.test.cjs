@@ -64,9 +64,10 @@ test("the region card sends the place lines of the portals it shows, and only th
 
 test("the closed card says per portal where it searches instead of Wohnort and Kantone (#301)", () => {
   const liste = [{ portal: "jobs.ch", orte: ["Bern", "Thun"] }, { portal: "ictjobs", orte: ["Grossraum Bern"] }];
-  assert.equal(L.proPortalText(liste), "jobs.ch: Bern, Thun · ictjobs: Grossraum Bern");
-  assert.equal(L.proPortalText([]), "");
-  assert.equal(L.proPortalText(undefined), "");
+  // the parts of a «·» line (#342), joined by the page with dot-line.js
+  assert.deepEqual(L.proPortalText(liste), ["jobs.ch: Bern, Thun", "ictjobs: Grossraum Bern"]);
+  assert.deepEqual(L.proPortalText([]), []);
+  assert.deepEqual(L.proPortalText(undefined), []);
 });
 
 test("a place field shows only while its portal has its own line (#301)", () => {

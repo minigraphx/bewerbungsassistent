@@ -46,8 +46,10 @@
   .companies-page__help { margin-left: 0; }
 }
 
-/* Stellen suchen (#190): the badge after the company name, squarer than status badges, and the company line. */
-.kununu-mark { display: inline-block; margin-left: 6px; padding: 0 5px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+/* Stellen suchen (#190): the badge after the company name, squarer than status badges, and the company line.
+   Inline, not inline-block: a line may break after an inline-block despite a no-break space, and the «·» after the
+   company follows the badge (#342). */
+.kununu-mark { display: inline; margin-left: 6px; padding: 0 5px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
   font-size: 12px; line-height: 16px; color: var(--text-muted); white-space: nowrap; vertical-align: 1px; }
 .kununu-mark[data-art="wenige"] { border-style: dashed; }
 .kununu-mark[data-art="leise"] { border-color: transparent; padding: 0; }

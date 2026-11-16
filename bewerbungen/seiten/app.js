@@ -104,9 +104,10 @@ window.App = (() => {
     let inhalt;
     try {
       const { entwuerfe } = await holen("/api/entwuerfe", { datei, anzahl: LETZTE_ENTWUERFE });
-      const eintraege = entwuerfe.map(e => el("li", {},
-        el("time", { datetime: e.zeit }, zeitpunkt(e.zeit)), " · ", e.beschreibung || "ohne Beschreibung",
-        e.genutzt ? el("span", { class: "leise", title: e.genutzt_fuer.join(", ") }, " · versendet") : null));
+      // a «·» line of whole parts (#342, dot-line.js, loaded before this file on every page)
+      const eintraege = entwuerfe.map(e => el("li", {}, window.DotLine.render([
+        el("time", { datetime: e.zeit }, zeitpunkt(e.zeit)), e.beschreibung || "ohne Beschreibung",
+        e.genutzt ? el("span", { class: "leise", title: e.genutzt_fuer.join(", ") }, "versendet") : null], el)));
       inhalt = eintraege.length ? el("ul", {}, eintraege) : el("p", { class: "leer" }, "Noch keine Entwürfe.");
     } catch (fehler) {
       inhalt = el("p", { class: "leise" }, "Entwürfe nicht lesbar: " + fehler.message);

@@ -26,7 +26,7 @@ async function frischGeladen(firmen) {
     querySelectorAll: () => [], querySelector: () => null,
   };
   global.window = {
-    FirmenLogik: logik, KununuPruefen: { pruefe: async () => ({ geoeffnet: true }) },
+    FirmenLogik: logik, KununuPruefen: { pruefe: async () => ({ geoeffnet: true }) }, DotLine: require("../seiten/dot-line.js"),
     Texte: { text: schluessel => schluessel, statusName: status => status },
     App: { el, senden: async () => ({}), holen: async () => ({ firmen, heute: "2026-11-09" }), textsatz: async () => "stelle-sie" },
   };

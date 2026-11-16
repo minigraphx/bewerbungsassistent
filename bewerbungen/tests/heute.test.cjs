@@ -191,7 +191,7 @@ test("the first start shows four steps to the first application and what is good
 
 test("every text Heute speaks to the person with exists in both forms", () => {
   for (const key of ["heute.wartet.nichts", "heute.wartet.eins", "heute.wartet.viele", "heute.stand", "heute.weg",
-                     "heute.durchgang.unter", "heute.start.einrichtung", "heute.start.suchen", "heute.start.bewerbung",
+                     "heute.durchgang.anzahl", "heute.durchgang.unter", "heute.start.einrichtung", "heute.start.suchen", "heute.start.bewerbung",
                      "heute.wissen.computer", "heute.wissen.entscheiden", "heute.wissen.weg", "heute.rav",
                      "heute.gespraech.termin", "heute.gespraech.ohne-termin"]) {
     assert.ok(texte.TEXTE[key], key);

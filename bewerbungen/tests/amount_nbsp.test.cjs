@@ -23,6 +23,7 @@ test("the setup step of the extension keeps «2 Minuten» together", () => {
 });
 
 test("the next step on „Heute“ keeps «20 Minuten» together", () => {
-  const eyebrow = /<p class="path__eyebrow">([^<]*)<\/p>/.exec(page("uebersicht.html"))[1].replaceAll("&nbsp;", NBSP);
-  assert.equal(eyebrow, `Nächster Schritt · etwa 20${NBSP}Minuten`);
+  // the «·» line itself is whole parts (#342, dot_line_pages.test.cjs); here only the amount counts
+  const eyebrow = /<p class="path__eyebrow">(.*?)<\/p>/.exec(page("uebersicht.html"))[1].replaceAll("&nbsp;", NBSP);
+  assert.match(eyebrow, new RegExp(`>etwa 20${NBSP}Minuten<`));
 });
