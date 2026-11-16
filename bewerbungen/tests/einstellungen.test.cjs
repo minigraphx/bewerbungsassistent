@@ -133,6 +133,12 @@ test("with the own key there is no budget, only the costs of the month", () => {
   assert.match(view.note, /^Massgebend ist die Abrechnung von Anthropic\./);
 });
 
+test("the costs name the AI's suggestions for a CV as the person knows the panel", () => {
+  const view = logic.budgetView(null, { monat_usd: 0.1, gesamt_usd: 0.1, aufrufe: 1,
+                                        aufgaben: { cv_suggestions: { aufrufe: 1, usd: 0.1 } } });
+  assert.deepEqual(view.rows.map(row => row.label), ["Lebenslauf für eine Stelle"]);
+});
+
 test("without an answer of the AI the local costs still show", () => {
   const view = logic.budgetView(null, { monat_usd: 0, gesamt_usd: 0, aufrufe: 0, aufgaben: {} });
   assert.equal(view.title, "Kosten in diesem Monat");

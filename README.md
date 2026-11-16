@@ -36,7 +36,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Eine Bewerbung in sechs Schritten:** Von der Stelle bis zum Festhalten sehen Sie, wo die Bewerbung steht und was als Nächstes kommt. Ein Anschreiben der KI geht erst weiter, wenn Sie es gelesen und freigegeben haben. Den Lebenslauf stellen Sie für die Stelle zusammen: welche Stationen in welcher Reihenfolge, ein- oder zweispaltig.
 
-![Seite einer Bewerbung mit den sechs Schritten, der Karte „Nächster Schritt“, den Angaben zur Stelle und dem geöffneten Teil „Lebenslauf für diese Stelle“ mit Stationen, Kurzprofil und den Designs Zweispaltig und Einspaltig](docs/bilder/bewerbung.jpg)
+![Seite einer Bewerbung mit den sechs Schritten, der Karte „Nächster Schritt“, den Angaben zur Stelle und dem geöffneten Teil „Lebenslauf für diese Stelle“ mit den Vorschlägen der KI, Stationen, Kurzprofil und den Designs Zweispaltig und Einspaltig](docs/bilder/bewerbung.jpg)
 
 **Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass der Lebenslauf eine Seite zu lang ist, und nennt, was sich kürzen liesse; gekürzt wird nur durch Sie, oder Sie bestätigen mit „So lassen“.
 

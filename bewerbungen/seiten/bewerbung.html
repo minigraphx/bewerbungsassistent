@@ -52,11 +52,11 @@
           <p class="field__hint">Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.</p>
           <h4 class="cv-create__step">1 · Inhalt</h4>
           <section class="cv-create__ai" id="cv-erstellen-ki" aria-labelledby="cv-erstellen-ki-titel" hidden>
-            <h5 class="cv-create__ai-title" id="cv-erstellen-ki-titel">Vorschläge der KI für diese Stelle</h5>
+            <h5 class="cv-create__ai-title" id="cv-erstellen-ki-titel" data-text="lebenslauf.ki-titel">Vorschläge der KI für diese Stelle</h5>
             <p class="cv-create__ai-line" id="cv-erstellen-ki-zeile"></p>
             <ul class="cv-create__ideas" id="cv-erstellen-ki-liste" hidden></ul>
-            <div class="btn-row" id="cv-erstellen-ki-knoepfe" hidden><button type="button" class="btn" id="cv-erstellen-ki-knopf"></button></div>
-            <p class="status-line" id="cv-erstellen-ki-status" role="status" aria-live="polite"></p>
+            <div class="btn-row" id="cv-erstellen-ki-knoepfe" hidden><button type="button" class="btn" id="cv-erstellen-ki-knopf"></button><button type="button" class="btn btn--quiet" id="cv-erstellen-ki-stellentext" data-text="lebenslauf.ki-zum-stellentext" hidden>Zum Stellentext</button></div>
+            <p class="status-line" id="cv-erstellen-ki-status" role="status" aria-live="polite" tabindex="-1"></p>
             <p class="cv-create__ai-note"><span data-text="lebenslauf.ki-grenze">Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in Ihren Angaben steht.</span> <a href="/angaben">Angaben selbst ändern</a></p>
             <details class="cv-create__ai-text" id="cv-erstellen-ki-text"><summary>Text an die KI ansehen</summary><pre class="cv-create__ai-sent" id="cv-erstellen-ki-text-inhalt"></pre></details>
           </section>

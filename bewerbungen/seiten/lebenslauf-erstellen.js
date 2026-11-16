@@ -4,14 +4,19 @@
 // With AI set up and a job ad, the AI's suggestion is applied on opening (#293, G75); each recommendation is a box the
 // person unticks to undo it as a whole. What goes to the AI: ai/cv_suggestions.py.
 (() => {
-  const { holen, senden, el, status, url, kiEinrichten } = window.App;
+  const { holen, senden, el, status, url, kiEinrichten, textsatz } = window.App;
   const Logic = window.LebenslaufErstellenLogik;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const ROUTE = "/api/lebenslauf/erstellen";
   let state = null;
   let opened = 0; // an answer of the AI for a panel opened before is not applied any more
+  let running = null; // the opening whose request to the AI still runs
+  let ki = "aus";
+  let offer = null;
+  let satz = "stelle-sie";
 
+  const say = key => window.Texte.text(key, satz);
   const message = (text, type = "") => status($("cv-erstellen-status"), text, type);
   const aiMessage = (text, type = "") => status($("cv-erstellen-ki-status"), text, type);
   // bewerbung.js loads again, so the new variant stands in the list and is chosen.
@@ -79,53 +84,73 @@
           el("span", { class: "cv-create__idea-why" }, recommendation.grund))));
   }
 
-  function showAi(ki, { button = null } = {}) {
+  /** The box: its line, the recommendations and at most one offer of Logic.aiOffer. */
+  function showAi(line, shown = null) {
+    const toAd = shown?.action === "stellentext";
     $("cv-erstellen-ki").hidden = false;
-    $("cv-erstellen-ki-zeile").textContent = state.recommendations.length ? "" : Logic.aiLine(ki);
+    $("cv-erstellen-ki-zeile").textContent = line;
     $("cv-erstellen-ki-liste").hidden = !state.recommendations.length;
     $("cv-erstellen-ki-liste").replaceChildren(...state.recommendations.map(idea));
-    $("cv-erstellen-ki-knoepfe").hidden = !button;
-    $("cv-erstellen-ki-knopf").textContent = button || "";
+    $("cv-erstellen-ki-knoepfe").hidden = !shown;
+    $("cv-erstellen-ki-knopf").hidden = !shown || toAd;
+    $("cv-erstellen-ki-knopf").textContent = shown && !toAd ? say(shown.button) : "";
+    $("cv-erstellen-ki-knopf").removeAttribute("aria-disabled");
+    $("cv-erstellen-ki-stellentext").hidden = !toAd;
     $("cv-erstellen-ki-text").hidden = ki !== "bereit";
   }
 
-  async function suggest(ki) {
+  function showSuggested(answer, fromButton) {
+    const count = state.recommendations.length;
+    showAi(count ? say(Logic.APPLIED_LINE) : Logic.suggestedText(0));
+    aiMessage(Logic.suggestedText(answer.empfehlungen.length, answer.kosten_text), "ok");
+    // Opening leaves the focus on the stations; after the button it goes where the answer stands.
+    if (fromButton) ($("cv-erstellen-ki-liste").querySelector("input") || $("cv-erstellen-ki-status")).focus();
+  }
+
+  /** The button stays where it is while the AI runs, so the focus does not fall back to the page. */
+  async function suggest({ fromButton = false } = {}) {
     const mine = opened;
-    $("cv-erstellen-ki-knoepfe").hidden = true;
-    aiMessage("Die KI schlägt vor …");
+    if (running === mine) return;
+    running = mine;
+    $("cv-erstellen-ki-knopf").setAttribute("aria-disabled", "true");
+    $("cv-erstellen-ki-zeile").textContent = say("lebenslauf.ki-laeuft");
     try {
       const answer = await senden(`${ROUTE}/vorschlag`, { id: ID, stand: state.stand });
       if (mine !== opened) return;
       change(Logic.suggest(state, answer));
-      showAi(ki);
-      aiMessage(Logic.suggestedText(answer.empfehlungen.length), "ok");
+      showSuggested(answer, fromButton);
     } catch (error) {
       if (mine !== opened) return;
-      showAi(ki, { button: "Nochmals vorschlagen" });
+      showAi(say(offer.line), { ...offer, button: "lebenslauf.ki-nochmals" });
       aiMessage(error.message, "fehler");
+    } finally {
+      if (running === mine) running = null;
     }
+  }
+
+  function startAi(answer, { fromButton = false } = {}) {
+    ki = answer.ki;
+    offer = Logic.aiOffer(answer);
+    if (!Logic.autoSuggest(answer)) return showAi(say(offer.line), offer);
+    showAi("");
+    return suggest({ fromButton });
   }
 
   async function aiButton() {
-    if ($("cv-erstellen-ki-knopf").dataset.ki !== "aus") return suggest("bereit");
-    await kiEinrichten().catch(() => null);
-    const { ki } = await holen(ROUTE, { id: ID }).catch(() => ({ ki: "aus" }));
-    $("cv-erstellen-ki-knopf").dataset.ki = ki;
-    if (ki === "bereit") return suggest(ki);
-    showAi(ki, { button: ki === "aus" ? "KI einschalten" : null });
+    if (offer.action === "vorschlagen") return suggest({ fromButton: true });
+    try {
+      await kiEinrichten();
+      return startAi(await holen(ROUTE, { id: ID }), { fromButton: true });
+    } catch (error) {
+      return aiMessage(error.message, "fehler");
+    }
   }
 
-  function startAi(answer) {
-    aiMessage("");
-    $("cv-erstellen-ki-text").open = false;
-    $("cv-erstellen-ki-text-inhalt").textContent = "";
-    $("cv-erstellen-ki-knopf").dataset.ki = answer.ki;
-    if (Logic.autoSuggest(answer)) {
-      showAi(answer.ki);
-      return suggest(answer.ki);
-    }
-    const button = { aus: "KI einschalten", bereit: "Vorschläge holen" }[answer.ki] || null;
-    return showAi(answer.ki, { button });
+  function toAd() {
+    const part = $("s-stelle");
+    part.open = true;
+    part.scrollIntoView({ behavior: "smooth", block: "start" });
+    $("stellentext").focus({ preventScroll: true });
   }
 
   function showForm(answer) {
@@ -147,11 +172,15 @@
     if (!$("cv-erstellen").hidden) return setOpen(false);
     $("cv-erstellen-pdf").hidden = true;
     try {
-      const answer = await holen(ROUTE, { id: ID });
+      const [answer, set] = await Promise.all([holen(ROUTE, { id: ID }), textsatz()]);
       opened += 1;
+      satz = set;
       showForm(answer);
       setOpen(true);
       $("cv-erstellen-stationen").querySelector("input")?.focus();
+      aiMessage("");
+      $("cv-erstellen-ki-text").open = false;
+      $("cv-erstellen-ki-text-inhalt").textContent = "";
       startAi(answer);
     } catch (error) {
       setOpen(true);
@@ -197,5 +226,6 @@
   $("cv-erstellen-abbrechen").addEventListener("click", () => setOpen(false));
   $("cv-erstellen-speichern").addEventListener("click", save);
   $("cv-erstellen-ki-knopf").addEventListener("click", aiButton);
+  $("cv-erstellen-ki-stellentext").addEventListener("click", toAd);
   $("cv-erstellen-ki-text").addEventListener("toggle", showSentText);
 })();

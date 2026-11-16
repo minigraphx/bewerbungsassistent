@@ -12,6 +12,7 @@ import pytest
 import yaml
 
 import routes_ai
+import routes_terms
 from ai import cv_suggestions
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
 from ai.errors import SETUP_ACTION
@@ -249,6 +250,15 @@ def test_opening_again_with_the_same_angaben_and_ad_does_not_ask_the_ai_again(wi
 
     assert len(ai.messages.calls) == 1
     assert again["empfehlungen"] == first["empfehlungen"]
+
+
+def test_a_suggestion_says_what_it_cost_and_a_repeat_from_the_cache_costs_nothing(with_ad, ai):
+    first = suggest(with_ad)
+    again = suggest(with_ad)
+
+    assert first["kosten_usd"] > 0
+    assert first["kosten_text"] == routes_terms.charged(first["kosten_usd"])
+    assert again["kosten_text"] == ""
 
 
 # When there is no suggestion

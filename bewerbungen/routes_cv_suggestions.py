@@ -115,15 +115,17 @@ def propose(k, parameter, body):
     key = _key(entry["id"], ad, stations, summary)
     kept = dict(k.cache.get(CACHE_KEY, ()))
     if key in kept:
-        return json_antwort({**kept[key], "kosten_usd": 0, "wiederholt": True})
+        return json_antwort({**kept[key], "kosten_usd": 0, "kosten_text": "", "wiederholt": True})
     try:
         gateway, _ = routes_ai.ai_gateway(k, entry, partial=True)
         result = cv_suggestions.propose(gateway, ad, stations, summary)
     except AiError as error:
         raise _failed(error) from error
     by_ref = {station.ref: station for station in stations}
+    cost = result["cost_usd"]
     view = {"empfehlungen": [_view(n, r, by_ref, summary) for n, r in enumerate(result["recommendations"])],
-            "kosten_usd": result["cost_usd"], "waehrung": currency_now(), "wiederholt": False}
+            "kosten_usd": cost, "kosten_text": routes_terms.charged(cost) if cost else "",
+            "waehrung": currency_now(), "wiederholt": False}
     k.cache[CACHE_KEY] = (*k.cache.get(CACHE_KEY, ()), (key, view))[-KEPT:]
     return json_antwort(view)
 

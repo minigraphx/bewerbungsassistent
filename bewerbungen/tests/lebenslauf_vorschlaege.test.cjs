@@ -4,6 +4,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const L = require("../seiten/lebenslauf-erstellen-logik.js");
+const Texte = require("../seiten/texte.js");
 
 const ANSWER = {
   stand: "abc", ki: "bereit", eigene_variante: null,
@@ -87,6 +88,48 @@ test("what the page says about the suggestion and each undo", () => {
   const rec = SUGGESTION.empfehlungen[0];
   assert.equal(L.recommendationText(rec, false), "Zurückgenommen: «Spiel» weglassen, «kurs-tools» nach vorne.");
   assert.equal(L.recommendationText(rec, true), "Wieder angewendet: «Spiel» weglassen, «kurs-tools» nach vorne.");
-  assert.match(L.aiLine("ohne_inserat"), /Stellentext/);
-  assert.match(L.aiLine("aus"), /KI/);
+});
+
+test("the announcement names what the suggestion cost, and a repeat from the cache adds nothing", () => {
+  assert.equal(L.suggestedText(2, "Berechnet: 0.01 CHF."), "Vorschlag der KI angewendet: 2 Empfehlungen. Berechnet: 0.01 CHF.");
+  assert.equal(L.suggestedText(0, "Berechnet: 0.01 CHF."),
+               "Die KI schlägt für diese Stelle nichts anderes vor. Berechnet: 0.01 CHF.");
+  assert.equal(L.suggestedText(2, ""), "Vorschlag der KI angewendet: 2 Empfehlungen.");
+});
+
+test("what the box offers when nothing is applied on opening: a line and a button, both from texte.js", () => {
+  assert.deepEqual(L.aiOffer({ ...ANSWER, ki: "aus" }),
+                   { line: "lebenslauf.ki-aus", button: "lebenslauf.ki-einschalten", action: "einrichten" });
+  assert.deepEqual(L.aiOffer({ ...ANSWER, ki: "ohne_inserat" }),
+                   { line: "lebenslauf.ki-ohne-inserat", button: "lebenslauf.ki-zum-stellentext", action: "stellentext" });
+  assert.deepEqual(L.aiOffer({ ...ANSWER, eigene_variante: "b1" }),
+                   { line: "lebenslauf.ki-gespeichert", button: "lebenslauf.ki-neu", action: "vorschlagen" });
+  assert.deepEqual(L.aiOffer(ANSWER), { line: "lebenslauf.ki-bereit", button: "lebenslauf.ki-holen", action: "vorschlagen" });
+  assert.equal(L.APPLIED_LINE, "lebenslauf.ki-angewendet");
+});
+
+test("the box speaks to each text set, and an apprenticeship reads Lehrstelle", () => {
+  const t = (key, satz) => Texte.text(key, satz);
+  assert.equal(t("lebenslauf.ki-titel", "stelle-sie"), "Vorschläge der KI für diese Stelle");
+  assert.equal(t("lebenslauf.ki-titel", "stelle-du"), "Vorschläge der KI für diese Stelle");
+  assert.equal(t("lebenslauf.ki-titel", "lehrstelle-du"), "Vorschläge der KI für diese Lehrstelle");
+  assert.equal(t("lebenslauf.ki-aus", "stelle-sie"),
+               "Mit KI schlägt die App für diese Stelle Stationen, Reihenfolge und Kurzprofil vor.");
+  assert.equal(t("lebenslauf.ki-aus", "lehrstelle-du"),
+               "Mit KI schlägt die App für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vor.");
+  for (const satz of Texte.SAETZE) {
+    assert.equal(t("lebenslauf.ki-ohne-inserat", satz), "Für Vorschläge der KI fehlt noch der Stellentext.");
+    assert.equal(t("lebenslauf.ki-zum-stellentext", satz), "Zum Stellentext");
+    assert.equal(t("lebenslauf.ki-angewendet", satz),
+                 "Schon angewendet. Ohne Häkchen gilt eine Empfehlung als Ganzes nicht mehr.");
+    assert.equal(t("lebenslauf.ki-neu", satz), "Neu vorschlagen lassen");
+    assert.equal(t("lebenslauf.ki-einschalten", satz), "KI einschalten");
+  }
+  assert.equal(t("lebenslauf.ki-gespeichert", "stelle-sie"),
+               "Für diese Bewerbung ist Ihre Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».");
+  assert.equal(t("lebenslauf.ki-gespeichert", "stelle-du"),
+               "Für diese Bewerbung ist deine Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».");
+  assert.equal(t("lebenslauf.ki-bereit", "lehrstelle-du"),
+               "Die KI kann für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vorschlagen.");
+  assert.equal(t("lebenslauf.ki-holen", "stelle-sie"), "Vorschläge holen");
 });

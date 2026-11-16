@@ -11,10 +11,13 @@
     { id: "einspaltig", name: "Einspaltig", text: "Schlicht, alles untereinander." },
   ];
   const NOTHING_CHOSEN = "Bitte mindestens eine Station wählen.";
-  const AI_LINES = {
-    aus: "Mit KI schlägt die App für diese Stelle Stationen, Reihenfolge und Kurzprofil vor.",
-    ohne_inserat: "Für Vorschläge der KI fehlt noch der Stellentext.",
-    bereit: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen.",
+  // Keys of texte.js: the box speaks Sie or du and names a Lehrstelle.
+  const APPLIED_LINE = "lebenslauf.ki-angewendet";
+  const OFFERS = {
+    aus: { line: "lebenslauf.ki-aus", button: "lebenslauf.ki-einschalten", action: "einrichten" },
+    ohne_inserat: { line: "lebenslauf.ki-ohne-inserat", button: "lebenslauf.ki-zum-stellentext", action: "stellentext" },
+    gespeichert: { line: "lebenslauf.ki-gespeichert", button: "lebenslauf.ki-neu", action: "vorschlagen" },
+    bereit: { line: "lebenslauf.ki-bereit", button: "lebenslauf.ki-holen", action: "vorschlagen" },
   };
 
   const withChosen = (section, picked) => ({ ...section, chosen: section.order.filter(index => picked.has(index)) });
@@ -110,11 +113,17 @@
   /** Without a CV of its own yet: a saved one is the person's choice, which the AI does not overwrite on opening. */
   const autoSuggest = answer => answer.ki === "bereit" && !answer.eigene_variante;
 
-  const aiLine = ki => AI_LINES[ki] || AI_LINES.aus;
+  /** What the box offers when the suggestion is not applied on opening: line, button and what the button does. */
+  function aiOffer(answer) {
+    if (answer.ki === "bereit") return answer.eigene_variante ? OFFERS.gespeichert : OFFERS.bereit;
+    return OFFERS[answer.ki] || OFFERS.aus;
+  }
 
-  function suggestedText(count) {
-    if (!count) return "Die KI schlägt für diese Stelle nichts anderes vor.";
-    return `Vorschlag der KI angewendet: ${count} ${count === 1 ? "Empfehlung" : "Empfehlungen"}.`;
+  /** The announcement after a suggestion; `cost` is the server's charged text, empty for a repeat from its cache. */
+  function suggestedText(count, cost = "") {
+    const said = count ? `Vorschlag der KI angewendet: ${count} ${count === 1 ? "Empfehlung" : "Empfehlungen"}.`
+      : "Die KI schlägt für diese Stelle nichts anderes vor.";
+    return cost ? `${said} ${cost}` : said;
   }
 
   const recommendationText = (recommendation, on) => `${on ? "Wieder angewendet" : "Zurückgenommen"}: ${recommendation.was}.`;
@@ -141,7 +150,7 @@
   }
 
   const logic = { DESIGNS, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
-                  autoSuggest, aiLine, suggestedText, recommendationText };
+                  autoSuggest, APPLIED_LINE, aiOffer, suggestedText, recommendationText };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufErstellenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);
