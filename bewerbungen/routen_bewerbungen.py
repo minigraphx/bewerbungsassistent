@@ -220,7 +220,7 @@ def bestaetigen(k, parameter, body):
         raise ValueError("id und schluessel erwartet")
     with k.sperre:
         entry = k.register().hole(pflicht(body, "id"))
-        # G92: a CV over its limit is cut or allowed three pages, never confirmed as it is
+        # G92: a CV over its limit is cut or allowed three pages, confirmed as it is only with neither left (#330)
         current = [b.schluessel for b in pruefung.pruefe(k.daten, entry, k.heute()) if b.schluessel and not b.kuerzen]
         layout_confirmed.confirm(k.daten, entry, body["schluessel"], current)
         befunde = pruefung.pruefe(k.daten, entry, k.heute())

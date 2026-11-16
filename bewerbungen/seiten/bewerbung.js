@@ -428,7 +428,8 @@
     await laden();
     await laufendePruefung;
     const over = K.stillOver(befunde);
-    meldungOben(K.doneMessage(aktion, antwort, over), K.doneLevel(aktion, antwort, over));
+    const noneLeft = K.noCutLeft(befunde);
+    meldungOben(K.doneMessage(aktion, antwort, over, noneLeft), K.doneLevel(aktion, antwort, over, noneLeft));
     if (aktion !== "zurueck") S.focusFirstFinding();
   }
 
