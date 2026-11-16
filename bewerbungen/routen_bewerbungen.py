@@ -6,6 +6,8 @@ from http import HTTPStatus
 
 import yaml
 
+import pfade  # noqa: F401  (makes the module lebenslauf importable)
+import anschreiben
 import cut_choice
 import layout_confirmed
 import letter_approval
@@ -86,7 +88,8 @@ def _letter_text(k, entry_id: str) -> dict | None:
         return None
     if not isinstance(letter, dict):
         return None
-    paragraphs = [part.strip() for part in str(letter.get("text") or "").split("\n\n") if part.strip()]
+    # split as the build and the check do, so the place of the longest paragraph (G94) is the same here
+    paragraphs = anschreiben.absaetze(str(letter.get("text") or ""))
     return {"betreff": str(letter.get("betreff") or ""), "anrede": str(letter.get("anrede") or ""),
             "absaetze": [" ".join(part.split()) for part in paragraphs], "gruss": str(letter.get("gruss") or "")}
 

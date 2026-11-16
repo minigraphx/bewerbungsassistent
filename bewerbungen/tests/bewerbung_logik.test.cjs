@@ -125,6 +125,27 @@ test("a CV over its limit gets the cuts instead of «So lassen»", () => {
   assert.equal(zeile.stufe, "hinweis");
 });
 
+// G94 (#325): a letter over one page is cut in the letter or confirmed as it is, with its longest paragraph marked
+const briefZuLang = {
+  stufe: "fehler", text: "Anschreiben: 2 Seiten, erlaubt ist eine. Auch so eng wie möglich gesetzt sind es etwa 6 Zeilen zu viel.",
+  schluessel: "abc:seiten:2", bestaetigt: false, letter_cut: { lines: 6, paragraph: 3 },
+};
+
+test("a letter over one page offers «Im Anschreiben kürzen» before «So lassen»", () => {
+  assert.deepEqual(logik.befundZeile(briefZuLang),
+    { text: briefZuLang.text, stufe: "fehler", knopf: "So lassen", cutInLetter: "Im Anschreiben kürzen" });
+  assert.deepEqual(logik.befundZeile({ ...briefZuLang, stufe: "hinweis", bestaetigt: true }),
+    { text: `${briefZuLang.text} Bestätigt: so lassen.`, stufe: "ok", knopf: null });
+});
+
+test("the longest paragraph is marked only while the letter is over one page and not confirmed", () => {
+  assert.equal(logik.LONGEST_LABEL, "Längster Absatz");
+  assert.equal(logik.longestParagraph([{ stufe: "ok", text: "x" }, briefZuLang]), 3);
+  assert.equal(logik.longestParagraph([{ ...briefZuLang, bestaetigt: true }]), null);
+  assert.equal(logik.longestParagraph([{ ...briefZuLang, letter_cut: { lines: 6, paragraph: null } }]), null);
+  assert.equal(logik.longestParagraph(null), null);
+});
+
 test("with a CV over its limit the next step is to cut it, and the step says so", () => {
   const gebaut = daten({}, { pdfs: { lebenslauf: true, anschreiben: true }, hat_anschreiben: true, anschreiben_freigabe: { noetig: true, freigegeben: true } });
   const breach = { stufe: "hinweis", text: "Lebenslauf, Seite 2: …", schluessel: "abc:fuellung:2", bestaetigt: false };
