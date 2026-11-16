@@ -24,7 +24,15 @@ class FakeElement extends FakeNode {
   constructor(doc, tag) {
     super();
     Object.assign(this, { doc, tagName: tag.toUpperCase(), attrs: new Map(), children: [], parent: null, listeners: {},
-      value: "", disabled: false, checked: false, className: "", selection: null });
+      value: "", disabled: false, checked: false, className: "", selection: null, dataset: {} });
+  }
+  get classList() {
+    const names = () => this.className.split(/\s+/).filter(Boolean);
+    return {
+      contains: name => names().includes(name),
+      add: name => { if (!names().includes(name)) this.className = [...names(), name].join(" "); },
+      remove: name => { this.className = names().filter(n => n !== name).join(" "); },
+    };
   }
   setAttribute(name, value) {
     this.attrs.set(name, String(value));
@@ -63,6 +71,7 @@ class FakeElement extends FakeNode {
   get textContent() { return this.children.map(child => child.textContent).join(""); }
   set textContent(text) { this.replaceChildren(String(text)); }
   addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); }
+  removeEventListener(type, handler) { this.listeners[type] = (this.listeners[type] || []).filter(h => h !== handler); }
   dispatch(type, extra = {}) {
     const event = { type, target: this, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; }, ...extra };
     for (let node = this; node; node = node.parent) for (const handler of node.listeners[type] || []) handler(event);
@@ -117,7 +126,7 @@ function setup({ satz = "stelle-sie", excluded = [false, false], anbieten = true
       },
       status: () => { calls.meldungen += 1; },
     },
-    Meldungen: { zeige: () => { calls.meldungen += 1; } },
+    Meldungen: { ...require("../seiten/meldungen.js"), zeige: () => { calls.meldungen += 1; } },
     Texte,
   };
   const context = { window, document: doc, console };
@@ -259,6 +268,30 @@ test("an error shows above the buttons, keeps the form open and returns the focu
   assert.equal(field(first).getAttribute("aria-invalid"), "true");
   assert.equal(box(first).hidden, false);
   assert.equal(calls.meldungen, 0, "nothing goes to the message at the top of the page");
+});
+
+test("a refused entry clears with the first input in the field, the focus stays; a failure to save stays (G97)", async () => {
+  const page = await opened();
+  const { first, doc, answers } = page;
+  answers.senden.push(Object.assign(new Error("Bitte ohne Komma, ein Ausschluss pro Eintrag."), { status: 400 }));
+  field(first).value = "Pikett, Nacht";
+  byText(first, "Eintragen").click();
+  await settle();
+  const error = first.find(node => node.className === "field__error");
+  assert.match(error.textContent, /Bitte ohne Komma/);
+
+  field(first).value = "Pikett";
+  field(first).dispatch("input");
+
+  assert.equal(error.textContent, "");
+  assert.equal(field(first).getAttribute("aria-invalid"), null);
+  assert.equal(doc.activeElement, field(first));
+
+  answers.senden.push(new Error("Die App antwortet nicht."));
+  byText(first, "Eintragen").click();
+  await settle();
+  field(first).dispatch("input");
+  assert.match(error.textContent, /Die App antwortet nicht/);
 });
 
 test("success replaces the form with the confirmation and Rückgängig, as a status, with the focus there", async () => {

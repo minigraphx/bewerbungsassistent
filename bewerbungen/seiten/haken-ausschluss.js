@@ -77,6 +77,7 @@
       zeigeBestaetigung(zeile, antwort);
     } catch (fehler) {
       reportInForm(teile, `${L.NICHT_GESPEICHERT} ${fehler.message}`);
+      if (window.Meldungen.isInputRejection(fehler)) window.Meldungen.clearOnInput(teile.fehler, teile.feld);
     }
   }
 

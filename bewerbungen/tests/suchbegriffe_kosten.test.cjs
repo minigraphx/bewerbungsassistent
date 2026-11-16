@@ -185,6 +185,7 @@ async function ran(scripts, answers) {
     App: { el, holen, senden: holen, status: () => {}, textsatz: async () => "stelle-sie" },
     Texte,
     DotLine,
+    Meldungen: require("../seiten/meldungen.js"),
     VerworfenWoerterLogik: { ausAdresse: () => null },
     addEventListener() {},
   };

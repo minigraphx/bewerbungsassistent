@@ -244,7 +244,7 @@
       : `Gespeichert als ${name}. Er gilt jetzt für diese Bewerbung.`;
   }
 
-  const logic = { DESIGNS, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
+  const logic = { DESIGNS, NOTHING_CHOSEN, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
                   autoSuggest, APPLIED_LINE, aiOffer, suggestedText, recommendationText,
                   markChoices, accentChoices, setLook, photoChoice, lookParts, lookLine };
   if (typeof module !== "undefined") module.exports = logic;

@@ -28,7 +28,7 @@
   async function fragen(frage) {
     const text = frage.trim();
     if (wartet) return;
-    if (!text) { status($("fragen-meldung"), texte.leer, "hinweis"); return; }
+    if (!text) { status($("fragen-meldung"), texte.leer, "hinweis", { input: $("fragen-text") }); return; }
     wartet = true;
     $("fragen-senden").disabled = true;
     status($("fragen-meldung"), "Die KI antwortet …", "");

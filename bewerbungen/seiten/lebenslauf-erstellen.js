@@ -19,7 +19,7 @@
   let satz = "stelle-sie";
 
   const say = key => window.Texte.text(key, satz);
-  const message = (text, type = "") => status($("cv-erstellen-status"), text, type);
+  const message = (text, type = "", options = {}) => status($("cv-erstellen-status"), text, type, options);
   const aiMessage = (text, type = "") => status($("cv-erstellen-ki-status"), text, type);
   // bewerbung.js loads again, so the new variant stands in the list and is chosen.
   const announceCreated = () => document.dispatchEvent(new CustomEvent("lebenslauf-erstellt"));
@@ -359,7 +359,8 @@
       $("cv-erstellen-pdf").hidden = !answer.gebaut;
       announceCreated();
     } catch (error) {
-      message(error.message, "fehler");
+      // Without a station the error is about the choice: ticking one clears it (G97).
+      message(error.message, "fehler", { input: error.message === Logic.NOTHING_CHOSEN ? $("cv-erstellen-stationen") : null });
     } finally {
       $("cv-erstellen-speichern").disabled = false;
     }

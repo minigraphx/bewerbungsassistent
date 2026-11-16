@@ -37,6 +37,7 @@
       const body = K.body(entryId, action, ticked);
       if (!body) {
         status.textContent = NOTHING_TICKED;
+        window.Meldungen.clearOnInput(status, fieldset);
         return;
       }
       buttons.forEach(button => { button.disabled = true; });

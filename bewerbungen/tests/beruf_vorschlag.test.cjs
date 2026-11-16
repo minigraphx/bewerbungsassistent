@@ -48,7 +48,7 @@ function page({ status = { einwilligung: OPEN }, antworten = {}, satz = "lehrste
   // The rows and their order are suchliste.js's (tests/suchliste.test.cjs); here only what this page hands it.
   const Suchliste = { zeige(liste, begriffe, optionen) { Object.assign(this, { liste, begriffe, optionen }); } };
   const context = {
-    window: { App, Einwilligung, Suchliste },
+    window: { App, Einwilligung, Suchliste, Meldungen: require("../seiten/meldungen.js") },
     document: { getElementById: byId, dispatchEvent() {} },
     CustomEvent: class {},
   };
@@ -137,6 +137,21 @@ test("Enter in the field adds as well, and a refusal keeps what was typed", asyn
   assert.equal(p.sent.length, 1);
   assert.equal(p.byId("suchliste-neu").value, "Python");
   assert.deepEqual([p.messages.at(-1).text, p.messages.at(-1).art], ["„Python“ wird schon gesucht.", "fehler"]);
+});
+
+test("a refused own term is an input error of the field; a failure to reach the app is not (G97)", async () => {
+  const refused = Object.assign(new Error("„Python“ wird schon gesucht."), { status: 400 });
+  const p = page({ antworten: { "/api/beruf/aufnehmen": refused } });
+  await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
+  p.byId("suchliste-neu").value = "Python";
+  await p.byId("suchliste-neu").fire("keydown", { key: "Enter" });
+  assert.equal(p.messages.at(-1).optionen.input, p.byId("suchliste-neu"));
+
+  const down = page({ antworten: { "/api/beruf/aufnehmen": new Error("Failed to fetch") } });
+  await down.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
+  down.byId("suchliste-neu").value = "Rust";
+  await down.byId("suchliste-neu").fire("keydown", { key: "Enter" });
+  assert.equal(down.messages.at(-1).optionen.input, null);
 });
 
 test("the field takes a term as long as the server says Meine Angaben takes it (#310)", async () => {
