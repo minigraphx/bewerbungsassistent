@@ -49,7 +49,7 @@ def payload_lines(payload: dict, pattern: re.Pattern) -> dict[str, str]:
 
 
 def station_titles(payload: dict) -> dict[str, str]:
-    """title → label; a station line is „label: section · title · company or school · time“."""
+    """title → label; a station line is „label: section · title · company, school or organisation · time“."""
     return {line.split(" · ")[1]: label for line, label in payload_lines(payload, STATION).items()}
 
 
@@ -133,20 +133,26 @@ def test_only_the_ad_the_chosen_stations_and_the_summary_sentences_go_to_the_ai(
     assert sorted(items["summary"]["items"]["enum"]) == sorted(payload_lines(call, SENTENCE).values())
 
 
-def test_the_header_names_the_third_field_company_or_school_as_each_station_line_holds_it(with_ad, ai):
-    """The third field is the company of a job or the school of an education, never a place (#355)."""
+def test_the_header_names_the_third_field_as_each_station_line_holds_it(with_ad, ai):
+    """The third field is the company, school or organisation of a station, never a place (#355)."""
     path = with_ad.kontext.daten / "cv.yaml"
     cv = yaml.safe_load(path.read_text(encoding="utf-8"))
     work = [{**cv["work"][0], "name": "Nordlicht Daten AG", "location": "Seedorf"}, *cv["work"][1:]]
     education = [{**cv["education"][0], "institution": "Hochschule am See"}, *cv["education"][1:]]
-    path.write_text(yaml.safe_dump({**cv, "work": work, "education": education}, allow_unicode=True), encoding="utf-8")
+    volunteer = [{"position": "Kassierin", "organization": "Ruderclub Nordufer", "location": "Seedorf",
+                  "startDate": "2021"}]
+    path.write_text(yaml.safe_dump({**cv, "work": work, "education": education, "volunteer": volunteer},
+                                   allow_unicode=True), encoding="utf-8")
 
     suggest(with_ad)
 
     call = ai.messages.calls[0]
-    assert "Kennung: Abschnitt · Titel · Firma oder Schule · Zeit" in call["messages"][0]["content"]
+    assert ("Kennung: Abschnitt · Titel · Firma, Schule oder Organisation · Zeit, leere Felder fehlen"
+            in call["messages"][0]["content"])
     fields = {line.split(" · ")[1]: line.split(" · ") for line in payload_lines(call, STATION)}
     assert fields["Software-Entwicklerin"][2] == "Nordlicht Daten AG"
+    assert fields["Kassierin"][:3] == ["Freiwilligenarbeit", "Kassierin", "Ruderclub Nordufer"]
+    assert fields["Machine Learning Grundlagen"][2] == "Online-Kurs"
     # The sample folder gets the stricter masking for minors (tasks.Material.minor): the school goes as its placeholder.
     assert fields["Bachelor Informatik"][2] == "{{SCHOOL_1}}"
     assert "Hochschule am See" not in json.dumps(call, ensure_ascii=False)
