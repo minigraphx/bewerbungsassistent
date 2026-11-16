@@ -92,9 +92,9 @@ def _letter_over_limit(pdf: pathlib.Path, pages: int, key: str | None, letter: s
     named = cuts.for_letter(letter)
     text = f"Anschreiben: {pages} Seiten, erlaubt ist eine. {tight}"
     if named:
-        text += f" Kürzen lässt sich: {', '.join(named)}."
+        text += f" Am meisten bringt {named[0]}."
     return Befund("fehler", text, schluessel=key,
-                  letter_cut={"lines": lines, "paragraph": cuts.longest_paragraph(letter)})
+                  letter_cut={"lines": lines, "paragraph": cuts.longest_paragraph(letter), "pages": pages})
 
 
 def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, key: str | None = None) -> Befund:

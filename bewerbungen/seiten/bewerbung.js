@@ -24,7 +24,6 @@
   const VERSAND_GESPEICHERT = "Die verschickte Fassung bleibt gespeichert.";
   const ANDERSWO_GEAENDERT = "Diese Bewerbung wurde inzwischen auch anderswo geändert. Die Eingaben bleiben stehen, und gespeichert werden nur die geänderten Felder.";
   const FORM_FILES = { lebenslauf: "Lebenslauf", anschreiben: "Anschreiben", zertifikate: "Zertifikate", unterlagen: "Unterlagen (gemeinsames PDF)", nachweise: "Nachweise (gemeinsames PDF)" };
-  const LONGEST_ID = "laengster-absatz";
   const PAGE_SOURCE = "bewerbungsbegleiter-seite";
   const EXTENSION_SOURCE = "bewerbungsbegleiter-erweiterung";
   const EXTENSION_MARK = "bewerbungsbegleiterErweiterung";
@@ -197,19 +196,9 @@
     return el("p", {}, ...teile, rest);
   }
 
-  /**
-   * G94: the longest paragraph of a letter over one page, with a visible label, not colour alone. The group takes its
-   * name from the label, so a screen reader says it once, also when the focus lands there.
-   */
-  function longestParagraph(text) {
-    return el("div", { class: "letter-longest", id: LONGEST_ID, role: "group", "aria-labelledby": `${LONGEST_ID}-label`, tabindex: "-1" },
-      el("span", { class: "letter-longest__label", id: `${LONGEST_ID}-label`, "aria-hidden": "true" }, L.LONGEST_LABEL),
-      absatz(text));
-  }
-
-  /** «Im Anschreiben kürzen»: to the step Anschreiben, the focus on the marked paragraph. */
+  /** «Im Anschreiben kürzen»: to the step Anschreiben, the focus on the marked paragraph (G94). */
   function toLongestParagraph() {
-    const target = $(LONGEST_ID) || $("anschreiben-titel");
+    const target = $(FindingRow.LONGEST_ID) || $("anschreiben-titel");
     target.scrollIntoView({ behavior: "smooth", block: "start" });
     target.focus({ preventScroll: true });
   }
@@ -218,18 +207,19 @@
     const brief = daten.anschreiben_text;
     const zeigen = Boolean(brief) && !daten.eigenes_anschreiben && !bewerbung.versand;
     const marked = L.longestParagraph(befunde);
+    const editHref = "/inhalte?" + new URLSearchParams({ datei: `bewerbungen/${ID}/anschreiben.yaml`, ansicht: "text" });
     $("anschreiben-text").hidden = !zeigen;
     if (zeigen) {
       $("anschreiben-text").replaceChildren(
         brief.betreff ? el("p", {}, el("strong", {}, brief.betreff)) : null,
         brief.anrede ? el("p", {}, brief.anrede) : null,
-        ...brief.absaetze.map((text, place) => (place === marked ? longestParagraph : absatz)(text)),
+        ...brief.absaetze.map((text, place) => (place === marked ? FindingRow.longest(absatz(text), editHref) : absatz(text))),
         brief.gruss ? el("p", {}, brief.gruss) : null);
     }
     const freigabe = daten.anschreiben_freigabe || {};
     $("freigabe-zeile").hidden = !zeigen;
     $("freigeben").hidden = !freigabe.noetig || freigabe.freigegeben;
-    $("anschreiben-aendern").href = "/inhalte?" + new URLSearchParams({ datei: `bewerbungen/${ID}/anschreiben.yaml`, ansicht: "text" });
+    $("anschreiben-aendern").href = editHref;
     // the page draws this again after each load and check; a live region would say an unchanged line again
     window.Meldungen.zeigeNeu($("freigabe-status"), !zeigen || !freigabe.noetig ? ""
       : freigabe.freigegeben ? `Freigegeben am ${datum(freigabe.am)}. Eine Änderung am Text hebt die Freigabe auf.`
@@ -407,14 +397,9 @@
       const satz = el("span", { id: K.SENTENCE_ID }, zeile.text);
       const li = window.Meldungen.listenZeile(document, el("span", { class: "cut-finding" }, satz, chooser), zeile.stufe, { schliessbar: false });
       li.setAttribute("aria-labelledby", K.SENTENCE_ID);
-      return li;
+      return window.FindingRow.keyed(li, b);
     }
-    const cutInLetter = zeile.cutInLetter  // G94: cut in the letter first, «So lassen» next to it
-      ? [el("button", { type: "button", class: "btn btn--sm btn--primary", onclick: toLongestParagraph }, zeile.cutInLetter), " "] : [];
-    const inhalt = zeile.knopf
-      ? el("span", {}, zeile.text, " ", ...cutInLetter, el("button", { type: "button", class: "btn btn--sm", onclick: e => soLassen(e.currentTarget, b.schluessel) }, zeile.knopf))
-      : zeile.text;
-    return window.Meldungen.listenZeile(document, inhalt, zeile.stufe);
+    return window.FindingRow.row(b, zeile, { onCut: toLongestParagraph, onKeep: knopf => soLassen(knopf, b.schluessel) });
   }
 
   function zeigeBefunde() {
@@ -454,6 +439,7 @@
       ({ befunde } = await senden("/api/pruefung/bestaetigen", { id: ID, schluessel }));
       zeigeBefunde();
       if (daten) zeigeAlles();
+      FindingRow.focusAfterConfirm($("befunde"), schluessel);
     } catch (fehler) {
       knopf.disabled = false;
       meldungOben("Meldung der Prüfung nicht bestätigt: " + fehler.message, "fehler");

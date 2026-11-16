@@ -772,8 +772,11 @@ label.check input { margin-top: 3px; }
 .letter p { margin: 0; }
 .letter mark { padding: 0 2px; border-bottom: 2px dotted var(--warning); background: var(--warning-bg); color: inherit; }
 /* G94: the longest paragraph of a letter over one page; the label says it, the rule only underlines it */
-.letter-longest { display: flex; flex-direction: column; gap: var(--space-1); padding-left: var(--space-3); border-left: 3px solid var(--accent); scroll-margin-top: var(--space-6); }
-.letter-longest__label { font-size: 13px; line-height: 18px; font-weight: 600; color: var(--accent); }
+/* the edit link follows the paragraph for screen readers and stands next to the label on screen, below it when narrow */
+.letter-longest { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); padding-left: var(--space-3); border-left: 3px solid var(--accent); scroll-margin-top: var(--space-6); }
+.letter-longest__label { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.letter-longest > p { order: 2; flex-basis: 100%; }
+.letter-longest__edit { order: 1; margin-left: auto; white-space: nowrap; }
 
 /* ---------- Search ---------- */
 .search { display: flex; flex-direction: column; gap: var(--space-5); }

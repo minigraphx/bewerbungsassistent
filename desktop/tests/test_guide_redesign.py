@@ -154,8 +154,13 @@ def test_the_pictures_say_what_they_show_today():
     assert "beim Anschreiben 1 Seite · etwas enger gesetzt" in picture
     assert "**1 Seite · etwas enger gesetzt**" in check and "**7 Seiten · Lebenslauf etwas enger gesetzt**" in check
     assert "damit keine Seite fast leer bleibt und die Seitenzahl eingehalten wird" in check
-    assert ("Passt ein Dokument auch so eng wie möglich nicht, setzt die App es wie vorgegeben; dann steht nur die Zahl "
+    assert ("Passt ein Lebenslauf auch so eng wie möglich nicht, setzt die App ihn wie vorgegeben; dann steht nur die Zahl "
             "der Seiten da, und der Befund darüber nennt, wie viel zu viel ist.") in check
+    # G94, #325: a letter over one page stays as tight as possible, cut in the letter or left as it is
+    assert "Ein zu langes Anschreiben bleibt so eng gesetzt, etwa **2 Seiten · so eng wie möglich**." in check
+    assert ("**Im Anschreiben kürzen** führt zum Schritt **Anschreiben**, wo über dem längsten Absatz **Längster Absatz** "
+            "steht; **Anschreiben ändern** gleich daneben öffnet den Text.") in check
+    assert "**So lassen** verwendet das Anschreiben so, wie es ist. Gekürzt wird es nur von Ihnen." in check
     # the picture shows natural invented stations, not the generated ones of the tests
     assert "Projektleiterin Daten" not in picture and "Muster Informatik 0" not in picture
     assert "3 Stichpunkte bei «Datenanalystin, Aare Versicherungen AG» (2013–2015)" in picture

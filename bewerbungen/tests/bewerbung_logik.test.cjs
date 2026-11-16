@@ -128,14 +128,20 @@ test("a CV over its limit gets the cuts instead of «So lassen»", () => {
 // G94 (#325): a letter over one page is cut in the letter or confirmed as it is, with its longest paragraph marked
 const briefZuLang = {
   stufe: "fehler", text: "Anschreiben: 2 Seiten, erlaubt ist eine. Auch so eng wie möglich gesetzt sind es etwa 6 Zeilen zu viel.",
-  schluessel: "abc:seiten:2", bestaetigt: false, letter_cut: { lines: 6, paragraph: 3 },
+  schluessel: "abc:seiten:2", bestaetigt: false, letter_cut: { lines: 6, paragraph: 3, pages: 2 },
 };
 
 test("a letter over one page offers «Im Anschreiben kürzen» before «So lassen»", () => {
   assert.deepEqual(logik.befundZeile(briefZuLang),
     { text: briefZuLang.text, stufe: "fehler", knopf: "So lassen", cutInLetter: "Im Anschreiben kürzen" });
-  assert.deepEqual(logik.befundZeile({ ...briefZuLang, stufe: "hinweis", bestaetigt: true }),
-    { text: `${briefZuLang.text} Bestätigt: so lassen.`, stufe: "ok", knopf: null });
+});
+
+test("a letter left as it is stays a hint, so the line matches «1 Hinweis» of the step", () => {
+  const bestaetigt = { ...briefZuLang, stufe: "hinweis", bestaetigt: true };
+  assert.deepEqual(logik.befundZeile(bestaetigt),
+    { text: "Anschreiben: 2 Seiten, etwa 6 Zeilen zu viel. Bestätigt: so lassen.", stufe: "hinweis", knopf: null });
+  assert.equal(logik.befundZeile({ ...bestaetigt, letter_cut: { lines: 1, paragraph: 3, pages: 2 } }).text,
+    "Anschreiben: 2 Seiten, etwa 1 Zeile zu viel. Bestätigt: so lassen.");
 });
 
 test("the longest paragraph is marked only while the letter is over one page and not confirmed", () => {

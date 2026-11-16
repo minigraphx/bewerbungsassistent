@@ -166,8 +166,9 @@ def test_a_letter_over_one_page_names_the_lines_over_and_its_longest_paragraph(d
     assert over.stufe == "fehler" and over.schluessel and not over.bestaetigt
     assert lines > 0
     assert over.text.startswith("Anschreiben: 2 Seiten, erlaubt ist eine. Auch so eng wie möglich gesetzt sind es "
-                                f"etwa {lines} Zeilen zu viel.")
-    assert over.letter_cut["paragraph"] == LONGEST
+                                f"etwa {lines} Zeilen zu viel. Am meisten bringt der längste Absatz («In meiner ")
+    assert over.text.endswith("»).")
+    assert over.letter_cut["paragraph"] == LONGEST and over.letter_cut["pages"] == 2
     # the second page is short on purpose: its fill is no finding of its own while the letter is over
     assert not [f for f in found if f.text.startswith("Anschreiben, Seite 2") and "gefüllt" in f.text]
 

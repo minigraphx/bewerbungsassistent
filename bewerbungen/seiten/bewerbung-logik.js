@@ -32,6 +32,11 @@
     const place = letterOver(befunde)?.letter_cut.paragraph;
     return Number.isInteger(place) ? place : null;
   }
+  /** A letter over one page left as it is stays a hint (G94), so the line matches «1 Hinweis» above it. */
+  function letterKept({ pages, lines }) {
+    const over = lines > 0 ? `, etwa ${lines} ${lines === 1 ? "Zeile" : "Zeilen"} zu viel` : "";
+    return `Anschreiben: ${pages} Seiten${over}. Bestätigt: so lassen.`;
+  }
   /** Both files are built and, with a dossier chosen (G40), the dossier too. */
   function gebaut(daten) {
     const pdfs = daten.pdfs || {};
@@ -54,6 +59,7 @@
   function befundZeile(b) {
     if (b.kuerzen && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: null, kuerzen: b.kuerzen };
     if (b.letter_cut && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: BESTAETIGEN, cutInLetter: CUT_IN_LETTER };
+    if (b.letter_cut) return { text: letterKept(b.letter_cut), stufe: "hinweis", knopf: null };
     if (b.schluessel && b.bestaetigt) return { text: `${b.text} Bestätigt: so lassen.`, stufe: "ok", knopf: null };
     return { text: b.text, stufe: b.stufe, knopf: b.schluessel ? BESTAETIGEN : null };
   }
