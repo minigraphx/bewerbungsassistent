@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Trial package for #255 only: placeholder identity, filled in by .github/workflows/msix-versuch.yml.
-     Only runFullTrust, no restricted capability that would need Store approval. The protocol and the execution
-     alias are ways out the trial tries for the invitation link and for the native messaging host. -->
+<!-- Template of the trial (#255, #256) and of the Store package (#343), filled in by desktop/msix/manifest.py.
+     As it stands: placeholder identity and only runFullTrust. The Store package swaps in the identity of Partner
+     Center and turns off both virtualizations with unvirtualizedResources. The protocol and the execution alias
+     carry the invitation link and the native messaging host. -->
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
          xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
          xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"

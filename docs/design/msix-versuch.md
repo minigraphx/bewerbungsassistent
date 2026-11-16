@@ -90,4 +90,11 @@ Partner Center verlangt für eingeschränkte Fähigkeiten eine Begründung. Entw
 
 ## Echte Identität
 
-Das echte Paket für den Store liest später die Identität aus den Variablen des Repos: `MSIX_IDENTITY_NAME`, `MSIX_PUBLISHER` und `MSIX_PUBLISHER_DISPLAY_NAME`. Der Versuch bleibt bei der Platzhalter-Identität, weil ein selbst signiertes Zertifikat genau auf den Publisher lauten muss. Den echten Publisher signiert erst der Store.
+Seit #343 baut `app.yml` das Paket für den Store im Job `msix`, neben dem Installer. Er packt dieselbe PyInstaller-Ausgabe wie der Job `windows` (Artefakt `windows-app`) mit der Variante `store` von `desktop/msix/manifest.py`: wie `registry-und-dateien`, also `unvirtualizedResources` und beide Schalter auf `disabled`, dazu `windows.protocol` für `bewerbungsbegleiter://` und der App-Alias `bewerbungsbegleiter.exe`. Das Paket `Bewerbungsbegleiter-<Version>.msix` bleibt unsigniert; der Store signiert es mit dem echten Publisher.
+
+Die Identität kommt aus den Variablen des Repos (keine Secrets, aber nicht im Repo): `MSIX_IDENTITY_NAME`, `MSIX_PUBLISHER` (beginnt mit `CN=`) und `MSIX_PUBLISHER_DISPLAY_NAME`, alle drei aus Partner Center, Produktidentität.
+
+- **Tag `v<Version>`:** Das Paket kommt in den Release-Entwurf. Fehlt eine Variable, scheitert nur der Job `msix` mit ihrem Namen; Installer, macOS und Linux kommen trotzdem ins Release. Nach dem Eintragen der Variable den Job neu starten.
+- **Pushes auf `main` und Läufe von Hand ohne die Variablen:** Der Job baut mit der Platzhalter-Identität aus #255 und legt das Paket nur als Artefakt `msix` ab. So bleibt `main` grün, und der Bau ist trotzdem bewiesen.
+
+Der Versuch bleibt bei der Platzhalter-Identität, weil ein selbst signiertes Zertifikat genau auf den Publisher lauten muss. `msix-versuch.yml` ist unverändert.
