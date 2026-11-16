@@ -28,8 +28,10 @@ SCRIPTS = ["validate.js", "model.js", "presets.js", "steps.js", "dom.js", "docum
 TITLE = "Einstieg"
 TITLE_APP = "Meine Angaben"
 # only in the app; loaded before app.js. The drop area (G84) guesses kinds with the names of „Lebenslauf und Dateien“,
-# so the page also loads dateien-logik.js from the app (APP_PAGE_SCRIPTS).
-APP_SCRIPTS = ["appbackend.js", "kindguess.js", "droparea.js", "appuploads.js", "prefill.js", "replacechoice.js"]
+# so the page also loads dateien-logik.js from the app (APP_PAGE_SCRIPTS); the cost line before „Vorbefüllen“ (G85)
+# words its amounts with treffer-logik.js, as „Alle prüfen“ does.
+APP_SCRIPTS = ["appbackend.js", "kindguess.js", "droparea.js", "appuploads.js", "appestimate.js", "prefill.js",
+               "replacechoice.js"]
 APP_STYLES = ["appnav.css", "droparea.css"]
 PRIVACY = "Alles bleibt auf diesem Gerät. Die Seite verschickt nichts; am Schluss entsteht eine Datei zum Speichern."
 HEAD_APP = '<meta name="token" content="__TOKEN__">\n<meta name="bewerbungsbegleiter" content="app">'
@@ -39,7 +41,8 @@ TOP_SHARED = f'<header class="top"><p class="brand">Bewerbungsbegleiter</p><p cl
 # overview logic it counts with for the badges, the budget and the extension (#259).
 MENU_SOURCE = ROOT.parent / "bewerbungen" / "seiten" / "uebersicht.html"
 APP_PAGE_SCRIPTS = "".join(f'<script src="/{name}"></script>\n' for name in (
-    "texte.js", "meldungen.js", "app.js", "uebersicht-logik.js", "sidebar-logic.js", "sidebar.js", "dateien-logik.js"))
+    "texte.js", "meldungen.js", "app.js", "uebersicht-logik.js", "sidebar-logic.js", "sidebar.js", "dateien-logik.js",
+    "treffer-logik.js"))
 # DM Sans comes from the app (bewerbungen/app.py FONT_FILES); the shared file loads nothing and uses the system font.
 APP_FONTS = "".join(
     f'@font-face {{ font-family: "DM Sans"; src: url("/fonts/DMSans-{name}.ttf") format("truetype"); '

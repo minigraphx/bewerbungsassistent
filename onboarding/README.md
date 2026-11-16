@@ -41,6 +41,7 @@ Seit der Gestaltung MIN-369 hat die Seite der App das Menü der übrigen Seiten 
 | `src/zip.js`, `archive.py` | ZIP schreiben und lesen in der Vorlage, sicher lesen beim Import |
 | `src/dom.js`, `src/uploads.js`, `src/app.js`, `src/template.html`, `src/style.css` | Oberfläche |
 | `src/appbackend.js`, `src/prefill.js`, `src/appnav.css` | nur Seite der App: Anfragen an die App, Vorbefüllen, Stil des Menüs |
+| `src/appestimate.js`, `prefill_estimate.py` | nur Seite der App: Kosten und Dauer vor „Vorbefüllen“ (G85, #271), nach jeder Änderung an den Dateien neu geschätzt, ohne KI, mit der Methode und den Worten von „Alle prüfen“ (`rate_all.py`, `TrefferLogik.estimateLine`); bis die Schätzung steht, wartet der Knopf |
 | `src/kindguess.js`, `src/droparea.js`, `src/appuploads.js`, `src/droparea.css` | nur Seite der App (G84): eine Fläche für alle Unterlagen, die Art aus Name und Dateityp geschätzt (ohne KI, mit `DIPLOMA_NAME` und `REFERENCE_NAME` aus `bewerbungen/seiten/dateien-logik.js`), pro Zeile korrigierbar über `/api/angaben/unterlage-art` |
 | `build_template.py` | fügt alles zu `dist/einstieg.html` zusammen; CSP nur mit Hashes, ohne Netzzugriff |
 | `convert.py`, `markdown_files.py` | Datei → `cv.yaml` (JSON Resume wie `lebenslauf/`) und Markdown nach `vorlagen/` |

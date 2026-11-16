@@ -7,6 +7,8 @@ USD. The run itself goes package by package through `/api/suche/bewerten-paket`;
 the credit is used up (G80), and what was rated stays.
 Nothing here calls the AI; the extension and Claude cannot reach the route.
 """
+import dataclasses
+
 import excluded_companies
 import missing_ads
 import preferences
@@ -61,18 +63,36 @@ def _open_hits(k, store: Hits) -> tuple[list[int | None], list[str], list[dict]]
     return lengths, to_load, not_loadable
 
 
+@dataclasses.dataclass(frozen=True)
+class Priced:
+    """An estimate in the currency the person sees (G46), with the credit of the code when there is one."""
+    currency: str
+    rate: float  # per USD
+    cost: float
+    left: float | None
+
+    def fields(self) -> dict:
+        """kosten, waehrung, guthaben and danach, as „Alle prüfen“ and „Vorbefüllen“ (G85) name them."""
+        after = None if self.left is None else round(max(0.0, self.left - self.cost), 2)
+        return {"kosten": self.cost, "waehrung": self.currency,
+                "guthaben": None if self.left is None else round(self.left, 2), "danach": after}
+
+
+def priced(cost_usd: float, with_credit: bool) -> Priced:
+    """`with_credit`: ask the mediation for the credit left; not when nothing would go to the AI."""
+    left = credit_left() if with_credit else None
+    currency = currency_now()
+    rate = usage.CHF_PER_USD if currency == usage.MEDIATION_CURRENCY else 1.0
+    return Priced(currency, rate, round(cost_usd * rate, 2), left)
+
+
 def overview(k, parameter, body):
     lengths, to_load, not_loadable = _open_hits(k, Hits(k.daten))
     found = rate_all.estimate(lengths, _context_chars(k))
-    left = credit_left() if found.count else None
-    currency = currency_now()
-    rate = usage.CHF_PER_USD if currency == usage.MEDIATION_CURRENCY else 1.0
-    cost = round(found.cost_usd * rate, 2)
-    after = None if left is None else round(max(0.0, left - cost), 2)
-    return json_antwort({"anzahl": found.count, "kosten": cost, "dauer_minuten": found.minutes,
-                         "waehrung": currency, "laden": to_load, "nicht_ladbar": not_loadable,
-                         "guthaben": None if left is None else round(left, 2), "danach": after,
-                         "reicht_fuer": rate_all.enough_for(found, None if left is None else left / rate)})
+    money = priced(found.cost_usd, bool(found.count))
+    return json_antwort({"anzahl": found.count, **money.fields(), "dauer_minuten": found.minutes,
+                         "laden": to_load, "nicht_ladbar": not_loadable,
+                         "reicht_fuer": rate_all.enough_for(found, None if money.left is None else money.left / money.rate)})
 
 
 GET = {"/api/suche/alle-pruefen": overview}

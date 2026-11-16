@@ -47,6 +47,18 @@ def test_meine_angaben_takes_every_document_in_one_area_and_the_person_corrects_
         assert words in entering, words
 
 
+def test_meine_angaben_names_cost_and_time_before_vorbefuellen():
+    # G85, #271: the line under the button, before anything goes to the AI
+    for part in (quick_step(3), body("Angaben erfassen", 3)):
+        before_run = part.split("Dann klicken Sie auf **Vorbefüllen**", 1)[0].split("Erst mit einem Klick", 1)[0]
+        assert "Unter" in before_run and "**Vorbefüllen**" in before_run, part
+        assert "an die KI gehen" in before_run and "kostet" in before_run and "dauert" in before_run, part
+    entering = body("Angaben erfassen", 3)
+    for words in ("«2 Dateien gehen an die KI. Etwa CHF 0.04 und 1 Minute.»", "im Guthaben bleibt", "in USD",
+                  "mit dem Grund", "**anfordern**"):
+        assert words in entering, words
+
+
 def test_a_parent_or_legal_guardian_sets_the_app_up_for_a_child():
     guide = text()
     intro = guide.split("\n## ", 1)[0]
@@ -113,6 +125,9 @@ def test_the_pictures_say_what_they_show_today():
     picture = guide.split("](bilder/angaben.jpg)", 1)[0].rsplit("![", 1)[1]
     assert "gleich nach dem Hinzufügen" in picture
     assert "dem Hinweis «Am Namen erkannt» oder, beim Scan, «Nicht sicher erkannt, bitte prüfen»" in picture
+    # G85, #271: the picture goes on to the line under Vorbefüllen
+    assert "dem Knopf Vorbefüllen und darunter der Zeile «3 Dateien gehen an die KI. Etwa CHF 0.09 und 1 Minute.»" in picture
+    assert "was im Guthaben bleibt" in picture and "welche Datei nicht an die KI geht" in picture
     check = body("Stellen suchen und bewerben", 3)
     assert "](bilder/pruefung.jpg)" in check and "**So lassen**" in check
     picture = check.split("](bilder/pruefung.jpg)", 1)[0].rsplit("![", 1)[1]

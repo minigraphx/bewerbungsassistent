@@ -10,9 +10,9 @@ const PREFILL_TEXT = {
     privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer.",
     needsName: "Tragen Sie zuerst Ihren Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
-    running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; Sie können in dieser Zeit weiterarbeiten.",
+    running: (minutes) => `Die Unterlagen werden gelesen. Das dauert etwa ${minutesText(minutes)}; Sie können in dieser Zeit weiterarbeiten.`,
     busy: "Wird gelesen …",
-    waiting: "Die Unterlagen werden noch hochgeladen. Danach liest die App sie, ohne dass Sie nochmals klicken.",
+    noneReadable: "Keine dieser Dateien geht an die KI. Bilder, Scans und alte Word-Dateien ergänzen Sie von Hand.",
     finished: "Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert.",
     filled: "Vorschläge stehen bereit. Bitte prüfen Sie jeden Eintrag:",
     nothing: "In den Unterlagen wurden keine passenden Angaben gefunden.",
@@ -33,9 +33,9 @@ const PREFILL_TEXT = {
     privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer.",
     needsName: "Trag zuerst deinen Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI.",
     goToPerson: "Zu „Person und Kontakt“",
-    running: "Die Unterlagen werden gelesen. Das kann ein bis zwei Minuten dauern; du kannst in dieser Zeit weiterarbeiten.",
+    running: (minutes) => `Die Unterlagen werden gelesen. Das dauert etwa ${minutesText(minutes)}; du kannst in dieser Zeit weiterarbeiten.`,
     busy: "Wird gelesen …",
-    waiting: "Die Unterlagen werden noch hochgeladen. Danach liest die App sie, ohne dass du nochmals klickst.",
+    noneReadable: "Keine dieser Dateien geht an die KI. Bilder, Scans und alte Word-Dateien ergänzt du von Hand.",
     finished: "Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert.",
     filled: "Vorschläge stehen bereit. Bitte prüf jeden Eintrag:",
     nothing: "In den Unterlagen wurden keine passenden Angaben gefunden.",
@@ -50,6 +50,94 @@ const PREFILL_TEXT = {
     confirmAll: "Ich habe alle geprüft",
   },
 };
+
+// Cost and time before the run (G85, #271): the same words as „Alle prüfen“ (TrefferLogik.estimateLine, G44), in CHF
+// with the credit of the mediation (G46, G80). One text for Sie and du.
+const ESTIMATE_WORDS = {
+  files: (n) => (n === 1 ? "1 Datei geht an die KI." : `${n} Dateien gehen an die KI.`),
+  uploading: "Die Dateien werden noch hochgeladen. Danach nennt die App Kosten und Dauer.",
+  estimating: "Kosten und Dauer werden geschätzt …",
+  over: (money) => `Im Guthaben sind noch ${money}, das reicht vielleicht nicht.`,
+  notRead: "Geht nicht an die KI:",
+  shortened: "Nur der Anfang geht an die KI, die Datei ist zu lang:",
+  failed: (reason) => `Die Schätzung fehlt: ${reason}`,
+  retry: "Neu schätzen",
+};
+const ESTIMATE_NONE = { phase: "none", answer: null, problem: null };
+const STATUS_ID = "prefill-status";
+const FILES_ID = "prefill-files";
+const RETRY_ID = "prefill-retry";
+
+const minutesText = (n) => (n === 1 ? "1 Minute" : `${n} Minuten`);
+const moneyText = (amount, currency) => `${currency || "USD"} ${Number(amount).toFixed(2)}`;
+const withCredit = (answer) => typeof answer.guthaben === "number";
+const creditUsedUp = (answer) => withCredit(answer) && answer.guthaben <= 0;
+const readyAnswer = (estimate) => (estimate && estimate.phase === "ready" ? estimate.answer : null);
+const estimatePending = (estimate) => Boolean(estimate) && ["uploading", "estimating"].includes(estimate.phase);
+
+/** What the line shows: for the first moment of estimating again the estimate before it, so a quick answer does not flicker. */
+function shownEstimate(estimate) {
+  const current = estimate || ESTIMATE_NONE;
+  if (current.phase !== "estimating" || current.slow) return current;
+  return current.held || { ...current, quiet: true };
+}
+
+/** Whether „Vorbefüllen“ can start now: the estimate stands, a file goes to the AI and there is credit left. */
+function runAllowed(ctx) {
+  const answer = readyAnswer(ctx.estimate);
+  return Boolean(answer) && answer.anzahl > 0 && !creditUsedUp(answer) && !ctx.run.running;
+}
+
+/** App.el of the other pages takes `class` and its children one by one; texte.js builds the link with it. */
+const appEl = (tag, attrs, ...children) => el(tag, Object.fromEntries(Object.entries(attrs || {})
+  .map(([key, value]) => [key === "class" ? "className" : key, value])), children);
+
+/** „anfordern“ as the link of #315 where texte.js is loaded, as in the app. */
+const withRequestLink = (sentence) => (typeof Texte === "undefined" ? [sentence] : Texte.withCodeRequestLink(sentence, appEl));
+
+/** The credit afterwards, a warning when the estimate is above it, or that it is used up; null without credit. */
+function creditLine(answer) {
+  if (!withCredit(answer)) return null;
+  const usedUp = creditUsedUp(answer);
+  if (!usedUp && answer.kosten > answer.guthaben) {
+    return el("p", { className: "prefill-card__credit warning" }, ESTIMATE_WORDS.over(moneyText(answer.guthaben, answer.waehrung)));
+  }
+  const about = TrefferLogik.estimateLine({ ...answer, guthaben: null });
+  const sentence = TrefferLogik.estimateLine({ ...answer, reicht_fuer: null }).slice(about.length).trim();
+  return el("p", { className: `prefill-card__credit${usedUp ? " error" : ""}` }, withRequestLink(sentence));
+}
+
+function namedList(title, lines) {
+  return lines.length ? [el("p", {}, title), el("ul", { className: "prefill-card__files" }, lines.map((line) => el("li", {}, line)))] : [];
+}
+
+function readyLines(answer, text) {
+  return answer.anzahl
+    ? [el("p", {}, `${ESTIMATE_WORDS.files(answer.anzahl)} ${TrefferLogik.estimateLine({ ...answer, guthaben: null })}`), creditLine(answer)]
+    : [el("p", {}, text.noneReadable)];
+}
+
+/** What stands under the button: the running text, else the estimate in its state. */
+function estimateLines(ctx, text) {
+  if (ctx.run.running) return [el("p", {}, text.running(ctx.run.minutes))];
+  const estimate = shownEstimate(ctx.estimate);
+  if (estimate.phase === "uploading") return [el("p", {}, ESTIMATE_WORDS.uploading)];
+  if (estimate.phase === "failed") {
+    return [el("p", { className: "error" }, ESTIMATE_WORDS.failed(estimate.problem)),
+      el("button", { type: "button", id: RETRY_ID, className: "link", onclick: ctx.onEstimate }, ESTIMATE_WORDS.retry)];
+  }
+  if (estimate.phase === "ready") return readyLines(estimate.answer, text);
+  return estimate.quiet ? [] : [el("p", {}, ESTIMATE_WORDS.estimating)];
+}
+
+/** The files left out or shortened, beside the status: read when the button is, not again at every change. */
+function filesView(ctx) {
+  const answer = ctx.run.running ? null : readyAnswer(shownEstimate(ctx.estimate));
+  return el("div", { id: FILES_ID, className: "prefill-card__left-out" }, answer ? [
+    ...namedList(ESTIMATE_WORDS.notRead, (answer.nicht_gelesen || []).map((s) => `${s.name}: ${s.grund}`)),
+    ...namedList(ESTIMATE_WORDS.shortened, answer.gekuerzt || []),
+  ] : []);
+}
 
 function prefillReport(answer, merged) {
   return {
@@ -80,15 +168,16 @@ function reportView(report, ctx, text) {
 /**
  * The card on the start (MIN-369, G84): one area for all documents, a row per file with its kind, then „Vorbefüllen“
  * or „Lieber von Hand ausfüllen“. Without files only intro, area and hint, and filling in by hand leads.
- * ctx: { form, track, uploads, messages, notes (datei → recognised by name), announcement, run: { running, problem, report },
+ * ctx: { form, track, uploads, messages, notes (datei → recognised by name), announcement,
+ *        run: { running, minutes, problem, report }, estimate: { phase: none|uploading|estimating|ready|failed, answer, problem,
+ *        while estimating also held (the estimate before) and slow (the answer takes longer than a moment) },
  *        hasName, titleOf(id), onRun(), onGoTo(id), onAddFiles(FileList), onChangeKind(upload, category), onRemove(index),
- *        onByHand() }
+ *        onByHand(), onEstimate() }
  */
 function prefillCard(ctx) {
   const text = PREFILL_TEXT[ctx.track];
   const uploadText = UPLOAD_TEXT[ctx.track];
   const hasFiles = ctx.uploads.length > 0;
-  const canRun = hasFiles && ctx.hasName;
   return el("section", { className: "card prefill-card", "aria-labelledby": "prefill-title", ...dropHandlers(ctx) }, [
     el("h2", { id: "prefill-title" }, text.title),
     el("p", {}, DROP_TEXT[ctx.track].intro),
@@ -100,43 +189,54 @@ function prefillCard(ctx) {
     hasFiles && !ctx.hasName
       ? el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)])
       : null,
-    el("div", { className: "prefill-card__run" }, [
-      el("div", { className: "prefill-card__actions" }, [
-        canRun ? el("button", {
-          type: "button", className: `primary${ctx.run.running ? " busy" : ""}`, id: "prefill", disabled: ctx.run.running,
-          "aria-busy": ctx.run.running ? "true" : null, onclick: ctx.onRun,
-        }, ctx.run.running ? text.busy : text.run) : null,
-        el("button", { type: "button", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
-      ]),
-      runLine(ctx.run, text),
-    ]),
+    prefillRunArea(ctx),
     ctx.run.report ? reportView(ctx.run.report, ctx, text) : null,
     hasFiles ? el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`) : null,
   ]);
 }
 
-/** Right after the buttons, so it is seen where the person clicked: what runs, or what went wrong. */
-function runLine(run, text) {
-  if (run.running) return el("p", { id: "prefill-status", className: "prefill-card__status", role: "status" }, run.waiting ? text.waiting : text.running);
-  if (run.problem) return el("p", { id: "prefill-status", className: "error", role: "alert" }, run.problem);
-  return null;
+/**
+ * The buttons, right under them a problem of the run, then what the run costs and takes or what it waits for (G85)
+ * and which files are left out. Without any file for the AI there is no run button; filling in by hand leads.
+ */
+function prefillRunArea(ctx) {
+  const text = PREFILL_TEXT[ctx.track];
+  const hasFiles = ctx.uploads.length > 0;
+  const answer = readyAnswer(shownEstimate(ctx.estimate));
+  const canRun = hasFiles && ctx.hasName && !(answer && answer.anzahl === 0);
+  const uploading = Boolean(ctx.estimate) && ctx.estimate.phase === "uploading"; // also the very first files
+  const withLine = hasFiles || uploading;
+  return el("div", { className: "prefill-card__run" }, [
+    el("div", { className: "prefill-card__actions" }, [
+      canRun ? el("button", {
+        type: "button", className: `primary${ctx.run.running ? " busy" : ""}`, id: "prefill", disabled: !runAllowed(ctx),
+        "aria-busy": ctx.run.running ? "true" : null, "aria-describedby": `${STATUS_ID} ${FILES_ID}`, onclick: ctx.onRun,
+      }, ctx.run.running ? text.busy : text.run) : null,
+      el("button", { type: "button", id: "prefill-by-hand", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
+    ]),
+    ctx.run.problem ? el("p", { id: "prefill-problem", className: "error", role: "alert" }, ctx.run.problem) : null,
+    withLine ? el("div", {
+      id: STATUS_ID, className: "prefill-card__status", role: "status", tabIndex: -1,
+      "aria-busy": !ctx.run.running && estimatePending(ctx.estimate) ? "true" : null,
+    }, estimateLines(ctx, text)) : null,
+    withLine ? filesView(ctx) : null,
+  ]);
 }
 
 /**
  * The click on „Vorbefüllen“ (#156): the busy state shows and is brought into view before anything is awaited.
- * Uploads still on their way finish first, because the app reads only what has arrived; the page says so meanwhile.
- * steps: { show(run), reveal(), pendingUploads() → Promise or null, isCurrent() → boolean, ask() → Promise }
+ * The button waits for the estimate, so uploads have arrived; a kind saved by leaving its select on this very click
+ * is still awaited, because the app reads only what has arrived.
+ * steps: { show(), reveal(), pendingUploads() → Promise or null, isCurrent() → boolean, ask() → Promise }
  * Resolves to the answer of ask(), or null when another run or other answers overtook this one.
  */
 async function startPrefill(steps) {
   const pending = steps.pendingUploads();
-  steps.show({ running: true, waiting: Boolean(pending), problem: null, report: null });
+  steps.show();
   steps.reveal();
   if (pending) {
-    await pending.then(() => null, () => null); // a failed upload has its own message in the list
+    await pending.then(() => null, () => null); // a failed move has its own message in the list
     if (!steps.isCurrent()) return null;
-    steps.show({ running: true, waiting: false, problem: null, report: null });
-    steps.reveal(); // the new files in the list may have pushed the text out of view
   }
   return steps.ask();
 }
