@@ -239,7 +239,7 @@
   function refuseEmpty() {
     const first = fields()[0];
     first.setAttribute("aria-invalid", "true");
-    say(NO_TEXT, "fehler");
+    say(NO_TEXT, "fehler", { input: $("brief-absaetze") });
     first.focus();
   }
 

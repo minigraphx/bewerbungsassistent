@@ -132,7 +132,7 @@ window.Suchbegriffe = (() => {
       meldeListe(texte.aufgenommen(name), "ok");
       geaendert();
     } catch (fehler) {
-      meldeListe(fehler.message, "fehler");
+      meldeListe(fehler.message, "fehler", { input: window.Meldungen.isInputRejection(fehler) ? feld : null });
       feld.focus();
     } finally {
       $("suchliste-aufnehmen").disabled = false;

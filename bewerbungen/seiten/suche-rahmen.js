@@ -109,7 +109,8 @@ window.SucheRahmen = (() => {
       // Listed hits of a company that is now excluded or back leave or join the list.
       if (karte === "nicht") document.dispatchEvent(new CustomEvent(window.SidebarLogic.HITS_CHANGED));
     } catch (fehler) {
-      status(meldung, `${NICHT_GESPEICHERT} ${fehler.message}`, "fehler");
+      status(meldung, `${NICHT_GESPEICHERT} ${fehler.message}`, "fehler",
+        { input: window.Meldungen.isInputRejection(fehler) ? $(`${karte}-form`) : null });
     }
   }
 

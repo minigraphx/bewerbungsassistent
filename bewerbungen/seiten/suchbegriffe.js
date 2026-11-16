@@ -53,6 +53,7 @@
       const neu = await senden("/api/suchbegriffe/vorschlag", body);
       if (abgebrochen) return;
       if (vorschlag) frueher = [...frueher, vorschlag];
+      window.Meldungen.clearInputError($("anders-status"));
       zeige(neu);
       zeigeAndersKosten();
     } catch (fehler) {
@@ -192,10 +193,14 @@
     meldung("Verworfen", "Am Suchprofil hat sich nichts geändert.", [neuKnopf()]);
   }
 
+  /**
+   * Without a text the error stands beside the field, which shows in every state of the page, unlike the proposal and
+   * its line; it goes with the first input there or the next proposal (G97).
+   */
   function anders() {
     const hinweis = $("anders-text").value.trim();
     if (!hinweis) {
-      status($("status"), "Bitte schreiben, was anders sein soll.", "fehler");
+      status($("anders-status"), "Bitte schreiben, was anders sein soll.", "fehler", { input: $("anders-text") });
       $("anders-text").focus();
       return;
     }

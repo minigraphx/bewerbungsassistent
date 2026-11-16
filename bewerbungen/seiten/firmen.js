@@ -215,7 +215,10 @@
 
   async function zuordnenAusWahl(firma) {
     const gewaehlt = document.querySelector(`#wahl-${CSS.escape(firma.schluessel)} input:checked`);
-    if (!gewaehlt) return meldung("Bitte eine Firma wählen oder «Keine davon passt».", "warning");
+    if (!gewaehlt) {
+      return meldung("Bitte eine Firma wählen oder «Keine davon passt».", "warning",
+        { input: document.getElementById(`wahl-${firma.schluessel}`) });
+    }
     try {
       await senden("/api/firmen/waehlen", gewaehlt.value ? { link: gewaehlt.value } : { keine: true }, { firma: firma.schluessel });
       offen = null;
@@ -243,8 +246,10 @@
       await laden(zuordnen.schluessel);
       meldung(`${zuordnen.name}: Seite bei kununu zugeordnet. Der Wert kommt mit der nächsten Prüfung.`);
     } catch (fehler) {
+      const abgelehnt = window.Meldungen.isInputRejection(fehler);
       $("zuordnen-link").setAttribute("aria-invalid", "true");
-      $("zuordnen-fehler").textContent = fehler.status === 400 ? text("firmen.dialog-fehler") : fehler.message;
+      $("zuordnen-fehler").textContent = abgelehnt ? text("firmen.dialog-fehler") : fehler.message;
+      if (abgelehnt) window.Meldungen.clearOnInput($("zuordnen-fehler"), $("zuordnen-link"));
       $("zuordnen-link").focus();
     }
   }
@@ -268,6 +273,7 @@
       $(`hand-${feld}-fehler`).textContent = falsch ? werte.fehler : "";
       if (falsch) $(`hand-${feld}`).setAttribute("aria-invalid", "true");
       else $(`hand-${feld}`).removeAttribute("aria-invalid");
+      if (falsch) window.Meldungen.clearOnInput($(`hand-${feld}-fehler`), $(`hand-${feld}`));
     }
     if (werte.fehler) return $(`hand-${werte.feld}`).focus();
     try {

@@ -6,7 +6,7 @@
   const $ = id => document.getElementById(id);
   const SEITE = "bewerbungsbegleiter-seite";
   const hatErweiterung = () => Boolean(document.documentElement.dataset.bewerbungsbegleiterErweiterung);
-  const meldung = (text, stufe) => status($("seiten-meldung"), text, stufe);
+  const meldung = (text, stufe, optionen = {}) => status($("seiten-meldung"), text, stufe, optionen);
 
   function zeige(stand) {
     $("weitere-seiten").hidden = false;
@@ -32,7 +32,7 @@
       zeige(await senden("/api/suche/weitere-seiten", { seiten }));
       meldung(seiten.length ? "Gespeichert. Die Seiten kommen bei der nächsten Suche dazu." : "Gespeichert.", "ok");
     } catch (fehler) {
-      meldung(fehler.message, "fehler");
+      meldung(fehler.message, "fehler", { input: window.Meldungen.isInputRejection(fehler) ? $("seiten") : null });
     }
   }
 

@@ -22,7 +22,7 @@
   let seiten = gespeichert;
   let du = false;
 
-  const meldung = (text, art) => status($("d-zeichen-status"), text, art);
+  const meldung = (text, art, optionen = {}) => status($("d-zeichen-status"), text, art, optionen);
 
   function s(tag, attribute = {}, ...kinder) {
     const e = document.createElementNS(NS, tag);
@@ -185,13 +185,14 @@
     zeigeVorschau();
   }
 
-  async function speichere(pfad, body) {
+  /** `feld`: the field the person typed the value in; a refusal of it clears with the next input there (G97). */
+  async function speichere(pfad, body, feld = null) {
     try {
       zustand = await senden(pfad, body);
       zeigeAlles();
       meldung(zustand.meldung, "ok");
     } catch (fehler) {
-      meldung(`Nicht gespeichert. ${fehler.message}`, "fehler");
+      meldung(`Nicht gespeichert. ${fehler.message}`, "fehler", { input: window.Meldungen.isInputRejection(fehler) ? feld : null });
       zeigeAlles();
     }
   }
@@ -222,7 +223,7 @@
   $("d-eigene-farbe-speichern").addEventListener("click", () => {
     if (zeigePruefung($("d-eigene-farbe").value).ok) speichere("/api/dossier/zeichen", { akzent: $("d-eigene-farbe").value.trim().toLowerCase() });
   });
-  $("d-initialen").addEventListener("change", event => speichere("/api/dossier/zeichen", { initialen: event.target.value.trim() }));
+  $("d-initialen").addEventListener("change", event => speichere("/api/dossier/zeichen", { initialen: event.target.value.trim() }, $("d-initialen")));
   $("d-logo-datei").addEventListener("change", async event => {
     const datei = event.target.files[0];
     event.target.value = "";
