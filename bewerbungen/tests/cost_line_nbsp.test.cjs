@@ -7,12 +7,12 @@ const assert = require("node:assert/strict");
 const logik = require("../seiten/treffer-logik.js");
 const texte = require("../seiten/texte.js");
 
-const NBSP = " ";
+const NBSP = "\u00a0";
 const MEDIATION = { anzahl: 1, kosten: 0.03, dauer_minuten: 1, guthaben: 4.25, danach: 4.22, reicht_fuer: null, waehrung: "CHF" };
 const OWN_KEY = { ...MEDIATION, dauer_minuten: 3, guthaben: null, danach: null, waehrung: "USD" };
 
 const spoken = text => text.replaceAll(NBSP, " ");
-const joined = text => [...text.matchAll(/\S+ \S+/g)].map(found => found[0]);
+const joined = text => [...text.matchAll(/\S+\u00a0\S+/g)].map(found => found[0]);
 // A plain space between a number and its unit is where the line could still break.
 const breakable = text => /(CHF|USD) \d|\d (Minute|Minuten)\b/.test(text);
 
@@ -47,7 +47,7 @@ test("read aloud, the cost line says the same words as before", () => {
 test("only number and unit are joined, the rest of the sentence still wraps", () => {
   const line = logik.costLine({ ...MEDIATION, guthaben: 0, danach: 0 }).text;
   assert.equal(line.split(NBSP).length - 1, 2);
-  assert.match(line, / und 1 Minute\. Das Guthaben ist aufgebraucht: neuen Code anfordern\.$/);
+  assert.match(line, / und 1\u00a0Minute\. Das Guthaben ist aufgebraucht: neuen Code anfordern\.$/);
 });
 
 test("the used-up line keeps its request link with the joined units", () => {

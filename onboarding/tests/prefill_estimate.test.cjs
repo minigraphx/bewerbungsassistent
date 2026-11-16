@@ -97,7 +97,7 @@ test("with the mediation it is in CHF and says what stays of the credit, as „A
 test("an estimate above the credit left warns, and the run stays possible", () => {
   const node = card({ estimate: ready({ ...VIA_MEDIATION, guthaben: 0.02, danach: 0 }) });
   assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa CHF\u00a00.04 und 1\u00a0Minute.",
-    "Im Guthaben sind noch CHF 0.02, das reicht vielleicht nicht."]);
+    "Im Guthaben sind noch CHF\u00a00.02, das reicht vielleicht nicht."]);
   assert.notEqual(byId(node, "prefill").disabled, true);
 });
 
@@ -170,8 +170,8 @@ test("a failed estimate names the reason, offers to estimate again and keeps the
 
 test("while running, the text names the estimated minutes", () => {
   const texts = {
-    job: "Die Unterlagen werden gelesen. Das dauert etwa 2 Minuten; Sie können in dieser Zeit weiterarbeiten.",
-    apprenticeship: "Die Unterlagen werden gelesen. Das dauert etwa 2 Minuten; du kannst in dieser Zeit weiterarbeiten.",
+    job: "Die Unterlagen werden gelesen. Das dauert etwa 2\u00a0Minuten; Sie können in dieser Zeit weiterarbeiten.",
+    apprenticeship: "Die Unterlagen werden gelesen. Das dauert etwa 2\u00a0Minuten; du kannst in dieser Zeit weiterarbeiten.",
   };
   for (const [track, text] of Object.entries(texts)) {
     const node = card({ track, run: { ...IDLE, running: true, minutes: 2 }, estimate: ready({ ...ANSWER, dauer_minuten: 2 }) });
@@ -179,7 +179,7 @@ test("while running, the text names the estimated minutes", () => {
     assert.equal(byId(node, "prefill").disabled, true);
   }
   const one = card({ run: { ...IDLE, running: true, minutes: 1 } });
-  assert.match(paragraphs(one)[0], /Das dauert etwa 1 Minute;/);
+  assert.match(paragraphs(one)[0], /Das dauert etwa 1\u00a0Minute;/);
 });
 
 test("a failed run says why in an alert of its own, above the line", () => {

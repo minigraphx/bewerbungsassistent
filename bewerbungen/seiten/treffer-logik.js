@@ -102,7 +102,7 @@
   const currencyOf = s => (s && s.waehrung) || "USD";
   // A no-break space between number and unit (#336): at 375 px «1» stood at the end of a line and «Minute» began the
   // next. Screen readers read it as a space, so the spoken words stay the same.
-  const NBSP = " ";
+  const NBSP = "\u00a0";
   const money = (amount, currency) => `${currency}${NBSP}${Number(amount).toFixed(2)}`;
   const minutes = n => `${n}${NBSP}${n === 1 ? "Minute" : "Minuten"}`;
   const jobs = (n, apprenticeship) => {
@@ -171,7 +171,7 @@
     if (stand.ohneText) teile.push(`${stand.ohneText} ohne Inseratstext`);
     if (stand.gestoppt) teile.push("angehalten");
     if (rest) teile.push(`noch ${rest} offen`);
-    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)} ${currency}.`;
+    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)}${NBSP}${currency}.`;
   }
 
   /** What the details say about the second look at a good grade (MIN-389); empty when there was none. */

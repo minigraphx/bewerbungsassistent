@@ -89,24 +89,24 @@ test("a badge stands only where something waits", () => {
 test("the credit of the mediation shows what is used, in CHF, with a decimal point and no month", () => {
   const status = { monat: "2026-11", eingerichtet: true, vermittlung: true, guthaben_chf: 10, verbraucht_chf: 3.2 };
   assert.deepEqual(sidebar.budgetView(status), {
-    title: "KI-Guthaben", text: "CHF 3.20 von 10.00 gebraucht", short: "KI-Guthaben: CHF 6.80 frei",
+    title: "KI-Guthaben", text: "CHF\u00a03.20 von 10.00 gebraucht", short: "KI-Guthaben: CHF\u00a06.80 frei",
     percent: 32, label: "32 Prozent des Guthabens gebraucht",
-    detail: "CHF 6.80 frei", warning: "", state: "ok", narrow: "KI-Guthaben: CHF 6.80 frei",
+    detail: "CHF\u00a06.80 frei", warning: "", state: "ok", narrow: "KI-Guthaben: CHF\u00a06.80 frei",
   });
   assert.deepEqual(sidebar.budgetView({ ...status, verbraucht_chf: 0 }), {
-    title: "KI-Guthaben", text: "CHF 10.00 frei", short: "KI-Guthaben: CHF 10.00 frei",
+    title: "KI-Guthaben", text: "CHF\u00a010.00 frei", short: "KI-Guthaben: CHF\u00a010.00 frei",
     percent: 0, label: "Noch nichts gebraucht",
-    detail: "Noch nichts gebraucht", warning: "", state: "ok", narrow: "KI-Guthaben: CHF 10.00 frei",
+    detail: "Noch nichts gebraucht", warning: "", state: "ok", narrow: "KI-Guthaben: CHF\u00a010.00 frei",
   });
   const over = sidebar.budgetView({ ...status, verbraucht_chf: 12 });
   assert.equal(over.percent, 100);
-  assert.equal(over.short, "KI-Guthaben: CHF 0.00 frei");
+  assert.equal(over.short, "KI-Guthaben: CHF\u00a00.00 frei");
 });
 
 test("with an own key the sidebar shows the costs of the month, and nothing without AI", () => {
   assert.deepEqual(sidebar.budgetView({ monat: "2026-03", eingerichtet: true, vermittlung: false, eigener_schluessel: true, kosten_usd: 1.5 }), {
-    title: "KI-Kosten im März", text: "USD 1.50 mit eigenem Schlüssel", short: "KI-Kosten: USD 1.50", percent: null, label: "",
-    detail: "Kein Guthaben der Vermittlung", warning: "", state: "own", narrow: "KI-Kosten: USD 1.50 · kein Guthaben der Vermittlung",
+    title: "KI-Kosten im März", text: "USD\u00a01.50 mit eigenem Schlüssel", short: "KI-Kosten: USD\u00a01.50", percent: null, label: "",
+    detail: "Kein Guthaben der Vermittlung", warning: "", state: "own", narrow: "KI-Kosten: USD\u00a01.50 · kein Guthaben der Vermittlung",
   });
   assert.equal(sidebar.budgetView({ monat: "2026-11", eingerichtet: false }), null);
   assert.equal(sidebar.budgetView({ monat: "2026-11", eingerichtet: true, vermittlung: true, hinweis: "nicht erreichbar" }), null);

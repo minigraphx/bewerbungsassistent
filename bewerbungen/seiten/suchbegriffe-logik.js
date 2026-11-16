@@ -45,7 +45,7 @@
   }
 
   /** Never less than a cent: a call that costs less is still not free. CHF with the mediation (G46), counted 1:1. */
-  const geld = (betrag, waehrung = "USD") => `${waehrung} ${Math.max(Number(betrag) || 0, 0.01).toFixed(2)}`;
+  const geld = (betrag, waehrung = "USD") => `${waehrung}\u00a0${Math.max(Number(betrag) || 0, 0.01).toFixed(2)}`;
 
   const CHECK_PAGE = "/suchbegriffe";
 

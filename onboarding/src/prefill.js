@@ -68,8 +68,10 @@ const STATUS_ID = "prefill-status";
 const FILES_ID = "prefill-files";
 const RETRY_ID = "prefill-retry";
 
-const minutesText = (n) => (n === 1 ? "1 Minute" : `${n} Minuten`);
-const moneyText = (amount, currency) => `${currency || "USD"} ${Number(amount).toFixed(2)}`;
+// Number and unit never part at the end of a line (#336), as in treffer-logik.js; read aloud as a space.
+const NBSP = "\u00a0";
+const minutesText = (n) => `${n}${NBSP}${n === 1 ? "Minute" : "Minuten"}`;
+const moneyText = (amount, currency) => `${currency || "USD"}${NBSP}${Number(amount).toFixed(2)}`;
 const withCredit = (answer) => typeof answer.guthaben === "number";
 const creditUsedUp = (answer) => withCredit(answer) && answer.guthaben <= 0;
 const readyAnswer = (estimate) => (estimate && estimate.phase === "ready" ? estimate.answer : null);

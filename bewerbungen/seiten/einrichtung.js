@@ -79,7 +79,7 @@
       case "vorlage": return info?.lebenslauf || importiert ? "übernommen" : sitzung.uebersprungen.vorlage ? "übersprungen" : "freiwillig";
       case "erweiterung":
         if (!info?.erweiterung) return "nur in der installierten App";
-        return erweiterungGeladen() ? "geladen" : sitzung.uebersprungen.erweiterung ? "später" : "1 bis 2 Minuten";
+        return erweiterungGeladen() ? "geladen" : sitzung.uebersprungen.erweiterung ? "später" : "1 bis 2\u00a0Minuten";
       default: return "";
     }
   }

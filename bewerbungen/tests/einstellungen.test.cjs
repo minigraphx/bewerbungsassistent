@@ -103,18 +103,18 @@ test("the way in use says so in its line", () => {
 test("the credit of the mediation: used of the credit, once, in CHF, and what it went to", () => {
   const view = logic.budgetView(MEDIATION, COSTS);
   assert.equal(view.title, "Guthaben");
-  assert.equal(view.headline, "CHF 3.20 von 10.00 gebraucht");
+  assert.equal(view.headline, "CHF\u00a03.20 von 10.00 gebraucht");
   assert.equal(view.renewal, null);
   assert.equal(view.percent, 32);
   assert.deepEqual(view.rows, [
-    { label: "Stellen einschätzen", count: 71, usd: "CHF 2.10" },
-    { label: "Anschreiben entwerfen", count: 6, usd: "CHF 0.90" },
-    { label: "Fragen an die KI", count: 14, usd: "CHF 0.20" },
-    { label: "Weitere", count: 1, usd: "CHF 0.00" },
+    { label: "Stellen einschätzen", count: 71, usd: "CHF\u00a02.10" },
+    { label: "Anschreiben entwerfen", count: 6, usd: "CHF\u00a00.90" },
+    { label: "Fragen an die KI", count: 14, usd: "CHF\u00a00.20" },
+    { label: "Weitere", count: 1, usd: "CHF\u00a00.00" },
   ]);
   assert.equal(view.note, "Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, "
     + "nur ohne KI, bis ein neuer Einladungscode eingelöst ist. Protokolliert werden Kosten, keine Inhalte.");
-  assert.equal(view.total, "Seit Beginn CHF 7.45 in 120 Aufrufen");
+  assert.equal(view.total, "Seit Beginn CHF\u00a07.45 in 120 Aufrufen");
 });
 
 test("a new month renews nothing, and a spent credit fills the bar", () => {
@@ -127,7 +127,7 @@ test("a new month renews nothing, and a spent credit fills the bar", () => {
 test("with the own key there is no budget, only the costs of the month", () => {
   const view = logic.budgetView(OWN_KEY, { ...COSTS, monat_usd: 1.5 });
   assert.equal(view.title, "Kosten im November");
-  assert.equal(view.headline, "USD 1.50 mit eigenem Schlüssel");
+  assert.equal(view.headline, "USD\u00a01.50 mit eigenem Schlüssel");
   assert.equal(view.renewal, null);
   assert.equal(view.percent, null);
   assert.match(view.note, /^Massgebend ist die Abrechnung von Anthropic\./);
@@ -142,9 +142,9 @@ test("the costs name the AI's suggestions for a CV as the person knows the panel
 test("without an answer of the AI the local costs still show", () => {
   const view = logic.budgetView(null, { monat_usd: 0, gesamt_usd: 0, aufrufe: 0, aufgaben: {} });
   assert.equal(view.title, "Kosten in diesem Monat");
-  assert.equal(view.headline, "USD 0.00");
+  assert.equal(view.headline, "USD\u00a00.00");
   assert.deepEqual(view.rows, []);
-  assert.equal(view.total, "Seit Beginn USD 0.00 in 0 Aufrufen");
+  assert.equal(view.total, "Seit Beginn USD\u00a00.00 in 0 Aufrufen");
 });
 
 test("KI und Guthaben: the access to the AI is a choice of invitation code, own Claude subscription and own key", () => {
