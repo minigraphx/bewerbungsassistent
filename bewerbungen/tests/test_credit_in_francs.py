@@ -115,10 +115,10 @@ def test_the_sidebar_shows_used_and_free_credit_in_francs_without_a_month():
     shown = node("sidebar-logic.js", "L.budgetView(a[0])", {**CREDIT, "monat": "2026-11"})
 
     assert shown["title"] == "KI-Guthaben"
-    assert shown["text"] == "CHF\u00a03.20 von 5.00 gebraucht"
+    assert shown["text"] == "CHF\u00a03.20 von CHF\u00a05.00 verbraucht"
     assert shown["detail"] == "CHF\u00a01.80 frei"
     assert shown["narrow"] == "KI-Guthaben: CHF\u00a01.80 frei"
-    assert shown["label"] == "64 Prozent des Guthabens gebraucht"
+    assert shown["label"] == "64 Prozent des Guthabens verbraucht"
 
 
 def test_the_sidebar_warns_in_words_about_a_credit_nearly_or_wholly_used():
@@ -149,7 +149,7 @@ def test_the_settings_card_shows_the_credit_once_without_renewal():
                 {"monat_usd": 3.2, "gesamt_usd": 3.2, "aufrufe": 9, "aufgaben": {"rate": {"aufrufe": 9, "usd": 3.2}}})
 
     assert view["title"] == "Guthaben"
-    assert view["headline"] == "CHF\u00a03.20 von 5.00 gebraucht"
+    assert view["headline"] == "CHF\u00a03.20 von CHF\u00a05.00 verbraucht"
     assert view["renewal"] is None
     assert view["rows"] == [{"label": "Stellen einschätzen", "count": 9, "usd": "CHF\u00a03.20"}]
     assert view["total"] == "Seit Beginn CHF\u00a03.20 in 9 Aufrufen"

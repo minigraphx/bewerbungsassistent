@@ -89,14 +89,14 @@ test("a badge stands only where something waits", () => {
 test("the credit of the mediation shows what is used, in CHF, with a decimal point and no month", () => {
   const status = { monat: "2026-11", eingerichtet: true, vermittlung: true, guthaben_chf: 10, verbraucht_chf: 3.2 };
   assert.deepEqual(sidebar.budgetView(status), {
-    title: "KI-Guthaben", text: "CHF\u00a03.20 von 10.00 gebraucht", short: "KI-Guthaben: CHF\u00a06.80 frei",
-    percent: 32, label: "32 Prozent des Guthabens gebraucht",
+    title: "KI-Guthaben", text: "CHF\u00a03.20 von CHF\u00a010.00 verbraucht", short: "KI-Guthaben: CHF\u00a06.80 frei",
+    percent: 32, label: "32 Prozent des Guthabens verbraucht",
     detail: "CHF\u00a06.80 frei", warning: "", state: "ok", narrow: "KI-Guthaben: CHF\u00a06.80 frei",
   });
   assert.deepEqual(sidebar.budgetView({ ...status, verbraucht_chf: 0 }), {
     title: "KI-Guthaben", text: "CHF\u00a010.00 frei", short: "KI-Guthaben: CHF\u00a010.00 frei",
-    percent: 0, label: "Noch nichts gebraucht",
-    detail: "Noch nichts gebraucht", warning: "", state: "ok", narrow: "KI-Guthaben: CHF\u00a010.00 frei",
+    percent: 0, label: "Noch nichts verbraucht",
+    detail: "Noch nichts verbraucht", warning: "", state: "ok", narrow: "KI-Guthaben: CHF\u00a010.00 frei",
   });
   const over = sidebar.budgetView({ ...status, verbraucht_chf: 12 });
   assert.equal(over.percent, 100);

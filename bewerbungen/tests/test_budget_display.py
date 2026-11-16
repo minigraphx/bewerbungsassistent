@@ -34,7 +34,7 @@ def nav_of(name: str) -> str:
 def test_the_sidebar_names_what_is_used_and_what_is_left():
     shown = view({**MEDIATION, "verbraucht_chf": 3.2})
 
-    assert shown["text"] == "CHF\u00a03.20 von 10.00 gebraucht"
+    assert shown["text"] == "CHF\u00a03.20 von CHF\u00a010.00 verbraucht"
     assert shown["detail"] == "CHF\u00a06.80 frei"
     assert shown["narrow"] == "KI-Guthaben: CHF\u00a06.80 frei"
     assert shown["warning"] == "" and shown["state"] == "ok"
@@ -44,7 +44,7 @@ def test_an_unused_credit_says_that_nothing_is_used():
     shown = view({**MEDIATION, "verbraucht_chf": 0})
 
     assert shown["text"] == "CHF\u00a010.00 frei"
-    assert shown["detail"] == "Noch nichts gebraucht"
+    assert shown["detail"] == "Noch nichts verbraucht"
     assert shown["warning"] == ""
 
 

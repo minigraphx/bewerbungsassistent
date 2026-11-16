@@ -79,7 +79,6 @@
 
   // A decimal point, as the design system says.
   const money = (value, currency) => `${currency}\u00a0${Math.max(0, Number(value) || 0).toFixed(2)}`;
-  const amount = value => Math.max(0, Number(value) || 0).toFixed(2);
 
   function monthParts(month) {
     const found = /^(\d{4})-(\d{2})$/.exec(month || "");
@@ -115,7 +114,8 @@
     if (hasCredit(ki)) {
       const spent = Math.max(0, Number(ki.verbraucht_chf) || 0);
       return {
-        ...common, title: "Guthaben", headline: `${MEDIATION_CURRENCY}\u00a0${amount(spent)} von ${amount(ki.guthaben_chf)} gebraucht`,
+        ...common, title: "Guthaben",
+        headline: `${money(spent, MEDIATION_CURRENCY)} von ${money(ki.guthaben_chf, MEDIATION_CURRENCY)} verbraucht`,
         percent: Math.min(100, Math.round((spent / ki.guthaben_chf) * 100)), note: MEDIATION_NOTE,
       };
     }

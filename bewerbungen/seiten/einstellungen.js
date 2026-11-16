@@ -101,7 +101,7 @@
     $("budget-neu").textContent = view.renewal || "";
     $("budget-neu").hidden = !view.renewal;
     $("budget-balken").hidden = view.percent === null;
-    $("budget-balken").setAttribute("aria-label", view.percent === null ? "" : `${view.percent} Prozent des Guthabens gebraucht`);
+    $("budget-balken").setAttribute("aria-label", view.percent === null ? "" : `${view.percent} Prozent des Guthabens verbraucht`);
     $("budget-fuellung").style.width = `${view.percent || 0}%`;
     $("budget-aufgaben").replaceChildren(...view.rows.flatMap(row => [
       el("dt", {}, `${row.label} (${row.count})`), el("dd", { class: "num" }, row.usd)]));

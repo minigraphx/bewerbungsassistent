@@ -51,6 +51,7 @@
 
   // A decimal point, as the design system says.
   const usd = value => value.toFixed(2);
+  const NOTHING_USED = "Noch nichts verbraucht";
 
   /** The currency of the AI costs a page shows, from GET /api/ki/status (may be null). */
   function currencyOf(status) {
@@ -72,17 +73,19 @@
     const credit = status.guthaben_chf;
     const spent = Math.max(0, Number(status.verbraucht_chf) || 0);
     const percent = Math.min(100, Math.round((spent / credit) * 100));
-    const left = `${MEDIATION_CURRENCY}${NBSP}${usd(Math.max(0, credit - spent))} frei`;
+    const chf = value => `${MEDIATION_CURRENCY}${NBSP}${usd(value)}`;
+    const left = `${chf(Math.max(0, credit - spent))} frei`;
     const state = creditState(spent, credit);
     const warning = WARNINGS[state];
     const short = `KI-Guthaben: ${left}`;
+    // the same words as Einstellungen and the page „KI“ (#347): the currency on both amounts, «verbraucht»
     return {
       title: "KI-Guthaben",
-      text: spent > 0 ? `${MEDIATION_CURRENCY}${NBSP}${usd(spent)} von ${usd(credit)} gebraucht` : `${MEDIATION_CURRENCY}${NBSP}${usd(credit)} frei`,
+      text: spent > 0 ? `${chf(spent)} von ${chf(credit)} verbraucht` : `${chf(credit)} frei`,
       short,
       percent,
-      label: spent > 0 ? `${percent} Prozent des Guthabens gebraucht` : "Noch nichts gebraucht",
-      detail: spent > 0 ? left : "Noch nichts gebraucht",
+      label: spent > 0 ? `${percent} Prozent des Guthabens verbraucht` : NOTHING_USED,
+      detail: spent > 0 ? left : NOTHING_USED,
       warning: warning ? warning.long : "",
       state,
       narrow: warning ? `${short} · ${warning.short}` : short,

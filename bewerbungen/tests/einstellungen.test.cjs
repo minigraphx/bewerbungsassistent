@@ -103,7 +103,9 @@ test("the way in use says so in its line", () => {
 test("the credit of the mediation: used of the credit, once, in CHF, and what it went to", () => {
   const view = logic.budgetView(MEDIATION, COSTS);
   assert.equal(view.title, "Guthaben");
-  assert.equal(view.headline, "CHF\u00a03.20 von 10.00 gebraucht");
+  assert.equal(view.headline, "CHF\u00a03.20 von CHF\u00a010.00 verbraucht");
+  // the bar says it with the same verb as the headline and the sidebar (#347)
+  assert.match(read("einstellungen.js"), /`\$\{view\.percent\} Prozent des Guthabens verbraucht`/);
   assert.equal(view.renewal, null);
   assert.equal(view.percent, 32);
   assert.deepEqual(view.rows, [
