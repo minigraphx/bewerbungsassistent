@@ -41,6 +41,7 @@ Seit der Gestaltung MIN-369 hat die Seite der App das Menü der übrigen Seiten 
 | `src/zip.js`, `archive.py` | ZIP schreiben und lesen in der Vorlage, sicher lesen beim Import |
 | `src/dom.js`, `src/uploads.js`, `src/app.js`, `src/template.html`, `src/style.css` | Oberfläche |
 | `src/appbackend.js`, `src/prefill.js`, `src/appnav.css` | nur Seite der App: Anfragen an die App, Vorbefüllen, Stil des Menüs |
+| `src/kindguess.js`, `src/droparea.js`, `src/appuploads.js`, `src/droparea.css` | nur Seite der App (G84): eine Fläche für alle Unterlagen, die Art aus Name und Dateityp geschätzt (ohne KI, mit `DIPLOMA_NAME` und `REFERENCE_NAME` aus `bewerbungen/seiten/dateien-logik.js`), pro Zeile korrigierbar über `/api/angaben/unterlage-art` |
 | `build_template.py` | fügt alles zu `dist/einstieg.html` zusammen; CSP nur mit Hashes, ohne Netzzugriff |
 | `convert.py`, `markdown_files.py` | Datei → `cv.yaml` (JSON Resume wie `lebenslauf/`) und Markdown nach `vorlagen/` |
 | `import_bundle.py`, `import_documents.py`, `rejected.py` | Import mit Entwürfen und Ablage der Unterlagen, über `paths.py` mit `bewerbungen/` verbunden |
@@ -59,6 +60,8 @@ Ein neues Feld kommt in `form.json`, dazu in `convert.py` oder `markdown_files.p
 ## Aus Unterlagen vorbefüllen (nur in der App)
 
 Die Datei zum Weitergeben (`dist/einstieg.html`) bleibt ohne Netz; nur die Seite „Meine Angaben“ der App kann vorbefüllen.
+
+- **Eine Fläche** (G84, #270): Alle Unterlagen kommen über „Dateien hierher ziehen“ oder „Dateien wählen“. Die Art schätzt `guessDocumentKind` nur aus Name und Dateityp, nach der Reihenfolge Lebenslauf, früheres Anschreiben, Zertifikat oder Diplom, Zeugnis; Bilder sind nie Lebenslauf oder Anschreiben, ohne Treffer gilt Zertifikat oder Diplom mit „Nicht sicher erkannt, bitte prüfen“. Die Art ist der Ordner unter `dokumente/`; eine andere Art verschiebt Datei und Eintrag in `neu.yaml` (`import_documents.move_pending`), nie auf eine Datei gleichen Namens, und innerhalb der Grenzen pro Art. Darum liest das nächste Vorbefüllen die Datei unter ihrer neuen Art. Die Datei zum Weitergeben behält ihre vier Felder und das ZIP `dokumente/<art>/<name>`.
 
 - **Lesen, lokal** (`read_documents.py`): PDF mit `pypdf`, Word `.docx` über `word/document.xml` (Grössen begrenzt, keine DTD und Entitäten), Text direkt. Der Lebenslauf zuerst, höchstens 40 000 Zeichen pro Datei und 120 000 insgesamt. Alte `.doc`-Dateien, Bilder und Scans werden nicht gesendet; die Person bekommt den Grund und was zu tun ist.
 - **Senden** (`prefill.py`, Aufgabe `prefill` in `bewerbungen/ai/tasks.py`): nur über das Gateway. Ohne Namen im Formular oder in `cv.yaml` geht nichts raus. Maskiert werden die Angaben aus dem Formular und `cv.yaml`, dazu was in den Unterlagen gefunden wird: E-Mail, Telefon, Strasse, Postleitzahl mit Ort, Geburtsdatum, Heimatort, Nationalität, AHV-Nummer, Weblinks, „Frau/Herr Name“. Unsichtbare Zeichen werden vorher entfernt. Dateinamen bleiben auf dem Computer; die KI sieht „Unterlage 1“.

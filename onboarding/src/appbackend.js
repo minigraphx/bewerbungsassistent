@@ -35,6 +35,7 @@ function createAppBackend() {
     discard: () => post("/api/angaben/stand-loeschen", {}),
     addDocument: (track, category, name, bytes) => post("/api/angaben/unterlage", { track, category, name, data: toBase64(bytes) }),
     removeDocument: (datei) => post("/api/angaben/unterlage-entfernen", { datei }),
+    changeDocumentKind: (track, datei, category) => post("/api/angaben/unterlage-art", { track, datei, category }),
     prefill: (track, data) => post("/api/angaben/vorbefuellen", { track, data }),
     // grundlagen: what the page read back from the Markdown basics; with it they merge, only what changed (#217)
     takeOver: (bundle, ersetzen, grundlagen) => post("/api/angaben/uebernehmen", { bundle, ersetzen, ...(grundlagen ? { grundlagen } : {}) }),

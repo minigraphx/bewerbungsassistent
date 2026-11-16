@@ -7,13 +7,15 @@ const path = require("node:path");
 const { findAll, loadScripts } = require("./fake_dom.cjs");
 
 const form = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "form.json"), "utf8"));
-const page = loadScripts(["validate.js", "model.js", "dom.js", "documents.js", "uploads.js", "prefill.js"]);
+const page = loadScripts(["../../bewerbungen/seiten/dateien-logik.js", "validate.js", "model.js", "dom.js", "documents.js",
+  "uploads.js", "kindguess.js", "droparea.js", "prefill.js"]);
 const IDLE = { running: false, waiting: false, problem: null, report: null };
 
 function card(run, track = "job") {
   return page.prefillCard({
-    form, track, uploads: [{ category: "lebenslauf-bisher", name: "cv.pdf", size: 10 }], messages: [], run, hasName: true,
-    titleOf: (id) => id, onRun() {}, onGoTo() {}, onAdd() {}, onRemove() {}, onByHand() {},
+    form, track, uploads: [{ category: "lebenslauf-bisher", name: "cv.pdf", size: 10, datei: "dokumente/lebenslauf-bisher/cv.pdf" }],
+    messages: [], run, hasName: true, notes: {}, announcement: "",
+    titleOf: (id) => id, onRun() {}, onGoTo() {}, onAddFiles() {}, onChangeKind() {}, onRemove() {}, onByHand() {},
   });
 }
 

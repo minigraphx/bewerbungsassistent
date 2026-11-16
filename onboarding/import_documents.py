@@ -84,6 +84,30 @@ def remove_pending(data_dir: pathlib.Path, rel: str) -> None:
     _forget_pending(data_dir, rel)
 
 
+def move_pending(data_dir: pathlib.Path, rel: str, category: str) -> str:
+    """Move a pending document into the folder of another kind (G84) and return its new path.
+
+    The entry in `neu.yaml` keeps its place and its other fields; a file of the same name there is never replaced.
+    The caller checks the category and the limits first.
+    """
+    if rel not in {d["datei"] for d in pending_documents(data_dir)}:
+        raise ValueError("Diese Unterlage gibt es nicht (mehr).")
+    source = im_ordner(data_dir, rel)
+    moved = Document(category, source.name, b"").path
+    target = im_ordner(data_dir, moved)
+    if moved == rel:
+        return rel
+    if target.exists():
+        raise ValueError(f"Bei dieser Art liegt schon eine Datei namens {source.name}.")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    source.rename(target)
+    path = im_ordner(data_dir, PENDING)
+    entries = lies_yaml(path, [])
+    schreibe_yaml(path, [{**e, "datei": moved} if isinstance(e, dict) and e.get("datei") == rel else e for e in entries],
+                  PENDING_HEADER)
+    return moved
+
+
 def discard_kept_answers(data_dir: pathlib.Path) -> None:
     """Complete answers make the kept incomplete ones outdated; the skill must not take those over any more."""
     if im_ordner(data_dir, BUNDLE_COPY).is_file():

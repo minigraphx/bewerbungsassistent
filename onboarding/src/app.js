@@ -185,6 +185,7 @@ function update(newState, { rerender = false } = {}) {
 function goTo(newStep) {
   step = Math.max(0, Math.min(newStep, steps().length - 1));
   uploadMessages = [];
+  if (backend) forgetUploadAnnouncement();
   scheduleStore();
   render();
   document.getElementById("main").focus();
@@ -324,12 +325,12 @@ function openFromAddress() {
   (field.querySelector("input, textarea, select") || field).focus();
 }
 
-/** The start holds the upload in the app; its first category is the CV the person already has. */
+/** The start holds the one drop area of the app (G84), where the CV the person already has goes too. */
 function openUploads() {
   goTo(0);
-  const button = document.querySelector(`[data-category="${form.documents.categories[0].id}"]`);
+  const button = document.querySelector(CHOOSE_SELECTOR);
   if (!button) return;
-  button.closest("fieldset").scrollIntoView({ block: "center" });
+  button.closest(".drop-area").scrollIntoView({ block: "center" });
   button.focus();
 }
 
@@ -380,9 +381,9 @@ function appStartView() {
     appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
     choiceCard(),
     prefillCard({
-      form, track: state.track, uploads, messages: uploadMessages, run: prefillRun,
-      hasName: hasName(), titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
-      onAdd: addUploads, onRemove: removeUpload, onByHand: () => goTo(1),
+      form, track: state.track, uploads, messages: uploadMessages, run: prefillRun, notes: uploadNotes,
+      announcement: uploadAnnouncement, hasName: hasName(), titleOf: sectionTitle, onRun: runPrefill, onGoTo: goToSection,
+      onAddFiles: addDroppedFiles, onChangeKind: changeUploadKind, onRemove: removeDroppedUpload, onByHand: () => goTo(1),
     }),
     existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
     ...loadFileLine(),
@@ -938,6 +939,8 @@ window.addEventListener("beforeunload", (event) => {
   event.preventDefault();
   event.returnValue = UNSAVED_UPLOADS; // older browsers show a dialog only with a value
 });
+
+if (backend) guardPageDrops(document); // a file dropped beside the drop area must not replace the page (G84)
 
 loadStored().then(() => {
   render();

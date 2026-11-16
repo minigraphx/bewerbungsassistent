@@ -88,8 +88,19 @@ def test_page_of_the_app_has_the_menu_and_scripts_of_the_app():
 
     assert build_template.app_menu() in app_page and 'class="app-nav"' not in shared
     assert re.findall(r'<script src="([^"]+)"', app_page) == [
-        "/texte.js", "/meldungen.js", "/app.js", "/uebersicht-logik.js", "/sidebar-logic.js", "/sidebar.js"]
+        "/texte.js", "/meldungen.js", "/app.js", "/uebersicht-logik.js", "/sidebar-logic.js", "/sidebar.js",
+        "/dateien-logik.js"]
     assert "script-src 'self' 'sha256-" in app_page and "script-src 'self'" not in shared
+
+
+def test_only_the_page_of_the_app_has_one_drop_area():
+    # G84, #270: the shared file keeps its four categories and its ZIP layout dokumente/<category>/<name>.
+    shared = build_template.build()
+    app_page = build_template.build(app=True)
+
+    assert "function guessDocumentKind" in app_page and "Dateien hierher ziehen" in app_page
+    assert "guessDocumentKind" not in shared and "Dateien hierher ziehen" not in shared and "dateien-logik" not in shared
+    assert "function categoryView" in shared and "${UPLOAD_DIR}/${u.category}/${u.name}" in shared
 
 
 @pytest.mark.parametrize("output", [build_template.OUTPUT, build_template.OUTPUT_APP], ids=["einstieg", "angaben"])

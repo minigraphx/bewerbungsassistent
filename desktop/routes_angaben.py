@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 STATE_FILE = "dokumente/angaben-stand.json"
 UPLOAD_ROUTE = "/api/angaben/unterlage"
 PREFILL_ROUTE = "/api/angaben/vorbefuellen"
+KIND_ROUTE = "/api/angaben/unterlage-art"  # the person corrects the guessed kind of a document (G84)
 BASE64_OVERHEAD = 4 / 3
 JSON_OVERHEAD_BYTES = 10_000
 DEFAULT_TRACK = "job"  # only for the wording of messages
@@ -163,6 +164,25 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
         import_documents.remove_pending(folder, rel)
         return json_antwort({"unterlagen": import_documents.pending_documents(folder)})
 
+    def change_kind(k, parameter, body):
+        """The person corrects the guessed kind (G84): the file moves to the folder of that kind, within its limits."""
+        folder = ready_data_dir(state, k)
+        request = _body(body)
+        rel, category = request.get("datei"), request.get("category")
+        if not isinstance(rel, str) or not isinstance(category, str):
+            raise ValueError("Die Unterlage fehlt.")
+        known = import_documents.pending_documents(folder)
+        if rel not in {d["datei"] for d in known}:
+            raise ValueError("Diese Unterlage gibt es nicht (mehr).")
+        entries = [{"category": category if d["datei"] == rel else d["category"], "name": d["name"], "size": d["size"]}
+                   for d in known]
+        errors = documents.validate_documents(form, entries)
+        if errors:
+            track = _track(form, request.get("track"))
+            raise ValueError(" ".join(documents.describe(form, track, entries, e) for e in errors))
+        moved = import_documents.move_pending(folder, rel, category)
+        return json_antwort({"datei": moved, "unterlagen": import_documents.pending_documents(folder)})
+
     def take_over(k, parameter, body):
         folder = ready_data_dir(state, k)
         request = _body(body)
@@ -204,6 +224,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
     return ({"/api/angaben/stand": overview, "/api/angaben/offen": not_taken_over},
             _one_at_a_time({"/api/angaben/stand": keep_state, "/api/angaben/stand-loeschen": discard_state,
                             UPLOAD_ROUTE: add_document, "/api/angaben/unterlage-entfernen": remove_document,
+                            KIND_ROUTE: change_kind,
                             "/api/angaben/uebernehmen": take_over}, documents_lock)
             | {PREFILL_ROUTE: prefill_documents},
             {UPLOAD_ROUTE: upload_limit})
