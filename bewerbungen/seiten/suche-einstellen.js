@@ -42,14 +42,17 @@
     const zeile = fehler ? { text: logik.estimateFailedText(fehler.message), usedUp: false } : logik.costLine(schaetzung);
     $("pruefen-kosten").replaceChildren(...(zeile.usedUp ? window.Texte.withCodeRequestLink(zeile.text, el) : [zeile.text]));
     const knopf = $("pruefen-knopf");
+    // Locked, it keeps tabindex 0: a link without href leaves the tab order, and its reason would go unheard.
     if (zeile.usedUp) {
       knopf.removeAttribute("href");
       knopf.setAttribute("role", "link");
       knopf.setAttribute("aria-disabled", "true");
+      knopf.setAttribute("tabindex", "0");
     } else {
       knopf.setAttribute("href", PRUEFEN_SEITE);
       knopf.removeAttribute("role");
       knopf.removeAttribute("aria-disabled");
+      knopf.removeAttribute("tabindex");
     }
   }
 

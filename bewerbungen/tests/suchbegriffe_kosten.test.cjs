@@ -129,6 +129,15 @@ test("with the credit used up the line links where to ask for a new code, and th
   assert.equal(link.getAttribute("aria-disabled"), "true");
 });
 
+test("a locked link stays in the tab order, so its reason is heard; an open link needs no tabindex", async () => {
+  const locked = (await opened({ ...CODE, guthaben: 0, danach: 0 })).link;
+  assert.equal(locked.getAttribute("tabindex"), "0");
+  assert.equal(locked.getAttribute("role"), "link");
+  const open = (await opened(CODE)).link;
+  assert.equal(open.getAttribute("tabindex"), null);
+  assert.equal(open.getAttribute("role"), null);
+});
+
 test("a failed estimate names its reason and keeps the link", async () => {
   const { box, line, link } = await opened(new Error("Der Lebenslauf lässt sich nicht lesen."));
   assert.equal(box.hidden, false);
