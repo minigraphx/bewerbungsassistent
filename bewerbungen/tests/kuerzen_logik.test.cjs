@@ -48,10 +48,10 @@ test("the note says that Meine Angaben and variants stay and where cuts come bac
 const page = name => fs.readFileSync(path.join(__dirname, "..", "seiten", name), "utf8");
 
 test("the next step for a CV over its limit names the choice, not «So lassen»", () => {
-  assert.equal(texte.text("bewerbung.kuerzen", "stelle-sie"), "Der Lebenslauf ist zu lang, auch enger gesetzt. "
+  assert.equal(texte.text("bewerbung.kuerzen", "stelle-sie"), "Der Lebenslauf ist zu lang, auch so eng wie möglich gesetzt. "
     + "Wählen Sie unter «Unterlagen erstellen und prüfen», was für diese Bewerbung wegfällt, oder erlauben Sie drei Seiten.");
   for (const satz of ["stelle-du", "lehrstelle-du"]) {
-    assert.equal(texte.text("bewerbung.kuerzen", satz), "Der Lebenslauf ist zu lang, auch enger gesetzt. "
+    assert.equal(texte.text("bewerbung.kuerzen", satz), "Der Lebenslauf ist zu lang, auch so eng wie möglich gesetzt. "
       + "Wähle unter «Unterlagen erstellen und prüfen», was für diese Bewerbung wegfällt, oder erlaube drei Seiten.");
   }
   assert.match(page("bewerbung.js"), /kuerzen: \[K\.NEXT_TITLE, t\("bewerbung\.kuerzen"\)/);

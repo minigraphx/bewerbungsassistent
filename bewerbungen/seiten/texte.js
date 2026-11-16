@@ -380,8 +380,8 @@
     },
     // G92: a CV over its limit is cut or allowed three pages for this application, never kept with «So lassen»
     "bewerbung.kuerzen": {
-      sie: "Der Lebenslauf ist zu lang, auch enger gesetzt. Wählen Sie unter «Unterlagen erstellen und prüfen», was für diese Bewerbung wegfällt, oder erlauben Sie drei Seiten.",
-      du: "Der Lebenslauf ist zu lang, auch enger gesetzt. Wähle unter «Unterlagen erstellen und prüfen», was für diese Bewerbung wegfällt, oder erlaube drei Seiten.",
+      sie: "Der Lebenslauf ist zu lang, auch so eng wie möglich gesetzt. Wählen Sie unter «Unterlagen erstellen und prüfen», was für diese Bewerbung wegfällt, oder erlauben Sie drei Seiten.",
+      du: "Der Lebenslauf ist zu lang, auch so eng wie möglich gesetzt. Wähle unter «Unterlagen erstellen und prüfen», was für diese Bewerbung wegfällt, oder erlaube drei Seiten.",
     },
     "kuerzen.hinweis": {
       sie: "Meine Angaben und Varianten bleiben, wie sie sind. Weggelassenes holen Sie im Schritt Lebenslauf zurück.",
