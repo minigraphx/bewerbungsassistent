@@ -35,6 +35,8 @@ FEEDBACK_NEEDED = "Bitte schreiben, was anders sein soll."
 FAILED = "Kein Vorschlag. {reason} {cost} Am Suchprofil hat sich nichts geändert."
 CHARGED = "Berechnet: {cost}."
 NOT_CHARGED = "Nichts berechnet."
+UNDER_A_CENT = "weniger als {cent}"
+CENT = 0.01
 NO_UNDO = ("Rückgängig geht nicht mehr: Das Suchprofil hat sich seither geändert. Der frühere Stand liegt unter "
            "Entwürfe und Versionen.")
 ADOPTED = "Suchbegriffe nach Vorschlag der KI: {count} {word}"
@@ -135,7 +137,11 @@ def _keep(k, proposal: dict) -> None:
 
 
 def charged(cost: float) -> str:
-    return CHARGED.format(cost=money_text(cost, currency_now()))
+    """A call under half a cent still cost something, so it never reads as CHF 0.00 (#339)."""
+    currency = currency_now()
+    if round(cost, 2) < CENT:
+        return CHARGED.format(cost=UNDER_A_CENT.format(cent=money_text(CENT, currency)))
+    return CHARGED.format(cost=money_text(cost, currency))
 
 
 def _failed(error: AiError) -> ValueError:

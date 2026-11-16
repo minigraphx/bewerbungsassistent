@@ -212,6 +212,13 @@ def test_a_charged_check_of_the_terms_names_francs_with_the_mediation(monkeypatc
     assert routes_terms.charged(0.05) == "Berechnet: CHF\u00a00.05."
 
 
+def test_a_charged_call_under_half_a_cent_is_not_shown_as_free(monkeypatch):
+    import routes_terms
+    via_mediation(monkeypatch, {"credit_chf": 5.0, "spent_chf": 0})
+    assert routes_terms.charged(0.004) == "Berechnet: weniger als CHF\u00a00.01."
+    assert routes_terms.charged(0.006) == "Berechnet: CHF\u00a00.01."
+
+
 def test_a_used_up_credit_is_named_before_alle_pruefen_and_not_counted_as_enough_for_none():
     s = {"anzahl": 3, "kosten": 0.12, "dauer_minuten": 2, "laden": [], "nicht_ladbar": [], "guthaben": 0,
          "danach": 0, "reicht_fuer": 0, "waehrung": "CHF"}
