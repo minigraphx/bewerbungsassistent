@@ -105,6 +105,7 @@
           <button type="button" class="btn" id="dossier-gestalten" aria-haspopup="dialog">Dossier gestalten</button>
         </div>
         <div class="btn-row"><button type="button" class="btn btn--primary" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen" hidden>Erneut prüfen</button></div>
+        <p class="status-line" id="dossier-meldung" role="status" aria-live="polite"></p>
         <p class="status-line visually-hidden" id="befunde-ansage" role="status" aria-live="polite"></p>
         <ul class="befunde" id="befunde"></ul>
         <details class="befunde-ok" id="befunde-ok" hidden><summary id="befunde-ok-titel"></summary><ul class="befunde" id="befunde-ok-liste"></ul></details>
@@ -249,8 +250,8 @@
       <div class="dossier-dialog__groups">
         <section class="dossier-group" aria-labelledby="dossier-bewerbung-titel">
           <h3 class="dossier-group__title" id="dossier-bewerbung-titel">Für diese Bewerbung</h3>
-          <p class="field__hint">Gilt nur für dieses Dossier und wird mit «Übernehmen» gespeichert.</p>
-          <p class="dossier-group__label" id="d-design-titel">Design</p>
+          <p class="field__hint">Gilt nur für dieses Dossier und wird mit «Übernehmen» gespeichert. Ein Entwurf der KI ist sofort gespeichert.</p>
+          <h4 class="dossier-group__label" id="d-design-titel">Design</h4>
           <div class="design-tiles dossier-designs" id="d-design" role="radiogroup" aria-labelledby="d-design-titel">
             <label class="design-tile"><span class="design-tile__sheet design-tile__sheet--siegel" aria-hidden="true"></span><span class="design-tile__name"><input type="radio" name="d-design" value="siegel" checked>Siegel</span><span class="design-tile__text">Persönlich und ruhig, Ring mit Initialen</span></label>
             <label class="design-tile"><span class="design-tile__sheet design-tile__sheet--raster" aria-hidden="true"></span><span class="design-tile__name"><input type="radio" name="d-design" value="raster">Raster</span><span class="design-tile__text">Plakativ, Bänder mit Initialen</span></label>
@@ -271,7 +272,7 @@
             <p class="field__hint">Die KI entwirft beide Texte aus den Bausteinen, mit Platzhaltern statt Name und Kontakt. Danach lassen sie sich hier anpassen. Ohne Text entfällt die Seite im Dossier.</p>
             <div class="field"><label class="field__label" for="dossier-gruss">Begrüssung („Kurz vorgestellt“)</label><textarea class="input" id="dossier-gruss" rows="5" maxlength="2000"></textarea></div>
             <div class="field"><label class="field__label" for="dossier-dank">Dank (letzte Seite)</label><textarea class="input" id="dossier-dank" rows="2" maxlength="2000"></textarea></div>
-            <div class="btn-row"><button type="button" class="btn btn--sm" id="dossier-entwerfen" disabled>Von der KI entwerfen</button></div>
+            <div class="btn-row"><button type="button" class="btn btn--sm" id="dossier-entwerfen" aria-describedby="dossier-ki-aus" disabled>Von der KI entwerfen</button><p class="field__hint" id="dossier-ki-aus" hidden>Für einen Entwurf zuerst die KI unter «Anschreiben» einrichten. Die Texte lassen sich auch selbst schreiben.</p></div>
             <div id="dossier-status" class="status" role="status" aria-live="polite"></div>
           </div>
         </section>

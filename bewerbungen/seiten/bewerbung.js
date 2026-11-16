@@ -679,7 +679,7 @@
   document.addEventListener("dossier-uebernommen", async event => {
     await laden();
     window.DossierDialog.refocus();
-    if (event.detail.meldung) meldungOben(event.detail.meldung, "ok");
+    if (event.detail.meldung) status($("dossier-meldung"), event.detail.meldung, "ok");
   });
   $("erstellen").addEventListener("click", async () => {
     $("erstellen").disabled = true; // a second click would pay for a second draft

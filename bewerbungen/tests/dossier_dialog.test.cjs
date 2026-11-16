@@ -69,7 +69,7 @@ test("the buttons are «Abbrechen» and «Übernehmen», and the question waits 
 test("at phone width the dialog fills the screen and the buttons stay at the bottom", () => {
   const css = lies("unterlagen.css");
   assert.match(css, /\.dossier-dialog\[open\] \{ display: flex; flex-direction: column; \}/);
-  assert.match(css, /\.dossier-dialog__body \{ flex: 1 1 auto; min-height: 0; overflow-y: auto;/);
+  assert.match(css, /\.dossier-dialog__body \{ position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto;/);
   assert.match(css, /\.dossier-dialog__footer \{ flex: none;/);
   const phone = css.slice(css.indexOf("@media (max-width: 600px)"));
   assert.match(phone, /\.dossier-dialog \{ inset: 0; width: 100%; max-width: 100%; height: 100dvh; max-height: 100dvh; margin: 0;/);
@@ -164,7 +164,8 @@ function fakePage({ textsChanged = false, failSave = false } = {}) {
       verwerfen: () => { state.textsDiscarded += 1; },
     },
   };
-  vm.runInNewContext(lies("dossier-dialog.js"), { window, document, CustomEvent: class { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } } });
+  vm.runInNewContext(lies("dossier-dialog.js"), { window, document, setTimeout,
+    CustomEvent: class { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } } });
   const load = entry => document.dispatchEvent({ type: "bewerbung-geladen", detail: { bewerbung: entry } });
   const settle = () => new Promise(resolve => setImmediate(resolve));
   return { D: window.DossierDialog, byId, dialog, radios, selects, opener, state, load, settle, node, body };
@@ -358,6 +359,55 @@ test("refocus leaves a focus the person has moved on", async () => {
 test("the tile link keeps one id, and the page calls refocus once it has drawn the step anew", () => {
   assert.match(lies("unterlagen-schritt.js"), /el\("button", \{ type: "button", id: "doc-dossier-gestalten", class: "btn btn--quiet doc-tile__link"/);
   assert.match(lies("bewerbung.js"), /document\.addEventListener\("dossier-uebernommen", async event => \{\s*await laden\(\);\s*window\.DossierDialog\.refocus\(\);/);
+});
+
+test("Escape on the key is handled once, so the browser never closes the dialog by itself", () => {
+  const typed = fakePage({ textsChanged: true });
+  typed.load(ENTRY);
+  typed.D.open(typed.opener);
+  const key = typed.dialog.dispatch("keydown", { key: "Escape" });
+  assert.equal(key.defaultPrevented, true);
+  assert.equal(typed.dialog.open, true);
+  assert.equal(typed.byId["dossier-verwerfen"].hidden, false, "the question shows");
+  typed.dialog.dispatch("cancel"); // a browser that still sends its close request after the key
+  assert.equal(typed.byId["dossier-verwerfen"].hidden, false, "the same Escape does not count twice");
+  typed.dialog.dispatch("keydown", { key: "Escape" });
+  assert.equal(typed.byId["dossier-verwerfen"].hidden, true, "the next Escape steps back out of the question");
+  assert.equal(typed.dialog.open, true);
+
+  const plain = fakePage();
+  plain.load(ENTRY);
+  plain.D.open(plain.opener);
+  assert.equal(plain.dialog.dispatch("keydown", { key: "Escape" }).defaultPrevented, true);
+  assert.equal(plain.dialog.open, false);
+  assert.equal(plain.state.focused, plain.opener);
+});
+
+test("the confirmation after «Übernehmen» stays in the step, as a status line", () => {
+  assert.match(step, /<div class="btn-row"><button type="button" class="btn btn--primary" id="erstellen">Unterlagen erstellen<\/button>.*<\/div>\s*<p class="status-line" id="dossier-meldung" role="status" aria-live="polite"><\/p>/);
+  assert.match(lies("bewerbung.js"), /if \(event\.detail\.meldung\) status\(\$\("dossier-meldung"\), event\.detail\.meldung, "ok"\);/);
+});
+
+test("the dialog says that a draft of the AI is saved at once, and why the button is off", () => {
+  assert.match(forThis, /<p class="field__hint">Gilt nur für dieses Dossier und wird mit «Übernehmen» gespeichert\. Ein Entwurf der KI ist sofort gespeichert\.<\/p>/);
+  assert.match(forThis, /<button type="button" class="btn btn--sm" id="dossier-entwerfen" aria-describedby="dossier-ki-aus" disabled>Von der KI entwerfen<\/button><p class="field__hint" id="dossier-ki-aus" hidden>Für einen Entwurf zuerst die KI unter «Anschreiben» einrichten\. Die Texte lassen sich auch selbst schreiben\.<\/p>/);
+  const texts = lies("dossier-texte.js");
+  assert.match(texts, /\$\("dossier-ki-aus"\)\.hidden = kiBereit;/);
+  assert.doesNotMatch(texts, /KI_AUS/, "the reason no longer fades as a message");
+});
+
+test("the hidden logo input scrolls with the body, so the dialog never scrolls its title away", () => {
+  // an absolutely placed input finds the dialog as its box unless the body is positioned
+  assert.match(dialogHtml, /<input type="file" id="d-logo-datei" class="visually-hidden/);
+  assert.match(lies("unterlagen.css"), /\.dossier-dialog__body \{ position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto;/);
+});
+
+test("group titles are 18 px, both sub-labels the same element, the design sheets white paper in dark mode", () => {
+  assert.match(forThis, /<h4 class="dossier-group__label" id="d-design-titel">Design<\/h4>/);
+  assert.match(forThis, /<h4 class="dossier-group__label">Begrüssung und Dank<\/h4>/);
+  const css = lies("unterlagen.css");
+  assert.match(css, /\.application \.dossier-group__title, \.dossier-group__title \{ margin: 0; font-size: 18px; line-height: 26px; \}/);
+  assert.match(css, /\.dossier-designs \.design-tile__sheet \{ background-color: #fff; \}/);
 });
 
 test("the page reloads after «Übernehmen» and the preview follows the draft", () => {

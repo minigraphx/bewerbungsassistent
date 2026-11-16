@@ -16,6 +16,7 @@
   let opener = null;
   let openerId = null; // the page may draw the opener anew after «Übernehmen»; its id finds the new one
   let leaving = false; // true while the dialog closes on purpose: discarded, saved, or nothing typed
+  let escapeHandled = false; // the key press already answered this Escape; the browser's cancel must not again
 
   const texts = () => window.DossierTexte;
   const radios = () => [...$("d-design").querySelectorAll("input")];
@@ -104,7 +105,21 @@
     if (target) target.focus();
   }
 
+  // Escape steps back from the question, or cancels like «Abbrechen»
+  function escape() {
+    if (!$("dossier-verwerfen").hidden) ask(false);
+    else cancel();
+  }
+
   function keepFocus(event) {
+    if (event.key === "Escape") {
+      // handled on the key, Chrome never counts it as a close request and so never closes the dialog by force
+      event.preventDefault();
+      escapeHandled = true;
+      setTimeout(() => { escapeHandled = false; }, 0);
+      escape();
+      return;
+    }
     if (event.key !== "Tab") return;
     const stops = tabStops();
     const target = L.wrapIndex(stops.indexOf(document.activeElement), stops.length, event.shiftKey);
@@ -126,14 +141,13 @@
   $("dossier-weiter").addEventListener("click", () => ask(false));
   $("dossier-verwerfen-ja").addEventListener("click", discard);
   dialog.addEventListener("keydown", keepFocus);
-  // Escape steps back from the question, or cancels like «Abbrechen»
+  // other close requests (a back gesture, or a browser that sends one after the handled key) take the same way once
   dialog.addEventListener("cancel", event => {
     event.preventDefault();
-    if (!$("dossier-verwerfen").hidden) ask(false);
-    else cancel();
+    if (escapeHandled) return;
+    escape();
   });
-  // Chrome holds back only one close request without user activation in between, so a second Escape closes the
-  // dialog regardless. With typed texts it opens again with the question: they are never lost unasked.
+  // Should a browser still close the dialog by force, typed texts bring it back with the question: never lost unasked.
   dialog.addEventListener("close", () => {
     if (!leaving && texts().geaendert()) {
       dialog.showModal();

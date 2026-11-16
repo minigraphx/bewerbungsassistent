@@ -24,16 +24,19 @@
 .dossier-dialog { width: min(960px, calc(100% - 2 * var(--space-4))); max-width: none; max-height: calc(100dvh - 2 * var(--space-4)); padding: 0; overflow: hidden; }
 .dossier-dialog[open] { display: flex; flex-direction: column; }
 .dossier-dialog__title { flex: none; margin: 0; padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--line); }
-.dossier-dialog__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--space-5); align-items: start; padding: var(--space-4) var(--space-5); }
+/* positioned, so the visually hidden logo input stays inside the scrolling body and the dialog itself never scrolls */
+.dossier-dialog__body { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--space-5); align-items: start; padding: var(--space-4) var(--space-5); }
 .dossier-dialog__preview { position: sticky; top: 0; }
 .dossier-dialog__preview[hidden] { display: none; }
 .dossier-group { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; margin: 0 0 var(--space-5); }
 .dossier-group[hidden] { display: none; }
 .dossier-group + .dossier-group { padding-top: var(--space-4); border-top: 1px solid var(--line); }
 .dossier-group > .field__hint, .dossier-group__label { margin: 0; }
-.application .dossier-group__title, .dossier-group__title { margin: 0; font-size: 16px; line-height: 24px; }
+.application .dossier-group__title, .dossier-group__title { margin: 0; font-size: 18px; line-height: 26px; }
 .dossier-group__label { font-size: 15px; line-height: 22px; font-weight: 600; color: var(--text-strong); }
 .dossier-designs { margin-bottom: 0; }
+/* paper stays white in dark mode, like the cover preview */
+.dossier-designs .design-tile__sheet { background-color: #fff; }
 .dossier-pages > summary { min-height: 44px; display: list-item; box-sizing: border-box; padding: var(--space-2) 0; cursor: pointer; font-weight: 500; }
 .dossier-texts { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
 .dossier-texts > p, .dossier-texts .field { margin: 0; }

@@ -8,7 +8,6 @@
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
   const NACH_SPEICHERN = "Für das PDF „Unterlagen erstellen“.";
-  const KI_AUS = "Für einen Entwurf zuerst die KI unter „Anschreiben“ einrichten. Die Texte lassen sich auch selbst schreiben.";
   let geladen = null; // texts as last loaded or saved; null while no dossier is chosen
   let kiBereit = false;
 
@@ -48,7 +47,6 @@
   /** When the dialog opens: the texts as saved, read anew, unless unsaved ones are still in the fields. */
   async function oeffnen() {
     meldung("");
-    if (!kiBereit) meldung(KI_AUS);
     if (geaendert()) return;
     if (geladen) fuelle(geladen);
     const vorher = JSON.stringify(eingaben());
@@ -94,6 +92,8 @@
       kiBereit = false; // the AI section of the page says why
     }
     $("dossier-entwerfen").disabled = !kiBereit;
+    // a lasting reason beside the switched-off button, not a message that fades
+    $("dossier-ki-aus").hidden = kiBereit;
   }
 
   window.DossierTexte = { oeffnen, geaendert, speichern, verwerfen };
