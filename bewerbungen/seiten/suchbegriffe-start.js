@@ -20,7 +20,10 @@ window.SuchbegriffeStart = (() => {
     }
   }
 
-  /** The estimate comes first, so the hint appears whole; it is only asked for when there is a hint. */
+  /**
+   * The estimate comes first, so the hint appears whole; it is only asked for when there is a hint. A used-up credit
+   * locks the link as on Suche einstellen (#334); without an estimate it stays open.
+   */
   async function zeigeHinweis(hinweis, texte) {
     if (!hinweis) {
       $("begriff-hinweis").hidden = true;
@@ -30,6 +33,7 @@ window.SuchbegriffeStart = (() => {
     const kosten = zeile.usedUp ? window.Texte.withCodeRequestLink(zeile.text, el) : [zeile.text];
     $("begriff-hinweis-text").textContent = L.hinweisText(hinweis);
     $("begriff-hinweis-nachsatz").replaceChildren(`${texte.hinweisNachsatz} `, ...kosten);
+    L.lockCheckLink($("begriff-hinweis-pruefen"), zeile.usedUp, "begriff-hinweis-nachsatz");
     $("begriff-hinweis-aus").onclick = async () => {
       try {
         await senden("/api/suchbegriffe/ausblenden", { begriff: hinweis.begriff });

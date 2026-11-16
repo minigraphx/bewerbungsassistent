@@ -199,13 +199,22 @@ const settled = async () => {
   for (let i = 0; i < 10; i += 1) await new Promise(resolve => setImmediate(resolve));
 };
 
-async function hintWith(estimate) {
-  const page = await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-start.js"],
-    { "/api/suchbegriffe/hinweis": HINT, [ESTIMATE]: estimate });
-  await page.window.SuchbegriffeStart.zeige("stelle");
-  await settled();
-  return page.$("begriff-hinweis-nachsatz");
+/** The hint page after one load of the list; `answers` stays live, so a later `zeige` sees a changed estimate. */
+async function hintPage(answers) {
+  const page = await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-start.js"], answers);
+  const zeige = async () => {
+    await page.window.SuchbegriffeStart.zeige("stelle");
+    await settled();
+  };
+  await zeige();
+  return { ...page, zeige };
 }
+
+const hintWith = async estimate =>
+  (await hintPage({ "/api/suchbegriffe/hinweis": HINT, [ESTIMATE]: estimate })).$("begriff-hinweis-nachsatz");
+
+const LOCK = ["aria-disabled", "tabindex", "aria-describedby"];
+const lockOf = link => Object.fromEntries(["href", ...LOCK].map(name => [name, link.getAttribute(name)]));
 
 test("the hint above the hit list names the cost in dollars with an own key", async () => {
   assert.equal((await hintWith(OWN_KEY)).textContent, `${NACHSATZ} Etwa USD 0.03 und 1 Minute.`);
@@ -223,6 +232,30 @@ test("the hint over the credit says it may not be enough, a used-up credit links
   assert.equal(used.textContent,
     `${NACHSATZ} Etwa CHF 0.03 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.`);
   assert.equal(used.children.find(child => child.tagName === "A").getAttribute("href"), Texte.CODE_REQUEST_URL);
+});
+
+test("a used-up credit locks the link of the hint, in the tab order and described by the line; credit opens it", async () => {
+  const answers = { "/api/suchbegriffe/hinweis": HINT, [ESTIMATE]: { ...MEDIATION, guthaben: 0, danach: 0 } };
+  const page = await hintPage(answers);
+  const link = page.$("begriff-hinweis-pruefen");
+  assert.deepEqual(lockOf(link), { href: null, "aria-disabled": "true", tabindex: "0",
+    "aria-describedby": "begriff-hinweis-nachsatz" });
+  answers[ESTIMATE] = MEDIATION;
+  await page.zeige();
+  assert.deepEqual(lockOf(link), { href: "/suchbegriffe", "aria-disabled": null, tabindex: null, "aria-describedby": null });
+});
+
+test("over the credit, with an own key and without an estimate the link of the hint stays open", async () => {
+  for (const estimate of [{ ...MEDIATION, guthaben: 0.01, danach: 0 }, OWN_KEY, new Error("Die App antwortet nicht.")]) {
+    const page = await hintPage({ "/api/suchbegriffe/hinweis": HINT, [ESTIMATE]: estimate });
+    assert.equal(page.$("begriff-hinweis-pruefen").getAttribute("href"), "/suchbegriffe");
+    assert.equal(page.$("begriff-hinweis-pruefen").getAttribute("aria-disabled"), null);
+  }
+});
+
+test("the link of the hint has the id the page locks it by", () => {
+  const html = fs.readFileSync(path.join(SEITEN, "treffer.html"), "utf8");
+  assert.match(html, /<a class="btn btn--sm" id="begriff-hinweis-pruefen" href="\/suchbegriffe">Suchbegriffe prüfen lassen<\/a>/);
 });
 
 test("the hint names why the estimate is missing", async () => {

@@ -44,5 +44,9 @@ test("Sie and du, costs never under a cent", () => {
   assert.equal(L.texte("stelle-sie").gesehen(130, "2026-10-20"),
     "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 130 Treffer seit dem 20.10.2026 angesehen. Geändert wird nur, was angehakt ist.");
   assert.equal(L.fuss({ modell: "claude-haiku-5-5", kosten_usd: 0.004, datum: "2026-11-11", runde: 2, kosten_bisher: 0.008 }),
-    "Claude · 0.01 USD · 11.11.2026 · bisher 0.01 USD");
+    "Claude · USD 0.01 · 11.11.2026 · bisher USD 0.01");
+  assert.equal(L.fuss({ modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF", datum: "2026-11-16", runde: 1 }),
+    "Claude · CHF 0.03 · 16.11.2026");
+  assert.equal(L.fuss({ modell: "claude-sonnet-5-5", kosten_usd: 0.02, waehrung: "CHF", datum: "2026-11-16", runde: 2,
+    kosten_bisher: 0.05 }), "Claude · CHF 0.02 · 16.11.2026 · bisher CHF 0.05");
 });

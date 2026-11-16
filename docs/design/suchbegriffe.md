@@ -45,7 +45,7 @@ Die App prüft jede Änderung, bevor die Person sie sieht (`bewerbungen/term_cha
 
 ## Kosten und was an die KI geht
 
-- Neben dem Knopf steht die Schätzung, «Etwa 0.03 USD», aus der Länge des Texts und dem Preis des Modells, auf den Cent aufgerundet, mindestens ein Cent. Währung wie sonst in der App: USD, bis ein eigener Entscheid etwas anderes sagt.
+- Neben dem Knopf steht die Schätzung in den Worten von «Alle prüfen» (TrefferLogik.costLine), etwa «Etwa CHF 0.03 und 1 Minute.», aus der Länge des Texts und dem Preis des Modells, auf den Cent aufgerundet, mindestens ein Cent. Mit einem Einladungscode in CHF (1 USD zählt als 1 CHF, G80) und mit dem, was danach im Guthaben bleibt, sonst in USD. Reicht das Guthaben vielleicht nicht, nennt die Zeile, was noch da ist; ist es aufgebraucht, wo es einen neuen Code gibt (#334).
 - Im Fuss der Karte steht, was der Aufruf gekostet hat, ab dem zweiten Vorschlag auch «bisher».
 - «Was geht an die KI?» klappt einen Satz auf. «Text ansehen» öffnet den Text mit Platzhaltern, so wie er gesendet würde (G15). Ansehen sendet nichts.
 - An die KI gehen: Suchprofil und Lebenslauf mit Platzhaltern, die drei Bereiche mit ihren Begriffen, die Belege der App und Titel und Note der eingeschätzten Treffer (höchstens 150, die neuesten zuerst), nie Inseratstexte. Stilprofil und Bausteine nicht. Bei «Neu vorschlagen» dazu der letzte Vorschlag und der Text der Person. Die Datenschutzerklärung auf dem Hosting nennt das.
