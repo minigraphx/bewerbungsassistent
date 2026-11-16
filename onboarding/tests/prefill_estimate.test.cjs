@@ -71,7 +71,7 @@ test("the status is busy while files upload or the estimate is pending, and not 
 
 test("for the first moment of estimating again the old figures stay, with the run disabled", () => {
   const node = card({ estimate: estimating({ slow: false, held: ready(ANSWER) }) });
-  assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa USD 0.04 und 1 Minute."]);
+  assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa USD\u00a00.04 und 1\u00a0Minute."]);
   assert.equal(byId(node, "prefill").disabled, true);
   const none = { ...ANSWER, anzahl: 0, kosten: 0 };
   assert.equal(byId(card({ estimate: estimating({ slow: false, held: ready(none) }) }), "prefill"), undefined);
@@ -81,7 +81,7 @@ test("for the first moment of estimating again the old figures stay, with the ru
 
 test("it names the files for the AI and cost and time worded exactly as „Alle prüfen“", () => {
   for (const track of ["job", "apprenticeship"]) {
-    assert.deepEqual(paragraphs(card({ track })), ["2 Dateien gehen an die KI. Etwa USD 0.04 und 1 Minute."]);
+    assert.deepEqual(paragraphs(card({ track })), ["2 Dateien gehen an die KI. Etwa USD\u00a00.04 und 1\u00a0Minute."]);
     const one = { ...ANSWER, anzahl: 1, kosten: 0.12, dauer_minuten: 3 };
     assert.deepEqual(paragraphs(card({ track, estimate: ready(one) })),
       [`1 Datei geht an die KI. ${page.TrefferLogik.estimateLine(one)}`]);
@@ -90,13 +90,13 @@ test("it names the files for the AI and cost and time worded exactly as „Alle 
 
 test("with the mediation it is in CHF and says what stays of the credit, as „Alle prüfen“ does", () => {
   const lines = paragraphs(card({ estimate: ready(VIA_MEDIATION) }));
-  assert.deepEqual(lines, ["2 Dateien gehen an die KI. Etwa CHF 0.04 und 1 Minute.", "Danach bleiben CHF 4.21 im Guthaben."]);
+  assert.deepEqual(lines, ["2 Dateien gehen an die KI. Etwa CHF\u00a00.04 und 1\u00a0Minute.", "Danach bleiben CHF\u00a04.21 im Guthaben."]);
   assert.equal(lines.join(" "), `2 Dateien gehen an die KI. ${page.TrefferLogik.estimateLine({ ...VIA_MEDIATION, reicht_fuer: null })}`);
 });
 
 test("an estimate above the credit left warns, and the run stays possible", () => {
   const node = card({ estimate: ready({ ...VIA_MEDIATION, guthaben: 0.02, danach: 0 }) });
-  assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa CHF 0.04 und 1 Minute.",
+  assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa CHF\u00a00.04 und 1\u00a0Minute.",
     "Im Guthaben sind noch CHF 0.02, das reicht vielleicht nicht."]);
   assert.notEqual(byId(node, "prefill").disabled, true);
 });
@@ -137,7 +137,7 @@ test("files that will not go to the AI or only in part are named with today's re
   const answer = { ...ANSWER, anzahl: 1, nicht_gelesen: [{ name: "Zeugnis_Scan.png", grund: "Bild: bleibt hier." }],
     gekuerzt: ["Lebenslauf_Erika_Beispiel.pdf"] };
   const node = card({ estimate: ready(answer) });
-  assert.deepEqual(paragraphs(node), ["1 Datei geht an die KI. Etwa USD 0.04 und 1 Minute."]);
+  assert.deepEqual(paragraphs(node), ["1 Datei geht an die KI. Etwa USD\u00a00.04 und 1\u00a0Minute."]);
   assert.deepEqual(fileParagraphs(node), ["Geht nicht an die KI:", "Nur der Anfang geht an die KI, die Datei ist zu lang:"]);
   assert.deepEqual(items(node), ["Zeugnis_Scan.png: Bild: bleibt hier.", "Lebenslauf_Erika_Beispiel.pdf"]);
 });
@@ -187,5 +187,5 @@ test("a failed run says why in an alert of its own, above the line", () => {
   const problem = byId(node, "prefill-problem");
   assert.equal(problem.getAttribute("role"), "alert");
   assert.match(problem.textContent, /Einwilligung/);
-  assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa USD 0.04 und 1 Minute."]);
+  assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa USD\u00a00.04 und 1\u00a0Minute."]);
 });

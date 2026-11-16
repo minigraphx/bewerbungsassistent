@@ -12,9 +12,9 @@ const read = name => fs.readFileSync(path.join(__dirname, "..", "seiten", name),
 const ESTIMATE = { anzahl: 2, kosten: 0.06, dauer_minuten: 1, laden: [], nicht_ladbar: [], guthaben: 4.8, danach: 4.74, reicht_fuer: null, waehrung: "CHF" };
 
 test("the line above the list names cost, duration and the credit afterwards, as in the design", () => {
-  assert.equal(logik.estimateLine(ESTIMATE), "Etwa CHF 0.06 und 1 Minute. Danach bleiben CHF 4.74 im Guthaben.");
-  assert.equal(logik.estimateLine({ ...ESTIMATE, dauer_minuten: 3, guthaben: null, danach: null, waehrung: "USD" }), "Etwa USD 0.06 und 3 Minuten.");
-  assert.equal(logik.estimateLine({ ...ESTIMATE, reicht_fuer: 1, danach: 0 }), "Etwa CHF 0.06 und 1 Minute. Das Guthaben reicht für etwa 1 Stelle.");
+  assert.equal(logik.estimateLine(ESTIMATE), "Etwa CHF\u00a00.06 und 1\u00a0Minute. Danach bleiben CHF\u00a04.74 im Guthaben.");
+  assert.equal(logik.estimateLine({ ...ESTIMATE, dauer_minuten: 3, guthaben: null, danach: null, waehrung: "USD" }), "Etwa USD\u00a00.06 und 3\u00a0Minuten.");
+  assert.equal(logik.estimateLine({ ...ESTIMATE, reicht_fuer: 1, danach: 0 }), "Etwa CHF\u00a00.06 und 1\u00a0Minute. Das Guthaben reicht für etwa 1 Stelle.");
   assert.equal(logik.estimateLine(null), "");
 });
 
@@ -23,8 +23,8 @@ test("the question before the run names number, cost, credit and duration", () =
   assert.equal(question.title, "12 Stellen prüfen?");
   assert.deepEqual(question.sentences, [
     "Die KI prüft 12 Stellen, die noch keine Note haben.",
-    "Das kostet etwa CHF 0.35 und dauert etwa 3 Minuten.",
-    "Im Guthaben sind noch CHF 4.80, danach etwa CHF 4.45.",
+    "Das kostet etwa CHF\u00a00.35 und dauert etwa 3\u00a0Minuten.",
+    "Im Guthaben sind noch CHF\u00a04.80, danach etwa CHF\u00a04.45.",
   ]);
   assert.equal(question.warning, "");
   assert.deepEqual(question.notLoadable, []);
@@ -34,12 +34,12 @@ test("the question before the run names number, cost, credit and duration", () =
 test("without a credit to name, the question leaves the credit out and stays in USD", () => {
   const question = logik.confirmation({ ...ESTIMATE, guthaben: null, danach: null, waehrung: "USD" }, false, true);
   assert.equal(question.sentences.length, 2);
-  assert.equal(question.sentences[1], "Das kostet etwa USD 0.06 und dauert etwa 1 Minute.");
+  assert.equal(question.sentences[1], "Das kostet etwa USD\u00a00.06 und dauert etwa 1\u00a0Minute.");
 });
 
 test("a credit too small is a warning that the run stops when it is used up", () => {
   const question = logik.confirmation({ ...ESTIMATE, anzahl: 20, guthaben: 0.1, danach: 0, reicht_fuer: 4 }, false, true);
-  assert.equal(question.warning, "Das Guthaben von CHF 0.10 reicht für etwa 4 von 20 Stellen. Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt.");
+  assert.equal(question.warning, "Das Guthaben von CHF\u00a00.10 reicht für etwa 4 von 20 Stellen. Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt.");
 });
 
 test("hits without text: the extension loads them first, the others stay open with their reason", () => {

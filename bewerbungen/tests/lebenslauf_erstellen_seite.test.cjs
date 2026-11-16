@@ -233,7 +233,7 @@ test("opening sends nothing to the AI and shows the button, what it costs and th
   assert.equal($("cv-erstellen-ki-knopf").textContent, "Vorschläge holen");
   assert.ok(visible($("cv-erstellen-ki-knopf")));
   assert.equal($("cv-erstellen-ki-knopf").getAttribute("aria-disabled"), null);
-  assert.equal($("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal($("cv-erstellen-ki-kosten").textContent, "Etwa USD\u00a00.03 und 1\u00a0Minute.");
   assert.ok(visible($("cv-erstellen-ki-text")));
   assert.equal(doc.activeElement, $("cv-erstellen-stationen").querySelector("input"));
   assert.deepEqual(aiStatus(calls).filter(([, said]) => said), []);
@@ -256,7 +256,7 @@ test("while the estimate runs the line says so and the button waits for it", asy
   slow.release();
   await settle();
   assert.equal(button.getAttribute("aria-disabled"), null);
-  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD\u00a00.03 und 1\u00a0Minute.");
 });
 
 test("over the credit the line warns and the button stays usable", async () => {
@@ -266,7 +266,7 @@ test("over the credit the line warns and the button stays usable", async () => {
   await settle();
 
   assert.equal(page.$("cv-erstellen-ki-kosten").textContent,
-               "Etwa CHF 0.04 und 1 Minute. Im Guthaben sind noch CHF 0.02, das reicht vielleicht nicht.");
+               "Etwa CHF\u00a00.04 und 1\u00a0Minute. Im Guthaben sind noch CHF\u00a00.02, das reicht vielleicht nicht.");
   assert.equal(page.$("cv-erstellen-ki-knopf").disabled, false);
   assert.equal(page.$("cv-erstellen-ki-knopf").getAttribute("aria-disabled"), null);
 });
@@ -279,7 +279,7 @@ test("with the credit used up the button is locked and the line links where to a
   const line = page.$("cv-erstellen-ki-kosten");
 
   assert.equal(line.textContent,
-               "Etwa CHF 0.04 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.");
+               "Etwa CHF\u00a00.04 und 1\u00a0Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.");
   const link = line.querySelector("a");
   assert.equal(link.getAttribute("href"), Texte.CODE_REQUEST_URL);
   assert.equal(page.$("cv-erstellen-ki-knopf").disabled, true);
@@ -303,7 +303,7 @@ test("a failed estimate says why, offers Neu schätzen and leaves Vorschläge ho
   again.click();
   await settle();
   assert.equal(estimates(page.calls), 2);
-  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD\u00a00.03 und 1\u00a0Minute.");
   assert.equal(again.hidden, true);
 });
 
@@ -314,7 +314,7 @@ test("with a saved CV for this application the box says so and offers Neu vorsch
   assert.equal($("cv-erstellen-ki-zeile").textContent, text("lebenslauf.ki-gespeichert"));
   assert.match($("cv-erstellen-ki-zeile").textContent, /Ihre Auswahl gespeichert/);
   assert.equal($("cv-erstellen-ki-knopf").textContent, "Neu vorschlagen lassen");
-  assert.equal($("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal($("cv-erstellen-ki-kosten").textContent, "Etwa USD\u00a00.03 und 1\u00a0Minute.");
   assert.ok(visible($("cv-erstellen-ki-text")));
 });
 
@@ -413,7 +413,7 @@ test("once the AI is switched on, the box shows the button and its cost, sends n
   assert.equal(page.calls.einrichten, 1);
   assert.deepEqual(page.calls.senden, []);
   assert.equal(button.textContent, "Vorschläge holen");
-  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal(page.$("cv-erstellen-ki-kosten").textContent, "Etwa USD\u00a00.03 und 1\u00a0Minute.");
   assert.equal(page.doc.activeElement, button);
 });
 

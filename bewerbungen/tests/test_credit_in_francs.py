@@ -198,9 +198,9 @@ def test_the_words_of_alle_pruefen_are_in_francs_and_say_guthaben():
     after = node("treffer-logik.js", "L.schlussText(a[0], 0, 'CHF')",
                  {"bewertet": 2, "von": 2, "offen": [], "ohneText": 0, "kosten": 0.06, "gestoppt": False})
 
-    assert line == "Etwa CHF 0.06 und 1 Minute. Danach bleiben CHF 3.44 im Guthaben."
-    assert "Im Guthaben sind noch CHF 0.10, danach etwa CHF 3.44." in question["sentences"]
-    assert question["warning"].startswith("Das Guthaben von CHF 0.10 reicht für etwa 1 von 2 Stellen.")
+    assert line == "Etwa CHF\u00a00.06 und 1\u00a0Minute. Danach bleiben CHF\u00a03.44 im Guthaben."
+    assert "Im Guthaben sind noch CHF\u00a00.10, danach etwa CHF\u00a03.44." in question["sentences"]
+    assert question["warning"].startswith("Das Guthaben von CHF\u00a00.10 reicht für etwa 1 von 2 Stellen.")
     assert after == "2 von 2 Treffern bewertet. Kosten: 0.06 CHF."
 
 
@@ -218,7 +218,7 @@ def test_a_used_up_credit_is_named_before_alle_pruefen_and_not_counted_as_enough
     line = node("treffer-logik.js", "L.estimateLine(a[0])", s)
     question = node("treffer-logik.js", "L.confirmation(a[0], false, true)", s)
 
-    assert line == "Etwa CHF 0.12 und 2 Minuten. Das Guthaben ist aufgebraucht: neuen Code anfordern."
+    assert line == "Etwa CHF\u00a00.12 und 2\u00a0Minuten. Das Guthaben ist aufgebraucht: neuen Code anfordern."
     assert question["warning"] == ("Das Guthaben ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter; "
                                    "ohne prüft die KI keine Stelle.")
 

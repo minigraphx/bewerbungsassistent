@@ -103,26 +103,26 @@ async function opened(answer) {
 test("with an own key the line is the estimate line of Alle prüfen, in USD", async () => {
   const { box, line, link } = await opened(OWN_KEY);
   assert.equal(box.hidden, false);
-  assert.equal(line.textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal(line.textContent, "Etwa USD\u00a00.03 und 1\u00a0Minute.");
   assert.equal(link.getAttribute("href"), "/suchbegriffe");
   assert.equal(link.getAttribute("aria-disabled"), null);
 });
 
 test("with the mediation the line is in CHF and names what stays in the credit", async () => {
   const { line } = await opened(CODE);
-  assert.equal(line.textContent, "Etwa CHF 0.04 und 1 Minute. Danach bleiben CHF 4.21 im Guthaben.");
+  assert.equal(line.textContent, "Etwa CHF\u00a00.04 und 1\u00a0Minute. Danach bleiben CHF\u00a04.21 im Guthaben.");
 });
 
 test("over the credit the line says it may not be enough, and the link stays", async () => {
   const { line, link } = await opened({ ...CODE, guthaben: 0.02, danach: 0 });
-  assert.equal(line.textContent, "Etwa CHF 0.04 und 1 Minute. Im Guthaben sind noch CHF 0.02, das reicht vielleicht nicht.");
+  assert.equal(line.textContent, "Etwa CHF\u00a00.04 und 1\u00a0Minute. Im Guthaben sind noch CHF\u00a00.02, das reicht vielleicht nicht.");
   assert.equal(link.getAttribute("href"), "/suchbegriffe");
 });
 
 test("with the credit used up the line links where to ask for a new code, and the link is locked", async () => {
   const { line, link } = await opened({ ...CODE, guthaben: 0, danach: 0 });
   // The link carries a hidden „, öffnet neuen Tab“ for screen readers.
-  assert.equal(line.textContent, "Etwa CHF 0.04 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.");
+  assert.equal(line.textContent, "Etwa CHF\u00a00.04 und 1\u00a0Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.");
   const request = line.children.find(child => child.tagName === "A");
   assert.equal(request.getAttribute("href"), Texte.CODE_REQUEST_URL);
   assert.equal(link.getAttribute("href"), null);
@@ -217,20 +217,20 @@ const LOCK = ["aria-disabled", "tabindex", "aria-describedby"];
 const lockOf = link => Object.fromEntries(["href", ...LOCK].map(name => [name, link.getAttribute(name)]));
 
 test("the hint above the hit list names the cost in dollars with an own key", async () => {
-  assert.equal((await hintWith(OWN_KEY)).textContent, `${NACHSATZ} Etwa USD 0.03 und 1 Minute.`);
+  assert.equal((await hintWith(OWN_KEY)).textContent, `${NACHSATZ} Etwa USD\u00a00.03 und 1\u00a0Minute.`);
 });
 
 test("the hint above the hit list names francs and the credit left with the mediation", async () => {
   assert.equal((await hintWith(MEDIATION)).textContent,
-    `${NACHSATZ} Etwa CHF 0.03 und 1 Minute. Danach bleiben CHF 4.22 im Guthaben.`);
+    `${NACHSATZ} Etwa CHF\u00a00.03 und 1\u00a0Minute. Danach bleiben CHF\u00a04.22 im Guthaben.`);
 });
 
 test("the hint over the credit says it may not be enough, a used-up credit links where to ask", async () => {
   assert.equal((await hintWith({ ...MEDIATION, guthaben: 0.01, danach: 0 })).textContent,
-    `${NACHSATZ} Etwa CHF 0.03 und 1 Minute. Im Guthaben sind noch CHF 0.01, das reicht vielleicht nicht.`);
+    `${NACHSATZ} Etwa CHF\u00a00.03 und 1\u00a0Minute. Im Guthaben sind noch CHF\u00a00.01, das reicht vielleicht nicht.`);
   const used = await hintWith({ ...MEDIATION, guthaben: 0, danach: 0 });
   assert.equal(used.textContent,
-    `${NACHSATZ} Etwa CHF 0.03 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.`);
+    `${NACHSATZ} Etwa CHF\u00a00.03 und 1\u00a0Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.`);
   assert.equal(used.children.find(child => child.tagName === "A").getAttribute("href"), Texte.CODE_REQUEST_URL);
 });
 
@@ -272,18 +272,18 @@ async function reviseWith(estimate) {
 }
 
 test("beside „Neu vorschlagen“ the cost is in dollars with an own key", async () => {
-  assert.equal((await reviseWith(OWN_KEY)).$("anders-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+  assert.equal((await reviseWith(OWN_KEY)).$("anders-kosten").textContent, "Etwa USD\u00a00.03 und 1\u00a0Minute.");
 });
 
 test("beside „Neu vorschlagen“ the cost is in francs with the credit left, with the mediation", async () => {
-  assert.equal((await reviseWith(MEDIATION)).$("anders-kosten").textContent, "Etwa CHF 0.03 und 1 Minute. Danach bleiben CHF 4.22 im Guthaben.");
+  assert.equal((await reviseWith(MEDIATION)).$("anders-kosten").textContent, "Etwa CHF\u00a00.03 und 1\u00a0Minute. Danach bleiben CHF\u00a04.22 im Guthaben.");
   assert.equal((await reviseWith({ ...MEDIATION, guthaben: 0.01, danach: 0 })).$("anders-kosten").textContent,
-    "Etwa CHF 0.03 und 1 Minute. Im Guthaben sind noch CHF 0.01, das reicht vielleicht nicht.");
+    "Etwa CHF\u00a00.03 und 1\u00a0Minute. Im Guthaben sind noch CHF\u00a00.01, das reicht vielleicht nicht.");
 });
 
 test("beside „Neu vorschlagen“ a used-up credit links where to ask and the button stays as it was", async () => {
   const page = await reviseWith({ ...MEDIATION, guthaben: 0, danach: 0 });
-  assert.equal(page.$("anders-kosten").textContent, "Etwa CHF 0.03 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.");
+  assert.equal(page.$("anders-kosten").textContent, "Etwa CHF\u00a00.03 und 1\u00a0Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.");
   const button = page.$("neu-vorschlagen");
   assert.equal(button.disabled, undefined);
   assert.equal(button.getAttribute("aria-disabled"), null);
