@@ -18,7 +18,8 @@ const SETTLE_MS = 500;
 const APP_STATE = `
   let form = FORM; let state = { track: "job" }; let uploads = []; let uploadsUnderway = 0; let step = 0;
   const steps = () => [{ kind: "start" }];
-  const drawn = []; const moves = []; const focused = [];
+  const drawn = []; const moves = []; const focused = []; const removals = [];
+  let gone = []; // paths the folder no longer has, as the server knows it
   function setUploads(list, messages) { uploads = list; drawn.push(messages); }
   let uploadTurn = Promise.resolve();
   function inTurn(work) { uploadTurn = uploadTurn.then(work); return uploadTurn; }
@@ -30,9 +31,16 @@ const APP_STATE = `
       moves.push(category);
       const name = datei.split("/").pop();
       const moved = "dokumente/" + category + "/" + name;
+      gone = [...gone, datei];
       return { datei: moved, unterlagen: uploads.map((u) => u.datei === datei ? { ...u, category, datei: moved } : u) };
     },
     addDocument: async () => { throw new Error("not expected"); },
+    removeDocument: async (datei) => {
+      if (gone.includes(datei)) throw new Error("Diese Unterlage gibt es nicht (mehr).");
+      removals.push(datei);
+      gone = [...gone, datei];
+      return { unterlagen: uploads.filter((u) => u.datei !== datei) };
+    },
   };`;
 
 /** A sandbox with a clock of its own: timers run only when the test moves it on. */
@@ -178,4 +186,39 @@ test("a drop that adds nothing clears what the status said before", async () => 
   await advance(SETTLE_MS);
   assert.equal(read("uploadAnnouncement"), "");
   assert.equal(read("drawn").pop().length, 1);
+});
+
+const NOTES = { category: "anschreiben-bisher", name: "Notizen.txt", size: 10, datei: "dokumente/anschreiben-bisher/Notizen.txt" };
+
+test("a kind picked with the mouse, then Entfernen on the same row: the first click removes the moved file (#328)", async () => {
+  const { page, read, advance } = sandbox([SCAN, NOTES]);
+  const listeners = {};
+  page.trackPointer({ addEventListener: (type, handler) => { listeners[type] = handler; } });
+  page.changeUploadKind(SCAN, "zeugnisse");
+  await advance(SETTLE_MS / 5);
+  listeners.pointerdown(); // the press on „Entfernen“ takes the focus from the select
+  page.leaveUploadKind(SCAN);
+  listeners.pointerup();
+  const removed = page.removeDroppedUpload(0); // its click, before the move is drawn
+  await advance(0);
+  await removed;
+  assert.deepEqual(read("moves"), ["zeugnisse"]);
+  assert.deepEqual(read("removals"), ["dokumente/zeugnisse/Scan_001.pdf"]);
+  assert.deepEqual(read("uploads").map((u) => u.name), ["Notizen.txt"]);
+  assert.deepEqual(read("drawn").pop(), []);
+  assert.equal(read("uploadAnnouncement"), "Scan_001.pdf entfernt.");
+  assert.equal(read("focused").pop(), 'select[data-datei="dokumente/anschreiben-bisher/Notizen.txt"]');
+});
+
+test("Entfernen while a kind is still waiting saves it first, then removes the file under its new path (#328)", async () => {
+  const { page, read, advance } = sandbox([SCAN]);
+  page.changeUploadKind(SCAN, "zeugnisse");
+  await advance(SETTLE_MS / 5);
+  await page.removeDroppedUpload(0);
+  assert.deepEqual(read("removals"), ["dokumente/zeugnisse/Scan_001.pdf"]);
+  assert.deepEqual(read("uploads"), []);
+  assert.deepEqual(read("drawn").pop(), []);
+  await advance(SETTLE_MS);
+  assert.deepEqual(read("moves"), ["zeugnisse"]); // the wait that was running moves nothing more
+  assert.equal(page.pendingDocumentWork(), null);
 });

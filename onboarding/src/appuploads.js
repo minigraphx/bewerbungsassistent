@@ -8,6 +8,7 @@ const KIND_SETTLE_MS = 500; // a new kind counts once the select has been left a
 let uploadNotes = {}; // datei → true when recognised by its name, false when not sure; files filed before have none
 let uploadAnnouncement = "";
 let kindChoices = {}; // datei → timer of a kind not yet settled
+let kindMoves = {}; // datei → the move under way, resolving to where the file is afterwards
 let filesArriving = 0; // drops still on their way, as against kinds being moved
 
 /** Say what happened in the status region of the card, also when the page was just drawn anew. */
@@ -111,35 +112,57 @@ function pendingDocumentWork() {
   return uploadsUnderway ? uploadTurn : null;
 }
 
+/** Resolves to the path of the file once its kind is saved. */
 function settleUploadKind(datei) {
   const { [datei]: waiting, ...others } = kindChoices;
   kindChoices = others;
   const current = uploads.find((u) => u.datei === datei);
   const moved = !waiting || !current || current.category === waiting.category
-    ? Promise.resolve() : moveUploadKind(current, waiting.category);
+    ? Promise.resolve(datei) : moveUploadKind(current, waiting.category);
   if (waiting) requestEstimate(); // also when it settled on the kind it had: the run must not stay disabled
   return moved;
 }
 
+/**
+ * Where the file is once a kind picked just before is saved: one still waiting is saved now, one on its way is
+ * waited for. The list may still show the old path until the move is drawn (#328).
+ */
+function settledUploadPath(datei) {
+  if (kindChoices[datei]) return leaveUploadKind({ datei });
+  return kindMoves[datei] || Promise.resolve(datei);
+}
+
+/** Resolves to the path of the file afterwards: the new one, or the old one when the kind could not be changed. */
 function moveUploadKind(upload, category) {
   const problem = kindChangeProblem(form, state.track, uploads, upload, category);
   uploadsUnderway += 1;
-  return inTurn(async () => {
+  const move = inTurn(async () => {
     try {
       const answer = problem ? null : await backend.changeDocumentKind(state.track, upload.datei, category);
       await pointerReleased(); // drawn anew under a pressed button, the click would get lost
-      if (problem) return redrawKinds(uploads, [problem], upload.datei); // the select shows the old kind again
+      if (problem) {
+        redrawKinds(uploads, [problem], upload.datei); // the select shows the old kind again
+        return upload.datei;
+      }
       const { [upload.datei]: _guess, ...others } = uploadNotes; // the person decided, the guess no longer counts
       uploadNotes = others;
       redrawKinds(answer.unterlagen, [], answer.datei);
       announceUploads(changedStatus(form, state.track, upload.name, category));
+      return answer.datei;
     } catch (error) {
       await pointerReleased();
       redrawKinds(uploads, [kindFailed(error.message)], upload.datei);
+      return upload.datei;
     } finally {
       uploadsUnderway -= 1;
+      if (kindMoves[upload.datei] === move) {
+        const { [upload.datei]: _done, ...others } = kindMoves;
+        kindMoves = others;
+      }
     }
   });
+  kindMoves = { ...kindMoves, [upload.datei]: move };
+  return move;
 }
 
 /** Draw the list anew; the focus stays on the control the person went on to, else it goes back to the select. */
@@ -178,11 +201,18 @@ function pointerReleased() {
   return pointerPressed ? new Promise((resolve) => { pointerWaiters = [...pointerWaiters, resolve]; }) : Promise.resolve();
 }
 
-/** After „Entfernen“ the focus goes to the select of the next row, else to „Dateien wählen“. */
+/**
+ * After „Entfernen“ the focus goes to the select of the next row, else to „Dateien wählen“. A kind picked on the
+ * row just before moves the file first, and the file is removed under its new path (#328).
+ */
 function removeDroppedUpload(index) {
-  const removed = uploads[index];
-  const next = uploads[index + 1];
+  const clicked = uploads[index];
+  const settled = settledUploadPath(clicked.datei); // queued before the removal, so it is done when the removal runs
   const work = inTurn(async () => {
+    const datei = await settled;
+    const at = uploads.findIndex((u) => u.datei === datei);
+    const removed = at >= 0 ? uploads[at] : { ...clicked, datei };
+    const next = at >= 0 ? uploads[at + 1] : null;
     try {
       setUploads((await backend.removeDocument(removed.datei)).unterlagen, []);
       announceUploads(removedStatus(removed.name));
