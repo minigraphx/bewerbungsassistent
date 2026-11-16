@@ -54,7 +54,8 @@ def _open_entry(k, entry_id: str) -> dict:
 def _stations(cv: dict, shown: dict) -> list[cv_suggestions.Station]:
     """The stations the form has chosen, in its order; a station left out by the person stays on the computer."""
     sections = cv_creation.sections(cv)
-    return [cv_suggestions.Station(ref=(part["abschnitt"], row["index"]), title=row["titel"], place=row["zusatz"],
+    return [cv_suggestions.Station(ref=(part["abschnitt"], row["index"]), title=row["titel"],
+                                   organization=row["zusatz"],
                                    time=row["zeit"], section_title=part["titel"],
                                    texts=tuple(cv_creation.station_texts(sections[part["abschnitt"]][row["index"]])))
             for part in shown["abschnitte"] for row in part["stationen"] if row["gewaehlt"]]
@@ -72,7 +73,8 @@ def _material(k, entry: dict, stand: object) -> tuple[str, list[cv_suggestions.S
 
 
 def _names(refs: tuple, stations: dict) -> str:
-    names = [f"«{', '.join(part for part in (stations[ref].title, stations[ref].place) if part)}»" for ref in refs]
+    names = [f"«{', '.join(part for part in (stations[ref].title, stations[ref].organization) if part)}»"
+             for ref in refs]
     return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} und {names[-1]}"
 
 
@@ -99,7 +101,7 @@ def _view(number: int, recommendation: cv_suggestions.Recommendation, stations: 
 
 
 def _key(entry_id: str, ad: str, stations: list, summary: str) -> str:
-    seen = repr((entry_id, ad, [(s.ref, s.title, s.place, s.time, s.texts) for s in stations], summary))
+    seen = repr((entry_id, ad, [(s.ref, s.title, s.organization, s.time, s.texts) for s in stations], summary))
     return hashlib.sha256(seen.encode("utf-8")).hexdigest()
 
 
