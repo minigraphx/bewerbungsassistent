@@ -56,7 +56,7 @@ def create(k, parameter, body):
     body = body if isinstance(body, dict) else {}
     entry = _open_entry(k, pflicht(body, "id"))
     cv, stand = cv_creation.load_cv(k.daten)
-    choice = cv_creation.parse(cv, stand, body)
+    choice = cv_creation.parse(cv, stand, body, k.daten)
     saved = _write(k, entry, choice, cv_creation.tailoring(cv, entry["id"], choice))
     built, note = _build(k, entry["id"])
     return json_antwort({"variante": saved, "bewerbung": k.register().hole(entry["id"]), "gebaut": built,

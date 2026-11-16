@@ -25,6 +25,8 @@ CONTENT_CONTRAST = 24  # grey levels from the page background, above JPEG noise
 # Taken by the website at the release tag, shown on no page of this repo (#267): first pages of lebenslauf.pdf
 # and anschreiben.pdf from `lebenslauf/dossier.py lebenslauf/data/dossier-beispiel.yaml`, invented data
 WEBSITE_ONLY = ("beispiel-unterlagen.jpg",)
+# Pictures of one part of a page, at most this many pixels high, so the guide stays readable beside them
+SHORT = {"bewerbung.jpg": 3600, "lebenslauf-aussehen.jpg": 2400}
 
 
 def referenced() -> set[str]:
@@ -99,6 +101,14 @@ def lowest_content_row(picture: Image.Image) -> int:
         if any(abs(grey.getpixel((x, y)) - background) > CONTENT_CONTRAST for x in range(0, width, 2)):
             return y
     return 0
+
+
+def test_the_application_page_is_an_overview_and_aussehen_has_its_own_picture():
+    """#295: one tall picture of the whole CV panel became an overview plus a picture of «2 · Aussehen»."""
+    assert "lebenslauf-aussehen.jpg" in referenced()
+    heights = {name: jpeg_size((PICTURES / name).read_bytes())[1] for name in SHORT}
+    too_tall = {name: height for name, height in heights.items() if height > SHORT[name]}
+    assert not too_tall, f"zu hoch: {too_tall}"
 
 
 @pytest.mark.parametrize("name", CROPPED)

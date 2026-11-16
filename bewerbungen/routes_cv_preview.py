@@ -30,7 +30,7 @@ _ACTIONS = {cv_creation.UNREADABLE: cv_preview.CHECK_DATA, cv_creation.CHANGED: 
 def _choice(k, body: dict) -> tuple[dict, cv_creation.Choice]:
     try:
         cv, stand = cv_creation.load_cv(k.daten)
-        return cv, cv_creation.parse(cv, stand, body)
+        return cv, cv_creation.parse(cv, stand, body, k.daten)
     except ActionError:
         raise
     except ValueError as error:

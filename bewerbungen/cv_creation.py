@@ -3,7 +3,7 @@
 The person picks the stations of `cv.yaml` and their order, the job title and the summary. That becomes a tailoring
 `jobs/<variant>.yaml` (`select` and `basics`, read by `lebenslauf/tailor.py`) and a variant in `varianten.yaml`, then
 the application takes it like any variant. The design goes to the application as `lebenslauf_design` (G61), never
-into the tailoring. `created_for` marks the tailoring as the application's own, so saving again replaces it and a
+into the tailoring; photo, colour and mark of this CV (G77) go into the tailoring as `aussehen` (created_look.py). `created_for` marks the tailoring as the application's own, so saving again replaces it and a
 variant Claude wrote under the same name stays untouched.
 """
 import dataclasses
@@ -12,6 +12,7 @@ import pathlib
 
 import yaml
 
+import created_look
 import cv_design
 from dateien import schreibe_yaml
 from register import CV_DESIGNS
@@ -44,6 +45,7 @@ class Choice:
     summary: str
     design: str
     name: str
+    look: created_look.Look
 
 
 def load_cv(data_dir: pathlib.Path) -> tuple[dict, str]:
@@ -192,10 +194,12 @@ def form(data_dir: pathlib.Path, entry: dict) -> dict:
     parts = [{"abschnitt": name, "titel": SECTIONS[name],
               "stationen": _station_rows(entries, _chosen_indices(entries, select.get(name)))}
              for name, entries in sections(cv).items()]
+    look = created_look.of_job(job) or created_look.defaults(data_dir)
     return {"abschnitte": parts, "stand": stand,
             "berufsbezeichnung": _text(own_basics.get("label", basics.get("label"))),
             "kurzprofil": _text(own_basics.get("summary", basics.get("summary"))),
             "design": cv_design.for_application(data_dir, entry), "designs": list(CV_DESIGNS),
+            "aussehen": created_look.stored(look), "aussehen_angebot": created_look.offer(data_dir, cv),
             "bezeichnung": (own or {}).get("beschreibung") or f"{entry.get('stelle', '')}, {entry.get('firma', '')}",
             "eigene_variante": own["id"] if own else None}
 
@@ -217,7 +221,7 @@ def _string(body: dict, key: str, limit: int, label: str) -> str:
     return value.strip()
 
 
-def parse(cv: dict, stand: str, body: dict) -> Choice:
+def parse(cv: dict, stand: str, body: dict, data_dir: pathlib.Path) -> Choice:
     """The choice as the page sends it; ValueError with a German message, before anything is written."""
     if body.get("stand") != stand:
         raise ValueError(CHANGED)
@@ -231,15 +235,18 @@ def parse(cv: dict, stand: str, body: dict) -> Choice:
     return Choice(stations=stations, label=_string(body, "berufsbezeichnung", MAX_NAME, "Die Berufsbezeichnung"),
                   summary=_string(body, "kurzprofil", MAX_TEXT, "Das Kurzprofil"),
                   design=cv_design.parse(body.get("design")),
-                  name=_string(body, "bezeichnung", MAX_NAME, "Der Name der Fassung"))
+                  name=_string(body, "bezeichnung", MAX_NAME, "Der Name der Fassung"),
+                  look=created_look.parse(body.get(created_look.KEY), cv, data_dir))
 
 
 def tailoring(cv: dict, entry_id: str, choice: Choice) -> dict:
-    """The tailoring for lebenslauf/tailor.py; the design stays out of it."""
+    """The tailoring for lebenslauf/tailor.py; the design stays out of it, photo, colour and mark (G77) ride along
+    under a key tailor.py does not read."""
     present = sections(cv)
     return {"created_for": entry_id, "basics": {"label": choice.label, "summary": choice.summary},
             "select": {name: [identity(present[name][i]) for i in indices]
-                       for name, indices in choice.stations.items()}}
+                       for name, indices in choice.stations.items()},
+            created_look.KEY: created_look.stored(choice.look)}
 
 
 def write_tailoring(path: pathlib.Path, job: dict) -> None:
