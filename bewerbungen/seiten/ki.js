@@ -115,7 +115,7 @@
     const einwilligungOffen = Boolean(s.einwilligung && !s.einwilligung.erteilt);
     const einrichten = s.eingerichtet ? null
       : el("button", { type: "button", class: "btn btn--quiet btn--sm", onclick: () => window.App.kiEinrichten() }, "KI einrichten");
-    $("ki-status").replaceChildren(statusText(s), ...(einrichten ? [einrichten] : []));
+    $("ki-status").replaceChildren(...window.Texte.withCodeRequestLink(statusText(s), el), ...(einrichten ? [einrichten] : []));
     $("ki-status").hidden = einwilligungOffen;  // the line of the consent says that the AI is off
     $("ki-einwilligung").hidden = !einwilligungOffen;
     if (einwilligungOffen) window.Einwilligung.zeile($("ki-einwilligung"), s.einwilligung, zeigeStatus);

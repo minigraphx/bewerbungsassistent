@@ -335,7 +335,7 @@
     $("bewerten-box").hidden = !laeuft;
     $("offen-box").hidden = laeuft || anzahl === 0 || zustand !== "neu";
     $("offen-zahl").textContent = logik.offenText(anzahl, lehrstelle);
-    $("kosten-hinweis").textContent = logik.estimateLine(estimate, lehrstelle);
+    $("kosten-hinweis").replaceChildren(...window.Texte.withCodeRequestLink(logik.estimateLine(estimate, lehrstelle), el));
     $("alle-pruefen").disabled = laeuft;
     zeigeBerufe();
   }
@@ -467,7 +467,7 @@
     zeigeListe();
     loadEstimate();
     const summary = logik.schlussText(stand, logik.zuBewerten(alle).length, await window.Sidebar.currency) + suffix;
-    if (stand.fehler) meldung(`${stand.fehler} ${summary}`, "fehler");
+    if (stand.fehler) meldung(window.Texte.withCodeRequestLink(`${stand.fehler} ${summary}`, el), "fehler");
     else meldung(summary, stand.offen.length || stand.gestoppt || suffix ? "hinweis" : "ok");
   }
 

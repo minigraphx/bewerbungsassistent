@@ -504,6 +504,7 @@ th[aria-sort="descending"] .table__sort::after { content: "↓"; }
 .app-nav__bar-fill { width: 0; height: 6px; border-radius: var(--radius-full); background: var(--accent); }
 /* A budget nearly or wholly used is named in words (#211); the colour only repeats it. */
 .app-nav__budget-warning { color: var(--warning); font-weight: 700; }
+.app-nav__budget-warning a { color: inherit; }
 .app-nav__budget:is([data-state="low"], [data-state="empty"]) .app-nav__bar-fill { background: var(--warning); }
 .app-nav__budget-short:is([data-state="low"], [data-state="empty"]) { color: var(--warning); font-weight: 700; }
 .app-nav__extension { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--space-1) var(--space-2); margin: 0; }

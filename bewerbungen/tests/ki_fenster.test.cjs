@@ -337,5 +337,51 @@ test("the window names the credit in CHF and, once it is used up, the way to a n
   assert.ok(running.includes("Guthaben: CHF 0.40 von 5.00 verbraucht."));
   assert.ok(!running.includes("aufgebraucht"));
   const usedUp = await shows({ ...SET_UP, verbraucht_chf: 5 });
-  assert.ok(usedUp.includes("Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen."));
+  assert.ok(usedUp.includes("Das Guthaben ist aufgebraucht: einen neuen Code anfordern, öffnet neuen Tab und unter Einstellungen, KI und Guthaben einlösen."));
+});
+
+// ---------- A used-up credit in the window (#315) ----------
+
+const USED_UP_KI = { ...SET_UP, verbraucht_chf: 5 };
+async function openDone(ki) {
+  const w = windowWith({ "/api/ki/status": ki, "/api/claude/stand": new Error("none") });
+  w.open();
+  await settle();
+  const dialog = w.dialog();
+  return { dialog, done: findAll(dialog, n => String(n.className).includes("ki-fenster__fertig"))[0] };
+}
+
+test("once the credit is used up, „anfordern“ in the window links to the contact of the help page (#315)", async () => {
+  const { dialog } = await openDone(USED_UP_KI);
+  const links = visible(dialog, n => n.tag === "a" && textOf(n) === "anfordern, öffnet neuen Tab");
+  assert.equal(links.length, 1);
+  assert.deepEqual(plain(links[0].attrs), { href: "https://bewerbungsbegleiter.ch/hilfe.html#kontakt", target: "_blank", rel: "noopener" });
+  const hint = links[0].children.find(child => typeof child === "object");
+  assert.equal(hint.className, "visually-hidden", "the new tab is said to screen readers only");
+});
+
+test("the line of the set-up AI stays one text in the flex row of the notice, link included", async () => {
+  for (const ki of [SET_UP, USED_UP_KI]) {
+    const { done } = await openDone(ki);
+    assert.equal(done.children.length, 1, "one child, so the row does not break around the link");
+    assert.equal(done.children[0].tag, "span");
+    assert.equal(done.children[0].className, "notice__body");
+  }
+});
+
+test("a used-up credit is a warning in the window, a running one a success", async () => {
+  const running = (await openDone(SET_UP)).done.className.split(" ");
+  assert.ok(running.includes("notice--success") && !running.includes("notice--warning"));
+  const usedUp = (await openDone(USED_UP_KI)).done.className.split(" ");
+  assert.ok(usedUp.includes("notice--warning") && !usedUp.includes("notice--success"));
+  assert.ok(usedUp.includes("notice") && usedUp.includes("ki-fenster__fertig"));
+});
+
+test("the window of a set-up AI focuses „Weiter“ first, not the link to the website", async () => {
+  const { dialog } = await openDone(USED_UP_KI);
+  assert.equal(button(dialog, "Weiter").autofocus, true);
+  const choosing = windowWith({ "/api/ki/status": AGREED, "/api/claude/stand": new Error("none") });
+  choosing.open();
+  await settle();
+  assert.equal(button(choosing.dialog(), "Schliessen").autofocus, false);
 });
