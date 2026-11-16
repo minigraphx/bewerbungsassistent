@@ -39,6 +39,9 @@ LOGO_MISSING = ("Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeiche
 MAX_SEITEN = {"lebenslauf": page_limit.DEFAULT, "anschreiben": 1, "dossier": 8}
 ONLY_IN_BASICS = ("Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter "
                   "«Meine Angaben», für alle.")
+# the app copies a finished file as it is, so the finding names the way forward instead of a tightening (#349)
+FINISHED_FILE = ("Eine fertige Datei setzt die App nicht neu; kürzer wird er mit einer anderen Variante unter "
+                 "«Lebenslauf» oder einer kürzeren Datei unter «Lebenslauf und Dateien».")
 NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "dossier": "Dossier"}
 MAX_ALTER_TAGE = 14
 CARE_OF = re.compile(r"^(z\.?\s*H\.?(d\.?)?|zu Handen|c/o|Attn\.?:?)\s+", re.IGNORECASE)
@@ -105,12 +108,12 @@ def _letter_over_limit(pdf: pathlib.Path, pages: int, key: str | None, letter: s
 
 def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, key: str | None = None) -> Befund:
     """A document over its page limit (G51) that the app cannot cut: an own or sent file, the dossier as a whole, or
-    a CV variant that is a finished file. The app copies a finished file as it is, so its finding claims no
-    tightening (#349)."""
+    a CV variant that is a finished file."""
     name = NAMEN[art]
     if as_it_is or art == "dossier":
         return Befund("hinweis", f"{name}: {pages} Seiten, empfohlen höchstens {limit} Seite(n)")
-    return Befund("hinweis", f"{name}: {pages} Seiten, erlaubt sind höchstens {limit}.", schluessel=key)
+    return Befund("hinweis", f"{name}: {pages} Seiten, erlaubt sind höchstens {limit}. {FINISHED_FILE}",
+                  schluessel=key)
 
 
 def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = (),

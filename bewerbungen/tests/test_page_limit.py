@@ -131,7 +131,9 @@ def test_a_finished_file_variant_over_two_pages_claims_no_tightening(datenordner
 
     found = [f for f in pruefung.pruefe(datenordner, entry, TODAY) if "erlaubt sind höchstens 2" in f.text]
 
-    assert [f.text for f in found] == ["Lebenslauf: 3 Seiten, erlaubt sind höchstens 2."]
+    assert [f.text for f in found] == [
+        "Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Eine fertige Datei setzt die App nicht neu; kürzer wird er "
+        "mit einer anderen Variante unter «Lebenslauf» oder einer kürzeren Datei unter «Lebenslauf und Dateien»."]
     assert found[0].kuerzen is None and found[0].cv_over is None
 
 
