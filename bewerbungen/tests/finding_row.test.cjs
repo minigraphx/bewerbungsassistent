@@ -9,7 +9,6 @@ const vm = require("node:vm");
 const logik = require("../seiten/bewerbung-logik.js");
 
 const SEITEN = path.join(__dirname, "..", "seiten");
-const EDIT_HREF = "/inhalte?datei=bewerbungen%2Fa%2Fanschreiben.yaml&ansicht=text";
 
 class FakeElement {
   constructor(doc, tag, attrs = {}) {
@@ -119,7 +118,8 @@ test("confirmed, the CV over three pages is a hint line that takes the focus", (
 test("the longest paragraph: the group named by its label, then the paragraph, then «Anschreiben ändern»", () => {
   const { F, el } = setup();
   const paragraph = el("p", {}, "Bei der Beispiel GmbH habe ich eine Plattform für Kundendaten aufgebaut.");
-  const group = F.longest(paragraph, EDIT_HREF);
+  const opened = [];
+  const group = F.longest(paragraph, () => opened.push("editor"));
   assert.equal(group.getAttribute("role"), "group");
   assert.equal(group.getAttribute("tabindex"), "-1");
   const [label, text, link] = group.elements;
@@ -127,10 +127,13 @@ test("the longest paragraph: the group named by its label, then the paragraph, t
   assert.equal(label.textContent, "Längster Absatz");
   assert.equal(label.getAttribute("aria-hidden"), "true");
   assert.equal(text, paragraph);
-  assert.equal(link.tagName, "A");
+  assert.equal(link.tagName, "BUTTON", "it opens the editor in the step (#332), no link to /inhalte");
+  assert.equal(link.getAttribute("type"), "button");
   assert.equal(link.textContent, "Anschreiben ändern");
-  assert.equal(link.getAttribute("href"), EDIT_HREF);
+  assert.equal(link.getAttribute("href"), null);
   assert.equal(link.className, "btn btn--sm btn--quiet letter-longest__edit");
+  link.click();
+  assert.deepEqual(opened, ["editor"]);
 });
 
 test("after «So lassen» the focus goes to the first button of the next open finding", () => {

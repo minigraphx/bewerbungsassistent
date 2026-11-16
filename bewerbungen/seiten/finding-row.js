@@ -37,14 +37,14 @@
 
   /**
    * The longest paragraph of a letter over one page (G94): a group named by its visible label, the paragraph and a
-   * quiet link to edit the letter. The label is hidden from screen readers, which hear it as the group's name; the
-   * link comes after the paragraph in reading order and stands next to the label on screen (stil.css).
+   * quiet button that opens the letter editor at it (#332). The label is hidden from screen readers, which hear it as
+   * the group's name; the button comes after the paragraph in reading order and stands next to the label (stil.css).
    */
-  function longest(paragraph, editHref) {
+  function longest(paragraph, onEdit) {
     return el("div", { class: "letter-longest", id: LONGEST_ID, role: "group", "aria-labelledby": `${LONGEST_ID}-label`, tabindex: "-1" },
       el("span", { class: "letter-longest__label", id: `${LONGEST_ID}-label`, "aria-hidden": "true" }, LONGEST_LABEL),
       paragraph,
-      el("a", { class: "btn btn--sm btn--quiet letter-longest__edit", href: editHref }, EDIT_LETTER));
+      el("button", { type: "button", class: "btn btn--sm btn--quiet letter-longest__edit", onclick: onEdit }, EDIT_LETTER));
   }
 
   const lines = list => [...list.children].filter(child => child.tagName === "LI");
