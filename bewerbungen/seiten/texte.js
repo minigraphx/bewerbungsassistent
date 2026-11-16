@@ -252,6 +252,88 @@
     },
 
     // Application page (step 4)
+    "lebenslauf.ki-grenze": {
+      sie: "Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in Ihren Angaben steht.",
+      du: "Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in deinen Angaben steht.",
+    },
+    "lebenslauf.ki-titel": {
+      sie: "Vorschläge der KI für diese Stelle", du: "Vorschläge der KI für diese Stelle",
+      lehrstelle: "Vorschläge der KI für diese Lehrstelle",
+    },
+    "lebenslauf.ki-aus": {
+      sie: "Mit KI schlägt die App für diese Stelle Stationen, Reihenfolge und Kurzprofil vor.",
+      du: "Mit KI schlägt die App für diese Stelle Stationen, Reihenfolge und Kurzprofil vor.",
+      lehrstelle: "Mit KI schlägt die App für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vor.",
+    },
+    "lebenslauf.ki-ohne-inserat": {
+      sie: "Für Vorschläge der KI fehlt noch der Stellentext.", du: "Für Vorschläge der KI fehlt noch der Stellentext.",
+    },
+    "lebenslauf.ki-bereit": {
+      sie: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      du: "Die KI kann für diese Stelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      lehrstelle: "Die KI kann für diese Lehrstelle Stationen, Reihenfolge und Kurzprofil vorschlagen. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+    },
+    "lebenslauf.ki-schaetzen": { sie: "Kosten und Dauer werden geschätzt …", du: "Kosten und Dauer werden geschätzt …" },
+    "lebenslauf.ki-neu-schaetzen": { sie: "Neu schätzen", du: "Neu schätzen" },
+    "lebenslauf.ki-gespeichert": {
+      sie: "Für diese Bewerbung ist Ihre Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».",
+      du: "Für diese Bewerbung ist deine Auswahl gespeichert. Die KI kann neu vorschlagen; gespeichert wird erst mit «Lebenslauf übernehmen».",
+    },
+    "lebenslauf.ki-angewendet": {
+      sie: "Schon angewendet. Ohne Häkchen gilt eine Empfehlung als Ganzes nicht mehr.",
+      du: "Schon angewendet. Ohne Häkchen gilt eine Empfehlung als Ganzes nicht mehr.",
+    },
+    "lebenslauf.ki-laeuft": { sie: "Die KI schlägt vor …", du: "Die KI schlägt vor …" },
+    "lebenslauf.ki-holen": { sie: "Vorschläge holen", du: "Vorschläge holen" },
+    "lebenslauf.ki-neu": { sie: "Neu vorschlagen lassen", du: "Neu vorschlagen lassen" },
+    "lebenslauf.ki-nochmals": { sie: "Nochmals vorschlagen", du: "Nochmals vorschlagen" },
+    "lebenslauf.ki-einschalten": { sie: "KI einschalten", du: "KI einschalten" },
+    "lebenslauf.ki-zum-stellentext": { sie: "Zum Stellentext", du: "Zum Stellentext" },
+    "lebenslauf.vorschau-hinweis": {
+      sie: "Die Vorschau folgt Ihrer Wahl. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+      du: "Die Vorschau folgt deiner Wahl. Gespeichert wird erst mit «Lebenslauf übernehmen».",
+    },
+    "lebenslauf.vorschau-geaendert": {
+      sie: "Meine Angaben haben sich inzwischen geändert. Öffnen Sie «Lebenslauf erstellen» neu, damit die Vorschau sie zeigt.",
+      du: "Meine Angaben haben sich inzwischen geändert. Öffne «Lebenslauf erstellen» neu, damit die Vorschau sie zeigt.",
+    },
+    // Photo, colour and mark of the CV just created (G77)
+    "lebenslauf.mit-foto": { sie: "Mit Foto", du: "Mit Foto" },
+    "lebenslauf.foto-fehlt": {
+      sie: "Noch kein Foto. Fotos fügen Sie unter «Lebenslauf und Dateien» hinzu.",
+      du: "Noch kein Foto. Fotos fügst du unter «Lebenslauf und Dateien» hinzu.",
+    },
+    "lebenslauf.foto-einspaltig": { sie: "Einspaltig zeigt kein Foto.", du: "Einspaltig zeigt kein Foto." },
+    "lebenslauf.farbe-zeichen": { sie: "Farbe und Zeichen ändern", du: "Farbe und Zeichen ändern" },
+    "lebenslauf.zeichen-titel": { sie: "Zeichen", du: "Zeichen" },
+    "lebenslauf.zeichen-hinweis": {
+      sie: "Klein in der Fusszeile jeder Seite, aus Ihren Initialen oder Ihrem Logo.",
+      du: "Klein in der Fusszeile jeder Seite, aus deinen Initialen oder deinem Logo.",
+    },
+    "lebenslauf.zeichen-ohne": { sie: "Ohne Zeichen", du: "Ohne Zeichen" },
+    "lebenslauf.zeichen-logo": { sie: "Ihr Logo", du: "Dein Logo" },
+    "lebenslauf.logo-fehlt": {
+      sie: "Zuerst ein Logo hochladen, unter «Dossier gestalten».",
+      du: "Zuerst ein Logo hochladen, unter «Dossier gestalten».",
+    },
+    "lebenslauf.farbe-titel": { sie: "Farbe", du: "Farbe" },
+    "lebenslauf.farbe-hinweis": {
+      sie: "Für Linien und Überschriften. Alle Farben sind gut lesbar.",
+      du: "Für Linien und Überschriften. Alle Farben sind gut lesbar.",
+    },
+    "lebenslauf.farbe-passend": { sie: "Passend zum Design", du: "Passend zum Design" },
+    "lebenslauf.farbe-passend-zeile": { sie: "passend zum Design", du: "passend zum Design" },
+    "lebenslauf.aussehen-hinweis": {
+      sie: "Gilt nur für diese Bewerbung. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier.",
+      du: "Gilt nur für diese Bewerbung. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier.",
+    },
+    "lebenslauf.erstellen-titel": {
+      sie: "Lebenslauf für diese Stelle", du: "Lebenslauf für diese Stelle", lehrstelle: "Lebenslauf für diese Lehrstelle",
+    },
+    "lebenslauf.erstellen-intro": {
+      sie: "Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.",
+      du: "Die App baut ihn aus deinen Angaben. Was drinsteht und wie er aussieht, wählst du getrennt. Danach steht er wie jede Variante zur Wahl.",
+    },
     "bewerbung.angaben": { sie: "Angaben zur Stelle", du: "Angaben zur Stelle", lehrstelle: "Angaben zur Lehrstelle" },
     "bewerbung.stellentext": { sie: "Stellentext", du: "Stellentext", lehrstelle: "Inseratstext" },
     "bewerbung.gespraech": { sie: "Gespräch vorbereiten", du: "Gespräch vorbereiten", lehrstelle: "Einladung vorbereiten" },
@@ -300,6 +382,29 @@
     "kuerzen.hinweis": {
       sie: "Meine Angaben und Varianten bleiben, wie sie sind. Weggelassenes holen Sie im Schritt Lebenslauf zurück.",
       du: "Meine Angaben und Varianten bleiben, wie sie sind. Weggelassenes holst du im Schritt Lebenslauf zurück.",
+    },
+    // The letter editor in the step Anschreiben (G94, #332); an apprenticeship keeps «Anschreiben»
+    "anschreiben.editor-intro": {
+      sie: "Passen Sie den Text an die Stelle und die Firma an. Jeder Absatz hat ein eigenes Feld.",
+      du: "Pass den Text an die Stelle und die Firma an. Jeder Absatz hat ein eigenes Feld.",
+      lehrstelle: "Pass den Text an die Lehrstelle und den Lehrbetrieb an. Jeder Absatz hat ein eigenes Feld.",
+    },
+    "anschreiben.editor-freigabe": {
+      sie: "Mit dem Speichern ist die Freigabe aufgehoben; geben Sie das Anschreiben danach neu frei.",
+      du: "Mit dem Speichern ist die Freigabe aufgehoben; gib das Anschreiben danach neu frei.",
+    },
+    "anschreiben.editor-als-text": { sie: "Empfänger, Ort und Datum ändern Sie als Text.", du: "Empfänger, Ort und Datum änderst du als Text." },
+    "anschreiben.gespeichert": {
+      sie: "Gespeichert. Erstellen Sie die Unterlagen neu, damit PDF und Prüfung den neuen Text zeigen.",
+      du: "Gespeichert. Erstelle die Unterlagen neu, damit PDF und Prüfung den neuen Text zeigen.",
+    },
+    "anschreiben.nicht-erreichbar": {
+      sie: "Nicht gespeichert: Die App antwortet nicht. Der Text bleibt hier; versuchen Sie es nochmals.",
+      du: "Nicht gespeichert: Die App antwortet nicht. Der Text bleibt hier; versuch es nochmals.",
+    },
+    "anschreiben.geaendert": {
+      sie: "Nicht gespeichert: Das Anschreiben hat sich inzwischen geändert, etwa durch einen neuen Entwurf. Kopieren Sie, was Sie behalten möchten, und laden Sie die Seite neu.",
+      du: "Nicht gespeichert: Das Anschreiben hat sich inzwischen geändert, etwa durch einen neuen Entwurf. Kopier, was du behalten möchtest, und lade die Seite neu.",
     },
     "bewerbung.freigeben-offen": {
       sie: "Der Entwurf ist fertig. {aussagen} noch keinen Beleg in Ihren Angaben; gelb markiert.",

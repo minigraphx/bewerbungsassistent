@@ -83,10 +83,15 @@ test("a proposal shown follows the profile when another card adds or removes the
 });
 
 test("the cost line is the one of „Alle prüfen“, with the request link once the credit is used up", () => {
-  assert.equal(L.kosten(STAND, TrefferLogik), "Etwa CHF 0.02 und 1 Minute. Danach bleiben CHF 4.48 im Guthaben.");
+  assert.equal(L.kosten(STAND, TrefferLogik), "Etwa CHF\u00a00.02 und 1\u00a0Minute. Danach bleiben CHF\u00a04.48 im Guthaben.");
   assert.equal(L.kosten({ ...STAND, guthaben: 0, danach: 0 }, TrefferLogik),
-    "Etwa CHF 0.02 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern.");
-  assert.equal(L.kosten({ ...STAND, waehrung: "USD", guthaben: null, danach: null }, TrefferLogik), "Etwa USD 0.02 und 1 Minute.");
+    "Etwa CHF\u00a00.02 und 1\u00a0Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern.");
+  assert.equal(L.kosten({ ...STAND, waehrung: "USD", guthaben: null, danach: null }, TrefferLogik), "Etwa USD\u00a00.02 und 1\u00a0Minute.");
+});
+
+test("over the credit the cost line names what is left, not CHF 0.00 after (#334)", () => {
+  assert.equal(L.kosten({ ...STAND, kosten: 0.03, guthaben: 0.01, danach: 0 }, TrefferLogik),
+    "Etwa CHF\u00a00.03 und 1\u00a0Minute. Im Guthaben sind noch CHF\u00a00.01, das reicht vielleicht nicht.");
 });
 
 test("each proposal names the hits it rests on", () => {

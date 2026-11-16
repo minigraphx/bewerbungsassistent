@@ -103,8 +103,12 @@ def test_the_cv_for_one_application_has_its_own_section_with_the_picture():
 
     for words in ("**Lebenslauf erstellen**", "Stationen", "Reihenfolge", "**Zweispaltig**", "**Einspaltig**",
                   "**Name der Fassung**", "**Lebenslauf übernehmen**", "**Lebenslauf-Variante**", "**Aussehen wählen**",
-                  "**Lebenslauf und Dateien**", "alle neuen Lebensläufe", "](bilder/bewerbung.jpg)"):
+                  "**Lebenslauf und Dateien**", "alle neuen Lebensläufe", "](bilder/bewerbung.jpg)",
+                  "**Vorschau · 2 Seiten**", "**Gross ansehen**", "an die KI geht nichts",
+                  "auf dem Handy direkt über **Lebenslauf übernehmen**", "Ist keine Station angehakt",
+                  "steht in Meine Angaben etwas, das die App nicht lesen kann"):
         assert words in section, words
+    assert "gerade nicht bauen" not in section, "the old wording of a failed preview is gone"
     assert f"(#{CV_ANCHOR})" in quick_step(5)
 
 
@@ -150,3 +154,17 @@ def test_the_pictures_say_what_they_show_today():
     assert "**Zurücknehmen** bei **Drei Seiten erlaubt** gilt wieder die Grenze von zwei Seiten." in check
     assert "die nächste Kürzung ist angehakt.**" in check and "Meine Angaben und Varianten bleiben" in check
     assert "Schliessen" not in picture and "×" not in picture
+    # G93, #324: each tile names its pages and how the app balanced them
+    assert "beim Anschreiben 1 Seite · etwas enger gesetzt" in picture
+    assert "**1 Seite · etwas enger gesetzt**" in check and "**7 Seiten · Lebenslauf etwas enger gesetzt**" in check
+    assert "damit keine Seite fast leer bleibt und die Seitenzahl eingehalten wird" in check
+    assert ("Passt ein Lebenslauf auch so eng wie möglich nicht, setzt die App ihn wie vorgegeben; dann steht nur die Zahl "
+            "der Seiten da, und der Befund darüber nennt, wie viel zu viel ist.") in check
+    # G94, #325: a letter over one page stays as tight as possible, cut in the letter or left as it is
+    assert "Ein zu langes Anschreiben bleibt so eng gesetzt, etwa **2 Seiten · so eng wie möglich**." in check
+    assert ("**Im Anschreiben kürzen** führt zum Schritt **Anschreiben**, wo über dem längsten Absatz **Längster Absatz** "
+            "steht; **Anschreiben ändern** gleich daneben öffnet den Text.") in check
+    assert "**So lassen** verwendet das Anschreiben so, wie es ist. Gekürzt wird es nur von Ihnen." in check
+    # the picture shows natural invented stations, not the generated ones of the tests
+    assert "Projektleiterin Daten" not in picture and "Muster Informatik 0" not in picture
+    assert "3 Stichpunkte bei «Datenanalystin, Aare Versicherungen AG» (2013–2015)" in picture

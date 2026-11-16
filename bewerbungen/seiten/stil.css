@@ -106,6 +106,8 @@ code, pre { font-family: var(--font-mono); }
 .num, td.zahl { font-variant-numeric: tabular-nums; }
 .muted, .leise, p.hilfe { color: var(--text-muted); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* #337, #340: a part of a «·» line (dot-line.js) breaks to the next line only as a whole, with the «·» it carries */
+.whole-part { display: inline-block; max-width: 100%; }
 
 /* ---------- Layout ---------- */
 main { max-width: var(--width-content); margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-7); }
@@ -558,6 +560,8 @@ th[aria-sort="descending"] .table__sort::after { content: "↓"; }
 .ai-result__cols h3 { margin: 0 0 var(--space-1); font: 700 14px/20px var(--font-sans); }
 .ai-result__cols ul { margin: 0; padding-left: 20px; display: grid; gap: var(--space-1); }
 .ai-result__foot { margin: 0; padding-top: var(--space-3); border-top: 1px solid var(--line); font-size: 13px; line-height: 18px; color: var(--text-muted); }
+/* #337: model, cost and date on a line of their own under the sentence; the space before it keeps them apart when read */
+.ai-result__meta { display: block; }
 .claim { display: grid; gap: 2px; padding: var(--space-2) 0; border-bottom: 1px solid var(--line); }
 .claim:last-child { border-bottom: 0; }
 .claim__text { color: var(--text-strong); }
@@ -771,6 +775,12 @@ label.check input { margin-top: 3px; }
 .letter { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5) var(--space-6); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); color: var(--text-strong); font-size: 15px; line-height: 23px; }
 .letter p { margin: 0; }
 .letter mark { padding: 0 2px; border-bottom: 2px dotted var(--warning); background: var(--warning-bg); color: inherit; }
+/* G94: the longest paragraph of a letter over one page; the label says it, the rule only underlines it */
+/* the edit link follows the paragraph for screen readers and stands next to the label on screen, below it when narrow */
+.letter-longest { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); padding-left: var(--space-3); border-left: 3px solid var(--accent); scroll-margin-top: var(--space-6); }
+.letter-longest__label { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.letter-longest > p { order: 2; flex-basis: 100%; }
+.letter-longest__edit { order: 1; margin-left: auto; white-space: nowrap; }
 
 /* ---------- Search ---------- */
 .search { display: flex; flex-direction: column; gap: var(--space-5); }
@@ -936,8 +946,44 @@ button.files__photo img { width: 100%; height: 100%; object-fit: cover; display:
 .cv-create__name { display: block; color: var(--text-strong); overflow-wrap: anywhere; }
 .cv-create__detail { display: block; font: 400 14px/20px var(--font-sans); color: var(--text-muted); overflow-wrap: anywhere; }
 .cv-create__move { display: flex; flex: none; gap: var(--space-1); }
-.cv-create__move .btn { min-width: 36px; justify-content: center; }
+.cv-create__move .btn { min-width: 44px; min-height: 44px; justify-content: center; }
 .cv-create__designs { margin-bottom: var(--space-2); }
+/* Photo, colour and mark of this CV (G77, #295, design A6): «Mit Foto» and «Farbe und Zeichen ändern» in one row */
+.cv-create__look { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-5); }
+.cv-create__photo { align-items: center; min-height: 44px; margin: 0; cursor: pointer; }
+.cv-create__photo input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.cv-create__photo:has(input:disabled) { color: var(--text-muted); cursor: default; }
+.cv-create__look-toggle { min-height: 44px; }
+.cv-create__look + .field__hint, #cv-erstellen-farbe-stand { margin: 0; }
+.cv-create__mark { display: grid; gap: var(--space-4); margin: var(--space-3) 0; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.cv-create__mark-group { margin: 0; padding: 0; border: 0; min-width: 0; }
+.cv-create__mark-group legend { padding: 0; margin-bottom: var(--space-1); font-weight: 500; color: var(--text-strong); }
+.cv-create__mark-group .field__hint { margin: 0 0 var(--space-2); }
+.cv-create__marks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 var(--space-3); }
+.cv-create__mark-option { align-items: flex-start; min-height: 44px; margin: 0; padding: 10px 0; box-sizing: border-box; cursor: pointer; }
+.cv-create__mark-option input { width: 18px; height: 18px; margin: 3px 0 0; flex: none; accent-color: var(--accent); }
+.cv-create__mark-option:has(input:disabled) { color: var(--text-muted); cursor: default; }
+.cv-create__mark-reason { display: block; font: 400 13px/18px var(--font-sans); color: var(--text-muted); }
+.cv-create__mark-note { display: block; font: 400 13px/18px var(--font-sans); color: var(--text-muted); }
+.cv-create__mark .mark-swatch--wide { grid-column: 1 / -1; }
+/* Dark chips stay visible on a dark surface */
+.cv-create__mark .mark-swatch__chip rect { stroke: var(--line-strong); stroke-width: 1; }
+/* Suggestions of the AI (#293, G75, design A6): applied on opening, each recommendation a box to undo it. */
+.cv-create__ai { margin: 0 0 var(--space-4); padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.application .card .cv-create__ai-title { margin: 0; font: 700 16px/22px var(--font-sans); color: var(--text-strong); }
+.cv-create__ai-line { margin: var(--space-1) 0 0; color: var(--text); }
+.cv-create__ai-line:empty { display: none; }
+.cv-create__ideas { list-style: none; margin: var(--space-2) 0 0; padding: 0; }
+.cv-create__idea + .cv-create__idea { border-top: 1px solid var(--line); }
+.cv-create__idea .check { min-height: 44px; padding: 10px 0; margin: 0; box-sizing: border-box; cursor: pointer; }
+.cv-create__idea-what { display: block; color: var(--text-strong); overflow-wrap: anywhere; }
+.cv-create__idea-why { display: block; font: 400 14px/20px var(--font-sans); color: var(--text-muted); overflow-wrap: anywhere; }
+.cv-create__ai .btn-row { margin-top: var(--space-3); }
+.cv-create__ai-note { margin: var(--space-3) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--line); font: 400 13px/18px var(--font-sans); color: var(--text-muted); }
+.cv-create__ai-note a { display: flex; align-items: center; width: fit-content; min-height: 44px; }
+.cv-create__ai-text { margin-top: var(--space-1); font: 400 13px/18px var(--font-sans); color: var(--text-muted); }
+.cv-create__ai-text summary { display: list-item; min-height: 44px; padding-top: 13px; box-sizing: border-box; cursor: pointer; }
+.cv-create__ai-sent { max-height: 320px; overflow: auto; margin: 0; padding: var(--space-2); white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-subtle); border-radius: var(--radius-md); font: 400 13px/18px var(--font-mono); color: var(--text); }
 .cv-create textarea.input { width: 100%; box-sizing: border-box; }
 .application .card .cv-create .field { margin-top: var(--space-4); }
 .application .card .cv-create .btn-row { margin-top: var(--space-4); }
@@ -1004,6 +1050,8 @@ label.access-choice__option:has(input:focus-visible) { outline: 2px solid var(--
 }
 .status__close:hover { background: var(--surface-subtle); }
 .status__close:focus-visible { outline: 2px solid var(--accent); outline-offset: -6px; }
+/* at phone width a line with an action puts its text on its own row, the action and «×» below; beside a button the text would shrink to a word per line */
+@media (max-width: 600px) { .status--closable:has(.status__action) { flex-wrap: wrap; } .status--closable:has(.status__action) .status__text { flex-basis: 100%; } }
 
 /* Mark and accent colour of the dossier (G18, docs/design/monogramm.md, option B) */
 .mark-preview { position: sticky; top: var(--space-4); margin: 0; }

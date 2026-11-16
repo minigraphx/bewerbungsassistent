@@ -11,6 +11,7 @@
   const S = window.UnterlagenSchritt;
   const K = window.KuerzenLogik;
   const KU = window.Kuerzen;
+  const E = window.LetterEditor;
   const { text: textAus } = window.Texte;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
@@ -199,23 +200,24 @@
   function zeigeBrief() {
     const brief = daten.anschreiben_text;
     const zeigen = Boolean(brief) && !daten.eigenes_anschreiben && !bewerbung.versand;
+    const marked = L.longestParagraph(befunde);
     $("anschreiben-text").hidden = !zeigen;
     if (zeigen) {
       $("anschreiben-text").replaceChildren(
         brief.betreff ? el("p", {}, el("strong", {}, brief.betreff)) : null,
         brief.anrede ? el("p", {}, brief.anrede) : null,
-        ...brief.absaetze.map(absatz),
+        ...brief.absaetze.map((text, place) => (place === marked ? FindingRow.longest(absatz(text), E.openAtLongest) : absatz(text))),
         brief.gruss ? el("p", {}, brief.gruss) : null);
     }
     const freigabe = daten.anschreiben_freigabe || {};
     $("freigabe-zeile").hidden = !zeigen;
     $("freigeben").hidden = !freigabe.noetig || freigabe.freigegeben;
-    $("anschreiben-aendern").href = "/inhalte?" + new URLSearchParams({ datei: `bewerbungen/${ID}/anschreiben.yaml`, ansicht: "text" });
     // the page draws this again after each load and check; a live region would say an unchanged line again
     window.Meldungen.zeigeNeu($("freigabe-status"), !zeigen || !freigabe.noetig ? ""
       : freigabe.freigegeben ? `Freigegeben am ${datum(freigabe.am)}. Eine Änderung am Text hebt die Freigabe auf.`
         : "Noch nicht freigegeben. Erst mit der Freigabe öffnet die Erweiterung das Formular.", freigabe.freigegeben ? "ok" : "");
     zeigeKiPruefung(zeigen);
+    E.update({ letter: brief, findings: befunde, approval: freigabe, shown: zeigen });  // hidden again while editing (#332)
   }
 
   function zeigeKiPruefung(briefSichtbar) {
@@ -388,12 +390,9 @@
       const satz = el("span", { id: K.SENTENCE_ID }, zeile.text);
       const li = window.Meldungen.listenZeile(document, el("span", { class: "cut-finding" }, satz, chooser), zeile.stufe, { schliessbar: false });
       li.setAttribute("aria-labelledby", K.SENTENCE_ID);
-      return li;
+      return window.FindingRow.keyed(li, b);
     }
-    const inhalt = zeile.knopf
-      ? el("span", {}, zeile.text, " ", el("button", { type: "button", class: "btn btn--sm", onclick: e => soLassen(e.currentTarget, b.schluessel) }, zeile.knopf))
-      : zeile.text;
-    return window.Meldungen.listenZeile(document, inhalt, zeile.stufe);
+    return window.FindingRow.row(b, zeile, { onCut: E.cut, onKeep: knopf => soLassen(knopf, b.schluessel) });
   }
 
   function zeigeBefunde() {
@@ -422,7 +421,8 @@
     await laden();
     await laufendePruefung;
     const over = K.stillOver(befunde);
-    meldungOben(K.doneMessage(aktion, antwort, over), K.doneLevel(aktion, antwort, over));
+    const noneLeft = K.noCutLeft(befunde);
+    meldungOben(K.doneMessage(aktion, antwort, over, noneLeft), K.doneLevel(aktion, antwort, over, noneLeft));
     if (aktion !== "zurueck") S.focusFirstFinding();
   }
 
@@ -433,6 +433,7 @@
       ({ befunde } = await senden("/api/pruefung/bestaetigen", { id: ID, schluessel }));
       zeigeBefunde();
       if (daten) zeigeAlles();
+      FindingRow.focusAfterConfirm($("befunde"), schluessel);
     } catch (fehler) {
       knopf.disabled = false;
       meldungOben("Meldung der Prüfung nicht bestätigt: " + fehler.message, "fehler");
@@ -727,6 +728,7 @@
   });
   $("pruefen").addEventListener("click", pruefen);
   $("freigeben").addEventListener("click", freigeben);
+  E.connect(laden);
   document.addEventListener("anschreiben-geprueft", laden);
   document.addEventListener("anschreiben-geaendert", laden);
   document.addEventListener("eigenes-anschreiben-geaendert", nachsehen);

@@ -2,7 +2,7 @@
 // Cut with one click or allow three pages, for this application only (G92, #323, option A item 1 in
 // docs/design/seiten-ausgleichen.md), without DOM: the rows to tick under the finding of a CV over its limit, the
 // buttons with the main one first, what goes to /api/kuerzungen, and what the step Lebenslauf lists as left out
-// (tests/kuerzen_logik.test.cjs). There is no «So lassen» for the CV.
+// (tests/kuerzen_logik.test.cjs). There is no «So lassen» for the CV while a cut or three pages are left (#330).
 (function (global) {
   const LEGEND = "Für diese Bewerbung weglassen";
   const MAIN = "Gekürzt neu erstellen";
@@ -12,6 +12,7 @@
   const TAKE_BACK = "Zurücknehmen";
   const THREE_ALLOWED = "Drei Seiten erlaubt, nur für diese Bewerbung.";
   const NOT_ENOUGH = "Der Lebenslauf ist noch zu lang; die nächste Kürzung ist angehakt.";
+  const NONE_LEFT = "Der Lebenslauf ist noch zu lang; weiter kürzen lässt sich mit «Lebenslauf erstellen» oder unter «Meine Angaben».";
   const SENTENCE_ID = "befund-kuerzen-satz";  // names the finding without the rows and buttons in it
   const THREE_ID = "drei-seiten";  // cut_choice.THREE_PAGES
   const LEFT_OUT_TITLE = "Für diese Bewerbung weggelassen";
@@ -49,19 +50,26 @@
   /** Whether the check still finds the CV over its limit, with cuts to tick. */
   const stillOver = befunde => (befunde || []).some(befund => Boolean(befund.kuerzen));
 
-  /** The message after the route answered; stored all the same when the build could not run. */
-  function doneMessage(action, answer, over) {
+  /** Whether the CV is still over its limit with three pages allowed and no cut left, not yet confirmed (#330). */
+  const noCutLeft = befunde => (befunde || []).some(befund => Boolean(befund.cv_over) && !befund.bestaetigt);
+
+  /**
+   * The message after the route answered; stored all the same when the build could not run. A cut that was not
+   * enough names the next cut ticked (`over`) or, with none left, where it can still be cut (`noneLeft`).
+   */
+  function doneMessage(action, answer, over, noneLeft = false) {
     if (!answer.neu_erstellt) return `Gespeichert, aber nicht neu erstellt: ${answer.fehler}`;
-    return `${DONE[action]} und neu erstellt.${action === "kuerzen" && over ? ` ${NOT_ENOUGH}` : ""}`;
+    const still = action !== "kuerzen" ? "" : over ? ` ${NOT_ENOUGH}` : noneLeft ? ` ${NONE_LEFT}` : "";
+    return `${DONE[action]} und neu erstellt.${still}`;
   }
 
   /** A cut that was not enough is a hint like a build that could not run; all else went as asked. */
-  function doneLevel(action, answer, over) {
-    return answer.neu_erstellt && !(action === "kuerzen" && over) ? "ok" : "hinweis";
+  function doneLevel(action, answer, over, noneLeft = false) {
+    return answer.neu_erstellt && !(action === "kuerzen" && (over || noneLeft)) ? "ok" : "hinweis";
   }
 
   const logik = { LEGEND, MAIN, THREE, NEXT_TITLE, LEFT_OUT_TITLE, THREE_ID, SENTENCE_ID, rows, buttons, body, leftOut,
-    threePages, stillOver, doneMessage, doneLevel };
+    threePages, stillOver, noCutLeft, doneMessage, doneLevel };
   if (typeof module !== "undefined") module.exports = logik;
   else global.KuerzenLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

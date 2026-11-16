@@ -36,11 +36,11 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Eine Bewerbung in sechs Schritten:** Von der Stelle bis zum Festhalten sehen Sie, wo die Bewerbung steht und was als Nächstes kommt. Ein Anschreiben der KI geht erst weiter, wenn Sie es gelesen und freigegeben haben. Den Lebenslauf stellen Sie für die Stelle zusammen: welche Stationen in welcher Reihenfolge, ein- oder zweispaltig.
 
-![Seite einer Bewerbung mit den sechs Schritten, der Karte „Nächster Schritt“, den Angaben zur Stelle und dem geöffneten Teil „Lebenslauf für diese Stelle“ mit Stationen, Kurzprofil und den Designs Zweispaltig und Einspaltig](docs/bilder/bewerbung.jpg)
+![Seite einer Bewerbung mit den sechs Schritten, der Karte „Nächster Schritt“, den Angaben zur Stelle und dem geöffneten Teil „Lebenslauf für diese Stelle“ mit dem Kasten „Vorschläge der KI für diese Stelle“ nach dem Klick auf „Vorschläge holen“, daneben die Vorschau des Lebenslaufs mit der Zahl der Seiten](docs/bilder/bewerbung.jpg)
 
 **Unterlagen und Prüfung:** Lebenslauf und Anschreiben pro Stelle als PDF. Die automatische Prüfung findet hier, dass der Lebenslauf eine Seite zu lang ist, und nennt, was sich kürzen liesse; gekürzt wird nur durch Sie, oder Sie bestätigen mit „So lassen“.
 
-![Abschnitt „Unterlagen erstellen und prüfen“: der Befund „Lebenslauf: 3 Seiten, erlaubt sind höchstens 2“ mit Vorschlägen zum Kürzen und dem Knopf So lassen, darunter zugeklappt die bestandenen Prüfungen, je eine Kachel für Lebenslauf und Anschreiben mit der ersten Seite, die Zeile der gewählten Form mit „Form ändern“ und die Zeile der Beilagen](docs/bilder/pruefung.jpg)
+![Abschnitt „Unterlagen erstellen und prüfen“: der Befund „Lebenslauf: 3 Seiten, erlaubt sind höchstens 2“ mit Kürzungen zum Anhaken und den Knöpfen „Gekürzt neu erstellen“ und „Drei Seiten erlauben“, darunter zugeklappt die bestandenen Prüfungen, je eine Kachel für Lebenslauf und Anschreiben mit der ersten Seite und darunter der Zahl der Seiten, beim Anschreiben „1 Seite · etwas enger gesetzt“, die Zeile der gewählten Form mit „Form ändern“ und die Zeile der Beilagen](docs/bilder/pruefung.jpg)
 
 **Entwürfe und Versionen:** Jedes Speichern legt einen Entwurf mit Datum an, geordnet nach Lebenslauf, Anschreiben je Bewerbung, Stil und Bausteinen und Suchprofil; ältere Fassungen sind aufklappbar. Was versendet wurde, bleibt erhalten und lässt sich nicht mehr löschen.
 

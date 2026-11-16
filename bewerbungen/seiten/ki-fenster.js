@@ -37,7 +37,7 @@ window.KiFenster = (() => {
   function doneLine(ki) {
     if (!withCredit(ki)) return DONE;
     const spent = Number(ki.verbraucht_chf || 0);
-    const credit = ` Guthaben: CHF ${spent.toFixed(2)} von ${ki.guthaben_chf.toFixed(2)} verbraucht.`;
+    const credit = ` Guthaben: CHF\u00a0${spent.toFixed(2)} von ${ki.guthaben_chf.toFixed(2)} verbraucht.`;
     return `${DONE}${credit}${creditUsedUp(ki) ? USED_UP : ""}`;
   }
 

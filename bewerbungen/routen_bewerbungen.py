@@ -6,9 +6,13 @@ from http import HTTPStatus
 
 import yaml
 
+import pfade  # noqa: F401  (makes the module lebenslauf importable)
+import anschreiben
 import cut_choice
 import layout_confirmed
 import letter_approval
+import letter_edit
+import page_note
 import pdf_thumbnail
 import pruefung
 import routes_missing_ads
@@ -60,6 +64,7 @@ def details(k, parameter, body):
         "text_fehlt": routes_missing_ads.note_for_saved(k, b),
         "pdfs": {art: p.is_file() for art, p in shown.items()},
         "pdf_stand": {art: p.stat().st_mtime_ns if p.is_file() else None for art, p in shown.items()},
+        "seiten": page_note.notes(k.cache, k.daten, b, shown),
         "eigener_lebenslauf": unterlagen.eigener_lebenslauf(k.daten, b) is not None,
         "eigener_lebenslauf_da": (k.daten / unterlagen.OWN_CV).is_file(),
         "eigenes_anschreiben": unterlagen.own_letter(k.daten, b) is not None,
@@ -84,9 +89,12 @@ def _letter_text(k, entry_id: str) -> dict | None:
         return None
     if not isinstance(letter, dict):
         return None
-    paragraphs = [part.strip() for part in str(letter.get("text") or "").split("\n\n") if part.strip()]
+    # split as the build and the check do, so the place of the longest paragraph (G94) is the same here
+    paragraphs = anschreiben.absaetze(str(letter.get("text") or ""))
     return {"betreff": str(letter.get("betreff") or ""), "anrede": str(letter.get("anrede") or ""),
-            "absaetze": [" ".join(part.split()) for part in paragraphs], "gruss": str(letter.get("gruss") or "")}
+            "absaetze": [" ".join(part.split()) for part in paragraphs], "gruss": str(letter.get("gruss") or ""),
+            # the editor (#332) sends the fingerprint back, so a letter changed meanwhile is not overwritten
+            "fingerabdruck": letter_approval.fingerprint(path), "zeichen_pro_zeile": letter_edit.CHARS_PER_LINE}
 
 
 def freigeben(k, parameter, body):
@@ -215,7 +223,7 @@ def bestaetigen(k, parameter, body):
         raise ValueError("id und schluessel erwartet")
     with k.sperre:
         entry = k.register().hole(pflicht(body, "id"))
-        # G92: a CV over its limit is cut or allowed three pages, never confirmed as it is
+        # G92: a CV over its limit is cut or allowed three pages, confirmed as it is only with neither left (#330)
         current = [b.schluessel for b in pruefung.pruefe(k.daten, entry, k.heute()) if b.schluessel and not b.kuerzen]
         layout_confirmed.confirm(k.daten, entry, body["schluessel"], current)
         befunde = pruefung.pruefe(k.daten, entry, k.heute())

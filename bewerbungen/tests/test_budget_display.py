@@ -34,16 +34,16 @@ def nav_of(name: str) -> str:
 def test_the_sidebar_names_what_is_used_and_what_is_left():
     shown = view({**MEDIATION, "verbraucht_chf": 3.2})
 
-    assert shown["text"] == "CHF 3.20 von 10.00 gebraucht"
-    assert shown["detail"] == "CHF 6.80 frei"
-    assert shown["narrow"] == "KI-Guthaben: CHF 6.80 frei"
+    assert shown["text"] == "CHF\u00a03.20 von 10.00 gebraucht"
+    assert shown["detail"] == "CHF\u00a06.80 frei"
+    assert shown["narrow"] == "KI-Guthaben: CHF\u00a06.80 frei"
     assert shown["warning"] == "" and shown["state"] == "ok"
 
 
 def test_an_unused_credit_says_that_nothing_is_used():
     shown = view({**MEDIATION, "verbraucht_chf": 0})
 
-    assert shown["text"] == "CHF 10.00 frei"
+    assert shown["text"] == "CHF\u00a010.00 frei"
     assert shown["detail"] == "Noch nichts gebraucht"
     assert shown["warning"] == ""
 
@@ -67,17 +67,17 @@ def test_a_used_up_credit_says_so_in_words(spent):
 
     assert shown["state"] == "empty"
     assert shown["warning"] == "Guthaben aufgebraucht: neuen Code anfordern"
-    assert shown["detail"] == "CHF 0.00 frei"
-    assert shown["narrow"] == "KI-Guthaben: CHF 0.00 frei · aufgebraucht"
+    assert shown["detail"] == "CHF\u00a00.00 frei"
+    assert shown["narrow"] == "KI-Guthaben: CHF\u00a00.00 frei · aufgebraucht"
 
 
 def test_with_an_own_key_no_credit_of_the_mediation_applies():
     shown = view({"monat": "2026-03", "eingerichtet": True, "vermittlung": False, "eigener_schluessel": True,
                   "kosten_usd": 1.5})
 
-    assert shown["text"] == "USD 1.50 mit eigenem Schlüssel"
+    assert shown["text"] == "USD\u00a01.50 mit eigenem Schlüssel"
     assert shown["detail"] == "Kein Guthaben der Vermittlung"
-    assert shown["narrow"] == "KI-Kosten: USD 1.50 · kein Guthaben der Vermittlung"
+    assert shown["narrow"] == "KI-Kosten: USD\u00a01.50 · kein Guthaben der Vermittlung"
     assert shown["warning"] == "" and shown["state"] == "own"
 
 

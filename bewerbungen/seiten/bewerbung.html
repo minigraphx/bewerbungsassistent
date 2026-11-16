@@ -7,6 +7,8 @@
 <title>Bewerbung</title>
 <link rel="stylesheet" href="/stil.css">
 <link rel="stylesheet" href="/unterlagen.css">
+<link rel="stylesheet" href="/lebenslauf-vorschau.css">
+<link rel="stylesheet" href="/letter-editor.css">
 </head>
 <body>
 <nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/bewerbungen" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span><span class="num" id="nav-budget-detail"></span><strong class="app-nav__budget-warning" id="nav-budget-warning" hidden></strong></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
@@ -48,19 +50,68 @@
         <p class="cut-list__row cut-list__three" id="drei-seiten-zeile" hidden></p>
         <p class="status-line" id="weggelassen-status" role="status" aria-live="polite"></p>
         <div class="cv-create" id="cv-erstellen" hidden>
-          <h3 class="cv-create__title">Lebenslauf für diese Stelle</h3>
-          <p class="field__hint">Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.</p>
+          <h3 class="cv-create__title" data-text="lebenslauf.erstellen-titel">Lebenslauf für diese Stelle</h3>
+          <p class="field__hint" data-text="lebenslauf.erstellen-intro">Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.</p>
+          <div class="cv-create__layout">
+          <div class="cv-create__form">
           <h4 class="cv-create__step">1 · Inhalt</h4>
+          <section class="cv-create__ai" id="cv-erstellen-ki" aria-labelledby="cv-erstellen-ki-titel" hidden>
+            <h5 class="cv-create__ai-title" id="cv-erstellen-ki-titel" data-text="lebenslauf.ki-titel">Vorschläge der KI für diese Stelle</h5>
+            <p class="cv-create__ai-line" id="cv-erstellen-ki-zeile"></p>
+            <ul class="cv-create__ideas" id="cv-erstellen-ki-liste" hidden></ul>
+            <div class="btn-row" id="cv-erstellen-ki-knoepfe" hidden><button type="button" class="btn" id="cv-erstellen-ki-knopf" aria-describedby="cv-erstellen-ki-kosten"></button><span class="caption" id="cv-erstellen-ki-kosten"></span><button type="button" class="btn btn--quiet" id="cv-erstellen-ki-neu-schaetzen" data-text="lebenslauf.ki-neu-schaetzen" hidden>Neu schätzen</button><button type="button" class="btn btn--quiet" id="cv-erstellen-ki-stellentext" data-text="lebenslauf.ki-zum-stellentext" hidden>Zum Stellentext</button></div>
+            <details class="cv-create__ai-text" id="cv-erstellen-ki-text"><summary>Text an die KI ansehen</summary><pre class="cv-create__ai-sent" id="cv-erstellen-ki-text-inhalt"></pre></details>
+            <p class="status-line" id="cv-erstellen-ki-status" role="status" aria-live="polite" tabindex="-1"></p>
+            <p class="cv-create__ai-note"><span data-text="lebenslauf.ki-grenze">Die KI stellt nur um und kürzt und fügt nichts hinzu, was nicht in Ihren Angaben steht.</span> <a href="/angaben">Angaben selbst ändern</a></p>
+          </section>
           <div id="cv-erstellen-stationen"></div>
           <div class="field"><label class="field__label" for="cv-erstellen-beruf">Berufsbezeichnung</label><input class="input" id="cv-erstellen-beruf" maxlength="120" autocomplete="off"></div>
           <div class="field"><label class="field__label" for="cv-erstellen-profil">Kurzprofil</label><textarea class="input" id="cv-erstellen-profil" maxlength="2000"></textarea>
             <p class="field__hint">Aus Ihren Angaben. Kürzen und umstellen geht hier; <a href="/angaben">Angaben selbst ändern</a> geht unter Meine Angaben.</p></div>
           <h4 class="cv-create__step" id="cv-erstellen-aussehen-titel">2 · Aussehen</h4>
           <div class="design-tiles cv-create__designs" id="cv-erstellen-designs" role="radiogroup" aria-labelledby="cv-erstellen-aussehen-titel"></div>
-          <p class="field__hint">Gilt nur für diese Bewerbung. Ein Dossier hat sein eigenes Design, unter «Dossier gestalten».</p>
+          <div class="cv-create__look" id="cv-erstellen-look">
+            <label class="check cv-create__photo"><input type="checkbox" id="cv-erstellen-foto" aria-describedby="cv-erstellen-foto-grund"><span data-text="lebenslauf.mit-foto">Mit Foto</span></label>
+            <button type="button" class="btn btn--quiet cv-create__look-toggle" id="cv-erstellen-farbe-oeffnen" aria-expanded="false" aria-controls="cv-erstellen-farbe" aria-describedby="cv-erstellen-farbe-stand" data-text="lebenslauf.farbe-zeichen">Farbe und Zeichen ändern</button>
+          </div>
+          <p class="field__hint" id="cv-erstellen-foto-grund" hidden></p>
+          <p class="field__hint" id="cv-erstellen-farbe-stand"></p>
+          <div class="cv-create__mark" id="cv-erstellen-farbe" hidden>
+            <fieldset class="cv-create__mark-group" aria-describedby="cv-erstellen-zeichen-hinweis">
+              <legend data-text="lebenslauf.zeichen-titel">Zeichen</legend>
+              <p class="field__hint" id="cv-erstellen-zeichen-hinweis" data-text="lebenslauf.zeichen-hinweis">Klein in der Fusszeile jeder Seite, aus Ihren Initialen oder Ihrem Logo.</p>
+              <div class="cv-create__marks" id="cv-erstellen-zeichen"></div>
+            </fieldset>
+            <fieldset class="cv-create__mark-group" aria-describedby="cv-erstellen-farbe-hinweis">
+              <legend data-text="lebenslauf.farbe-titel">Farbe</legend>
+              <p class="field__hint" id="cv-erstellen-farbe-hinweis" data-text="lebenslauf.farbe-hinweis">Für Linien und Überschriften. Alle Farben sind gut lesbar.</p>
+              <div class="mark-swatches" id="cv-erstellen-akzent"></div>
+            </fieldset>
+          </div>
+          <p class="field__hint" data-text="lebenslauf.aussehen-hinweis">Gilt nur für diese Bewerbung. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier.</p>
           <div class="field"><label class="field__label" for="cv-erstellen-name">Name der Fassung</label><input class="input" id="cv-erstellen-name" maxlength="120" autocomplete="off"></div>
+          </div>
+          <aside class="cv-create__preview" id="cv-vorschau" aria-labelledby="cv-vorschau-titel" aria-busy="false">
+            <h4 class="cv-create__preview-title" id="cv-vorschau-titel">Vorschau</h4>
+            <div class="cv-create__sheet">
+              <img class="cv-create__page" id="cv-vorschau-bild" alt="" width="600" height="849" hidden>
+              <div class="cv-create__problem" id="cv-vorschau-problem" hidden>
+                <p class="cv-create__preview-error" id="cv-vorschau-fehler"></p>
+                <a class="cv-create__problem-link" id="cv-vorschau-angaben" href="/angaben" hidden>Meine Angaben öffnen</a>
+                <button type="button" class="btn btn--sm" id="cv-vorschau-neu" hidden>Neu laden</button>
+                <details class="cv-create__problem-details" id="cv-vorschau-genauer" hidden><summary>Genauer</summary><p class="cv-create__problem-raw" id="cv-vorschau-genauer-text"></p></details>
+              </div>
+            </div>
+            <div class="cv-create__preview-links" id="cv-vorschau-links" hidden><button type="button" class="btn btn--quiet" id="cv-vorschau-gross" aria-haspopup="dialog">Gross ansehen</button><a class="btn btn--quiet" id="cv-vorschau-pdf" target="_blank" rel="noopener">Als PDF öffnen</a></div>
+            <p class="cv-create__preview-note" data-text="lebenslauf.vorschau-hinweis">Die Vorschau folgt Ihrer Wahl. Gespeichert wird erst mit «Lebenslauf übernehmen».</p>
+            <p class="cv-create__preview-note" id="cv-vorschau-dossier" hidden>Die Vorschau zeigt den Lebenslauf allein. Im Dossier bekommt er das Design des Dossiers.</p>
+            <p class="visually-hidden" id="cv-vorschau-status" role="status" aria-live="polite"></p>
+          </aside>
+          <div class="cv-create__footer">
           <div class="btn-row"><button type="button" class="btn btn--primary" id="cv-erstellen-speichern">Lebenslauf übernehmen</button><button type="button" class="btn btn--quiet" id="cv-erstellen-abbrechen">Abbrechen</button><a class="btn btn--quiet" id="cv-erstellen-pdf" target="_blank" rel="noopener" hidden>Als PDF öffnen</a></div>
           <p class="status-line" id="cv-erstellen-status" role="status" aria-live="polite"></p>
+          </div>
+          </div>
         </div>
       </section>
 
@@ -68,12 +119,30 @@
         <h2 id="anschreiben-titel" tabindex="-1">Anschreiben</h2>
         <p id="anschreiben-stand"></p>
         <div class="letter" id="anschreiben-text" hidden></div>
+        <form class="letter-editor" id="brief-editor" aria-labelledby="brief-editor-titel" novalidate hidden>
+          <h3 class="letter-editor__title" id="brief-editor-titel" tabindex="-1">Anschreiben ändern</h3>
+          <p class="field__hint" id="brief-editor-intro"></p>
+          <div class="field"><label class="field__label" for="brief-betreff">Betreff</label><input class="input" id="brief-betreff" type="text" maxlength="300" autocomplete="off"></div>
+          <div class="field"><label class="field__label" for="brief-anrede">Anrede</label><input class="input" id="brief-anrede" type="text" maxlength="300" autocomplete="off"></div>
+          <fieldset class="letter-editor__text">
+            <legend class="field__label">Text</legend>
+            <p class="letter-editor__goal" id="brief-ziel" hidden></p>
+            <div class="letter-editor__paragraphs" id="brief-absaetze"></div>
+            <button type="button" class="btn btn--quiet letter-editor__add" id="brief-absatz-neu">Absatz hinzufügen</button>
+          </fieldset>
+          <div class="field"><label class="field__label" for="brief-gruss">Gruss</label><input class="input" id="brief-gruss" type="text" maxlength="300" autocomplete="off"></div>
+          <p class="field__hint letter-editor__as-text"><span data-text="anschreiben.editor-als-text">Empfänger, Ort und Datum ändern Sie als Text.</span> <a class="letter-editor__as-text-link" id="brief-als-text" href="/inhalte">Als Text bearbeiten (für Geübte)</a></p>
+          <div class="btn-row letter-editor__actions" id="brief-aktionen"><button type="submit" class="btn btn--primary" id="brief-speichern">Speichern</button><button type="button" class="btn" id="brief-abbrechen">Abbrechen</button></div>
+          <div class="btn-row letter-editor__ask" id="brief-verwerfen" role="group" aria-labelledby="brief-verwerfen-frage" hidden><p class="letter-editor__question" id="brief-verwerfen-frage">Änderungen verwerfen?</p><button type="button" class="btn" id="brief-weiter">Weiter bearbeiten</button><button type="button" class="btn btn--danger" id="brief-verwerfen-ja">Verwerfen</button></div>
+          <p class="status-line" id="brief-editor-status" role="alert"></p>
+        </form>
+        <p class="status-line" id="brief-gespeichert" role="status" aria-live="polite"></p>
         <article class="ai-result" id="ki-pruefung-teil" aria-labelledby="ki-pruefung-titel" hidden>
           <header class="ai-result__head"><h3 class="ai-result__kind" id="ki-pruefung-titel">Aussagen im Anschreiben</h3><span class="application__date" id="ki-pruefung-zahl"></span></header>
           <div id="ki-pruefung-liste"></div>
           <p class="ai-result__foot" id="ki-pruefung-fuss"></p>
         </article>
-        <div class="btn-row" id="freigabe-zeile" hidden><button type="button" class="btn" id="freigeben">Freigeben</button><a class="btn btn--quiet" id="anschreiben-aendern" href="/inhalte">Ändern</a></div>
+        <div class="btn-row" id="freigabe-zeile" hidden><button type="button" class="btn" id="freigeben">Freigeben</button><button type="button" class="btn btn--quiet" id="anschreiben-aendern" aria-expanded="false" aria-controls="brief-editor">Anschreiben ändern</button></div>
         <p class="status-line" id="freigabe-status" role="status" aria-live="polite"></p>
         <p class="field__hint" id="eigener-brief" hidden>Als Anschreiben gilt das hochgeladene PDF, so wie es ist. Ein Entwurf gilt erst wieder, wenn es entfernt ist.</p>
         <div class="application__ai">
@@ -112,6 +181,7 @@
         </div>
         <div class="btn-row"><button type="button" class="btn btn--primary" id="erstellen">Unterlagen erstellen</button><button type="button" class="btn btn--quiet" id="pruefen" hidden>Erneut prüfen</button></div>
         <p class="status-line" id="dossier-meldung" role="status" aria-live="polite"></p>
+        <p class="status-line" id="brief-offen-hinweis" hidden>Das Anschreiben ist noch offen: zuerst speichern oder abbrechen.</p>
         <p class="status-line visually-hidden" id="befunde-ansage" role="status" aria-live="polite"></p>
         <ul class="befunde" id="befunde"></ul>
         <details class="befunde-ok" id="befunde-ok" hidden><summary id="befunde-ok-titel"></summary><ul class="befunde" id="befunde-ok-liste"></ul></details>
@@ -244,6 +314,14 @@
     </form>
   </dialog>
 
+  <dialog class="dialog cv-preview-dialog" id="cv-vorschau-dialog" aria-labelledby="cv-vorschau-dialog-titel">
+    <div class="cv-preview-dialog__head">
+      <h2 class="dialog__title" id="cv-vorschau-dialog-titel">Vorschau</h2>
+      <div class="cv-preview-dialog__actions"><a class="btn btn--quiet" id="cv-vorschau-dialog-pdf" target="_blank" rel="noopener">Als PDF öffnen</a><button type="button" class="btn btn--primary" id="cv-vorschau-schliessen">Schliessen</button></div>
+    </div>
+    <div class="cv-preview-dialog__pages" id="cv-vorschau-seiten"></div>
+  </dialog>
+
   <dialog class="dialog" id="doppelt-dialog" aria-labelledby="doppelt-titel">
     <h2 class="dialog__title" id="doppelt-titel"></h2>
     <div class="dialog__text" id="doppelt-text"></div>
@@ -320,13 +398,20 @@
 <script src="/formular-logik.js"></script>
 <script src="/bewerbung-logik.js"></script>
 <script src="/lebenslauf-anpassen.js"></script>
+<script src="/treffer-logik.js"></script>
 <script src="/lebenslauf-erstellen-logik.js"></script>
 <script src="/lebenslauf-erstellen.js"></script>
+<script src="/lebenslauf-vorschau-logik.js"></script>
+<script src="/lebenslauf-vorschau.js"></script>
 <script src="/unterlagen-wahl.js"></script>
 <script src="/unterlagen-ergebnis.js"></script>
+<script src="/dot-line.js"></script>
 <script src="/unterlagen-schritt.js"></script>
 <script src="/kuerzen-logik.js"></script>
 <script src="/kuerzen.js"></script>
+<script src="/finding-row.js"></script>
+<script src="/letter-editor-logik.js"></script>
+<script src="/letter-editor.js"></script>
 <script src="/dossier-texte.js"></script>
 <script src="/zeichen-logik.js"></script>
 <script src="/zeichen.js"></script>

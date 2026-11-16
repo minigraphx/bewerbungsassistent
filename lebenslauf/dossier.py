@@ -19,6 +19,7 @@ import typst
 import yaml
 
 import dossier_data
+import fill_record
 import mark as mark_module
 import page_fill
 import type_area
@@ -58,6 +59,11 @@ class Result:
     entries: dict[str, pathlib.Path]
     logo_missing: bool = False
     inputs: dict[str, dict] = dataclasses.field(default_factory=dict)  # sys_inputs per file, densities included
+
+    @property
+    def levels(self) -> dict[str, dict[str, int]]:
+        """The density level of each part, per file (G93)."""
+        return {file: fill_record.levels_of(inputs) for file, inputs in self.inputs.items()}
 
 
 def is_design(name: str) -> bool:
@@ -173,7 +179,7 @@ def _compile(compiler: typst.Compiler, root: TypstRoot, entry: pathlib.Path, out
     located = str(root.locate(entry))
     compiler.compile(input=located, output=str(out), format="pdf", sys_inputs=inputs)
     type_area.record(out, located, str(root.path), [str(ROOT / "fonts")], inputs)  # the margins for the check (#304)
-    return out
+    return fill_record.write(out, fill_record.levels_of(inputs)).pdf
 
 
 def query(result: Result, selector: str, part: str = "cv") -> list:

@@ -5,11 +5,15 @@ import shutil
 import pytest
 
 import routes_ai
+import routes_rate_all
+import routes_terms
 import search_plan
 import search_terms
 import term_changes
 import term_evidence
+from ai import usage
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
+from ai.errors import AiError
 from dateien import schreibe_yaml
 from test_ai_tasks import FakeMessages, VORLAGEN
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
@@ -139,9 +143,63 @@ def test_the_hint_names_the_term_and_can_be_hidden(job_search):
     _, _, content = get(job_search, "/api/suchbegriffe/hinweis")
     answer = json.loads(content)
     assert answer["hinweis"]["begriff"] == "Engineer" and answer["hinweis"]["anzahl"] == 15
-    assert answer["kosten_usd"] >= 0.01 and answer["treffer"] == 40
+    assert answer["treffer"] == 40
     assert post(job_search, "/api/suchbegriffe/ausblenden", {"begriff": "Engineer"})[0] == 200
     assert json.loads(get(job_search, "/api/suchbegriffe/hinweis")[2])["hinweis"] is None
+
+
+def test_the_hint_names_no_amount_the_pages_price_it_with_the_estimate(job_search, monkeypatch):
+    """#334: the hint gave dollars with the currency of the way, so CHF stood beside a USD amount."""
+    monkeypatch.setattr(routes_terms, "currency_now", lambda: usage.MEDIATION_CURRENCY, raising=False)
+    answer = json.loads(get(job_search, "/api/suchbegriffe/hinweis")[2])
+    assert answer["verfuegbar"] is True and answer["hinweis"]["begriff"] == "Engineer"
+    assert not {"kosten_usd", "waehrung"} & answer.keys()
+
+
+ESTIMATE = "/api/suchbegriffe/schaetzung"
+
+
+def estimate_of(s) -> dict:
+    status, _, content = get(s, ESTIMATE)
+    assert status == 200, content
+    return json.loads(content)
+
+
+def test_the_estimate_is_worded_like_alle_pruefen_and_sends_nothing(job_search, ai):
+    usd = json.loads(get(job_search, "/api/suchbegriffe/text")[2])["kosten_usd"]
+    found = estimate_of(job_search)
+    assert found == {"verfuegbar": True, "anzahl": 1, "kosten": usd, "waehrung": "USD", "guthaben": None,
+                     "danach": None, "dauer_minuten": 1, "reicht_fuer": None}
+    assert ai.messages.calls == []
+
+
+def test_with_the_mediation_the_estimate_is_in_chf_with_the_credit_of_the_code(job_search, ai, monkeypatch):
+    usd = json.loads(get(job_search, "/api/suchbegriffe/text")[2])["kosten_usd"]
+    monkeypatch.setattr(routes_rate_all, "currency_now", lambda: usage.MEDIATION_CURRENCY)
+    monkeypatch.setattr(routes_rate_all, "credit_left", lambda: 4.5)
+    found = estimate_of(job_search)
+    cost = round(usd * usage.CHF_PER_USD, 2)
+    assert (found["kosten"], found["waehrung"]) == (cost, "CHF")
+    assert (found["guthaben"], found["danach"]) == (4.5, round(4.5 - cost, 2))
+
+
+def test_the_estimate_names_a_used_up_credit(job_search, ai, monkeypatch):
+    monkeypatch.setattr(routes_rate_all, "credit_left", lambda: 0.0)
+    found = estimate_of(job_search)
+    assert found["guthaben"] == 0 and found["danach"] == 0
+
+
+def test_a_failed_estimate_names_its_reason(job_search, monkeypatch):
+    def broken(*args):
+        raise AiError("Der Lebenslauf lässt sich nicht lesen.")
+    monkeypatch.setattr(routes_terms, "_preview", broken)
+    status, _, content = get(job_search, ESTIMATE)
+    assert status == 400 and json.loads(content)["fehler"] == "Der Lebenslauf lässt sich nicht lesen."
+
+
+def test_an_apprenticeship_has_no_estimate(job_search, ai):
+    shutil.copy(VORLAGEN / "suchprofil-lehrstelle.md", job_search.kontext.daten / "suchprofil.md")
+    assert estimate_of(job_search) == {"verfuegbar": False}
 
 
 def test_the_text_for_the_ai_has_placeholders_and_is_not_sent(job_search, ai):
@@ -161,7 +219,9 @@ def test_only_changes_that_hold_come_back_with_evidence_counted_by_the_app(job_s
     first = answer["aenderungen"][0]
     assert first["beleg"]["anzahl"] == 15 and first["beleg"]["unter"] == 12 and first["zu_allgemein"]
     assert first["grund"] == "Bringt viele Industriestellen."
-    assert answer["grenzen"]["zeile"] == "Danach: 6 von 15 Suchbegriffen · bis 12 Suchen pro Portal"  # G43: no limit of searches
+    # G43: no limit of searches; #340: as parts, which the page joins with «·»
+    assert answer["grenzen"]["teile"] == ["Danach: 6 von 15 Suchbegriffen", "bis 12 Suchen pro Portal"]
+    assert "zeile" not in answer["grenzen"]
     assert "Engineer" not in answer["endstand"]["positiv"] and answer["entfaellt"] == ["Engineer"]
     assert profile_of(job_search) == before, "nothing changes without adoption"
     sent = json.dumps(ai.messages.calls, ensure_ascii=False)

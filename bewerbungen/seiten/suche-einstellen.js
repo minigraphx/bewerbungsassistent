@@ -2,7 +2,7 @@
 // Suche einstellen (#263, A4, G57): what the search looks for in four cards plus Erweitert. Everything changes here;
 // region, workload, exclusions and the title filter through their own forms (suche-rahmen.js, #286, G64).
 (() => {
-  const { holen, senden, status, textsatz } = window.App;
+  const { holen, senden, status, textsatz, el } = window.App;
   const anzeige = window.SucheAnzeige;
   const logik = window.TrefferLogik;
   const L = window.SuchbegriffeLogik;
@@ -33,20 +33,34 @@
     $("auto-text").textContent = `Neue Treffer nach der Suche automatisch bewerten (höchstens ${daten.grenze} pro Suche)`;
   }
 
-  /** The check of the terms (G45, G15) with its cost; only a job search with hits has it. */
-  async function zeigePruefen(lehrstelle) {
+  /**
+   * The cost of the check beside its link, worded like „Alle prüfen“ (#329); `fehler`: the estimate failed. Opening the
+   * check sends the text at once, so a used-up credit locks the link.
+   */
+  function zeigeKosten(schaetzung, fehler) {
+    const zeile = fehler ? { text: logik.estimateFailedText(fehler.message), usedUp: false } : logik.costLine(schaetzung);
+    $("pruefen-kosten").replaceChildren(...(zeile.usedUp ? window.Texte.withCodeRequestLink(zeile.text, el) : [zeile.text]));
+    L.lockCheckLink($("pruefen-knopf"), zeile.usedUp);
+  }
+
+  /** The check of the terms (G45, G15) with its cost; only a job search has it. */
+  async function zeigePruefen(lehrstelle, nummer) {
     $("pruefen-block").hidden = true;
     if (lehrstelle) return;
+    let schaetzung = null;
+    let fehler = null;
     try {
-      const [antwort, satz] = await Promise.all([holen("/api/suchbegriffe/hinweis"), textsatz()]);
-      const texte = L.texte(satz);
-      $("pruefen-block").hidden = !antwort.verfuegbar;
-      $("pruefen-kosten").textContent = L.schaetzung(antwort.kosten_usd, antwort.waehrung);
-      $("pruefen-satz").textContent = texte.satz;
-      $("pruefen-was").textContent = texte.wasGeht;
-    } catch {
-      /* the check is extra; the terms work without it */
+      schaetzung = await holen("/api/suchbegriffe/schaetzung");
+    } catch (grund) {
+      fehler = grund;  // the box stays and says why the estimate is missing
     }
+    const satz = await textsatz().catch(() => undefined);
+    if (nummer !== ladeNummer || (schaetzung && !schaetzung.verfuegbar)) return;
+    const texte = L.texte(satz);
+    $("pruefen-satz").textContent = texte.satz;
+    $("pruefen-was").textContent = texte.wasGeht;
+    zeigeKosten(schaetzung, fehler);
+    $("pruefen-block").hidden = false;
   }
 
   async function lade() {
@@ -64,7 +78,7 @@
       window.PortalWahl.zeige(daten.portale_wahl || [], lade);
       zeigeRahmen(daten, rahmen, lehrstelle, firmen.firmen);
       zeigeAblauf(daten);
-      zeigePruefen(lehrstelle);
+      zeigePruefen(lehrstelle, nummer);
       $("zusammenfassung").textContent = anzeige.zusammenfassung({
         begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle,
       });

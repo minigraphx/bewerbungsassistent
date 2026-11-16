@@ -45,8 +45,26 @@
   }
 
   /** Never less than a cent: a call that costs less is still not free. CHF with the mediation (G46), counted 1:1. */
-  const geld = (betrag, waehrung = "USD") => `${Math.max(Number(betrag) || 0, 0.01).toFixed(2)} ${waehrung}`;
-  const schaetzung = (betrag, waehrung) => `Etwa ${geld(betrag, waehrung)}`;
+  const geld = (betrag, waehrung = "USD") => `${waehrung}\u00a0${Math.max(Number(betrag) || 0, 0.01).toFixed(2)}`;
+
+  const CHECK_PAGE = "/suchbegriffe";
+
+  /**
+   * The link to the check, locked while the credit is used up (#329, #334): opening the check sends at once. Locked, it
+   * keeps tabindex 0, since a link without href leaves the tab order and its reason would go unheard. Only the given
+   * element changes; `describedBy` names the line with the reason where the page does not already.
+   */
+  function lockCheckLink(link, locked, describedBy) {
+    const lock = { role: "link", "aria-disabled": "true", tabindex: "0",
+      ...(describedBy ? { "aria-describedby": describedBy } : {}) };
+    if (locked) {
+      link.removeAttribute("href");
+      for (const [name, value] of Object.entries(lock)) link.setAttribute(name, value);
+      return;
+    }
+    link.setAttribute("href", CHECK_PAGE);
+    for (const name of Object.keys(lock)) link.removeAttribute(name);
+  }
 
   function hinweisText(beleg) {
     const beispiele = beleg.beispiele.length ? `, zum Beispiel ${beleg.beispiele.join(", ")}` : "";
@@ -78,7 +96,8 @@
     return `${gewaehlt} von ${alle} übernehmen`;
   }
 
-  const kopf = anzahl => `Vorschlag der KI · ${anzahl === 1 ? "1 Änderung" : `${anzahl} Änderungen`}`;
+  /** The heading as parts, which the page joins with «·» (#340); its accessible name then reads with a comma. */
+  const kopfTeile = anzahl => ["Vorschlag der KI", anzahl === 1 ? "1 Änderung" : `${anzahl} Änderungen`];
 
   /** The marks of a change: what goes with „entfällt“, what comes with „neu“; the word carries the meaning, not the colour. */
   const marken = aenderung => [
@@ -89,13 +108,15 @@
   const uebernommen = anzahl => `Übernommen: ${anzahl === 1 ? "1 Änderung" : `${anzahl} Änderungen`}. Die nächste Suche sucht danach. Der bisherige Stand bleibt unter Entwürfe erhalten.`;
   const RUECKGAENGIG_FERTIG = "Rückgängig gemacht. Es gilt wieder der Stand vor dem Vorschlag.";
 
-  function fuss(vorschlag) {
-    const teile = [vorschlag.modell ? "Claude" : "", geld(vorschlag.kosten_usd, vorschlag.waehrung), datum(vorschlag.datum)];
-    if (vorschlag.runde > 1) teile.push(`bisher ${geld(vorschlag.kosten_bisher, vorschlag.waehrung)}`);
-    return teile.filter(Boolean).join(" · ");
+  /** The footer of the card as parts, which the page joins with «·» (#337): model, cost, date, and the rounds so far. */
+  function fussTeile(vorschlag) {
+    const bisher = vorschlag.runde > 1 ? `bisher ${geld(vorschlag.kosten_bisher, vorschlag.waehrung)}` : "";
+    return [vorschlag.modell ? "Claude" : "", geld(vorschlag.kosten_usd, vorschlag.waehrung), datum(vorschlag.datum), bisher]
+      .filter(Boolean);
   }
 
-  const runde = (vorschlag, satz) => (vorschlag.runde > 1 ? `Vorschlag ${vorschlag.runde} · ${texte(satz).nachHinweis}` : "");
+  /** The round line as parts (#340); the first proposal has none. */
+  const rundeTeile = (vorschlag, satz) => (vorschlag.runde > 1 ? [`Vorschlag ${vorschlag.runde}`, texte(satz).nachHinweis] : []);
 
   /** The terms after the ticked changes, each with „neu“ if it was not there before. */
   function endstand(jetzt, danach) {
@@ -106,8 +127,8 @@
     }));
   }
 
-  const api = { texte, datum, geld, schaetzung, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
-    belegAusAdresse, hauptknopf, kopf, marken, uebernommen, RUECKGAENGIG_FERTIG, fuss, runde, endstand };
+  const api = { texte, datum, geld, lockCheckLink, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
+    belegAusAdresse, hauptknopf, kopfTeile, marken, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, rundeTeile, endstand };
   if (typeof module !== "undefined") module.exports = api;
   else root.SuchbegriffeLogik = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -28,15 +28,17 @@ APPRENTICESHIP_MARK = "## Lehrbeginn"  # section only the apprenticeship search 
 MODELS = {"rate": "claude-sonnet-5-5", "draft": "claude-opus-5-5", "review": "claude-sonnet-5-5",
           "prefill": "claude-sonnet-5-5", "rate_package": "claude-sonnet-5-5", "form_fields": "claude-haiku-5-5",
           "form_answers": "claude-sonnet-5-5", "career": "claude-sonnet-5-5", "site_list": "claude-haiku-5-5", "chat": "claude-sonnet-5-5",
-          "dossier_texts": "claude-sonnet-5-5", "terms": "claude-sonnet-5-5", "exclusions": "claude-sonnet-5-5"}
+          "dossier_texts": "claude-sonnet-5-5", "terms": "claude-sonnet-5-5", "exclusions": "claude-sonnet-5-5",
+          "cv_suggestions": "claude-sonnet-5-5"}
 # Thinking counts toward max_tokens, and only tokens used are billed: a lower limit saves nothing, it only turns a long
 # thought into an error (Haiku on the terms, #274). So every task gets the most the mediation passes on; more would
 # need streaming, since the app waits at most connection.TIMEOUT_SECONDS.
 MEDIATION_MAX_TOKENS = 16_000
 MAX_TOKENS = {task: MEDIATION_MAX_TOKENS for task in MODELS}
 # Sonnet at medium answered the terms better than Haiku and in about 1000 tokens (measure_terms.py, #274).
-# Exclusions from dismissed hits (#319) are a task of the same size as the terms, not measured on their own yet.
-EFFORTS = {"terms": "medium", "exclusions": "medium"}
+# Exclusions from dismissed hits (#319) and the CV suggestions (#293) are tasks of the same size as the terms, not
+# measured on their own yet.
+EFFORTS = {"terms": "medium", "exclusions": "medium", "cv_suggestions": "medium"}
 GRADES = {g / 2 for g in range(2, 13)}  # 1, 1.5, … 6
 MAX_AD_CHARS = 30_000
 PACKAGE_SIZE = 10

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-H9ANQKq21SYy0QLPYniMU20Vz39m4c5EUgjLiiCV/XM='; style-src 'sha256-6RejD9M5SibtRaQcafZhvgO79sHps4FeNoqLiN4Ovt0='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-d3xed1O3ou+b+fHQuzlDxjBTltS4NQ4P8iZhH//n3AU='; style-src 'sha256-6RejD9M5SibtRaQcafZhvgO79sHps4FeNoqLiN4Ovt0='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -2941,8 +2941,10 @@ const STATUS_ID = "prefill-status";
 const FILES_ID = "prefill-files";
 const RETRY_ID = "prefill-retry";
 
-const minutesText = (n) => (n === 1 ? "1 Minute" : `${n} Minuten`);
-const moneyText = (amount, currency) => `${currency || "USD"} ${Number(amount).toFixed(2)}`;
+// Number and unit never part at the end of a line (#336), as in treffer-logik.js; read aloud as a space.
+const NBSP = "\u00a0";
+const minutesText = (n) => `${n}${NBSP}${n === 1 ? "Minute" : "Minuten"}`;
+const moneyText = (amount, currency) => `${currency || "USD"}${NBSP}${Number(amount).toFixed(2)}`;
 const withCredit = (answer) => typeof answer.guthaben === "number";
 const creditUsedUp = (answer) => withCredit(answer) && answer.guthaben <= 0;
 const readyAnswer = (estimate) => (estimate && estimate.phase === "ready" ? estimate.answer : null);

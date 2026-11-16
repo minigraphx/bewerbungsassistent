@@ -14,6 +14,9 @@ import typst
 import yaml
 
 import cuts
+import cv_look
+import fill_record
+import mark
 import page_fill
 import type_area
 from tailor import tailor
@@ -103,6 +106,11 @@ def pruefe_beschriftungen(werte) -> dict:
 
 
 def main(argv: list[str] | None = None) -> pathlib.Path:
+    return run(argv).pdf
+
+
+def run(argv: list[str] | None = None) -> fill_record.Built:
+    """Builds the CV and returns the PDF with the density level its pages got (G93)."""
     ap = argparse.ArgumentParser()
     ap.add_argument("data", help="Stamm-Lebenslauf (YAML, JSON-Resume-Schema)")
     ap.add_argument("--job", help="Bewerbungsdatei mit Tags und Überschreibungen (YAML)")
@@ -112,6 +120,8 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
                     help="Höchstens so viele Seiten (G51); länger wird enger gesetzt")
     ap.add_argument("--ohne-foto", action="store_true", help="Ohne Foto, auch wenn cv.yaml eines nennt (G62)")
     ap.add_argument("--kuerzungen", help="Kürzungen einer Bewerbung (YAML, cuts.py), nach dem Zuschnitt (G92)")
+    ap.add_argument("--zeichen", choices=mark.VARIANTS, help="Zeichen dieses Lebenslaufs (G77); ohne: keines")
+    ap.add_argument("--akzent", help="Akzentfarbe dieses Lebenslaufs als #rrggbb (G77); ohne: die des Designs")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("-o", "--out", default="build/lebenslauf.pdf")
     args = ap.parse_args(argv)
@@ -126,15 +136,18 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
         cv["basics"]["x-image"] = pruefe_foto_optionen(cv["basics"]["x-image"])
     if "x-beschriftungen" in cv:
         cv["x-beschriftungen"] = pruefe_beschriftungen(cv["x-beschriftungen"])
+    look = cv_look.chosen(data_path, args.zeichen, args.akzent)
 
     build = pathlib.Path(args.build_dir).resolve() if args.build_dir else ROOT / "build"
     build.mkdir(parents=True, exist_ok=True)
     bild = cv.get("basics", {}).get("image")
     foto = (data_path.parent / bild).resolve() if bild else None
-    # Typst liest nur innerhalb seines Stammordners: Themes, Build und Foto (auf anderen Laufwerken kopiert).
-    wurzel = typst_root(build, [ROOT / "themes"] + ([foto] if foto else []))
+    logo = cv_look.logo_of(look)
+    # Typst liest nur innerhalb seines Stammordners: Themes, Build, Foto und Logo (auf anderen Laufwerken kopiert).
+    wurzel = typst_root(build, [ROOT / "themes"] + ([foto] if foto else []) + ([logo] if logo else []))
     if foto:
         cv["basics"]["image"] = wurzel.typst_path(foto)
+    cv = cv_look.with_look(cv, look, wurzel.typst_path)
     daten_json = build / "cv.json"
     daten_json.write_text(json.dumps(cv, ensure_ascii=False, indent=1, default=json_value), encoding="utf-8")
 
@@ -150,7 +163,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     typst.compile(vorlage, output=str(out), root=str(wurzel.path), font_paths=schriften, sys_inputs=eingaben)
     type_area.record(out, vorlage, str(wurzel.path), schriften, eingaben)  # the margins for the check (#304)
     print(out)
-    return out
+    return fill_record.write(out, fill_record.levels_of(eingaben))
 
 
 if __name__ == "__main__":

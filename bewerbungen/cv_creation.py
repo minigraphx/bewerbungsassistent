@@ -3,7 +3,7 @@
 The person picks the stations of `cv.yaml` and their order, the job title and the summary. That becomes a tailoring
 `jobs/<variant>.yaml` (`select` and `basics`, read by `lebenslauf/tailor.py`) and a variant in `varianten.yaml`, then
 the application takes it like any variant. The design goes to the application as `lebenslauf_design` (G61), never
-into the tailoring. `created_for` marks the tailoring as the application's own, so saving again replaces it and a
+into the tailoring; photo, colour and mark of this CV (G77) go into the tailoring as `aussehen` (created_look.py). `created_for` marks the tailoring as the application's own, so saving again replaces it and a
 variant Claude wrote under the same name stays untouched.
 """
 import dataclasses
@@ -12,6 +12,7 @@ import pathlib
 
 import yaml
 
+import created_look
 import cv_design
 from dateien import schreibe_yaml
 from register import CV_DESIGNS
@@ -32,9 +33,9 @@ HEADER = "# Lebenslauf für eine Bewerbung, erstellt auf ihrer Seite (G17). Gesc
 
 NO_CV = "Noch keine Angaben. Bitte zuerst „Meine Angaben“ ausfüllen."
 UNREADABLE = "Meine Angaben lassen sich nicht lesen. Bitte unter „Meine Angaben“ prüfen."
-CHANGED = "Meine Angaben haben sich inzwischen geändert. Bitte „Lebenslauf erstellen“ neu öffnen."
+CHANGED = "Meine Angaben haben sich inzwischen geändert. Bitte «Lebenslauf erstellen» neu öffnen."
 NOTHING_CHOSEN = "Bitte mindestens eine Station wählen."
-WRONG_STATION = "Diese Station gibt es in Meinen Angaben nicht. Bitte „Lebenslauf erstellen“ neu öffnen."
+WRONG_STATION = "Diese Station gibt es in Meinen Angaben nicht. Bitte «Lebenslauf erstellen» neu öffnen."
 
 
 @dataclasses.dataclass(frozen=True)
@@ -44,6 +45,7 @@ class Choice:
     summary: str
     design: str
     name: str
+    look: created_look.Look
 
 
 def load_cv(data_dir: pathlib.Path) -> tuple[dict, str]:
@@ -68,7 +70,8 @@ def _text(value: object) -> str:
     return "" if value is None else str(value).strip()
 
 
-def _sections(cv: dict) -> dict[str, list]:
+def sections(cv: dict) -> dict[str, list]:
+    """The station sections of `cv.yaml` that have entries, in the order the page shows them."""
     return {name: cv[name] for name in SECTIONS if isinstance(cv.get(name), list) and cv[name]}
 
 
@@ -119,16 +122,33 @@ def _chosen_indices(entries: list, wanted: object) -> list[int]:
     return taken
 
 
+def _station_row(entries: list, index: int, chosen: bool) -> dict:
+    """A station as the page names it: title, company or school, and time."""
+    entry = entries[index] if isinstance(entries[index], dict) else {}
+    title = _title(entry) or f"Eintrag {index + 1}"
+    return {"index": index, "titel": title, "zusatz": _subtitle(entry, title), "zeit": _time(entry), "gewaehlt": chosen}
+
+
+def station_texts(entry: object) -> list[str]:
+    """What a station says beyond its name: description, summary and highlights, each as one line."""
+    if not isinstance(entry, dict):
+        return []
+    lines = [_text(entry.get(key)) for key in ("description", "summary")]
+    for point in entry.get("highlights") or []:
+        lines.append(_text(point.get("text") if isinstance(point, dict) else point))
+    return [" ".join(line.split()) for line in lines if line]
+
+
 def _station_rows(entries: list, chosen: list[int]) -> list[dict]:
     order = chosen + [i for i in range(len(entries)) if i not in chosen]
+    return [_station_row(entries, index, index in chosen) for index in order]
 
-    def row(index: int) -> dict:
-        entry = entries[index] if isinstance(entries[index], dict) else {}
-        title = _title(entry) or f"Eintrag {index + 1}"
-        return {"index": index, "titel": title, "zusatz": _subtitle(entry, title), "zeit": _time(entry),
-                "gewaehlt": index in chosen}
 
-    return [row(index) for index in order]
+
+def summary_of(cv: dict) -> str:
+    """The summary of Meine Angaben, never the one of a tailoring."""
+    basics = cv.get("basics") if isinstance(cv.get("basics"), dict) else {}
+    return _text(basics.get("summary"))
 
 
 def job_path(data_dir: pathlib.Path, variant_id: str) -> pathlib.Path:
@@ -173,11 +193,13 @@ def form(data_dir: pathlib.Path, entry: dict) -> dict:
     own_basics = job.get("basics") if isinstance(job.get("basics"), dict) else {}
     parts = [{"abschnitt": name, "titel": SECTIONS[name],
               "stationen": _station_rows(entries, _chosen_indices(entries, select.get(name)))}
-             for name, entries in _sections(cv).items()]
+             for name, entries in sections(cv).items()]
+    look = created_look.of_job(job) or created_look.defaults(data_dir)
     return {"abschnitte": parts, "stand": stand,
             "berufsbezeichnung": _text(own_basics.get("label", basics.get("label"))),
             "kurzprofil": _text(own_basics.get("summary", basics.get("summary"))),
             "design": cv_design.for_application(data_dir, entry), "designs": list(CV_DESIGNS),
+            "aussehen": created_look.stored(look), "aussehen_angebot": created_look.offer(data_dir, cv),
             "bezeichnung": (own or {}).get("beschreibung") or f"{entry.get('stelle', '')}, {entry.get('firma', '')}",
             "eigene_variante": own["id"] if own else None}
 
@@ -199,29 +221,32 @@ def _string(body: dict, key: str, limit: int, label: str) -> str:
     return value.strip()
 
 
-def parse(cv: dict, stand: str, body: dict) -> Choice:
+def parse(cv: dict, stand: str, body: dict, data_dir: pathlib.Path) -> Choice:
     """The choice as the page sends it; ValueError with a German message, before anything is written."""
     if body.get("stand") != stand:
         raise ValueError(CHANGED)
-    sections = _sections(cv)
+    present = sections(cv)
     wanted = body.get("stationen")
-    if not isinstance(wanted, dict) or not set(wanted) <= set(sections):
+    if not isinstance(wanted, dict) or not set(wanted) <= set(present):
         raise ValueError(WRONG_STATION)
-    stations = {name: _indices(value, len(sections[name])) for name, value in wanted.items()}
+    stations = {name: _indices(value, len(present[name])) for name, value in wanted.items()}
     if not any(stations.values()):
         raise ValueError(NOTHING_CHOSEN)
     return Choice(stations=stations, label=_string(body, "berufsbezeichnung", MAX_NAME, "Die Berufsbezeichnung"),
                   summary=_string(body, "kurzprofil", MAX_TEXT, "Das Kurzprofil"),
                   design=cv_design.parse(body.get("design")),
-                  name=_string(body, "bezeichnung", MAX_NAME, "Der Name der Fassung"))
+                  name=_string(body, "bezeichnung", MAX_NAME, "Der Name der Fassung"),
+                  look=created_look.parse(body.get(created_look.KEY), cv, data_dir))
 
 
 def tailoring(cv: dict, entry_id: str, choice: Choice) -> dict:
-    """The tailoring for lebenslauf/tailor.py; the design stays out of it."""
-    sections = _sections(cv)
+    """The tailoring for lebenslauf/tailor.py; the design stays out of it, photo, colour and mark (G77) ride along
+    under a key tailor.py does not read."""
+    present = sections(cv)
     return {"created_for": entry_id, "basics": {"label": choice.label, "summary": choice.summary},
-            "select": {name: [identity(sections[name][i]) for i in indices]
-                       for name, indices in choice.stations.items()}}
+            "select": {name: [identity(present[name][i]) for i in indices]
+                       for name, indices in choice.stations.items()},
+            created_look.KEY: created_look.stored(choice.look)}
 
 
 def write_tailoring(path: pathlib.Path, job: dict) -> None:

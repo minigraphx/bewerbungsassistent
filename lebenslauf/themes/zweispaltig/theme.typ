@@ -5,6 +5,7 @@
 #import "../common.typ": *
 #import "../page-fill.typ": spacing, leading, body-size, part-start, part-end
 #import "../type-area.typ": type-area
+#import "../cv-look.typ": accent-of, accent-marker, has-mark, footer-mark
 
 #let standard-stil = (
   farbe-text: rgb("#38495d"),
@@ -63,9 +64,13 @@
 
 #let lebenslauf(cv, sprache: "de", stand: none, stil: (:)) = {
   let s = verdichtet(standard-stil + stil)
+  // A colour chosen for this CV (G77) draws its lines; the text stays in the design's colour
+  let s = s + (farbe-linie: accent-of(cv, s.farbe-linie))
   let b = beschriftungen-fuer(cv, sprache)
   let basics = cv.at("basics", default: (:))
   let name = basics.at("name", default: "")
+  let fuss-text = text(size: s.groesse-fusszeile, fill: s.farbe-text, font: s.schrift-text,
+    if stand != none { name + " - " + stand } else { name })
 
   set document(title: name + " – " + basics.at("label", default: ""), author: name)
   set page(
@@ -77,7 +82,9 @@
     footer: align(center, {
       line(length: 6.6cm, stroke: 0.9pt + s.farbe-linie)
       v(-4pt)
-      text(size: s.groesse-fusszeile, fill: s.farbe-text, font: s.schrift-text, if stand != none { name + " - " + stand } else { name })
+      if has-mark(cv) {
+        grid(columns: 2, column-gutter: 6pt, align: horizon, footer-mark(cv, s.farbe-linie, 14pt), fuss-text)
+      } else { fuss-text }
     }),
   )
   set text(font: s.schrift-text, size: s.groesse-text, fill: s.farbe-text, lang: sprache)
@@ -214,6 +221,7 @@
 
   // Kopf
   part-start("cv")
+  accent-marker(s.farbe-linie)
   let foto = feld(basics, "image")
   let teile = name.split(" ")
   let kopf-links = {

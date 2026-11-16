@@ -29,6 +29,22 @@
     $("warten-notiz").textContent = texte.wartenNotiz;
   }
 
+  /**
+   * The cost of „Neu vorschlagen“ as on Suche einstellen (#334): GET /api/suchbegriffe/schaetzung in the words of
+   * TrefferLogik.costLine, asked after each proposal, since a round changes the credit. A used-up credit links where to
+   * ask for a code; the button stays, the proposal route says what is missing.
+   */
+  async function zeigeAndersKosten() {
+    const logik = window.TrefferLogik;
+    let zeile;
+    try {
+      zeile = logik.costLine(await holen("/api/suchbegriffe/schaetzung"));
+    } catch (fehler) {
+      zeile = { text: logik.estimateFailedText(fehler.message), usedUp: false };
+    }
+    $("anders-kosten").replaceChildren(...(zeile.usedUp ? window.Texte.withCodeRequestLink(zeile.text, el) : [zeile.text]));
+  }
+
   async function holeVorschlag(body = {}) {
     abgebrochen = false;
     $("meldung").hidden = true;
@@ -38,6 +54,7 @@
       if (abgebrochen) return;
       if (vorschlag) frueher = [...frueher, vorschlag];
       zeige(neu);
+      zeigeAndersKosten();
     } catch (fehler) {
       if (!abgebrochen) meldung("Kein Vorschlag", fehler.message, [knopf("Nochmals versuchen", () => holeVorschlag(body))]);
     } finally {
@@ -76,13 +93,16 @@
       a.beleg ? beleg(a.beleg) : null);
   }
 
+  /** A «·» line of whole parts (#340, dot-line.js): never starts with «·», screen readers hear commas. */
+  const dotLine = parts => window.DotLine.render(parts, el);
+
   function zeigeEndstand(antwort) {
     const bloecke = L.endstand(vorschlag.jetzt, antwort.endstand).map(b => el("div", {},
       el("h3", {}, b.name),
       el("ul", { class: "terms" }, ...b.begriffe.map(x => marke({ begriff: x.begriff, wort: x.neu ? "neu" : "", art: x.neu ? "new" : "kept" })))));
     $("endstand").replaceChildren(...bloecke);
     $("faellt-weg").textContent = antwort.entfaellt.length ? `Fällt weg: ${antwort.entfaellt.join(", ")}` : "";
-    $("grenzen").textContent = antwort.grenzen.zeile;
+    $("grenzen").replaceChildren(...dotLine(antwort.grenzen.teile));
     $("uebernehmen").textContent = L.hauptknopf(gewaehlt.size, vorschlag.aenderungen.length);
     $("uebernehmen").disabled = Boolean(antwort.grenzen.gesperrt);
     $("uebernehmen-grund").textContent = antwort.grenzen.gesperrt || "";
@@ -105,9 +125,9 @@
   }
 
   function zeigeKopf(v) {
-    $("vorschlag-kopf").textContent = L.kopf(v.aenderungen.length);
+    $("vorschlag-kopf").replaceChildren(...dotLine(L.kopfTeile(v.aenderungen.length)));
     $("runde").hidden = v.runde < 2;
-    $("runde").textContent = L.runde(v, satz);
+    $("runde").replaceChildren(...dotLine(L.rundeTeile(v, satz)));
     $("geaendert").hidden = !v.geaendert;
     $("geaendert").textContent = v.geaendert ? `Geändert gegenüber Vorschlag ${v.runde - 1}: ${v.geaendert}` : "";
     $("ihr-hinweis").hidden = !v.hinweis;
@@ -137,7 +157,7 @@
     $("zusammenfassung").textContent = v.zusammenfassung;
     $("aenderungen").replaceChildren(...v.aenderungen.map(karte));
     $("fuss-satz").textContent = texte.fuss;
-    $("fuss").textContent = L.fuss(v);
+    $("fuss").replaceChildren(...dotLine(L.fussTeile(v)));
     zeigeEndstand(v);
     $("vorschlag-kopf").focus();
   }
@@ -200,7 +220,6 @@
       return;
     }
     $("gesehen").textContent = texte.gesehen(vorab.treffer, vorab.seit);
-    $("anders-kosten").textContent = vorab.kosten_usd ? L.schaetzung(vorab.kosten_usd, vorab.waehrung) : "";
     const offen = await einwilligungOffen();
     if (!offen) {
       holeVorschlag();

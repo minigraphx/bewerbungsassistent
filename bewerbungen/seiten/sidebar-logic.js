@@ -28,6 +28,8 @@
   // With the mediation the person sees CHF (G46); one USD billed counts as one CHF (ai/usage.py CHF_PER_USD).
   const MEDIATION_CURRENCY = "CHF";
   const OWN_CURRENCY = "USD";
+  // Currency and amount never part at the end of a line (#336); read aloud as a space.
+  const NBSP = "\u00a0";
   // Fired on the document when a page changed which hits the list shows, so „N neu“ counts again (#303).
   const HITS_CHANGED = "treffer-geaendert";
 
@@ -70,13 +72,13 @@
     const credit = status.guthaben_chf;
     const spent = Math.max(0, Number(status.verbraucht_chf) || 0);
     const percent = Math.min(100, Math.round((spent / credit) * 100));
-    const left = `${MEDIATION_CURRENCY} ${usd(Math.max(0, credit - spent))} frei`;
+    const left = `${MEDIATION_CURRENCY}${NBSP}${usd(Math.max(0, credit - spent))} frei`;
     const state = creditState(spent, credit);
     const warning = WARNINGS[state];
     const short = `KI-Guthaben: ${left}`;
     return {
       title: "KI-Guthaben",
-      text: spent > 0 ? `${MEDIATION_CURRENCY} ${usd(spent)} von ${usd(credit)} gebraucht` : `${MEDIATION_CURRENCY} ${usd(credit)} frei`,
+      text: spent > 0 ? `${MEDIATION_CURRENCY}${NBSP}${usd(spent)} von ${usd(credit)} gebraucht` : `${MEDIATION_CURRENCY}${NBSP}${usd(credit)} frei`,
       short,
       percent,
       label: spent > 0 ? `${percent} Prozent des Guthabens gebraucht` : "Noch nichts gebraucht",
@@ -89,9 +91,9 @@
 
   function ownKeyCosts(status, when) {
     const costs = usd(Math.max(0, Number(status.kosten_usd) || 0));
-    const short = `KI-Kosten: ${OWN_CURRENCY} ${costs}`;
+    const short = `KI-Kosten: ${OWN_CURRENCY}${NBSP}${costs}`;
     return {
-      title: `KI-Kosten ${when}`, text: `${OWN_CURRENCY} ${costs} mit eigenem Schlüssel`, short, percent: null, label: "",
+      title: `KI-Kosten ${when}`, text: `${OWN_CURRENCY}${NBSP}${costs} mit eigenem Schlüssel`, short, percent: null, label: "",
       detail: NO_MEDIATION_CREDIT.long, warning: "", state: "own", narrow: `${short} · ${NO_MEDIATION_CREDIT.short}`,
     };
   }

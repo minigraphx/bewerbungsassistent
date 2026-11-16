@@ -41,9 +41,23 @@ test("the result marks new terms and ignores case", () => {
 test("Sie and du, costs never under a cent", () => {
   assert.match(L.texte("stelle-du").satz, /du entscheidest/);
   assert.match(L.texte("stelle-sie").satz, /Sie entscheiden/);
-  assert.equal(L.schaetzung(0.0004), "Etwa 0.01 USD");
   assert.equal(L.texte("stelle-sie").gesehen(130, "2026-10-20"),
     "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 130 Treffer seit dem 20.10.2026 angesehen. Geändert wird nur, was angehakt ist.");
-  assert.equal(L.fuss({ modell: "claude-haiku-5-5", kosten_usd: 0.004, datum: "2026-11-11", runde: 2, kosten_bisher: 0.008 }),
-    "Claude · 0.01 USD · 11.11.2026 · bisher 0.01 USD");
+  // #337: the footer comes as parts, so the page can glue each «·» to the part before it
+  assert.deepEqual(L.fussTeile({ modell: "claude-haiku-5-5", kosten_usd: 0.004, datum: "2026-11-11", runde: 2, kosten_bisher: 0.008 }),
+    ["Claude", "USD\u00a00.01", "11.11.2026", "bisher USD\u00a00.01"]);
+  assert.deepEqual(L.fussTeile({ modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF", datum: "2026-11-16", runde: 1 }),
+    ["Claude", "CHF\u00a00.03", "16.11.2026"]);
+  assert.deepEqual(L.fussTeile({ modell: "claude-sonnet-5-5", kosten_usd: 0.02, waehrung: "CHF", datum: "2026-11-16", runde: 2,
+    kosten_bisher: 0.05 }), ["Claude", "CHF\u00a00.02", "16.11.2026", "bisher CHF\u00a00.05"]);
+  assert.deepEqual(L.fussTeile({ kosten_usd: 0.02, waehrung: "CHF", datum: "2026-11-16", runde: 1 }), ["CHF\u00a00.02", "16.11.2026"],
+    "without a model no empty part");
+});
+
+test("the heading and the round line come as parts, so the page can glue each «·» to the part before it (#340)", () => {
+  assert.deepEqual(L.kopfTeile(1), ["Vorschlag der KI", "1 Änderung"]);
+  assert.deepEqual(L.kopfTeile(5), ["Vorschlag der KI", "5 Änderungen"]);
+  assert.deepEqual(L.rundeTeile({ runde: 2 }, "stelle-sie"), ["Vorschlag 2", "nach Ihrem Hinweis"]);
+  assert.deepEqual(L.rundeTeile({ runde: 3 }, "stelle-du"), ["Vorschlag 3", "nach deinem Hinweis"]);
+  assert.deepEqual(L.rundeTeile({ runde: 1 }, "stelle-sie"), [], "the first proposal has no round line");
 });

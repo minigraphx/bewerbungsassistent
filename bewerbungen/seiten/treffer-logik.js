@@ -100,8 +100,11 @@
   // „Alle prüfen“ (G44, #209): the words around the estimate of GET /api/suche/alle-pruefen, in its currency: CHF
   // with the mediation and its credit (G46, G80), USD with an own key.
   const currencyOf = s => (s && s.waehrung) || "USD";
-  const money = (amount, currency) => `${currency} ${Number(amount).toFixed(2)}`;
-  const minutes = n => (n === 1 ? "1 Minute" : `${n} Minuten`);
+  // A no-break space between number and unit (#336): at 375 px «1» stood at the end of a line and «Minute» began the
+  // next. Screen readers read it as a space, so the spoken words stay the same.
+  const NBSP = "\u00a0";
+  const money = (amount, currency) => `${currency}${NBSP}${Number(amount).toFixed(2)}`;
+  const minutes = n => `${n}${NBSP}${n === 1 ? "Minute" : "Minuten"}`;
   const jobs = (n, apprenticeship) => {
     const word = apprenticeship ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
     return `${n} ${n === 1 ? word[0] : word[1]}`;
@@ -122,6 +125,22 @@
     if (s.reicht_fuer !== null && s.reicht_fuer !== undefined) return `${about} Das Guthaben reicht für etwa ${jobs(s.reicht_fuer, apprenticeship)}.`;
     return `${about} Danach bleiben ${money(s.danach, currency)} im Guthaben.`;
   }
+
+  /**
+   * The line beside a button that sends one request (#293, #329): `estimateLine`, but over the credit it names what is
+   * left instead of what stays. `usedUp` locks the button; over the credit it stays, the mediation then says what is
+   * missing.
+   */
+  function costLine(estimate) {
+    const used = usedUp(estimate);
+    const enough = !withCredit(estimate) || estimate.kosten <= estimate.guthaben;
+    if (used || enough) return { text: estimateLine(estimate), usedUp: used };
+    const about = estimateLine({ ...estimate, guthaben: null });
+    const left = money(estimate.guthaben, currencyOf(estimate));
+    return { text: `${about} Im Guthaben sind noch ${left}, das reicht vielleicht nicht.`, usedUp: used };
+  }
+
+  const estimateFailedText = reason => `Die Schätzung fehlt: ${reason}`;
 
   /** What the question before the run says; `withExtension`: the extension answered, so it can load missing texts. */
   function confirmation(s, apprenticeship, withExtension) {
@@ -152,7 +171,7 @@
     if (stand.ohneText) teile.push(`${stand.ohneText} ohne Inseratstext`);
     if (stand.gestoppt) teile.push("angehalten");
     if (rest) teile.push(`noch ${rest} offen`);
-    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)} ${currency}.`;
+    return `${teile.join(", ")}. Kosten: ${stand.kosten.toFixed(2)}${NBSP}${currency}.`;
   }
 
   /** What the details say about the second look at a good grade (MIN-389); empty when there was none. */
@@ -237,7 +256,7 @@
     return fehlt ? { titel: "Inseratstext fehlt", text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
   }
 
-  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, confirmation, schlussText, nachpruefungText, fehlenderText };
+  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, costLine, estimateFailedText, confirmation, schlussText, nachpruefungText, fehlenderText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

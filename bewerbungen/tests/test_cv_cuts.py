@@ -8,6 +8,7 @@ or a variant. The step Lebenslauf lists what is left out, with «Zurückholen».
 import datetime
 import json
 import pathlib
+import types
 
 import pytest
 import yaml
@@ -234,6 +235,69 @@ def test_with_three_pages_allowed_and_still_over_three_is_no_more_offered(dateno
 
     assert finding.text.startswith("Lebenslauf: 4 Seiten, erlaubt sind höchstens 3.")
     assert finding.kuerzen["drei_seiten"] is False and finding.kuerzen["optionen"]
+
+
+@pytest.fixture
+def no_cut_left(three_pages, monkeypatch):
+    """Three pages allowed, still four, and nothing left to cut (#330)."""
+    three_pages["lebenslauf.pdf"] = 4
+    monkeypatch.setattr(cut_choice, "options", lambda daten, entry: [])
+    return three_pages
+
+
+def _kept_over(findings):
+    return [f for f in findings if f.cv_over]
+
+
+def test_with_three_pages_and_no_cut_left_the_finding_names_the_lines_and_waits(datenordner, tmp_path, no_cut_left,
+                                                                                monkeypatch):
+    monkeypatch.setattr(routes_apply.apply, "blocker", lambda daten, entry: None)
+    monkeypatch.setattr(pruefung, "pruefe_anschreiben_text", lambda *args, **kwargs: [])
+    entry = Register(datenordner).hole(BRIEF_ID)
+    cut_choice.store_choice(datenordner, entry, [], True)
+    _built(datenordner, tmp_path, entry)
+
+    found = pruefung.pruefe(datenordner, entry, TODAY)
+
+    assert not _over(found)
+    [finding] = _kept_over(found)
+    assert finding.text == ("Lebenslauf: 4 Seiten, erlaubt sind höchstens 3. Auch enger gesetzt sind es etwa 7 Zeilen "
+                            "zu viel. Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, "
+                            "oder unter «Meine Angaben», für alle.")
+    assert finding.schluessel and not finding.bestaetigt
+    assert finding.cv_over == {"lines": 7, "pages": 4}
+    problem = routes_apply._problem(types.SimpleNamespace(daten=datenordner, heute=lambda: TODAY), entry)
+    assert problem == f"Prüfung: {finding.text} {routes_apply.CONFIRM_FIRST}", "no form opens before «So lassen»"
+
+
+def test_so_lassen_confirms_a_cv_over_three_pages_with_no_cut_left(server, no_cut_left, monkeypatch):  # noqa: F811
+    monkeypatch.setattr(routes_apply.apply, "blocker", lambda daten, entry: None)
+    monkeypatch.setattr(pruefung, "pruefe_anschreiben_text", lambda *args, **kwargs: [])
+    folder = server.kontext.daten
+    entry = Register(folder).hole(BRIEF_ID)
+    cut_choice.store_choice(folder, entry, [], True)
+    unterlagen.baue(folder, entry, server.kontext.build)
+    finding = _kept_over(pruefung.pruefe(folder, entry, TODAY))[0]
+
+    status, answer = post(server, "/api/pruefung/bestaetigen", {"id": BRIEF_ID, "schluessel": finding.schluessel})
+
+    assert status == 200, answer
+    [confirmed] = [f for f in answer["befunde"] if f["cv_over"]]
+    assert confirmed["bestaetigt"] and confirmed["stufe"] == "hinweis"
+    assert routes_apply._problem(server.kontext, entry) is None
+
+
+def test_the_last_page_fill_of_a_cv_over_three_pages_is_no_finding_of_its_own(datenordner, tmp_path, no_cut_left,
+                                                                              monkeypatch):
+    fill = layout_check.Breach(4, "fuellung", "nur zu 12 % gefüllt, verlangt ist mindestens ein Drittel.")
+    monkeypatch.setattr(layout_check, "check", lambda pdf, part, headings=(): [fill] if part == "lebenslauf" else [])
+    entry = Register(datenordner).hole(BRIEF_ID)
+    cut_choice.store_choice(datenordner, entry, [], True)
+    _built(datenordner, tmp_path, entry)
+
+    texts = [f.text for f in pruefung.pruefe(datenordner, entry, TODAY)]
+
+    assert not any(text.startswith("Lebenslauf, Seite 4") for text in texts), "one «So lassen» for the CV over its limit"
 
 
 def test_choosing_nothing_or_an_unknown_cut_is_refused(server, three_pages):  # noqa: F811

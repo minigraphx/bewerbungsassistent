@@ -11,11 +11,11 @@ import yaml
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
+import created_look
 import cuts
 import cv_cuts
 import cv_design
 import dossier as dossier_modul
-import photo_shown
 from dateien import im_ordner
 from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
 from tailor import tailor
@@ -121,13 +121,13 @@ def wirksame_pdfs(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Pat
     return {art: gilt(art, gebaut) for art, gebaut in pdf_pfade(daten, bewerbung["id"]).items()}
 
 
-def _cv_options(daten: pathlib.Path, bewerbung: dict) -> list[str]:
+def _cv_options(daten: pathlib.Path, bewerbung: dict, look: created_look.Look | None = None) -> list[str]:
     """The pages the CV may have (G51), as the person chose under Einstellungen > Erweitert or for this application
-    (G92), what this application leaves out (G92), and without the photo where the person turned off „Im Lebenslauf
-    zeigen“ (G62). Read at each build, so only new documents follow."""
+    (G92), what this application leaves out (G92), and the photo as this CV was created with (G77), otherwise without
+    it where the person turned off „Im Lebenslauf zeigen“ (G62). Read at each build, so only new documents follow."""
     entry_id = bewerbung["id"]
     return ["--lebenslauf-seiten", str(cv_cuts.pages(daten, entry_id)), *cv_cuts.build_arguments(daten, entry_id),
-            *photo_shown.build_arguments(daten)]
+            *created_look.photo_arguments(look, daten)]
 
 
 def cuts_apply(daten: pathlib.Path, bewerbung: dict) -> bool:
@@ -170,15 +170,22 @@ def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], options: lis
     lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *options, "--build-dir", str(build), "-o", str(ziel)])
 
 
+def _build_tailored(daten: pathlib.Path, bewerbung: dict, job: pathlib.Path, lang: str, design: list[str],
+                    build: pathlib.Path, ziel: pathlib.Path) -> None:
+    """A tailoring created in „Lebenslauf erstellen“ brings its photo, colour and mark along (G77)."""
+    look = created_look.of_file(job)
+    lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(job), "--lang", lang, *design,
+                           *created_look.mark_arguments(look), *_cv_options(daten, bewerbung, look),
+                           "--build-dir", str(build), "-o", str(ziel)])
+
+
 def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, ziel: pathlib.Path) -> None:
     design = cv_design.theme_arguments(cv_design.for_application(daten, bewerbung))  # G61, resolved at each build
     if not bewerbung.get("variante"):
         return _baue_ganzen_lebenslauf(daten, design, _cv_options(daten, bewerbung), build, ziel)
     variante = Varianten(daten).hole(bewerbung["variante"])
     if variante.get("quelle"):
-        lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(im_ordner(daten, variante["quelle"])),
-                               "--lang", variante["sprache"], *design, *_cv_options(daten, bewerbung),
-                               "--build-dir", str(build), "-o", str(ziel)])
+        _build_tailored(daten, bewerbung, im_ordner(daten, variante["quelle"]), variante["sprache"], design, build, ziel)
     elif variante.get("datei"):
         shutil.copyfile(im_ordner(daten, variante["datei"]), ziel)
     elif not ziel.is_file():
@@ -197,8 +204,20 @@ def build_cv(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> pathl
     return ziel
 
 
-def _cv_arguments(daten: pathlib.Path, bewerbung: dict) -> list[str]:
-    """CV and tailoring for the dossier; it is built from the data, so a finished PDF cannot go in."""
+def build_cv_preview(daten: pathlib.Path, bewerbung: dict, job: pathlib.Path, design: str, build: pathlib.Path,
+                     ziel: pathlib.Path) -> None:
+    """The CV a choice in „Lebenslauf erstellen“ gives before it is taken (G76): the tailoring not saved yet, built
+    like `build_cv` with the application's page limit, cuts and photo, into a file the caller owns and removes."""
+    daten = daten.resolve()
+    if not (daten / "cv.yaml").is_file():
+        raise ValueError(NO_CV)
+    _build_tailored(daten, bewerbung, job, "de", cv_design.theme_arguments(design), build, ziel)
+
+
+def _cv_arguments(daten: pathlib.Path, bewerbung: dict) -> tuple[list[str], created_look.Look | None]:
+    """CV and tailoring for the dossier, and the look the tailoring was created with; it is built from the data, so a
+    finished PDF cannot go in. Of that look the dossier takes the photo only: its colour and mark are those for all
+    dossiers (G18)."""
     if eigener_lebenslauf(daten, bewerbung):
         raise ValueError(DOSSIER_OWN_FILE)
     if not (daten / "cv.yaml").is_file():
@@ -207,18 +226,19 @@ def _cv_arguments(daten: pathlib.Path, bewerbung: dict) -> list[str]:
     if not bewerbung.get("variante"):
         if Varianten(daten).alle():
             raise ValueError(CHOOSE_VARIANT)
-        return arguments
+        return arguments, None
     variante = Varianten(daten).hole(bewerbung["variante"])
     if not variante.get("quelle"):
         raise ValueError(DOSSIER_OWN_FILE)
-    return [*arguments, "--job", str(im_ordner(daten, variante["quelle"])), "--lang", variante["sprache"]]
+    job = im_ordner(daten, variante["quelle"])
+    return [*arguments, "--job", str(job), "--lang", variante["sprache"]], created_look.of_file(job)
 
 
 def _baue_dossier(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> dict[str, pathlib.Path]:
     """Dossier, CV and letter from the same parts of one design (lebenslauf/dossier.py), into the application's folder."""
     if own_letter(daten, bewerbung):
         raise ValueError(DOSSIER_OWN_FILE)
-    cv = _cv_arguments(daten, bewerbung)
+    cv, look = _cv_arguments(daten, bewerbung)
     letter = letter_source(daten, bewerbung["id"])
     if not letter.is_file():
         raise ValueError(DOSSIER_NO_LETTER)
@@ -229,7 +249,8 @@ def _baue_dossier(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> 
         pages = build / f"{bewerbung['id']}-{DOSSIER_PAGES}"
         pages.write_text("{}\n", encoding="utf-8")
     result = dossier_modul.main([str(pages), *cv, "--brief", str(letter), *_design_arguments(bewerbung),
-                                 *_cv_options(daten, bewerbung), "--build-dir", str(build), "--out-dir", str(folder)])
+                                 *_cv_options(daten, bewerbung, look), "--build-dir", str(build),
+                                 "--out-dir", str(folder)])
     return {"lebenslauf": result.cv, "anschreiben": result.letter, DOSSIER: result.dossier}
 
 

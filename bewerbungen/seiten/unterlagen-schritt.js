@@ -38,7 +38,8 @@
 
   const ADAPT = {
     variant: () => goTo("s-lebenslauf", $("f-variante")),
-    letter: () => goTo("s-anschreiben", $("anschreiben-titel")),
+    // the editor of the step (#332), looked up at click time; without a letter to edit it returns false
+    letter: () => window.LetterEditor.open() || goTo("s-anschreiben", $("anschreiben-titel")),
   };
 
   function adaptLink(adapt) {
@@ -58,17 +59,30 @@
     return el("a", attributes, adapt.text);
   }
 
+  /**
+   * Pages and how they were balanced (G93), in plain words without a colour, as a «·» line of whole parts (#331, #340,
+   * dot-line.js): «so eng wie möglich» is never split and no line starts with «·»; screen readers hear commas.
+   */
+  function noteLine(tile) {
+    if (!tile.note.length) return null;
+    return el("p", { class: "doc-tile__note" }, ...window.DotLine.render(tile.note, el));
+  }
+
   /** One tile per built document; `stand` makes the browser load a rebuilt file anew. */
   function showTiles(entryId, daten, stand) {
     const entry = daten.bewerbung;
-    const tiles = R.tiles(daten.pdfs, W.gewaehlt(entry), { ownCv: Boolean(daten.eigener_lebenslauf), sent: Boolean(entry.versand) });
-    $("pdfs").replaceChildren(...tiles.map(tile => el("article", { class: "doc-tile", "aria-labelledby": `doc-tile-${tile.art}` },
-      el("img", { class: "doc-tile__thumb", src: url("/api/pdf/miniatur", { id: entryId, art: tile.art, stand }), alt: tile.alt, ...THUMB }),
-      el("div", { class: "doc-tile__body" },
-        el("h3", { class: "doc-tile__name", id: `doc-tile-${tile.art}` }, tile.name),
-        el("div", { class: "doc-tile__links" },
-          el("a", { class: "btn btn--sm doc-tile__link", href: url("/api/pdf", { id: entryId, art: tile.art, stand }), target: "_blank", rel: "noopener" }, tile.open),
-          adaptLink(tile.adapt))))));
+    const tiles = R.tiles(daten.pdfs, W.gewaehlt(entry),
+      { ownCv: Boolean(daten.eigener_lebenslauf), sent: Boolean(entry.versand), notes: daten.seiten });
+    $("pdfs").replaceChildren(...tiles.map(tile => {
+      return el("article", { class: "doc-tile", "aria-labelledby": `doc-tile-${tile.art}` },
+        el("img", { class: "doc-tile__thumb", src: url("/api/pdf/miniatur", { id: entryId, art: tile.art, stand }), alt: tile.alt, ...THUMB }),
+        el("div", { class: "doc-tile__body" },
+          el("h3", { class: "doc-tile__name", id: `doc-tile-${tile.art}` }, tile.name),
+          noteLine(tile),
+          el("div", { class: "doc-tile__links" },
+            el("a", { class: "btn btn--sm doc-tile__link", href: url("/api/pdf", { id: entryId, art: tile.art, stand }), target: "_blank", rel: "noopener" }, tile.open),
+            adaptLink(tile.adapt))));
+    }));
   }
 
   /** `row` draws one finding as a list line (with «So lassen» where it applies, bewerbung.js). */

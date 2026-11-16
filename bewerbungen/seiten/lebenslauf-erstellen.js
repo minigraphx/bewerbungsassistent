@@ -1,20 +1,49 @@
 "use strict";
 // „Lebenslauf erstellen“ on the page of an application (G17, #118): stations and summary from Meine Angaben, the
 // design apart from them. What it shows and sends: lebenslauf-erstellen-logik.js; what the route writes: cv_creation.py.
+// With AI set up and a job ad, opening sends nothing (G95): the box shows «Vorschläge holen», its cost and the text
+// that would go; after the click the AI's suggestion is applied (#293, G75), each recommendation a box the person
+// unticks to undo it as a whole. What goes to the AI: ai/cv_suggestions.py.
 (() => {
-  const { holen, senden, el, status, url } = window.App;
+  const { holen, senden, el, status, url, kiEinrichten, textsatz } = window.App;
   const Logic = window.LebenslaufErstellenLogik;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
+  const ROUTE = "/api/lebenslauf/erstellen";
+  const SVG = "http://www.w3.org/2000/svg";
   let state = null;
+  let opened = 0; // an answer of the AI for a panel opened before is not applied any more
+  let running = null; // the opening whose request to the AI still runs
+  let ki = "aus";
+  let offer = null;
+  let satz = "stelle-sie";
 
+  const say = key => window.Texte.text(key, satz);
   const message = (text, type = "") => status($("cv-erstellen-status"), text, type);
+  const aiMessage = (text, type = "") => status($("cv-erstellen-ki-status"), text, type);
   // bewerbung.js loads again, so the new variant stands in the list and is chosen.
   const announceCreated = () => document.dispatchEvent(new CustomEvent("lebenslauf-erstellt"));
+  const fields = () => ({ id: ID, berufsbezeichnung: $("cv-erstellen-beruf").value,
+                          kurzprofil: $("cv-erstellen-profil").value, bezeichnung: $("cv-erstellen-name").value });
+
+  /**
+   * The choice as it stands goes to the preview (G76, lebenslauf-vorschau.js); `now` skips its pause. Without a
+   * station the preview shows its empty state.
+   */
+  function draft({ now = false } = {}) {
+    let detail;
+    try {
+      detail = state.sections.some(section => section.chosen.length)
+        ? { body: Logic.request(state, fields()), now } : { body: null, empty: true };
+    } catch (error) {
+      detail = { body: null, reason: error.message };
+    }
+    document.dispatchEvent(new CustomEvent("lebenslauf-entwurf", { detail }));
+  }
 
   function moveButton(section, station, step, allowed) {
     const label = step < 0 ? "Nach oben" : "Nach unten";
-    return el("button", { type: "button", class: "btn btn--sm", disabled: !allowed,
+    return el("button", { type: "button", class: "btn btn--sm", disabled: !allowed, "data-key": `${section.name}-${station.index}-${step}`,
                           "aria-label": `${station.titel}: ${label}`,
                           onclick: () => change(Logic.move(state, section.name, station.index, step)) },
       step < 0 ? "↑" : "↓");
@@ -23,7 +52,7 @@
   function stationRow(section, station) {
     const chosen = section.chosen.includes(station.index);
     const { up, down } = Logic.canMove(state, section.name, station.index);
-    const box = el("input", { type: "checkbox", checked: chosen,
+    const box = el("input", { type: "checkbox", checked: chosen, "data-key": `${section.name}-${station.index}`,
                               onchange: () => change(Logic.toggle(state, section.name, station.index)) });
     const detail = [station.zusatz, station.zeit].filter(Boolean).join(" · ");
     return el("li", { class: "cv-create__station" },
@@ -40,10 +69,88 @@
       el("ul", { class: "cv-create__list" }, section.order.map(index => stationRow(section, byIndex.get(index)))));
   }
 
+  // Photo, colour and mark of this CV (G77). Names that are keys of texte.js speak Sie or du; the rest are the
+  // dossier's words (zeichen-logik.js).
+  const word = value => (typeof value === "string" && value.startsWith("lebenslauf.") ? say(value) : value);
+
+  function chip(colour) {
+    const svg = document.createElementNS(SVG, "svg");
+    const rect = document.createElementNS(SVG, "rect");
+    for (const [name, value] of Object.entries({ viewBox: "0 0 40 40", class: "mark-swatch__chip", "aria-hidden": "true",
+                                                 focusable: "false" })) svg.setAttribute(name, value);
+    // Inset by half the outline, so the 1px stroke of stil.css is not cut at the edge
+    for (const [name, value] of Object.entries({ x: 0.5, y: 0.5, width: 39, height: 39, rx: 6, fill: colour })) {
+      rect.setAttribute(name, value);
+    }
+    svg.append(rect);
+    return svg;
+  }
+
+  function changeLook(change) {
+    state = Logic.setLook(state, change);
+    showLook();
+    draft();
+  }
+
+  function markOption(choice) {
+    const id = `cv-erstellen-zeichen-${choice.id}`;
+    const note = choice.note ? el("span", { class: "cv-create__mark-note", id: `${id}-satz` }, choice.note) : null;
+    const reason = choice.locked ? el("span", { class: "cv-create__mark-reason", id: `${id}-grund` }, word(choice.locked)) : null;
+    const described = [note, reason].filter(Boolean).map(part => part.id).join(" ");
+    return el("label", { class: "check cv-create__mark-option", for: id },
+      el("input", { type: "radio", name: "cv-erstellen-zeichen", id, value: choice.id, disabled: Boolean(choice.locked),
+                    checked: state.look.zeichen === choice.id, "aria-describedby": described || null,
+                    onchange: () => changeLook({ zeichen: choice.id }) }),
+      el("span", {}, word(choice.name), note, reason));
+  }
+
+  function accentOption(choice) {
+    const id = `cv-erstellen-akzent-${choice.id.replace("#", "")}`;
+    const note = choice.note ? el("span", { class: "mark-swatch__more", id: `${id}-farbe` }, choice.note) : null;
+    return el("label", { class: note ? "mark-swatch mark-swatch--wide" : "mark-swatch", for: id },
+      el("input", { type: "radio", name: "cv-erstellen-akzent", id, value: choice.id, checked: state.look.akzent === choice.id,
+                    "aria-describedby": note ? note.id : null, onchange: () => changeLook({ akzent: choice.id }) }),
+      chip(choice.colour), el("span", {}, word(choice.name), note));
+  }
+
+  /** „Ohne Zeichen · Farbe: …“: screen readers skip the «·» and hear a comma; the no-break space keeps it on the line. */
+  function lookLine() {
+    const [mark, colour] = Logic.lookParts(state, word);
+    return [el("span", {}, mark), el("span", { "aria-hidden": "true" }, " · "),
+            el("span", { class: "visually-hidden" }, ", "), el("span", {}, colour)];
+  }
+
+  /** The photo box, the line beside the button and, while open, the marks and colours as the state has them. */
+  function showLook() {
+    // An answer without a look (an older app part) leaves photo, colour and mark out, as before G77
+    $("cv-erstellen-look").hidden = !state.look;
+    $("cv-erstellen-farbe-stand").hidden = !state.look;
+    if (!state.look) return;
+    const photo = Logic.photoChoice(state);
+    $("cv-erstellen-foto").checked = photo.checked;
+    $("cv-erstellen-foto").disabled = !photo.available;
+    $("cv-erstellen-foto-grund").hidden = !photo.reason;
+    $("cv-erstellen-foto-grund").textContent = photo.reason ? say(photo.reason) : "";
+    $("cv-erstellen-farbe-stand").replaceChildren(...lookLine());
+    if ($("cv-erstellen-farbe").hidden) return;
+    const focused = document.activeElement?.id;
+    $("cv-erstellen-zeichen").replaceChildren(...Logic.markChoices(state).map(markOption));
+    $("cv-erstellen-akzent").replaceChildren(...Logic.accentChoices(state).map(accentOption));
+    if (focused) document.getElementById(focused)?.focus();
+  }
+
+  function toggleLook() {
+    const open = $("cv-erstellen-farbe").hidden;
+    $("cv-erstellen-farbe").hidden = !open;
+    $("cv-erstellen-farbe-oeffnen").setAttribute("aria-expanded", String(open));
+    showLook();
+    if (open) [...$("cv-erstellen-zeichen").querySelectorAll("input")].find(input => input.checked)?.focus();
+  }
+
   function designTile(choice) {
     const radio = el("input", { type: "radio", name: "cv-erstellen-design", value: choice.id,
                                 checked: choice.id === state.design,
-                                onchange: () => { state = Logic.choose(state, choice.id); } });
+                                onchange: () => { state = Logic.choose(state, choice.id); showLook(); draft(); } });
     return el("label", { class: "design-tile" },
       el("span", { class: `design-tile__sheet design-tile__sheet--${choice.id}`, "aria-hidden": "true" }),
       el("span", { class: "design-tile__name" }, radio, choice.name),
@@ -52,48 +159,201 @@
 
   /** Redraw the stations; keeps the focus on the button or box the person just used. */
   function change(next) {
-    const focused = document.activeElement?.getAttribute("aria-label") || null;
+    redraw(next);
+    draft();
+  }
+
+  function redraw(next) {
+    const focused = document.activeElement?.dataset?.key || null;
+    const summaryBefore = Logic.summary(state);
     state = next;
     $("cv-erstellen-stationen").replaceChildren(...state.sections.map(sectionBlock));
-    const again = focused && [...$("cv-erstellen-stationen").querySelectorAll("button")]
-      .find(button => button.getAttribute("aria-label") === focused && !button.disabled);
+    // A summary the person edited stays theirs; only the one a recommendation set follows it.
+    if ($("cv-erstellen-profil").value === summaryBefore) $("cv-erstellen-profil").value = Logic.summary(state);
+    const again = focused && [...$("cv-erstellen-stationen").querySelectorAll("[data-key]")]
+      .find(element => element.dataset.key === focused && !element.disabled);
     again?.focus();
+  }
+
+  function idea(recommendation) {
+    const box = el("input", { type: "checkbox", checked: recommendation.on, onchange: event => {
+      change(Logic.setRecommendation(state, recommendation.nummer, event.target.checked));
+      aiMessage(Logic.recommendationText(recommendation, event.target.checked));
+    } });
+    return el("li", { class: "cv-create__idea" },
+      el("label", { class: "check" }, box,
+        el("span", {}, el("span", { class: "cv-create__idea-what" }, recommendation.was),
+          el("span", { class: "cv-create__idea-why" }, recommendation.grund))));
+  }
+
+  /** The box: its line, the recommendations and at most one offer of Logic.aiOffer. */
+  function showAi(line, shown = null) {
+    const toAd = shown?.action === "stellentext";
+    const asks = shown?.action === "vorschlagen";
+    $("cv-erstellen-ki").hidden = false;
+    $("cv-erstellen-ki-zeile").hidden = false;
+    $("cv-erstellen-ki-zeile").textContent = line;
+    $("cv-erstellen-ki-liste").hidden = !state.recommendations.length;
+    $("cv-erstellen-ki-liste").replaceChildren(...state.recommendations.map(idea));
+    $("cv-erstellen-ki-knoepfe").hidden = !shown;
+    $("cv-erstellen-ki-knopf").hidden = !shown || toAd;
+    $("cv-erstellen-ki-knopf").textContent = shown && !toAd ? say(shown.button) : "";
+    $("cv-erstellen-ki-knopf").removeAttribute("aria-disabled");
+    $("cv-erstellen-ki-stellentext").hidden = !toAd;
+    if (!asks) {
+      $("cv-erstellen-ki-knopf").disabled = false;
+      $("cv-erstellen-ki-kosten").textContent = "";
+      $("cv-erstellen-ki-neu-schaetzen").hidden = true;
+    }
+    $("cv-erstellen-ki-text").hidden = ki !== "bereit";
+  }
+
+  function showCost(found) {
+    const line = window.TrefferLogik.costLine(found);
+    $("cv-erstellen-ki-kosten").replaceChildren(...(line.usedUp ? window.Texte.withCodeRequestLink(line.text, el) : [line.text]));
+    // An empty credit locks the button; over the credit it stays, the mediation then says what is missing.
+    $("cv-erstellen-ki-knopf").disabled = line.usedUp;
+  }
+
+  /** Cost and time of the text that would go (G95), before the click; the button waits for them. */
+  async function estimate() {
+    const mine = opened;
+    const button = $("cv-erstellen-ki-knopf");
+    const again = $("cv-erstellen-ki-neu-schaetzen");
+    button.setAttribute("aria-disabled", "true");
+    button.disabled = false;
+    $("cv-erstellen-ki-kosten").textContent = say("lebenslauf.ki-schaetzen");
+    try {
+      const found = await holen(`${ROUTE}/schaetzung`, { id: ID });
+      if (mine !== opened) return;
+      showCost(found);
+      if (document.activeElement === again && !button.disabled) button.focus();
+      again.hidden = true;
+    } catch (error) {
+      if (mine !== opened) return;
+      $("cv-erstellen-ki-kosten").textContent = window.TrefferLogik.estimateFailedText(error.message);
+      again.hidden = false;
+    } finally {
+      if (mine === opened) button.removeAttribute("aria-disabled");
+    }
+  }
+
+  function showSuggested(answer, fromButton) {
+    const count = state.recommendations.length;
+    showAi(count ? say(Logic.APPLIED_LINE) : Logic.suggestedText(0));
+    aiMessage(Logic.suggestedText(answer.empfehlungen.length, answer.kosten_text), "ok");
+    // Opening leaves the focus on the stations; after the button it goes where the answer stands.
+    if (fromButton) ($("cv-erstellen-ki-liste").querySelector("input") || $("cv-erstellen-ki-status")).focus();
+  }
+
+  /** The button stays where it is while the AI runs, so the focus does not fall back to the page. */
+  async function suggest({ fromButton = false } = {}) {
+    const mine = opened;
+    if (running === mine) return;
+    running = mine;
+    $("cv-erstellen-ki-knopf").setAttribute("aria-disabled", "true");
+    $("cv-erstellen-ki-zeile").hidden = true;
+    aiMessage(say("lebenslauf.ki-laeuft"));
+    try {
+      const answer = await senden(`${ROUTE}/vorschlag`, { id: ID, stand: state.stand });
+      if (mine !== opened) return;
+      change(Logic.suggest(state, answer));
+      showSuggested(answer, fromButton);
+    } catch (error) {
+      if (mine !== opened) return;
+      showAi(say(offer.line), { ...offer, button: "lebenslauf.ki-nochmals" });
+      aiMessage(error.message, "fehler");
+    } finally {
+      if (running === mine) running = null;
+    }
+  }
+
+  function startAi(answer, { fromButton = false } = {}) {
+    ki = answer.ki;
+    offer = Logic.aiOffer(answer);
+    if (Logic.autoSuggest(answer)) {
+      showAi("");
+      return suggest({ fromButton });
+    }
+    showAi(say(offer.line), offer);
+    return offer.action === "vorschlagen" ? estimate() : null;
+  }
+
+  async function aiButton() {
+    if ($("cv-erstellen-ki-knopf").getAttribute("aria-disabled") === "true") return null;
+    if (offer.action === "vorschlagen") return suggest({ fromButton: true });
+    try {
+      await kiEinrichten();
+      return startAi(await holen(ROUTE, { id: ID }), { fromButton: true });
+    } catch (error) {
+      return aiMessage(error.message, "fehler");
+    }
+  }
+
+  function toAd() {
+    const part = $("s-stelle");
+    part.open = true;
+    part.scrollIntoView({ behavior: "smooth", block: "start" });
+    $("stellentext").focus({ preventScroll: true });
   }
 
   function showForm(answer) {
     state = Logic.start(answer);
-    change(state);
-    $("cv-erstellen-designs").replaceChildren(...Logic.DESIGNS.map(designTile));
-    $("cv-erstellen-beruf").value = answer.berufsbezeichnung;
     $("cv-erstellen-profil").value = answer.kurzprofil;
+    redraw(state);
+    $("cv-erstellen-designs").replaceChildren(...Logic.DESIGNS.map(designTile));
+    $("cv-erstellen-farbe").hidden = true;
+    $("cv-erstellen-farbe-oeffnen").setAttribute("aria-expanded", "false");
+    showLook();
+    $("cv-erstellen-beruf").value = answer.berufsbezeichnung;
     $("cv-erstellen-name").value = answer.bezeichnung;
+    draft({ now: true });
   }
 
   function setOpen(open) {
+    const wasOpen = !$("cv-erstellen").hidden;
     $("cv-erstellen").hidden = !open;
     $("cv-erstellen-oeffnen").setAttribute("aria-expanded", String(open));
+    if (!open) opened += 1;
+    if (wasOpen && !open) document.dispatchEvent(new CustomEvent("lebenslauf-entwurf", { detail: { closed: true } }));
   }
 
   async function open() {
     if (!$("cv-erstellen").hidden) return setOpen(false);
     $("cv-erstellen-pdf").hidden = true;
     try {
-      showForm(await holen("/api/lebenslauf/erstellen", { id: ID }));
+      const [answer, set] = await Promise.all([holen(ROUTE, { id: ID }), textsatz()]);
+      opened += 1;
+      satz = set;
+      showForm(answer);
       setOpen(true);
       $("cv-erstellen-stationen").querySelector("input")?.focus();
+      aiMessage("");
+      $("cv-erstellen-ki-text").open = false;
+      $("cv-erstellen-ki-text-inhalt").textContent = "";
+      startAi(answer);
     } catch (error) {
       setOpen(true);
       message(`Lebenslauf erstellen geht gerade nicht: ${error.message}`, "fehler");
     }
   }
 
+  async function showSentText() {
+    const target = $("cv-erstellen-ki-text-inhalt");
+    if (!$("cv-erstellen-ki-text").open || target.textContent) return;
+    try {
+      target.textContent = (await holen(`${ROUTE}/text`, { id: ID })).text;
+    } catch (error) {
+      aiMessage(error.message, "fehler");
+    }
+  }
+
   async function save() {
     $("cv-erstellen-speichern").disabled = true;
     try {
-      const body = Logic.request(state, { id: ID, berufsbezeichnung: $("cv-erstellen-beruf").value,
-                                          kurzprofil: $("cv-erstellen-profil").value, bezeichnung: $("cv-erstellen-name").value });
+      const body = Logic.request(state, fields());
       message("Lebenslauf wird erstellt …");
-      const answer = await senden("/api/lebenslauf/erstellen", body);
+      const answer = await senden(ROUTE, body);
       message(Logic.savedText(answer), answer.gebaut ? "ok" : "hinweis");
       $("cv-erstellen-pdf").href = url("/api/pdf", { id: ID, art: "lebenslauf" });
       $("cv-erstellen-pdf").hidden = !answer.gebaut;
@@ -113,5 +373,19 @@
   });
   $("cv-erstellen-oeffnen").addEventListener("click", open);
   $("cv-erstellen-abbrechen").addEventListener("click", () => setOpen(false));
+  // «Neu laden» in the preview, after Meine Angaben changed elsewhere: the form comes anew.
+  document.addEventListener("lebenslauf-neu-oeffnen", () => {
+    setOpen(false);
+    open();
+  });
   $("cv-erstellen-speichern").addEventListener("click", save);
+  $("cv-erstellen-ki-knopf").addEventListener("click", aiButton);
+  $("cv-erstellen-ki-stellentext").addEventListener("click", toAd);
+  $("cv-erstellen-ki-neu-schaetzen").addEventListener("click", estimate);
+  $("cv-erstellen-ki-text").addEventListener("toggle", showSentText);
+  $("cv-erstellen-foto").addEventListener("change", event => changeLook({ foto: event.target.checked }));
+  $("cv-erstellen-farbe-oeffnen").addEventListener("click", toggleLook);
+  // The name of the version is not in the PDF, so only these two texts change the preview.
+  $("cv-erstellen-beruf").addEventListener("input", () => draft());
+  $("cv-erstellen-profil").addEventListener("input", () => draft());
 })();

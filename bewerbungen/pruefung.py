@@ -37,7 +37,8 @@ LOGO_MISSING = ("Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeiche
                 "Logo wählen unter «Erweitert».")
 # G51: the letter one page, the CV two unless three are allowed (page_limit); dossier: cover, letter, CV and more
 MAX_SEITEN = {"lebenslauf": page_limit.DEFAULT, "anschreiben": 1, "dossier": 8}
-ONLY_IN_BASICS = "Weiter kürzen lässt sich nur unter «Meine Angaben»."
+ONLY_IN_BASICS = ("Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter "
+                  "«Meine Angaben», für alle.")
 NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "dossier": "Dossier"}
 MAX_ALTER_TAGE = 14
 CARE_OF = re.compile(r"^(z\.?\s*H\.?(d\.?)?|zu Handen|c/o|Attn\.?:?)\s+", re.IGNORECASE)
@@ -55,6 +56,12 @@ class Befund:
     # A CV over its limit (G92): the lines over, the cuts to tick and whether three pages can be allowed; it is never
     # confirmed with «So lassen», only cut or allowed (cut_choice.py)
     kuerzen: dict | None = None
+    # A letter over one page (G94): about how many lines are over and the place of its longest paragraph, which the
+    # step Anschreiben marks; cut there or confirmed with «So lassen»
+    letter_cut: dict | None = None
+    # A CV still over its limit with three pages allowed and no cut left (G92, #330): the lines over and its pages;
+    # nothing is left to offer, so the person confirms it with «So lassen»
+    cv_over: dict | None = None
 
 
 def _seiten(pdf: pathlib.Path) -> list[str]:
@@ -76,26 +83,33 @@ def _cv_over_limit(pdf: pathlib.Path, pages: int, limit: int, key: str | None, o
     text = f"Lebenslauf: {pages} Seiten, erlaubt sind höchstens {limit}. {tighter}"
     choice = offer(limit)
     if not choice["optionen"] and not choice["drei_seiten"]:
-        return Befund("hinweis", f"{text} {ONLY_IN_BASICS}")
+        # a hint alone would let it go out unseen; with nothing left to offer, it waits on «So lassen» (#330)
+        return Befund("hinweis", f"{text} {ONLY_IN_BASICS}", schluessel=key, cv_over={"lines": lines, "pages": pages})
     return Befund("hinweis", text, schluessel=key, kuerzen={"zeilen": lines, **choice})
 
 
-def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, cut: Callable[[], list[str]],
-                key: str | None = None) -> Befund:
-    """A document over its page limit (G51). A built one was tightened already, so the finding names what could be
-    cut; the person decides, nothing is cut for them."""
+def _letter_over_limit(pdf: pathlib.Path, pages: int, key: str | None, letter: str) -> Befund:
+    """A built letter over its one page (G94): set as tight as possible, so the finding names how many lines are
+    over and its longest paragraph; the person cuts it in the letter or confirms it as it is."""
+    lines = _lines_over(pdf, MAX_SEITEN["anschreiben"])
+    tight = (f"Auch so eng wie möglich gesetzt sind es etwa {lines} {'Zeile' if lines == 1 else 'Zeilen'} zu viel."
+             if lines else "Auch so eng wie möglich gesetzt passt es nicht.")
+    named = cuts.for_letter(letter)
+    text = f"Anschreiben: {pages} Seiten, erlaubt ist eine. {tight}"
+    if named:
+        text += f" Am meisten bringt {named[0]}."
+    return Befund("fehler", text, schluessel=key,
+                  letter_cut={"lines": lines, "paragraph": cuts.longest_paragraph(letter), "pages": pages})
+
+
+def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, key: str | None = None) -> Befund:
+    """A document over its page limit (G51) that the app cannot cut: an own or sent file, the dossier as a whole, or
+    a CV variant that is a finished file."""
     name = NAMEN[art]
     if as_it_is or art == "dossier":
         return Befund("hinweis", f"{name}: {pages} Seiten, empfohlen höchstens {limit} Seite(n)")
-    allowed = "ist eine" if limit == 1 else f"sind höchstens {limit}"
-    pronoun = "er" if art == "lebenslauf" else "es"
-    text = f"{name}: {pages} Seiten, erlaubt {allowed}. Auch enger gesetzt passt {pronoun} nicht."
-    named = cut()
-    if named:
-        text += f" Kürzen lässt sich: {', '.join(named)}."
-    if art == "anschreiben":
-        return Befund("fehler", text)
-    return Befund("hinweis", text, schluessel=key)  # a CV variant that is a finished file: the app cannot cut it
+    return Befund("hinweis", f"{name}: {pages} Seiten, erlaubt sind höchstens {limit}. Auch enger gesetzt passt er "
+                             "nicht.", schluessel=key)
 
 
 def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = (),
@@ -117,12 +131,12 @@ def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = (),
 
 
 def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int | None = None,
-               cut: Callable[[], list[str]] = list, headings: tuple[str, ...] = (),
+               letter: str = "", headings: tuple[str, ...] = (),
                offer: Callable[[int], dict] | None = None) -> list[Befund]:
     """With `as_it_is` the person uploaded the file to use it unchanged: what is not broken is their decision, and
-    only a generated PDF is measured for its layout. `limit` is the page limit (MAX_SEITEN without one); `cut` names
-    what could be cut when a document is over it, `offer` gives a built CV the cuts to tick (G92); `headings` are the
-    CV's own section headings."""
+    only a generated PDF is measured for its layout. `limit` is the page limit (MAX_SEITEN without one); `letter` is
+    the text of a built letter, whose longest paragraph a letter over one page names (G94), `offer` gives a built CV
+    the cuts to tick (G92); `headings` are the CV's own section headings."""
     name = NAMEN[art]
     content_stufe = "hinweis" if as_it_is else "fehler"
     if not pdf.is_file():
@@ -144,10 +158,15 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int |
         if art == "lebenslauf" and offer is not None and not as_it_is:
             over = _cv_over_limit(pdf, len(seiten), limit, key, offer)
             befunde.append(over)
-            # the last page is the one being cut away: its fill waits until the CV keeps its limit (G92)
-            skipped = frozenset({"fuellung"}) if over.kuerzen else skipped
+            # the last page is the one being cut away: its fill waits until the CV keeps its limit (G92); kept over it,
+            # the one «So lassen» covers that page too (#330)
+            skipped = frozenset({"fuellung"}) if over.kuerzen or over.cv_over else skipped
+        elif art == "anschreiben" and not as_it_is:
+            befunde.append(_letter_over_limit(pdf, len(seiten), key, letter))
+            # G94: its second page is as short as the tightest setting leaves it, on purpose
+            skipped = frozenset({"fuellung"})
         else:
-            befunde.append(_over_limit(art, len(seiten), limit, as_it_is, cut, key))
+            befunde.append(_over_limit(art, len(seiten), limit, as_it_is, key))
     if PLATZHALTER.search(text):
         befunde.append(Befund(content_stufe, f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
     if not as_it_is:
@@ -262,8 +281,15 @@ def _own_headings(cv: object) -> tuple[str, ...]:
 
 
 def _with_confirmations(daten: pathlib.Path, entry_id: str, befunde: list[Befund]) -> list[Befund]:
+    """Confirmed breaches; a letter over one page the person leaves as it is (G94) no longer counts as an error, and a
+    CV kept over its limit (#330) stays a hint."""
     done = layout_confirmed.confirmed(daten, entry_id)
-    return [dataclasses.replace(b, bestaetigt=True) if b.schluessel in done else b for b in befunde]
+    return [_confirmed(b) if b.schluessel in done else b for b in befunde]
+
+
+def _confirmed(befund: Befund) -> Befund:
+    stufe = "hinweis" if befund.letter_cut or befund.cv_over else befund.stufe
+    return dataclasses.replace(befund, bestaetigt=True, stufe=stufe)
 
 
 def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[Befund]:
@@ -280,7 +306,7 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
                          limit=cv_cuts.pages(daten, bewerbung["id"]), headings=headings, offer=offer)
     if pfade["anschreiben"].is_file() or quelle.is_file():
         befunde += pruefe_pdf(pfade["anschreiben"], "anschreiben", as_it_is=letter_as_it_is,
-                              cut=lambda: cuts.for_letter(_letter_text(quelle)))
+                              letter="" if letter_as_it_is else _letter_text(quelle))
         if pfade["anschreiben"].is_file():
             try:
                 text = "\n".join(_seiten(pfade["anschreiben"]))

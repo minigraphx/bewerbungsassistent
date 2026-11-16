@@ -146,7 +146,9 @@ function page() {
     App: { el, url: (p, q) => `${p}?${new URLSearchParams(q)}` },
     UnterlagenErgebnis: R,
     UnterlagenWahl: require("../seiten/unterlagen-wahl.js"),
+    DotLine: require("../seiten/dot-line.js"),
     DossierDialog: { open: from => state.dialogOpenedFrom.push(from) },
+    LetterEditor: { open: () => false },  // no letter to edit here; letter_editor.test.cjs covers the editor
   };
   vm.runInNewContext(lies("unterlagen-schritt.js"), { window, document: { getElementById: id => byId[id] } });
   return { S: window.UnterlagenSchritt, byId, state, checkedTile };
@@ -308,7 +310,115 @@ test("after creating, the page waits for the check and moves the focus", () => {
 
 test("the hint in «Lebenslauf für diese Stelle» and the dossier sentence in «Aussehen des Lebenslaufs» name «Dossier gestalten»", () => {
   const html = lies("bewerbung.html");
-  assert.match(html, /Gilt nur für diese Bewerbung\. Ein Dossier hat sein eigenes Design, unter «Dossier gestalten»\./);
+  assert.match(html, /Gilt nur für diese Bewerbung\. Ein Dossier hat Design, Farbe und Zeichen aus «Dossier gestalten»; das Foto nimmt es von hier\./);
   assert.doesNotMatch(html, /Unterlagen prüfen/);
   assert.match(lies("dateien.html"), /Ein Dossier hat sein eigenes Design, gewählt in der Bewerbung unter «Dossier gestalten»\./);
+});
+
+// G93, #324: how the app balanced the pages, in a few words on each tile
+
+test("each document names its pages and, only where the app changed the setting, how", () => {
+  const note = (art, seiten, ausgleich) => R.pageNote(art, { seiten, ausgleich });
+  assert.deepEqual(note("anschreiben", 1, { letter: "slightly-tighter" }), ["1 Seite", "etwas enger gesetzt"]);
+  assert.deepEqual(note("lebenslauf", 2, { cv: "tighter" }), ["2 Seiten", "enger gesetzt"]);
+  assert.deepEqual(note("lebenslauf", 3, { cv: "tightest" }), ["3 Seiten", "so eng wie möglich"]);
+  assert.deepEqual(note("lebenslauf", 2, { cv: "wider" }), ["2 Seiten", "etwas grosszügiger gesetzt"]);
+  assert.deepEqual(note("lebenslauf", 2, {}), ["2 Seiten"], "no change, no text");
+  assert.deepEqual(note("lebenslauf", 2, { cv: "unknown" }), ["2 Seiten"]);
+  assert.deepEqual(R.pageNote("lebenslauf", undefined), [], "nothing before the document is there");
+});
+
+test("the dossier names which of its parts the app balanced", () => {
+  const line = notes => {
+    const tile = R.tiles(ALL, "dossier", { notes }).find(t => t.art === "dossier");
+    return [tile.name, ...tile.note].join(" · ");
+  };
+  assert.equal(line({ dossier: { seiten: 7, ausgleich: { cv: "slightly-tighter" } } }),
+    "Dossier · 7 Seiten · Lebenslauf etwas enger gesetzt");
+  assert.equal(line({ dossier: { seiten: 8, ausgleich: { cv: "tightest", letter: "tighter" } } }),
+    "Dossier · 8 Seiten · Anschreiben enger gesetzt · Lebenslauf so eng wie möglich", "in the order of the dossier");
+  assert.equal(line({ dossier: { seiten: 6, ausgleich: {} } }), "Dossier · 6 Seiten");
+  const single = R.tiles(ALL, "dossier", { notes: { lebenslauf: { seiten: 2, ausgleich: { cv: "wider" } } } })
+    .find(t => t.art === "lebenslauf");
+  assert.deepEqual(single.note, ["2 Seiten", "etwas grosszügiger gesetzt"], "a single file names no part");
+});
+
+const shown = n => (n && typeof n === "object" ? (n.attrs.class === "visually-hidden" ? "" : n.children.map(shown).join("")) : String(n ?? ""));
+const heard = n => (n && typeof n === "object" ? (n.attrs["aria-hidden"] === "true" ? "" : n.children.map(heard).join("")) : String(n ?? ""));
+const noteOf = tile => all(tile, n => n.attrs.class === "doc-tile__note")[0];
+
+test("the tile shows the note under its name, the «·» hidden from screen readers, and no colour for the state", () => {
+  const { S, byId } = page();
+  const seiten = { lebenslauf: { seiten: 3, ausgleich: { cv: "tightest" } }, anschreiben: { seiten: 1, ausgleich: {} } };
+  S.showTiles("a", { bewerbung: { id: "a" }, pdfs: { lebenslauf: true, anschreiben: true }, seiten }, 1);
+  const [cv, letter] = byId.pdfs.children;
+  const note = noteOf(cv);
+  assert.ok(note, "the CV tile has a note");
+  assert.equal(cv.attrs["aria-describedby"], undefined, "the note follows the name as text, so it is not read twice");
+  assert.equal(shown(note), "3 Seiten · so eng wie möglich");
+  assert.equal(heard(note), "3 Seiten, so eng wie möglich");
+  const dots = all(note, n => textOf(n).trim() === "·");
+  assert.ok(dots.length === 1 && dots[0].attrs["aria-hidden"] === "true", "the separator is aria-hidden");
+  assert.ok(!Object.keys(note.attrs).some(name => name === "data-level" || name === "style"), "no colour carries meaning");
+  assert.equal(shown(noteOf(letter)), "1 Seite");
+
+  S.showTiles("a", { bewerbung: { id: "a" }, pdfs: { lebenslauf: true }, seiten: {} }, 2);
+  const tile = byId.pdfs.children[0];
+  assert.equal(all(tile, n => n.attrs.class === "doc-tile__note").length, 0, "without a count, no note");
+  assert.equal(tile.attrs["aria-describedby"], undefined);
+});
+
+// #331: a «·» never stands alone on a line, and a change never breaks inside its words
+
+test("each «·» is glued to the part before it, and a line breaks only after «· »", () => {
+  const { S, byId } = page();
+  const dossierNote = ausgleich => {
+    S.showTiles("a", { bewerbung: { id: "a", unterlagen: "dossier" }, pdfs: { dossier: true }, seiten: { dossier: { seiten: 7, ausgleich } } }, 1);
+    return noteOf(byId.pdfs.children[0]);
+  };
+  for (const [ausgleich, words] of [
+    [{ cv: "tightest" }, ["7 Seiten", "Lebenslauf so eng wie möglich"]],
+    [{ letter: "slightly-tighter", cv: "tightest" }, ["7 Seiten", "Anschreiben etwas enger gesetzt", "Lebenslauf so eng wie möglich"]],
+  ]) {
+    const note = dossierNote(ausgleich);
+    const parts = note.children.filter(n => typeof n === "object");
+    assert.ok(parts.every(n => n.attrs.class === "whole-part"), "the note holds only whole parts of the shared helper (#340)");
+    assert.deepEqual(note.children.filter(n => typeof n !== "object"), words.slice(1).map(() => " "),
+      "a plain space between two parts is the only place a line may break");
+    assert.deepEqual(parts.map(shown), words.map((word, i) => (i < words.length - 1 ? `${word} ·` : word)),
+      "the «·» sits inside the part before it, after a no-break space");
+    assert.equal(shown(note), words.join(" · "));
+    assert.equal(heard(note), words.join(", "), "screen readers hear commas, never the «·»");
+  }
+});
+
+/** The declarations of the first rule in `css` whose selector ends with `selector`. */
+const ruleOf = (css, selector) => {
+  const line = css.split("\n").find(l => l.trimStart().split("{")[0].trim().endsWith(selector));
+  assert.ok(line, `${selector} has its rule`);
+  return line.slice(line.indexOf("{") + 1, line.lastIndexOf("}"));
+};
+
+test("a part of the note breaks to the next line only as a whole, and a long word cannot be split", () => {
+  // #340: the shared .whole-part of stil.css, which the page of an application loads
+  assert.match(ruleOf(lies("stil.css"), ".whole-part"), /display: inline-block; max-width: 100%;/);
+  assert.match(lies("bewerbung.html"), /<link rel="stylesheet" href="\/stil\.css">/);
+  const css = lies("unterlagen.css");
+  assert.ok(!css.includes(".doc-tile__part"), "no rule of its own for the parts of the tile");
+  assert.doesNotMatch(ruleOf(css, ".doc-tile__note"), /overflow-wrap/);
+});
+
+test("the note runs under the thumbnail across the whole tile, so the longest change fits on one line", () => {
+  const css = lies("unterlagen.css");
+  const tile = ruleOf(css, ".doc-tile");
+  assert.match(tile, /display: grid;/);
+  assert.match(tile, /grid-template-areas: "thumb name" "thumb links" "note note";/);
+  assert.match(tile, /grid-template-rows: auto 1fr auto;/,
+    "the links row takes any extra height, so the name keeps its gap to the links and the notes of a row line up at the foot");
+  assert.match(tile, /align-items: start;/);
+  assert.match(ruleOf(css, ".doc-tile__body"), /display: contents;/, "name, note and links keep their order for screen readers");
+  assert.match(ruleOf(css, ".doc-tile__thumb"), /grid-area: thumb;/);
+  assert.match(ruleOf(css, ".doc-tile__name"), /grid-area: name;/);
+  assert.match(ruleOf(css, ".doc-tile__links"), /grid-area: links;/);
+  assert.match(ruleOf(css, ".doc-tile__note"), /grid-area: note;/);
 });
