@@ -1,0 +1,106 @@
+name: Store einreichen
+
+# Ein veröffentlichtes Release reicht das Paket für den Microsoft Store ein (#354, G6): das Artefakt `msix` aus dem Lauf
+# von app.yml zum Tag, mit dem Microsoft Store Developer CLI. Eine Vorabversion geht nicht in den Store.
+# Ein eigener Workflow neben update-ausrollen.yml: Scheitert die Einreichung, bleibt das Update davon unberührt, und
+# keiner der Jobs kommt in die Nähe des Signaturschlüssels. `released` gilt auch, wenn aus einer Vorabversion ein
+# Release wird. Fehlen Secrets oder Variable, endet der Lauf grün mit einem Hinweis; nach dem Eintragen den Lauf
+# neu starten. Einrichtung: docs/design/msix-versuch.md, «Automatisch einreichen».
+on:
+  release:
+    types: [released]
+
+permissions: {}
+
+concurrency:
+  group: store-einreichen
+  cancel-in-progress: false
+
+jobs:
+  bereit:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-24.04
+    permissions: {}
+    outputs:
+      ready: ${{ steps.einstellungen.outputs.ready }}
+    steps:
+      - name: Einstellungen vorhanden?
+        id: einstellungen
+        shell: bash
+        env:
+          MSSTORE_TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          MSSTORE_SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          MSSTORE_CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          MSSTORE_CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+          MSSTORE_PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID }}
+        run: |
+          missing=""
+          for name in MSSTORE_TENANT_ID MSSTORE_SELLER_ID MSSTORE_CLIENT_ID MSSTORE_CLIENT_SECRET MSSTORE_PRODUCT_ID; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::notice::Nicht in den Store eingereicht, es fehlt:$missing. Einrichtung in docs/design/msix-versuch.md; danach diesen Lauf neu starten."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  einreichen:
+    needs: bereit
+    if: ${{ needs.bereit.outputs.ready == 'true' }}
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      actions: read
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      # Fest auf eine Version des CLI, geprüft gegen die Prüfsumme, die das Release des CLI selbst nennt.
+      MSSTORE_CLI_URL: https://github.com/microsoft/msstore-cli/releases/download/v0.4.4/MSStoreCLI-win-x64.zip
+      MSSTORE_CLI_SHA256: d288a324541dc68244a683eb5b6445e9239bb47d1e6acf5cca4d1476017f1447
+    steps:
+      - name: Paket des Tags aus dem Lauf von app.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if ($env:TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw "Unerwarteter Tag '$env:TAG'" }
+          $version = $env:TAG.Substring(1)
+          $run = gh run list --workflow app.yml --branch $env:TAG --event push --status success --limit 1 --json databaseId --jq '.[0].databaseId'
+          if ($LASTEXITCODE -ne 0 -or -not $run) { throw "Kein erfolgreicher Lauf von app.yml zum Tag $env:TAG" }
+          $folder = Join-Path $env:RUNNER_TEMP 'msix'
+          gh run download $run --name msix --dir $folder
+          if ($LASTEXITCODE -ne 0) { throw "Artefakt msix aus Lauf $run nicht geladen" }
+          $package = Join-Path $folder "Bewerbungsbegleiter-$version.msix"
+          if (-not (Test-Path $package)) { throw "Bewerbungsbegleiter-$version.msix fehlt im Artefakt msix von Lauf $run" }
+          "PACKAGE=$package" >> $env:GITHUB_ENV
+      - name: Microsoft Store Developer CLI
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'msstore-cli.zip'
+          Invoke-WebRequest -Uri $env:MSSTORE_CLI_URL -OutFile $zip
+          $hash = (Get-FileHash -Algorithm SHA256 $zip).Hash
+          if ($hash -ne $env:MSSTORE_CLI_SHA256) { throw "Prüfsumme des CLI passt nicht: $hash" }
+          $folder = Join-Path $env:RUNNER_TEMP 'msstore-cli'
+          Expand-Archive -Path $zip -DestinationPath $folder
+          $exe = Get-ChildItem $folder -Recurse -Filter msstore.exe | Select-Object -First 1
+          if (-not $exe) { throw "msstore.exe fehlt im Archiv" }
+          $exe.DirectoryName >> $env:GITHUB_PATH
+      - name: Anmelden in Partner Center
+        env:
+          MSSTORE_TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          MSSTORE_SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          MSSTORE_CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          MSSTORE_CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          msstore reconfigure --tenantId $env:MSSTORE_TENANT_ID --sellerId $env:MSSTORE_SELLER_ID --clientId $env:MSSTORE_CLIENT_ID --clientSecret $env:MSSTORE_CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { throw "Anmeldung in Partner Center fehlgeschlagen" }
+          msstore settings --enableTelemetry false
+          if ($LASTEXITCODE -ne 0) { throw "Telemetrie des CLI nicht ausgeschaltet" }
+      - name: Einreichen
+        env:
+          MSSTORE_PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID }}
+        run: |
+          msstore publish $env:PACKAGE -id $env:MSSTORE_PRODUCT_ID
+          if ($LASTEXITCODE -ne 0) { throw "Einreichung fehlgeschlagen; Stand in Partner Center prüfen" }

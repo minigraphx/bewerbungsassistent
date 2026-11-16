@@ -94,7 +94,48 @@ Seit #343 baut `app.yml` das Paket für den Store im Job `msix`, neben dem Insta
 
 Die Identität kommt aus den Variablen des Repos (keine Secrets, aber nicht im Repo): `MSIX_IDENTITY_NAME`, `MSIX_PUBLISHER` (beginnt mit `CN=`) und `MSIX_PUBLISHER_DISPLAY_NAME`, alle drei aus Partner Center, Produktidentität.
 
-- **Tag `v<Version>`:** Das Paket liegt nur im Artefakt `msix` des Laufs zum Tag, nicht im Release (#353): Unsigniert installiert es sich ausserhalb des Stores nicht. Von dort lädt Andy es in Partner Center; #354 soll es automatisch einreichen. Fehlt eine Variable, scheitert nur der Job `msix` mit ihrem Namen; Installer, macOS und Linux kommen trotzdem ins Release. Nach dem Eintragen der Variable den Job neu starten.
+- **Tag `v<Version>`:** Das Paket liegt nur im Artefakt `msix` des Laufs zum Tag, nicht im Release (#353): Unsigniert installiert es sich ausserhalb des Stores nicht. Von dort reicht es `store-einreichen.yml` beim Veröffentlichen des Releases ein (#354, unten). Fehlt eine Variable, scheitert nur der Job `msix` mit ihrem Namen; Installer, macOS und Linux kommen trotzdem ins Release. Nach dem Eintragen der Variable den Job neu starten.
 - **Pushes auf `main` und Läufe von Hand ohne die Variablen:** Der Job baut mit der Platzhalter-Identität aus #255 und legt das Paket nur als Artefakt `msix` ab. So bleibt `main` grün, und der Bau ist trotzdem bewiesen.
 
 Der Versuch bleibt bei der Platzhalter-Identität, weil ein selbst signiertes Zertifikat genau auf den Publisher lauten muss. `msix-versuch.yml` ist unverändert.
+
+## Automatisch einreichen
+
+Seit #354 reicht `.github/workflows/store-einreichen.yml` das Paket ein, sobald Andy ein Release veröffentlicht. Eine Vorabversion geht nicht in den Store; wird aus einer Vorabversion später ein Release, reicht der Workflow dann ein.
+
+1. Der Job `bereit` prüft, ob die vier Secrets `MSSTORE_TENANT_ID`, `MSSTORE_SELLER_ID`, `MSSTORE_CLIENT_ID`, `MSSTORE_CLIENT_SECRET` und die Variable `MSSTORE_PRODUCT_ID` gesetzt sind. Fehlt etwas, endet der Lauf grün mit einem Hinweis, der die fehlenden Namen nennt, nie die Werte. Nach dem Eintragen den Lauf unter Actions neu starten.
+2. Der Job `einreichen` (Windows) sucht den erfolgreichen Lauf von `app.yml` zum Tag und lädt dessen Artefakt `msix` (Berechtigung nur `actions: read`). Er nimmt nur `Bewerbungsbegleiter-<Version>.msix` mit der Version des Tags.
+3. Er lädt das Microsoft Store Developer CLI in einer festen Version (`MSSTORE_CLI_URL`, zurzeit v0.4.4) und prüft es gegen die SHA-256-Prüfsumme in `MSSTORE_CLI_SHA256`, wie das Release des CLI sie nennt. Für eine neue Version beide Werte zusammen ändern.
+4. `msstore reconfigure` meldet sich mit den Secrets an; sie kommen nur über Umgebungsvariablen in den Schritt, nie in den Text des Skripts. Danach schaltet `msstore settings --enableTelemetry false` die Telemetrie des CLI aus.
+5. `msstore publish <Paket> -id <MSSTORE_PRODUCT_ID>` lädt das Paket hoch und reicht die Einreichung ein (ohne `--noCommit`). Danach prüft der Store das Paket wie bei einer Einreichung von Hand.
+
+Der Workflow ist von `update-ausrollen.yml` getrennt und hängt an keinem anderen Job: Scheitert die Einreichung, ist nur dieser Lauf rot, das Update und die Webseite gehen trotzdem aus. Er erreicht weder den Signaturschlüssel der Updates noch das Release.
+
+Gemäss Microsoft gilt:
+
+- **Nur für eine kostenlose App.** Updates über das CLI und GitHub Actions unterstützt Microsoft derzeit nur für kostenlose Produkte.
+- **Die erste Einreichung geht von Hand.** Das CLI legt keine App an und schliesst keine erste Veröffentlichung ab. Erst wenn die App einmal über Partner Center veröffentlicht ist (#345), reicht der Workflow Updates ein.
+- **Ein offener Entwurf in Partner Center wird ersetzt.** `msstore publish` legt die Einreichung neu aus der letzten veröffentlichten an. Was im Entwurf von Hand geändert, aber nicht eingereicht war, geht verloren.
+
+### Einmalige Einrichtung (Andy)
+
+1. Die erste Einreichung in Partner Center von Hand abschliessen, samt Fragebogen zur Altersfreigabe, und warten, bis die App im Store steht.
+2. Partner Center mit einem Mandanten von Microsoft Entra ID verknüpfen, falls noch keiner verknüpft ist.
+3. Im Microsoft Entra Admin Center unter App-Registrierungen eine Anwendung registrieren. Unter „Zertifikate & Geheimnisse“ einen geheimen Clientschlüssel (Client Secret) erstellen und den Wert sofort kopieren; er wird nur einmal angezeigt. Er läuft ab; vor Ablauf einen neuen erstellen und das Secret ersetzen.
+4. In Partner Center: Kontoeinstellungen → Benutzerverwaltung → Microsoft Entra-Anwendungen → die Anwendung hinzufügen und ihr die Rolle **Manager** geben.
+5. Die Werte zusammentragen:
+   - Mandanten-ID (Tenant ID): Entra Admin Center, Übersicht;
+   - Client-ID: die Anwendungs-ID (Client) der Registrierung;
+   - Seller ID: Partner Center, Kontoeinstellungen, Kennungen;
+   - Produkt-ID: die Store-ID der App in Partner Center, Produktidentität.
+6. Im Repo eintragen. `gh secret set` fragt den Wert ab, so landet er nicht im Verlauf der Shell:
+
+   ```
+   gh secret set MSSTORE_TENANT_ID
+   gh secret set MSSTORE_SELLER_ID
+   gh secret set MSSTORE_CLIENT_ID
+   gh secret set MSSTORE_CLIENT_SECRET
+   gh variable set MSSTORE_PRODUCT_ID --body <Store-ID>
+   ```
+
+Ungeprüft, bis ein echtes Release eingereicht ist: ob `msstore publish` auf dem Runner ohne Rückfrage durchläuft und wie lange es auf Partner Center wartet (der Job bricht nach 60 Minuten ab).
