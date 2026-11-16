@@ -31,11 +31,14 @@ window.KiFenster = (() => {
 
   const USED_UP = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen.";
 
+  const withCredit = ki => Boolean(ki.vermittlung) && typeof ki.guthaben_chf === "number";
+  const creditUsedUp = ki => withCredit(ki) && Number(ki.verbraucht_chf || 0) >= ki.guthaben_chf;
+
   function doneLine(ki) {
-    if (!ki.vermittlung || typeof ki.guthaben_chf !== "number") return DONE;
+    if (!withCredit(ki)) return DONE;
     const spent = Number(ki.verbraucht_chf || 0);
     const credit = ` Guthaben: CHF ${spent.toFixed(2)} von ${ki.guthaben_chf.toFixed(2)} verbraucht.`;
-    return `${DONE}${credit}${spent >= ki.guthaben_chf ? USED_UP : ""}`;
+    return `${DONE}${credit}${creditUsedUp(ki) ? USED_UP : ""}`;
   }
 
   /** Texts that speak to the person, in the set of the setup (Sie, du, Lehrstelle). */
@@ -109,8 +112,14 @@ window.KiFenster = (() => {
       part.show(ki);
     }
     parts.done.hidden = now !== "fertig";
-    if (now === "fertig") parts.done.replaceChildren(...window.Texte.withCodeRequestLink(doneLine(ki), el));
+    if (now === "fertig") {
+      parts.done.className = `notice ${creditUsedUp(ki) ? "notice--warning" : "notice--success"} ki-fenster__fertig`;
+      // One span, or the flex row of the notice puts the link on a line of its own.
+      parts.done.replaceChildren(el("span", { class: "notice__body" }, ...window.Texte.withCodeRequestLink(doneLine(ki), el)));
+    }
     parts.without.hidden = now === "fertig";
+    // The link „anfordern“ comes first in the window; Enter goes on to „Weiter“, not to the website.
+    parts.close.autofocus = now === "fertig";
     parts.close.textContent = now === "fertig" ? "Weiter" : "Schliessen";
     parts.close.className = now === "fertig" ? "btn btn--primary" : "btn";
   }

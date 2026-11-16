@@ -22,12 +22,17 @@ const el = (tag, attrs = {}, ...children) => ({ tag, attrs, children });
 const textOf = part => (typeof part === "string" ? part : part.children.map(textOf).join(""));
 const linksIn = parts => parts.filter(part => typeof part === "object" && part.tag === "a");
 
+const NEW_TAB = ", öffnet neuen Tab";
+/** What a screen reader reads: the sentence with the hidden hint right after the link. */
+const readAloud = sentence => sentence.replace(/anfordern(?![\p{L}])/u, `anfordern${NEW_TAB}`);
+
 function assertLinked(sentence) {
   const parts = texte.withCodeRequestLink(sentence, el);
-  assert.equal(parts.map(textOf).join(""), sentence, "the words stay as they are");
+  assert.equal(parts.map(textOf).join(""), readAloud(sentence), "the words stay as they are");
   const links = linksIn(parts);
   assert.equal(links.length, 1, sentence);
-  assert.equal(textOf(links[0]), "anfordern");
+  assert.deepEqual(links[0].children, ["anfordern", el("span", { class: "visually-hidden" }, NEW_TAB)],
+    "the hint of the new tab is hidden from sight");
   assert.deepEqual(links[0].attrs, { href: CONTACT, target: "_blank", rel: "noopener" });
 }
 
@@ -96,10 +101,14 @@ test("the sidebar warning links „anfordern“ once the credit is used up", asy
 
   const warning = document.getElementById("nav-budget-warning");
   assert.equal(warning.hidden, false);
-  assert.equal(warning.textContent, "Guthaben aufgebraucht: neuen Code anfordern");
+  assert.equal(warning.textContent, `Guthaben aufgebraucht: neuen Code anfordern${NEW_TAB}`);
   const links = linksIn(warning.children);
   assert.equal(links.length, 1);
   assert.equal(links[0].attrs.href, CONTACT);
+});
+
+test("the link in the sidebar warning keeps the colour of the warning", () => {
+  assert.match(read("stil.css"), /\n\.app-nav__budget-warning a \{ color: inherit; \}\n/);
 });
 
 // ---------- Pages that show a used-up sentence put it through the same helper ----------

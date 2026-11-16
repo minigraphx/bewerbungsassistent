@@ -449,6 +449,7 @@
   const CODE_REQUEST_URL = "https://bewerbungsbegleiter.ch/hilfe.html#kontakt";
   // Whole word only, so „Anforderungen“ or „angefordert“ stay text; no lookbehind for older Safari.
   const REQUEST_WORD = /(^|[^\p{L}])(anfordern)(?![\p{L}])/u;
+  const NEW_TAB = ", öffnet neuen Tab";
 
   /**
    * `sentence` as parts for App.el, with the first „anfordern“ as a link to CODE_REQUEST_URL. The app runs in the
@@ -460,7 +461,8 @@
     if (!found) return value ? [value] : [];
     const start = found.index + found[1].length;
     const end = start + found[2].length;
-    const link = el("a", { href: CODE_REQUEST_URL, target: "_blank", rel: "noopener" }, found[2]);
+    const link = el("a", { href: CODE_REQUEST_URL, target: "_blank", rel: "noopener" }, found[2],
+      el("span", { class: "visually-hidden" }, NEW_TAB));
     return [value.slice(0, start), link, value.slice(end)].filter(part => part !== "");
   }
 
