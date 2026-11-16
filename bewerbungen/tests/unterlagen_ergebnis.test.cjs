@@ -348,13 +348,16 @@ test("the tile shows the note under its name, the «·» hidden from screen read
   const [cv, letter] = byId.pdfs.children;
   const note = all(cv, n => n.attrs.class === "doc-tile__note")[0];
   assert.ok(note, "the CV tile has a note");
-  assert.equal(cv.attrs["aria-describedby"], note.attrs.id, "the tile is described by its note");
+  assert.equal(cv.attrs["aria-describedby"], undefined, "the note follows the name as text, so it is not read twice");
   const shown = n => (n && typeof n === "object" ? (n.attrs.class === "visually-hidden" ? "" : n.children.map(shown).join("")) : String(n ?? ""));
   const heard = n => (n && typeof n === "object" ? (n.attrs["aria-hidden"] === "true" ? "" : n.children.map(heard).join("")) : String(n ?? ""));
-  assert.equal(shown(note), "3 Seiten · so eng wie möglich");
+  assert.equal(shown(note), "3 Seiten · so eng wie möglich");
   assert.equal(heard(note), "3 Seiten, so eng wie möglich");
   const dots = all(note, n => textOf(n).trim() === "·");
   assert.ok(dots.length === 1 && dots[0].attrs["aria-hidden"] === "true", "the separator is aria-hidden");
+  assert.equal(textOf(dots[0]), " · ", "the «·» stays on the line of the part before it");
+  const parts = note.children.filter(n => typeof n === "object" && n.attrs.class === "doc-tile__part");
+  assert.deepEqual(parts.map(textOf), ["3 Seiten", "so eng wie möglich"], "each part breaks as a whole");
   assert.ok(!Object.keys(note.attrs).some(name => name === "data-level" || name === "style"), "no colour carries meaning");
   assert.equal(shown(all(letter, n => n.attrs.class === "doc-tile__note")[0]), "1 Seite");
 
@@ -362,4 +365,12 @@ test("the tile shows the note under its name, the «·» hidden from screen read
   const tile = byId.pdfs.children[0];
   assert.equal(all(tile, n => n.attrs.class === "doc-tile__note").length, 0, "without a count, no note");
   assert.equal(tile.attrs["aria-describedby"], undefined);
+});
+
+test("a part of the note never breaks inside, and a long word cannot be split", () => {
+  const css = lies("unterlagen.css");
+  assert.match(css, /\.doc-tile__part \{ display: inline-block; max-width: 100%; \}/);
+  const note = css.split("\n").find(line => line.includes(".doc-tile__note {"));
+  assert.ok(note, "the note has its rule");
+  assert.doesNotMatch(note, /overflow-wrap/);
 });

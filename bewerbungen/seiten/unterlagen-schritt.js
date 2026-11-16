@@ -58,17 +58,18 @@
     return el("a", attributes, adapt.text);
   }
 
-  const noteId = tile => `doc-tile-${tile.art}-seiten`;
-
   /**
-   * Pages and how they were balanced (G93), in plain words without a colour. The «·» is hidden from screen readers,
-   * which hear a comma instead, so the parts do not run together.
+   * Pages and how they were balanced (G93), in plain words without a colour. Each part breaks only as a whole, and the
+   * no-break space keeps the «·» on the line of the part before it. Screen readers skip the «·» and hear a comma.
    */
   function noteLine(tile) {
     if (!tile.note.length) return null;
-    const parts = tile.note.flatMap((part, index) => index === 0 ? [part]
-      : [el("span", { "aria-hidden": "true" }, " · "), el("span", { class: "visually-hidden" }, ", "), part]);
-    return el("p", { class: "doc-tile__note", id: noteId(tile) }, ...parts);
+    const parts = tile.note.flatMap((part, index) => {
+      const whole = el("span", { class: "doc-tile__part" }, part);
+      return index === 0 ? [whole]
+        : [el("span", { "aria-hidden": "true" }, " · "), el("span", { class: "visually-hidden" }, ", "), whole];
+    });
+    return el("p", { class: "doc-tile__note" }, ...parts);
   }
 
   /** One tile per built document; `stand` makes the browser load a rebuilt file anew. */
@@ -77,13 +78,11 @@
     const tiles = R.tiles(daten.pdfs, W.gewaehlt(entry),
       { ownCv: Boolean(daten.eigener_lebenslauf), sent: Boolean(entry.versand), notes: daten.seiten });
     $("pdfs").replaceChildren(...tiles.map(tile => {
-      const note = noteLine(tile);
-      const named = { class: "doc-tile", "aria-labelledby": `doc-tile-${tile.art}` };
-      return el("article", note ? { ...named, "aria-describedby": noteId(tile) } : named,
+      return el("article", { class: "doc-tile", "aria-labelledby": `doc-tile-${tile.art}` },
         el("img", { class: "doc-tile__thumb", src: url("/api/pdf/miniatur", { id: entryId, art: tile.art, stand }), alt: tile.alt, ...THUMB }),
         el("div", { class: "doc-tile__body" },
           el("h3", { class: "doc-tile__name", id: `doc-tile-${tile.art}` }, tile.name),
-          note,
+          noteLine(tile),
           el("div", { class: "doc-tile__links" },
             el("a", { class: "btn btn--sm doc-tile__link", href: url("/api/pdf", { id: entryId, art: tile.art, stand }), target: "_blank", rel: "noopener" }, tile.open),
             adaptLink(tile.adapt))));

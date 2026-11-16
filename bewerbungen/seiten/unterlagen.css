@@ -100,7 +100,9 @@
 .doc-tile__body { display: flex; flex: 1 1 auto; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .application .card .doc-tile__name { margin: 0; font-size: 15px; line-height: 22px; }
 /* G93: words, never a colour, say what the app did to the pages */
-.application .card .doc-tile__note { margin: calc(-1 * var(--space-1)) 0 0; font-size: 14px; line-height: 20px; color: var(--text-muted); overflow-wrap: anywhere; }
+.application .card .doc-tile__note { margin: calc(-1 * var(--space-1)) 0 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+/* a part breaks to the next line as a whole, so «so eng wie möglich» is never split */
+.application .card .doc-tile__part { display: inline-block; max-width: 100%; }
 .doc-tile__links { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
 /* «Für diese Stelle anpassen» is wider than a tile at 1280 px; buttons do not wrap by default */
 .doc-tile__link { min-height: 44px; max-width: 100%; white-space: normal; text-align: left; }
