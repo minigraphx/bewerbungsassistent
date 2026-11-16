@@ -3571,6 +3571,97 @@
       ]
     },
     {
+      "name": "name ending in a dot",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "zeugnis.pdf.",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "name ending in a space",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "zeugnis.pdf ",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "name of a single dot",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": ".",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "name of a single space",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": " ",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
+      "name": "dots and spaces inside a name are fine",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": " Zeugnis 2. Teil . v1.pdf",
+          "size": 100000
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "empty name",
+      "documents": [
+        {
+          "category": "zeugnisse",
+          "name": "",
+          "size": 100000
+        }
+      ],
+      "errors": [
+        {
+          "path": "documents.0",
+          "code": "name"
+        }
+      ]
+    },
+    {
       "name": "control character in name",
       "documents": [
         {
