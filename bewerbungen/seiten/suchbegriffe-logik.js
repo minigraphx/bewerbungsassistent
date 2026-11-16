@@ -107,10 +107,11 @@
   const uebernommen = anzahl => `Übernommen: ${anzahl === 1 ? "1 Änderung" : `${anzahl} Änderungen`}. Die nächste Suche sucht danach. Der bisherige Stand bleibt unter Entwürfe erhalten.`;
   const RUECKGAENGIG_FERTIG = "Rückgängig gemacht. Es gilt wieder der Stand vor dem Vorschlag.";
 
-  function fuss(vorschlag) {
-    const teile = [vorschlag.modell ? "Claude" : "", geld(vorschlag.kosten_usd, vorschlag.waehrung), datum(vorschlag.datum)];
-    if (vorschlag.runde > 1) teile.push(`bisher ${geld(vorschlag.kosten_bisher, vorschlag.waehrung)}`);
-    return teile.filter(Boolean).join(" · ");
+  /** The footer of the card as parts, which the page joins with «·» (#337): model, cost, date, and the rounds so far. */
+  function fussTeile(vorschlag) {
+    const bisher = vorschlag.runde > 1 ? `bisher ${geld(vorschlag.kosten_bisher, vorschlag.waehrung)}` : "";
+    return [vorschlag.modell ? "Claude" : "", geld(vorschlag.kosten_usd, vorschlag.waehrung), datum(vorschlag.datum), bisher]
+      .filter(Boolean);
   }
 
   const runde = (vorschlag, satz) => (vorschlag.runde > 1 ? `Vorschlag ${vorschlag.runde} · ${texte(satz).nachHinweis}` : "");
@@ -125,7 +126,7 @@
   }
 
   const api = { texte, datum, geld, lockCheckLink, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
-    belegAusAdresse, hauptknopf, kopf, marken, uebernommen, RUECKGAENGIG_FERTIG, fuss, runde, endstand };
+    belegAusAdresse, hauptknopf, kopf, marken, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, runde, endstand };
   if (typeof module !== "undefined") module.exports = api;
   else root.SuchbegriffeLogik = api;
 })(typeof window !== "undefined" ? window : globalThis);
