@@ -23,7 +23,8 @@ import mark as mark_module
 import page_fill
 import type_area
 from anschreiben import bereite_vor
-from build import ROOT, SPRACHEN, json_value, pruefe_beschriftungen, pruefe_foto_optionen, waehle_sprache, without_photo
+from build import (ROOT, SPRACHEN, json_value, pruefe_beschriftungen, pruefe_foto_optionen, waehle_sprache, with_cuts,
+                   without_photo)
 from tailor import tailor
 from typst_root import TypstRoot, typst_root
 
@@ -219,6 +220,7 @@ def main(argv: list[str] | None = None) -> Result:
     ap.add_argument("--lebenslauf-seiten", type=int, default=page_fill.LIMITS["cv"], choices=page_fill.CV_PAGES,
                     help="Höchstens so viele Seiten für den Lebenslauf (G51); länger wird enger gesetzt")
     ap.add_argument("--ohne-foto", action="store_true", help="Ohne Foto, auch wenn cv.yaml eines nennt (G62)")
+    ap.add_argument("--kuerzungen", help="Kürzungen einer Bewerbung (YAML, cuts.py), nach dem Zuschnitt (G92)")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("--out-dir", default="build/dossier")
     args = ap.parse_args(argv)
@@ -238,7 +240,7 @@ def main(argv: list[str] | None = None) -> Result:
     letter = _load_yaml(letter_path)
     raw_cv = dossier_data.with_written_monogram(_load_yaml(cv_path), cv_path.read_text(encoding="utf-8"))
     job = _load_yaml(pathlib.Path(args.job).resolve()) if args.job else None
-    checked = _checked_cv(raw_cv, job, args.lang)
+    checked = with_cuts(_checked_cv(raw_cv, job, args.lang), args.kuerzungen)
     cv = without_photo(checked) if args.ohne_foto else checked
 
     build = pathlib.Path(args.build_dir).resolve() if args.build_dir else ROOT / "build"

@@ -9,6 +9,8 @@
   const W = window.UnterlagenWahl;
   const R = window.UnterlagenErgebnis;
   const S = window.UnterlagenSchritt;
+  const K = window.KuerzenLogik;
+  const KU = window.Kuerzen;
   const { text: textAus } = window.Texte;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
@@ -113,6 +115,11 @@
     if (abschnitt.tagName === "DETAILS") abschnitt.open = true;
     abschnitt.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  // G92: the card about a CV over its limit leads to the cuts, so the focus goes there too
+  const zuBefund = () => {
+    zuAbschnitt("s-pruefen")();
+    S.focusFirstFinding();
+  };
 
   function zeigeNaechster() {
     const n = L.naechster(daten, { befunde, rav, ki: kiBereit });
@@ -129,6 +136,7 @@
       erstellen: ["Unterlagen erstellen", R.NEXT_CREATE, [knopf("Unterlagen erstellen", () => $("erstellen").click())]],
       pruefen: [R.STEP_TITLE, "Die Prüfung läuft.", []],
       klaeren: [R.STEP_TITLE, R.nextClarify(fehlerZahl), [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
+      kuerzen: [K.NEXT_TITLE, t("bewerbung.kuerzen"), [knopf("Zur Prüfung", zuBefund)]],
       bestaetigen: ["Unterlagen ansehen", "Die Prüfung meldet etwas am Satz der PDFs, mit Dokument und Seite. Erst nach «So lassen» öffnet sich ein Formular.", [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
       formular: [`Formular bei ${b.firma} ausfüllen`, t("bewerbung.formular"), [knopf("Formular öffnen", e => oeffneFormular(e.currentTarget, false)), knopf("Per E-Mail beworben? Versand erfassen", zuAbschnitt("versand-titel"), false)]],
       versand: ["Abschicken und festhalten", t("bewerbung.versand"), [knopf("Versand erfassen", zuAbschnitt("versand-titel"))]],
@@ -203,7 +211,8 @@
     $("freigabe-zeile").hidden = !zeigen;
     $("freigeben").hidden = !freigabe.noetig || freigabe.freigegeben;
     $("anschreiben-aendern").href = "/inhalte?" + new URLSearchParams({ datei: `bewerbungen/${ID}/anschreiben.yaml`, ansicht: "text" });
-    zeile($("freigabe-status"), !zeigen || !freigabe.noetig ? ""
+    // the page draws this again after each load and check; a live region would say an unchanged line again
+    window.Meldungen.zeigeNeu($("freigabe-status"), !zeigen || !freigabe.noetig ? ""
       : freigabe.freigegeben ? `Freigegeben am ${datum(freigabe.am)}. Eine Änderung am Text hebt die Freigabe auf.`
         : "Noch nicht freigegeben. Erst mit der Freigabe öffnet die Erweiterung das Formular.", freigabe.freigegeben ? "ok" : "");
     zeigeKiPruefung(zeigen);
@@ -270,6 +279,7 @@
     $("s-festhalten").hidden = !gesendet;
     zeigeBeenden(b);
     $("s-lebenslauf").hidden = Boolean(b.versand) && !b.variante;
+    KU.showLeftOut(daten.kuerzungen, { entryId: ID, sent: Boolean(b.versand), after: nachKuerzen });
     zeigeAnpassen(b);
     $("s-stelle").open = (!(daten.stellentext || "").trim() || Boolean(daten.text_fehlt)) && !gesendet;
     // Why the ad text is missing and how to get it (G37); the extension loads it at the start where the portal allows.
@@ -373,6 +383,13 @@
 
   function befundZeile(b) {
     const zeile = L.befundZeile(b);
+    if (zeile.kuerzen) {  // G92: the cuts to tick instead of «So lassen»
+      const chooser = KU.chooser(zeile.kuerzen, { entryId: ID, note: t("kuerzen.hinweis"), after: nachKuerzen });
+      const satz = el("span", { id: K.SENTENCE_ID }, zeile.text);
+      const li = window.Meldungen.listenZeile(document, el("span", { class: "cut-finding" }, satz, chooser), zeile.stufe, { schliessbar: false });
+      li.setAttribute("aria-labelledby", K.SENTENCE_ID);
+      return li;
+    }
     const inhalt = zeile.knopf
       ? el("span", {}, zeile.text, " ", el("button", { type: "button", class: "btn btn--sm", onclick: e => soLassen(e.currentTarget, b.schluessel) }, zeile.knopf))
       : zeile.text;
@@ -398,6 +415,15 @@
     } catch (fehler) {
       meldungOben("Prüfung fehlgeschlagen: " + fehler.message, "fehler");
     }
+  }
+
+  // G92: the choice is stored and the documents are built anew; the focus goes to the new result of the check
+  async function nachKuerzen(aktion, antwort) {
+    await laden();
+    await laufendePruefung;
+    const over = K.stillOver(befunde);
+    meldungOben(K.doneMessage(aktion, antwort, over), K.doneLevel(aktion, antwort, over));
+    if (aktion !== "zurueck") S.focusFirstFinding();
   }
 
   // G52: the person has looked at the PDF and sends it as it is; only then does a form open
@@ -488,7 +514,8 @@
     if (JSON.stringify(neu.pdf_stand) !== pdfStand) {
       pdfStand = JSON.stringify(neu.pdf_stand);
       daten = { ...daten, pdfs: neu.pdfs, hat_anschreiben: neu.hat_anschreiben, eigenes_anschreiben: neu.eigenes_anschreiben,
-                anschreiben_text: neu.anschreiben_text, anschreiben_freigabe: neu.anschreiben_freigabe, ki_pruefung: neu.ki_pruefung };
+                anschreiben_text: neu.anschreiben_text, anschreiben_freigabe: neu.anschreiben_freigabe, ki_pruefung: neu.ki_pruefung,
+                kuerzungen: neu.kuerzungen };
       zeigePdfs(neu);
       befunde = null;
       zeigeAlles();

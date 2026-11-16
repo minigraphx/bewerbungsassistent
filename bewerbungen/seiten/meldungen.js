@@ -92,7 +92,7 @@
    * A line for a list of findings (`ul.befunde`): the search page's problems and hints, the import result. They
    * show together, so each warning or error gets its own close button; `beiSchliessen` lets the page remember it.
    */
-  function listenZeile(document, inhalt, stufe = "", { beiSchliessen = null } = {}) {
+  function listenZeile(document, inhalt, stufe = "", { beiSchliessen = null, schliessbar = true } = {}) {
     const level = STUFEN[stufe] || "";
     const zeile = document.createElement("li");
     if (ALTE_KLASSEN[level]) zeile.dataset.stufe = ALTE_KLASSEN[level];
@@ -101,7 +101,8 @@
     text.className = "status__text";
     text.append(typeof inhalt === "object" ? inhalt : String(inhalt));
     zeile.append(text);
-    if (!BLEIBEN.has(level)) return zeile;
+    // A line that carries what the person must do (G92: the cuts) stays: closed, nothing would be left to act on
+    if (!BLEIBEN.has(level) || !schliessbar) return zeile;
     zeile.classList.add("status--closable");
     zeile.append(knopf(zeile, "×", () => {
       zeile.remove();
@@ -110,7 +111,15 @@
     return zeile;
   }
 
-  const meldungen = { AUSBLENDEN_MS, SCHLIESSEN, zeige, leere, listenZeile };
+  /** Like `zeige` for plain text, but leaves a message that is shown unchanged, so a live region does not repeat it. */
+  function zeigeNeu(element, text, stufe = "") {
+    const shown = element.childNodes && element.childNodes[0];
+    const same = shown && shown.className === "status__text" && shown.textContent === text
+      && (element.dataset.level || "") === (STUFEN[stufe] || "");
+    if (!same) zeige(element, text, stufe);
+  }
+
+  const meldungen = { AUSBLENDEN_MS, SCHLIESSEN, zeige, zeigeNeu, leere, listenZeile };
   if (typeof module !== "undefined") module.exports = meldungen;
   else global.Meldungen = meldungen;
 })(typeof window !== "undefined" ? window : globalThis);

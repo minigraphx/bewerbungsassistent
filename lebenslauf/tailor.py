@@ -7,6 +7,9 @@ Regeln:
 - `hide` entfernt Einträge nach Name, Titel oder Text.
 - `basics` in der Bewerbungsdatei überschreibt Felder (z.B. label, summary).
 - `max_highlights` begrenzt die Stichpunkte pro Station.
+- `max_highlights_per_station` begrenzt sie für einzelne Stationen der Berufserfahrung (G92): eine Liste von
+  `{position: …, name: …, startDate: …, max: N}`, gefunden über diese Felder als Text (ein Jahr ohne Anführungszeichen
+  passt zu demselben Jahr als Text).
 - `sections` überschreibt ganze Abschnitte (z.B. eine eigene Fähigkeitenliste).
 - `select` wählt pro Abschnitt Stationen und ihre Reihenfolge (G17): eine Liste von Feldern wie
   `{position: …, name: …, startDate: …}`; genommen wird je Liste der erste Eintrag mit genau diesen Werten,
@@ -66,10 +69,33 @@ def _selected(entries, wanted):
     return [entries[i] for i in taken]
 
 
+STATION_FIELDS = ("position", "name", "startDate")
+
+
+def same_station(station, fields) -> bool:
+    """Whether `station` is the one `fields` names, compared as text: YAML reads 2015 as a number, a stored copy may
+    hold it as text."""
+    return (isinstance(station, dict) and isinstance(fields, dict)
+            and all(str(station.get(key) or "") == str(fields.get(key) or "") for key in STATION_FIELDS))
+
+
+def _limit_stations(work, limits):
+    """Each station of `work` with at most the points its entry in `limits` allows; the first fitting entry counts."""
+    def limited(station):
+        limit = next((entry.get("max") for entry in limits if same_station(station, entry)), None)
+        if not isinstance(limit, int) or isinstance(limit, bool) or not isinstance(station.get("highlights"), list):
+            return station
+        return {**station, "highlights": station["highlights"][:max(limit, 0)]}
+    return [limited(station) for station in work]
+
+
 def tailor(cv, job=None):
     job = job or {}
     tags = job.get("tags", [])
     out = _bereinigen(deepcopy(cv), tags, job.get("hide", []), job.get("max_highlights"))
+    limits = job.get("max_highlights_per_station")
+    if isinstance(limits, list) and isinstance(out.get("work"), list):
+        out["work"] = _limit_stations(out["work"], limits)
     out.setdefault("basics", {}).update(job.get("basics", {}))
     for key, wanted in job.get("select", {}).items():
         if isinstance(out.get(key), list):

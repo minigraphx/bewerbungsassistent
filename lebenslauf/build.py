@@ -13,6 +13,7 @@ import pathlib
 import typst
 import yaml
 
+import cuts
 import page_fill
 import type_area
 from tailor import tailor
@@ -78,6 +79,14 @@ def without_photo(cv: dict) -> dict:
     return {**cv, "basics": basics}
 
 
+def with_cuts(cv: dict, cuts_file: str | None) -> dict:
+    """The CV without what one application leaves out (G92); applied after the language, so the stored fields of a
+    station are the text the person ticked."""
+    if not cuts_file:
+        return cv
+    return cuts.apply(cv, yaml.safe_load(pathlib.Path(cuts_file).read_text(encoding="utf-8")))
+
+
 def pruefe_beschriftungen(werte) -> dict:
     """`x-beschriftungen` prüfen: eigene Überschriften je Abschnitt, z.B. {erfahrung: Schnupperlehren}."""
     if not isinstance(werte, dict):
@@ -102,6 +111,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     ap.add_argument("--lebenslauf-seiten", type=int, default=page_fill.LIMITS["cv"], choices=page_fill.CV_PAGES,
                     help="Höchstens so viele Seiten (G51); länger wird enger gesetzt")
     ap.add_argument("--ohne-foto", action="store_true", help="Ohne Foto, auch wenn cv.yaml eines nennt (G62)")
+    ap.add_argument("--kuerzungen", help="Kürzungen einer Bewerbung (YAML, cuts.py), nach dem Zuschnitt (G92)")
     ap.add_argument("--build-dir", help="Ordner für Zwischenstände (Standard: build/ im Modul)")
     ap.add_argument("-o", "--out", default="build/lebenslauf.pdf")
     args = ap.parse_args(argv)
@@ -109,7 +119,7 @@ def main(argv: list[str] | None = None) -> pathlib.Path:
     data_path = pathlib.Path(args.data).resolve()
     cv = yaml.safe_load(data_path.read_text(encoding="utf-8"))
     job = yaml.safe_load(pathlib.Path(args.job).read_text(encoding="utf-8")) if args.job else None
-    cv = waehle_sprache(tailor(cv, job), args.lang)
+    cv = with_cuts(waehle_sprache(tailor(cv, job), args.lang), args.kuerzungen)
     if args.ohne_foto:
         cv = without_photo(cv)
     if "x-image" in cv.get("basics", {}):

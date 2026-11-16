@@ -6,6 +6,7 @@ from http import HTTPStatus
 
 import yaml
 
+import cut_choice
 import layout_confirmed
 import letter_approval
 import pdf_thumbnail
@@ -66,6 +67,7 @@ def details(k, parameter, body):
         "anschreiben_text": _letter_text(k, b["id"]),
         "anschreiben_freigabe": letter_approval.state(k.daten, b),
         "ki_pruefung": letter_approval.review(k.daten, b["id"]),
+        "kuerzungen": cut_choice.state(k.daten, b),
         "formular_abweichend": versand.form_differs(k.daten, b),
         "max_datei": MAX_FILE_BYTES,
         "varianten": k.varianten().alle(),
@@ -213,7 +215,8 @@ def bestaetigen(k, parameter, body):
         raise ValueError("id und schluessel erwartet")
     with k.sperre:
         entry = k.register().hole(pflicht(body, "id"))
-        current = [b.schluessel for b in pruefung.pruefe(k.daten, entry, k.heute()) if b.schluessel]
+        # G92: a CV over its limit is cut or allowed three pages, never confirmed as it is
+        current = [b.schluessel for b in pruefung.pruefe(k.daten, entry, k.heute()) if b.schluessel and not b.kuerzen]
         layout_confirmed.confirm(k.daten, entry, body["schluessel"], current)
         befunde = pruefung.pruefe(k.daten, entry, k.heute())
     return json_antwort({"befunde": [dataclasses.asdict(x) for x in befunde]})

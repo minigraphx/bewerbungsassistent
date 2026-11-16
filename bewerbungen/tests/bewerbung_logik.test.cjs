@@ -110,3 +110,29 @@ test("a breach to confirm gets the button, a confirmed one says so and other fin
     { text: "Lebenslauf, Seite 2: … Bestätigt: so lassen.", stufe: "ok", knopf: null });
   assert.deepEqual(logik.befundZeile({ stufe: "fehler", text: "Firma fehlt" }), { text: "Firma fehlt", stufe: "fehler", knopf: null });
 });
+
+// G92 (#323): a CV over its limit is cut or allowed three pages, never confirmed with «So lassen»
+const zuLang = {
+  stufe: "hinweis", text: "Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch enger gesetzt sind es etwa 7 Zeilen zu viel.",
+  schluessel: "abc:seiten:3", bestaetigt: false,
+  kuerzen: { zeilen: 7, optionen: [{ id: "stichpunkte:a", text: "3 Stichpunkte bei «Leiterin, Muster AG» (2015–2018)" }], drei_seiten: true },
+};
+
+test("a CV over its limit gets the cuts instead of «So lassen»", () => {
+  const zeile = logik.befundZeile(zuLang);
+  assert.equal(zeile.knopf, null);
+  assert.equal(zeile.kuerzen, zuLang.kuerzen);
+  assert.equal(zeile.stufe, "hinweis");
+});
+
+test("with a CV over its limit the next step is to cut it, and the step says so", () => {
+  const gebaut = daten({}, { pdfs: { lebenslauf: true, anschreiben: true }, hat_anschreiben: true, anschreiben_freigabe: { noetig: true, freigegeben: true } });
+  const breach = { stufe: "hinweis", text: "Lebenslauf, Seite 2: …", schluessel: "abc:fuellung:2", bestaetigt: false };
+
+  assert.equal(naechster(gebaut, { befunde: [zuLang] }), "kuerzen");
+  assert.equal(naechster(gebaut, { befunde: [breach, zuLang] }), "kuerzen");
+  assert.equal(naechster(gebaut, { befunde: [zuLang, { stufe: "fehler", text: "x" }] }), "klaeren");
+  assert.equal(stand(gebaut, { befunde: [zuLang] }).pruefen, false);
+  assert.equal(logik.schritte(gebaut, { befunde: [zuLang] })[3].meta, "Lebenslauf zu lang");
+  assert.equal(logik.schritte(gebaut, { befunde: [breach, zuLang] })[3].meta, "Lebenslauf zu lang");
+});

@@ -65,6 +65,34 @@
 .befunde-ok[hidden] { display: none; }
 .application .card ul.befunde:empty { display: none; }
 
+/* G92 (#323): the cuts to tick under the finding of a CV over its limit; whole rows tap, at least 44 px high */
+.cut-finding { display: block; }
+.cut-choice { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; margin: var(--space-3) 0 0; padding: 0; border: 0; color: var(--text); }
+.cut-choice__legend { margin-bottom: var(--space-2); padding: 0; font-weight: 600; color: var(--text-strong); }
+.cut-row { display: flex; gap: var(--space-3); align-items: center; box-sizing: border-box; min-height: 44px; padding: var(--space-2) var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; }
+.cut-row:hover { background: var(--surface-subtle); }
+.cut-row:has(input:checked) { border-color: var(--accent); background: var(--accent-subtle); }
+.cut-row:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cut-row input { flex: none; width: 20px; height: 20px; margin: 0; }
+.cut-row__text { min-width: 0; overflow-wrap: anywhere; color: var(--text-strong); }
+.cut-choice__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-1) 0 0; }
+.cut-choice__actions .btn { min-height: 44px; }
+.cut-choice__note { margin: 0; }
+.cut-choice__status:empty { display: none; }
+
+/* What this application leaves out, in the step Lebenslauf */
+.cut-list { margin-top: var(--space-4); }
+.cut-list[hidden] { display: none; }
+.application .card .cut-list__title { margin: 0 0 var(--space-2); font-size: 15px; line-height: 22px; }
+.cut-list__rows { display: flex; flex-direction: column; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.cut-list__row { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; justify-content: space-between; min-height: 44px; padding: var(--space-1) 0; border-bottom: 1px solid var(--line); }
+.cut-list__text { flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; }
+.cut-list__row .btn { min-height: 44px; }
+/* three pages are allowed, not left out: a line of its own below the list */
+.cut-list__three { margin: var(--space-2) 0 0; }
+.cut-list__three[hidden] { display: none; }
+#weggelassen-status:empty { display: none; }
+
 .doc-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
 .doc-tiles:empty { display: none; }
 .doc-tile { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }

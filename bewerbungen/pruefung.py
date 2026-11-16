@@ -18,7 +18,9 @@ from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
 import pfade  # noqa: F401  (makes the module lebenslauf importable)
+import cut_choice
 import cuts
+import cv_cuts
 import layout_check
 import layout_confirmed
 import mark_settings
@@ -35,7 +37,7 @@ LOGO_MISSING = ("Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeiche
                 "Logo wählen unter «Erweitert».")
 # G51: the letter one page, the CV two unless three are allowed (page_limit); dossier: cover, letter, CV and more
 MAX_SEITEN = {"lebenslauf": page_limit.DEFAULT, "anschreiben": 1, "dossier": 8}
-ALLOW_THREE = "Drei Seiten lassen sich unter «Einstellungen», «Erweitert» erlauben."
+ONLY_IN_BASICS = "Weiter kürzen lässt sich nur unter «Meine Angaben»."
 NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "dossier": "Dossier"}
 MAX_ALTER_TAGE = 14
 CARE_OF = re.compile(r"^(z\.?\s*H\.?(d\.?)?|zu Handen|c/o|Attn\.?:?)\s+", re.IGNORECASE)
@@ -50,10 +52,32 @@ class Befund:
     text: str
     schluessel: str | None = None  # a layout breach the person confirms before sending (G52, layout_confirmed)
     bestaetigt: bool = False
+    # A CV over its limit (G92): the lines over, the cuts to tick and whether three pages can be allowed; it is never
+    # confirmed with «So lassen», only cut or allowed (cut_choice.py)
+    kuerzen: dict | None = None
 
 
 def _seiten(pdf: pathlib.Path) -> list[str]:
     return [seite.extract_text() or "" for seite in PdfReader(pdf).pages]
+
+
+def _lines_over(pdf: pathlib.Path, limit: int) -> int:
+    try:
+        return layout_check.lines_beyond(pdf, limit)
+    except (PdfReadError, ValueError, OSError, KeyError, IndexError, TypeError):
+        return 0  # the finding says it does not fit, without a number
+
+
+def _cv_over_limit(pdf: pathlib.Path, pages: int, limit: int, key: str | None, offer: Callable[[int], dict]) -> Befund:
+    """A built CV over its limit (G92): how many lines are over, and the choice of cuts or three pages."""
+    lines = _lines_over(pdf, limit)
+    tighter = (f"Auch enger gesetzt sind es etwa {lines} {'Zeile' if lines == 1 else 'Zeilen'} zu viel." if lines
+               else "Auch enger gesetzt passt er nicht.")
+    text = f"Lebenslauf: {pages} Seiten, erlaubt sind höchstens {limit}. {tighter}"
+    choice = offer(limit)
+    if not choice["optionen"] and not choice["drei_seiten"]:
+        return Befund("hinweis", f"{text} {ONLY_IN_BASICS}")
+    return Befund("hinweis", text, schluessel=key, kuerzen={"zeilen": lines, **choice})
 
 
 def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, cut: Callable[[], list[str]],
@@ -69,18 +93,18 @@ def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, cut: Callable[
     named = cut()
     if named:
         text += f" Kürzen lässt sich: {', '.join(named)}."
-    if art == "lebenslauf" and limit < page_limit.MOST:
-        text += f" {ALLOW_THREE}"
     if art == "anschreiben":
         return Befund("fehler", text)
-    return Befund("hinweis", text, schluessel=key)
+    return Befund("hinweis", text, schluessel=key)  # a CV variant that is a finished file: the app cannot cut it
 
 
-def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = ()) -> list[Befund]:
-    """The breaches of the layout rules in a generated PDF, each with its own key (G52)."""
+def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = (),
+                    skipped: frozenset[str] = frozenset()) -> list[Befund]:
+    """The breaches of the layout rules in a generated PDF, each with its own key (G52); `skipped` names rules
+    not to report."""
     name = NAMEN[art]
     try:
-        breaches = layout_check.check(pdf, art, headings=headings)
+        breaches = [b for b in layout_check.check(pdf, art, headings=headings) if b.rule not in skipped]
     except (PdfReadError, ValueError, OSError, KeyError, IndexError, TypeError) as fehler:
         return [Befund("hinweis", f"{name}: Der Satz der Seiten liess sich nicht messen ({fehler}). Bitte das PDF "
                                   "selbst ansehen.", schluessel=layout_confirmed.key(pdf, "messung", 1))]
@@ -93,10 +117,12 @@ def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = ())
 
 
 def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int | None = None,
-               cut: Callable[[], list[str]] = list, headings: tuple[str, ...] = ()) -> list[Befund]:
+               cut: Callable[[], list[str]] = list, headings: tuple[str, ...] = (),
+               offer: Callable[[int], dict] | None = None) -> list[Befund]:
     """With `as_it_is` the person uploaded the file to use it unchanged: what is not broken is their decision, and
     only a generated PDF is measured for its layout. `limit` is the page limit (MAX_SEITEN without one); `cut` names
-    what could be cut when a document is over it; `headings` are the CV's own section headings."""
+    what could be cut when a document is over it, `offer` gives a built CV the cuts to tick (G92); `headings` are the
+    CV's own section headings."""
     name = NAMEN[art]
     content_stufe = "hinweis" if as_it_is else "fehler"
     if not pdf.is_file():
@@ -112,13 +138,20 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int |
     else:
         befunde.append(Befund("ok", f"{name}: Text extrahierbar ({len(seiten)} Seite{'n' if len(seiten) != 1 else ''})"))
     limit = limit or MAX_SEITEN[art]
+    skipped = frozenset()
     if len(seiten) > limit:
         key = None if as_it_is else layout_confirmed.key(pdf, "seiten", limit + 1)
-        befunde.append(_over_limit(art, len(seiten), limit, as_it_is, cut, key))
+        if art == "lebenslauf" and offer is not None and not as_it_is:
+            over = _cv_over_limit(pdf, len(seiten), limit, key, offer)
+            befunde.append(over)
+            # the last page is the one being cut away: its fill waits until the CV keeps its limit (G92)
+            skipped = frozenset({"fuellung"}) if over.kuerzen else skipped
+        else:
+            befunde.append(_over_limit(art, len(seiten), limit, as_it_is, cut, key))
     if PLATZHALTER.search(text):
         befunde.append(Befund(content_stufe, f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
     if not as_it_is:
-        befunde += layout_findings(pdf, art, headings)
+        befunde += layout_findings(pdf, art, headings, skipped)
     return befunde
 
 
@@ -242,8 +275,9 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
     quelle = unterlagen.letter_source(daten, bewerbung["id"])
     cv = unterlagen.tailored_cv(daten, bewerbung)
     headings = _own_headings(cv)
-    befunde = pruefe_pdf(pfade["lebenslauf"], "lebenslauf", as_it_is=as_it_is, limit=page_limit.load(daten),
-                         cut=lambda: cuts.for_cv(cv), headings=headings)
+    offer = (lambda limit: cut_choice.offer(daten, bewerbung, limit)) if unterlagen.cuts_apply(daten, bewerbung) else None
+    befunde = pruefe_pdf(pfade["lebenslauf"], "lebenslauf", as_it_is=as_it_is,
+                         limit=cv_cuts.pages(daten, bewerbung["id"]), headings=headings, offer=offer)
     if pfade["anschreiben"].is_file() or quelle.is_file():
         befunde += pruefe_pdf(pfade["anschreiben"], "anschreiben", as_it_is=letter_as_it_is,
                               cut=lambda: cuts.for_letter(_letter_text(quelle)))
