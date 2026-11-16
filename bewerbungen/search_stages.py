@@ -7,6 +7,8 @@ erweiterung/tests/fixtures/run-size.json keeps the two counts equal.
 """
 import math
 
+from amount_text import minutes_text
+
 STAGE_SIZE = 30  # searches per portal in a row, then the longer pause
 STAGE_PAUSE_SECONDS = 60
 STAGE_PAUSE_WORDS = "einer Minute"  # STAGE_PAUSE_SECONDS in the announcement
@@ -14,7 +16,7 @@ STAGE_PAUSE_WORDS = "einer Minute"  # STAGE_PAUSE_SECONDS in the announcement
 SECONDS_PER_SEARCH = 5
 APPRENTICESHIP_PORTALS = frozenset({"LENA", "yousty"})
 PLACE_FIELDS = {"jobs.ch": "orte", "jobscout24": "plz", "ictjobs": "regionen"}  # as PLACE in queries.js
-ANNOUNCEMENT = ("Diese Suche dauert etwa {minutes} Minuten: {searches} Suchen in {stages} Etappen, mit je {pause} Pause "
+ANNOUNCEMENT = ("Diese Suche dauert etwa {minutes}: {searches} Suchen in {stages} Etappen, mit je {pause} Pause "
                 "dazwischen. Viele neue Inserate machen sie länger.")
 
 
@@ -50,7 +52,7 @@ def size(plan: dict) -> dict:
     searches, pauses = sum(per_portal.values()), sum(max(0, count - 1) for count in stages.values())
     minutes = math.ceil((searches * SECONDS_PER_SEARCH + pauses * STAGE_PAUSE_SECONDS) / 60)
     long = pauses > 0
-    text = ANNOUNCEMENT.format(minutes=minutes, searches=searches, stages=sum(stages.values()),
+    text = ANNOUNCEMENT.format(minutes=minutes_text(minutes), searches=searches, stages=sum(stages.values()),
                                pause=STAGE_PAUSE_WORDS) if long else ""
     return {"suchen": searches, "etappen": sum(stages.values()), "minuten": minutes, "lang": long, "text": text,
             "pro_portal": per_portal}

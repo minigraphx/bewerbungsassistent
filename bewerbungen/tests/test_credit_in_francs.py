@@ -209,7 +209,7 @@ def test_the_words_of_alle_pruefen_are_in_francs_and_say_guthaben():
 def test_a_charged_check_of_the_terms_names_francs_with_the_mediation(monkeypatch):
     import routes_terms
     via_mediation(monkeypatch, {"credit_chf": 5.0, "spent_chf": 0})
-    assert routes_terms.charged(0.05) == "Berechnet: 0.05 CHF."
+    assert routes_terms.charged(0.05) == "Berechnet: CHF\u00a00.05."
 
 
 def test_a_used_up_credit_is_named_before_alle_pruefen_and_not_counted_as_enough_for_none():

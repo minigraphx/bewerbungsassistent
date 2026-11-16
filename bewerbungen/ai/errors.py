@@ -4,6 +4,8 @@ import re
 
 import anthropic
 
+from amount_text import seconds_text
+
 log = logging.getLogger("bewerbungsbegleiter")
 
 
@@ -37,7 +39,7 @@ NO_CREDIT = ("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüss
              "Sonst bitte später nochmals versuchen.")
 CREDIT_USED = ("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
                "Einstellungen, KI und Guthaben einlösen. Alles andere funktioniert weiterhin.")
-RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} Sekunden nochmals versuchen."
+RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} nochmals versuchen."
 TIMEOUT = "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen."
 OFFLINE = "Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?"
 SERVER = "Bei der KI ist gerade ein Fehler aufgetreten. Bitte später nochmals versuchen."
@@ -62,7 +64,7 @@ def from_sdk(error: Exception) -> AiError:
         return AiError(ACCESS_DENIED)
     if isinstance(error, anthropic.RateLimitError):
         seconds = _retry_after(error)
-        return AiError(RATE_LIMITED.format(seconds=seconds), retry_after=seconds)
+        return AiError(RATE_LIMITED.format(seconds=seconds_text(seconds)), retry_after=seconds)
     if isinstance(error, anthropic.APIStatusError):
         if error.status_code == CREDIT_STATUS:
             return AiError(CREDIT_USED)
