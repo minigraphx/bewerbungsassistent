@@ -219,7 +219,9 @@ def test_only_changes_that_hold_come_back_with_evidence_counted_by_the_app(job_s
     first = answer["aenderungen"][0]
     assert first["beleg"]["anzahl"] == 15 and first["beleg"]["unter"] == 12 and first["zu_allgemein"]
     assert first["grund"] == "Bringt viele Industriestellen."
-    assert answer["grenzen"]["zeile"] == "Danach: 6 von 15 Suchbegriffen · bis 12 Suchen pro Portal"  # G43: no limit of searches
+    # G43: no limit of searches; #340: as parts, which the page joins with «·»
+    assert answer["grenzen"]["teile"] == ["Danach: 6 von 15 Suchbegriffen", "bis 12 Suchen pro Portal"]
+    assert "zeile" not in answer["grenzen"]
     assert "Engineer" not in answer["endstand"]["positiv"] and answer["entfaellt"] == ["Engineer"]
     assert profile_of(job_search) == before, "nothing changes without adoption"
     sent = json.dumps(ai.messages.calls, ensure_ascii=False)

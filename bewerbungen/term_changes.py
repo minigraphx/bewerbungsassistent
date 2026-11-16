@@ -25,7 +25,8 @@ OVER_KEYWORDS = "Mit dieser Auswahl wären es {count} Suchbegriffe, höchstens {
 OVER_TITLES = "Mit dieser Auswahl hätte «{area}» {count} Begriffe, höchstens {limit} gehen. Bitte weniger Änderungen anhaken."
 NO_TERMS_LEFT = "Danach stünde kein Suchbegriff mehr in der Suche. Bitte weniger Änderungen anhaken."
 # G43: every search runs, in stages; the line says how many there would be, no longer up to a limit.
-LIMITS_LINE = "Danach: {keywords} von {max_keywords} Suchbegriffen · bis {queries} Suchen pro Portal"
+# #340: two parts, which the page joins with «·» (seiten/dot-line.js).
+LIMITS_PARTS = ("Danach: {keywords} von {max_keywords} Suchbegriffen", "bis {queries} Suchen pro Portal")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -145,7 +146,8 @@ def places_factor(text: str) -> int:
 
 
 def limits(before: Terms, after: Terms, places: int) -> dict:
-    """The line about the limits, and why the choice cannot be taken over: only what goes over a limit and grows."""
+    """The parts of the line about the limits, and why the choice cannot be taken over: only what goes over a limit
+    and grows."""
     checks = (
         (len(after.keywords), len(before.keywords), search_plan.MAX_KEYWORDS,
          OVER_KEYWORDS.format(count=len(after.keywords), limit=search_plan.MAX_KEYWORDS)),
@@ -156,9 +158,9 @@ def limits(before: Terms, after: Terms, places: int) -> dict:
     blocked = next((message for count, earlier, limit, message in checks if count > limit and count > earlier), None)
     if not after.keywords:
         blocked = NO_TERMS_LEFT
-    line = LIMITS_LINE.format(keywords=len(after.keywords), max_keywords=search_plan.MAX_KEYWORDS,
-                              queries=len(after.keywords) * places)
-    return {"zeile": line, "gesperrt": blocked}
+    numbers = {"keywords": len(after.keywords), "max_keywords": search_plan.MAX_KEYWORDS,
+               "queries": len(after.keywords) * places}
+    return {"teile": [part.format(**numbers) for part in LIMITS_PARTS], "gesperrt": blocked}
 
 
 def chosen(changes: tuple[Change, ...], picked: object) -> tuple[Change, ...]:

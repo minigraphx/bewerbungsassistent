@@ -7,6 +7,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const Texte = require("../seiten/texte.js");
+const DotLine = require("../seiten/dot-line.js");
 
 const SEITEN = path.join(__dirname, "..", "seiten");
 const ESTIMATE = "/api/suchbegriffe/schaetzung";
@@ -183,6 +184,7 @@ async function ran(scripts, answers) {
   const window = {
     App: { el, holen, senden: holen, status: () => {}, textsatz: async () => "stelle-sie" },
     Texte,
+    DotLine,
     VerworfenWoerterLogik: { ausAdresse: () => null },
     addEventListener() {},
   };
@@ -295,13 +297,14 @@ const CHANGE = { nummer: 1, bereich_name: "Suchbegriffe", zu_allgemein: false, s
 const TERMS = { suchbegriffe: ["Python"], positiv: [], ausschluss: [] };
 const PROPOSAL = { vorschlag: "v1", aenderungen: [CHANGE], zusammenfassung: "Eine Änderung.", treffer: 40,
   seit: "2026-11-01", jetzt: TERMS, endstand: { ...TERMS, suchbegriffe: ["Python", "Trainer"] }, entfaellt: [],
-  grenzen: { zeile: "", gesperrt: null }, modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF",
+  grenzen: { teile: ["Danach: 2 von 15 Suchbegriffen", "bis 4 Suchen pro Portal"], gesperrt: null }, modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF",
   datum: "2026-11-16", runde: 1 };
 
-const footerOf = async proposal => (await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"], {
+const proposalPage = async proposal => ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"], {
   "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
   "/api/suchbegriffe/vorschlag": proposal, [ESTIMATE]: MEDIATION,
-})).$("fuss");
+});
+const footerOf = async proposal => (await proposalPage(proposal)).$("fuss");
 
 const isEl = n => n instanceof FakeElement;
 const shownText = n => (isEl(n) ? (n.className === "visually-hidden" ? "" : n.children.map(shownText).join("")) : n.data);
@@ -343,4 +346,47 @@ test("the meta of the footer stands on a line of its own, after the sentence and
   const rule = css.split("\n").find(line => line.startsWith(".ai-result__meta {"));
   assert.ok(rule, ".ai-result__meta has its rule in stil.css");
   assert.match(rule, /display: block;/);
+});
+
+// #340: every «·» line of the card is drawn by the shared helper, so none starts a line with «·»
+function assertDotLine(line, words) {
+  const parts = line.children.filter(isEl);
+  assert.ok(parts.length === words.length && parts.every(n => n.className === "whole-part"), "the line holds only whole parts");
+  assert.deepEqual(line.children.filter(n => !isEl(n)).map(n => n.data), words.slice(1).map(() => " "),
+    "a plain space between two parts is the only place a line may break");
+  assert.deepEqual(parts.map(shownText), words.map((word, i) => (i < words.length - 1 ? `${word}\u00a0·` : word)),
+    "the «·» sits inside the part before it, after a no-break space");
+  assert.equal(heardText(line), words.join(", "), "screen readers hear the parts in order, with commas");
+}
+
+test("the heading is a «·» line of whole parts, and its accessible name has a comma instead of «·»", async () => {
+  const page = await proposalPage(PROPOSAL);
+  assertDotLine(page.$("vorschlag-kopf"), ["Vorschlag der KI", "1 Änderung"]);
+  assert.equal(heardText(page.$("vorschlag-kopf")), "Vorschlag der KI, 1 Änderung");
+  const two = await proposalPage({ ...PROPOSAL, aenderungen: [CHANGE, { ...CHANGE, nummer: 2 }] });
+  assertDotLine(two.$("vorschlag-kopf"), ["Vorschlag der KI", "2 Änderungen"]);
+});
+
+test("the round line of a second proposal is a «·» line of whole parts; the first has none", async () => {
+  const second = await proposalPage({ ...PROPOSAL, runde: 2, kosten_bisher: 0.06 });
+  assert.equal(second.$("runde").hidden, false);
+  assertDotLine(second.$("runde"), ["Vorschlag 2", "nach Ihrem Hinweis"]);
+  const first = await proposalPage(PROPOSAL);
+  assert.equal(first.$("runde").hidden, true);
+  assert.deepEqual(first.$("runde").children, []);
+});
+
+test("the limits line is a «·» line of whole parts, also after a change is unticked", async () => {
+  const page = await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"], {
+    "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
+    "/api/suchbegriffe/vorschlag": PROPOSAL, [ESTIMATE]: MEDIATION,
+    "/api/suchbegriffe/endstand": { endstand: TERMS, entfaellt: [],
+      grenzen: { teile: ["Danach: 1 von 15 Suchbegriffen", "bis 2 Suchen pro Portal"], gesperrt: "Mindestens eine Änderung anhaken." } },
+  });
+  assertDotLine(page.$("grenzen"), ["Danach: 2 von 15 Suchbegriffen", "bis 4 Suchen pro Portal"]);
+  const box = page.$("aenderungen").children[0].children.find(n => isEl(n) && n.tagName === "LABEL").children[0];
+  box.checked = false;
+  for (const handler of box.listeners.change) handler();
+  await settled();
+  assertDotLine(page.$("grenzen"), ["Danach: 1 von 15 Suchbegriffen", "bis 2 Suchen pro Portal"]);
 });

@@ -106,7 +106,7 @@ code, pre { font-family: var(--font-mono); }
 .num, td.zahl { font-variant-numeric: tabular-nums; }
 .muted, .leise, p.hilfe { color: var(--text-muted); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-/* #337: a part of a «·» line breaks to the next line only as a whole, with the «·» it carries */
+/* #337, #340: a part of a «·» line (dot-line.js) breaks to the next line only as a whole, with the «·» it carries */
 .whole-part { display: inline-block; max-width: 100%; }
 
 /* ---------- Layout ---------- */

@@ -96,7 +96,8 @@
     return `${gewaehlt} von ${alle} übernehmen`;
   }
 
-  const kopf = anzahl => `Vorschlag der KI · ${anzahl === 1 ? "1 Änderung" : `${anzahl} Änderungen`}`;
+  /** The heading as parts, which the page joins with «·» (#340); its accessible name then reads with a comma. */
+  const kopfTeile = anzahl => ["Vorschlag der KI", anzahl === 1 ? "1 Änderung" : `${anzahl} Änderungen`];
 
   /** The marks of a change: what goes with „entfällt“, what comes with „neu“; the word carries the meaning, not the colour. */
   const marken = aenderung => [
@@ -114,7 +115,8 @@
       .filter(Boolean);
   }
 
-  const runde = (vorschlag, satz) => (vorschlag.runde > 1 ? `Vorschlag ${vorschlag.runde} · ${texte(satz).nachHinweis}` : "");
+  /** The round line as parts (#340); the first proposal has none. */
+  const rundeTeile = (vorschlag, satz) => (vorschlag.runde > 1 ? [`Vorschlag ${vorschlag.runde}`, texte(satz).nachHinweis] : []);
 
   /** The terms after the ticked changes, each with „neu“ if it was not there before. */
   function endstand(jetzt, danach) {
@@ -126,7 +128,7 @@
   }
 
   const api = { texte, datum, geld, lockCheckLink, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
-    belegAusAdresse, hauptknopf, kopf, marken, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, runde, endstand };
+    belegAusAdresse, hauptknopf, kopfTeile, marken, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, rundeTeile, endstand };
   if (typeof module !== "undefined") module.exports = api;
   else root.SuchbegriffeLogik = api;
 })(typeof window !== "undefined" ? window : globalThis);

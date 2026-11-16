@@ -67,6 +67,7 @@ SEITEN = {
     "/stil.css": "stil.css",
     "/app.js": "app.js",
     "/meldungen.js": "meldungen.js",
+    "/dot-line.js": "dot-line.js",
     "/uebersicht.js": "uebersicht.js",
     "/uebersicht-logik.js": "uebersicht-logik.js",
     "/sidebar.js": "sidebar.js",

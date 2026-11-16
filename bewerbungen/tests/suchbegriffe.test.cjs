@@ -53,3 +53,11 @@ test("Sie and du, costs never under a cent", () => {
   assert.deepEqual(L.fussTeile({ kosten_usd: 0.02, waehrung: "CHF", datum: "2026-11-16", runde: 1 }), ["CHF\u00a00.02", "16.11.2026"],
     "without a model no empty part");
 });
+
+test("the heading and the round line come as parts, so the page can glue each «·» to the part before it (#340)", () => {
+  assert.deepEqual(L.kopfTeile(1), ["Vorschlag der KI", "1 Änderung"]);
+  assert.deepEqual(L.kopfTeile(5), ["Vorschlag der KI", "5 Änderungen"]);
+  assert.deepEqual(L.rundeTeile({ runde: 2 }, "stelle-sie"), ["Vorschlag 2", "nach Ihrem Hinweis"]);
+  assert.deepEqual(L.rundeTeile({ runde: 3 }, "stelle-du"), ["Vorschlag 3", "nach deinem Hinweis"]);
+  assert.deepEqual(L.rundeTeile({ runde: 1 }, "stelle-sie"), [], "the first proposal has no round line");
+});
