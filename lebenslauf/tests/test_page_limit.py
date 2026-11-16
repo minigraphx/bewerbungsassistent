@@ -139,18 +139,18 @@ def test_only_two_or_three_cv_pages_can_be_asked_for(tmp_path):
 
 def test_the_cuts_of_a_cv_name_the_stations_with_the_most_points_first():
     cv = cv_of_length(9)  # two stations of three points and one of one point
-    named = cuts.for_cv(cv)
-    assert named[0] == "Stichpunkte bei «Projektleiterin Daten 0, Muster Informatik 0 AG» (3)"
-    assert named[1] == "Stichpunkte bei «Projektleiterin Daten 1, Muster Informatik 1 AG» (3)"
+    named = [option.text for option in cuts.options(cv)]
+    assert named[0] == "2 Stichpunkte bei «Projektleiterin Daten 0, Muster Informatik 0 AG» (2000–2001)"
+    assert named[1] == "2 Stichpunkte bei «Projektleiterin Daten 1, Muster Informatik 1 AG» (2001–2002)"
     assert all("Daten 99" not in entry for entry in named), "a single point is no cut worth naming"
 
 
 def test_the_cuts_of_a_cv_name_optional_sections_it_has():
     cv = example_cv()
-    named = cuts.for_cv(cv)
+    named = [option.text for option in cuts.options(cv)]
     assert "Abschnitt «Weitere Projekte»" in named
     assert len(named) <= cuts.MAX_NAMED
-    assert cuts.for_cv({"basics": {"name": "Erika Beispiel"}}) == []
+    assert cuts.options({"basics": {"name": "Erika Beispiel"}}) == []
 
 
 def test_the_cut_of_a_letter_names_its_longest_paragraph():

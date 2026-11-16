@@ -11,9 +11,10 @@ import yaml
 import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
+import cuts
+import cv_cuts
 import cv_design
 import dossier as dossier_modul
-import page_limit
 import photo_shown
 from dateien import im_ordner
 from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
@@ -120,44 +121,64 @@ def wirksame_pdfs(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Pat
     return {art: gilt(art, gebaut) for art, gebaut in pdf_pfade(daten, bewerbung["id"]).items()}
 
 
-def _cv_options(daten: pathlib.Path) -> list[str]:
-    """The pages the CV may have (G51), as the person chose under Einstellungen > Erweitert, and without the photo
-    where the person turned off „Im Lebenslauf zeigen“ (G62). Read at each build, so only new documents follow."""
-    return ["--lebenslauf-seiten", str(page_limit.load(daten)), *photo_shown.build_arguments(daten)]
+def _cv_options(daten: pathlib.Path, bewerbung: dict) -> list[str]:
+    """The pages the CV may have (G51), as the person chose under Einstellungen > Erweitert or for this application
+    (G92), what this application leaves out (G92), and without the photo where the person turned off „Im Lebenslauf
+    zeigen“ (G62). Read at each build, so only new documents follow."""
+    entry_id = bewerbung["id"]
+    return ["--lebenslauf-seiten", str(cv_cuts.pages(daten, entry_id)), *cv_cuts.build_arguments(daten, entry_id),
+            *photo_shown.build_arguments(daten)]
 
 
-def tailored_cv(daten: pathlib.Path, bewerbung: dict) -> dict:
-    """The CV as built for this application, tailored to its variant; empty when it cannot be read."""
+def cuts_apply(daten: pathlib.Path, bewerbung: dict) -> bool:
+    """Whether the CV of this application is built from the data, so cuts can go over it (G92); not for an own PDF
+    or a variant that is a finished file."""
+    if eigener_lebenslauf(daten, bewerbung) or bewerbung.get("versand"):
+        return False
+    if not bewerbung.get("variante"):
+        return True
+    try:
+        return bool(Varianten(daten).hole(bewerbung["variante"]).get("quelle"))
+    except (KeyError, ValueError):
+        return False
+
+
+def tailored_cv(daten: pathlib.Path, bewerbung: dict, with_cuts: bool = True) -> dict:
+    """The CV as built for this application, tailored to its variant and, unless asked not to, without what the
+    application leaves out (G92); empty when it cannot be read."""
     try:
         cv = yaml.safe_load((daten / "cv.yaml").read_text(encoding="utf-8"))
         variante = Varianten(daten).hole(bewerbung["variante"]) if bewerbung.get("variante") else {}
-        if not variante.get("quelle"):
-            return cv if isinstance(cv, dict) else {}
-        job = yaml.safe_load(im_ordner(daten, variante["quelle"]).read_text(encoding="utf-8"))
-        return lebenslauf_modul.waehle_sprache(tailor(cv, job), variante.get("sprache") or "de")
+        if not isinstance(cv, dict):
+            return {}
+        # like the build: without a variant the whole CV in German (build.py), else as the variant says
+        job = yaml.safe_load(im_ordner(daten, variante["quelle"]).read_text(encoding="utf-8")) if variante.get("quelle") else None
+        tailored = lebenslauf_modul.waehle_sprache(tailor(cv, job), variante.get("sprache") or "de")
     except (OSError, yaml.YAMLError, KeyError, ValueError, TypeError, AttributeError):
         return {}
+    stored = cv_cuts.load(daten, bewerbung["id"]) if with_cuts else {}
+    return cuts.apply(tailored, stored) if stored else tailored
 
 
-def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], build: pathlib.Path, ziel: pathlib.Path) -> None:
+def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], options: list[str], build: pathlib.Path,
+                            ziel: pathlib.Path) -> None:
     """Variants come from Claude or „Lebenslauf erstellen“ (G17); without any the whole CV is built. With variants, the person chooses."""
     if Varianten(daten).alle():
         raise ValueError(CHOOSE_VARIANT)
     if not (daten / "cv.yaml").is_file():
         raise ValueError(NO_CV)
-    lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *_cv_options(daten), "--build-dir", str(build),
-                           "-o", str(ziel)])
+    lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *options, "--build-dir", str(build), "-o", str(ziel)])
 
 
 def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, ziel: pathlib.Path) -> None:
     design = cv_design.theme_arguments(cv_design.for_application(daten, bewerbung))  # G61, resolved at each build
     if not bewerbung.get("variante"):
-        return _baue_ganzen_lebenslauf(daten, design, build, ziel)
+        return _baue_ganzen_lebenslauf(daten, design, _cv_options(daten, bewerbung), build, ziel)
     variante = Varianten(daten).hole(bewerbung["variante"])
     if variante.get("quelle"):
         lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(im_ordner(daten, variante["quelle"])),
-                               "--lang", variante["sprache"], *design, *_cv_options(daten), "--build-dir", str(build),
-                               "-o", str(ziel)])
+                               "--lang", variante["sprache"], *design, *_cv_options(daten, bewerbung),
+                               "--build-dir", str(build), "-o", str(ziel)])
     elif variante.get("datei"):
         shutil.copyfile(im_ordner(daten, variante["datei"]), ziel)
     elif not ziel.is_file():
@@ -208,7 +229,7 @@ def _baue_dossier(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> 
         pages = build / f"{bewerbung['id']}-{DOSSIER_PAGES}"
         pages.write_text("{}\n", encoding="utf-8")
     result = dossier_modul.main([str(pages), *cv, "--brief", str(letter), *_design_arguments(bewerbung),
-                                 *_cv_options(daten), "--build-dir", str(build), "--out-dir", str(folder)])
+                                 *_cv_options(daten, bewerbung), "--build-dir", str(build), "--out-dir", str(folder)])
     return {"lebenslauf": result.cv, "anschreiben": result.letter, DOSSIER: result.dossier}
 
 

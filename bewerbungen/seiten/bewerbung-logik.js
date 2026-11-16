@@ -19,6 +19,8 @@
   const hinweise = befunde => (befunde || []).filter(b => b.stufe === "hinweis").length;
   /** Layout breaches the person has not confirmed yet (G52): until then no form opens. */
   const offen = befunde => (befunde || []).filter(b => b.schluessel && !b.bestaetigt).length;
+  /** A CV over its limit (G92): cut or allowed three pages, never confirmed as it is. */
+  const zuLang = befunde => (befunde || []).some(b => b.kuerzen && !b.bestaetigt);
   const BESTAETIGEN = "So lassen";
   /** Both files are built and, with a dossier chosen (G40), the dossier too. */
   function gebaut(daten) {
@@ -28,13 +30,18 @@
 
   function pruefenMeta(befunde) {
     if (fehler(befunde)) return `${fehler(befunde)} Fehler`;
+    if (zuLang(befunde)) return "Lebenslauf zu lang";
     if (offen(befunde)) return `${offen(befunde)} ${offen(befunde) === 1 ? "Meldung" : "Meldungen"} bestätigen`;
     if (hinweise(befunde)) return `${hinweise(befunde)} ${hinweise(befunde) === 1 ? "Hinweis" : "Hinweise"}`;
     return "in Ordnung";
   }
 
-  /** One finding of the check as a line: { text, stufe, knopf } — knopf confirms a layout breach (G52). */
+  /**
+   * One finding of the check as a line: { text, stufe, knopf } — knopf confirms a layout breach (G52). A CV over its
+   * limit brings `kuerzen` instead, the cuts to tick (G92, kuerzen.js).
+   */
   function befundZeile(b) {
+    if (b.kuerzen && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: null, kuerzen: b.kuerzen };
     if (b.schluessel && b.bestaetigt) return { text: `${b.text} Bestätigt: so lassen.`, stufe: "ok", knopf: null };
     return { text: b.text, stufe: b.stufe, knopf: b.schluessel ? BESTAETIGEN : null };
   }
@@ -96,7 +103,8 @@
       case "pruefen":
         if (!gebaut(daten)) return { art: "erstellen", ziel: "s-pruefen" };
         if (befunde === null) return { art: "pruefen", ziel: "s-pruefen" };
-        return { art: fehler(befunde) ? "klaeren" : "bestaetigen", ziel: "s-pruefen" };
+        if (fehler(befunde)) return { art: "klaeren", ziel: "s-pruefen" };
+        return { art: zuLang(befunde) ? "kuerzen" : "bestaetigen", ziel: "s-pruefen" };
       case "abschicken": return { art: b.formular_link || b.link ? "formular" : "versand", ziel: "s-abschicken" };
       case "festhalten":
         if (b.versand) return { art: "jobroom", ziel: "s-festhalten" };

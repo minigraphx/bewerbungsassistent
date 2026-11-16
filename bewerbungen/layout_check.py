@@ -62,6 +62,27 @@ def check(pdf: pathlib.Path, part: str, headings: Iterable[str] = ()) -> list[Br
     return found
 
 
+def lines_beyond(pdf: pathlib.Path, limit: int) -> int:
+    """About how many lines a document has on the pages beyond `limit` (G92): the content lines there, header and
+    footer aside, one per baseline; text at the same height, side by side in two columns, counts once. With the type
+    area the build stored, header and footer are what lies outside it; without, the text that recurs (_content), which
+    can also take out list lines alike but for their digits."""
+    pages = pdf_boxes.read(pdf)
+    areas = type_area.read(pdf)
+    if areas:
+        content = [box for page in pages if page.number > limit for box in page.text
+                   if page.number in areas and _in_area(box, areas[page.number])]
+    else:
+        content = [box for box in _content(pages) if box.page > limit]
+    baselines = sorted({(box.page, round(box.baseline)) for box in content})
+    lines, last = 0, None
+    for page, baseline in baselines:
+        if last is None or page != last[0] or baseline - last[1] > POSITION_TOLERANCE:
+            lines += 1
+        last = (page, baseline)
+    return lines
+
+
 def _shown(text: str) -> str:
     text = " ".join(text.split())
     return text if len(text) <= SHOWN_CHARACTERS else text[:SHOWN_CHARACTERS - 1] + "…"
@@ -143,6 +164,14 @@ def _in_margin(box: pdf_boxes.Box, area: dict) -> bool:
     return (left < area["left"] - MARGIN_TOLERANCE or right > area["width"] - area["right"] + MARGIN_TOLERANCE
             or top < area["top"] - MARGIN_TOLERANCE
             or (bottom > content_bottom + MARGIN_TOLERANCE and not in_footer))
+
+
+def _in_area(box: pdf_boxes.Box, area: dict) -> bool:
+    """Whether the baseline of `box` lies in the content area of its page, above the footer."""
+    bottom = area["height"] - area["bottom"]
+    if area["footer"] is not None:
+        bottom = min(bottom, area["footer"])
+    return area["top"] - MARGIN_TOLERANCE <= box.baseline <= bottom + MARGIN_TOLERANCE
 
 
 def _core(box: pdf_boxes.Box) -> tuple[float, float, float, float]:

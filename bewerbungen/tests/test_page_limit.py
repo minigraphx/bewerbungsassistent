@@ -111,9 +111,9 @@ def test_a_built_cv_over_two_pages_is_named_with_what_could_be_cut(datenordner, 
     found = [f for f in pruefung.pruefe(datenordner, entry, TODAY) if "erlaubt sind höchstens 2" in f.text]
 
     assert len(found) == 1, [f.text for f in pruefung.pruefe(datenordner, entry, TODAY)]
-    assert found[0].text.startswith("Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch enger gesetzt passt er nicht.")
-    assert "Kürzen lässt sich: Stichpunkte bei «Software-Entwicklerin, Beispiel AG» (" in found[0].text
-    assert "«Einstellungen», «Erweitert»" in found[0].text
+    assert found[0].text.startswith("Lebenslauf: 3 Seiten, erlaubt sind höchstens 2. Auch enger gesetzt")
+    assert found[0].kuerzen["optionen"][0]["text"].endswith("bei «Software-Entwicklerin, Beispiel AG» (2019–heute)")
+    assert found[0].kuerzen["drei_seiten"] is True  # G92: for this application, not under «Erweitert»
 
 
 def test_with_three_pages_allowed_a_three_page_cv_is_fine(datenordner, tmp_path, monkeypatch):

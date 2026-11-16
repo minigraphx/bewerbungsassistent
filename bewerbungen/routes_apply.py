@@ -25,6 +25,7 @@ TOO_MANY = f"Pro Durchgang gehen höchstens {apply.MAX_PER_RUN} Bewerbungen."
 NONE_CHOSEN = "Bitte zuerst Bewerbungen ankreuzen."
 BAD_STATE = "Dieser Stand ist unbekannt."
 CONFIRM_FIRST = "Bitte zuerst unter «Unterlagen erstellen und prüfen» ansehen und mit «So lassen» bestätigen."
+CUT_FIRST = "Bitte zuerst unter «Unterlagen erstellen und prüfen» kürzen oder drei Seiten erlauben."  # G92
 
 
 def _body_id(body) -> str:
@@ -47,8 +48,10 @@ def _problem(k, entry: dict) -> str | None:
     errors = [b.text for b in findings if b.stufe == "fehler"]
     if errors:
         return f"Prüfung: {errors[0]}"
-    open_ = [b.text for b in findings if b.schluessel and not b.bestaetigt]
-    return f"Prüfung: {open_[0]} {CONFIRM_FIRST}" if open_ else None
+    open_ = [b for b in findings if b.schluessel and not b.bestaetigt]
+    if not open_:
+        return None
+    return f"Prüfung: {open_[0].text} {CUT_FIRST if open_[0].kuerzen else CONFIRM_FIRST}"
 
 
 def _chosen_ids(body) -> list[str]:

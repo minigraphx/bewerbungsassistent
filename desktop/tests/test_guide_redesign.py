@@ -142,4 +142,7 @@ def test_the_pictures_say_what_they_show_today():
     check = body("Stellen suchen und bewerben", 3)
     assert "](bilder/pruefung.jpg)" in check and "**So lassen**" in check
     picture = check.split("](bilder/pruefung.jpg)", 1)[0].rsplit("![", 1)[1]
-    assert "Lebenslauf: 3 Seiten" in picture and "So lassen" in picture
+    # G92, #323: a CV too long shows cuts to tick instead of So lassen
+    assert "Lebenslauf: 3 Seiten" in picture and "Gekürzt neu erstellen" in picture
+    assert "Drei Seiten erlauben" in picture and "So lassen" not in picture
+    assert "**Gekürzt neu erstellen**" in check and "**Zurückholen**" in check
