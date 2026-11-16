@@ -274,6 +274,14 @@ def test_the_overview_names_count_and_cost_before_the_run_without_calling_the_ai
     assert ai.messages.calls == []
 
 
+def test_the_overview_names_what_the_profile_excludes_so_shown_proposals_follow_other_cards(job_search, ai):
+    answer = propose(job_search)
+    post(job_search, f"{ROUTE}/uebernehmen", {"vorschlag": answer["vorschlag"], "nummer": 1})
+    found = overview(job_search)
+    assert found["vorhanden"]["ausschluss"] == [*search_frame.values(JOB)["ausschluss"], "Detailhandel"]
+    assert found["vorhanden"]["titel_ausschluss"] == list(search_plan.title_terms(JOB, "ausschluss"))
+
+
 def test_the_overview_names_the_credit_of_the_code(job_search, ai, monkeypatch):
     monkeypatch.setattr(routes_rate_all, "credit_left", lambda: 0.0)
     found = overview(job_search)
@@ -291,6 +299,8 @@ def test_too_few_dismissed_hits_show_an_empty_state_and_never_call_the_ai(job_se
     Hits(job_search.kontext.daten)._write(FIELD[:2] + NOT_SENT)
     found = overview(job_search)
     assert found["verfuegbar"] and found["anzahl"] == 2 and "kosten" not in found
+    assert found["vorhanden"] == {"titel_ausschluss": list(search_plan.title_terms(JOB, "ausschluss")),
+                                  "ausschluss": search_frame.values(JOB)["ausschluss"]}
     status, answer = post(job_search, f"{ROUTE}/vorschlag", {})
     assert status == 400 and "3" in answer["fehler"]
     assert ai.messages.calls == []

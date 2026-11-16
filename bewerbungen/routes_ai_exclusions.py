@@ -2,7 +2,7 @@
 
 `GET /api/suche/ki-ausschluesse` names how many dismissed hits would go and what the call costs, in the currency and
 with the credit of „Alle prüfen“ (G44, G46, G80), and calls no AI; below three dismissed hits it names only the count,
-so the page shows its empty state. `…/text` shows the text with placeholders without sending it (G15). A proposal lives
+so the page shows its empty state. It also names what the profile excludes, so proposals already shown follow it. `…/text` shows the text with placeholders without sending it (G15). A proposal lives
 only while the app runs (`k.cache`): the page refers to it by its id and number, so nothing the page sends becomes an
 entry. Adopting writes through `routes_adopt_exclusion.add_entry`, with drafts before and after; Rückgängig takes out
 exactly that entry again. Neither the extension nor Claude reach the routes: they are not listed in
@@ -84,7 +84,11 @@ def overview(k, parameter, body):
     if text is None:
         return json_antwort({"verfuegbar": False})
     hits = _dismissed(k, text)
-    found = {"verfuegbar": True, "anzahl": len(hits), "mindestens": exclusion_reasons.MIN_DISMISSED}
+    frame = _frame(text)
+    # What the profile excludes now, so proposals still shown follow an entry another card added or removed.
+    present = {rating_exclusion.TITLE: list(frame.titles), rating_exclusion.AD: list(frame.ads)}
+    found = {"verfuegbar": True, "anzahl": len(hits), "mindestens": exclusion_reasons.MIN_DISMISSED,
+             "vorhanden": present}
     if len(hits) < exclusion_reasons.MIN_DISMISSED:
         return json_antwort(found)
     money = routes_rate_all.priced(exclusion_reasons.estimate_usd(_preview(k, hits)), with_credit=True)

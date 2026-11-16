@@ -87,10 +87,14 @@
 .ai-exclusion { display: grid; gap: var(--space-1); padding: var(--space-3); border: 1px solid var(--line); border-radius: 8px; }
 .ai-exclusion p { margin: 0; }
 .ai-exclusion__value { font-size: 16px; line-height: 22px; color: var(--text-strong); }
-.ai-exclusion__basis { font-weight: 700; margin-top: var(--space-1); }
+.ai-exclusion__basis { font-weight: 500; margin-top: var(--space-1); }
 .ai-exclusion__hits { margin: 0; padding-left: var(--space-4); color: var(--text-muted); overflow-wrap: anywhere; }
 .ai-exclusion .btn-row, .ai-exclusion__feedback { margin-top: var(--space-1); }
 .ai-exclusion__feedback { display: grid; gap: var(--space-1); }
+/* The entry is in the profile: a light success background, the text stays in the strong text colour for contrast. */
+.ai-exclusion__feedback--da { padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--success-bg); color: var(--text-strong); }
+/* An empty status line takes no room; it stays rendered so the live region keeps announcing. */
+.ai-exclusions > .status:empty, .card > #nicht-meldung:empty { min-height: 0; }
 
 @media (max-width: 480px) {
   .exclusion-point .btn, .ai-exclusions .btn { min-height: 44px; }

@@ -54,8 +54,16 @@
     },
     // Exclusion reasons from dismissed hits by the AI (#319, G86); jobs only
     "einstellen.ki-ausschluesse": {
-      sie: "Die KI sucht in den {anzahl} Stellen, die Sie verworfen haben, nach gemeinsamen Gründen, etwa Pensum, Branche, Arbeitsort oder Wörter im Titel. Ins Suchprofil kommt nur, was Sie übernehmen.",
-      du: "Die KI sucht in den {anzahl} Stellen, die du verworfen hast, nach gemeinsamen Gründen, etwa Pensum, Branche, Arbeitsort oder Wörter im Titel. Ins Suchprofil kommt nur, was du übernimmst.",
+      sie: "Die KI sucht in den {anzahl} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst, nach gemeinsamen Gründen, etwa Pensum, Branche, Arbeitsort oder Wörter im Titel. Ins Suchprofil kommt nur, was Sie übernehmen.",
+      du: "Die KI sucht in den {anzahl} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst, nach gemeinsamen Gründen, etwa Pensum, Branche, Arbeitsort oder Wörter im Titel. Ins Suchprofil kommt nur, was du übernimmst.",
+    },
+    "einstellen.ki-ausschluesse-rest": {
+      sie: "Die Vorschläge unten können Sie weiter übernehmen oder zurücknehmen. Neue gibt es wieder ab {mindestens} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst.",
+      du: "Die Vorschläge unten kannst du weiter übernehmen oder zurücknehmen. Neue gibt es wieder ab {mindestens} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst.",
+    },
+    "einstellen.ki-ausschluesse-was": {
+      sie: "Nur Titel, Firma, Ort und Pensum der verworfenen Stellen. Kein Lebenslauf, kein Suchprofil, nichts über Sie.",
+      du: "Nur Titel, Firma, Ort und Pensum der verworfenen Stellen. Kein Lebenslauf, kein Suchprofil, nichts über dich.",
     },
     "einstellen.ki-ausschluesse-leer": {
       sie: "Ab {mindestens} verworfenen Stellen kann die KI hier vorschlagen, was Sie künftig nicht mehr sehen wollen.",
