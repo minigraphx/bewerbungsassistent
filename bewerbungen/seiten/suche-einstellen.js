@@ -8,7 +8,6 @@
   const L = window.SuchbegriffeLogik;
   const $ = id => document.getElementById(id);
   const NICHTS = "Nichts angegeben";
-  const PRUEFEN_SEITE = "/suchbegriffe";
   const meldung = (inhalt, stufe) => status($("status"), inhalt, stufe);
   let ladeNummer = 0;
 
@@ -41,19 +40,7 @@
   function zeigeKosten(schaetzung, fehler) {
     const zeile = fehler ? { text: logik.estimateFailedText(fehler.message), usedUp: false } : logik.costLine(schaetzung);
     $("pruefen-kosten").replaceChildren(...(zeile.usedUp ? window.Texte.withCodeRequestLink(zeile.text, el) : [zeile.text]));
-    const knopf = $("pruefen-knopf");
-    // Locked, it keeps tabindex 0: a link without href leaves the tab order, and its reason would go unheard.
-    if (zeile.usedUp) {
-      knopf.removeAttribute("href");
-      knopf.setAttribute("role", "link");
-      knopf.setAttribute("aria-disabled", "true");
-      knopf.setAttribute("tabindex", "0");
-    } else {
-      knopf.setAttribute("href", PRUEFEN_SEITE);
-      knopf.removeAttribute("role");
-      knopf.removeAttribute("aria-disabled");
-      knopf.removeAttribute("tabindex");
-    }
+    L.lockCheckLink($("pruefen-knopf"), zeile.usedUp);
   }
 
   /** The check of the terms (G45, G15) with its cost; only a job search has it. */

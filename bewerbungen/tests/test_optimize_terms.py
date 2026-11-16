@@ -143,9 +143,17 @@ def test_the_hint_names_the_term_and_can_be_hidden(job_search):
     _, _, content = get(job_search, "/api/suchbegriffe/hinweis")
     answer = json.loads(content)
     assert answer["hinweis"]["begriff"] == "Engineer" and answer["hinweis"]["anzahl"] == 15
-    assert answer["kosten_usd"] >= 0.01 and answer["treffer"] == 40
+    assert answer["treffer"] == 40
     assert post(job_search, "/api/suchbegriffe/ausblenden", {"begriff": "Engineer"})[0] == 200
     assert json.loads(get(job_search, "/api/suchbegriffe/hinweis")[2])["hinweis"] is None
+
+
+def test_the_hint_names_no_amount_the_pages_price_it_with_the_estimate(job_search, monkeypatch):
+    """#334: the hint gave dollars with the currency of the way, so CHF stood beside a USD amount."""
+    monkeypatch.setattr(routes_terms, "currency_now", lambda: usage.MEDIATION_CURRENCY, raising=False)
+    answer = json.loads(get(job_search, "/api/suchbegriffe/hinweis")[2])
+    assert answer["verfuegbar"] is True and answer["hinweis"]["begriff"] == "Engineer"
+    assert not {"kosten_usd", "waehrung"} & answer.keys()
 
 
 ESTIMATE = "/api/suchbegriffe/schaetzung"

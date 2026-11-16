@@ -45,8 +45,26 @@
   }
 
   /** Never less than a cent: a call that costs less is still not free. CHF with the mediation (G46), counted 1:1. */
-  const geld = (betrag, waehrung = "USD") => `${Math.max(Number(betrag) || 0, 0.01).toFixed(2)} ${waehrung}`;
-  const schaetzung = (betrag, waehrung) => `Etwa ${geld(betrag, waehrung)}`;
+  const geld = (betrag, waehrung = "USD") => `${waehrung} ${Math.max(Number(betrag) || 0, 0.01).toFixed(2)}`;
+
+  const CHECK_PAGE = "/suchbegriffe";
+
+  /**
+   * The link to the check, locked while the credit is used up (#329, #334): opening the check sends at once. Locked, it
+   * keeps tabindex 0, since a link without href leaves the tab order and its reason would go unheard. Only the given
+   * element changes; `describedBy` names the line with the reason where the page does not already.
+   */
+  function lockCheckLink(link, locked, describedBy) {
+    const lock = { role: "link", "aria-disabled": "true", tabindex: "0",
+      ...(describedBy ? { "aria-describedby": describedBy } : {}) };
+    if (locked) {
+      link.removeAttribute("href");
+      for (const [name, value] of Object.entries(lock)) link.setAttribute(name, value);
+      return;
+    }
+    link.setAttribute("href", CHECK_PAGE);
+    for (const name of Object.keys(lock)) link.removeAttribute(name);
+  }
 
   function hinweisText(beleg) {
     const beispiele = beleg.beispiele.length ? `, zum Beispiel ${beleg.beispiele.join(", ")}` : "";
@@ -106,7 +124,7 @@
     }));
   }
 
-  const api = { texte, datum, geld, schaetzung, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
+  const api = { texte, datum, geld, lockCheckLink, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
     belegAusAdresse, hauptknopf, kopf, marken, uebernommen, RUECKGAENGIG_FERTIG, fuss, runde, endstand };
   if (typeof module !== "undefined") module.exports = api;
   else root.SuchbegriffeLogik = api;

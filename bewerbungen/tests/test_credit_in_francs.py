@@ -206,10 +206,6 @@ def test_the_words_of_alle_pruefen_are_in_francs_and_say_guthaben():
 
 # the other amounts of the mediation
 
-def test_the_estimate_of_the_terms_is_in_the_currency_of_the_way():
-    assert node("suchbegriffe-logik.js", "[L.schaetzung(0.2, 'CHF'), L.schaetzung(0.2)]") == ["Etwa 0.20 CHF", "Etwa 0.20 USD"]
-
-
 def test_a_charged_check_of_the_terms_names_francs_with_the_mediation(monkeypatch):
     import routes_terms
     via_mediation(monkeypatch, {"credit_chf": 5.0, "spent_chf": 0})

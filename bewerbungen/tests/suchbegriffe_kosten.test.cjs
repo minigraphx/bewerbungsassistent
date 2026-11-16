@@ -66,7 +66,7 @@ async function opened(answer) {
     "/api/suche/liste": { art: "stelle", einstellungen: { auto_bewerten: false, zuschauen: false }, grenze: 50, portale: [] },
     "/api/suche/rahmen": { pensum: "", ausschluss: [], titel_ausschluss: [], titel_positiv: [] },
     "/api/firmen/ausgeschlossen": { firmen: [] },
-    "/api/suchbegriffe/hinweis": { verfuegbar: true, hinweis: null, kosten_usd: 0.03, waehrung: "USD" },
+    "/api/suchbegriffe/hinweis": { verfuegbar: true, hinweis: null },
   };
   const window = {
     App: {
@@ -155,4 +155,136 @@ test("the link is described by the line", () => {
   const link = html.match(/<a [^>]*id="pruefen-knopf"[^>]*>/)[0];
   assert.match(link, /aria-describedby="pruefen-kosten"/);
   assert.match(html, /<span class="caption" id="pruefen-kosten">/);
+});
+
+// #334: the hint above the hit list and „Neu vorschlagen“ on /suchbegriffe priced the same way, from the estimate in
+// the currency of the way; the hint used to put a dollar amount beside CHF.
+const HINT = { verfuegbar: true, hinweis: { begriff: "Engineer", anzahl: 15, unter: 12, gesamt: 40, beispiele: [] },
+  treffer: 40, seit: "2026-11-01" };
+const MEDIATION = { ...OWN_KEY, waehrung: "CHF", guthaben: 4.25, danach: 4.22 };
+const NACHSATZ = "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was Sie übernehmen.";
+
+/** Runs `scripts` with the routes `answers` (an Error: the route refused) and a stand-in DOM; gives the elements. */
+async function ran(scripts, answers) {
+  const elements = new Map();
+  const doc = {
+    getElementById(id) {
+      if (!elements.has(id)) elements.set(id, el("div"));
+      return elements.get(id);
+    },
+    addEventListener() {},
+    dispatchEvent() {},
+  };
+  const holen = async route => {
+    if (!(route in answers)) throw new Error(`unexpected route ${route}`);
+    if (answers[route] instanceof Error) throw answers[route];
+    return answers[route];
+  };
+  const window = {
+    App: { el, holen, senden: holen, status: () => {}, textsatz: async () => "stelle-sie" },
+    Texte,
+    VerworfenWoerterLogik: { ausAdresse: () => null },
+    addEventListener() {},
+  };
+  const location = { hash: "", pathname: "/treffer", search: "" };
+  const context = { window, document: doc, console, setTimeout, location, history: { replaceState() {} },
+    CustomEvent: class {} };
+  vm.createContext(context);
+  for (const name of scripts) vm.runInContext(fs.readFileSync(path.join(SEITEN, name), "utf8"), context);
+  await settled();
+  return { $: id => doc.getElementById(id), window };
+}
+
+const settled = async () => {
+  for (let i = 0; i < 10; i += 1) await new Promise(resolve => setImmediate(resolve));
+};
+
+/** The hint page after one load of the list; `answers` stays live, so a later `zeige` sees a changed estimate. */
+async function hintPage(answers) {
+  const page = await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-start.js"], answers);
+  const zeige = async () => {
+    await page.window.SuchbegriffeStart.zeige("stelle");
+    await settled();
+  };
+  await zeige();
+  return { ...page, zeige };
+}
+
+const hintWith = async estimate =>
+  (await hintPage({ "/api/suchbegriffe/hinweis": HINT, [ESTIMATE]: estimate })).$("begriff-hinweis-nachsatz");
+
+const LOCK = ["aria-disabled", "tabindex", "aria-describedby"];
+const lockOf = link => Object.fromEntries(["href", ...LOCK].map(name => [name, link.getAttribute(name)]));
+
+test("the hint above the hit list names the cost in dollars with an own key", async () => {
+  assert.equal((await hintWith(OWN_KEY)).textContent, `${NACHSATZ} Etwa USD 0.03 und 1 Minute.`);
+});
+
+test("the hint above the hit list names francs and the credit left with the mediation", async () => {
+  assert.equal((await hintWith(MEDIATION)).textContent,
+    `${NACHSATZ} Etwa CHF 0.03 und 1 Minute. Danach bleiben CHF 4.22 im Guthaben.`);
+});
+
+test("the hint over the credit says it may not be enough, a used-up credit links where to ask", async () => {
+  assert.equal((await hintWith({ ...MEDIATION, guthaben: 0.01, danach: 0 })).textContent,
+    `${NACHSATZ} Etwa CHF 0.03 und 1 Minute. Im Guthaben sind noch CHF 0.01, das reicht vielleicht nicht.`);
+  const used = await hintWith({ ...MEDIATION, guthaben: 0, danach: 0 });
+  assert.equal(used.textContent,
+    `${NACHSATZ} Etwa CHF 0.03 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.`);
+  assert.equal(used.children.find(child => child.tagName === "A").getAttribute("href"), Texte.CODE_REQUEST_URL);
+});
+
+test("a used-up credit locks the link of the hint, in the tab order and described by the line; credit opens it", async () => {
+  const answers = { "/api/suchbegriffe/hinweis": HINT, [ESTIMATE]: { ...MEDIATION, guthaben: 0, danach: 0 } };
+  const page = await hintPage(answers);
+  const link = page.$("begriff-hinweis-pruefen");
+  assert.deepEqual(lockOf(link), { href: null, "aria-disabled": "true", tabindex: "0",
+    "aria-describedby": "begriff-hinweis-nachsatz" });
+  answers[ESTIMATE] = MEDIATION;
+  await page.zeige();
+  assert.deepEqual(lockOf(link), { href: "/suchbegriffe", "aria-disabled": null, tabindex: null, "aria-describedby": null });
+});
+
+test("over the credit, with an own key and without an estimate the link of the hint stays open", async () => {
+  for (const estimate of [{ ...MEDIATION, guthaben: 0.01, danach: 0 }, OWN_KEY, new Error("Die App antwortet nicht.")]) {
+    const page = await hintPage({ "/api/suchbegriffe/hinweis": HINT, [ESTIMATE]: estimate });
+    assert.equal(page.$("begriff-hinweis-pruefen").getAttribute("href"), "/suchbegriffe");
+    assert.equal(page.$("begriff-hinweis-pruefen").getAttribute("aria-disabled"), null);
+  }
+});
+
+test("the link of the hint has the id the page locks it by", () => {
+  const html = fs.readFileSync(path.join(SEITEN, "treffer.html"), "utf8");
+  assert.match(html, /<a class="btn btn--sm" id="begriff-hinweis-pruefen" href="\/suchbegriffe">Suchbegriffe prüfen lassen<\/a>/);
+});
+
+test("the hint names why the estimate is missing", async () => {
+  assert.equal((await hintWith(new Error("Der Lebenslauf lässt sich nicht lesen."))).textContent,
+    `${NACHSATZ} Die Schätzung fehlt: Der Lebenslauf lässt sich nicht lesen.`);
+});
+
+async function reviseWith(estimate) {
+  const page = await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"], {
+    "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
+    "/api/suchbegriffe/vorschlag": { aenderungen: [], treffer: 40, seit: "2026-11-01", runde: 1 }, [ESTIMATE]: estimate,
+  });
+  return page;
+}
+
+test("beside „Neu vorschlagen“ the cost is in dollars with an own key", async () => {
+  assert.equal((await reviseWith(OWN_KEY)).$("anders-kosten").textContent, "Etwa USD 0.03 und 1 Minute.");
+});
+
+test("beside „Neu vorschlagen“ the cost is in francs with the credit left, with the mediation", async () => {
+  assert.equal((await reviseWith(MEDIATION)).$("anders-kosten").textContent, "Etwa CHF 0.03 und 1 Minute. Danach bleiben CHF 4.22 im Guthaben.");
+  assert.equal((await reviseWith({ ...MEDIATION, guthaben: 0.01, danach: 0 })).$("anders-kosten").textContent,
+    "Etwa CHF 0.03 und 1 Minute. Im Guthaben sind noch CHF 0.01, das reicht vielleicht nicht.");
+});
+
+test("beside „Neu vorschlagen“ a used-up credit links where to ask and the button stays as it was", async () => {
+  const page = await reviseWith({ ...MEDIATION, guthaben: 0, danach: 0 });
+  assert.equal(page.$("anders-kosten").textContent, "Etwa CHF 0.03 und 1 Minute. Das Guthaben ist aufgebraucht: neuen Code anfordern, öffnet neuen Tab.");
+  const button = page.$("neu-vorschlagen");
+  assert.equal(button.disabled, undefined);
+  assert.equal(button.getAttribute("aria-disabled"), null);
 });
