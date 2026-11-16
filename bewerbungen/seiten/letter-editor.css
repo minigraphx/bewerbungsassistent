@@ -23,4 +23,7 @@
 @media (max-width: 600px) {
   .letter-editor__actions { flex-direction: column; align-items: stretch; }
   .letter-editor__actions .btn { width: 100%; }
+  /* the shared closable line does not wrap, so its long text would shrink to a word per line beside the button */
+  #brief-editor-status.status--closable, #brief-gespeichert.status--closable { flex-wrap: wrap; }
+  #brief-editor-status .status__text, #brief-gespeichert .status__text { flex-basis: 100%; }
 }
