@@ -94,9 +94,15 @@ def test_no_content_is_removed_to_fill_the_pages(built, design):
 @pytest.mark.parametrize("design", DESIGNS)
 @pytest.mark.parametrize("length", CV_LENGTHS)
 def test_the_last_page_of_a_cv_is_at_least_a_third_full(built, design, length):
+    """G49 within the page limit; a CV over it even at the tightest level stays that tight (G96, like G94)."""
     for name, (pdf, first, last) in _documents(built, "cv", design, length):
-        fill = last_page_fill(pdf, first, last)
-        assert fill is None or fill >= MIN_FILL_RULE, f"{design} {name}: last page {fill:.0%} full"
+        pages = (last or page_count(pdf)) - first + 1
+        if pages > page_fill.LIMITS["cv"]:
+            level = fill_record.read(pdf)["cv"]
+            assert level == page_fill.TIGHTER[-1], f"{design} {name}: {pages} pages at level {level}"
+        else:
+            fill = last_page_fill(pdf, first, last)
+            assert fill is None or fill >= MIN_FILL_RULE, f"{design} {name}: last page {fill:.0%} full"
 
 
 @pytest.mark.parametrize("design", DESIGNS)

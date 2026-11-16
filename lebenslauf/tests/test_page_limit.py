@@ -10,6 +10,7 @@ import anschreiben
 import build
 import cuts
 import dossier
+import fill_record
 import page_fill
 from page_fill import Fill
 from page_fill_samples import cv_of_length, example_cv, example_letter, letter_of_length, page_count
@@ -17,6 +18,8 @@ from page_fill_samples import cv_of_length, example_cv, example_letter, letter_o
 # Drawn, this CV has three pages with a full enough last page, so the page fill alone would keep them (G49)
 THREE_PAGES = 26
 THREE_PAGE_DESIGN = "dossier-siegel"
+# Even set as tight as possible, this CV has three pages
+TOO_LONG = 40
 
 
 def _probe(fills: dict[int, Fill], otherwise: Fill):
@@ -71,7 +74,8 @@ def test_a_one_page_letter_keeps_its_balancing():
     assert page_fill.choose(probe, limit=1, tight_over_limit=True) == page_fill.choose(probe, limit=1) == 0
 
 
-def test_levels_set_only_the_letter_tight_when_it_stays_over_its_limit():
+def test_levels_set_each_part_tight_when_it_stays_over_its_limit():
+    """G94 for the letter, G96 for the CV: never spread to fill a page beyond the limit."""
     def query(inputs: dict) -> list[dict]:
         found = []
         for part, start, pages in (("letter", 1, 2), ("cv", 3, 3)):
@@ -85,7 +89,9 @@ def test_levels_set_only_the_letter_tight_when_it_stays_over_its_limit():
 
     chosen = page_fill.levels(query, {}, ("letter", "cv"))
     assert chosen["density-letter"] == str(page_fill.TIGHTER[-1])
-    assert chosen["density-cv"] == "-1", "a CV over its limit is cut by the person (G92), its pages stay balanced"
+    assert chosen["density-cv"] == str(page_fill.TIGHTER[-1]), "never wider, though one step wider fills its page"
+    allowed = page_fill.levels(query, {}, ("letter", "cv"), page_fill.limits(3))
+    assert allowed["density-cv"] == "-1", "a CV within its limit keeps its balancing"
 
 
 def test_the_limits_allow_a_three_page_cv_only_when_asked():
@@ -135,6 +141,34 @@ def test_a_three_page_cv_is_brought_to_two_pages_by_default(three_pages):
 def test_with_three_pages_allowed_the_cv_keeps_its_three_pages(three_pages):
     result = _dossier(three_pages, "three", "--lebenslauf-seiten", "3")
     assert page_count(result.cv) == 3
+
+
+@pytest.fixture(scope="module")
+def too_long(tmp_path_factory):
+    folder = tmp_path_factory.mktemp("too-long")
+    (folder / "cv.yaml").write_text(yaml.safe_dump(cv_of_length(TOO_LONG), allow_unicode=True), encoding="utf-8")
+    (folder / "brief.yaml").write_text(yaml.safe_dump(example_letter(), allow_unicode=True), encoding="utf-8")
+    (folder / "dossier.yaml").write_text(yaml.safe_dump({"lebenslauf": "cv.yaml", "anschreiben": "brief.yaml"}),
+                                         encoding="utf-8")
+    return folder
+
+
+def test_a_cv_that_no_tightening_brings_to_two_pages_is_built_as_tight_as_possible(too_long):
+    """G96: like the letter (G94), so the tile names «so eng wie möglich» and the check how much is too much."""
+    built = build.run([str(too_long / "cv.yaml"), "--build-dir", str(too_long / "build-cv"),
+                       "-o", str(too_long / "cv.pdf")])
+
+    assert page_count(built.pdf) > page_fill.LIMITS["cv"]
+    assert built.levels == {"cv": page_fill.TIGHTER[-1]}
+    assert page_fill.change(fill_record.read(built.pdf)["cv"]) == "tightest"
+
+
+def test_inside_a_dossier_a_cv_that_stays_too_long_is_set_as_tight_as_possible(too_long):
+    result = _dossier(too_long, "too-long")
+
+    assert page_count(result.cv) > page_fill.LIMITS["cv"]
+    assert result.levels["dossier"]["cv"] == result.levels["cv"]["cv"] == page_fill.TIGHTER[-1]
+    assert fill_record.read(result.dossier)["cv"] == page_fill.TIGHTER[-1]
 
 
 def test_the_cv_build_takes_the_allowed_pages(monkeypatch, tmp_path):

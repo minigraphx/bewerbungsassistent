@@ -158,8 +158,11 @@ def test_the_pictures_say_what_they_show_today():
     assert "beim Anschreiben 1 Seite · etwas enger gesetzt" in picture
     assert "**1 Seite · etwas enger gesetzt**" in check and "**7 Seiten · Lebenslauf etwas enger gesetzt**" in check
     assert "damit keine Seite fast leer bleibt und die Seitenzahl eingehalten wird" in check
-    assert ("Passt ein Lebenslauf auch so eng wie möglich nicht, setzt die App ihn wie vorgegeben; dann steht nur die Zahl "
-            "der Seiten da, und der Befund darüber nennt, wie viel zu viel ist.") in check
+    # G96, #333: a CV too long even at its tightest stays as tight as possible, like the letter
+    assert ("Ein zu langer Lebenslauf bleibt wie ein zu langes Anschreiben so eng wie möglich gesetzt, etwa "
+            "**5 Seiten · so eng wie möglich**.") in check
+    assert "Passt ein Lebenslauf auch so eng wie möglich nicht" not in check
+    assert "beim Lebenslauf 3 Seiten · so eng wie möglich" in picture
     # G94, #325: a letter over one page stays as tight as possible, cut in the letter or left as it is
     assert "Ein zu langes Anschreiben bleibt so eng gesetzt, etwa **2 Seiten · so eng wie möglich**." in check
     assert ("**Im Anschreiben kürzen** führt zum Schritt **Anschreiben**, wo über dem längsten Absatz **Längster Absatz** "
