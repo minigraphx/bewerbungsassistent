@@ -155,7 +155,7 @@
     } else if (farbe.quelle === PASSEND) {
       akzent += `, passend zu ${name}`;
     }
-    return `Zeichen: ${zeichen} · Akzentfarbe: ${akzent}${beides} · Ändern unter «Erweitert».`;
+    return `Zeichen: ${zeichen} · Akzentfarbe: ${akzent}${beides}`;
   }
 
   /** What a screen reader hears for the preview. */

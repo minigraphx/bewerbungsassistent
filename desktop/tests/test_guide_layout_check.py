@@ -7,12 +7,14 @@ from routes_apply import CONFIRM_FIRST
 from test_guide_order import body, text
 
 MEASURES = ("letzte Seite", "Überschrift allein am Ende einer Seite", "über den Rand", "über anderen Text")
+STEP = "**Unterlagen erstellen und prüfen**"  # the step's name since #321
 
 
 def _check_sentence() -> str:
     applying = body("Stellen suchen und bewerben", 3)
-    found = [sentence for sentence in applying.split(". ") if "**Unterlagen prüfen**" in sentence]
-    assert found, "Stellen suchen und bewerben nennt die Prüfung unter «Unterlagen prüfen» nicht"
+    # the step is also named where the form is chosen; the check is the sentence that says what the app checks
+    found = [sentence for sentence in applying.split(". ") if STEP in sentence and "prüft" in sentence]
+    assert found, "Stellen suchen und bewerben nennt die Prüfung unter «Unterlagen erstellen und prüfen» nicht"
     return found[0]
 
 
@@ -35,7 +37,7 @@ def test_common_errors_quote_the_message_exactly_and_say_what_helps():
 
     assert len(rows) == 1, "Häufige Fehler zitiert CONFIRM_FIRST nicht genau"
     helps = rows[0].split(" | ", 1)[1]
-    assert "**Unterlagen prüfen**" in helps and "**So lassen**" in helps
+    assert STEP in helps and "**So lassen**" in helps
 
 
 def test_the_quote_appears_nowhere_else_in_another_wording():

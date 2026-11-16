@@ -7,6 +7,8 @@
   const { fehltAnschreiben, geaenderteFelder } = window.FormularLogik;
   const L = window.BewerbungLogik;
   const W = window.UnterlagenWahl;
+  const R = window.UnterlagenErgebnis;
+  const S = window.UnterlagenSchritt;
   const { text: textAus } = window.Texte;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
@@ -40,6 +42,7 @@
   let kiBereit = false;
   let answerTimer = null;
   let versandDatumGesetzt = false;
+  let zertifikateDa = [];    // the certificates offered, for the line under «Beilagen ändern»
 
   const t = (schluessel, werte) => textAus(schluessel, satz, werte);
   const meldung = (text, stufe = "") => zeile($("status"), text, stufe);
@@ -123,9 +126,9 @@
         : t("bewerbung.freigeben"), [knopf("Anschreiben lesen", zuAbschnitt("s-anschreiben"))]],
       entwerfen: ["Anschreiben entwerfen", "Die KI entwirft das Anschreiben aus dem Inserat und den Angaben. Jede Aussage nennt ihren Beleg; was sich nicht belegen lässt, kommt nicht in den Brief.", [knopf("Anschreiben entwerfen", () => $("ki-entwerfen").click()), knopf("Eigenes Anschreiben verwenden", zuAbschnitt("eigenes-anschreiben"), false)]],
       eigenes: ["Anschreiben hinzufügen", t("bewerbung.eigenes"), [knopf("Eigenes Anschreiben hochladen", () => $("anschreiben-datei").click()), knopf("KI einrichten", () => window.App.kiEinrichten(), false)]],
-      erstellen: ["Unterlagen erstellen", "Lebenslauf und Anschreiben werden als PDF erstellt und danach automatisch geprüft. Die PDFs stehen dann zum Lesen bereit.", [knopf("Unterlagen erstellen", () => $("erstellen").click())]],
-      pruefen: ["Unterlagen prüfen", "Die Prüfung läuft.", []],
-      klaeren: ["Unterlagen prüfen", `Die Prüfung hat ${fehlerZahl === 1 ? "einen Fehler" : `${fehlerZahl} Fehler`} gefunden. ${fehlerZahl === 1 ? "Er steht" : "Sie stehen"} bei den Unterlagen.`, [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
+      erstellen: ["Unterlagen erstellen", R.NEXT_CREATE, [knopf("Unterlagen erstellen", () => $("erstellen").click())]],
+      pruefen: [R.STEP_TITLE, "Die Prüfung läuft.", []],
+      klaeren: [R.STEP_TITLE, R.nextClarify(fehlerZahl), [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
       bestaetigen: ["Unterlagen ansehen", "Die Prüfung meldet etwas am Satz der PDFs, mit Dokument und Seite. Erst nach «So lassen» öffnet sich ein Formular.", [knopf("Zur Prüfung", zuAbschnitt("s-pruefen"))]],
       formular: [`Formular bei ${b.firma} ausfüllen`, t("bewerbung.formular"), [knopf("Formular öffnen", e => oeffneFormular(e.currentTarget, false)), knopf("Per E-Mail beworben? Versand erfassen", zuAbschnitt("versand-titel"), false)]],
       versand: ["Abschicken und festhalten", t("bewerbung.versand"), [knopf("Versand erfassen", zuAbschnitt("versand-titel"))]],
@@ -263,6 +266,7 @@
     $("unterlagen-wahl").hidden = Boolean(b.versand);
     for (const knopf of document.querySelectorAll('input[name="unterlagen"]')) knopf.checked = knopf.value === W.gewaehlt(b);
     zeigeDesign(b);
+    S.showDossierLine(b);
     $("antwort-teil").hidden = !gesendet;
     $("jobroom-teil").hidden = !rav || !gesendet;
     $("s-festhalten").hidden = !gesendet;
@@ -364,25 +368,31 @@
     return werte;
   }
 
-  function zeigePdfs(pdfs) {
-    const stand = Date.now();
-    const rahmen = W.rahmen(pdfs, bewerbung ? W.gewaehlt(bewerbung) : W.VOREINSTELLUNG)
-      .map(([art, name]) => el("figure", {}, el("figcaption", {}, name),
-        el("iframe", { src: url("/api/pdf", { id: ID, art, stand }), title: name })));
-    $("pdfs").replaceChildren(...(rahmen.length ? rahmen : [el("p", { class: "leer" }, "Noch keine Unterlagen erstellt.")]));
+  /** #321: a tile per document with page 1, instead of the embedded PDFs. */
+  function zeigePdfs(d) {
+    S.showTiles(ID, d, Date.now());
+  }
+
+  function befundZeile(b) {
+    const zeile = L.befundZeile(b);
+    const inhalt = zeile.knopf
+      ? el("span", {}, zeile.text, " ", el("button", { type: "button", class: "btn btn--sm", onclick: e => soLassen(e.currentTarget, b.schluessel) }, zeile.knopf))
+      : zeile.text;
+    return window.Meldungen.listenZeile(document, inhalt, zeile.stufe);
   }
 
   function zeigeBefunde() {
-    $("befunde").replaceChildren(...befunde.map(b => {
-      const zeile = L.befundZeile(b);
-      const inhalt = zeile.knopf
-        ? el("span", {}, zeile.text, " ", el("button", { type: "button", class: "btn btn--sm", onclick: e => soLassen(e.currentTarget, b.schluessel) }, zeile.knopf))
-        : zeile.text;
-      return window.Meldungen.listenZeile(document, inhalt, zeile.stufe);
-    }));
+    S.showFindings(befunde, befundZeile);
   }
 
-  async function pruefen() {
+  let laufendePruefung = Promise.resolve();  // the check started by the last load; creating waits for it
+
+  function pruefen() {
+    laufendePruefung = pruefenJetzt();
+    return laufendePruefung;
+  }
+
+  async function pruefenJetzt() {
     try {
       ({ befunde } = await holen("/api/pruefung", { id: ID }));
       zeigeBefunde();
@@ -439,12 +449,15 @@
     $("zertifikate").replaceChildren(...(zeilen.length ? zeilen : [el("li", { class: "leer" }, "Noch keine Zertifikate hochgeladen. Das geht unter ", el("a", { href: "/dateien" }, "Lebenslauf und Dateien"), ".")]));
     $("zertifikate-speichern").hidden = !zeilen.length;
     status($("zertifikate-status"), !gewaehlt && vorschlag.length ? "Vorschlag, noch nicht gespeichert." : "");
+    zertifikateDa = verfuegbar;
+    S.showAttachmentsLine(verfuegbar, gewaehlt, vorschlag.map(v => v.datei));
   }
 
   async function speichereZertifikate() {
     const dateien = [...$("zertifikate").querySelectorAll("input:checked")].map(feld => feld.value);
     try {
       await senden("/api/zertifikate", { id: ID, dateien });
+      S.showAttachmentsLine(zertifikateDa, dateien, []);
       status($("zertifikate-status"), dateien.length ? "Gespeichert." : "Gespeichert: ohne Zertifikate.", "ok");
     } catch (fehler) {
       status($("zertifikate-status"), fehler.message, "fehler");
@@ -478,7 +491,7 @@
       pdfStand = JSON.stringify(neu.pdf_stand);
       daten = { ...daten, pdfs: neu.pdfs, hat_anschreiben: neu.hat_anschreiben, eigenes_anschreiben: neu.eigenes_anschreiben,
                 anschreiben_text: neu.anschreiben_text, anschreiben_freigabe: neu.anschreiben_freigabe, ki_pruefung: neu.ki_pruefung };
-      zeigePdfs(neu.pdfs);
+      zeigePdfs(neu);
       befunde = null;
       zeigeAlles();
       if (pruefbar(neu)) pruefen();
@@ -494,7 +507,7 @@
       const d = await holen("/api/bewerbung", { id: ID });
       befunde = null;
       zeigeEintrag(d);
-      zeigePdfs(d.pdfs);
+      zeigePdfs(d);
       pdfStand = JSON.stringify(d.pdf_stand);
       meldeGeladen(d);
       zeigeZertifikate().catch(fehler => status($("zertifikate-status"), fehler.message, "fehler"));
@@ -687,7 +700,9 @@
       meldungOben("Unterlagen werden erstellt …");
       await senden("/api/unterlagen", {}, { id: ID });
       await laden();
+      await laufendePruefung;
       meldungOben(offen ? `Unterlagen erstellt. ${offen}` : "Unterlagen erstellt", offen ? "hinweis" : "ok");
+      S.focusFirstFinding();
     } catch (fehler) {
       meldungOben("Erstellen fehlgeschlagen: " + fehler.message, "fehler");
     } finally {

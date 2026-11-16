@@ -1,0 +1,55 @@
+/* The step «Unterlagen erstellen und prüfen» (#321, option A in docs/design/unterlagen-erstellen.md, boards A1 and A3):
+   the form as two tiles, one line each for the dossier and the attachments, a tile with page 1 per document.
+   Tap targets are at least 44 px high on a phone. */
+
+.form-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); margin: 0; padding: 0; border: 0; }
+.form-tiles legend { margin-bottom: var(--space-2); padding: 0; font-weight: 500; color: var(--text-strong); }
+.form-tile { display: grid; grid-template-columns: auto 1fr; column-gap: var(--space-2); row-gap: 2px; align-items: start; align-content: start; min-height: 44px; padding: var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface); cursor: pointer; }
+.form-tile:hover { background: var(--surface-subtle); }
+.form-tile:has(input:checked) { border: 2px solid var(--accent); padding: calc(var(--space-3) - 1px); background: var(--accent-subtle); }
+.form-tile:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.form-tile input { grid-row: span 2; margin: 2px 0 0; }
+.form-tile__name { font-weight: 500; color: var(--text-strong); }
+.form-tile__text { font-size: 14px; font-weight: 400; line-height: 20px; color: var(--text-muted); }
+
+.dossier-line { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-subtle); }
+.dossier-line[hidden] { display: none; }
+.dossier-line__cover { flex: none; width: 40px; }
+.dossier-line__cover svg { display: block; width: 40px; height: 56px; }
+.dossier-line__text { display: flex; flex: 1 1 180px; flex-direction: column; gap: 2px; min-width: 0; margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
+.dossier-line__text strong { color: var(--text-strong); }
+.dossier-line__text span:empty { display: none; }
+.dossier-panel { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3) 0 var(--space-3) var(--space-4); border-left: 2px solid var(--line); }
+.dossier-panel[hidden] { display: none; }
+
+.befunde-ok > summary { display: list-item; box-sizing: border-box; min-height: 44px; padding: var(--space-3) 0; cursor: pointer; font-size: 14px; line-height: 20px; color: var(--success); }
+.befunde-ok[hidden] { display: none; }
+.application .card ul.befunde:empty { display: none; }
+
+.doc-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
+.doc-tiles:empty { display: none; }
+.doc-tile { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.doc-tile__thumb { flex: none; width: 96px; height: auto; aspect-ratio: 210 / 297; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; object-fit: contain; font-size: 12px; line-height: 16px; color: var(--text-muted); }
+.doc-tile__body { display: flex; flex: 1 1 auto; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.application .card .doc-tile__name { margin: 0; font-size: 15px; line-height: 22px; }
+.doc-tile__links { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+/* «Für diese Stelle anpassen» is wider than a tile at 1280 px; buttons do not wrap by default */
+.doc-tile__link { min-height: 44px; max-width: 100%; white-space: normal; text-align: left; }
+/* the same inset as «Als PDF öffnen» (btn--sm), so both texts start in one line */
+.doc-tile .btn--quiet { padding: 0 var(--space-3); }
+
+.attach-line { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); align-items: center; justify-content: space-between; padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.attach-line__text { flex: 1 1 220px; min-width: 0; margin: 0; font-size: 14px; line-height: 20px; color: var(--text-strong); overflow-wrap: anywhere; }
+.attach-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.attach-list[hidden] { display: none; }
+
+@media (max-width: 600px) {
+  .form-tiles, .doc-tiles { grid-template-columns: 1fr; }
+  .doc-tile__thumb { width: 72px; }
+  #s-pruefen .btn, #s-pruefen .input, #s-pruefen summary, #s-pruefen label.check { min-height: 44px; }
+  #s-pruefen summary { display: list-item; box-sizing: border-box; padding: var(--space-3) 0; }
+  #s-pruefen label.check { display: flex; align-items: center; }
+  .dossier-panel { padding-left: var(--space-3); }
+  /* «Erneut prüfen» wraps under the primary button; its text starts at the edge like the button above */
+  #s-pruefen #pruefen.btn--quiet { padding-left: 0; }
+}
