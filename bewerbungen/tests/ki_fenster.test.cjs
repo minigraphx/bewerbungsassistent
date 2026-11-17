@@ -21,23 +21,41 @@ const SET_UP = { eingerichtet: true, vermittlung: true, guthaben_chf: 5, verbrau
 const keep = item => item !== null && item !== undefined && item !== false;
 const textOf = node => (node && typeof node === "object" ? node.children.map(textOf).join("") : String(node ?? ""));
 
+// What has the focus; meldungen.js creates its elements through `ownerDocument`.
+const focus = { active: null };
+const fakeDocument = { createElement: tag => element(tag) };
+
+/** A class list over the `className` string, as meldungen.js reads and changes it. */
+function classListOf(node) {
+  const names = () => String(node.className).split(/\s+/).filter(Boolean);
+  const set = list => { node.className = list.join(" "); };
+  return {
+    contains: name => names().includes(name),
+    add: (...added) => set([...names(), ...added.filter(name => !names().includes(name))]),
+    remove: (...removed) => set(names().filter(name => !removed.includes(name))),
+  };
+}
+
 /** A stand-in element that keeps what the page sets, its children and its listeners. */
 function element(tag, attrs = {}) {
   const handlers = {};
   const node = {
     tag, attrs, children: [], hidden: false, disabled: false, checked: false, open: false, value: "", removed: false,
-    dataset: {}, style: {}, className: "",
+    dataset: {}, style: {}, className: "", ownerDocument: fakeDocument,
+    get classList() { return classListOf(node); },
     get textContent() { return textOf(node); },
     set textContent(value) { node.children = [String(value)]; },
     setAttribute(name, value) { node.attrs[name] = value; },
     getAttribute(name) { return node.attrs[name]; },
     removeAttribute(name) { delete node.attrs[name]; },
     addEventListener(type, handler) { (handlers[type] ||= []).push(handler); },
-    fire(type) { return (handlers[type] || []).map(handler => handler({ target: node, currentTarget: node, preventDefault() {} })); },
+    removeEventListener(type, handler) { handlers[type] = (handlers[type] || []).filter(h => h !== handler); },
+    fire(type) { return [...(handlers[type] || [])].map(handler => handler({ target: node, currentTarget: node, preventDefault() {} })); },
     append(...items) { node.children.push(...items.flat().filter(keep)); },
     replaceChildren(...items) { node.children = items.flat().filter(keep); },
+    contains: other => findAll(node, n => n === other).length > 0,
     remove() { node.removed = true; },
-    focus() {},
+    focus() { focus.active = node; },
     showModal() { node.open = true; },
     close() {
       if (!node.open) return;
@@ -88,19 +106,20 @@ function windowWith(answers) {
   const window = {
     App: {
       el, holen: pfad => answer(pfad), senden: (pfad, daten) => { sent.push({ pfad, daten }); return answer(pfad, daten); },
-      status: (ort, text) => { ort.textContent = text; }, textsatz: async () => "lehrstelle-du",
+      status: (ort, text, art, optionen) => window.Meldungen.zeige(ort, text, art, optionen), textsatz: async () => "lehrstelle-du",
       fragenLink: (anker, text) => el("a", { href: `/fragen#${anker}` }, text),
     },
     Texte: texte,
-    Meldungen: { zeige: (ort, text) => { ort.textContent = text; } },
   };
   const document = {
     body, documentElement: { dataset: { textsatz: "lehrstelle-du" } },
     addEventListener() {}, removeEventListener() {}, dispatchEvent: event => events.push(event),
   };
   class CustomEvent { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } }
-  const context = { window, document, CustomEvent };
-  for (const name of ["einwilligung.js", "ki-zugang.js", "ki-fenster.js"]) vm.runInNewContext(lies(name), context);
+  const context = { window, document, CustomEvent, setTimeout: () => 0, clearTimeout: () => {} };
+  vm.createContext(context);
+  focus.active = null;
+  for (const name of ["meldungen.js", "einwilligung.js", "ki-zugang.js", "ki-fenster.js"]) vm.runInContext(lies(name), context);
   return { open: () => window.KiFenster.oeffnen(), body, sent, events, dialog: () => body.children.find(n => n.tag === "dialog") };
 }
 
@@ -384,4 +403,144 @@ test("the window of a set-up AI focuses „Weiter“ first, not the link to the 
   choosing.open();
   await settle();
   assert.equal(button(choosing.dialog(), "Schliessen").autofocus, false);
+});
+
+// ---------- A refused code or key clears on input (G97, #361) ----------
+
+// The routes answer 400 only for a value wrong in itself (#350); anything else is no input error.
+const refusal = (message, status) => Object.assign(new Error(message), { status });
+const CODE_REFUSED = refusal("Der Code gilt nicht (falsch, schon benutzt oder abgelaufen). Bitte um einen neuen Code.", 400);
+const KEY_REFUSED = refusal("Dieser Schlüssel gilt nicht. Bitte in der Anthropic Console prüfen. Gespeichert wurde nichts.", 400);
+const UNREACHABLE = refusal("Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?", 502);
+
+const typeInto = (field, text) => { field.value = text; field.fire("input"); };
+const closeButtonOf = line => findAll(line, n => n.tag === "button" && n.attrs["aria-label"] === "Meldung schliessen")[0];
+/** The line a field is described by, found through its aria-describedby. */
+const lineOf = (dialog, field) => findAll(dialog, n => n.attrs.id && n.attrs.id === field.attrs["aria-describedby"])[0];
+
+async function windowOn(way, answers) {
+  const w = windowWith({ "/api/ki/status": AGREED, "/api/claude/stand": new Error("none"), ...answers });
+  w.open();
+  await settle();
+  const dialog = w.dialog();
+  choose(dialog, way);
+  return { w, dialog };
+}
+
+async function redeemIn(failure) {
+  const { w, dialog } = await windowOn("einladung", { "/api/ki/einladung": failure });
+  const code = visible(dialog, n => n.attrs.id === "ki-fenster-code")[0];
+  typeInto(code, "TEST-0000-TEST-0000");
+  button(dialog, "Einladung einlösen").fire("click");
+  await settle();
+  return { w, dialog, code, redeem: button(dialog, "Einladung einlösen"), line: lineOf(dialog, code) };
+}
+
+async function saveKeyIn(failure) {
+  const { w, dialog } = await windowOn("schluessel", { "/api/schluessel/speichern": failure });
+  const key = visible(dialog, n => n.attrs.id === "ki-fenster-schluessel")[0];
+  const tick = visible(dialog, n => n.tag === "input" && n.attrs.type === "checkbox")[0];
+  tick.checked = true;
+  tick.fire("change");
+  typeInto(key, "erfundener-schluessel-0123456789");
+  const save = button(dialog, "Prüfen und speichern");
+  save.fire("click");
+  await settle();
+  return { w, dialog, key, save, line: lineOf(dialog, key) };
+}
+
+test("in the window the code and the key field are described by the status line that shows their errors", async () => {
+  const { line: codeLine, code } = await redeemIn(CODE_REFUSED);
+  assert.ok(codeLine, "the code field names its line");
+  assert.equal(codeLine.attrs.role, "status");
+  assert.ok(codeLine.textContent.startsWith(CODE_REFUSED.message), "the line it names is where its error shows");
+  assert.ok(code.attrs["aria-describedby"]);
+  const { line: keyLine } = await saveKeyIn(KEY_REFUSED);
+  assert.ok(keyLine, "the key field names its line");
+  assert.ok(keyLine.textContent.startsWith(KEY_REFUSED.message));
+});
+
+test("in the window a refused code marks its field and clears on the first input there", async () => {
+  const { code, line } = await redeemIn(CODE_REFUSED);
+  assert.equal(line.dataset.level, "danger");
+  assert.equal(code.attrs["aria-invalid"], "true");
+
+  typeInto(code, "TEST-0000-TEST-0001");
+
+  assert.equal(line.textContent, "");
+  assert.equal(code.attrs["aria-invalid"], undefined);
+});
+
+test("in the window an unreachable mediation is no input error and stays until «×»", async () => {
+  const { code, line } = await redeemIn(UNREACHABLE);
+  assert.equal(code.attrs["aria-invalid"], undefined);
+  typeInto(code, "TEST-0000-TEST-0001");
+  assert.match(line.textContent, /Keine Verbindung zur KI/);
+  closeButtonOf(line).fire("click");
+  assert.equal(line.textContent, "");
+});
+
+test("in the window a refused own key marks its field and clears on the first input there", async () => {
+  const { key, line } = await saveKeyIn(KEY_REFUSED);
+  assert.equal(key.value, "", "the key is never kept in the field");
+  assert.equal(key.attrs["aria-invalid"], "true");
+
+  typeInto(key, "e");
+
+  assert.equal(line.textContent, "");
+  assert.equal(key.attrs["aria-invalid"], undefined);
+});
+
+test("in the window an Anthropic that cannot check the key is no input error and stays until «×»", async () => {
+  const { key, line } = await saveKeyIn(UNREACHABLE);
+  assert.equal(key.attrs["aria-invalid"], undefined);
+  typeInto(key, "e");
+  assert.match(line.textContent, /Keine Verbindung zur KI/);
+  closeButtonOf(line).fire("click");
+  assert.equal(line.textContent, "");
+});
+
+test("in the window the focus is in the code field after a refused code", async () => {
+  const { code } = await redeemIn(CODE_REFUSED);
+  assert.equal(focus.active, code);
+});
+
+test("in the window an unreachable mediation with the code still typed leaves the focus on «Einladung einlösen»", async () => {
+  const { code, redeem } = await redeemIn(UNREACHABLE);
+  assert.equal(code.value, "TEST-0000-TEST-0000");
+  assert.equal(redeem.disabled, false);
+  assert.equal(focus.active, redeem);
+});
+
+for (const [what, failure] of [["refused", KEY_REFUSED], ["not checked", UNREACHABLE]]) {
+  test(`in the window the focus is in the emptied key field after a key ${what}, and the button waits for a key`, async () => {
+    const { key, save } = await saveKeyIn(failure);
+    assert.equal(save.disabled, true, "nothing to send with an empty field");
+    assert.equal(focus.active, key);
+  });
+}
+
+test("in the window a code that works after a refused one clears the error, also without an input event", async () => {
+  const answers = { "/api/ki/einladung": CODE_REFUSED };
+  const w = windowWith({ "/api/ki/status": AGREED, "/api/claude/stand": new Error("none"),
+    "/api/ki/einladung": () => answers["/api/ki/einladung"] });
+  w.open();
+  await settle();
+  const dialog = w.dialog();
+  choose(dialog, "einladung");
+  const code = visible(dialog, n => n.attrs.id === "ki-fenster-code")[0];
+  typeInto(code, "TEST-0000-TEST-0000");
+  button(dialog, "Einladung einlösen").fire("click");
+  await settle();
+  const line = lineOf(dialog, code);
+  assert.ok(line.textContent.startsWith(CODE_REFUSED.message));
+
+  code.value = "TEST-0000-TEST-0001";  // filled without an input event, as a browser may on restore
+  answers["/api/ki/einladung"] = SET_UP;
+  findAll(dialog, n => n.tag === "button" && textOf(n) === "Einladung einlösen")[0].fire("click");
+  await settle();
+
+  assert.equal(line.textContent, "");
+  assert.equal(code.attrs["aria-invalid"], undefined);
+  assert.ok(textOf(dialog).includes("Die KI ist eingerichtet."));
 });

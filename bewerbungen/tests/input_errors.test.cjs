@@ -202,6 +202,61 @@ test("only a refusal of the values counts as an input error; a failure to reach 
   assert.equal(meldungen.isInputRejection(new Error("Failed to fetch")), false);
 });
 
+// The failure of an action on one field (#361): shared by Einstellungen and the window „KI einrichten“
+
+test("showFailure ties a refused value to its field: marked invalid, cleared on the first input there", () => {
+  const { line, field } = setup();
+  const refused = Object.assign(new Error("Der Code gilt nicht."), { status: 400 });
+
+  assert.equal(meldungen.showFailure(line, field, refused), true, "it says it was a refusal");
+
+  assert.equal(line.textContent.startsWith("Der Code gilt nicht."), true);
+  assert.equal(line.dataset.level, "danger");
+  assert.equal(field.getAttribute("aria-invalid"), "true");
+  type(field, "x");
+  assert.equal(line.textContent, "");
+  assert.equal(field.getAttribute("aria-invalid"), null);
+});
+
+test("showFailure leaves any other failure until «×» and the field valid, also after an earlier refusal", () => {
+  const { line, field } = setup();
+  meldungen.showFailure(line, field, Object.assign(new Error("Der Code gilt nicht."), { status: 400 }));
+  const unreachable = Object.assign(new Error("Keine Verbindung zur KI."), { status: 502 });
+
+  assert.equal(meldungen.showFailure(line, field, unreachable), false);
+
+  assert.equal(field.getAttribute("aria-invalid"), null, "the field is not what failed");
+  type(field, "x");
+  assert.match(line.textContent, /Keine Verbindung zur KI/);
+  closeButton(line).dispatch("click");
+  assert.equal(line.textContent, "");
+});
+
+test("focusAfterFailure: a refused value goes back to its field, any other failure to the button while it can try again", () => {
+  const { document, field } = setup();
+  const retry = document.createElement("button");
+  const refused = Object.assign(new Error("Der Code gilt nicht."), { status: 400 });
+  const unreachable = Object.assign(new Error("Keine Verbindung zur KI."), { status: 502 });
+
+  meldungen.focusAfterFailure(refused, field, retry);
+  assert.equal(document.activeElement, field);
+
+  meldungen.focusAfterFailure(unreachable, field, retry);
+  assert.equal(document.activeElement, retry);
+
+  retry.disabled = true;  // the field is empty again: the next try starts there
+  meldungen.focusAfterFailure(unreachable, field, retry);
+  assert.equal(document.activeElement, field);
+});
+
+test("Einstellungen and the window „KI einrichten“ show a failed code or key through the shared helper", () => {
+  for (const name of ["einstellungen.js", "ki-fenster.js"]) {
+    assert.match(source(name), /window\.Meldungen\.showFailure\(/, `${name} uses Meldungen.showFailure`);
+    assert.match(source(name), /window\.Meldungen\.focusAfterFailure\(/, `${name} uses Meldungen.focusAfterFailure`);
+    assert.doesNotMatch(source(name), /function showFailure\(/, `${name} keeps no copy of its own`);
+  }
+});
+
 // /suchbegriffe: „Neu vorschlagen“ without a text
 
 const ESTIMATE = "/api/suchbegriffe/schaetzung";

@@ -138,6 +138,28 @@
   const isInputRejection = error => Boolean(error) && error.status === BAD_REQUEST;
 
   /**
+   * The failure of an action on one field (#350, #361), as an error in `line`. A refused value marks `field` invalid
+   * and clears on the first input there; any other failure is not the field's fault and stays until «×». Returns
+   * whether the value was refused.
+   */
+  function showFailure(line, field, error) {
+    const refused = isInputRejection(error);
+    if (refused) field.setAttribute("aria-invalid", "true");
+    else field.removeAttribute("aria-invalid");
+    zeige(line, error.message, "fehler", { input: refused ? field : null });
+    return refused;
+  }
+
+  /**
+   * Where the focus goes after a failed action, once `retry` (the button that sent it) shows its state again: the
+   * disabled button dropped it. A refused value is fixed in `field`, as is anything once `retry` cannot send;
+   * otherwise `retry` tries again.
+   */
+  function focusAfterFailure(error, field, retry) {
+    (isInputRejection(error) || !retry || retry.disabled ? field : retry).focus();
+  }
+
+  /**
    * A line for a list of findings (`ul.befunde`): the search page's problems and hints, the import result. They
    * show together, so each warning or error gets its own close button; `beiSchliessen` lets the page remember it.
    */
@@ -169,7 +191,7 @@
   }
 
   const meldungen = { AUSBLENDEN_MS, SCHLIESSEN, zeige, zeigeNeu, leere, listenZeile, clearOnInput, clearInputError,
-    isInputRejection };
+    isInputRejection, showFailure, focusAfterFailure };
   if (typeof module !== "undefined") module.exports = meldungen;
   else global.Meldungen = meldungen;
 })(typeof window !== "undefined" ? window : globalThis);
