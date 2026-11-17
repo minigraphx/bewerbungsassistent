@@ -351,7 +351,7 @@ function choiceCard() {
   const differs = state.track && state.track !== choice.track;
   return el("section", { className: "card choice-card", "aria-label": "Wahl aus der Einrichtung" }, [
     el("p", { className: "choice-card__line" }, [
-      el("strong", {}, parts.join(" · ")), " ",
+      el("strong", {}, dotLine(parts)), " ",
       el("a", { href: "/einrichtung#gesucht" }, "Ändern"),
     ]),
     el("p", { className: "hint" }, choice.gewaehlt
@@ -682,10 +682,9 @@ function otherLinesView(sectionId) {
       el("p", { className: "other-lines__heading" }, `${group.titel}, ${group.ueberschrift}`),
       el("pre", {}, group.zeilen.join("\n")),
     ])),
-    el("p", {}, files.map(([datei, title], index) => [
-      index ? " · " : "",
-      el("a", { href: `/inhalte?${new URLSearchParams({ datei, ansicht: "text" })}` }, `${title} unter „Inhalte als Text“ ändern`),
-    ]).flat()),
+    el("p", {}, dotLine(files.map(([datei, title]) => el("a", {
+      href: `/inhalte?${new URLSearchParams({ datei, ansicht: "text" })}`,
+    }, `${title} unter „Inhalte als Text“ ändern`)))),
   ]);
 }
 
@@ -837,9 +836,7 @@ async function takeOver(replace) {
       (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
       (result.nicht_ersetzt || []).length ? `Unverändert geblieben: ${result.nicht_ersetzt.join(", ")}. ` : "",
       result.hinweis ? `${result.hinweis} ` : "",
-      result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "",
-      result.hinweis ? " · " : "",
-      el("a", { href: "/" }, "Zu den Bewerbungen"),
+      ...dotLine([result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "", el("a", { href: "/" }, "Zu den Bewerbungen")]),
     );
   } catch (error) {
     message.textContent = error.message;

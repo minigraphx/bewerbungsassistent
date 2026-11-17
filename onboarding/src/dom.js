@@ -26,6 +26,18 @@ function el(tag, attrs, children) {
   return node;
 }
 
+/** App.el of the other pages takes `class` and its children one by one; texte.js and dot-line.js build with it. */
+const appEl = (tag, attrs, ...children) => el(tag, Object.fromEntries(Object.entries(attrs || {})
+  .map(([key, value]) => [key === "class" ? "className" : key, value])), children);
+
+/**
+ * A «·» line as on the other pages (#342, #351): whole parts that wrap only between each other, with a comma for
+ * screen readers. dot-line.js comes from the app, so only lines the app page shows use it.
+ */
+function dotLine(parts) {
+  return DotLine.render(parts, appEl);
+}
+
 let idCounter = 0;
 const nextId = (prefix) => `${prefix}-${++idCounter}`;
 

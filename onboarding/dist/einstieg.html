@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-cS3Zvc4ZBncinZdrlWgIBmrijvBfvWJwZmXu3n02DSc='; style-src 'sha256-PkULeDZe3PHd6SikG2ms9r66CNzgl7+JOvU3Opmksi4='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-XWyQY3rPpFsO8niyT0YDRDlp4nSOoM4En7A512hh5LU='; style-src 'sha256-G+bvFfrHv4rACZ4VtF7v/JVl0fYWCj1QgNW6tsup34s='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsbegleiter</title>
@@ -189,6 +189,8 @@ button { font: inherit; cursor: pointer; }
 .upload-category .limit-note { margin: 4px 0 0; }
 .ok { background: var(--success-soft); color: var(--text-strong); padding: 12px 16px; border-radius: var(--radius-control); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* #351: a part of a «·» line (dotLine in dom.js) breaks to the next line only as a whole, as in stil.css */
+.whole-part { display: inline-block; max-width: 100%; }
 #replace { margin-left: 8px; }
 .suggestion { background: var(--accent-soft); color: var(--text-strong); padding: 8px 12px; border-radius: var(--radius-control); font-size: 14px; line-height: 20px; margin: 0 0 10px; }
 /* Start in the app: documents and „Vorbefüllen“ in one card; the drop area is in droparea.css */
@@ -1164,6 +1166,18 @@ function el(tag, attrs, children) {
     node.append(typeof child === "string" ? document.createTextNode(child) : child);
   }
   return node;
+}
+
+/** App.el of the other pages takes `class` and its children one by one; texte.js and dot-line.js build with it. */
+const appEl = (tag, attrs, ...children) => el(tag, Object.fromEntries(Object.entries(attrs || {})
+  .map(([key, value]) => [key === "class" ? "className" : key, value])), children);
+
+/**
+ * A «·» line as on the other pages (#342, #351): whole parts that wrap only between each other, with a comma for
+ * screen readers. dot-line.js comes from the app, so only lines the app page shows use it.
+ */
+function dotLine(parts) {
+  return DotLine.render(parts, appEl);
 }
 
 let idCounter = 0;
@@ -2414,7 +2428,7 @@ function choiceCard() {
   const differs = state.track && state.track !== choice.track;
   return el("section", { className: "card choice-card", "aria-label": "Wahl aus der Einrichtung" }, [
     el("p", { className: "choice-card__line" }, [
-      el("strong", {}, parts.join(" · ")), " ",
+      el("strong", {}, dotLine(parts)), " ",
       el("a", { href: "/einrichtung#gesucht" }, "Ändern"),
     ]),
     el("p", { className: "hint" }, choice.gewaehlt
@@ -2745,10 +2759,9 @@ function otherLinesView(sectionId) {
       el("p", { className: "other-lines__heading" }, `${group.titel}, ${group.ueberschrift}`),
       el("pre", {}, group.zeilen.join("\n")),
     ])),
-    el("p", {}, files.map(([datei, title], index) => [
-      index ? " · " : "",
-      el("a", { href: `/inhalte?${new URLSearchParams({ datei, ansicht: "text" })}` }, `${title} unter „Inhalte als Text“ ändern`),
-    ]).flat()),
+    el("p", {}, dotLine(files.map(([datei, title]) => el("a", {
+      href: `/inhalte?${new URLSearchParams({ datei, ansicht: "text" })}`,
+    }, `${title} unter „Inhalte als Text“ ändern`)))),
   ]);
 }
 
@@ -2900,9 +2913,7 @@ async function takeOver(replace) {
       (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
       (result.nicht_ersetzt || []).length ? `Unverändert geblieben: ${result.nicht_ersetzt.join(", ")}. ` : "",
       result.hinweis ? `${result.hinweis} ` : "",
-      result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "",
-      result.hinweis ? " · " : "",
-      el("a", { href: "/" }, "Zu den Bewerbungen"),
+      ...dotLine([result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "", el("a", { href: "/" }, "Zu den Bewerbungen")]),
     );
   } catch (error) {
     message.textContent = error.message;

@@ -59,8 +59,8 @@ test("each join left alone is still there, as often as listed", () => {
 });
 
 test("the markup carries a «·» only as the hidden mark of a whole part", () => {
-  // angaben.html is built from onboarding/src with its own helpers; the step headings «1 · Inhalt» number a step
-  // and never break before the «·».
+  // angaben.html is built from onboarding/src, which holds its own check (onboarding/tests/dot_lines.test.cjs, #351);
+  // its markup keeps a «·» only in comments and in the nav CSS it shares with stil.css.
   for (const name of files(".html").filter(name => name !== "angaben.html")) {
     const rest = read(name)
       .replaceAll('<span aria-hidden="true">&nbsp;·</span><span class="visually-hidden">,</span>', "")
