@@ -32,9 +32,15 @@ const appEl = (tag, attrs, ...children) => el(tag, Object.fromEntries(Object.ent
 
 /**
  * A «·» line as on the other pages (#342, #351): whole parts that wrap only between each other, with a comma for
- * screen readers. dot-line.js comes from the app, so only lines the app page shows use it.
+ * screen readers. dot-line.js comes from the app; the standalone file does not load it and gets the plain line, so a
+ * line shown there never throws. Both give the nodes and strings for el or replaceChildren.
  */
+const PLAIN_DOT = " · ";
 function dotLine(parts) {
+  if (typeof DotLine === "undefined") {
+    const kept = parts.filter((part) => part !== "" && part !== null && part !== undefined);
+    return kept.flatMap((part, index) => (index ? [PLAIN_DOT, part] : [part]));
+  }
   return DotLine.render(parts, appEl);
 }
 

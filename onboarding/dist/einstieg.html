@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-XWyQY3rPpFsO8niyT0YDRDlp4nSOoM4En7A512hh5LU='; style-src 'sha256-G+bvFfrHv4rACZ4VtF7v/JVl0fYWCj1QgNW6tsup34s='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Oz6CwNLqVKlXQuAG4dEfCpGxZe+L3G46r5JuWjkkVfw='; style-src 'sha256-G+bvFfrHv4rACZ4VtF7v/JVl0fYWCj1QgNW6tsup34s='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsbegleiter</title>
@@ -1174,9 +1174,15 @@ const appEl = (tag, attrs, ...children) => el(tag, Object.fromEntries(Object.ent
 
 /**
  * A «·» line as on the other pages (#342, #351): whole parts that wrap only between each other, with a comma for
- * screen readers. dot-line.js comes from the app, so only lines the app page shows use it.
+ * screen readers. dot-line.js comes from the app; the standalone file does not load it and gets the plain line, so a
+ * line shown there never throws. Both give the nodes and strings for el or replaceChildren.
  */
+const PLAIN_DOT = " · ";
 function dotLine(parts) {
+  if (typeof DotLine === "undefined") {
+    const kept = parts.filter((part) => part !== "" && part !== null && part !== undefined);
+    return kept.flatMap((part, index) => (index ? [PLAIN_DOT, part] : [part]));
+  }
   return DotLine.render(parts, appEl);
 }
 

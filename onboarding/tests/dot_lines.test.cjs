@@ -11,8 +11,12 @@ const DotLine = require("../../bewerbungen/seiten/dot-line.js");
 const SRC = path.join(__dirname, "..", "src");
 const SEITEN = path.join(__dirname, "..", "..", "bewerbungen", "seiten");
 const page = loadScripts(["dom.js"], { DotLine });
+const standalone = loadScripts(["dom.js"]); // dist/einstieg.html loads no dot-line.js
 
+/** The one «·» join left by hand: the fallback of dom.js where dot-line.js is not loaded. */
+const LEFT_ALONE = { "dom.js": ['const PLAIN_DOT = " · ";'] };
 const isComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
+const hasDot = (line) => line.includes("·") || /\\u00b7|\\xb7|&middot;|&#183;/i.test(line);
 const wholePartRule = (css) => (/\.whole-part \{[^}]*\}/.exec(css) || [null])[0];
 const shown = (node) => (node instanceof FakeNode
   ? (node.className === "visually-hidden" ? "" : node.children.map(shown).join("")) : node.textContent ?? node);
@@ -44,12 +48,26 @@ test("the eye reads «·», a screen reader hears a comma", () => {
   assert.equal(nodes.map(heard).join(""), "Gesucht wird: eine Stelle, Anrede: Sie, RAV: ja");
 });
 
+test("without dot-line.js, as in the standalone file, dotLine gives the plain line and does not throw", () => {
+  assert.equal(typeof standalone.DotLine, "undefined");
+  assert.deepEqual([...standalone.dotLine(["a", "", "b"])], ["a", " · ", "b"]);
+  assert.deepEqual([...standalone.dotLine(["", "b", null])], ["b"], "no «·» stands alone");
+});
+
 test("no script of the page joins a visible line with «·» by hand", () => {
   const found = fs.readdirSync(SRC).filter((name) => name.endsWith(".js")).flatMap((name) => fs
     .readFileSync(path.join(SRC, name), "utf8").split("\n")
-    .filter((line) => line.includes("·") && !isComment(line))
+    .filter((line) => hasDot(line) && !isComment(line))
+    .filter((line) => !(LEFT_ALONE[name] || []).includes(line.trim()))
     .map((line) => `${name}: ${line.trim()}`));
   assert.deepEqual(found, [], "join these through dotLine");
+});
+
+test("the join left by hand is still there, once", () => {
+  for (const [name, lines] of Object.entries(LEFT_ALONE)) {
+    const code = fs.readFileSync(path.join(SRC, name), "utf8").split("\n").map((line) => line.trim());
+    for (const line of lines) assert.equal(code.filter((l) => l === line).length, 1, `${name}: ${line}`);
+  }
 });
 
 test("the page styles a whole part as the other pages do, in both built files", () => {
