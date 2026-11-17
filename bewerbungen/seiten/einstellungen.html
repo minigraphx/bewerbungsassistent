@@ -43,7 +43,7 @@
     <p id="einladung-keine" hidden>Diese App hat keine Vermittlung eingebaut. Ein Einladungscode geht hier nicht.</p>
     <div id="einladung-eingeben" class="field" hidden>
       <label class="field__label" for="einladung-code">Einladungscode</label>
-      <div class="settings__code"><input class="input" id="einladung-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button type="button" class="btn btn--primary" id="einladung-einloesen" disabled>Einladung einlösen</button></div>
+      <div class="settings__code"><input class="input" id="einladung-code" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX" aria-describedby="einladung-status"><button type="button" class="btn btn--primary" id="einladung-einloesen" disabled>Einladung einlösen</button></div>
     </div>
     <div id="einladung-status" class="status" role="status" aria-live="polite"></div>
   </section>
@@ -106,7 +106,7 @@
     </ul>
     <label class="schalter"><input type="checkbox" id="bestaetigt"> Ich habe das gelesen und bin einverstanden.</label>
     <label for="schluessel">API-Schlüssel</label>
-    <input id="schluessel" type="password" autocomplete="off" spellcheck="false">
+    <input class="input" id="schluessel" type="password" autocomplete="off" spellcheck="false" aria-describedby="meldung">
     <p class="hilfe">Beim Speichern prüft ein kleiner, kostenloser Aufruf den Schlüssel; zum Guthaben sagt er nichts. Der Schlüssel liegt danach nur im Schlüsselbund des Computers, nie im Datenordner und nie in der Browser-Erweiterung.</p>
     <div class="knoepfe"><button type="button" id="speichern" class="haupt" disabled>Prüfen und speichern</button></div>
   </div>

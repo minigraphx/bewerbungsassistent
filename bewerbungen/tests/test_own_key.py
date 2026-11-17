@@ -266,7 +266,7 @@ def test_the_key_appears_in_no_file_answer_or_log(server, keychain, api, caplog,
     answers.append(post(server, "/api/schluessel/speichern", {"schluessel": KEY, "bestaetigt": True}))
     keychain.broken = True
     answers.append(post(server, "/api/schluessel/entfernen", {}))
-    assert answers[-2][0] == 400 and answers[-1][0] == 400
+    assert answers[-2][0] == 400 and answers[-1][0] == 500  # a locked keychain is no input error (#350)
     assert KEY not in str(answers)
     assert KEY not in caplog.text
     files = [p for p in tmp_path.rglob("*") if p.is_file()]
