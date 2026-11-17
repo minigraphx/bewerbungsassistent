@@ -90,10 +90,6 @@ function runAllowed(ctx) {
   return Boolean(answer) && answer.anzahl > 0 && !creditUsedUp(answer) && !ctx.run.running;
 }
 
-/** App.el of the other pages takes `class` and its children one by one; texte.js builds the link with it. */
-const appEl = (tag, attrs, ...children) => el(tag, Object.fromEntries(Object.entries(attrs || {})
-  .map(([key, value]) => [key === "class" ? "className" : key, value])), children);
-
 /** „anfordern“ as the link of #315 where texte.js is loaded, as in the app. */
 const withRequestLink = (sentence) => (typeof Texte === "undefined" ? [sentence] : Texte.withCodeRequestLink(sentence, appEl));
 
