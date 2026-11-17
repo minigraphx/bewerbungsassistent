@@ -78,14 +78,7 @@
   }
 
   // A refused code or key (400) is about its field and clears on the first input there (G97, #350); a mediation or
-  // Anthropic out of reach, a missing consent or a failing keychain stays until «×».
-  function showFailure(line, field, fehler) {
-    const refused = window.Meldungen.isInputRejection(fehler);
-    if (refused) field.setAttribute("aria-invalid", "true");
-    else field.removeAttribute("aria-invalid");
-    status(line, fehler.message, "fehler", { input: refused ? field : null });
-  }
-
+  // Anthropic out of reach, a missing consent or a failing keychain stays until «×» (Meldungen.showFailure).
   async function redeem() {
     let failed = null;
     $("einladung-einloesen").disabled = true;
@@ -98,12 +91,10 @@
       showBudget();
     } catch (fehler) {
       failed = fehler;
-      showFailure($("einladung-status"), $("einladung-code"), fehler);
+      window.Meldungen.showFailure($("einladung-status"), $("einladung-code"), fehler);
     } finally {
       $("einladung-einloesen").disabled = !$("einladung-code").value.trim();
-      // The disabled button dropped the focus: a refused code is fixed in its field, anything else is tried again.
-      if (failed) (window.Meldungen.isInputRejection(failed) || $("einladung-einloesen").disabled
-        ? $("einladung-code") : $("einladung-einloesen")).focus();
+      if (failed) window.Meldungen.focusAfterFailure(failed, $("einladung-code"), $("einladung-einloesen"));
     }
   }
 
@@ -153,7 +144,7 @@
   }
 
   async function speichern() {
-    let failed = false;
+    let failed = null;
     $("speichern").disabled = true;
     status($("meldung"), "Der Schlüssel wird geprüft …");
     try {
@@ -161,12 +152,13 @@
       $("schluessel").removeAttribute("aria-invalid");
       status($("meldung"), "Gespeichert. Die KI-Aufrufe gehen jetzt direkt an die Claude API.", "ok");
     } catch (fehler) {
-      failed = true;
-      showFailure($("meldung"), $("schluessel"), fehler);
+      failed = fehler;
+      window.Meldungen.showFailure($("meldung"), $("schluessel"), fehler);
     } finally {
       $("schluessel").value = "";
       pruefeBereit();
-      if (failed) $("schluessel").focus();  // the field is empty again: the next try starts there
+      // The field is empty again, so the button cannot send: the next try starts in the field.
+      if (failed) window.Meldungen.focusAfterFailure(failed, $("schluessel"), $("speichern"));
     }
   }
 

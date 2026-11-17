@@ -6,6 +6,8 @@
 window.KiFenster = (() => {
   const { holen, senden, el, status } = window.App;
   const TITLE_ID = "ki-fenster-titel";
+  // One line for the messages of the window; only one way shows at a time, so it describes the code and the key field.
+  const MESSAGE_ID = "ki-fenster-meldung";
   const DONE = "Die KI ist eingerichtet.";
   const NO_MEDIATION = "Diese App hat keine Vermittlung eingebaut. Ein Einladungscode geht hier nicht.";
   const AGREED = "Ich habe das gelesen und bin einverstanden.";
@@ -51,10 +53,11 @@ window.KiFenster = (() => {
 
   function invitationPart(state, t) {
     const code = el("input", { class: "input setup__code", id: "ki-fenster-code", autocomplete: "off", spellcheck: "false",
-                               placeholder: "XXXX-XXXX-XXXX-XXXX" });
+                               placeholder: "XXXX-XXXX-XXXX-XXXX", "aria-describedby": MESSAGE_ID });
     const redeem = el("button", { type: "button", class: "btn btn--primary", disabled: true }, "Einladung einlösen");
-    code.addEventListener("input", () => { redeem.disabled = !code.value.trim(); });
-    redeem.addEventListener("click", () => state.run(redeem, async () => {
+    const ready = () => { redeem.disabled = !code.value.trim(); };
+    code.addEventListener("input", ready);
+    redeem.addEventListener("click", () => state.run({ button: redeem, field: code, ready }, async () => {
       const ki = await senden("/api/ki/einladung", { code: code.value.trim() });
       code.value = "";
       return ki;
@@ -74,17 +77,17 @@ window.KiFenster = (() => {
 
   function keyPart(state, t) {
     const tick = el("input", { type: "checkbox" });
-    const key = el("input", { class: "input", id: "ki-fenster-schluessel", type: "password", autocomplete: "off", spellcheck: "false" });
+    const key = el("input", { class: "input", id: "ki-fenster-schluessel", type: "password", autocomplete: "off", spellcheck: "false",
+                              "aria-describedby": MESSAGE_ID });
     const save = el("button", { type: "button", class: "btn btn--primary", disabled: true }, "Prüfen und speichern");
     const ready = () => { save.disabled = !tick.checked || !key.value.trim(); };
     tick.addEventListener("change", ready);
     key.addEventListener("input", ready);
-    save.addEventListener("click", () => state.run(save, async () => {
+    save.addEventListener("click", () => state.run({ button: save, field: key, ready }, async () => {
       try {
         await senden("/api/schluessel/speichern", { schluessel: key.value, bestaetigt: tick.checked });
       } finally {
-        key.value = "";
-        ready();
+        key.value = "";  // sent once, never kept
       }
       return holen("/api/ki/status");
     }));
@@ -97,6 +100,13 @@ window.KiFenster = (() => {
 
   // ---------- Drawing ----------
 
+  // The shared line would describe the other way's field with a refused code or key; any other failure stays until «×».
+  function chooseWay(state, way) {
+    window.Meldungen.clearInputError(state.message);
+    state.way = way;
+    draw(state);
+  }
+
   function draw(state) {
     const { ki, abo, parts } = state;
     const now = stage(ki);
@@ -108,7 +118,7 @@ window.KiFenster = (() => {
       const inUse = wayInUse(ki, abo);
       state.way = inUse || (ki.einladung ? "einladung" : "schluessel");
       state.choice = window.KiZugang.render(parts.choice, { name: "ki-fenster-weg", offered, current: inUse, chosen: state.way,
-                                                             onChoose: way => { state.way = way; draw(state); } });
+                                                             onChoose: way => chooseWay(state, way) });
     }
     for (const [way, part] of Object.entries(parts.ways)) {
       part.part.hidden = now !== "wahl" || state.way !== way;
@@ -130,7 +140,7 @@ window.KiFenster = (() => {
   function build(state, satz) {
     const t = texts(satz);
     const dialog = el("dialog", { class: "dialog ki-fenster", "aria-labelledby": TITLE_ID });
-    const message = el("p", { class: "status-line", role: "status", "aria-live": "polite" });
+    const message = el("p", { class: "status-line", id: MESSAGE_ID, role: "status", "aria-live": "polite" });
     state.message = message;
     const parts = {
       consent: el("div", { class: "field einwilligung" }),
@@ -166,14 +176,22 @@ window.KiFenster = (() => {
       if (ki.einladung_fehler) status(state.message, ki.einladung_fehler, "fehler");
       draw(state);
     };
-    state.run = async (knopf, action) => {
-      knopf.disabled = true;
+    // A refused code or key is fixed in its field and clears on the first input there (G97, #361, as in Einstellungen);
+    // a mediation or Anthropic out of reach stays until «×». `ready` gives the button back the state of its field.
+    state.run = async ({ button, field, ready }, action) => {
+      let failed = null;
+      button.disabled = true;
       try {
-        state.update(await action());
+        const ki = await action();
+        field.removeAttribute("aria-invalid");
+        window.Meldungen.clearInputError(state.message);
+        state.update(ki);
       } catch (fehler) {
-        status(state.message, fehler.message, "fehler");
+        failed = fehler;
+        window.Meldungen.showFailure(state.message, field, fehler);
       } finally {
-        knopf.disabled = false;
+        ready();
+        if (failed) window.Meldungen.focusAfterFailure(failed, field, button);
       }
     };
     return state;
