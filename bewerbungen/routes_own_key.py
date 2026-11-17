@@ -5,7 +5,7 @@ reach these routes (list in `desktop/native_host.py`).
 """
 from ai import connection, own_key
 from ai.usage import UsageLog
-from routes_ai import run_ai
+from routes_ai import run_entry
 from server import json_antwort
 
 CONFIRM_FIRST = "Bitte zuerst die Hinweise lesen und bestätigen."
@@ -45,12 +45,12 @@ def status(k, parameter, body):
 def save(k, parameter, body):
     if not isinstance(body, dict) or body.get("bestaetigt") is not True:
         raise ValueError(CONFIRM_FIRST)
-    run_ai(lambda: own_key.save(body.get("schluessel")))
+    run_entry(lambda: own_key.save(body.get("schluessel")))
     return json_antwort(_state(k))
 
 
 def remove(k, parameter, body):
-    run_ai(own_key.remove)
+    run_entry(own_key.remove)
     return json_antwort(_state(k))
 
 

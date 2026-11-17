@@ -54,6 +54,15 @@ class ActionError(ValueError):
         self.action = action
 
 
+class StatusError(Exception):
+    """A message for the person with a status of its own: a failure that is not about the values sent, so the page
+    does not tie it to a field (G97, #350)."""
+
+    def __init__(self, message: str, status: int) -> None:
+        super().__init__(message)
+        self.status = status
+
+
 @dataclasses.dataclass(frozen=True)
 class Antwort:
     status: int
@@ -250,6 +259,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._fehler(HTTPStatus.NOT_FOUND, str(fehler.args[0] if fehler.args else fehler))
         except ValueError as fehler:
             return self._fehler(HTTPStatus.BAD_REQUEST, str(fehler), getattr(fehler, "action", None))
+        except StatusError as fehler:
+            return self._fehler(fehler.status, str(fehler))
         except Exception:
             log.exception("Fehler bei %s %s", self.command, self.path)
             return self._fehler(HTTPStatus.INTERNAL_SERVER_ERROR, "Interner Fehler, Details in der Konsole")

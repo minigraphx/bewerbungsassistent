@@ -125,7 +125,7 @@ def test_a_code_without_consent_waits_and_is_redeemed_after_it(server, monkeypat
     monkeypatch.setattr(routes_ai.invitation, "redeem", lambda url, code, receipt="": redeemed.append((code, receipt)))
     monkeypatch.setattr(routes_ai, "mediation_url", lambda: "https://vermittlung.example")
     status, answer = post(server, "/api/ki/einladung", {"code": "ABCD"})
-    assert status == 400 and "Einwilligung" in answer["fehler"] and redeemed == []
+    assert status == 409 and "Einwilligung" in answer["fehler"] and redeemed == []  # waits: no input error (#350)
     post(server, "/api/ki/einwilligung", {"fassung": consent.VERSION, "zustimmung": True})
     assert redeemed == [("ABCD", f"{consent.VERSION} {JOB}")]
     post(server, "/api/ki/einwilligung/widerruf", {})

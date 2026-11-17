@@ -4,6 +4,7 @@ Every call goes through `ai.gateway.Gateway`, so nothing leaves the computer unp
 outside the lock; only writing the letter holds it (via `mit_entwurf`, which also saves drafts).
 """
 import datetime
+from http import HTTPStatus
 
 import yaml
 
@@ -12,10 +13,10 @@ import preferences
 import unterlagen
 from ai import consent, form_help, invitation, tasks, usage
 from ai.connection import find_connection, make_client, mediation_url, own_key
-from ai.errors import SETUP_ACTION, AiError, SetupNeeded
+from ai.errors import SETUP_ACTION, AiError, InputRefused, LocalProblem, SetupNeeded
 from ai.usage import UsageLog
 from dateien import schreibe_atomar
-from server import ActionError, json_antwort, pflicht
+from server import ActionError, StatusError, json_antwort, pflicht
 
 LETTER_FILE = "anschreiben.yaml"
 STELLE_FILE = "stelle.md"
@@ -24,6 +25,7 @@ OWN_LETTER_NO_DRAFT = "Für diese Bewerbung gilt das eigene Anschreiben. Für ei
 OWN_LETTER_NO_REVIEW = "Das eigene Anschreiben geht nicht an die KI. Bitte selbst mit dem Inserat vergleichen."
 NO_TICK = "Bitte zuerst den Text lesen und bestätigen."
 OPEN_LINK_AGAIN = "Der Code ist noch gültig: Bitte den Einladungslink nochmals öffnen."
+NO_MEDIATION = "Für diese App ist keine KI-Vermittlung eingerichtet."
 WAITING_CODE = "wartender_code"  # in the context: from an invitation link, redeemed once the consent is there
 
 
@@ -103,6 +105,19 @@ def run_ai(task):
         raise ValueError(str(error)) from error
 
 
+def run_entry(task):
+    """For the routes that take an invitation code or an own key (#350): only a value wrong in itself is a 400, which
+    the page ties to its field (G97). A failing keychain or setup is the app's error, everything else the service's."""
+    try:
+        return task()
+    except InputRefused as error:
+        raise ValueError(str(error)) from error
+    except LocalProblem as error:
+        raise StatusError(str(error), HTTPStatus.INTERNAL_SERVER_ERROR) from error
+    except AiError as error:
+        raise StatusError(str(error), HTTPStatus.BAD_GATEWAY) from error
+
+
 def connected() -> bool:
     """Is an AI set up? Without one a form is filled by the rules alone, and nobody needs to hear about it."""
     try:
@@ -160,13 +175,13 @@ def status(k, parameter, body):
 def redeem(k, parameter, body):
     if not isinstance(body, dict) or not isinstance(body.get("code"), str):
         raise ValueError("code erwartet")
-    url = run_ai(mediation_url)
+    url = run_entry(mediation_url)
     if url is None:
-        raise ValueError("Für diese App ist keine KI-Vermittlung eingerichtet.")
+        raise StatusError(NO_MEDIATION, HTTPStatus.SERVICE_UNAVAILABLE)
     if not consent.is_given(k.daten, _kind(k)):
         k.cache[WAITING_CODE] = body["code"]
-        raise ValueError(consent.MISSING)
-    run_ai(lambda: invitation.redeem(url, body["code"], receipt=consent.receipt(k.daten)))
+        raise StatusError(consent.MISSING, HTTPStatus.CONFLICT)  # the code waits for the consent, nothing wrong with it
+    run_entry(lambda: invitation.redeem(url, body["code"], receipt=consent.receipt(k.daten)))
     return json_antwort(_status(k))
 
 

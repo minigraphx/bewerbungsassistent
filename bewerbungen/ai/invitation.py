@@ -16,7 +16,7 @@ from typing import Callable
 import truststore
 
 from ai.connection import KEYRING_ACCOUNT, KEYRING_SERVICE, keychain_problem
-from ai.errors import ACCESS_DENIED, OFFLINE, AiError
+from ai.errors import ACCESS_DENIED, OFFLINE, AiError, InputRefused, LocalProblem
 
 TIMEOUT_SECONDS = 30
 REDEEM_PATH = "/v1/invitations/redeem"
@@ -55,8 +55,8 @@ def _call(url: str, opener: Opener, body: dict | None = None, access: str | None
 
 
 def _http_error(status: int) -> AiError:
-    if status == 400:
-        return AiError(CODE_INVALID)
+    if status == 400:  # the mediation's answer to a code it does not know, or one that is used or expired
+        return InputRefused(CODE_INVALID)
     if status == 401:
         return AiError(ACCESS_DENIED)
     if status == 429:
@@ -69,7 +69,7 @@ def _keep(access: str) -> None:
         import keyring
         keyring.set_password(KEYRING_SERVICE, KEYRING_ACCOUNT, access)
     except Exception as error:  # noqa: BLE001  (no keychain backend, or access denied)
-        raise AiError(keychain_problem(NO_KEYCHAIN)) from error
+        raise LocalProblem(keychain_problem(NO_KEYCHAIN)) from error
 
 
 def redeem(base_url: str, code: str, opener: Opener = _open, keep: Callable[[str], None] = _keep,
@@ -77,7 +77,7 @@ def redeem(base_url: str, code: str, opener: Opener = _open, keep: Callable[[str
     """`receipt`: version and kind of the consent (MIN-401), so that the operator can show it; no names."""
     code = (code or "").strip()
     if not code or len(code) > 64:
-        raise AiError(CODE_INVALID)
+        raise InputRefused(CODE_INVALID)
     answer = _call(base_url.rstrip("/") + REDEEM_PATH, opener, {"code": code, "device": platform.system() or "Gerät",
                                                                 "consent": receipt})
     access = answer.get("access")

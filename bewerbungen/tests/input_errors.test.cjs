@@ -372,3 +372,113 @@ test("zeichen.js passes the field of a refused value on to its message", () => {
   const wiring = /meldung\(`Nicht gespeichert\. \$\{fehler\.message\}`, "fehler", \{ input: window\.Meldungen\.isInputRejection\(fehler\) \? feld : null \}\)/;
   assert.ok(wiring.test(source("zeichen.js")), `zeichen.js does not arm ${wiring}`);
 });
+
+// Einstellungen: the invitation code and the own key (#350). The routes answer 400 only for a value wrong in itself.
+
+const refusal = (message, status) => Object.assign(new Error(message), { status });
+const CODE_REFUSED = refusal("Der Code gilt nicht (falsch, schon benutzt oder abgelaufen). Bitte um einen neuen Code.", 400);
+const MEDIATION_DOWN = refusal("Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?", 502);
+const KEY_REFUSED = refusal("Dieser Schlüssel gilt nicht. Bitte in der Anthropic Console prüfen. Gespeichert wurde nichts.", 400);
+const SETTINGS_ANSWERS = {
+  "/api/schluessel": { gesetzt: false, kosten: { monat_usd: 0, gesamt_usd: 0, aufrufe: 0, aufgaben: {} } },
+  "/api/ki/status": { monat: "2026-11", eingerichtet: false, einladung: true, kosten_usd: 0, einwilligung: { erteilt: true } },
+  "/api/claude/stand": new Error("none"),
+  "/api/einrichtung/wahl": { gesucht: "stelle", anrede: "sie", rav: false },
+};
+
+/** Runs einstellungen.js with the real meldungen.js; `answers` stays live. */
+async function settingsPage(answers) {
+  const document = fakeDocument();
+  const elements = new Map();
+  const make = tag => Object.assign(document.createElement(tag), { style: {}, scrollIntoView: () => {} });
+  document.getElementById = id => {
+    if (!elements.has(id)) elements.set(id, make(["einladung-code", "schluessel", "bestaetigt"].includes(id) ? "input" : "div"));
+    return elements.get(id);
+  };
+  document.querySelector = () => make("div");
+  document.querySelectorAll = () => [];
+  document.documentElement = { dataset: {} };
+  const el = (tag, attributes = {}, ...children) => {
+    const element = document.createElement(tag);
+    for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value);
+    for (const child of children.flat()) if (child !== null && child !== undefined && child !== false) element.append(child);
+    return element;
+  };
+  const answer = async route => {
+    if (!(route in answers)) throw new Error(`unexpected route ${route}`);
+    if (answers[route] instanceof Error) throw answers[route];
+    return answers[route];
+  };
+  const window = {
+    Texte, EinstellungenLogik: require("../seiten/einstellungen-logik.js"),
+    KiZugang: { options: () => [], render: () => ({ choose: () => {}, setCurrent: () => {} }) },
+    Einwilligung: { link: () => null, zeile: () => {} },
+    addEventListener: () => {}, postMessage: () => {},
+  };
+  const context = { window, document, console, location: { hash: "", origin: "http://127.0.0.1" },
+    setTimeout: () => 0, clearTimeout: () => {}, MutationObserver: class { observe() {} } };
+  vm.createContext(context);
+  vm.runInContext(source("meldungen.js"), context);
+  window.App = { el, holen: route => answer(route), senden: answer, bestaetigen: () => {},
+    status: (element, text, art, optionen) => window.Meldungen.zeige(element, text, art, optionen) };
+  vm.runInContext(source("einstellungen.js"), context);
+  await settled();
+  const $ = id => document.getElementById(id);
+  return { $, document };
+}
+
+async function redeemWith(failure) {
+  const page = await settingsPage({ ...SETTINGS_ANSWERS, "/api/ki/einladung": failure });
+  type(page.$("einladung-code"), "TEST-0000-TEST-0000");
+  page.$("einladung-einloesen").dispatch("click");
+  await settled();
+  return page;
+}
+
+async function saveKeyWith(failure) {
+  const page = await settingsPage({ ...SETTINGS_ANSWERS, "/api/schluessel/speichern": failure });
+  page.$("bestaetigt").checked = true;
+  type(page.$("schluessel"), "erfundener-schluessel-0123456789");
+  page.$("speichern").dispatch("click");
+  await settled();
+  return page;
+}
+
+test("Einstellungen: a refused invitation code clears on the first input in the code field", async () => {
+  const { $ } = await redeemWith(CODE_REFUSED);
+  assert.equal($("einladung-status").textContent.startsWith(CODE_REFUSED.message), true);
+  assert.equal($("einladung-code").getAttribute("aria-invalid"), "true");
+
+  type($("einladung-code"), "TEST-0000-TEST-0001");
+
+  assert.equal($("einladung-status").textContent, "");
+  assert.equal($("einladung-code").getAttribute("aria-invalid"), null);
+});
+
+test("Einstellungen: an unreachable mediation is no input error and stays until «×»", async () => {
+  const { $ } = await redeemWith(MEDIATION_DOWN);
+  type($("einladung-code"), "TEST-0000-TEST-0001");
+  assert.match($("einladung-status").textContent, /Keine Verbindung zur KI/);
+  assert.equal($("einladung-code").getAttribute("aria-invalid"), null);
+  closeButton($("einladung-status")).dispatch("click");
+  assert.equal($("einladung-status").textContent, "");
+});
+
+test("Einstellungen: a refused own key clears on the first input in the key field", async () => {
+  const { $ } = await saveKeyWith(KEY_REFUSED);
+  assert.equal($("meldung").textContent.startsWith(KEY_REFUSED.message), true);
+  assert.equal($("schluessel").getAttribute("aria-invalid"), "true");
+
+  type($("schluessel"), "s");
+
+  assert.equal($("meldung").textContent, "");
+  assert.equal($("schluessel").getAttribute("aria-invalid"), null);
+});
+
+test("Einstellungen: an Anthropic that cannot check the key is no input error and stays until «×»", async () => {
+  const { $ } = await saveKeyWith(MEDIATION_DOWN);
+  type($("schluessel"), "s");
+  assert.match($("meldung").textContent, /Keine Verbindung zur KI/);
+  closeButton($("meldung")).dispatch("click");
+  assert.equal($("meldung").textContent, "");
+});

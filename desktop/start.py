@@ -58,10 +58,11 @@ def _apply_build_defaults(defaults: dict) -> None:
 def _redeem(kontext, code: str) -> None:
     """Through the route of the app: without the consent the code waits for it (MIN-401)."""
     import routes_ai
+    from server import StatusError
     try:
         routes_ai.redeem(kontext, {}, {"code": code})
         log.info("Einladung eingelöst")
-    except ValueError as error:
+    except (ValueError, StatusError) as error:
         log.warning("Einladung nicht eingelöst: %s", error)
 
 

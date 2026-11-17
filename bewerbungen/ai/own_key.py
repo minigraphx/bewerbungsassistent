@@ -8,7 +8,7 @@ import re
 import anthropic
 
 from ai import connection
-from ai.errors import OFFLINE, AiError, from_sdk
+from ai.errors import OFFLINE, AiError, InputRefused, LocalProblem, from_sdk
 
 MIN_LENGTH = 20
 MAX_LENGTH = 300
@@ -27,29 +27,29 @@ def check_client(key: str) -> anthropic.Anthropic:
 def _cleaned(value) -> str:
     key = value.strip() if isinstance(value, str) else ""
     if not MIN_LENGTH <= len(key) <= MAX_LENGTH or not KEY_SHAPE.fullmatch(key):
-        raise AiError(NOT_A_KEY)
+        raise InputRefused(NOT_A_KEY)
     return key
 
 
 def _check(key: str) -> None:
     """Listing the models costs nothing and carries no content. It says nothing about the remaining credit."""
-    message = None
+    refused = None
     try:
         check_client(key).models.list(limit=1)
     except (anthropic.AuthenticationError, anthropic.PermissionDeniedError):
-        message = KEY_REJECTED
+        refused = InputRefused(KEY_REJECTED)
     except anthropic.APIError as error:
-        message = str(from_sdk(error))
+        refused = AiError(str(from_sdk(error)))
     except Exception:  # noqa: BLE001  (whatever it was, its text may hold the key)
-        message = OFFLINE
-    if message:
-        raise AiError(message) from None
+        refused = AiError(OFFLINE)
+    if refused:
+        raise refused from None
 
 
 def _keychain():
     library = connection._keyring()
     if library is None:
-        raise AiError(connection.keychain_problem(NO_KEYCHAIN))
+        raise LocalProblem(connection.keychain_problem(NO_KEYCHAIN))
     return library
 
 
@@ -63,7 +63,7 @@ def store(key: str) -> None:
     except Exception:  # noqa: BLE001  (its text may hold the key)
         kept = None
     if kept != key:
-        raise AiError(connection.keychain_problem(NO_KEYCHAIN)) from None
+        raise LocalProblem(connection.keychain_problem(NO_KEYCHAIN)) from None
 
 
 def save(value) -> None:
@@ -83,6 +83,6 @@ def remove() -> None:
     try:
         left = library.get_password(connection.KEYRING_SERVICE, connection.OWN_KEY_ACCOUNT)
     except Exception:  # noqa: BLE001
-        raise AiError(connection.keychain_problem(NO_KEYCHAIN)) from None
+        raise LocalProblem(connection.keychain_problem(NO_KEYCHAIN)) from None
     if left:
-        raise AiError(connection.keychain_problem(NO_KEYCHAIN))
+        raise LocalProblem(connection.keychain_problem(NO_KEYCHAIN))

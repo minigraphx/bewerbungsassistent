@@ -77,16 +77,26 @@
     showBudget();
   }
 
+  // A refused code or key (400) is about its field and clears on the first input there (G97, #350); a mediation or
+  // Anthropic out of reach, a missing consent or a failing keychain stays until «×».
+  function showFailure(line, field, fehler) {
+    const refused = window.Meldungen.isInputRejection(fehler);
+    if (refused) field.setAttribute("aria-invalid", "true");
+    else field.removeAttribute("aria-invalid");
+    status(line, fehler.message, "fehler", { input: refused ? field : null });
+  }
+
   async function redeem() {
     $("einladung-einloesen").disabled = true;
     try {
       ki = await senden("/api/ki/einladung", { code: $("einladung-code").value.trim() });
       $("einladung-code").value = "";
+      $("einladung-code").removeAttribute("aria-invalid");
       status($("einladung-status"), "Einladung eingelöst. Die KI ist eingerichtet.", "ok");
       showAccess();
       showBudget();
     } catch (fehler) {
-      status($("einladung-status"), fehler.message, "fehler");
+      showFailure($("einladung-status"), $("einladung-code"), fehler);
     } finally {
       $("einladung-einloesen").disabled = !$("einladung-code").value.trim();
     }
@@ -142,9 +152,10 @@
     status($("meldung"), "Der Schlüssel wird geprüft …");
     try {
       await afterKeyChange(await senden("/api/schluessel/speichern", { schluessel: $("schluessel").value, bestaetigt: $("bestaetigt").checked }));
+      $("schluessel").removeAttribute("aria-invalid");
       status($("meldung"), "Gespeichert. Die KI-Aufrufe gehen jetzt direkt an die Claude API.", "ok");
     } catch (fehler) {
-      status($("meldung"), fehler.message, "fehler");
+      showFailure($("meldung"), $("schluessel"), fehler);
     } finally {
       $("schluessel").value = "";
       pruefeBereit();

@@ -30,6 +30,16 @@ class SetupNeeded(AiError):
     """The AI is not set up or not agreed to: the page opens the window „KI einrichten“ (G60)."""
 
 
+class InputRefused(AiError):
+    """The value the person entered is wrong in itself: its form, a code the mediation does not take, a key Anthropic
+    refuses. Only this is an input error of the routes that take a code or a key (G97, #350)."""
+
+
+class LocalProblem(AiError):
+    """This computer or the app's own setup failed (the keychain, the address of the mediation), not the value and
+    not the service."""
+
+
 SETUP_ACTION = "ki-einrichten"  # what the answer of a route tells the page to open
 NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. Unter „KI einrichten“ den Einladungscode, "
               "das eigene Claude-Abo oder einen eigenen Schlüssel wählen.")

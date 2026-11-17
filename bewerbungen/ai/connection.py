@@ -15,7 +15,7 @@ import urllib.parse
 
 import anthropic
 
-from ai.errors import NOT_SET_UP, AiError, SetupNeeded
+from ai.errors import NOT_SET_UP, AiError, LocalProblem, SetupNeeded
 from ai.usage import currency
 
 log = logging.getLogger("bewerbungsbegleiter")
@@ -128,7 +128,7 @@ def mediation_url(environ: dict | None = None) -> str | None:
     if not url:
         return None
     if not _secure(url):
-        raise AiError("Die Adresse der KI-Vermittlung muss mit https:// beginnen.")
+        raise LocalProblem("Die Adresse der KI-Vermittlung muss mit https:// beginnen.")
     return url.rstrip("/")
 
 
