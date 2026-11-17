@@ -100,6 +100,13 @@ window.KiFenster = (() => {
 
   // ---------- Drawing ----------
 
+  // The shared line would describe the other way's field with a refused code or key; any other failure stays until «×».
+  function chooseWay(state, way) {
+    window.Meldungen.clearInputError(state.message);
+    state.way = way;
+    draw(state);
+  }
+
   function draw(state) {
     const { ki, abo, parts } = state;
     const now = stage(ki);
@@ -111,7 +118,7 @@ window.KiFenster = (() => {
       const inUse = wayInUse(ki, abo);
       state.way = inUse || (ki.einladung ? "einladung" : "schluessel");
       state.choice = window.KiZugang.render(parts.choice, { name: "ki-fenster-weg", offered, current: inUse, chosen: state.way,
-                                                             onChoose: way => { state.way = way; draw(state); } });
+                                                             onChoose: way => chooseWay(state, way) });
     }
     for (const [way, part] of Object.entries(parts.ways)) {
       part.part.hidden = now !== "wahl" || state.way !== way;

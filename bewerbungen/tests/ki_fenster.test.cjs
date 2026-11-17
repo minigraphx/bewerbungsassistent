@@ -520,6 +520,26 @@ for (const [what, failure] of [["refused", KEY_REFUSED], ["not checked", UNREACH
   });
 }
 
+test("in the window switching the way after a refused code clears its error and its mark, the focus stays", async () => {
+  const { dialog, code, line } = await redeemIn(CODE_REFUSED);
+  assert.equal(code.attrs["aria-invalid"], "true");
+
+  choose(dialog, "schluessel");
+
+  assert.equal(line.textContent, "", "the shared line would otherwise describe the key field with the code error");
+  assert.equal(code.attrs["aria-invalid"], undefined);
+  assert.equal(focus.active, code, "the switch moves no focus");
+});
+
+test("in the window switching the way keeps an unreachable mediation until «×»", async () => {
+  const { dialog, line } = await redeemIn(UNREACHABLE);
+
+  choose(dialog, "schluessel");
+
+  assert.match(line.textContent, /Keine Verbindung zur KI/);
+  assert.ok(closeButtonOf(line));
+});
+
 test("in the window a code that works after a refused one clears the error, also without an input event", async () => {
   const answers = { "/api/ki/einladung": CODE_REFUSED };
   const w = windowWith({ "/api/ki/status": AGREED, "/api/claude/stand": new Error("none"),
