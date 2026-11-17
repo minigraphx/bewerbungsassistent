@@ -87,6 +87,7 @@
   }
 
   async function redeem() {
+    let failed = null;
     $("einladung-einloesen").disabled = true;
     try {
       ki = await senden("/api/ki/einladung", { code: $("einladung-code").value.trim() });
@@ -96,9 +97,13 @@
       showAccess();
       showBudget();
     } catch (fehler) {
+      failed = fehler;
       showFailure($("einladung-status"), $("einladung-code"), fehler);
     } finally {
       $("einladung-einloesen").disabled = !$("einladung-code").value.trim();
+      // The disabled button dropped the focus: a refused code is fixed in its field, anything else is tried again.
+      if (failed) (window.Meldungen.isInputRejection(failed) || $("einladung-einloesen").disabled
+        ? $("einladung-code") : $("einladung-einloesen")).focus();
     }
   }
 
@@ -148,6 +153,7 @@
   }
 
   async function speichern() {
+    let failed = false;
     $("speichern").disabled = true;
     status($("meldung"), "Der Schlüssel wird geprüft …");
     try {
@@ -155,10 +161,12 @@
       $("schluessel").removeAttribute("aria-invalid");
       status($("meldung"), "Gespeichert. Die KI-Aufrufe gehen jetzt direkt an die Claude API.", "ok");
     } catch (fehler) {
+      failed = true;
       showFailure($("meldung"), $("schluessel"), fehler);
     } finally {
       $("schluessel").value = "";
       pruefeBereit();
+      if (failed) $("schluessel").focus();  // the field is empty again: the next try starts there
     }
   }
 

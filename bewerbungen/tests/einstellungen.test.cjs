@@ -168,7 +168,7 @@ test("KI und Guthaben: the access to the AI is a choice of invitation code, own 
   assert.match(subscription, /id="abo-einschalten"[^>]*>Zugang einschalten<\/button>/);
   const key = card(ki, logic.WAY_CARDS.schluessel);
   assert.match(key, /<h2 id="schluessel-titel">Eigener API-Schlüssel<\/h2>/);
-  assert.match(key, /<input id="schluessel" type="password"/);
+  assert.match(key, /<input class="input" id="schluessel" type="password"/);
   assert.match(key, /id="speichern"[^>]*>Prüfen und speichern<\/button>/);
   for (const way of ways) assert.match(ki, new RegExp(`<section class="card" id="${logic.WAY_CARDS[way]}"[^>]*hidden>`),
     `${way} shows only once chosen`);

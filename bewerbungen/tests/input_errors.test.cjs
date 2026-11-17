@@ -475,6 +475,30 @@ test("Einstellungen: a refused own key clears on the first input in the key fiel
   assert.equal($("schluessel").getAttribute("aria-invalid"), null);
 });
 
+test("Einstellungen: after a refused code the focus is in the code field", async () => {
+  const { $, document } = await redeemWith(CODE_REFUSED);
+  assert.equal(document.activeElement, $("einladung-code"));
+});
+
+test("Einstellungen: after an unreachable mediation with a code still typed the focus is on «Einladung einlösen»", async () => {
+  const { $, document } = await redeemWith(MEDIATION_DOWN);
+  assert.equal($("einladung-code").value, "TEST-0000-TEST-0000");
+  assert.equal(document.activeElement, $("einladung-einloesen"));
+});
+
+for (const [what, failure] of [["refused", KEY_REFUSED], ["not checked", MEDIATION_DOWN]]) {
+  test(`Einstellungen: after a key ${what} the focus is in the key field`, async () => {
+    const { $, document } = await saveKeyWith(failure);
+    assert.equal(document.activeElement, $("schluessel"));
+  });
+}
+
+test("Einstellungen: the code and the key field are described by the line of their message", () => {
+  const html = source("einstellungen.html");
+  assert.match(html, /<input class="input" id="einladung-code" [^>]*aria-describedby="einladung-status"[^>]*>/);
+  assert.match(html, /<input class="input" id="schluessel" [^>]*aria-describedby="meldung"[^>]*>/);
+});
+
 test("Einstellungen: an Anthropic that cannot check the key is no input error and stays until «×»", async () => {
   const { $ } = await saveKeyWith(MEDIATION_DOWN);
   type($("schluessel"), "s");
