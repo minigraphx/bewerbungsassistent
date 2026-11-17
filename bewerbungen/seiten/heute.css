@@ -28,6 +28,11 @@
 .today__task strong { color: var(--text-strong); font-weight: 500; }
 .today__meta { font-size: 14px; line-height: 20px; color: var(--text-muted); }
 .today__task .btn { flex: none; }
+/* Beside the button the text would keep one or two words per line: on a narrow screen the button goes below it (#352) */
+@media (max-width: 480px) {
+  .today__task { flex-wrap: wrap; }
+  .today__task-text { flex-basis: 100%; }
+}
 
 /* Termine und Fristen */
 .today__date { display: grid; grid-template-columns: 56px 1fr; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
