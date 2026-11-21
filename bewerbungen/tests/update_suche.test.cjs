@@ -120,7 +120,7 @@ const newer = (extra = {}) => ({ version: "9.3.0", seite: "https://example.ch/re
                                  hinweis: "", fragen: true, ...extra });
 const later = () => { let release; const promise = new Promise(resolve => { release = resolve; }); return { promise, release }; };
 
-test("the button stands right under the version line, described by the live line below it", async () => {
+test("name, version and author come first, then the button with the live line below it", async () => {
   const page = await settingsPage({ "/api/app/version": version() });
 
   const knopf = page.button();
@@ -133,9 +133,11 @@ test("the button stands right under the version line, described by the live line
   assert.equal(zeile.getAttribute("aria-live"), "polite");
   const block = knopf.parentNode.parentNode;
   const order = block.children.filter(child => typeof child === "object");
+  assert.equal(order.length, 4);
   assert.equal(order[0].textContent, "Bewerbungsbegleiter");
   assert.equal(order[1].textContent, "Version 9.2.0");
-  assert.ok(order[2].contains(knopf) && order[2].contains(zeile));
+  assert.equal(order[2].textContent, "von Andreas Schmidt");
+  assert.ok(order[3].contains(knopf) && order[3].contains(zeile));
   assert.ok(all(page.card).some(node => node.tag === "button" && node.textContent === "Beenden" && !block.contains(node)));
 });
 
@@ -188,7 +190,7 @@ test("a newer version is offered as the automatic check offers it, without a dia
   await page.settle();
 
   const zeile = page.line();
-  assert.equal(zeile.textContent, "Version 9.3.0 ist verfügbar. Sie wird beim Beenden installiert, oder gleich hier.  Jetzt aktualisieren");
+  assert.equal(zeile.textContent, "Version 9.3.0 ist verfügbar. Sie wird beim Beenden installiert, oder gleich hier. Jetzt aktualisieren");
   assert.ok(!all(page.document.body).some(node => node.tag === "dialog"));
   all(zeile).find(node => node.tag === "button").click();
   await page.settle();
@@ -208,7 +210,7 @@ test("without a self-update the newer version comes as the download link (Linux)
   assert.equal(link.href, offer.seite);
 });
 
-test("a failed check says so as a warning, and the button works again with the focus on it", async () => {
+test("a failed check says so as a warning line, and the button works again with the focus on it", async () => {
   const page = await settingsPage({ "/api/app/version": version(), [ROUTE]: { status: 502, data: { fehler: "anders" } } });
   const knopf = page.button();
   knopf.focus();
@@ -218,7 +220,8 @@ test("a failed check says so as a warning, and the button works again with the f
 
   const zeile = page.line();
   assert.equal(zeile.textContent, FAILED);
-  assert.ok(zeile.classes.has("notice") && zeile.classes.has("notice--warning"));
+  assert.equal(zeile.className, "status-line");
+  assert.equal(zeile.getAttribute("data-level"), "warning");
   assert.equal(knopf.hasAttribute("aria-disabled"), false);
   assert.equal(page.document.activeElement, knopf);
 });
@@ -240,18 +243,25 @@ test("a check without an answer after ten seconds failed, and a late answer chan
   assert.equal(page.line().textContent, FAILED);
 });
 
-test("after a failure the next result is plain again", async () => {
+test("after a failure the next check and its result are plain again", async () => {
+  const second = later();
   let fails = true;
   const page = await settingsPage({ "/api/app/version": version(),
-    [ROUTE]: () => Promise.resolve(fails ? { status: 502, data: {} } : { version: "9.2.0", update: null, vorabversionen: false }) });
+    [ROUTE]: () => (fails ? Promise.resolve({ status: 502, data: {} }) : second.promise) });
 
   page.button().click();
   await page.settle();
+  assert.equal(page.line().getAttribute("data-level"), "warning");
   fails = false;
   page.button().click();
   await page.settle();
 
-  assert.ok(!page.line().classes.has("notice--warning"));
+  assert.equal(page.line().textContent, "Sucht nach Updates …");
+  assert.equal(page.line().getAttribute("data-level"), null);
+  second.release({ version: "9.2.0", update: null, vorabversionen: false });
+  await page.settle();
+  assert.equal(page.line().getAttribute("data-level"), null);
+  assert.equal(page.line().className, "status-line");
   assert.match(page.line().textContent, /ist die neueste/);
 });
 
@@ -290,6 +300,23 @@ test("only one install runs even when the start banner offers the same update", 
   await page.settle();
   assert.equal(fromLine.parentNode, null);
   assert.equal(fromBanner.parentNode, null);
+});
+
+test("a button offered while an install runs starts disabled like the others", async () => {
+  const install = later();
+  const page = await settingsPage({ "/api/app/version": version({ update: newer({ fragen: false }) }),
+                                    [ROUTE]: { version: "9.2.0", update: newer(), vorabversionen: false },
+                                    "/api/app/aktualisieren": () => install.promise });
+  const banner = all(page.main).find(node => node.classes.has("banner"));
+
+  all(banner).find(node => node.tag === "button").click();
+  await page.settle();
+  page.button().click();
+  await page.settle();
+
+  const fromLine = all(page.line()).find(node => node.tag === "button");
+  assert.equal(fromLine.textContent, "Jetzt aktualisieren");
+  assert.equal(fromLine.disabled, true);
 });
 
 test("in the Store package there is no button and the note stays", async () => {

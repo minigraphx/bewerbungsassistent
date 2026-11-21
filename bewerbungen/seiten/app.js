@@ -256,8 +256,8 @@ window.App = (() => {
       el("div", {},
         el("p", { class: "about__name" }, "Bewerbungsbegleiter"),
         el("p", { class: "about__meta version" }, `Version ${version}`),
-        store ? el("p", { class: "about__meta" }, "Updates kommen über den Microsoft Store.") : updateSuche(),
-        el("p", { class: "about__meta" }, "von Andreas Schmidt")));
+        el("p", { class: "about__meta" }, "von Andreas Schmidt"),
+        store ? el("p", { class: "about__meta" }, "Updates kommen über den Microsoft Store.") : updateSuche()));
   }
 
   // «Nach Updates suchen» (#370, G100): the server at once, with the result in a live line under the button. The button
@@ -278,10 +278,10 @@ window.App = (() => {
 
   function sucheErgebnis(antwort) {
     if (antwort.update) {
-      const meldung = el("span", {}, updateText(antwort.update));
+      const meldung = el("span", {}, updateText(antwort.update).trim());
       const knopf = updateKnopf(antwort.update, "Jetzt aktualisieren");
       if (antwort.update.automatisch) knopf.addEventListener("click", () => installieren(knopf, meldung));
-      return [meldung, knopf];
+      return [meldung, " ", knopf];
     }
     const beta = antwort.vorabversionen ? " Vorabversionen eingeschlossen." : "";
     return [`Version ${antwort.version} ist die neueste. Geprüft um ${zeitJetzt()}.${beta}`];
@@ -295,10 +295,9 @@ window.App = (() => {
     const zeige = (teile, warnung = false) => {
       clearTimeout(schreiben);
       zeile.replaceChildren();
+      zeile.removeAttribute("data-level");
       schreiben = setTimeout(() => {
-        zeile.classList.toggle("status-line", !warnung);
-        zeile.classList.toggle("notice", warnung);
-        zeile.classList.toggle("notice--warning", warnung);
+        if (warnung) zeile.setAttribute("data-level", "warning");
         zeile.replaceChildren(...teile);
       }, ANSAGE_PAUSE_MS);
     };
@@ -357,6 +356,7 @@ window.App = (() => {
   function updateKnopf(update, beschriftung) {
     if (!update.automatisch) return el("a", { href: update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");
     const knopf = el("button", { type: "button", class: "haupt" }, beschriftung);
+    knopf.disabled = installLaeuft;
     installKnoepfe.add(knopf);
     return knopf;
   }
