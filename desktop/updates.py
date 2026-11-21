@@ -140,33 +140,58 @@ def _package(announced: dict, platform: str, version: str, address: str) -> tupl
     return f"{address}/{version}/{name}", digest
 
 
-def _announced(fetch: Fetch, address: str, name: str, platform: str) -> Update | None:
-    """The update one announcement offers; None when it is missing, unsigned or meaningless."""
+class NoAnnouncement(Exception):
+    """Why one announcement offers nothing: missing, unsigned or meaningless."""
+
+
+def _announcement(fetch: Fetch, address: str, name: str, platform: str) -> Update:
+    """The update one announcement offers; NoAnnouncement when it is missing, unsigned or meaningless."""
     try:
         announced = verified_payload(fetch(f"{address}/{name}", SMALL_FILE_BYTES), update_key.PUBLIC_KEY)
-    except (urllib.error.URLError, http.client.HTTPException, OSError):
-        return None
+    except (urllib.error.URLError, http.client.HTTPException, OSError) as error:
+        raise NoAnnouncement(f"{name} not loaded: {type(error).__name__}") from error
     except (ValueError, UpdateError) as error:
         log.warning("Update-Ankündigung %s abgelehnt: %s", name, error)
-        return None
+        raise NoAnnouncement(f"{name} refused") from error
     version = str(announced.get("version") or "")
     if not VERSION.match(version):
         log.warning("Update-Ankündigung %s ohne gültige Version", name)
-        return None
+        raise NoAnnouncement(f"{name} without a valid version")
     package_url, digest = _package(announced, platform, version, address)
     page_url = package_url if platform in LOADED_BY_HAND and package_url else RELEASES_PAGE
     return Update(version=version, page_url=page_url, installer_url=package_url, sha256=digest,
                   notes=str(announced.get("notes") or "")[:MAX_NOTES])
 
 
-def latest(fetch: Fetch = _fetch, platform: str = sys.platform, beta: bool = False) -> Update | None:
-    """The newest announced version; pre-releases only for whoever switched them on (#212, G47)."""
-    address = _server_address()
-    if not address:
-        return None
-    names = (ANNOUNCEMENT, BETA_ANNOUNCEMENT) if beta else (ANNOUNCEMENT,)
-    found = [update for update in (_announced(fetch, address, name, platform) for name in names) if update]
+def _read_all(fetch: Fetch, address: str, platform: str, beta: bool) -> list[Update]:
+    """Every update the announcements offer; pre-releases only for whoever switched them on (#212, G47)."""
+    found = []
+    for name in (ANNOUNCEMENT, BETA_ANNOUNCEMENT) if beta else (ANNOUNCEMENT,):
+        try:
+            found.append(_announcement(fetch, address, name, platform))
+        except NoAnnouncement:
+            continue  # the other announcement may still answer
+    return found
+
+
+def _newest(found: list[Update]) -> Update | None:
     return max(found, key=lambda update: parse_version(update.version), default=None)
+
+
+def latest(fetch: Fetch = _fetch, platform: str = sys.platform, beta: bool = False) -> Update | None:
+    """The newest announced version; None also when the server gives no answer, so the app just asks again later."""
+    address = _server_address()
+    return _newest(_read_all(fetch, address, platform, beta)) if address else None
+
+
+def latest_asked(fetch: Fetch = _fetch, platform: str = sys.platform, beta: bool = False) -> Update | None:
+    """The same when the person asks (#370, G100): UpdateError when no announcement could be read, since then the
+    person must not be told the version is the newest."""
+    address = _server_address()
+    found = _read_all(fetch, address, platform, beta) if address else []
+    if not found:
+        raise UpdateError("Keine Ankündigung lesbar.")
+    return _newest(found)
 
 
 def newer(current: str, update: Update | None) -> Update | None:
