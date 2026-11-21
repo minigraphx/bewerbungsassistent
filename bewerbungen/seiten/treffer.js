@@ -34,6 +34,7 @@
   let stille = null;         // timer: no word from the extension for a while
   let zustand = logik.reiterAus(location.hash);  // which hits the list shows, from the tab in the address
   let gewaehlt = null;       // id of the hit in the detail column
+  let abgeschlossenZeigen = false;  // the finished hits of the tab are shown at the end, after „Anzeigen“ (#373)
   let firmen = new Map();    // hit id → its company with what kununu says (#190)
   let heute = "";
   let satz = "stelle-sie";
@@ -138,11 +139,20 @@
     return [note(b.note, { unsicher, ...optionen })];
   }
 
+  /** The stage of a hit taken over, the badge of Bewerbungen (#373); null without word from the app. */
+  function standBadge(treffer, klasse = "marke-status") {
+    const marke = logik.standMarke(treffer, status => window.Texte.statusName(status, satz));
+    return marke ? el("span", { class: klasse, "data-status": marke.status }, marke.text) : null;
+  }
+
   /** What to do with the hit (G58): a new one gets the question and three buttons, the others one way on. */
   function entscheidung(treffer) {
     if (treffer.zustand === "uebernommen") {
-      return el("div", { class: "decision" }, el("div", { class: "btn-row" },
-        el("a", { class: "btn btn--primary", href: "/bewerbung?" + new URLSearchParams({ id: treffer.bewerbung_id }) }, "Zur Bewerbung")));
+      const stand = standBadge(treffer);
+      // a deleted application has nothing to lead to (#373)
+      const weiter = treffer.stand === null ? null : el("div", { class: "btn-row" },
+        el("a", { class: "btn btn--primary", href: "/bewerbung?" + new URLSearchParams({ id: treffer.bewerbung_id }) }, "Zur Bewerbung"));
+      return el("div", { class: "decision" }, stand ? el("p", { class: "decision__stand" }, stand) : null, weiter);
     }
     if (treffer.zustand === "verworfen") {
       return el("div", { class: "decision" }, el("div", { class: "btn-row" },
@@ -293,6 +303,7 @@
       el("span", { class: "hit__text" },
         el("span", { class: "hit__title" }, treffer.stelle),
         el("span", { class: "hit__where" }, dotLine([firma || marke, treffer.ort, treffer.pensum || treffer.lehrbeginn])),
+        standBadge(treffer, "marke-status hit__stand"),
         el("span", { class: "hit__meta" }, dotLine([treffer.portal + ((treffer.weitere || []).length ? ` +${treffer.weitere.length}` : ""),
           datum(treffer.gefunden_am), ...marken.map(m => el("strong", {}, m))]))));
     knopf.addEventListener("click", () => {
@@ -309,27 +320,45 @@
     const art = $("art").hidden ? "" : $("art").value;
     const beleg = window.SuchbegriffeStart.ids();  // the hits behind a piece of evidence, in any state (#210)
     const passend = logik.nachArt(alle.filter(x => (beleg ? beleg.has(x.id) : x.zustand === zustand)), art);
+    // Finished ones wait behind „Anzeigen“ and then come last (#373); the evidence of a term shows every state.
+    const fertig = beleg ? [] : passend.filter(logik.istAbgeschlossen);
+    if (!fertig.length) abgeschlossenZeigen = false;
     const sortierung = logik.gueltigeSortierung(einstellungen.sortierung);
     $("sortierung").value = sortierung;
-    const sichtbar = logik.sortiert(passend, einstellungen.beruf_sterne, sortierung);
+    const geordnet = liste => logik.sortiert(liste, einstellungen.beruf_sterne, sortierung);
+    const sichtbar = [...geordnet(passend.filter(x => !fertig.includes(x))), ...(abgeschlossenZeigen ? geordnet(fertig) : [])];
     for (const reiter of document.querySelectorAll("#reiter [data-zustand]")) {
       if (reiter.dataset.zustand === zustand) reiter.setAttribute("aria-current", "page");
       else reiter.removeAttribute("aria-current");
     }
-    for (const name of ["neu", "uebernommen", "verworfen"]) document.querySelector(`[data-zahl=${name}]`).textContent = String(alle.filter(x => x.zustand === name).length);
+    for (const name of ["neu", "uebernommen", "verworfen"]) document.querySelector(`[data-zahl=${name}]`).textContent = String(logik.reiterZahl(alle, name));
     zeigeZahlen();
     meldeNeueZahl();
     if (!sichtbar.some(x => x.id === gewaehlt)) gewaehlt = sichtbar[0]?.id ?? null;
     $("liste").classList.toggle("search__list--two", lehrstelle);  // two grades: the same width for every row
     $("liste").replaceChildren(...sichtbar.map(trefferZeile));
-    zeigeDetail(sichtbar.find(x => x.id === gewaehlt));
-    $("ergebnisse").hidden = sichtbar.length === 0;
+    $("liste").hidden = sichtbar.length === 0;
+    const detail = sichtbar.find(x => x.id === gewaehlt);
+    zeigeDetail(detail);
+    $("detail").hidden = !detail;
+    // with every hit of the tab finished, the footer still offers them (#373)
+    $("ergebnisse").hidden = sichtbar.length === 0 && fertig.length === 0;
+    zeigeFuss(fertig);
     $("leer").hidden = sichtbar.length > 0;
-    const leer = anzeige.leer(zustand, gesucht, t("suche.keine"));
+    const leer = anzeige.leer(zustand, gesucht, t("suche.keine"), fertig.length > 0);
     $("leer-titel").textContent = leer.titel;
     $("leer-text").textContent = leer.text;
     $("leer-einstellen").hidden = zustand !== "neu";
     zeigeBewerten();
+  }
+
+  /** „Abgeschlossen: …“ under the list with „Anzeigen“ or „Ausblenden“ (#373); the button stays, so focus stays on it. */
+  function zeigeFuss(fertig) {
+    const text = logik.abgeschlossenText(fertig);
+    $("liste-fuss").hidden = !text;
+    $("liste-fuss-text").textContent = text;
+    $("liste-fuss-knopf").textContent = abgeschlossenZeigen ? "Ausblenden" : "Anzeigen";
+    $("liste-fuss-knopf").setAttribute("aria-expanded", String(abgeschlossenZeigen));
   }
 
   /** The box above the list (design A3): how many hits have no grade, the estimate and „Alle prüfen“. */
@@ -662,7 +691,8 @@
   }
   $("suchen").addEventListener("click", starteSuche);
   // The tabs are links (#gemerkt), so the page Firmen can lead to a tab and the back button returns to the last one.
-  window.addEventListener("hashchange", () => { zustand = logik.reiterAus(location.hash); zeigeListe(); });
+  window.addEventListener("hashchange", () => { zustand = logik.reiterAus(location.hash); abgeschlossenZeigen = false; zeigeListe(); });
+  $("liste-fuss-knopf").addEventListener("click", () => { abgeschlossenZeigen = !abgeschlossenZeigen; zeigeListe(); });
   $("art").addEventListener("change", zeigeListe);
   $("sortierung").addEventListener("change", () => {
     senden("/api/suche/einstellungen", { sortierung: $("sortierung").value })

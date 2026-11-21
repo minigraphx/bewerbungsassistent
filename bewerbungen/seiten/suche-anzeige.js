@@ -45,8 +45,10 @@
   }
 
   /** Title and text of the empty list per view; before the first search the new hits say so instead of „Keine neuen“. */
-  function leer(zustand, gesucht, keineText) {
+  function leer(zustand, gesucht, keineText, nurAbgeschlossene = false) {
     if (zustand === "neu") return gesucht ? { titel: "Keine neuen Treffer", text: keineText } : NOCH_NICHT;
+    // #373: the finished ones wait behind „Anzeigen“ below, so the tab is not empty, only without open hits
+    if (zustand === "uebernommen" && nurAbgeschlossene) return { titel: "Keine offenen Treffer", text: "" };
     return { titel: zustand === "uebernommen" ? "Noch nichts gemerkt" : "Nichts verworfen", text: "" };
   }
 

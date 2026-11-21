@@ -16,8 +16,6 @@
   const ANSICHT_LEER = "In dieser Ansicht ist keine Bewerbung.";
   const ARIA_SORT = { auf: "ascending", ab: "descending" };
   const DISCARD_STAGES = ["Verworfen", "Zurückgezogen"];
-  const GESCHLOSSEN_WORT = { Zusage: ["Zusage", "Zusagen"], Absage: ["Absage", "Absagen"], Verworfen: ["verworfen", "verworfen"],
-                             "Zurückgezogen": ["zurückgezogen", "zurückgezogen"] };
 
   let satz = "stelle-sie";
   let alle = [];
@@ -91,7 +89,7 @@
 
   function zeigeFuss() {
     const fertig = L.abgeschlossenZaehlen(zeilen);
-    const teile = Object.entries(fertig).map(([status, n]) => `${n} ${(GESCHLOSSEN_WORT[status] || [status, status])[n === 1 ? 0 : 1]}`);
+    const teile = Object.entries(fertig).map(([status, n]) => L.abgeschlossenTeil(status, n));
     $("liste-fuss").hidden = !MIT_FUSS.includes(ansicht) || teile.length === 0;
     $("liste-fuss").replaceChildren(`Abgeschlossen: ${teile.join(", ")}. `,
       el("button", { type: "button", class: "link", onclick: () => waehleAnsicht("abgeschlossen") }, "Anzeigen"));
