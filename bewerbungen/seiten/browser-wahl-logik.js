@@ -6,6 +6,8 @@
   const HINT = "Die Browser-Erweiterung läuft in Chrome und Edge. Ist ein anderer Browser der Standard, "
     + "öffnet sich die App besser gleich in Chrome oder Edge.";
   const NOT_FOUND = "auf diesem Computer nicht gefunden";
+  // A saved choice that is gone: desktop/app_browser.py opens the default browser until it is back or changed.
+  const NOT_FOUND_CHOSEN = `${NOT_FOUND}; bis dahin öffnet sich die App im Standardbrowser`;
   const DEFAULT = "standard";
   const ORDER = [DEFAULT, "chrome", "edge"];
   const LABELS = { standard: "Standardbrowser des Computers (Voreinstellung)", chrome: "Google Chrome", edge: "Microsoft Edge" };
@@ -22,8 +24,9 @@
     const chosen = ORDER.includes(state.gewaehlt) ? state.gewaehlt : DEFAULT;
     return ORDER.map(value => {
       const there = value === DEFAULT || found.get(value) === true;
-      return { value, label: label(value, state.plattform), checked: value === chosen, disabled: !there,
-               note: there ? null : NOT_FOUND };
+      const checked = value === chosen;
+      const missing = checked ? NOT_FOUND_CHOSEN : NOT_FOUND;
+      return { value, label: label(value, state.plattform), checked, disabled: !there, note: there ? null : missing };
     });
   }
 

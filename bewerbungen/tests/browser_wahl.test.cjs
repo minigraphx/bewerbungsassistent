@@ -74,11 +74,17 @@ test("a browser not found is disabled and says why in words, not only greyed", (
   assert.equal(chrome.note, "auf diesem Computer nicht gefunden");
 });
 
-test("a saved choice that is gone stays checked with the text not found", () => {
+test("a saved choice that is gone stays checked and says the default browser steps in", () => {
   const chrome = logic.options({ gewaehlt: "chrome", plattform: "windows", browser: NO_CHROME })[1];
   assert.equal(chrome.checked, true);
   assert.equal(chrome.disabled, true);
-  assert.equal(chrome.note, logic.NOT_FOUND);
+  assert.equal(chrome.note, "auf diesem Computer nicht gefunden; bis dahin öffnet sich die App im Standardbrowser");
+});
+
+test("a browser not found and not chosen keeps the plain note", () => {
+  const chrome = logic.options({ gewaehlt: "edge", plattform: "windows", browser: NO_CHROME })[1];
+  assert.equal(chrome.checked, false);
+  assert.equal(chrome.note, "auf diesem Computer nicht gefunden");
 });
 
 test("an unknown choice checks the default browser", () => {
