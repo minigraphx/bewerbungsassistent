@@ -331,7 +331,7 @@ Deine Bewerbung schickst immer du selbst ab.
 
 ### Updates
 
-**App:** Gibt es eine neue Version, fragt die App beim Start in einem Fenster nach. Klicken Sie auf **Installieren**, oder auf **Später** und arbeiten Sie weiter. Dann steht oben ein Hinweis mit **Jetzt aktualisieren**, und beim nächsten Start fragt die App wieder. Beim **Beenden** installiert sich die neue Version von selbst im Hintergrund, beim nächsten Start läuft sie. Ihre Daten und Einstellungen bleiben erhalten. Unter Linux aktualisieren Sie von Hand, siehe [Unter Linux](#unter-linux).
+**App:** Gibt es eine neue Version, fragt die App beim Start in einem Fenster nach. Klicken Sie auf **Installieren**, oder auf **Später** und arbeiten Sie weiter. Dann steht oben ein Hinweis mit **Jetzt aktualisieren**, und beim nächsten Start fragt die App wieder. Mit **Nach Updates suchen** unter **Einstellungen**, **Über die App** sucht die App sofort nach einer neuen Version, ausser in der Version aus dem Microsoft Store, die ihre Updates über den Store bekommt. Beim **Beenden** installiert sich die neue Version von selbst im Hintergrund, beim nächsten Start läuft sie. Ihre Daten und Einstellungen bleiben erhalten. Unter Linux aktualisieren Sie von Hand, siehe [Unter Linux](#unter-linux).
 
 **Vorabversionen:** Neue Versionen gibt es manchmal zuerst zum Ausprobieren. Wer sie testen möchte, schaltet unter **Einstellungen**, **Erweitert**, **Vorabversionen** den Schalter **Vorabversionen als Update anbieten** ein. Vorabversionen können noch Fehler haben. Voreingestellt bekommen Sie nur veröffentlichte Versionen.
 

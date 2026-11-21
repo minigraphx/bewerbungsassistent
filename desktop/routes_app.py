@@ -33,7 +33,10 @@ SELF_UPDATING = ("win32", "darwin")
 FROZEN = getattr(sys, "frozen", False)
 FAILED_BEFORE = "Das Update auf Version {version} liess sich nicht starten, die bisherige Version läuft weiter. Bitte die neue Version von Hand laden."
 UPDATE_RUNNING = "Das Update läuft schon."
+CHECK_ROUTE = "/api/app/updates-suchen"
 BY_THE_STORE = "Updates kommen über den Microsoft Store."
+CHECK_FAILED = ("Die Suche nach Updates hat nicht geklappt. Vielleicht fehlt die Internetverbindung; "
+                "bitte später nochmals versuchen.")
 
 
 def _own_app() -> pathlib.Path | None:
@@ -84,6 +87,14 @@ class Controls:
                 self._update = updates.newer(VERSION, updates.latest(self.fetch, self.platform, self.beta()))
                 self._checked_at = time.monotonic()
             return self._update
+
+    def check_now(self) -> updates.Update | None:
+        """The button «Nach Updates suchen» (#370, G100): the server at once, and what it says also counts for the
+        automatic offer and the install; UpdateError when it gave no answer, and the earlier offer stays."""
+        with self._lock:
+            found = updates.newer(VERSION, updates.latest_asked(self.fetch, self.platform, self.beta()))
+            self._update, self._checked_at = found, time.monotonic()
+            return found
 
     def stop_soon(self) -> None:
         threading.Timer(QUIT_DELAY_SECONDS, self.stop).start()
@@ -151,19 +162,29 @@ def quit_app_now(controls: Controls) -> str | None:
     return found.version
 
 
+def _offer(controls: Controls, found: updates.Update | None) -> dict | None:
+    """How the page offers a found version, the same for the start and for the button."""
+    if found is None:
+        return None
+    automatic = controls.can_install(found)
+    return {"version": found.version, "seite": found.page_url, "automatisch": automatic, "beimBeenden": automatic,
+            "hinweis": controls.obstacle(found) if controls.automatic else "",
+            "fragen": found.version != controls.postponed}
+
+
 def make_routes(controls: Controls) -> tuple[dict, dict]:
-    from server import json_antwort
+    from server import StatusError, json_antwort
 
     def version(k, parameter, body):
-        found = controls.update()
-        if found is None:
-            return json_antwort({"version": VERSION, "update": None})
-        obstacle = controls.obstacle(found) if controls.automatic else ""
-        automatic = controls.can_install(found)
-        return json_antwort({"version": VERSION, "update": {"version": found.version, "seite": found.page_url,
-                                                            "automatisch": automatic, "beimBeenden": automatic,
-                                                            "hinweis": obstacle,
-                                                            "fragen": found.version != controls.postponed}})
+        return json_antwort({"version": VERSION, "update": _offer(controls, controls.update())})
+
+    def check(k, parameter, body):
+        try:
+            found = controls.check_now()
+        except updates.UpdateError as error:
+            log.warning("Suche nach Updates ohne Antwort: %s", error)
+            raise StatusError(CHECK_FAILED, HTTPStatus.BAD_GATEWAY) from error
+        return json_antwort({"version": VERSION, "update": _offer(controls, found), "vorabversionen": controls.beta()})
 
     def install(k, parameter, body):
         found = controls.update()
@@ -209,12 +230,13 @@ def make_routes(controls: Controls) -> tuple[dict, dict]:
 
     routes = ({"/api/app/version": version, "/api/app/vorabversionen": beta},
               {"/api/app/aktualisieren": install, "/api/app/spaeter": later, "/api/app/beenden": quit_app,
-               "/api/app/vorabversionen": set_beta})
+               "/api/app/vorabversionen": set_beta, CHECK_ROUTE: check})
     return _left_to_the_store(*routes) if controls.store else routes
 
 
 def _left_to_the_store(get: dict, post: dict) -> tuple[dict, dict]:
-    """The page hides the pre-releases when their route is missing, and shows the note when the version says store."""
+    """The page hides the pre-releases when their route is missing, and shows the note instead of the button «Nach
+    Updates suchen» when the version says store; that route is missing as well."""
     from server import json_antwort
 
     def version(k, parameter, body):
@@ -225,4 +247,5 @@ def _left_to_the_store(get: dict, post: dict) -> tuple[dict, dict]:
 
     missing = refused(HTTPStatus.NOT_FOUND)
     return ({**get, "/api/app/version": version, "/api/app/vorabversionen": missing},
-            {**post, "/api/app/aktualisieren": refused(HTTPStatus.CONFLICT), "/api/app/vorabversionen": missing})
+            {**post, "/api/app/aktualisieren": refused(HTTPStatus.CONFLICT), "/api/app/vorabversionen": missing,
+             CHECK_ROUTE: missing})
