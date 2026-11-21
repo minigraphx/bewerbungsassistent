@@ -245,7 +245,7 @@ def test_a_new_start_opens_the_overview_and_watches_the_pages(monkeypatch, tmp_p
         raise KeyboardInterrupt
 
     monkeypatch.setattr(presence, "Watchdog", RecordingWatchdog)
-    monkeypatch.setattr(start.webbrowser, "open", opened.append)
+    monkeypatch.setattr(start.app_browser.webbrowser, "open", opened.append)
     monkeypatch.setattr(start, "prepare_extension", lambda paths: None)
     monkeypatch.setattr(start, "adopt_claude_entry", lambda config, command: None)
     monkeypatch.setattr(start, "_apply_build_defaults", lambda defaults: None)

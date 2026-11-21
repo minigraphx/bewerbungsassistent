@@ -66,7 +66,7 @@ def test_second_start_finds_the_running_app(paths, tmp_path, monkeypatch):
         assert server.token not in repr(running)
         assert "keine KI-Vermittlung" in instance.forward_code(running, "ABCD-EFGH")
         opened = []
-        monkeypatch.setattr(start.webbrowser, "open", opened.append)
+        monkeypatch.setattr(start.app_browser.webbrowser, "open", opened.append)
         monkeypatch.setattr(start.settings, "app_dir", lambda: paths.app_dir)
         assert start.main([]) == 0 and opened == [running.entry_url]
     finally:
@@ -94,7 +94,7 @@ def test_an_invitation_link_to_the_running_app_opens_its_window(paths, tmp_path,
         instance.write(paths, server.server_address[1], server.token)
         running = instance.find(paths)
         opened = []
-        monkeypatch.setattr(start.webbrowser, "open", opened.append)
+        monkeypatch.setattr(start.app_browser.webbrowser, "open", opened.append)
         monkeypatch.setattr(start.settings, "app_dir", lambda: paths.app_dir)
 
         assert start.main(["bewerbungsbegleiter://einladung?code=ABCD-EFGH"]) == 0
