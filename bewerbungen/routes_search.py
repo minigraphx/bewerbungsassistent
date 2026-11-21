@@ -152,7 +152,8 @@ def overview(k, parameter, body):
     # Hits of an excluded company stay stored but leave the list (#226); taking the company back shows them again.
     found = sorted(excluded_companies.shown(store.all(), excluded_companies.keys(k.daten)),
                    key=lambda h: h.get("gefunden_am", ""), reverse=True)
-    return json_antwort({"treffer": [_listed(k, store, hit, homes, postal_codes) for hit in found],
+    stages = _register_stages(k)
+    return json_antwort({"treffer": [_listed(k, store, with_stage(hit, stages), homes, postal_codes) for hit in found],
                          "hinweis_ziele": targets,
                          "angebote": list(offers), **routes_career.searched_now(k),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
@@ -165,6 +166,19 @@ def _listed(k, store: Hits, hit: dict, homes: tuple[str, ...], postal_codes: tup
     missing = not store.text(hit["id"]).strip()
     note = routes_missing_ads.note_for_hit(k, hit) if missing and hit.get("zustand") == "neu" else None
     return {**hit, "ohne_text": missing, "text_fehlt": note, "nah": is_near(str(hit.get("ort", "")), homes, postal_codes)}
+
+
+def _register_stages(k) -> dict[str, str | None]:
+    """The stage of each application by id, read for the hits taken over (#373)."""
+    return {entry["id"]: entry.get("status") for entry in k.register().alle() if isinstance(entry.get("id"), str)}
+
+
+def with_stage(hit: dict, stages: dict[str, str | None]) -> dict:
+    """A hit taken over carries the stage of its application as `stand`, None once the application is gone (#373).
+    Only the answer carries it: the register stays the one place of the stage, treffer.yaml never gets it."""
+    if hit.get("zustand") != "uebernommen" or not hit.get("bewerbung_id"):
+        return hit
+    return {**hit, "stand": stages.get(hit["bewerbung_id"])}
 
 
 def _region(profile: search_plan.SearchPlan) -> dict:
@@ -299,7 +313,7 @@ def own_stars(k, parameter, body):
     """Own stars of one hit (G22): only from the page, the extension and Claude cannot reach this route."""
     if not isinstance(body, dict):
         raise ValueError("sterne erwartet")
-    return json_antwort(_hits(k).set_own_stars(pflicht(parameter, "id"), body.get("sterne")))
+    return json_antwort(with_stage(_hits(k).set_own_stars(pflicht(parameter, "id"), body.get("sterne")), _register_stages(k)))
 
 
 def note_for(hit: dict) -> str:
@@ -335,7 +349,7 @@ def _fill_in_ad(k, store: Hits, hit: dict, entry: dict) -> dict:
 
 def take_over(k, parameter, body):
     store = _hits(k)
-    return json_antwort(take_over_hit(k, store, pflicht(parameter, "id")))
+    return json_antwort(with_stage(take_over_hit(k, store, pflicht(parameter, "id")), _register_stages(k)))
 
 
 def take_over_hit(k, store: Hits, wanted: str, may_take=lambda hit: True) -> dict | None:

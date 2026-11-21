@@ -104,7 +104,7 @@ test("the tabs of Stellen on Firmen count again too", async () => {
   const tabs = document.getElementById("reiter");
   tabs.dataset.zaehlen = "ja";
   let hits = [{ zustand: "neu" }, { zustand: "neu" }];
-  const ctx = context(document, { App: { holen: async () => ({ treffer: hits }) } });
+  const ctx = context(document, { App: { holen: async () => ({ treffer: hits }) }, TrefferLogik: require("../seiten/treffer-logik.js") });
   run(ctx, "stellen-reiter.js");
   await settle();
   const fresh = tabs.querySelector('[data-zahl="neu"]');

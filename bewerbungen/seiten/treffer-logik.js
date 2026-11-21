@@ -264,6 +264,41 @@
     return Object.keys(REITER).find(name => REITER[name] === zustand) || "neu";
   }
 
+  // #373: a hit taken over carries the stage of its application as `stand`, null once the application is gone.
+  // Finished is what the view „Abgeschlossen“ on Bewerbungen shows, or deleted; a hit without word stays open.
+  const NICHT_MEHR = "Nicht mehr unter Bewerbungen";
+  const NICHT_MEHR_WORT = "nicht mehr unter Bewerbungen";
+  const uebersicht = () => (typeof module !== "undefined" ? require("./uebersicht-logik.js") : global.UebersichtLogik);
+
+  function istAbgeschlossen(treffer) {
+    if (treffer.zustand !== "uebernommen" || treffer.stand === undefined) return false;
+    return treffer.stand === null || uebersicht().ABGESCHLOSSEN.includes(treffer.stand);
+  }
+
+  /** The number on a tab: the hits it shows without „Anzeigen“, so finished ones leave it out. */
+  function reiterZahl(treffer, zustand) {
+    return treffer.filter(t => t.zustand === zustand && !istAbgeschlossen(t)).length;
+  }
+
+  /** The badge of a hit taken over, { status, text } for .marke-status, or null without word from the app.
+   * `statusName` is Texte.statusName, so an apprenticeship's interview reads „Einladung“. */
+  function standMarke(treffer, statusName) {
+    if (treffer.zustand !== "uebernommen" || treffer.stand === undefined) return null;
+    if (treffer.stand === null) return { status: "geloescht", text: NICHT_MEHR };
+    return { status: treffer.stand, text: statusName(treffer.stand) };
+  }
+
+  /** „Abgeschlossen: 1 Zusage, 3 Absagen, 2 verworfen.“ for the finished hits, in the order of Bewerbungen; "" without. */
+  function abgeschlossenText(fertig) {
+    const { ABGESCHLOSSEN_WORT, abgeschlossenTeil } = uebersicht();
+    const anzahl = stand => fertig.filter(t => t.stand === stand).length;
+    const teile = [
+      ...Object.keys(ABGESCHLOSSEN_WORT).filter(anzahl).map(stand => abgeschlossenTeil(stand, anzahl(stand))),
+      anzahl(null) ? `${anzahl(null)} ${NICHT_MEHR_WORT}` : "",
+    ].filter(Boolean);
+    return teile.length ? `Abgeschlossen: ${teile.join(", ")}.` : "";
+  }
+
   /** The line above the list that names the hits without a grade (G44). */
   function offenText(anzahl, lehrstelle) {
     const wort = lehrstelle ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
@@ -276,7 +311,7 @@
     return fehlt ? { titel: "Inseratstext fehlt", text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
   }
 
-  const logik = { reiterAus, reiterName, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, costLine, estimateFailedText, confirmation, schlussText, nachpruefungText, fehlenderText, money, minutes, seconds };
+  const logik = { reiterAus, reiterName, istAbgeschlossen, reiterZahl, standMarke, abgeschlossenText, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, costLine, estimateFailedText, confirmation, schlussText, nachpruefungText, fehlenderText, money, minutes, seconds };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

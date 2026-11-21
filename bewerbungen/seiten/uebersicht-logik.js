@@ -147,6 +147,17 @@
     return zahl;
   }
 
+  // The finished stages, one definition for the view „Abgeschlossen“ and the tab of Stellen (#373), with the words
+  // of the line „Abgeschlossen: …“ for one and for more.
+  const ABGESCHLOSSEN = STAENDE.abgeschlossen;
+  const ABGESCHLOSSEN_WORT = { Zusage: ["Zusage", "Zusagen"], Absage: ["Absage", "Absagen"], Verworfen: ["verworfen", "verworfen"],
+                               "Zurückgezogen": ["zurückgezogen", "zurückgezogen"] };
+
+  /** „3 Absagen“: a count with the word of its stage, as the line „Abgeschlossen: …“ names it. */
+  function abgeschlossenTeil(status, anzahl) {
+    return `${anzahl} ${(ABGESCHLOSSEN_WORT[status] || [status, status])[anzahl === 1 ? 0 : 1]}`;
+  }
+
   /**
    * What „Das steht an“ shows: the first thing to do as the big card, the next few below. Two or more
    * applications that are ready to send (or to enter in the Job-Room, or saved to decide) become one item.
@@ -251,8 +262,9 @@
     return `${done} ${count === 1 ? "Sie steht" : "Sie stehen"} jetzt unter „${VIEW_LABELS[target]}“.`;
   }
 
-  const logik = { ANSICHTEN, STANDARD_ANSICHT, NACHFRAGEN_NACH_TAGEN, datum, plusTage, naechsterSchritt, mitSchritten, gefiltert,
-                  ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung, abgeschlossenZaehlen, stehtAn,
+  const logik = { ANSICHTEN, STANDARD_ANSICHT, NACHFRAGEN_NACH_TAGEN, ABGESCHLOSSEN, ABGESCHLOSSEN_WORT, datum, plusTage, naechsterSchritt,
+                  mitSchritten, gefiltert, ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung,
+                  abgeschlossenZaehlen, abgeschlossenTeil, stehtAn,
                   toggleOne, toggleAll, selectionState, selectedIds, keepKnown, showBulkBar, selectionLabel, stageQuestion, viewOfStage,
                   stageDone, schrittText };
   if (typeof module !== "undefined") module.exports = logik;

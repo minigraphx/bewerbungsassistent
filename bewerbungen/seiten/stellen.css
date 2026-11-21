@@ -18,6 +18,19 @@
 .search__open[hidden] { display: none; }
 .search__open-text { margin: 0; flex: 1 1 220px; color: var(--text-strong); }
 .search__open-text .search__hint { display: block; }
+.search__detail[hidden] { display: none; }
+
+/* The stage of a hit taken over, as on Bewerbungen (#373); the footer names the finished ones */
+/* a narrow row may break the long «Nicht mehr unter Bewerbungen» rather than run over the edge */
+.hit__stand { align-self: flex-start; max-width: 100%; margin-top: 2px; white-space: normal; }
+.decision__stand { margin: 0; }
+/* on the tinted decision and the chosen row, the tinted badge Beworben would melt into its ground */
+.decision .marke-status[data-status="Beworben"], button.hit[aria-current="true"] .marke-status[data-status="Beworben"] {
+  background: var(--surface); border-color: var(--line);
+}
+.marke-status[data-status="geloescht"] { background: transparent; border-style: dashed; color: var(--text-muted); }
+.marke-status[data-status="geloescht"]::before { background: transparent; border: 1.5px solid currentColor; }
+.search__foot { padding: 0 var(--space-1); }
 
 /* The decision per hit (G58) */
 .decision { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-lg); background: var(--accent-subtle); }
