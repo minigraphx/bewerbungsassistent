@@ -48,7 +48,12 @@
   function leer(zustand, gesucht, keineText, nurAbgeschlossene = false) {
     if (zustand === "neu") return gesucht ? { titel: "Keine neuen Treffer", text: keineText } : NOCH_NICHT;
     // #373: the finished ones wait behind „Anzeigen“ below, so the tab is not empty, only without open hits
-    if (zustand === "uebernommen" && nurAbgeschlossene) return { titel: "Keine offenen Treffer", text: "" };
+    if (zustand === "uebernommen" && nurAbgeschlossene) {
+      return {
+        titel: "Alles abgeschlossen",
+        text: "Jede Bewerbung aus diesen Treffern ist abgeschlossen. „Anzeigen“ unten zeigt sie.",
+      };
+    }
     return { titel: zustand === "uebernommen" ? "Noch nichts gemerkt" : "Nichts verworfen", text: "" };
   }
 

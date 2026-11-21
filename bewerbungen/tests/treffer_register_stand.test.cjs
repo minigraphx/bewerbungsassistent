@@ -154,12 +154,24 @@ test("the footer names each finished stage in the words of Bewerbungen", async (
     "Abgeschlossen: 1 Zusage, 3 Absagen, 2 verworfen, 1 zurückgezogen, 1 nicht mehr unter Bewerbungen. Anzeigen");
 });
 
+// one wording for Sie and du, from the UI/UX build review of #373
+const ALL_FINISHED = {
+  titel: "Alles abgeschlossen",
+  text: "Jede Bewerbung aus diesen Treffern ist abgeschlossen. „Anzeigen“ unten zeigt sie.",
+};
+
+test("the tab with only finished hits says so and points to «Anzeigen»", () => {
+  assert.deepEqual(anzeige.leer("uebernommen", true, "", true), ALL_FINISHED);
+  assert.deepEqual(anzeige.leer("uebernommen", false, "", true), ALL_FINISHED);
+});
+
 test("with every saved hit finished, the empty tab still offers «Anzeigen»", async () => {
   const p = page({ hits: [{ ...SAVED, stand: "Zusage" }] });
   await settle();
   assert.equal(p.rows().length, 0);
   assert.equal(p.$("leer").hidden, false);
-  assert.equal(p.$("leer-titel").textContent, "Keine offenen Treffer");
+  assert.equal(p.$("leer-titel").textContent, ALL_FINISHED.titel);
+  assert.equal(p.$("leer-text").textContent, ALL_FINISHED.text);
   assert.equal(p.$("ergebnisse").hidden, false, "the footer stays reachable");
   assert.equal(p.footer(), "Abgeschlossen: 1 Zusage. Anzeigen");
   await p.pressToggle();
