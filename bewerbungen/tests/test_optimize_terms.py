@@ -139,6 +139,21 @@ def propose(s, body=None) -> dict:
     return answer
 
 
+AREA_KEYS = {"keywords": "suchbegriffe", "positive": "positiv", "exclude": "ausschluss"}
+
+
+def taken(proposal: dict, numbers: list[int] | None = None) -> dict:
+    """The switches as the page sets them for whole changes (#371): every term of these taken over, the rest as now."""
+    chosen = [c for c in proposal["aenderungen"] if numbers is None or c["nummer"] in numbers]
+    return {area: [*(t for t in terms if not any(AREA_KEYS[c["bereich"]] == area and t in c["entfaellt"] for c in chosen)),
+                   *(t for c in chosen if AREA_KEYS[c["bereich"]] == area for t in c["neu"])]
+            for area, terms in proposal["jetzt"].items()}
+
+
+def switched(s, route: str, proposal: dict, numbers: list[int] | None = None) -> tuple[int, dict]:
+    return post(s, f"/api/suchbegriffe/{route}", {"vorschlag": proposal["vorschlag"], "danach": taken(proposal, numbers)})
+
+
 def test_the_hint_names_the_term_and_can_be_hidden(job_search):
     _, _, content = get(job_search, "/api/suchbegriffe/hinweis")
     answer = json.loads(content)
@@ -244,10 +259,10 @@ def test_the_evidence_link_finds_exactly_those_hits(job_search):
 def test_the_chosen_changes_are_written_after_a_draft_and_can_be_undone(job_search, ai):
     before = profile_of(job_search)
     proposal = propose(job_search)
-    status, outcome = post(job_search, "/api/suchbegriffe/endstand", {"vorschlag": proposal["vorschlag"], "gewaehlt": [0]})
+    status, outcome = switched(job_search, "endstand", proposal, [0])
     assert status == 200 and outcome["endstand"]["suchbegriffe"] == list(term_changes.terms_of(before).keywords)
-    status, done = post(job_search, "/api/suchbegriffe/uebernehmen", {"vorschlag": proposal["vorschlag"], "gewaehlt": [0, 2]})
-    assert status == 200 and done["anzahl"] == 2
+    status, done = switched(job_search, "uebernehmen", proposal, [0, 2])
+    assert status == 200 and (done["neu"], done["entfallen"]) == (3, 1)
     after = profile_of(job_search)
     assert "Backend" in search_plan.title_terms(after, "positiv") and "Engineer" not in search_plan.title_terms(after, "positiv")
     assert "Verkauf" in search_plan.title_terms(after, "ausschluss")
@@ -258,12 +273,12 @@ def test_the_chosen_changes_are_written_after_a_draft_and_can_be_undone(job_sear
     assert status == 200 and profile_of(job_search) == before
 
 
-def test_nothing_ticked_is_refused(job_search, ai):
+def test_every_change_switched_off_is_refused(job_search, ai):
     proposal = propose(job_search)
-    _, outcome = post(job_search, "/api/suchbegriffe/endstand", {"vorschlag": proposal["vorschlag"], "gewaehlt": []})
-    assert outcome["grenzen"]["gesperrt"] == term_changes.NOTHING_CHOSEN
-    status, answer = post(job_search, "/api/suchbegriffe/uebernehmen", {"vorschlag": proposal["vorschlag"], "gewaehlt": []})
-    assert status == 400 and answer["fehler"] == term_changes.NOTHING_CHOSEN
+    _, outcome = switched(job_search, "endstand", proposal, [])
+    assert outcome["grenzen"]["gesperrt"] == term_changes.NOTHING_CHANGED
+    status, answer = switched(job_search, "uebernehmen", proposal, [])
+    assert status == 400 and answer["fehler"] == term_changes.NOTHING_CHANGED
 
 
 def test_a_change_beyond_the_limits_is_refused(job_search, ai):
@@ -273,18 +288,18 @@ def test_a_change_beyond_the_limits_is_refused(job_search, ai):
     before = profile_of(job_search)
     proposal = propose(job_search)
     index = next(c["nummer"] for c in proposal["aenderungen"] if c["bereich"] == "keywords")
-    _, outcome = post(job_search, "/api/suchbegriffe/endstand", {"vorschlag": proposal["vorschlag"], "gewaehlt": [index]})
+    _, outcome = switched(job_search, "endstand", proposal, [index])
     assert "16 Suchbegriffe" in outcome["grenzen"]["gesperrt"]
-    status, answer = post(job_search, "/api/suchbegriffe/uebernehmen", {"vorschlag": proposal["vorschlag"], "gewaehlt": [index]})
+    status, answer = switched(job_search, "uebernehmen", proposal, [index])
     assert status == 400 and "höchstens 15" in answer["fehler"] and profile_of(job_search) == before
 
 
 def test_a_proposal_is_stale_once_the_terms_changed(job_search, ai):
     proposal = propose(job_search)
     assert post(job_search, "/api/beruf/aufnehmen", {"beruf": "Datenanalyse"})[0] == 200
-    _, outcome = post(job_search, "/api/suchbegriffe/endstand", {"vorschlag": proposal["vorschlag"], "gewaehlt": [0]})
+    _, outcome = switched(job_search, "endstand", proposal, [0])
     assert outcome["veraltet"]
-    status, answer = post(job_search, "/api/suchbegriffe/uebernehmen", {"vorschlag": proposal["vorschlag"], "gewaehlt": [0]})
+    status, answer = switched(job_search, "uebernehmen", proposal, [0])
     assert status == 400 and answer["fehler"].startswith("Vorschlag veraltet")
 
 

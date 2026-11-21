@@ -55,7 +55,7 @@ Die App prüft jede Änderung, bevor die Person sie sieht (`bewerbungen/term_cha
 1. **Einstieg.** «Suchbegriffe prüfen lassen» im Hinweis nach dem Lauf und immer unter «Suche einstellen», vor «Welche Stellen passen zu Ihnen?». Ein Klick öffnet die Ansicht und holt den Vorschlag; fehlt die Einwilligung, fragt die Seite zuerst danach.
 2. **Warten.** `progress` mit «KI prüft Ihre Suchbegriffe», «Meist unter 30 Sekunden. Am Suchprofil ändert sich nichts, bis Sie etwas übernehmen.» und «Abbrechen».
 3. **Vorschlag.** Eigene Ansicht `/suchbegriffe` in Lesebreite (760) mit «Zurück zu den Treffern». Eine KI-Karte mit einer Karte pro Änderung, alle angehakt.
-4. **Entscheiden.** «Alle 3 übernehmen», «2 von 3 übernehmen», ohne Häkchen gesperrt mit «Mindestens eine Änderung anhaken.» Dazu «Verwerfen».
+4. **Entscheiden.** Seit #371 (G102) ist jeder Begriff ein Schalter: in der Karte seiner Änderung, alle übrigen unter «Bisherige Begriffe». «Auswahl übernehmen», gesperrt mit dem Grund aus `term_changes.py`, etwa «Mit dieser Auswahl bleibt alles wie bisher.» oder «Bitte noch 3 ausschalten, …». Dazu «Verwerfen».
 5. **Überarbeiten.** «Was soll anders sein?» steht unter der Karte. Vorschlag 2 ersetzt die Liste und sagt, was sich geändert hat. «Vorschlag 1 zeigen» holt den alten zurück.
 6. **Übernommen.** Meldung mit «Rückgängig machen», daneben «Jetzt suchen».
 
@@ -67,7 +67,7 @@ Die App prüft jede Änderung, bevor die Person sie sieht (`bewerbungen/term_cha
 - der Grund der KI;
 - der Beleg der App: Balken, «56 von 130 Treffern kamen nur über «Engineer» herein, 47 davon unter Note 4.», die Beispiele und «Diese 56 Treffer ansehen». Der Link öffnet die Trefferliste mit genau diesen Treffern (`/treffer#beleg=Engineer`), in jedem Zustand, mit «Alle Treffer zeigen».
 
-Darunter klappt «So sucht die App danach» den Endstand der angehakten Änderungen auf, neue Begriffe mit «neu», dazu «Fällt weg: …».
+Darunter klappt «So sucht die App danach» den Endstand der eingeschalteten Begriffe auf, nur zum Lesen, neue Begriffe mit «neu», dazu «Entfällt: …».
 
 ## Bausteine
 

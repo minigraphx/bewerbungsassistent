@@ -38,7 +38,14 @@
     <p id="zusammenfassung"></p>
     <fieldset id="aenderungen-feld">
       <legend class="visually-hidden">Änderungen zum Übernehmen</legend>
-      <div id="aenderungen"></div>
+      <h3 class="terms-part">Vorschläge der KI</h3>
+      <div class="terms-changes" id="aenderungen"></div>
+      <section class="terms-current" id="bisherige" aria-labelledby="bisherige-titel">
+        <h3 class="terms-part" id="bisherige-titel" tabindex="-1">Bisherige Begriffe</h3>
+        <p class="caption" id="bisherige-satz"></p>
+        <p class="caption" id="bisherige-oben" hidden></p>
+        <div class="terms-current__areas" id="bisherige-bereiche"></div>
+      </section>
     </fieldset>
     <details class="terms-outcome" id="endstand-block">
       <summary>So sucht die App danach</summary>
@@ -51,6 +58,7 @@
       <button type="button" class="btn" id="verwerfen">Verwerfen</button>
     </div>
     <p class="btn-reason" id="uebernehmen-grund"></p>
+    <p class="visually-hidden" id="auswahl-ansage" role="status" aria-live="polite"></p>
     <p class="status-line" id="status" role="status" aria-live="polite"></p>
     <p class="ai-result__foot"><span id="fuss-satz"></span> <span id="fuss" class="ai-result__meta"></span></p>
   </section>
@@ -73,6 +81,7 @@
 <script src="/einwilligung.js"></script>
 <script src="/treffer-logik.js"></script>
 <script src="/suchbegriffe-logik.js"></script>
+<script src="/suchbegriffe-schalter.js"></script>
 <script src="/suchbegriffe.js"></script>
 </body>
 </html>

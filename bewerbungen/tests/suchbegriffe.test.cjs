@@ -6,13 +6,6 @@ const L = require("../seiten/suchbegriffe-logik.js");
 
 const BELEG = { begriff: "Engineer", anzahl: 56, unter: 47, alle: 130, beispiele: ["EMSR-Engineer", "Process Engineer"] };
 
-test("the main button counts what is ticked", () => {
-  assert.equal(L.hauptknopf(5, 5), "Alle 5 übernehmen");
-  assert.equal(L.hauptknopf(4, 5), "4 von 5 übernehmen");
-  assert.equal(L.hauptknopf(1, 1), "Änderung übernehmen");
-  assert.equal(L.hauptknopf(0, 5), "Übernehmen");
-});
-
 test("the hint and the evidence use the numbers of the app", () => {
   assert.equal(L.hinweisText(BELEG), "«Engineer» im Titelfilter: 56 von 130 Treffern, 47 davon unter Note 4, zum Beispiel EMSR-Engineer, Process Engineer.");
   assert.equal(L.belegSatz(BELEG), "56 von 130 Treffern kamen nur über «Engineer» herein, 47 davon unter Note 4.");
@@ -24,11 +17,6 @@ test("the link to the evidence finds its term again, and nothing else", () => {
   assert.equal(L.belegAusAdresse(new URL(L.belegAdresse({ ...BELEG, begriff: "Full Stack & Co" }), "http://x").hash), "Full Stack & Co");
   assert.equal(L.belegAusAdresse("#andere"), null);
   assert.equal(L.belegAusAdresse("#beleg=%E0%A4%A"), null);
-});
-
-test("every mark carries its word, not only a colour", () => {
-  const marken = L.marken({ entfaellt: ["Engineer"], neu: ["Backend", "Frontend"] });
-  assert.deepEqual(marken.map(m => `${m.begriff}, ${m.wort}`), ["Engineer, entfällt", "Backend, neu", "Frontend, neu"]);
 });
 
 test("the result marks new terms and ignores case", () => {

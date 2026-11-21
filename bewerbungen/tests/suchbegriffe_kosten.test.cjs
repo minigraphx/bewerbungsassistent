@@ -268,7 +268,7 @@ test("the hint names why the estimate is missing", async () => {
 });
 
 async function reviseWith(estimate) {
-  const page = await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"], {
+  const page = await ran(PAGE_SCRIPTS, {
     "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
     "/api/suchbegriffe/vorschlag": { aenderungen: [], treffer: 40, seit: "2026-11-01", runde: 1 }, [ESTIMATE]: estimate,
   });
@@ -294,15 +294,18 @@ test("beside „Neu vorschlagen“ a used-up credit links where to ask and the b
 });
 
 // #337: the footer of the proposal card never starts a line with «·»; each «·» ends the part before it (#331 pattern)
-const CHANGE = { nummer: 1, bereich_name: "Suchbegriffe", zu_allgemein: false, satz: "«Trainer» aufnehmen",
+const CHANGE = { nummer: 1, bereich: "keywords", bereich_name: "Suchbegriffe", zu_allgemein: false, satz: "«Trainer» aufnehmen",
   entfaellt: [], neu: ["Trainer"], grund: "Steht im Lebenslauf.", beleg: null };
 const TERMS = { suchbegriffe: ["Python"], positiv: [], ausschluss: [] };
+// #371: how many terms each area may hold, and how many are too many, as term_changes.limits gives them
+const ROOM = { zu_viel: { suchbegriffe: 0, positiv: 0, ausschluss: 0 }, erlaubt: { suchbegriffe: 15, positiv: 30, ausschluss: 30 } };
 const PROPOSAL = { vorschlag: "v1", aenderungen: [CHANGE], zusammenfassung: "Eine Änderung.", treffer: 40,
-  seit: "2026-11-01", jetzt: TERMS, endstand: { ...TERMS, suchbegriffe: ["Python", "Trainer"] }, entfaellt: [],
-  grenzen: { teile: ["Danach: 2 von 15 Suchbegriffen", "bis 4 Suchen pro Portal"], gesperrt: null }, modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF",
+  seit: "2026-11-01", jetzt: TERMS, bisherige: TERMS, endstand: { ...TERMS, suchbegriffe: ["Python", "Trainer"] }, entfaellt: [],
+  grenzen: { teile: ["Danach: 2 von 15 Suchbegriffen", "bis 4 Suchen pro Portal"], gesperrt: null, ...ROOM }, modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF",
   datum: "2026-11-16", runde: 1 };
+const PAGE_SCRIPTS = ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe.js"];
 
-const proposalPage = async proposal => ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"], {
+const proposalPage = async proposal => ran(PAGE_SCRIPTS, {
   "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
   "/api/suchbegriffe/vorschlag": proposal, [ESTIMATE]: MEDIATION,
 });
@@ -379,11 +382,12 @@ test("the round line of a second proposal is a «·» line of whole parts; the f
 });
 
 test("the limits line is a «·» line of whole parts, also after a change is unticked", async () => {
-  const page = await ran(["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"], {
+  const page = await ran(PAGE_SCRIPTS, {
     "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
     "/api/suchbegriffe/vorschlag": PROPOSAL, [ESTIMATE]: MEDIATION,
     "/api/suchbegriffe/endstand": { endstand: TERMS, entfaellt: [],
-      grenzen: { teile: ["Danach: 1 von 15 Suchbegriffen", "bis 2 Suchen pro Portal"], gesperrt: "Mindestens eine Änderung anhaken." } },
+      grenzen: { teile: ["Danach: 1 von 15 Suchbegriffen", "bis 2 Suchen pro Portal"],
+        gesperrt: "Mit dieser Auswahl bleibt alles wie bisher.", ...ROOM } },
   });
   assertDotLine(page.$("grenzen"), ["Danach: 2 von 15 Suchbegriffen", "bis 4 Suchen pro Portal"]);
   const box = page.$("aenderungen").children[0].children.find(n => isEl(n) && n.tagName === "LABEL").children[0];
