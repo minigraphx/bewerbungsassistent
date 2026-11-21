@@ -105,12 +105,8 @@
     if (s.einwilligung && !s.einwilligung.erteilt) return "Die KI ist noch aus: Vor der ersten Nutzung braucht es die Einwilligung.";
     if (!s.eingerichtet) return "Die KI ist noch nicht eingerichtet. ";
     if (!s.vermittlung) return `KI eingerichtet (direkt, Entwicklung). Diesen Monat ${kosten(s.kosten_usd)}.`;
-    const verbraucht = Number(s.verbraucht_chf || 0);
-    const aufgebraucht = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen.";
-    const guthaben = typeof s.guthaben_chf === "number"
-      ? ` Guthaben: ${money(verbraucht, "CHF")} von ${money(s.guthaben_chf, "CHF")} verbraucht.${verbraucht >= s.guthaben_chf ? aufgebraucht : ""}`
-      : "";
-    return `KI eingerichtet (über die Vermittlung).${guthaben}${s.hinweis ? " " + s.hinweis : ""}`;
+    // the month of the budget and, once used up, the day the AI works again (G98), as in the window „KI einrichten“
+    return `KI eingerichtet (über die Vermittlung).${window.Texte.budgetPart(s)}${s.hinweis ? " " + s.hinweis : ""}`;
   }
 
   function zeigeStatus(s) {

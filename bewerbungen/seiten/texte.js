@@ -548,8 +548,8 @@
       lehrstelle: "Die KI schätzt Lehrstellen ein und entwirft Anschreiben.",
     },
     "einrichtung.ki.code": {
-      sie: "Haben Sie einen Einladungscode? Er bringt ein einmaliges Guthaben von CHF 5 für die KI.",
-      du: "Hast du einen Einladungscode? Er bringt ein einmaliges Guthaben von CHF 5 für die KI.",
+      sie: "Haben Sie einen Einladungscode? Er bringt ein Budget von CHF 5 pro Monat für die KI.",
+      du: "Hast du einen Einladungscode? Er bringt ein Budget von CHF 5 pro Monat für die KI.",
     },
     "einrichtung.ki.ohne": {
       sie: "Ohne KI funktionieren Suche, Unterlagen und Versand trotzdem. Anschreiben laden Sie dann selbst hoch, und Treffer bekommen keine Note.",
@@ -609,8 +609,48 @@
     return [value.slice(0, start), link, value.slice(end)].filter(part => part !== "");
   }
 
+  // ---------- The monthly AI budget of the mediation (G98) ----------
+  // Month and renewal come from the mediation (`monat`, `erneuert_am`); the pages only word them, so a wrong clock on
+  // this computer never shows another month. Without them the mediation still counts a one-time credit (G80).
+  const MONTH_NAMES = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
+                       "November", "Dezember"];
+  const BUDGET_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+  const RENEWAL_DAY = /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  // Day and month never part at the end of a line; screen readers read it as a space.
+  const NBSP = "\u00a0";
+  const chf = amount => `CHF${NBSP}${amount.toFixed(2)}`;
+  const CREDIT_USED_ONCE = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Budget einlösen.";
+
+  function realDay(found) {
+    const [year, month, day] = [Number(found[1]), Number(found[2]), Number(found[3])];
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  }
+
+  /**
+   * { month: "November", renews: "1. Dezember" } from GET /api/ki/status or an estimate; null from a mediation that
+   * names no renewal, or names it in a form the page cannot read.
+   */
+  function budgetMonth(answer) {
+    const month = BUDGET_MONTH.exec(answer?.monat ?? "");
+    const day = RENEWAL_DAY.exec(answer?.erneuert_am ?? "");
+    if (!month || !day || !realDay(day)) return null;
+    return { month: MONTH_NAMES[Number(month[1]) - 1], renews: `${Number(day[3])}.${NBSP}${MONTH_NAMES[Number(day[2]) - 1]}` };
+  }
+
+  /** The credit in the window „KI einrichten“ and on the page „KI“; empty without an amount of the mediation. */
+  function budgetPart(status) {
+    if (!status || typeof status.guthaben_chf !== "number") return "";
+    const spent = Number(status.verbraucht_chf || 0);
+    const usedUp = spent >= status.guthaben_chf;
+    const used = `${chf(spent)} von ${chf(status.guthaben_chf)} verbraucht.`;
+    const budget = budgetMonth(status);
+    if (!budget) return ` Guthaben: ${used}${usedUp ? CREDIT_USED_ONCE : ""}`;
+    return ` KI-Budget im ${budget.month}: ${used}${usedUp ? ` Es ist aufgebraucht; die KI geht wieder ab ${budget.renews}.` : ""}`;
+  }
+
   const texte = { SAETZE, VORGABE, TEXTE, CODE_REQUEST_URL, satzOder, text, anwenden, statusName, notenText,
-                  withCodeRequestLink };
+                  withCodeRequestLink, budgetMonth, budgetPart };
   if (typeof module !== "undefined") module.exports = texte;
   else global.Texte = texte;
 })(typeof window !== "undefined" ? window : globalThis);

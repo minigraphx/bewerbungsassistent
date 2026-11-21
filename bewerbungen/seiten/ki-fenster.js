@@ -31,19 +31,13 @@ window.KiFenster = (() => {
     return abo?.zugang ? "abo" : null;
   }
 
-  const USED_UP = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Guthaben einlösen.";
-
   const withCredit = ki => Boolean(ki.vermittlung) && typeof ki.guthaben_chf === "number";
   const creditUsedUp = ki => withCredit(ki) && Number(ki.verbraucht_chf || 0) >= ki.guthaben_chf;
 
-  // Written like TrefferLogik.money (#347), which pages without a search do not load; app.js loads this window anywhere.
-  const chf = amount => `CHF\u00a0${amount.toFixed(2)}`;
-
+  // The month of the budget and, once used up, the day the AI works again (G98), as on the page „KI“; texte.js is
+  // loaded with this window anywhere.
   function doneLine(ki) {
-    if (!withCredit(ki)) return DONE;
-    const spent = Number(ki.verbraucht_chf || 0);
-    const credit = ` Guthaben: ${chf(spent)} von ${chf(ki.guthaben_chf)} verbraucht.`;
-    return `${DONE}${credit}${creditUsedUp(ki) ? USED_UP : ""}`;
+    return withCredit(ki) ? `${DONE}${window.Texte.budgetPart(ki)}` : DONE;
   }
 
   /** Texts that speak to the person, in the set of the setup (Sie, du, Lehrstelle). */

@@ -2,9 +2,9 @@
 
 The route counts the new hits without a grade, says which of them the extension loads first and which it may not load
 (with the reason), and estimates cost and duration with `rate_all`. With the mediation the amounts are in CHF (G46) and
-it adds the credit of the code left now and afterwards, read from the mediation's account; with an own key they are in
-USD. The run itself goes package by package through `/api/suche/bewerten-paket`; the mediation refuses a package once
-the credit is used up (G80), and what was rated stays.
+it adds what is left of this month's budget now and afterwards, with the month and its renewal, read from the
+mediation's account (G98); with an own key they are in USD. The run itself goes package by package through
+`/api/suche/bewerten-paket`; the mediation refuses a package once the budget is used up, and what was rated stays.
 Nothing here calls the AI; the extension and Claude cannot reach the route.
 """
 import dataclasses
@@ -14,7 +14,7 @@ import missing_ads
 import preferences
 import rate_all
 import routes_missing_ads
-from ai import invitation, prompts, tasks, usage
+from ai import budget, invitation, prompts, tasks, usage
 from ai.connection import currency_now, find_connection
 from ai.errors import AiError
 from hits import Hits
@@ -30,14 +30,21 @@ def _context_chars(k) -> int:
     return texts + len(prompts.rules(preferences.load(k.daten).address))
 
 
-def credit_left() -> float | None:
-    """What stays of the credit of the code in CHF; None with an own key, without AI or without an answer."""
+def mediation_account() -> dict | None:
+    """The account of the access at the mediation; None with an own key, without AI or without an answer."""
     try:
         connection = find_connection()
         if not connection.via_mediation:
             return None
-        account = invitation.account(connection.base_url, connection.access)
+        return invitation.account(connection.base_url, connection.access)
     except AiError:
+        return None
+
+
+def credit_left() -> float | None:
+    """What stays of this month's budget in CHF (G98); None with an own key, without AI or without an answer."""
+    account = mediation_account()
+    if account is None:
         return None
     credit, spent = account.get("credit_chf"), account.get("spent_chf")
     if not all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in (credit, spent)):
@@ -70,20 +77,24 @@ class Priced:
     rate: float  # per USD
     cost: float
     left: float | None
+    renewal: dict = dataclasses.field(default_factory=dict)  # monat and erneuert_am of the mediation (G98)
 
     def fields(self) -> dict:
-        """kosten, waehrung, guthaben and danach, as „Alle prüfen“ and „Vorbefüllen“ (G85) name them."""
+        """kosten, waehrung, guthaben and danach, as „Alle prüfen“ and „Vorbefüllen“ (G85) name them, with the month
+        of the budget and its renewal when the mediation names them."""
         after = None if self.left is None else round(max(0.0, self.left - self.cost), 2)
         return {"kosten": self.cost, "waehrung": self.currency,
-                "guthaben": None if self.left is None else round(self.left, 2), "danach": after}
+                "guthaben": None if self.left is None else round(self.left, 2), "danach": after, **self.renewal}
 
 
 def priced(cost_usd: float, with_credit: bool) -> Priced:
     """`with_credit`: ask the mediation for the credit left; not when nothing would go to the AI."""
     left = credit_left() if with_credit else None
+    # a second short question to the mediation keeps credit_left the one place the tests set the budget
+    renewal = budget.renewal_fields(mediation_account()) if left is not None else {}
     currency = currency_now()
     rate = usage.CHF_PER_USD if currency == usage.MEDIATION_CURRENCY else 1.0
-    return Priced(currency, rate, round(cost_usd * rate, 2), left)
+    return Priced(currency, rate, round(cost_usd * rate, 2), left, renewal)
 
 
 def overview(k, parameter, body):

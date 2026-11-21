@@ -37,7 +37,7 @@ const COSTS = {
 
 test("the sections stand on the left in the order of the design, Über die App last", () => {
   assert.deepEqual(logic.SECTIONS.map(section => section.label), [
-    "KI und Guthaben", "Suche und Portale", "Browser-Erweiterung", "Stelle, Lehrstelle, RAV",
+    "KI und Budget", "Suche und Portale", "Browser-Erweiterung", "Stelle, Lehrstelle, RAV",
     "Daten und Sicherung", "Erweitert", "Über die App"]);
   const html = read("einstellungen.html");
   const nav = html.match(/<nav class="settings__nav"[\s\S]*?<\/nav>/)[0];
@@ -105,7 +105,8 @@ test("the credit of the mediation: used of the credit, once, in CHF, and what it
   assert.equal(view.title, "Guthaben");
   assert.equal(view.headline, "CHF\u00a03.20 von CHF\u00a010.00 verbraucht");
   // the bar says it with the same verb as the headline and the sidebar (#347)
-  assert.match(read("einstellungen.js"), /`\$\{view\.percent\} Prozent des Guthabens verbraucht`/);
+  assert.equal(view.barLabel, "32 Prozent des Guthabens verbraucht");
+  assert.match(read("einstellungen.js"), /\$\("budget-balken"\)\.setAttribute\("aria-label", view\.barLabel\)/);
   assert.equal(view.renewal, null);
   assert.equal(view.percent, 32);
   assert.deepEqual(view.rows, [
@@ -149,7 +150,7 @@ test("without an answer of the AI the local costs still show", () => {
   assert.equal(view.total, "Seit Beginn USD\u00a00.00 in 0 Aufrufen");
 });
 
-test("KI und Guthaben: the access to the AI is a choice of invitation code, own Claude subscription and own key", () => {
+test("KI und Budget: the access to the AI is a choice of invitation code, own Claude subscription and own key", () => {
   const ki = panel(read("einstellungen.html"), "ki");
   const choice = card(ki, "zugang");
   assert.match(choice, /<h2 id="zugang-titel">Zugang zur KI<\/h2>/);
@@ -174,9 +175,9 @@ test("KI und Guthaben: the access to the AI is a choice of invitation code, own 
     `${way} shows only once chosen`);
 });
 
-test("KI und Guthaben: the credit (G46) with a bar and a row per task", () => {
+test("KI und Budget: the budget (G46, G98) with a bar and a row per task", () => {
   const budget = card(panel(read("einstellungen.html"), "ki"), "kosten");
-  assert.match(budget, /<h2 id="kosten-titel">Guthaben<\/h2>/);
+  assert.match(budget, /<h2 id="kosten-titel">KI-Budget<\/h2>/);
   assert.match(budget, /id="budget-zeile"/);
   assert.match(budget, /id="budget-neu"/);
   assert.match(budget, /<div class="budget__bar" id="budget-balken" role="img" hidden><div class="budget__fill" id="budget-fuellung">/);

@@ -18,7 +18,7 @@ import search_frame
 import search_plan
 from ai import exclusion_reasons, tasks
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
-from ai.errors import CREDIT_USED, SETUP_ACTION
+from ai.errors import CREDIT_USED_ONCE, SETUP_ACTION
 from dateien import schreibe_yaml
 from hits import Hits
 from sample_folder import BRIEF_ID
@@ -318,7 +318,8 @@ def test_used_up_credit_says_a_new_code_can_be_requested(job_search, monkeypatch
     client = Client(error=refused)
     monkeypatch.setattr(routes_ai, "new_client", lambda: client)
     status, answer = post(job_search, f"{ROUTE}/vorschlag", {})
-    assert status == 400 and CREDIT_USED in answer["fehler"] and "anfordern" in answer["fehler"]
+    # without a monthly mediation (G98) the words of G80 stay
+    assert status == 400 and CREDIT_USED_ONCE in answer["fehler"] and "anfordern" in answer["fehler"]
 
 
 def test_only_for_a_job_search(job_search, ai):

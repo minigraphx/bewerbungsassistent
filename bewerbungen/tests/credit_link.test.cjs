@@ -114,8 +114,10 @@ test("the link in the sidebar warning keeps the colour of the warning", () => {
 // ---------- Pages that show a used-up sentence put it through the same helper ----------
 
 test("Einstellungen, the page „KI“ and „Alle prüfen“ draw their used-up words with the link", () => {
+  // a mediation that names no renewal keeps the page's sentence with the link (G80); the monthly budget names a date
+  assert.match(read("einstellungen.js"), /const USED_UP_ONCE = \$\("einladung-aufgebraucht"\)\.textContent;/);
   assert.match(read("einstellungen.js"),
-    /const usedUp = \$\("einladung-aufgebraucht"\);\s+usedUp\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(usedUp\.textContent, el\)\);/);
+    /\$\("einladung-aufgebraucht"\)\.replaceChildren\(\.\.\.\(monthly \? \[monthly\] : window\.Texte\.withCodeRequestLink\(USED_UP_ONCE, el\)\)\);/);
   assert.match(read("ki.js"), /\$\("ki-status"\)\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(statusText\(s\), el\)/);
   const hits = read("treffer.js");
   assert.match(hits, /\$\("kosten-hinweis"\)\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(logik\.estimateLine\(estimate, lehrstelle\), el\)\)/);

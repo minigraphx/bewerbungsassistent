@@ -11,7 +11,7 @@ import rate_all
 import routes_ai
 from ai import usage
 from ai.connection import ACCESS_VARIABLE, KEY_VARIABLE, URL_VARIABLE
-from ai.errors import CREDIT_USED, AiError
+from ai.errors import CREDIT_USED_ONCE as CREDIT_USED, AiError
 from hits import Hits
 from test_ai_tasks import VORLAGEN, PackageClient, rating_entry
 from test_app import get, post, server  # noqa: F401  (server is a fixture)

@@ -1,5 +1,5 @@
 "use strict";
-// Page „Einstellungen“ (MIN-348, #265): sections on the left, the way to the AI as a choice, the credit of the code.
+// Page „Einstellungen“ (MIN-348, #265): sections on the left, the way to the AI as a choice, the budget of the code.
 // The key field is sent once and emptied; the key never comes back.
 (() => {
   const { holen, senden, status, bestaetigen, el } = window.App;
@@ -9,6 +9,8 @@
   const anErweiterung = art => window.postMessage({ quelle: SEITE, art }, location.origin);
   const hatErweiterung = () => Boolean(document.documentElement.dataset.bewerbungsbegleiterErweiterung);
   const SOUGHT = { stelle: "Stelle", lehrstelle: "Lehrstelle" };
+  // The words stay in the page; „anfordern“ becomes the link to where a new code is requested (#315).
+  const USED_UP_ONCE = $("einladung-aufgebraucht").textContent;
 
   let ki = null;
   let abo = null;
@@ -49,7 +51,10 @@
   function showInvitation() {
     const state = L.invitationState(ki);
     for (const name of ["aktiv", "aufgebraucht", "schluessel", "keine"]) $(`einladung-${name}`).hidden = name !== state;
-    $("einladung-eingeben").hidden = !["eingeben", "aufgebraucht"].includes(state);  // a used-up credit takes a new code (G80)
+    // The monthly budget names the day the AI works again (G98); a one-time credit keeps its words with the link (G80).
+    const monthly = L.invitationUsedUp(ki);
+    $("einladung-aufgebraucht").replaceChildren(...(monthly ? [monthly] : window.Texte.withCodeRequestLink(USED_UP_ONCE, el)));
+    $("einladung-eingeben").hidden = !["eingeben", "aufgebraucht"].includes(state);  // the field stays when used up (G98)
   }
 
   function showAccess() {
@@ -98,7 +103,7 @@
     }
   }
 
-  // ---------- Guthaben (G46, G80) ----------
+  // ---------- KI-Budget (G46, G98) ----------
   function showBudget() {
     if (!costs) return;
     const view = L.budgetView(ki, costs);
@@ -106,8 +111,10 @@
     $("budget-zeile").textContent = view.headline;
     $("budget-neu").textContent = view.renewal || "";
     $("budget-neu").hidden = !view.renewal;
+    $("budget-aufgebraucht").textContent = view.usedUp || "";
+    $("budget-aufgebraucht").hidden = !view.usedUp;
     $("budget-balken").hidden = view.percent === null;
-    $("budget-balken").setAttribute("aria-label", view.percent === null ? "" : `${view.percent} Prozent des Guthabens verbraucht`);
+    $("budget-balken").setAttribute("aria-label", view.barLabel);
     $("budget-fuellung").style.width = `${view.percent || 0}%`;
     $("budget-aufgaben").replaceChildren(...view.rows.flatMap(row => [
       el("dt", {}, `${row.label} (${row.count})`), el("dd", { class: "num" }, row.usd)]));
@@ -123,11 +130,20 @@
     showBudget();
   }
 
+  // The rows per task count the month of the mediation's budget (G98), asked for once the status names it. The month
+  // goes as a parameter: holen adds the token after a «?» of its own.
+  function loadCosts() {
+    const month = L.costMonth(ki);
+    return holen("/api/schluessel", month ? { monat: month } : {}).then(zeige)
+      .catch(fehler => status($("meldung"), fehler.message, "fehler"));
+  }
+
   async function afterKeyChange(stand) {
     zeige(stand);
     ki = await holen("/api/ki/status").catch(() => ki);
     showAccess();
     showBudget();
+    if (L.costMonth(ki)) await loadCosts();
   }
 
   function zeigeEinwilligung(stand) {
@@ -216,9 +232,6 @@
   $("schluessel").addEventListener("input", pruefeBereit);
   $("speichern").addEventListener("click", speichern);
   $("entfernen").addEventListener("click", entfernen);
-  // The words stay in the page; „anfordern“ becomes the link to where a new code is requested (#315).
-  const usedUp = $("einladung-aufgebraucht");
-  usedUp.replaceChildren(...window.Texte.withCodeRequestLink(usedUp.textContent, el));
   $("einladung-code").addEventListener("input", event => { $("einladung-einloesen").disabled = !event.target.value.trim(); });
   $("einladung-einloesen").addEventListener("click", redeem);
   bestaetigen($("einwilligung-widerruf"), "Wirklich widerrufen? Nochmals klicken", async () => {
@@ -232,8 +245,7 @@
   // The packaged app reveals „Über die App“ after it asked for its version; an anchor to it waits for that.
   new MutationObserver(() => showSection(location.hash)).observe($("ueber-link"), { attributes: true, attributeFilter: ["hidden"] });
   showSection(location.hash, { scroll: true });
-  holen("/api/schluessel").then(zeige).catch(fehler => status($("meldung"), fehler.message, "fehler"));
-  loadAccess();
+  loadAccess().finally(loadCosts);
   showExtension();
   showChoice();
 })();

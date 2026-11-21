@@ -35,6 +35,10 @@ class InputRefused(AiError):
     refuses. Only this is an input error of the routes that take a code or a key (G97, #350)."""
 
 
+class CreditUsedUp(AiError):
+    """The mediation refused because the budget is used up; `ai.budget.used_up_error` names the day it renews."""
+
+
 class LocalProblem(AiError):
     """This computer or the app's own setup failed (the keychain, the address of the mediation), not the value and
     not the service."""
@@ -47,8 +51,12 @@ ACCESS_DENIED = ("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bit
                  "prüfen. Sonst bitte einen neuen Einladungscode anfordern.")
 NO_CREDIT = ("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. "
              "Sonst bitte später nochmals versuchen.")
-CREDIT_USED = ("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
-               "Einstellungen, KI und Guthaben einlösen. Alles andere funktioniert weiterhin.")
+# The monthly budget (G98), filled by ai.budget with the month and day the mediation names
+CREDIT_USED = ("Das KI-Budget für {month} ist aufgebraucht. Die KI geht wieder ab {renews}; "
+               "alles andere funktioniert weiterhin.")
+# A mediation that names no renewal still counts a one-time credit (G80)
+CREDIT_USED_ONCE = ("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
+                    "Einstellungen, KI und Budget einlösen. Alles andere funktioniert weiterhin.")
 RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} nochmals versuchen."
 TIMEOUT = "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen."
 OFFLINE = "Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?"
@@ -58,7 +66,7 @@ REFUSED = "Die KI hat diese Anfrage abgelehnt. Bitte den Text prüfen, zum Beisp
 TOO_LONG = "Die Antwort der KI war zu lang und ist unvollständig. Bitte nochmals versuchen."
 BAD_ANSWER = "Die Antwort der KI liess sich nicht lesen. Bitte nochmals versuchen."
 DEFAULT_RETRY_SECONDS = 60
-CREDIT_STATUS = 402  # the mediation answers 402 once the one-time credit of the code is used up (G80)
+CREDIT_STATUS = 402  # the mediation answers 402 once the budget of the month is used up (G98)
 MAX_LOGGED_REASON = 400
 LONG_TOKEN = re.compile(r"[A-Za-z0-9_-]{24,}")  # a key or an access never reaches the log, not even inside a message
 NO_CREDIT_WORDS = "credit balance"  # how the API says it, with status 400, to someone with an own key (MIN-348)
@@ -77,7 +85,7 @@ def from_sdk(error: Exception) -> AiError:
         return AiError(RATE_LIMITED.format(seconds=seconds_text(seconds)), retry_after=seconds)
     if isinstance(error, anthropic.APIStatusError):
         if error.status_code == CREDIT_STATUS:
-            return AiError(CREDIT_USED)
+            return CreditUsedUp(CREDIT_USED_ONCE)
         if error.status_code >= 500:
             return AiError(SERVER)
         log.warning("KI-Anfrage abgelehnt, Status %s: %s", error.status_code, _reason(error))
