@@ -1,9 +1,9 @@
 "use strict";
 // What the page „Einstellungen“ shows (#265, A10), without DOM so it can be tested: its sections, which section an
-// anchor opens, which way to the AI is in use, the credit of the code (G46, G80) or the costs of the month.
+// anchor opens, which way to the AI is in use, the monthly budget of the code (G46, G98) or the costs of the month.
 (function (global) {
   const SECTIONS = [
-    { id: "ki", label: "KI und Guthaben" },
+    { id: "ki", label: "KI und Budget" },
     { id: "suche", label: "Suche und Portale" },
     { id: "erweiterung", label: "Browser und Erweiterung" },
     { id: "wahl", label: "Stelle, Lehrstelle, RAV" },
@@ -33,12 +33,18 @@
     exclusions: "Ausschlüsse vorschlagen", cv_suggestions: "Lebenslauf für eine Stelle",
   };
   const OTHER = "Weitere";
-  const MEDIATION_NOTE = "Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, "
+  const MEDIATION_NOTE = "Das Budget gilt pro Monat und erneuert sich am Monatsersten; was übrig bleibt, geht nicht in "
+    + "den nächsten Monat mit. Ist es aufgebraucht, läuft die App weiter, nur ohne KI. Protokolliert werden Kosten, keine Inhalte.";
+  // A mediation that names no renewal still counts a one-time credit (G80).
+  const MEDIATION_NOTE_ONCE = "Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, "
     + "nur ohne KI, bis ein neuer Einladungscode eingelöst ist. Protokolliert werden Kosten, keine Inhalte.";
   // With the mediation the person sees CHF (G46); one USD billed counts as one CHF (ai/usage.py CHF_PER_USD).
   const MEDIATION_CURRENCY = "CHF";
   const OWN_CURRENCY = "USD";
   const OWN_NOTE = "Massgebend ist die Abrechnung von Anthropic. Protokolliert werden Kosten, keine Inhalte.";
+
+  // Loaded before this file on the page; required in the tests.
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
 
   const anchor = hash => String(hash || "").replace(/^#/, "");
 
@@ -67,8 +73,8 @@
   const creditUsedUp = ki => hasCredit(ki) && (Number(ki.verbraucht_chf) || 0) >= ki.guthaben_chf;
 
   /**
-   * What the part „Einladungscode“ says: it runs, its credit is used up (a new code can be entered, G80), a code can
-   * be entered, the own key wins, or there is no mediation.
+   * What the part „Einladungscode“ says: it runs, its budget is used up (the field for a code stays, G98),
+   * a code can be entered, the own key wins, or there is no mediation.
    */
   function invitationState(ki) {
     if (!ki) return "keine";
@@ -100,9 +106,46 @@
       .map(([label, value]) => ({ label, count: value.count, usd: money(value.cost, currency) }));
   }
 
+  /** The month of the budget and its renewal as the mediation names them (G98); null for a one-time credit. */
+  const budgetMonth = ki => (hasCredit(ki) ? texts().budgetMonth(ki) : null);
+
   /**
-   * The card „Guthaben“ from GET /api/ki/status (may be null) and the costs of GET /api/schluessel: with the mediation
-   * the credit of the code, once and in CHF; otherwise the costs of the month in USD. The costs of the log count 1:1.
+   * The sentence of „Einladungscode“ while the code works; null keeps the page's own sentence of G80, so an app that
+   * ships before the mediation's monthly budget still says what is true.
+   */
+  const invitationActive = ki => (budgetMonth(ki)
+    ? "Die KI läuft über die Vermittlung des Pilots, mit einem Budget pro Monat. Was davon verbraucht ist, steht unter KI-Budget."
+    : null);
+
+  /** The sentence of „Einladungscode“ once the budget is used up; null keeps the page's own sentence of G80. */
+  function invitationUsedUp(ki) {
+    const budget = creditUsedUp(ki) && budgetMonth(ki);
+    return budget ? `Das KI-Budget für ${budget.month} ist aufgebraucht. Die KI geht wieder ab ${budget.renews}.` : null;
+  }
+
+  function mediationBudget(ki, common) {
+    const spent = Math.max(0, Number(ki.verbraucht_chf) || 0);
+    const percent = Math.min(100, Math.round((spent / ki.guthaben_chf) * 100));
+    const headline = `${money(spent, MEDIATION_CURRENCY)} von ${money(ki.guthaben_chf, MEDIATION_CURRENCY)} verbraucht`;
+    const budget = budgetMonth(ki);
+    if (!budget) {
+      return { ...common, title: "Guthaben", headline, percent, barLabel: `${percent} Prozent des Guthabens verbraucht`,
+               note: MEDIATION_NOTE_ONCE };
+    }
+    return {
+      ...common, title: `KI-Budget im ${budget.month}`, headline, percent,
+      barLabel: `${percent} Prozent des KI-Budgets für ${budget.month} verbraucht`,
+      renewal: `Neues Budget am ${budget.renews}`, note: MEDIATION_NOTE,
+      usedUp: creditUsedUp(ki)
+        ? `Das KI-Budget für ${budget.month} ist aufgebraucht. Die KI geht wieder ab ${budget.renews}; alles andere funktioniert weiterhin.`
+        : null,
+    };
+  }
+
+  /**
+   * The card „KI-Budget“ from GET /api/ki/status (may be null) and the costs of GET /api/schluessel: with the mediation
+   * the budget of its month in CHF (G98), or a one-time credit when it names no renewal (G80); otherwise the costs of
+   * the month in USD. The costs of the log count 1:1.
    */
   function budgetView(ki, costs) {
     const local = costs || {};
@@ -111,25 +154,23 @@
       rows: rows(local.aufgaben, currency),
       total: `Seit Beginn ${money(local.gesamt_usd, currency)} in ${Number.isInteger(local.aufrufe) ? local.aufrufe : 0} Aufrufen`,
       renewal: null,
+      usedUp: null,
     };
-    if (hasCredit(ki)) {
-      const spent = Math.max(0, Number(ki.verbraucht_chf) || 0);
-      return {
-        ...common, title: "Guthaben",
-        headline: `${money(spent, MEDIATION_CURRENCY)} von ${money(ki.guthaben_chf, MEDIATION_CURRENCY)} verbraucht`,
-        percent: Math.min(100, Math.round((spent / ki.guthaben_chf) * 100)), note: MEDIATION_NOTE,
-      };
-    }
+    if (hasCredit(ki)) return mediationBudget(ki, common);
     const parts = monthParts(ki && ki.monat);
     const when = parts ? `im ${MONTHS[parts.month - 1]}` : "in diesem Monat";
     const own = Boolean(ki && ki.eingerichtet && ki.eigener_schluessel);
     return {
       ...common, title: `Kosten ${when}`, headline: `${money(local.monat_usd, currency)}${own ? " mit eigenem Schlüssel" : ""}`,
-      percent: null, note: OWN_NOTE,
+      percent: null, barLabel: "", note: OWN_NOTE,
     };
   }
 
-  const logic = { SECTIONS, WAY_CARDS, sectionOf, wayOf, currentWay, invitationState, budgetView };
+  /** The month whose rows per task the card shows: the mediation's month of the budget, or null for this clock's. */
+  const costMonth = ki => (budgetMonth(ki) ? ki.monat : null);
+
+  const logic = { SECTIONS, WAY_CARDS, sectionOf, wayOf, currentWay, invitationState, invitationActive, invitationUsedUp,
+                  budgetView, costMonth };
   if (typeof module !== "undefined") module.exports = logic;
   else global.EinstellungenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

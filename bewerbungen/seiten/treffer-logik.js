@@ -98,7 +98,7 @@
   }
 
   // „Alle prüfen“ (G44, #209): the words around the estimate of GET /api/suche/alle-pruefen, in its currency: CHF
-  // with the mediation and its credit (G46, G80), USD with an own key.
+  // with the mediation and its budget (G46, G98), USD with an own key.
   const currencyOf = s => (s && s.waehrung) || "USD";
   // A no-break space between number and unit (#336): at 375 px «1» stood at the end of a line and «Minute» began the
   // next. Screen readers read it as a space, so the spoken words stay the same.
@@ -112,9 +112,26 @@
   };
   const withCredit = s => typeof s.guthaben === "number";
   const usedUp = s => withCredit(s) && s.guthaben <= 0;
-  const USED_UP_LINE = "Das Guthaben ist aufgebraucht: neuen Code anfordern.";
-  const USED_UP_WARNING = "Das Guthaben ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter; "
-    + "ohne prüft die KI keine Stelle.";
+  // Loaded before this file on every page; required in the tests.
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+
+  // The budget of the month (G98) when the estimate names its renewal; otherwise the one-time credit of G80.
+  function creditWords(s) {
+    const budget = texts().budgetMonth(s);
+    if (!budget) {
+      return {
+        pool: "Guthaben", enough: "Das Guthaben reicht", usedUpLine: "Das Guthaben ist aufgebraucht: neuen Code anfordern.",
+        usedUpWarning: "Das Guthaben ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter; ohne prüft die KI keine Stelle.",
+        tight: left => `Das Guthaben von ${left} reicht`,
+      };
+    }
+    return {
+      pool: "Budget", enough: "Das Budget dieses Monats reicht",
+      usedUpLine: `Das KI-Budget ist aufgebraucht, wieder ab ${budget.renews}.`,
+      usedUpWarning: `Das KI-Budget für ${budget.month} ist aufgebraucht. Ab ${budget.renews} prüft die KI wieder; was geprüft ist, bleibt.`,
+      tight: () => "Das Budget dieses Monats reicht",
+    };
+  }
 
   /** The second line of the box above the list, as in design A3; empty without an estimate. */
   function estimateLine(s, apprenticeship = false) {
@@ -122,9 +139,10 @@
     const currency = currencyOf(s);
     const about = `Etwa ${money(s.kosten, currency)} und ${minutes(s.dauer_minuten)}.`;
     if (!withCredit(s)) return about;
-    if (usedUp(s)) return `${about} ${USED_UP_LINE}`;
-    if (s.reicht_fuer !== null && s.reicht_fuer !== undefined) return `${about} Das Guthaben reicht für etwa ${jobs(s.reicht_fuer, apprenticeship)}.`;
-    return `${about} Danach bleiben ${money(s.danach, currency)} im Guthaben.`;
+    const words = creditWords(s);
+    if (usedUp(s)) return `${about} ${words.usedUpLine}`;
+    if (s.reicht_fuer !== null && s.reicht_fuer !== undefined) return `${about} ${words.enough} für etwa ${jobs(s.reicht_fuer, apprenticeship)}.`;
+    return `${about} Danach bleiben ${money(s.danach, currency)} im ${words.pool}.`;
   }
 
   /**
@@ -138,7 +156,7 @@
     if (used || enough) return { text: estimateLine(estimate), usedUp: used };
     const about = estimateLine({ ...estimate, guthaben: null });
     const left = money(estimate.guthaben, currencyOf(estimate));
-    return { text: `${about} Im Guthaben sind noch ${left}, das reicht vielleicht nicht.`, usedUp: used };
+    return { text: `${about} Im ${creditWords(estimate).pool} sind noch ${left}, das reicht vielleicht nicht.`, usedUp: used };
   }
 
   const estimateFailedText = reason => `Die Schätzung fehlt: ${reason}`;
@@ -148,14 +166,15 @@
     const currency = currencyOf(s);
     const sentences = [`Die KI prüft ${jobs(s.anzahl, apprenticeship)}, die noch keine Note haben.`,
       `Das kostet etwa ${money(s.kosten, currency)} und dauert etwa ${minutes(s.dauer_minuten)}.`];
-    if (withCredit(s)) sentences.push(`Im Guthaben sind noch ${money(s.guthaben, currency)}, danach etwa ${money(s.danach, currency)}.`);
+    const words = creditWords(s);
+    if (withCredit(s)) sentences.push(`Im ${words.pool} sind noch ${money(s.guthaben, currency)}, danach etwa ${money(s.danach, currency)}.`);
     const toLoad = s.laden.length;
     if (toLoad) {
       sentences.push(withExtension ? `Für ${jobs(toLoad, apprenticeship)} holt die Erweiterung zuerst den Text des Inserats.`
         : `Für ${jobs(toLoad, apprenticeship)} fehlt der Text. Ohne Erweiterung ${toLoad === 1 ? "bleibt sie" : "bleiben sie"} offen.`);
     }
     const tight = withCredit(s) && s.reicht_fuer !== null && s.reicht_fuer !== undefined;
-    const warning = usedUp(s) ? USED_UP_WARNING : tight ? `Das Guthaben von ${money(s.guthaben, currency)} reicht für etwa ${s.reicht_fuer} von ${jobs(s.anzahl, apprenticeship)}. `
+    const warning = usedUp(s) ? words.usedUpWarning : tight ? `${words.tight(money(s.guthaben, currency))} für etwa ${s.reicht_fuer} von ${jobs(s.anzahl, apprenticeship)}. `
       + "Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt." : "";
     const without = s.nicht_ladbar.length;
     return {

@@ -14,12 +14,13 @@ const NBSP = " ";
 const PAGES = path.join(__dirname, "..", "seiten");
 const page = name => fs.readFileSync(path.join(PAGES, name), "utf8");
 
-/** `kosten` and `statusText` of ki.js as written, with `money` from treffer-logik.js as the page gets it. */
+/** `kosten` and `statusText` of ki.js as written, with `money` from treffer-logik.js and texte.js as the page gets them. */
 function kiTexts(waehrung) {
   const source = page("ki.js");
   const kosten = /\n {2}const kosten = betrag => .*;\n/.exec(source)[0];
   const statusText = /\n {2}function statusText\(s\) \{\n[\s\S]*?\n {2}\}\n/.exec(source)[0];
-  return new Function("waehrung", "money", `${kosten}${statusText}; return { kosten, statusText };`)(waehrung, trefferLogik.money);
+  return new Function("waehrung", "money", "window", `${kosten}${statusText}; return { kosten, statusText };`)(
+    waehrung, trefferLogik.money, { Texte: require("../seiten/texte.js") });
 }
 
 test("the helpers of the pages put the currency first and keep units with their number", () => {

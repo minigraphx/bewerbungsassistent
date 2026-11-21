@@ -7,7 +7,7 @@
   const IN_USE = "Eingerichtet.";
   // Texts without an address, so they fit every text set (Sie, du, Lehrstelle).
   const OPTIONS = [
-    { value: "einladung", title: "Einladungscode", text: "Kostenlos im Pilot, mit einem einmaligen Guthaben von CHF 5." },
+    { value: "einladung", title: "Einladungscode", text: "Kostenlos im Pilot, mit einem Budget von CHF 5 pro Monat." },
     { value: "abo", title: "Eigenes Claude-Abo", text: "Die Arbeit läuft in Claude, die App liefert die Werkzeuge.",
       link: { href: `${GUIDE}/eigenes-abo.md`, text: "Anleitung" } },
     { value: "schluessel", title: "Eigener Schlüssel von Anthropic", text: "Für Geübte. Anthropic rechnet die KI direkt ab.",

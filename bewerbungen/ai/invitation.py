@@ -1,9 +1,9 @@
 """Redeem an invitation of the mediation and keep the access in the system's keychain (MIN-344).
 
-A code is a one-time credit of CHF 5 (G80); once it is used up, the person asks for a new one. The app sends
-the code once to the mediation and gets an access back, which goes straight into the keychain (Windows
-Credential Manager, macOS Keychain) and is never shown; a new code replaces it. `account` reads the credit and
-what is spent of it, in CHF.
+A code brings a budget per calendar month, CHF 5 by default, that renews on the first of the month (G98). The app
+sends the code once to the mediation and gets an access back, which goes straight into the keychain (Windows
+Credential Manager, macOS Keychain) and is never shown; a new code replaces it. `account` reads this month's budget
+and what is spent of it, in CHF, with the month and the day it renews.
 """
 import json
 import logging
@@ -87,5 +87,5 @@ def redeem(base_url: str, code: str, opener: Opener = _open, keep: Callable[[str
 
 
 def account(base_url: str, access: str, opener: Opener = _open) -> dict:
-    """{"credit_chf", "spent_chf"} of the access."""
+    """{"credit_chf", "spent_chf", "monat", "erneuert_am"} of the access; an older mediation sends only the first two."""
     return _call(base_url.rstrip("/") + ACCOUNT_PATH, opener, access=access)

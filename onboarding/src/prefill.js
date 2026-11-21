@@ -52,12 +52,13 @@ const PREFILL_TEXT = {
 };
 
 // Cost and time before the run (G85, #271): the same words as „Alle prüfen“ (TrefferLogik.estimateLine, G44), in CHF
-// with the credit of the mediation (G46, G80). One text for Sie and du.
+// with the budget of the mediation's month (G46, G98), or its one-time credit when it names no renewal (G80). One text
+// for Sie and du.
 const ESTIMATE_WORDS = {
   files: (n) => (n === 1 ? "1 Datei geht an die KI." : `${n} Dateien gehen an die KI.`),
   uploading: "Die Dateien werden noch hochgeladen. Danach nennt die App Kosten und Dauer.",
   estimating: "Kosten und Dauer werden geschätzt …",
-  over: (money) => `Im Guthaben sind noch ${money}, das reicht vielleicht nicht.`,
+  over: (money, monthly) => `Im ${monthly ? "Budget" : "Guthaben"} sind noch ${money}, das reicht vielleicht nicht.`,
   notRead: "Geht nicht an die KI:",
   shortened: "Nur der Anfang geht an die KI, die Datei ist zu lang:",
   failed: (reason) => `Die Schätzung fehlt: ${reason}`,
@@ -98,7 +99,8 @@ function creditLine(answer) {
   if (!withCredit(answer)) return null;
   const usedUp = creditUsedUp(answer);
   if (!usedUp && answer.kosten > answer.guthaben) {
-    return el("p", { className: "prefill-card__credit warning" }, ESTIMATE_WORDS.over(moneyText(answer.guthaben, answer.waehrung)));
+    const monthly = typeof Texte !== "undefined" && Texte.budgetMonth(answer) !== null;
+    return el("p", { className: "prefill-card__credit warning" }, ESTIMATE_WORDS.over(moneyText(answer.guthaben, answer.waehrung), monthly));
   }
   const about = TrefferLogik.estimateLine({ ...answer, guthaben: null });
   const sentence = TrefferLogik.estimateLine({ ...answer, reicht_fuer: null }).slice(about.length).trim();
