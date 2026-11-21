@@ -31,6 +31,8 @@
 .marke-status[data-status="geloescht"] { background: transparent; border-style: dashed; color: var(--text-muted); }
 .marke-status[data-status="geloescht"]::before { background: transparent; border: 1.5px solid currentColor; }
 .search__foot { padding: 0 var(--space-1); }
+/* what the tab «In Bewerbungen» holds (#374), between the tabs and the list */
+.search__caption { margin: 0; font-size: 14px; line-height: 20px; color: var(--text-muted); }
 
 /* The decision per hit (G58) */
 .decision { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-lg); background: var(--accent-subtle); }

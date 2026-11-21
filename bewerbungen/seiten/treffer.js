@@ -1,5 +1,5 @@
 "use strict";
-// Stellen (MIN-339, #262): the hits of the job search in the tabs Neu, Gemerkt and Verworfen, rated with the AI in
+// Stellen (MIN-339, #262): the hits of the job search in the tabs Neu, In Bewerbungen and Verworfen, rated with the AI in
 // packages (MIN-372); per hit Bewerbung vorbereiten, Merken or Verwerfen (G58). Firmen is the fourth tab, its own page.
 // The search itself runs in the browser extension; this page starts it through app-bridge.js.
 (() => {
@@ -78,7 +78,7 @@
       const neu = await senden("/api/suche/uebernehmen", {}, { id: t.id });
       anzeigen(neu);
       const ziel = "/bewerbung?" + new URLSearchParams({ id: neu.bewerbung_id });
-      meldung(["Gemerkt. ", el("a", { href: ziel }, "Bewerbung öffnen")], "ok");
+      meldung(["Gemerkt. Die Bewerbung steht jetzt unter Bewerbungen. ", el("a", { href: ziel }, "Bewerbung öffnen")], "ok");
     } catch (fehler) {
       meldung(fehler.message, "fehler");
       knopf.disabled = false;
@@ -349,6 +349,7 @@
     $("leer-titel").textContent = leer.titel;
     $("leer-text").textContent = leer.text;
     $("leer-einstellen").hidden = zustand !== "neu";
+    $("reiter-erklaerung").hidden = Boolean(beleg) || zustand !== "uebernommen";
     zeigeBewerten();
   }
 
@@ -690,7 +691,7 @@
     window.postMessage({ quelle: SEITE, art: "suche-starten" }, location.origin);
   }
   $("suchen").addEventListener("click", starteSuche);
-  // The tabs are links (#gemerkt), so the page Firmen can lead to a tab and the back button returns to the last one.
+  // The tabs are links (#in-bewerbungen), so the page Firmen can lead to a tab and the back button returns to the last one.
   window.addEventListener("hashchange", () => { zustand = logik.reiterAus(location.hash); abgeschlossenZeigen = false; zeigeListe(); });
   $("liste-fuss-knopf").addEventListener("click", () => { abgeschlossenZeigen = !abgeschlossenZeigen; zeigeListe(); });
   $("art").addEventListener("change", zeigeListe);

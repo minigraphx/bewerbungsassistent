@@ -41,7 +41,7 @@ const textOf = node => (node && typeof node === "object"
 const nodes = node => (node && typeof node === "object" ? [node, ...(node.children || []).flat().flatMap(nodes)] : []);
 
 /** The page Stellen with a stand-in app that keeps the hits; `stage` changes an application as Bewerbungen would. */
-function page({ hits = [HIT], art = "stelle", hash = "#gemerkt", satz = "stelle-sie" } = {}) {
+function page({ hits = [HIT], art = "stelle", hash = "#in-bewerbungen", satz = "stelle-sie" } = {}) {
   const elements = new Map();
   const $ = id => { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); };
   const selected = new Map();
@@ -209,9 +209,32 @@ test("Merken shows the new hit as Gemerkt under the tab", async () => {
   const p = page({ hash: "#neu" });
   await settle();
   await p.press("Merken");
-  await p.tab("#gemerkt");
+  await p.tab("#in-bewerbungen");
   assert.equal(textOf(badgeOf(p.rows()[0])), "Gemerkt");
   assert.equal(p.count(), "1");
+});
+
+test("the caption stands only over the tab In Bewerbungen, the old address #gemerkt leads there too (#374)", async () => {
+  const p = page({ hits: [{ ...SAVED }, { ...OTHER }], hash: "#neu" });
+  await settle();
+  assert.equal(p.$("reiter-erklaerung").hidden, true);
+  await p.tab("#in-bewerbungen");
+  assert.equal(p.$("reiter-erklaerung").hidden, false);
+  assert.deepEqual(p.rows().map(row => textOf(badgeOf(row))), ["Gemerkt"]);
+  await p.tab("#verworfen");
+  assert.equal(p.$("reiter-erklaerung").hidden, true);
+  await p.tab("#gemerkt");
+  assert.equal(p.$("reiter-erklaerung").hidden, false);
+  assert.deepEqual(p.rows().map(row => textOf(badgeOf(row))), ["Gemerkt"]);
+});
+
+test("the empty tab In Bewerbungen says how a hit comes there (#374)", async () => {
+  const p = page({ hash: "#in-bewerbungen" });
+  await settle();
+  assert.equal(p.$("leer").hidden, false);
+  assert.equal(p.$("leer-titel").textContent, "Noch nichts in Bewerbungen");
+  assert.equal(p.$("leer-text").textContent, "Mit Merken oder Bewerbung vorbereiten kommt ein Treffer hierher.");
+  assert.equal(p.$("reiter-erklaerung").hidden, false);
 });
 
 test("the stage never changes the order: a lower grade stays below", async () => {

@@ -231,7 +231,7 @@ test("Noch keine Suche never shows when hits exist", async () => {
   assert.deepEqual(anzeige.letzteSuche(null, [HIT], String), ["1 Treffer, 1 neu"]);
 });
 
-test("Übernehmen becomes Merken, and the message reads Gemerkt. with a link to the new application", async () => {
+test("Übernehmen becomes Merken, and the message says where the application stands, with a link to it (#374)", async () => {
   const p = page({ liste: { treffer: [HIT] } });
   await settle();
   const aktionen = p.$("detail").children.flat().filter(Boolean)
@@ -242,12 +242,12 @@ test("Übernehmen becomes Merken, and the message reads Gemerkt. with a link to 
 
   merken.fire("click");
   await settle();
-  const gemerkt = p.messages.find(m => Array.isArray(m.inhalt) && m.inhalt[0] === "Gemerkt. ");
-  assert.ok(gemerkt, "the message starts with Gemerkt.");
+  const gemerkt = p.messages.find(m => Array.isArray(m.inhalt) && m.inhalt[0] === "Gemerkt. Die Bewerbung steht jetzt unter Bewerbungen. ");
+  assert.ok(gemerkt, "the message reads Gemerkt. Die Bewerbung steht jetzt unter Bewerbungen.");
   assert.equal(gemerkt.inhalt[1].tag, "a");
   assert.equal(gemerkt.inhalt[1].attrs.href, "/bewerbung?id=b7");
   assert.equal(textOf(gemerkt.inhalt[1]), "Bewerbung öffnen");
-  assert.match(HTML, /data-zustand="uebernommen">Gemerkt </);
+  assert.match(HTML, /data-zustand="uebernommen">In Bewerbungen </);
 });
 
 test("Register in user texts becomes Ihre Bewerbungen, in the Sie and the du form", () => {

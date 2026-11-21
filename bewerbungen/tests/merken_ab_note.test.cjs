@@ -31,13 +31,16 @@ test("the question names how many hits and which ones, and what stays", () => {
   assert.match(frage.nachsatz, /ohne Note/);
   assert.equal(frage.ok, "2 Treffer merken");
   assert.equal(logik.bestaetigung({ note: 5, anzahl: 1, treffer: [{ stelle: "X", firma: "Y", note: 5 }] }).einleitung,
-    "Dieser Treffer kommt unter Gemerkt:");
+    "Dieser Treffer kommt unter Bewerbungen:");
+  assert.equal(frage.einleitung, "Diese Treffer kommen unter Bewerbungen:");
 });
 
-test("the message after saving names hits that changed in between", () => {
-  assert.equal(logik.ergebnisText({ gemerkt: ["a", "b"], uebersprungen: [] }), "2 Treffer gemerkt.");
+test("the message after saving says where they stand and names hits that changed in between (#374)", () => {
+  assert.equal(logik.ergebnisText({ gemerkt: ["a", "b", "c"], uebersprungen: [] }),
+    "3 Treffer gemerkt. Sie stehen jetzt unter Bewerbungen.");
+  assert.equal(logik.ergebnisText({ gemerkt: ["a"], uebersprungen: [] }), "1 Treffer gemerkt. Er steht jetzt unter Bewerbungen.");
   assert.equal(logik.ergebnisText({ gemerkt: ["a"], uebersprungen: ["b"] }),
-    "1 Treffer gemerkt. 1 Treffer hat sich inzwischen geändert und bleibt, wie er ist.");
+    "1 Treffer gemerkt. Er steht jetzt unter Bewerbungen. 1 Treffer hat sich inzwischen geändert und bleibt, wie er ist.");
   assert.equal(logik.keinerText(5.5), "Keine neuen Treffer mit Note 5.5 oder besser.");
 });
 

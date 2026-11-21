@@ -90,7 +90,7 @@ Bei Lehrstellen kommen eigene Teile dazu (Was suchst du, Deine Berufe, zwei Note
 | Suchlauf | Die Erweiterung sucht auf den Portalen · 2 von 4 Portalen · jobs.ch: fertig, 8 Treffer · job-room.ch: läuft · jobscout24.ch: wartet | gleich, mit LENA, yousty, Berufsberatung.ch, Karriereseiten |
 | Einschätzen | KI schätzt Treffer ein · 3 von 10 · Anhalten | gleich |
 | Unter dem Fortschritt | Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten. Bisher CHF 0.03. | Ein Suchlauf dauert einige Minuten. Du kannst währenddessen weiterarbeiten. Bisher CHF 0.03. |
-| Reiter | Neu 12 · Gemerkt 4 · Verworfen 7 · Firmen | Neu 4 · Gemerkt 4 · Verworfen 7 · Lehrbetriebe |
+| Reiter | Neu 12 · In Bewerbungen 4 · Verworfen 7 · Firmen | Neu 4 · In Bewerbungen 4 · Verworfen 7 · Lehrbetriebe |
 | Über der Liste | 2 Stellen sind noch nicht geprüft. · Bisher etwa 0.030 USD pro Treffer. · Bewerten (2) | 2 Lehrstellen sind noch nicht geprüft. · … |
 | Reihenfolge | Reihenfolge · Nach Note der KI · Nach eigener Bewertung · Nach Datum | gleich |
 | Notenhilfe, Titel | Wie lese ich die Note? | Wie lese ich die Noten? |
