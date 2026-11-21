@@ -41,9 +41,11 @@
       saved = state.gewaehlt;
       status($("browser-meldung"), L.savedText(saved, platform), "ok");
     } catch (fehler) {
-      if (ask !== latest) return;
-      check(saved);
-      status($("browser-meldung"), L.failedText(fehler.message), "fehler");
+      // A newer choice is already on its way; its answer speaks, not this older one.
+      if (ask === latest) {
+        check(saved);
+        status($("browser-meldung"), L.failedText(fehler.message), "fehler");
+      }
     }
   }
 
