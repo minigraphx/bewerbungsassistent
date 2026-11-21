@@ -148,6 +148,8 @@ Das ist Schritt 2 der Einrichtung. Die Erweiterung sucht in Ihrem Browser nach S
 
 In Microsoft Edge und Google Chrome kommt die Erweiterung aus dem Store. Die App erkennt Ihren Browser und zeigt den Knopf für seinen Store; den anderen Store finden Sie als Link darunter. Öffnen Sie unten den Teil für Ihren Browser. Danach geht es in der App von selbst weiter.
 
+**Browser der App:** Die App öffnet sich im Standardbrowser Ihres Computers. Ist das ein anderer Browser als Chrome oder Edge, etwa Firefox, Safari oder Brave, wählen Sie unter **Einstellungen**, **Browser und Erweiterung**, bei **Browser der App** den Browser mit der Erweiterung: **Google Chrome** oder **Microsoft Edge** (unter Linux **Google Chrome oder Chromium**). Die Wahl gilt ab dem nächsten Öffnen, auch wenn Sie die App öffnen, während sie schon läuft, oder einen Einladungslink anklicken. Einen Browser, den die App auf Ihrem Computer nicht findet, können Sie nicht wählen; daneben steht „auf diesem Computer nicht gefunden“. Lässt sich der gewählte Browser nicht starten, öffnet sich die App im Standardbrowser und sagt das oben auf der ersten Seite.
+
 ![Schritt Erweiterung der Einrichtung mit dem Knopf Im Chrome Web Store hinzufügen, dem Link Im Edge-Store öffnen, dem zugeklappten Teil Klappt es nicht? und dem Balken Wartet auf die Erweiterung mit dem Hinweis, dass es von selbst weitergeht](bilder/einrichtung-erweiterung.jpg)
 
 <details>

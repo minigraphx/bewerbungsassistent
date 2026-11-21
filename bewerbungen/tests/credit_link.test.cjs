@@ -49,7 +49,7 @@ test("every used-up sentence links „anfordern“, the rest stays text", () => 
                      reicht_fuer: 0, waehrung: "CHF" };
   assertLinked(trefferLogik.estimateLine(estimate));
   assertLinked("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
-    + "Einstellungen, KI und Guthaben einlösen. 2 von 5 Treffern bewertet.");
+    + "Einstellungen, KI und Budget einlösen. 2 von 5 Treffern bewertet.");
   assertLinked(/<p id="einladung-aufgebraucht" hidden>([^<]*)<\/p>/.exec(read("einstellungen.html"))[1]);
 });
 

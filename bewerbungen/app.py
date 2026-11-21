@@ -158,6 +158,8 @@ SEITEN = {
     "/claude-abo.js": "claude-abo.js",
     "/vorabversionen.js": "vorabversionen.js",
     "/seitengrenze.js": "seitengrenze.js",
+    "/browser-wahl.js": "browser-wahl.js",
+    "/browser-wahl-logik.js": "browser-wahl-logik.js",
     "/as-logo.svg": "as-logo.svg",
 }
 # DM Sans for stil.css and „Meine Angaben“ (MIN-369): the same files as the CV, served by the app, never from a CDN (CSP).

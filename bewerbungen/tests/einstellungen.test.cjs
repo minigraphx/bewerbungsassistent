@@ -37,7 +37,7 @@ const COSTS = {
 
 test("the sections stand on the left in the order of the design, Über die App last", () => {
   assert.deepEqual(logic.SECTIONS.map(section => section.label), [
-    "KI und Budget", "Suche und Portale", "Browser-Erweiterung", "Stelle, Lehrstelle, RAV",
+    "KI und Budget", "Suche und Portale", "Browser und Erweiterung", "Stelle, Lehrstelle, RAV",
     "Daten und Sicherung", "Erweitert", "Über die App"]);
   const html = read("einstellungen.html");
   const nav = html.match(/<nav class="settings__nav"[\s\S]*?<\/nav>/)[0];

@@ -17,7 +17,7 @@
   <nav class="settings__nav" aria-label="Bereiche der Einstellungen">
     <a href="#ki">KI und Budget</a>
     <a href="#suche">Suche und Portale</a>
-    <a href="#erweiterung">Browser-Erweiterung</a>
+    <a href="#erweiterung">Browser und Erweiterung</a>
     <a href="#wahl">Stelle, Lehrstelle, RAV</a>
     <a href="#daten">Daten und Sicherung</a>
     <a href="#erweitert">Erweitert</a>
@@ -146,12 +146,22 @@
   </section>
   </section>
 
-  <section class="settings__panel" id="bereich-erweiterung" aria-label="Browser-Erweiterung">
+  <section class="settings__panel" id="bereich-erweiterung" aria-label="Browser und Erweiterung">
   <section class="card" aria-labelledby="erweiterung-titel">
     <h2 id="erweiterung-titel">Browser-Erweiterung</h2>
     <p class="field__hint">Die Erweiterung sucht auf den Portalen und füllt Bewerbungsformulare aus. Abschicken macht sie nie.</p>
     <p class="settings__state" id="erweiterung-stand" data-state="unknown">Die App fragt nach der Erweiterung …</p>
     <div class="btn-row"><a class="btn" href="/einrichtung#erweiterung">Erweiterung einrichten</a></div>
+  </section>
+
+  <section class="card" id="browser" aria-labelledby="browser-titel" hidden>
+    <h2 id="browser-titel">Browser der App</h2>
+    <fieldset class="access-choice browser-choice" id="browser-wahl" aria-describedby="browser-hinweis">
+      <legend class="browser-choice__legend">Die App öffnet sich in</legend>
+      <p class="field__hint" id="browser-hinweis">Die Browser-Erweiterung läuft in Chrome und Edge. Ist ein anderer Browser der Standard, öffnet sich die App besser gleich in Chrome oder Edge.</p>
+      <div class="browser-choice__options" id="browser-optionen"></div>
+    </fieldset>
+    <div id="browser-meldung" class="status" role="status" aria-live="polite"></div>
   </section>
   </section>
 
@@ -223,6 +233,8 @@
 <script src="/einstellungen.js"></script>
 <script src="/claude-abo.js"></script>
 <script src="/vorabversionen.js"></script>
+<script src="/browser-wahl-logik.js"></script>
+<script src="/browser-wahl.js"></script>
 <script src="/seitengrenze.js"></script>
 </body>
 </html>

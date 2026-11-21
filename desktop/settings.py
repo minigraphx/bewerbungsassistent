@@ -19,6 +19,9 @@ LOG_FILE = "protokoll.txt"
 CLAUDE_ACCESS = "claude_zugang"
 QUESTIONS_PAGE = "fragen_seite"
 BETA_UPDATES = "vorabversionen"
+APP_BROWSER = "browser"
+DEFAULT_BROWSER = "standard"
+BROWSER_CHOICES = (DEFAULT_BROWSER, "chrome", "edge")
 DEFAULTS_FILE = "voreinstellungen.json"  # written at build time (e.g. address of the mediation), not secret
 
 
@@ -97,6 +100,18 @@ def beta_updates(paths: Paths) -> bool:
 
 def set_beta_updates(paths: Paths, on: bool) -> dict:
     return save(paths, {**load(paths), BETA_UPDATES: on})
+
+
+def app_browser(paths: Paths) -> str:
+    """The browser the app opens in (G99, #369); the default browser until the person chooses another."""
+    value = load(paths).get(APP_BROWSER)
+    return value if value in BROWSER_CHOICES else DEFAULT_BROWSER
+
+
+def set_app_browser(paths: Paths, choice: str) -> dict:
+    if choice not in BROWSER_CHOICES:
+        raise ValueError("Unbekannter Browser.")
+    return save(paths, {**load(paths), APP_BROWSER: choice})
 
 
 def questions_page(paths: Paths) -> bool:

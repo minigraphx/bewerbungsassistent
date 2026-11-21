@@ -221,6 +221,33 @@ window.App = (() => {
     kiEinrichten().catch(() => { /* without its scripts the page stays as it is */ });
   }
 
+  // The browser chosen for the app did not start (G99, #369): desktop/app_browser.py opened the default browser
+  // instead and added this parameter. The request leaves the address, so a reload shows no notice again.
+  const BROWSER_FEHLT = "browser-fehlt";
+  const BROWSER_NAMEN = { chrome: "Google Chrome", edge: "Microsoft Edge" };
+  function browserFehltNehmen() {
+    const suche = new URLSearchParams(location.search);
+    if (!suche.has(BROWSER_FEHLT)) return null;
+    const browser = suche.get(BROWSER_FEHLT);
+    suche.delete(BROWSER_FEHLT);
+    const rest = suche.toString();
+    history.replaceState(history.state, "", location.pathname + (rest ? `?${rest}` : "") + location.hash);
+    return Object.hasOwn(BROWSER_NAMEN, browser) ? BROWSER_NAMEN[browser] : null;
+  }
+
+  function browserHinweis() {
+    const name = browserFehltNehmen();
+    if (!name) return;
+    const schliessen = el("button", { type: "button", class: "status__close", "aria-label": "Meldung schliessen" }, "×");
+    const hinweis = el("div", { class: "notice notice--warning", role: "status" },
+      el("p", { class: "notice__body" }, `${name} liess sich nicht starten, darum ist die App im Standardbrowser offen. `
+        + "Der Browser für die App lässt sich unter Einstellungen, Browser und Erweiterung wählen."),
+      el("div", { class: "notice__actions" }, el("a", { class: "btn btn--sm", href: "/einstellungen#browser" }, "Zu den Einstellungen"),
+        schliessen));
+    schliessen.addEventListener("click", () => hinweis.remove());
+    document.querySelector("main")?.prepend(hinweis);
+  }
+
   // "About the app" under Einstellungen (#81, G54): the AS logo marks the author; name and app icon stay as they are.
   // In the Store package (#344) the Store brings updates, so the app offers none and says so here only.
   function ueberDieApp(version, store) {
@@ -342,6 +369,7 @@ window.App = (() => {
       document.getElementById("ueber-link")?.removeAttribute("hidden");
     }
     if (await zurEinrichtung()) return;
+    browserHinweis();
     kiAusAdresse();
     if (!info.update) return;
     if (info.update.fragen) updateDialog(info.update);
