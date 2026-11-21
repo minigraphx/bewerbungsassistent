@@ -10,8 +10,8 @@ import logging
 import os
 import pathlib
 import sys
-import webbrowser
 
+import app_browser
 import extension
 import instance
 import linux_desktop
@@ -71,6 +71,13 @@ def browser_address(entry_url: str, code: str | None) -> str:
     return f"{entry_url}&{urlscheme.SETUP_REQUEST}" if code else entry_url
 
 
+def open_app(paths: settings.Paths, address: str) -> None:
+    """In the browser chosen under Einstellungen (G99); the default browser steps in when that one fails."""
+    failed = app_browser.open_app(settings.app_browser(paths), address, app_browser.current_system())
+    if failed:
+        log.warning("App im Standardbrowser geöffnet, %s liess sich nicht starten", failed)
+
+
 def _adopt_keychain() -> None:
     from ai.connection import adopt_old_keychain
     log.info("App-Ordner unter dem neuen Namen übernommen")
@@ -126,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
         if problem:
             log.warning("Einladung nicht eingelöst: %s", problem)
         if not args.kein_browser:
-            webbrowser.open(browser_address(running.entry_url, code))
+            open_app(paths, browser_address(running.entry_url, code))
         return 0
     return serve(paths, code, open_browser=not args.kein_browser)
 
@@ -206,6 +213,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     _apply_build_defaults(settings.build_defaults(bundle_dir()))
     import routes_app
     import routes_angaben
+    import routes_browser
     import routes_claude
     import routes_ai
     import routes_setup
@@ -226,11 +234,13 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     setup_get, setup_post = routes_setup.make_routes(state)
     angaben_get, angaben_post, limits = routes_angaben.make_routes(state)
     claude_get, claude_post = routes_claude.make_routes(claude_routes(paths))
+    browser_get, browser_post = routes_browser.make_routes(routes_browser.BrowserRoutes(paths=paths))
     pages = presence.Presence()
     pages_get, pages_post = presence.make_routes(pages)
+    get = {**app_get, **setup_get, **angaben_get, **claude_get, **browser_get, **pages_get}
+    post = {**app_post, **setup_post, **angaben_post, **claude_post, **browser_post, **pages_post}
     try:
-        server = app.erstelle_server(data, extra_routes=({**app_get, **setup_get, **angaben_get, **claude_get, **pages_get},
-                                                         {**app_post, **setup_post, **angaben_post, **claude_post, **pages_post}),
+        server = app.erstelle_server(data, extra_routes=(get, post),
                                      body_limits=limits, questions_page=settings.questions_page(paths), activity=pages.request)
         holder["server"] = server
     except (ValueError, OSError) as error:
@@ -242,7 +252,7 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
         _redeem(server.kontext, code)
     log.info("Bewerbungsbegleiter läuft auf %s, Daten in %s", server.url, data)
     if open_browser:
-        webbrowser.open(browser_address(server.entry_url, code))
+        open_app(paths, browser_address(server.entry_url, code))
     watchdog = presence.Watchdog(pages, lambda: routes_app.quit_app_now(controls))
     watchdog.start()
     try:
