@@ -141,6 +141,11 @@ test("Einstellungen ask for the costs of the budget month with the token still i
   }
   assert.deepEqual(asked.map(url => [url.pathname, url.searchParams.get("t"), url.searchParams.get("monat")]),
     [["/api/schluessel", "token", "2026-11"], ["/api/schluessel", "token", null]]);
+  // a failure says what could not be read, not only the bare reason
+  const shown = [];
+  await run(() => Promise.reject(new Error("Zeitüberschreitung")), { costMonth: () => "2026-11" }, STATUS, () => {},
+    (_line, text, level) => shown.push([text, level]), () => null);
+  assert.deepEqual(shown, [["Die Kosten liessen sich nicht laden: Zeitüberschreitung", "fehler"]]);
 });
 
 test("Einstellungen of an old mediation keep the words of G80", () => {

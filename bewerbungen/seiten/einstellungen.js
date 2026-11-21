@@ -135,7 +135,7 @@
   function loadCosts() {
     const month = L.costMonth(ki);
     return holen("/api/schluessel", month ? { monat: month } : {}).then(zeige)
-      .catch(fehler => status($("meldung"), fehler.message, "fehler"));
+      .catch(fehler => status($("meldung"), `Die Kosten liessen sich nicht laden: ${fehler.message}`, "fehler"));
   }
 
   async function afterKeyChange(stand) {
