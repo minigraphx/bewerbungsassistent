@@ -189,3 +189,20 @@ test("a failed run says why in an alert of its own, above the line", () => {
   assert.match(problem.textContent, /Einwilligung/);
   assert.deepEqual(paragraphs(node), ["2 Dateien gehen an die KI. Etwa USD\u00a00.04 und 1\u00a0Minute."]);
 });
+
+// ---------- The monthly budget of the mediation (G98) ----------
+
+const MONTHLY = { ...VIA_MEDIATION, monat: "2026-11", erneuert_am: "2026-12-01" };
+
+test("with a monthly budget the line speaks of the budget", () => {
+  assert.deepEqual(paragraphs(card({ estimate: ready(MONTHLY) }))[1], "Danach bleiben CHF\u00a04.21 im Budget.");
+  assert.deepEqual(paragraphs(card({ estimate: ready({ ...MONTHLY, guthaben: 0.02, danach: 0 }) }))[1],
+    "Im Budget sind noch CHF\u00a00.02, das reicht vielleicht nicht.");
+});
+
+test("a used-up monthly budget names the day the AI works again, without a link, and the run is disabled", () => {
+  const node = card({ estimate: ready({ ...MONTHLY, guthaben: 0, danach: 0 }) });
+  assert.equal(paragraphs(node)[1], "Das KI-Budget ist aufgebraucht, wieder ab 1.\u00a0Dezember.");
+  assert.equal(findAll(status(node), (n) => n.tagName === "a").length, 0);
+  assert.equal(byId(node, "prefill").disabled, true);
+});

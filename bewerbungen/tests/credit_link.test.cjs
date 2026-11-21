@@ -49,7 +49,7 @@ test("every used-up sentence links „anfordern“, the rest stays text", () => 
                      reicht_fuer: 0, waehrung: "CHF" };
   assertLinked(trefferLogik.estimateLine(estimate));
   assertLinked("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
-    + "Einstellungen, KI und Guthaben einlösen. 2 von 5 Treffern bewertet.");
+    + "Einstellungen, KI und Budget einlösen. 2 von 5 Treffern bewertet.");
   assertLinked(/<p id="einladung-aufgebraucht" hidden>([^<]*)<\/p>/.exec(read("einstellungen.html"))[1]);
 });
 
@@ -114,8 +114,10 @@ test("the link in the sidebar warning keeps the colour of the warning", () => {
 // ---------- Pages that show a used-up sentence put it through the same helper ----------
 
 test("Einstellungen, the page „KI“ and „Alle prüfen“ draw their used-up words with the link", () => {
+  // a mediation that names no renewal keeps the page's sentence with the link (G80); the monthly budget names a date
+  assert.match(read("einstellungen.js"), /const USED_UP_ONCE = \$\("einladung-aufgebraucht"\)\.textContent;/);
   assert.match(read("einstellungen.js"),
-    /const usedUp = \$\("einladung-aufgebraucht"\);\s+usedUp\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(usedUp\.textContent, el\)\);/);
+    /\$\("einladung-aufgebraucht"\)\.replaceChildren\(\.\.\.\(monthly \? \[monthly\] : window\.Texte\.withCodeRequestLink\(USED_UP_ONCE, el\)\)\);/);
   assert.match(read("ki.js"), /\$\("ki-status"\)\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(statusText\(s\), el\)/);
   const hits = read("treffer.js");
   assert.match(hits, /\$\("kosten-hinweis"\)\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(logik\.estimateLine\(estimate, lehrstelle\), el\)\)/);

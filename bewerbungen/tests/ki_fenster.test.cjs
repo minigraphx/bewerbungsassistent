@@ -356,7 +356,7 @@ test("the window names the credit in CHF and, once it is used up, the way to a n
   assert.ok(running.includes("Guthaben: CHF\u00a00.40 von CHF\u00a05.00 verbraucht."));
   assert.ok(!running.includes("aufgebraucht"));
   const usedUp = await shows({ ...SET_UP, verbraucht_chf: 5 });
-  assert.ok(usedUp.includes("Das Guthaben ist aufgebraucht: einen neuen Code anfordern, öffnet neuen Tab und unter Einstellungen, KI und Guthaben einlösen."));
+  assert.ok(usedUp.includes("Das Guthaben ist aufgebraucht: einen neuen Code anfordern, öffnet neuen Tab und unter Einstellungen, KI und Budget einlösen."));
 });
 
 // ---------- A used-up credit in the window (#315) ----------

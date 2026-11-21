@@ -11,7 +11,7 @@ import yaml
 import letter_approval
 import preferences
 import unterlagen
-from ai import consent, form_help, invitation, tasks, usage
+from ai import budget, consent, form_help, invitation, tasks, usage
 from ai.connection import find_connection, make_client, mediation_url, own_key
 from ai.errors import SETUP_ACTION, AiError, InputRefused, LocalProblem, SetupNeeded
 from ai.usage import UsageLog
@@ -162,7 +162,9 @@ def _status(k) -> dict:
     if connection.via_mediation:
         try:
             konto = invitation.account(connection.base_url, connection.access)
-            result = {**result, "guthaben_chf": konto.get("credit_chf"), "verbraucht_chf": konto.get("spent_chf")}
+            # the month of the budget and its renewal as the mediation says them (G98), never from this clock
+            result = {**result, "guthaben_chf": konto.get("credit_chf"), "verbraucht_chf": konto.get("spent_chf"),
+                      **budget.renewal_fields(konto)}
         except AiError as error:
             result = {**result, "hinweis": str(error)}
     return result

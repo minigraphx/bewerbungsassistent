@@ -3,12 +3,16 @@
 The key only comes in, it never goes out again: no route answers with it, not even in part. The extension cannot
 reach these routes (list in `desktop/native_host.py`).
 """
+import re
+
 from ai import connection, own_key
 from ai.usage import UsageLog
 from routes_ai import run_entry
 from server import json_antwort
 
 CONFIRM_FIRST = "Bitte zuerst die Hinweise lesen und bestätigen."
+NO_MONTH = "Der Monat ist nicht lesbar."
+MONTH = re.compile(r"\d{4}-(0[1-9]|1[0-2])")
 OTHER_TASK = "weitere"  # a line without a readable task still counts, the page names it „Weitere“
 
 
@@ -25,21 +29,30 @@ def _by_task(entries: list[dict], month: str) -> dict:
     return result
 
 
-def _costs(k) -> dict:
+def _month(k, parameter: dict) -> str:
+    """The month the page asks for, the mediation's month of the budget (G98); otherwise this computer's."""
+    wanted = parameter.get("monat")
+    if wanted is None:
+        return k.heute().strftime("%Y-%m")
+    if not isinstance(wanted, str) or MONTH.fullmatch(wanted) is None:
+        raise ValueError(NO_MONTH)
+    return wanted
+
+
+def _costs(k, month: str) -> dict:
     """What this data folder has noted; the bill from Anthropic is what counts."""
     entries = UsageLog(k.daten).entries()
-    month = k.heute().strftime("%Y-%m")
     total = sum(entry.get("cost_usd") or 0 for entry in entries)
     return {"monat_usd": UsageLog(k.daten).month_total_usd(month), "gesamt_usd": round(total, 6), "aufrufe": len(entries),
             "aufgaben": _by_task(entries, month)}
 
 
-def _state(k) -> dict:
-    return {"gesetzt": connection.own_key() is not None, "kosten": _costs(k)}
+def _state(k, parameter: dict | None = None) -> dict:
+    return {"gesetzt": connection.own_key() is not None, "kosten": _costs(k, _month(k, parameter or {}))}
 
 
 def status(k, parameter, body):
-    return json_antwort(_state(k))
+    return json_antwort(_state(k, parameter))
 
 
 def save(k, parameter, body):

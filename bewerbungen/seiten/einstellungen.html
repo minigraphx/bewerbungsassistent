@@ -15,7 +15,7 @@
   <h1>Einstellungen</h1>
   <div class="settings__layout">
   <nav class="settings__nav" aria-label="Bereiche der Einstellungen">
-    <a href="#ki">KI und Guthaben</a>
+    <a href="#ki">KI und Budget</a>
     <a href="#suche">Suche und Portale</a>
     <a href="#erweiterung">Browser und Erweiterung</a>
     <a href="#wahl">Stelle, Lehrstelle, RAV</a>
@@ -25,7 +25,7 @@
   </nav>
   <div class="settings__panels">
 
-  <section class="settings__panel" id="bereich-ki" aria-label="KI und Guthaben">
+  <section class="settings__panel" id="bereich-ki" aria-label="KI und Budget">
   <section class="card" id="zugang" aria-labelledby="zugang-titel">
     <div class="settings__card-head">
       <h2 id="zugang-titel">Zugang zur KI</h2>
@@ -127,8 +127,9 @@
   </section>
 
   <section class="card" id="kosten" aria-labelledby="kosten-titel">
-    <h2 id="kosten-titel">Guthaben</h2>
+    <h2 id="kosten-titel">KI-Budget</h2>
     <div class="budget__head"><strong class="budget__headline num" id="budget-zeile"></strong><span class="field__hint" id="budget-neu" hidden></span></div>
+    <p class="notice notice--warning" id="budget-aufgebraucht" hidden></p>
     <div class="budget__bar" id="budget-balken" role="img" hidden><div class="budget__fill" id="budget-fuellung"></div></div>
     <dl class="budget__rows" id="budget-aufgaben"></dl>
     <p class="field__hint" id="budget-hinweis"></p>

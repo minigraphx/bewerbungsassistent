@@ -54,8 +54,9 @@ def test_meine_angaben_names_cost_and_time_before_vorbefuellen():
         assert "Unter" in before_run and "**Vorbefüllen**" in before_run, part
         assert "an die KI gehen" in before_run and "kostet" in before_run and "dauert" in before_run, part
     entering = body("Angaben erfassen", 3)
-    for words in ("«2 Dateien gehen an die KI. Etwa CHF 0.04 und 1 Minute.»", "im Guthaben bleibt", "in USD",
-                  "mit dem Grund", "**anfordern**"):
+    # G98: a used-up budget names the day the AI works again instead of a link to a new code
+    for words in ("«2 Dateien gehen an die KI. Etwa CHF 0.04 und 1 Minute.»", "im Budget des Monats bleibt", "in USD",
+                  "mit dem Grund", "ab welchem Datum die KI wieder geht"):
         assert words in entering, words
 
 
@@ -69,18 +70,19 @@ def test_a_parent_or_legal_guardian_sets_the_app_up_for_a_child():
     assert GUARDIAN in body("Für Lehrstellen", 3)
 
 
-def test_the_invitation_code_is_a_trial_credit_requested_by_email():
+def test_the_invitation_code_is_a_monthly_budget_requested_by_email():
+    # G98 instead of the one-time trial credit of G80
     need = body("Was Sie brauchen", 3)
 
-    for words in ("Probeguthaben von CHF 5", "per E-Mail", "solange es Codes gibt", "neuen Code an", HELP_PAGE):
+    for words in ("Budget von CHF 5 pro Monat", "Monatsersten", "per E-Mail", "solange es Codes gibt", HELP_PAGE):
         assert words in need, words
-    assert "Pilotphase begleitet" not in text()
+    assert "Probeguthaben" not in text() and "Pilotphase begleitet" not in text()
 
 
-def test_quick_start_step_one_names_the_code_as_an_optional_trial_credit():
+def test_quick_start_step_one_names_the_code_as_an_optional_monthly_budget():
     first = quick_step(1)
 
-    assert "kein Schritt der Einrichtung" in first and "Probeguthaben von CHF 5" in first
+    assert "kein Schritt der Einrichtung" in first and "Budget von CHF 5 pro Monat" in first
     assert "**KI einrichten**" in first and "wann Sie sie brauchen" in first
 
 
@@ -142,7 +144,7 @@ def test_the_pictures_say_what_they_show_today():
     assert "dem Hinweis «Am Namen erkannt» oder, beim Scan, «Nicht sicher erkannt, bitte prüfen»" in picture
     # G85, #271: the picture goes on to the line under Vorbefüllen
     assert "dem Knopf Vorbefüllen und darunter der Zeile «3 Dateien gehen an die KI. Etwa CHF 0.09 und 1 Minute.»" in picture
-    assert "was im Guthaben bleibt" in picture and "welche Datei nicht an die KI geht" in picture
+    assert "dann was im Budget bleibt und welche Datei nicht an die KI geht" in picture  # G98
     check = body("Stellen suchen und bewerben", 3)
     assert "](bilder/pruefung.jpg)" in check and "**So lassen**" in check
     picture = check.split("](bilder/pruefung.jpg)", 1)[0].rsplit("![", 1)[1]

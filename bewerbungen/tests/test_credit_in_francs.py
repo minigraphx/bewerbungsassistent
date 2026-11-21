@@ -1,5 +1,8 @@
 """The invitation code as a one-time trial credit of CHF 5 (G80) as the app shows it, in CHF (G46), with invented data.
 
+Since G98 this is what a mediation shows that names no renewal yet; the monthly budget is in test_monthly_budget_display
+and monthly_budget.test.cjs.
+
 The page logic runs in node without DOM; the routes run against a simulated mediation.
 """
 import json
@@ -51,13 +54,14 @@ def _refusal(status: int) -> anthropic.APIStatusError:
 def test_a_used_up_credit_says_so_and_that_a_new_code_can_be_asked_for():
     message = str(errors.from_sdk(_refusal(402)))
 
-    assert message == errors.CREDIT_USED
+    # without the account of a monthly mediation (G98, test_monthly_budget_display) the words of G80 stay
+    assert message == errors.CREDIT_USED_ONCE
     assert "Guthaben" in message and "aufgebraucht" in message and "neuen Code anfordern" in message
     assert "Monat" not in message
 
 
 def test_no_message_names_the_begleitperson_as_the_source_of_access():
-    for message in (errors.ACCESS_DENIED, errors.NO_CREDIT, errors.CREDIT_USED):
+    for message in (errors.ACCESS_DENIED, errors.NO_CREDIT, errors.CREDIT_USED, errors.CREDIT_USED_ONCE):
         assert "Begleitperson" not in message
 
 
@@ -68,19 +72,11 @@ def test_the_setup_does_not_say_the_code_comes_from_the_begleitperson():
 
 
 def test_no_text_of_the_app_says_the_budget_is_used_up_for_this_month():
+    # G98 brought the budget per month back; a used-up month names its renewal day instead (monthly_budget.test.cjs)
     files = [*PAGES.glob("*.js"), *PAGES.glob("*.html"), *(ROOT / "bewerbungen" / "ai").glob("*.py"),
              ROOT / "docs" / "installation.md"]
     for path in files:
-        text = path.read_text(encoding="utf-8")
-        assert "für diesen Monat aufgebraucht" not in text, path.name
-        assert "Budget pro Monat" not in text, path.name
-
-
-@pytest.mark.parametrize("name", ["einstellungen-logik.js", "einstellungen.html", "einstellungen.js", "ki-zugang.js",
-                                  "ki.js", "ki-fenster.js", "sidebar-logic.js", "treffer-logik.js"])
-def test_the_texts_say_guthaben_and_not_budget(name):
-    text = (PAGES / name).read_text(encoding="utf-8")
-    assert not re.search(r"(?<![\w-])Budget", text), name
+        assert "für diesen Monat aufgebraucht" not in path.read_text(encoding="utf-8"), path.name
 
 
 def test_one_usd_counts_as_one_franc():
@@ -161,14 +157,14 @@ def test_the_settings_offer_a_new_code_once_the_credit_is_used_up():
         == ["aktiv", "aufgebraucht"]
     page = (PAGES / "einstellungen.html").read_text(encoding="utf-8")
     assert re.search(r'<p id="einladung-aufgebraucht" hidden>[^<]*neuen Einladungscode[^<]*</p>', page)
-    assert "KI und Guthaben" in page
+    assert "KI und Budget" in page
 
 
 # the window „KI einrichten“ and the choice of the way
 
-def test_the_choice_names_the_one_time_credit():
+def test_the_choice_names_the_budget_per_month():  # G98 instead of the one-time credit of G80
     text = (PAGES / "ki-zugang.js").read_text(encoding="utf-8")
-    assert "einmaligen Guthaben von CHF 5" in text
+    assert "Budget von CHF 5 pro Monat" in text and "einmalig" not in text
 
 
 # „Alle prüfen“ on Stellen (#209)
@@ -235,9 +231,10 @@ def _ki_page_status(status: dict) -> str:
     """Runs `statusText` of the page „KI“ as written, with `money` from treffer-logik.js."""
     script = (PAGES / "ki.js").read_text(encoding="utf-8")
     function = re.search(r"\n  function statusText\(s\) \{.*?\n  \}\n", script, re.S)[0]
-    code = (f"const {{ money }} = require(process.argv[2]); const kosten = x => x; {function}; "
-            "process.stdout.write(statusText(JSON.parse(process.argv[1])));")
-    return subprocess.run(["node", "-e", code, json.dumps(status), str(PAGES / "treffer-logik.js")],
+    # var, not const: the page scripts read `typeof window` while they load, which a const would still block
+    code = (f"var window = {{ Texte: require(process.argv[3]) }}; const {{ money }} = require(process.argv[2]); "
+            f"const kosten = x => x; {function}; process.stdout.write(statusText(JSON.parse(process.argv[1])));")
+    return subprocess.run(["node", "-e", code, json.dumps(status), str(PAGES / "treffer-logik.js"), str(PAGES / "texte.js")],
                           capture_output=True, text=True, timeout=60, check=True).stdout
 
 
@@ -245,4 +242,11 @@ def test_the_ki_page_names_the_way_to_a_new_code_once_the_credit_is_used_up():
     assert _ki_page_status(CREDIT) == "KI eingerichtet (über die Vermittlung). Guthaben: CHF\u00a03.20 von CHF\u00a05.00 verbraucht."
     assert _ki_page_status(USED_UP) == ("KI eingerichtet (über die Vermittlung). Guthaben: CHF\u00a05.00 von CHF\u00a05.00 verbraucht. "
                                         "Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter "
-                                        "Einstellungen, KI und Guthaben einlösen.")
+                                        "Einstellungen, KI und Budget einlösen.")
+
+
+def test_the_ki_page_names_the_month_and_the_day_the_ai_works_again():  # G98
+    november = {"monat": "2026-11", "erneuert_am": "2026-12-01"}
+    assert _ki_page_status({**USED_UP, **november}) == (
+        "KI eingerichtet (über die Vermittlung). KI-Budget im November: CHF\u00a05.00 von CHF\u00a05.00 verbraucht. "
+        "Es ist aufgebraucht; die KI geht wieder ab 1.\u00a0Dezember.")

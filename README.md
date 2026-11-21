@@ -28,7 +28,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 
 **Heute:** Was als Nächstes ansteht, dazu Termine, Fristen und der Stand aller Stellen auf einen Blick. Von hier aus bewerben Sie sich über die Formulare der Firmen und tragen abgeschickte Bewerbungen im Job-Room ein; speichern und abschicken tun immer Sie.
 
-![Seite Heute mit „Das steht heute an“: der nächste Schritt als Karte, darunter unter „Danach“ die weiteren offenen Schritte mit je einem Knopf, daneben Termine und Fristen und unten „Ihr Stand“ mit neuen, gemerkten, beworbenen und abgeschlossenen Stellen; links die Seitenleiste mit dem KI-Guthaben](docs/bilder/uebersicht.jpg)
+![Seite Heute mit „Das steht heute an“: der nächste Schritt als Karte, darunter unter „Danach“ die weiteren offenen Schritte mit je einem Knopf, daneben Termine und Fristen und unten „Ihr Stand“ mit neuen, gemerkten, beworbenen und abgeschlossenen Stellen; links die Seitenleiste mit dem KI-Budget des Monats](docs/bilder/uebersicht.jpg)
 
 **Stellensuche:** Die Browser-Erweiterung sucht auf job-room, jobs.ch, jobscout24 und ictjobs nach dem Suchprofil, bei einem Suchprofil für Lehrstellen auf LENA und yousty, wahlweise nach Lehrstellen, Schnupperlehren oder beidem. Neue Stellen landen hier, nicht direkt im Register. Die KI bewertet die Passung in Paketen von zehn, nach der Suche von selbst (höchstens 30 pro Suche, abschaltbar) oder auf Knopfdruck. Bei Lehrstellen zählt der eigene Beruf mit Sternen zuerst. Dieselbe Stelle von einem zweiten Portal ist angehängt (+1), und bei einer Firma mit laufender Bewerbung steht ein Hinweis. Inserate von anderen Seiten, etwa LinkedIn, prüft oder speichert die Erweiterung auf Klick.
 
@@ -63,7 +63,7 @@ Alle Bilder zeigen frei erfundene Beispieldaten.
 | [`skills/bewerbung/`](skills/bewerbung/SKILL.md) | Claude-Skill: von der Stelle zur fertigen Bewerbung – Variante wählen, Anschreiben im eigenen Stil, Prüfung, Versand |
 | [`desktop/`](desktop/README.md) | Lokale App für Windows, macOS und Linux: Installer bzw. AppImage, Start per Doppelklick, Einladungslink, signierte Updates vom eigenen Server |
 | [`erweiterung/`](erweiterung/README.md) | Browser-Erweiterung für Chrome und Edge: aus dem [Chrome Web Store](https://chromewebstore.google.com/detail/bewerbungsbegleiter/nopiegcdnjpkekgfakgglegkeifpmopo) bzw. dem [Edge-Store](https://microsoftedge.microsoft.com/addons/detail/mcbcijjbklfeffbollnemgkgnabnmfmp), sonst von Hand geladen; Stellensuche auf job-room, jobs.ch, jobscout24 und ictjobs, Lehrstellensuche auf LENA und yousty nach dem Suchprofil, im Browser der Person; Treffer gehen an die App |
-| [`vermittlung/`](vermittlung/README.md) | KI-Vermittlung für den Pilot: Zugang per Einladungscode mit einmaligem Guthaben in CHF, Kosten ohne Inhalte; Container hinter HTTPS |
+| [`vermittlung/`](vermittlung/README.md) | KI-Vermittlung für den Pilot: Zugang per Einladungscode mit einem Budget in CHF pro Monat, Kosten ohne Inhalte; Container hinter HTTPS |
 | [`onboarding/`](onboarding/README.md) | Formular für die Grundlagen (Stellen- und Lehrstellensuche): Quellen der Seite „Meine Angaben“ und Import in den Datenordner |
 | [`vorlagen/`](vorlagen/) | Vorlagen für die persönlichen Dateien (Suchprofil, Stilprofil, Bausteine fürs Anschreiben) |
 

@@ -12,7 +12,7 @@ import json
 
 import anthropic
 
-from ai import errors
+from ai import budget, errors
 from ai.personal import secrets_found_in
 from ai.pseudonym import Pseudonymizer, PseudonymError
 from ai.usage import Usage, UsageLog, cost_usd
@@ -62,7 +62,8 @@ class Gateway:
         try:
             response = self._client.messages.create(**self._payload(request, context, prompt))
         except anthropic.AnthropicError as error:
-            raise errors.from_sdk(error) from error
+            failure = errors.from_sdk(error)
+            raise (budget.used_up_error() if isinstance(failure, errors.CreditUsedUp) else failure) from error
         usage = Usage.from_response(getattr(response, "usage", None))
         model = getattr(response, "model", None) or request.model
         self._log.record(task=request.task, model=model, usage=usage, fields=pseudonymizer.fields,
