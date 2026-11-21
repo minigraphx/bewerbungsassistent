@@ -11,6 +11,7 @@
   const SOUGHT = { stelle: "Stelle", lehrstelle: "Lehrstelle" };
   // The words stay in the page; „anfordern“ becomes the link to where a new code is requested (#315).
   const USED_UP_ONCE = $("einladung-aufgebraucht").textContent;
+  const ACTIVE_ONCE = $("einladung-aktiv").textContent;
 
   let ki = null;
   let abo = null;
@@ -52,6 +53,7 @@
     const state = L.invitationState(ki);
     for (const name of ["aktiv", "aufgebraucht", "schluessel", "keine"]) $(`einladung-${name}`).hidden = name !== state;
     // The monthly budget names the day the AI works again (G98); a one-time credit keeps its words with the link (G80).
+    $("einladung-aktiv").textContent = L.invitationActive(ki) || ACTIVE_ONCE;
     const monthly = L.invitationUsedUp(ki);
     $("einladung-aufgebraucht").replaceChildren(...(monthly ? [monthly] : window.Texte.withCodeRequestLink(USED_UP_ONCE, el)));
     $("einladung-eingeben").hidden = !["eingeben", "aufgebraucht"].includes(state);  // the field stays when used up (G98)
@@ -138,9 +140,9 @@
       .catch(fehler => reportCostsProblem(fehler));
   }
 
-  /** The line under the page says that the costs are missing and why. */
+  /** The line of the budget card says that the costs are missing and why; #meldung hides with the key section. */
   function reportCostsProblem(fehler) {
-    status($("meldung"), `Die Kosten liessen sich nicht laden: ${fehler.message}`, "fehler");
+    status($("budget-meldung"),`Die Kosten liessen sich nicht laden: ${fehler.message}`, "fehler");
   }
 
   async function afterKeyChange(stand) {

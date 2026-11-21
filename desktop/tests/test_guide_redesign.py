@@ -144,7 +144,7 @@ def test_the_pictures_say_what_they_show_today():
     assert "dem Hinweis «Am Namen erkannt» oder, beim Scan, «Nicht sicher erkannt, bitte prüfen»" in picture
     # G85, #271: the picture goes on to the line under Vorbefüllen
     assert "dem Knopf Vorbefüllen und darunter der Zeile «3 Dateien gehen an die KI. Etwa CHF 0.09 und 1 Minute.»" in picture
-    assert "was im Guthaben bleibt" in picture and "welche Datei nicht an die KI geht" in picture
+    assert "dann was im Budget bleibt und welche Datei nicht an die KI geht" in picture  # G98
     check = body("Stellen suchen und bewerben", 3)
     assert "](bilder/pruefung.jpg)" in check and "**So lassen**" in check
     picture = check.split("](bilder/pruefung.jpg)", 1)[0].rsplit("![", 1)[1]

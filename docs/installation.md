@@ -51,7 +51,7 @@ So kommen Sie von der Installation zur ersten Bewerbung. Jeder Schritt verweist 
 
 3. **Angaben erfassen.** Ziehen Sie unter **Meine Angaben** Ihren bisherigen Lebenslauf, Zeugnisse, Zertifikate und frühere Anschreiben auf die Fläche **Dateien hierher ziehen**, oder klicken Sie auf **Dateien wählen**. Die App ordnet jede Datei selbst ein; stimmt die Art nicht, ändern Sie sie in der Zeile der Datei. Unter **Vorbefüllen** steht, wie viele Dateien an die KI gehen und was das etwa kostet und dauert. Dann klicken Sie auf **Vorbefüllen**: Die KI füllt die nächsten Schritte aus, und Sie prüfen alles. Wo fast alle dasselbe antworten, steht schon eine Vorgabe. Zum Schluss klicken Sie auf **Angaben übernehmen**. Mehr unter [Angaben erfassen](#angaben-erfassen).
 
-   ![Seite Meine Angaben beim Start, gleich nach dem Hinzufügen: die Schritte links, rechts die Karte Aus Ihren Unterlagen vorbefüllen mit einer Fläche Dateien hierher ziehen und dem Knopf Dateien wählen, darunter vier Dateien, jede mit ihrer Art zum Ändern und Entfernen und dem Hinweis «Am Namen erkannt» oder, beim Scan, «Nicht sicher erkannt, bitte prüfen»: Lebenslauf, Zeugnis, Zertifikat oder Diplom und ein Zeugnis als Bild mit dem Hinweis, dass es auf dem Computer bleibt; unten mit dem Knopf Vorbefüllen und darunter der Zeile «3 Dateien gehen an die KI. Etwa CHF 0.09 und 1 Minute.», dann was im Guthaben bleibt und welche Datei nicht an die KI geht](bilder/angaben.jpg)
+   ![Seite Meine Angaben beim Start, gleich nach dem Hinzufügen: die Schritte links, rechts die Karte Aus Ihren Unterlagen vorbefüllen mit einer Fläche Dateien hierher ziehen und dem Knopf Dateien wählen, darunter vier Dateien, jede mit ihrer Art zum Ändern und Entfernen und dem Hinweis «Am Namen erkannt» oder, beim Scan, «Nicht sicher erkannt, bitte prüfen»: Lebenslauf, Zeugnis, Zertifikat oder Diplom und ein Zeugnis als Bild mit dem Hinweis, dass es auf dem Computer bleibt; unten mit dem Knopf Vorbefüllen und darunter der Zeile «3 Dateien gehen an die KI. Etwa CHF 0.09 und 1 Minute.», dann was im Budget bleibt und welche Datei nicht an die KI geht](bilder/angaben.jpg)
 
 4. **Stellen suchen und eine wählen.** Klicken Sie auf **Stellen** und dann auf **Jetzt suchen**. Die Erweiterung sucht auf den Portalen, die KI schätzt jeden Treffer ein. Bei einer Stelle, die Ihnen gefällt, klicken Sie auf **Bewerbung vorbereiten**; die Bewerbung öffnet sich. Mehr unter [Stellen suchen und bewerben](#stellen-suchen-und-bewerben).
 
@@ -448,7 +448,7 @@ Behandeln Sie den Schlüssel wie ein Passwort: Wer ihn hat, kann auf Ihre Kosten
 
 Die App prüft den Schlüssel mit einem kleinen, kostenlosen Aufruf. Zum Guthaben sagt diese Prüfung nichts: Fehlt es, merken Sie das erst beim ersten Aufruf der KI. Der Schlüssel liegt danach nur im Schlüsselbund Ihres Computers, nie im Datenordner und nie in der Browser-Erweiterung.
 
-Was die KI im Monat gekostet hat, steht auf derselben Seite unter **Kosten im** und dem Namen des Monats. Das ist die eigene Notiz der App. Massgebend ist die Abrechnung von Anthropic.
+Was die KI im Monat gekostet hat, steht auf derselben Seite unter **Kosten im …** mit dem laufenden Monat, etwa **Kosten im November**. Das ist die eigene Notiz der App. Massgebend ist die Abrechnung von Anthropic.
 
 </details>
 
@@ -577,7 +577,7 @@ Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist ni
 | „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Suche einstellen** (Seite **Stellen** oder **Lehrstellen**) und unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
 | „Die KI ist noch nicht eingerichtet.“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten). Lösen Sie dort den Einladungscode ein, oder wählen Sie das eigene Claude-Abo oder einen eigenen Schlüssel. |
 | „Der Zugang zur KI gilt nicht mehr.“ | Ihr Einladungscode gilt nicht mehr. Fordern Sie einen neuen Einladungscode an, wie unter [Hilfe](#hilfe) beschrieben, und lösen Sie ihn unter **Einstellungen**, **KI und Budget**, **Einladungscode** ein. Mit eigenem Schlüssel prüfen Sie ihn in der [Console](https://platform.claude.com/settings/keys). |
-| „Das KI-Budget für November ist aufgebraucht.“ | Das Budget des Einladungscodes gilt pro Monat. Die Meldung nennt den Tag, ab dem die KI wieder geht: den Ersten des nächsten Monats. Alles andere funktioniert weiterhin. |
+| „Das KI-Budget für … ist aufgebraucht.“ | Das Budget des Einladungscodes gilt pro Monat. Die Meldung nennt den Tag, ab dem die KI wieder geht: den Ersten des nächsten Monats. Alles andere funktioniert weiterhin. |
 | „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
 | „Dieser Schlüssel gilt nicht.“ | Prüfen Sie in der [Console](https://platform.claude.com/settings/keys), ob es ihn noch gibt, oder erstellen Sie einen neuen. Gespeichert wurde nichts. |
 | „Das Guthaben bei Anthropic reicht nicht mehr.“ | Laden Sie unter [Billing](https://platform.claude.com/settings/billing) nach, oder entfernen Sie den eigenen Schlüssel. |

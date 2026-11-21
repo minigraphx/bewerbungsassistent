@@ -109,6 +109,14 @@
   /** The month of the budget and its renewal as the mediation names them (G98); null for a one-time credit. */
   const budgetMonth = ki => (hasCredit(ki) ? texts().budgetMonth(ki) : null);
 
+  /**
+   * The sentence of „Einladungscode“ while the code works; null keeps the page's own sentence of G80, so an app that
+   * ships before the mediation's monthly budget still says what is true.
+   */
+  const invitationActive = ki => (budgetMonth(ki)
+    ? "Die KI läuft über die Vermittlung des Pilots, mit einem Budget pro Monat. Was davon verbraucht ist, steht unter KI-Budget."
+    : null);
+
   /** The sentence of „Einladungscode“ once the budget is used up; null keeps the page's own sentence of G80. */
   function invitationUsedUp(ki) {
     const budget = creditUsedUp(ki) && budgetMonth(ki);
@@ -161,8 +169,8 @@
   /** The month whose rows per task the card shows: the mediation's month of the budget, or null for this clock's. */
   const costMonth = ki => (budgetMonth(ki) ? ki.monat : null);
 
-  const logic = { SECTIONS, WAY_CARDS, sectionOf, wayOf, currentWay, invitationState, invitationUsedUp, budgetView,
-                  costMonth };
+  const logic = { SECTIONS, WAY_CARDS, sectionOf, wayOf, currentWay, invitationState, invitationActive, invitationUsedUp,
+                  budgetView, costMonth };
   if (typeof module !== "undefined") module.exports = logic;
   else global.EinstellungenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

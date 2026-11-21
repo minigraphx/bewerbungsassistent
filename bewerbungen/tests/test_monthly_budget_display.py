@@ -177,3 +177,12 @@ def test_the_guide_no_longer_calls_the_code_a_one_time_credit():
         assert words not in guide, words
     assert "einmalig" not in readme
     assert "CHF 5 pro Monat" in guide and "Monatsersten" in guide
+
+
+def test_the_guide_names_the_month_as_a_placeholder_and_an_example():
+    guide = (ROOT / "docs" / "installation.md").read_text(encoding="utf-8")
+    # the error table quotes the message with the month left open, since it names whichever month is used up
+    assert "| „Das KI-Budget für … ist aufgebraucht.“ |" in guide
+    assert "„Das KI-Budget für November ist aufgebraucht.“" not in guide
+    assert ("steht auf derselben Seite unter **Kosten im …** mit dem laufenden Monat, etwa **Kosten im November**."
+            in guide)

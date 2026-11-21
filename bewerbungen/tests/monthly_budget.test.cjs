@@ -143,11 +143,57 @@ test("Einstellungen ask for the costs of the budget month with the token still i
   }
   assert.deepEqual(asked.map(url => [url.pathname, url.searchParams.get("t"), url.searchParams.get("monat")]),
     [["/api/schluessel", "token", "2026-11"], ["/api/schluessel", "token", null]]);
-  // a failure says what could not be read, not only the bare reason
+  // a failure says what could not be read, not only the bare reason, on the line of the budget card
   const shown = [];
   await run(() => Promise.reject(new Error("Zeitüberschreitung")), { costMonth: () => "2026-11" }, STATUS, () => {},
-    (_line, text, level) => shown.push([text, level]), () => null);
-  assert.deepEqual(shown, [["Die Kosten liessen sich nicht laden: Zeitüberschreitung", "fehler"]]);
+    (line, text, level) => shown.push([line.id, text, level]), id => ({ id }));
+  assert.deepEqual(shown, [["budget-meldung", "Die Kosten liessen sich nicht laden: Zeitüberschreitung", "fehler"]]);
+});
+
+test("the costs' failure line stays visible while the key section is hidden", () => {
+  // with the invitation code as the way, #schluessel-teil is hidden and so is every line inside it
+  const page = read("einstellungen.html");
+  const section = id => page.match(new RegExp(`<section class="card" id="${id}"[^>]*>[\\s\\S]*?\\n  </section>\\n`))[0];
+  assert.match(section("schluessel-teil"), /^<section class="card" id="schluessel-teil"[^>]* hidden>/);
+  assert.doesNotMatch(section("schluessel-teil"), /id="budget-meldung"/);
+  assert.match(section("kosten"), /<div id="budget-meldung" class="status" role="status" aria-live="polite"><\/div>/);
+  assert.doesNotMatch(section("kosten"), /^<section[^>]* hidden>/);
+});
+
+const ACTIVE_MONTHLY = "Die KI läuft über die Vermittlung des Pilots, mit einem Budget pro Monat. Was davon verbraucht ist, "
+  + "steht unter KI-Budget.";
+const ACTIVE_ONCE = "Die KI läuft über die Vermittlung des Pilots, mit dem einmaligen Guthaben des Einladungscodes. Was davon "
+  + "verbraucht ist, steht unter Guthaben.";
+
+test("„Einladungscode“ names the monthly budget only when the mediation names its renewal", () => {
+  assert.equal(settings.invitationActive(STATUS), ACTIVE_MONTHLY);
+  assert.equal(settings.invitationActive(OLD_STATUS), null, "the page keeps its sentence of G80");
+  assert.equal(settings.invitationActive(null), null);
+  // the page holds the sentence of G80, so an app ahead of the mediation's deploy still says what is true
+  assert.match(read("einstellungen.html"), new RegExp(`<p id="einladung-aktiv" hidden>${ACTIVE_ONCE}</p>`));
+});
+
+test("the page sets the sentence of „Einladungscode“ from the status, as written", () => {
+  const page = read("einstellungen.js");
+  const show = page.match(/\n  function showInvitation\(\) \{[\s\S]*?\n  \}\n/)[0];
+  const once = page.match(/\n  const ACTIVE_ONCE = [^\n]*\n/);
+  assert.ok(once, "the page keeps its own sentence of G80 before the status arrives");
+  const run = ki => {
+    const elements = new Map();
+    const $ = id => {
+      if (!elements.has(id)) elements.set(id, { id, hidden: true, textContent: id === "einladung-aktiv" ? ACTIVE_ONCE : "", replaceChildren() {} });
+      return elements.get(id);
+    };
+    const window = { Texte: texte };
+    new Function("$", "L", "ki", "window", "el", "USED_UP_ONCE", `${once[0]}${show}; showInvitation();`)(
+      $, settings, ki, window, el, "used up");
+    return $("einladung-aktiv");
+  };
+  for (const [ki, sentence] of [[STATUS, ACTIVE_MONTHLY], [OLD_STATUS, ACTIVE_ONCE]]) {
+    const line = run(ki);
+    assert.equal(line.hidden, false);
+    assert.equal(line.textContent, sentence);
+  }
 });
 
 test("Einstellungen of an old mediation keep the words of G80", () => {
@@ -160,7 +206,7 @@ test("Einstellungen of an old mediation keep the words of G80", () => {
 
 test("the texts of the code name a budget per month, in the Sie and the du form", () => {
   const page = read("einstellungen.html");
-  assert.match(page, /<p id="einladung-aktiv" hidden>Die KI läuft über die Vermittlung des Pilots, mit einem Budget pro Monat\. Was davon verbraucht ist, steht unter KI-Budget\.<\/p>/);
+  assert.equal(settings.invitationActive(STATUS), ACTIVE_MONTHLY);
   assert.match(page, /<p class="notice notice--warning" id="budget-aufgebraucht" hidden>/);
   assert.match(read("ki-zugang.js"), /text: "Kostenlos im Pilot, mit einem Budget von CHF 5 pro Monat\."/);
   assert.equal(texte.text("einrichtung.ki.code", "stelle-sie"),
@@ -169,9 +215,12 @@ test("the texts of the code name a budget per month, in the Sie and the du form"
     "Hast du einen Einladungscode? Er bringt ein Budget von CHF 5 pro Monat für die KI.");
   assert.equal(texte.text("einrichtung.ki.code", "lehrstelle-du"),
     "Hast du einen Einladungscode? Er bringt ein Budget von CHF 5 pro Monat für die KI.");
-  for (const name of ["ki-zugang.js", "texte.js", "einstellungen.html", "einstellungen-logik.js"]) {
-    assert.ok(!read(name).includes("einmalig"), name);
-  }
+  // the one exception is the page's sentence of G80, shown only while the mediation names no renewal
+  const fallback = `<p id="einladung-aktiv" hidden>${ACTIVE_ONCE}</p>`;
+  assert.equal(page.split(fallback).length, 2, "the sentence of G80 stands once, in #einladung-aktiv");
+  const texts = { "ki-zugang.js": read("ki-zugang.js"), "texte.js": read("texte.js"), "einstellungen.html": page.replace(fallback, ""),
+                  "einstellungen-logik.js": read("einstellungen-logik.js") };
+  for (const [name, text] of Object.entries(texts)) assert.ok(!text.includes("einmalig"), name);
 });
 
 // ---------- The AI windows ----------
@@ -199,6 +248,8 @@ test("the estimates speak of the budget of this month", () => {
     "Etwa CHF\u00a00.07 und 1\u00a0Minute. Das Budget dieses Monats reicht für etwa 2 Stellen.");
   assert.equal(treffer.costLine({ ...ESTIMATE, guthaben: 0.05 }).text,
     "Etwa CHF\u00a00.07 und 1\u00a0Minute. Im Budget sind noch CHF\u00a00.05, das reicht vielleicht nicht.");
+  assert.equal(treffer.confirmation({ ...ESTIMATE, anzahl: 20, guthaben: 0.1, reicht_fuer: 4 }, false, true).warning,
+    "Das Budget dieses Monats reicht f\u00fcr etwa 4 von 20 Stellen. Ist es aufgebraucht, h\u00e4lt die Pr\u00fcfung an; was gepr\u00fcft ist, bleibt.");
 });
 
 test("a used-up budget locks the run and names the day, without a link to a new code", () => {
