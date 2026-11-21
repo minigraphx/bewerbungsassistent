@@ -36,12 +36,16 @@ class FakeMessages:
         self.calls.append(payload)
         if self.error is not None:
             raise self.error
-        text = self.reply if isinstance(self.reply, str) else json.dumps(self.reply, ensure_ascii=False)
+        reply = self.reply_to(payload)
+        text = reply if isinstance(reply, str) else json.dumps(reply, ensure_ascii=False)
         usage = types.SimpleNamespace(input_tokens=1200, output_tokens=800, cache_creation_input_tokens=3000,
                                       cache_read_input_tokens=0)
         return types.SimpleNamespace(
             content=[types.SimpleNamespace(type="thinking", thinking="…"), types.SimpleNamespace(type="text", text=text)],
             usage=usage, stop_reason=self.stop_reason, model=payload["model"], _request_id="req_test")
+
+    def reply_to(self, payload: dict):
+        return self.reply
 
 
 class FakeClient:
@@ -322,9 +326,10 @@ class PackageMessages(FakeMessages):
         super().__init__(**kwargs)
         self.build = build
 
-    def create(self, **payload):
-        self.reply = {"ratings": self.build(package_labels(payload))}
-        return super().create(**payload)
+    def reply_to(self, payload: dict):
+        # Built per call and never kept on the double: a second look sends its runs side by side, and a reply
+        # left on `self` could reach another run with labels it does not know (#379).
+        return {"ratings": self.build(package_labels(payload))}
 
 
 class PackageClient:
