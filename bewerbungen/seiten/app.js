@@ -256,8 +256,68 @@ window.App = (() => {
       el("div", {},
         el("p", { class: "about__name" }, "Bewerbungsbegleiter"),
         el("p", { class: "about__meta version" }, `Version ${version}`),
-        store && el("p", { class: "about__meta" }, "Updates kommen über den Microsoft Store."),
-        el("p", { class: "about__meta" }, "von Andreas Schmidt")));
+        el("p", { class: "about__meta" }, "von Andreas Schmidt"),
+        store ? el("p", { class: "about__meta" }, "Updates kommen über den Microsoft Store.") : updateSuche()));
+  }
+
+  // «Nach Updates suchen» (#370, G100): the server at once, with the result in a live line under the button. The button
+  // stays focusable while it checks (aria-disabled), and a check without an answer in time counts as failed.
+  const UPDATE_SUCHE_MS = 10000;
+  const ANSAGE_PAUSE_MS = 100;  // an emptied live line, then the text: screen readers announce a repeated result
+  const UPDATE_SUCHE_FEHLER = "Die Suche nach Updates hat nicht geklappt. Vielleicht fehlt die Internetverbindung; bitte später nochmals versuchen.";
+
+  function mitFrist(versprechen, ms) {
+    let uhr;
+    const frist = new Promise((_, reject) => { uhr = setTimeout(() => reject(new Error(UPDATE_SUCHE_FEHLER)), ms); });
+    return Promise.race([versprechen, frist]).finally(() => clearTimeout(uhr));
+  }
+
+  function zeitJetzt() {
+    return new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function sucheErgebnis(antwort) {
+    if (antwort.update) {
+      const meldung = el("span", {}, updateText(antwort.update).trim());
+      const knopf = updateKnopf(antwort.update, "Jetzt aktualisieren");
+      if (antwort.update.automatisch) knopf.addEventListener("click", () => installieren(knopf, meldung));
+      return [meldung, " ", knopf];
+    }
+    const beta = antwort.vorabversionen ? " Vorabversionen eingeschlossen." : "";
+    return [`Version ${antwort.version} ist die neueste. Geprüft um ${zeitJetzt()}.${beta}`];
+  }
+
+  function updateSuche() {
+    const knopf = el("button", { type: "button", class: "btn", "aria-describedby": "update-suche" }, "Nach Updates suchen");
+    const zeile = el("p", { id: "update-suche", class: "status-line", role: "status", "aria-live": "polite" });
+    let schreiben = null;
+    let lauf = 0;
+    const zeige = (teile, warnung = false) => {
+      clearTimeout(schreiben);
+      zeile.replaceChildren();
+      zeile.removeAttribute("data-level");
+      schreiben = setTimeout(() => {
+        if (warnung) zeile.setAttribute("data-level", "warning");
+        zeile.replaceChildren(...teile);
+      }, ANSAGE_PAUSE_MS);
+    };
+    knopf.addEventListener("click", async () => {
+      if (knopf.getAttribute("aria-disabled") === "true") return;
+      const dieser = ++lauf;
+      knopf.setAttribute("aria-disabled", "true");
+      zeige(["Sucht nach Updates …"]);
+      try {
+        const antwort = await mitFrist(senden("/api/app/updates-suchen", {}), UPDATE_SUCHE_MS);
+        if (dieser === lauf) zeige(sucheErgebnis(antwort));
+      } catch {
+        if (dieser !== lauf) return;
+        zeige([UPDATE_SUCHE_FEHLER], true);
+        if (!document.activeElement || document.activeElement === document.body) knopf.focus();
+      } finally {
+        if (dieser === lauf) knopf.removeAttribute("aria-disabled");
+      }
+    });
+    return el("div", { class: "about__update" }, knopf, zeile);
   }
 
   // A new version (#32, G8): the first page after a start asks in a dialog; after "later" a banner stays for this run.
@@ -266,26 +326,39 @@ window.App = (() => {
     return `Version ${update.version} ist verfügbar. ${zeitpunkt}${update.hinweis || ""} `;
   }
 
+  // Dialog, banner and «Nach Updates suchen» may all offer the update: one install at a time, and all their buttons
+  // follow it.
+  const installKnoepfe = new Set();
+  let installLaeuft = false;
+
   async function installieren(knopf, meldung) {
-    knopf.disabled = true;
+    if (installLaeuft) {
+      meldung.textContent = "Das Update läuft schon. ";
+      return false;
+    }
+    installLaeuft = true;
+    installKnoepfe.forEach(k => { k.disabled = true; });
     meldung.textContent = "Neue Version wird geladen und geprüft …";
     try {
       await senden("/api/app/aktualisieren", {});
       meldung.textContent = "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Dieser Tab lässt sich dann schliessen.";
-      knopf.remove();
+      installKnoepfe.forEach(k => k.remove());
       return true;
     } catch (fehler) {
       meldung.textContent = fehler.message + " ";
-      knopf.disabled = false;
+      installKnoepfe.forEach(k => { k.disabled = false; });
+      installLaeuft = false;
       return false;
     }
   }
 
   // Without a self-update the person loads the new version from its page.
   function updateKnopf(update, beschriftung) {
-    return update.automatisch
-      ? el("button", { type: "button", class: "haupt" }, beschriftung)
-      : el("a", { href: update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");
+    if (!update.automatisch) return el("a", { href: update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");
+    const knopf = el("button", { type: "button", class: "haupt" }, beschriftung);
+    knopf.disabled = installLaeuft;
+    installKnoepfe.add(knopf);
+    return knopf;
   }
 
   function updateBanner(update) {

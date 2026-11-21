@@ -1,4 +1,4 @@
-// Über die App in the Store package (#344, G6): one line under the version says that the Store brings the updates;
+// Über die App in the Store package (#344, G6): its last line says that the Store brings the updates (#370);
 // the installer build shows the card as before.
 "use strict";
 const test = require("node:test");
@@ -58,13 +58,13 @@ async function aboutWith(version) {
   return card;
 }
 
-test("in the Store package the note stands on its own line right under the version", async () => {
+test("in the Store package the note stands on its own line last, where the update check stands elsewhere", async () => {
   const card = await aboutWith({ version: "9.2.0", update: null, store: true });
 
   assert.equal(card.hidden, false);
   const lines = paragraphs(card).map(textOf);
-  assert.deepEqual(lines.slice(1, 3), ["Version 9.2.0", STORE_NOTE]);
-  const note = paragraphs(card)[2];
+  assert.deepEqual(lines, ["Bewerbungsbegleiter", "Version 9.2.0", "von Andreas Schmidt", STORE_NOTE]);
+  const note = paragraphs(card)[3];
   assert.equal(note.className, "about__meta");
 });
 
