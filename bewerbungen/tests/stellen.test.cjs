@@ -1,5 +1,5 @@
-// Stellen (#262, A3, G55, G56, G58): the page is called Stellen, Neu, Gemerkt, Verworfen and Firmen are its tabs,
-// and every new hit is decided with Bewerbung vorbereiten as the main button, Merken or Verwerfen.
+// Stellen (#262, A3, G55, G56, G58, #374): the page is called Stellen, Neu, In Bewerbungen, Verworfen and Firmen are
+// its tabs, and every new hit is decided with Bewerbung vorbereiten as the main button, Merken or Verwerfen.
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -7,6 +7,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const texte = require("../seiten/texte.js");
 const logik = require("../seiten/treffer-logik.js");
+const anzeige = require("../seiten/suche-anzeige.js");
 
 const SEITEN = path.join(__dirname, "..", "seiten");
 const read = name => fs.readFileSync(path.join(SEITEN, name), "utf8");
@@ -19,28 +20,54 @@ test("the page is called Stellen in the tab and the title (G55)", () => {
   assert.match(read("treffer.js"), /document\.title = t\("nav\.stellen"\)/);
 });
 
-test("Neu, Gemerkt, Verworfen and Firmen are the tabs of Stellen, on both pages (G56)", () => {
+test("Neu, In Bewerbungen, Verworfen and Firmen are the tabs of Stellen, on both pages (G56, #374)", () => {
   for (const [page, current] of [["treffer.html", "neu"], ["firmen.html", "firmen"]]) {
     const tabs = tabsOf(read(page));
-    const names = [...tabs.matchAll(/data-reiter="(\w+)"/g)].map(m => m[1]);
-    assert.deepEqual(names, ["neu", "gemerkt", "verworfen", "firmen"], page);
+    const names = [...tabs.matchAll(/data-reiter="([\w-]+)"/g)].map(m => m[1]);
+    assert.deepEqual(names, ["neu", "in-bewerbungen", "verworfen", "firmen"], page);
     assert.match(tabs, new RegExp(`data-reiter="${current}"[^>]*aria-current="page"`), page);
     assert.match(tabs, /href="\/firmen"/, page);
+    // one label for Sie, du and Lehrstelle: the tab carries no data-text of its own
+    assert.match(tabs, /data-reiter="in-bewerbungen"[^>]*>In Bewerbungen <span class="num" data-zahl="uebernommen">/, page);
+    assert.doesNotMatch(tabs, />Gemerkt </, page);
   }
-  assert.match(tabsOf(read("firmen.html")), /href="\/treffer#gemerkt"/);
+  assert.match(tabsOf(read("treffer.html")), /href="#in-bewerbungen"/);
+  assert.match(tabsOf(read("firmen.html")), /href="\/treffer#in-bewerbungen"/);
   assert.match(read("firmen.html"), /<h1 id="titel" data-text="nav.stellen">Stellen<\/h1>/);
   assert.doesNotMatch(read("treffer.html"), /Firmen ansehen<\/a>/);
 });
 
-test("a tab is chosen by the address, so Firmen can lead back to Gemerkt", () => {
-  assert.equal(logik.reiterAus("#gemerkt"), "uebernommen");
+test("a tab is chosen by the address, so Firmen can lead back to In Bewerbungen", () => {
+  assert.equal(logik.reiterAus("#in-bewerbungen"), "uebernommen");
   assert.equal(logik.reiterAus("#verworfen"), "verworfen");
   assert.equal(logik.reiterAus("#neu"), "neu");
   assert.equal(logik.reiterAus(""), "neu");
   assert.equal(logik.reiterAus("#etwas"), "neu");
   assert.equal(logik.reiterAus(undefined), "neu");
-  assert.equal(logik.reiterName("uebernommen"), "gemerkt");
+  assert.equal(logik.reiterName("uebernommen"), "in-bewerbungen");
   assert.equal(logik.reiterName("neu"), "neu");
+});
+
+test("#gemerkt, the address of the tab before #374, still leads to In Bewerbungen", () => {
+  assert.equal(logik.reiterAus("#gemerkt"), "uebernommen");
+  assert.equal(logik.reiterAus("gemerkt"), "uebernommen");
+});
+
+test("only the tab In Bewerbungen says what it holds, for Sie and du (#374)", () => {
+  const html = read("treffer.html");
+  assert.match(html, /<p id="reiter-erklaerung" class="search__caption" data-text="suche.in-bewerbungen" hidden>/);
+  assert.ok(html.indexOf('id="reiter-erklaerung"') < html.indexOf('id="liste"'), "the caption stands above the list");
+  assert.equal(texte.text("suche.in-bewerbungen", "stelle-sie"),
+    "Treffer aus der Suche, die Sie gemerkt oder vorbereitet haben, mit ihrem Stand unter Bewerbungen.");
+  assert.equal(texte.text("suche.in-bewerbungen", "stelle-du"),
+    "Treffer aus der Suche, die du gemerkt oder vorbereitet hast, mit ihrem Stand unter Bewerbungen.");
+  assert.equal(texte.text("suche.in-bewerbungen", "lehrstelle-du"),
+    "Treffer aus der Suche, die du gemerkt oder vorbereitet hast, mit ihrem Stand unter Bewerbungen.");
+});
+
+test("the empty tab In Bewerbungen says how a hit comes there (#374)", () => {
+  assert.deepEqual(anzeige.leer("uebernommen", true, ""),
+    { titel: "Noch nichts in Bewerbungen", text: "Mit Merken oder Bewerbung vorbereiten kommt ein Treffer hierher." });
 });
 
 test("each new hit asks what to do, with Bewerbung vorbereiten as the main button (G58)", () => {

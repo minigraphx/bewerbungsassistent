@@ -21,7 +21,7 @@
     const note = notenText(vorschau.note);
     return {
       titel: `${treffer(vorschau.anzahl)} ab Note ${note} merken?`,
-      einleitung: vorschau.anzahl === 1 ? "Dieser Treffer kommt unter Gemerkt:" : "Diese Treffer kommen unter Gemerkt:",
+      einleitung: vorschau.anzahl === 1 ? "Dieser Treffer kommt unter Bewerbungen:" : "Diese Treffer kommen unter Bewerbungen:",
       // each row as the parts of a «·» line (#342)
       zeilen: vorschau.treffer.map(t => [`${t.stelle}${t.firma ? `, ${t.firma}` : ""}`, `Note ${notenText(t.note)}`]),
       nachsatz: "Treffer ohne Note und solche, die schon gemerkt oder verworfen sind, bleiben, wie sie sind.",
@@ -34,7 +34,8 @@
   /** The message after saving; a hit that changed since the question is named as left alone. */
   function ergebnisText(antwort) {
     const gemerkt = antwort.gemerkt.length;
-    const erste = gemerkt === 1 ? "1 Treffer gemerkt." : `${gemerkt} Treffer gemerkt.`;
+    const erste = gemerkt === 1 ? "1 Treffer gemerkt. Er steht jetzt unter Bewerbungen."
+      : `${gemerkt} Treffer gemerkt. Sie stehen jetzt unter Bewerbungen.`;
     const uebrig = antwort.uebersprungen.length;
     if (!uebrig) return erste;
     const zweite = uebrig === 1

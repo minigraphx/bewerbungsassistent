@@ -54,7 +54,8 @@
         text: "Jede Bewerbung aus diesen Treffern ist abgeschlossen. „Anzeigen“ unten zeigt sie.",
       };
     }
-    return { titel: zustand === "uebernommen" ? "Noch nichts gemerkt" : "Nichts verworfen", text: "" };
+    if (zustand === "uebernommen") return { titel: "Noch nichts in Bewerbungen", text: "Mit Merken oder Bewerbung vorbereiten kommt ein Treffer hierher." };
+    return { titel: "Nichts verworfen", text: "" };
   }
 
   /**

@@ -250,12 +250,15 @@
     return { zustand: "fehler", fehler: KEIN_LAUF };
   }
 
-  // The tabs of Stellen (G56) by the address: /treffer#gemerkt shows the saved hits, the page Firmen links there.
-  const REITER = { neu: "neu", gemerkt: "uebernommen", verworfen: "verworfen" };
+  // The tabs of Stellen (G56) by the address: /treffer#in-bewerbungen shows the hits taken over, the page Firmen links
+  // there. The tab was „Gemerkt“ before #374; #gemerkt stays as an alias, so older links and bookmarks still lead there.
+  const REITER = { neu: "neu", "in-bewerbungen": "uebernommen", verworfen: "verworfen" };
+  const ALIAS = { gemerkt: "in-bewerbungen" };
 
-  /** Which hits a hash like „#gemerkt“ shows; anything else shows the new ones. */
+  /** Which hits a hash like „#in-bewerbungen“ shows; anything else shows the new ones. */
   function reiterAus(hash) {
-    const name = String(hash || "").replace(/^#/, "");
+    const raw = String(hash || "").replace(/^#/, "");
+    const name = Object.hasOwn(ALIAS, raw) ? ALIAS[raw] : raw;
     return Object.hasOwn(REITER, name) ? REITER[name] : "neu";
   }
 

@@ -65,7 +65,7 @@
   <div class="search__bar">
     <nav class="tabs" aria-label="Stellen anzeigen" id="reiter">
       <a class="tabs__tab" href="#neu" data-reiter="neu" data-zustand="neu" aria-current="page">Neu <span class="num" data-zahl="neu"></span></a>
-      <a class="tabs__tab" href="#gemerkt" data-reiter="gemerkt" data-zustand="uebernommen">Gemerkt <span class="num" data-zahl="uebernommen"></span></a>
+      <a class="tabs__tab" href="#in-bewerbungen" data-reiter="in-bewerbungen" data-zustand="uebernommen">In Bewerbungen <span class="num" data-zahl="uebernommen"></span></a>
       <a class="tabs__tab" href="#verworfen" data-reiter="verworfen" data-zustand="verworfen">Verworfen <span class="num" data-zahl="verworfen"></span></a>
       <a class="tabs__tab" href="/firmen" data-reiter="firmen" data-text="nav.firmen">Firmen</a>
     </nav>
@@ -82,6 +82,8 @@
     </select>
     <details class="grade-help search__help"><summary data-text="suche.notenhilfe-titel">Wie lese ich die Note?</summary><p data-text="suche.notenhilfe">Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein.</p></details>
   </div>
+
+  <p id="reiter-erklaerung" class="search__caption" data-text="suche.in-bewerbungen" hidden>Treffer aus der Suche, die Sie gemerkt oder vorbereitet haben, mit ihrem Stand unter Bewerbungen.</p>
 
   <div id="leer" class="search__empty" hidden>
     <strong id="leer-titel">Keine neuen Treffer</strong>
