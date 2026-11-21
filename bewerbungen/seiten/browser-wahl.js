@@ -35,18 +35,21 @@
 
   async function choose(value) {
     const ask = ++latest;
+    let state = null;
+    let failure = null;
     try {
-      const state = await senden("/api/app/browser", { wahl: value });
-      if (ask !== latest) return;
-      saved = state.gewaehlt;
-      status($("browser-meldung"), L.savedText(saved, platform), "ok");
+      state = await senden("/api/app/browser", { wahl: value });
     } catch (fehler) {
-      // A newer choice is already on its way; its answer speaks, not this older one.
-      if (ask === latest) {
-        check(saved);
-        status($("browser-meldung"), L.failedText(fehler.message), "fehler");
-      }
+      failure = fehler;  // shown below, once it is clear that no newer choice is on its way
     }
+    if (ask !== latest) return;  // the answer to the newer choice speaks, not this older one
+    if (failure) {
+      check(saved);
+      status($("browser-meldung"), L.failedText(failure.message), "fehler");
+      return;
+    }
+    saved = state.gewaehlt;
+    status($("browser-meldung"), L.savedText(saved, platform), "ok");
   }
 
   holen("/api/app/browser").then(state => {

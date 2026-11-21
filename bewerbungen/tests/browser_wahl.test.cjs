@@ -98,6 +98,77 @@ test("a failed save names the reason", () => {
   assert.equal(logic.failedText("Die App antwortet nicht."), "Nicht gespeichert: Die App antwortet nicht.");
 });
 
+// ---------- saving on change (browser-wahl.js) ----------
+
+/** browser-wahl.js in a sandbox; every POST waits until the test settles it. */
+async function card(state) {
+  const nodes = {};
+  const posts = [];
+  const lines = [];
+  const make = tag => ({ tag, attrs: {}, children: [], listeners: {}, hidden: true, checked: false,
+    setAttribute(name, value) { this.attrs[name] = value; },
+    addEventListener(type, listener) { this.listeners[type] = listener; },
+    append(...items) { this.children.push(...items); },
+    replaceChildren(...items) { this.children = items; },
+    scrollIntoView() {} });
+  for (const id of ["browser", "browser-optionen", "browser-meldung"]) nodes[id] = make("div");
+  const el = (tag, attrs = {}, ...children) => {
+    const node = make(tag);
+    for (const [name, value] of Object.entries(attrs)) if (value !== null && value !== false) node.setAttribute(name, value);
+    node.value = attrs.value;
+    node.append(...children.filter(child => child !== null));
+    return node;
+  };
+  const inputs = () => {
+    const walk = node => (typeof node === "object" ? [...(node.tag === "input" ? [node] : []), ...node.children.flatMap(walk)] : []);
+    return walk(nodes["browser-optionen"]);
+  };
+  const App = {
+    holen: async () => state,
+    senden: (route, body) => new Promise((resolve, reject) => posts.push({ body, resolve, reject })),
+    status: (element, text, level) => lines.push({ element, text, level }),
+    el,
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(PAGES, "browser-wahl.js"), "utf8"), {
+    window: { App, BrowserWahlLogik: logic }, location: { hash: "" }, Promise,
+    document: { getElementById: id => nodes[id], querySelectorAll: () => inputs() },
+  });
+  await settle();
+  const pick = value => {
+    for (const input of inputs()) input.checked = input.value === value;
+    inputs().find(input => input.value === value).listeners.change();
+  };
+  const checked = () => inputs().find(input => input.checked)?.value;
+  return { nodes, posts, lines, pick, checked };
+}
+
+test("a choice that cannot be saved puts the previous one back and says why", async () => {
+  const page = await card({ gewaehlt: "standard", plattform: "windows", browser: ALL_FOUND });
+  assert.equal(page.nodes.browser.hidden, false);
+
+  page.pick("chrome");
+  page.posts[0].reject(new Error("Die App antwortet nicht."));
+  await settle();
+
+  assert.equal(page.checked(), "standard");
+  assert.deepEqual(page.lines.map(line => [line.text, line.level]), [["Nicht gespeichert: Die App antwortet nicht.", "fehler"]]);
+});
+
+test("the answer to an older click says nothing once a newer choice is on its way", async () => {
+  const page = await card({ gewaehlt: "standard", plattform: "windows", browser: ALL_FOUND });
+
+  page.pick("chrome");
+  page.pick("edge");
+  page.posts[1].resolve({ gewaehlt: "edge", plattform: "windows", browser: ALL_FOUND });
+  await settle();
+  page.posts[0].reject(new Error("zu spät"));
+  await settle();
+
+  assert.equal(page.checked(), "edge");
+  assert.deepEqual(page.lines.map(line => line.text),
+    ["Gespeichert. Ab dem nächsten Öffnen erscheint die App in Microsoft Edge."]);
+});
+
 // ---------- the notice after a fallback, on the first page ----------
 
 const textOf = node => (node && typeof node === "object" ? node.children.map(textOf).join("") : String(node ?? ""));
