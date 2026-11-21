@@ -84,7 +84,7 @@ Darunter klappt «So sucht die App danach» den Endstand der eingeschalteten Beg
 | Satz beim Knopf | Die KI schlägt vor, Sie entscheiden. Am Suchprofil ändert sich erst etwas, wenn Sie übernehmen. | Die KI schlägt vor, du entscheidest. Am Suchprofil ändert sich erst etwas, wenn du übernimmst. |
 | Was geht an die KI? | An die KI gehen Ihr Suchprofil und Ihr Lebenslauf mit Platzhaltern für Name, Adresse und Kontakte sowie Titel und Note der eingeschätzten Treffer, ohne Inseratstexte. | An die KI gehen dein Suchprofil und dein Lebenslauf … |
 | Hinweis | Ein Begriff lässt viel Unpassendes durch · «Engineer» im Titelfilter: 56 von 130 Treffern, 47 davon unter Note 4, zum Beispiel EMSR-Engineer, Process Engineer. · Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was Sie übernehmen. Etwa 0.01 USD. · Suchbegriffe prüfen lassen · Ausblenden | … was du übernimmst. |
-| Ansicht, Kopf | Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 130 Treffer seit dem 20.10.2026 angesehen. Geändert wird nur, was angehakt ist. | … dein Suchprofil, deinen Lebenslauf … |
+| Ansicht, Kopf | Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 130 Treffer seit dem 20.10.2026 angesehen. Geändert wird nur, was eingeschaltet ist. Ohne Treffer: Die KI hat Ihr Suchprofil und Ihren Lebenslauf angesehen. … | … dein Suchprofil, deinen Lebenslauf …; ohne Treffer: dein Suchprofil und deinen Lebenslauf |
 | Karte | Vorschlag der KI · 5 Änderungen | gleich |
 | Fuss | Ein Vorschlag, kein Urteil. Die KI kann sich irren. Geändert wird nur, was Sie übernehmen. · Claude · 0.01 USD · 10.11.2026 | … was du übernimmst. |
 | Überarbeiten | Was soll anders sein? · Die KI überarbeitet den Vorschlag. Ihr Text geht mit dem Vorschlag an die KI. · Neu vorschlagen | … Dein Text … |

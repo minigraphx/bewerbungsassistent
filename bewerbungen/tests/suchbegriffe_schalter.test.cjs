@@ -100,17 +100,6 @@ test("the page announces only when the choice becomes blocked or free, and how m
   assert.equal(L.ansage(OPEN, none), none.gesperrt, "another reason is announced as it stands");
 });
 
-test("arrow keys move within a group of chips, Home and End to its ends, other keys stay with the browser", () => {
-  assert.equal(L.rovingZiel("ArrowRight", 0, 3), 1);
-  assert.equal(L.rovingZiel("ArrowDown", 2, 3), 2);
-  assert.equal(L.rovingZiel("ArrowLeft", 0, 3), 0);
-  assert.equal(L.rovingZiel("ArrowUp", 2, 3), 1);
-  assert.equal(L.rovingZiel("Home", 2, 3), 0);
-  assert.equal(L.rovingZiel("End", 0, 3), 2);
-  assert.equal(L.rovingZiel(" ", 1, 3), null);
-  assert.equal(L.rovingZiel("Tab", 1, 3), null);
-});
-
 test("the sentence over the current terms speaks like the page", () => {
   assert.equal(L.texte("stelle-sie").bisherige, "Alle sind eingeschaltet. Was Sie ausschalten, entfällt beim Übernehmen.");
   assert.equal(L.texte("stelle-du").bisherige, "Alle sind eingeschaltet. Was du ausschaltest, entfällt beim Übernehmen.");

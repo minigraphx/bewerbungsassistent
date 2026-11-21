@@ -9,7 +9,7 @@
       hinweisNachsatz: "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was Sie übernehmen.",
       warten: "KI prüft Ihre Suchbegriffe",
       wartenNotiz: "Meist unter 30\u00a0Sekunden. Am Suchprofil ändert sich nichts, bis Sie etwas übernehmen.",
-      gesehen: (treffer, seit) => `Die KI hat Ihr Suchprofil, Ihren Lebenslauf${treffer ? ` und ${treffer} Treffer${seit ? ` seit dem ${datum(seit)}` : ""}` : ""} angesehen. Geändert wird nur, was angehakt ist.`,
+      gesehen: (treffer, seit) => `Die KI hat Ihr Suchprofil${treffer ? `, Ihren Lebenslauf und ${treffer} Treffer${seit ? ` seit dem ${datum(seit)}` : ""}` : " und Ihren Lebenslauf"} angesehen. Geändert wird nur, was eingeschaltet ist.`,
       passt: "Ihre Suchbegriffe passen. Die KI schlägt keine Änderung vor.",
       passtNotiz: "Kein Begriff lässt auffällig viele unpassende Treffer durch, und was in Ihrem Lebenslauf steht, wird schon gesucht.",
       fuss: "Ein Vorschlag, kein Urteil. Die KI kann sich irren. Geändert wird nur, was Sie übernehmen.",
@@ -25,7 +25,7 @@
       hinweisNachsatz: "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was du übernimmst.",
       warten: "KI prüft deine Suchbegriffe",
       wartenNotiz: "Meist unter 30\u00a0Sekunden. Am Suchprofil ändert sich nichts, bis du etwas übernimmst.",
-      gesehen: (treffer, seit) => `Die KI hat dein Suchprofil, deinen Lebenslauf${treffer ? ` und ${treffer} Treffer${seit ? ` seit dem ${datum(seit)}` : ""}` : ""} angesehen. Geändert wird nur, was angehakt ist.`,
+      gesehen: (treffer, seit) => `Die KI hat dein Suchprofil${treffer ? `, deinen Lebenslauf und ${treffer} Treffer${seit ? ` seit dem ${datum(seit)}` : ""}` : " und deinen Lebenslauf"} angesehen. Geändert wird nur, was eingeschaltet ist.`,
       passt: "Deine Suchbegriffe passen. Die KI schlägt keine Änderung vor.",
       passtNotiz: "Kein Begriff lässt auffällig viele unpassende Treffer durch, und was in deinem Lebenslauf steht, wird schon gesucht.",
       fuss: "Ein Vorschlag, kein Urteil. Die KI kann sich irren. Geändert wird nur, was du übernimmst.",
@@ -183,12 +183,6 @@
     return vorher.gesperrt && zuVielText(vorher) === jetzt ? "" : jetzt;
   }
 
-  /** Roving focus within a group of chips: the index to move to, or null for a key the browser keeps. */
-  function rovingZiel(taste, index, anzahl) {
-    const ziele = { ArrowRight: index + 1, ArrowDown: index + 1, ArrowLeft: index - 1, ArrowUp: index - 1, Home: 0, End: anzahl - 1 };
-    return taste in ziele ? Math.min(Math.max(ziele[taste], 0), anzahl - 1) : null;
-  }
-
   /** The footer of the card as parts, which the page joins with «·» (#337): model, cost, date, and the rounds so far. */
   function fussTeile(vorschlag) {
     const bisher = vorschlag.runde > 1 ? `bisher ${geld(vorschlag.kosten_bisher, vorschlag.waehrung)}` : "";
@@ -210,7 +204,7 @@
   const api = { texte, datum, geld, lockCheckLink, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
     belegAusAdresse, kopfTeile, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, rundeTeile, endstand,
     HAUPTKNOPF, TEILWEISE, BISHERIGE_OBEN, ZU_DEN_BISHERIGEN, FREI, chips, bisherigeBereiche, chipAn, schalteChip, chipWort,
-    karteStand, schalteKarte, zaehlung, legendeTeile, entfaelltZeile, zuVielBereich, ansage, rovingZiel };
+    karteStand, schalteKarte, zaehlung, legendeTeile, entfaelltZeile, zuVielBereich, ansage };
   if (typeof module !== "undefined") module.exports = api;
   else root.SuchbegriffeLogik = api;
 })(typeof window !== "undefined" ? window : globalThis);

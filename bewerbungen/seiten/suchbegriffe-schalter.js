@@ -1,8 +1,8 @@
 "use strict";
 // The switches of the term proposal (#371, G102): a real checkbox in a label per term, in the card of its change or
 // under «Bisherige Begriffe». Built once per proposal and afterwards only updated in place, so the focus stays on the
-// chip just switched. Within a group the arrow keys move and only one chip is in the tab order; Tab goes on to the
-// next group (roving tabindex). The state and its words come from SuchbegriffeLogik.
+// chip just switched. Every chip stays in the tab order, as a checkbox would; the UI/UX review (#389) chose that over
+// arrow keys within a group. The state and its words come from SuchbegriffeLogik.
 (() => {
   const { el } = window.App;
   const L = window.SuchbegriffeLogik;
@@ -30,24 +30,8 @@
     return eintrag;
   }
 
-  function gruppe(eintraege) {
-    eintraege.forEach((eintrag, index) => {
-      eintrag.box.setAttribute("tabindex", index === 0 ? "0" : "-1");
-      eintrag.box.addEventListener("focus", () => {
-        for (const anderer of eintraege) anderer.box.setAttribute("tabindex", anderer === eintrag ? "0" : "-1");
-      });
-      eintrag.box.addEventListener("keydown", event => {
-        const ziel = L.rovingZiel(event.key, index, eintraege.length);
-        if (ziel === null) return;
-        event.preventDefault();
-        eintraege[ziel].box.focus();
-      });
-    });
-  }
-
   function liste(daten, wechsel) {
     const eintraege = daten.map(d => chip(d, wechsel));
-    gruppe(eintraege);
     return el("ul", { class: "terms" }, ...eintraege.map(eintrag => el("li", {}, eintrag.label)));
   }
 

@@ -265,18 +265,19 @@ test("over the limit the reason links to the current terms and the page says how
   assert.equal(p.$("uebernehmen").disabled, false);
 });
 
-test("arrow keys move between the chips of one area, and only one of them is in the tab order", async () => {
+test("Tab reaches every chip of a group, and the arrow keys stay with the browser", async () => {
   const p = await page();
+  const boxes = p.boxes();
+  assert.equal(boxes.length, 7);
+  for (const box of boxes) {
+    assert.equal(box.hasAttribute("tabindex"), false, `${heard(box.parentNode)} keeps its place in the tab order`);
+    assert.deepEqual(Object.keys(box.listeners).sort(), ["change"], "no focus or key handlers of its own");
+    assert.equal(box.dispatch("keydown", { key: "ArrowRight" }).defaultPrevented, false);
+  }
   const area = [p.chip("Python"), p.chip("TypeScript")];
-  assert.deepEqual(area.map(box => box.getAttribute("tabindex")), ["0", "-1"]);
-  area[0].focus();
-  area[0].dispatch("focus");
-  const event = area[0].dispatch("keydown", { key: "ArrowRight" });
-  assert.equal(event.defaultPrevented, true);
-  assert.equal(p.document.activeElement, area[1]);
+  area[1].focus();
   area[1].dispatch("focus");
-  assert.deepEqual(area.map(box => box.getAttribute("tabindex")), ["-1", "0"]);
-  assert.equal(area[1].dispatch("keydown", { key: "Tab" }).defaultPrevented, false, "Tab goes to the next area");
+  assert.equal(area[0].hasAttribute("tabindex"), false, "focusing one chip leaves the others reachable");
 });
 
 test("«Auswahl übernehmen» sends exactly the switched-on terms and says what is new and what goes", async () => {

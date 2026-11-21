@@ -30,7 +30,13 @@ test("Sie and du, costs never under a cent", () => {
   assert.match(L.texte("stelle-du").satz, /du entscheidest/);
   assert.match(L.texte("stelle-sie").satz, /Sie entscheiden/);
   assert.equal(L.texte("stelle-sie").gesehen(130, "2026-10-20"),
-    "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 130 Treffer seit dem 20.10.2026 angesehen. Geändert wird nur, was angehakt ist.");
+    "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 130 Treffer seit dem 20.10.2026 angesehen. Geändert wird nur, was eingeschaltet ist.");
+  assert.equal(L.texte("stelle-du").gesehen(130, null),
+    "Die KI hat dein Suchprofil, deinen Lebenslauf und 130 Treffer angesehen. Geändert wird nur, was eingeschaltet ist.");
+  assert.equal(L.texte("stelle-sie").gesehen(0, null),
+    "Die KI hat Ihr Suchprofil und Ihren Lebenslauf angesehen. Geändert wird nur, was eingeschaltet ist.");
+  assert.equal(L.texte("stelle-du").gesehen(0, null),
+    "Die KI hat dein Suchprofil und deinen Lebenslauf angesehen. Geändert wird nur, was eingeschaltet ist.");
   // #337: the footer comes as parts, so the page can glue each «·» to the part before it
   assert.deepEqual(L.fussTeile({ modell: "claude-haiku-5-5", kosten_usd: 0.004, datum: "2026-11-11", runde: 2, kosten_bisher: 0.008 }),
     ["Claude", "USD\u00a00.01", "11.11.2026", "bisher USD\u00a00.01"]);
