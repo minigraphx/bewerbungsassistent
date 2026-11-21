@@ -132,7 +132,9 @@ test("a used-up budget says so in Einstellungen and the code field stays", () =>
 test("Einstellungen ask for the costs of the budget month with the token still in the address", async () => {
   // as app.js builds it: the path, «?», then the token and the parameters
   const address = (where, parameters = {}) => new URL(`${where}?${new URLSearchParams({ t: "token", ...parameters })}`, "http://127.0.0.1");
-  const loadCosts = read("einstellungen.js").match(/\n  function loadCosts\(\) \{[\s\S]*?\n  \}\n/)[0];
+  const page = read("einstellungen.js");
+  const loadCosts = ["loadCosts\\(\\)", "reportCostsProblem\\(fehler\\)"]
+    .map(head => page.match(new RegExp(`\\n  function ${head} \\{[\\s\\S]*?\\n  \\}\\n`))[0]).join("");
   const asked = [];
   const holen = (where, parameters) => { asked.push(address(where, parameters)); return Promise.resolve({}); };
   const run = new Function("holen", "L", "ki", "zeige", "status", "$", `${loadCosts}; return loadCosts();`);
