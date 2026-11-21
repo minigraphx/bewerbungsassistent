@@ -197,8 +197,8 @@ def test_revoked_access_is_refused(setup):
         ask(client)
 
 
-def test_used_credit_answers_402(setup):
-    setup["code"] = setup["store"].create_invitation("T01", NOW, credit_chf=0.003)
+def test_used_budget_answers_402(setup):
+    setup["code"] = setup["store"].create_invitation("T01", NOW, budget_chf=0.003)
     client = app_client(setup, access_for(setup))
     ask(client)
 
@@ -283,12 +283,12 @@ def test_upstream_errors_pass_through_without_cost(setup):
     assert error.value.status_code == 529 and setup["store"].spent("T01", "2026-11") == 0
 
 
-def test_account_shows_the_credit(setup):
+def test_account_shows_the_budget_of_the_month(setup):
     access = access_for(setup)
 
     answer = raw(setup, "GET", "/v1/account", headers={"authorization": f"Bearer {access}"})
 
-    assert answer.json() == {"credit_chf": 5.0, "spent_chf": 0}
+    assert answer.json() == {"credit_chf": 5.0, "spent_chf": 0, "monat": "2026-11", "erneuert_am": "2026-12-01"}
     assert raw(setup, "GET", "/v1/account").status_code == 401
 
 
@@ -326,12 +326,12 @@ def test_admin_commands(tmp_path):
     assert "bewerbungsbegleiter://einladung?code=" in invitation
     assert "T02" in admin.main(["--db", db, "costs"], now)
     assert "PC" in admin.main(["--db", db, "accesses", "T02"], now)
-    assert "von 15.00" in admin.main(["--db", db, "accesses", "T02"], now)
+    assert "Budget CHF 15.00 pro Monat" in admin.main(["--db", db, "accesses", "T02"], now), "--credit still works"
     assert admin.main(["--db", db, "revoke", "T02"], now).startswith("1 ")
     assert "GESPERRT" in admin.main(["--db", db, "accesses", "T02"], now)
     assert "0.00 CHF" in admin.main(["--db", db, "costs", "--month", "2026-11"], now)
-    with pytest.raises(SystemExit, match="Guthaben"):
-        admin.main(["--db", db, "invite", "T03", "--credit", "0"], now)
+    with pytest.raises(SystemExit, match="Budget"):
+        admin.main(["--db", db, "invite", "T03", "--budget", "0"], now)
     assert not Store(db).has_person("T03"), "a refused code leaves no person behind"
 
 
