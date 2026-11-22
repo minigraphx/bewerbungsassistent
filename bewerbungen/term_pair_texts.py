@@ -76,12 +76,15 @@ def duplicate(term: str, a: tuple[str, str, tuple[str, ...]], b: tuple[str, str,
 
 
 def _shared(broad: str, shared: tuple[int, int]) -> str:
-    """#375: of the hits a query of the narrower term found, how many a query of the broader one found too."""
+    """#375: of the postings a query of the narrower term found, how many a query of the broader one found too; each
+    posting counts once, so they are «Stellen», not «Treffer» (#383)."""
     total, both = shared
     if total == 1:
-        return f"Sein einziger Treffer kam {'auch' if both else 'nicht'} über „{broad}“."
-    verb = {0: "kam keiner", 1: "kam einer auch"}.get(both, f"kamen {both} auch")
-    return f"Von seinen {total} Treffern {verb} über „{broad}“."
+        return f"Seine einzige Stelle kam {'auch' if both else 'nicht'} über „{broad}“."
+    if both == total:
+        return f"Alle seine {total} Stellen kamen auch über „{broad}“."
+    verb = {0: "kam keine", 1: "kam eine auch"}.get(both, f"kamen {both} auch")
+    return f"Von seinen {total} Stellen {verb} über „{broad}“."
 
 
 def _finds(shared: tuple[int, int] | None) -> str:

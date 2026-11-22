@@ -16,13 +16,14 @@ const COUNTS = { laeufe: 3, noetig: 3, genug: true, begriffe: [entry({}), AUTHOR
 
 test("the caption says the app counted, not the AI", () => {
   assert.equal(L.GEZAEHLT_TITEL, "Was die App gezählt hat");
-  assert.equal(L.gezaehltUnterzeile(COUNTS), "Aus den letzten 3 Suchläufen, gezählt von der App, nicht von der KI.");
+  assert.equal(L.gezaehltUnterzeile(COUNTS), "Aus den letzten 3 Suchläufen, gezählt von der App, nicht von der KI. "
+    + "Treffer zählt sie bei jeder Suche, Stellen nur einmal.");
 });
 
 test("only flagged keywords are listed, each with its mark and numbers", () => {
   assert.deepEqual(L.markiert(COUNTS), [
     { name: "„E-Learning-Autor“", marke: "ohne Ertrag", rest: ": 36 Suchen, kein Treffer." },
-    { name: "„Kursleiter Informatik“", marke: "überlappend", rest: ": 14 Treffer, alle auch über „Kursleiter“." },
+    { name: "„Kursleiter Informatik“", marke: "überlappend", rest: ": 14 Stellen, alle auch über „Kursleiter“ gefunden." },
   ]);
 });
 
@@ -30,8 +31,9 @@ test("hits the title filter screened out are counted as hits, and several coveri
   assert.equal(L.markiert({ ...COUNTS, begriffe: [SCREENED] })[0].rest, ": 36 Suchen, 9 Treffer, alle vom Titelfilter aussortiert.");
   assert.equal(L.markiert({ ...COUNTS, begriffe: [{ ...SCREENED, suchen: 6, treffer_portale: 1, aussortiert: 1 }] })[0].rest,
     ": 6 Suchen, 1 Treffer, vom Titelfilter aussortiert.");
-  assert.equal(L.markiert({ ...COUNTS, begriffe: [SPREAD] })[0].rest, ": 14 Treffer, alle auch über andere Begriffe, meist „Kursleiter“.");
-  assert.equal(L.markiert({ ...COUNTS, begriffe: [{ ...NARROW, treffer: 1 }] })[0].rest, ": 1 Treffer, auch über „Kursleiter“.");
+  assert.equal(L.markiert({ ...COUNTS, begriffe: [SPREAD] })[0].rest,
+    ": 14 Stellen, alle auch über andere Begriffe gefunden, meist über „Kursleiter“.");
+  assert.equal(L.markiert({ ...COUNTS, begriffe: [{ ...NARROW, treffer: 1 }] })[0].rest, ": 1 Stelle, auch über „Kursleiter“ gefunden.");
   assert.equal(L.markiert({ ...COUNTS, begriffe: [{ ...AUTHOR, suchen: 1 }] })[0].rest, ": 1 Suche, kein Treffer.");
 });
 

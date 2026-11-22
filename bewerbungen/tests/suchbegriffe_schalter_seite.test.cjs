@@ -303,7 +303,8 @@ test("«Was die App gezählt hat» shows at once while the AI works, flagged key
   const p = await page(new Promise(() => {}), { "/api/suchbegriffe/gezaehlt": COUNTED });
   assert.equal(p.$("gezaehlt").hidden, false);
   assert.equal(p.$("warten").hidden, false, "the AI is still working");
-  assert.equal(p.$("gezaehlt-unterzeile").textContent, "Aus den letzten 3 Suchläufen, gezählt von der App, nicht von der KI.");
+  assert.equal(p.$("gezaehlt-unterzeile").textContent, "Aus den letzten 3 Suchläufen, gezählt von der App, nicht von der KI. "
+    + "Treffer zählt sie bei jeder Suche, Stellen nur einmal.");
   const [row] = p.$("gezaehlt-liste").children;
   assert.equal(heard(row), "„TypeScript“ ohne Ertrag: 9 Suchen, kein Treffer.");
   assert.ok(below(row).some(n => n.className === "term term--flag"));

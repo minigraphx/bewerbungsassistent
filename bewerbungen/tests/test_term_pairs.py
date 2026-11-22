@@ -91,16 +91,27 @@ def queried(both: int, total: int = 14) -> list[dict]:
     return [*mine, {"id": "h-x", "abfragen": [BROAD_QUERY]}]
 
 
-def test_the_overlap_says_how_many_of_its_hits_the_broader_term_found_too():
+def test_the_overlap_says_how_many_of_its_postings_the_broader_term_found_too():
     overlap = found(shown=queried(13))[1]
-    assert overlap["text"] == f"{OVERLAP} Von seinen 14 Treffern kamen 13 auch über „Kursleiter“."
+    assert overlap["text"] == f"{OVERLAP} Von seinen 14 Stellen kamen 13 auch über „Kursleiter“."
+
+
+@pytest.mark.parametrize(("both", "total", "sentence"), [
+    (1, 1, "Seine einzige Stelle kam auch über „Kursleiter“."),
+    (0, 1, "Seine einzige Stelle kam nicht über „Kursleiter“."),
+    (4, 4, "Alle seine 4 Stellen kamen auch über „Kursleiter“."),
+    (0, 4, "Von seinen 4 Stellen kam keine über „Kursleiter“."),
+    (1, 4, "Von seinen 4 Stellen kam eine auch über „Kursleiter“."),
+    (3, 4, "Von seinen 4 Stellen kamen 3 auch über „Kursleiter“.")])
+def test_the_overlap_counts_each_posting_once_in_stellen(both, total, sentence):
+    assert found(shown=queried(both, total))[1]["text"].endswith(f" {sentence}")
 
 
 def test_when_less_than_half_came_through_the_broader_term_it_only_should_find_them():
     overlap = found(shown=queried(6))[1]
     assert overlap["text"] == ("„Kursleiter Informatik“ steckt ganz in „Kursleiter“: Die Suche nach „Kursleiter“ sollte "
                                "diese Stellen auch finden. „Kursleiter Informatik“ kostet 4 Suchen pro Suchlauf. Von "
-                               "seinen 14 Treffern kamen 6 auch über „Kursleiter“.")
+                               "seinen 14 Stellen kamen 6 auch über „Kursleiter“.")
 
 
 def test_a_duplicate_the_plan_searches_once_anyway_has_no_cost_sentence():

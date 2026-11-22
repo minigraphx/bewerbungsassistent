@@ -230,7 +230,8 @@
   const MARKEN = { ohne_ertrag: "ohne Ertrag", ueberlappend: "überlappend" };
   const VERSION_DER_ZAHLEN = "0.3.3";
 
-  const gezaehltUnterzeile = z => `Aus den letzten ${z.noetig} Suchläufen, gezählt von der App, nicht von der KI.`;
+  const gezaehltUnterzeile = z => `Aus den letzten ${z.noetig} Suchläufen, gezählt von der App, nicht von der KI. `
+    + "Treffer zählt sie bei jeder Suche, Stellen nur einmal.";
   const gezaehltFehler = grund => `Die Zahlen der App liessen sich nicht laden: ${grund}${/[.!?]$/.test(grund) ? "" : "."} `
     + "Die KI schlägt darum ohne diese Zahlen vor.";
 
@@ -248,9 +249,10 @@
       return e.treffer_portale === 1 ? `${suchen}, 1 Treffer, vom Titelfilter aussortiert.`
         : `${suchen}, ${e.treffer_portale} Treffer, alle vom Titelfilter aussortiert.`;
     }
-    if (e.treffer === 1) return `1 Treffer, auch über „${e.auch_ueber}“.`;
-    return e.alle_ueber ? `${e.treffer} Treffer, alle auch über „${e.auch_ueber}“.`
-      : `${e.treffer} Treffer, alle auch über andere Begriffe, meist „${e.auch_ueber}“.`;
+    // the overlap counts postings, each once («Stellen»), unlike the hits of every search in the table
+    if (e.treffer === 1) return `1 Stelle, auch über „${e.auch_ueber}“ gefunden.`;
+    return e.alle_ueber ? `${e.treffer} Stellen, alle auch über „${e.auch_ueber}“ gefunden.`
+      : `${e.treffer} Stellen, alle auch über andere Begriffe gefunden, meist über „${e.auch_ueber}“.`;
   }
 
   /** Only the flagged keywords, in the order of the list: name, the word of the chip, then the numbers. */
