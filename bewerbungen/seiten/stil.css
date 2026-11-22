@@ -279,7 +279,15 @@ ol.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--spac
 .suchliste__eintrag--zieht, .suchliste__eintrag--verschoben { border-color: var(--accent); background: var(--accent-subtle); box-shadow: var(--shadow-menu); }
 .suchliste__griff { flex: none; box-sizing: border-box; min-width: 44px; min-height: 44px; padding: 13px 16px; cursor: grab; touch-action: none; color: var(--line-strong); background: radial-gradient(circle, currentColor 1.5px, transparent 2px) 0 0 / 6px 6px repeat content-box; }
 .suchliste__eintrag--zieht .suchliste__griff { cursor: grabbing; }
-.suchliste__nummer { min-width: 1.5em; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.suchliste__nummer { min-width: 1.5rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+/* G103: what the term brought, on a line of its own under the name, so handle and buttons keep their place. */
+.suchliste__ertrag { flex: 1 0 100%; box-sizing: border-box; padding: 0 0 var(--space-2) calc(44px + 1.5rem + 2 * var(--space-2)); }
+.suchliste__ertrag--allein { padding-left: calc(1.5rem + var(--space-2)); }
+.suchliste__name .term { white-space: nowrap; }
+.ertrag-liste { margin: var(--space-2) 0 0; padding-left: var(--space-5); display: grid; gap: var(--space-1); font-size: 14px; line-height: 20px; }
+.ertrag-details { margin: 0 0 var(--space-3); }
+.ertrag-details > summary { cursor: pointer; font-size: 14px; line-height: 20px; color: var(--text-strong); }
+.ertrag-hinweis { margin: 0 0 var(--space-2); max-width: var(--width-reading); }
 .suchliste__name { flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; padding: 10px 0; }
 .suchliste__knoepfe { display: flex; align-items: center; gap: var(--space-1); margin-left: auto; }
 .suchliste button { min-height: 44px; }

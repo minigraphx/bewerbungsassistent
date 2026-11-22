@@ -131,8 +131,9 @@ function setup({ fail = false } = {}) {
   const context = { window, document: doc, console,
     setTimeout: (run, ms) => { timers.push({ run, ms }); return timers.length; }, clearTimeout: id => { timers[id - 1].run = () => {}; } };
   vm.createContext(context);
-  vm.runInContext(fs.readFileSync(path.join(SEITEN, "suchliste-logik.js"), "utf8"), context);
-  vm.runInContext(fs.readFileSync(path.join(SEITEN, "suchliste.js"), "utf8"), context);
+  for (const name of ["dot-line.js", "suche-ertrag-logik.js", "suchliste-logik.js", "suchliste.js"]) {
+    vm.runInContext(fs.readFileSync(path.join(SEITEN, name), "utf8"), context);
+  }
   const list = el("ol");
   const status = el("div");
   const options = { status, entfernen: (name, button) => calls.entfernt.push([name, button]), geaendert: () => { calls.geaendert += 1; } };
@@ -308,6 +309,53 @@ test("a single term has nothing to order", () => {
   assert.equal(control(list, "Koch", "hoch"), null);
   assert.equal(handle(list, "Koch"), null);
   assert.ok(control(list, "Koch", "entfernen"));
+});
+
+// The yield of each term (G103, #375)
+
+const YIELD = new Map([
+  ["Betreuer", { begriff: "Betreuer", suchen: 3, treffer: 4, neu: 1, ab_note_4: 1, aussortiert: 2, ohne_ertrag: false }],
+  ["Koch", { begriff: "Koch", suchen: 9, treffer: 0, neu: 0, ab_note_4: 0, aussortiert: 0, ohne_ertrag: true }],
+]);
+const row = (list, name) => rows(list)[shown(list).indexOf(name)];
+const part = (node, name) => node.find(child => (child.className || "").split(" ").includes(name));
+
+test("each row carries its yield as plain text, and the mark when a term brought nothing", () => {
+  const { list, window } = setup();
+  window.Suchliste.ertrag(YIELD);
+
+  assert.equal(part(row(list, "Betreuer"), "suchliste__ertrag").textContent.replace(/\s·,/g, " ·"), "3 Suchen · 4 Treffer · 1 neu · 1 ab Note 4 · 2 aussortiert");
+  assert.equal(part(row(list, "Koch"), "term--flag").textContent, "ohne Ertrag");
+  assert.equal(part(row(list, "Betreuer"), "term--flag"), null);
+  assert.equal(part(row(list, "Pflegefachmann"), "suchliste__ertrag"), null, "a term no run has searched yet has no line");
+});
+
+test("once runs exist, a term added since says it has not been searched yet", () => {
+  const { list, window } = setup();
+  window.Suchliste.ertrag(YIELD, 3);
+
+  assert.equal(part(row(list, "Pflegefachmann"), "suchliste__ertrag").textContent, "noch nicht gesucht");
+  assert.equal(part(row(list, "Koch"), "term--flag").textContent, "ohne Ertrag");
+});
+
+test("the yield neither moves the handle nor renames the buttons", () => {
+  const { list, window } = setup();
+  window.Suchliste.ertrag(YIELD);
+
+  const children = row(list, "Betreuer").children;
+  assert.ok(children[0].className.includes("suchliste__griff"), "the handle stays first");
+  assert.ok(children.at(-1).className.includes("suchliste__ertrag"), "the yield comes last, on its own line");
+  assert.ok(children.at(-2).className.includes("suchliste__knoepfe"));
+  for (const name of TERMS) for (const role of ["hoch", "runter", "entfernen"]) assert.ok(control(list, name, role), `${name} ${role}`);
+});
+
+test("a yield that arrives while a term is dragged waits for the drop", () => {
+  const { list, window, doc } = setup();
+  handle(list, "Koch").dispatch("pointerdown", { pointerType: "mouse" });
+  window.Suchliste.ertrag(YIELD);
+  assert.equal(part(row(list, "Koch"), "term--flag"), null);
+  doc.fire("pointerup");
+  assert.equal(part(row(list, "Koch"), "term--flag").textContent, "ohne Ertrag");
 });
 
 // The page around it

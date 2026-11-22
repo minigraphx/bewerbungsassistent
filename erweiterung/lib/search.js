@@ -32,8 +32,18 @@ async function openResults(portal, plan, query, tab, deps) {
   return target;
 }
 
-/** One query, page by page; the problem it ran into, or ''. `position` says where it stands in the stages. */
-async function searchOne(portal, plan, query, tab, found, position, deps) {
+/** The hit with the query that found it (G103); a hit found by several queries keeps them all, each once. */
+function withQuery(earlier, hit, asked) {
+  const queries = earlier?.abfragen || [];
+  const known = queries.some((q) => q.stichwort === asked.stichwort && q.ort === asked.ort);
+  return { ...hit, abfragen: known ? queries : [...queries, asked] };
+}
+
+/**
+ * One query, page by page; the problem it ran into, or ''. `position` says where it stands in the stages.
+ * A query that ran to its end goes into `log` with the hits its list had, none too (G103).
+ */
+async function searchOne(portal, plan, query, tab, found, position, deps, log) {
   if (ADAPTERS[portal].opensPages) {
     stopIfCancelled(deps);
     const opened = await openResults(portal, plan, query, tab, deps);
@@ -45,6 +55,8 @@ async function searchOne(portal, plan, query, tab, found, position, deps) {
   }
   const place = placeOf(query);
   const where = place ? { ort: place } : {};
+  const asked = { stichwort: query.keyword, ort: place };
+  let listed = 0;
   for (let page = 1; page <= plan.max_seiten; page += 1) {
     stopIfCancelled(deps);
     deps.report({ portal, phase: 'suche', stichwort: query.keyword, ...where, seite: page, gefunden: found.size, ...position });
@@ -54,9 +66,11 @@ async function searchOne(portal, plan, query, tab, found, position, deps) {
       if (result.changed) throw Object.assign(new Error(result.fehler), { changed: true });
       return `${portal}: ${result.fehler}`;
     }
-    for (const hit of result.value.hits) found.set(hitKey(hit), hit);
+    for (const hit of result.value.hits) found.set(hitKey(hit), withQuery(found.get(hitKey(hit)), hit, asked));
+    listed += result.value.hits.length;
     if (!result.value.more) break;
   }
+  log.push({ ...asked, treffer: listed });
   return '';
 }
 
@@ -73,7 +87,7 @@ async function stagePause(portal, stage, stages, seconds, deps) {
 }
 
 /** Every query of the portal (G43), never all at once: stages of at most the plan's size, a longer pause between them. */
-async function listAll(portal, plan, tab, deps) {
+async function listAll(portal, plan, tab, deps, log) {
   const found = new Map();
   const problems = [];
   const { queries } = buildQueries(portal, plan);
@@ -83,7 +97,7 @@ async function listAll(portal, plan, tab, deps) {
     if (index > 0) await stagePause(portal, index + 1, stages.length, plan.etappe_pause_sekunden ?? STAGE_PAUSE_S, deps);
     for (const [offset, query] of stage.entries()) {
       const position = { nummer: index * size + offset + 1, abfragen: queries.length, etappe: index + 1, etappen: stages.length };
-      problems.push(await searchOne(portal, plan, query, tab, found, position, deps));
+      problems.push(await searchOne(portal, plan, query, tab, found, position, deps, log));
     }
   }
   return { found, problem: problems.filter(Boolean).join(' ') };
@@ -124,14 +138,16 @@ async function sendWithTexts(portal, hits, tab, deps) {
 
 /** Search one portal; problems end up in the summary instead of stopping the run. */
 export async function searchPortal(portal, plan, deps) {
-  const summary = { treffer: 0, neu: 0, problem: '' };
+  // The queries that ran stay in the summary also when the portal stops later on (G103).
+  const log = [];
+  const summary = { treffer: 0, neu: 0, problem: '', abfragen: log };
   const adapter = ADAPTERS[portal];
   if (!adapter) return { ...summary, problem: `${portal}: unbekanntes Portal` };
   let tab = null;
   try {
     tab = await deps.browser.openTab(adapter.start, Boolean(plan.zuschauen));
     await loadPortal(portal, plan, tab, deps);
-    const { found, problem } = await listAll(portal, plan, tab, deps);
+    const { found, problem } = await listAll(portal, plan, tab, deps, log);
     const wanted = await screen(found, deps.app);
     const limit = plan.max_texte || wanted.length;
     const later = Math.max(0, wanted.length - limit);
@@ -142,7 +158,7 @@ export async function searchPortal(portal, plan, deps) {
       missing ? `${missing} Inserate ohne lesbaren Text.` : '',
       failed ? `${failed} Inserate nicht geladen, sie kommen bei der nächsten Suche wieder.` : '',
     ];
-    return { treffer: found.size, neu: added, problem: notes.filter(Boolean).join(' ') };
+    return { ...summary, treffer: found.size, neu: added, problem: notes.filter(Boolean).join(' ') };
   } catch (error) {
     // Closing the tab is a way to cancel too: then the error is only about the tab being gone.
     if (error.cancelled || deps.cancelled?.()) return { ...summary, problem: `${portal}: ${CANCELLED}` };

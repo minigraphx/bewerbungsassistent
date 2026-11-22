@@ -12,6 +12,7 @@ import missing_ads
 import own_sites
 import precheck
 import preferences
+import query_log
 import routes_ai
 import search_plan
 import search_stages
@@ -22,7 +23,8 @@ from dateien import schreibe_atomar
 import routes_career
 import routes_missing_ads
 import routes_window
-from hits import CLOSED, PORTALS_OFF, TRIAL, Hits, bounded_text, company_key, comparable_link, is_near
+from hits import CLOSED, PORTALS_OFF, QUERIES, TRIAL, Hits, bounded_text, company_key, comparable_link, is_near
+from query_log import QueryLog
 from server import json_antwort, pflicht
 
 MAX_PROBLEM = 600
@@ -71,12 +73,17 @@ def plan(k, parameter, body):
 def screen(k, parameter, body):
     current = search_plan.for_folder(k.daten)
     store = _hits(k)
+    screened_out = []
     result = store.screen(_list(body), current.title_exclude, current.max_age_days, k.register().alle(),
                           own_sites.active_portals(store),
                           near=lambda place: is_near(str(place), current.places, current.postal_codes),
                           title_positive=current.title_positive,
                           max_age_by_portal=_portal_days(store, current, k.heute()),
-                          excluded=excluded_companies.keys(k.daten))
+                          excluded=excluded_companies.keys(k.daten),
+                          on_screened_out=lambda hit, reason: screened_out.append((hit.get(QUERIES, []), hit["stelle"], reason)))
+    log = QueryLog(k.daten)
+    for queries, title, reason in screened_out:
+        log.note_screened(queries, title, reason)
     return json_antwort(result)
 
 
@@ -110,8 +117,12 @@ def finish(k, parameter, body):
     kept = {name: value for name, value in portals.items() if name in known} if isinstance(portals, dict) else {}
     if not isinstance(portals, dict) or (portals and not kept):
         raise ValueError("portale erwartet")
-    run = store.save_run({"portale": {name: _portal_summary(v) for name, v in kept.items()}}, k.heute())
-    return json_antwort(run)
+    summaries = {name: _portal_summary(v) for name, v in kept.items()}
+    # G103: an older extension names no queries; the further sites search by address, not by query
+    queries = {name: query_log.checked_queries(v[QUERIES]) for name, v in kept.items()
+               if name in search_plan.ALL_PORTALS and QUERIES in v}
+    QueryLog(k.daten).close_run(queries, k.heute())
+    return json_antwort(store.save_run({"portale": summaries}, k.heute()))
 
 
 def _page_kind(k) -> str:
