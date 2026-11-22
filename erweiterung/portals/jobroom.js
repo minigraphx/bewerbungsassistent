@@ -3,6 +3,9 @@
   const common = globalThis.bewerbungsbegleiterCommon || require('./common.js');
   const PAGE_SIZE = 100;
   const ORIGIN = 'https://www.job-room.ch';
+  // Measured in #392: many ads from other portals are created 1 to 3 days after the start date job-room filters on.
+  const LATE_INDEX_DAYS = 3;
+  const MAX_ONLINE_SINCE = 60; // the longest window job-room offers, as in the skill `jobsuche`
 
   /** job-room keeps ads as Markdown with escaped characters ("\\-", "**"); the AI and the person want plain text. */
   function markdownToText(text) {
@@ -29,8 +32,19 @@
       ort: [location.postalCode, location.city].filter(Boolean).join(' '),
       pensum: common.workload(employment.workloadPercentageMin, employment.workloadPercentageMax),
       link: `${ORIGIN}/job-search/${encodeURIComponent(ad.id)}`,
-      alter_tage: common.ageFromDate((ad.publication && ad.publication.startDate) || ad.createdTime, today),
+      alter_tage: common.ageFromDate(newerDate(ad.publication && ad.publication.startDate, ad.createdTime), today),
     };
+  }
+
+  /** The later of two dates; an ad created after its start date is new on the day it was created (#398). */
+  function newerDate(first, second) {
+    const times = [first, second].filter((value) => !Number.isNaN(Date.parse(value)));
+    return times.sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+  }
+
+  /** The days the search asks for: the run's window plus the days an ad may reach the index after its start date. */
+  function onlineSince(maxAge) {
+    return Number.isInteger(maxAge) ? Math.min(MAX_ONLINE_SINCE, maxAge + LATE_INDEX_DAYS) : maxAge;
   }
 
   function parseList(data, page) {
@@ -43,7 +57,7 @@
   async function list(query, page) {
     const body = {
       workloadPercentageMin: 0, workloadPercentageMax: 100, permanent: null, companyName: null,
-      onlineSince: query.maxAge, displayRestricted: false, professionCodes: [], keywords: [query.keyword],
+      onlineSince: onlineSince(query.maxAge), displayRestricted: false, professionCodes: [], keywords: [query.keyword],
       communalCodes: [], cantonCodes: query.cantons || [],
     };
     const url = `/jobadservice/api/jobAdvertisements/_search?page=${page - 1}&size=${PAGE_SIZE}&sort=date_desc`;
