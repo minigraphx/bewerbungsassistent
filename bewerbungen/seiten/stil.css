@@ -291,6 +291,13 @@ ol.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--spac
 .ertrag-details { margin: 0 0 var(--space-3); }
 .ertrag-details > summary { cursor: pointer; font-size: 14px; line-height: 20px; color: var(--text-strong); }
 .ertrag-hinweis { margin: 0 0 var(--space-2); max-width: var(--width-reading); }
+/* G106: «Doppelt gesucht», one block per pair, the buttons of a block under its text. */
+.doppelt { display: block; margin: 0 0 var(--space-3); max-width: var(--width-reading); }
+.doppelt__titel { margin: 0 0 var(--space-2); font-size: inherit; line-height: inherit; }
+.doppelt__liste { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.doppelt__paar + .doppelt__paar { border-top: 1px solid var(--line); padding-top: var(--space-3); }
+.doppelt__text { margin: 0 0 var(--space-2); }
+.doppelt__knoepfe { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 /* G104: Erweitert › Titelfilter, each term with the titles of the last run under it. */
 .titelfilter-gruppe { margin: var(--space-3) 0 0; }
 .titelfilter-gruppe > .field__label { margin: 0; }

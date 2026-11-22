@@ -497,7 +497,7 @@ def _group_pairs(lines: list[str]) -> list[tuple[str, str]]:
     return found
 
 
-def _limit_portals(label: str) -> tuple[str, ...] | None:
+def limit_portals(label: str) -> tuple[str, ...] | None:
     """The portals a «Nur» line names, written as in the table of portals in any case; None for another line, and
     () when one name is no portal the app knows, so the whole line limits nothing."""
     match = LIMIT_LABEL.match(label)
@@ -517,7 +517,7 @@ def _portal_limits(lines: list[str], keywords: tuple[str, ...]) -> tuple[tuple[t
     """Per term the portals its «Nur» lines name (G105), and the labels of lines that name an unknown portal.
 
     A term that a line without a limit also lists runs everywhere (G68), like a term of an unknown line."""
-    groups = [(label, value, _limit_portals(label)) for label, value in _group_pairs(lines)]
+    groups = [(label, value, limit_portals(label)) for label, value in _group_pairs(lines)]
     everywhere = _term_keys(_value(_pairs(lines), CORE_LABEL)).union(
         *(_term_keys(value) for _, value, portals in groups if not portals))
     limited: dict[str, tuple[str, ...]] = {}
@@ -657,7 +657,8 @@ def agencies_in(text: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(name.strip() for value in values for name in value.split(",") if name.strip()))
 
 
-def _postal_code(data_dir: pathlib.Path) -> str | None:
+def cv_postal_code(data_dir: pathlib.Path) -> str | None:
+    """The postal code of cv.yaml, which stands in for missing PLZ, as `for_folder` reads it."""
     try:
         cv = yaml.safe_load((data_dir / "cv.yaml").read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError):
@@ -679,7 +680,7 @@ def for_folder(data_dir: pathlib.Path) -> SearchPlan:
     path = data_dir / PROFILE
     if not path.is_file():
         raise ValueError(NO_PROFILE)
-    return parse(path.read_text(encoding="utf-8"), _postal_code(data_dir))
+    return parse(path.read_text(encoding="utf-8"), cv_postal_code(data_dir))
 
 
 def frame(text: str) -> dict:
