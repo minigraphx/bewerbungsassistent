@@ -95,10 +95,11 @@ test("the details count the screened-out hits and name each term with up to thre
     beispiele: ["Koch/Köchin EFZ – Berufsbildner/in", "Berufsbildner/in Logistik", "Detailhandel – Berufsbildner/in"] },
   { begriff: "Kursleiter", anzahl: 1, beispiele: ["Kursleiter Yoga"] }];
   assert.equal(L.pflichtTitel(entries), "Ohne Pflichtbezug aussortiert (19)");
-  assert.equal(L.pflichtZeile(entries[0]), "„Berufsbildner“: 18 Stellen, zum Beispiel „Koch/Köchin EFZ – Berufsbildner/in“, "
+  // hits over three runs, not postings counted once («Stellen» since #383)
+  assert.equal(L.pflichtZeile(entries[0]), "„Berufsbildner“: 18 Treffer, zum Beispiel „Koch/Köchin EFZ – Berufsbildner/in“, "
     + "„Berufsbildner/in Logistik“, „Detailhandel – Berufsbildner/in“");
-  assert.equal(L.pflichtZeile(entries[1]), "„Kursleiter“: 1 Stelle, zum Beispiel „Kursleiter Yoga“");
-  assert.equal(L.pflichtZeile({ begriff: "Kursleiter", anzahl: 2, beispiele: [] }), "„Kursleiter“: 2 Stellen");
+  assert.equal(L.pflichtZeile(entries[1]), "„Kursleiter“: 1 Treffer, „Kursleiter Yoga“");
+  assert.equal(L.pflichtZeile({ begriff: "Kursleiter", anzahl: 2, beispiele: [] }), "„Kursleiter“: 2 Treffer");
 });
 
 test("the caption says what «ohne Pflichtbezug» means only when the reason occurs", () => {

@@ -40,16 +40,16 @@
     return `Die Zahlen stammen ${woher(laeufe)}. ${zaehlen}`;
   }
 
-  const stellen = zahl => anzahl(zahl, "Stelle", "Stellen");
-
   /** The summary of the details on hits without a required word (G110): how many there were in all. */
   const pflichtTitel = eintraege => `Ohne Pflichtbezug aussortiert (${eintraege.reduce((summe, e) => summe + e.anzahl, 0)})`;
 
   /** One term of those details, with up to three titles of its own last run. */
   function pflichtZeile(eintrag) {
     const beispiele = (eintrag.beispiele || []).slice(0, 3).map(titel => `„${titel}“`);
-    const kopf = `„${eintrag.begriff}“: ${stellen(eintrag.anzahl)}`;
-    return beispiele.length ? `${kopf}, zum Beispiel ${beispiele.join(", ")}` : kopf;
+    // hits of every search over the runs, not postings counted once («Stellen» since #383)
+    const kopf = `„${eintrag.begriff}“: ${eintrag.anzahl} Treffer`;
+    if (!beispiele.length) return kopf;
+    return eintrag.anzahl === 1 ? `${kopf}, ${beispiele[0]}` : `${kopf}, zum Beispiel ${beispiele.join(", ")}`;
   }
 
   /** The first line of «Was die Orte bringen»: where the numbers come from and what a place-less search is. */

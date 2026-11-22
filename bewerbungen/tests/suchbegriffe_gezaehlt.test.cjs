@@ -37,6 +37,18 @@ test("hits the title filter screened out are counted as hits, and several coveri
   assert.equal(L.markiert({ ...COUNTS, begriffe: [{ ...AUTHOR, suchen: 1 }] })[0].rest, ": 1 Suche, kein Treffer.");
 });
 
+test("hits without a required word are named as their own reason (G110, #386)", () => {
+  const coach = entry({ begriff: "Berufsbildner", suchen: 3, treffer_portale: 24, aussortiert: 24, ohne_pflichtbezug: 24,
+    treffer: 0, nur_hier: 0, ab_note_4: 0, marke: "ohne_ertrag" });
+  const rest = fields => L.markiert({ ...COUNTS, begriffe: [{ ...coach, ...fields }] })[0].rest;
+  assert.equal(rest({}), ": 3 Suchen, 24 Treffer, alle ohne Pflichtbezug aussortiert.");
+  assert.equal(rest({ ohne_pflichtbezug: 18 }), ": 3 Suchen, 24 Treffer, alle aussortiert: 6 vom Titelfilter, 18 ohne Pflichtbezug.");
+  assert.equal(rest({ treffer_portale: 1, aussortiert: 1, ohne_pflichtbezug: 1 }), ": 3 Suchen, 1 Treffer, ohne Pflichtbezug aussortiert.");
+  assert.equal(rest({ ohne_pflichtbezug: undefined }), ": 3 Suchen, 24 Treffer, alle vom Titelfilter aussortiert.");
+  assert.deepEqual(L.tabellenZeilen({ ...COUNTS, begriffe: [coach] })[0].zahlen, [3, 24, 24, 0, 0],
+    "«aussortiert» in the table counts both reasons");
+});
+
 test("with nothing flagged the section says so", () => {
   assert.deepEqual(L.markiert({ ...COUNTS, begriffe: [entry({})] }), []);
   assert.equal(L.NICHTS_MARKIERT, "Jeder Suchbegriff hat in den letzten 3 Suchläufen eigene Treffer gebracht.");

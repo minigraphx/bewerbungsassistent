@@ -127,6 +127,18 @@ test("a term of one's own goes through the same route as a suggestion, and the f
   assert.equal(p.byId("suchliste-neu-label").textContent, "Eigenen Suchbegriff aufnehmen");
 });
 
+test("a term added with required words names them apart from the term (G110, #386)", async () => {
+  for (const [satz, suche] of [["stelle-sie", "Ihrer Suche"], ["stelle-du", "deiner Suche"]]) {
+    const p = page({ satz, antworten: { "/api/beruf/aufnehmen": LISTE } });
+    await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);
+    p.byId("suchliste-neu").value = " Ausbilder  (nur mit Informatik,Mediamatik) ";
+
+    await p.byId("suchliste-aufnehmen").fire("click");
+
+    assert.equal(p.messages.at(-1).text, `„Ausbilder“ ist jetzt in ${suche}, mit Pflichtbezug: Informatik, Mediamatik.`);
+  }
+});
+
 test("Enter in the field adds as well, and a refusal keeps what was typed", async () => {
   const p = page({ antworten: { "/api/beruf/aufnehmen": new Error("„Python“ wird schon gesucht.") } });
   await p.suchbegriffe.zeige("stelle", ["Python"], ["python"]);

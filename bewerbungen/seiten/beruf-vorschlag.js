@@ -5,6 +5,17 @@
 window.Suchbegriffe = (() => {
   const { holen, senden, el, status } = window.App;
   const $ = id => document.getElementById(id);
+  // «Berufsbildner (nur mit Informatik, ICT)» (G110): the server took the remark, so only the words are read here
+  const PFLICHT = /^(.*?)\s*\(\s*nur\s+mit\s+([^()]*)\)$/i;
+
+  /** The message after adding a job term, naming its required words apart from the term when it has any. */
+  function mitPflicht(name, suche) {
+    const teile = PFLICHT.exec(name);
+    const woerter = teile ? teile[2].split(",").map(wort => wort.trim()).filter(Boolean) : [];
+    if (!woerter.length) return `„${name}“ ist jetzt in ${suche}.`;
+    return `„${teile[1]}“ ist jetzt in ${suche}, mit Pflichtbezug: ${woerter.join(", ")}.`;
+  }
+
   const TEXTE = {
     lehrstelle: {
       titel: "Berufe von der KI vorschlagen lassen",
@@ -41,7 +52,7 @@ window.Suchbegriffe = (() => {
       ordnen: "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Ziehen Sie die wichtigsten nach oben oder verschieben Sie sie mit den Pfeilen.",
       entfernt: name => `„${name}“ ist nicht mehr in Ihrer Suche.`,
       neuLabel: "Eigenen Suchbegriff aufnehmen",
-      aufgenommen: name => `„${name}“ ist jetzt in Ihrer Suche.`,
+      aufgenommen: name => mitPflicht(name, "Ihrer Suche"),
       zurueck: name => `„${name}“ ist wieder in Ihrer Suche.`,
       amEnde: name => `„${name}“ ist wieder in Ihrer Suche, am Ende der Liste.`,
       einwilligung: "Bevor die KI Stellen vorschlägt, braucht es Ihre Einwilligung. Was Sie geschrieben haben, bleibt stehen.",
@@ -61,7 +72,7 @@ window.Suchbegriffe = (() => {
       ordnen: "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen.",
       entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
       neuLabel: "Eigenen Suchbegriff aufnehmen",
-      aufgenommen: name => `„${name}“ ist jetzt in deiner Suche.`,
+      aufgenommen: name => mitPflicht(name, "deiner Suche"),
       zurueck: name => `„${name}“ ist wieder in deiner Suche.`,
       amEnde: name => `„${name}“ ist wieder in deiner Suche, am Ende der Liste.`,
       einwilligung: "Bevor die KI Stellen vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.",
