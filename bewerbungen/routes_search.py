@@ -143,6 +143,7 @@ def overview(k, parameter, body):
     postal_codes: tuple[str, ...] = ()
     region = None
     size = None  # G43: how big the next run is, so that the page announces a long one
+    limits = {"begriffe": [], "hinweise": []}  # G105: the portals a term is limited to, for Suche einstellen
     off = store.settings()[PORTALS_OFF]
     choice = search_plan.portal_choice(search_plan.SearchPlan(keywords=(), kind=kind, portals=portals), off)
     try:
@@ -156,6 +157,7 @@ def overview(k, parameter, body):
         targets, homes, postal_codes = dict(current.hint_targets), current.places, current.postal_codes
         region = _region(current)
         size = search_stages.size(current.as_dict())
+        limits = search_plan.portal_limit_notes(profile, off)
     except search_plan.ProfileGap as gap:
         hints, targets = [str(gap)], {str(gap): gap.field}
     except ValueError as error:
@@ -172,7 +174,8 @@ def overview(k, parameter, body):
                          "angebote": list(offers), **routes_career.searched_now(k),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
                          "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN,
-                         "region": region, "sperrgrund": blocked, "zeitraum": routes_window.display_for(k), "umfang": size})
+                         "region": region, "sperrgrund": blocked, "zeitraum": routes_window.display_for(k), "umfang": size,
+                         "begriff_portale": limits["begriffe"], "portal_hinweise": limits["hinweise"]})
 
 
 def _listed(k, store: Hits, hit: dict, homes: tuple[str, ...], postal_codes: tuple[str, ...]) -> dict:

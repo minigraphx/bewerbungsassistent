@@ -32,9 +32,24 @@ function apprenticeshipQueries(plan) {
 }
 
 /**
+ * Whether a term runs on this portal: a term the profile limits to some portals (G105, `nur_portale`) only there.
+ * An older app sends no limits, so every term runs everywhere.
+ * @param {object} plan
+ * @param {string} term
+ * @param {string} portal
+ * @returns {boolean}
+ */
+export function runsOn(plan, term, portal) {
+  const limits = plan.nur_portale;
+  const only = limits && typeof limits === 'object' && Object.hasOwn(limits, term) ? limits[term] : null;
+  return !Array.isArray(only) || only.includes(portal);
+}
+
+/**
  * Queries of one portal, all of them (G43): the search runs them in stages instead of leaving some out.
  * job-room searches all cantons at once; the others once per place, the home first.
  * Niche keywords run without place on jobs.ch only: on jobscout24 and ictjobs they would need one to stay few.
+ * A keyword limited to other portals (runsOn) has no query here.
  * bewerbungen/search_stages.py counts them the same way for the announcement (tests/fixtures/run-size.json).
  * @param {string} portal
  * @param {object} plan  as /api/suche/plan returns it
@@ -43,7 +58,7 @@ function apprenticeshipQueries(plan) {
 export function buildQueries(portal, plan) {
   // The days since this portal's last successful run (G32); an older app sends only the window.
   const maxAge = plan.max_alter_tage_portale?.[portal] ?? plan.max_alter_tage;
-  const keywords = plan.stichworte || [];
+  const keywords = (plan.stichworte || []).filter((keyword) => runsOn(plan, keyword, portal));
   const niches = plan.nischen || [];
   if (APPRENTICESHIP_PORTALS.has(portal)) return { queries: apprenticeshipQueries(plan) };
   if (portal === 'job-room') {

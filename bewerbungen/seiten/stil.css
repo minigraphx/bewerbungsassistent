@@ -284,6 +284,9 @@ ol.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--spac
 .suchliste__ertrag { flex: 1 0 100%; box-sizing: border-box; padding: 0 0 var(--space-2) calc(44px + 1.5rem + 2 * var(--space-2)); }
 .suchliste__ertrag--allein { padding-left: calc(1.5rem + var(--space-2)); }
 .suchliste__name .term { white-space: nowrap; }
+/* G105: the portals a term is limited to, under its name in the same row. */
+.suchliste__portale { display: block; margin-top: 2px; }
+.suchliste-hinweise { list-style: none; margin: 0 0 var(--space-2); padding: 0; display: grid; gap: var(--space-2); max-width: var(--width-reading); }
 .ertrag-liste { margin: var(--space-2) 0 0; padding-left: var(--space-5); display: grid; gap: var(--space-1); font-size: 14px; line-height: 20px; }
 .ertrag-details { margin: 0 0 var(--space-3); }
 .ertrag-details > summary { cursor: pointer; font-size: 14px; line-height: 20px; color: var(--text-strong); }

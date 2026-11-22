@@ -24,6 +24,16 @@
       "searches": {"job-room": 3, "jobs.ch": 5, "jobscout24": 4, "ictjobs": 2}
     },
     {
+      "name": "terms limited to certain portals (G105)",
+      "plan": {
+        "art": "stelle", "portale": ["job-room", "jobs.ch", "jobscout24", "ictjobs"],
+        "stichworte": ["Begriff1", "Begriff2", "Begriff3"], "nur_portale": {"Begriff2": ["jobs.ch", "ictjobs"], "Begriff3": ["job-room"]},
+        "nischen": ["Nische1"], "kantone": ["BE"], "orte": ["Nordstadt", "Südstadt"], "plz": ["1111"],
+        "regionen": ["grossraum-bern"], "schweizweit": false
+      },
+      "searches": {"job-room": 3, "jobs.ch": 5, "jobscout24": 1, "ictjobs": 2}
+    },
+    {
       "name": "apprenticeships and trial apprenticeships in cantons",
       "plan": {
         "art": "lehrstelle", "portale": ["LENA", "yousty"], "stichworte": ["Beruf1 EFZ", "Beruf2 EFZ", "Beruf3 EBA"],

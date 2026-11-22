@@ -2,7 +2,8 @@
 
 The profile is Markdown for people and the skill `jobsuche`. Read here are the lines `- Label: value` in the
 sections Region, Keywords and Titelfilter, and the table in „Portale und Rhythmus“. A profile from the
-einstieg template only has place of residence and cantons; the rest is derived from them.
+einstieg template only has place of residence and cantons; the rest is derived from them. A line „- Nur jobs.ch: …“
+under Keywords limits its terms to those portals (G105); without one every term runs on every portal (G68).
 
 An apprenticeship profile (section „Lehrbeginn“, MIN-365) searches other portals: its professions take the place
 of the keywords, around the place of residence or else in the cantons. Section „Gesucht“ says whether apprenticeships,
@@ -82,6 +83,13 @@ NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf p
 NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
 CORE_LABEL = "kernliste"
 NICHE_LABEL = "nischen"
+# G105: «- Nur jobs.ch, job-room: Kursleiter» under Keywords; older apps read it as one more searched group.
+LIMIT_LABEL = re.compile(r"^nur\b\s*(.*)$", re.IGNORECASE)
+UNKNOWN_LIMIT = ("Die Zeile „{label}: …“ nennt ein Portal, das die App nicht kennt. Die Begriffe darin sucht sie darum "
+                 "auf allen Portalen.")
+LIMIT_OFF = "„{term}“ sucht nur auf {portals}, und {portals} ist ausgeschaltet. Der Begriff läuft darum in keiner Suche."
+LIMITS_OFF = ("„{term}“ sucht nur auf {portals}, und diese Portale sind ausgeschaltet. Der Begriff läuft darum in "
+              "keiner Suche.")
 NO_PROFILE = "Es gibt noch kein Suchprofil. Zuerst Meine Angaben abschliessen."
 NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
@@ -147,6 +155,11 @@ class SearchPlan:
     nationwide: bool = False
     hint_targets: tuple[tuple[str, str], ...] = ()  # hint → field in „Meine Angaben“
     max_age_days: int = MAX_AGE_DAYS
+    portal_limits: tuple[tuple[str, tuple[str, ...]], ...] = ()  # G105: term → the only portals it runs on
+    unknown_limits: tuple[str, ...] = ()  # labels of «Nur» lines that name a portal the app does not know
+
+    def runs_on(self, term: str, portal: str) -> bool:
+        return portal in dict(self.portal_limits).get(term, (portal,))
 
     def as_dict(self) -> dict:
         pages = MAX_APPRENTICESHIP_PAGES if self.kind == KIND_APPRENTICESHIP else MAX_PAGES
@@ -156,7 +169,8 @@ class SearchPlan:
                 "titel_ausschluss": list(self.title_exclude), "umkreis_km": self.radius_km,
                 "lehrbeginn_jahre": list(self.start_years), "angebote": list(self.offers), "max_seiten": pages, "max_abfragen": MAX_QUERIES,
                 "max_alter_tage": self.max_age_days, "max_texte": MAX_TEXTS, "hinweise": list(self.hints), "schweizweit": self.nationwide,
-                "hinweis_ziele": dict(self.hint_targets)}
+                "hinweis_ziele": dict(self.hint_targets),
+                "nur_portale": {term: list(portals) for term, portals in self.portal_limits}}
 
 
 def _portals_of_kind(kind: str) -> tuple[str, ...]:
@@ -182,7 +196,9 @@ def chosen(plan: SearchPlan, switched_off: list[str] | None) -> SearchPlan:
 
 
 def _computing_term(plan: SearchPlan) -> str | None:
-    return next((term for term in (*plan.keywords, *plan.niche_keywords) if COMPUTING.search(term)), None)
+    """A term that fits ictjobs and may run there: one limited to other portals (G105) does not count."""
+    terms = (*plan.keywords, *plan.niche_keywords)
+    return next((term for term in terms if plan.runs_on(term, SPECIALIST_PORTAL) and COMPUTING.search(term)), None)
 
 
 def _specialist_reason(plan: SearchPlan, switched_off: list[str] | None, on: bool) -> dict:
@@ -243,11 +259,15 @@ def _value(pairs: dict[str, str], *prefixes: str) -> str:
     return next((v for label, v in pairs.items() for p in prefixes if label.startswith(p)), "")
 
 
+def _clean(raw: str, chars: int = MAX_VALUE) -> str:
+    return " ".join(raw.replace("`", "").split())[:chars]
+
+
 def _items(text: str, limit: int | None, chars: int = MAX_VALUE) -> tuple[str, ...]:
     """Comma-separated values: trimmed, without duplicates (ignoring case), bounded in length and, given a limit, in number."""
     seen, result = set(), []
     for raw in text.split(","):
-        value = " ".join(raw.replace("`", "").split())[:chars]
+        value = _clean(raw, chars)
         if value and value.lower() not in seen:
             seen.add(value.lower())
             result.append(value)
@@ -456,10 +476,77 @@ def _listed_terms(sections: dict[str, list[str]]) -> tuple[str, ...]:
     """The first core list, then every other named line under Keywords but the niches (#174); else the search directions.
 
     Terms from Keywords in the saved order, if the profile has one (G87); numbered directions carry their order."""
-    pairs = _pairs(sections.get("keywords", []))
-    others = [value for label, value in pairs.items() if not label.startswith((CORE_LABEL, NICHE_LABEL))]
-    terms = _terms(",".join([_value(pairs, CORE_LABEL), *others]), None)
+    lines = sections.get("keywords", [])
+    others = [value for _, value in _group_pairs(lines)]
+    terms = _terms(",".join([_value(_pairs(lines), CORE_LABEL), *others]), None)
     return _in_order(terms, sections) if terms else _directions(sections.get("suchrichtungen", []), None)
+
+
+def _group_pairs(lines: list[str]) -> list[tuple[str, str]]:
+    """The searched named lines under Keywords but the core list and the niches, in order, as (label, value): of a
+    label its first line (#174), but every «Nur» line, since several may name the same portals (G105)."""
+    found, seen = [], frozenset()
+    for match in filter(None, map(PAIR.match, lines)):
+        label = match.group(1).strip()
+        key = label.lower()
+        if key.startswith((CORE_LABEL, NICHE_LABEL)):
+            continue
+        if LIMIT_LABEL.match(key) or key not in seen:
+            found = [*found, (label, match.group(2).strip())]
+        seen = seen | {key}
+    return found
+
+
+def _limit_portals(label: str) -> tuple[str, ...] | None:
+    """The portals a «Nur» line names, written as in the table of portals in any case; None for another line, and
+    () when one name is no portal the app knows, so the whole line limits nothing."""
+    match = LIMIT_LABEL.match(label)
+    if match is None:
+        return None
+    known = {portal.casefold(): portal for portal in PORTALS}
+    named = [name.strip().casefold() for name in match.group(1).split(",")]
+    return () if any(name not in known for name in named) else tuple(dict.fromkeys(known[name] for name in named))
+
+
+def _term_keys(value: str) -> frozenset[str]:
+    """The terms of a value as `_items` tells them apart."""
+    return frozenset(_clean(term).lower() for term in split_terms(value) if _clean(term))
+
+
+def _portal_limits(lines: list[str], keywords: tuple[str, ...]) -> tuple[tuple[tuple[str, tuple[str, ...]], ...], tuple[str, ...]]:
+    """Per term the portals its «Nur» lines name (G105), and the labels of lines that name an unknown portal.
+
+    A term that a line without a limit also lists runs everywhere (G68), like a term of an unknown line."""
+    groups = [(label, value, _limit_portals(label)) for label, value in _group_pairs(lines)]
+    everywhere = _term_keys(_value(_pairs(lines), CORE_LABEL)).union(
+        *(_term_keys(value) for _, value, portals in groups if not portals))
+    limited: dict[str, tuple[str, ...]] = {}
+    for _, value, portals in groups:
+        if not portals:
+            continue
+        for key in _term_keys(value) - everywhere:
+            limited = {**limited, key: tuple(dict.fromkeys((*limited.get(key, ()), *portals)))}
+    unknown = tuple(dict.fromkeys(label for label, _, portals in groups if portals == ()))
+    return tuple((term, limited[term.lower()]) for term in keywords if term.lower() in limited), unknown
+
+
+def _named(portals: tuple[str, ...]) -> str:
+    return portals[0] if len(portals) == 1 else f"{', '.join(portals[:-1])} und {portals[-1]}"
+
+
+def portal_limit_notes(plan: SearchPlan, switched_off: list[str] | None) -> dict:
+    """What Suche einstellen shows of the limits (G105): per limited term its portals, which of them are switched off
+    and whether all are, and a notice for each line naming an unknown portal and each term that runs in no search."""
+    on = chosen(plan, switched_off).portals
+    terms = [_limit_entry(term, portals, on) for term, portals in plan.portal_limits]
+    off = [(LIMIT_OFF if len(entry["portale"]) == 1 else LIMITS_OFF).format(
+        term=entry["begriff"], portals=_named(tuple(entry["portale"]))) for entry in terms if entry["aus"]]
+    return {"begriffe": terms, "hinweise": [*(UNKNOWN_LIMIT.format(label=label) for label in plan.unknown_limits), *off]}
+
+
+def _limit_entry(term: str, portals: tuple[str, ...], on: tuple[str, ...]) -> dict:
+    off = [portal for portal in portals if portal not in on]
+    return {"begriff": term, "portale": list(portals), "aus": len(off) == len(portals), "ausgeschaltet": off}
 
 
 def job_terms(text: str) -> tuple[str, ...]:
@@ -525,7 +612,8 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", "regionen"))
     targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes)
     window, window_hint = _window(_value(_pairs(sections.get("portale und rhythmus", [])), "zeitfenster"))
-    return SearchPlan(keywords=keywords, niche_keywords=niches,
+    limits, unknown_limits = _portal_limits(sections.get("keywords", []), keywords)
+    return SearchPlan(keywords=keywords, niche_keywords=niches, portal_limits=limits, unknown_limits=unknown_limits,
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
                       title_exclude=_title_terms(_value(titles, "ausschluss"), MAX_LISTED),
                       title_positive=_title_terms(_value(titles, "positiv"), MAX_LISTED), portals=portals,

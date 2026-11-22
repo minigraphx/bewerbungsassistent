@@ -17,6 +17,7 @@ window.Suchliste = (() => {
   let begriffe = [];
   let ertrag = new Map();  // per term what the last runs brought (G103)
   let laeufe = 0;  // how many runs that is; with some, a term without an entry says it was not searched yet
+  let portale = new Map();  // per term the portals the profile limits it to (G105)
   let optionen = {};
   let zeilen = [];  // per term its row and buttons, to find the focused one again after drawing anew
   let ziehen = null;
@@ -55,7 +56,8 @@ window.Suchliste = (() => {
     const zusatz = ziehen && ziehen.name === name ? ZIEHT : (hervor === name ? VERSCHOBEN : "");
     const klasse = zusatz ? `suchliste__eintrag ${zusatz}` : "suchliste__eintrag";
     const li = el("li", { class: klasse, "data-begriff": name }, griff,
-      el("span", { class: "suchliste__nummer" }, `${index + 1}.`), el("span", { class: "suchliste__name" }, name, ...marke(name)),
+      el("span", { class: "suchliste__nummer" }, `${index + 1}.`),
+      el("span", { class: "suchliste__name" }, name, ...marke(name), portalZeile(name)),
       el("span", { class: "suchliste__knoepfe" }, ...Object.values(knoepfe)), ertragsZeile(name, griff !== null));
     return { name, li, knoepfe };
   }
@@ -65,6 +67,12 @@ window.Suchliste = (() => {
     const eintrag = ertrag.get(name);
     if (!eintrag || !eintrag.ohne_ertrag) return [];
     return [" ", el("span", { class: "term term--flag" }, el("span", { class: "term__word" }, E.OHNE_ERTRAG))];
+  }
+
+  // G105: under the name, so the row keeps its handle and buttons; it moves with its term.
+  function portalZeile(name) {
+    const teile = L.portalTeile(portale.get(name));
+    return teile.length ? el("span", { class: "suchliste__portale caption" }, ...window.DotLine.render(teile, el)) : null;
   }
 
   function ertragsZeile(name, mitGriff) {
@@ -190,5 +198,11 @@ window.Suchliste = (() => {
     if (liste && !ziehen && offen === 0) zeichne();
   }
 
-  return { zeige, ertrag: zeigeErtrag };
+  /** The portals the profile limits terms to (G105), as /api/suche/liste gives them in `begriff_portale`. */
+  function zeigePortale(eintraege) {
+    portale = new Map((eintraege || []).map(eintrag => [eintrag.begriff, eintrag]));
+    if (liste && !ziehen && offen === 0) zeichne();
+  }
+
+  return { zeige, ertrag: zeigeErtrag, portale: zeigePortale };
 })();
