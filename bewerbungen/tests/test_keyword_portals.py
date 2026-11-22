@@ -77,7 +77,8 @@ def test_a_line_naming_a_portal_the_app_does_not_know_is_no_limit_and_the_page_s
 
     plan = search_plan.parse(profile("- Kernliste: Kursplaner\n- Nur Aarau: Lernbegleiter"))
     assert search_plan.portal_limit_notes(plan, ALL_ON)["hinweise"] == [
-        "Die Zeile „Nur Aarau: …“ nennt kein Portal, das die App kennt. Die Begriffe darin sucht sie darum auf allen Portalen."]
+        "Die Zeile „Nur Aarau: …“ nennt ein Portal, das die App nicht kennt. Die Begriffe darin sucht sie darum auf "
+        "allen Portalen."]
 
 
 def test_niches_cannot_be_limited_and_a_term_also_in_the_core_list_runs_everywhere():
@@ -97,12 +98,36 @@ def test_a_term_whose_portals_are_all_switched_off_runs_in_no_search():
 
     notes = search_plan.portal_limit_notes(plan, ["ictjobs"])
 
-    assert notes["begriffe"] == [{"begriff": "Lernbegleiter", "portale": ["ictjobs"], "aus": True}]
+    assert notes["begriffe"] == [{"begriff": "Lernbegleiter", "portale": ["ictjobs"], "aus": True,
+                                  "ausgeschaltet": ["ictjobs"]}]
     assert notes["hinweise"] == ["„Lernbegleiter“ sucht nur auf ictjobs, und ictjobs ist ausgeschaltet. "
                                  "Der Begriff läuft darum in keiner Suche."]
     assert size_of(text, ["ictjobs"]) == size_of(profile("- Kernliste: Kursplaner"), ["ictjobs"])
     on = search_plan.portal_limit_notes(plan, ALL_ON)
-    assert on == {"begriffe": [{"begriff": "Lernbegleiter", "portale": ["ictjobs"], "aus": False}], "hinweise": []}
+    assert on == {"begriffe": [{"begriff": "Lernbegleiter", "portale": ["ictjobs"], "aus": False, "ausgeschaltet": []}],
+                  "hinweise": []}
+
+
+def test_several_portals_all_switched_off_are_named_as_these_portals():
+    plan = search_plan.parse(profile("- Kernliste: Kursplaner\n- Nur jobs.ch, ictjobs, jobscout24: Lernbegleiter"))
+
+    notes = search_plan.portal_limit_notes(plan, ["jobs.ch", "ictjobs", "jobscout24"])
+
+    assert notes["begriffe"][0]["aus"] is True
+    assert notes["hinweise"] == ["„Lernbegleiter“ sucht nur auf jobs.ch, ictjobs und jobscout24, und diese Portale sind "
+                                 "ausgeschaltet. Der Begriff läuft darum in keiner Suche."]
+
+
+def test_a_term_with_only_some_of_its_portals_off_names_them_and_still_runs():
+    text = profile("- Kernliste: Kursplaner\n- Nur jobs.ch, ictjobs, jobscout24: Lernbegleiter")
+    plan = search_plan.parse(text)
+
+    notes = search_plan.portal_limit_notes(plan, ["jobscout24", "ictjobs"])
+
+    assert notes == {"begriffe": [{"begriff": "Lernbegleiter", "portale": ["jobs.ch", "ictjobs", "jobscout24"],
+                                   "aus": False, "ausgeschaltet": ["ictjobs", "jobscout24"]}], "hinweise": []}
+    assert size_of(text, ["jobscout24", "ictjobs"])["pro_portal"]["jobs.ch"] == \
+        size_of(profile("- Kernliste: Kursplaner, Lernbegleiter"), ["jobscout24", "ictjobs"])["pro_portal"]["jobs.ch"]
 
 
 def test_removing_a_term_also_removes_it_from_its_nur_line():
@@ -165,9 +190,11 @@ def test_the_page_and_the_extension_get_the_limit(server):  # noqa: F811
     page = json.loads(get(server, "/api/suche/liste")[2])
     plan = json.loads(get(server, "/api/suche/plan")[2])["plan"]
 
-    assert page["begriff_portale"] == [{"begriff": "Lernbegleiter", "portale": ["ictjobs"], "aus": True}]
+    assert page["begriff_portale"] == [{"begriff": "Lernbegleiter", "portale": ["ictjobs"], "aus": True,
+                                        "ausgeschaltet": ["ictjobs"]}]
     assert page["portal_hinweise"] == [
-        "Die Zeile „Nur Aarau: …“ nennt kein Portal, das die App kennt. Die Begriffe darin sucht sie darum auf allen Portalen.",
+        "Die Zeile „Nur Aarau: …“ nennt ein Portal, das die App nicht kennt. Die Begriffe darin sucht sie darum auf "
+        "allen Portalen.",
         "„Lernbegleiter“ sucht nur auf ictjobs, und ictjobs ist ausgeschaltet. Der Begriff läuft darum in keiner Suche."]
     assert plan["nur_portale"] == {"Lernbegleiter": ["ictjobs"]}
     # Kursplaner and Lernbetreuer: job-room 2 and the niche, jobs.ch 2 × 2 and the niche, jobscout24 2.

@@ -85,9 +85,11 @@ CORE_LABEL = "kernliste"
 NICHE_LABEL = "nischen"
 # G105: «- Nur jobs.ch, job-room: Kursleiter» under Keywords; older apps read it as one more searched group.
 LIMIT_LABEL = re.compile(r"^nur\b\s*(.*)$", re.IGNORECASE)
-UNKNOWN_LIMIT = ("Die Zeile „{label}: …“ nennt kein Portal, das die App kennt. Die Begriffe darin sucht sie darum "
+UNKNOWN_LIMIT = ("Die Zeile „{label}: …“ nennt ein Portal, das die App nicht kennt. Die Begriffe darin sucht sie darum "
                  "auf allen Portalen.")
-LIMIT_OFF = "„{term}“ sucht nur auf {portals}, und {portals} {verb} ausgeschaltet. Der Begriff läuft darum in keiner Suche."
+LIMIT_OFF = "„{term}“ sucht nur auf {portals}, und {portals} ist ausgeschaltet. Der Begriff läuft darum in keiner Suche."
+LIMITS_OFF = ("„{term}“ sucht nur auf {portals}, und diese Portale sind ausgeschaltet. Der Begriff läuft darum in "
+              "keiner Suche.")
 NO_PROFILE = "Es gibt noch kein Suchprofil. Zuerst Meine Angaben abschliessen."
 NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
@@ -533,14 +535,18 @@ def _named(portals: tuple[str, ...]) -> str:
 
 
 def portal_limit_notes(plan: SearchPlan, switched_off: list[str] | None) -> dict:
-    """What Suche einstellen shows of the limits (G105): per limited term its portals and whether all of them are
-    switched off, and a notice for each line naming an unknown portal and each term that runs in no search."""
+    """What Suche einstellen shows of the limits (G105): per limited term its portals, which of them are switched off
+    and whether all are, and a notice for each line naming an unknown portal and each term that runs in no search."""
     on = chosen(plan, switched_off).portals
-    terms = [{"begriff": term, "portale": list(portals), "aus": not any(p in on for p in portals)}
-             for term, portals in plan.portal_limits]
-    off = [LIMIT_OFF.format(term=entry["begriff"], portals=_named(tuple(entry["portale"])),
-                            verb="ist" if len(entry["portale"]) == 1 else "sind") for entry in terms if entry["aus"]]
+    terms = [_limit_entry(term, portals, on) for term, portals in plan.portal_limits]
+    off = [(LIMIT_OFF if len(entry["portale"]) == 1 else LIMITS_OFF).format(
+        term=entry["begriff"], portals=_named(tuple(entry["portale"]))) for entry in terms if entry["aus"]]
     return {"begriffe": terms, "hinweise": [*(UNKNOWN_LIMIT.format(label=label) for label in plan.unknown_limits), *off]}
+
+
+def _limit_entry(term: str, portals: tuple[str, ...], on: tuple[str, ...]) -> dict:
+    off = [portal for portal in portals if portal not in on]
+    return {"begriff": term, "portale": list(portals), "aus": len(off) == len(portals), "ausgeschaltet": off}
 
 
 def job_terms(text: str) -> tuple[str, ...]:
