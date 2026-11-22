@@ -38,7 +38,7 @@ OVER_TITLES = ("Mit dieser Auswahl hätte «{area}» {count} Begriffe, höchsten
 NO_TERMS_LEFT = "Danach stünde kein Suchbegriff mehr in der Suche. Bitte mindestens einen einschalten."
 # G43: every search runs, in stages; the line says how many there would be, no longer up to a limit.
 # #340: two parts, which the page joins with «·» (seiten/dot-line.js).
-LIMITS_PARTS = ("Danach: {keywords} von {max_keywords} Suchbegriffen", "bis {queries} Suchen pro Portal")
+LIMITS_PARTS = ("Danach: {keywords} von {max_keywords} Suchbegriffen", "bis {queries} {searches} pro Portal")
 # A profile from before the limit may keep its terms, but not grow (#371).
 LIMITS_OVER_BEFORE = "Danach: {keywords} Suchbegriffe, erlaubt sind {earlier}"
 AREA_LIMITS = {KEYWORDS: search_plan.MAX_KEYWORDS, POSITIVE: search_plan.MAX_TITLE_TERMS,
@@ -264,7 +264,8 @@ def _over_message(area: str, count: int, earlier: int, left: int) -> str:
 
 def _limits_line(before: Terms, after: Terms, places: int) -> list[str]:
     numbers = {"keywords": len(after.keywords), "max_keywords": search_plan.MAX_KEYWORDS,
-               "earlier": len(before.keywords), "queries": len(after.keywords) * places}
+               "earlier": len(before.keywords), "queries": len(after.keywords) * places,
+               "searches": "Suche" if len(after.keywords) * places == 1 else "Suchen"}
     first = LIMITS_OVER_BEFORE if len(before.keywords) > search_plan.MAX_KEYWORDS else LIMITS_PARTS[0]
     return [part.format(**numbers) for part in (first, *LIMITS_PARTS[1:])]
 

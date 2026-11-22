@@ -204,10 +204,14 @@
   const rundeTeile = (vorschlag, satz) => (vorschlag.runde > 1 ? [`Vorschlag ${vorschlag.runde}`, texte(satz).nachHinweis] : []);
 
   /** The terms after the switches, as the app worked them out, each with „neu“ if it was not there before. */
-  function endstand(jetzt, danach) {
+  /** `nurZeilen`: a keyword limited to portals stands only in its «Nur» block (endstandZeilen), not under Suchbegriffe. */
+  function endstand(jetzt, danach, nurZeilen = []) {
+    const begrenzt = new Set(nurZeilen.flatMap(zeile => zeile.begriffe.map(b => b.begriff.toLowerCase())));
+    const gezeigt = (schluessel, begriff) => schluessel !== "suchbegriffe" || !begrenzt.has(begriff.toLowerCase());
     return BEREICHE.map(([schluessel, name]) => ({
       name,
-      begriffe: danach[schluessel].map(begriff => ({ begriff, neu: !jetzt[schluessel].some(b => b.toLowerCase() === begriff.toLowerCase()) })),
+      begriffe: danach[schluessel].filter(begriff => gezeigt(schluessel, begriff))
+        .map(begriff => ({ begriff, neu: !jetzt[schluessel].some(b => b.toLowerCase() === begriff.toLowerCase()) })),
     }));
   }
 
@@ -222,12 +226,13 @@
   const GEZAEHLT_TITEL = "Was die App gezählt hat";
   const NICHTS_MARKIERT = "Jeder Suchbegriff hat in den letzten 3 Suchläufen eigene Treffer gebracht.";
   const TABELLE_TITEL = "Alle Suchbegriffe mit Zahlen";
-  const TABELLE_SPALTEN = ["Begriff", "Suchen", "Treffer", "nur über diesen Begriff", "ab Note 4"];
+  const TABELLE_SPALTEN = ["Begriff", "Suchen", "Treffer", "aussortiert", "nur über diesen Begriff", "ab Note 4"];
   const MARKEN = { ohne_ertrag: "ohne Ertrag", ueberlappend: "überlappend" };
   const VERSION_DER_ZAHLEN = "0.3.3";
 
   const gezaehltUnterzeile = z => `Aus den letzten ${z.noetig} Suchläufen, gezählt von der App, nicht von der KI.`;
-  const gezaehltFehler = grund => `Die Zahlen der App liessen sich nicht laden: ${grund}`;
+  const gezaehltFehler = grund => `Die Zahlen der App liessen sich nicht laden: ${grund}${/[.!?]$/.test(grund) ? "" : "."} `
+    + "Die KI schlägt darum ohne diese Zahlen vor.";
 
   function zuWenigeLaeufe(z) {
     if (z.genug) return null;
@@ -237,9 +242,11 @@
 
   function markeSatz(e) {
     if (e.marke === "ohne_ertrag") {
+      // hits as Suche einstellen counts them (#383): all the portals found, the screened-out ones among them
       const suchen = viele(e.suchen, "Suche", "Suchen");
-      return e.aussortiert ? `${suchen}, kein Treffer in der Liste; ${e.aussortiert} Titel hat der Titelfilter aussortiert.`
-        : `${suchen}, kein Treffer.`;
+      if (!e.treffer_portale) return `${suchen}, kein Treffer.`;
+      return e.treffer_portale === 1 ? `${suchen}, 1 Treffer, vom Titelfilter aussortiert.`
+        : `${suchen}, ${e.treffer_portale} Treffer, alle vom Titelfilter aussortiert.`;
     }
     if (e.treffer === 1) return `1 Treffer, auch über „${e.auch_ueber}“.`;
     return e.alle_ueber ? `${e.treffer} Treffer, alle auch über „${e.auch_ueber}“.`
@@ -251,7 +258,7 @@
     .map(e => ({ name: `„${e.begriff}“`, marke: MARKEN[e.marke], rest: `: ${markeSatz(e)}` }));
 
   const tabellenZeilen = z => z.begriffe.map(e => ({ begriff: e.begriff, marke: MARKEN[e.marke] || "",
-    zahlen: [e.suchen, e.treffer, e.nur_hier, e.ab_note_4] }));
+    zahlen: [e.suchen, e.treffer_portale, e.aussortiert, e.nur_hier, e.ab_note_4] }));
 
   /** The word of the chip on a card's area line: the mark of the keyword the change concerns, or nothing. */
   const kartenMarke = aenderung => MARKEN[aenderung.marke] || "";

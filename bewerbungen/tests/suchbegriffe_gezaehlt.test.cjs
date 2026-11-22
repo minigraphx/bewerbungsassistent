@@ -26,9 +26,10 @@ test("only flagged keywords are listed, each with its mark and numbers", () => {
   ]);
 });
 
-test("titles the title filter screened out are named, and several covering terms by the most frequent", () => {
-  assert.equal(L.markiert({ ...COUNTS, begriffe: [SCREENED] })[0].rest,
-    ": 36 Suchen, kein Treffer in der Liste; 9 Titel hat der Titelfilter aussortiert.");
+test("hits the title filter screened out are counted as hits, and several covering terms by the most frequent", () => {
+  assert.equal(L.markiert({ ...COUNTS, begriffe: [SCREENED] })[0].rest, ": 36 Suchen, 9 Treffer, alle vom Titelfilter aussortiert.");
+  assert.equal(L.markiert({ ...COUNTS, begriffe: [{ ...SCREENED, suchen: 6, treffer_portale: 1, aussortiert: 1 }] })[0].rest,
+    ": 6 Suchen, 1 Treffer, vom Titelfilter aussortiert.");
   assert.equal(L.markiert({ ...COUNTS, begriffe: [SPREAD] })[0].rest, ": 14 Treffer, alle auch über andere Begriffe, meist „Kursleiter“.");
   assert.equal(L.markiert({ ...COUNTS, begriffe: [{ ...NARROW, treffer: 1 }] })[0].rest, ": 1 Treffer, auch über „Kursleiter“.");
   assert.equal(L.markiert({ ...COUNTS, begriffe: [{ ...AUTHOR, suchen: 1 }] })[0].rest, ": 1 Suche, kein Treffer.");
@@ -47,14 +48,21 @@ test("with too few runs there are no marks, only how many runs it needs", () => 
   assert.deepEqual(L.markiert(few), []);
 });
 
-test("the table names every keyword with searches, hits, its own hits and those graded 4 or more", () => {
+test("the table counts hits as Suche einstellen does: all of them, the screened-out ones beside", () => {
   assert.equal(L.TABELLE_TITEL, "Alle Suchbegriffe mit Zahlen");
-  assert.deepEqual(L.TABELLE_SPALTEN, ["Begriff", "Suchen", "Treffer", "nur über diesen Begriff", "ab Note 4"]);
-  assert.deepEqual(L.tabellenZeilen(COUNTS), [
-    { begriff: "Lernbegleiter", marke: "", zahlen: [12, 6, 6, 2] },
-    { begriff: "E-Learning-Autor", marke: "ohne Ertrag", zahlen: [36, 0, 0, 0] },
-    { begriff: "Kursleiter Informatik", marke: "überlappend", zahlen: [12, 14, 0, 2] },
+  assert.deepEqual(L.TABELLE_SPALTEN, ["Begriff", "Suchen", "Treffer", "aussortiert", "nur über diesen Begriff", "ab Note 4"]);
+  assert.deepEqual(L.tabellenZeilen({ ...COUNTS, begriffe: [entry({ aussortiert: 3 }), AUTHOR, SCREENED] }), [
+    { begriff: "Lernbegleiter", marke: "", zahlen: [12, 10, 3, 6, 2] },
+    { begriff: "E-Learning-Autor", marke: "ohne Ertrag", zahlen: [36, 0, 0, 0, 0] },
+    { begriff: "E-Learning-Autor", marke: "ohne Ertrag", zahlen: [36, 9, 9, 0, 0] },
   ]);
+});
+
+test("a failed load names its reason once, and the AI proposes without the numbers", () => {
+  assert.equal(L.gezaehltFehler("Der Suchverlauf liess sich nicht lesen."),
+    "Die Zahlen der App liessen sich nicht laden: Der Suchverlauf liess sich nicht lesen. Die KI schlägt darum ohne diese Zahlen vor.");
+  assert.equal(L.gezaehltFehler("Zeitüberschreitung"),
+    "Die Zahlen der App liessen sich nicht laden: Zeitüberschreitung. Die KI schlägt darum ohne diese Zahlen vor.");
 });
 
 test("a card names the mark of the keyword it concerns", () => {
@@ -87,6 +95,14 @@ test("«So sucht die App danach» shows the niches and the «Nur» lines", () =>
     { name: "Nur jobs.ch, job-room", begriffe: [{ begriff: "Kursleiter", neu: true }] },
   ]);
   assert.deepEqual(L.endstandZeilen({ nischen: [], nur_zeilen: [] }), []);
+});
+
+test("a keyword limited to portals stands only in its «Nur» block, not also under Suchbegriffe", () => {
+  const jetzt = { suchbegriffe: ["Kursleiter", "Lernbegleiter"], positiv: [], ausschluss: [] };
+  const danach = { suchbegriffe: ["Kursleiter", "Lernbegleiter"], positiv: [], ausschluss: [] };
+  const nur = [{ portale: ["jobs.ch", "job-room"], begriffe: [{ begriff: "kursleiter", neu: true }] }];
+  assert.deepEqual(L.endstand(jetzt, danach, nur)[0], { name: "Suchbegriffe", begriffe: [{ begriff: "Lernbegleiter", neu: false }] });
+  assert.deepEqual(L.endstand(jetzt, danach)[0].begriffe.map(b => b.begriff), ["Kursleiter", "Lernbegleiter"]);
 });
 
 test("what goes to the AI names the counts and the screened-out titles, in Sie and du", () => {

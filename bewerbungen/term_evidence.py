@@ -140,11 +140,11 @@ class Counted:
 
 
 def _mark(found: dict, shared: dict, runs: int) -> str | None:
-    """«ohne Ertrag»: nothing came into the list, every title screened out or none at all; «überlappend»: every hit
-    also came through another keyword. Only for a keyword searched in each of the last NEEDED_RUNS runs."""
+    """«ohne Ertrag» as Suche einstellen marks it (`search_yield`: no hit past the title filter); «überlappend»: every
+    hit also came through another keyword. Only for a keyword searched in each of the last NEEDED_RUNS runs."""
     if runs < NEEDED_RUNS or shared["laeufe"] < NEEDED_RUNS:
         return None
-    if found["neu"] == 0 and found["treffer"] <= found["aussortiert"]:
+    if found["ohne_ertrag"]:
         return WITHOUT_YIELD
     return OVERLAPPING if found["neu"] and not shared["nur_hier"] else None
 

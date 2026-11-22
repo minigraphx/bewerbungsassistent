@@ -142,6 +142,15 @@ def test_the_yield_per_term_counts_searches_hits_new_good_and_screened_out():
         {"begriff": "Lehrperson", "suchen": 0, "treffer": 0, "neu": 0, "ab_note_4": 0, "aussortiert": 0, "ohne_ertrag": False}]
 
 
+def test_a_term_whose_hits_the_title_filter_all_screened_out_is_without_yield_too():
+    runs = [run(day, ("jobs.ch", "Kursleiter", "Aarau", 2, {"aussortiert": 2}), ("jobs.ch", "Lernbegleiter", "Aarau", 2, {"aussortiert": 1}))
+            for day in (10, 14, 18)]
+    result = search_yield.summary(runs, [], ["Kursleiter", "Lernbegleiter"], with_places=True)
+    assert [(entry["begriff"], entry["treffer"], entry["aussortiert"], entry["ohne_ertrag"]) for entry in result["begriffe"]] \
+        == [("Kursleiter", 6, 6, True), ("Lernbegleiter", 6, 3, False)], "a hit past the title filter is yield"
+    assert result["leer"] == [], "«Wo ein Begriff nichts findet» still lists only searches without a single hit"
+
+
 def test_searches_that_found_nothing_stand_per_term_and_portal():
     result = search_yield.summary(RUNS, HITS, ["Lernbegleiter", "Kursleiter"], with_places=True)
     assert result["leer"] == [{"begriff": "Kursleiter", "portal": "ictjobs", "suchen": 3, "laeufe": 3, "nische": False}], \

@@ -62,8 +62,9 @@ def _found(hits: list[dict], start: str | None, matches) -> dict:
 
 
 def _without_yield(tally: dict, runs: int) -> bool:
-    """«ohne Ertrag»: no hit in the last runs, and only once there are as many runs as the window holds."""
-    return runs >= KEPT_RUNS and tally["laeufe"] >= KEPT_RUNS and tally["treffer"] == 0
+    """«ohne Ertrag»: no hit past the title filter in the last runs (nothing found, or all screened out; one meaning on
+    Suche einstellen and Suchbegriffe prüfen, #383), and only once there are as many runs as the window holds."""
+    return runs >= KEPT_RUNS and tally["laeufe"] >= KEPT_RUNS and tally["treffer"] - tally["aussortiert"] <= 0
 
 
 def _entry(tally: dict, found: dict, runs: int) -> dict:

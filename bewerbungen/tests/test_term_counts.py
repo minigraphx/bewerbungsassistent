@@ -283,6 +283,13 @@ def test_both_moves_taken_over_write_the_niches_and_the_nur_line(counted_search,
     assert "- Nur jobs.ch, jobscout24: E-Learning-Autor" in text
 
 
+def test_one_search_per_portal_is_said_in_the_singular():
+    one = term_changes.Terms(("Kursleiter",), (), ())
+    two = term_changes.Terms(("Kursleiter", "Lernbegleiter"), (), ())
+    assert term_changes.limits(two, one, 1)["teile"][1] == "bis 1 Suche pro Portal"
+    assert term_changes.limits(one, two, 1)["teile"][1] == "bis 2 Suchen pro Portal"
+
+
 def test_a_move_the_page_did_not_offer_is_refused(counted_search, monkeypatch):
     proposal = moves(counted_search, monkeypatch)
     after = {**proposal["endstand"], "verschoben": ["Kursleiter"]}

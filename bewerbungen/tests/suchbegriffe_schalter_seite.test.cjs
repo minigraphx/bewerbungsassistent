@@ -309,7 +309,8 @@ test("«Was die App gezählt hat» shows at once while the AI works, flagged key
   assert.ok(below(row).some(n => n.className === "term term--flag"));
   assert.equal(p.$("gezaehlt-nichts").hidden, true);
   const rows = [...below(p.$("gezaehlt-tabelle"))].filter(n => n.tagName === "TR").map(heard);
-  assert.deepEqual(rows, ["BegriffSuchenTreffernur über diesen Begriffab Note 4", "Python9441", "TypeScript ohne Ertrag9000"]);
+  assert.deepEqual(rows, ["BegriffSuchenTrefferaussortiertnur über diesen Begriffab Note 4", "Python94041",
+    "TypeScript ohne Ertrag90000"]);
 });
 
 test("with too few runs the section names them and marks nothing", async () => {
@@ -326,7 +327,7 @@ test("when the counts cannot be read, the section says so and the AI still propo
   const p = await page(PROPOSAL, { "/api/suchbegriffe/gezaehlt": failed });
   assert.equal(p.$("gezaehlt").hidden, false);
   assert.equal(p.$("gezaehlt-unterzeile").textContent,
-    "Die Zahlen der App liessen sich nicht laden: Der Suchverlauf liess sich nicht lesen.");
+    "Die Zahlen der App liessen sich nicht laden: Der Suchverlauf liess sich nicht lesen. Die KI schlägt darum ohne diese Zahlen vor.");
   assert.equal(p.$("gezaehlt-liste").hidden, true);
   assert.equal(p.$("gezaehlt-alle").hidden, true);
   assert.equal(p.$("vorschlag").hidden, false, "the proposal does not depend on the counts");
@@ -353,4 +354,14 @@ test("a move has one chip with its mark on the card; switching it off sends the 
   assert.deepEqual(ends(p.sent).at(-1).body.danach.verschoben, []);
   assert.deepEqual(ends(p.sent).at(-1).body.danach.suchbegriffe, ["Python"], "the app keeps a moved keyword by itself");
   assert.ok([...below(p.$("endstand"))].some(n => n.tagName === "H3" && heard(n) === "Nischen (ohne Ort suchen)"));
+});
+
+test("a keyword limited to portals shows only in its «Nur» block of the result", async () => {
+  const limited = { ...MOVING, aenderungen: [{ ...NICHE, art: "portals", satz: "„TypeScript“ nur auf jobs.ch suchen",
+    verschoben_wort: "nur jobs.ch" }], endstand: { ...MOVING.endstand, suchbegriffe: ["Python", "TypeScript"] }, nischen: [],
+    nur_zeilen: [{ portale: ["jobs.ch"], begriffe: [{ begriff: "TypeScript", neu: true }] }] };
+  const p = await page(limited);
+  const blocks = Object.fromEntries(p.$("endstand").children.map(block => [heard(block.children[0]), heard(block.children[1])]));
+  assert.equal(blocks.Suchbegriffe, "Python");
+  assert.equal(blocks["Nur jobs.ch"], "TypeScriptneu", "marked «neu» there");
 });

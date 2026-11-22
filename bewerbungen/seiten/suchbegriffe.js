@@ -160,7 +160,7 @@
 
   function zeigeEndstand(antwort) {
     // G108: after the three areas the niches and «Nur» lines, so a move shows where the keyword runs now
-    const bloecke = [...L.endstand(vorschlag.jetzt, antwort.endstand), ...L.endstandZeilen(antwort)].map(b => el("div", {},
+    const bloecke = [...L.endstand(vorschlag.jetzt, antwort.endstand, antwort.nur_zeilen || []), ...L.endstandZeilen(antwort)].map(b => el("div", {},
       el("h3", {}, b.name),
       el("ul", { class: "terms" }, ...b.begriffe.map(x => marke({ begriff: x.begriff, wort: x.neu ? "neu" : "", art: x.neu ? "new" : "kept" })))));
     $("endstand").replaceChildren(...bloecke);
