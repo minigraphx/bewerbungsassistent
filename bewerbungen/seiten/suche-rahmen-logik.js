@@ -4,7 +4,6 @@
 (global => {
   const UMKREISE = [10, 25, 50];  // as the form in Meine Angaben offers them
   const UMKREIS_VORGABE = 25;  // search_plan.DEFAULT_RADIUS_KM
-  const titelfilterLeer = "Kein Titelfilter";
   // Place lines of single portals (#301): they go before Wohnort and Kantone, so the card shows those the profile has.
   const PORTAL_FELDER = ["orte", "plz", "regionen"];
 
@@ -65,7 +64,7 @@
   const proPortalText = liste => (Array.isArray(liste) ? liste : [])
     .map(eintrag => `${eintrag.portal}: ${eintrag.orte.join(", ")}`);
 
-  const logik = { zeilen, alsText, koerper, firmenKoerper, anfrage, umkreisWahl, umkreisGewaehlt, kantoneHinweis, titelfilterLeer,
+  const logik = { zeilen, alsText, koerper, firmenKoerper, anfrage, umkreisWahl, umkreisGewaehlt, kantoneHinweis,
     portalFelder, proPortalText };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SucheRahmenLogik = logik;

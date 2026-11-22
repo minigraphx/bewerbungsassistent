@@ -13,6 +13,7 @@ from collections.abc import Callable
 
 import numbered_order
 import search_plan
+import title_filter
 from search_plan import (APPRENTICESHIP_MARK, DIRECTION, MAX_DIRECTION, MAX_DIRECTIONS, MAX_KEYWORDS, MAX_PROFESSION_NAME,
                          MAX_VALUE, profession_words)
 
@@ -272,11 +273,12 @@ def _kept_order(old: str, new: str) -> str:
     return _with_order(new, names) if names else new
 
 
-def _without_in_line(line: str, wanted: frozenset[str]) -> str:
+def _without_in_line(line: str, wanted: frozenset[str],
+                     without: Callable[[str, frozenset[str]], str] = _without_term) -> str:
     """A line such as „- Kernliste: a, b“ without the term, written as before."""
     prefix, value = GROUP_LINE.match(line.strip()).groups()
     parts = [part.strip() for part in value.split(",") if part.strip()]
-    kept = [rest for rest in (_without_term(part, wanted) for part in parts) if rest]
+    kept = [rest for rest in (without(part, wanted) for part in parts) if rest]
     if kept == parts:
         return line
     indent = line[:len(line) - len(line.lstrip())]
@@ -295,7 +297,8 @@ def _title_line(lines: list[str], label: str) -> int | None:
 def with_title_term(text: str, label: str, term: str) -> str:
     """The profile with this term at the end of a title filter line (#210); a term that is there changes nothing."""
     clean = " ".join(term.split())
-    if clean.casefold() in (known.casefold() for known in search_plan.title_terms(text, label)):
+    known = {title_filter.bare(found).casefold() for found in search_plan.title_terms(text, label)}
+    if title_filter.bare(clean).casefold() in known:
         return text
     lines = text.split("\n")
     index = _title_line(lines, label)
@@ -307,13 +310,22 @@ def with_title_term(text: str, label: str, term: str) -> str:
 
 
 def without_title_term(text: str, label: str, term: str) -> str:
-    """The profile without this term in a title filter line; „Developer/Engineer“ is two terms, so one can go."""
+    """The profile without this term in a title filter line; „Developer/Engineer“ is two terms, so one can go. A term
+    is the same with or without «(ganzes Wort)», and the rest of its group keeps the marker (G104)."""
     lines = text.split("\n")
     index = _title_line(lines, label)
     if index is None:
         return text
-    changed = _without_in_line(lines[index], profession_words(term))
+    changed = _without_in_line(lines[index], profession_words(title_filter.bare(term)), _without_title_term)
     return text if changed == lines[index] else "\n".join([*lines[:index], changed, *lines[index + 1:]])
+
+
+def _without_title_term(part: str, wanted: frozenset[str]) -> str:
+    terms = search_plan.split_terms(part)
+    kept = [term for term in terms if _words_as_shown(term) != wanted]
+    if len(kept) == len(terms):
+        return part
+    return title_filter.with_marker("/".join(kept)) if kept and title_filter.marked(part) else "/".join(kept)
 
 
 def _kept_offers(old: str, new: str) -> str:

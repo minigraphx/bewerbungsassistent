@@ -125,6 +125,8 @@ SEITEN = {
     "/ki-ausschluesse.js": "ki-ausschluesse.js",
     "/suche-einstellen": "suche-einstellen.html",
     "/suche-einstellen.js": "suche-einstellen.js",
+    "/titelfilter-logik.js": "titelfilter-logik.js",
+    "/titelfilter-beispiele.js": "titelfilter-beispiele.js",
     "/weitere-seiten.js": "weitere-seiten.js",
     "/firmen": "firmen.html",
     "/firmen.js": "firmen.js",

@@ -21,9 +21,8 @@
     $("firmen-ausgeschlossen-text").textContent = ausgeschlossen.map(firma => firma.name).join(", ") || NICHTS;
     $("ausschluss-text").textContent = rahmen.ausschluss.join(", ") || NICHTS;
     $("titel-ausschluss-text").textContent = rahmen.titel_ausschluss.join(", ") || NICHTS;
-    const filter = anzeige.titelfilterText(rahmen.titel_positiv, rahmen.titel_ausschluss);
     $("titelfilter").hidden = lehrstelle;
-    $("titelfilter-text").textContent = filter || window.SucheRahmenLogik.titelfilterLeer;
+    window.TitelfilterBeispiele.begriffe(rahmen.titel_positiv, rahmen.titel_ausschluss);
     window.SucheRahmen.zeige(rahmen, lehrstelle, ausgeschlossen);
   }
 
@@ -67,7 +66,9 @@
   async function zeigeErtrag(nummer) {
     try {
       const ertrag = await holen("/api/suche/ertrag");
-      if (nummer === ladeNummer) window.SucheErtrag.zeige(ertrag);
+      if (nummer !== ladeNummer) return;
+      window.SucheErtrag.zeige(ertrag);
+      window.TitelfilterBeispiele.beispiele(ertrag.titelfilter);
     } catch (fehler) {
       meldung(`Was die Suche bringt, liess sich nicht laden: ${fehler.message}`, "fehler");
     }

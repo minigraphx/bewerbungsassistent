@@ -7,7 +7,8 @@ every number the page shows comes from the app.
 """
 import collections
 import dataclasses
-import re
+
+import title_filter
 
 BELOW = 4  # a grade under this does not fit well enough (Swiss grades, 6 is best)
 MIN_RATED = 30
@@ -44,8 +45,8 @@ def rated(hits: list[dict]) -> list[dict]:
 
 
 def matching(title: str, terms: tuple[str, ...]) -> tuple[str, ...]:
-    """Every term found in the title as a whole word, as the search screens titles (hits._title_match)."""
-    return tuple(term for term in terms if re.search(rf"(?<!\w){re.escape(term)}(?!\w)", title or "", re.IGNORECASE))
+    """Every term found in the title as the search screens titles (title_filter, G104)."""
+    return title_filter.all_matches(title or "", terms)
 
 
 def evidence(hits: list[dict], terms: tuple[str, ...]) -> dict[str, Evidence]:

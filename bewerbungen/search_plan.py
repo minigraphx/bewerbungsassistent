@@ -16,6 +16,7 @@ import re
 import yaml
 
 import form_limits
+import title_filter
 
 PORTALS =("job-room", "jobs.ch", "jobscout24", "ictjobs")
 APPRENTICESHIP_PORTALS = ("LENA", "yousty")
@@ -113,6 +114,7 @@ DIRECTION_REMARK = re.compile(r"\s*\(.*$")  # a search direction ends at its fir
 # A remark such as „Biel (kleine Gemeinden liefern 0 Treffer)“ is no part of the value; portals and the title filter
 # match whole terms, so „Java/.NET“ means two. A gender form such as „Sachbearbeiter/in“ stays one term.
 BRACKETS = re.compile(r"\s*\([^()]*\)")
+ENTRY_COMMA = re.compile(r",(?![^()]*\))")
 SLASH = re.compile(r"\s*/(?!-?(?:in|innen|frau|mann|euse|r)\b)\s*", re.IGNORECASE)
 YEAR = re.compile(r"\b20\d\d\b")
 NUMBER = re.compile(r"\d+")
@@ -275,6 +277,25 @@ def split_terms(text: str) -> list[str]:
 
 def _terms(text: str, limit: int | None) -> tuple[str, ...]:
     return _items(",".join(split_terms(text)), limit)
+
+
+def _title_alternatives(text: str) -> list[tuple[str, bool]]:
+    """Each term of a title filter value with whether it matches only as a whole word: «(ganzes Wort)» on an entry
+    holds for every alternative of its slash group (G104). A comma inside a remark in brackets splits nothing."""
+    return [(part, title_filter.marked(entry)) for entry in ENTRY_COMMA.split(text)
+            for part in _slash_terms(BRACKETS.sub("", entry))]
+
+
+def _title_terms(text: str, limit: int | None) -> tuple[str, ...]:
+    """Like `_terms`, the marker kept on each term it holds for, after the length bound so it is never cut."""
+    seen, result = set(), []
+    for part, whole in _title_alternatives(text):
+        value = " ".join(part.replace("`", "").split())[:MAX_VALUE]
+        term = title_filter.with_marker(value) if value and whole else value
+        if term and term.casefold() not in seen:
+            seen.add(term.casefold())
+            result.append(term)
+    return tuple(result[:limit])
 
 
 def _directions(lines: list[str], limit: int | None = MAX_KEYWORDS) -> tuple[str, ...]:
@@ -452,8 +473,9 @@ def listed_job_terms(text: str) -> tuple[str, ...]:
 
 
 def title_terms(text: str, label: str) -> tuple[str, ...]:
-    """The terms of one title filter line (G31), „positiv“ or „ausschluss“, as the search reads them."""
-    return _terms(_value(_pairs(_sections(text).get("titelfilter", [])), label), MAX_LISTED)
+    """The terms of one title filter line (G31), „positiv“ or „ausschluss“, as the search reads them; a term that
+    matches only as a whole word ends in «(ganzes Wort)» (G104)."""
+    return _title_terms(_value(_pairs(_sections(text).get("titelfilter", [])), label), MAX_LISTED)
 
 
 def _job_hints(nationwide: bool, portals: tuple[str, ...], cantons: tuple[str, ...], regions: tuple[str, ...],
@@ -505,8 +527,8 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     window, window_hint = _window(_value(_pairs(sections.get("portale und rhythmus", [])), "zeitfenster"))
     return SearchPlan(keywords=keywords, niche_keywords=niches,
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
-                      title_exclude=_terms(_value(titles, "ausschluss"), MAX_LISTED),
-                      title_positive=_terms(_value(titles, "positiv"), MAX_LISTED), portals=portals,
+                      title_exclude=_title_terms(_value(titles, "ausschluss"), MAX_LISTED),
+                      title_positive=_title_terms(_value(titles, "positiv"), MAX_LISTED), portals=portals,
                       hints=(*window_hint, *(hint for hint, _ in targets)), nationwide=nationwide,
                       hint_targets=targets, max_age_days=window)
 

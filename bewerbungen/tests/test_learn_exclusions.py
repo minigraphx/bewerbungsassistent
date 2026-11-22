@@ -79,10 +79,11 @@ def test_a_word_put_aside_comes_back_only_when_more_hits_have_it():
 
 
 def test_the_count_matches_how_the_search_screens_titles():
-    # A word inside a longer word is not the word; the search's title filter would not catch it either.
-    compound = [hit(50 + n, f"Aussendienstmitarbeiter Software {n}") for n in range(3)]
-    found = {p.word: p.ids for p in proposals(HITS + compound)}
-    assert found["Aussendienst"] == ("t1", "t2", "t3")
+    # G104: the search catches the word at the start or end of a longer word, never in its middle.
+    compound = [hit(50 + n, f"Aussendienstmitarbeiter Software {n}") for n in range(2)]
+    inside = [hit(60 + n, f"Teamaussendienstleiter Software {n}") for n in range(2)]
+    found = {p.word: p.ids for p in proposals(HITS + compound + inside)}
+    assert found["Aussendienst"] == ("t1", "t2", "t3", "t50", "t51")
 
 
 def write_hits(server, hits: list[dict]) -> None:  # noqa: F811

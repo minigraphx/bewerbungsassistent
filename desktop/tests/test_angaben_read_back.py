@@ -307,6 +307,16 @@ def test_window_portals_and_positive_titles_come_back_as_fields(started):
         assert known not in lines
 
 
+def test_a_term_marked_as_a_whole_word_comes_back_with_its_marker(started):
+    server, folder, _ = started
+    (folder / "suchprofil.md").write_text(PROFILE.replace("- Positiv: Entwickler, Developer",
+                                                          "- Positiv: Entwickler, Sales (ganzes Wort)"), encoding="utf-8")
+
+    search = read_back(server)["daten"]["searchJob"]
+
+    assert search["titlePositive"] == ["Entwickler", "Sales (ganzes Wort)"]
+
+
 def test_a_profile_without_portal_rows_has_no_portal_switched_off(started):
     server, folder, _ = started
     (folder / "suchprofil.md").write_text(PROFILE.replace("| jobscout24 | aus |\n", ""), encoding="utf-8")
@@ -320,6 +330,9 @@ def test_a_profile_without_portal_rows_has_no_portal_switched_off(started):
     (("window", "30"), "- Zeitfenster: 14 Tage", "- Zeitfenster: 30 Tage"),
     (("titlePositive", ["Entwickler", "Developer", "Data"]), "- Positiv: Entwickler, Developer",
      "- Positiv: Entwickler, Developer, Data"),
+    # G104: «(ganzes Wort)» goes into the profile as written, a slash group stays one entry
+    (("titlePositive", ["Entwickler", "Developer", "Intern/Trainee (ganzes Wort)"]), "- Positiv: Entwickler, Developer",
+     "- Positiv: Entwickler, Developer, Intern/Trainee (ganzes Wort)"),
     (("portalsOff", ["jobscout24", "ictjobs"]), "| ictjobs | automatisch |", "| ictjobs | aus |"),
     (("portalsOff", []), "| jobscout24 | aus |", "| jobscout24 | automatisch |"),
 ])

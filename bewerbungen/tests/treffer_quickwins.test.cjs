@@ -131,12 +131,6 @@ test("Jetzt suchen on Suche einstellen starts the search once Stellen can (#263)
   assert.deepEqual(gewoehnlich.posted, []);
 });
 
-test("the title filters read as one sentence on Suche einstellen (#263)", () => {
-  assert.equal(anzeige.titelfilterText(["a", "b"], ["c"]), "Titel enthält eines von 2 Wörtern, keines von 1");
-  assert.equal(anzeige.titelfilterText(["a"], []), "Titel enthält eines von 1 Wort");
-  assert.equal(anzeige.titelfilterText([], ["c", "d", "e"]), "Titel enthält keines von 3 Wörtern");
-  assert.equal(anzeige.titelfilterText([], []), "");
-});
 
 /** The first element below `node` with `className` in its class, depth first. */
 function find(node, className) {

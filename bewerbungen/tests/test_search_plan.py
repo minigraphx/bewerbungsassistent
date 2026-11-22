@@ -39,7 +39,7 @@ def test_template_profile_gives_all_portal_queries():
     assert plan.places == ("Bern", "Solothurn")
     assert plan.postal_codes == ("3000", "4500")
     assert plan.regions == ("grossraum-bern", "solothurn")
-    assert plan.title_exclude == ("Praktikum", "Lehrstelle", "Werkstudent", "PhD", "Sales", "Head of")
+    assert plan.title_exclude == ("Praktikum", "Lehrstelle", "Werkstudent", "PhD", "Sales (ganzes Wort)", "Head of")
     assert plan.portals == ("job-room", "jobs.ch", "jobscout24", "ictjobs")
 
 

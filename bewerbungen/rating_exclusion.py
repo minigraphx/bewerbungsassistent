@@ -9,6 +9,7 @@ import dataclasses
 import re
 
 import dismissed_words
+import title_filter
 
 TITLE = "titel_ausschluss"
 AD = "ausschluss"
@@ -38,9 +39,15 @@ def shortened(point: str, chars: int) -> str:
     return cut.rstrip(TRAILING)
 
 
+def _has_phrase(point: str, entry: str) -> bool:
+    phrase = title_filter.bare(entry)
+    return bool(phrase) and re.search(rf"(?<!\w){re.escape(phrase)}(?!\w)", point, re.IGNORECASE) is not None
+
+
 def is_excluded(point: str, entries: list[str]) -> bool:
-    """Whether an entry of the title filter or the exclusions stands in the point as a whole word or phrase."""
-    return any(dismissed_words.has_word(point, entry) for entry in entries if entry.strip())
+    """Whether an entry of the title filter or the exclusions stands in the point as a whole word or phrase. A point
+    speaks of the ad, not of its title, so a title term counts only whole here, without its «(ganzes Wort)»."""
+    return any(_has_phrase(point, entry) for entry in entries)
 
 
 def propose(point: str, title: str, positive: tuple[str, ...], excluded_titles: tuple[str, ...],

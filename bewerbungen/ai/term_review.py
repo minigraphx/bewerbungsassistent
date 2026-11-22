@@ -27,14 +27,16 @@ INSTRUCTIONS = """Aufgabe: Prüfe, wonach die Stellensuche der Person sucht, und
 
 Die Suche hat drei Bereiche:
 - keywords: Suchbegriffe. Mit ihnen sucht die App auf den Portalen im ganzen Inserat.
-- positive: Titelfilter. Ein Titel braucht mindestens einen dieser Begriffe als ganzes Wort, sonst lädt die App das Inserat nicht.
+- positive: Titelfilter. Ein Titel braucht mindestens einen dieser Begriffe, sonst lädt die App das Inserat nicht.
 - exclude: Titelfilter. Titel mit einem dieser Begriffe sortiert die App aus.
+
+Im Titelfilter passt ein Begriff auch als Anfang oder Ende eines Worts, nie in der Mitte, gross oder klein: «Software» passt zu «Softwareentwickler», «Bildung» zu «Erwachsenenbildung», «Sales» auch zu «Salesforce-Entwickler». Begriffe mit höchstens drei Buchstaben wie «KI» und Begriffe mit dem Zusatz «(ganzes Wort)» wie «Sales (ganzes Wort)» passen nur als ganzes Wort. In einer Gruppe mit Schrägstrich gilt der Zusatz für jeden Begriff.
 
 - Die Zahlen unter „Belege“ hat die App gezählt. Erfinde keine eigenen Zahlen.
 - Ein Begriff ist zu allgemein, wenn er allein viele Treffer mit Noten unter 4 hereinlässt. Ersetze ihn durch genauere Begriffe, die zu Lebenslauf und Suchprofil passen.
 - Fehlt ein Suchbegriff, den Lebenslauf und Suchprofil nahelegen, nimm ihn auf. Haben viele unpassende Titel ein gemeinsames Wort, schlage es für exclude vor.
 - Jede Änderung ist ein Entscheid: area, remove (Begriffe, die wegfallen, genau so geschrieben wie unten), add (neue Begriffe) und reason (ein bis zwei Sätze, warum). Ersetzen heisst remove und add in derselben Änderung.
-- Begriffe sind kurz, ein bis vier Wörter, ohne Kommas, Klammern und Schrägstriche, wie sie in Schweizer Inseraten stehen.
+- Begriffe sind kurz, ein bis vier Wörter, ohne Kommas, Klammern und Schrägstriche, wie sie in Schweizer Inseraten stehen. Nur in positive und exclude darfst du «(ganzes Wort)» anhängen, wenn ein Begriff sonst in zu vielen anderen Wörtern steckt.
 - Was im Suchprofil unter „Ausschlüsse“ steht, schlägst du nicht für keywords oder positive vor.
 - Höchstens 6 Änderungen, die wichtigste zuerst. Passt alles, gib eine leere Liste zurück.
 - summary: ein bis zwei Sätze, was du insgesamt vorschlägst.

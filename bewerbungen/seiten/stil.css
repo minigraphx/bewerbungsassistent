@@ -288,6 +288,14 @@ ol.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--spac
 .ertrag-details { margin: 0 0 var(--space-3); }
 .ertrag-details > summary { cursor: pointer; font-size: 14px; line-height: 20px; color: var(--text-strong); }
 .ertrag-hinweis { margin: 0 0 var(--space-2); max-width: var(--width-reading); }
+/* G104: Erweitert › Titelfilter, each term with the titles of the last run under it. */
+.titelfilter-gruppe { margin: var(--space-3) 0 0; }
+.titelfilter-gruppe > .field__label { margin: 0; }
+.titelfilter-liste { list-style: none; margin: var(--space-1) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.titelfilter-liste__begriff { display: block; font-size: 14px; line-height: 20px; color: var(--text-strong); overflow-wrap: anywhere; }
+.titelfilter-liste__zeile { display: block; max-width: var(--width-reading); overflow-wrap: anywhere; }
+.titelfilter-gruppe > .titelfilter-nachsatz { margin: var(--space-2) 0 0; max-width: var(--width-reading); overflow-wrap: anywhere; }
+.facts__more { display: block; margin-top: var(--space-1); }
 .suchliste__name { flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; padding: 10px 0; }
 .suchliste__knoepfe { display: flex; align-items: center; gap: var(--space-1); margin-left: auto; }
 .suchliste button { min-height: 44px; }

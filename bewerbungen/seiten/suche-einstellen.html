@@ -105,7 +105,7 @@
     <div class="settings-page__head"><h2 id="nicht-titel" data-text="einstellen.nicht">Was Sie nicht sehen wollen</h2><button type="button" class="btn btn--quiet btn--sm" id="nicht-aendern" aria-expanded="false" aria-controls="nicht-form">Ändern</button></div>
     <dl class="facts">
       <dt class="nur-stelle">Im Inserat</dt><dd class="nur-stelle" id="ausschluss-text"></dd>
-      <dt class="nur-stelle">Im Titel</dt><dd class="nur-stelle" id="titel-ausschluss-text"></dd>
+      <dt class="nur-stelle">Im Titel</dt><dd class="nur-stelle"><span id="titel-ausschluss-text"></span> <a class="facts__more" id="titelfilter-link" href="#titelfilter">Was der Titelfilter aussortiert hat</a></dd>
       <dt id="firmen-ausgeschlossen-titel" data-text="firmen.titel">Firmen</dt><dd id="firmen-ausgeschlossen-text"></dd>
     </dl>
     <div id="wort-vorschlag" class="notice word-proposal" hidden>
@@ -123,8 +123,9 @@
     <form id="nicht-form" class="settings-page__sub settings-page__edit" hidden>
       <div class="nur-stelle settings-page__sub">
         <label class="field"><span class="field__label">Im Inserat, eins pro Zeile</span><textarea class="input" id="nicht-inserat" rows="4" spellcheck="false"></textarea></label>
-        <label class="field"><span class="field__label">Im Titel, eins pro Zeile</span><textarea class="input" id="nicht-im-titel" rows="4" spellcheck="false"></textarea></label>
-        <p class="field__hint">Ein Titel mit einem dieser Wörter kommt nicht in die Liste.</p>
+        <label class="field"><span class="field__label">Im Titel, eins pro Zeile</span><textarea class="input" id="nicht-im-titel" rows="4" spellcheck="false" aria-describedby="nicht-im-titel-hinweis nicht-im-titel-regel"></textarea></label>
+        <p class="field__hint" id="nicht-im-titel-hinweis">Ein Titel mit einem dieser Wörter kommt nicht in die Liste.</p>
+        <p class="field__hint" id="nicht-im-titel-regel" data-text="einstellen.titel-regel">Ein Begriff passt auch als Anfang oder Ende eines Worts: „Software“ passt zu „Softwareentwickler“, „Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreiben Sie „(ganzes Wort)“ dahinter, etwa „Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.</p>
       </div>
       <label class="field"><span class="field__label"><span data-text="firmen.titel">Firmen</span>, eine pro Zeile</span><textarea class="input" id="nicht-firmen" rows="4" spellcheck="false" aria-describedby="nicht-firmen-hinweis"></textarea></label>
       <p class="field__hint" id="nicht-firmen-hinweis" data-text="firmen.liste-hinweis">Inserate dieser Firmen zeigt die Suche nicht mehr. Mit oder ohne AG oder GmbH, gross oder klein: Die App erkennt die Firma.</p>
@@ -170,12 +171,13 @@
       <details id="zeitfenster-portale-teil" hidden><summary>Stand der Portale</summary><ul id="zeitfenster-portale"></ul></details>
     </section>
     <section id="titelfilter" class="settings-page__sub" aria-labelledby="titelfilter-titel" hidden>
-      <div class="settings-page__head"><h3 id="titelfilter-titel">Titelfilter</h3><button type="button" class="btn btn--quiet btn--sm" id="titelfilter-aendern" aria-expanded="false" aria-controls="titelfilter-form">Ändern</button></div>
-      <p class="field__hint" id="titelfilter-text"></p>
+      <div class="settings-page__head"><h3 id="titelfilter-titel" tabindex="-1">Titelfilter</h3><button type="button" class="btn btn--quiet btn--sm" id="titelfilter-aendern" aria-expanded="false" aria-controls="titelfilter-form">Ändern</button></div>
+      <div id="titelfilter-beispiele" class="titelfilter-beispiele"></div>
       <form id="titelfilter-form" class="settings-page__sub settings-page__edit" hidden>
-        <label class="field"><span class="field__label">Titel, die passen, eins pro Zeile</span><textarea class="input" id="titelfilter-positiv" rows="4" spellcheck="false"></textarea></label>
-        <p class="field__hint">Steht hier etwas, nimmt die Suche nur Stellen, in deren Titel einer dieser Begriffe vorkommt.</p>
-        <label class="field"><span class="field__label">Titel, die nicht passen, eins pro Zeile</span><textarea class="input" id="titelfilter-ausschluss" rows="4" spellcheck="false"></textarea></label>
+        <label class="field"><span class="field__label">Titel, die passen, eins pro Zeile</span><textarea class="input" id="titelfilter-positiv" rows="4" spellcheck="false" aria-describedby="titelfilter-positiv-hinweis titelfilter-regel"></textarea></label>
+        <p class="field__hint" id="titelfilter-positiv-hinweis">Steht hier etwas, nimmt die Suche nur Stellen, in deren Titel einer dieser Begriffe vorkommt.</p>
+        <label class="field"><span class="field__label">Titel, die nicht passen, eins pro Zeile</span><textarea class="input" id="titelfilter-ausschluss" rows="4" spellcheck="false" aria-describedby="titelfilter-regel"></textarea></label>
+        <p class="field__hint" id="titelfilter-regel" data-text="einstellen.titelfilter-regel">Für beide Listen gilt: Ein Begriff passt auch als Anfang oder Ende eines Worts: „Software“ passt zu „Softwareentwickler“, „Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreiben Sie „(ganzes Wort)“ dahinter, etwa „Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.</p>
         <div class="btn-row"><button type="submit" class="btn btn--primary btn--sm">Speichern</button><button type="button" class="btn btn--sm" id="titelfilter-abbrechen">Abbrechen</button></div>
       </form>
       <div id="titelfilter-meldung" class="status" role="status" aria-live="polite"></div>
@@ -225,6 +227,8 @@
 <script src="/verworfen-woerter.js"></script>
 <script src="/ki-ausschluesse-logik.js"></script>
 <script src="/ki-ausschluesse.js"></script>
+<script src="/titelfilter-logik.js"></script>
+<script src="/titelfilter-beispiele.js"></script>
 <script src="/suche-einstellen.js"></script>
 </body>
 </html>
