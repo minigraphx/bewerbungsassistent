@@ -53,6 +53,11 @@
       sie: "Ein Begriff passt auch als Anfang oder Ende eines Worts: „Software“ passt zu „Softwareentwickler“, „Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreiben Sie „(ganzes Wort)“ dahinter, etwa „Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.",
       du: "Ein Begriff passt auch als Anfang oder Ende eines Worts: „Software“ passt zu „Softwareentwickler“, „Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreib „(ganzes Wort)“ dahinter, etwa „Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.",
     },
+    // The Titelfilter form has two lists; the rule under the second holds for both (UI/UX ruling on #382).
+    "einstellen.titelfilter-regel": {
+      sie: "Für beide Listen gilt: Ein Begriff passt auch als Anfang oder Ende eines Worts: „Software“ passt zu „Softwareentwickler“, „Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreiben Sie „(ganzes Wort)“ dahinter, etwa „Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.",
+      du: "Für beide Listen gilt: Ein Begriff passt auch als Anfang oder Ende eines Worts: „Software“ passt zu „Softwareentwickler“, „Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreib „(ganzes Wort)“ dahinter, etwa „Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.",
+    },
     "einstellen.verworfen": {
       sie: "Aus den Stellen, die Sie verworfen haben: {anzahl} haben «{wort}» im Titel.",
       du: "Aus den Stellen, die du verworfen hast: {anzahl} haben «{wort}» im Titel.",

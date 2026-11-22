@@ -85,6 +85,20 @@ def _contains(area: str, terms: tuple[str, ...], term: str) -> bool:
     return any(_same(area, known, term) for known in terms)
 
 
+def _identical(area: str, one: str, other: str) -> bool:
+    """Like `_same`, but a title term with «(ganzes Wort)» differs from the term without: the switches name both."""
+    return _same(area, one, other) and (area == KEYWORDS or title_filter.marked(one) == title_filter.marked(other))
+
+
+def _holds(area: str, terms: tuple[str, ...], term: str) -> bool:
+    return any(_identical(area, known, term) for known in terms)
+
+
+def _restyled(area: str, terms: tuple[str, ...], term: str) -> str | None:
+    """The term of the list that `term` only marks or unmarks as a whole word (G104): a change of that same term."""
+    return next((known for known in terms if _same(area, known, term) and not _identical(area, known, term)), None)
+
+
 def avoided_words(text: str) -> tuple[str, ...]:
     """What the person rules out: the section „Ausschlüsse“ and the excluded titles. Nothing with these words comes in."""
     lines = search_plan.section_lines(text, "## Ausschlüsse")
@@ -119,16 +133,19 @@ def _cleaned(raw: object, current: Terms, avoided: tuple[str, ...], taken: dict[
         return None
     area = raw["area"]
     asked_remove, asked_add = _names(area, raw.get("remove")), _names(area, raw.get("add"))
-    remove = tuple(term for term in asked_remove if _contains(area, current.of(area), term))
+    remove = tuple(_as_written(area, current, term) for term in asked_remove if _contains(area, current.of(area), term))
     add = tuple(term for term in asked_add
-                if not _contains(area, current.of(area), term) and not _contains(area, taken.get(area, ()), term)
+                if (not _contains(area, current.of(area), term) or _restyled(area, current.of(area), term))
+                and not _contains(area, taken.get(area, ()), term)
                 and (area == EXCLUDE or not _avoids(term, avoided)))
     reason = raw.get("reason").strip()[:MAX_REASON] if isinstance(raw.get("reason"), str) else ""
     if (asked_remove and not remove) or (asked_add and not add) or not (remove or add) or not reason:
         return None
     if len(remove) != len(asked_remove) or len(add) != len(asked_add):
         return None
-    return Change(area, tuple(_as_written(area, current, term) for term in remove), add, reason)
+    # Marking «Sales» as «Sales (ganzes Wort)» replaces the term, so the list never holds it twice.
+    restyled = (_restyled(area, current.of(area), term) for term in add)
+    return Change(area, tuple(dict.fromkeys((*remove, *(term for term in restyled if term)))), add, reason)
 
 
 def _as_written(area: str, current: Terms, term: str) -> str:
@@ -209,11 +226,13 @@ def _selected_in(area: str, current: Terms, changes: tuple[Change, ...], on: obj
     offered = (*current.of(area), *_proposed(area, changes))
     if not isinstance(on, list) or len(on) > len(offered):
         raise ValueError(NOT_OFFERED)
-    if not all(isinstance(term, str) and _contains(area, offered, term) for term in on):
+    if not all(isinstance(term, str) and _holds(area, offered, term) for term in on):
         raise ValueError(NOT_OFFERED)
     wanted = tuple(on)
-    return Change(area, tuple(term for term in current.of(area) if not _contains(area, wanted, term)),
-                  tuple(term for term in _proposed(area, changes) if _contains(area, wanted, term)), "")
+    remove = tuple(term for term in current.of(area) if not _holds(area, wanted, term))
+    kept = tuple(term for term in current.of(area) if term not in remove)
+    return Change(area, remove, tuple(term for term in _proposed(area, changes)
+                                      if _holds(area, wanted, term) and not _contains(area, kept, term)), "")
 
 
 def selected(current: Terms, changes: tuple[Change, ...], on: object) -> tuple[Change, ...]:
@@ -262,6 +281,9 @@ def _listing(terms: tuple[str, ...]) -> str:
 
 def sentence(change: Change) -> str:
     """The change in one sentence, the label of its checkbox."""
+    if change.area != KEYWORDS and len(change.remove) == len(change.add) == 1 and _same(change.area, *change.remove,
+                                                                                        *change.add):
+        return f"„{change.remove[0]}“ ersetzen durch „{change.add[0]}“"
     if change.remove and change.add:
         return f"{_quoted(change.remove)} ersetzen durch {_listing(change.add)}"
     if change.add:

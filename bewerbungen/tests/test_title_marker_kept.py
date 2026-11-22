@@ -66,6 +66,56 @@ def test_the_ai_may_remove_a_marked_term_by_its_plain_name_and_add_a_marked_one(
                                                            "Pflegehelfer (ganzes Wort)")
 
 
+# UI/UX ruling on #382: marking a term is a change of that same term, shown as a replacement, never a second term.
+PLAIN = PROFILE.replace("Sales (ganzes Wort)", "Sales")
+MARKED_SALES = "„Sales“ ersetzen durch „Sales (ganzes Wort)“"
+
+
+def test_the_ai_may_mark_a_term_as_a_replacement_of_the_same_term():
+    current = term_changes.terms_of(PLAIN)
+    raw = [{"area": "exclude", "remove": ["Sales"], "add": ["Sales (ganzes Wort)"], "reason": "Nicht Salesforce."}]
+    [change] = term_changes.cleaned_changes(raw, current, term_changes.avoided_words(PLAIN))
+    assert (change.remove, change.add) == (("Sales",), ("Sales (ganzes Wort)",))
+    assert term_changes.sentence(change) == MARKED_SALES
+    assert "Sales" not in term_changes.untouched(current, (change,)).exclude
+    assert term_changes.outcome(current, (change,)).exclude == ("Intern (ganzes Wort)", "Trainee (ganzes Wort)", "Pflege",
+                                                                "Sales (ganzes Wort)")
+    after = search_plan.title_terms(term_changes.applied(PLAIN, (change,)), "ausschluss")
+    assert after == ("Intern (ganzes Wort)", "Trainee (ganzes Wort)", "Pflege", "Sales (ganzes Wort)")
+
+
+def test_marking_a_current_term_without_removing_it_is_the_same_replacement():
+    current = term_changes.terms_of(PLAIN)
+    raw = [{"area": "exclude", "add": ["sales (ganzes wort)"], "reason": "Nicht Salesforce."}]
+    [change] = term_changes.cleaned_changes(raw, current, ())
+    assert (change.remove, change.add) == (("Sales",), ("sales (ganzes Wort)",))
+
+
+def test_a_marked_term_already_in_the_list_is_still_no_new_term():
+    current = term_changes.terms_of(PROFILE)
+    raw = [{"area": "exclude", "add": ["Sales (ganzes Wort)"], "reason": "Doppelt."}]
+    assert term_changes.cleaned_changes(raw, current, ()) == ()
+
+
+def test_the_switches_tell_the_plain_and_the_marked_term_apart():
+    current = term_changes.terms_of(PLAIN)
+    raw = [{"area": "exclude", "remove": ["Sales"], "add": ["Sales (ganzes Wort)"], "reason": "Nicht Salesforce."}]
+    changes = term_changes.cleaned_changes(raw, current, ())
+    on = {"suchbegriffe": list(current.keywords), "positiv": list(current.positive)}
+    others = [term for term in current.exclude if term != "Sales"]
+    [taken] = term_changes.selected(current, changes, {**on, "ausschluss": [*others, "Sales (ganzes Wort)"]})
+    assert (taken.remove, taken.add) == (("Sales",), ("Sales (ganzes Wort)",))
+    assert term_changes.selected(current, changes, {**on, "ausschluss": list(current.exclude)}) == ()
+    both = term_changes.selected(current, changes, {**on, "ausschluss": [*current.exclude, "Sales (ganzes Wort)"]})
+    assert both == (), "with the current term switched back on, the list keeps one Sales"
+
+
+def test_a_marked_exclusion_still_keeps_its_word_out_of_new_positive_terms():
+    assert "sales" in term_changes.avoided_words(PROFILE)
+    raw = [{"area": "positive", "add": ["Salesforce"], "reason": "Passt."}]
+    assert term_changes.cleaned_changes(raw, term_changes.terms_of(PROFILE), term_changes.avoided_words(PROFILE)) == ()
+
+
 def test_the_evidence_counts_a_title_as_the_search_screens_it():
     assert term_evidence.matching("Kursleiterin Erwachsenenbildung", ("Kurs", "Bildung", "KI")) == ("Kurs", "Bildung")
 

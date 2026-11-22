@@ -66,7 +66,24 @@ test("the rule of the title filter is said in Sie and du, in both forms", () => 
     + "„Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreiben Sie „(ganzes Wort)“ dahinter, etwa "
     + "„Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.");
   assert.equal(du, sie.replace("schreiben Sie", "schreib"));
-  assert.equal((SEITE.match(/data-text="einstellen\.titel-regel"/g) || []).length, 2, "in the Titelfilter form and under «Im Titel»");
+  assert.match(SEITE, /id="nicht-im-titel-regel" data-text="einstellen\.titel-regel"/, "under «Im Titel» unchanged");
+});
+
+test("the Titelfilter form says the rule holds for both lists, in Sie and du (UI/UX ruling on #382)", () => {
+  for (const satz of ["stelle-sie", "stelle-du"]) {
+    assert.equal(T.text("einstellen.titelfilter-regel", satz), `Für beide Listen gilt: ${T.text("einstellen.titel-regel", satz)}`);
+  }
+  assert.match(SEITE, /id="titelfilter-regel" data-text="einstellen\.titelfilter-regel">Für beide Listen gilt: Ein Begriff passt/);
+});
+
+test("a short term without the marker and without titles says it matches only as a whole word", () => {
+  const kurz = "Im letzten Suchlauf kein Titel. Begriffe mit höchstens drei Buchstaben passen nur als ganzes Wort.";
+  const daten = { lauf: true, positiv: [eintrag("Data", 2, ["Data Engineer"])], ausschluss: [eintrag("C#", 1, ["C# Entwickler"])],
+                  ohne_begriff: eintrag(undefined, 0) };
+  const ansicht = L.ansicht(["Web", "KI (ganzes Wort)", "Data", "Kurs"], ["PhD", "C#"], daten);
+  assert.deepEqual(ansicht.gruppen[0].eintraege.map(e => e.zeile),
+    [kurz, "Im letzten Suchlauf kein Titel.", "2 Titel durchgelassen, zum Beispiel „Data Engineer“", "Im letzten Suchlauf kein Titel."]);
+  assert.deepEqual(ansicht.gruppen[1].eintraege.map(e => e.zeile), [kurz, "1 Titel aussortiert, zum Beispiel „C# Entwickler“"]);
 });
 
 test("the card Was Sie nicht sehen wollen links to the examples under «Im Titel»", () => {
