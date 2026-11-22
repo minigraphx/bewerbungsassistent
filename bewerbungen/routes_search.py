@@ -13,6 +13,7 @@ import own_sites
 import precheck
 import preferences
 import query_log
+import required_words
 import routes_ai
 import search_plan
 import search_stages
@@ -84,6 +85,14 @@ def _record_reposts(k, by_id: dict[str, list[dict]]) -> None:
     k.mit_entwurf(register.pfad, REPOSTS_NOTED, lambda: register.add_reposts(by_id))
 
 
+def _note_screened(log: QueryLog, queries: list[dict], title: str, reason: str) -> None:
+    """The title filter's screen-outs and those without a required word (G110) are counted apart."""
+    if reason == required_words.REASON:
+        log.note_unrelated(queries, title)
+    else:
+        log.note_screened(queries, title, reason)
+
+
 def screen(k, parameter, body):
     current = search_plan.for_folder(k.daten)
     store = _hits(k)
@@ -96,10 +105,11 @@ def screen(k, parameter, body):
                           excluded=excluded_companies.keys(k.daten),
                           on_screened_out=lambda hit, reason: screened_out.append((hit.get(QUERIES, []), hit["stelle"], reason)),
                           on_title_checked=lambda hit, found: checked.append((hit_key(hit), hit["stelle"], found)),
-                          agencies=_agencies(k), record_reposts=lambda by_id: _record_reposts(k, by_id), today=k.heute())
+                          agencies=_agencies(k), record_reposts=lambda by_id: _record_reposts(k, by_id), today=k.heute(),
+                          required=required_words.of_folder(k.daten))
     log = QueryLog(k.daten)
     for queries, title, reason in screened_out:
-        log.note_screened(queries, title, reason)
+        _note_screened(log, queries, title, reason)
     log.note_titles(checked)
     return json_antwort(result)
 
@@ -107,9 +117,12 @@ def screen(k, parameter, body):
 def receive(k, parameter, body):
     store = _hits(k)
     person = precheck.for_folder(k.daten)
+    log = QueryLog(k.daten)
     return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), _agencies(k),
                                   check=lambda title, text: precheck.check(title, text, person),
-                                  saved_in=preferences.load(k.daten).saved_in, excluded=excluded_companies.keys(k.daten)))
+                                  saved_in=preferences.load(k.daten).saved_in, excluded=excluded_companies.keys(k.daten),
+                                  required=required_words.of_folder(k.daten),
+                                  on_unrelated=lambda hit: log.note_unrelated(hit.get(QUERIES, []), hit["stelle"])))
 
 
 def _portal_summary(raw) -> dict:
@@ -189,7 +202,15 @@ def overview(k, parameter, body):
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
                          "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN,
                          "region": region, "sperrgrund": blocked, "zeitraum": routes_window.display_for(k), "umfang": size,
-                         "begriff_portale": limits["begriffe"], "portal_hinweise": limits["hinweise"]})
+                         "begriff_portale": limits["begriffe"], "portal_hinweise": limits["hinweise"],
+                         "begriff_pflicht": _required_of_terms(k)})
+
+
+def _required_of_terms(k) -> list[dict]:
+    """G110: the required words of each listed term that has some, named as the list names the term."""
+    required = required_words.of_folder(k.daten)
+    names = routes_career.searched_now(k)["gesuchte_berufe"]
+    return [{"begriff": name, "woerter": list(required.of_term(name))} for name in names if required.of_term(name)]
 
 
 def _listed(k, store: Hits, hit: dict, homes: tuple[str, ...], postal_codes: tuple[str, ...]) -> dict:

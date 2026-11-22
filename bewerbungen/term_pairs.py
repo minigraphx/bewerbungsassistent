@@ -11,6 +11,7 @@ Only job profiles: an apprenticeship profile names professions, one per line.
 import dataclasses
 import itertools
 
+import required_words
 import search_plan
 import search_stages
 import search_terms
@@ -274,7 +275,15 @@ def restored(former: str | None, text: str, name: str, line_id: str) -> str:
     index = line_index(former, line_id) if former is not None else None
     if index is not None and former != text and search_terms.removed_from_line(former, name, index) == text:
         return former
+    words = _former_words(former, name, line_id)
     index = line_index(text, line_id)
     if index is None:
         raise ValueError(NO_UNDO)
-    return search_terms.added_to_line(text, name, index)
+    return search_terms.added_to_line(text, required_words.with_words(name, words), index)
+
+
+def _former_words(former: str | None, name: str, line_id: str) -> tuple[str, ...]:
+    """The required words the term had in that line (G110), so that it comes back with them."""
+    index = line_index(former, line_id) if former is not None else None
+    match = search_plan.PAIR.match(former.split("\n")[index].strip()) if index is not None else None
+    return required_words.entry_words(match[2], name) if match else ()

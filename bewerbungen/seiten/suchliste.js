@@ -18,6 +18,7 @@ window.Suchliste = (() => {
   let ertrag = new Map();  // per term what the last runs brought (G103)
   let laeufe = 0;  // how many runs that is; with some, a term without an entry says it was not searched yet
   let portale = new Map();  // per term the portals the profile limits it to (G105)
+  let pflicht = new Map();  // per term the words its hits need (G110)
   let optionen = {};
   let zeilen = [];  // per term its row and buttons, to find the focused one again after drawing anew
   let ziehen = null;
@@ -69,9 +70,9 @@ window.Suchliste = (() => {
     return [" ", el("span", { class: "term term--flag" }, el("span", { class: "term__word" }, E.OHNE_ERTRAG))];
   }
 
-  // G105: under the name, so the row keeps its handle and buttons; it moves with its term.
+  // G105, G110: under the name, so the row keeps its handle and buttons; it moves with its term.
   function portalZeile(name) {
-    const teile = L.portalTeile(portale.get(name));
+    const teile = L.zusatzTeile(portale.get(name), pflicht.get(name));
     return teile.length ? el("span", { class: "suchliste__portale caption" }, ...window.DotLine.render(teile, el)) : null;
   }
 
@@ -204,5 +205,11 @@ window.Suchliste = (() => {
     if (liste && !ziehen && offen === 0) zeichne();
   }
 
-  return { zeige, ertrag: zeigeErtrag, portale: zeigePortale };
+  /** The required words of terms (G110), as /api/suche/liste gives them in `begriff_pflicht`. */
+  function zeigePflicht(eintraege) {
+    pflicht = new Map((eintraege || []).map(eintrag => [eintrag.begriff, eintrag.woerter]));
+    if (liste && !ziehen && offen === 0) zeichne();
+  }
+
+  return { zeige, ertrag: zeigeErtrag, portale: zeigePortale, pflicht: zeigePflicht };
 })();

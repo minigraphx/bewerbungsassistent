@@ -18,21 +18,38 @@
     if (!eintrag || !eintrag.suchen) return laeufe > 0 ? [NICHT_GESUCHT] : [];
     const aussortiert = eintrag.aussortiert > 0 ? `${eintrag.aussortiert} aussortiert` : "";
     if (!eintrag.treffer) return [suchen(eintrag.suchen), "keine Treffer", aussortiert].filter(Boolean);
-    return [suchen(eintrag.suchen), `${eintrag.treffer} Treffer`, `${eintrag.neu} neu`, `${eintrag.ab_note_4} ab Note 4`, aussortiert]
-      .filter(Boolean);
+    const pflicht = eintrag.ohne_pflichtbezug > 0 ? `${eintrag.ohne_pflichtbezug} ohne Pflichtbezug` : "";  // G110
+    return [suchen(eintrag.suchen), `${eintrag.treffer} Treffer`, `${eintrag.neu} neu`, `${eintrag.ab_note_4} ab Note 4`, aussortiert,
+      pflicht].filter(Boolean);
   }
 
   const begriffWort = lehrstelle => (lehrstelle ? "Beruf" : "Begriff");
 
   const woher = laeufe => (laeufe === 1 ? "aus dem letzten Suchlauf" : `aus den letzten ${laeufe} Suchläufen`);
 
-  /** The one caption on the numbers under the list: from how many runs they come and how a hit counts. */
-  function hinweis(laeufe, lehrstelle) {
+  const PFLICHT_SATZ = " „Ohne Pflichtbezug“: Titel und Inserat nennen keines der Pflichtwörter des Begriffs.";
+
+  /** The one caption on the numbers under the list: from how many runs they come and how a hit counts; with `pflicht`
+   * (some hit had no required word, G110) also what that reason means. */
+  function hinweis(laeufe, lehrstelle, pflicht = false) {
     if (!laeufe) return `Nach dem nächsten Suchlauf steht hier bei jedem ${begriffWort(lehrstelle)}, was er bringt.`;
     const zaehlen = lehrstelle
       ? "Findet die Suche eine Lehrstelle über mehrere Berufe, zählt sie bei jedem."
-      : "Findet die Suche eine Stelle über mehrere Begriffe, zählt sie bei jedem. „Aussortiert“ heisst: Der Titelfilter hat den Titel nicht durchgelassen.";
+      : "Findet die Suche eine Stelle über mehrere Begriffe, zählt sie bei jedem. „Aussortiert“ heisst: Der Titelfilter hat den Titel nicht durchgelassen."
+        + (pflicht ? PFLICHT_SATZ : "");
     return `Die Zahlen stammen ${woher(laeufe)}. ${zaehlen}`;
+  }
+
+  const stellen = zahl => anzahl(zahl, "Stelle", "Stellen");
+
+  /** The summary of the details on hits without a required word (G110): how many there were in all. */
+  const pflichtTitel = eintraege => `Ohne Pflichtbezug aussortiert (${eintraege.reduce((summe, e) => summe + e.anzahl, 0)})`;
+
+  /** One term of those details, with up to three titles of its own last run. */
+  function pflichtZeile(eintrag) {
+    const beispiele = (eintrag.beispiele || []).slice(0, 3).map(titel => `„${titel}“`);
+    const kopf = `„${eintrag.begriff}“: ${stellen(eintrag.anzahl)}`;
+    return beispiele.length ? `${kopf}, zum Beispiel ${beispiele.join(", ")}` : kopf;
   }
 
   /** The first line of «Was die Orte bringen»: where the numbers come from and what a place-less search is. */
@@ -65,7 +82,8 @@
   /** The yield of each term by its name as the term list shows it. */
   const nachBegriff = ertrag => new Map(((ertrag && ertrag.begriffe) || []).map(eintrag => [eintrag.begriff, eintrag]));
 
-  const logik = { OHNE_ERTRAG, teile, hinweis, ortHinweis, ohneAngabe, leerTitel, leerZeile, ortName, nachBegriff };
+  const logik = { OHNE_ERTRAG, teile, hinweis, ortHinweis, ohneAngabe, leerTitel, leerZeile, ortName, nachBegriff, pflichtTitel,
+    pflichtZeile };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SucheErtragLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

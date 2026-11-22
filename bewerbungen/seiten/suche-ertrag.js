@@ -12,8 +12,9 @@ window.SucheErtrag = (() => {
   function zeigeBegriffe(ertrag, lehrstelle) {
     window.Suchliste.ertrag(E.nachBegriff(ertrag), ertrag.laeufe);
     const mitListe = ertrag.begriffe.length > 0;
+    const pflicht = ertrag.ohne_pflichtbezug || [];
     const hinweis = $("suchliste-ertrag");
-    hinweis.textContent = E.hinweis(ertrag.laeufe, lehrstelle);
+    hinweis.textContent = E.hinweis(ertrag.laeufe, lehrstelle, pflicht.length > 0);
     hinweis.hidden = !mitListe;
     const ohneAngabe = $("suchliste-ohne-angabe");
     ohneAngabe.textContent = E.ohneAngabe(ertrag.ohne_angabe, lehrstelle);
@@ -22,6 +23,10 @@ window.SucheErtrag = (() => {
     $("ertrag-leer").hidden = !leer.length;
     $("ertrag-leer-titel").textContent = E.leerTitel(leer.length, lehrstelle);
     $("ertrag-leer-liste").replaceChildren(...leer.map(eintrag => el("li", {}, E.leerZeile(eintrag))));
+    // G110: what the required words of a term kept out
+    $("ertrag-pflicht").hidden = !pflicht.length;
+    $("ertrag-pflicht-titel").textContent = E.pflichtTitel(pflicht);
+    $("ertrag-pflicht-liste").replaceChildren(...pflicht.map(eintrag => el("li", {}, E.pflichtZeile(eintrag))));
   }
 
   function ortZeile(ort) {

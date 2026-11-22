@@ -14,6 +14,7 @@ import re
 from collections.abc import Callable
 
 import numbered_order
+import required_words
 import search_plan
 import title_filter
 from search_plan import (APPRENTICESHIP_MARK, DIRECTION, MAX_DIRECTION, MAX_DIRECTIONS, MAX_KEYWORDS, MAX_PROFESSION_NAME,
@@ -40,6 +41,9 @@ FULL_DIRECTIONS = "Die Suche hat schon {limit} Suchrichtungen. Bitte zuerst eine
 ORDER_NOTE = ("Die Suche sucht die Begriffe in dieser Reihenfolge, die wichtigsten zuerst; neue kommen ans Ende. "
               "Ändern auf „Suche einstellen“.")
 ORDER_CHANGED = "Die Liste hat sich inzwischen geändert und ist neu geladen. Bitte nochmals verschieben."
+# G110: a numbered search direction ends at its first bracket, so required words would silently do nothing there.
+NO_REMARK_IN_DIRECTIONS = ("Pflichtwörter gelten nur für Begriffe unter „Keywords“. Bitte den Begriff ohne "
+                           "„(nur mit …)“ aufnehmen.")
 
 
 def current(text: str) -> tuple[str, ...]:
@@ -149,6 +153,8 @@ def _added(text: str, name: str, kind: str | None, limit: int | None) -> str:
     if _group_lines(lines):  # only «Nur» lines: the term gets a core list of its own, first under Keywords
         start, _ = search_plan.section_bounds(lines, KEYWORDS_KEY)
         return "\n".join([*lines[:start + 1], f"- Kernliste: {clean}", *lines[start + 1:]])
+    if required_words.words_in(clean):
+        raise ValueError(NO_REMARK_IN_DIRECTIONS)
     start, end = search_plan.section_bounds(lines, DIRECTIONS_SECTION[3:].lower())
     used = 0 if start is None else sum(bool(DIRECTION.match(row.strip())) for row in lines[start:end])
     if used >= MAX_DIRECTIONS:  # lines, not terms: one line can repeat a term or hold several (#316)
@@ -206,10 +212,13 @@ def _without_direction(wanted: frozenset[str]) -> Callable[[str], str | None]:
 
 
 def _without_term(part: str, wanted: frozenset[str]) -> str:
-    """An entry of the core list without the term; „Verkauf/Sales“ is two terms to the plan (#176), so one can go."""
+    """An entry of the core list without the term; „Verkauf/Sales“ is two terms to the plan (#176), so one can go.
+    A remark in brackets, such as the required words (G110), stays with the rest of the entry."""
     terms = search_plan.split_terms(part)
-    kept = [term for term in terms if _words_as_shown(term) != wanted]
-    return part if len(kept) == len(terms) else "/".join(kept)
+    kept = [term.strip() for term in terms if _words_as_shown(term) != wanted]
+    if len(kept) == len(terms):
+        return part
+    return f"{'/'.join(kept)}{''.join(search_plan.BRACKETS.findall(part))}" if kept else ""
 
 
 def removed(text: str, name: str) -> str:
@@ -336,9 +345,9 @@ def _kept_order(old: str, new: str) -> str:
 
 def _without_in_line(line: str, wanted: frozenset[str],
                      without: Callable[[str, frozenset[str]], str] = _without_term) -> str:
-    """A line such as „- Kernliste: a, b“ without the term, written as before."""
+    """A line such as „- Kernliste: a, b“ without the term, written as before; a comma in brackets splits nothing."""
     prefix, value = GROUP_LINE.match(line.strip()).groups()
-    parts = [part.strip() for part in value.split(",") if part.strip()]
+    parts = [part.strip() for part in search_plan.ENTRY_COMMA.split(value) if part.strip()]
     kept = [rest for rest in (without(part, wanted) for part in parts) if rest]
     if kept == parts:
         return line
@@ -407,23 +416,31 @@ def _with_keyword_line(text: str, line: str) -> str:
 
 
 def moved_to_niches(text: str, name: str) -> str:
-    """The term leaves every searched line and joins the niches, which run without a place (G108, #383)."""
+    """The term leaves every searched line and joins the niches, which run without a place (G108, #383); its required
+    words go with it (G110)."""
+    entry = _as_written(text, name)
     without = removed(text, name)
     niche = _keyword_line(without.split("\n"), lambda label: label.lower().startswith(search_plan.NICHE_LABEL))
     if niche is not None:
-        return added_to_line(without, name, niche)
-    return _with_keyword_line(without, NICHE_LINE.format(terms=" ".join(name.split())))
+        return added_to_line(without, entry, niche)
+    return _with_keyword_line(without, NICHE_LINE.format(terms=entry))
+
+
+def _as_written(text: str, name: str) -> str:
+    """The term with the required words the profile gives it (G110), for a change that writes it elsewhere."""
+    return required_words.with_words(" ".join(name.split()), required_words.written_words(text, name))
 
 
 def limited_to(text: str, name: str, portals: tuple[str, ...]) -> str:
     """The term runs only on these portals (G105, G108): out of every searched line, into the «Nur» line that names
     exactly them, or a new one. Its place in the saved order stays, since the search still runs it."""
+    entry = _as_written(text, name)
     without = _removed(text, profession_words(name))
     wanted = {portal.casefold() for portal in portals}
     line = _keyword_line(without.split("\n"), lambda label: {p.casefold() for p in search_plan.limit_portals(label) or ()} == wanted)
     if line is not None:
-        return added_to_line(without, name, line)
-    return _with_keyword_line(without, LIMIT_LINE.format(portals=", ".join(portals), terms=" ".join(name.split())))
+        return added_to_line(without, entry, line)
+    return _with_keyword_line(without, LIMIT_LINE.format(portals=", ".join(portals), terms=entry))
 
 
 def _kept_offers(old: str, new: str) -> str:
@@ -468,7 +485,8 @@ def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
     text, kept = _kept_jobscout24_regions(old, _kept_limits(old, new)), []
     for term in current(old):
         try:
-            changed = added(text, term)
+            # its required words only where they count, under Keywords (G110)
+            changed = added(text, _as_written(old, term) if _searches_groups(text) else term)
         except ValueError:  # the list is full: the rest stays only in the draft of the old profile
             break
         if changed != text:

@@ -28,7 +28,18 @@
     return aus.length ? [nur, `${aus.join(", ")} ausgeschaltet`] : [nur];
   }
 
-  const logik = { verschoben, zielIndex, ansage, knopfNamen, portalTeile };
+  /**
+   * The whole caption of a term: its portals (G105), then its required words (G110), «Pflichtbezug: Informatik, ICT».
+   * @param {object|undefined} portalEintrag  the entry of `begriff_portale`
+   * @param {string[]|undefined} woerter  the required words
+   * @returns {string[]}
+   */
+  function zusatzTeile(portalEintrag, woerter) {
+    const pflicht = Array.isArray(woerter) && woerter.length ? [`Pflichtbezug: ${woerter.join(", ")}`] : [];
+    return [...portalTeile(portalEintrag), ...pflicht];
+  }
+
+  const logik = { verschoben, zielIndex, ansage, knopfNamen, portalTeile, zusatzTeile };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SuchlisteLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

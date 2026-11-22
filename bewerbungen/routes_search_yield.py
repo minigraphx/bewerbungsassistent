@@ -42,7 +42,9 @@ def yield_of_search(k, parameter, body):
     runs = QueryLog(k.daten).runs()
     # Apprenticeships are searched by profession around the home (radius): their places tell nothing apart.
     result = search_yield.summary(runs, shown, terms, with_places=kind != search_plan.KIND_APPRENTICESHIP, keywords=_niches(k))
-    return json_antwort({"art": kind, **result, "titelfilter": _title_examples(k, runs, kind)})
+    # G110: required words are a job search's only
+    unrelated = search_yield.unrelated(runs, terms) if kind != search_plan.KIND_APPRENTICESHIP else []
+    return json_antwort({"art": kind, **result, "titelfilter": _title_examples(k, runs, kind), "ohne_pflichtbezug": unrelated})
 
 
 GET = {"/api/suche/ertrag": yield_of_search}

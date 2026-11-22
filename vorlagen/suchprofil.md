@@ -48,8 +48,10 @@ Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 jobscout24 sucht um jede PLZ 20 km im Umkreis, nahe PLZ finden darum oft dieselben Stellen. Eine Zeile wie `- Regionen (jobscout24): Region Bern (BE/FR/SO), Homeoffice / Remote` lässt jobscout24 stattdessen pro Begriff einmal in allen genannten Regionen suchen; die Namen schreibt man wie jobscout24 sie zeigt, die Kantone in Klammern dürfen fehlen. Solange eine Region gewählt ist, gilt die Zeile mit den PLZ nicht, bleibt aber stehen. jobs.ch sucht bei jedem Ort auch im ganzen Kanton; ein zweiter Ort im selben Kanton bringt darum kaum neue Stellen.
 
 ## Keywords
-- Kernliste: Python, TypeScript, Softwareentwickler, Data Engineer, E-Learning
+- Kernliste: Python, TypeScript, Softwareentwickler, Data Engineer, E-Learning, Kursleiter (nur mit Informatik, ICT)
 - Nischen (ohne Ort suchen): EdTech, Remote Python
+
+Ein breiter Begriff kann Pflichtwörter tragen: «Kursleiter (nur mit Informatik, ICT)» sucht auf den Portalen nur «Kursleiter», behält aber nur Stellen, deren Titel oder Inserat eines der Wörter nennt, verglichen wie beim Titelfilter. Eine Stelle, die auch ein anderer Begriff fand, bleibt immer. Die Wörter stehen mit Komma getrennt in der Klammer; bei einer Gruppe mit «/» gelten sie für jeden Begriff. Das geht auf jeder Zeile unter Keywords, nicht bei den nummerierten Suchrichtungen.
 
 Ohne Angabe sucht die App jeden Begriff auf allen Portalen. Eine eigene Zeile wie `- Nur jobs.ch, job-room: Lernbegleiter, Kursleiter` beschränkt ihre Begriffe auf die genannten Portale, geschrieben wie in der Tabelle oben und mit Komma getrennt; es darf mehrere geben. Nennt eine Zeile ein Portal, das die App nicht kennt, sucht sie deren Begriffe überall. Die Nischen lassen sich nicht beschränken.
 
