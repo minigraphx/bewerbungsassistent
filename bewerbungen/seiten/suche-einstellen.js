@@ -78,7 +78,7 @@
     try {
       const ertrag = await holen("/api/suche/ertrag");
       if (nummer !== ladeNummer) return;
-      window.SucheErtrag.zeige(ertrag, await textsatz().catch(() => undefined));
+      window.SucheErtrag.zeige(ertrag, await textsatz());
       window.TitelfilterBeispiele.beispiele(ertrag.titelfilter);
     } catch (fehler) {
       meldung(`Was die Suche bringt, liess sich nicht laden: ${fehler.message}`, "fehler");
@@ -89,7 +89,7 @@
     const nummer = ++ladeNummer;
     try {
       const [daten, rahmen, firmen, satz] = await Promise.all([holen("/api/suche/liste"), holen("/api/suche/rahmen"),
-        holen("/api/firmen/ausgeschlossen"), textsatz().catch(() => undefined)]);
+        holen("/api/firmen/ausgeschlossen"), textsatz()]);
       if (nummer !== ladeNummer) return;  // a newer load is on its way
       const lehrstelle = daten.art === "lehrstelle";
       $("ohne-profil").hidden = !daten.sperrgrund;
