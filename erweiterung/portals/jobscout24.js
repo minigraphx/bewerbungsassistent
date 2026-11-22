@@ -3,6 +3,8 @@
   const common = globalThis.bewerbungsbegleiterCommon || require('./common.js');
   const PAGE_SIZE = 20;
   const ORIGIN = 'https://www.jobscout24.ch';
+  const NEWEST_FIRST = '1';
+  const SPONSORED = /^(top|bottom)listing$/i;
 
   function toHit(item) {
     const id = item.getAttribute('data-job-id');
@@ -23,6 +25,18 @@
     };
   }
 
+  /** Sponsored ads on every page (top and bottom of the list), which ignore the sort by date. */
+  function isSponsored(item) {
+    return SPONSORED.test(item.getAttribute('data-view-source') || '');
+  }
+
+  /** Age of the oldest regular ad on the page, or null; sponsored ads say nothing about how far the list reached. */
+  function oldestRegular(items) {
+    const ages = items.filter((item) => !isSponsored(item)).map(toHit)
+      .map((hit) => (hit ? hit.alter_tage : null)).filter((age) => age !== null);
+    return ages.length ? Math.max(...ages) : null;
+  }
+
   function parseList(doc) {
     const items = [...doc.querySelectorAll('li.job-list-item')];
     // The heading ("24 Python Stellen in Bern gefunden", also "0 … gefunden") shows the page is still known.
@@ -31,11 +45,12 @@
     }
     const hits = items.map(toHit).filter(Boolean);
     if (items.length && !hits.length) throw new common.PortalChanged('Die Treffer haben eine unbekannte Form.');
-    return { hits, more: items.length >= PAGE_SIZE };
+    return { hits, more: items.length >= PAGE_SIZE, oldest: oldestRegular(items) };
   }
 
   async function list(query, page) {
-    const params = new URLSearchParams({ ft: query.keyword });
+    // Newest first (#396): a broad search has more pages than a query reads.
+    const params = new URLSearchParams({ ft: query.keyword, sort: NEWEST_FIRST });
     // G107: one search in all chosen regions; jobscout24 takes regidl once per region
     for (const id of query.regionIds || []) params.append('regidl', id);
     if (query.postalCode && !(query.regionIds || []).length) params.set('psz', query.postalCode);
