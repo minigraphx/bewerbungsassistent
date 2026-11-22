@@ -93,6 +93,17 @@ export function buildQueries(portal, plan) {
 }
 
 /**
+ * The result pages a query reads at most: a jobscout24 region search its own limit (G107), every other the plan's.
+ * bewerbungen/search_stages.py weighs the time estimate by these pages (#391, tests/fixtures/run-size.json).
+ * @param {object} query  as buildQueries returns it
+ * @param {object} plan
+ * @returns {number}
+ */
+export function pagesOf(query, plan) {
+  return query.maxPages || plan.max_seiten;
+}
+
+/**
  * The place a query searches, for the progress (G43): its town, postcode, region or cantons; '' for a query without one.
  * @param {object} query  as buildQueries returns it
  * @returns {string}

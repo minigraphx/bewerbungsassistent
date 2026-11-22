@@ -1,7 +1,7 @@
 // One search run: plan from the app, per portal a background tab, result lists, screening by the app,
 // full texts of the new hits, hits to the app, summary. Only started by the person (popup or app page).
 
-import { ADAPTERS, buildQueries, chunks, hitKey, placeOf } from './queries.js';
+import { ADAPTERS, buildQueries, chunks, hitKey, pagesOf, placeOf } from './queries.js';
 import { followKey, searchSites } from './sites.js';
 import { CANCELLED, screen, stopIfCancelled } from './steps.js';
 
@@ -57,7 +57,7 @@ async function searchOne(portal, plan, query, tab, found, position, deps, log) {
   const where = place ? { ort: place } : {};
   const asked = { stichwort: query.keyword, ort: place };
   let listed = 0;
-  const pages = query.maxPages || plan.max_seiten;  // a jobscout24 region search reads more (G107)
+  const pages = pagesOf(query, plan);  // a jobscout24 region search reads more (G107)
   for (let page = 1; page <= pages; page += 1) {
     stopIfCancelled(deps);
     deps.report({ portal, phase: 'suche', stichwort: query.keyword, ...where, seite: page, gefunden: found.size, ...position });

@@ -5,7 +5,7 @@ import { test } from 'node:test';
 
 import { describePlan, describeRun } from '../lib/progress.js';
 import { portalRows } from '../lib/popup-view.js';
-import { buildQueries } from '../lib/queries.js';
+import { buildQueries, pagesOf } from '../lib/queries.js';
 import { DELAY_MS, searchPortal, STAGE_PAUSE_S, STAGE_SIZE } from '../lib/search.js';
 
 const CASES = JSON.parse(readFileSync(new URL('./fixtures/run-size.json', import.meta.url), 'utf8')).cases;
@@ -66,6 +66,40 @@ test('the app counts the same searches per portal as the extension builds', () =
       assert.equal(buildQueries(portal, plan).queries.length, searches[portal], `${name}: ${portal}`);
     }
   }
+});
+
+test('the app counts the same pages per portal as the extension reads at most (#391)', () => {
+  const withPages = CASES.filter((c) => c.pages);
+  assert.ok(withPages.some((c) => c.plan.regionen_jobscout24), 'a case searches jobscout24 by region');
+  for (const { name, plan, pages } of withPages) {
+    for (const portal of plan.portale) {
+      const read = buildQueries(portal, plan).queries.reduce((sum, query) => sum + pagesOf(query, plan), 0);
+      assert.equal(read, pages[portal], `${name}: ${portal}`);
+    }
+  }
+});
+
+test('a run reads each search up to the pages pagesOf names', async () => {
+  const plan = { ...CASES.find((c) => c.pages && c.plan.regionen_jobscout24).plan, portale: ['jobscout24'] };
+  const [query] = buildQueries('jobscout24', plan).queries;
+  const read = [];
+  const deps = {
+    app: { async request(method, path) { return path === '/api/suche/sichten' ? { holen: [], bekannt: 0, gefiltert: [] } : {}; } },
+    browser: {
+      async openTab() { return 1; },
+      async inject() {},
+      async run(tab, portal, method, args) {
+        if (method === 'list') read.push(args[1]);
+        return { ok: true, value: { hits: [], more: true } };
+      },
+      async closeTab() {},
+    },
+    report() {},
+    sleep: async () => {},
+  };
+  await searchPortal('jobscout24', { ...plan, stichworte: [query.keyword] }, deps);
+  assert.equal(read.length, pagesOf(query, plan));
+  assert.equal(pagesOf({ keyword: 'Begriff1', postalCode: '1111' }, plan), plan.max_seiten);
 });
 
 test('more than 30 searches on a portal all run, in stages of at most 30', async () => {

@@ -14,6 +14,10 @@ STAGE_PAUSE_SECONDS = 60
 STAGE_PAUSE_WORDS = "einer Minute"  # STAGE_PAUSE_SECONDS in the announcement
 # A search reads up to three result pages with 0.6 s between requests, plus loading: rough, rather too much.
 SECONDS_PER_SEARCH = 5
+# #391: a jobscout24 region search reads up to max_seiten_regionen pages instead of max_seiten, so the time counts each
+# search by its pages, relative to the plan's own max_seiten. A measured region search with a common term read all 10
+# pages, its list never ran short, at about 0.4 s per page plus the pause: still under what SECONDS_PER_SEARCH allows.
+DEFAULT_PAGES = 3  # as search_plan.MAX_PAGES, for a plan that names no pages
 APPRENTICESHIP_PORTALS = frozenset({"LENA", "yousty"})
 PLACE_FIELDS = {"jobs.ch": "orte", "jobscout24": "plz", "ictjobs": "regionen"}  # as PLACE in queries.js
 ANNOUNCEMENT = ("Diese Suche dauert etwa {minutes}: {searches} Suchen in {stages} Etappen, mit je {pause} Pause "
@@ -47,11 +51,21 @@ def _searches(portal: str, plan: dict) -> int:
     if portal not in PLACE_FIELDS:
         return 0
     # G107: with regions jobscout24 searches each term once in all of them, its postcodes rest
-    by_region = portal == "jobscout24" and _count(plan.get("regionen_jobscout24")) > 0
-    places = 1 if by_region else _count(plan.get(PLACE_FIELDS[portal]))
+    places = 1 if _by_region(portal, plan) else _count(plan.get(PLACE_FIELDS[portal]))
     free = niches if portal == "jobs.ch" else 0
     everywhere = keywords if plan.get("schweizweit") or not places else 0
     return places * keywords + free + everywhere
+
+
+def _by_region(portal: str, plan: dict) -> bool:
+    return portal == "jobscout24" and _count(plan.get("regionen_jobscout24")) > 0
+
+
+def _pages(plan: dict) -> tuple[int, int]:
+    """As pagesOf in queries.js: the pages a search reads at most, and those of a jobscout24 region search."""
+    pages, by_region = plan.get("max_seiten"), plan.get("max_seiten_regionen")
+    pages = pages if isinstance(pages, int) and pages > 0 else DEFAULT_PAGES
+    return pages, by_region if isinstance(by_region, int) and by_region > 0 else pages
 
 
 def searches_per_portal(plan: dict) -> dict[str, int]:
@@ -59,12 +73,25 @@ def searches_per_portal(plan: dict) -> dict[str, int]:
     return {portal: _searches(portal, plan) for portal in plan.get("portale") or []}
 
 
+def pages_per_portal(plan: dict) -> dict[str, int]:
+    """The result pages the searches of each portal read at most (#391): a region search its own limit, once per term."""
+    pages, by_region = _pages(plan)
+    return {portal: count * pages + (_keywords_on(portal, plan) * (by_region - pages) if _by_region(portal, plan) else 0)
+            for portal, count in searches_per_portal(plan).items()}
+
+
 def size(plan: dict) -> dict:
-    """Searches, stages and rough minutes of a run, and the announcement when a portal needs more than one stage."""
+    """Searches, stages and rough minutes of a run, and the announcement when a portal needs more than one stage.
+
+    The stages count searches, as the extension runs them; the time counts pages, a search of the plan's pages being
+    SECONDS_PER_SEARCH, so a jobscout24 region search of up to 10 pages weighs 10/3 of one (#391)."""
     per_portal = searches_per_portal(plan)
     stages = {portal: math.ceil(count / STAGE_SIZE) for portal, count in per_portal.items()}
     searches, pauses = sum(per_portal.values()), sum(max(0, count - 1) for count in stages.values())
-    minutes = math.ceil((searches * SECONDS_PER_SEARCH + pauses * STAGE_PAUSE_SECONDS) / 60)
+    pages = _pages(plan)[0]
+    # whole numbers only: seconds times pages per search, then rounded up to minutes
+    weighted = sum(pages_per_portal(plan).values()) * SECONDS_PER_SEARCH + pauses * STAGE_PAUSE_SECONDS * pages
+    minutes = -(-weighted // (60 * pages))
     long = pauses > 0
     text = ANNOUNCEMENT.format(minutes=minutes_text(minutes), searches=searches, stages=sum(stages.values()),
                                pause=STAGE_PAUSE_WORDS) if long else ""

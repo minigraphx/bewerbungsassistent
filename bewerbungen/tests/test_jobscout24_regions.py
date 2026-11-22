@@ -50,6 +50,23 @@ def test_the_postcodes_stay_in_the_plan_and_count_again_without_a_region():
     assert search_plan.parse(WITHOUT).jobscout24_regions == ()
 
 
+LONG_TERMS = "Kursplaner, Lernbegleiter, Datenpfleger, Ablagehelfer, Terminplaner, Lagerhelfer, Kassenwart, Raumplaner"
+LONG = PROFILE.replace(TERMS, LONG_TERMS).replace("- Orte (jobs.ch): Nordstadt\n",
+                                                  "- Orte (jobs.ch): Nordstadt, Südstadt, Oststadt, Weststadt\n")
+
+
+def test_a_region_run_is_not_estimated_shorter_than_the_postcode_run_it_replaces():
+    by_postcode = search_stages.size(search_plan.parse(LONG.format(regions="")).as_dict())
+    by_region = search_stages.size(search_plan.parse(
+        LONG.format(regions="- Regionen (jobscout24): Region Bern (BE/FR/SO)\n")).as_dict())
+    assert by_postcode["lang"] and by_region["lang"], "both runs are announced"
+    # #391: a region search reads up to 10 pages where a postcode search reads 3, so it counts 10/3 of a search
+    assert by_region["minuten"] >= by_postcode["minuten"], (by_region["text"], by_postcode["text"])
+    # the number of searches shown stays as the extension runs them
+    assert by_postcode["suchen"] - by_region["suchen"] == 3 * 8 - 8
+    assert f"{by_region['suchen']} Suchen" in by_region["text"]
+
+
 def test_names_as_jobscout24_shows_them_short_names_and_ids_are_all_read():
     line = "- Regionen (jobscout24): region bern, 14, Home Office / Remote Work, Nordwestschweiz (AG/BL/BS/SO)\n"
     plan = search_plan.parse(PROFILE.format(regions=line))
