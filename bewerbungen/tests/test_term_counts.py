@@ -105,6 +105,20 @@ def test_with_fewer_than_three_runs_nothing_is_marked():
     assert all(entry.mark is None for entry in found.entries)
 
 
+def test_a_niche_is_counted_after_the_keywords_with_its_numbers_and_without_a_mark():
+    found = term_evidence.keyword_counts(runs(), HITS, term_changes.terms_of(PROFILE).keywords, ("Lernatelier",))
+    assert [entry.term for entry in found.entries] == ["Lernbegleiter", "Kursleiter", "Kursleiter Informatik", "E-Learning-Autor"]
+    [niche] = found.niches
+    assert (niche.term, niche.searches, niche.raw, niche.screened, niche.listed, niche.only_here, niche.good) \
+        == ("Lernatelier", 3, 3, 0, 1, 1, 0)
+    assert niche.mark is None, "the review moves no niche, so a mark would lead nowhere"
+
+
+def test_a_niche_that_is_also_a_keyword_is_counted_once():
+    found = term_evidence.keyword_counts(runs(), HITS, ("Lernbegleiter",), ("lernbegleiter", "Lernatelier"))
+    assert [entry.term for entry in found.niches] == ["Lernatelier"]
+
+
 def test_the_screened_titles_come_from_the_last_run_per_exclusion_and_without_a_term():
     screened = term_evidence.screened_titles(runs())
     assert screened == [("Praktikum", 2, ("Praktikum Kursleitung", "Praktikum bei Erika Beispiel")),
@@ -190,6 +204,19 @@ def test_the_review_page_lists_both_marks_with_their_numbers_and_the_ai_gets_and
     assert cards["„E-Learning-Autor“ entfernen"]["marke"] == "ohne_ertrag"
     merge = cards["„Kursleiter Informatik“ in „Kursleiter“ zusammenlegen"]
     assert (merge["marke"], merge["art"], merge["entfaellt"], merge["neu"]) == ("ueberlappend", "merge", ["Kursleiter Informatik"], [])
+
+
+def test_the_table_lists_the_niche_with_its_numbers_but_the_ai_gets_only_the_keywords(counted_search, ai):
+    counts = counts_of(counted_search)
+    assert [entry["begriff"] for entry in counts["begriffe"]] == [
+        "Lernbegleiter", "Kursleiter", "Kursleiter Informatik", "E-Learning-Autor"]
+    [niche] = counts["nischen"]
+    assert {key: niche[key] for key in ("begriff", "suchen", "treffer_portale", "aussortiert", "nur_hier", "ab_note_4", "marke")} \
+        == {"begriff": "Lernatelier", "suchen": 3, "treffer_portale": 3, "aussortiert": 0, "nur_hier": 1, "ab_note_4": 0,
+            "marke": None}
+    propose(counted_search)
+    sent = ai.messages.calls[0]["messages"][0]["content"]
+    assert "- nischen: Lernatelier" in sent and "Lernatelier: 3 Suchen" not in sent
 
 
 def test_the_counts_wait_for_three_runs(counted_search):

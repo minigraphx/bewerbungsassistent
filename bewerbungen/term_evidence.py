@@ -123,6 +123,7 @@ class KeywordCount:
 class Counted:
     runs: int
     entries: tuple[KeywordCount, ...]
+    niches: tuple[KeywordCount, ...] = ()  # only for the page's table (#393): the AI gets the keywords' numbers alone
 
     @property
     def enough(self) -> bool:
@@ -136,7 +137,8 @@ class Counted:
 
     def as_dict(self) -> dict:
         return {"laeufe": self.runs, "noetig": NEEDED_RUNS, "genug": self.enough,
-                "begriffe": [entry.as_dict() for entry in self.entries]}
+                "begriffe": [entry.as_dict() for entry in self.entries],
+                "nischen": [entry.as_dict() for entry in self.niches]}
 
 
 def _mark(found: dict, shared: dict, runs: int) -> str | None:
@@ -149,19 +151,25 @@ def _mark(found: dict, shared: dict, runs: int) -> str | None:
     return OVERLAPPING if found["neu"] and not shared["nur_hier"] else None
 
 
-def _keyword_count(found: dict, shared: dict, runs: int) -> KeywordCount:
+def _keyword_count(found: dict, shared: dict, runs: int, markable: bool) -> KeywordCount:
     top = shared["auch_ueber"][0] if shared["auch_ueber"] else None
     return KeywordCount(found["begriff"], found["suchen"], round(found["suchen"] / shared["laeufe"]) if shared["laeufe"] else 0,
                         found["treffer"], found["aussortiert"], found["neu"], shared["nur_hier"], found["ab_note_4"],
                         shared["laeufe"], shared["laeufe_ohne_treffer"], top["begriff"] if top else None,
-                        bool(top and top["anzahl"] == found["neu"]), _mark(found, shared, runs))
+                        bool(top and top["anzahl"] == found["neu"]), _mark(found, shared, runs) if markable else None)
 
 
-def keyword_counts(runs: list[dict], hits: list[dict], terms: tuple[str, ...]) -> Counted:
-    """Per keyword of the list, in its order, what the last runs brought and the mark the app gives it."""
-    found = search_yield.summary(runs, hits, list(terms), with_places=False)["begriffe"]
-    shared = search_yield.overlap(runs, hits, list(terms))
-    return Counted(len(runs), tuple(_keyword_count(one, other, len(runs)) for one, other in zip(found, shared)))
+def keyword_counts(runs: list[dict], hits: list[dict], terms: tuple[str, ...], niches: tuple[str, ...] = ()) -> Counted:
+    """Per keyword of the list, in its order, what the last runs brought and the mark the app gives it; then the niches
+    not also in the list, counted alike (#393). A niche is never marked: the review moves only keywords, so its mark
+    would lead to no proposal."""
+    own = tuple(niche for niche in niches if not any(search_yield.same_term(niche, term) for term in terms))
+    names = [*terms, *own]
+    found = search_yield.summary(runs, hits, names, with_places=False)["begriffe"]
+    shared = search_yield.overlap(runs, hits, names)
+    counts = tuple(_keyword_count(one, other, len(runs), index < len(terms))
+                   for index, (one, other) in enumerate(zip(found, shared)))
+    return Counted(len(runs), counts[:len(terms)], counts[len(terms):])
 
 
 def screened_titles(runs: list[dict]) -> list[tuple[str | None, int, tuple[str, ...]]]:

@@ -66,8 +66,9 @@ def _run_evidence(k, text: str, current: term_changes.Terms) -> term_review.RunE
     """What the last runs brought per keyword (G108), counted over the hits the list shows, as on Suche einstellen."""
     runs = QueryLog(k.daten).runs()
     shown = excluded_companies.shown(Hits(k.daten).all(), excluded_companies.keys(k.daten))
-    return term_review.RunEvidence(term_evidence.keyword_counts(runs, shown, current.keywords),
-                                   tuple(term_evidence.screened_titles(runs)), term_moves.placement_of(text))
+    placement = term_moves.placement_of(text)
+    return term_review.RunEvidence(term_evidence.keyword_counts(runs, shown, current.keywords, placement.niches),
+                                   tuple(term_evidence.screened_titles(runs)), placement)
 
 
 def _prompt(k, text: str, hits: list[dict], feedback: str = "", former: dict | None = None) -> tuple[str, term_review.RunEvidence]:

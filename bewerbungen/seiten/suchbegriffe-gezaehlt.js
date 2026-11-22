@@ -1,7 +1,8 @@
 "use strict";
 // «Was die App gezählt hat» on /suchbegriffe (G108, #383): above the proposal, from GET /api/suchbegriffe/gezaehlt,
 // shown at once while the AI works, since the app counts without it. Only flagged keywords are listed, each with a
-// .term--flag chip; every keyword with its numbers stands in the details below. The words come from SuchbegriffeLogik.
+// .term--flag chip; every keyword with its numbers stands in the details below, then the niches (#393). The words come
+// from SuchbegriffeLogik.
 (() => {
   const { holen, el } = window.App;
   const L = window.SuchbegriffeLogik;
@@ -13,9 +14,9 @@
     return el("li", { class: "terms-counted__row" }, el("span", { class: "term__name" }, name), " ", flag(marke), rest);
   }
 
-  function tabelle(z) {
+  function tabelle(reihen) {
     const kopf = el("tr", {}, ...L.TABELLE_SPALTEN.map((spalte, i) => el("th", { scope: "col", class: i ? "num" : "" }, spalte)));
-    const zeilen = L.tabellenZeilen(z).map(r => el("tr", {},
+    const zeilen = reihen.map(r => el("tr", {},
       el("th", { scope: "row" }, r.begriff, ...(r.marke ? [" ", flag(r.marke)] : [])),
       ...r.zahlen.map(zahl => el("td", { class: "num" }, String(zahl)))));
     return el("table", { class: "table terms-counted__table" }, el("thead", {}, kopf), el("tbody", {}, ...zeilen));
@@ -31,8 +32,9 @@
     $("gezaehlt-nichts").textContent = L.NICHTS_MARKIERT;
     $("gezaehlt-nichts").hidden = Boolean(wenige) || markiert.length > 0;
     $("gezaehlt-alle-titel").textContent = L.TABELLE_TITEL;
-    $("gezaehlt-tabelle").replaceChildren(tabelle(z));
-    $("gezaehlt-alle").hidden = Boolean(wenige) || !z.begriffe.length;
+    const reihen = L.tabellenZeilen(z);
+    $("gezaehlt-tabelle").replaceChildren(tabelle(reihen));
+    $("gezaehlt-alle").hidden = Boolean(wenige) || !reihen.length;
     $("gezaehlt").hidden = false;
   }
 
