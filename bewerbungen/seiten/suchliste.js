@@ -16,6 +16,7 @@ window.Suchliste = (() => {
   let hervorZeit = null;
   let begriffe = [];
   let ertrag = new Map();  // per term what the last runs brought (G103)
+  let laeufe = 0;  // how many runs that is; with some, a term without an entry says it was not searched yet
   let optionen = {};
   let zeilen = [];  // per term its row and buttons, to find the focused one again after drawing anew
   let ziehen = null;
@@ -67,7 +68,7 @@ window.Suchliste = (() => {
   }
 
   function ertragsZeile(name, mitGriff) {
-    const teile = E.teile(ertrag.get(name));
+    const teile = E.teile(ertrag.get(name), laeufe);
     if (!teile.length) return null;
     const klasse = mitGriff ? "suchliste__ertrag caption" : "suchliste__ertrag suchliste__ertrag--allein caption";
     return el("span", { class: klasse }, ...window.DotLine.render(teile, el));
@@ -181,9 +182,11 @@ window.Suchliste = (() => {
     zeichne();
   }
 
-  /** The yield per term (Map of name to entry, G103); a list being dragged or saved shows it when it is drawn next. */
-  function zeigeErtrag(neu) {
+  /** The yield per term (Map of name to entry, G103) from `anzahlLaeufe` runs; a list being dragged or saved shows it
+   * when it is drawn next. */
+  function zeigeErtrag(neu, anzahlLaeufe = 0) {
     ertrag = new Map(neu);
+    laeufe = anzahlLaeufe;
     if (liste && !ziehen && offen === 0) zeichne();
   }
 

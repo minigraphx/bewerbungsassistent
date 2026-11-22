@@ -71,15 +71,17 @@ def _for_term(name: str, queries, hits, start, runs: int) -> dict:
     return {"begriff": name, **_entry(tally, found, runs)}
 
 
-def _empty_searches(queries, keys: set[str]) -> list[dict]:
-    """Term × portal where every search came back empty, in the order they ran."""
+def _empty_searches(queries, term_keys: set[str], niche_keys: set[str]) -> list[dict]:
+    """Term × portal where every search came back empty, in the order they ran; a niche not in the list is marked."""
+    keys = term_keys | niche_keys
     groups = dict.fromkeys((_term_key(q["stichwort"]), q["portal"]) for _, q in queries if _term_key(q["stichwort"]) in keys)
     found = []
     for key, portal in groups:
         mine = [(i, q) for i, q in queries if q["portal"] == portal and _term_key(q["stichwort"]) == key]
         tally = _tally(mine)
         if tally["treffer"] == 0:
-            found = [*found, {"begriff": mine[-1][1]["stichwort"], "portal": portal, "suchen": tally["suchen"], "laeufe": tally["laeufe"]}]
+            found = [*found, {"begriff": mine[-1][1]["stichwort"], "portal": portal, "suchen": tally["suchen"],
+                              "laeufe": tally["laeufe"], "nische": key not in term_keys}]
     return found
 
 
@@ -111,7 +113,8 @@ def summary(runs: list[dict], hits: list[dict], terms: list[str], with_places: b
     terms and of further `keywords` (niches), per place unless the search is for apprenticeships, and the old hits."""
     queries = _queries(runs)
     start = min((run["datum"] for run in runs), default=None)
-    keys = {_term_key(word) for word in (*terms, *keywords)}
+    term_keys = {_term_key(word) for word in terms}
+    niche_keys = {_term_key(word) for word in keywords}
     return {"laeufe": len(runs), "begriffe": [_for_term(name, queries, hits, start, len(runs)) for name in terms],
-            "leer": _empty_searches(queries, keys), "orte": _for_places(queries, hits, start, len(runs)) if with_places else [],
+            "leer": _empty_searches(queries, term_keys, niche_keys), "orte": _for_places(queries, hits, start, len(runs)) if with_places else [],
             "ohne_angabe": without_queries(hits)}

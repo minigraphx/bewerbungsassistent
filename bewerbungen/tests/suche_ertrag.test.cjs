@@ -19,9 +19,22 @@ test("a term that found nothing says so, with what the title filter screened out
   assert.deepEqual(L.teile(entry({ treffer: 0, neu: 0, ab_note_4: 0, aussortiert: 9 })), ["36 Suchen", "keine Treffer", "9 aussortiert"]);
 });
 
-test("a term no run has searched yet has no line", () => {
-  assert.deepEqual(L.teile(entry({ suchen: 0, treffer: 0 })), []);
+test("before the first run a term has no line", () => {
+  assert.deepEqual(L.teile(entry({ suchen: 0, treffer: 0 }), 0), []);
   assert.deepEqual(L.teile(undefined), []);
+});
+
+test("once runs exist, a term no run has searched says so", () => {
+  assert.deepEqual(L.teile(undefined, 2), ["noch nicht gesucht"]);
+  assert.deepEqual(L.teile(entry({ suchen: 0, treffer: 0 }), 3), ["noch nicht gesucht"]);
+  assert.deepEqual(L.teile(entry(), 3), ["36 Suchen", "40 Treffer", "5 neu", "3 ab Note 4", "12 aussortiert"]);
+});
+
+test("the places open with what their numbers come from and what «ohne Ort» means", () => {
+  const rest = ", gezählt wie bei den Suchbegriffen. „Ohne Ort“ sind Suchen ohne Ortsangabe, etwa für die Nischen.";
+  assert.equal(L.ortHinweis(3), `Aus den letzten 3 Suchläufen${rest}`);
+  assert.equal(L.ortHinweis(2), `Aus den letzten 2 Suchläufen${rest}`);
+  assert.equal(L.ortHinweis(1), `Aus dem letzten Suchlauf${rest}`);
 });
 
 test("the caption says how many runs the numbers come from", () => {
@@ -50,6 +63,8 @@ test("the details on empty searches count them and name term, portal, searches a
     "„Lernbegleiter“ auf ictjobs: 18 Suchen in 3 Suchläufen, kein Treffer.");
   assert.equal(L.leerZeile({ begriff: "Kursleiter", portal: "jobs.ch", suchen: 1, laeufe: 1 }),
     "„Kursleiter“ auf jobs.ch: 1 Suche in 1 Suchlauf, kein Treffer.");
+  assert.equal(L.leerZeile({ begriff: "Lernatelier", portal: "job-room", suchen: 3, laeufe: 3, nische: true }),
+    "„Lernatelier“ (Nische) auf job-room: 3 Suchen in 3 Suchläufen, kein Treffer.");
 });
 
 test("a place is named the way its portal searches it", () => {

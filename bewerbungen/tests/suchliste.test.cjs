@@ -330,6 +330,14 @@ test("each row carries its yield as plain text, and the mark when a term brought
   assert.equal(part(row(list, "Pflegefachmann"), "suchliste__ertrag"), null, "a term no run has searched yet has no line");
 });
 
+test("once runs exist, a term added since says it has not been searched yet", () => {
+  const { list, window } = setup();
+  window.Suchliste.ertrag(YIELD, 3);
+
+  assert.equal(part(row(list, "Pflegefachmann"), "suchliste__ertrag").textContent, "noch nicht gesucht");
+  assert.equal(part(row(list, "Koch"), "term--flag").textContent, "ohne Ertrag");
+});
+
 test("the yield neither moves the handle nor renames the buttons", () => {
   const { list, window } = setup();
   window.Suchliste.ertrag(YIELD);

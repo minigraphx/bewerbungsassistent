@@ -10,10 +10,14 @@ window.SucheErtrag = (() => {
   const marke = () => el("span", { class: "term term--flag" }, el("span", { class: "term__word" }, E.OHNE_ERTRAG));
 
   function zeigeBegriffe(ertrag, lehrstelle) {
-    window.Suchliste.ertrag(E.nachBegriff(ertrag));
+    window.Suchliste.ertrag(E.nachBegriff(ertrag), ertrag.laeufe);
+    const mitListe = ertrag.begriffe.length > 0;
     const hinweis = $("suchliste-ertrag");
-    hinweis.textContent = [E.hinweis(ertrag.laeufe, lehrstelle), E.ohneAngabe(ertrag.ohne_angabe, lehrstelle)].filter(Boolean).join(" ");
-    hinweis.hidden = !ertrag.begriffe.length;
+    hinweis.textContent = E.hinweis(ertrag.laeufe, lehrstelle);
+    hinweis.hidden = !mitListe;
+    const ohneAngabe = $("suchliste-ohne-angabe");
+    ohneAngabe.textContent = E.ohneAngabe(ertrag.ohne_angabe, lehrstelle);
+    ohneAngabe.hidden = !mitListe || !ohneAngabe.textContent;
     const leer = ertrag.leer;
     $("ertrag-leer").hidden = !leer.length;
     $("ertrag-leer-titel").textContent = E.leerTitel(leer.length, lehrstelle);
@@ -24,8 +28,9 @@ window.SucheErtrag = (() => {
     return el("li", {}, `${E.ortName(ort)}: `, ...window.DotLine.render(E.teile(ort), el), ...(ort.ohne_ertrag ? [" ", marke()] : []));
   }
 
-  function zeigeOrte(orte) {
+  function zeigeOrte(orte, laeufe) {
     $("orte-ertrag").hidden = !orte.length;
+    $("orte-ertrag-hinweis").textContent = E.ortHinweis(laeufe);
     $("orte-ertrag-liste").replaceChildren(...orte.map(ortZeile));
   }
 
@@ -33,7 +38,7 @@ window.SucheErtrag = (() => {
   function zeige(ertrag) {
     const lehrstelle = ertrag.art === "lehrstelle";
     zeigeBegriffe(ertrag, lehrstelle);
-    zeigeOrte(lehrstelle ? [] : ertrag.orte);
+    zeigeOrte(lehrstelle ? [] : ertrag.orte, ertrag.laeufe);
   }
 
   return { zeige };

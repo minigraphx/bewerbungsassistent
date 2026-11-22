@@ -144,8 +144,14 @@ def test_the_yield_per_term_counts_searches_hits_new_good_and_screened_out():
 
 def test_searches_that_found_nothing_stand_per_term_and_portal():
     result = search_yield.summary(RUNS, HITS, ["Lernbegleiter", "Kursleiter"], with_places=True)
-    assert result["leer"] == [{"begriff": "Kursleiter", "portal": "ictjobs", "suchen": 3, "laeufe": 3}], \
+    assert result["leer"] == [{"begriff": "Kursleiter", "portal": "ictjobs", "suchen": 3, "laeufe": 3, "nische": False}], \
         "Lernbegleiter found something on jobs.ch in Aarau, so its empty searches in Olten are no empty portal"
+
+
+def test_an_empty_niche_is_marked_as_one():
+    runs = [run(10, ("jobs.ch", "Lernatelier", "", 0, {}), ("jobs.ch", "Kursleiter", "Aarau", 0, {}))]
+    empty = search_yield.summary(runs, [], ["Kursleiter"], with_places=True, keywords=("Lernatelier",))["leer"]
+    assert [(entry["begriff"], entry["nische"]) for entry in empty] == [("Lernatelier", True), ("Kursleiter", False)]
 
 
 def test_the_yield_per_place_follows_portal_and_place():
@@ -210,7 +216,7 @@ def test_after_a_run_every_new_hit_names_its_query_and_the_page_has_the_yield(se
     assert python == {"begriff": "Python", "suchen": 1, "treffer": 2, "neu": 1, "ab_note_4": 0, "aussortiert": 1, "ohne_ertrag": False}
     assert {"portal": "jobs.ch", "ort": "Bern", "ort_name": "Bern", "suchen": 2, "treffer": 2, "neu": 1, "ab_note_4": 0, "aussortiert": 1,
             "ohne_ertrag": False} in shown["orte"]
-    assert shown["leer"] == [{"begriff": "E-Learning", "portal": "jobs.ch", "suchen": 1, "laeufe": 1}]
+    assert shown["leer"] == [{"begriff": "E-Learning", "portal": "jobs.ch", "suchen": 1, "laeufe": 1, "nische": False}]
     assert (shown["laeufe"], shown["art"]) == (1, "stelle")
     logged = yaml.safe_load((search.kontext.daten / "suche" / query_log.RUNS_FILE).read_text(encoding="utf-8"))
     assert {"portal": "jobs.ch", "stichwort": "E-Learning", "ort": "Bern", "treffer": 0} in logged[0]["abfragen"]

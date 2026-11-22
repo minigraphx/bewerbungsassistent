@@ -10,9 +10,12 @@
   const suchen = zahl => anzahl(zahl, "Suche", "Suchen");
   const suchlaeufe = zahl => anzahl(zahl, "Suchlauf", "Suchläufen");
 
-  /** The parts of the yield line of a term or place; none for one no run has searched yet. */
-  function teile(eintrag) {
-    if (!eintrag || !eintrag.suchen) return [];
+  const NICHT_GESUCHT = "noch nicht gesucht";
+
+  /** The parts of the yield line of a term or place. One no run has searched yet has none before the first run and
+   * says so once there are `laeufe`, e.g. a term added since. */
+  function teile(eintrag, laeufe = 0) {
+    if (!eintrag || !eintrag.suchen) return laeufe > 0 ? [NICHT_GESUCHT] : [];
     const aussortiert = eintrag.aussortiert > 0 ? `${eintrag.aussortiert} aussortiert` : "";
     if (!eintrag.treffer) return [suchen(eintrag.suchen), "keine Treffer", aussortiert].filter(Boolean);
     return [suchen(eintrag.suchen), `${eintrag.treffer} Treffer`, `${eintrag.neu} neu`, `${eintrag.ab_note_4} ab Note 4`, aussortiert]
@@ -21,14 +24,21 @@
 
   const begriffWort = lehrstelle => (lehrstelle ? "Beruf" : "Begriff");
 
+  const woher = laeufe => (laeufe === 1 ? "aus dem letzten Suchlauf" : `aus den letzten ${laeufe} Suchläufen`);
+
   /** The one caption on the numbers under the list: from how many runs they come and how a hit counts. */
   function hinweis(laeufe, lehrstelle) {
     if (!laeufe) return `Nach dem nächsten Suchlauf steht hier bei jedem ${begriffWort(lehrstelle)}, was er bringt.`;
-    const woher = laeufe === 1 ? "aus dem letzten Suchlauf" : `aus den letzten ${laeufe} Suchläufen`;
     const zaehlen = lehrstelle
       ? "Findet die Suche eine Lehrstelle über mehrere Berufe, zählt sie bei jedem."
       : "Findet die Suche eine Stelle über mehrere Begriffe, zählt sie bei jedem. „Aussortiert“ heisst: Der Titelfilter hat den Titel nicht durchgelassen.";
-    return `Die Zahlen stammen ${woher}. ${zaehlen}`;
+    return `Die Zahlen stammen ${woher(laeufe)}. ${zaehlen}`;
+  }
+
+  /** The first line of «Was die Orte bringen»: where the numbers come from and what a place-less search is. */
+  function ortHinweis(laeufe) {
+    const satzAnfang = woher(laeufe).replace(/^a/, "A");
+    return `${satzAnfang}, gezählt wie bei den Suchbegriffen. „Ohne Ort“ sind Suchen ohne Ortsangabe, etwa für die Nischen.`;
   }
 
   /** Hits from runs before the app kept the query; '' when there are none. */
@@ -40,7 +50,8 @@
 
   const leerTitel = (zahl, lehrstelle) => `Wo ein ${begriffWort(lehrstelle)} nichts findet (${zahl})`;
 
-  const leerZeile = eintrag => `„${eintrag.begriff}“ auf ${eintrag.portal}: ${suchen(eintrag.suchen)} in ${suchlaeufe(eintrag.laeufe)}, kein Treffer.`;
+  const leerZeile = eintrag => `„${eintrag.begriff}“${eintrag.nische ? " (Nische)" : ""} auf ${eintrag.portal}: `
+    + `${suchen(eintrag.suchen)} in ${suchlaeufe(eintrag.laeufe)}, kein Treffer.`;
 
   /** A place the way its portal searches it: a town, a postcode, a region of ictjobs or the cantons of job-room. */
   function ortName(eintrag) {
@@ -54,7 +65,7 @@
   /** The yield of each term by its name as the term list shows it. */
   const nachBegriff = ertrag => new Map(((ertrag && ertrag.begriffe) || []).map(eintrag => [eintrag.begriff, eintrag]));
 
-  const logik = { OHNE_ERTRAG, teile, hinweis, ohneAngabe, leerTitel, leerZeile, ortName, nachBegriff };
+  const logik = { OHNE_ERTRAG, teile, hinweis, ortHinweis, ohneAngabe, leerTitel, leerZeile, ortName, nachBegriff };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SucheErtragLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);
