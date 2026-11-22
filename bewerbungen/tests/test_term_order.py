@@ -21,7 +21,7 @@ DIRECTIONS = ("## Suchrichtungen\n1. Administration, Empfang (Priorität 1)\n2. 
               "   - Nur mit IT-Bezug\n\n## Region\n- Wohnort: Bern\n")
 LEHRE = ("## Lehrbeginn\n- 2027\n\n## Berufe (mit Priorität)\n1. Koch/Köchin EFZ (Priorität 1)\n"
          "2. Fachfrau Betreuung EFZ, Fachrichtung Kinder (Priorität 2)\n3. Maler/in EFZ\n\n## Region\n- Wohnort: Bern\n")
-JOB_TERMS = ["Python", "TypeScript", "Softwareentwickler", "Data Engineer", "E-Learning"]
+JOB_TERMS = ["Python", "TypeScript", "Softwareentwickler", "Data Engineer", "E-Learning", "Kursleiter"]
 PROFESSIONS = ["Fachfrau Gesundheit EFZ", "Fachfrau Betreuung EFZ, Fachrichtung Kinder", "Assistentin Gesundheit und Soziales EBA"]
 
 
@@ -225,7 +225,7 @@ def drafts(s) -> list[str]:
 
 
 @pytest.mark.parametrize("fixture, order", [
-    ("job_seeker", ["Data Engineer", "Python", "E-Learning", "TypeScript", "Softwareentwickler"]),
+    ("job_seeker", ["Data Engineer", "Python", "Kursleiter", "E-Learning", "TypeScript", "Softwareentwickler"]),
     ("apprentice", [PROFESSIONS[2], PROFESSIONS[0], PROFESSIONS[1]]),
 ])
 def test_the_order_from_the_page_is_saved_with_drafts_and_searched(request, fixture, order):
@@ -253,7 +253,7 @@ def test_the_rating_reads_the_moved_priority_list(apprentice):
 
 
 def test_a_term_added_on_the_page_after_ordering_comes_last(job_seeker):
-    order = ["E-Learning", "Python", "TypeScript", "Softwareentwickler", "Data Engineer"]
+    order = ["E-Learning", "Python", "TypeScript", "Softwareentwickler", "Kursleiter", "Data Engineer"]
     assert post(job_seeker, "/api/beruf/reihenfolge", {"berufe": order})[0] == 200
 
     status, answer = post(job_seeker, "/api/beruf/aufnehmen", {"beruf": "Projektleitung Bau"})

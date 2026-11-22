@@ -11,7 +11,7 @@ import search_plan
 import search_terms
 from hits import DOMAINS, QUERIES
 from portal_places import REGION_NAMES
-from query_log import KEPT_RUNS
+from query_log import KEPT_RUNS, MAX_EXAMPLES, UNRELATED, UNRELATED_EXAMPLES
 
 GOOD_GRADE = 4
 ICTJOBS = "ictjobs"
@@ -37,10 +37,13 @@ def _queries(runs: list[dict]) -> list[tuple[int, dict]]:
     return [(index, query) for index, run in enumerate(runs) for query in run["abfragen"] if _valid_query(query)]
 
 
+def _count(entries: list[tuple[int, dict]], field: str) -> int:
+    return sum(q[field] for _, q in entries if type(q.get(field)) is int)
+
+
 def _tally(entries: list[tuple[int, dict]]) -> dict:
-    screened = sum(q["aussortiert"] for _, q in entries if type(q.get("aussortiert")) is int)
-    return {"suchen": len(entries), "treffer": sum(q["treffer"] for _, q in entries), "aussortiert": screened,
-            "laeufe": len({index for index, _ in entries})}
+    return {"suchen": len(entries), "treffer": sum(q["treffer"] for _, q in entries), "aussortiert": _count(entries, "aussortiert"),
+            UNRELATED: _count(entries, UNRELATED), "laeufe": len({index for index, _ in entries})}
 
 
 def _grade(hit: dict):
@@ -63,13 +66,16 @@ def _found(hits: list[dict], start: str | None, matches) -> dict:
 
 def _without_yield(tally: dict, runs: int) -> bool:
     """«ohne Ertrag»: no hit past the title filter in the last runs (nothing found, or all screened out; one meaning on
-    Suche einstellen and Suchbegriffe prüfen, #383), and only once there are as many runs as the window holds."""
-    return runs >= KEPT_RUNS and tally["laeufe"] >= KEPT_RUNS and tally["treffer"] - tally["aussortiert"] <= 0
+    Suche einstellen and Suchbegriffe prüfen, #383), and only once there are as many runs as the window holds. A hit
+    without a required word of its term (G110) is no yield either."""
+    kept = tally["treffer"] - tally["aussortiert"] - tally[UNRELATED]
+    return runs >= KEPT_RUNS and tally["laeufe"] >= KEPT_RUNS and kept <= 0
 
 
 def _entry(tally: dict, found: dict, runs: int) -> dict:
+    unrelated = {UNRELATED: tally[UNRELATED]} if tally[UNRELATED] else {}
     return {"suchen": tally["suchen"], "treffer": tally["treffer"], **found, "aussortiert": tally["aussortiert"],
-            "ohne_ertrag": _without_yield(tally, runs)}
+            **unrelated, "ohne_ertrag": _without_yield(tally, runs)}
 
 
 def _for_term(name: str, queries, hits, start, runs: int) -> dict:
@@ -157,3 +163,25 @@ def summary(runs: list[dict], hits: list[dict], terms: list[str], with_places: b
     return {"laeufe": len(runs), "begriffe": [_for_term(name, queries, hits, start, len(runs)) for name in terms],
             "leer": _empty_searches(queries, term_keys, niche_keys), "orte": _for_places(queries, hits, start, len(runs)) if with_places else [],
             "ohne_angabe": without_queries(hits)}
+
+
+def _examples(entries: list[tuple[int, dict]]) -> list[str]:
+    """Up to three titles from the term's own last run with any hit without a required word."""
+    last = max((index for index, q in entries if type(q.get(UNRELATED)) is int and q[UNRELATED] > 0), default=None)
+    titles = (title for index, q in entries if index == last and isinstance(q.get(UNRELATED_EXAMPLES), list)
+              for title in q[UNRELATED_EXAMPLES] if isinstance(title, str))
+    return list(dict.fromkeys(titles))[:MAX_EXAMPLES]
+
+
+def unrelated(runs: list[dict], terms: list[str]) -> list[dict]:
+    """«Ohne Pflichtbezug aussortiert» (G110): per term with any such hit in these runs their number, counted as in
+    `summary`, and up to three titles; a niche not in the list is named as its queries name it."""
+    queries = _queries(runs)
+    names = {_term_key(word): word for word in terms}
+    groups = dict.fromkeys(_term_key(q["stichwort"]) for _, q in queries if type(q.get(UNRELATED)) is int and q[UNRELATED] > 0)
+    found = []
+    for key in groups:
+        mine = [(i, q) for i, q in queries if _term_key(q["stichwort"]) == key]
+        found = [*found, {"begriff": names.get(key) or mine[-1][1]["stichwort"], "anzahl": _count(mine, UNRELATED),
+                          "beispiele": _examples(mine)}]
+    return found

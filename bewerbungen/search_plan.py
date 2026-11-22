@@ -130,6 +130,8 @@ DIRECTION_REMARK = re.compile(r"\s*\(.*$")  # a search direction ends at its fir
 # match whole terms, so „Java/.NET“ means two. A gender form such as „Sachbearbeiter/in“ stays one term.
 BRACKETS = re.compile(r"\s*\([^()]*\)")
 ENTRY_COMMA = re.compile(r",(?![^()]*\))")
+# G110: «Berufsbildner (nur mit Informatik, ICT)» names the words a hit of that term needs; no part of its name.
+REQUIRED_REMARK = re.compile(r"\s*\(\s*nur\s+mit\s+([^()]*)\)", re.IGNORECASE)
 SLASH = re.compile(r"\s*/(?!-?(?:in|innen|frau|mann|euse|r)\b)\s*", re.IGNORECASE)
 YEAR = re.compile(r"\b20\d\d\b")
 NUMBER = re.compile(r"\d+")
@@ -382,9 +384,9 @@ def profession_forms(name: str) -> tuple[str, ...]:
 def profession_words(name: str) -> frozenset[str]:
     """What makes two names the same profession on the portals: „Fachfrau/Fachmann Gesundheit EFZ“ and „Fachfrau Gesundheit EFZ“.
 
-    A name in two forms counts by its first, as portals/common.js does.
+    A name in two forms counts by its first, as portals/common.js does; a remark with required words is no part of it.
     """
-    forms = profession_forms(name)
+    forms = profession_forms(REQUIRED_REMARK.sub("", name))
     plain = re.sub(r"/-?(?:in|frau|mann|euse|r)\b", "", forms[0].lower() if forms else "")
     words = ("-".join(map(_neutral_word, word.split("-"))) for word in re.split(r"[\s,;()/]+", plain) if word and word not in FILLER_WORDS)
     return frozenset(word for word in words if word.replace("-", ""))
@@ -505,6 +507,14 @@ def _group_pairs(lines: list[str]) -> list[tuple[str, str]]:
             found = [*found, (label, match.group(2).strip())]
         seen = seen | {key}
     return found
+
+
+def keyword_values(text: str) -> tuple[str, ...]:
+    """The values of every line under Keywords that the search reads, the niches included, as written (G110)."""
+    lines = _sections(text).get("keywords", [])
+    pairs = _pairs(lines)
+    return tuple(value for value in (_value(pairs, CORE_LABEL), *(v for _, v in _group_pairs(lines)),
+                                     _value(pairs, NICHE_LABEL)) if value)
 
 
 def limit_portals(label: str) -> tuple[str, ...] | None:

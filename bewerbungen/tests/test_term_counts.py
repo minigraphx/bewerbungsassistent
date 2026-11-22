@@ -86,6 +86,33 @@ def test_a_keyword_without_a_hit_over_three_runs_is_ohne_ertrag_with_its_numbers
     assert author.mark == term_evidence.WITHOUT_YIELD and author.empty_runs == 2
 
 
+def unrelated_runs() -> list[dict]:
+    """«E-Learning-Autor» with required words (G110, #386): per run 8 hits, 2 kept out by the title filter, 6 without one
+    of its required words."""
+    author = query("E-Learning-Autor", 8, aussortiert=2, ohne_pflichtbezug=6, pflicht_beispiele=["Koch EFZ"])
+    return [{**run, "abfragen": [author if q["stichwort"] == "E-Learning-Autor" and q["portal"] == "jobs.ch" else q
+                                 for q in run["abfragen"]]} for run in runs()]
+
+
+def test_hits_without_a_required_word_count_as_screened_out_and_leave_a_keyword_ohne_ertrag():
+    found = term_evidence.keyword_counts(unrelated_runs(), HITS, term_changes.terms_of(PROFILE).keywords)
+    author = by_term(found)["E-Learning-Autor"]
+    assert (author.raw, author.screened, author.unrelated, author.mark) == (24, 6, 18, term_evidence.WITHOUT_YIELD)
+    shown = author.as_dict()
+    assert (shown["treffer_portale"], shown["aussortiert"], shown["ohne_pflichtbezug"]) == (24, 24, 18), \
+        "the table's «aussortiert» counts both reasons"
+    assert "ohne_pflichtbezug" not in by_term(found)["Lernbegleiter"].as_dict()
+
+
+def test_the_ai_reads_both_reasons_of_a_screened_out_hit():
+    lines = term_review._count_lines(term_evidence.keyword_counts(unrelated_runs(), HITS,
+                                                                  term_changes.terms_of(PROFILE).keywords))
+    assert "24 Treffer auf den Portalen, 6 davon vom Titelfilter aussortiert, 18 ohne Pflichtbezug aussortiert, 0 neu" in lines
+    assert "Lernbegleiter: 3 Suchen in 3 Suchläufen (1 pro Suchlauf), 12 Treffer auf den Portalen, 0 davon vom Titelfilter " \
+           "aussortiert, 3 neu" in lines, "without the reason the line stays as before"
+    assert "vom Titelfilter oder ohne Pflichtbezug" in term_review.INSTRUCTIONS
+
+
 def test_two_keywords_with_the_same_hits_are_both_ueberlappend():
     found = by_term(counted())
     for term, other in (SHARED, SHARED[::-1]):

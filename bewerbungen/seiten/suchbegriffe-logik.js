@@ -241,13 +241,22 @@
     return `Für diese Zahlen braucht die App ${z.noetig} Suchläufe seit Version ${VERSION_DER_ZAHLEN}, ${bisher}.`;
   }
 
+  /** Why every hit of an «ohne Ertrag» keyword fell away: the title filter, no required word (G110), or both. */
+  function aussortiertWie(e) {
+    const ohneBezug = e.ohne_pflichtbezug || 0;
+    const titel = e.aussortiert - ohneBezug;  // «aussortiert» counts both reasons (term_evidence.KeywordCount)
+    const alle = e.treffer_portale === 1 ? "" : "alle ";
+    if (!ohneBezug) return `${alle}vom Titelfilter aussortiert`;
+    if (!titel) return `${alle}ohne Pflichtbezug aussortiert`;
+    return `alle aussortiert: ${titel} vom Titelfilter, ${ohneBezug} ohne Pflichtbezug`;
+  }
+
   function markeSatz(e) {
     if (e.marke === "ohne_ertrag") {
       // hits as Suche einstellen counts them (#383): all the portals found, the screened-out ones among them
       const suchen = viele(e.suchen, "Suche", "Suchen");
       if (!e.treffer_portale) return `${suchen}, kein Treffer.`;
-      return e.treffer_portale === 1 ? `${suchen}, 1 Treffer, vom Titelfilter aussortiert.`
-        : `${suchen}, ${e.treffer_portale} Treffer, alle vom Titelfilter aussortiert.`;
+      return `${suchen}, ${e.treffer_portale} Treffer, ${aussortiertWie(e)}.`;
     }
     // the overlap counts postings, each once («Stellen»), unlike the hits of every search in the table
     if (e.treffer === 1) return `1 Stelle, auch über „${e.auch_ueber}“ gefunden.`;

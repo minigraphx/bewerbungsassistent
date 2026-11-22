@@ -80,6 +80,43 @@ test("the mark for a term or place without yield has its word", () => {
   assert.equal(L.OHNE_ERTRAG, "ohne Ertrag");
 });
 
+// Hits without a required word (G110, #386)
+
+test("the yield line names hits without a required word at its end, only when there are some", () => {
+  assert.deepEqual(L.teile(entry({ ohne_pflichtbezug: 18 })),
+    ["36 Suchen", "40 Treffer", "5 neu", "3 ab Note 4", "12 aussortiert", "18 ohne Pflichtbezug"]);
+  assert.deepEqual(L.teile(entry({ aussortiert: 0, ohne_pflichtbezug: 1 })),
+    ["36 Suchen", "40 Treffer", "5 neu", "3 ab Note 4", "1 ohne Pflichtbezug"]);
+  assert.deepEqual(L.teile(entry({ ohne_pflichtbezug: 0 })), ["36 Suchen", "40 Treffer", "5 neu", "3 ab Note 4", "12 aussortiert"]);
+});
+
+test("the details count the screened-out hits and name each term with up to three titles", () => {
+  const entries = [{ begriff: "Berufsbildner", anzahl: 18,
+    beispiele: ["Koch/Köchin EFZ – Berufsbildner/in", "Berufsbildner/in Logistik", "Detailhandel – Berufsbildner/in"] },
+  { begriff: "Kursleiter", anzahl: 1, beispiele: ["Kursleiter Yoga"] }];
+  assert.equal(L.pflichtTitel(entries), "Ohne Pflichtbezug aussortiert (19)");
+  // hits over three runs, not postings counted once («Stellen» since #383)
+  assert.equal(L.pflichtZeile(entries[0]), "„Berufsbildner“: 18 Treffer, zum Beispiel „Koch/Köchin EFZ – Berufsbildner/in“, "
+    + "„Berufsbildner/in Logistik“, „Detailhandel – Berufsbildner/in“");
+  assert.equal(L.pflichtZeile(entries[1]), "„Kursleiter“: 1 Treffer, „Kursleiter Yoga“");
+  assert.equal(L.pflichtZeile({ begriff: "Kursleiter", anzahl: 2, beispiele: [] }), "„Kursleiter“: 2 Treffer");
+});
+
+test("the caption says what «ohne Pflichtbezug» means only when the reason occurs", () => {
+  const rest = " Findet die Suche eine Stelle über mehrere Begriffe, zählt sie bei jedem. „Aussortiert“ heisst: Der Titelfilter hat den Titel nicht durchgelassen.";
+  const pflicht = " „Ohne Pflichtbezug“: Titel und Inserat nennen keines der Pflichtwörter des Begriffs.";
+  assert.equal(L.hinweis(3, false, true), `Die Zahlen stammen aus den letzten 3 Suchläufen.${rest}${pflicht}`);
+  assert.equal(L.hinweis(3, false, false), `Die Zahlen stammen aus den letzten 3 Suchläufen.${rest}`);
+  assert.equal(L.hinweis(3, true, true), "Die Zahlen stammen aus den letzten 3 Suchläufen. Findet die Suche eine Lehrstelle über mehrere Berufe, zählt sie bei jedem.");
+});
+
+test("Suche einstellen has the details on hits without a required word after the empty searches", () => {
+  const html = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "seiten", "suche-einstellen.html"), "utf8");
+  const empty = html.indexOf('<details id="ertrag-leer"');
+  const unrelated = html.indexOf('<details id="ertrag-pflicht" class="ertrag-details" hidden><summary id="ertrag-pflicht-titel"></summary><ul id="ertrag-pflicht-liste" class="ertrag-liste"></ul></details>');
+  assert.ok(empty > 0 && unrelated > empty, `${empty} ${unrelated}`);
+});
+
 test("the yield of a term is found by its name as the list shows it", () => {
   const ertrag = { begriffe: [{ begriff: "Lernbegleiter", suchen: 2 }, { begriff: "Kursleiter", suchen: 0 }] };
   assert.deepEqual(L.nachBegriff(ertrag).get("Lernbegleiter"), { begriff: "Lernbegleiter", suchen: 2 });

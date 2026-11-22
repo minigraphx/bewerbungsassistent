@@ -14,7 +14,7 @@ import dataclasses
 import search_yield
 import title_examples
 import title_filter
-from query_log import KEPT_RUNS
+from query_log import KEPT_RUNS, UNRELATED
 
 BELOW = 4  # a grade under this does not fit well enough (Swiss grades, 6 is best)
 NEEDED_RUNS = KEPT_RUNS  # the marks need as many runs as the log keeps
@@ -110,11 +110,14 @@ class KeywordCount:
     covered_by: str | None  # the other keyword that found most of its hits
     all_covered: bool  # that one keyword found every one of them
     mark: str | None
+    unrelated: int = 0  # of the raw, hits without a required word of the keyword (G110), apart from `screened`
 
     def as_dict(self) -> dict:
+        # «aussortiert» on the page counts both reasons; «ohne_pflichtbezug» names the second when there is any
+        unrelated = {UNRELATED: self.unrelated} if self.unrelated else {}
         return {"begriff": self.term, "suchen": self.searches, "suchen_pro_lauf": self.per_run,
-                "treffer_portale": self.raw, "aussortiert": self.screened, "treffer": self.listed,
-                "nur_hier": self.only_here, "ab_note_4": self.good, "laeufe": self.runs,
+                "treffer_portale": self.raw, "aussortiert": self.screened + self.unrelated, **unrelated,
+                "treffer": self.listed, "nur_hier": self.only_here, "ab_note_4": self.good, "laeufe": self.runs,
                 "laeufe_ohne_treffer": self.empty_runs, "auch_ueber": self.covered_by, "alle_ueber": self.all_covered,
                 "marke": self.mark}
 
@@ -156,7 +159,8 @@ def _keyword_count(found: dict, shared: dict, runs: int, markable: bool) -> Keyw
     return KeywordCount(found["begriff"], found["suchen"], round(found["suchen"] / shared["laeufe"]) if shared["laeufe"] else 0,
                         found["treffer"], found["aussortiert"], found["neu"], shared["nur_hier"], found["ab_note_4"],
                         shared["laeufe"], shared["laeufe_ohne_treffer"], top["begriff"] if top else None,
-                        bool(top and top["anzahl"] == found["neu"]), _mark(found, shared, runs) if markable else None)
+                        bool(top and top["anzahl"] == found["neu"]), _mark(found, shared, runs) if markable else None,
+                        found.get(UNRELATED, 0))
 
 
 def keyword_counts(runs: list[dict], hits: list[dict], terms: tuple[str, ...], niches: tuple[str, ...] = ()) -> Counted:

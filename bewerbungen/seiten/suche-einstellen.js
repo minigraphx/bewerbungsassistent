@@ -93,6 +93,7 @@
       $("angebot-wahl").hidden = !lehrstelle;
       $("angebot").value = logik.wahlAus(daten.angebote || []);
       window.Suchliste.portale(daten.begriff_portale);
+      window.Suchliste.pflicht(daten.begriff_pflicht);
       zeigePortalHinweise(daten.portal_hinweise || []);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || [], daten.begriff_laenge);
       window.PortalWahl.zeige(daten.portale_wahl || [], lade);

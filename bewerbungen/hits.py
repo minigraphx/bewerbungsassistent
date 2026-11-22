@@ -16,6 +16,7 @@ import urllib.parse
 
 import known_jobs  # compares with this module's keys; it reads them only when called, so the import may go both ways
 import reposts
+import required_words
 import title_filter
 from dateien import lies_yaml, schreibe_atomar, schreibe_yaml
 from preferences import SAVED_IN, SIE
@@ -282,6 +283,15 @@ def _title_reason(found: title_filter.Verdict) -> str:
     return NO_POSITIVE_TERM if found.without_term else ""
 
 
+def _unrelated_again(hit: dict, required: required_words.Required, known: dict[str, list[str]]) -> str:
+    """«ohne Pflichtbezug» for an ad screened out before for the same required words (G110), whose title names none
+    of them still; it is not loaded again. Any other hit is left to the full text."""
+    words = required.of_queries(hit.get(QUERIES, []))
+    if not words or required_words.fits(words, hit["stelle"]):
+        return ""
+    return required_words.REASON if required_words.was_unrelated(known, comparable_link(hit["link"], any_fragment=True), words) else ""
+
+
 def company_hint(hit: dict, register: list[dict]) -> str:
     company = company_key(hit["firma"])
     if not company or company == "unbekannt":
@@ -407,7 +417,8 @@ class Hits:
                title_positive: tuple[str, ...] = (), max_age_by_portal: dict[str, int] | None = None,
                excluded: frozenset[str] = frozenset(), on_screened_out=lambda hit, reason: None,
                on_title_checked=lambda hit, found: None, agencies: tuple[str, ...] = (),
-               record_reposts=lambda by_id: None, today: datetime.date | None = None) -> dict:
+               record_reposts=lambda by_id: None, today: datetime.date | None = None,
+               required: required_words.Required = required_words.NONE) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away. With positive
@@ -418,12 +429,14 @@ class Hits:
         of each title the filter looked at, with its verdict, for the example titles on Suche einstellen (G104).
         A job known by its content (G109, `known_jobs`) is no new hit either: a discarded hit keeps the new ad itself,
         a register entry gets it through `record_reposts` (entry id → reposts), called under the lock, so that the
-        next screening sees it; `agencies` are the recruiters of the profile (G34).
+        next screening sees it; `agencies` are the recruiters of the profile (G34). `required`: the required words of
+        the terms (G110); an ad screened out for them before is counted with its reason and not loaded again.
         """
         fetch, nearby, filtered, known, left_out = [], [], [], 0, 0
         ages = max_age_by_portal or {}
         day = today or datetime.date.today()
         with _LOCK:
+            unrelated = required_words.remembered(self.folder) if required.terms else {}
             stored = self.all()
             known_keys = {key(h) for h in stored}
             seen = known_jobs.Screening(stored=stored, links=known_jobs.known_links(register, stored))
@@ -445,7 +458,7 @@ class Hits:
                 found = title_filter.verdict(hit["stelle"], title_exclude, title_positive)
                 if title_exclude or title_positive:
                     on_title_checked(hit, found)
-                reason = _title_reason(found)
+                reason = _title_reason(found) or _unrelated_again(hit, required, unrelated)
                 if reason:
                     filtered.append({"stelle": hit["stelle"], "grund": reason})
                     on_screened_out(hit, reason)
@@ -478,13 +491,16 @@ class Hits:
 
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
             own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = (),
-            check=lambda title, text: "", saved_in: str = SAVED_IN[SIE], excluded: frozenset[str] = frozenset()) -> dict:
+            check=lambda title, text: "", saved_in: str = SAVED_IN[SIE], excluded: frozenset[str] = frozenset(),
+            required: required_words.Required = required_words.NONE, on_unrelated=lambda hit: None) -> dict:
         """Store new hits; the same job from another portal only adds its link. `agencies`: more from the profile (G34).
 
         `check` is the pre-check by fixed rules (G33): its reason stays on the hit as `vorpruefung`, the hit stays too.
-        A hit of an `excluded` company (#226) is not stored, even when the screening let it through.
+        A hit of an `excluded` company (#226) is not stored, even when the screening let it through. Nor is a hit that
+        only terms with required words found when neither its title nor its text names one (G110): its link is
+        remembered for the next screening, and `on_unrelated` hears of it so that its queries count it.
         """
-        rejected, new, merged = [], 0, 0
+        rejected, new, merged, unrelated = [], 0, 0, []
         with _LOCK:
             stored = self.all()
             by_key = {key(h) for h in stored}
@@ -503,6 +519,10 @@ class Hits:
                         stored, merged = updated, merged + 1
                     continue
                 text = hit.pop("text")
+                words = required.of_queries(hit.get(QUERIES, []))
+                if words and not required_words.fits(words, hit["stelle"], text):
+                    unrelated.append((hit, words))
+                    continue
                 entry = _new_entry(self.folder, hit, register, today, agencies, saved_in)
                 reason = check(entry["stelle"], text) if text else ""
                 if reason:
@@ -513,7 +533,11 @@ class Hits:
                 by_key.add(key(hit))
                 new += 1
             self._write(stored)
-        return {"neu": new, "zusammengefuehrt": merged, "abgelehnt": rejected}
+            required_words.remember(self.folder, [(comparable_link(hit["link"], any_fragment=True), words) for hit, words in unrelated])
+        for hit, _ in unrelated:
+            on_unrelated(hit)
+        counts = {"neu": new, "zusammengefuehrt": merged, "abgelehnt": rejected}
+        return {**counts, "ohne_pflichtbezug": len(unrelated)} if unrelated else counts
 
     def update(self, wanted: str, **fields) -> dict:
         if "zustand" in fields and fields["zustand"] not in STATES:

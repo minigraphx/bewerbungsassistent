@@ -235,7 +235,7 @@ def test_only_changes_that_hold_come_back_with_evidence_counted_by_the_app(job_s
     assert first["beleg"]["anzahl"] == 15 and first["beleg"]["unter"] == 12 and first["zu_allgemein"]
     assert first["grund"] == "Bringt viele Industriestellen."
     # G43: no limit of searches; #340: as parts, which the page joins with «·»
-    assert answer["grenzen"]["teile"] == ["Danach: 6 von 15 Suchbegriffen", "bis 12 Suchen pro Portal"]
+    assert answer["grenzen"]["teile"] == ["Danach: 7 von 15 Suchbegriffen", "bis 14 Suchen pro Portal"]
     assert "zeile" not in answer["grenzen"]
     assert "Engineer" not in answer["endstand"]["positiv"] and answer["entfaellt"] == ["Engineer"]
     assert profile_of(job_search) == before, "nothing changes without adoption"
@@ -284,7 +284,8 @@ def test_every_change_switched_off_is_refused(job_search, ai):
 def test_a_change_beyond_the_limits_is_refused(job_search, ai):
     path = job_search.kontext.daten / "suchprofil.md"
     full = ", ".join(f"Begriff{n}" for n in range(search_plan.MAX_KEYWORDS))
-    path.write_text(profile().replace("Python, TypeScript, Softwareentwickler, Data Engineer, E-Learning", full), encoding="utf-8")
+    core = "Python, TypeScript, Softwareentwickler, Data Engineer, E-Learning, Kursleiter (nur mit Informatik, ICT)"
+    path.write_text(profile().replace(core, full), encoding="utf-8")
     before = profile_of(job_search)
     proposal = propose(job_search)
     index = next(c["nummer"] for c in proposal["aenderungen"] if c["bereich"] == "keywords")

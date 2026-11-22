@@ -426,3 +426,25 @@ test("Suche einstellen has a place for the notices about the limits under the li
   const html = fs.readFileSync(path.join(SEITEN, "suche-einstellen.html"), "utf8");
   assert.match(html, /<ul id="suchliste-portale-hinweise" class="suchliste-hinweise" hidden><\/ul>/);
 });
+
+// The required words of a term (G110, #386)
+
+const REQUIRED = [{ begriff: "Betreuer", woerter: ["Informatik", "ICT"] }, { begriff: "Logistiker", woerter: ["Lager", "Plattform"] }];
+
+test("the caption names the required words, after the portals in the same line", () => {
+  assert.deepEqual(L.zusatzTeile(undefined, ["Informatik", "ICT", "Plattform"]), ["Pflichtbezug: Informatik, ICT, Plattform"]);
+  assert.deepEqual(L.zusatzTeile(LIMITS[0], ["Informatik", "ICT"]), ["nur jobs.ch, job-room", "Pflichtbezug: Informatik, ICT"]);
+  assert.deepEqual(L.zusatzTeile(LIMITS[1], []), ["nur ictjobs", "ausgeschaltet"]);
+  assert.deepEqual(L.zusatzTeile(undefined, undefined), []);
+});
+
+test("a term with required words carries them as its caption, alone or with its portals", () => {
+  const { list, window } = setup();
+  window.Suchliste.portale(LIMITS);
+  window.Suchliste.pflicht(REQUIRED);
+
+  assert.equal(plain(captionOf(list, "Betreuer")), "nur jobs.ch, job-room · Pflichtbezug: Informatik, ICT");
+  assert.equal(plain(captionOf(list, "Logistiker")), "Pflichtbezug: Lager, Plattform");
+  assert.equal(plain(captionOf(list, "Koch")), "nur ictjobs · ausgeschaltet");
+  assert.equal(captionOf(list, "Fachmann Gesundheit"), null);
+});

@@ -8,7 +8,7 @@ import term_changes
 from test_app import post, server  # noqa: F401  (server is a fixture)
 from test_optimize_terms import ai, job_search, profile, profile_of, propose, taken  # noqa: F401  (fixtures)
 
-KERNLISTE = "Python, TypeScript, Softwareentwickler, Data Engineer, E-Learning"
+KERNLISTE = "Python, TypeScript, Softwareentwickler, Data Engineer, E-Learning, Kursleiter (nur mit Informatik, ICT)"
 OVER_BEFORE = 31
 NEW_KEYWORDS = ["Datenanalyst", "Fullstack Entwickler", "Cloud Architekt"]
 GROWING_REPLY = {"summary": "Drei Begriffe fehlen.", "changed": "", "changes": [

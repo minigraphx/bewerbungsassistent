@@ -39,6 +39,8 @@ FORMAL_ALWAYS = f"- Immer {markdown_files.SALUTATION_FORMAL}"
 ADDRESS_OPTIONS = ("Sie-Form; Du-Form, wenn das Inserat duzt", "Immer Sie-Form")  # as in form.json, style.address
 NO_GAPS = markdown_files.GAPS_LATER
 LIST_SEPARATOR = ", "
+# A comma in brackets separates nothing: «Berufsbildner (nur mit Informatik, ICT)» is one keyword (G110).
+LIST_SPLIT = re.compile(r", (?![^()]*\))")
 EXCLUSION = "ausschluss"  # the labels as the search finds them (search_plan.frame, search_plan.title_terms)
 POSITIVE = "positiv"
 
@@ -91,7 +93,7 @@ def pair(label: str, as_list: bool = False) -> Callable[[Lines], Found]:
             match = PAIR.match(line)
             if match and match.group(1) == label:
                 value = match.group(2).strip()
-                return ((value.split(LIST_SEPARATOR) if as_list else value,), (number,))
+                return ((LIST_SPLIT.split(value) if as_list else value,), (number,))
         return NOTHING
     return read
 

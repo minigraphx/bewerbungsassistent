@@ -9,6 +9,7 @@ import re
 
 import preferences
 import profile_limits
+import required_words
 import routes_ai
 import search_plan
 import search_terms
@@ -116,9 +117,20 @@ def _own_term(name: object, kind: str) -> str:
     clean = " ".join(name.split()) if isinstance(name, str) else ""
     if len(clean) > chars:
         raise ValueError(TOO_LONG.format(value=clean[:20], limit=chars))
+    remark = search_plan.REQUIRED_REMARK.search(clean) if kind == search_plan.KIND_JOB else None
+    if remark is not None:
+        return _with_remark(clean, remark, chars)
     if not career.is_own_term(name, kind, chars):
         raise ValueError(NOT_VALID[kind])
     return clean
+
+
+def _with_remark(clean: str, remark, chars: int) -> str:
+    """«Berufsbildner (nur mit Informatik, ICT)» (G110): a term and, at its end, the words its hits need."""
+    term = clean[:remark.start()].strip()
+    if clean[remark.end():].strip() or not required_words.is_remark_valid(clean) or not career.is_own_term(term, search_plan.KIND_JOB, chars):
+        raise ValueError(NOT_VALID[search_plan.KIND_JOB])
+    return required_words.with_words(term, required_words.words_in(clean))
 
 
 def add(k, parameter, body):
@@ -189,7 +201,9 @@ def undo(k, parameter, body):
             return text
         if not career.is_own_term(clean, kind, profile_limits.of_term(kind).chars):
             raise ValueError(NO_UNDO)
-        return search_terms.added(text, clean, sought)
+        # G110: the term comes back with the required words it had
+        words = required_words.written_words(former, clean) if former is not None else ()
+        return search_terms.added(text, required_words.with_words(clean, words) if words else clean, sought)
 
     _write(k, path, f"Wieder in die Suche aufgenommen: {clean}", change)
     return _answer(k, am_ende=at_end["value"])

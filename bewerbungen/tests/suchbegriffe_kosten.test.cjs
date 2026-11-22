@@ -90,7 +90,7 @@ async function opened(answer) {
     SucheRahmen: { zeige: () => {} },
     TitelfilterBeispiele: { begriffe: () => {}, beispiele: () => {} },
     Suchbegriffe: { zeige: () => {} },
-    Suchliste: { portale: () => {} },
+    Suchliste: { portale: () => {}, pflicht: () => {} },
     PortalWahl: { zeige: () => {} },
   };
   const context = { window, document: doc, console, setTimeout, CustomEvent: class {} };

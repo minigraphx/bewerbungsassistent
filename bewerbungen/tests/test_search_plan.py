@@ -33,7 +33,7 @@ Aus der Einstiegsvorlage. Wird vom Skill `jobsuche` gelesen; ergänzen in der Ap
 
 def test_template_profile_gives_all_portal_queries():
     plan = search_plan.parse((VORLAGEN / "suchprofil.md").read_text(encoding="utf-8"))
-    assert plan.keywords == ("Python", "TypeScript", "Softwareentwickler", "Data Engineer", "E-Learning")
+    assert plan.keywords == ("Python", "TypeScript", "Softwareentwickler", "Data Engineer", "E-Learning", "Kursleiter")
     assert plan.niche_keywords == ("EdTech", "Remote Python")
     assert plan.cantons == ("BE", "SO")
     assert plan.places == ("Bern", "Solothurn")

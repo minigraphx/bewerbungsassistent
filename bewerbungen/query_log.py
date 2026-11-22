@@ -22,6 +22,9 @@ TITLES_PENDING_FILE = "titelfilter-offen.yaml"  # G104: the example titles per t
 KEPT_RUNS = 3
 MAX_QUERIES_PER_PORTAL = 2000
 MAX_EXAMPLES = 3
+UNRELATED = "ohne_pflichtbezug"  # G110: hits without a required word of their term, apart from the title filter's
+UNRELATED_EXAMPLES = "pflicht_beispiele"
+CARRIED = ("aussortiert", "beispiele", UNRELATED, UNRELATED_EXAMPLES)  # what a query takes from the waiting file
 _LOCK = threading.Lock()
 
 
@@ -57,8 +60,17 @@ def _pending_entries(raw) -> list[dict]:
 def _screened(entry: dict | None, title: str, reason: str) -> dict:
     examples = entry["beispiele"] if entry else []
     example = {"stelle": bounded_text(title, "stelle"), "grund": bounded_text(reason, "grund")}
-    return {"aussortiert": (entry["aussortiert"] if entry else 0) + 1,
+    return {**(entry or {}), "aussortiert": (entry["aussortiert"] if entry else 0) + 1,
             "beispiele": examples if len(examples) >= MAX_EXAMPLES else [*examples, example]}
+
+
+def _unrelated(entry: dict | None, title: str) -> dict:
+    """One more hit without a required word (G110), with up to three of their titles; the title filter's count stays."""
+    old = entry or {"aussortiert": 0, "beispiele": []}
+    examples = [e for e in old.get(UNRELATED_EXAMPLES, []) if isinstance(e, str)]
+    count = old.get(UNRELATED) if type(old.get(UNRELATED)) is int else 0
+    return {**old, UNRELATED: count + 1,
+            UNRELATED_EXAMPLES: examples if len(examples) >= MAX_EXAMPLES else [*examples, bounded_text(title, "stelle")]}
 
 
 def _run_entries(raw) -> list[dict]:
@@ -91,6 +103,16 @@ class QueryLog:
                                      **_screened(entries.get(_key(query)), title, reason)} for query in queries}
             schreibe_yaml(self.folder / PENDING_FILE, {"abfragen": list({**entries, **changed}.values())})
 
+    def note_unrelated(self, queries: list[dict], title: str) -> None:
+        """A hit not stored for want of a required word (G110), counted for each query that found it."""
+        if not queries:
+            return
+        with _LOCK:
+            entries = {_key(entry): entry for entry in self._pending()}
+            changed = {_key(query): {"portal": query["portal"], "stichwort": query["stichwort"], "ort": query["ort"],
+                                     **_unrelated(entries.get(_key(query)), title)} for query in queries}
+            schreibe_yaml(self.folder / PENDING_FILE, {"abfragen": list({**entries, **changed}.values())})
+
     def note_titles(self, checks: list[tuple[str, str, Verdict]]) -> None:
         """Titles the title filter looked at, each (hit key, title, verdict), for the examples per term (G104)."""
         if not checks:
@@ -111,7 +133,7 @@ class QueryLog:
             queries = [{"portal": portal, **query} for portal, listed in queries_by_portal.items() for query in listed]
             # a query twice in one run (a trial beside the apprenticeship) carries the screen-outs once
             first = {_key(query): index for index, query in reversed(list(enumerate(queries)))}
-            entries = [{**query, **({name: waiting[_key(query)][name] for name in ("aussortiert", "beispiele")}
+            entries = [{**query, **({name: waiting[_key(query)][name] for name in CARRIED if name in waiting[_key(query)]}
                                     if first[_key(query)] == index and _key(query) in waiting else {})}
                        for index, query in enumerate(queries)]
             schreibe_yaml(self.folder / PENDING_FILE, {"abfragen": []})

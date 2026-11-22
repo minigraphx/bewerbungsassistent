@@ -42,7 +42,7 @@ Neben den Suchbegriffen sucht die App die Nischen ohne Ort, und eine Zeile „nu
 - Die Zahlen sind Belege, keine Aufträge: Ob sich etwas ändern soll, entscheidest du aus Lebenslauf und Suchprofil. Ein seltener Begriff einer Suchrichtung, die das Suchprofil als wichtig nennt (etwa mit Priorität), darf trotz wenig Ertrag bleiben.
 - Ein Begriff ist zu allgemein, wenn er allein viele Treffer mit Noten unter 4 hereinlässt. Ersetze ihn durch genauere Begriffe, die zu Lebenslauf und Suchprofil passen.
 - Fehlt ein Suchbegriff, den Lebenslauf und Suchprofil nahelegen, nimm ihn auf. Haben viele unpassende Titel ein gemeinsames Wort, schlage es für exclude vor. Sortiert der Titelfilter passende Titel aus, schlage einen Begriff für positive vor oder nimm einen Begriff aus exclude heraus.
-- „ohne Ertrag“ heisst: Der Suchbegriff hat in den letzten Suchläufen keinen Treffer gebracht, oder der Titelfilter hat alle aussortiert. Du kannst ihn entfernen, zu den Nischen verschieben, wenn er ohne Ort mehr finden könnte, oder auf die Portale beschränken, auf denen er etwas findet.
+- „ohne Ertrag“ heisst: Der Suchbegriff hat in den letzten Suchläufen keinen Treffer gebracht, oder alle wurden aussortiert, vom Titelfilter oder ohne Pflichtbezug (Titel und Inserat nennen keines der Pflichtwörter, die das Suchprofil dem Begriff in Klammern gibt). Du kannst ihn entfernen, zu den Nischen verschieben, wenn er ohne Ort mehr finden könnte, oder auf die Portale beschränken, auf denen er etwas findet.
 - „überlappend“ heisst: Alle Treffer des Suchbegriffs kamen auch über andere Begriffe. Entferne ihn nicht einfach; du kannst ihn mit dem Begriff zusammenlegen, über den seine Treffer kamen.
 - Jede Änderung ist ein Entscheid: kind, area, remove (Begriffe, die wegfallen, genau so geschrieben wie unten), add (neue Begriffe), into, portals und reason (ein bis zwei Sätze, warum). Ersetzen heisst remove und add in derselben Änderung.
 - kind ist meist change. Nur für einen Suchbegriff (area keywords, genau ein Begriff in remove, add leer) gibt es drei weitere: merge legt ihn mit dem Suchbegriff in into zusammen, der bleibt; niche verschiebt ihn zu den Nischen; portals sucht ihn nur noch auf den Portalen in portals (job-room, jobs.ch, jobscout24, ictjobs). Sonst sind into leer und portals eine leere Liste.
@@ -106,13 +106,19 @@ def _mark_text(entry: term_evidence.KeywordCount) -> str:
     return ""
 
 
+def _unrelated_part(entry: term_evidence.KeywordCount) -> str:
+    """Hits without a required word (G110), named only where a keyword had any, so other lines stay as they were."""
+    return f"{entry.unrelated} ohne Pflichtbezug aussortiert, " if entry.unrelated else ""
+
+
 def _count_lines(counted: term_evidence.Counted) -> str:
     if not counted.runs:
         return "Noch keine Suchläufe mit Zahlen."
     head = "" if counted.enough else (f"Erst {counted.runs} von {term_evidence.NEEDED_RUNS} Suchläufen, darum markiert "
                                        "die App noch nichts.\n")
     lines = [f"- {e.term}: {e.searches} Suchen in {e.runs} Suchläufen ({e.per_run} pro Suchlauf), {e.raw} Treffer auf den "
-             f"Portalen, {e.screened} davon vom Titelfilter aussortiert, {e.listed} neu in der Liste, {e.only_here} davon "
+             f"Portalen, {e.screened} davon vom Titelfilter aussortiert, "
+             f"{_unrelated_part(e)}{e.listed} neu in der Liste, {e.only_here} davon "
              f"nur über diesen Begriff, {e.good} ab Note {term_evidence.BELOW}, {e.empty_runs} Suchläufe ohne Treffer."
              f"{_mark_text(e)}" for e in counted.entries]
     return head + "\n".join(lines)

@@ -11,7 +11,7 @@ from test_app import post, server  # noqa: F401  (server is a fixture)
 
 VORLAGEN = pathlib.Path(__file__).resolve().parents[2] / "vorlagen"
 SEITEN = pathlib.Path(__file__).resolve().parents[1] / "seiten"
-JOB_TERMS = ["Python", "TypeScript", "Softwareentwickler", "Data Engineer", "E-Learning"]
+JOB_TERMS = ["Python", "TypeScript", "Softwareentwickler", "Data Engineer", "E-Learning", "Kursleiter"]
 PROFESSIONS = ["Fachfrau Gesundheit EFZ", "Fachfrau Betreuung EFZ, Fachrichtung Kinder", "Assistentin Gesundheit und Soziales EBA"]
 
 
@@ -123,7 +123,8 @@ def test_undo_after_another_change_still_brings_the_term_back_at_the_end(job_see
     status, answer = post(job_seeker, "/api/beruf/rueckgaengig", {"beruf": "TypeScript", "vorher": removed["rueckgaengig"]})
 
     assert status == 200 and answer["am_ende"] is True
-    assert answer["berufe"] == ["Python", "Softwareentwickler", "Data Engineer", "E-Learning", "Projektleitung Bau", "TypeScript"]
+    assert answer["berufe"] == ["Python", "Softwareentwickler", "Data Engineer", "E-Learning", "Kursleiter", "Projektleitung Bau",
+                                "TypeScript"]
 
 
 def test_undo_never_restores_more_than_the_removed_term(job_seeker):
