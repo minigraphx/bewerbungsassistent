@@ -5,6 +5,8 @@
 (() => {
   const { holen, senden, el, status, datum, beobachten, textsatz } = window.App;
   const logik = window.TrefferLogik;
+  const W = window.WiederLogik;
+  const wieder = window.TrefferWieder;  // G109: reposts, the same ad of one portal, recruiter suggestions
   const anzeige = window.SucheAnzeige;
   const { text: textAus, anwenden } = window.Texte;
   const $ = id => document.getElementById(id);
@@ -196,7 +198,8 @@
   function zeigeDetail(treffer) {
     if (!treffer) return $("detail").replaceChildren();
     const b = treffer.bewertung;
-    const weitere = (treffer.weitere || []).map(w => el("li", {}, el("a", { href: w.link, target: "_blank", rel: "noopener" }, `Auch auf ${w.portal}`)));
+    const weitere = W.otherPortals(treffer).map(w => el("li", {}, el("a", { href: w.link, target: "_blank", rel: "noopener" }, w.text)));
+    const schonHinweis = treffer.hinweis && !W.suspected(treffer) ? treffer.hinweis : "";
     const [knopf, textFeld] = inseratKnopf(treffer);
     const online = treffer.alter_tage !== undefined ? `${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : "";
     $("detail").replaceChildren(...[
@@ -205,9 +208,11 @@
         el("p", {}, dotLine([[treffer.firma, treffer.ort].filter(Boolean).join(", "), treffer.pensum || treffer.lehrbeginn])),
         el("p", { class: "search__hint" }, dotLine([
           el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, `Inserat auf ${treffer.portal} öffnen`),
-          `gefunden ${datum(treffer.gefunden_am)}`, online]))),
+          `gefunden ${datum(treffer.gefunden_am)}`, online])),
+        wieder.zeile(treffer)),
       entscheidung(treffer),
-      treffer.hinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, t("suche.schon-titel")), el("p", { class: "notice__body" }, treffer.hinweis)) : null,
+      wieder.vermittler(treffer, t("suche.vielleicht-titel")),
+      schonHinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, t("suche.schon-titel")), el("p", { class: "notice__body" }, schonHinweis)) : null,
       treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Passt nach den festen Regeln nicht"), el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
       fehltHinweis(logik.fehlenderText(treffer)),
       el("article", { class: "ai-result" },
@@ -225,6 +230,7 @@
         { lehrstelle, alle: t("firmen.alle"), wo: t("firmen.titel"), nachPruefen: kununuGeprueft,
           ausschliessen: { text: t("firmen.ausschliessen"), aktion: () => schliesseAus(treffer) } }),
       weitere.length ? el("ul", { class: "search__more" }, weitere) : null,
+      wieder.gleicheInserate(treffer),
       el("div", { class: "btn-row" }, knopf), textFeld].filter(Boolean));
   }
 
@@ -291,9 +297,10 @@
     const marke = window.TrefferFirma.marke(firmen.get(treffer.id));
     // the kununu badge belongs to the company name, so the two break only together
     const firma = treffer.firma && marke ? el("span", {}, treffer.firma, marke) : treffer.firma;
+    const vermutet = W.suspected(treffer);
     const marken = [
       logik.istSchnupperlehre(treffer) ? "Schnupperlehre" : "",
-      treffer.hinweis ? t("suche.schon-marke") : "",
+      treffer.hinweis && !vermutet ? t("suche.schon-marke") : "",
       treffer.vorpruefung ? "passt nicht: " + treffer.vorpruefung : "",
       sterne ? `${"★".repeat(sterne)}` : "",
       treffer.eigene_sterne ? `Eigene: ${"★".repeat(treffer.eigene_sterne)}` : "",
@@ -304,8 +311,9 @@
         el("span", { class: "hit__title" }, treffer.stelle),
         el("span", { class: "hit__where" }, dotLine([firma || marke, treffer.ort, treffer.pensum || treffer.lehrbeginn])),
         standBadge(treffer, "marke-status hit__stand"),
-        el("span", { class: "hit__meta" }, dotLine([treffer.portal + ((treffer.weitere || []).length ? ` +${treffer.weitere.length}` : ""),
-          datum(treffer.gefunden_am), ...marken.map(m => el("strong", {}, m))]))));
+        el("span", { class: "hit__meta" }, dotLine([treffer.portal + (W.otherPortalCount(treffer) ? ` +${W.otherPortalCount(treffer)}` : ""),
+          datum(treffer.gefunden_am), ...marken.map(m => el("strong", {}, m)),
+          wieder.marke(treffer)]))));
     knopf.addEventListener("click", () => {
       gewaehlt = treffer.id;
       zeigeListe();
@@ -542,9 +550,12 @@
     const probleme = Object.entries(lauf?.portale || {}).filter(([, p]) => p.problem)
       .map(([name, p]) => anzeige.problemZeile(p.problem, nachholen[name]));
     const offen = text => !geschlossen.has(text);
+    // G109, #385: what the run knew already, by content, is not under Neu; the person can close the line
+    const bekannt = W.runHint(lauf, anzahl => t("suche.wieder-bewerbungen", { anzahl }));
     $("probleme").replaceChildren(
       ...probleme.filter(offen).map(p => befundZeile(p, p, "fehler")),
-      ...hinweise.filter(offen).map(h => hinweisZeile(h, ziele)));
+      ...hinweise.filter(offen).map(h => hinweisZeile(h, ziele)),
+      ...(bekannt && offen(bekannt) ? [befundZeile(bekannt, bekannt, "hinweis")] : []));
   }
 
   function aufzaehlung(namen) {

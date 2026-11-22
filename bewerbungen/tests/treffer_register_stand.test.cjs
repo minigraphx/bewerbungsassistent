@@ -82,7 +82,8 @@ function page({ hits = [HIT], art = "stelle", hash = "#in-bewerbungen", satz = "
     },
     TrefferLogik: logik, SuchlaufLogik: require("../seiten/suchlauf-logik.js"), SucheAnzeige: anzeige, DotLine, Texte: texte,
     SidebarLogic: sidebarLogic, Meldungen: { zeige() {}, leere() {} }, FirmenLogik: { nachTreffer: () => new Map() },
-    TrefferFirma: { zeile: () => null, marke: () => null }, HakenAusschluss: { liste: () => null }, PortalWahl: { zeige() {} }, Suchbegriffe: { zeige() {} },
+    TrefferFirma: { zeile: () => null, marke: () => null }, WiederLogik: require("../seiten/wieder-logik.js"),
+    TrefferWieder: { zeile: () => null, vermittler: () => null, marke: () => "", gleicheInserate: () => null }, HakenAusschluss: { liste: () => null }, PortalWahl: { zeige() {} }, Suchbegriffe: { zeige() {} },
     SuchbegriffeStart: { zeige() {}, ids: () => null }, Sidebar: { currency: Promise.resolve("USD") },
     addEventListener() {}, postMessage() {}, matchMedia: () => ({ matches: false }),
   };

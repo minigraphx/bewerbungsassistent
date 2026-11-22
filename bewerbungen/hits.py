@@ -14,6 +14,8 @@ import re
 import threading
 import urllib.parse
 
+import known_jobs  # compares with this module's keys; it reads them only when called, so the import may go both ways
+import reposts
 import title_filter
 from dateien import lies_yaml, schreibe_atomar, schreibe_yaml
 from preferences import SAVED_IN, SIE
@@ -238,14 +240,20 @@ def _has_other_ad_of_portal(stored: dict, hit: dict) -> bool:
 def _find_twin(hit: dict, stored: list[dict]) -> dict | None:
     """The same job already stored from another portal: same company, title and place.
 
-    Two ads on one portal are two jobs, and without a company name nothing is merged.
+    Two ads on one portal are one job only when company, title, place and pensum are all the same (G109), and
+    without a company name nothing is merged.
     """
     company = company_key(hit["firma"])
     if not company or company == "unbekannt":
         return None
     job, places, pensum = _job_key(hit), _places(hit.get("ort", "")), _title_pensum(hit["stelle"])
     for other in stored:
-        if other["portal"] == hit["portal"] or _job_key(other) != job or _has_other_ad_of_portal(other, hit):
+        same_ad = known_jobs.is_same_ad(hit, other)
+        if other["portal"] == hit["portal"] or same_ad:
+            if same_ad:
+                return other
+            continue
+        if _job_key(other) != job or _has_other_ad_of_portal(other, hit):
             continue
         other_pensum = _title_pensum(other["stelle"])
         if pensum and other_pensum and pensum != other_pensum:  # „Koch 50%“ and „Koch 100%“ can be two jobs
@@ -256,12 +264,14 @@ def _find_twin(hit: dict, stored: list[dict]) -> dict | None:
     return None
 
 
-def _with_link(stored: list[dict], twin: dict, hit: dict) -> list[dict] | None:
-    """The stored hits with the link of the other portal added to the twin; None when it is there already."""
+def _with_link(stored: list[dict], twin: dict, hit: dict, today: datetime.date) -> list[dict] | None:
+    """The stored hits with the link of the other ad added to the twin; None when it is there already. An ad of the
+    twin's own portal keeps its day, so the page can tell the ads apart (G109)."""
     others = twin.get("weitere", [])
     if twin["link"] == hit["link"] or any(o["link"] == hit["link"] for o in others):
         return None
-    merged = {**_with_queries(twin, hit), "weitere": [*others, {"portal": hit["portal"], "link": hit["link"]}]}
+    day = {"datum": known_jobs.ad_day(hit, today)} if hit["portal"] == twin["portal"] else {}
+    merged = {**_with_queries(twin, hit), "weitere": [*others, {"portal": hit["portal"], "link": hit["link"], **day}]}
     return [merged if h is twin else h for h in stored]
 
 
@@ -308,12 +318,16 @@ def _close_title(title: str, other: str) -> bool:
     return bool(shared) and shared / min(len(ours), len(theirs)) >= MIN_TITLE_OVERLAP
 
 
-def agency_hint(hit: dict, register: list[dict], agencies: tuple[str, ...], saved_in: str = SAVED_IN[SIE]) -> str:
+def agency_suspects(hit: dict, register: list[dict], agencies: tuple[str, ...]) -> list[dict]:
     """An agency hides the company: an open entry with a close title and the same pensum may be this job (G34)."""
     if not _is_agency(hit["firma"], (*AGENCIES, *agencies)):
-        return ""
-    same = [b for b in register if b.get("status") not in AGENCY_CLOSED and b.get("stelle")
+        return []
+    return [b for b in register if b.get("status") not in AGENCY_CLOSED and b.get("stelle")
             and _close_title(hit["stelle"], b["stelle"]) and _same_pensum(hit, b)]
+
+
+def agency_hint(hit: dict, register: list[dict], agencies: tuple[str, ...], saved_in: str = SAVED_IN[SIE]) -> str:
+    same = agency_suspects(hit, register, agencies)
     return " ".join(AGENCY_TWIN.format(stelle=b["stelle"], firma=b.get("firma") or "unbekannt", status=b.get("status") or "Gemerkt",
                                        saved_in=saved_in)
                     for b in same[:2])
@@ -326,6 +340,21 @@ def ad_with_details(hit: dict, body: str) -> str:
     kind = [f"Art: {TRIAL}"] if hit.get("art") == TRIAL else []
     head = "\n".join(kind + [f"{label}: {hit[field]}" for label, field in labels if hit.get(field)])
     return f"{head}\n\n{body}" if body else head
+
+
+SUSPECTED = "vielleicht_dieselbe"  # G109: the open entries a recruiter's ad may be, with the sentence of G34
+
+
+def _new_entry(folder: pathlib.Path, hit: dict, register: list[dict], today: datetime.date,
+               agencies: tuple[str, ...], saved_in: str) -> dict:
+    """A hit as it is stored, with the links of the same ad the screening saw again and the hints for the page."""
+    entry = {"id": hit_id(hit), **hit, "gefunden_am": today.isoformat(), "zustand": "neu"}
+    same_ads = known_jobs.take_same_ads(folder, key(hit))
+    agency = agency_hint(entry, register, agencies, saved_in)
+    hint = company_hint(entry, register) or agency
+    suspected = known_jobs.suspects(entry, register, agencies)
+    return {**entry, **({"weitere": same_ads} if same_ads else {}), **({"hinweis": hint} if hint else {}),
+            **({SUSPECTED: {"satz": agency, "bewerbungen": suspected}} if suspected and agency else {})}
 
 
 def _hidden_words(raw) -> dict[str, int]:
@@ -377,7 +406,8 @@ class Hits:
                own_portals: frozenset[str] = frozenset(), near=lambda place: False,
                title_positive: tuple[str, ...] = (), max_age_by_portal: dict[str, int] | None = None,
                excluded: frozenset[str] = frozenset(), on_screened_out=lambda hit, reason: None,
-               on_title_checked=lambda hit, found: None) -> dict:
+               on_title_checked=lambda hit, found: None, agencies: tuple[str, ...] = (),
+               record_reposts=lambda by_id: None, today: datetime.date | None = None) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away. With positive
@@ -386,31 +416,31 @@ class Hits:
         the person no longer wants to see (#226); their hits are only counted. `on_screened_out` hears of each hit
         the title filter kept out, with its reason, so the queries behind it can count it (G103); `on_title_checked`
         of each title the filter looked at, with its verdict, for the example titles on Suche einstellen (G104).
+        A job known by its content (G109, `known_jobs`) is no new hit either: a discarded hit keeps the new ad itself,
+        a register entry gets it through `record_reposts` (entry id → reposts), called under the lock, so that the
+        next screening sees it; `agencies` are the recruiters of the profile (G34).
         """
-        fetch, nearby, filtered, known, merged, left_out = [], [], [], 0, 0, 0
+        fetch, nearby, filtered, known, left_out = [], [], [], 0, 0
         ages = max_age_by_portal or {}
+        day = today or datetime.date.today()
         with _LOCK:
             stored = self.all()
             known_keys = {key(h) for h in stored}
-            links = ([b.get("link") for b in register] + [h.get("link") for h in stored]
-                     + [o["link"] for h in stored for o in h.get("weitere", [])])
-            known_links = {comparable_link(link, any_fragment=True) for link in links if link}
+            seen = known_jobs.Screening(stored=stored, links=known_jobs.known_links(register, stored))
             for raw in listing[:MAX_HITS_PER_CALL * 5]:
                 try:
                     hit = validate(raw, own_portals)
                 except ValueError:
                     continue
-                if key(hit) in known_keys or comparable_link(hit["link"], any_fragment=True) in known_links:
+                if key(hit) in known_keys or comparable_link(hit["link"], any_fragment=True) in seen.links:
                     known += 1
                     continue
                 if company_key(hit["firma"]) in excluded:
                     left_out += 1
                     continue
-                twin = _find_twin(hit, stored)
-                if twin is not None:
-                    updated = _with_link(stored, twin, hit)
-                    if updated is not None:
-                        stored, merged = updated, merged + 1
+                after = known_jobs.recognized(hit, seen, register, agencies, day)
+                if after is not None:
+                    seen = after
                     continue
                 found = title_filter.verdict(hit["stelle"], title_exclude, title_positive)
                 if title_exclude or title_positive:
@@ -424,12 +454,27 @@ class Hits:
                     filtered.append({"stelle": hit["stelle"], "grund": f"älter als {days} {'Tag' if days == 1 else 'Tage'}"})
                 elif key(hit) not in fetch:
                     fetch.append(key(hit))
+                    seen = known_jobs.asking(seen, hit)
                     if near(hit.get("ort", "")):
                         nearby.append(key(hit))
-            if merged:
-                self._write(stored)
-        return {"holen": fetch, "nah": nearby, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": merged,
-                "ausgeschlossen": left_out}
+            self._keep_screening(seen, record_reposts)
+        return {"holen": fetch, "nah": nearby, "bekannt": known, "gefiltert": filtered, "zusammengefuehrt": seen.merged,
+                "ausgeschlossen": left_out, reposts.KEY: seen.counts}
+
+    def _keep_screening(self, seen: "known_jobs.Screening", record_reposts) -> None:
+        """What a screening learned, written while the lock is held."""
+        if seen.changed:
+            self._write(seen.stored)
+        if seen.waiting:
+            known_jobs.note_same_ads(self.folder, list(seen.waiting))
+        known_jobs.note_run(self.folder, seen.counts)
+        if seen.reposts:
+            record_reposts(seen.reposts)
+
+    def close_known(self) -> dict[str, int]:
+        """What the screenings of the run that ends now recognized as known jobs (G109), for the hint after it."""
+        with _LOCK:
+            return known_jobs.close_run(self.folder)
 
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
             own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = (),
@@ -453,15 +498,12 @@ class Hits:
                     continue
                 twin = _find_twin(hit, stored)
                 if twin is not None:
-                    updated = _with_link(stored, twin, hit)
+                    updated = _with_link(stored, twin, hit, today)
                     if updated is not None:
                         stored, merged = updated, merged + 1
                     continue
                 text = hit.pop("text")
-                entry = {"id": hit_id(hit), **hit, "gefunden_am": today.isoformat(), "zustand": "neu"}
-                hint = company_hint(entry, register) or agency_hint(entry, register, agencies, saved_in)
-                if hint:
-                    entry["hinweis"] = hint
+                entry = _new_entry(self.folder, hit, register, today, agencies, saved_in)
                 reason = check(entry["stelle"], text) if text else ""
                 if reason:
                     entry["vorpruefung"] = reason

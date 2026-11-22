@@ -33,7 +33,8 @@
   const meldung = (inhalt, stufe = "") => window.Meldungen.zeige($("lauf-status"), inhalt, stufe);
   const t = (schluessel, werte) => text(schluessel, satz, werte);
   const adresse = b => "/bewerbung?id=" + encodeURIComponent(b.id);
-  const wo = b => [b.firma, b.ort].filter(Boolean).join(", ");
+  // G109, #385: an open application whose job came again says so as a part of the line
+  const wo = b => window.DotLine.render([[b.firma, b.ort].filter(Boolean).join(", "), window.WiederLogik.listPart(b)], el);
   const name = b => [b.stelle || "ohne Titel", b.firma].filter(Boolean).join(", ");
 
   function merken() {
@@ -77,7 +78,7 @@
       el("td", { "data-label": "", class: "table__pick" },
         el("input", { type: "checkbox", "data-id": b.id, "aria-label": `Anhaken: ${name(b)}`, checked: auswahl.has(b.id),
                       onchange: () => waehleZeile(b.id) })),
-      el("td", { "data-label": "" }, el("a", { class: "table__main", href: adresse(b) }, b.stelle || "ohne Titel"), el("span", { class: "table__sub" }, wo(b))),
+      el("td", { "data-label": "" }, el("a", { class: "table__main", href: adresse(b) }, b.stelle || "ohne Titel"), el("span", { class: "table__sub" }, ...wo(b))),
       el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, window.Texte.statusName(b.status, satz))),
       el("td", { "data-label": "Note" }, note(b)),
       el("td", { "data-label": "Nächster Schritt", class: "table__next" }, was.titel || "–"),

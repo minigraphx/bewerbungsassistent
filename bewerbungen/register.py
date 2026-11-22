@@ -15,6 +15,7 @@ import sys
 import threading
 import unicodedata
 
+import reposts
 from dateien import lies_yaml, schreibe_yaml
 
 DATEI = "bewerbungen.yaml"
@@ -105,7 +106,7 @@ def pruefe_bewerbung(b: dict) -> dict:
         raise ValueError("Bewerbung muss eine Zuordnung sein")
     b = _uebernimm_jobroom(b)
     bekannt = {"id", "status", "versand", "passung", "rav_zuweisung", "zertifikate", "ausfuellen", "unterlagen",
-               "dossier_design", "dossier_seiten", "lebenslauf_design", *TEXTFELDER, *DATUMSFELDER}
+               "dossier_design", "dossier_seiten", "lebenslauf_design", reposts.KEY, *TEXTFELDER, *DATUMSFELDER}
     unbekannt = set(b) - bekannt
     if unbekannt:
         raise ValueError(f"Unbekannte Felder: {sorted(unbekannt)}")
@@ -161,6 +162,8 @@ def pruefe_bewerbung(b: dict) -> dict:
         if not isinstance(b["versand"], dict):
             raise ValueError("versand muss eine Zuordnung sein")
         neu["versand"] = dict(b["versand"])
+    if b.get(reposts.KEY):
+        neu[reposts.KEY] = reposts.checked(b[reposts.KEY])
     return neu
 
 
@@ -275,6 +278,14 @@ class Register:
             updated = [pruefe_bewerbung(with_stage(b, stage, today)) if b["id"] in wanted else b for b in entries]
             self._schreibe(updated)
         return [b for b in updated if b["id"] in wanted]
+
+    def add_reposts(self, by_id: dict[str, list[dict]]) -> list[dict]:
+        """Reposts of known jobs (G109) on their entries, in one write; an entry gone by now is left out."""
+        with self._sperre:
+            entries = self.alle()
+            updated = [pruefe_bewerbung(reposts.appended(b, by_id[b["id"]])) if b["id"] in by_id else b for b in entries]
+            self._schreibe(updated)
+        return [b for b in updated if b["id"] in by_id]
 
     def neu(self, firma: str, stelle: str, **felder) -> dict:
         vorhandene = {b["id"] for b in self.alle()}

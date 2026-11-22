@@ -20,10 +20,11 @@ import unterlagen
 from ai import connection, second_look, tasks
 from ai.errors import AnswerError
 from dateien import schreibe_atomar
+from reposts import KEY as REPOSTS
 import routes_career
 import routes_missing_ads
 import routes_window
-from hits import CLOSED, PORTALS_OFF, QUERIES, TRIAL, Hits, bounded_text, company_key, comparable_link, is_near
+from hits import CLOSED, PORTALS_OFF, QUERIES, SUSPECTED, TRIAL, Hits, bounded_text, company_key, comparable_link, is_near
 from hits import key as hit_key
 from query_log import QueryLog
 from server import json_antwort, pflicht
@@ -38,6 +39,7 @@ OWN_CLAUDE = "Claude (eigenes Abo)"
 BLOCKED_WITHOUT_PROFILE = "Zuerst Meine Angaben abschliessen."
 ALREADY_SAVED = "Dieser Treffer ist schon {saved_in}."  # #220: „Ihre Bewerbungen“ or „deine“, never „Register“
 NO_TEXT = "Für diesen Treffer fehlt der Text des Inserats. Bitte das Inserat öffnen und die Stelle von Hand erfassen."
+REPOSTS_NOTED = "Wieder ausgeschriebene Stellen vermerkt"
 
 
 def _hits(k) -> Hits:
@@ -71,6 +73,17 @@ def plan(k, parameter, body):
                                   "eigener_schluessel": connection.has_own_key(), "weitere_seiten": own_sites.active(store)}})
 
 
+def _agencies(k) -> tuple[str, ...]:
+    profile = k.daten / search_plan.PROFILE
+    return search_plan.agencies_in(profile.read_text(encoding="utf-8")) if profile.is_file() else ()
+
+
+def _record_reposts(k, by_id: dict[str, list[dict]]) -> None:
+    """Known jobs advertised again (G109) on their entries; a change of the data folder, so with drafts."""
+    register = k.register()
+    k.mit_entwurf(register.pfad, REPOSTS_NOTED, lambda: register.add_reposts(by_id))
+
+
 def screen(k, parameter, body):
     current = search_plan.for_folder(k.daten)
     store = _hits(k)
@@ -82,7 +95,8 @@ def screen(k, parameter, body):
                           max_age_by_portal=_portal_days(store, current, k.heute()),
                           excluded=excluded_companies.keys(k.daten),
                           on_screened_out=lambda hit, reason: screened_out.append((hit.get(QUERIES, []), hit["stelle"], reason)),
-                          on_title_checked=lambda hit, found: checked.append((hit_key(hit), hit["stelle"], found)))
+                          on_title_checked=lambda hit, found: checked.append((hit_key(hit), hit["stelle"], found)),
+                          agencies=_agencies(k), record_reposts=lambda by_id: _record_reposts(k, by_id), today=k.heute())
     log = QueryLog(k.daten)
     for queries, title, reason in screened_out:
         log.note_screened(queries, title, reason)
@@ -92,10 +106,8 @@ def screen(k, parameter, body):
 
 def receive(k, parameter, body):
     store = _hits(k)
-    profile = k.daten / search_plan.PROFILE
-    agencies = search_plan.agencies_in(profile.read_text(encoding="utf-8")) if profile.is_file() else ()
     person = precheck.for_folder(k.daten)
-    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), agencies,
+    return json_antwort(store.add(_list(body), k.register().alle(), k.heute(), own_sites.active_portals(store), _agencies(k),
                                   check=lambda title, text: precheck.check(title, text, person),
                                   saved_in=preferences.load(k.daten).saved_in, excluded=excluded_companies.keys(k.daten)))
 
@@ -125,7 +137,8 @@ def finish(k, parameter, body):
     queries = {name: query_log.checked_queries(v[QUERIES]) for name, v in kept.items()
                if name in search_plan.ALL_PORTALS and QUERIES in v}
     QueryLog(k.daten).close_run(queries, k.heute())
-    return json_antwort(store.save_run({"portale": summaries}, k.heute()))
+    known = store.close_known()  # G109: the hint after the run says how many ads the app knew already
+    return json_antwort(store.save_run({"portale": summaries, **({REPOSTS: known} if known else {})}, k.heute()))
 
 
 def _page_kind(k) -> str:
@@ -169,7 +182,8 @@ def overview(k, parameter, body):
     found = sorted(excluded_companies.shown(store.all(), excluded_companies.keys(k.daten)),
                    key=lambda h: h.get("gefunden_am", ""), reverse=True)
     stages = _register_stages(k)
-    return json_antwort({"treffer": [_listed(k, store, with_stage(hit, stages), homes, postal_codes) for hit in found],
+    return json_antwort({"treffer": [_listed(k, store, with_suspects(with_stage(hit, stages), stages), homes, postal_codes)
+                                     for hit in found],
                          "hinweis_ziele": targets,
                          "angebote": list(offers), **routes_career.searched_now(k),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
@@ -196,6 +210,16 @@ def with_stage(hit: dict, stages: dict[str, str | None]) -> dict:
     if hit.get("zustand") != "uebernommen" or not hit.get("bewerbung_id"):
         return hit
     return {**hit, "stand": stages.get(hit["bewerbung_id"])}
+
+
+def with_suspects(hit: dict, stages: dict[str, str | None]) -> dict:
+    """A recruiter's hit points only to entries that are still there (G109); without one the suggestion goes."""
+    suspected = hit.get(SUSPECTED)
+    if not isinstance(suspected, dict):
+        return hit
+    left = [entry for entry in suspected.get("bewerbungen") or [] if isinstance(entry, dict) and entry.get("id") in stages]
+    rest = {name: value for name, value in hit.items() if name != SUSPECTED}
+    return {**rest, SUSPECTED: {**suspected, "bewerbungen": left}} if left else rest
 
 
 def _region(profile: search_plan.SearchPlan) -> dict:
