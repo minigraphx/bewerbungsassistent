@@ -26,6 +26,13 @@
     window.SucheRahmen.zeige(rahmen, lehrstelle, ausgeschlossen);
   }
 
+  /** G105: a «Nur» line with an unknown portal, or a term whose portals are all switched off, under the list. */
+  function zeigePortalHinweise(hinweise) {
+    const liste = $("suchliste-portale-hinweise");
+    liste.replaceChildren(...hinweise.map(text => el("li", { class: "notice notice--warning" }, el("p", { class: "notice__body" }, text))));
+    liste.hidden = !hinweise.length;
+  }
+
   function zeigeAblauf(daten) {
     $("auto-bewerten").checked = daten.einstellungen.auto_bewerten;
     $("zuschauen").checked = daten.einstellungen.zuschauen;
@@ -85,6 +92,8 @@
       $("ohne-profil-text").textContent = daten.sperrgrund || "";
       $("angebot-wahl").hidden = !lehrstelle;
       $("angebot").value = logik.wahlAus(daten.angebote || []);
+      window.Suchliste.portale(daten.begriff_portale);
+      zeigePortalHinweise(daten.portal_hinweise || []);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || [], daten.begriff_laenge);
       window.PortalWahl.zeige(daten.portale_wahl || [], lade);
       zeigeRahmen(daten, rahmen, lehrstelle, firmen.firmen);

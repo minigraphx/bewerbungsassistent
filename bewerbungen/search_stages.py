@@ -24,9 +24,20 @@ def _count(values: object) -> int:
     return len(values) if isinstance(values, list) else 0
 
 
+def _runs_on(term: object, portal: str, limits: object) -> bool:
+    """As runsOn in queries.js: a term the profile limits to some portals (G105) runs only there."""
+    only = limits.get(term) if isinstance(limits, dict) and isinstance(term, str) else None
+    return not isinstance(only, list) or portal in only
+
+
+def _keywords_on(portal: str, plan: dict) -> int:
+    terms = plan.get("stichworte")
+    return sum(_runs_on(term, portal, plan.get("nur_portale")) for term in terms) if isinstance(terms, list) else 0
+
+
 def _searches(portal: str, plan: dict) -> int:
     """As buildQueries: keyword × place, niches without place on jobs.ch, the whole country when there is no place."""
-    keywords, niches = _count(plan.get("stichworte")), _count(plan.get("nischen"))
+    keywords, niches = _keywords_on(portal, plan), _count(plan.get("nischen"))
     if portal in APPRENTICESHIP_PORTALS:
         area = _count(plan.get("orte")) or _count(plan.get("kantone"))
         return (_count(plan.get("angebote")) or 1) * keywords * area

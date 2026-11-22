@@ -377,3 +377,42 @@ test("the targets of a row are at least 44 by 44 pixels and the handle does not 
   assert.match(rule(".suchliste button"), /min-height: 44px/);
   assert.match(rule(".suchliste__pfeil"), /min-width: 44px/);
 });
+
+// The portals a term is limited to (G105, #376)
+
+const LIMITS = [{ begriff: "Betreuer", portale: ["jobs.ch", "job-room"], aus: false },
+  { begriff: "Koch", portale: ["ictjobs"], aus: true }];
+const captionOf = (list, name) => part(row(list, name), "suchliste__portale");
+const plain = node => node.textContent.replace(/\s·,/g, " ·");
+
+test("the caption names the portals, and says when all of them are switched off", () => {
+  assert.deepEqual(L.portalTeile(LIMITS[0]), ["nur jobs.ch, job-room"]);
+  assert.deepEqual(L.portalTeile(LIMITS[1]), ["nur ictjobs", "ausgeschaltet"]);
+  assert.deepEqual(L.portalTeile(undefined), []);
+});
+
+test("a limited term carries its portals as a caption under its name; the others carry none", () => {
+  const { list, window } = setup();
+  window.Suchliste.portale(LIMITS);
+
+  assert.equal(plain(captionOf(list, "Betreuer")), "nur jobs.ch, job-room");
+  assert.equal(plain(captionOf(list, "Koch")), "nur ictjobs · ausgeschaltet");
+  assert.ok(row(list, "Koch").find(node => node.className === "suchliste__name").contains(captionOf(list, "Koch")));
+  assert.equal(captionOf(list, "Pflegefachmann"), null);
+  for (const name of TERMS) for (const role of ["hoch", "runter", "entfernen"]) assert.ok(control(list, name, role), `${name} ${role}`);
+});
+
+test("a move keeps the caption with its term", () => {
+  const { list, window } = setup();
+  window.Suchliste.portale(LIMITS);
+
+  control(list, "Koch", "hoch").click();
+
+  assert.equal(shown(list)[3], "Koch");
+  assert.equal(plain(captionOf(list, "Koch")), "nur ictjobs · ausgeschaltet");
+});
+
+test("Suche einstellen has a place for the notices about the limits under the list", () => {
+  const html = fs.readFileSync(path.join(SEITEN, "suche-einstellen.html"), "utf8");
+  assert.match(html, /<ul id="suchliste-portale-hinweise" class="suchliste-hinweise" hidden><\/ul>/);
+});

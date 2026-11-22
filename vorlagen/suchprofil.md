@@ -49,6 +49,8 @@ Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 - Kernliste: Python, TypeScript, Softwareentwickler, Data Engineer, E-Learning
 - Nischen (ohne Ort suchen): EdTech, Remote Python
 
+Ohne Angabe sucht die App jeden Begriff auf allen Portalen. Eine eigene Zeile wie `- Nur jobs.ch, job-room: Lernbegleiter, Kursleiter` beschränkt ihre Begriffe auf die genannten Portale, geschrieben wie in der Tabelle oben und mit Komma getrennt; es darf mehrere geben. Nennt eine Zeile ein Portal, das die App nicht kennt, sucht sie deren Begriffe überall. Die Nischen lassen sich nicht beschränken.
+
 ## Titelfilter
 - Positiv: Python, Software, Entwickler/Developer/Engineer, Daten/Data, Web, Learning, Trainer
 - Ausschluss: Praktikum, Lehrstelle, Werkstudent, PhD, Sales (ganzes Wort), Head of

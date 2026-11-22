@@ -7,6 +7,8 @@ The order set on Suche einstellen (G87) moves professions and search directions 
 the number is their priority (`numbered_order`). Terms from Keywords get a section of their own, „Reihenfolge der
 Suche“, which the plan reads before the lines they come from; a term it does not name comes after, so a new one goes
 to the end, as a new line of a numbered list does.
+A line «- Nur <Portal>: …» limits its terms to those portals (G105): a term can be removed from it and moved like any
+other, but a new term never goes there, and a profile from the form keeps the line.
 """
 import re
 from collections.abc import Callable
@@ -19,6 +21,7 @@ from search_plan import (APPRENTICESHIP_MARK, DIRECTION, MAX_DIRECTION, MAX_DIRE
 
 DIRECTIONS_SECTION = "## Suchrichtungen"
 KEYWORDS_KEY = "keywords"
+KEYWORDS_SECTION = "## Keywords"
 AFTER_DIRECTIONS = "## Region"
 CORE_LIST = re.compile(r"^(-\s+kernliste[^:]*:\s*)(.*)$", re.IGNORECASE)
 # Every named line under Keywords but the niches is searched (#174), so a term can be removed from any of them;
@@ -69,6 +72,31 @@ def _group_lines(lines: list[str]) -> list[int]:
     return [*([core] if core is not None else []), *others]
 
 
+def _is_limit(line: str) -> bool:
+    """Whether the line is «- Nur <Portal>: …» (G105), whose terms run only on those portals."""
+    found = search_plan.PAIR.match(line.strip())
+    return bool(found and search_plan.LIMIT_LABEL.match(found[1].strip()))
+
+
+def _new_term_line(lines: list[str]) -> int | None:
+    """Where a new term goes: the core list, else the first other group, else an empty core list; never a «Nur»
+    line, which would limit it to portals the person did not choose for it (G105)."""
+    core = _core_list_line(lines)
+    if core is not None:
+        return core
+    groups = _group_lines(lines)
+    group = next((i for i in groups if not _is_limit(lines[i])), None)
+    if group is not None or not groups:  # without any group the search reads the directions, so the term goes there
+        return group
+    start, end = search_plan.section_bounds(lines, KEYWORDS_KEY)
+    return next((i for i in range(start + 1, end) if CORE_LIST.match(lines[i].strip())), None)
+
+
+def _appended(line: str, term: str) -> str:
+    kept = line.rstrip(" ,")
+    return f"{kept} {term}" if kept.endswith(":") else f"{kept}, {term}"
+
+
 def _words_as_shown(part: str, chars: int = MAX_VALUE) -> frozenset[str]:
     """The words of an entry as the plan cuts it, because the page can only name it like that."""
     return profession_words(" ".join(part.replace("`", "").split())[:chars])
@@ -112,10 +140,12 @@ def _added(text: str, name: str, kind: str | None, limit: int | None) -> str:
         raise ValueError(FULL.format(limit=limit))
     clean = " ".join(name.split())
     lines = text.split("\n")
-    core = _core_list_line(lines)
-    core = core if core is not None else next(iter(_group_lines(lines)), None)
-    if core is not None:
-        return "\n".join([*lines[:core], f"{lines[core].rstrip(' ,')}, {clean}", *lines[core + 1:]])
+    target = _new_term_line(lines)
+    if target is not None:
+        return "\n".join([*lines[:target], _appended(lines[target], clean), *lines[target + 1:]])
+    if _group_lines(lines):  # only «Nur» lines: the term gets a core list of its own, first under Keywords
+        start, _ = search_plan.section_bounds(lines, KEYWORDS_KEY)
+        return "\n".join([*lines[:start + 1], f"- Kernliste: {clean}", *lines[start + 1:]])
     start, end = search_plan.section_bounds(lines, DIRECTIONS_SECTION[3:].lower())
     used = 0 if start is None else sum(bool(DIRECTION.match(row.strip())) for row in lines[start:end])
     if used >= MAX_DIRECTIONS:  # lines, not terms: one line can repeat a term or hold several (#316)
@@ -336,6 +366,17 @@ def _kept_offers(old: str, new: str) -> str:
     return search_plan.with_section_line(new, search_plan.OFFERS_SECTION, "\n".join(lines), APPRENTICESHIP_MARK) if lines else new
 
 
+def _kept_limits(old: str, new: str) -> str:
+    """The «Nur» lines of the old profile (G105), as written, after the new one's lines under Keywords: the form has
+    no field for them, so it cannot mean to drop them, and their terms must not land in the core list."""
+    written = {line.strip() for line in search_plan.section_lines(new, KEYWORDS_SECTION)}
+    text = new
+    for line in search_plan.section_lines(old, KEYWORDS_SECTION):
+        if _is_limit(line) and line.strip() not in written:
+            text = search_plan.with_section_line(text, KEYWORDS_SECTION, line, TITLE_SECTION)
+    return text
+
+
 def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
     """A profile from the form replaces the old one: what the old one searched stays, after what the form names.
 
@@ -345,7 +386,7 @@ def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
     """
     if (APPRENTICESHIP_MARK in old) != (APPRENTICESHIP_MARK in new):
         return new, ()
-    text, kept = new, []
+    text, kept = _kept_limits(old, new), []
     for term in current(old):
         try:
             changed = added(text, term)

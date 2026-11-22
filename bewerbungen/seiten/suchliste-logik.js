@@ -16,7 +16,14 @@
   // The accessible names say which term a button moves, since the arrows alone do not.
   const knopfNamen = name => ({ hoch: `${name} nach oben`, runter: `${name} nach unten`, entfernen: `${name} entfernen` });
 
-  const logik = { verschoben, zielIndex, ansage, knopfNamen };
+  /** G105: the caption of a term limited to some portals, as parts of a «·» line; none for a term without a limit. */
+  function portalTeile(eintrag) {
+    if (!eintrag || !Array.isArray(eintrag.portale) || !eintrag.portale.length) return [];
+    const nur = `nur ${eintrag.portale.join(", ")}`;
+    return eintrag.aus ? [nur, "ausgeschaltet"] : [nur];
+  }
+
+  const logik = { verschoben, zielIndex, ansage, knopfNamen, portalTeile };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SuchlisteLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);
