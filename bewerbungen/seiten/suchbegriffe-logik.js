@@ -9,7 +9,7 @@
       hinweisNachsatz: "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was Sie übernehmen.",
       warten: "KI prüft Ihre Suchbegriffe",
       wartenNotiz: "Meist unter 30\u00a0Sekunden. Am Suchprofil ändert sich nichts, bis Sie etwas übernehmen.",
-      gesehen: (treffer, seit) => `Die KI hat Ihr Suchprofil, Ihren Lebenslauf${treffer ? ` und ${treffer} Treffer${seit ? ` seit dem ${datum(seit)}` : ""}` : ""} angesehen. Geändert wird nur, was angehakt ist.`,
+      gesehen: (treffer, seit) => `Die KI hat Ihr Suchprofil${treffer ? `, Ihren Lebenslauf und ${treffer} Treffer${seit ? ` seit dem ${datum(seit)}` : ""}` : " und Ihren Lebenslauf"} angesehen. Geändert wird nur, was eingeschaltet ist.`,
       passt: "Ihre Suchbegriffe passen. Die KI schlägt keine Änderung vor.",
       passtNotiz: "Kein Begriff lässt auffällig viele unpassende Treffer durch, und was in Ihrem Lebenslauf steht, wird schon gesucht.",
       fuss: "Ein Vorschlag, kein Urteil. Die KI kann sich irren. Geändert wird nur, was Sie übernehmen.",
@@ -17,6 +17,7 @@
       nachHinweis: "nach Ihrem Hinweis",
       ihrHinweis: "Ihr Hinweis",
       einwilligung: "Bevor die KI Suchbegriffe vorschlägt, braucht es Ihre Einwilligung.",
+      bisherige: "Alle sind eingeschaltet. Was Sie ausschalten, entfällt beim Übernehmen.",
     },
     du: {
       satz: "Die KI schlägt vor, du entscheidest. Am Suchprofil ändert sich erst etwas, wenn du übernimmst.",
@@ -24,7 +25,7 @@
       hinweisNachsatz: "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was du übernimmst.",
       warten: "KI prüft deine Suchbegriffe",
       wartenNotiz: "Meist unter 30\u00a0Sekunden. Am Suchprofil ändert sich nichts, bis du etwas übernimmst.",
-      gesehen: (treffer, seit) => `Die KI hat dein Suchprofil, deinen Lebenslauf${treffer ? ` und ${treffer} Treffer${seit ? ` seit dem ${datum(seit)}` : ""}` : ""} angesehen. Geändert wird nur, was angehakt ist.`,
+      gesehen: (treffer, seit) => `Die KI hat dein Suchprofil${treffer ? `, deinen Lebenslauf und ${treffer} Treffer${seit ? ` seit dem ${datum(seit)}` : ""}` : " und deinen Lebenslauf"} angesehen. Geändert wird nur, was eingeschaltet ist.`,
       passt: "Deine Suchbegriffe passen. Die KI schlägt keine Änderung vor.",
       passtNotiz: "Kein Begriff lässt auffällig viele unpassende Treffer durch, und was in deinem Lebenslauf steht, wird schon gesucht.",
       fuss: "Ein Vorschlag, kein Urteil. Die KI kann sich irren. Geändert wird nur, was du übernimmst.",
@@ -32,6 +33,7 @@
       nachHinweis: "nach deinem Hinweis",
       ihrHinweis: "Dein Hinweis",
       einwilligung: "Bevor die KI Suchbegriffe vorschlägt, braucht es deine Einwilligung.",
+      bisherige: "Alle sind eingeschaltet. Was du ausschaltest, entfällt beim Übernehmen.",
     },
   };
   const BELOW = 4;
@@ -90,23 +92,96 @@
     }
   }
 
-  function hauptknopf(gewaehlt, alle) {
-    if (gewaehlt === 0) return "Übernehmen";
-    if (gewaehlt === alle) return alle === 1 ? "Änderung übernehmen" : `Alle ${alle} übernehmen`;
-    return `${gewaehlt} von ${alle} übernehmen`;
-  }
-
   /** The heading as parts, which the page joins with «·» (#340); its accessible name then reads with a comma. */
   const kopfTeile = anzahl => ["Vorschlag der KI", anzahl === 1 ? "1 Änderung" : `${anzahl} Änderungen`];
 
-  /** The marks of a change: what goes with „entfällt“, what comes with „neu“; the word carries the meaning, not the colour. */
-  const marken = aenderung => [
-    ...aenderung.entfaellt.map(begriff => ({ begriff, wort: "entfällt", art: "gone" })),
-    ...aenderung.neu.map(begriff => ({ begriff, wort: "neu", art: "new" })),
+  const viele = (anzahl, eins, mehr) => `${anzahl} ${anzahl === 1 ? eins : mehr}`;
+
+  /** What changed, in the words of the review (#371): new terms and those that go, each only when there are some. */
+  function uebernommen(neu, entfallen) {
+    const teile = [neu ? `${viele(neu, "Begriff", "Begriffe")} neu` : "",
+      entfallen ? `${neu ? entfallen : viele(entfallen, "Begriff", "Begriffe")} ${entfallen === 1 ? "entfällt" : "entfallen"}` : ""];
+    return `Übernommen: ${teile.filter(Boolean).join(", ")}. Die nächste Suche sucht danach. Der bisherige Stand bleibt unter Entwürfe erhalten.`;
+  }
+  const RUECKGAENGIG_FERTIG = "Rückgängig gemacht. Es gilt wieder der Stand vor dem Vorschlag.";
+
+  // One switch per term (#371, G102). The state is the terms in the result per area, as the app names them; the
+  // app works out order and limits again from what the page sends.
+  const BEREICHE = [["suchbegriffe", "Suchbegriffe"], ["positiv", "Titel enthält eines davon"], ["ausschluss", "Titel enthält keines davon"]];
+  const SCHLUESSEL = { keywords: "suchbegriffe", positive: "positiv", exclude: "ausschluss" };
+  const HAUPTKNOPF = "Auswahl übernehmen";
+  const TEILWEISE = "Teilweise übernommen";
+  const BISHERIGE_OBEN = "Begriffe, die eine Änderung oben betrifft, stehen dort.";
+  const ZU_DEN_BISHERIGEN = "Zu den bisherigen Begriffen";
+  const FREI = "Die Auswahl lässt sich übernehmen.";
+
+  /** The chips of a change: what it removes („gone“), then what it adds („new“), each in the area of the change. */
+  const chips = aenderung => [
+    ...aenderung.entfaellt.map(begriff => ({ bereich: SCHLUESSEL[aenderung.bereich], begriff, art: "gone" })),
+    ...aenderung.neu.map(begriff => ({ bereich: SCHLUESSEL[aenderung.bereich], begriff, art: "new" })),
   ];
 
-  const uebernommen = anzahl => `Übernommen: ${anzahl === 1 ? "1 Änderung" : `${anzahl} Änderungen`}. Die nächste Suche sucht danach. Der bisherige Stand bleibt unter Entwürfe erhalten.`;
-  const RUECKGAENGIG_FERTIG = "Rückgängig gemacht. Es gilt wieder der Stand vor dem Vorschlag.";
+  /** The current terms no change touches, per area in the order of the profile; an empty area is left out. */
+  const bisherigeBereiche = bisherige => BEREICHE
+    .map(([schluessel, name]) => ({ schluessel, name,
+      chips: (bisherige[schluessel] || []).map(begriff => ({ bereich: schluessel, begriff, art: "kept" })) }))
+    .filter(bereich => bereich.chips.length);
+
+  const imErgebnis = (auswahl, { bereich, begriff }) => auswahl[bereich].includes(begriff);
+
+  /** A removed term is on while it goes away; a new or current term while it is in the result. */
+  const chipAn = (auswahl, chip) => imErgebnis(auswahl, chip) !== (chip.art === "gone");
+
+  function mitBegriff(auswahl, { bereich, begriff }, drin) {
+    const ohne = auswahl[bereich].filter(b => b !== begriff);
+    return { ...auswahl, [bereich]: drin ? [...ohne, begriff] : ohne };
+  }
+
+  const schalteChip = (auswahl, chip, an) => mitBegriff(auswahl, chip, an !== (chip.art === "gone"));
+
+  /** The word beside a chip, which carries its state: never colour alone. */
+  function chipWort(chip, an) {
+    if (chip.art === "new") return "neu";
+    if (chip.art === "gone") return an ? "entfällt" : "bleibt";
+    return an ? "" : "entfällt";
+  }
+
+  function karteStand(auswahl, aenderung) {
+    const an = chips(aenderung).map(chip => chipAn(auswahl, chip));
+    if (an.every(Boolean)) return "alle";
+    return an.some(Boolean) ? "teilweise" : "keine";
+  }
+
+  const schalteKarte = (auswahl, aenderung, an) => chips(aenderung).reduce((stand, chip) => schalteChip(stand, chip, an), auswahl);
+
+  /** Each area after the switches, and how many are over what it may hold (`erlaubt` from the app). */
+  const zaehlung = (auswahl, erlaubt) => BEREICHE.map(([schluessel, name]) => ({ schluessel, name,
+    anzahl: auswahl[schluessel].length, zuViel: Math.max(0, auswahl[schluessel].length - erlaubt[schluessel]) }));
+
+  /** The legend of an area as parts, which the page joins with «·» (#340). */
+  const legendeTeile = z => [z.name, `danach ${z.anzahl} eingeschaltet${z.zuViel ? `, ${z.zuViel} zu viel` : ""}`];
+
+  const entfaelltZeile = liste => (liste.length ? `Entfällt: ${liste.join(", ")}` : "");
+
+  /** The first area over what it may hold, by the app's count, or null. */
+  const zuVielBereich = grenzen => (BEREICHE.find(([s]) => grenzen.zu_viel && grenzen.zu_viel[s] > 0) || [null])[0];
+
+  function zuVielText(grenzen) {
+    const schluessel = zuVielBereich(grenzen);
+    if (!schluessel) return grenzen.gesperrt || "";
+    const name = BEREICHE.find(([s]) => s === schluessel)[1];
+    const anzahl = grenzen.zu_viel[schluessel];
+    return schluessel === "suchbegriffe" ? `Noch ${viele(anzahl, "Suchbegriff", "Suchbegriffe")} zu viel`
+      : `Noch ${viele(anzahl, "Begriff", "Begriffe")} zu viel in «${name}»`;
+  }
+
+  /** What the polite status says after an answer: only when the choice becomes blocked or free, or what is too many changes. */
+  function ansage(vorher, nachher) {
+    if (!vorher) return "";
+    if (!nachher.gesperrt) return vorher.gesperrt ? FREI : "";
+    const jetzt = zuVielText(nachher);
+    return vorher.gesperrt && zuVielText(vorher) === jetzt ? "" : jetzt;
+  }
 
   /** The footer of the card as parts, which the page joins with «·» (#337): model, cost, date, and the rounds so far. */
   function fussTeile(vorschlag) {
@@ -118,17 +193,18 @@
   /** The round line as parts (#340); the first proposal has none. */
   const rundeTeile = (vorschlag, satz) => (vorschlag.runde > 1 ? [`Vorschlag ${vorschlag.runde}`, texte(satz).nachHinweis] : []);
 
-  /** The terms after the ticked changes, each with „neu“ if it was not there before. */
+  /** The terms after the switches, as the app worked them out, each with „neu“ if it was not there before. */
   function endstand(jetzt, danach) {
-    const bereiche = [["suchbegriffe", "Suchbegriffe"], ["positiv", "Titel enthält eines davon"], ["ausschluss", "Titel enthält keines davon"]];
-    return bereiche.map(([schluessel, name]) => ({
+    return BEREICHE.map(([schluessel, name]) => ({
       name,
       begriffe: danach[schluessel].map(begriff => ({ begriff, neu: !jetzt[schluessel].some(b => b.toLowerCase() === begriff.toLowerCase()) })),
     }));
   }
 
   const api = { texte, datum, geld, lockCheckLink, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
-    belegAusAdresse, hauptknopf, kopfTeile, marken, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, rundeTeile, endstand };
+    belegAusAdresse, kopfTeile, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, rundeTeile, endstand,
+    HAUPTKNOPF, TEILWEISE, BISHERIGE_OBEN, ZU_DEN_BISHERIGEN, FREI, chips, bisherigeBereiche, chipAn, schalteChip, chipWort,
+    karteStand, schalteKarte, zaehlung, legendeTeile, entfaelltZeile, zuVielBereich, ansage };
   if (typeof module !== "undefined") module.exports = api;
   else root.SuchbegriffeLogik = api;
 })(typeof window !== "undefined" ? window : globalThis);

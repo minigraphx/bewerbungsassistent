@@ -146,6 +146,7 @@ SEITEN = {
     "/suchbegriffe": "suchbegriffe.html",
     "/suchbegriffe.js": "suchbegriffe.js",
     "/suchbegriffe-logik.js": "suchbegriffe-logik.js",
+    "/suchbegriffe-schalter.js": "suchbegriffe-schalter.js",
     "/suchbegriffe-start.js": "suchbegriffe-start.js",
     "/suchbegriffe.css": "suchbegriffe.css",
     "/angaben": "angaben.html",

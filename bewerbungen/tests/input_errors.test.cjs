@@ -263,11 +263,12 @@ const ESTIMATE = "/api/suchbegriffe/schaetzung";
 const HINT = { verfuegbar: true, hinweis: null, treffer: 40, seit: "2026-11-01" };
 const FITS = { aenderungen: [], treffer: 40, seit: "2026-11-01", runde: 1 };
 const TERMS = { suchbegriffe: ["Python"], positiv: [], ausschluss: [] };
-const CHANGE = { nummer: 1, bereich_name: "Suchbegriffe", zu_allgemein: false, satz: "«Trainer» aufnehmen",
+const CHANGE = { nummer: 1, bereich: "keywords", bereich_name: "Suchbegriffe", zu_allgemein: false, satz: "«Trainer» aufnehmen",
   entfaellt: [], neu: ["Trainer"], grund: "Steht im Lebenslauf.", beleg: null };
 const PROPOSAL = { vorschlag: "v1", aenderungen: [CHANGE], zusammenfassung: "Eine Änderung.", treffer: 40,
-  seit: "2026-11-01", jetzt: TERMS, endstand: { ...TERMS, suchbegriffe: ["Python", "Trainer"] }, entfaellt: [],
-  grenzen: { teile: ["Danach: 2 von 15 Suchbegriffen"], gesperrt: null }, modell: "claude-sonnet-5-5", kosten_usd: 0.03,
+  seit: "2026-11-01", jetzt: TERMS, bisherige: TERMS, endstand: { ...TERMS, suchbegriffe: ["Python", "Trainer"] }, entfaellt: [],
+  grenzen: { teile: ["Danach: 2 von 15 Suchbegriffen"], gesperrt: null, zu_viel: { suchbegriffe: 0, positiv: 0, ausschluss: 0 },
+    erlaubt: { suchbegriffe: 15, positiv: 30, ausschluss: 30 } }, modell: "claude-sonnet-5-5", kosten_usd: 0.03,
   waehrung: "USD", datum: "2026-11-16", runde: 1 };
 const ASK = "Bitte schreiben, was anders sein soll.";
 
@@ -307,7 +308,9 @@ async function termsPage(answers) {
   vm.runInContext(source("meldungen.js"), context);
   window.App = { el, holen: route => answer(route), senden: answer, textsatz: async () => "stelle-sie",
     status: (element, text, art, optionen) => window.Meldungen.zeige(element, text, art, optionen) };
-  for (const name of ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe.js"]) vm.runInContext(source(name), context);
+  for (const name of ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe.js"]) {
+    vm.runInContext(source(name), context);
+  }
   await settled();
   const $ = id => document.getElementById(id);
   const ask = async () => {
