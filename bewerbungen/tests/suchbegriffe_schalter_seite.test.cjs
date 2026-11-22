@@ -320,6 +320,18 @@ test("with too few runs the section names them and marks nothing", async () => {
   assert.equal(p.$("gezaehlt-alle").hidden, true);
 });
 
+test("when the counts cannot be read, the section says so and the AI still proposes", async () => {
+  const failed = Promise.reject(new Error("Der Suchverlauf liess sich nicht lesen."));
+  failed.catch(() => {});
+  const p = await page(PROPOSAL, { "/api/suchbegriffe/gezaehlt": failed });
+  assert.equal(p.$("gezaehlt").hidden, false);
+  assert.equal(p.$("gezaehlt-unterzeile").textContent,
+    "Die Zahlen der App liessen sich nicht laden: Der Suchverlauf liess sich nicht lesen.");
+  assert.equal(p.$("gezaehlt-liste").hidden, true);
+  assert.equal(p.$("gezaehlt-alle").hidden, true);
+  assert.equal(p.$("vorschlag").hidden, false, "the proposal does not depend on the counts");
+});
+
 const NICHE = { nummer: 0, bereich: "keywords", bereich_name: "Suchbegriffe", zu_allgemein: false, art: "niche",
   satz: "„TypeScript“ zu den Nischen verschieben (ohne Ort suchen)", entfaellt: [], neu: [], verschoben: "TypeScript",
   verschoben_wort: "zu den Nischen", marke: "ohne_ertrag", grund: "Findet ohne Ort mehr.", beleg: null };

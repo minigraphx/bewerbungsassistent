@@ -227,6 +227,7 @@
   const VERSION_DER_ZAHLEN = "0.3.3";
 
   const gezaehltUnterzeile = z => `Aus den letzten ${z.noetig} Suchläufen, gezählt von der App, nicht von der KI.`;
+  const gezaehltFehler = grund => `Die Zahlen der App liessen sich nicht laden: ${grund}`;
 
   function zuWenigeLaeufe(z) {
     if (z.genug) return null;
@@ -257,7 +258,7 @@
 
   const api = { texte, datum, geld, lockCheckLink, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
     belegAusAdresse, kopfTeile, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, rundeTeile, endstand, endstandZeilen,
-    GEZAEHLT_TITEL, NICHTS_MARKIERT, TABELLE_TITEL, TABELLE_SPALTEN, gezaehltUnterzeile, zuWenigeLaeufe, markiert,
+    GEZAEHLT_TITEL, NICHTS_MARKIERT, TABELLE_TITEL, TABELLE_SPALTEN, gezaehltUnterzeile, gezaehltFehler, zuWenigeLaeufe, markiert,
     tabellenZeilen, kartenMarke, VERSCHOBEN,
     HAUPTKNOPF, TEILWEISE, BISHERIGE_OBEN, ZU_DEN_BISHERIGEN, FREI, chips, bisherigeBereiche, chipAn, schalteChip, chipWort,
     karteStand, schalteKarte, zaehlung, legendeTeile, entfaelltZeile, zuVielBereich, ansage };

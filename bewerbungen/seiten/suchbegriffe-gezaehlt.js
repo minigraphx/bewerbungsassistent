@@ -36,14 +36,26 @@
     $("gezaehlt").hidden = false;
   }
 
-  /** Without a job profile or with a failed request the section stays hidden: the proposal does not depend on it. */
+  /** A failed request names its reason in the section; the proposal does not depend on it. */
+  function fehler(grund) {
+    $("gezaehlt-titel").textContent = L.GEZAEHLT_TITEL;
+    $("gezaehlt-unterzeile").textContent = L.gezaehltFehler(grund);
+    $("gezaehlt-liste").hidden = true;
+    $("gezaehlt-nichts").hidden = true;
+    $("gezaehlt-alle").hidden = true;
+    $("gezaehlt").hidden = false;
+  }
+
+  /** Without a job profile the section stays hidden. */
   async function zeige() {
+    let z;
     try {
-      const z = await holen("/api/suchbegriffe/gezaehlt");
-      if (z.verfuegbar) zeichne(z);
-    } catch {
-      $("gezaehlt").hidden = true;
+      z = await holen("/api/suchbegriffe/gezaehlt");
+    } catch (grund) {
+      fehler(grund.message);
+      return;
     }
+    if (z.verfuegbar) zeichne(z);
   }
 
   window.SuchbegriffeGezaehlt = { zeige };
