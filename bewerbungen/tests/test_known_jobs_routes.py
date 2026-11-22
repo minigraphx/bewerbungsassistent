@@ -86,6 +86,15 @@ def test_a_recruiter_ad_of_a_saved_job_is_only_suggested(search):
     assert "wieder_ausgeschrieben" not in search.kontext.register().hole(entry["id"])
 
 
+def test_a_recruiter_ad_identical_to_an_employers_entry_is_only_suggested(search):
+    entry = saved_entry(search, vermittler="Adecco")
+    agency = ad("ad-4", firma="Adecco", stelle="Data Engineer", ort="Bern", pensum="80–100 %")
+    assert run(search, [agency])["holen"] == ["jobs.ch:kw-ad-4"], "only the recruiter's own entry matches for sure"
+    [listed] = new_hits(search)
+    assert {"id": entry["id"], "stelle": "Data Engineer"} in listed["vielleicht_dieselbe"]["bewerbungen"]
+    assert "wieder_ausgeschrieben" not in search.kontext.register().hole(entry["id"])
+
+
 def test_a_discarded_job_reposted_stays_discarded_with_grade_and_reason(search):
     run(search, [ad("1")])
     [first] = listing(search)["treffer"]

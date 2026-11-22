@@ -24,6 +24,13 @@ test("the application's page says when the job came again, once and several time
   assert.equal(W.applicationNotice({ link: "https://www.jobs.ch/alt" }), null);
 });
 
+test("a full repost list says «mindestens», since the app keeps only the newest 20", () => {
+  const days = n => Array.from({ length: n }, (_, i) => repost(`2026-11-${String(i + 1).padStart(2, "0")}`));
+  assert.equal(W.applicationNotice({ wieder_ausgeschrieben: days(20) }).text,
+    "Zuletzt am 20. November auf jobs.ch, insgesamt mindestens 20-mal.");
+  assert.equal(W.applicationNotice({ wieder_ausgeschrieben: days(19) }).text, "Zuletzt am 19. November auf jobs.ch, insgesamt 19-mal.");
+});
+
 test("the list Bewerbungen names the repost for open applications only", () => {
   const entry = status => ({ status, wieder_ausgeschrieben: [repost("2026-11-18")] });
   assert.equal(W.listPart(entry("Gemerkt")), "wieder ausgeschrieben am 18.11.");

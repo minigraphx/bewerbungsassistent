@@ -12,6 +12,8 @@
   const OPEN_NEW = "Neues Inserat öffnen";
   const SUSPECT_MARK = "vielleicht dieselbe Stelle";
   const MAX_SUSPECTS = 2;
+  // reposts.MAX_REPOSTS: the app keeps only the newest, so a full list may stand for more reposts
+  const MAX_REPOSTS = 20;
 
   const parts = iso => (typeof iso === "string" && /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso.split("-").map(Number) : null);
 
@@ -48,7 +50,7 @@
     if (!last) return null;
     const count = reposts(entry).length;
     const text = count === 1 ? `Am ${long(last.datum)} stand dieses Inserat nochmals auf ${last.portal}.`
-      : `Zuletzt am ${long(last.datum)} auf ${last.portal}, insgesamt ${count}-mal.`;
+      : `Zuletzt am ${long(last.datum)} auf ${last.portal}, insgesamt ${count >= MAX_REPOSTS ? "mindestens " : ""}${count}-mal.`;
     return { title: TITLE, text, link: last.link, linkText: OPEN_NEW };
   }
 
