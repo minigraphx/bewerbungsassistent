@@ -37,6 +37,7 @@ class Line:
     top: float
     bottom: float
     text: str
+    left: float = 0.0  # pt from the page's left edge: which column a line is in
 
 
 def example_cv() -> dict:
@@ -84,7 +85,8 @@ def lines(pdf) -> list[Line]:
     for number, page in enumerate(root.iter("{http://www.w3.org/1999/xhtml}page"), 1):
         for line in page.iter("{http://www.w3.org/1999/xhtml}line"):
             words = [w.text or "" for w in line.iter("{http://www.w3.org/1999/xhtml}word")]
-            found.append(Line(number, float(line.get("yMin")), float(line.get("yMax")), " ".join(words)))
+            found.append(Line(number, float(line.get("yMin")), float(line.get("yMax")), " ".join(words),
+                              float(line.get("xMin"))))
     return found
 
 
