@@ -24,7 +24,7 @@ from register import STATUS, jobroom_angaben
 from server import Antwort, NichtGefunden, datei_antwort, json_antwort, pflicht
 from varianten import vorschlagen
 
-EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen", "rav_eingetragen_am")
+EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen", "rav_eingetragen_am", "wieder_ausgeschrieben")  # the last only by the search (G109)
 STATUS_REIHENFOLGE = {s: i for i, s in enumerate(("Bewerben", "Gespräch", "Beworben", "Gemerkt", "Zusage",
                                                    "Absage", "Verworfen", "Zurückgezogen"))}
 

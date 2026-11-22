@@ -249,6 +249,9 @@
     // #220: „Ihre Bewerbungen“ instead of „Register“
     "suche.schon-titel": { sie: "Schon in Ihren Bewerbungen", du: "Schon in deinen Bewerbungen" },
     "suche.schon-marke": { sie: "schon in Ihren Bewerbungen", du: "schon in deinen Bewerbungen" },
+    // G109, #385: a recruiter's ad that may be a saved job, and what a run knew already
+    "suche.vielleicht-titel": { sie: "Vielleicht schon in Ihren Bewerbungen", du: "Vielleicht schon in deinen Bewerbungen" },
+    "suche.wieder-bewerbungen": { sie: "{anzahl} aus Ihren Bewerbungen", du: "{anzahl} aus deinen Bewerbungen" },
     "suche.sichtbar": { sie: "Langsamer, dafür sehen Sie, was die Erweiterung tut.", du: "Langsamer, dafür siehst du, was die Erweiterung tut." },
     "suche.laufnotiz": {
       sie: "Ein Suchlauf dauert einige Minuten. Sie können währenddessen weiterarbeiten.",

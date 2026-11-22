@@ -23,7 +23,8 @@ REASON = "kein Positivbegriff im Titel"
 
 
 def ad(number: int, title: str) -> dict:
-    return {"portal": "jobs.ch", "portal_id": f"t-{number}", "stelle": title, "firma": "Beispiel AG", "ort": "Bern",
+    # not the company of the sample register: its Data Engineer would make t-3 a known job (G109)
+    return {"portal": "jobs.ch", "portal_id": f"t-{number}", "stelle": title, "firma": "Muster Werkstatt AG", "ort": "Bern",
             "link": f"https://www.jobs.ch/de/stellenangebote/detail/t-{number}/", "alter_tage": 3}
 
 

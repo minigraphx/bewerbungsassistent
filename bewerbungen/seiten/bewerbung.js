@@ -92,6 +92,7 @@
     $("kopf-status").textContent = window.Texte.statusName(b.status, satz);
     $("schnupper-knopf").hidden = satz !== "lehrstelle-du";
     $("kopf-note").replaceChildren(note(b.passung));
+    window.BewerbungWieder.zeige(b);  // G109: the job came again with a new ad
   }
 
   function zeigeSchritte() {

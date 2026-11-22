@@ -285,14 +285,16 @@ def test_the_same_place_in_another_spelling_is_still_merged(store, first, second
     assert store.add([twin], REGISTER, TODAY)["zusammengefuehrt"] == 1
 
 
-def _job_room(number: int) -> dict:
-    return hit(portal="job-room", portal_id=f"x-{number}", link=f"https://www.job-room.ch/job-search/x-{number}")
+def _job_room(number: int, **fields) -> dict:
+    return hit(portal="job-room", portal_id=f"x-{number}", link=f"https://www.job-room.ch/job-search/x-{number}", **fields)
 
 
 def test_two_ads_of_one_portal_stay_two_jobs_also_after_a_merge(store):
+    """G109: they stay two only when title, place or pensum differ; the same ad again is the same job."""
     store.add([hit()], REGISTER, TODAY)
     assert store.add([_job_room(1)], REGISTER, TODAY)["zusammengefuehrt"] == 1
-    assert store.add([_job_room(2)], REGISTER, TODAY) == {"neu": 1, "zusammengefuehrt": 0, "abgelehnt": []}
+    assert store.add([_job_room(2, pensum="40 %")], REGISTER, TODAY) == {"neu": 1, "zusammengefuehrt": 0, "abgelehnt": []}
+    assert store.add([_job_room(3)], REGISTER, TODAY) == {"neu": 0, "zusammengefuehrt": 1, "abgelehnt": []}
 
 
 def test_a_merged_ad_that_comes_again_stays_known(store):
@@ -305,4 +307,4 @@ def test_a_merged_ad_that_comes_again_stays_known(store):
 def test_screening_asks_for_the_second_ad_of_a_portal(store):
     store.add([hit()], REGISTER, TODAY)
     store.add([_job_room(1)], REGISTER, TODAY)
-    assert store.screen([_job_room(2)], (), 45, REGISTER)["holen"] == ["job-room:x-2"]
+    assert store.screen([_job_room(2, ort="Basel")], (), 45, REGISTER)["holen"] == ["job-room:x-2"]

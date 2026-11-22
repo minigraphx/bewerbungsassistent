@@ -111,7 +111,12 @@
 /* An empty status line takes no room; it stays rendered so the live region keeps announcing. */
 .ai-exclusions > .status:empty, .card > #nicht-meldung:empty { min-height: 0; }
 
+/* G109, #385: the same ad of one portal, one link per ad behind the summary */
+.search__same { font-size: 14px; }
+.search__same summary { cursor: pointer; color: var(--text-muted); }
+.search__same .search__more { margin-top: var(--space-1); }
+
 @media (max-width: 480px) {
   .exclusion-point .btn, .ai-exclusions .btn { min-height: 44px; }
-  .ai-exclusions summary { padding: 10px 0; }
+  .ai-exclusions summary, .search__same summary { padding: 10px 0; }
 }

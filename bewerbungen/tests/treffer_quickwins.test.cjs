@@ -74,6 +74,8 @@ function page({ liste = {}, uebernehmen = {}, erweiterung = true, hash = "" } = 
     Meldungen: { zeige: (el, inhalt, stufe) => messages.push({ el, inhalt, stufe }), leere() {} },
     FirmenLogik: { nachTreffer: () => new Map() },
     TrefferFirma: { zeile: () => null, marke: () => null },
+    WiederLogik: require("../seiten/wieder-logik.js"),
+    TrefferWieder: { zeile: () => null, vermittler: () => null, marke: () => "", gleicheInserate: () => null },
     PortalWahl: { zeige() {} },
     Suchbegriffe: { zeige() {} },
     SuchbegriffeStart: { zeige() {}, ids: () => null },
