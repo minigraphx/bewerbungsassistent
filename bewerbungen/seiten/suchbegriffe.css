@@ -34,6 +34,30 @@
 .term--flag { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
 .term--flag .term__word { color: var(--warning); }
 
+/* One switch per term (#371, G102): a real checkbox in the label, kept in the tab order but not drawn. On shows a
+   check and a solid border, off no check and a dashed border; a term not in the result is struck through. The word
+   beside it („neu“, „entfällt“, „bleibt“) carries the state, so it never rests on colour. */
+.term--switch { position: relative; align-items: center; cursor: pointer; color: var(--text); }
+.term--switch:has(.term__box:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.term__box { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.term__check { flex: none; width: 10px; height: 10px; position: relative; }
+.term--switch.is-on .term__check::after { content: ""; position: absolute; left: 2px; top: -1px; width: 4px; height: 8px;
+  border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.term--switch.is-on { border-style: solid; }
+.term--switch.is-off { border-style: dashed; background: none; border-color: var(--line-strong); }
+.term--switch.is-off .term__name, .term--gone.is-on .term__name { text-decoration: line-through; }
+.term--gone.is-off .term__name { text-decoration: none; }
+.term--switch .term__word[hidden] { display: none; }
+
+.terms-part { margin: 0; font: 600 14px/20px var(--font-sans); color: var(--text-strong); }
+.terms-part:focus { outline: none; }
+.terms-changes { display: grid; gap: var(--space-3); }
+.terms-current { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
+.terms-current p { margin: 0; }
+.terms-current__areas { display: grid; gap: var(--space-4); margin-top: var(--space-2); }
+.terms-current__legend { padding: 0; margin-bottom: var(--space-2); font-size: 13px; line-height: 18px; color: var(--text-muted); }
+.terms-current__legend:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
 .share { position: relative; height: 8px; max-width: 320px; border-radius: var(--radius-full); background: var(--surface-subtle); overflow: hidden; }
 .share__all { position: absolute; inset: 0 auto 0 0; background: var(--line); }
 .share__below { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(135deg, var(--line-strong) 0 3px, var(--line) 3px 6px); }

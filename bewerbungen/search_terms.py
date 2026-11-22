@@ -87,18 +87,19 @@ def _as_apprenticeship(text: str) -> str:
     return "\n".join([*lines[:place], APPRENTICESHIP_MARK, "", *lines[place:]])
 
 
-def added(text: str, name: str, kind: str | None = None) -> str:
+def added(text: str, name: str, kind: str | None = None, limit: int | None = MAX_KEYWORDS) -> str:
     """The profile text with this term at the end of what is searched; a term that is there changes nothing.
 
     With `kind` an apprenticeship, a profile that searches nothing yet becomes an apprenticeship profile (#147): the
     setup chose it, but a profile without a start lacks „## Lehrbeginn“. A profile with terms keeps its kind.
     A new term goes to the end of the saved order too (G87), also when an old line of the order still names it.
+    `limit` None is for a caller that checked the limits of the whole choice itself (term_changes, #371).
     """
-    changed = _added(text, name, kind)
+    changed = _added(text, name, kind, limit)
     return changed if changed == text else _without_in_order(changed, profession_words(name))
 
 
-def _added(text: str, name: str, kind: str | None) -> str:
+def _added(text: str, name: str, kind: str | None, limit: int | None) -> str:
     if APPRENTICESHIP_MARK not in text and kind == search_plan.KIND_APPRENTICESHIP and not current(text):
         text = _as_apprenticeship(text)
     if APPRENTICESHIP_MARK in text:
@@ -106,8 +107,8 @@ def _added(text: str, name: str, kind: str | None) -> str:
     known = current(text)
     if profession_words(name) in map(profession_words, known):
         return text
-    if len(known) >= MAX_KEYWORDS:
-        raise ValueError(FULL.format(limit=MAX_KEYWORDS))
+    if limit is not None and len(known) >= limit:
+        raise ValueError(FULL.format(limit=limit))
     clean = " ".join(name.split())
     lines = text.split("\n")
     core = _core_list_line(lines)

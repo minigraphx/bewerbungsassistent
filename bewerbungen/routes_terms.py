@@ -1,9 +1,10 @@
 """Routes for checking the search terms (#210, G45), only for job searches and only for the page of the app.
 
 The hint after a search and the evidence are counted by the app, without AI or cost. A proposal of the AI lives only
-while the app runs (`k.cache`): the page refers to it by its id and to its changes by their place, so nothing the page
-sends can become a change. Writing takes the chosen changes, after the drafts of `mit_entwurf`; Rückgängig brings the
-former profile back only while nothing else changed it.
+while the app runs (`k.cache`): the page refers to it by its id and names the terms that are switched on (#371), of
+which the app takes only current and proposed ones, so nothing else the page sends can become a change. Writing takes
+exactly those, after the drafts of `mit_entwurf`; Rückgängig brings the former profile back only while nothing else
+changed it.
 """
 import hashlib
 import re
@@ -39,7 +40,7 @@ UNDER_A_CENT = "weniger als {cent}"
 CENT = 0.01
 NO_UNDO = ("Rückgängig geht nicht mehr: Das Suchprofil hat sich seither geändert. Der frühere Stand liegt unter "
            "Entwürfe und Versionen.")
-ADOPTED = "Suchbegriffe nach Vorschlag der KI: {count} {word}"
+ADOPTED = "Suchbegriffe nach Vorschlag der KI: {added} neu, {gone} entfallen"
 UNDONE = "Vorschlag der KI rückgängig gemacht"
 
 
@@ -203,20 +204,19 @@ def propose(k, parameter, body):
         "kosten_usd": result["cost_usd"], "kosten_bisher": round(spent, 6), "waehrung": currency_now(),
         "modell": result["model"],
         "datum": k.heute().isoformat(), "treffer": len(term_evidence.rated(hits)), "seit": term_evidence.since(hits),
-        "jetzt": current.as_dict(), **_outcome(text, changes)})
+        "jetzt": current.as_dict(), "bisherige": term_changes.untouched(current, changes).as_dict(),
+        **_outcome(text, changes)})
 
 
 def outcome(k, parameter, body):
-    """What the search looks for after the ticked changes, and whether the limits allow it."""
+    """What the search looks for with the terms switched on, worked out by the app, and whether the limits allow it."""
     body = body if isinstance(body, dict) else {}
     _, text = _profile(k)
     proposal = _proposal(k, body.get("vorschlag"))
-    if term_changes.terms_of(text).digest != proposal["stand"]:
+    current = term_changes.terms_of(text)
+    if current.digest != proposal["stand"]:
         return json_antwort({"veraltet": True, "meldung": STALE})
-    if body.get("gewaehlt") == []:
-        unchanged = _outcome(text, ())
-        return json_antwort({**unchanged, "grenzen": {**unchanged["grenzen"], "gesperrt": term_changes.NOTHING_CHOSEN}})
-    return json_antwort(_outcome(text, term_changes.chosen(proposal["changes"], body.get("gewaehlt"))))
+    return json_antwort(_outcome(text, term_changes.selected(current, proposal["changes"], body.get("danach"))))
 
 
 def _write(k, path, description: str, change) -> str:
@@ -232,9 +232,11 @@ def _write(k, path, description: str, change) -> str:
 
 def adopt(k, parameter, body):
     body = body if isinstance(body, dict) else {}
-    path, _ = _profile(k)
+    path, text = _profile(k)
     proposal = _proposal(k, body.get("vorschlag"))
-    picked = term_changes.chosen(proposal["changes"], body.get("gewaehlt"))
+    if term_changes.terms_of(text).digest != proposal["stand"]:
+        raise ValueError(STALE)
+    picked = term_changes.selected(term_changes.terms_of(text), proposal["changes"], body.get("danach"))
 
     def change(text: str) -> str:
         current = term_changes.terms_of(text)
@@ -246,10 +248,11 @@ def adopt(k, parameter, body):
             raise ValueError(blocked)
         return term_changes.applied(text, picked)
 
-    word = "Änderung" if len(picked) == 1 else "Änderungen"
-    before = _write(k, path, ADOPTED.format(count=len(picked), word=word), change)
+    added = sum(len(area.add) for area in picked)
+    gone = sum(len(area.remove) for area in picked)
+    before = _write(k, path, ADOPTED.format(added=added, gone=gone), change)
     after = path.read_text(encoding="utf-8")
-    return json_antwort({"anzahl": len(picked), "vorher": _digest(before), "nachher": _digest(after),
+    return json_antwort({"neu": added, "entfallen": gone, "vorher": _digest(before), "nachher": _digest(after),
                          "jetzt": term_changes.terms_of(after).as_dict()})
 
 

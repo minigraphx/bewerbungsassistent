@@ -1,16 +1,25 @@
 "use strict";
 // The view „Suchbegriffe prüfen“ (#210, option B of docs/design/suchbegriffe.md): one card per change with a checkbox,
 // the reason of the AI and the evidence of the app, the result as „So sucht die App danach“, revise, take over, undo.
-// The page names a change only by its place in the proposal; the app keeps the proposal and writes nothing unticked.
+// Each term is a switch of its own (#371, G102, suchbegriffe-schalter.js): the page sends the terms that are on, and
+// the app takes only current and proposed ones, works out the result and writes exactly that.
 (() => {
   const { holen, senden, el, status, textsatz } = window.App;
   const L = window.SuchbegriffeLogik;
+  const Schalter = window.SuchbegriffeSchalter;
   const $ = id => document.getElementById(id);
+  // A pause after a switch before the app is asked again; the first switch asks at once.
+  const PAUSE_MS = 250;
   let satz = "stelle-sie";
   let texte = L.texte(satz);
   let vorschlag = null;
   let frueher = [];  // former proposals of this visit, „Vorschlag 1 zeigen“
-  let gewaehlt = new Set();
+  let auswahl = null;  // the terms in the result per area, as the switches stand
+  let erlaubt = null;
+  let grenzen = null;  // the limits of the last answer, to announce only a change of blocked and free
+  let anfrage = 0;  // the number of the newest request; an older answer is dropped
+  let ruht = true;
+  let nachholen = false;
   let abgebrochen = false;
 
   /**
@@ -80,6 +89,7 @@
     }
   }
 
+  /** A plain mark of the read-only outcome, no switch: each term has exactly one, in the list above. */
   function marke({ begriff, wort, art }) {
     return el("li", { class: `term term--${art}` }, el("span", { class: "term__name" }, begriff), el("span", { class: "term__word" }, wort));
   }
@@ -97,18 +107,51 @@
       el("p", {}, el("a", { href: L.belegAdresse(b) }, L.belegLink(b))));
   }
 
+  /** The checkbox of a change switches its terms together; the native mixed state shows when only some are on. */
   function karte(a) {
     const id = `aenderung-${a.nummer}`;
     const haken = el("input", { type: "checkbox", id, "aria-describedby": `${id}-grund` });
-    haken.checked = gewaehlt.has(a.nummer);
-    haken.addEventListener("change", () => waehle(a.nummer, haken.checked));
+    haken.addEventListener("change", () => schalte(L.schalteKarte(auswahl, a, haken.checked)));
+    const { liste, teilweise } = Schalter.karte(a, haken, (chip, an) => schalte(L.schalteChip(auswahl, chip, an)));
     return el("div", { class: "change" },
       el("p", { class: "change__area" }, a.bereich_name,
         a.zu_allgemein ? el("span", { class: "term term--flag" }, el("span", { class: "term__word" }, "zu allgemein")) : null),
       el("label", { class: "check", for: id }, haken, el("span", {}, a.satz)),
-      el("ul", { class: "terms" }, ...L.marken(a).map(marke)),
+      teilweise,
+      liste,
       el("p", { class: "change__reason", id: `${id}-grund` }, a.grund),
       a.beleg ? beleg(a.beleg) : null);
+  }
+
+  function zeigeBisherige(v) {
+    const bereiche = L.bisherigeBereiche(v.bisherige);
+    $("bisherige").hidden = !bereiche.length;
+    $("bisherige-satz").textContent = texte.bisherige;
+    $("bisherige-oben").textContent = L.BISHERIGE_OBEN;
+    $("bisherige-oben").hidden = !v.aenderungen.some(a => a.entfaellt.length);
+    $("bisherige-bereiche").replaceChildren(...Schalter.bisherige(bereiche, (chip, an) => schalte(L.schalteChip(auswahl, chip, an))));
+  }
+
+  /** The switches move at once; the app is asked at once too, then again after a pause for what came meanwhile. */
+  function schalte(neu) {
+    auswahl = neu;
+    Schalter.zeichne(auswahl, erlaubt);
+    plane();
+  }
+
+  function plane() {
+    if (!ruht) {
+      nachholen = true;
+      return;
+    }
+    ruht = false;
+    frageEndstand();
+    setTimeout(() => {
+      ruht = true;
+      if (!nachholen) return;
+      nachholen = false;
+      plane();
+    }, PAUSE_MS);
   }
 
   /** A «·» line of whole parts (#340, dot-line.js): never starts with «·», screen readers hear commas. */
@@ -119,11 +162,23 @@
       el("h3", {}, b.name),
       el("ul", { class: "terms" }, ...b.begriffe.map(x => marke({ begriff: x.begriff, wort: x.neu ? "neu" : "", art: x.neu ? "new" : "kept" })))));
     $("endstand").replaceChildren(...bloecke);
-    $("faellt-weg").textContent = antwort.entfaellt.length ? `Fällt weg: ${antwort.entfaellt.join(", ")}` : "";
+    $("faellt-weg").textContent = L.entfaelltZeile(antwort.entfaellt);
     $("grenzen").replaceChildren(...dotLine(antwort.grenzen.teile));
-    $("uebernehmen").textContent = L.hauptknopf(gewaehlt.size, vorschlag.aenderungen.length);
+    $("uebernehmen").textContent = L.HAUPTKNOPF;
     $("uebernehmen").disabled = Boolean(antwort.grenzen.gesperrt);
-    $("uebernehmen-grund").textContent = antwort.grenzen.gesperrt || "";
+    zeigeGrund(antwort.grenzen);
+  }
+
+  /** The reason under the button; over a limit it links to the legend of the area, where terms can be switched off. */
+  function zeigeGrund(g) {
+    const bereich = L.zuVielBereich(g);
+    const ziel = () => (bereich && Schalter.legende(bereich)) || $("bisherige-titel");
+    const link = bereich ? el("a", { href: "#bisherige-titel" }, L.ZU_DEN_BISHERIGEN) : null;
+    link?.addEventListener("click", event => {
+      event.preventDefault();
+      ziel().focus();
+    });
+    $("uebernehmen-grund").replaceChildren(...(g.gesperrt ? [g.gesperrt, link ? " " : "", link].filter(Boolean) : []));
   }
 
   function veraltet(text) {
@@ -131,14 +186,22 @@
     meldung("Vorschlag veraltet", text, [neuKnopf()]);
   }
 
-  async function waehle(nummer, an) {
-    gewaehlt = new Set([...gewaehlt].filter(n => n !== nummer).concat(an ? [nummer] : []));
+  async function frageEndstand() {
+    anfrage += 1;
+    const nummer = anfrage;
     try {
-      const antwort = await senden("/api/suchbegriffe/endstand", { vorschlag: vorschlag.vorschlag, gewaehlt: [...gewaehlt] });
-      if (antwort.veraltet) veraltet(antwort.meldung);
-      else zeigeEndstand(antwort);
+      const antwort = await senden("/api/suchbegriffe/endstand", { vorschlag: vorschlag.vorschlag, danach: auswahl });
+      if (nummer !== anfrage) return;
+      if (antwort.veraltet) {
+        veraltet(antwort.meldung);
+        return;
+      }
+      zeigeEndstand(antwort);
+      const ansage = L.ansage(grenzen, antwort.grenzen);
+      if (ansage) $("auswahl-ansage").textContent = ansage;
+      grenzen = antwort.grenzen;
     } catch (fehler) {
-      status($("status"), fehler.message, "fehler");
+      if (nummer === anfrage) status($("status"), fehler.message, "fehler");
     }
   }
 
@@ -161,7 +224,7 @@
 
   function zeige(v) {
     vorschlag = v;
-    gewaehlt = new Set(v.aenderungen.map(a => a.nummer));
+    anfrage += 1;  // an answer for the proposal shown before no longer counts
     $("gesehen").textContent = texte.gesehen(v.treffer, v.seit);
     $("anders").hidden = false;
     $("anders-hilfe").textContent = texte.andersHilfe;
@@ -170,10 +233,16 @@
       meldung(texte.passt, texte.passtNotiz);
       return;
     }
+    auswahl = v.endstand;
+    erlaubt = v.grenzen.erlaubt;
+    grenzen = v.grenzen;
     $("vorschlag").hidden = false;
     zeigeKopf(v);
     $("zusammenfassung").textContent = v.zusammenfassung;
+    Schalter.beginne();
     $("aenderungen").replaceChildren(...v.aenderungen.map(karte));
+    zeigeBisherige(v);
+    Schalter.zeichne(auswahl, erlaubt);
     $("fuss-satz").textContent = texte.fuss;
     $("fuss").replaceChildren(...dotLine(L.fussTeile(v)));
     zeigeEndstand(v);
@@ -192,11 +261,11 @@
   async function uebernehmen() {
     $("uebernehmen").disabled = true;
     try {
-      const stand = await senden("/api/suchbegriffe/uebernehmen", { vorschlag: vorschlag.vorschlag, gewaehlt: [...gewaehlt] });
+      const stand = await senden("/api/suchbegriffe/uebernehmen", { vorschlag: vorschlag.vorschlag, danach: auswahl });
       $("aenderungen-feld").disabled = true;
       $("verwerfen").hidden = true;
       $("uebernehmen-grund").replaceChildren(el("a", { class: "btn btn--sm", href: "/treffer" }, "Jetzt suchen"));
-      status($("status"), L.uebernommen(stand.anzahl), "ok",
+      status($("status"), L.uebernommen(stand.neu, stand.entfallen), "ok",
         { aktion: { text: "Rückgängig machen", ausfuehren: () => rueckgaengig({ vorher: stand.vorher, nachher: stand.nachher }) } });
     } catch (fehler) {
       $("uebernehmen").disabled = false;
