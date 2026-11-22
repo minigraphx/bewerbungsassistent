@@ -6,6 +6,7 @@
 window.Suchliste = (() => {
   const { el, senden, status } = window.App;
   const L = window.SuchlisteLogik;
+  const E = window.SucheErtragLogik;
   const ROUTE = "/api/beruf/reihenfolge";
   const ZIEHT = "suchliste__eintrag--zieht";
   const VERSCHOBEN = "suchliste__eintrag--verschoben";
@@ -14,6 +15,7 @@ window.Suchliste = (() => {
   let hervor = null;  // the term just moved, which stands out for a moment so sighted people see where it went
   let hervorZeit = null;
   let begriffe = [];
+  let ertrag = new Map();  // per term what the last runs brought (G103)
   let optionen = {};
   let zeilen = [];  // per term its row and buttons, to find the focused one again after drawing anew
   let ziehen = null;
@@ -52,9 +54,23 @@ window.Suchliste = (() => {
     const zusatz = ziehen && ziehen.name === name ? ZIEHT : (hervor === name ? VERSCHOBEN : "");
     const klasse = zusatz ? `suchliste__eintrag ${zusatz}` : "suchliste__eintrag";
     const li = el("li", { class: klasse, "data-begriff": name }, griff,
-      el("span", { class: "suchliste__nummer" }, `${index + 1}.`), el("span", { class: "suchliste__name" }, name),
-      el("span", { class: "suchliste__knoepfe" }, ...Object.values(knoepfe)));
+      el("span", { class: "suchliste__nummer" }, `${index + 1}.`), el("span", { class: "suchliste__name" }, name, ...marke(name)),
+      el("span", { class: "suchliste__knoepfe" }, ...Object.values(knoepfe)), ertragsZeile(name, griff !== null));
     return { name, li, knoepfe };
+  }
+
+  // G103: the mark after the name and the yield on a line of its own below, so handle and buttons stay where they are.
+  function marke(name) {
+    const eintrag = ertrag.get(name);
+    if (!eintrag || !eintrag.ohne_ertrag) return [];
+    return [" ", el("span", { class: "term term--flag" }, el("span", { class: "term__word" }, E.OHNE_ERTRAG))];
+  }
+
+  function ertragsZeile(name, mitGriff) {
+    const teile = E.teile(ertrag.get(name));
+    if (!teile.length) return null;
+    const klasse = mitGriff ? "suchliste__ertrag caption" : "suchliste__ertrag suchliste__ertrag--allein caption";
+    return el("span", { class: klasse }, ...window.DotLine.render(teile, el));
   }
 
   function zeichne() {
@@ -165,5 +181,11 @@ window.Suchliste = (() => {
     zeichne();
   }
 
-  return { zeige };
+  /** The yield per term (Map of name to entry, G103); a list being dragged or saved shows it when it is drawn next. */
+  function zeigeErtrag(neu) {
+    ertrag = new Map(neu);
+    if (liste && !ziehen && offen === 0) zeichne();
+  }
+
+  return { zeige, ertrag: zeigeErtrag };
 })();

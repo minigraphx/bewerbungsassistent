@@ -63,6 +63,16 @@
     $("pruefen-block").hidden = false;
   }
 
+  /** What each term and place brought (G103); on its own, so the rest of the page does not wait for it. */
+  async function zeigeErtrag(nummer) {
+    try {
+      const ertrag = await holen("/api/suche/ertrag");
+      if (nummer === ladeNummer) window.SucheErtrag.zeige(ertrag);
+    } catch (fehler) {
+      meldung(`Was die Suche bringt, liess sich nicht laden: ${fehler.message}`, "fehler");
+    }
+  }
+
   async function lade() {
     const nummer = ++ladeNummer;
     try {
@@ -79,6 +89,7 @@
       zeigeRahmen(daten, rahmen, lehrstelle, firmen.firmen);
       zeigeAblauf(daten);
       zeigePruefen(lehrstelle, nummer);
+      zeigeErtrag(nummer);
       $("zusammenfassung").replaceChildren(...window.DotLine.render(anzeige.zusammenfassung({
         begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle,
       }), el));

@@ -41,6 +41,8 @@ MAX_FIELD = 200
 MAX_ID = 200
 MAX_TEXT = 30_000
 MAX_HITS_PER_CALL = 100
+QUERIES = "abfragen"  # G103: which queries found a hit, each {portal, stichwort, ort}; hits from before have none
+MAX_QUERIES_PER_HIT = 30
 NO_POSITIVE_TERM = "kein Positivbegriff im Titel"
 LEGAL_FORMS = {"ag", "gmbh", "sa", "sarl", "sagl", "ltd", "llc", "inc", "kg", "co", "se", "plc", "bv"}
 TRIAL = "Schnupperlehre"
@@ -132,6 +134,31 @@ def _age(value) -> int | None:
     return value
 
 
+def checked_query(raw) -> dict:
+    """Keyword and place of one query as the extension names them (G103); the place is empty for a query without one."""
+    if not isinstance(raw, dict):
+        raise ValueError("Abfrage muss ein Objekt sein")
+    return {"stichwort": bounded_text(raw.get("stichwort"), "stichwort", required=True),
+            "ort": bounded_text(raw.get("ort"), "ort")}
+
+
+def _queries_of(raw, portal: str) -> list[dict]:
+    """The queries that found a hit, each once, with the portal; an older extension sends none."""
+    if raw is None:
+        return []
+    if not isinstance(raw, list):
+        raise ValueError("abfragen muss eine Liste sein")
+    found = [{"portal": portal, **checked_query(entry)} for entry in raw[:MAX_QUERIES_PER_HIT]]
+    return [query for index, query in enumerate(found) if query not in found[:index]]
+
+
+def _with_queries(stored: dict, hit: dict) -> dict:
+    """The stored hit with the queries of `hit` it lacks: a twin from another portal adds its own (G103)."""
+    known = stored.get(QUERIES, [])
+    added = [query for query in hit.get(QUERIES, []) if query not in known]
+    return {**stored, QUERIES: [*known, *added]} if added else stored
+
+
 def validate(raw, own_portals: frozenset[str] = frozenset()) -> dict:
     """A hit as the extension sends it, checked and bounded; the text stays separate. `own_portals`: sites the
     person named, while they count (MIN-348)."""
@@ -146,11 +173,11 @@ def validate(raw, own_portals: frozenset[str] = frozenset()) -> dict:
            "ort": bounded_text(raw.get("ort"), "ort"), "pensum": bounded_text(raw.get("pensum"), "pensum"),
            "link": checked_link(raw.get("link"), portal), "alter_tage": _age(raw.get("alter_tage")),
            "art": bounded_text(raw.get("art"), "art"), "beruf": bounded_text(raw.get("beruf"), "beruf"),
-           "lehrbeginn": bounded_text(raw.get("lehrbeginn"), "lehrbeginn")}
+           "lehrbeginn": bounded_text(raw.get("lehrbeginn"), "lehrbeginn"), QUERIES: _queries_of(raw.get(QUERIES), portal)}
     text = raw.get("text")
     if text is not None and not isinstance(text, str):
         raise ValueError("text muss Text sein")
-    return {**{k: v for k, v in hit.items() if v not in ("", None)}, "text": (text or "").strip()[:MAX_TEXT]}
+    return {**{k: v for k, v in hit.items() if v not in ("", None, [])}, "text": (text or "").strip()[:MAX_TEXT]}
 
 
 NOT_A_PLACE = frozenset({"schweiz", "suisse", "svizzera", "switzerland", "homeoffice", "home", "office", "remote", "und", "oder", "bei", "region", "raum",
@@ -230,7 +257,7 @@ def _with_link(stored: list[dict], twin: dict, hit: dict) -> list[dict] | None:
     others = twin.get("weitere", [])
     if twin["link"] == hit["link"] or any(o["link"] == hit["link"] for o in others):
         return None
-    merged = {**twin, "weitere": [*others, {"portal": hit["portal"], "link": hit["link"]}]}
+    merged = {**_with_queries(twin, hit), "weitere": [*others, {"portal": hit["portal"], "link": hit["link"]}]}
     return [merged if h is twin else h for h in stored]
 
 
@@ -239,6 +266,14 @@ def _title_match(title: str, terms: tuple[str, ...]) -> str | None:
         if re.search(rf"(?<!\w){re.escape(term)}(?!\w)", title, re.IGNORECASE):
             return term
     return None
+
+
+def _title_reason(title: str, exclude: tuple[str, ...], positive: tuple[str, ...]) -> str:
+    """Why the title filter keeps a title out, or ''."""
+    term = _title_match(title, exclude)
+    if term:
+        return f"Titel: {term}"
+    return NO_POSITIVE_TERM if positive and _title_match(title, positive) is None else ""
 
 
 def company_hint(hit: dict, register: list[dict]) -> str:
@@ -345,13 +380,14 @@ class Hits:
     def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
                own_portals: frozenset[str] = frozenset(), near=lambda place: False,
                title_positive: tuple[str, ...] = (), max_age_by_portal: dict[str, int] | None = None,
-               excluded: frozenset[str] = frozenset()) -> dict:
+               excluded: frozenset[str] = frozenset(), on_screened_out=lambda hit, reason: None) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away. With positive
         terms (G31), a title needs one of them; the others are screened out before their text counts against the limit.
         `max_age_by_portal` shortens the window per portal after a successful run (G32). `excluded`: company keys
-        the person no longer wants to see (#226); their hits are only counted.
+        the person no longer wants to see (#226); their hits are only counted. `on_screened_out` hears of each hit
+        the title filter kept out, with its reason, so the queries behind it can count it (G103).
         """
         fetch, nearby, filtered, known, merged, left_out = [], [], [], 0, 0, 0
         ages = max_age_by_portal or {}
@@ -378,11 +414,10 @@ class Hits:
                     if updated is not None:
                         stored, merged = updated, merged + 1
                     continue
-                term = _title_match(hit["stelle"], title_exclude)
-                if term:
-                    filtered.append({"stelle": hit["stelle"], "grund": f"Titel: {term}"})
-                elif title_positive and _title_match(hit["stelle"], title_positive) is None:
-                    filtered.append({"stelle": hit["stelle"], "grund": NO_POSITIVE_TERM})
+                reason = _title_reason(hit["stelle"], title_exclude, title_positive)
+                if reason:
+                    filtered.append({"stelle": hit["stelle"], "grund": reason})
+                    on_screened_out(hit, reason)
                 elif hit.get("alter_tage") is not None and hit["alter_tage"] > ages.get(hit["portal"], max_age):
                     days = ages.get(hit["portal"], max_age)
                     filtered.append({"stelle": hit["stelle"], "grund": f"älter als {days} {'Tag' if days == 1 else 'Tage'}"})

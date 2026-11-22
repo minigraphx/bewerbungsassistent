@@ -137,7 +137,7 @@ test('a portal run lists, screens, fetches texts and sends the new hits', async 
   });
   const summary = await searchPortal('jobs.ch', { ...PLAN, stichworte: ['Python'], orte: ['Bern'], nischen: [] },
     deps(app, browser));
-  assert.deepEqual(summary, { treffer: 2, neu: 1, problem: '' });
+  assert.deepEqual(summary, { treffer: 2, neu: 1, problem: '', abfragen: [{ stichwort: 'Python', ort: 'Bern', treffer: 2 }] });
   const sent = app.calls.find(([, path]) => path === '/api/suche/treffer')[2].treffer;
   assert.deepEqual(sent.map((h) => [h.portal_id, h.text]), [['a', 'Text a']]);
   assert.deepEqual(browser.log.at(-1), ['close', 7]);
