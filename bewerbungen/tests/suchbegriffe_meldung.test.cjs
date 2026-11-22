@@ -100,7 +100,7 @@ async function opened(answers) {
   };
   const context = { window, document: doc, console, setTimeout };
   vm.createContext(context);
-  for (const name of ["suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe.js"]) {
+  for (const name of ["suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe-gezaehlt.js", "suchbegriffe.js"]) {
     vm.runInContext(fs.readFileSync(path.join(SEITEN, name), "utf8"), context);
   }
   await settled();

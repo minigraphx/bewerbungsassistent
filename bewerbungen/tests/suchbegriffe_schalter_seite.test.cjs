@@ -87,10 +87,10 @@ const PROPOSAL = { vorschlag: "v1", runde: 1, aenderungen: [REPLACE, ADD], zusam
   entfaellt: ["Engineer"], grenzen: LIMITS };
 const ESTIMATE = { verfuegbar: true, anzahl: 1, kosten: 0.03, waehrung: "CHF", guthaben: 4, danach: 3.97,
   dauer_minuten: 1, reicht_fuer: null };
-const SCRIPTS = ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe.js"];
+const SCRIPTS = ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe-gezaehlt.js", "suchbegriffe.js"];
 
 /** Runs the page; an answer to „endstand“ waits until the test gives it with `answer(body)`. Timers run on `pause()`. */
-async function page(proposal = PROPOSAL) {
+async function page(proposal = PROPOSAL, more = {}) {
   const document = { activeElement: null, replaced: new Set() };
   document.createElement = tag => new FakeElement(document, tag);
   const elements = new Map();
@@ -120,7 +120,7 @@ async function page(proposal = PROPOSAL) {
   const fixed = { "/api/suchbegriffe/hinweis": { verfuegbar: true, treffer: 40, seit: "2026-11-01" },
     "/api/ki/status": { einwilligung: null }, "/api/suchbegriffe/vorschlag": proposal,
     "/api/suchbegriffe/schaetzung": ESTIMATE,
-    "/api/suchbegriffe/uebernehmen": { neu: 3, entfallen: 1, vorher: "a".repeat(64), nachher: "b".repeat(64) } };
+    "/api/suchbegriffe/uebernehmen": { neu: 3, entfallen: 1, vorher: "a".repeat(64), nachher: "b".repeat(64) }, ...more };
   const answer = (route, body) => {
     if (body) sent.push({ route, body: JSON.parse(JSON.stringify(body)) });
     if (route === "/api/suchbegriffe/endstand") return new Promise(resolve => waiting.push({ body, resolve }));
@@ -288,7 +288,57 @@ test("«Auswahl übernehmen» sends exactly the switched-on terms and says what 
   const adopted = p.sent.find(s => s.route === "/api/suchbegriffe/uebernehmen").body;
   assert.equal(adopted.vorschlag, "v1");
   assert.deepEqual(adopted.danach, { suchbegriffe: ["Python", "TypeScript", "Datenanalyst"], positiv: ["Web", "Backend"],
-    ausschluss: [] });
+    ausschluss: [], verschoben: [] }, "G108: the moves switched on go along, none in this proposal");
   assert.ok(!("gewaehlt" in adopted));
   assert.match(p.statuses.at(-1).text, /^Übernommen: 3 Begriffe neu, 1 entfällt\./);
+});
+
+// G108, #383: what the app counted, and the one switch of a move. Invented keywords only.
+const COUNT = (begriff, fields) => ({ begriff, suchen: 9, suchen_pro_lauf: 3, treffer_portale: 4, aussortiert: 0, treffer: 4,
+  nur_hier: 4, ab_note_4: 1, laeufe: 3, laeufe_ohne_treffer: 0, auch_ueber: null, alle_ueber: false, marke: null, ...fields });
+const COUNTED = { verfuegbar: true, laeufe: 3, noetig: 3, genug: true, begriffe: [
+  COUNT("Python", {}), COUNT("TypeScript", { treffer_portale: 0, treffer: 0, nur_hier: 0, ab_note_4: 0, marke: "ohne_ertrag" })] };
+
+test("«Was die App gezählt hat» shows at once while the AI works, flagged keywords with a chip and every one in the table", async () => {
+  const p = await page(new Promise(() => {}), { "/api/suchbegriffe/gezaehlt": COUNTED });
+  assert.equal(p.$("gezaehlt").hidden, false);
+  assert.equal(p.$("warten").hidden, false, "the AI is still working");
+  assert.equal(p.$("gezaehlt-unterzeile").textContent, "Aus den letzten 3 Suchläufen, gezählt von der App, nicht von der KI.");
+  const [row] = p.$("gezaehlt-liste").children;
+  assert.equal(heard(row), "„TypeScript“ ohne Ertrag: 9 Suchen, kein Treffer.");
+  assert.ok(below(row).some(n => n.className === "term term--flag"));
+  assert.equal(p.$("gezaehlt-nichts").hidden, true);
+  const rows = [...below(p.$("gezaehlt-tabelle"))].filter(n => n.tagName === "TR").map(heard);
+  assert.deepEqual(rows, ["BegriffSuchenTreffernur über diesen Begriffab Note 4", "Python9441", "TypeScript ohne Ertrag9000"]);
+});
+
+test("with too few runs the section names them and marks nothing", async () => {
+  const p = await page(new Promise(() => {}), { "/api/suchbegriffe/gezaehlt": { ...COUNTED, laeufe: 1, genug: false } });
+  assert.equal(p.$("gezaehlt-unterzeile").textContent,
+    "Für diese Zahlen braucht die App 3 Suchläufe seit Version 0.3.3, bisher sind es 1.");
+  assert.equal(p.$("gezaehlt-liste").hidden, true);
+  assert.equal(p.$("gezaehlt-alle").hidden, true);
+});
+
+const NICHE = { nummer: 0, bereich: "keywords", bereich_name: "Suchbegriffe", zu_allgemein: false, art: "niche",
+  satz: "„TypeScript“ zu den Nischen verschieben (ohne Ort suchen)", entfaellt: [], neu: [], verschoben: "TypeScript",
+  verschoben_wort: "zu den Nischen", marke: "ohne_ertrag", grund: "Findet ohne Ort mehr.", beleg: null };
+const MOVING = { ...PROPOSAL, aenderungen: [NICHE], verschoben: ["TypeScript"],
+  bisherige: { suchbegriffe: ["Python"], positiv: ["Web", "Engineer"], ausschluss: [] },
+  endstand: { suchbegriffe: ["Python"], positiv: ["Web", "Engineer"], ausschluss: [] }, entfaellt: [],
+  nischen: [{ begriff: "TypeScript", neu: true }], nur_zeilen: [] };
+
+test("a move has one chip with its mark on the card; switching it off sends the move off and the keyword stays", async () => {
+  const p = await page(MOVING);
+  const card = p.$("aenderungen").children[0];
+  assert.match(heard(card.children[0]), /^Suchbegriffe.*ohne Ertrag/);
+  assert.equal(p.$("bisherige-oben").hidden, false, "a moved keyword stands in its card, not below");
+  const box = p.chip("TypeScript");
+  assert.equal(heard(box.parentNode), "TypeScript, zu den Nischen");
+  assert.equal(box.checked, true);
+  await p.flip(box, false);
+  assert.equal(heard(box.parentNode), "TypeScript, bleibt");
+  assert.deepEqual(ends(p.sent).at(-1).body.danach.verschoben, []);
+  assert.deepEqual(ends(p.sent).at(-1).body.danach.suchbegriffe, ["Python"], "the app keeps a moved keyword by itself");
+  assert.ok([...below(p.$("endstand"))].some(n => n.tagName === "H3" && heard(n) === "Nischen (ohne Ort suchen)"));
 });

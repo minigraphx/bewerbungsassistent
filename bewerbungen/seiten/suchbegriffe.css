@@ -47,6 +47,24 @@
 .term--switch.is-off { border-style: dashed; background: none; border-color: var(--line-strong); }
 .term--switch.is-off .term__name, .term--gone.is-on .term__name { text-decoration: line-through; }
 .term--gone.is-off .term__name { text-decoration: none; }
+/* G108: a move keeps its keyword either way, so off is never struck through; the word says where it runs */
+.term--move.is-on { background: var(--accent-subtle); border-color: var(--accent); }
+.term--move.is-off .term__name { text-decoration: none; }
+
+/* «Was die App gezählt hat» (G108, #383): the flagged keywords with the chip of «zu allgemein», all of them in a table
+   that scrolls on its own at narrow widths, never the page. */
+.terms-counted { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+.terms-counted h2 { margin: 0; font: 700 16px/22px var(--font-sans); color: var(--text-strong); }
+.terms-counted p { margin: 0; }
+.terms-counted__list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 20px; }
+.terms-counted__list[hidden] { display: none; }
+.terms-counted__row .term { margin-right: 2px; }
+.terms-counted__all > summary { cursor: pointer; font-size: 14px; line-height: 20px; color: var(--text-strong); }
+.terms-counted__wrap { margin-top: var(--space-2); overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.terms-counted__table { min-width: 420px; }
+.terms-counted__table th[scope="row"] { padding: var(--space-3); font: 400 14px/20px var(--font-sans); color: var(--text); vertical-align: top; }
+.terms-counted__table .num { text-align: right; }
+.terms-counted__table thead .num { white-space: normal; }
 .term--switch .term__word[hidden] { display: none; }
 
 .terms-part { margin: 0; font: 600 14px/20px var(--font-sans); color: var(--text-strong); }

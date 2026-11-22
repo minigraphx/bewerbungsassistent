@@ -33,6 +33,8 @@ TERMS_AND_REMARK = re.compile(r"^([^(]*?)(\s*\(.*)?$")
 TITLE_SECTION = "## Titelfilter"
 TITLE_LABELS = {"positiv": "Positiv", "ausschluss": "Ausschluss"}
 AFTER_TITLES = "## Sprachen"
+NICHE_LINE = "- Nischen (ohne Ort suchen): {terms}"
+LIMIT_LINE = "- Nur {portals}: {terms}"
 FULL = "Die Suche hat schon {limit} Begriffe, mehr gehen hier nicht. Bitte zuerst einen entfernen."
 FULL_DIRECTIONS = "Die Suche hat schon {limit} Suchrichtungen. Bitte zuerst eine entfernen."
 ORDER_NOTE = ("Die Suche sucht die Begriffe in dieser Reihenfolge, die wichtigsten zuerst; neue kommen ans Ende. "
@@ -296,6 +298,11 @@ def _searches_groups(text: str) -> bool:
     return APPRENTICESHIP_MARK not in text and bool(_group_lines(text.split("\n")))
 
 
+def searches_keyword_lines(text: str) -> bool:
+    """Whether a job profile searches named lines under Keywords, so a term can move between them (G108)."""
+    return _searches_groups(text)
+
+
 def reordered(text: str, names: list[str]) -> str:
     """The profile with the searched terms in this order (G87); `names` must be exactly the terms searched now.
 
@@ -380,6 +387,43 @@ def _without_title_term(part: str, wanted: frozenset[str]) -> str:
     if len(kept) == len(terms):
         return part
     return title_filter.with_marker("/".join(kept)) if kept and title_filter.marked(part) else "/".join(kept)
+
+
+def _keyword_line(lines: list[str], wanted: Callable[[str], bool]) -> int | None:
+    """The first line under Keywords whose label `wanted` accepts."""
+    start, end = search_plan.section_bounds(lines, KEYWORDS_KEY)
+    found = ((i, search_plan.PAIR.match(lines[i].strip())) for i in range(start + 1, end)) if start is not None else ()
+    return next((i for i, match in found if match and wanted(match[1].strip())), None)
+
+
+def _with_keyword_line(text: str, line: str) -> str:
+    """The profile with a new line after the last named line under Keywords, where the plan reads it."""
+    lines = text.split("\n")
+    start, end = search_plan.section_bounds(lines, KEYWORDS_KEY)
+    if start is None:
+        return search_plan.with_section_line(text, KEYWORDS_SECTION, line, TITLE_SECTION)
+    last = max((i for i in range(start + 1, end) if search_plan.PAIR.match(lines[i].strip())), default=start)
+    return "\n".join([*lines[:last + 1], line, *lines[last + 1:]])
+
+
+def moved_to_niches(text: str, name: str) -> str:
+    """The term leaves every searched line and joins the niches, which run without a place (G108, #383)."""
+    without = removed(text, name)
+    niche = _keyword_line(without.split("\n"), lambda label: label.lower().startswith(search_plan.NICHE_LABEL))
+    if niche is not None:
+        return added_to_line(without, name, niche)
+    return _with_keyword_line(without, NICHE_LINE.format(terms=" ".join(name.split())))
+
+
+def limited_to(text: str, name: str, portals: tuple[str, ...]) -> str:
+    """The term runs only on these portals (G105, G108): out of every searched line, into the «Nur» line that names
+    exactly them, or a new one. Its place in the saved order stays, since the search still runs it."""
+    without = _removed(text, profession_words(name))
+    wanted = {portal.casefold() for portal in portals}
+    line = _keyword_line(without.split("\n"), lambda label: {p.casefold() for p in search_plan.limit_portals(label) or ()} == wanted)
+    if line is not None:
+        return added_to_line(without, name, line)
+    return _with_keyword_line(without, LIMIT_LINE.format(portals=", ".join(portals), terms=" ".join(name.split())))
 
 
 def _kept_offers(old: str, new: str) -> str:

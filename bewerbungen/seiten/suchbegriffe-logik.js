@@ -5,7 +5,7 @@
   const TEXTE = {
     sie: {
       satz: "Die KI schlägt vor, Sie entscheiden. Am Suchprofil ändert sich erst etwas, wenn Sie übernehmen.",
-      wasGeht: "An die KI gehen Ihr Suchprofil und Ihr Lebenslauf mit Platzhaltern für Name, Adresse und Kontakte sowie Titel und Note der eingeschätzten Treffer, ohne Inseratstexte.",
+      wasGeht: "An die KI gehen Ihr Suchprofil und Ihr Lebenslauf mit Platzhaltern für Name, Adresse und Kontakte sowie Titel und Note der eingeschätzten Treffer, Titel aussortierter Stellen und Zahlen zu jedem Suchbegriff, ohne Inseratstexte.",
       hinweisNachsatz: "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was Sie übernehmen.",
       warten: "KI prüft Ihre Suchbegriffe",
       wartenNotiz: "Meist unter 30\u00a0Sekunden. Am Suchprofil ändert sich nichts, bis Sie etwas übernehmen.",
@@ -21,7 +21,7 @@
     },
     du: {
       satz: "Die KI schlägt vor, du entscheidest. Am Suchprofil ändert sich erst etwas, wenn du übernimmst.",
-      wasGeht: "An die KI gehen dein Suchprofil und dein Lebenslauf mit Platzhaltern für Name, Adresse und Kontakte sowie Titel und Note der eingeschätzten Treffer, ohne Inseratstexte.",
+      wasGeht: "An die KI gehen dein Suchprofil und dein Lebenslauf mit Platzhaltern für Name, Adresse und Kontakte sowie Titel und Note der eingeschätzten Treffer, Titel aussortierter Stellen und Zahlen zu jedem Suchbegriff, ohne Inseratstexte.",
       hinweisNachsatz: "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was du übernimmst.",
       warten: "KI prüft deine Suchbegriffe",
       wartenNotiz: "Meist unter 30\u00a0Sekunden. Am Suchprofil ändert sich nichts, bis du etwas übernimmst.",
@@ -97,10 +97,14 @@
 
   const viele = (anzahl, eins, mehr) => `${anzahl} ${anzahl === 1 ? eins : mehr}`;
 
-  /** What changed, in the words of the review (#371): new terms and those that go, each only when there are some. */
-  function uebernommen(neu, entfallen) {
+  /**
+   * What changed, in the words of the review (#371): new terms, those that go and those moved to the niches or onto
+   * portals (G108), each only when there are some.
+   */
+  function uebernommen(neu, entfallen, verschoben = 0) {
     const teile = [neu ? `${viele(neu, "Begriff", "Begriffe")} neu` : "",
-      entfallen ? `${neu ? entfallen : viele(entfallen, "Begriff", "Begriffe")} ${entfallen === 1 ? "entfällt" : "entfallen"}` : ""];
+      entfallen ? `${neu ? entfallen : viele(entfallen, "Begriff", "Begriffe")} ${entfallen === 1 ? "entfällt" : "entfallen"}` : "",
+      verschoben ? `${neu || entfallen ? verschoben : viele(verschoben, "Begriff", "Begriffe")} verschoben` : ""];
     return `Übernommen: ${teile.filter(Boolean).join(", ")}. Die nächste Suche sucht danach. Der bisherige Stand bleibt unter Entwürfe erhalten.`;
   }
   const RUECKGAENGIG_FERTIG = "Rückgängig gemacht. Es gilt wieder der Stand vor dem Vorschlag.";
@@ -115,11 +119,16 @@
   const ZU_DEN_BISHERIGEN = "Zu den bisherigen Begriffen";
   const FREI = "Die Auswahl lässt sich übernehmen.";
 
+  // G108: moving a keyword to the niches or onto portals adds and removes nothing, so it has one chip, which stands
+  // for the whole change; the page keeps those switched on under this key.
+  const VERSCHOBEN = "verschoben";
+  const VERSCHIEBUNGEN = ["niche", "portals"];
+
   /** The chips of a change: what it removes („gone“), then what it adds („new“), each in the area of the change. */
-  const chips = aenderung => [
-    ...aenderung.entfaellt.map(begriff => ({ bereich: SCHLUESSEL[aenderung.bereich], begriff, art: "gone" })),
-    ...aenderung.neu.map(begriff => ({ bereich: SCHLUESSEL[aenderung.bereich], begriff, art: "new" })),
-  ];
+  const chips = aenderung => (VERSCHIEBUNGEN.includes(aenderung.art)
+    ? [{ bereich: VERSCHOBEN, begriff: aenderung.verschoben, art: "move", wort: aenderung.verschoben_wort }]
+    : [...aenderung.entfaellt.map(begriff => ({ bereich: SCHLUESSEL[aenderung.bereich], begriff, art: "gone" })),
+      ...aenderung.neu.map(begriff => ({ bereich: SCHLUESSEL[aenderung.bereich], begriff, art: "new" }))]);
 
   /** The current terms no change touches, per area in the order of the profile; an empty area is left out. */
   const bisherigeBereiche = bisherige => BEREICHE
@@ -127,13 +136,13 @@
       chips: (bisherige[schluessel] || []).map(begriff => ({ bereich: schluessel, begriff, art: "kept" })) }))
     .filter(bereich => bereich.chips.length);
 
-  const imErgebnis = (auswahl, { bereich, begriff }) => auswahl[bereich].includes(begriff);
+  const imErgebnis = (auswahl, { bereich, begriff }) => (auswahl[bereich] || []).includes(begriff);
 
-  /** A removed term is on while it goes away; a new or current term while it is in the result. */
+  /** A removed term is on while it goes away; a new or current term while it is in the result, a move while it is made. */
   const chipAn = (auswahl, chip) => imErgebnis(auswahl, chip) !== (chip.art === "gone");
 
   function mitBegriff(auswahl, { bereich, begriff }, drin) {
-    const ohne = auswahl[bereich].filter(b => b !== begriff);
+    const ohne = (auswahl[bereich] || []).filter(b => b !== begriff);
     return { ...auswahl, [bereich]: drin ? [...ohne, begriff] : ohne };
   }
 
@@ -142,6 +151,7 @@
   /** The word beside a chip, which carries its state: never colour alone. */
   function chipWort(chip, an) {
     if (chip.art === "new") return "neu";
+    if (chip.art === "move") return an ? chip.wort : "bleibt";
     if (chip.art === "gone") return an ? "entfällt" : "bleibt";
     return an ? "" : "entfällt";
   }
@@ -201,8 +211,54 @@
     }));
   }
 
+  /** The niches and «Nur» lines after the switches (G108), as the app worked them out; a line without terms is left out. */
+  function endstandZeilen(antwort) {
+    const nischen = antwort.nischen || [];
+    return [...(nischen.length ? [{ name: "Nischen (ohne Ort suchen)", begriffe: nischen }] : []),
+      ...(antwort.nur_zeilen || []).map(zeile => ({ name: `Nur ${zeile.portale.join(", ")}`, begriffe: zeile.begriffe }))];
+  }
+
+  // «Was die App gezählt hat» (G108, #383): the numbers come from the app, the page only words them.
+  const GEZAEHLT_TITEL = "Was die App gezählt hat";
+  const NICHTS_MARKIERT = "Jeder Suchbegriff hat in den letzten 3 Suchläufen eigene Treffer gebracht.";
+  const TABELLE_TITEL = "Alle Suchbegriffe mit Zahlen";
+  const TABELLE_SPALTEN = ["Begriff", "Suchen", "Treffer", "nur über diesen Begriff", "ab Note 4"];
+  const MARKEN = { ohne_ertrag: "ohne Ertrag", ueberlappend: "überlappend" };
+  const VERSION_DER_ZAHLEN = "0.3.3";
+
+  const gezaehltUnterzeile = z => `Aus den letzten ${z.noetig} Suchläufen, gezählt von der App, nicht von der KI.`;
+
+  function zuWenigeLaeufe(z) {
+    if (z.genug) return null;
+    const bisher = z.laeufe ? `bisher sind es ${z.laeufe}` : "bisher gibt es noch keinen";
+    return `Für diese Zahlen braucht die App ${z.noetig} Suchläufe seit Version ${VERSION_DER_ZAHLEN}, ${bisher}.`;
+  }
+
+  function markeSatz(e) {
+    if (e.marke === "ohne_ertrag") {
+      const suchen = viele(e.suchen, "Suche", "Suchen");
+      return e.aussortiert ? `${suchen}, kein Treffer in der Liste; ${e.aussortiert} Titel hat der Titelfilter aussortiert.`
+        : `${suchen}, kein Treffer.`;
+    }
+    if (e.treffer === 1) return `1 Treffer, auch über „${e.auch_ueber}“.`;
+    return e.alle_ueber ? `${e.treffer} Treffer, alle auch über „${e.auch_ueber}“.`
+      : `${e.treffer} Treffer, alle auch über andere Begriffe, meist „${e.auch_ueber}“.`;
+  }
+
+  /** Only the flagged keywords, in the order of the list: name, the word of the chip, then the numbers. */
+  const markiert = z => (z.genug ? z.begriffe : []).filter(e => MARKEN[e.marke])
+    .map(e => ({ name: `„${e.begriff}“`, marke: MARKEN[e.marke], rest: `: ${markeSatz(e)}` }));
+
+  const tabellenZeilen = z => z.begriffe.map(e => ({ begriff: e.begriff, marke: MARKEN[e.marke] || "",
+    zahlen: [e.suchen, e.treffer, e.nur_hier, e.ab_note_4] }));
+
+  /** The word of the chip on a card's area line: the mark of the keyword the change concerns, or nothing. */
+  const kartenMarke = aenderung => MARKEN[aenderung.marke] || "";
+
   const api = { texte, datum, geld, lockCheckLink, hinweisText, belegSatz, belegBeispiele, belegLink, belegAdresse, balken,
-    belegAusAdresse, kopfTeile, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, rundeTeile, endstand,
+    belegAusAdresse, kopfTeile, uebernommen, RUECKGAENGIG_FERTIG, fussTeile, rundeTeile, endstand, endstandZeilen,
+    GEZAEHLT_TITEL, NICHTS_MARKIERT, TABELLE_TITEL, TABELLE_SPALTEN, gezaehltUnterzeile, zuWenigeLaeufe, markiert,
+    tabellenZeilen, kartenMarke, VERSCHOBEN,
     HAUPTKNOPF, TEILWEISE, BISHERIGE_OBEN, ZU_DEN_BISHERIGEN, FREI, chips, bisherigeBereiche, chipAn, schalteChip, chipWort,
     karteStand, schalteKarte, zaehlung, legendeTeile, entfaelltZeile, zuVielBereich, ansage };
   if (typeof module !== "undefined") module.exports = api;

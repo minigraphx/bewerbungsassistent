@@ -10,18 +10,21 @@ import hashlib
 import re
 import secrets
 
+import excluded_companies
 import preferences
 import routes_ai
 import routes_rate_all
 import search_plan
 import term_changes
 import term_evidence
+import term_moves
 from ai import tasks, term_review
 from ai.connection import currency_now
 from ai.errors import SETUP_ACTION, AiError, SetupNeeded
 from amount_text import money_text
 from dateien import schreibe_atomar
 from hits import HIDDEN_TERMS, Hits
+from query_log import QueryLog
 from server import ActionError, json_antwort, pflicht
 
 CACHE_KEY = "suchbegriffe-vorschlaege"
@@ -41,6 +44,7 @@ CENT = 0.01
 NO_UNDO = ("Rückgängig geht nicht mehr: Das Suchprofil hat sich seither geändert. Der frühere Stand liegt unter "
            "Entwürfe und Versionen.")
 ADOPTED = "Suchbegriffe nach Vorschlag der KI: {added} neu, {gone} entfallen"
+MOVED = ", {moved} verschoben"
 UNDONE = "Vorschlag der KI rückgängig gemacht"
 
 
@@ -58,11 +62,25 @@ def _digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _preview(k, current: term_changes.Terms, hits: list[dict]) -> str:
+def _run_evidence(k, text: str, current: term_changes.Terms) -> term_review.RunEvidence:
+    """What the last runs brought per keyword (G108), counted over the hits the list shows, as on Suche einstellen."""
+    runs = QueryLog(k.daten).runs()
+    shown = excluded_companies.shown(Hits(k.daten).all(), excluded_companies.keys(k.daten))
+    return term_review.RunEvidence(term_evidence.keyword_counts(runs, shown, current.keywords),
+                                   tuple(term_evidence.screened_titles(runs)), term_moves.placement_of(text))
+
+
+def _prompt(k, text: str, hits: list[dict], feedback: str = "", former: dict | None = None) -> tuple[str, term_review.RunEvidence]:
+    current = term_changes.terms_of(text)
+    runs = _run_evidence(k, text, current)
+    return term_review.prompt(current, hits, feedback, former["changes"] if former else None, runs), runs
+
+
+def _preview(k, text: str, hits: list[dict]) -> str:
     """The text with placeholders, as it would go to the AI; nothing is sent, so no consent is needed to read it."""
     material = tasks.load_material(k.daten, partial=True)
     gateway = tasks.make_gateway(k.daten, material, client=None)
-    return gateway.preview(term_review.request(material, term_review.prompt(current, hits)))
+    return gateway.preview(term_review.request(material, _prompt(k, text, hits)[0]))
 
 
 def _estimate(text: str) -> float:
@@ -96,7 +114,7 @@ def estimate(k, parameter, body):
     except ValueError:
         return json_antwort({"verfuegbar": False})
     hits = Hits(k.daten).all()
-    sent = routes_ai.run_ai(lambda: _preview(k, term_changes.terms_of(text), hits))
+    sent = routes_ai.run_ai(lambda: _preview(k, text, hits))
     money = routes_rate_all.priced(_estimate(sent), with_credit=True)
     return json_antwort({"verfuegbar": True, "anzahl": 1, **money.fields(), "dauer_minuten": MINUTES,
                          "reicht_fuer": None})
@@ -110,8 +128,19 @@ def hide(k, parameter, body):
 
 def sent_text(k, parameter, body):
     _, text = _profile(k)
-    preview = _preview(k, term_changes.terms_of(text), Hits(k.daten).all())
+    preview = _preview(k, text, Hits(k.daten).all())
     return json_antwort({"text": preview, "kosten_usd": _estimate(preview), "waehrung": currency_now()})
+
+
+def counts(k, parameter, body):
+    """«Was die App gezählt hat» (G108): per keyword what the last runs brought and its mark, without AI or cost, so
+    the page shows it at once while the AI works."""
+    try:
+        _, text = _profile(k)
+    except ValueError:
+        return json_antwort({"verfuegbar": False})
+    counted = _run_evidence(k, text, term_changes.terms_of(text)).counted
+    return json_antwort({"verfuegbar": True, **counted.as_dict()})
 
 
 def evidence_ids(k, parameter, body):
@@ -159,21 +188,35 @@ def _by_effect(changes: tuple, found: dict) -> tuple:
     return tuple(sorted(changes, key=weight, reverse=True))
 
 
-def _change_view(index: int, change: term_changes.Change, found: dict) -> dict:
+def _mark(change: term_changes.Change, counted: term_evidence.Counted) -> str | None:
+    """The mark of the keyword a change concerns (G108), for the chip on its area line."""
+    if change.area != term_changes.KEYWORDS:
+        return None
+    return next(filter(None, (counted.mark_of(term) for term in (change.moved, *change.remove) if term)), None)
+
+
+def _change_view(index: int, change: term_changes.Change, found: dict, counted: term_evidence.Counted) -> dict:
     evidence = next((found[t.casefold()] for t in change.remove
                      if change.area == term_changes.POSITIVE and t.casefold() in found), None)
     return {"nummer": index, "bereich": change.area, "bereich_name": term_changes.AREA_NAMES[change.area],
             "satz": term_changes.sentence(change), "entfaellt": list(change.remove), "neu": list(change.add),
             "grund": change.reason, "beleg": evidence.as_dict() if evidence else None,
-            "zu_allgemein": bool(evidence and evidence.too_general)}
+            "zu_allgemein": bool(evidence and evidence.too_general), "art": change.kind,
+            "verschoben": change.moved or None, "in": change.into or None, "marke": _mark(change, counted),
+            "verschoben_wort": term_moves.word(change.kind, change.portals) if change.is_move else None}
 
 
 def _outcome(text: str, changes: tuple) -> dict:
+    """The result of these changes, with the niches and «Nur» lines it leaves (G108), and its limits."""
     current = term_changes.terms_of(text)
     after = term_changes.outcome(current, changes)
     gone = [term for change in changes for term in change.remove]
+    moves = term_changes.moves_of(changes)
+    before = term_moves.placement_of(text)
+    now = term_moves.after(before, moves, tuple(gone))
     return {"endstand": after.as_dict(), "entfaellt": gone,
-            "grenzen": term_changes.limits(current, after, term_changes.places_factor(text))}
+            "nischen": term_moves.niche_view(before, now), "nur_zeilen": term_moves.limit_view(before, now),
+            "grenzen": term_changes.limits(current, after, term_changes.places_factor(text), len(moves))}
 
 
 def propose(k, parameter, body):
@@ -187,8 +230,8 @@ def propose(k, parameter, body):
     hits, current = Hits(k.daten).all(), term_changes.terms_of(text)
     try:
         gateway, material = routes_ai.ai_gateway(k, partial=True)
-        prompt = term_review.prompt(current, hits, feedback, former["changes"] if former else None)
-        result = term_review.review(gateway, material, current, term_changes.avoided_words(text), prompt)
+        prompt, runs = _prompt(k, text, hits, feedback, former)
+        result = term_review.review(gateway, material, current, term_changes.avoided_words(text), prompt, runs=runs)
     except AiError as error:
         raise _failed(error) from error
     found = term_evidence.evidence(hits, current.positive)
@@ -200,7 +243,8 @@ def propose(k, parameter, body):
     return json_antwort({
         "vorschlag": proposal["id"], "runde": proposal["round"], "zusammenfassung": result["summary"],
         "geaendert": result["changed"] if former else "", "hinweis": feedback,
-        "aenderungen": [_change_view(i, change, found) for i, change in enumerate(changes)],
+        "aenderungen": [_change_view(i, change, found, runs.counted) for i, change in enumerate(changes)],
+        "verschoben": [change.moved for change in changes if change.is_move],
         "kosten_usd": result["cost_usd"], "kosten_bisher": round(spent, 6), "waehrung": currency_now(),
         "modell": result["model"],
         "datum": k.heute().isoformat(), "treffer": len(term_evidence.rated(hits)), "seit": term_evidence.since(hits),
@@ -242,18 +286,19 @@ def adopt(k, parameter, body):
         current = term_changes.terms_of(text)
         if current.digest != proposal["stand"]:
             raise ValueError(STALE)
-        blocked = term_changes.limits(current, term_changes.outcome(current, picked),
-                                      term_changes.places_factor(text))["gesperrt"]
+        blocked = term_changes.limits(current, term_changes.outcome(current, picked), term_changes.places_factor(text),
+                                      len(term_changes.moves_of(picked)))["gesperrt"]
         if blocked:
             raise ValueError(blocked)
         return term_changes.applied(text, picked)
 
     added = sum(len(area.add) for area in picked)
     gone = sum(len(area.remove) for area in picked)
-    before = _write(k, path, ADOPTED.format(added=added, gone=gone), change)
+    moved = len(term_changes.moves_of(picked))
+    before = _write(k, path, ADOPTED.format(added=added, gone=gone) + (MOVED.format(moved=moved) if moved else ""), change)
     after = path.read_text(encoding="utf-8")
-    return json_antwort({"neu": added, "entfallen": gone, "vorher": _digest(before), "nachher": _digest(after),
-                         "jetzt": term_changes.terms_of(after).as_dict()})
+    return json_antwort({"neu": added, "entfallen": gone, "verschoben": moved, "vorher": _digest(before),
+                         "nachher": _digest(after), "jetzt": term_changes.terms_of(after).as_dict()})
 
 
 def undo(k, parameter, body):
@@ -274,7 +319,8 @@ def undo(k, parameter, body):
 
 
 GET = {"/api/suchbegriffe/hinweis": hint, "/api/suchbegriffe/schaetzung": estimate,
-       "/api/suchbegriffe/text": sent_text, "/api/suchbegriffe/beleg": evidence_ids}
+       "/api/suchbegriffe/text": sent_text, "/api/suchbegriffe/beleg": evidence_ids,
+       "/api/suchbegriffe/gezaehlt": counts}
 POST = {"/api/suchbegriffe/ausblenden": hide, "/api/suchbegriffe/vorschlag": propose,
         "/api/suchbegriffe/endstand": outcome, "/api/suchbegriffe/uebernehmen": adopt,
         "/api/suchbegriffe/rueckgaengig": undo}
