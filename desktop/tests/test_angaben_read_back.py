@@ -237,6 +237,23 @@ def test_changes_in_lists_and_style_keep_the_unknown_lines(started):
     assert "- Notiz von Hand ohne Form" in blocks and "- **Geduld**" in blocks
 
 
+def test_the_jobscout24_regions_and_postcodes_stay_when_the_form_saves(started):
+    """G107, #380: the form has no field for the region lines of single portals; saving keeps them as written."""
+    server, folder, _ = started
+    write_basics(folder)
+    lines = "- Regionen (jobscout24): Region Bern (BE/FR/SO), Homeoffice / Remote\n- PLZ (jobscout24): 3600, 3011\n"
+    profile = folder / "suchprofil.md"
+    profile.write_text(PROFILE.replace("- Remote: ja\n", f"- Remote: ja\n{lines}"), encoding="utf-8")
+    read = read_back(server)
+    bundle = bundle_from(read)
+    bundle["data"]["searchJob"]["workload"] = "100 %"
+
+    status, answer = save(server, bundle, read["daten"])
+
+    assert status == 200, answer
+    assert lines in profile.read_text(encoding="utf-8")
+
+
 def test_a_term_added_on_the_search_page_meanwhile_stays(started):
     server, folder, _ = started
     write_basics(folder)

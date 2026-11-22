@@ -10,7 +10,8 @@ window.SucheRahmen = (() => {
   const KARTEN = ["region", "nicht", "titelfilter"];
   const GESPEICHERT = "Gespeichert. Gilt ab der nächsten Suche.";
   const NICHT_GESPEICHERT = "Nicht gespeichert.";
-  let stand = { werte: {}, laengen: {}, alleKantone: [], alleRegionen: [], lehrstelle: false, firmen: [] };
+  const JOBSCOUT24 = "regionen_jobscout24";
+  let stand = { werte: {}, laengen: {}, alleKantone: [], alleRegionen: [], alleRegionenJobscout24: [], lehrstelle: false, firmen: [] };
 
   function kantone(gewaehlt) {
     const an = new Set(gewaehlt || []);
@@ -18,20 +19,28 @@ window.SucheRahmen = (() => {
       el("label", { class: "check" }, el("input", { type: "checkbox", value: kanton, checked: an.has(kanton) }), ` ${kanton}`))));
   }
 
-  function regionen(gewaehlt) {
+  function regionen(liste, alle, gewaehlt) {
     const an = new Set(gewaehlt || []);
-    $("region-regionen").replaceChildren(...stand.alleRegionen.map(region => el("li", {},
+    $(liste).replaceChildren(...alle.map(region => el("li", {},
       el("label", { class: "check" }, el("input", { type: "checkbox", value: region.wert, checked: an.has(region.wert) }), ` ${region.name}`))));
   }
 
-  /** The place lines of single portals (#301): only those the profile has, as they go before Wohnort and Kantone. */
+  const gewaehlteRegionen = liste => [...$(liste).querySelectorAll("input:checked")].map(kasten => kasten.value);
+
+  /**
+   * The place lines of single portals (#301): only those the profile has, as they go before Wohnort and Kantone; the
+   * jobscout24 regions (G107) in every job profile.
+   */
   function fuellePortale(werte) {
     const sichtbar = L.portalFelder(werte, stand.lehrstelle);
+    const mitRegionen = L.regionenJobscout24(stand.lehrstelle);
     for (const feld of ["orte", "plz", "regionen"]) $(`region-${feld}-feld`).hidden = !sichtbar.includes(feld);
-    $("region-portale").hidden = !sichtbar.length;
+    $(`region-${JOBSCOUT24}-feld`).hidden = !mitRegionen;
+    $("region-portale").hidden = !sichtbar.length && !mitRegionen;
     $("region-orte").value = L.alsText(werte.orte);
     $("region-plz").value = L.alsText(werte.plz);
-    regionen(werte.regionen);
+    regionen("region-regionen", stand.alleRegionen, werte.regionen);
+    regionen(`region-${JOBSCOUT24}`, stand.alleRegionenJobscout24, werte[JOBSCOUT24]);
   }
 
   function portalFelder() {
@@ -39,7 +48,8 @@ window.SucheRahmen = (() => {
     const werte = {
       orte: $("region-orte").value,
       plz: $("region-plz").value,
-      regionen: [...$("region-regionen").querySelectorAll("input:checked")].map(kasten => kasten.value),
+      regionen: gewaehlteRegionen("region-regionen"),
+      [JOBSCOUT24]: gewaehlteRegionen(`region-${JOBSCOUT24}`),
     };
     return Object.fromEntries(Object.entries(werte).filter(([feld]) => gezeigt(feld)));
   }
@@ -117,11 +127,17 @@ window.SucheRahmen = (() => {
   /** The values of the profile; a form that is open keeps what the person is typing. */
   function zeige(rahmen, lehrstelle, firmen = []) {
     stand = { werte: rahmen.werte || {}, laengen: rahmen.laengen || {}, alleKantone: rahmen.alle_kantone || [],
-      alleRegionen: rahmen.alle_regionen || [], lehrstelle, firmen };
+      alleRegionen: rahmen.alle_regionen || [], alleRegionenJobscout24: rahmen.alle_regionen_jobscout24 || [], lehrstelle, firmen };
     const proPortal = lehrstelle ? [] : L.proPortalText(rahmen.orte_pro_portal);
     $("portale-orte-titel").hidden = !proPortal.length;
     $("portale-orte-text").hidden = !proPortal.length;
     $("portale-orte-text").replaceChildren(...window.DotLine.render(proPortal, el));
+  }
+
+  /** «Regionen wählen» (G107): the region form open, the focus on the first jobscout24 region. */
+  function oeffneRegionen() {
+    if ($("region-form").hidden) oeffne("region", true);
+    $(`region-${JOBSCOUT24}`).querySelector("input")?.focus();
   }
 
   for (const karte of KARTEN) {
@@ -130,5 +146,5 @@ window.SucheRahmen = (() => {
     $(`${karte}-form`).addEventListener("submit", event => speichere(karte, event));
   }
 
-  return { zeige };
+  return { zeige, oeffneRegionen };
 })();

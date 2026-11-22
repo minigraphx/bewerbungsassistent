@@ -34,6 +34,17 @@
       "searches": {"job-room": 3, "jobs.ch": 5, "jobscout24": 1, "ictjobs": 2}
     },
     {
+      "name": "jobscout24 by region instead of postcodes (G107)",
+      "plan": {
+        "art": "stelle", "portale": ["job-room", "jobs.ch", "jobscout24", "ictjobs"],
+        "stichworte": ["Begriff1", "Begriff2", "Begriff3", "Begriff4"], "nur_portale": {"Begriff4": ["jobs.ch"]},
+        "nischen": ["Nische1"], "kantone": ["BE"], "orte": ["Nordstadt"], "plz": ["1111", "2222", "3333"],
+        "regionen": ["grossraum-bern"], "schweizweit": false,
+        "regionen_jobscout24": [{"id": "3", "name": "Region Bern (BE/FR/SO)"}, {"id": "14", "name": "Homeoffice / Remote"}]
+      },
+      "searches": {"job-room": 4, "jobs.ch": 5, "jobscout24": 3, "ictjobs": 3}
+    },
+    {
       "name": "apprenticeships and trial apprenticeships in cantons",
       "plan": {
         "art": "lehrstelle", "portale": ["LENA", "yousty"], "stichworte": ["Beruf1 EFZ", "Beruf2 EFZ", "Beruf3 EBA"],

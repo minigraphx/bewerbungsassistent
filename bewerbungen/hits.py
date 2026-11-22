@@ -31,6 +31,7 @@ MAX_HIDDEN_TERMS = 30
 HIDDEN_WORDS = "woerter_ausgeblendet"  # #225: title words put aside with „Nicht jetzt“, casefolded, with their count then
 KEPT_PAIRS = "paare_behalten"  # #377: pairs of «Doppelt gesucht» the person keeps, by their id
 MAX_KEPT_PAIRS = 100
+KEPT_PLACES = "orte_behalten"  # #380: jobs.ch places the person keeps although their canton is searched already
 MAX_STARS = 5
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
@@ -515,7 +516,8 @@ class Hits:
                 PORTALS_OFF: [p for p in raw[PORTALS_OFF] if isinstance(p, str)] if isinstance(raw.get(PORTALS_OFF), list) else None,
                 HIDDEN_TERMS: [t for t in raw[HIDDEN_TERMS] if isinstance(t, str)] if isinstance(raw.get(HIDDEN_TERMS), list) else [],
                 HIDDEN_WORDS: _hidden_words(raw.get(HIDDEN_WORDS)),
-                KEPT_PAIRS: [p for p in raw[KEPT_PAIRS] if isinstance(p, str)] if isinstance(raw.get(KEPT_PAIRS), list) else []}
+                KEPT_PAIRS: [p for p in raw[KEPT_PAIRS] if isinstance(p, str)] if isinstance(raw.get(KEPT_PAIRS), list) else [],
+                KEPT_PLACES: [p for p in raw[KEPT_PLACES] if isinstance(p, str)] if isinstance(raw.get(KEPT_PLACES), list) else []}
 
     def _save_settings(self, settings: dict) -> dict:
         schreibe_yaml(self.folder / SETTINGS_FILE, settings)
@@ -555,6 +557,14 @@ class Hits:
             current = self.settings()
             others = [p for p in current[KEPT_PAIRS] if p != pair][-(MAX_KEPT_PAIRS - 1):]
             return self._save_settings({**current, KEPT_PAIRS: [*others, pair]})
+
+    def keep_place(self, place: str) -> dict:
+        """«Behalten» (#380): no notice for this jobs.ch place again; the oldest goes beyond the limit."""
+        key = place.lower()
+        with _LOCK:
+            current = self.settings()
+            others = [p for p in current[KEPT_PLACES] if p != key][-(MAX_KEPT_PAIRS - 1):]
+            return self._save_settings({**current, KEPT_PLACES: [*others, key]})
 
     def set_watching(self, enabled: bool) -> dict:
         with _LOCK:

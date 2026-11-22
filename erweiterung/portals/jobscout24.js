@@ -36,7 +36,9 @@
 
   async function list(query, page) {
     const params = new URLSearchParams({ ft: query.keyword });
-    if (query.postalCode) params.set('psz', query.postalCode);
+    // G107: one search in all chosen regions; jobscout24 takes regidl once per region
+    for (const id of query.regionIds || []) params.append('regidl', id);
+    if (query.postalCode && !(query.regionIds || []).length) params.set('psz', query.postalCode);
     if (page > 1) params.set('p', String(page));
     return parseList(await common.fetchPage(`/de/jobs/?${params}`));
   }

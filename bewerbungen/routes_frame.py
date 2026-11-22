@@ -9,6 +9,7 @@ import pathlib
 from typing import Callable
 
 import excluded_companies
+import jobscout24_regions
 import portal_places
 import search_frame
 import search_plan
@@ -37,7 +38,8 @@ def _answer(text: str) -> dict:
     return {**search_plan.frame(text), "art": search_frame.kind_of(text), "werte": values,
             "laengen": search_frame.lengths(text), "alle_kantone": list(search_plan.CANTONS),
             "orte_pro_portal": portal_places.shown(text),
-            "alle_regionen": portal_places.region_choices(values["regionen"])}
+            "alle_regionen": portal_places.region_choices(values["regionen"]),
+            "alle_regionen_jobscout24": jobscout24_regions.choices(values[portal_places.JOBSCOUT24_REGIONS])}
 
 
 def frame(k, parameter, body):

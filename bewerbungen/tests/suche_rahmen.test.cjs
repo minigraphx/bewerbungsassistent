@@ -71,3 +71,17 @@ test("a place field shows only while its portal has its own line (#301)", () => 
   assert.deepEqual(L.portalFelder({ orte: ["Bern"] }, true), []);
   assert.deepEqual(L.portalFelder({}, false), []);
 });
+
+test("the jobscout24 regions can be chosen in every job profile, and the card sends them (G107, #380)", () => {
+  assert.equal(L.regionenJobscout24(false), true);
+  assert.equal(L.regionenJobscout24(true), false);
+  const felder = { wohnort: "Thun", kantone: [], pensum: "", regionen_jobscout24: ["Region Bern (BE/FR/SO)"] };
+  assert.deepEqual(L.koerper("region", felder, false),
+    { wohnort: "Thun", kantone: [], pensum: "", regionen_jobscout24: ["Region Bern (BE/FR/SO)"] });
+  assert.deepEqual(L.koerper("region", { ...felder, regionen_jobscout24: [] }, false).regionen_jobscout24, []);
+});
+
+test("the closed card says «Regionen» before jobscout24's regions, never its postcodes then (G107, #380)", () => {
+  const liste = [{ portal: "jobscout24", vorsatz: "Regionen", orte: ["Region Bern (BE/FR/SO)", "Homeoffice / Remote"] }];
+  assert.deepEqual(L.proPortalText(liste), ["jobscout24: Regionen Region Bern (BE/FR/SO), Homeoffice / Remote"]);
+});
