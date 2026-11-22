@@ -11,8 +11,12 @@
   const meldung = (inhalt, stufe) => status($("status"), inhalt, stufe);
   let ladeNummer = 0;
 
-  function zeigeRahmen(daten, rahmen, lehrstelle, ausgeschlossen) {
+  function zeigeRahmen(daten, rahmen, lehrstelle, ausgeschlossen, satz) {
     $("region-text").textContent = anzeige.regionText(daten.region, lehrstelle) || NICHTS;
+    const nischen = anzeige.nischenText(daten.region, lehrstelle, satz === "stelle-du");  // G111
+    $("nischen-titel").hidden = !nischen;
+    $("nischen-text").hidden = !nischen;
+    $("nischen-text").textContent = nischen;
     $("pensum-titel").hidden = lehrstelle;
     $("pensum-text").hidden = lehrstelle;
     $("pensum-text").textContent = rahmen.pensum || NICHTS;
@@ -23,7 +27,7 @@
     $("titel-ausschluss-text").textContent = rahmen.titel_ausschluss.join(", ") || NICHTS;
     $("titelfilter").hidden = lehrstelle;
     window.TitelfilterBeispiele.begriffe(rahmen.titel_positiv, rahmen.titel_ausschluss);
-    window.SucheRahmen.zeige(rahmen, lehrstelle, ausgeschlossen);
+    window.SucheRahmen.zeige(rahmen, lehrstelle, ausgeschlossen, (daten.region && daten.region.nischen) || 0);
   }
 
   /** G105: a «Nur» line with an unknown portal, or a term whose portals are all switched off, under the list. */
@@ -74,7 +78,7 @@
     try {
       const ertrag = await holen("/api/suche/ertrag");
       if (nummer !== ladeNummer) return;
-      window.SucheErtrag.zeige(ertrag);
+      window.SucheErtrag.zeige(ertrag, await textsatz().catch(() => undefined));
       window.TitelfilterBeispiele.beispiele(ertrag.titelfilter);
     } catch (fehler) {
       meldung(`Was die Suche bringt, liess sich nicht laden: ${fehler.message}`, "fehler");
@@ -84,8 +88,8 @@
   async function lade() {
     const nummer = ++ladeNummer;
     try {
-      const [daten, rahmen, firmen] = await Promise.all([holen("/api/suche/liste"), holen("/api/suche/rahmen"),
-        holen("/api/firmen/ausgeschlossen")]);
+      const [daten, rahmen, firmen, satz] = await Promise.all([holen("/api/suche/liste"), holen("/api/suche/rahmen"),
+        holen("/api/firmen/ausgeschlossen"), textsatz().catch(() => undefined)]);
       if (nummer !== ladeNummer) return;  // a newer load is on its way
       const lehrstelle = daten.art === "lehrstelle";
       $("ohne-profil").hidden = !daten.sperrgrund;
@@ -97,7 +101,7 @@
       zeigePortalHinweise(daten.portal_hinweise || []);
       window.Suchbegriffe.zeige(daten.art, daten.gesuchte_berufe || [], daten.gesuchte_schluessel || [], daten.begriff_laenge);
       window.PortalWahl.zeige(daten.portale_wahl || [], lade);
-      zeigeRahmen(daten, rahmen, lehrstelle, firmen.firmen);
+      zeigeRahmen(daten, rahmen, lehrstelle, firmen.firmen, satz);
       zeigeAblauf(daten);
       zeigePruefen(lehrstelle, nummer);
       zeigeErtrag(nummer);

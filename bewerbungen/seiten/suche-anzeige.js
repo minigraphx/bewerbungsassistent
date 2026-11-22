@@ -28,6 +28,17 @@
     return orte.length ? `ganze Schweiz, nahe ${orte[0]} zuerst` : "ganze Schweiz";
   }
 
+  /**
+   * The row «Nischen» of the region card (G111, #387): niches run without a place, and with chosen cantons only hits in
+   * them, at the person's places or with remote work stay. "" without niches or for an apprenticeship: no row.
+   */
+  function nischenText(region, lehrstelle, du = false) {
+    if (lehrstelle || !region || !region.nischen) return "";
+    const kantone = Array.isArray(region.kantone) ? region.kantone : [];
+    if (!kantone.length || region.schweizweit) return "Ohne Ort gesucht, in der ganzen Schweiz.";
+    return `Ohne Ort gesucht. Behalten werden Stellen in ${aufzaehlung(kantone)}, an ${du ? "deinen" : "Ihren"} Orten oder mit Remote.`;
+  }
+
   /** The closed settings as the parts of one «·» line (#342): terms, region, number of portals (the page adds „Ändern“). */
   function zusammenfassung({ begriffe = [], region = null, portale = 0, lehrstelle = false } = {}) {
     const anzahl = portale === 1 ? "1 Portal" : `${portale} Portale`;
@@ -92,7 +103,7 @@
     return [`${zeile.portal}: ${zuletzt}`, `nächste Suche ab ${zeile.ab}`];
   }
 
-  const anzeige = { OHNE_ERWEITERUNG, NOCH_NICHT, zusammenfassung, regionText, sperrgrund, leer, letzteSuche, problemZeile,
+  const anzeige = { OHNE_ERWEITERUNG, NOCH_NICHT, zusammenfassung, regionText, nischenText, sperrgrund, leer, letzteSuche, problemZeile,
     zeitfensterWahl, portalStand };
   if (typeof module !== "undefined") module.exports = anzeige;
   else global.SucheAnzeige = anzeige;

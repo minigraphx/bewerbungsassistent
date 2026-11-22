@@ -11,10 +11,12 @@ import search_plan
 import search_terms
 from hits import DOMAINS, QUERIES
 from portal_places import REGION_NAMES
-from query_log import KEPT_RUNS, MAX_EXAMPLES, UNRELATED, UNRELATED_EXAMPLES
+from query_log import KEPT_RUNS, MAX_EXAMPLES, OUTSIDE, OUTSIDE_PLACES, UNRELATED, UNRELATED_EXAMPLES, places_of
 
 GOOD_GRADE = 4
 ICTJOBS = "ictjobs"
+MAX_OUTSIDE_PLACES_SHOWN = 3  # G111: the caption under the niche row names at most three places
+OUTSIDE_ELSEWHERE = "ausserhalb_andere"
 
 
 def _term_key(word: str) -> str:
@@ -43,7 +45,7 @@ def _count(entries: list[tuple[int, dict]], field: str) -> int:
 
 def _tally(entries: list[tuple[int, dict]]) -> dict:
     return {"suchen": len(entries), "treffer": sum(q["treffer"] for _, q in entries), "aussortiert": _count(entries, "aussortiert"),
-            UNRELATED: _count(entries, UNRELATED), "laeufe": len({index for index, _ in entries})}
+            UNRELATED: _count(entries, UNRELATED), OUTSIDE: _count(entries, OUTSIDE), "laeufe": len({index for index, _ in entries})}
 
 
 def _grade(hit: dict):
@@ -67,15 +69,15 @@ def _found(hits: list[dict], start: str | None, matches) -> dict:
 def _without_yield(tally: dict, runs: int) -> bool:
     """«ohne Ertrag»: no hit past the title filter in the last runs (nothing found, or all screened out; one meaning on
     Suche einstellen and Suchbegriffe prüfen, #383), and only once there are as many runs as the window holds. A hit
-    without a required word of its term (G110) is no yield either."""
-    kept = tally["treffer"] - tally["aussortiert"] - tally[UNRELATED]
+    without a required word of its term (G110) or a niche hit outside the region (G111) is no yield either."""
+    kept = tally["treffer"] - tally["aussortiert"] - tally[UNRELATED] - tally[OUTSIDE]
     return runs >= KEPT_RUNS and tally["laeufe"] >= KEPT_RUNS and kept <= 0
 
 
 def _entry(tally: dict, found: dict, runs: int) -> dict:
-    unrelated = {UNRELATED: tally[UNRELATED]} if tally[UNRELATED] else {}
+    named = {name: tally[name] for name in (UNRELATED, OUTSIDE) if tally[name]}  # only where there are any
     return {"suchen": tally["suchen"], "treffer": tally["treffer"], **found, "aussortiert": tally["aussortiert"],
-            **unrelated, "ohne_ertrag": _without_yield(tally, runs)}
+            **named, "ohne_ertrag": _without_yield(tally, runs)}
 
 
 def _for_term(name: str, queries, hits, start, runs: int) -> dict:
@@ -108,13 +110,39 @@ def _place_name(portal: str, place: str) -> str:
     return REGION_NAMES.get(place, place) if portal == ICTJOBS else place
 
 
-def _for_places(queries, hits, start, runs: int) -> list[dict]:
-    # per portal the places as they ran, a search without place (niches, all of Switzerland) last
-    places = sorted(dict.fromkeys((q["portal"], q["ort"]) for _, q in queries), key=lambda pair: (_portal_rank(pair[0]), not pair[1]))
-    return [{"portal": portal, "ort": place, "ort_name": _place_name(portal, place),
-             **_entry(_tally([(i, q) for i, q in queries if (q["portal"], q["ort"]) == (portal, place)]),
+def _is_niche(query: dict, niche_keys: set[str]) -> bool:
+    """A niche search: without a place, for a niche that is not also in the list (G111)."""
+    return not query.get("ort") and isinstance(query.get("stichwort"), str) and _term_key(query["stichwort"]) in niche_keys
+
+
+def _outside_places(entries: list[tuple[int, dict]], outside: int) -> dict:
+    """Where the niche hits outside the region lay (G111): the places with most, and how many lay elsewhere."""
+    total: collections.Counter = collections.Counter()
+    for _, query in entries:
+        total.update(places_of(query.get(OUTSIDE_PLACES)))
+    top = total.most_common(MAX_OUTSIDE_PLACES_SHOWN)
+    return {OUTSIDE_PLACES: [{"ort": name, "anzahl": count} for name, count in top],
+            OUTSIDE_ELSEWHERE: outside - sum(count for _, count in top)}
+
+
+def _niche_row(queries, hits, start, runs: int, niche_keys: set[str]) -> dict:
+    """The niche searches of every portal in one row (G111), with where their hits outside the region lay."""
+    tally = _tally(queries)
+    found = _found(hits, start, lambda q: _is_niche(q, niche_keys))
+    places = _outside_places(queries, tally[OUTSIDE]) if tally[OUTSIDE] else {}
+    return {"portal": "", "ort": "", "ort_name": "", "nischen": True, **_entry(tally, found, runs), **places}
+
+
+def _for_places(queries, hits, start, runs: int, niche_keys: set[str]) -> list[dict]:
+    # per portal the places as they ran, a search without place (all of Switzerland) last, then the niches together
+    niches = [(i, q) for i, q in queries if _is_niche(q, niche_keys)]
+    rest = [(i, q) for i, q in queries if not _is_niche(q, niche_keys)]
+    places = sorted(dict.fromkeys((q["portal"], q["ort"]) for _, q in rest), key=lambda pair: (_portal_rank(pair[0]), not pair[1]))
+    rows = [{"portal": portal, "ort": place, "ort_name": _place_name(portal, place),
+             **_entry(_tally([(i, q) for i, q in rest if (q["portal"], q["ort"]) == (portal, place)]),
                       _found(hits, start, lambda q, p=portal, o=place: (q.get("portal"), q.get("ort")) == (p, o)), runs)}
             for portal, place in places]
+    return [*rows, _niche_row(niches, hits, start, runs, niche_keys)] if niches else rows
 
 
 def without_queries(hits: list[dict]) -> int:
@@ -160,9 +188,9 @@ def summary(runs: list[dict], hits: list[dict], terms: list[str], with_places: b
     start = min((run["datum"] for run in runs), default=None)
     term_keys = {_term_key(word) for word in terms}
     niche_keys = {_term_key(word) for word in keywords}
+    places = _for_places(queries, hits, start, len(runs), niche_keys - term_keys) if with_places else []
     return {"laeufe": len(runs), "begriffe": [_for_term(name, queries, hits, start, len(runs)) for name in terms],
-            "leer": _empty_searches(queries, term_keys, niche_keys), "orte": _for_places(queries, hits, start, len(runs)) if with_places else [],
-            "ohne_angabe": without_queries(hits)}
+            "leer": _empty_searches(queries, term_keys, niche_keys), "orte": places, "ohne_angabe": without_queries(hits)}
 
 
 def _examples(entries: list[tuple[int, dict]]) -> list[str]:

@@ -241,14 +241,17 @@
     return `Für diese Zahlen braucht die App ${z.noetig} Suchläufe seit Version ${VERSION_DER_ZAHLEN}, ${bisher}.`;
   }
 
-  /** Why every hit of an «ohne Ertrag» keyword fell away: the title filter, no required word (G110), or both. */
+  /** Why every hit of an «ohne Ertrag» keyword fell away: the title filter, no required word (G110), outside the
+   * region without remote work (G111), or several of them. */
   function aussortiertWie(e) {
     const ohneBezug = e.ohne_pflichtbezug || 0;
-    const titel = e.aussortiert - ohneBezug;  // «aussortiert» counts both reasons (term_evidence.KeywordCount)
+    const ausserhalb = e.ausserhalb_region || 0;
+    const titel = e.aussortiert - ohneBezug - ausserhalb;  // «aussortiert» counts every reason (term_evidence.KeywordCount)
+    const gruende = [[titel, "vom Titelfilter"], [ohneBezug, "ohne Pflichtbezug"], [ausserhalb, "ausserhalb der Region"]]
+      .filter(([zahl]) => zahl > 0);
     const alle = e.treffer_portale === 1 ? "" : "alle ";
-    if (!ohneBezug) return `${alle}vom Titelfilter aussortiert`;
-    if (!titel) return `${alle}ohne Pflichtbezug aussortiert`;
-    return `alle aussortiert: ${titel} vom Titelfilter, ${ohneBezug} ohne Pflichtbezug`;
+    if (gruende.length <= 1) return `${alle}${gruende.length ? gruende[0][1] : "vom Titelfilter"} aussortiert`;
+    return `alle aussortiert: ${gruende.map(([zahl, grund]) => `${zahl} ${grund}`).join(", ")}`;
   }
 
   function markeSatz(e) {
@@ -271,10 +274,13 @@
   const NISCHE = " (Nische)";  // as „Wo ein Begriff nichts findet“ on Suche einstellen writes it (#375)
   const zahlenDer = e => [e.suchen, e.treffer_portale, e.aussortiert, e.nur_hier, e.ab_note_4];
 
+  // G111: a niche's hits outside the region are in «aussortiert»; its row names how many beside its name
+  const ausserhalbZusatz = e => (e.ausserhalb_region > 0 ? { zusatz: `${e.ausserhalb_region} ausserhalb der Region` } : {});
+
   /** Every keyword, then the niches (#393), which are counted alike but never carry a mark. */
   const tabellenZeilen = z => [
     ...z.begriffe.map(e => ({ begriff: e.begriff, marke: MARKEN[e.marke] || "", zahlen: zahlenDer(e) })),
-    ...(z.nischen || []).map(e => ({ begriff: `${e.begriff}${NISCHE}`, marke: "", zahlen: zahlenDer(e) }))];
+    ...(z.nischen || []).map(e => ({ begriff: `${e.begriff}${NISCHE}`, marke: "", zahlen: zahlenDer(e), ...ausserhalbZusatz(e) }))];
 
   /** The word of the chip on a card's area line: the mark of the keyword the change concerns, or nothing. */
   const kartenMarke = aenderung => MARKEN[aenderung.marke] || "";

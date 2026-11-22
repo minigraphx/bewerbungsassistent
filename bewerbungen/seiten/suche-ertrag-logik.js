@@ -19,8 +19,9 @@
     const aussortiert = eintrag.aussortiert > 0 ? `${eintrag.aussortiert} aussortiert` : "";
     if (!eintrag.treffer) return [suchen(eintrag.suchen), "keine Treffer", aussortiert].filter(Boolean);
     const pflicht = eintrag.ohne_pflichtbezug > 0 ? `${eintrag.ohne_pflichtbezug} ohne Pflichtbezug` : "";  // G110
+    const region = eintrag.ausserhalb_region > 0 ? `${eintrag.ausserhalb_region} ausserhalb der Region` : "";  // G111
     return [suchen(eintrag.suchen), `${eintrag.treffer} Treffer`, `${eintrag.neu} neu`, `${eintrag.ab_note_4} ab Note 4`, aussortiert,
-      pflicht].filter(Boolean);
+      pflicht, region].filter(Boolean);
   }
 
   const begriffWort = lehrstelle => (lehrstelle ? "Beruf" : "Begriff");
@@ -52,10 +53,25 @@
     return eintrag.anzahl === 1 ? `${kopf}, ${beispiele[0]}` : `${kopf}, zum Beispiel ${beispiele.join(", ")}`;
   }
 
-  /** The first line of «Was die Orte bringen»: where the numbers come from and what a place-less search is. */
-  function ortHinweis(laeufe) {
+  const ausserhalbSatz = du => ` „Ausserhalb der Region“: Die Stelle liegt ausserhalb ${du ? "deiner" : "Ihrer"} Kantone und Orte, `
+    + "und das Inserat nennt kein Remote.";
+
+  /** The first line of «Was die Orte bringen»: where the numbers come from and what a place-less search is; with
+   * `ausserhalb` (a niche hit lay outside the region, G111) also what that means, in the person's form of address. */
+  function ortHinweis(laeufe, ausserhalb = false, du = false) {
     const satzAnfang = woher(laeufe).replace(/^a/, "A");
-    return `${satzAnfang}, gezählt wie bei den Suchbegriffen. „Ohne Ort“ sind Suchen ohne Ortsangabe, etwa für die Nischen.`;
+    return `${satzAnfang}, gezählt wie bei den Suchbegriffen. „Ohne Ort“ sind Suchen ohne Ortsangabe, etwa für die Nischen.`
+      + (ausserhalb ? ausserhalbSatz(du) : "");
+  }
+
+  const MAX_ORTE_AUSSERHALB = 3;
+
+  /** The caption under the niche row (G111): where its hits outside the region lay, at most three places; '' without. */
+  function ausserhalbOrte(eintrag) {
+    const orte = ((eintrag && eintrag.ausserhalb_orte) || []).slice(0, MAX_ORTE_AUSSERHALB).map(o => `${o.ort} ${o.anzahl}`);
+    if (!orte.length) return "";
+    const andere = eintrag.ausserhalb_andere > 0 ? [`andere ${eintrag.ausserhalb_andere}`] : [];
+    return `Ausserhalb der Region, ohne Remote: ${[...orte, ...andere].join(", ")}`;
   }
 
   /** Hits from runs before the app kept the query; '' when there are none. */
@@ -73,6 +89,7 @@
   /** A place the way its portal searches it: a town, a postcode, a region of ictjobs or the cantons of job-room. */
   function ortName(eintrag) {
     const { portal, ort } = eintrag;
+    if (eintrag.nischen) return "Ohne Ort (Nischen)";  // every portal's niche searches in one row (G111)
     if (!ort) return `${portal}, ohne Ort`;
     if (portal === "jobscout24") return `${portal}, PLZ ${ort}`;
     if (portal === "job-room") return `${portal}, ${ort.includes(",") ? "Kantone" : "Kanton"} ${ort}`;
@@ -83,7 +100,7 @@
   const nachBegriff = ertrag => new Map(((ertrag && ertrag.begriffe) || []).map(eintrag => [eintrag.begriff, eintrag]));
 
   const logik = { OHNE_ERTRAG, teile, hinweis, ortHinweis, ohneAngabe, leerTitel, leerZeile, ortName, nachBegriff, pflichtTitel,
-    pflichtZeile };
+    pflichtZeile, ausserhalbOrte };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SucheErtragLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);
