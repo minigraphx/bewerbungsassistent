@@ -219,6 +219,19 @@
     k
   }
 
+  // How many entries of the left column stay on page 1: only whole sections (#372). A split section would be read
+  // in two parts, its continuation only after the experience on page 2 left. The first section that does not fit
+  // moves with all after it to page 2 right; only one taller than a whole page is still split, it fits nowhere whole.
+  let whole-sections-fitting(sections, width, height, page-height) = {
+    let height-of(part) = measure(block(width: width, spalte(ganz(part), pruefen: false))).height
+    let whole = 0
+    while whole < sections.len() and height-of(sections.slice(0, whole + 1)) <= height { whole += 1 }
+    if whole < sections.len() and height-of((sections.at(whole),)) > page-height {
+      return passend(sections, width, height)
+    }
+    sections.slice(0, whole).map(a => a.items.len()).sum(default: 0)
+  }
+
   // Kopf
   part-start("cv")
   accent-marker(s.farbe-linie)
@@ -272,13 +285,16 @@
   }
 
   // Seite 1 ausmessen: was passt, bleibt; der Rest kommt ab Seite 2 mit vertauschten Spalten.
+  // Printed it reads p1 left, p1 right, p2 left (the right column continued), p2 right (the rest of the left column).
+  // Only the right column's continuation swaps the columns: without it page 2 keeps the page-1 layout, since a wide
+  // empty column on the left would read as a printing fault.
   context {
     let breite = page.width - s.rand.left - s.rand.right
-    let frei = (page.height - s.rand.top - s.rand.bottom - measure(block(width: breite, kopf)).height
-      - measure(block(height: s.abstand-kopf)).height - 1pt)
+    let page-height = page.height - s.rand.top - s.rand.bottom - 1pt
+    let frei = page-height - measure(block(width: breite, kopf)).height - measure(block(height: s.abstand-kopf)).height
     let breite-links = breite * s.spaltenbreite-links
     let breite-rechts = breite - breite-links - s.spaltenabstand
-    let (links-1, links-2) = aufteilen(links, passend(links, breite-links, frei))
+    let (links-1, links-2) = aufteilen(links, whole-sections-fitting(links, breite-links, frei, page-height))
     let (rechts-1, rechts-2) = aufteilen(rechts, passend(rechts, breite-rechts, frei))
     grid(columns: (breite-links, breite-rechts), column-gutter: s.spaltenabstand,
       { spalte(links-1); part-end("cv") }, { spalte(rechts-1); part-end("cv") })
