@@ -49,10 +49,10 @@
     return Math.max(0, Math.floor((today.getTime() - time) / DAY_MS));
   }
 
-  /** Days from short texts like "1 T", "2 W", "1+M" (jobscout24) or "vor 3 Wochen", "vor 5 Stunden" (ictjobs). */
+  /** Days from short texts like "New", "1 T", "2 W", "1+M" (jobscout24) or "vor 3 Wochen", "vor 5 Stunden" (ictjobs). */
   function ageFromText(text) {
     const value = String(text || '').trim();
-    if (/heute|neu|stunde|minute/i.test(value)) return 0;
+    if (/heute|neu|\bnew\b|stunde|minute/i.test(value)) return 0;
     if (/gestern/i.test(value)) return 1;
     const match = value.match(/(\d+)\s*\+?\s*(T|W|M|J|Tag|Woche|Monat|Jahr)/i);
     if (!match) return null;
