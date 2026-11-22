@@ -114,6 +114,21 @@ def test_known_places_in_other_cantons_lie_outside(place):
     assert not region_of().inside(place), place
 
 
+@pytest.mark.parametrize("place", ["6003 Luzern", "Luzern 6003"])
+def test_a_place_written_with_its_postcode_is_found_through_its_town_name(store, place):
+    outside = []
+    result = store.add([hit(12, place)], [], TODAY, region=region_of(), on_outside=outside.append)
+    assert (result["neu"], result["ausserhalb_region"], len(outside)) == (0, 1, 1)
+
+    again = store.screen([hit(12, place)], (), 45, [], region=region_of())
+
+    assert again["gefiltert"] == [{"stelle": TITLE, "grund": REASON}]
+
+
+def test_a_bare_postcode_without_a_town_name_keeps_the_hit(store):
+    assert added(store, hit(13, "6003"))["neu"] == 1
+
+
 def test_the_canton_of_a_place_comes_from_the_shared_table():
     assert place_cantons.canton_in("6900 Lugano") == "TI"
     assert place_cantons.canton_in("Lugano (TI)") == "TI"
