@@ -41,6 +41,13 @@ def test_the_app_counts_the_same_searches_per_portal_as_the_extension():
         assert search_stages.searches_per_portal(case["plan"]) == case["searches"], case["name"]
 
 
+def test_the_app_counts_the_same_pages_per_portal_as_the_extension_reads_at_most():
+    with_pages = [case for case in CASES if "pages" in case]
+    assert any(case["plan"].get("regionen_jobscout24") for case in with_pages)
+    for case in with_pages:
+        assert search_stages.pages_per_portal(case["plan"]) == case["pages"], case["name"]
+
+
 def test_the_announcement_is_the_one_the_extension_shows():
     for case in CASES:
         assert search_stages.size(case["plan"])["text"] == case.get("announcement", ""), case["name"]
