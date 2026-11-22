@@ -32,7 +32,8 @@
   }
 
   async function list(query, page) {
-    const params = new URLSearchParams({ rows: String(ROWS), page: String(page), query: query.keyword });
+    // Newest first (#395): a broad search has more pages than a query reads, and by relevance new ads sit past them.
+    const params = new URLSearchParams({ rows: String(ROWS), page: String(page), query: query.keyword, sort: 'date' });
     if (query.place) params.set('location', query.place);
     return parseList(await common.fetchJson(`/api/v1/public/search?${params}`), page);
   }

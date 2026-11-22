@@ -72,11 +72,12 @@ await fetch('/jobadservice/api/jobAdvertisements/_search?page=0&size=100&sort=da
 
 ```js
 const r = await fetch('/api/v1/public/search?rows=20&page=1&query='
-  + encodeURIComponent('<Keyword>') + '&location=' + encodeURIComponent('<Ort>'));
+  + encodeURIComponent('<Keyword>') + '&location=' + encodeURIComponent('<Ort>') + '&sort=date');
 const j = await r.json(); // j.num_pages, j.documents[]
 ```
 
 - `rows` maximal 20 (grösser gibt 422). Seiten bis `num_pages` abfragen, pro Keyword×Ort höchstens 3 Seiten.
+- `sort=date` liefert die neusten Inserate zuerst; ohne sortiert jobs.ch nach Relevanz, und bei einer breiten Suche stehen neue Inserate dann oft erst nach Seite 3.
 - Der Ort schliesst die Umgebung schon ein (Bern liefert z.B. Zollikofen, Ittigen, Langenthal); `radius` hat keine Wirkung, kleine Gemeinden liefern oft 0 Treffer. Darum die grösseren Orte der Region verwenden.
 - jobs.ch sucht zu einem Ort auch im ganzen Kanton; ein zweiter Ort im selben Kanton bringt kaum neue Inserate, kostet aber eine Suche pro Keyword. Pro Kanton genügt meist ein Ort; nur ein Ort pro Anfrage (`location` mehrfach gilt nur der letzte, eine Liste mit Komma liefert nichts).
 - Nischen-Keywords aus dem Suchprofil zusätzlich ohne `location` suchen und nur Orte in der Region oder "Remote/Homeoffice" behalten.
