@@ -6,16 +6,24 @@
   const UMKREIS_VORGABE = 25;  // search_plan.DEFAULT_RADIUS_KM
   // Place lines of single portals (#301): they go before Wohnort and Kantone, so the card shows those the profile has.
   const PORTAL_FELDER = ["orte", "plz", "regionen"];
+  const REGIONEN_JOBSCOUT24 = "regionen_jobscout24";
 
   const zeilen = text => String(text || "").split("\n").map(zeile => zeile.trim()).filter(Boolean);
   const alsText = liste => (Array.isArray(liste) ? liste : []).join("\n");
 
   /** The place lines the form shows; a field the form leaves out is not sent, so its line stays as it is. */
   function portalKoerper(felder) {
-    const werte = PORTAL_FELDER.filter(feld => felder[feld] !== undefined)
+    const werte = [...PORTAL_FELDER, REGIONEN_JOBSCOUT24].filter(feld => felder[feld] !== undefined)
       .map(feld => [feld, Array.isArray(felder[feld]) ? felder[feld] : zeilen(felder[feld])]);
     return Object.fromEntries(werte);
   }
+
+  /** G107, #380: the jobscout24 regions can be chosen in every job profile, with or without their line. */
+  const regionenJobscout24 = lehrstelle => !lehrstelle;
+
+  /** The hint under jobscout24's regions: it names the PLZ field below only while the card shows that field. */
+  const regionenJobscout24Hinweis = mitPlzFeld => "jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. "
+    + `Keine gewählt: jobscout24 sucht ${mitPlzFeld ? "an den PLZ darunter" : "an der PLZ aus Meine Angaben"}.`;
 
   function koerper(karte, felder, lehrstelle) {
     if (karte === "region") {
@@ -62,10 +70,10 @@
    * a «·» line (#342).
    */
   const proPortalText = liste => (Array.isArray(liste) ? liste : [])
-    .map(eintrag => `${eintrag.portal}: ${eintrag.orte.join(", ")}`);
+    .map(eintrag => `${eintrag.portal}: ${eintrag.vorsatz ? `${eintrag.vorsatz} ` : ""}${eintrag.orte.join(", ")}`);
 
   const logik = { zeilen, alsText, koerper, firmenKoerper, anfrage, umkreisWahl, umkreisGewaehlt, kantoneHinweis,
-    portalFelder, proPortalText };
+    portalFelder, proPortalText, regionenJobscout24, regionenJobscout24Hinweis };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SucheRahmenLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

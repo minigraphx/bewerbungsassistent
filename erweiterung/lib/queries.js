@@ -45,10 +45,23 @@ export function runsOn(plan, term, portal) {
   return !Array.isArray(only) || only.includes(portal);
 }
 
+/** The jobscout24 regions of the plan (G107), each with id and name; an older app sends none. */
+function jobscout24Regions(plan) {
+  const regions = Array.isArray(plan.regionen_jobscout24) ? plan.regionen_jobscout24 : [];
+  return regions.filter((region) => region && typeof region.id === 'string' && region.id);
+}
+
+/** One search in all regions: jobscout24 repeats regidl per region, and reads more pages than at one postcode. */
+function regionsOf(regions, plan) {
+  const pages = Number.isInteger(plan.max_seiten_regionen) ? { maxPages: plan.max_seiten_regionen } : {};
+  return { regionIds: regions.map((region) => region.id), regionNames: regions.map((region) => region.name || region.id).join(', '), ...pages };
+}
+
 /**
  * Queries of one portal, all of them (G43): the search runs them in stages instead of leaving some out.
  * job-room searches all cantons at once; the others once per place, the home first.
  * Niche keywords run without place on jobs.ch only: on jobscout24 and ictjobs they would need one to stay few.
+ * jobscout24 with regions (G107) runs one query per keyword in all of them instead of one per postcode.
  * A keyword limited to other portals (runsOn) has no query here.
  * bewerbungen/search_stages.py counts them the same way for the announcement (tests/fixtures/run-size.json).
  * @param {string} portal
@@ -70,7 +83,10 @@ export function buildQueries(portal, plan) {
   if (!PLACE[portal]) return { queries: [] };
   const [field, key] = PLACE[portal];
   const free = portal === 'jobs.ch' ? niches.map((keyword) => ({ keyword, maxAge })) : [];
-  const rounds = (plan[field] || []).map((place) => keywords.map((keyword) => ({ keyword, [key]: place, maxAge })));
+  const regions = portal === 'jobscout24' ? jobscout24Regions(plan) : [];
+  const rounds = regions.length
+    ? [keywords.map((keyword) => ({ keyword, ...regionsOf(regions, plan), maxAge }))]
+    : (plan[field] || []).map((place) => keywords.map((keyword) => ({ keyword, [key]: place, maxAge })));
   // No place for this portal, or no region chosen at all: the whole of Switzerland, right after the home.
   const everywhere = plan.schweizweit || !rounds.length ? keywords.map((keyword) => ({ keyword, maxAge })) : [];
   return { queries: [...(rounds[0] || []), ...free, ...everywhere, ...rounds.slice(1).flat()] };
@@ -82,7 +98,7 @@ export function buildQueries(portal, plan) {
  * @returns {string}
  */
 export function placeOf(query) {
-  const single = query.place || query.postalCode || query.region || query.canton;
+  const single = query.place || query.postalCode || query.region || query.regionNames || query.canton;
   if (single) return String(single);
   return (query.cantons || []).join(', ');
 }

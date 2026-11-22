@@ -36,7 +36,8 @@ def _keywords_on(portal: str, plan: dict) -> int:
 
 
 def _searches(portal: str, plan: dict) -> int:
-    """As buildQueries: keyword × place, niches without place on jobs.ch, the whole country when there is no place."""
+    """As buildQueries: keyword × place, niches without place on jobs.ch, the whole country when there is no place;
+    jobscout24 with regions once per keyword."""
     keywords, niches = _keywords_on(portal, plan), _count(plan.get("nischen"))
     if portal in APPRENTICESHIP_PORTALS:
         area = _count(plan.get("orte")) or _count(plan.get("kantone"))
@@ -45,7 +46,9 @@ def _searches(portal: str, plan: dict) -> int:
         return keywords + niches
     if portal not in PLACE_FIELDS:
         return 0
-    places = _count(plan.get(PLACE_FIELDS[portal]))
+    # G107: with regions jobscout24 searches each term once in all of them, its postcodes rest
+    by_region = portal == "jobscout24" and _count(plan.get("regionen_jobscout24")) > 0
+    places = 1 if by_region else _count(plan.get(PLACE_FIELDS[portal]))
     free = niches if portal == "jobs.ch" else 0
     everywhere = keywords if plan.get("schweizweit") or not places else 0
     return places * keywords + free + everywhere

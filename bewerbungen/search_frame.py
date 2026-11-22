@@ -9,7 +9,9 @@ lines of single portals (Orte, PLZ, Regionen) have no field there; `portal_place
 """
 import dataclasses
 import re
+from typing import Callable
 
+import jobscout24_regions
 import portal_places
 import profile_limits
 import search_plan
@@ -37,8 +39,21 @@ class Field:
     form_id: str  # the field of Meine Angaben that reads the line; empty for one without limits there
     kinds: tuple[str, ...] = (search_plan.KIND_JOB,)
     label_apprenticeship: str = ""
+    # for two lines whose labels start alike, the Regionen of ictjobs and of jobscout24 (G107): which label is this one
+    matches: Callable[[str], bool] | None = None
+
+    def reads(self, label: str) -> bool:
+        return self.matches(label) if self.matches else label.strip().lower().startswith(self.prefix)
 
 
+def _place_field(key: str, label: str) -> Field:
+    matches = {"regionen": search_plan.is_ictjobs_regions,
+               portal_places.JOBSCOUT24_REGIONS: search_plan.is_jobscout24_regions}.get(key)
+    return Field(portal_places.NAMES[key], "## Region", key, f"{label} ({portal_places.PORTAL_OF[key]})", "## Keywords",
+                 "", matches=matches)
+
+
+PLACE_KEYS = (*portal_places.KEYS, portal_places.JOBSCOUT24_REGIONS)
 BOTH = (search_plan.KIND_JOB, search_plan.KIND_APPRENTICESHIP)
 FIELDS = {
     "wohnort": Field("den Wohnort", "## Region", "wohnort", "Wohnort", "## Keywords", "home", BOTH),
@@ -51,8 +66,8 @@ FIELDS = {
     "titel_positiv": Field("Titel, die passen", "## Titelfilter", "positiv", "Positiv", "## Sprachen", "titlePositive"),
     "titel_ausschluss": Field("Titel, die nicht passen", "## Titelfilter", "ausschluss", "Ausschluss", "## Sprachen",
                               "titleExclude"),
-    **{key: Field(portal_places.NAMES[key], "## Region", key, f"{label} ({portal_places.PORTAL_OF[key]})",
-                  "## Keywords", "") for key, label in (("orte", "Orte"), ("plz", "PLZ"), ("regionen", "Regionen"))},
+    **{key: _place_field(key, label) for key, label in (("orte", "Orte"), ("plz", "PLZ"), ("regionen", "Regionen"),
+                                                         (portal_places.JOBSCOUT24_REGIONS, "Regionen"))},
 }
 TEXT_FIELDS = ("wohnort", "pensum")
 OPTIONAL_FOR_JOBS = ("wohnort",)  # without it the search uses the cantons or Orte; an apprenticeship searches around it
@@ -68,14 +83,23 @@ def _line(lines: list[str], field: Field) -> int | None:
     start, end = search_plan.section_bounds(lines, field.section[3:].strip().lower())
     if start is None:
         return None
-    return next((i for i in range(start + 1, end)
-                 if (m := PAIR_LINE.match(lines[i])) and m.group(2).strip().lower().startswith(field.prefix)), None)
+    return next((i for i in range(start + 1, end) if (m := PAIR_LINE.match(lines[i])) and field.reads(m.group(2))), None)
 
 
 def _raw(text: str, key: str) -> str:
     lines = text.split("\n")
     found = _line(lines, FIELDS[key])
     return PAIR_LINE.match(lines[found]).group(3).strip() if found is not None else ""
+
+
+def raw_value(text: str, key: str) -> str:
+    """The value of the field's line exactly as written, or empty without the line."""
+    return _raw(text, key)
+
+
+def with_raw_value(text: str, key: str, value: str) -> str:
+    """The profile with this value in the field's line, unchecked: for a value built from the line itself."""
+    return _with_line(text, FIELDS[key], FIELDS[key].label, value)
 
 
 def _listed(value: str) -> list[str]:
@@ -88,7 +112,9 @@ def values(text: str) -> dict:
     radius = search_plan.NUMBER.search(_raw(text, "umkreis_km"))
     return {"wohnort": _raw(text, "wohnort"), "kantone": list(dict.fromkeys(cantons)),
             "umkreis_km": int(radius.group()) if radius else None, "pensum": _raw(text, "pensum"),
-            **{key: _listed(_raw(text, key)) for key in ("ausschluss", *TITLE_LISTS, *portal_places.KEYS)}}
+            **{key: _listed(_raw(text, key)) for key in ("ausschluss", *TITLE_LISTS, *portal_places.KEYS)},
+            portal_places.JOBSCOUT24_REGIONS: [jobscout24_regions.written(entry)
+                                               for entry in _listed(_raw(text, portal_places.JOBSCOUT24_REGIONS))]}
 
 
 def lengths(text: str) -> dict[str, int]:
@@ -152,7 +178,7 @@ def _written(key: str, value, kind: str, text: str) -> str:
     field = FIELDS[key]
     if key == "umkreis_km":
         return _checked_radius(value)
-    if key in portal_places.KEYS:
+    if key in PLACE_KEYS:
         return ", ".join(portal_places.checked(key, value, _listed(_raw(text, key))))
     limit = profile_limits.of(kind, field.form_id)
     if key in TEXT_FIELDS:

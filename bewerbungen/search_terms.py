@@ -23,6 +23,7 @@ DIRECTIONS_SECTION = "## Suchrichtungen"
 KEYWORDS_KEY = "keywords"
 KEYWORDS_SECTION = "## Keywords"
 AFTER_DIRECTIONS = "## Region"
+REGION_SECTION = AFTER_DIRECTIONS
 CORE_LIST = re.compile(r"^(-\s+kernliste[^:]*:\s*)(.*)$", re.IGNORECASE)
 # Every named line under Keywords but the niches is searched (#174), so a term can be removed from any of them;
 # of the core lists only the first counts.
@@ -400,6 +401,17 @@ def _kept_limits(old: str, new: str) -> str:
     return text
 
 
+def _kept_jobscout24_regions(old: str, new: str) -> str:
+    """«Regionen (jobscout24)» (G107) is chosen on Suche einstellen; the form has no field for it, so it stays."""
+    def regions_line(text: str) -> str | None:
+        found = (search_plan.PAIR.match(line.strip()) for line in search_plan.section_lines(text, REGION_SECTION))
+        return next((match[0] for match in found if match and search_plan.is_jobscout24_regions(match[1])), None)
+    line = regions_line(old)
+    if line is None or regions_line(new) is not None:
+        return new
+    return search_plan.with_section_line(new, REGION_SECTION, line, KEYWORDS_SECTION)
+
+
 def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
     """A profile from the form replaces the old one: what the old one searched stays, after what the form names.
 
@@ -409,7 +421,7 @@ def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
     """
     if (APPRENTICESHIP_MARK in old) != (APPRENTICESHIP_MARK in new):
         return new, ()
-    text, kept = _kept_limits(old, new), []
+    text, kept = _kept_jobscout24_regions(old, _kept_limits(old, new)), []
     for term in current(old):
         try:
             changed = added(text, term)

@@ -17,6 +17,7 @@ import re
 import yaml
 
 import form_limits
+import jobscout24_regions
 import title_filter
 
 PORTALS =("job-room", "jobs.ch", "jobscout24", "ictjobs")
@@ -55,6 +56,8 @@ MAX_TITLE_TERMS = 30  # a term review proposes no more; the search reads every t
 MAX_LISTED = 100  # title filters and exclusions read from the profile
 MAX_PLACES = 6
 MAX_PAGES = 3  # per keyword and place, as in the skill
+# G107: one jobscout24 search per term covers what several postcodes did; three pages lost a quarter of their ads (#380).
+MAX_REGION_PAGES = 10
 # Extensions from before the stages (G43) stop after this many searches per portal instead of running all at once;
 # newer ones run every search in stages (search_stages.py).
 MAX_QUERIES = 30
@@ -90,6 +93,10 @@ UNKNOWN_LIMIT = ("Die Zeile „{label}: …“ nennt ein Portal, das die App nic
 LIMIT_OFF = "„{term}“ sucht nur auf {portals}, und {portals} ist ausgeschaltet. Der Begriff läuft darum in keiner Suche."
 LIMITS_OFF = ("„{term}“ sucht nur auf {portals}, und diese Portale sind ausgeschaltet. Der Begriff läuft darum in "
               "keiner Suche.")
+UNKNOWN_JOBSCOUT24_REGION = ("Regionen (jobscout24): „{region}“ kennt jobscout24 nicht. Die App sucht dort ohne diese "
+                             "Region.")
+REGIONS_LABEL = "regionen"
+JOBSCOUT24 = "jobscout24"
 NO_PROFILE = "Es gibt noch kein Suchprofil. Zuerst Meine Angaben abschliessen."
 NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
@@ -157,6 +164,7 @@ class SearchPlan:
     max_age_days: int = MAX_AGE_DAYS
     portal_limits: tuple[tuple[str, tuple[str, ...]], ...] = ()  # G105: term → the only portals it runs on
     unknown_limits: tuple[str, ...] = ()  # labels of «Nur» lines that name a portal the app does not know
+    jobscout24_regions: tuple[str, ...] = ()  # G107: ids of jobscout24's regions; with any, its postcodes rest
 
     def runs_on(self, term: str, portal: str) -> bool:
         return portal in dict(self.portal_limits).get(term, (portal,))
@@ -170,7 +178,9 @@ class SearchPlan:
                 "lehrbeginn_jahre": list(self.start_years), "angebote": list(self.offers), "max_seiten": pages, "max_abfragen": MAX_QUERIES,
                 "max_alter_tage": self.max_age_days, "max_texte": MAX_TEXTS, "hinweise": list(self.hints), "schweizweit": self.nationwide,
                 "hinweis_ziele": dict(self.hint_targets),
-                "nur_portale": {term: list(portals) for term, portals in self.portal_limits}}
+                "nur_portale": {term: list(portals) for term, portals in self.portal_limits},
+                "regionen_jobscout24": [{"id": id_, "name": jobscout24_regions.NAMES[id_]} for id_ in self.jobscout24_regions],
+                "max_seiten_regionen": MAX_REGION_PAGES}
 
 
 def _portals_of_kind(kind: str) -> tuple[str, ...]:
@@ -576,18 +586,41 @@ def _job_hints(nationwide: bool, portals: tuple[str, ...], cantons: tuple[str, .
                  for portal, known, name, field in gaps if portal in portals and not known)
 
 
+def is_jobscout24_regions(label: str) -> bool:
+    """«Regionen (jobscout24)» (G107); every other label starting with «Regionen» is ictjobs' line."""
+    folded = label.strip().lower()
+    return folded.startswith(REGIONS_LABEL) and JOBSCOUT24 in folded
+
+
+def is_ictjobs_regions(label: str) -> bool:
+    return label.strip().lower().startswith(REGIONS_LABEL) and not is_jobscout24_regions(label)
+
+
+def _value_where(pairs: dict[str, str], wanted) -> str:
+    return next((value for label, value in pairs.items() if wanted(label)), "")
+
+
 def _own_places(region: dict[str, str]) -> dict[str, tuple[str, ...]]:
     """Where a portal searches instead of Wohnort and Kantone, one line each (Orte, PLZ, Regionen); empty without.
 
     Every place of a line counts (G43); MAX_PLACES only bounds what Suche einstellen writes."""
     return {"jobs.ch": _terms(_value(region, "orte"), None),
             "jobscout24": _items(_value(region, "plz"), None),
-            "ictjobs": _items(_value(region, "regionen"), None)}
+            "ictjobs": _items(_value_where(region, is_ictjobs_regions), None)}
 
 
 def own_places(text: str) -> dict[str, tuple[str, ...]]:
     """What a job profile's own place lines make each portal search, exactly as `parse` reads them (#301)."""
     return _own_places(_pairs(_sections(text).get("region", [])))
+
+
+def _jobscout24_entries(region: dict[str, str]) -> tuple[str, ...]:
+    return _items(_value_where(region, is_jobscout24_regions), None)
+
+
+def jobscout24_region_entries(text: str) -> tuple[str, ...]:
+    """The entries of «Regionen (jobscout24)» as written, known to jobscout24 or not (G107)."""
+    return _jobscout24_entries(_pairs(_sections(text).get("region", [])))
 
 
 def parse(text: str, postal_code: str | None = None) -> SearchPlan:
@@ -607,17 +640,20 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     places = own["jobs.ch"] or _terms(_value(region, "wohnort"), 1)
     postal_codes = own["jobscout24"] or _items(postal_code or "", 1)
     regions = own["ictjobs"] or _regions(cantons)
+    jobscout24_ids, unknown_regions = jobscout24_regions.ids(_jobscout24_entries(region))
     modes = _modes(sections.get("portale und rhythmus", []))
     portals = tuple(portal for portal in PORTALS if modes.get(portal) != MODE_OFF)
-    nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", "regionen"))
-    targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes)
+    nationwide = not cantons and not any(_value(region, name) for name in ("orte", "plz", REGIONS_LABEL))
+    targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes or jobscout24_ids)
     window, window_hint = _window(_value(_pairs(sections.get("portale und rhythmus", [])), "zeitfenster"))
     limits, unknown_limits = _portal_limits(sections.get("keywords", []), keywords)
+    region_hints = tuple(UNKNOWN_JOBSCOUT24_REGION.format(region=entry) for entry in unknown_regions)
     return SearchPlan(keywords=keywords, niche_keywords=niches, portal_limits=limits, unknown_limits=unknown_limits,
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
+                      jobscout24_regions=jobscout24_ids,
                       title_exclude=_title_terms(_value(titles, "ausschluss"), MAX_LISTED),
                       title_positive=_title_terms(_value(titles, "positiv"), MAX_LISTED), portals=portals,
-                      hints=(*window_hint, *(hint for hint, _ in targets)), nationwide=nationwide,
+                      hints=(*window_hint, *region_hints, *(hint for hint, _ in targets)), nationwide=nationwide,
                       hint_targets=targets, max_age_days=window)
 
 

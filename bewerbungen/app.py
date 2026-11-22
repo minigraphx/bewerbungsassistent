@@ -38,6 +38,7 @@ import routes_preferences
 import routes_search
 import routes_search_yield
 import routes_sites
+import routes_place_notices
 import routes_term_pairs
 import routes_terms
 import routes_frame
@@ -149,6 +150,7 @@ SEITEN = {
     "/suche-ertrag-logik.js": "suche-ertrag-logik.js",
     "/suche-ertrag.js": "suche-ertrag.js",
     "/doppelt-gesucht.js": "doppelt-gesucht.js",
+    "/orte-hinweise.js": "orte-hinweise.js",
     "/portal-wahl.js": "portal-wahl.js",
     "/suchbegriffe": "suchbegriffe.html",
     "/suchbegriffe.js": "suchbegriffe.js",
@@ -203,9 +205,9 @@ def erstelle_server(daten: pathlib.Path, build: pathlib.Path | None = None, port
     questions_page: the page „Fragen“ (MIN-376); without it neither page, route nor menu entry exist, so no question reaches the AI."""
     k = kontext or erstelle_kontext(daten, build)
     routen_get = {**routen_bewerbungen.GET, **routen_ablage.GET, **routen_foto.GET, **routen_inhalte.GET,
-                  **routes_ai.GET, **routes_dossier.GET, **routes_mark.GET, **(routes_chat.GET if questions_page else {}), **routes_own_key.GET, **routes_own_files.GET, **routes_cv_creation.GET, **routes_sites.GET, **routes_search.GET, **routes_search_yield.GET, **routes_term_pairs.GET, **routes_rate_all.GET, **routes_adopt_by_grade.GET, **routes_adopt_exclusion.GET,**routes_backup.GET, **routes_certificates.GET, **routes_apply.GET, **routes_rav.GET, **routes_career.GET, **routes_preferences.GET, **routes_page_limit.GET, **routes_companies.GET, **routes_terms.GET, **routes_window.GET, **routes_frame.GET, **routes_dismissed_words.GET, **routes_ai_exclusions.GET, **extra_routes[0]}
+                  **routes_ai.GET, **routes_dossier.GET, **routes_mark.GET, **(routes_chat.GET if questions_page else {}), **routes_own_key.GET, **routes_own_files.GET, **routes_cv_creation.GET, **routes_sites.GET, **routes_search.GET, **routes_search_yield.GET, **routes_term_pairs.GET, **routes_place_notices.GET,**routes_rate_all.GET, **routes_adopt_by_grade.GET, **routes_adopt_exclusion.GET,**routes_backup.GET, **routes_certificates.GET, **routes_apply.GET, **routes_rav.GET, **routes_career.GET, **routes_preferences.GET, **routes_page_limit.GET, **routes_companies.GET, **routes_terms.GET, **routes_window.GET, **routes_frame.GET, **routes_dismissed_words.GET, **routes_ai_exclusions.GET, **extra_routes[0]}
     routen_post = {**routen_bewerbungen.POST, **routen_ablage.POST, **routen_foto.POST, **routen_inhalte.POST,
-                   **routes_ai.POST, **routes_dossier.POST, **routes_mark.POST, **(routes_chat.POST if questions_page else {}), **routes_own_key.POST, **routes_own_files.POST, **routes_cv_creation.POST, **routes_sites.POST, **routes_search.POST, **routes_term_pairs.POST, **routes_adopt_by_grade.POST, **routes_adopt_exclusion.POST,**routes_page.POST, **routes_missing_ads.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **routes_preferences.POST, **routes_page_limit.POST, **routes_cuts.POST, **routes_letter_edit.POST, **routes_companies.POST, **routes_terms.POST, **routes_window.POST, **routes_frame.POST, **routes_dismissed_words.POST, **routes_ai_exclusions.POST, **extra_routes[1]}
+                   **routes_ai.POST, **routes_dossier.POST, **routes_mark.POST, **(routes_chat.POST if questions_page else {}), **routes_own_key.POST, **routes_own_files.POST, **routes_cv_creation.POST, **routes_sites.POST, **routes_search.POST, **routes_term_pairs.POST, **routes_place_notices.POST,**routes_adopt_by_grade.POST, **routes_adopt_exclusion.POST,**routes_page.POST, **routes_missing_ads.POST, **routes_backup.POST, **routes_certificates.POST, **routes_apply.POST, **routes_rav.POST, **routes_career.POST, **routes_preferences.POST, **routes_page_limit.POST, **routes_cuts.POST, **routes_letter_edit.POST, **routes_companies.POST, **routes_terms.POST, **routes_window.POST, **routes_frame.POST, **routes_dismissed_words.POST, **routes_ai_exclusions.POST, **extra_routes[1]}
     limits = {**routes_own_files.BODY_LIMITS, **routen_foto.BODY_LIMITS, **routes_mark.BODY_LIMITS, **(body_limits or {})}
     if questions_page:
         return Server(k, routen_get, routen_post, {**SEITEN, **QUESTIONS_PAGES}, port, limits, activity=activity,

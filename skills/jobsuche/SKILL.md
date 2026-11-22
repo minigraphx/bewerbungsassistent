@@ -78,6 +78,7 @@ const j = await r.json(); // j.num_pages, j.documents[]
 
 - `rows` maximal 20 (grösser gibt 422). Seiten bis `num_pages` abfragen, pro Keyword×Ort höchstens 3 Seiten.
 - Der Ort schliesst die Umgebung schon ein (Bern liefert z.B. Zollikofen, Ittigen, Langenthal); `radius` hat keine Wirkung, kleine Gemeinden liefern oft 0 Treffer. Darum die grösseren Orte der Region verwenden.
+- jobs.ch sucht zu einem Ort auch im ganzen Kanton; ein zweiter Ort im selben Kanton bringt kaum neue Inserate, kostet aber eine Suche pro Keyword. Pro Kanton genügt meist ein Ort; nur ein Ort pro Anfrage (`location` mehrfach gilt nur der letzte, eine Liste mit Komma liefert nichts).
 - Nischen-Keywords aus dem Suchprofil zusätzlich ohne `location` suchen und nur Orte in der Region oder "Remote/Homeoffice" behalten.
 - Felder je Treffer: `job_id`, `title`, `company_name`, `place`, `age` (Tage online), `employment_grades` (Pensum), `language_skills` (`[{language, level}]`, Level 1–4). Nach `job_id` in `window.__J` deduplizieren.
 - Vorfilter: `age` ≤ 45; `language_skills` gegen die Sprachen im Suchprofil prüfen (Level 3–4 = gut bis muttersprachlich); Titel-Filter wie in 2e. Sehr allgemeine Keywords ("KI", "Digitalisierung") bringen viel Rauschen.
@@ -95,6 +96,7 @@ const doc = new DOMParser().parseFromString(html, 'text/html');
 ```
 
 - Ort über die Postleitzahl (`psz`, Werte aus dem Suchprofil), 20 Treffer pro Seite, `p=2` usw. bis eine Seite weniger als 20 liefert. Nach `data-job-id` deduplizieren.
+- `psz` sucht immer 20 km um die PLZ, nahe PLZ liefern darum oft dieselben Inserate. Steht im Suchprofil unter Region eine Zeile `- Regionen (jobscout24): …`, statt der PLZ pro Keyword einmal mit allen Regionen suchen: `regidl` einmal pro Region (`&regidl=3&regidl=14`), ohne `psz`, und bis zu 10 Seiten lesen. Die Nummern stehen in der Region-Auswahl von jobscout24: 1 Nordwestschweiz (AG/BL/BS/SO), 2 Region Zürich (AG/SH/ZG/ZH), 3 Region Bern (BE/FR/SO), 13 Mittelland (AG/BE/SO), 4 Ostschweiz (AI/AR/GL/SG/SH/TG), 5 Zentralschweiz (LU/NW/OW/SZ/UR/ZG), 6 Graubünden (GR), 7 Valais / Wallis (VS), 8 Région Lémanique (GE/VD), 9 Nord Romandie (FR/JU/JuraBE/NE), 10 Ticino (TI), 11 Ausland, 14 Homeoffice / Remote. Die PLZ-Zeile bleibt stehen und gilt wieder, sobald keine Region mehr gewählt ist.
 - Viele Inserate stammen von Vermittlern (z.B. ONE Agency, myitjob, Summit Recruitment, Rocken); Regeln aus 4 anwenden.
 - Volltext: Detailseite (`data-job-detail-url`) per `fetch` holen, `script`/`nav`/`header`/`footer` entfernen und den Text ab „Online bewerben“ nach dem Anforderungsabschnitt durchsuchen. Bei manchen Firmen steht der Text in einem iframe und ist so nicht lesbar; dann in der Antwort „Volltext nicht lesbar“ nennen.
 - Link für den Eintrag: `https://www.jobscout24.ch` + `data-job-detail-url`.

@@ -57,7 +57,8 @@ async function searchOne(portal, plan, query, tab, found, position, deps, log) {
   const where = place ? { ort: place } : {};
   const asked = { stichwort: query.keyword, ort: place };
   let listed = 0;
-  for (let page = 1; page <= plan.max_seiten; page += 1) {
+  const pages = query.maxPages || plan.max_seiten;  // a jobscout24 region search reads more (G107)
+  for (let page = 1; page <= pages; page += 1) {
     stopIfCancelled(deps);
     deps.report({ portal, phase: 'suche', stichwort: query.keyword, ...where, seite: page, gefunden: found.size, ...position });
     const result = await deps.browser.run(tab, portal, 'list', [query, page]);
