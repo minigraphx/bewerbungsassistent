@@ -297,7 +297,12 @@ ol.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--spac
 .doppelt__liste { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
 .doppelt__paar + .doppelt__paar { border-top: 1px solid var(--line); padding-top: var(--space-3); }
 .doppelt__text { margin: 0 0 var(--space-2); }
+.doppelt__paar { min-width: 0; }
 .doppelt__knoepfe { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+/* a button naming a long line, like „Nur jobs.ch, job-room“, wraps inside the notice at 390 px instead of widening it */
+.doppelt__knoepfe .btn { max-width: 100%; white-space: normal; text-align: start; padding-block: var(--space-1); }
+/* «Beide behalten» wrapped onto its own row lines up with the buttons above it */
+.doppelt__knoepfe .btn--quiet { padding-inline-start: 0; }
 /* G104: Erweitert › Titelfilter, each term with the titles of the last run under it. */
 .titelfilter-gruppe { margin: var(--space-3) 0 0; }
 .titelfilter-gruppe > .field__label { margin: 0; }

@@ -16,9 +16,15 @@ PROFILE = (f"# Suchprofil\n\n{REGION}## Keywords\n- Kernliste: Kursleiter, Lernb
 # job-room 3 + 2, jobs.ch 2 × 3 + 2, jobscout24 1 × 3, ictjobs off: 16 searches. A keyword costs 4, a niche 2.
 OFF = ["ictjobs"]
 DUPLICATE = ("„Kursleiter“ steht zweimal: in der Kernliste und bei den Nischen. Bei den Nischen sucht die App ohne Ort, "
-             "also auch alles, was die Kernliste findet. Das kostet 4 und 2 Suchen pro Suchlauf.")
+             "also auch alles, was die Kernliste findet. In der Kernliste kostet er 4 Suchen pro Suchlauf, bei den Nischen 2.")
 OVERLAP = ("„Kursleiter Informatik“ steckt ganz in „Kursleiter“: Die Suche nach „Kursleiter“ findet diese Stellen meist "
            "schon. „Kursleiter Informatik“ kostet 4 Suchen pro Suchlauf.")
+# The setup of screenshot 4: no choice of portals yet, so ictjobs runs only while a computing term may run there.
+WITH_LIMIT = (f"{REGION}## Keywords\n- Kernliste: Kursleiter, Lernbegleiter, Kursleiter Informatik, Lerncoach\n"
+              "- Nischen (ohne Ort suchen): Kursleiter, Lernatelier\n- Nur jobs.ch, job-room: Lerncoach\n")
+GOES_OFF = "das ist in der Zahl schon eingerechnet."
+NARROW_QUERY = {"portal": "jobs.ch", "stichwort": "Kursleiter Informatik", "ort": "Aarau"}
+BROAD_QUERY = {"portal": "jobs.ch", "stichwort": "Kursleiter", "ort": "Aarau"}
 
 
 def found(text: str = PROFILE, off=OFF, kept=(), shown=()) -> list[dict]:
@@ -79,13 +85,53 @@ def test_a_kept_pair_is_not_shown_again():
     assert texts(found(kept=[first[0]["id"]])) == [OVERLAP]
 
 
+def queried(both: int, total: int = 14) -> list[dict]:
+    """Hits of the narrower term, `both` of them found by the broader term too, and one of the broader term only."""
+    mine = [{"id": f"h-{n}", "abfragen": [NARROW_QUERY, BROAD_QUERY] if n < both else [NARROW_QUERY]} for n in range(total)]
+    return [*mine, {"id": "h-x", "abfragen": [BROAD_QUERY]}]
+
+
 def test_the_overlap_says_how_many_of_its_hits_the_broader_term_found_too():
-    narrow = {"portal": "jobs.ch", "stichwort": "Kursleiter Informatik", "ort": "Aarau"}
-    broad = {"portal": "jobs.ch", "stichwort": "Kursleiter", "ort": "Aarau"}
-    shown = [{"id": f"h-{n}", "abfragen": [narrow, broad] if n < 13 else [narrow]} for n in range(14)]
-    shown = [*shown, {"id": "h-x", "abfragen": [broad]}]
-    overlap = found(shown=shown)[1]
+    overlap = found(shown=queried(13))[1]
     assert overlap["text"] == f"{OVERLAP} Von seinen 14 Treffern kamen 13 auch über „Kursleiter“."
+
+
+def test_when_less_than_half_came_through_the_broader_term_it_only_should_find_them():
+    overlap = found(shown=queried(6))[1]
+    assert overlap["text"] == ("„Kursleiter Informatik“ steckt ganz in „Kursleiter“: Die Suche nach „Kursleiter“ sollte "
+                               "diese Stellen auch finden. „Kursleiter Informatik“ kostet 4 Suchen pro Suchlauf. Von "
+                               "seinen 14 Treffern kamen 6 auch über „Kursleiter“.")
+
+
+def test_a_duplicate_the_plan_searches_once_anyway_has_no_cost_sentence():
+    text = f"{REGION}## Keywords\n- Kernliste: Kursleiter, Lernbegleiter\n- Weitere: Kursleiter\n"
+    [pair] = found(text)
+    assert pair["text"] == ("„Kursleiter“ steht zweimal: in der Kernliste und in der Zeile „Weitere“. Die App sucht ihn "
+                            "trotzdem nur einmal.")
+
+
+def test_removing_the_only_term_ictjobs_runs_for_says_the_portal_goes_off():
+    pairs = found(WITH_LIMIT, off=None)
+    assert pairs[-1]["text"] == ("„Kursleiter Informatik“ steckt ganz in „Kursleiter“: Die Suche nach „Kursleiter“ findet "
+                                 "diese Stellen meist schon. „Kursleiter Informatik“ kostet 8 Suchen pro Suchlauf. Ohne "
+                                 "ihn sucht die App nicht mehr auf ictjobs; das ist in der Zahl schon eingerechnet.")
+    assert not any(GOES_OFF in pair["text"] for pair in pairs[:-1])
+
+
+def test_a_duplicate_names_the_entry_without_which_a_portal_goes_off():
+    text = f"{REGION}## Keywords\n- Kernliste: Kursleiter Informatik, Lernbegleiter\n- Nur jobs.ch: Kursleiter Informatik\n"
+    [pair] = found(text, off=None)
+    assert pair["text"].endswith("In der Kernliste kostet er 4 Suchen pro Suchlauf, in der Zeile „Nur jobs.ch“ keine "
+                                 "zusätzliche. Ohne den Eintrag in der Kernliste sucht die App nicht mehr auf ictjobs; das "
+                                 "ist in der Zahl schon eingerechnet.")
+
+
+@pytest.mark.parametrize("text, off", [
+    (WITH_LIMIT, []),
+    (WITH_LIMIT.replace("Lerncoach\n- Nischen", "Lerncoach, Informatiklehrer\n- Nischen"), None),
+], ids=["switched-on-by-the-person", "another-term-keeps-it"])
+def test_a_portal_that_stays_on_is_not_named(text, off):
+    assert not any(GOES_OFF in pair["text"] for pair in found(text, off=off))
 
 
 def test_removing_the_last_core_term_is_not_offered():
@@ -158,6 +204,16 @@ def test_removing_the_narrower_term_says_what_the_next_search_saves(search):  # 
     assert "Kursleiter Informatik" not in path.read_text(encoding="utf-8")
     assert post(search, "/api/beruf/rueckgaengig", {"beruf": answer["beruf"], "vorher": answer["rueckgaengig"]})[0] == 200
     assert path.read_text(encoding="utf-8") == PROFILE
+
+
+def test_removing_the_only_term_ictjobs_runs_for_says_the_run_leaves_it_out(search):  # noqa: F811
+    path = search.kontext.daten / search_plan.PROFILE
+    path.write_text(WITH_LIMIT, encoding="utf-8")  # no choice of portals stored
+    pair = shown(search)[-1]
+    status, answer = post(search, "/api/suche/doppelt/entfernen", {"paar": pair["id"], "seite": pair["optionen"][0]["seite"]})
+    assert status == 200
+    assert answer["text"] == ("„Kursleiter Informatik“ entfernt. Der nächste Suchlauf spart 8 Suchen und sucht nicht mehr "
+                              "auf ictjobs.")
 
 
 def test_keeping_both_is_remembered_for_that_pair(search):  # noqa: F811

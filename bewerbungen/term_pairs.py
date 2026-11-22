@@ -179,6 +179,18 @@ def _saved(after: str, total: int, postal_code: str | None, switched_off: list[s
     return None if later is None else total - later
 
 
+def lost_portals(text: str, after: str, postal_code: str | None, switched_off: list[str] | None) -> tuple[str, ...]:
+    """The portals the run leaves out without the entry: until the person chooses, ictjobs runs only for a term that
+    fits it (`search_plan.chosen`). A portal the person chose stays as it is, so then none."""
+    if switched_off is not None:
+        return ()
+    try:
+        before, later = (search_plan.chosen(search_plan.parse(profile, postal_code), None).portals for profile in (text, after))
+    except ValueError:
+        return ()
+    return tuple(portal for portal in before if portal not in later)
+
+
 def _query_keys(hit: dict) -> set[str]:
     found = hit.get(QUERIES)
     queries = found if isinstance(found, list) else []
@@ -202,23 +214,26 @@ def _line_facts(line: Line) -> tuple[str, str, tuple[str, ...]]:
     return line.kind, line.label, line.portals
 
 
-def _duplicate(candidate: Candidate, total: int, postal_code: str | None, switched_off: list[str] | None) -> dict:
+def _duplicate(candidate: Candidate, text: str, total: int, postal_code: str | None,
+               switched_off: list[str] | None) -> dict:
     first, second = (_saved(option.after, total, postal_code, switched_off) for option in candidate.options)
     # a removal the plan cannot search without costs what the run has besides the other entry
     cost_a = first if first is not None else max(total - (second or 0), 0)
     cost_b = second if second is not None else max(total - cost_a, 0)
+    lost_a, lost_b = (lost_portals(text, option.after, postal_code, switched_off) for option in candidate.options)
     a, b = candidate.lines
-    return {"text": words.duplicate(candidate.term, _line_facts(a), _line_facts(b), cost_a, cost_b),
+    return {"text": words.duplicate(candidate.term, _line_facts(a), _line_facts(b), cost_a, cost_b, (lost_a, lost_b)),
             "optionen": [_option(option, cost, False) for option, cost in zip(candidate.options, (cost_a, cost_b))
                          if option.offered]}
 
 
-def _overlap(candidate: Candidate, total: int, postal_code: str | None, switched_off: list[str] | None,
+def _overlap(candidate: Candidate, text: str, total: int, postal_code: str | None, switched_off: list[str] | None,
              shown: list[dict]) -> dict:
     [option] = candidate.options
     cost = max(_saved(option.after, total, postal_code, switched_off) or 0, 0)
     shared = _shared(shown, candidate.term, candidate.broader)
-    return {"text": words.overlap(candidate.term, candidate.broader, cost, shared),
+    lost = lost_portals(text, option.after, postal_code, switched_off)
+    return {"text": words.overlap(candidate.term, candidate.broader, cost, shared, lost),
             "optionen": [_option(option, cost, True)] if option.offered else []}
 
 
@@ -231,8 +246,8 @@ def pairs(text: str, postal_code: str | None, switched_off: list[str] | None, ke
     for candidate in candidates(text):
         if candidate.id in kept:
             continue
-        body = (_duplicate(candidate, total, postal_code, switched_off) if candidate.kind == DUPLICATE
-                else _overlap(candidate, total, postal_code, switched_off, shown))
+        body = (_duplicate(candidate, text, total, postal_code, switched_off) if candidate.kind == DUPLICATE
+                else _overlap(candidate, text, total, postal_code, switched_off, shown))
         found = [*found, {"id": candidate.id, "art": candidate.kind, "begriff": candidate.term, **body,
                           "behalten": words.KEEP, "behalten_name": words.keep_name(candidate.term, candidate.broader)}]
     return found
@@ -248,8 +263,9 @@ def removal(text: str, pair_id: str, side: str, postal_code: str | None, switche
     saved = before - after if before is not None and after is not None else 0
     line = option.line
     kind, label = (None, "") if candidate.kind == OVERLAP or line is None else (line.kind, line.label)
-    return Removal(option.after, option.term, line.id if line else None, words.removed(option.term, kind, label, saved),
-                   words.back(option.term, line.kind if line else None, line.label if line else ""))
+    lost = lost_portals(text, option.after, postal_code, switched_off)
+    return Removal(option.after, option.term, line.id if line else None,
+                   words.removed(option.term, kind, label, saved, lost), words.back(option.term, line.kind if line else None, line.label if line else ""))
 
 
 def restored(former: str | None, text: str, name: str, line_id: str) -> str:
