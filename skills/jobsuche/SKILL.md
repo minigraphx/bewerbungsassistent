@@ -91,12 +91,13 @@ const j = await r.json(); // j.num_pages, j.documents[]
 Die Trefferlisten sind serverseitig gerendert; per same-origin `fetch` holen und mit `DOMParser` lesen:
 
 ```js
-const html = await (await fetch('/de/jobs/?ft=' + encodeURIComponent('<Keyword>') + '&psz=<PLZ>' + (p > 1 ? '&p=' + p : ''))).text();
+const html = await (await fetch('/de/jobs/?ft=' + encodeURIComponent('<Keyword>') + '&psz=<PLZ>&sort=1' + (p > 1 ? '&p=' + p : ''))).text();
 const doc = new DOMParser().parseFromString(html, 'text/html');
 // je Treffer: li.job-list-item (data-job-id, data-job-detail-url), a.job-title (title), p.job-attributes span (Firma, Ort)
 ```
 
 - Ort über die Postleitzahl (`psz`, Werte aus dem Suchprofil), 20 Treffer pro Seite, `p=2` usw. bis eine Seite weniger als 20 liefert. Nach `data-job-id` deduplizieren.
+- `sort=1` liefert die neusten Inserate zuerst, auch mit `regidl`. Das Alter steht nur als Text (`New` = heute, `1 T`, `2 W`, `1+M`). Jede Seite hat oben und unten gesponserte Inserate (`data-view-source` `toplisting` und `bottomlisting`), die der Sortierung nicht folgen.
 - `psz` sucht immer 20 km um die PLZ, nahe PLZ liefern darum oft dieselben Inserate. Steht im Suchprofil unter Region eine Zeile `- Regionen (jobscout24): …`, statt der PLZ pro Keyword einmal mit allen Regionen suchen: `regidl` einmal pro Region (`&regidl=3&regidl=14`), ohne `psz`, und bis zu 10 Seiten lesen. Die Nummern stehen in der Region-Auswahl von jobscout24: 1 Nordwestschweiz (AG/BL/BS/SO), 2 Region Zürich (AG/SH/ZG/ZH), 3 Region Bern (BE/FR/SO), 13 Mittelland (AG/BE/SO), 4 Ostschweiz (AI/AR/GL/SG/SH/TG), 5 Zentralschweiz (LU/NW/OW/SZ/UR/ZG), 6 Graubünden (GR), 7 Valais / Wallis (VS), 8 Région Lémanique (GE/VD), 9 Nord Romandie (FR/JU/JuraBE/NE), 10 Ticino (TI), 11 Ausland, 14 Homeoffice / Remote. Die PLZ-Zeile bleibt stehen und gilt wieder, sobald keine Region mehr gewählt ist.
 - Viele Inserate stammen von Vermittlern (z.B. ONE Agency, myitjob, Summit Recruitment, Rocken); Regeln aus 4 anwenden.
 - Volltext: Detailseite (`data-job-detail-url`) per `fetch` holen, `script`/`nav`/`header`/`footer` entfernen und den Text ab „Online bewerben“ nach dem Anforderungsabschnitt durchsuchen. Bei manchen Firmen steht der Text in einem iframe und ist so nicht lesbar; dann in der Antwort „Volltext nicht lesbar“ nennen.
