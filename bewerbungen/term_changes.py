@@ -11,6 +11,7 @@ import json
 
 import search_plan
 import search_terms
+import title_filter
 from ai import career
 
 KEYWORDS, POSITIVE, EXCLUDE = "keywords", "positive", "exclude"
@@ -73,10 +74,11 @@ def terms_of(text: str) -> Terms:
 
 
 def _same(area: str, one: str, other: str) -> bool:
-    """Search terms compare like the search does (forms of a name); title terms as words, ignoring case."""
+    """Search terms compare like the search does (forms of a name); title terms as words, ignoring case and whether
+    they carry «(ganzes Wort)», so one term never stands twice in a list."""
     if area == KEYWORDS:
         return search_plan.profession_words(one) == search_plan.profession_words(other)
-    return one.casefold() == other.casefold()
+    return title_filter.bare(one).casefold() == title_filter.bare(other).casefold()
 
 
 def _contains(area: str, terms: tuple[str, ...], term: str) -> bool:
@@ -96,11 +98,19 @@ def _avoids(term: str, avoided: tuple[str, ...]) -> bool:
     return any(word in term.casefold() for word in avoided)
 
 
-def _names(value: object) -> tuple[str, ...]:
+def _name(area: str, name: object) -> str | None:
+    """A term as the AI wrote it; in a title filter it may end in «(ganzes Wort)» (G104), checked without it."""
+    if area != KEYWORDS and isinstance(name, str) and title_filter.marked(name):
+        plain = title_filter.bare(name)
+        return title_filter.with_marker(plain) if career.is_job_term(plain) else None
+    return " ".join(name.split()) if career.is_job_term(name) else None
+
+
+def _names(area: str, value: object) -> tuple[str, ...]:
     if not isinstance(value, list):
         return ()
-    names = (" ".join(name.split()) for name in value[:MAX_TERMS_PER_CHANGE] if career.is_job_term(name))
-    return tuple(dict.fromkeys(names))
+    names = (_name(area, name) for name in value[:MAX_TERMS_PER_CHANGE])
+    return tuple(dict.fromkeys(name for name in names if name))
 
 
 def _cleaned(raw: object, current: Terms, avoided: tuple[str, ...], taken: dict[str, tuple[str, ...]]) -> Change | None:
@@ -108,7 +118,7 @@ def _cleaned(raw: object, current: Terms, avoided: tuple[str, ...], taken: dict[
     if not isinstance(raw, dict) or raw.get("area") not in AREAS:
         return None
     area = raw["area"]
-    asked_remove, asked_add = _names(raw.get("remove")), _names(raw.get("add"))
+    asked_remove, asked_add = _names(area, raw.get("remove")), _names(area, raw.get("add"))
     remove = tuple(term for term in asked_remove if _contains(area, current.of(area), term))
     add = tuple(term for term in asked_add
                 if not _contains(area, current.of(area), term) and not _contains(area, taken.get(area, ()), term)

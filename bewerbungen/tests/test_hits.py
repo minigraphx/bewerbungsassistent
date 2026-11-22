@@ -130,9 +130,10 @@ def test_screen_sorts_listing_into_fetch_known_and_filtered(store):
     assert [f["grund"] for f in result["gefiltert"]] == ["Titel: Praktikum", "älter als 45 Tage"]
 
 
-def test_title_filter_matches_whole_words_only(store):
+def test_title_filter_matches_a_marked_term_as_a_whole_word_only(store):
     listing = [hit(portal_id="s-1", stelle="Salesforce Developer", link="https://www.jobs.ch/x/s-1")]
-    assert store.screen(listing, ("Sales",), 45, [])["holen"] == ["jobs.ch:s-1"]
+    assert store.screen(listing, ("Sales (ganzes Wort)",), 45, [])["holen"] == ["jobs.ch:s-1"]
+    assert store.screen(listing, ("Sales",), 45, [])["gefiltert"] == [{"stelle": "Salesforce Developer", "grund": "Titel: Sales"}]
 
 
 def test_update_and_state_changes(store):

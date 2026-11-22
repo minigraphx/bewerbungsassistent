@@ -244,6 +244,8 @@ Auf **Suche einstellen** steht unter **Welche Stellen passen zu Ihnen?** bei jed
 
 In der Karte **Region und Pensum** zeigt **Was die Orte bringen** dasselbe pro Portal und Ort, etwa **jobs.ch, Aarau: 24 Suchen · 30 Treffer · 4 neu · 2 ab Note 4**, auch hier mit **ohne Ertrag**, wenn ein Ort in 3 Suchläufen nichts gebracht hat. Suchen ohne Ort, etwa für die **Nischen**, stehen dort als **jobs.ch, ohne Ort**; in **Wo ein Begriff nichts findet** steht hinter einem Nischenbegriff **(Nische)**. Treffer aus Suchläufen vor Version 0.3.3 zählen als **Ohne Angabe**: Über welchen Begriff sie kamen, hat die App damals nicht festgehalten. Bei der Lehrstellensuche stehen die Zahlen pro Beruf; die Orte zeigt die App dort nicht, denn gesucht wird im Umkreis um den Wohnort.
 
+Der Titelfilter unter **Erweitert** prüft jeden Titel, bevor die App das Inserat liest. Ein Begriff passt dabei als ganzes Wort und auch als Anfang oder Ende eines längeren Worts, nie in der Mitte: **Software** passt zu **Softwareentwickler**, **Bildung** zu **Erwachsenenbildung**, **Praktikum** zu **Sommerpraktikum**. Soll ein Begriff nur als ganzes Wort passen, schreiben Sie **(ganzes Wort)** dahinter, etwa **Sales (ganzes Wort)**: Dann sortiert er **Sales Manager** aus, aber nicht **Salesforce-Entwickler**. Bei einer Gruppe mit Schrägstrich gilt der Zusatz für jeden Begriff, **Intern/Trainee (ganzes Wort)** also für beide. Begriffe mit höchstens drei Buchstaben wie **KI** oder **PhD** passen immer nur als ganzes Wort. Was der Filter im letzten Suchlauf getan hat, zeigt er unter **Titel, die passen** und **Titel, die nicht passen**: pro Begriff etwa **8 Titel durchgelassen, zum Beispiel „…“, „…“**, mit höchstens 3 Beispielen, und am Ende, wie viele Titel ohne passenden Begriff aussortiert wurden. Die Beispiele stammen nur aus Ihrem eigenen letzten Suchlauf; vor dem ersten steht **Beispiele gibt es nach dem nächsten Suchlauf.** In der Karte **Was Sie nicht sehen wollen** führt **Was der Titelfilter aussortiert hat** unter **Im Titel** direkt dorthin.
+
 ### Suchbegriffe prüfen
 
 Bringt ein Begriff aus dem Titelfilter viele Treffer, die nicht passen, zeigt **Stellen** über der Liste den Hinweis **Ein Begriff lässt viel Unpassendes durch**. Das zählt die App selbst, ohne KI: Sobald mindestens 30 Treffer eine Note haben, prüft sie, ob ein Begriff allein viele davon hereinbringt und die meisten eine Note unter 4 haben. Der Hinweis nennt den Begriff, die Zahlen und Beispiele. Mit **Ausblenden** kommt er für diesen Begriff nicht wieder.
@@ -415,7 +417,7 @@ Unter Linux installiert sich die App nicht selbst: Auf **Neue Version herunterla
 
 ### Für Geübte
 
-Hier steht, was die meisten nie brauchen: zwei Wege zur KI ohne Einladungscode und die Dateien im Datenordner. Beide Wege sind freiwillig; mit dem Einladungscode allein läuft die App schon.
+Hier steht, was die meisten nie brauchen: zwei Wege zur KI ohne Einladungscode, die Dateien im Datenordner und wie Sie das Suchprofil von Hand bearbeiten. Beide Wege sind freiwillig; mit dem Einladungscode allein läuft die App schon.
 
 #### Eigenes Claude-Abo (freiwillig)
 
@@ -547,7 +549,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 <details>
 <summary>Suche, Verlauf und Technisches</summary>
 
-- `suche/` – die Stellensuche unter **Stellen**: `suche/treffer.yaml` mit den Treffern und ihren Bewertungen, `suche/texte/` mit den Texten der Inserate, `suche/letzte-suche.yaml` mit dem letzten Lauf pro Portal, `suche/suchlaeufe.yaml` mit jeder Suche der letzten 3 Suchläufe und was sie gebracht hat, `suche/suchlauf-offen.yaml` mit den aussortierten Titeln des laufenden Suchlaufs und `suche/einstellungen.yaml` mit den Einstellungen der Seite. Wer die Treffer in eine Tabelle übertragen will, findet sie hier.
+- `suche/` – die Stellensuche unter **Stellen**: `suche/treffer.yaml` mit den Treffern und ihren Bewertungen, `suche/texte/` mit den Texten der Inserate, `suche/letzte-suche.yaml` mit dem letzten Lauf pro Portal, `suche/suchlaeufe.yaml` mit jeder Suche der letzten 3 Suchläufe und was sie gebracht hat, auch mit Beispielen für den Titelfilter, `suche/suchlauf-offen.yaml` mit den aussortierten Titeln des laufenden Suchlaufs, `suche/titelfilter-offen.yaml` mit den Titeln, die der Titelfilter im laufenden Suchlauf geprüft hat, und `suche/einstellungen.yaml` mit den Einstellungen der Seite. Wer die Treffer in eine Tabelle übertragen will, findet sie hier.
 - `firmen.yaml` – was die App über die Firmen aus Treffern und Bewerbungen bei kununu weiss: die zugeordnete kununu-Seite, Wert, Anzahl Bewertungen und wann geprüft wurde. Sie entsteht auf **Stellen** im Reiter **Firmen**.
 - `firmen-ausgeschlossen.yaml` – die Firmen, deren Inserate die Suche nicht mehr zeigt, ein Name pro Zeile. Sie entsteht mit **Diese Firma nicht mehr zeigen** bei einem Treffer, einer Bewerbung oder im Reiter **Firmen**, und **Diese Firma wieder zeigen** nimmt eine Firma dort wieder heraus; Sie ändern sie unter **Suche einstellen**, **Was Sie nicht sehen wollen**.
 - `.entwuerfe/` – jeder frühere Stand Ihrer Dateien, mit `.entwuerfe/index.yaml` als Verzeichnis. Die App zeigt sie unter **Entwürfe und Versionen**, erreichbar auf **Lebenslauf und Dateien** mit **Frühere Fassungen ansehen**. Von hier holen Sie einen alten Stand zurück.
@@ -559,6 +561,15 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 Ordner und Dateien mit einem Punkt am Anfang zeigen Finder und Explorer meist nicht an. Auf dem Mac blenden Sie sie mit ⇧⌘. ein, unter Windows im Explorer unter **Anzeigen**, **Einblenden**, **Ausgeblendete Elemente**.
 
 </details>
+
+#### Suchprofil von Hand bearbeiten
+
+Das Suchprofil `suchprofil.md` ist ein Text im Format Markdown. Die Suche liest Zeilen der Form `- Bezeichnung: Wert`, etwa im Abschnitt `## Titelfilter`:
+
+- `- Positiv: Software, Entwickler/Developer, Daten/Data, KI`
+- `- Ausschluss: Praktikum, Werkstudent, Sales (ganzes Wort), Intern/Trainee (ganzes Wort)`
+
+Einträge trennen Sie mit Komma; Begriffe mit Schrägstrich bilden eine Gruppe. Ein Begriff passt auch als Anfang oder Ende eines Worts, mit `(ganzes Wort)` hinter dem Eintrag nur als ganzes Wort, bei einer Gruppe für jeden Begriff. Begriffe mit höchstens drei Buchstaben passen immer nur als ganzes Wort. Den Zusatz lässt die App stehen, wenn sie die Zeile ändert. Erstellen Sie vorher eine Sicherung wie unter [Was im Datenordner liegt](#was-im-datenordner-liegt) beschrieben; sicherer ist es, den Titelfilter auf **Suche einstellen** unter **Erweitert** zu ändern.
 
 ### Häufige Fehler
 

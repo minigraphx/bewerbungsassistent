@@ -1,7 +1,7 @@
 """Profile values with a remark in brackets or several terms joined by a slash (#176)."""
-import hits
 import search_plan
 import search_terms
+import title_filter
 
 PROFILE = """# Suchprofil
 
@@ -32,11 +32,12 @@ def test_a_slash_splits_title_excludes_and_the_remark_goes():
 
 def test_title_excludes_from_slash_values_filter_titles():
     exclude = search_plan.parse(PROFILE).title_exclude
-    assert hits._title_match("Senior Java Developer", exclude) == "Java"
-    assert hits._title_match("Software Engineer .NET", exclude) == ".NET"
-    assert hits._title_match("Key Account Manager Sales", exclude) == "Sales"
-    assert hits._title_match("Embedded Software Engineer", exclude) == "Embedded"
-    assert hits._title_match("Python Developer", exclude) is None
+    assert title_filter.first_match("Senior Java Developer", exclude) == "Java"
+    assert title_filter.first_match("Software Engineer .NET", exclude) == ".NET"
+    assert title_filter.first_match("Key Account Manager Sales", exclude) == "Sales"
+    assert title_filter.first_match("Embedded Software Engineer", exclude) == "Embedded"
+    assert title_filter.first_match("Python Developer", exclude) is None
+    assert title_filter.first_match("Lead C#-Developer", exclude) == "C#"
 
 
 def test_a_gender_form_after_the_slash_stays_one_term():

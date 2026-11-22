@@ -24,6 +24,7 @@ import routes_career
 import routes_missing_ads
 import routes_window
 from hits import CLOSED, PORTALS_OFF, QUERIES, TRIAL, Hits, bounded_text, company_key, comparable_link, is_near
+from hits import key as hit_key
 from query_log import QueryLog
 from server import json_antwort, pflicht
 
@@ -73,17 +74,19 @@ def plan(k, parameter, body):
 def screen(k, parameter, body):
     current = search_plan.for_folder(k.daten)
     store = _hits(k)
-    screened_out = []
+    screened_out, checked = [], []
     result = store.screen(_list(body), current.title_exclude, current.max_age_days, k.register().alle(),
                           own_sites.active_portals(store),
                           near=lambda place: is_near(str(place), current.places, current.postal_codes),
                           title_positive=current.title_positive,
                           max_age_by_portal=_portal_days(store, current, k.heute()),
                           excluded=excluded_companies.keys(k.daten),
-                          on_screened_out=lambda hit, reason: screened_out.append((hit.get(QUERIES, []), hit["stelle"], reason)))
+                          on_screened_out=lambda hit, reason: screened_out.append((hit.get(QUERIES, []), hit["stelle"], reason)),
+                          on_title_checked=lambda hit, found: checked.append((hit_key(hit), hit["stelle"], found)))
     log = QueryLog(k.daten)
     for queries, title, reason in screened_out:
         log.note_screened(queries, title, reason)
+    log.note_titles(checked)
     return json_antwort(result)
 
 

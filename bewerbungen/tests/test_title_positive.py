@@ -28,7 +28,7 @@ def ad(number: int, title: str) -> dict:
 
 
 LISTING = [ad(1, "Python Developer"), ad(2, "Sachbearbeiter Einkauf"), ad(3, "Senior DATA Engineer"),
-           ad(4, "Praktikum Python"), ad(5, "Pythonista gesucht")]
+           ad(4, "Praktikum Python"), ad(5, "Hobbypythonista gesucht")]
 
 
 def test_the_plan_reads_the_positive_terms_split_on_comma_and_slash():
@@ -39,7 +39,7 @@ def test_titles_without_a_positive_term_are_screened_before_the_text(tmp_path):
     result = hits.Hits(tmp_path).screen(LISTING, ("Praktikum",), 45, [], title_positive=("Python", "Developer", "Data"))
     assert result["holen"] == ["jobs.ch:t-1", "jobs.ch:t-3"]
     assert {"stelle": "Sachbearbeiter Einkauf", "grund": REASON} in result["gefiltert"]
-    assert {"stelle": "Pythonista gesucht", "grund": REASON} in result["gefiltert"], "whole words only"
+    assert {"stelle": "Hobbypythonista gesucht", "grund": REASON} in result["gefiltert"], "never in the middle of a word"
     assert {"stelle": "Praktikum Python", "grund": "Titel: Praktikum"} in result["gefiltert"]
 
 

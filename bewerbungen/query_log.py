@@ -2,19 +2,23 @@
 
 At the end of a run the extension names every query per portal with the number of hits its result list had, so a
 query that found nothing is kept too. While screening, the app counts per query the titles the title filter kept out,
-with up to three examples; those wait in `suchlauf-offen.yaml` until the run ends and then belong to it. Only the last
-three runs are kept, in `suche/suchlaeufe.yaml`, beside the hits and out of Git like them.
+with up to three examples; those wait in `suchlauf-offen.yaml` until the run ends and then belong to it. So do the
+example titles per term of the title filter (G104, `title_examples`), waiting in `titelfilter-offen.yaml`. Only the
+last three runs are kept, in `suche/suchlaeufe.yaml`, beside the hits and out of Git like them.
 """
 import dataclasses
 import datetime
 import pathlib
 import threading
 
+import title_examples
 from dateien import lies_yaml, schreibe_yaml
 from hits import FOLDER, bounded_text, checked_query
+from title_filter import Verdict
 
 RUNS_FILE = "suchlaeufe.yaml"
 PENDING_FILE = "suchlauf-offen.yaml"
+TITLES_PENDING_FILE = "titelfilter-offen.yaml"  # G104: the example titles per term until the run ends
 KEPT_RUNS = 3
 MAX_QUERIES_PER_PORTAL = 2000
 MAX_EXAMPLES = 3
@@ -87,11 +91,22 @@ class QueryLog:
                                      **_screened(entries.get(_key(query)), title, reason)} for query in queries}
             schreibe_yaml(self.folder / PENDING_FILE, {"abfragen": list({**entries, **changed}.values())})
 
-    def close_run(self, queries_by_portal: dict[str, list[dict]], today: datetime.date) -> dict | None:
-        """The run with every query and what the title filter kept out of each; None when no portal named its queries.
-
-        The screen-outs of the run are then gone from the waiting file, also when nothing was recorded."""
+    def note_titles(self, checks: list[tuple[str, str, Verdict]]) -> None:
+        """Titles the title filter looked at, each (hit key, title, verdict), for the examples per term (G104)."""
+        if not checks:
+            return
         with _LOCK:
+            tally = title_examples.noted(lies_yaml(self.folder / TITLES_PENDING_FILE, {}), checks)
+            schreibe_yaml(self.folder / TITLES_PENDING_FILE, tally)
+
+    def close_run(self, queries_by_portal: dict[str, list[dict]], today: datetime.date) -> dict | None:
+        """The run with every query and what the title filter kept out of each, and the example titles per term of the
+        title filter; None when no portal named its queries.
+
+        The screen-outs and titles of the run are then gone from the waiting files, also when nothing was recorded."""
+        with _LOCK:
+            titles = title_examples.closed(lies_yaml(self.folder / TITLES_PENDING_FILE, {}))
+            schreibe_yaml(self.folder / TITLES_PENDING_FILE, {})
             waiting = {_key(entry): entry for entry in self._pending()}
             queries = [{"portal": portal, **query} for portal, listed in queries_by_portal.items() for query in listed]
             # a query twice in one run (a trial beside the apprenticeship) carries the screen-outs once
@@ -102,6 +117,6 @@ class QueryLog:
             schreibe_yaml(self.folder / PENDING_FILE, {"abfragen": []})
             if not entries:
                 return None
-            run = {"datum": today.isoformat(), "abfragen": entries}
+            run = {"datum": today.isoformat(), "abfragen": entries, title_examples.KEY: titles}
             schreibe_yaml(self.folder / RUNS_FILE, [*self.runs(), run][-KEPT_RUNS:])
             return run

@@ -12,6 +12,7 @@ import secrets
 import dismissed_words
 import rate_all
 import rating_exclusion
+import title_filter
 from ai import prompts, tasks
 from ai.errors import BAD_ANSWER, AnswerError
 from ai.gateway import Gateway, Request
@@ -41,6 +42,7 @@ INSTRUCTIONS = """Aufgabe: Finde in den verworfenen Stellen Gründe, die mehrere
 
 - category: titel (ein Wort, das in den Titeln steht), pensum, branche, ort (Arbeitsort) oder anderes.
 - value: der Ausschluss, kurz, ohne Komma. Bei titel genau das Wort, so geschrieben wie in den Titeln. Sonst wenige Wörter, zum Beispiel «Detailhandel» oder «Pensum unter 60 %».
+- Ein Wort im Titel schliesst auch Titel aus, in denen es Anfang oder Ende eines längeren Worts ist: «Sales» auch «Salesforce-Entwickler». Soll es nur als ganzes Wort gelten, hänge «(ganzes Wort)» an, etwa «Sales (ganzes Wort)». Wörter mit höchstens drei Buchstaben gelten immer nur als ganzes Wort.
 - reason: ein Satz, was die Stellen gemeinsam haben. Sprich die Person nicht an.
 - hits: die Kennungen der Stellen, auf die sich der Vorschlag stützt, genau wie in der Liste. Mindestens zwei.
 - Höchstens 5 Vorschläge, der mit den meisten Stellen zuerst. Findest du nichts Gemeinsames, gib eine leere Liste zurück.
@@ -122,12 +124,15 @@ def _ids(raw: object, by_label: dict[str, dict]) -> tuple[str, ...]:
 
 
 def _title_proposal(value: str, ids: tuple[str, ...], titles: dict[str, str], frame: Frame) -> tuple | None:
-    """A title word only if its hits' titles have it, it is not excluded yet and the search does not look for it."""
-    if len(value) < dismissed_words.MIN_LETTERS or value.casefold() in dismissed_words.blocked(frame.positive, frame.titles):
+    """A title word only if its hits' titles have it, it is not excluded yet and the search does not look for it.
+    It may end in «(ganzes Wort)» (G104), written then as the profile writes it."""
+    word = title_filter.bare(value)
+    if len(word) < dismissed_words.MIN_LETTERS or word.casefold() in dismissed_words.blocked(frame.positive, frame.titles):
         return None
-    if any(dismissed_words.has_word(value, term) for term in frame.titles):
+    if any(dismissed_words.has_word(word, term) for term in frame.titles):
         return None
-    return value, tuple(i for i in ids if dismissed_words.has_word(titles[i], value))
+    term = title_filter.with_marker(word) if title_filter.marked(value) else word
+    return term, tuple(i for i in ids if dismissed_words.has_word(titles[i], term))
 
 
 def _ad_proposal(value: str, ids: tuple[str, ...], frame: Frame) -> tuple | None:

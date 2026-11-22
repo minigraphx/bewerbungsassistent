@@ -48,6 +48,11 @@
     // Suche einstellen (#263, A4): the cards
     "einstellen.was": { sie: "Welche Stellen passen zu Ihnen?", du: "Welche Stellen passen zu dir?", lehrstelle: "Welche Lehrstellen passen zu dir?" },
     "einstellen.nicht": { sie: "Was Sie nicht sehen wollen", du: "Was du nicht sehen willst" },
+    // How a title filter term matches (G104, #382): in the Titelfilter form and under «Im Titel»; jobs only
+    "einstellen.titel-regel": {
+      sie: "Ein Begriff passt auch als Anfang oder Ende eines Worts: „Software“ passt zu „Softwareentwickler“, „Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreiben Sie „(ganzes Wort)“ dahinter, etwa „Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.",
+      du: "Ein Begriff passt auch als Anfang oder Ende eines Worts: „Software“ passt zu „Softwareentwickler“, „Bildung“ zu „Erwachsenenbildung“. Soll er nur als ganzes Wort passen, schreib „(ganzes Wort)“ dahinter, etwa „Sales (ganzes Wort)“. Begriffe mit höchstens drei Buchstaben wie „KI“ passen immer nur als ganzes Wort.",
+    },
     "einstellen.verworfen": {
       sie: "Aus den Stellen, die Sie verworfen haben: {anzahl} haben «{wort}» im Titel.",
       du: "Aus den Stellen, die du verworfen hast: {anzahl} haben «{wort}» im Titel.",

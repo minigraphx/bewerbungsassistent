@@ -2586,6 +2586,28 @@
       ]
     },
     {
+      "name": "title terms marked as whole words are taken as written (G104)",
+      "base": "job",
+      "set": [
+        [
+          "data.searchJob.titlePositive",
+          [
+            "Software",
+            "KI (ganzes Wort)"
+          ]
+        ],
+        [
+          "data.searchJob.titleExclude",
+          [
+            "Intern/Trainee (ganzes Wort)",
+            "Sales (ganzes Wort)",
+            "Pflege"
+          ]
+        ]
+      ],
+      "errors": []
+    },
+    {
       "name": "more positive title terms than the search takes",
       "base": "job",
       "set": [

@@ -14,6 +14,7 @@ import re
 import threading
 import urllib.parse
 
+import title_filter
 from dateien import lies_yaml, schreibe_atomar, schreibe_yaml
 from preferences import SAVED_IN, SIE
 from register import slug
@@ -261,19 +262,11 @@ def _with_link(stored: list[dict], twin: dict, hit: dict) -> list[dict] | None:
     return [merged if h is twin else h for h in stored]
 
 
-def _title_match(title: str, terms: tuple[str, ...]) -> str | None:
-    for term in terms:
-        if re.search(rf"(?<!\w){re.escape(term)}(?!\w)", title, re.IGNORECASE):
-            return term
-    return None
-
-
-def _title_reason(title: str, exclude: tuple[str, ...], positive: tuple[str, ...]) -> str:
-    """Why the title filter keeps a title out, or ''."""
-    term = _title_match(title, exclude)
-    if term:
-        return f"Titel: {term}"
-    return NO_POSITIVE_TERM if positive and _title_match(title, positive) is None else ""
+def _title_reason(found: title_filter.Verdict) -> str:
+    """Why the title filter keeps a title out, or ''; the term as the title shows it, without the marker."""
+    if found.excluded_by:
+        return f"Titel: {title_filter.bare(found.excluded_by[0])}"
+    return NO_POSITIVE_TERM if found.without_term else ""
 
 
 def company_hint(hit: dict, register: list[dict]) -> str:
@@ -380,14 +373,16 @@ class Hits:
     def screen(self, listing: list, title_exclude: tuple[str, ...], max_age: int, register: list[dict],
                own_portals: frozenset[str] = frozenset(), near=lambda place: False,
                title_positive: tuple[str, ...] = (), max_age_by_portal: dict[str, int] | None = None,
-               excluded: frozenset[str] = frozenset(), on_screened_out=lambda hit, reason: None) -> dict:
+               excluded: frozenset[str] = frozenset(), on_screened_out=lambda hit, reason: None,
+               on_title_checked=lambda hit, found: None) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away. With positive
         terms (G31), a title needs one of them; the others are screened out before their text counts against the limit.
         `max_age_by_portal` shortens the window per portal after a successful run (G32). `excluded`: company keys
         the person no longer wants to see (#226); their hits are only counted. `on_screened_out` hears of each hit
-        the title filter kept out, with its reason, so the queries behind it can count it (G103).
+        the title filter kept out, with its reason, so the queries behind it can count it (G103); `on_title_checked`
+        of each title the filter looked at, with its verdict, for the example titles on Suche einstellen (G104).
         """
         fetch, nearby, filtered, known, merged, left_out = [], [], [], 0, 0, 0
         ages = max_age_by_portal or {}
@@ -414,7 +409,10 @@ class Hits:
                     if updated is not None:
                         stored, merged = updated, merged + 1
                     continue
-                reason = _title_reason(hit["stelle"], title_exclude, title_positive)
+                found = title_filter.verdict(hit["stelle"], title_exclude, title_positive)
+                if title_exclude or title_positive:
+                    on_title_checked(hit, found)
+                reason = _title_reason(found)
                 if reason:
                     filtered.append({"stelle": hit["stelle"], "grund": reason})
                     on_screened_out(hit, reason)

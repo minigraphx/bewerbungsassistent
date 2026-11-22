@@ -51,7 +51,9 @@ Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 
 ## Titelfilter
 - Positiv: Python, Software, Entwickler/Developer/Engineer, Daten/Data, Web, Learning, Trainer
-- Ausschluss: Praktikum, Lehrstelle, Werkstudent, PhD, Sales, Head of
+- Ausschluss: Praktikum, Lehrstelle, Werkstudent, PhD, Sales (ganzes Wort), Head of
+
+Ein Begriff passt auch als Anfang oder Ende eines Worts: «Software» passt zu «Softwareentwickler», «Praktikum» zu «Sommerpraktikum». Mit «(ganzes Wort)» dahinter passt er nur als ganzes Wort, darum sortiert «Sales (ganzes Wort)» den «Salesforce-Entwickler» nicht aus. Bei einer Gruppe mit «/» gilt der Zusatz für jeden Begriff. Begriffe mit höchstens drei Buchstaben wie «KI» passen immer nur als ganzes Wort.
 
 ## Sprachen
 - Deutsch (Muttersprache), Englisch (gut), Französisch (Grundkenntnisse)

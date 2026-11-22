@@ -1,7 +1,8 @@
 """A title word that many dismissed hits share, proposed as a title exclusion on Suche einstellen (#225, G66).
 
-Counted by the app, without AI or cost. A word counts for a hit as the search's title filter would catch it, a whole
-word in any case (hits._title_match), so the numbers the page shows are the hits the exclusion would really keep away.
+Counted by the app, without AI or cost. A word counts for a hit as the search's title filter would catch it, also as
+the start or end of a word (title_filter, G104), so the numbers the page shows are the hits the exclusion would really
+keep away; an exclusion marked «(ganzes Wort)» catches only the whole word.
 Hits the current exclusion already catches do not count, and a word of the positive filter is never proposed: excluding
 it would end the search the person set up. The proposal only names; the profile changes when the person clicks.
 """
@@ -9,6 +10,7 @@ import collections
 import dataclasses
 import re
 
+import title_filter
 from hits import TITLE_FILLERS
 
 DISMISSED = "verworfen"
@@ -29,8 +31,8 @@ class Proposal:
 
 
 def has_word(title: str, word: str) -> bool:
-    """As the search screens titles: the word stands for itself, case does not matter."""
-    return re.search(rf"(?<!\w){re.escape(word)}(?!\w)", title or "", re.IGNORECASE) is not None
+    """As the search screens titles: at the start or end of a word, or whole as its marker or length says."""
+    return title_filter.matches(title or "", word)
 
 
 def _caught(title: str, excluded: tuple[str, ...]) -> bool:
@@ -39,7 +41,7 @@ def _caught(title: str, excluded: tuple[str, ...]) -> bool:
 
 def blocked(positive: tuple[str, ...], excluded: tuple[str, ...]) -> frozenset[str]:
     """Words never proposed: fillers, every word of a positive term and the words already excluded."""
-    words = {word.casefold() for term in (*positive, *excluded) for word in WORD.findall(term)}
+    words = {word.casefold() for term in (*positive, *excluded) for word in WORD.findall(title_filter.bare(term))}
     return frozenset(words | TITLE_FILLERS)
 
 

@@ -85,10 +85,10 @@ async function opened(answer) {
       textsatz: async () => "stelle-sie",
     },
     Texte: { ...Texte, anwenden: () => {} },
-    SucheAnzeige: { regionText: () => "", titelfilterText: () => "", zusammenfassung: () => [] },
+    SucheAnzeige: { regionText: () => "", zusammenfassung: () => [] },
     DotLine,
-    SucheRahmenLogik: { titelfilterLeer: "" },
     SucheRahmen: { zeige: () => {} },
+    TitelfilterBeispiele: { begriffe: () => {}, beispiele: () => {} },
     Suchbegriffe: { zeige: () => {} },
     PortalWahl: { zeige: () => {} },
   };
