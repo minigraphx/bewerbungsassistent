@@ -65,7 +65,7 @@ window.SucheRahmen = (() => {
     begrenze("region-pensum", stand.laengen.pensum);
     $("region-wohnort").value = werte.wohnort || "";
     kantone(werte.kantone);
-    $("kantone-hinweis").textContent = L.kantoneHinweis(stand.lehrstelle);
+    $("kantone-hinweis").textContent = L.kantoneHinweis(stand.lehrstelle, stand.nischen);
     $("region-umkreis-feld").hidden = !stand.lehrstelle;
     $("region-umkreis").replaceChildren(...L.umkreisWahl(werte.umkreis_km).map(w => el("option", { value: String(w.wert) }, w.text)));
     $("region-umkreis").value = String(L.umkreisGewaehlt(werte.umkreis_km));
@@ -125,10 +125,12 @@ window.SucheRahmen = (() => {
     }
   }
 
-  /** The values of the profile; a form that is open keeps what the person is typing. */
-  function zeige(rahmen, lehrstelle, firmen = []) {
+  /** The values of the profile; a form that is open keeps what the person is typing. `nischen`: how many niches the
+   * profile has, for the hint under the cantons (G111). */
+  function zeige(rahmen, lehrstelle, firmen = [], nischen = 0) {
     stand = { werte: rahmen.werte || {}, laengen: rahmen.laengen || {}, alleKantone: rahmen.alle_kantone || [],
-      alleRegionen: rahmen.alle_regionen || [], alleRegionenJobscout24: rahmen.alle_regionen_jobscout24 || [], lehrstelle, firmen };
+      alleRegionen: rahmen.alle_regionen || [], alleRegionenJobscout24: rahmen.alle_regionen_jobscout24 || [], lehrstelle, firmen,
+      nischen };
     const proPortal = lehrstelle ? [] : L.proPortalText(rahmen.orte_pro_portal);
     $("portale-orte-titel").hidden = !proPortal.length;
     $("portale-orte-text").hidden = !proPortal.length;

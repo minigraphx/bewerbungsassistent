@@ -291,6 +291,8 @@ ol.suchliste { list-style: none; padding: 0; margin: var(--space-1) 0 var(--spac
 .ertrag-details { margin: 0 0 var(--space-3); }
 .ertrag-details > summary { cursor: pointer; font-size: 14px; line-height: 20px; color: var(--text-strong); }
 .ertrag-hinweis { margin: 0 0 var(--space-2); max-width: var(--width-reading); }
+/* G111: under the niche row of «Was die Orte bringen», where its hits outside the region lay. */
+.ertrag-ausserhalb { margin: 2px 0 0; }
 /* G106: «Doppelt gesucht», one block per pair, the buttons of a block under its text. */
 .doppelt { display: block; margin: 0 0 var(--space-3); max-width: var(--width-reading); }
 .doppelt__titel { margin: 0 0 var(--space-2); font-size: inherit; line-height: inherit; }

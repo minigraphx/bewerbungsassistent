@@ -85,7 +85,7 @@ async function opened(answer) {
       textsatz: async () => "stelle-sie",
     },
     Texte: { ...Texte, anwenden: () => {} },
-    SucheAnzeige: { regionText: () => "", zusammenfassung: () => [] },
+    SucheAnzeige: { regionText: () => "", nischenText: () => "", zusammenfassung: () => [] },
     DotLine,
     SucheRahmen: { zeige: () => {} },
     TitelfilterBeispiele: { begriffe: () => {}, beispiele: () => {} },

@@ -55,10 +55,12 @@
     return werte.map(wert => ({ wert, text: `${wert} km` }));
   }
 
-  function kantoneHinweis(lehrstelle) {
-    return lehrstelle
-      ? "Gesucht wird im Umkreis des Wohnorts. Die Kantone helfen beim Einordnen."
-      : "Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst.";
+  // G111, #387: what the cantons mean for the niches, only in a job profile that has any
+  const NISCHEN_HINWEIS = " Nischen sucht die App ohne Ort; Stellen ausserhalb dieser Kantone behält sie nur, wenn das Inserat Remote nennt.";
+
+  function kantoneHinweis(lehrstelle, nischen = 0) {
+    if (lehrstelle) return "Gesucht wird im Umkreis des Wohnorts. Die Kantone helfen beim Einordnen.";
+    return `Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst.${nischen > 0 ? NISCHEN_HINWEIS : ""}`;
   }
 
   /** Which place fields the region card shows: those whose line the profile has, never for an apprenticeship. */

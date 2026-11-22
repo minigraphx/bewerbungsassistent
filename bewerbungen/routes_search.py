@@ -9,6 +9,7 @@ import threading
 
 import excluded_companies
 import missing_ads
+import niche_region
 import own_sites
 import precheck
 import preferences
@@ -85,12 +86,15 @@ def _record_reposts(k, by_id: dict[str, list[dict]]) -> None:
     k.mit_entwurf(register.pfad, REPOSTS_NOTED, lambda: register.add_reposts(by_id))
 
 
-def _note_screened(log: QueryLog, queries: list[dict], title: str, reason: str) -> None:
-    """The title filter's screen-outs and those without a required word (G110) are counted apart."""
+def _note_screened(log: QueryLog, hit: dict, reason: str) -> None:
+    """The title filter's screen-outs, those without a required word (G110) and niche hits outside the region (G111)
+    are counted apart."""
     if reason == required_words.REASON:
-        log.note_unrelated(queries, title)
+        log.note_unrelated(hit.get(QUERIES, []), hit["stelle"])
+    elif reason == niche_region.REASON:
+        log.note_outside(hit.get(QUERIES, []), hit.get("ort", ""))
     else:
-        log.note_screened(queries, title, reason)
+        log.note_screened(hit.get(QUERIES, []), hit["stelle"], reason)
 
 
 def screen(k, parameter, body):
@@ -103,13 +107,13 @@ def screen(k, parameter, body):
                           title_positive=current.title_positive,
                           max_age_by_portal=_portal_days(store, current, k.heute()),
                           excluded=excluded_companies.keys(k.daten),
-                          on_screened_out=lambda hit, reason: screened_out.append((hit.get(QUERIES, []), hit["stelle"], reason)),
+                          on_screened_out=lambda hit, reason: screened_out.append((hit, reason)),
                           on_title_checked=lambda hit, found: checked.append((hit_key(hit), hit["stelle"], found)),
                           agencies=_agencies(k), record_reposts=lambda by_id: _record_reposts(k, by_id), today=k.heute(),
-                          required=required_words.of_folder(k.daten))
+                          required=required_words.of_folder(k.daten), region=niche_region.of_plan(current))
     log = QueryLog(k.daten)
-    for queries, title, reason in screened_out:
-        _note_screened(log, queries, title, reason)
+    for hit, reason in screened_out:
+        _note_screened(log, hit, reason)
     log.note_titles(checked)
     return json_antwort(result)
 
@@ -122,7 +126,9 @@ def receive(k, parameter, body):
                                   check=lambda title, text: precheck.check(title, text, person),
                                   saved_in=preferences.load(k.daten).saved_in, excluded=excluded_companies.keys(k.daten),
                                   required=required_words.of_folder(k.daten),
-                                  on_unrelated=lambda hit: log.note_unrelated(hit.get(QUERIES, []), hit["stelle"])))
+                                  on_unrelated=lambda hit: log.note_unrelated(hit.get(QUERIES, []), hit["stelle"]),
+                                  region=niche_region.of_folder(k.daten),
+                                  on_outside=lambda hit: log.note_outside(hit.get(QUERIES, []), hit.get("ort", ""))))
 
 
 def _portal_summary(raw) -> dict:
@@ -246,7 +252,7 @@ def with_suspects(hit: dict, stages: dict[str, str | None]) -> dict:
 def _region(profile: search_plan.SearchPlan) -> dict:
     """Where the search looks, for the one line that sums up the settings (#220)."""
     return {"kantone": list(profile.cantons), "orte": list(profile.places), "umkreis_km": profile.radius_km,
-            "schweizweit": profile.nationwide}
+            "schweizweit": profile.nationwide, "nischen": len(profile.niche_keywords)}  # G111: the card says what niches keep
 
 
 def text(k, parameter, body):

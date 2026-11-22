@@ -17,7 +17,7 @@
   function tabelle(reihen) {
     const kopf = el("tr", {}, ...L.TABELLE_SPALTEN.map((spalte, i) => el("th", { scope: "col", class: i ? "num" : "" }, spalte)));
     const zeilen = reihen.map(r => el("tr", {},
-      el("th", { scope: "row" }, r.begriff, ...(r.marke ? [" ", flag(r.marke)] : [])),
+      el("th", { scope: "row" }, ...window.DotLine.render([r.begriff, r.zusatz], el), ...(r.marke ? [" ", flag(r.marke)] : [])),
       ...r.zahlen.map(zahl => el("td", { class: "num" }, String(zahl)))));
     return el("table", { class: "table terms-counted__table" }, el("thead", {}, kopf), el("tbody", {}, ...zeilen));
   }

@@ -30,20 +30,22 @@ window.SucheErtrag = (() => {
   }
 
   function ortZeile(ort) {
-    return el("li", {}, `${E.ortName(ort)}: `, ...window.DotLine.render(E.teile(ort), el), ...(ort.ohne_ertrag ? [" ", marke()] : []));
+    const ausserhalb = E.ausserhalbOrte(ort);  // G111: where the niche hits outside the region lay
+    return el("li", {}, `${E.ortName(ort)}: `, ...window.DotLine.render(E.teile(ort), el), ...(ort.ohne_ertrag ? [" ", marke()] : []),
+      ...(ausserhalb ? [el("p", { class: "caption ertrag-ausserhalb" }, ausserhalb)] : []));
   }
 
-  function zeigeOrte(orte, laeufe) {
+  function zeigeOrte(orte, laeufe, du) {
     $("orte-ertrag").hidden = !orte.length;
-    $("orte-ertrag-hinweis").textContent = E.ortHinweis(laeufe);
+    $("orte-ertrag-hinweis").textContent = E.ortHinweis(laeufe, orte.some(ort => ort.ausserhalb_region > 0), du);
     $("orte-ertrag-liste").replaceChildren(...orte.map(ortZeile));
   }
 
-  /** `ertrag` as the route gives it; an apprenticeship search has no places (radius search). */
-  function zeige(ertrag) {
+  /** `ertrag` as the route gives it; an apprenticeship search has no places (radius search). `satz`: the text set. */
+  function zeige(ertrag, satz) {
     const lehrstelle = ertrag.art === "lehrstelle";
     zeigeBegriffe(ertrag, lehrstelle);
-    zeigeOrte(lehrstelle ? [] : ertrag.orte, ertrag.laeufe);
+    zeigeOrte(lehrstelle ? [] : ertrag.orte, ertrag.laeufe, satz === "stelle-du");
   }
 
   return { zeige };

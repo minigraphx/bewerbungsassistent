@@ -11,6 +11,7 @@ import datetime
 import pathlib
 import threading
 
+import niche_region
 import title_examples
 from dateien import lies_yaml, schreibe_yaml
 from hits import FOLDER, bounded_text, checked_query
@@ -24,7 +25,10 @@ MAX_QUERIES_PER_PORTAL = 2000
 MAX_EXAMPLES = 3
 UNRELATED = "ohne_pflichtbezug"  # G110: hits without a required word of their term, apart from the title filter's
 UNRELATED_EXAMPLES = "pflicht_beispiele"
-CARRIED = ("aussortiert", "beispiele", UNRELATED, UNRELATED_EXAMPLES)  # what a query takes from the waiting file
+# G111: niche hits outside the region without remote work, with the places they lay at, apart from both above
+OUTSIDE, OUTSIDE_PLACES = niche_region.COUNTED, niche_region.COUNTED_PLACES
+MAX_OUTSIDE_PLACES = 30  # per query; a place beyond them still counts in OUTSIDE
+CARRIED = ("aussortiert", "beispiele", UNRELATED, UNRELATED_EXAMPLES, OUTSIDE, OUTSIDE_PLACES)  # taken from the waiting file
 _LOCK = threading.Lock()
 
 
@@ -73,6 +77,23 @@ def _unrelated(entry: dict | None, title: str) -> dict:
             UNRELATED_EXAMPLES: examples if len(examples) >= MAX_EXAMPLES else [*examples, bounded_text(title, "stelle")]}
 
 
+def places_of(raw) -> dict[str, int]:
+    """The places of the hits outside as a query keeps them; the file is data, so only names with a count stay."""
+    if not isinstance(raw, dict):
+        return {}
+    return {name: count for name, count in raw.items() if isinstance(name, str) and type(count) is int and count > 0}
+
+
+def _outside(entry: dict | None, place: str) -> dict:
+    """One more niche hit outside the region (G111), counted at its place; the other counts stay."""
+    old = entry or {"aussortiert": 0, "beispiele": []}
+    count = old.get(OUTSIDE) if type(old.get(OUTSIDE)) is int else 0
+    places = places_of(old.get(OUTSIDE_PLACES))
+    name = niche_region.place_name(place)
+    room = name in places or len(places) < MAX_OUTSIDE_PLACES
+    return {**old, OUTSIDE: count + 1, OUTSIDE_PLACES: {**places, name: places.get(name, 0) + 1} if name and room else places}
+
+
 def _run_entries(raw) -> list[dict]:
     return [run for run in raw if isinstance(run, dict) and isinstance(run.get("datum"), str)
             and isinstance(run.get("abfragen"), list)] if isinstance(raw, list) else []
@@ -95,23 +116,25 @@ class QueryLog:
 
     def note_screened(self, queries: list[dict], title: str, reason: str) -> None:
         """A title the title filter kept out, counted for each query that found it."""
+        self._note(queries, lambda entry: _screened(entry, title, reason))
+
+    def _note(self, queries: list[dict], counted) -> None:
+        """One more of something for each query that found a hit; `counted` gives the query's new entry."""
         if not queries:
             return
         with _LOCK:
             entries = {_key(entry): entry for entry in self._pending()}
             changed = {_key(query): {"portal": query["portal"], "stichwort": query["stichwort"], "ort": query["ort"],
-                                     **_screened(entries.get(_key(query)), title, reason)} for query in queries}
+                                     **counted(entries.get(_key(query)))} for query in queries}
             schreibe_yaml(self.folder / PENDING_FILE, {"abfragen": list({**entries, **changed}.values())})
 
     def note_unrelated(self, queries: list[dict], title: str) -> None:
         """A hit not stored for want of a required word (G110), counted for each query that found it."""
-        if not queries:
-            return
-        with _LOCK:
-            entries = {_key(entry): entry for entry in self._pending()}
-            changed = {_key(query): {"portal": query["portal"], "stichwort": query["stichwort"], "ort": query["ort"],
-                                     **_unrelated(entries.get(_key(query)), title)} for query in queries}
-            schreibe_yaml(self.folder / PENDING_FILE, {"abfragen": list({**entries, **changed}.values())})
+        self._note(queries, lambda entry: _unrelated(entry, title))
+
+    def note_outside(self, queries: list[dict], place: str) -> None:
+        """A niche hit not stored because it lay outside the region without remote work (G111), with its place."""
+        self._note(queries, lambda entry: _outside(entry, place))
 
     def note_titles(self, checks: list[tuple[str, str, Verdict]]) -> None:
         """Titles the title filter looked at, each (hit key, title, verdict), for the examples per term (G104)."""

@@ -15,6 +15,7 @@ import threading
 import urllib.parse
 
 import known_jobs  # compares with this module's keys; it reads them only when called, so the import may go both ways
+import niche_region  # the same: it reads is_near and QUERIES only when called
 import reposts
 import required_words
 import title_filter
@@ -418,7 +419,8 @@ class Hits:
                excluded: frozenset[str] = frozenset(), on_screened_out=lambda hit, reason: None,
                on_title_checked=lambda hit, found: None, agencies: tuple[str, ...] = (),
                record_reposts=lambda by_id: None, today: datetime.date | None = None,
-               required: required_words.Required = required_words.NONE) -> dict:
+               required: required_words.Required = required_words.NONE,
+               region: niche_region.Region = niche_region.OFF) -> dict:
         """Which hits of a result list the extension should open for the full text, and which of them are near the home.
 
         The same job from another portal needs no text: its link goes to the stored hit right away. With positive
@@ -430,13 +432,15 @@ class Hits:
         A job known by its content (G109, `known_jobs`) is no new hit either: a discarded hit keeps the new ad itself,
         a register entry gets it through `record_reposts` (entry id → reposts), called under the lock, so that the
         next screening sees it; `agencies` are the recruiters of the profile (G34). `required`: the required words of
-        the terms (G110); an ad screened out for them before is counted with its reason and not loaded again.
+        the terms (G110); an ad screened out for them before is counted with its reason and not loaded again. So is a
+        niche hit that lay outside the same `region` before (G111).
         """
         fetch, nearby, filtered, known, left_out = [], [], [], 0, 0
         ages = max_age_by_portal or {}
         day = today or datetime.date.today()
         with _LOCK:
             unrelated = required_words.remembered(self.folder) if required.terms else {}
+            outside = niche_region.remembered(self.folder, region)
             stored = self.all()
             known_keys = {key(h) for h in stored}
             seen = known_jobs.Screening(stored=stored, links=known_jobs.known_links(register, stored))
@@ -458,7 +462,9 @@ class Hits:
                 found = title_filter.verdict(hit["stelle"], title_exclude, title_positive)
                 if title_exclude or title_positive:
                     on_title_checked(hit, found)
-                reason = _title_reason(found) or _unrelated_again(hit, required, unrelated)
+                link = comparable_link(hit["link"], any_fragment=True)
+                reason = (_title_reason(found) or _unrelated_again(hit, required, unrelated)
+                          or niche_region.screened_again(region, hit, link, outside))
                 if reason:
                     filtered.append({"stelle": hit["stelle"], "grund": reason})
                     on_screened_out(hit, reason)
@@ -492,15 +498,18 @@ class Hits:
     def add(self, raw_hits: list, register: list[dict], today: datetime.date,
             own_portals: frozenset[str] = frozenset(), agencies: tuple[str, ...] = (),
             check=lambda title, text: "", saved_in: str = SAVED_IN[SIE], excluded: frozenset[str] = frozenset(),
-            required: required_words.Required = required_words.NONE, on_unrelated=lambda hit: None) -> dict:
+            required: required_words.Required = required_words.NONE, on_unrelated=lambda hit: None,
+            region: niche_region.Region = niche_region.OFF, on_outside=lambda hit: None) -> dict:
         """Store new hits; the same job from another portal only adds its link. `agencies`: more from the profile (G34).
 
         `check` is the pre-check by fixed rules (G33): its reason stays on the hit as `vorpruefung`, the hit stays too.
         A hit of an `excluded` company (#226) is not stored, even when the screening let it through. Nor is a hit that
         only terms with required words found when neither its title nor its text names one (G110): its link is
-        remembered for the next screening, and `on_unrelated` hears of it so that its queries count it.
+        remembered for the next screening, and `on_unrelated` hears of it so that its queries count it. A niche hit
+        outside the `region` whose title and text name no remote work (G111) goes the same way through `on_outside`;
+        a hit without a required word counts for that reason alone.
         """
-        rejected, new, merged, unrelated = [], 0, 0, []
+        rejected, new, merged, unrelated, outside = [], 0, 0, [], []
         with _LOCK:
             stored = self.all()
             by_key = {key(h) for h in stored}
@@ -523,6 +532,9 @@ class Hits:
                 if words and not required_words.fits(words, hit["stelle"], text):
                     unrelated.append((hit, words))
                     continue
+                if not region.keeps(hit, text):
+                    outside.append(hit)
+                    continue
                 entry = _new_entry(self.folder, hit, register, today, agencies, saved_in)
                 reason = check(entry["stelle"], text) if text else ""
                 if reason:
@@ -534,10 +546,14 @@ class Hits:
                 new += 1
             self._write(stored)
             required_words.remember(self.folder, [(comparable_link(hit["link"], any_fragment=True), words) for hit, words in unrelated])
+            niche_region.remember(self.folder, region, [comparable_link(hit["link"], any_fragment=True) for hit in outside])
         for hit, _ in unrelated:
             on_unrelated(hit)
+        for hit in outside:
+            on_outside(hit)
         counts = {"neu": new, "zusammengefuehrt": merged, "abgelehnt": rejected}
-        return {**counts, "ohne_pflichtbezug": len(unrelated)} if unrelated else counts
+        return {**counts, **({"ohne_pflichtbezug": len(unrelated)} if unrelated else {}),
+                **({niche_region.COUNTED: len(outside)} if outside else {})}
 
     def update(self, wanted: str, **fields) -> dict:
         if "zustand" in fields and fields["zustand"] not in STATES:

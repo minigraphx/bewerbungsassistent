@@ -45,6 +45,8 @@ Nutzungsbedingungen; der Lauf erinnert nur daran) oder `aus`.
 - Pendelgrenze: ausserhalb davon (z.B. Zürich, Basel, Genf) nur mit Remote
 - Remote: ja
 
+Nischen sucht die App ohne Ort; behalten werden Stellen in den Kantonen und an den Orten oben oder mit Remote. Die Pendelgrenze liest die KI.
+
 jobscout24 sucht um jede PLZ 20 km im Umkreis, nahe PLZ finden darum oft dieselben Stellen. Eine Zeile wie `- Regionen (jobscout24): Region Bern (BE/FR/SO), Homeoffice / Remote` lässt jobscout24 stattdessen pro Begriff einmal in allen genannten Regionen suchen; die Namen schreibt man wie jobscout24 sie zeigt, die Kantone in Klammern dürfen fehlen. Solange eine Region gewählt ist, gilt die Zeile mit den PLZ nicht, bleibt aber stehen. jobs.ch sucht bei jedem Ort auch im ganzen Kanton; ein zweiter Ort im selben Kanton bringt darum kaum neue Stellen.
 
 ## Keywords

@@ -16,13 +16,12 @@ import pathlib
 import re
 from collections.abc import Iterable
 
+import screened_links
 import search_plan
 import title_filter
-from dateien import lies_yaml, schreibe_yaml
 
 REASON = "ohne Pflichtbezug"
 LINKS_FILE = "ohne-pflichtbezug.yaml"
-MAX_LINKS = 3000  # links remembered; the oldest go first
 MAX_WORDS = 20
 # A word as the add field takes it: like a job term (ai/career.JOB_TERM), without the comma that separates the words.
 WORD = re.compile(r"[^\x00-\x1f\x85  #<>,()`:|/]+")
@@ -140,24 +139,14 @@ def _fingerprint(words: tuple[str, ...]) -> list[str]:
 
 def remembered(folder: pathlib.Path) -> dict[str, list[str]]:
     """Links screened out for want of a required word, each with the words it lacked; the file is data."""
-    raw = lies_yaml(folder / LINKS_FILE, {})
-    if not isinstance(raw, dict):
-        return {}
-    return {link: words for link, words in raw.items()
-            if isinstance(link, str) and isinstance(words, list) and all(isinstance(word, str) for word in words)}
+    return screened_links.remembered(folder, LINKS_FILE)
 
 
 def was_unrelated(known: dict[str, list[str]], link: str, words: tuple[str, ...]) -> bool:
     """Screened out before for the same words: a changed remark asks for the ad again."""
-    return known.get(link) == _fingerprint(words)
+    return screened_links.was_screened(known, link, _fingerprint(words))
 
 
 def remember(folder: pathlib.Path, found: list[tuple[str, tuple[str, ...]]]) -> None:
     """Note screened-out links with their words; the caller holds the lock of the hits."""
-    if not found:
-        return
-    known = remembered(folder)
-    added = {link: _fingerprint(words) for link, words in found}
-    kept = {link: words for link, words in known.items() if link not in added}
-    merged = list({**kept, **added}.items())[-MAX_LINKS:]
-    schreibe_yaml(folder / LINKS_FILE, dict(merged))
+    screened_links.remember(folder, LINKS_FILE, [(link, _fingerprint(words)) for link, words in found])
