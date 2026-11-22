@@ -286,6 +286,8 @@
 
   // Seite 1 ausmessen: was passt, bleibt; der Rest kommt ab Seite 2 mit vertauschten Spalten.
   // Printed it reads p1 left, p1 right, p2 left (the right column continued), p2 right (the rest of the left column).
+  // Only the right column's continuation swaps the columns: without it page 2 keeps the page-1 layout, since a wide
+  // empty column on the left would read as a printing fault.
   context {
     let breite = page.width - s.rand.left - s.rand.right
     let page-height = page.height - s.rand.top - s.rand.bottom - 1pt
@@ -296,10 +298,13 @@
     let (rechts-1, rechts-2) = aufteilen(rechts, passend(rechts, breite-rechts, frei))
     grid(columns: (breite-links, breite-rechts), column-gutter: s.spaltenabstand,
       { spalte(links-1); part-end("cv") }, { spalte(rechts-1); part-end("cv") })
-    if rechts-2.len() > 0 or links-2.len() > 0 {
+    if rechts-2.len() > 0 {
       pagebreak(weak: true)
       grid(columns: (breite-rechts, breite-links), column-gutter: s.spaltenabstand,
         { spalte(rechts-2); part-end("cv") }, { spalte(links-2); part-end("cv") })
+    } else if links-2.len() > 0 {
+      pagebreak(weak: true)
+      grid(columns: (breite-links, breite-rechts), column-gutter: s.spaltenabstand, { spalte(links-2); part-end("cv") }, [])
     }
   }
 }

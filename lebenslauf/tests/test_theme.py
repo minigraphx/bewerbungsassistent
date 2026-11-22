@@ -64,6 +64,21 @@ def test_left_section_that_does_not_fit_moves_whole_to_page_2_right(drawn_lines)
     }
 
 
+def test_only_the_left_column_continuing_keeps_the_page_1_layout(drawn_lines):
+    """With the right column done on p1, page 2 keeps its columns: a wide empty column left would read as a fault."""
+    lines = drawn_lines("left-only", with_skills(beispiel(), OVERFLOWING_SKILLS))
+
+    skills = [line for line in lines if SKILL_LINE.search(line.text)]
+    assert len(skills) == OVERFLOWING_SKILLS
+    assert {column(line) for line in skills} == {(2, "left")}
+    assert not [line for line in lines if column(line) == (2, "right")]
+    assert headings_by_column(lines) == {
+        (1, "left"): ["PROFIL", "PROJEKTE"],
+        (1, "right"): ["BERUFSERFAHRUNG", "BILDUNG & WEITERBILDUNG"],
+        (2, "left"): [SKILLS_HEADING, "LEHRE & TRAINING", "SPRACHEN", "WEITERE PROJEKTE", "INTERESSEN"],
+    }
+
+
 def headings_by_column(lines: list[Line]) -> dict[tuple[int, str], list[str]]:
     found = {}
     for line in lines:
