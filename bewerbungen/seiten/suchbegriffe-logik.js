@@ -259,8 +259,13 @@
   const markiert = z => (z.genug ? z.begriffe : []).filter(e => MARKEN[e.marke])
     .map(e => ({ name: `„${e.begriff}“`, marke: MARKEN[e.marke], rest: `: ${markeSatz(e)}` }));
 
-  const tabellenZeilen = z => z.begriffe.map(e => ({ begriff: e.begriff, marke: MARKEN[e.marke] || "",
-    zahlen: [e.suchen, e.treffer_portale, e.aussortiert, e.nur_hier, e.ab_note_4] }));
+  const NISCHE = " (Nische)";  // as „Wo ein Begriff nichts findet“ on Suche einstellen writes it (#375)
+  const zahlenDer = e => [e.suchen, e.treffer_portale, e.aussortiert, e.nur_hier, e.ab_note_4];
+
+  /** Every keyword, then the niches (#393), which are counted alike but never carry a mark. */
+  const tabellenZeilen = z => [
+    ...z.begriffe.map(e => ({ begriff: e.begriff, marke: MARKEN[e.marke] || "", zahlen: zahlenDer(e) })),
+    ...(z.nischen || []).map(e => ({ begriff: `${e.begriff}${NISCHE}`, marke: "", zahlen: zahlenDer(e) }))];
 
   /** The word of the chip on a card's area line: the mark of the keyword the change concerns, or nothing. */
   const kartenMarke = aenderung => MARKEN[aenderung.marke] || "";

@@ -314,6 +314,16 @@ test("«Was die App gezählt hat» shows at once while the AI works, flagged key
     "TypeScript ohne Ertrag90000"]);
 });
 
+test("the table lists the niches after the keywords, marked «(Nische)», also when they are all it has", async () => {
+  const niche = COUNT("Lernatelier", { suchen: 3, treffer_portale: 3, treffer: 1, nur_hier: 1, ab_note_4: 1 });
+  const p = await page(new Promise(() => {}), { "/api/suchbegriffe/gezaehlt": { ...COUNTED, nischen: [niche] } });
+  const rows = [...below(p.$("gezaehlt-tabelle"))].filter(n => n.tagName === "TR").map(heard);
+  assert.deepEqual(rows.slice(1), ["Python94041", "TypeScript ohne Ertrag90000", "Lernatelier (Nische)33011"]);
+  assert.equal(p.$("gezaehlt-alle").hidden, false);
+  const only = await page(new Promise(() => {}), { "/api/suchbegriffe/gezaehlt": { ...COUNTED, begriffe: [], nischen: [niche] } });
+  assert.equal(only.$("gezaehlt-alle").hidden, false, "niches alone still have numbers to show");
+});
+
 test("with too few runs the section names them and marks nothing", async () => {
   const p = await page(new Promise(() => {}), { "/api/suchbegriffe/gezaehlt": { ...COUNTED, laeufe: 1, genug: false } });
   assert.equal(p.$("gezaehlt-unterzeile").textContent,

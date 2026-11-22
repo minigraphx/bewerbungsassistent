@@ -60,6 +60,19 @@ test("the table counts hits as Suche einstellen does: all of them, the screened-
   ]);
 });
 
+test("the niches follow the keywords in the table, each marked «(Nische)» as on Suche einstellen, never flagged", () => {
+  const niche = entry({ begriff: "Lernatelier", suchen: 3, treffer_portale: 3, treffer: 1, nur_hier: 1, ab_note_4: 1 });
+  const counts = { ...COUNTS, begriffe: [entry({}), AUTHOR], nischen: [niche] };
+  assert.deepEqual(L.tabellenZeilen(counts), [
+    { begriff: "Lernbegleiter", marke: "", zahlen: [12, 10, 0, 6, 2] },
+    { begriff: "E-Learning-Autor", marke: "ohne Ertrag", zahlen: [36, 0, 0, 0, 0] },
+    { begriff: "Lernatelier (Nische)", marke: "", zahlen: [3, 3, 0, 1, 1] },
+  ]);
+  assert.deepEqual(L.tabellenZeilen({ ...COUNTS, begriffe: [], nischen: [niche] }).map(r => r.begriff), ["Lernatelier (Nische)"]);
+  assert.deepEqual(L.markiert(counts).map(r => r.name), ["„E-Learning-Autor“"], "a niche gets no mark");
+  assert.equal(L.tabellenZeilen(COUNTS).length, 3, "an answer without niches still has its table");
+});
+
 test("a failed load names its reason once, and the AI proposes without the numbers", () => {
   assert.equal(L.gezaehltFehler("Der Suchverlauf liess sich nicht lesen."),
     "Die Zahlen der App liessen sich nicht laden: Der Suchverlauf liess sich nicht lesen. Die KI schlägt darum ohne diese Zahlen vor.");
