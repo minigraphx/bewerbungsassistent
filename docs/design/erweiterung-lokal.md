@@ -86,6 +86,7 @@ Das Geheimnis geht nie durch die Seite. Bestätigt wird nur die Kennung, die die
 - Neu bekommt der Link einen Teil `?browser=chrome` oder `?browser=edge`. Die App öffnet ihre Seite dann in diesem Browser statt im gewählten (G99). So landet die Seite dort, wo die Erweiterung sich koppeln kann.
 - Das Popup zeigt «App öffnen», und erst der Klick öffnet den Link. Der Browser fragt dann mit seinem eigenen Dialog, ob er die App öffnen darf. Wie Chrome und Edge diesen Dialog für einen Link aus einer Erweiterung zeigen und ob «Immer erlauben» angeboten wird, ist ungeprüft.
 - Danach probiert die Erweiterung die Ports bis zu 40 Sekunden lang, so lange wie heute `START_TIMEOUT`. Den Auftrag führt sie nicht von selbst weiter, denn das Popup ist dann zu; die Person klickt nochmals.
+- Ist die Erweiterung schon gekoppelt, soll der Link die App ohne neue Seite starten, wie heute `--kein-browser`; ob das trägt, zeigt der Prototyp (Schritt 9 unter «Sichtbare Schritte»).
 
 Eine Suche hält die App wie heute offen, denn die Anfragen laufen über dieselbe Aktivität (`presence.py`, `SEARCH_START`).
 
@@ -134,20 +135,49 @@ Nach dem Deinstallieren bleiben damit nur der Datenordner, den die Person gewäh
 
 ## Sichtbare Schritte
 
-Entscheid der UI/UX-Prüfung: ausstehend. Die Worte unten sind ein Entwurf; die Prüfung entscheidet Form und Wortlaut.
+Verbindlicher Entscheid der UI/UX-Prüfung 23.11.2026. Wo «Sie» steht, gilt im Textsatz mit «du» die Du-Form.
 
-1. **Einrichtung, Schritt «Browser-Erweiterung hinzufügen»:** wie heute die Knöpfe zu den Stores. Der Balken «Wartet auf die Erweiterung» wartet, bis die Erweiterung da und gekoppelt ist; danach geht es von selbst weiter.
-2. **Einrichtung, Kopplung gelingt nicht innert 15 Sekunden:** «Die Erweiterung ist da, aber noch nicht mit der App verbunden.» mit dem Knopf «Seite neu laden».
-3. **Einrichtung im Store-Paket:** Der zugeklappte Teil «Klappt es nicht?» nennt keinen Ordner für die entpackte Erweiterung mehr.
-4. **Einstellungen, Browser und Erweiterung, Karte «Erweiterung»:** eine Zeile pro gekoppeltem Browser, «Chrome · verbunden seit 23.11.2026», mit dem Knopf «Trennen». Ohne Kopplung: «Noch keine Erweiterung verbunden.»
-5. **«Trennen»:** Rückfrage «Verbindung mit Chrome trennen? Die Erweiterung verbindet sich wieder, sobald Sie die App in Chrome öffnen.» mit «Trennen» und «Abbrechen».
-6. **Gleiche Karte, je installierter Browser ohne Kopplung:** Knopf «In Edge verbinden» bzw. «In Chrome verbinden». Er öffnet die App in diesem Browser; dort koppelt sich die Erweiterung wie in Schritt 1.
-7. **Popup, App läuft nicht:** «Die App ist nicht geöffnet.» mit dem Knopf «App öffnen». «Jetzt suchen» und «Stelle prüfen» sind bis dahin gesperrt.
-8. **Popup, App läuft, Erweiterung nicht gekoppelt:** «Die Erweiterung ist noch nicht mit der App verbunden.» mit dem Knopf «Mit der App verbinden». Er tut dasselbe wie «App öffnen».
-9. **Nach dem Klick:** der Dialog des Browsers, ob er die App öffnen darf, im Wortlaut des Browsers. Danach öffnet die App ihre Seite in diesem Browser.
-10. **Popup, nach 40 Sekunden keine App:** «Die App hat sich nicht gemeldet. Bitte den Bewerbungsbegleiter über sein Programmsymbol öffnen.»
-11. **Fehler während eines Laufs:** wie heute «Verbindung zur App unterbrochen.» (`lib/app.js`, `explain`); der Satz `APP_MISSING`, die App melde sich beim Browser an, fällt weg.
-12. **Store-Paket, Claude Desktop noch nicht eingerichtet:** statt «In Claude Desktop eintragen» der Satz «Bitte Claude Desktop zuerst einmal öffnen und wieder schliessen, dann hier eintragen.»
+1. **Einrichtung, Schritt «Browser-Erweiterung laden»:** Der Titel bleibt. Wie heute die Knöpfe zu den Stores; der Balken «Wartet auf die Erweiterung» wartet, bis die Erweiterung da und gekoppelt ist. Gelingt es, sagt der Status «Erweiterung verbunden.», danach geht es weiter. Der Hinweis «Zurück in diesem Tab geht es von selbst weiter.» bleibt.
+2. **Einrichtung, keine Kopplung 15 Sekunden nach der ersten Anfrage der Erweiterung:**
+   - im selben Browser: «Die Erweiterung ist da, aber noch nicht mit der App verbunden.» mit dem Knopf «Seite neu laden»;
+   - Erweiterung und Seite in verschiedenen Browsern: «Die Erweiterung ist in Chrome, diese Seite aber in Edge. Verbunden wird sie, wenn die App in Chrome offen ist.» mit dem Hauptknopf «In Chrome weitermachen», der die Einrichtung dort öffnet;
+   - ohne jede Anfrage: weiter warten, kein neuer Text.
+3. **Einrichtung im Store-Paket, «Klappt es nicht?»:** «Die Erweiterung gibt es für Chrome und Edge. Haben Sie sie in einem anderen Browser hinzugefügt als diese Seite, öffnen Sie die App dort:» (du: «Hast du … öffne …»), dazu «In Chrome öffnen» und «In Edge öffnen», nur für installierte Browser. Ausserhalb des Store-Pakets bleiben die Schritte mit dem Ordner.
+4. **Einstellungen, Browser und Erweiterung, Karte «Erweiterung»:** eine Zeile pro Kopplung, «Chrome · verbunden seit 23.11.2026», mit dem unauffälligen Knopf «Trennen»; zwei Profile ergeben zwei Zeilen. Wahlweise dahinter «· zuletzt heute» oder «· zuletzt am …». Ohne Kopplung: «Noch keine Erweiterung verbunden.»
+5. **«Trennen»:** Rückfrage «Verbindung mit Chrome trennen? Die Erweiterung verbindet sich wieder, sobald Sie die App in Chrome öffnen. Ganz weg ist sie erst, wenn Sie sie in Chrome entfernen.» mit «Trennen» (normaler Stil, nicht rot) und «Abbrechen».
+6. **Gleiche Karte, je installierter Browser ohne Kopplung:** der unauffällige Knopf «App in Edge öffnen» mit dem Hinweis «Ist die Erweiterung dort hinzugefügt, verbindet sie sich von selbst.»
+7. **Popup, App läuft nicht:** Titel «Die App ist nicht geöffnet» (bisher «Die App läuft nicht»), Hauptknopf «App öffnen» (bisher «Nochmals verbinden»). «Suche starten», «Stelle prüfen» und «Stelle speichern» sind gesperrt, bis die App antwortet. Darunter «Chrome fragt dann, ob es den Bewerbungsbegleiter öffnen darf. Bitte erlauben.», mit dem Namen des Browsers. Eine Zeile zu «Immer erlauben» gibt es nur, wenn der Prototyp diese Wahl zeigt, und dann mit den Worten des Browsers.
+8. **Popup, App offen, Erweiterung nicht gekoppelt:** Titel «Noch nicht mit der App verbunden», Text «Die App ist offen, die Erweiterung aber noch nicht mit ihr verbunden.», Hauptknopf «Verbinden», dieselbe Zeile zum Dialog des Browsers.
+9. **Nach dem Klick:** der Dialog des Browsers in seinem Wortlaut. Dann:
+   - schon gekoppelt: «App öffnen» startet die App ohne neue Seite (wie `--kein-browser`), und die App bleibt offen, solange die Erweiterung arbeitet (`presence.py`). Das gilt nur, wenn der Prototyp zeigt, dass es geht; sonst öffnet die App ihre Seite;
+   - Kopplung nötig: Die App öffnet ihre Seite in diesem Browser. Nach der Kopplung sagt sie «Die Erweiterung ist mit der App verbunden. Im Popup der Erweiterung geht es jetzt weiter.»
+10. **Popup während des Wartens:** «Die App wird geöffnet …» mit einem Balken für «beschäftigt». Nach 40 Sekunden «Die App hat sich nicht gemeldet.» und je nach System:
+    - Windows: «Bitte den Bewerbungsbegleiter selbst öffnen, etwa über das Startmenü.»
+    - macOS: «Bitte den Bewerbungsbegleiter selbst öffnen, etwa über das Dock oder den Ordner Programme.»
+    - Linux: «Bitte den Bewerbungsbegleiter selbst öffnen, etwa über das Anwendungsmenü.»
+    «App öffnen» bleibt stehen.
+11. **Fehler während eines Laufs:** `APP_MISSING` fällt weg. Sichtbar ist nur «Verbindung zur App unterbrochen.»; die Angabe des Browsers (etwa «Failed to fetch») geht ins Protokoll. Der Stand des Laufs sagt weiter «Die Suche wurde unterbrochen. Was schon gefunden war, ist da.»
+12. **Store-Paket, Claude Desktop noch nicht eingerichtet:** «In Claude Desktop eintragen» bleibt sichtbar, aber gesperrt, mit «Claude Desktop ist auf diesem Computer noch nicht eingerichtet. Bitte Claude Desktop einmal öffnen und wieder schliessen; danach geht es hier.» Die Seite prüft das erneut, sobald sie den Fokus zurückbekommt.
+
+**Seitenleiste:** Ein Chip zeigt den Stand der Erweiterung im Browser dieser Seite, gemeldet über `app-bridge.js`:
+
+- gekoppelt: «Erweiterung verbunden»;
+- da, aber nicht gekoppelt: «Erweiterung nicht verbunden» mit «Verbinden» (lädt die Seite neu);
+- keine Erweiterung: wie heute, dazu «Einrichten».
+
+**Muss:**
+
+- Texte nur über `textContent`.
+- Der Name des Browsers kommt aus der Kopplung oder dem User-Agent, nie aus einer Eingabe der Seite.
+- Keine sichtbaren Zähler für die 15 oder 40 Sekunden.
+- «Immer erlauben» nur, wenn der Prototyp es bestätigt.
+
+**Anleitung und Webseite:**
+
+- `docs/installation.md` ändert sich an diesen Stellen: der Schritt zur Erweiterung, die Karte in den Einstellungen, «Häufige Fehler» und der Satz zu Claude Desktop im Store-Paket.
+- Bilder, die alte Texte zeigen, werden neu aufgenommen.
+- Ein Begleit-Item auf dem Board der Webseite folgt nach den Items, die bauen.
+- Die Datenschutzerklärung bleibt, ausser sie nennt Native Messaging.
 
 Unsichtbar bleiben das Entfernen der alten Einträge und der Wechsel des Ports.
 
@@ -155,7 +185,8 @@ Unsichtbar bleiben das Entfernen der alten Einträge und der Wechsel des Ports.
 
 - Ob Chrome und Edge bei Anfragen des Service Worker mit `X-Erweiterung` an `127.0.0.1` ohne Vorabanfrage und ohne Abfrage von Local Network Access durchgehen, und welchen `Origin` sie setzen.
 - Ob für Chrome eine Mindestversion nötig wird (Fehlerbehebung ab 144.0.7512.0). Heute gilt `minimum_chrome_version` 116.
-- Wie Chrome und Edge den Dialog für `bewerbungsbegleiter://` aus einer Erweiterung zeigen; ob der Link aus Snap und Flatpak die App startet.
+- Wie Chrome und Edge den Dialog für `bewerbungsbegleiter://` aus einer Erweiterung zeigen, ob sie «Immer erlauben» anbieten, und ob der Link aus Snap und Flatpak die App startet.
+- Ob «App öffnen» eine schon gekoppelte App ohne neue Seite starten kann, ohne dass sie sich nach einer Minute wieder beendet.
 - Ob Snap und Flatpak `127.0.0.1` des Rechners erreichen.
 - Wie sich ein bestehender App-Ordner von Inno Setup unter dem Store-Paket verhält, und wohin der Eintrag für Claude Desktop ohne Ordner `Claude` geht.
 
@@ -164,26 +195,26 @@ Unsichtbar bleiben das Entfernen der alten Einträge und der Wechsel des Ports.
 Nur Text, für Andy. Nicht angelegt.
 
 - **E1** Die Erweiterung spricht mit der App über deren lokalen Server auf 127.0.0.1, nicht über Native Messaging.
-- **E2** Die Erweiterung verbindet sich mit der App von selbst, sobald eine Seite der App im selben Browser offen ist; die Person tippt keinen Code. Unter Einstellungen, «Browser und Erweiterung», sieht sie die verbundenen Browser und kann jeden trennen.
+- **E2** Die Erweiterung verbindet sich mit der App von selbst, sobald eine Seite der App im selben Browser offen ist; die Person tippt keinen Code. Unter Einstellungen, «Browser und Erweiterung», sieht sie die verbundenen Browser und kann jeden trennen. Die Seitenleiste zeigt, ob die Erweiterung in diesem Browser verbunden ist.
 - **E3** Die App nimmt Anfragen nur von einer verbundenen Erweiterung mit einer der eigenen IDs an und nur für die Aufgaben, die die Erweiterung braucht. Die Erweiterung schickt einer App Daten erst, wenn diese bewiesen hat, dass sie die verbundene ist.
-- **E4** Läuft die App nicht, zeigt das Popup das und bietet «App öffnen»; die App startet nur nach diesem Klick und öffnet sich in diesem Browser.
+- **E4** Läuft die App nicht, zeigt das Popup das und bietet «App öffnen»; die App startet nur nach diesem Klick. Ist die Erweiterung schon verbunden, startet die App ohne neue Seite, sofern der Prototyp das trägt; sonst öffnet sie sich in diesem Browser. Meldet sich die App nicht, sagt das Popup, wie man sie auf diesem System selbst öffnet.
 - **E5** Sobald die Erweiterung in beiden Stores ohne Native Messaging auskommt, entfernt die App beim Start ihre Einträge für Native Messaging in allen Browsern.
 - **E6** Unter Linux funktioniert die Erweiterung auch in Chromium als Snap und in Browsern als Flatpak.
 - **E7** Das Paket für den Microsoft Store braucht keine eingeschränkte Fähigkeit. Nach dem Deinstallieren bleiben nur der Datenordner und, falls eingetragen, der Eintrag in Claude Desktop.
 
 ## Items für 0.4
 
-Alle in der Lane `app`. Was die Anleitung oder die Webseite zeigt (Schritte 1–12), bekommt ein Begleit-Item auf dem Board von `minigraphx/bewerbungsbegleiter-webseite`. Was an KI, Vermittlung und Update-Server geht, ändert sich nicht; die Datenschutzerklärung bleibt.
+Alle in der Lane `app`. Was die Anleitung oder die Webseite zeigt (Schritte 1–12), bekommt ein Begleit-Item auf dem Board von `minigraphx/bewerbungsbegleiter-webseite` (Item 10). Was an KI, Vermittlung und Update-Server geht, ändert sich nicht; die Datenschutzerklärung bleibt, ausser sie nennt Native Messaging.
 
 | # | Item | Kriterium in einem Satz | Hängt ab von |
 | --- | --- | --- | --- |
-| 1 | Prototyp: Service Worker an 127.0.0.1 | Ein Test lädt die entpackte Erweiterung in Chrome und Edge (stabil) und hält fest, dass eine Anfrage des Service Worker mit `X-Erweiterung` an `127.0.0.1` ohne Vorabanfrage und ohne Abfrage ankommt und welchen `Origin` sie trägt; die Ergebnisse stehen in diesem Dokument. | Freigabe E1 |
+| 1 | Prototyp: Service Worker an 127.0.0.1 | Ein Test lädt die entpackte Erweiterung in Chrome und Edge (stabil) und hält fest, dass eine Anfrage des Service Worker mit `X-Erweiterung` an `127.0.0.1` ohne Vorabanfrage und ohne Abfrage ankommt und welchen `Origin` sie trägt, ob «App öffnen» eine schon gekoppelte App ohne neue Seite starten und offen halten kann und ob der Browser beim Link «Immer erlauben» anbietet; die Ergebnisse stehen in diesem Dokument. | Freigabe E1 |
 | 2 | Feste Ports | Die App lauscht auf dem ersten freien Port der festen Folge und sonst auf einem freien; ein Test besetzt die ersten Ports und sieht die App auf dem nächsten. | 1 |
 | 3 | Kopplung und Zugang im Server | `hallo`, `kopplung` und `kopplung/bestaetigen` arbeiten wie beschrieben, `X-Erweiterung` erreicht genau die Routen aus `ALLOWED`, ein falscher Origin oder ein falsches Geheimnis ergibt 403, und `einstieg` trägt nur einen einmaligen Code. | 1 |
 | 4 | Erweiterung über den Server | Die Erweiterung findet die App über die Ports, prüft den Beweis, schickt dem falschen Server nichts und fällt auf Native Messaging zurück, wenn keine App antwortet; `node --test` deckt jeden Fall ab. | 2, 3 |
-| 5 | Kopplung auf den Seiten | Einrichtung und Einstellungen zeigen die Schritte 1–6 nach dem Entscheid der UI/UX-Prüfung, und eine Seite der App koppelt eine neue Erweiterung ohne Klick. | 3, 4, UI/UX |
-| 6 | «App öffnen» | Der Link `bewerbungsbegleiter://oeffnen?browser=…` öffnet die App in diesem Browser, und das Popup zeigt die Schritte 7–10. | 4, UI/UX |
-| 7 | Store-Paket ohne Fähigkeit | `manifest.py` baut `store` wie `standard`, die App meldet sich im Paket nicht als Host an, trägt Claude Desktop nur bei bestehender Datei ein, und `msix-versuch.yml` zeigt mit der Variante `standard` die Erweiterung über den Server, den Link und das Deinstallieren ohne Rest. | 3, 4 |
+| 5 | Kopplung auf den Seiten | Einrichtung, Einstellungen und Seitenleiste zeigen die Schritte 1, 2 und 4–6 und den Chip nach dem Entscheid der UI/UX-Prüfung, auch für Erweiterung und Seite in verschiedenen Browsern, und eine Seite der App koppelt eine neue Erweiterung ohne Klick. | 3, 4 |
+| 6 | «App öffnen» | Der Link `bewerbungsbegleiter://oeffnen?browser=…` startet eine gekoppelte App nach dem Ergebnis von Item 1 ohne neue Seite und öffnet sonst die App in diesem Browser, und das Popup zeigt die Schritte 7–11 mit den Knöpfen «Suche starten», «Stelle prüfen» und «Stelle speichern». | 1, 4 |
+| 7 | Store-Paket ohne Fähigkeit | `manifest.py` baut `store` wie `standard`, die App meldet sich im Paket nicht als Host an, zeigt die Schritte 3 und 12, trägt Claude Desktop nur bei bestehender Datei ein, und `msix-versuch.yml` zeigt mit der Variante `standard` die Erweiterung über den Server, den Link und das Deinstallieren ohne Rest. | 3, 4 |
 | 8 | Linux mit Snap und Flatpak | Auf einem Linux-Rechner (Andy, Hold) erreicht die Erweiterung aus dem Store die App aus Chromium als Snap und aus einem Browser als Flatpak; das Ergebnis steht in diesem Dokument. | 4 |
 | 9 | Alte Einträge entfernen | Beim Start entfernt die App Schlüssel, Manifeste und Startskripte beider Namen, die Erweiterung verliert `nativeMessaging` und den Rückweg; erst nach Andys Freigabe, wenn Erweiterung 0.4 in beiden Stores steht. | 4, Hold |
-| 10 | Anleitung und READMEs | `docs/installation.md`, `erweiterung/README.md` und `desktop/README.md` beschreiben den neuen Weg, mit dem Begleit-Item auf dem Board der Webseite. | 5, 6 |
+| 10 | Anleitung, Bilder und Webseite | `docs/installation.md` (Schritt zur Erweiterung, Karte in den Einstellungen, «Häufige Fehler», Satz zu Claude Desktop im Store-Paket), `erweiterung/README.md` und `desktop/README.md` beschreiben den neuen Weg, die Bilder mit alten Texten in `docs/bilder/` sind neu aufgenommen, und das Begleit-Item auf dem Board der Webseite wartet mit `--after` auf dieses Item. | 5, 6, 7 |
