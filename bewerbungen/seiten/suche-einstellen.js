@@ -100,6 +100,7 @@
       zeigeAblauf(daten);
       zeigePruefen(lehrstelle, nummer);
       zeigeErtrag(nummer);
+      window.DoppeltGesucht.lade();
       $("zusammenfassung").replaceChildren(...window.DotLine.render(anzeige.zusammenfassung({
         begriffe: daten.gesuchte_berufe || [], region: daten.region, portale: (daten.portale || []).length, lehrstelle,
       }), el));

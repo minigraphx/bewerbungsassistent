@@ -12,6 +12,7 @@ import profile_limits
 import routes_ai
 import search_plan
 import search_terms
+import term_pairs
 from ai import career
 from dateien import schreibe_atomar
 from server import json_antwort
@@ -153,6 +154,14 @@ def _former_text(k, path, digest: str) -> str | None:
     return k.ablage.inhalt(found.id).decode("utf-8") if found else None
 
 
+def _line(body) -> str | None:
+    """«Doppelt gesucht» (#377) removes a term from one line only; its Rückgängig names that line."""
+    line = body.get("zeile")
+    if line is not None and (not isinstance(line, str) or not line or len(line) > term_pairs.MAX_ID):
+        raise ValueError(NO_UNDO)
+    return line
+
+
 def undo(k, parameter, body):
     """Rückgängig after Entfernen: the term back at its former place, or at the end if the profile changed since."""
     path = _profile(k)
@@ -160,12 +169,19 @@ def undo(k, parameter, body):
     digest = body.get("vorher")
     if not isinstance(digest, str) or not SHA256.fullmatch(digest):
         raise ValueError(NO_UNDO)
+    line = _line(body)
     former = _former_text(k, path, digest)
     kind = preferences.strictest_kind(k.daten)
     sought = preferences.load(k.daten).sought
     at_end = {"value": False}
 
     def change(text: str) -> str:
+        if line is not None:
+            restored = term_pairs.restored(former, text, clean, line)
+            at_end["value"] = restored != former
+            if at_end["value"] and restored != text and not career.is_own_term(clean, kind, profile_limits.of_term(kind).chars):
+                raise ValueError(NO_UNDO)
+            return restored
         if former is not None and former != text and search_terms.removed(former, clean) == text:
             return former
         at_end["value"] = True

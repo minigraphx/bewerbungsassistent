@@ -228,6 +228,29 @@ def _removed(text: str, wanted: frozenset[str]) -> str:
     return text if changed == lines else "\n".join(changed)
 
 
+def removed_from_line(text: str, name: str, index: int) -> str:
+    """The profile without this term in the one line at `index` only, such as the niches (#377); once the list no
+    longer searches it, it leaves the saved order too."""
+    lines = text.split("\n")
+    wanted = profession_words(name)
+    changed = _without_in_line(lines[index], wanted)
+    if changed == lines[index]:
+        return text
+    after = "\n".join([*lines[:index], changed, *lines[index + 1:]])
+    return after if is_searched(after, name) else _without_in_order(after, wanted)
+
+
+def added_to_line(text: str, name: str, index: int) -> str:
+    """The profile with this term at the end of the line at `index`; a term the line has changes nothing."""
+    lines = text.split("\n")
+    found = GROUP_LINE.match(lines[index].strip())
+    if found is None:
+        raise ValueError(f"Zeile {index + 1} ist keine Liste von Begriffen")
+    if profession_words(name) in {_words_as_shown(term) for term in search_plan.split_terms(found[2])}:
+        return text
+    return "\n".join([*lines[:index], _appended(lines[index], " ".join(name.split())), *lines[index + 1:]])
+
+
 def _without_in_order(text: str, wanted: frozenset[str]) -> str:
     """The saved order without this term, the rest numbered anew; without the section nothing changes."""
     def change(body: str) -> str | None:

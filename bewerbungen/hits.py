@@ -29,6 +29,8 @@ PORTALS_OFF = "portale_aus"
 HIDDEN_TERMS = "begriffe_ausgeblendet"  # #210: the hint about a term the person hid, casefolded
 MAX_HIDDEN_TERMS = 30
 HIDDEN_WORDS = "woerter_ausgeblendet"  # #225: title words put aside with „Nicht jetzt“, casefolded, with their count then
+KEPT_PAIRS = "paare_behalten"  # #377: pairs of «Doppelt gesucht» the person keeps, by their id
+MAX_KEPT_PAIRS = 100
 MAX_STARS = 5
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
@@ -512,7 +514,8 @@ class Hits:
                 OWN_SITES: raw.get(OWN_SITES) if isinstance(raw.get(OWN_SITES), list) else [],
                 PORTALS_OFF: [p for p in raw[PORTALS_OFF] if isinstance(p, str)] if isinstance(raw.get(PORTALS_OFF), list) else None,
                 HIDDEN_TERMS: [t for t in raw[HIDDEN_TERMS] if isinstance(t, str)] if isinstance(raw.get(HIDDEN_TERMS), list) else [],
-                HIDDEN_WORDS: _hidden_words(raw.get(HIDDEN_WORDS))}
+                HIDDEN_WORDS: _hidden_words(raw.get(HIDDEN_WORDS)),
+                KEPT_PAIRS: [p for p in raw[KEPT_PAIRS] if isinstance(p, str)] if isinstance(raw.get(KEPT_PAIRS), list) else []}
 
     def _save_settings(self, settings: dict) -> dict:
         schreibe_yaml(self.folder / SETTINGS_FILE, settings)
@@ -545,6 +548,13 @@ class Hits:
             current = self.settings()
             others = [(key, value) for key, value in current[HIDDEN_WORDS].items() if key != name]
             return self._save_settings({**current, HIDDEN_WORDS: {**dict(others[-(MAX_HIDDEN_TERMS - 1):]), name: count}})
+
+    def keep_pair(self, pair: str) -> dict:
+        """«Beide behalten» (#377): the app does not ask about this pair again; the oldest goes beyond the limit."""
+        with _LOCK:
+            current = self.settings()
+            others = [p for p in current[KEPT_PAIRS] if p != pair][-(MAX_KEPT_PAIRS - 1):]
+            return self._save_settings({**current, KEPT_PAIRS: [*others, pair]})
 
     def set_watching(self, enabled: bool) -> dict:
         with _LOCK:
