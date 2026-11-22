@@ -308,7 +308,7 @@ async function termsPage(answers) {
   vm.runInContext(source("meldungen.js"), context);
   window.App = { el, holen: route => answer(route), senden: answer, textsatz: async () => "stelle-sie",
     status: (element, text, art, optionen) => window.Meldungen.zeige(element, text, art, optionen) };
-  for (const name of ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe.js"]) {
+  for (const name of ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe-gezaehlt.js", "suchbegriffe.js"]) {
     vm.runInContext(source(name), context);
   }
   await settled();

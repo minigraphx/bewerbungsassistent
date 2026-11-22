@@ -304,7 +304,8 @@ const PROPOSAL = { vorschlag: "v1", aenderungen: [CHANGE], zusammenfassung: "Ein
   seit: "2026-11-01", jetzt: TERMS, bisherige: TERMS, endstand: { ...TERMS, suchbegriffe: ["Python", "Trainer"] }, entfaellt: [],
   grenzen: { teile: ["Danach: 2 von 15 Suchbegriffen", "bis 4 Suchen pro Portal"], gesperrt: null, ...ROOM }, modell: "claude-sonnet-5-5", kosten_usd: 0.03, waehrung: "CHF",
   datum: "2026-11-16", runde: 1 };
-const PAGE_SCRIPTS = ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe.js"];
+const PAGE_SCRIPTS = ["treffer-logik.js", "suchbegriffe-logik.js", "suchbegriffe-schalter.js", "suchbegriffe-gezaehlt.js",
+  "suchbegriffe.js"];
 
 const proposalPage = async proposal => ran(PAGE_SCRIPTS, {
   "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },

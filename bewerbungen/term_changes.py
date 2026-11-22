@@ -3,7 +3,9 @@
 A proposal is a list of changes, each one decision: an area, the terms that go and the terms that come. The app checks
 every change against the profile before the person sees it. Each term is then a switch of its own (G102, #371): the
 page names the terms that are on, the app takes only current and proposed ones, works out the result and the limits
-of the search (G43) itself, and writes exactly that. Niches, places, portals, the window and the exclusions stay.
+of the search (G43) itself, and writes exactly that. Places, portals, the window and the exclusions stay.
+With the counts of the last runs (G108, #383) a change may also merge a keyword into another, move it to the niches
+or limit it to portals (`term_moves`); a keyword the app marks «überlappend» is never simply removed.
 """
 import dataclasses
 import hashlib
@@ -11,10 +13,12 @@ import json
 
 import search_plan
 import search_terms
+import term_moves
 import title_filter
 from ai import career
 
 KEYWORDS, POSITIVE, EXCLUDE = "keywords", "positive", "exclude"
+MOVED = "verschoben"  # in the switches of the page: the keywords whose move is on (G108)
 AREAS = (KEYWORDS, POSITIVE, EXCLUDE)
 AREA_NAMES = {KEYWORDS: "Suchbegriffe", POSITIVE: "Titel enthält eines davon", EXCLUDE: "Titel enthält keines davon"}
 AREA_KEYS = {KEYWORDS: "suchbegriffe", POSITIVE: "positiv", EXCLUDE: "ausschluss"}
@@ -34,7 +38,7 @@ OVER_TITLES = ("Mit dieser Auswahl hätte «{area}» {count} Begriffe, höchsten
 NO_TERMS_LEFT = "Danach stünde kein Suchbegriff mehr in der Suche. Bitte mindestens einen einschalten."
 # G43: every search runs, in stages; the line says how many there would be, no longer up to a limit.
 # #340: two parts, which the page joins with «·» (seiten/dot-line.js).
-LIMITS_PARTS = ("Danach: {keywords} von {max_keywords} Suchbegriffen", "bis {queries} Suchen pro Portal")
+LIMITS_PARTS = ("Danach: {keywords} von {max_keywords} Suchbegriffen", "bis {queries} {searches} pro Portal")
 # A profile from before the limit may keep its terms, but not grow (#371).
 LIMITS_OVER_BEFORE = "Danach: {keywords} Suchbegriffe, erlaubt sind {earlier}"
 AREA_LIMITS = {KEYWORDS: search_plan.MAX_KEYWORDS, POSITIVE: search_plan.MAX_TITLE_TERMS,
@@ -66,6 +70,14 @@ class Change:
     remove: tuple[str, ...]
     add: tuple[str, ...]
     reason: str
+    kind: str = term_moves.CHANGE
+    into: str = ""  # a merge: the keyword that stays and finds the same hits
+    moved: str = ""  # a move to the niches or onto portals: the keyword, which neither goes nor comes (G108)
+    portals: tuple[str, ...] = ()
+
+    @property
+    def is_move(self) -> bool:
+        return self.kind in term_moves.MOVES
 
 
 def terms_of(text: str) -> Terms:
@@ -127,10 +139,46 @@ def _names(area: str, value: object) -> tuple[str, ...]:
     return tuple(dict.fromkeys(name for name in names if name))
 
 
-def _cleaned(raw: object, current: Terms, avoided: tuple[str, ...], taken: dict[str, tuple[str, ...]]) -> Change | None:
+def _reason(raw: dict) -> str:
+    return raw.get("reason").strip()[:MAX_REASON] if isinstance(raw.get("reason"), str) else ""
+
+
+def _cleaned_move(raw: dict, kind: str, current: Terms, placement: term_moves.Placement) -> Change | None:
+    """A merge, a move to the niches or a limit to portals: about exactly one keyword of the list, adding none."""
+    names = _names(KEYWORDS, raw.get("remove"))
+    if raw.get("area") != KEYWORDS or len(names) != 1 or raw.get("add") or not _contains(KEYWORDS, current.keywords, names[0]):
+        return None
+    term, reason = _as_written(KEYWORDS, current, names[0]), _reason(raw)
+    if not reason:
+        return None
+    if kind == term_moves.MERGE:
+        into = _name(KEYWORDS, raw.get("into"))
+        if not into or not _contains(KEYWORDS, current.keywords, into) or _same(KEYWORDS, term, into):
+            return None
+        return Change(KEYWORDS, (term,), (), reason, kind, into=_as_written(KEYWORDS, current, into))
+    if not placement.grouped:  # without named lines under Keywords a term has no line to leave
+        return None
+    if kind == term_moves.NICHE:
+        return Change(KEYWORDS, (), (), reason, kind, moved=term)
+    portals = term_moves.checked_portals(raw.get("portals"), term, placement)
+    return Change(KEYWORDS, (), (), reason, kind, moved=term, portals=portals) if portals else None
+
+
+def _cleaned(raw: object, current: Terms, avoided: tuple[str, ...], taken: dict[str, tuple[str, ...]],
+             placement: term_moves.Placement, overlapping: tuple[str, ...]) -> Change | None:
     """A change of the AI as the app accepts it; None if any part of it does not hold, so a replacement stays whole."""
     if not isinstance(raw, dict) or raw.get("area") not in AREAS:
         return None
+    kind = raw.get("kind") or term_moves.CHANGE
+    if kind != term_moves.CHANGE:
+        return _cleaned_move(raw, kind, current, placement) if kind in term_moves.KINDS else None
+    change = _cleaned_change(raw, current, avoided, taken)
+    if change and change.area == KEYWORDS and not change.add and any(_contains(KEYWORDS, overlapping, t) for t in change.remove):
+        return None  # «überlappend»: its hits came through other keywords too, so at most a merge names where they go
+    return change
+
+
+def _cleaned_change(raw: dict, current: Terms, avoided: tuple[str, ...], taken: dict[str, tuple[str, ...]]) -> Change | None:
     area = raw["area"]
     asked_remove, asked_add = _names(area, raw.get("remove")), _names(area, raw.get("add"))
     remove = tuple(_as_written(area, current, term) for term in asked_remove if _contains(area, current.of(area), term))
@@ -138,7 +186,7 @@ def _cleaned(raw: object, current: Terms, avoided: tuple[str, ...], taken: dict[
                 if (not _contains(area, current.of(area), term) or _restyled(area, current.of(area), term))
                 and not _contains(area, taken.get(area, ()), term)
                 and (area == EXCLUDE or not _avoids(term, avoided)))
-    reason = raw.get("reason").strip()[:MAX_REASON] if isinstance(raw.get("reason"), str) else ""
+    reason = _reason(raw)
     if (asked_remove and not remove) or (asked_add and not add) or not (remove or add) or not reason:
         return None
     if len(remove) != len(asked_remove) or len(add) != len(asked_add):
@@ -152,23 +200,40 @@ def _as_written(area: str, current: Terms, term: str) -> str:
     return next((known for known in current.of(area) if _same(area, known, term)), term)
 
 
-def cleaned_changes(raw: object, current: Terms, avoided: tuple[str, ...]) -> tuple[Change, ...]:
-    """Every change that holds, each term once across the proposal; at most MAX_CHANGES."""
+def _touched(change: Change) -> tuple[str, ...]:
+    return (*change.remove, *((change.moved,) if change.moved else ()))
+
+
+def _clashes(change: Change, taken: dict[str, tuple[str, ...]]) -> bool:
+    """A term an earlier change removes, moves or merges into is not touched again, nor merged into once gone."""
+    gone, kept = taken.get(f"-{change.area}", ()), taken.get(f"={change.area}", ())
+    return (any(_contains(change.area, (*gone, *kept), term) for term in _touched(change))
+            or bool(change.into and _contains(change.area, gone, change.into)))
+
+
+def cleaned_changes(raw: object, current: Terms, avoided: tuple[str, ...],
+                    placement: term_moves.Placement = term_moves.Placement(),
+                    overlapping: tuple[str, ...] = ()) -> tuple[Change, ...]:
+    """Every change that holds, each term once across the proposal; at most MAX_CHANGES. `overlapping`: the keywords
+    the app marks «überlappend» (G108), which no change simply removes."""
     changes, taken = [], {}
     for entry in raw if isinstance(raw, list) else []:
-        change = _cleaned(entry, current, avoided, taken)
-        if change is not None and not any(_contains(change.area, taken.get(f"-{change.area}", ()), t) for t in change.remove):
+        change = _cleaned(entry, current, avoided, taken, placement, overlapping)
+        if change is not None and not _clashes(change, taken):
             changes = [*changes, change]
             taken = {**taken, change.area: (*taken.get(change.area, ()), *change.add),
-                     f"-{change.area}": (*taken.get(f"-{change.area}", ()), *change.remove)}
+                     f"-{change.area}": (*taken.get(f"-{change.area}", ()), *_touched(change)),
+                     f"={change.area}": (*taken.get(f"={change.area}", ()), *((change.into,) if change.into else ()))}
     return tuple(changes[:MAX_CHANGES])
 
 
 def outcome(current: Terms, changes: tuple[Change, ...]) -> Terms:
-    """The three areas after these changes: what goes leaves, what comes is added at the end."""
+    """The three areas after these changes: what goes leaves, what comes is added at the end; a keyword moved to the
+    niches leaves the list of keywords too, a keyword limited to portals stays in it."""
     def after(area: str) -> tuple[str, ...]:
         mine = [change for change in changes if change.area == area]
-        gone = [term for change in mine for term in change.remove]
+        gone = [*(term for change in mine for term in change.remove),
+                *(change.moved for change in mine if change.kind == term_moves.NICHE)]
         kept = tuple(term for term in current.of(area) if not _contains(area, tuple(gone), term))
         return (*kept, *(term for change in mine for term in change.add))
     return Terms(after(KEYWORDS), after(POSITIVE), after(EXCLUDE))
@@ -199,21 +264,23 @@ def _over_message(area: str, count: int, earlier: int, left: int) -> str:
 
 def _limits_line(before: Terms, after: Terms, places: int) -> list[str]:
     numbers = {"keywords": len(after.keywords), "max_keywords": search_plan.MAX_KEYWORDS,
-               "earlier": len(before.keywords), "queries": len(after.keywords) * places}
+               "earlier": len(before.keywords), "queries": len(after.keywords) * places,
+               "searches": "Suche" if len(after.keywords) * places == 1 else "Suchen"}
     first = LIMITS_OVER_BEFORE if len(before.keywords) > search_plan.MAX_KEYWORDS else LIMITS_PARTS[0]
     return [part.format(**numbers) for part in (first, *LIMITS_PARTS[1:])]
 
 
-def limits(before: Terms, after: Terms, places: int) -> dict:
+def limits(before: Terms, after: Terms, places: int, moves: int = 0) -> dict:
     """The parts of the line about the limits, how many terms are too many per area, and why the choice cannot be
-    taken over: only what goes over a limit and grows, a search without terms, or a choice that changes nothing."""
+    taken over: only what goes over a limit and grows, a search without terms, or a choice that changes nothing,
+    where a move to the niches or onto portals (`moves`) is a change too."""
     room = allowed(before)
     too_many = {AREA_KEYS[area]: max(0, len(after.of(area)) - room[AREA_KEYS[area]]) for area in AREAS}
     blocked = next((_over_message(area, len(after.of(area)), len(before.of(area)), too_many[AREA_KEYS[area]])
                     for area in AREAS if too_many[AREA_KEYS[area]]), None)
     if not after.keywords:
         blocked = NO_TERMS_LEFT
-    if blocked is None and after == before:
+    if blocked is None and after == before and not moves:
         blocked = NOTHING_CHANGED
     return {"teile": _limits_line(before, after, places), "gesperrt": blocked, "zu_viel": too_many, "erlaubt": room}
 
@@ -222,14 +289,19 @@ def _proposed(area: str, changes: tuple[Change, ...]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(term for change in changes if change.area == area for term in change.add))
 
 
+def _moved_terms(area: str, changes: tuple[Change, ...]) -> tuple[str, ...]:
+    return tuple(change.moved for change in changes if change.area == area and change.is_move)
+
+
 def _selected_in(area: str, current: Terms, changes: tuple[Change, ...], on: object) -> Change:
+    """The terms a move concerns have no switch of their own here: the move's one switch decides (`_moves_on`)."""
     offered = (*current.of(area), *_proposed(area, changes))
     if not isinstance(on, list) or len(on) > len(offered):
         raise ValueError(NOT_OFFERED)
     if not all(isinstance(term, str) and _holds(area, offered, term) for term in on):
         raise ValueError(NOT_OFFERED)
-    wanted = tuple(on)
-    remove = tuple(term for term in current.of(area) if not _holds(area, wanted, term))
+    wanted, fixed = tuple(on), _moved_terms(area, changes)
+    remove = tuple(term for term in current.of(area) if not _holds(area, wanted, term) and not _contains(area, fixed, term))
     kept = tuple(term for term in current.of(area) if term not in remove)
     return Change(area, remove, tuple(term for term in _proposed(area, changes)
                                       if _holds(area, wanted, term) and not _contains(area, kept, term)), "")
@@ -242,13 +314,23 @@ def selected(current: Terms, changes: tuple[Change, ...], on: object) -> tuple[C
     if not isinstance(on, dict):
         raise ValueError(NOT_OFFERED)
     found = (_selected_in(area, current, changes, on.get(AREA_KEYS[area])) for area in AREAS)
-    return tuple(change for change in found if change.remove or change.add)
+    return (*(change for change in found if change.remove or change.add), *_moves_on(changes, on.get(MOVED, [])))
+
+
+def _moves_on(changes: tuple[Change, ...], on: object) -> tuple[Change, ...]:
+    """The moves whose one switch is on (G102, G108), named by their keyword; any other name is refused."""
+    moves = tuple(change for change in changes if change.is_move)
+    if not isinstance(on, list) or not all(isinstance(term, str) and any(_same(KEYWORDS, c.moved, term) for c in moves)
+                                           for term in on):
+        raise ValueError(NOT_OFFERED)
+    return tuple(change for change in moves if any(_same(KEYWORDS, change.moved, term) for term in on))
 
 
 def untouched(current: Terms, changes: tuple[Change, ...]) -> Terms:
-    """The current terms no change removes, matched like the search does, so a term in a card is never also below."""
+    """The current terms no change removes or moves, matched like the search does, so a term in a card is never also
+    below."""
     def kept(area: str) -> tuple[str, ...]:
-        gone = tuple(term for change in changes if change.area == area for term in change.remove)
+        gone = tuple(term for change in changes if change.area == area for term in _touched(change))
         return tuple(term for term in current.of(area) if not _contains(area, gone, term))
     return Terms(kept(KEYWORDS), kept(POSITIVE), kept(EXCLUDE))
 
@@ -267,11 +349,19 @@ def applied(text: str, changes: tuple[Change, ...]) -> str:
         for term in change.add:
             text = (search_terms.added(text, term, limit=None) if change.area == KEYWORDS
                     else search_terms.with_title_term(text, TITLE_LABELS[change.area], term))
+    for change in changes:
+        if change.is_move:
+            text = term_moves.moved(text, change.kind, change.moved, change.portals)
     return text
 
 
-def _quoted(terms: tuple[str, ...]) -> str:
-    named = [f"«{term}»" for term in terms]
+def moves_of(changes: tuple[Change, ...]) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    """The moves among these changes as `term_moves.after` takes them."""
+    return tuple((change.kind, change.moved, change.portals) for change in changes if change.is_move)
+
+
+def _quoted(terms: tuple[str, ...], marks: str = "«»") -> str:
+    named = [f"{marks[0]}{term}{marks[1]}" for term in terms]
     return named[0] if len(named) == 1 else f"{', '.join(named[:-1])} und {named[-1]}"
 
 
@@ -281,6 +371,10 @@ def _listing(terms: tuple[str, ...]) -> str:
 
 def sentence(change: Change) -> str:
     """The change in one sentence, the label of its checkbox."""
+    if change.kind != term_moves.CHANGE:
+        return term_moves.sentence(change.kind, change.moved or change.remove[0], change.into, change.portals)
+    if change.area == KEYWORDS and change.remove and not change.add:
+        return f"{_quoted(change.remove, '„“')} entfernen"  # G108: as the counts on the page name a keyword
     if change.area != KEYWORDS and len(change.remove) == len(change.add) == 1 and _same(change.area, *change.remove,
                                                                                         *change.add):
         return f"„{change.remove[0]}“ ersetzen durch „{change.add[0]}“"

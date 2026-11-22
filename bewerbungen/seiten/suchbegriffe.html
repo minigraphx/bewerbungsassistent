@@ -19,6 +19,16 @@
   </header>
 
   <div id="einwilligung" class="einwilligung" hidden></div>
+  <section id="gezaehlt" class="terms-counted" aria-labelledby="gezaehlt-titel" hidden>
+    <h2 id="gezaehlt-titel"></h2>
+    <p class="caption" id="gezaehlt-unterzeile"></p>
+    <ul class="terms-counted__list" id="gezaehlt-liste"></ul>
+    <p id="gezaehlt-nichts" hidden></p>
+    <details class="terms-counted__all" id="gezaehlt-alle" hidden>
+      <summary id="gezaehlt-alle-titel"></summary>
+      <div class="terms-counted__wrap" id="gezaehlt-tabelle"></div>
+    </details>
+  </section>
   <div id="warten" class="progress" role="status" aria-live="polite" hidden>
     <div class="progress__head"><strong id="warten-titel"></strong></div>
     <div class="progress__busy" aria-hidden="true"></div>
@@ -82,6 +92,7 @@
 <script src="/treffer-logik.js"></script>
 <script src="/suchbegriffe-logik.js"></script>
 <script src="/suchbegriffe-schalter.js"></script>
+<script src="/suchbegriffe-gezaehlt.js"></script>
 <script src="/suchbegriffe.js"></script>
 </body>
 </html>

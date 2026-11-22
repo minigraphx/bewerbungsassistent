@@ -113,9 +113,10 @@
     const haken = el("input", { type: "checkbox", id, "aria-describedby": `${id}-grund` });
     haken.addEventListener("change", () => schalte(L.schalteKarte(auswahl, a, haken.checked)));
     const { liste, teilweise } = Schalter.karte(a, haken, (chip, an) => schalte(L.schalteChip(auswahl, chip, an)));
+    const flag = wort => el("span", { class: "term term--flag" }, el("span", { class: "term__word" }, wort));
     return el("div", { class: "change" },
-      el("p", { class: "change__area" }, a.bereich_name,
-        a.zu_allgemein ? el("span", { class: "term term--flag" }, el("span", { class: "term__word" }, "zu allgemein")) : null),
+      el("p", { class: "change__area" }, a.bereich_name, a.zu_allgemein ? flag("zu allgemein") : null,
+        L.kartenMarke(a) ? flag(L.kartenMarke(a)) : null),
       el("label", { class: "check", for: id }, haken, el("span", {}, a.satz)),
       teilweise,
       liste,
@@ -128,7 +129,7 @@
     $("bisherige").hidden = !bereiche.length;
     $("bisherige-satz").textContent = texte.bisherige;
     $("bisherige-oben").textContent = L.BISHERIGE_OBEN;
-    $("bisherige-oben").hidden = !v.aenderungen.some(a => a.entfaellt.length);
+    $("bisherige-oben").hidden = !v.aenderungen.some(a => a.entfaellt.length || a.verschoben);
     $("bisherige-bereiche").replaceChildren(...Schalter.bisherige(bereiche, (chip, an) => schalte(L.schalteChip(auswahl, chip, an))));
   }
 
@@ -158,7 +159,8 @@
   const dotLine = parts => window.DotLine.render(parts, el);
 
   function zeigeEndstand(antwort) {
-    const bloecke = L.endstand(vorschlag.jetzt, antwort.endstand).map(b => el("div", {},
+    // G108: after the three areas the niches and «Nur» lines, so a move shows where the keyword runs now
+    const bloecke = [...L.endstand(vorschlag.jetzt, antwort.endstand, antwort.nur_zeilen || []), ...L.endstandZeilen(antwort)].map(b => el("div", {},
       el("h3", {}, b.name),
       el("ul", { class: "terms" }, ...b.begriffe.map(x => marke({ begriff: x.begriff, wort: x.neu ? "neu" : "", art: x.neu ? "new" : "kept" })))));
     $("endstand").replaceChildren(...bloecke);
@@ -233,7 +235,7 @@
       meldung(texte.passt, texte.passtNotiz);
       return;
     }
-    auswahl = v.endstand;
+    auswahl = { ...v.endstand, [L.VERSCHOBEN]: v.verschoben || [] };
     erlaubt = v.grenzen.erlaubt;
     grenzen = v.grenzen;
     $("vorschlag").hidden = false;
@@ -265,7 +267,7 @@
       $("aenderungen-feld").disabled = true;
       $("verwerfen").hidden = true;
       $("uebernehmen-grund").replaceChildren(el("a", { class: "btn btn--sm", href: "/treffer" }, "Jetzt suchen"));
-      status($("status"), L.uebernommen(stand.neu, stand.entfallen), "ok",
+      status($("status"), L.uebernommen(stand.neu, stand.entfallen, stand.verschoben), "ok",
         { aktion: { text: "Rückgängig machen", ausfuehren: () => rueckgaengig({ vorher: stand.vorher, nachher: stand.nachher }) } });
     } catch (fehler) {
       $("uebernehmen").disabled = false;
@@ -312,6 +314,7 @@
       return;
     }
     $("gesehen").textContent = texte.gesehen(vorab.treffer, vorab.seit);
+    window.SuchbegriffeGezaehlt.zeige();  // counted by the app (G108): shown while the AI works, not awaited
     const offen = await einwilligungOffen();
     if (!offen) {
       holeVorschlag();

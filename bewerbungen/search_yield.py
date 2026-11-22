@@ -5,6 +5,8 @@ stored hits that name a query of the term or place and were found since the olde
 several terms counts for each. Terms match in their forms as the term list compares them (`search_terms.key`), so
 „Fachfrau“ and „Fachmann“ are one profession. Every number is counted here, none comes from the AI.
 """
+import collections
+
 import search_plan
 import search_terms
 from hits import DOMAINS, QUERIES
@@ -17,6 +19,11 @@ ICTJOBS = "ictjobs"
 
 def _term_key(word: str) -> str:
     return search_terms.key(word) or word.casefold()
+
+
+def same_term(one: str, other: str) -> bool:
+    """Two names of one keyword, compared as the counts here compare them."""
+    return _term_key(one) == _term_key(other)
 
 
 def _valid_query(query) -> bool:
@@ -55,8 +62,9 @@ def _found(hits: list[dict], start: str | None, matches) -> dict:
 
 
 def _without_yield(tally: dict, runs: int) -> bool:
-    """«ohne Ertrag»: no hit in the last runs, and only once there are as many runs as the window holds."""
-    return runs >= KEPT_RUNS and tally["laeufe"] >= KEPT_RUNS and tally["treffer"] == 0
+    """«ohne Ertrag»: no hit past the title filter in the last runs (nothing found, or all screened out; one meaning on
+    Suche einstellen and Suchbegriffe prüfen, #383), and only once there are as many runs as the window holds."""
+    return runs >= KEPT_RUNS and tally["laeufe"] >= KEPT_RUNS and tally["treffer"] - tally["aussortiert"] <= 0
 
 
 def _entry(tally: dict, found: dict, runs: int) -> dict:
@@ -106,6 +114,37 @@ def _for_places(queries, hits, start, runs: int) -> list[dict]:
 def without_queries(hits: list[dict]) -> int:
     """Hits of the portals from before the app kept their queries; a site the person named never had any."""
     return sum(1 for h in hits if h.get("portal") in DOMAINS and not _hit_queries(h))
+
+
+def _other_keys(hit: dict, key: str) -> dict[str, str]:
+    """The other keywords that found this hit, by key, each with its name as the query had it."""
+    words = (q.get("stichwort") for q in _hit_queries(hit))
+    return {_term_key(word): word for word in words if isinstance(word, str) and _term_key(word) != key}
+
+
+def _overlap_of(name: str, queries, hits, start, names: dict[str, str]) -> dict:
+    key = _term_key(name)
+    mine = [h for h in hits if start is not None and str(h.get("gefunden_am", "")) >= start
+            and any(isinstance(q.get("stichwort"), str) and _term_key(q["stichwort"]) == key for q in _hit_queries(h))]
+    others = [_other_keys(h, key) for h in mine]
+    shared = collections.Counter(other for found in others for other in found)
+    named = {other: names.get(other) or word for found in others for other, word in found.items()}
+    per_run: dict[int, int] = {}
+    for index, q in queries:
+        if _term_key(q["stichwort"]) == key:
+            per_run = {**per_run, index: per_run.get(index, 0) + q["treffer"]}
+    return {"begriff": name, "nur_hier": sum(1 for found in others if not found),
+            "auch_ueber": [{"begriff": named[other], "anzahl": count} for other, count in shared.most_common()],
+            "laeufe": len(per_run), "laeufe_ohne_treffer": sum(1 for total in per_run.values() if total == 0)}
+
+
+def overlap(runs: list[dict], hits: list[dict], terms: list[str]) -> list[dict]:
+    """Per term, of the new hits it found in these runs (as `summary` counts them), how many only it found and which
+    other keywords found the rest, most often first; and in how many runs it was searched, how many brought no hit."""
+    queries = _queries(runs)
+    start = min((run["datum"] for run in runs), default=None)
+    names = {_term_key(word): word for word in terms}
+    return [_overlap_of(name, queries, hits, start, names) for name in terms]
 
 
 def summary(runs: list[dict], hits: list[dict], terms: list[str], with_places: bool, keywords: tuple[str, ...] = ()) -> dict:
