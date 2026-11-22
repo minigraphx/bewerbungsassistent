@@ -12,6 +12,7 @@ import place_cantons
 import search_frame
 import search_plan
 import search_stages
+import term_pair_texts
 
 ORTE = "orte"
 JOBS_CH = "jobs.ch"
@@ -23,7 +24,7 @@ SAME_CANTON = ("{first} und {place} liegen beide im Kanton {canton}. jobs.ch suc
                "Suchlauf.")
 REMOVE = "{place} entfernen"
 KEEP = "Behalten"
-REMOVED = "{place} entfernt. jobs.ch sucht weiter im ganzen Kanton {canton}."
+REMOVED = "{place} entfernt. jobs.ch sucht weiter im ganzen Kanton {canton}, und der nächste Suchlauf spart {saved}."
 BACK = "{place} ist wieder bei den Orten für jobs.ch."
 POSTAL_CODES = ("jobscout24 sucht an {count} PLZ, jede mit {radius} km Umkreis; nahe PLZ finden oft dieselben Stellen. "
                 "Mit einer Region sucht jobscout24 einmal pro Begriff.")
@@ -38,10 +39,6 @@ class Removal:
     text: str
     place: str
     done: str
-
-
-def _searches(count: int) -> str:
-    return "1 Suche" if count == 1 else f"{count} Suchen"
 
 
 def _plan(text: str, postal_code: str | None, switched_off: list[str] | None) -> search_plan.SearchPlan | None:
@@ -82,8 +79,9 @@ def _same_canton(text: str, plan: search_plan.SearchPlan, kept: list[str]) -> li
                 continue
             cost = _cost(plan, place)
             if alone == place and place.lower() not in kept and cost:
-                found.append({"ort": place, "kanton": canton, "text": SAME_CANTON.format(
-                    first=first[canton], place=place, canton=place_cantons.CANTON_NAMES[canton], cost=_searches(cost)),
+                found.append({"ort": place, "kanton": canton, "spart": cost, "text": SAME_CANTON.format(
+                    first=first[canton], place=place, canton=place_cantons.CANTON_NAMES[canton],
+                    cost=term_pair_texts.searches_word(cost)),
                     "knopf": REMOVE.format(place=place), "behalten": KEEP})
     return found
 
@@ -109,7 +107,8 @@ def removal(text: str, place: str, postal_code: str | None, switched_off: list[s
     if offered is None:
         raise ValueError(GONE)
     rest = [entry for entry in _entries(text) if _alone(entry) != place]
-    done = REMOVED.format(place=place, canton=place_cantons.CANTON_NAMES[offered["kanton"]])
+    done = REMOVED.format(place=place, canton=place_cantons.CANTON_NAMES[offered["kanton"]],
+                          saved=term_pair_texts.searches_word(offered["spart"]))
     return Removal(search_frame.with_raw_value(text, ORTE, ", ".join(rest)), place, done)
 
 

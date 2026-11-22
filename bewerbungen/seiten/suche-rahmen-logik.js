@@ -21,6 +21,10 @@
   /** G107, #380: the jobscout24 regions can be chosen in every job profile, with or without their line. */
   const regionenJobscout24 = lehrstelle => !lehrstelle;
 
+  /** The hint under jobscout24's regions: it names the PLZ field below only while the card shows that field. */
+  const regionenJobscout24Hinweis = mitPlzFeld => "jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. "
+    + `Keine gewählt: jobscout24 sucht ${mitPlzFeld ? "an den PLZ darunter" : "an der PLZ aus Meine Angaben"}.`;
+
   function koerper(karte, felder, lehrstelle) {
     if (karte === "region") {
       const ort = { wohnort: String(felder.wohnort || "").trim(), kantone: felder.kantone || [] };
@@ -69,7 +73,7 @@
     .map(eintrag => `${eintrag.portal}: ${eintrag.vorsatz ? `${eintrag.vorsatz} ` : ""}${eintrag.orte.join(", ")}`);
 
   const logik = { zeilen, alsText, koerper, firmenKoerper, anfrage, umkreisWahl, umkreisGewaehlt, kantoneHinweis,
-    portalFelder, proPortalText, regionenJobscout24 };
+    portalFelder, proPortalText, regionenJobscout24, regionenJobscout24Hinweis };
   if (typeof module !== "undefined") module.exports = logik;
   else global.SucheRahmenLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

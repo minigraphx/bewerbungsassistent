@@ -36,6 +36,7 @@ window.SucheRahmen = (() => {
     const mitRegionen = L.regionenJobscout24(stand.lehrstelle);
     for (const feld of ["orte", "plz", "regionen"]) $(`region-${feld}-feld`).hidden = !sichtbar.includes(feld);
     $(`region-${JOBSCOUT24}-feld`).hidden = !mitRegionen;
+    $(`region-${JOBSCOUT24}-hinweis`).textContent = L.regionenJobscout24Hinweis(sichtbar.includes("plz"));
     $("region-portale").hidden = !sichtbar.length && !mitRegionen;
     $("region-orte").value = L.alsText(werte.orte);
     $("region-plz").value = L.alsText(werte.plz);

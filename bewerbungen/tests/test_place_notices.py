@@ -72,7 +72,13 @@ def test_a_place_with_a_remark_or_inside_a_group_is_not_offered():
 def test_removal_takes_the_place_out_of_its_line_only():
     removal = place_notices.removal(PROFILE.format(places="Aarau, Baden (nur Teilzeit), Bern"), "Baden", None, [])
     assert "- Orte (jobs.ch): Aarau, Bern\n" in removal.text
-    assert removal.done == "Baden entfernt. jobs.ch sucht weiter im ganzen Kanton Aargau."
+    assert removal.done == "Baden entfernt. jobs.ch sucht weiter im ganzen Kanton Aargau, und der nächste Suchlauf spart 3 Suchen."
+
+
+def test_the_removal_says_what_the_next_run_saves_in_the_singular_too():
+    one = TWO.replace("Kursplaner, Lernbegleiter, Datenpfleger", "Kursplaner")
+    removal = place_notices.removal(one, "Baden", None, [])
+    assert removal.done == "Baden entfernt. jobs.ch sucht weiter im ganzen Kanton Aargau, und der nächste Suchlauf spart 1 Suche."
 
 
 def test_removal_of_a_place_no_longer_offered_is_refused():
@@ -114,7 +120,7 @@ def test_the_page_gets_the_notice_and_removes_the_place_on_click_with_undo(serve
     assert status == 200 and json.loads(content)["orte"][0]["text"] == NOTICE
     status, answer = post(server, "/api/suche/orte-hinweise/entfernen", {"ort": "Baden"})
     assert status == 200, answer
-    assert answer["text"] == "Baden entfernt. jobs.ch sucht weiter im ganzen Kanton Aargau."
+    assert answer["text"] == "Baden entfernt. jobs.ch sucht weiter im ganzen Kanton Aargau, und der nächste Suchlauf spart 3 Suchen."
     assert "- Orte (jobs.ch): Aarau\n" in profile(server)
     status, back = post(server, "/api/suche/orte-hinweise/rueckgaengig", {"ort": "Baden", "vorher": answer["rueckgaengig"]})
     assert status == 200, back

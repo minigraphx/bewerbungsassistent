@@ -81,6 +81,13 @@ test("the jobscout24 regions can be chosen in every job profile, and the card se
   assert.deepEqual(L.koerper("region", { ...felder, regionen_jobscout24: [] }, false).regionen_jobscout24, []);
 });
 
+test("the hint under jobscout24's regions points at the PLZ field only while the card shows it (G107, #380)", () => {
+  assert.equal(L.regionenJobscout24Hinweis(true),
+    "jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. Keine gewählt: jobscout24 sucht an den PLZ darunter.");
+  assert.equal(L.regionenJobscout24Hinweis(false),
+    "jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. Keine gewählt: jobscout24 sucht an der PLZ aus Meine Angaben.");
+});
+
 test("the closed card says «Regionen» before jobscout24's regions, never its postcodes then (G107, #380)", () => {
   const liste = [{ portal: "jobscout24", vorsatz: "Regionen", orte: ["Region Bern (BE/FR/SO)", "Homeoffice / Remote"] }];
   assert.deepEqual(L.proPortalText(liste), ["jobscout24: Regionen Region Bern (BE/FR/SO), Homeoffice / Remote"]);
