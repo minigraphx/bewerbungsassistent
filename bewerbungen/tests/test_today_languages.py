@@ -38,7 +38,7 @@ TODAY_FR = ("<title>Aujourd'hui</title>", "<h1>Bienvenue</h1>", "Au programme au
 TODAY_EN = ("<title>Today</title>", "<h1>Welcome</h1>", "What's on today", "Dates and deadlines",
             "No dates in the next few days.", "For the RAV:", "Good to know", "Nothing goes out automatically.",
             "Open the illustrated guide (in German)", "Next step", "Enter my details", "Saved", "Applied", "Closed",
-            "End the pass", "Discard", "Apply", "Open anyway", "Your path to your first application")
+            "End review", "Discard", "Apply", "Open anyway", "Your path to your first application")
 TODAY_DE = ("<h1>Willkommen</h1>", "Das steht heute an", "Termine und Fristen", "Gut zu wissen", "Durchgang beenden",
             "Keine Termine in den nächsten Tagen.", "Trotzdem öffnen")
 PAGE_FILES = ("seiten/uebersicht.html", "seiten/heute-logic.js", "seiten/pass.js", "seiten/uebersicht.js")

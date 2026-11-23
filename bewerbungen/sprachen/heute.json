@@ -19,12 +19,12 @@
   "erledigt": {"fr": "fait", "en": "done"},
   "texte:heute.start.einrichtung": {
     "fr": {
-      "sie": "Vous configurez l'accès à l'IA et l'extension du navigateur dans Configuration.",
-      "du": "Tu configures l'accès à l'IA et l'extension du navigateur dans Configuration."
+      "sie": "Vous configurez l'accès à l'IA et l'extension du navigateur dans la configuration.",
+      "du": "Tu configures l'accès à l'IA et l'extension du navigateur dans la configuration."
     },
     "en": {"sie": "You set up access to the AI and the browser extension in Setup."}
   },
-  "Einrichtung öffnen": {"fr": "Ouvrir Configuration", "en": "Open Setup"},
+  "Einrichtung öffnen": {"fr": "Ouvrir la configuration", "en": "Open Setup"},
   "Nächster Schritt": {"fr": "Prochaine étape", "en": "Next step"},
   "etwa 20\u00a0Minuten": {"fr": "environ 20\u00a0minutes", "en": "about 20\u00a0minutes"},
   "texte:uebersicht.start.karte": {
@@ -102,7 +102,7 @@
     "fr": {"sie": "Nouvelles offres", "du": "Nouvelles offres", "lehrstelle": "Nouvelles places d'apprentissage"},
     "en": {"sie": "New jobs", "lehrstelle": "New apprenticeships"}
   },
-  "Durchgang beenden": {"fr": "Terminer le tri", "en": "End the pass"},
+  "Durchgang beenden": {"fr": "Terminer le tri", "en": "End review"},
   "Verwerfen": {"fr": "Écarter", "en": "Discard"},
   "texte:heute.pass.bewerben": {"fr": {"sie": "Postuler", "du": "Postuler"}, "en": {"sie": "Apply"}},
   "Trotzdem öffnen": {"fr": "Ouvrir quand même", "en": "Open anyway"},
@@ -135,17 +135,17 @@
   "Zehn": {"fr": "Dix", "en": "Ten"},
   "Elf": {"fr": "Onze", "en": "Eleven"},
   "Zwölf": {"fr": "Douze", "en": "Twelve"},
-  "Montag": {"fr": "lundi", "en": "Monday"},
-  "Dienstag": {"fr": "mardi", "en": "Tuesday"},
-  "Mittwoch": {"fr": "mercredi", "en": "Wednesday"},
-  "Donnerstag": {"fr": "jeudi", "en": "Thursday"},
-  "Freitag": {"fr": "vendredi", "en": "Friday"},
-  "Samstag": {"fr": "samedi", "en": "Saturday"},
-  "Sonntag": {"fr": "dimanche", "en": "Sunday"},
+  "Montag": {"fr": "Lundi", "en": "Monday"},
+  "Dienstag": {"fr": "Mardi", "en": "Tuesday"},
+  "Mittwoch": {"fr": "Mercredi", "en": "Wednesday"},
+  "Donnerstag": {"fr": "Jeudi", "en": "Thursday"},
+  "Freitag": {"fr": "Vendredi", "en": "Friday"},
+  "Samstag": {"fr": "Samedi", "en": "Saturday"},
+  "Sonntag": {"fr": "Dimanche", "en": "Sunday"},
   "{wochentag}, {tag}. {monat}": {"fr": "{wochentag} {tag} {monat}", "en": "{wochentag} {tag} {monat}"},
   "{wochentag}, 1. {monat}": {"fr": "{wochentag} 1er {monat}", "en": "{wochentag} 1 {monat}"},
 
-  "Durchgang beginnen": {"fr": "Commencer le tri", "en": "Start the pass"},
+  "Durchgang beginnen": {"fr": "Commencer le tri", "en": "Start review"},
   "Formulare öffnen": {"fr": "Ouvrir les formulaires", "en": "Open the forms"},
   "Formular öffnen": {"fr": "Ouvrir le formulaire", "en": "Open the form"},
   "Jetzt eintragen": {"fr": "Saisir maintenant", "en": "Enter now"},
@@ -168,10 +168,10 @@
   },
   "texte:uebersicht.karte.rav": {
     "fr": {
-      "sie": "Candidature envoyée, mais pas encore saisie comme recherche d'emploi. L'extension remplit le Job-Room\u00a0; c'est vous qui vous connectez et enregistrez.",
-      "du": "Candidature envoyée, mais pas encore saisie comme recherche d'emploi. L'extension remplit le Job-Room\u00a0; c'est toi qui te connectes et enregistres."
+      "sie": "Candidature envoyée, mais pas encore saisie comme recherche d'emploi. L'extension remplit le formulaire sur Job-Room\u00a0; c'est vous qui vous connectez et enregistrez.",
+      "du": "Candidature envoyée, mais pas encore saisie comme recherche d'emploi. L'extension remplit le formulaire sur Job-Room\u00a0; c'est toi qui te connectes et enregistres."
     },
-    "en": {"sie": "Applied, but not yet entered as a job search effort. The extension fills in the Job-Room; you sign in and save yourself."}
+    "en": {"sie": "Applied, but not yet entered as a job search effort. The extension fills in the form in Job-Room; you sign in and save it yourself."}
   },
   "texte:uebersicht.karte.freigeben": {
     "fr": {
@@ -205,18 +205,18 @@
   },
   "texte:heute.gespraech.ohne-termin": {
     "fr": {
-      "sie": "Vous avez reçu une invitation de {firma}. Avec la date, l'app vous rappelle à temps de vous préparer.",
-      "du": "Tu as reçu une invitation de {firma}. Avec la date, l'app te rappelle à temps de te préparer."
+      "sie": "Vous avez reçu une invitation de {firma}. Si vous saisissez la date, l'app vous rappelle à temps de vous préparer.",
+      "du": "Tu as reçu une invitation de {firma}. Si tu saisis la date, l'app te rappelle à temps de te préparer."
     },
-    "en": {"sie": "{firma} has invited you. With the date, the app reminds you in time to prepare."}
+    "en": {"sie": "You have an invitation from {firma}. If you enter the date, the app reminds you in time to prepare."}
   },
-  "Die Firma": {"fr": "l'entreprise", "en": "The company"},
+  "Die Firma": {"fr": "l'entreprise", "en": "the company"},
   "texte:heute.gespraech.termin": {
     "fr": {"sie": "Saisir la date de l'entretien", "du": "Saisir la date de l'entretien", "lehrstelle": "Saisir la date de l'invitation"},
     "en": {"sie": "Enter the interview date", "lehrstelle": "Enter the date of the invitation"}
   },
   "texte:bewerbung.gespraech": {
-    "fr": {"sie": "Préparer l'entretien", "du": "Préparer l'entretien", "lehrstelle": "Se préparer pour l'invitation"},
+    "fr": {"sie": "Préparer l'entretien", "du": "Préparer l'entretien", "lehrstelle": "Se préparer à l'invitation"},
     "en": {"sie": "Prepare for the interview", "lehrstelle": "Prepare for the invitation"}
   },
   "Bewerben oder verwerfen? Note und Inserat stehen in der Bewerbung.": {
@@ -250,13 +250,13 @@
   "{monat} {jahr}": {"fr": "{monat} {jahr}", "en": "{monat} {jahr}"},
   "texte:heute.rav": {
     "fr": {
-      "sie": "À saisir dans le Job-Room\u00a0: {anzahl} pour {monat}. L'ORP reçoit les saisies jusqu'au {frist}.",
-      "du": "À saisir dans le Job-Room\u00a0: {anzahl} pour {monat}. L'ORP reçoit les saisies jusqu'au {frist}."
+      "sie": "À saisir sur Job-Room\u00a0: {anzahl} pour {monat}. L'ORP reçoit les saisies jusqu'au {frist}.",
+      "du": "À saisir sur Job-Room\u00a0: {anzahl} pour {monat}. L'ORP reçoit les saisies jusqu'au {frist}."
     },
-    "en": {"sie": "Not yet entered in the Job-Room: {anzahl} from {monat}. The RAV receives the entries until {frist}."}
+    "en": {"sie": "Not yet entered in Job-Room: {anzahl} from {monat}. The RAV accepts entries until {frist}."}
   },
   "Zum Ausfüllen im Browser braucht es die Erweiterung (siehe Einrichtung).": {
-    "fr": "Pour remplir dans le navigateur, l'extension est nécessaire (voir Configuration).",
+    "fr": "Pour remplir dans le navigateur, l'extension est nécessaire (voir la configuration).",
     "en": "Filling in the browser needs the extension (see Setup)."
   },
   "Die Erweiterung antwortet nicht. Bitte sie neu laden und es nochmals versuchen.": {
@@ -265,7 +265,7 @@
   },
   "Die Erweiterung antwortet nicht.": {"fr": "L'extension ne répond pas.", "en": "The extension is not responding."},
   "Die Unterlagen werden geprüft …": {"fr": "Vérification des documents…", "en": "Checking the documents…"},
-  "Der Job-Room wird geöffnet …": {"fr": "Ouverture du Job-Room…", "en": "Opening the Job-Room…"},
+  "Der Job-Room wird geöffnet …": {"fr": "Ouverture de Job-Room…", "en": "Opening Job-Room…"},
   "Bei {firma} läuft schon eine Bewerbung": {
     "fr": "Une candidature est déjà en cours chez {firma}",
     "en": "An application to {firma} is already under way"
@@ -280,7 +280,7 @@
     "en": {"sie": "Do you want to open the form anyway?"}
   },
   "Bitte im neuen Tab den Zugriff erlauben; danach geht es weiter.": {
-    "fr": "Merci d'autoriser l'accès dans le nouvel onglet\u00a0; ensuite, la suite se fait toute seule.",
+    "fr": "Merci d'autoriser l'accès dans le nouvel onglet\u00a0; ensuite, cela continue tout seul.",
     "en": "Please allow access in the new tab; then it continues."
   },
   "{firma}: {grund}": {"fr": "{firma}\u00a0: {grund}", "en": "{firma}: {grund}"},
@@ -293,12 +293,12 @@
     "en": {"sie": "{anzahl} tabs opened. Nothing is sent without you."}
   },
   "texte:uebersicht.jobroom-offen-eins": {
-    "fr": {"sie": "Le Job-Room est ouvert, {anzahl} saisie attend. Rien n'est enregistré sans vous.", "du": "Le Job-Room est ouvert, {anzahl} saisie attend. Rien n'est enregistré sans toi."},
-    "en": {"sie": "The Job-Room is open, {anzahl} entry is waiting. Nothing is saved without you."}
+    "fr": {"sie": "Job-Room est ouvert, {anzahl} saisie attend. Rien n'est enregistré sans vous.", "du": "Job-Room est ouvert, {anzahl} saisie attend. Rien n'est enregistré sans toi."},
+    "en": {"sie": "Job-Room is open, {anzahl} entry is waiting. Nothing is saved without you."}
   },
   "texte:uebersicht.jobroom-offen": {
-    "fr": {"sie": "Le Job-Room est ouvert, {anzahl} saisies attendent. Rien n'est enregistré sans vous.", "du": "Le Job-Room est ouvert, {anzahl} saisies attendent. Rien n'est enregistré sans toi."},
-    "en": {"sie": "The Job-Room is open, {anzahl} entries are waiting. Nothing is saved without you."}
+    "fr": {"sie": "Job-Room est ouvert, {anzahl} saisies attendent. Rien n'est enregistré sans vous.", "du": "Job-Room est ouvert, {anzahl} saisies attendent. Rien n'est enregistré sans toi."},
+    "en": {"sie": "Job-Room is open, {anzahl} entries are waiting. Nothing is saved without you."}
   },
   "Laden fehlgeschlagen: {fehler}": {"fr": "Échec du chargement\u00a0: {fehler}", "en": "Loading failed: {fehler}"},
 
@@ -306,7 +306,7 @@
   "Gespräch bei {firma}": {"fr": "Entretien chez {firma}", "en": "Interview at {firma}"},
   "Gespräch bei {firma} vorbereiten": {"fr": "Préparer l'entretien chez {firma}", "en": "Prepare for the interview at {firma}"},
   "Einladung bei {firma}": {"fr": "Invitation de {firma}", "en": "Invitation from {firma}"},
-  "Einladung bei {firma} vorbereiten": {"fr": "Se préparer pour l'invitation de {firma}", "en": "Prepare for the invitation from {firma}"},
+  "Einladung bei {firma} vorbereiten": {"fr": "Se préparer à l'invitation de {firma}", "en": "Prepare for the invitation from {firma}"},
   "Nachfragen bei {firma}, falls keine Antwort da ist": {
     "fr": "Relancer {firma} si aucune réponse n'est arrivée",
     "en": "Follow up with {firma} if there is no answer yet"
@@ -322,8 +322,8 @@
   "{nummer} von {anzahl}": {"fr": "{nummer} sur {anzahl}", "en": "{nummer} of {anzahl}"},
   "{anzahl} zum Bewerben": {"fr": "{anzahl} à postuler", "en": "{anzahl} to apply for"},
   "{anzahl} für später": {"fr": "{anzahl} pour plus tard", "en": "{anzahl} for later"},
-  "Durchgang fertig: {teile}.": {"fr": "Tri terminé\u00a0: {teile}.", "en": "Pass finished: {teile}."},
-  "Durchgang fertig.": {"fr": "Tri terminé.", "en": "Pass finished."},
+  "Durchgang fertig: {teile}.": {"fr": "Tri terminé\u00a0: {teile}.", "en": "Review finished: {teile}."},
+  "Durchgang fertig.": {"fr": "Tri terminé.", "en": "Review finished."},
   "Zu dieser Stelle fehlt der Inseratstext.": {
     "fr": "Le texte de l'annonce manque pour cette offre.",
     "en": "The ad text for this job is missing."
@@ -351,8 +351,8 @@
   "Schon im RAV eingetragen.": {"fr": "Déjà saisie pour l'ORP.", "en": "Already entered for the RAV."},
   "Noch nicht beworben.": {"fr": "Candidature pas encore envoyée.", "en": "Not applied yet."},
   "Pro Durchgang gehen höchstens {anzahl} Bewerbungen.": {
-    "fr": "{anzahl} candidatures au plus par passage.",
-    "en": "At most {anzahl} applications per run."
+    "fr": "{anzahl} candidatures au plus à la fois.",
+    "en": "At most {anzahl} applications at a time."
   },
   "Bewerbung mit id erwartet": {"fr": "Candidature avec id attendue", "en": "Application with id expected"},
   "Bitte zuerst Bewerbungen ankreuzen.": {"fr": "Merci de cocher d'abord des candidatures.", "en": "Please tick applications first."},

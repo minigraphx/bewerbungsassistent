@@ -230,7 +230,7 @@
     "en": "Not loaded yet. Without it, the app does not search the portals."
   },
   "Geladen, Version {version}": {"fr": "Chargée, version {version}", "en": "Loaded, version {version}"},
-  "Zur Übersicht": {"fr": "Aller à l'aperçu", "en": "Go to the overview"},
+  "Zur Übersicht": {"fr": "Vers la page Aujourd'hui", "en": "Go to Today"},
   "Meine Angaben erfassen": {"fr": "Saisir mes informations", "en": "Enter my details"},
   "Dokumente": {"fr": "Documents", "en": "Documents"},
 

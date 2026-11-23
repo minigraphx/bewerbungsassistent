@@ -63,7 +63,7 @@ test("dates and deadlines come in French", () => {
     ["24.11.", "Relancer Beispiel Versicherung si aucune réponse n'est arrivée"],
   ]);
   assert.deepEqual(inLanguage("fr", () => shown({ apprenticeship: true }).slice(0, 2)), [
-    ["16.11.", "Se préparer pour l'invitation de Muster Bank"],
+    ["16.11.", "Se préparer à l'invitation de Muster Bank"],
     ["18.11.", "Invitation de Muster Bank"],
   ]);
 });
@@ -96,8 +96,8 @@ test("the line under the title counts in words in the app language", () => {
 });
 
 test("the date in the line under the title is French with the first of a month as 1er", () => {
-  assert.equal(inLanguage("fr", () => H.todayLine(FIRST_OF_DECEMBER)), "mardi 1er décembre");
-  assert.equal(inLanguage("fr", () => H.todayLine(MONDAY)), "lundi 23 novembre");
+  assert.equal(inLanguage("fr", () => H.todayLine(FIRST_OF_DECEMBER)), "Mardi 1er décembre");
+  assert.equal(inLanguage("fr", () => H.todayLine(MONDAY)), "Lundi 23 novembre");
   assert.equal(inLanguage("en", () => H.todayLine(FIRST_OF_DECEMBER)), "Tuesday 1 December");
 });
 
@@ -105,8 +105,8 @@ test("the pass over saved jobs counts and ends in the app language", () => {
   assert.equal(inLanguage("fr", () => H.passProgress(0, 3)), "1 sur 3");
   assert.equal(inLanguage("fr", () => H.passResult({ bewerben: 2, verworfen: 1, spaeter: 1 })),
     `Tri terminé${NBSP}: 2 à postuler, 1 écartée, 1 pour plus tard.`);
-  assert.equal(inLanguage("en", () => H.passResult({ verworfen: 3 })), "Pass finished: 3 discarded.");
-  assert.equal(inLanguage("en", () => H.passResult({})), "Pass finished.");
+  assert.equal(inLanguage("en", () => H.passResult({ verworfen: 3 })), "Review finished: 3 discarded.");
+  assert.equal(inLanguage("en", () => H.passResult({})), "Review finished.");
   assert.deepEqual(inLanguage("fr", () => H.passAd({ link: "" }, "", null).zeilen), ["Le texte de l'annonce manque pour cette offre."]);
 });
 
