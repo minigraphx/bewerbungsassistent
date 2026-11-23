@@ -137,16 +137,17 @@ test("Einstellungen ask for the costs of the budget month with the token still i
     .map(head => page.match(new RegExp(`\\n  function ${head} \\{[\\s\\S]*?\\n  \\}\\n`))[0]).join("");
   const asked = [];
   const holen = (where, parameters) => { asked.push(address(where, parameters)); return Promise.resolve({}); };
-  const run = new Function("holen", "L", "ki", "zeige", "status", "$", `${loadCosts}; return loadCosts();`);
+  // Texte is the page's own texte.js, which einstellungen.js reads its texts from (#417).
+  const run = new Function("holen", "L", "ki", "zeige", "status", "$", "Texte", `${loadCosts}; return loadCosts();`);
   for (const month of ["2026-11", null]) {
-    await run(holen, { costMonth: () => month }, STATUS, () => {}, () => {}, () => null);
+    await run(holen, { costMonth: () => month }, STATUS, () => {}, () => {}, () => null, texte);
   }
   assert.deepEqual(asked.map(url => [url.pathname, url.searchParams.get("t"), url.searchParams.get("monat")]),
     [["/api/schluessel", "token", "2026-11"], ["/api/schluessel", "token", null]]);
   // a failure says what could not be read, not only the bare reason, on the line of the budget card
   const shown = [];
   await run(() => Promise.reject(new Error("Zeitüberschreitung")), { costMonth: () => "2026-11" }, STATUS, () => {},
-    (line, text, level) => shown.push([line.id, text, level]), id => ({ id }));
+    (line, text, level) => shown.push([line.id, text, level]), id => ({ id }), texte);
   assert.deepEqual(shown, [["budget-meldung", "Die Kosten liessen sich nicht laden: Zeitüberschreitung", "fehler"]]);
 });
 

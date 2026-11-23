@@ -104,6 +104,7 @@ function setup(answers) {
       clearInputError: () => {},
     },
     DotLine: require("../seiten/dot-line.js"),
+    Texte: require("../seiten/texte.js"),  // loaded first on the page, as in einstellungen.html
   };
   const context = { window, document: doc, console };
   vm.createContext(context);

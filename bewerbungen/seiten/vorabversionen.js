@@ -15,8 +15,9 @@
     event.target.disabled = true;
     try {
       zeige(await senden("/api/app/vorabversionen", { an }));
-      status($("beta-meldung"), an ? "Vorabversionen eingeschaltet. Die App sucht gleich nach einer neueren Version."
-        : "Vorabversionen ausgeschaltet. Das nächste Update kommt mit der nächsten veröffentlichten Version.", "ok");
+      status($("beta-meldung"), an
+        ? window.Texte.t("Vorabversionen eingeschaltet. Die App sucht gleich nach einer neueren Version.")
+        : window.Texte.t("Vorabversionen ausgeschaltet. Das nächste Update kommt mit der nächsten veröffentlichten Version."), "ok");
     } catch (fehler) {
       event.target.checked = !an;
       status($("beta-meldung"), fehler.message, "fehler");

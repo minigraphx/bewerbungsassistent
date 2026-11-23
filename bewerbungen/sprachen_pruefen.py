@@ -19,6 +19,7 @@ import translation_catalog
 from translation_catalog import FALLBACK, LANGUAGES, SET_PREFIX
 
 BASE = language_sources.BASE
+DESKTOP = BASE.parent / "desktop"
 # Files whose every text is in the catalog in fr and en; each item of #95 adds the files of its page, the last one
 # replaces the list with every source (Andy, 23.11.2026: after the switch, every new text needs fr and en).
 # Entries as BASE / "seiten/heute.html".
@@ -29,6 +30,17 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "seiten/sidebar-logic.js", BASE / "seiten/meldungen.js", BASE / "seiten/einwilligung.js",
     BASE / "seiten/ki-zugang.js", BASE / "seiten/ki-fenster.js",
     BASE / "server.py", BASE / "ai/errors.py", BASE / "routes_ai.py", BASE / "ai/consent.py", BASE / "routes_frame.py",
+    # The page Einstellungen (#417): its scripts, texte.js and uebersicht-logik.js that it loads, and the routes it
+    # calls, also those the desktop app adds.
+    BASE / "seiten/einstellungen.html", BASE / "seiten/texte.js", BASE / "seiten/dot-line.js",
+    BASE / "seiten/uebersicht-logik.js", BASE / "seiten/einstellungen-logik.js", BASE / "seiten/einstellungen.js",
+    BASE / "seiten/claude-abo.js", BASE / "seiten/vorabversionen.js", BASE / "seiten/browser-wahl-logik.js",
+    BASE / "seiten/browser-wahl.js", BASE / "seiten/seitengrenze.js", BASE / "seiten/sprache-logik.js",
+    BASE / "seiten/sprache.js",
+    BASE / "routes_own_key.py", BASE / "ai/own_key.py", BASE / "routes_language_settings.py",
+    BASE / "language_settings.py", BASE / "routes_preferences.py", BASE / "preferences.py",
+    BASE / "routes_page_limit.py", BASE / "page_limit.py", BASE / "ai/connection.py",
+    DESKTOP / "routes_app.py", DESKTOP / "routes_claude.py", DESKTOP / "routes_browser.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
@@ -135,8 +147,10 @@ def orphans(catalog: translation_catalog.Catalog, items: Iterable[language_sourc
 
 
 def app_sources() -> tuple[pathlib.Path, ...]:
-    patterns = ("seiten/*.html", "seiten/*.js", "*.py", "ai/*.py")
-    return tuple(path for pattern in patterns for path in sorted(BASE.glob(pattern)))
+    """The pages, scripts and modules of bewerbungen, and the routes the desktop app adds to them (#417)."""
+    patterns = ((BASE, "seiten/*.html"), (BASE, "seiten/*.js"), (BASE, "*.py"), (BASE, "ai/*.py"),
+                (DESKTOP, "routes_*.py"))
+    return tuple(path for folder, pattern in patterns for path in sorted(folder.glob(pattern)))
 
 
 def main(argv: list[str] | None = None) -> int:

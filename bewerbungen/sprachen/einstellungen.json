@@ -1,0 +1,486 @@
+{
+  "Bereiche der Einstellungen": {"fr": "Sections des paramètres", "en": "Sections of the settings"},
+  "KI, Budget und Sprache": {"fr": "IA, budget et langue", "en": "AI, budget and language"},
+  "Suche und Portale": {"fr": "Recherche et portails", "en": "Search and portals"},
+  "Browser und Erweiterung": {"fr": "Navigateur et extension", "en": "Browser and extension"},
+  "Stelle, Lehrstelle, RAV": {"fr": "Poste, apprentissage, ORP", "en": "Job, apprenticeship, RAV"},
+  "Daten und Sicherung": {"fr": "Données et sauvegarde", "en": "Data and backup"},
+  "Erweitert": {"fr": "Avancé", "en": "Advanced"},
+  "Über die App": {"fr": "À propos de l'app", "en": "About the app"},
+
+  "Zugang zur KI": {"fr": "Accès à l'IA", "en": "Access to the AI"},
+  "Die App läuft auch ohne KI. Mit KI schätzt sie Stellen ein und entwirft Anschreiben.": {
+    "fr": "L'app fonctionne aussi sans IA. Avec l'IA, elle évalue les offres et rédige des lettres de motivation.",
+    "en": "The app also works without AI. With AI, it rates jobs and drafts cover letters."
+  },
+  "Die KI läuft über die Vermittlung des Pilots, mit dem einmaligen Guthaben des Einladungscodes. Was davon verbraucht ist, steht unter Guthaben.": {
+    "fr": "L'IA passe par le service IA de l'app pendant le pilote, avec le crédit unique du code d'invitation. Ce qui en est utilisé figure sous Crédit.",
+    "en": "The AI runs through the app's AI service during the pilot, with the one-time credit of the invitation code. What has been used is shown under Credit."
+  },
+  "Die KI läuft über die Vermittlung des Pilots, mit einem Budget pro Monat. Was davon verbraucht ist, steht unter KI-Budget.": {
+    "fr": "L'IA passe par le service IA de l'app pendant le pilote, avec un budget par mois. Ce qui en est utilisé figure sous Budget IA.",
+    "en": "The AI runs through the app's AI service during the pilot, with a budget per month. What has been used is shown under AI budget."
+  },
+  "Das Guthaben des Einladungscodes ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter: anfordern und hier einlösen.": {
+    "fr": "Le crédit du code d'invitation est épuisé. Un nouveau code d'invitation permet de continuer\u00a0: le demander et l'utiliser ici.",
+    "en": "The credit of the invitation code is used up. A new invitation code lets the app continue: request one and redeem it here."
+  },
+  "Solange ein eigener Schlüssel gespeichert ist, gehen die KI-Aufrufe direkt an Anthropic und nicht über die Einladung.": {
+    "fr": "Tant qu'une clé personnelle est enregistrée, les appels à l'IA vont directement à Anthropic et non par l'invitation.",
+    "en": "As long as your own key is saved, the AI calls go directly to Anthropic and not through the invitation."
+  },
+  "XXXX-XXXX-XXXX-XXXX": {"fr": "XXXX-XXXX-XXXX-XXXX", "en": "XXXX-XXXX-XXXX-XXXX"},
+  "Einladung eingelöst. Die KI ist eingerichtet.": {
+    "fr": "Invitation utilisée. L'IA est configurée.",
+    "en": "Invitation redeemed. The AI is set up."
+  },
+
+  "Claude mit eigenem Abo": {"fr": "Claude avec un abonnement personnel", "en": "Claude with your own subscription"},
+  "texte:einstellungen.abo": {
+    "fr": {
+      "sie": "Si vous avez un abonnement chez Anthropic, Claude peut lui-même chercher, évaluer et rédiger des lettres de motivation, puis écrire le résultat ici dans l'app. Les boutons IA de l'app ne fonctionnent pas avec cet abonnement, car Anthropic ne permet pas d'utiliser un abonnement dans d'autres apps.",
+      "du": "Si tu as un abonnement chez Anthropic, Claude peut lui-même chercher, évaluer et rédiger des lettres de motivation, puis écrire le résultat ici dans l'app. Les boutons IA de l'app ne fonctionnent pas avec cet abonnement, car Anthropic ne permet pas d'utiliser un abonnement dans d'autres apps."
+    },
+    "en": {"sie": "If you have a subscription with Anthropic, Claude can search, rate and draft cover letters itself and write the result here into the app. The app's AI buttons do not work with it, because Anthropic does not allow a subscription to be used in other apps."}
+  },
+  "Anleitung lesen": {"fr": "Lire le guide", "en": "Read the guide"},
+  "1. Skills herunterladen und in Claude hochladen": {
+    "fr": "1. Télécharger les skills et les téléverser dans Claude",
+    "en": "1. Download the skills and upload them to Claude"
+  },
+  "Anpassen, Skills": {"fr": "Personnaliser, Skills", "en": "Customize, Skills"},
+  "Einstieg": {"fr": "Premiers pas", "en": "Getting started"},
+  "Stellensuche": {"fr": "Recherche d'emploi", "en": "Job search"},
+  "Bewerbung": {"fr": "Candidature", "en": "Application"},
+  "2. Zugang einschalten.": {"fr": "2. Activer l'accès.", "en": "2. Turn on the access."},
+  "Vorher wissen:": {"fr": "À savoir d'abord\u00a0:", "en": "Good to know first:"},
+  "texte:einstellungen.abo-klartext": {
+    "fr": {
+      "sie": "Claude lit vos informations en clair\u00a0: CV, profil de recherche, modules de texte et candidatures. La pseudonymisation de l'app ne s'applique pas par cette voie.",
+      "du": "Claude lit tes informations en clair\u00a0: CV, profil de recherche, modules de texte et candidatures. La pseudonymisation de l'app ne s'applique pas par cette voie."
+    },
+    "en": {"sie": "Claude reads your details in plain text: CV, search profile, text blocks and applications. The app's pseudonymisation does not apply on this route."}
+  },
+  "texte:einstellungen.abo-vertrag": {
+    "fr": {
+      "sie": "Le traitement est régi par votre propre contrat avec Anthropic, y compris aux États-Unis. Vous réglez dans Claude si vos conversations servent à l'entraînement.",
+      "du": "Le traitement est régi par ton propre contrat avec Anthropic, y compris aux États-Unis. Tu règles dans Claude si tes conversations servent à l'entraînement."
+    },
+    "en": {"sie": "Processing is governed by your own contract with Anthropic, also in the USA. Whether your chats are used for training is set in Claude."}
+  },
+  "Claude setzt laut Anthropic mindestens 18 Jahre voraus.": {
+    "fr": "Selon Anthropic, Claude est réservé aux personnes de 18 ans et plus.",
+    "en": "According to Anthropic, Claude requires users to be at least 18."
+  },
+  "texte:einstellungen.abo-versand": {
+    "fr": {
+      "sie": "L'envoi, «\u00a0Enregistrer l'envoi\u00a0» et tout ce qui concerne l'ORP restent entre vos mains. Il n'y a pas d'accès pour cela.",
+      "du": "L'envoi, «\u00a0Enregistrer l'envoi\u00a0» et tout ce qui concerne l'ORP restent entre tes mains. Il n'y a pas d'accès pour cela."
+    },
+    "en": {"sie": "Sending, “Record sending” and everything to do with the RAV stay with you. There is no access for that."}
+  },
+  "Zugang einschalten": {"fr": "Activer l'accès", "en": "Turn on access"},
+  "Der Zugang ist eingeschaltet. Claude erreicht die App nur auf diesem Computer.": {
+    "fr": "L'accès est activé. Claude n'atteint l'app que sur cet ordinateur.",
+    "en": "Access is on. Claude reaches the app only on this computer."
+  },
+  "3. Claude mit der App verbinden": {"fr": "3. Connecter Claude à l'app", "en": "3. Connect Claude to the app"},
+  "Claude Code oder von Hand eintragen": {"fr": "Claude Code ou saisie manuelle", "en": "Claude Code or by hand"},
+  "Claude Code, im Terminal:": {"fr": "Claude Code, dans le terminal\u00a0:", "en": "Claude Code, in the terminal:"},
+  "Claude Desktop, in der Datei": {"fr": "Claude Desktop, dans le fichier", "en": "Claude Desktop, in the file"},
+  "4. Claude fragen": {"fr": "4. Demander à Claude", "en": "4. Ask Claude"},
+  ", zum Beispiel: „Suche neue Stellen nach meinem Suchprofil.“": {
+    "fr": ", par exemple\u00a0: «\u00a0Cherche de nouvelles offres selon mon profil de recherche.\u00a0»",
+    "en": ", for example: “Search for new jobs according to my search profile.”"
+  },
+  "Zugang ausschalten": {"fr": "Désactiver l'accès", "en": "Turn off access"},
+  "Eintrag in Claude Desktop erneuern": {"fr": "Renouveler l'entrée dans Claude Desktop", "en": "Renew the entry in Claude Desktop"},
+  "Aus Claude Desktop entfernen": {"fr": "Retirer de Claude Desktop", "en": "Remove from Claude Desktop"},
+  "In Claude Desktop eintragen": {"fr": "Ajouter à Claude Desktop", "en": "Add to Claude Desktop"},
+  "Der Eintrag zeigt auf einen alten Ort der App.": {
+    "fr": "L'entrée pointe vers un ancien emplacement de l'app.",
+    "en": "The entry points to an old location of the app."
+  },
+  "Eingetragen. Claude Desktop einmal ganz beenden und neu öffnen.": {
+    "fr": "Ajouté. Quitter complètement Claude Desktop une fois, puis le rouvrir.",
+    "en": "Added. Quit Claude Desktop completely once and open it again."
+  },
+  "Der Zugang ist eingeschaltet.": {"fr": "L'accès est activé.", "en": "Access is on."},
+  "Der Zugang ist ausgeschaltet. Claude erreicht die App nicht mehr.": {
+    "fr": "L'accès est désactivé. Claude n'atteint plus l'app.",
+    "en": "Access is off. Claude no longer reaches the app."
+  },
+  "In Claude Desktop eingetragen.": {"fr": "Ajouté à Claude Desktop.", "en": "Added to Claude Desktop."},
+  "Aus Claude Desktop entfernt.": {"fr": "Retiré de Claude Desktop.", "en": "Removed from Claude Desktop."},
+
+  "Eigener API-Schlüssel": {"fr": "Clé API personnelle", "en": "Your own API key"},
+  "texte:einstellungen.schluessel": {
+    "fr": {
+      "sie": "Vous n'en avez pas besoin, l'app fonctionne aussi sans. Avec une clé personnelle d'Anthropic, les appels à l'IA vont directement à l'API Claude au lieu du service IA de l'app. Les noms et autres données personnelles sont aussi remplacés avant l'envoi.",
+      "du": "Tu n'en as pas besoin, l'app fonctionne aussi sans. Avec une clé personnelle d'Anthropic, les appels à l'IA vont directement à l'API Claude au lieu du service IA de l'app. Les noms et autres données personnelles sont aussi remplacés avant l'envoi."
+    },
+    "en": {"sie": "You do not need this, the app also works without it. With your own key from Anthropic, the AI calls go directly to the Claude API instead of the app's AI service. Names and other personal details are still replaced before sending."}
+  },
+  "Anleitung: woher der Schlüssel kommt und was er kostet": {
+    "fr": "Guide\u00a0: d'où vient la clé et combien elle coûte",
+    "en": "Guide: where the key comes from and what it costs"
+  },
+  "Ein eigener Schlüssel ist gespeichert, im Schlüsselbund dieses Computers.": {
+    "fr": "Une clé personnelle est enregistrée, dans le trousseau de cet ordinateur.",
+    "en": "Your own key is saved, in the keychain of this computer."
+  },
+  "Schlüssel entfernen": {"fr": "Retirer la clé", "en": "Remove key"},
+  "Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab.": {
+    "fr": "L'app passe ensuite à nouveau par le service IA de l'app, et l'extension rend l'accès à tous les sites.",
+    "en": "The app then runs through the app's AI service again, and the extension gives up its access to all sites."
+  },
+  "Mit dem Schlüssel durchsucht die Suche auch weitere Seiten. Die Adressen stehen unter": {
+    "fr": "Avec la clé, la recherche parcourt aussi d'autres sites. Les adresses se trouvent sous",
+    "en": "With the key, the search also covers further sites. The addresses are under"
+  },
+  "Suche einstellen": {"fr": "Régler la recherche", "en": "Set up search"},
+  "texte:einstellungen.vor-schluessel": {
+    "fr": {"sie": "Avant de saisir une clé\u00a0:", "du": "Avant de saisir une clé\u00a0:"},
+    "en": {"sie": "Before you enter a key:"}
+  },
+  "Beim Speichern prüft ein kleiner, kostenloser Aufruf den Schlüssel; zum Guthaben sagt er nichts. Der Schlüssel liegt danach nur im Schlüsselbund des Computers, nie im Datenordner und nie in der Browser-Erweiterung.": {
+    "fr": "À l'enregistrement, un petit appel gratuit vérifie la clé\u00a0; il ne dit rien du crédit. La clé se trouve ensuite uniquement dans le trousseau de l'ordinateur, jamais dans le dossier de données ni dans l'extension du navigateur.",
+    "en": "When saving, a small free call checks the key; it says nothing about the credit. The key then lives only in the computer's keychain, never in the data folder and never in the browser extension."
+  },
+  "Der Schlüssel wird geprüft …": {"fr": "Vérification de la clé…", "en": "Checking the key…"},
+  "Gespeichert. Die KI-Aufrufe gehen jetzt direkt an die Claude API.": {
+    "fr": "Enregistré. Les appels à l'IA vont maintenant directement à l'API Claude.",
+    "en": "Saved. The AI calls now go directly to the Claude API."
+  },
+  "Der Schlüssel ist entfernt. Die App läuft wieder über die Vermittlung.": {
+    "fr": "La clé est retirée. L'app passe à nouveau par le service IA de l'app.",
+    "en": "The key is removed. The app runs through the app's AI service again."
+  },
+  "Der Schlüssel ist entfernt. Die App läuft wieder über die Vermittlung. Die Erweiterung gibt den Zugriff ab, sobald sie das nächste Mal mit der App verbunden ist.": {
+    "fr": "La clé est retirée. L'app passe à nouveau par le service IA de l'app. L'extension rendra l'accès dès sa prochaine connexion à l'app.",
+    "en": "The key is removed. The app runs through the app's AI service again. The extension gives up its access the next time it is connected to the app."
+  },
+  "Die Erweiterung konnte den Zugriff nicht abgeben ({grund}). Das geht auch in ihren Einstellungen im Browser.": {
+    "fr": "L'extension n'a pas pu rendre l'accès ({grund}). C'est aussi possible dans ses paramètres du navigateur.",
+    "en": "The extension could not give up its access ({grund}). This can also be done in its settings in the browser."
+  },
+  "Die Erweiterung gibt den Zugriff ab, sobald die laufende Suche oder die offenen Formulare fertig sind.": {
+    "fr": "L'extension rendra l'accès dès que la recherche en cours ou les formulaires ouverts seront terminés.",
+    "en": "The extension gives up its access once the running search or the open forms are finished."
+  },
+  "Die Erweiterung hat den Zugriff auf alle Seiten abgegeben.": {
+    "fr": "L'extension a rendu l'accès à tous les sites.",
+    "en": "The extension has given up its access to all sites."
+  },
+  "Die Kosten liessen sich nicht laden: {grund}": {
+    "fr": "Les coûts n'ont pas pu être chargés\u00a0: {grund}",
+    "en": "The costs could not be loaded: {grund}"
+  },
+
+  "Einwilligung": {"fr": "Consentement", "en": "Consent"},
+  "texte:einstellungen.einwilligung": {
+    "fr": {
+      "sie": "Sans consentement, aucun texte ne va à l'IA, même avec une clé personnelle. La recherche, les documents et l'envoi fonctionnent quand même. Avec l'abonnement Claude, l'IA passe par votre propre compte chez Anthropic\u00a0; la remarque sur l'abonnement Claude s'applique alors.",
+      "du": "Sans consentement, aucun texte ne va à l'IA, même avec une clé personnelle. La recherche, les documents et l'envoi fonctionnent quand même. Avec l'abonnement Claude, l'IA passe par ton propre compte chez Anthropic\u00a0; la remarque sur l'abonnement Claude s'applique alors."
+    },
+    "en": {"sie": "Without consent no text goes to the AI, not even with your own key. Search, documents and sending still work. With the Claude subscription the AI runs through your own Anthropic account; the note on the Claude subscription applies to that."}
+  },
+  "texte:einstellungen.eingewilligt": {
+    "fr": {
+      "sie": "Vous avez donné votre consentement. Vous pouvez le retirer à tout moment\u00a0; ensuite, plus aucun texte ne va à l'IA jusqu'à ce que vous consentiez à nouveau.",
+      "du": "Tu as donné ton consentement. Tu peux le retirer à tout moment\u00a0; ensuite, plus aucun texte ne va à l'IA jusqu'à ce que tu consentes à nouveau."
+    },
+    "en": {"sie": "You have given your consent. You can withdraw it at any time; after that no more text goes to the AI until you consent again."}
+  },
+  "Einwilligung widerrufen": {"fr": "Retirer le consentement", "en": "Withdraw consent"},
+  "Wirklich widerrufen? Nochmals klicken": {"fr": "Vraiment retirer\u00a0? Cliquer encore une fois", "en": "Really withdraw? Click again"},
+
+  "KI-Budget": {"fr": "Budget IA", "en": "AI budget"},
+  "Guthaben": {"fr": "Crédit", "en": "Credit"},
+  "KI-Budget im {monat}": {"fr": "Budget IA en {monat}", "en": "AI budget in {monat}"},
+  "Neues Budget am {datum}": {"fr": "Nouveau budget le {datum}", "en": "New budget on {datum}"},
+  "Das KI-Budget für {monat} ist aufgebraucht. Die KI geht wieder ab {datum}.": {
+    "fr": "Le budget IA pour {monat} est épuisé. L'IA fonctionne à nouveau dès le {datum}.",
+    "en": "The AI budget for {monat} is used up. The AI works again from {datum}."
+  },
+  "Das KI-Budget für {monat} ist aufgebraucht. Die KI geht wieder ab {datum}; alles andere funktioniert weiterhin.": {
+    "fr": "Le budget IA pour {monat} est épuisé. L'IA fonctionne à nouveau dès le {datum}\u00a0; tout le reste continue de fonctionner.",
+    "en": "The AI budget for {monat} is used up. The AI works again from {datum}; everything else keeps working."
+  },
+  "Das Budget gilt pro Monat und erneuert sich am Monatsersten; was übrig bleibt, geht nicht in den nächsten Monat mit. Ist es aufgebraucht, läuft die App weiter, nur ohne KI. Protokolliert werden Kosten, keine Inhalte.": {
+    "fr": "Le budget vaut pour un mois et se renouvelle le premier du mois\u00a0; ce qui reste n'est pas reporté au mois suivant. S'il est épuisé, l'app continue de fonctionner, simplement sans IA. Seuls les coûts sont enregistrés, jamais les contenus.",
+    "en": "The budget is per month and renews on the first of the month; what is left does not carry over to the next month. Once it is used up, the app keeps running, only without AI. Costs are logged, never contents."
+  },
+  "Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, nur ohne KI, bis ein neuer Einladungscode eingelöst ist. Protokolliert werden Kosten, keine Inhalte.": {
+    "fr": "Le crédit vaut une seule fois et ne se renouvelle pas. S'il est épuisé, l'app continue de fonctionner, simplement sans IA, jusqu'à l'utilisation d'un nouveau code d'invitation. Seuls les coûts sont enregistrés, jamais les contenus.",
+    "en": "The credit applies once and does not renew. Once it is used up, the app keeps running, only without AI, until a new invitation code is redeemed. Costs are logged, never contents."
+  },
+  "Massgebend ist die Abrechnung von Anthropic. Protokolliert werden Kosten, keine Inhalte.": {
+    "fr": "La facture d'Anthropic fait foi. Seuls les coûts sont enregistrés, jamais les contenus.",
+    "en": "Anthropic's bill is what counts. Costs are logged, never contents."
+  },
+  "Seit Beginn {betrag} in {anzahl} Aufrufen": {
+    "fr": "Depuis le début, {betrag} pour {anzahl} appels",
+    "en": "Since the start {betrag} in {anzahl} calls"
+  },
+  "Kosten {wann}": {"fr": "Coûts {wann}", "en": "Costs {wann}"},
+  "Weitere": {"fr": "Autres", "en": "Other"},
+  "Stellen einschätzen": {"fr": "Évaluer les offres", "en": "Rating jobs"},
+  "Anschreiben entwerfen": {"fr": "Rédiger des lettres de motivation", "en": "Drafting cover letters"},
+  "Anschreiben prüfen": {"fr": "Vérifier des lettres de motivation", "en": "Checking cover letters"},
+  "Texte fürs Dossier": {"fr": "Textes du dossier", "en": "Texts for the dossier"},
+  "Angaben vorbefüllen": {"fr": "Préremplir les informations", "en": "Prefilling details"},
+  "Formulare ausfüllen": {"fr": "Remplir des formulaires", "en": "Filling in forms"},
+  "Suchbegriffe vorschlagen": {"fr": "Proposer des mots-clés", "en": "Suggesting search terms"},
+  "Suchbegriffe prüfen": {"fr": "Vérifier les mots-clés", "en": "Checking search terms"},
+  "Weitere Seiten lesen": {"fr": "Lire d'autres sites", "en": "Reading further sites"},
+  "Ausschlüsse vorschlagen": {"fr": "Proposer des exclusions", "en": "Suggesting exclusions"},
+  "Lebenslauf für eine Stelle": {"fr": "CV pour un poste", "en": "CV for a job"},
+
+  "Sprache": {"fr": "Langue", "en": "Language"},
+  "Sprache der App": {"fr": "Langue de l'app", "en": "App language"},
+  "Ich bewerbe mich auf": {"fr": "Je postule en", "en": "I apply in"},
+  "Deutsch": {"fr": "Allemand", "en": "German"},
+  "Englisch": {"fr": "Anglais", "en": "English"},
+  "Französisch": {"fr": "Français", "en": "French"},
+  "vorgeschlagen: im Lebenslauf «{stufe}»": {
+    "fr": "proposé\u00a0: «\u00a0{stufe}\u00a0» dans le CV",
+    "en": "suggested: “{stufe}” in the CV"
+  },
+  "texte:einstellungen.sprache-inserat": {
+    "fr": {
+      "sie": "La lettre de motivation est rédigée dans la langue de l'annonce si vous postulez dans cette langue.",
+      "du": "La lettre de motivation est rédigée dans la langue de l'annonce si tu postules dans cette langue."
+    },
+    "en": {"sie": "The cover letter is written in the language of the ad if you apply in that language."}
+  },
+  "Bewerbungssprachen gespeichert.": {"fr": "Langues de candidature enregistrées.", "en": "Application languages saved."},
+  "Sprache der App gespeichert.": {"fr": "Langue de l'app enregistrée.", "en": "App language saved."},
+
+  "Suchbegriffe, Region, Portale und das Zeitfenster stehen auf einer eigenen Seite.": {
+    "fr": "Les mots-clés, la région, les portails et la période de recherche se trouvent sur une page à part.",
+    "en": "Search terms, region, portals and the time window are on a page of their own."
+  },
+
+  "Browser-Erweiterung": {"fr": "Extension du navigateur", "en": "Browser extension"},
+  "Die Erweiterung sucht auf den Portalen und füllt Bewerbungsformulare aus. Abschicken macht sie nie.": {
+    "fr": "L'extension cherche sur les portails et remplit les formulaires de candidature. Elle n'envoie jamais rien.",
+    "en": "The extension searches the portals and fills in application forms. It never sends them."
+  },
+  "Die App fragt nach der Erweiterung …": {"fr": "L'app interroge l'extension…", "en": "The app is asking for the extension…"},
+  "Erweiterung einrichten": {"fr": "Configurer l'extension", "en": "Set up the extension"},
+  "Die Erweiterung ist verbunden.": {"fr": "L'extension est connectée.", "en": "The extension is connected."},
+  "Die Erweiterung ist nicht verbunden.": {"fr": "L'extension n'est pas connectée.", "en": "The extension is not connected."},
+  "Browser der App": {"fr": "Navigateur de l'app", "en": "App browser"},
+  "Die App öffnet sich in": {"fr": "L'app s'ouvre dans", "en": "The app opens in"},
+  "Die Browser-Erweiterung läuft in Chrome und Edge. Ist ein anderer Browser der Standard, öffnet sich die App besser gleich in Chrome oder Edge.": {
+    "fr": "L'extension du navigateur fonctionne dans Chrome et Edge. Si un autre navigateur est celui par défaut, mieux vaut ouvrir l'app directement dans Chrome ou Edge.",
+    "en": "The browser extension runs in Chrome and Edge. If another browser is the default, it is better to open the app in Chrome or Edge directly."
+  },
+  "Standardbrowser des Computers (Voreinstellung)": {
+    "fr": "Navigateur par défaut de l'ordinateur (préréglage)",
+    "en": "The computer's default browser (preset)"
+  },
+  "Google Chrome oder Chromium": {"fr": "Google Chrome ou Chromium", "en": "Google Chrome or Chromium"},
+  "auf diesem Computer nicht gefunden": {"fr": "introuvable sur cet ordinateur", "en": "not found on this computer"},
+  "auf diesem Computer nicht gefunden; bis dahin öffnet sich die App im Standardbrowser": {
+    "fr": "introuvable sur cet ordinateur\u00a0; d'ici là, l'app s'ouvre dans le navigateur par défaut",
+    "en": "not found on this computer; until then the app opens in the default browser"
+  },
+  "Gespeichert. Ab dem nächsten Öffnen erscheint die App im Standardbrowser.": {
+    "fr": "Enregistré. À la prochaine ouverture, l'app apparaît dans le navigateur par défaut.",
+    "en": "Saved. From the next start, the app opens in the default browser."
+  },
+  "Gespeichert. Ab dem nächsten Öffnen erscheint die App in {browser}.": {
+    "fr": "Enregistré. À la prochaine ouverture, l'app apparaît dans {browser}.",
+    "en": "Saved. From the next start, the app opens in {browser}."
+  },
+  "Nicht gespeichert: {grund}": {"fr": "Non enregistré\u00a0: {grund}", "en": "Not saved: {grund}"},
+
+  "Was in der Einrichtung gewählt ist. Danach richten sich die Suche, die Anrede und die Schritte zum RAV.": {
+    "fr": "Ce qui est choisi dans la configuration. La recherche, la forme d'adresse et les étapes liées à l'ORP en dépendent.",
+    "en": "What is chosen in the setup. The search, the form of address and the steps for the RAV follow it."
+  },
+  "In der Einrichtung ändern": {"fr": "Modifier dans la configuration", "en": "Change in the setup"},
+  "Gesucht": {"fr": "Je cherche", "en": "Looking for"},
+  "Stelle": {"fr": "Poste", "en": "Job"},
+  "Lehrstelle": {"fr": "Place d'apprentissage", "en": "Apprenticeship"},
+  "Anrede": {"fr": "Tu ou vous", "en": "Form of address"},
+  "Sie": {"fr": "vous", "en": "formal"},
+  "du": {"fr": "tu", "en": "informal"},
+  "RAV": {"fr": "ORP", "en": "RAV"},
+  "Ja, mit den Schritten zum RAV": {"fr": "Oui, avec les étapes liées à l'ORP", "en": "Yes, with the steps for the RAV"},
+  "Nein": {"fr": "Non", "en": "No"},
+
+  "Angaben und Bewerbungen liegen im Datenordner auf diesem Computer. Eine Sicherung packt ihn in eine ZIP-Datei, am besten für einen USB-Stick.": {
+    "fr": "Les informations et les candidatures se trouvent dans le dossier de données sur cet ordinateur. Une sauvegarde le met dans un fichier ZIP, idéalement pour une clé USB.",
+    "en": "Details and applications are in the data folder on this computer. A backup packs it into a ZIP file, best for a USB stick."
+  },
+  "Einrichtung: Datenordner, Erweiterung und KI": {
+    "fr": "Configuration\u00a0: dossier de données, extension et IA",
+    "en": "Setup: data folder, extension and AI"
+  },
+  "Für Geübte: Inhalte als Text bearbeiten": {
+    "fr": "Pour utilisateurs expérimentés\u00a0: modifier les contenus comme texte",
+    "en": "For experienced users: edit the contents as text"
+  },
+  "Feinere Einstellungen für Geübte. Ohne sie läuft die App mit den Voreinstellungen.": {
+    "fr": "Réglages plus fins pour utilisateurs expérimentés. Sans eux, l'app fonctionne avec les préréglages.",
+    "en": "Finer settings for experienced users. Without them, the app runs with the presets."
+  },
+  "Inhalte als Text bearbeiten": {"fr": "Modifier les contenus comme texte", "en": "Edit the contents as text"},
+
+  "Länge des Lebenslaufs": {"fr": "Longueur du CV", "en": "CV length"},
+  "Der Lebenslauf hat höchstens zwei Seiten, das Anschreiben genau eine. Ist etwas länger, setzt die App es enger. Reicht das nicht, nennt die Prüfung, was sich kürzen lässt. Ohne Zustimmung fällt nichts weg.": {
+    "fr": "Le CV fait au plus deux pages, la lettre de motivation exactement une. Si un document est plus long, l'app le met en page plus serré. Si cela ne suffit pas, la vérification indique ce qui peut être raccourci. Rien n'est supprimé sans accord.",
+    "en": "The CV has at most two pages, the cover letter exactly one. If something is longer, the app sets it tighter. If that is not enough, the check names what can be shortened. Nothing is dropped without consent."
+  },
+  "Drei Seiten für den Lebenslauf erlauben": {"fr": "Autoriser trois pages pour le CV", "en": "Allow three pages for the CV"},
+  "Drei Seiten erlaubt. Mit «Unterlagen erstellen» entsteht der Lebenslauf neu.": {
+    "fr": "Trois pages autorisées. «\u00a0Créer les documents\u00a0» refait le CV.",
+    "en": "Three pages allowed. “Create documents” builds the CV again."
+  },
+  "Höchstens zwei Seiten. Mit «Unterlagen erstellen» entsteht der Lebenslauf neu.": {
+    "fr": "Deux pages au plus. «\u00a0Créer les documents\u00a0» refait le CV.",
+    "en": "Two pages at most. “Create documents” builds the CV again."
+  },
+
+  "Vorabversionen": {"fr": "Préversions", "en": "Pre-releases"},
+  "Neue Versionen gibt es manchmal zuerst als Vorabversion zum Ausprobieren. Vorabversionen können noch Fehler haben. Eingeschaltet bietet die App auch Vorabversionen als Update an, sonst nur veröffentlichte Versionen. Ausschalten behält die installierte Version; das nächste Update kommt dann mit der nächsten veröffentlichten Version, die neuer ist.": {
+    "fr": "Les nouvelles versions sont parfois d'abord disponibles en préversion, pour les essayer. Les préversions peuvent encore contenir des erreurs. Si l'option est activée, l'app propose aussi les préversions comme mise à jour, sinon uniquement les versions publiées. Désactiver garde la version installée\u00a0; la prochaine mise à jour arrive alors avec la prochaine version publiée plus récente.",
+    "en": "New versions sometimes come first as a pre-release to try out. Pre-releases may still have errors. When on, the app also offers pre-releases as updates, otherwise only published versions. Turning it off keeps the installed version; the next update then comes with the next published version that is newer."
+  },
+  "Vorabversionen als Update anbieten": {"fr": "Proposer les préversions comme mise à jour", "en": "Offer pre-releases as updates"},
+  "Vorabversionen eingeschaltet. Die App sucht gleich nach einer neueren Version.": {
+    "fr": "Préversions activées. L'app cherche tout de suite une version plus récente.",
+    "en": "Pre-releases on. The app is checking for a newer version right away."
+  },
+  "Vorabversionen ausgeschaltet. Das nächste Update kommt mit der nächsten veröffentlichten Version.": {
+    "fr": "Préversions désactivées. La prochaine mise à jour arrivera avec la prochaine version publiée.",
+    "en": "Pre-releases off. The next update comes with the next published version."
+  },
+
+  "Bitte zuerst die Hinweise lesen und bestätigen.": {
+    "fr": "Merci de lire d'abord les remarques et de les confirmer.",
+    "en": "Please read the notes and confirm them first."
+  },
+  "Bitte zuerst den Zugang einschalten.": {"fr": "Merci d'activer d'abord l'accès.", "en": "Please turn on access first."},
+  "an erwartet (ja oder nein)": {"fr": "an attendu (oui ou non)", "en": "an expected (yes or no)"},
+  "eintragen erwartet (ja oder nein)": {"fr": "eintragen attendu (oui ou non)", "en": "eintragen expected (yes or no)"},
+  "Der Monat ist nicht lesbar.": {"fr": "Le mois n'est pas lisible.", "en": "The month cannot be read."},
+  "Das sieht nicht wie ein API-Schlüssel aus. Bitte den ganzen Schlüssel aus der Anthropic Console einfügen.": {
+    "fr": "Cela ne ressemble pas à une clé API. Merci de coller la clé entière depuis la console Anthropic.",
+    "en": "That does not look like an API key. Please paste the whole key from the Anthropic Console."
+  },
+  "Die Adresse der KI-Vermittlung muss mit https:// beginnen.": {
+    "fr": "L'adresse du service IA de l'app doit commencer par https://.",
+    "en": "The address of the app's AI service must start with https://."
+  },
+  "Bitte die Sprache der App oder die Bewerbungssprachen angeben.": {
+    "fr": "Merci d'indiquer la langue de l'app ou les langues de candidature.",
+    "en": "Please give the app language or the application languages."
+  },
+  "Bitte mindestens eine Bewerbungssprache wählen: Deutsch, Englisch oder Französisch.": {
+    "fr": "Merci de choisir au moins une langue de candidature\u00a0: allemand, anglais ou français.",
+    "en": "Please choose at least one application language: German, English or French."
+  },
+  "Bitte wählen: Deutsch, Französisch oder Englisch als Sprache der App.": {
+    "fr": "Merci de choisir l'allemand, le français ou l'anglais comme langue de l'app.",
+    "en": "Please choose German, French or English as the app language."
+  },
+  "Bitte wählen: eine Stelle oder eine Lehrstelle.": {
+    "fr": "Merci de choisir\u00a0: un poste ou une place d'apprentissage.",
+    "en": "Please choose: a job or an apprenticeship."
+  },
+  "Bitte wählen: mit Sie oder mit du.": {
+    "fr": "Merci de choisir\u00a0: vous ou tu.",
+    "en": "Please choose: formal or informal."
+  },
+  "Bitte wählen, ob beim RAV gemeldet: Ja oder Nein.": {
+    "fr": "Merci d'indiquer s'il y a une inscription à l'ORP\u00a0: oui ou non.",
+    "en": "Please choose whether registered with the RAV: yes or no."
+  },
+  "Bitte wählen: zwei oder drei Seiten für den Lebenslauf.": {
+    "fr": "Merci de choisir\u00a0: deux ou trois pages pour le CV.",
+    "en": "Please choose: two or three pages for the CV."
+  },
+  "Diesen Browser kennt die App nicht.": {"fr": "L'app ne connaît pas ce navigateur.", "en": "The app does not know this browser."},
+  "Dieser Browser wurde auf diesem Computer nicht gefunden.": {
+    "fr": "Ce navigateur n'a pas été trouvé sur cet ordinateur.",
+    "en": "This browser was not found on this computer."
+  },
+  "Vorabversionen gibt es nur in der App.": {"fr": "Les préversions n'existent que dans l'app.", "en": "Pre-releases only exist in the app."},
+  "Das Update auf Version {version} liess sich nicht starten, die bisherige Version läuft weiter. Bitte die neue Version von Hand laden.": {
+    "fr": "La mise à jour vers la version {version} n'a pas pu démarrer, la version actuelle continue de fonctionner. Merci de télécharger la nouvelle version manuellement.",
+    "en": "The update to version {version} could not start; the current version keeps running. Please download the new version by hand."
+  },
+  "Das Update liess sich nicht starten.": {"fr": "La mise à jour n'a pas pu démarrer.", "en": "The update could not start."},
+  "Es gibt keine neuere Version.": {"fr": "Il n'y a pas de version plus récente.", "en": "There is no newer version."},
+  "Bitte die neue Version hier laden: {adresse}": {
+    "fr": "Merci de télécharger la nouvelle version ici\u00a0: {adresse}",
+    "en": "Please download the new version here: {adresse}"
+  },
+
+  "Einladung": {"fr": "Invitation", "en": "Invitation"},
+  "texte:uebersicht.ansicht-gemerkt": {"fr": {"sie": "Mises de côté", "du": "Mises de côté"}, "en": {"sie": "Saved"}},
+  "texte:uebersicht.ansicht-beworben": {"fr": {"sie": "Envoyées", "du": "Envoyées"}, "en": {"sie": "Applied"}},
+  "texte:uebersicht.ansicht-abgeschlossen": {"fr": {"sie": "Terminées", "du": "Terminées"}, "en": {"sie": "Closed"}},
+  "1 Bewerbung": {"fr": "1 candidature", "en": "1 application"},
+  "{anzahl} Bewerbungen": {"fr": "{anzahl} candidatures", "en": "{anzahl} applications"},
+  "Keine ausgewählt": {"fr": "Aucune sélectionnée", "en": "None selected"},
+  "1 ausgewählt": {"fr": "1 sélectionnée", "en": "1 selected"},
+  "{anzahl} ausgewählt": {"fr": "{anzahl} sélectionnées", "en": "{anzahl} selected"},
+  "{bewerbungen} auf „{stand}“ setzen?": {
+    "fr": "Passer {bewerbungen} à «\u00a0{stand}\u00a0»\u00a0?",
+    "en": "Set {bewerbungen} to “{stand}”?"
+  },
+  "1 Bewerbung auf „{stand}“ gesetzt.": {
+    "fr": "1 candidature passée à «\u00a0{stand}\u00a0».",
+    "en": "1 application set to “{stand}”."
+  },
+  "{bewerbungen} auf „{stand}“ gesetzt.": {
+    "fr": "{bewerbungen} passées à «\u00a0{stand}\u00a0».",
+    "en": "{bewerbungen} set to “{stand}”."
+  },
+  "{bewerbungen} auf „{stand}“ gesetzt. Sie steht jetzt unter „{ansicht}“.": {
+    "fr": "{bewerbungen} passée à «\u00a0{stand}\u00a0». Elle figure maintenant sous «\u00a0{ansicht}\u00a0».",
+    "en": "{bewerbungen} set to “{stand}”. It is now under “{ansicht}”."
+  },
+  "{bewerbungen} auf „{stand}“ gesetzt. Sie stehen jetzt unter „{ansicht}“.": {
+    "fr": "{bewerbungen} passées à «\u00a0{stand}\u00a0». Elles figurent maintenant sous «\u00a0{ansicht}\u00a0».",
+    "en": "{bewerbungen} set to “{stand}”. They are now under “{ansicht}”."
+  },
+  "{anzahl} Zusage": {"fr": "{anzahl} réponse positive", "en": "{anzahl} offer"},
+  "{anzahl} Zusagen": {"fr": "{anzahl} réponses positives", "en": "{anzahl} offers"},
+  "{anzahl} Absage": {"fr": "{anzahl} refus", "en": "{anzahl} rejection"},
+  "{anzahl} Absagen": {"fr": "{anzahl} refus", "en": "{anzahl} rejections"},
+  "1 verworfen": {"fr": "1 écartée", "en": "1 discarded"},
+  "{anzahl} verworfen": {"fr": "{anzahl} écartées", "en": "{anzahl} discarded"},
+  "1 zurückgezogen": {"fr": "1 retirée", "en": "1 withdrawn"},
+  "{anzahl} zurückgezogen": {"fr": "{anzahl} retirées", "en": "{anzahl} withdrawn"},
+  "{anzahl} Bewerbungen abschicken": {"fr": "Envoyer {anzahl} candidatures", "en": "Send {anzahl} applications"},
+  "Formulare sind bereit": {"fr": "Les formulaires sont prêts", "en": "Forms are ready"},
+  "Abschicken": {"fr": "Envoyer", "en": "Send"},
+  "Formular ist bereit": {"fr": "Le formulaire est prêt", "en": "Form is ready"},
+  "Anschreiben lesen und freigeben": {"fr": "Lire et valider la lettre de motivation", "en": "Read and approve the cover letter"},
+  "Entwurf ist fertig": {"fr": "Le brouillon est prêt", "en": "Draft is ready"},
+  "Unterlagen erstellen": {"fr": "Créer les documents", "en": "Create documents"},
+  "Lebenslauf-PDF fehlt": {"fr": "PDF du CV manquant", "en": "CV PDF missing"},
+  "Link zum Formular eintragen": {"fr": "Saisir le lien vers le formulaire", "en": "Enter the link to the form"},
+  "dann füllt die Erweiterung es aus": {"fr": "l'extension le remplit ensuite", "en": "then the extension fills it in"},
+  "Bewerbung öffnen": {"fr": "Ouvrir la candidature", "en": "Open the application"},
+  "{anzahl} Bewerbungen im Job-Room eintragen": {
+    "fr": "Saisir {anzahl} candidatures dans le Job-Room",
+    "en": "Enter {anzahl} applications in the Job-Room"
+  },
+  "Im Job-Room eintragen": {"fr": "Saisir dans le Job-Room", "en": "Enter in the Job-Room"},
+  "fürs RAV": {"fr": "pour l'ORP", "en": "for the RAV"},
+  "Gemerkte Stellen in einem Durchgang bewerten": {
+    "fr": "Évaluer en une fois les offres mises de côté",
+    "en": "Rate saved jobs in one pass"
+  },
+  "Entscheiden": {"fr": "Décider", "en": "Decide"},
+  "bewerben oder verwerfen": {"fr": "postuler ou écarter", "en": "apply or discard"},
+  "Antwort abwarten": {"fr": "Attendre la réponse", "en": "Wait for the answer"},
+  "nachfragen ab {datum}": {"fr": "relancer dès le {datum}", "en": "follow up from {datum}"}
+}

@@ -26,6 +26,7 @@ INVARIANT = ("Bewerbungsbegleiter", "Claude Desktop", "Claude", "Anthropic", "CH
 # Stored values stay German in every language; the pages word them (texte.js statusName).
 DATA_VALUES = frozenset(register.STATUS)
 LETTER = re.compile(r"[^\W\d_]")
+PLACEHOLDER = re.compile(r"\{\w+\}")
 INVARIANT_NAME = re.compile("|".join(rf"(?<![\w.-]){re.escape(name)}(?![\w-])"
                                      for name in sorted(INVARIANT, key=len, reverse=True)))
 
@@ -39,7 +40,10 @@ SET_CALL = re.compile(r"\bTexte\.text\(\s*$")
 COMPARED_BEFORE = re.compile(r"(?:[!=]==?|\bcase)\s*$")
 # A form of a text set in texte.js; the catalog translates it as "texte:<key>", never as a plain text.
 SET_FORM_BEFORE = re.compile(r"\b(?:sie|du|lehrstelle):\s*$")
-COMPARED_AFTER = re.compile(r"^\s*(?:[!=]==?|:)")
+COMPARED_AFTER = re.compile(r"^\s*[!=]==?")
+# A literal before „:“ is an object key, unless „?“ stands before it: then it is the first branch of a ternary (#417).
+KEY_AFTER = re.compile(r"^\s*:")
+TERNARY_BEFORE = re.compile(r"\?\s*$")
 # A leftover is a sentence (with a space) or one capitalised word such as „Speichern“; code rarely looks like either.
 TEXT_LIKE = re.compile(r"[A-ZÄÖÜ][^\s]*\s+\S.*|[A-ZÄÖÜ][a-zäöüß]+[.!?:…]?", re.S)
 CODE_LIKE = re.compile(r"[a-z][\w-]*://|^[/#.]")
@@ -64,7 +68,11 @@ class Item:
 
 
 def needs_translation(text: str) -> bool:
-    return text not in DATA_VALUES and LETTER.search(INVARIANT_NAME.sub("", text)) is not None
+    """A text with words of its own: names, stored values and a template of nothing but placeholders such as
+    „{hinweis} {adresse}“ are none (#417). Placeholders with punctuation stay a text, since French spaces it."""
+    if text in DATA_VALUES or not PLACEHOLDER.sub("", text).strip():
+        return False
+    return LETTER.search(INVARIANT_NAME.sub("", text)) is not None
 
 
 def _line(source: str, offset: int) -> int:
@@ -103,8 +111,10 @@ def _js_item(path: pathlib.Path, source: str, found: re.Match) -> Item | None:
         return Item(path, line, value, "set")
     if T_CALL.search(before) or (path.name == TEXTE_JS.name and OWN_T_CALL.search(before)):
         return Item(path, line, value, "text")
-    words = INTERPOLATION.sub("", value).strip() if found[0][0] == "`" else value
-    if (COMPARED_BEFORE.search(before) or SET_FORM_BEFORE.search(before) or COMPARED_AFTER.match(after)
+    # Judged without the spaces around it: " Die Erweiterung …" joins a sentence before it and is a text all the same.
+    words = (INTERPOLATION.sub("", value) if found[0][0] == "`" else value).strip()
+    is_key = KEY_AFTER.match(after) and not TERNARY_BEFORE.search(before)
+    if (COMPARED_BEFORE.search(before) or SET_FORM_BEFORE.search(before) or COMPARED_AFTER.match(after) or is_key
             or CODE_LIKE.search(value) or CODE_LIKE.search(words)):
         return None
     if TEXT_LIKE.fullmatch(words) and needs_translation(words):
