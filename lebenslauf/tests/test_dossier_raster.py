@@ -151,13 +151,13 @@ def test_cover_reads_name_application_and_contact_in_order(example):
     cover = page_texts(example.dossier)[0]
 
     assert_in_order(cover, ["Erika Beispiel", "Software-Entwicklerin – Web und Daten", "Data Engineer",
-                            "Beispiel AG", "Musterweg 1", "3000 Bern", "079 000 00 00", "erika@example.ch"])
+                            "Exempel Logistik AG", "Musterweg 1", "3000 Bern", "079 000 00 00", "erika@example.ch"])
 
 
 def test_letter_head_is_the_band_with_the_company(example):
     letter = pdftotext(example.letter)
 
-    assert_in_order(letter, ["Beispiel AG", "Bewerbung als", "Data Engineer", "Erika Beispiel",
+    assert_in_order(letter, ["Exempel Logistik AG", "Bewerbung als", "Data Engineer", "Erika Beispiel",
                              "Sehr geehrte Frau Meier", "Freundliche Grüsse"])
     assert "Berufserfahrung" not in letter and "Auf einen Blick" not in letter
 
