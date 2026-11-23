@@ -100,9 +100,11 @@ test("the end of a run, the second look and the open hits come in the app langua
   const stand = { bewertet: 10, von: 14, offen: [], ohneText: 0, gestoppt: true, kosten: 0.12 };
   assert.deepEqual(inAll(() => T.schlussText(stand, 4, "CHF")), {
     de: `10 von 14 Treffern bewertet, angehalten, noch 4 offen. Kosten: CHF${NBSP}0.12.`,
-    fr: `Résultats évalués${NBSP}: 10 sur 14, arrêtée, encore 4 en attente. Coût${NBSP}: CHF${NBSP}0.12.`,
-    en: `Results rated: 10 of 14, stopped, 4 still open. Cost: CHF${NBSP}0.12.`,
+    fr: `Résultats évalués${NBSP}: 10 sur 14, arrêtée, encore 4 sans note. Coût${NBSP}: CHF${NBSP}0.12.`,
+    en: `Results rated: 10 of 14, stopped, 4 still unrated. Cost: CHF${NBSP}0.12.`,
   });
+  assert.equal(inLanguage("en", () => T.schlussText({ ...stand, gestoppt: false, offen: ["a", "b"] }, 0, "CHF")),
+    `Results rated: 10 of 14, 2 without a usable answer, which can be retried individually. Cost: CHF${NBSP}0.12.`);
   const bewertung = { nachpruefung: { noten: [5, 4] } };
   assert.equal(inLanguage("en", () => T.nachpruefungText(bewertung, String)),
     "Checked again: rated alone, grades 5 and 4; the lower one counts.");
@@ -130,11 +132,24 @@ test("the summary of the search keeps search terms, cantons and places as they a
                      region: { kantone: ["Bern", "Solothurn"], orte: ["Thun"] }, portale: 3 };
   assert.deepEqual(inAll(() => A.zusammenfassung(settings)), {
     de: ["Sucht nach Projektleiter, Bauführer, Polier und 1 weiteren", "Kantone Bern und Solothurn", "3 Portale"],
-    fr: ["Recherche Projektleiter, Bauführer, Polier et 1 autres", "Cantons Bern et Solothurn", "3 portails"],
+    fr: [`Recherche${NBSP}: Projektleiter, Bauführer, Polier et 1 autre`, "Cantons Bern et Solothurn", "3 portails"],
     en: ["Searches for Projektleiter, Bauführer, Polier and 1 more", "Cantons Bern and Solothurn", "3 portals"],
   });
+  const more = { begriffe: [...settings.begriffe, "Maurer"] };
+  assert.deepEqual(inAll(() => A.zusammenfassung(more)[0]), {
+    de: "Sucht nach Projektleiter, Bauführer, Polier und 2 weiteren",
+    fr: `Recherche${NBSP}: Projektleiter, Bauführer, Polier et 2 autres`,
+    en: "Searches for Projektleiter, Bauführer, Polier and 2 more",
+  });
+  assert.equal(inLanguage("fr", () => A.zusammenfassung({ begriffe: ["Polier"] })[0]), `Recherche${NBSP}: Polier`);
   assert.equal(inLanguage("fr", () => A.nischenText({ nischen: true, kantone: ["Bern"] }, false, true)),
-    "Recherche sans lieu. Sont conservées les offres dans Bern, à tes lieux ou en télétravail.");
+    "Recherche sans lieu. Sont conservées les offres dans Bern, dans tes localités ou en télétravail.");
+  assert.equal(inLanguage("en", () => A.nischenText({ nischen: true, kantone: ["Bern"] }, false, false)),
+    "Searched without a place. Jobs in Bern, in your places or with remote work are kept.");
+});
+
+test("a time window of one day is a day in French and English, and stays as it was in German", () => {
+  assert.deepEqual(inAll(() => A.zeitfensterWahl(1)[0].text), { de: "1 Tage", fr: "1 jour", en: "1 day" });
 });
 
 test("the empty lists and the line of the last search come in the app language", () => {
@@ -236,13 +251,25 @@ test("the texts of the check come in the app language, in du only for the du set
     ["Terme", "Recherches", "Résultats", "filtrés", "seulement via ce terme", "dès la note 4"]);
 });
 
-test("the notice about a title filter term keeps the term and quotes «Titelfilter» in German", () => {
-  const beleg = { begriff: "Engineer", anzahl: 9, alle: 40, unter: 7, beispiele: ["Sales Engineer"] };
+test("the notice about a title filter term keeps the term and names the title filter as the app does", () => {
+  const beleg = { begriff: "Engineer", anzahl: 1, alle: 40, unter: 1, beispiele: ["Sales Engineer"] };
   assert.deepEqual(inAll(() => S.hinweisText(beleg)), {
-    de: "«Engineer» im Titelfilter: 9 von 40 Treffern, 7 davon unter Note 4, zum Beispiel Sales Engineer.",
-    fr: `«${NBSP}Engineer${NBSP}» dans le «${NBSP}Titelfilter${NBSP}»${NBSP}: 9 résultats sur 40, dont 7 sous la note 4, par exemple Sales Engineer.`,
-    en: "“Engineer” in the “Titelfilter”: 9 of 40 results, 7 of them below grade 4, for example Sales Engineer.",
+    de: "«Engineer» im Titelfilter: 1 von 40 Treffern, 1 davon unter Note 4, zum Beispiel Sales Engineer.",
+    fr: `«${NBSP}Engineer${NBSP}» dans le filtre de titre${NBSP}: 1 sur 40 résultats, dont 1 sous la note 4, par exemple Sales Engineer.`,
+    en: "“Engineer” in the title filter: 1 of 40 results, 1 of them below grade 4, for example Sales Engineer.",
   });
+  assert.equal(inLanguage("en", () => S.belegSatz({ ...beleg, anzahl: 9 })),
+    "Only through “Engineer”: 9 of 40 results, 1 of them below grade 4.");
+});
+
+test("the counted numbers from a single search run say so in French and English, and stay as they were in German", () => {
+  assert.deepEqual(inAll(() => S.gezaehltUnterzeile({ noetig: 1 })), {
+    de: "Aus den letzten 1 Suchläufen, gezählt von der App, nicht von der KI. Treffer zählt sie bei jeder Suche, Stellen nur einmal.",
+    fr: "D'après la dernière série de recherches, comptée par l'app, pas par l'IA. Elle compte les résultats à chaque recherche, les offres une seule fois.",
+    en: "From the last search run, counted by the app, not by the AI. It counts results at every search, jobs only once.",
+  });
+  assert.equal(inLanguage("fr", () => S.gezaehltUnterzeile({ noetig: 3 })),
+    "D'après les 3 dernières séries de recherches, comptées par l'app, pas par l'IA. Elle compte les résultats à chaque recherche, les offres une seule fois.");
 });
 
 test("what was applied and what is too many come in the app language", () => {
@@ -265,11 +292,12 @@ test("the lines of the search profile stay German in every language", () => {
   ["Search terms", "Title contains one of them", "Title contains none of them"]);
 });
 
-test("the counted marks keep the keyword and quote the title filter in German", () => {
+test("the counted marks keep the keyword and name the title filter as the app does", () => {
   const counts = { genug: true, begriffe: [{ begriff: "Trainer", marke: "ohne_ertrag", suchen: 6, treffer_portale: 4,
     aussortiert: 4, ohne_pflichtbezug: 0, ausserhalb_region: 0 }] };
-  assert.deepEqual(inLanguage("fr", () => S.markiert(counts)), [{ name: `«${NBSP}Trainer${NBSP}»`, marke: "sans rendement",
-    rest: `${NBSP}: 6 recherches, 4 résultats, tous filtrés par le «${NBSP}Titelfilter${NBSP}».` }]);
+  assert.deepEqual(inLanguage("fr", () => S.markiert(counts)), [{ name: `«${NBSP}Trainer${NBSP}»`, marke: "improductif",
+    rest: `${NBSP}: 6 recherches, 4 résultats, tous filtrés par le filtre de titre.` }]);
+  assert.equal(inLanguage("en", () => S.markiert(counts)[0].marke), "unproductive");
   assert.deepEqual(S.markiert(counts), [{ name: "„Trainer“", marke: "ohne Ertrag",
     rest: ": 6 Suchen, 4 Treffer, alle vom Titelfilter aussortiert." }]);
 });

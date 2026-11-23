@@ -105,8 +105,8 @@
     for (const name of Object.keys(lock)) link.removeAttribute(name);
   }
 
-  /** The notice above the hits: a term of the title filter that lets many poor hits in. „Titelfilter“ is the name of
-   * the section in the search profile, so French and English quote it in German. */
+  /** The notice above the hits: a term of the title filter that lets many poor hits in. The title filter is named as
+   * the app labels it, in the app language (UI/UX ruling on #421). */
   function hinweisText(beleg) {
     const werte = { begriff: beleg.begriff, anzahl: beleg.anzahl, alle: beleg.alle, unter: beleg.unter, note: BELOW,
                     beispiele: beleg.beispiele.join(", ") };
@@ -316,8 +316,11 @@
   }
   const VERSION_DER_ZAHLEN = "0.3.3";
 
-  const gezaehltUnterzeile = z => Texte.t("Aus den letzten {anzahl} Suchläufen, gezählt von der App, nicht von der KI. Treffer zählt sie bei jeder Suche, Stellen nur einmal.",
-    { anzahl: z.noetig });
+  // A single run is its own text for French and English; the German reads the same for every number.
+  const gezaehltUnterzeile = z => (z.noetig === 1
+    ? Texte.t("Aus den letzten 1 Suchläufen, gezählt von der App, nicht von der KI. Treffer zählt sie bei jeder Suche, Stellen nur einmal.")
+    : Texte.t("Aus den letzten {anzahl} Suchläufen, gezählt von der App, nicht von der KI. Treffer zählt sie bei jeder Suche, Stellen nur einmal.",
+      { anzahl: z.noetig }));
   const gezaehltFehler = grund => (/[.!?]$/.test(grund)
     ? Texte.t("Die Zahlen der App liessen sich nicht laden: {grund} Die KI schlägt darum ohne diese Zahlen vor.", { grund })
     : Texte.t("Die Zahlen der App liessen sich nicht laden: {grund}. Die KI schlägt darum ohne diese Zahlen vor.", { grund }));
@@ -332,7 +335,7 @@
   }
 
   // The reasons a hit of an «ohne Ertrag» keyword fell away, each as „alle … aussortiert“, „… aussortiert“ for a single
-  // hit, and as „3 …“ in a list of several. „Titelfilter“ is the name of the section in the search profile.
+  // hit, and as „3 …“ in a list of several. The title filter is a label of the app, named in the app language.
   function grundText(grund, form, zahl) {
     const Texte = texts();
     const texte = {

@@ -22,8 +22,10 @@
     if (!begriffe.length) return lehrstelle ? Texte.t("Noch keine Berufe") : Texte.t("Noch keine Suchbegriffe");
     const gezeigt = begriffe.slice(0, MAX_BEGRIFFE).join(", ");
     const rest = begriffe.length - MAX_BEGRIFFE;
-    return rest > 0 ? Texte.t("Sucht nach {begriffe} und {anzahl} weiteren", { begriffe: gezeigt, anzahl: rest })
-      : Texte.t("Sucht nach {begriffe}", { begriffe: gezeigt });
+    if (rest <= 0) return Texte.t("Sucht nach {begriffe}", { begriffe: gezeigt });
+    // one more is its own text for French and English; the German reads the same for every number
+    return rest === 1 ? Texte.t("Sucht nach {begriffe} und 1 weiteren", { begriffe: gezeigt })
+      : Texte.t("Sucht nach {begriffe} und {anzahl} weiteren", { begriffe: gezeigt, anzahl: rest });
   }
 
   /** Where the search looks: a radius for apprenticeships, else cantons or the whole country with the home first. */
@@ -119,12 +121,18 @@
   const WAHL_TAGE = [7, 14, 21, 30, 45, 60];
   const VORGABE_TAGE = 21;
 
+  /** A choice of days; a profile may hold a single day (search_plan.MIN_WINDOW_DAYS), which French and English say in
+   * the singular, while the German reads as it always did. */
+  function tageText(wert) {
+    const Texte = texts();
+    if (wert === VORGABE_TAGE) return Texte.t("{anzahl} Tage (Vorgabe)", { anzahl: wert });
+    return wert === 1 ? Texte.t("1 Tage") : Texte.t("{anzahl} Tage", { anzahl: wert });
+  }
+
   /** The choices of „Inserate der letzten“; another value from the profile stays as its own choice. */
   function zeitfensterWahl(aktuell) {
-    const Texte = texts();
     const tage = WAHL_TAGE.includes(aktuell) || !Number.isInteger(aktuell) ? WAHL_TAGE : [...WAHL_TAGE, aktuell].sort((a, b) => a - b);
-    return tage.map(wert => ({ wert, text: wert === VORGABE_TAGE ? Texte.t("{anzahl} Tage (Vorgabe)", { anzahl: wert })
-      : Texte.t("{anzahl} Tage", { anzahl: wert }) }));
+    return tage.map(wert => ({ wert, text: tageText(wert) }));
   }
 
   /** One portal under „Stand der Portale“ in the settings, as the parts of a «·» line (#342). */
