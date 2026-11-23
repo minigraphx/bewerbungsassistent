@@ -1,0 +1,196 @@
+name: Erweiterung einreichen
+
+# A published release uploads the browser extension as an update of the existing listings in the Chrome Web Store
+# and on Microsoft Edge Add-ons and submits it for review (#365). A pre-release stays out of the stores; `released`
+# also fires when a pre-release becomes a release. desktop/store_package.py builds the ZIP from the tag; when its
+# manifest names another version than the tag, the job stops before uploading. Each store is its own job, apart
+# from update-ausrollen.yml, so a failing store fails only its own job. Without a store's secrets and variables its
+# job ends green with a notice; re-run it once they are set. No job comes near the update signing key.
+# Setup and the API sources: docs/design/erweiterung-einreichen.md.
+on:
+  release:
+    types: [released]
+
+permissions: {}
+
+concurrency:
+  group: erweiterung-einreichen
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  chrome:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      POLL_SECONDS: "10"
+      POLL_TRIES: "60"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - name: Einstellungen vorhanden?
+        id: einstellungen
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+        run: python3 desktop/store_upload.py ready chrome
+      - name: ZIP aus dem Tag bauen und Version prüfen
+        if: ${{ steps.einstellungen.outputs.ready == 'true' }}
+        run: |
+          package=$(python3 desktop/store_package.py "$RUNNER_TEMP/erweiterung")
+          version=$(python3 desktop/store_upload.py version "$TAG" "$package")
+          echo "ZIP=$package" >> "$GITHUB_ENV"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: Hochladen in den Chrome Web Store und einreichen
+        if: ${{ steps.einstellungen.outputs.ready == 'true' }}
+        # Chrome Web Store API V2: access token from the refresh token, then upload, fetchStatus and publish
+        # (https://developer.chrome.com/docs/webstore/using-api).
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+        run: |
+          work="$RUNNER_TEMP/chrome"
+          mkdir -p "$work"
+          auth="$work/auth.txt"
+          trap 'rm -f "$auth" "$work/token.json"' EXIT
+          api="https://chromewebstore.googleapis.com"
+          item="publishers/$CHROME_PUBLISHER_ID/items/$CHROME_EXTENSION_ID"
+          fail() {
+            echo "::error::Chrome Web Store: $1"
+            if [ -n "${2:-}" ] && [ -s "$2" ]; then cat "$2"; echo; fi
+            exit 1
+          }
+          field() { jq -r "$1 // empty" "$2" 2>/dev/null || true; }
+          # Secrets and the access token reach curl on stdin or in a file, never on its command line.
+          code=$(jq -rn '"client_id=\(env.CHROME_CLIENT_ID|@uri)&client_secret=\(env.CHROME_CLIENT_SECRET|@uri)&refresh_token=\(env.CHROME_REFRESH_TOKEN|@uri)&grant_type=refresh_token"' \
+            | curl -sS -X POST --data @- -o "$work/token.json" -w '%{http_code}' https://oauth2.googleapis.com/token)
+          token=$(field .access_token "$work/token.json")
+          rm -f "$work/token.json"
+          if [ "$code" != 200 ] || [ -z "$token" ]; then
+            fail "Anmeldung bei Google abgelehnt (HTTP $code); die Secrets nach docs/design/erweiterung-einreichen.md prüfen"
+          fi
+          echo "::add-mask::$token"
+          (umask 077; printf 'Authorization: Bearer %s\n' "$token" > "$auth")
+
+          code=$(curl -sS -X POST -H @"$auth" -T "$ZIP" -o "$work/upload.json" -w '%{http_code}' "$api/upload/v2/$item:upload")
+          [ "$code" = 200 ] || fail "Hochladen abgelehnt (HTTP $code)" "$work/upload.json"
+          state=$(field .uploadState "$work/upload.json")
+          tries=0
+          while [ "$state" = IN_PROGRESS ] || [ "$state" = UPLOAD_IN_PROGRESS ]; do
+            [ "$tries" -lt "$POLL_TRIES" ] || fail "Hochladen nach $tries Abfragen nicht fertig" "$work/upload.json"
+            tries=$((tries + 1))
+            sleep "$POLL_SECONDS"
+            code=$(curl -sS -H @"$auth" -o "$work/upload.json" -w '%{http_code}' "$api/v2/$item:fetchStatus")
+            [ "$code" = 200 ] || fail "Stand des Hochladens nicht lesbar (HTTP $code)" "$work/upload.json"
+            state=$(field .lastAsyncUploadState "$work/upload.json")
+          done
+          [ "$state" = SUCCEEDED ] || fail "Hochladen fehlgeschlagen (${state:-ohne Stand})" "$work/upload.json"
+
+          # An empty body publishes as DEFAULT_PUBLISH: the store publishes the update as soon as its review passes.
+          code=$(curl -sS -X POST -H @"$auth" -H 'Content-Type: application/json' --data '{}' -o "$work/publish.json" -w '%{http_code}' "$api/v2/$item:publish")
+          [ "$code" = 200 ] || fail "Einreichen abgelehnt (HTTP $code)" "$work/publish.json"
+          state=$(field .state "$work/publish.json")
+          case "$state" in
+            PENDING_REVIEW|STAGED|PUBLISHED|PUBLISHED_TO_TESTERS)
+              echo "::notice::Version $VERSION im Chrome Web Store eingereicht, Stand $state." ;;
+            *) fail "Einreichen fehlgeschlagen (${state:-ohne Stand})" "$work/publish.json" ;;
+          esac
+
+  edge:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      POLL_SECONDS: "10"
+      POLL_TRIES: "60"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - name: Einstellungen vorhanden?
+        id: einstellungen
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ vars.EDGE_PRODUCT_ID }}
+        run: python3 desktop/store_upload.py ready edge
+      - name: ZIP aus dem Tag bauen und Version prüfen
+        if: ${{ steps.einstellungen.outputs.ready == 'true' }}
+        run: |
+          package=$(python3 desktop/store_package.py "$RUNNER_TEMP/erweiterung")
+          version=$(python3 desktop/store_upload.py version "$TAG" "$package")
+          echo "ZIP=$package" >> "$GITHUB_ENV"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: Hochladen zu Microsoft Edge Add-ons und einreichen
+        if: ${{ steps.einstellungen.outputs.ready == 'true' }}
+        # Edge Add-ons API v1.1 with API key and client id: upload the package into the draft, wait for the operation,
+        # publish the draft, wait again
+        # (https://learn.microsoft.com/microsoft-edge/extensions/update/api/using-addons-api).
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ vars.EDGE_PRODUCT_ID }}
+        run: |
+          work="$RUNNER_TEMP/edge"
+          mkdir -p "$work"
+          auth="$work/auth.txt"
+          trap 'rm -f "$auth"' EXIT
+          # The API key reaches curl in a file, never on its command line.
+          (umask 077; printf 'Authorization: ApiKey %s\nX-ClientID: %s\n' "$EDGE_API_KEY" "$EDGE_CLIENT_ID" > "$auth")
+          api="https://api.addons.microsoftedge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
+          fail() {
+            echo "::error::Microsoft Edge Add-ons: $1"
+            if [ -n "${2:-}" ] && [ -s "$2" ]; then cat "$2"; echo; fi
+            exit 1
+          }
+          field() { jq -r "$1 // empty" "$2" 2>/dev/null || true; }
+          # Sets `id` from the Location header: by the reference the bare operation id; a URL ends in it.
+          # Not called in $(...), so that fail ends the step with its message.
+          operation() {
+            id=$(tr -d '\r' < "$1" | sed -n 's/^[Ll][Oo][Cc][Aa][Tt][Ii][Oo][Nn]:[[:space:]]*//p' | tail -n 1 | sed 's#.*/##')
+            case "$id" in ''|*[!A-Za-z0-9-]*) fail "$2 ohne gültigen Vorgang im Header Location" ;; esac
+          }
+          wait_for() {
+            status=InProgress
+            tries=0
+            while [ "$status" = InProgress ]; do
+              [ "$tries" -lt "$POLL_TRIES" ] || fail "$2 nach $tries Abfragen nicht fertig" "$work/operation.json"
+              tries=$((tries + 1))
+              sleep "$POLL_SECONDS"
+              code=$(curl -sS -H @"$auth" -o "$work/operation.json" -w '%{http_code}' "$1")
+              case "$code" in 200|202) ;; *) fail "$2: Stand nicht lesbar (HTTP $code)" "$work/operation.json" ;; esac
+              status=$(field .status "$work/operation.json")
+            done
+            [ "$status" = Succeeded ] || fail "$2 fehlgeschlagen (${status:-ohne Stand})" "$work/operation.json"
+          }
+
+          code=$(curl -sS -X POST -H @"$auth" -H 'Content-Type: application/zip' -T "$ZIP" -D "$work/upload-headers.txt" -o "$work/upload.json" -w '%{http_code}' "$api/draft/package")
+          [ "$code" = 202 ] || fail "Hochladen abgelehnt (HTTP $code)" "$work/upload.json"
+          operation "$work/upload-headers.txt" Hochladen
+          wait_for "$api/draft/package/operations/$id" Hochladen
+
+          code=$(jq -n --arg version "$VERSION" '{notes: "Update to version \($version)."}' \
+            | curl -sS -X POST -H @"$auth" -H 'Content-Type: application/json' --data @- -D "$work/publish-headers.txt" -o "$work/publish.json" -w '%{http_code}' "$api")
+          [ "$code" = 202 ] || fail "Einreichen abgelehnt (HTTP $code)" "$work/publish.json"
+          operation "$work/publish-headers.txt" Einreichen
+          wait_for "$api/operations/$id" Einreichen
+          echo "::notice::Version $VERSION bei Microsoft Edge Add-ons eingereicht; die Prüfung läuft."
