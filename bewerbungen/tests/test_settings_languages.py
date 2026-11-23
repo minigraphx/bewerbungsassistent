@@ -28,7 +28,7 @@ SETTINGS_FR = ("<title>Paramètres</title>", "<h1>Paramètres</h1>", "IA, budget
                "Claude avec un abonnement personnel", "Clé API personnelle", "Consentement", "Budget IA",
                "Langue de l'app", "Je postule en", "Navigateur de l'app", "L'app s'ouvre dans",
                "Poste, apprentissage, ORP", "Données et sauvegarde", "Longueur du CV", "Préversions", "Avancé",
-               "À propos de l'app", f"À savoir avant{NBSP}:")
+               "À propos de l'app", f"À savoir d'abord{NBSP}:")
 SETTINGS_DE = ("<h1>Einstellungen</h1>", "KI, Budget und Sprache", "Zugang zur KI", "Eigener API-Schlüssel",
                "Länge des Lebenslaufs", "Vorabversionen")
 

@@ -162,13 +162,14 @@
     const Texte = texts();
     return anzahl === 1 ? Texte.t("{anzahl} Absage", { anzahl }) : Texte.t("{anzahl} Absagen", { anzahl });
   }
+  // German says „1 verworfen“ and „3 verworfen“ alike; French agrees in number, so one gets its own text (#417).
   function verworfen(anzahl) {
     const Texte = texts();
-    return Texte.t("{anzahl} verworfen", { anzahl });
+    return anzahl === 1 ? Texte.t("1 verworfen") : Texte.t("{anzahl} verworfen", { anzahl });
   }
   function zurueckgezogen(anzahl) {
     const Texte = texts();
-    return Texte.t("{anzahl} zurückgezogen", { anzahl });
+    return anzahl === 1 ? Texte.t("1 zurückgezogen") : Texte.t("{anzahl} zurückgezogen", { anzahl });
   }
   const ABGESCHLOSSEN_WORT = { Zusage: zusage, Absage: absage, Verworfen: verworfen, "Zurückgezogen": zurueckgezogen };
 
@@ -227,10 +228,12 @@
 
   // Changing the stage of several applications at once (#170). A selection is a Set of ids; every change
   // returns a new one. Only the selected rows the view shows count, so a hidden row is never changed by surprise.
-  // The views by name, as their tabs show them, in the app language (#417).
+  // The views by name, as their tabs show them, in the app language (#417). Text sets, since in French a view is
+  // plural („Mises de côté“) while the stage of the same German name is singular.
   function viewLabel(view) {
     const Texte = texts();
-    return { gemerkt: Texte.t("Gemerkt"), beworben: Texte.t("Beworben"), abgeschlossen: Texte.t("Abgeschlossen") }[view];
+    return { gemerkt: Texte.text("uebersicht.ansicht-gemerkt"), beworben: Texte.text("uebersicht.ansicht-beworben"),
+             abgeschlossen: Texte.text("uebersicht.ansicht-abgeschlossen") }[view];
   }
   const shownIds = rows => rows.map(z => z.bewerbung.id);
   function applications(count) {
@@ -277,7 +280,8 @@
 
   function selectionLabel(count) {
     const Texte = texts();
-    return count === 0 ? Texte.t("Keine ausgewählt") : Texte.t("{anzahl} ausgewählt", { anzahl: count });
+    if (count === 0) return Texte.t("Keine ausgewählt");
+    return count === 1 ? Texte.t("1 ausgewählt") : Texte.t("{anzahl} ausgewählt", { anzahl: count });
   }
 
   function stageQuestion(count, stageName) {
@@ -294,7 +298,9 @@
     const Texte = texts();
     const words = { bewerbungen: applications(count), stand: stageName };
     const target = viewOfStage(stage);
-    if (view === "alle" || target === view || !viewLabel(target)) return Texte.t("{bewerbungen} auf „{stand}“ gesetzt.", words);
+    if (view === "alle" || target === view || !viewLabel(target)) {
+      return count === 1 ? Texte.t("1 Bewerbung auf „{stand}“ gesetzt.", words) : Texte.t("{bewerbungen} auf „{stand}“ gesetzt.", words);
+    }
     const moved = { ...words, ansicht: viewLabel(target) };
     return count === 1
       ? Texte.t("{bewerbungen} auf „{stand}“ gesetzt. Sie steht jetzt unter „{ansicht}“.", moved)

@@ -8,6 +8,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const texte = require("../seiten/texte.js");
 const logic = require("../seiten/einstellungen-logik.js");
+const overview = require("../seiten/uebersicht-logik.js");
 
 const CATALOG = path.join(__dirname, "..", "sprachen");
 const SET_PREFIX = "texte:";
@@ -78,7 +79,32 @@ test("the sections on the left come in the app language", () => {
                     "Données et sauvegarde", "Avancé", "À propos de l'app"]);
 });
 
+test("one and three pick the French singular and plural, never a form with (s)", () => {
+  const forms = count => inLanguage("fr", () => ({
+    selected: overview.selectionLabel(count),
+    discarded: overview.abgeschlossenTeil("Verworfen", count),
+    withdrawn: overview.abgeschlossenTeil("Zurückgezogen", count),
+    done: overview.stageDone(count, "Absage", "Absage", "alle"),
+  }));
+  assert.deepEqual(forms(1), { selected: "1 sélectionnée", discarded: "1 écartée", withdrawn: "1 retirée",
+                               done: `1 candidature passée à «${NBSP}Absage${NBSP}».` });
+  assert.deepEqual(forms(3), { selected: "3 sélectionnées", discarded: "3 écartées", withdrawn: "3 retirées",
+                               done: `3 candidatures passées à «${NBSP}Absage${NBSP}».` });
+});
+
+test("the views keep their plural names in French, apart from the stage names", () => {
+  assert.deepEqual(inLanguage("fr", () => overview.stageDone(1, "Bewerben", "Bewerben", "beworben")),
+                   `1 candidature passée à «${NBSP}Bewerben${NBSP}». Elle figure maintenant sous «${NBSP}Mises de côté${NBSP}».`);
+  assert.equal(inLanguage("en", () => overview.stageDone(3, "Beworben", "Beworben", "gemerkt")),
+               "3 applications set to “Beworben”. They are now under “Applied”.");
+});
+
 test("German stays as it was", () => {
+  assert.equal(overview.selectionLabel(1), "1 ausgewählt");
+  assert.equal(overview.abgeschlossenTeil("Verworfen", 1), "1 verworfen");
+  assert.equal(overview.stageDone(1, "Absage", "Absage", "alle"), "1 Bewerbung auf „Absage“ gesetzt.");
+  assert.equal(overview.stageDone(3, "Gemerkt", "Gemerkt", "beworben"),
+               "3 Bewerbungen auf „Gemerkt“ gesetzt. Sie stehen jetzt unter „Gemerkt“.");
   assert.deepEqual(card(view()), {
     title: "KI-Budget im November",
     renewal: `Neues Budget am 1.${NBSP}Dezember`,

@@ -53,7 +53,7 @@
   "Stellensuche": {"fr": "Recherche d'emploi", "en": "Job search"},
   "Bewerbung": {"fr": "Candidature", "en": "Application"},
   "2. Zugang einschalten.": {"fr": "2. Activer l'accès.", "en": "2. Turn on the access."},
-  "Vorher wissen:": {"fr": "À savoir avant\u00a0:", "en": "Good to know first:"},
+  "Vorher wissen:": {"fr": "À savoir d'abord\u00a0:", "en": "Good to know first:"},
   "texte:einstellungen.abo-klartext": {
     "fr": {
       "sie": "Claude lit vos informations en clair\u00a0: CV, profil de recherche, modules de texte et candidatures. La pseudonymisation de l'app ne s'applique pas par cette voie.",
@@ -69,7 +69,7 @@
     "en": {"sie": "Processing is governed by your own contract with Anthropic, also in the USA. Whether your chats are used for training is set in Claude."}
   },
   "Claude setzt laut Anthropic mindestens 18 Jahre voraus.": {
-    "fr": "Selon Anthropic, Claude suppose un âge d'au moins 18 ans.",
+    "fr": "Selon Anthropic, Claude est réservé aux personnes de 18 ans et plus.",
     "en": "According to Anthropic, Claude requires users to be at least 18."
   },
   "texte:einstellungen.abo-versand": {
@@ -85,7 +85,7 @@
     "en": "Access is on. Claude reaches the app only on this computer."
   },
   "3. Claude mit der App verbinden": {"fr": "3. Connecter Claude à l'app", "en": "3. Connect Claude to the app"},
-  "Claude Code oder von Hand eintragen": {"fr": "Claude Code ou saisie manuelle", "en": "Claude Code or entering it by hand"},
+  "Claude Code oder von Hand eintragen": {"fr": "Claude Code ou saisie manuelle", "en": "Claude Code or by hand"},
   "Claude Code, im Terminal:": {"fr": "Claude Code, dans le terminal\u00a0:", "en": "Claude Code, in the terminal:"},
   "Claude Desktop, in der Datei": {"fr": "Claude Desktop, dans le fichier", "en": "Claude Desktop, in the file"},
   "4. Claude fragen": {"fr": "4. Demander à Claude", "en": "4. Ask Claude"},
@@ -94,15 +94,15 @@
     "en": ", for example: “Search for new jobs according to my search profile.”"
   },
   "Zugang ausschalten": {"fr": "Désactiver l'accès", "en": "Turn off access"},
-  "Eintrag in Claude Desktop erneuern": {"fr": "Renouveler l'inscription dans Claude Desktop", "en": "Renew the entry in Claude Desktop"},
+  "Eintrag in Claude Desktop erneuern": {"fr": "Renouveler l'entrée dans Claude Desktop", "en": "Renew the entry in Claude Desktop"},
   "Aus Claude Desktop entfernen": {"fr": "Retirer de Claude Desktop", "en": "Remove from Claude Desktop"},
-  "In Claude Desktop eintragen": {"fr": "Inscrire dans Claude Desktop", "en": "Add to Claude Desktop"},
+  "In Claude Desktop eintragen": {"fr": "Ajouter à Claude Desktop", "en": "Add to Claude Desktop"},
   "Der Eintrag zeigt auf einen alten Ort der App.": {
-    "fr": "L'inscription pointe vers un ancien emplacement de l'app.",
+    "fr": "L'entrée pointe vers un ancien emplacement de l'app.",
     "en": "The entry points to an old location of the app."
   },
   "Eingetragen. Claude Desktop einmal ganz beenden und neu öffnen.": {
-    "fr": "Inscrit. Quitter complètement Claude Desktop une fois, puis le rouvrir.",
+    "fr": "Ajouté. Quitter complètement Claude Desktop une fois, puis le rouvrir.",
     "en": "Added. Quit Claude Desktop completely once and open it again."
   },
   "Der Zugang ist eingeschaltet.": {"fr": "L'accès est activé.", "en": "Access is on."},
@@ -110,7 +110,7 @@
     "fr": "L'accès est désactivé. Claude n'atteint plus l'app.",
     "en": "Access is off. Claude no longer reaches the app."
   },
-  "In Claude Desktop eingetragen.": {"fr": "Inscrit dans Claude Desktop.", "en": "Added to Claude Desktop."},
+  "In Claude Desktop eingetragen.": {"fr": "Ajouté à Claude Desktop.", "en": "Added to Claude Desktop."},
   "Aus Claude Desktop entfernt.": {"fr": "Retiré de Claude Desktop.", "en": "Removed from Claude Desktop."},
 
   "Eigener API-Schlüssel": {"fr": "Clé API personnelle", "en": "Your own API key"},
@@ -244,8 +244,8 @@
   "Englisch": {"fr": "Anglais", "en": "English"},
   "Französisch": {"fr": "Français", "en": "French"},
   "vorgeschlagen: im Lebenslauf «{stufe}»": {
-    "fr": "proposé\u00a0: dans le CV «\u00a0{stufe}\u00a0»",
-    "en": "suggested: in the CV “{stufe}”"
+    "fr": "proposé\u00a0: «\u00a0{stufe}\u00a0» dans le CV",
+    "en": "suggested: “{stufe}” in the CV"
   },
   "texte:einstellungen.sprache-inserat": {
     "fr": {
@@ -271,11 +271,11 @@
   "Erweiterung einrichten": {"fr": "Configurer l'extension", "en": "Set up the extension"},
   "Die Erweiterung ist verbunden.": {"fr": "L'extension est connectée.", "en": "The extension is connected."},
   "Die Erweiterung ist nicht verbunden.": {"fr": "L'extension n'est pas connectée.", "en": "The extension is not connected."},
-  "Browser der App": {"fr": "Navigateur de l'app", "en": "Browser of the app"},
+  "Browser der App": {"fr": "Navigateur de l'app", "en": "App browser"},
   "Die App öffnet sich in": {"fr": "L'app s'ouvre dans", "en": "The app opens in"},
   "Die Browser-Erweiterung läuft in Chrome und Edge. Ist ein anderer Browser der Standard, öffnet sich die App besser gleich in Chrome oder Edge.": {
     "fr": "L'extension du navigateur fonctionne dans Chrome et Edge. Si un autre navigateur est celui par défaut, mieux vaut ouvrir l'app directement dans Chrome ou Edge.",
-    "en": "The browser extension runs in Chrome and Edge. If another browser is the default, the app had better open in Chrome or Edge straight away."
+    "en": "The browser extension runs in Chrome and Edge. If another browser is the default, it is better to open the app in Chrome or Edge directly."
   },
   "Standardbrowser des Computers (Voreinstellung)": {
     "fr": "Navigateur par défaut de l'ordinateur (préréglage)",
@@ -289,11 +289,11 @@
   },
   "Gespeichert. Ab dem nächsten Öffnen erscheint die App im Standardbrowser.": {
     "fr": "Enregistré. À la prochaine ouverture, l'app apparaît dans le navigateur par défaut.",
-    "en": "Saved. From the next opening on, the app appears in the default browser."
+    "en": "Saved. From the next start, the app opens in the default browser."
   },
   "Gespeichert. Ab dem nächsten Öffnen erscheint die App in {browser}.": {
     "fr": "Enregistré. À la prochaine ouverture, l'app apparaît dans {browser}.",
-    "en": "Saved. From the next opening on, the app appears in {browser}."
+    "en": "Saved. From the next start, the app opens in {browser}."
   },
   "Nicht gespeichert: {grund}": {"fr": "Non enregistré\u00a0: {grund}", "en": "Not saved: {grund}"},
 
@@ -302,12 +302,12 @@
     "en": "What is chosen in the setup. The search, the form of address and the steps for the RAV follow it."
   },
   "In der Einrichtung ändern": {"fr": "Modifier dans la configuration", "en": "Change in the setup"},
-  "Gesucht": {"fr": "Recherche", "en": "Looking for"},
+  "Gesucht": {"fr": "Je cherche", "en": "Looking for"},
   "Stelle": {"fr": "Poste", "en": "Job"},
   "Lehrstelle": {"fr": "Place d'apprentissage", "en": "Apprenticeship"},
-  "Anrede": {"fr": "Forme d'adresse", "en": "Form of address"},
-  "Sie": {"fr": "vous", "en": "formal (Sie)"},
-  "du": {"fr": "tu", "en": "informal (du)"},
+  "Anrede": {"fr": "Tu ou vous", "en": "Form of address"},
+  "Sie": {"fr": "vous", "en": "formal"},
+  "du": {"fr": "tu", "en": "informal"},
   "RAV": {"fr": "ORP", "en": "RAV"},
   "Ja, mit den Schritten zum RAV": {"fr": "Oui, avec les étapes liées à l'ORP", "en": "Yes, with the steps for the RAV"},
   "Nein": {"fr": "Non", "en": "No"},
@@ -330,7 +330,7 @@
   },
   "Inhalte als Text bearbeiten": {"fr": "Modifier les contenus comme texte", "en": "Edit the contents as text"},
 
-  "Länge des Lebenslaufs": {"fr": "Longueur du CV", "en": "Length of the CV"},
+  "Länge des Lebenslaufs": {"fr": "Longueur du CV", "en": "CV length"},
   "Der Lebenslauf hat höchstens zwei Seiten, das Anschreiben genau eine. Ist etwas länger, setzt die App es enger. Reicht das nicht, nennt die Prüfung, was sich kürzen lässt. Ohne Zustimmung fällt nichts weg.": {
     "fr": "Le CV fait au plus deux pages, la lettre de motivation exactement une. Si un document est plus long, l'app le met en page plus serré. Si cela ne suffit pas, la vérification indique ce qui peut être raccourci. Rien n'est supprimé sans accord.",
     "en": "The CV has at most two pages, the cover letter exactly one. If something is longer, the app sets it tighter. If that is not enough, the check names what can be shortened. Nothing is dropped without consent."
@@ -347,7 +347,7 @@
 
   "Vorabversionen": {"fr": "Préversions", "en": "Pre-releases"},
   "Neue Versionen gibt es manchmal zuerst als Vorabversion zum Ausprobieren. Vorabversionen können noch Fehler haben. Eingeschaltet bietet die App auch Vorabversionen als Update an, sonst nur veröffentlichte Versionen. Ausschalten behält die installierte Version; das nächste Update kommt dann mit der nächsten veröffentlichten Version, die neuer ist.": {
-    "fr": "Les nouvelles versions sont parfois d'abord disponibles en préversion, pour les essayer. Les préversions peuvent encore contenir des erreurs. Activée, l'app propose aussi les préversions comme mise à jour, sinon uniquement les versions publiées. Désactiver garde la version installée\u00a0; la prochaine mise à jour arrive alors avec la prochaine version publiée plus récente.",
+    "fr": "Les nouvelles versions sont parfois d'abord disponibles en préversion, pour les essayer. Les préversions peuvent encore contenir des erreurs. Si l'option est activée, l'app propose aussi les préversions comme mise à jour, sinon uniquement les versions publiées. Désactiver garde la version installée\u00a0; la prochaine mise à jour arrive alors avec la prochaine version publiée plus récente.",
     "en": "New versions sometimes come first as a pre-release to try out. Pre-releases may still have errors. When on, the app also offers pre-releases as updates, otherwise only published versions. Turning it off keeps the installed version; the next update then comes with the next published version that is newer."
   },
   "Vorabversionen als Update anbieten": {"fr": "Proposer les préversions comme mise à jour", "en": "Offer pre-releases as updates"},
@@ -393,8 +393,8 @@
     "en": "Please choose: a job or an apprenticeship."
   },
   "Bitte wählen: mit Sie oder mit du.": {
-    "fr": "Merci de choisir\u00a0: avec vous ou avec tu.",
-    "en": "Please choose: formal (Sie) or informal (du)."
+    "fr": "Merci de choisir\u00a0: vous ou tu.",
+    "en": "Please choose: formal or informal."
   },
   "Bitte wählen, ob beim RAV gemeldet: Ja oder Nein.": {
     "fr": "Merci d'indiquer s'il y a une inscription à l'ORP\u00a0: oui ou non.",
@@ -422,19 +422,24 @@
   },
 
   "Einladung": {"fr": "Invitation", "en": "Invitation"},
-  "Gemerkt": {"fr": "Retenues", "en": "Saved"},
-  "Beworben": {"fr": "Envoyées", "en": "Applied"},
-  "Abgeschlossen": {"fr": "Terminées", "en": "Closed"},
+  "texte:uebersicht.ansicht-gemerkt": {"fr": {"sie": "Mises de côté", "du": "Mises de côté"}, "en": {"sie": "Saved"}},
+  "texte:uebersicht.ansicht-beworben": {"fr": {"sie": "Envoyées", "du": "Envoyées"}, "en": {"sie": "Applied"}},
+  "texte:uebersicht.ansicht-abgeschlossen": {"fr": {"sie": "Terminées", "du": "Terminées"}, "en": {"sie": "Closed"}},
   "1 Bewerbung": {"fr": "1 candidature", "en": "1 application"},
   "{anzahl} Bewerbungen": {"fr": "{anzahl} candidatures", "en": "{anzahl} applications"},
   "Keine ausgewählt": {"fr": "Aucune sélectionnée", "en": "None selected"},
-  "{anzahl} ausgewählt": {"fr": "{anzahl} sélectionnée(s)", "en": "{anzahl} selected"},
+  "1 ausgewählt": {"fr": "1 sélectionnée", "en": "1 selected"},
+  "{anzahl} ausgewählt": {"fr": "{anzahl} sélectionnées", "en": "{anzahl} selected"},
   "{bewerbungen} auf „{stand}“ setzen?": {
     "fr": "Passer {bewerbungen} à «\u00a0{stand}\u00a0»\u00a0?",
     "en": "Set {bewerbungen} to “{stand}”?"
   },
+  "1 Bewerbung auf „{stand}“ gesetzt.": {
+    "fr": "1 candidature passée à «\u00a0{stand}\u00a0».",
+    "en": "1 application set to “{stand}”."
+  },
   "{bewerbungen} auf „{stand}“ gesetzt.": {
-    "fr": "{bewerbungen} passée(s) à «\u00a0{stand}\u00a0».",
+    "fr": "{bewerbungen} passées à «\u00a0{stand}\u00a0».",
     "en": "{bewerbungen} set to “{stand}”."
   },
   "{bewerbungen} auf „{stand}“ gesetzt. Sie steht jetzt unter „{ansicht}“.": {
@@ -449,8 +454,10 @@
   "{anzahl} Zusagen": {"fr": "{anzahl} réponses positives", "en": "{anzahl} offers"},
   "{anzahl} Absage": {"fr": "{anzahl} refus", "en": "{anzahl} rejection"},
   "{anzahl} Absagen": {"fr": "{anzahl} refus", "en": "{anzahl} rejections"},
-  "{anzahl} verworfen": {"fr": "{anzahl} écartée(s)", "en": "{anzahl} discarded"},
-  "{anzahl} zurückgezogen": {"fr": "{anzahl} retirée(s)", "en": "{anzahl} withdrawn"},
+  "1 verworfen": {"fr": "1 écartée", "en": "1 discarded"},
+  "{anzahl} verworfen": {"fr": "{anzahl} écartées", "en": "{anzahl} discarded"},
+  "1 zurückgezogen": {"fr": "1 retirée", "en": "1 withdrawn"},
+  "{anzahl} zurückgezogen": {"fr": "{anzahl} retirées", "en": "{anzahl} withdrawn"},
   "{anzahl} Bewerbungen abschicken": {"fr": "Envoyer {anzahl} candidatures", "en": "Send {anzahl} applications"},
   "Formulare sind bereit": {"fr": "Les formulaires sont prêts", "en": "Forms are ready"},
   "Abschicken": {"fr": "Envoyer", "en": "Send"},
@@ -469,7 +476,7 @@
   "Im Job-Room eintragen": {"fr": "Saisir dans le Job-Room", "en": "Enter in the Job-Room"},
   "fürs RAV": {"fr": "pour l'ORP", "en": "for the RAV"},
   "Gemerkte Stellen in einem Durchgang bewerten": {
-    "fr": "Évaluer les offres retenues en une seule passe",
+    "fr": "Évaluer en une fois les offres mises de côté",
     "en": "Rate saved jobs in one pass"
   },
   "Entscheiden": {"fr": "Décider", "en": "Decide"},

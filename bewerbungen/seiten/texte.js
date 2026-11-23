@@ -446,6 +446,10 @@
     },
 
     // Overview (step 3)
+    // The views by name; sets of their own, since French names a view in the plural and its stage in the singular.
+    "uebersicht.ansicht-gemerkt": { sie: "Gemerkt", du: "Gemerkt" },
+    "uebersicht.ansicht-beworben": { sie: "Beworben", du: "Beworben" },
+    "uebersicht.ansicht-abgeschlossen": { sie: "Abgeschlossen", du: "Abgeschlossen" },
     "uebersicht.von-hand": { sie: "Stelle selbst erfassen", du: "Stelle selbst erfassen", lehrstelle: "Lehrstelle selbst erfassen" },
     "uebersicht.feld-firma": { sie: "Firma", du: "Firma", lehrstelle: "Lehrbetrieb" },
     "uebersicht.feld-stelle": { sie: "Stelle", du: "Stelle", lehrstelle: "Lehrstelle" },
