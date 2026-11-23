@@ -43,8 +43,8 @@ def test_the_guide_says_how_to_assign_a_company_or_enter_a_value_by_hand():
 def test_every_name_in_bold_is_shown_by_the_app():
     shown = "\n".join((PAGES / name).read_text(encoding="utf-8") for name in SOURCES)
     names = set(re.findall(r"\*\*([^*]+)\*\*", _section()))
-    # „kununu 3.8 von 5“ is an example of the badge, built from „kununu “ and the value
+    # „kununu 3.8 von 5“ is an example of the badge, built from the text „kununu {wert} von 5“ (#421)
     missing = [name for name in names - {"kununu 3.8 von 5"} if name not in shown]
 
     assert missing == []
-    assert "`kununu ${" in shown
+    assert '"kununu {wert} von 5"' in shown

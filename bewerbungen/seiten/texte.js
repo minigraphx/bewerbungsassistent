@@ -62,6 +62,8 @@
       sie: "Aus den Stellen, die Sie verworfen haben: {anzahl} haben «{wort}» im Titel.",
       du: "Aus den Stellen, die du verworfen hast: {anzahl} haben «{wort}» im Titel.",
     },
+    // The column of the counted terms (#383): „Suchen“ counts searches here and is no button (#421)
+    "suchbegriffe.spalte-suchen": { sie: "Suchen", du: "Suchen" },
     // Exclusion reasons from dismissed hits by the AI (#319, G86); jobs only
     "einstellen.ki-ausschluesse": {
       sie: "Die KI sucht in den {anzahl} verworfenen Stellen, die das Suchprofil noch nicht ausschliesst, nach gemeinsamen Gründen, etwa Pensum, Branche, Arbeitsort oder Wörter im Titel. Ins Suchprofil kommt nur, was Sie übernehmen.",

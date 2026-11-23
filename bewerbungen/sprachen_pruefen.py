@@ -55,6 +55,11 @@ FERTIG: tuple[pathlib.Path, ...] = (
     # choice to apply. apply.py and the modules behind the documents and the dispatch follow with the Bewerbung page.
     BASE / "seiten/bewerbungen.html", BASE / "seiten/bewerbungen-logic.js", BASE / "seiten/wieder-logik.js",
     BASE / "seiten/bewerbungen.js", BASE / "routen_bewerbungen.py", BASE / "register.py", BASE / "routes_apply.py",
+    # The shared search logic (#421): the scripts without DOM that Stellen, Suche einstellen, Suchbegriffe prüfen and
+    # Firmen share, with the kununu check and the exclusion of companies; the pages follow with #422 to #424.
+    BASE / "seiten/treffer-logik.js", BASE / "seiten/suchbegriffe-logik.js", BASE / "seiten/verworfen-woerter-logik.js",
+    BASE / "seiten/suche-anzeige.js", BASE / "seiten/firmen-logik.js", BASE / "seiten/kununu-pruefen.js",
+    BASE / "seiten/firmen-ausschluss.js",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
