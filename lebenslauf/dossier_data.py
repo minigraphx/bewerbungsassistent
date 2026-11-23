@@ -6,6 +6,7 @@ stays `None`, and the theme draws the empty dashed form for it only when its gro
 import dataclasses
 import datetime
 import re
+import unicodedata
 from collections.abc import Iterable
 
 MAX_LEVEL = 6
@@ -15,6 +16,11 @@ MAX_STEPS = 6
 TIMELINE_YEARS = 15
 MIN_TICK_GAP = 3
 APPLICATION_AS = {"de": "Bewerbung als", "en": "Application as", "fr": "Candidature au poste de"}
+# The line above the position where it stands on its own (design Siegel); French says it differently
+POSITION_INTRO = {**APPLICATION_AS, "fr": "Poste visé"}
+# French elides "de" before a vowel or a mute h: «Candidature au poste d’Informaticienne»
+ELIDING_INITIALS = frozenset("aeiouyh")
+ELIDED_DE = "d\N{RIGHT SINGLE QUOTATION MARK}"
 DOSSIER_FIELDS = {"lebenslauf", "anschreiben", "gruss", "dank", "kennzahlen", "anlagen"}
 # The initials as written under basics, quoted or not; for files from before #248, where NO was read as False
 MONOGRAM_FIELD = re.compile(r"^[ \t]+x-monogramm[ \t]*:[ \t]*([\"']?)(?P<value>[^\W\d_]{1,3})\1[ \t]*(?:#.*)?$", re.MULTILINE)
@@ -109,9 +115,17 @@ def letter_heading(letter: dict, language: str) -> dict:
         "position": position,
         "workload": _text(letter.get("pensum")),
         "reference": _text(letter.get("referenz")),
-        "intro": APPLICATION_AS[language] if position else None,
-        "line": f"{APPLICATION_AS[language]} {position}" if position else letter.get("betreff"),
+        "intro": POSITION_INTRO[language] if position else None,
+        "line": application_line(position, language) if position else letter.get("betreff"),
     }
+
+
+def application_line(position: str, language: str) -> str:
+    """«Bewerbung als …» in one line; in French with «de» elided before a vowel or h."""
+    initial = unicodedata.normalize("NFD", position[0])[0].lower()
+    if language == "fr" and initial in ELIDING_INITIALS:
+        return f"{APPLICATION_AS[language].removesuffix(' de')} {ELIDED_DE}{position}"
+    return f"{APPLICATION_AS[language]} {position}"
 
 
 def _optional_text(data: dict, key: str) -> str | None:

@@ -40,7 +40,7 @@
     bewerbung: "Candidature",
     anschreiben: "Lettre de motivation",
     lebenslauf: "Curriculum vitae",
-    auf-einen-blick: "En un coup d’œil",
+    auf-einen-blick: "Aperçu",
     stelle: "Poste",
     unternehmen: "Entreprise",
     inhalt: "Sommaire",

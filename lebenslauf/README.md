@@ -55,7 +55,7 @@ Ein Anschreiben ist eine kleine YAML-Datei (Beispiel: [`data/anschreiben-beispie
 | `ort`, `datum` | Ort und Datum (`2026-10-24`); ohne Datum gilt heute |
 | `betreff`, `anrede`, `gruss` | Betreffzeile, Anrede, Grussformel |
 | `text` | Brieftext; Absätze durch Leerzeilen trennen |
-| `sprache` | `de` (Standard), `en` oder `fr`, für Datumsformat und Ortszeile („Bern, 1. Dezember 2026“, „Lausanne, le 1er décembre 2026“) |
+| `sprache` | `de` (Standard), `en` oder `fr`, für Datumsformat und Ortszeile („Bern, 1. Dezember 2026“, „Lausanne, le 1er décembre 2026“, ohne `ort` „Le 23 novembre 2026“; im PDF „1er“ mit hochgestelltem „er“) |
 
 Das Layout steht in `themes/brief.typ`; jedes Theme setzt darin nur seinen Stil (`themes/<name>/anschreiben.typ`). Gruss und Unterschrift werden nie getrennt.
 

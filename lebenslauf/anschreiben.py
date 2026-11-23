@@ -29,10 +29,12 @@ MONATE = {
     "fr": ("janvier", "février", "mars", "avril", "mai", "juin", "juillet",
            "août", "septembre", "octobre", "novembre", "décembre"),
 }
-# French writes the first of a month as an ordinal: «1er décembre 2026»
+# French writes the first of a month as an ordinal: «1er décembre 2026»; the PDF sets "er" in superscript
 FIRST_OF_MONTH_FR = "1er"
 # The place and date line: «Bern, 24. Oktober 2026», «Lausanne, le 1er décembre 2026»
 PLACE_AND_DATE = {"de": "{ort}, {datum}", "en": "{ort}, {datum}", "fr": "{ort}, le {datum}"}
+# Without a place: «24. Oktober 2026», «Le 23 novembre 2026»
+DATE_ALONE = {"de": "{datum}", "en": "{datum}", "fr": "Le {datum}"}
 
 
 def formatiere_datum(datum: datetime.date | str, sprache: str) -> str:
@@ -95,7 +97,7 @@ def bereite_vor(brief: dict, cv: dict | None, heute: datetime.date) -> dict:
         "sprache": sprache,
         "absender": absender,
         "empfaenger": list(brief["empfaenger"]),
-        "ort_datum": PLACE_AND_DATE[sprache].format(ort=ort, datum=datum) if ort else datum,
+        "ort_datum": (PLACE_AND_DATE if ort else DATE_ALONE)[sprache].format(ort=ort, datum=datum),
         "betreff": brief["betreff"],
         "anrede": brief["anrede"],
         "absaetze": absaetze(brief["text"]),

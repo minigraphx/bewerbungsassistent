@@ -60,13 +60,13 @@
     datum: "Date",
     zeitraum: "Période",
     dauer: "Durée",
-    station: "Poste",
+    station: "Fonction",
     pensum: "Taux d’occupation",
     unternehmen: "Entreprise",
     referenz: "Référence",
     auf-anfrage: "Sur demande.",
     ohne-angabe: "non précisé",
-    stufen: ("Initiation", "Notions", "Solide", "Bon", "Très bon", "Expertise"),
+    stufen: ("Initiation", "Notions", "Bases solides", "Bonne maîtrise", "Très bonne maîtrise", "Expertise"),
   ),
 )
 
