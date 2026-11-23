@@ -100,6 +100,19 @@ def test_only_placeholders_reach_the_ai(folder):
     assert "Software-Entwicklerin" in text and "{{NAME}}" in text and "Unterlage 1" in text
 
 
+def test_values_found_only_in_an_imported_file_are_replaced(tmp_path):
+    """docs/fragen.md (#442): street, AHV number and birth date are replaced even when the form has none of them."""
+    reference = "Arbeitszeugnis\nWohnhaft an der Lindenweg 7\nGeburtsdatum: 14.02.1988\nAHV-Nr. 756.9876.5432.10\n"
+    store(tmp_path, "zeugnisse", "zeugnis.txt", reference.encode())
+    client = FakeClient(reply=empty_answer())
+    prefill.suggest(FORM, tmp_path, "job", {"person": {"name": "Erika Beispiel"}}, lambda: client)
+    text = sent(client)
+    for value in ("Lindenweg", "14.02.1988", "1988", "756.9876", "5432"):
+        assert value not in text, value
+    for placeholder in ("{{FOUND_STREET}}", "{{FOUND_BIRTH_DATE}}", "{{FOUND_SOCIAL_NUMBER}}"):
+        assert placeholder in text, placeholder
+
+
 def test_the_name_may_come_from_an_existing_cv(folder):
     (folder / "cv.yaml").write_text("basics:\n  name: Erika Beispiel\n", encoding="utf-8")
     client = FakeClient(reply=empty_answer())

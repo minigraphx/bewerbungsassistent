@@ -40,7 +40,7 @@ Im Inserat und in anderen Texten, die zur KI gehen:
 - Namen nach «Frau» oder «Herr», etwa «Frau Petra Meier»
 - Namen in einer persönlichen E-Mail-Adresse wie petra.meier@…, nicht aber Postfächer wie info@ oder jobs@
 
-Lesen Sie Ihre Angaben aus einer Datei ein, findet die App in diesen Dokumenten zusätzlich Strasse und Hausnummer, Postleitzahl mit Ort, Geburtsdatum, Heimatort, Zivilstand, Nationalität, AHV-Nummer und Links.
+Lesen Sie Ihre Angaben aus einer Datei ein, erkennt die App in diesen Dokumenten zusätzlich Strasse und Hausnummer, Postleitzahl mit Ort, Geburtsdatum, Heimatort, Zivilstand, Nationalität, AHV-Nummer und Links und ersetzt auch sie durch Platzhalter, bevor der Text zur KI geht.
 
 ## Welche Schreibweisen erkennt sie?
 
