@@ -11,6 +11,7 @@ desktop/native_host.py or desktop/mcp_tools.py.
 import hashlib
 
 import cv_creation
+import language_settings
 import missing_ads
 import routes_ai
 import routes_rate_all
@@ -122,7 +123,7 @@ def propose(k, parameter, body):
         return json_antwort({**kept[key], "kosten_usd": 0, "kosten_text": "", "wiederholt": True})
     try:
         gateway, _ = routes_ai.ai_gateway(k, entry, partial=True)
-        result = cv_suggestions.propose(gateway, ad, stations, summary)
+        result = cv_suggestions.propose(gateway, ad, stations, summary, language_settings.app_language(k.daten))
     except AiError as error:
         raise _failed(error) from error
     by_ref = {station.ref: station for station in stations}
@@ -141,7 +142,7 @@ def _sent(k, entry: dict) -> str:
     def task() -> str:
         material = tasks.load_material(k.daten, partial=True)
         gateway = tasks.make_gateway(k.daten, material, client=None, entry=entry)
-        return cv_suggestions.preview(gateway, ad, stations, summary)
+        return cv_suggestions.preview(gateway, ad, stations, summary, material.language)
 
     return routes_ai.run_ai(task)
 

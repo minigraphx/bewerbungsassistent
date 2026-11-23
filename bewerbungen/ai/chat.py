@@ -47,7 +47,7 @@ def remaining_today(log: UsageLog, today: datetime.date) -> int:
 
 
 def answer(gateway: Gateway, material: tasks.Material, question: str, history: list[dict]) -> dict:
-    reply = gateway.ask(Request(task=TASK, model=tasks.MODELS[TASK], rules=prompts.rules(material.address), context=material.context, instructions=prompts.CHAT,
+    reply = gateway.ask(Request(task=TASK, model=tasks.MODELS[TASK], rules=material.rules, context=material.context, instructions=prompts.CHAT,
                                 prompt=prompts.chat_prompt(history[-MAX_TURNS:], question), max_tokens=tasks.MAX_TOKENS[TASK]))
     if not reply.text.strip():
         raise AnswerError(BAD_ANSWER, cost_usd=reply.cost_usd)
