@@ -122,6 +122,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G131 [draft, must] Sobald die Erweiterung in beiden Stores ohne Native Messaging auskommt, entfernt die App beim Start ihre Einträge für Native Messaging in allen Browsern. | gate: review
 - G132 [draft, must] Unter Linux funktioniert die Erweiterung auch in Chromium als Snap und in Browsern als Flatpak. | gate: review
 - G133 [draft, must] Das Paket für den Microsoft Store braucht keine eingeschränkte Fähigkeit. Nach dem Deinstallieren bleiben nur der Datenordner und, falls eingetragen, der Eintrag in Claude Desktop. | gate: review
+- G134 [draft, must] Unter Einstellungen wählt die Person für die KI «An» (alle KI-Funktionen, wie bisher), «Aus» (keine Anfrage an die KI; jede Seite funktioniert ohne KI und sagt, wo eine Funktion sie braucht) oder «Benutzerdefiniert» (jede KI-Funktion einzeln an oder aus, unter «Erweitert»). Eine ausgeschaltete Funktion schickt nichts an die KI oder die Vermittlung und zeigt weder Knopf noch Kosten. | gate: review
 
 ## K · Constraints
 
