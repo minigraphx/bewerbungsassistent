@@ -385,6 +385,13 @@
       sie: "Die App baut ihn aus Ihren Angaben. Was drinsteht und wie er aussieht, wählen Sie getrennt. Danach steht er wie jede Variante zur Wahl.",
       du: "Die App baut ihn aus deinen Angaben. Was drinsteht und wie er aussieht, wählst du getrennt. Danach steht er wie jede Variante zur Wahl.",
     },
+    // The hint under „Kurzprofil“, one sentence around its link (#426): three sets, so each language puts its own words
+    // before and after the link. The last one starts with its space, because French and English go on with a comma.
+    "lebenslauf.angaben-hier": {
+      sie: "Aus Ihren Angaben. Kürzen und umstellen geht hier;", du: "Aus deinen Angaben. Kürzen und umstellen geht hier;",
+    },
+    "lebenslauf.angaben-link": { sie: "Angaben selbst ändern", du: "Angaben selbst ändern" },
+    "lebenslauf.angaben-dort": { sie: " geht unter Meine Angaben.", du: " geht unter Meine Angaben." },
     "bewerbung.angaben": { sie: "Angaben zur Stelle", du: "Angaben zur Stelle", lehrstelle: "Angaben zur Lehrstelle" },
     "bewerbung.stellentext": { sie: "Stellentext", du: "Stellentext", lehrstelle: "Inseratstext" },
     "bewerbung.gespraech": { sie: "Gespräch vorbereiten", du: "Gespräch vorbereiten", lehrstelle: "Einladung vorbereiten" },

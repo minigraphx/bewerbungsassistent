@@ -95,7 +95,7 @@ test("the line under the check counts errors, messages and notes, with one in th
     "Lebenslauf zu lang"]);
   assert.deepEqual(shown.fr, ["1 erreur", "2 erreurs", "1 message à confirmer", "2 messages à confirmer", "1 remarque", "2 remarques",
     "CV trop long"]);
-  assert.deepEqual(shown.en, ["1 error", "2 errors", "1 message to confirm", "2 messages to confirm", "1 note", "2 notes",
+  assert.deepEqual(shown.en, ["1 error", "2 errors", "1 message to confirm", "2 messages to confirm", "1 remark", "2 remarks",
     "CV too long"]);
 });
 
@@ -146,14 +146,14 @@ test("the history names each date in the app language, with the kind of dispatch
   assert.deepEqual(shown.de, ["Erfasst", "Beworben", "Versand erfasst (persönlich)", "Im Job-Room eingetragen", "Gespräch", "Absage"]);
   assert.deepEqual(shown.fr, ["Ajoutée", "Envoyée", "Envoi enregistré (en personne)", "Saisie sur Job-Room",
     "Entretien", "Refus"]);
-  assert.deepEqual(shown.en, ["Added", "Applied", "Sending recorded (in person)", "Entered in Job-Room", "Interview", "Rejection"]);
+  assert.deepEqual(shown.en, ["Added", "Applied", "Recorded as sent (in person)", "Entered in Job-Room", "Interview", "Rejection"]);
   assert.equal(b.versand.art, "persönlich");
 });
 
 test("a kind of dispatch the app does not know is shown as stored", () => {
   const b = { versand: { datum: "2026-11-02", art: "per Kurier" } };
   assert.deepEqual(inAll(() => BewerbungLogik.verlauf(b).map(v => v.text)),
-    { de: ["Versand erfasst (per Kurier)"], fr: ["Envoi enregistré (per Kurier)"], en: ["Sending recorded (per Kurier)"] });
+    { de: ["Versand erfasst (per Kurier)"], fr: ["Envoi enregistré (per Kurier)"], en: ["Recorded as sent (per Kurier)"] });
 });
 
 test("ending an application keeps the German stage it stores", () => {
@@ -185,4 +185,20 @@ test("a reason in French still leads to its own step through the server's code",
   assert.equal(step(undefined, fr("Statut «~Gespräch~»")), "offen");
   const [row] = inLanguage("fr", () => UebersichtLogik.mitSchritten([b], new Map([["a", grund]]), new Map(), new Map([["a", "link"]])));
   assert.equal(row.schritt.art, "link");
+});
+
+// The hint under „Kurzprofil“: three text sets around the link, so each language and address puts its own words there
+
+test("the hint under the profile speaks in the form of the set, with the link in the middle", () => {
+  const SETS = ["lebenslauf.angaben-hier", "lebenslauf.angaben-link", "lebenslauf.angaben-dort"];
+  const sentence = satz => inAll(() => SETS.map(key => texte.text(key, satz)).join(""));
+  const sie = sentence("stelle-sie");
+  const du = sentence("stelle-du");
+  assert.equal(sie.de, "Aus Ihren Angaben. Kürzen und umstellen geht hier;Angaben selbst ändern geht unter Meine Angaben.");
+  assert.equal(du.de, "Aus deinen Angaben. Kürzen und umstellen geht hier;Angaben selbst ändern geht unter Meine Angaben.");
+  assert.equal(sie.fr, fr("D'après vos informations. Vous pouvez raccourcir et réorganiser ici~; pourmodifier les informations elles-mêmes, passez par Mes informations."));
+  assert.equal(du.fr, fr("D'après tes informations. Tu peux raccourcir et réorganiser ici~; pourmodifier les informations elles-mêmes, passe par Mes informations."));
+  assert.equal(sie.en, "From your details. You can shorten and reorder here; tochange the details themselves, go to My details.");
+  assert.equal(du.en, sie.en);
+  assert.equal(sentence("lehrstelle-du").fr, du.fr);
 });

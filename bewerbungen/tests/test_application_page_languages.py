@@ -65,7 +65,7 @@ APPLICATION_EN = ("<title>Application</title>", 'aria-label="Progress of the app
                   "The CV is the file from", ">CV and files<", ", as it is. A chosen variant comes first.",
                   ">Suggest a variant<", ">CV for this job<", ">Edit the cover letter<", ">Add a paragraph<",
                   ">Salutation<", ">Approve<", ">Create and check documents<", ">Cover letter and CV<",
-                  ">Design the dossier<", ">Record sending<", ">Sent on<",
+                  ">Design the dossier<", ">Record as sent<", ">Sent on<",
                   '<option value="elektronisch">electronic</option>', '<option value="persönlich">in person</option>',
                   ">Record<", ">Invitation to an interview<", ">Rejection<", ">Offer<", ">Open Job-Room<",
                   ">End the application<", ">Withdraw<", ">History<", ">Edit details<", ">Contact person<",
@@ -81,6 +81,23 @@ PAGE_FILES = ("seiten/bewerbung.html", "seiten/bewerbung-logik.js", "seiten/form
 # rav and routen_bewerbungen are finished already (#419, #420).
 ROUTE_FILES = ("apply.py", "versand.py", "letter_approval.py", "form_copy.py", "routes_apply.py", "routes_rav.py",
                "rav.py", "routen_bewerbungen.py")
+# The hint under „Kurzprofil“: one sentence around a link, as three text sets so each language orders its own words.
+CV_HINT_FR = ('<span data-text="lebenslauf.angaben-hier">D\'après vos informations. Vous pouvez raccourcir et réorganiser '
+              f'ici{NBSP}; pour</span> <a href="/angaben" data-text="lebenslauf.angaben-link">modifier les informations '
+              'elles-mêmes</a><span data-text="lebenslauf.angaben-dort">, passez par Mes informations.</span>')
+CV_HINT_EN = ('<span data-text="lebenslauf.angaben-hier">From your details. You can shorten and reorder here; to</span> '
+              '<a href="/angaben" data-text="lebenslauf.angaben-link">change the details themselves</a>'
+              '<span data-text="lebenslauf.angaben-dort">, go to My details.</span>')
+CV_HINT_DE = ('<span data-text="lebenslauf.angaben-hier">Aus Ihren Angaben. Kürzen und umstellen geht hier;</span> '
+              '<a href="/angaben" data-text="lebenslauf.angaben-link">Angaben selbst ändern</a>'
+              '<span data-text="lebenslauf.angaben-dort"> geht unter Meine Angaben.</span>')
+# The link next to the limits of the AI's suggestions stands alone
+AI_NOTE_LINK = ('</span> <a href="/angaben">{}</a></p>')
+NO_LINK_FR = f"Pas de lien vers le formulaire{NBSP}: ouvrir la candidature et saisir le lien"
+NO_LINK_EN = "No link to the form: open the application and enter the link"
+NO_CV_FR = (f"PDF du CV manquant{NBSP}: ouvrir la candidature, puis «{NBSP}Créer et vérifier les documents{NBSP}» ou "
+            f"téléverser le CV sous «{NBSP}CV et fichiers{NBSP}»")
+NO_CV_EN = "CV PDF missing: open the application, then “Create and check documents”, or upload the CV under “CV and files”"
 
 
 @pytest.fixture
@@ -168,6 +185,23 @@ def test_the_application_page_stays_german_byte_for_byte_with_the_preview_off(st
 
     assert (status, body) == (200, application_page(server))
     assert [text for text in APPLICATION_DE if text not in body] == []
+    assert CV_HINT_DE in body
+    assert AI_NOTE_LINK.format("Angaben selbst ändern") in body
+
+
+def test_the_hint_under_the_profile_orders_its_words_around_the_link_in_each_language(started, preview):
+    server, folder = started
+
+    store_language(folder, "fr")
+    french = page(server)[1]
+    store_language(folder, "en")
+    english = page(server)[1]
+
+    # no space before the comma that follows the link: the set replaces the whole text, like Texte.anwenden
+    assert CV_HINT_FR in french
+    assert CV_HINT_EN in english
+    assert AI_NOTE_LINK.format("Modifier dans Mes informations") in french
+    assert AI_NOTE_LINK.format("Edit in My details") in english
 
 
 def test_the_kinds_of_dispatch_keep_their_stored_value_in_every_language(started, preview):
@@ -202,11 +236,8 @@ def test_why_a_form_cannot_open_comes_in_french_with_the_step_it_leads_to(starte
 
     found = reasons(server)
 
-    assert found["muster-ag-planer"] == {"grund": f"Pas de lien vers le formulaire{NBSP}: l'ouvrir et saisir le lien",
-                                         "schritt": "link"}
-    assert found["beispiel-gmbh-kurs"] == {
-        "grund": f"PDF du CV manquant{NBSP}: l'ouvrir et «{NBSP}Créer les documents{NBSP}» ou téléverser sous "
-                 f"«{NBSP}CV et fichiers{NBSP}»", "schritt": "unterlagen"}
+    assert found["muster-ag-planer"] == {"grund": NO_LINK_FR, "schritt": "link"}
+    assert found["beispiel-gmbh-kurs"] == {"grund": NO_CV_FR, "schritt": "unterlagen"}
     assert found["probe-ag-sent"] == {"grund": "Déjà envoyée"}
     # the stage is stored German and stays so inside the French sentence
     assert found["test-ag-gespraech"] == {"grund": f"Statut «{NBSP}Gespräch{NBSP}»"}
@@ -218,9 +249,8 @@ def test_why_a_form_cannot_open_comes_in_english(started, preview):
 
     found = reasons(server)
 
-    assert found["muster-ag-planer"] == {"grund": "No link to the form: open it and enter the link", "schritt": "link"}
-    assert found["beispiel-gmbh-kurs"] == {
-        "grund": "CV PDF missing: open it and “Create documents” or upload under “CV and files”", "schritt": "unterlagen"}
+    assert found["muster-ag-planer"] == {"grund": NO_LINK_EN, "schritt": "link"}
+    assert found["beispiel-gmbh-kurs"] == {"grund": NO_CV_EN, "schritt": "unterlagen"}
     assert found["test-ag-gespraech"] == {"grund": "Status “Gespräch”"}
 
 
@@ -240,19 +270,23 @@ def test_a_letter_not_yet_approved_names_its_step_in_every_language(tmp_path):
     assert str(reason) == apply.NOT_APPROVED
     assert apply.reason_step(reason) == "freigeben"
     assert reason.in_language(catalog(), "fr") == (
-        f"Lettre de motivation pas encore validée{NBSP}: l'ouvrir, la lire et «{NBSP}Valider{NBSP}»")
-    assert reason.in_language(catalog(), "en") == "Cover letter not approved yet: open it, read it and “Approve”"
+        f"Lettre de motivation pas encore validée{NBSP}: ouvrir la candidature, lire la lettre et «{NBSP}Valider{NBSP}»")
+    assert reason.in_language(catalog(), "en") == (
+        "Cover letter not approved yet: open the application, read the letter and “Approve”")
 
 
 def test_a_form_refused_by_the_extension_says_why_in_french(started, preview):
     server, folder = started
     store_language(folder, "fr")
 
-    assert refused(server, "GET", "/api/bewerben/daten?id=muster-ag-planer") == (
-        f"Pas de lien vers le formulaire{NBSP}: l'ouvrir et saisir le lien")
+    assert refused(server, "GET", "/api/bewerben/daten?id=muster-ag-planer") == NO_LINK_FR
     assert refused(server, "POST", "/api/bewerben/ordner", {"id": "muster-ag-planer"}) == (
-        f"Il n'y a pas encore de fichiers pour cette candidature. Merci d'utiliser d'abord «{NBSP}Créer les documents{NBSP}» "
-        f"ou de les téléverser sous «{NBSP}CV et fichiers{NBSP}».")
+        f"Il n'y a pas encore de fichiers pour cette candidature. Merci d'utiliser d'abord «{NBSP}Créer et vérifier les "
+        f"documents{NBSP}» ou de les téléverser sous «{NBSP}CV et fichiers{NBSP}».")
+    store_language(folder, "en")
+    assert refused(server, "POST", "/api/bewerben/ordner", {"id": "muster-ag-planer"}) == (
+        "There are no files for this application yet. Please first use “Create and check documents” or upload them "
+        "under “CV and files”.")
 
 
 # The approval of the letter and recording the dispatch
@@ -296,7 +330,7 @@ def test_the_notes_after_the_dispatch_keep_firm_job_and_stage_german():
     assert str(note) == "Bei Muster AG läuft schon eine Bewerbung: Planer:in (Gespräch)"
     assert note.in_language(catalog(), "fr") == (
         f"Une candidature est déjà en cours chez Muster AG{NBSP}: Planer:in (Gespräch)")
-    assert note.in_language(catalog(), "en") == "An application at Muster AG is already running: Planer:in (Gespräch)"
+    assert note.in_language(catalog(), "en") == "There is already an open application at Muster AG: Planer:in (Gespräch)"
 
 
 def test_the_versions_a_form_kept_are_named_in_the_app_language():
@@ -328,7 +362,45 @@ REVIEWED = {
     "Der Ordner liess sich nicht vorbereiten. Bitte nochmals versuchen.": (
         "Le dossier n'a pas pu être préparé. Merci de réessayer.", "The folder could not be prepared. Please try again."),
     "Ein eigenes Anschreiben braucht keine Freigabe.": (
-        "Une lettre de motivation personnelle n'a pas besoin de validation.", "An own cover letter needs no approval."),
+        "Une lettre de motivation téléversée n'a pas besoin de validation.", "An uploaded cover letter needs no approval."),
+    "2 · Aussehen": ("2 · Apparence", "2 · Appearance"),
+    "Als Text bearbeiten (für Geübte)": ("Modifier en mode texte (utilisateurs avancés)",
+                                         "Edit as text (for experienced users)"),
+    "Versand erfassen": ("Enregistrer l'envoi", "Record as sent"),
+    "Versand erfasst ({art})": ("Envoi enregistré ({art})", "Recorded as sent ({art})"),
+    "Form ändern": ("Changer de format", "Change format"),
+    "Eigene Farbe": ("Couleur personnalisée", "Custom colour"),
+    "1 Hinweis": ("1 remarque", "1 remark"),
+    "{anzahl} Hinweise": ("{anzahl} remarques", "{anzahl} remarks"),
+    "Begrüssung („Kurz vorgestellt“)": ("Accueil (page de présentation)", "Welcome (introduction page)"),
+    "Angaben selbst ändern": ("Modifier dans Mes informations", "Edit in My details"),
+    "Vor dem Senden ersetzt die App Name, Adresse, Kontakte und Ansprechpersonen durch Platzhalter; Bilder und Scans "
+    "gehen nie an die KI. Eine Einschätzung, kein Urteil: Die KI kann sich irren.": (
+        f"Avant l'envoi, l'app remplace le nom, l'adresse, les coordonnées et les personnes de contact par des substituts"
+        f"{NBSP}; les images et les scans ne sont jamais envoyés à l'IA. Une estimation, pas un jugement{NBSP}: l'IA peut "
+        "se tromper.",
+        "Before sending, the app replaces name, address, contacts and contact persons with placeholders; images and "
+        "scans never go to the AI. An estimate, not a verdict: the AI can be wrong."),
+    "Die KI entwirft beide Texte aus den Bausteinen, mit Platzhaltern statt Name und Kontakt. Danach lassen sie sich "
+    "hier anpassen. Ohne Text entfällt die Seite im Dossier.": (
+        "L'IA rédige les deux textes à partir des modules de texte, avec des substituts à la place du nom et des "
+        "coordonnées. Ensuite, ils peuvent être adaptés ici. Sans texte, la page disparaît du dossier.",
+        "The AI drafts both texts from the text blocks, with placeholders instead of name and contact. They can then be "
+        "adjusted here. Without text, the page is left out of the dossier."),
+    "Zeichen und Farbe gelten für alle Dossiers. Jede Wahl ist sofort gespeichert; «Abbrechen» nimmt sie nicht zurück. "
+    "Schon erstellte Dossiers bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu.": (
+        f"L'emblème et la couleur valent pour tous les dossiers. Chaque choix est enregistré tout de suite{NBSP}; "
+        f"«{NBSP}Annuler{NBSP}» ne l'annule pas. Les dossiers déjà créés restent tels quels{NBSP}; avec «{NBSP}Créer et "
+        f"vérifier les documents{NBSP}», celui-ci est recréé.",
+        "Mark and colour apply to all dossiers. Each choice is saved at once; “Cancel” does not undo it. Dossiers "
+        "already created stay as they are; “Create and check documents” creates this one anew."),
+    "«Passend zum Design» ist die Farbe des Designs: Siegel Schieferblau, Raster Weinrot, Register Tannengrün. Sie "
+    "wechselt mit dem Design; eine benannte Farbe bleibt. Schrift auf der Farbe wählt die App selbst, weiss oder dunkel.": (
+        f"«{NBSP}Assortie au design{NBSP}» est la couleur du design{NBSP}: bleu ardoise pour Sceau, bordeaux pour Trame, "
+        f"vert sapin pour Registre. Elle change avec le design{NBSP}; une couleur nommée reste. L'app choisit elle-même "
+        "la couleur du texte sur l'accent, blanc ou foncé.",
+        "“Matching the design” is the design's colour: slate blue for Seal, wine red for Grid, fir green for Register. It "
+        "changes with the design; a named colour stays. The app picks the text colour on it itself, white or dark."),
     "Absage": ("Refus", "Rejection"),
     "Zusage": ("Réponse positive", "Offer"),
     "Einladung zur Schnupperlehre": ("Invitation à un stage d'orientation", "Invitation to a trial apprenticeship"),
