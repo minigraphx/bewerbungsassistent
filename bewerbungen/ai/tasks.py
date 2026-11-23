@@ -185,8 +185,10 @@ def rate_package(gateway: Gateway, material: Material, ads: list[tuple[str, str]
             "model": answer.model, "cost_usd": answer.cost_usd}
 
 
-def draft_letter(gateway: Gateway, material: Material, entry: dict, ad_text: str, model: str | None = None) -> dict:
-    prompt = prompts.job_prompt(_ad(ad_text), _details(entry))
+def draft_letter(gateway: Gateway, material: Material, entry: dict, ad_text: str, model: str | None = None,
+                 language: str = prompts.GERMAN) -> dict:
+    """The letter in `language`, the language of the documents (#98); what the person reads follows the app."""
+    prompt = prompts.letter_prompt(_ad(ad_text), _details(entry), language, material.language)
     instructions = prompts.DRAFT_TRIAL if entry.get("art") == TRIAL else prompts.DRAFT
     answer = _ask(gateway, material, "draft", instructions, prompt, prompts.DRAFT_SCHEMA, model)
     data = answer.data

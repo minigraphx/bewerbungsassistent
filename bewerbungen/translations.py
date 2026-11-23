@@ -23,6 +23,7 @@ from dateien import lies_yaml, schreibe_yaml
 RECORD = "uebersetzungen.yaml"
 RECORD_HEAD = "# Geprüfte Übersetzungen (Hashes, kein Text). Geschrieben von bewerbungen/translations.py.\n"
 SOURCE_LANGUAGE = "de"
+ALWAYS_CHECKED = ("en",)
 CV_FILE = "cv.yaml"
 VARIANTS = "jobs/*.yaml"
 MISSING = "fehlt"
@@ -57,22 +58,29 @@ def _load(path: pathlib.Path, standard: object) -> object:
         raise ValueError(f"{path.name} lässt sich nicht lesen. Bitte die Datei prüfen.") from error
 
 
+def _target_languages(fields: list[tuple[str, str, dict]]) -> tuple[str, ...]:
+    """English as before French existed; French once a field of the folder has it, so a folder without French
+    does not get a missing French translation for every field (#98)."""
+    written = {language for _, _, field in fields for language in field}
+    return tuple(language for language in build.SPRACHEN
+                 if language != SOURCE_LANGUAGE and (language in ALWAYS_CHECKED or language in written))
+
+
 def _entries(data_dir: pathlib.Path) -> list[dict]:
     if not data_dir.is_dir():
         raise ValueError(f"Den Datenordner {data_dir} gibt es nicht.")
+    fields = [(source.relative_to(data_dir).as_posix(), path, field)
+              for source in _sources(data_dir) for path, field in _fields(_load(source, None))]
+    languages = _target_languages(fields)
     entries = []
-    for source in _sources(data_dir):
-        rel = source.relative_to(data_dir).as_posix()
-        for path, field in _fields(_load(source, None)):
-            german = field.get(SOURCE_LANGUAGE)
-            if not german:
-                if any(field.values()):
-                    entries.append({"datei": rel, "feld": path, "sprache": SOURCE_LANGUAGE, "de": None, "uebersetzung": None,
-                                    "stand": NO_GERMAN, "hash": None})
-                continue
-            for language in build.SPRACHEN:
-                if language != SOURCE_LANGUAGE:
-                    entries.append(_entry(rel, path, language, german, field.get(language)))
+    for rel, path, field in fields:
+        german = field.get(SOURCE_LANGUAGE)
+        if not german:
+            if any(field.values()):
+                entries.append({"datei": rel, "feld": path, "sprache": SOURCE_LANGUAGE, "de": None, "uebersetzung": None,
+                                "stand": NO_GERMAN, "hash": None})
+            continue
+        entries.extend(_entry(rel, path, language, german, field.get(language)) for language in languages)
     return entries
 
 

@@ -43,4 +43,4 @@ def test_mehrsprachiger_stichpunkt_mit_tags(baue):
 
 def test_unbekannte_sprache(baue):
     with pytest.raises(SystemExit):
-        baue(beispiel(), "--lang", "fr")
+        baue(beispiel(), "--lang", "it")

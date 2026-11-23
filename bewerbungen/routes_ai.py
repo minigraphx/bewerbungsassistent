@@ -11,7 +11,7 @@ import yaml
 import letter_approval
 import preferences
 import unterlagen
-from ai import budget, consent, form_help, invitation, tasks, usage
+from ai import budget, consent, form_help, invitation, prompts, tasks, usage
 from ai.connection import find_connection, make_client, mediation_url, own_key
 from ai.errors import SETUP_ACTION, AiError, InputRefused, LocalProblem, SetupNeeded
 from ai.usage import UsageLog
@@ -63,6 +63,11 @@ def _letter(k, application_id: str) -> dict | None:
 
 def _unreadable() -> T:
     return T("{datei} lässt sich nicht lesen.", datei=LETTER_FILE)
+
+
+def letter_language(letter: dict | None) -> str:
+    """The language of the documents the letter belongs to (#98): its `sprache`, German without one."""
+    return str((letter or {}).get("sprache") or prompts.GERMAN)
 
 
 def _letter_text(letter: dict) -> str:
@@ -248,8 +253,9 @@ def draft(k, parameter, body):
     ad = _ad_text(k, entry["id"])
 
     def task():
-        gateway, material = ai_gateway(k, entry, _letter(k, entry["id"]))
-        return tasks.draft_letter(gateway, material, entry, ad), material
+        letter = _letter(k, entry["id"])
+        gateway, material = ai_gateway(k, entry, letter)
+        return tasks.draft_letter(gateway, material, entry, ad, language=letter_language(letter)), material
 
     result, material = run_ai(task)
     path = _folder(k, entry["id"]) / LETTER_FILE

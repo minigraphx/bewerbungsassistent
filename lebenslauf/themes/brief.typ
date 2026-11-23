@@ -2,6 +2,7 @@
 // Daten kommen fertig aufbereitet aus anschreiben.py; alle Texte werden als Text eingesetzt, nie als Markup.
 #import "page-fill.typ": spacing, leading, body-size, part-start, part-end
 #import "type-area.typ": type-area
+#import "common.typ": date-line
 
 #let brief-standard-stil = (
   farbe-text: black,
@@ -56,7 +57,7 @@
     })
     v(s.abstand-empfaenger * f)
 
-    [#daten.ort_datum]
+    [#date-line(daten.ort_datum, daten.sprache)]
     v(1.2em * f)
     if betreff-block != none { betreff-block } else { text(weight: 700)[#daten.betreff] }
     v(0.9em * f)

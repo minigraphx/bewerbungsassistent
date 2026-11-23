@@ -14,6 +14,7 @@
     interessen: "Interessen",
     bildung: "Bildung & Weiterbildung",
     projekte-auf: "Projekte auf",
+    colon: ":",
     fortsetzung: "Fortsetzung",
     heute: "heute",
     monate: ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
@@ -30,10 +31,29 @@
     interessen: "Interests",
     bildung: "Education & training",
     projekte-auf: "Projects on",
+    colon: ":",
     fortsetzung: "continued",
     heute: "present",
     monate: ("January", "February", "March", "April", "May", "June", "July",
              "August", "September", "October", "November", "December"),
+  ),
+  fr: (
+    profil: "Profil",
+    erfahrung: "Expérience professionnelle",
+    projekte: "Projets",
+    weitere-projekte: "Autres projets",
+    faehigkeiten: "Compétences",
+    lehre: "Enseignement et formation",
+    sprachen: "Langues",
+    interessen: "Centres d’intérêt",
+    bildung: "Formation et perfectionnement",
+    projekte-auf: "Projets sur",
+    // French typography: a no-break space before the colon
+    colon: "\u{a0}:",
+    fortsetzung: "suite",
+    heute: "aujourd’hui",
+    monate: ("janvier", "février", "mars", "avril", "mai", "juin", "juillet",
+             "août", "septembre", "octobre", "novembre", "décembre"),
   ),
 )
 
@@ -53,6 +73,14 @@
 
 // A skill keyword is text or (name: ..., level: ...) for the dossier designs; other themes show the name only
 #let stichwort(k) = if type(k) == dictionary { k.at("name", default: "") } else { str(k) }
+
+// The place and date line of a letter as written by anschreiben.py. French writes the first of the month as
+// "1er", and print sets the "er" in superscript (#98); the label lets the tests find it.
+#let date-line(line, lang) = {
+  if lang != "fr" { return line }
+  show regex("\\b1er\\b"): [1#super[er]<first-of-month>]
+  line
+}
 
 // "2022-06" -> "Juni 2022", "2018" -> "2018"
 #let datum(d, b) = {

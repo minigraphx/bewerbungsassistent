@@ -83,4 +83,4 @@ def test_vorschlag_mit_bindestrichen_und_gross_klein(var):
 
 def test_unbekannte_sprache():
     with pytest.raises(ValueError, match="sprache"):
-        varianten.pruefe_variante({**KI, "sprache": "fr"})
+        varianten.pruefe_variante({**KI, "sprache": "it"})
