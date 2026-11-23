@@ -1,0 +1,543 @@
+{
+  "Stellen {erste} bis {letzte} von {von} prüfen …": {"fr": "Évaluation des offres {erste} à {letzte} sur {von}…", "en": "Rating jobs {erste} to {letzte} of {von}…"},
+  "Stelle {erste} von {von} prüfen …": {"fr": "Évaluation de l'offre {erste} sur {von}…", "en": "Rating job {erste} of {von}…"},
+  "Stellen {erste} bis {letzte} von {von} prüfen, seit {dauer} …": {
+    "fr": "Évaluation des offres {erste} à {letzte} sur {von}, depuis {dauer}…",
+    "en": "Rating jobs {erste} to {letzte} of {von}, for {dauer}…"
+  },
+  "Stelle {erste} von {von} prüfen, seit {dauer} …": {
+    "fr": "Évaluation de l'offre {erste} sur {von}, depuis {dauer}…",
+    "en": "Rating job {erste} of {von}, for {dauer}…"
+  },
+  "Inserat {nummer} von {von} holen …": {"fr": "Récupération de l'annonce {nummer} sur {von}…", "en": "Fetching ad {nummer} of {von}…"},
+  "{anzahl}{nbsp}Minute": {"fr": "{anzahl}{nbsp}minute", "en": "{anzahl}{nbsp}minute"},
+  "{anzahl}{nbsp}Minuten": {"fr": "{anzahl}{nbsp}minutes", "en": "{anzahl}{nbsp}minutes"},
+  "1 Stelle": {"fr": "1 offre", "en": "1 job"},
+  "{anzahl} Stellen": {"fr": "{anzahl} offres", "en": "{anzahl} jobs"},
+  "1 Lehrstelle": {"fr": "1 place d'apprentissage", "en": "1 apprenticeship"},
+  "{anzahl} Lehrstellen": {"fr": "{anzahl} places d'apprentissage", "en": "{anzahl} apprenticeships"},
+  "Das Guthaben reicht für etwa {stellen}.": {"fr": "Le crédit suffit pour environ {stellen}.", "en": "The credit is enough for about {stellen}."},
+  "Danach bleiben {betrag} im Guthaben.": {"fr": "Il restera ensuite {betrag} de crédit.", "en": "Then {betrag} of credit will be left."},
+  "Im Guthaben sind noch {betrag}, das reicht vielleicht nicht.": {
+    "fr": "Il reste {betrag} de crédit, cela ne suffira peut-être pas.",
+    "en": "{betrag} of credit is left, which may not be enough."
+  },
+  "Im Guthaben sind noch {guthaben}, danach etwa {danach}.": {
+    "fr": "Il reste {guthaben} de crédit, ensuite environ {danach}.",
+    "en": "{guthaben} of credit is left, afterwards about {danach}."
+  },
+  "Das Guthaben ist aufgebraucht: neuen Code anfordern.": {
+    "fr": "Le crédit est épuisé\u00a0: demander un nouveau code.",
+    "en": "The credit is used up: request a new code."
+  },
+  "Das Guthaben ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter; ohne prüft die KI keine Stelle.": {
+    "fr": "Le crédit est épuisé. Avec un nouveau code d'invitation, cela continue\u00a0; sans code, l'IA n'évalue aucune offre.",
+    "en": "The credit is used up. It continues with a new invitation code; without one, the AI rates no job."
+  },
+  "Das Guthaben von {betrag} reicht für etwa {anzahl} von {stellen}.": {
+    "fr": "Le crédit de {betrag} suffit pour environ {anzahl} sur {stellen}.",
+    "en": "The credit of {betrag} is enough for about {anzahl} of {stellen}."
+  },
+  "Das Budget dieses Monats reicht für etwa {stellen}.": {
+    "fr": "Le budget de ce mois suffit pour environ {stellen}.",
+    "en": "This month's budget is enough for about {stellen}."
+  },
+  "Danach bleiben {betrag} im Budget.": {"fr": "Il restera ensuite {betrag} dans le budget.", "en": "Then {betrag} will be left in the budget."},
+  "Im Budget sind noch {betrag}, das reicht vielleicht nicht.": {
+    "fr": "Il reste {betrag} dans le budget, cela ne suffira peut-être pas.",
+    "en": "{betrag} is left in the budget, which may not be enough."
+  },
+  "Im Budget sind noch {guthaben}, danach etwa {danach}.": {
+    "fr": "Il reste {guthaben} dans le budget, ensuite environ {danach}.",
+    "en": "{guthaben} is left in the budget, afterwards about {danach}."
+  },
+  "Das KI-Budget ist aufgebraucht, wieder ab {datum}.": {
+    "fr": "Le budget IA est épuisé, de retour le {datum}.",
+    "en": "The AI budget is used up, back on {datum}."
+  },
+  "Das KI-Budget für {monat} ist aufgebraucht. Ab {datum} prüft die KI wieder; was geprüft ist, bleibt.": {
+    "fr": "Le budget IA pour {monat} est épuisé. L'IA évalue à nouveau dès le {datum}\u00a0; ce qui est évalué reste.",
+    "en": "The AI budget for {monat} is used up. The AI rates again from {datum}; what is rated stays."
+  },
+  "Das Budget dieses Monats reicht für etwa {anzahl} von {stellen}.": {
+    "fr": "Le budget de ce mois suffit pour environ {anzahl} sur {stellen}.",
+    "en": "This month's budget is enough for about {anzahl} of {stellen}."
+  },
+  "Etwa {kosten} und {dauer}.": {"fr": "Environ {kosten} et {dauer}.", "en": "About {kosten} and {dauer}."},
+  "Die Schätzung fehlt: {grund}": {"fr": "L'estimation manque\u00a0: {grund}", "en": "The estimate is missing: {grund}"},
+  "Für {stellen} holt die Erweiterung zuerst den Text des Inserats.": {
+    "fr": "Pour {stellen}, l'extension récupère d'abord le texte de l'annonce.",
+    "en": "For {stellen}, the extension first fetches the ad text."
+  },
+  "Für {stellen} fehlt der Text. Ohne Erweiterung bleibt sie offen.": {
+    "fr": "Le texte manque pour {stellen}. Sans l'extension, elle reste sans note.",
+    "en": "The text is missing for {stellen}. Without the extension, it stays unrated."
+  },
+  "Für {stellen} fehlt der Text. Ohne Erweiterung bleiben sie offen.": {
+    "fr": "Le texte manque pour {stellen}. Sans l'extension, elles restent sans note.",
+    "en": "The text is missing for {stellen}. Without the extension, they stay unrated."
+  },
+  "Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt.": {
+    "fr": "S'il est épuisé, l'évaluation s'arrête\u00a0; ce qui est évalué reste.",
+    "en": "If it runs out, the rating stops; what is rated stays."
+  },
+  "{stellen} ohne Text bleibt offen:": {"fr": "{stellen} sans texte reste sans note\u00a0:", "en": "{stellen} without text stays unrated:"},
+  "{stellen} ohne Text bleiben offen:": {"fr": "{stellen} sans texte restent sans note\u00a0:", "en": "{stellen} without text stay unrated:"},
+  "Die KI prüft {stellen}, die noch keine Note haben.": {"fr": "L'IA évalue {stellen} encore sans note.", "en": "The AI rates {stellen} without a grade yet."},
+  "Das kostet etwa {kosten} und dauert etwa {dauer}.": {
+    "fr": "Cela coûte environ {kosten} et prend environ {dauer}.",
+    "en": "This costs about {kosten} and takes about {dauer}."
+  },
+  "{stellen} prüfen?": {"fr": "Évaluer {stellen}\u00a0?", "en": "Rate {stellen}?"},
+  "{stelle}: {grund}": {"fr": "{stelle}\u00a0: {grund}", "en": "{stelle}: {grund}"},
+  "{bewertet} von {von} Treffern bewertet": {"fr": "Résultats évalués\u00a0: {bewertet} sur {von}", "en": "Results rated: {bewertet} of {von}"},
+  "{anzahl} ohne brauchbare Antwort, die lassen sich einzeln nochmals versuchen": {
+    "fr": "{anzahl} sans réponse utilisable, à réessayer un par un",
+    "en": "{anzahl} without a usable answer, which can be retried one by one"
+  },
+  "{anzahl} ohne Inseratstext": {"fr": "{anzahl} sans texte d'annonce", "en": "{anzahl} without ad text"},
+  "angehalten": {"fr": "arrêtée", "en": "stopped"},
+  "noch {anzahl} offen": {"fr": "encore {anzahl} en attente", "en": "{anzahl} still open"},
+  "{teile}. Kosten: {kosten}.": {"fr": "{teile}. Coût\u00a0: {kosten}.", "en": "{teile}. Cost: {kosten}."},
+  "Nachgeprüft: einzeln Note {eins}.": {"fr": "Contrôle\u00a0: évaluée seule, note {eins}.", "en": "Checked again: rated alone, grade {eins}."},
+  "Nachgeprüft: einzeln Noten {eins} und {zwei}, es zählt die tiefere.": {
+    "fr": "Contrôle\u00a0: évaluée seule, notes {eins} et {zwei}, la plus basse compte.",
+    "en": "Checked again: rated alone, grades {eins} and {zwei}; the lower one counts."
+  },
+  "Nachgeprüft: einzeln Noten {eins}, {zwei} und {drei}, es zählt die mittlere.": {
+    "fr": "Contrôle\u00a0: évaluée seule, notes {eins}, {zwei} et {drei}, celle du milieu compte.",
+    "en": "Checked again: rated alone, grades {eins}, {zwei} and {drei}; the middle one counts."
+  },
+  "Im Paket zuerst: Note {note}.": {"fr": "D'abord dans le lot\u00a0: note {note}.", "en": "First in the batch: grade {note}."},
+  "Die Nachprüfung war nicht möglich, die Note kann abweichen. „Neu bewerten“ versucht es nochmals.": {
+    "fr": "Le contrôle n'a pas été possible, la note peut varier. «\u00a0Réévaluer\u00a0» réessaie.",
+    "en": "The second check was not possible; the grade may differ. “Rate again” tries once more."
+  },
+  "Lehrstellen suchen": {"fr": "Chercher des places d'apprentissage", "en": "Search apprenticeships"},
+  "Schnupperlehren suchen": {"fr": "Chercher des stages d'orientation", "en": "Search trial apprenticeships"},
+  "Lehrstellen und Schnupperlehren suchen": {
+    "fr": "Chercher des places d'apprentissage et des stages d'orientation",
+    "en": "Search apprenticeships and trial apprenticeships"
+  },
+  "Gesucht wird: Lehrstellen.": {"fr": "Recherche\u00a0: places d'apprentissage.", "en": "Searching for: apprenticeships."},
+  "Gesucht wird: Schnupperlehren.": {"fr": "Recherche\u00a0: stages d'orientation.", "en": "Searching for: trial apprenticeships."},
+  "Gesucht wird: Lehrstellen und Schnupperlehren.": {
+    "fr": "Recherche\u00a0: places d'apprentissage et stages d'orientation.",
+    "en": "Searching for: apprenticeships and trial apprenticeships."
+  },
+  "Die Erweiterung hat keine Suche am Laufen. Bitte nochmals „Jetzt suchen“ drücken, sonst die Seite neu laden.": {
+    "fr": "L'extension n'a aucune recherche en cours. Appuyer à nouveau sur «\u00a0Rechercher maintenant\u00a0», sinon recharger la page.",
+    "en": "The extension has no search running. Please press “Search now” again, or else reload the page."
+  },
+  "Nicht mehr unter Bewerbungen": {"fr": "Plus dans Candidatures", "en": "No longer in Applications"},
+  "{anzahl} nicht mehr unter Bewerbungen": {"fr": "{anzahl} plus dans Candidatures", "en": "{anzahl} no longer in Applications"},
+  "1 Lehrstelle ist noch nicht geprüft.": {"fr": "1 place d'apprentissage n'est pas encore évaluée.", "en": "1 apprenticeship is not rated yet."},
+  "{anzahl} Lehrstellen sind noch nicht geprüft.": {
+    "fr": "{anzahl} places d'apprentissage ne sont pas encore évaluées.",
+    "en": "{anzahl} apprenticeships are not rated yet."
+  },
+  "1 Stelle ist noch nicht geprüft.": {"fr": "1 offre n'est pas encore évaluée.", "en": "1 job is not rated yet."},
+  "{anzahl} Stellen sind noch nicht geprüft.": {"fr": "{anzahl} offres ne sont pas encore évaluées.", "en": "{anzahl} jobs are not rated yet."},
+  "Inseratstext fehlt": {"fr": "Texte de l'annonce manquant", "en": "Ad text missing"},
+
+  "Zuerst die Erweiterung einrichten.": {"fr": "Configurer d'abord l'extension.", "en": "Set up the extension first."},
+  "Noch nicht gesucht.": {"fr": "Pas encore de recherche.", "en": "Not searched yet."},
+  "Die erste Suche dauert einige Minuten.": {"fr": "La première recherche prend quelques minutes.", "en": "The first search takes a few minutes."},
+  "{liste} und {letzter}": {"fr": "{liste} et {letzter}", "en": "{liste} and {letzter}"},
+  "Noch keine Berufe": {"fr": "Aucun métier pour l'instant", "en": "No occupations yet"},
+  "Noch keine Suchbegriffe": {"fr": "Aucun mot-clé pour l'instant", "en": "No search terms yet"},
+  "Sucht nach {begriffe} und {anzahl} weiteren": {"fr": "Recherche {begriffe} et {anzahl} autres", "en": "Searches for {begriffe} and {anzahl} more"},
+  "Sucht nach {begriffe}": {"fr": "Recherche {begriffe}", "en": "Searches for {begriffe}"},
+  "{km} km um {ort}": {"fr": "{km} km autour de {ort}", "en": "{km} km around {ort}"},
+  "Kanton {kantone}": {"fr": "Canton {kantone}", "en": "Canton {kantone}"},
+  "Kantone {kantone}": {"fr": "Cantons {kantone}", "en": "Cantons {kantone}"},
+  "ganze Schweiz, nahe {ort} zuerst": {"fr": "toute la Suisse, près de {ort} d'abord", "en": "all of Switzerland, near {ort} first"},
+  "ganze Schweiz": {"fr": "toute la Suisse", "en": "all of Switzerland"},
+  "Ohne Ort gesucht, in der ganzen Schweiz.": {"fr": "Recherche sans lieu, dans toute la Suisse.", "en": "Searched without a place, across Switzerland."},
+  "Ohne Ort gesucht. Behalten werden Stellen in {kantone}, an Ihren Orten oder mit Remote.": {
+    "fr": "Recherche sans lieu. Sont conservées les offres dans {kantone}, à vos lieux ou en télétravail.",
+    "en": "Searched without a place. Jobs in {kantone}, at your places or with remote work are kept."
+  },
+  "Ohne Ort gesucht. Behalten werden Stellen in {kantone}, an deinen Orten oder mit Remote.": {
+    "fr": "Recherche sans lieu. Sont conservées les offres dans {kantone}, à tes lieux ou en télétravail.",
+    "en": "Searched without a place. Jobs in {kantone}, at your places or with remote work are kept."
+  },
+  "1 Portal": {"fr": "1 portail", "en": "1 portal"},
+  "{anzahl} Portale": {"fr": "{anzahl} portails", "en": "{anzahl} portals"},
+  "Keine neuen Treffer": {"fr": "Aucun nouveau résultat", "en": "No new results"},
+  "Alles abgeschlossen": {"fr": "Tout est terminé", "en": "All closed"},
+  "Jede Bewerbung aus diesen Treffern ist abgeschlossen. „Anzeigen“ unten zeigt sie.": {
+    "fr": "Chaque candidature issue de ces résultats est terminée. «\u00a0Afficher\u00a0» ci-dessous les montre.",
+    "en": "Every application from these results is closed. “Show” below shows them."
+  },
+  "Noch nichts in Bewerbungen": {"fr": "Rien encore dans Candidatures", "en": "Nothing in Applications yet"},
+  "Mit Merken oder Bewerbung vorbereiten kommt ein Treffer hierher.": {
+    "fr": "Avec «\u00a0Mettre de côté\u00a0» ou «\u00a0Préparer la candidature\u00a0», un résultat arrive ici.",
+    "en": "With “Save” or “Prepare application”, a result comes here."
+  },
+  "Nichts verworfen": {"fr": "Rien d'écarté", "en": "Nothing discarded"},
+  "1 Treffer": {"fr": "1 résultat", "en": "1 result"},
+  "{anzahl} Treffer": {"fr": "{anzahl} résultats", "en": "{anzahl} results"},
+  "1 neu": {"fr": "1 à voir", "en": "1 new"},
+  "am {datum}": {"fr": "le {datum}", "en": "on {datum}"},
+  "Letzte Suche {tag}": {"fr": "Dernière recherche {tag}", "en": "Last search {tag}"},
+  "{anzahl} Tage (Vorgabe)": {"fr": "{anzahl} jours (par défaut)", "en": "{anzahl} days (default)"},
+  "{anzahl} Tage": {"fr": "{anzahl} jours", "en": "{anzahl} days"},
+  "Problem bei der letzten Suche": {"fr": "Problème lors de la dernière recherche", "en": "Problem with the last search"},
+  "zuletzt {wann}": {"fr": "dernière fois {wann}", "en": "last {wann}"},
+  "noch nie gesucht": {"fr": "jamais recherché", "en": "never searched"},
+  "{portal}: {stand}": {"fr": "{portal}\u00a0: {stand}", "en": "{portal}: {stand}"},
+  "nächste Suche ab {datum}": {"fr": "prochaine recherche dès le {datum}", "en": "next search from {datum}"},
+
+  "texte:einstellen.verworfen": {
+    "fr": {
+      "sie": "Parmi les offres que vous avez écartées, {anzahl} ont «\u00a0{wort}\u00a0» dans le titre.",
+      "du": "Parmi les offres que tu as écartées, {anzahl} ont «\u00a0{wort}\u00a0» dans le titre."
+    },
+    "en": {"sie": "Of the jobs you discarded, {anzahl} have “{wort}” in the title."}
+  },
+  "Von den übrigen Stellen hat keine dieses Wort im Titel.": {
+    "fr": "Aucune des autres offres n'a ce mot dans le titre.",
+    "en": "None of the other jobs has this word in its title."
+  },
+  "Auch 1 Stelle, die nicht verworfen ist, hat dieses Wort im Titel.": {
+    "fr": "1 offre non écartée a aussi ce mot dans le titre.",
+    "en": "1 job that is not discarded also has this word in its title."
+  },
+  "Auch {anzahl} Stellen, die nicht verworfen sind, haben dieses Wort im Titel.": {
+    "fr": "{anzahl} offres non écartées ont aussi ce mot dans le titre.",
+    "en": "{anzahl} jobs that are not discarded also have this word in their title."
+  },
+  "«{wort}» nicht mehr zeigen": {"fr": "Ne plus afficher «\u00a0{wort}\u00a0»", "en": "Stop showing “{wort}”"},
+  "Die {anzahl} Stellen ansehen": {"fr": "Voir les {anzahl} offres", "en": "View the {anzahl} jobs"},
+  "«{wort}» steht jetzt unter «Im Titel». Gilt ab der nächsten Suche.": {
+    "fr": "«\u00a0{wort}\u00a0» figure désormais sous «\u00a0Dans le titre\u00a0». S'applique dès la prochaine recherche.",
+    "en": "“{wort}” is now under “In the title”. Applies from the next search."
+  },
+  "Gezeigt: 1 verworfene Stelle mit «{wort}» im Titel.": {
+    "fr": "Affichée\u00a0: 1 offre écartée avec «\u00a0{wort}\u00a0» dans le titre.",
+    "en": "Shown: 1 discarded job with “{wort}” in the title."
+  },
+  "Gezeigt: {anzahl} verworfene Stellen mit «{wort}» im Titel.": {
+    "fr": "Affichées\u00a0: {anzahl} offres écartées avec «\u00a0{wort}\u00a0» dans le titre.",
+    "en": "Shown: {anzahl} discarded jobs with “{wort}” in the title."
+  },
+
+  "1 Bewertung": {"fr": "1 avis", "en": "1 review"},
+  "{anzahl} Bewertungen": {"fr": "{anzahl} avis", "en": "{anzahl} reviews"},
+  "{seite}, von Hand eingetragen": {"fr": "{seite}, saisi à la main", "en": "{seite}, entered by hand"},
+  "von Hand eingetragen": {"fr": "saisi à la main", "en": "entered by hand"},
+  "1 Treffer, verworfen": {"fr": "1 résultat, écarté", "en": "1 result, discarded"},
+  "{anzahl} Treffer, verworfen": {"fr": "{anzahl} résultats, écartés", "en": "{anzahl} results, discarded"},
+  "Der Tab bleibt offen; der Wert lässt sich von Hand eintragen.": {
+    "fr": "L'onglet reste ouvert\u00a0; la valeur peut être saisie à la main.",
+    "en": "The tab stays open; the value can be entered by hand."
+  },
+  "Der Tab bleibt offen; der Wert lässt sich unter {wo} von Hand eintragen.": {
+    "fr": "L'onglet reste ouvert\u00a0; la valeur peut être saisie à la main sous {wo}.",
+    "en": "The tab stays open; the value can be entered by hand under {wo}."
+  },
+  "Der Wert muss eine Zahl von 1 bis 5 sein.": {"fr": "La valeur doit être un nombre de 1 à 5.", "en": "The value must be a number from 1 to 5."},
+  "Die Anzahl Bewertungen muss eine ganze Zahl ab 0 sein.": {
+    "fr": "Le nombre d'avis doit être un nombre entier à partir de 0.",
+    "en": "The number of reviews must be a whole number from 0."
+  },
+  "Bei kununu liess sich für {name} kein Wert lesen. {weiter}": {
+    "fr": "Aucune valeur n'a pu être lue sur kununu pour {name}. {weiter}",
+    "en": "No value could be read on kununu for {name}. {weiter}"
+  },
+  "{name}: kununu {wert} von 5, {bewertungen}.": {"fr": "{name}\u00a0: kununu {wert} sur 5, {bewertungen}.", "en": "{name}: kununu {wert} of 5, {bewertungen}."},
+  "{name}: bei kununu noch keine Bewertungen.": {"fr": "{name}\u00a0: pas encore d'avis sur kununu.", "en": "{name}: no reviews on kununu yet."},
+  "{name}: bei kununu nicht gefunden.": {"fr": "{name}\u00a0: introuvable sur kununu.", "en": "{name}: not found on kununu."},
+  "{name}: mehrere Treffer bei kununu. Bitte den passenden wählen.": {
+    "fr": "{name}\u00a0: plusieurs résultats sur kununu. Choisir le bon.",
+    "en": "{name}: several results on kununu. Please choose the matching one."
+  },
+  "kununu {wert} von 5": {"fr": "kununu {wert} sur 5", "en": "kununu {wert} of 5"},
+  "kununu {wert} von 5, {bewertungen}": {"fr": "kununu {wert} sur 5, {bewertungen}", "en": "kununu {wert} of 5, {bewertungen}"},
+  "kununu {wert} von 5, wenige Bewertungen": {"fr": "kununu {wert} sur 5, peu d'avis", "en": "kununu {wert} of 5, few reviews"},
+  "kununu {wert} von 5, nur {bewertungen}": {"fr": "kununu {wert} sur 5, seulement {bewertungen}", "en": "kununu {wert} of 5, only {bewertungen}"},
+  "kununu: wählen": {"fr": "kununu\u00a0: choisir", "en": "kununu: choose"},
+  "kununu: passende Firma wählen": {"fr": "kununu\u00a0: choisir l'entreprise correspondante", "en": "kununu: choose the matching company"},
+  "nicht bei kununu": {"fr": "pas sur kununu", "en": "not on kununu"},
+  "bei kununu nicht gefunden": {"fr": "introuvable sur kununu", "en": "not found on kununu"},
+  "Lernende: {wert} von 5, {bewertungen}": {"fr": "Apprentis\u00a0: {wert} sur 5, {bewertungen}", "en": "Apprentices: {wert} of 5, {bewertungen}"},
+  "{prozent} empfehlen": {"fr": "{prozent} recommandent", "en": "{prozent} recommend"},
+  "Nur {bewertungen}, wenig aussagekräftig.": {"fr": "Seulement {bewertungen}, peu significatif.", "en": "Only {bewertungen}, not very telling."},
+  "Bei kununu ansehen": {"fr": "Voir sur kununu", "en": "View on kununu"},
+  "Jetzt prüfen": {"fr": "Vérifier maintenant", "en": "Check now"},
+  "Prüfen": {"fr": "Vérifier", "en": "Check"},
+  "Nochmals prüfen": {"fr": "Vérifier à nouveau", "en": "Check again"},
+  "Bei kununu suchen": {"fr": "Chercher sur kununu", "en": "Search on kununu"},
+  "Neu prüfen": {"fr": "Revérifier", "en": "Re-check"},
+  "Noch nicht bei kununu geprüft.": {"fr": "Pas encore vérifié sur kununu.", "en": "Not checked on kununu yet."},
+  "Seite zugeordnet, noch nicht geprüft.": {"fr": "Page associée, pas encore vérifiée.", "en": "Page assigned, not checked yet."},
+  "Noch keine Bewertungen.": {"fr": "Pas encore d'avis.", "en": "No reviews yet."},
+  "Nicht geprüft. kununu war nicht erreichbar. Bitte später nochmals prüfen.": {
+    "fr": "Non vérifié. kununu n'était pas joignable. Vérifier à nouveau plus tard.",
+    "en": "Not checked. kununu could not be reached. Please check again later."
+  },
+  "Bei kununu nicht gefunden.": {"fr": "Introuvable sur kununu.", "en": "Not found on kununu."},
+  "Mehrere Lehrbetriebe bei kununu.": {"fr": "Plusieurs entreprises formatrices sur kununu.", "en": "Several training companies on kununu."},
+  "Mehrere Firmen bei kununu.": {"fr": "Plusieurs entreprises sur kununu.", "en": "Several companies on kununu."},
+  "Stand {datum}": {"fr": "État au {datum}", "en": "As of {datum}"},
+  "Geprüft am {datum}": {"fr": "Vérifié le {datum}", "en": "Checked on {datum}"},
+  "{firma} bei kununu": {"fr": "{firma} sur kununu", "en": "{firma} on kununu"},
+
+  "Die KI hat Ihr Suchprofil und Ihren Lebenslauf angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné votre profil de recherche et votre CV. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile and your CV. Only what is switched on is changed."
+  },
+  "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 1 Treffer seit dem {datum} angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné votre profil de recherche, votre CV et 1 résultat depuis le {datum}. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile, your CV and 1 result since {datum}. Only what is switched on is changed."
+  },
+  "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und 1 Treffer angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné votre profil de recherche, votre CV et 1 résultat. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile, your CV and 1 result. Only what is switched on is changed."
+  },
+  "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und {anzahl} Treffer seit dem {datum} angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné votre profil de recherche, votre CV et {anzahl} résultats depuis le {datum}. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile, your CV and {anzahl} results since {datum}. Only what is switched on is changed."
+  },
+  "Die KI hat Ihr Suchprofil, Ihren Lebenslauf und {anzahl} Treffer angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné votre profil de recherche, votre CV et {anzahl} résultats. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile, your CV and {anzahl} results. Only what is switched on is changed."
+  },
+  "Die KI hat dein Suchprofil und deinen Lebenslauf angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné ton profil de recherche et ton CV. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile and your CV. Only what is switched on is changed."
+  },
+  "Die KI hat dein Suchprofil, deinen Lebenslauf und 1 Treffer seit dem {datum} angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné ton profil de recherche, ton CV et 1 résultat depuis le {datum}. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile, your CV and 1 result since {datum}. Only what is switched on is changed."
+  },
+  "Die KI hat dein Suchprofil, deinen Lebenslauf und 1 Treffer angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné ton profil de recherche, ton CV et 1 résultat. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile, your CV and 1 result. Only what is switched on is changed."
+  },
+  "Die KI hat dein Suchprofil, deinen Lebenslauf und {anzahl} Treffer seit dem {datum} angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné ton profil de recherche, ton CV et {anzahl} résultats depuis le {datum}. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile, your CV and {anzahl} results since {datum}. Only what is switched on is changed."
+  },
+  "Die KI hat dein Suchprofil, deinen Lebenslauf und {anzahl} Treffer angesehen. Geändert wird nur, was eingeschaltet ist.": {
+    "fr": "L'IA a examiné ton profil de recherche, ton CV et {anzahl} résultats. Seul ce qui est activé est modifié.",
+    "en": "The AI looked at your search profile, your CV and {anzahl} results. Only what is switched on is changed."
+  },
+  "Die KI schlägt vor, Sie entscheiden. Am Suchprofil ändert sich erst etwas, wenn Sie übernehmen.": {
+    "fr": "L'IA propose, vous décidez. Le profil de recherche ne change que lorsque vous appliquez.",
+    "en": "The AI suggests, you decide. The search profile only changes when you apply."
+  },
+  "Die KI schlägt vor, du entscheidest. Am Suchprofil ändert sich erst etwas, wenn du übernimmst.": {
+    "fr": "L'IA propose, tu décides. Le profil de recherche ne change que lorsque tu appliques.",
+    "en": "The AI suggests, you decide. The search profile only changes when you apply."
+  },
+  "An die KI gehen Ihr Suchprofil und Ihr Lebenslauf mit Platzhaltern für Name, Adresse und Kontakte sowie Titel und Note der eingeschätzten Treffer, Titel aussortierter Stellen und Zahlen zu jedem Suchbegriff, ohne Inseratstexte.": {
+    "fr": "L'IA reçoit votre profil de recherche et votre CV, avec des substituts pour le nom, l'adresse et les contacts, ainsi que le titre et la note des résultats évalués, les titres des offres filtrées et des chiffres pour chaque mot-clé, sans les textes des annonces.",
+    "en": "The AI receives your search profile and your CV with placeholders for name, address and contacts, plus the title and grade of the rated results, the titles of filtered-out jobs and numbers for each search term, without ad texts."
+  },
+  "An die KI gehen dein Suchprofil und dein Lebenslauf mit Platzhaltern für Name, Adresse und Kontakte sowie Titel und Note der eingeschätzten Treffer, Titel aussortierter Stellen und Zahlen zu jedem Suchbegriff, ohne Inseratstexte.": {
+    "fr": "L'IA reçoit ton profil de recherche et ton CV, avec des substituts pour le nom, l'adresse et les contacts, ainsi que le titre et la note des résultats évalués, les titres des offres filtrées et des chiffres pour chaque mot-clé, sans les textes des annonces.",
+    "en": "The AI receives your search profile and your CV with placeholders for name, address and contacts, plus the title and grade of the rated results, the titles of filtered-out jobs and numbers for each search term, without ad texts."
+  },
+  "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was Sie übernehmen.": {
+    "fr": "L'IA peut proposer de meilleurs termes. Seul ce que vous appliquez est modifié.",
+    "en": "The AI can suggest better terms. Only what you apply is changed."
+  },
+  "Die KI kann bessere Begriffe vorschlagen. Geändert wird nur, was du übernimmst.": {
+    "fr": "L'IA peut proposer de meilleurs termes. Seul ce que tu appliques est modifié.",
+    "en": "The AI can suggest better terms. Only what you apply is changed."
+  },
+  "KI prüft Ihre Suchbegriffe": {"fr": "L'IA vérifie vos mots-clés", "en": "AI is checking your search terms"},
+  "KI prüft deine Suchbegriffe": {"fr": "L'IA vérifie tes mots-clés", "en": "AI is checking your search terms"},
+  "Meist unter 30\u00a0Sekunden. Am Suchprofil ändert sich nichts, bis Sie etwas übernehmen.": {
+    "fr": "En général moins de 30\u00a0secondes. Le profil de recherche ne change pas tant que vous n'appliquez rien.",
+    "en": "Usually under 30\u00a0seconds. The search profile does not change until you apply something."
+  },
+  "Meist unter 30\u00a0Sekunden. Am Suchprofil ändert sich nichts, bis du etwas übernimmst.": {
+    "fr": "En général moins de 30\u00a0secondes. Le profil de recherche ne change pas tant que tu n'appliques rien.",
+    "en": "Usually under 30\u00a0seconds. The search profile does not change until you apply something."
+  },
+  "Ihre Suchbegriffe passen. Die KI schlägt keine Änderung vor.": {
+    "fr": "Vos mots-clés conviennent. L'IA ne propose aucune modification.",
+    "en": "Your search terms fit. The AI suggests no change."
+  },
+  "Deine Suchbegriffe passen. Die KI schlägt keine Änderung vor.": {
+    "fr": "Tes mots-clés conviennent. L'IA ne propose aucune modification.",
+    "en": "Your search terms fit. The AI suggests no change."
+  },
+  "Kein Begriff lässt auffällig viele unpassende Treffer durch, und was in Ihrem Lebenslauf steht, wird schon gesucht.": {
+    "fr": "Aucun terme ne laisse passer un nombre frappant de résultats inadaptés, et ce qui figure dans votre CV est déjà recherché.",
+    "en": "No term lets in strikingly many unsuitable results, and what is in your CV is already searched for."
+  },
+  "Kein Begriff lässt auffällig viele unpassende Treffer durch, und was in deinem Lebenslauf steht, wird schon gesucht.": {
+    "fr": "Aucun terme ne laisse passer un nombre frappant de résultats inadaptés, et ce qui figure dans ton CV est déjà recherché.",
+    "en": "No term lets in strikingly many unsuitable results, and what is in your CV is already searched for."
+  },
+  "Ein Vorschlag, kein Urteil. Die KI kann sich irren. Geändert wird nur, was Sie übernehmen.": {
+    "fr": "Une proposition, pas un jugement. L'IA peut se tromper. Seul ce que vous appliquez est modifié.",
+    "en": "A proposal, not a verdict. The AI can be wrong. Only what you apply is changed."
+  },
+  "Ein Vorschlag, kein Urteil. Die KI kann sich irren. Geändert wird nur, was du übernimmst.": {
+    "fr": "Une proposition, pas un jugement. L'IA peut se tromper. Seul ce que tu appliques est modifié.",
+    "en": "A proposal, not a verdict. The AI can be wrong. Only what you apply is changed."
+  },
+  "Die KI überarbeitet den Vorschlag. Ihr Text geht mit dem Vorschlag an die KI.": {
+    "fr": "L'IA retravaille la proposition. Votre texte est envoyé à l'IA avec la proposition.",
+    "en": "The AI revises the proposal. Your text goes to the AI with the proposal."
+  },
+  "Die KI überarbeitet den Vorschlag. Dein Text geht mit dem Vorschlag an die KI.": {
+    "fr": "L'IA retravaille la proposition. Ton texte est envoyé à l'IA avec la proposition.",
+    "en": "The AI revises the proposal. Your text goes to the AI with the proposal."
+  },
+  "nach Ihrem Hinweis": {"fr": "après votre remarque", "en": "after your note"},
+  "nach deinem Hinweis": {"fr": "après ta remarque", "en": "after your note"},
+  "Ihr Hinweis": {"fr": "Votre remarque", "en": "Your note"},
+  "Dein Hinweis": {"fr": "Ta remarque", "en": "Your note"},
+  "Bevor die KI Suchbegriffe vorschlägt, braucht es Ihre Einwilligung.": {
+    "fr": "Avant que l'IA propose des mots-clés, votre consentement est nécessaire.",
+    "en": "Before the AI suggests search terms, it needs your consent."
+  },
+  "Bevor die KI Suchbegriffe vorschlägt, braucht es deine Einwilligung.": {
+    "fr": "Avant que l'IA propose des mots-clés, ton consentement est nécessaire.",
+    "en": "Before the AI suggests search terms, it needs your consent."
+  },
+  "Alle sind eingeschaltet. Was Sie ausschalten, entfällt beim Übernehmen.": {
+    "fr": "Tous sont activés. Ce que vous désactivez est retiré à l'application.",
+    "en": "All are switched on. Whatever you switch off is removed when you apply."
+  },
+  "Alle sind eingeschaltet. Was du ausschaltest, entfällt beim Übernehmen.": {
+    "fr": "Tous sont activés. Ce que tu désactives est retiré à l'application.",
+    "en": "All are switched on. Whatever you switch off is removed when you apply."
+  },
+  "«{begriff}» im Titelfilter: {anzahl} von {alle} Treffern, {unter} davon unter Note {note}, zum Beispiel {beispiele}.": {
+    "fr": "«\u00a0{begriff}\u00a0» dans le «\u00a0Titelfilter\u00a0»\u00a0: {anzahl} résultats sur {alle}, dont {unter} sous la note {note}, par exemple {beispiele}.",
+    "en": "“{begriff}” in the “Titelfilter”: {anzahl} of {alle} results, {unter} of them below grade {note}, for example {beispiele}."
+  },
+  "«{begriff}» im Titelfilter: {anzahl} von {alle} Treffern, {unter} davon unter Note {note}.": {
+    "fr": "«\u00a0{begriff}\u00a0» dans le «\u00a0Titelfilter\u00a0»\u00a0: {anzahl} résultats sur {alle}, dont {unter} sous la note {note}.",
+    "en": "“{begriff}” in the “Titelfilter”: {anzahl} of {alle} results, {unter} of them below grade {note}."
+  },
+  "{anzahl} von {alle} Treffern kamen nur über «{begriff}» herein, {unter} davon unter Note {note}.": {
+    "fr": "{anzahl} résultats sur {alle} ne sont venus que via «\u00a0{begriff}\u00a0», dont {unter} sous la note {note}.",
+    "en": "{anzahl} of {alle} results came in only through “{begriff}”, {unter} of them below grade {note}."
+  },
+  "Zum Beispiel: {beispiele}": {"fr": "Par exemple\u00a0: {beispiele}", "en": "For example: {beispiele}"},
+  "Diese 1 Treffer ansehen": {"fr": "Voir ce résultat", "en": "View this result"},
+  "Diese {anzahl} Treffer ansehen": {"fr": "Voir ces {anzahl} résultats", "en": "View these {anzahl} results"},
+  "Vorschlag der KI": {"fr": "Proposition de l'IA", "en": "AI proposal"},
+  "1 Änderung": {"fr": "1 modification", "en": "1 change"},
+  "{anzahl} Änderungen": {"fr": "{anzahl} modifications", "en": "{anzahl} changes"},
+  "1 Begriff neu": {"fr": "1 nouveau terme", "en": "1 new term"},
+  "{anzahl} Begriffe neu": {"fr": "{anzahl} nouveaux termes", "en": "{anzahl} new terms"},
+  "1 Begriff entfällt": {"fr": "1 terme retiré", "en": "1 term removed"},
+  "{anzahl} Begriffe entfallen": {"fr": "{anzahl} termes retirés", "en": "{anzahl} terms removed"},
+  "1 entfällt": {"fr": "1 retiré", "en": "1 removed"},
+  "{anzahl} entfallen": {"fr": "{anzahl} retirés", "en": "{anzahl} removed"},
+  "1 Begriff verschoben": {"fr": "1 terme déplacé", "en": "1 term moved"},
+  "{anzahl} Begriffe verschoben": {"fr": "{anzahl} termes déplacés", "en": "{anzahl} terms moved"},
+  "1 verschoben": {"fr": "1 déplacé", "en": "1 moved"},
+  "{anzahl} verschoben": {"fr": "{anzahl} déplacés", "en": "{anzahl} moved"},
+  "Übernommen: {teile}. Die nächste Suche sucht danach. Der bisherige Stand bleibt unter Entwürfe erhalten.": {
+    "fr": "Appliqué\u00a0: {teile}. La prochaine recherche en tient compte. La version précédente reste dans Brouillons.",
+    "en": "Applied: {teile}. The next search uses it. The previous version stays under Drafts."
+  },
+  "Rückgängig gemacht. Es gilt wieder der Stand vor dem Vorschlag.": {
+    "fr": "Annulé. La version d'avant la proposition s'applique à nouveau.",
+    "en": "Undone. The version before the proposal applies again."
+  },
+  "Suchbegriffe": {"fr": "Mots-clés", "en": "Search terms"},
+  "Titel enthält eines davon": {"fr": "Le titre contient l'un d'eux", "en": "Title contains one of them"},
+  "Titel enthält keines davon": {"fr": "Le titre n'en contient aucun", "en": "Title contains none of them"},
+  "Die Auswahl lässt sich übernehmen.": {"fr": "La sélection peut être appliquée.", "en": "The selection can be applied."},
+  "neu": {"fr": "nouveau", "en": "new"},
+  "bleibt": {"fr": "reste", "en": "stays"},
+  "entfällt": {"fr": "retiré", "en": "removed"},
+  "danach 1 eingeschaltet, {zuviel} zu viel": {"fr": "ensuite 1 activé, {zuviel} de trop", "en": "then 1 switched on, {zuviel} too many"},
+  "danach {anzahl} eingeschaltet, {zuviel} zu viel": {"fr": "ensuite {anzahl} activés, {zuviel} de trop", "en": "then {anzahl} switched on, {zuviel} too many"},
+  "danach 1 eingeschaltet": {"fr": "ensuite 1 activé", "en": "then 1 switched on"},
+  "danach {anzahl} eingeschaltet": {"fr": "ensuite {anzahl} activés", "en": "then {anzahl} switched on"},
+  "Entfällt: {begriffe}": {"fr": "Retirés\u00a0: {begriffe}", "en": "Removed: {begriffe}"},
+  "Noch 1 Suchbegriff zu viel": {"fr": "Encore 1 mot-clé de trop", "en": "Still 1 search term too many"},
+  "Noch {anzahl} Suchbegriffe zu viel": {"fr": "Encore {anzahl} mots-clés de trop", "en": "Still {anzahl} search terms too many"},
+  "Noch 1 Begriff zu viel in «{name}»": {"fr": "Encore 1 terme de trop dans «\u00a0{name}\u00a0»", "en": "Still 1 term too many in “{name}”"},
+  "Noch {anzahl} Begriffe zu viel in «{name}»": {
+    "fr": "Encore {anzahl} termes de trop dans «\u00a0{name}\u00a0»",
+    "en": "Still {anzahl} terms too many in “{name}”"
+  },
+  "bisher {betrag}": {"fr": "jusqu'ici {betrag}", "en": "so far {betrag}"},
+  "Vorschlag {runde}": {"fr": "Proposition {runde}", "en": "Proposal {runde}"},
+  "Was die App gezählt hat": {"fr": "Ce que l'app a compté", "en": "What the app counted"},
+  "Jeder Suchbegriff hat in den letzten 3 Suchläufen eigene Treffer gebracht.": {
+    "fr": "Chaque mot-clé a apporté ses propres résultats lors des 3 derniers passages de recherche.",
+    "en": "Every search term brought results of its own in the last 3 search runs."
+  },
+  "Alle Suchbegriffe mit Zahlen": {"fr": "Tous les mots-clés avec leurs chiffres", "en": "All search terms with numbers"},
+  "texte:suchbegriffe.spalte-suchen": {"fr": {"sie": "Recherches", "du": "Recherches"}, "en": {"sie": "Searches"}},
+  "Begriff": {"fr": "Terme", "en": "Term"},
+  "Treffer": {"fr": "Résultats", "en": "Results"},
+  "aussortiert": {"fr": "filtrés", "en": "filtered out"},
+  "nur über diesen Begriff": {"fr": "seulement via ce terme", "en": "only through this term"},
+  "ab Note 4": {"fr": "dès la note 4", "en": "grade 4 and up"},
+  "ohne Ertrag": {"fr": "sans rendement", "en": "no yield"},
+  "überlappend": {"fr": "redondant", "en": "overlapping"},
+  "Aus den letzten {anzahl} Suchläufen, gezählt von der App, nicht von der KI. Treffer zählt sie bei jeder Suche, Stellen nur einmal.": {
+    "fr": "Des {anzahl} derniers passages de recherche, comptés par l'app, pas par l'IA. Elle compte les résultats à chaque recherche, les offres une seule fois.",
+    "en": "From the last {anzahl} search runs, counted by the app, not by the AI. It counts results at every search, jobs only once."
+  },
+  "Die Zahlen der App liessen sich nicht laden: {grund} Die KI schlägt darum ohne diese Zahlen vor.": {
+    "fr": "Les chiffres de l'app n'ont pas pu être chargés\u00a0: {grund} L'IA propose donc sans ces chiffres.",
+    "en": "The app's numbers could not be loaded: {grund} The AI therefore suggests without these numbers."
+  },
+  "Die Zahlen der App liessen sich nicht laden: {grund}. Die KI schlägt darum ohne diese Zahlen vor.": {
+    "fr": "Les chiffres de l'app n'ont pas pu être chargés\u00a0: {grund}. L'IA propose donc sans ces chiffres.",
+    "en": "The app's numbers could not be loaded: {grund}. The AI therefore suggests without these numbers."
+  },
+  "Für diese Zahlen braucht die App {noetig} Suchläufe seit Version {version}, bisher gibt es noch keinen.": {
+    "fr": "Pour ces chiffres, l'app a besoin de {noetig} passages de recherche depuis la version {version}\u00a0; il n'y en a encore aucun.",
+    "en": "For these numbers the app needs {noetig} search runs since version {version}; there are none yet."
+  },
+  "Für diese Zahlen braucht die App {noetig} Suchläufe seit Version {version}, bisher sind es 1.": {
+    "fr": "Pour ces chiffres, l'app a besoin de {noetig} passages de recherche depuis la version {version}\u00a0; il y en a 1 jusqu'ici.",
+    "en": "For these numbers the app needs {noetig} search runs since version {version}; so far there is 1."
+  },
+  "Für diese Zahlen braucht die App {noetig} Suchläufe seit Version {version}, bisher sind es {laeufe}.": {
+    "fr": "Pour ces chiffres, l'app a besoin de {noetig} passages de recherche depuis la version {version}\u00a0; il y en a {laeufe} jusqu'ici.",
+    "en": "For these numbers the app needs {noetig} search runs since version {version}; so far there are {laeufe}."
+  },
+  "alle vom Titelfilter aussortiert": {"fr": "tous filtrés par le «\u00a0Titelfilter\u00a0»", "en": "all filtered out by the “Titelfilter”"},
+  "vom Titelfilter aussortiert": {"fr": "filtré par le «\u00a0Titelfilter\u00a0»", "en": "filtered out by the “Titelfilter”"},
+  "{anzahl} vom Titelfilter": {"fr": "{anzahl} par le «\u00a0Titelfilter\u00a0»", "en": "{anzahl} by the “Titelfilter”"},
+  "alle ohne Pflichtbezug aussortiert": {"fr": "tous filtrés faute de mot requis", "en": "all filtered out for lack of a required word"},
+  "ohne Pflichtbezug aussortiert": {"fr": "filtré faute de mot requis", "en": "filtered out for lack of a required word"},
+  "{anzahl} ohne Pflichtbezug": {"fr": "{anzahl} sans mot requis", "en": "{anzahl} without a required word"},
+  "alle ausserhalb der Region aussortiert": {"fr": "tous filtrés car hors région", "en": "all filtered out as outside the region"},
+  "ausserhalb der Region aussortiert": {"fr": "filtré car hors région", "en": "filtered out as outside the region"},
+  "{anzahl} ausserhalb der Region": {"fr": "{anzahl} hors région", "en": "{anzahl} outside the region"},
+  "alle aussortiert: {gruende}": {"fr": "tous filtrés\u00a0: {gruende}", "en": "all filtered out: {gruende}"},
+  "1 Suche": {"fr": "1 recherche", "en": "1 search"},
+  "{anzahl} Suchen": {"fr": "{anzahl} recherches", "en": "{anzahl} searches"},
+  "{suchen}, kein Treffer.": {"fr": "{suchen}, aucun résultat.", "en": "{suchen}, no results."},
+  "1 Stelle, auch über „{begriff}“ gefunden.": {
+    "fr": "1 offre, trouvée aussi via «\u00a0{begriff}\u00a0».",
+    "en": "1 job, also found through “{begriff}”."
+  },
+  "{anzahl} Stellen, alle auch über „{begriff}“ gefunden.": {
+    "fr": "{anzahl} offres, toutes trouvées aussi via «\u00a0{begriff}\u00a0».",
+    "en": "{anzahl} jobs, all also found through “{begriff}”."
+  },
+  "{anzahl} Stellen, alle auch über andere Begriffe gefunden, meist über „{begriff}“.": {
+    "fr": "{anzahl} offres, toutes trouvées aussi via d'autres termes, surtout via «\u00a0{begriff}\u00a0».",
+    "en": "{anzahl} jobs, all also found through other terms, mostly through “{begriff}”."
+  },
+  "„{begriff}“": {"fr": "«\u00a0{begriff}\u00a0»", "en": "“{begriff}”"},
+  ": {satz}": {"fr": "\u00a0: {satz}", "en": ": {satz}"},
+  "{begriff} (Nische)": {"fr": "{begriff} (niche)", "en": "{begriff} (niche)"},
+  "Auswahl übernehmen": {"fr": "Appliquer la sélection", "en": "Apply selection"},
+  "Teilweise übernommen": {"fr": "Appliqué en partie", "en": "Partly applied"},
+  "Begriffe, die eine Änderung oben betrifft, stehen dort.": {
+    "fr": "Les termes concernés par une modification ci-dessus y figurent.",
+    "en": "Terms that a change above concerns are listed there."
+  },
+  "Zu den bisherigen Begriffen": {"fr": "Vers les termes actuels", "en": "To the current terms"}
+}

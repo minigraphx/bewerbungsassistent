@@ -37,20 +37,30 @@
   const anzahl = zahl => String(Math.round(zahl)).replace(/\B(?=(\d{3})+(?!\d))/g, "’");
   const prozent = zahl => `${Math.round(zahl)} %`;
   const datum = iso => (iso ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}.${iso.slice(0, 4)}` : "");
-  const bewertungen = zahl => `${anzahl(zahl)} ${zahl === 1 ? "Bewertung" : "Bewertungen"}`;
+  // Loaded before this file on every page; required in the tests.
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  // Under its own name, so each lookup reads Texte.t for the scanner; the page's Texte is found when a text is made.
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
+  const bewertungen = zahl => (zahl === 1 ? Texte.t("1 Bewertung") : Texte.t("{anzahl} Bewertungen", { anzahl: anzahl(zahl) }));
   /** Where the value comes from: the site of kununu, and whether the person entered it by hand (#189). */
   function seite(k) {
     const ort = k?.seite === "de" ? "kununu.com/de" : "kununu.com/ch";
     if (!k?.von_hand) return ort;
-    return k.link ? `${ort}, von Hand eingetragen` : "von Hand eingetragen";
+    return k.link ? Texte.t("{seite}, von Hand eingetragen", { seite: ort }) : Texte.t("von Hand eingetragen");
   }
 
   /** „3 Treffer, 2 neu“, „1 Treffer, verworfen“ or „“. */
   function trefferText(treffer) {
     if (!treffer.length) return "";
+    const Texte = texts();
     const neu = treffer.filter(t => t.zustand === "neu").length;
-    const zusatz = neu ? `${neu} neu` : treffer.every(t => t.zustand === "verworfen") ? "verworfen" : "";
-    return [`${treffer.length} Treffer`, zusatz].filter(Boolean).join(", ");
+    const alle = treffer.length;
+    if (neu) return [alle === 1 ? Texte.t("1 Treffer") : Texte.t("{anzahl} Treffer", { anzahl: alle }),
+      neu === 1 ? Texte.t("1 neu") : Texte.t("{anzahl} neu", { anzahl: neu })].join(", ");
+    if (treffer.every(t => t.zustand === "verworfen")) {
+      return alle === 1 ? Texte.t("1 Treffer, verworfen") : Texte.t("{anzahl} Treffer, verworfen", { anzahl: alle });
+    }
+    return alle === 1 ? Texte.t("1 Treffer") : Texte.t("{anzahl} Treffer", { anzahl: alle });
   }
 
   const neueTreffer = firma => firma.treffer.filter(t => t.zustand === "neu").length;
@@ -134,24 +144,32 @@
     return { anzahl: firmen.length, gefunden, zuletzt: daten.length ? daten[daten.length - 1] : "" };
   }
 
-  // „Prüfen“ through the extension (#189).
-  const NICHT_GELESEN = "Der Tab bleibt offen; der Wert lässt sich von Hand eintragen.";
-  const WERT_FALSCH = "Der Wert muss eine Zahl von 1 bis 5 sein.";
-  const ANZAHL_FALSCH = "Die Anzahl Bewertungen muss eine ganze Zahl ab 0 sein.";
+  // „Prüfen“ through the extension (#189). The sentence for a page elsewhere is its own text (#421): the German one
+  // was built by replacing „von Hand“, which a translation does not contain.
+  function nichtGelesen(wo) {
+    const Texte = texts();
+    return wo ? Texte.t("Der Tab bleibt offen; der Wert lässt sich unter {wo} von Hand eintragen.", { wo })
+      : Texte.t("Der Tab bleibt offen; der Wert lässt sich von Hand eintragen.");
+  }
+  const wertFalsch = () => Texte.t("Der Wert muss eine Zahl von 1 bis 5 sein.");
+  const anzahlFalsch = () => Texte.t("Die Anzahl Bewertungen muss eine ganze Zahl ab 0 sein.");
 
   /** What the page says after a check; null when the extension is missing and kununu only opened in a tab.
    *  `wo` names the page for entering a value by hand when the check ran elsewhere (Stellen suchen). */
   function pruefErgebnis(antwort, name, { wo = "" } = {}) {
     if (antwort?.geoeffnet) return null;
-    if (!antwort || antwort.fehler) return { text: antwort?.fehler || "Die Erweiterung antwortet nicht.", stufe: "warning", vonHand: false };
-    const nichtGelesen = wo ? NICHT_GELESEN.replace("von Hand", `unter ${wo} von Hand`) : NICHT_GELESEN;
-    if (!antwort.gelesen) return { text: `Bei kununu liess sich für ${name} kein Wert lesen. ${nichtGelesen}`, stufe: "warning", vonHand: true };
+    const Texte = texts();
+    if (!antwort || antwort.fehler) return { text: antwort?.fehler || Texte.t("Die Erweiterung antwortet nicht."), stufe: "warning", vonHand: false };
+    if (!antwort.gelesen) {
+      return { text: Texte.t("Bei kununu liess sich für {name} kein Wert lesen. {weiter}", { name, weiter: nichtGelesen(wo) }),
+               stufe: "warning", vonHand: true };
+    }
     const k = antwort.kununu || {};
     const texte = {
-      gefunden: () => `${name}: kununu ${wert(k.wert)} von 5, ${bewertungen(k.bewertungen)}.`,
-      keine: () => `${name}: bei kununu noch keine Bewertungen.`,
-      nicht_gefunden: () => `${name}: bei kununu nicht gefunden.`,
-      mehrere: () => `${name}: mehrere Treffer bei kununu. Bitte den passenden wählen.`,
+      gefunden: () => Texte.t("{name}: kununu {wert} von 5, {bewertungen}.", { name, wert: wert(k.wert), bewertungen: bewertungen(k.bewertungen) }),
+      keine: () => Texte.t("{name}: bei kununu noch keine Bewertungen.", { name }),
+      nicht_gefunden: () => Texte.t("{name}: bei kununu nicht gefunden.", { name }),
+      mehrere: () => Texte.t("{name}: mehrere Treffer bei kununu. Bitte den passenden wählen.", { name }),
     };
     return { text: (texte[k.zustand] || texte.nicht_gefunden)(), stufe: "success", vonHand: false };
   }
@@ -173,8 +191,8 @@
     const zahl = String(wertText ?? "").trim().replace(",", ".");
     const anzahlRoh = String(anzahlText ?? "").trim().replace(/[’'\s]/g, "");
     const wertZahl = /^\d+(\.\d+)?$/.test(zahl) ? Number(zahl) : NaN;
-    if (!(wertZahl >= 1 && wertZahl <= 5)) return { fehler: WERT_FALSCH, feld: "wert" };
-    if (!/^\d+$/.test(anzahlRoh)) return { fehler: ANZAHL_FALSCH, feld: "bewertungen" };
+    if (!(wertZahl >= 1 && wertZahl <= 5)) return { fehler: wertFalsch(), feld: "wert" };
+    if (!/^\d+$/.test(anzahlRoh)) return { fehler: anzahlFalsch(), feld: "bewertungen" };
     return { wert: wertZahl, bewertungen: Number(anzahlRoh) };
   }
 
@@ -188,53 +206,73 @@
   /** The badge in a hit row, or null: text only (the row is a button), its full wording read with the button's name. */
   function marke(firma) {
     if (!firma) return null;
+    const Texte = texts();
     const z = zustand(firma);
     const k = firma.kununu;
-    if (z === "gefunden") return { text: `kununu ${wert(k.wert)} von 5`, vorlesen: `kununu ${wert(k.wert)} von 5, ${bewertungen(k.bewertungen)}`, art: "wert" };
-    if (z === "wenige") {
-      return { text: `kununu ${wert(k.wert)} von 5, wenige Bewertungen`, vorlesen: `kununu ${wert(k.wert)} von 5, nur ${bewertungen(k.bewertungen)}`, art: "wenige" };
+    const werte = { wert: wert(k?.wert), bewertungen: bewertungen(k?.bewertungen) };
+    if (z === "gefunden") {
+      return { text: Texte.t("kununu {wert} von 5", werte), vorlesen: Texte.t("kununu {wert} von 5, {bewertungen}", werte), art: "wert" };
     }
-    if (z === "mehrere") return { text: "kununu: wählen", vorlesen: "kununu: passende Firma wählen", art: "leise" };
-    if (z === "nicht_gefunden") return { text: "nicht bei kununu", vorlesen: "bei kununu nicht gefunden", art: "leise" };
+    if (z === "wenige") {
+      return { text: Texte.t("kununu {wert} von 5, wenige Bewertungen", werte),
+               vorlesen: Texte.t("kununu {wert} von 5, nur {bewertungen}", werte), art: "wenige" };
+    }
+    if (z === "mehrere") return { text: Texte.t("kununu: wählen"), vorlesen: Texte.t("kununu: passende Firma wählen"), art: "leise" };
+    if (z === "nicht_gefunden") return { text: Texte.t("nicht bei kununu"), vorlesen: Texte.t("bei kununu nicht gefunden"), art: "leise" };
     return null;
   }
 
-  const FEHLER = "Nicht geprüft. kununu war nicht erreichbar. Bitte später nochmals prüfen.";
-
   function angabenMitWert(firma, z, lehrstelle) {
+    const Texte = texts();
     const k = firma.kununu;
     const lernende = lehrstelle && k.lernende?.bewertungen && typeof k.lernende.wert === "number"
-      ? `Lernende: ${wert(k.lernende.wert)} von 5, ${bewertungen(k.lernende.bewertungen)}` : "";
-    const empfehlung = z === "gefunden" && typeof k.empfehlung === "number" ? `${prozent(k.empfehlung)} empfehlen` : "";
-    const anzahlText = z === "wenige" ? `Nur ${bewertungen(k.bewertungen)}, wenig aussagekräftig.` : bewertungen(k.bewertungen);
+      ? Texte.t("Lernende: {wert} von 5, {bewertungen}", { wert: wert(k.lernende.wert), bewertungen: bewertungen(k.lernende.bewertungen) }) : "";
+    const empfehlung = z === "gefunden" && typeof k.empfehlung === "number"
+      ? Texte.t("{prozent} empfehlen", { prozent: prozent(k.empfehlung) }) : "";
+    const anzahlText = z === "wenige" ? Texte.t("Nur {bewertungen}, wenig aussagekräftig.", { bewertungen: bewertungen(k.bewertungen) })
+      : bewertungen(k.bewertungen);
     return [anzahlText, empfehlung, lernende, seite(k)].filter(Boolean);
   }
 
   function zeilenAktionen(firma, z, heute) {
+    const Texte = texts();
     const link = firma.kununu?.link;
-    const ansehen = link ? [{ art: "ansehen", text: "Bei kununu ansehen", href: link }] : [];
+    const ansehen = link ? [{ art: "ansehen", text: Texte.t("Bei kununu ansehen"), href: link }] : [];
     const pruefen = text => [{ art: "pruefen", text, href: pruefenLink(firma) }];
-    if (z === "ungeprueft") return pruefen("Jetzt prüfen");
-    if (z === "zugeordnet") return [...pruefen("Prüfen"), ...ansehen];
-    if (z === "fehler") return pruefen("Nochmals prüfen");
-    if (z === "nicht_gefunden") return [{ art: "suchen", text: "Bei kununu suchen", href: firma.suche }];
+    if (z === "ungeprueft") return pruefen(Texte.t("Jetzt prüfen"));
+    if (z === "zugeordnet") return [...pruefen(Texte.t("Prüfen")), ...ansehen];
+    if (z === "fehler") return pruefen(Texte.t("Nochmals prüfen"));
+    if (z === "nicht_gefunden") return [{ art: "suchen", text: Texte.t("Bei kununu suchen"), href: firma.suche }];
     if (z === "mehrere") return [];
-    return [...(pruefungFaellig(firma, heute) ? pruefen("Neu prüfen") : []), ...ansehen];
+    return [...(pruefungFaellig(firma, heute) ? pruefen(Texte.t("Neu prüfen")) : []), ...ansehen];
+  }
+
+  /** The sentence of the detail column for a company without a value to show, or "". */
+  function zeilenSatz(z, lehrstelle) {
+    const Texte = texts();
+    const saetze = {
+      ungeprueft: () => Texte.t("Noch nicht bei kununu geprüft."),
+      zugeordnet: () => Texte.t("Seite zugeordnet, noch nicht geprüft."),
+      keine: () => Texte.t("Noch keine Bewertungen."),
+      fehler: () => Texte.t("Nicht geprüft. kununu war nicht erreichbar. Bitte später nochmals prüfen."),
+      nicht_gefunden: () => Texte.t("Bei kununu nicht gefunden."),
+      mehrere: () => (lehrstelle ? Texte.t("Mehrere Lehrbetriebe bei kununu.") : Texte.t("Mehrere Firmen bei kununu.")),
+    };
+    return Object.hasOwn(saetze, z) ? saetze[z]() : "";
   }
 
   /** What the detail column says about the company of a hit; links open kununu in a new tab. */
   function firmenZeile(firma, heute, { lehrstelle = false } = {}) {
+    const Texte = texts();
     const z = zustand(firma);
     const k = firma.kununu || {};
     const mitWert = MIT_WERT.includes(z);
-    const saetze = { ungeprueft: "Noch nicht bei kununu geprüft.", zugeordnet: "Seite zugeordnet, noch nicht geprüft.",
-                     keine: "Noch keine Bewertungen.", fehler: FEHLER, nicht_gefunden: "Bei kununu nicht gefunden.",
-                     mehrere: lehrstelle ? "Mehrere Lehrbetriebe bei kununu." : "Mehrere Firmen bei kununu." };
     const geprueft = k.geprueft_am && z !== "zugeordnet"
-      ? (veraltet(firma, heute) ? `Stand ${datum(k.geprueft_am)}` : `Geprüft am ${datum(k.geprueft_am)}`) : "";
-    return { titel: `${firma.name} bei kununu`, zustand: z, wert: mitWert ? wert(k.wert) : null, wenige: z === "wenige",
-             angaben: mitWert ? angabenMitWert(firma, z, lehrstelle) : [], datum: geprueft, satz: saetze[z] || "",
-             aktionen: zeilenAktionen(firma, z, heute) };
+      ? (veraltet(firma, heute) ? Texte.t("Stand {datum}", { datum: datum(k.geprueft_am) })
+        : Texte.t("Geprüft am {datum}", { datum: datum(k.geprueft_am) })) : "";
+    return { titel: Texte.t("{firma} bei kununu", { firma: firma.name }), zustand: z, wert: mitWert ? wert(k.wert) : null,
+             wenige: z === "wenige", angaben: mitWert ? angabenMitWert(firma, z, lehrstelle) : [], datum: geprueft,
+             satz: zeilenSatz(z, lehrstelle), aktionen: zeilenAktionen(firma, z, heute) };
   }
 
   const logik = { pruefErgebnis, vonHandWerte, vonHandAnbieten, pruefungFaellig, WENIGE_UNTER, VERALTET_NACH_TAGEN, FILTER, MIT_WERT, STANDARD_SORTIERUNG, zustand, veraltet, wert, anzahl,

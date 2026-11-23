@@ -86,15 +86,21 @@
 
   /** „Stellen 11 bis 20 von 25 prüfen …“ for the package going out now; `sekunden` since it went out. */
   function pruefSchritt(stand, gruppe, sekunden) {
+    const Texte = texts();
     const erste = stand.bewertet + 1;
-    const welche = gruppe.length > 1 ? `Stellen ${erste} bis ${erste + gruppe.length - 1}` : `Stelle ${erste}`;
-    const dauer = sekunden >= SEKUNDEN_AB ? `, seit ${seconds(sekunden)}` : "";
-    return `${welche} von ${stand.von} prüfen${dauer} …`;
+    const werte = { erste, letzte: erste + gruppe.length - 1, von: stand.von };
+    if (sekunden < SEKUNDEN_AB) {
+      return gruppe.length > 1 ? Texte.t("Stellen {erste} bis {letzte} von {von} prüfen …", werte)
+        : Texte.t("Stelle {erste} von {von} prüfen …", werte);
+    }
+    const mitDauer = { ...werte, dauer: seconds(sekunden) };
+    return gruppe.length > 1 ? Texte.t("Stellen {erste} bis {letzte} von {von} prüfen, seit {dauer} …", mitDauer)
+      : Texte.t("Stelle {erste} von {von} prüfen, seit {dauer} …", mitDauer);
   }
 
   /** „Inserat 4 von 9 holen …“ while the extension loads the missing ads; empty before it says how many. */
   function inseratSchritt(stand) {
-    return stand.von ? `Inserat ${stand.fertig + 1} von ${stand.von} holen …` : "";
+    return stand.von ? Texte.t("Inserat {nummer} von {von} holen …", { nummer: stand.fertig + 1, von: stand.von }) : "";
   }
 
   // „Alle prüfen“ (G44, #209): the words around the estimate of GET /api/suche/alle-pruefen, in its currency: CHF
@@ -104,45 +110,63 @@
   // next. Screen readers read it as a space, so the spoken words stay the same.
   const NBSP = "\u00a0";
   const money = (amount, currency) => `${currency}${NBSP}${Number(amount).toFixed(2)}`;
-  const minutes = n => `${n}${NBSP}${n === 1 ? "Minute" : "Minuten"}`;
-  const seconds = n => `${n}${NBSP}${n === 1 ? "Sekunde" : "Sekunden"}`;
-  const jobs = (n, apprenticeship) => {
-    const word = apprenticeship ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
-    return `${n} ${n === 1 ? word[0] : word[1]}`;
-  };
-  const withCredit = s => typeof s.guthaben === "number";
-  const usedUp = s => withCredit(s) && s.guthaben <= 0;
   // Loaded before this file on every page; required in the tests.
   const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  // Under its own name, so each lookup reads Texte.t for the scanner; the page's Texte is found when a text is made.
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
+  const minutes = n => (n === 1 ? Texte.t("{anzahl}{nbsp}Minute", { anzahl: n, nbsp: NBSP })
+    : Texte.t("{anzahl}{nbsp}Minuten", { anzahl: n, nbsp: NBSP }));
+  const seconds = n => (n === 1 ? Texte.t("{anzahl}{nbsp}Sekunde", { anzahl: n, nbsp: NBSP })
+    : Texte.t("{anzahl}{nbsp}Sekunden", { anzahl: n, nbsp: NBSP }));
+  function jobs(n, apprenticeship) {
+    const Texte = texts();
+    if (apprenticeship) return n === 1 ? Texte.t("1 Lehrstelle") : Texte.t("{anzahl} Lehrstellen", { anzahl: n });
+    return n === 1 ? Texte.t("1 Stelle") : Texte.t("{anzahl} Stellen", { anzahl: n });
+  }
+  const withCredit = s => typeof s.guthaben === "number";
+  const usedUp = s => withCredit(s) && s.guthaben <= 0;
 
-  // The budget of the month (G98) when the estimate names its renewal; otherwise the one-time credit of G80.
+  // The budget of the month (G98) when the estimate names its renewal; otherwise the one-time credit of G80. Each
+  // sentence is whole, since French and English cannot put „Guthaben“ or „Budget“ into one frame.
   function creditWords(s) {
-    const budget = texts().budgetMonth(s);
+    const Texte = texts();
+    const budget = Texte.budgetMonth(s);
     if (!budget) {
       return {
-        pool: "Guthaben", enough: "Das Guthaben reicht", usedUpLine: "Das Guthaben ist aufgebraucht: neuen Code anfordern.",
-        usedUpWarning: "Das Guthaben ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter; ohne prüft die KI keine Stelle.",
-        tight: left => `Das Guthaben von ${left} reicht`,
+        enough: stellen => Texte.t("Das Guthaben reicht für etwa {stellen}.", { stellen }),
+        after: betrag => Texte.t("Danach bleiben {betrag} im Guthaben.", { betrag }),
+        left: betrag => Texte.t("Im Guthaben sind noch {betrag}, das reicht vielleicht nicht.", { betrag }),
+        leftThen: (guthaben, danach) => Texte.t("Im Guthaben sind noch {guthaben}, danach etwa {danach}.", { guthaben, danach }),
+        usedUpLine: Texte.t("Das Guthaben ist aufgebraucht: neuen Code anfordern."),
+        usedUpWarning: Texte.t("Das Guthaben ist aufgebraucht. Mit einem neuen Einladungscode geht es weiter; ohne prüft die KI keine Stelle."),
+        tight: (betrag, anzahl, stellen) => Texte.t("Das Guthaben von {betrag} reicht für etwa {anzahl} von {stellen}.", { betrag, anzahl, stellen }),
       };
     }
     return {
-      pool: "Budget", enough: "Das Budget dieses Monats reicht",
-      usedUpLine: `Das KI-Budget ist aufgebraucht, wieder ab ${budget.renews}.`,
-      usedUpWarning: `Das KI-Budget für ${budget.month} ist aufgebraucht. Ab ${budget.renews} prüft die KI wieder; was geprüft ist, bleibt.`,
-      tight: () => "Das Budget dieses Monats reicht",
+      enough: stellen => Texte.t("Das Budget dieses Monats reicht für etwa {stellen}.", { stellen }),
+      after: betrag => Texte.t("Danach bleiben {betrag} im Budget.", { betrag }),
+      left: betrag => Texte.t("Im Budget sind noch {betrag}, das reicht vielleicht nicht.", { betrag }),
+      leftThen: (guthaben, danach) => Texte.t("Im Budget sind noch {guthaben}, danach etwa {danach}.", { guthaben, danach }),
+      usedUpLine: Texte.t("Das KI-Budget ist aufgebraucht, wieder ab {datum}.", { datum: budget.renews }),
+      usedUpWarning: Texte.t("Das KI-Budget für {monat} ist aufgebraucht. Ab {datum} prüft die KI wieder; was geprüft ist, bleibt.",
+        { monat: budget.month, datum: budget.renews }),
+      tight: (betrag, anzahl, stellen) => Texte.t("Das Budget dieses Monats reicht für etwa {anzahl} von {stellen}.", { anzahl, stellen }),
     };
   }
+
+  const aboutText = (s, currency) =>
+    Texte.t("Etwa {kosten} und {dauer}.", { kosten: money(s.kosten, currency), dauer: minutes(s.dauer_minuten) });
 
   /** The second line of the box above the list, as in design A3; empty without an estimate. */
   function estimateLine(s, apprenticeship = false) {
     if (!s || !s.anzahl) return "";
     const currency = currencyOf(s);
-    const about = `Etwa ${money(s.kosten, currency)} und ${minutes(s.dauer_minuten)}.`;
+    const about = aboutText(s, currency);
     if (!withCredit(s)) return about;
     const words = creditWords(s);
     if (usedUp(s)) return `${about} ${words.usedUpLine}`;
-    if (s.reicht_fuer !== null && s.reicht_fuer !== undefined) return `${about} ${words.enough} für etwa ${jobs(s.reicht_fuer, apprenticeship)}.`;
-    return `${about} Danach bleiben ${money(s.danach, currency)} im ${words.pool}.`;
+    if (s.reicht_fuer !== null && s.reicht_fuer !== undefined) return `${about} ${words.enough(jobs(s.reicht_fuer, apprenticeship))}`;
+    return `${about} ${words.after(money(s.danach, currency))}`;
   }
 
   /**
@@ -156,62 +180,85 @@
     if (used || enough) return { text: estimateLine(estimate), usedUp: used };
     const about = estimateLine({ ...estimate, guthaben: null });
     const left = money(estimate.guthaben, currencyOf(estimate));
-    return { text: `${about} Im ${creditWords(estimate).pool} sind noch ${left}, das reicht vielleicht nicht.`, usedUp: used };
+    return { text: `${about} ${creditWords(estimate).left(left)}`, usedUp: used };
   }
 
-  const estimateFailedText = reason => `Die Schätzung fehlt: ${reason}`;
+  const estimateFailedText = reason => Texte.t("Die Schätzung fehlt: {grund}", { grund: reason });
+
+  /** The sentence about the hits whose text is missing: the extension fetches it, or they stay without a grade. */
+  function toLoadSentence(toLoad, apprenticeship, withExtension) {
+    const Texte = texts();
+    const stellen = jobs(toLoad, apprenticeship);
+    if (withExtension) return Texte.t("Für {stellen} holt die Erweiterung zuerst den Text des Inserats.", { stellen });
+    return toLoad === 1 ? Texte.t("Für {stellen} fehlt der Text. Ohne Erweiterung bleibt sie offen.", { stellen })
+      : Texte.t("Für {stellen} fehlt der Text. Ohne Erweiterung bleiben sie offen.", { stellen });
+  }
+
+  function confirmationWarning(s, apprenticeship, words) {
+    if (usedUp(s)) return words.usedUpWarning;
+    if (!withCredit(s) || s.reicht_fuer === null || s.reicht_fuer === undefined) return "";
+    const tight = words.tight(money(s.guthaben, currencyOf(s)), s.reicht_fuer, jobs(s.anzahl, apprenticeship));
+    return `${tight} ${Texte.t("Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt.")}`;
+  }
+
+  function notLoadableTitle(without, apprenticeship) {
+    if (!without) return "";
+    const stellen = jobs(without, apprenticeship);
+    return without === 1 ? Texte.t("{stellen} ohne Text bleibt offen:", { stellen })
+      : Texte.t("{stellen} ohne Text bleiben offen:", { stellen });
+  }
 
   /** What the question before the run says; `withExtension`: the extension answered, so it can load missing texts. */
   function confirmation(s, apprenticeship, withExtension) {
+    const Texte = texts();
     const currency = currencyOf(s);
-    const sentences = [`Die KI prüft ${jobs(s.anzahl, apprenticeship)}, die noch keine Note haben.`,
-      `Das kostet etwa ${money(s.kosten, currency)} und dauert etwa ${minutes(s.dauer_minuten)}.`];
+    const stellen = jobs(s.anzahl, apprenticeship);
+    const sentences = [Texte.t("Die KI prüft {stellen}, die noch keine Note haben.", { stellen }),
+      Texte.t("Das kostet etwa {kosten} und dauert etwa {dauer}.", { kosten: money(s.kosten, currency), dauer: minutes(s.dauer_minuten) })];
     const words = creditWords(s);
-    if (withCredit(s)) sentences.push(`Im ${words.pool} sind noch ${money(s.guthaben, currency)}, danach etwa ${money(s.danach, currency)}.`);
-    const toLoad = s.laden.length;
-    if (toLoad) {
-      sentences.push(withExtension ? `Für ${jobs(toLoad, apprenticeship)} holt die Erweiterung zuerst den Text des Inserats.`
-        : `Für ${jobs(toLoad, apprenticeship)} fehlt der Text. Ohne Erweiterung ${toLoad === 1 ? "bleibt sie" : "bleiben sie"} offen.`);
-    }
-    const tight = withCredit(s) && s.reicht_fuer !== null && s.reicht_fuer !== undefined;
-    const warning = usedUp(s) ? words.usedUpWarning : tight ? `${words.tight(money(s.guthaben, currency))} für etwa ${s.reicht_fuer} von ${jobs(s.anzahl, apprenticeship)}. `
-      + "Ist es aufgebraucht, hält die Prüfung an; was geprüft ist, bleibt." : "";
-    const without = s.nicht_ladbar.length;
+    if (withCredit(s)) sentences.push(words.leftThen(money(s.guthaben, currency), money(s.danach, currency)));
+    if (s.laden.length) sentences.push(toLoadSentence(s.laden.length, apprenticeship, withExtension));
     return {
-      title: `${jobs(s.anzahl, apprenticeship)} prüfen?`, sentences, warning,
-      notLoadableTitle: without ? `${jobs(without, apprenticeship)} ohne Text ${without === 1 ? "bleibt" : "bleiben"} offen:` : "",
-      notLoadable: s.nicht_ladbar.map(t => `${[t.stelle, t.firma].filter(Boolean).join(", ")}: ${t.grund}`),
+      title: Texte.t("{stellen} prüfen?", { stellen }), sentences, warning: confirmationWarning(s, apprenticeship, words),
+      notLoadableTitle: notLoadableTitle(s.nicht_ladbar.length, apprenticeship),
+      notLoadable: s.nicht_ladbar.map(t => Texte.t("{stelle}: {grund}", { stelle: [t.stelle, t.firma].filter(Boolean).join(", "), grund: t.grund })),
     };
   }
 
   /** The message after a run; `rest` hits are still without a grade, also when the credit ended the run. */
   function schlussText(stand, rest, currency = "USD") {
-    const teile = [`${stand.bewertet} von ${stand.von} Treffern bewertet`];
-    if (stand.offen.length) teile.push(`${stand.offen.length} ohne brauchbare Antwort, die lassen sich einzeln nochmals versuchen`);
-    if (stand.ohneText) teile.push(`${stand.ohneText} ohne Inseratstext`);
-    if (stand.gestoppt) teile.push("angehalten");
-    if (rest) teile.push(`noch ${rest} offen`);
-    return `${teile.join(", ")}. Kosten: ${money(stand.kosten, currency)}.`;
+    const Texte = texts();
+    const teile = [Texte.t("{bewertet} von {von} Treffern bewertet", { bewertet: stand.bewertet, von: stand.von })];
+    if (stand.offen.length) {
+      teile.push(Texte.t("{anzahl} ohne brauchbare Antwort, die lassen sich einzeln nochmals versuchen", { anzahl: stand.offen.length }));
+    }
+    if (stand.ohneText) teile.push(Texte.t("{anzahl} ohne Inseratstext", { anzahl: stand.ohneText }));
+    if (stand.gestoppt) teile.push(Texte.t("angehalten"));
+    if (rest) teile.push(Texte.t("noch {anzahl} offen", { anzahl: rest }));
+    return Texte.t("{teile}. Kosten: {kosten}.", { teile: teile.join(", "), kosten: money(stand.kosten, currency) });
+  }
+
+  /** The grades of the second look, alone, as „einzeln Note 5.“ says them (one, two or three of them). */
+  function einzelnText(noten) {
+    const Texte = texts();
+    const [eins, zwei, drei] = noten;
+    if (noten.length === 1) return Texte.t("Nachgeprüft: einzeln Note {eins}.", { eins });
+    if (noten.length === 2) return Texte.t("Nachgeprüft: einzeln Noten {eins} und {zwei}, es zählt die tiefere.", { eins, zwei });
+    return Texte.t("Nachgeprüft: einzeln Noten {eins}, {zwei} und {drei}, es zählt die mittlere.", { eins, zwei, drei });
   }
 
   /** What the details say about the second look at a good grade (MIN-389); empty when there was none. */
   function nachpruefungText(bewertung, notenText) {
     const pruefung = bewertung?.nachpruefung;
     if (!pruefung) return "";
+    const Texte = texts();
     const paket = pruefung.im_paket ?? null;
     if (pruefung.noten.length <= (paket === null ? 1 : 0)) {
-      return "Die Nachprüfung war nicht möglich, die Note kann abweichen. „Neu bewerten“ versucht es nochmals.";
+      return Texte.t("Die Nachprüfung war nicht möglich, die Note kann abweichen. „Neu bewerten“ versucht es nochmals.");
     }
-    const noten = pruefung.noten.map(notenText);
-    const teile = { 1: `einzeln Note ${noten[0]}.`,
-      2: `einzeln Noten ${noten[0]} und ${noten[1]}, es zählt die tiefere.`,
-      3: `einzeln Noten ${noten[0]}, ${noten[1]} und ${noten[2]}, es zählt die mittlere.` };
-    const zuerst = paket === null ? "" : ` Im Paket zuerst: Note ${notenText(paket)}.`;
-    return `Nachgeprüft: ${teile[noten.length]}${zuerst}`;
+    const einzeln = einzelnText(pruefung.noten.map(notenText));
+    return paket === null ? einzeln : `${einzeln} ${Texte.t("Im Paket zuerst: Note {note}.", { note: notenText(paket) })}`;
   }
-
-  const SUCHE_TEXTE = { lehrstelle: "Lehrstellen suchen", schnupperlehre: "Schnupperlehren suchen",
-    beides: "Lehrstellen und Schnupperlehren suchen" };
 
   /** The choice on the page for the offers of the plan (MIN-373). */
   function wahlAus(angebote) {
@@ -219,8 +266,23 @@
     return angebote[0] || "lehrstelle";
   }
 
+  /** The label of the search button for the offers of the plan. */
   function sucheText(angebote) {
-    return SUCHE_TEXTE[wahlAus(angebote)];
+    const Texte = texts();
+    const texte = { lehrstelle: () => Texte.t("Lehrstellen suchen"), schnupperlehre: () => Texte.t("Schnupperlehren suchen"),
+      beides: () => Texte.t("Lehrstellen und Schnupperlehren suchen") };
+    return texte[wahlAus(angebote)]();
+  }
+
+  /**
+   * The message on Suche einstellen after the choice changed. Suche einstellen cut „ suchen“ off sucheText before
+   * (#421); a translated label has no such ending, so each choice has its own sentence.
+   */
+  function gesuchtText(angebote) {
+    const Texte = texts();
+    const texte = { lehrstelle: () => Texte.t("Gesucht wird: Lehrstellen."), schnupperlehre: () => Texte.t("Gesucht wird: Schnupperlehren."),
+      beides: () => Texte.t("Gesucht wird: Lehrstellen und Schnupperlehren.") };
+    return texte[wahlAus(angebote)]();
   }
 
   const istSchnupperlehre = t => t.art === "Schnupperlehre";
@@ -237,7 +299,8 @@
 
   /** How long the page waits for word of a running search before it asks the extension for its status (#142). */
   const STILLE_MS = 20000;
-  const KEIN_LAUF = "Die Erweiterung hat keine Suche am Laufen. Bitte nochmals „Jetzt suchen“ drücken, sonst die Seite neu laden.";
+  const keinLauf = () =>
+    Texte.t("Die Erweiterung hat keine Suche am Laufen. Bitte nochmals „Jetzt suchen“ drücken, sonst die Seite neu laden.");
 
   /**
    * The run the page follows after asking the extension. `seit` is when the page began to wait: a run that ended
@@ -247,7 +310,7 @@
     const lauf = antwort && antwort.lauf;
     if (lauf && (lauf.zustand === "laeuft" || (lauf.beginn || "") >= seit)) return lauf;
     if (!lauf && antwort && antwort.fehler) return { zustand: "fehler", fehler: antwort.fehler };
-    return { zustand: "fehler", fehler: KEIN_LAUF };
+    return { zustand: "fehler", fehler: keinLauf() };
   }
 
   // The tabs of Stellen (G56) by the address: /treffer#in-bewerbungen shows the hits taken over, the page Firmen links
@@ -269,8 +332,6 @@
 
   // #373: a hit taken over carries the stage of its application as `stand`, null once the application is gone.
   // Finished is what the view „Abgeschlossen“ on Bewerbungen shows, or deleted; a hit without word stays open.
-  const NICHT_MEHR = "Nicht mehr unter Bewerbungen";
-  const NICHT_MEHR_WORT = "nicht mehr unter Bewerbungen";
   const uebersicht = () => (typeof module !== "undefined" ? require("./uebersicht-logik.js") : global.UebersichtLogik);
 
   function istAbgeschlossen(treffer) {
@@ -287,34 +348,40 @@
    * `statusName` is Texte.statusName, so an apprenticeship's interview reads „Einladung“. */
   function standMarke(treffer, statusName) {
     if (treffer.zustand !== "uebernommen" || treffer.stand === undefined) return null;
-    if (treffer.stand === null) return { status: "geloescht", text: NICHT_MEHR };
+    if (treffer.stand === null) return { status: "geloescht", text: Texte.t("Nicht mehr unter Bewerbungen") };
     return { status: treffer.stand, text: statusName(treffer.stand) };
   }
 
   /** „Abgeschlossen: 1 Zusage, 3 Absagen, 2 verworfen.“ for the finished hits, in the order of Bewerbungen; "" without. */
   function abgeschlossenText(fertig) {
+    const Texte = texts();
     const { ABGESCHLOSSEN_WORT, abgeschlossenTeil } = uebersicht();
     const anzahl = stand => fertig.filter(t => t.stand === stand).length;
     const teile = [
       ...Object.keys(ABGESCHLOSSEN_WORT).filter(anzahl).map(stand => abgeschlossenTeil(stand, anzahl(stand))),
-      anzahl(null) ? `${anzahl(null)} ${NICHT_MEHR_WORT}` : "",
+      anzahl(null) ? Texte.t("{anzahl} nicht mehr unter Bewerbungen", { anzahl: anzahl(null) }) : "",
     ].filter(Boolean);
-    return teile.length ? `Abgeschlossen: ${teile.join(", ")}.` : "";
+    return teile.length ? Texte.t("Abgeschlossen: {teile}.", { teile: teile.join(", ") }) : "";
   }
 
   /** The line above the list that names the hits without a grade (G44). */
   function offenText(anzahl, lehrstelle) {
-    const wort = lehrstelle ? ["Lehrstelle", "Lehrstellen"] : ["Stelle", "Stellen"];
-    return anzahl === 1 ? `1 ${wort[0]} ist noch nicht geprüft.` : `${anzahl} ${wort[1]} sind noch nicht geprüft.`;
+    const Texte = texts();
+    if (lehrstelle) {
+      return anzahl === 1 ? Texte.t("1 Lehrstelle ist noch nicht geprüft.")
+        : Texte.t("{anzahl} Lehrstellen sind noch nicht geprüft.", { anzahl });
+    }
+    return anzahl === 1 ? Texte.t("1 Stelle ist noch nicht geprüft.") : Texte.t("{anzahl} Stellen sind noch nicht geprüft.", { anzahl });
   }
 
-  /** Why a hit has no ad text and how to get it (G37), as the notice in the details shows it; null when it has one. */
+  /** Why a hit has no ad text and how to get it (G37), as the notice in the details shows it; null when it has one.
+   * Reason and way come worded from the app (missing_ads.py). */
   function fehlenderText(treffer) {
     const fehlt = treffer.ohne_text ? treffer.text_fehlt : null;
-    return fehlt ? { titel: "Inseratstext fehlt", text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
+    return fehlt ? { titel: Texte.t("Inseratstext fehlt"), text: [fehlt.grund, fehlt.weg].filter(Boolean).join(" ") } : null;
   }
 
-  const logik = { reiterAus, reiterName, istAbgeschlossen, reiterZahl, standMarke, abgeschlossenText, offenText, STILLE_MS, laufNachStatus, sucheText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, costLine, estimateFailedText, confirmation, schlussText, nachpruefungText, fehlenderText, money, minutes, seconds };
+  const logik = { reiterAus, reiterName, istAbgeschlossen, reiterZahl, standMarke, abgeschlossenText, offenText, STILLE_MS, laufNachStatus, sucheText, gesuchtText, wahlAus, beideArten, nachArt, istSchnupperlehre, zuBewerten, alleBewertet, sortiert, gueltigeSortierung, pakete, bewerteAlle, pruefSchritt, inseratSchritt, estimateLine, costLine, estimateFailedText, confirmation, schlussText, nachpruefungText, fehlenderText, money, minutes, seconds };
   if (typeof module !== "undefined") module.exports = logik;
   else global.TrefferLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);

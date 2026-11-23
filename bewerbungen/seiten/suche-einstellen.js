@@ -136,7 +136,7 @@
   $("angebot").addEventListener("change", async () => {
     try {
       const { angebote } = await senden("/api/suche/angebot", { wahl: $("angebot").value });
-      meldung(`Gesucht wird: ${logik.sucheText(angebote).replace(/ suchen$/, "")}.`, "ok");
+      meldung(logik.gesuchtText(angebote), "ok");
     } catch (fehler) {
       meldung(fehler.message, "fehler");
       lade();
