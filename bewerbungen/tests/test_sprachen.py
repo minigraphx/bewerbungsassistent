@@ -138,6 +138,47 @@ def test_a_german_template_literal_with_values_is_a_gap_while_code_templates_are
                                                                      ("Texte.t",))]
 
 
+def test_the_first_branch_of_a_ternary_is_a_gap_while_an_object_key_is_not(tmp_path):
+    script = tmp_path / "seite.js"
+    script.write_text('"use strict";\n'
+                      'zeile.textContent = verbunden ? "Die Erweiterung ist verbunden." : "Nicht verbunden.";\n'
+                      'const text = fehler\n'
+                      '  ? "Die Erweiterung konnte nichts tun."\n'
+                      '  : "Alles erledigt.";\n'
+                      'const namen = { "Grosse Firma": 1 };\n', encoding="utf-8")
+
+    gaps = sprachen_pruefen.gaps((script,), fixture_catalog())
+
+    assert [(gap.line, gap.text) for gap in gaps] == [(2, "Die Erweiterung ist verbunden."), (2, "Nicht verbunden."),
+                                                      (4, "Die Erweiterung konnte nichts tun."), (5, "Alles erledigt.")]
+
+
+def test_a_sentence_that_starts_with_a_space_is_a_gap(tmp_path):
+    script = tmp_path / "seite.js"
+    script.write_text('"use strict";\nconst abgabe = da ? "" : " Die Erweiterung gibt den Zugriff später ab.";\n',
+                      encoding="utf-8")
+
+    gaps = sprachen_pruefen.gaps((script,), fixture_catalog())
+
+    assert [(gap.line, gap.text) for gap in gaps] == [(2, " Die Erweiterung gibt den Zugriff später ab.")]
+
+
+def test_a_template_of_placeholders_only_has_no_words_to_translate(tmp_path):
+    module = tmp_path / "routen.py"
+    module.write_text("from ui_texts import T\n\n\n"
+                      "def install(hinweis, adresse):\n"
+                      "    raise ValueError(T('{hinweis} {adresse}', hinweis=hinweis, adresse=adresse))\n", encoding="utf-8")
+
+    assert sprachen_pruefen.gaps((module,), fixture_catalog()) == ()
+
+
+def test_every_source_includes_the_routes_of_the_desktop_app():
+    sources = sprachen_pruefen.app_sources()
+
+    assert BASE.parent / "desktop" / "routes_app.py" in sources
+    assert BASE.parent / "desktop" / "routes_claude.py" in sources
+
+
 def test_texte_js_says_its_own_texts_through_t_while_another_script_needs_texte_t(tmp_path):
     source = '"use strict";\nreturn ` ${t("Guthaben: {verbraucht}", { verbraucht })}`;\n'
     own = tmp_path / "eigen" / language_sources.TEXTE_JS.name
@@ -167,10 +208,10 @@ def test_python_reads_t_with_values_and_names_a_formatted_message_that_needs_t(t
 
 
 def test_the_forms_of_a_text_set_are_no_leftovers():
-    leftovers = {item.text for item in language_sources.items((language_sources.TEXTE_JS,)) if item.kind == "leftover"}
+    found = {(item.kind, item.text) for item in language_sources.items((language_sources.TEXTE_JS,))}
 
-    assert "Ihre Frage" not in leftovers
-    assert "Januar" in leftovers  # MONTH_NAMES are still German for every language
+    assert ("leftover", "Ihre Frage") not in found
+    assert ("text", "Januar") in found  # the months come through t since #417
 
 
 def test_an_unknown_text_set_in_a_page_is_a_gap(tmp_path):

@@ -3,28 +3,37 @@
 // languages the person applies in, from GET /api/sprachen. Until the person changes a box, the suggestion from the CV
 // is the setting, and a ticked language other than German says where it came from (UI/UX ruling on #94).
 (function (global) {
-  // Each language of the app is named in its own language, so a French or English reader finds it.
+  // Loaded before this file on the page; required in the tests. Texts in the app language through Texte.t (#417).
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  // Each language of the app is named in its own language, so a French or English reader finds it; these names are
+  // the same in every language of the app.
   const APP_LANGUAGES = [
-    { value: "de", label: "Deutsch", lang: "de" },
+    { value: "de", label: "Deutsch", lang: "de" },  // kein UI-Text: named in its own language
     { value: "fr", label: "Français", lang: "fr" },
-    { value: "en", label: "English", lang: "en" },
+    { value: "en", label: "English", lang: "en" },  // kein UI-Text: named in its own language
   ];
-  const APPLICATION_LANGUAGES = [
-    { value: "de", label: "Deutsch" },
-    { value: "en", label: "Englisch" },
-    { value: "fr", label: "Französisch" },
-  ];
+  /** The languages one applies in, named in the app language (#417). */
+  function applicationLanguages() {
+    const Texte = texts();
+    return [
+      { value: "de", label: Texte.t("Deutsch") },
+      { value: "en", label: Texte.t("Englisch") },
+      { value: "fr", label: Texte.t("Französisch") },
+    ];
+  }
+  const APPLICATION_VALUES = ["de", "en", "fr"];
   const DEFAULT_APP = "de";
   const DEFAULT_APPLICATIONS = ["de"];
-  // Until the pages are translated (#95), a choice of fr or en is kept and said to be coming, in that language.
+  // Until the pages are translated (#95), a choice of fr or en is kept and said to be coming, in that language. #434
+  // removes the line with the switch.
   const PENDING_TRANSLATION = {
-    fr: { text: "La traduction arrive bientôt. D'ici là, l'application reste en allemand.", lang: "fr" },
-    en: { text: "The translation is on its way. Until then, the app stays in German.", lang: "en" },
+    fr: { text: "La traduction arrive bientôt. D'ici là, l'application reste en allemand.", lang: "fr" },  // kein UI-Text: already French
+    en: { text: "The translation is on its way. Until then, the app stays in German.", lang: "en" },  // kein UI-Text: already English
   };
 
   const knownApp = value => (APP_LANGUAGES.some(option => option.value === value) ? value : DEFAULT_APP);
   const knownApplications = values => {
-    const list = Array.isArray(values) ? values.filter(value => APPLICATION_LANGUAGES.some(o => o.value === value)) : [];
+    const list = Array.isArray(values) ? values.filter(value => APPLICATION_VALUES.includes(value)) : [];
     return list.length ? list : DEFAULT_APPLICATIONS;
   };
 
@@ -41,10 +50,13 @@
     const checked = knownApplications(current.bewerbung);
     const suggesting = current.bewerbung_gewaehlt !== true;
     const levels = levelsOf(current);
-    const options = APPLICATION_LANGUAGES.map(({ value, label }) => {
+    const Texte = texts();
+    const options = applicationLanguages().map(({ value, label }) => {
       const on = checked.includes(value);
       const noted = suggesting && on && value !== DEFAULT_APP && levels.has(value);
-      return { value, label, checked: on, note: noted ? `vorgeschlagen: im Lebenslauf «${levels.get(value)}»` : null };
+      // The level stays as the CV writes it.
+      return { value, label, checked: on,
+               note: noted ? Texte.t("vorgeschlagen: im Lebenslauf «{stufe}»", { stufe: levels.get(value) }) : null };
     });
     return { app, options, pending: PENDING_TRANSLATION[app] || null };
   }
@@ -52,10 +64,12 @@
   /** The values of the checked boxes, in the order of the list, as POST /api/sprachen takes them. */
   function checkedValues(boxes) {
     const on = new Set(boxes.filter(box => box.checked).map(box => box.value));
-    return APPLICATION_LANGUAGES.map(option => option.value).filter(value => on.has(value));
+    return APPLICATION_VALUES.filter(value => on.has(value));
   }
 
-  const logic = { APP_LANGUAGES, APPLICATION_LANGUAGES, PENDING_TRANSLATION, view, checkedValues };
+  const logic = {
+    APP_LANGUAGES, get APPLICATION_LANGUAGES() { return applicationLanguages(); }, PENDING_TRANSLATION, view, checkedValues,
+  };
   if (typeof module !== "undefined") module.exports = logic;
   else global.SpracheLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

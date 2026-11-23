@@ -2,15 +2,22 @@
 // What the page „Einstellungen“ shows (#265, A10), without DOM so it can be tested: its sections, which section an
 // anchor opens, which way to the AI is in use, the monthly budget of the code (G46, G98) or the costs of the month.
 (function (global) {
-  const SECTIONS = [
-    { id: "ki", label: "KI, Budget und Sprache" },
-    { id: "suche", label: "Suche und Portale" },
-    { id: "erweiterung", label: "Browser und Erweiterung" },
-    { id: "wahl", label: "Stelle, Lehrstelle, RAV" },
-    { id: "daten", label: "Daten und Sicherung" },
-    { id: "erweitert", label: "Erweitert" },
-    { id: "ueber", label: "Über die App" },
-  ];
+  // Loaded before this file on the page; required in the tests. Texts in the app language through Texte.t (#417).
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+
+  /** The name of a section in the app language, as the tab on the left shows it. */
+  function sectionLabel(id) {
+    const Texte = texts();
+    return {
+      ki: Texte.t("KI, Budget und Sprache"), suche: Texte.t("Suche und Portale"),
+      erweiterung: Texte.t("Browser und Erweiterung"), wahl: Texte.t("Stelle, Lehrstelle, RAV"),
+      daten: Texte.t("Daten und Sicherung"), erweitert: Texte.t("Erweitert"), ueber: Texte.t("Über die App"),
+    }[id];
+  }
+
+  // The sections in their order; each label is read in the app language at the time it is asked for.
+  const SECTIONS = Object.freeze(["ki", "suche", "erweiterung", "wahl", "daten", "erweitert", "ueber"]
+    .map(id => Object.freeze({ id, get label() { return sectionLabel(id); } })));
   const FIRST = SECTIONS[0].id;
   // Anchors that other pages and the guide link to, from the time the page was one long list.
   const SECTION_OF_ANCHOR = {
@@ -21,30 +28,38 @@
   const WAY_OF_ANCHOR = { "schluessel-teil": "schluessel", "claude-abo": "abo", einladung: "einladung" };
   // The card under the choice that asks for what the chosen way needs.
   const WAY_CARDS = { einladung: "zugang-einladung", abo: "claude-abo", schluessel: "schluessel-teil" };
-  const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
-                  "November", "Dezember"];
-  // The tasks of the cost log (bewerbungen/ai/tasks.py MODELS) as the person knows them.
-  const TASK_LABELS = {
-    rate: "Stellen einschätzen", rate_package: "Stellen einschätzen",
-    draft: "Anschreiben entwerfen", review: "Anschreiben prüfen", dossier_texts: "Texte fürs Dossier",
-    chat: "Fragen an die KI", prefill: "Angaben vorbefüllen",
-    form_fields: "Formulare ausfüllen", form_answers: "Formulare ausfüllen",
-    career: "Suchbegriffe vorschlagen", terms: "Suchbegriffe prüfen", site_list: "Weitere Seiten lesen",
-    exclusions: "Ausschlüsse vorschlagen", cv_suggestions: "Lebenslauf für eine Stelle",
-  };
-  const OTHER = "Weitere";
-  const MEDIATION_NOTE = "Das Budget gilt pro Monat und erneuert sich am Monatsersten; was übrig bleibt, geht nicht in "
-    + "den nächsten Monat mit. Ist es aufgebraucht, läuft die App weiter, nur ohne KI. Protokolliert werden Kosten, keine Inhalte.";
-  // A mediation that names no renewal still counts a one-time credit (G80).
-  const MEDIATION_NOTE_ONCE = "Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, "
-    + "nur ohne KI, bis ein neuer Einladungscode eingelöst ist. Protokolliert werden Kosten, keine Inhalte.";
+  // The tasks of the cost log (bewerbungen/ai/tasks.py MODELS) as the person knows them, in the app language; rows of
+  // tasks with the same name add up.
+  function taskLabels() {
+    const Texte = texts();
+    const rate = Texte.t("Stellen einschätzen");
+    const forms = Texte.t("Formulare ausfüllen");
+    return {
+      rate, rate_package: rate,
+      draft: Texte.t("Anschreiben entwerfen"), review: Texte.t("Anschreiben prüfen"),
+      dossier_texts: Texte.t("Texte fürs Dossier"), chat: Texte.t("Fragen an die KI"),
+      prefill: Texte.t("Angaben vorbefüllen"), form_fields: forms, form_answers: forms,
+      career: Texte.t("Suchbegriffe vorschlagen"), terms: Texte.t("Suchbegriffe prüfen"),
+      site_list: Texte.t("Weitere Seiten lesen"), exclusions: Texte.t("Ausschlüsse vorschlagen"),
+      cv_suggestions: Texte.t("Lebenslauf für eine Stelle"),
+    };
+  }
+  // The row of tasks the page has no name for; always the last row.
+  const OTHER = "other";
+  // The notes under the card, one literal per text: the catalog's key is the whole sentence. A mediation that names no
+  // renewal still counts a one-time credit (G80).
+  function notes() {
+    const Texte = texts();
+    return {
+      other: Texte.t("Weitere"),
+      mediation: Texte.t("Das Budget gilt pro Monat und erneuert sich am Monatsersten; was übrig bleibt, geht nicht in den nächsten Monat mit. Ist es aufgebraucht, läuft die App weiter, nur ohne KI. Protokolliert werden Kosten, keine Inhalte."),
+      once: Texte.t("Das Guthaben gilt einmal und erneuert sich nicht. Ist es aufgebraucht, läuft die App weiter, nur ohne KI, bis ein neuer Einladungscode eingelöst ist. Protokolliert werden Kosten, keine Inhalte."),
+      own: Texte.t("Massgebend ist die Abrechnung von Anthropic. Protokolliert werden Kosten, keine Inhalte."),
+    };
+  }
   // With the mediation the person sees CHF (G46); one USD billed counts as one CHF (ai/usage.py CHF_PER_USD).
   const MEDIATION_CURRENCY = "CHF";
   const OWN_CURRENCY = "USD";
-  const OWN_NOTE = "Massgebend ist die Abrechnung von Anthropic. Protokolliert werden Kosten, keine Inhalte.";
-
-  // Loaded before this file on the page; required in the tests.
-  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
 
   const anchor = hash => String(hash || "").replace(/^#/, "");
 
@@ -94,16 +109,19 @@
   }
 
   function rows(tasks, currency) {
+    const labels = taskLabels();
     const grouped = Object.entries(tasks || {}).reduce((sum, [task, value]) => {
-      const label = TASK_LABELS[task] || OTHER;
+      const label = labels[task] || OTHER;
       const before = sum[label] || { count: 0, cost: 0 };
       const count = Number.isInteger(value && value.aufrufe) ? value.aufrufe : 0;
       const cost = Number(value && value.usd) || 0;
       return { ...sum, [label]: { count: before.count + count, cost: before.cost + cost } };
     }, {});
+    const other = notes().other;
     return Object.entries(grouped)
       .sort(([labelA, a], [labelB, b]) => (labelA === OTHER) - (labelB === OTHER) || b.cost - a.cost || b.count - a.count)
-      .map(([label, value]) => ({ label, count: value.count, usd: money(value.cost, currency) }));
+      .map(([label, value]) => ({ label: label === OTHER ? other : label, count: value.count,
+                                  usd: money(value.cost, currency) }));
   }
 
   /** The month of the budget and its renewal as the mediation names them (G98); null for a one-time credit. */
@@ -113,31 +131,40 @@
    * The sentence of „Einladungscode“ while the code works; null keeps the page's own sentence of G80, so an app that
    * ships before the mediation's monthly budget still says what is true.
    */
-  const invitationActive = ki => (budgetMonth(ki)
-    ? "Die KI läuft über die Vermittlung des Pilots, mit einem Budget pro Monat. Was davon verbraucht ist, steht unter KI-Budget."
-    : null);
+  function invitationActive(ki) {
+    const Texte = texts();
+    return budgetMonth(ki)
+      ? Texte.t("Die KI läuft über die Vermittlung des Pilots, mit einem Budget pro Monat. Was davon verbraucht ist, steht unter KI-Budget.")
+      : null;
+  }
 
   /** The sentence of „Einladungscode“ once the budget is used up; null keeps the page's own sentence of G80. */
   function invitationUsedUp(ki) {
+    const Texte = texts();
     const budget = creditUsedUp(ki) && budgetMonth(ki);
-    return budget ? `Das KI-Budget für ${budget.month} ist aufgebraucht. Die KI geht wieder ab ${budget.renews}.` : null;
+    return budget
+      ? Texte.t("Das KI-Budget für {monat} ist aufgebraucht. Die KI geht wieder ab {datum}.", { monat: budget.month, datum: budget.renews })
+      : null;
   }
 
   function mediationBudget(ki, common) {
+    const Texte = texts();
     const spent = Math.max(0, Number(ki.verbraucht_chf) || 0);
     const percent = Math.min(100, Math.round((spent / ki.guthaben_chf) * 100));
-    const headline = `${money(spent, MEDIATION_CURRENCY)} von ${money(ki.guthaben_chf, MEDIATION_CURRENCY)} verbraucht`;
+    const headline = Texte.t("{verbraucht} von {guthaben} verbraucht",
+                             { verbraucht: money(spent, MEDIATION_CURRENCY), guthaben: money(ki.guthaben_chf, MEDIATION_CURRENCY) });
     const budget = budgetMonth(ki);
     if (!budget) {
-      return { ...common, title: "Guthaben", headline, percent, barLabel: `${percent} Prozent des Guthabens verbraucht`,
-               note: MEDIATION_NOTE_ONCE };
+      return { ...common, title: Texte.t("Guthaben"), headline, percent,
+               barLabel: Texte.t("{prozent} Prozent des Guthabens verbraucht", { prozent: percent }), note: notes().once };
     }
+    const words = { monat: budget.month, datum: budget.renews };
     return {
-      ...common, title: `KI-Budget im ${budget.month}`, headline, percent,
-      barLabel: `${percent} Prozent des KI-Budgets für ${budget.month} verbraucht`,
-      renewal: `Neues Budget am ${budget.renews}`, note: MEDIATION_NOTE,
+      ...common, title: Texte.t("KI-Budget im {monat}", words), headline, percent,
+      barLabel: Texte.t("{prozent} Prozent des KI-Budgets für {monat} verbraucht", { ...words, prozent: percent }),
+      renewal: Texte.t("Neues Budget am {datum}", words), note: notes().mediation,
       usedUp: creditUsedUp(ki)
-        ? `Das KI-Budget für ${budget.month} ist aufgebraucht. Die KI geht wieder ab ${budget.renews}; alles andere funktioniert weiterhin.`
+        ? Texte.t("Das KI-Budget für {monat} ist aufgebraucht. Die KI geht wieder ab {datum}; alles andere funktioniert weiterhin.", words)
         : null,
     };
   }
@@ -148,21 +175,25 @@
    * the month in USD. The costs of the log count 1:1.
    */
   function budgetView(ki, costs) {
+    const Texte = texts();
     const local = costs || {};
     const currency = viaMediation(ki) ? MEDIATION_CURRENCY : OWN_CURRENCY;
     const common = {
       rows: rows(local.aufgaben, currency),
-      total: `Seit Beginn ${money(local.gesamt_usd, currency)} in ${Number.isInteger(local.aufrufe) ? local.aufrufe : 0} Aufrufen`,
+      total: Texte.t("Seit Beginn {betrag} in {anzahl} Aufrufen",
+                     { betrag: money(local.gesamt_usd, currency), anzahl: Number.isInteger(local.aufrufe) ? local.aufrufe : 0 }),
       renewal: null,
       usedUp: null,
     };
     if (hasCredit(ki)) return mediationBudget(ki, common);
     const parts = monthParts(ki && ki.monat);
-    const when = parts ? `im ${MONTHS[parts.month - 1]}` : "in diesem Monat";
+    const when = parts ? Texte.t("im {monat}", { monat: Texte.monthName(parts.month) }) : Texte.t("in diesem Monat");
     const own = Boolean(ki && ki.eingerichtet && ki.eigener_schluessel);
+    const amount = money(local.monat_usd, currency);
     return {
-      ...common, title: `Kosten ${when}`, headline: `${money(local.monat_usd, currency)}${own ? " mit eigenem Schlüssel" : ""}`,
-      percent: null, barLabel: "", note: OWN_NOTE,
+      ...common, title: Texte.t("Kosten {wann}", { wann: when }),
+      headline: own ? Texte.t("{betrag} mit eigenem Schlüssel", { betrag: amount }) : amount,
+      percent: null, barLabel: "", note: notes().own,
     };
   }
 

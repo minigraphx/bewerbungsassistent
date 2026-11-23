@@ -630,7 +630,7 @@
   /** The text of a key in a set and the app language, with {name} filled from `werte`. An unknown key is a programming error. */
   function text(schluessel, satz, werte = {}) {
     const eintrag = TEXTE[schluessel];
-    if (!eintrag) throw new Error(`Unbekannter Text: ${schluessel}`);
+    if (!eintrag) throw new Error(`Unbekannter Text: ${schluessel}`);  // kein UI-Text: a programming error
     const gewaehlt = satzOder(satz);
     return fuelle(form(eigener(katalog()?.saetze, schluessel), gewaehlt) ?? form(eintrag, gewaehlt), werte);
   }
@@ -642,7 +642,7 @@
 
   /** The name of a status as the person reads it: for apprenticeships an interview is often a trial apprenticeship. */
   function statusName(status, satz) {
-    return satzOder(satz) === "lehrstelle-du" && status === "Gespräch" ? "Einladung" : status;
+    return satzOder(satz) === "lehrstelle-du" && status === "Gespräch" ? t("Einladung") : status;
   }
 
   // A decimal point, as the design system says (4.5, never 4,5; abgleich #1).
@@ -676,8 +676,11 @@
   // ---------- The monthly AI budget of the mediation (G98) ----------
   // Month and renewal come from the mediation (`monat`, `erneuert_am`); the pages only word them, so a wrong clock on
   // this computer never shows another month. Without them the mediation still counts a one-time credit (G80).
-  const MONTH_NAMES = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
-                       "November", "Dezember"];
+  /** The name of a month (1 to 12) in the app language. */
+  function monthName(month) {
+    return [t("Januar"), t("Februar"), t("März"), t("April"), t("Mai"), t("Juni"), t("Juli"), t("August"),
+            t("September"), t("Oktober"), t("November"), t("Dezember")][month - 1];
+  }
   const BUDGET_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
   const RENEWAL_DAY = /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
   // Day and month never part at the end of a line; screen readers read it as a space.
@@ -691,19 +694,19 @@
   }
 
   /**
-   * { month: "November", renews: "1. Dezember" } from GET /api/ki/status or an estimate; null from a mediation that
-   * names no renewal, or names it in a form the page cannot read.
+   * { month: "November", renews: "1. Dezember" } in the app language (#417) from GET /api/ki/status or an estimate;
+   * null from a mediation that names no renewal, or names it in a form the page cannot read.
    */
   function budgetMonth(answer) {
     const month = BUDGET_MONTH.exec(answer?.monat ?? "");
     const day = RENEWAL_DAY.exec(answer?.erneuert_am ?? "");
     if (!month || !day || !realDay(day)) return null;
-    return { month: MONTH_NAMES[Number(month[1]) - 1], renews: `${Number(day[3])}.${NBSP}${MONTH_NAMES[Number(day[2]) - 1]}` };
+    return { month: monthName(Number(month[1])), renews: dayAndMonth(Number(day[3]), Number(day[2])) };
   }
 
   /** „1. Dezember“ in the app language; French writes the first of a month „1er décembre“ (#416). */
   function dayAndMonth(day, month) {
-    const monat = t(MONTH_NAMES[month - 1]);
+    const monat = monthName(month);
     return day === 1 ? t("1.{nbsp}{monat}", { nbsp: NBSP, monat }) : t("{tag}.{nbsp}{monat}", { tag: day, nbsp: NBSP, monat });
   }
 
@@ -724,7 +727,7 @@
     }
     const month = BUDGET_MONTH.exec(status.monat);
     const day = RENEWAL_DAY.exec(status.erneuert_am);
-    const wann = t("im {monat}", { monat: t(MONTH_NAMES[Number(month[1]) - 1]) });
+    const wann = t("im {monat}", { monat: monthName(Number(month[1])) });
     const again = usedUp
       ? ` ${t("Es ist aufgebraucht; die KI geht wieder ab {datum}.", { datum: dayAndMonth(Number(day[3]), Number(day[2])) })}`
       : "";
@@ -732,7 +735,7 @@
   }
 
   const texte = { SAETZE, VORGABE, TEXTE, CODE_REQUEST_URL, satzOder, text, t, setzeSprache, anwenden, statusName,
-                  notenText, withCodeRequestLink, budgetMonth, dayAndMonth, budgetPart };
+                  notenText, withCodeRequestLink, monthName, budgetMonth, dayAndMonth, budgetPart };
   if (typeof module !== "undefined") module.exports = texte;
   else global.Texte = texte;
 })(typeof window !== "undefined" ? window : globalThis);

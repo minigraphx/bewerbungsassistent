@@ -8,7 +8,9 @@
   const SEITE = "bewerbungsbegleiter-seite";
   const anErweiterung = art => window.postMessage({ quelle: SEITE, art }, location.origin);
   const hatErweiterung = () => Boolean(document.documentElement.dataset.bewerbungsbegleiterErweiterung);
-  const SOUGHT = { stelle: "Stelle", lehrstelle: "Lehrstelle" };
+  // Texts in the app language (#417); texte.js is loaded before this file.
+  const Texte = window.Texte;
+  const sought = value => ({ stelle: Texte.t("Stelle"), lehrstelle: Texte.t("Lehrstelle") })[value] || value;
   // The words stay in the page; „anfordern“ becomes the link to where a new code is requested (#315).
   const USED_UP_ONCE = $("einladung-aufgebraucht").textContent;
   const ACTIVE_ONCE = $("einladung-aktiv").textContent;
@@ -93,7 +95,7 @@
       ki = await senden("/api/ki/einladung", { code: $("einladung-code").value.trim() });
       $("einladung-code").value = "";
       $("einladung-code").removeAttribute("aria-invalid");
-      status($("einladung-status"), "Einladung eingelöst. Die KI ist eingerichtet.", "ok");
+      status($("einladung-status"), Texte.t("Einladung eingelöst. Die KI ist eingerichtet."), "ok");
       showAccess();
       showBudget();
     } catch (fehler) {
@@ -142,7 +144,7 @@
 
   /** The line of the budget card says that the costs are missing and why; #meldung hides with the key section. */
   function reportCostsProblem(fehler) {
-    status($("budget-meldung"),`Die Kosten liessen sich nicht laden: ${fehler.message}`, "fehler");
+    status($("budget-meldung"), Texte.t("Die Kosten liessen sich nicht laden: {grund}", { grund: fehler.message }), "fehler");
   }
 
   async function afterKeyChange(stand) {
@@ -169,11 +171,11 @@
   async function speichern() {
     let failed = null;
     $("speichern").disabled = true;
-    status($("meldung"), "Der Schlüssel wird geprüft …");
+    status($("meldung"), Texte.t("Der Schlüssel wird geprüft …"));
     try {
       await afterKeyChange(await senden("/api/schluessel/speichern", { schluessel: $("schluessel").value, bestaetigt: $("bestaetigt").checked }));
       $("schluessel").removeAttribute("aria-invalid");
-      status($("meldung"), "Gespeichert. Die KI-Aufrufe gehen jetzt direkt an die Claude API.", "ok");
+      status($("meldung"), Texte.t("Gespeichert. Die KI-Aufrufe gehen jetzt direkt an die Claude API."), "ok");
     } catch (fehler) {
       failed = fehler;
       window.Meldungen.showFailure($("meldung"), $("schluessel"), fehler);
@@ -192,8 +194,9 @@
       $("bestaetigt").checked = false;
       pruefeBereit();
       anErweiterung("zugriff-abgeben");
-      const abgabe = hatErweiterung() ? "" : " Die Erweiterung gibt den Zugriff ab, sobald sie das nächste Mal mit der App verbunden ist.";
-      status($("meldung"), `Der Schlüssel ist entfernt. Die App läuft wieder über die Vermittlung.${abgabe}`, "ok");
+      status($("meldung"), hatErweiterung()
+        ? Texte.t("Der Schlüssel ist entfernt. Die App läuft wieder über die Vermittlung.")
+        : Texte.t("Der Schlüssel ist entfernt. Die App läuft wieder über die Vermittlung. Die Erweiterung gibt den Zugriff ab, sobald sie das nächste Mal mit der App verbunden ist."), "ok");
     } catch (fehler) {
       status($("meldung"), fehler.message, "fehler");
     } finally {
@@ -208,10 +211,11 @@
     if (!daten || daten.quelle !== "bewerbungsbegleiter-erweiterung" || daten.art !== "antwort") return;
     if (daten.frage === "zugriff-abgeben") {
       const text = daten.antwort && daten.antwort.fehler
-        ? `Die Erweiterung konnte den Zugriff nicht abgeben (${daten.antwort.fehler}). Das geht auch in ihren Einstellungen im Browser.`
+        ? Texte.t("Die Erweiterung konnte den Zugriff nicht abgeben ({grund}). Das geht auch in ihren Einstellungen im Browser.",
+                  { grund: daten.antwort.fehler })
         : daten.antwort && daten.antwort.spaeter
-          ? "Die Erweiterung gibt den Zugriff ab, sobald die laufende Suche oder die offenen Formulare fertig sind."
-          : "Die Erweiterung hat den Zugriff auf alle Seiten abgegeben.";
+          ? Texte.t("Die Erweiterung gibt den Zugriff ab, sobald die laufende Suche oder die offenen Formulare fertig sind.")
+          : Texte.t("Die Erweiterung hat den Zugriff auf alle Seiten abgegeben.");
       status($("zugriff-meldung"), text, daten.antwort && daten.antwort.fehler ? "fehler" : "ok");
     }
   });
@@ -220,16 +224,17 @@
   async function showExtension() {
     const connected = await (window.Sidebar?.extension ?? Promise.resolve(hatErweiterung()));
     $("erweiterung-stand").dataset.state = connected ? "connected" : "missing";
-    $("erweiterung-stand").textContent = connected ? "Die Erweiterung ist verbunden." : "Die Erweiterung ist nicht verbunden.";
+    $("erweiterung-stand").textContent = connected
+      ? Texte.t("Die Erweiterung ist verbunden.") : Texte.t("Die Erweiterung ist nicht verbunden.");
   }
 
   async function showChoice() {
     try {
       const wahl = await holen("/api/einrichtung/wahl");
       $("wahl-fakten").replaceChildren(
-        el("dt", {}, "Gesucht"), el("dd", {}, SOUGHT[wahl.gesucht] || wahl.gesucht),
-        el("dt", {}, "Anrede"), el("dd", {}, wahl.anrede === "du" ? "du" : "Sie"),
-        el("dt", {}, "RAV"), el("dd", {}, wahl.rav ? "Ja, mit den Schritten zum RAV" : "Nein"));
+        el("dt", {}, Texte.t("Gesucht")), el("dd", {}, sought(wahl.gesucht)),
+        el("dt", {}, Texte.t("Anrede")), el("dd", {}, wahl.anrede === "du" ? Texte.t("du") : Texte.t("Sie")),
+        el("dt", {}, Texte.t("RAV")), el("dd", {}, wahl.rav ? Texte.t("Ja, mit den Schritten zum RAV") : Texte.t("Nein")));
     } catch (fehler) {
       status($("wahl-meldung"), fehler.message, "fehler");
     }
@@ -241,7 +246,7 @@
   $("entfernen").addEventListener("click", entfernen);
   $("einladung-code").addEventListener("input", event => { $("einladung-einloesen").disabled = !event.target.value.trim(); });
   $("einladung-einloesen").addEventListener("click", redeem);
-  bestaetigen($("einwilligung-widerruf"), "Wirklich widerrufen? Nochmals klicken", async () => {
+  bestaetigen($("einwilligung-widerruf"), Texte.t("Wirklich widerrufen? Nochmals klicken"), async () => {
     try {
       zeigeEinwilligung(await senden("/api/ki/einwilligung/widerruf", {}));
     } catch (fehler) {

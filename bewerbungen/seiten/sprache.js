@@ -75,12 +75,13 @@
   }
 
   function saveApplications() {
-    return save(() => ({ bewerbung: L.checkedValues(boxes()) }), "Bewerbungssprachen gespeichert.", $("sprache-bewerbung"));
+    return save(() => ({ bewerbung: L.checkedValues(boxes()) }), window.Texte.t("Bewerbungssprachen gespeichert."),
+                $("sprache-bewerbung"));
   }
 
   $("sprache-app").addEventListener("change", event => {
     const app = event.target.value;
-    save(() => ({ app }), "Sprache der App gespeichert.", $("sprache-app"));
+    save(() => ({ app }), window.Texte.t("Sprache der App gespeichert."), $("sprache-app"));
   });
 
   holen("/api/sprachen").then(draw, fehler => status($("sprache-meldung"), fehler.message, "fehler"));

@@ -15,9 +15,12 @@
   const STANDARD_ANSICHT = "beworben";
   const FRUEHERE_ANSICHT = { laufend: "beworben" };  // stored before #165
   const NACHFRAGEN_NACH_TAGEN = 14;
-  const OHNE_LEBENSLAUF = "Lebenslauf-PDF fehlt";  // apply.NO_CV starts so
-  const OHNE_LINK = "Kein Link zum Formular";      // apply.NO_LINK starts so
-  const OHNE_FREIGABE = "Anschreiben noch nicht freigegeben";  // apply.NOT_APPROVED starts so
+  // The German start of apply's reasons, only compared, never shown (the step's own words come from schrittText).
+  const OHNE_LEBENSLAUF = "Lebenslauf-PDF fehlt";  // kein UI-Text: apply.NO_CV starts so
+  const OHNE_LINK = "Kein Link zum Formular";      // kein UI-Text: apply.NO_LINK starts so
+  const OHNE_FREIGABE = "Anschreiben noch nicht freigegeben";  // kein UI-Text: apply.NOT_APPROVED starts so
+  // Loaded before this file on every page; required in the tests. Texts in the app language through Texte.t (#417).
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
   // The order of what to do: an interview first, then sending, then what is missing, then the RAV, then deciding.
   const RANG = { gespraech: 0, abschicken: 1, freigeben: 1, unterlagen: 2, link: 2, offen: 2, rav: 3, entscheiden: 4, warten: 5, fertig: 6 };
   const GRUPPE_AB = 2;  // from two of a kind, one line does them together
@@ -150,12 +153,29 @@
   // The finished stages, one definition for the view „Abgeschlossen“ and the tab of Stellen (#373), with the words
   // of the line „Abgeschlossen: …“ for one and for more.
   const ABGESCHLOSSEN = STAENDE.abgeschlossen;
-  const ABGESCHLOSSEN_WORT = { Zusage: ["Zusage", "Zusagen"], Absage: ["Absage", "Absagen"], Verworfen: ["verworfen", "verworfen"],
-                               "Zurückgezogen": ["zurückgezogen", "zurückgezogen"] };
+  // Per finished stage the count with its word, for one and for more, in the app language (#417).
+  function zusage(anzahl) {
+    const Texte = texts();
+    return anzahl === 1 ? Texte.t("{anzahl} Zusage", { anzahl }) : Texte.t("{anzahl} Zusagen", { anzahl });
+  }
+  function absage(anzahl) {
+    const Texte = texts();
+    return anzahl === 1 ? Texte.t("{anzahl} Absage", { anzahl }) : Texte.t("{anzahl} Absagen", { anzahl });
+  }
+  function verworfen(anzahl) {
+    const Texte = texts();
+    return Texte.t("{anzahl} verworfen", { anzahl });
+  }
+  function zurueckgezogen(anzahl) {
+    const Texte = texts();
+    return Texte.t("{anzahl} zurückgezogen", { anzahl });
+  }
+  const ABGESCHLOSSEN_WORT = { Zusage: zusage, Absage: absage, Verworfen: verworfen, "Zurückgezogen": zurueckgezogen };
 
   /** „3 Absagen“: a count with the word of its stage, as the line „Abgeschlossen: …“ names it. */
   function abgeschlossenTeil(status, anzahl) {
-    return `${anzahl} ${(ABGESCHLOSSEN_WORT[status] || [status, status])[anzahl === 1 ? 0 : 1]}`;
+    const wort = ABGESCHLOSSEN_WORT[status];
+    return wort ? wort(anzahl) : `${anzahl} ${status}`;
   }
 
   /**
@@ -177,33 +197,46 @@
     return alle.slice(0, hoechstens);
   }
 
-  const PASS_TITLE = "Gemerkte Stellen in einem Durchgang bewerten";
-
   /**
    * What a step is called, in the list of Bewerbungen and on Heute: { titel, zusatz }. `anzahl` is how many a grouped
    * item stands for; `t(key, values)` gives the text of texte.js in the form of the person.
    */
   function schrittText(schritt, anzahl, t) {
+    const Texte = texts();
     switch (schritt.art) {
-      case "abschicken": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen abschicken`, zusatz: "Formulare sind bereit" } : { titel: "Abschicken", zusatz: "Formular ist bereit" };
-      case "freigeben": return { titel: "Anschreiben lesen und freigeben", zusatz: "Entwurf ist fertig" };
-      case "unterlagen": return { titel: "Unterlagen erstellen", zusatz: "Lebenslauf-PDF fehlt" };
-      case "link": return { titel: "Link zum Formular eintragen", zusatz: "dann füllt die Erweiterung es aus" };
-      case "offen": return { titel: schritt.grund || "Bewerbung öffnen", zusatz: "" };
-      case "rav": return anzahl > 1 ? { titel: `${anzahl} Bewerbungen im Job-Room eintragen`, zusatz: "fürs RAV" } : { titel: "Im Job-Room eintragen", zusatz: "fürs RAV" };
+      case "abschicken": return anzahl > 1
+        ? { titel: Texte.t("{anzahl} Bewerbungen abschicken", { anzahl }), zusatz: Texte.t("Formulare sind bereit") }
+        : { titel: Texte.t("Abschicken"), zusatz: Texte.t("Formular ist bereit") };
+      case "freigeben": return { titel: Texte.t("Anschreiben lesen und freigeben"), zusatz: Texte.t("Entwurf ist fertig") };
+      case "unterlagen": return { titel: Texte.t("Unterlagen erstellen"), zusatz: Texte.t("Lebenslauf-PDF fehlt") };
+      case "link": return { titel: Texte.t("Link zum Formular eintragen"), zusatz: Texte.t("dann füllt die Erweiterung es aus") };
+      case "offen": return { titel: schritt.grund || Texte.t("Bewerbung öffnen"), zusatz: "" };
+      case "rav": return anzahl > 1
+        ? { titel: Texte.t("{anzahl} Bewerbungen im Job-Room eintragen", { anzahl }), zusatz: Texte.t("fürs RAV") }
+        : { titel: Texte.t("Im Job-Room eintragen"), zusatz: Texte.t("fürs RAV") };
       case "gespraech": return schritt.frist ? { titel: t("bewerbung.gespraech"), zusatz: datum(schritt.frist) }
         : { titel: t("heute.gespraech.termin"), zusatz: "" };
-      case "entscheiden": return anzahl > 1 ? { titel: PASS_TITLE, zusatz: t("heute.durchgang.unter") } : { titel: "Entscheiden", zusatz: "bewerben oder verwerfen" };
-      case "warten": return { titel: "Antwort abwarten", zusatz: schritt.zusatz ? `nachfragen ab ${datum(schritt.zusatz)}` : "" };
+      case "entscheiden": return anzahl > 1
+        ? { titel: Texte.t("Gemerkte Stellen in einem Durchgang bewerten"), zusatz: t("heute.durchgang.unter") }
+        : { titel: Texte.t("Entscheiden"), zusatz: Texte.t("bewerben oder verwerfen") };
+      case "warten": return { titel: Texte.t("Antwort abwarten"),
+                              zusatz: schritt.zusatz ? Texte.t("nachfragen ab {datum}", { datum: datum(schritt.zusatz) }) : "" };
       default: return { titel: "", zusatz: "" };
     }
   }
 
   // Changing the stage of several applications at once (#170). A selection is a Set of ids; every change
   // returns a new one. Only the selected rows the view shows count, so a hidden row is never changed by surprise.
-  const VIEW_LABELS = { gemerkt: "Gemerkt", beworben: "Beworben", abgeschlossen: "Abgeschlossen" };
+  // The views by name, as their tabs show them, in the app language (#417).
+  function viewLabel(view) {
+    const Texte = texts();
+    return { gemerkt: Texte.t("Gemerkt"), beworben: Texte.t("Beworben"), abgeschlossen: Texte.t("Abgeschlossen") }[view];
+  }
   const shownIds = rows => rows.map(z => z.bewerbung.id);
-  const applications = count => (count === 1 ? "1 Bewerbung" : `${count} Bewerbungen`);
+  function applications(count) {
+    const Texte = texts();
+    return count === 1 ? Texte.t("1 Bewerbung") : Texte.t("{anzahl} Bewerbungen", { anzahl: count });
+  }
 
   function toggleOne(selected, id) {
     const next = new Set(selected);
@@ -243,11 +276,13 @@
   }
 
   function selectionLabel(count) {
-    return count === 0 ? "Keine ausgewählt" : `${count} ausgewählt`;
+    const Texte = texts();
+    return count === 0 ? Texte.t("Keine ausgewählt") : Texte.t("{anzahl} ausgewählt", { anzahl: count });
   }
 
   function stageQuestion(count, stageName) {
-    return `${applications(count)} auf „${stageName}“ setzen?`;
+    const Texte = texts();
+    return Texte.t("{bewerbungen} auf „{stand}“ setzen?", { bewerbungen: applications(count), stand: stageName });
   }
 
   function viewOfStage(stage) {
@@ -256,10 +291,14 @@
 
   /** The status line after the change; it says where the rows went when they left the view. */
   function stageDone(count, stage, stageName, view) {
-    const done = `${applications(count)} auf „${stageName}“ gesetzt.`;
+    const Texte = texts();
+    const words = { bewerbungen: applications(count), stand: stageName };
     const target = viewOfStage(stage);
-    if (view === "alle" || target === view || !VIEW_LABELS[target]) return done;
-    return `${done} ${count === 1 ? "Sie steht" : "Sie stehen"} jetzt unter „${VIEW_LABELS[target]}“.`;
+    if (view === "alle" || target === view || !viewLabel(target)) return Texte.t("{bewerbungen} auf „{stand}“ gesetzt.", words);
+    const moved = { ...words, ansicht: viewLabel(target) };
+    return count === 1
+      ? Texte.t("{bewerbungen} auf „{stand}“ gesetzt. Sie steht jetzt unter „{ansicht}“.", moved)
+      : Texte.t("{bewerbungen} auf „{stand}“ gesetzt. Sie stehen jetzt unter „{ansicht}“.", moved);
   }
 
   const logik = { ANSICHTEN, STANDARD_ANSICHT, NACHFRAGEN_NACH_TAGEN, ABGESCHLOSSEN, ABGESCHLOSSEN_WORT, datum, plusTage, naechsterSchritt,

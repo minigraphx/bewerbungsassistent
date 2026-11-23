@@ -4,21 +4,25 @@
   const { holen, senden, el, status } = window.App;
   const $ = id => document.getElementById(id);
   const TOKEN = document.querySelector('meta[name="token"]').content;
-  const TITEL = { einstieg: "Einstieg", jobsuche: "Stellensuche", bewerbung: "Bewerbung" };
+  // Texts in the app language (#417); texte.js is loaded before this file.
+  const Texte = window.Texte;
+  const titel = name => ({ einstieg: Texte.t("Einstieg"), jobsuche: Texte.t("Stellensuche"),
+                           bewerbung: Texte.t("Bewerbung") })[name] || name;
 
   function zeige(stand) {
     $("abo-aus").hidden = stand.zugang;
     $("abo-an").hidden = !stand.zugang;
     const veraltet = stand.desktop_veraltet;
-    $("abo-desktop").textContent = veraltet ? "Eintrag in Claude Desktop erneuern" : stand.desktop_eingetragen ? "Aus Claude Desktop entfernen" : "In Claude Desktop eintragen";
+    $("abo-desktop").textContent = veraltet ? Texte.t("Eintrag in Claude Desktop erneuern")
+      : stand.desktop_eingetragen ? Texte.t("Aus Claude Desktop entfernen") : Texte.t("In Claude Desktop eintragen");
     $("abo-desktop").dataset.eintragen = veraltet || !stand.desktop_eingetragen ? "ja" : "nein";
-    $("abo-desktop-stand").textContent = veraltet ? "Der Eintrag zeigt auf einen alten Ort der App."
-      : stand.desktop_eingetragen ? "Eingetragen. Claude Desktop einmal ganz beenden und neu öffnen." : "";
+    $("abo-desktop-stand").textContent = veraltet ? Texte.t("Der Eintrag zeigt auf einen alten Ort der App.")
+      : stand.desktop_eingetragen ? Texte.t("Eingetragen. Claude Desktop einmal ganz beenden und neu öffnen.") : "";
     $("abo-code").textContent = stand.code_befehl;
     $("abo-text").textContent = stand.desktop_text;
     $("abo-datei").textContent = stand.desktop_datei;
     $("abo-skills").replaceChildren(...stand.skills.map(name => el("li", {},
-      el("a", { href: `/api/claude/skill?name=${encodeURIComponent(name)}&t=${encodeURIComponent(TOKEN)}`, download: `${name}.zip` }, `${TITEL[name] || name} (${name}.zip)`))));
+      el("a", { href: `/api/claude/skill?name=${encodeURIComponent(name)}&t=${encodeURIComponent(TOKEN)}`, download: `${name}.zip` }, `${titel(name)} (${name}.zip)`))));
   }
 
   async function ausfuehren(pfad, daten, meldung) {
@@ -31,15 +35,17 @@
   }
 
   $("abo-bestaetigt").addEventListener("change", event => { $("abo-einschalten").disabled = !event.target.checked; });
-  $("abo-einschalten").addEventListener("click", () => ausfuehren("/api/claude/zugang", { an: true, bestaetigt: $("abo-bestaetigt").checked }, "Der Zugang ist eingeschaltet."));
+  $("abo-einschalten").addEventListener("click", () => ausfuehren("/api/claude/zugang", { an: true, bestaetigt: $("abo-bestaetigt").checked },
+    Texte.t("Der Zugang ist eingeschaltet.")));
   $("abo-ausschalten").addEventListener("click", async () => {
-    await ausfuehren("/api/claude/zugang", { an: false }, "Der Zugang ist ausgeschaltet. Claude erreicht die App nicht mehr.");
+    await ausfuehren("/api/claude/zugang", { an: false }, Texte.t("Der Zugang ist ausgeschaltet. Claude erreicht die App nicht mehr."));
     $("abo-bestaetigt").checked = false;
     $("abo-einschalten").disabled = true;
   });
   $("abo-desktop").addEventListener("click", event => {
     const eintragen = event.target.dataset.eintragen === "ja";
-    ausfuehren("/api/claude/desktop", { eintragen }, eintragen ? "In Claude Desktop eingetragen." : "Aus Claude Desktop entfernt.");
+    ausfuehren("/api/claude/desktop", { eintragen },
+      eintragen ? Texte.t("In Claude Desktop eingetragen.") : Texte.t("Aus Claude Desktop entfernt."));
   });
 
   holen("/api/claude/stand").then(zeige, () => {});  // the app without the desktop part has no such section

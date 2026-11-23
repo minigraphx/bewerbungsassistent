@@ -111,7 +111,8 @@ class Controls:
         if self.platform != "darwin":
             return ""
         if self.failed_version() == found.version:
-            return FAILED_BEFORE.format(version=found.version)
+            from ui_texts import T  # bewerbungen is on the path once the server runs, like `server` below
+            return T(FAILED_BEFORE, version=found.version)
         return updates_macos.place_problem(self.app) or ""
 
     def can_install(self, found: updates.Update) -> bool:
@@ -174,6 +175,7 @@ def _offer(controls: Controls, found: updates.Update | None) -> dict | None:
 
 def make_routes(controls: Controls) -> tuple[dict, dict]:
     from server import StatusError, json_antwort
+    from ui_texts import T
 
     def version(k, parameter, body):
         return json_antwort({"version": VERSION, "update": _offer(controls, controls.update())})
@@ -191,10 +193,10 @@ def make_routes(controls: Controls) -> tuple[dict, dict]:
         if found is None:
             raise ValueError("Es gibt keine neuere Version.")
         if not controls.automatic:
-            raise ValueError(f"Bitte die neue Version hier laden: {found.page_url}")
+            raise ValueError(T("Bitte die neue Version hier laden: {adresse}", adresse=found.page_url))
         obstacle = controls.obstacle(found)
         if obstacle:
-            raise ValueError(f"{obstacle} {found.page_url}")
+            raise ValueError(T("{hinweis} {adresse}", hinweis=obstacle, adresse=found.page_url))
         if not controls.installing.acquire(blocking=False):
             raise ValueError(UPDATE_RUNNING)
         try:

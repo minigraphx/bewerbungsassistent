@@ -15,8 +15,8 @@
     try {
       zeige(await senden("/api/unterlagen/seitengrenze", { lebenslauf_seiten: an ? 3 : 2 }));
       status($("seitengrenze-meldung"), an
-        ? "Drei Seiten erlaubt. Mit «Unterlagen erstellen» entsteht der Lebenslauf neu."
-        : "Höchstens zwei Seiten. Mit «Unterlagen erstellen» entsteht der Lebenslauf neu.", "ok");
+        ? window.Texte.t("Drei Seiten erlaubt. Mit «Unterlagen erstellen» entsteht der Lebenslauf neu.")
+        : window.Texte.t("Höchstens zwei Seiten. Mit «Unterlagen erstellen» entsteht der Lebenslauf neu."), "ok");
     } catch (fehler) {
       event.target.checked = !an;
       status($("seitengrenze-meldung"), fehler.message, "fehler");
