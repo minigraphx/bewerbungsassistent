@@ -489,7 +489,8 @@
       await navigator.clipboard.writeText(inhalt);
       knopf.textContent = Texte.t("Kopiert");
       knopf.dataset.copied = "";
-    } catch {
+    } catch (fehler) {
+      console.warn("Copying to the clipboard failed:", fehler?.message);  // kein UI-Text: log line
       knopf.textContent = Texte.t("Bitte von Hand kopieren");
     }
   }
