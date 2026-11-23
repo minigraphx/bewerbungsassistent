@@ -86,6 +86,36 @@ async function aboutCard(version) {
   return card;
 }
 
+/** window.App of app.js on a page where every request answers `answer`. */
+function appAnswering(answer) {
+  const document = {
+    querySelector: selector => (selector.startsWith("meta") ? { content: "token" } : null), querySelectorAll: () => [],
+    getElementById: () => null, addEventListener() {},
+    hidden: false, documentElement: { dataset: {} }, head: element("head"), body: element("body"),
+    createElement: tag => element(tag), createTextNode: text => text,
+  };
+  const window = { addEventListener() {}, Texte: texte };
+  const location = { pathname: "/inhalte", search: "", hash: "", origin: "http://127.0.0.1:1", replace() {}, reload() {} };
+  vm.runInNewContext(fs.readFileSync(path.join(SEITEN, "app.js"), "utf8"), {
+    window, document, location, history: { state: null, length: 1, replaceState() {} }, fetch: async () => answer,
+    URLSearchParams, Node: { [Symbol.hasInstance]: () => false }, setInterval() {}, setTimeout, Promise,
+    crypto: { randomUUID: () => "x" },
+  });
+  return window.App;
+}
+
+test("a preview that is no PDF is refused in the app language", async () => {
+  const html = { ok: true, status: 200, headers: { get: () => "text/html" }, json: async () => ({}) };
+
+  await assert.rejects(appAnswering(html).pdfAdresse("/api/inhalt/pdf"), { message: "Antwort ist kein PDF" });
+  texte.setzeSprache("fr", catalogFor("fr"));
+  try {
+    await assert.rejects(appAnswering(html).pdfAdresse("/api/inhalt/pdf"), { message: "La réponse n'est pas un PDF" });
+  } finally {
+    texte.setzeSprache();
+  }
+});
+
 test("the badges of the sidebar speak French and English", () => {
   assert.deepEqual(inLanguage("fr", () => sidebar.badges({ open: 4, newHits: 1 })), {
     heute: { long: "4 à faire", short: "4" }, stellen: { long: "1 à voir", short: "1 à voir" } });

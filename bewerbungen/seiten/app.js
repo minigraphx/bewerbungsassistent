@@ -112,6 +112,7 @@ window.App = (() => {
         e.genutzt ? el("span", { class: "leise", title: e.genutzt_fuer.join(", ") }, window.Texte.t("versendet")) : null], el)));
       inhalt = eintraege.length ? el("ul", {}, eintraege) : el("p", { class: "leer" }, window.Texte.t("Noch keine Entwürfe."));
     } catch (fehler) {
+      console.warn("Letzte Entwürfe nicht lesbar:", datei, fehler.message);
       inhalt = el("p", { class: "leise" }, window.Texte.t("Entwürfe nicht lesbar: {fehler}", { fehler: fehler.message }));
     }
     if (element.dataset.datei !== datei) return;  // another file was chosen meanwhile
@@ -316,7 +317,8 @@ window.App = (() => {
       try {
         const antwort = await mitFrist(senden("/api/app/updates-suchen", {}), UPDATE_SUCHE_MS);
         if (dieser === lauf) zeige(sucheErgebnis(antwort));
-      } catch {
+      } catch (fehler) {
+        console.warn("Suche nach Updates fehlgeschlagen:", fehler?.message);
         if (dieser !== lauf) return;
         zeige([updateSucheFehler()], true);
         if (!document.activeElement || document.activeElement === document.body) knopf.focus();
