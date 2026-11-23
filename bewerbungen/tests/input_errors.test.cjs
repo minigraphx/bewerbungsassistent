@@ -402,7 +402,7 @@ test("on /suchbegriffe the line for the field is a live region inside the revise
 
 const WIRED = [
   ["fragen.js", "an empty question", /status\(\$\("fragen-meldung"\), texte\.leer, "hinweis", \{ input: \$\("fragen-text"\) \}\)/],
-  ["firmen.js", "no company chosen", /meldung\("Bitte eine Firma wählen oder «Keine davon passt»\.", "warning",\s*\{ input: document\.getElementById\(`wahl-\$\{firma\.schluessel\}`\) \}\)/],
+  ["firmen.js", "no company chosen", /meldung\(Texte\.t\("Bitte eine Firma wählen oder «Keine davon passt»\."\), "warning",\s*\{ input: document\.getElementById\(`wahl-\$\{firma\.schluessel\}`\) \}\)/],
   ["firmen.js", "a kununu value or count by hand that does not fit", /if \(falsch\) window\.Meldungen\.clearOnInput\(\$\(`hand-\$\{feld\}-fehler`\), \$\(`hand-\$\{feld\}`\)\)/],
   ["firmen.js", "a kununu link refused", /if \(abgelehnt\) window\.Meldungen\.clearOnInput\(\$\("zuordnen-fehler"\), \$\("zuordnen-link"\)\)/],
   ["kuerzen.js", "no cut ticked", /status\.textContent = NOTHING_TICKED;\s*window\.Meldungen\.clearOnInput\(status, fieldset\)/],

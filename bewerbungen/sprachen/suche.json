@@ -280,7 +280,7 @@
     "en": "Not checked. kununu could not be reached. Please check again later."
   },
   "Bei kununu nicht gefunden.": {"fr": "Introuvable sur kununu.", "en": "Not found on kununu."},
-  "Mehrere Lehrbetriebe bei kununu.": {"fr": "Plusieurs entreprises formatrices sur kununu.", "en": "Several training companies on kununu."},
+  "Mehrere Lehrbetriebe bei kununu.": {"fr": "Plusieurs entreprises formatrices sur kununu.", "en": "Several host companies on kununu."},
   "Mehrere Firmen bei kununu.": {"fr": "Plusieurs entreprises sur kununu.", "en": "Several companies on kununu."},
   "Stand {datum}": {"fr": "État au {datum}", "en": "As of {datum}"},
   "Geprüft am {datum}": {"fr": "Vérifié le {datum}", "en": "Checked on {datum}"},

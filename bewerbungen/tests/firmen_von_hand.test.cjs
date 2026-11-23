@@ -27,7 +27,7 @@ async function frischGeladen(firmen) {
   };
   global.window = {
     FirmenLogik: logik, KununuPruefen: { pruefe: async () => ({ geoeffnet: true }) }, DotLine: require("../seiten/dot-line.js"),
-    Texte: { text: schluessel => schluessel, statusName: status => status },
+    Texte: { text: schluessel => schluessel, t: require("../seiten/texte.js").t, statusName: status => status },
     App: { el, senden: async () => ({}), holen: async () => ({ firmen, heute: "2026-11-09" }), textsatz: async () => "stelle-sie" },
   };
   delete require.cache[require.resolve(SCRIPT)];
