@@ -124,6 +124,21 @@ def test_a_german_literal_outside_texte_t_is_a_gap(tmp_path):
     assert [(gap.line, gap.text, gap.missing) for gap in gaps] == [(2, "Noch nicht übersetzt", ("Texte.t",))]
 
 
+def test_python_reads_t_with_values_and_names_a_formatted_message_that_needs_t(tmp_path):
+    module = tmp_path / "routen.py"
+    module.write_text("import ui_texts\n\n\n"
+                      "def check(datum, name):\n"
+                      "    if datum:\n"
+                      "        return {'hinweis': ui_texts.T('Abgabe bis {datum}', datum=datum)}\n"
+                      "    raise ValueError(f'Parameter {name} fehlt')\n", encoding="utf-8")
+
+    found = {(item.kind, item.text) for item in language_sources.items((module,))}
+    gaps = sprachen_pruefen.gaps((module,), fixture_catalog())
+
+    assert ("text", "Abgabe bis {datum}") in found
+    assert [(gap.line, gap.text, gap.missing) for gap in gaps] == [(7, "Parameter {name} fehlt", ("T",))]
+
+
 def test_the_forms_of_a_text_set_are_no_leftovers():
     leftovers = {item.text for item in language_sources.items((language_sources.TEXTE_JS,)) if item.kind == "leftover"}
 

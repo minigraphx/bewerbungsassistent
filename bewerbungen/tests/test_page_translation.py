@@ -255,3 +255,29 @@ def test_a_broken_catalog_leaves_the_page_german_and_says_why(serve, folder, pre
     assert status == 200
     assert "<h1>Bewerbungen im Überblick</h1>" in body.decode("utf-8")
     assert "kaputt.json" in caplog.text
+
+
+# The verifier's two gaps of #414 (fixed with #415)
+
+
+def test_a_single_quoted_attribute_is_translated_like_a_double_quoted_one():
+    html = "<button type='button' title='Liste neu laden'>Neu laden</button><img alt='Zeichen der App'>"
+
+    translated = page_translation.translate(html, "fr", translation_catalog.load(FIXTURES / "katalog"))
+
+    assert translated == ("<button type='button' title='Recharger la liste'>Recharger</button>"
+                          "<img alt='Logo de l&#x27;app'>")
+    assert {found.text for found in page_translation.page_texts(html)} == {"Liste neu laden", "Neu laden",
+                                                                           "Zeichen der App"}
+
+
+def test_textarea_content_is_the_persons_and_stays_while_its_placeholder_is_translated():
+    html = ('<textarea placeholder="Zum Beispiel Informatiker">Neu laden\n<script>Neu laden</script></textarea>'
+            '<p>Neu laden</p><script src="/texte.js"></script>')
+
+    translated = page_translation.translate(html, "fr", translation_catalog.load(FIXTURES / "katalog"))
+
+    assert translated == ('<textarea placeholder="Par exemple informaticien">Neu laden\n<script>Neu laden</script>'
+                          '</textarea><p>Recharger</p><script src="/uebersetzung.js?sprache=fr"></script>\n'
+                          '<script src="/texte.js"></script>')
+    assert [found.text for found in page_translation.page_texts(html)] == ["Zum Beispiel Informatiker", "Neu laden"]
