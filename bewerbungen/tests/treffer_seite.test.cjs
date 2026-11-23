@@ -48,7 +48,8 @@ function page() {
     // Messages have their own tests (meldungen.test.cjs); here the element keeps the text the eye would see.
     Meldungen: { zeige(element, inhalt) { element.textContent = shown({ children: [inhalt] }); }, leere() {} },
     DotLine: require("../seiten/dot-line.js"),
-    Texte: { text: key => key, anwenden() {} },
+    // the page's own words come through Texte.t (#422); sets stay their keys here
+    Texte: { ...require("../seiten/texte.js"), text: key => key, anwenden() {} },
     PortalWahl: { zeige() {} },
     Suchbegriffe: { zeige() {} },
     SuchbegriffeStart: { zeige() {}, ids: () => null },

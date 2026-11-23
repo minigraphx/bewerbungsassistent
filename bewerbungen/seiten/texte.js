@@ -269,6 +269,8 @@
       du: "Die Portale haben nichts Neues gemeldet. Versuche weitere Suchbegriffe oder eine grössere Umgebung.",
       lehrstelle: "Die Portale haben nichts Neues gemeldet. Nimm weitere Berufe dazu oder suche in einer grösseren Umgebung.",
     },
+    // #422: „Jetzt prüfen“ in the dialog of „Alle prüfen“ lets the AI rate; kununu's „Jetzt prüfen“ checks a company
+    "suche.alle-pruefen-ok": { sie: "Jetzt prüfen", du: "Jetzt prüfen" },
     "suche.notenhilfe-titel": { sie: "Wie lese ich die Note?", du: "Wie lese ich die Note?", lehrstelle: "Wie lese ich die Noten?" },
     "suche.notenhilfe": {
       sie: "Schweizer Noten: 6 ist die beste, 1 die schlechteste Note, halbe Noten sind möglich. Ab 4 passt die Stelle genügend. Die Note ist eine Einschätzung der KI und kann falsch sein.",

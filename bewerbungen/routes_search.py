@@ -30,18 +30,19 @@ from hits import CLOSED, PORTALS_OFF, QUERIES, SUSPECTED, TRIAL, Hits, bounded_t
 from hits import key as hit_key
 from query_log import QueryLog
 from server import json_antwort, pflicht
+from ui_texts import T
 
 MAX_PROBLEM = 600
 MAX_RATED_PER_RUN = 30  # one search must not use up the budget; the page says how many are left
 _TAKE_OVER = threading.Lock()
-BAD_RATING = "Die KI hat diesen Treffer nicht bewertet. Bitte nochmals versuchen."
-BAD_OWN_RATING = "Die Bewertung braucht eine Note von 1 bis 6 und eine Zusammenfassung."
+BAD_RATING = T("Die KI hat diesen Treffer nicht bewertet. Bitte nochmals versuchen.")
+BAD_OWN_RATING = T("Die Bewertung braucht eine Note von 1 bis 6 und eine Zusammenfassung.")
 MIN_OWN_GRADE, MAX_OWN_GRADE = 1, 6
 OWN_CLAUDE = "Claude (eigenes Abo)"
-BLOCKED_WITHOUT_PROFILE = "Zuerst Meine Angaben abschliessen."
-ALREADY_SAVED = "Dieser Treffer ist schon {saved_in}."  # #220: „Ihre Bewerbungen“ or „deine“, never „Register“
-NO_TEXT = "Für diesen Treffer fehlt der Text des Inserats. Bitte das Inserat öffnen und die Stelle von Hand erfassen."
+BLOCKED_WITHOUT_PROFILE = T("Zuerst Meine Angaben abschliessen.")
+NO_TEXT = T("Für diesen Treffer fehlt der Text des Inserats. Bitte das Inserat öffnen und die Stelle von Hand erfassen.")
 REPOSTS_NOTED = "Wieder ausgeschriebene Stellen vermerkt"
+LIST_EXPECTED = "{field} erwartet (Liste)"
 
 
 def _hits(k) -> Hits:
@@ -49,13 +50,13 @@ def _hits(k) -> Hits:
 
 
 def _already_saved(k) -> str:
-    return ALREADY_SAVED.format(saved_in=preferences.load(k.daten).saved_in)
+    return preferences.ALREADY_SAVED[preferences.load(k.daten).address]
 
 
 def _list(body, field: str = "treffer") -> list:
     value = body.get(field) if isinstance(body, dict) else None
     if not isinstance(value, list):
-        raise ValueError(f"{field} erwartet (Liste)")
+        raise ValueError(T(LIST_EXPECTED, field=field))
     return value
 
 
@@ -133,13 +134,13 @@ def receive(k, parameter, body):
 
 def _portal_summary(raw) -> dict:
     if not isinstance(raw, dict):
-        raise ValueError("Zusammenfassung pro Portal erwartet")
+        raise ValueError(T("Zusammenfassung pro Portal erwartet"))
     counts = {name: raw.get(name) for name in ("treffer", "neu")}
     if any(isinstance(v, bool) or not isinstance(v, int) or v < 0 for v in counts.values()):
-        raise ValueError("treffer und neu müssen Zahlen sein")
+        raise ValueError(T("treffer und neu müssen Zahlen sein"))
     problem = raw.get("problem") or ""
     if not isinstance(problem, str):
-        raise ValueError("problem muss Text sein")
+        raise ValueError(T("problem muss Text sein"))
     return {**counts, "problem": " ".join(problem.split())[:MAX_PROBLEM]}
 
 
@@ -150,7 +151,7 @@ def finish(k, parameter, body):
     known = {*search_plan.ALL_PORTALS, *(site["portal"] for site in own_sites.configured(store))}
     kept = {name: value for name, value in portals.items() if name in known} if isinstance(portals, dict) else {}
     if not isinstance(portals, dict) or (portals and not kept):
-        raise ValueError("portale erwartet")
+        raise ValueError(T("portale erwartet"))
     summaries = {name: _portal_summary(v) for name, v in kept.items()}
     # G103: an older extension names no queries; the further sites search by address, not by query
     queries = {name: query_log.checked_queries(v[QUERIES]) for name, v in kept.items()
@@ -191,19 +192,22 @@ def overview(k, parameter, body):
         size = search_stages.size(current.as_dict())
         limits = search_plan.portal_limit_notes(profile, off)
     except search_plan.ProfileGap as gap:
-        hints, targets = [str(gap)], {str(gap): gap.field}
+        # args[0] keeps the message a T, so it reaches the page in the app language (#422)
+        hints, targets = [gap.args[0]], {gap.args[0]: gap.field}
     except ValueError as error:
-        hints = [str(error)]
+        hints = [error.args[0] if error.args else str(error)]
     # #220: without a profile nothing can be searched; the page says so right under „Jetzt suchen“, not in the list
     blocked = "" if (k.daten / search_plan.PROFILE).is_file() else BLOCKED_WITHOUT_PROFILE
     hints = [h for h in hints if h != search_plan.NO_PROFILE]
+    # The field of each hint by its place in the list (#422): the hints reach the page translated, the keys stay German.
+    fields = [targets.get(h) for h in hints]
     # Hits of an excluded company stay stored but leave the list (#226); taking the company back shows them again.
     found = sorted(excluded_companies.shown(store.all(), excluded_companies.keys(k.daten)),
                    key=lambda h: h.get("gefunden_am", ""), reverse=True)
     stages = _register_stages(k)
     return json_antwort({"treffer": [_listed(k, store, with_suspects(with_stage(hit, stages), stages), homes, postal_codes)
                                      for hit in found],
-                         "hinweis_ziele": targets,
+                         "hinweis_ziele": targets, "hinweis_felder": fields,
                          "angebote": list(offers), **routes_career.searched_now(k),
                          "letzte_suche": store.last_run(), "hinweise": hints, "art": kind, "portale": list(portals), "portale_wahl": choice,
                          "einstellungen": store.settings(), "paket": tasks.PACKAGE_SIZE, "grenze": MAX_RATED_PER_RUN,
@@ -332,7 +336,7 @@ def own_rating(k, parameter, body):
 def _package_ids(body) -> list[str]:
     ids = _list(body, "ids")
     if not 1 <= len(ids) <= tasks.PACKAGE_SIZE or not all(isinstance(i, str) for i in ids) or len(set(ids)) != len(ids):
-        raise ValueError(f"ids: 1 bis {tasks.PACKAGE_SIZE} verschiedene Treffer erwartet")
+        raise ValueError(T("ids: 1 bis {anzahl} verschiedene Treffer erwartet", anzahl=tasks.PACKAGE_SIZE))
     return ids
 
 
@@ -354,7 +358,7 @@ def rate_package(k, parameter, body):
         if not isinstance(cause, AnswerError):
             raise
         return json_antwort({"bewertet": [], "offen": [ad for ad, _ in ads], "ohne_text": without_text,
-                             "kosten_usd": cause.cost_usd, "meldung": str(error)})
+                             "kosten_usd": cause.cost_usd, "meldung": error.args[0] if error.args else str(error)})
     return json_antwort({**result, "ohne_text": without_text})
 
 
@@ -367,20 +371,20 @@ def settings(k, parameter, body):
     if isinstance(body, dict) and isinstance(body.get("zuschauen"), bool):
         return json_antwort(_hits(k).set_watching(body["zuschauen"]))
     if not isinstance(body, dict) or not isinstance(body.get("auto_bewerten"), bool):
-        raise ValueError("auto_bewerten oder zuschauen erwartet (ja oder nein)")
+        raise ValueError(T("auto_bewerten oder zuschauen erwartet (ja oder nein)"))
     return json_antwort(_hits(k).set_auto_rating(body["auto_bewerten"]))
 
 
 def stars(k, parameter, body):
     if not isinstance(body, dict):
-        raise ValueError("beruf und sterne erwartet")
+        raise ValueError(T("beruf und sterne erwartet"))
     return json_antwort(_hits(k).set_stars(body.get("beruf"), body.get("sterne")))
 
 
 def own_stars(k, parameter, body):
     """Own stars of one hit (G22): only from the page, the extension and Claude cannot reach this route."""
     if not isinstance(body, dict):
-        raise ValueError("sterne erwartet")
+        raise ValueError(T("sterne erwartet"))
     return json_antwort(with_stage(_hits(k).set_own_stars(pflicht(parameter, "id"), body.get("sterne")), _register_stages(k)))
 
 

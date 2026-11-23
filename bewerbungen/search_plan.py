@@ -19,6 +19,7 @@ import yaml
 import form_limits
 import jobscout24_regions
 import title_filter
+from ui_message import T  # not ui_texts: language_settings reads this module through precheck
 
 PORTALS =("job-room", "jobs.ch", "jobscout24", "ictjobs")
 APPRENTICESHIP_PORTALS = ("LENA", "yousty")
@@ -66,7 +67,7 @@ MAX_AGE_DAYS = 21  # G32: the window by default; the profile can set it („Zeit
 MIN_WINDOW_DAYS = 1
 MAX_WINDOW_DAYS = 60
 BAD_WINDOW = ("Zeitfenster „{value}“ geht nicht: erlaubt sind {low} bis {high} Tage. Gesucht werden die letzten "
-              f"{MAX_AGE_DAYS} Tage.")
+              "{days} Tage.")
 MAX_VALUE = 80
 # As Meine Angaben takes them (#310, #316): official names with a specialisation are long, and a direction is one line
 # of the form that may hold several terms. Its count is the form's too, which takes as many as the search does.
@@ -82,8 +83,9 @@ MIN_RADIUS_KM = 5
 MAX_RADIUS_KM = 100
 APPRENTICESHIP_MARK = "## Lehrbeginn"
 AGENCIES_SECTION = "## Vermittler"
-NO_PROFESSION = "In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor."
-NO_TERMS = "In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor."
+# Messages for the person are T (#422): German as before, said in the app language by the server.
+NO_PROFESSION = T("In deiner Suche steht noch kein Beruf. Unter „Welcher Beruf passt zu dir?“ schlägt dir die KI Berufe vor.")
+NO_TERMS = T("In der Suche steht noch nichts. Auf der Seite der Suche schlägt die KI Begriffe vor.")
 CORE_LABEL = "kernliste"
 NICHE_LABEL = "nischen"
 # G105: «- Nur jobs.ch, job-room: Kursleiter» under Keywords; older apps read it as one more searched group.
@@ -97,7 +99,7 @@ UNKNOWN_JOBSCOUT24_REGION = ("Regionen (jobscout24): „{region}“ kennt jobsco
                              "Region.")
 REGIONS_LABEL = "regionen"
 JOBSCOUT24 = "jobscout24"
-NO_PROFILE = "Es gibt noch kein Suchprofil. Zuerst Meine Angaben abschliessen."
+NO_PROFILE = T("Es gibt noch kein Suchprofil. Zuerst Meine Angaben abschliessen.")
 NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
 PROFESSIONS_SECTION = "## Berufe (mit Priorität)"
@@ -123,7 +125,13 @@ FIELD_CANTONS = "searchJob.cantons"
 FIELD_HOME = "searchJob.home"
 FIELD_POSTAL_CODE = "person.postalCode"
 FIELD_APPRENTICESHIP_HOME = "searchApprenticeship.home"
-NATIONWIDE_NOTE = "Gesucht wird in der ganzen Schweiz, Stellen nahe dem Wohnort stehen zuerst. Eingrenzen: Kantone wählen."
+NATIONWIDE_NOTE = T("Gesucht wird in der ganzen Schweiz, Stellen nahe dem Wohnort stehen zuerst. Eingrenzen: Kantone wählen.")
+# A portal that searches all of Switzerland for want of a place; one text per missing value, so each language words it.
+GAP_CANTONS = "{portal}: Ohne Kantone sucht dieses Portal in der ganzen Schweiz. Kantone ergänzen."
+GAP_HOME = "{portal}: Ohne Wohnort sucht dieses Portal in der ganzen Schweiz. Wohnort ergänzen."
+GAP_POSTAL_CODE = "{portal}: Ohne PLZ sucht dieses Portal in der ganzen Schweiz. PLZ ergänzen."
+NO_PLACE = "Im Suchprofil fehlt der Wohnort oder ein Kanton (Abschnitt „Region“)."
+RADIUS_ONLY = "Gesucht wird im Umkreis von {radius} km um {ort}. Die Kantone {kantone} werden nicht einzeln durchsucht."
 REMARK = re.compile(r"\s*\([^()]*\b(?:priorität|ersatz|falls|wenn|notfalls)\b[^()]*\)\s*$", re.IGNORECASE)
 DIRECTION_REMARK = re.compile(r"\s*\(.*$")  # a search direction ends at its first bracket, unlike a profession
 # A remark such as „Biel (kleine Gemeinden liefern 0 Treffer)“ is no part of the value; portals and the title filter
@@ -429,13 +437,12 @@ def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
     cantons = tuple(c for c in dict.fromkeys(_items(_value(region, "kantone"), len(CANTONS))) if c in CANTONS)
     places = _items(_value(region, "wohnort"), 1)
     if not places and not cantons:
-        raise ProfileGap("Im Suchprofil fehlt der Wohnort oder ein Kanton (Abschnitt „Region“).", FIELD_APPRENTICESHIP_HOME)
+        raise ProfileGap(T(NO_PLACE), FIELD_APPRENTICESHIP_HOME)
     radius = _radius(_value(region, "umkreis"))
     years = sorted({int(y) for line in sections.get("lehrbeginn", []) for y in YEAR.findall(line)})
     hints = ()
     if places and len(cantons) > 1:
-        hints = (f"Gesucht wird im Umkreis von {radius} km um {places[0]}. Die Kantone {', '.join(cantons)} "
-                 "werden nicht einzeln durchsucht.",)
+        hints = (T(RADIUS_ONLY, radius=radius, ort=places[0], kantone=", ".join(cantons)),)
     modes = _modes(sections.get("portale und rhythmus", []))
     return SearchPlan(keywords=professions, cantons=cantons, places=places, hints=hints, kind=KIND_APPRENTICESHIP,
                       portals=tuple(p for p in APPRENTICESHIP_PORTALS if modes.get(p.lower()) != MODE_OFF),
@@ -590,10 +597,17 @@ def _job_hints(nationwide: bool, portals: tuple[str, ...], cantons: tuple[str, .
     """What the person may want to add, each with the field to add it in. No portal is skipped for a missing place."""
     if nationwide:
         return ((NATIONWIDE_NOTE, FIELD_CANTONS),)
-    gaps = (("job-room", cantons, "Kantone", FIELD_CANTONS), ("jobs.ch", places, "Wohnort", FIELD_HOME),
-            ("jobscout24", postal_codes, "PLZ", FIELD_POSTAL_CODE), ("ictjobs", regions, "Kantone", FIELD_CANTONS))
-    return tuple((f"{portal}: Ohne {name} sucht dieses Portal in der ganzen Schweiz. {name} ergänzen.", field)
-                 for portal, known, name, field in gaps if portal in portals and not known)
+    gaps = (("job-room", cantons, FIELD_CANTONS), ("jobs.ch", places, FIELD_HOME),
+            ("jobscout24", postal_codes, FIELD_POSTAL_CODE), ("ictjobs", regions, FIELD_CANTONS))
+    return tuple((_gap_hint(portal, field), field) for portal, known, field in gaps if portal in portals and not known)
+
+
+def _gap_hint(portal: str, field: str) -> str:
+    if field == FIELD_HOME:
+        return T(GAP_HOME, portal=portal)
+    if field == FIELD_POSTAL_CODE:
+        return T(GAP_POSTAL_CODE, portal=portal)
+    return T(GAP_CANTONS, portal=portal)
 
 
 def is_jobscout24_regions(label: str) -> bool:
@@ -657,7 +671,7 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
     targets = _job_hints(nationwide, portals, cantons, regions, places, postal_codes or jobscout24_ids)
     window, window_hint = _window(_value(_pairs(sections.get("portale und rhythmus", [])), "zeitfenster"))
     limits, unknown_limits = _portal_limits(sections.get("keywords", []), keywords)
-    region_hints = tuple(UNKNOWN_JOBSCOUT24_REGION.format(region=entry) for entry in unknown_regions)
+    region_hints = tuple(T(UNKNOWN_JOBSCOUT24_REGION, region=entry) for entry in unknown_regions)
     return SearchPlan(keywords=keywords, niche_keywords=niches, portal_limits=limits, unknown_limits=unknown_limits,
                       cantons=cantons, places=places, postal_codes=postal_codes, regions=regions,
                       jobscout24_regions=jobscout24_ids,
@@ -681,7 +695,7 @@ def _window(value: str) -> tuple[int, tuple[str, ...]]:
     days = window_days(value)
     if days is not None:
         return days, ()
-    return MAX_AGE_DAYS, (BAD_WINDOW.format(value=value, low=MIN_WINDOW_DAYS, high=MAX_WINDOW_DAYS),)
+    return MAX_AGE_DAYS, (T(BAD_WINDOW, value=value, low=MIN_WINDOW_DAYS, high=MAX_WINDOW_DAYS, days=MAX_AGE_DAYS),)
 
 
 def portal_days(window: int, portals: tuple[str, ...], last_success: dict, today: datetime.date) -> dict[str, int]:

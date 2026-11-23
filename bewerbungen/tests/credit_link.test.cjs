@@ -120,7 +120,9 @@ test("Einstellungen, the page „KI“ and „Alle prüfen“ draw their used-up
     /\$\("einladung-aufgebraucht"\)\.replaceChildren\(\.\.\.\(monthly \? \[monthly\] : window\.Texte\.withCodeRequestLink\(USED_UP_ONCE, el\)\)\);/);
   assert.match(read("ki.js"), /\$\("ki-status"\)\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(statusText\(s\), el\)/);
   const hits = read("treffer.js");
-  assert.match(hits, /\$\("kosten-hinweis"\)\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(logik\.estimateLine\(estimate, lehrstelle\), el\)\)/);
-  assert.match(hits, /if \(stand\.fehler\) meldung\(window\.Texte\.withCodeRequestLink\(`\$\{stand\.fehler\} \$\{summary\}`, el\), "fehler"\)/);
+  // since #422 the page keeps window.Texte in a constant
+  assert.match(hits, /const Texte = window\.Texte;/);
+  assert.match(hits, /\$\("kosten-hinweis"\)\.replaceChildren\(\.\.\.Texte\.withCodeRequestLink\(logik\.estimateLine\(estimate, lehrstelle\), el\)\)/);
+  assert.match(hits, /if \(stand\.fehler\) meldung\(Texte\.withCodeRequestLink\(`\$\{stand\.fehler\} \$\{summary\}`, el\), "fehler"\)/);
   assert.doesNotMatch(hits, /\$\("kosten-hinweis"\)\.textContent = logik\.estimateLine/);
 });

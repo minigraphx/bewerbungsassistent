@@ -204,7 +204,8 @@ test("before a long run the page says under Jetzt suchen how many searches and s
 
 test("without a search profile the app gives the short reason and keeps it out of the hints", () => {
   const routes = fs.readFileSync(path.join(ROOT, "routes_search.py"), "utf8");
-  assert.match(routes, /BLOCKED_WITHOUT_PROFILE = "Zuerst Meine Angaben abschliessen\."/);
+  // marked for translation since #422; the German words stay
+  assert.match(routes, /BLOCKED_WITHOUT_PROFILE = T\("Zuerst Meine Angaben abschliessen\."\)/);
   assert.match(routes, /"sperrgrund": blocked/);
 });
 
@@ -253,7 +254,10 @@ test("Register in user texts becomes Ihre Bewerbungen, in the Sie and the du for
   assert.doesNotMatch(CODE, /Register/);
   const routes = fs.readFileSync(path.join(ROOT, "routes_search.py"), "utf8");
   const preferences = fs.readFileSync(path.join(ROOT, "preferences.py"), "utf8");
-  assert.match(routes, /"Dieser Treffer ist schon \{saved_in\}\."/);
+  // whole sentences per form since #422, so each can be translated; preferences.py holds the forms of address
+  assert.match(routes, /preferences\.ALREADY_SAVED\[preferences\.load\(k\.daten\)\.address\]/);
+  assert.match(preferences, /SIE: T\("Dieser Treffer ist schon in Ihren Bewerbungen\."\)/);
+  assert.match(preferences, /DU: T\("Dieser Treffer ist schon in deinen Bewerbungen\."\)/);
   assert.match(preferences, /SAVED_IN = \{SIE: "in Ihren Bewerbungen", DU: "in deinen Bewerbungen"\}/);
   assert.doesNotMatch(routes, /schon im Register/);
   assert.doesNotMatch(fs.readFileSync(path.join(ROOT, "hits.py"), "utf8"), /\) im Register\./);

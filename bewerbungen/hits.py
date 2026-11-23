@@ -22,6 +22,7 @@ import title_filter
 from dateien import lies_yaml, schreibe_atomar, schreibe_yaml
 from preferences import SAVED_IN, SIE
 from register import slug
+from ui_message import T
 
 FOLDER = "suche"
 HITS_FILE = "treffer.yaml"
@@ -37,6 +38,11 @@ KEPT_PAIRS = "paare_behalten"  # #377: pairs of «Doppelt gesucht» the person k
 MAX_KEPT_PAIRS = 100
 KEPT_PLACES = "orte_behalten"  # #380: jobs.ch places the person keeps although their canton is searched already
 MAX_STARS = 5
+# Refusals Stellen shows, T so that the server says them in the app language (#422)
+NOT_FOUND = "Treffer {wanted} nicht gefunden"
+STARS_RANGE = "Sterne: 0 bis {max}."
+ORDER_CHOICES = "Sortierung: {orders}."
+STATE_CHOICES = "zustand muss eines von {states} sein"
 TEXTS = "texte"
 DOMAINS = {"job-room": "job-room.ch", "jobs.ch": "jobs.ch", "jobscout24": "jobscout24.ch", "ictjobs": "ictjobs.ch",
            "LENA": "berufsberatung.ch", "yousty": "yousty.ch"}
@@ -395,11 +401,11 @@ class Hits:
         for hit in self.all():
             if hit["id"] == wanted:
                 return hit
-        raise KeyError(f"Treffer {wanted!r} nicht gefunden")
+        raise KeyError(T(NOT_FOUND, wanted=repr(wanted)))
 
     def _text_path(self, wanted: str) -> pathlib.Path:
         if not re.fullmatch(r"[a-z0-9-]+", wanted):
-            raise KeyError(f"Treffer {wanted!r} nicht gefunden")
+            raise KeyError(T(NOT_FOUND, wanted=repr(wanted)))
         return self.folder / TEXTS / f"{wanted}.txt"
 
     def text(self, wanted: str) -> str:
@@ -557,7 +563,7 @@ class Hits:
 
     def update(self, wanted: str, **fields) -> dict:
         if "zustand" in fields and fields["zustand"] not in STATES:
-            raise ValueError(f"zustand muss eines von {', '.join(STATES)} sein")
+            raise ValueError(T(STATE_CHOICES, states=", ".join(STATES)))
         with _LOCK:
             stored = self.all()
             for index, hit in enumerate(stored):
@@ -565,7 +571,7 @@ class Hits:
                     stored[index] = {**hit, **fields}
                     self._write(stored)
                     return stored[index]
-        raise KeyError(f"Treffer {wanted!r} nicht gefunden")
+        raise KeyError(T(NOT_FOUND, wanted=repr(wanted)))
 
     def fill_text(self, wanted: str, text: str, check=lambda title, text: "") -> bool:
         """The text of a new hit that had none (G37); a text that is there stays. `check`: the pre-check (G33)."""
@@ -654,19 +660,19 @@ class Hits:
 
     def set_order(self, order: str) -> dict:
         if order not in ORDERS:
-            raise ValueError(f"Sortierung: {', '.join(ORDERS)}.")
+            raise ValueError(T(ORDER_CHOICES, orders=", ".join(ORDERS)))
         with _LOCK:
             return self._save_settings({**self.settings(), "sortierung": order})
 
     def set_own_stars(self, wanted: str, stars: int) -> dict:
         """The person's own rating of one hit, 1 to 5; 0 takes it away. The grade of the AI stays as it is."""
         if type(stars) is not int or not 0 <= stars <= MAX_STARS:
-            raise ValueError(f"Sterne: 0 bis {MAX_STARS}.")
+            raise ValueError(T(STARS_RANGE, max=MAX_STARS))
         with _LOCK:
             stored = self.all()
             hit = next((h for h in stored if h["id"] == wanted), None)
             if hit is None:
-                raise KeyError(f"Treffer {wanted!r} nicht gefunden")
+                raise KeyError(T(NOT_FOUND, wanted=repr(wanted)))
             rest = {key: value for key, value in hit.items() if key != OWN_STARS}
             changed = {**rest, OWN_STARS: stars} if stars else rest
             self._write([changed if h["id"] == wanted else h for h in stored])
@@ -676,7 +682,7 @@ class Hits:
         """The person's own rating of a profession, 1 to 5; 0 takes it away."""
         name = bounded_text(profession, "Beruf", required=True)
         if type(stars) is not int or not 0 <= stars <= MAX_STARS:
-            raise ValueError(f"Sterne: 0 bis {MAX_STARS}.")
+            raise ValueError(T(STARS_RANGE, max=MAX_STARS))
         with _LOCK:
             current = self.settings()
             others = {k: v for k, v in current["beruf_sterne"].items() if k != name}

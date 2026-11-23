@@ -17,7 +17,7 @@ test("the page is called Stellen in the tab and the title (G55)", () => {
   const html = read("treffer.html");
   assert.match(html, /<title>Stellen<\/title>/);
   assert.match(html, /<h1 id="titel" data-text="nav.stellen">Stellen<\/h1>/);
-  assert.match(read("treffer.js"), /document\.title = t\("nav\.stellen"\)/);
+  assert.match(read("treffer.js"), /document\.title = Texte\.text\("nav\.stellen", satz\)/);
 });
 
 test("Neu, In Bewerbungen, Verworfen and Firmen are the tabs of Stellen, on both pages (G56, #374)", () => {
@@ -72,7 +72,7 @@ test("the empty tab In Bewerbungen says how a hit comes there (#374)", () => {
 
 test("each new hit asks what to do, with Bewerbung vorbereiten as the main button (G58)", () => {
   const code = read("treffer.js");
-  assert.match(code, /el\("button", \{ type: "button", class: "btn btn--primary" \}, "Bewerbung vorbereiten"\)/);
+  assert.match(code, /el\("button", \{ type: "button", class: "btn btn--primary" \}, Texte\.t\("Bewerbung vorbereiten"\)\)/);
   assert.match(code, /"\/api\/bewerbungen\/stand", \{ ids: \[neu\.bewerbung_id\], status: "Bewerben" \}/);
   assert.equal(texte.text("suche.entscheiden", "stelle-sie"), "Was möchten Sie mit dieser Stelle tun?");
   assert.equal(texte.text("suche.entscheiden", "stelle-du"), "Was möchtest du mit dieser Stelle tun?");

@@ -5,7 +5,9 @@
 (() => {
   const { el } = window.App;
   const logik = window.FirmenLogik;
-  const NEUER_TAB = ", öffnet neuen Tab";
+  // Texts in the app language (#422), read when they are shown.
+  const Texte = window.Texte;
+  const neuerTab = () => Texte.t(", öffnet neuen Tab");
 
   /** The badge, or null when kununu has nothing to show for this company. */
   function marke(firma) {
@@ -27,26 +29,27 @@
 
   function aktion(firma, a, optionen) {
     if (a.art === "pruefen") {
-      const name = el("span", { class: "visually-hidden" }, `: ${firma.name}${erweiterungDa() ? "" : NEUER_TAB}`);
+      const name = el("span", { class: "visually-hidden" }, `: ${firma.name}${erweiterungDa() ? "" : neuerTab()}`);
       return el("button", { type: "button", class: "btn btn--sm", onclick: event => pruefen(firma, event.currentTarget, optionen) },
         a.text, name);
     }
-    const name = el("span", { class: "visually-hidden" }, `: ${firma.name}${NEUER_TAB}`);
+    const name = el("span", { class: "visually-hidden" }, `: ${firma.name}${neuerTab()}`);
     return el("a", { class: a.art === "suchen" ? "btn btn--sm btn--quiet" : "btn btn--sm", href: a.href, target: "_blank",
       rel: "noopener noreferrer" }, a.text, name);
   }
 
   function wertBlock(zeile) {
     return el("div", { class: "rating", "data-state": zeile.wenige ? "few" : null },
-      el("span", { class: "rating__value" }, el("b", {}, zeile.wert), " von 5"),
+      el("span", { class: "rating__value" }, el("b", {}, zeile.wert), Texte.t(" von 5")),
       ...zeile.angaben.map(angabe => el("span", { class: "rating__meta" }, angabe)));
   }
 
   /** The company line under the AI's assessment; `alle` names the link to the page Firmen or Lehrbetriebe, `wo` that
    *  page for a value by hand, and `nachPruefen` gets the result of „Jetzt prüfen“. With `ausschliessen` ({text,
    *  aktion}) the line offers to show the company's hits no more (#226, G65). */
-  function zeile(firma, heute, { lehrstelle = false, alle = "Alle Firmen", wo = "", nachPruefen = null, ausschliessen = null } = {}) {
+  function zeile(firma, heute, { lehrstelle = false, alle = null, wo = "", nachPruefen = null, ausschliessen = null } = {}) {
     if (!firma) return null;
+    const alleText = alle || Texte.t("Alle Firmen");
     const z = logik.firmenZeile(firma, heute, { lehrstelle });
     const satz = z.zustand === "fehler" ? el("p", { class: "status-line", "data-level": "warning" }, z.satz)
       : z.satz ? el("p", { class: "rating__state rating__state--quiet" }, z.satz) : null;
@@ -55,7 +58,7 @@
       z.wert ? wertBlock(z) : null, satz,
       z.datum ? el("p", { class: "company-line__date" }, z.datum) : null,
       el("div", { class: "btn-row" }, ...z.aktionen.map(a => aktion(firma, a, { wo, nachPruefen })),
-        el("a", { class: "btn btn--sm btn--quiet", href: "/firmen" }, alle),
+        el("a", { class: "btn btn--sm btn--quiet", href: "/firmen" }, alleText),
         ausschliessen ? el("button", { type: "button", class: "btn btn--sm btn--quiet",
           onclick: event => { event.currentTarget.disabled = true; ausschliessen.aktion(); } }, ausschliessen.text) : null));
   }

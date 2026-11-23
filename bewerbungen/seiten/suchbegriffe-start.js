@@ -64,7 +64,10 @@ window.SuchbegriffeStart = (() => {
   async function belegHolen(begriff, wort) {
     if (begriff) {
       const antwort = await holen("/api/suchbegriffe/beleg", { begriff });
-      return { ...antwort, text: `Gezeigt: ${antwort.ids.length} Treffer, die nur über «${antwort.begriff}» hereinkamen.` };
+      const werte = { anzahl: antwort.ids.length, begriff: antwort.begriff };
+      const text = werte.anzahl === 1 ? window.Texte.t("Gezeigt: 1 Treffer, die nur über «{begriff}» hereinkamen.", werte)
+        : window.Texte.t("Gezeigt: {anzahl} Treffer, die nur über «{begriff}» hereinkamen.", werte);
+      return { ...antwort, text };
     }
     const antwort = await holen("/api/suche/verworfen-woerter/beleg", { wort });
     return { begriff: antwort.wort, ids: antwort.ids, text: window.VerworfenWoerterLogik.filterText(antwort.ids.length, antwort.wort) };
