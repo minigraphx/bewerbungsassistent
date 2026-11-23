@@ -2,11 +2,11 @@
 // «Doppelt gesucht» on Suche einstellen (G106, #377): under the term list one block per pair the search runs twice or
 // a broader term covers, with words and costs from GET /api/suche/doppelt; shown only when there is a pair. Nothing
 // is removed without a click. After one, the message line of the list says what changed and offers Rückgängig over
-// the route of the list; focus goes to that line, since the block it came from is gone.
+// the route of the list; focus goes to that line, since the block it came from is gone. The server words the pairs in
+// the app language, the page its own messages through Texte (#425).
 window.DoppeltGesucht = (() => {
   const { holen, senden, el, status } = window.App;
   const $ = id => document.getElementById(id);
-  const RUECKGAENGIG = "Rückgängig";
   const geaendert = () => document.dispatchEvent(new CustomEvent("suchprofil-geaendert"));
   let ladeNummer = 0;
 
@@ -30,7 +30,7 @@ window.DoppeltGesucht = (() => {
     try {
       const antwort = await senden("/api/suche/doppelt/entfernen", { paar: paar.id, seite: option.seite });
       // the action keeps the message until it is used or closed (#215)
-      melde(antwort.text, "ok", { aktion: { text: RUECKGAENGIG, ausfuehren: () => rueckgaengig(antwort) } });
+      melde(antwort.text, "ok", { aktion: { text: window.Texte.t("Rückgängig"), ausfuehren: () => rueckgaengig(antwort) } });
     } catch (fehler) {
       melde(fehler.message, "fehler");
     } finally {
@@ -70,6 +70,12 @@ window.DoppeltGesucht = (() => {
     $("doppelt-liste").replaceChildren(...paare.map(block));
   }
 
+  function reportPairsFailed(nummer, fehler) {
+    if (nummer !== ladeNummer) return;  // a newer load answers instead
+    zeige([]);
+    status($("status"), window.Texte.t("Doppelt gesuchte Begriffe liessen sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   /** Loads the pairs anew; an apprenticeship search gets none from the server. */
   async function lade() {
     const nummer = ++ladeNummer;
@@ -77,9 +83,7 @@ window.DoppeltGesucht = (() => {
       const { paare } = await holen("/api/suche/doppelt");
       if (nummer === ladeNummer) zeige(paare);
     } catch (fehler) {
-      if (nummer !== ladeNummer) return;
-      zeige([]);
-      status($("status"), `Doppelt gesuchte Begriffe liessen sich nicht laden: ${fehler.message}`, "fehler");
+      reportPairsFailed(nummer, fehler);
     }
   }
 

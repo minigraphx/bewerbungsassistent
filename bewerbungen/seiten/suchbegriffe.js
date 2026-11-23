@@ -2,12 +2,17 @@
 // The view „Suchbegriffe prüfen“ (#210, option B of docs/design/suchbegriffe.md): one card per change with a checkbox,
 // the reason of the AI and the evidence of the app, the result as „So sucht die App danach“, revise, take over, undo.
 // Each term is a switch of its own (#371, G102, suchbegriffe-schalter.js): the page sends the terms that are on, and
-// the app takes only current and proposed ones, works out the result and writes exactly that.
+// the app takes only current and proposed ones, works out the result and writes exactly that. The page's own words in
+// the app language through Texte (#425); the server words the changes, the AI its summary and reasons.
 (() => {
   const { holen, senden, el, status, textsatz } = window.App;
   const L = window.SuchbegriffeLogik;
   const Schalter = window.SuchbegriffeSchalter;
+  const { Texte } = window;
   const $ = id => document.getElementById(id);
+  // What routes_terms.STALE_ACTION names: a takeover after the terms changed, known by the action, not by its words.
+  const VERALTET = "vorschlag-veraltet";
+  const unveraendert = () => Texte.t("Am Suchprofil hat sich nichts geändert.");
   // A pause after a switch before the app is asked again; the first switch asks at once.
   const PAUSE_MS = 250;
   let satz = "stelle-sie";
@@ -36,7 +41,7 @@
   }
 
   const knopf = (text, aktion, klasse = "btn btn--sm") => el("button", { type: "button", class: klasse, onclick: aktion }, text);
-  const neuKnopf = () => knopf("Neu vorschlagen", () => holeVorschlag());
+  const neuKnopf = () => knopf(Texte.t("Neu vorschlagen"), () => holeVorschlag());
 
   function warten(an) {
     $("warten").hidden = !an;
@@ -65,7 +70,7 @@
    * which screen readers announce with the server text that describes it.
    */
   function zeigeFehlschlag(text, body) {
-    const nochmals = knopf("Nochmals versuchen", () => holeVorschlag(body));
+    const nochmals = knopf(Texte.t("Nochmals versuchen"), () => holeVorschlag(body));
     nochmals.setAttribute("aria-describedby", "meldung-text");
     meldung("", text, [nochmals], "warning");
     $("meldung-knoepfe").querySelector("button")?.focus();
@@ -115,7 +120,7 @@
     const { liste, teilweise } = Schalter.karte(a, haken, (chip, an) => schalte(L.schalteChip(auswahl, chip, an)));
     const flag = wort => el("span", { class: "term term--flag" }, el("span", { class: "term__word" }, wort));
     return el("div", { class: "change" },
-      el("p", { class: "change__area" }, a.bereich_name, a.zu_allgemein ? flag("zu allgemein") : null,
+      el("p", { class: "change__area" }, a.bereich_name, a.zu_allgemein ? flag(Texte.t("zu allgemein")) : null,
         L.kartenMarke(a) ? flag(L.kartenMarke(a)) : null),
       el("label", { class: "check", for: id }, haken, el("span", {}, a.satz)),
       teilweise,
@@ -162,7 +167,8 @@
     // G108: after the three areas the niches and «Nur» lines, so a move shows where the keyword runs now
     const bloecke = [...L.endstand(vorschlag.jetzt, antwort.endstand, antwort.nur_zeilen || []), ...L.endstandZeilen(antwort)].map(b => el("div", {},
       el("h3", {}, b.name),
-      el("ul", { class: "terms" }, ...b.begriffe.map(x => marke({ begriff: x.begriff, wort: x.neu ? "neu" : "", art: x.neu ? "new" : "kept" })))));
+      el("ul", { class: "terms" }, ...b.begriffe.map(x => marke({ begriff: x.begriff, wort: x.neu ? Texte.t("neu") : "",
+        art: x.neu ? "new" : "kept" })))));
     $("endstand").replaceChildren(...bloecke);
     $("faellt-weg").textContent = L.entfaelltZeile(antwort.entfaellt);
     $("grenzen").replaceChildren(...dotLine(antwort.grenzen.teile));
@@ -185,7 +191,7 @@
 
   function veraltet(text) {
     $("vorschlag").hidden = true;
-    meldung("Vorschlag veraltet", text, [neuKnopf()]);
+    meldung(Texte.t("Vorschlag veraltet"), text, [neuKnopf()]);
   }
 
   async function frageEndstand() {
@@ -212,12 +218,13 @@
     $("runde").hidden = v.runde < 2;
     $("runde").replaceChildren(...dotLine(L.rundeTeile(v, satz)));
     $("geaendert").hidden = !v.geaendert;
-    $("geaendert").textContent = v.geaendert ? `Geändert gegenüber Vorschlag ${v.runde - 1}: ${v.geaendert}` : "";
+    $("geaendert").textContent = v.geaendert
+      ? Texte.t("Geändert gegenüber Vorschlag {runde}: {geaendert}", { runde: v.runde - 1, geaendert: v.geaendert }) : "";
     $("ihr-hinweis").hidden = !v.hinweis;
-    $("ihr-hinweis").textContent = v.hinweis ? `${texte.ihrHinweis}: «${v.hinweis}»` : "";
+    $("ihr-hinweis").textContent = v.hinweis ? Texte.t("{titel}: «{hinweis}»", { titel: texte.ihrHinweis, hinweis: v.hinweis }) : "";
     const davor = frueher[frueher.length - 1];
     $("frueher").hidden = !davor;
-    $("frueher").textContent = davor ? `Vorschlag ${davor.runde} zeigen` : "";
+    $("frueher").textContent = davor ? Texte.t("Vorschlag {runde} zeigen", { runde: davor.runde }) : "";
     $("frueher").onclick = () => {
       frueher = [...frueher.slice(0, -1), vorschlag];  // swap, so the newer one can come back the same way
       zeige(davor);
@@ -266,19 +273,24 @@
       const stand = await senden("/api/suchbegriffe/uebernehmen", { vorschlag: vorschlag.vorschlag, danach: auswahl });
       $("aenderungen-feld").disabled = true;
       $("verwerfen").hidden = true;
-      $("uebernehmen-grund").replaceChildren(el("a", { class: "btn btn--sm", href: "/treffer" }, "Jetzt suchen"));
-      status($("status"), L.uebernommen(stand.neu, stand.entfallen, stand.verschoben), "ok",
-        { aktion: { text: "Rückgängig machen", ausfuehren: () => rueckgaengig({ vorher: stand.vorher, nachher: stand.nachher }) } });
+      $("uebernehmen-grund").replaceChildren(el("a", { class: "btn btn--sm", href: "/treffer" }, Texte.t("Jetzt suchen")));
+      status($("status"), L.uebernommen(stand.neu, stand.entfallen, stand.verschoben), "ok", { aktion: { text: Texte.t("Rückgängig machen"),
+        ausfuehren: () => rueckgaengig({ vorher: stand.vorher, nachher: stand.nachher }) } });
     } catch (fehler) {
-      $("uebernehmen").disabled = false;
-      if (fehler.message.startsWith("Vorschlag veraltet")) veraltet(fehler.message);
-      else status($("status"), fehler.message, "fehler");
+      reportTakeoverFailed(fehler);
     }
+  }
+
+  /** A stale proposal is known by the action the server names, never by its words, which follow the app language. */
+  function reportTakeoverFailed(fehler) {
+    $("uebernehmen").disabled = false;
+    if (fehler.daten && fehler.daten.aktion === VERALTET) veraltet(fehler.message);
+    else status($("status"), fehler.message, "fehler");
   }
 
   function verwerfen() {
     $("vorschlag").hidden = true;
-    meldung("Verworfen", "Am Suchprofil hat sich nichts geändert.", [neuKnopf()]);
+    meldung(Texte.t("Vorschlag verworfen"), unveraendert(), [neuKnopf()]);
   }
 
   /**
@@ -289,7 +301,7 @@
     const hinweis = $("anders-text").value.trim();
     if (!hinweis) {
       $("anders-text").setAttribute("aria-invalid", "true");
-      status($("anders-status"), "Bitte schreiben, was anders sein soll.", "fehler", { input: $("anders-text") });
+      status($("anders-status"), Texte.t("Bitte schreiben, was anders sein soll."), "fehler", { input: $("anders-text") });
       $("anders-text").focus();
       return;
     }
@@ -310,7 +322,7 @@
     texte = L.texte(satz);
     const vorab = await holen("/api/suchbegriffe/hinweis").catch(() => ({ verfuegbar: true }));
     if (!vorab.verfuegbar) {
-      meldung("Nur bei der Stellensuche", "Suchbegriffe prüfen gibt es vorerst nur bei der Stellensuche.");
+      meldung(Texte.t("Nur bei der Stellensuche"), Texte.t("Suchbegriffe prüfen gibt es vorerst nur bei der Stellensuche."));
       return;
     }
     $("gesehen").textContent = texte.gesehen(vorab.treffer, vorab.seit);
@@ -331,7 +343,7 @@
   $("abbrechen").addEventListener("click", () => {
     abgebrochen = true;
     warten(false);
-    meldung("Abgebrochen", "Am Suchprofil hat sich nichts geändert.", [neuKnopf()]);
+    meldung(Texte.t("Abgebrochen"), unveraendert(), [neuKnopf()]);
   });
   $("uebernehmen").addEventListener("click", uebernehmen);
   $("verwerfen").addEventListener("click", verwerfen);

@@ -81,9 +81,14 @@
       sie: "Ab {mindestens} verworfenen Stellen kann die KI hier vorschlagen, was Sie künftig nicht mehr sehen wollen.",
       du: "Ab {mindestens} verworfenen Stellen kann die KI hier vorschlagen, was du künftig nicht mehr sehen willst.",
     },
+    // After several proposals, and after one: two sets, so French and English word „einen“ and „ihn“ their own way (#425)
     "einstellen.ki-ausschluesse-fertig": {
-      sie: "Am Suchprofil ändert sich erst etwas, wenn Sie {welchen} übernehmen.",
-      du: "Am Suchprofil ändert sich erst etwas, wenn du {welchen} übernimmst.",
+      sie: "Am Suchprofil ändert sich erst etwas, wenn Sie einen übernehmen.",
+      du: "Am Suchprofil ändert sich erst etwas, wenn du einen übernimmst.",
+    },
+    "einstellen.ki-ausschluesse-fertig-eins": {
+      sie: "Am Suchprofil ändert sich erst etwas, wenn Sie ihn übernehmen.",
+      du: "Am Suchprofil ändert sich erst etwas, wenn du ihn übernimmst.",
     },
     "einstellen.ohne-schluessel": {
       sie: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den tragen Sie in den Einstellungen ein.",
@@ -195,6 +200,11 @@
     "suche.ictjobs.keine": {
       sie: "An, bis Suchbegriffe da sind. Mit dem Häkchen ausschalten.",
       du: "An, bis Suchbegriffe da sind. Mit dem Häkchen ausschalten.",
+    },
+    // The task in the cost log; its own key, since the page title says the same German as a heading (UI/UX ruling #425)
+    "einstellungen.aufgabe-suchbegriffe": {
+      sie: "Suchbegriffe prüfen",
+      du: "Suchbegriffe prüfen",
     },
     "einstellungen.einwilligung": {
       sie: "Ohne Einwilligung gehen keine Texte an die KI, auch nicht mit einem eigenen Schlüssel. Suche, Unterlagen und Versand funktionieren trotzdem. Mit dem Claude-Abo läuft die KI über Ihr eigenes Konto bei Anthropic; dafür gilt der Hinweis beim Claude-Abo.",

@@ -25,7 +25,8 @@ from ai import exclusion_reasons, tasks
 from ai.connection import currency_now
 from ai.errors import SETUP_ACTION, AiError, SetupNeeded
 from hits import Hits
-from server import ActionError, json_antwort
+from server import ActionError, json_antwort, message_of
+from ui_texts import T
 
 CACHE_KEY = "ki-ausschluesse"
 KEPT_PROPOSALS = 5
@@ -102,7 +103,7 @@ def sent_text(k, parameter, body):
 
 def _failed(error: AiError) -> ValueError:
     cost = getattr(error, "cost_usd", None)
-    message = FAILED.format(reason=error, cost=routes_terms.charged(cost) if cost else routes_terms.NOT_CHARGED)
+    message = T(FAILED, reason=message_of(error), cost=routes_terms.charged(cost) if cost else routes_terms.NOT_CHARGED)
     return ActionError(message, SETUP_ACTION) if isinstance(error, SetupNeeded) else ValueError(message)
 
 
@@ -125,7 +126,7 @@ def propose(k, parameter, body):
     text = _required_profile(k)
     hits = _dismissed(k, text)
     if len(hits) < exclusion_reasons.MIN_DISMISSED:
-        raise ValueError(TOO_FEW.format(count=exclusion_reasons.MIN_DISMISSED))
+        raise ValueError(T(TOO_FEW, count=exclusion_reasons.MIN_DISMISSED))
     try:
         gateway, _ = routes_ai.ai_gateway(k, partial=True)
         result = exclusion_reasons.propose(gateway, exclusion_reasons.labelled(hits), _frame(text),

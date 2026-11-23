@@ -232,7 +232,10 @@
   "Angaben vorbefüllen": {"fr": "Préremplir les informations", "en": "Prefilling details"},
   "Formulare ausfüllen": {"fr": "Remplir des formulaires", "en": "Filling in forms"},
   "Suchbegriffe vorschlagen": {"fr": "Proposer des mots-clés", "en": "Suggesting search terms"},
-  "Suchbegriffe prüfen": {"fr": "Vérifier les mots-clés", "en": "Checking search terms"},
+  "texte:einstellungen.aufgabe-suchbegriffe": {
+    "fr": {"sie": "Vérifier les mots-clés", "du": "Vérifier les mots-clés"},
+    "en": {"sie": "Checking search terms"}
+  },
   "Weitere Seiten lesen": {"fr": "Lire d'autres sites", "en": "Reading further sites"},
   "Ausschlüsse vorschlagen": {"fr": "Proposer des exclusions", "en": "Suggesting exclusions"},
   "Lebenslauf für eine Stelle": {"fr": "CV pour un poste", "en": "CV for a job"},

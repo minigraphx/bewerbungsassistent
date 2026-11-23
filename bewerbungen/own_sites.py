@@ -12,6 +12,7 @@ import urllib.parse
 
 from ai.connection import own_key
 from hits import DOMAINS, Hits, OWN_SITES
+from ui_message import T
 
 MAX_SITES = 5
 MAX_ADDRESS = 500
@@ -23,10 +24,12 @@ INNER_ENDINGS = (".local", ".localhost", ".internal", ".intranet", ".lan", ".hom
 TOP_LEVEL = re.compile(r"(xn--[a-z0-9-]+|[a-z]{2,})")  # browsers read 127.1 or 0x7f.0.0.1 as addresses, not as names
 TRACKING = re.compile(r"^(utm_.*|ref|refid|trk.*|tracking.*|position|pagenum|gclid|fbclid|msclkid|source|src)$", re.I)
 BAD_ADDRESS = "„{address}“ geht nicht: {why}"
+NOT_PUBLIC = T("Das ist keine öffentliche Seite.")
 
 
 def _refuse(address, why: str) -> ValueError:
-    return ValueError(BAD_ADDRESS.format(address=str(address)[:80], why=why))
+    """The address stays as typed; `why` is a T, so both parts follow the app language (#425)."""
+    return ValueError(T(BAD_ADDRESS, address=str(address)[:80], why=why))
 
 
 def _is_inner(host: str) -> bool:
@@ -43,31 +46,33 @@ def _portal(address: str) -> str:
     parts = urllib.parse.urlsplit(filled)
     host = (parts.hostname or "").lower()
     if parts.scheme != "https" or parts.netloc.lower() != host or not host:
-        raise _refuse(address, "Die Adresse muss mit https:// beginnen und darf weder Anmeldedaten noch einen Port enthalten.")
+        raise _refuse(address, T("Die Adresse muss mit https:// beginnen und darf weder Anmeldedaten noch einen Port "
+                                 "enthalten."))
     if "{" in urllib.parse.urlsplit(address).netloc or _is_inner(host):
-        raise _refuse(address, "Das ist keine öffentliche Seite.")
+        raise _refuse(address, NOT_PUBLIC)
     try:
         portal = host.encode("idna").decode("ascii").removeprefix("www.")  # as the browser writes the host
     except UnicodeError as error:
-        raise _refuse(address, "Das ist keine öffentliche Seite.") from error
+        raise _refuse(address, NOT_PUBLIC) from error
     if "." not in portal:
-        raise _refuse(address, "Das ist keine öffentliche Seite.")
+        raise _refuse(address, NOT_PUBLIC)
     return portal
 
 
 def clean(address) -> dict:
     """{"portal": host, "adresse": address}; ValueError with a message for the person if it cannot be used."""
     if not isinstance(address, str) or not address.strip():
-        raise _refuse(address, "Das ist keine Adresse.")
+        raise _refuse(address, T("Das ist keine Adresse."))
     if len(address) > MAX_ADDRESS or any(c in address for c in FORBIDDEN_CHARACTERS) or any(ord(c) < 0x20 for c in address):
-        raise _refuse(address, "Die Adresse ist zu lang oder enthält Zeichen, die nicht in eine Adresse gehören.")
+        raise _refuse(address, T("Die Adresse ist zu lang oder enthält Zeichen, die nicht in eine Adresse gehören."))
     if "://" not in address:
         address = f"https://{address}"
     if not set(PLACEHOLDER.findall(address)) <= ALLOWED_PLACEHOLDERS or PLACEHOLDER.sub("", address).count("{") + PLACEHOLDER.sub("", address).count("}"):
-        raise _refuse(address, "Erlaubt sind nur die Platzhalter {begriff} und {ort}.")
+        # no values given, so T keeps both braces as written
+        raise _refuse(address, T("Erlaubt sind nur die Platzhalter {begriff} und {ort}."))
     portal = _portal(address)
     if any(portal == domain or portal.endswith("." + domain) for domain in DOMAINS.values()):
-        raise _refuse(address, "Diese Seite durchsucht die App schon.")
+        raise _refuse(address, T("Diese Seite durchsucht die App schon."))
     return {"portal": portal, "adresse": address}
 
 
@@ -94,7 +99,7 @@ def save(store: Hits, addresses) -> list[dict]:
     if not isinstance(addresses, list):
         raise ValueError("Liste der Adressen erwartet")
     if len(addresses) > MAX_SITES:
-        raise ValueError(f"Es gehen höchstens {MAX_SITES} weitere Seiten.")
+        raise ValueError(T("Es gehen höchstens {anzahl} weitere Seiten.", anzahl=MAX_SITES))
     sites = [clean(address) for address in addresses]
     portals = [site["portal"] for site in sites]
     if len(set(portals)) < len(portals):

@@ -2,7 +2,8 @@
 // On Suche einstellen (#319, G86): under Was nicht, the AI proposes exclusion reasons from the dismissed hits. Before
 // the run the box names the count and the cost; with fewer than three dismissed hits it shows its empty state and
 // no button. Each proposal names the hits it rests on; „Übernehmen“ writes it with drafts, and the feedback in the
-// proposal offers Rückgängig. Nothing changes without these clicks. Words in ki-ausschluesse-logik.js.
+// proposal offers Rückgängig. Nothing changes without these clicks. Words in ki-ausschluesse-logik.js, in the app
+// language (#425).
 (() => {
   const { holen, senden, status, el, textsatz } = window.App;
   const L = window.KiAusschluesseLogik;
@@ -56,6 +57,20 @@
     if (stand.vorhanden) gleicheAb(stand.vorhanden);
   }
 
+  function reportBoxFailed(fehler) {
+    $("ki-ausschluesse").hidden = false;  // the reason stays visible; the card works without the box
+    $("ki-ausschluesse-start").hidden = true;
+    $("ki-ausschluesse-was").hidden = true;
+    $("ki-ausschluesse-satz").textContent = "";
+    status($("ki-ausschluesse-status"), L.nichtGeladen(fehler.message), "fehler");
+  }
+
+  /** The proposal keeps its button, so the person can try again. */
+  function reportProposalFailed(teile, button, text) {
+    button.disabled = false;
+    rueckmeldung(teile, teile.angezeigt, text, button, { stufe: "fehler" });
+  }
+
   async function lade() {
     try {
       const [stand, neu] = await Promise.all([holen(ROUTE), textsatz()]);
@@ -63,11 +78,7 @@
       $("ki-ausschluesse-was-text").textContent = L.wasGeht(satz, window.Texte);
       zeigeStand(stand);
     } catch (fehler) {
-      $("ki-ausschluesse").hidden = false;  // the reason stays visible; the card works without the box
-      $("ki-ausschluesse-start").hidden = true;
-      $("ki-ausschluesse-was").hidden = true;
-      $("ki-ausschluesse-satz").textContent = "";
-      status($("ki-ausschluesse-status"), `${L.NICHT_GELADEN} ${fehler.message}`, "fehler");
+      reportBoxFailed(fehler);
     }
   }
 
@@ -78,8 +89,7 @@
       rueckmeldung(teile, "zurueck", L.zurueck(vorschlag), knopfUebernehmen(vorschlag, teile));
       geaendert();
     } catch (fehler) {
-      button.disabled = false;
-      rueckmeldung(teile, teile.angezeigt, `${L.NICHT_ZURUECK} ${fehler.message}`, button, { stufe: "fehler" });
+      reportProposalFailed(teile, button, L.nichtZurueck(fehler.message));
     }
   }
 
@@ -90,8 +100,7 @@
       rueckmeldung(teile, "uebernommen", L.uebernommen(vorschlag), knopfZurueck(vorschlag, teile));
       geaendert();
     } catch (fehler) {
-      button.disabled = false;
-      rueckmeldung(teile, teile.angezeigt, `${L.NICHT_GESPEICHERT} ${fehler.message}`, button, { stufe: "fehler" });
+      reportProposalFailed(teile, button, L.nichtUebernommen(fehler.message));
     }
   }
 
@@ -101,7 +110,7 @@
     teile.aktion = el("div", { class: "btn-row" }, knopfUebernehmen(vorschlag, teile));
     karten = [...karten, { vorschlag, teile }];
     return el("li", { class: "ai-exclusion" },
-      el("p", { class: "ai-exclusion__value" }, el("strong", {}, `«${vorschlag.wert}»`)),
+      el("p", { class: "ai-exclusion__value" }, el("strong", {}, window.Texte.t("«{wert}»", { wert: vorschlag.wert }))),
       el("p", { class: "caption" }, L.wo(vorschlag)),
       vorschlag.grund ? el("p", {}, vorschlag.grund) : null,
       el("p", { class: "ai-exclusion__basis" }, L.stuetze(vorschlag)),

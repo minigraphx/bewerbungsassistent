@@ -3,8 +3,9 @@
 `ui_texts` gives it to the routes; modules that `language_settings` itself reads (`search_plan` through `precheck`)
 import it from here, so no import goes round in a circle.
 """
+import functools
 import re
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 import translation_catalog
 
@@ -50,3 +51,13 @@ class T(str):
         values = {name: value.in_language(catalog, language) if isinstance(value, T) else value
                   for name, value in self._pairs}
         return fill(template, values)
+
+
+def listing(items: Sequence[Any]) -> Any:
+    """Items as „a, b und c“, said in the app language with each item, a T among them, in it too (#425).
+
+    One item is itself; joining with a plain ", ".join would keep the quotes of a quoted term German."""
+    if len(items) == 1:
+        return items[0]
+    head = functools.reduce(lambda joined, item: T("{a}, {b}", a=joined, b=item), items[1:-1], items[0])
+    return T("{namen} und {letzter}", namen=head, letzter=items[-1])

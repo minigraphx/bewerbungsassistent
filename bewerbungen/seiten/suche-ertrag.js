@@ -1,7 +1,8 @@
 "use strict";
 // What the search brings on Suche einstellen (G103, #375): the yield line and the mark «ohne Ertrag» at each term (drawn
 // by suchliste.js), one caption under the list, the empty searches per term and portal, and in the card Region und
-// Pensum what each place brought. The numbers come from GET /api/suche/ertrag, the words from suche-ertrag-logik.js.
+// Pensum what each place brought. The numbers come from GET /api/suche/ertrag, the words from suche-ertrag-logik.js,
+// in the app language (#425).
 window.SucheErtrag = (() => {
   const { el } = window.App;
   const E = window.SucheErtragLogik;
@@ -31,7 +32,8 @@ window.SucheErtrag = (() => {
 
   function ortZeile(ort) {
     const ausserhalb = E.ausserhalbOrte(ort);  // G111: where the niche hits outside the region lay
-    return el("li", {}, `${E.ortName(ort)}: `, ...window.DotLine.render(E.teile(ort), el), ...(ort.ohne_ertrag ? [" ", marke()] : []),
+    return el("li", {}, window.Texte.t("{ort}:", { ort: E.ortName(ort) }), " ", ...window.DotLine.render(E.teile(ort), el),
+      ...(ort.ohne_ertrag ? [" ", marke()] : []),
       ...(ausserhalb ? [el("p", { class: "caption ertrag-ausserhalb" }, ausserhalb)] : []));
   }
 

@@ -39,7 +39,7 @@
       draft: Texte.t("Anschreiben entwerfen"), review: Texte.t("Anschreiben prüfen"),
       dossier_texts: Texte.t("Texte fürs Dossier"), chat: Texte.t("Fragen an die KI"),
       prefill: Texte.t("Angaben vorbefüllen"), form_fields: forms, form_answers: forms,
-      career: Texte.t("Suchbegriffe vorschlagen"), terms: Texte.t("Suchbegriffe prüfen"),
+      career: Texte.t("Suchbegriffe vorschlagen"), terms: Texte.text("einstellungen.aufgabe-suchbegriffe"),
       site_list: Texte.t("Weitere Seiten lesen"), exclusions: Texte.t("Ausschlüsse vorschlagen"),
       cv_suggestions: Texte.t("Lebenslauf für eine Stelle"),
     };

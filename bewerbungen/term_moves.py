@@ -8,12 +8,13 @@ import dataclasses
 
 import search_plan
 import search_terms
+from ui_message import T
 
 CHANGE, MERGE, NICHE, PORTALS = "change", "merge", "niche", "portals"
 KINDS = (CHANGE, MERGE, NICHE, PORTALS)
 MOVES = (NICHE, PORTALS)
 NICHE_WORD = "zu den Nischen"
-LIMIT_WORD = "nur {portals}"
+LIMIT_WORD = "nur {portale}"
 NICHE_SENTENCE = "„{term}“ zu den Nischen verschieben (ohne Ort suchen)"
 LIMIT_SENTENCE = "„{term}“ nur auf {portals} suchen"
 MERGE_SENTENCE = "„{term}“ in „{into}“ zusammenlegen"
@@ -58,16 +59,17 @@ def checked_portals(value: object, term: str, placement: Placement) -> tuple[str
 
 
 def sentence(kind: str, term: str, into: str = "", portals: tuple[str, ...] = ()) -> str:
+    """A T (#425): the page says it in the app language; term and portal names stay as written."""
     if kind == MERGE:
-        return MERGE_SENTENCE.format(term=term, into=into)
+        return T(MERGE_SENTENCE, term=term, into=into)
     if kind == NICHE:
-        return NICHE_SENTENCE.format(term=term)
-    return LIMIT_SENTENCE.format(term=term, portals=", ".join(portals))
+        return T(NICHE_SENTENCE, term=term)
+    return T(LIMIT_SENTENCE, term=term, portals=", ".join(portals))
 
 
 def word(kind: str, portals: tuple[str, ...]) -> str:
     """The word on the one switch of a move, when it is on."""
-    return NICHE_WORD if kind == NICHE else LIMIT_WORD.format(portals=", ".join(portals))
+    return T(NICHE_WORD) if kind == NICHE else T(LIMIT_WORD, portale=", ".join(portals))
 
 
 def moved(text: str, kind: str, term: str, portals: tuple[str, ...]) -> str:

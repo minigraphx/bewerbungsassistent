@@ -16,31 +16,31 @@ import search_terms
 import term_moves
 import title_filter
 from ai import career
+from ui_message import T, listing
 
 KEYWORDS, POSITIVE, EXCLUDE = "keywords", "positive", "exclude"
 MOVED = "verschoben"  # in the switches of the page: the keywords whose move is on (G108)
 AREAS = (KEYWORDS, POSITIVE, EXCLUDE)
-AREA_NAMES = {KEYWORDS: "Suchbegriffe", POSITIVE: "Titel enthält eines davon", EXCLUDE: "Titel enthält keines davon"}
+AREA_NAMES = {KEYWORDS: T("Suchbegriffe"), POSITIVE: T("Titel enthält eines davon"), EXCLUDE: T("Titel enthält keines davon")}
 AREA_KEYS = {KEYWORDS: "suchbegriffe", POSITIVE: "positiv", EXCLUDE: "ausschluss"}
 TITLE_LABELS = {POSITIVE: "positiv", EXCLUDE: "ausschluss"}
 MAX_CHANGES = 10
 MAX_TERMS_PER_CHANGE = 6
 MAX_REASON = 400
 MIN_AVOIDED_WORD = career.MIN_AVOIDED_WORD
-NOTHING_CHANGED = "Mit dieser Auswahl bleibt alles wie bisher."
-NOT_OFFERED = "Diese Auswahl passt nicht zum Vorschlag. Bitte die Seite neu laden."
-SWITCH_OFF_WHERE = "Bitte noch {left} ausschalten, unter «Bisherige Begriffe» oder bei den Vorschlägen."
-OVER_KEYWORDS = "Mit dieser Auswahl wären es {count} Suchbegriffe, höchstens {limit} gehen. " + SWITCH_OFF_WHERE
+NOTHING_CHANGED = T("Mit dieser Auswahl bleibt alles wie bisher.")
+NOT_OFFERED = T("Diese Auswahl passt nicht zum Vorschlag. Bitte die Seite neu laden.")
+# Each a whole literal, so the scanner reads it (#425); the last sentence of the first two is the same.
+OVER_KEYWORDS = ("Mit dieser Auswahl wären es {count} Suchbegriffe, höchstens {limit} gehen. Bitte noch {left} "
+                 "ausschalten, unter «Bisherige Begriffe» oder bei den Vorschlägen.")
 OVER_KEYWORDS_BEFORE = ("Mit dieser Auswahl wären es {count} Suchbegriffe. Höchstens {limit} gehen; da es schon "
-                        "{earlier} sind, dürfen es nicht mehr werden. " + SWITCH_OFF_WHERE)
+                        "{earlier} sind, dürfen es nicht mehr werden. Bitte noch {left} ausschalten, unter «Bisherige "
+                        "Begriffe» oder bei den Vorschlägen.")
 OVER_TITLES = ("Mit dieser Auswahl hätte «{area}» {count} Begriffe, höchstens {limit} gehen. "
                "Bitte dort noch {left} ausschalten.")
-NO_TERMS_LEFT = "Danach stünde kein Suchbegriff mehr in der Suche. Bitte mindestens einen einschalten."
+NO_TERMS_LEFT = T("Danach stünde kein Suchbegriff mehr in der Suche. Bitte mindestens einen einschalten.")
 # G43: every search runs, in stages; the line says how many there would be, no longer up to a limit.
-# #340: two parts, which the page joins with «·» (seiten/dot-line.js).
-LIMITS_PARTS = ("Danach: {keywords} von {max_keywords} Suchbegriffen", "bis {queries} {searches} pro Portal")
-# A profile from before the limit may keep its terms, but not grow (#371).
-LIMITS_OVER_BEFORE = "Danach: {keywords} Suchbegriffe, erlaubt sind {earlier}"
+# #340: two parts, which the page joins with «·» (seiten/dot-line.js); one term and one search in the singular (#425).
 AREA_LIMITS = {KEYWORDS: search_plan.MAX_KEYWORDS, POSITIVE: search_plan.MAX_TITLE_TERMS,
                EXCLUDE: search_plan.MAX_TITLE_TERMS}
 
@@ -256,18 +256,27 @@ def allowed(before: Terms) -> dict[str, int]:
 def _over_message(area: str, count: int, earlier: int, left: int) -> str:
     limit = AREA_LIMITS[area]
     if area != KEYWORDS:
-        return OVER_TITLES.format(area=AREA_NAMES[area], count=count, limit=limit, left=left)
+        return T(OVER_TITLES, area=AREA_NAMES[area], count=count, limit=limit, left=left)
     if earlier > limit:
-        return OVER_KEYWORDS_BEFORE.format(count=count, limit=limit, earlier=earlier, left=left)
-    return OVER_KEYWORDS.format(count=count, limit=limit, left=left)
+        return T(OVER_KEYWORDS_BEFORE, count=count, limit=limit, earlier=earlier, left=left)
+    return T(OVER_KEYWORDS, count=count, limit=limit, left=left)
+
+
+def _keywords_part(before: Terms, after: Terms) -> str:
+    """How many keywords there would be; a profile from before the limit may keep its terms, but not grow (#371)."""
+    keywords, earlier = len(after.keywords), len(before.keywords)
+    if earlier > search_plan.MAX_KEYWORDS:
+        # „1 Suchbegriffe“ is the German as it was (#448)
+        return (T("Danach: 1 Suchbegriffe, erlaubt sind {earlier}", earlier=earlier) if keywords == 1
+                else T("Danach: {keywords} Suchbegriffe, erlaubt sind {earlier}", keywords=keywords, earlier=earlier))
+    return (T("Danach: 1 von {max_keywords} Suchbegriffen", max_keywords=search_plan.MAX_KEYWORDS) if keywords == 1
+            else T("Danach: {keywords} von {max_keywords} Suchbegriffen", keywords=keywords, max_keywords=search_plan.MAX_KEYWORDS))
 
 
 def _limits_line(before: Terms, after: Terms, places: int) -> list[str]:
-    numbers = {"keywords": len(after.keywords), "max_keywords": search_plan.MAX_KEYWORDS,
-               "earlier": len(before.keywords), "queries": len(after.keywords) * places,
-               "searches": "Suche" if len(after.keywords) * places == 1 else "Suchen"}
-    first = LIMITS_OVER_BEFORE if len(before.keywords) > search_plan.MAX_KEYWORDS else LIMITS_PARTS[0]
-    return [part.format(**numbers) for part in (first, *LIMITS_PARTS[1:])]
+    queries = len(after.keywords) * places
+    return [_keywords_part(before, after),
+            T("bis 1 Suche pro Portal") if queries == 1 else T("bis {queries} Suchen pro Portal", queries=queries)]
 
 
 def limits(before: Terms, after: Terms, places: int, moves: int = 0) -> dict:
@@ -360,31 +369,38 @@ def moves_of(changes: tuple[Change, ...]) -> tuple[tuple[str, str, tuple[str, ..
     return tuple((change.kind, change.moved, change.portals) for change in changes if change.is_move)
 
 
-def _quoted(terms: tuple[str, ...], marks: str = "«»") -> str:
-    named = [f"{marks[0]}{term}{marks[1]}" for term in terms]
-    return named[0] if len(named) == 1 else f"{', '.join(named[:-1])} und {named[-1]}"
+def _quoted(terms: tuple[str, ...]) -> str:
+    return listing([T("«{begriff}»", begriff=term) for term in terms])
 
 
-def _listing(terms: tuple[str, ...]) -> str:
-    return terms[0] if len(terms) == 1 else f"{', '.join(terms[:-1])} und {terms[-1]}"
+def _quoted_keywords(terms: tuple[str, ...]) -> str:
+    """G108: as the counts on the page name a keyword."""
+    return listing([T("„{begriff}“", begriff=term) for term in terms])
+
+
+def _added(change: Change) -> str:
+    if change.area == EXCLUDE:
+        return T("{begriffe} ausschliessen", begriffe=_quoted(change.add))
+    if change.area != KEYWORDS:
+        return T("{begriffe} aufnehmen", begriffe=_quoted(change.add))
+    if len(change.add) == 1:
+        return T("Suchbegriff {begriffe} aufnehmen", begriffe=_quoted(change.add))
+    return T("Suchbegriffe {begriffe} aufnehmen", begriffe=_quoted(change.add))
 
 
 def sentence(change: Change) -> str:
-    """The change in one sentence, the label of its checkbox."""
+    """The change in one sentence, the label of its checkbox; a T, so the page shows it in the app language (#425)."""
     if change.kind != term_moves.CHANGE:
         return term_moves.sentence(change.kind, change.moved or change.remove[0], change.into, change.portals)
     if change.area == KEYWORDS and change.remove and not change.add:
-        return f"{_quoted(change.remove, '„“')} entfernen"  # G108: as the counts on the page name a keyword
+        return T("{begriffe} entfernen", begriffe=_quoted_keywords(change.remove))
     if change.area != KEYWORDS and len(change.remove) == len(change.add) == 1 and _same(change.area, *change.remove,
                                                                                         *change.add):
-        return f"„{change.remove[0]}“ ersetzen durch „{change.add[0]}“"
+        return T("„{alt}“ ersetzen durch „{neu}“", alt=change.remove[0], neu=change.add[0])
     if change.remove and change.add:
-        return f"{_quoted(change.remove)} ersetzen durch {_listing(change.add)}"
+        return T("{begriffe} ersetzen durch {neue}", begriffe=_quoted(change.remove), neue=listing(list(change.add)))
     if change.add:
-        if change.area == EXCLUDE:
-            return f"{_quoted(change.add)} ausschliessen"
-        prefix = ("Suchbegriff " if len(change.add) == 1 else "Suchbegriffe ") if change.area == KEYWORDS else ""
-        return f"{prefix}{_quoted(change.add)} aufnehmen"
+        return _added(change)
     if change.area == EXCLUDE:
-        return f"{_quoted(change.remove)} nicht mehr ausschliessen"
-    return f"{_quoted(change.remove)} entfernen"
+        return T("{begriffe} nicht mehr ausschliessen", begriffe=_quoted(change.remove))
+    return T("{begriffe} entfernen", begriffe=_quoted(change.remove))

@@ -1,6 +1,7 @@
 "use strict";
 // „Weitere Seiten durchsuchen“ on Suche einstellen (MIN-348, #263, G57): the addresses, only with an own API key.
-// Without one the card says where the key goes; the extension is asked for access to the sites it lists.
+// Without one the card says where the key goes; the extension is asked for access to the sites it lists. Messages in
+// the app language through Texte (#425).
 (() => {
   const { holen, senden, status } = window.App;
   const $ = id => document.getElementById(id);
@@ -30,7 +31,8 @@
     const seiten = $("seiten").value.split("\n").map(zeile => zeile.trim()).filter(Boolean);
     try {
       zeige(await senden("/api/suche/weitere-seiten", { seiten }));
-      meldung(seiten.length ? "Gespeichert. Die Seiten kommen bei der nächsten Suche dazu." : "Gespeichert.", "ok");
+      meldung(seiten.length ? window.Texte.t("Gespeichert. Die Seiten kommen bei der nächsten Suche dazu.")
+        : window.Texte.t("Gespeichert."), "ok");
     } catch (fehler) {
       meldung(fehler.message, "fehler", { input: window.Meldungen.isInputRejection(fehler) ? $("seiten") : null });
     }
@@ -38,11 +40,12 @@
 
   function zugriffErlauben() {
     if (!hatErweiterung()) {
-      meldung("Die Browser-Erweiterung antwortet nicht. Bitte diese Seite im Browser mit der Erweiterung öffnen.", "hinweis");
+      meldung(window.Texte.t("Die Browser-Erweiterung antwortet nicht. Bitte diese Seite im Browser mit der Erweiterung öffnen."),
+        "hinweis");
       return;
     }
     window.postMessage({ quelle: SEITE, art: "zugriff-erlauben" }, location.origin);
-    meldung("Die Erweiterung hat eine eigene Seite geöffnet. Bitte dort erlauben.", "ok");
+    meldung(window.Texte.t("Die Erweiterung hat eine eigene Seite geöffnet. Bitte dort erlauben."), "ok");
   }
 
   // The extension can refuse; then the page must not claim otherwise.
