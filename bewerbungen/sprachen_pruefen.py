@@ -2,8 +2,8 @@
 
     python -m sprachen_pruefen [--alle] [--katalog <ordner>] [datei …]
 
-Prints `datei:zeile: text [fr,en]` for each text that lacks a language in the catalog, and `[Texte.t]` for a German
-literal a script shows without Texte.t; the exit code is 1 with a gap. Without files it checks FERTIG, with --alle
+Prints `datei:zeile: text [fr,en]` for each text that lacks a language in the catalog, `[Texte.t]` for a German
+literal a script shows without Texte.t and `[T]` for a Python message built with an f-string outside T; the exit code is 1 with a gap. Without files it checks FERTIG, with --alle
 every source of the app. tests/test_sprachen.py runs the same checks in the gate, together with the catalog's own
 consistency (catalog_problems) and entries no source uses (orphans).
 """
@@ -24,6 +24,7 @@ BASE = language_sources.BASE
 # Entries as BASE / "seiten/heute.html".
 FERTIG: tuple[pathlib.Path, ...] = ()
 LEFTOVER = "Texte.t"
+PYTHON_LEFTOVER = "T"
 REQUIRED_FORMS = {"fr": ("sie", "du"), "en": ("sie",)}
 FORMS = ("sie", "du", "lehrstelle")
 PLACEHOLDER = re.compile(r"\{(\w+)\}")
@@ -47,7 +48,7 @@ def _shown(path: pathlib.Path) -> str:
 
 def _missing(item: language_sources.Item, catalog: translation_catalog.Catalog) -> tuple[str, ...]:
     if item.kind == "leftover":
-        return (LEFTOVER,)
+        return (PYTHON_LEFTOVER if item.path.suffix == ".py" else LEFTOVER,)
     if item.kind == "set":
         return tuple(language for language in LANGUAGES if not catalog.form(item.text, language, "sie"))
     return tuple(language for language in LANGUAGES if not catalog.text(item.text, language))

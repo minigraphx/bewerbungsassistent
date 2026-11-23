@@ -1,6 +1,6 @@
 # Bewerbungsbegleiter auf Französisch und Englisch
 
-Stand: 23.11.2026 · Board #95 (App in fr und en), Schritt 1: #414 · Spec G10
+Stand: 23.11.2026 · Board #95 (App in fr und en), Schritt 1: #414, Schritt 2: #415 · Spec G10
 
 Die Oberfläche der App kommt auf Französisch und Englisch dazu. Deutsch bleibt die Quelle und ändert sich nicht. Dieses Dokument beschreibt, wie die Übersetzung funktioniert, wie ein späterer Schritt eine Seite übersetzt, welche Wörter in allen Sprachen gleich übersetzt werden und was Andy entschieden hat.
 
@@ -35,7 +35,7 @@ Die Übersetzungen liegen in `bewerbungen/sprachen/`, eine JSON-Datei pro Gruppe
 
 ### Woher die Sprache kommt
 
-`bewerbungen/ui_texts.py` gibt mit `sprache(k)` die Sprache der App für den Datenordner. Seiten, Skripte und ab #415 die Meldungen des Servers lesen sie nur dort.
+`bewerbungen/ui_texts.py` gibt mit `sprache(k)` die Sprache der App für den Datenordner. Seiten, Skripte und die Meldungen des Servers (#415) lesen sie nur dort.
 
 - Solange der Schalter aus ist (`SWITCH_ON = False`), gibt `sprache(k)` immer `de`.
 - Für die Entwicklung und für die Prüfung eines Items schaltet die Umgebungsvariable `BEWERBUNGSBEGLEITER_SPRACHE_VORSCHAU=1` die Vorschau ein: Dann gilt die gespeicherte Sprache der App aus `sprachen.yaml` (Einstellungen, Karte „Sprache“).
@@ -49,7 +49,8 @@ BEWERBUNGSBEGLEITER_SPRACHE_VORSCHAU=1 PYTHONPATH=bewerbungen:lebenslauf:onboard
 `Server._seite` gibt jede Seite durch `page_translation.translate`:
 
 - Auf Deutsch bleibt die Seite Byte für Byte, wie sie ist.
-- Auf Französisch oder Englisch setzt sie `<html lang="fr">` bzw. `"en"`, übersetzt Textknoten ausserhalb von `script` und `style` und die Attribute `aria-label`, `placeholder`, `title` und `alt`. Ein Element mit `data-text` bekommt die Sie-Form seines Textsatzes; `Texte.anwenden` setzt danach die passende Form.
+- Auf Französisch oder Englisch setzt sie `<html lang="fr">` bzw. `"en"`, übersetzt Textknoten ausserhalb von `script` und `style` und die Attribute `aria-label`, `placeholder`, `title` und `alt`, in doppelten wie in einfachen Anführungszeichen. Ein Element mit `data-text` bekommt die Sie-Form seines Textsatzes; `Texte.anwenden` setzt danach die passende Form.
+- Der Inhalt eines `<textarea>` ist Text der Person und bleibt, wie er ist; nur die Attribute des Felds werden übersetzt.
 - Vor das erste `<script>` kommt `<script src="/uebersetzung.js?sprache=fr">`. Es setzt `Uebersetzung` mit den Texten dieser Sprache. Das Skript kommt von der App selbst (`script-src 'self'`); Skripte und Stile der Seite bleiben unberührt, darum gelten auch die Hashes von „Meine Angaben“ weiter.
 - Ist der Katalog kaputt, bleibt die Seite deutsch, und die Konsole nennt die Datei.
 
@@ -65,6 +66,20 @@ In `seiten/texte.js`:
 
 Einen Text, der aus Teilen zusammengesetzt wird, schreibt man als eine Vorlage mit Platzhaltern, nie als Verkettung.
 
+### Meldungen des Servers
+
+Eine Meldung für die Person schreibt eine Route als `T("Abgabe bis {datum}", datum=datum)` aus `ui_texts`:
+
+- `T` ist eine Unterklasse von `str` und ist der deutsche Text mit eingesetzten Werten. Code und Tests, die die Meldung lesen (`str(fehler) == "Abgabe bis 20.11.2026"`), merken nichts. Dazu behält `T` die Vorlage (`template`) und die Werte (`values`), denn der Schlüssel im Katalog ist die Vorlage.
+- **Fehler:** `_run_route` gibt die Meldung eines `ValueError`, `KeyError` (auch `NichtGefunden`) oder `StatusError` als `fehler.args[0]` an `_fehler`, ein `T` also als `T`. `_fehler` sagt sie in der Sprache der App: ein `T` über seine Vorlage, ein schlichter deutscher Text nur, wenn er genau so im Katalog steht (feste Meldungen wie „Nicht gefunden“).
+- **Antworten:** `json_antwort` behält den Wert der Antwort; vor dem Senden ersetzt der Server darin nur die `T`, etwa in `hinweis` oder in Befunden. Alles andere sind Daten und bleibt deutsch, auch ein Text, der zufällig ein Schlüssel im Katalog ist (ein Stand, ein Titel). Auf Deutsch geht die Antwort Byte für Byte so hinaus, wie die Route sie gebaut hat.
+- Ein Wert, der selbst ein `T` ist, kommt in derselben Sprache in die Vorlage.
+- Die Sprache kommt aus dem Datenordner des Servers, darum folgen auch die Antworten an die Erweiterung und an Claude über die App.
+- Wer eine Meldung ausserhalb einer Route zeigt (etwa `desktop/dialogs.py`), holt sie mit `ui_texts.uebersetze(text, sprache)`.
+- Ist der Katalog kaputt, bleibt die Meldung deutsch, und die Konsole nennt die Datei.
+
+Eine Meldung mit Werten braucht `T`: Ein f-String ergibt einen Text, der nie im Katalog steht.
+
 ### Prüfung auf fehlende Texte
 
 ```
@@ -74,13 +89,13 @@ python -m sprachen_pruefen --alle       # jede Quelle der App
 python -m sprachen_pruefen seiten/heute.html seiten/heute.js
 ```
 
-Jede Zeile nennt `datei:zeile: text [fr,en]` mit den fehlenden Sprachen; `[Texte.t]` heisst, ein Skript zeigt einen deutschen Text, ohne ihn über `Texte.t` zu holen. Mit einer Lücke endet der Befehl mit 1.
+Jede Zeile nennt `datei:zeile: text [fr,en]` mit den fehlenden Sprachen; `[Texte.t]` heisst, ein Skript zeigt einen deutschen Text, ohne ihn über `Texte.t` zu holen, `[T]`, eine Meldung in Python ist ein f-String statt eines `T`. Mit einer Lücke endet der Befehl mit 1.
 
 Gelesen wird:
 
 - **HTML:** was die Seite übersetzt (Textknoten, die vier Attribute, Textsätze über `data-text`).
 - **JavaScript:** der Text in jedem `Texte.t(…)`, der Schlüssel in jedem `Texte.text(…)` und deutsch aussehende Texte ausserhalb davon (ein Satz mit Leerzeichen oder ein grossgeschriebenes Wort).
-- **Python:** der Text in jedem `T(…)` (kommt mit #415) und die Meldung eines `raise`, auch über eine Konstante des Moduls.
+- **Python:** die Vorlage in jedem `T(…)`, auch `ui_texts.T(…)`, und die Meldung eines `raise`, auch über eine Konstante des Moduls; eine Meldung als f-String gilt als Lücke `[T]`.
 
 Nicht als Text zählen:
 
@@ -148,6 +163,6 @@ Was die App speichert oder liest, bleibt in jeder Sprache deutsch; übersetzt wi
 
 ## Offen für spätere Schritte
 
-- **#415, Meldungen des Servers:** `ui_texts.T(vorlage, **werte)` als Unterklasse von `str`, die Deutsch behält; `_run_route` und `_fehler` übersetzen die Meldung mit `sprache(k)` des Datenordners der Anfrage. Der Katalog und `sprache(k)` sind dafür schon da.
+- **Routen umstellen:** Die Meldungen des Servers übersetzt `T` seit #415 (Abschnitt oben); die Module der Routen stellen die Schritte ihrer Seiten auf `T` um, `server.py` selbst mit dem gemeinsamen Rahmen.
 - **#96, Erweiterung:** nutzt `sprache(k)`, das Katalogformat, den Scanner und das Glossar; die Sprache kommt über eine Antwort, die die Erweiterung schon bekommt.
 - **Grösse:** Bei etwa 3500 Texten wird der Katalog pro Sprache rund 300 KB gross; er kommt vom eigenen Rechner.

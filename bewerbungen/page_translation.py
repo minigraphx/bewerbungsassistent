@@ -16,12 +16,15 @@ import translation_catalog
 
 SCRIPT_PATH = "/uebersetzung.js"
 GERMAN = "de"
-# Comments, script and style blocks pass whole; every other tag is one token, what lies between tags a text node.
-TOKEN = re.compile(r"<!--.*?-->|<(script|style)\b[^>]*>.*?</\1\s*>|<[^>]*>", re.S | re.I)
-ATTRIBUTE = re.compile(r'(\s(?:aria-label|placeholder|title|alt)=")([^"]*)(")')
-TEXT_SET = re.compile(r'\sdata-text="([^"]+)"')
+# Comments, script and style blocks pass whole; every other tag is one token, what lies between tags a text node. The
+# content of a textarea is the person's own text (#415), so it passes whole too, while its opening tag is a tag.
+TOKEN = re.compile(r"<!--.*?-->|<(script|style)\b[^>]*>.*?</\1\s*>|(<textarea\b[^>]*>)(.*?</textarea\s*>)|<[^>]*>",
+                   re.S | re.I)
+# Attribute values in double or single quotes (#415); html.escape with quote=True is safe inside either.
+ATTRIBUTE = re.compile(r"""(\s(?:aria-label|placeholder|title|alt)=(["']))(.*?)(\2)""", re.S)
+TEXT_SET = re.compile(r"""\sdata-text=(["'])(.+?)\1""")
 HTML_TAG = re.compile(r"<html\b", re.I)
-LANG = re.compile(r'(\slang=")[^"]*(")')
+LANG = re.compile(r"""(\slang=(["']))[^"']*(\2)""")
 SPACES = re.compile(r"[ \t\r\n]+")
 WHITESPACE = " \t\r\n"
 # The German in a page with a text set is its Sie form, the default set (texte.js VORGABE).
@@ -31,7 +34,7 @@ log = logging.getLogger("bewerbungsbegleiter")
 
 @dataclasses.dataclass(frozen=True)
 class Segment:
-    kind: str  # "text", "tag" or "raw" (comment, script, style)
+    kind: str  # "text", "tag", "raw" (comment, script, style) or "user" (the content of a textarea)
     start: int
     value: str
 
@@ -48,8 +51,12 @@ def segments(page: str) -> Iterator[Segment]:
     for found in TOKEN.finditer(page):
         if found.start() > position:
             yield Segment("text", position, page[position:found.start()])
-        raw = found[0].startswith("<!--") or found[1] is not None
-        yield Segment("raw" if raw else "tag", found.start(), found[0])
+        if found[2] is not None:
+            yield Segment("tag", found.start(), found[2])
+            yield Segment("user", found.start(3), found[3])
+        else:
+            raw = found[0].startswith("<!--") or found[1] is not None
+            yield Segment("raw" if raw else "tag", found.start(), found[0])
         position = found.end()
     if position < len(page):
         yield Segment("text", position, page[position:])
@@ -73,10 +80,10 @@ def page_texts(page: str) -> Iterator[PageText]:
             text_set = None
         elif segment.kind == "tag":
             for found in ATTRIBUTE.finditer(segment.value):
-                if key_of(found[2]):
-                    yield PageText(segment.start + found.start(2), "text", key_of(found[2]))
+                if key_of(found[3]):
+                    yield PageText(segment.start + found.start(3), "text", key_of(found[3]))
             named = TEXT_SET.search(segment.value)
-            text_set = named[1] if named else None
+            text_set = named[2] if named else None
 
 
 def _text_node(raw: str, translation: str | None) -> str:
@@ -89,14 +96,14 @@ def _text_node(raw: str, translation: str | None) -> str:
 
 def _tag(tag: str, catalog: translation_catalog.Catalog, language: str) -> str:
     def attribute(found: re.Match) -> str:
-        translation = catalog.text(key_of(found[2]), language)
-        return found[1] + html_text.escape(translation, quote=True) + found[3] if translation else found[0]
+        translation = catalog.text(key_of(found[3]), language)
+        return found[1] + html_text.escape(translation, quote=True) + found[4] if translation else found[0]
 
     translated = ATTRIBUTE.sub(attribute, tag)
     if not HTML_TAG.match(translated):
         return translated
     if LANG.search(translated):
-        return LANG.sub(lambda found: f"{found[1]}{language}{found[2]}", translated, count=1)
+        return LANG.sub(lambda found: f"{found[1]}{language}{found[3]}", translated, count=1)
     return translated.replace("<html", f'<html lang="{language}"', 1)
 
 
@@ -117,7 +124,7 @@ def _translated(page: str, catalog: translation_catalog.Catalog, language: str) 
             script_added = True
         parts.append(_tag(segment.value, catalog, language) if segment.kind == "tag" else segment.value)
         named = TEXT_SET.search(segment.value) if segment.kind == "tag" else None
-        text_set = named[1] if named else None
+        text_set = named[2] if named else None
     return "".join(parts)
 
 

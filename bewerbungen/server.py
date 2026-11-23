@@ -73,10 +73,25 @@ class Antwort:
     typ: str
     inhalt: bytes
     kopf: tuple[tuple[str, str], ...] = ()
+    # The value of a JSON answer: the handler says its T messages in the app language before it goes out (#415).
+    wert: Any = dataclasses.field(default=None, compare=False, repr=False)
+
+
+def _json(wert: Any) -> bytes:
+    return json.dumps(wert, ensure_ascii=False).encode("utf-8")
 
 
 def json_antwort(wert: Any, status: int = HTTPStatus.OK) -> Antwort:
-    return Antwort(status, "application/json; charset=utf-8", json.dumps(wert, ensure_ascii=False).encode("utf-8"))
+    return Antwort(status, "application/json; charset=utf-8", _json(wert), wert=wert)
+
+
+def _message(error: Exception, keyed: bool = False) -> str:
+    """What an error says to the person. A T stays a T, so _fehler can say it in the app language; otherwise the text
+    as before: str() of the error, of its first argument for a KeyError, whose own str() would quote it."""
+    first = error.args[0] if error.args else None
+    if isinstance(first, ui_texts.T):
+        return first
+    return str(first) if keyed and error.args else str(error)
 
 
 def _header_name(name: str) -> str:
@@ -144,8 +159,20 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(antwort.inhalt)
 
+    def _language(self) -> str:
+        """The app language of the data folder this server serves; it answers the extension's requests too."""
+        return ui_texts.sprache(self.server.kontext)
+
     def _fehler(self, status: int, meldung: str, action: str | None = None) -> None:
-        self._senden(json_antwort({"fehler": meldung, **({"aktion": action} if action else {})}, status))
+        text = ui_texts.uebersetze(meldung, self._language())
+        self._senden(json_antwort({"fehler": text, **({"aktion": action} if action else {})}, status))
+
+    def _in_language(self, antwort: Antwort) -> Antwort:
+        """A JSON answer with its T messages in the app language; in German it goes out as the route encoded it."""
+        language = self._language()
+        if antwort.wert is None or language == ui_texts.GERMAN:
+            return antwort
+        return dataclasses.replace(antwort, inhalt=_json(ui_texts.translate_marked(antwort.wert, language)))
 
     def _host_erlaubt(self) -> bool:
         port = self.server.server_address[1]
@@ -268,18 +295,16 @@ class Handler(BaseHTTPRequestHandler):
     def _run_route(self, route: Route, parameter: dict, body: Any) -> None:
         try:
             antwort = route(self.server.kontext, parameter, body)
-        except NichtGefunden as fehler:
-            return self._fehler(HTTPStatus.NOT_FOUND, str(fehler.args[0] if fehler.args else fehler))
-        except KeyError as fehler:
-            return self._fehler(HTTPStatus.NOT_FOUND, str(fehler.args[0] if fehler.args else fehler))
+        except KeyError as fehler:  # NichtGefunden among them
+            return self._fehler(HTTPStatus.NOT_FOUND, _message(fehler, keyed=True))
         except ValueError as fehler:
-            return self._fehler(HTTPStatus.BAD_REQUEST, str(fehler), getattr(fehler, "action", None))
+            return self._fehler(HTTPStatus.BAD_REQUEST, _message(fehler), getattr(fehler, "action", None))
         except StatusError as fehler:
-            return self._fehler(fehler.status, str(fehler))
+            return self._fehler(fehler.status, _message(fehler))
         except Exception:
             log.exception("Fehler bei %s %s", self.command, self.path)
             return self._fehler(HTTPStatus.INTERNAL_SERVER_ERROR, "Interner Fehler, Details in der Konsole")
-        self._senden(antwort)
+        self._senden(self._in_language(antwort))
 
     def log_message(self, format: str, *args) -> None:
         log.debug(format, *args)

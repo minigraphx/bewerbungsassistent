@@ -2,9 +2,10 @@
 
 HTML: what page_translation translates: text nodes outside script and style, the attributes aria-label, placeholder,
 title and alt, and the text set of an element with data-text. JavaScript: the literal of each `Texte.t(…)`, the key of
-each `Texte.text(…)`, and German-looking literals left outside Texte.t. Python: the literal of each `T(…)` (#415) and
-the literal message of a `raise`, also through a module constant. Never a text: names in INVARIANT, stored data values
-(DATA_VALUES), comparisons, object keys, code-like literals and lines marked `kein UI-Text`.
+each `Texte.text(…)`, and German-looking literals left outside Texte.t. Python: the template of each `T(…)` (#415) and
+the literal message of a `raise`, also through a module constant; a message built with an f-string needs `T`. Never a
+text: names in INVARIANT, stored data values (DATA_VALUES), comparisons, object keys, code-like literals and lines
+marked `kein UI-Text`.
 """
 import ast
 import dataclasses
@@ -53,7 +54,9 @@ class Item:
     path: pathlib.Path
     line: int
     text: str
-    kind: str  # "text": German text for the catalog; "set": key of a text set; "leftover": literal outside Texte.t
+    # "text": German text for the catalog; "set": key of a text set; "leftover": a literal outside Texte.t (JavaScript)
+    # or a formatted message outside T (Python)
+    kind: str
 
 
 def needs_translation(text: str) -> bool:
@@ -136,13 +139,18 @@ def _literal(node: ast.expr, constants: dict[str, str]) -> str | None:
     return None
 
 
-def _message(node: ast.AST, constants: dict[str, str]) -> str | None:
+def _message(node: ast.AST, constants: dict[str, str]) -> tuple[str, str] | None:
+    """(kind, text) of a message: "text" for the catalog, "leftover" for a formatted one that only T can translate,
+    since the server matches a plain message as a whole and the filled-in values are never in the catalog."""
     if isinstance(node, ast.Call) and node.args:
         callee = node.func.id if isinstance(node.func, ast.Name) else getattr(node.func, "attr", "")
         if callee == "T":
-            return _literal(node.args[0], constants)
+            text = _literal(node.args[0], constants)
+            return (("leftover" if isinstance(node.args[0], ast.JoinedStr) else "text"), text) if text else None
     if isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call) and node.exc.args:
-        return _literal(node.exc.args[0], constants)
+        first = node.exc.args[0]
+        text = _literal(first, constants)
+        return (("leftover" if isinstance(first, ast.JoinedStr) else "text"), text) if text else None
     return None
 
 
@@ -151,10 +159,10 @@ def _python_items(path: pathlib.Path, source: str) -> Iterator[Item]:
     constants = _module_constants(tree)
     marked = _marked_lines(source)
     for node in ast.walk(tree):
-        text = _message(node, constants)
+        message = _message(node, constants)
         lines = range(getattr(node, "lineno", 0), getattr(node, "end_lineno", 0) + 1)
-        if text and needs_translation(text) and not marked.intersection(lines):
-            yield Item(path, node.lineno, text, "text")
+        if message and needs_translation(message[1]) and not marked.intersection(lines):
+            yield Item(path, node.lineno, message[1], message[0])
 
 
 READERS = {".html": _html_items, ".js": _js_items, ".py": _python_items}
