@@ -106,6 +106,11 @@ window.SucheRahmen = (() => {
     else knopf.focus();
   }
 
+  function reportNotSaved(karte, meldung, fehler) {
+    status(meldung, window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler",
+      { input: window.Meldungen.isInputRejection(fehler) ? $(`${karte}-form`) : null });
+  }
+
   async function speichere(karte, event) {
     event.preventDefault();
     const meldung = $(`${karte}-meldung`);
@@ -118,8 +123,7 @@ window.SucheRahmen = (() => {
       // Listed hits of a company that is now excluded or back leave or join the list.
       if (karte === "nicht") document.dispatchEvent(new CustomEvent(window.SidebarLogic.HITS_CHANGED));
     } catch (fehler) {
-      status(meldung, window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler",
-        { input: window.Meldungen.isInputRejection(fehler) ? $(`${karte}-form`) : null });
+      reportNotSaved(karte, meldung, fehler);
     }
   }
 

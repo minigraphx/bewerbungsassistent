@@ -74,6 +74,10 @@
     $("pruefen-block").hidden = false;
   }
 
+  function reportYieldFailed(fehler) {
+    meldung(window.Texte.t("Was die Suche bringt, liess sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   /** What each term and place brought (G103); on its own, so the rest of the page does not wait for it. */
   async function zeigeErtrag(nummer) {
     try {
@@ -82,7 +86,7 @@
       window.SucheErtrag.zeige(ertrag, await textsatz());
       window.TitelfilterBeispiele.beispiele(ertrag.titelfilter);
     } catch (fehler) {
-      meldung(window.Texte.t("Was die Suche bringt, liess sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
+      reportYieldFailed(fehler);
     }
   }
 

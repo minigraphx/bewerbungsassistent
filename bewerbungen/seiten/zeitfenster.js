@@ -18,12 +18,16 @@
       el("li", {}, window.DotLine.render(anzeige.portalStand(zeile), el))));
   }
 
+  function reportNotSaved(fehler) {
+    status($("zeitfenster-meldung"), window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   async function speichere() {
     try {
       zeige(await senden("/api/suche/zeitfenster", { tage: Number($("zeitfenster-tage").value) }));
       status($("zeitfenster-meldung"), window.Texte.t("Gespeichert. Gilt ab der nächsten Suche."), "ok");
     } catch (fehler) {
-      status($("zeitfenster-meldung"), window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler");
+      reportNotSaved(fehler);
     }
   }
 

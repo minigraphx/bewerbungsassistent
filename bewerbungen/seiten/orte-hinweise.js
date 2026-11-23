@@ -71,6 +71,10 @@ window.OrteHinweise = (() => {
     $("plz-hinweis-knopf").textContent = plz ? plz.knopf : "";
   }
 
+  function reportNoticesFailed(fehler) {
+    status($("status"), window.Texte.t("Hinweise zu den Orten liessen sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   /** Loads the notices anew; an apprenticeship search gets none from the server. */
   async function lade() {
     const nummer = ++ladeNummer;
@@ -80,7 +84,7 @@ window.OrteHinweise = (() => {
     } catch (fehler) {
       if (nummer !== ladeNummer) return;
       zeige({ orte: [], plz: null });
-      status($("status"), window.Texte.t("Hinweise zu den Orten liessen sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
+      reportNoticesFailed(fehler);
     }
   }
 

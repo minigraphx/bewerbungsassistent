@@ -91,12 +91,16 @@ window.Suchliste = (() => {
     if (wieder && wieder.knoepfe[fokus.rolle]) wieder.knoepfe[fokus.rolle].focus();
   }
 
+  function reportOrderNotSaved(fehler) {
+    status(optionen.status, window.Texte.t("Reihenfolge nicht gespeichert: {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   function speichere() {
     const reihenfolge = [...begriffe];
     offen += 1;
     kette = kette
       .then(() => senden(ROUTE, { berufe: reihenfolge }))
-      .catch(fehler => status(optionen.status, window.Texte.t("Reihenfolge nicht gespeichert: {fehler}", { fehler: fehler.message }), "fehler"))
+      .catch(fehler => reportOrderNotSaved(fehler))
       .finally(() => {
         offen -= 1;
         // after a refusal too: the page loads what the server has saved
