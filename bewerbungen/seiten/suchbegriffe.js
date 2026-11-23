@@ -277,10 +277,15 @@
       status($("status"), L.uebernommen(stand.neu, stand.entfallen, stand.verschoben), "ok", { aktion: { text: Texte.t("Rückgängig machen"),
         ausfuehren: () => rueckgaengig({ vorher: stand.vorher, nachher: stand.nachher }) } });
     } catch (fehler) {
-      $("uebernehmen").disabled = false;
-      if (fehler.daten && fehler.daten.aktion === VERALTET) veraltet(fehler.message);
-      else status($("status"), fehler.message, "fehler");
+      reportTakeoverFailed(fehler);
     }
+  }
+
+  /** A stale proposal is known by the action the server names, never by its words, which follow the app language. */
+  function reportTakeoverFailed(fehler) {
+    $("uebernehmen").disabled = false;
+    if (fehler.daten && fehler.daten.aktion === VERALTET) veraltet(fehler.message);
+    else status($("status"), fehler.message, "fehler");
   }
 
   function verwerfen() {

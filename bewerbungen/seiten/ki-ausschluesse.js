@@ -57,6 +57,20 @@
     if (stand.vorhanden) gleicheAb(stand.vorhanden);
   }
 
+  function reportBoxFailed(fehler) {
+    $("ki-ausschluesse").hidden = false;  // the reason stays visible; the card works without the box
+    $("ki-ausschluesse-start").hidden = true;
+    $("ki-ausschluesse-was").hidden = true;
+    $("ki-ausschluesse-satz").textContent = "";
+    status($("ki-ausschluesse-status"), L.nichtGeladen(fehler.message), "fehler");
+  }
+
+  /** The proposal keeps its button, so the person can try again. */
+  function reportProposalFailed(teile, button, text) {
+    button.disabled = false;
+    rueckmeldung(teile, teile.angezeigt, text, button, { stufe: "fehler" });
+  }
+
   async function lade() {
     try {
       const [stand, neu] = await Promise.all([holen(ROUTE), textsatz()]);
@@ -64,11 +78,7 @@
       $("ki-ausschluesse-was-text").textContent = L.wasGeht(satz, window.Texte);
       zeigeStand(stand);
     } catch (fehler) {
-      $("ki-ausschluesse").hidden = false;  // the reason stays visible; the card works without the box
-      $("ki-ausschluesse-start").hidden = true;
-      $("ki-ausschluesse-was").hidden = true;
-      $("ki-ausschluesse-satz").textContent = "";
-      status($("ki-ausschluesse-status"), L.nichtGeladen(fehler.message), "fehler");
+      reportBoxFailed(fehler);
     }
   }
 
@@ -79,8 +89,7 @@
       rueckmeldung(teile, "zurueck", L.zurueck(vorschlag), knopfUebernehmen(vorschlag, teile));
       geaendert();
     } catch (fehler) {
-      button.disabled = false;
-      rueckmeldung(teile, teile.angezeigt, L.nichtZurueck(fehler.message), button, { stufe: "fehler" });
+      reportProposalFailed(teile, button, L.nichtZurueck(fehler.message));
     }
   }
 
@@ -91,8 +100,7 @@
       rueckmeldung(teile, "uebernommen", L.uebernommen(vorschlag), knopfZurueck(vorschlag, teile));
       geaendert();
     } catch (fehler) {
-      button.disabled = false;
-      rueckmeldung(teile, teile.angezeigt, L.nichtUebernommen(fehler.message), button, { stufe: "fehler" });
+      reportProposalFailed(teile, button, L.nichtUebernommen(fehler.message));
     }
   }
 

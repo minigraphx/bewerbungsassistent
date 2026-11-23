@@ -70,6 +70,12 @@ window.DoppeltGesucht = (() => {
     $("doppelt-liste").replaceChildren(...paare.map(block));
   }
 
+  function reportPairsFailed(nummer, fehler) {
+    if (nummer !== ladeNummer) return;  // a newer load answers instead
+    zeige([]);
+    status($("status"), window.Texte.t("Doppelt gesuchte Begriffe liessen sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   /** Loads the pairs anew; an apprenticeship search gets none from the server. */
   async function lade() {
     const nummer = ++ladeNummer;
@@ -77,9 +83,7 @@ window.DoppeltGesucht = (() => {
       const { paare } = await holen("/api/suche/doppelt");
       if (nummer === ladeNummer) zeige(paare);
     } catch (fehler) {
-      if (nummer !== ladeNummer) return;
-      zeige([]);
-      status($("status"), window.Texte.t("Doppelt gesuchte Begriffe liessen sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
+      reportPairsFailed(nummer, fehler);
     }
   }
 

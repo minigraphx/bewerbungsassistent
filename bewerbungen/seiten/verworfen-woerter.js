@@ -23,13 +23,22 @@
     $("wort-vorschlag-ansehen").href = L.adresse(neu);
   }
 
+  function reportProposalMissing(fehler) {
+    zeige(null);  // the proposal is extra; the card works without it
+    status($("nicht-meldung"), nichtGeladen(fehler.message), "fehler");
+  }
+
+  function reportNotSaved(fehler) {
+    status($("nicht-meldung"), nichtGespeichert(fehler.message), "fehler");
+    lade();
+  }
+
   async function lade() {
     try {
       const [{ vorschlaege }, satz] = await Promise.all([holen(ROUTE), textsatz()]);
       zeige(vorschlaege[0] || null, satz);
     } catch (fehler) {
-      zeige(null);  // the proposal is extra; the card works without it
-      status($("nicht-meldung"), nichtGeladen(fehler.message), "fehler");
+      reportProposalMissing(fehler);
     }
   }
 
@@ -40,8 +49,7 @@
       await senden(`${ROUTE}/${pfad}`, { wort });
       danach(wort);
     } catch (fehler) {
-      status($("nicht-meldung"), nichtGespeichert(fehler.message), "fehler");
-      lade();
+      reportNotSaved(fehler);
     }
   }
 
