@@ -1,7 +1,8 @@
 "use strict";
 // The overview after the design (MIN-369): what comes next for each application, the views by stage (#165),
 // and what „Das steht an“ shows first. No DOM, so it can be tested (tests/uebersicht_logik.test.cjs).
-// `grund` is why the app cannot open the form yet (/api/bewerben/auswahl, null = ready), `ravGrund` why it cannot
+// `grund` is why the app cannot open the form yet (/api/bewerben/auswahl, null = ready), `schritt` the step that
+// reason leads to (unterlagen, link, freigeben, or none), `ravGrund` why it cannot
 // be entered in the Job-Room (/api/rav/auswahl, null = can be entered, undefined = no RAV).
 (function (global) {
   // The views by stage (#165). They go by the status only: a rejection still to enter in the Job-Room is finished,
@@ -15,10 +16,9 @@
   const STANDARD_ANSICHT = "beworben";
   const FRUEHERE_ANSICHT = { laufend: "beworben" };  // stored before #165
   const NACHFRAGEN_NACH_TAGEN = 14;
-  // The German start of apply's reasons, only compared, never shown (the step's own words come from schrittText).
-  const OHNE_LEBENSLAUF = "Lebenslauf-PDF fehlt";  // kein UI-Text: apply.NO_CV starts so
-  const OHNE_LINK = "Kein Link zum Formular";      // kein UI-Text: apply.NO_LINK starts so
-  const OHNE_FREIGABE = "Anschreiben noch nicht freigegeben";  // kein UI-Text: apply.NOT_APPROVED starts so
+  // The steps apply's reasons lead to, named by the server (apply.REASON_STEPS), since the reason comes in the app
+  // language (#426); the step's own words come from schrittText.
+  const GRUND_SCHRITTE = ["unterlagen", "link", "freigeben"];
   // Loaded before this file on every page; required in the tests. Texts in the app language through Texte.t (#417).
   const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
   // The order of what to do: an interview first, then sending, then what is missing, then the RAV, then deciding.
@@ -41,16 +41,14 @@
    * { art, frist?, zusatz?, grund? } — art is one of RANG; frist an ISO date that orders and shows in the list; zusatz,
    * for a sent application, the date to follow up from, also while the Job-Room entry is still open (#269).
    */
-  function naechsterSchritt(b, { grund, ravGrund } = {}) {
+  function naechsterSchritt(b, { grund, schritt, ravGrund } = {}) {
     const ravOffen = ravGrund === null;
     switch (b.status) {
       case "Gemerkt":
         return { art: "entscheiden", frist: b.frist };
       case "Bewerben":
         if (grund === null) return { art: "abschicken", frist: b.frist };
-        if (typeof grund === "string" && grund.startsWith(OHNE_LEBENSLAUF)) return { art: "unterlagen", frist: b.frist };
-        if (typeof grund === "string" && grund.startsWith(OHNE_LINK)) return { art: "link", frist: b.frist };
-        if (typeof grund === "string" && grund.startsWith(OHNE_FREIGABE)) return { art: "freigeben", frist: b.frist };
+        if (GRUND_SCHRITTE.includes(schritt)) return { art: schritt, frist: b.frist };
         return { art: "offen", frist: b.frist, grund: grund || "" };
       case "Beworben": {
         // An interview date counts before the stage says Gespräch (#268); an open Job-Room entry still comes first.
@@ -72,12 +70,16 @@
   }
 
   /** Every application with its next step, in the order of the list: what to do first, the closest date first. */
-  function mitSchritten(alle, gruende = new Map(), ravGruende = new Map()) {
+  function mitSchritten(alle, gruende = new Map(), ravGruende = new Map(), grundSchritte = new Map()) {
     return alle.map(bewerbung => ({
       bewerbung,
-      schritt: naechsterSchritt(bewerbung, { grund: gruende.get(bewerbung.id), ravGrund: ravGruende.get(bewerbung.id) }),
+      schritt: naechsterSchritt(bewerbung, { grund: gruende.get(bewerbung.id), schritt: grundSchritte.get(bewerbung.id),
+                                            ravGrund: ravGruende.get(bewerbung.id) }),
     })).sort(vergleiche);
   }
+
+  /** The step each reason of /api/bewerben/auswahl leads to, by id, for mitSchritten. */
+  const grundSchritte = rows => new Map(rows.filter(row => row.schritt).map(row => [row.id, row.schritt]));
 
   /** Gemerkt, Beworben, Abgeschlossen or Alle, with the search over company, position and note. */
   function gefiltert(zeilen, ansicht, suche) {
@@ -308,7 +310,7 @@
   }
 
   const logik = { ANSICHTEN, STANDARD_ANSICHT, NACHFRAGEN_NACH_TAGEN, ABGESCHLOSSEN, ABGESCHLOSSEN_WORT, datum, plusTage, naechsterSchritt,
-                  mitSchritten, gefiltert, ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung,
+                  mitSchritten, grundSchritte, gefiltert, ansichtenZaehlen, gueltigeAnsicht, sortiert, naechsteSortierung, gueltigeSortierung,
                   abgeschlossenZaehlen, abgeschlossenTeil, stehtAn,
                   toggleOne, toggleAll, selectionState, selectedIds, keepKnown, showBulkBar, selectionLabel, stageQuestion, viewOfStage,
                   stageDone, schrittText };

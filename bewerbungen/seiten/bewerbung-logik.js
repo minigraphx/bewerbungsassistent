@@ -4,7 +4,16 @@
 // set up and whether the person reports to an RAV. No DOM, so it can be tested (tests/bewerbung_logik.test.cjs).
 // Approving a letter is not stored: the letter step is done once a letter exists; it is read as PDF when checking.
 (function (global) {
+  // Loaded before this file on the page; required in the tests. Texts in the app language through Texte (#426).
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  // Under its own name, so each lookup reads Texte.t for the scanner; the page's Texte is found when a text is made.
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
   const SCHRITTE = ["stelle", "lebenslauf", "anschreiben", "pruefen", "abschicken", "festhalten"];
+  // The kinds of dispatch as stored (register.JOBROOM_ART) and how the history words them; an unknown kind shows as stored.
+  const ART_NAMEN = {
+    "elektronisch": () => Texte.t("elektronisch"), "schriftlich": () => Texte.t("schriftlich"),
+    "persönlich": () => Texte.t("persönlich"), "telefonisch": () => Texte.t("telefonisch"),
+  };
 
   function datum(iso) {
     if (!iso) return "";
@@ -21,10 +30,9 @@
   const offen = befunde => (befunde || []).filter(b => b.schluessel && !b.bestaetigt).length;
   /** A CV over its limit (G92): cut or allowed three pages, never confirmed as it is. */
   const zuLang = befunde => (befunde || []).some(b => b.kuerzen && !b.bestaetigt);
-  const BESTAETIGEN = "So lassen";
+  const bestaetigen = () => Texte.t("So lassen");
   // G94: a letter over one page leads to the step Anschreiben, where its longest paragraph carries a visible label
-  const CUT_IN_LETTER = "Im Anschreiben kürzen";
-  const LONGEST_LABEL = "Längster Absatz";
+  const cutInLetter = () => Texte.t("Im Anschreiben kürzen");
   const letterOver = befunde => (befunde || []).find(b => b.letter_cut && !b.bestaetigt) || null;
 
   /** The place of the paragraph the step Anschreiben marks, while a letter over one page is neither cut nor confirmed. */
@@ -36,9 +44,21 @@
    * A letter over one page (G94) or a CV over its limit with no cut left (#330) left as it is stays a hint, so the line
    * matches «1 Hinweis» above it.
    */
-  function keptOver(name, { pages, lines }) {
-    const over = lines > 0 ? `, etwa ${lines} ${lines === 1 ? "Zeile" : "Zeilen"} zu viel` : "";
-    return `${name}: ${pages} Seiten${over}. Bestätigt: so lassen.`;
+  const KEPT_OVER = {
+    anschreiben: {
+      none: werte => Texte.t("Anschreiben: {seiten} Seiten. Bestätigt: so lassen.", werte),
+      one: werte => Texte.t("Anschreiben: {seiten} Seiten, etwa 1 Zeile zu viel. Bestätigt: so lassen.", werte),
+      many: werte => Texte.t("Anschreiben: {seiten} Seiten, etwa {zeilen} Zeilen zu viel. Bestätigt: so lassen.", werte),
+    },
+    lebenslauf: {
+      none: werte => Texte.t("Lebenslauf: {seiten} Seiten. Bestätigt: so lassen.", werte),
+      one: werte => Texte.t("Lebenslauf: {seiten} Seiten, etwa 1 Zeile zu viel. Bestätigt: so lassen.", werte),
+      many: werte => Texte.t("Lebenslauf: {seiten} Seiten, etwa {zeilen} Zeilen zu viel. Bestätigt: so lassen.", werte),
+    },
+  };
+  function keptOver(document, { pages, lines }) {
+    const say = KEPT_OVER[document][lines > 1 ? "many" : lines === 1 ? "one" : "none"];
+    return say({ seiten: pages, zeilen: lines });
   }
   /** Both files are built and, with a dossier chosen (G40), the dossier too. */
   function gebaut(daten) {
@@ -47,11 +67,14 @@
   }
 
   function pruefenMeta(befunde) {
-    if (fehler(befunde)) return `${fehler(befunde)} Fehler`;
-    if (zuLang(befunde)) return "Lebenslauf zu lang";
-    if (offen(befunde)) return `${offen(befunde)} ${offen(befunde) === 1 ? "Meldung" : "Meldungen"} bestätigen`;
-    if (hinweise(befunde)) return `${hinweise(befunde)} ${hinweise(befunde) === 1 ? "Hinweis" : "Hinweise"}`;
-    return "in Ordnung";
+    const anzahl = fehler(befunde) || offen(befunde) || hinweise(befunde);
+    if (fehler(befunde)) return anzahl === 1 ? Texte.t("1 Fehler") : Texte.t("{anzahl} Fehler", { anzahl });
+    if (zuLang(befunde)) return Texte.t("Lebenslauf zu lang");
+    if (offen(befunde)) {
+      return anzahl === 1 ? Texte.t("1 Meldung bestätigen") : Texte.t("{anzahl} Meldungen bestätigen", { anzahl });
+    }
+    if (hinweise(befunde)) return anzahl === 1 ? Texte.t("1 Hinweis") : Texte.t("{anzahl} Hinweise", { anzahl });
+    return Texte.t("in Ordnung");
   }
 
   /**
@@ -62,12 +85,14 @@
    */
   function befundZeile(b) {
     if (b.kuerzen && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: null, kuerzen: b.kuerzen };
-    if (b.letter_cut && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: BESTAETIGEN, cutInLetter: CUT_IN_LETTER };
-    if (b.letter_cut) return { text: keptOver("Anschreiben", b.letter_cut), stufe: "hinweis", knopf: null };
-    if (b.cv_over && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: BESTAETIGEN, decision: true };
-    if (b.cv_over) return { text: keptOver("Lebenslauf", b.cv_over), stufe: "hinweis", knopf: null };
-    if (b.schluessel && b.bestaetigt) return { text: `${b.text} Bestätigt: so lassen.`, stufe: "ok", knopf: null };
-    return { text: b.text, stufe: b.stufe, knopf: b.schluessel ? BESTAETIGEN : null };
+    if (b.letter_cut && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: bestaetigen(), cutInLetter: cutInLetter() };
+    if (b.letter_cut) return { text: keptOver("anschreiben", b.letter_cut), stufe: "hinweis", knopf: null };
+    if (b.cv_over && !b.bestaetigt) return { text: b.text, stufe: b.stufe, knopf: bestaetigen(), decision: true };
+    if (b.cv_over) return { text: keptOver("lebenslauf", b.cv_over), stufe: "hinweis", knopf: null };
+    if (b.schluessel && b.bestaetigt) {
+      return { text: Texte.t("{text} Bestätigt: so lassen.", { text: b.text }), stufe: "ok", knopf: null };
+    }
+    return { text: b.text, stufe: b.stufe, knopf: b.schluessel ? bestaetigen() : null };
   }
 
   /** For each step: { id, erledigt, meta } — meta is the short line under the step. */
@@ -79,28 +104,33 @@
     const stand = {
       stelle: {
         erledigt: Boolean((daten.stellentext || "").trim()) || gesendet,
-        meta: (daten.stellentext || "").trim() ? (b.eingetragen_am ? `erfasst ${datum(b.eingetragen_am).slice(0, 6)}` : "Inserat da") : gesendet ? "" : "Inserat fehlt",
+        meta: (daten.stellentext || "").trim()
+          ? (b.eingetragen_am ? Texte.t("erfasst {datum}", { datum: datum(b.eingetragen_am).slice(0, 6) }) : Texte.t("Inserat da"))
+          : gesendet ? "" : Texte.t("Inserat fehlt"),
       },
       lebenslauf: {
         erledigt: gesendet || Boolean(b.variante) || !variantenDa || Boolean(daten.eigener_lebenslauf),
-        meta: b.variante ? `Variante ${b.variante}` : daten.eigener_lebenslauf ? "eigenes PDF" : variantenDa ? "Variante wählen" : "ganzer Lebenslauf",
+        meta: b.variante ? Texte.t("Variante {name}", { name: b.variante }) : daten.eigener_lebenslauf ? Texte.t("eigenes PDF")
+          : variantenDa ? Texte.t("Variante wählen") : Texte.t("ganzer Lebenslauf"),
       },
       anschreiben: {
         erledigt: gesendet || Boolean(daten.eigenes_anschreiben) || (Boolean(daten.hat_anschreiben) && !offeneFreigabe(daten)),
-        meta: daten.eigenes_anschreiben ? "eigenes PDF" : !daten.hat_anschreiben ? (gesendet ? "" : "fehlt noch")
-          : offeneFreigabe(daten) ? "lesen und freigeben" : daten.anschreiben_freigabe?.freigegeben ? "freigegeben" : "vorhanden",
+        meta: daten.eigenes_anschreiben ? Texte.t("eigenes PDF") : !daten.hat_anschreiben ? (gesendet ? "" : Texte.t("fehlt noch"))
+          : offeneFreigabe(daten) ? Texte.t("lesen und freigeben")
+            : daten.anschreiben_freigabe?.freigegeben ? Texte.t("freigegeben") : Texte.t("vorhanden"),
       },
       pruefen: {
         erledigt: gesendet || (fertig && befunde !== null && fehler(befunde) === 0 && offen(befunde) === 0),
-        meta: !fertig ? (gesendet ? "" : "PDFs erstellen") : befunde === null ? "wird geprüft" : pruefenMeta(befunde),
+        meta: !fertig ? (gesendet ? "" : Texte.t("PDFs erstellen")) : befunde === null ? Texte.t("wird geprüft") : pruefenMeta(befunde),
       },
       abschicken: {
         erledigt: gesendet,
-        meta: gesendet ? `am ${datum(b.beworben_am || b.versand?.datum)}` : du ? "machst du selbst" : "machen Sie selbst",
+        meta: gesendet ? Texte.t("am {datum}", { datum: datum(b.beworben_am || b.versand?.datum) })
+          : du ? Texte.t("machst du selbst") : Texte.t("machen Sie selbst"),
       },
       festhalten: {
         erledigt: Boolean(b.versand) && (!rav || Boolean(b.rav_eingetragen_am)),
-        meta: !b.versand ? "" : rav && !b.rav_eingetragen_am ? "Job-Room offen" : "festgehalten",
+        meta: !b.versand ? "" : rav && !b.rav_eingetragen_am ? Texte.t("Job-Room offen") : Texte.t("festgehalten"),
       },
     };
     return SCHRITTE.map(id => ({ id, ...stand[id] }));
@@ -155,13 +185,14 @@
 
   /** Dates of the application as a short history, oldest first. */
   function verlauf(b) {
+    const art = b.versand ? (ART_NAMEN[b.versand.art] ? ART_NAMEN[b.versand.art]() : b.versand.art) : "";
     const punkte = [
-      [b.eingetragen_am, "Erfasst"],
-      [b.beworben_am, "Beworben"],
-      [b.versand?.datum, b.versand ? `Versand erfasst (${b.versand.art})` : ""],
-      [b.rav_eingetragen_am, "Im Job-Room eingetragen"],
-      [b.gespraech_am, "Gespräch"],
-      [b.absage_am, "Absage"],
+      [b.eingetragen_am, Texte.t("Erfasst")],
+      [b.beworben_am, Texte.t("Beworben")],
+      [b.versand?.datum, b.versand ? Texte.t("Versand erfasst ({art})", { art }) : ""],
+      [b.rav_eingetragen_am, Texte.t("Im Job-Room eingetragen")],
+      [b.gespraech_am, Texte.t("Gespräch")],
+      [b.absage_am, Texte.t("Absage")],
     ].filter(([wann, was]) => wann && was);
     return punkte.sort((x, y) => x[0].localeCompare(y[0])).map(([wann, was]) => ({ datum: wann, text: was }));
   }
@@ -171,7 +202,7 @@
     return Array.isArray(befunde);
   }
 
-  const logik = { SCHRITTE, LONGEST_LABEL, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf,
+  const logik = { SCHRITTE, get LONGEST_LABEL() { return Texte.t("Längster Absatz"); }, datum, versendet, offeneFreigabe, schritte, aktueller, naechster, beenden, verlauf,
     erneutPruefen, befundZeile, longestParagraph };
   if (typeof module !== "undefined") module.exports = logik;
   else global.BewerbungLogik = logik;

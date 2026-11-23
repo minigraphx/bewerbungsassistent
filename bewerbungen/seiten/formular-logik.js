@@ -2,6 +2,9 @@
 // What the form of an application sends (MIN-377): only what the person changed, so a page left open overwrites nothing
 // that Claude wrote in the meantime. No DOM, so it can be tested.
 (function (global) {
+  // Loaded before this file on the page; required in the tests. Texts in the app language through Texte (#426).
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
   const alsText = wert => (wert === null || wert === undefined || wert === false ? "" : String(wert));
 
   /** The fields whose value differs from what the page loaded; a form shows numbers and missing values as text. */
@@ -15,8 +18,9 @@
   /** The same ad can get another grade from the AI: the person sees both and decides. */
   function notenHinweis(bisher, neu) {
     if (alsText(bisher) === "") return "";
-    if (Number(bisher) === neu) return "Das ist auch die eingetragene Note.";
-    return `Bisher eingetragen: Note ${bisher}. Eine KI-Note ist eine Einschätzung und kann von Lauf zu Lauf abweichen. Die eingetragene Note ändert sich erst mit „Note übernehmen“.`;
+    if (Number(bisher) === neu) return Texte.t("Das ist auch die eingetragene Note.");
+    return Texte.t("Bisher eingetragen: Note {note}. Eine KI-Note ist eine Einschätzung und kann von Lauf zu Lauf abweichen. Die eingetragene Note ändert sich erst mit „Note übernehmen“.",
+      { note: bisher });
   }
 
   const logik = { fehltAnschreiben, geaenderteFelder, notenHinweis };

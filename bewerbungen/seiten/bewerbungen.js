@@ -22,6 +22,7 @@
   let zeilen = [];
   let gezeigt = "";      // the register as last drawn, to see whether Claude changed it
   let gruende = new Map();
+  let grundSchritte = new Map();
   let ravGruende = new Map();
   let ansicht = L.STANDARD_ANSICHT;
   let sortierung = null;  // { spalte, richtung } or null for the order of the app
@@ -229,6 +230,7 @@
   async function ladeGruende() {
     const [bereit, ravAuswahl] = await Promise.all([holen("/api/bewerben/auswahl"), holen("/api/rav/auswahl")]);
     gruende = new Map(bereit.bewerbungen.map(row => [row.id, row.grund]));
+    grundSchritte = L.grundSchritte(bereit.bewerbungen);
     ravGruende = new Map(ravAuswahl.sichtbar ? ravAuswahl.bewerbungen.map(row => [row.id, row.grund]) : []);
   }
 
@@ -238,7 +240,7 @@
       gezeigt = JSON.stringify(daten.bewerbungen);
       alle = daten.bewerbungen;
       staende = daten.status;
-      zeilen = L.mitSchritten(alle, gruende, ravGruende);
+      zeilen = L.mitSchritten(alle, gruende, ravGruende, grundSchritte);
       auswahl = L.keepKnown(auswahl, zeilen);
       fuelleStaende();
       window.Texte.anwenden(document, satz);

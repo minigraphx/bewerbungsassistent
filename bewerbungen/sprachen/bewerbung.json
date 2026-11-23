@@ -1,0 +1,476 @@
+{
+  "Pfad": {"fr": "Fil d'Ariane", "en": "Breadcrumb"},
+  "Stand der Bewerbung": {"fr": "Avancement de la candidature", "en": "Progress of the application"},
+  "Lebenslauf": {"fr": "CV", "en": "CV"},
+  "Anschreiben": {"fr": "Lettre de motivation", "en": "Cover letter"},
+  "Zertifikate": {"fr": "Certificats", "en": "Certificates"},
+  "Unterlagen": {"fr": "Documents", "en": "Documents"},
+  "Nachweise": {"fr": "Justificatifs", "en": "Supporting documents"},
+  "Lebenslauf-Variante": {"fr": "Variante du CV", "en": "CV variant"},
+  "Als Lebenslauf gilt die Datei aus": {"fr": "Le CV utilisé est le fichier de", "en": "The CV is the file from"},
+  ", so wie sie ist. Eine gewählte Variante geht vor.": {
+    "fr": ", tel quel. Une variante choisie a la priorité.",
+    "en": ", as it is. A chosen variant comes first."
+  },
+  "Diese Variante ist ein fertiges PDF und wird so verwendet, wie es ist.": {
+    "fr": "Cette variante est un PDF terminé et est utilisée telle quelle.",
+    "en": "This variant is a finished PDF and is used as it is."
+  },
+  "Variante vorschlagen": {"fr": "Proposer une variante", "en": "Suggest a variant"},
+  "Lebenslauf erstellen": {"fr": "Créer le CV", "en": "Create CV"},
+  "Lebenslauf anpassen": {"fr": "Adapter le CV", "en": "Adapt CV"},
+  "Für diese Bewerbung weggelassen": {"fr": "Omis pour cette candidature", "en": "Left out for this application"},
+  "1 · Inhalt": {"fr": "1 · Contenu", "en": "1 · Content"},
+  "2 · Aussehen": {"fr": "2 · Apparence", "en": "2 · Appearance"},
+  "Text an die KI ansehen": {"fr": "Voir le texte envoyé à l'IA", "en": "View the text sent to the AI"},
+  "Angaben selbst ändern": {"fr": "Modifier dans Mes informations", "en": "Edit in My details"},
+  "Berufsbezeichnung": {"fr": "Titre professionnel", "en": "Job title"},
+  "Kurzprofil": {"fr": "Profil en bref", "en": "Profile summary"},
+  "Name der Fassung": {"fr": "Nom de la version", "en": "Name of the version"},
+  "Vorschau": {"fr": "Aperçu", "en": "Preview"},
+  "Meine Angaben öffnen": {"fr": "Ouvrir Mes informations", "en": "Open My details"},
+  "Neu laden": {"fr": "Recharger", "en": "Reload"},
+  "Genauer": {"fr": "Détails", "en": "Details"},
+  "Gross ansehen": {"fr": "Voir en grand", "en": "View large"},
+  "Als PDF öffnen": {"fr": "Ouvrir en PDF", "en": "Open as PDF"},
+  "Die Vorschau zeigt den Lebenslauf allein. Im Dossier bekommt er das Design des Dossiers.": {
+    "fr": "L'aperçu montre le CV seul. Dans le dossier, il prend le design du dossier.",
+    "en": "The preview shows the CV alone. In the dossier it gets the dossier's design."
+  },
+  "Lebenslauf übernehmen": {"fr": "Utiliser ce CV", "en": "Use this CV"},
+  "Anschreiben ändern": {"fr": "Modifier la lettre", "en": "Edit the cover letter"},
+  "Betreff": {"fr": "Objet", "en": "Subject"},
+  "Text": {"fr": "Texte", "en": "Text"},
+  "Absatz hinzufügen": {"fr": "Ajouter un paragraphe", "en": "Add a paragraph"},
+  "Gruss": {"fr": "Formule de politesse", "en": "Closing"},
+  "Als Text bearbeiten (für Geübte)": {"fr": "Modifier en mode texte (utilisateurs avancés)", "en": "Edit as text (for experienced users)"},
+  "Weiter bearbeiten": {"fr": "Continuer à modifier", "en": "Keep editing"},
+  "Das Anschreiben ist noch offen: zuerst speichern oder abbrechen.": {
+    "fr": "La lettre de motivation est encore ouverte\u00a0: d'abord enregistrer ou annuler.",
+    "en": "The cover letter is still open: save or cancel first."
+  },
+  "Aussagen im Anschreiben": {"fr": "Affirmations de la lettre", "en": "Statements in the cover letter"},
+  "KI-Verbindung wird geprüft …": {"fr": "Vérification de la connexion à l'IA…", "en": "Checking the AI connection…"},
+  "Inhalt prüfen": {"fr": "Vérifier le contenu", "en": "Check content"},
+  "Passung bewerten": {"fr": "Évaluer l'adéquation", "en": "Rate the fit"},
+  "Vor dem Senden ersetzt die App Name, Adresse, Kontakte und Ansprechpersonen durch Platzhalter; Bilder und Scans gehen nie an die KI. Eine Einschätzung, kein Urteil: Die KI kann sich irren.": {
+    "fr": "Avant l'envoi, l'app remplace le nom, l'adresse, les coordonnées et les personnes de contact par des substituts\u00a0; les images et les scans ne sont jamais envoyés à l'IA. Une estimation, pas un jugement\u00a0: l'IA peut se tromper.",
+    "en": "Before sending, the app replaces name, address, contacts and contact persons with placeholders; images and scans never go to the AI. An estimate, not a verdict: the AI can be wrong."
+  },
+  "Freigeben": {"fr": "Valider", "en": "Approve"},
+  "Eigenes Anschreiben": {"fr": "Lettre de motivation personnelle", "en": "Own cover letter"},
+  "Ein PDF nur für diese Bewerbung, verwendet wie es ist. Es gilt anstelle eines Entwurfs, bleibt auf diesem Computer und geht nicht an die KI.": {
+    "fr": "Un PDF uniquement pour cette candidature, utilisé tel quel. Il remplace un brouillon, reste sur cet ordinateur et n'est pas envoyé à l'IA.",
+    "en": "A PDF only for this application, used as it is. It counts instead of a draft, stays on this computer and does not go to the AI."
+  },
+  "Als Anschreiben gilt das hochgeladene PDF, so wie es ist. Ein Entwurf gilt erst wieder, wenn es entfernt ist.": {
+    "fr": "La lettre de motivation est le PDF téléversé, tel quel. Un brouillon ne compte à nouveau qu'une fois le PDF retiré.",
+    "en": "The cover letter is the uploaded PDF, as it is. A draft counts again only once the PDF is removed."
+  },
+  "PDF wählen": {"fr": "Choisir un PDF", "en": "Choose PDF"},
+  "Unterlagen erstellen und prüfen": {"fr": "Créer et vérifier les documents", "en": "Create and check documents"},
+  "Erstellt Lebenslauf und Anschreiben als PDF und prüft sie. Fehlt noch ein Anschreiben, entwirft die KI zuerst eines, wenn sie eingerichtet ist.": {
+    "fr": "Crée le CV et la lettre de motivation en PDF et les vérifie. S'il manque encore une lettre de motivation, l'IA en rédige d'abord une, si elle est configurée.",
+    "en": "Creates CV and cover letter as PDF and checks them. If a cover letter is still missing, the AI drafts one first, if it is set up."
+  },
+  "Unterlagen als": {"fr": "Documents sous forme de", "en": "Documents as"},
+  "Anschreiben und Lebenslauf": {"fr": "Lettre de motivation et CV", "en": "Cover letter and CV"},
+  "Zwei PDF. Vorgabe.": {"fr": "Deux PDF. Par défaut.", "en": "Two PDFs. Default."},
+  "Dossier": {"fr": "Dossier", "en": "Dossier"},
+  "Ein PDF mit Deckblatt, Anschreiben und Lebenslauf. Beide liegen im selben Design auch einzeln bereit, für Formulare mit zwei Feldern.": {
+    "fr": "Un PDF avec page de garde, lettre de motivation et CV. Les deux sont aussi disponibles séparément dans le même design, pour les formulaires à deux champs.",
+    "en": "One PDF with cover page, cover letter and CV. Both are also ready separately in the same design, for forms with two fields."
+  },
+  "Design Siegel": {"fr": "Design Sceau", "en": "Seal design"},
+  "Dossier gestalten": {"fr": "Concevoir le dossier", "en": "Design the dossier"},
+  "Erneut prüfen": {"fr": "Vérifier à nouveau", "en": "Check again"},
+  "Form ändern": {"fr": "Changer de format", "en": "Change format"},
+  "Beilagen": {"fr": "Annexes", "en": "Attachments"},
+  "Beilagen ändern": {"fr": "Modifier les annexes", "en": "Change attachments"},
+  "Nur die Zertifikate, die zur Stelle passen, kommen als eine ZIP-Datei mit. Die Vorschläge stammen aus dem Vergleich der Dateinamen mit dem Inserat.": {
+    "fr": "Seuls les certificats adaptés au poste sont joints, dans un seul fichier ZIP. Les propositions viennent de la comparaison des noms de fichiers avec l'annonce.",
+    "en": "Only the certificates that fit the job go along, as one ZIP file. The suggestions come from comparing the file names with the ad."
+  },
+  "Auswahl speichern": {"fr": "Enregistrer la sélection", "en": "Save selection"},
+  "Versand erfassen": {"fr": "Enregistrer l'envoi", "en": "Record as sent"},
+  "Nach dem Abschicken von Hand (E-Mail, Post) oder wenn die Leiste im Formular nicht gefragt hat. Die verschickte Fassung bleibt gespeichert.": {
+    "fr": "Après un envoi à la main (e-mail, courrier) ou si la barre du formulaire n'a pas demandé. La version envoyée reste enregistrée.",
+    "en": "After sending by hand (email, post) or if the bar in the form did not ask. The version sent stays saved."
+  },
+  "Versendet am": {"fr": "Envoyée le", "en": "Sent on"},
+  "elektronisch": {"fr": "électronique", "en": "electronic"},
+  "schriftlich": {"fr": "par écrit", "en": "in writing"},
+  "persönlich": {"fr": "en personne", "en": "in person"},
+  "telefonisch": {"fr": "par téléphone", "en": "by phone"},
+  "Über dieses Formular abgeschickt: festhalten, was es bekommen hat": {
+    "fr": "Envoyée par ce formulaire\u00a0: consigner ce qu'il a reçu",
+    "en": "Sent through this form: record what it received"
+  },
+  "Festhalten": {"fr": "Consigner", "en": "Record"},
+  "Dateien von Hand hochladen": {"fr": "Téléverser les fichiers à la main", "en": "Upload files by hand"},
+  "Bleibt ein Upload-Feld im Formular offen: Dieser Knopf legt alle Dateien der Bewerbung in einen Ordner und zeigt ihn. Den Datei-Dialog des Browsers kann die App nicht lenken.": {
+    "fr": "Si un champ de téléversement reste vide dans le formulaire\u00a0: ce bouton place tous les fichiers de la candidature dans un dossier et l'affiche. L'app ne peut pas piloter la boîte de dialogue de fichiers du navigateur.",
+    "en": "If an upload field in the form stays open: this button puts all files of the application in a folder and shows it. The app cannot steer the browser's file dialog."
+  },
+  "Dateien im Ordner zeigen": {"fr": "Afficher les fichiers dans un dossier", "en": "Show files in a folder"},
+  "Dateien von dort ins Formular ziehen. Oder im Datei-Dialog: Mac ⇧⌘G und Pfad einfügen, Windows Pfad ins Feld „Dateiname“.": {
+    "fr": "Glisser les fichiers de là dans le formulaire. Ou dans la boîte de dialogue de fichiers\u00a0: sur Mac ⇧⌘G et coller le chemin, sous Windows coller le chemin dans le champ «\u00a0Nom du fichier\u00a0».",
+    "en": "Drag the files from there into the form. Or in the file dialog: on Mac ⇧⌘G and paste the path, on Windows paste the path into the “File name” field."
+  },
+  "Antwort eintragen, sobald sie kommt": {"fr": "Saisir la réponse dès qu'elle arrive", "en": "Enter the reply as soon as it comes"},
+  "Einladung zum Gespräch": {"fr": "Invitation à un entretien", "en": "Invitation to an interview"},
+  "Einladung zur Schnupperlehre": {"fr": "Invitation à un stage d'orientation", "en": "Invitation to a trial apprenticeship"},
+  "Absage": {"fr": "Refus", "en": "Rejection"},
+  "Zusage": {"fr": "Réponse positive", "en": "Offer"},
+  "Job-Room (Arbeitsbemühungen)": {"fr": "Job-Room (recherches d'emploi)", "en": "Job-Room (job search efforts)"},
+  "Abgeleitet aus den Angaben zur Stelle. Eine Absage ergibt immer das Ergebnis „Absage“.": {
+    "fr": "Déduit des informations sur le poste. Un refus donne toujours le résultat «\u00a0Refus\u00a0».",
+    "en": "Derived from the job details. A rejection always gives the result “Rejection”."
+  },
+  "Job-Room öffnen": {"fr": "Ouvrir Job-Room", "en": "Open Job-Room"},
+  "Bewerbung beenden": {"fr": "Mettre fin à la candidature", "en": "End the application"},
+  "Zurückziehen": {"fr": "Retirer", "en": "Withdraw"},
+  "Notiz": {"fr": "Mémo", "en": "Note"},
+  "Notiz speichern": {"fr": "Enregistrer le mémo", "en": "Save note"},
+  "Verlauf": {"fr": "Historique", "en": "History"},
+  "Alle Entwürfe und Versionen": {"fr": "Tous les brouillons et versions", "en": "All drafts and versions"},
+  "Angaben ändern": {"fr": "Modifier les informations", "en": "Edit details"},
+  "Ort": {"fr": "Lieu", "en": "Location"},
+  "Frist": {"fr": "Échéance", "en": "Deadline"},
+  "Link zum Inserat": {"fr": "Lien vers l'annonce", "en": "Link to the ad"},
+  "Link zum Bewerbungsformular": {"fr": "Lien vers le formulaire de candidature", "en": "Link to the application form"},
+  "Kontaktperson": {"fr": "Personne de contact", "en": "Contact person"},
+  "Telefon / E-Mail": {"fr": "Téléphone / e-mail", "en": "Phone / email"},
+  "Adresse": {"fr": "Adresse", "en": "Address"},
+  "Note (1–6)": {"fr": "Note (1–6)", "en": "Grade (1–6)"},
+  "Bewerbung auf Zuweisung des RAV": {"fr": "Candidature sur assignation de l'ORP", "en": "Application assigned by the RAV"},
+  "Gespräch am": {"fr": "Entretien le", "en": "Interview on"},
+  "Beworben am": {"fr": "Postulé le", "en": "Applied on"},
+  "Absage am": {"fr": "Refus le", "en": "Rejected on"},
+  "Erfasst am": {"fr": "Ajoutée le", "en": "Added on"},
+  "Portal": {"fr": "Portail", "en": "Portal"},
+  "Inserent / Vermittler": {"fr": "Annonceur / intermédiaire", "en": "Advertiser / agency"},
+  "Firmen-Schlüssel": {"fr": "Clé d'entreprise", "en": "Company key"},
+  "Der Text des Inserats. Er dient dem Vorschlag der Lebenslauf-Variante, der KI und der Prüfung.": {
+    "fr": "Le texte de l'annonce. Il sert à proposer la variante du CV, à l'IA et à la vérification.",
+    "en": "The text of the ad. It serves the suggestion of the CV variant, the AI and the check."
+  },
+  "Für diese Bewerbung": {"fr": "Pour cette candidature", "en": "For this application"},
+  "Design": {"fr": "Design", "en": "Design"},
+  "Siegel": {"fr": "Sceau", "en": "Seal"},
+  "Raster": {"fr": "Trame", "en": "Grid"},
+  "Register": {"fr": "Registre", "en": "Register"},
+  "Persönlich und ruhig, Ring mit Initialen": {"fr": "Personnel et calme, anneau avec initiales", "en": "Personal and calm, ring with initials"},
+  "Plakativ, Bänder mit Initialen": {"fr": "Affirmé, bandes avec initiales", "en": "Bold, bands with initials"},
+  "Geordnet wie eine Akte, Reiter am Rand": {"fr": "Ordonné comme un classeur, onglets en marge", "en": "Ordered like a file, tabs at the edge"},
+  "Ein Design für alle Seiten. Akzentfarbe und Schrift bleiben auf allen Seiten gleich.": {
+    "fr": "Un design pour toutes les pages. La couleur d'accent et la police restent les mêmes sur toutes les pages.",
+    "en": "One design for all pages. Accent colour and font stay the same on every page."
+  },
+  "Design pro Seite": {"fr": "Design par page", "en": "Design per page"},
+  "Ein eigenes Design pro Seite. Lebenslauf und Anschreiben als einzelne Dateien erhalten das Design ihrer Seite.": {
+    "fr": "Un design propre à chaque page. Le CV et la lettre de motivation en fichiers séparés reçoivent le design de leur page.",
+    "en": "A design of its own for each page. CV and cover letter as separate files get the design of their page."
+  },
+  "Deckblatt": {"fr": "Page de garde", "en": "Cover page"},
+  "Weitere Seiten": {"fr": "Autres pages", "en": "Other pages"},
+  "Begrüssung und Dank": {"fr": "Accueil et remerciements", "en": "Welcome and thanks"},
+  "Gilt nur für dieses Dossier und wird mit «Übernehmen» gespeichert. Ein Entwurf der KI ist sofort gespeichert.": {
+    "fr": "Vaut seulement pour ce dossier et s'enregistre avec «\u00a0Appliquer\u00a0». Un brouillon de l'IA est enregistré tout de suite.",
+    "en": "Applies only to this dossier and is saved with “Apply”. A draft by the AI is saved at once."
+  },
+  "Begrüssung („Kurz vorgestellt“)": {"fr": "Accueil (page de présentation)", "en": "Welcome (introduction page)"},
+  "Dank (letzte Seite)": {"fr": "Remerciements (dernière page)", "en": "Thanks (last page)"},
+  "Von der KI entwerfen": {"fr": "Faire rédiger par l'IA", "en": "Draft with the AI"},
+  "Die KI entwirft beide Texte aus den Bausteinen, mit Platzhaltern statt Name und Kontakt. Danach lassen sie sich hier anpassen. Ohne Text entfällt die Seite im Dossier.": {
+    "fr": "L'IA rédige les deux textes à partir des modules de texte, avec des substituts à la place du nom et des coordonnées. Ensuite, ils peuvent être adaptés ici. Sans texte, la page disparaît du dossier.",
+    "en": "The AI drafts both texts from the text blocks, with placeholders instead of name and contact. They can then be adjusted here. Without text, the page is left out of the dossier."
+  },
+  "Für einen Entwurf zuerst die KI unter «Anschreiben» einrichten. Die Texte lassen sich auch selbst schreiben.": {
+    "fr": "Pour un brouillon, configurer d'abord l'IA sous «\u00a0Lettre de motivation\u00a0». Les textes peuvent aussi être écrits soi-même.",
+    "en": "For a draft, first set up the AI under “Cover letter”. The texts can also be written by hand."
+  },
+  "Für alle Dossiers": {"fr": "Pour tous les dossiers", "en": "For all dossiers"},
+  "Zeichen und Farbe gelten für alle Dossiers. Jede Wahl ist sofort gespeichert; «Abbrechen» nimmt sie nicht zurück. Schon erstellte Dossiers bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu.": {
+    "fr": "L'emblème et la couleur valent pour tous les dossiers. Chaque choix est enregistré tout de suite\u00a0; «\u00a0Annuler\u00a0» ne l'annule pas. Les dossiers déjà créés restent tels quels\u00a0; avec «\u00a0Créer et vérifier les documents\u00a0», celui-ci est recréé.",
+    "en": "Mark and colour apply to all dossiers. Each choice is saved at once; “Cancel” does not undo it. Dossiers already created stay as they are; “Create and check documents” creates this one anew."
+  },
+  "Zeichen": {"fr": "Emblème", "en": "Mark"},
+  "PNG, JPG oder SVG, höchstens 5 MB. Am besten quer und mit durchsichtigem Hintergrund. Ein eigenes Zeichen, kein Firmenlogo. Das Logo bleibt auf diesem Computer und geht nie an die KI.": {
+    "fr": "PNG, JPG ou SVG, 5 Mo au maximum. De préférence en largeur et avec un fond transparent. Un emblème personnel, pas un logo d'entreprise. Le logo reste sur cet ordinateur et n'est jamais envoyé à l'IA.",
+    "en": "PNG, JPG or SVG, at most 5 MB. Ideally landscape with a transparent background. A mark of your own, not a company logo. The logo stays on this computer and never goes to the AI."
+  },
+  "Logo wählen": {"fr": "Choisir un logo", "en": "Choose logo"},
+  "Logo entfernen": {"fr": "Retirer le logo", "en": "Remove logo"},
+  "Initialen": {"fr": "Initiales", "en": "Initials"},
+  "1 bis 3 Buchstaben. Leer: aus dem Namen.": {
+    "fr": "1 à 3 lettres. Vide\u00a0: tirées du nom.",
+    "en": "1 to 3 letters. Empty: taken from the name."
+  },
+  "Akzentfarbe": {"fr": "Couleur d'accent", "en": "Accent colour"},
+  "Eigene Farbe": {"fr": "Couleur personnalisée", "en": "Custom colour"},
+  "Farbe wählen": {"fr": "Choisir une couleur", "en": "Choose colour"},
+  "#38495d": {"fr": "#38495d", "en": "#38495d"},
+  "Farbe übernehmen": {"fr": "Appliquer la couleur", "en": "Apply colour"},
+  "Vorschlag übernehmen": {"fr": "Appliquer la proposition", "en": "Apply suggestion"},
+  "Zurück zur Voreinstellung": {"fr": "Revenir au réglage par défaut", "en": "Back to default"},
+  "«Passend zum Design» ist die Farbe des Designs: Siegel Schieferblau, Raster Weinrot, Register Tannengrün. Sie wechselt mit dem Design; eine benannte Farbe bleibt. Schrift auf der Farbe wählt die App selbst, weiss oder dunkel.": {
+    "fr": "«\u00a0Assortie au design\u00a0» est la couleur du design\u00a0: bleu ardoise pour Sceau, bordeaux pour Trame, vert sapin pour Registre. Elle change avec le design\u00a0; une couleur nommée reste. L'app choisit elle-même la couleur du texte sur l'accent, blanc ou foncé.",
+    "en": "“Matching the design” is the design's colour: slate blue for Seal, wine red for Grid, fir green for Register. It changes with the design; a named colour stays. The app picks the text colour on it itself, white or dark."
+  },
+  "Änderungen verwerfen?": {"fr": "Abandonner les modifications\u00a0?", "en": "Discard changes?"},
+
+  "So lassen": {"fr": "Laisser ainsi", "en": "Leave as is"},
+  "Im Anschreiben kürzen": {"fr": "Raccourcir dans la lettre", "en": "Shorten in the cover letter"},
+  "Längster Absatz": {"fr": "Paragraphe le plus long", "en": "Longest paragraph"},
+  "Anschreiben: {seiten} Seiten. Bestätigt: so lassen.": {
+    "fr": "Lettre de motivation\u00a0: {seiten} pages. Confirmé\u00a0: laisser ainsi.",
+    "en": "Cover letter: {seiten} pages. Confirmed: leave as is."
+  },
+  "Anschreiben: {seiten} Seiten, etwa 1 Zeile zu viel. Bestätigt: so lassen.": {
+    "fr": "Lettre de motivation\u00a0: {seiten} pages, environ 1 ligne de trop. Confirmé\u00a0: laisser ainsi.",
+    "en": "Cover letter: {seiten} pages, about 1 line too many. Confirmed: leave as is."
+  },
+  "Anschreiben: {seiten} Seiten, etwa {zeilen} Zeilen zu viel. Bestätigt: so lassen.": {
+    "fr": "Lettre de motivation\u00a0: {seiten} pages, environ {zeilen} lignes de trop. Confirmé\u00a0: laisser ainsi.",
+    "en": "Cover letter: {seiten} pages, about {zeilen} lines too many. Confirmed: leave as is."
+  },
+  "Lebenslauf: {seiten} Seiten. Bestätigt: so lassen.": {
+    "fr": "CV\u00a0: {seiten} pages. Confirmé\u00a0: laisser ainsi.",
+    "en": "CV: {seiten} pages. Confirmed: leave as is."
+  },
+  "Lebenslauf: {seiten} Seiten, etwa 1 Zeile zu viel. Bestätigt: so lassen.": {
+    "fr": "CV\u00a0: {seiten} pages, environ 1 ligne de trop. Confirmé\u00a0: laisser ainsi.",
+    "en": "CV: {seiten} pages, about 1 line too many. Confirmed: leave as is."
+  },
+  "Lebenslauf: {seiten} Seiten, etwa {zeilen} Zeilen zu viel. Bestätigt: so lassen.": {
+    "fr": "CV\u00a0: {seiten} pages, environ {zeilen} lignes de trop. Confirmé\u00a0: laisser ainsi.",
+    "en": "CV: {seiten} pages, about {zeilen} lines too many. Confirmed: leave as is."
+  },
+  "{text} Bestätigt: so lassen.": {"fr": "{text} Confirmé\u00a0: laisser ainsi.", "en": "{text} Confirmed: leave as is."},
+  "1 Fehler": {"fr": "1 erreur", "en": "1 error"},
+  "{anzahl} Fehler": {"fr": "{anzahl} erreurs", "en": "{anzahl} errors"},
+  "Lebenslauf zu lang": {"fr": "CV trop long", "en": "CV too long"},
+  "1 Meldung bestätigen": {"fr": "1 message à confirmer", "en": "1 message to confirm"},
+  "{anzahl} Meldungen bestätigen": {"fr": "{anzahl} messages à confirmer", "en": "{anzahl} messages to confirm"},
+  "1 Hinweis": {"fr": "1 remarque", "en": "1 remark"},
+  "{anzahl} Hinweise": {"fr": "{anzahl} remarques", "en": "{anzahl} remarks"},
+  "in Ordnung": {"fr": "en ordre", "en": "all fine"},
+  "wird geprüft": {"fr": "vérification en cours", "en": "being checked"},
+  "erfasst {datum}": {"fr": "ajoutée le {datum}", "en": "added {datum}"},
+  "Inserat da": {"fr": "annonce présente", "en": "ad present"},
+  "Inserat fehlt": {"fr": "annonce manquante", "en": "ad missing"},
+  "Variante {name}": {"fr": "variante {name}", "en": "variant {name}"},
+  "eigenes PDF": {"fr": "PDF personnel", "en": "own PDF"},
+  "Variante wählen": {"fr": "choisir une variante", "en": "choose a variant"},
+  "ganzer Lebenslauf": {"fr": "CV complet", "en": "full CV"},
+  "fehlt noch": {"fr": "manque encore", "en": "still missing"},
+  "lesen und freigeben": {"fr": "à lire et valider", "en": "read and approve"},
+  "freigegeben": {"fr": "validée", "en": "approved"},
+  "vorhanden": {"fr": "présente", "en": "present"},
+  "PDFs erstellen": {"fr": "créer les PDF", "en": "create the PDFs"},
+  "am {datum}": {"fr": "le {datum}", "en": "on {datum}"},
+  "machst du selbst": {"fr": "à faire toi-même", "en": "you do it yourself"},
+  "machen Sie selbst": {"fr": "à faire vous-même", "en": "you do it yourself"},
+  "Job-Room offen": {"fr": "Job-Room à faire", "en": "Job-Room to do"},
+  "festgehalten": {"fr": "consignée", "en": "recorded"},
+  "Erfasst": {"fr": "Ajoutée", "en": "Added"},
+  "Beworben": {"fr": "Envoyée", "en": "Applied"},
+  "Versand erfasst ({art})": {"fr": "Envoi enregistré ({art})", "en": "Recorded as sent ({art})"},
+  "Im Job-Room eingetragen": {"fr": "Saisie sur Job-Room", "en": "Entered in Job-Room"},
+  "Gespräch": {"fr": "Entretien", "en": "Interview"},
+  "Das ist auch die eingetragene Note.": {"fr": "C'est aussi la note enregistrée.", "en": "That is also the grade entered."},
+  "Bisher eingetragen: Note {note}. Eine KI-Note ist eine Einschätzung und kann von Lauf zu Lauf abweichen. Die eingetragene Note ändert sich erst mit „Note übernehmen“.": {
+    "fr": "Enregistrée jusqu'ici\u00a0: note {note}. Une note de l'IA est une estimation et peut varier d'une fois à l'autre. La note enregistrée ne change qu'avec «\u00a0Appliquer la note\u00a0».",
+    "en": "Entered so far: grade {note}. An AI grade is an estimate and can vary from run to run. The grade entered changes only with “Apply the grade”."
+  },
+
+  "Status „{status}“": {"fr": "Statut «\u00a0{status}\u00a0»", "en": "Status “{status}”"},
+  "Kein Link zum Formular: öffnen und Link eintragen": {
+    "fr": "Pas de lien vers le formulaire\u00a0: ouvrir la candidature et saisir le lien",
+    "en": "No link to the form: open the application and enter the link"
+  },
+  "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Lebenslauf und Dateien“ hochladen": {
+    "fr": "PDF du CV manquant\u00a0: ouvrir la candidature, puis «\u00a0Créer et vérifier les documents\u00a0» ou téléverser le CV sous «\u00a0CV et fichiers\u00a0»",
+    "en": "CV PDF missing: open the application, then “Create and check documents”, or upload the CV under “CV and files”"
+  },
+  "Anschreiben noch nicht freigegeben: öffnen, lesen und „Freigeben“": {
+    "fr": "Lettre de motivation pas encore validée\u00a0: ouvrir la candidature, lire la lettre et «\u00a0Valider\u00a0»",
+    "en": "Cover letter not approved yet: open the application, read the letter and “Approve”"
+  },
+  "Im Lebenslauf fehlen die Angaben zur Person.": {
+    "fr": "Le CV ne contient pas les informations personnelles.",
+    "en": "The CV lacks the personal details."
+  },
+  "Dieser Teil der Datei fehlt.": {"fr": "Cette partie du fichier manque.", "en": "This part of the file is missing."},
+  "Für diese Bewerbung gibt es noch keine Dateien. Bitte zuerst „Unterlagen erstellen“ oder unter „Lebenslauf und Dateien“ hochladen.": {
+    "fr": "Il n'y a pas encore de fichiers pour cette candidature. Merci d'utiliser d'abord «\u00a0Créer et vérifier les documents\u00a0» ou de les téléverser sous «\u00a0CV et fichiers\u00a0».",
+    "en": "There are no files for this application yet. Please first use “Create and check documents” or upload them under “CV and files”."
+  },
+  "Der Ordner liess sich nicht vorbereiten. Bitte nochmals versuchen.": {
+    "fr": "Le dossier n'a pas pu être préparé. Merci de réessayer.",
+    "en": "The folder could not be prepared. Please try again."
+  },
+  "Diese Bewerbung ist schon versendet.": {"fr": "Cette candidature a déjà été envoyée.", "en": "This application has already been sent."},
+  "Ein eigenes Anschreiben braucht keine Freigabe.": {
+    "fr": "Une lettre de motivation téléversée n'a pas besoin de validation.",
+    "en": "An uploaded cover letter needs no approval."
+  },
+  "Es gibt noch kein Anschreiben zum Freigeben.": {
+    "fr": "Il n'y a pas encore de lettre de motivation à valider.",
+    "en": "There is no cover letter to approve yet."
+  },
+  "art muss eine von {arten} sein": {"fr": "art doit être l'un de {arten}", "en": "art must be one of {arten}"},
+  "Diese Bewerbung wurde bereits am {datum} versendet": {
+    "fr": "Cette candidature a déjà été envoyée le {datum}",
+    "en": "This application was already sent on {datum}"
+  },
+  "Lebenslauf-PDF fehlt: zuerst die Unterlagen erstellen und prüfen": {
+    "fr": "PDF du CV manquant\u00a0: créer et vérifier d'abord les documents",
+    "en": "CV PDF missing: create and check the documents first"
+  },
+  "Bei {firma} läuft schon eine Bewerbung: {stelle} ({status})": {
+    "fr": "Une candidature est déjà en cours chez {firma}\u00a0: {stelle} ({status})",
+    "en": "There is already an open application at {firma}: {stelle} ({status})"
+  },
+  "Festgehalten ist, was das Formular bekommen hat. Die neuere Fassung ging nicht mit: {files}.": {
+    "fr": "Ce qui est consigné, c'est ce que le formulaire a reçu. La version plus récente n'est pas partie\u00a0: {files}.",
+    "en": "What is recorded is what the form received. The newer version did not go along: {files}."
+  },
+  "Die Kopie für das Formular liess sich nicht entfernen: {error}": {
+    "fr": "La copie pour le formulaire n'a pas pu être supprimée\u00a0: {error}",
+    "en": "The copy for the form could not be removed: {error}"
+  },
+  "Die Datei liess sich nicht für das Formular bereitstellen. Bitte nochmals versuchen.": {
+    "fr": "Le fichier n'a pas pu être préparé pour le formulaire. Merci de réessayer.",
+    "en": "The file could not be prepared for the form. Please try again."
+  },
+  "Versand erfasst, aber nicht in Git eingefroren: {fehler}": {
+    "fr": "Envoi enregistré, mais pas figé dans Git\u00a0: {fehler}",
+    "en": "Recorded as sent, but not frozen in Git: {fehler}"
+  },
+
+  "texte:anschreiben.anrede": {
+    "fr": {"sie": "Formule d'appel", "du": "Formule d'appel"},
+    "en": {"sie": "Salutation"}
+  },
+  "texte:anschreiben.editor-als-text": {
+    "fr": {
+      "sie": "Vous modifiez le destinataire, le lieu et la date en texte.",
+      "du": "Tu modifies le destinataire, le lieu et la date en texte."
+    },
+    "en": {"sie": "You change recipient, place and date as text."}
+  },
+  "texte:bewerbung.angaben": {
+    "fr": {"sie": "Informations sur le poste", "du": "Informations sur le poste", "lehrstelle": "Informations sur la place d'apprentissage"},
+    "en": {"sie": "Job details", "lehrstelle": "Apprenticeship details"}
+  },
+  "texte:bewerbung.feld-firma": {
+    "fr": {"sie": "Entreprise", "du": "Entreprise", "lehrstelle": "Entreprise formatrice"},
+    "en": {"sie": "Company", "lehrstelle": "Host company"}
+  },
+  "texte:bewerbung.feld-stelle": {
+    "fr": {"sie": "Poste", "du": "Poste", "lehrstelle": "Place d'apprentissage"},
+    "en": {"sie": "Job", "lehrstelle": "Apprenticeship"}
+  },
+  "texte:bewerbung.formular": {
+    "fr": {
+      "sie": "L'app ouvre le formulaire de l'entreprise dans un nouvel onglet. L'extension remplit ce qu'elle sait et signale ce qui reste ouvert. Vous vérifiez et envoyez vous-même.",
+      "du": "L'app ouvre le formulaire de l'entreprise dans un nouvel onglet. L'extension remplit ce qu'elle sait et signale ce qui reste ouvert. Tu vérifies et envoies toi-même.",
+      "lehrstelle": "L'app ouvre le formulaire de l'entreprise formatrice dans un nouvel onglet. L'extension remplit ce qu'elle sait et signale ce qui reste ouvert. Tu vérifies et envoies toi-même."
+    },
+    "en": {
+      "sie": "The app opens the company's form in a new tab. The extension fills in what it knows and marks what is open. You check and send it yourself.",
+      "lehrstelle": "The app opens the host company's form in a new tab. The extension fills in what it knows and marks what is open. You check and send it yourself."
+    }
+  },
+  "texte:bewerbung.ki-entwerfen": {
+    "fr": {"sie": "Rédiger la lettre de motivation", "du": "Rédiger la lettre de motivation"},
+    "en": {"sie": "Draft the cover letter"}
+  },
+  "texte:bewerbung.stellentext": {
+    "fr": {"sie": "Texte de l'annonce", "du": "Texte de l'annonce", "lehrstelle": "Texte de l'annonce"},
+    "en": {"sie": "Job ad text", "lehrstelle": "Ad text"}
+  },
+  "texte:lebenslauf.angaben-hier": {
+    "fr": {
+      "sie": "D'après vos informations. Vous pouvez raccourcir et réorganiser ici\u00a0; pour",
+      "du": "D'après tes informations. Tu peux raccourcir et réorganiser ici\u00a0; pour"
+    },
+    "en": {"sie": "From your details. You can shorten and reorder here; to"}
+  },
+  "texte:lebenslauf.angaben-link": {
+    "fr": {"sie": "modifier les informations elles-mêmes", "du": "modifier les informations elles-mêmes"},
+    "en": {"sie": "change the details themselves"}
+  },
+  "texte:lebenslauf.angaben-dort": {
+    "fr": {"sie": ", passez par Mes informations.", "du": ", passe par Mes informations."},
+    "en": {"sie": ", go to My details."}
+  },
+  "texte:lebenslauf.aussehen-hinweis": {
+    "fr": {
+      "sie": "Vaut seulement pour cette candidature. Un dossier a le design, la couleur et l'emblème de «\u00a0Concevoir le dossier\u00a0»\u00a0; il prend la photo d'ici.",
+      "du": "Vaut seulement pour cette candidature. Un dossier a le design, la couleur et l'emblème de «\u00a0Concevoir le dossier\u00a0»\u00a0; il prend la photo d'ici."
+    },
+    "en": {"sie": "Applies only to this application. A dossier has design, colour and mark from “Design the dossier”; it takes the photo from here."}
+  },
+  "texte:lebenslauf.erstellen-intro": {
+    "fr": {
+      "sie": "L'app le construit à partir de vos informations. Vous choisissez séparément ce qu'il contient et son apparence. Ensuite, il est proposé comme toute variante.",
+      "du": "L'app le construit à partir de tes informations. Tu choisis séparément ce qu'il contient et son apparence. Ensuite, il est proposé comme toute variante."
+    },
+    "en": {"sie": "The app builds it from your details. You choose separately what it contains and how it looks. Afterwards it is offered like any variant."}
+  },
+  "texte:lebenslauf.erstellen-titel": {
+    "fr": {"sie": "CV pour ce poste", "du": "CV pour ce poste", "lehrstelle": "CV pour cette place d'apprentissage"},
+    "en": {"sie": "CV for this job", "lehrstelle": "CV for this apprenticeship"}
+  },
+  "texte:lebenslauf.farbe-hinweis": {
+    "fr": {
+      "sie": "Pour les lignes et les titres. Toutes les couleurs sont bien lisibles.",
+      "du": "Pour les lignes et les titres. Toutes les couleurs sont bien lisibles."
+    },
+    "en": {"sie": "For lines and headings. All colours read well."}
+  },
+  "texte:lebenslauf.farbe-titel": {"fr": {"sie": "Couleur", "du": "Couleur"}, "en": {"sie": "Colour"}},
+  "texte:lebenslauf.farbe-zeichen": {
+    "fr": {"sie": "Modifier la couleur et l'emblème", "du": "Modifier la couleur et l'emblème"},
+    "en": {"sie": "Change colour and mark"}
+  },
+  "texte:lebenslauf.ki-grenze": {
+    "fr": {
+      "sie": "L'IA ne fait que réorganiser et raccourcir, et n'ajoute rien qui ne figure pas dans vos informations.",
+      "du": "L'IA ne fait que réorganiser et raccourcir, et n'ajoute rien qui ne figure pas dans tes informations."
+    },
+    "en": {"sie": "The AI only reorders and shortens, and adds nothing that is not in your details."}
+  },
+  "texte:lebenslauf.ki-neu-schaetzen": {"fr": {"sie": "Estimer à nouveau", "du": "Estimer à nouveau"}, "en": {"sie": "Estimate again"}},
+  "texte:lebenslauf.ki-titel": {
+    "fr": {
+      "sie": "Propositions de l'IA pour ce poste",
+      "du": "Propositions de l'IA pour ce poste",
+      "lehrstelle": "Propositions de l'IA pour cette place d'apprentissage"
+    },
+    "en": {"sie": "AI suggestions for this job", "lehrstelle": "AI suggestions for this apprenticeship"}
+  },
+  "texte:lebenslauf.ki-zum-stellentext": {
+    "fr": {"sie": "Vers le texte de l'annonce", "du": "Vers le texte de l'annonce"},
+    "en": {"sie": "To the job ad text"}
+  },
+  "texte:lebenslauf.mit-foto": {"fr": {"sie": "Avec photo", "du": "Avec photo"}, "en": {"sie": "With photo"}},
+  "texte:lebenslauf.vorschau-hinweis": {
+    "fr": {
+      "sie": "L'aperçu suit votre choix. L'enregistrement se fait seulement avec «\u00a0Utiliser ce CV\u00a0».",
+      "du": "L'aperçu suit ton choix. L'enregistrement se fait seulement avec «\u00a0Utiliser ce CV\u00a0»."
+    },
+    "en": {"sie": "The preview follows your choice. It is saved only with “Use this CV”."}
+  },
+  "texte:lebenslauf.zeichen-hinweis": {
+    "fr": {
+      "sie": "En petit dans le pied de page de chaque page, à partir de vos initiales ou de votre logo.",
+      "du": "En petit dans le pied de page de chaque page, à partir de tes initiales ou de ton logo."
+    },
+    "en": {"sie": "Small in the footer of each page, from your initials or your logo."}
+  },
+  "texte:lebenslauf.zeichen-titel": {"fr": {"sie": "Emblème", "du": "Emblème"}, "en": {"sie": "Mark"}}
+}

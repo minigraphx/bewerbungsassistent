@@ -44,6 +44,9 @@ UNKNOWN_FILE = "Diese Datei gehört nicht zu dieser Bewerbung."
 UNKNOWN_PART = "Dieser Teil der Datei fehlt."
 NO_FILES = "Für diese Bewerbung gibt es noch keine Dateien. Bitte zuerst „Unterlagen erstellen“ oder unter „Lebenslauf und Dateien“ hochladen."
 FOLDER_FAILED = "Der Ordner liess sich nicht vorbereiten. Bitte nochmals versuchen."
+# Heute and Bewerbungen turn these reasons into a step of their own; the reason comes in the app language, so the
+# answer of /api/bewerben/auswahl names the step by this code (#426).
+REASON_STEPS = {NO_CV: "unterlagen", NO_LINK: "link", NOT_APPROVED: "freigeben"}
 
 
 @dataclass(frozen=True)
@@ -63,16 +66,21 @@ def form_link(entry: dict) -> str | None:
 def blocker(data_dir: pathlib.Path, entry: dict) -> str | None:
     """Why this application cannot be opened, as far as it shows without reading the PDFs."""
     if entry.get("versand"):
-        return T(ALREADY_SENT)  # Heute shows it as the step's title (#419); it compares NO_LINK, NO_CV, NOT_APPROVED in German
+        return T(ALREADY_SENT)  # Heute shows it as the step's title (#419)
     if entry.get("status") not in OPEN_STATUS:
-        return NOT_OPEN.format(status=entry.get("status"))
+        return T(NOT_OPEN, status=entry.get("status"))  # the stage is stored German and stays so
     if not form_link(entry):
-        return NO_LINK
+        return T(NO_LINK)
     if not wirksame_pdfs(data_dir, entry)["lebenslauf"].is_file():
-        return NO_CV
+        return T(NO_CV)
     if letter_approval.missing(data_dir, entry):  # MIN-369: no AI letter goes out unread
-        return NOT_APPROVED
+        return T(NOT_APPROVED)
     return None
+
+
+def reason_step(reason: str | None) -> str | None:
+    """The step a reason of `blocker` leads to on Heute and Bewerbungen, from its template, never its words."""
+    return REASON_STEPS.get(getattr(reason, "template", None))
 
 
 def duplicates(everyone: list[dict], chosen: list[dict]) -> list[dict]:

@@ -26,6 +26,7 @@
   let zeilen = [];
   let gezeigt = "";      // the register as last drawn, to see whether Claude changed it
   let gruende = new Map();
+  let grundSchritte = new Map();
   let ravGruende = new Map();
   let maxPerRun = 0;
   let maxRav = 0;
@@ -312,6 +313,7 @@
   async function ladeAuswahl() {
     const [auswahl, ravAuswahl] = await Promise.all([holen("/api/bewerben/auswahl"), holen("/api/rav/auswahl")]);
     gruende = new Map(auswahl.bewerbungen.map(row => [row.id, row.grund]));
+    grundSchritte = L.grundSchritte(auswahl.bewerbungen);
     maxPerRun = auswahl.hoechstens;
     rav = Boolean(ravAuswahl.sichtbar);
     ravGruende = new Map(rav ? ravAuswahl.bewerbungen.map(row => [row.id, row.grund]) : []);
@@ -334,7 +336,7 @@
       grundlagen = gefunden;
       gezeigt = JSON.stringify(daten.bewerbungen);
       alle = daten.bewerbungen;
-      zeilen = L.mitSchritten(alle, gruende, ravGruende);
+      zeilen = L.mitSchritten(alle, gruende, ravGruende, grundSchritte);
       zeige();
     } catch (fehler) {
       console.warn("Loading the applications for Heute failed:", fehler.message);  // kein UI-Text: log line

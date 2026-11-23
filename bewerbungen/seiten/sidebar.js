@@ -46,7 +46,8 @@
       holen("/api/bewerbungen"), holen("/api/bewerben/auswahl"), holen("/api/rav/auswahl")]);
     const reasons = new Map(choice.bewerbungen.map(row => [row.id, row.grund]));
     const ravReasons = new Map(rav.sichtbar ? rav.bewerbungen.map(row => [row.id, row.grund]) : []);
-    return L.stehtAn(L.mitSchritten(register.bewerbungen, reasons, ravReasons), Infinity).length;
+    const steps = L.mitSchritten(register.bewerbungen, reasons, ravReasons, L.grundSchritte(choice.bewerbungen));
+    return L.stehtAn(steps, Infinity).length;
   }
 
   async function newHits() {

@@ -9,6 +9,7 @@ Schritt fest, was wann an wen ging:
 4. Ist Git installiert, kommt alles zusätzlich als Commit ins lokale Git (siehe versionen.py).
 """
 import datetime
+import functools
 import hashlib
 import pathlib
 import shutil
@@ -22,6 +23,7 @@ import unterlagen
 from ablage import Ablage
 from dateien import im_ordner
 from register import JOBROOM_ART, Register
+from ui_message import T
 from varianten import Varianten
 from versionen import Versionierung
 
@@ -30,6 +32,11 @@ ORDNER = "versendet"
 GIT_HISTORY = 1000  # commits searched for the commit of a Versand
 FORM_VERSION_KEPT = "Festgehalten ist, was das Formular bekommen hat. Die neuere Fassung ging nicht mit: {files}."
 COPY_LEFT = "Die Kopie für das Formular liess sich nicht entfernen: {error}"
+UNKNOWN_KIND = "art muss eine von {arten} sein"
+ALREADY_SENT = "Diese Bewerbung wurde bereits am {datum} versendet"
+NO_CV = "Lebenslauf-PDF fehlt: zuerst die Unterlagen erstellen und prüfen"
+FIRM_RUNNING = "Bei {firma} läuft schon eine Bewerbung: {stelle} ({status})"
+NOT_FROZEN = "Versand erfasst, aber nicht in Git eingefroren: {fehler}"
 
 
 def purpose(bewerbung: dict, datum: datetime.date) -> str:
@@ -89,7 +96,8 @@ def _datenquellen(daten: pathlib.Path, bewerbung: dict, gesendeter_brief: pathli
 def _hinweise_firma(alle: list[dict], bewerbung: dict) -> list[str]:
     andere = [b for b in alle if b["id"] != bewerbung["id"] and b["firma"] == bewerbung["firma"]
               and b["status"] in ("Beworben", "Gespräch")]
-    return [f"Bei {bewerbung['firma']} läuft schon eine Bewerbung: {b['stelle']} ({b['status']})" for b in andere]
+    # firm, job and stage are stored values and stay German in every language
+    return [T(FIRM_RUNNING, firma=bewerbung["firma"], stelle=b["stelle"], status=b["status"]) for b in andere]
 
 
 def _aktuelle_dateien(daten: pathlib.Path, bewerbung: dict) -> dict[str, pathlib.Path]:
@@ -113,14 +121,19 @@ def form_differs(daten: pathlib.Path, bewerbung: dict) -> list[str]:
     return _unterschiede(daten, bewerbung, form_copy.copies(daten, bewerbung["id"]), _aktuelle_dateien(daten, bewerbung))
 
 
+def _comma_list(names: list[str]) -> str:
+    """„a, b, c“ as German always wrote it, each name in the app language: ui_message.listing would add „und“."""
+    return functools.reduce(lambda joined, name: T("{a}, {b}", a=joined, b=name), names[1:], names[0])
+
+
 def _hinweise_fassungen(daten: pathlib.Path, bewerbung: dict, aus_formular: dict, aktuell: dict) -> list[str]:
     """Says when the record names another version than the one that counts now, and removes the copies."""
     anders = [form_copy.LABELS[art] for art in _unterschiede(daten, bewerbung, aus_formular, aktuell)]
-    hinweise = [FORM_VERSION_KEPT.format(files=", ".join(anders))] if anders else []
+    hinweise = [T(FORM_VERSION_KEPT, files=_comma_list(anders))] if anders else []
     try:
         form_copy.forget_all(daten, bewerbung["id"])
     except OSError as fehler:
-        hinweise.append(COPY_LEFT.format(error=fehler))
+        hinweise.append(T(COPY_LEFT, error=fehler))
     return hinweise
 
 
@@ -129,16 +142,16 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     """`from_form`: the person sent it from the form, so what the form got is what went out."""
     daten = daten.resolve()
     if art not in JOBROOM_ART:
-        raise ValueError(f"art muss eine von {', '.join(JOBROOM_ART)} sein")
+        raise ValueError(T(UNKNOWN_KIND, arten=", ".join(JOBROOM_ART)))  # the stored kinds, German in every language
     register = Register(daten)
     bewerbung = register.hole(bewerbung_id)
     if bewerbung.get("versand"):
-        raise ValueError(f"Diese Bewerbung wurde bereits am {bewerbung['versand']['datum']} versendet")
+        raise ValueError(T(ALREADY_SENT, datum=bewerbung["versand"]["datum"]))
     aktuell = _aktuelle_dateien(daten, bewerbung)
     aus_formular = form_copy.copies(daten, bewerbung_id) if from_form else {}
     fassungen = {**aktuell, **aus_formular}
     if "lebenslauf" not in fassungen:
-        raise ValueError("Lebenslauf-PDF fehlt: zuerst die Unterlagen erstellen und prüfen")
+        raise ValueError(NO_CV)
 
     abgelegt = {a: lege_ab(daten, p, datum) for a, p in fassungen.items()}
     zweck = purpose(bewerbung, datum)
@@ -159,7 +172,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     except (RuntimeError, subprocess.CalledProcessError, OSError) as fehler:
         # Der Versand ist erfasst; eingefroren wird beim nächsten Versand mit (versendet/ und Register sind dabei)
         commit = None
-        hinweise.append(f"Versand erfasst, aber nicht in Git eingefroren: {fehler}")
+        hinweise.append(T(NOT_FROZEN, fehler=fehler))
     return {"bewerbung": neu, "commit": commit, "hinweise": hinweise}
 
 

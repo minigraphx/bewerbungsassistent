@@ -86,9 +86,12 @@ def page_texts(page: str) -> Iterator[PageText]:
             text_set = named[2] if named else None
 
 
-def _text_node(raw: str, translation: str | None) -> str:
+def _text_node(raw: str, translation: str | None, whole: bool = False) -> str:
+    """`whole`: a text set replaces the node with its spaces, as Texte.anwenden does with textContent (#426)."""
     if translation is None:
         return raw
+    if whole:
+        return html_text.escape(translation, quote=False)
     lead = raw[:len(raw) - len(raw.lstrip(WHITESPACE))]
     trail = raw[len(raw.rstrip(WHITESPACE)):]
     return lead + html_text.escape(translation, quote=False) + trail
@@ -116,7 +119,7 @@ def _translated(page: str, catalog: translation_catalog.Catalog, language: str) 
             key = key_of(segment.value)
             translation = (catalog.form(text_set, language, DEFAULT_FORM) if text_set
                            else catalog.text(key, language) if key else None)
-            parts.append(_text_node(segment.value, translation))
+            parts.append(_text_node(segment.value, translation, whole=bool(text_set)))
             text_set = None
             continue
         if segment.kind == "raw" and not script_added and segment.value[:7].lower() == "<script":
