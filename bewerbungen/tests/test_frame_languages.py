@@ -17,12 +17,14 @@ import routes_ai
 import routes_frame
 import server as server_module
 import ui_texts
+from ai import budget
 
 PAGE = "/angaben"
 # Text nodes keep the apostrophe as it is; attributes such as aria-label escape quotes.
 NAVIGATION_FR = ('aria-label="Navigation principale"', "Aujourd'hui", "Candidatures", "Mes documents", "Mes informations",
                  "CV et fichiers", "Aide", "Paramètres")
-PAGE_FR = ("Mes informations n'existe que dans l'app installée.", "modifier comme texte")
+PAGE_FR = ("La page Mes informations n'existe que dans l'app installée.", "modifier comme texte")
+NBSP = chr(0xA0)
 
 
 def store_language(folder: pathlib.Path, language: str) -> None:
@@ -125,7 +127,19 @@ def test_a_route_of_the_search_frame_answers_its_error_in_french(serve, folder, 
     store_language(folder, "fr")
 
     assert post(serve, "/api/suche/rahmen", {"pensum": "80"}) == (
-        400, {"fehler": "Terminez d'abord Mes informations."})
+        400, {"fehler": "Terminer d'abord Mes informations."})
+
+
+def test_the_used_up_budget_names_its_renewal_day_in_the_app_language():
+    first = budget.used_up_message({"monat": "2026-11", "erneuert_am": "2026-12-01"})
+    second = budget.used_up_message({"monat": "2026-03", "erneuert_am": "2026-04-02"})
+
+    assert ui_texts.uebersetze(first, "fr") == (f"Le budget IA pour novembre est épuisé. L'IA fonctionne à nouveau dès le "
+                                                f"1er{NBSP}décembre{NBSP}; tout le reste continue de fonctionner.")
+    assert ui_texts.uebersetze(second, "en") == (f"The AI budget for March is used up. The AI works again from "
+                                                 f"2{NBSP}April; everything else keeps working.")
+    assert first == (f"Das KI-Budget für November ist aufgebraucht. Die KI geht wieder ab 1.{NBSP}Dezember; "
+                     "alles andere funktioniert weiterhin.")
 
 
 def test_a_route_of_the_ai_answers_its_error_in_english(serve, folder, preview):

@@ -43,9 +43,12 @@ def month_of(account: dict | None) -> tuple[str, str] | None:
     if not fields:
         return None
     day = _renewal_day(fields["erneuert_am"])
-    # T, so the refusal names month and day in the app language (#416); in German the same text as before
-    return T(MONTHS[int(fields["monat"][5:]) - 1]), T("{tag}.{nbsp}{monat}", tag=day.day, nbsp=NBSP,
-                                                      monat=T(MONTHS[day.month - 1]))
+    # T, so the refusal names month and day in the app language (#416); in German the same text as before. French
+    # writes the first of a month „1er décembre“, so day 1 has its own text.
+    month = T(MONTHS[day.month - 1])
+    renews = (T("1.{nbsp}{monat}", nbsp=NBSP, monat=month) if day.day == 1
+              else T("{tag}.{nbsp}{monat}", tag=day.day, nbsp=NBSP, monat=month))
+    return T(MONTHS[int(fields["monat"][5:]) - 1]), renews
 
 
 def used_up_message(account: dict | None) -> str:

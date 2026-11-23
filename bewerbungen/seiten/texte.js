@@ -650,22 +650,26 @@
 
   // Where a new invitation code is requested once its credit is used up (#315): the contact on the help page.
   const CODE_REQUEST_URL = "https://bewerbungsbegleiter.ch/hilfe.html#kontakt";
+  // The word that carries the link in each language (#416); the catalog words its sentences around it. German stays the
+  // fallback, so a page not yet translated keeps its link.
+  const REQUEST_WORDS = { de: "anfordern", fr: "demander", en: "request" };
   // Whole word only, so „Anforderungen“ or „angefordert“ stay text; no lookbehind for older Safari.
-  const REQUEST_WORD = /(^|[^\p{L}])(anfordern)(?![\p{L}])/u;
-  const NEW_TAB = ", öffnet neuen Tab";
+  const requestWord = word => new RegExp(`(^|[^\\p{L}])(${word})(?![\\p{L}])`, "u");
 
   /**
-   * `sentence` as parts for App.el, with the first „anfordern“ as a link to CODE_REQUEST_URL. The app runs in the
-   * system browser, so a new tab opens the website there. Without the word the sentence stays one part.
+   * `sentence` as parts for App.el, with the first request word of the app language („anfordern“, „demander“,
+   * „request“) as a link to CODE_REQUEST_URL. The app runs in the system browser, so a new tab opens the website
+   * there. Without the word the sentence stays one part.
    */
   function withCodeRequestLink(sentence, el) {
     const value = String(sentence ?? "");
-    const found = REQUEST_WORD.exec(value);
+    const words = [REQUEST_WORDS[aktuelleSprache()], REQUEST_WORDS[DEUTSCH]].filter(Boolean);
+    const found = words.map(word => requestWord(word).exec(value)).find(Boolean);
     if (!found) return value ? [value] : [];
     const start = found.index + found[1].length;
     const end = start + found[2].length;
     const link = el("a", { href: CODE_REQUEST_URL, target: "_blank", rel: "noopener" }, found[2],
-      el("span", { class: "visually-hidden" }, NEW_TAB));
+      el("span", { class: "visually-hidden" }, t(", öffnet neuen Tab")));
     return [value.slice(0, start), link, value.slice(end)].filter(part => part !== "");
   }
 
@@ -679,7 +683,6 @@
   // Day and month never part at the end of a line; screen readers read it as a space.
   const NBSP = "\u00a0";
   const chf = amount => `CHF${NBSP}${amount.toFixed(2)}`;
-  const CREDIT_USED_ONCE = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI, Budget und Sprache einlösen.";
 
   function realDay(found) {
     const [year, month, day] = [Number(found[1]), Number(found[2]), Number(found[3])];
@@ -698,19 +701,38 @@
     return { month: MONTH_NAMES[Number(month[1]) - 1], renews: `${Number(day[3])}.${NBSP}${MONTH_NAMES[Number(day[2]) - 1]}` };
   }
 
-  /** The credit in the window „KI einrichten“ and on the page „KI“; empty without an amount of the mediation. */
+  /** „1. Dezember“ in the app language; French writes the first of a month „1er décembre“ (#416). */
+  function dayAndMonth(day, month) {
+    const monat = t(MONTH_NAMES[month - 1]);
+    return day === 1 ? t("1.{nbsp}{monat}", { nbsp: NBSP, monat }) : t("{tag}.{nbsp}{monat}", { tag: day, nbsp: NBSP, monat });
+  }
+
+  /**
+   * The credit in the window „KI einrichten“ and on the page „KI“, in the app language (#416); empty without an amount
+   * of the mediation.
+   */
   function budgetPart(status) {
     if (!status || typeof status.guthaben_chf !== "number") return "";
     const spent = Number(status.verbraucht_chf || 0);
     const usedUp = spent >= status.guthaben_chf;
-    const used = `${chf(spent)} von ${chf(status.guthaben_chf)} verbraucht.`;
-    const budget = budgetMonth(status);
-    if (!budget) return ` Guthaben: ${used}${usedUp ? CREDIT_USED_ONCE : ""}`;
-    return ` KI-Budget im ${budget.month}: ${used}${usedUp ? ` Es ist aufgebraucht; die KI geht wieder ab ${budget.renews}.` : ""}`;
+    const used = t("{verbraucht} von {guthaben} verbraucht.", { verbraucht: chf(spent), guthaben: chf(status.guthaben_chf) });
+    if (!budgetMonth(status)) {
+      const once = usedUp
+        ? ` ${t("Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI, Budget und Sprache einlösen.")}`
+        : "";
+      return ` ${t("Guthaben: {verbraucht}", { verbraucht: used })}${once}`;
+    }
+    const month = BUDGET_MONTH.exec(status.monat);
+    const day = RENEWAL_DAY.exec(status.erneuert_am);
+    const wann = t("im {monat}", { monat: t(MONTH_NAMES[Number(month[1]) - 1]) });
+    const again = usedUp
+      ? ` ${t("Es ist aufgebraucht; die KI geht wieder ab {datum}.", { datum: dayAndMonth(Number(day[3]), Number(day[2])) })}`
+      : "";
+    return ` ${t("KI-Budget {wann}: {verbraucht}", { wann, verbraucht: used })}${again}`;
   }
 
   const texte = { SAETZE, VORGABE, TEXTE, CODE_REQUEST_URL, satzOder, text, t, setzeSprache, anwenden, statusName,
-                  notenText, withCodeRequestLink, budgetMonth, budgetPart };
+                  notenText, withCodeRequestLink, budgetMonth, dayAndMonth, budgetPart };
   if (typeof module !== "undefined") module.exports = texte;
   else global.Texte = texte;
 })(typeof window !== "undefined" ? window : globalThis);

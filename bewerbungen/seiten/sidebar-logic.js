@@ -95,10 +95,9 @@
   function budgetWords(status) {
     const Texte = texts();
     if (!Texte.budgetMonth(status)) return null;
-    const names = months();
     const day = /^\d{4}-(\d{2})-(\d{2})$/.exec(status.erneuert_am);
-    return { month: names[Number(status.monat.slice(5, 7)) - 1],
-             renews: Texte.t("{tag}.{nbsp}{monat}", { tag: Number(day[2]), nbsp: NBSP, monat: names[Number(day[1]) - 1] }) };
+    return { month: months()[Number(status.monat.slice(5, 7)) - 1],
+             renews: Texte.dayAndMonth(Number(day[2]), Number(day[1])) };
   }
 
   function creditState(spent, credit) {

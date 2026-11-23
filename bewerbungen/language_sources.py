@@ -33,6 +33,8 @@ JS_TOKEN = re.compile(r"""//[^\n]*|/\*.*?\*/|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\
 JS_ESCAPE = re.compile(r"\\(u\{[0-9a-fA-F]+\}|u[0-9a-fA-F]{4}|.)", re.S)
 JS_ESCAPES = {"n": "\n", "t": "\t", "r": "\r", "b": "\b", "f": "\f", "v": "\v", "0": "\0"}
 T_CALL = re.compile(r"\bTexte\.t\(\s*$")
+# texte.js calls its own t (#416): there the same catalog lookup has no „Texte.“ before it.
+OWN_T_CALL = re.compile(r"(?<![\w.$])t\(\s*$")
 SET_CALL = re.compile(r"\bTexte\.text\(\s*$")
 COMPARED_BEFORE = re.compile(r"(?:[!=]==?|\bcase)\s*$")
 # A form of a text set in texte.js; the catalog translates it as "texte:<key>", never as a plain text.
@@ -99,7 +101,7 @@ def _js_item(path: pathlib.Path, source: str, found: re.Match) -> Item | None:
     line = _line(source, found.start())
     if SET_CALL.search(before):
         return Item(path, line, value, "set")
-    if T_CALL.search(before):
+    if T_CALL.search(before) or (path.name == TEXTE_JS.name and OWN_T_CALL.search(before)):
         return Item(path, line, value, "text")
     words = INTERPOLATION.sub("", value).strip() if found[0][0] == "`" else value
     if (COMPARED_BEFORE.search(before) or SET_FORM_BEFORE.search(before) or COMPARED_AFTER.match(after)
@@ -110,9 +112,34 @@ def _js_item(path: pathlib.Path, source: str, found: re.Match) -> Item | None:
     return None
 
 
+def _interpolations(source: str, token: re.Match) -> Iterator[tuple[int, int]]:
+    """Start and end of the code of each ${…} in a template token, braces counted and strings skipped."""
+    position = token.start() + 1
+    while (start := source.find("${", position, token.end())) != -1:
+        depth, at = 1, start + 2
+        while at < token.end() and depth:
+            string = JS_TOKEN.match(source, at) if source[at] in "\"'`" else None
+            if string:
+                at = string.end()
+                continue
+            depth += {"{": 1, "}": -1}.get(source[at], 0)
+            at += 1
+        yield start + 2, at - 1
+        position = at
+
+
+def _tokens(source: str, start: int, end: int) -> Iterator[re.Match]:
+    """Every token, also those inside the ${…} of a template: Texte.t there is a text like any other (#416)."""
+    for found in JS_TOKEN.finditer(source, start, end):
+        yield found
+        if found[0][0] == "`":
+            for inner_start, inner_end in _interpolations(source, found):
+                yield from _tokens(source, inner_start, inner_end)
+
+
 def _js_items(path: pathlib.Path, source: str) -> Iterator[Item]:
     marked = _marked_lines(source)
-    for found in JS_TOKEN.finditer(source):
+    for found in _tokens(source, 0, len(source)):
         if found[0][0] not in "\"'`" or _line(source, found.start()) in marked:
             continue
         item = _js_item(path, source, found)

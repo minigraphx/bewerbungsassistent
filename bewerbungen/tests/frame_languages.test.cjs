@@ -129,10 +129,12 @@ test("the AI budget at the bottom of the sidebar names month and renewal in Fren
 
   const view = inLanguage("fr", () => sidebar.budgetView(status));
 
-  assert.equal(view.title, "Budget IA : novembre");
+  assert.equal(view.title, "Budget IA novembre");
   assert.equal(view.text, `CHF${NBSP}4.50 sur CHF${NBSP}5.00 utilisés`);
-  assert.equal(view.warning, `Presque épuisé. Nouveau budget le 1${NBSP}décembre.`);
+  assert.equal(view.warning, `Presque épuisé. Nouveau budget le 1er${NBSP}décembre.`);
   assert.equal(view.label, "90 pour cent du budget IA utilisés en novembre");
+  assert.equal(inLanguage("fr", () => sidebar.budgetView({ ...status, erneuert_am: "2026-12-02" })).warning,
+               `Presque épuisé. Nouveau budget le 2${NBSP}décembre.`);
 });
 
 test("the own key costs name the month in English", () => {
@@ -140,7 +142,47 @@ test("the own key costs name the month in English", () => {
                                                             eigener_schluessel: true, kosten_usd: 1.5 }));
 
   assert.equal(view.title, "AI costs in March");
-  assert.equal(view.detail, "No credit from the mediation service");
+  assert.equal(view.detail, "No credit on the app's AI service");
+});
+
+/** App.el as the pages have it: tag, attributes and children. */
+function el(tag, attrs = {}, ...children) {
+  const node = element(tag);
+  Object.assign(node.attrs, attrs);
+  node.append(...children);
+  return node;
+}
+const linkWord = parts => parts.find(part => typeof part === "object")?.children[0];
+
+test("the link to a new code sits on the request word of the app language", () => {
+  const usedUp = { eingerichtet: true, vermittlung: true, guthaben_chf: 5, verbraucht_chf: 5 };
+  const linked = () => {
+    const warning = sidebar.budgetView(usedUp).warning;
+    return { warning, word: linkWord(texte.withCodeRequestLink(warning, el)) };
+  };
+
+  assert.deepEqual(inLanguage("fr", linked), { warning: `Crédit épuisé${NBSP}: demander un nouveau code`, word: "demander" });
+  assert.deepEqual(inLanguage("en", linked), { warning: "Credit used up: request a new code", word: "request" });
+  assert.deepEqual(linked(), { warning: "Guthaben aufgebraucht: neuen Code anfordern", word: "anfordern" });
+});
+
+test("the budget in the window „KI einrichten“ goes through the catalog", () => {
+  const status = { guthaben_chf: 5, verbraucht_chf: 1.2, monat: "2026-11", erneuert_am: "2026-12-01" };
+  const usedUp = { ...status, verbraucht_chf: 5 };
+
+  assert.equal(inLanguage("fr", () => texte.budgetPart(status)),
+               ` Budget IA en novembre${NBSP}: CHF${NBSP}1.20 sur CHF${NBSP}5.00 utilisés.`);
+  assert.equal(inLanguage("fr", () => texte.budgetPart(usedUp)),
+               ` Budget IA en novembre${NBSP}: CHF${NBSP}5.00 sur CHF${NBSP}5.00 utilisés. Il est épuisé${NBSP}; `
+               + `l'IA fonctionne à nouveau dès le 1er${NBSP}décembre.`);
+  assert.equal(inLanguage("en", () => texte.budgetPart(usedUp)),
+               ` AI budget in November: CHF${NBSP}5.00 of CHF${NBSP}5.00 used. It is used up; the AI works again from `
+               + `1${NBSP}December.`);
+  assert.equal(inLanguage("fr", () => texte.budgetPart({ guthaben_chf: 5, verbraucht_chf: 5 })),
+               ` Crédit${NBSP}: CHF${NBSP}5.00 sur CHF${NBSP}5.00 utilisés. Le crédit est épuisé${NBSP}: demander un `
+               + "nouveau code et l'utiliser sous Paramètres, IA, budget et langue.");
+  assert.equal(texte.budgetPart(usedUp), ` KI-Budget im November: CHF${NBSP}5.00 von CHF${NBSP}5.00 verbraucht. `
+               + `Es ist aufgebraucht; die KI geht wieder ab 1.${NBSP}Dezember.`);
 });
 
 test("the close button of a message is named in English", () => {

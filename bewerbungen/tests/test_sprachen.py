@@ -138,6 +138,19 @@ def test_a_german_template_literal_with_values_is_a_gap_while_code_templates_are
                                                                      ("Texte.t",))]
 
 
+def test_texte_js_says_its_own_texts_through_t_while_another_script_needs_texte_t(tmp_path):
+    source = '"use strict";\nreturn ` ${t("Guthaben: {verbraucht}", { verbraucht })}`;\n'
+    own = tmp_path / "eigen" / language_sources.TEXTE_JS.name
+    other = tmp_path / "seite.js"
+    own.parent.mkdir()
+    own.write_text(source, encoding="utf-8")
+    other.write_text(source, encoding="utf-8")
+
+    found = [(item.path.name, item.kind, item.text) for item in language_sources.items((own, other))]
+
+    assert found == [("texte.js", "text", "Guthaben: {verbraucht}"), ("seite.js", "leftover", "Guthaben: {verbraucht}")]
+
+
 def test_python_reads_t_with_values_and_names_a_formatted_message_that_needs_t(tmp_path):
     module = tmp_path / "routen.py"
     module.write_text("import ui_texts\n\n\n"
