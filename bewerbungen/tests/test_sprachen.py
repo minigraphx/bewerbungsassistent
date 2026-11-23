@@ -172,11 +172,38 @@ def test_a_template_of_placeholders_only_has_no_words_to_translate(tmp_path):
     assert sprachen_pruefen.gaps((module,), fixture_catalog()) == ()
 
 
+def test_a_sentence_with_an_address_in_it_is_a_gap_while_a_bare_address_is_not(tmp_path):
+    script = tmp_path / "seite.js"
+    script.write_text('"use strict";\n'
+                      'zeile.textContent = `Bitte unter chrome://extensions auf „Neu laden“ klicken (${version}).`;\n'
+                      'link.href = "chrome://extensions";\n'
+                      'link.href = `https://example.org/${pfad}`;\n', encoding="utf-8")
+
+    gaps = sprachen_pruefen.gaps((script,), fixture_catalog())
+
+    assert [(gap.line, gap.missing) for gap in gaps] == [(2, ("Texte.t",))]
+
+
+def test_the_full_names_of_the_browsers_are_names(tmp_path):
+    script = tmp_path / "seite.js"
+    script.write_text('"use strict";\nconst NAMEN = { chrome: "Google Chrome", edge: "Microsoft Edge" };\n',
+                      encoding="utf-8")
+
+    assert sprachen_pruefen.gaps((script,), fixture_catalog()) == ()
+
+
 def test_every_source_includes_the_routes_of_the_desktop_app():
     sources = sprachen_pruefen.app_sources()
 
     assert BASE.parent / "desktop" / "routes_app.py" in sources
     assert BASE.parent / "desktop" / "routes_claude.py" in sources
+
+
+def test_every_source_includes_the_folder_check_and_the_dialogs_the_setup_routes_call():
+    sources = sprachen_pruefen.app_sources()
+
+    assert BASE.parent / "desktop" / "setup.py" in sources
+    assert BASE.parent / "desktop" / "dialogs.py" in sources
 
 
 def test_texte_js_says_its_own_texts_through_t_while_another_script_needs_texte_t(tmp_path):

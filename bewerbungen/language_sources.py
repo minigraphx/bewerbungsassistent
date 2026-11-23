@@ -21,8 +21,8 @@ TEXTE_JS = BASE / "seiten" / "texte.js"
 NOT_UI_MARKER = "kein UI-Text"
 # Names and units that read the same in every language; a text of nothing else needs no translation.
 INVARIANT = ("Bewerbungsbegleiter", "Claude Desktop", "Claude", "Anthropic", "CHF", "USD", "jobs.ch", "Job-Room",
-             "job-room", "jobscout24", "ictjobs", "yousty", "kununu", "LinkedIn", "GitHub", "Chrome", "Edge", "Firefox",
-             "Safari", "PDF", "ZIP", "JPG", "PNG", "SVG")
+             "job-room", "jobscout24", "ictjobs", "yousty", "kununu", "LinkedIn", "GitHub", "Google Chrome",
+             "Microsoft Edge", "Chrome", "Edge", "Firefox", "Safari", "PDF", "ZIP", "JPG", "PNG", "SVG")
 # Stored values stay German in every language; the pages word them (texte.js statusName).
 DATA_VALUES = frozenset(register.STATUS)
 LETTER = re.compile(r"[^\W\d_]")
@@ -46,7 +46,8 @@ KEY_AFTER = re.compile(r"^\s*:")
 TERNARY_BEFORE = re.compile(r"\?\s*$")
 # A leftover is a sentence (with a space) or one capitalised word such as „Speichern“; code rarely looks like either.
 TEXT_LIKE = re.compile(r"[A-ZÄÖÜ][^\s]*\s+\S.*|[A-ZÄÖÜ][a-zäöüß]+[.!?:…]?", re.S)
-CODE_LIKE = re.compile(r"[a-z][\w-]*://|^[/#.]")
+# A bare address is code; a sentence that names one („unter chrome://extensions … klicken“) is still a text (#418).
+CODE_LIKE = re.compile(r"^[a-z][\w-]*://\S*$|^[/#.]")
 # A template literal is judged by its own words: `Version ${v} ist verfügbar.` is a text, `/treffer?${q}` is not (#416).
 INTERPOLATION = re.compile(r"\$\{[^}]*\}")
 CONTEXT = 40

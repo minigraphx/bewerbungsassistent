@@ -8,17 +8,25 @@
 // the page keeps in sessionStorage.
 (() => {
   const { holen, senden, el } = window.App;
-  const { text, anwenden } = window.Texte;
+  const { Texte } = window;
+  const { text, anwenden } = Texte;
   const $ = id => document.getElementById(id);
 
   const L = window.EinrichtungLogik;
-  const TITEL = { gesucht: "Gesucht", vorlage: "Datei", erweiterung: "Erweiterung" };
+  // Texts in the app language through Texte.t (#418); the page's language is fixed when it loads.
+  const TITEL = { gesucht: Texte.t("Gesucht"), vorlage: Texte.t("Datei"), erweiterung: Texte.t("Erweiterung") };
   const FRUEHER = { datenordner: "gesucht" };  // links to steps that are gone; #ki opens the window instead
   const KI_ANKER = "ki";
+  // Each store's own button is named as the store writes it in the browser's language, which the app language stands for.
   const STORE = {
-    chrome: { haupt: "Im Chrome Web Store hinzufügen", leise: "Im Chrome Web Store öffnen", name: "Google Chrome", knopf: "Hinzufügen" },
-    edge: { haupt: "Im Edge-Store hinzufügen", leise: "Im Edge-Store öffnen", name: "Microsoft Edge", knopf: "Abrufen" },
+    chrome: { haupt: Texte.t("Im Chrome Web Store hinzufügen"), leise: Texte.t("Im Chrome Web Store öffnen"), name: "Google Chrome",
+              klicken: Texte.t("Im Store auf „Hinzufügen“ klicken, das dauert eine Minute.") },
+    edge: { haupt: Texte.t("Im Edge-Store hinzufügen"), leise: Texte.t("Im Edge-Store öffnen"), name: "Microsoft Edge",
+            klicken: Texte.t("Im Store auf „Abrufen“ klicken, das dauert eine Minute.") },
   };
+  // Placeholders handed to Texte.t as themselves, so betont can set each name in bold where the language places it.
+  const ROH = { name: "{name}", knopf: "{knopf}", zip: "{zip}", json: "{json}", modus: "{modus}", laden: "{laden}" };
+  const DATEIEN = { zip: "einstieg.zip", json: "einstieg.json" };
   const SPEICHER = "bewerbungsassistent-einrichtung";
 
   let info = null;         // /api/app/einrichtung; null in the plain app without setup
@@ -43,6 +51,29 @@
 
   const meldung = (element, inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige(element, inhalt, stufe, optionen);
 
+  /** A sentence of the catalog as parts for replaceChildren, each {name} of `fett` in bold: names of files and buttons
+   *  stand out as before, wherever the language puts them. */
+  function betont(satz, fett) {
+    return satz.split(/(\{\w+\})/).filter(Boolean).map(teil => {
+      const name = /^\{(\w+)\}$/.exec(teil)?.[1];
+      return name && name in fett ? el("strong", {}, fett[name]) : teil;
+    });
+  }
+
+  /** Sentences that name a file or a button of the browser in bold. */
+  function setzeSaetze() {
+    $("vorlage-allgemein").replaceChildren(...betont(Texte.t(
+      "Wer schon eine Datei {zip} oder {json} hat, zum Beispiel aus Claude, übernimmt sie hier. Sie liegt meist im Ordner Downloads.",
+      ROH), DATEIEN));
+    $("schritt-entwicklermodus").replaceChildren(...betont(Texte.t(
+      "Den {modus} einschalten (Chrome: oben rechts, Edge: links). Das ist für den Pilot nötig und ändert sonst nichts am Browser.",
+      ROH), { modus: Texte.t("Entwicklermodus") }));
+    $("schritt-entpackt").replaceChildren(...betont(Texte.t("{laden} wählen und diesen Ordner angeben:", ROH),
+      { laden: Texte.t("Entpackte Erweiterung laden") }));
+    $("erweitert-text").replaceChildren(...betont(Texte.t(
+      "Angaben aus einer Datei {zip} oder {json} übernehmen, zum Beispiel aus Claude:", ROH), DATEIEN));
+  }
+
   // State of the steps
 
   const bereit = () => Boolean(info && info.eingerichtet && !info.fehlt);
@@ -61,25 +92,26 @@
     }
   }
 
-  function zusammenfassung() {
-    if (!wahl) return "";
-    const was = wahl.gesucht === "lehrstelle" ? "eine Lehrstelle" : "eine Stelle";
-    return `${was}, ${wahl.anrede === "du" ? "du" : "Sie"}, ${wahl.rav ? "mit RAV" : "ohne RAV"}`;
-  }
+  const zusammenfassung = () => L.zusammenfassung(wahl);
 
   function ordnerName(pfad) {
     const teile = String(pfad || "").split(/[\\/]+/).filter(Boolean);
-    return teile[teile.length - 1] || "Dokumente";
+    return teile[teile.length - 1] || Texte.t("Dokumente");
+  }
+
+  function nebentextVorlage() {
+    if (info?.lebenslauf || importiert) return Texte.t("übernommen");
+    return sitzung.uebersprungen.vorlage ? Texte.t("übersprungen") : Texte.t("freiwillig");
   }
 
   function nebentext(id) {
-    const fertig = erledigt(id);
     switch (id) {
-      case "gesucht": return fertig ? zusammenfassung() : "Stelle oder Lehrstelle";
-      case "vorlage": return info?.lebenslauf || importiert ? "übernommen" : sitzung.uebersprungen.vorlage ? "übersprungen" : "freiwillig";
+      case "gesucht": return erledigt(id) ? zusammenfassung() : Texte.t("Stelle oder Lehrstelle");
+      case "vorlage": return nebentextVorlage();
       case "erweiterung":
-        if (!info?.erweiterung) return "nur in der installierten App";
-        return erweiterungGeladen() ? "geladen" : sitzung.uebersprungen.erweiterung ? "später" : "1 bis 2\u00a0Minuten";
+        if (!info?.erweiterung) return Texte.t("nur in der installierten App");
+        if (erweiterungGeladen()) return Texte.t("geladen");
+        return sitzung.uebersprungen.erweiterung ? Texte.t("später") : Texte.t("1 bis 2\u00a0Minuten");
       default: return "";
     }
   }
@@ -180,7 +212,8 @@
     try {
       if (info && ordnerGeaendert() && await wechsleOrdner()) {
         zeigeWahl();
-        meldung($("gesucht-status"), "In diesem Ordner war schon eine Wahl gespeichert; sie gilt jetzt. Mit Weiter geht es weiter.", "warning");
+        meldung($("gesucht-status"), Texte.t("In diesem Ordner war schon eine Wahl gespeichert; sie gilt jetzt. Mit Weiter geht es weiter."),
+                "warning");
         zeige();
         return;
       }
@@ -188,7 +221,7 @@
       sitzung.bestaetigt = true;
       merke();
       if (!info) {
-        meldung($("gesucht-status"), "Gespeichert.", "success");
+        meldung($("gesucht-status"), Texte.t("Gespeichert."), "success");
         zeigeSchritte("gesucht");
         anwenden(document, satz());
         return;
@@ -227,7 +260,8 @@
     $("ordner-zeile").textContent = ordnerPfad() || info.vorschlag;
     $("ordner-fehlt").hidden = !info.fehlt;
     $("ordner-fehlt").textContent = info.fehlt
-      ? `Der Datenordner ${info.datenordner} wurde nicht gefunden (z.B. USB-Stick nicht eingesteckt). Sobald er wieder verfügbar ist, diese Seite neu laden; oder einen anderen Ordner wählen.`
+      ? Texte.t("Der Datenordner {ordner} wurde nicht gefunden (z.B. USB-Stick nicht eingesteckt). Sobald er wieder verfügbar ist, diese Seite neu laden; oder einen anderen Ordner wählen.",
+                { ordner: info.datenordner })
       : "";
     if (oeffnen || info.fehlt) oeffneOrdner(true);
   }
@@ -274,14 +308,19 @@
 
   // 2. Einstieg file: a step with a file in Downloads, otherwise under „Erweitert“
 
+  /** German keeps its one form „Dokument(e)“; French and English need two, so one document has a key of its own. */
+  const dokumenteAbgelegt = anzahl => (anzahl === 1 ? Texte.t("{eins} Dokument(e) abgelegt", { eins: anzahl })
+    : Texte.t("{anzahl} Dokument(e) abgelegt", { anzahl }));
+
   function zeigeImport(ergebnis) {
     const zeile = (inhalt, stufe) => window.Meldungen.listenZeile(document, inhalt, stufe);
     const zeilen = [
-      ...ergebnis.geschrieben.map(datei => zeile(`Angelegt: ${datei}`, "ok")),
-      ...(ergebnis.nicht_ersetzt || []).map(datei => zeile(`Behalten: ${datei}`, "ok")),
+      ...ergebnis.geschrieben.map(datei => zeile(Texte.t("Angelegt: {datei}", { datei }), "ok")),
+      ...(ergebnis.nicht_ersetzt || []).map(datei => zeile(Texte.t("Behalten: {datei}", { datei }), "ok")),
       ...(ergebnis.unveraendert || []).map(datei => zeile(
-        `Unverändert gelassen: ${datei}. Die Datei lässt sich nicht lesen; zu ändern unter „Inhalte als Text“.`, "hinweis")),
-      ergebnis.dokumente.length ? zeile(`${ergebnis.dokumente.length} Dokument(e) abgelegt`, "ok") : null,
+        Texte.t("Unverändert gelassen: {datei}. Die Datei lässt sich nicht lesen; zu ändern unter „Inhalte als Text“.", { datei }),
+        "hinweis")),
+      ergebnis.dokumente.length ? zeile(dokumenteAbgelegt(ergebnis.dokumente.length), "ok") : null,
       ergebnis.unvollstaendig ? zeile(text("einrichtung.vorlage.unvollstaendig", satz()), "hinweis") : null,
     ];
     $("import-ergebnis").replaceChildren(...zeilen.filter(Boolean));
@@ -291,10 +330,10 @@
   async function importiere(ersetzen = null) {
     zeigeDateiWahl([]);
     $("import-ergebnis").replaceChildren();
-    meldung($("import-status"), "Wird importiert …");
+    meldung($("import-status"), Texte.t("Wird importiert …"));
     try {
       zeigeImport(await senden("/api/app/einstieg", { pfad: $("datei").value, ersetzen }));
-      meldung($("import-status"), "Import abgeschlossen.", "success");
+      meldung($("import-status"), Texte.t("Import abgeschlossen."), "success");
       importiert = true;
       info = await holen("/api/app/einrichtung");
       zeigeSchritte("vorlage");
@@ -321,14 +360,15 @@
         unterschiede.replaceChildren(...(wert === "ersetzen" ? [unterschiedeAnsicht(datei.zeilen)] : []));
       } }), ` ${beschriftung}`);
     return el("fieldset", { class: "import-wahl__datei" }, el("legend", {}, `${datei.titel} (${datei.datei})`),
-      el("div", { class: "import-wahl__optionen" }, option("behalten", "Behalten"), option("ersetzen", "Ersetzen")), unterschiede);
+      el("div", { class: "import-wahl__optionen" }, option("behalten", Texte.t("Behalten")), option("ersetzen", Texte.t("Ersetzen"))),
+      unterschiede);
   }
 
   function unterschiedeAnsicht(zeilen) {
-    if (!zeilen.length) return el("p", { class: "field__hint" }, "Kein Unterschied zum bisherigen Stand.");
+    if (!zeilen.length) return el("p", { class: "field__hint" }, Texte.t("Kein Unterschied zum bisherigen Stand."));
     const { zeilenZeichen } = L;
     return el("div", {},
-      el("p", { class: "field__hint" }, "Unterschiede zum bisherigen Stand: Zeilen mit − fallen weg, Zeilen mit + kommen dazu."),
+      el("p", { class: "field__hint" }, Texte.t("Unterschiede zum bisherigen Stand: Zeilen mit − fallen weg, Zeilen mit + kommen dazu.")),
       el("pre", { class: "import-wahl__zeilen" }, zeilen.map(z => el("span", { class: `import-wahl__zeile import-wahl__zeile--${z.art}` },
         zeilenZeichen(z.art), z.art === "weg" ? el("del", {}, z.text) : z.art === "neu" ? el("ins", {}, z.text) : z.text, "\n"))));
   }
@@ -337,7 +377,9 @@
     const gefunden = info?.einstieg_datei || "";
     $("vorlage-gefunden").hidden = !gefunden;
     $("vorlage-allgemein").hidden = Boolean(gefunden);
-    $("vorlage-name").textContent = ordnerName(gefunden);
+    $("vorlage-gefunden").replaceChildren(...betont(
+      Texte.t("Im Ordner Downloads liegt eine Datei mit Angaben: {name}. Mit {knopf} übernimmt die App sie.", ROH),
+      { name: ordnerName(gefunden), knopf: Texte.t("Importieren") }));
     if (gefunden && !$("datei").value) $("datei").value = gefunden;
     const vorhanden = Boolean(info?.lebenslauf || importiert);
     $("vorlage-weiter").hidden = !vorhanden;
@@ -362,7 +404,8 @@
 
   function zeigeKiZeile() {
     $("ki-zeile").hidden = !bereit();
-    $("ki-zeile-text").textContent = kiVerbunden() ? "Die KI ist eingerichtet." : "Die KI ist noch nicht eingerichtet. Das geht jederzeit.";
+    $("ki-zeile-text").textContent = kiVerbunden() ? Texte.t("Die KI ist eingerichtet.")
+      : Texte.t("Die KI ist noch nicht eingerichtet. Das geht jederzeit.");
   }
 
   async function ladeKi() {
@@ -405,18 +448,19 @@
   function richteStoreEin() {
     const browser = L.browserVon(navigator.userAgent);
     const { haupt, leise } = L.storeKnoepfe(browser);
-    const anderer = browser === "andere" ? "Die Erweiterung läuft in Google Chrome und Microsoft Edge. " : "";
-    $("erweiterung-store-text").textContent = `${anderer}Im Store auf „${STORE[haupt].knopf}“ klicken, das dauert eine Minute.`;
+    const { klicken } = STORE[haupt];
+    $("erweiterung-store-text").textContent = browser === "andere"
+      ? Texte.t("Die Erweiterung läuft in Google Chrome und Microsoft Edge. {klicken}", { klicken }) : klicken;
     $("store-haupt").dataset.store = haupt;
     $("store-haupt").textContent = STORE[haupt].haupt;
     $("store-leise").dataset.store = leise;
     $("store-leise").textContent = STORE[leise].leise;
-    $("store-leise-name").textContent = STORE[leise].name;
+    $("store-leise-frage").textContent = Texte.t("Mit {browser}?", { browser: STORE[leise].name });
   }
 
   function zeigeErweiterung() {
     if (!info?.erweiterung) {
-      meldung($("erweiterung-zustand"), "Die Erweiterung gibt es nur in der installierten App.", "warning");
+      meldung($("erweiterung-zustand"), Texte.t("Die Erweiterung gibt es nur in der installierten App."), "warning");
       $("erweiterung-hand").hidden = true;
       $("erweiterung-store").hidden = true;
       $("erweiterung-warten").hidden = true;
@@ -433,19 +477,21 @@
     if (!geladen) {
       meldung($("erweiterung-zustand"), "");
     } else if (erweiterungZustand() === "veraltet") {
-      meldung($("erweiterung-zustand"), `Die Erweiterung ist geladen (Version ${geladen}), die App bringt Version ${info.erweiterung.version} mit. Bitte unter chrome://extensions bei der Erweiterung auf „Neu laden“ klicken.`, "warning");
+      meldung($("erweiterung-zustand"), Texte.t("Die Erweiterung ist geladen (Version {geladen}), die App bringt Version {version} mit. Bitte unter chrome://extensions bei der Erweiterung auf „Neu laden“ klicken.",
+                                                { geladen, version: info.erweiterung.version }), "warning");
     } else {
-      meldung($("erweiterung-zustand"), `Die Erweiterung ist bereit (Version ${geladen}).`, "success");
+      meldung($("erweiterung-zustand"), Texte.t("Die Erweiterung ist bereit (Version {geladen}).", { geladen }), "success");
     }
   }
 
   async function kopiere(inhalt, knopf) {
     try {
       await navigator.clipboard.writeText(inhalt);
-      knopf.textContent = "Kopiert";
+      knopf.textContent = Texte.t("Kopiert");
       knopf.dataset.copied = "";
-    } catch {
-      knopf.textContent = "Bitte von Hand kopieren";
+    } catch (fehler) {
+      console.warn("Copying to the clipboard failed:", fehler?.message);  // kein UI-Text: log line
+      knopf.textContent = Texte.t("Bitte von Hand kopieren");
     }
   }
 
@@ -493,17 +539,17 @@
                                    erweiterungGeladen: geladen });
     const ist = id => offen.find(p => p.id === id);
     $("fertig-titel").textContent = L.abschlussTitel(offen);
-    $("fertig-text").textContent = offen.length ? "Das fehlt noch. Es lässt sich auch später einrichten." : "";
+    $("fertig-text").textContent = offen.length ? Texte.t("Das fehlt noch. Es lässt sich auch später einrichten.") : "";
     $("fertig-text").hidden = !offen.length;
     $("fertig-liste").replaceChildren(...[
-      zeile("Gesucht", zusammenfassung(), true),
-      info ? zeile("Datenordner", info.datenordner || "", bereit()) : null,
-      info ? (ist("ki") ? zeile(ist("ki").titel, ist("ki").text, false, ist("ki")) : zeile("KI", "Verbunden", true)) : null,
+      zeile(Texte.t("Gesucht"), zusammenfassung(), true),
+      info ? zeile(Texte.t("Datenordner"), info.datenordner || "", bereit()) : null,
+      info ? (ist("ki") ? zeile(ist("ki").titel, ist("ki").text, false, ist("ki")) : zeile(Texte.t("KI"), Texte.t("Verbunden"), true)) : null,
       ist("erweiterung") ? zeile(ist("erweiterung").titel, ist("erweiterung").text, false, ist("erweiterung"))
-        : geladen ? zeile("Erweiterung", `Geladen, Version ${geladen}`, true) : null,
+        : geladen ? zeile(Texte.t("Erweiterung"), Texte.t("Geladen, Version {version}", { version: geladen }), true) : null,
     ].filter(Boolean));
     $("fertig-weiter").href = info?.lebenslauf ? "/" : "/angaben";
-    $("fertig-weiter").textContent = info?.lebenslauf ? "Zur Übersicht" : "Meine Angaben erfassen";
+    $("fertig-weiter").textContent = info?.lebenslauf ? Texte.t("Zur Übersicht") : Texte.t("Meine Angaben erfassen");
   }
 
   // Start
@@ -520,6 +566,7 @@
     }
     if (!wahl) wahl = { gesucht: "stelle", anrede: "sie", rav: false, gewaehlt: false };
     if (info) await ladeKi();
+    setzeSaetze();
     richteStoreEin();
     nimmKiAnfrage();
     window.addEventListener("hashchange", () => {

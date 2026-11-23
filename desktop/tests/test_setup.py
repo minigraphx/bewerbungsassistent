@@ -185,7 +185,7 @@ def started(tmp_path):
         chosen.append(folder)
 
     state = routes_setup.Setup(paths=paths, switch=switch, suggestion=tmp_path / "Dokumente" / "Bewerbungsbegleiter",
-                               choose=lambda kind, start: tmp_path / "gewaehlt", downloads=tmp_path / "Downloads")
+                               choose=lambda kind, start, language: tmp_path / "gewaehlt", downloads=tmp_path / "Downloads")
     get_routes, post_routes = routes_setup.make_routes(state)
     server.routen_get.update(get_routes)
     server.routen_post.update(post_routes)
@@ -541,12 +541,14 @@ def test_route_opens_the_store_without_showing_the_folder(tmp_path):
 def test_the_setup_page_offers_both_stores_before_loading_by_hand():
     root = pathlib.Path(__file__).resolve().parents[2]
     page = (root / "bewerbungen" / "seiten" / "einrichtung.html").read_text(encoding="utf-8")
+    # the step „Entpackte Erweiterung laden“ is set by the script since #418, into this element
     for browser in ("edge", "chrome"):
         assert f'data-store="{browser}"' in page
-        assert page.index(f'data-store="{browser}"') < page.index("Entpackte Erweiterung laden")
+        assert page.index(f'data-store="{browser}"') < page.index('id="schritt-entpackt"')
     assert "Für Chrome folgt der Store-Eintrag" not in page
     script = (root / "bewerbungen" / "seiten" / "einrichtung.js").read_text(encoding="utf-8")
     assert '"/api/app/erweiterung-store"' in script
+    assert '"Entpackte Erweiterung laden"' in script
 
 
 def test_route_opens_the_page_and_shows_the_folder(tmp_path):
@@ -571,9 +573,11 @@ def test_the_setup_page_links_to_the_guide_and_its_pictures_exist():
 
 
 def test_setup_page_no_longer_points_to_a_template_nobody_can_reach():
-    page = (pathlib.Path(__file__).parents[2] / "bewerbungen" / "seiten" / "einrichtung.html").read_text(encoding="utf-8")
-    assert "Einstiegsvorlage" not in page
-    assert "einstieg.zip" in page
+    pages = pathlib.Path(__file__).parents[2] / "bewerbungen" / "seiten"
+    page = (pages / "einrichtung.html").read_text(encoding="utf-8")
+    script = (pages / "einrichtung.js").read_text(encoding="utf-8")  # the sentences with the file names, since #418
+    assert "Einstiegsvorlage" not in page and "Einstiegsvorlage" not in script
+    assert 'zip: "einstieg.zip"' in script and "Wer schon eine Datei {zip} oder {json} hat" in script
 
 
 def test_file_dialog_names_the_entry_file():

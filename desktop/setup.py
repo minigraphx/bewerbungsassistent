@@ -13,11 +13,17 @@ import settings
 DATA_MARKERS = ("cv.yaml", "bewerbungen.yaml", "suchprofil.md")
 SYSTEM_FILES = {"desktop.ini", "thumbs.db"}  # Windows puts them into folders on its own
 PLACEHOLDER = "noch-kein-datenordner"  # inside the app folder, used until the person has chosen a folder
-TEXTS = {
-    "neu": "Der Ordner wird neu angelegt.",
-    "leer": "Der Ordner ist leer und wird verwendet.",
-    "datenordner": "Der Ordner enthält schon Bewerbungsdaten; sie werden weiter verwendet.",
-}
+
+
+def _texts() -> dict[str, str]:
+    """What happens to the folder, as T so the setup page says it in the app language (#418). Imported late, like the
+    routes do: the start of the app imports this module before it needs the catalog."""
+    from ui_texts import T
+    return {
+        "neu": T("Der Ordner wird neu angelegt."),
+        "leer": T("Der Ordner ist leer und wird verwendet."),
+        "datenordner": T("Der Ordner enthält schon Bewerbungsdaten; sie werden weiter verwendet."),
+    }
 
 
 @dataclasses.dataclass(frozen=True)
@@ -27,7 +33,7 @@ class FolderCheck:
 
     @property
     def text(self) -> str:
-        return TEXTS[self.state]
+        return _texts()[self.state]
 
 
 def placeholder_dir(paths: settings.Paths) -> pathlib.Path:
@@ -51,7 +57,8 @@ def check_folder(raw: str, forbidden: Sequence[pathlib.Path] = ()) -> FolderChec
     try:
         return _classify(path)
     except OSError as error:
-        raise ValueError(f"Der Ordner lässt sich nicht lesen ({error.strerror or error}).") from error
+        from ui_texts import T
+        raise ValueError(T("Der Ordner lässt sich nicht lesen ({grund}).", grund=error.strerror or error)) from error
 
 
 def _classify(path: pathlib.Path) -> FolderCheck:
@@ -72,5 +79,6 @@ def prepare(check: FolderCheck) -> pathlib.Path:
     try:
         check.path.mkdir(parents=True, exist_ok=True)
     except OSError as error:
-        raise ValueError(f"Der Ordner lässt sich nicht anlegen ({error.strerror}).") from error
+        from ui_texts import T
+        raise ValueError(T("Der Ordner lässt sich nicht anlegen ({grund}).", grund=error.strerror)) from error
     return check.path
