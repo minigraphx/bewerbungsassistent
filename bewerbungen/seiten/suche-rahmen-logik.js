@@ -1,7 +1,11 @@
 "use strict";
 // Region, Pensum, exclusions and title filter on Suche einstellen (#286, G64), without DOM: what each card sends to
-// /api/suche/rahmen and how its fields are filled. The server checks every value again (search_frame.py).
+// /api/suche/rahmen and how its fields are filled. The server checks every value again (search_frame.py). Its hints
+// come in the app language through Texte.t (#424); portals, places and regions are data and stay as they are.
 (global => {
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  // Under its own name, so each lookup reads Texte.t for the scanner; the page's Texte is found when a text is made.
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
   const UMKREISE = [10, 25, 50];  // as the form in Meine Angaben offers them
   const UMKREIS_VORGABE = 25;  // search_plan.DEFAULT_RADIUS_KM
   // Place lines of single portals (#301): they go before Wohnort and Kantone, so the card shows those the profile has.
@@ -22,8 +26,9 @@
   const regionenJobscout24 = lehrstelle => !lehrstelle;
 
   /** The hint under jobscout24's regions: it names the PLZ field below only while the card shows that field. */
-  const regionenJobscout24Hinweis = mitPlzFeld => "jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. "
-    + `Keine gewählt: jobscout24 sucht ${mitPlzFeld ? "an den PLZ darunter" : "an der PLZ aus Meine Angaben"}.`;
+  const regionenJobscout24Hinweis = mitPlzFeld => (mitPlzFeld
+    ? Texte.t("jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. Keine gewählt: jobscout24 sucht an den PLZ darunter.")
+    : Texte.t("jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. Keine gewählt: jobscout24 sucht an der PLZ aus Meine Angaben."));
 
   function koerper(karte, felder, lehrstelle) {
     if (karte === "region") {
@@ -55,12 +60,13 @@
     return werte.map(wert => ({ wert, text: `${wert} km` }));
   }
 
-  // G111, #387: what the cantons mean for the niches, only in a job profile that has any
-  const NISCHEN_HINWEIS = " Nischen sucht die App ohne Ort; Stellen ausserhalb dieser Kantone behält sie nur, wenn das Inserat Remote nennt.";
-
   function kantoneHinweis(lehrstelle, nischen = 0) {
-    if (lehrstelle) return "Gesucht wird im Umkreis des Wohnorts. Die Kantone helfen beim Einordnen.";
-    return `Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst.${nischen > 0 ? NISCHEN_HINWEIS : ""}`;
+    if (lehrstelle) return Texte.t("Gesucht wird im Umkreis des Wohnorts. Die Kantone helfen beim Einordnen.");
+    // G111, #387: what the cantons mean for the niches, only in a job profile that has any
+    if (nischen > 0) {
+      return Texte.t("Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst. Nischen sucht die App ohne Ort; Stellen ausserhalb dieser Kantone behält sie nur, wenn das Inserat Remote nennt.");
+    }
+    return Texte.t("Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst.");
   }
 
   /** Which place fields the region card shows: those whose line the profile has, never for an apprenticeship. */
@@ -72,7 +78,9 @@
    * a «·» line (#342).
    */
   const proPortalText = liste => (Array.isArray(liste) ? liste : [])
-    .map(eintrag => `${eintrag.portal}: ${eintrag.vorsatz ? `${eintrag.vorsatz} ` : ""}${eintrag.orte.join(", ")}`);
+    .map(eintrag => (eintrag.vorsatz
+      ? Texte.t("{portal}: {vorsatz} {orte}", { portal: eintrag.portal, vorsatz: eintrag.vorsatz, orte: eintrag.orte.join(", ") })
+      : Texte.t("{portal}: {orte}", { portal: eintrag.portal, orte: eintrag.orte.join(", ") })));
 
   const logik = { zeilen, alsText, koerper, firmenKoerper, anfrage, umkreisWahl, umkreisGewaehlt, kantoneHinweis,
     portalFelder, proPortalText, regionenJobscout24, regionenJobscout24Hinweis };

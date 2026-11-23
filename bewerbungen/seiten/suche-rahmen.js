@@ -8,8 +8,6 @@ window.SucheRahmen = (() => {
   const L = window.SucheRahmenLogik;
   const $ = id => document.getElementById(id);
   const KARTEN = ["region", "nicht", "titelfilter"];
-  const GESPEICHERT = "Gespeichert. Gilt ab der nächsten Suche.";
-  const NICHT_GESPEICHERT = "Nicht gespeichert.";
   const JOBSCOUT24 = "regionen_jobscout24";
   let stand = { werte: {}, laengen: {}, alleKantone: [], alleRegionen: [], alleRegionenJobscout24: [], lehrstelle: false, firmen: [] };
 
@@ -115,12 +113,12 @@ window.SucheRahmen = (() => {
       const { pfad, koerper } = L.anfrage(karte, felder(karte), stand.lehrstelle);
       await senden(pfad, koerper);
       oeffne(karte, false);
-      status(meldung, GESPEICHERT, "ok");
+      status(meldung, window.Texte.t("Gespeichert. Gilt ab der nächsten Suche."), "ok");
       document.dispatchEvent(new CustomEvent("suchprofil-geaendert"));
       // Listed hits of a company that is now excluded or back leave or join the list.
       if (karte === "nicht") document.dispatchEvent(new CustomEvent(window.SidebarLogic.HITS_CHANGED));
     } catch (fehler) {
-      status(meldung, `${NICHT_GESPEICHERT} ${fehler.message}`, "fehler",
+      status(meldung, window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler",
         { input: window.Meldungen.isInputRejection(fehler) ? $(`${karte}-form`) : null });
     }
   }

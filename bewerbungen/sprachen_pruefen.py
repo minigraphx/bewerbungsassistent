@@ -74,6 +74,17 @@ FERTIG: tuple[pathlib.Path, ...] = (
     # routes_search.py above.
     BASE / "seiten/firmen.html", BASE / "seiten/firmen.js", BASE / "seiten/stellen-reiter.js",
     BASE / "routes_companies.py", BASE / "companies.py",
+    # Suche einstellen, part A (#424): the page, the search list, portals, time window, region card, place notices and
+    # suggestions, with the modules behind /api/beruf/*, /rahmen, /zeitfenster and /orte-hinweise*; /liste,
+    # /einstellungen and /angebot are routes_search.py above. Yield, duplicates, further sites, the words from dismissed
+    # hits, the AI exclusions and Suchbegriffe prüfen follow with #425.
+    BASE / "seiten/suche-einstellen.html", BASE / "seiten/suche-einstellen.js", BASE / "seiten/suchliste-logik.js",
+    BASE / "seiten/suchliste.js", BASE / "seiten/portal-wahl.js", BASE / "seiten/zeitfenster.js",
+    BASE / "seiten/suche-rahmen-logik.js", BASE / "seiten/suche-rahmen.js", BASE / "seiten/orte-hinweise.js",
+    BASE / "seiten/beruf-vorschlag.js",
+    BASE / "routes_career.py", BASE / "ai/career.py", BASE / "search_terms.py", BASE / "routes_window.py",
+    BASE / "routes_place_notices.py", BASE / "place_notices.py", BASE / "search_frame.py", BASE / "portal_places.py",
+    BASE / "search_plan.py", BASE / "routes_frame.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

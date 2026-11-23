@@ -12,7 +12,7 @@ import place_cantons
 import search_frame
 import search_plan
 import search_stages
-import term_pair_texts
+from ui_message import T
 
 ORTE = "orte"
 JOBS_CH = "jobs.ch"
@@ -54,6 +54,16 @@ def _entries(text: str) -> list[str]:
     return [entry.strip() for entry in search_plan.ENTRY_COMMA.split(search_frame.raw_value(text, ORTE)) if entry.strip()]
 
 
+def _searches(count: int) -> T:
+    """«1 Suche» or «3 Suchen», each its own catalog key, so French and English get their singular too."""
+    return T("1 Suche") if count == 1 else T("{anzahl} Suchen", anzahl=count)
+
+
+def back(place: str) -> T:
+    """What Rückgängig says once the place is back."""
+    return T(BACK, place=place)
+
+
 def _alone(entry: str) -> str | None:
     """The place of an entry that names one place only, a remark in brackets aside."""
     terms = [term.strip() for term in search_plan.split_terms(entry) if term.strip()]
@@ -79,17 +89,18 @@ def _same_canton(text: str, plan: search_plan.SearchPlan, kept: list[str]) -> li
                 continue
             cost = _cost(plan, place)
             if alone == place and place.lower() not in kept and cost:
-                found.append({"ort": place, "kanton": canton, "spart": cost, "text": SAME_CANTON.format(
-                    first=first[canton], place=place, canton=place_cantons.CANTON_NAMES[canton],
-                    cost=term_pair_texts.searches_word(cost)),
-                    "knopf": REMOVE.format(place=place), "behalten": KEEP})
+                found.append({"ort": place, "kanton": canton, "spart": cost, "text": T(
+                    SAME_CANTON, first=first[canton], place=place, canton=place_cantons.CANTON_NAMES[canton],
+                    cost=_searches(cost)),
+                    "knopf": T(REMOVE, place=place), "behalten": T(KEEP)})
     return found
 
 
 def _postal_codes(plan: search_plan.SearchPlan) -> dict | None:
     if JOBSCOUT24 not in plan.portals or plan.jobscout24_regions or len(plan.postal_codes) < MIN_POSTAL_CODES:
         return None
-    return {"text": POSTAL_CODES.format(count=len(plan.postal_codes), radius=POSTAL_CODE_RADIUS_KM), "knopf": CHOOSE_REGIONS}
+    return {"text": T(POSTAL_CODES, count=len(plan.postal_codes), radius=POSTAL_CODE_RADIUS_KM),
+            "knopf": T(CHOOSE_REGIONS)}
 
 
 def notices(text: str, postal_code: str | None, switched_off: list[str] | None, kept: list[str]) -> dict:
@@ -107,8 +118,8 @@ def removal(text: str, place: str, postal_code: str | None, switched_off: list[s
     if offered is None:
         raise ValueError(GONE)
     rest = [entry for entry in _entries(text) if _alone(entry) != place]
-    done = REMOVED.format(place=place, canton=place_cantons.CANTON_NAMES[offered["kanton"]],
-                          saved=term_pair_texts.searches_word(offered["spart"]))
+    done = T(REMOVED, place=place, canton=place_cantons.CANTON_NAMES[offered["kanton"]],
+             saved=_searches(offered["spart"]))
     return Removal(search_frame.with_raw_value(text, ORTE, ", ".join(rest)), place, done)
 
 

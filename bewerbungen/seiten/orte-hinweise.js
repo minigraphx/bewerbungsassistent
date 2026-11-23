@@ -6,7 +6,6 @@
 window.OrteHinweise = (() => {
   const { holen, senden, el, status } = window.App;
   const $ = id => document.getElementById(id);
-  const RUECKGAENGIG = "Rückgängig";
   const geaendert = () => document.dispatchEvent(new CustomEvent("suchprofil-geaendert"));
   let ladeNummer = 0;
 
@@ -30,7 +29,7 @@ window.OrteHinweise = (() => {
     try {
       const antwort = await senden("/api/suche/orte-hinweise/entfernen", { ort: hinweis.ort });
       // the action keeps the message until it is used or closed (#215)
-      melde(antwort.text, "ok", { aktion: { text: RUECKGAENGIG, ausfuehren: () => rueckgaengig(antwort) } });
+      melde(antwort.text, "ok", { aktion: { text: window.Texte.t("Rückgängig"), ausfuehren: () => rueckgaengig(antwort) } });
     } catch (fehler) {
       melde(fehler.message, "fehler");
     } finally {
@@ -81,7 +80,7 @@ window.OrteHinweise = (() => {
     } catch (fehler) {
       if (nummer !== ladeNummer) return;
       zeige({ orte: [], plz: null });
-      status($("status"), `Hinweise zu den Orten liessen sich nicht laden: ${fehler.message}`, "fehler");
+      status($("status"), window.Texte.t("Hinweise zu den Orten liessen sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
     }
   }
 

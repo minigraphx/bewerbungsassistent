@@ -117,6 +117,7 @@ function setup({ fail = false } = {}) {
     return element;
   }
   const window = {
+    Texte: require("../seiten/texte.js"),
     App: {
       el,
       senden: async (route, body) => {

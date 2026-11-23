@@ -24,8 +24,9 @@ from ui_message import T  # not ui_texts: language_settings reads this module th
 PORTALS =("job-room", "jobs.ch", "jobscout24", "ictjobs")
 APPRENTICESHIP_PORTALS = ("LENA", "yousty")
 ALL_PORTALS = PORTALS + APPRENTICESHIP_PORTALS
-PORTAL_HINTS = {"job-room": "Stellen der RAV, alle Berufe", "jobs.ch": "alle Berufe", "jobscout24": "alle Berufe",
-                "ictjobs": "nur Informatik", "LENA": "offizielle Lehrstellen der Kantone", "yousty": "Lehrstellen und Schnupperlehren"}
+PORTAL_HINTS = {"job-room": T("Stellen der RAV, alle Berufe"), "jobs.ch": T("alle Berufe"), "jobscout24": T("alle Berufe"),
+                "ictjobs": T("nur Informatik"), "LENA": T("offizielle Lehrstellen der Kantone"),
+                "yousty": T("Lehrstellen und Schnupperlehren")}
 SPECIALIST_PORTAL = "ictjobs"
 # Word starts alone match too much (#107): Administration, Datenschutz, Systemgastronomie, Testfahrer.
 COMPUTING = re.compile(r"informati|software|entwickl|developer|programm|devops|cloud|netzwerk|cyber|security"
@@ -36,8 +37,8 @@ COMPUTING = re.compile(r"informati|software|entwickl|developer|programm|devops|c
                        r"|engineer|python|java|typescript|sql|linux|sap|product owner|scrum|business analy|helpdesk|service desk"
                        r"|\btest(?:er|ing|ingenieur|automat|analy|manag|engineer)?\b|\btest(?:ingenieur|automat|analy|manag)"
                        r"|\bux\b|\bui\b|mediamatik", re.IGNORECASE)
-NO_PORTAL_LEFT = "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts."
-BAD_CHOICE = "Diese Auswahl der Portale geht nicht."
+NO_PORTAL_LEFT = T("Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts.")
+BAD_CHOICE = T("Diese Auswahl der Portale geht nicht.")
 KIND_JOB = "stelle"
 KIND_APPRENTICESHIP = "lehrstelle"
 CANTONS = ("AG", "AI", "AR", "BE", "BL", "BS", "FR", "GE", "GL", "GR", "JU", "LU", "NE", "NW", "OW", "SG", "SH",
@@ -421,9 +422,9 @@ def _offers(lines: list[str]) -> tuple[str, ...]:
 def with_offers(text: str, choice: str) -> str:
     """The profile text with this wish in section „Gesucht“; everything else stays as it is."""
     if choice not in OFFER_CHOICES:
-        raise ValueError("Bitte Lehrstellen, Schnupperlehren oder beides wählen.")
+        raise ValueError(T("Bitte Lehrstellen, Schnupperlehren oder beides wählen."))
     if APPRENTICESHIP_MARK not in text:
-        raise ValueError("Schnupperlehren gibt es nur bei der Lehrstellensuche.")
+        raise ValueError(T("Schnupperlehren gibt es nur bei der Lehrstellensuche."))
     section = f"{OFFERS_SECTION}\n- {OFFER_CHOICES[choice][1]}\n\n"
     without = re.sub(rf"^{OFFERS_SECTION}[ \t]*(?:\n|\Z)(?:(?!## ).*\n?)*", "", text, flags=re.MULTILINE)
     return without.replace(APPRENTICESHIP_MARK, section + APPRENTICESHIP_MARK, 1)
@@ -452,12 +453,13 @@ def _parse_apprenticeship(sections: dict[str, list[str]]) -> SearchPlan:
 def with_profession(text: str, name: str) -> str:
     """The profile text with this profession at the end of its list; everything else stays as it is."""
     if APPRENTICESHIP_MARK not in text:
-        raise ValueError("Berufe aufnehmen gibt es nur bei der Lehrstellensuche.")
+        raise ValueError(T("Berufe aufnehmen gibt es nur bei der Lehrstellensuche."))
     known = professions_in(text)
     if profession_words(name) in map(profession_words, known):
         return text
     if len(known) >= MAX_PROFESSIONS:
-        raise ValueError(f"Deine Suche hat schon {MAX_PROFESSIONS} Berufe, mehr sucht sie nicht. Entferne zuerst einen.")
+        raise ValueError(T("Deine Suche hat schon {anzahl} Berufe, mehr sucht sie nicht. Entferne zuerst einen.",
+                           anzahl=MAX_PROFESSIONS))
     line = f"{len(known) + 1}. {' '.join(name.split())}"
     return with_section_line(text, PROFESSIONS_SECTION, line, APPRENTICESHIP_MARK)
 
@@ -558,7 +560,7 @@ def _portal_limits(lines: list[str], keywords: tuple[str, ...]) -> tuple[tuple[t
 
 
 def _named(portals: tuple[str, ...]) -> str:
-    return portals[0] if len(portals) == 1 else f"{', '.join(portals[:-1])} und {portals[-1]}"
+    return portals[0] if len(portals) == 1 else T("{namen} und {letzter}", namen=", ".join(portals[:-1]), letzter=portals[-1])
 
 
 def portal_limit_notes(plan: SearchPlan, switched_off: list[str] | None) -> dict:
@@ -566,9 +568,15 @@ def portal_limit_notes(plan: SearchPlan, switched_off: list[str] | None) -> dict
     and whether all are, and a notice for each line naming an unknown portal and each term that runs in no search."""
     on = chosen(plan, switched_off).portals
     terms = [_limit_entry(term, portals, on) for term, portals in plan.portal_limits]
-    off = [(LIMIT_OFF if len(entry["portale"]) == 1 else LIMITS_OFF).format(
-        term=entry["begriff"], portals=_named(tuple(entry["portale"]))) for entry in terms if entry["aus"]]
-    return {"begriffe": terms, "hinweise": [*(UNKNOWN_LIMIT.format(label=label) for label in plan.unknown_limits), *off]}
+    off = [_all_off(entry["begriff"], tuple(entry["portale"])) for entry in terms if entry["aus"]]
+    return {"begriffe": terms, "hinweise": [*(T(UNKNOWN_LIMIT, label=label) for label in plan.unknown_limits), *off]}
+
+
+def _all_off(term: str, portals: tuple[str, ...]) -> T:
+    """One portal or several: two catalog keys, so every language gets its singular."""
+    if len(portals) == 1:
+        return T(LIMIT_OFF, term=term, portals=_named(portals))
+    return T(LIMITS_OFF, term=term, portals=_named(portals))
 
 
 def _limit_entry(term: str, portals: tuple[str, ...], on: tuple[str, ...]) -> dict:

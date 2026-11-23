@@ -34,7 +34,7 @@ window.Suchliste = (() => {
   function knopf(rolle, name, index, anzahl) {
     const namen = L.knopfNamen(name);
     if (rolle === "entfernen") {
-      const button = el("button", { type: "button", class: "klein", "aria-label": namen.entfernen }, "Entfernen");
+      const button = el("button", { type: "button", class: "klein", "aria-label": namen.entfernen }, window.Texte.t("Entfernen"));
       button.addEventListener("click", () => optionen.entfernen(name, button));
       return button;
     }
@@ -42,7 +42,7 @@ window.Suchliste = (() => {
     // aria-disabled instead of disabled: the button keeps focus when its term reaches the end of the list.
     const amEnde = hoch ? index === 0 : index === anzahl - 1;
     const button = el("button", { type: "button", class: "suchliste__pfeil", "aria-label": namen[rolle],
-      title: hoch ? "Nach oben" : "Nach unten", "aria-disabled": amEnde ? "true" : null }, hoch ? "↑" : "↓");
+      title: hoch ? window.Texte.t("Nach oben") : window.Texte.t("Nach unten"), "aria-disabled": amEnde ? "true" : null }, hoch ? "↑" : "↓");
     button.addEventListener("click", () => bewege(name, hoch ? index - 1 : index + 1));
     return button;
   }
@@ -52,7 +52,7 @@ window.Suchliste = (() => {
     const knoepfe = ordnen
       ? { hoch: knopf("hoch", name, index, anzahl), runter: knopf("runter", name, index, anzahl), entfernen: knopf("entfernen", name) }
       : { entfernen: knopf("entfernen", name) };
-    const griff = ordnen ? el("span", { class: "suchliste__griff", "aria-hidden": "true", title: "Ziehen, um zu verschieben" }) : null;
+    const griff = ordnen ? el("span", { class: "suchliste__griff", "aria-hidden": "true", title: window.Texte.t("Ziehen, um zu verschieben") }) : null;
     if (griff) griff.addEventListener("pointerdown", event => beginne(event, name));
     const zusatz = ziehen && ziehen.name === name ? ZIEHT : (hervor === name ? VERSCHOBEN : "");
     const klasse = zusatz ? `suchliste__eintrag ${zusatz}` : "suchliste__eintrag";
@@ -96,7 +96,7 @@ window.Suchliste = (() => {
     offen += 1;
     kette = kette
       .then(() => senden(ROUTE, { berufe: reihenfolge }))
-      .catch(fehler => status(optionen.status, `Reihenfolge nicht gespeichert: ${fehler.message}`, "fehler"))
+      .catch(fehler => status(optionen.status, window.Texte.t("Reihenfolge nicht gespeichert: {fehler}", { fehler: fehler.message }), "fehler"))
       .finally(() => {
         offen -= 1;
         // after a refusal too: the page loads what the server has saved

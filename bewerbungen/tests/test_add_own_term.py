@@ -162,4 +162,5 @@ def test_the_list_has_a_field_to_add_and_the_removal_offers_rueckgaengig():
 
     assert 'id="suchliste-neu"' in box and 'for="suchliste-neu"' in box and 'id="suchliste-aufnehmen"' in box
     assert '"/api/beruf/aufnehmen"' in script and '"/api/beruf/rueckgaengig"' in script
-    assert 'RUECKGAENGIG = "Rückgängig"' in script  # what it does: tests/beruf_vorschlag.test.cjs
+    # named in the app language since #424; what it does: tests/beruf_vorschlag.test.cjs
+    assert 'text: Texte.t("Rückgängig")' in script

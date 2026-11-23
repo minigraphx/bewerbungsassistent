@@ -8,79 +8,97 @@ window.Suchbegriffe = (() => {
   // «Berufsbildner (nur mit Informatik, ICT)» (G110): the server took the remark, so only the words are read here
   const PFLICHT = /^(.*?)\s*\(\s*nur\s+mit\s+([^()]*)\)$/i;
 
-  /** The message after adding a job term, naming its required words apart from the term when it has any. */
-  function mitPflicht(name, suche) {
+  // Under its own name, so each lookup reads Texte.t for the scanner; the page's Texte is found when a text is made.
+  const Texte = { t: (deutsch, werte) => window.Texte.t(deutsch, werte) };
+
+  /**
+   * The message after adding a job term, naming its required words apart from the term when it has any; `satz` holds
+   * the three messages of one form of address: without words, with one and with several.
+   */
+  function mitPflicht(name, satz) {
     const teile = PFLICHT.exec(name);
     const woerter = teile ? teile[2].split(",").map(wort => wort.trim()).filter(Boolean) : [];
-    if (!woerter.length) return `„${name}“ ist jetzt in ${suche}.`;
-    return `„${teile[1]}“ ist jetzt in ${suche}, mit Pflichtbezug: ${woerter.join(", ")}.`;
+    if (!woerter.length) return satz.ohne(name);
+    return woerter.length === 1 ? satz.eins(teile[1], woerter[0]) : satz.mehrere(teile[1], woerter.join(", "));
   }
 
+  // Each text through Texte.t when the page asks for it, so it comes in the app language (#424). The German says du
+  // or Sie, so each form has its own texts and French follows it with tu or vous.
   const TEXTE = {
-    lehrstelle: {
-      titel: "Berufe von der KI vorschlagen lassen",
-      hilfe: "Du weisst noch nicht, welchen Beruf du suchen sollst? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt dir passende Berufe vor und nennt dir ihre Namen für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Probier Berufe in einer Schnupperlehre aus, und auch die Berufsberatung hilft dir persönlich weiter.",
-      interessen: "Was machst du gern? (Interessen)",
-      staerken: "Was kannst du gut? (Fähigkeiten)",
-      vermeiden: "Was möchtest du lieber nicht? (freiwillig)",
-      knopf: "Berufe vorschlagen",
-      fertig: n => `${n === 1 ? "1 Vorschlag" : `${n} Vorschläge`}. Nimm auf, was dich interessiert.`,
-      schon: "Steht schon in deiner Suche.",
-      neu: "In deiner Suche. Die nächste Suche sucht auch danach.",
-      pruefen: "In der Schnupperlehre",
-      liste: "Danach suchst du:",
-      ordnen: "Gesucht wird von oben nach unten; neue Berufe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen.",
-      entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
-      neuLabel: "Eigenen Beruf aufnehmen (mit EFZ oder EBA, zum Beispiel Koch/Köchin EFZ)",
-      aufgenommen: name => `„${name}“ ist jetzt in deiner Suche.`,
-      zurueck: name => `„${name}“ ist wieder in deiner Suche.`,
-      amEnde: name => `„${name}“ ist wieder in deiner Suche, am Ende der Liste.`,
-      einwilligung: "Bevor die KI dir Berufe vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.",
-    },
-    stelle: {
-      titel: "Stellen von der KI vorschlagen lassen",
-      hilfe: "Sie wissen noch nicht genau, wonach Sie suchen sollen, vielleicht nur „etwas Administratives“? Schreiben Sie ein paar Stichworte zu Ihren Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf Ihren Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfen Sie die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft Ihnen persönlich weiter.",
-      interessen: "Was machen Sie gern? (Interessen)",
-      staerken: "Was können Sie gut? (Fähigkeiten)",
-      vermeiden: "Was möchten Sie lieber nicht? (freiwillig)",
-      knopf: "Stellen vorschlagen",
-      fertig: n => `${n === 1 ? "1 Vorschlag" : `${n} Vorschläge`}. Nehmen Sie auf, was Sie interessiert.`,
-      schon: "Steht schon in Ihrer Suche.",
-      neu: "In Ihrer Suche. Die nächste Suche sucht auch danach.",
-      pruefen: "Im Inserat",
-      liste: "Danach suchen Sie:",
-      ordnen: "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Ziehen Sie die wichtigsten nach oben oder verschieben Sie sie mit den Pfeilen.",
-      entfernt: name => `„${name}“ ist nicht mehr in Ihrer Suche.`,
-      neuLabel: "Eigenen Suchbegriff aufnehmen",
-      aufgenommen: name => mitPflicht(name, "Ihrer Suche"),
-      zurueck: name => `„${name}“ ist wieder in Ihrer Suche.`,
-      amEnde: name => `„${name}“ ist wieder in Ihrer Suche, am Ende der Liste.`,
-      einwilligung: "Bevor die KI Stellen vorschlägt, braucht es Ihre Einwilligung. Was Sie geschrieben haben, bleibt stehen.",
-    },
-    stelleDu: {
-      titel: "Stellen von der KI vorschlagen lassen",
-      hilfe: "Du weisst noch nicht genau, wonach du suchen sollst, vielleicht nur „etwas Administratives“? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf deinen Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfe die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft dir persönlich weiter.",
-      interessen: "Was machst du gern? (Interessen)",
-      staerken: "Was kannst du gut? (Fähigkeiten)",
-      vermeiden: "Was möchtest du lieber nicht? (freiwillig)",
-      knopf: "Stellen vorschlagen",
-      fertig: n => `${n === 1 ? "1 Vorschlag" : `${n} Vorschläge`}. Nimm auf, was dich interessiert.`,
-      schon: "Steht schon in deiner Suche.",
-      neu: "In deiner Suche. Die nächste Suche sucht auch danach.",
-      pruefen: "Im Inserat",
-      liste: "Danach suchst du:",
-      ordnen: "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen.",
-      entfernt: name => `„${name}“ ist nicht mehr in deiner Suche.`,
-      neuLabel: "Eigenen Suchbegriff aufnehmen",
-      aufgenommen: name => mitPflicht(name, "deiner Suche"),
-      zurueck: name => `„${name}“ ist wieder in deiner Suche.`,
-      amEnde: name => `„${name}“ ist wieder in deiner Suche, am Ende der Liste.`,
-      einwilligung: "Bevor die KI Stellen vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.",
-    },
+    lehrstelle: () => ({
+      titel: Texte.t("Berufe von der KI vorschlagen lassen"),
+      hilfe: Texte.t("Du weisst noch nicht, welchen Beruf du suchen sollst? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt dir passende Berufe vor und nennt dir ihre Namen für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Probier Berufe in einer Schnupperlehre aus, und auch die Berufsberatung hilft dir persönlich weiter."),
+      interessen: Texte.t("Was machst du gern? (Interessen)"),
+      staerken: Texte.t("Was kannst du gut? (Fähigkeiten)"),
+      vermeiden: Texte.t("Was möchtest du lieber nicht? (freiwillig)"),
+      knopf: Texte.t("Berufe vorschlagen"),
+      fertig: n => (n === 1 ? Texte.t("1 Vorschlag. Nimm auf, was dich interessiert.")
+        : Texte.t("{anzahl} Vorschläge. Nimm auf, was dich interessiert.", { anzahl: n })),
+      schon: Texte.t("Steht schon in deiner Suche."),
+      neu: Texte.t("In deiner Suche. Die nächste Suche sucht auch danach."),
+      pruefen: wert => Texte.t("In der Schnupperlehre: {pruefen}", { pruefen: wert }),
+      liste: Texte.t("Danach suchst du:"),
+      ordnen: Texte.t("Gesucht wird von oben nach unten; neue Berufe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen."),
+      entfernt: name => Texte.t("„{name}“ ist nicht mehr in deiner Suche.", { name }),
+      neuLabel: Texte.t("Eigenen Beruf aufnehmen (mit EFZ oder EBA, zum Beispiel Koch/Köchin EFZ)"),
+      aufgenommen: name => Texte.t("„{name}“ ist jetzt in deiner Suche.", { name }),
+      zurueck: name => Texte.t("„{name}“ ist wieder in deiner Suche.", { name }),
+      amEnde: name => Texte.t("„{name}“ ist wieder in deiner Suche, am Ende der Liste.", { name }),
+      einwilligung: Texte.t("Bevor die KI dir Berufe vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen."),
+    }),
+    stelle: () => ({
+      titel: Texte.t("Stellen von der KI vorschlagen lassen"),
+      hilfe: Texte.t("Sie wissen noch nicht genau, wonach Sie suchen sollen, vielleicht nur „etwas Administratives“? Schreiben Sie ein paar Stichworte zu Ihren Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf Ihren Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfen Sie die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft Ihnen persönlich weiter."),
+      interessen: Texte.t("Was machen Sie gern? (Interessen)"),
+      staerken: Texte.t("Was können Sie gut? (Fähigkeiten)"),
+      vermeiden: Texte.t("Was möchten Sie lieber nicht? (freiwillig)"),
+      knopf: Texte.t("Stellen vorschlagen"),
+      fertig: n => (n === 1 ? Texte.t("1 Vorschlag. Nehmen Sie auf, was Sie interessiert.")
+        : Texte.t("{anzahl} Vorschläge. Nehmen Sie auf, was Sie interessiert.", { anzahl: n })),
+      schon: Texte.t("Steht schon in Ihrer Suche."),
+      neu: Texte.t("In Ihrer Suche. Die nächste Suche sucht auch danach."),
+      pruefen: wert => Texte.t("Im Inserat: {pruefen}", { pruefen: wert }),
+      liste: Texte.t("Danach suchen Sie:"),
+      ordnen: Texte.t("Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Ziehen Sie die wichtigsten nach oben oder verschieben Sie sie mit den Pfeilen."),
+      entfernt: name => Texte.t("„{name}“ ist nicht mehr in Ihrer Suche.", { name }),
+      neuLabel: Texte.t("Eigenen Suchbegriff aufnehmen"),
+      aufgenommen: name => mitPflicht(name, {
+        ohne: begriff => Texte.t("„{name}“ ist jetzt in Ihrer Suche.", { name: begriff }),
+        eins: (begriff, wort) => Texte.t("„{name}“ ist jetzt in Ihrer Suche, mit Pflichtbezug: {wort}.", { name: begriff, wort }),
+        mehrere: (begriff, woerter) => Texte.t("„{name}“ ist jetzt in Ihrer Suche, mit Pflichtbezug: {woerter}.", { name: begriff, woerter }),
+      }),
+      zurueck: name => Texte.t("„{name}“ ist wieder in Ihrer Suche.", { name }),
+      amEnde: name => Texte.t("„{name}“ ist wieder in Ihrer Suche, am Ende der Liste.", { name }),
+      einwilligung: Texte.t("Bevor die KI Stellen vorschlägt, braucht es Ihre Einwilligung. Was Sie geschrieben haben, bleibt stehen."),
+    }),
+    stelleDu: () => ({
+      titel: Texte.t("Stellen von der KI vorschlagen lassen"),
+      hilfe: Texte.t("Du weisst noch nicht genau, wonach du suchen sollst, vielleicht nur „etwas Administratives“? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf deinen Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfe die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft dir persönlich weiter."),
+      interessen: Texte.t("Was machst du gern? (Interessen)"),
+      staerken: Texte.t("Was kannst du gut? (Fähigkeiten)"),
+      vermeiden: Texte.t("Was möchtest du lieber nicht? (freiwillig)"),
+      knopf: Texte.t("Stellen vorschlagen"),
+      fertig: n => (n === 1 ? Texte.t("1 Vorschlag. Nimm auf, was dich interessiert.")
+        : Texte.t("{anzahl} Vorschläge. Nimm auf, was dich interessiert.", { anzahl: n })),
+      schon: Texte.t("Steht schon in deiner Suche."),
+      neu: Texte.t("In deiner Suche. Die nächste Suche sucht auch danach."),
+      pruefen: wert => Texte.t("Im Inserat: {pruefen}", { pruefen: wert }),
+      liste: Texte.t("Danach suchst du:"),
+      ordnen: Texte.t("Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen."),
+      entfernt: name => Texte.t("„{name}“ ist nicht mehr in deiner Suche.", { name }),
+      neuLabel: Texte.t("Eigenen Suchbegriff aufnehmen"),
+      aufgenommen: name => mitPflicht(name, {
+        ohne: begriff => Texte.t("„{name}“ ist jetzt in deiner Suche.", { name: begriff }),
+        eins: (begriff, wort) => Texte.t("„{name}“ ist jetzt in deiner Suche, mit Pflichtbezug: {wort}.", { name: begriff, wort }),
+        mehrere: (begriff, woerter) => Texte.t("„{name}“ ist jetzt in deiner Suche, mit Pflichtbezug: {woerter}.", { name: begriff, woerter }),
+      }),
+      zurueck: name => Texte.t("„{name}“ ist wieder in deiner Suche.", { name }),
+      amEnde: name => Texte.t("„{name}“ ist wieder in deiner Suche, am Ende der Liste.", { name }),
+      einwilligung: Texte.t("Bevor die KI Stellen vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen."),
+    }),
   };
-  const RUECKGAENGIG = "Rückgängig";
-  const texteFuer = (art, satz) => (art === "lehrstelle" ? TEXTE.lehrstelle : satz === "stelle-du" ? TEXTE.stelleDu : TEXTE.stelle);
-  let texte = TEXTE.stelle;
+  const texteFuer = (art, satz) => (art === "lehrstelle" ? TEXTE.lehrstelle : satz === "stelle-du" ? TEXTE.stelleDu : TEXTE.stelle)();
+  let texte = null;  // the texts of the form of address, set by zeige before anything else is shown
   let karten = [];
   let schonGeoeffnet = false;
 
@@ -122,7 +140,7 @@ window.Suchbegriffe = (() => {
     try {
       const { rueckgaengig } = await senden("/api/beruf/entfernen", { beruf: name });
       // the action keeps the message until it is used or closed (#215)
-      const aktion = rueckgaengig ? { text: RUECKGAENGIG, ausfuehren: () => undo(name, rueckgaengig) } : null;
+      const aktion = rueckgaengig ? { text: Texte.t("Rückgängig"), ausfuehren: () => undo(name, rueckgaengig) } : null;
       meldeListe(texte.entfernt(name), "ok", { aktion });
       geaendert();
     } catch (fehler) {
@@ -152,7 +170,8 @@ window.Suchbegriffe = (() => {
 
   function card(item) {
     const note = el("span", { class: "leise", tabindex: "-1" }, item.schon_gesucht ? texte.schon : "");
-    const button = el("button", { type: "button", "aria-label": `${item.beruf} in die Suche aufnehmen` }, "In die Suche aufnehmen");
+    const button = el("button", { type: "button", "aria-label": Texte.t("{beruf} in die Suche aufnehmen", { beruf: item.beruf }) },
+      Texte.t("In die Suche aufnehmen"));
     button.hidden = item.schon_gesucht;
     const karte = { beruf: item.beruf, schluessel: item.schluessel, button, note, eben: false };
     button.addEventListener("click", () => add(karte));
@@ -160,8 +179,8 @@ window.Suchbegriffe = (() => {
     return el("li", {},
       el("strong", {}, item.beruf),
       el("p", {}, item.warum),
-      el("p", { class: "leise" }, `Im Alltag: ${item.alltag}`),
-      el("p", { class: "leise" }, `${texte.pruefen}: ${item.pruefen}`),
+      el("p", { class: "leise" }, Texte.t("Im Alltag: {alltag}", { alltag: item.alltag })),
+      el("p", { class: "leise" }, texte.pruefen(item.pruefen)),
       el("div", { class: "knoepfe" }, button, note));
   }
 
@@ -201,7 +220,7 @@ window.Suchbegriffe = (() => {
     $("vorschlag-holen").disabled = true;
     $("vorschlag-liste").replaceChildren();
     karten = [];
-    status($("vorschlag-status"), "Die KI überlegt, das dauert einen Moment …", "");
+    status($("vorschlag-status"), Texte.t("Die KI überlegt, das dauert einen Moment …"), "");
     try {
       const { vorschlaege } = await senden("/api/beruf/vorschlag", {
         interessen: $("vorschlag-interessen").value, staerken: $("vorschlag-staerken").value, vermeiden: $("vorschlag-vermeiden").value,

@@ -1,0 +1,540 @@
+{
+  "› Suche einstellen": {"fr": "› Régler la recherche", "en": "› Set up search"},
+  "So sucht die App heute. Jeder Teil lässt sich einzeln ändern, der frühere Stand bleibt erhalten.": {
+    "fr": "Voici comment l'app cherche aujourd'hui. Chaque partie se modifie séparément, l'état précédent est conservé.",
+    "en": "This is how the app searches today. Each part can be changed on its own; the previous state is kept."
+  },
+  "Was suchst du?": {"fr": "Que cherches-tu\u00a0?", "en": "What are you looking for?"},
+  "Lehrstellen": {"fr": "Places d'apprentissage", "en": "Apprenticeships"},
+  "Schnupperlehren": {"fr": "Stages d'orientation", "en": "Trial apprenticeships"},
+  "Lehrstellen und Schnupperlehren": {"fr": "Places d'apprentissage et stages d'orientation", "en": "Apprenticeships and trial apprenticeships"},
+  "Doppelt gesucht": {"fr": "Recherché deux fois", "en": "Searched twice"},
+  "Aufnehmen": {"fr": "Ajouter", "en": "Add"},
+  "Was geht an die KI?": {"fr": "Qu'est-ce qui est envoyé à l'IA\u00a0?", "en": "What goes to the AI?"},
+  "Text ansehen": {"fr": "Voir le texte", "en": "View the text"},
+  "Region und Pensum": {"fr": "Région et taux d'activité", "en": "Region and workload"},
+  "Region": {"fr": "Région", "en": "Region"},
+  "Nischen": {"fr": "Niches", "en": "Niches"},
+  "Eigene Orte pro Portal": {"fr": "Lieux propres à chaque portail", "en": "Own places per portal"},
+  "Pensum": {"fr": "Taux d'activité", "en": "Workload"},
+  "Was die Orte bringen": {"fr": "Ce que rapportent les lieux", "en": "What the places bring"},
+  "Wohnort": {"fr": "Domicile", "en": "Place of residence"},
+  "Kantone": {"fr": "Cantons", "en": "Cantons"},
+  "Diese Portale suchen hier statt am Wohnort und in den Kantonen.": {
+    "fr": "Ces portails cherchent ici au lieu du domicile et des cantons.",
+    "en": "These portals search here instead of at the place of residence and in the cantons."
+  },
+  "Orte für jobs.ch, einer pro Zeile": {"fr": "Lieux pour jobs.ch, un par ligne", "en": "Places for jobs.ch, one per line"},
+  "Höchstens 6. Leer: jobs.ch sucht am Wohnort.": {
+    "fr": "6 au plus. Vide\u00a0: jobs.ch cherche au domicile.",
+    "en": "At most 6. Empty: jobs.ch searches at the place of residence."
+  },
+  "Regionen für jobscout24": {"fr": "Régions pour jobscout24", "en": "Regions for jobscout24"},
+  "jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. Keine gewählt: jobscout24 sucht an den PLZ darunter.": {
+    "fr": "jobscout24 cherche alors une fois par terme dans toutes les régions choisies. Aucune choisie\u00a0: jobscout24 cherche aux NPA ci-dessous.",
+    "en": "jobscout24 then searches once per term in all chosen regions. None chosen: jobscout24 searches at the postcodes below."
+  },
+  "jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. Keine gewählt: jobscout24 sucht an der PLZ aus Meine Angaben.": {
+    "fr": "jobscout24 cherche alors une fois par terme dans toutes les régions choisies. Aucune choisie\u00a0: jobscout24 cherche au NPA de Mes informations.",
+    "en": "jobscout24 then searches once per term in all chosen regions. None chosen: jobscout24 searches at the postcode from My details."
+  },
+  "PLZ für jobscout24, eine pro Zeile": {"fr": "NPA pour jobscout24, un par ligne", "en": "Postcodes for jobscout24, one per line"},
+  "Nur ohne gewählte Region. Höchstens 6. Leer: jobscout24 sucht an der PLZ aus Meine Angaben.": {
+    "fr": "Seulement sans région choisie. 6 au plus. Vide\u00a0: jobscout24 cherche au NPA de Mes informations.",
+    "en": "Only without a chosen region. At most 6. Empty: jobscout24 searches at the postcode from My details."
+  },
+  "Regionen für ictjobs": {"fr": "Régions pour ictjobs", "en": "Regions for ictjobs"},
+  "Höchstens 6. Keine gewählt: ictjobs sucht in den Regionen der gewählten Kantone.": {
+    "fr": "6 au plus. Aucune choisie\u00a0: ictjobs cherche dans les régions des cantons choisis.",
+    "en": "At most 6. None chosen: ictjobs searches in the regions of the chosen cantons."
+  },
+  "Umkreis um den Wohnort": {"fr": "Rayon autour du domicile", "en": "Radius around the place of residence"},
+  "Pensum (z.B. 80–100 %)": {"fr": "Taux d'activité (p. ex. 80–100\u00a0%)", "en": "Workload (e.g. 80–100%)"},
+  "Speichern": {"fr": "Enregistrer", "en": "Save"},
+  "Was der Titelfilter aussortiert hat": {"fr": "Ce qu'a retiré le filtre de titre", "en": "What the title filter filtered out"},
+  "Nicht jetzt": {"fr": "Pas maintenant", "en": "Not now"},
+  "Gründe aus verworfenen Stellen": {"fr": "Motifs tirés des offres écartées", "en": "Reasons from discarded jobs"},
+  "Gründe vorschlagen lassen": {"fr": "Faire proposer des motifs", "en": "Have reasons suggested"},
+  "Im Inserat, eins pro Zeile": {"fr": "Dans l'annonce, un par ligne", "en": "In the ad, one per line"},
+  "Im Titel, eins pro Zeile": {"fr": "Dans le titre, un par ligne", "en": "In the title, one per line"},
+  "Ein Titel mit einem dieser Wörter kommt nicht in die Liste.": {
+    "fr": "Un titre contenant l'un de ces mots n'entre pas dans la liste.",
+    "en": "A title with one of these words does not make the list."
+  },
+  ", eine pro Zeile": {"fr": ", une par ligne", "en": ", one per line"},
+  "Portale": {"fr": "Portails", "en": "Portals"},
+  "Weitere Seiten durchsuchen": {"fr": "Rechercher sur d'autres sites", "en": "Search other sites"},
+  "Zum API-Schlüssel": {"fr": "Vers la clé API", "en": "To the API key"},
+  "höchstens": {"fr": "au plus", "en": "at most"},
+  "Beispiel:": {"fr": "Exemple\u00a0:", "en": "Example:"},
+  "https://www.beispiel.ch/stellen": {"fr": "https://www.exemple.ch/emplois", "en": "https://www.example.ch/jobs"},
+  "Adressen": {"fr": "Adresses", "en": "Addresses"},
+  "Seiten speichern": {"fr": "Enregistrer les sites", "en": "Save sites"},
+  "Zugriff in der Erweiterung erlauben": {"fr": "Autoriser l'accès dans l'extension", "en": "Allow access in the extension"},
+  "Zeitfenster": {"fr": "Période", "en": "Time window"},
+  "So weit geht die erste Suche zurück, und die Suche nach einer längeren Pause. Sonst sucht jedes Portal nur, was seit seiner letzten Suche dazugekommen ist.": {
+    "fr": "La première recherche remonte jusque-là, de même que la recherche après une longue pause. Sinon, chaque portail ne cherche que ce qui s'est ajouté depuis sa dernière recherche.",
+    "en": "This is how far back the first search goes, and the search after a longer break. Otherwise each portal searches only what has been added since its last search."
+  },
+  "Inserate der letzten": {"fr": "Annonces de moins de", "en": "Ads from the last"},
+  "Stand der Portale": {"fr": "État des portails", "en": "Status of the portals"},
+  "Titelfilter": {"fr": "Filtre de titre", "en": "Title filter"},
+  "Titel, die passen, eins pro Zeile": {"fr": "Titres qui correspondent, un par ligne", "en": "Titles that fit, one per line"},
+  "Steht hier etwas, nimmt die Suche nur Stellen, in deren Titel einer dieser Begriffe vorkommt.": {
+    "fr": "Si quelque chose figure ici, la recherche ne garde que les offres dont le titre contient l'un de ces termes.",
+    "en": "If anything is here, the search only takes jobs whose title contains one of these terms."
+  },
+  "Titel, die nicht passen, eins pro Zeile": {"fr": "Titres qui ne correspondent pas, un par ligne", "en": "Titles that do not fit, one per line"},
+  "Ablauf": {"fr": "Déroulement", "en": "Process"},
+  "Neue Treffer nach der Suche automatisch bewerten": {
+    "fr": "Évaluer automatiquement les nouveaux résultats après la recherche",
+    "en": "Rate new results automatically after the search"
+  },
+  "Im sichtbaren Tab suchen": {"fr": "Chercher dans l'onglet visible", "en": "Search in the visible tab"},
+  "Text an die KI": {"fr": "Texte envoyé à l'IA", "en": "Text sent to the AI"},
+  "So geht der Text an die KI. Platzhalter wie {{NAME}} setzt die App erst wieder ein, wenn die Antwort zurückkommt.": {
+    "fr": "Voici le texte tel qu'il est envoyé à l'IA. L'app ne remet les espaces réservés comme {{NAME}} en place qu'au retour de la réponse.",
+    "en": "This is how the text goes to the AI. The app puts placeholders such as {{NAME}} back only when the answer comes back."
+  },
+
+  "Nichts angegeben": {"fr": "Rien d'indiqué", "en": "Nothing given"},
+  "Neue Treffer nach der Suche automatisch bewerten (höchstens {grenze} pro Suche)": {
+    "fr": "Évaluer automatiquement les nouveaux résultats après la recherche ({grenze} au plus par recherche)",
+    "en": "Rate new results automatically after the search (at most {grenze} per search)"
+  },
+  "Was die Suche bringt, liess sich nicht laden: {fehler}": {
+    "fr": "Impossible de charger ce que rapporte la recherche\u00a0: {fehler}",
+    "en": "What the search brings could not be loaded: {fehler}"
+  },
+  "„{name}“ steht jetzt an Stelle {stelle} von {anzahl}.": {
+    "fr": "«\u00a0{name}\u00a0» est maintenant en position {stelle} sur {anzahl}.",
+    "en": "“{name}” is now in position {stelle} of {anzahl}."
+  },
+  "{name} nach oben": {"fr": "Monter {name}", "en": "Move {name} up"},
+  "{name} nach unten": {"fr": "Descendre {name}", "en": "Move {name} down"},
+  "{name} entfernen": {"fr": "Retirer {name}", "en": "Remove {name}"},
+  "nur {portale}": {"fr": "seulement {portale}", "en": "only {portale}"},
+  "ausgeschaltet": {"fr": "désactivé", "en": "switched off"},
+  "{portal} ausgeschaltet": {"fr": "{portal} désactivé", "en": "{portal} switched off"},
+  "{portale} ausgeschaltet": {"fr": "{portale} désactivés", "en": "{portale} switched off"},
+  "Pflichtbezug: {wort}": {"fr": "Mot requis\u00a0: {wort}", "en": "Required word: {wort}"},
+  "Pflichtbezug: {woerter}": {"fr": "Mots requis\u00a0: {woerter}", "en": "Required words: {woerter}"},
+  "Entfernen": {"fr": "Retirer", "en": "Remove"},
+  "Nach oben": {"fr": "Monter", "en": "Move up"},
+  "Nach unten": {"fr": "Descendre", "en": "Move down"},
+  "Ziehen, um zu verschieben": {"fr": "Faire glisser pour déplacer", "en": "Drag to move"},
+  "Reihenfolge nicht gespeichert: {fehler}": {"fr": "Ordre non enregistré\u00a0: {fehler}", "en": "Order not saved: {fehler}"},
+  "Warum ictjobs an oder aus ist": {"fr": "Pourquoi ictjobs est activé ou non", "en": "Why ictjobs is on or off"},
+  "Gespeichert. Gilt ab der nächsten Suche.": {
+    "fr": "Enregistré. S'applique dès la prochaine recherche.",
+    "en": "Saved. Applies from the next search."
+  },
+  "Nicht gespeichert. {fehler}": {"fr": "Non enregistré. {fehler}", "en": "Not saved. {fehler}"},
+  "Gesucht wird im Umkreis des Wohnorts. Die Kantone helfen beim Einordnen.": {
+    "fr": "La recherche se fait dans un rayon autour du domicile. Les cantons aident à classer les offres.",
+    "en": "The search runs within a radius of the place of residence. The cantons help with sorting."
+  },
+  "Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst.": {
+    "fr": "Sans choix, l'app cherche dans toute la Suisse, les offres proches du domicile en premier.",
+    "en": "Without a choice the app searches all of Switzerland, jobs near the place of residence first."
+  },
+  "Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst. Nischen sucht die App ohne Ort; Stellen ausserhalb dieser Kantone behält sie nur, wenn das Inserat Remote nennt.": {
+    "fr": "Sans choix, l'app cherche dans toute la Suisse, les offres proches du domicile en premier. L'app cherche les niches sans lieu\u00a0; elle ne garde les offres hors de ces cantons que si l'annonce mentionne le travail à distance.",
+    "en": "Without a choice the app searches all of Switzerland, jobs near the place of residence first. The app searches niches without a place; it keeps jobs outside these cantons only if the ad mentions remote work."
+  },
+  "{portal}: {orte}": {"fr": "{portal}\u00a0: {orte}", "en": "{portal}: {orte}"},
+  "{portal}: {vorsatz} {orte}": {"fr": "{portal}\u00a0: {vorsatz} {orte}", "en": "{portal}: {vorsatz} {orte}"},
+  "Hinweise zu den Orten liessen sich nicht laden: {fehler}": {
+    "fr": "Impossible de charger les remarques sur les lieux\u00a0: {fehler}",
+    "en": "The notes on the places could not be loaded: {fehler}"
+  },
+
+  "Berufe von der KI vorschlagen lassen": {"fr": "Se faire proposer des métiers par l'IA", "en": "Have the AI suggest occupations"},
+  "Du weisst noch nicht, welchen Beruf du suchen sollst? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt dir passende Berufe vor und nennt dir ihre Namen für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Probier Berufe in einer Schnupperlehre aus, und auch die Berufsberatung hilft dir persönlich weiter.": {
+    "fr": "Tu ne sais pas encore quel métier chercher\u00a0? Écris quelques mots-clés sur tes intérêts et tes compétences. L'IA, un modèle de langage, te propose des métiers adaptés et te donne leurs noms pour la recherche. Merci de ne rien écrire sur la santé ou la famille. L'IA peut se tromper\u00a0: essaie des métiers lors d'un stage d'orientation, et l'orientation professionnelle t'aide aussi personnellement.",
+    "en": "You don't know yet which occupation to search for? Write a few keywords about your interests and abilities. The AI, a language model, suggests suitable occupations and gives you their names for the search. Please write nothing about health or family. The AI can be wrong: try out occupations in a trial apprenticeship, and career guidance can also help you in person."
+  },
+  "Was machst du gern? (Interessen)": {"fr": "Qu'aimes-tu faire\u00a0? (intérêts)", "en": "What do you like doing? (interests)"},
+  "Was kannst du gut? (Fähigkeiten)": {"fr": "Qu'est-ce que tu fais bien\u00a0? (compétences)", "en": "What are you good at? (abilities)"},
+  "Was möchtest du lieber nicht? (freiwillig)": {
+    "fr": "Qu'est-ce que tu préfères éviter\u00a0? (facultatif)",
+    "en": "What would you rather not do? (optional)"
+  },
+  "Berufe vorschlagen": {"fr": "Proposer des métiers", "en": "Suggest occupations"},
+  "1 Vorschlag. Nimm auf, was dich interessiert.": {"fr": "1 proposition. Ajoute ce qui t'intéresse.", "en": "1 suggestion. Add what interests you."},
+  "{anzahl} Vorschläge. Nimm auf, was dich interessiert.": {
+    "fr": "{anzahl} propositions. Ajoute ce qui t'intéresse.",
+    "en": "{anzahl} suggestions. Add what interests you."
+  },
+  "Steht schon in deiner Suche.": {"fr": "Figure déjà dans ta recherche.", "en": "Already in your search."},
+  "In deiner Suche. Die nächste Suche sucht auch danach.": {
+    "fr": "Dans ta recherche. La prochaine recherche le cherche aussi.",
+    "en": "In your search. The next search looks for it too."
+  },
+  "In der Schnupperlehre: {pruefen}": {"fr": "Pendant le stage d'orientation\u00a0: {pruefen}", "en": "In the trial apprenticeship: {pruefen}"},
+  "Danach suchst du:": {"fr": "Tu cherches\u00a0:", "en": "You are searching for:"},
+  "Gesucht wird von oben nach unten; neue Berufe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen.": {
+    "fr": "La recherche va de haut en bas\u00a0; les nouveaux métiers vont à la fin. Fais glisser les plus importants vers le haut ou déplace-les avec les flèches.",
+    "en": "The search goes from top to bottom; new occupations go to the end. Drag the most important ones up or move them with the arrows."
+  },
+  "„{name}“ ist nicht mehr in deiner Suche.": {
+    "fr": "«\u00a0{name}\u00a0» n'est plus dans ta recherche.",
+    "en": "“{name}” is no longer in your search."
+  },
+  "Eigenen Beruf aufnehmen (mit EFZ oder EBA, zum Beispiel Koch/Köchin EFZ)": {
+    "fr": "Ajouter ton propre métier (avec EFZ ou EBA, par exemple Koch/Köchin EFZ)",
+    "en": "Add your own occupation (with EFZ or EBA, for example Koch/Köchin EFZ)"
+  },
+  "„{name}“ ist jetzt in deiner Suche.": {
+    "fr": "«\u00a0{name}\u00a0» est maintenant dans ta recherche.",
+    "en": "“{name}” is now in your search."
+  },
+  "„{name}“ ist jetzt in deiner Suche, mit Pflichtbezug: {wort}.": {
+    "fr": "«\u00a0{name}\u00a0» est maintenant dans ta recherche, avec le mot requis\u00a0: {wort}.",
+    "en": "“{name}” is now in your search, with the required word: {wort}."
+  },
+  "„{name}“ ist jetzt in deiner Suche, mit Pflichtbezug: {woerter}.": {
+    "fr": "«\u00a0{name}\u00a0» est maintenant dans ta recherche, avec les mots requis\u00a0: {woerter}.",
+    "en": "“{name}” is now in your search, with the required words: {woerter}."
+  },
+  "„{name}“ ist wieder in deiner Suche.": {
+    "fr": "«\u00a0{name}\u00a0» est de nouveau dans ta recherche.",
+    "en": "“{name}” is back in your search."
+  },
+  "„{name}“ ist wieder in deiner Suche, am Ende der Liste.": {
+    "fr": "«\u00a0{name}\u00a0» est de nouveau dans ta recherche, à la fin de la liste.",
+    "en": "“{name}” is back in your search, at the end of the list."
+  },
+  "Bevor die KI dir Berufe vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.": {
+    "fr": "Avant que l'IA te propose des métiers, il faut ton consentement. Ce que tu as écrit reste en place.",
+    "en": "Before the AI suggests occupations, it needs your consent. What you have written stays."
+  },
+  "Stellen von der KI vorschlagen lassen": {"fr": "Se faire proposer des postes par l'IA", "en": "Have the AI suggest jobs"},
+  "Sie wissen noch nicht genau, wonach Sie suchen sollen, vielleicht nur „etwas Administratives“? Schreiben Sie ein paar Stichworte zu Ihren Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf Ihren Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfen Sie die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft Ihnen persönlich weiter.": {
+    "fr": "Vous ne savez pas encore exactement quoi chercher, peut-être seulement «\u00a0quelque chose d'administratif\u00a0»\u00a0? Écrivez quelques mots-clés sur vos intérêts et vos compétences. L'IA, un modèle de langage, propose des postes adaptés en tenant compte de votre CV et indique des termes pour la recherche. Merci de ne rien écrire sur la santé ou la famille. L'IA peut se tromper\u00a0: vérifiez les propositions sur de vraies annonces. L'ORP ou l'orientation professionnelle vous aide aussi personnellement.",
+    "en": "You don't know exactly what to search for yet, maybe just “something administrative”? Write a few keywords about your interests and abilities. The AI, a language model, suggests suitable jobs with a view to your CV and names terms for the search. Please write nothing about health or family. The AI can be wrong: check the suggestions against real ads. The RAV or career guidance can also help you in person."
+  },
+  "Du weisst noch nicht genau, wonach du suchen sollst, vielleicht nur „etwas Administratives“? Schreib ein paar Stichworte zu deinen Interessen und Fähigkeiten. Die KI, ein Sprachmodell, schlägt mit Blick auf deinen Lebenslauf passende Stellen vor und nennt Begriffe für die Suche. Bitte nichts zu Gesundheit oder Familie schreiben. Die KI kann sich irren: Prüfe die Vorschläge an echten Inseraten. Auch das RAV oder die Berufsberatung hilft dir persönlich weiter.": {
+    "fr": "Tu ne sais pas encore exactement quoi chercher, peut-être seulement «\u00a0quelque chose d'administratif\u00a0»\u00a0? Écris quelques mots-clés sur tes intérêts et tes compétences. L'IA, un modèle de langage, propose des postes adaptés en tenant compte de ton CV et indique des termes pour la recherche. Merci de ne rien écrire sur la santé ou la famille. L'IA peut se tromper\u00a0: vérifie les propositions sur de vraies annonces. L'ORP ou l'orientation professionnelle t'aide aussi personnellement.",
+    "en": "You don't know exactly what to search for yet, maybe just “something administrative”? Write a few keywords about your interests and abilities. The AI, a language model, suggests suitable jobs with a view to your CV and names terms for the search. Please write nothing about health or family. The AI can be wrong: check the suggestions against real ads. The RAV or career guidance can also help you in person."
+  },
+  "Was machen Sie gern? (Interessen)": {"fr": "Qu'aimez-vous faire\u00a0? (intérêts)", "en": "What do you like doing? (interests)"},
+  "Was können Sie gut? (Fähigkeiten)": {"fr": "Qu'est-ce que vous faites bien\u00a0? (compétences)", "en": "What are you good at? (abilities)"},
+  "Was möchten Sie lieber nicht? (freiwillig)": {
+    "fr": "Qu'est-ce que vous préférez éviter\u00a0? (facultatif)",
+    "en": "What would you rather not do? (optional)"
+  },
+  "Stellen vorschlagen": {"fr": "Proposer des postes", "en": "Suggest jobs"},
+  "1 Vorschlag. Nehmen Sie auf, was Sie interessiert.": {"fr": "1 proposition. Ajoutez ce qui vous intéresse.", "en": "1 suggestion. Add what interests you."},
+  "{anzahl} Vorschläge. Nehmen Sie auf, was Sie interessiert.": {
+    "fr": "{anzahl} propositions. Ajoutez ce qui vous intéresse.",
+    "en": "{anzahl} suggestions. Add what interests you."
+  },
+  "Steht schon in Ihrer Suche.": {"fr": "Figure déjà dans votre recherche.", "en": "Already in your search."},
+  "In Ihrer Suche. Die nächste Suche sucht auch danach.": {
+    "fr": "Dans votre recherche. La prochaine recherche le cherche aussi.",
+    "en": "In your search. The next search looks for it too."
+  },
+  "Im Inserat: {pruefen}": {"fr": "Dans l'annonce\u00a0: {pruefen}", "en": "In the ad: {pruefen}"},
+  "Danach suchen Sie:": {"fr": "Vous cherchez\u00a0:", "en": "You are searching for:"},
+  "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Ziehen Sie die wichtigsten nach oben oder verschieben Sie sie mit den Pfeilen.": {
+    "fr": "La recherche va de haut en bas\u00a0; les nouveaux termes vont à la fin. Faites glisser les plus importants vers le haut ou déplacez-les avec les flèches.",
+    "en": "The search goes from top to bottom; new terms go to the end. Drag the most important ones up or move them with the arrows."
+  },
+  "Gesucht wird von oben nach unten; neue Begriffe kommen ans Ende. Zieh die wichtigsten nach oben oder verschieb sie mit den Pfeilen.": {
+    "fr": "La recherche va de haut en bas\u00a0; les nouveaux termes vont à la fin. Fais glisser les plus importants vers le haut ou déplace-les avec les flèches.",
+    "en": "The search goes from top to bottom; new terms go to the end. Drag the most important ones up or move them with the arrows."
+  },
+  "„{name}“ ist nicht mehr in Ihrer Suche.": {
+    "fr": "«\u00a0{name}\u00a0» n'est plus dans votre recherche.",
+    "en": "“{name}” is no longer in your search."
+  },
+  "Eigenen Suchbegriff aufnehmen": {"fr": "Ajouter un mot-clé personnel", "en": "Add your own search term"},
+  "„{name}“ ist jetzt in Ihrer Suche.": {
+    "fr": "«\u00a0{name}\u00a0» est maintenant dans votre recherche.",
+    "en": "“{name}” is now in your search."
+  },
+  "„{name}“ ist jetzt in Ihrer Suche, mit Pflichtbezug: {wort}.": {
+    "fr": "«\u00a0{name}\u00a0» est maintenant dans votre recherche, avec le mot requis\u00a0: {wort}.",
+    "en": "“{name}” is now in your search, with the required word: {wort}."
+  },
+  "„{name}“ ist jetzt in Ihrer Suche, mit Pflichtbezug: {woerter}.": {
+    "fr": "«\u00a0{name}\u00a0» est maintenant dans votre recherche, avec les mots requis\u00a0: {woerter}.",
+    "en": "“{name}” is now in your search, with the required words: {woerter}."
+  },
+  "„{name}“ ist wieder in Ihrer Suche.": {
+    "fr": "«\u00a0{name}\u00a0» est de nouveau dans votre recherche.",
+    "en": "“{name}” is back in your search."
+  },
+  "„{name}“ ist wieder in Ihrer Suche, am Ende der Liste.": {
+    "fr": "«\u00a0{name}\u00a0» est de nouveau dans votre recherche, à la fin de la liste.",
+    "en": "“{name}” is back in your search, at the end of the list."
+  },
+  "Bevor die KI Stellen vorschlägt, braucht es Ihre Einwilligung. Was Sie geschrieben haben, bleibt stehen.": {
+    "fr": "Avant que l'IA propose des postes, il faut votre consentement. Ce que vous avez écrit reste en place.",
+    "en": "Before the AI suggests jobs, it needs your consent. What you have written stays."
+  },
+  "Bevor die KI Stellen vorschlägt, braucht es deine Einwilligung. Was du geschrieben hast, bleibt stehen.": {
+    "fr": "Avant que l'IA propose des postes, il faut ton consentement. Ce que tu as écrit reste en place.",
+    "en": "Before the AI suggests jobs, it needs your consent. What you have written stays."
+  },
+  "Die KI überlegt, das dauert einen Moment …": {"fr": "L'IA réfléchit, cela prend un moment…", "en": "The AI is thinking, this takes a moment…"},
+  "In die Suche aufnehmen": {"fr": "Ajouter à la recherche", "en": "Add to the search"},
+  "{beruf} in die Suche aufnehmen": {"fr": "Ajouter {beruf} à la recherche", "en": "Add {beruf} to the search"},
+  "Im Alltag: {alltag}": {"fr": "Au quotidien\u00a0: {alltag}", "en": "Day to day: {alltag}"},
+
+  "Schreib zu beidem etwas: was du gern machst und was du gut kannst.": {
+    "fr": "Écris quelque chose aux deux\u00a0: ce que tu aimes faire et ce que tu sais bien faire.",
+    "en": "Write something for both: what you like doing and what you are good at."
+  },
+  "Bitte zu beidem etwas schreiben: Interessen und Fähigkeiten.": {
+    "fr": "Merci d'écrire quelque chose aux deux\u00a0: intérêts et compétences.",
+    "en": "Please write something for both: interests and abilities."
+  },
+  "Das ist kein Beruf mit EFZ oder EBA.": {"fr": "Ce n'est pas un métier avec EFZ ou EBA.", "en": "That is not an occupation with EFZ or EBA."},
+  "Das passt nicht als Suchbegriff.": {"fr": "Cela ne convient pas comme mot-clé.", "en": "That does not work as a search term."},
+  "Welcher Eintrag soll weg?": {"fr": "Quelle entrée faut-il retirer\u00a0?", "en": "Which entry should go?"},
+  "Bitte einen Beruf mit EFZ oder EBA eintragen.": {"fr": "Merci de saisir un métier avec EFZ ou EBA.", "en": "Please enter an occupation with EFZ or EBA."},
+  "Bitte einen Suchbegriff eintragen.": {"fr": "Merci de saisir un mot-clé.", "en": "Please enter a search term."},
+  "„{name}“ wird schon gesucht.": {"fr": "«\u00a0{name}\u00a0» est déjà recherché.", "en": "“{name}” is already being searched."},
+  "„{value}…“ ist zu lang: höchstens {limit} Zeichen.": {
+    "fr": "«\u00a0{value}…\u00a0» est trop long\u00a0: {limit} caractères au plus.",
+    "en": "“{value}…” is too long: at most {limit} characters."
+  },
+  "Rückgängig geht hier nicht mehr. Bitte den Begriff neu aufnehmen.": {
+    "fr": "Il n'est plus possible d'annuler ici. Merci d'ajouter à nouveau le terme.",
+    "en": "Undo is no longer possible here. Please add the term again."
+  },
+  "Diese Reihenfolge geht nicht. Bitte die Seite neu laden.": {
+    "fr": "Cet ordre n'est pas possible. Merci de recharger la page.",
+    "en": "This order does not work. Please reload the page."
+  },
+  "Alle Vorschläge enthielten etwas, das ausgeschlossen ist. Bitte nochmals versuchen oder die Angaben anpassen.": {
+    "fr": "Toutes les propositions contenaient quelque chose d'exclu. Merci de réessayer ou d'adapter les indications.",
+    "en": "All suggestions contained something that is excluded. Please try again or adjust the details."
+  },
+  "Bitte je Feld höchstens {anzahl} Zeichen.": {
+    "fr": "Merci de ne pas dépasser {anzahl} caractères par champ.",
+    "en": "Please use at most {anzahl} characters per field."
+  },
+  "Interessen und Stärken erwartet.": {"fr": "Intérêts et points forts attendus.", "en": "Interests and strengths expected."},
+  "Die Suche hat schon {limit} Begriffe, mehr gehen hier nicht. Bitte zuerst einen entfernen.": {
+    "fr": "La recherche compte déjà {limit} termes, il n'y a plus de place ici. Merci d'en retirer d'abord un.",
+    "en": "The search already has {limit} terms; no more fit here. Please remove one first."
+  },
+  "Die Suche hat schon {limit} Suchrichtungen. Bitte zuerst eine entfernen.": {
+    "fr": "La recherche compte déjà {limit} orientations de recherche. Merci d'en retirer d'abord une.",
+    "en": "The search already has {limit} search directions. Please remove one first."
+  },
+  "Pflichtwörter gelten nur für Begriffe unter „Keywords“. Bitte den Begriff ohne „(nur mit …)“ aufnehmen.": {
+    "fr": "Les mots requis ne valent que pour les termes sous «\u00a0Keywords\u00a0». Merci d'ajouter le terme sans «\u00a0(nur mit …)\u00a0».",
+    "en": "Required words apply only to terms under “Keywords”. Please add the term without “(nur mit …)”."
+  },
+  "Zeile {zeile} ist keine Liste von Begriffen": {"fr": "La ligne {zeile} n'est pas une liste de termes", "en": "Line {zeile} is not a list of terms"},
+  "Die Liste hat sich inzwischen geändert und ist neu geladen. Bitte nochmals verschieben.": {
+    "fr": "La liste a changé entre-temps et a été rechargée. Merci de déplacer à nouveau.",
+    "en": "The list has changed in the meantime and has been reloaded. Please move again."
+  },
+
+  "Erlaubt sind {min} bis {max} Tage.": {"fr": "{min} à {max} jours sont possibles.", "en": "{min} to {max} days are allowed."},
+  "Das Zeitfenster gilt nur für die Stellensuche.": {
+    "fr": "La période ne vaut que pour la recherche d'emploi.",
+    "en": "The time window applies only to the job search."
+  },
+  "{place} bleibt bei den Orten für jobs.ch.": {"fr": "{place} reste parmi les lieux pour jobs.ch.", "en": "{place} stays among the places for jobs.ch."},
+  "{first} und {place} liegen beide im Kanton {canton}. jobs.ch sucht bei jedem Ort auch im ganzen Kanton, ein zweiter Ort im selben Kanton bringt darum kaum neue Stellen. {place} kostet {cost} pro Suchlauf.": {
+    "fr": "{first} et {place} se trouvent dans le même canton, {canton}. Pour chaque lieu, jobs.ch cherche aussi dans tout le canton, un deuxième lieu dans le même canton n'apporte donc guère de nouvelles offres. {place} coûte {cost} par série de recherches.",
+    "en": "{first} and {place} are both in the canton of {canton}. jobs.ch also searches the whole canton for each place, so a second place in the same canton brings hardly any new jobs. {place} costs {cost} per search run."
+  },
+  "{place} entfernen": {"fr": "Retirer {place}", "en": "Remove {place}"},
+  "{place} entfernt. jobs.ch sucht weiter im ganzen Kanton {canton}, und der nächste Suchlauf spart {saved}.": {
+    "fr": "{place} retiré. jobs.ch cherche toujours dans tout le canton ({canton}), et la prochaine série de recherches économise {saved}.",
+    "en": "{place} removed. jobs.ch keeps searching the whole canton of {canton}, and the next search run saves {saved}."
+  },
+  "{place} ist wieder bei den Orten für jobs.ch.": {
+    "fr": "{place} est de nouveau parmi les lieux pour jobs.ch.",
+    "en": "{place} is back among the places for jobs.ch."
+  },
+  "jobscout24 sucht an {count} PLZ, jede mit {radius} km Umkreis; nahe PLZ finden oft dieselben Stellen. Mit einer Region sucht jobscout24 einmal pro Begriff.": {
+    "fr": "jobscout24 cherche à {count} NPA, chacun avec un rayon de {radius} km\u00a0; des NPA proches trouvent souvent les mêmes offres. Avec une région, jobscout24 cherche une fois par terme.",
+    "en": "jobscout24 searches at {count} postcodes, each with a {radius} km radius; nearby postcodes often find the same jobs. With a region, jobscout24 searches once per term."
+  },
+  "Regionen wählen": {"fr": "Choisir des régions", "en": "Choose regions"},
+  "Dieser Hinweis gilt nicht mehr. Die Seite zeigt jetzt, was im Suchprofil steht.": {
+    "fr": "Cette remarque ne vaut plus. La page montre maintenant ce qui figure dans le profil de recherche.",
+    "en": "This note no longer applies. The page now shows what is in the search profile."
+  },
+  "Das lässt sich nicht mehr rückgängig machen.": {"fr": "Il n'est plus possible d'annuler cela.", "en": "This can no longer be undone."},
+
+  "Stellen der RAV, alle Berufe": {"fr": "Offres des ORP, tous les métiers", "en": "Jobs of the RAV, all occupations"},
+  "alle Berufe": {"fr": "tous les métiers", "en": "all occupations"},
+  "nur Informatik": {"fr": "informatique seulement", "en": "IT only"},
+  "offizielle Lehrstellen der Kantone": {"fr": "places d'apprentissage officielles des cantons", "en": "official apprenticeships of the cantons"},
+  "Mindestens ein Portal muss gewählt bleiben, sonst findet die Suche nichts.": {
+    "fr": "Au moins un portail doit rester choisi, sinon la recherche ne trouve rien.",
+    "en": "At least one portal must stay chosen, or the search finds nothing."
+  },
+  "Diese Auswahl der Portale geht nicht.": {"fr": "Ce choix de portails n'est pas possible.", "en": "This choice of portals does not work."},
+  "Die Zeile „{label}: …“ nennt ein Portal, das die App nicht kennt. Die Begriffe darin sucht sie darum auf allen Portalen.": {
+    "fr": "La ligne «\u00a0{label}: …\u00a0» nomme un portail que l'app ne connaît pas. Elle cherche donc ses termes sur tous les portails.",
+    "en": "The line “{label}: …” names a portal the app does not know. So it searches its terms on all portals."
+  },
+  "„{term}“ sucht nur auf {portals}, und {portals} ist ausgeschaltet. Der Begriff läuft darum in keiner Suche.": {
+    "fr": "«\u00a0{term}\u00a0» ne cherche que sur {portals}, et {portals} est désactivé. Le terme ne figure donc dans aucune recherche.",
+    "en": "“{term}” searches only on {portals}, and {portals} is switched off. So the term runs in no search."
+  },
+  "„{term}“ sucht nur auf {portals}, und diese Portale sind ausgeschaltet. Der Begriff läuft darum in keiner Suche.": {
+    "fr": "«\u00a0{term}\u00a0» ne cherche que sur {portals}, et ces portails sont désactivés. Le terme ne figure donc dans aucune recherche.",
+    "en": "“{term}” searches only on {portals}, and these portals are switched off. So the term runs in no search."
+  },
+  "Bitte Lehrstellen, Schnupperlehren oder beides wählen.": {
+    "fr": "Merci de choisir places d'apprentissage, stages d'orientation ou les deux.",
+    "en": "Please choose apprenticeships, trial apprenticeships or both."
+  },
+  "Schnupperlehren gibt es nur bei der Lehrstellensuche.": {
+    "fr": "Les stages d'orientation n'existent que dans la recherche de places d'apprentissage.",
+    "en": "Trial apprenticeships exist only in the apprenticeship search."
+  },
+  "Berufe aufnehmen gibt es nur bei der Lehrstellensuche.": {
+    "fr": "Ajouter des métiers n'est possible que dans la recherche de places d'apprentissage.",
+    "en": "Adding occupations is possible only in the apprenticeship search."
+  },
+  "Deine Suche hat schon {anzahl} Berufe, mehr sucht sie nicht. Entferne zuerst einen.": {
+    "fr": "Ta recherche compte déjà {anzahl} métiers, elle n'en cherche pas plus. Retires-en d'abord un.",
+    "en": "Your search already has {anzahl} occupations; it searches no more. Remove one first."
+  },
+
+  "„{name}“ gilt nur für die Stellensuche.": {"fr": "«\u00a0{name}\u00a0» ne vaut que pour la recherche d'emploi.", "en": "“{name}” applies only to the job search."},
+  "Den Umkreis gibt es nur bei der Lehrstellensuche.": {
+    "fr": "Le rayon n'existe que dans la recherche de places d'apprentissage.",
+    "en": "The radius exists only in the apprenticeship search."
+  },
+  "Unbekannte Angabe: {key}.": {"fr": "Indication inconnue\u00a0: {key}.", "en": "Unknown field: {key}."},
+  "Nichts zu ändern.": {"fr": "Rien à modifier.", "en": "Nothing to change."},
+  "Bitte {name} angeben.": {"fr": "Merci d'indiquer {name}.", "en": "Please give {name}."},
+  "{name}: bitte als Liste senden.": {"fr": "{name}\u00a0: merci d'envoyer une liste.", "en": "{name}: please send as a list."},
+  "Unbekannter Kanton: {value}.": {"fr": "Canton inconnu\u00a0: {value}.", "en": "Unknown canton: {value}."},
+  "{name}: höchstens {limit} Begriffe.": {"fr": "{name}\u00a0: {limit} termes au plus.", "en": "{name}: at most {limit} terms."},
+  "Umkreis: erlaubt sind {min} bis {max} km.": {"fr": "Rayon\u00a0: {min} à {max} km sont possibles.", "en": "Radius: {min} to {max} km are allowed."},
+  "den Wohnort": {"fr": "le domicile", "en": "the place of residence"},
+  "Umkreis": {"fr": "Rayon", "en": "Radius"},
+  "das Pensum": {"fr": "le taux d'activité", "en": "the workload"},
+  "Ausschlüsse": {"fr": "Exclusions", "en": "Exclusions"},
+  "Titel, die passen": {"fr": "Titres qui correspondent", "en": "Titles that fit"},
+  "Titel, die nicht passen": {"fr": "Titres qui ne correspondent pas", "en": "Titles that do not fit"},
+  "{name}: höchstens {limit} Einträge.": {"fr": "{name}\u00a0: {limit} entrées au plus.", "en": "{name}: at most {limit} entries."},
+  "„{value}“ ist keine Postleitzahl: bitte vier Ziffern.": {
+    "fr": "«\u00a0{value}\u00a0» n'est pas un NPA\u00a0: merci d'indiquer quatre chiffres.",
+    "en": "“{value}” is not a postcode: please use four digits."
+  },
+  "Unbekannte Region für ictjobs: {value}.": {"fr": "Région inconnue pour ictjobs\u00a0: {value}.", "en": "Unknown region for ictjobs: {value}."},
+  "Unbekannte Region für jobscout24: {value}.": {"fr": "Région inconnue pour jobscout24\u00a0: {value}.", "en": "Unknown region for jobscout24: {value}."},
+  "Orte für jobs.ch": {"fr": "Lieux pour jobs.ch", "en": "Places for jobs.ch"},
+  "PLZ für jobscout24": {"fr": "NPA pour jobscout24", "en": "Postcodes for jobscout24"},
+  "Regionen": {"fr": "Régions", "en": "Regions"},
+
+  "texte:einstellen.was": {
+    "fr": {"sie": "Quelles offres vous correspondent\u00a0?", "du": "Quelles offres te correspondent\u00a0?", "lehrstelle": "Quelles places d'apprentissage te correspondent\u00a0?"},
+    "en": {"sie": "Which jobs suit you?", "lehrstelle": "Which apprenticeships suit you?"}
+  },
+  "texte:einstellen.titel-regel": {
+    "fr": {
+      "sie": "Un terme correspond aussi au début ou à la fin d'un mot\u00a0: «\u00a0Software\u00a0» correspond à «\u00a0Softwareentwickler\u00a0», «\u00a0Bildung\u00a0» à «\u00a0Erwachsenenbildung\u00a0». Pour qu'il ne corresponde qu'au mot entier, écrivez «\u00a0(ganzes Wort)\u00a0» après, par exemple «\u00a0Sales (ganzes Wort)\u00a0». Les termes de trois lettres au plus, comme «\u00a0IA\u00a0», ne correspondent jamais qu'au mot entier.",
+      "du": "Un terme correspond aussi au début ou à la fin d'un mot\u00a0: «\u00a0Software\u00a0» correspond à «\u00a0Softwareentwickler\u00a0», «\u00a0Bildung\u00a0» à «\u00a0Erwachsenenbildung\u00a0». Pour qu'il ne corresponde qu'au mot entier, écris «\u00a0(ganzes Wort)\u00a0» après, par exemple «\u00a0Sales (ganzes Wort)\u00a0». Les termes de trois lettres au plus, comme «\u00a0IA\u00a0», ne correspondent jamais qu'au mot entier."
+    },
+    "en": {
+      "sie": "A term also matches as the start or end of a word: “Software” matches “Softwareentwickler”, “Bildung” matches “Erwachsenenbildung”. To match only as a whole word, write “(ganzes Wort)” after it, for example “Sales (ganzes Wort)”. Terms of three letters or fewer, such as “AI”, always match only as a whole word."
+    }
+  },
+  "texte:einstellen.titelfilter-regel": {
+    "fr": {
+      "sie": "Pour les deux listes\u00a0: un terme correspond aussi au début ou à la fin d'un mot\u00a0: «\u00a0Software\u00a0» correspond à «\u00a0Softwareentwickler\u00a0», «\u00a0Bildung\u00a0» à «\u00a0Erwachsenenbildung\u00a0». Pour qu'il ne corresponde qu'au mot entier, écrivez «\u00a0(ganzes Wort)\u00a0» après, par exemple «\u00a0Sales (ganzes Wort)\u00a0». Les termes de trois lettres au plus, comme «\u00a0IA\u00a0», ne correspondent jamais qu'au mot entier.",
+      "du": "Pour les deux listes\u00a0: un terme correspond aussi au début ou à la fin d'un mot\u00a0: «\u00a0Software\u00a0» correspond à «\u00a0Softwareentwickler\u00a0», «\u00a0Bildung\u00a0» à «\u00a0Erwachsenenbildung\u00a0». Pour qu'il ne corresponde qu'au mot entier, écris «\u00a0(ganzes Wort)\u00a0» après, par exemple «\u00a0Sales (ganzes Wort)\u00a0». Les termes de trois lettres au plus, comme «\u00a0IA\u00a0», ne correspondent jamais qu'au mot entier."
+    },
+    "en": {
+      "sie": "For both lists: a term also matches as the start or end of a word: “Software” matches “Softwareentwickler”, “Bildung” matches “Erwachsenenbildung”. To match only as a whole word, write “(ganzes Wort)” after it, for example “Sales (ganzes Wort)”. Terms of three letters or fewer, such as “AI”, always match only as a whole word."
+    }
+  },
+  "texte:firmen.liste-hinweis": {
+    "fr": {
+      "sie": "La recherche n'affiche plus les annonces de ces entreprises. Avec ou sans SA ou Sàrl, en majuscules ou minuscules\u00a0: l'app reconnaît l'entreprise.",
+      "du": "La recherche n'affiche plus les annonces de ces entreprises. Avec ou sans SA ou Sàrl, en majuscules ou minuscules\u00a0: l'app reconnaît l'entreprise.",
+      "lehrstelle": "La recherche n'affiche plus les places d'apprentissage de ces entreprises formatrices. Avec ou sans SA ou Sàrl, en majuscules ou minuscules\u00a0: l'app reconnaît l'entreprise formatrice."
+    },
+    "en": {
+      "sie": "The search no longer shows ads from these companies. With or without AG or GmbH, upper or lower case: the app recognises the company.",
+      "lehrstelle": "The search no longer shows apprenticeships from these host companies. With or without AG or GmbH, upper or lower case: the app recognises the host company."
+    }
+  },
+  "texte:suche.wo": {
+    "fr": {"sie": "Où cherchez-vous\u00a0?", "du": "Où cherches-tu\u00a0?"},
+    "en": {"sie": "Where do you search?"}
+  },
+  "texte:einstellen.ohne-schluessel": {
+    "fr": {
+      "sie": "L'app recherche sur d'autres sites, comme les postes ouverts d'une entreprise, avec une clé API personnelle. Vous la saisissez dans les Paramètres.",
+      "du": "L'app recherche sur d'autres sites, comme les postes ouverts d'une entreprise, avec une clé API personnelle. Tu la saisis dans les Paramètres."
+    },
+    "en": {"sie": "The app searches other sites, such as a company's open jobs, with an API key of your own. You enter it in Settings."}
+  },
+  "texte:einstellungen.seiten-adressen": {
+    "fr": {
+      "sie": "La recherche porte alors aussi sur ces sites, dès que vous la lancez. Saisissez l'adresse telle qu'elle apparaît dans le navigateur, une par ligne,",
+      "du": "La recherche porte alors aussi sur ces sites, dès que tu la lances. Saisis l'adresse telle qu'elle apparaît dans le navigateur, une par ligne,"
+    },
+    "en": {"sie": "The search then also runs on these sites as soon as you start it. Enter the address as it appears in the browser, one per line,"}
+  },
+  "texte:einstellungen.seiten-suche": {
+    "fr": {
+      "sie": "Si le site a un champ de recherche, l'app y cherche avec les termes de votre profil de recherche. Sinon, elle lit les offres affichées sur le site, par exemple les postes ouverts d'une entreprise. L'IA lit les offres dans le texte du site.",
+      "du": "Si le site a un champ de recherche, l'app y cherche avec les termes de ton profil de recherche. Sinon, elle lit les offres affichées sur le site, par exemple les postes ouverts d'une entreprise. L'IA lit les offres dans le texte du site."
+    },
+    "en": {"sie": "If the site has a search field, the app searches there with the terms from your search profile. Otherwise it reads the jobs shown on the site, for example a company's open jobs. The AI reads the jobs from the text of the site."}
+  },
+  "texte:einstellungen.seiten-grenzen": {
+    "fr": {
+      "sie": "Par site, dix recherches et trente annonces au plus par série de recherches, avec des pauses entre elles. Seuls les liens vers le même site sont repris. Les connexions et les CAPTCHA restent à votre charge\u00a0: si un site les demande, la recherche le saute. LinkedIn interdit l'automatisation et peut restreindre ou bloquer des comptes.",
+      "du": "Par site, dix recherches et trente annonces au plus par série de recherches, avec des pauses entre elles. Seuls les liens vers le même site sont repris. Les connexions et les CAPTCHA restent à ta charge\u00a0: si un site les demande, la recherche le saute. LinkedIn interdit l'automatisation et peut restreindre ou bloquer des comptes."
+    },
+    "en": {"sie": "Per site at most ten searches and thirty ads per search run, with pauses in between. Only links to the same site are taken. Sign-ins and CAPTCHAs stay with you: if a site asks for one, the search skips it. LinkedIn prohibits automation and can restrict or block accounts."}
+  },
+  "texte:suche.wie": {
+    "fr": {
+      "sie": "L'extension cherche dans votre navigateur, et seulement quand vous lancez la recherche. L'IA évalue chaque nouveau résultat par une note de 1 à 6.",
+      "du": "L'extension cherche dans ton navigateur, et seulement quand tu lances la recherche. L'IA évalue chaque nouveau résultat par une note de 1 à 6."
+    },
+    "en": {"sie": "The extension searches in your browser, and only when you start the search. The AI rates each new result with a grade from 1 to 6."}
+  },
+  "texte:suche.sichtbar": {
+    "fr": {"sie": "Plus lent, mais vous voyez ce que fait l'extension.", "du": "Plus lent, mais tu vois ce que fait l'extension."},
+    "en": {"sie": "Slower, but you see what the extension does."}
+  },
+  "texte:suche.ictjobs.aus": {
+    "fr": {
+      "sie": "Désactivé, car aucun de vos mots-clés ne relève de l'informatique. Cocher pour l'activer.",
+      "du": "Désactivé, car aucun de tes mots-clés ne relève de l'informatique. Cocher pour l'activer."
+    },
+    "en": {"sie": "Off because none of your search terms sounds like IT. Tick to switch on."}
+  },
+  "texte:suche.ictjobs.passt": {
+    "fr": {
+      "sie": "Activé, car votre mot-clé «\u00a0{begriff}\u00a0» relève de l'informatique. Décocher pour le désactiver.",
+      "du": "Activé, car ton mot-clé «\u00a0{begriff}\u00a0» relève de l'informatique. Décocher pour le désactiver."
+    },
+    "en": {"sie": "On because your search term “{begriff}” sounds like IT. Untick to switch off."}
+  },
+  "texte:suche.ictjobs.gewaehlt": {
+    "fr": {
+      "sie": "Votre choix. Modifier avec la case à cocher\u00a0; l'app ne change plus rien d'elle-même ici.",
+      "du": "Ton choix. Modifier avec la case à cocher\u00a0; l'app ne change plus rien d'elle-même ici."
+    },
+    "en": {"sie": "Your choice. Change it with the tick box; the app no longer switches anything here by itself."}
+  },
+  "texte:suche.ictjobs.keine": {
+    "fr": {
+      "sie": "Activé tant qu'il n'y a pas de mots-clés. Décocher pour le désactiver.",
+      "du": "Activé tant qu'il n'y a pas de mots-clés. Décocher pour le désactiver."
+    },
+    "en": {"sie": "On until there are search terms. Untick to switch off."}
+  }
+}
