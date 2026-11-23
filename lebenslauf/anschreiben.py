@@ -19,21 +19,30 @@ import type_area
 from build import ROOT
 from typst_root import typst_root
 
-SPRACHEN = ("de", "en")
+SPRACHEN = ("de", "en", "fr")
 PFLICHTFELDER = ("empfaenger", "betreff", "anrede", "text", "gruss")
 MONATE = {
     "de": ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
            "August", "September", "Oktober", "November", "Dezember"),
     "en": ("January", "February", "March", "April", "May", "June", "July",
            "August", "September", "October", "November", "December"),
+    "fr": ("janvier", "février", "mars", "avril", "mai", "juin", "juillet",
+           "août", "septembre", "octobre", "novembre", "décembre"),
 }
+# French writes the first of a month as an ordinal: «1er décembre 2026»
+FIRST_OF_MONTH_FR = "1er"
+# The place and date line: «Bern, 24. Oktober 2026», «Lausanne, le 1er décembre 2026»
+PLACE_AND_DATE = {"de": "{ort}, {datum}", "en": "{ort}, {datum}", "fr": "{ort}, le {datum}"}
 
 
 def formatiere_datum(datum: datetime.date | str, sprache: str) -> str:
-    """24. Oktober 2026 (de) bzw. 24 October 2026 (en)."""
+    """24. Oktober 2026 (de), 24 October 2026 (en), 24 octobre 2026 or 1er octobre 2026 (fr)."""
     d = datum if isinstance(datum, datetime.date) else datetime.date.fromisoformat(str(datum))
     monat = MONATE[sprache][d.month - 1]
-    return f"{d.day}. {monat} {d.year}" if sprache == "de" else f"{d.day} {monat} {d.year}"
+    if sprache == "de":
+        return f"{d.day}. {monat} {d.year}"
+    day = FIRST_OF_MONTH_FR if sprache == "fr" and d.day == 1 else str(d.day)
+    return f"{day} {monat} {d.year}"
 
 
 def pruefe_brief(brief: dict) -> dict:
@@ -86,7 +95,7 @@ def bereite_vor(brief: dict, cv: dict | None, heute: datetime.date) -> dict:
         "sprache": sprache,
         "absender": absender,
         "empfaenger": list(brief["empfaenger"]),
-        "ort_datum": f"{ort}, {datum}" if ort else datum,
+        "ort_datum": PLACE_AND_DATE[sprache].format(ort=ort, datum=datum) if ort else datum,
         "betreff": brief["betreff"],
         "anrede": brief["anrede"],
         "absaetze": absaetze(brief["text"]),

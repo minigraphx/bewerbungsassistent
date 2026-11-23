@@ -158,13 +158,13 @@
       let (items, abstand) = punkte(projekte("main"))
       if items.len() == 0 { return ((), abstand) }
       let gh = basics.at("profiles", default: ()).filter(p => lower(p.at("network", default: "")) == "github")
-      if gh.len() > 0 { items.push((inhalt: [#b.projekte-auf: #gh.first().url], abstand: s.abstand-absatz)) }
+      if gh.len() > 0 { items.push((inhalt: [#b.projekte-auf#b.colon #gh.first().url], abstand: s.abstand-absatz)) }
       (items, abstand)
     },
     weitere-projekte: () => punkte(projekte("more")),
     faehigkeiten: () => punkte(cv.at("skills", default: ()).map(k => {
       let kw = k.at("keywords", default: ())
-      if kw.len() > 0 [#k.name: #kw.map(stichwort).join(", ")] else [#k.name]
+      if kw.len() > 0 [#k.name#b.colon #kw.map(stichwort).join(", ")] else [#k.name]
     })),
     lehre: () => (cv.at("teaching", default: ()).map(e => station(e)), s.abstand-station),
     sprachen: () => punkte(cv.at("languages", default: ()).map(x => [#x.language – #x.at("fluency", default: "")])),

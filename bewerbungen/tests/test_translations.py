@@ -71,6 +71,25 @@ def test_what_build_does_not_read_as_multilingual_is_ignored(tmp_path):
     assert translations.open_fields(tmp_path) == []
 
 
+def test_a_french_translation_is_listed_and_checked_on_its_own(folder):
+    write_cv(folder, {"de": "Hallo", "en": "Hello", "fr": "Bonjour"})
+    summary = [e for e in translations.open_fields(folder) if e["feld"] == "basics.summary"]
+    assert {(e["sprache"], e["uebersetzung"], e["stand"]) for e in summary} == {
+        ("en", "Hello", "ungeprüft"), ("fr", "Bonjour", "ungeprüft")}
+    translations.mark_checked(folder, [e["hash"] for e in summary if e["sprache"] == "fr"], TODAY)
+    assert [e["sprache"] for e in translations.open_fields(folder) if e["feld"] == "basics.summary"] == ["en"]
+
+
+def test_once_a_folder_has_french_a_field_without_it_is_missing_french(folder):
+    write_cv(folder, {"de": "Hallo", "en": "Hello", "fr": "Bonjour"})
+    highlight = [e for e in translations.open_fields(folder) if e["feld"] == "work[0].highlights[0]"]
+    assert {(e["sprache"], e["stand"]) for e in highlight} == {("en", "ungeprüft"), ("fr", "fehlt")}
+
+
+def test_a_folder_without_french_lists_no_french(folder):
+    assert {e["sprache"] for e in translations.open_fields(folder)} == {"en"}
+
+
 def test_tailored_variants_count_too(folder):
     (folder / "jobs").mkdir()
     (folder / "jobs" / "daten.yaml").write_text(yaml.safe_dump({"basics": {"label": {"de": "Datenfachfrau", "en": "Data specialist"}}}, allow_unicode=True), encoding="utf-8")

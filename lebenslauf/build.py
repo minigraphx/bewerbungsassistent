@@ -24,7 +24,7 @@ from typst_root import typst_root
 
 ROOT = pathlib.Path(__file__).resolve().parent
 ZOOM_MIN, ZOOM_MAX = 1, 4
-SPRACHEN = ("de", "en")
+SPRACHEN = ("de", "en", "fr")
 # Abschnitte, deren Überschrift ein Lebenslauf mit `x-beschriftungen` ersetzen darf (MIN-335);
 # die Namen entsprechen `beschriftungen` in themes/common.typ.
 ABSCHNITTE = ("profil", "erfahrung", "projekte", "weitere-projekte", "faehigkeiten", "lehre", "sprachen",
@@ -37,7 +37,8 @@ def ist_mehrsprachig(wert) -> bool:
 
 
 def waehle_sprache(wert, sprache: str):
-    """Mehrsprachige Texte ({de: ..., en: ...}) auf eine Sprache reduzieren; fehlt sie, gilt Deutsch (MIN-300)."""
+    """Mehrsprachige Texte ({de: ..., en: ..., fr: ...}) auf eine Sprache reduzieren; fehlt sie, gilt Deutsch,
+    für jedes Feld einzeln (MIN-300, #98)."""
     if isinstance(wert, dict):
         if ist_mehrsprachig(wert):
             return wert.get(sprache) or wert.get("de") or next(iter(wert.values()))

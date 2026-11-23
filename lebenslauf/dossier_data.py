@@ -3,6 +3,7 @@
 Every function returns new values and leaves its input alone. Levels are never invented: an entry without one
 stays `None`, and the theme draws the empty dashed form for it only when its group has a level elsewhere.
 """
+import dataclasses
 import datetime
 import re
 from collections.abc import Iterable
@@ -13,7 +14,7 @@ MAX_MONOGRAM = 3
 MAX_STEPS = 6
 TIMELINE_YEARS = 15
 MIN_TICK_GAP = 3
-APPLICATION_AS = {"de": "Bewerbung als", "en": "Application as"}
+APPLICATION_AS = {"de": "Bewerbung als", "en": "Application as", "fr": "Candidature au poste de"}
 DOSSIER_FIELDS = {"lebenslauf", "anschreiben", "gruss", "dank", "kennzahlen", "anlagen"}
 # The initials as written under basics, quoted or not; for files from before #248, where NO was read as False
 MONOGRAM_FIELD = re.compile(r"^[ \t]+x-monogramm[ \t]*:[ \t]*([\"']?)(?P<value>[^\W\d_]{1,3})\1[ \t]*(?:#.*)?$", re.MULTILINE)
@@ -233,7 +234,26 @@ def timeline(work: Iterable[dict], today: datetime.date) -> dict:
             "lanes": count, "earlier": first < begin}
 
 
-DURATION_UNITS = {"de": ("J.", "M."), "en": ("yrs", "mos")}
+@dataclasses.dataclass(frozen=True)
+class Units:
+    """How a duration names years and months; French writes the unit in full, singular for one, and keeps it with
+    its number by a no-break space («7 ans 8 mois»)."""
+    year: str
+    month: str
+    years: str | None = None  # the plural, when it differs
+    months: str | None = None
+    space: str = " "
+
+    def text(self, years: int, months: int) -> str:
+        """Years and months as in «7 J. 8 M.»; a part that is zero stays out."""
+        parts = [f"{count}{self.space}{plural if count != 1 and plural else singular}"
+                 for count, singular, plural in ((years, self.year, self.years), (months, self.month, self.months))
+                 if count]
+        return " ".join(parts)
+
+
+DURATION_UNITS = {"de": Units("J.", "M."), "en": Units("yrs", "mos"),
+                  "fr": Units("an", "mois", years="ans", space="\N{NO-BREAK SPACE}")}
 
 
 def duration(entry: dict, today: datetime.date, language: str) -> str | None:
@@ -245,9 +265,7 @@ def duration(entry: dict, today: datetime.date, language: str) -> str | None:
     now = today.year * 12 + today.month - 1
     months = max(min(now if end is None else end, now) - start + 1, 1)
     years, rest = divmod(months, 12)
-    year_unit, month_unit = DURATION_UNITS[language]
-    parts = ([f"{years} {year_unit}"] if years else []) + ([f"{rest} {month_unit}"] if rest else [])
-    return " ".join(parts)
+    return DURATION_UNITS[language].text(years, rest)
 
 
 def durations(cv: dict, today: datetime.date, language: str) -> dict:
