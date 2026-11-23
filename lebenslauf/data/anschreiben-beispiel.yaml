@@ -1,12 +1,13 @@
 # Beispiel-Anschreiben (frei erfunden). Absender kommt aus dem Lebenslauf (`lebenslauf`, Pfad relativ zu dieser Datei)
 # oder aus `absender: {name, zeile}`. Absätze im Text durch Leerzeilen trennen.
+# Der Brief geht an eine Firma, die nicht im Lebenslauf steht, und nennt nur Firmen und Jahre aus dem Lebenslauf.
 lebenslauf: beispiel.yaml
 sprache: de
 empfaenger:
-  - Beispiel AG
+  - Muster Logistik AG
   - Frau Petra Meier
   - Musterstrasse 5
-  - 3011 Bern
+  - 4600 Olten
 ort: Bern
 # datum: 2026-10-24   # ohne Angabe: heutiges Datum
 betreff: Bewerbung als Data Engineer (80–100 %)
@@ -15,14 +16,14 @@ stelle: Data Engineer
 pensum: 80–100 %
 anrede: Sehr geehrte Frau Meier
 text: |
-  Aufgrund Ihrer Stellenausschreibung erhalten Sie hiermit meine Bewerbung als Data Engineer. Daten verständlich
-  aufzubereiten und zuverlässig weiterzugeben, beschäftigt mich seit vielen Jahren.
+  Ihre Disposition plant Touren mit Sendungsdaten aus vielen Quellen. Als Data Engineer möchte ich dafür sorgen,
+  dass diese Daten jeden Morgen vollständig und geprüft bereitliegen.
 
-  Die Fähigkeiten, die Sie suchen, decken sich in vielen Punkten mit meinen Kenntnissen. Seit zehn Jahren entwickle
-  ich Webanwendungen und Datenpipelines in Python und TypeScript, mit Tests und automatisierten Abläufen.
+  Seit 2019 arbeite ich bei der Beispiel AG in Bern an einer Plattform für Kundendaten; die Datenpipelines dazu
+  habe ich mit Airflow aufgebaut. Im Projekt datenatlas visualisiere ich offene Verkehrsdaten.
 
-  Bei der Beispiel GmbH habe ich eine Plattform für Kundendaten aufgebaut und Datenpipelines mit Airflow betrieben.
-  Mein Wissen gebe ich gern in internen Schulungen weiter.
+  Neue Abläufe erkläre ich gern: bei der Muster GmbH in Zürich in internen Schulungen zu Git, an der
+  Beispiel-Abendschule in Bern seit 2020 in Einführungskursen zu Python.
 
-  Über ein persönliches Gespräch freue ich mich sehr.
+  Gerne erzähle ich Ihnen in einem Gespräch, wie ich die Pipelines bei der Beispiel AG aufgebaut habe.
 gruss: Freundliche Grüsse

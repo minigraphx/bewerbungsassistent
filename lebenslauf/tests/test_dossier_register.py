@@ -63,7 +63,7 @@ def test_cover_is_the_table_of_contents(example):
     pages = page_texts(example.dossier)
     cover = pages[0]
 
-    assert_in_order(cover, ["Erika Beispiel", "Bewerbung", "Data Engineer", "Beispiel AG", "Inhalt",
+    assert_in_order(cover, ["Erika Beispiel", "Bewerbung", "Data Engineer", "Muster Logistik AG", "Inhalt",
                             "Anschreiben", "Lebenslauf", "Beilagen", "Arbeitszeugnis Beispiel AG",
                             "Diplom Bachelor Informatik"])
     letter_page = next(i for i, p in enumerate(pages) if "Sehr geehrte Frau Meier" in p) + 1
@@ -109,8 +109,8 @@ def test_tab_labels_are_pdf_artifacts(example):
 def test_letter_box_with_position_workload_and_company(example):
     letter = pdftotext(example.letter)
 
-    assert_in_order(letter, ["Erika Beispiel", "Data Engineer", "80–100 %", "Beispiel AG", "Sehr geehrte Frau Meier",
-                             "Freundliche Grüsse"])
+    assert_in_order(letter, ["Erika Beispiel", "Data Engineer", "80–100 %", "Muster Logistik AG",
+                             "Sehr geehrte Frau Meier", "Freundliche Grüsse"])
     assert "Berufserfahrung" not in letter and "Inhalt" not in letter
 
 

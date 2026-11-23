@@ -63,7 +63,8 @@ work:
 
 teaching:
   - position: Kursleiterin Programmieren
-    name: Volkshochschule Bern
+    name: Beispiel-Abendschule
+    location: Bern
     startDate: 2020
     x-display: seit 2020
     highlights:
