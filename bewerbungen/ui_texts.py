@@ -13,51 +13,18 @@ import functools
 import logging
 import os
 import pathlib
-import re
 from typing import Any, Mapping
 
 import language_settings
 import translation_catalog
+from ui_message import PLACEHOLDER, T  # noqa: F401  (T is given to the routes from here)
+from ui_message import fill as _fill
 
 # Turned on once, with the last item of #95 (Andy, 23.11.2026).
 SWITCH_ON = False
 PREVIEW_ENV = "BEWERBUNGSBEGLEITER_SPRACHE_VORSCHAU"
 GERMAN = language_settings.DEFAULT_APP
-PLACEHOLDER = re.compile(r"\{(\w+)\}")
 log = logging.getLogger("bewerbungsbegleiter")
-
-
-def _fill(template: str, values: Mapping[str, Any]) -> str:
-    """The placeholders with a value filled in; any other brace stays as written, so no German text can break it."""
-    return PLACEHOLDER.sub(lambda found: str(values[found[1]]) if found[1] in values else found[0], template)
-
-
-class T(str):
-    """A message for the person: the German text itself, plus the template and values to say it in another language.
-
-    Copies and pickles rebuild it from the German text and then restore template and values from its __dict__."""
-
-    template: str
-    _pairs: tuple[tuple[str, Any], ...]
-
-    def __new__(cls, template: str, **values: Any) -> "T":
-        message = super().__new__(cls, _fill(template, values))
-        message.template = template
-        message._pairs = tuple(values.items())
-        return message
-
-    @property
-    def values(self) -> dict[str, Any]:
-        return dict(self._pairs)
-
-    def in_language(self, catalog: translation_catalog.Catalog, language: str) -> str:
-        """The message from the catalog with its values, a T among them in the same language; German without entry."""
-        template = catalog.text(self.template, language)
-        if template is None:
-            return str(self)
-        values = {name: value.in_language(catalog, language) if isinstance(value, T) else value
-                  for name, value in self._pairs}
-        return _fill(template, values)
 
 
 def is_on() -> bool:

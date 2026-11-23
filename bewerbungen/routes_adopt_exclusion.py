@@ -17,12 +17,13 @@ import search_plan
 from dateien import schreibe_atomar
 from hits import Hits
 from server import json_antwort
+from ui_texts import T
 
-ONLY_JOBS = "Ausschlüsse aus der Einschätzung gibt es nur bei der Stellensuche."
-NO_POINT = "Diesen Punkt gibt es in der Einschätzung nicht mehr."
-BAD_KIND = "Bitte «Im Titel» oder «Im Inserat» wählen."
-EMPTY = "Bitte angeben, was nicht mehr kommen soll."
-COMMA = "Bitte ohne Komma, ein Ausschluss pro Eintrag."
+ONLY_JOBS = T("Ausschlüsse aus der Einschätzung gibt es nur bei der Stellensuche.")
+NO_POINT = T("Diesen Punkt gibt es in der Einschätzung nicht mehr.")
+BAD_KIND = T("Bitte «Im Titel» oder «Im Inserat» wählen.")
+EMPTY = T("Bitte angeben, was nicht mehr kommen soll.")
+COMMA = T("Bitte ohne Komma, ein Ausschluss pro Eintrag.")
 ALREADY = "«{value}» steht schon unter «{place}»."
 NO_UNDO = "Rückgängig geht nicht mehr: «{value}» steht nicht mehr unter «{place}»."
 ADOPTED = "Stellen: «{value}» unter «{place}» ausgeschlossen"
@@ -117,7 +118,7 @@ def add_entry(k, kind: str, value: str, adopted: str = ADOPTED) -> dict:
 
     def added(current: str) -> str:
         if _has(current, kind, value):
-            raise ValueError(ALREADY.format(value=value, place=place))
+            raise ValueError(T(ALREADY, value=value, place=T(place)))
         return search_frame.with_values(current, {kind: [*search_frame.values(current)[kind], value]})
 
     added(text)  # refuse before any draft is made
@@ -133,7 +134,7 @@ def remove_entry(k, kind, value, undone: str = UNDONE) -> dict:
 
     def removed(current: str) -> str:
         if not _has(current, kind, value):
-            raise ValueError(NO_UNDO.format(value=value, place=place))
+            raise ValueError(T(NO_UNDO, value=value, place=T(place)))
         kept = [item for item in search_frame.values(current)[kind] if item.casefold() != value.casefold()]
         return search_frame.with_values(current, {kind: kept})
 

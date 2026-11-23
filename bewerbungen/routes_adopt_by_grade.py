@@ -9,10 +9,11 @@ import excluded_companies
 import routes_search
 from hits import Hits
 from server import json_antwort
+from ui_texts import T
 
 MIN_GRADE, MAX_GRADE = 1, 6
-BAD_GRADE = "Die Note muss zwischen 1 und 6 liegen, in halben Schritten."
-BAD_IDS = "ids erwartet (Liste der Treffer)"
+BAD_GRADE = T("Die Note muss zwischen 1 und 6 liegen, in halben Schritten.")
+BAD_IDS = T("ids erwartet (Liste der Treffer)")
 NEW = "neu"
 
 

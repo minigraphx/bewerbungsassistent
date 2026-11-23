@@ -60,6 +60,16 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "seiten/treffer-logik.js", BASE / "seiten/suchbegriffe-logik.js", BASE / "seiten/verworfen-woerter-logik.js",
     BASE / "seiten/suche-anzeige.js", BASE / "seiten/firmen-logik.js", BASE / "seiten/kununu-pruefen.js",
     BASE / "seiten/firmen-ausschluss.js",
+    # The page Stellen (#422): its scripts and the modules behind its routes. search_plan.py, hits.py and the routes of
+    # Firmen and of Suche einstellen mainly serve other pages: the hints and refusals Stellen shows are translated,
+    # the modules follow with #423 to #425.
+    BASE / "seiten/treffer.html", BASE / "seiten/suchlauf-logik.js", BASE / "seiten/treffer-firma.js",
+    BASE / "seiten/suchbegriffe-start.js", BASE / "seiten/haken-ausschluss-logik.js", BASE / "seiten/haken-ausschluss.js",
+    BASE / "seiten/treffer-wieder.js", BASE / "seiten/treffer.js", BASE / "seiten/merken-ab-note-logik.js",
+    BASE / "seiten/merken-ab-note.js",
+    BASE / "routes_search.py", BASE / "routes_rate_all.py", BASE / "rate_all.py", BASE / "routes_adopt_by_grade.py",
+    BASE / "routes_adopt_exclusion.py", BASE / "excluded_companies.py", BASE / "search_window.py",
+    BASE / "search_stages.py", BASE / "amount_text.py", BASE / "ui_message.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

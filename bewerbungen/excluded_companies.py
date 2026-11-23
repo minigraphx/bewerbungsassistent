@@ -9,6 +9,7 @@ import pathlib
 
 from dateien import lies_yaml, schreibe_yaml
 from hits import MAX_FIELD, company_key
+from ui_texts import T
 
 FILE = "firmen-ausgeschlossen.yaml"
 HEADER = "# Firmen, deren Inserate die Suche nicht mehr zeigt, geschrieben vom Bewerbungsbegleiter\n"
@@ -63,22 +64,22 @@ def shown(hits: list[dict], excluded: frozenset[str]) -> list[dict]:
 def _name(value) -> str:
     """One name the person entered, checked; blank lines are no names."""
     if not isinstance(value, str) or not value.strip():
-        raise ValueError(NO_NAME)
+        raise ValueError(T(NO_NAME))
     name = " ".join(value.split())
     if len(name) > MAX_FIELD:
-        raise ValueError(TOO_LONG.format(limit=MAX_FIELD))
+        raise ValueError(T(TOO_LONG, limit=MAX_FIELD))
     if not key_of(name):
-        raise ValueError(NOT_A_NAME.format(name=name))
+        raise ValueError(T(NOT_A_NAME, name=name))
     return name
 
 
 def checked(raw) -> list[str]:
     """The whole list as the person edited it on Suche einstellen; blank lines and repeats are dropped."""
     if not isinstance(raw, list):
-        raise ValueError(NOT_A_LIST)
+        raise ValueError(T(NOT_A_LIST))
     names = _unique([_name(value) for value in raw if not (isinstance(value, str) and not value.strip())])
     if len(names) > MAX_COMPANIES:
-        raise ValueError(TOO_MANY.format(limit=MAX_COMPANIES))
+        raise ValueError(T(TOO_MANY, limit=MAX_COMPANIES))
     return names
 
 
@@ -106,7 +107,7 @@ def remove(k, key) -> dict:
     current = _stored(k.daten)
     kept = [name for name in current if key_of(name) != key]
     if len(kept) == len(current):
-        raise KeyError(NOT_LISTED)
+        raise KeyError(T(NOT_LISTED))
     removed = next(name for name in current if key_of(name) == key)
     _write(k, kept, f"{removed} wieder gezeigt")
     return {"schluessel": key, "ausgeschlossen": False}

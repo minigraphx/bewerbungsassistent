@@ -1,0 +1,52 @@
+"""A message for the person, T (#414, #422): its own module without the app's settings.
+
+`ui_texts` gives it to the routes; modules that `language_settings` itself reads (`search_plan` through `precheck`)
+import it from here, so no import goes round in a circle.
+"""
+import re
+from typing import Any, Mapping
+
+import translation_catalog
+
+PLACEHOLDER = re.compile(r"\{(\w+)\}")
+LETTER = re.compile(r"[^\W\d_]")
+
+
+def has_words(template: str) -> bool:
+    """Whether a template says anything besides its placeholders, punctuation and spaces."""
+    return bool(LETTER.search(PLACEHOLDER.sub("", template)))
+
+
+def fill(template: str, values: Mapping[str, Any]) -> str:
+    """The placeholders with a value filled in; any other brace stays as written, so no German text can break it."""
+    return PLACEHOLDER.sub(lambda found: str(values[found[1]]) if found[1] in values else found[0], template)
+
+
+class T(str):
+    """A message for the person: the German text itself, plus the template and values to say it in another language.
+
+    Copies and pickles rebuild it from the German text and then restore template and values from its __dict__."""
+
+    template: str
+    _pairs: tuple[tuple[str, Any], ...]
+
+    def __new__(cls, template: str, **values: Any) -> "T":
+        message = super().__new__(cls, fill(template, values))
+        message.template = template
+        message._pairs = tuple(values.items())
+        return message
+
+    @property
+    def values(self) -> dict[str, Any]:
+        return dict(self._pairs)
+
+    def in_language(self, catalog: translation_catalog.Catalog, language: str) -> str:
+        """The message from the catalog with its values, a T among them in the same language; German without entry."""
+        template = catalog.text(self.template, language)
+        if template is None and not has_words(self.template):
+            template = self.template  # „{a} {b}“ has nothing to translate, its parts do
+        if template is None:
+            return str(self)
+        values = {name: value.in_language(catalog, language) if isinstance(value, T) else value
+                  for name, value in self._pairs}
+        return fill(template, values)

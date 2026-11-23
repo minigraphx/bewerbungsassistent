@@ -14,6 +14,7 @@ import yaml
 
 import search_plan
 from dateien import schreibe_atomar
+from ui_message import T
 
 FILE = "einrichtung.yaml"
 JOB = search_plan.KIND_JOB
@@ -28,6 +29,9 @@ BAD_ADDRESS = "Bitte wählen: mit Sie oder mit du."
 BAD_RAV = "Bitte wählen, ob beim RAV gemeldet: Ja oder Nein."
 # Where saved jobs are, in the form of address of the choice: pages say „Ihre Bewerbungen“, not „Register“ (#220)
 SAVED_IN = {SIE: "in Ihren Bewerbungen", DU: "in deinen Bewerbungen"}
+# A hit taken over twice: one whole sentence per form of address, so each language can say it (#422)
+ALREADY_SAVED = {SIE: T("Dieser Treffer ist schon in Ihren Bewerbungen."),
+                 DU: T("Dieser Treffer ist schon in deinen Bewerbungen.")}
 
 
 @dataclasses.dataclass(frozen=True)

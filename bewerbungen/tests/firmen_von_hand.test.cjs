@@ -66,7 +66,8 @@ test("a failed Neu prüfen on Stellen suchen for a stale value leads to Von Hand
   const stale = firma("Muster Industrie AG", ALT);
   const ergebnisse = [];
   global.document = { documentElement: { dataset: { bewerbungsbegleiterErweiterung: "1" } } };
-  global.window = { App: { el }, FirmenLogik: logik, KununuPruefen: { pruefe: async () => ({ gelesen: false }) } };
+  global.window = { App: { el }, FirmenLogik: logik, Texte: require("../seiten/texte.js"),
+                    KununuPruefen: { pruefe: async () => ({ gelesen: false }) } };
   const trefferFirma = path.join(__dirname, "../seiten/treffer-firma.js");
   delete require.cache[require.resolve(trefferFirma)];
   require(trefferFirma);

@@ -8,7 +8,10 @@
   const W = window.WiederLogik;
   const wieder = window.TrefferWieder;  // G109: reposts, the same ad of one portal, recruiter suggestions
   const anzeige = window.SucheAnzeige;
-  const { text: textAus, anwenden } = window.Texte;
+  // Texts in the app language (#422): fixed words through Texte.t, the sets of texte.js through Texte.text with
+  // their key written out, so the scanner finds every one.
+  const Texte = window.Texte;
+  const { anwenden } = Texte;
   const $ = id => document.getElementById(id);
   const SEITE = "bewerbungsbegleiter-seite";
   const ERWEITERUNG = "bewerbungsbegleiter-erweiterung";
@@ -40,7 +43,6 @@
   let firmen = new Map();    // hit id → its company with what kununu says (#190)
   let heute = "";
   let satz = "stelle-sie";
-  const t = (schluessel, werte) => textAus(schluessel, satz, werte);
   const zeile = (element, inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige(element, inhalt, stufe, optionen);
   /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
   const dotLine = parts => window.DotLine.render(parts, el);
@@ -62,7 +64,7 @@
 
   async function bewerte(t, knopf) {
     if (knopf) knopf.disabled = true;
-    meldung(`KI bewertet „${t.stelle}“ …`);
+    meldung(Texte.t("KI bewertet „{stelle}“ …", { stelle: t.stelle }));
     try {
       anzeigen(await senden("/api/suche/bewerten", {}, { id: t.id }));
       meldung("");
@@ -80,7 +82,8 @@
       const neu = await senden("/api/suche/uebernehmen", {}, { id: t.id });
       anzeigen(neu);
       const ziel = "/bewerbung?" + new URLSearchParams({ id: neu.bewerbung_id });
-      meldung(["Gemerkt. Die Bewerbung steht jetzt unter Bewerbungen. ", el("a", { href: ziel }, "Bewerbung öffnen")], "ok");
+      meldung([`${Texte.t("Gemerkt. Die Bewerbung steht jetzt unter Bewerbungen.")} `,
+        el("a", { href: ziel }, Texte.t("Bewerbung öffnen"))], "ok");
     } catch (fehler) {
       meldung(fehler.message, "fehler");
       knopf.disabled = false;
@@ -115,16 +118,26 @@
   }
 
   // A point of a job's rating can become an exclusion (#224, G83); an apprenticeship's search has none.
-  const haken = treffer => window.HakenAusschluss.liste(treffer, "Was fehlt oder unsicher ist",
+  const haken = treffer => window.HakenAusschluss.liste(treffer, Texte.t("Was fehlt oder unsicher ist"),
     { anbieten: !lehrstelle, satz });
 
-  const notenText = window.Texte.notenText;
-  const notenWort = n => (n >= 5.5 ? "passt sehr gut" : n >= 4.5 ? "passt gut" : n >= 4 ? "passt knapp" : "passt wenig");
+  const notenText = Texte.notenText;
+  const notenWort = n => (n >= 5.5 ? Texte.t("passt sehr gut") : n >= 4.5 ? Texte.t("passt gut")
+    : n >= 4 ? Texte.t("passt knapp") : Texte.t("passt wenig"));
+
+  /** What a screen reader hears for a grade; one text per case, so each language words it whole. */
+  function notenLabel(wert, name, unsicher) {
+    const werte = { wert, wort: notenWort(wert), name };
+    if (name) {
+      return unsicher ? Texte.t("{name}: Note {wert} von 6, {wort}, unsicher", werte) : Texte.t("{name}: Note {wert} von 6, {wort}", werte);
+    }
+    return unsicher ? Texte.t("Note {wert} von 6, {wort}, unsicher", werte) : Texte.t("Note {wert} von 6, {wort}", werte);
+  }
 
   /** Grade as in the design: value, six bars, a word; a name when there are two (apprenticeships). */
   function note(wert, { name = "", unsicher = false, klein = true, wort = !klein } = {}) {
     const balken = [1, 2, 3, 4, 5, 6].map(k => el("i", { class: wert >= k ? "on" : wert >= k - 0.5 ? "half" : "" }));
-    const span = el("span", { class: `grade-meter${klein ? " grade-meter--sm" : ""}`, "aria-label": `${name ? name + ": " : ""}Note ${wert} von 6, ${notenWort(wert)}${unsicher ? ", unsicher" : ""}` },
+    const span = el("span", { class: `grade-meter${klein ? " grade-meter--sm" : ""}`, "aria-label": notenLabel(wert, name, unsicher) },
       name ? el("span", { class: "search__grade-name", "aria-hidden": "true" }, name) : null,
       el("span", { class: "grade-meter__value" }, notenText(wert)),
       el("span", { class: "grade-meter__bar", "aria-hidden": "true" }, balken),
@@ -135,15 +148,18 @@
 
   function noten(treffer, optionen = {}) {
     const b = treffer.bewertung;
-    if (!b) return [el("span", { class: "search__hint" }, "noch keine Note")];
+    if (!b) return [el("span", { class: "search__hint" }, Texte.t("noch keine Note"))];
     const unsicher = Boolean(b.unsicher);
-    if (lehrstelle && b.beruf_note) return [note(b.beruf_note, { name: "Beruf", ...optionen }), note(b.note, { name: "Lehrstelle", unsicher, ...optionen })];
+    if (lehrstelle && b.beruf_note) {
+      return [note(b.beruf_note, { name: Texte.t("Beruf"), ...optionen }),
+        note(b.note, { name: Texte.t("Lehrstelle"), unsicher, ...optionen })];
+    }
     return [note(b.note, { unsicher, ...optionen })];
   }
 
   /** The stage of a hit taken over, the badge of Bewerbungen (#373); null without word from the app. */
   function standBadge(treffer, klasse = "marke-status") {
-    const marke = logik.standMarke(treffer, status => window.Texte.statusName(status, satz));
+    const marke = logik.standMarke(treffer, status => Texte.statusName(status, satz));
     return marke ? el("span", { class: klasse, "data-status": marke.status }, marke.text) : null;
   }
 
@@ -153,40 +169,42 @@
       const stand = standBadge(treffer);
       // a deleted application has nothing to lead to (#373)
       const weiter = treffer.stand === null ? null : el("div", { class: "btn-row" },
-        el("a", { class: "btn btn--primary", href: "/bewerbung?" + new URLSearchParams({ id: treffer.bewerbung_id }) }, "Zur Bewerbung"));
+        el("a", { class: "btn btn--primary", href: "/bewerbung?" + new URLSearchParams({ id: treffer.bewerbung_id }) },
+          Texte.t("Zur Bewerbung")));
       return el("div", { class: "decision" }, stand ? el("p", { class: "decision__stand" }, stand) : null, weiter);
     }
     if (treffer.zustand === "verworfen") {
       return el("div", { class: "decision" }, el("div", { class: "btn-row" },
-        el("button", { type: "button", class: "btn", onclick: () => verwirf(treffer, true) }, "Zurückholen")));
+        el("button", { type: "button", class: "btn", onclick: () => verwirf(treffer, true) }, Texte.t("Zurückholen"))));
     }
-    const vorbereiten = el("button", { type: "button", class: "btn btn--primary" }, "Bewerbung vorbereiten");
+    const vorbereiten = el("button", { type: "button", class: "btn btn--primary" }, Texte.t("Bewerbung vorbereiten"));
     vorbereiten.addEventListener("click", () => bereiteVor(treffer, vorbereiten));
-    const merken = el("button", { type: "button", class: "btn" }, "Merken");
+    const merken = el("button", { type: "button", class: "btn" }, Texte.t("Merken"));
     merken.addEventListener("click", () => uebernimm(treffer, merken));
-    const verwerfen = el("button", { type: "button", class: "btn", onclick: () => verwirf(treffer, false) }, "Verwerfen");
-    return el("div", { class: "decision" }, el("p", { class: "decision__question" }, t("suche.entscheiden")),
+    const verwerfen = el("button", { type: "button", class: "btn", onclick: () => verwirf(treffer, false) }, Texte.t("Verwerfen"));
+    return el("div", { class: "decision" }, el("p", { class: "decision__question" }, Texte.text("suche.entscheiden", satz)),
       el("div", { class: "btn-row" }, vorbereiten, merken, verwerfen));
   }
 
   /** Bewerten or Neu bewerten, only for new hits and never during a rating run. */
   function bewertenKnopf(treffer) {
     if (treffer.zustand !== "neu") return null;
-    const knopf = el("button", { type: "button", class: "btn btn--quiet btn--sm", disabled: bewertungslauf !== null }, treffer.bewertung ? "Neu bewerten" : "Bewerten");
+    const knopf = el("button", { type: "button", class: "btn btn--quiet btn--sm", disabled: bewertungslauf !== null },
+      treffer.bewertung ? Texte.t("Neu bewerten") : Texte.t("Bewerten"));
     knopf.addEventListener("click", () => bewerte(treffer, knopf));
     return knopf;
   }
 
   function inseratKnopf(treffer) {
     const textFeld = el("pre", { class: "inserat", hidden: true });
-    const knopf = el("button", { type: "button", class: "btn btn--sm" }, "Inserat hier lesen");
+    const knopf = el("button", { type: "button", class: "btn btn--sm" }, Texte.t("Inserat hier lesen"));
     knopf.addEventListener("click", async () => {
       if (textFeld.hidden && !textFeld.textContent) {
-        try { textFeld.textContent = (await holen("/api/suche/text", { id: treffer.id })).text || "Kein Text gespeichert."; }
+        try { textFeld.textContent = (await holen("/api/suche/text", { id: treffer.id })).text || Texte.t("Kein Text gespeichert."); }
         catch (fehler) { textFeld.textContent = fehler.message; }
       }
       textFeld.hidden = !textFeld.hidden;
-      knopf.textContent = textFeld.hidden ? "Inserat hier lesen" : "Inserat verbergen";
+      knopf.textContent = textFeld.hidden ? Texte.t("Inserat hier lesen") : Texte.t("Inserat verbergen");
     });
     return [knopf, textFeld];
   }
@@ -195,40 +213,49 @@
     return fehlt ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, fehlt.titel), el("p", { class: "notice__body" }, fehlt.text)) : null;
   }
 
+  /** „3 Tage online“; a day of 1 has its own text, so no language says „1 jours“. */
+  function onlineText(tage) {
+    if (tage === undefined) return "";
+    return tage === 1 ? Texte.t("1 Tag online") : Texte.t("{anzahl} Tage online", { anzahl: tage });
+  }
+
   function zeigeDetail(treffer) {
     if (!treffer) return $("detail").replaceChildren();
     const b = treffer.bewertung;
     const weitere = W.otherPortals(treffer).map(w => el("li", {}, el("a", { href: w.link, target: "_blank", rel: "noopener" }, w.text)));
     const schonHinweis = treffer.hinweis && !W.suspected(treffer) ? treffer.hinweis : "";
     const [knopf, textFeld] = inseratKnopf(treffer);
-    const online = treffer.alter_tage !== undefined ? `${treffer.alter_tage} ${treffer.alter_tage === 1 ? "Tag" : "Tage"} online` : "";
+    const online = onlineText(treffer.alter_tage);
     $("detail").replaceChildren(...[
       el("div", { class: "search__detail-head" },
         el("h2", { id: "detail-titel" }, treffer.stelle),
         el("p", {}, dotLine([[treffer.firma, treffer.ort].filter(Boolean).join(", "), treffer.pensum || treffer.lehrbeginn])),
         el("p", { class: "search__hint" }, dotLine([
-          el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, `Inserat auf ${treffer.portal} öffnen`),
-          `gefunden ${datum(treffer.gefunden_am)}`, online])),
+          el("a", { href: treffer.link, target: "_blank", rel: "noopener" }, Texte.t("Inserat auf {portal} öffnen", { portal: treffer.portal })),
+          Texte.t("gefunden {datum}", { datum: datum(treffer.gefunden_am) }), online])),
         wieder.zeile(treffer)),
       entscheidung(treffer),
-      wieder.vermittler(treffer, t("suche.vielleicht-titel")),
-      schonHinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, t("suche.schon-titel")), el("p", { class: "notice__body" }, schonHinweis)) : null,
-      treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, "Passt nach den festen Regeln nicht"), el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
+      wieder.vermittler(treffer, Texte.text("suche.vielleicht-titel", satz)),
+      schonHinweis ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, Texte.text("suche.schon-titel", satz)),
+        el("p", { class: "notice__body" }, schonHinweis)) : null,
+      treffer.vorpruefung ? el("div", { class: "notice" }, el("span", { class: "notice__title" }, Texte.t("Passt nach den festen Regeln nicht")),
+        el("p", { class: "notice__body" }, treffer.vorpruefung)) : null,
       fehltHinweis(logik.fehlenderText(treffer)),
       el("article", { class: "ai-result" },
-        el("header", { class: "ai-result__head" }, el("h3", { class: "ai-result__kind" }, "Einschätzung der KI"),
+        el("header", { class: "ai-result__head" }, el("h3", { class: "ai-result__kind" }, Texte.t("Einschätzung der KI")),
           el("span", { class: "search__grades" }, noten(treffer, { klein: false }))),
-        b ? el("p", {}, b.zusammenfassung) : el("p", { class: "search__hint" }, "Noch nicht bewertet."),
-        b && b.unsicher ? el("p", { class: "status-line", "data-level": "warning" }, `Note unsicher: ${b.unsicher}`) : null,
-        b ? el("div", { class: "ai-result__cols" }, liste("Was passt", b.passt), haken(treffer)) : null,
+        b ? el("p", {}, b.zusammenfassung) : el("p", { class: "search__hint" }, Texte.t("Noch nicht bewertet.")),
+        b && b.unsicher ? el("p", { class: "status-line", "data-level": "warning" }, Texte.t("Note unsicher: {grund}", { grund: b.unsicher })) : null,
+        b ? el("div", { class: "ai-result__cols" }, liste(Texte.t("Was passt"), b.passt), haken(treffer)) : null,
         b && b.nachpruefung ? el("p", { class: "search__hint" }, logik.nachpruefungText(b, notenText)) : null,
-        b && b.auffaellig && b.auffaellig.length ? el("p", { class: "status-line", "data-level": "danger" }, "Auffällige Zeilen im Inserat (nicht befolgt): " + b.auffaellig.join(" · ")) : null,
-        b ? el("p", { class: "ai-result__foot" }, "Eine Einschätzung, kein Urteil. Die KI kann sich irren. ", bewertenKnopf(treffer))
+        b && b.auffaellig && b.auffaellig.length ? el("p", { class: "status-line", "data-level": "danger" },
+          Texte.t("Auffällige Zeilen im Inserat (nicht befolgt): {zeilen}", { zeilen: b.auffaellig.join(" · ") })) : null,
+        b ? el("p", { class: "ai-result__foot" }, Texte.t("Eine Einschätzung, kein Urteil. Die KI kann sich irren."), " ", bewertenKnopf(treffer))
           : el("div", { class: "btn-row" }, bewertenKnopf(treffer))),
       eigeneSterne(treffer),
       window.TrefferFirma.zeile(firmen.get(treffer.id), heute,
-        { lehrstelle, alle: t("firmen.alle"), wo: t("firmen.titel"), nachPruefen: kununuGeprueft,
-          ausschliessen: { text: t("firmen.ausschliessen"), aktion: () => schliesseAus(treffer) } }),
+        { lehrstelle, alle: Texte.text("firmen.alle", satz), wo: Texte.text("firmen.titel", satz), nachPruefen: kununuGeprueft,
+          ausschliessen: { text: Texte.text("firmen.ausschliessen", satz), aktion: () => schliesseAus(treffer) } }),
       weitere.length ? el("ul", { class: "search__more" }, weitere) : null,
       wieder.gleicheInserate(treffer),
       el("div", { class: "btn-row" }, knopf), textFeld].filter(Boolean));
@@ -238,12 +265,15 @@
   function eigeneSterne(treffer) {
     const aktuell = treffer.eigene_sterne || 0;
     const knoepfe = [1, 2, 3, 4, 5].map(zahl => el("button", {
-      type: "button", "aria-label": `${zahl} von 5 Sternen für diesen Treffer`, "aria-pressed": String(zahl === aktuell),
+      type: "button", "aria-label": zahl === 1 ? Texte.t("1 von 5 Sternen für diesen Treffer")
+        : Texte.t("{zahl} von 5 Sternen für diesen Treffer", { zahl }),
+      "aria-pressed": String(zahl === aktuell),
       onclick: () => eigeneSterneSetzen(treffer, zahl === aktuell ? 0 : zahl),
     }, zahl <= aktuell ? "★" : "☆"));
-    return el("div", { class: "own-rating", role: "group", "aria-label": t("suche.eigene") },
-      el("p", { class: "own-rating__line" }, el("span", { class: "own-rating__label" }, t("suche.eigene")), el("span", { class: "sterne" }, knoepfe)),
-      el("p", { class: "search__hint" }, t("suche.eigene-hinweis")));
+    return el("div", { class: "own-rating", role: "group", "aria-label": Texte.text("suche.eigene", satz) },
+      el("p", { class: "own-rating__line" }, el("span", { class: "own-rating__label" }, Texte.text("suche.eigene", satz)),
+        el("span", { class: "sterne" }, knoepfe)),
+      el("p", { class: "search__hint" }, Texte.text("suche.eigene-hinweis", satz)));
   }
 
   function eigeneSterneSetzen(treffer, anzahl) {
@@ -260,11 +290,11 @@
       const firma = await window.FirmenAusschluss.ausschliessen(name);
       if (gewaehlt === treffer.id) gewaehlt = null;
       await lade();
-      zeile($("status"), t("firmen.ausgeschlossen", { firma: name }), "ok", {
-        aktion: { text: t("firmen.wieder-zeigen"), ausfuehren: () => zeigeWieder(firma.schluessel, name) },
+      zeile($("status"), Texte.text("firmen.ausgeschlossen", satz, { firma: name }), "ok", {
+        aktion: { text: Texte.text("firmen.wieder-zeigen", satz), ausfuehren: () => zeigeWieder(firma.schluessel, name) },
       });
     } catch (fehler) {
-      meldung(`${t("firmen.nicht-geaendert", { firma: name })} ${fehler.message}`, "fehler");
+      reportExclusionKept(name, fehler);
       zeigeListe();
     }
   }
@@ -273,10 +303,16 @@
     try {
       await window.FirmenAusschluss.wiederZeigen(schluessel);
       await lade();
-      meldung(t("firmen.wieder-gezeigt", { firma: name }), "ok");
+      meldung(Texte.text("firmen.wieder-gezeigt", satz, { firma: name }), "ok");
     } catch (fehler) {
-      meldung(`${t("firmen.nicht-geaendert", { firma: name })} ${fehler.message}`, "fehler");
+      reportExclusionKept(name, fehler);
     }
+  }
+
+  // the exclusion of a company stayed as it was: the message says so, with the reason
+  function reportExclusionKept(name, error) {
+    const sentence = Texte.text("firmen.nicht-geaendert", satz, { firma: name });
+    meldung(`${sentence} ${error.message}`, "fehler");
   }
 
   // „Jetzt prüfen“ (#191): the app has stored the value, so badge and company line load it again.
@@ -299,11 +335,11 @@
     const firma = treffer.firma && marke ? el("span", {}, treffer.firma, marke) : treffer.firma;
     const vermutet = W.suspected(treffer);
     const marken = [
-      logik.istSchnupperlehre(treffer) ? "Schnupperlehre" : "",
-      treffer.hinweis && !vermutet ? t("suche.schon-marke") : "",
-      treffer.vorpruefung ? "passt nicht: " + treffer.vorpruefung : "",
+      logik.istSchnupperlehre(treffer) ? Texte.t("Schnupperlehre") : "",
+      treffer.hinweis && !vermutet ? Texte.text("suche.schon-marke", satz) : "",
+      treffer.vorpruefung ? Texte.t("passt nicht: {grund}", { grund: treffer.vorpruefung }) : "",
       sterne ? `${"★".repeat(sterne)}` : "",
-      treffer.eigene_sterne ? `Eigene: ${"★".repeat(treffer.eigene_sterne)}` : "",
+      treffer.eigene_sterne ? Texte.t("Eigene: {sterne}", { sterne: "★".repeat(treffer.eigene_sterne) }) : "",
     ].filter(Boolean);
     const knopf = el("button", { type: "button", class: "hit", "aria-current": String(treffer.id === gewaehlt) },
       el("span", { class: "hit__grades" }, noten(treffer)),
@@ -353,7 +389,7 @@
     $("ergebnisse").hidden = sichtbar.length === 0 && fertig.length === 0;
     zeigeFuss(fertig);
     $("leer").hidden = sichtbar.length > 0;
-    const leer = anzeige.leer(zustand, gesucht, t("suche.keine"), fertig.length > 0);
+    const leer = anzeige.leer(zustand, gesucht, Texte.text("suche.keine", satz), fertig.length > 0);
     $("leer-titel").textContent = leer.titel;
     $("leer-text").textContent = leer.text;
     $("leer-einstellen").hidden = zustand !== "neu";
@@ -366,7 +402,7 @@
     const text = logik.abgeschlossenText(fertig);
     $("liste-fuss").hidden = !text;
     $("liste-fuss-text").textContent = text;
-    $("liste-fuss-knopf").textContent = abgeschlossenZeigen ? "Ausblenden" : "Anzeigen";
+    $("liste-fuss-knopf").textContent = abgeschlossenZeigen ? Texte.t("Ausblenden") : Texte.t("Anzeigen");
     $("liste-fuss-knopf").setAttribute("aria-expanded", String(abgeschlossenZeigen));
   }
 
@@ -377,7 +413,7 @@
     $("bewerten-box").hidden = !laeuft;
     $("offen-box").hidden = laeuft || anzahl === 0 || zustand !== "neu";
     $("offen-zahl").textContent = logik.offenText(anzahl, lehrstelle);
-    $("kosten-hinweis").replaceChildren(...window.Texte.withCodeRequestLink(logik.estimateLine(estimate, lehrstelle), el));
+    $("kosten-hinweis").replaceChildren(...Texte.withCodeRequestLink(logik.estimateLine(estimate, lehrstelle), el));
     $("alle-pruefen").disabled = laeuft;
     zeigeBerufe();
   }
@@ -397,7 +433,7 @@
 
   /** Without an estimate the box says why, in place of cost and duration. */
   function reportEstimateProblem(error) {
-    const text = `Die Schätzung fehlt: ${error.message}`;
+    const text = logik.estimateFailedText(error.message);
     $("kosten-hinweis").textContent = text;
     return text;
   }
@@ -405,7 +441,7 @@
   async function askRateAll() {
     const { estimate: fresh, problem } = await loadEstimate();
     if (problem) return meldung(problem, "fehler");
-    if (!fresh.anzahl) return meldung("Keine Treffer ohne Note.", "hinweis");
+    if (!fresh.anzahl) return meldung(Texte.t("Keine Treffer ohne Note."), "hinweis");
     const question = logik.confirmation(fresh, lehrstelle, erweiterung === true);
     $("alle-titel").textContent = question.title;
     const withoutText = question.notLoadable.length
@@ -418,7 +454,7 @@
   /** The extension loads the missing texts of these hits (#275 at a click); what it says about them, for the end. */
   async function fetchAds(ids) {
     if (erweiterung !== true) return "";
-    $("bewerten-titel").textContent = "Die Erweiterung holt die Inserate";
+    $("bewerten-titel").textContent = Texte.t("Die Erweiterung holt die Inserate");
     $("bewerten-zahl").textContent = String(ids.length);
     const answer = await new Promise(resolve => {
       adsFetched = resolve;
@@ -426,9 +462,13 @@
     });
     adsFetched = null;
     $("bewerten-schritt").textContent = "";
-    $("bewerten-titel").textContent = "KI schätzt Treffer ein";
-    if (answer.fehler) return ` Die Inserate liessen sich nicht holen: ${answer.fehler}`;
-    return answer.fehlgeschlagen ? ` ${answer.fehlgeschlagen} Inserate liessen sich nicht laden.` : "";
+    $("bewerten-titel").textContent = Texte.t("KI schätzt Treffer ein");
+    // the note follows the summary, so it starts with a space
+    if (answer.fehler) return ` ${Texte.t("Die Inserate liessen sich nicht holen: {fehler}", { fehler: answer.fehler })}`;
+    if (!answer.fehlgeschlagen) return "";
+    const nichtGeladen = answer.fehlgeschlagen === 1 ? Texte.t("1 Inserate liessen sich nicht laden.")
+      : Texte.t("{anzahl} Inserate liessen sich nicht laden.", { anzahl: answer.fehlgeschlagen });
+    return ` ${nichtGeladen}`;
   }
 
   /** „Alle prüfen“ after the person confirmed: missing texts first, then every hit without a grade. */
@@ -444,7 +484,7 @@
     bewertungslauf = null;
     if (run.halt) {
       zeigeListe();
-      return meldung(`Angehalten, bevor die KI etwas geprüft hat.${loadNote}`, "hinweis");
+      return meldung(`${Texte.t("Angehalten, bevor die KI etwas geprüft hat.")}${loadNote}`, "hinweis");
     }
     await starteBewertung(logik.zuBewerten(alle).map(t => t.id), loadNote);
   }
@@ -461,7 +501,9 @@
     $("berufe-liste").replaceChildren(...berufe.map(beruf => {
       const aktuell = einstellungen.beruf_sterne[beruf] || 0;
       const knoepfe = [1, 2, 3, 4, 5].map(zahl => el("button", {
-        type: "button", "aria-label": `${zahl} von 5 Sternen für ${beruf}`, "aria-pressed": String(zahl === aktuell),
+        type: "button", "aria-label": zahl === 1 ? Texte.t("1 von 5 Sternen für {beruf}", { beruf })
+          : Texte.t("{zahl} von 5 Sternen für {beruf}", { zahl, beruf }),
+        "aria-pressed": String(zahl === aktuell),
         onclick: () => sterneWaehlen(beruf, zahl === aktuell ? 0 : zahl),
       }, zahl <= aktuell ? "★" : "☆"));
       return el("li", {}, el("span", { class: "sterne" }, knoepfe), el("span", {}, beruf));
@@ -491,7 +533,7 @@
     $("anhalten").disabled = false;
     zeigeListe();
     meldung("");
-    $("bewerten-zahl").textContent = `0 von ${ids.length}`;
+    $("bewerten-zahl").textContent = Texte.t("{bewertet} von {von}", { bewertet: 0, von: ids.length });
     const stand = await logik.bewerteAlle(ids, {
       paket,
       sende: gruppe => senden("/api/suche/bewerten-paket", { ids: gruppe }),
@@ -501,7 +543,7 @@
         const neu = new Map(treffer.map(t => [t.id, t]));
         alle = alle.map(t => (neu.has(t.id) ? { ...neu.get(t.id), ohne_text: false } : t));
         zeigeListe();
-        $("bewerten-zahl").textContent = `${zwischen.bewertet} von ${ids.length}`;
+        $("bewerten-zahl").textContent = Texte.t("{bewertet} von {von}", { bewertet: zwischen.bewertet, von: ids.length });
       },
     });
     zeigePruefSchritt(null);
@@ -509,7 +551,7 @@
     zeigeListe();
     loadEstimate();
     const summary = logik.schlussText(stand, logik.zuBewerten(alle).length, await window.Sidebar.currency) + suffix;
-    if (stand.fehler) meldung(window.Texte.withCodeRequestLink(`${stand.fehler} ${summary}`, el), "fehler");
+    if (stand.fehler) meldung(Texte.withCodeRequestLink(`${stand.fehler} ${summary}`, el), "fehler");
     else meldung(summary, stand.offen.length || stand.gestoppt || suffix ? "hinweis" : "ok");
   }
 
@@ -524,9 +566,10 @@
     return window.Meldungen.listenZeile(document, inhalt, stufe, { beiSchliessen: () => geschlossen.add(text) });
   }
 
-  // A hint with a field in „Meine Angaben“ leads there.
-  function hinweisZeile(text, ziele) {
-    const inhalt = ziele[text] ? el("a", { href: `/angaben#${new URLSearchParams({ feld: ziele[text] })}` }, text) : text;
+  // A hint with a field in „Meine Angaben“ leads there; the field comes by the hint's place in the list (#422), since
+  // the hint itself reaches the page in the app language.
+  function hinweisZeile(text, feld) {
+    const inhalt = feld ? el("a", { href: `/angaben#${new URLSearchParams({ feld })}` }, text) : text;
     return befundZeile(text, inhalt, "hinweis");
   }
 
@@ -542,7 +585,7 @@
     $("letzte").replaceChildren(...dotLine(anzeige.letzteSuche(suchStand.lauf, alle, datum, suchStand.wann)));
   }
 
-  function zeigeLetzteSuche(lauf, hinweise, ziele, zeitraum = {}) {
+  function zeigeLetzteSuche(lauf, hinweise, felder, zeitraum = {}) {
     suchStand = { lauf, wann: zeitraum.letzte };
     zeigeZahlen();
     zeigeZeitraum(zeitraum);
@@ -551,23 +594,18 @@
       .map(([name, p]) => anzeige.problemZeile(p.problem, nachholen[name]));
     const offen = text => !geschlossen.has(text);
     // G109, #385: what the run knew already, by content, is not under Neu; the person can close the line
-    const bekannt = W.runHint(lauf, anzahl => t("suche.wieder-bewerbungen", { anzahl }));
+    const bekannt = W.runHint(lauf, anzahl => Texte.text("suche.wieder-bewerbungen", satz, { anzahl }));
     $("probleme").replaceChildren(
       ...probleme.filter(offen).map(p => befundZeile(p, p, "fehler")),
-      ...hinweise.filter(offen).map(h => hinweisZeile(h, ziele)),
+      ...hinweise.map((h, i) => [h, felder[i]]).filter(([h]) => offen(h)).map(([h, feld]) => hinweisZeile(h, feld)),
       ...(bekannt && offen(bekannt) ? [befundZeile(bekannt, bekannt, "hinweis")] : []));
   }
-
-  function aufzaehlung(namen) {
-    return namen.join(", ").replace(/, ([^,]*)$/, " und $1");
-  }
-
 
   // Only the desktop app has „Meine Angaben“; without it there is nothing to say.
   async function zeigeNichtUebernommen() {
     const offen = await holen("/api/angaben/offen").then(a => a.offen, () => false);
     $("angaben-offen").hidden = !offen;
-    $("angaben-offen-text").textContent = t("suche.angaben-offen");
+    $("angaben-offen-text").textContent = Texte.text("suche.angaben-offen", satz);
   }
 
   let ladeNummer = 0;
@@ -606,7 +644,7 @@
       window.SuchbegriffeStart.zeige(daten.art);
       zeigeListe();
       loadEstimate();
-      zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_ziele || {}, daten.zeitraum || {});
+      zeigeLetzteSuche(daten.letzte_suche, daten.hinweise || [], daten.hinweis_felder || [], daten.zeitraum || {});
       zeigeNichtUebernommen();
       geladen = true;
       zeigeSuchen();
@@ -638,9 +676,11 @@
   }
 
   function laufText(lauf) {
-    if (lauf.zustand === "fehler") return [lauf.fehler || "Die Suche ist abgebrochen.", "fehler"];
-    if (lauf.zustand === "fertig" && lauf.ergebnis?.abgebrochen) return ["Suche abgebrochen. Was schon gefunden war, ist da.", "hinweis"];
-    if (lauf.zustand === "fertig") return ["Suche fertig.", "ok"];
+    if (lauf.zustand === "fehler") return [lauf.fehler || Texte.t("Die Suche ist abgebrochen."), "fehler"];
+    if (lauf.zustand === "fertig" && lauf.ergebnis?.abgebrochen) {
+      return [Texte.t("Suche abgebrochen. Was schon gefunden war, ist da."), "hinweis"];
+    }
+    if (lauf.zustand === "fertig") return [Texte.t("Suche fertig."), "ok"];
     return [dotLine(window.SuchlaufLogik.laufZeile(lauf.schritt || {})), ""];
   }
 
@@ -658,7 +698,7 @@
     if (!laeuft) meldung(text, art);
     suchlaeuft = laeuft;
     zeigeSuchen();
-    $("suchen").textContent = laeuft ? "Suche läuft …" : "Jetzt suchen";
+    $("suchen").textContent = laeuft ? Texte.t("Suche läuft …") : Texte.t("Jetzt suchen");
     $("suchen").setAttribute("aria-busy", String(laeuft));
     const eben = letzterSuchlauf === "laeuft" && lauf.zustand === "fertig";
     letzterSuchlauf = lauf.zustand;
@@ -696,7 +736,7 @@
     suchlaeuft = true;
     zeigeSuchen();
     $("lauf-box").hidden = false;
-    zeile($("lauf"), "Suche startet …");
+    zeile($("lauf"), Texte.t("Suche startet …"));
     wartetSeit = new Date().toISOString();
     warte();
     window.postMessage({ quelle: SEITE, art: "suche-starten" }, location.origin);
@@ -717,7 +757,7 @@
   $("anhalten").addEventListener("click", () => {
     if (bewertungslauf) bewertungslauf.halt = true;
     $("anhalten").disabled = true;
-    meldung("Wird nach dem laufenden Paket angehalten …");
+    meldung(Texte.t("Wird nach dem laufenden Paket angehalten …"));
   });
   // The settings are their own page (#263); here one line sums them up, with „Ändern“ leading there (#220)
   function zeigeEinstellen() {
@@ -738,5 +778,5 @@
   document.addEventListener("suchprofil-geaendert", lade);
   document.addEventListener("treffer-gemerkt", lade);  // after „Alle ab Note … merken“ (#214)
   document.addEventListener("suchbegriffe-beleg", zeigeListe);
-  textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); document.title = t("nav.stellen"); }).finally(() => { lade(); beobachten(nachsehen); });
+  textsatz().then(gewaehlterSatz => { satz = gewaehlterSatz; anwenden(document, satz); document.title = Texte.text("nav.stellen", satz); }).finally(() => { lade(); beobachten(nachsehen); });
 })();

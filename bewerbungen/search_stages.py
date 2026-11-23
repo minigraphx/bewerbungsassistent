@@ -8,6 +8,7 @@ erweiterung/tests/fixtures/run-size.json keeps the two counts equal.
 import math
 
 from amount_text import minutes_text
+from ui_message import T
 
 STAGE_SIZE = 30  # searches per portal in a row, then the longer pause
 STAGE_PAUSE_SECONDS = 60
@@ -93,8 +94,9 @@ def size(plan: dict) -> dict:
     weighted = sum(pages_per_portal(plan).values()) * SECONDS_PER_SEARCH + pauses * STAGE_PAUSE_SECONDS * pages
     minutes = -(-weighted // (60 * pages))
     long = pauses > 0
-    text = ANNOUNCEMENT.format(minutes=minutes_text(minutes), searches=searches, stages=sum(stages.values()),
-                               pause=STAGE_PAUSE_WORDS) if long else ""
+    # T (#422): the announcement reaches Stellen and the popup in the app language
+    text = T(ANNOUNCEMENT, minutes=minutes_text(minutes), searches=searches, stages=sum(stages.values()),
+             pause=T(STAGE_PAUSE_WORDS)) if long else ""
     return {"suchen": searches, "etappen": sum(stages.values()), "minuten": minutes, "lang": long, "text": text,
             "pro_portal": per_portal}
 
