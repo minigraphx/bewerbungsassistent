@@ -20,9 +20,9 @@
   </header>
   <div class="applications__bar">
     <div class="tabs applications__views" role="group" aria-label="Anzeigen" id="ansichten">
-      <button type="button" class="tabs__tab" data-ansicht="gemerkt" aria-pressed="false">Gemerkt <span class="num" data-zahl="gemerkt"></span></button>
-      <button type="button" class="tabs__tab" data-ansicht="beworben" aria-pressed="true">Beworben <span class="num" data-zahl="beworben"></span></button>
-      <button type="button" class="tabs__tab" data-ansicht="abgeschlossen" aria-pressed="false">Abgeschlossen <span class="num" data-zahl="abgeschlossen"></span></button>
+      <button type="button" class="tabs__tab" data-ansicht="gemerkt" aria-pressed="false"><span data-text="uebersicht.ansicht-gemerkt">Gemerkt</span> <span class="num" data-zahl="gemerkt"></span></button>
+      <button type="button" class="tabs__tab" data-ansicht="beworben" aria-pressed="true"><span data-text="uebersicht.ansicht-beworben">Beworben</span> <span class="num" data-zahl="beworben"></span></button>
+      <button type="button" class="tabs__tab" data-ansicht="abgeschlossen" aria-pressed="false"><span data-text="uebersicht.ansicht-abgeschlossen">Abgeschlossen</span> <span class="num" data-zahl="abgeschlossen"></span></button>
       <button type="button" class="tabs__tab" data-ansicht="alle" aria-pressed="false">Alle <span class="num" data-zahl="alle"></span></button>
     </div>
     <div class="applications__search">
@@ -70,7 +70,7 @@
     <div class="pass__ad" id="pass-inserat"></div>
     <p class="pass__open"><a id="pass-oeffnen" href="/">Bewerbung öffnen</a></p>
     <p id="pass-status" class="status-line" role="status" aria-live="polite"></p>
-    <div class="dialog__actions"><button type="button" class="btn btn--quiet" id="pass-ende">Durchgang beenden</button><button type="button" class="btn" id="pass-spaeter">Später</button><button type="button" class="btn" id="pass-verwerfen">Verwerfen</button><button type="button" class="btn btn--primary" id="pass-bewerben">Bewerben</button></div>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" id="pass-ende">Durchgang beenden</button><button type="button" class="btn" id="pass-spaeter">Später</button><button type="button" class="btn" id="pass-verwerfen">Verwerfen</button><button type="button" class="btn btn--primary" id="pass-bewerben" data-text="heute.pass.bewerben">Bewerben</button></div>
   </dialog>
   <dialog class="dialog" id="stand-dialog" aria-labelledby="stand-titel" aria-describedby="stand-text">
     <h2 class="dialog__title" id="stand-titel"></h2>

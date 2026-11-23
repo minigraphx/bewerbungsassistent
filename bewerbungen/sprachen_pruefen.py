@@ -51,6 +51,10 @@ FERTIG: tuple[pathlib.Path, ...] = (
     # mainly serve other pages; their messages Heute shows are translated, the modules follow with those pages.
     BASE / "seiten/uebersicht.html", BASE / "seiten/heute-logic.js", BASE / "seiten/pass.js", BASE / "seiten/uebersicht.js",
     BASE / "routes_rav.py", BASE / "rav.py", BASE / "missing_ads.py",
+    # The page Bewerbungen (#420): its scripts, the register and the routes of the list, of entering a job and of the
+    # choice to apply. apply.py and the modules behind the documents and the dispatch follow with the Bewerbung page.
+    BASE / "seiten/bewerbungen.html", BASE / "seiten/bewerbungen-logic.js", BASE / "seiten/wieder-logik.js",
+    BASE / "seiten/bewerbungen.js", BASE / "routen_bewerbungen.py", BASE / "register.py", BASE / "routes_apply.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

@@ -18,10 +18,11 @@ import versand
 from ai import form_help
 from register import FORM_STATES
 from server import json_antwort, pflicht
+from ui_texts import T
 
 log = logging.getLogger(__name__)
 OPENED, FILLED, SENT = FORM_STATES
-TOO_MANY = f"Pro Durchgang gehen höchstens {apply.MAX_PER_RUN} Bewerbungen."
+TOO_MANY = T("Pro Durchgang gehen höchstens {anzahl} Bewerbungen.", anzahl=apply.MAX_PER_RUN)
 NONE_CHOSEN = "Bitte zuerst Bewerbungen ankreuzen."
 BAD_STATE = "Dieser Stand ist unbekannt."
 CONFIRM_FIRST = "Bitte zuerst unter «Unterlagen erstellen und prüfen» ansehen und mit «So lassen» bestätigen."

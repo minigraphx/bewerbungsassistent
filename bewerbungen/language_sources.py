@@ -68,10 +68,10 @@ class Item:
     kind: str
 
 
-def needs_translation(text: str) -> bool:
+def needs_translation(text: str, stored: frozenset[str] = DATA_VALUES) -> bool:
     """A text with words of its own: names, stored values and a template of nothing but placeholders such as
     „{hinweis} {adresse}“ are none (#417). Placeholders with punctuation stay a text, since French spaces it."""
-    if text in DATA_VALUES or not PLACEHOLDER.sub("", text).strip():
+    if text in stored or not PLACEHOLDER.sub("", text).strip():
         return False
     return LETTER.search(INVARIANT_NAME.sub("", text)) is not None
 
@@ -86,7 +86,8 @@ def _marked_lines(source: str) -> frozenset[int]:
 
 def _html_items(path: pathlib.Path, source: str) -> Iterator[Item]:
     for found in page_translation.page_texts(source):
-        if found.kind == "set" or needs_translation(found.text):
+        # A page holds no stored values, only labels: a tab „Gemerkt“ is a word for the person (#420).
+        if found.kind == "set" or needs_translation(found.text, stored=frozenset()):
             yield Item(path, _line(source, found.offset), found.text, found.kind)
 
 
@@ -158,9 +159,14 @@ def _js_items(path: pathlib.Path, source: str) -> Iterator[Item]:
             yield item
 
 
-def _module_constants(tree: ast.Module) -> dict[str, str]:
-    return {target.id: node.value.value for node in tree.body if isinstance(node, ast.Assign)
-            and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str)
+def _is_string(node: ast.expr) -> bool:
+    return isinstance(node, ast.JoinedStr) or (isinstance(node, ast.Constant) and isinstance(node.value, str))
+
+
+def _module_constants(tree: ast.Module) -> dict[str, ast.expr]:
+    """Strings of the module by name, plain or formatted: a raised f-string constant needs T as much as an inline one
+    (#420, routes_apply.TOO_MANY)."""
+    return {target.id: node.value for node in tree.body if isinstance(node, ast.Assign) and _is_string(node.value)
             for target in node.targets if isinstance(target, ast.Name)}
 
 
@@ -170,28 +176,33 @@ def _template(node: ast.JoinedStr) -> str:
                    for part in node.values)
 
 
-def _literal(node: ast.expr, constants: dict[str, str]) -> str | None:
-    if isinstance(node, ast.Constant) and isinstance(node.value, str):
-        return node.value
-    if isinstance(node, ast.JoinedStr):
-        return _template(node)
-    if isinstance(node, ast.Name):
-        return constants.get(node.id)
+def _resolved(node: ast.expr, constants: dict[str, ast.expr]) -> ast.expr:
+    return constants.get(node.id, node) if isinstance(node, ast.Name) else node
+
+
+def _literal(node: ast.expr, constants: dict[str, ast.expr]) -> str | None:
+    found = _resolved(node, constants)
+    if isinstance(found, ast.Constant) and isinstance(found.value, str):
+        return found.value
+    if isinstance(found, ast.JoinedStr):
+        return _template(found)
     return None
 
 
-def _message(node: ast.AST, constants: dict[str, str]) -> tuple[str, str] | None:
+def _text_or_leftover(node: ast.expr, constants: dict[str, ast.expr]) -> tuple[str, str] | None:
+    text = _literal(node, constants)
+    return (("leftover" if isinstance(_resolved(node, constants), ast.JoinedStr) else "text"), text) if text else None
+
+
+def _message(node: ast.AST, constants: dict[str, ast.expr]) -> tuple[str, str] | None:
     """(kind, text) of a message: "text" for the catalog, "leftover" for a formatted one that only T can translate,
     since the server matches a plain message as a whole and the filled-in values are never in the catalog."""
     if isinstance(node, ast.Call) and node.args:
         callee = node.func.id if isinstance(node.func, ast.Name) else getattr(node.func, "attr", "")
         if callee == "T":
-            text = _literal(node.args[0], constants)
-            return (("leftover" if isinstance(node.args[0], ast.JoinedStr) else "text"), text) if text else None
+            return _text_or_leftover(node.args[0], constants)
     if isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call) and node.exc.args:
-        first = node.exc.args[0]
-        text = _literal(first, constants)
-        return (("leftover" if isinstance(first, ast.JoinedStr) else "text"), text) if text else None
+        return _text_or_leftover(node.exc.args[0], constants)
     return None
 
 
