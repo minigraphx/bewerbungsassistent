@@ -1,12 +1,13 @@
 "use strict";
 // Card «Sprache» under Einstellungen, KI, Budget und Sprache (G10, G12, #94, A10): the language of the app and the
 // languages the person applies in. Each change saves at once; saves run one after the other, so the last change wins.
-// Until the person confirms, the application languages are the suggestion from the CV.
+// Until the person changes a box, the suggestion from the CV is the setting; the first change saves every visible box.
 (() => {
   const { holen, senden, status, el } = window.App;
   const L = window.SpracheLogik;
   const $ = id => document.getElementById(id);
   const NAME = "bewerbungssprache";
+  const noteId = value => `sprache-hinweis-${value}`;
 
   let queue = Promise.resolve();
   let drawn = false;
@@ -14,10 +15,13 @@
 
   const boxes = () => [...document.querySelectorAll(`input[name="${NAME}"]`)];
 
+  // The note stands under the name, outside the label, so the label names the language only.
   function checkbox(option) {
-    const input = el("input", { type: "checkbox", name: NAME, value: option.value });
+    const input = el("input", { type: "checkbox", name: NAME, value: option.value, id: `sprache-${option.value}` });
     input.addEventListener("change", saveApplications);
-    return el("label", { class: "language__option" }, input, el("span", { class: "language__label" }));
+    return el("div", { class: "language__option" },
+      el("label", { class: "language__choice" }, input, el("span", { class: "language__label" }, option.label)),
+      el("p", { class: "field__hint language__note", id: noteId(option.value), hidden: true }));
   }
 
   function buildOnce(view) {
@@ -27,19 +31,31 @@
     $("sprache-optionen").replaceChildren(...view.options.map(checkbox));
   }
 
+  function drawPending(pending) {
+    const line = $("sprache-folgt");
+    line.textContent = pending ? pending.text : "";
+    line.hidden = !pending;
+    if (pending) line.setAttribute("lang", pending.lang);
+    else line.removeAttribute("lang");
+  }
+
+  function drawOption(input, option) {
+    const note = $(noteId(option.value));
+    input.checked = option.checked;
+    note.textContent = option.note || "";
+    note.hidden = !option.note;
+    if (option.note) input.setAttribute("aria-describedby", note.id);
+    else input.removeAttribute("aria-describedby");
+  }
+
   function draw(state) {
     stored = state;
     const view = L.view(state);
     buildOnce(view);
     $("sprache-app").value = view.app;
-    $("sprache-folgt").textContent = view.pending || "";
-    $("sprache-folgt").hidden = !view.pending;
-    for (const [index, option] of view.options.entries()) {
-      const input = boxes()[index];
-      input.checked = option.checked;
-      input.parentElement.querySelector(".language__label").replaceChildren(...window.DotLine.render(option.parts, el));
-    }
-    $("sprache-uebernehmen-zeile").hidden = !view.confirm;
+    drawPending(view.pending);
+    const inputs = boxes();
+    for (const [index, option] of view.options.entries()) drawOption(inputs[index], option);
     return view;
   }
 
@@ -65,12 +81,6 @@
   $("sprache-app").addEventListener("change", event => {
     const app = event.target.value;
     save(() => ({ app }), "Sprache der App gespeichert.", $("sprache-app"));
-  });
-
-  $("sprache-uebernehmen").addEventListener("click", async () => {
-    await save(() => ({ bewerbung: L.checkedValues(boxes()) }), "Vorschlag übernommen.", $("sprache-bewerbung"));
-    // The button is gone once the choice is stored; the focus goes to the choice it confirmed.
-    if ($("sprache-uebernehmen-zeile").hidden) (boxes().find(box => box.checked) || boxes()[0])?.focus();
   });
 
   holen("/api/sprachen").then(draw, fehler => status($("sprache-meldung"), fehler.message, "fehler"));

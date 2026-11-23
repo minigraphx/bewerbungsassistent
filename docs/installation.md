@@ -206,7 +206,7 @@ Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minut
 
 **Stufen** für Kenntnisse und Sprachen sind ebenfalls freiwillig und gelten nur fürs Dossier: Bei einer Kenntnis wählen Sie 1 bis 6, bei einer Sprache A1 bis C2, mit **ohne Stufe** entfernen Sie sie wieder. Hat ein Eintrag eines Bereichs eine Stufe, zeigt das Dossier dort eine Grafik, und Einträge ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik.
 
-**Sprachen:** Unter **Einstellungen**, **KI, Budget und Sprache**, wählen Sie bei **Sprache** die **Sprache der App** und unter **Ich bewerbe mich auf** die Sprachen, in denen Sie sich bewerben. Solange Sie nichts gewählt haben, schlägt die App die Sprachen vor, die Ihr Lebenslauf mit fliessend oder besser nennt, sonst Deutsch; mit **Vorschlag übernehmen** bestätigen Sie den Vorschlag. Die App selbst gibt es vorerst nur auf Deutsch; Französisch und Englisch folgen.
+**Sprachen:** Unter **Einstellungen**, **KI, Budget und Sprache**, wählen Sie bei **Sprache** die **Sprache der App** und unter **Ich bewerbe mich auf** die Sprachen, in denen Sie sich bewerben. Solange Sie nichts gewählt haben, schlägt die App die Sprachen vor, die Ihr Lebenslauf mit fliessend oder besser nennt, sonst Deutsch. Der Vorschlag gilt, bis Sie ein Häkchen ändern. Die App selbst gibt es vorerst nur auf Deutsch; Französisch und Englisch folgen.
 
 Für die Stellensuche gibt es ausserdem die Abschnitte **Projekte** sowie **Lehre und Training** und ein Feld für Ihre eigene Webseite. Bei Ausbildungen und Zertifikaten können Sie unter **Eigener Text** einen fertigen Satz schreiben; er steht im Lebenslauf anstelle der einzelnen Angaben.
 

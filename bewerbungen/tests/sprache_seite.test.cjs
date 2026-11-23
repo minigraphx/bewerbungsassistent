@@ -10,8 +10,8 @@ const vm = require("node:vm");
 const SEITEN = path.join(__dirname, "..", "seiten");
 const SUGGESTED = { app: "de", app_gewaehlt: false, bewerbung: ["de", "en"], bewerbung_gewaehlt: false,
                     vorschlag: [{ sprache: "de", stufe: "Muttersprache" }, { sprache: "en", stufe: "Fliessend" }] };
-const CARD_IDS = ["sprache-app", "sprache-folgt", "sprache-bewerbung", "sprache-optionen", "sprache-meldung",
-                  "sprache-uebernehmen-zeile", "sprache-uebernehmen"];
+const CARD_IDS = ["sprache-app", "sprache-folgt", "sprache-bewerbung", "sprache-optionen", "sprache-meldung"];
+const CHOSEN = { ...SUGGESTED, bewerbung: ["de", "en", "fr"], bewerbung_gewaehlt: true };
 
 class FakeText {
   constructor(text) { this.data = String(text); this.parent = null; }
@@ -130,4 +130,62 @@ test("a refused change redraws the state the server last sent, without asking th
   assert.deepEqual(page.calls.failures, ["Bitte mindestens eine Sprache."]);
   assert.equal(page.calls.holen, 1, "the stored state comes from the last answer, not from a new request");
   assert.deepEqual(page.boxes().map(box => box.checked), [true, true, false], "the boxes show the stored choice again");
+});
+
+test("a suggested language has its note on its own line, described by it, not inside the label", async () => {
+  const page = setup({ holen: [SUGGESTED], senden: [] });
+  await settle();
+  const [german, english, french] = page.boxes();
+  const note = page.root.querySelector("#sprache-hinweis-en");
+
+  assert.equal(note.textContent, "vorgeschlagen: im Lebenslauf «Fliessend»");
+  assert.equal(note.hidden, false);
+  assert.ok(note.className.split(" ").includes("field__hint"), "hint style");
+  assert.equal(english.getAttribute("aria-describedby"), "sprache-hinweis-en");
+  assert.equal(english.parentElement.tagName, "LABEL");
+  assert.equal(english.parentElement.textContent, "Englisch", "the label names the language only");
+  assert.ok(!english.parentElement.all().includes(note), "the note stands outside the label");
+  for (const box of [german, french]) {
+    assert.equal(box.getAttribute("aria-describedby"), null);
+    assert.equal(page.root.querySelector(`#sprache-hinweis-${box.value}`).hidden, true);
+  }
+});
+
+test("the first change to a box saves every visible box, and the notes go away", async () => {
+  const page = setup({ holen: [SUGGESTED], senden: [CHOSEN] });
+  await settle();
+  const french = page.boxes()[2];
+
+  french.checked = true;
+  french.dispatch("change");
+  await settle();
+
+  assert.deepEqual(page.calls.senden, [{ bewerbung: ["de", "en", "fr"] }]);
+  assert.deepEqual(page.calls.statuses, [["Bewerbungssprachen gespeichert.", "ok"]]);
+  assert.deepEqual(page.boxes().map(box => box.checked), [true, true, true]);
+  for (const box of page.boxes()) {
+    assert.equal(box.getAttribute("aria-describedby"), null);
+    assert.equal(page.root.querySelector(`#sprache-hinweis-${box.value}`).hidden, true);
+  }
+});
+
+test("the translation line speaks the chosen language and carries its lang, German shows none", async () => {
+  const french = { ...SUGGESTED, app: "fr", app_gewaehlt: true };
+  const page = setup({ holen: [french], senden: [{ ...french, app: "de" }] });
+  await settle();
+  const line = page.root.querySelector("#sprache-folgt");
+
+  assert.equal(line.textContent, "La traduction arrive bientôt. D'ici là, l'application reste en allemand.");
+  assert.equal(line.getAttribute("lang"), "fr");
+  assert.equal(line.hidden, false);
+
+  const select = page.root.querySelector("#sprache-app");
+  select.value = "de";
+  select.dispatch("change");
+  await settle();
+
+  assert.deepEqual(page.calls.senden, [{ app: "de" }]);
+  assert.equal(line.hidden, true);
+  assert.equal(line.textContent, "");
+  assert.equal(line.getAttribute("lang"), null);
 });
