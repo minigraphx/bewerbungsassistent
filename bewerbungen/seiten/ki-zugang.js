@@ -4,24 +4,30 @@
 // reports the way picked; what each way then asks for stays with the place that uses it.
 (function (global) {
   const GUIDE = "https://github.com/minigraphx/bewerbungsassistent/blob/main/docs";
-  const IN_USE = "Eingerichtet.";
+  // Texts in the app language (#416); texte.js is loaded before this file on every page, required in the tests.
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+
   // Texts without an address, so they fit every text set (Sie, du, Lehrstelle).
-  const OPTIONS = [
-    { value: "einladung", title: "Einladungscode", text: "Kostenlos im Pilot, mit einem Budget von CHF 5 pro Monat." },
-    { value: "abo", title: "Eigenes Claude-Abo", text: "Die Arbeit läuft in Claude, die App liefert die Werkzeuge.",
-      link: { href: `${GUIDE}/eigenes-abo.md`, text: "Anleitung" } },
-    { value: "schluessel", title: "Eigener Schlüssel von Anthropic", text: "Für Geübte. Anthropic rechnet die KI direkt ab.",
-      link: { href: `${GUIDE}/installation.md#eigener-api-schlüssel-freiwillig`, text: "Woher der Schlüssel kommt und was er kostet" } },
-  ];
+  function allOptions() {
+    const Texte = texts();
+    return [
+      { value: "einladung", title: Texte.t("Einladungscode"), text: Texte.t("Kostenlos im Pilot, mit einem Budget von CHF 5 pro Monat.") },
+      { value: "abo", title: Texte.t("Eigenes Claude-Abo"), text: Texte.t("Die Arbeit läuft in Claude, die App liefert die Werkzeuge."),
+        link: { href: `${GUIDE}/eigenes-abo.md`, text: Texte.t("Anleitung") } },
+      { value: "schluessel", title: Texte.t("Eigener Schlüssel von Anthropic"), text: Texte.t("Für Geübte. Anthropic rechnet die KI direkt ab."),
+        link: { href: `${GUIDE}/installation.md#eigener-api-schlüssel-freiwillig`, text: Texte.t("Woher der Schlüssel kommt und was er kostet") } },
+    ];
+  }
 
   /** The ways this app can offer; the subscription only where the packaged app has its routes. */
   function options({ abo = false } = {}) {
-    return OPTIONS.filter(option => abo || option.value !== "abo");
+    return allOptions().filter(option => abo || option.value !== "abo");
   }
 
   /** The line under the title; the way in use says so first. */
   function line(option, current) {
-    return option.value === current ? `${IN_USE} ${option.text}` : option.text;
+    const Texte = texts();
+    return option.value === current ? Texte.t("Eingerichtet. {weg}", { weg: option.text }) : option.text;
   }
 
   /**

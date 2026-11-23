@@ -37,10 +37,19 @@ log = logging.getLogger("bewerbungsbegleiter")
 
 SESSION_COOKIE = "bewerbungsbegleiter-{port}"  # cookies do not tell ports apart
 SESSION_DAYS = 30  # the session ends with the app anyway; this keeps it across a restart of the browser
+# The sentence is a T so the catalog has it; page_translation says the page in the app language (#416).
+LOCKED_TEXT = ui_texts.T("Diese Seite öffnet sich nur über die App. Bitte den Bewerbungsbegleiter über sein "
+                         "Programmsymbol öffnen, auch wenn er schon läuft.")
 PAGE_LOCKED = ("<!doctype html><html lang=\"de-CH\"><head><meta charset=\"utf-8\"><title>Bewerbungsbegleiter</title>"
                "<link rel=\"stylesheet\" href=\"/stil.css\"></head><body><main class=\"einrichtung\"><h1>Bewerbungsbegleiter</h1>"
-               "<p>Diese Seite öffnet sich nur über die App. Bitte den Bewerbungsbegleiter über sein Programmsymbol "
-               "öffnen, auch wenn er schon läuft.</p></main></body></html>")
+               f"<p>{LOCKED_TEXT}</p></main></body></html>")
+# Messages of the server itself, said in the app language by _fehler
+NOT_FOUND = ui_texts.T("Nicht gefunden")
+UNKNOWN_HOST = ui_texts.T("Unbekannter Host")
+INVALID_TOKEN = ui_texts.T("Ungültiges Token")
+JSON_EXPECTED = ui_texts.T("Erwartet application/json")
+INVALID_JSON = ui_texts.T("Ungültiges JSON")
+INTERNAL_ERROR = ui_texts.T("Interner Fehler, Details in der Konsole")
 
 
 UNSAFE_IN_HEADER = re.compile(r"[^A-Za-z0-9._ -]")
@@ -85,9 +94,10 @@ def json_antwort(wert: Any, status: int = HTTPStatus.OK) -> Antwort:
     return Antwort(status, "application/json; charset=utf-8", _json(wert), wert=wert)
 
 
-def _message(error: Exception, keyed: bool = False) -> str:
+def message_of(error: Exception, keyed: bool = False) -> str:
     """What an error says to the person. A T stays a T, so _fehler can say it in the app language; otherwise the text
-    as before: str() of the error, of its first argument for a KeyError, whose own str() would quote it."""
+    as before: str() of the error, of its first argument for a KeyError, whose own str() would quote it. Routes that
+    pass an error on in another one keep its T through this too."""
     first = error.args[0] if error.args else None
     if isinstance(first, ui_texts.T):
         return first
@@ -101,7 +111,7 @@ def _header_name(name: str) -> str:
 
 def datei_antwort(pfad: pathlib.Path, typ: str | None = None) -> Antwort:
     if not pfad.is_file():
-        raise NichtGefunden(f"{pfad.name} nicht gefunden")
+        raise NichtGefunden(ui_texts.T("{datei} nicht gefunden", datei=pfad.name))
     return Antwort(HTTPStatus.OK, typ or mimetypes.guess_type(pfad.name)[0] or "application/octet-stream",
                    pfad.read_bytes(), (("Content-Disposition", f'inline; filename="{_header_name(pfad.name)}"'),))
 
@@ -199,7 +209,7 @@ class Handler(BaseHTTPRequestHandler):
         """The catalog of one language for the scripts of a page (#414); like texte.js it holds nothing personal."""
         language = dict(urllib.parse.parse_qsl(query)).get("sprache")
         if language not in translation_catalog.LANGUAGES:
-            raise NichtGefunden("Nicht gefunden")
+            raise NichtGefunden(NOT_FOUND)
         return Antwort(HTTPStatus.OK, "text/javascript; charset=utf-8",
                        translation_catalog.script(language).encode("utf-8"))
 
@@ -234,11 +244,12 @@ class Handler(BaseHTTPRequestHandler):
                            (("Location", teile.path + (f"?{rest}" if rest else "")), ("Set-Cookie", cookie)))
         if self._has_session():
             return self._seite(datei)
-        return Antwort(HTTPStatus.FORBIDDEN, "text/html; charset=utf-8", PAGE_LOCKED.encode("utf-8"))
+        locked = page_translation.translate(PAGE_LOCKED, self._language())
+        return Antwort(HTTPStatus.FORBIDDEN, "text/html; charset=utf-8", locked.encode("utf-8"))
 
     def do_GET(self) -> None:
         if not self._host_erlaubt():
-            return self._fehler(HTTPStatus.FORBIDDEN, "Unbekannter Host")
+            return self._fehler(HTTPStatus.FORBIDDEN, UNKNOWN_HOST)
         teile = urllib.parse.urlsplit(self.path)
         if teile.path in self.server.seiten:
             return self._senden(self._page_with_proof(teile))
@@ -246,23 +257,23 @@ class Handler(BaseHTTPRequestHandler):
             return self._run_route(lambda kontext, parameter, body: self._translation_script(teile.query), {}, None)
         route = self.server.routen_get.get(teile.path)
         if route is None:
-            return self._fehler(HTTPStatus.NOT_FOUND, "Nicht gefunden")
+            return self._fehler(HTTPStatus.NOT_FOUND, NOT_FOUND)
         parameter = {k: v[-1] for k, v in urllib.parse.parse_qs(teile.query).items()}
         if not self._token_gueltig(parameter.pop("t", None)):
-            return self._fehler(HTTPStatus.FORBIDDEN, "Ungültiges Token")
+            return self._fehler(HTTPStatus.FORBIDDEN, INVALID_TOKEN)
         self._ausfuehren(route, parameter, None)
 
     def do_POST(self) -> None:
         if not self._host_erlaubt():
-            return self._fehler(HTTPStatus.FORBIDDEN, "Unbekannter Host")
+            return self._fehler(HTTPStatus.FORBIDDEN, UNKNOWN_HOST)
         teile = urllib.parse.urlsplit(self.path)
         route = self.server.routen_post.get(teile.path)
         if route is None:
-            return self._fehler(HTTPStatus.NOT_FOUND, "Nicht gefunden")
+            return self._fehler(HTTPStatus.NOT_FOUND, NOT_FOUND)
         if not self._token_gueltig(self.headers.get("X-Token")):
-            return self._fehler(HTTPStatus.FORBIDDEN, "Ungültiges Token")
+            return self._fehler(HTTPStatus.FORBIDDEN, INVALID_TOKEN)
         if self.headers.get_content_type() != "application/json":
-            return self._fehler(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "Erwartet application/json")
+            return self._fehler(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, JSON_EXPECTED)
         try:
             laenge = int(self.headers.get("Content-Length") or 0)
         except ValueError:
@@ -270,11 +281,12 @@ class Handler(BaseHTTPRequestHandler):
         grenze = self.server.grenzen.get(teile.path, MAX_BODY)
         if not 0 < laenge <= grenze:
             self._discard_body(laenge)
-            return self._fehler(HTTPStatus.BAD_REQUEST, f"Anfrage leer oder grösser als {grenze} Bytes")
+            return self._fehler(HTTPStatus.BAD_REQUEST,
+                                ui_texts.T("Anfrage leer oder grösser als {grenze} Bytes", grenze=grenze))
         try:
             body = json.loads(self.rfile.read(laenge))
         except (json.JSONDecodeError, UnicodeDecodeError):
-            return self._fehler(HTTPStatus.BAD_REQUEST, "Ungültiges JSON")
+            return self._fehler(HTTPStatus.BAD_REQUEST, INVALID_JSON)
         parameter = {k: v[-1] for k, v in urllib.parse.parse_qs(teile.query).items()}
         self._ausfuehren(route, parameter, body)
 
@@ -296,14 +308,14 @@ class Handler(BaseHTTPRequestHandler):
         try:
             antwort = route(self.server.kontext, parameter, body)
         except KeyError as fehler:  # NichtGefunden among them
-            return self._fehler(HTTPStatus.NOT_FOUND, _message(fehler, keyed=True))
+            return self._fehler(HTTPStatus.NOT_FOUND, message_of(fehler, keyed=True))
         except ValueError as fehler:
-            return self._fehler(HTTPStatus.BAD_REQUEST, _message(fehler), getattr(fehler, "action", None))
+            return self._fehler(HTTPStatus.BAD_REQUEST, message_of(fehler), getattr(fehler, "action", None))
         except StatusError as fehler:
-            return self._fehler(fehler.status, _message(fehler))
+            return self._fehler(fehler.status, message_of(fehler))
         except Exception:
             log.exception("Fehler bei %s %s", self.command, self.path)
-            return self._fehler(HTTPStatus.INTERNAL_SERVER_ERROR, "Interner Fehler, Details in der Konsole")
+            return self._fehler(HTTPStatus.INTERNAL_SERVER_ERROR, INTERNAL_ERROR)
         self._senden(self._in_language(antwort))
 
     def log_message(self, format: str, *args) -> None:
@@ -313,5 +325,5 @@ class Handler(BaseHTTPRequestHandler):
 def pflicht(parameter: dict, name: str) -> str:
     wert = parameter.get(name)
     if not wert:
-        raise ValueError(f"Parameter {name} fehlt")
+        raise ValueError(ui_texts.T("Parameter {name} fehlt", name=name))
     return wert

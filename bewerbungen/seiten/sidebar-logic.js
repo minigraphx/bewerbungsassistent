@@ -13,18 +13,10 @@
     "/fragen": "fragen",
     "/einstellungen": "einstellungen",
   };
-  const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
-                  "November", "Dezember"];
   // Asking for the credit reaches the mediation, so a tab asks again only after a while.
   const BUDGET_MAX_AGE_MS = 5 * 60 * 1000;
   // From this share used the sidebar warns in words (#211): a bar in another colour alone is easy to miss.
   const NEARLY_USED_SHARE = 0.8;
-  // A mediation that names no renewal counts a one-time credit (G80): once used up, a new code brings a new one.
-  const WARNINGS = {
-    low: { long: "Guthaben fast aufgebraucht", short: "fast aufgebraucht" },
-    empty: { long: "Guthaben aufgebraucht: neuen Code anfordern", short: "aufgebraucht" },
-  };
-  const NO_MEDIATION_CREDIT = { long: "Kein Guthaben der Vermittlung", short: "kein Guthaben der Vermittlung" };
   // With the mediation the person sees CHF (G46); one USD billed counts as one CHF (ai/usage.py CHF_PER_USD).
   const MEDIATION_CURRENCY = "CHF";
   const OWN_CURRENCY = "USD";
@@ -33,8 +25,31 @@
   // Fired on the document when a page changed which hits the list shows, so „N neu“ counts again (#303).
   const HITS_CHANGED = "treffer-geaendert";
 
-  // Loaded before this file on every page; required in the tests.
+  // Texts in the app language through Texte.t (#416); texte.js is loaded before this file on every page, required in
+  // the tests.
   const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+
+  /** The months in the app language, for the budget and the costs; the mediation names them by number. */
+  function months() {
+    const Texte = texts();
+    return [Texte.t("Januar"), Texte.t("Februar"), Texte.t("März"), Texte.t("April"), Texte.t("Mai"), Texte.t("Juni"),
+            Texte.t("Juli"), Texte.t("August"), Texte.t("September"), Texte.t("Oktober"), Texte.t("November"),
+            Texte.t("Dezember")];
+  }
+
+  // A mediation that names no renewal counts a one-time credit (G80): once used up, a new code brings a new one.
+  function warnings() {
+    const Texte = texts();
+    return {
+      low: { long: Texte.t("Guthaben fast aufgebraucht"), short: Texte.t("fast aufgebraucht") },
+      empty: { long: Texte.t("Guthaben aufgebraucht: neuen Code anfordern"), short: Texte.t("aufgebraucht") },
+    };
+  }
+
+  function noMediationCredit() {
+    const Texte = texts();
+    return { long: Texte.t("Kein Guthaben der Vermittlung"), short: Texte.t("kein Guthaben der Vermittlung") };
+  }
 
   function activeTarget(page) {
     return TARGET_OF_PAGE[page] || null;
@@ -44,17 +59,22 @@
 
   /** Badges only where something waits: the things due today and the new hits of the search. */
   function badges({ open, newHits } = {}) {
+    const Texte = texts();
     const due = count(open);
     const fresh = count(newHits);
+    const freshText = fresh ? Texte.t("{anzahl} neu", { anzahl: fresh }) : "";
     return {
-      heute: due ? { long: `${due} offen`, short: String(due) } : null,
-      stellen: fresh ? { long: `${fresh} neu`, short: `${fresh} neu` } : null,
+      heute: due ? { long: Texte.t("{anzahl} offen", { anzahl: due }), short: String(due) } : null,
+      stellen: fresh ? { long: freshText, short: freshText } : null,
     };
   }
 
   // A decimal point, as the design system says.
   const usd = value => value.toFixed(2);
-  const NOTHING_USED = "Noch nichts verbraucht";
+  function nothingUsed() {
+    const Texte = texts();
+    return Texte.t("Noch nichts verbraucht");
+  }
 
   /** The currency of the AI costs a page shows, from GET /api/ki/status (may be null). */
   function currencyOf(status) {
@@ -62,9 +82,22 @@
   }
 
   function monthName(month) {
+    const Texte = texts();
     const found = /^\d{4}-(\d{2})$/.exec(month || "");
-    const name = found ? MONTHS[Number(found[1]) - 1] : undefined;
-    return name ? `im ${name}` : "in diesem Monat";
+    const name = found ? months()[Number(found[1]) - 1] : undefined;
+    return name ? Texte.t("im {monat}", { monat: name }) : Texte.t("in diesem Monat");
+  }
+
+  /**
+   * Month and renewal of the budget in the app language; texte.js says whether the mediation named them in a form the
+   * page can read (budgetMonth), the words come from here.
+   */
+  function budgetWords(status) {
+    const Texte = texts();
+    if (!Texte.budgetMonth(status)) return null;
+    const day = /^\d{4}-(\d{2})-(\d{2})$/.exec(status.erneuert_am);
+    return { month: months()[Number(status.monat.slice(5, 7)) - 1],
+             renews: Texte.dayAndMonth(Number(day[2]), Number(day[1])) };
   }
 
   function creditState(spent, credit) {
@@ -75,25 +108,37 @@
   const chf = value => `${MEDIATION_CURRENCY}${NBSP}${usd(value)}`;
 
   function amounts(status) {
+    const Texte = texts();
     const credit = status.guthaben_chf;
     const spent = Math.max(0, Number(status.verbraucht_chf) || 0);
     return { credit, spent, percent: Math.min(100, Math.round((spent / credit) * 100)),
-             left: `${chf(Math.max(0, credit - spent))} frei`, state: creditState(spent, credit) };
+             left: Texte.t("{betrag} frei", { betrag: chf(Math.max(0, credit - spent)) }), state: creditState(spent, credit) };
+  }
+
+  /** „CHF 3.20 von CHF 10.00 verbraucht“, or what is free while nothing is used. */
+  function usedText(spent, credit) {
+    const Texte = texts();
+    return spent > 0 ? Texte.t("{verbraucht} von {guthaben} verbraucht", { verbraucht: chf(spent), guthaben: chf(credit) })
+      : Texte.t("{betrag} frei", { betrag: chf(credit) });
   }
 
   /** The budget of this month (G98), in the words of the UI/UX review of 20.11.2026. */
   function monthlyBudget(status, { month, renews }) {
+    const Texte = texts();
     const { credit, spent, percent, left, state } = amounts(status);
-    const short = `KI-Budget: ${left}`;
-    const warning = { low: `Fast aufgebraucht. Neues Budget am ${renews}.`, empty: `Aufgebraucht. Die KI geht wieder ab ${renews}.` };
-    const narrow = { ok: short, low: `${short} · fast aufgebraucht`, empty: `KI-Budget: wieder ab ${renews}` };
+    const short = Texte.t("KI-Budget: {frei}", { frei: left });
+    const warning = { low: Texte.t("Fast aufgebraucht. Neues Budget am {datum}.", { datum: renews }),
+                      empty: Texte.t("Aufgebraucht. Die KI geht wieder ab {datum}.", { datum: renews }) };
+    const narrow = { ok: short, low: `${short} · ${Texte.t("fast aufgebraucht")}`,
+                     empty: Texte.t("KI-Budget: wieder ab {datum}", { datum: renews }) };
     return {
-      title: `KI-Budget ${month}`,
-      text: spent > 0 ? `${chf(spent)} von ${chf(credit)} verbraucht` : `${chf(credit)} frei`,
+      title: Texte.t("KI-Budget {monat}", { monat: month }),
+      text: usedText(spent, credit),
       short,
       percent,
-      label: spent > 0 ? `${percent} Prozent des KI-Budgets für ${month} verbraucht` : NOTHING_USED,
-      detail: spent > 0 ? left : NOTHING_USED,
+      label: spent > 0 ? Texte.t("{prozent} Prozent des KI-Budgets für {monat} verbraucht", { prozent: percent, monat: month })
+        : nothingUsed(),
+      detail: spent > 0 ? left : nothingUsed(),
       warning: warning[state] || "",
       state,
       narrow: narrow[state],
@@ -101,19 +146,20 @@
   }
 
   function mediationCredit(status) {
-    const budget = texts().budgetMonth(status);
+    const Texte = texts();
+    const budget = budgetWords(status);
     if (budget) return monthlyBudget(status, budget);
     const { credit, spent, percent, left, state } = amounts(status);
-    const warning = WARNINGS[state];
-    const short = `KI-Guthaben: ${left}`;
+    const warning = warnings()[state];
+    const short = Texte.t("KI-Guthaben: {frei}", { frei: left });
     // the same words as Einstellungen and the page „KI“ (#347): the currency on both amounts, «verbraucht»
     return {
-      title: "KI-Guthaben",
-      text: spent > 0 ? `${chf(spent)} von ${chf(credit)} verbraucht` : `${chf(credit)} frei`,
+      title: Texte.t("KI-Guthaben"),
+      text: usedText(spent, credit),
       short,
       percent,
-      label: spent > 0 ? `${percent} Prozent des Guthabens verbraucht` : NOTHING_USED,
-      detail: spent > 0 ? left : NOTHING_USED,
+      label: spent > 0 ? Texte.t("{prozent} Prozent des Guthabens verbraucht", { prozent: percent }) : nothingUsed(),
+      detail: spent > 0 ? left : nothingUsed(),
       warning: warning ? warning.long : "",
       state,
       narrow: warning ? `${short} · ${warning.short}` : short,
@@ -121,11 +167,13 @@
   }
 
   function ownKeyCosts(status, when) {
-    const costs = usd(Math.max(0, Number(status.kosten_usd) || 0));
-    const short = `KI-Kosten: ${OWN_CURRENCY}${NBSP}${costs}`;
+    const Texte = texts();
+    const costs = `${OWN_CURRENCY}${NBSP}${usd(Math.max(0, Number(status.kosten_usd) || 0))}`;
+    const short = Texte.t("KI-Kosten: {betrag}", { betrag: costs });
+    const none = noMediationCredit();
     return {
-      title: `KI-Kosten ${when}`, text: `${OWN_CURRENCY}${NBSP}${costs} mit eigenem Schlüssel`, short, percent: null, label: "",
-      detail: NO_MEDIATION_CREDIT.long, warning: "", state: "own", narrow: `${short} · ${NO_MEDIATION_CREDIT.short}`,
+      title: Texte.t("KI-Kosten {wann}", { wann: when }), text: Texte.t("{betrag} mit eigenem Schlüssel", { betrag: costs }),
+      short, percent: null, label: "", detail: none.long, warning: "", state: "own", narrow: `${short} · ${none.short}`,
     };
   }
 

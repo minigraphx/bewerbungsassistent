@@ -9,6 +9,7 @@ import re
 
 from ai import errors, invitation
 from ai.connection import find_connection
+from ui_texts import T
 
 MONTHS = ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November",
           "Dezember")
@@ -42,7 +43,12 @@ def month_of(account: dict | None) -> tuple[str, str] | None:
     if not fields:
         return None
     day = _renewal_day(fields["erneuert_am"])
-    return MONTHS[int(fields["monat"][5:]) - 1], f"{day.day}.{NBSP}{MONTHS[day.month - 1]}"
+    # T, so the refusal names month and day in the app language (#416); in German the same text as before. French
+    # writes the first of a month „1er décembre“, so day 1 has its own text.
+    month = T(MONTHS[day.month - 1])
+    renews = (T("1.{nbsp}{monat}", nbsp=NBSP, monat=month) if day.day == 1
+              else T("{tag}.{nbsp}{monat}", tag=day.day, nbsp=NBSP, monat=month))
+    return T(MONTHS[int(fields["monat"][5:]) - 1]), renews
 
 
 def used_up_message(account: dict | None) -> str:
@@ -50,7 +56,7 @@ def used_up_message(account: dict | None) -> str:
     named = month_of(account)
     if named is None:
         return errors.CREDIT_USED_ONCE
-    return errors.CREDIT_USED.format(month=named[0], renews=named[1])
+    return errors.credit_used(month=named[0], renews=named[1])
 
 
 def used_up_error() -> errors.AiError:

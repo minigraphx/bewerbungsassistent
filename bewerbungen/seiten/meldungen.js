@@ -7,7 +7,11 @@
 // (tests/meldungen.test.cjs, tests/input_errors.test.cjs).
 (function (global) {
   const AUSBLENDEN_MS = 8000;
-  const SCHLIESSEN = "Meldung schliessen";
+  /** The name of the close button in the language of the page (#416); texte.js comes first on every page. */
+  function schliessenText() {
+    const Texte = typeof module !== "undefined" ? require("./texte.js") : global.Texte;
+    return Texte.t("Meldung schliessen");
+  }
   const STUFEN = { ok: "success", success: "success", hinweis: "warning", warning: "warning", fehler: "danger", danger: "danger" };
   const ALTE_KLASSEN = { success: "ok", warning: "hinweis", danger: "fehler" };  // the look of `.status` and `.befunde` lines
   const BLEIBEN = new Set(["warning", "danger"]);
@@ -94,7 +98,7 @@
     if (aktion) element.append(knopf(element, aktion.text, () => { leere(element); aktion.ausfuehren(); }));
     if (bleibt) {
       element.classList.add("status--closable");
-      element.append(knopf(element, "×", () => leere(element), SCHLIESSEN));
+      element.append(knopf(element, "×", () => leere(element), schliessenText()));
     } else {
       ausblendenSpaeter(element, zustand(element));
     }
@@ -178,7 +182,7 @@
     zeile.append(knopf(zeile, "×", () => {
       zeile.remove();
       if (beiSchliessen) beiSchliessen();
-    }, SCHLIESSEN));
+    }, schliessenText()));
     return zeile;
   }
 
@@ -190,7 +194,7 @@
     if (!same) zeige(element, text, stufe);
   }
 
-  const meldungen = { AUSBLENDEN_MS, SCHLIESSEN, zeige, zeigeNeu, leere, listenZeile, clearOnInput, clearInputError,
+  const meldungen = { AUSBLENDEN_MS, schliessenText, zeige, zeigeNeu, leere, listenZeile, clearOnInput, clearInputError,
     isInputRejection, showFailure, focusAfterFailure };
   if (typeof module !== "undefined") module.exports = meldungen;
   else global.Meldungen = meldungen;

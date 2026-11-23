@@ -13,21 +13,25 @@ import pathlib
 import search_plan
 from ai.errors import SetupNeeded
 from dateien import schreibe_atomar
+from ui_texts import T
 
 FILE = "einwilligung.json"
 VERSION = "2026-11"
 PAGE_VARIABLE = "BEWERBUNGSBEGLEITER_DATENSCHUTZ_URL"
-MISSING = "Vor der ersten KI-Nutzung braucht es die Einwilligung: unter „KI einrichten“."
-STALE_PAGE = "Der Text hat sich geändert. Bitte die Seite neu laden und nochmals lesen."
-_SENDING = ("Ich habe die Datenschutzerklärung gelesen und bin einverstanden, dass Texte aus {whose} Unterlagen für die "
-            "KI-Funktionen an Anthropic gehen, auch in die USA. Sie können indirekt auf {hints} hindeuten.")
+MISSING = T("Vor der ersten KI-Nutzung braucht es die Einwilligung: unter „KI einrichten“.")
+STALE_PAGE = T("Der Text hat sich geändert. Bitte die Seite neu laden und nochmals lesen.")
+# Whole sentences, each a T, so the page shows the text agreed to in the app language (#416); the German is the one
+# of VERSION, word for word.
 WORDING = {
-    search_plan.KIND_JOB: "Ich bin mindestens 18 Jahre alt. " + _SENDING.format(
-        whose="meinen", hints="eine Arbeitslosigkeit oder auf Angaben aus Zeugnissen"),
-    search_plan.KIND_APPRENTICESHIP: (
+    search_plan.KIND_JOB: T(
+        "Ich bin mindestens 18 Jahre alt. Ich habe die Datenschutzerklärung gelesen und bin einverstanden, dass Texte "
+        "aus meinen Unterlagen für die KI-Funktionen an Anthropic gehen, auch in die USA. Sie können indirekt auf eine "
+        "Arbeitslosigkeit oder auf Angaben aus Zeugnissen hindeuten."),
+    search_plan.KIND_APPRENTICESHIP: T(
         "Ich bin Elternteil oder gesetzliche Vertretung und mindestens 18 Jahre alt. Ich richte die App für die "
-        "jugendliche Person ein und habe mit ihr besprochen, was an die KI geht. ") + _SENDING.format(
-        whose="ihren", hints="Angaben aus Zeugnissen"),
+        "jugendliche Person ein und habe mit ihr besprochen, was an die KI geht. Ich habe die Datenschutzerklärung "
+        "gelesen und bin einverstanden, dass Texte aus ihren Unterlagen für die KI-Funktionen an Anthropic gehen, auch "
+        "in die USA. Sie können indirekt auf Angaben aus Zeugnissen hindeuten."),
 }
 
 

@@ -8,7 +8,8 @@ window.App = (() => {
   const TOKEN = document.querySelector('meta[name="token"]').content;
   // The window „KI einrichten“ (G60, #272): an answer with this action, or an address with ?ki=einrichten, opens it.
   const KI_EINRICHTEN = "ki-einrichten";
-  const KI_SKRIPTE = [["Texte", "/texte.js"], ["Einwilligung", "/einwilligung.js"], ["KiZugang", "/ki-zugang.js"], ["KiFenster", "/ki-fenster.js"]];
+  // Texts go through window.Texte.t (#416): texte.js comes first on every page, and the catalog with it.
+  const KI_SKRIPTE = [["Texte", "/texte.js"], ["Einwilligung", "/einwilligung.js"], ["KiZugang", "/ki-zugang.js"], ["KiFenster", "/ki-fenster.js"]];  // kein UI-Text
 
   /** Claude writes into the app while a page is open (MIN-377): look again as long as the page can be seen. */
   function beobachten(nachsehen) {
@@ -53,7 +54,7 @@ window.App = (() => {
   async function pdfAdresse(pfad, parameter = {}, ort = "standard") {
     const antwort = await fetch(url(pfad, parameter));
     if (!antwort.ok) await antwortLesen(antwort);
-    if (!(antwort.headers.get("Content-Type") || "").includes("pdf")) throw new Error("Antwort ist kein PDF");
+    if (!(antwort.headers.get("Content-Type") || "").includes("pdf")) throw new Error(window.Texte.t("Antwort ist kein PDF"));
     const adresse = URL.createObjectURL(await antwort.blob());
     if (letztePdfs.has(ort)) URL.revokeObjectURL(letztePdfs.get(ort));
     letztePdfs.set(ort, adresse);
@@ -85,7 +86,7 @@ window.App = (() => {
     return new Promise((resolve, reject) => {
       const leser = new FileReader();
       leser.onload = () => resolve(leser.result.split(",")[1] || "");
-      leser.onerror = () => reject(new Error(`${datei.name} liess sich nicht lesen.`));
+      leser.onerror = () => reject(new Error(window.Texte.t("{datei} liess sich nicht lesen.", { datei: datei.name })));
       leser.readAsDataURL(datei);
     });
   }
@@ -100,20 +101,22 @@ window.App = (() => {
   async function letzteEntwuerfe(element, datei) {
     element.dataset.datei = datei;
     // Job ads have no place on Entwürfe und Versionen (#120), so their box links nowhere
-    const alle = STELLENINSERAT.test(datei) ? null : el("a", { href: "/entwuerfe?" + new URLSearchParams({ datei }) }, "Alle Entwürfe dieser Datei");
+    const alle = STELLENINSERAT.test(datei) ? null
+      : el("a", { href: "/entwuerfe?" + new URLSearchParams({ datei }) }, window.Texte.t("Alle Entwürfe dieser Datei"));
     let inhalt;
     try {
       const { entwuerfe } = await holen("/api/entwuerfe", { datei, anzahl: LETZTE_ENTWUERFE });
       // a «·» line of whole parts (#342, dot-line.js, loaded before this file on every page)
       const eintraege = entwuerfe.map(e => el("li", {}, window.DotLine.render([
-        el("time", { datetime: e.zeit }, zeitpunkt(e.zeit)), e.beschreibung || "ohne Beschreibung",
-        e.genutzt ? el("span", { class: "leise", title: e.genutzt_fuer.join(", ") }, "versendet") : null], el)));
-      inhalt = eintraege.length ? el("ul", {}, eintraege) : el("p", { class: "leer" }, "Noch keine Entwürfe.");
+        el("time", { datetime: e.zeit }, zeitpunkt(e.zeit)), e.beschreibung || window.Texte.t("ohne Beschreibung"),
+        e.genutzt ? el("span", { class: "leise", title: e.genutzt_fuer.join(", ") }, window.Texte.t("versendet")) : null], el)));
+      inhalt = eintraege.length ? el("ul", {}, eintraege) : el("p", { class: "leer" }, window.Texte.t("Noch keine Entwürfe."));
     } catch (fehler) {
-      inhalt = el("p", { class: "leise" }, "Entwürfe nicht lesbar: " + fehler.message);
+      console.warn("Letzte Entwürfe nicht lesbar:", datei, fehler.message);  // kein UI-Text: log line
+      inhalt = el("p", { class: "leise" }, window.Texte.t("Entwürfe nicht lesbar: {fehler}", { fehler: fehler.message }));
     }
     if (element.dataset.datei !== datei) return;  // another file was chosen meanwhile
-    element.replaceChildren(el("h2", {}, "Letzte Entwürfe"), inhalt, alle);
+    element.replaceChildren(el("h2", {}, window.Texte.t("Letzte Entwürfe")), inhalt, alle);
   }
 
   function datum(iso) {
@@ -193,7 +196,8 @@ window.App = (() => {
 
   function ladeSkript(src) {
     return new Promise((resolve, reject) => {
-      document.head.append(el("script", { src, onload: resolve, onerror: () => reject(new Error(`${src} liess sich nicht laden.`)) }));
+      document.head.append(el("script", { src, onload: resolve,
+        onerror: () => reject(new Error(window.Texte.t("{datei} liess sich nicht laden.", { datei: src }))) }));
     });
   }
 
@@ -224,7 +228,7 @@ window.App = (() => {
   // The browser chosen for the app did not start (G99, #369): desktop/app_browser.py opened the default browser
   // instead and added this parameter. The request leaves the address, so a reload shows no notice again.
   const BROWSER_FEHLT = "browser-fehlt";
-  const BROWSER_NAMEN = { chrome: "Google Chrome", edge: "Microsoft Edge" };
+  const BROWSER_NAMEN = { chrome: "Google Chrome", edge: "Microsoft Edge" };  // kein UI-Text: product names
   function browserFehltNehmen() {
     const suche = new URLSearchParams(location.search);
     if (!suche.has(BROWSER_FEHLT)) return null;
@@ -238,12 +242,13 @@ window.App = (() => {
   function browserHinweis() {
     const name = browserFehltNehmen();
     if (!name) return;
-    const schliessen = el("button", { type: "button", class: "status__close", "aria-label": "Meldung schliessen" }, "×");
+    const schliessen = el("button", { type: "button", class: "status__close", "aria-label": window.Meldungen.schliessenText() }, "×");
     const hinweis = el("div", { class: "notice notice--warning", role: "status" },
-      el("p", { class: "notice__body" }, `${name} liess sich nicht starten, darum ist die App im Standardbrowser offen. `
-        + "Der Browser für die App lässt sich unter Einstellungen, Browser und Erweiterung wählen."),
-      el("div", { class: "notice__actions" }, el("a", { class: "btn btn--sm", href: "/einstellungen#browser" }, "Zu den Einstellungen"),
-        schliessen));
+      el("p", { class: "notice__body" }, window.Texte.t(
+        "{browser} liess sich nicht starten, darum ist die App im Standardbrowser offen. Der Browser für die App lässt sich unter Einstellungen, Browser und Erweiterung wählen.",
+        { browser: name })),
+      el("div", { class: "notice__actions" },
+        el("a", { class: "btn btn--sm", href: "/einstellungen#browser" }, window.Texte.t("Zu den Einstellungen")), schliessen));
     schliessen.addEventListener("click", () => hinweis.remove());
     document.querySelector("main")?.prepend(hinweis);
   }
@@ -252,23 +257,24 @@ window.App = (() => {
   // In the Store package (#344) the Store brings updates, so the app offers none and says so here only.
   function ueberDieApp(version, store) {
     return el("div", { class: "about" },
-      el("img", { class: "about__logo", src: "/as-logo.svg", width: "40", height: "40", alt: "Logo AS" }),
+      el("img", { class: "about__logo", src: "/as-logo.svg", width: "40", height: "40", alt: window.Texte.t("Logo AS") }),
       el("div", {},
         el("p", { class: "about__name" }, "Bewerbungsbegleiter"),
-        el("p", { class: "about__meta version" }, `Version ${version}`),
-        el("p", { class: "about__meta" }, "von Andreas Schmidt"),
-        store ? el("p", { class: "about__meta" }, "Updates kommen über den Microsoft Store.") : updateSuche()));
+        el("p", { class: "about__meta version" }, window.Texte.t("Version {version}", { version })),
+        el("p", { class: "about__meta" }, window.Texte.t("von Andreas Schmidt")),
+        store ? el("p", { class: "about__meta" }, window.Texte.t("Updates kommen über den Microsoft Store.")) : updateSuche()));
   }
 
   // «Nach Updates suchen» (#370, G100): the server at once, with the result in a live line under the button. The button
   // stays focusable while it checks (aria-disabled), and a check without an answer in time counts as failed.
   const UPDATE_SUCHE_MS = 10000;
   const ANSAGE_PAUSE_MS = 100;  // an emptied live line, then the text: screen readers announce a repeated result
-  const UPDATE_SUCHE_FEHLER = "Die Suche nach Updates hat nicht geklappt. Vielleicht fehlt die Internetverbindung; bitte später nochmals versuchen.";
+  const updateSucheFehler = () => window.Texte.t(
+    "Die Suche nach Updates hat nicht geklappt. Vielleicht fehlt die Internetverbindung; bitte später nochmals versuchen.");
 
   function mitFrist(versprechen, ms) {
     let uhr;
-    const frist = new Promise((_, reject) => { uhr = setTimeout(() => reject(new Error(UPDATE_SUCHE_FEHLER)), ms); });
+    const frist = new Promise((_, reject) => { uhr = setTimeout(() => reject(new Error(updateSucheFehler())), ms); });
     return Promise.race([versprechen, frist]).finally(() => clearTimeout(uhr));
   }
 
@@ -279,16 +285,18 @@ window.App = (() => {
   function sucheErgebnis(antwort) {
     if (antwort.update) {
       const meldung = el("span", {}, updateText(antwort.update).trim());
-      const knopf = updateKnopf(antwort.update, "Jetzt aktualisieren");
+      const knopf = updateKnopf(antwort.update, window.Texte.t("Jetzt aktualisieren"));
       if (antwort.update.automatisch) knopf.addEventListener("click", () => installieren(knopf, meldung));
       return [meldung, " ", knopf];
     }
-    const beta = antwort.vorabversionen ? " Vorabversionen eingeschlossen." : "";
-    return [`Version ${antwort.version} ist die neueste. Geprüft um ${zeitJetzt()}.${beta}`];
+    const werte = { version: antwort.version, zeit: zeitJetzt() };
+    return [antwort.vorabversionen
+      ? window.Texte.t("Version {version} ist die neueste. Geprüft um {zeit}. Vorabversionen eingeschlossen.", werte)
+      : window.Texte.t("Version {version} ist die neueste. Geprüft um {zeit}.", werte)];
   }
 
   function updateSuche() {
-    const knopf = el("button", { type: "button", class: "btn", "aria-describedby": "update-suche" }, "Nach Updates suchen");
+    const knopf = el("button", { type: "button", class: "btn", "aria-describedby": "update-suche" }, window.Texte.t("Nach Updates suchen"));
     const zeile = el("p", { id: "update-suche", class: "status-line", role: "status", "aria-live": "polite" });
     let schreiben = null;
     let lauf = 0;
@@ -305,13 +313,14 @@ window.App = (() => {
       if (knopf.getAttribute("aria-disabled") === "true") return;
       const dieser = ++lauf;
       knopf.setAttribute("aria-disabled", "true");
-      zeige(["Sucht nach Updates …"]);
+      zeige([window.Texte.t("Sucht nach Updates …")]);
       try {
         const antwort = await mitFrist(senden("/api/app/updates-suchen", {}), UPDATE_SUCHE_MS);
         if (dieser === lauf) zeige(sucheErgebnis(antwort));
-      } catch {
+      } catch (fehler) {
+        console.warn("Suche nach Updates fehlgeschlagen:", fehler?.message);  // kein UI-Text: log line
         if (dieser !== lauf) return;
-        zeige([UPDATE_SUCHE_FEHLER], true);
+        zeige([updateSucheFehler()], true);
         if (!document.activeElement || document.activeElement === document.body) knopf.focus();
       } finally {
         if (dieser === lauf) knopf.removeAttribute("aria-disabled");
@@ -322,8 +331,10 @@ window.App = (() => {
 
   // A new version (#32, G8): the first page after a start asks in a dialog; after "later" a banner stays for this run.
   function updateText(update) {
-    const zeitpunkt = update.beimBeenden ? "Sie wird beim Beenden installiert, oder gleich hier. " : "";
-    return `Version ${update.version} ist verfügbar. ${zeitpunkt}${update.hinweis || ""} `;
+    const verfuegbar = update.beimBeenden
+      ? window.Texte.t("Version {version} ist verfügbar. Sie wird beim Beenden installiert, oder gleich hier.", { version: update.version })
+      : window.Texte.t("Version {version} ist verfügbar.", { version: update.version });
+    return `${verfuegbar} ${update.hinweis || ""} `;
   }
 
   // Dialog, banner and «Nach Updates suchen» may all offer the update: one install at a time, and all their buttons
@@ -333,15 +344,16 @@ window.App = (() => {
 
   async function installieren(knopf, meldung) {
     if (installLaeuft) {
-      meldung.textContent = "Das Update läuft schon. ";
+      meldung.textContent = window.Texte.t("Das Update läuft schon.") + " ";
       return false;
     }
     installLaeuft = true;
     installKnoepfe.forEach(k => { k.disabled = true; });
-    meldung.textContent = "Neue Version wird geladen und geprüft …";
+    meldung.textContent = window.Texte.t("Neue Version wird geladen und geprüft …");
     try {
       await senden("/api/app/aktualisieren", {});
-      meldung.textContent = "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Dieser Tab lässt sich dann schliessen.";
+      meldung.textContent = window.Texte.t(
+        "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Dieser Tab lässt sich dann schliessen.");
       installKnoepfe.forEach(k => k.remove());
       return true;
     } catch (fehler) {
@@ -354,7 +366,9 @@ window.App = (() => {
 
   // Without a self-update the person loads the new version from its page.
   function updateKnopf(update, beschriftung) {
-    if (!update.automatisch) return el("a", { href: update.seite, target: "_blank", rel: "noopener" }, "Neue Version herunterladen");
+    if (!update.automatisch) {
+      return el("a", { href: update.seite, target: "_blank", rel: "noopener" }, window.Texte.t("Neue Version herunterladen"));
+    }
     const knopf = el("button", { type: "button", class: "haupt" }, beschriftung);
     knopf.disabled = installLaeuft;
     installKnoepfe.add(knopf);
@@ -363,18 +377,18 @@ window.App = (() => {
 
   function updateBanner(update) {
     const meldung = el("span", {}, updateText(update));
-    const knopf = updateKnopf(update, "Jetzt aktualisieren");
+    const knopf = updateKnopf(update, window.Texte.t("Jetzt aktualisieren"));
     if (update.automatisch) knopf.addEventListener("click", () => installieren(knopf, meldung));
     document.querySelector("main")?.prepend(el("div", { class: "banner", role: "status" }, meldung, knopf));
   }
 
   function updateDialog(update) {
     const meldung = el("p", { class: "dialog__text", id: "update-text" }, updateText(update));
-    const spaeter = el("button", { type: "button", class: "btn" }, "Später");
-    const knopf = updateKnopf(update, "Installieren");
+    const spaeter = el("button", { type: "button", class: "btn" }, window.Texte.t("Später"));
+    const knopf = updateKnopf(update, window.Texte.t("Installieren"));
     knopf.classList.add("btn", "btn--primary");
     const dialog = el("dialog", { class: "dialog", id: "update-dialog", "aria-labelledby": "update-titel", "aria-describedby": "update-text" },
-      el("h2", { class: "dialog__title", id: "update-titel" }, "Neue Version verfügbar"),
+      el("h2", { class: "dialog__title", id: "update-titel" }, window.Texte.t("Neue Version verfügbar")),
       meldung, el("div", { class: "dialog__actions" }, spaeter, knopf));
     let entschieden = false;
     const verschieben = async () => {
@@ -427,15 +441,16 @@ window.App = (() => {
     anwesend();
     const ort = document.getElementById("ueber-die-app");
     if (ort) {
-      const beenden = el("button", { type: "button", class: "beenden" }, "Beenden");
-      bestaetigen(beenden, "Wirklich beenden?", async () => {
+      const beenden = el("button", { type: "button", class: "beenden" }, window.Texte.t("Beenden"));
+      bestaetigen(beenden, window.Texte.t("Wirklich beenden?"), async () => {
         let ergebnis = {};
         try { ergebnis = await senden("/api/app/beenden", {}); } catch { /* already gone */ }
         document.body.replaceChildren(ergebnis.aktualisiert
-          ? el("main", {}, el("h1", {}, "Bewerbungsbegleiter wird aktualisiert"),
-            el("p", {}, `Version ${ergebnis.aktualisiert} wird im Hintergrund geladen und installiert, danach beendet sich die App. Dieses Fenster lässt sich jetzt schliessen. Beim nächsten Start läuft die neue Version.`))
-          : el("main", {}, el("h1", {}, "Bewerbungsbegleiter beendet"),
-            el("p", {}, "Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick.")));
+          ? el("main", {}, el("h1", {}, window.Texte.t("Bewerbungsbegleiter wird aktualisiert")),
+            el("p", {}, window.Texte.t("Version {version} wird im Hintergrund geladen und installiert, danach beendet sich die App. Dieses Fenster lässt sich jetzt schliessen. Beim nächsten Start läuft die neue Version.",
+              { version: ergebnis.aktualisiert })))
+          : el("main", {}, el("h1", {}, window.Texte.t("Bewerbungsbegleiter beendet")),
+            el("p", {}, window.Texte.t("Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick."))));
       });
       ort.append(ueberDieApp(info.version, info.store), el("div", { class: "knoepfe" }, beenden));
       ort.hidden = false;
@@ -486,13 +501,14 @@ window.App = (() => {
   async function sicherungGespeichert(datei) {
     await senden("/api/sicherung/erledigt", {});
     document.getElementById("sicherung-hinweis")?.remove();
-    sicherungsMeldung("ok", `Sicherung erstellt: ${datei}. Am besten auf einem USB-Stick ablegen; zum Wiederherstellen entpacken und den Ordner in der App wählen.`);
+    sicherungsMeldung("ok", window.Texte.t("Sicherung erstellt: {datei}. Am besten auf einem USB-Stick ablegen; zum Wiederherstellen entpacken und den Ordner in der App wählen.",
+      { datei }));
   }
 
   // Without the dialog the page cannot know whether the download arrived, so the person says so.
   async function sicherungAlsDownload(datei) {
     ladeSicherungHerunter(await holeSicherung(), datei);
-    sicherungsMeldung("", `Der Browser lädt ${datei} herunter.`, { aktion: { text: "Datei ist gespeichert", ausfuehren: () =>
+    sicherungsMeldung("", window.Texte.t("Der Browser lädt {datei} herunter.", { datei }), { aktion: { text: window.Texte.t("Datei ist gespeichert"), ausfuehren: () =>
       sicherungGespeichert(datei).catch(fehler => sicherungsMeldung("fehler", fehler.message)) } });
   }
 
@@ -500,13 +516,13 @@ window.App = (() => {
     try {
       const { datei } = await holen("/api/sicherung/stand");
       if (!window.showSaveFilePicker) {
-        sicherungsMeldung("", "Sicherung wird erstellt …");
+        sicherungsMeldung("", window.Texte.t("Sicherung wird erstellt …"));
         await sicherungAlsDownload(datei);
         return;
       }
       const griff = await window.showSaveFilePicker({ suggestedName: datei,
-        types: [{ description: "ZIP-Datei", accept: { "application/zip": [".zip"] } }] });
-      sicherungsMeldung("", "Sicherung wird erstellt …");
+        types: [{ description: window.Texte.t("ZIP-Datei"), accept: { "application/zip": [".zip"] } }] });
+      sicherungsMeldung("", window.Texte.t("Sicherung wird erstellt …"));
       await schreibeSicherung(griff);
       await sicherungGespeichert(datei);
     } catch (fehler) {
@@ -517,7 +533,8 @@ window.App = (() => {
 
   // Under Einstellungen, Daten und Sicherung (G54); the overview offers it as well when one is due.
   function sicherungKnopf() {
-    document.getElementById("daten-knoepfe")?.prepend(el("button", { type: "button", onclick: erstelleSicherung }, "Sicherung erstellen"));
+    document.getElementById("daten-knoepfe")?.prepend(el("button", { type: "button", onclick: erstelleSicherung },
+      window.Texte.t("Sicherung erstellen")));
   }
   sicherungKnopf();
 
@@ -527,9 +544,10 @@ window.App = (() => {
     let stand;
     try { stand = await holen("/api/sicherung/stand"); } catch { return; }
     if (!stand.faellig) return;
-    const text = stand.zuletzt ? `Die letzte Sicherung ist vom ${datum(stand.zuletzt)}. ` : "Für diese Daten gibt es noch keine Sicherung. ";
-    document.querySelector("main")?.prepend(el("p", { id: "sicherung-hinweis", class: "banner", role: "status" }, text,
-      el("button", { type: "button", onclick: erstelleSicherung }, "Sicherung erstellen")));
+    const text = stand.zuletzt ? window.Texte.t("Die letzte Sicherung ist vom {datum}.", { datum: datum(stand.zuletzt) })
+      : window.Texte.t("Für diese Daten gibt es noch keine Sicherung.");
+    document.querySelector("main")?.prepend(el("p", { id: "sicherung-hinweis", class: "banner", role: "status" }, `${text} `,
+      el("button", { type: "button", onclick: erstelleSicherung }, window.Texte.t("Sicherung erstellen"))));
   }
   sicherungHinweis();
 

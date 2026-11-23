@@ -211,7 +211,7 @@ test("Über die App: the logo, the name and the version (G4)", () => {
   const about = card(panel(read("einstellungen.html"), "ueber"), "ueber-die-app");
   assert.match(about, /<h2 id="ueber-titel">Über die App<\/h2>/);
   const script = read("app.js");
-  assert.match(script, /el\("img", \{ class: "about__logo", src: "\/as-logo\.svg"[^}]*alt: "Logo AS" \}\)/);
+  assert.match(script, /el\("img", \{ class: "about__logo", src: "\/as-logo\.svg"[^}]*alt: window\.Texte\.t\("Logo AS"\) \}\)/);
   assert.match(script, /el\("p", \{ class: "about__name" \}, "Bewerbungsbegleiter"\)/);
   assert.match(script, /const ort = document\.getElementById\("ueber-die-app"\)/);
   assert.match(script, /ort\.append\(ueberDieApp\(info\.version, info\.store\)/);

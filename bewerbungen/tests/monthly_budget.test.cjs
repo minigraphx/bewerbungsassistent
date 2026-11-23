@@ -208,7 +208,7 @@ test("the texts of the code name a budget per month, in the Sie and the du form"
   const page = read("einstellungen.html");
   assert.equal(settings.invitationActive(STATUS), ACTIVE_MONTHLY);
   assert.match(page, /<p class="notice notice--warning" id="budget-aufgebraucht" hidden>/);
-  assert.match(read("ki-zugang.js"), /text: "Kostenlos im Pilot, mit einem Budget von CHF 5 pro Monat\."/);
+  assert.match(read("ki-zugang.js"), /text: Texte\.t\("Kostenlos im Pilot, mit einem Budget von CHF 5 pro Monat\."\)/);
   assert.equal(texte.text("einrichtung.ki.code", "stelle-sie"),
     "Haben Sie einen Einladungscode? Er bringt ein Budget von CHF 5 pro Monat für die KI.");
   assert.equal(texte.text("einrichtung.ki.code", "stelle-du"),

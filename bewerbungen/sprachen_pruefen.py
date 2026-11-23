@@ -22,7 +22,14 @@ BASE = language_sources.BASE
 # Files whose every text is in the catalog in fr and en; each item of #95 adds the files of its page, the last one
 # replaces the list with every source (Andy, 23.11.2026: after the switch, every new text needs fr and en).
 # Entries as BASE / "seiten/heute.html".
-FERTIG: tuple[pathlib.Path, ...] = ()
+FERTIG: tuple[pathlib.Path, ...] = (
+    # The shared frame of every page (#416): navigation, messages, update and backup, consent and the window
+    # „KI einrichten“, with the server's own messages and the routes of the AI and of Suche einstellen.
+    BASE / "seiten/nur-in-der-app.html", BASE / "seiten/app.js", BASE / "seiten/sidebar.js",
+    BASE / "seiten/sidebar-logic.js", BASE / "seiten/meldungen.js", BASE / "seiten/einwilligung.js",
+    BASE / "seiten/ki-zugang.js", BASE / "seiten/ki-fenster.js",
+    BASE / "server.py", BASE / "ai/errors.py", BASE / "routes_ai.py", BASE / "ai/consent.py", BASE / "routes_frame.py",
+)
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
 REQUIRED_FORMS = {"fr": ("sie", "du"), "en": ("sie",)}

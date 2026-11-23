@@ -8,6 +8,8 @@ const path = require("node:path");
 const vm = require("node:vm");
 const logic = require("../seiten/browser-wahl-logik.js");
 const settings = require("../seiten/einstellungen-logik.js");
+const Texte = require("../seiten/texte.js");
+const Meldungen = require("../seiten/meldungen.js");
 
 const PAGES = path.join(__dirname, "..", "seiten");
 const read = name => fs.readFileSync(path.join(PAGES, name), "utf8");
@@ -210,7 +212,7 @@ async function firstPage(search, { installed = true } = {}) {
   };
   const document = {
     querySelector: selector => (selector.startsWith("meta") ? { content: "token" } : selector === "main" ? main : null),
-    getElementById: () => null,
+    getElementById: () => null, querySelectorAll: () => [],
     addEventListener() {}, hidden: false, documentElement: { dataset: {} },
     head: element("head"), body: element("body"), createElement: tag => element(tag), createTextNode: text => text,
   };
@@ -219,7 +221,7 @@ async function firstPage(search, { installed = true } = {}) {
   const addresses = [];
   const history = { state: null, length: 1, replaceState(state, title, address) { addresses.push(address); } };
   vm.runInNewContext(fs.readFileSync(path.join(PAGES, "app.js"), "utf8"), {
-    window: { addEventListener() {} }, document, location, history, fetch, URLSearchParams, Node,
+    window: { addEventListener() {}, Texte, Meldungen }, document, location, history, fetch, URLSearchParams, Node,
     setInterval() {}, setTimeout, Promise, crypto: { randomUUID: () => "x" },
   });
   await settle();

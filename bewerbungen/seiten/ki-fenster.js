@@ -5,13 +5,11 @@
 // the page they were on. It reports the AI status it ends with, to the caller and as the event „ki-fenster-geschlossen“.
 window.KiFenster = (() => {
   const { holen, senden, el, status } = window.App;
+  // Texts through Texte.t and Texte.text (#416); texte.js is loaded with this window anywhere.
+  const { Texte } = window;
   const TITLE_ID = "ki-fenster-titel";
   // One line for the messages of the window; only one way shows at a time, so it describes the code and the key field.
   const MESSAGE_ID = "ki-fenster-meldung";
-  const DONE = "Die KI ist eingerichtet.";
-  const NO_MEDIATION = "Diese App hat keine Vermittlung eingebaut. Ein Einladungscode geht hier nicht.";
-  const AGREED = "Ich habe das gelesen und bin einverstanden.";
-  const KEY_TEXTS = ["einstellungen.kosten-selbst", "einstellungen.vertrag", "einstellungen.linkedin"];
   const CLOSED = "ki-fenster-geschlossen";
 
   let current = null;  // { promise, ... } while the window is open
@@ -37,18 +35,17 @@ window.KiFenster = (() => {
   // The month of the budget and, once used up, the day the AI works again (G98), as on the page „KI“; texte.js is
   // loaded with this window anywhere.
   function doneLine(ki) {
-    return withCredit(ki) ? `${DONE}${window.Texte.budgetPart(ki)}` : DONE;
+    const done = Texte.t("Die KI ist eingerichtet.");
+    return withCredit(ki) ? `${done}${window.Texte.budgetPart(ki)}` : done;
   }
 
-  /** Texts that speak to the person, in the set of the setup (Sie, du, Lehrstelle). */
-  const texts = satz => key => window.Texte.text(key, satz);
-
   // ---------- The parts of the window ----------
+  // Texts that speak to the person come in the set of the setup (`satz`: Sie, du, Lehrstelle).
 
-  function invitationPart(state, t) {
+  function invitationPart(state, satz) {
     const code = el("input", { class: "input setup__code", id: "ki-fenster-code", autocomplete: "off", spellcheck: "false",
                                placeholder: "XXXX-XXXX-XXXX-XXXX", "aria-describedby": MESSAGE_ID });
-    const redeem = el("button", { type: "button", class: "btn btn--primary", disabled: true }, "Einladung einlösen");
+    const redeem = el("button", { type: "button", class: "btn btn--primary", disabled: true }, Texte.t("Einladung einlösen"));
     const ready = () => { redeem.disabled = !code.value.trim(); };
     code.addEventListener("input", ready);
     redeem.addEventListener("click", () => state.run({ button: redeem, field: code, ready }, async () => {
@@ -56,24 +53,25 @@ window.KiFenster = (() => {
       code.value = "";
       return ki;
     }));
-    const field = el("div", { class: "field" }, el("p", { class: "field__hint" }, t("einrichtung.ki.code")),
-      el("label", { class: "field__label", for: "ki-fenster-code" }, "Einladungscode"),
+    const field = el("div", { class: "field" }, el("p", { class: "field__hint" }, Texte.text("einrichtung.ki.code", satz)),
+      el("label", { class: "field__label", for: "ki-fenster-code" }, Texte.t("Einladungscode")),
       el("div", { class: "setup__path setup__path--code" }, code, redeem));
-    const none = el("p", { class: "field__hint" }, NO_MEDIATION);
+    const none = el("p", { class: "field__hint" },
+      Texte.t("Diese App hat keine Vermittlung eingebaut. Ein Einladungscode geht hier nicht."));
     return { part: el("div", { class: "ki-fenster__weg" }, field, none), show: ki => { field.hidden = !ki.einladung; none.hidden = Boolean(ki.einladung); } };
   }
 
-  function subscriptionPart(t) {
-    return { part: el("div", { class: "ki-fenster__weg" }, el("p", { class: "field__hint" }, t("ki-fenster.abo")),
+  function subscriptionPart(satz) {
+    return { part: el("div", { class: "ki-fenster__weg" }, el("p", { class: "field__hint" }, Texte.text("ki-fenster.abo", satz)),
       el("div", { class: "btn-row" }, el("a", { class: "btn", href: "/einstellungen#claude-abo", target: "_blank", rel: "noopener" },
-        "In den Einstellungen einrichten"))), show: () => {} };
+        Texte.t("In den Einstellungen einrichten")))), show: () => {} };
   }
 
-  function keyPart(state, t) {
+  function keyPart(state, satz) {
     const tick = el("input", { type: "checkbox" });
     const key = el("input", { class: "input", id: "ki-fenster-schluessel", type: "password", autocomplete: "off", spellcheck: "false",
                               "aria-describedby": MESSAGE_ID });
-    const save = el("button", { type: "button", class: "btn btn--primary", disabled: true }, "Prüfen und speichern");
+    const save = el("button", { type: "button", class: "btn btn--primary", disabled: true }, Texte.t("Prüfen und speichern"));
     const ready = () => { save.disabled = !tick.checked || !key.value.trim(); };
     tick.addEventListener("change", ready);
     key.addEventListener("input", ready);
@@ -86,9 +84,10 @@ window.KiFenster = (() => {
       return holen("/api/ki/status");
     }));
     return { part: el("div", { class: "ki-fenster__weg" },
-      el("ul", { class: "ki-fenster__liste" }, KEY_TEXTS.map(name => el("li", {}, t(name)))),
-      el("label", { class: "schalter" }, tick, ` ${AGREED}`),
-      el("label", { class: "field__label", for: "ki-fenster-schluessel" }, "API-Schlüssel"), key,
+      el("ul", { class: "ki-fenster__liste" }, el("li", {}, Texte.text("einstellungen.kosten-selbst", satz)),
+        el("li", {}, Texte.text("einstellungen.vertrag", satz)), el("li", {}, Texte.text("einstellungen.linkedin", satz))),
+      el("label", { class: "schalter" }, tick, ` ${Texte.t("Ich habe das gelesen und bin einverstanden.")}`),
+      el("label", { class: "field__label", for: "ki-fenster-schluessel" }, Texte.t("API-Schlüssel")), key,
       el("div", { class: "btn-row" }, save)), show: () => {} };
   }
 
@@ -127,26 +126,25 @@ window.KiFenster = (() => {
     parts.without.hidden = now === "fertig";
     // The link „anfordern“ comes first in the window; Enter goes on to „Weiter“, not to the website.
     parts.close.autofocus = now === "fertig";
-    parts.close.textContent = now === "fertig" ? "Weiter" : "Schliessen";
+    parts.close.textContent = now === "fertig" ? Texte.t("Weiter") : Texte.t("Schliessen");
     parts.close.className = now === "fertig" ? "btn btn--primary" : "btn";
   }
 
   function build(state, satz) {
-    const t = texts(satz);
     const dialog = el("dialog", { class: "dialog ki-fenster", "aria-labelledby": TITLE_ID });
     const message = el("p", { class: "status-line", id: MESSAGE_ID, role: "status", "aria-live": "polite" });
     state.message = message;
     const parts = {
       consent: el("div", { class: "field einwilligung" }),
-      choice: el("fieldset", { class: "access-choice" }, el("legend", { class: "visually-hidden" }, "Weg zur KI")),
-      ways: { einladung: invitationPart(state, t), abo: subscriptionPart(t), schluessel: keyPart(state, t) },
+      choice: el("fieldset", { class: "access-choice" }, el("legend", { class: "visually-hidden" }, Texte.t("Weg zur KI"))),
+      ways: { einladung: invitationPart(state, satz), abo: subscriptionPart(satz), schluessel: keyPart(state, satz) },
       done: el("p", { class: "notice notice--success ki-fenster__fertig" }),
-      without: el("p", { class: "field__hint" }, t("einrichtung.ki.ohne")),
-      close: el("button", { type: "button", class: "btn" }, "Schliessen"),
+      without: el("p", { class: "field__hint" }, Texte.text("einrichtung.ki.ohne", satz)),
+      close: el("button", { type: "button", class: "btn" }, Texte.t("Schliessen")),
     };
     parts.close.addEventListener("click", () => dialog.close());
-    dialog.append(el("h2", { class: "dialog__title", id: TITLE_ID }, "KI einrichten"),
-      el("p", { class: "dialog__text" }, t("einrichtung.ki.aufgabe")), parts.consent, parts.choice,
+    dialog.append(el("h2", { class: "dialog__title", id: TITLE_ID }, Texte.t("KI einrichten")),
+      el("p", { class: "dialog__text" }, Texte.text("einrichtung.ki.aufgabe", satz)), parts.consent, parts.choice,
       ...Object.values(parts.ways).map(part => part.part), parts.done, message, parts.without,
       el("div", { class: "dialog__actions" }, parts.close));
     state.parts = parts;

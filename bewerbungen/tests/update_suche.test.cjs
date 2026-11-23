@@ -6,6 +6,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
+const Texte = require("../seiten/texte.js");
 
 const SEITEN = path.join(__dirname, "..", "seiten");
 const ROUTE = "/api/app/updates-suchen";
@@ -68,7 +69,7 @@ async function settingsPage(answers) {
   const sent = [];
   const document = {
     mutations: [], activeElement: null, hidden: false, documentElement: { dataset: {} },
-    addEventListener() {}, createTextNode: text => text,
+    addEventListener() {}, createTextNode: text => text, querySelectorAll: () => [],
   };
   document.createElement = tag => element(document, tag);
   document.head = element(document, "head");
@@ -95,7 +96,7 @@ async function settingsPage(answers) {
   const Node = { [Symbol.hasInstance]: value => typeof value === "object" && value !== null };
   const location = { pathname: "/einstellungen", search: "", hash: "", origin: "http://127.0.0.1:1", replace() {}, reload() {} };
   vm.runInNewContext(fs.readFileSync(path.join(SEITEN, "app.js"), "utf8"), {
-    window: { addEventListener() {} }, document, location, history: { state: null, length: 1, replaceState() {} },
+    window: { addEventListener() {}, Texte }, document, location, history: { state: null, length: 1, replaceState() {} },
     fetch, URLSearchParams, Node, Promise, Date, Intl, Set, Map, Error, crypto: { randomUUID: () => "x" },
     setInterval() {}, setTimeout: (run, ms = 0) => timers.push({ run, ms }) && timers.length,
     clearTimeout: id => { if (timers[id - 1]) timers[id - 1].run = null; },

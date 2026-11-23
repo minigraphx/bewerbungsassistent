@@ -1,0 +1,405 @@
+{
+  "Hauptnavigation": {"fr": "Navigation principale", "en": "Main navigation"},
+  "Menü": {"fr": "Menu", "en": "Menu"},
+  "Heute": {"fr": "Aujourd'hui", "en": "Today"},
+  "texte:nav.stellen": {
+    "fr": {"sie": "Offres", "du": "Offres", "lehrstelle": "Apprentissages"},
+    "en": {"sie": "Jobs", "lehrstelle": "Apprenticeships"}
+  },
+  "Bewerbungen": {"fr": "Candidatures", "en": "Applications"},
+  "Meine Unterlagen": {"fr": "Mes documents", "en": "My documents"},
+  "Meine Angaben": {"fr": "Mes informations", "en": "My details"},
+  "Lebenslauf und Dateien": {"fr": "CV et fichiers", "en": "CV and files"},
+  "Hilfe": {"fr": "Aide", "en": "Help"},
+  "Fragen an die KI": {"fr": "Questions à l'IA", "en": "Ask the AI"},
+  "Einstellungen": {"fr": "Paramètres", "en": "Settings"},
+  "Einrichten": {"fr": "Configurer", "en": "Set up"},
+  "Erweiterung verbunden": {"fr": "Extension connectée", "en": "Extension connected"},
+  "Erweiterung nicht verbunden": {"fr": "Extension non connectée", "en": "Extension not connected"},
+
+  "Meine Angaben gibt es nur in der installierten App.": {
+    "fr": "La page Mes informations n'existe que dans l'app installée.",
+    "en": "The page My details only exists in the installed app."
+  },
+  "Diese Oberfläche läuft ohne den Teil der App, der das Formular und die Unterlagen im Datenordner speichert. Lebenslauf, Suchprofil und Bausteine lassen sich hier": {
+    "fr": "Cette interface fonctionne sans la partie de l'app qui enregistre le formulaire et les documents dans le dossier de données. Pour le CV, le profil de recherche et les modules de texte, il est possible ici de",
+    "en": "This interface runs without the part of the app that saves the form and the documents in the data folder. CV, search profile and text blocks can be"
+  },
+  "als Text bearbeiten": {"fr": "les modifier comme texte", "en": "edited as text"},
+  "Die ganze App startet aus dem Repo mit": {"fr": "L'app complète démarre depuis le dépôt avec", "en": "The full app starts from the repo with"},
+  "PYTHONPATH=bewerbungen:lebenslauf:onboarding python desktop/start.py": {
+    "fr": "PYTHONPATH=bewerbungen:lebenslauf:onboarding python desktop/start.py",
+    "en": "PYTHONPATH=bewerbungen:lebenslauf:onboarding python desktop/start.py"
+  },
+  ". Den Datenordner wählt man dort in der Einrichtung.": {
+    "fr": ". On y choisit le dossier de données dans la configuration.",
+    "en": ". There you choose the data folder in the setup."
+  },
+
+  "Januar": {"fr": "janvier", "en": "January"},
+  "Februar": {"fr": "février", "en": "February"},
+  "März": {"fr": "mars", "en": "March"},
+  "April": {"fr": "avril", "en": "April"},
+  "Mai": {"fr": "mai", "en": "May"},
+  "Juni": {"fr": "juin", "en": "June"},
+  "Juli": {"fr": "juillet", "en": "July"},
+  "August": {"fr": "août", "en": "August"},
+  "September": {"fr": "septembre", "en": "September"},
+  "Oktober": {"fr": "octobre", "en": "October"},
+  "November": {"fr": "novembre", "en": "November"},
+  "Dezember": {"fr": "décembre", "en": "December"},
+  "1.{nbsp}{monat}": {"fr": "1er{nbsp}{monat}", "en": "1{nbsp}{monat}"},
+  "{tag}.{nbsp}{monat}": {"fr": "{tag}{nbsp}{monat}", "en": "{tag}{nbsp}{monat}"},
+  "im {monat}": {"fr": "en {monat}", "en": "in {monat}"},
+  "in diesem Monat": {"fr": "ce mois-ci", "en": "this month"},
+
+  "{anzahl} neu": {"fr": "{anzahl} à voir", "en": "{anzahl} new"},
+  "{anzahl} offen": {"fr": "{anzahl} à faire", "en": "{anzahl} to do"},
+  "Guthaben fast aufgebraucht": {"fr": "Crédit presque épuisé", "en": "Credit nearly used up"},
+  "fast aufgebraucht": {"fr": "presque épuisé", "en": "nearly used up"},
+  "Guthaben aufgebraucht: neuen Code anfordern": {"fr": "Crédit épuisé\u00a0: demander un nouveau code", "en": "Credit used up: request a new code"},
+  "aufgebraucht": {"fr": "épuisé", "en": "used up"},
+  "Kein Guthaben der Vermittlung": {"fr": "Pas de crédit sur le service IA de l'app", "en": "No credit on the app's AI service"},
+  "kein Guthaben der Vermittlung": {"fr": "pas de crédit sur le service IA de l'app", "en": "no credit on the app's AI service"},
+  "Noch nichts verbraucht": {"fr": "Rien d'utilisé pour l'instant", "en": "Nothing used yet"},
+  "{betrag} frei": {"fr": "{betrag} disponibles", "en": "{betrag} left"},
+  "{verbraucht} von {guthaben} verbraucht": {"fr": "{verbraucht} sur {guthaben} utilisés", "en": "{verbraucht} of {guthaben} used"},
+  "KI-Budget: {frei}": {"fr": "Budget IA\u00a0: {frei}", "en": "AI budget: {frei}"},
+  "Fast aufgebraucht. Neues Budget am {datum}.": {"fr": "Presque épuisé. Nouveau budget le {datum}.", "en": "Nearly used up. New budget on {datum}."},
+  "Aufgebraucht. Die KI geht wieder ab {datum}.": {"fr": "Épuisé. L'IA fonctionne à nouveau dès le {datum}.", "en": "Used up. The AI works again from {datum}."},
+  "KI-Budget: wieder ab {datum}": {"fr": "Budget IA\u00a0: de retour le {datum}", "en": "AI budget: back on {datum}"},
+  "KI-Budget {monat}": {"fr": "Budget IA {monat}", "en": "AI budget {monat}"},
+  "{prozent} Prozent des KI-Budgets für {monat} verbraucht": {
+    "fr": "{prozent} pour cent du budget IA utilisés en {monat}",
+    "en": "{prozent} percent of the AI budget for {monat} used"
+  },
+  "KI-Guthaben: {frei}": {"fr": "Crédit IA\u00a0: {frei}", "en": "AI credit: {frei}"},
+  "KI-Guthaben": {"fr": "Crédit IA", "en": "AI credit"},
+  "{prozent} Prozent des Guthabens verbraucht": {"fr": "{prozent} pour cent du crédit utilisés", "en": "{prozent} percent of the credit used"},
+  "KI-Kosten: {betrag}": {"fr": "Coûts IA\u00a0: {betrag}", "en": "AI costs: {betrag}"},
+  "KI-Kosten {wann}": {"fr": "Coûts IA {wann}", "en": "AI costs {wann}"},
+  "{betrag} mit eigenem Schlüssel": {"fr": "{betrag} avec clé personnelle", "en": "{betrag} with your own key"},
+
+  "{verbraucht} von {guthaben} verbraucht.": {"fr": "{verbraucht} sur {guthaben} utilisés.", "en": "{verbraucht} of {guthaben} used."},
+  "Guthaben: {verbraucht}": {"fr": "Crédit\u00a0: {verbraucht}", "en": "Credit: {verbraucht}"},
+  "Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI, Budget und Sprache einlösen.": {
+    "fr": "Le crédit est épuisé\u00a0: demander un nouveau code et l'utiliser sous Paramètres, IA, budget et langue.",
+    "en": "The credit is used up: request a new code and redeem it under Settings, AI, budget and language."
+  },
+  "KI-Budget {wann}: {verbraucht}": {"fr": "Budget IA {wann}\u00a0: {verbraucht}", "en": "AI budget {wann}: {verbraucht}"},
+  "Es ist aufgebraucht; die KI geht wieder ab {datum}.": {
+    "fr": "Il est épuisé\u00a0; l'IA fonctionne à nouveau dès le {datum}.",
+    "en": "It is used up; the AI works again from {datum}."
+  },
+  ", öffnet neuen Tab": {"fr": ", ouvre un nouvel onglet", "en": ", opens a new tab"},
+
+  "Meldung schliessen": {"fr": "Fermer le message", "en": "Close message"},
+
+  "Antwort ist kein PDF": {"fr": "La réponse n'est pas un PDF", "en": "The answer is not a PDF"},
+  "{datei} liess sich nicht lesen.": {"fr": "{datei} n'a pas pu être lu.", "en": "{datei} could not be read."},
+  "Alle Entwürfe dieser Datei": {"fr": "Tous les brouillons de ce fichier", "en": "All drafts of this file"},
+  "ohne Beschreibung": {"fr": "sans description", "en": "no description"},
+  "versendet": {"fr": "envoyé", "en": "sent"},
+  "Noch keine Entwürfe.": {"fr": "Pas encore de brouillons.", "en": "No drafts yet."},
+  "Entwürfe nicht lesbar: {fehler}": {"fr": "Brouillons illisibles\u00a0: {fehler}", "en": "Drafts not readable: {fehler}"},
+  "Letzte Entwürfe": {"fr": "Derniers brouillons", "en": "Latest drafts"},
+  "{datei} liess sich nicht laden.": {"fr": "{datei} n'a pas pu être chargé.", "en": "{datei} could not be loaded."},
+  "{browser} liess sich nicht starten, darum ist die App im Standardbrowser offen. Der Browser für die App lässt sich unter Einstellungen, Browser und Erweiterung wählen.": {
+    "fr": "{browser} n'a pas pu démarrer, l'app est donc ouverte dans le navigateur par défaut. Le navigateur de l'app se choisit sous Paramètres, Navigateur et extension.",
+    "en": "{browser} could not start, so the app is open in the default browser. The browser for the app can be chosen under Settings, Browser and extension."
+  },
+  "Zu den Einstellungen": {"fr": "Ouvrir les paramètres", "en": "Open settings"},
+  "Logo AS": {"fr": "Logo AS", "en": "AS logo"},
+  "Version {version}": {"fr": "Version {version}", "en": "Version {version}"},
+  "von Andreas Schmidt": {"fr": "par Andreas Schmidt", "en": "by Andreas Schmidt"},
+  "Updates kommen über den Microsoft Store.": {"fr": "Les mises à jour arrivent par le Microsoft Store.", "en": "Updates come through the Microsoft Store."},
+  "Die Suche nach Updates hat nicht geklappt. Vielleicht fehlt die Internetverbindung; bitte später nochmals versuchen.": {
+    "fr": "La recherche de mises à jour n'a pas abouti. La connexion Internet manque peut-être\u00a0; merci de réessayer plus tard.",
+    "en": "Checking for updates did not work. Maybe the internet connection is missing; please try again later."
+  },
+  "Jetzt aktualisieren": {"fr": "Mettre à jour maintenant", "en": "Update now"},
+  "Version {version} ist die neueste. Geprüft um {zeit}. Vorabversionen eingeschlossen.": {
+    "fr": "La version {version} est la plus récente. Vérifié à {zeit}. Préversions incluses.",
+    "en": "Version {version} is the latest. Checked at {zeit}. Pre-releases included."
+  },
+  "Version {version} ist die neueste. Geprüft um {zeit}.": {
+    "fr": "La version {version} est la plus récente. Vérifié à {zeit}.",
+    "en": "Version {version} is the latest. Checked at {zeit}."
+  },
+  "Nach Updates suchen": {"fr": "Rechercher des mises à jour", "en": "Check for updates"},
+  "Sucht nach Updates …": {"fr": "Recherche de mises à jour…", "en": "Checking for updates…"},
+  "Version {version} ist verfügbar. Sie wird beim Beenden installiert, oder gleich hier.": {
+    "fr": "La version {version} est disponible. Elle sera installée à la fermeture, ou tout de suite ici.",
+    "en": "Version {version} is available. It will be installed when you quit, or right here."
+  },
+  "Version {version} ist verfügbar.": {"fr": "La version {version} est disponible.", "en": "Version {version} is available."},
+  "Das Update läuft schon.": {"fr": "La mise à jour est déjà en cours.", "en": "The update is already running."},
+  "Neue Version wird geladen und geprüft …": {"fr": "Téléchargement et vérification de la nouvelle version…", "en": "Downloading and checking the new version…"},
+  "Die neue Version wird installiert und öffnet sich danach selbst in einem neuen Tab. Dieser Tab lässt sich dann schliessen.": {
+    "fr": "La nouvelle version s'installe et s'ouvre ensuite d'elle-même dans un nouvel onglet. Cet onglet peut alors être fermé.",
+    "en": "The new version is being installed and then opens by itself in a new tab. This tab can then be closed."
+  },
+  "Neue Version herunterladen": {"fr": "Télécharger la nouvelle version", "en": "Download the new version"},
+  "Später": {"fr": "Plus tard", "en": "Later"},
+  "Installieren": {"fr": "Installer", "en": "Install"},
+  "Neue Version verfügbar": {"fr": "Nouvelle version disponible", "en": "New version available"},
+  "Beenden": {"fr": "Quitter", "en": "Quit"},
+  "Wirklich beenden?": {"fr": "Vraiment quitter\u00a0?", "en": "Really quit?"},
+  "Bewerbungsbegleiter wird aktualisiert": {"fr": "Bewerbungsbegleiter se met à jour", "en": "Bewerbungsbegleiter is updating"},
+  "Version {version} wird im Hintergrund geladen und installiert, danach beendet sich die App. Dieses Fenster lässt sich jetzt schliessen. Beim nächsten Start läuft die neue Version.": {
+    "fr": "La version {version} est téléchargée et installée en arrière-plan, puis l'app se ferme. Cette fenêtre peut maintenant être fermée. Au prochain démarrage, la nouvelle version s'ouvre.",
+    "en": "Version {version} is being downloaded and installed in the background, then the app quits. This window can be closed now. The next start runs the new version."
+  },
+  "Bewerbungsbegleiter beendet": {"fr": "Bewerbungsbegleiter est fermé", "en": "Bewerbungsbegleiter has quit"},
+  "Dieses Fenster lässt sich jetzt schliessen. Die App startet wieder mit einem Doppelklick.": {
+    "fr": "Cette fenêtre peut maintenant être fermée. L'app redémarre d'un double-clic.",
+    "en": "This window can be closed now. The app starts again with a double-click."
+  },
+  "Sicherung erstellt: {datei}. Am besten auf einem USB-Stick ablegen; zum Wiederherstellen entpacken und den Ordner in der App wählen.": {
+    "fr": "Sauvegarde créée\u00a0: {datei}. Le mieux est de la ranger sur une clé USB\u00a0; pour la restaurer, la décompresser et choisir le dossier dans l'app.",
+    "en": "Backup created: {datei}. Best keep it on a USB stick; to restore it, unzip it and choose the folder in the app."
+  },
+  "Der Browser lädt {datei} herunter.": {"fr": "Le navigateur télécharge {datei}.", "en": "The browser is downloading {datei}."},
+  "Datei ist gespeichert": {"fr": "Le fichier est enregistré", "en": "File is saved"},
+  "Sicherung wird erstellt …": {"fr": "Création de la sauvegarde…", "en": "Creating backup…"},
+  "ZIP-Datei": {"fr": "Fichier ZIP", "en": "ZIP file"},
+  "Sicherung erstellen": {"fr": "Créer une sauvegarde", "en": "Create backup"},
+  "Die letzte Sicherung ist vom {datum}.": {"fr": "La dernière sauvegarde date du {datum}.", "en": "The last backup is from {datum}."},
+  "Für diese Daten gibt es noch keine Sicherung.": {"fr": "Il n'existe pas encore de sauvegarde de ces données.", "en": "There is no backup of this data yet."},
+
+  "Die KI ist noch aus.": {"fr": "L'IA est encore désactivée.", "en": "The AI is still off."},
+  "KI einschalten": {"fr": "Activer l'IA", "en": "Turn on AI"},
+  "Datenschutzerklärung lesen": {"fr": "Lire la déclaration de protection des données", "en": "Read the privacy policy"},
+  "Was die App ersetzt und was nicht": {"fr": "Ce que l'app remplace et ce qu'elle ne remplace pas", "en": "What the app replaces and what it does not"},
+  "texte:einwilligung.ersetzt": {
+    "fr": {
+      "sie": "Avant qu'un texte parte vers l'IA, l'app remplace vos données de nom, adresse, téléphone, e-mail, liens et date de naissance par des espaces réservés, de même que les références et les personnes de contact. Les entreprises, les formations et les années restent. L'app ne peut remplacer que ce qui est correctement saisi sous Mes informations.",
+      "du": "Avant qu'un texte parte vers l'IA, l'app remplace tes données de nom, adresse, téléphone, e-mail, liens et date de naissance par des espaces réservés, de même que les références et les personnes de contact. Les entreprises, les formations et les années restent. L'app ne peut remplacer que ce qui est correctement saisi sous Mes informations.",
+      "lehrstelle": "Avant qu'un texte parte vers l'IA, l'app remplace tes données de nom, adresse, téléphone, e-mail, liens et date de naissance ainsi que tes écoles par des espaces réservés, de même que les références et les personnes de contact. Les entreprises formatrices et les années restent. L'app ne peut remplacer que ce qui est correctement saisi sous Mes informations."
+    },
+    "en": {
+      "sie": "Before a text goes to the AI, the app replaces your name, address, phone, email, links and date of birth with placeholders, as well as references and contact persons. Companies, education and years stay. The app can only replace what is entered correctly under My details.",
+      "lehrstelle": "Before a text goes to the AI, the app replaces your name, address, phone, email, links, date of birth and your schools with placeholders, as well as references and contact persons. Host companies and years stay. The app can only replace what is entered correctly under My details."
+    }
+  },
+  "Der Einladungscode aus dem Link wird danach eingelöst.": {"fr": "Le code d'invitation du lien est ensuite utilisé.", "en": "The invitation code from the link is redeemed afterwards."},
+  "Einwilligen": {"fr": "Accepter", "en": "Agree"},
+  "Abbrechen": {"fr": "Annuler", "en": "Cancel"},
+
+  "KI einrichten": {"fr": "Configurer l'IA", "en": "Set up AI"},
+  "texte:einrichtung.ki.aufgabe": {
+    "fr": {
+      "sie": "L'IA évalue les offres et rédige des lettres de motivation.",
+      "du": "L'IA évalue les offres et rédige des lettres de motivation.",
+      "lehrstelle": "L'IA évalue les places d'apprentissage et rédige des lettres de motivation."
+    },
+    "en": {
+      "sie": "The AI assesses jobs and drafts cover letters.",
+      "lehrstelle": "The AI assesses apprenticeships and drafts cover letters."
+    }
+  },
+  "Weg zur KI": {"fr": "Accès à l'IA", "en": "Access to the AI"},
+  "Die KI ist eingerichtet.": {"fr": "L'IA est configurée.", "en": "The AI is set up."},
+  "texte:einrichtung.ki.code": {
+    "fr": {
+      "sie": "Avez-vous un code d'invitation\u00a0? Il apporte un budget de CHF 5 par mois pour l'IA.",
+      "du": "As-tu un code d'invitation\u00a0? Il apporte un budget de CHF 5 par mois pour l'IA."
+    },
+    "en": {"sie": "Do you have an invitation code? It brings a budget of CHF 5 per month for the AI."}
+  },
+  "Einladungscode": {"fr": "Code d'invitation", "en": "Invitation code"},
+  "Einladung einlösen": {"fr": "Utiliser l'invitation", "en": "Redeem invitation"},
+  "Diese App hat keine Vermittlung eingebaut. Ein Einladungscode geht hier nicht.": {
+    "fr": "Cette app n'a pas de service IA intégré. Un code d'invitation ne fonctionne pas ici.",
+    "en": "This app has no built-in AI service. An invitation code does not work here."
+  },
+  "texte:ki-fenster.abo": {
+    "fr": {
+      "sie": "Claude travaille alors avec votre propre compte chez Anthropic. Les étapes, avec les skills et la connexion à Claude Desktop, se trouvent dans les paramètres.",
+      "du": "Claude travaille alors avec ton propre compte chez Anthropic. Les étapes, avec les skills et la connexion à Claude Desktop, se trouvent dans les paramètres."
+    },
+    "en": {"sie": "Claude then works with your own Anthropic account. The steps for this, with the skills and the connection to Claude Desktop, are in the settings."}
+  },
+  "In den Einstellungen einrichten": {"fr": "Configurer dans les paramètres", "en": "Set up in the settings"},
+  "texte:einstellungen.kosten-selbst": {
+    "fr": {
+      "sie": "Vous payez les coûts vous-même. Anthropic vous facture directement.",
+      "du": "Tu paies les coûts toi-même. Anthropic te facture directement."
+    },
+    "en": {"sie": "You pay the costs yourself. Anthropic bills you directly."}
+  },
+  "texte:einstellungen.vertrag": {
+    "fr": {
+      "sie": "Le traitement est régi par votre propre contrat avec Anthropic, y compris aux États-Unis.",
+      "du": "Le traitement est régi par ton propre contrat avec Anthropic, y compris aux États-Unis."
+    },
+    "en": {"sie": "Processing is governed by your own contract with Anthropic, also in the USA."}
+  },
+  "texte:einstellungen.linkedin": {
+    "fr": {
+      "sie": "LinkedIn interdit l'automatisation et peut restreindre ou bloquer des comptes. Le risque est le vôtre si vous faites parcourir LinkedIn comme site supplémentaire.",
+      "du": "LinkedIn interdit l'automatisation et peut restreindre ou bloquer des comptes. Le risque est le tien si tu fais parcourir LinkedIn comme site supplémentaire."
+    },
+    "en": {"sie": "LinkedIn forbids automation and can restrict or block accounts. The risk is yours if you have LinkedIn searched as an additional site."}
+  },
+  "Ich habe das gelesen und bin einverstanden.": {"fr": "J'ai lu ceci et je suis d'accord.", "en": "I have read this and agree."},
+  "API-Schlüssel": {"fr": "Clé API", "en": "API key"},
+  "Prüfen und speichern": {"fr": "Vérifier et enregistrer", "en": "Check and save"},
+  "texte:einrichtung.ki.ohne": {
+    "fr": {
+      "sie": "Sans IA, la recherche, les documents et l'envoi fonctionnent quand même. Vous téléversez alors vous-même les lettres de motivation, et les offres trouvées ne reçoivent pas de note.",
+      "du": "Sans IA, la recherche, les documents et l'envoi fonctionnent quand même. Tu téléverses alors toi-même les lettres de motivation, et les offres trouvées ne reçoivent pas de note."
+    },
+    "en": {"sie": "Without AI, search, documents and sending still work. You then upload cover letters yourself, and found jobs get no grade."}
+  },
+  "Weiter": {"fr": "Continuer", "en": "Continue"},
+  "Schliessen": {"fr": "Fermer", "en": "Close"},
+
+  "Kostenlos im Pilot, mit einem Budget von CHF 5 pro Monat.": {
+    "fr": "Gratuit pendant le pilote, avec un budget de CHF 5 par mois.",
+    "en": "Free during the pilot, with a budget of CHF 5 per month."
+  },
+  "Eigenes Claude-Abo": {"fr": "Abonnement Claude personnel", "en": "Your own Claude subscription"},
+  "Die Arbeit läuft in Claude, die App liefert die Werkzeuge.": {
+    "fr": "Le travail se fait dans Claude, l'app fournit les outils.",
+    "en": "The work happens in Claude, the app provides the tools."
+  },
+  "Anleitung": {"fr": "Guide", "en": "Guide"},
+  "Eigener Schlüssel von Anthropic": {"fr": "Clé Anthropic personnelle", "en": "Your own Anthropic key"},
+  "Für Geübte. Anthropic rechnet die KI direkt ab.": {
+    "fr": "Pour utilisateurs expérimentés. Anthropic facture l'IA directement.",
+    "en": "For experienced users. Anthropic bills the AI directly."
+  },
+  "Woher der Schlüssel kommt und was er kostet": {"fr": "D'où vient la clé et combien elle coûte", "en": "Where the key comes from and what it costs"},
+  "Eingerichtet. {weg}": {"fr": "Configuré. {weg}", "en": "Set up. {weg}"},
+
+  "Vor der ersten KI-Nutzung braucht es die Einwilligung: unter „KI einrichten“.": {
+    "fr": "Avant la première utilisation de l'IA, le consentement est nécessaire\u00a0: sous «\u00a0Configurer l'IA\u00a0».",
+    "en": "Before the AI is used for the first time, your consent is needed: under “Set up AI”."
+  },
+  "Der Text hat sich geändert. Bitte die Seite neu laden und nochmals lesen.": {
+    "fr": "Le texte a changé. Merci de recharger la page et de le relire.",
+    "en": "The text has changed. Please reload the page and read it again."
+  },
+  "Ich bin mindestens 18 Jahre alt. Ich habe die Datenschutzerklärung gelesen und bin einverstanden, dass Texte aus meinen Unterlagen für die KI-Funktionen an Anthropic gehen, auch in die USA. Sie können indirekt auf eine Arbeitslosigkeit oder auf Angaben aus Zeugnissen hindeuten.": {
+    "fr": "J'ai au moins 18 ans. J'ai lu la déclaration de protection des données et j'accepte que des textes de mes documents soient transmis à Anthropic pour les fonctions d'IA, y compris aux États-Unis. Ils peuvent indirectement révéler un chômage ou des informations tirées de certificats.",
+    "en": "I am at least 18 years old. I have read the privacy policy and agree that texts from my documents go to Anthropic for the AI features, also to the USA. They may indirectly point to unemployment or to information from certificates."
+  },
+  "Ich bin Elternteil oder gesetzliche Vertretung und mindestens 18 Jahre alt. Ich richte die App für die jugendliche Person ein und habe mit ihr besprochen, was an die KI geht. Ich habe die Datenschutzerklärung gelesen und bin einverstanden, dass Texte aus ihren Unterlagen für die KI-Funktionen an Anthropic gehen, auch in die USA. Sie können indirekt auf Angaben aus Zeugnissen hindeuten.": {
+    "fr": "Je suis parent ou représentant légal et j'ai au moins 18 ans. Je configure l'app pour la personne jeune et j'ai discuté avec elle de ce qui est transmis à l'IA. J'ai lu la déclaration de protection des données et j'accepte que des textes de ses documents soient transmis à Anthropic pour les fonctions d'IA, y compris aux États-Unis. Ils peuvent indirectement révéler des informations tirées de certificats.",
+    "en": "I am a parent or legal guardian and at least 18 years old. I am setting up the app for the young person and have discussed with them what goes to the AI. I have read the privacy policy and agree that texts from their documents go to Anthropic for the AI features, also to the USA. They may indirectly point to information from certificates."
+  },
+
+  "Die KI ist noch nicht eingerichtet. Unter „KI einrichten“ den Einladungscode, das eigene Claude-Abo oder einen eigenen Schlüssel wählen.": {
+    "fr": "L'IA n'est pas encore configurée. Sous «\u00a0Configurer l'IA\u00a0», choisir le code d'invitation, l'abonnement Claude personnel ou une clé personnelle.",
+    "en": "The AI is not set up yet. Under “Set up AI”, choose the invitation code, your own Claude subscription or your own key."
+  },
+  "Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen prüfen. Sonst bitte einen neuen Einladungscode anfordern.": {
+    "fr": "L'accès à l'IA n'est plus valable. Avec une clé personnelle\u00a0: vérifier dans les paramètres avancés. Sinon, demander un nouveau code d'invitation.",
+    "en": "Access to the AI is no longer valid. With your own key: please check in the advanced settings. Otherwise, please request a new invitation code."
+  },
+  "Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. Sonst bitte später nochmals versuchen.": {
+    "fr": "Le crédit chez Anthropic ne suffit plus. Avec une clé personnelle\u00a0: le recharger là-bas. Sinon, merci de réessayer plus tard.",
+    "en": "The credit at Anthropic is no longer enough. With your own key: please top it up there. Otherwise, please try again later."
+  },
+  "Das KI-Budget für {month} ist aufgebraucht. Die KI geht wieder ab {renews}; alles andere funktioniert weiterhin.": {
+    "fr": "Le budget IA pour {month} est épuisé. L'IA fonctionne à nouveau dès le {renews}\u00a0; tout le reste continue de fonctionner.",
+    "en": "The AI budget for {month} is used up. The AI works again from {renews}; everything else keeps working."
+  },
+  "Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter Einstellungen, KI, Budget und Sprache einlösen. Alles andere funktioniert weiterhin.": {
+    "fr": "Le crédit du code d'invitation est épuisé. Merci de demander un nouveau code et de l'utiliser sous Paramètres, IA, budget et langue. Tout le reste continue de fonctionner.",
+    "en": "The credit of the invitation code is used up. Please request a new code and redeem it under Settings, AI, budget and language. Everything else keeps working."
+  },
+  "Die KI ist gerade ausgelastet. Bitte in {seconds} nochmals versuchen.": {
+    "fr": "L'IA est surchargée en ce moment. Merci de réessayer dans {seconds}.",
+    "en": "The AI is busy right now. Please try again in {seconds}."
+  },
+  "{anzahl}{nbsp}Sekunde": {"fr": "{anzahl}{nbsp}seconde", "en": "{anzahl}{nbsp}second"},
+  "{anzahl}{nbsp}Sekunden": {"fr": "{anzahl}{nbsp}secondes", "en": "{anzahl}{nbsp}seconds"},
+  "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen.": {
+    "fr": "L'IA n'a pas répondu à temps. Merci de réessayer.",
+    "en": "The AI did not answer in time. Please try again."
+  },
+  "Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?": {
+    "fr": "Pas de connexion à l'IA. L'ordinateur est-il connecté à Internet\u00a0?",
+    "en": "No connection to the AI. Is the computer connected to the internet?"
+  },
+  "Bei der KI ist gerade ein Fehler aufgetreten. Bitte später nochmals versuchen.": {
+    "fr": "Une erreur vient de se produire du côté de l'IA. Merci de réessayer plus tard.",
+    "en": "The AI just had an error. Please try again later."
+  },
+  "Die Anfrage an die KI war ungültig. Bitte melden; die Unterlagen sind unverändert.": {
+    "fr": "La demande à l'IA n'était pas valable. Merci de le signaler\u00a0; les documents sont inchangés.",
+    "en": "The request to the AI was invalid. Please report it; the documents are unchanged."
+  },
+  "Die KI hat diese Anfrage abgelehnt. Bitte den Text prüfen, zum Beispiel das Inserat.": {
+    "fr": "L'IA a refusé cette demande. Merci de vérifier le texte, par exemple l'annonce.",
+    "en": "The AI refused this request. Please check the text, for example the job ad."
+  },
+  "Die Antwort der KI war zu lang und ist unvollständig. Bitte nochmals versuchen.": {
+    "fr": "La réponse de l'IA était trop longue et est incomplète. Merci de réessayer.",
+    "en": "The AI's answer was too long and is incomplete. Please try again."
+  },
+  "Die Antwort der KI liess sich nicht lesen. Bitte nochmals versuchen.": {
+    "fr": "La réponse de l'IA n'a pas pu être lue. Merci de réessayer.",
+    "en": "The AI's answer could not be read. Please try again."
+  },
+
+  "Zuerst den Stellentext einfügen und speichern.": {
+    "fr": "Insérer et enregistrer d'abord le texte de l'annonce.",
+    "en": "First paste and save the text of the job ad."
+  },
+  "Für diese Bewerbung gilt das eigene Anschreiben. Für einen Entwurf zuerst die Datei entfernen.": {
+    "fr": "Pour cette candidature, la lettre de motivation personnelle s'applique. Pour un brouillon, retirer d'abord le fichier.",
+    "en": "Your own cover letter applies to this application. For a draft, remove the file first."
+  },
+  "Das eigene Anschreiben geht nicht an die KI. Bitte selbst mit dem Inserat vergleichen.": {
+    "fr": "La lettre de motivation personnelle n'est pas transmise à l'IA. Merci de la comparer soi-même avec l'annonce.",
+    "en": "Your own cover letter does not go to the AI. Please compare it with the job ad yourself."
+  },
+  "Bitte zuerst den Text lesen und bestätigen.": {
+    "fr": "Merci de lire d'abord le texte et de le confirmer.",
+    "en": "Please read the text and confirm it first."
+  },
+  "Für diese App ist keine KI-Vermittlung eingerichtet.": {
+    "fr": "Aucun service IA n'est configuré pour cette app.",
+    "en": "No AI service is set up for this app."
+  },
+  "Zuerst ein Anschreiben entwerfen.": {"fr": "Rédiger d'abord une lettre de motivation.", "en": "Draft a cover letter first."},
+  "code erwartet": {"fr": "code attendu", "en": "code expected"},
+  "{datei} lässt sich nicht lesen.": {"fr": "{datei} ne peut pas être lu.", "en": "{datei} cannot be read."},
+  "{fehler} Der Code ist noch gültig: Bitte den Einladungslink nochmals öffnen.": {
+    "fr": "{fehler} Le code est toujours valable\u00a0: merci de rouvrir le lien d'invitation.",
+    "en": "{fehler} The code is still valid: please open the invitation link again."
+  },
+
+  "Zuerst Meine Angaben abschliessen.": {"fr": "Terminer d'abord Mes informations.", "en": "Complete My details first."},
+  "Angaben fehlen": {"fr": "Données manquantes", "en": "Details missing"},
+  "Inserat und Titel": {"fr": "Annonce et titre", "en": "Ad and title"},
+  "Firmen": {"fr": "Entreprises", "en": "Companies"},
+  "Inserat und Titel bleiben wie vorher.": {"fr": "L'annonce et le titre restent comme avant.", "en": "Ad and title stay as before."},
+  "Die Firmen bleiben wie vorher.": {"fr": "Les entreprises restent comme avant.", "en": "The companies stay as before."},
+  "Die Firmen sind nicht gespeichert, Inserat und Titel sind gespeichert. Bitte nochmals speichern.": {
+    "fr": "Les entreprises ne sont pas enregistrées, l'annonce et le titre le sont. Merci d'enregistrer à nouveau.",
+    "en": "The companies are not saved, ad and title are saved. Please save again."
+  },
+  "Die Firmen liessen sich nicht speichern. {kept}": {
+    "fr": "Les entreprises n'ont pas pu être enregistrées. {kept}",
+    "en": "The companies could not be saved. {kept}"
+  },
+  "{part}: {reason} {kept}": {"fr": "{part}\u00a0: {reason} {kept}", "en": "{part}: {reason} {kept}"},
+
+  "Diese Seite öffnet sich nur über die App. Bitte den Bewerbungsbegleiter über sein Programmsymbol öffnen, auch wenn er schon läuft.": {
+    "fr": "Cette page ne s'ouvre que depuis l'app. Merci d'ouvrir Bewerbungsbegleiter par son icône, même s'il est déjà lancé.",
+    "en": "This page only opens from the app. Please open Bewerbungsbegleiter from its icon, even if it is already running."
+  },
+  "Nicht gefunden": {"fr": "Introuvable", "en": "Not found"},
+  "Unbekannter Host": {"fr": "Hôte inconnu", "en": "Unknown host"},
+  "Ungültiges Token": {"fr": "Jeton non valable", "en": "Invalid token"},
+  "Erwartet application/json": {"fr": "application/json attendu", "en": "Expected application/json"},
+  "Ungültiges JSON": {"fr": "JSON non valable", "en": "Invalid JSON"},
+  "Interner Fehler, Details in der Konsole": {"fr": "Erreur interne, détails dans la console", "en": "Internal error, details in the console"},
+  "{datei} nicht gefunden": {"fr": "{datei} introuvable", "en": "{datei} not found"},
+  "Anfrage leer oder grösser als {grenze} Bytes": {"fr": "Requête vide ou plus grande que {grenze} octets", "en": "Request empty or larger than {grenze} bytes"},
+  "Parameter {name} fehlt": {"fr": "Paramètre {name} manquant", "en": "Parameter {name} missing"}
+}

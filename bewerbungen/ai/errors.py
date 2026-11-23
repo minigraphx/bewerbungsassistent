@@ -1,10 +1,12 @@
-"""Errors of AI calls as short German messages for the app. Access keys never appear in a message."""
+"""Errors of AI calls as short messages for the app, German with the catalog's French and English (#416). Access keys
+never appear in a message."""
 import logging
 import re
 
 import anthropic
 
-from amount_text import seconds_text
+from amount_text import NBSP
+from ui_texts import T
 
 log = logging.getLogger("bewerbungsbegleiter")
 
@@ -45,26 +47,27 @@ class LocalProblem(AiError):
 
 
 SETUP_ACTION = "ki-einrichten"  # what the answer of a route tells the page to open
-NOT_SET_UP = ("Die KI ist noch nicht eingerichtet. Unter „KI einrichten“ den Einladungscode, "
-              "das eigene Claude-Abo oder einen eigenen Schlüssel wählen.")
-ACCESS_DENIED = ("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen "
-                 "prüfen. Sonst bitte einen neuen Einladungscode anfordern.")
-NO_CREDIT = ("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. "
-             "Sonst bitte später nochmals versuchen.")
-# The monthly budget (G98), filled by ai.budget with the month and day the mediation names
+# Each message is a T, so the server says it in the app language wherever it is raised (#416).
+NOT_SET_UP = T("Die KI ist noch nicht eingerichtet. Unter „KI einrichten“ den Einladungscode, "
+               "das eigene Claude-Abo oder einen eigenen Schlüssel wählen.")
+ACCESS_DENIED = T("Der Zugang zur KI gilt nicht mehr. Mit eigenem Schlüssel: bitte in den erweiterten Einstellungen "
+                  "prüfen. Sonst bitte einen neuen Einladungscode anfordern.")
+NO_CREDIT = T("Das Guthaben bei Anthropic reicht nicht mehr. Mit eigenem Schlüssel: bitte dort aufladen. "
+              "Sonst bitte später nochmals versuchen.")
+# The monthly budget (G98), filled by ai.budget with the month and day the mediation names (credit_used)
 CREDIT_USED = ("Das KI-Budget für {month} ist aufgebraucht. Die KI geht wieder ab {renews}; "
                "alles andere funktioniert weiterhin.")
 # A mediation that names no renewal still counts a one-time credit (G80)
-CREDIT_USED_ONCE = ("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
-                    "Einstellungen, KI, Budget und Sprache einlösen. Alles andere funktioniert weiterhin.")
+CREDIT_USED_ONCE = T("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
+                     "Einstellungen, KI, Budget und Sprache einlösen. Alles andere funktioniert weiterhin.")
 RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} nochmals versuchen."
-TIMEOUT = "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen."
-OFFLINE = "Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?"
-SERVER = "Bei der KI ist gerade ein Fehler aufgetreten. Bitte später nochmals versuchen."
-REJECTED_REQUEST = "Die Anfrage an die KI war ungültig. Bitte melden; die Unterlagen sind unverändert."
-REFUSED = "Die KI hat diese Anfrage abgelehnt. Bitte den Text prüfen, zum Beispiel das Inserat."
-TOO_LONG = "Die Antwort der KI war zu lang und ist unvollständig. Bitte nochmals versuchen."
-BAD_ANSWER = "Die Antwort der KI liess sich nicht lesen. Bitte nochmals versuchen."
+TIMEOUT = T("Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen.")
+OFFLINE = T("Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?")
+SERVER = T("Bei der KI ist gerade ein Fehler aufgetreten. Bitte später nochmals versuchen.")
+REJECTED_REQUEST = T("Die Anfrage an die KI war ungültig. Bitte melden; die Unterlagen sind unverändert.")
+REFUSED = T("Die KI hat diese Anfrage abgelehnt. Bitte den Text prüfen, zum Beispiel das Inserat.")
+TOO_LONG = T("Die Antwort der KI war zu lang und ist unvollständig. Bitte nochmals versuchen.")
+BAD_ANSWER = T("Die Antwort der KI liess sich nicht lesen. Bitte nochmals versuchen.")
 DEFAULT_RETRY_SECONDS = 60
 CREDIT_STATUS = 402  # the mediation answers 402 once the budget of the month is used up (G98)
 MAX_LOGGED_REASON = 400
@@ -82,7 +85,7 @@ def from_sdk(error: Exception) -> AiError:
         return AiError(ACCESS_DENIED)
     if isinstance(error, anthropic.RateLimitError):
         seconds = _retry_after(error)
-        return AiError(RATE_LIMITED.format(seconds=seconds_text(seconds)), retry_after=seconds)
+        return AiError(T(RATE_LIMITED, seconds=_seconds(seconds)), retry_after=seconds)
     if isinstance(error, anthropic.APIStatusError):
         if error.status_code == CREDIT_STATUS:
             return CreditUsedUp(CREDIT_USED_ONCE)
@@ -93,6 +96,18 @@ def from_sdk(error: Exception) -> AiError:
             return AiError(NO_CREDIT)
         return AiError(REJECTED_REQUEST)
     return AiError(SERVER)
+
+
+def credit_used(month: str, renews: str) -> T:
+    """The used-up budget of the month (G98); month and day may be T, then they follow the app language too."""
+    return T(CREDIT_USED, month=month, renews=renews)
+
+
+def _seconds(count: int) -> T:
+    """„30 Sekunden“ as amount_text.seconds_text writes it, in the app language."""
+    if count == 1:
+        return T("{anzahl}{nbsp}Sekunde", anzahl=count, nbsp=NBSP)
+    return T("{anzahl}{nbsp}Sekunden", anzahl=count, nbsp=NBSP)
 
 
 def _reason(error: anthropic.APIStatusError) -> str:
