@@ -44,13 +44,14 @@ ID_MUSTER = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 def iso_datum(wert, feld: str) -> str:
     """ISO (2026-09-23) oder Schweizer Format (23.09.2026) → ISO; alles andere ist ein Fehler."""
+    from ui_texts import T  # imported late, see Register.hole; the pages show these in the app language (#420)
     text = str(wert).strip()
     for format in ("%Y-%m-%d", "%d.%m.%Y"):
         try:
             return datetime.datetime.strptime(text, format).date().isoformat()
         except ValueError:
             continue
-    raise ValueError(f"{feld}: kein gültiges Datum ({text!r}), erwartet z.B. 23.09.2026")
+    raise ValueError(T("{feld}: kein gültiges Datum ({text}), erwartet z.B. 23.09.2026", feld=feld, text=repr(text)))
 
 
 def schweizer_datum(iso: str | None) -> str:
@@ -59,14 +60,15 @@ def schweizer_datum(iso: str | None) -> str:
 
 def pruefe_passung(wert) -> int | float:
     """Passung als Schweizer Note 1–6 in halben Schritten (6 = passt ohne Haken); auch "4,5" aus der Jobliste."""
+    from ui_texts import T  # imported late, see Register.hole
     if isinstance(wert, bool):
         raise ValueError("passung muss eine Note von 1 bis 6 sein")
     try:
         note = float(str(wert).strip().replace(",", "."))
     except ValueError:
-        raise ValueError(f"passung muss eine Note von 1 bis 6 sein, nicht {wert!r}") from None
+        raise ValueError(T("passung muss eine Note von 1 bis 6 sein, nicht {wert}", wert=repr(wert))) from None
     if not 1 <= note <= 6 or note * 2 != int(note * 2):
-        raise ValueError(f"passung muss eine Note von 1 bis 6 in halben Schritten sein, nicht {wert!r}")
+        raise ValueError(T("passung muss eine Note von 1 bis 6 in halben Schritten sein, nicht {wert}", wert=repr(wert)))
     return int(note) if note.is_integer() else note
 
 
@@ -84,24 +86,28 @@ def _uebernimm_jobroom(b: dict) -> dict:
 
 def _dossier_design(b: dict) -> tuple[str | None, dict[str, str]]:
     """The design of the dossier and the pages with another one; both empty means the preset."""
+    from ui_texts import T  # imported late, see Register.hole
     choices = ", ".join(DOSSIER_DESIGNS)
     design = b.get("dossier_design") or None
     if design is not None and design not in DOSSIER_DESIGNS:
-        raise ValueError(f"dossier_design muss eines von {choices} sein, nicht {design!r}")
+        raise ValueError(T("dossier_design muss eines von {choices} sein, nicht {design}", choices=choices, design=repr(design)))
     pages = b.get("dossier_seiten") or {}
     if not isinstance(pages, dict):
         raise ValueError("dossier_seiten muss eine Zuordnung von Seite zu Design sein")
     unknown = sorted(set(pages) - set(DESIGN_PAGES))
     if unknown:
-        raise ValueError(f"dossier_seiten: unbekannte Seiten {unknown}, möglich sind {', '.join(DESIGN_PAGES)}")
+        raise ValueError(T("dossier_seiten: unbekannte Seiten {unknown}, möglich sind {seiten}", unknown=unknown,
+                           seiten=", ".join(DESIGN_PAGES)))
     wrong = sorted(page for page, name in pages.items() if name not in DOSSIER_DESIGNS)
     if wrong:
-        raise ValueError(f"dossier_seiten: Design muss eines von {choices} sein ({', '.join(wrong)})")
+        raise ValueError(T("dossier_seiten: Design muss eines von {choices} sein ({seiten})", choices=choices,
+                           seiten=", ".join(wrong)))
     return design, {page: pages[page] for page in DESIGN_PAGES if page in pages}
 
 
 def pruefe_bewerbung(b: dict) -> dict:
     """Bewerbung prüfen und als neues, bereinigtes Dict liefern (leere Felder entfallen)."""
+    from ui_texts import T  # imported late, see Register.hole
     if not isinstance(b, dict):
         raise ValueError("Bewerbung muss eine Zuordnung sein")
     b = _uebernimm_jobroom(b)
@@ -109,28 +115,30 @@ def pruefe_bewerbung(b: dict) -> dict:
                "dossier_design", "dossier_seiten", "lebenslauf_design", reposts.KEY, *TEXTFELDER, *DATUMSFELDER}
     unbekannt = set(b) - bekannt
     if unbekannt:
-        raise ValueError(f"Unbekannte Felder: {sorted(unbekannt)}")
+        raise ValueError(T("Unbekannte Felder: {felder}", felder=sorted(unbekannt)))
     if not isinstance(b.get("id"), str) or not ID_MUSTER.fullmatch(b["id"]):
-        raise ValueError(f"id muss aus Kleinbuchstaben, Ziffern und Bindestrichen bestehen, nicht {b.get('id')!r}")
+        raise ValueError(T("id muss aus Kleinbuchstaben, Ziffern und Bindestrichen bestehen, nicht {id}", id=repr(b.get("id"))))
     for pflicht in ("firma", "stelle"):
         if not b.get(pflicht) or not str(b[pflicht]).strip():
-            raise ValueError(f"{pflicht} fehlt")
+            raise ValueError(T("{feld} fehlt", feld=pflicht))
     status = b.get("status") or "Gemerkt"
     if status not in STATUS:
-        raise ValueError(f"status muss eines von {', '.join(STATUS)} sein, nicht {status!r}")
+        raise ValueError(T("status muss eines von {staende} sein, nicht {status}", staende=", ".join(STATUS), status=repr(status)))
     link = str(b.get("link") or "").strip()
     if link and not link.startswith(("https://", "http://")):
         raise ValueError("link muss mit https:// oder http:// beginnen")
     if b.get("formular_link") and not str(b["formular_link"]).strip().startswith(("https://", "http://")):
         raise ValueError("formular_link muss mit https:// oder http:// beginnen")
     if b.get("ausfuellen") not in (None, "", *FORM_STATES):
-        raise ValueError(f"ausfuellen muss eines von {', '.join(FORM_STATES)} sein")
+        raise ValueError(T("ausfuellen muss eines von {staende} sein", staende=", ".join(FORM_STATES)))
     if b.get("unterlagen") not in (None, "", *DOCUMENT_CHOICES):
-        raise ValueError(f"unterlagen muss eines von {', '.join(DOCUMENT_CHOICES)} sein, nicht {b['unterlagen']!r}")
+        raise ValueError(T("unterlagen muss eines von {wahl} sein, nicht {wert}", wahl=", ".join(DOCUMENT_CHOICES),
+                           wert=repr(b["unterlagen"])))
     design, pages = _dossier_design(b)
     cv_design = b.get("lebenslauf_design") or None
     if cv_design is not None and cv_design not in CV_DESIGNS:
-        raise ValueError(f"lebenslauf_design muss eines von {', '.join(CV_DESIGNS)} sein, nicht {cv_design!r}")
+        raise ValueError(T("lebenslauf_design muss eines von {designs} sein, nicht {design}", designs=", ".join(CV_DESIGNS),
+                           design=repr(cv_design)))
     neu = {"id": b["id"], "status": status}
     if "zertifikate" in b:
         if not isinstance(b["zertifikate"], list) or not all(isinstance(p, str) for p in b["zertifikate"]):
@@ -291,10 +299,11 @@ class Register:
         return [b for b in updated if b["id"] in by_id]
 
     def neu(self, firma: str, stelle: str, **felder) -> dict:
+        from ui_texts import T  # imported late, see hole
         vorhandene = {b["id"] for b in self.alle()}
         bewerbung_id = felder.pop("id", None) or erzeuge_id(felder.get("firma_schluessel") or firma, stelle, vorhandene)
         if bewerbung_id in vorhandene:
-            raise ValueError(f"Bewerbung {bewerbung_id!r} gibt es schon")
+            raise ValueError(T("Bewerbung {id} gibt es schon", id=repr(bewerbung_id)))
         eingetragen = felder.pop("eingetragen_am", None) or datetime.date.today().isoformat()
         return self.speichere({"id": bewerbung_id, "firma": firma, "stelle": stelle, "eingetragen_am": eingetragen,
                                **felder})

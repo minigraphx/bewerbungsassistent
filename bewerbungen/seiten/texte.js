@@ -561,12 +561,16 @@
     // The button of the pass; a set, since the German word is also the stored stage „Bewerben“ (#419).
     "heute.pass.bewerben": { sie: "Bewerben", du: "Bewerben" },
 
-    // The stage of an application as the person reads it, in the singular (#419, ruling on #420). Stored values stay
-    // German; only the stages the start page shows have a set so far, the others keep their German name.
+    // The stage of an application as the person reads it, in the singular (#419, #420). Stored values stay German;
+    // every value of register.STATUS has a set (tests/test_applications_languages.py).
     "status.gemerkt": { sie: "Gemerkt", du: "Gemerkt" },
     "status.bewerben": { sie: "Bewerben", du: "Bewerben" },
     "status.beworben": { sie: "Beworben", du: "Beworben" },
     "status.gespraech": { sie: "Gespräch", du: "Gespräch" },
+    "status.absage": { sie: "Absage", du: "Absage" },
+    "status.zusage": { sie: "Zusage", du: "Zusage" },
+    "status.verworfen": { sie: "Verworfen", du: "Verworfen" },
+    "status.zurueckgezogen": { sie: "Zurückgezogen", du: "Zurückgezogen" },
 
     // Setup (step 2 of the redesign)
     "einrichtung.ordner.frage": {
@@ -661,9 +665,10 @@
     for (const element of wurzel.querySelectorAll("[data-text]")) element.textContent = text(element.dataset.text, satz);
   }
 
-  // The set of each stage that has one; a stage without a set shows its stored German name.
+  // The set of each stored stage; a stage without one, from a newer register, shows its stored German name.
   const STATUS_SETS = { Gemerkt: "status.gemerkt", Bewerben: "status.bewerben", Beworben: "status.beworben",
-                        "Gespräch": "status.gespraech" };
+                        "Gespräch": "status.gespraech", Absage: "status.absage", Zusage: "status.zusage",
+                        Verworfen: "status.verworfen", "Zurückgezogen": "status.zurueckgezogen" };
 
   /**
    * The name of a status as the person reads it, in the app language: for apprenticeships an interview is often a

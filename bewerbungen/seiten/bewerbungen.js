@@ -1,10 +1,12 @@
 "use strict";
 // Bewerbungen (#261, A5): every application with its stage, grade, next step and date, in views by stage with counts
 // (G27), sortable by any column (G28). Ticked ones are discarded or set to another stage in one step (G29); saved jobs
-// are rated in one pass (G38, pass.js); a job is entered by hand. The next step comes from uebersicht-logik.js.
+// are rated in one pass (G38, pass.js); a job is entered by hand. The next step comes from uebersicht-logik.js. Texts in
+// the app language through Texte.t (#420).
 (() => {
   const { holen, senden, el, beobachten, textsatz } = window.App;
   const { text } = window.Texte;
+  const Texte = window.Texte;
   const L = window.UebersichtLogik;
   const H = window.HeuteLogic;
   const A = window.BewerbungenLogic;
@@ -12,8 +14,6 @@
 
   const ANSICHT = "uebersicht.ansicht";  // the same key as before #261, so the chosen view stays
   const MIT_FUSS = ["gemerkt", "beworben"];  // views that do not show the finished ones name them below the list
-  const NICHTS_GEFUNDEN = "Keine Bewerbung passt zu dieser Suche.";
-  const ANSICHT_LEER = "In dieser Ansicht ist keine Bewerbung.";
   const ARIA_SORT = { auf: "ascending", ab: "descending" };
   const DISCARD_STAGES = ["Verworfen", "Zurückgezogen"];
 
@@ -35,7 +35,8 @@
   const adresse = b => "/bewerbung?id=" + encodeURIComponent(b.id);
   // G109, #385: an open application whose job came again says so as a part of the line
   const wo = b => window.DotLine.render([[b.firma, b.ort].filter(Boolean).join(", "), window.WiederLogik.listPart(b)], el);
-  const name = b => [b.stelle || "ohne Titel", b.firma].filter(Boolean).join(", ");
+  const titel = b => b.stelle || Texte.t("ohne Titel");
+  const name = b => [titel(b), b.firma].filter(Boolean).join(", ");
 
   function merken() {
     try {
@@ -56,34 +57,31 @@
 
   // Note 1–6 as in the design: value, six bars, a word
 
-  function notenWort(note) {
-    return note >= 5.5 ? "passt sehr gut" : note >= 4.5 ? "passt gut" : note >= 4 ? "passt knapp" : "passt wenig";
-  }
-
   function note(b) {
-    if (typeof b.passung !== "number") return el("span", { class: "table__sub" }, "keine Note");
+    if (typeof b.passung !== "number") return el("span", { class: "table__sub" }, A.noGrade());
     const balken = [1, 2, 3, 4, 5, 6].map(k => el("i", { class: b.passung >= k ? "on" : b.passung >= k - 0.5 ? "half" : "" }));
-    return el("span", { class: "grade-meter grade-meter--sm", "aria-label": `Note ${window.Texte.notenText(b.passung)} von 6, ${notenWort(b.passung)}` },
-      el("span", { class: "grade-meter__value" }, window.Texte.notenText(b.passung)),
+    return el("span", { class: "grade-meter grade-meter--sm", "aria-label": A.gradeLabel(b.passung) },
+      el("span", { class: "grade-meter__value" }, Texte.notenText(b.passung)),
       el("span", { class: "grade-meter__bar", "aria-hidden": "true" }, balken),
-      el("span", { class: "grade-meter__word", "aria-hidden": "true" }, notenWort(b.passung)));
+      el("span", { class: "grade-meter__word", "aria-hidden": "true" }, A.gradeWord(b.passung)));
   }
 
   // The list
 
   function zeile(z) {
-    const { bewerbung: b, schritt } = z;
-    const was = L.schrittText(schritt, 1, t);
+    const b = z.bewerbung;
+    const texte = A.rowTexts(z, satz);
+    const kopf = A.columnLabels();
     return el("tr", { "data-selected": auswahl.has(b.id) },
       el("td", { "data-label": "", class: "table__pick" },
-        el("input", { type: "checkbox", "data-id": b.id, "aria-label": `Anhaken: ${name(b)}`, checked: auswahl.has(b.id),
-                      onchange: () => waehleZeile(b.id) })),
-      el("td", { "data-label": "" }, el("a", { class: "table__main", href: adresse(b) }, b.stelle || "ohne Titel"), el("span", { class: "table__sub" }, ...wo(b))),
-      el("td", { "data-label": "Stand" }, el("span", { class: "marke-status", "data-status": b.status }, window.Texte.statusName(b.status, satz))),
-      el("td", { "data-label": "Note" }, note(b)),
-      el("td", { "data-label": "Nächster Schritt", class: "table__next" }, was.titel || "–"),
-      el("td", { "data-label": "Bis wann" }, A.dueText(z)),
-      el("td", { "data-label": "Erfasst", class: "num" }, L.datum(b.eingetragen_am)));
+        el("input", { type: "checkbox", "data-id": b.id, "aria-label": Texte.t("Anhaken: {name}", { name: name(b) }),
+                      checked: auswahl.has(b.id), onchange: () => waehleZeile(b.id) })),
+      el("td", { "data-label": "" }, el("a", { class: "table__main", href: adresse(b) }, titel(b)), el("span", { class: "table__sub" }, ...wo(b))),
+      el("td", { "data-label": kopf.stand }, el("span", { class: "marke-status", "data-status": b.status }, texte.stand)),
+      el("td", { "data-label": kopf.note }, note(b)),
+      el("td", { "data-label": kopf.schritt, class: "table__next" }, texte.schritt),
+      el("td", { "data-label": kopf.bis }, texte.bis),
+      el("td", { "data-label": kopf.erfasst, class: "num" }, texte.erfasst));
   }
 
   const gezeigteZeilen = () => L.sortiert(L.gefiltert(zeilen, ansicht, $("suche").value), sortierung);
@@ -92,8 +90,8 @@
     const fertig = L.abgeschlossenZaehlen(zeilen);
     const teile = Object.entries(fertig).map(([status, n]) => L.abgeschlossenTeil(status, n));
     $("liste-fuss").hidden = !MIT_FUSS.includes(ansicht) || teile.length === 0;
-    $("liste-fuss").replaceChildren(`Abgeschlossen: ${teile.join(", ")}. `,
-      el("button", { type: "button", class: "link", onclick: () => waehleAnsicht("abgeschlossen") }, "Anzeigen"));
+    $("liste-fuss").replaceChildren(`${Texte.t("Abgeschlossen: {teile}.", { teile: teile.join(", ") })} `,
+      el("button", { type: "button", class: "link", onclick: () => waehleAnsicht("abgeschlossen") }, Texte.t("Anzeigen")));
     $("durchgang").hidden = H.passQueue(zeilen).length === 0;
   }
 
@@ -109,7 +107,8 @@
     $("tabelle").hidden = gezeigte.length === 0;
     $("liste-leer").hidden = alle.length > 0;
     $("nichts-gefunden").hidden = alle.length === 0 || gezeigte.length > 0;
-    $("nichts-gefunden").textContent = $("suche").value.trim() ? NICHTS_GEFUNDEN : ANSICHT_LEER;
+    $("nichts-gefunden").textContent = $("suche").value.trim() ? Texte.t("Keine Bewerbung passt zu dieser Suche.")
+      : Texte.t("In dieser Ansicht ist keine Bewerbung.");
     zeigeAuswahl(gezeigte);
     zeigeFuss();
     merken();
@@ -156,7 +155,7 @@
   function fuelleStaende() {
     const gewaehlt = $("stand-wahl").value;
     const optionen = staende.map(stand => el("option", { value: stand, selected: stand === gewaehlt }, window.Texte.statusName(stand, satz)));
-    $("stand-wahl").replaceChildren(el("option", { value: "" }, "Anderer Stand …"), ...optionen);
+    $("stand-wahl").replaceChildren(el("option", { value: "" }, Texte.t("Anderer Stand …")), ...optionen);
   }
 
   function zeigeFrage(titel, betroffen, hinweise, knopf) {
@@ -175,7 +174,7 @@
     const enden = new Set(DISCARD_STAGES.flatMap(stand => plan[stand]));
     frage = { art: "verwerfen", plan };
     zeigeFrage(A.discardQuestion(plan), gezeigte.filter(z => enden.has(z.bewerbung.id)).map(z => name(z.bewerbung)),
-      A.discardNotes(plan), "Verwerfen");
+      A.discardNotes(plan), Texte.t("Verwerfen"));
   }
 
   function frageStand() {
@@ -186,7 +185,7 @@
     frage = { art: "stand", ids, stand };
     zeigeFrage(L.stageQuestion(ids.length, window.Texte.statusName(stand, satz)),
       gezeigte.filter(z => ids.includes(z.bewerbung.id)).map(z => name(z.bewerbung)),
-      stand === "Absage" ? ["Wo das Datum der Absage fehlt, gilt heute."] : [], "Stand setzen");
+      stand === "Absage" ? [Texte.t("Wo das Datum der Absage fehlt, gilt heute.")] : [], Texte.t("Stand setzen"));
   }
 
   async function setze(ids, stand) {
@@ -246,7 +245,7 @@
       $("suche").placeholder = t("uebersicht.suche");
       zeigeListe();
     } catch (fehler) {
-      meldung("Laden fehlgeschlagen: " + fehler.message, "danger");
+      meldung(Texte.t("Laden fehlgeschlagen: {fehler}", { fehler: fehler.message }), "danger");
     }
   }
 

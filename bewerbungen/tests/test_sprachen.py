@@ -192,6 +192,33 @@ def test_the_full_names_of_the_browsers_are_names(tmp_path):
     assert sprachen_pruefen.gaps((script,), fixture_catalog()) == ()
 
 
+def test_a_page_label_named_like_a_stored_stage_is_a_gap_while_a_script_value_is_not(tmp_path):
+    # #420: the tabs of Bewerbungen said „Gemerkt“ and the pass button „Bewerben“ as page text; a script compares them.
+    page = tmp_path / "seite.html"
+    page.write_text('<html lang="de"><body><button>Gemerkt</button></body></html>\n', encoding="utf-8")
+    script = tmp_path / "seite.js"
+    script.write_text('"use strict";\nconst offen = status === "Gemerkt" ? 1 : ["Bewerben"];\n', encoding="utf-8")
+
+    gaps = sprachen_pruefen.gaps((page, script), fixture_catalog())
+
+    assert [(gap.path, gap.text) for gap in gaps] == [(str(page), "Gemerkt")]
+
+
+def test_a_raised_module_constant_built_as_an_f_string_needs_t(tmp_path):
+    # #420: routes_apply.TOO_MANY was an f-string constant, which no catalog entry can match once filled in.
+    module = tmp_path / "routen.py"
+    module.write_text("LIMIT = 5\n"
+                      "TOO_MANY = f'Pro Durchgang gehen höchstens {LIMIT} Bewerbungen.'\n\n\n"
+                      "def check(ids):\n"
+                      "    if len(ids) > LIMIT:\n"
+                      "        raise ValueError(TOO_MANY)\n", encoding="utf-8")
+
+    gaps = sprachen_pruefen.gaps((module,), fixture_catalog())
+
+    assert [(gap.line, gap.text, gap.missing) for gap in gaps] == [
+        (7, "Pro Durchgang gehen höchstens {LIMIT} Bewerbungen.", ("T",))]
+
+
 def test_every_source_includes_the_routes_of_the_desktop_app():
     sources = sprachen_pruefen.app_sources()
 

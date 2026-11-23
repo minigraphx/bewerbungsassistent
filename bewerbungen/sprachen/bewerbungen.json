@@ -1,0 +1,220 @@
+{
+  "texte:status.absage": {"fr": {"sie": "Refus", "du": "Refus"}, "en": {"sie": "Rejection"}},
+  "texte:status.zusage": {"fr": {"sie": "Réponse positive", "du": "Réponse positive"}, "en": {"sie": "Offer"}},
+  "texte:status.verworfen": {"fr": {"sie": "Écartée", "du": "Écartée"}, "en": {"sie": "Discarded"}},
+  "texte:status.zurueckgezogen": {"fr": {"sie": "Retirée", "du": "Retirée"}, "en": {"sie": "Withdrawn"}},
+
+  "texte:uebersicht.von-hand": {
+    "fr": {"sie": "Saisir une offre manuellement", "du": "Saisir une offre manuellement", "lehrstelle": "Saisir une place d'apprentissage manuellement"},
+    "en": {"sie": "Add a job by hand", "lehrstelle": "Add an apprenticeship by hand"}
+  },
+  "texte:uebersicht.feld-firma": {
+    "fr": {"sie": "Entreprise", "du": "Entreprise", "lehrstelle": "Entreprise formatrice"},
+    "en": {"sie": "Company", "lehrstelle": "Host company"}
+  },
+  "texte:uebersicht.feld-stelle": {
+    "fr": {"sie": "Poste", "du": "Poste", "lehrstelle": "Place d'apprentissage"},
+    "en": {"sie": "Job", "lehrstelle": "Apprenticeship"}
+  },
+  "texte:uebersicht.suche": {
+    "fr": {"sie": "Entreprise ou poste", "du": "Entreprise ou poste", "lehrstelle": "Entreprise formatrice ou place d'apprentissage"},
+    "en": {"sie": "Company or job", "lehrstelle": "Host company or apprenticeship"}
+  },
+  "texte:uebersicht.spalte": {
+    "fr": {"sie": "Poste et entreprise", "du": "Poste et entreprise", "lehrstelle": "Place d'apprentissage et entreprise formatrice"},
+    "en": {"sie": "Job and company", "lehrstelle": "Apprenticeship and host company"}
+  },
+  "texte:uebersicht.liste-leer": {
+    "fr": {
+      "sie": "Pas encore de candidatures. Dans la recherche, cliquez sur «\u00a0Mettre de côté\u00a0» pour une offre ou saisissez-en une manuellement.",
+      "du": "Pas encore de candidatures. Dans la recherche, clique sur «\u00a0Mettre de côté\u00a0» pour une offre ou saisis-en une manuellement.",
+      "lehrstelle": "Pas encore de candidatures. Dans la recherche, clique sur «\u00a0Mettre de côté\u00a0» pour une place d'apprentissage ou saisis-en une manuellement."
+    },
+    "en": {
+      "sie": "No applications yet. In the search, click “Save” on a job or add one by hand.",
+      "lehrstelle": "No applications yet. In the search, click “Save” on an apprenticeship or add one by hand."
+    }
+  },
+
+  "Alle": {"fr": "Toutes", "en": "All"},
+  "Anzeigen": {"fr": "Afficher", "en": "Show"},
+  "Suchen": {"fr": "Rechercher", "en": "Search"},
+  "Keine Bewerbung passt zu dieser Suche.": {"fr": "Aucune candidature ne correspond à cette recherche.", "en": "No application matches this search."},
+  "In dieser Ansicht ist keine Bewerbung.": {"fr": "Aucune candidature dans cette vue.", "en": "No applications in this view."},
+  "Alle in dieser Ansicht auswählen": {"fr": "Tout sélectionner dans cette vue", "en": "Select all in this view"},
+  "Stand": {"fr": "Statut", "en": "Status"},
+  "Note": {"fr": "Note", "en": "Grade"},
+  "Bis wann": {"fr": "Échéance", "en": "Due"},
+  "Erfasst": {"fr": "Ajoutée", "en": "Added"},
+  "Angehakte Bewerbungen": {"fr": "Candidatures cochées", "en": "Ticked applications"},
+  "Angehakte verwerfen": {"fr": "Écarter les cochées", "en": "Discard ticked"},
+  "Zuerst Bewerbungen anhaken.": {"fr": "Cocher d'abord des candidatures.", "en": "Tick applications first."},
+  "1 angehakt": {"fr": "1 cochée", "en": "1 ticked"},
+  "{anzahl} angehakt": {"fr": "{anzahl} cochées", "en": "{anzahl} ticked"},
+  "Anderer Stand": {"fr": "Autre statut", "en": "Other status"},
+  "Anderer Stand …": {"fr": "Autre statut…", "en": "Other status…"},
+  "Stand setzen": {"fr": "Définir le statut", "en": "Set status"},
+  "Gemerkte in einem Durchgang bewerten": {
+    "fr": "Évaluer en un tri les candidatures mises de côté",
+    "en": "Rate saved applications in one review"
+  },
+  "Anlegen": {"fr": "Créer", "en": "Create"},
+  "Anhaken: {name}": {"fr": "Cocher\u00a0: {name}", "en": "Tick: {name}"},
+  "Abgeschlossen: {teile}.": {"fr": "Terminées\u00a0: {teile}.", "en": "Closed: {teile}."},
+  "Wo das Datum der Absage fehlt, gilt heute.": {
+    "fr": "Là où la date du refus manque, la date du jour s'applique.",
+    "en": "Where the date of the rejection is missing, today applies."
+  },
+  "offen": {"fr": "à définir", "en": "not set"},
+  "passt sehr gut": {"fr": "correspond très bien", "en": "fits very well"},
+  "passt gut": {"fr": "correspond bien", "en": "fits well"},
+  "passt knapp": {"fr": "correspond tout juste", "en": "barely fits"},
+  "passt wenig": {"fr": "correspond peu", "en": "fits poorly"},
+  "Note {note} von 6, {wort}": {"fr": "Note {note} sur 6, {wort}", "en": "Grade {note} of 6, {wort}"},
+  "keine Note": {"fr": "pas de note", "en": "no grade"},
+
+  "{bewerbungen} verwerfen?": {"fr": "Écarter {bewerbungen}\u00a0?", "en": "Discard {bewerbungen}?"},
+  "1 schon verschickte wird zurückgezogen.": {"fr": "1 déjà envoyée sera retirée.", "en": "1 already sent will be withdrawn."},
+  "{anzahl} schon verschickte werden zurückgezogen.": {
+    "fr": "{anzahl} déjà envoyées seront retirées.",
+    "en": "{anzahl} already sent will be withdrawn."
+  },
+  "1 abgeschlossene bleibt, wie sie ist.": {"fr": "1 terminée reste telle quelle.", "en": "1 closed stays as it is."},
+  "{anzahl} abgeschlossene bleiben, wie sie sind.": {
+    "fr": "{anzahl} terminées restent telles quelles.",
+    "en": "{anzahl} closed stay as they are."
+  },
+  "1 Bewerbung verworfen.": {"fr": "1 candidature écartée.", "en": "1 application discarded."},
+  "{anzahl} Bewerbungen verworfen.": {"fr": "{anzahl} candidatures écartées.", "en": "{anzahl} applications discarded."},
+  "1 Bewerbung zurückgezogen.": {"fr": "1 candidature retirée.", "en": "1 application withdrawn."},
+  "{anzahl} Bewerbungen zurückgezogen.": {"fr": "{anzahl} candidatures retirées.", "en": "{anzahl} applications withdrawn."},
+  "1 Bewerbung verworfen, {zurueckgezogen}.": {
+    "fr": "1 candidature écartée, {zurueckgezogen}.",
+    "en": "1 application discarded, {zurueckgezogen}."
+  },
+  "{anzahl} Bewerbungen verworfen, {zurueckgezogen}.": {
+    "fr": "{anzahl} candidatures écartées, {zurueckgezogen}.",
+    "en": "{anzahl} applications discarded, {zurueckgezogen}."
+  },
+
+  "{tag}. {monat}": {"fr": "{tag}\u00a0{monat}", "en": "{tag}\u00a0{monat}"},
+  "1. {monat}": {"fr": "1er\u00a0{monat}", "en": "1\u00a0{monat}"},
+  "Wieder ausgeschrieben": {"fr": "Annonce republiée", "en": "Advertised again"},
+  "Neues Inserat öffnen": {"fr": "Ouvrir la nouvelle annonce", "en": "Open the new ad"},
+  "Am {datum} stand dieses Inserat nochmals auf {portal}.": {
+    "fr": "Le {datum}, cette annonce figurait de nouveau sur {portal}.",
+    "en": "On {datum} this ad appeared again on {portal}."
+  },
+  "Zuletzt am {datum} auf {portal}, insgesamt {anzahl}-mal.": {
+    "fr": "Dernière fois le {datum} sur {portal}, {anzahl} fois en tout.",
+    "en": "Last on {datum} on {portal}, {anzahl} times in all."
+  },
+  "Zuletzt am {datum} auf {portal}, insgesamt mindestens {anzahl}-mal.": {
+    "fr": "Dernière fois le {datum} sur {portal}, au moins {anzahl} fois en tout.",
+    "en": "Last on {datum} on {portal}, at least {anzahl} times in all."
+  },
+  "wieder ausgeschrieben am {datum}": {"fr": "republiée le {datum}", "en": "advertised again on {datum}"},
+  "Wieder ausgeschrieben am {datum} Die Stelle bleibt verworfen.": {
+    "fr": "Republiée le {datum} L'offre reste écartée.",
+    "en": "Advertised again on {datum} The job stays discarded."
+  },
+  "Auch auf {portal}": {"fr": "Aussi sur {portal}", "en": "Also on {portal}"},
+  "Dasselbe Inserat einmal mehr auf {portal}": {"fr": "La même annonce une fois de plus sur {portal}", "en": "The same ad once more on {portal}"},
+  "Dasselbe Inserat {anzahl}-mal mehr auf {portal}": {
+    "fr": "La même annonce {anzahl} fois de plus sur {portal}",
+    "en": "The same ad {anzahl} more times on {portal}"
+  },
+  "Inserat vom {datum} öffnen": {"fr": "Ouvrir l'annonce du {datum}", "en": "Open the ad of {datum}"},
+  "„{stelle}“ öffnen": {"fr": "Ouvrir «\u00a0{stelle}\u00a0»", "en": "Open “{stelle}”"},
+  "vielleicht dieselbe Stelle": {"fr": "peut-être la même offre", "en": "maybe the same job"},
+  "1 verworfene": {"fr": "1 écartée", "en": "1 discarded"},
+  "{anzahl} verworfene": {"fr": "{anzahl} écartées", "en": "{anzahl} discarded"},
+  "1 Inserat aus dem letzten Suchlauf kannte die App schon, mit neuem Link: {teile}. Es steht nicht unter Neu.": {
+    "fr": "L'app connaissait déjà 1 annonce de la dernière recherche, avec un nouveau lien\u00a0: {teile}. Elle n'apparaît pas sous Nouvelles.",
+    "en": "The app already knew 1 ad from the last search, with a new link: {teile}. It is not under New."
+  },
+  "{anzahl} Inserate aus dem letzten Suchlauf kannte die App schon, mit neuem Link: {teile}. Sie stehen nicht unter Neu.": {
+    "fr": "L'app connaissait déjà {anzahl} annonces de la dernière recherche, avec un nouveau lien\u00a0: {teile}. Elles n'apparaissent pas sous Nouvelles.",
+    "en": "The app already knew {anzahl} ads from the last search, with a new link: {teile}. They are not under New."
+  },
+
+  "firma und stelle erwartet": {"fr": "firma et stelle attendus", "en": "firma and stelle expected"},
+  "firma und stelle angeben": {"fr": "Indiquer l'entreprise et le poste", "en": "Enter the company and the job"},
+  "text erwartet": {"fr": "text attendu", "en": "text expected"},
+  "Zuerst den Stellentext einfügen und speichern": {
+    "fr": "Coller et enregistrer d'abord le texte de l'annonce",
+    "en": "First paste and save the job ad text"
+  },
+  "art muss lebenslauf, anschreiben oder dossier sein": {
+    "fr": "art doit être lebenslauf, anschreiben ou dossier",
+    "en": "art must be lebenslauf, anschreiben or dossier"
+  },
+  "Für diese Bewerbung ist kein Dossier gewählt": {
+    "fr": "Aucun dossier n'est choisi pour cette candidature",
+    "en": "No dossier is chosen for this application"
+  },
+  "Nur Dateien aus versendet/": {"fr": "Uniquement des fichiers de versendet/", "en": "Only files from versendet/"},
+  "id und schluessel erwartet": {"fr": "id et schluessel attendus", "en": "id and schluessel expected"},
+  "datum und art erwartet": {"fr": "datum et art attendus", "en": "datum and art expected"},
+  "Dieser Stand ist unbekannt.": {"fr": "Cet état est inconnu.", "en": "This state is unknown."},
+
+  "{feld}: kein gültiges Datum ({text}), erwartet z.B. 23.09.2026": {
+    "fr": "{feld}\u00a0: date non valable ({text}), attendu par exemple 23.09.2026",
+    "en": "{feld}: not a valid date ({text}), expected e.g. 23.09.2026"
+  },
+  "passung muss eine Note von 1 bis 6 sein": {"fr": "passung doit être une note de 1 à 6", "en": "passung must be a grade from 1 to 6"},
+  "passung muss eine Note von 1 bis 6 sein, nicht {wert}": {
+    "fr": "passung doit être une note de 1 à 6, pas {wert}",
+    "en": "passung must be a grade from 1 to 6, not {wert}"
+  },
+  "passung muss eine Note von 1 bis 6 in halben Schritten sein, nicht {wert}": {
+    "fr": "passung doit être une note de 1 à 6 par demi-points, pas {wert}",
+    "en": "passung must be a grade from 1 to 6 in half steps, not {wert}"
+  },
+  "jobroom muss eine Zuordnung sein": {"fr": "jobroom doit être une table de valeurs", "en": "jobroom must be a mapping"},
+  "dossier_design muss eines von {choices} sein, nicht {design}": {
+    "fr": "dossier_design doit être l'un de {choices}, pas {design}",
+    "en": "dossier_design must be one of {choices}, not {design}"
+  },
+  "dossier_seiten muss eine Zuordnung von Seite zu Design sein": {
+    "fr": "dossier_seiten doit associer chaque page à un design",
+    "en": "dossier_seiten must map each page to a design"
+  },
+  "dossier_seiten: unbekannte Seiten {unknown}, möglich sind {seiten}": {
+    "fr": "dossier_seiten\u00a0: pages inconnues {unknown}, pages possibles\u00a0: {seiten}",
+    "en": "dossier_seiten: unknown pages {unknown}, possible are {seiten}"
+  },
+  "dossier_seiten: Design muss eines von {choices} sein ({seiten})": {
+    "fr": "dossier_seiten\u00a0: le design doit être l'un de {choices} ({seiten})",
+    "en": "dossier_seiten: the design must be one of {choices} ({seiten})"
+  },
+  "Bewerbung muss eine Zuordnung sein": {"fr": "Une candidature doit être une table de valeurs", "en": "An application must be a mapping"},
+  "Unbekannte Felder: {felder}": {"fr": "Champs inconnus\u00a0: {felder}", "en": "Unknown fields: {felder}"},
+  "id muss aus Kleinbuchstaben, Ziffern und Bindestrichen bestehen, nicht {id}": {
+    "fr": "id doit se composer de minuscules, de chiffres et de traits d'union, pas {id}",
+    "en": "id must consist of lowercase letters, digits and hyphens, not {id}"
+  },
+  "{feld} fehlt": {"fr": "{feld} manque", "en": "{feld} is missing"},
+  "status muss eines von {staende} sein, nicht {status}": {
+    "fr": "status doit être l'un de {staende}, pas {status}",
+    "en": "status must be one of {staende}, not {status}"
+  },
+  "link muss mit https:// oder http:// beginnen": {"fr": "link doit commencer par https:// ou http://", "en": "link must start with https:// or http://"},
+  "formular_link muss mit https:// oder http:// beginnen": {
+    "fr": "formular_link doit commencer par https:// ou http://",
+    "en": "formular_link must start with https:// or http://"
+  },
+  "ausfuellen muss eines von {staende} sein": {"fr": "ausfuellen doit être l'un de {staende}", "en": "ausfuellen must be one of {staende}"},
+  "unterlagen muss eines von {wahl} sein, nicht {wert}": {
+    "fr": "unterlagen doit être l'un de {wahl}, pas {wert}",
+    "en": "unterlagen must be one of {wahl}, not {wert}"
+  },
+  "lebenslauf_design muss eines von {designs} sein, nicht {design}": {
+    "fr": "lebenslauf_design doit être l'un de {designs}, pas {design}",
+    "en": "lebenslauf_design must be one of {designs}, not {design}"
+  },
+  "zertifikate muss eine Liste von Dateien sein": {"fr": "zertifikate doit être une liste de fichiers", "en": "zertifikate must be a list of files"},
+  "rav_zuweisung muss true oder false sein": {"fr": "rav_zuweisung doit être true ou false", "en": "rav_zuweisung must be true or false"},
+  "versand muss eine Zuordnung sein": {"fr": "versand doit être une table de valeurs", "en": "versand must be a mapping"},
+  "Bewerbung {id} gibt es schon": {"fr": "La candidature {id} existe déjà", "en": "Application {id} already exists"}
+}

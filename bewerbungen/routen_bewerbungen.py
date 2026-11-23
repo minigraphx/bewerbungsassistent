@@ -22,6 +22,7 @@ from dateien import im_ordner, schreibe_atomar
 from own_files import MAX_FILE_BYTES
 from register import STATUS, jobroom_angaben
 from server import Antwort, NichtGefunden, datei_antwort, json_antwort, pflicht
+from ui_texts import T
 from varianten import vorschlagen
 
 EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen", "rav_eingetragen_am", "wieder_ausgeschrieben")  # the last only by the search (G109)
@@ -200,7 +201,7 @@ def thumbnail(k, parameter, body):
     """Page 1 as PNG for the tile of the document (#321)."""
     path = _shown_pdf(k, parameter)
     if not path.is_file():
-        raise NichtGefunden(f"{path.name} nicht gefunden")
+        raise NichtGefunden(T("{datei} nicht gefunden", datei=path.name))
     return Antwort(HTTPStatus.OK, "image/png", pdf_thumbnail.cached(k.cache, path, k.build))
 
 
