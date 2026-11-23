@@ -470,14 +470,14 @@
   "dann füllt die Erweiterung es aus": {"fr": "l'extension le remplit ensuite", "en": "then the extension fills it in"},
   "Bewerbung öffnen": {"fr": "Ouvrir la candidature", "en": "Open the application"},
   "{anzahl} Bewerbungen im Job-Room eintragen": {
-    "fr": "Saisir {anzahl} candidatures dans le Job-Room",
-    "en": "Enter {anzahl} applications in the Job-Room"
+    "fr": "Saisir {anzahl} candidatures sur Job-Room",
+    "en": "Enter {anzahl} applications in Job-Room"
   },
-  "Im Job-Room eintragen": {"fr": "Saisir dans le Job-Room", "en": "Enter in the Job-Room"},
+  "Im Job-Room eintragen": {"fr": "Saisir sur Job-Room", "en": "Enter in Job-Room"},
   "fürs RAV": {"fr": "pour l'ORP", "en": "for the RAV"},
   "Gemerkte Stellen in einem Durchgang bewerten": {
-    "fr": "Évaluer en une fois les offres mises de côté",
-    "en": "Rate saved jobs in one pass"
+    "fr": "Trier les offres mises de côté",
+    "en": "Review saved jobs"
   },
   "Entscheiden": {"fr": "Décider", "en": "Decide"},
   "bewerben oder verwerfen": {"fr": "postuler ou écarter", "en": "apply or discard"},

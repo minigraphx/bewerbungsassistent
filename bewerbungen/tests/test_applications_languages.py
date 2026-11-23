@@ -35,11 +35,13 @@ APPLICATIONS_FR = ("<title>Candidatures</title>", '<h1 id="titel">Candidatures</
                    "Terminées", "Toutes", "Rechercher", "Saisir une offre manuellement",
                    "Aucune candidature ne correspond à cette recherche.", "Tout sélectionner dans cette vue", "Statut",
                    "Échéance", "Ajoutée", "Écarter les cochées", "Cocher d'abord des candidatures.", "Autre statut…",
-                   "Définir le statut", "Créer", "Annuler", "Terminer le tri", "Postuler")
+                   "Définir le statut", "Créer", "Annuler", "Terminer le tri", "Postuler",
+                   "Trier les candidatures mises de côté")
 APPLICATIONS_EN = ("<title>Applications</title>", '<h1 id="titel">Applications</h1>', "Saved", "Applied", "Closed",
                    "All", "Search", "Add a job by hand", "No application matches this search.",
                    "Select all in this view", "Status", "Due", "Added", "Discard ticked", "Tick applications first.",
-                   "Other status…", "Set status", "Create", "Cancel", "End review", "Apply")
+                   "Other status…", "Set status", "Create", "Cancel", "End review", "Apply",
+                   "Review saved applications")
 APPLICATIONS_DE = ("Angehakte verwerfen", "Zuerst Bewerbungen anhaken.", "Bis wann", "Erfasst", "Stand setzen",
                    "Anderer Stand …", ">Anlegen<", ">Gemerkt<", ">Bewerben<", ">Suchen<")
 PAGE_FILES = ("seiten/bewerbungen.html", "seiten/bewerbungen-logic.js", "seiten/wieder-logik.js", "seiten/bewerbungen.js")
@@ -195,3 +197,22 @@ def test_every_stored_stage_has_a_name_in_french_and_english():
 
     assert missing == []
     assert catalog.form(sets["Absage"], "fr", "du")
+
+
+# The wording of the UI/UX review (#420): Job-Room without an article, a pass is a «tri» or a review.
+REVIEWED = {
+    "Gemerkte Stellen in einem Durchgang bewerten": ("Trier les offres mises de côté", "Review saved jobs"),
+    "Im Job-Room eintragen": ("Saisir sur Job-Room", "Enter in Job-Room"),
+    "{anzahl} Bewerbungen im Job-Room eintragen": ("Saisir {anzahl} candidatures sur Job-Room",
+                                                   "Enter {anzahl} applications in Job-Room"),
+    "Wo das Datum der Absage fehlt, gilt heute.": ("Sans date de refus, la date du jour s'applique.",
+                                                   "Without a rejection date, today's date applies."),
+    "Dieser Stand ist unbekannt.": ("Ce statut est inconnu.", "This status is unknown."),
+}
+
+
+@pytest.mark.parametrize("german", REVIEWED)
+def test_the_reviewed_wording_is_in_the_catalog(german):
+    catalog = translation_catalog.load(translation_catalog.CATALOG_DIR)
+
+    assert (catalog.text(german, "fr"), catalog.text(german, "en")) == REVIEWED[german]

@@ -105,8 +105,14 @@ test("a job advertised again is worded in the app language, with the first of a 
   assert.equal(inLanguage("fr", () => W.listPart(twice)), "republiée le 01.12.");
   assert.equal(inLanguage("en", () => W.listPart(twice)), "advertised again on 01.12.");
   assert.deepEqual(inLanguage("fr", () => W.applicationNotice(twice)), {
-    title: "Annonce republiée", text: `Dernière fois le 1er${NBSP}décembre sur jobs.ch, 2 fois en tout.`,
+    title: "Annonce republiée", text: `Dernière parution le 1er${NBSP}décembre sur jobs.ch, 2 fois en tout.`,
     link: "https://www.jobs.ch/inserat/2026-12-01", linkText: "Ouvrir la nouvelle annonce" });
+  assert.equal(inLanguage("en", () => W.applicationNotice(twice).text), `Last seen on 1${NBSP}December on jobs.ch, 2 times in all.`);
+  const full = { wieder_ausgeschrieben: Array.from({ length: 20 }, (_, day) => repost(`2026-11-${String(day + 1).padStart(2, "0")}`)) };
+  assert.equal(inLanguage("fr", () => W.applicationNotice(full).text),
+    `Dernière parution le 20${NBSP}novembre sur jobs.ch, au moins 20 fois en tout.`);
+  assert.equal(inLanguage("en", () => W.applicationNotice(full).text),
+    `Last seen on 20${NBSP}November on jobs.ch, at least 20 times in all.`);
   assert.equal(inLanguage("en", () => W.applicationNotice({ wieder_ausgeschrieben: [repost("2026-11-18")] }).text),
     `On 18${NBSP}November this ad appeared again on jobs.ch.`);
   assert.equal(inLanguage("fr", () => W.long("2026-11-18")), `18${NBSP}novembre`);

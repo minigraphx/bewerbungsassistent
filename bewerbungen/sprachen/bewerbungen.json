@@ -55,15 +55,15 @@
   "Anderer Stand …": {"fr": "Autre statut…", "en": "Other status…"},
   "Stand setzen": {"fr": "Définir le statut", "en": "Set status"},
   "Gemerkte in einem Durchgang bewerten": {
-    "fr": "Évaluer en un tri les candidatures mises de côté",
-    "en": "Rate saved applications in one review"
+    "fr": "Trier les candidatures mises de côté",
+    "en": "Review saved applications"
   },
   "Anlegen": {"fr": "Créer", "en": "Create"},
   "Anhaken: {name}": {"fr": "Cocher\u00a0: {name}", "en": "Tick: {name}"},
   "Abgeschlossen: {teile}.": {"fr": "Terminées\u00a0: {teile}.", "en": "Closed: {teile}."},
   "Wo das Datum der Absage fehlt, gilt heute.": {
-    "fr": "Là où la date du refus manque, la date du jour s'applique.",
-    "en": "Where the date of the rejection is missing, today applies."
+    "fr": "Sans date de refus, la date du jour s'applique.",
+    "en": "Without a rejection date, today's date applies."
   },
   "offen": {"fr": "à définir", "en": "not set"},
   "passt sehr gut": {"fr": "correspond très bien", "en": "fits very well"},
@@ -106,12 +106,12 @@
     "en": "On {datum} this ad appeared again on {portal}."
   },
   "Zuletzt am {datum} auf {portal}, insgesamt {anzahl}-mal.": {
-    "fr": "Dernière fois le {datum} sur {portal}, {anzahl} fois en tout.",
-    "en": "Last on {datum} on {portal}, {anzahl} times in all."
+    "fr": "Dernière parution le {datum} sur {portal}, {anzahl} fois en tout.",
+    "en": "Last seen on {datum} on {portal}, {anzahl} times in all."
   },
   "Zuletzt am {datum} auf {portal}, insgesamt mindestens {anzahl}-mal.": {
-    "fr": "Dernière fois le {datum} sur {portal}, au moins {anzahl} fois en tout.",
-    "en": "Last on {datum} on {portal}, at least {anzahl} times in all."
+    "fr": "Dernière parution le {datum} sur {portal}, au moins {anzahl} fois en tout.",
+    "en": "Last seen on {datum} on {portal}, at least {anzahl} times in all."
   },
   "wieder ausgeschrieben am {datum}": {"fr": "republiée le {datum}", "en": "advertised again on {datum}"},
   "Wieder ausgeschrieben am {datum} Die Stelle bleibt verworfen.": {
@@ -156,7 +156,7 @@
   "Nur Dateien aus versendet/": {"fr": "Uniquement des fichiers de versendet/", "en": "Only files from versendet/"},
   "id und schluessel erwartet": {"fr": "id et schluessel attendus", "en": "id and schluessel expected"},
   "datum und art erwartet": {"fr": "datum et art attendus", "en": "datum and art expected"},
-  "Dieser Stand ist unbekannt.": {"fr": "Cet état est inconnu.", "en": "This state is unknown."},
+  "Dieser Stand ist unbekannt.": {"fr": "Ce statut est inconnu.", "en": "This status is unknown."},
 
   "{feld}: kein gültiges Datum ({text}), erwartet z.B. 23.09.2026": {
     "fr": "{feld}\u00a0: date non valable ({text}), attendu par exemple 23.09.2026",
