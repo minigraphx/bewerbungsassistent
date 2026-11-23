@@ -19,6 +19,10 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Callable, ContextManager
 
+import page_translation
+import translation_catalog
+import ui_texts
+
 SEITEN = pathlib.Path(__file__).resolve().parent / "seiten"
 MAX_BODY = 2 * 1024 * 1024
 MAX_DISCARD = 64 * 1024 * 1024  # a larger request is cut off, its answer may get lost
@@ -157,11 +161,20 @@ class Handler(BaseHTTPRequestHandler):
             html = pfad.read_text(encoding="utf-8").replace("__TOKEN__", self.server.token)
             for link in self.server.hidden_links:
                 html = html.replace(link, "")
+            html = page_translation.translate(html, ui_texts.sprache(self.server.kontext))
             eigene = EIGENE_CSP.search(html)
             # frame-ancestors only counts in the header, a meta tag cannot carry it
             kopf = (("Content-Security-Policy", f"{eigene.group(1)}; {FRAMING}"),) if eigene else ()
             return Antwort(HTTPStatus.OK, "text/html; charset=utf-8", html.encode("utf-8"), kopf)
         return datei_antwort(pfad)
+
+    def _translation_script(self, query: str) -> Antwort:
+        """The catalog of one language for the scripts of a page (#414); like texte.js it holds nothing personal."""
+        language = dict(urllib.parse.parse_qsl(query)).get("sprache")
+        if language not in translation_catalog.LANGUAGES:
+            raise NichtGefunden("Nicht gefunden")
+        return Antwort(HTTPStatus.OK, "text/javascript; charset=utf-8",
+                       translation_catalog.script(language).encode("utf-8"))
 
     def _page_file(self, path: str) -> str:
         needed = self.server.stand_ins.get(path)
@@ -202,6 +215,8 @@ class Handler(BaseHTTPRequestHandler):
         teile = urllib.parse.urlsplit(self.path)
         if teile.path in self.server.seiten:
             return self._senden(self._page_with_proof(teile))
+        if teile.path == page_translation.SCRIPT_PATH:
+            return self._run_route(lambda kontext, parameter, body: self._translation_script(teile.query), {}, None)
         route = self.server.routen_get.get(teile.path)
         if route is None:
             return self._fehler(HTTPStatus.NOT_FOUND, "Nicht gefunden")

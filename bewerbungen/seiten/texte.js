@@ -588,14 +588,51 @@
     return SAETZE.includes(satz) ? satz : VORGABE;
   }
 
-  /** The text of a key in a set, with {name} filled from `werte`. An unknown key is a programming error. */
+  // ---------- The app language (#414, docs/design/sprachen.md) ----------
+  // The server names the language in <html lang> and hands the page the catalog of that language as /uebersetzung.js
+  // (`Uebersetzung`). The German text is the key, so German needs no catalog and a missing entry shows German.
+  const DEUTSCH = "de";
+  // An apprenticeship falls back to du, du to Sie; English has no du, so it always lands on Sie.
+  const RUECKFALL = { "lehrstelle-du": ["lehrstelle", "du", "sie"], "stelle-du": ["du", "sie"], "stelle-sie": ["sie"] };
+  let gesetzteSprache = null;
+  let gesetzterKatalog = null;
+
+  /** For tests: a language and its catalog as /uebersetzung.js sets it; without arguments the page decides again. */
+  function setzeSprache(sprache = null, katalog = null) {
+    gesetzteSprache = sprache;
+    gesetzterKatalog = katalog;
+  }
+
+  function aktuelleSprache() {
+    if (gesetzteSprache) return gesetzteSprache;
+    return String(global.document?.documentElement?.lang ?? "").slice(0, 2).toLowerCase() || DEUTSCH;
+  }
+
+  function katalog() {
+    const sprache = aktuelleSprache();
+    const gefunden = gesetzterKatalog ?? global.Uebersetzung;
+    return sprache !== DEUTSCH && gefunden?.sprache === sprache ? gefunden : null;
+  }
+
+  // Own properties only: a German text such as „constructor“ must never find a property of Object.
+  const eigener = (objekt, schluessel) =>
+    objekt != null && Object.prototype.hasOwnProperty.call(objekt, schluessel) ? objekt[schluessel] : undefined;
+  const fuelle = (roh, werte) => roh.replace(/\{(\w+)\}/g, (_, name) => String(werte[name] ?? ""));
+  const form = (eintrag, satz) =>
+    RUECKFALL[satz].map(name => eigener(eintrag, name)).find(wert => typeof wert === "string" && wert !== "");
+
+  /** A German text in the app language, with {name} filled from `werte`: Texte.t("Abgabe bis {datum}", { datum }). */
+  function t(deutsch, werte = {}) {
+    const uebersetzt = eigener(katalog()?.texte, deutsch);
+    return fuelle(typeof uebersetzt === "string" && uebersetzt !== "" ? uebersetzt : deutsch, werte);
+  }
+
+  /** The text of a key in a set and the app language, with {name} filled from `werte`. An unknown key is a programming error. */
   function text(schluessel, satz, werte = {}) {
     const eintrag = TEXTE[schluessel];
     if (!eintrag) throw new Error(`Unbekannter Text: ${schluessel}`);
     const gewaehlt = satzOder(satz);
-    const roh = gewaehlt === "lehrstelle-du" ? (eintrag.lehrstelle ?? eintrag.du)
-      : gewaehlt === "stelle-du" ? eintrag.du : eintrag.sie;
-    return roh.replace(/\{(\w+)\}/g, (_, name) => String(werte[name] ?? ""));
+    return fuelle(form(eigener(katalog()?.saetze, schluessel), gewaehlt) ?? form(eintrag, gewaehlt), werte);
   }
 
   /** Fill every element with data-text below `wurzel` (textContent only, never HTML). */
@@ -672,8 +709,8 @@
     return ` KI-Budget im ${budget.month}: ${used}${usedUp ? ` Es ist aufgebraucht; die KI geht wieder ab ${budget.renews}.` : ""}`;
   }
 
-  const texte = { SAETZE, VORGABE, TEXTE, CODE_REQUEST_URL, satzOder, text, anwenden, statusName, notenText,
-                  withCodeRequestLink, budgetMonth, budgetPart };
+  const texte = { SAETZE, VORGABE, TEXTE, CODE_REQUEST_URL, satzOder, text, t, setzeSprache, anwenden, statusName,
+                  notenText, withCodeRequestLink, budgetMonth, budgetPart };
   if (typeof module !== "undefined") module.exports = texte;
   else global.Texte = texte;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -1,0 +1,11 @@
+{
+  "Probeseite": { "fr": "Page d'essai", "en": "Test page" },
+  "Bewerbungen im Überblick": { "fr": "Aperçu des candidatures", "en": "Applications at a glance" },
+  "Gespeichert & gesichert.": { "fr": "Enregistré & sauvegardé.", "en": "Saved & backed up." },
+  "Suchbegriff": { "fr": "Terme de recherche", "en": "Search term" },
+  "Zum Beispiel Informatiker": { "fr": "Par exemple informaticien", "en": "For example IT specialist" },
+  "Zeichen der App": { "fr": "Logo de l'app", "en": "App logo" },
+  "Liste neu laden": { "fr": "Recharger la liste", "en": "Reload the list" },
+  "Neu laden": { "fr": "Recharger", "en": "Reload" },
+  "texte:fragen.label": { "fr": { "sie": "Votre question", "du": "Ta question" }, "en": { "sie": "Your question" } }
+}
