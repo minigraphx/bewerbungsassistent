@@ -149,13 +149,13 @@ test("the buttons of a row and the labels of its cells come in the app language"
   assert.deepEqual(shown.fr.found, ["Revérifier", "Voir sur kununu", "Saisir à la main", "Ne plus afficher cette entreprise"]);
   assert.deepEqual(shown.en.found, ["Re-check", "View on kununu", "Enter by hand", "Stop showing this company"]);
   assert.deepEqual(shown.fr.open, ["Vérifier", "Saisir à la main", "Ne plus afficher cette entreprise"]);
-  assert.deepEqual(shown.en.missing, ["Search on kununu", "Assign it yourself", "Enter by hand", "Show this company again"]);
-  assert.deepEqual(shown.fr.missing, ["Chercher sur kununu", "Associer soi-même", "Saisir à la main", "Afficher à nouveau cette entreprise"]);
+  assert.deepEqual(shown.en.missing, ["Search on kununu", "Assign by hand", "Enter by hand", "Show this company again"]);
+  assert.deepEqual(shown.fr.missing, ["Chercher sur kununu", "Associer à la main", "Saisir à la main", "Afficher à nouveau cette entreprise"]);
   assert.deepEqual(shown.fr.several.slice(0, 1), ["Choisir la bonne"]);
   assert.deepEqual(shown.en.several.slice(0, 1), ["Choose the matching one"]);
   assert.deepEqual(shown.fr.failed.slice(0, 1), ["Vérifier à nouveau"]);
   assert.deepEqual(shown.de.cells, ["kununu", "Treffer und Bewerbungen", "Geprüft"]);
-  assert.deepEqual(shown.fr.cells, ["kununu", "Résultats et candidatures", "Vérifié"]);
+  assert.deepEqual(shown.fr.cells, ["kununu", "Résultats et candidatures", "Vérification"]);
   assert.deepEqual(shown.en.cells, ["kununu", "Results and applications", "Checked"]);
   assert.ok(shown.de.hidden.includes(": Muster Industrie AG, öffnet neuen Tab"));
   assert.ok(shown.fr.hidden.includes(": Muster Industrie AG, ouvre un nouvel onglet"));
@@ -191,6 +191,18 @@ test("title and search field follow the text set in the app language", async () 
   assert.deepEqual(shown.de, ["Lehrbetriebe", "Lehrbetrieb suchen"]);
   assert.deepEqual(shown.fr, ["Entreprises formatrices", "Chercher une entreprise formatrice"]);
   assert.deepEqual(shown.en, ["Host companies", "Search for a host company"]);
+});
+
+test("the help on reading kununu speaks of the staff, as the UI/UX ruling on #423 says", async () => {
+  const help = await inAll(async () => ["stelle-sie", "stelle-du", "lehrstelle-du"].map(satz => texte.text("firmen.hilfe", satz)));
+  assert.ok(help.de[0].startsWith("Auf kununu bewerten heutige und frühere Mitarbeitende ihre Firma: 5 ist"));
+  assert.ok(help.fr[0].startsWith(`Sur kununu, le personnel actuel et ancien évalue son entreprise${NBSP}: 5 est la meilleure valeur`));
+  assert.ok(help.fr[0].endsWith("correspond à vos informations."));
+  assert.ok(help.fr[1].startsWith(`Sur kununu, le personnel actuel et ancien évalue son entreprise${NBSP}: 5 est`));
+  assert.ok(help.fr[1].endsWith("correspond à tes informations."));
+  assert.ok(help.fr[2].startsWith("Sur kununu, le personnel et les apprentis, actuels et anciens, évaluent leur entreprise "
+    + `formatrice${NBSP}: 5 est`));
+  assert.ok(help.en[0].startsWith("On kununu, current and former employees rate their company"));
 });
 
 test("the dialogs to assign a page and to enter a value say the company in the app language", async () => {

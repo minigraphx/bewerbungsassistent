@@ -27,9 +27,11 @@ HIT = {"portal": "jobs.ch", "portal_id": "abc-1", "stelle": "Datenanalyst", "fir
 KEY = excluded_companies.key_of("Muster AG")
 # Title, filters, the search field, the help, the table heads, the source line and both dialogs, as the server sends them.
 COMPANIES_FR = ("<title>Entreprises</title>", '<h1 id="titel" data-text="nav.stellen">Offres</h1>',
-                'aria-label="Afficher les entreprises"', "Avec nouveaux résultats", "Avec candidature", "À clarifier",
+                'aria-label="Afficher les entreprises"', "Avec de nouveaux résultats", "Avec candidature", "À clarifier",
                 'placeholder="Chercher une entreprise"', f"Comment lire kununu{NBSP}?", "Résultats et candidatures",
-                ">Vérifié<", ">Actions<", f"Avis{NBSP}: kununu, état au jour indiqué.", "Lien vers l'entreprise sur kununu",
+                ">Vérification<", ">Actions<",
+                f"Avis{NBSP}: kununu, état au jour indiqué. Ils proviennent du personnel, pas de l'app.",
+                "Sur kununu, le personnel actuel et ancien évalue son entreprise", "Lien vers l'entreprise sur kununu",
                 ">Associer<", "Valeur et nombre tels qu'indiqués sur kununu.", "Valeur de 1 à 5", "Nombre d'avis",
                 ">Ajouter<", ">Annuler<", "Aucune entreprise ne correspond à cette recherche.")
 COMPANIES_EN = ("<title>Companies</title>", '<h1 id="titel" data-text="nav.stellen">Jobs</h1>', 'aria-label="Show companies"',
@@ -163,12 +165,12 @@ def test_a_reading_that_does_not_fit_and_a_missing_field_are_refused_in_the_app_
 
     store_language(folder, "fr")
     assert request(server, "POST", "/api/firmen/kununu", {"firma": KEY, "zustand": "irgendwas"}) == (
-        400, {"fehler": "Ce que l'extension a lu sur kununu ne convient pas."})
+        400, {"fehler": "Ce que l'extension a lu sur kununu n'est pas utilisable."})
     assert request(server, "POST", "/api/firmen/wieder-zeigen", {}) == (400, {"fehler": f"Il manque{NBSP}: schluessel"})
     store_language(folder, "en")
     assert request(server, "POST", "/api/firmen/kununu", {"zustand": "gefunden"}) == (400, {"fehler": "Missing: firma"})
     assert request(server, "POST", "/api/firmen/kununu", {"firma": KEY, "zustand": "irgendwas"}) == (
-        400, {"fehler": "What the extension read on kununu does not fit."})
+        400, {"fehler": "What the extension read on kununu is not usable."})
 
 
 def test_the_refusals_stay_german_with_the_preview_off(started, no_preview):
@@ -199,6 +201,16 @@ REVIEWED = {
     "Neu": ("Nouvelles", "New"),
     "In Bewerbungen": ("Dans Candidatures", "In Applications"),
     "Verworfen": ("Écartées", "Discarded"),
+    # the UI/UX ruling on #423
+    "Mit neuen Treffern": ("Avec de nouveaux résultats", "With new results"),
+    "Geprüft": ("Vérification", "Checked"),
+    "Selbst zuordnen": ("Associer à la main", "Assign by hand"),
+    "Bewertungen: kununu, Stand am angegebenen Tag. Sie stammen von Mitarbeitenden, nicht von der App.": (
+        f"Avis{NBSP}: kununu, état au jour indiqué. Ils proviennent du personnel, pas de l'app.",
+        "Reviews: kununu, as of the date shown. They come from employees, not from the app."),
+    "Was die Erweiterung bei kununu gelesen hat, passt nicht.": (
+        "Ce que l'extension a lu sur kununu n'est pas utilisable.", "What the extension read on kununu is not usable."),
+    "Mehrere Lehrbetriebe bei kununu.": ("Plusieurs entreprises formatrices sur kununu.", "Several host companies on kununu."),
 }
 
 

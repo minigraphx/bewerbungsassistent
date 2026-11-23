@@ -1,15 +1,15 @@
 {
   "Firmen anzeigen": {"fr": "Afficher les entreprises", "en": "Show companies"},
-  "Mit neuen Treffern": {"fr": "Avec nouveaux résultats", "en": "With new results"},
+  "Mit neuen Treffern": {"fr": "Avec de nouveaux résultats", "en": "With new results"},
   "Mit Bewerbung": {"fr": "Avec candidature", "en": "With application"},
   "Zu klären": {"fr": "À clarifier", "en": "To clarify"},
   "Firma suchen": {"fr": "Chercher une entreprise", "en": "Search for a company"},
   "Wie lese ich kununu?": {"fr": "Comment lire kununu\u00a0?", "en": "How do I read kununu?"},
   "Treffer und Bewerbungen": {"fr": "Résultats et candidatures", "en": "Results and applications"},
-  "Geprüft": {"fr": "Vérifié", "en": "Checked"},
+  "Geprüft": {"fr": "Vérification", "en": "Checked"},
   "Aktionen": {"fr": "Actions", "en": "Actions"},
   "Bewertungen: kununu, Stand am angegebenen Tag. Sie stammen von Mitarbeitenden, nicht von der App.": {
-    "fr": "Avis\u00a0: kununu, état au jour indiqué. Ils proviennent d'employés, pas de l'app.",
+    "fr": "Avis\u00a0: kununu, état au jour indiqué. Ils proviennent du personnel, pas de l'app.",
     "en": "Reviews: kununu, as of the date shown. They come from employees, not from the app."
   },
   "Zuordnen": {"fr": "Associer", "en": "Assign"},
@@ -25,7 +25,7 @@
   "Noch nicht geprüft, Seite zugeordnet": {"fr": "Pas encore vérifié, page associée", "en": "Not checked yet, page assigned"},
   "Noch nicht geprüft": {"fr": "Pas encore vérifié", "en": "Not checked yet"},
   "Stand ": {"fr": "État au ", "en": "As of "},
-  "Selbst zuordnen": {"fr": "Associer soi-même", "en": "Assign it yourself"},
+  "Selbst zuordnen": {"fr": "Associer à la main", "en": "Assign by hand"},
   "Passende wählen": {"fr": "Choisir la bonne", "en": "Choose the matching one"},
   "Von Hand eintragen": {"fr": "Saisir à la main", "en": "Enter by hand"},
   "Nicht mehr in der Suche": {"fr": "Plus dans la recherche", "en": "No longer in the search"},
@@ -58,8 +58,8 @@
     "en": "This company was not one of the choices. Please reload the page."
   },
   "Was die Erweiterung bei kununu gelesen hat, passt nicht.": {
-    "fr": "Ce que l'extension a lu sur kununu ne convient pas.",
-    "en": "What the extension read on kununu does not fit."
+    "fr": "Ce que l'extension a lu sur kununu n'est pas utilisable.",
+    "en": "What the extension read on kununu is not usable."
   },
   "Es fehlt: {feld}": {"fr": "Il manque\u00a0: {feld}", "en": "Missing: {feld}"},
 
@@ -92,9 +92,9 @@
   },
   "texte:firmen.hilfe": {
     "fr": {
-      "sie": "Sur kununu, les employés actuels et anciens évaluent leur entreprise\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une offre correspond à vos informations.",
-      "du": "Sur kununu, les employés actuels et anciens évaluent leur entreprise\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une offre correspond à tes informations.",
-      "lehrstelle": "Sur kununu, les employés et apprentis actuels et anciens évaluent leur entreprise formatrice\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une place d'apprentissage correspond à tes informations."
+      "sie": "Sur kununu, le personnel actuel et ancien évalue son entreprise\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une offre correspond à vos informations.",
+      "du": "Sur kununu, le personnel actuel et ancien évalue son entreprise\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une offre correspond à tes informations.",
+      "lehrstelle": "Sur kununu, le personnel et les apprentis, actuels et anciens, évaluent leur entreprise formatrice\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une place d'apprentissage correspond à tes informations."
     },
     "en": {
       "sie": "On kununu, current and former employees rate their company: 5 is the best value, 1 the worst. Below 10 reviews, the value says little. The app's grade, by contrast, says how well a job fits your details.",
