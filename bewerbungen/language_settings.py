@@ -148,6 +148,11 @@ def load(data_dir: pathlib.Path) -> Settings:
                     suggested=suggested)
 
 
+def app_language(data_dir: pathlib.Path) -> str:
+    """The language of the app alone, without reading the CV for a suggestion: the AI writes to the person in it (G11)."""
+    return _stored(data_dir).get(APP_KEY, DEFAULT_APP)
+
+
 def _description(changes: dict) -> str:
     parts = []
     if APP_KEY in changes:

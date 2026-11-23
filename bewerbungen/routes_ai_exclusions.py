@@ -11,6 +11,7 @@ desktop/native_host.py or desktop/mcp_tools.py.
 import secrets
 
 import excluded_companies
+import language_settings
 import preferences
 import profile_limits
 import rating_exclusion
@@ -75,7 +76,7 @@ def _preview(k, hits: list[dict]) -> str:
     def task() -> str:
         material = tasks.load_material(k.daten, partial=True)
         gateway = tasks.make_gateway(k.daten, material, client=None)
-        return gateway.preview(exclusion_reasons.request(exclusion_reasons.labelled(hits)))
+        return gateway.preview(exclusion_reasons.request(exclusion_reasons.labelled(hits), material.language))
     return routes_ai.run_ai(task)
 
 
@@ -127,7 +128,8 @@ def propose(k, parameter, body):
         raise ValueError(TOO_FEW.format(count=exclusion_reasons.MIN_DISMISSED))
     try:
         gateway, _ = routes_ai.ai_gateway(k, partial=True)
-        result = exclusion_reasons.propose(gateway, exclusion_reasons.labelled(hits), _frame(text))
+        result = exclusion_reasons.propose(gateway, exclusion_reasons.labelled(hits), _frame(text),
+                                           language_settings.app_language(k.daten))
     except AiError as error:
         raise _failed(error) from error
     proposal = {"id": secrets.token_urlsafe(ID_BYTES), "proposals": result["proposals"]}

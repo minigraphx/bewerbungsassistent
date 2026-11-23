@@ -10,6 +10,7 @@ Nothing here calls the AI; the extension and Claude cannot reach the route.
 import dataclasses
 
 import excluded_companies
+import language_settings
 import missing_ads
 import preferences
 import rate_all
@@ -27,7 +28,7 @@ def _context_chars(k) -> int:
     """The person's files and the rules go along with every call; only their length counts here."""
     files = [k.daten / name for name in tasks.FILES.values()]
     texts = sum(len(path.read_text(encoding="utf-8")) for path in files if path.is_file())
-    return texts + len(prompts.rules(preferences.load(k.daten).address))
+    return texts + len(prompts.rules(preferences.load(k.daten).address, language_settings.app_language(k.daten)))
 
 
 def mediation_account() -> dict | None:

@@ -166,7 +166,7 @@ def prompt(current: term_changes.Terms, hits: list[dict], feedback: str = "",
 
 def request(material: tasks.Material, text: str, model: str | None = None, effort: str | None = None,
             max_tokens: int | None = None) -> Request:
-    return Request(task=TASK, model=model or tasks.MODELS[TASK], rules=prompts.rules(material.address),
+    return Request(task=TASK, model=model or tasks.MODELS[TASK], rules=material.rules,
                    context=context(material), instructions=INSTRUCTIONS, prompt=text,
                    max_tokens=max_tokens or tasks.MAX_TOKENS[TASK], schema=SCHEMA,
                    effort=effort or tasks.EFFORTS[TASK])

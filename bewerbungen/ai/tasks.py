@@ -17,6 +17,7 @@ from ai.personal import secrets_from_application, secrets_from_building_blocks, 
 from ai.pseudonym import Pseudonymizer
 from ai.usage import UsageLog
 import pfade  # noqa: F401  (makes the module lebenslauf importable)
+import language_settings
 import preferences
 from dateien import im_ordner
 from dossier_data import with_written_monogram
@@ -58,6 +59,12 @@ class Material:
     missing: tuple[str, ...] = ()
     address: str = preferences.SIE  # how the AI speaks to the person (MIN-369)
     apprenticeship_chosen: bool = False  # in the setup, also before the search profile says so (MIN-401)
+    language: str = language_settings.DEFAULT_APP  # the app's language, in which the AI writes to the person (G11)
+
+    @property
+    def rules(self) -> str:
+        """The shared rules of every task that writes to the person."""
+        return prompts.rules(self.address, self.language)
 
     @property
     def minor(self) -> bool:
@@ -84,7 +91,8 @@ def load_material(data_dir: pathlib.Path, partial: bool = False) -> Material:
         raise AiError("cv.yaml lässt sich nicht lesen.")
     return Material(with_written_monogram(cv, texts["cv"]), texts["cv"], texts["profile"], texts["style"], texts["blocks"], missing,
                     preferences.load(data_dir).address,
-                    preferences.strictest_kind(data_dir) == preferences.APPRENTICESHIP)
+                    preferences.strictest_kind(data_dir) == preferences.APPRENTICESHIP,
+                    language_settings.app_language(data_dir))
 
 
 def make_gateway(data_dir: pathlib.Path, material: Material, client, entry: dict | None = None,
@@ -112,7 +120,7 @@ def _details(entry: dict) -> dict[str, str]:
 
 def _ask(gateway: Gateway, material: Material, task: str, instructions: str, prompt: str, schema: dict,
          model: str | None) -> Answer:
-    return gateway.ask(Request(task=task, model=model or MODELS[task], rules=prompts.rules(material.address),
+    return gateway.ask(Request(task=task, model=model or MODELS[task], rules=material.rules,
                                context=material.context,
                                instructions=instructions, prompt=prompt, max_tokens=MAX_TOKENS[task], schema=schema))
 
