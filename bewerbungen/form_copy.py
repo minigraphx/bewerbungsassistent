@@ -9,13 +9,15 @@ import shutil
 
 import unterlagen
 from dateien import schreibe_atomar
+from ui_message import T
 
 FOLDER = "an-formular"
 HAND_FOLDER = "zum-hochladen"  # the files with their names for the employer, for whoever uploads them by hand
 FILE_NAMES = {"lebenslauf": "lebenslauf.pdf", "anschreiben": "anschreiben.pdf", "zertifikate": "zertifikate.zip",
               "unterlagen": "unterlagen.pdf", "nachweise": "nachweise.pdf"}
-LABELS = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "zertifikate": "Zertifikate",
-          "unterlagen": "Unterlagen", "nachweise": "Nachweise"}
+# Named in the note after a dispatch (versand.FORM_VERSION_KEPT), so in the app language (#426)
+LABELS = {"lebenslauf": T("Lebenslauf"), "anschreiben": T("Anschreiben"), "zertifikate": T("Zertifikate"),
+          "unterlagen": T("Unterlagen"), "nachweise": T("Nachweise")}
 NOT_KEPT = "Die Datei liess sich nicht für das Formular bereitstellen. Bitte nochmals versuchen."
 
 

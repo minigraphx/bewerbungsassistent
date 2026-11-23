@@ -35,8 +35,14 @@ def _body_id(body) -> str:
     return body["id"]
 
 
+def _choice_row(k, entry: dict) -> dict:
+    reason = apply.blocker(k.daten, entry)
+    step = apply.reason_step(reason)
+    return {"id": entry["id"], "grund": reason, **({"schritt": step} if step else {})}
+
+
 def choice(k, parameter, body):
-    rows = [{"id": b["id"], "grund": apply.blocker(k.daten, b)} for b in k.register().alle()]
+    rows = [_choice_row(k, b) for b in k.register().alle()]
     return json_antwort({"bewerbungen": rows, "hoechstens": apply.MAX_PER_RUN})
 
 

@@ -390,6 +390,8 @@
     "bewerbung.gespraech": { sie: "Gespräch vorbereiten", du: "Gespräch vorbereiten", lehrstelle: "Einladung vorbereiten" },
     "bewerbung.feld-firma": { sie: "Firma", du: "Firma", lehrstelle: "Lehrbetrieb" },
     "bewerbung.feld-stelle": { sie: "Stelle", du: "Stelle", lehrstelle: "Lehrstelle" },
+    // A set of its own: the plain text „Anschreiben entwerfen“ names the AI's task on Einstellungen, in the plural (#426)
+    "bewerbung.ki-entwerfen": { sie: "Anschreiben entwerfen", du: "Anschreiben entwerfen" },
     "bewerbung.inserat": {
       sie: "Ohne den Text des Inserats können Variante, Anschreiben und Prüfung nicht darauf eingehen. Kopieren Sie ihn aus dem Inserat in das Feld.",
       du: "Ohne den Text des Inserats können Variante, Anschreiben und Prüfung nicht darauf eingehen. Kopiere ihn aus dem Inserat in das Feld.",
@@ -444,6 +446,8 @@
       sie: "Mit dem Speichern ist die Freigabe aufgehoben; geben Sie das Anschreiben danach neu frei.",
       du: "Mit dem Speichern ist die Freigabe aufgehoben; gib das Anschreiben danach neu frei.",
     },
+    // The salutation of the letter; the plain text „Anrede“ is the choice of Sie or du on Einstellungen (#426)
+    "anschreiben.anrede": { sie: "Anrede", du: "Anrede" },
     "anschreiben.editor-als-text": { sie: "Empfänger, Ort und Datum ändern Sie als Text.", du: "Empfänger, Ort und Datum änderst du als Text." },
     "anschreiben.gespeichert": {
       sie: "Gespeichert. Erstellen Sie die Unterlagen neu, damit PDF und Prüfung den neuen Text zeigen.",

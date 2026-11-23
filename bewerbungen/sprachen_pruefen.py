@@ -98,6 +98,13 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "term_pairs.py", BASE / "term_pair_texts.py", BASE / "routes_term_pairs.py", BASE / "own_sites.py",
     BASE / "routes_sites.py", BASE / "ai/site_list.py", BASE / "dismissed_words.py", BASE / "routes_dismissed_words.py",
     BASE / "routes_ai_exclusions.py", BASE / "ai/exclusion_reasons.py", BASE / "rating_exclusion.py",
+    # The page Bewerbung and its steps (#426): the page itself, its logic without DOM, the form, the notice of a job
+    # advertised again, applying through the form, recording the dispatch and approving the letter. routes_apply,
+    # routes_rav, rav and routen_bewerbungen are above; the main script, the check, the AI, the documents and the
+    # editors the page loads follow with #427 and later steps.
+    BASE / "seiten/bewerbung.html", BASE / "seiten/bewerbung-logik.js", BASE / "seiten/formular-logik.js",
+    BASE / "seiten/bewerbung-wieder.js",
+    BASE / "apply.py", BASE / "versand.py", BASE / "letter_approval.py", BASE / "form_copy.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

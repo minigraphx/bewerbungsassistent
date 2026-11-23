@@ -124,7 +124,7 @@
           <h3 class="letter-editor__title" id="brief-editor-titel" tabindex="-1">Anschreiben ändern</h3>
           <p class="field__hint" id="brief-editor-intro"></p>
           <div class="field"><label class="field__label" for="brief-betreff">Betreff</label><input class="input" id="brief-betreff" type="text" maxlength="300" autocomplete="off"></div>
-          <div class="field"><label class="field__label" for="brief-anrede">Anrede</label><input class="input" id="brief-anrede" type="text" maxlength="300" autocomplete="off"></div>
+          <div class="field"><label class="field__label" data-text="anschreiben.anrede" for="brief-anrede">Anrede</label><input class="input" id="brief-anrede" type="text" maxlength="300" autocomplete="off"></div>
           <fieldset class="letter-editor__text">
             <legend class="field__label">Text</legend>
             <p class="letter-editor__goal" id="brief-ziel" hidden></p>
@@ -150,7 +150,7 @@
           <p class="status-line" id="ki-status">KI-Verbindung wird geprüft …</p>
           <div id="ki-einwilligung" class="field einwilligung" hidden></div>
           <div class="btn-row">
-            <button type="button" class="btn" id="ki-entwerfen">Anschreiben entwerfen</button>
+            <button type="button" class="btn" id="ki-entwerfen" data-text="bewerbung.ki-entwerfen">Anschreiben entwerfen</button>
             <button type="button" class="btn" id="ki-pruefen">Inhalt prüfen</button>
             <button type="button" class="btn btn--quiet" id="ki-bewerten">Passung bewerten</button>
           </div>
@@ -209,7 +209,7 @@
           <p class="field__hint" id="versand-hinweis">Nach dem Abschicken von Hand (E-Mail, Post) oder wenn die Leiste im Formular nicht gefragt hat. Die verschickte Fassung bleibt gespeichert.</p>
           <div class="application__fields">
             <div class="field"><label class="field__label" for="v-datum">Versendet am</label><input class="input" id="v-datum" type="date"></div>
-            <div class="field"><label class="field__label" for="v-art">Art</label><select class="input" id="v-art"><option>elektronisch</option><option>schriftlich</option><option>persönlich</option><option>telefonisch</option></select></div>
+            <div class="field"><label class="field__label" for="v-art">Art</label><select class="input" id="v-art"><option value="elektronisch">elektronisch</option><option value="schriftlich">schriftlich</option><option value="persönlich">persönlich</option><option value="telefonisch">telefonisch</option></select></div>
           </div>
           <div id="formular-fassung" hidden>
             <p class="field__hint" id="formular-fassung-text"></p>

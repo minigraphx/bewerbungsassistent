@@ -12,9 +12,14 @@ test("the next step follows the status and what the app knows", () => {
   const schritt = (eintrag, gruende = {}) => logik.naechsterSchritt(eintrag, gruende).art;
   assert.equal(schritt(b("a", "Gemerkt")), "entscheiden");
   assert.equal(schritt(b("a", "Bewerben"), { grund: null }), "abschicken");
-  assert.equal(schritt(b("a", "Bewerben"), { grund: NO_CV }), "unterlagen");
-  assert.equal(schritt(b("a", "Bewerben"), { grund: NO_LINK }), "link");
-  assert.equal(schritt(b("a", "Bewerben"), { grund: "Anschreiben noch nicht freigegeben: öffnen, lesen und „Freigeben“" }), "freigeben");
+  // the server names the step of a reason (#426): the reason itself comes in the app language
+  assert.equal(schritt(b("a", "Bewerben"), { grund: NO_CV, schritt: "unterlagen" }), "unterlagen");
+  assert.equal(schritt(b("a", "Bewerben"), { grund: NO_LINK, schritt: "link" }), "link");
+  assert.equal(schritt(b("a", "Bewerben"), { grund: "Anschreiben noch nicht freigegeben: öffnen, lesen und „Freigeben“",
+                                             schritt: "freigeben" }), "freigeben");
+  assert.equal(schritt(b("a", "Bewerben"), { grund: NO_LINK }), "offen");
+  assert.deepEqual(logik.grundSchritte([{ id: "a", grund: NO_LINK, schritt: "link" }, { id: "b", grund: "Schon versendet" }]),
+    new Map([["a", "link"]]));
   assert.equal(schritt(b("a", "Gespräch", { gespraech_am: "2026-11-11" })), "gespraech");
   assert.equal(schritt(b("a", "Beworben", { beworben_am: "2026-11-04" }), { ravGrund: null }), "rav");
   assert.equal(schritt(b("a", "Absage", { beworben_am: "2026-11-04" }), { ravGrund: null }), "rav");
