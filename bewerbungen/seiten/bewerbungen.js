@@ -245,6 +245,7 @@
       $("suche").placeholder = t("uebersicht.suche");
       zeigeListe();
     } catch (fehler) {
+      console.warn("Loading the applications list failed:", fehler.message);  // kein UI-Text: log line
       meldung(Texte.t("Laden fehlgeschlagen: {fehler}", { fehler: fehler.message }), "danger");
     }
   }
