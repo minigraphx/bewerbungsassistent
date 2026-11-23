@@ -17,15 +17,16 @@ import term_pairs
 from ai import career
 from dateien import schreibe_atomar
 from server import json_antwort
+from ui_texts import T
 
 NO_PROFILE = search_plan.NO_PROFILE
-BOTH_NEEDED = {search_plan.KIND_APPRENTICESHIP: "Schreib zu beidem etwas: was du gern machst und was du gut kannst.",
-               search_plan.KIND_JOB: "Bitte zu beidem etwas schreiben: Interessen und Fähigkeiten."}
-NOT_VALID = {search_plan.KIND_APPRENTICESHIP: "Das ist kein Beruf mit EFZ oder EBA.",
-             search_plan.KIND_JOB: "Das passt nicht als Suchbegriff."}
+BOTH_NEEDED = {search_plan.KIND_APPRENTICESHIP: T("Schreib zu beidem etwas: was du gern machst und was du gut kannst."),
+               search_plan.KIND_JOB: T("Bitte zu beidem etwas schreiben: Interessen und Fähigkeiten.")}
+NOT_VALID = {search_plan.KIND_APPRENTICESHIP: T("Das ist kein Beruf mit EFZ oder EBA."),
+             search_plan.KIND_JOB: T("Das passt nicht als Suchbegriff.")}
 NO_NAME = "Welcher Eintrag soll weg?"
-EMPTY = {search_plan.KIND_APPRENTICESHIP: "Bitte einen Beruf mit EFZ oder EBA eintragen.",
-         search_plan.KIND_JOB: "Bitte einen Suchbegriff eintragen."}
+EMPTY = {search_plan.KIND_APPRENTICESHIP: T("Bitte einen Beruf mit EFZ oder EBA eintragen."),
+         search_plan.KIND_JOB: T("Bitte einen Suchbegriff eintragen.")}
 ALREADY = "„{name}“ wird schon gesucht."
 TOO_LONG = "„{value}…“ ist zu lang: höchstens {limit} Zeichen."
 NO_UNDO = "Rückgängig geht hier nicht mehr. Bitte den Begriff neu aufnehmen."
@@ -116,7 +117,7 @@ def _own_term(name: object, kind: str) -> str:
     chars = profile_limits.of_term(kind).chars
     clean = " ".join(name.split()) if isinstance(name, str) else ""
     if len(clean) > chars:
-        raise ValueError(TOO_LONG.format(value=clean[:20], limit=chars))
+        raise ValueError(T(TOO_LONG, value=clean[:20], limit=chars))
     remark = search_plan.REQUIRED_REMARK.search(clean) if kind == search_plan.KIND_JOB else None
     if remark is not None:
         return _with_remark(clean, remark, chars)
@@ -141,7 +142,7 @@ def add(k, parameter, body):
 
     def change(text: str) -> str:
         if search_terms.is_searched(text, clean):
-            raise ValueError(ALREADY.format(name=clean))
+            raise ValueError(T(ALREADY, name=clean))
         return search_terms.added(text, clean, sought)
 
     return _change(k, path, f"In die Suche aufgenommen: {clean}", change)

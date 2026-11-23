@@ -82,7 +82,7 @@ test("the questions page speaks in the form of the set", () => {
 });
 
 test("a job with du gets the search suggestions with du", () => {
-  const context = { window: { App: { senden() {}, el() {}, status() {} } }, document: { getElementById: () => ({ addEventListener() {} }), dispatchEvent() {} }, CustomEvent: class {} };
+  const context = { window: { App: { senden() {}, el() {}, status() {} }, Texte: texte }, document: { getElementById: () => ({ addEventListener() {} }), dispatchEvent() {} }, CustomEvent: class {} };
   vm.runInNewContext(seite("beruf-vorschlag.js"), context);
   const { texteFuer } = context.window.Suchbegriffe;
   // The card on Suche einstellen asks the question; the box under it names what the AI does, without address (#263)
@@ -123,7 +123,11 @@ test("the ictjobs line says why it is on or off and how to change it, in the for
 
 test("the portal choice shows the reason of ictjobs from the text set", () => {
   const script = seite("portal-wahl.js");
-  assert.match(script, /`suche\.ictjobs\.\$\{portal\.grund\}`/);
+  // each reason by its own key since #424, so the language check sees every one
+  for (const grund of ["aus", "passt", "gewaehlt", "keine"]) {
+    assert.match(script, new RegExp(`${grund}: \\(satz, werte\\) => window\\.Texte\\.text\\("suche\\.ictjobs\\.${grund}", satz, werte\\)`));
+  }
+  assert.match(script, /GRUENDE\[portal\.grund\]/);
   assert.match(script, /begriff: portal\.begriff/);
 });
 

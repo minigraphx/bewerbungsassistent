@@ -61,7 +61,7 @@
     zeitraum: "Période",
     dauer: "Durée",
     station: "Fonction",
-    pensum: "Taux d’occupation",
+    pensum: "Taux d’activité",
     unternehmen: "Entreprise",
     referenz: "Référence",
     auf-anfrage: "Sur demande.",

@@ -48,7 +48,7 @@ function page({ status = { einwilligung: OPEN }, antworten = {}, satz = "lehrste
   // The rows and their order are suchliste.js's (tests/suchliste.test.cjs); here only what this page hands it.
   const Suchliste = { zeige(liste, begriffe, optionen) { Object.assign(this, { liste, begriffe, optionen }); } };
   const context = {
-    window: { App, Einwilligung, Suchliste, Meldungen: require("../seiten/meldungen.js") },
+    window: { App, Einwilligung, Suchliste, Meldungen: require("../seiten/meldungen.js"), Texte: require("../seiten/texte.js") },
     document: { getElementById: byId, dispatchEvent() {} },
     CustomEvent: class {},
   };

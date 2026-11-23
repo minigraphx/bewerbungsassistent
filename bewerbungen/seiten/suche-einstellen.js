@@ -7,24 +7,24 @@
   const logik = window.TrefferLogik;
   const L = window.SuchbegriffeLogik;
   const $ = id => document.getElementById(id);
-  const NICHTS = "Nichts angegeben";
+  const nichts = () => window.Texte.t("Nichts angegeben");
   const meldung = (inhalt, stufe) => status($("status"), inhalt, stufe);
   let ladeNummer = 0;
 
   function zeigeRahmen(daten, rahmen, lehrstelle, ausgeschlossen, satz) {
-    $("region-text").textContent = anzeige.regionText(daten.region, lehrstelle) || NICHTS;
+    $("region-text").textContent = anzeige.regionText(daten.region, lehrstelle) || nichts();
     const nischen = anzeige.nischenText(daten.region, lehrstelle, satz === "stelle-du");  // G111
     $("nischen-titel").hidden = !nischen;
     $("nischen-text").hidden = !nischen;
     $("nischen-text").textContent = nischen;
     $("pensum-titel").hidden = lehrstelle;
     $("pensum-text").hidden = lehrstelle;
-    $("pensum-text").textContent = rahmen.pensum || NICHTS;
+    $("pensum-text").textContent = rahmen.pensum || nichts();
     // Excluded companies (#226, G65) hold for apprenticeships too; the exclusions of the profile only for jobs.
     for (const teil of $("karte-nicht").querySelectorAll(".nur-stelle")) teil.hidden = lehrstelle;
-    $("firmen-ausgeschlossen-text").textContent = ausgeschlossen.map(firma => firma.name).join(", ") || NICHTS;
-    $("ausschluss-text").textContent = rahmen.ausschluss.join(", ") || NICHTS;
-    $("titel-ausschluss-text").textContent = rahmen.titel_ausschluss.join(", ") || NICHTS;
+    $("firmen-ausgeschlossen-text").textContent = ausgeschlossen.map(firma => firma.name).join(", ") || nichts();
+    $("ausschluss-text").textContent = rahmen.ausschluss.join(", ") || nichts();
+    $("titel-ausschluss-text").textContent = rahmen.titel_ausschluss.join(", ") || nichts();
     $("titelfilter").hidden = lehrstelle;
     window.TitelfilterBeispiele.begriffe(rahmen.titel_positiv, rahmen.titel_ausschluss);
     window.SucheRahmen.zeige(rahmen, lehrstelle, ausgeschlossen, (daten.region && daten.region.nischen) || 0);
@@ -40,7 +40,8 @@
   function zeigeAblauf(daten) {
     $("auto-bewerten").checked = daten.einstellungen.auto_bewerten;
     $("zuschauen").checked = daten.einstellungen.zuschauen;
-    $("auto-text").textContent = `Neue Treffer nach der Suche automatisch bewerten (höchstens ${daten.grenze} pro Suche)`;
+    $("auto-text").textContent = window.Texte.t("Neue Treffer nach der Suche automatisch bewerten (höchstens {grenze} pro Suche)",
+      { grenze: daten.grenze });
   }
 
   /**
@@ -73,6 +74,10 @@
     $("pruefen-block").hidden = false;
   }
 
+  function reportYieldFailed(fehler) {
+    meldung(window.Texte.t("Was die Suche bringt, liess sich nicht laden: {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   /** What each term and place brought (G103); on its own, so the rest of the page does not wait for it. */
   async function zeigeErtrag(nummer) {
     try {
@@ -81,7 +86,7 @@
       window.SucheErtrag.zeige(ertrag, await textsatz());
       window.TitelfilterBeispiele.beispiele(ertrag.titelfilter);
     } catch (fehler) {
-      meldung(`Was die Suche bringt, liess sich nicht laden: ${fehler.message}`, "fehler");
+      reportYieldFailed(fehler);
     }
   }
 

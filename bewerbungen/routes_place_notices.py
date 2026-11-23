@@ -14,6 +14,7 @@ import search_plan
 from dateien import schreibe_atomar
 from hits import KEPT_PLACES, PORTALS_OFF, Hits
 from server import json_antwort
+from ui_texts import T
 
 SHA256 = re.compile(r"[0-9a-f]{64}")
 
@@ -87,14 +88,14 @@ def undo(k, parameter, body):
         schreibe_atomar(path, place_notices.restored(former, current, place).encode("utf-8"))
 
     k.mit_entwurf(path, f"Ort für jobs.ch wieder aufgenommen: {place}", write)
-    return json_antwort({"text": place_notices.BACK.format(place=place)})
+    return json_antwort({"text": place_notices.back(place)})
 
 
 def keep(k, parameter, body):
     """«Behalten»: the profile stays as it is, and the app does not ask about this place again."""
     place = _place(body)
     Hits(k.daten).keep_place(place)
-    return json_antwort({"text": f"{place} bleibt bei den Orten für jobs.ch."})
+    return json_antwort({"text": T("{place} bleibt bei den Orten für jobs.ch.", place=place)})
 
 
 GET = {"/api/suche/orte-hinweise": found}

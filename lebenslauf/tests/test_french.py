@@ -52,7 +52,7 @@ DOSSIER_LABELS = {
                "Juni 2015", "Bewerbung als Data Engineer"),
         "en": ("Part", "Page", "Attachments", "Workload 80–100 %", "Period", "Duration", "Position", "On request.",
                "June 2015", "Application as Data Engineer"),
-        "fr": ("Partie", "Page", "Annexes", "Taux d’occupation 80–100 %", "Période", "Durée", "Fonction",
+        "fr": ("Partie", "Page", "Annexes", "Taux d’activité 80–100 %", "Période", "Durée", "Fonction",
                "Sur demande.", "juin 2015", "Candidature au poste de Data Engineer"),
     },
 }

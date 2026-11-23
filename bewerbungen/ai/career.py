@@ -9,6 +9,7 @@ import search_plan
 from ai import prompts, tasks
 from ai.errors import BAD_ANSWER, AiError
 from ai.gateway import Gateway, Request
+from ui_message import T
 
 MAX_TEXT = 1000
 MAX_RECOMMENDATIONS = 6
@@ -23,7 +24,7 @@ GENDER_FORM = re.compile(r"/-?(?:in|r)\b")
 TEXT_KEYS = ("why", "daily", "check")
 MIN_AVOIDED_WORD = 4
 ONLY_AVOIDED = "Alle Vorschläge enthielten etwas, das ausgeschlossen ist. Bitte nochmals versuchen oder die Angaben anpassen."
-TOO_LONG = f"Bitte je Feld höchstens {MAX_TEXT} Zeichen."
+TOO_LONG = T("Bitte je Feld höchstens {anzahl} Zeichen.", anzahl=MAX_TEXT)
 ANSWERS_EXPECTED = "Interessen und Stärken erwartet."
 
 

@@ -11,12 +11,13 @@ import search_window
 from dateien import schreibe_atomar
 from hits import PORTALS_OFF, Hits
 from server import json_antwort
+from ui_texts import T
 
 SECTION = "## Portale und Rhythmus"
 BEFORE = "## Region"  # where a profile without the section gets it
 LINE = "- Zeitfenster: {days} Tage"
 WINDOW_LINE = re.compile(r"^-\s+zeitfenster\s*:", re.IGNORECASE)
-BAD_DAYS = f"Erlaubt sind {search_plan.MIN_WINDOW_DAYS} bis {search_plan.MAX_WINDOW_DAYS} Tage."
+BAD_DAYS = T("Erlaubt sind {min} bis {max} Tage.", min=search_plan.MIN_WINDOW_DAYS, max=search_plan.MAX_WINDOW_DAYS)
 NO_PROFILE = "Zuerst Meine Angaben abschliessen."
 ONLY_JOBS = "Das Zeitfenster gilt nur für die Stellensuche."
 SAVED = "Zeitfenster der Suche: {days} Tage"

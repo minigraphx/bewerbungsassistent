@@ -21,15 +21,25 @@ window.PortalWahl = (() => {
       }
     });
     return el("li", {}, el("label", { class: "auswahl" }, kasten, ` ${portal.name}`, el("span", { class: "leise" }, ` (${portal.hinweis})`)),
-      grund(portal), portal.name === SPEZIAL ? el("p", { class: "field__hint" }, fragenLink("warum-ist-ictjobs-an-oder-aus", "Warum ictjobs an oder aus ist")) : null);
+      grund(portal), portal.name === SPEZIAL ? el("p", { class: "field__hint" }, fragenLink("warum-ist-ictjobs-an-oder-aus", window.Texte.t("Warum ictjobs an oder aus ist"))) : null);
   }
 
-  // Why ictjobs is on or off (#107), in the form of the text set
+  // Why ictjobs is on or off (#107), by the `grund` of /api/suche/liste; each key written out, so the scanner checks
+  // that every one is in the catalog (#424).
+  const GRUENDE = {
+    aus: (satz, werte) => window.Texte.text("suche.ictjobs.aus", satz, werte),
+    passt: (satz, werte) => window.Texte.text("suche.ictjobs.passt", satz, werte),
+    gewaehlt: (satz, werte) => window.Texte.text("suche.ictjobs.gewaehlt", satz, werte),
+    keine: (satz, werte) => window.Texte.text("suche.ictjobs.keine", satz, werte),
+  };
+
+  // In the form of the text set
   function grund(portal) {
-    if (!portal.grund) return null;
+    const text = GRUENDE[portal.grund];
+    if (!text) return null;
     const zeile = el("p", { class: "field__hint" });
     window.App.textsatz().then(satz => {
-      zeile.textContent = window.Texte.text(`suche.ictjobs.${portal.grund}`, satz, { begriff: portal.begriff });
+      zeile.textContent = text(satz, { begriff: portal.begriff });
     });
     return zeile;
   }

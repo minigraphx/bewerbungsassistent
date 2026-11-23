@@ -19,6 +19,7 @@ import search_plan
 import title_filter
 from search_plan import (APPRENTICESHIP_MARK, DIRECTION, MAX_DIRECTION, MAX_DIRECTIONS, MAX_KEYWORDS, MAX_PROFESSION_NAME,
                          MAX_VALUE, profession_words)
+from ui_message import T
 
 DIRECTIONS_SECTION = "## Suchrichtungen"
 KEYWORDS_KEY = "keywords"
@@ -144,7 +145,7 @@ def _added(text: str, name: str, kind: str | None, limit: int | None) -> str:
     if profession_words(name) in map(profession_words, known):
         return text
     if limit is not None and len(known) >= limit:
-        raise ValueError(FULL.format(limit=limit))
+        raise ValueError(T(FULL, limit=limit))
     clean = " ".join(name.split())
     lines = text.split("\n")
     target = _new_term_line(lines)
@@ -158,7 +159,7 @@ def _added(text: str, name: str, kind: str | None, limit: int | None) -> str:
     start, end = search_plan.section_bounds(lines, DIRECTIONS_SECTION[3:].lower())
     used = 0 if start is None else sum(bool(DIRECTION.match(row.strip())) for row in lines[start:end])
     if used >= MAX_DIRECTIONS:  # lines, not terms: one line can repeat a term or hold several (#316)
-        raise ValueError(FULL_DIRECTIONS.format(limit=MAX_DIRECTIONS))
+        raise ValueError(T(FULL_DIRECTIONS, limit=MAX_DIRECTIONS))
     return search_plan.with_section_line(text, DIRECTIONS_SECTION, f"{used + 1}. {clean}", AFTER_DIRECTIONS)
 
 
@@ -257,7 +258,7 @@ def added_to_line(text: str, name: str, index: int) -> str:
     lines = text.split("\n")
     found = GROUP_LINE.match(lines[index].strip())
     if found is None:
-        raise ValueError(f"Zeile {index + 1} ist keine Liste von Begriffen")
+        raise ValueError(T("Zeile {zeile} ist keine Liste von Begriffen", zeile=index + 1))
     if profession_words(name) in {_words_as_shown(term) for term in search_plan.split_terms(found[2])}:
         return text
     return "\n".join([*lines[:index], _appended(lines[index], " ".join(name.split())), *lines[index + 1:]])

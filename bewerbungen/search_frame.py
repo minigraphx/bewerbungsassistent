@@ -15,6 +15,7 @@ import jobscout24_regions
 import portal_places
 import profile_limits
 import search_plan
+from ui_message import T
 
 PAIR_LINE = re.compile(r"^(\s*)-\s+([^:]+):\s*(.*)$")
 ONLY_JOBS = "„{name}“ gilt nur für die Stellensuche."
@@ -26,7 +27,7 @@ TOO_LONG = "„{value}…“ ist zu lang: höchstens {limit} Zeichen."
 NOT_A_LIST = "{name}: bitte als Liste senden."
 BAD_CANTON = "Unbekannter Kanton: {value}."
 TOO_MANY = "{name}: höchstens {limit} Begriffe."
-BAD_RADIUS = (f"Umkreis: erlaubt sind {search_plan.MIN_RADIUS_KM} bis {search_plan.MAX_RADIUS_KM} km.")
+BAD_RADIUS = T("Umkreis: erlaubt sind {min} bis {max} km.", min=search_plan.MIN_RADIUS_KM, max=search_plan.MAX_RADIUS_KM)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -56,16 +57,17 @@ def _place_field(key: str, label: str) -> Field:
 PLACE_KEYS = (*portal_places.KEYS, portal_places.JOBSCOUT24_REGIONS)
 BOTH = (search_plan.KIND_JOB, search_plan.KIND_APPRENTICESHIP)
 FIELDS = {
-    "wohnort": Field("den Wohnort", "## Region", "wohnort", "Wohnort", "## Keywords", "home", BOTH),
-    "kantone": Field("Kantone", "## Region", "kantone", "Kantone (job-room)", "## Keywords", "cantons", BOTH,
+    "wohnort": Field(T("den Wohnort"), "## Region", "wohnort", "Wohnort", "## Keywords", "home", BOTH),
+    "kantone": Field(T("Kantone"), "## Region", "kantone", "Kantone (job-room)", "## Keywords", "cantons", BOTH,
                      "Kantone"),
-    "umkreis_km": Field("Umkreis", "## Region", "umkreis", "Umkreis", "## Schule", "",
+    "umkreis_km": Field(T("Umkreis"), "## Region", "umkreis", "Umkreis", "## Schule", "",
                         (search_plan.KIND_APPRENTICESHIP,)),
-    "pensum": Field("das Pensum", "## Rahmen", "pensum", "Pensum", "## Zielfirmen mit Karriereseite", "workload"),
-    "ausschluss": Field("Ausschlüsse", "## Suchrichtungen", "ausschluss", "Ausschluss", "## Region", "exclusions"),
-    "titel_positiv": Field("Titel, die passen", "## Titelfilter", "positiv", "Positiv", "## Sprachen", "titlePositive"),
-    "titel_ausschluss": Field("Titel, die nicht passen", "## Titelfilter", "ausschluss", "Ausschluss", "## Sprachen",
-                              "titleExclude"),
+    "pensum": Field(T("das Pensum"), "## Rahmen", "pensum", "Pensum", "## Zielfirmen mit Karriereseite", "workload"),
+    "ausschluss": Field(T("Ausschlüsse"), "## Suchrichtungen", "ausschluss", "Ausschluss", "## Region", "exclusions"),
+    "titel_positiv": Field(T("Titel, die passen"), "## Titelfilter", "positiv", "Positiv", "## Sprachen",
+                           "titlePositive"),
+    "titel_ausschluss": Field(T("Titel, die nicht passen"), "## Titelfilter", "ausschluss", "Ausschluss",
+                              "## Sprachen", "titleExclude"),
     **{key: _place_field(key, label) for key, label in (("orte", "Orte"), ("plz", "PLZ"), ("regionen", "Regionen"),
                                                          (portal_places.JOBSCOUT24_REGIONS, "Regionen"))},
 }
@@ -130,19 +132,19 @@ def _one_line(value: str) -> str:
 
 def _checked_text(field: Field, value, required: bool, limit: profile_limits.Limit) -> str:
     if not isinstance(value, str) or (required and not _one_line(value)):
-        raise ValueError(REQUIRED.format(name=field.name))
+        raise ValueError(T(REQUIRED, name=field.name))
     return _bounded(_one_line(value), limit)
 
 
 def _bounded(value: str, limit: profile_limits.Limit) -> str:
     if len(value) > limit.chars:
-        raise ValueError(TOO_LONG.format(value=value[:20], limit=limit.chars))
+        raise ValueError(T(TOO_LONG, value=value[:20], limit=limit.chars))
     return value
 
 
 def _checked_list(field: Field, value, limit: profile_limits.Limit) -> list[str]:
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise ValueError(NOT_A_LIST.format(name=field.name))
+        raise ValueError(T(NOT_A_LIST, name=field.name))
     unique: dict[str, str] = {}
     for item in (_bounded(_one_line(item), limit) for item in value if _one_line(item)):
         unique.setdefault(item.lower(), item)  # the first spelling counts, as the search reads it
@@ -153,7 +155,7 @@ def _checked_cantons(field: Field, value, limit: profile_limits.Limit) -> list[s
     cantons = [item.upper() for item in _checked_list(field, value, limit)]
     wrong = next((c for c in cantons if c not in search_plan.CANTONS), None)
     if wrong:
-        raise ValueError(BAD_CANTON.format(value=wrong))
+        raise ValueError(T(BAD_CANTON, value=wrong))
     return cantons
 
 
@@ -161,7 +163,7 @@ def _checked_terms(field: Field, value, limit: profile_limits.Limit) -> list[str
     """One entry per line, counted as Meine Angaben counts them: a slash stays inside its entry."""
     items = _checked_list(field, value, limit)
     if len(items) > limit.lines:
-        raise ValueError(TOO_MANY.format(name=field.name, limit=limit.lines))
+        raise ValueError(T(TOO_MANY, name=field.name, limit=limit.lines))
     return items
 
 
@@ -205,10 +207,10 @@ def _check_kind(change: dict, kind: str) -> None:
         raise ValueError(NOTHING)
     unknown = next((key for key in change if key not in FIELDS), None)
     if unknown:
-        raise ValueError(UNKNOWN.format(key=unknown))
+        raise ValueError(T(UNKNOWN, key=unknown))
     for key in change:
         if kind not in FIELDS[key].kinds:
-            raise ValueError(ONLY_APPRENTICESHIPS if key == "umkreis_km" else ONLY_JOBS.format(name=FIELDS[key].name))
+            raise ValueError(T(ONLY_APPRENTICESHIPS) if key == "umkreis_km" else T(ONLY_JOBS, name=FIELDS[key].name))
 
 
 def with_values(text: str, change: dict) -> str:

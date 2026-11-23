@@ -5,8 +5,6 @@
   const { holen, senden, status, el } = window.App;
   const anzeige = window.SucheAnzeige;
   const $ = id => document.getElementById(id);
-  const GESPEICHERT = "Gespeichert. Gilt ab der nächsten Suche.";
-  const NICHT_GESPEICHERT = "Nicht gespeichert.";
 
   function zeige(stand) {
     const fuerStellen = stand.art !== "lehrstelle";
@@ -20,12 +18,16 @@
       el("li", {}, window.DotLine.render(anzeige.portalStand(zeile), el))));
   }
 
+  function reportNotSaved(fehler) {
+    status($("zeitfenster-meldung"), window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   async function speichere() {
     try {
       zeige(await senden("/api/suche/zeitfenster", { tage: Number($("zeitfenster-tage").value) }));
-      status($("zeitfenster-meldung"), GESPEICHERT, "ok");
+      status($("zeitfenster-meldung"), window.Texte.t("Gespeichert. Gilt ab der nächsten Suche."), "ok");
     } catch (fehler) {
-      status($("zeitfenster-meldung"), `${NICHT_GESPEICHERT} ${fehler.message}`, "fehler");
+      reportNotSaved(fehler);
     }
   }
 

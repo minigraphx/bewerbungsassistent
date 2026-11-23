@@ -14,11 +14,12 @@ import re
 
 import jobscout24_regions
 import search_plan
+from ui_message import T
 
 KEYS = ("orte", "plz", "regionen")
 JOBSCOUT24_REGIONS = "regionen_jobscout24"
 PORTAL_OF = {"orte": "jobs.ch", "plz": "jobscout24", "regionen": "ictjobs", JOBSCOUT24_REGIONS: "jobscout24"}
-REGIONS_PREFIX = "Regionen"  # before jobscout24's regions on the closed card
+REGIONS_PREFIX = T("Regionen")  # before jobscout24's regions on the closed card
 POSTAL_CODE = re.compile(r"\d{4}")
 REGION_NAMES = {
     "grossraum-zuerich": "Grossraum Zürich", "grossraum-bern": "Grossraum Bern", "grossraum-basel": "Grossraum Basel",
@@ -32,8 +33,8 @@ TOO_MANY = "{name}: höchstens {limit} Einträge."
 BAD_POSTAL_CODE = "„{value}“ ist keine Postleitzahl: bitte vier Ziffern."
 BAD_REGION = "Unbekannte Region für ictjobs: {value}."
 BAD_JOBSCOUT24_REGION = "Unbekannte Region für jobscout24: {value}."
-NAMES = {"orte": "Orte für jobs.ch", "plz": "PLZ für jobscout24", "regionen": "Regionen für ictjobs",
-         JOBSCOUT24_REGIONS: "Regionen für jobscout24"}
+NAMES = {"orte": T("Orte für jobs.ch"), "plz": T("PLZ für jobscout24"), "regionen": T("Regionen für ictjobs"),
+         JOBSCOUT24_REGIONS: T("Regionen für jobscout24")}
 
 
 def _cantons_of(region: str) -> list[str]:
@@ -68,11 +69,11 @@ def shown(text: str) -> list[dict]:
 
 def _entries(key: str, value) -> list[str]:
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise ValueError(NOT_A_LIST.format(name=NAMES[key]))
+        raise ValueError(T(NOT_A_LIST, name=NAMES[key]))
     unique: dict[str, str] = {}
     for item in (" ".join(item.split()) for item in value):
         if len(item) > search_plan.MAX_VALUE:
-            raise ValueError(TOO_LONG.format(value=item[:20], limit=search_plan.MAX_VALUE))
+            raise ValueError(T(TOO_LONG, value=item[:20], limit=search_plan.MAX_VALUE))
         if item:
             unique.setdefault(item.lower(), item)
     return list(unique.values())
@@ -80,11 +81,11 @@ def _entries(key: str, value) -> list[str]:
 
 def _check_entry(key: str, entry: str) -> None:
     if key == "plz" and not POSTAL_CODE.fullmatch(entry):
-        raise ValueError(BAD_POSTAL_CODE.format(value=entry))
+        raise ValueError(T(BAD_POSTAL_CODE, value=entry))
     if key == "regionen" and entry not in REGION_NAMES:
-        raise ValueError(BAD_REGION.format(value=entry))
+        raise ValueError(T(BAD_REGION, value=entry))
     if key == JOBSCOUT24_REGIONS and jobscout24_regions.region_id(entry) is None:
-        raise ValueError(BAD_JOBSCOUT24_REGION.format(value=entry))
+        raise ValueError(T(BAD_JOBSCOUT24_REGION, value=entry))
 
 
 def _jobscout24_checked(value, listed: list[str]) -> list[str]:
@@ -109,5 +110,5 @@ def checked(key: str, value, listed: list[str]) -> list[str]:
             _check_entry(key, entry)
     read = search_plan.split_terms(", ".join(entries)) if key == "orte" else entries
     if len([term for term in read if term.strip()]) > search_plan.MAX_PLACES:
-        raise ValueError(TOO_MANY.format(name=NAMES[key], limit=search_plan.MAX_PLACES))
+        raise ValueError(T(TOO_MANY, name=NAMES[key], limit=search_plan.MAX_PLACES))
     return entries
