@@ -1,0 +1,6 @@
+{
+  "Abgabe bis {datum}": { "fr": "À remettre d'ici le {datum}", "en": "Due by {datum}" },
+  "Bitte einen Wert angeben.": { "fr": "Merci d'indiquer une valeur.", "en": "Please enter a value." },
+  "Die Datei ist gesperrt.": { "fr": "Le fichier est verrouillé.", "en": "The file is locked." },
+  "texte:fragen.label": { "fr": { "sie": "Votre question", "du": "Ta question" }, "en": { "sie": "Your question" } }
+}
