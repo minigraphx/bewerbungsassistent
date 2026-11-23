@@ -3,7 +3,7 @@
 // anchor opens, which way to the AI is in use, the monthly budget of the code (G46, G98) or the costs of the month.
 (function (global) {
   const SECTIONS = [
-    { id: "ki", label: "KI und Budget" },
+    { id: "ki", label: "KI, Budget und Sprache" },
     { id: "suche", label: "Suche und Portale" },
     { id: "erweiterung", label: "Browser und Erweiterung" },
     { id: "wahl", label: "Stelle, Lehrstelle, RAV" },
@@ -14,7 +14,7 @@
   const FIRST = SECTIONS[0].id;
   // Anchors that other pages and the guide link to, from the time the page was one long list.
   const SECTION_OF_ANCHOR = {
-    kosten: "ki", einwilligung: "ki", "schluessel-teil": "ki", "claude-abo": "ki", einladung: "ki", zugang: "ki",
+    kosten: "ki", einwilligung: "ki", sprache: "ki", "schluessel-teil": "ki", "claude-abo": "ki", einladung: "ki", zugang: "ki",
     vorabversionen: "erweitert", seitengrenze: "erweitert", daten: "daten", "ueber-die-app": "ueber",
     browser: "erweiterung",
   };

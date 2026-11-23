@@ -32,6 +32,20 @@
 label.access-choice__option:has(input:disabled) { cursor: default; background: var(--surface-subtle); }
 .browser-choice__missing { color: var(--text); }
 
+/* Sprache (G10, G12, #94): the app's language beside the application languages, one column when narrow */
+.language__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4) var(--space-5); align-items: start; }
+.language__grid .field { margin: 0; }
+.language__grid .field__hint { margin: var(--space-1) 0 0; }
+.language__applications { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; margin: 0; padding: 0; border: 0; }
+.language__applications > legend { padding: 0; }
+.language__options { display: flex; flex-direction: column; }
+/* The suggestion note stands on its own line under the name, indented by the box (18px) and the gap. */
+.language__option { min-height: 40px; padding: 6px 0; }
+.language__choice { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.language__choice input { flex: none; margin-top: 1px; }
+.language__label { min-width: 0; line-height: 20px; }
+.language__grid .language__note { margin: 0 0 0 28px; }
+
 /* KI-Budget and costs (G46, G98) */
 .budget__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-1) var(--space-3); }
 .budget__headline { font-size: 18px; line-height: 24px; color: var(--text-strong); }

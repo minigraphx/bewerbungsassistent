@@ -131,7 +131,7 @@ Liegen Suchprofil, Stilprofil oder Bausteine schon im Datenordner, fragt die App
 
 Die KI richten Sie in einem Fenster über der Seite ein. Es öffnet sich, wenn Sie oben in der Einrichtung auf **KI einrichten** klicken, wenn Sie eine KI-Funktion nutzen, bevor die KI eingerichtet ist, und wenn Sie einen Einladungslink öffnen.
 
-Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Widerrufen können Sie jederzeit unter **Einstellungen**, **KI und Budget**.
+Lesen Sie zuerst die Datenschutzerklärung und willigen Sie ein: Die App ist für Erwachsene, und ohne Einwilligung gehen keine Texte an die KI. Widerrufen können Sie jederzeit unter **Einstellungen**, **KI, Budget und Sprache**.
 
 Bei Lehrstellen: Eingerichtet wird die App von einer erwachsenen Person, die Elternteil oder gesetzliche Vertretung ist; sie bestätigt das in der Einwilligung.
 
@@ -205,6 +205,8 @@ Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minut
 **Tags** bestimmen, wo ein Eintrag erscheint: Ohne Tags steht er in jedem Lebenslauf, mit Tags nur in den Varianten für Stellen mit einem dieser Tags. Tags können Sie Stellen, einzelnen Tätigkeiten, Kenntnissen, Projekten, Lehrtätigkeiten und Zertifikaten geben. Die Seite schlägt die Tags vor, die Sie schon verwenden; neue tippen Sie einfach ein. Tags sind freiwillig.
 
 **Stufen** für Kenntnisse und Sprachen sind ebenfalls freiwillig und gelten nur fürs Dossier: Bei einer Kenntnis wählen Sie 1 bis 6, bei einer Sprache A1 bis C2, mit **ohne Stufe** entfernen Sie sie wieder. Hat ein Eintrag eines Bereichs eine Stufe, zeigt das Dossier dort eine Grafik, und Einträge ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik.
+
+**Sprachen:** Unter **Einstellungen**, **KI, Budget und Sprache**, wählen Sie bei **Sprache** die **Sprache der App** und unter **Ich bewerbe mich auf** die Sprachen, in denen Sie sich bewerben. Solange Sie nichts gewählt haben, schlägt die App die Sprachen vor, die Ihr Lebenslauf mit fliessend oder besser nennt, sonst Deutsch. Der Vorschlag gilt, bis Sie ein Häkchen ändern. Die App selbst gibt es vorerst nur auf Deutsch; Französisch und Englisch folgen.
 
 Für die Stellensuche gibt es ausserdem die Abschnitte **Projekte** sowie **Lehre und Training** und ein Feld für Ihre eigene Webseite. Bei Ausbildungen und Zertifikaten können Sie unter **Eigener Text** einen fertigen Satz schreiben; er steht im Lebenslauf anstelle der einzelnen Angaben.
 
@@ -457,9 +459,9 @@ Behandeln Sie den Schlüssel wie ein Passwort: Wer ihn hat, kann auf Ihre Kosten
 <details>
 <summary>Schlüssel in der App eintragen</summary>
 
-![Abschnitt Eigener API-Schlüssel unter Einstellungen, KI und Budget, mit den Hinweisen, dem Häkchen, dem Feld für den Schlüssel und dem Knopf Prüfen und speichern](bilder/einstellungen-schluessel.jpg)
+![Abschnitt Eigener API-Schlüssel unter Einstellungen, KI, Budget und Sprache, mit den Hinweisen, dem Häkchen, dem Feld für den Schlüssel und dem Knopf Prüfen und speichern](bilder/einstellungen-schluessel.jpg)
 
-1. Unter **Einstellungen**, **KI und Budget**, bei **Zugang zur KI** den **Eigenen Schlüssel von Anthropic** wählen. Darunter erscheint der Abschnitt **Eigener API-Schlüssel**.
+1. Unter **Einstellungen**, **KI, Budget und Sprache**, bei **Zugang zur KI** den **Eigenen Schlüssel von Anthropic** wählen. Darunter erscheint der Abschnitt **Eigener API-Schlüssel**.
 2. Die Hinweise lesen und das Häkchen setzen.
 3. Den Schlüssel einfügen und auf **Prüfen und speichern** klicken.
 
@@ -491,7 +493,7 @@ Die Suche liest pro Seite und Lauf höchstens zehn Ergebnisseiten und dreissig I
 <details>
 <summary>Schlüssel entfernen</summary>
 
-Klicken Sie unter **Einstellungen**, **KI und Budget**, **Eigener Schlüssel von Anthropic** auf **Schlüssel entfernen**. Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab. Die weiteren Seiten werden dann nicht mehr durchsucht.
+Klicken Sie unter **Einstellungen**, **KI, Budget und Sprache**, **Eigener Schlüssel von Anthropic** auf **Schlüssel entfernen**. Danach läuft die App wieder über die Vermittlung, und die Erweiterung gibt den Zugriff auf alle Seiten ab. Die weiteren Seiten werden dann nicht mehr durchsucht.
 
 Bei Anthropic bleibt der Schlüssel bestehen. Brauchen Sie ihn nicht mehr, löschen Sie ihn auch in der Console.
 
@@ -512,6 +514,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 - `anschreiben/stil.md` – Ihr Stilprofil: wie Ihre Anschreiben klingen sollen. `anschreiben/bausteine.md` – Ihre Bausteine: Sätze und Beispiele, die die KI in Anschreiben verwenden darf. Beide entstehen unter **Meine Angaben** und lassen sich unter **Inhalte als Text** ändern.
 - `jobs/<name>.yaml` und `varianten.yaml` – Varianten des Lebenslaufs für bestimmte Stellen und ihre Tags. Sie entstehen mit **Lebenslauf erstellen** bei einer Bewerbung (siehe [Lebenslauf für eine Stelle erstellen](#lebenslauf-für-eine-stelle-erstellen)) oder mit Claude; ändern lassen sie sich unter **Inhalte als Text**.
 - `einrichtung.yaml` – Ihre Wahl aus dem ersten Schritt der Einrichtung: Stelle oder Lehrstelle, Sie oder du, RAV.
+- `sprachen.yaml` – die Sprache der App und die Sprachen, in denen Sie sich bewerben, gewählt unter **Einstellungen**, **KI, Budget und Sprache**, bei **Sprache**. Fehlt die Datei, gilt Deutsch und der Vorschlag aus Ihrem Lebenslauf.
 - `aussehen.yaml` – das Design Ihres Lebenslaufs, gewählt auf der Seite **Lebenslauf und Dateien** mit **Aussehen wählen**: Zweispaltig (Vorgabe) oder Einspaltig. Neue Lebensläufe entstehen in diesem Design; was schon erstellt oder verschickt ist, bleibt, wie es ist. Ein Dossier hat sein eigenes Design, gewählt in der Bewerbung unter **Dossier gestalten**.
 - `unterlagen.yaml` – ob Ihr Lebenslauf drei statt zwei Seiten haben darf, wenn Sie unter **Einstellungen**, **Erweitert** **Drei Seiten für den Lebenslauf erlauben** einschalten, und ob er Ihr Foto zeigt, wenn Sie unter **Lebenslauf und Dateien** beim Foto **Im Lebenslauf zeigen** ausschalten. Ausgeschaltet entstehen neue Lebensläufe und Dossiers ohne Foto; was schon erstellt oder verschickt ist, behält sein Foto.
 - `einwilligung.json` – wann Sie der Nutzung der KI zugestimmt haben und welcher Fassung des Textes.
@@ -561,7 +564,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 - `firmen.yaml` – was die App über die Firmen aus Treffern und Bewerbungen bei kununu weiss: die zugeordnete kununu-Seite, Wert, Anzahl Bewertungen und wann geprüft wurde. Sie entsteht auf **Stellen** im Reiter **Firmen**.
 - `firmen-ausgeschlossen.yaml` – die Firmen, deren Inserate die Suche nicht mehr zeigt, ein Name pro Zeile. Sie entsteht mit **Diese Firma nicht mehr zeigen** bei einem Treffer, einer Bewerbung oder im Reiter **Firmen**, und **Diese Firma wieder zeigen** nimmt eine Firma dort wieder heraus; Sie ändern sie unter **Suche einstellen**, **Was Sie nicht sehen wollen**.
 - `.entwuerfe/` – jeder frühere Stand Ihrer Dateien, mit `.entwuerfe/index.yaml` als Verzeichnis. Die App zeigt sie unter **Entwürfe und Versionen**, erreichbar auf **Lebenslauf und Dateien** mit **Frühere Fassungen ansehen**. Von hier holen Sie einen alten Stand zurück.
-- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Einstellungen**, **KI und Budget**, nach Aufgaben aufgeteilt.
+- `.ki/nutzung.jsonl` – was die KI wann gekostet hat, ohne Inhalte. Die App zeigt es unter **Einstellungen**, **KI, Budget und Sprache**, nach Aufgaben aufgeteilt.
 - `.sicherung.yaml` – wann Sie zuletzt eine Sicherung erstellt haben, für die Erinnerung.
 - `.build/` – Zwischenstände beim Bauen der PDFs. Sie dürfen den Ordner löschen; die App legt ihn neu an.
 - `.git/` und `.gitignore` – ist Git auf dem Computer installiert, hält die App jeden Versand zusätzlich als Version fest. Die `.gitignore` sagt Git, was nicht hineingehört, etwa `dokumente/` und `suche/`.
@@ -607,10 +610,10 @@ Die **Nischen** unter `## Keywords` (`- Nischen (ohne Ort suchen): …`) folgen 
 | Meldung oder Problem | Was hilft |
 |---|---|
 | „Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?“ | Prüfen Sie Ihre Internetverbindung und versuchen Sie es nochmals. |
-| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten) mit dem Text der Einwilligung. Sie können auch unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**, einwilligen: **KI einschalten** zeigt den Text dazu. |
-| „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Suche einstellen** (Seite **Stellen** oder **Lehrstellen**) und unter **Einstellungen**, **KI und Budget**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
+| „Vor der ersten KI-Nutzung braucht es die Einwilligung“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten) mit dem Text der Einwilligung. Sie können auch unter **Einstellungen**, **KI, Budget und Sprache**, Abschnitt **Einwilligung**, einwilligen: **KI einschalten** zeigt den Text dazu. |
+| „Die KI ist noch aus.“ | Klicken Sie daneben auf **KI einschalten**: Die App zeigt den Text der Einwilligung, und nach **Einwilligen** ist die KI an. Das geht auf der Seite einer Bewerbung, bei den Vorschlägen auf **Suche einstellen** (Seite **Stellen** oder **Lehrstellen**) und unter **Einstellungen**, **KI, Budget und Sprache**, Abschnitt **Einwilligung**; was Sie bei den Vorschlägen geschrieben haben, bleibt stehen. |
 | „Die KI ist noch nicht eingerichtet.“ | Die App öffnet das Fenster [KI einrichten](#ki-einrichten). Lösen Sie dort den Einladungscode ein, oder wählen Sie das eigene Claude-Abo oder einen eigenen Schlüssel. |
-| „Der Zugang zur KI gilt nicht mehr.“ | Ihr Einladungscode gilt nicht mehr. Fordern Sie einen neuen Einladungscode an, wie unter [Hilfe](#hilfe) beschrieben, und lösen Sie ihn unter **Einstellungen**, **KI und Budget**, **Einladungscode** ein. Mit eigenem Schlüssel prüfen Sie ihn in der [Console](https://platform.claude.com/settings/keys). |
+| „Der Zugang zur KI gilt nicht mehr.“ | Ihr Einladungscode gilt nicht mehr. Fordern Sie einen neuen Einladungscode an, wie unter [Hilfe](#hilfe) beschrieben, und lösen Sie ihn unter **Einstellungen**, **KI, Budget und Sprache**, **Einladungscode** ein. Mit eigenem Schlüssel prüfen Sie ihn in der [Console](https://platform.claude.com/settings/keys). |
 | „Das KI-Budget für … ist aufgebraucht.“ | Das Budget des Einladungscodes gilt pro Monat. Die Meldung nennt den Tag, ab dem die KI wieder geht: den Ersten des nächsten Monats. Alles andere funktioniert weiterhin. |
 | „Das sieht nicht wie ein API-Schlüssel aus.“ | Fügen Sie den ganzen Schlüssel aus der Console ein, ohne etwas davor oder danach. |
 | „Dieser Schlüssel gilt nicht.“ | Prüfen Sie in der [Console](https://platform.claude.com/settings/keys), ob es ihn noch gibt, oder erstellen Sie einen neuen. Gespeichert wurde nichts. |

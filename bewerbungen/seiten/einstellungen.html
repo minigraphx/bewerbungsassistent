@@ -15,7 +15,7 @@
   <h1>Einstellungen</h1>
   <div class="settings__layout">
   <nav class="settings__nav" aria-label="Bereiche der Einstellungen">
-    <a href="#ki">KI und Budget</a>
+    <a href="#ki">KI, Budget und Sprache</a>
     <a href="#suche">Suche und Portale</a>
     <a href="#erweiterung">Browser und Erweiterung</a>
     <a href="#wahl">Stelle, Lehrstelle, RAV</a>
@@ -25,7 +25,7 @@
   </nav>
   <div class="settings__panels">
 
-  <section class="settings__panel" id="bereich-ki" aria-label="KI und Budget">
+  <section class="settings__panel" id="bereich-ki" aria-label="KI, Budget und Sprache">
   <section class="card" id="zugang" aria-labelledby="zugang-titel">
     <div class="settings__card-head">
       <h2 id="zugang-titel">Zugang zur KI</h2>
@@ -136,6 +136,23 @@
     <p class="field__hint num" id="budget-gesamt"></p>
     <div id="budget-meldung" class="status" role="status" aria-live="polite"></div>
   </section>
+
+  <section class="card" id="sprache" aria-labelledby="sprache-titel">
+    <h2 id="sprache-titel">Sprache</h2>
+    <div class="language__grid">
+      <div class="field">
+        <label class="field__label" for="sprache-app">Sprache der App</label>
+        <select class="input" id="sprache-app" aria-describedby="sprache-folgt"></select>
+        <p class="field__hint" id="sprache-folgt" hidden></p>
+      </div>
+      <fieldset class="language__applications" id="sprache-bewerbung">
+        <legend class="field__label">Ich bewerbe mich auf</legend>
+        <div class="language__options" id="sprache-optionen"></div>
+      </fieldset>
+    </div>
+    <p class="field__hint" data-text="einstellungen.sprache-inserat">Das Anschreiben entsteht in der Sprache des Inserats, wenn Sie sich in dieser Sprache bewerben.</p>
+    <div id="sprache-meldung" class="status" role="status" aria-live="polite"></div>
+  </section>
   </section>
 
   <section class="settings__panel" id="bereich-suche" aria-label="Suche und Portale">
@@ -236,5 +253,7 @@
 <script src="/browser-wahl-logik.js"></script>
 <script src="/browser-wahl.js"></script>
 <script src="/seitengrenze.js"></script>
+<script src="/sprache-logik.js"></script>
+<script src="/sprache.js"></script>
 </body>
 </html>

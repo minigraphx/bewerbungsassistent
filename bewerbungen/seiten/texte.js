@@ -240,6 +240,11 @@
       sie: "Abschicken, „Versand erfassen“ und alles zum RAV bleiben bei Ihnen. Dafür gibt es keinen Zugang.",
       du: "Abschicken, „Versand erfassen“ und alles zum RAV bleiben bei dir. Dafür gibt es keinen Zugang.",
     },
+    // Card «Sprache» (G12, #94)
+    "einstellungen.sprache-inserat": {
+      sie: "Das Anschreiben entsteht in der Sprache des Inserats, wenn Sie sich in dieser Sprache bewerben.",
+      du: "Das Anschreiben entsteht in der Sprache des Inserats, wenn du dich in dieser Sprache bewirbst.",
+    },
 
     // Search (step 5)
     "suche.wie": {
@@ -637,7 +642,7 @@
   // Day and month never part at the end of a line; screen readers read it as a space.
   const NBSP = "\u00a0";
   const chf = amount => `CHF${NBSP}${amount.toFixed(2)}`;
-  const CREDIT_USED_ONCE = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI und Budget einlösen.";
+  const CREDIT_USED_ONCE = " Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter Einstellungen, KI, Budget und Sprache einlösen.";
 
   function realDay(found) {
     const [year, month, day] = [Number(found[1]), Number(found[2]), Number(found[3])];

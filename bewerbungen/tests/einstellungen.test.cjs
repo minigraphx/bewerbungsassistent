@@ -37,7 +37,7 @@ const COSTS = {
 
 test("the sections stand on the left in the order of the design, Über die App last", () => {
   assert.deepEqual(logic.SECTIONS.map(section => section.label), [
-    "KI und Budget", "Suche und Portale", "Browser und Erweiterung", "Stelle, Lehrstelle, RAV",
+    "KI, Budget und Sprache", "Suche und Portale", "Browser und Erweiterung", "Stelle, Lehrstelle, RAV",
     "Daten und Sicherung", "Erweitert", "Über die App"]);
   const html = read("einstellungen.html");
   const nav = html.match(/<nav class="settings__nav"[\s\S]*?<\/nav>/)[0];
@@ -150,7 +150,7 @@ test("without an answer of the AI the local costs still show", () => {
   assert.equal(view.total, "Seit Beginn USD\u00a00.00 in 0 Aufrufen");
 });
 
-test("KI und Budget: the access to the AI is a choice of invitation code, own Claude subscription and own key", () => {
+test("KI, Budget und Sprache: the access to the AI is a choice of invitation code, own Claude subscription and own key", () => {
   const ki = panel(read("einstellungen.html"), "ki");
   const choice = card(ki, "zugang");
   assert.match(choice, /<h2 id="zugang-titel">Zugang zur KI<\/h2>/);
@@ -175,7 +175,7 @@ test("KI und Budget: the access to the AI is a choice of invitation code, own Cl
     `${way} shows only once chosen`);
 });
 
-test("KI und Budget: the budget (G46, G98) with a bar and a row per task", () => {
+test("KI, Budget und Sprache: the budget (G46, G98) with a bar and a row per task", () => {
   const budget = card(panel(read("einstellungen.html"), "ki"), "kosten");
   assert.match(budget, /<h2 id="kosten-titel">KI-Budget<\/h2>/);
   assert.match(budget, /id="budget-zeile"/);
