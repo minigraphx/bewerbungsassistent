@@ -294,7 +294,7 @@
         aktion: { text: Texte.text("firmen.wieder-zeigen", satz), ausfuehren: () => zeigeWieder(firma.schluessel, name) },
       });
     } catch (fehler) {
-      nichtGeaendert(name, fehler);
+      reportExclusionKept(name, fehler);
       zeigeListe();
     }
   }
@@ -305,14 +305,14 @@
       await lade();
       meldung(Texte.text("firmen.wieder-gezeigt", satz, { firma: name }), "ok");
     } catch (fehler) {
-      nichtGeaendert(name, fehler);
+      reportExclusionKept(name, fehler);
     }
   }
 
-  // the exclusion of a company stayed as it was: say so, with the reason
-  function nichtGeaendert(name, fehler) {
-    const satzText = Texte.text("firmen.nicht-geaendert", satz, { firma: name });
-    meldung(`${satzText} ${fehler.message}`, "fehler");
+  // the exclusion of a company stayed as it was: the message says so, with the reason
+  function reportExclusionKept(name, error) {
+    const sentence = Texte.text("firmen.nicht-geaendert", satz, { firma: name });
+    meldung(`${sentence} ${error.message}`, "fehler");
   }
 
   // „Jetzt prüfen“ (#191): the app has stored the value, so badge and company line load it again.
