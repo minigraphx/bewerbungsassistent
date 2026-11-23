@@ -4,7 +4,7 @@
 lebenslauf: beispiel.yaml
 sprache: de
 empfaenger:
-  - Muster Logistik AG
+  - Exempel Logistik AG
   - Frau Petra Meier
   - Musterstrasse 5
   - 4600 Olten
@@ -22,8 +22,8 @@ text: |
   Seit 2019 arbeite ich bei der Beispiel AG in Bern an einer Plattform für Kundendaten; die Datenpipelines dazu
   habe ich mit Airflow aufgebaut. Im Projekt datenatlas visualisiere ich offene Verkehrsdaten.
 
-  Neue Abläufe erkläre ich gern: bei der Muster GmbH in Zürich in internen Schulungen zu Git, an der
+  Was ich baue, erkläre ich auch gern: bei der Muster GmbH in Zürich in internen Schulungen zu Git, an der
   Beispiel-Abendschule in Bern seit 2020 in Einführungskursen zu Python.
 
-  Gerne erzähle ich Ihnen in einem Gespräch, wie ich die Pipelines bei der Beispiel AG aufgebaut habe.
+  Gerne zeige ich Ihnen in einem Gespräch, wie das für Ihre Disposition aussehen könnte.
 gruss: Freundliche Grüsse

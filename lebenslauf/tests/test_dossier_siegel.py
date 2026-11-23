@@ -197,7 +197,7 @@ def test_cover_reads_name_application_and_contact_in_order(example):
     cover = page_texts(example.dossier)[0]
 
     assert_in_order(cover, ["Erika Beispiel", "Software-Entwicklerin – Web und Daten", "Bewerbung als",
-                            "Data Engineer", "Muster Logistik AG", "Musterweg 1", "3000 Bern", "079 000 00 00",
+                            "Data Engineer", "Exempel Logistik AG", "Musterweg 1", "3000 Bern", "079 000 00 00",
                             "erika@example.ch"])
 
 
@@ -222,7 +222,7 @@ def test_single_files_hold_only_their_part(example):
     letter = flat(pdftotext(example.letter))
 
     assert "Sehr geehrte Frau Meier" not in cv and "Kurz vorgestellt" not in cv
-    assert_in_order(letter, ["Erika Beispiel", "Software-Entwicklerin – Web und Daten", "Muster Logistik AG",
+    assert_in_order(letter, ["Erika Beispiel", "Software-Entwicklerin – Web und Daten", "Exempel Logistik AG",
                              "Data Engineer", "Sehr geehrte Frau Meier", "Freundliche Grüsse"])
     assert "Berufserfahrung" not in letter and "Danke" not in letter
 
