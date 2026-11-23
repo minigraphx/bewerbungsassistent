@@ -497,8 +497,16 @@
       du: "Der Entwurf ist fertig. Lies ihn, bevor er an die Firma geht. Erst mit der Freigabe öffnet die Erweiterung das Formular.",
       lehrstelle: "Der Entwurf ist fertig. Lies ihn, bevor er an den Lehrbetrieb geht. Erst mit der Freigabe öffnet die Erweiterung das Formular.",
     },
+    // One and more apart (#419): German says both alike, French and English do not.
+    "uebersicht.geoeffnet-eins": {
+      sie: "{anzahl} Tab(s) geöffnet. Abgeschickt wird erst durch Sie.", du: "{anzahl} Tab(s) geöffnet. Abgeschickt wird erst durch dich.",
+    },
     "uebersicht.geoeffnet": {
       sie: "{anzahl} Tab(s) geöffnet. Abgeschickt wird erst durch Sie.", du: "{anzahl} Tab(s) geöffnet. Abgeschickt wird erst durch dich.",
+    },
+    "uebersicht.jobroom-offen-eins": {
+      sie: "Der Job-Room ist offen, {anzahl} Einträge warten. Gespeichert wird erst durch Sie.",
+      du: "Der Job-Room ist offen, {anzahl} Einträge warten. Gespeichert wird erst durch dich.",
     },
     "uebersicht.jobroom-offen": {
       sie: "Der Job-Room ist offen, {anzahl} Einträge warten. Gespeichert wird erst durch Sie.",
@@ -550,6 +558,15 @@
     "heute.wissen.computer": { sie: "Ihre Angaben bleiben auf diesem Computer.", du: "Deine Angaben bleiben auf diesem Computer." },
     "heute.wissen.entscheiden": { sie: "Die KI schlägt vor, Sie entscheiden.", du: "Die KI schlägt vor, du entscheidest." },
     "heute.wissen.weg": { sie: "Jede Bewerbung schicken Sie selbst ab.", du: "Jede Bewerbung schickst du selbst ab." },
+    // The button of the pass; a set, since the German word is also the stored stage „Bewerben“ (#419).
+    "heute.pass.bewerben": { sie: "Bewerben", du: "Bewerben" },
+
+    // The stage of an application as the person reads it, in the singular (#419, ruling on #420). Stored values stay
+    // German; only the stages the start page shows have a set so far, the others keep their German name.
+    "status.gemerkt": { sie: "Gemerkt", du: "Gemerkt" },
+    "status.bewerben": { sie: "Bewerben", du: "Bewerben" },
+    "status.beworben": { sie: "Beworben", du: "Beworben" },
+    "status.gespraech": { sie: "Gespräch", du: "Gespräch" },
 
     // Setup (step 2 of the redesign)
     "einrichtung.ordner.frage": {
@@ -644,9 +661,18 @@
     for (const element of wurzel.querySelectorAll("[data-text]")) element.textContent = text(element.dataset.text, satz);
   }
 
-  /** The name of a status as the person reads it: for apprenticeships an interview is often a trial apprenticeship. */
+  // The set of each stage that has one; a stage without a set shows its stored German name.
+  const STATUS_SETS = { Gemerkt: "status.gemerkt", Bewerben: "status.bewerben", Beworben: "status.beworben",
+                        "Gespräch": "status.gespraech" };
+
+  /**
+   * The name of a status as the person reads it, in the app language: for apprenticeships an interview is often a
+   * trial apprenticeship.
+   */
   function statusName(status, satz) {
-    return satzOder(satz) === "lehrstelle-du" && status === "Gespräch" ? t("Einladung") : status;
+    if (satzOder(satz) === "lehrstelle-du" && status === "Gespräch") return t("Einladung");
+    const key = eigener(STATUS_SETS, status);
+    return key ? text(key, satz) : status;
   }
 
   // A decimal point, as the design system says (4.5, never 4,5; abgleich #1).

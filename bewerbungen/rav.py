@@ -9,6 +9,7 @@ import re
 
 import preferences
 from register import jobroom_angaben, jobroom_ergebnis, schweizer_datum
+from ui_texts import T
 
 MAX_PER_RUN = 20
 NOT_APPLIED = "Noch nicht beworben."
@@ -37,9 +38,10 @@ def applies(data_dir: pathlib.Path) -> bool:
 
 
 def blocker(entry: dict) -> str | None:
+    """Why the entry cannot go into Job-Room, as T so the extension's answer on Heute says it in the app language (#419)."""
     if entry.get("rav_eingetragen_am"):
-        return ALREADY_ENTERED
-    return None if entry.get("beworben_am") else NOT_APPLIED
+        return T(ALREADY_ENTERED)
+    return None if entry.get("beworben_am") else T(NOT_APPLIED)
 
 
 def _street_parts(candidates: list[str]) -> dict:
@@ -121,4 +123,6 @@ def reminder(entries: list[dict], today: datetime.date) -> dict | None:
     if not missing:
         return None
     next_month = (month + datetime.timedelta(days=32)).replace(day=DEADLINE_DAY)
-    return {"ids": missing, "monat": f"{MONTHS[month.month - 1]} {month.year}", "frist": next_month.strftime("%d.%m.%Y")}
+    # monat_iso lets Heute name the month in the app language (#419); monat stays the German name it always was.
+    return {"ids": missing, "monat": f"{MONTHS[month.month - 1]} {month.year}", "monat_iso": month.strftime("%Y-%m"),
+            "frist": next_month.strftime("%d.%m.%Y")}

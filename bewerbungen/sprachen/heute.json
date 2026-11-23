@@ -1,0 +1,392 @@
+{
+  "Willkommen": {"fr": "Bienvenue", "en": "Welcome"},
+  "texte:uebersicht.start.text": {
+    "fr": {
+      "sie": "L'app vous aide à trouver des offres qui vous correspondent et à préparer vos documents. Envoyer et décider reste toujours entre vos mains.",
+      "du": "L'app t'aide à trouver des offres qui te correspondent et à préparer tes documents. Envoyer et décider reste toujours entre tes mains.",
+      "lehrstelle": "L'app t'aide à trouver des places d'apprentissage et des stages d'orientation qui te correspondent et à préparer tes documents. Envoyer et décider reste toujours entre tes mains."
+    },
+    "en": {
+      "sie": "The app helps you find suitable jobs and prepare your documents. Sending and deciding always stay with you.",
+      "lehrstelle": "The app helps you find suitable apprenticeships and trial apprenticeships and prepare your documents. Sending and deciding always stay with you."
+    }
+  },
+  "texte:heute.weg": {
+    "fr": {"sie": "Votre chemin vers la première candidature", "du": "Ton chemin vers la première candidature"},
+    "en": {"sie": "Your path to your first application"}
+  },
+  "noch offen": {"fr": "pas encore fait", "en": "not done yet"},
+  "erledigt": {"fr": "fait", "en": "done"},
+  "texte:heute.start.einrichtung": {
+    "fr": {
+      "sie": "Vous configurez l'accès à l'IA et l'extension du navigateur dans Configuration.",
+      "du": "Tu configures l'accès à l'IA et l'extension du navigateur dans Configuration."
+    },
+    "en": {"sie": "You set up access to the AI and the browser extension in Setup."}
+  },
+  "Einrichtung öffnen": {"fr": "Ouvrir Configuration", "en": "Open Setup"},
+  "Nächster Schritt": {"fr": "Prochaine étape", "en": "Next step"},
+  "etwa 20\u00a0Minuten": {"fr": "environ 20\u00a0minutes", "en": "about 20\u00a0minutes"},
+  "texte:uebersicht.start.karte": {
+    "fr": {
+      "sie": "Votre parcours, ce que vous cherchez et votre façon d'écrire. Vous pouvez vous interrompre à tout moment, rien n'est perdu.",
+      "du": "Ton parcours, ce que tu cherches et ta façon d'écrire. Tu peux t'interrompre à tout moment, rien n'est perdu.",
+      "lehrstelle": "Ton école, les métiers que tu cherches et ta façon d'écrire. Tu peux t'interrompre à tout moment, rien n'est perdu."
+    },
+    "en": {
+      "sie": "Your background, what you are looking for and how you write. You can stop at any time; nothing is lost.",
+      "lehrstelle": "Your school, which trades you are looking for and how you write. You can stop at any time; nothing is lost."
+    }
+  },
+  "Lebenslauf hochladen und vorbefüllen": {"fr": "Charger le CV et préremplir", "en": "Upload your CV and prefill"},
+  "Von Hand ausfüllen": {"fr": "Remplir à la main", "en": "Fill in by hand"},
+  "texte:nav.suche": {
+    "fr": {"sie": "Chercher des offres", "du": "Chercher des offres", "lehrstelle": "Chercher des places d'apprentissage"},
+    "en": {"sie": "Search for jobs", "lehrstelle": "Search for apprenticeships"}
+  },
+  "kommt danach": {"fr": "vient ensuite", "en": "comes next"},
+  "texte:heute.start.suchen": {
+    "fr": {
+      "sie": "L'extension cherche sur les portails. Pour chaque offre, vous voyez une évaluation.",
+      "du": "L'extension cherche sur les portails. Pour chaque offre, tu vois une évaluation.",
+      "lehrstelle": "L'extension cherche sur les portails. Pour chaque place d'apprentissage, tu vois une évaluation."
+    },
+    "en": {
+      "sie": "The extension searches the portals. For every job you see an assessment.",
+      "lehrstelle": "The extension searches the portals. For every apprenticeship you see an assessment."
+    }
+  },
+  "Erste Bewerbung vorbereiten": {"fr": "Préparer la première candidature", "en": "Prepare the first application"},
+  "texte:heute.start.bewerbung": {
+    "fr": {
+      "sie": "CV et lettre de motivation pour l'offre. C'est vous qui envoyez, le formulaire est prérempli.",
+      "du": "CV et lettre de motivation pour l'offre. C'est toi qui envoies, le formulaire est prérempli.",
+      "lehrstelle": "CV et lettre de motivation pour la place d'apprentissage. C'est toi qui envoies, le formulaire est prérempli."
+    },
+    "en": {
+      "sie": "CV and cover letter for the job. You send it yourself; the form is filled in already.",
+      "lehrstelle": "CV and cover letter for the apprenticeship. You send it yourself; the form is filled in already."
+    }
+  },
+  "Gut zu wissen": {"fr": "Bon à savoir", "en": "Good to know"},
+  "texte:heute.wissen.computer": {
+    "fr": {"sie": "Vos informations restent sur cet ordinateur.", "du": "Tes informations restent sur cet ordinateur."},
+    "en": {"sie": "Your details stay on this computer."}
+  },
+  "Name, Adresse und Kontakt werden ersetzt, bevor ein Text zur KI geht.": {
+    "fr": "Le nom, l'adresse et les coordonnées sont remplacés avant qu'un texte parte vers l'IA.",
+    "en": "Name, address and contact details are replaced before any text goes to the AI."
+  },
+  "texte:heute.wissen.entscheiden": {
+    "fr": {"sie": "L'IA propose, vous décidez.", "du": "L'IA propose, tu décides."},
+    "en": {"sie": "The AI suggests, you decide."}
+  },
+  "Noten sind Einschätzungen, Anschreiben sind Entwürfe.": {
+    "fr": "Les notes sont des estimations, les lettres de motivation des brouillons.",
+    "en": "Grades are assessments, cover letters are drafts."
+  },
+  "Nichts geht automatisch weg.": {"fr": "Rien ne part automatiquement.", "en": "Nothing goes out automatically."},
+  "texte:heute.wissen.weg": {
+    "fr": {"sie": "C'est vous qui envoyez chaque candidature.", "du": "C'est toi qui envoies chaque candidature."},
+    "en": {"sie": "You send every application yourself."}
+  },
+  "Anleitung mit Bildern öffnen": {"fr": "Ouvrir le guide illustré (en allemand)", "en": "Open the illustrated guide (in German)"},
+
+  "Das steht heute an": {"fr": "Au programme aujourd'hui", "en": "What's on today"},
+  "Danach": {"fr": "Ensuite", "en": "After that"},
+  "Termine und Fristen": {"fr": "Rendez-vous et délais", "en": "Dates and deadlines"},
+  "Keine Termine in den nächsten Tagen.": {"fr": "Aucun rendez-vous ces prochains jours.", "en": "No dates in the next few days."},
+  "Fürs RAV:": {"fr": "Pour l'ORP\u00a0:", "en": "For the RAV:"},
+  "texte:heute.stand": {"fr": {"sie": "Où vous en êtes", "du": "Où tu en es"}, "en": {"sie": "Where you stand"}},
+  "texte:heute.stand.neu": {
+    "fr": {"sie": "Nouvelles offres", "du": "Nouvelles offres", "lehrstelle": "Nouvelles places d'apprentissage"},
+    "en": {"sie": "New jobs", "lehrstelle": "New apprenticeships"}
+  },
+  "Durchgang beenden": {"fr": "Terminer le tri", "en": "End the pass"},
+  "Verwerfen": {"fr": "Écarter", "en": "Discard"},
+  "texte:heute.pass.bewerben": {"fr": {"sie": "Postuler", "du": "Postuler"}, "en": {"sie": "Apply"}},
+  "Trotzdem öffnen": {"fr": "Ouvrir quand même", "en": "Open anyway"},
+
+  "texte:status.gemerkt": {"fr": {"sie": "Mise de côté", "du": "Mise de côté"}, "en": {"sie": "Saved"}},
+  "texte:status.bewerben": {"fr": {"sie": "À postuler", "du": "À postuler"}, "en": {"sie": "To apply"}},
+  "texte:status.beworben": {"fr": {"sie": "Envoyée", "du": "Envoyée"}, "en": {"sie": "Applied"}},
+  "texte:status.gespraech": {"fr": {"sie": "Entretien", "du": "Entretien"}, "en": {"sie": "Interview"}},
+
+  "texte:heute.wartet.nichts": {
+    "fr": {"sie": "Rien ne vous attend pour l'instant.", "du": "Rien ne t'attend pour l'instant."},
+    "en": {"sie": "Nothing is waiting for you right now."}
+  },
+  "texte:heute.wartet.eins": {
+    "fr": {"sie": "Une chose vous attend.", "du": "Une chose t'attend."},
+    "en": {"sie": "One thing is waiting for you."}
+  },
+  "texte:heute.wartet.viele": {
+    "fr": {"sie": "{anzahl} choses vous attendent, la plus importante en premier.", "du": "{anzahl} choses t'attendent, la plus importante en premier."},
+    "en": {"sie": "{anzahl} things are waiting for you, the most important first."}
+  },
+  "Zwei": {"fr": "Deux", "en": "Two"},
+  "Drei": {"fr": "Trois", "en": "Three"},
+  "Vier": {"fr": "Quatre", "en": "Four"},
+  "Fünf": {"fr": "Cinq", "en": "Five"},
+  "Sechs": {"fr": "Six", "en": "Six"},
+  "Sieben": {"fr": "Sept", "en": "Seven"},
+  "Acht": {"fr": "Huit", "en": "Eight"},
+  "Neun": {"fr": "Neuf", "en": "Nine"},
+  "Zehn": {"fr": "Dix", "en": "Ten"},
+  "Elf": {"fr": "Onze", "en": "Eleven"},
+  "Zwölf": {"fr": "Douze", "en": "Twelve"},
+  "Montag": {"fr": "lundi", "en": "Monday"},
+  "Dienstag": {"fr": "mardi", "en": "Tuesday"},
+  "Mittwoch": {"fr": "mercredi", "en": "Wednesday"},
+  "Donnerstag": {"fr": "jeudi", "en": "Thursday"},
+  "Freitag": {"fr": "vendredi", "en": "Friday"},
+  "Samstag": {"fr": "samedi", "en": "Saturday"},
+  "Sonntag": {"fr": "dimanche", "en": "Sunday"},
+  "{wochentag}, {tag}. {monat}": {"fr": "{wochentag} {tag} {monat}", "en": "{wochentag} {tag} {monat}"},
+  "{wochentag}, 1. {monat}": {"fr": "{wochentag} 1er {monat}", "en": "{wochentag} 1 {monat}"},
+
+  "Durchgang beginnen": {"fr": "Commencer le tri", "en": "Start the pass"},
+  "Formulare öffnen": {"fr": "Ouvrir les formulaires", "en": "Open the forms"},
+  "Formular öffnen": {"fr": "Ouvrir le formulaire", "en": "Open the form"},
+  "Jetzt eintragen": {"fr": "Saisir maintenant", "en": "Enter now"},
+  "Anschreiben lesen": {"fr": "Lire la lettre de motivation", "en": "Read the cover letter"},
+  "Link eintragen": {"fr": "Saisir le lien", "en": "Enter the link"},
+  "Termin eintragen": {"fr": "Saisir la date", "en": "Enter the date"},
+  "texte:uebersicht.karte.abschicken": {
+    "fr": {
+      "sie": "Les documents sont prêts. L'extension ouvre le formulaire et le remplit. C'est vous qui envoyez.",
+      "du": "Les documents sont prêts. L'extension ouvre le formulaire et le remplit. C'est toi qui envoies."
+    },
+    "en": {"sie": "The documents are ready. The extension opens the form and fills it in. You send it yourself."}
+  },
+  "texte:uebersicht.karte.abschicken-alle": {
+    "fr": {
+      "sie": "Les documents sont prêts. L'extension ouvre un onglet par candidature et remplit le formulaire. C'est vous qui envoyez.",
+      "du": "Les documents sont prêts. L'extension ouvre un onglet par candidature et remplit le formulaire. C'est toi qui envoies."
+    },
+    "en": {"sie": "The documents are ready. The extension opens a tab per application and fills in the form. You send them yourself."}
+  },
+  "texte:uebersicht.karte.rav": {
+    "fr": {
+      "sie": "Candidature envoyée, mais pas encore saisie comme recherche d'emploi. L'extension remplit le Job-Room\u00a0; c'est vous qui vous connectez et enregistrez.",
+      "du": "Candidature envoyée, mais pas encore saisie comme recherche d'emploi. L'extension remplit le Job-Room\u00a0; c'est toi qui te connectes et enregistres."
+    },
+    "en": {"sie": "Applied, but not yet entered as a job search effort. The extension fills in the Job-Room; you sign in and save yourself."}
+  },
+  "texte:uebersicht.karte.freigeben": {
+    "fr": {
+      "sie": "Le brouillon est prêt. Lisez-le avant qu'il parte à l'entreprise. L'extension n'ouvre le formulaire qu'après la validation.",
+      "du": "Le brouillon est prêt. Lis-le avant qu'il parte à l'entreprise. L'extension n'ouvre le formulaire qu'après la validation.",
+      "lehrstelle": "Le brouillon est prêt. Lis-le avant qu'il parte à l'entreprise formatrice. L'extension n'ouvre le formulaire qu'après la validation."
+    },
+    "en": {
+      "sie": "The draft is ready. Read it before it goes to the company. The extension opens the form only once it is approved.",
+      "lehrstelle": "The draft is ready. Read it before it goes to the host company. The extension opens the form only once it is approved."
+    }
+  },
+  "texte:uebersicht.karte.unterlagen": {
+    "fr": {
+      "sie": "Le CV en PDF manque encore pour cette offre. Le CV et la lettre de motivation se créent dans la candidature.",
+      "du": "Le CV en PDF manque encore pour cette offre. Le CV et la lettre de motivation se créent dans la candidature.",
+      "lehrstelle": "Le CV en PDF manque encore pour cette place d'apprentissage. Le CV et la lettre de motivation se créent dans la candidature."
+    },
+    "en": {
+      "sie": "The CV as a PDF is still missing for this job. The CV and cover letter can be created in the application.",
+      "lehrstelle": "The CV as a PDF is still missing for this apprenticeship. The CV and cover letter can be created in the application."
+    }
+  },
+  "Ohne Link zum Bewerbungsformular kann die Erweiterung es nicht öffnen und ausfüllen.": {
+    "fr": "Sans lien vers le formulaire de candidature, l'extension ne peut ni l'ouvrir ni le remplir.",
+    "en": "Without a link to the application form, the extension cannot open and fill it in."
+  },
+  "Termin am {datum}. Inserat, Anschreiben und Notizen stehen in der Bewerbung.": {
+    "fr": "Rendez-vous le {datum}. L'annonce, la lettre de motivation et les notes se trouvent dans la candidature.",
+    "en": "Appointment on {datum}. The ad, cover letter and notes are in the application."
+  },
+  "texte:heute.gespraech.ohne-termin": {
+    "fr": {
+      "sie": "Vous avez reçu une invitation de {firma}. Avec la date, l'app vous rappelle à temps de vous préparer.",
+      "du": "Tu as reçu une invitation de {firma}. Avec la date, l'app te rappelle à temps de te préparer."
+    },
+    "en": {"sie": "{firma} has invited you. With the date, the app reminds you in time to prepare."}
+  },
+  "Die Firma": {"fr": "l'entreprise", "en": "The company"},
+  "texte:heute.gespraech.termin": {
+    "fr": {"sie": "Saisir la date de l'entretien", "du": "Saisir la date de l'entretien", "lehrstelle": "Saisir la date de l'invitation"},
+    "en": {"sie": "Enter the interview date", "lehrstelle": "Enter the date of the invitation"}
+  },
+  "texte:bewerbung.gespraech": {
+    "fr": {"sie": "Préparer l'entretien", "du": "Préparer l'entretien", "lehrstelle": "Se préparer pour l'invitation"},
+    "en": {"sie": "Prepare for the interview", "lehrstelle": "Prepare for the invitation"}
+  },
+  "Bewerben oder verwerfen? Note und Inserat stehen in der Bewerbung.": {
+    "fr": "Postuler ou écarter\u00a0? La note et l'annonce se trouvent dans la candidature.",
+    "en": "Apply or discard? The grade and the ad are in the application."
+  },
+  "texte:heute.durchgang.anzahl": {
+    "fr": {"sie": "{anzahl} offres mises de côté", "du": "{anzahl} offres mises de côté", "lehrstelle": "{anzahl} places d'apprentissage mises de côté"},
+    "en": {"sie": "{anzahl} saved jobs", "lehrstelle": "{anzahl} saved apprenticeships"}
+  },
+  "texte:heute.durchgang.unter": {
+    "fr": {"sie": "postuler ou écarter, l'une après l'autre", "du": "postuler ou écarter, l'une après l'autre", "lehrstelle": "postuler ou écarter, l'une après l'autre"},
+    "en": {"sie": "apply or discard, one after the other", "lehrstelle": "apply or discard, one after the other"}
+  },
+  "Frist {datum}": {"fr": "Délai au {datum}", "en": "Deadline {datum}"},
+  "Suche vom {datum}": {"fr": "Recherche du {datum}", "en": "Search on {datum}"},
+  "1 neue Treffer ansehen": {"fr": "Voir 1 nouveau résultat", "en": "View 1 new result"},
+  "{anzahl} neue Treffer ansehen": {"fr": "Voir {anzahl} nouveaux résultats", "en": "View {anzahl} new results"},
+  "Treffer ansehen": {"fr": "Voir les résultats", "en": "View results"},
+  "texte:uebersicht.leer.titel": {
+    "fr": {"sie": "Commencer à chercher des offres", "du": "Commencer à chercher des offres", "lehrstelle": "Commencer à chercher des places d'apprentissage"},
+    "en": {"sie": "Start searching for jobs", "lehrstelle": "Start searching for apprenticeships"}
+  },
+  "texte:uebersicht.leer.text": {
+    "fr": {
+      "sie": "Vos informations sont enregistrées. L'extension cherche maintenant sur les portails, l'IA évalue chaque résultat. Une recherche dure quelques minutes.",
+      "du": "Tes informations sont enregistrées. L'extension cherche maintenant sur les portails, l'IA évalue chaque résultat. Une recherche dure quelques minutes."
+    },
+    "en": {"sie": "Your details are saved. The extension now searches the portals, and the AI assesses every result. A search run takes a few minutes."}
+  },
+  "{monat} {jahr}": {"fr": "{monat} {jahr}", "en": "{monat} {jahr}"},
+  "texte:heute.rav": {
+    "fr": {
+      "sie": "À saisir dans le Job-Room\u00a0: {anzahl} pour {monat}. L'ORP reçoit les saisies jusqu'au {frist}.",
+      "du": "À saisir dans le Job-Room\u00a0: {anzahl} pour {monat}. L'ORP reçoit les saisies jusqu'au {frist}."
+    },
+    "en": {"sie": "Not yet entered in the Job-Room: {anzahl} from {monat}. The RAV receives the entries until {frist}."}
+  },
+  "Zum Ausfüllen im Browser braucht es die Erweiterung (siehe Einrichtung).": {
+    "fr": "Pour remplir dans le navigateur, l'extension est nécessaire (voir Configuration).",
+    "en": "Filling in the browser needs the extension (see Setup)."
+  },
+  "Die Erweiterung antwortet nicht. Bitte sie neu laden und es nochmals versuchen.": {
+    "fr": "L'extension ne répond pas. Merci de la recharger et de réessayer.",
+    "en": "The extension is not responding. Please reload it and try again."
+  },
+  "Die Erweiterung antwortet nicht.": {"fr": "L'extension ne répond pas.", "en": "The extension is not responding."},
+  "Die Unterlagen werden geprüft …": {"fr": "Vérification des documents…", "en": "Checking the documents…"},
+  "Der Job-Room wird geöffnet …": {"fr": "Ouverture du Job-Room…", "en": "Opening the Job-Room…"},
+  "Bei {firma} läuft schon eine Bewerbung": {
+    "fr": "Une candidature est déjà en cours chez {firma}",
+    "en": "An application to {firma} is already under way"
+  },
+  "Bei diesen Firmen läuft schon eine Bewerbung": {
+    "fr": "Une candidature est déjà en cours dans ces entreprises",
+    "en": "Applications to these companies are already under way"
+  },
+  "{firma}: {stelle}, Stand {stand}.": {"fr": "{firma}\u00a0: {stelle}, statut {stand}.", "en": "{firma}: {stelle}, status {stand}."},
+  "texte:uebersicht.doppelt": {
+    "fr": {"sie": "Voulez-vous quand même ouvrir le formulaire\u00a0?", "du": "Veux-tu quand même ouvrir le formulaire\u00a0?"},
+    "en": {"sie": "Do you want to open the form anyway?"}
+  },
+  "Bitte im neuen Tab den Zugriff erlauben; danach geht es weiter.": {
+    "fr": "Merci d'autoriser l'accès dans le nouvel onglet\u00a0; ensuite, la suite se fait toute seule.",
+    "en": "Please allow access in the new tab; then it continues."
+  },
+  "{firma}: {grund}": {"fr": "{firma}\u00a0: {grund}", "en": "{firma}: {grund}"},
+  "texte:uebersicht.geoeffnet-eins": {
+    "fr": {"sie": "{anzahl} onglet ouvert. Rien n'est envoyé sans vous.", "du": "{anzahl} onglet ouvert. Rien n'est envoyé sans toi."},
+    "en": {"sie": "{anzahl} tab opened. Nothing is sent without you."}
+  },
+  "texte:uebersicht.geoeffnet": {
+    "fr": {"sie": "{anzahl} onglets ouverts. Rien n'est envoyé sans vous.", "du": "{anzahl} onglets ouverts. Rien n'est envoyé sans toi."},
+    "en": {"sie": "{anzahl} tabs opened. Nothing is sent without you."}
+  },
+  "texte:uebersicht.jobroom-offen-eins": {
+    "fr": {"sie": "Le Job-Room est ouvert, {anzahl} saisie attend. Rien n'est enregistré sans vous.", "du": "Le Job-Room est ouvert, {anzahl} saisie attend. Rien n'est enregistré sans toi."},
+    "en": {"sie": "The Job-Room is open, {anzahl} entry is waiting. Nothing is saved without you."}
+  },
+  "texte:uebersicht.jobroom-offen": {
+    "fr": {"sie": "Le Job-Room est ouvert, {anzahl} saisies attendent. Rien n'est enregistré sans vous.", "du": "Le Job-Room est ouvert, {anzahl} saisies attendent. Rien n'est enregistré sans toi."},
+    "en": {"sie": "The Job-Room is open, {anzahl} entries are waiting. Nothing is saved without you."}
+  },
+  "Laden fehlgeschlagen: {fehler}": {"fr": "Échec du chargement\u00a0: {fehler}", "en": "Loading failed: {fehler}"},
+
+  "Frist für {stelle}": {"fr": "Délai pour {stelle}", "en": "Deadline for {stelle}"},
+  "Gespräch bei {firma}": {"fr": "Entretien chez {firma}", "en": "Interview at {firma}"},
+  "Gespräch bei {firma} vorbereiten": {"fr": "Préparer l'entretien chez {firma}", "en": "Prepare for the interview at {firma}"},
+  "Einladung bei {firma}": {"fr": "Invitation de {firma}", "en": "Invitation from {firma}"},
+  "Einladung bei {firma} vorbereiten": {"fr": "Se préparer pour l'invitation de {firma}", "en": "Prepare for the invitation from {firma}"},
+  "Nachfragen bei {firma}, falls keine Antwort da ist": {
+    "fr": "Relancer {firma} si aucune réponse n'est arrivée",
+    "en": "Follow up with {firma} if there is no answer yet"
+  },
+  "aus der Suche vom {datum}": {"fr": "de la recherche du {datum}", "en": "from the search on {datum}"},
+  "noch keine Suche": {"fr": "pas encore de recherche", "en": "no search yet"},
+  "1 Frist in dieser Woche": {"fr": "1 délai cette semaine", "en": "1 deadline this week"},
+  "{anzahl} Fristen in dieser Woche": {"fr": "{anzahl} délais cette semaine", "en": "{anzahl} deadlines this week"},
+  "1 Gespräch": {"fr": "1 entretien", "en": "1 interview"},
+  "{anzahl} Gespräche": {"fr": "{anzahl} entretiens", "en": "{anzahl} interviews"},
+  "1 Einladung": {"fr": "1 invitation", "en": "1 invitation"},
+  "{anzahl} Einladungen": {"fr": "{anzahl} invitations", "en": "{anzahl} invitations"},
+  "{nummer} von {anzahl}": {"fr": "{nummer} sur {anzahl}", "en": "{nummer} of {anzahl}"},
+  "{anzahl} zum Bewerben": {"fr": "{anzahl} à postuler", "en": "{anzahl} to apply for"},
+  "{anzahl} für später": {"fr": "{anzahl} pour plus tard", "en": "{anzahl} for later"},
+  "Durchgang fertig: {teile}.": {"fr": "Tri terminé\u00a0: {teile}.", "en": "Pass finished: {teile}."},
+  "Durchgang fertig.": {"fr": "Tri terminé.", "en": "Pass finished."},
+  "Zu dieser Stelle fehlt der Inseratstext.": {
+    "fr": "Le texte de l'annonce manque pour cette offre.",
+    "en": "The ad text for this job is missing."
+  },
+  "Note {note}": {"fr": "Note {note}", "en": "Grade {note}"},
+  "Inserat öffnen": {"fr": "Ouvrir l'annonce", "en": "Open the ad"},
+  "ohne Titel": {"fr": "sans titre", "en": "untitled"},
+  "Stelle nicht geladen": {"fr": "Offre non chargée", "en": "Job not loaded"},
+
+  "Bewerbung {id} nicht gefunden": {"fr": "Candidature {id} introuvable", "en": "Application {id} not found"},
+  "Diesen Stand gibt es nicht: {stand}. Möglich sind {staende}.": {
+    "fr": "Ce statut n'existe pas\u00a0: {stand}. Statuts possibles\u00a0: {staende}.",
+    "en": "This status does not exist: {stand}. Possible ones: {staende}."
+  },
+  "Diese Bewerbungen gibt es nicht: {ids}. Es wurde nichts geändert.": {
+    "fr": "Ces candidatures n'existent pas\u00a0: {ids}. Rien n'a été modifié.",
+    "en": "These applications do not exist: {ids}. Nothing was changed."
+  },
+  "Erwartet: ids der Bewerbungen und status": {"fr": "Attendu\u00a0: ids des candidatures et status", "en": "Expected: ids of the applications and status"},
+  "ids muss eine Liste von Bewerbungen sein": {"fr": "ids doit être une liste de candidatures", "en": "ids must be a list of applications"},
+  "Keine Bewerbung ausgewählt": {"fr": "Aucune candidature sélectionnée", "en": "No application selected"},
+  "Welcher Stand? status fehlt": {"fr": "Quel statut\u00a0? status manque", "en": "Which status? status is missing"},
+  "Schon versendet": {"fr": "Déjà envoyée", "en": "Already sent"},
+
+  "Schon im RAV eingetragen.": {"fr": "Déjà saisie pour l'ORP.", "en": "Already entered for the RAV."},
+  "Noch nicht beworben.": {"fr": "Candidature pas encore envoyée.", "en": "Not applied yet."},
+  "Pro Durchgang gehen höchstens {anzahl} Bewerbungen.": {
+    "fr": "{anzahl} candidatures au plus par passage.",
+    "en": "At most {anzahl} applications per run."
+  },
+  "Bewerbung mit id erwartet": {"fr": "Candidature avec id attendue", "en": "Application with id expected"},
+  "Bitte zuerst Bewerbungen ankreuzen.": {"fr": "Merci de cocher d'abord des candidatures.", "en": "Please tick applications first."},
+
+  "Das Inserat öffnen und es mit der Erweiterung speichern.": {
+    "fr": "Ouvrir l'annonce et l'enregistrer avec l'extension.",
+    "en": "Open the ad and save it with the extension."
+  },
+  "Das Inserat öffnen und es mit der Erweiterung speichern, oder den Text unter „Stellentext“ einfügen.": {
+    "fr": "Ouvrir l'annonce et l'enregistrer avec l'extension, ou coller le texte sous «\u00a0Texte de l'annonce\u00a0».",
+    "en": "Open the ad and save it with the extension, or paste the text under “Job ad text”."
+  },
+  "Ohne Link zum Inserat kann die Erweiterung den Text nicht holen.": {
+    "fr": "Sans lien vers l'annonce, l'extension ne peut pas récupérer le texte.",
+    "en": "Without a link to the ad, the extension cannot fetch the text."
+  },
+  "Den Text des Inserats unter „Stellentext“ einfügen.": {
+    "fr": "Coller le texte de l'annonce sous «\u00a0Texte de l'annonce\u00a0».",
+    "en": "Paste the text of the ad under “Job ad text”."
+  },
+  "{site} ist keines der Portale, die automatisches Laden erlauben.": {
+    "fr": "{site} ne fait pas partie des portails qui permettent le chargement automatique.",
+    "en": "{site} is not one of the portals that allow automatic loading."
+  },
+  "Die Erweiterung holt den Text beim nächsten Start der App von {portal}.": {
+    "fr": "L'extension récupère le texte sur {portal} au prochain démarrage de l'app.",
+    "en": "The extension fetches the text from {portal} the next time the app starts."
+  },
+  "Das Laden von {portal} ging nicht ({reason}). Die Erweiterung versucht es beim nächsten Start der App wieder.": {
+    "fr": "Le chargement depuis {portal} a échoué ({reason}). L'extension réessaiera au prochain démarrage de l'app.",
+    "en": "Loading from {portal} failed ({reason}). The extension tries again the next time the app starts."
+  },
+  "Die Seite auf {portal} hatte keinen lesbaren Text.": {
+    "fr": "La page sur {portal} n'avait pas de texte lisible.",
+    "en": "The page on {portal} had no readable text."
+  }
+}

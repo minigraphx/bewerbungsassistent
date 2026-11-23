@@ -5,9 +5,10 @@ Only the person saves in Job-Room; `eingetragen` records it afterwards. Nothing 
 import preferences
 import rav
 from server import json_antwort, pflicht
+from ui_texts import T
 
 NONE_CHOSEN = "Bitte zuerst Bewerbungen ankreuzen."
-TOO_MANY = f"Pro Durchgang gehen höchstens {rav.MAX_PER_RUN} Bewerbungen."
+TOO_MANY = T("Pro Durchgang gehen höchstens {anzahl} Bewerbungen.", anzahl=rav.MAX_PER_RUN)
 
 
 def _body_id(body) -> str:

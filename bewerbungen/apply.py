@@ -21,6 +21,7 @@ from ai.personal import strip_titles
 from hits import company_key
 from dateien import schreibe_atomar
 from pruefung import SURNAME_PARTICLES
+from ui_texts import T
 from unterlagen import wirksame_pdfs
 
 MAX_PER_RUN = 5
@@ -62,7 +63,7 @@ def form_link(entry: dict) -> str | None:
 def blocker(data_dir: pathlib.Path, entry: dict) -> str | None:
     """Why this application cannot be opened, as far as it shows without reading the PDFs."""
     if entry.get("versand"):
-        return ALREADY_SENT
+        return T(ALREADY_SENT)  # Heute shows it as the step's title (#419); it compares NO_LINK, NO_CV, NOT_APPROVED in German
     if entry.get("status") not in OPEN_STATUS:
         return NOT_OPEN.format(status=entry.get("status"))
     if not form_link(entry):

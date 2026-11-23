@@ -242,10 +242,11 @@ class Register:
         return [pruefe_bewerbung(b) for b in lies_yaml(self.pfad, [])]
 
     def hole(self, bewerbung_id: str) -> dict:
+        from ui_texts import T  # imported late, like the routes: the CLI of this module needs no catalog (#419)
         for b in self.alle():
             if b["id"] == bewerbung_id:
                 return b
-        raise KeyError(f"Bewerbung {bewerbung_id!r} nicht gefunden")
+        raise KeyError(T("Bewerbung {id} nicht gefunden", id=repr(bewerbung_id)))
 
     def _schreibe(self, bewerbungen: list[dict]) -> None:
         schreibe_yaml(self.pfad, bewerbungen, "# Bewerbungsregister, geschrieben vom Bewerbungsbegleiter\n")
@@ -262,12 +263,14 @@ class Register:
 
     def check_stage_change(self, entry_ids: list[str], stage: str, entries: list[dict] | None = None) -> None:
         """Refuse an unknown stage or id before anything is written (#170)."""
+        from ui_texts import T  # the start page shows these in the app language (#419)
         if stage not in STATUS:
-            raise ValueError(f"Diesen Stand gibt es nicht: {stage}. Möglich sind {', '.join(STATUS)}.")
+            raise ValueError(T("Diesen Stand gibt es nicht: {stand}. Möglich sind {staende}.", stand=stage,
+                               staende=", ".join(STATUS)))
         known = {b["id"] for b in (self.alle() if entries is None else entries)}
         missing = [entry_id for entry_id in entry_ids if entry_id not in known]
         if missing:
-            raise ValueError(f"Diese Bewerbungen gibt es nicht: {', '.join(missing)}. Es wurde nichts geändert.")
+            raise ValueError(T("Diese Bewerbungen gibt es nicht: {ids}. Es wurde nichts geändert.", ids=", ".join(missing)))
 
     def set_stage(self, entry_ids: list[str], stage: str, today: datetime.date) -> list[dict]:
         """Set one stage for several applications in a single write; returns the changed ones."""
