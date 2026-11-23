@@ -7,8 +7,9 @@ const path = require("node:path");
 const { findAll, loadScripts } = require("./fake_dom.cjs");
 
 const form = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "form.json"), "utf8"));
-const page = loadScripts(["../../bewerbungen/seiten/dateien-logik.js", "../../bewerbungen/seiten/treffer-logik.js",
-  "validate.js", "model.js", "dom.js", "documents.js", "uploads.js", "kindguess.js", "droparea.js", "prefill.js"]);
+// texte.js as on the page (build_template.APP_PAGE_SCRIPTS): treffer-logik.js words its lines through Texte (#421)
+const page = loadScripts(["../../bewerbungen/seiten/texte.js", "../../bewerbungen/seiten/dateien-logik.js",
+  "../../bewerbungen/seiten/treffer-logik.js", "validate.js", "model.js", "dom.js", "documents.js", "uploads.js", "kindguess.js", "droparea.js", "prefill.js"]);
 const IDLE = { running: false, problem: null, report: null };
 // the run waits for the estimate (#271); the states of the estimate are in prefill_estimate.test.cjs
 const ESTIMATE = { phase: "ready", problem: null, answer: { anzahl: 1, kosten: 0.03, dauer_minuten: 1, waehrung: "USD",
