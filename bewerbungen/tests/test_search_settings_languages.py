@@ -41,7 +41,9 @@ PROFILE = """# Suchprofil
 # Headings, labels, hints and buttons as the server sends them; a text set in its Sie form.
 SETTINGS_FR = ("<title>Régler la recherche</title>", "› Régler la recherche", "Voici comment l'app cherche aujourd'hui.",
                f"Quelles offres vous correspondent{NBSP}?", f"Que cherches-tu{NBSP}?",
-               "Places d'apprentissage et stages d'orientation", "Recherché deux fois", ">Ajouter<",
+               "Places d'apprentissage et stages d'orientation", "Recherches en double", ">Ajouter<",
+               "Lieux propres à chaque portail", "les substituts comme {{NAME}}",
+               f"Pour les deux listes, un terme correspond aussi au début ou à la fin d'un mot{NBSP}: ",
                f"Qu'est-ce qui est envoyé à l'IA{NBSP}?", "Voir le texte", "Région et taux d'activité", ">Région<",
                ">Niches<", ">Taux d'activité<", ">Domicile<", ">Cantons<", "Lieux pour jobs.ch, un par ligne",
                f"Aucune choisie{NBSP}: jobscout24 cherche aux NPA ci-dessous.", "Rayon autour du domicile", ">Enregistrer<",
@@ -52,7 +54,7 @@ SETTINGS_FR = ("<title>Régler la recherche</title>", "› Régler la recherche"
                "Texte envoyé à l'IA", "{{NAME}}", ">Rechercher maintenant<")
 SETTINGS_EN = ("<title>Set up search</title>", "› Set up search", "This is how the app searches today.",
                "Which jobs suit you?", "What are you looking for?", "Apprenticeships and trial apprenticeships",
-               "Searched twice", ">Add<", "What goes to the AI?", "View the text", "Region and workload", ">Workload<",
+               "Searched twice", ">Places per portal<", ">Add<", "What goes to the AI?", "View the text", "Region and workload", ">Workload<",
                ">Place of residence<", "Places for jobs.ch, one per line",
                "None chosen: jobscout24 searches at the postcodes below.", ">Save<", "What the title filter filtered out",
                "Not now", "Where do you search?", ">Portals<", "Search other sites", "Example:", ">Time window<",
@@ -360,11 +362,11 @@ def test_the_grammar_of_the_profile_stays_german_in_french_and_english(started, 
     assert listed["portal_hinweise"] == [
         f"La ligne «{NBSP}Nur beispielportal.ch: …{NBSP}» nomme un portail que l'app ne connaît pas. "
         "Elle cherche donc ses termes sur tous les portails.",
-        f"«{NBSP}Datenpfleger{NBSP}» ne cherche que sur job-room, et job-room est désactivé. "
+        f"«{NBSP}Datenpfleger{NBSP}» n'est recherché que sur job-room, et job-room est désactivé. "
         "Le terme ne figure donc dans aucune recherche."]
     assert english == ["The line “Nur beispielportal.ch: …” names a portal the app does not know. "
                        "So it searches its terms on all portals.",
-                       "“Datenpfleger” searches only on job-room, and job-room is switched off. So the term runs in no search."]
+                       "“Datenpfleger” is searched only on job-room, and job-room is switched off. So the term runs in no search."]
     assert {"begriff": "Berufsbildner", "woerter": ["Informatik", "ICT"]} in listed["begriff_pflicht"]
     assert frame["werte"]["titel_ausschluss"] == ["Praktikum", "Sales (ganzes Wort)"]
     assert {"portal": "jobscout24", "vorsatz": "Régions", "orte": [region]} in frame["orte_pro_portal"]

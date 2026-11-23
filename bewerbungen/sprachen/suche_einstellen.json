@@ -8,14 +8,14 @@
   "Lehrstellen": {"fr": "Places d'apprentissage", "en": "Apprenticeships"},
   "Schnupperlehren": {"fr": "Stages d'orientation", "en": "Trial apprenticeships"},
   "Lehrstellen und Schnupperlehren": {"fr": "Places d'apprentissage et stages d'orientation", "en": "Apprenticeships and trial apprenticeships"},
-  "Doppelt gesucht": {"fr": "Recherché deux fois", "en": "Searched twice"},
+  "Doppelt gesucht": {"fr": "Recherches en double", "en": "Searched twice"},
   "Aufnehmen": {"fr": "Ajouter", "en": "Add"},
   "Was geht an die KI?": {"fr": "Qu'est-ce qui est envoyé à l'IA\u00a0?", "en": "What goes to the AI?"},
   "Text ansehen": {"fr": "Voir le texte", "en": "View the text"},
   "Region und Pensum": {"fr": "Région et taux d'activité", "en": "Region and workload"},
   "Region": {"fr": "Région", "en": "Region"},
   "Nischen": {"fr": "Niches", "en": "Niches"},
-  "Eigene Orte pro Portal": {"fr": "Lieux propres à chaque portail", "en": "Own places per portal"},
+  "Eigene Orte pro Portal": {"fr": "Lieux propres à chaque portail", "en": "Places per portal"},
   "Pensum": {"fr": "Taux d'activité", "en": "Workload"},
   "Was die Orte bringen": {"fr": "Ce que rapportent les lieux", "en": "What the places bring"},
   "Wohnort": {"fr": "Domicile", "en": "Place of residence"},
@@ -93,11 +93,11 @@
   "Im sichtbaren Tab suchen": {"fr": "Chercher dans l'onglet visible", "en": "Search in the visible tab"},
   "Text an die KI": {"fr": "Texte envoyé à l'IA", "en": "Text sent to the AI"},
   "So geht der Text an die KI. Platzhalter wie {{NAME}} setzt die App erst wieder ein, wenn die Antwort zurückkommt.": {
-    "fr": "Voici le texte tel qu'il est envoyé à l'IA. L'app ne remet les espaces réservés comme {{NAME}} en place qu'au retour de la réponse.",
+    "fr": "Voici le texte tel qu'il est envoyé à l'IA. L'app ne remet les substituts comme {{NAME}} en place qu'au retour de la réponse.",
     "en": "This is how the text goes to the AI. The app puts placeholders such as {{NAME}} back only when the answer comes back."
   },
 
-  "Nichts angegeben": {"fr": "Rien d'indiqué", "en": "Nothing given"},
+  "Nichts angegeben": {"fr": "Non précisé", "en": "Not specified"},
   "Neue Treffer nach der Suche automatisch bewerten (höchstens {grenze} pro Suche)": {
     "fr": "Évaluer automatiquement les nouveaux résultats après la recherche ({grenze} au plus par recherche)",
     "en": "Rate new results automatically after the search (at most {grenze} per search)"
@@ -139,7 +139,7 @@
     "en": "Without a choice the app searches all of Switzerland, jobs near the place of residence first."
   },
   "Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst. Nischen sucht die App ohne Ort; Stellen ausserhalb dieser Kantone behält sie nur, wenn das Inserat Remote nennt.": {
-    "fr": "Sans choix, l'app cherche dans toute la Suisse, les offres proches du domicile en premier. L'app cherche les niches sans lieu\u00a0; elle ne garde les offres hors de ces cantons que si l'annonce mentionne le travail à distance.",
+    "fr": "Sans choix, l'app cherche dans toute la Suisse, les offres proches du domicile en premier. L'app cherche les niches sans lieu\u00a0; elle ne garde les offres hors de ces cantons que si l'annonce mentionne le télétravail.",
     "en": "Without a choice the app searches all of Switzerland, jobs near the place of residence first. The app searches niches without a place; it keeps jobs outside these cantons only if the ad mentions remote work."
   },
   "{portal}: {orte}": {"fr": "{portal}\u00a0: {orte}", "en": "{portal}: {orte}"},
@@ -182,7 +182,7 @@
     "en": "“{name}” is no longer in your search."
   },
   "Eigenen Beruf aufnehmen (mit EFZ oder EBA, zum Beispiel Koch/Köchin EFZ)": {
-    "fr": "Ajouter ton propre métier (avec EFZ ou EBA, par exemple Koch/Köchin EFZ)",
+    "fr": "Ajouter un métier (avec EFZ ou EBA, par exemple Koch/Köchin EFZ)",
     "en": "Add your own occupation (with EFZ or EBA, for example Koch/Köchin EFZ)"
   },
   "„{name}“ ist jetzt in deiner Suche.": {
@@ -380,12 +380,12 @@
     "en": "The line “{label}: …” names a portal the app does not know. So it searches its terms on all portals."
   },
   "„{term}“ sucht nur auf {portals}, und {portals} ist ausgeschaltet. Der Begriff läuft darum in keiner Suche.": {
-    "fr": "«\u00a0{term}\u00a0» ne cherche que sur {portals}, et {portals} est désactivé. Le terme ne figure donc dans aucune recherche.",
-    "en": "“{term}” searches only on {portals}, and {portals} is switched off. So the term runs in no search."
+    "fr": "«\u00a0{term}\u00a0» n'est recherché que sur {portals}, et {portals} est désactivé. Le terme ne figure donc dans aucune recherche.",
+    "en": "“{term}” is searched only on {portals}, and {portals} is switched off. So the term runs in no search."
   },
   "„{term}“ sucht nur auf {portals}, und diese Portale sind ausgeschaltet. Der Begriff läuft darum in keiner Suche.": {
-    "fr": "«\u00a0{term}\u00a0» ne cherche que sur {portals}, et ces portails sont désactivés. Le terme ne figure donc dans aucune recherche.",
-    "en": "“{term}” searches only on {portals}, and these portals are switched off. So the term runs in no search."
+    "fr": "«\u00a0{term}\u00a0» n'est recherché que sur {portals}, et ces portails sont désactivés. Le terme ne figure donc dans aucune recherche.",
+    "en": "“{term}” is searched only on {portals}, and these portals are switched off. So the term runs in no search."
   },
   "Bitte Lehrstellen, Schnupperlehren oder beides wählen.": {
     "fr": "Merci de choisir places d'apprentissage, stages d'orientation ou les deux.",
@@ -448,8 +448,8 @@
   },
   "texte:einstellen.titelfilter-regel": {
     "fr": {
-      "sie": "Pour les deux listes\u00a0: un terme correspond aussi au début ou à la fin d'un mot\u00a0: «\u00a0Software\u00a0» correspond à «\u00a0Softwareentwickler\u00a0», «\u00a0Bildung\u00a0» à «\u00a0Erwachsenenbildung\u00a0». Pour qu'il ne corresponde qu'au mot entier, écrivez «\u00a0(ganzes Wort)\u00a0» après, par exemple «\u00a0Sales (ganzes Wort)\u00a0». Les termes de trois lettres au plus, comme «\u00a0IA\u00a0», ne correspondent jamais qu'au mot entier.",
-      "du": "Pour les deux listes\u00a0: un terme correspond aussi au début ou à la fin d'un mot\u00a0: «\u00a0Software\u00a0» correspond à «\u00a0Softwareentwickler\u00a0», «\u00a0Bildung\u00a0» à «\u00a0Erwachsenenbildung\u00a0». Pour qu'il ne corresponde qu'au mot entier, écris «\u00a0(ganzes Wort)\u00a0» après, par exemple «\u00a0Sales (ganzes Wort)\u00a0». Les termes de trois lettres au plus, comme «\u00a0IA\u00a0», ne correspondent jamais qu'au mot entier."
+      "sie": "Pour les deux listes, un terme correspond aussi au début ou à la fin d'un mot\u00a0: «\u00a0Software\u00a0» correspond à «\u00a0Softwareentwickler\u00a0», «\u00a0Bildung\u00a0» à «\u00a0Erwachsenenbildung\u00a0». Pour qu'il ne corresponde qu'au mot entier, écrivez «\u00a0(ganzes Wort)\u00a0» après, par exemple «\u00a0Sales (ganzes Wort)\u00a0». Les termes de trois lettres au plus, comme «\u00a0IA\u00a0», ne correspondent jamais qu'au mot entier.",
+      "du": "Pour les deux listes, un terme correspond aussi au début ou à la fin d'un mot\u00a0: «\u00a0Software\u00a0» correspond à «\u00a0Softwareentwickler\u00a0», «\u00a0Bildung\u00a0» à «\u00a0Erwachsenenbildung\u00a0». Pour qu'il ne corresponde qu'au mot entier, écris «\u00a0(ganzes Wort)\u00a0» après, par exemple «\u00a0Sales (ganzes Wort)\u00a0». Les termes de trois lettres au plus, comme «\u00a0IA\u00a0», ne correspondent jamais qu'au mot entier."
     },
     "en": {
       "sie": "For both lists: a term also matches as the start or end of a word: “Software” matches “Softwareentwickler”, “Bildung” matches “Erwachsenenbildung”. To match only as a whole word, write “(ganzes Wort)” after it, for example “Sales (ganzes Wort)”. Terms of three letters or fewer, such as “AI”, always match only as a whole word."

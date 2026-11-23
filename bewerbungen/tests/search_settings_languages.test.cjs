@@ -138,7 +138,7 @@ test("the hints of the region card come in the app language", async () => {
     "La recherche se fait dans un rayon autour du domicile. Les cantons aident à classer les offres.",
     "Sans choix, l'app cherche dans toute la Suisse, les offres proches du domicile en premier.",
     fr("Sans choix, l'app cherche dans toute la Suisse, les offres proches du domicile en premier. L'app cherche les niches sans "
-      + "lieu~; elle ne garde les offres hors de ces cantons que si l'annonce mentionne le travail à distance."),
+      + "lieu~; elle ne garde les offres hors de ces cantons que si l'annonce mentionne le télétravail."),
     [fr("jobs.ch~: Thun, Biel"), fr("jobscout24~: Regionen Bern")]]);
   assert.deepEqual(shown.en[0],
     "jobscout24 then searches once per term in all chosen regions. None chosen: jobscout24 searches at the postcodes below.");
@@ -264,7 +264,7 @@ test("the suggestions for an apprenticeship say du and tu, and several suggestio
     neu: "Eigenen Beruf aufnehmen (mit EFZ oder EBA, zum Beispiel Koch/Köchin EFZ)", pruefen: "In der Schnupperlehre: SQL verlangt",
     fertig: "2 Vorschläge. Nimm auf, was dich interessiert." });
   assert.deepEqual(shown.fr, { titel: "Se faire proposer des métiers par l'IA",
-    neu: "Ajouter ton propre métier (avec EFZ ou EBA, par exemple Koch/Köchin EFZ)", pruefen: fr("Pendant le stage d'orientation~: SQL verlangt"),
+    neu: "Ajouter un métier (avec EFZ ou EBA, par exemple Koch/Köchin EFZ)", pruefen: fr("Pendant le stage d'orientation~: SQL verlangt"),
     fertig: "2 propositions. Ajoute ce qui t'intéresse." });
   assert.deepEqual(shown.en, { titel: "Have the AI suggest occupations",
     neu: "Add your own occupation (with EFZ or EBA, for example Koch/Köchin EFZ)", pruefen: "In the trial apprenticeship: SQL verlangt",
@@ -316,7 +316,7 @@ test("the region card says its hints and messages in the app language, with plac
   });
   assert.equal(shown.de.jobscout24,
     "jobscout24 sucht dann pro Begriff einmal in allen gewählten Regionen. Keine gewählt: jobscout24 sucht an den PLZ darunter.");
-  assert.ok(shown.fr.kantone.endsWith("que si l'annonce mentionne le travail à distance."));
+  assert.ok(shown.fr.kantone.endsWith("que si l'annonce mentionne le télétravail."));
   assert.ok(shown.en.kantone.endsWith("only if the ad mentions remote work."));
   assert.ok(shown.fr.orte.startsWith(fr("jobscout24~: Regionen Bern")));
   assert.deepEqual(shown.de.said, ["Gespeichert. Gilt ab der nächsten Suche.", "Nicht gespeichert. x"]);
@@ -387,10 +387,10 @@ test("Suche einstellen says nothing given, the automatic rating and a failed yie
   assert.deepEqual(shown.de, { region: "Nichts angegeben", pensum: "Nichts angegeben",
     auto: "Neue Treffer nach der Suche automatisch bewerten (höchstens 1 pro Suche)",
     said: ["Was die Suche bringt, liess sich nicht laden: x"] });
-  assert.deepEqual(shown.fr, { region: "Rien d'indiqué", pensum: "Rien d'indiqué",
+  assert.deepEqual(shown.fr, { region: "Non précisé", pensum: "Non précisé",
     auto: "Évaluer automatiquement les nouveaux résultats après la recherche (1 au plus par recherche)",
     said: [fr("Impossible de charger ce que rapporte la recherche~: x")] });
-  assert.deepEqual(shown.en, { region: "Nothing given", pensum: "Nothing given",
+  assert.deepEqual(shown.en, { region: "Not specified", pensum: "Not specified",
     auto: "Rate new results automatically after the search (at most 1 per search)",
     said: ["What the search brings could not be loaded: x"] });
 });
