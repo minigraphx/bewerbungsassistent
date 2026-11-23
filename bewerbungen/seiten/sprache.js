@@ -10,6 +10,7 @@
 
   let queue = Promise.resolve();
   let drawn = false;
+  let stored = null;  // the last state the server sent; a refused change goes back to it
 
   const boxes = () => [...document.querySelectorAll(`input[name="${NAME}"]`)];
 
@@ -27,6 +28,7 @@
   }
 
   function draw(state) {
+    stored = state;
     const view = L.view(state);
     buildOnce(view);
     $("sprache-app").value = view.app;
@@ -50,7 +52,7 @@
         status($("sprache-meldung"), done, "ok");
       } catch (fehler) {
         window.Meldungen.showFailure($("sprache-meldung"), field, fehler);
-        await holen("/api/sprachen").then(draw, () => null);
+        draw(stored);
       }
     });
     return queue;
