@@ -56,7 +56,7 @@ CREDIT_USED = ("Das KI-Budget für {month} ist aufgebraucht. Die KI geht wieder 
                "alles andere funktioniert weiterhin.")
 # A mediation that names no renewal still counts a one-time credit (G80)
 CREDIT_USED_ONCE = ("Das Guthaben des Einladungscodes ist aufgebraucht. Bitte einen neuen Code anfordern und unter "
-                    "Einstellungen, KI und Budget einlösen. Alles andere funktioniert weiterhin.")
+                    "Einstellungen, KI, Budget und Sprache einlösen. Alles andere funktioniert weiterhin.")
 RATE_LIMITED = "Die KI ist gerade ausgelastet. Bitte in {seconds} nochmals versuchen."
 TIMEOUT = "Die KI hat nicht rechtzeitig geantwortet. Bitte nochmals versuchen."
 OFFLINE = "Keine Verbindung zur KI. Ist der Rechner mit dem Internet verbunden?"

@@ -157,7 +157,7 @@ def test_the_settings_offer_a_new_code_once_the_credit_is_used_up():
         == ["aktiv", "aufgebraucht"]
     page = (PAGES / "einstellungen.html").read_text(encoding="utf-8")
     assert re.search(r'<p id="einladung-aufgebraucht" hidden>[^<]*neuen Einladungscode[^<]*</p>', page)
-    assert "KI und Budget" in page
+    assert "KI, Budget und Sprache" in page
 
 
 # the window „KI einrichten“ and the choice of the way
@@ -242,7 +242,7 @@ def test_the_ki_page_names_the_way_to_a_new_code_once_the_credit_is_used_up():
     assert _ki_page_status(CREDIT) == "KI eingerichtet (über die Vermittlung). Guthaben: CHF\u00a03.20 von CHF\u00a05.00 verbraucht."
     assert _ki_page_status(USED_UP) == ("KI eingerichtet (über die Vermittlung). Guthaben: CHF\u00a05.00 von CHF\u00a05.00 verbraucht. "
                                         "Das Guthaben ist aufgebraucht: einen neuen Code anfordern und unter "
-                                        "Einstellungen, KI und Budget einlösen.")
+                                        "Einstellungen, KI, Budget und Sprache einlösen.")
 
 
 def test_the_ki_page_names_the_month_and_the_day_the_ai_works_again():  # G98

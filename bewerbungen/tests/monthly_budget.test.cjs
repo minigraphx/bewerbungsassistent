@@ -99,12 +99,12 @@ test("the stored status of the sidebar does not outlive the day the budget renew
 
 // ---------- Einstellungen ----------
 
-test("Einstellungen name the section «KI und Budget» and keep its anchors", () => {
-  assert.equal(settings.SECTIONS[0].label, "KI und Budget");
+test("Einstellungen name the section «KI, Budget und Sprache» and keep its anchors", () => {
+  assert.equal(settings.SECTIONS[0].label, "KI, Budget und Sprache");
   assert.equal(settings.sectionOf("#kosten"), "ki");
   const page = read("einstellungen.html");
-  assert.match(page, /<a href="#ki">KI und Budget<\/a>/);
-  assert.match(page, /id="bereich-ki" aria-label="KI und Budget"/);
+  assert.match(page, /<a href="#ki">KI, Budget und Sprache<\/a>/);
+  assert.match(page, /id="bereich-ki" aria-label="KI, Budget und Sprache"/);
 });
 
 test("the budget card names the month, the spend and the day of the new budget", () => {
@@ -236,7 +236,7 @@ test("the window and the page «KI» name the month and, once used up, the day t
 test("the window of an old mediation keeps the way to a new code", () => {
   assert.equal(texte.budgetPart({ ...OLD_STATUS, verbraucht_chf: 5 }),
     " Guthaben: CHF\u00a05.00 von CHF\u00a05.00 verbraucht. Das Guthaben ist aufgebraucht: einen neuen Code anfordern "
-    + "und unter Einstellungen, KI und Budget einlösen.");
+    + "und unter Einstellungen, KI, Budget und Sprache einlösen.");
   assert.equal(texte.budgetPart({ eingerichtet: true, vermittlung: true }), "");
 });
 

@@ -88,7 +88,8 @@ class Person:
     excluded: tuple[str, ...]
 
 
-def _level_of(text: str) -> int | None:
+def level_of(text: str) -> int | None:
+    """The person's level in a text as cv.yaml writes it, 1 (A1) to 7 (Muttersprache); None when it names none."""
     levels = [int(match.lastgroup[1:]) for match in PERSON_LEVEL.finditer(text)]
     return max(levels) if levels else None
 
@@ -105,7 +106,7 @@ def _languages(cv: dict, profile: str, language: str) -> dict[str, int]:
     known: dict[str, int] = {}
     for name, fluency in found:
         named = LANGUAGE_IN_NAME.search(str(name or ""))
-        language, level = LANGUAGES[named[0].lower()] if named else None, _level_of(str(fluency or ""))
+        language, level = LANGUAGES[named[0].lower()] if named else None, level_of(str(fluency or ""))
         if language and level:
             known = {**known, language: max(level, known.get(language, 0))}
     return known

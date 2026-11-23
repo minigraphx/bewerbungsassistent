@@ -109,7 +109,7 @@ def test_an_old_mediation_still_says_a_new_code_can_be_asked_for(daten, monkeypa
         tasks.rate_match(gateway, material, AD)
 
     assert str(raised.value) == errors.CREDIT_USED_ONCE
-    assert "neuen Code anfordern" in str(raised.value) and "KI und Budget" in str(raised.value)
+    assert "neuen Code anfordern" in str(raised.value) and "KI, Budget und Sprache" in str(raised.value)
 
 
 def test_without_an_answer_of_the_mediation_the_refusal_keeps_the_words_of_g80(daten, monkeypatch):  # noqa: F811
