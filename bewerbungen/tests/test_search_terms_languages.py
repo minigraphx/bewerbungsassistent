@@ -49,8 +49,8 @@ TERMS_FR = ("<title>Vérifier les mots-clés</title>", "Retour aux résultats", 
             "Voici comment l'app cherchera ensuite", f"Qu'est-ce qui doit changer{NBSP}?",
             f"Par exemple{NBSP}: garder «{NBSP}Trainer{NBSP}», je donne aussi des cours pour adultes.", ">Proposer à nouveau<",
             ">Annuler<", ">Écarter<")
-TERMS_EN = ("<title>Checking search terms</title>", "Back to the results", "Changes to apply", "AI proposals", "Current terms",
-            "How the app searches afterwards", "What should be different?",
+TERMS_EN = ("<title>Check search terms</title>", "<h1>Check search terms</h1>", "Back to the results", "Changes to apply",
+            "AI proposals", "Current terms", "How the app will search afterwards", "What should be different?",
             "For example: keep “Trainer”, I also teach courses for adults.", ">Suggest again<", ">Cancel<", ">Discard<")
 TERMS_DE = ("Zurück zu den Treffern", "Änderungen zum Übernehmen", "Vorschläge der KI", "Bisherige Begriffe",
             "So sucht die App danach", "Was soll anders sein?", "«Trainer» behalten", ">Neu vorschlagen<", ">Abbrechen<",
@@ -396,7 +396,7 @@ def test_the_exclusions_of_the_ai_refuse_in_the_app_language(started, preview, w
         "Cette proposition n'existe plus. Merci d'en demander une nouvelle.")
     store_language(folder, "en")
     assert refused(server, "/api/suche/ki-ausschluesse/vorschlag", {})["fehler"] == (
-        "The AI only suggests exclusions from 3 discarded jobs on.")
+        "The AI only suggests exclusions once there are 3 discarded jobs.")
 
 
 def test_a_proposed_exclusion_names_its_place_and_category_in_the_app_language(catalog):
@@ -459,6 +459,29 @@ REVIEWED = {
     "1 Suchlauf": ("1 série de recherches", "1 search run"),
     "Übernehmen": ("Appliquer", "Apply"),
     "Kein Titelfilter": ("Aucun filtre de titre", "No title filter"),
+    # The UI/UX ruling on #425
+    "Vorschlag verworfen": ("Proposition écartée", "Proposal discarded"),
+    "Verworfen": ("Écartées", "Discarded"),
+    "Abgebrochen": ("Annulé", "Cancelled"),
+    "Nichts berechnet.": ("Rien n'a été facturé.", "Nothing charged."),
+    "Neu vorschlagen lassen": ("Demander de nouvelles propositions", "Ask for new proposals"),
+    "Neu vorschlagen": ("Proposer à nouveau", "Suggest again"),
+    "So sucht die App danach": ("Voici comment l'app cherchera ensuite", "How the app will search afterwards"),
+    "Doppelt kostet er keine zusätzliche Suche.": ("En double, il ne coûte aucune recherche supplémentaire.",
+                                                  "Listed twice, it costs no extra search."),
+    "„{begriff}“ steht zweimal: {ort} und {ort2}.": (f"«{NBSP}{{begriff}}{NBSP}» figure deux fois{NBSP}: {{ort}} et {{ort2}}.",
+                                                     "“{begriff}” is listed twice: {ort} and {ort2}."),
+    "Ohne ihn": ("Sans ce terme", "Without it"),
+    "Kommt unter «{ort}»": (f"S'ajoute sous «{NBSP}{{ort}}{NBSP}»", "Goes under “{ort}”"),
+    "{kategorie}, kommt unter «{ort}»": (f"{{kategorie}}, s'ajoute sous «{NBSP}{{ort}}{NBSP}»", "{kategorie}, goes under “{ort}”"),
+    "andere 1": ("1 autre", "1 other"),
+    "andere {anzahl}": ("{anzahl} autres", "{anzahl} other"),
+    "Gespeichert. Die Seiten kommen bei der nächsten Suche dazu.": (
+        "Enregistré. Les sites s'ajoutent dès la prochaine recherche.", "Saved. The sites are added from the next search on."),
+    "Die Erweiterung hat eine eigene Seite geöffnet. Bitte dort erlauben.": (
+        "L'extension a ouvert sa propre page. Merci d'y donner l'autorisation.",
+        "The extension has opened a page of its own. Please allow it there."),
+    "Suchbegriffe prüfen": ("Vérifier les mots-clés", "Check search terms"),
 }
 
 

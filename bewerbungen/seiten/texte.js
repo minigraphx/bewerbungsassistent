@@ -201,6 +201,11 @@
       sie: "An, bis Suchbegriffe da sind. Mit dem Häkchen ausschalten.",
       du: "An, bis Suchbegriffe da sind. Mit dem Häkchen ausschalten.",
     },
+    // The task in the cost log; its own key, since the page title says the same German as a heading (UI/UX ruling #425)
+    "einstellungen.aufgabe-suchbegriffe": {
+      sie: "Suchbegriffe prüfen",
+      du: "Suchbegriffe prüfen",
+    },
     "einstellungen.einwilligung": {
       sie: "Ohne Einwilligung gehen keine Texte an die KI, auch nicht mit einem eigenen Schlüssel. Suche, Unterlagen und Versand funktionieren trotzdem. Mit dem Claude-Abo läuft die KI über Ihr eigenes Konto bei Anthropic; dafür gilt der Hinweis beim Claude-Abo.",
       du: "Ohne Einwilligung gehen keine Texte an die KI, auch nicht mit einem eigenen Schlüssel. Suche, Unterlagen und Versand funktionieren trotzdem. Mit dem Claude-Abo läuft die KI über dein eigenes Konto bei Anthropic; dafür gilt der Hinweis beim Claude-Abo.",

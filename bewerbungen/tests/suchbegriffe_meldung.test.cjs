@@ -149,13 +149,14 @@ test("a failed proposal is a warning, and screen readers hear it from «Nochmals
     assert.equal(page.focused(), retry, "#meldung is no live region, so the focus brings the text to screen readers");
   });
 
-test("a notice after the failed proposal, like «Verworfen», is neutral again and shows its title", async () => {
+test("a notice after the failed proposal, like «Vorschlag verworfen», is neutral again and shows its title", async () => {
   const page = await opened({ "/api/suchbegriffe/hinweis": HINT, "/api/ki/status": { einwilligung: null },
     [PROPOSAL]: new Error(FAILED) });
   page.$("verwerfen").click();
   assert.equal(page.$("meldung").className, "notice");
   assert.equal(page.$("meldung-titel").hidden, false);
-  assert.equal(page.$("meldung-titel").textContent, "Verworfen");
+  // The title has its own key since the UI/UX ruling of #425, so it no longer shares «Verworfen» with the jobs page
+  assert.equal(page.$("meldung-titel").textContent, "Vorschlag verworfen");
   assert.equal(page.$("meldung-text").textContent, "Am Suchprofil hat sich nichts geändert.");
   assert.equal(buttonsOf(page)[0].getAttribute("aria-describedby"), null, "only the retry is described by the text");
 });

@@ -1,9 +1,10 @@
 {
+  "Suchbegriffe prüfen": {"fr": "Vérifier les mots-clés", "en": "Check search terms"},
   "Zurück zu den Treffern": {"fr": "Retour aux résultats", "en": "Back to the results"},
   "Änderungen zum Übernehmen": {"fr": "Modifications à appliquer", "en": "Changes to apply"},
   "Vorschläge der KI": {"fr": "Propositions de l'IA", "en": "AI proposals"},
   "Bisherige Begriffe": {"fr": "Termes actuels", "en": "Current terms"},
-  "So sucht die App danach": {"fr": "Voici comment l'app cherchera ensuite", "en": "How the app searches afterwards"},
+  "So sucht die App danach": {"fr": "Voici comment l'app cherchera ensuite", "en": "How the app will search afterwards"},
   "Was soll anders sein?": {"fr": "Qu'est-ce qui doit changer\u00a0?", "en": "What should be different?"},
   "Zum Beispiel: «Trainer» behalten, ich gebe auch Kurse für Erwachsene.": {
     "fr": "Par exemple\u00a0: garder «\u00a0Trainer\u00a0», je donne aussi des cours pour adultes.",
@@ -26,7 +27,8 @@
     "fr": "La vérification des mots-clés n'existe pour l'instant que pour la recherche d'emploi.",
     "en": "Checking search terms is only available for the job search for now."
   },
-  "Abgebrochen": {"fr": "Interrompu", "en": "Cancelled"},
+  "Abgebrochen": {"fr": "Annulé", "en": "Cancelled"},
+  "Vorschlag verworfen": {"fr": "Proposition écartée", "en": "Proposal discarded"},
 
   "Dieser Vorschlag gilt nicht mehr. Bitte neu vorschlagen lassen.": {
     "fr": "Cette proposition n'est plus valable. Merci d'en demander une nouvelle.",
@@ -41,7 +43,7 @@
     "en": "No proposal. {reason} {cost} The search profile has not changed."
   },
   "Berechnet: {cost}.": {"fr": "Facturé\u00a0: {cost}.", "en": "Charged: {cost}."},
-  "Nichts berechnet.": {"fr": "Rien facturé.", "en": "Nothing charged."},
+  "Nichts berechnet.": {"fr": "Rien n'a été facturé.", "en": "Nothing charged."},
   "weniger als {cent}": {"fr": "moins de {cent}", "en": "less than {cent}"},
   "Rückgängig geht nicht mehr: Das Suchprofil hat sich seither geändert. Der frühere Stand liegt unter Entwürfe und Versionen.": {
     "fr": "Impossible d'annuler\u00a0: le profil de recherche a changé depuis. L'état précédent se trouve sous Brouillons et versions.",
@@ -124,7 +126,7 @@
   "{ort} kostet er {suchen} pro Suchlauf, {ort2} {anzahl}.": {
     "fr": "{ort}, il coûte {suchen} par série de recherches, {ort2} {anzahl}.", "en": "{ort} it costs {suchen} per search run, {ort2} {anzahl}."
   },
-  "Doppelt kostet er keine zusätzliche Suche.": {"fr": "En double, il ne coûte aucune recherche supplémentaire.", "en": "Twice, it costs no extra search."},
+  "Doppelt kostet er keine zusätzliche Suche.": {"fr": "En double, il ne coûte aucune recherche supplémentaire.", "en": "Listed twice, it costs no extra search."},
   "{ort} kostet er {suchen} pro Suchlauf, {ort2} keine zusätzliche.": {
     "fr": "{ort}, il coûte {suchen} par série de recherches, {ort2} aucune de plus.", "en": "{ort} it costs {suchen} per search run, {ort2} no extra one."
   },
@@ -133,9 +135,9 @@
     "en": "{ohne}, the app no longer searches {portale}; the number already includes this."
   },
   "Ohne den Eintrag {ort}": {"fr": "Sans l'entrée {ort}", "en": "Without the entry {ort}"},
-  "Ohne ihn": {"fr": "Sans lui", "en": "Without it"},
+  "Ohne ihn": {"fr": "Sans ce terme", "en": "Without it"},
   "„{begriff}“ steht zweimal: {ort} und {ort2}.": {
-    "fr": "«\u00a0{begriff}\u00a0» figure deux fois\u00a0: {ort} et {ort2}.", "en": "“{begriff}” is there twice: {ort} and {ort2}."
+    "fr": "«\u00a0{begriff}\u00a0» figure deux fois\u00a0: {ort} et {ort2}.", "en": "“{begriff}” is listed twice: {ort} and {ort2}."
   },
   "Seine einzige Stelle kam auch über „{breit}“.": {
     "fr": "Sa seule offre est aussi venue par «\u00a0{breit}\u00a0».", "en": "Its only job also came through “{breit}”."
@@ -229,14 +231,14 @@
     "fr": "Un site figure deux fois dans la liste. Une seule adresse par site.", "en": "A site is in the list twice. One address per site."
   },
   "Gespeichert. Die Seiten kommen bei der nächsten Suche dazu.": {
-    "fr": "Enregistré. Les sites s'ajoutent dès la prochaine recherche.", "en": "Saved. The sites join from the next search."
+    "fr": "Enregistré. Les sites s'ajoutent dès la prochaine recherche.", "en": "Saved. The sites are added from the next search on."
   },
   "Die Browser-Erweiterung antwortet nicht. Bitte diese Seite im Browser mit der Erweiterung öffnen.": {
     "fr": "L'extension du navigateur ne répond pas. Merci d'ouvrir cette page dans le navigateur qui a l'extension.",
     "en": "The browser extension does not answer. Please open this page in the browser with the extension."
   },
   "Die Erweiterung hat eine eigene Seite geöffnet. Bitte dort erlauben.": {
-    "fr": "L'extension a ouvert sa propre page. Merci d'autoriser là-bas.", "en": "The extension has opened a page of its own. Please allow it there."
+    "fr": "L'extension a ouvert sa propre page. Merci d'y donner l'autorisation.", "en": "The extension has opened a page of its own. Please allow it there."
   },
 
   "Dieser Vorschlag gilt nicht mehr. Die Seite zeigt jetzt den aktuellen Stand.": {
@@ -252,17 +254,17 @@
   "Arbeitsort": {"fr": "Lieu de travail", "en": "Place of work"},
   "Anderes": {"fr": "Autre", "en": "Other"},
   "Die KI schlägt erst ab {count} verworfenen Stellen Ausschlüsse vor.": {
-    "fr": "L'IA ne propose des exclusions qu'à partir de {count} offres écartées.", "en": "The AI only suggests exclusions from {count} discarded jobs on."
+    "fr": "L'IA ne propose des exclusions qu'à partir de {count} offres écartées.", "en": "The AI only suggests exclusions once there are {count} discarded jobs."
   },
   "Diesen Vorschlag gibt es nicht mehr. Bitte neu vorschlagen lassen.": {
     "fr": "Cette proposition n'existe plus. Merci d'en demander une nouvelle.", "en": "This proposal no longer exists. Please ask for a new one."
   },
   "texte:einstellen.ki-ausschluesse": {
     "fr": {
-      "sie": "L'IA cherche dans les {anzahl} offres écartées que le profil de recherche n'exclut pas encore des motifs communs, comme le taux d'activité, le secteur, le lieu de travail ou des mots du titre. Seul ce que vous appliquez entre dans le profil de recherche.",
-      "du": "L'IA cherche dans les {anzahl} offres écartées que le profil de recherche n'exclut pas encore des motifs communs, comme le taux d'activité, le secteur, le lieu de travail ou des mots du titre. Seul ce que tu appliques entre dans le profil de recherche."
+      "sie": "L'IA cherche des motifs communs, comme le taux d'activité, le secteur, le lieu de travail ou des mots du titre, dans les {anzahl} offres écartées que le profil de recherche n'exclut pas encore. Seul ce que vous appliquez entre dans le profil de recherche.",
+      "du": "L'IA cherche des motifs communs, comme le taux d'activité, le secteur, le lieu de travail ou des mots du titre, dans les {anzahl} offres écartées que le profil de recherche n'exclut pas encore. Seul ce que tu appliques entre dans le profil de recherche."
     },
-    "en": {"sie": "The AI looks through the {anzahl} discarded jobs that the search profile does not exclude yet for common reasons, such as workload, industry, place of work or words in the title. Only what you apply goes into the search profile."}
+    "en": {"sie": "The AI looks for common reasons, such as workload, industry, place of work or words in the title, in the {anzahl} discarded jobs that the search profile does not exclude yet. Only what you apply goes into the search profile."}
   },
   "texte:einstellen.ki-ausschluesse-was": {
     "fr": {
@@ -276,7 +278,7 @@
       "sie": "À partir de {mindestens} offres écartées, l'IA peut proposer ici ce que vous ne voulez plus voir.",
       "du": "À partir de {mindestens} offres écartées, l'IA peut proposer ici ce que tu ne veux plus voir."
     },
-    "en": {"sie": "From {mindestens} discarded jobs on, the AI can suggest here what you no longer want to see."}
+    "en": {"sie": "Once there are {mindestens} discarded jobs, the AI can suggest here what you no longer want to see."}
   },
   "texte:einstellen.ki-ausschluesse-rest": {
     "fr": {
@@ -310,8 +312,8 @@
     "en": "Only {anzahl} discarded jobs that the search profile does not exclude yet."
   },
   "Aus {anzahl} verworfenen Stellen:": {"fr": "D'après {anzahl} offres écartées\u00a0:", "en": "From {anzahl} discarded jobs:"},
-  "Kommt unter «{ort}»": {"fr": "Va sous «\u00a0{ort}\u00a0»", "en": "Goes under “{ort}”"},
-  "{kategorie}, kommt unter «{ort}»": {"fr": "{kategorie}, va sous «\u00a0{ort}\u00a0»", "en": "{kategorie}, goes under “{ort}”"},
+  "Kommt unter «{ort}»": {"fr": "S'ajoute sous «\u00a0{ort}\u00a0»", "en": "Goes under “{ort}”"},
+  "{kategorie}, kommt unter «{ort}»": {"fr": "{kategorie}, s'ajoute sous «\u00a0{ort}\u00a0»", "en": "{kategorie}, goes under “{ort}”"},
   "«{wert}» übernehmen": {"fr": "Appliquer «\u00a0{wert}\u00a0»", "en": "Apply “{wert}”"},
   "«{wert}» steht jetzt unter «{ort}». {ab}": {
     "fr": "«\u00a0{wert}\u00a0» figure maintenant sous «\u00a0{ort}\u00a0». {ab}", "en": "“{wert}” is now under “{ort}”. {ab}"
@@ -333,7 +335,7 @@
   "1 Vorschlag.": {"fr": "1 proposition.", "en": "1 proposal."},
   "{anzahl} Vorschläge.": {"fr": "{anzahl} propositions.", "en": "{anzahl} proposals."},
   "Übernehmen": {"fr": "Appliquer", "en": "Apply"},
-  "Neu vorschlagen lassen": {"fr": "Faire proposer à nouveau", "en": "Have new ones suggested"},
+  "Neu vorschlagen lassen": {"fr": "Demander de nouvelles propositions", "en": "Ask for new proposals"},
   "Die KI sucht nach gemeinsamen Gründen, das dauert einen Moment …": {
     "fr": "L'IA cherche des motifs communs, cela prend un moment…", "en": "The AI is looking for common reasons, this takes a moment…"
   },
@@ -347,8 +349,8 @@
   "{anzahl} aussortiert": {"fr": "{anzahl} filtrés", "en": "{anzahl} filtered out"},
   "1 ohne Pflichtbezug": {"fr": "1 sans mot requis", "en": "1 without a required word"},
   "1 ausserhalb der Region": {"fr": "1 hors région", "en": "1 outside the region"},
-  "andere 1": {"fr": "autre 1", "en": "other 1"},
-  "andere {anzahl}": {"fr": "autres {anzahl}", "en": "others {anzahl}"},
+  "andere 1": {"fr": "1 autre", "en": "1 other"},
+  "andere {anzahl}": {"fr": "{anzahl} autres", "en": "{anzahl} other"},
   "noch nicht gesucht": {"fr": "pas encore recherché", "en": "not searched yet"},
   "keine Treffer": {"fr": "aucun résultat", "en": "no results"},
   "Findet die Suche eine Lehrstelle über mehrere Berufe, zählt sie bei jedem.": {

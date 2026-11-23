@@ -290,7 +290,7 @@
 
   function verwerfen() {
     $("vorschlag").hidden = true;
-    meldung(Texte.t("Verworfen"), unveraendert(), [neuKnopf()]);
+    meldung(Texte.t("Vorschlag verworfen"), unveraendert(), [neuKnopf()]);
   }
 
   /**

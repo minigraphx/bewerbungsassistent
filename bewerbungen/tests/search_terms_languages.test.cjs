@@ -183,15 +183,15 @@ test("the places, the empty searches and the hits without a required word come i
     "Ohne Pflichtbezug aussortiert (1)", "Ohne Pflichtbezug aussortiert (5)", "„Berufsbildner“: 1 Treffer, „Koch EFZ“",
     "„Berufsbildner“: 4 Treffer, zum Beispiel „Koch EFZ“, „Gärtner“", "„Berufsbildner“: 4 Treffer"]);
   assert.deepEqual(shown.fr, fr(["Sans lieu (niches)", "jobs.ch, sans lieu", "jobscout24, NPA 3000", "job-room, canton BE",
-    "job-room, cantons BE,SO", "jobs.ch, Thun", "Hors région, sans télétravail~: Biel 2, autre 1",
-    "Hors région, sans télétravail~: Biel 2, autres 3", "Là où un terme ne trouve rien (2)", "Là où un métier ne trouve rien (1)",
+    "job-room, cantons BE,SO", "jobs.ch, Thun", "Hors région, sans télétravail~: Biel 2, 1 autre",
+    "Hors région, sans télétravail~: Biel 2, 3 autres", "Là où un terme ne trouve rien (2)", "Là où un métier ne trouve rien (1)",
     "«~Kursplaner~» sur jobs.ch~: 1 recherche en 1 série de recherches, aucun résultat.",
     "«~Lernatelier~» (niche) sur job-room~: 4 recherches en 2 séries de recherches, aucun résultat.",
     "Filtré faute de mot requis (1)", "Filtrés faute de mot requis (5)", "«~Berufsbildner~»~: 1 résultat, «~Koch EFZ~»",
     "«~Berufsbildner~»~: 4 résultats, par exemple «~Koch EFZ~», «~Gärtner~»", "«~Berufsbildner~»~: 4 résultats"]));
   assert.deepEqual(shown.en, ["No place (niches)", "jobs.ch, no place", "jobscout24, postcode 3000", "job-room, canton BE",
-    "job-room, cantons BE,SO", "jobs.ch, Thun", "Outside the region, not remote: Biel 2, other 1",
-    "Outside the region, not remote: Biel 2, others 3", "Where a term finds nothing (2)", "Where an occupation finds nothing (1)",
+    "job-room, cantons BE,SO", "jobs.ch, Thun", "Outside the region, not remote: Biel 2, 1 other",
+    "Outside the region, not remote: Biel 2, 3 other", "Where a term finds nothing (2)", "Where an occupation finds nothing (1)",
     "“Kursplaner” on jobs.ch: 1 search in 1 search run, no result.",
     "“Lernatelier” (niche) on job-room: 4 searches in 2 search runs, no result.",
     "Filtered out without a required word (1)", "Filtered out without a required word (5)", "“Berufsbildner”: 1 result, “Koch EFZ”",
@@ -259,8 +259,8 @@ test("the box of the AI exclusions speaks the app language, Sie and du, with the
   assert.equal(shown.de[3], "Erst 1 verworfene Stelle, die das Suchprofil noch nicht ausschliesst. Ab 3 verworfenen Stellen kann "
     + "die KI hier vorschlagen, was du künftig nicht mehr sehen willst.");
   assert.deepEqual(shown.fr, fr([
-    "L'IA cherche dans les 5 offres écartées que le profil de recherche n'exclut pas encore des motifs communs, comme le taux "
-      + "d'activité, le secteur, le lieu de travail ou des mots du titre. Seul ce que vous appliquez entre dans le profil de recherche.",
+    "L'IA cherche des motifs communs, comme le taux d'activité, le secteur, le lieu de travail ou des mots du titre, dans les 5 "
+      + "offres écartées que le profil de recherche n'exclut pas encore. Seul ce que vous appliquez entre dans le profil de recherche.",
     "Seulement le titre, l'entreprise, le lieu et le taux d'activité des offres écartées. Pas de CV, pas de profil de recherche, "
       + "rien sur toi.",
     "Aucune offre écartée que le profil de recherche n'exclut pas encore. À partir de 3 offres écartées, l'IA peut proposer ici "
@@ -272,11 +272,15 @@ test("the box of the AI exclusions speaks the app language, Sie and du, with the
     "Tu peux continuer à appliquer ou retirer les propositions ci-dessous. De nouvelles propositions sont possibles à partir de "
       + "3 offres écartées que le profil de recherche n'exclut pas encore."]));
   assert.deepEqual(shown.en.slice(0, 3), [
-    "The AI looks through the 5 discarded jobs that the search profile does not exclude yet for common reasons, such as "
-      + "workload, industry, place of work or words in the title. Only what you apply goes into the search profile.",
+    "The AI looks for common reasons, such as workload, industry, place of work or words in the title, in the 5 discarded jobs "
+      + "that the search profile does not exclude yet. Only what you apply goes into the search profile.",
     "Only title, company, place and workload of the discarded jobs. No CV, no search profile, nothing about you.",
-    "No discarded jobs that the search profile does not exclude yet. From 3 discarded jobs on, the AI can suggest here what "
-      + "you no longer want to see."]);
+    "No discarded jobs that the search profile does not exclude yet. Once there are 3 discarded jobs, the AI can suggest here "
+      + "what you no longer want to see."]);
+  const du = await inLanguage("fr", () => L.einleitung(STAND, "stelle-du", texte));
+  assert.equal(du, "L'IA cherche des motifs communs, comme le taux d'activité, le secteur, le lieu de travail ou des mots du titre, "
+    + "dans les 5 offres écartées que le profil de recherche n'exclut pas encore. Seul ce que tu appliques entre dans le profil "
+    + "de recherche.");
 });
 
 test("a proposal of the AI says where it goes and what happened, the value and its place in quotes", async () => {
@@ -291,13 +295,14 @@ test("a proposal of the AI says where it goes and what happened, the value and i
     "«Praktikum» steht jetzt unter «Im Titel». Gilt ab der nächsten Suche.", "«Detailhandel» steht nicht mehr unter «Im Inserat».",
     "«Detailhandel» steht schon unter «Im Inserat».", "Ausschlüsse von der KI lassen sich gerade nicht anbieten. x",
     "Nicht übernommen. x", "Nicht zurückgenommen. x"]);
-  assert.deepEqual(shown.fr, fr(["Appliquer", "Annuler", "Faire proposer à nouveau", "L'IA cherche des motifs communs, cela prend un moment…",
-    "D'après 2 offres écartées~:", "Branche, va sous «~Im Inserat~»", "Va sous «~Im Titel~»", "Appliquer «~Detailhandel~»",
+  assert.deepEqual(shown.fr, fr(["Appliquer", "Annuler", "Demander de nouvelles propositions",
+    "L'IA cherche des motifs communs, cela prend un moment…",
+    "D'après 2 offres écartées~:", "Branche, s'ajoute sous «~Im Inserat~»", "S'ajoute sous «~Im Titel~»", "Appliquer «~Detailhandel~»",
     "«~Detailhandel~» figure maintenant sous «~Im Inserat~». S'applique dès la prochaine évaluation.",
     "«~Praktikum~» figure maintenant sous «~Im Titel~». S'applique dès la prochaine recherche.",
     "«~Detailhandel~» ne figure plus sous «~Im Inserat~».", "«~Detailhandel~» figure déjà sous «~Im Inserat~».",
     "Les exclusions de l'IA ne peuvent pas être proposées pour le moment. x", "Non appliqué. x", "Non retiré. x"]));
-  assert.deepEqual(shown.en, ["Apply", "Undo", "Have new ones suggested", "The AI is looking for common reasons, this takes a moment…",
+  assert.deepEqual(shown.en, ["Apply", "Undo", "Ask for new proposals", "The AI is looking for common reasons, this takes a moment…",
     "From 2 discarded jobs:", "Branche, goes under “Im Inserat”", "Goes under “Im Titel”", "Apply “Detailhandel”",
     "“Detailhandel” is now under “Im Inserat”. Applies from the next assessment.",
     "“Praktikum” is now under “Im Titel”. Applies from the next search.", "“Detailhandel” is no longer under “Im Inserat”.",
@@ -374,7 +379,7 @@ test("further sites say saved and what the extension does in the app language", 
     "Die Browser-Erweiterung antwortet nicht. Bitte diese Seite im Browser mit der Erweiterung öffnen."]);
   assert.deepEqual(shown.fr, ["Enregistré. Les sites s'ajoutent dès la prochaine recherche.", "Enregistré.",
     "L'extension du navigateur ne répond pas. Merci d'ouvrir cette page dans le navigateur qui a l'extension."]);
-  assert.deepEqual(shown.en, ["Saved. The sites join from the next search.", "Saved.",
+  assert.deepEqual(shown.en, ["Saved. The sites are added from the next search on.", "Saved.",
     "The browser extension does not answer. Please open this page in the browser with the extension."]);
 });
 
@@ -404,10 +409,10 @@ test("the AI exclusions page script shows the count, the value and its buttons i
     "1 Vorschlag. Am Suchprofil ändert sich erst etwas, wenn Sie ihn übernehmen."], knopf: "Neu vorschlagen lassen",
     wert: "«Detailhandel»", uebernehmen: "Übernehmen" });
   assert.deepEqual(shown.fr, { status: ["L'IA cherche des motifs communs, cela prend un moment…",
-    "1 proposition. Le profil de recherche ne change que lorsque vous l'appliquez."], knopf: "Faire proposer à nouveau",
+    "1 proposition. Le profil de recherche ne change que lorsque vous l'appliquez."], knopf: "Demander de nouvelles propositions",
     wert: fr("«~Detailhandel~»"), uebernehmen: "Appliquer" });
   assert.deepEqual(shown.en, { status: ["The AI is looking for common reasons, this takes a moment…",
-    "1 proposal. The search profile only changes once you apply it."], knopf: "Have new ones suggested",
+    "1 proposal. The search profile only changes once you apply it."], knopf: "Ask for new proposals",
     wert: "“Detailhandel”", uebernehmen: "Apply" });
 });
 
@@ -504,9 +509,12 @@ test("taking the proposal over offers to undo and to search, and discarding it s
     page.$("verwerfen").click();
     return [...taken, ...notice(page)];
   });
-  assert.deepEqual(shown.de, ["Rückgängig machen", "Jetzt suchen", "Verworfen", "Am Suchprofil hat sich nichts geändert.", "Neu vorschlagen"]);
-  assert.deepEqual(shown.fr, ["Annuler", "Rechercher maintenant", "Écartées", "Le profil de recherche n'a pas changé.", "Proposer à nouveau"]);
-  assert.deepEqual(shown.en, ["Undo", "Search now", "Discarded", "The search profile has not changed.", "Suggest again"]);
+  // „Vorschlag verworfen“ is the title's own key (UI/UX ruling #425), so «Verworfen» of Stellen stays «Écartées»
+  assert.deepEqual(shown.de, ["Rückgängig machen", "Jetzt suchen", "Vorschlag verworfen", "Am Suchprofil hat sich nichts geändert.",
+    "Neu vorschlagen"]);
+  assert.deepEqual(shown.fr, ["Annuler", "Rechercher maintenant", "Proposition écartée", "Le profil de recherche n'a pas changé.",
+    "Proposer à nouveau"]);
+  assert.deepEqual(shown.en, ["Undo", "Search now", "Proposal discarded", "The search profile has not changed.", "Suggest again"]);
 });
 
 test("a stale proposal is known by the action the app names, not by its German words", async () => {
@@ -545,7 +553,7 @@ test("a failed proposal, an empty hint, a cancel and a search without jobs speak
   assert.deepEqual(shown.de, ["", "x", "Nochmals versuchen", "Bitte schreiben, was anders sein soll.", "Abgebrochen",
     "Am Suchprofil hat sich nichts geändert.", "Neu vorschlagen", "Nur bei der Stellensuche",
     "Suchbegriffe prüfen gibt es vorerst nur bei der Stellensuche."]);
-  assert.deepEqual(shown.fr, ["", "x", "Réessayer", "Merci d'écrire ce qui doit changer.", "Interrompu",
+  assert.deepEqual(shown.fr, ["", "x", "Réessayer", "Merci d'écrire ce qui doit changer.", "Annulé",
     "Le profil de recherche n'a pas changé.", "Proposer à nouveau", "Seulement pour la recherche d'emploi",
     "La vérification des mots-clés n'existe pour l'instant que pour la recherche d'emploi."]);
   assert.deepEqual(shown.en, ["", "x", "Try again", "Please write what should be different.", "Cancelled",
@@ -562,4 +570,15 @@ test("the former proposal can be shown again under its number in the app languag
     return page.$("frueher").textContent;
   });
   assert.deepEqual(shown, { de: "Vorschlag 1 zeigen", fr: "Afficher la proposition 1", en: "Show proposal 1" });
+});
+
+test("the page title says Check search terms while the cost task on Einstellungen keeps Checking search terms", async () => {
+  const EinstellungenLogik = require("../seiten/einstellungen-logik.js");
+  const budget = { monat: "2026-11", eingerichtet: true, vermittlung: true, eigener_schluessel: false, guthaben_chf: 5,
+                   verbraucht_chf: 1, kosten_usd: 1 };
+  const costs = { monat_usd: 1, gesamt_usd: 1, aufrufe: 2, aufgaben: { terms: { aufrufe: 2, usd: 1 } } };
+  const shown = await inAll(() => [texte.t("Suchbegriffe prüfen"),
+    EinstellungenLogik.budgetView(budget, costs).rows.map(row => row.label)[0]]);
+  assert.deepEqual(shown, { de: ["Suchbegriffe prüfen", "Suchbegriffe prüfen"], fr: ["Vérifier les mots-clés", "Vérifier les mots-clés"],
+    en: ["Check search terms", "Checking search terms"] });
 });
