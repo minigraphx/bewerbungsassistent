@@ -9,6 +9,9 @@ import datetime
 import companies
 import excluded_companies
 from server import json_antwort, pflicht
+from ui_texts import T
+
+MISSING = "Es fehlt: {feld}"  # said in the app language (#423), the field name stays as the request spells it
 
 
 def _applications(k) -> list[dict]:
@@ -45,7 +48,7 @@ def reading(k, parameter, body):
     values = _body(body)
     key = values.get("firma")
     if not isinstance(key, str) or not key:
-        raise ValueError("Es fehlt: firma")
+        raise ValueError(T(MISSING, feld="firma"))
     return json_antwort(companies.store_reading(k, _applications(k), key, values, datetime.date.today()))
 
 
@@ -77,7 +80,7 @@ def show_again(k, parameter, body):
     """„Wieder zeigen“: the company's listed hits come back."""
     key = _body(body).get("schluessel")
     if not isinstance(key, str) or not key:
-        raise ValueError("Es fehlt: schluessel")
+        raise ValueError(T(MISSING, feld="schluessel"))
     return _excluded(k, {"firma": excluded_companies.remove(k, key)})
 
 

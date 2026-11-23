@@ -7,7 +7,9 @@
   const logik = window.FirmenLogik;
   const $ = id => document.getElementById(id);
   const ARIA_SORT = { aufsteigend: "ascending", absteigend: "descending" };
-  const NEUER_TAB = ", öffnet neuen Tab";
+  // Texts in the app language (#423): fixed words through Texte.t, the sets of texte.js through text below.
+  const Texte = window.Texte;
+  const neuerTab = () => Texte.t(", öffnet neuen Tab");
   // Without the extension „Prüfen“ only opens kununu in a new tab.
   const erweiterungDa = () => Boolean(document.documentElement.dataset.bewerbungsbegleiterErweiterung);
 
@@ -21,19 +23,19 @@
   let vonHand = null;    // the company of the dialog „Von Hand eintragen“
   const nichtGelesen = new Set();  // companies with a value whose new check found nothing readable
 
-  const text = (schluessel, werte) => window.Texte.text(schluessel, satz, werte);
+  const text = (schluessel, werte) => Texte.text(schluessel, satz, werte);
   /** A «·» line of whole parts (#342, dot-line.js): never starts with «·», screen readers hear commas. */
   const dotLine = parts => window.DotLine.render(parts, el);
   const meldung = (inhalt, stufe = "", optionen = {}) => window.Meldungen.zeige($("status"), inhalt, stufe, optionen);
 
   function extern(href, beschriftung, firma, klasse = "btn btn--sm") {
     return el("a", { class: klasse, href, target: "_blank", rel: "noopener noreferrer" }, beschriftung,
-      el("span", { class: "visually-hidden" }, `: ${firma.name}${NEUER_TAB}`));
+      el("span", { class: "visually-hidden" }, `: ${firma.name}${neuerTab()}`));
   }
 
   async function pruefen(firma, knopf) {
     knopf.disabled = true;
-    meldung(`${firma.name}: wird bei kununu geprüft …`);
+    meldung(Texte.t("{firma}: wird bei kununu geprüft …", { firma: firma.name }));
     const ergebnis = logik.pruefErgebnis(await window.KununuPruefen.pruefe(firma), firma.name);
     knopf.disabled = false;
     if (!ergebnis) return meldung("");
@@ -47,7 +49,7 @@
   function pruefenKnopf(firma, beschriftung) {
     return el("button", { type: "button", class: "btn btn--sm", "data-firma": firma.schluessel,
       onclick: event => pruefen(firma, event.currentTarget) },
-    beschriftung, el("span", { class: "visually-hidden" }, `: ${firma.name}${erweiterungDa() ? "" : NEUER_TAB}`));
+    beschriftung, el("span", { class: "visually-hidden" }, `: ${firma.name}${erweiterungDa() ? "" : neuerTab()}`));
   }
 
   function knopf(firma, beschriftung, aktion, attribute = {}) {
@@ -56,16 +58,18 @@
 
   function lernende(k) {
     if (satz !== "lehrstelle-du" || !k.lernende?.bewertungen) return null;
-    return el("span", { class: "rating__meta" }, `Lernende: ${logik.wert(k.lernende.wert)} von 5, ${logik.bewertungen(k.lernende.bewertungen)}`);
+    return el("span", { class: "rating__meta" }, Texte.t("Lernende: {wert} von 5, {bewertungen}",
+      { wert: logik.wert(k.lernende.wert), bewertungen: logik.bewertungen(k.lernende.bewertungen) }));
   }
 
   function wertBlock(firma, zustand) {
     const k = firma.kununu;
     const wenige = zustand === "wenige";
-    const meta = wenige ? `Nur ${logik.bewertungen(k.bewertungen)}, wenig aussagekräftig.`
-      : dotLine([logik.bewertungen(k.bewertungen), typeof k.empfehlung === "number" ? `${logik.prozent(k.empfehlung)} empfehlen` : ""]);
+    const empfehlung = typeof k.empfehlung === "number" ? Texte.t("{prozent} empfehlen", { prozent: logik.prozent(k.empfehlung) }) : "";
+    const meta = wenige ? Texte.t("Nur {bewertungen}, wenig aussagekräftig.", { bewertungen: logik.bewertungen(k.bewertungen) })
+      : dotLine([logik.bewertungen(k.bewertungen), empfehlung]);
     return el("div", { class: "rating", "data-state": wenige ? "few" : null },
-      el("span", { class: "rating__value" }, el("b", {}, logik.wert(k.wert)), " von 5"),
+      el("span", { class: "rating__value" }, el("b", {}, logik.wert(k.wert)), Texte.t(" von 5")),
       el("span", { class: "rating__meta" }, meta), lernende(k), el("span", { class: "rating__meta" }, logik.seite(k)));
   }
 
@@ -73,16 +77,18 @@
     const zustand = logik.zustand(firma);
     if (logik.MIT_WERT.includes(zustand)) return wertBlock(firma, zustand);
     if (zustand === "fehler") {
-      return el("p", { class: "status-line", "data-level": "warning" }, "Nicht geprüft. kununu war nicht erreichbar. Bitte später nochmals prüfen.");
+      return el("p", { class: "status-line", "data-level": "warning" },
+        Texte.t("Nicht geprüft. kununu war nicht erreichbar. Bitte später nochmals prüfen."));
     }
-    const worte = { keine: "Noch keine Bewertungen", mehrere: text("firmen.mehrere"), nicht_gefunden: "Bei kununu nicht gefunden",
-                    zugeordnet: "Noch nicht geprüft, Seite zugeordnet", ungeprueft: "Noch nicht geprüft" };
-    return el("span", { class: zustand === "mehrere" ? "rating__state" : "rating__state rating__state--quiet" }, worte[zustand]);
+    const worte = { keine: () => Texte.t("Noch keine Bewertungen"), mehrere: () => text("firmen.mehrere"),
+                    nicht_gefunden: () => Texte.t("Bei kununu nicht gefunden"),
+                    zugeordnet: () => Texte.t("Noch nicht geprüft, Seite zugeordnet"), ungeprueft: () => Texte.t("Noch nicht geprüft") };
+    return el("span", { class: zustand === "mehrere" ? "rating__state" : "rating__state rating__state--quiet" }, worte[zustand]());
   }
 
   function verknuepft(firma) {
     const bewerbungen = firma.bewerbungen.map(b => el("span", { class: "line" },
-      el("a", { href: "/bewerbung?" + new URLSearchParams({ id: b.id }) }, b.stelle || "Bewerbung"),
+      el("a", { href: "/bewerbung?" + new URLSearchParams({ id: b.id }) }, b.stelle || Texte.t("Bewerbung")),
       el("span", { class: "marke-status", "data-status": b.status }, window.Texte.statusName(b.status, satz))));
     const treffer = firma.treffer.length ? [el("span", { class: "line" }, el("a", { href: "/treffer" }, logik.trefferText(firma.treffer)))] : [];
     return el("div", { class: "companies__links" }, ...bewerbungen, ...treffer);
@@ -91,25 +97,26 @@
   function geprueft(firma) {
     const am = firma.kununu?.geprueft_am;
     if (!am || logik.zustand(firma) === "zugeordnet") return el("span", { class: "muted" }, "–");
-    return logik.veraltet(firma, heute) ? [el("span", { class: "muted" }, "Stand "), logik.datum(am)] : logik.datum(am);
+    return logik.veraltet(firma, heute) ? [el("span", { class: "muted" }, Texte.t("Stand ")), logik.datum(am)] : logik.datum(am);
   }
 
   function aktionen(firma) {
     const zustand = logik.zustand(firma);
     const k = firma.kununu || {};
-    const ansehen = k.link ? extern(k.link, "Bei kununu ansehen", firma) : null;
-    const selbst = knopf(firma, "Selbst zuordnen", () => oeffneDialog(firma));
+    const ansehen = k.link ? extern(k.link, Texte.t("Bei kununu ansehen"), firma) : null;
     const je = {
-      ungeprueft: [pruefenKnopf(firma, "Prüfen")],
-      zugeordnet: [pruefenKnopf(firma, "Prüfen"), ansehen],
-      fehler: [pruefenKnopf(firma, "Nochmals prüfen")],
-      nicht_gefunden: [extern(firma.suche, "Bei kununu suchen", firma, "btn btn--sm btn--quiet"), selbst],
-      mehrere: [knopf(firma, "Passende wählen", () => waehlen(firma),
+      ungeprueft: () => [pruefenKnopf(firma, Texte.t("Prüfen"))],
+      zugeordnet: () => [pruefenKnopf(firma, Texte.t("Prüfen")), ansehen],
+      fehler: () => [pruefenKnopf(firma, Texte.t("Nochmals prüfen"))],
+      nicht_gefunden: () => [extern(firma.suche, Texte.t("Bei kununu suchen"), firma, "btn btn--sm btn--quiet"),
+        knopf(firma, Texte.t("Selbst zuordnen"), () => oeffneDialog(firma))],
+      mehrere: () => [knopf(firma, Texte.t("Passende wählen"), () => waehlen(firma),
         { "aria-expanded": String(offen === firma.schluessel), "aria-controls": `wahl-${firma.schluessel}` })],
     };
-    const gefunden = [logik.pruefungFaellig(firma, heute) ? pruefenKnopf(firma, "Neu prüfen") : null, ansehen];
-    const hand = logik.vonHandAnbieten(firma, heute, nichtGelesen) ? knopf(firma, "Von Hand eintragen", () => oeffneVonHand(firma)) : null;
-    return el("div", { class: "btn-row" }, ...(je[zustand] || gefunden).filter(Boolean), hand, sucheKnopf(firma));
+    const gefunden = () => [logik.pruefungFaellig(firma, heute) ? pruefenKnopf(firma, Texte.t("Neu prüfen")) : null, ansehen];
+    const hand = logik.vonHandAnbieten(firma, heute, nichtGelesen)
+      ? knopf(firma, Texte.t("Von Hand eintragen"), () => oeffneVonHand(firma)) : null;
+    return el("div", { class: "btn-row" }, ...(je[zustand] || gefunden)().filter(Boolean), hand, sucheKnopf(firma));
   }
 
   // Excluded companies (#226, G65): their hits leave the search; the row stays, so the person can take it back here.
@@ -144,10 +151,10 @@
   function zeile(firma) {
     return el("tr", { "data-schluessel": firma.schluessel, class: offen === firma.schluessel ? "is-open" : null },
       el("td", { "data-label": "" }, el("span", { class: "table__main" }, firma.name), firma.ort ? el("span", { class: "table__sub" }, firma.ort) : null,
-        firma.ausgeschlossen ? el("span", { class: "table__sub" }, "Nicht mehr in der Suche") : null),
+        firma.ausgeschlossen ? el("span", { class: "table__sub" }, Texte.t("Nicht mehr in der Suche")) : null),
       el("td", { "data-label": "kununu" }, kununuZelle(firma)),
-      el("td", { "data-label": "Treffer und Bewerbungen" }, verknuepft(firma)),
-      el("td", { "data-label": "Geprüft", class: "num" }, geprueft(firma)),
+      el("td", { "data-label": Texte.t("Treffer und Bewerbungen") }, verknuepft(firma)),
+      el("td", { "data-label": Texte.t("Geprüft"), class: "num" }, geprueft(firma)),
       el("td", { "data-label": "", class: "companies__actions" }, aktionen(firma)));
   }
 
@@ -157,15 +164,18 @@
       el("input", { type: "radio", name, value: kandidat.link }),
       el("span", {}, el("span", { class: "choice__name" }, kandidat.name),
         el("span", { class: "choice__meta" }, dotLine([kandidat.ort, typeof kandidat.bewertungen === "number" ? logik.bewertungen(kandidat.bewertungen) : ""]))),
-      el("a", { href: kandidat.link, target: "_blank", rel: "noopener noreferrer" }, "Bei kununu ansehen",
-        el("span", { class: "visually-hidden" }, `: ${kandidat.name}${NEUER_TAB}`))));
-    const keine = el("label", { class: "choice" }, el("input", { type: "radio", name, value: "" }), el("span", {}, el("span", { class: "choice__name" }, "Keine davon passt")), el("span", {}));
-    const legende = el("legend", { tabindex: "-1" }, `Welche ist ${[firma.name, firma.ort].filter(Boolean).join(", ")}?`);
+      el("a", { href: kandidat.link, target: "_blank", rel: "noopener noreferrer" }, Texte.t("Bei kununu ansehen"),
+        el("span", { class: "visually-hidden" }, `: ${kandidat.name}${neuerTab()}`))));
+    const keine = el("label", { class: "choice" }, el("input", { type: "radio", name, value: "" }),
+      el("span", {}, el("span", { class: "choice__name" }, Texte.t("Keine davon passt"))), el("span", {}));
+    const legende = el("legend", { tabindex: "-1" },
+      Texte.t("Welche ist {firma}?", { firma: [firma.name, firma.ort].filter(Boolean).join(", ") }));
     return el("tr", { class: "chooser", id: name }, el("td", { colspan: "5", "data-label": "" }, el("fieldset", {}, legende,
-      el("p", { class: "field__hint" }, "Ort und Anzahl Bewertungen helfen beim Wählen."), ...kandidaten, keine,
+      el("p", { class: "field__hint" }, Texte.t("Ort und Anzahl Bewertungen helfen beim Wählen.")), ...kandidaten, keine,
       el("div", { class: "btn-row" },
-        el("button", { type: "button", class: "btn btn--sm btn--primary", onclick: () => zuordnenAusWahl(firma) }, "Zuordnen"),
-        el("button", { type: "button", class: "btn btn--sm", onclick: () => { offen = null; zeige(firma.schluessel); } }, "Abbrechen")))));
+        el("button", { type: "button", class: "btn btn--sm btn--primary", onclick: () => zuordnenAusWahl(firma) }, Texte.t("Zuordnen")),
+        el("button", { type: "button", class: "btn btn--sm", onclick: () => { offen = null; zeige(firma.schluessel); } },
+          Texte.t("Abbrechen"))))));
   }
 
   function fokusAuf(schluessel) {
@@ -182,8 +192,11 @@
 
   function zeigeKopfzeile() {
     const { anzahl, gefunden, zuletzt } = logik.zusammenfassung(firmen);
-    $("zeile").replaceChildren(...dotLine([text("firmen.zeile", { anzahl }), text("firmen.zeile.gefunden", { gefunden }),
-      zuletzt ? `zuletzt geprüft am ${logik.datum(zuletzt)}` : ""]));
+    // one company or one found: keys of their own, so French and English say it in the singular (#423)
+    $("zeile").replaceChildren(...dotLine([
+      anzahl === 1 ? text("firmen.zeile.eins") : text("firmen.zeile", { anzahl }),
+      gefunden === 1 ? text("firmen.zeile.gefunden-eins") : text("firmen.zeile.gefunden", { gefunden }),
+      zuletzt ? Texte.t("zuletzt geprüft am {datum}", { datum: logik.datum(zuletzt) }) : ""]));
     const zahlen = logik.zaehlen(firmen);
     for (const knopf of document.querySelectorAll("[data-filter]")) {
       knopf.setAttribute("aria-pressed", String(knopf.dataset.filter === filter));
@@ -219,14 +232,15 @@
   async function zuordnenAusWahl(firma) {
     const gewaehlt = document.querySelector(`#wahl-${CSS.escape(firma.schluessel)} input:checked`);
     if (!gewaehlt) {
-      return meldung("Bitte eine Firma wählen oder «Keine davon passt».", "warning",
+      return meldung(Texte.t("Bitte eine Firma wählen oder «Keine davon passt»."), "warning",
         { input: document.getElementById(`wahl-${firma.schluessel}`) });
     }
     try {
       await senden("/api/firmen/waehlen", gewaehlt.value ? { link: gewaehlt.value } : { keine: true }, { firma: firma.schluessel });
       offen = null;
       await laden(firma.schluessel);
-      meldung(gewaehlt.value ? `${firma.name}: Seite bei kununu zugeordnet.` : `${firma.name}: bei kununu nicht gefunden.`);
+      meldung(gewaehlt.value ? Texte.t("{firma}: Seite bei kununu zugeordnet.", { firma: firma.name })
+        : Texte.t("{name}: bei kununu nicht gefunden.", { name: firma.name }));
     } catch (fehler) {
       meldung(fehler.message, "warning");
     }
@@ -247,7 +261,7 @@
       await senden("/api/firmen/zuordnen", { link: $("zuordnen-link").value }, { firma: zuordnen.schluessel });
       $("zuordnen-dialog").close();
       await laden(zuordnen.schluessel);
-      meldung(`${zuordnen.name}: Seite bei kununu zugeordnet. Der Wert kommt mit der nächsten Prüfung.`);
+      meldung(Texte.t("{firma}: Seite bei kununu zugeordnet. Der Wert kommt mit der nächsten Prüfung.", { firma: zuordnen.name }));
     } catch (fehler) {
       const abgelehnt = window.Meldungen.isInputRejection(fehler);
       $("zuordnen-link").setAttribute("aria-invalid", "true");
@@ -259,7 +273,7 @@
 
   function oeffneVonHand(firma) {
     vonHand = firma;
-    $("hand-titel").textContent = `kununu-Wert für ${firma.name} eintragen`;
+    $("hand-titel").textContent = Texte.t("kununu-Wert für {firma} eintragen", { firma: firma.name });
     for (const feld of ["wert", "bewertungen"]) {
       $(`hand-${feld}`).value = "";
       $(`hand-${feld}`).removeAttribute("aria-invalid");
@@ -284,7 +298,7 @@
       $("hand-dialog").close();
       nichtGelesen.delete(vonHand.schluessel);
       await laden(vonHand.schluessel);
-      meldung(`${vonHand.name}: kununu-Wert eingetragen.`, "success");
+      meldung(Texte.t("{firma}: kununu-Wert eingetragen.", { firma: vonHand.name }), "success");
     } catch (fehler) {
       $("hand-wert-fehler").textContent = fehler.message;
     }

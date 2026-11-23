@@ -1,0 +1,154 @@
+{
+  "Firmen anzeigen": {"fr": "Afficher les entreprises", "en": "Show companies"},
+  "Mit neuen Treffern": {"fr": "Avec nouveaux résultats", "en": "With new results"},
+  "Mit Bewerbung": {"fr": "Avec candidature", "en": "With application"},
+  "Zu klären": {"fr": "À clarifier", "en": "To clarify"},
+  "Firma suchen": {"fr": "Chercher une entreprise", "en": "Search for a company"},
+  "Wie lese ich kununu?": {"fr": "Comment lire kununu\u00a0?", "en": "How do I read kununu?"},
+  "Treffer und Bewerbungen": {"fr": "Résultats et candidatures", "en": "Results and applications"},
+  "Geprüft": {"fr": "Vérifié", "en": "Checked"},
+  "Aktionen": {"fr": "Actions", "en": "Actions"},
+  "Bewertungen: kununu, Stand am angegebenen Tag. Sie stammen von Mitarbeitenden, nicht von der App.": {
+    "fr": "Avis\u00a0: kununu, état au jour indiqué. Ils proviennent d'employés, pas de l'app.",
+    "en": "Reviews: kununu, as of the date shown. They come from employees, not from the app."
+  },
+  "Zuordnen": {"fr": "Associer", "en": "Assign"},
+  "Wert und Anzahl so, wie sie bei kununu stehen.": {
+    "fr": "Valeur et nombre tels qu'indiqués sur kununu.",
+    "en": "Value and number as shown on kununu."
+  },
+  "Wert von 1 bis 5": {"fr": "Valeur de 1 à 5", "en": "Value from 1 to 5"},
+  "Anzahl Bewertungen": {"fr": "Nombre d'avis", "en": "Number of reviews"},
+
+  "Noch keine Bewertungen": {"fr": "Pas encore d'avis", "en": "No reviews yet"},
+  "Bei kununu nicht gefunden": {"fr": "Introuvable sur kununu", "en": "Not found on kununu"},
+  "Noch nicht geprüft, Seite zugeordnet": {"fr": "Pas encore vérifié, page associée", "en": "Not checked yet, page assigned"},
+  "Noch nicht geprüft": {"fr": "Pas encore vérifié", "en": "Not checked yet"},
+  "Stand ": {"fr": "État au ", "en": "As of "},
+  "Selbst zuordnen": {"fr": "Associer soi-même", "en": "Assign it yourself"},
+  "Passende wählen": {"fr": "Choisir la bonne", "en": "Choose the matching one"},
+  "Von Hand eintragen": {"fr": "Saisir à la main", "en": "Enter by hand"},
+  "Nicht mehr in der Suche": {"fr": "Plus dans la recherche", "en": "No longer in the search"},
+  "zuletzt geprüft am {datum}": {"fr": "dernière vérification le {datum}", "en": "last checked on {datum}"},
+  "Keine davon passt": {"fr": "Aucune ne correspond", "en": "None of them matches"},
+  "Welche ist {firma}?": {"fr": "Laquelle est {firma}\u00a0?", "en": "Which one is {firma}?"},
+  "Ort und Anzahl Bewertungen helfen beim Wählen.": {
+    "fr": "Le lieu et le nombre d'avis aident à choisir.",
+    "en": "The place and the number of reviews help you choose."
+  },
+  "Bitte eine Firma wählen oder «Keine davon passt».": {
+    "fr": "Merci de choisir une entreprise ou «\u00a0Aucune ne correspond\u00a0».",
+    "en": "Please choose a company or “None of them matches”."
+  },
+  "{firma}: wird bei kununu geprüft …": {"fr": "{firma}\u00a0: vérification sur kununu…", "en": "{firma}: checking on kununu…"},
+  "{firma}: Seite bei kununu zugeordnet.": {"fr": "{firma}\u00a0: page kununu associée.", "en": "{firma}: kununu page assigned."},
+  "{firma}: Seite bei kununu zugeordnet. Der Wert kommt mit der nächsten Prüfung.": {
+    "fr": "{firma}\u00a0: page kununu associée. La valeur arrive avec la prochaine vérification.",
+    "en": "{firma}: kununu page assigned. The value comes with the next check."
+  },
+  "kununu-Wert für {firma} eintragen": {"fr": "Saisir la valeur kununu pour {firma}", "en": "Enter the kununu value for {firma}"},
+  "{firma}: kununu-Wert eingetragen.": {"fr": "{firma}\u00a0: valeur kununu saisie.", "en": "{firma}: kununu value entered."},
+
+  "Das ist kein Link zu einer Firma bei kununu.": {
+    "fr": "Ce n'est pas un lien vers une entreprise sur kununu.",
+    "en": "That is not a link to a company on kununu."
+  },
+  "Diese Firma stand nicht zur Wahl. Bitte die Seite neu laden.": {
+    "fr": "Cette entreprise ne faisait pas partie du choix. Merci de recharger la page.",
+    "en": "This company was not one of the choices. Please reload the page."
+  },
+  "Was die Erweiterung bei kununu gelesen hat, passt nicht.": {
+    "fr": "Ce que l'extension a lu sur kununu ne convient pas.",
+    "en": "What the extension read on kununu does not fit."
+  },
+  "Es fehlt: {feld}": {"fr": "Il manque\u00a0: {feld}", "en": "Missing: {feld}"},
+
+  "texte:firmen.nur-name": {
+    "fr": {
+      "sie": "«\u00a0Vérifier\u00a0» ouvre l'entreprise sur kununu dans un nouvel onglet. Seul le nom de l'entreprise est transmis à kununu. Vos informations restent sur cet ordinateur.",
+      "du": "«\u00a0Vérifier\u00a0» ouvre l'entreprise sur kununu dans un nouvel onglet. Seul le nom de l'entreprise est transmis à kununu. Tes informations restent sur cet ordinateur.",
+      "lehrstelle": "«\u00a0Vérifier\u00a0» ouvre l'entreprise formatrice sur kununu dans un nouvel onglet. Seul le nom de l'entreprise formatrice est transmis à kununu. Tes informations restent sur cet ordinateur."
+    },
+    "en": {
+      "sie": "“Check” opens the company on kununu in a new tab. Only the company name goes to kununu. Your details stay on this computer.",
+      "lehrstelle": "“Check” opens the host company on kununu in a new tab. Only the host company's name goes to kununu. Your details stay on this computer."
+    }
+  },
+  "texte:firmen.suchen": {
+    "fr": {"sie": "Chercher une entreprise", "du": "Chercher une entreprise", "lehrstelle": "Chercher une entreprise formatrice"},
+    "en": {"sie": "Search for a company", "lehrstelle": "Search for a host company"}
+  },
+  "texte:firmen.spalte": {
+    "fr": {"sie": "Entreprise", "du": "Entreprise", "lehrstelle": "Entreprise formatrice"},
+    "en": {"sie": "Company", "lehrstelle": "Host company"}
+  },
+  "texte:firmen.keine-passt": {
+    "fr": {"sie": "Aucune entreprise ne correspond à cette recherche.", "du": "Aucune entreprise ne correspond à cette recherche.", "lehrstelle": "Aucune entreprise formatrice ne correspond à cette recherche."},
+    "en": {"sie": "No company matches this search.", "lehrstelle": "No host company matches this search."}
+  },
+  "texte:firmen.mehrere": {
+    "fr": {"sie": "Plusieurs entreprises sur kununu", "du": "Plusieurs entreprises sur kununu", "lehrstelle": "Plusieurs entreprises formatrices sur kununu"},
+    "en": {"sie": "Several companies on kununu", "lehrstelle": "Several host companies on kununu"}
+  },
+  "texte:firmen.hilfe": {
+    "fr": {
+      "sie": "Sur kununu, les employés actuels et anciens évaluent leur entreprise\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une offre correspond à vos informations.",
+      "du": "Sur kununu, les employés actuels et anciens évaluent leur entreprise\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une offre correspond à tes informations.",
+      "lehrstelle": "Sur kununu, les employés et apprentis actuels et anciens évaluent leur entreprise formatrice\u00a0: 5 est la meilleure valeur, 1 la moins bonne. En dessous de 10 avis, la valeur dit peu de chose. La note de l'app, elle, dit à quel point une place d'apprentissage correspond à tes informations."
+    },
+    "en": {
+      "sie": "On kununu, current and former employees rate their company: 5 is the best value, 1 the worst. Below 10 reviews, the value says little. The app's grade, by contrast, says how well a job fits your details.",
+      "lehrstelle": "On kununu, current and former employees and apprentices rate their host company: 5 is the best value, 1 the worst. Below 10 reviews, the value says little. The app's grade, by contrast, says how well an apprenticeship fits your details."
+    }
+  },
+  "texte:firmen.leer": {
+    "fr": {
+      "sie": "Pas encore d'entreprises. La liste se remplit avec la recherche et avec les offres que vous saisissez à la main.",
+      "du": "Pas encore d'entreprises. La liste se remplit avec la recherche et avec les offres que tu saisis à la main.",
+      "lehrstelle": "Pas encore d'entreprises formatrices. La liste se remplit avec la recherche et avec les places d'apprentissage que tu saisis à la main."
+    },
+    "en": {
+      "sie": "No companies yet. The list fills up with the search and with jobs you add by hand.",
+      "lehrstelle": "No host companies yet. The list fills up with the search and with apprenticeships you add by hand."
+    }
+  },
+  "texte:firmen.zeile": {
+    "fr": {"sie": "{anzahl} entreprises issues des résultats et candidatures", "du": "{anzahl} entreprises issues des résultats et candidatures", "lehrstelle": "{anzahl} entreprises formatrices issues des résultats et candidatures"},
+    "en": {"sie": "{anzahl} companies from results and applications", "lehrstelle": "{anzahl} host companies from results and applications"}
+  },
+  "texte:firmen.zeile.eins": {
+    "fr": {"sie": "1 entreprise issue des résultats et candidatures", "du": "1 entreprise issue des résultats et candidatures", "lehrstelle": "1 entreprise formatrice issue des résultats et candidatures"},
+    "en": {"sie": "1 company from results and applications", "lehrstelle": "1 host company from results and applications"}
+  },
+  "texte:firmen.zeile.gefunden": {
+    "fr": {"sie": "{gefunden} trouvées sur kununu", "du": "{gefunden} trouvées sur kununu", "lehrstelle": "{gefunden} trouvées sur kununu"},
+    "en": {"sie": "{gefunden} found on kununu", "lehrstelle": "{gefunden} found on kununu"}
+  },
+  "texte:firmen.zeile.gefunden-eins": {
+    "fr": {"sie": "1 trouvée sur kununu", "du": "1 trouvée sur kununu", "lehrstelle": "1 trouvée sur kununu"},
+    "en": {"sie": "1 found on kununu", "lehrstelle": "1 found on kununu"}
+  },
+  "texte:firmen.dialog": {
+    "fr": {"sie": "Quelle page kununu correspond à {firma}\u00a0?", "du": "Quelle page kununu correspond à {firma}\u00a0?"},
+    "en": {"sie": "Which kununu page belongs to {firma}?"}
+  },
+  "texte:firmen.dialog-feld": {
+    "fr": {"sie": "Lien vers l'entreprise sur kununu", "du": "Lien vers l'entreprise sur kununu", "lehrstelle": "Lien vers l'entreprise formatrice sur kununu"},
+    "en": {"sie": "Link to the company on kununu", "lehrstelle": "Link to the host company on kununu"}
+  },
+  "texte:firmen.dialog-hilfe": {
+    "fr": {
+      "sie": "Sur kununu, ouvrir l'entreprise et copier le lien depuis la barre d'adresse. kununu.com/ch et kununu.de fonctionnent.",
+      "du": "Sur kununu, ouvrir l'entreprise et copier le lien depuis la barre d'adresse. kununu.com/ch et kununu.de fonctionnent.",
+      "lehrstelle": "Sur kununu, ouvrir l'entreprise formatrice et copier le lien depuis la barre d'adresse. kununu.com/ch et kununu.de fonctionnent."
+    },
+    "en": {
+      "sie": "On kununu, open the company and copy the link from the address bar. kununu.com/ch and kununu.de work.",
+      "lehrstelle": "On kununu, open the host company and copy the link from the address bar. kununu.com/ch and kununu.de work."
+    }
+  },
+  "texte:firmen.dialog-fehler": {
+    "fr": {"sie": "Ce n'est pas un lien vers une entreprise sur kununu.", "du": "Ce n'est pas un lien vers une entreprise sur kununu.", "lehrstelle": "Ce n'est pas un lien vers une entreprise formatrice sur kununu."},
+    "en": {"sie": "That is not a link to a company on kununu.", "lehrstelle": "That is not a link to a host company on kununu."}
+  }
+}

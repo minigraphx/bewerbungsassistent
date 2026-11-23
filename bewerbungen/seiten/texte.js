@@ -134,6 +134,16 @@
     "firmen.zeile.gefunden": {
       sie: "{gefunden} bei kununu gefunden", du: "{gefunden} bei kununu gefunden", lehrstelle: "{gefunden} bei kununu gefunden",
     },
+    // #423: one company and one found get keys of their own, so French and English say them in the singular; German
+    // stays as the counted form said it
+    "firmen.zeile.eins": {
+      sie: "1 Firmen aus Treffern und Bewerbungen",
+      du: "1 Firmen aus Treffern und Bewerbungen",
+      lehrstelle: "1 Lehrbetriebe aus Treffern und Bewerbungen",
+    },
+    "firmen.zeile.gefunden-eins": {
+      sie: "1 bei kununu gefunden", du: "1 bei kununu gefunden", lehrstelle: "1 bei kununu gefunden",
+    },
     "firmen.nur-name": {
       sie: "Prüfen öffnet die Firma bei kununu in einem neuen Tab. Nur der Firmenname geht an kununu. Ihre Angaben bleiben auf diesem Computer.",
       du: "Prüfen öffnet die Firma bei kununu in einem neuen Tab. Nur der Firmenname geht an kununu. Deine Angaben bleiben auf diesem Computer.",

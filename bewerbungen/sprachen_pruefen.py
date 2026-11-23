@@ -70,6 +70,10 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "routes_search.py", BASE / "routes_rate_all.py", BASE / "rate_all.py", BASE / "routes_adopt_by_grade.py",
     BASE / "routes_adopt_exclusion.py", BASE / "excluded_companies.py", BASE / "search_window.py",
     BASE / "search_stages.py", BASE / "amount_text.py", BASE / "ui_message.py",
+    # The page Firmen (#423): its scripts and the modules behind its routes; /api/suche/liste for the tab counts is
+    # routes_search.py above.
+    BASE / "seiten/firmen.html", BASE / "seiten/firmen.js", BASE / "seiten/stellen-reiter.js",
+    BASE / "routes_companies.py", BASE / "companies.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
