@@ -27,9 +27,12 @@ NBSP = chr(0xA0)
 SETUP_FR = ("<title>Configuration</title>", "<h1>Configuration</h1>", f"Que faut-il chercher{NBSP}?", "Un poste",
             "Une place d'apprentissage", f"Inscription à l'ORP{NBSP}?", "Informations depuis un fichier",
             "Charger l'extension de navigateur", "Presque terminé", "Saisir mes informations", "Passer",
-            "Configurer plus tard", f"Ça ne marche pas{NBSP}?")
+            "Configurer plus tard", f"Ça ne marche pas{NBSP}?", "Guide illustré (en allemand)",
+            "Si oui, l'app aide à saisir les recherches d'emploi sur Job-Room.")
 SETUP_EN = ("<title>Setup</title>", "<h1>Setup</h1>", "What are you looking for?", "A job", "An apprenticeship",
-            "Registered with the RAV?", "Details from a file", "Load the browser extension", "Almost done")
+            "Registered with the RAV?", "Details from a file", "Load the browser extension", "Almost done",
+            "Illustrated guide (in German)", "If yes, the app helps you log your job search efforts in Job-Room.",
+            "For apprenticeships, the app is always informal.", "Setup is only available in the installed app.")
 SETUP_DE = ("<h1>Einrichtung</h1>", "Was wird gesucht?", "Eine Lehrstelle", "Beim RAV gemeldet?",
             "Angaben aus einer Datei", "Browser-Erweiterung laden", "Fast fertig", "Klappt es nicht?")
 
@@ -161,7 +164,7 @@ def test_the_folder_check_answers_its_error_in_french(started, preview):
     store_language(folder, "fr")
 
     assert post(server, "/api/app/ordner-pruefen", {"pfad": "Bewerbung"}) == (
-        400, {"fehler": f"Merci d'indiquer le chemin complet du dossier, p.{NBSP}ex. C:\\Users\\…\\Documents\\Candidature."})
+        400, {"fehler": f"Merci d'indiquer le chemin complet du dossier, p.{NBSP}ex. C:\\Users\\…\\Documents\\Candidatures."})
 
 
 def test_the_folder_check_answers_its_error_in_english(started, preview):

@@ -11,6 +11,7 @@ const logik = require("../seiten/einrichtung-logik.js");
 
 const CATALOG = path.join(__dirname, "..", "sprachen");
 const SET_PREFIX = "texte:";
+const NBSP = String.fromCharCode(0xa0);
 
 /** What translation_catalog.for_page hands a page of one language: plain texts and text sets. */
 function catalogFor(language) {
@@ -58,11 +59,16 @@ test("the end of the setup names what is open in English", () => {
   assert.equal(inLanguage("en", () => logik.abschlussTitel([])), "All set up");
 });
 
-test("the summary of the choice comes in the app language", () => {
-  assert.equal(inLanguage("fr", () => logik.zusammenfassung(JOB)), "un poste, vous, avec ORP");
-  assert.equal(inLanguage("fr", () => logik.zusammenfassung(APPRENTICESHIP)), "une place d'apprentissage, tu, sans ORP");
-  assert.equal(inLanguage("en", () => logik.zusammenfassung(JOB)), "a job, formal, with RAV");
-  assert.equal(inLanguage("en", () => logik.zusammenfassung(APPRENTICESHIP)), "an apprenticeship, informal, without RAV");
+test("the summary of the choice comes in the app language, its RAV part as a yes or no", () => {
+  assert.equal(inLanguage("fr", () => logik.zusammenfassung(JOB)), `un poste, vous, ORP${NBSP}: oui`);
+  assert.equal(inLanguage("fr", () => logik.zusammenfassung(APPRENTICESHIP)), `une place d'apprentissage, tu, ORP${NBSP}: non`);
+  assert.equal(inLanguage("en", () => logik.zusammenfassung(JOB)), "a job, formal, RAV: yes");
+  assert.equal(inLanguage("en", () => logik.zusammenfassung(APPRENTICESHIP)), "an apprenticeship, informal, RAV: no");
+});
+
+test("the summary is one template, so a language can order and space its parts", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "seiten", "einrichtung-logik.js"), "utf8");
+  assert.match(source, /Texte\.t\("\{was\}, \{anrede\}, \{rav\}", \{ was, anrede, rav \}\)/);
 });
 
 test("German stays as it was", () => {

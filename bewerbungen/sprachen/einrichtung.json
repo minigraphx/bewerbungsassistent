@@ -4,14 +4,14 @@
     "fr": "Deux étapes courtes, environ trois minutes en tout. Chacune peut être modifiée plus tard.",
     "en": "Two short steps, about three minutes in all. Each can be changed later."
   },
-  "Anleitung mit Bildern": {"fr": "Guide avec images", "en": "Guide with pictures"},
+  "Anleitung mit Bildern": {"fr": "Guide illustré (en allemand)", "en": "Illustrated guide (in German)"},
   "Die KI ist noch nicht eingerichtet. Das geht jederzeit.": {
     "fr": "L'IA n'est pas encore configurée. C'est possible à tout moment.",
     "en": "The AI is not set up yet. You can do it any time."
   },
   "Die Einrichtung gibt es nur in der installierten App.": {
-    "fr": "La configuration n'existe que dans l'app installée.",
-    "en": "The setup only exists in the installed app."
+    "fr": "La configuration n'est disponible que dans l'app installée.",
+    "en": "Setup is only available in the installed app."
   },
   "Schritte der Einrichtung": {"fr": "Étapes de la configuration", "en": "Setup steps"},
 
@@ -19,7 +19,7 @@
   "Erweiterung": {"fr": "Extension", "en": "Extension"},
   "Stelle oder Lehrstelle": {"fr": "Poste ou apprentissage", "en": "Job or apprenticeship"},
   "übernommen": {"fr": "importé", "en": "imported"},
-  "übersprungen": {"fr": "passé", "en": "skipped"},
+  "übersprungen": {"fr": "non importé", "en": "skipped"},
   "freiwillig": {"fr": "facultatif", "en": "optional"},
   "nur in der installierten App": {"fr": "seulement dans l'app installée", "en": "only in the installed app"},
   "geladen": {"fr": "chargée", "en": "loaded"},
@@ -42,13 +42,13 @@
   "Mit du": {"fr": "Tu", "en": "Informal"},
   "Bei Lehrstellen spricht die App mit du.": {
     "fr": "Pour les places d'apprentissage, l'app tutoie.",
-    "en": "For apprenticeships, the app uses the informal form."
+    "en": "For apprenticeships, the app is always informal."
   },
   "Beim RAV gemeldet?": {"fr": "Inscription à l'ORP\u00a0?", "en": "Registered with the RAV?"},
   "Ja": {"fr": "Oui", "en": "Yes"},
   "Mit Ja hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.": {
-    "fr": "Avec Oui, l'app aide à saisir les recherches d'emploi dans Job-Room.",
-    "en": "With Yes, the app helps enter the job search efforts in Job-Room."
+    "fr": "Si oui, l'app aide à saisir les recherches d'emploi sur Job-Room.",
+    "en": "If yes, the app helps you log your job search efforts in Job-Room."
   },
   "Lässt sich später unter Meine Angaben ändern.": {
     "fr": "Modifiable plus tard sous Mes informations.",
@@ -56,12 +56,13 @@
   },
   "eine Stelle": {"fr": "un poste", "en": "a job"},
   "eine Lehrstelle": {"fr": "une place d'apprentissage", "en": "an apprenticeship"},
-  "mit RAV": {"fr": "avec ORP", "en": "with RAV"},
-  "ohne RAV": {"fr": "sans ORP", "en": "without RAV"},
+  "mit RAV": {"fr": "ORP\u00a0: oui", "en": "RAV: yes"},
+  "ohne RAV": {"fr": "ORP\u00a0: non", "en": "RAV: no"},
+  "{was}, {anrede}, {rav}": {"fr": "{was}, {anrede}, {rav}", "en": "{was}, {anrede}, {rav}"},
   "Gespeichert.": {"fr": "Enregistré.", "en": "Saved."},
   "In diesem Ordner war schon eine Wahl gespeichert; sie gilt jetzt. Mit Weiter geht es weiter.": {
-    "fr": "Un choix était déjà enregistré dans ce dossier\u00a0; c'est lui qui s'applique maintenant. Continuer avec «\u00a0Continuer\u00a0».",
-    "en": "A choice was already saved in this folder; it applies now. Use “Continue” to go on."
+    "fr": "Un choix était déjà enregistré dans ce dossier\u00a0; il s'applique maintenant. Cliquer sur «\u00a0Continuer\u00a0» pour poursuivre.",
+    "en": "A choice was already saved in this folder and now applies. Click “Continue” to go on."
   },
 
   "texte:einrichtung.ordner.zeile": {
@@ -92,12 +93,12 @@
 
   "Angaben aus einer Datei": {"fr": "Informations depuis un fichier", "en": "Details from a file"},
   "Im Ordner Downloads liegt eine Datei mit Angaben: {name}. Mit {knopf} übernimmt die App sie.": {
-    "fr": "Le dossier Téléchargements contient un fichier d'informations\u00a0: {name}. Avec {knopf}, l'app le reprend.",
-    "en": "The Downloads folder holds a file with details: {name}. With {knopf}, the app takes it over."
+    "fr": "Le dossier Téléchargements contient un fichier d'informations\u00a0: {name}. {knopf} l'importe dans l'app.",
+    "en": "The Downloads folder holds a file with details: {name}. {knopf} imports it into the app."
   },
   "Wer schon eine Datei {zip} oder {json} hat, zum Beispiel aus Claude, übernimmt sie hier. Sie liegt meist im Ordner Downloads.": {
-    "fr": "Un fichier {zip} ou {json} déjà prêt, par exemple de Claude, se reprend ici. Il se trouve généralement dans le dossier Téléchargements.",
-    "en": "A file {zip} or {json} you already have, for example from Claude, is taken over here. It is usually in the Downloads folder."
+    "fr": "Un fichier {zip} ou {json} déjà prêt, par exemple de Claude, s'importe ici. Il se trouve généralement dans le dossier Téléchargements.",
+    "en": "Already have a file {zip} or {json}, for example from Claude? Import it here. It is usually in the Downloads folder."
   },
   "texte:einrichtung.vorlage.ohne": {
     "fr": {
@@ -116,14 +117,14 @@
   "Behalten: {datei}": {"fr": "Conservé\u00a0: {datei}", "en": "Kept: {datei}"},
   "Unverändert gelassen: {datei}. Die Datei lässt sich nicht lesen; zu ändern unter „Inhalte als Text“.": {
     "fr": "Laissé tel quel\u00a0: {datei}. Le fichier est illisible\u00a0; à modifier sous «\u00a0Contenus en texte\u00a0».",
-    "en": "Left unchanged: {datei}. The file cannot be read; change it under “Contents as text”."
+    "en": "Left unchanged: {datei}. The file cannot be read; change it under “Content as text”."
   },
-  "{eins} Dokument(e) abgelegt": {"fr": "{eins} document enregistré", "en": "{eins} document filed"},
-  "{anzahl} Dokument(e) abgelegt": {"fr": "{anzahl} documents enregistrés", "en": "{anzahl} documents filed"},
+  "{eins} Dokument(e) abgelegt": {"fr": "{eins} document enregistré", "en": "{eins} document saved"},
+  "{anzahl} Dokument(e) abgelegt": {"fr": "{anzahl} documents enregistrés", "en": "{anzahl} documents saved"},
   "texte:einrichtung.vorlage.unvollstaendig": {
     "fr": {
-      "sie": "Certaines informations manquent encore\u00a0; elles seront complétées à partir des documents avec votre personne d'accompagnement.",
-      "du": "Certaines informations manquent encore\u00a0; elles seront complétées à partir des documents avec ta personne d'accompagnement."
+      "sie": "Certaines informations manquent encore\u00a0; elles seront complétées à partir des documents avec votre personne de référence.",
+      "du": "Certaines informations manquent encore\u00a0; elles seront complétées à partir des documents avec ta personne de référence."
     },
     "en": {"sie": "Some details are still missing; they will be completed from the documents with your support person."}
   },
@@ -145,11 +146,11 @@
 
   "Browser-Erweiterung laden": {"fr": "Charger l'extension de navigateur", "en": "Load the browser extension"},
   "Im Store auf „Hinzufügen“ klicken, das dauert eine Minute.": {
-    "fr": "Dans le store, cliquer sur «\u00a0Ajouter à Chrome\u00a0», cela prend une minute.",
+    "fr": "Dans la boutique, cliquer sur «\u00a0Ajouter à Chrome\u00a0», cela prend une minute.",
     "en": "In the store, click “Add to Chrome”; it takes a minute."
   },
   "Im Store auf „Abrufen“ klicken, das dauert eine Minute.": {
-    "fr": "Dans le store, cliquer sur «\u00a0Obtenir\u00a0», cela prend une minute.",
+    "fr": "Dans la boutique, cliquer sur «\u00a0Obtenir\u00a0», cela prend une minute.",
     "en": "In the store, click “Get”; it takes a minute."
   },
   "Die Erweiterung läuft in Google Chrome und Microsoft Edge. {klicken}": {
@@ -158,8 +159,8 @@
   },
   "Im Chrome Web Store hinzufügen": {"fr": "Ajouter depuis le Chrome Web Store", "en": "Add from the Chrome Web Store"},
   "Im Chrome Web Store öffnen": {"fr": "Ouvrir dans le Chrome Web Store", "en": "Open in the Chrome Web Store"},
-  "Im Edge-Store hinzufügen": {"fr": "Ajouter depuis le store Edge", "en": "Add from the Edge store"},
-  "Im Edge-Store öffnen": {"fr": "Ouvrir dans le store Edge", "en": "Open in the Edge store"},
+  "Im Edge-Store hinzufügen": {"fr": "Ajouter depuis la boutique Edge", "en": "Add from Edge Add-ons"},
+  "Im Edge-Store öffnen": {"fr": "Ouvrir dans la boutique Edge", "en": "Open in Edge Add-ons"},
   "Mit {browser}?": {"fr": "Avec {browser}\u00a0?", "en": "Using {browser}?"},
   "Klappt es nicht?": {"fr": "Ça ne marche pas\u00a0?", "en": "Not working?"},
   "Zum Beispiel mit einem anderen Browser: die Erweiterung von Hand laden. Das geht einmal und dauert etwa zwei Minuten.": {
@@ -180,9 +181,9 @@
     "fr": "Activer le {modus} (Chrome\u00a0: en haut à droite, Edge\u00a0: à gauche). C'est nécessaire pour le pilote et ne change rien d'autre au navigateur.",
     "en": "Turn on {modus} (Chrome: top right, Edge: left). The pilot needs it, and it changes nothing else in the browser."
   },
-  "Entwicklermodus": {"fr": "mode développeur", "en": "Developer mode"},
+  "Entwicklermodus": {"fr": "Mode développeur", "en": "Developer mode"},
   "{laden} wählen und diesen Ordner angeben:": {
-    "fr": "Choisir {laden} et indiquer ce dossier\u00a0:",
+    "fr": "Choisir {laden} (Edge\u00a0: «\u00a0Charger l'extension décompressée\u00a0») et indiquer ce dossier\u00a0:",
     "en": "Choose {laden} and select this folder:"
   },
   "Entpackte Erweiterung laden": {"fr": "Charger l'extension non empaquetée", "en": "Load unpacked"},
@@ -198,12 +199,12 @@
   },
   "Später einrichten": {"fr": "Configurer plus tard", "en": "Set up later"},
   "Die Erweiterung gibt es nur in der installierten App.": {
-    "fr": "L'extension n'existe que dans l'app installée.",
-    "en": "The extension only exists in the installed app."
+    "fr": "L'extension n'est disponible que dans l'app installée.",
+    "en": "The extension is only available in the installed app."
   },
   "Die Erweiterung ist geladen (Version {geladen}), die App bringt Version {version} mit. Bitte unter chrome://extensions bei der Erweiterung auf „Neu laden“ klicken.": {
-    "fr": "L'extension est chargée (version {geladen}), l'app apporte la version {version}. Merci de cliquer sur «\u00a0Actualiser\u00a0» pour l'extension sous chrome://extensions.",
-    "en": "The extension is loaded (version {geladen}); the app brings version {version}. Please click “Reload” on the extension under chrome://extensions."
+    "fr": "L'extension est chargée (version {geladen}), l'app fournit la version {version}. Merci de cliquer sur «\u00a0Actualiser\u00a0» pour l'extension sous chrome://extensions.",
+    "en": "The extension is loaded (version {geladen}); the app ships version {version}. Please click “Reload” on the extension under chrome://extensions."
   },
   "Die Erweiterung ist bereit (Version {geladen}).": {
     "fr": "L'extension est prête (version {geladen}).",
@@ -213,7 +214,7 @@
   "Fast fertig": {"fr": "Presque terminé", "en": "Almost done"},
   "Alles eingerichtet": {"fr": "Tout est configuré", "en": "All set up"},
   "Das fehlt noch. Es lässt sich auch später einrichten.": {
-    "fr": "Ceci manque encore. Cela peut aussi se configurer plus tard.",
+    "fr": "Il manque encore ceci\u00a0; cela peut aussi se configurer plus tard.",
     "en": "This is still missing. It can also be set up later."
   },
   "Datenordner": {"fr": "Dossier de données", "en": "Data folder"},
@@ -229,7 +230,7 @@
     "en": "Not loaded yet. Without it, the app does not search the portals."
   },
   "Geladen, Version {version}": {"fr": "Chargée, version {version}", "en": "Loaded, version {version}"},
-  "Zur Übersicht": {"fr": "Vers l'aperçu", "en": "To the overview"},
+  "Zur Übersicht": {"fr": "Aller à l'aperçu", "en": "Go to the overview"},
   "Meine Angaben erfassen": {"fr": "Saisir mes informations", "en": "Enter my details"},
   "Dokumente": {"fr": "Documents", "en": "Documents"},
 
@@ -257,11 +258,11 @@
     "en": "The folder is empty and will be used."
   },
   "Der Ordner enthält schon Bewerbungsdaten; sie werden weiter verwendet.": {
-    "fr": "Le dossier contient déjà des données de candidature\u00a0; elles restent utilisées.",
+    "fr": "Le dossier contient déjà des données de candidature\u00a0; elles continueront d'être utilisées.",
     "en": "The folder already holds application data; it stays in use."
   },
   "Bitte den vollständigen Pfad des Ordners angeben, z.B. C:\\Users\\…\\Documents\\Bewerbung.": {
-    "fr": "Merci d'indiquer le chemin complet du dossier, p.\u00a0ex. C:\\Users\\…\\Documents\\Candidature.",
+    "fr": "Merci d'indiquer le chemin complet du dossier, p.\u00a0ex. C:\\Users\\…\\Documents\\Candidatures.",
     "en": "Please give the full path of the folder, e.g. C:\\Users\\…\\Documents\\Applications."
   },
   "Dieser Ordner gehört zur App und wird bei Updates ersetzt. Bitte einen eigenen Ordner wählen.": {

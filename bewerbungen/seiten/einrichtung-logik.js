@@ -48,13 +48,15 @@
     return offen.length ? Texte.t("Fast fertig") : Texte.t("Alles eingerichtet");
   }
 
-  /** The choice of the first step in one line, „eine Stelle, Sie, mit RAV“; the stored values themselves stay German. */
+  /** The choice of the first step in one line, „eine Stelle, Sie, mit RAV“; the stored values themselves stay German.
+   *  One template, so French can space its colon in „ORP : oui“. */
   function zusammenfassung(wahl) {
     if (!wahl) return "";
     const Texte = texts();
     const was = wahl.gesucht === "lehrstelle" ? Texte.t("eine Lehrstelle") : Texte.t("eine Stelle");
     const anrede = wahl.anrede === "du" ? Texte.t("du") : Texte.t("Sie");
-    return `${was}, ${anrede}, ${wahl.rav ? Texte.t("mit RAV") : Texte.t("ohne RAV")}`;
+    const rav = wahl.rav ? Texte.t("mit RAV") : Texte.t("ohne RAV");
+    return Texte.t("{was}, {anrede}, {rav}", { was, anrede, rav });
   }
 
   /** „fehlt“, „veraltet“ (a reload helps) or „bereit“. */
