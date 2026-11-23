@@ -1,0 +1,320 @@
+{
+  "Einrichtung": {"fr": "Configuration", "en": "Setup"},
+  "Zwei kurze Schritte, zusammen etwa drei Minuten. Jeder lässt sich später ändern.": {
+    "fr": "Deux étapes courtes, environ trois minutes en tout. Chacune peut être modifiée plus tard.",
+    "en": "Two short steps, about three minutes in all. Each can be changed later."
+  },
+  "Anleitung mit Bildern": {"fr": "Guide avec images", "en": "Guide with pictures"},
+  "Die KI ist noch nicht eingerichtet. Das geht jederzeit.": {
+    "fr": "L'IA n'est pas encore configurée. C'est possible à tout moment.",
+    "en": "The AI is not set up yet. You can do it any time."
+  },
+  "Die Einrichtung gibt es nur in der installierten App.": {
+    "fr": "La configuration n'existe que dans l'app installée.",
+    "en": "The setup only exists in the installed app."
+  },
+  "Schritte der Einrichtung": {"fr": "Étapes de la configuration", "en": "Setup steps"},
+
+  "Datei": {"fr": "Fichier", "en": "File"},
+  "Erweiterung": {"fr": "Extension", "en": "Extension"},
+  "Stelle oder Lehrstelle": {"fr": "Poste ou apprentissage", "en": "Job or apprenticeship"},
+  "übernommen": {"fr": "importé", "en": "imported"},
+  "übersprungen": {"fr": "passé", "en": "skipped"},
+  "freiwillig": {"fr": "facultatif", "en": "optional"},
+  "nur in der installierten App": {"fr": "seulement dans l'app installée", "en": "only in the installed app"},
+  "geladen": {"fr": "chargée", "en": "loaded"},
+  "später": {"fr": "plus tard", "en": "later"},
+  "1 bis 2\u00a0Minuten": {"fr": "1 à 2\u00a0minutes", "en": "1 to 2\u00a0minutes"},
+
+  "Was wird gesucht?": {"fr": "Que faut-il chercher\u00a0?", "en": "What are you looking for?"},
+  "Eine Stelle": {"fr": "Un poste", "en": "A job"},
+  "Für die Suche nach einer Arbeitsstelle.": {"fr": "Pour chercher un emploi.", "en": "For finding a job."},
+  "Eine Lehrstelle": {"fr": "Une place d'apprentissage", "en": "An apprenticeship"},
+  "Für Jugendliche, auch Schnupperlehren.": {
+    "fr": "Pour les jeunes, stages d'orientation compris.",
+    "en": "For young people, trial apprenticeships included."
+  },
+  "Wie soll die App Sie ansprechen?": {
+    "fr": "Comment l'app doit-elle s'adresser à vous\u00a0?",
+    "en": "How should the app address you?"
+  },
+  "Mit Sie (Vorgabe)": {"fr": "Vous (par défaut)", "en": "Formal (default)"},
+  "Mit du": {"fr": "Tu", "en": "Informal"},
+  "Bei Lehrstellen spricht die App mit du.": {
+    "fr": "Pour les places d'apprentissage, l'app tutoie.",
+    "en": "For apprenticeships, the app uses the informal form."
+  },
+  "Beim RAV gemeldet?": {"fr": "Inscription à l'ORP\u00a0?", "en": "Registered with the RAV?"},
+  "Ja": {"fr": "Oui", "en": "Yes"},
+  "Mit Ja hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.": {
+    "fr": "Avec Oui, l'app aide à saisir les recherches d'emploi dans Job-Room.",
+    "en": "With Yes, the app helps enter the job search efforts in Job-Room."
+  },
+  "Lässt sich später unter Meine Angaben ändern.": {
+    "fr": "Modifiable plus tard sous Mes informations.",
+    "en": "Can be changed later under My details."
+  },
+  "eine Stelle": {"fr": "un poste", "en": "a job"},
+  "eine Lehrstelle": {"fr": "une place d'apprentissage", "en": "an apprenticeship"},
+  "mit RAV": {"fr": "avec ORP", "en": "with RAV"},
+  "ohne RAV": {"fr": "sans ORP", "en": "without RAV"},
+  "Gespeichert.": {"fr": "Enregistré.", "en": "Saved."},
+  "In diesem Ordner war schon eine Wahl gespeichert; sie gilt jetzt. Mit Weiter geht es weiter.": {
+    "fr": "Un choix était déjà enregistré dans ce dossier\u00a0; c'est lui qui s'applique maintenant. Continuer avec «\u00a0Continuer\u00a0».",
+    "en": "A choice was already saved in this folder; it applies now. Use “Continue” to go on."
+  },
+
+  "texte:einrichtung.ordner.zeile": {
+    "fr": {"sie": "Vos documents se trouvent dans\u00a0:", "du": "Tes documents se trouvent dans\u00a0:"},
+    "en": {"sie": "Your documents are in:"}
+  },
+  "Ändern": {"fr": "Modifier", "en": "Change"},
+  "texte:einrichtung.ordner.frage": {
+    "fr": {"sie": "Où vos documents doivent-ils se trouver\u00a0?", "du": "Où tes documents doivent-ils se trouver\u00a0?"},
+    "en": {"sie": "Where should your documents be kept?"}
+  },
+  "Ordner wählen …": {"fr": "Choisir un dossier…", "en": "Choose folder…"},
+  "texte:einrichtung.ordner.text": {
+    "fr": {
+      "sie": "Dans ce dossier, l'app enregistre le CV, les lettres de motivation, les brouillons et les versions envoyées. Il reste sur votre ordinateur.",
+      "du": "Dans ce dossier, l'app enregistre le CV, les lettres de motivation, les brouillons et les versions envoyées. Il reste sur ton ordinateur."
+    },
+    "en": {"sie": "In this folder the app saves the CV, cover letters, drafts and sent versions. It stays on your computer."}
+  },
+  "Ein Ordner, der gesichert wird, ist gut. Ein Cloud-Ordner wie OneDrive funktioniert auch.": {
+    "fr": "Un dossier sauvegardé est un bon choix. Un dossier cloud comme OneDrive fonctionne aussi.",
+    "en": "A folder that is backed up is a good choice. A cloud folder such as OneDrive works too."
+  },
+  "Der Datenordner {ordner} wurde nicht gefunden (z.B. USB-Stick nicht eingesteckt). Sobald er wieder verfügbar ist, diese Seite neu laden; oder einen anderen Ordner wählen.": {
+    "fr": "Le dossier de données {ordner} est introuvable (p.\u00a0ex. clé USB non branchée). Dès qu'il est de nouveau disponible, recharger cette page\u00a0; ou choisir un autre dossier.",
+    "en": "The data folder {ordner} was not found (e.g. USB stick not plugged in). As soon as it is available again, reload this page, or choose another folder."
+  },
+
+  "Angaben aus einer Datei": {"fr": "Informations depuis un fichier", "en": "Details from a file"},
+  "Im Ordner Downloads liegt eine Datei mit Angaben: {name}. Mit {knopf} übernimmt die App sie.": {
+    "fr": "Le dossier Téléchargements contient un fichier d'informations\u00a0: {name}. Avec {knopf}, l'app le reprend.",
+    "en": "The Downloads folder holds a file with details: {name}. With {knopf}, the app takes it over."
+  },
+  "Wer schon eine Datei {zip} oder {json} hat, zum Beispiel aus Claude, übernimmt sie hier. Sie liegt meist im Ordner Downloads.": {
+    "fr": "Un fichier {zip} ou {json} déjà prêt, par exemple de Claude, se reprend ici. Il se trouve généralement dans le dossier Téléchargements.",
+    "en": "A file {zip} or {json} you already have, for example from Claude, is taken over here. It is usually in the Downloads folder."
+  },
+  "texte:einrichtung.vorlage.ohne": {
+    "fr": {
+      "sie": "Sans ce fichier, vous sautez cette étape et saisissez ensuite vos informations sous Mes informations, aussi à partir de documents comme PDF ou Word.",
+      "du": "Sans ce fichier, tu sautes cette étape et saisis ensuite tes informations sous Mes informations, aussi à partir de documents comme PDF ou Word."
+    },
+    "en": {"sie": "Without this file, you skip this step and enter your details afterwards under My details, also from documents such as PDF or Word."}
+  },
+  "Datei wählen …": {"fr": "Choisir un fichier…", "en": "Choose file…"},
+  "Importieren": {"fr": "Importer", "en": "Import"},
+  "Mit dieser Wahl importieren": {"fr": "Importer avec ce choix", "en": "Import with this choice"},
+  "Überspringen": {"fr": "Passer", "en": "Skip"},
+  "Wird importiert …": {"fr": "Importation…", "en": "Importing…"},
+  "Import abgeschlossen.": {"fr": "Importation terminée.", "en": "Import complete."},
+  "Angelegt: {datei}": {"fr": "Créé\u00a0: {datei}", "en": "Created: {datei}"},
+  "Behalten: {datei}": {"fr": "Conservé\u00a0: {datei}", "en": "Kept: {datei}"},
+  "Unverändert gelassen: {datei}. Die Datei lässt sich nicht lesen; zu ändern unter „Inhalte als Text“.": {
+    "fr": "Laissé tel quel\u00a0: {datei}. Le fichier est illisible\u00a0; à modifier sous «\u00a0Contenus en texte\u00a0».",
+    "en": "Left unchanged: {datei}. The file cannot be read; change it under “Contents as text”."
+  },
+  "{eins} Dokument(e) abgelegt": {"fr": "{eins} document enregistré", "en": "{eins} document filed"},
+  "{anzahl} Dokument(e) abgelegt": {"fr": "{anzahl} documents enregistrés", "en": "{anzahl} documents filed"},
+  "texte:einrichtung.vorlage.unvollstaendig": {
+    "fr": {
+      "sie": "Certaines informations manquent encore\u00a0; elles seront complétées à partir des documents avec votre personne d'accompagnement.",
+      "du": "Certaines informations manquent encore\u00a0; elles seront complétées à partir des documents avec ta personne d'accompagnement."
+    },
+    "en": {"sie": "Some details are still missing; they will be completed from the documents with your support person."}
+  },
+  "Behalten": {"fr": "Conserver", "en": "Keep"},
+  "Ersetzen": {"fr": "Remplacer", "en": "Replace"},
+  "Kein Unterschied zum bisherigen Stand.": {
+    "fr": "Aucune différence avec la version actuelle.",
+    "en": "No difference from the current version."
+  },
+  "Unterschiede zum bisherigen Stand: Zeilen mit − fallen weg, Zeilen mit + kommen dazu.": {
+    "fr": "Différences avec la version actuelle\u00a0: les lignes avec − disparaissent, les lignes avec + s'ajoutent.",
+    "en": "Differences from the current version: lines with − are removed, lines with + are added."
+  },
+  "Angaben aus einer Datei {zip} oder {json} übernehmen, zum Beispiel aus Claude:": {
+    "fr": "Importer les informations d'un fichier {zip} ou {json}, par exemple de Claude\u00a0:",
+    "en": "Import details from a file {zip} or {json}, for example from Claude:"
+  },
+  "Datei übernehmen": {"fr": "Importer le fichier", "en": "Import file"},
+
+  "Browser-Erweiterung laden": {"fr": "Charger l'extension de navigateur", "en": "Load the browser extension"},
+  "Im Store auf „Hinzufügen“ klicken, das dauert eine Minute.": {
+    "fr": "Dans le store, cliquer sur «\u00a0Ajouter à Chrome\u00a0», cela prend une minute.",
+    "en": "In the store, click “Add to Chrome”; it takes a minute."
+  },
+  "Im Store auf „Abrufen“ klicken, das dauert eine Minute.": {
+    "fr": "Dans le store, cliquer sur «\u00a0Obtenir\u00a0», cela prend une minute.",
+    "en": "In the store, click “Get”; it takes a minute."
+  },
+  "Die Erweiterung läuft in Google Chrome und Microsoft Edge. {klicken}": {
+    "fr": "L'extension fonctionne dans Google Chrome et Microsoft Edge. {klicken}",
+    "en": "The extension runs in Google Chrome and Microsoft Edge. {klicken}"
+  },
+  "Im Chrome Web Store hinzufügen": {"fr": "Ajouter depuis le Chrome Web Store", "en": "Add from the Chrome Web Store"},
+  "Im Chrome Web Store öffnen": {"fr": "Ouvrir dans le Chrome Web Store", "en": "Open in the Chrome Web Store"},
+  "Im Edge-Store hinzufügen": {"fr": "Ajouter depuis le store Edge", "en": "Add from the Edge store"},
+  "Im Edge-Store öffnen": {"fr": "Ouvrir dans le store Edge", "en": "Open in the Edge store"},
+  "Mit {browser}?": {"fr": "Avec {browser}\u00a0?", "en": "Using {browser}?"},
+  "Klappt es nicht?": {"fr": "Ça ne marche pas\u00a0?", "en": "Not working?"},
+  "Zum Beispiel mit einem anderen Browser: die Erweiterung von Hand laden. Das geht einmal und dauert etwa zwei Minuten.": {
+    "fr": "Par exemple avec un autre navigateur\u00a0: charger l'extension à la main. Cela se fait une fois et prend environ deux minutes.",
+    "en": "For example with another browser: load the extension by hand. You do it once, and it takes about two minutes."
+  },
+  "In Chrome oder Edge diese Adresse öffnen:": {
+    "fr": "Ouvrir cette adresse dans Chrome ou Edge\u00a0:",
+    "en": "Open this address in Chrome or Edge:"
+  },
+  "chrome://extensions": {"fr": "chrome://extensions", "en": "chrome://extensions"},
+  "Kopieren": {"fr": "Copier", "en": "Copy"},
+  "Kopiert": {"fr": "Copié", "en": "Copied"},
+  "Bitte von Hand kopieren": {"fr": "Merci de copier à la main", "en": "Please copy by hand"},
+  "In Chrome öffnen": {"fr": "Ouvrir dans Chrome", "en": "Open in Chrome"},
+  "In Edge öffnen": {"fr": "Ouvrir dans Edge", "en": "Open in Edge"},
+  "Den {modus} einschalten (Chrome: oben rechts, Edge: links). Das ist für den Pilot nötig und ändert sonst nichts am Browser.": {
+    "fr": "Activer le {modus} (Chrome\u00a0: en haut à droite, Edge\u00a0: à gauche). C'est nécessaire pour le pilote et ne change rien d'autre au navigateur.",
+    "en": "Turn on {modus} (Chrome: top right, Edge: left). The pilot needs it, and it changes nothing else in the browser."
+  },
+  "Entwicklermodus": {"fr": "mode développeur", "en": "Developer mode"},
+  "{laden} wählen und diesen Ordner angeben:": {
+    "fr": "Choisir {laden} et indiquer ce dossier\u00a0:",
+    "en": "Choose {laden} and select this folder:"
+  },
+  "Entpackte Erweiterung laden": {"fr": "Charger l'extension non empaquetée", "en": "Load unpacked"},
+  "Ordner zeigen": {"fr": "Afficher le dossier", "en": "Show folder"},
+  "Im Auswahlfenster auf dem Mac mit Cmd+Shift+G den Pfad einfügen, unter Windows oben in die Adresszeile.": {
+    "fr": "Dans la fenêtre de sélection, coller le chemin avec Cmd+Maj+G sur Mac, sous Windows dans la barre d'adresse en haut.",
+    "en": "In the selection window, paste the path with Cmd+Shift+G on a Mac, on Windows into the address bar at the top."
+  },
+  "Wartet auf die Erweiterung": {"fr": "En attente de l'extension", "en": "Waiting for the extension"},
+  "Zurück in diesem Tab geht es von selbst weiter.": {
+    "fr": "De retour dans cet onglet, la suite se fait toute seule.",
+    "en": "Back in this tab, it continues by itself."
+  },
+  "Später einrichten": {"fr": "Configurer plus tard", "en": "Set up later"},
+  "Die Erweiterung gibt es nur in der installierten App.": {
+    "fr": "L'extension n'existe que dans l'app installée.",
+    "en": "The extension only exists in the installed app."
+  },
+  "Die Erweiterung ist geladen (Version {geladen}), die App bringt Version {version} mit. Bitte unter chrome://extensions bei der Erweiterung auf „Neu laden“ klicken.": {
+    "fr": "L'extension est chargée (version {geladen}), l'app apporte la version {version}. Merci de cliquer sur «\u00a0Actualiser\u00a0» pour l'extension sous chrome://extensions.",
+    "en": "The extension is loaded (version {geladen}); the app brings version {version}. Please click “Reload” on the extension under chrome://extensions."
+  },
+  "Die Erweiterung ist bereit (Version {geladen}).": {
+    "fr": "L'extension est prête (version {geladen}).",
+    "en": "The extension is ready (version {geladen})."
+  },
+
+  "Fast fertig": {"fr": "Presque terminé", "en": "Almost done"},
+  "Alles eingerichtet": {"fr": "Tout est configuré", "en": "All set up"},
+  "Das fehlt noch. Es lässt sich auch später einrichten.": {
+    "fr": "Ceci manque encore. Cela peut aussi se configurer plus tard.",
+    "en": "This is still missing. It can also be set up later."
+  },
+  "Datenordner": {"fr": "Dossier de données", "en": "Data folder"},
+  "KI": {"fr": "IA", "en": "AI"},
+  "Verbunden": {"fr": "Connectée", "en": "Connected"},
+  "Noch nicht verbunden. Ohne KI gibt es keine Noten und keine Entwürfe.": {
+    "fr": "Pas encore connectée. Sans IA, pas de notes ni de brouillons.",
+    "en": "Not connected yet. Without AI there are no grades and no drafts."
+  },
+  "Erweiterung laden": {"fr": "Charger l'extension", "en": "Load the extension"},
+  "Noch nicht geladen. Ohne sie sucht die App nicht auf den Portalen.": {
+    "fr": "Pas encore chargée. Sans elle, l'app ne cherche pas sur les portails.",
+    "en": "Not loaded yet. Without it, the app does not search the portals."
+  },
+  "Geladen, Version {version}": {"fr": "Chargée, version {version}", "en": "Loaded, version {version}"},
+  "Zur Übersicht": {"fr": "Vers l'aperçu", "en": "To the overview"},
+  "Meine Angaben erfassen": {"fr": "Saisir mes informations", "en": "Enter my details"},
+  "Dokumente": {"fr": "Documents", "en": "Documents"},
+
+  "Pfad fehlt": {"fr": "Chemin manquant", "en": "Path missing"},
+  "Unbekannte Auswahl": {"fr": "Choix inconnu", "en": "Unknown choice"},
+  "Unbekannte Auswahl: {art}": {"fr": "Choix inconnu\u00a0: {art}", "en": "Unknown choice: {art}"},
+  "Unbekannter Ordner": {"fr": "Dossier inconnu", "en": "Unknown folder"},
+  "Unbekannter Browser.": {"fr": "Navigateur inconnu.", "en": "Unknown browser."},
+  "Bitte zuerst den Datenordner wählen.": {
+    "fr": "Merci de choisir d'abord le dossier de données.",
+    "en": "Please choose the data folder first."
+  },
+  "Der Datenordner {ordner} wurde nicht gefunden.": {
+    "fr": "Le dossier de données {ordner} est introuvable.",
+    "en": "The data folder {ordner} was not found."
+  },
+  "Die Wahl der Dateien hat eine unbekannte Form.": {
+    "fr": "Le choix des fichiers a une forme inconnue.",
+    "en": "The choice of files has an unknown form."
+  },
+  "Die Datei wurde nicht gefunden.": {"fr": "Le fichier est introuvable.", "en": "The file was not found."},
+  "Der Ordner wird neu angelegt.": {"fr": "Le dossier sera créé.", "en": "The folder will be created."},
+  "Der Ordner ist leer und wird verwendet.": {
+    "fr": "Le dossier est vide et sera utilisé.",
+    "en": "The folder is empty and will be used."
+  },
+  "Der Ordner enthält schon Bewerbungsdaten; sie werden weiter verwendet.": {
+    "fr": "Le dossier contient déjà des données de candidature\u00a0; elles restent utilisées.",
+    "en": "The folder already holds application data; it stays in use."
+  },
+  "Bitte den vollständigen Pfad des Ordners angeben, z.B. C:\\Users\\…\\Documents\\Bewerbung.": {
+    "fr": "Merci d'indiquer le chemin complet du dossier, p.\u00a0ex. C:\\Users\\…\\Documents\\Candidature.",
+    "en": "Please give the full path of the folder, e.g. C:\\Users\\…\\Documents\\Applications."
+  },
+  "Dieser Ordner gehört zur App und wird bei Updates ersetzt. Bitte einen eigenen Ordner wählen.": {
+    "fr": "Ce dossier appartient à l'app et est remplacé lors des mises à jour. Merci de choisir un dossier personnel.",
+    "en": "This folder belongs to the app and is replaced by updates. Please choose a folder of your own."
+  },
+  "Der Ordner lässt sich nicht lesen ({grund}).": {
+    "fr": "Le dossier est illisible ({grund}).",
+    "en": "The folder cannot be read ({grund})."
+  },
+  "Das ist eine Datei, kein Ordner.": {"fr": "C'est un fichier, pas un dossier.", "en": "This is a file, not a folder."},
+  "Der Ordner enthält schon andere Dateien. Bitte einen leeren Ordner wählen oder am Ende einen neuen Namen angeben, z.B. …\\Bewerbungsbegleiter.": {
+    "fr": "Le dossier contient déjà d'autres fichiers. Merci de choisir un dossier vide ou d'ajouter un nouveau nom à la fin, p.\u00a0ex. …\\Bewerbungsbegleiter.",
+    "en": "The folder already holds other files. Please choose an empty folder or add a new name at the end, e.g. …\\Bewerbungsbegleiter."
+  },
+  "Der Ordner lässt sich nicht anlegen ({grund}).": {
+    "fr": "Impossible de créer le dossier ({grund}).",
+    "en": "The folder cannot be created ({grund})."
+  },
+  "Der Ordner {ordner} wurde nicht gefunden.": {
+    "fr": "Le dossier {ordner} est introuvable.",
+    "en": "The folder {ordner} was not found."
+  },
+  "Der Ordner liess sich nicht öffnen: {ordner}": {
+    "fr": "Impossible d'ouvrir le dossier\u00a0: {ordner}",
+    "en": "The folder could not be opened: {ordner}"
+  },
+
+  "Ordner für die Bewerbungsdaten wählen": {
+    "fr": "Choisir le dossier des données de candidature",
+    "en": "Choose the folder for the application data"
+  },
+  "Einstiegsdatei wählen": {"fr": "Choisir le fichier de départ", "en": "Choose the starting file"},
+  "Einstiegsdatei": {"fr": "Fichier de départ", "en": "Starting file"},
+  "Für den Auswahldialog fehlt zenity oder kdialog. Bitte den Pfad selbst eintragen.": {
+    "fr": "Il manque zenity ou kdialog pour la fenêtre de sélection. Merci de saisir le chemin à la main.",
+    "en": "The selection dialog needs zenity or kdialog. Please enter the path yourself."
+  },
+  "Auf diesem System gibt es keinen Auswahldialog. Bitte den Pfad selbst eintragen.": {
+    "fr": "Ce système n'a pas de fenêtre de sélection. Merci de saisir le chemin à la main.",
+    "en": "This system has no selection dialog. Please enter the path yourself."
+  },
+  "Der Auswahldialog liess sich nicht öffnen. Bitte den Pfad selbst eintragen.": {
+    "fr": "Impossible d'ouvrir la fenêtre de sélection. Merci de saisir le chemin à la main.",
+    "en": "The selection dialog could not be opened. Please enter the path yourself."
+  },
+  "Bitte {name} selbst öffnen und {adresse} in die Adresszeile eingeben.": {
+    "fr": "Merci d'ouvrir {name} et de saisir {adresse} dans la barre d'adresse.",
+    "en": "Please open {name} yourself and enter {adresse} in the address bar."
+  },
+  "{name} liess sich nicht öffnen.": {"fr": "Impossible d'ouvrir {name}.", "en": "{name} could not be opened."},
+  "{name} wurde nicht gefunden. Ist der Browser installiert?": {
+    "fr": "{name} est introuvable. Le navigateur est-il installé\u00a0?",
+    "en": "{name} was not found. Is the browser installed?"
+  }
+}

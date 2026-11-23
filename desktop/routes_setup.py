@@ -31,8 +31,9 @@ class Setup:
     switch: Callable[[pathlib.Path], None]
     suggestion: pathlib.Path
     forbidden: tuple[pathlib.Path, ...] = ()
-    choose: Callable[[str, pathlib.Path], pathlib.Path | None] = (
-        lambda kind, start: dialogs.choose(kind, start, sys.platform))
+    # kind, start folder and the app language, which titles the system's dialog (#418)
+    choose: Callable[[str, pathlib.Path, str], pathlib.Path | None] = (
+        lambda kind, start, language: dialogs.choose(kind, start, sys.platform, language=language))
     downloads: pathlib.Path = dataclasses.field(default_factory=lambda: pathlib.Path.home() / "Downloads")
     today: Callable[[], datetime.date] = datetime.date.today
     extension_dir: pathlib.Path | None = None  # developer add-on to load in the browser (MIN-339)
@@ -71,6 +72,7 @@ def _path(body) -> str:
 
 def make_routes(state: Setup) -> tuple[dict, dict]:
     from server import json_antwort
+    from ui_texts import sprache
 
     def overview(k, parameter, body, switched: bool | None = None):
         switched = _sync(state, k) if switched is None else switched
@@ -98,7 +100,7 @@ def make_routes(state: Setup) -> tuple[dict, dict]:
         if kind not in DIALOG_KINDS:
             raise ValueError("Unbekannte Auswahl")
         start = state.downloads if kind == "datei" else (state.data_dir() or state.suggestion).parent
-        chosen = state.choose(kind, start if start.is_dir() else pathlib.Path.home())
+        chosen = state.choose(kind, start if start.is_dir() else pathlib.Path.home(), sprache(k))
         return json_antwort({"pfad": str(chosen) if chosen else None})
 
     def import_einstieg(k, parameter, body):
@@ -137,12 +139,13 @@ def _extension(state: Setup) -> dict | None:
 
 
 def ready_data_dir(state: Setup, k) -> pathlib.Path:
-    """The chosen data folder, in use by the server; ValueError with a German message if there is none."""
+    """The chosen data folder, in use by the server; ValueError with a message for the person if there is none."""
+    from ui_texts import T  # bewerbungen is on the path once the server runs
     target = state.data_dir()
     if target is None:
         raise ValueError("Bitte zuerst den Datenordner wählen.")
     if not target.is_dir():
-        raise ValueError(f"Der Datenordner {target} wurde nicht gefunden.")
+        raise ValueError(T("Der Datenordner {ordner} wurde nicht gefunden.", ordner=target))
     _sync(state, k)
     return target
 

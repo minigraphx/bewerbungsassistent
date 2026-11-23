@@ -41,6 +41,11 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "language_settings.py", BASE / "routes_preferences.py", BASE / "preferences.py",
     BASE / "routes_page_limit.py", BASE / "page_limit.py", BASE / "ai/connection.py",
     DESKTOP / "routes_app.py", DESKTOP / "routes_claude.py", DESKTOP / "routes_browser.py",
+    # The page Einrichtung (#418): its scripts, the routes of the first run with the folder check and the native
+    # dialogs, and the folder that „Ordner zeigen“ opens.
+    BASE / "seiten/einrichtung.html", BASE / "seiten/einrichtung-logik.js", BASE / "seiten/einrichtung.js",
+    BASE / "ordner.py",
+    DESKTOP / "routes_setup.py", DESKTOP / "setup.py", DESKTOP / "dialogs.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
@@ -147,9 +152,10 @@ def orphans(catalog: translation_catalog.Catalog, items: Iterable[language_sourc
 
 
 def app_sources() -> tuple[pathlib.Path, ...]:
-    """The pages, scripts and modules of bewerbungen, and the routes the desktop app adds to them (#417)."""
+    """The pages, scripts and modules of bewerbungen, the routes the desktop app adds to them (#417), and the folder
+    check and system dialogs whose texts the setup routes pass on (#418)."""
     patterns = ((BASE, "seiten/*.html"), (BASE, "seiten/*.js"), (BASE, "*.py"), (BASE, "ai/*.py"),
-                (DESKTOP, "routes_*.py"))
+                (DESKTOP, "routes_*.py"), (DESKTOP, "setup.py"), (DESKTOP, "dialogs.py"))
     return tuple(path for folder, pattern in patterns for path in sorted(folder.glob(pattern)))
 
 
