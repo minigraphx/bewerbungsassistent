@@ -337,6 +337,7 @@
       zeilen = L.mitSchritten(alle, gruende, ravGruende);
       zeige();
     } catch (fehler) {
+      console.warn("Loading the applications for Heute failed:", fehler.message);  // kein UI-Text: log line
       meldung(Texte.t("Laden fehlgeschlagen: {fehler}", { fehler: fehler.message }), "danger");
     }
   }

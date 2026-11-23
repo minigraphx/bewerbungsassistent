@@ -50,6 +50,7 @@
       $("pass-inserat").replaceChildren(...adContent(b, stellentext, missing));
       setBusy(false);
     } catch (error) {
+      console.warn("Loading the job for the pass failed:", id, error.message);  // kein UI-Text: log line
       $("pass-titel").textContent = window.Texte.t("Stelle nicht geladen");
       $("pass-firma").textContent = "";
       $("pass-inserat").replaceChildren();
