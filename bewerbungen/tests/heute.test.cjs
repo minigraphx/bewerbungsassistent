@@ -37,7 +37,7 @@ test("dates and deadlines come from the register, today and later, soonest first
     { date: "2026-11-24", day: "24.11.", text: "Nachfragen bei Beispiel Versicherung, falls keine Antwort da ist" },
   ]);
   assert.equal(H.dates(rows, TODAY, { max: 1 }).length, 1);
-  assert.equal(H.dates(rows, TODAY, { interview: "Einladung" })[1].text, "Einladung bei Muster Bank");
+  assert.equal(H.dates(rows, TODAY, { apprenticeship: true })[1].text, "Einladung bei Muster Bank");
   assert.deepEqual(H.dates([], TODAY), []);
 });
 
@@ -76,7 +76,7 @@ test("an interview date brings a reminder to prepare it two days ahead (#268)", 
   assert.deepEqual(shown(interview("2026-11-13")), [["12.11.", "Gespräch bei Muster Bank vorbereiten"], ["13.11.", "Gespräch bei Muster Bank"]],
     "an interview tomorrow is prepared today");
   assert.deepEqual(shown(interview(TODAY)), [["12.11.", "Gespräch bei Muster Bank"]], "on the day itself only the interview");
-  assert.deepEqual(shown(interview("2026-11-20"), { interview: "Einladung" }).map(([, text]) => text),
+  assert.deepEqual(shown(interview("2026-11-20"), { apprenticeship: true }).map(([, text]) => text),
     ["Einladung bei Muster Bank vorbereiten", "Einladung bei Muster Bank"]);
   const talk = L.mitSchritten([b("g", "Gespräch", { gespraech_am: "2026-11-25", firma: "Beispiel AG" })]);
   assert.deepEqual(shown(talk), [["23.11.", "Gespräch bei Beispiel AG vorbereiten"], ["25.11.", "Gespräch bei Beispiel AG"]]);
@@ -130,7 +130,7 @@ test("the stand counts each stage with a short hint", () => {
   const empty = H.stand([], null, TODAY);
   assert.deepEqual(empty.neu, { count: 0, hint: "noch keine Suche" });
   assert.deepEqual(empty.gemerkt, { count: 0, hint: "" });
-  assert.equal(H.stand(L.mitSchritten([b("g", "Gespräch"), b("h", "Gespräch")]), null, TODAY, { interview: ["Einladung", "Einladungen"] }).beworben.hint, "2 Einladungen");
+  assert.equal(H.stand(L.mitSchritten([b("g", "Gespräch"), b("h", "Gespräch")]), null, TODAY, { apprenticeship: true }).beworben.hint, "2 Einladungen");
 });
 
 test("the line under the title says how many things wait, in words up to twelve", () => {

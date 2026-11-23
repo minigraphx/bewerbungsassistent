@@ -21,7 +21,8 @@ const LEFT_ALONE = {
   // Error and warning texts joined from reasons or suspicious lines: a message, not a line of parts.
   "bewerbung.js": [["antwortDaten.abgelehnt.map(a => a.grund).join(\" · \")", 1], ["ergebnis.hinweise.join(\" · \")", 1]],
   "dossier-texte.js": [["ergebnis.suspicious_lines.join(\" · \")", 1]],
-  "uebersicht.js": [["answer.abgelehnt.map(a => `${a.firma}: ${a.grund}`).join(\" · \")", 2]],
+  // Both runs (forms, Job-Room) show their refusals through this one helper since #419.
+  "uebersicht.js": [["liste.map(a => Texte.t(\"{firma}: {grund}\", { firma: a.firma, grund: a.grund })).join(\" · \")", 1]],
   "treffer.js": [["b.auffaellig.join(\" · \")", 1]],
 };
 
@@ -79,7 +80,7 @@ test("the static «·» lines on Heute are whole parts", () => {
   for (const [, title] of html.matchAll(/<p class="path__title">(.*?)<\/p>/g)) {
     assert.match(title, /^<span class="whole-part"><strong[^>]*>[^<]+<\/strong><span aria-hidden="true">&nbsp;·<\/span><span class="visually-hidden">,<\/span><\/span> <span class="whole-part path__state"[^>]*>[^<·]+<\/span>$/, title);
   }
-  assert.match(read("uebersicht.js"), /\$\("weg-einrichtung-stand"\)\.textContent = bereit \? "erledigt" : "noch offen";/);
+  assert.match(read("uebersicht.js"), /\$\("weg-einrichtung-stand"\)\.textContent = bereit \? Texte\.t\("erledigt"\) : Texte\.t\("noch offen"\);/);
 });
 
 test("the kununu badge before the «·» of the company is an inline box, so the «·» cannot start a line", () => {

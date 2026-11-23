@@ -9,6 +9,7 @@ import re
 import urllib.parse
 
 from hits import DOMAINS, Hits, checked_link, company_key, portal_of
+from ui_texts import T
 
 TREFFER, BEWERBUNG = "treffer", "bewerbung"
 KINDS = (TREFFER, BEWERBUNG)
@@ -86,14 +87,15 @@ def hits_without_ad(store: Hits, excluded: frozenset[str] = frozenset()) -> list
 
 
 def note(job: dict, failure: str | None) -> dict:
-    """Why the text is missing and how to get it oneself."""
-    way = WAY_HIT if job["art"] == TREFFER else WAY_SAVED
+    """Why the text is missing and how to get it oneself, as T: the pass on Heute shows it in the app language (#419).
+    A failure is the extension's own words and stays as it came."""
+    way = T(WAY_HIT) if job["art"] == TREFFER else T(WAY_SAVED)
     if not job["link"]:
-        return {"grund": NO_LINK, "weg": WAY_NO_LINK}
+        return {"grund": T(NO_LINK), "weg": T(WAY_NO_LINK)}
     if not loadable(job):
         site = (urllib.parse.urlsplit(job["link"]).hostname or job["link"]).removeprefix("www.")
-        return {"grund": NOT_ALLOWED.format(site=site), "weg": way}
+        return {"grund": T(NOT_ALLOWED, site=site), "weg": way}
     if failure is None:
-        return {"grund": PENDING.format(portal=job["portal"]), "weg": way}
-    reason = FAILED.format(portal=job["portal"], reason=failure) if failure else UNREADABLE.format(portal=job["portal"])
+        return {"grund": T(PENDING, portal=job["portal"]), "weg": way}
+    reason = T(FAILED, portal=job["portal"], reason=failure) if failure else T(UNREADABLE, portal=job["portal"])
     return {"grund": reason, "weg": way}

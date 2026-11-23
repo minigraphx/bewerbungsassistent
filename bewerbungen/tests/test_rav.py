@@ -115,12 +115,13 @@ def test_the_link_of_the_ad_is_used_without_a_form_link():
 def test_reminder_in_the_days_around_the_end_of_the_month(today, month, deadline):
     entries = [applied(id="a"), applied(id="b", rav_eingetragen_am="2026-10-21"), applied(id="c", beworben_am="2026-09-03")]
     found = rav.reminder(entries, today)
-    assert found == {"ids": ["a"], "monat": month, "frist": deadline}
+    assert found == {"ids": ["a"], "monat": month, "monat_iso": "2026-10", "frist": deadline}
 
 
 def test_reminder_turns_the_year():
     entries = [applied(id="a", beworben_am="2026-12-03"), applied(id="b", beworben_am="2026-01-03", rav_eingetragen_am="2026-01-04")]
-    assert rav.reminder(entries, datetime.date(2027, 1, 2)) == {"ids": ["a"], "monat": "Dezember 2026", "frist": "05.01.2027"}
+    assert rav.reminder(entries, datetime.date(2027, 1, 2)) == {"ids": ["a"], "monat": "Dezember 2026", "monat_iso": "2026-12",
+                                                                "frist": "05.01.2027"}
 
 
 def test_no_reminder_in_the_middle_of_the_month_when_all_is_entered_or_for_people_not_using_it():

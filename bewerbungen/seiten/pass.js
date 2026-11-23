@@ -23,8 +23,8 @@
 
   /** Company, grade and deadline as a «·» line of whole parts (#342, dot-line.js). */
   function meta(b) {
-    const grade = typeof b.passung === "number" ? `Note ${window.Texte.notenText(b.passung)}` : "";
-    const deadline = b.frist ? `Frist ${L.datum(b.frist)}` : "";
+    const grade = typeof b.passung === "number" ? window.Texte.t("Note {note}", { note: window.Texte.notenText(b.passung) }) : "";
+    const deadline = b.frist ? window.Texte.t("Frist {datum}", { datum: L.datum(b.frist) }) : "";
     return window.DotLine.render([[b.firma, b.ort].filter(Boolean).join(", "), grade, deadline], el);
   }
 
@@ -32,7 +32,7 @@
   function adContent(b, text, missing) {
     const ad = H.passAd(b, text, missing);
     if (ad.text) return [ad.text];
-    const link = ad.link ? el("a", { href: ad.link, target: "_blank", rel: "noopener" }, "Inserat öffnen") : null;
+    const link = ad.link ? el("a", { href: ad.link, target: "_blank", rel: "noopener" }, window.Texte.t("Inserat öffnen")) : null;
     const [first, ...rest] = ad.zeilen;
     return [el("p", {}, first, link ? " " : "", link), ...rest.map(line => el("p", { class: "pass__missing" }, line))];
   }
@@ -45,15 +45,16 @@
     $("pass-oeffnen").href = address(id);
     try {
       const { bewerbung: b, stellentext, text_fehlt: missing } = await holen("/api/bewerbung", { id });
-      $("pass-titel").textContent = b.stelle || "ohne Titel";
+      $("pass-titel").textContent = b.stelle || window.Texte.t("ohne Titel");
       $("pass-firma").replaceChildren(...meta(b));
       $("pass-inserat").replaceChildren(...adContent(b, stellentext, missing));
       setBusy(false);
     } catch (error) {
-      $("pass-titel").textContent = "Stelle nicht geladen";
+      console.warn("Loading the job for the pass failed:", id, error.message);  // kein UI-Text: log line
+      $("pass-titel").textContent = window.Texte.t("Stelle nicht geladen");
       $("pass-firma").textContent = "";
       $("pass-inserat").replaceChildren();
-      status(`Laden fehlgeschlagen: ${error.message}`, "danger");
+      status(window.Texte.t("Laden fehlgeschlagen: {fehler}", { fehler: error.message }), "danger");
       $("pass-spaeter").disabled = false;  // the person can still move on
     }
   }

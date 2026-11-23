@@ -46,6 +46,11 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "seiten/einrichtung.html", BASE / "seiten/einrichtung-logik.js", BASE / "seiten/einrichtung.js",
     BASE / "ordner.py",
     DESKTOP / "routes_setup.py", DESKTOP / "setup.py", DESKTOP / "dialogs.py",
+    # The page Heute (#419): its scripts, the Job-Room routes and why an ad text is missing. The routes of the register
+    # (routen_bewerbungen.py, register.py), of applying (routes_apply.py, apply.py) and of the search (routes_search.py)
+    # mainly serve other pages; their messages Heute shows are translated, the modules follow with those pages.
+    BASE / "seiten/uebersicht.html", BASE / "seiten/heute-logic.js", BASE / "seiten/pass.js", BASE / "seiten/uebersicht.js",
+    BASE / "routes_rav.py", BASE / "rav.py", BASE / "missing_ads.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
