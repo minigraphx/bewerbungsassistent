@@ -1,6 +1,6 @@
 // Parts of the dossier "Raster" besides letter and CV: cover, the optional page before ("Auf einen Blick",
 // only with figures) and the optional back page (only with thanks). Each part sets only its own page style.
-#import "../common.typ": foto-form
+#import "../common.typ": foto-form, date-line
 #import "../tokens.typ": space, radius
 #import "../dossier.typ": colours-for, labels-for
 #import "theme.typ": bands, top-bands, strip, footer, sizes, page-margin, cut
@@ -58,7 +58,7 @@
       (l.stelle, if h.position != none { h.position } else { h.line }),
       (l.unternehmen, h.company),
       (l.inhalt, (l.anschreiben, l.lebenslauf).join(", ")),
-      (l.datum, d.letter.ort_datum),
+      (l.datum, date-line(d.letter.ort_datum, d.language)),
       (l.kontakt, if d.person.contact.len() > 0 { d.person.contact.join("\n") }),
     )
     let photo = d.person.photo

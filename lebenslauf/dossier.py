@@ -45,6 +45,7 @@ OUTLINE = THEMES / "outline.typ"
 OUTLINED_LABELS = {
     "de": {"anschreiben": "Anschreiben", "lebenslauf": "Lebenslauf", "beilagen": "Beilagen", "referenzen": "Referenzen"},
     "en": {"anschreiben": "Cover letter", "lebenslauf": "CV", "beilagen": "Attachments", "referenzen": "References"},
+    "fr": {"anschreiben": "Lettre", "lebenslauf": "CV", "beilagen": "Annexes", "referenzen": "Références"},
 }
 
 

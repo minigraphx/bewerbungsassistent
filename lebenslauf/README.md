@@ -15,7 +15,7 @@ python build.py data/beispiel.yaml --theme einspaltig -o build/beispiel-einspalt
 python build.py data/beispiel.yaml --job jobs/beispiel-daten.yaml -o build/daten.pdf
 ```
 
-Optionen: `--theme` (Standard `zweispaltig`), `--lang de|en` (Beschriftungen, Datumsangaben und mehrsprachige Inhalte), `-o` Ausgabedatei, `--build-dir` Ordner für Zwischenstände (Standard `build/` in diesem Modul).
+Optionen: `--theme` (Standard `zweispaltig`), `--lang de|en|fr` (Beschriftungen, Datumsangaben und mehrsprachige Inhalte; gilt auch für `dossier.py`), `-o` Ausgabedatei, `--build-dir` Ordner für Zwischenstände (Standard `build/` in diesem Modul).
 
 ## Daten
 
@@ -33,7 +33,7 @@ Erweiterungen:
 | `x-display` | eigener Text statt Zeitraum, z.B. `seit 2021` |
 | `text` | (Bildung/Zertifikate) fertiger Satz statt Zusammensetzung |
 | `tags` | an Einträgen und Stichpunkten, für den Zuschnitt |
-| `x-beschriftungen` | eigene Überschriften je Abschnitt, Text oder `{de, en}`, z.B. für Schülerlebensläufe: `{erfahrung: Schnupperlehren & Erfahrungen, bildung: Schule & Eignungstests}`. Abschnitte: `profil`, `erfahrung`, `projekte`, `weitere-projekte`, `faehigkeiten`, `lehre`, `sprachen`, `interessen`, `bildung` |
+| `x-beschriftungen` | eigene Überschriften je Abschnitt, Text oder `{de, en, fr}`, z.B. für Schülerlebensläufe: `{erfahrung: Schnupperlehren & Erfahrungen, bildung: Schule & Eignungstests}`. Abschnitte: `profil`, `erfahrung`, `projekte`, `weitere-projekte`, `faehigkeiten`, `lehre`, `sprachen`, `interessen`, `bildung` |
 
 Daten: `"2022-06"` wird zu „Juni 2022“, `2018` bleibt eine Jahreszahl; fehlendes `endDate` heisst „heute“. Ein ganzes Datum wie `2022-06-15` steht als Monat und Jahr, auch ohne Anführungszeichen (YAML liest es dann als Datum, `build.json_value`).
 
@@ -55,7 +55,7 @@ Ein Anschreiben ist eine kleine YAML-Datei (Beispiel: [`data/anschreiben-beispie
 | `ort`, `datum` | Ort und Datum (`2026-10-24`); ohne Datum gilt heute |
 | `betreff`, `anrede`, `gruss` | Betreffzeile, Anrede, Grussformel |
 | `text` | Brieftext; Absätze durch Leerzeilen trennen |
-| `sprache` | `de` (Standard) oder `en`, für das Datumsformat |
+| `sprache` | `de` (Standard), `en` oder `fr`, für Datumsformat und Ortszeile („Bern, 1. Dezember 2026“, „Lausanne, le 1er décembre 2026“, ohne `ort` „Le 23 novembre 2026“; im PDF „1er“ mit hochgestelltem „er“) |
 
 Das Layout steht in `themes/brief.typ`; jedes Theme setzt darin nur seinen Stil (`themes/<name>/anschreiben.typ`). Gruss und Unterschrift werden nie getrennt.
 
@@ -65,12 +65,13 @@ Im Browser über die lokale Oberfläche des Moduls [`bewerbungen`](../bewerbunge
 
 ## Mehrsprachige Inhalte
 
-Jeder Text kann statt eines Strings eine Zuordnung nach Sprache sein; `--lang` wählt die Sprache, fehlt sie, gilt Deutsch:
+Jeder Text kann statt eines Strings eine Zuordnung nach Sprache sein (`de`, `en`, `fr`); `--lang` wählt die Sprache, fehlt sie in einem Feld, gilt dort Deutsch:
 
 ```yaml
 summary:
   de: Software-Entwicklerin mit zehn Jahren Praxis …
   en: Software developer with ten years of experience …
+  fr: Développeuse de logiciels avec dix ans de pratique …
 highlights:
   - {de: Aufbau von Datenpipelines, en: Built data pipelines}
   - text: {de: Schulungen intern, en: Internal training}
@@ -95,7 +96,7 @@ sections:                 # ganzen Abschnitt ersetzen (optional)
 ## Eigenes Theme
 
 1. `themes/zweispaltig` kopieren, z.B. nach `themes/meins`.
-2. In `theme.typ` die Funktion `lebenslauf(cv, sprache, stand, stil)` anpassen. Hilfsfunktionen (Datum, Beschriftungen DE/EN) liegen in `themes/common.typ`.
+2. In `theme.typ` die Funktion `lebenslauf(cv, sprache, stand, stil)` anpassen. Hilfsfunktionen (Datum, Beschriftungen DE/EN/FR) liegen in `themes/common.typ`.
 3. `python build.py data/beispiel.yaml --theme meins`
 
 Farben, Schriften, Schriftgrössen, Abstände, Ränder, Spaltenbreite und die Reihenfolge der Abschnitte stehen im Dictionary `standard-stil` am Anfang jedes Themes.

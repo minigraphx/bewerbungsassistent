@@ -34,6 +34,20 @@
     kontakt: "Contact",
     frueher: "earlier",
   ),
+  fr: (
+    kurz-vorgestellt: "En bref",
+    danke: "Merci",
+    bewerbung: "Candidature",
+    anschreiben: "Lettre de motivation",
+    lebenslauf: "Curriculum vitae",
+    auf-einen-blick: "Aperçu",
+    stelle: "Poste",
+    unternehmen: "Entreprise",
+    inhalt: "Sommaire",
+    datum: "Date",
+    kontakt: "Contact",
+    frueher: "auparavant",
+  ),
 )
 
 #let default-accent = "#38495d"

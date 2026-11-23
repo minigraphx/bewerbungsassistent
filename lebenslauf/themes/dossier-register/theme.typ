@@ -48,6 +48,26 @@
     ohne-angabe: "not stated",
     stufen: ("Entry", "Basics", "Solid", "Good", "Very good", "Expert"),
   ),
+  fr: (
+    teil: "Partie",
+    inhalt: "Sommaire",
+    seite: "Page",
+    bewerbung: "Candidature",
+    beilagen: "Annexes",
+    referenzen: "Références",
+    nr: "N°",
+    dokument: "Document",
+    datum: "Date",
+    zeitraum: "Période",
+    dauer: "Durée",
+    station: "Fonction",
+    pensum: "Taux d’occupation",
+    unternehmen: "Entreprise",
+    referenz: "Référence",
+    auf-anfrage: "Sur demande.",
+    ohne-angabe: "non précisé",
+    stufen: ("Initiation", "Notions", "Bases solides", "Bonne maîtrise", "Très bonne maîtrise", "Expertise"),
+  ),
 )
 
 #let cefr = ("A1", "A2", "B1", "B2", "C1", "C2")

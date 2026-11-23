@@ -89,7 +89,7 @@ def test_empfaenger_muss_liste_sein():
 
 def test_unbekannte_sprache():
     with pytest.raises(ValueError, match="sprache"):
-        anschreiben.pruefe_brief(brief(sprache="fr"))
+        anschreiben.pruefe_brief(brief(sprache="it"))
 
 
 def test_ohne_absender_und_ohne_lebenslauf():

@@ -17,11 +17,8 @@
     inset: (x: space.space-5, bottom: space.space-5),
     align(bottom + left, {
       if h.company != none { text(size: sizes.company, weight: 700, fill: c.on-accent)[#h.company]; linebreak() }
-      if h.intro != none {
-        text(size: 12pt, fill: c.on-accent)[#h.intro #h.position]
-      } else if h.line != none {
-        text(size: 12pt, fill: c.on-accent)[#h.line]
-      }
+      // One line, "Bewerbung als …" or the subject; French elides "de" in it, so it is not intro and position
+      if h.line != none { text(size: 12pt, fill: c.on-accent)[#h.line] }
     }),
   ))
   v(band-height - page-margin.top + space.space-5)
