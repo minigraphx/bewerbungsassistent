@@ -6,6 +6,7 @@ search profile with the field they lead to, the search window and the refusals o
 preview off all stays German, byte for byte. What the scripts say at run time is tested in
 tests/jobs_page_languages.test.cjs. Search terms, companies and job titles are data and stay as they are.
 """
+import datetime
 import threading
 
 import pytest
@@ -13,6 +14,7 @@ import pytest
 import app
 import search_plan
 import search_stages
+import search_window
 import server as server_module
 import sprachen_pruefen
 import translation_catalog
@@ -164,8 +166,55 @@ def test_the_search_window_comes_in_the_app_language(started, preview):
     store_language(folder, "en")
     english = request(server, "GET", "/api/suche/liste")[1]["zeitraum"]["zeile"]
 
-    assert french == "La première recherche prend les annonces des 21 derniers jours."
-    assert english == "The first search takes ads from the last 21 days."
+    assert french == "La première recherche couvre les annonces des 21 derniers jours."
+    assert english == "The first search covers ads from the last 21 days."
+
+
+TODAY = datetime.date(2026, 11, 20)
+
+
+def test_a_window_of_one_day_is_said_in_the_singular():
+    first = search_window.display(search_plan.KIND_JOB, 1, ("jobs.ch",), None, TODAY)["zeile"]
+    gap = search_window.display(search_plan.KIND_JOB, 1, ("jobs.ch",), {"datum": "2026-11-10"}, TODAY)["zeile"]
+
+    # German stays as it was; its singular is #448
+    assert first == "Die erste Suche nimmt Inserate der letzten 1 Tage."
+    assert gap == "Die nächste Suche nimmt nur die letzten 1 Tage, ab 20.11.2026."
+    assert ui_texts.uebersetze(first, "fr") == "La première recherche couvre les annonces du dernier jour."
+    assert ui_texts.uebersetze(first, "en") == "The first search covers ads from the last day."
+    assert ui_texts.uebersetze(gap, "fr") == "La prochaine recherche ne couvre que le dernier jour, depuis le 20.11.2026."
+    assert ui_texts.uebersetze(gap, "en") == "The next search only covers the last day, from 20.11.2026."
+
+
+def test_a_gap_longer_than_the_window_is_said_in_the_app_language():
+    gap = search_window.display(search_plan.KIND_JOB, 3, ("jobs.ch",), {"datum": "2026-11-10"}, TODAY)["zeile"]
+
+    assert gap == "Die nächste Suche nimmt nur die letzten 3 Tage, ab 18.11.2026."
+    assert ui_texts.uebersetze(gap, "fr") == "La prochaine recherche ne couvre que les 3 derniers jours, depuis le 18.11.2026."
+    assert ui_texts.uebersetze(gap, "en") == "The next search only covers the last 3 days, from 18.11.2026."
+
+
+def test_portals_that_catch_up_are_said_in_the_app_language():
+    one, other = datetime.date(2026, 11, 12), datetime.date(2026, 11, 14)
+    lines = {
+        "one": search_window.catching_up({"jobs.ch": one}),
+        "same day": search_window.catching_up({"jobs.ch": one, "job-room": one}),
+        "two days": search_window.catching_up({"jobs.ch": one, "job-room": other}),
+        "many": search_window.catching_up({"jobs.ch": one, "job-room": other, "jobscout24": other}),
+    }
+
+    assert {key: ui_texts.uebersetze(line, "fr") for key, line in lines.items()} == {
+        "one": "jobs.ch rattrape les annonces depuis le 12.11.2026.",
+        "same day": "jobs.ch et job-room rattrapent les annonces depuis le 12.11.2026.",
+        "two days": "jobs.ch rattrape les annonces depuis le 12.11.2026, job-room depuis le 14.11.2026.",
+        "many": "3 portails rattrapent les annonces depuis le 12.11.2026.",
+    }
+    assert {key: ui_texts.uebersetze(line, "en") for key, line in lines.items()} == {
+        "one": "jobs.ch catches up on ads from 12.11.2026.",
+        "same day": "jobs.ch and job-room catch up on ads from 12.11.2026.",
+        "two days": "jobs.ch catches up on ads from 12.11.2026, job-room from 14.11.2026.",
+        "many": "3 portals catch up on ads from 12.11.2026.",
+    }
 
 
 def test_why_a_search_cannot_start_comes_in_the_app_language(started, preview):
@@ -184,8 +233,8 @@ def test_the_announcement_of_a_long_run_comes_in_the_app_language():
     text = search_stages.size(plan)["text"]
 
     assert ui_texts.uebersetze(text, "fr") == (
-        f"Cette recherche dure environ 23{NBSP}minutes{NBSP}: 193 recherches en 7 étapes, avec à chaque fois une minute "
-        "de pause entre elles. De nombreuses nouvelles annonces la rallongent.")
+        f"Cette recherche dure environ 23{NBSP}minutes{NBSP}: 193 recherches en 7 étapes, avec une minute "
+        "de pause entre chacune. De nombreuses nouvelles annonces la rallongent.")
     assert ui_texts.uebersetze(text, "en") == (
         f"This search takes about 23{NBSP}minutes: 193 searches in 7 stages, with a pause of one minute between them. "
         "Many new ads make it longer.")
@@ -263,6 +312,32 @@ REVIEWED = {
     "Neu": ("Nouvelles", "New"),
     "Alle prüfen": ("Tout évaluer", "Rate all"),
     "noch keine Note": ("sans note", "unrated"),
+    # the UI/UX ruling on #422
+    "Zum Übernehmen": ("Ouvrir Mes informations", "Open My details"),
+    "Eigene: {sterne}": (f"Étoiles{NBSP}: {{sterne}}", "Stars: {sterne}"),
+    "Nach eigener Bewertung": ("Par évaluation personnelle", "By your rating"),
+    "Rückgängig": ("Annuler", "Undo"),
+    "Rückgängig geht nicht mehr: «{value}» steht nicht mehr unter «{place}».": (
+        f"Impossible d'annuler{NBSP}: «{NBSP}{{value}}{NBSP}» ne figure plus sous «{NBSP}{{place}}{NBSP}».",
+        "Can no longer undo: “{value}” is no longer under “{place}”."),
+    "Nicht zurückgenommen.": ("Non annulé.", "Not undone."),
+    "Zurückholen": ("Récupérer", "Restore"),
+    "Eintragen": ("Ajouter", "Add"),
+    "Wo eintragen?": (f"Où l'ajouter{NBSP}?", "Where to add it?"),
+    "Wird nach dem laufenden Paket angehalten …": ("Arrêt après le lot en cours…", "Stopping after the current batch…"),
+    "Sortierung: {orders}.": (f"Ordre{NBSP}: {{orders}}.", "Order: {orders}."),
+    "Künftig nicht zeigen": ("Ne plus afficher", "Don't show again"),
+    "Künftig nicht zeigen: {punkt}": (f"Ne plus afficher{NBSP}: {{punkt}}", "Don't show again: {punkt}"),
+    "Gezeigt: 1 Treffer, die nur über «{begriff}» hereinkamen.": (
+        f"Affiché{NBSP}: 1 résultat arrivé seulement via «{NBSP}{{begriff}}{NBSP}».",
+        "Shown: 1 result that came in only through “{begriff}”."),
+    "Gezeigt: {anzahl} Treffer, die nur über «{begriff}» hereinkamen.": (
+        f"Affichés{NBSP}: {{anzahl}} résultats arrivés seulement via «{NBSP}{{begriff}}{NBSP}».",
+        "Shown: {anzahl} results that came in only through “{begriff}”."),
+    "Die App trägt den Eintrag unten auf «{seite}» unter «{karte}» ein. Sie können ihn vorher ändern.": (
+        f"L'app ajoute l'entrée ci-dessous sur «{NBSP}{{seite}}{NBSP}» sous «{NBSP}{{karte}}{NBSP}». "
+        "Vous pouvez la modifier avant.",
+        "The app adds the entry below on “{seite}” under “{karte}”. You can change it first."),
 }
 
 

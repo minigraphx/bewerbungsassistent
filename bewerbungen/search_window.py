@@ -17,6 +17,12 @@ NEW_ONE = "{names} sucht zum ersten Mal, die letzten {days} Tage."
 NEW_MANY = "{names} suchen zum ersten Mal, die letzten {days} Tage."
 AFTER_PROBLEM = "Sobald die Suche dort wieder geht, holt sie die Inserate ab {start} nach."
 AFTER_PROBLEM_WINDOW = "Sobald die Suche dort wieder geht, holt sie die Inserate der letzten {days} Tage nach."
+# A window of one day: own keys, so French and English say it in the singular; German stays as it was (#448)
+FIRST_ONE_DAY = "Die erste Suche nimmt Inserate der letzten 1 Tage."
+GAP_ONE_DAY = "Die nächste Suche nimmt nur die letzten 1 Tage, ab {start}."
+NEW_ONE_ONE_DAY = "{names} sucht zum ersten Mal, die letzten 1 Tage."
+NEW_MANY_ONE_DAY = "{names} suchen zum ersten Mal, die letzten 1 Tage."
+AFTER_PROBLEM_ONE_DAY = "Sobald die Suche dort wieder geht, holt sie die Inserate der letzten 1 Tage nach."
 TODAY = "heute"
 YESTERDAY = "gestern"
 ON_DAY = "am {datum}"
@@ -86,7 +92,9 @@ def _second_line(window: int, last_day: datetime.date, starts: dict, success: di
     window_start = today - datetime.timedelta(days=window - 1)
     if window_start > last_day:
         closes = (today - last_day).days + 1 <= search_plan.MAX_WINDOW_DAYS
-        return T(GAP, days=window, start=swiss(window_start)), window < search_plan.MAX_WINDOW_DAYS and closes
+        start = swiss(window_start)
+        gap = T(GAP_ONE_DAY, start=start) if window == 1 else T(GAP, days=window, start=start)
+        return gap, window < search_plan.MAX_WINDOW_DAYS and closes
     fresh = [portal for portal in starts if portal not in success and portal not in problems]
     late = {portal: start for portal, start in starts.items()
             if start < last_day and portal in success and portal not in problems}
@@ -96,16 +104,17 @@ def _second_line(window: int, last_day: datetime.date, starts: dict, success: di
 
 
 def _first_time(fresh: list[str], window: int) -> str:
+    names = _names(fresh)
     if len(fresh) == 1:
-        return T(NEW_ONE, names=_names(fresh), days=window)
-    return T(NEW_MANY, names=_names(fresh), days=window)
+        return T(NEW_ONE_ONE_DAY, names=names) if window == 1 else T(NEW_ONE, names=names, days=window)
+    return T(NEW_MANY_ONE_DAY, names=names) if window == 1 else T(NEW_MANY, names=names, days=window)
 
 
 def _after_problem(portal: str, starts: dict, success: dict, window: int) -> str:
     """Its last success, or the whole window when that lies further back or there was none."""
     last = _date(success.get(portal))
     if last is None or last < starts[portal]:
-        return T(AFTER_PROBLEM_WINDOW, days=window)
+        return T(AFTER_PROBLEM_ONE_DAY) if window == 1 else T(AFTER_PROBLEM_WINDOW, days=window)
     return T(AFTER_PROBLEM, start=swiss(starts[portal]))
 
 
@@ -132,7 +141,8 @@ def display(kind: str, window: int, portals: tuple[str, ...], last_run: dict | N
     shown = {**shown, "portale": _portal_rows(starts, success, problems, today)}
     last_day = _date((last_run or {}).get("datum"))
     if last_run is None or last_day is None or last_day > today:
-        return {**shown, "zeile": T(FIRST, days=window) if last_run is None else ""}
+        first = T(FIRST_ONE_DAY) if window == 1 else T(FIRST, days=window)
+        return {**shown, "zeile": first if last_run is None else ""}
     line, change = _second_line(window, last_day, starts, success, problems, today)
     behind = {portal: _after_problem(portal, starts, success, window) for portal in dated if portal in problems}
     return {**shown, "letzte": when(last_day.isoformat(), today), "zeile": line, "zeitfenster_aendern": change,

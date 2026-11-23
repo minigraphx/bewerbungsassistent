@@ -160,12 +160,12 @@ test("the words of an exclusion from the rating come in the app language", () =>
           orte: ["Im Titel", "Im Inserat"],
           ok: "«Verkauf» steht jetzt auf «Suche einstellen» unter «Im Titel». Gilt ab der nächsten Suche.",
           weg: "«Schichtarbeit» steht nicht mehr auf «Suche einstellen» unter «Im Inserat»." },
-    fr: { knopf: "Ne plus afficher", label: `Ne plus afficher${NBSP}: Kein Homeoffice`, wo: `Où l'inscrire${NBSP}?`,
+    fr: { knopf: "Ne plus afficher", label: `Ne plus afficher${NBSP}: Kein Homeoffice`, wo: `Où l'ajouter${NBSP}?`,
           orte: ["Dans le titre", "Dans l'annonce"],
           ok: `«${NBSP}Verkauf${NBSP}» figure maintenant sur «${NBSP}Régler la recherche${NBSP}» sous «${NBSP}Dans le titre${NBSP}». `
             + "S'applique dès la prochaine recherche.",
           weg: `«${NBSP}Schichtarbeit${NBSP}» ne figure plus sur «${NBSP}Régler la recherche${NBSP}» sous «${NBSP}Dans l'annonce${NBSP}».` },
-    en: { knopf: "Don't show in future", label: "Don't show in future: Kein Homeoffice", wo: "Where to add it?",
+    en: { knopf: "Don't show again", label: "Don't show again: Kein Homeoffice", wo: "Where to add it?",
           orte: ["In the title", "In the ad"],
           ok: "“Verkauf” is now on “Set up search” under “In the title”. Applies from the next search.",
           weg: "“Schichtarbeit” is no longer on “Set up search” under “In the ad”." },
@@ -176,7 +176,7 @@ test("the form of an exclusion addresses the person as the text set does", () =>
   const sie = syncAll(() => H.frage("Was Sie nicht sehen wollen", false));
   assert.equal(sie.de, "Die App trägt den Eintrag unten auf «Suche einstellen» unter «Was Sie nicht sehen wollen» ein. "
     + "Sie können ihn vorher ändern.");
-  assert.equal(sie.fr, `L'app inscrit l'entrée ci-dessous sur «${NBSP}Régler la recherche${NBSP}» sous «${NBSP}Was Sie nicht sehen wollen${NBSP}». `
+  assert.equal(sie.fr, `L'app ajoute l'entrée ci-dessous sur «${NBSP}Régler la recherche${NBSP}» sous «${NBSP}Was Sie nicht sehen wollen${NBSP}». `
     + "Vous pouvez la modifier avant.");
   assert.equal(syncAll(() => H.frage("x", true)).fr.endsWith("Tu peux la modifier avant."), true);
   assert.equal(syncAll(() => H.frage("x", true)).en, "The app adds the entry below on “Set up search” under “x”. You can change it first.");
@@ -309,8 +309,8 @@ test("an unrated hit, a trial apprenticeship and own stars are named in the app 
     return { row: p.row(), texts: p.texts(), buttons: p.buttons() };
   });
   assert.match(shown.de.row, /noch keine Note.*Schnupperlehre.*Eigene: ★★/);
-  assert.match(shown.fr.row, new RegExp(`sans note.*Stage d'orientation.*Personnelle${NBSP}: ★★`));
-  assert.match(shown.en.row, /unrated.*Trial apprenticeship.*Own: ★★/);
+  assert.match(shown.fr.row, new RegExp(`sans note.*Stage d'orientation.*Étoiles${NBSP}: ★★`));
+  assert.match(shown.en.row, /unrated.*Trial apprenticeship.*Stars: ★★/);
   assert.ok(shown.fr.texts.includes("Pas encore évalué."));
   assert.ok(shown.en.texts.includes("online for 3 days"));
   assert.ok(shown.fr.buttons.includes("Évaluer"));
@@ -323,4 +323,13 @@ test("a missing estimate is said in the app language", async () => {
     fr: `L'estimation manque${NBSP}: Nicht erreichbar.`,
     en: "The estimate is missing: Nicht erreichbar.",
   });
+});
+
+test("the own rating and an empty search run use the wording of the UI/UX ruling", () => {
+  const eigene = syncAll(() => [texte.text("suche.eigene", "stelle-sie"), texte.text("suche.eigene", "stelle-du")]);
+  assert.deepEqual(eigene.de, ["Ihre eigene Bewertung", "Deine eigene Bewertung"]);
+  assert.deepEqual(eigene.fr, ["Votre évaluation personnelle", "Ton évaluation personnelle"]);
+  assert.deepEqual(eigene.en, ["Your own rating", "Your own rating"]);
+  assert.equal(syncAll(() => texte.text("suche.keine", "stelle-sie")).en,
+    "The portals reported nothing new. Try other search terms or a wider area.");
 });
