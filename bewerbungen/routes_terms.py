@@ -25,7 +25,8 @@ from amount_text import money_text
 from dateien import schreibe_atomar
 from hits import HIDDEN_TERMS, Hits
 from query_log import QueryLog
-from server import ActionError, json_antwort, pflicht
+from server import ActionError, json_antwort, message_of, pflicht
+from ui_texts import T
 
 CACHE_KEY = "suchbegriffe-vorschlaege"
 KEPT_PROPOSALS = 10
@@ -34,11 +35,13 @@ SHA256 = re.compile(r"[0-9a-f]{64}")
 MINUTES = 1  # one call, mostly under 30 seconds
 ONLY_JOBS = "Suchbegriffe prüfen gibt es vorerst nur bei der Stellensuche."
 GONE = "Dieser Vorschlag gilt nicht mehr. Bitte neu vorschlagen lassen."
-STALE = "Vorschlag veraltet. Die Suchbegriffe haben sich seit dem Vorschlag geändert. Bitte neu vorschlagen lassen."
+STALE = T("Vorschlag veraltet. Die Suchbegriffe haben sich seit dem Vorschlag geändert. Bitte neu vorschlagen lassen.")
+# The page knows a stale proposal by this code, not by the words, which follow the app language (#425)
+STALE_ACTION = "vorschlag-veraltet"
 FEEDBACK_NEEDED = "Bitte schreiben, was anders sein soll."
 FAILED = "Kein Vorschlag. {reason} {cost} Am Suchprofil hat sich nichts geändert."
 CHARGED = "Berechnet: {cost}."
-NOT_CHARGED = "Nichts berechnet."
+NOT_CHARGED = T("Nichts berechnet.")
 UNDER_A_CENT = "weniger als {cent}"
 CENT = 0.01
 NO_UNDO = ("Rückgängig geht nicht mehr: Das Suchprofil hat sich seither geändert. Der frühere Stand liegt unter "
@@ -171,13 +174,13 @@ def charged(cost: float) -> str:
     """A call under half a cent still cost something, so it never reads as CHF 0.00 (#339)."""
     currency = currency_now()
     if round(cost, 2) < CENT:
-        return CHARGED.format(cost=UNDER_A_CENT.format(cent=money_text(CENT, currency)))
-    return CHARGED.format(cost=money_text(cost, currency))
+        return T(CHARGED, cost=T(UNDER_A_CENT, cent=money_text(CENT, currency)))
+    return T(CHARGED, cost=money_text(cost, currency))
 
 
 def _failed(error: AiError) -> ValueError:
     cost = getattr(error, "cost_usd", None)
-    message = FAILED.format(reason=error, cost=charged(cost) if cost else NOT_CHARGED)
+    message = T(FAILED, reason=message_of(error), cost=charged(cost) if cost else NOT_CHARGED)
     return ActionError(message, SETUP_ACTION) if isinstance(error, SetupNeeded) else ValueError(message)
 
 
@@ -280,13 +283,13 @@ def adopt(k, parameter, body):
     path, text = _profile(k)
     proposal = _proposal(k, body.get("vorschlag"))
     if term_changes.terms_of(text).digest != proposal["stand"]:
-        raise ValueError(STALE)
+        raise ActionError(STALE, STALE_ACTION)
     picked = term_changes.selected(term_changes.terms_of(text), proposal["changes"], body.get("danach"))
 
     def change(text: str) -> str:
         current = term_changes.terms_of(text)
         if current.digest != proposal["stand"]:
-            raise ValueError(STALE)
+            raise ActionError(STALE, STALE_ACTION)
         blocked = term_changes.limits(current, term_changes.outcome(current, picked), term_changes.places_factor(text),
                                       len(term_changes.moves_of(picked)))["gesperrt"]
         if blocked:

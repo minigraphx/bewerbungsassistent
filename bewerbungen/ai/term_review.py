@@ -17,6 +17,7 @@ from ai import prompts, tasks
 from ai.errors import BAD_ANSWER, AnswerError
 from ai.gateway import Gateway, Request
 from ai.usage import Usage, cost_usd
+from ui_message import T
 
 TASK = "terms"
 MAX_TITLES = 150
@@ -24,7 +25,7 @@ MAX_FEEDBACK = 1000
 CHARS_PER_TOKEN = 3  # German text with names and numbers; rather too many tokens than too few
 EXPECTED_OUTPUT_TOKENS = 1500  # Sonnet at medium used 900 to 1200 (#274)
 CENT = 0.01
-FEEDBACK_TOO_LONG = f"Bitte höchstens {MAX_FEEDBACK} Zeichen."
+FEEDBACK_TOO_LONG = T("Bitte höchstens {anzahl} Zeichen.", anzahl=MAX_FEEDBACK)
 _TERM_LIST = {"type": "array", "items": {"type": "string"}}
 
 INSTRUCTIONS = """Aufgabe: Prüfe, wonach die Stellensuche der Person sucht, und schlage Änderungen vor, die mehr passende und weniger unpassende Treffer bringen.

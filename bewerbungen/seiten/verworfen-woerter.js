@@ -7,8 +7,9 @@
   const L = window.VerworfenWoerterLogik;
   const $ = id => document.getElementById(id);
   const ROUTE = "/api/suche/verworfen-woerter";
-  const NICHT_GELADEN = "Der Vorschlag aus den verworfenen Stellen fehlt.";
-  const NICHT_GESPEICHERT = "Nicht gespeichert.";
+  // Messages in the app language through Texte (#425); the word itself is a title word of the hits and stays.
+  const nichtGeladen = fehler => window.Texte.t("Der Vorschlag aus den verworfenen Stellen fehlt. {fehler}", { fehler });
+  const nichtGespeichert = fehler => window.Texte.t("Nicht gespeichert. {fehler}", { fehler });
   let vorschlag = null;
 
   function zeige(neu, satz) {
@@ -28,7 +29,7 @@
       zeige(vorschlaege[0] || null, satz);
     } catch (fehler) {
       zeige(null);  // the proposal is extra; the card works without it
-      status($("nicht-meldung"), `${NICHT_GELADEN} ${fehler.message}`, "fehler");
+      status($("nicht-meldung"), nichtGeladen(fehler.message), "fehler");
     }
   }
 
@@ -39,7 +40,7 @@
       await senden(`${ROUTE}/${pfad}`, { wort });
       danach(wort);
     } catch (fehler) {
-      status($("nicht-meldung"), `${NICHT_GESPEICHERT} ${fehler.message}`, "fehler");
+      status($("nicht-meldung"), nichtGespeichert(fehler.message), "fehler");
       lade();
     }
   }

@@ -10,11 +10,12 @@ import re
 
 import dismissed_words
 import title_filter
+from ui_message import T
 
 TITLE = "titel_ausschluss"
 AD = "ausschluss"
 KINDS = (TITLE, AD)
-PLACES = {TITLE: "Im Titel", AD: "Im Inserat"}  # the words of the card Was Sie nicht sehen wollen
+PLACES = {TITLE: T("Im Titel"), AD: T("Im Inserat")}  # the words of the card Was Sie nicht sehen wollen
 SEPARATOR = re.compile(r"[,;]")
 TRAILING = ".:!?-– "
 

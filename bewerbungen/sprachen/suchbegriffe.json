@@ -1,0 +1,460 @@
+{
+  "Zurück zu den Treffern": {"fr": "Retour aux résultats", "en": "Back to the results"},
+  "Änderungen zum Übernehmen": {"fr": "Modifications à appliquer", "en": "Changes to apply"},
+  "Vorschläge der KI": {"fr": "Propositions de l'IA", "en": "AI proposals"},
+  "Bisherige Begriffe": {"fr": "Termes actuels", "en": "Current terms"},
+  "So sucht die App danach": {"fr": "Voici comment l'app cherchera ensuite", "en": "How the app searches afterwards"},
+  "Was soll anders sein?": {"fr": "Qu'est-ce qui doit changer\u00a0?", "en": "What should be different?"},
+  "Zum Beispiel: «Trainer» behalten, ich gebe auch Kurse für Erwachsene.": {
+    "fr": "Par exemple\u00a0: garder «\u00a0Trainer\u00a0», je donne aussi des cours pour adultes.",
+    "en": "For example: keep “Trainer”, I also teach courses for adults."
+  },
+  "Neu vorschlagen": {"fr": "Proposer à nouveau", "en": "Suggest again"},
+  "Am Suchprofil hat sich nichts geändert.": {"fr": "Le profil de recherche n'a pas changé.", "en": "The search profile has not changed."},
+  "Nochmals versuchen": {"fr": "Réessayer", "en": "Try again"},
+  "zu allgemein": {"fr": "trop général", "en": "too general"},
+  "Vorschlag veraltet": {"fr": "Proposition dépassée", "en": "Proposal out of date"},
+  "Geändert gegenüber Vorschlag {runde}: {geaendert}": {
+    "fr": "Modifié par rapport à la proposition {runde}\u00a0: {geaendert}", "en": "Changed from proposal {runde}: {geaendert}"
+  },
+  "{titel}: «{hinweis}»": {"fr": "{titel}\u00a0: «\u00a0{hinweis}\u00a0»", "en": "{titel}: “{hinweis}”"},
+  "Vorschlag {runde} zeigen": {"fr": "Afficher la proposition {runde}", "en": "Show proposal {runde}"},
+  "Rückgängig machen": {"fr": "Annuler", "en": "Undo"},
+  "Bitte schreiben, was anders sein soll.": {"fr": "Merci d'écrire ce qui doit changer.", "en": "Please write what should be different."},
+  "Nur bei der Stellensuche": {"fr": "Seulement pour la recherche d'emploi", "en": "Only for the job search"},
+  "Suchbegriffe prüfen gibt es vorerst nur bei der Stellensuche.": {
+    "fr": "La vérification des mots-clés n'existe pour l'instant que pour la recherche d'emploi.",
+    "en": "Checking search terms is only available for the job search for now."
+  },
+  "Abgebrochen": {"fr": "Interrompu", "en": "Cancelled"},
+
+  "Dieser Vorschlag gilt nicht mehr. Bitte neu vorschlagen lassen.": {
+    "fr": "Cette proposition n'est plus valable. Merci d'en demander une nouvelle.",
+    "en": "This proposal is no longer valid. Please ask for a new one."
+  },
+  "Vorschlag veraltet. Die Suchbegriffe haben sich seit dem Vorschlag geändert. Bitte neu vorschlagen lassen.": {
+    "fr": "Proposition dépassée. Les mots-clés ont changé depuis la proposition. Merci d'en demander une nouvelle.",
+    "en": "Proposal out of date. The search terms have changed since the proposal. Please ask for a new one."
+  },
+  "Kein Vorschlag. {reason} {cost} Am Suchprofil hat sich nichts geändert.": {
+    "fr": "Aucune proposition. {reason} {cost} Le profil de recherche n'a pas changé.",
+    "en": "No proposal. {reason} {cost} The search profile has not changed."
+  },
+  "Berechnet: {cost}.": {"fr": "Facturé\u00a0: {cost}.", "en": "Charged: {cost}."},
+  "Nichts berechnet.": {"fr": "Rien facturé.", "en": "Nothing charged."},
+  "weniger als {cent}": {"fr": "moins de {cent}", "en": "less than {cent}"},
+  "Rückgängig geht nicht mehr: Das Suchprofil hat sich seither geändert. Der frühere Stand liegt unter Entwürfe und Versionen.": {
+    "fr": "Impossible d'annuler\u00a0: le profil de recherche a changé depuis. L'état précédent se trouve sous Brouillons et versions.",
+    "en": "Undo is no longer possible: the search profile has changed since. The earlier state is under Drafts and versions."
+  },
+  "Bitte höchstens {anzahl} Zeichen.": {"fr": "Merci de ne pas dépasser {anzahl} caractères.", "en": "Please use at most {anzahl} characters."},
+
+  "Mit dieser Auswahl bleibt alles wie bisher.": {"fr": "Avec cette sélection, rien ne change.", "en": "With this selection, nothing changes."},
+  "Diese Auswahl passt nicht zum Vorschlag. Bitte die Seite neu laden.": {
+    "fr": "Cette sélection ne correspond pas à la proposition. Merci de recharger la page.",
+    "en": "This selection does not match the proposal. Please reload the page."
+  },
+  "Danach stünde kein Suchbegriff mehr in der Suche. Bitte mindestens einen einschalten.": {
+    "fr": "Il ne resterait alors plus aucun mot-clé dans la recherche. Merci d'en activer au moins un.",
+    "en": "Then no search term would be left in the search. Please switch at least one on."
+  },
+  "Mit dieser Auswahl hätte «{area}» {count} Begriffe, höchstens {limit} gehen. Bitte dort noch {left} ausschalten.": {
+    "fr": "Avec cette sélection, «\u00a0{area}\u00a0» aurait {count} termes, {limit} au plus sont possibles. Merci d'en désactiver encore {left} à cet endroit.",
+    "en": "With this selection, “{area}” would have {count} terms; at most {limit} are possible. Please switch off {left} more there."
+  },
+  "Mit dieser Auswahl wären es {count} Suchbegriffe. Höchstens {limit} gehen; da es schon {earlier} sind, dürfen es nicht mehr werden. Bitte noch {left} ausschalten, unter «Bisherige Begriffe» oder bei den Vorschlägen.": {
+    "fr": "Avec cette sélection, il y aurait {count} mots-clés. {limit} au plus sont possibles\u00a0; comme il y en a déjà {earlier}, leur nombre ne doit pas augmenter. Merci d'en désactiver encore {left}, sous «\u00a0Termes actuels\u00a0» ou parmi les propositions.",
+    "en": "With this selection there would be {count} search terms. At most {limit} are possible; as there are already {earlier}, there must not be more. Please switch off {left} more, under “Current terms” or among the proposals."
+  },
+  "Mit dieser Auswahl wären es {count} Suchbegriffe, höchstens {limit} gehen. Bitte noch {left} ausschalten, unter «Bisherige Begriffe» oder bei den Vorschlägen.": {
+    "fr": "Avec cette sélection, il y aurait {count} mots-clés, {limit} au plus sont possibles. Merci d'en désactiver encore {left}, sous «\u00a0Termes actuels\u00a0» ou parmi les propositions.",
+    "en": "With this selection there would be {count} search terms; at most {limit} are possible. Please switch off {left} more, under “Current terms” or among the proposals."
+  },
+  "Danach: 1 Suchbegriffe, erlaubt sind {earlier}": {"fr": "Ensuite\u00a0: 1 mot-clé, {earlier} sont autorisés", "en": "After: 1 search term, {earlier} are allowed"},
+  "Danach: {keywords} Suchbegriffe, erlaubt sind {earlier}": {
+    "fr": "Ensuite\u00a0: {keywords} mots-clés, {earlier} sont autorisés", "en": "After: {keywords} search terms, {earlier} are allowed"
+  },
+  "Danach: 1 von {max_keywords} Suchbegriffen": {"fr": "Ensuite\u00a0: 1 mot-clé sur {max_keywords}", "en": "After: 1 of {max_keywords} search terms"},
+  "Danach: {keywords} von {max_keywords} Suchbegriffen": {
+    "fr": "Ensuite\u00a0: {keywords} mots-clés sur {max_keywords}", "en": "After: {keywords} of {max_keywords} search terms"
+  },
+  "bis 1 Suche pro Portal": {"fr": "jusqu'à 1 recherche par portail", "en": "up to 1 search per portal"},
+  "bis {queries} Suchen pro Portal": {"fr": "jusqu'à {queries} recherches par portail", "en": "up to {queries} searches per portal"},
+  "«{begriff}»": {"fr": "«\u00a0{begriff}\u00a0»", "en": "“{begriff}”"},
+  "{begriffe} ausschliessen": {"fr": "Exclure {begriffe}", "en": "Exclude {begriffe}"},
+  "{begriffe} aufnehmen": {"fr": "Ajouter {begriffe}", "en": "Add {begriffe}"},
+  "Suchbegriff {begriffe} aufnehmen": {"fr": "Ajouter le mot-clé {begriffe}", "en": "Add the search term {begriffe}"},
+  "Suchbegriffe {begriffe} aufnehmen": {"fr": "Ajouter les mots-clés {begriffe}", "en": "Add the search terms {begriffe}"},
+  "{begriffe} entfernen": {"fr": "Retirer {begriffe}", "en": "Remove {begriffe}"},
+  "„{alt}“ ersetzen durch „{neu}“": {"fr": "Remplacer «\u00a0{alt}\u00a0» par «\u00a0{neu}\u00a0»", "en": "Replace “{alt}” with “{neu}”"},
+  "{begriffe} ersetzen durch {neue}": {"fr": "Remplacer {begriffe} par {neue}", "en": "Replace {begriffe} with {neue}"},
+  "{begriffe} nicht mehr ausschliessen": {"fr": "Ne plus exclure {begriffe}", "en": "Stop excluding {begriffe}"},
+  "{a}, {b}": {"fr": "{a}, {b}", "en": "{a}, {b}"},
+  "„{term}“ in „{into}“ zusammenlegen": {"fr": "Fusionner «\u00a0{term}\u00a0» dans «\u00a0{into}\u00a0»", "en": "Merge “{term}” into “{into}”"},
+  "„{term}“ zu den Nischen verschieben (ohne Ort suchen)": {
+    "fr": "Déplacer «\u00a0{term}\u00a0» vers les niches (chercher sans lieu)", "en": "Move “{term}” to the niches (search without a place)"
+  },
+  "„{term}“ nur auf {portals} suchen": {"fr": "Ne chercher «\u00a0{term}\u00a0» que sur {portals}", "en": "Search “{term}” only on {portals}"},
+  "zu den Nischen": {"fr": "vers les niches", "en": "to the niches"},
+
+  "Beide behalten": {"fr": "Conserver les deux", "en": "Keep both"},
+  "Beide bleiben. Die App fragt bei diesem Paar nicht wieder.": {
+    "fr": "Les deux restent. L'app ne redemandera pas pour cette paire.", "en": "Both stay. The app will not ask about this pair again."
+  },
+  "in der Kernliste": {"fr": "dans la liste principale", "en": "in the core list"},
+  "bei den Nischen": {"fr": "parmi les niches", "en": "among the niches"},
+  "in der Zeile „{label}“": {"fr": "dans la ligne «\u00a0{label}\u00a0»", "en": "in the line “{label}”"},
+  "In der Kernliste": {"fr": "Dans la liste principale", "en": "In the core list"},
+  "Bei den Nischen": {"fr": "Parmi les niches", "en": "Among the niches"},
+  "In der Zeile „{label}“": {"fr": "Dans la ligne «\u00a0{label}\u00a0»", "en": "In the line “{label}”"},
+  "die Kernliste": {"fr": "la liste principale", "en": "the core list"},
+  "die Zeile „{label}“": {"fr": "la ligne «\u00a0{label}\u00a0»", "en": "the line “{label}”"},
+  "Bei den Nischen sucht die App ohne Ort, also auch alles, was {subjekt} findet.": {
+    "fr": "Pour les niches, l'app cherche sans lieu, donc aussi tout ce que trouve {subjekt}.",
+    "en": "For the niches the app searches without a place, so it also finds everything {subjekt} finds."
+  },
+  "Die App sucht ihn trotzdem nur einmal.": {"fr": "L'app ne le cherche pourtant qu'une fois.", "en": "The app still searches it only once."},
+  "Die App sucht ihn nur einmal, auf den Portalen beider Zeilen.": {
+    "fr": "L'app ne le cherche qu'une fois, sur les portails des deux lignes.", "en": "The app searches it only once, on the portals of both lines."
+  },
+  "Weil er auch {ort} steht, sucht die App ihn auf allen Portalen, nicht nur auf {portale}.": {
+    "fr": "Comme il figure aussi {ort}, l'app le cherche sur tous les portails, pas seulement sur {portale}.",
+    "en": "Because it is also {ort}, the app searches it on all portals, not only on {portale}."
+  },
+  "{ort} kostet er {suchen} pro Suchlauf, {ort2} {anzahl}.": {
+    "fr": "{ort}, il coûte {suchen} par série de recherches, {ort2} {anzahl}.", "en": "{ort} it costs {suchen} per search run, {ort2} {anzahl}."
+  },
+  "Doppelt kostet er keine zusätzliche Suche.": {"fr": "En double, il ne coûte aucune recherche supplémentaire.", "en": "Twice, it costs no extra search."},
+  "{ort} kostet er {suchen} pro Suchlauf, {ort2} keine zusätzliche.": {
+    "fr": "{ort}, il coûte {suchen} par série de recherches, {ort2} aucune de plus.", "en": "{ort} it costs {suchen} per search run, {ort2} no extra one."
+  },
+  "{ohne} sucht die App nicht mehr auf {portale}; das ist in der Zahl schon eingerechnet.": {
+    "fr": "{ohne}, l'app ne cherche plus sur {portale}\u00a0; c'est déjà compté dans le nombre.",
+    "en": "{ohne}, the app no longer searches {portale}; the number already includes this."
+  },
+  "Ohne den Eintrag {ort}": {"fr": "Sans l'entrée {ort}", "en": "Without the entry {ort}"},
+  "Ohne ihn": {"fr": "Sans lui", "en": "Without it"},
+  "„{begriff}“ steht zweimal: {ort} und {ort2}.": {
+    "fr": "«\u00a0{begriff}\u00a0» figure deux fois\u00a0: {ort} et {ort2}.", "en": "“{begriff}” is there twice: {ort} and {ort2}."
+  },
+  "Seine einzige Stelle kam auch über „{breit}“.": {
+    "fr": "Sa seule offre est aussi venue par «\u00a0{breit}\u00a0».", "en": "Its only job also came through “{breit}”."
+  },
+  "Seine einzige Stelle kam nicht über „{breit}“.": {
+    "fr": "Sa seule offre n'est pas venue par «\u00a0{breit}\u00a0».", "en": "Its only job did not come through “{breit}”."
+  },
+  "Alle seine {anzahl} Stellen kamen auch über „{breit}“.": {
+    "fr": "Ses {anzahl} offres sont toutes aussi venues par «\u00a0{breit}\u00a0».", "en": "All its {anzahl} jobs also came through “{breit}”."
+  },
+  "Von seinen {anzahl} Stellen kam keine über „{breit}“.": {
+    "fr": "Aucune de ses {anzahl} offres n'est venue par «\u00a0{breit}\u00a0».", "en": "None of its {anzahl} jobs came through “{breit}”."
+  },
+  "Von seinen {anzahl} Stellen kam eine auch über „{breit}“.": {
+    "fr": "Une de ses {anzahl} offres est aussi venue par «\u00a0{breit}\u00a0».", "en": "One of its {anzahl} jobs also came through “{breit}”."
+  },
+  "Von seinen {anzahl} Stellen kamen {beide} auch über „{breit}“.": {
+    "fr": "{beide} de ses {anzahl} offres sont aussi venues par «\u00a0{breit}\u00a0».", "en": "{beide} of its {anzahl} jobs also came through “{breit}”."
+  },
+  "„{eng}“ steckt ganz in „{breit}“: Die Suche nach „{breit}“ sollte diese Stellen auch finden.": {
+    "fr": "«\u00a0{eng}\u00a0» est entièrement contenu dans «\u00a0{breit}\u00a0»\u00a0: la recherche de «\u00a0{breit}\u00a0» devrait aussi trouver ces offres.",
+    "en": "“{eng}” is fully contained in “{breit}”: the search for “{breit}” should find these jobs too."
+  },
+  "„{eng}“ steckt ganz in „{breit}“: Die Suche nach „{breit}“ findet diese Stellen meist schon.": {
+    "fr": "«\u00a0{eng}\u00a0» est entièrement contenu dans «\u00a0{breit}\u00a0»\u00a0: la recherche de «\u00a0{breit}\u00a0» trouve déjà la plupart de ces offres.",
+    "en": "“{eng}” is fully contained in “{breit}”: the search for “{breit}” mostly finds these jobs already."
+  },
+  "„{eng}“ kostet {suchen} pro Suchlauf.": {
+    "fr": "«\u00a0{eng}\u00a0» coûte {suchen} par série de recherches.", "en": "“{eng}” costs {suchen} per search run."
+  },
+  "„{begriff}“ entfernen": {"fr": "Retirer «\u00a0{begriff}\u00a0»", "en": "Remove “{begriff}”"},
+  "Aus der Kernliste entfernen": {"fr": "Retirer de la liste principale", "en": "Remove from the core list"},
+  "Bei den Nischen entfernen": {"fr": "Retirer des niches", "en": "Remove from the niches"},
+  "Aus der Zeile „{label}“ entfernen": {"fr": "Retirer de la ligne «\u00a0{label}\u00a0»", "en": "Remove from the line “{label}”"},
+  "{knopf}: „{begriff}“": {"fr": "{knopf}\u00a0: «\u00a0{begriff}\u00a0»", "en": "{knopf}: “{begriff}”"},
+  "Beide behalten: „{begriff}“ und „{breit}“": {
+    "fr": "Conserver les deux\u00a0: «\u00a0{begriff}\u00a0» et «\u00a0{breit}\u00a0»", "en": "Keep both: “{begriff}” and “{breit}”"
+  },
+  "Beide behalten: „{begriff}“": {"fr": "Conserver les deux\u00a0: «\u00a0{begriff}\u00a0»", "en": "Keep both: “{begriff}”"},
+  "„{begriff}“ entfernt.": {"fr": "«\u00a0{begriff}\u00a0» retiré.", "en": "“{begriff}” removed."},
+  "„{begriff}“ aus der Kernliste entfernt.": {
+    "fr": "«\u00a0{begriff}\u00a0» retiré de la liste principale.", "en": "“{begriff}” removed from the core list."
+  },
+  "„{begriff}“ bei den Nischen entfernt.": {"fr": "«\u00a0{begriff}\u00a0» retiré des niches.", "en": "“{begriff}” removed from the niches."},
+  "„{begriff}“ aus der Zeile „{label}“ entfernt.": {
+    "fr": "«\u00a0{begriff}\u00a0» retiré de la ligne «\u00a0{label}\u00a0».", "en": "“{begriff}” removed from the line “{label}”."
+  },
+  "Der nächste Suchlauf spart {suchen} und sucht nicht mehr auf {portale}.": {
+    "fr": "La prochaine série de recherches économise {suchen} et ne cherche plus sur {portale}.",
+    "en": "The next search run saves {suchen} and no longer searches {portale}."
+  },
+  "Der nächste Suchlauf spart {suchen}.": {"fr": "La prochaine série de recherches économise {suchen}.", "en": "The next search run saves {suchen}."},
+  "Der nächste Suchlauf sucht nicht mehr auf {portale}.": {
+    "fr": "La prochaine série de recherches ne cherche plus sur {portale}.", "en": "The next search run no longer searches {portale}."
+  },
+  "Der nächste Suchlauf bleibt gleich gross.": {"fr": "La prochaine série de recherches reste de la même taille.", "en": "The next search run stays the same size."},
+  "„{begriff}“ ist wieder in der Suche.": {"fr": "«\u00a0{begriff}\u00a0» est de nouveau dans la recherche.", "en": "“{begriff}” is back in the search."},
+  "„{begriff}“ steht wieder {ort}.": {"fr": "«\u00a0{begriff}\u00a0» figure de nouveau {ort}.", "en": "“{begriff}” is back {ort}."},
+  "Das hat sich inzwischen geändert. Die Liste ist neu geladen.": {
+    "fr": "Cela a changé entre-temps. La liste a été rechargée.", "en": "This has changed in the meantime. The list has been reloaded."
+  },
+  "Doppelt gesuchte Begriffe liessen sich nicht laden: {fehler}": {
+    "fr": "Impossible de charger les termes recherchés en double\u00a0: {fehler}", "en": "The terms searched twice could not be loaded: {fehler}"
+  },
+
+  "Weitere Seiten gehen nur mit einem eigenen API-Schlüssel.": {
+    "fr": "D'autres sites ne sont possibles qu'avec une clé API personnelle.", "en": "Further sites need a personal API key."
+  },
+  "Diese Seite steht nicht in der Liste der weiteren Seiten.": {
+    "fr": "Ce site ne figure pas dans la liste des autres sites.", "en": "This site is not in the list of further sites."
+  },
+  "links erwartet (Liste)": {"fr": "links attendu (liste)", "en": "links expected (list)"},
+  "„{address}“ geht nicht: {why}": {"fr": "«\u00a0{address}\u00a0» ne fonctionne pas\u00a0: {why}", "en": "“{address}” does not work: {why}"},
+  "Die Adresse muss mit https:// beginnen und darf weder Anmeldedaten noch einen Port enthalten.": {
+    "fr": "l'adresse doit commencer par https:// et ne doit contenir ni identifiants ni port.",
+    "en": "The address must start with https:// and must contain neither login details nor a port."
+  },
+  "Das ist keine öffentliche Seite.": {"fr": "ce n'est pas une page publique.", "en": "That is not a public page."},
+  "Das ist keine Adresse.": {"fr": "ce n'est pas une adresse.", "en": "That is not an address."},
+  "Die Adresse ist zu lang oder enthält Zeichen, die nicht in eine Adresse gehören.": {
+    "fr": "l'adresse est trop longue ou contient des caractères qui n'ont pas leur place dans une adresse.",
+    "en": "The address is too long or contains characters that do not belong in an address."
+  },
+  "Erlaubt sind nur die Platzhalter {begriff} und {ort}.": {
+    "fr": "seuls les substituts {begriff} et {ort} sont autorisés.", "en": "Only the placeholders {begriff} and {ort} are allowed."
+  },
+  "Diese Seite durchsucht die App schon.": {"fr": "l'app parcourt déjà ce site.", "en": "The app already searches this site."},
+  "Liste der Adressen erwartet": {"fr": "Liste d'adresses attendue", "en": "List of addresses expected"},
+  "Es gehen höchstens {anzahl} weitere Seiten.": {"fr": "{anzahl} autres sites au plus sont possibles.", "en": "At most {anzahl} further sites are possible."},
+  "Eine Seite steht zweimal in der Liste. Pro Seite geht eine Adresse.": {
+    "fr": "Un site figure deux fois dans la liste. Une seule adresse par site.", "en": "A site is in the list twice. One address per site."
+  },
+  "Gespeichert. Die Seiten kommen bei der nächsten Suche dazu.": {
+    "fr": "Enregistré. Les sites s'ajoutent dès la prochaine recherche.", "en": "Saved. The sites join from the next search."
+  },
+  "Die Browser-Erweiterung antwortet nicht. Bitte diese Seite im Browser mit der Erweiterung öffnen.": {
+    "fr": "L'extension du navigateur ne répond pas. Merci d'ouvrir cette page dans le navigateur qui a l'extension.",
+    "en": "The browser extension does not answer. Please open this page in the browser with the extension."
+  },
+  "Die Erweiterung hat eine eigene Seite geöffnet. Bitte dort erlauben.": {
+    "fr": "L'extension a ouvert sa propre page. Merci d'autoriser là-bas.", "en": "The extension has opened a page of its own. Please allow it there."
+  },
+
+  "Dieser Vorschlag gilt nicht mehr. Die Seite zeigt jetzt den aktuellen Stand.": {
+    "fr": "Cette proposition n'est plus valable. La page montre maintenant l'état actuel.",
+    "en": "This proposal is no longer valid. The page now shows the current state."
+  },
+  "Der Vorschlag aus den verworfenen Stellen fehlt. {fehler}": {
+    "fr": "La proposition tirée des offres écartées manque. {fehler}", "en": "The proposal from the discarded jobs is missing. {fehler}"
+  },
+
+  "Wort im Titel": {"fr": "Mot dans le titre", "en": "Word in the title"},
+  "Branche": {"fr": "Secteur", "en": "Industry"},
+  "Arbeitsort": {"fr": "Lieu de travail", "en": "Place of work"},
+  "Anderes": {"fr": "Autre", "en": "Other"},
+  "Die KI schlägt erst ab {count} verworfenen Stellen Ausschlüsse vor.": {
+    "fr": "L'IA ne propose des exclusions qu'à partir de {count} offres écartées.", "en": "The AI only suggests exclusions from {count} discarded jobs on."
+  },
+  "Diesen Vorschlag gibt es nicht mehr. Bitte neu vorschlagen lassen.": {
+    "fr": "Cette proposition n'existe plus. Merci d'en demander une nouvelle.", "en": "This proposal no longer exists. Please ask for a new one."
+  },
+  "texte:einstellen.ki-ausschluesse": {
+    "fr": {
+      "sie": "L'IA cherche dans les {anzahl} offres écartées que le profil de recherche n'exclut pas encore des motifs communs, comme le taux d'activité, le secteur, le lieu de travail ou des mots du titre. Seul ce que vous appliquez entre dans le profil de recherche.",
+      "du": "L'IA cherche dans les {anzahl} offres écartées que le profil de recherche n'exclut pas encore des motifs communs, comme le taux d'activité, le secteur, le lieu de travail ou des mots du titre. Seul ce que tu appliques entre dans le profil de recherche."
+    },
+    "en": {"sie": "The AI looks through the {anzahl} discarded jobs that the search profile does not exclude yet for common reasons, such as workload, industry, place of work or words in the title. Only what you apply goes into the search profile."}
+  },
+  "texte:einstellen.ki-ausschluesse-was": {
+    "fr": {
+      "sie": "Seulement le titre, l'entreprise, le lieu et le taux d'activité des offres écartées. Pas de CV, pas de profil de recherche, rien sur vous.",
+      "du": "Seulement le titre, l'entreprise, le lieu et le taux d'activité des offres écartées. Pas de CV, pas de profil de recherche, rien sur toi."
+    },
+    "en": {"sie": "Only title, company, place and workload of the discarded jobs. No CV, no search profile, nothing about you."}
+  },
+  "texte:einstellen.ki-ausschluesse-leer": {
+    "fr": {
+      "sie": "À partir de {mindestens} offres écartées, l'IA peut proposer ici ce que vous ne voulez plus voir.",
+      "du": "À partir de {mindestens} offres écartées, l'IA peut proposer ici ce que tu ne veux plus voir."
+    },
+    "en": {"sie": "From {mindestens} discarded jobs on, the AI can suggest here what you no longer want to see."}
+  },
+  "texte:einstellen.ki-ausschluesse-rest": {
+    "fr": {
+      "sie": "Vous pouvez continuer à appliquer ou retirer les propositions ci-dessous. De nouvelles propositions sont possibles à partir de {mindestens} offres écartées que le profil de recherche n'exclut pas encore.",
+      "du": "Tu peux continuer à appliquer ou retirer les propositions ci-dessous. De nouvelles propositions sont possibles à partir de {mindestens} offres écartées que le profil de recherche n'exclut pas encore."
+    },
+    "en": {"sie": "You can still apply or withdraw the proposals below. New ones are possible again from {mindestens} discarded jobs that the search profile does not exclude yet."}
+  },
+  "texte:einstellen.ki-ausschluesse-fertig": {
+    "fr": {
+      "sie": "Le profil de recherche ne change que lorsque vous en appliquez une.",
+      "du": "Le profil de recherche ne change que lorsque tu en appliques une."
+    },
+    "en": {"sie": "The search profile only changes once you apply one."}
+  },
+  "texte:einstellen.ki-ausschluesse-fertig-eins": {
+    "fr": {
+      "sie": "Le profil de recherche ne change que lorsque vous l'appliquez.",
+      "du": "Le profil de recherche ne change que lorsque tu l'appliques."
+    },
+    "en": {"sie": "The search profile only changes once you apply it."}
+  },
+  "Keine verworfenen Stellen, die das Suchprofil noch nicht ausschliesst.": {
+    "fr": "Aucune offre écartée que le profil de recherche n'exclut pas encore.", "en": "No discarded jobs that the search profile does not exclude yet."
+  },
+  "Erst 1 verworfene Stelle, die das Suchprofil noch nicht ausschliesst.": {
+    "fr": "Seulement 1 offre écartée que le profil de recherche n'exclut pas encore.", "en": "Only 1 discarded job that the search profile does not exclude yet."
+  },
+  "Erst {anzahl} verworfene Stellen, die das Suchprofil noch nicht ausschliesst.": {
+    "fr": "Seulement {anzahl} offres écartées que le profil de recherche n'exclut pas encore.",
+    "en": "Only {anzahl} discarded jobs that the search profile does not exclude yet."
+  },
+  "Aus {anzahl} verworfenen Stellen:": {"fr": "D'après {anzahl} offres écartées\u00a0:", "en": "From {anzahl} discarded jobs:"},
+  "Kommt unter «{ort}»": {"fr": "Va sous «\u00a0{ort}\u00a0»", "en": "Goes under “{ort}”"},
+  "{kategorie}, kommt unter «{ort}»": {"fr": "{kategorie}, va sous «\u00a0{ort}\u00a0»", "en": "{kategorie}, goes under “{ort}”"},
+  "«{wert}» übernehmen": {"fr": "Appliquer «\u00a0{wert}\u00a0»", "en": "Apply “{wert}”"},
+  "«{wert}» steht jetzt unter «{ort}». {ab}": {
+    "fr": "«\u00a0{wert}\u00a0» figure maintenant sous «\u00a0{ort}\u00a0». {ab}", "en": "“{wert}” is now under “{ort}”. {ab}"
+  },
+  "«{wert}» steht nicht mehr unter «{ort}».": {
+    "fr": "«\u00a0{wert}\u00a0» ne figure plus sous «\u00a0{ort}\u00a0».", "en": "“{wert}” is no longer under “{ort}”."
+  },
+  "«{wert}» steht schon unter «{ort}».": {
+    "fr": "«\u00a0{wert}\u00a0» figure déjà sous «\u00a0{ort}\u00a0».", "en": "“{wert}” is already under “{ort}”."
+  },
+  "Ausschlüsse von der KI lassen sich gerade nicht anbieten. {fehler}": {
+    "fr": "Les exclusions de l'IA ne peuvent pas être proposées pour le moment. {fehler}", "en": "Exclusions from the AI cannot be offered right now. {fehler}"
+  },
+  "Nicht übernommen. {fehler}": {"fr": "Non appliqué. {fehler}", "en": "Not applied. {fehler}"},
+  "Nicht zurückgenommen. {fehler}": {"fr": "Non retiré. {fehler}", "en": "Not withdrawn. {fehler}"},
+  "Die KI hat keinen gemeinsamen Grund gefunden. Am Suchprofil hat sich nichts geändert.": {
+    "fr": "L'IA n'a trouvé aucun motif commun. Le profil de recherche n'a pas changé.", "en": "The AI found no common reason. The search profile has not changed."
+  },
+  "1 Vorschlag.": {"fr": "1 proposition.", "en": "1 proposal."},
+  "{anzahl} Vorschläge.": {"fr": "{anzahl} propositions.", "en": "{anzahl} proposals."},
+  "Übernehmen": {"fr": "Appliquer", "en": "Apply"},
+  "Neu vorschlagen lassen": {"fr": "Faire proposer à nouveau", "en": "Have new ones suggested"},
+  "Die KI sucht nach gemeinsamen Gründen, das dauert einen Moment …": {
+    "fr": "L'IA cherche des motifs communs, cela prend un moment…", "en": "The AI is looking for common reasons, this takes a moment…"
+  },
+  "«{wert}»": {"fr": "«\u00a0{wert}\u00a0»", "en": "“{wert}”"},
+
+  "1 Suchlauf": {"fr": "1 série de recherches", "en": "1 search run"},
+  "{anzahl} Suchläufen": {"fr": "{anzahl} séries de recherches", "en": "{anzahl} search runs"},
+  "1 ab Note 4": {"fr": "1 dès la note 4", "en": "1 from grade 4"},
+  "{anzahl} ab Note 4": {"fr": "{anzahl} dès la note 4", "en": "{anzahl} from grade 4"},
+  "1 aussortiert": {"fr": "1 filtré", "en": "1 filtered out"},
+  "{anzahl} aussortiert": {"fr": "{anzahl} filtrés", "en": "{anzahl} filtered out"},
+  "1 ohne Pflichtbezug": {"fr": "1 sans mot requis", "en": "1 without a required word"},
+  "1 ausserhalb der Region": {"fr": "1 hors région", "en": "1 outside the region"},
+  "andere 1": {"fr": "autre 1", "en": "other 1"},
+  "andere {anzahl}": {"fr": "autres {anzahl}", "en": "others {anzahl}"},
+  "noch nicht gesucht": {"fr": "pas encore recherché", "en": "not searched yet"},
+  "keine Treffer": {"fr": "aucun résultat", "en": "no results"},
+  "Findet die Suche eine Lehrstelle über mehrere Berufe, zählt sie bei jedem.": {
+    "fr": "Si la recherche trouve une place d'apprentissage par plusieurs métiers, elle compte pour chacun.",
+    "en": "If the search finds an apprenticeship through several occupations, it counts for each."
+  },
+  "Findet die Suche eine Stelle über mehrere Begriffe, zählt sie bei jedem. „Aussortiert“ heisst: Der Titelfilter hat den Titel nicht durchgelassen. „Ohne Pflichtbezug“: Titel und Inserat nennen keines der Pflichtwörter des Begriffs.": {
+    "fr": "Si la recherche trouve une offre par plusieurs termes, elle compte pour chacun. «\u00a0Filtré\u00a0» signifie\u00a0: le filtre de titre n'a pas laissé passer le titre. «\u00a0Sans mot requis\u00a0»\u00a0: ni le titre ni l'annonce ne nomment un des mots requis du terme.",
+    "en": "If the search finds a job through several terms, it counts for each. “Filtered out” means: the title filter did not let the title through. “Without a required word”: neither title nor ad names any of the term's required words."
+  },
+  "Findet die Suche eine Stelle über mehrere Begriffe, zählt sie bei jedem. „Aussortiert“ heisst: Der Titelfilter hat den Titel nicht durchgelassen.": {
+    "fr": "Si la recherche trouve une offre par plusieurs termes, elle compte pour chacun. «\u00a0Filtré\u00a0» signifie\u00a0: le filtre de titre n'a pas laissé passer le titre.",
+    "en": "If the search finds a job through several terms, it counts for each. “Filtered out” means: the title filter did not let the title through."
+  },
+  "Nach dem nächsten Suchlauf steht hier bei jedem Beruf, was er bringt.": {
+    "fr": "Après la prochaine série de recherches, chaque métier indique ici ce qu'il rapporte.",
+    "en": "After the next search run, each occupation shows here what it brings."
+  },
+  "Nach dem nächsten Suchlauf steht hier bei jedem Begriff, was er bringt.": {
+    "fr": "Après la prochaine série de recherches, chaque terme indique ici ce qu'il rapporte.",
+    "en": "After the next search run, each term shows here what it brings."
+  },
+  "Die Zahlen stammen aus dem letzten Suchlauf. {zaehlen}": {
+    "fr": "Les chiffres viennent de la dernière série de recherches. {zaehlen}", "en": "The numbers come from the last search run. {zaehlen}"
+  },
+  "Die Zahlen stammen aus den letzten {anzahl} Suchläufen. {zaehlen}": {
+    "fr": "Les chiffres viennent des {anzahl} dernières séries de recherches. {zaehlen}", "en": "The numbers come from the last {anzahl} search runs. {zaehlen}"
+  },
+  "Ohne Pflichtbezug aussortiert (1)": {"fr": "Filtré faute de mot requis (1)", "en": "Filtered out without a required word (1)"},
+  "Ohne Pflichtbezug aussortiert ({anzahl})": {"fr": "Filtrés faute de mot requis ({anzahl})", "en": "Filtered out without a required word ({anzahl})"},
+  "„{begriff}“: 1 Treffer, {beispiel}": {"fr": "«\u00a0{begriff}\u00a0»\u00a0: 1 résultat, {beispiel}", "en": "“{begriff}”: 1 result, {beispiel}"},
+  "„{begriff}“: 1 Treffer": {"fr": "«\u00a0{begriff}\u00a0»\u00a0: 1 résultat", "en": "“{begriff}”: 1 result"},
+  "„{begriff}“: {anzahl} Treffer, zum Beispiel {beispiele}": {
+    "fr": "«\u00a0{begriff}\u00a0»\u00a0: {anzahl} résultats, par exemple {beispiele}", "en": "“{begriff}”: {anzahl} results, for example {beispiele}"
+  },
+  "„{begriff}“: {anzahl} Treffer": {"fr": "«\u00a0{begriff}\u00a0»\u00a0: {anzahl} résultats", "en": "“{begriff}”: {anzahl} results"},
+  "{satz} „Ausserhalb der Region“: Die Stelle liegt ausserhalb deiner Kantone und Orte, und das Inserat nennt kein Remote.": {
+    "fr": "{satz} «\u00a0Hors région\u00a0»\u00a0: l'offre se trouve hors de tes cantons et lieux, et l'annonce ne mentionne pas le télétravail.",
+    "en": "{satz} “Outside the region”: the job lies outside your cantons and places, and the ad does not mention remote work."
+  },
+  "{satz} „Ausserhalb der Region“: Die Stelle liegt ausserhalb Ihrer Kantone und Orte, und das Inserat nennt kein Remote.": {
+    "fr": "{satz} «\u00a0Hors région\u00a0»\u00a0: l'offre se trouve hors de vos cantons et lieux, et l'annonce ne mentionne pas le télétravail.",
+    "en": "{satz} “Outside the region”: the job lies outside your cantons and places, and the ad does not mention remote work."
+  },
+  "Aus dem letzten Suchlauf, gezählt wie bei den Suchbegriffen. „Ohne Ort“ sind Suchen ohne Ortsangabe, etwa für die Nischen.": {
+    "fr": "De la dernière série de recherches, comptés comme pour les mots-clés. «\u00a0Sans lieu\u00a0» désigne les recherches sans indication de lieu, par exemple pour les niches.",
+    "en": "From the last search run, counted as for the search terms. “No place” means searches without a place, for example for the niches."
+  },
+  "Aus den letzten {anzahl} Suchläufen, gezählt wie bei den Suchbegriffen. „Ohne Ort“ sind Suchen ohne Ortsangabe, etwa für die Nischen.": {
+    "fr": "Des {anzahl} dernières séries de recherches, comptés comme pour les mots-clés. «\u00a0Sans lieu\u00a0» désigne les recherches sans indication de lieu, par exemple pour les niches.",
+    "en": "From the last {anzahl} search runs, counted as for the search terms. “No place” means searches without a place, for example for the niches."
+  },
+  "Ausserhalb der Region, ohne Remote: {orte}": {"fr": "Hors région, sans télétravail\u00a0: {orte}", "en": "Outside the region, not remote: {orte}"},
+  "Ohne Angabe: 1 Treffer aus Suchläufen vor Version {version}. Über welchen Beruf sie kamen, hat die App damals nicht festgehalten.": {
+    "fr": "Non précisé\u00a0: 1 résultat de séries de recherches antérieures à la version {version}. L'app n'enregistrait pas encore par quel métier il est venu.",
+    "en": "Not specified: 1 result from search runs before version {version}. The app did not record back then which occupation it came through."
+  },
+  "Ohne Angabe: 1 Treffer aus Suchläufen vor Version {version}. Über welchen Begriff sie kamen, hat die App damals nicht festgehalten.": {
+    "fr": "Non précisé\u00a0: 1 résultat de séries de recherches antérieures à la version {version}. L'app n'enregistrait pas encore par quel terme il est venu.",
+    "en": "Not specified: 1 result from search runs before version {version}. The app did not record back then which term it came through."
+  },
+  "Ohne Angabe: {anzahl} Treffer aus Suchläufen vor Version {version}. Über welchen Beruf sie kamen, hat die App damals nicht festgehalten.": {
+    "fr": "Non précisé\u00a0: {anzahl} résultats de séries de recherches antérieures à la version {version}. L'app n'enregistrait pas encore par quel métier ils sont venus.",
+    "en": "Not specified: {anzahl} results from search runs before version {version}. The app did not record back then which occupation they came through."
+  },
+  "Ohne Angabe: {anzahl} Treffer aus Suchläufen vor Version {version}. Über welchen Begriff sie kamen, hat die App damals nicht festgehalten.": {
+    "fr": "Non précisé\u00a0: {anzahl} résultats de séries de recherches antérieures à la version {version}. L'app n'enregistrait pas encore par quel terme ils sont venus.",
+    "en": "Not specified: {anzahl} results from search runs before version {version}. The app did not record back then which term they came through."
+  },
+  "Wo ein Beruf nichts findet ({anzahl})": {"fr": "Là où un métier ne trouve rien ({anzahl})", "en": "Where an occupation finds nothing ({anzahl})"},
+  "Wo ein Begriff nichts findet ({anzahl})": {"fr": "Là où un terme ne trouve rien ({anzahl})", "en": "Where a term finds nothing ({anzahl})"},
+  "„{begriff}“ (Nische) auf {portal}: {suchen} in {laeufe}, kein Treffer.": {
+    "fr": "«\u00a0{begriff}\u00a0» (niche) sur {portal}\u00a0: {suchen} en {laeufe}, aucun résultat.",
+    "en": "“{begriff}” (niche) on {portal}: {suchen} in {laeufe}, no result."
+  },
+  "„{begriff}“ auf {portal}: {suchen} in {laeufe}, kein Treffer.": {
+    "fr": "«\u00a0{begriff}\u00a0» sur {portal}\u00a0: {suchen} en {laeufe}, aucun résultat.", "en": "“{begriff}” on {portal}: {suchen} in {laeufe}, no result."
+  },
+  "Ohne Ort (Nischen)": {"fr": "Sans lieu (niches)", "en": "No place (niches)"},
+  "{portal}, ohne Ort": {"fr": "{portal}, sans lieu", "en": "{portal}, no place"},
+  "{portal}, PLZ {ort}": {"fr": "{portal}, NPA {ort}", "en": "{portal}, postcode {ort}"},
+  "{portal}, Kantone {ort}": {"fr": "{portal}, cantons {ort}", "en": "{portal}, cantons {ort}"},
+  "{portal}, Kanton {ort}": {"fr": "{portal}, canton {ort}", "en": "{portal}, canton {ort}"},
+  "{ort}:": {"fr": "{ort}\u00a0:", "en": "{ort}:"},
+
+  "Im letzten Suchlauf kein Titel.": {"fr": "Aucun titre lors de la dernière série de recherches.", "en": "No title in the last search run."},
+  "Im letzten Suchlauf kein Titel. Begriffe mit höchstens drei Buchstaben passen nur als ganzes Wort.": {
+    "fr": "Aucun titre lors de la dernière série de recherches. Les termes de trois lettres au plus ne correspondent qu'en mot entier.",
+    "en": "No title in the last search run. Terms of at most three letters only match as a whole word."
+  },
+  "Beispiele gibt es nach dem nächsten Suchlauf.": {
+    "fr": "Des exemples apparaîtront après la prochaine série de recherches.", "en": "Examples come after the next search run."
+  },
+  "Kein Titelfilter": {"fr": "Aucun filtre de titre", "en": "No title filter"},
+  "1 Titel durchgelassen": {"fr": "1 titre laissé passer", "en": "1 title let through"},
+  "{anzahl} Titel durchgelassen": {"fr": "{anzahl} titres laissés passer", "en": "{anzahl} titles let through"},
+  "1 Titel aussortiert": {"fr": "1 titre filtré", "en": "1 title filtered out"},
+  "{anzahl} Titel aussortiert": {"fr": "{anzahl} titres filtrés", "en": "{anzahl} titles filtered out"},
+  "{satz}, zum Beispiel {beispiele}": {"fr": "{satz}, par exemple {beispiele}", "en": "{satz}, for example {beispiele}"},
+  "Ohne passenden Begriff aussortiert: kein Titel.": {
+    "fr": "Filtrés faute de terme correspondant\u00a0: aucun titre.", "en": "Filtered out for lack of a matching term: no title."
+  },
+  "Ohne passenden Begriff aussortiert: 1 Titel": {
+    "fr": "Filtrés faute de terme correspondant\u00a0: 1 titre", "en": "Filtered out for lack of a matching term: 1 title"
+  },
+  "Ohne passenden Begriff aussortiert: {anzahl} Titel": {
+    "fr": "Filtrés faute de terme correspondant\u00a0: {anzahl} titres", "en": "Filtered out for lack of a matching term: {anzahl} titles"
+  }
+}

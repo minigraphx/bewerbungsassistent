@@ -85,6 +85,19 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "routes_career.py", BASE / "ai/career.py", BASE / "search_terms.py", BASE / "routes_window.py",
     BASE / "routes_place_notices.py", BASE / "place_notices.py", BASE / "search_frame.py", BASE / "portal_places.py",
     BASE / "search_plan.py", BASE / "routes_frame.py",
+    # Suche einstellen, part B, and Suchbegriffe prüfen (#425): yield, duplicates, further sites, the words from
+    # dismissed hits, the AI exclusions and the title filter examples, the page /suchbegriffe, and the modules behind
+    # /api/suche/ertrag, /doppelt*, /weitere-seiten, /verworfen-woerter*, /ki-ausschluesse* and /api/suchbegriffe/*.
+    BASE / "seiten/suche-ertrag-logik.js", BASE / "seiten/suche-ertrag.js", BASE / "seiten/doppelt-gesucht.js",
+    BASE / "seiten/weitere-seiten.js", BASE / "seiten/verworfen-woerter.js", BASE / "seiten/ki-ausschluesse-logik.js",
+    BASE / "seiten/ki-ausschluesse.js", BASE / "seiten/titelfilter-logik.js", BASE / "seiten/titelfilter-beispiele.js",
+    BASE / "seiten/suchbegriffe.html", BASE / "seiten/suchbegriffe-schalter.js", BASE / "seiten/suchbegriffe-gezaehlt.js",
+    BASE / "seiten/suchbegriffe.js",
+    BASE / "search_yield.py", BASE / "routes_search_yield.py", BASE / "title_examples.py", BASE / "routes_terms.py",
+    BASE / "term_evidence.py", BASE / "term_changes.py", BASE / "term_moves.py", BASE / "ai/term_review.py",
+    BASE / "term_pairs.py", BASE / "term_pair_texts.py", BASE / "routes_term_pairs.py", BASE / "own_sites.py",
+    BASE / "routes_sites.py", BASE / "ai/site_list.py", BASE / "dismissed_words.py", BASE / "routes_dismissed_words.py",
+    BASE / "routes_ai_exclusions.py", BASE / "ai/exclusion_reasons.py", BASE / "rating_exclusion.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

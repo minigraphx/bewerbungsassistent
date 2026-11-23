@@ -16,6 +16,7 @@ import title_filter
 from ai import prompts, tasks
 from ai.errors import BAD_ANSWER, AnswerError
 from ai.gateway import Gateway, Request
+from ui_message import T
 
 TASK = "exclusions"
 MIN_DISMISSED = dismissed_words.MIN_DISMISSED  # as for the title word without AI (G66)
@@ -28,8 +29,8 @@ EXPECTED_OUTPUT_TOKENS = 1500  # a few short proposals, and some room for thinki
 SENT = (("stelle", "Titel"), ("firma", "Firma"), ("ort", "Ort"), ("pensum", "Pensum"))  # all the AI gets of a hit
 UNKNOWN_COMPANY = "unbekannt"  # what hits.validate stores without a company
 TITLE = "titel"
-CATEGORIES = {TITLE: "Wort im Titel", "pensum": "Pensum", "branche": "Branche", "ort": "Arbeitsort",
-              "anderes": "Anderes"}
+CATEGORIES = {TITLE: T("Wort im Titel"), "pensum": T("Pensum"), "branche": T("Branche"), "ort": T("Arbeitsort"),
+              "anderes": T("Anderes")}  # the keys go to the AI, the words to the page in the app language (#425)
 
 _RULES_INTRO = "Du hilfst einer Person in der Schweiz bei der Stellensuche."
 _GERMAN = "Antworte auf Deutsch in Schweizer Schreibweise, mit ss statt ß."

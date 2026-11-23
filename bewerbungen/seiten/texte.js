@@ -81,9 +81,14 @@
       sie: "Ab {mindestens} verworfenen Stellen kann die KI hier vorschlagen, was Sie künftig nicht mehr sehen wollen.",
       du: "Ab {mindestens} verworfenen Stellen kann die KI hier vorschlagen, was du künftig nicht mehr sehen willst.",
     },
+    // After several proposals, and after one: two sets, so French and English word „einen“ and „ihn“ their own way (#425)
     "einstellen.ki-ausschluesse-fertig": {
-      sie: "Am Suchprofil ändert sich erst etwas, wenn Sie {welchen} übernehmen.",
-      du: "Am Suchprofil ändert sich erst etwas, wenn du {welchen} übernimmst.",
+      sie: "Am Suchprofil ändert sich erst etwas, wenn Sie einen übernehmen.",
+      du: "Am Suchprofil ändert sich erst etwas, wenn du einen übernimmst.",
+    },
+    "einstellen.ki-ausschluesse-fertig-eins": {
+      sie: "Am Suchprofil ändert sich erst etwas, wenn Sie ihn übernehmen.",
+      du: "Am Suchprofil ändert sich erst etwas, wenn du ihn übernimmst.",
     },
     "einstellen.ohne-schluessel": {
       sie: "Weitere Seiten wie die offenen Stellen einer Firma durchsucht die App mit einem eigenen API-Schlüssel. Den tragen Sie in den Einstellungen ein.",

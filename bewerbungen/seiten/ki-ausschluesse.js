@@ -2,7 +2,8 @@
 // On Suche einstellen (#319, G86): under Was nicht, the AI proposes exclusion reasons from the dismissed hits. Before
 // the run the box names the count and the cost; with fewer than three dismissed hits it shows its empty state and
 // no button. Each proposal names the hits it rests on; „Übernehmen“ writes it with drafts, and the feedback in the
-// proposal offers Rückgängig. Nothing changes without these clicks. Words in ki-ausschluesse-logik.js.
+// proposal offers Rückgängig. Nothing changes without these clicks. Words in ki-ausschluesse-logik.js, in the app
+// language (#425).
 (() => {
   const { holen, senden, status, el, textsatz } = window.App;
   const L = window.KiAusschluesseLogik;
@@ -67,7 +68,7 @@
       $("ki-ausschluesse-start").hidden = true;
       $("ki-ausschluesse-was").hidden = true;
       $("ki-ausschluesse-satz").textContent = "";
-      status($("ki-ausschluesse-status"), `${L.NICHT_GELADEN} ${fehler.message}`, "fehler");
+      status($("ki-ausschluesse-status"), L.nichtGeladen(fehler.message), "fehler");
     }
   }
 
@@ -79,7 +80,7 @@
       geaendert();
     } catch (fehler) {
       button.disabled = false;
-      rueckmeldung(teile, teile.angezeigt, `${L.NICHT_ZURUECK} ${fehler.message}`, button, { stufe: "fehler" });
+      rueckmeldung(teile, teile.angezeigt, L.nichtZurueck(fehler.message), button, { stufe: "fehler" });
     }
   }
 
@@ -91,7 +92,7 @@
       geaendert();
     } catch (fehler) {
       button.disabled = false;
-      rueckmeldung(teile, teile.angezeigt, `${L.NICHT_GESPEICHERT} ${fehler.message}`, button, { stufe: "fehler" });
+      rueckmeldung(teile, teile.angezeigt, L.nichtUebernommen(fehler.message), button, { stufe: "fehler" });
     }
   }
 
@@ -101,7 +102,7 @@
     teile.aktion = el("div", { class: "btn-row" }, knopfUebernehmen(vorschlag, teile));
     karten = [...karten, { vorschlag, teile }];
     return el("li", { class: "ai-exclusion" },
-      el("p", { class: "ai-exclusion__value" }, el("strong", {}, `«${vorschlag.wert}»`)),
+      el("p", { class: "ai-exclusion__value" }, el("strong", {}, window.Texte.t("«{wert}»", { wert: vorschlag.wert }))),
       el("p", { class: "caption" }, L.wo(vorschlag)),
       vorschlag.grund ? el("p", {}, vorschlag.grund) : null,
       el("p", { class: "ai-exclusion__basis" }, L.stuetze(vorschlag)),
