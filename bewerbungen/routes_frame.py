@@ -14,23 +14,25 @@ import portal_places
 import search_frame
 import search_plan
 from dateien import schreibe_atomar
-from server import json_antwort
+from server import json_antwort, message_of
+from ui_texts import T
 
 log = logging.getLogger(__name__)
 
-NO_PROFILE = "Zuerst Meine Angaben abschliessen."
-NO_VALUES = "Angaben fehlen"
+# Messages are T, so the person reads them in the app language (#416); the descriptions of drafts stay German.
+NO_PROFILE = T("Zuerst Meine Angaben abschliessen.")
+NO_VALUES = T("Angaben fehlen")
 SAVED = "Suche einstellen: {fields}"
 TAKEN_BACK = "Suche einstellen: {fields} zurückgenommen, die Firmen liessen sich nicht speichern"
 # The parts of the card Was Sie nicht sehen wollen, as the person reads them there.
 NOT_WANTED_KEYS = ("ausschluss", "titel_ausschluss")
-PROFILE_PART = "Inserat und Titel"
-COMPANIES_PART = "Firmen"
+PROFILE_PART = T("Inserat und Titel")
+COMPANIES_PART = T("Firmen")
 REFUSED = "{part}: {reason} {kept}"
-PROFILE_KEPT = "Inserat und Titel bleiben wie vorher."
-COMPANIES_KEPT = "Die Firmen bleiben wie vorher."
-HALF_SAVED = "Die Firmen sind nicht gespeichert, Inserat und Titel sind gespeichert. Bitte nochmals speichern."
-NOT_WRITTEN = f"Die Firmen liessen sich nicht speichern. {PROFILE_KEPT}"
+PROFILE_KEPT = T("Inserat und Titel bleiben wie vorher.")
+COMPANIES_KEPT = T("Die Firmen bleiben wie vorher.")
+HALF_SAVED = T("Die Firmen sind nicht gespeichert, Inserat und Titel sind gespeichert. Bitte nochmals speichern.")
+NOT_WRITTEN = T("Die Firmen liessen sich nicht speichern. {kept}", kept=PROFILE_KEPT)
 
 
 def _answer(text: str) -> dict:
@@ -81,7 +83,7 @@ def _refused(part: str, kept: str, check: Callable):
     try:
         return check()
     except ValueError as error:
-        raise ValueError(REFUSED.format(part=part, reason=error, kept=kept)) from error
+        raise ValueError(T(REFUSED, part=part, reason=message_of(error), kept=kept)) from error
 
 
 def _take_back(k, path: pathlib.Path, change: dict, before: str) -> None:

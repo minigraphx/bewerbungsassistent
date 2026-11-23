@@ -124,6 +124,20 @@ def test_a_german_literal_outside_texte_t_is_a_gap(tmp_path):
     assert [(gap.line, gap.text, gap.missing) for gap in gaps] == [(2, "Noch nicht übersetzt", ("Texte.t",))]
 
 
+def test_a_german_template_literal_with_values_is_a_gap_while_code_templates_are_not(tmp_path):
+    script = tmp_path / "seite.js"
+    script.write_text('"use strict";\n'
+                      'zeile.textContent = `Version ${info.version} ist verfügbar.`;\n'
+                      'link.href = `/treffer?${suche}`;\n'
+                      'zeile.className = `notice ${art} notice--gross`;\n'
+                      'zeile.textContent = `${tag}.${monat}.${jahr}`;\n', encoding="utf-8")
+
+    gaps = sprachen_pruefen.gaps((script,), fixture_catalog())
+
+    assert [(gap.line, gap.text, gap.missing) for gap in gaps] == [(2, "Version ${info.version} ist verfügbar.",
+                                                                     ("Texte.t",))]
+
+
 def test_python_reads_t_with_values_and_names_a_formatted_message_that_needs_t(tmp_path):
     module = tmp_path / "routen.py"
     module.write_text("import ui_texts\n\n\n"

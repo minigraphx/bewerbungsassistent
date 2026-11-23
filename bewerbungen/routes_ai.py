@@ -16,16 +16,18 @@ from ai.connection import find_connection, make_client, mediation_url, own_key
 from ai.errors import SETUP_ACTION, AiError, InputRefused, LocalProblem, SetupNeeded
 from ai.usage import UsageLog
 from dateien import schreibe_atomar
-from server import ActionError, StatusError, json_antwort, pflicht
+from server import ActionError, StatusError, json_antwort, message_of, pflicht
+from ui_texts import T
 
 LETTER_FILE = "anschreiben.yaml"
 STELLE_FILE = "stelle.md"
-NO_AD = "Zuerst den Stellentext einfügen und speichern."
-OWN_LETTER_NO_DRAFT = "Für diese Bewerbung gilt das eigene Anschreiben. Für einen Entwurf zuerst die Datei entfernen."
-OWN_LETTER_NO_REVIEW = "Das eigene Anschreiben geht nicht an die KI. Bitte selbst mit dem Inserat vergleichen."
-NO_TICK = "Bitte zuerst den Text lesen und bestätigen."
-OPEN_LINK_AGAIN = "Der Code ist noch gültig: Bitte den Einladungslink nochmals öffnen."
-NO_MEDIATION = "Für diese App ist keine KI-Vermittlung eingerichtet."
+NO_AD = T("Zuerst den Stellentext einfügen und speichern.")
+OWN_LETTER_NO_DRAFT = T("Für diese Bewerbung gilt das eigene Anschreiben. Für einen Entwurf zuerst die Datei entfernen.")
+OWN_LETTER_NO_REVIEW = T("Das eigene Anschreiben geht nicht an die KI. Bitte selbst mit dem Inserat vergleichen.")
+NO_TICK = T("Bitte zuerst den Text lesen und bestätigen.")
+NO_MEDIATION = T("Für diese App ist keine KI-Vermittlung eingerichtet.")
+NO_LETTER = T("Zuerst ein Anschreiben entwerfen.")
+CODE_EXPECTED = T("code erwartet")
 WAITING_CODE = "wartender_code"  # in the context: from an invitation link, redeemed once the consent is there
 
 
@@ -53,10 +55,14 @@ def _letter(k, application_id: str) -> dict | None:
     try:
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as error:
-        raise ValueError(f"{LETTER_FILE} lässt sich nicht lesen.") from error
+        raise ValueError(_unreadable()) from error
     if not isinstance(data, dict):
-        raise ValueError(f"{LETTER_FILE} lässt sich nicht lesen.")
+        raise ValueError(_unreadable())
     return data
+
+
+def _unreadable() -> T:
+    return T("{datei} lässt sich nicht lesen.", datei=LETTER_FILE)
 
 
 def _letter_text(letter: dict) -> str:
@@ -95,14 +101,14 @@ def ai_gateway(k, entry: dict | None = None, letter: dict | None = None, partial
 
 
 def run_ai(task):
-    """AI errors are meant for the person: they become 400 with the German message. Without a set up and agreed AI the
-    answer also tells the page to open the window „KI einrichten“ (G60)."""
+    """AI errors are meant for the person: they become 400 with their message, in the app language. Without a set up
+    and agreed AI the answer also tells the page to open the window „KI einrichten“ (G60)."""
     try:
         return task()
     except SetupNeeded as error:
-        raise ActionError(str(error), SETUP_ACTION) from error
+        raise ActionError(message_of(error), SETUP_ACTION) from error
     except AiError as error:
-        raise ValueError(str(error)) from error
+        raise ValueError(message_of(error)) from error
 
 
 def run_entry(task):
@@ -111,11 +117,11 @@ def run_entry(task):
     try:
         return task()
     except InputRefused as error:
-        raise ValueError(str(error)) from error
+        raise ValueError(message_of(error)) from error
     except LocalProblem as error:
-        raise StatusError(str(error), HTTPStatus.INTERNAL_SERVER_ERROR) from error
+        raise StatusError(message_of(error), HTTPStatus.INTERNAL_SERVER_ERROR) from error
     except AiError as error:
-        raise StatusError(str(error), HTTPStatus.BAD_GATEWAY) from error
+        raise StatusError(message_of(error), HTTPStatus.BAD_GATEWAY) from error
 
 
 def connected() -> bool:
@@ -156,7 +162,7 @@ def _status(k) -> dict:
             invite = mediation_url() is not None
         except AiError:
             invite = False
-        return {**result, "eingerichtet": False, "hinweis": str(error), "einladung": invite}
+        return {**result, "eingerichtet": False, "hinweis": message_of(error), "einladung": invite}
     result = {**result, "eingerichtet": True, "vermittlung": connection.via_mediation,
               "eigener_schluessel": own_key() is not None, "waehrung": usage.currency(connection.via_mediation)}
     if connection.via_mediation:
@@ -166,7 +172,7 @@ def _status(k) -> dict:
             result = {**result, "guthaben_chf": konto.get("credit_chf"), "verbraucht_chf": konto.get("spent_chf"),
                       **budget.renewal_fields(konto)}
         except AiError as error:
-            result = {**result, "hinweis": str(error)}
+            result = {**result, "hinweis": message_of(error)}
     return result
 
 
@@ -176,7 +182,7 @@ def status(k, parameter, body):
 
 def redeem(k, parameter, body):
     if not isinstance(body, dict) or not isinstance(body.get("code"), str):
-        raise ValueError("code erwartet")
+        raise ValueError(CODE_EXPECTED)
     url = run_entry(mediation_url)
     if url is None:
         raise StatusError(NO_MEDIATION, HTTPStatus.SERVICE_UNAVAILABLE)
@@ -197,7 +203,10 @@ def _redeem_waiting_code(k) -> str:
         if url is not None:
             invitation.redeem(url, code, receipt=consent.receipt(k.daten))
     except AiError as error:
-        return str(error) if str(error) == invitation.CODE_INVALID else f"{error} {OPEN_LINK_AGAIN}"
+        message = message_of(error)
+        if message == invitation.CODE_INVALID:
+            return message
+        return T("{fehler} Der Code ist noch gültig: Bitte den Einladungslink nochmals öffnen.", fehler=message)
     return ""
 
 
@@ -262,7 +271,7 @@ def review(k, parameter, body):
     ad = _ad_text(k, entry["id"])
     letter = _letter(k, entry["id"])
     if letter is None:
-        raise ValueError("Zuerst ein Anschreiben entwerfen.")
+        raise ValueError(NO_LETTER)
 
     def task():
         gateway, material = ai_gateway(k, entry, letter)

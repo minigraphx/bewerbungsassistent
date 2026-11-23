@@ -40,7 +40,9 @@ SET_FORM_BEFORE = re.compile(r"\b(?:sie|du|lehrstelle):\s*$")
 COMPARED_AFTER = re.compile(r"^\s*(?:[!=]==?|:)")
 # A leftover is a sentence (with a space) or one capitalised word such as „Speichern“; code rarely looks like either.
 TEXT_LIKE = re.compile(r"[A-ZÄÖÜ][^\s]*\s+\S.*|[A-ZÄÖÜ][a-zäöüß]+[.!?:…]?", re.S)
-CODE_LIKE = re.compile(r"[a-z][\w-]*://|^[/#.]|\$\{")
+CODE_LIKE = re.compile(r"[a-z][\w-]*://|^[/#.]")
+# A template literal is judged by its own words: `Version ${v} ist verfügbar.` is a text, `/treffer?${q}` is not (#416).
+INTERPOLATION = re.compile(r"\$\{[^}]*\}")
 CONTEXT = 40
 
 SETS_BLOCK = re.compile(r"const TEXTE = \{\n(.*?)\n  \};", re.S)
@@ -99,10 +101,11 @@ def _js_item(path: pathlib.Path, source: str, found: re.Match) -> Item | None:
         return Item(path, line, value, "set")
     if T_CALL.search(before):
         return Item(path, line, value, "text")
+    words = INTERPOLATION.sub("", value).strip() if found[0][0] == "`" else value
     if (COMPARED_BEFORE.search(before) or SET_FORM_BEFORE.search(before) or COMPARED_AFTER.match(after)
-            or CODE_LIKE.search(value)):
+            or CODE_LIKE.search(value) or CODE_LIKE.search(words)):
         return None
-    if TEXT_LIKE.fullmatch(value) and needs_translation(value):
+    if TEXT_LIKE.fullmatch(words) and needs_translation(words):
         return Item(path, line, value, "leftover")
     return None
 

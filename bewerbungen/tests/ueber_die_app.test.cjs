@@ -6,6 +6,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
+const Texte = require("../seiten/texte.js");
 
 const SEITEN = path.join(__dirname, "..", "seiten");
 const STORE_NOTE = "Updates kommen über den Microsoft Store.";
@@ -43,13 +44,13 @@ async function aboutWith(version) {
   };
   const document = {
     querySelector: selector => (selector.startsWith("meta") ? { content: "token" } : null),
-    getElementById: id => (id === "ueber-die-app" ? card : null),
+    getElementById: id => (id === "ueber-die-app" ? card : null), querySelectorAll: () => [],
     addEventListener() {}, hidden: false, documentElement: { dataset: {} },
     head: element("head"), body: element("body"), createElement: tag => element(tag), createTextNode: text => text,
   };
   const Node = { [Symbol.hasInstance]: value => typeof value === "object" && value !== null };
   const location = { pathname: "/einstellungen", search: "", hash: "", origin: "http://127.0.0.1:1", replace() {}, reload() {} };
-  const window = { addEventListener() {} };
+  const window = { addEventListener() {}, Texte };
   vm.runInNewContext(fs.readFileSync(path.join(SEITEN, "app.js"), "utf8"), {
     window, document, location, history: { state: null, length: 1, replaceState() {} }, fetch, URLSearchParams, Node,
     setInterval() {}, setTimeout, Promise, crypto: { randomUUID: () => "x" },

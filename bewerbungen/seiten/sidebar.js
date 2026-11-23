@@ -104,7 +104,8 @@
   function showExtension(connected) {
     const line = $("nav-extension");
     line.dataset.state = connected ? "connected" : "missing";
-    $("nav-extension-text").textContent = connected ? "Erweiterung verbunden" : "Erweiterung nicht verbunden";
+    $("nav-extension-text").textContent = connected ? window.Texte.t("Erweiterung verbunden")
+      : window.Texte.t("Erweiterung nicht verbunden");
     $("nav-extension-setup").hidden = connected;
     line.hidden = false;
     reportExtension(connected);

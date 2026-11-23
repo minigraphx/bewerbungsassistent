@@ -16,8 +16,8 @@ const files = ext => fs.readdirSync(SEITEN).filter(name => name.endsWith(ext));
  */
 const LEFT_ALONE = {
   // The narrow sidebar shows a short label beside an icon that never wraps.
-  "sidebar-logic.js": [["narrow: warning ? `${short} · ${warning.short}`", 1], ["narrow: `${short} · ${NO_MEDIATION_CREDIT.short}`", 1],
-                       ["low: `${short} · fast aufgebraucht`", 1]],
+  "sidebar-logic.js": [["narrow: warning ? `${short} · ${warning.short}`", 1], ["narrow: `${short} · ${none.short}`", 1],
+                       ["low: `${short} · ${Texte.t(\"fast aufgebraucht\")}`", 1]],
   // Error and warning texts joined from reasons or suspicious lines: a message, not a line of parts.
   "bewerbung.js": [["antwortDaten.abgelehnt.map(a => a.grund).join(\" · \")", 1], ["ergebnis.hinweise.join(\" · \")", 1]],
   "dossier-texte.js": [["ergebnis.suspicious_lines.join(\" · \")", 1]],
