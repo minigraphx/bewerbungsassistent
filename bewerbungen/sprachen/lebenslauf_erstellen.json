@@ -124,7 +124,7 @@
   "Bitte klein oder gross wählen.": {"fr": "Merci de choisir petit ou grand.", "en": "Please choose small or large."},
   "Die Seite muss eine Zahl sein.": {"fr": "La page doit être un nombre.", "en": "The page must be a number."},
   "Vorschau nicht möglich: Das PDF lässt sich nicht lesen. Es lässt sich trotzdem als PDF öffnen.": {"fr": "Aperçu impossible\u00a0: le PDF est illisible. Il peut tout de même être ouvert en PDF.", "en": "No preview: the PDF cannot be read. It can still be opened as a PDF."},
-  "Gespeichert. Das Dossier entsteht mit „Unterlagen erstellen“ neu, mit diesem Lebenslauf.": {"fr": "Enregistré. Le dossier sera recréé avec ce CV via «\u00a0Créer et vérifier les documents\u00a0».", "en": "Saved. The dossier is created anew with this CV through “Create and check documents”."},
+  "Gespeichert. Das Dossier entsteht mit „Unterlagen erstellen“ neu, mit diesem Lebenslauf.": {"fr": "Enregistré. Le dossier sera recréé avec ce CV via «\u00a0Créer les documents\u00a0».", "en": "Saved. The dossier is created anew with this CV through “Create documents”."},
   "Gespeichert, aber das PDF fehlt noch: {fehler}": {"fr": "Enregistré, mais le PDF manque encore\u00a0: {fehler}", "en": "Saved, but the PDF is still missing: {fehler}"},
   "Für Vorschläge der KI zuerst den Stellentext speichern.": {"fr": "Pour des propositions de l'IA, enregistrer d'abord le texte de l'annonce.", "en": "For AI proposals, save the job ad text first."},
   "Kein Vorschlag der KI. {reason} {cost} Die Auswahl bleibt, wie sie ist.": {"fr": "Aucune proposition de l'IA. {reason} {cost} La sélection reste telle quelle.", "en": "No proposal from the AI. {reason} {cost} The selection stays as it is."},
@@ -203,6 +203,6 @@
     },
     "en": {"sie": "First upload a logo, under “Design the dossier”."}
   },
-  "texte:lebenslauf.farbe-passend": {"fr": {"sie": "Assortie au design", "du": "Assortie au design"}, "en": {"sie": "Matching the design"}},
-  "texte:lebenslauf.farbe-passend-zeile": {"fr": {"sie": "assortie au design", "du": "assortie au design"}, "en": {"sie": "matching the design"}}
+  "texte:lebenslauf.farbe-passend": {"fr": {"sie": "Selon le design", "du": "Selon le design"}, "en": {"sie": "Matching the design"}},
+  "texte:lebenslauf.farbe-passend-zeile": {"fr": {"sie": "selon le design", "du": "selon le design"}, "en": {"sie": "matching the design"}}
 }

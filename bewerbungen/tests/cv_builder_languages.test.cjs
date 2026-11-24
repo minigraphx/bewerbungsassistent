@@ -132,7 +132,7 @@ test("the line beside «Farbe und Zeichen ändern» names mark and colour in the
   const shown = await inAll(() => [L.lookParts(L.start(ANSWER), say),
     L.lookParts(L.setLook(L.start(ANSWER), { zeichen: "ring" }), say)[0]]);
   assert.deepEqual(shown.de, [["Ohne Zeichen", "Farbe: passend zum Design"], "Zeichen: Ring"]);
-  assert.deepEqual(shown.fr, [["Sans emblème", fr("Couleur~: assortie au design")], fr("Emblème~: Anneau")]);
+  assert.deepEqual(shown.fr, [["Sans emblème", fr("Couleur~: selon le design")], fr("Emblème~: Anneau")]);
   assert.deepEqual(shown.en, [["No mark", "Colour: matching the design"], "Mark: Ring"]);
 });
 

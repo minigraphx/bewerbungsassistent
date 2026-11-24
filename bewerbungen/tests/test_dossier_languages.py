@@ -234,7 +234,7 @@ def test_the_mark_is_saved_and_refused_in_french(server, preview):  # noqa: F811
 
     status, answer = post(server, MARK_ROUTE, {"zeichen": "ring"})
     assert status == 200 and answer["meldung"] == (
-        f"Emblème enregistré. «{NBSP}Créer et vérifier les documents{NBSP}» crée le dossier avec le nouvel emblème.")
+        f"Emblème enregistré. «{NBSP}Créer les documents{NBSP}» crée le dossier avec le nouvel emblème.")
     assert refused(server, MARK_ROUTE, {"initialen": "E1"}) == f"Initiales{NBSP}: 1 à 3 lettres."
     post(server, MARK_ROUTE, {"initialen": "EKB"})
     assert refused(server, MARK_ROUTE, {"zeichen": "verschraenkt"}) == "Seulement avec deux lettres"
@@ -245,7 +245,7 @@ def test_the_mark_is_saved_and_refused_in_french(server, preview):  # noqa: F811
     assert refused(server, MARK_ROUTE, []) == "Emblème, initiales ou couleur d'accent attendus"
     status, answer = post(server, "/api/dossier/zeichen-zuruecksetzen", {})
     assert answer["meldung"] == (
-        f"L'emblème et la couleur sont de nouveau sur «{NBSP}Assortie au design{NBSP}».")
+        f"L'emblème et la couleur sont de nouveau sur «{NBSP}Selon le design{NBSP}».")
 
 
 def test_a_colour_that_reads_badly_is_refused_in_english_with_the_suggestion(server, preview):  # noqa: F811
@@ -255,7 +255,7 @@ def test_a_colour_that_reads_badly_is_refused_in_english_with_the_suggestion(ser
         "Too light: ring, lines and dots would hardly show on the paper. This colour is not saved. Suggestion: #927119.")
     status, answer = post(server, MARK_ROUTE, {"akzent": "#1d5c6b"})
     assert status == 200 and answer["akzent"] == "#1d5c6b"
-    assert answer["meldung"] == "Accent colour saved. “Create and check documents” creates the dossier in the new colour."
+    assert answer["meldung"] == "Accent colour saved. “Create documents” creates the dossier in the new colour."
 
 
 def test_the_mark_stays_german_with_the_preview_off(server, no_preview):  # noqa: F811
@@ -275,7 +275,7 @@ def test_a_logo_is_saved_removed_and_refused_in_english(server, preview):  # noq
     upload = lambda data: post(server, "/api/dossier/logo", {"daten": base64.b64encode(data).decode()})  # noqa: E731
 
     status, answer = upload(png(300, 60))
-    assert status == 200 and answer["meldung"] == "Logo saved. “Create and check documents” creates the dossier with the logo."
+    assert status == 200 and answer["meldung"] == "Logo saved. “Create documents” creates the dossier with the logo."
     assert answer["logo"]["hinweise"][:2] == [
         "Very wide: on the cover page the logo is only about 7 mm high. A more compact mark works better.",
         "The image has only 300 × 60 pixels and will print blurred. Better at least 1000 pixels wide."]

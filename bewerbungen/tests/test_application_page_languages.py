@@ -95,9 +95,9 @@ CV_HINT_DE = ('<span data-text="lebenslauf.angaben-hier">Aus Ihren Angaben. Kür
 AI_NOTE_LINK = ('</span> <a href="/angaben">{}</a></p>')
 NO_LINK_FR = f"Pas de lien vers le formulaire{NBSP}: ouvrir la candidature et saisir le lien"
 NO_LINK_EN = "No link to the form: open the application and enter the link"
-NO_CV_FR = (f"PDF du CV manquant{NBSP}: ouvrir la candidature, puis «{NBSP}Créer et vérifier les documents{NBSP}» ou "
+NO_CV_FR = (f"PDF du CV manquant{NBSP}: ouvrir la candidature, puis «{NBSP}Créer les documents{NBSP}» ou "
             f"téléverser le CV sous «{NBSP}CV et fichiers{NBSP}»")
-NO_CV_EN = "CV PDF missing: open the application, then “Create and check documents”, or upload the CV under “CV and files”"
+NO_CV_EN = "CV PDF missing: open the application, then “Create documents”, or upload the CV under “CV and files”"
 
 
 @pytest.fixture
@@ -281,11 +281,11 @@ def test_a_form_refused_by_the_extension_says_why_in_french(started, preview):
 
     assert refused(server, "GET", "/api/bewerben/daten?id=muster-ag-planer") == NO_LINK_FR
     assert refused(server, "POST", "/api/bewerben/ordner", {"id": "muster-ag-planer"}) == (
-        f"Il n'y a pas encore de fichiers pour cette candidature. Merci d'utiliser d'abord «{NBSP}Créer et vérifier les "
+        f"Il n'y a pas encore de fichiers pour cette candidature. Merci d'utiliser d'abord «{NBSP}Créer les "
         f"documents{NBSP}» ou de les téléverser sous «{NBSP}CV et fichiers{NBSP}».")
     store_language(folder, "en")
     assert refused(server, "POST", "/api/bewerben/ordner", {"id": "muster-ag-planer"}) == (
-        "There are no files for this application yet. Please first use “Create and check documents” or upload them "
+        "There are no files for this application yet. Please first use “Create documents” or upload them "
         "under “CV and files”.")
 
 
@@ -390,16 +390,16 @@ REVIEWED = {
     "Zeichen und Farbe gelten für alle Dossiers. Jede Wahl ist sofort gespeichert; «Abbrechen» nimmt sie nicht zurück. "
     "Schon erstellte Dossiers bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu.": (
         f"L'emblème et la couleur valent pour tous les dossiers. Chaque choix est enregistré tout de suite{NBSP}; "
-        f"«{NBSP}Annuler{NBSP}» ne l'annule pas. Les dossiers déjà créés restent tels quels{NBSP}; avec «{NBSP}Créer et "
-        f"vérifier les documents{NBSP}», celui-ci est recréé.",
+        f"«{NBSP}Annuler{NBSP}» ne l'annule pas. Les dossiers déjà créés restent tels quels{NBSP}; avec «{NBSP}Créer les "
+        f"documents{NBSP}», celui-ci est recréé.",
         "Mark and colour apply to all dossiers. Each choice is saved at once; “Cancel” does not undo it. Dossiers "
-        "already created stay as they are; “Create and check documents” creates this one anew."),
+        "already created stay as they are; “Create documents” creates this one anew."),
     "«Passend zum Design» ist die Farbe des Designs: Siegel Schieferblau, Raster Weinrot, Register Tannengrün. Sie "
     "wechselt mit dem Design; eine benannte Farbe bleibt. Schrift auf der Farbe wählt die App selbst, weiss oder dunkel.": (
-        f"«{NBSP}Assortie au design{NBSP}» est la couleur du design{NBSP}: bleu ardoise pour Sceau, bordeaux pour Trame, "
+        f"«{NBSP}Selon le design{NBSP}» est la couleur du design{NBSP}: bleu ardoise pour Sceau, bordeaux pour Trame, "
         f"vert sapin pour Registre. Elle change avec le design{NBSP}; une couleur nommée reste. L'app choisit elle-même "
         "la couleur du texte sur l'accent, blanc ou foncé.",
-        "“Matching the design” is the design's colour: slate blue for Seal, wine red for Grid, fir green for Register. It "
+        "“Matching the design” is the design's colour: slate blue for Seal, burgundy for Grid, forest green for Register. It "
         "changes with the design; a named colour stays. The app picks the text colour on it itself, white or dark."),
     "Absage": ("Refus", "Rejection"),
     "Zusage": ("Réponse positive", "Offer"),

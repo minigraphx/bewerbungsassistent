@@ -188,7 +188,7 @@ def test_a_cv_saved_for_a_dossier_says_so_in_french(server, preview):  # noqa: F
 
     assert status == 200, answer
     assert answer["gebaut"] is False
-    assert answer["hinweis"] == (f"Enregistré. Le dossier sera recréé avec ce CV via «{NBSP}Créer et vérifier les "
+    assert answer["hinweis"] == (f"Enregistré. Le dossier sera recréé avec ce CV via «{NBSP}Créer les "
                                  f"documents{NBSP}».")
     assert answer["variante"]["beschreibung"] == "Planung, Muster AG"
 

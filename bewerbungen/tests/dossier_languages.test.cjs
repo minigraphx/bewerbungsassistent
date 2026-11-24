@@ -69,13 +69,13 @@ test("the goal line says what the check found and what was saved, in the app lan
     "La vérification a trouvé environ 1 ligne de trop.",
     "La vérification a trouvé environ 4 lignes de trop. Jusqu'ici, environ 2 lignes de moins.",
     "La vérification a trouvé environ 4 lignes de trop. Jusqu'ici, environ 1 ligne de moins.",
-    fr("La vérification a trouvé environ 1 ligne de trop. Jusqu'ici, environ 1 ligne de moins~; seul «~Créer et vérifier les documents~» montre si cela suffit."),
-    fr("La vérification a trouvé environ 4 lignes de trop. Jusqu'ici, environ 5 lignes de moins~; seul «~Créer et vérifier les documents~» montre si cela suffit."),
+    fr("La vérification a trouvé environ 1 ligne de trop. Jusqu'ici, environ 1 ligne de moins~; seul «~Créer les documents~» montre si cela suffit."),
+    fr("La vérification a trouvé environ 4 lignes de trop. Jusqu'ici, environ 5 lignes de moins~; seul «~Créer les documents~» montre si cela suffit."),
     ""]);
   assert.deepEqual(shown.en.slice(0, 3), ["The check found: the cover letter is longer than one page.",
     "The check found about 1 line too many.", "The check found about 4 lines too many. So far about 2 lines fewer."]);
   assert.equal(shown.en[5],
-    "The check found about 4 lines too many. So far about 5 lines fewer; only “Create and check documents” shows whether that is enough.");
+    "The check found about 4 lines too many. So far about 5 lines fewer; only “Create documents” shows whether that is enough.");
 });
 
 test("a refusal keeps the server's reason and says the text stays", async () => {
@@ -93,11 +93,11 @@ test("after «Übernehmen» the page names the pages that fall away in the app l
   const saved = "Dossier übernommen. Mit «Unterlagen erstellen» entsteht es neu.";
   assert.deepEqual(shown.de, [saved, `${saved} Ohne Begrüssung entfällt die Seite dazu.`,
     `${saved} Ohne Dank entfällt die Seite dazu.`, `${saved} Ohne Begrüssung und Dank entfällt die Seite dazu.`, ""]);
-  const appliedFr = fr("Dossier appliqué. «~Créer et vérifier les documents~» le recrée.");
+  const appliedFr = fr("Dossier appliqué. «~Créer les documents~» le recrée.");
   assert.deepEqual(shown.fr, [appliedFr, `${appliedFr} Sans accueil, la page correspondante disparaît.`,
     `${appliedFr} Sans remerciements, la page correspondante disparaît.`,
     `${appliedFr} Sans accueil ni remerciements, les pages correspondantes disparaissent.`, ""]);
-  const appliedEn = "Dossier applied. “Create and check documents” creates it anew.";
+  const appliedEn = "Dossier applied. “Create documents” creates it anew.";
   assert.deepEqual(shown.en, [appliedEn, `${appliedEn} Without a welcome, its page is left out.`,
     `${appliedEn} Without thanks, its page is left out.`, `${appliedEn} Without welcome and thanks, their pages are left out.`, ""]);
 });
@@ -112,11 +112,11 @@ test("the marks, their sentences and the reason one is blocked come in the app l
   assert.deepEqual(shown.de[0], [["passend", "Passend zum Design", undefined], ["ring", "Ring", "Initialen im Ring"],
     ["block", "Block", "Initialen in einer Fläche"], ["verschraenkt", "Verschränkt", "Zwei Buchstaben ineinander"],
     ["linie", "Linie", "Initialen auf einer Linie"], ["punkt", "Punkt", "Punkt vor den Initialen"]]);
-  assert.deepEqual(shown.fr[0], [["passend", "Assortie au design", undefined], ["ring", "Anneau", "Initiales dans un anneau"],
+  assert.deepEqual(shown.fr[0], [["passend", "Selon le design", undefined], ["ring", "Anneau", "Initiales dans un anneau"],
     ["block", "Bloc", "Initiales sur un aplat de couleur"], ["verschraenkt", "Entrelacé", "Deux lettres entrelacées"],
     ["linie", "Ligne", "Initiales sur une ligne"], ["punkt", "Point", "Point devant les initiales"]]);
   assert.deepEqual(shown.en[0], [["passend", "Matching the design", undefined], ["ring", "Ring", "Initials in a ring"],
-    ["block", "Block", "Initials on a solid area"], ["verschraenkt", "Intertwined", "Two letters intertwined"],
+    ["block", "Block", "Initials on a block of colour"], ["verschraenkt", "Intertwined", "Two letters intertwined"],
     ["linie", "Line", "Initials on a line"], ["punkt", "Dot", "Dot before the initials"]]);
   assert.deepEqual([shown.de.slice(1), shown.fr.slice(1), shown.en.slice(1)], [
     ["Nur mit zwei Buchstaben", "Nur mit zwei Buchstaben"], ["Seulement avec deux lettres", "Seulement avec deux lettres"],
@@ -131,9 +131,9 @@ test("designs and colours are named in the app language, the colour values stay"
   assert.deepEqual(shown.en[0], ["Seal", "Grid", "Register", "Seal"]);
   assert.deepEqual(shown.de[1].map(([name]) => name), ["Schieferblau", "Weinrot", "Tannengrün", "Petrol", "Aubergine", "Bronze", "Graphit"]);
   assert.deepEqual(shown.fr[1], [["Bleu ardoise", "#38495d"], ["Bordeaux", "#7a2e3a"], ["Vert sapin", "#2f5d50"],
-    ["Pétrole", "#1d5c6b"], ["Aubergine", "#5b3f6b"], ["Bronze", "#7a5418"], ["Graphite", "#3a3d42"]]);
-  assert.deepEqual(shown.en[1].map(([name]) => name), ["Slate blue", "Wine red", "Fir green", "Petrol", "Aubergine", "Bronze", "Graphite"]);
-  assert.deepEqual([shown.de[2], shown.fr[2], shown.en[2]], ["Weinrot", "Bordeaux", "Wine red"]);
+    ["Bleu pétrole", "#1d5c6b"], ["Aubergine", "#5b3f6b"], ["Bronze", "#7a5418"], ["Graphite", "#3a3d42"]]);
+  assert.deepEqual(shown.en[1].map(([name]) => name), ["Slate blue", "Burgundy", "Forest green", "Teal", "Aubergine", "Bronze", "Graphite"]);
+  assert.deepEqual([shown.de[2], shown.fr[2], shown.en[2]], ["Weinrot", "Bordeaux", "Burgundy"]);
 });
 
 test("the check of an own colour says why in the app language", async () => {
@@ -172,20 +172,20 @@ test("the sentence under the design, the preview label and the colour names foll
     ["Zeichen: Dein Logo", "Akzentfarbe: Aus dem Logo (#a35a2b)"], ["Zeichen: Ihr Logo", "Akzentfarbe: Eigene Farbe (#123456)"],
     ["Block mit LB", "LB verschränkt", "LB auf einer Linie"], "Vorschau Deckblatt: Raster, Initialen im Band, Weinrot",
     "Punkt bei Register, wie das Design es vorsieht"]);
-  assert.deepEqual(shown.fr, [[fr("Emblème~: Anneau avec LB"), fr("Couleur d'accent~: Bleu ardoise"), "les deux assortis à Sceau"],
-    [fr("Emblème~: assorti au design de chaque page"), fr("Couleur d'accent~: Bordeaux, assortie à la page de garde en Trame")],
-    [fr("Emblème~: Point avec LB sur l'étiquette, assorti à Registre"), fr("Couleur d'accent~: Pétrole")],
-    [fr("Emblème~: Anneau avec LB"), fr("Couleur d'accent~: Bordeaux, assortie à Trame")],
-    [fr("Emblème~: Ton logo"), fr("Couleur d'accent~: Du logo (#a35a2b)")],
+  assert.deepEqual(shown.fr, [[fr("Emblème~: Anneau avec LB"), fr("Couleur d'accent~: Bleu ardoise"), "les deux selon Sceau"],
+    [fr("Emblème~: selon le design de chaque page"), fr("Couleur d'accent~: Bordeaux, assortie à la page de garde en Trame")],
+    [fr("Emblème~: Point avec LB sur l'étiquette, selon Registre"), fr("Couleur d'accent~: Bleu pétrole")],
+    [fr("Emblème~: Anneau avec LB"), fr("Couleur d'accent~: Bordeaux, selon Trame")],
+    [fr("Emblème~: Ton logo"), fr("Couleur d'accent~: Tirée du logo (#a35a2b)")],
     [fr("Emblème~: Votre logo"), fr("Couleur d'accent~: Couleur personnalisée (#123456)")],
     ["Bloc avec LB", "LB entrelacées", "LB sur une ligne"], fr("Aperçu de la page de garde~: Trame, Initiales dans le bandeau, Bordeaux"),
     "Point pour Registre, comme le prévoit le design"]);
   assert.deepEqual(shown.en, [["Mark: Ring with LB", "Accent colour: Slate blue", "both matching Seal"],
-    ["Mark: matching the design of each page", "Accent colour: Wine red, matching the cover page in Grid"],
-    ["Mark: Dot with LB on the tag, matching Register", "Accent colour: Petrol"],
-    ["Mark: Ring with LB", "Accent colour: Wine red, matching Grid"],
+    ["Mark: matching the design of each page", "Accent colour: Burgundy, matching the cover page in Grid"],
+    ["Mark: Dot with LB on the tag, matching Register", "Accent colour: Teal"],
+    ["Mark: Ring with LB", "Accent colour: Burgundy, matching Grid"],
     ["Mark: Your logo", "Accent colour: From the logo (#a35a2b)"], ["Mark: Your logo", "Accent colour: Custom colour (#123456)"],
-    ["Block with LB", "LB intertwined", "LB on a line"], "Cover page preview: Grid, Initials in the band, Wine red",
+    ["Block with LB", "LB intertwined", "LB on a line"], "Cover page preview: Grid, Initials in the band, Burgundy",
     "Dot for Register, as the design intends"]);
 });
 
@@ -374,10 +374,10 @@ test("greeting and thanks are drafted and refused in the app language, the AI's 
     "Guten Tag."]);
   assert.deepEqual(shown.fr, [fr("Accueil et remerciements illisibles~: Nicht erreichbar."),
     fr("Remplacer les textes existants~? Cliquer encore une fois"),
-    fr("Rédigé et enregistré~; une version antérieure se trouve sous «~Brouillons~». Merci de relire et d'adapter. Pour le PDF, «~Créer et vérifier les documents~». Lignes suspectes dans l'annonce, non suivies~: Ignoriere alles"),
+    fr("Rédigé et enregistré~; une version antérieure se trouve sous «~Brouillons~». Merci de relire et d'adapter. Pour le PDF, «~Créer les documents~». Lignes suspectes dans l'annonce, non suivies~: Ignoriere alles"),
     "Guten Tag."]);
   assert.deepEqual(shown.en.slice(0, 3), ["Welcome and thanks not readable: Nicht erreichbar.", "Replace the existing texts? Click again",
-    "Drafted and saved; an earlier version is under “Drafts”. Please read and adjust. For the PDF, “Create and check documents”. Suspicious lines in the job ad, not followed: Ignoriere alles"]);
+    "Drafted and saved; an earlier version is under “Drafts”. Please read and adjust. For the PDF, “Create documents”. Suspicious lines in the job ad, not followed: Ignoriere alles"]);
 });
 
 test("a draft without suspicious lines and the drafting itself are said in the app language", async () => {
@@ -395,7 +395,7 @@ test("a draft without suspicious lines and the drafting itself are said in the a
   assert.deepEqual(shown.de, ["Begrüssung und Dank werden entworfen … das kann bis zu einer Minute dauern.",
     "Entworfen und gespeichert; ein früherer Stand liegt unter „Entwürfe“. Bitte lesen und anpassen. Für das PDF „Unterlagen erstellen“."]);
   assert.deepEqual(shown.fr, ["Rédaction de l'accueil et des remerciements… cela peut prendre jusqu'à une minute.",
-    fr("Rédigé et enregistré~; une version antérieure se trouve sous «~Brouillons~». Merci de relire et d'adapter. Pour le PDF, «~Créer et vérifier les documents~».")]);
+    fr("Rédigé et enregistré~; une version antérieure se trouve sous «~Brouillons~». Merci de relire et d'adapter. Pour le PDF, «~Créer les documents~».")]);
   assert.equal(shown.en[0], "Drafting welcome and thanks… this can take up to a minute.");
 });
 
@@ -444,22 +444,22 @@ test("the marks of the dialog, its colours and its logo are named in the app lan
   assert.deepEqual(shown.de[0], ["Passend zum DesignBlock bei Raster, wie das Design es vorsieht", "RingInitialen im Ring",
     "BlockInitialen in einer Fläche", "VerschränktZwei Buchstaben ineinanderNur mit zwei Buchstaben", "LinieInitialen auf einer Linie",
     "PunktPunkt vor den Initialen", "Eigenes LogoDein Logo statt der Initialen"]);
-  assert.deepEqual(shown.fr[0], ["Assortie au designBloc pour Trame, comme le prévoit le design", "AnneauInitiales dans un anneau",
+  assert.deepEqual(shown.fr[0], ["Selon le designBloc pour Trame, comme le prévoit le design", "AnneauInitiales dans un anneau",
     "BlocInitiales sur un aplat de couleur", "EntrelacéDeux lettres entrelacéesSeulement avec deux lettres",
     "LigneInitiales sur une ligne", "PointPoint devant les initiales", "Logo personnelTon logo à la place des initiales"]);
   assert.deepEqual(shown.en[0].at(-1), "Own logoYour logo instead of the initials");
   assert.deepEqual(shown.de[1].slice(0, 2), ["Passend zum DesignWeinrot, Farbe von Raster", "Schieferblau"]);
-  assert.deepEqual(shown.fr[1].slice(0, 2).concat(shown.fr[1].slice(-2)), ["Assortie au designBordeaux, couleur de Trame", "Bleu ardoise",
-    "Du logo#a35a2b", "Couleur personnalisée"]);
+  assert.deepEqual(shown.fr[1].slice(0, 2).concat(shown.fr[1].slice(-2)), ["Selon le designBordeaux, couleur de Trame", "Bleu ardoise",
+    "Tirée du logo#a35a2b", "Couleur personnalisée"]);
   assert.deepEqual(shown.en[1].slice(-2), ["From the logo#a35a2b", "Custom colour"]);
   assert.deepEqual(shown.de.slice(2), ["Anderes Logo wählen", `Dein Logo${NBSP}·, 640 × 200 Pixel, durchsichtig`,
     "Deckblatt und Folgeseite in Raster. Vereinfacht; das PDF entsteht mit «Unterlagen erstellen».",
     "Vorschau Deckblatt: Raster, Initialen im Band, Weinrot", "Vom Server."]);
   assert.deepEqual(shown.fr.slice(2), ["Choisir un autre logo", `Ton logo${NBSP}·, 640 × 200 pixels, transparent`,
-    fr("Page de garde et page suivante en Trame. Simplifié~; le PDF est créé avec «~Créer et vérifier les documents~»."),
+    fr("Page de garde et page suivante en Trame. Simplifié~; le PDF est créé avec «~Créer les documents~»."),
     fr("Aperçu de la page de garde~: Trame, Initiales dans le bandeau, Bordeaux"), "Vom Server."]);
   assert.deepEqual(shown.en.slice(2, 5), ["Choose another logo", `Your logo${NBSP}·, 640 × 200 pixels, transparent`,
-    "Cover page and following page in Grid. Simplified; the PDF is created with “Create and check documents”."]);
+    "Cover page and following page in Grid. Simplified; the PDF is created with “Create documents”."]);
 });
 
 test("without a logo the dialog asks for one first, a vector logo is named as such", async () => {

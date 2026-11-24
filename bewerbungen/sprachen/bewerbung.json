@@ -192,8 +192,8 @@
   },
   "Für alle Dossiers": {"fr": "Pour tous les dossiers", "en": "For all dossiers"},
   "Zeichen und Farbe gelten für alle Dossiers. Jede Wahl ist sofort gespeichert; «Abbrechen» nimmt sie nicht zurück. Schon erstellte Dossiers bleiben, wie sie sind; mit «Unterlagen erstellen» entsteht dieses neu.": {
-    "fr": "L'emblème et la couleur valent pour tous les dossiers. Chaque choix est enregistré tout de suite\u00a0; «\u00a0Annuler\u00a0» ne l'annule pas. Les dossiers déjà créés restent tels quels\u00a0; avec «\u00a0Créer et vérifier les documents\u00a0», celui-ci est recréé.",
-    "en": "Mark and colour apply to all dossiers. Each choice is saved at once; “Cancel” does not undo it. Dossiers already created stay as they are; “Create and check documents” creates this one anew."
+    "fr": "L'emblème et la couleur valent pour tous les dossiers. Chaque choix est enregistré tout de suite\u00a0; «\u00a0Annuler\u00a0» ne l'annule pas. Les dossiers déjà créés restent tels quels\u00a0; avec «\u00a0Créer les documents\u00a0», celui-ci est recréé.",
+    "en": "Mark and colour apply to all dossiers. Each choice is saved at once; “Cancel” does not undo it. Dossiers already created stay as they are; “Create documents” creates this one anew."
   },
   "Zeichen": {"fr": "Emblème", "en": "Mark"},
   "PNG, JPG oder SVG, höchstens 5 MB. Am besten quer und mit durchsichtigem Hintergrund. Ein eigenes Zeichen, kein Firmenlogo. Das Logo bleibt auf diesem Computer und geht nie an die KI.": {
@@ -215,8 +215,8 @@
   "Vorschlag übernehmen": {"fr": "Appliquer la proposition", "en": "Apply suggestion"},
   "Zurück zur Voreinstellung": {"fr": "Revenir au réglage par défaut", "en": "Back to default"},
   "«Passend zum Design» ist die Farbe des Designs: Siegel Schieferblau, Raster Weinrot, Register Tannengrün. Sie wechselt mit dem Design; eine benannte Farbe bleibt. Schrift auf der Farbe wählt die App selbst, weiss oder dunkel.": {
-    "fr": "«\u00a0Assortie au design\u00a0» est la couleur du design\u00a0: bleu ardoise pour Sceau, bordeaux pour Trame, vert sapin pour Registre. Elle change avec le design\u00a0; une couleur nommée reste. L'app choisit elle-même la couleur du texte sur l'accent, blanc ou foncé.",
-    "en": "“Matching the design” is the design's colour: slate blue for Seal, wine red for Grid, fir green for Register. It changes with the design; a named colour stays. The app picks the text colour on it itself, white or dark."
+    "fr": "«\u00a0Selon le design\u00a0» est la couleur du design\u00a0: bleu ardoise pour Sceau, bordeaux pour Trame, vert sapin pour Registre. Elle change avec le design\u00a0; une couleur nommée reste. L'app choisit elle-même la couleur du texte sur l'accent, blanc ou foncé.",
+    "en": "“Matching the design” is the design's colour: slate blue for Seal, burgundy for Grid, forest green for Register. It changes with the design; a named colour stays. The app picks the text colour on it itself, white or dark."
   },
   "Änderungen verwerfen?": {"fr": "Abandonner les modifications\u00a0?", "en": "Discard changes?"},
 
@@ -291,8 +291,8 @@
     "en": "No link to the form: open the application and enter the link"
   },
   "Lebenslauf-PDF fehlt: öffnen und „Unterlagen erstellen“ oder unter „Lebenslauf und Dateien“ hochladen": {
-    "fr": "PDF du CV manquant\u00a0: ouvrir la candidature, puis «\u00a0Créer et vérifier les documents\u00a0» ou téléverser le CV sous «\u00a0CV et fichiers\u00a0»",
-    "en": "CV PDF missing: open the application, then “Create and check documents”, or upload the CV under “CV and files”"
+    "fr": "PDF du CV manquant\u00a0: ouvrir la candidature, puis «\u00a0Créer les documents\u00a0» ou téléverser le CV sous «\u00a0CV et fichiers\u00a0»",
+    "en": "CV PDF missing: open the application, then “Create documents”, or upload the CV under “CV and files”"
   },
   "Anschreiben noch nicht freigegeben: öffnen, lesen und „Freigeben“": {
     "fr": "Lettre de motivation pas encore validée\u00a0: ouvrir la candidature, lire la lettre et «\u00a0Valider\u00a0»",
@@ -304,8 +304,8 @@
   },
   "Dieser Teil der Datei fehlt.": {"fr": "Cette partie du fichier manque.", "en": "This part of the file is missing."},
   "Für diese Bewerbung gibt es noch keine Dateien. Bitte zuerst „Unterlagen erstellen“ oder unter „Lebenslauf und Dateien“ hochladen.": {
-    "fr": "Il n'y a pas encore de fichiers pour cette candidature. Merci d'utiliser d'abord «\u00a0Créer et vérifier les documents\u00a0» ou de les téléverser sous «\u00a0CV et fichiers\u00a0».",
-    "en": "There are no files for this application yet. Please first use “Create and check documents” or upload them under “CV and files”."
+    "fr": "Il n'y a pas encore de fichiers pour cette candidature. Merci d'utiliser d'abord «\u00a0Créer les documents\u00a0» ou de les téléverser sous «\u00a0CV et fichiers\u00a0».",
+    "en": "There are no files for this application yet. Please first use “Create documents” or upload them under “CV and files”."
   },
   "Der Ordner liess sich nicht vorbereiten. Bitte nochmals versuchen.": {
     "fr": "Le dossier n'a pas pu être préparé. Merci de réessayer.",
