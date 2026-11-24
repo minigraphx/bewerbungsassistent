@@ -134,10 +134,10 @@ test("the estimate names the files, the cost and what is left out in the app lan
     files: texts(byId(card(page, { estimate }), "prefill-files"), "p") }));
 
   assert.match(shown.de.status, /^2 Dateien gehen an die KI\./);
-  assert.match(shown.fr.status, /^2 fichiers sont envoyés à l'IA\./);
-  assert.match(shown.en.status, /^2 files go to the AI\./);
-  assert.deepEqual(shown.fr.files, [fr("N'est pas envoyé à l'IA~:"), fr("Seul le début est envoyé à l'IA, le fichier est trop long~:")]);
-  assert.deepEqual(shown.en.files, ["Does not go to the AI:", "Only the beginning goes to the AI, the file is too long:"]);
+  assert.match(shown.fr.status, /^2 fichiers seront envoyés à l'IA\./);
+  assert.match(shown.en.status, /^2 files will go to the AI\./);
+  assert.deepEqual(shown.fr.files, [fr("Ne sera pas envoyé à l'IA~:"), fr("Seul le début sera envoyé à l'IA, le fichier est trop long~:")]);
+  assert.deepEqual(shown.en.files, ["Will not go to the AI:", "Only the beginning will go to the AI, the file is too long:"]);
   assert.deepEqual(shown.de.files, ["Geht nicht an die KI:", "Nur der Anfang geht an die KI, die Datei ist zu lang:"]);
 });
 
@@ -147,7 +147,9 @@ test("one file, the running text with its minutes and a failed estimate speak th
   const failed = inAll((page) => byId(card(page, { estimate: { phase: "failed", answer: null, problem: "weg" } }), "prefill-status").textContent);
   const uploading = inAll((page) => byId(card(page, { estimate: { phase: "uploading", answer: null, problem: null } }), "prefill-status").textContent);
 
-  assert.match(one.fr, /^1 fichier est envoyé à l'IA\./);
+  assert.match(one.fr, /^1 fichier sera envoyé à l'IA\./);
+  assert.match(one.en, /^1 file will go to the AI\./);
+  assert.match(one.de, /^1 Datei geht an die KI\./);
   assert.equal(running.de, `Die Unterlagen werden gelesen. Das dauert etwa 3${NBSP}Minuten; Sie können in dieser Zeit weiterarbeiten.`);
   assert.equal(running.fr, fr(`Les documents sont en cours de lecture. Cela prend environ 3${NBSP}minutes~; vous pouvez continuer à travailler pendant ce temps.`));
   assert.equal(running.en, `The documents are being read. This takes about 3${NBSP}minutes; you can keep working in the meantime.`);
@@ -174,16 +176,19 @@ test("the report names what was filled, kept, left out and not read in the app l
   const view = (page, track) => texts(card(page, { track, run: { ...IDLE, report } }), "p");
   const job = inAll((page) => view(page, "job"));
   const apprenticeship = inLanguage("fr", (page) => view(page, "apprenticeship"));
+  const apprenticeshipEn = inLanguage("en", (page) => view(page, "apprenticeship"));
 
   assert.ok(job.de.includes("Hier haben Sie schon etwas eingetragen, das bleibt unverändert: person, skills."), job.de);
   assert.ok(job.fr.includes(fr("Des propositions sont prêtes. Merci de vérifier chaque entrée~:")), job.fr);
-  assert.ok(job.fr.includes(fr("Ici, vous avez déjà saisi quelque chose, cela reste inchangé~: person, skills.")), job.fr);
+  assert.ok(job.fr.includes(fr("Vous aviez déjà saisi quelque chose dans ces sections, cela reste inchangé~: person, skills.")), job.fr);
+  assert.ok(apprenticeship.includes(fr("Tu avais déjà saisi quelque chose dans ces sections, cela reste inchangé~: person, skills.")), apprenticeship);
+  assert.ok(apprenticeshipEn.includes("You had already entered something in these sections; it stays unchanged: person, skills."), apprenticeshipEn);
   assert.ok(job.fr.includes("2 informations ne correspondaient pas au formulaire et ont été laissées de côté."), job.fr);
   assert.ok(job.fr.includes(fr("Seul le début a été lu, le fichier est trop long~: lang.pdf.")), job.fr);
   assert.ok(job.fr.includes(fr("Non lus~:")), job.fr);
   assert.ok(job.fr.includes(fr("Ces lignes des documents s'adressent à une IA. Elles n'ont pas été suivies, jetez-y un œil~:")), job.fr);
   assert.ok(apprenticeship.includes(fr("Ces lignes des documents s'adressent à une IA. Elles n'ont pas été suivies, jette-y un œil~:")), apprenticeship);
-  assert.ok(job.en.includes("You had already entered something here, it stays unchanged: person, skills."), job.en);
+  assert.ok(job.en.includes("You had already entered something in these sections; it stays unchanged: person, skills."), job.en);
   assert.ok(job.en.includes("2 details did not fit the form and were left out."), job.en);
   const skipped = inAll((page) => texts(card(page, { run: { ...IDLE, report } }), "li").find((t) => t.startsWith("bild.png")));
   assert.equal(skipped.fr, fr("bild.png~: Bild: Darin lässt sich nichts unkenntlich machen, darum geht es nicht an die KI. Angaben von Hand ergänzen."));
@@ -217,7 +222,8 @@ test("a refused file and a full kind are named in the app language", () => {
 
   assert.equal(shown.de[0], "programm.exe: Dieser Dateityp geht nicht. Erlaubt sind PDF, Word (.docx, .doc), Textdateien (.txt), Bilder (.jpg, .png).");
   assert.equal(shown.de[1], "Lebensläufe: höchstens 10 Dateien. Eine Datei wurde nicht hinzugefügt.");
-  assert.equal(shown.fr[0], fr("programm.exe~: Ce type de fichier n'est pas accepté. Sont acceptés~: PDF, Word (.docx, .doc), Fichiers texte (.txt), Images (.jpg, .png)."));
+  assert.equal(shown.fr[0], fr("programm.exe~: Ce type de fichier n'est pas accepté. Sont acceptés~: PDF, Word (.docx, .doc), fichiers texte (.txt), images (.jpg, .png)."));
+  assert.equal(shown.en[0], "programm.exe: This file type is not accepted. Allowed: PDF, Word (.docx, .doc), text files (.txt), images (.jpg, .png).");
   assert.equal(shown.fr[1], fr("CV~: 10 fichiers au maximum. Un fichier n'a pas été ajouté."));
   assert.equal(shown.en[1], "CVs: at most 10 files. One file was not added.");
 });
@@ -229,7 +235,7 @@ test("adding, filing anew and removing a file are announced in the app language,
 
   assert.equal(shown.de.added, "Hinzugefügt: a.pdf als Zertifikat oder Diplom, b.pdf als früheres Anschreiben, c.pdf als Lebenslauf.");
   assert.equal(shown.de.changed, "z.pdf ist jetzt als Zeugnis eingeordnet.");
-  assert.equal(shown.fr.added, fr("Ajouté~: a.pdf comme certificat ou diplôme, b.pdf comme ancienne lettre de motivation, c.pdf comme CV."));
+  assert.equal(shown.fr.added, fr("Ajout~: a.pdf comme certificat ou diplôme, b.pdf comme ancienne lettre de motivation, c.pdf comme CV."));
   assert.equal(shown.fr.changed, fr("z.pdf est maintenant classé comme «~Certificat de travail ou bulletin~»."));
   assert.equal(shown.en.changed, "z.pdf is now filed as “Reference or report”.");
   assert.equal(shown.en.added, "Added: a.pdf as certificate or diploma, b.pdf as earlier cover letter, c.pdf as CV.");
@@ -245,7 +251,8 @@ test("a kind that cannot be chosen says why in the app language", () => {
 
   assert.equal(shown.de.type, "Die Art liess sich nicht ändern: Dieser Dateityp geht nicht. Erlaubt sind PDF, Word (.docx, .doc) und Textdateien (.txt).");
   assert.equal(shown.de.full, "Lebensläufe: höchstens 10 Dateien. Entfernen Sie zuerst eine.");
-  assert.equal(shown.fr.type, fr("Le type n'a pas pu être modifié~: Ce type de fichier n'est pas accepté. Sont acceptés~: PDF, Word (.docx, .doc) et Fichiers texte (.txt)."));
+  assert.equal(shown.fr.type, fr("Le type n'a pas pu être modifié~: Ce type de fichier n'est pas accepté. Sont acceptés~: PDF, Word (.docx, .doc) et fichiers texte (.txt)."));
+  assert.equal(shown.en.type, "The kind could not be changed: This file type is not accepted. Allowed: PDF, Word (.docx, .doc) and text files (.txt).");
   assert.equal(shown.fr.full, fr("CV~: 10 fichiers au maximum. Retirez-en d'abord un."));
   assert.equal(shown.fr.du, fr("CV~: 10 fichiers au maximum. Retire-en d'abord un."));
   assert.equal(shown.en.full, "CVs: at most 10 files. Remove one first.");
@@ -260,7 +267,7 @@ test("a document against the rules is named with its kind in the app language", 
     kind: page.describeDocument(form, "job", entries, { path: `documents.${CV}`, code: "maxFiles" }) }));
 
   assert.equal(shown.de.one, "Bisheriger Lebenslauf, cv.exe: Dieser Dateityp geht nicht. Erlaubt sind PDF, Word (.docx, .doc) und Textdateien (.txt).");
-  assert.equal(shown.fr.one, fr("CV actuel, cv.exe~: Ce type de fichier n'est pas accepté. Sont acceptés~: PDF, Word (.docx, .doc) et Fichiers texte (.txt)."));
+  assert.equal(shown.fr.one, fr("CV actuel, cv.exe~: Ce type de fichier n'est pas accepté. Sont acceptés~: PDF, Word (.docx, .doc) et fichiers texte (.txt)."));
   assert.equal(shown.en.total, "Together the files are too large (at most 60 MB).");
   assert.equal(shown.fr.kind, fr("CV actuel~: Trop de fichiers (10 au maximum)."));
 });
@@ -274,6 +281,7 @@ test("a saved file that is no file of this form is refused in the app language",
   assert.equal(shown.de.bundle, "Die Datei ist keine Einstiegsdatei dieser Vorlage.");
   assert.equal(shown.fr.bundle, "Ce fichier n'est pas un fichier de départ de ce formulaire.");
   assert.equal(shown.en.zip, "The file must contain exactly one einstieg.json.");
+  assert.equal(shown.fr.zip, "Le fichier doit contenir exactement un fichier einstieg.json.");
   assert.equal(shown.fr.content, fr("Contenu inattendu dans le fichier~: x/y.pdf"));
   assert.equal(shown.de.broken, "Die Datei ist keine ZIP-Datei.");
   assert.equal(shown.en.broken, "The file is not a ZIP file.");
@@ -300,7 +308,7 @@ test("the step of documents in the file for sharing stays German without texte.j
   assert.match(shared.textContent, /Auch ein LinkedIn-Profil als PDF\. Erlaubt: PDF, Word \(\.docx, \.doc\) und Textdateien \(\.txt\)\./);
   assert.match(shared.textContent, /Die Dateien bleiben in diesem Browser auf diesem Gerät/);
   assert.match(french.textContent, /Les fichiers restent dans ce navigateur sur cet appareil/);
-  assert.match(french.textContent, new RegExp(fr("Acceptés~: PDF, Word \\(\\.docx, \\.doc\\) et Fichiers texte \\(\\.txt\\)\\.")));
+  assert.match(french.textContent, new RegExp(fr("Acceptés~: PDF, Word \\(\\.docx, \\.doc\\) et fichiers texte \\(\\.txt\\)\\.")));
 });
 
 test("German keeps every text of the documents, word for word, also without texte.js", () => {
@@ -310,6 +318,12 @@ test("German keeps every text of the documents, word for word, also without text
 
   assert.deepEqual(say(standalone), say(app));
   assert.deepEqual(say(standalone)[2], "PDF, Word (.docx, .doc), Textdateien (.txt) und Bilder (.jpg, .png)");
+});
+
+test("the button on a suggestion says it looks right in the app language", () => {
+  const shown = inAll((page) => page.T("Stimmt so"));
+
+  assert.deepEqual(shown, { de: "Stimmt so", fr: "C'est correct", en: "Looks right" });
 });
 
 test("no script of the documents keeps a raw no-break space", () => {

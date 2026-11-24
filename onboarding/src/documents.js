@@ -43,10 +43,21 @@ function allowedExtensions(form, category) {
   return category.fileTypes.flatMap((t) => types[t].extensions);
 }
 
+const KEEPS_CAPITAL = /^(?:PDF|Word)\b/;
+
+/**
+ * A label of a file type inside a sentence: French and English start it small („fichiers texte (.txt)“), PDF and
+ * Word keep their capital, and German keeps its nouns (#433, UI/UX ruling). The same rule as documents.py.
+ */
+function fileTypeInSentence(german) {
+  const label = T(german);
+  return label === german || KEEPS_CAPITAL.test(label) ? label : label.charAt(0).toLowerCase() + label.slice(1);
+}
+
 /** List of the accepted file types in the app language, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“. */
 function allowedText(form, category) {
   const types = form.documents.fileTypes;
-  const labels = category.fileTypes.flatMap((t) => types[t].labels).map((label) => T(label));
+  const labels = category.fileTypes.flatMap((t) => types[t].labels).map(fileTypeInSentence);
   if (labels.length === 1) return labels[0];
   const head = labels.slice(1, -1).reduce((joined, label) => T("{a}, {b}", { a: joined, b: label }), labels[0]);
   return T("{namen} und {letzter}", { namen: head, letzter: labels[labels.length - 1] });

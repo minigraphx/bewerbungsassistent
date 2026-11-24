@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-oKj4hDVtE70FPttEowjajY5k1Byx7un1deIn8UAXy/8='; style-src 'sha256-428qO27Hc5x9etrflalMP84bM3AuKI0Ftr+y3n9DZ6A='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Hh0PwaXj7R6+lUKc/U8YJfPU66ph8/u+89zzavN3ZyM='; style-src 'sha256-428qO27Hc5x9etrflalMP84bM3AuKI0Ftr+y3n9DZ6A='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -1748,10 +1748,21 @@ function allowedExtensions(form, category) {
   return category.fileTypes.flatMap((t) => types[t].extensions);
 }
 
+const KEEPS_CAPITAL = /^(?:PDF|Word)\b/;
+
+/**
+ * A label of a file type inside a sentence: French and English start it small („fichiers texte (.txt)“), PDF and
+ * Word keep their capital, and German keeps its nouns (#433, UI/UX ruling). The same rule as documents.py.
+ */
+function fileTypeInSentence(german) {
+  const label = T(german);
+  return label === german || KEEPS_CAPITAL.test(label) ? label : label.charAt(0).toLowerCase() + label.slice(1);
+}
+
 /** List of the accepted file types in the app language, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“. */
 function allowedText(form, category) {
   const types = form.documents.fileTypes;
-  const labels = category.fileTypes.flatMap((t) => types[t].labels).map((label) => T(label));
+  const labels = category.fileTypes.flatMap((t) => types[t].labels).map(fileTypeInSentence);
   if (labels.length === 1) return labels[0];
   const head = labels.slice(1, -1).reduce((joined, label) => T("{a}, {b}", { a: joined, b: label }), labels[0]);
   return T("{namen} und {letzter}", { namen: head, letzter: labels[labels.length - 1] });
@@ -2450,7 +2461,7 @@ const fileMessage = (name, problem) => T("{datei}: {fehler}", { datei: name, feh
 
 /** Every file type of the area, e.g. „PDF, Word (.docx, .doc), Textdateien (.txt), Bilder (.jpg, .png)“. */
 function allTypesText(form) {
-  return Object.values(form.documents.fileTypes).flatMap((type) => type.labels).map((label) => T(label)).join(", ");
+  return Object.values(form.documents.fileTypes).flatMap((type) => type.labels).map(fileTypeInSentence).join(", ");
 }
 
 function allExtensions(form) {

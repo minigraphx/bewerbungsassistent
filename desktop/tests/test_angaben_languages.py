@@ -155,6 +155,21 @@ def test_the_onboarding_modules_keep_their_german_text():
     assert ui_message.joined(["Erster Satz.", "Zweiter Satz."]) == "Erster Satz. Zweiter Satz."
 
 
+def test_file_types_in_a_sentence_start_small_in_french_and_english_but_pdf_and_word_keep_theirs():
+    allowed = documents.allowed_text(FORM, documents.categories(FORM)["zeugnisse"])
+
+    assert said(allowed, "fr") == "PDF, Word (.docx, .doc), fichiers texte (.txt) et images (.jpg, .png)"
+    assert said(allowed, "en") == "PDF, Word (.docx, .doc), text files (.txt) and images (.jpg, .png)"
+    assert said(allowed, "de") == "PDF, Word (.docx, .doc), Textdateien (.txt) und Bilder (.jpg, .png)"
+
+
+def test_a_starting_file_without_its_json_names_it_as_a_file_in_french():
+    message = ui_message.T("Die Datei muss genau eine {datei} enthalten.", datei="einstieg.json")
+
+    assert said(message, "fr") == "Le fichier doit contenir exactement un fichier einstieg.json."
+    assert said(message, "de") == "Die Datei muss genau eine einstieg.json enthalten."
+
+
 def test_messages_of_several_problems_are_each_said_in_the_app_language():
     joined = ui_message.joined([ui_message.T("Die Datei fehlt."), ui_message.T("Diese Datei ist schon dabei.")])
 
@@ -173,7 +188,7 @@ def test_a_document_against_the_rules_is_refused_in_french(started, preview):  #
 
     assert status == 400
     assert answer["fehler"] == (f"CV actuel, lebenslauf.exe{NBSP}: Ce type de fichier n'est pas accepté. "
-                                f"Sont acceptés{NBSP}: PDF, Word (.docx, .doc) et Fichiers texte (.txt).")
+                                f"Sont acceptés{NBSP}: PDF, Word (.docx, .doc) et fichiers texte (.txt).")
 
 
 def test_the_same_document_twice_and_a_gone_one_are_refused_in_english(started, preview):  # noqa: F811
@@ -198,7 +213,7 @@ def test_a_kind_the_file_cannot_have_is_refused_in_french(started, preview):  # 
 
     assert status == 400
     assert answer["fehler"] == (f"CV actuel, zeugnis.png{NBSP}: Ce type de fichier n'est pas accepté. "
-                                f"Sont acceptés{NBSP}: PDF, Word (.docx, .doc) et Fichiers texte (.txt).")
+                                f"Sont acceptés{NBSP}: PDF, Word (.docx, .doc) et fichiers texte (.txt).")
 
 
 def test_answers_against_the_rules_name_the_field_in_french(started, preview):  # noqa: F811

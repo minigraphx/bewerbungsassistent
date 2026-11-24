@@ -36,7 +36,7 @@ const fileMessage = (name, problem) => T("{datei}: {fehler}", { datei: name, feh
 
 /** Every file type of the area, e.g. „PDF, Word (.docx, .doc), Textdateien (.txt), Bilder (.jpg, .png)“. */
 function allTypesText(form) {
-  return Object.values(form.documents.fileTypes).flatMap((type) => type.labels).map((label) => T(label)).join(", ");
+  return Object.values(form.documents.fileTypes).flatMap((type) => type.labels).map(fileTypeInSentence).join(", ");
 }
 
 function allExtensions(form) {

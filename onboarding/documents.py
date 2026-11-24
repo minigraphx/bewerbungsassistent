@@ -7,6 +7,7 @@ only a file name (no folders), the category is one of the folders under `dokumen
 import re
 
 import paths  # noqa: F401  (makes the module bewerbungen importable)
+import translation_catalog
 from ui_message import T, joined, listing
 from validation import ValidationError, for_track
 
@@ -38,10 +39,26 @@ def allowed_extensions(form: dict, category: dict) -> list[str]:
     return [ext for t in category["fileTypes"] for ext in types[t]["extensions"]]
 
 
+class FileTypeInSentence(T):
+    """A label of a file type inside a sentence: French and English start it small („fichiers texte (.txt)“), PDF and
+    Word keep their capital, and German keeps its nouns (#433, UI/UX ruling). The same rule as src/documents.js."""
+
+    KEEPS_CAPITAL = re.compile(r"(?:PDF|Word)\b")
+
+    def __new__(cls, template: str) -> "FileTypeInSentence":
+        return super().__new__(cls, template)
+
+    def in_language(self, catalog: translation_catalog.Catalog, language: str) -> str:
+        label = super().in_language(catalog, language)
+        if label == str(self) or self.KEEPS_CAPITAL.match(label):
+            return label
+        return label[:1].lower() + label[1:]
+
+
 def allowed_text(form: dict, category: dict) -> str:
     """List of the accepted file types, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“, a T for the app."""
     types = form["documents"]["fileTypes"]
-    return listing([T(label) for t in category["fileTypes"] for label in types[t]["labels"]])
+    return listing([FileTypeInSentence(label) for t in category["fileTypes"] for label in types[t]["labels"]])
 
 
 def validate_documents(form: dict, entries) -> list[ValidationError]:
