@@ -62,7 +62,7 @@ test("the two designs of a CV are named and described in the app language", asyn
   assert.deepEqual(shown.de, [["zweispaltig", "Zweispaltig", "Foto und Kontakt im Kopf, zwei Spalten."],
     ["einspaltig", "Einspaltig", "Schlicht, alles untereinander."]]);
   assert.deepEqual(shown.fr, [["zweispaltig", "Deux colonnes", "Photo et coordonnées en en-tête, deux colonnes."],
-    ["einspaltig", "Une colonne", "Sobre, tout l'un sous l'autre."]]);
+    ["einspaltig", "Une colonne", "Sobre, tout à la suite."]]);
   assert.deepEqual(shown.en, [["zweispaltig", "Two columns", "Photo and contact details in the header, two columns."],
     ["einspaltig", "One column", "Plain, everything one below the other."]]);
 });
@@ -97,7 +97,7 @@ test("no station chosen is refused in the words the page ties to the stations", 
     }
   });
   assert.deepEqual(shown, { de: ["Bitte mindestens eine Station wählen.", true],
-    fr: ["Merci de choisir au moins une étape du parcours.", true], en: ["Please choose at least one entry.", true] });
+    fr: ["Merci de choisir au moins une entrée.", true], en: ["Please choose at least one entry.", true] });
 });
 
 test("the announcements of the AI count one recommendation in the singular and keep the server's cost", async () => {
@@ -110,7 +110,7 @@ test("the announcements of the AI count one recommendation in the singular and k
   assert.deepEqual(shown.fr, [fr("Proposition de l'IA appliquée~: 1 recommandation."),
     fr("Proposition de l'IA appliquée~: 2 recommandations. Cost."), "L'IA ne propose rien d'autre pour ce poste.",
     fr("Appliquée à nouveau~: «Planerin, Muster AG»: omettre."), fr("Retirée~: «Planerin, Muster AG»: omettre.")]);
-  assert.deepEqual(shown.en, ["AI suggestion applied: 1 recommendation.", "AI suggestion applied: 2 recommendations. Cost.",
+  assert.deepEqual(shown.en, ["AI proposal applied: 1 recommendation.", "AI proposal applied: 2 recommendations. Cost.",
     "The AI suggests nothing different for this job.", "Applied again: «Planerin, Muster AG»: omettre.",
     "Undone: «Planerin, Muster AG»: omettre."]);
 });
@@ -120,8 +120,8 @@ test("saving names the version as the person called it, in the app language arou
     L.savedText({ variante: { id: "muster-ag" }, gebaut: false }), L.savedText({ hinweis: "Vom Server." })]);
   assert.deepEqual(shown.de, ["Gespeichert als «Planung, Muster AG» und als PDF erstellt. Er gilt jetzt für diese Bewerbung.",
     "Gespeichert als «muster-ag». Er gilt jetzt für diese Bewerbung.", "Vom Server."]);
-  assert.deepEqual(shown.fr, [fr("Enregistré sous «~Planung, Muster AG~» et créé en PDF. Il vaut désormais pour cette candidature."),
-    fr("Enregistré sous «~muster-ag~». Il vaut désormais pour cette candidature."), "Vom Server."]);
+  assert.deepEqual(shown.fr, [fr("Enregistré sous «~Planung, Muster AG~» et créé en PDF. Il s'applique désormais à cette candidature."),
+    fr("Enregistré sous «~muster-ag~». Il s'applique désormais à cette candidature."), "Vom Server."]);
   assert.deepEqual(shown.en, ["Saved as “Planung, Muster AG” and created as PDF. It now applies to this application.",
     "Saved as “muster-ag”. It now applies to this application.", "Vom Server."]);
 });
@@ -142,10 +142,28 @@ test("the text sets of the panel say tu in French where the set says du", async 
     texte.text("lebenslauf.zeichen-logo", "stelle-sie")]);
   assert.deepEqual(shown, [fr("Pas encore de photo. Tu ajoutes des photos sous «~CV et fichiers~»."),
     fr("Mes informations ont changé entre-temps. Rouvre «~Créer le CV~» pour que l'aperçu les montre."),
-    fr("L'IA peut proposer pour cette place d'apprentissage des étapes, un ordre et un profil en bref. L'enregistrement se fait seulement avec «~Utiliser ce CV~»."),
+    fr("L'IA peut proposer pour cette place d'apprentissage des entrées, un ordre et un profil en bref. L'enregistrement se fait seulement avec «~Utiliser ce CV~»."),
     "Votre logo"]);
   const english = await inLanguage("en", () => texte.text("lebenslauf.ki-holen", "stelle-du"));
-  assert.equal(english, "Get suggestions");
+  assert.equal(english, "Get proposals");
+});
+
+test("the AI's proposals, the photo lines and the buttons of the panel read as the review settled them", async () => {
+  const sets = ["lebenslauf.ki-aus", "lebenslauf.ki-ohne-inserat", "lebenslauf.ki-laeuft", "lebenslauf.ki-nochmals",
+    "lebenslauf.foto-einspaltig", "lebenslauf.foto-fehlt"];
+  const shown = await inAll(() => sets.map(key => texte.text(key, "stelle-sie")));
+  assert.deepEqual(shown.fr.slice(0, 1).concat(shown.fr.slice(3, 5)), [
+    "Avec l'IA, l'app propose pour ce poste des entrées, un ordre et un profil en bref.", "Proposer à nouveau",
+    "La mise en page Une colonne n'affiche pas de photo."]);
+  assert.deepEqual(shown.en.slice(1), ["The job ad text is still missing for AI proposals.", "The AI is making proposals…",
+    "Suggest again", "The one-column layout shows no photo.", "No photo yet. Photos are added under “CV and files”."]);
+});
+
+test("the cuts say in French what the app is doing while it builds", async () => {
+  const shown = await inLanguage("fr", () => ["Wird gekürzt und neu erstellt …", "Wird zurückgeholt und neu erstellt …",
+    "Drei Seiten erlaubt, wird neu erstellt …"].map(text => texte.t(text)));
+  assert.deepEqual(shown, ["Le CV est raccourci et recréé…", "Le CV est rétabli et recréé…",
+    "Trois pages autorisées, le CV est recréé…"]);
 });
 
 // ---------- lebenslauf-vorschau-logik.js ----------
@@ -166,7 +184,7 @@ test("the preview counts its pages and says what happened in the app language", 
     "Die Vorschau lässt sich gerade nicht anzeigen. Bitte nochmals ändern oder die Seite neu laden."]);
   assert.deepEqual(shown.fr, [["Aperçu", "1 page"], ["Aperçu", "3 pages"], "CV, page 2 sur 3",
     "L'aperçu est de retour, 1 page.", "L'aperçu compte maintenant 2 pages.",
-    "Aucune étape cochée pour l'instant. L'aperçu apparaît dès qu'au moins une est cochée.", "Vom Server.",
+    "Aucune entrée cochée pour l'instant. L'aperçu apparaît dès qu'au moins une est cochée.", "Vom Server.",
     "L'aperçu ne peut pas être créé. Schlüssel fehlt",
     fr("L'aperçu ne peut pas être créé pour l'instant~: l'app ne répond pas. Merci de modifier à nouveau ou de réessayer plus tard."),
     { text: fr("L'aperçu ne peut pas être créé~: Mes informations contiennent quelque chose que l'app ne peut pas lire."), link: true, details: "Feld x" },
@@ -208,8 +226,8 @@ test("the check is counted and announced in the app language", async () => {
     "2 Prüfungen in Ordnung", "Die Prüfung hat einen Fehler gefunden. Er steht unter «Unterlagen erstellen und prüfen».",
     "Die Prüfung hat 3 Fehler gefunden. Sie stehen unter «Unterlagen erstellen und prüfen».", "Unterlagen erstellen und prüfen",
     "Die App erstellt Lebenslauf und Anschreiben als PDF und prüft sie gleich. Danach stehen sie unter «Unterlagen erstellen und prüfen» zum Ansehen bereit."]);
-  assert.deepEqual(shown.fr, [fr("Vérifié~: 1 erreur, 2 remarques, 1 vérification en ordre."), "Vérifié.",
-    "1 vérification en ordre", "2 vérifications en ordre",
+  assert.deepEqual(shown.fr, [fr("Vérifié~: 1 erreur, 2 remarques, 1 vérification réussie."), "Vérifié.",
+    "1 vérification réussie", "2 vérifications réussies",
     fr("La vérification a trouvé une erreur. Elle figure sous «~Créer et vérifier les documents~»."),
     fr("La vérification a trouvé 3 erreurs. Elles figurent sous «~Créer et vérifier les documents~»."),
     "Créer et vérifier les documents",
@@ -271,13 +289,15 @@ test("the cuts are offered, done and taken back in the app language, the server'
     "Drei Seiten erlaubt und neu erstellt.", "Zurückgeholt und neu erstellt.", "Gespeichert, aber nicht neu erstellt: Kein Typst."]);
   assert.deepEqual(shown.fr, ["Omettre pour cette candidature", "Raccourcir le CV", "Omis pour cette candidature",
     ["Recréer en version raccourcie", "Autoriser trois pages"], { id: "x", text: "Vom Server", button: "Récupérer" },
-    { id: "drei-seiten", text: "Trois pages autorisées, seulement pour cette candidature.", button: "Revenir en arrière" },
+    { id: "drei-seiten", text: "Trois pages autorisées, seulement pour cette candidature.", button: "Revenir à deux pages" },
     fr("Raccourci et recréé. Le CV est encore trop long~; la coupe suivante est cochée."),
     fr("Raccourci et recréé. Le CV est encore trop long~; pour le raccourcir davantage, utiliser «~Créer le CV~» ou «~Mes informations~»."),
     "Trois pages autorisées et CV recréé.", "Récupéré et recréé.", fr("Enregistré, mais pas recréé~: Kein Typst.")]);
   assert.deepEqual(shown.en.slice(0, 4), ["Leave out for this application", "Shorten the CV", "Left out for this application",
     ["Recreate shortened", "Allow three pages"]]);
   assert.equal(shown.en[6], "Shortened and recreated. The CV is still too long; the next cut is ticked.");
+  assert.equal(shown.en[5].button, "Back to two pages");
+  assert.equal(shown.en[8], "Three pages allowed and CV recreated.");
 });
 
 // ---------- kuerzen.js and lebenslauf-erstellen.js on a stand-in page ----------

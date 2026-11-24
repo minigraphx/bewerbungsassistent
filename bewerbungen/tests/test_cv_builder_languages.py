@@ -122,7 +122,7 @@ def test_the_form_names_its_sections_in_french_and_keeps_the_stations(server, pr
 
     work = section(answer, "work")
     assert work["titel"] == "Expérience professionnelle"
-    assert section(answer, "education")["titel"] == "Formation et formation continue"
+    assert section(answer, "education")["titel"] == "Formation et perfectionnement"
     assert [station["titel"] for station in work["stationen"]] == ["Software-Entwicklerin", "Junior-Entwicklerin"]
     assert [station["zusatz"] for station in work["stationen"]] == ["Beispiel AG", "Muster GmbH"]
     assert [station["zeit"] for station in work["stationen"]] == ["03.2019 – aujourd'hui", "2015 – 2019"]
@@ -157,7 +157,7 @@ def test_saving_is_refused_in_french_and_english(server, preview):  # noqa: F811
     assert refused(server, ROUTE, choice(answer, stand="alt"))["fehler"] == (
         f"Mes informations ont changé entre-temps. Merci de rouvrir «{NBSP}Créer le CV{NBSP}».")
     assert refused(server, ROUTE, choice(answer, stationen={"work": []}))["fehler"] == (
-        "Merci de choisir au moins une étape du parcours.")
+        "Merci de choisir au moins une entrée.")
     assert refused(server, ROUTE, choice(answer, design="dossier-siegel"))["fehler"] == (
         "Merci de choisir Deux colonnes ou Une colonne.")
     assert refused(server, ROUTE, choice(answer, berufsbezeichnung="x" * 200))["fehler"] == (
@@ -188,7 +188,8 @@ def test_a_cv_saved_for_a_dossier_says_so_in_french(server, preview):  # noqa: F
 
     assert status == 200, answer
     assert answer["gebaut"] is False
-    assert answer["hinweis"] == f"Enregistré. Le dossier sera recréé avec ce CV via «{NBSP}Créer les documents{NBSP}»."
+    assert answer["hinweis"] == (f"Enregistré. Le dossier sera recréé avec ce CV via «{NBSP}Créer et vérifier les "
+                                 f"documents{NBSP}».")
     assert answer["variante"]["beschreibung"] == "Planung, Muster AG"
 
 
@@ -216,7 +217,7 @@ def test_a_suggestion_without_an_ad_is_refused_in_english(server, preview):  # n
 
     answer = refused(server, f"{ROUTE}/vorschlag", {"id": BRIEF_ID, "stand": form(server)["stand"]})
 
-    assert answer["fehler"] == "For AI suggestions, save the job ad text first."
+    assert answer["fehler"] == "For AI proposals, save the job ad text first."
 
 
 def test_the_cuts_are_refused_in_french_and_stay_german_without_the_preview(server, preview, monkeypatch):  # noqa: F811
@@ -302,7 +303,12 @@ def test_a_failed_suggestion_says_why_in_the_app_language():
     message = failed.args[0]
     assert str(message) == "Kein Vorschlag der KI. Die KI antwortet nicht. Nichts berechnet. Die Auswahl bleibt, wie sie ist."
     assert said(message, "en") == (
-        "No suggestion from the AI. Die KI antwortet nicht. Nothing charged. The selection stays as it is.")
+        "No proposal from the AI. Die KI antwortet nicht. Nothing charged. The selection stays as it is.")
+
+
+def test_the_volunteer_section_is_named_as_volunteer_work():
+    assert [said(cut_choice.SECTION_NAMES["volunteer"], language) for language in ("fr", "en")] == [
+        "Bénévolat", "Volunteer work"]
 
 
 def test_the_design_names_are_shared_with_the_page():
