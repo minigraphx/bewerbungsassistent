@@ -23,6 +23,14 @@ def _niches(k) -> tuple[str, ...]:
         return ()
 
 
+def _niche_remote(k) -> bool:
+    """G125: whether a remote mention keeps a niche hit outside the region, so the page words «ausserhalb» to match."""
+    try:
+        return search_plan.for_folder(k.daten).niche_remote_kept
+    except ValueError:
+        return True
+
+
 def _title_examples(k, runs: list[dict], kind: str) -> dict | None:
     """Per title filter term the titles of the last run it let through or kept out (G104); only a job search has a
     title filter, and a profile the search cannot read yet has none."""
@@ -44,7 +52,8 @@ def yield_of_search(k, parameter, body):
     result = search_yield.summary(runs, shown, terms, with_places=kind != search_plan.KIND_APPRENTICESHIP, keywords=_niches(k))
     # G110: required words are a job search's only
     unrelated = search_yield.unrelated(runs, terms) if kind != search_plan.KIND_APPRENTICESHIP else []
-    return json_antwort({"art": kind, **result, "titelfilter": _title_examples(k, runs, kind), "ohne_pflichtbezug": unrelated})
+    return json_antwort({"art": kind, **result, "titelfilter": _title_examples(k, runs, kind), "ohne_pflichtbezug": unrelated,
+                         "nischen_remote": _niche_remote(k)})
 
 
 GET = {"/api/suche/ertrag": yield_of_search}

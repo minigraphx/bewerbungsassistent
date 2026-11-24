@@ -370,7 +370,7 @@ async function settingsPage(ertrag) {
   };
   const page = run(["suche-einstellen.js"], {
     Texte: { ...texte, anwenden: () => {} },
-    SucheAnzeige: { regionText: () => "", nischenText: () => "", zusammenfassung: () => [] },
+    SucheAnzeige: { regionText: () => "", nischenText: () => "", nischenSchalter: () => false, zusammenfassung: () => [] },
     TrefferLogik: { wahlAus: () => "lehrstelle" }, SuchbegriffeLogik: {},
     SucheRahmen: { zeige() {} }, TitelfilterBeispiele: { begriffe() {}, beispiele() {} }, Suchbegriffe: { zeige() {} },
     Suchliste: { portale() {}, pflicht() {} }, PortalWahl: { zeige() {} }, SucheErtrag: { zeige() {} },

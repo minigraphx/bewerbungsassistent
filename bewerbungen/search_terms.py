@@ -15,6 +15,7 @@ from collections.abc import Callable
 
 import numbered_order
 import required_words
+import search_frame
 import search_plan
 import title_filter
 from search_plan import (APPRENTICESHIP_MARK, DIRECTION, MAX_DIRECTION, MAX_DIRECTIONS, MAX_KEYWORDS, MAX_PROFESSION_NAME,
@@ -474,6 +475,15 @@ def _kept_jobscout24_regions(old: str, new: str) -> str:
     return search_plan.with_section_line(new, REGION_SECTION, line, KEYWORDS_SECTION)
 
 
+def _kept_niche_remote(old: str, new: str) -> str:
+    """The remote switch for niches (G125) is set on Suche einstellen; the form has no field for it, so it stays, under
+    «- Remote: …» of the new profile."""
+    value = search_frame.raw_value(old, search_frame.NICHE_REMOTE)
+    if not value or search_frame.raw_value(new, search_frame.NICHE_REMOTE):
+        return new
+    return search_frame.with_raw_value(new, search_frame.NICHE_REMOTE, value)
+
+
 def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
     """A profile from the form replaces the old one: what the old one searched stays, after what the form names.
 
@@ -483,7 +493,7 @@ def kept_on_replace(old: str, new: str) -> tuple[str, tuple[str, ...]]:
     """
     if (APPRENTICESHIP_MARK in old) != (APPRENTICESHIP_MARK in new):
         return new, ()
-    text, kept = _kept_jobscout24_regions(old, _kept_limits(old, new)), []
+    text, kept = _kept_niche_remote(old, _kept_jobscout24_regions(old, _kept_limits(old, new))), []
     for term in current(old):
         try:
             # its required words only where they count, under Keywords (G110)

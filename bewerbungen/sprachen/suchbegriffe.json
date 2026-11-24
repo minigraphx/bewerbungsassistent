@@ -404,6 +404,15 @@
     "en": "From the last {anzahl} search runs, counted as for the search terms. “No place” means searches without a place, for example for the niches."
   },
   "Ausserhalb der Region, ohne Remote: {orte}": {"fr": "Hors région, sans télétravail\u00a0: {orte}", "en": "Outside the region, not remote: {orte}"},
+  "Ausserhalb der Region: {orte}": {"fr": "Hors r\u00e9gion\u00a0: {orte}", "en": "Outside the region: {orte}"},
+  "{satz} \u201eAusserhalb der Region\u201c: Die Stelle liegt ausserhalb deiner Kantone und Orte.": {
+    "fr": "{satz} \u00ab\u00a0Hors r\u00e9gion\u00a0\u00bb\u00a0: l'offre se trouve hors de tes cantons et lieux.",
+    "en": "{satz} \u201cOutside the region\u201d: the job lies outside your cantons and places."
+  },
+  "{satz} \u201eAusserhalb der Region\u201c: Die Stelle liegt ausserhalb Ihrer Kantone und Orte.": {
+    "fr": "{satz} \u00ab\u00a0Hors r\u00e9gion\u00a0\u00bb\u00a0: l'offre se trouve hors de vos cantons et lieux.",
+    "en": "{satz} \u201cOutside the region\u201d: the job lies outside your cantons and places."
+  },
   "Ohne Angabe: 1 Treffer aus Suchläufen vor Version {version}. Über welchen Beruf sie kamen, hat die App damals nicht festgehalten.": {
     "fr": "Non précisé\u00a0: 1 résultat de séries de recherches antérieures à la version {version}. L'app n'enregistrait pas encore par quel métier il est venu.",
     "en": "Not specified: 1 result from search runs before version {version}. The app did not record back then which occupation it came through."

@@ -100,6 +100,10 @@ UNKNOWN_JOBSCOUT24_REGION = ("Regionen (jobscout24): „{region}“ kennt jobsco
                              "Region.")
 REGIONS_LABEL = "regionen"
 JOBSCOUT24 = "jobscout24"
+# G125: whether a remote mention keeps a niche hit outside the region (G111); only this value switches it off, any
+# other, such as «behalten», or no line at all keeps it
+NICHE_REMOTE_LABEL = "Nischen mit Remote ausserhalb der Region"
+NICHE_REMOTE_SCREEN_OUT = "aussortieren"
 NO_PROFILE = T("Es gibt noch kein Suchprofil. Zuerst Meine Angaben abschliessen.")
 NOTHING_OF_KIND = {KIND_APPRENTICESHIP: NO_PROFESSION, KIND_JOB: NO_TERMS}
 OFFERS_SECTION = "## Gesucht"
@@ -176,6 +180,7 @@ class SearchPlan:
     portal_limits: tuple[tuple[str, tuple[str, ...]], ...] = ()  # G105: term → the only portals it runs on
     unknown_limits: tuple[str, ...] = ()  # labels of «Nur» lines that name a portal the app does not know
     jobscout24_regions: tuple[str, ...] = ()  # G107: ids of jobscout24's regions; with any, its postcodes rest
+    niche_remote_kept: bool = True  # G125: a remote mention keeps a niche hit outside the region, as in 0.3.3
 
     def runs_on(self, term: str, portal: str) -> bool:
         return portal in dict(self.portal_limits).get(term, (portal,))
@@ -686,7 +691,12 @@ def parse(text: str, postal_code: str | None = None) -> SearchPlan:
                       title_exclude=_title_terms(_value(titles, "ausschluss"), MAX_LISTED),
                       title_positive=_title_terms(_value(titles, "positiv"), MAX_LISTED), portals=portals,
                       hints=(*window_hint, *region_hints, *(hint for hint, _ in targets)), nationwide=nationwide,
-                      hint_targets=targets, max_age_days=window)
+                      hint_targets=targets, max_age_days=window, niche_remote_kept=niche_remote_kept(region))
+
+
+def niche_remote_kept(region: dict[str, str]) -> bool:
+    """G125: only «aussortieren» drops a remote niche hit outside the region; a missing line or any other value keeps it."""
+    return region.get(NICHE_REMOTE_LABEL.lower(), "").strip().casefold() != NICHE_REMOTE_SCREEN_OUT
 
 
 def window_days(value: str) -> int | None:

@@ -5,7 +5,9 @@ Each value is one line `- Label: value` in its section of suchprofil.md: the lin
 starts the way the search looks for it, keeping the label and indentation as written; an empty list removes the line,
 and a missing line goes to the end of its section. Every other line of the profile stays as it is. A value is taken
 within the limits of the field in Meine Angaben that reads the same line (`profile_limits.py`, #302). The place
-lines of single portals (Orte, PLZ, Regionen) have no field there; `portal_places.py` checks them (#301).
+lines of single portals (Orte, PLZ, Regionen) have no field there; `portal_places.py` checks them (#301). The switch
+for remote niche hits outside the region (G125, #390) is a line too, written only while it is off, directly under
+«- Remote: …»; Meine Angaben has no field for it.
 """
 import dataclasses
 import re
@@ -27,6 +29,8 @@ TOO_LONG = "„{value}…“ ist zu lang: höchstens {limit} Zeichen."
 NOT_A_LIST = "{name}: bitte als Liste senden."
 BAD_CANTON = "Unbekannter Kanton: {value}."
 TOO_MANY = "{name}: höchstens {limit} Begriffe."
+NOT_A_SWITCH = "{name}: bitte ein- oder ausschalten."
+NICHE_REMOTE = "nischen_remote"
 BAD_RADIUS = T("Umkreis: erlaubt sind {min} bis {max} km.", min=search_plan.MIN_RADIUS_KM, max=search_plan.MAX_RADIUS_KM)
 
 
@@ -42,6 +46,8 @@ class Field:
     label_apprenticeship: str = ""
     # for two lines whose labels start alike, the Regionen of ictjobs and of jobscout24 (G107): which label is this one
     matches: Callable[[str], bool] | None = None
+    # a missing line goes directly under the line whose label starts so, else under the section's last line
+    after: str = ""
 
     def reads(self, label: str) -> bool:
         return self.matches(label) if self.matches else label.strip().lower().startswith(self.prefix)
@@ -70,6 +76,8 @@ FIELDS = {
                               "## Sprachen", "titleExclude"),
     **{key: _place_field(key, label) for key, label in (("orte", "Orte"), ("plz", "PLZ"), ("regionen", "Regionen"),
                                                          (portal_places.JOBSCOUT24_REGIONS, "Regionen"))},
+    NICHE_REMOTE: Field(T("Nischen mit Remote"), "## Region", search_plan.NICHE_REMOTE_LABEL.lower(),
+                        search_plan.NICHE_REMOTE_LABEL, "## Keywords", "", after="remote"),
 }
 TEXT_FIELDS = ("wohnort", "pensum")
 OPTIONAL_FOR_JOBS = ("wohnort",)  # without it the search uses the cantons or Orte; an apprenticeship searches around it
@@ -116,7 +124,8 @@ def values(text: str) -> dict:
             "umkreis_km": int(radius.group()) if radius else None, "pensum": _raw(text, "pensum"),
             **{key: _listed(_raw(text, key)) for key in ("ausschluss", *TITLE_LISTS, *portal_places.KEYS)},
             portal_places.JOBSCOUT24_REGIONS: [jobscout24_regions.written(entry)
-                                               for entry in _listed(_raw(text, portal_places.JOBSCOUT24_REGIONS))]}
+                                               for entry in _listed(_raw(text, portal_places.JOBSCOUT24_REGIONS))],
+            NICHE_REMOTE: search_plan.niche_remote_kept({search_plan.NICHE_REMOTE_LABEL.lower(): _raw(text, NICHE_REMOTE)})}
 
 
 def lengths(text: str) -> dict[str, int]:
@@ -175,9 +184,18 @@ def _checked_radius(value) -> str:
     return f"{value} km"
 
 
+def _checked_switch(field: Field, value) -> str:
+    """G125: on keeps the profile as in 0.3.3, so its line goes; only off is written."""
+    if type(value) is not bool:
+        raise ValueError(T(NOT_A_SWITCH, name=field.name))
+    return "" if value else search_plan.NICHE_REMOTE_SCREEN_OUT
+
+
 def _written(key: str, value, kind: str, text: str) -> str:
     """The value as it goes into its line; empty means the line goes."""
     field = FIELDS[key]
+    if key == NICHE_REMOTE:
+        return _checked_switch(field, value)
     if key == "umkreis_km":
         return _checked_radius(value)
     if key in PLACE_KEYS:
@@ -199,7 +217,21 @@ def _with_line(text: str, field: Field, label: str, value: str) -> str:
         return "\n".join([*lines[:found], *kept, *lines[found + 1:]])
     if not value:
         return text
+    under = _anchor(lines, field) if field.after else None
+    if under is not None:
+        return "\n".join([*lines[:under + 1], f"- {label}: {value}", *lines[under + 1:]])
     return search_plan.with_section_line(text, field.section, f"- {label}: {value}", field.before)
+
+
+def _anchor(lines: list[str], field: Field) -> int | None:
+    """The line a new line of the field goes under: the one named by `after`, else the section's last `- …` line, else
+    its heading; None without the section."""
+    start, end = search_plan.section_bounds(lines, field.section[3:].strip().lower())
+    if start is None:
+        return None
+    pairs = [i for i in range(start + 1, end) if PAIR_LINE.match(lines[i])]
+    named = next((i for i in pairs if PAIR_LINE.match(lines[i]).group(2).strip().lower().startswith(field.after)), None)
+    return named if named is not None else (pairs[-1] if pairs else start)
 
 
 def _check_kind(change: dict, kind: str) -> None:

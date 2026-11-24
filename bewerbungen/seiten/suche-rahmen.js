@@ -63,7 +63,7 @@ window.SucheRahmen = (() => {
     begrenze("region-pensum", stand.laengen.pensum);
     $("region-wohnort").value = werte.wohnort || "";
     kantone(werte.kantone);
-    $("kantone-hinweis").textContent = L.kantoneHinweis(stand.lehrstelle, stand.nischen);
+    $("kantone-hinweis").textContent = L.kantoneHinweis(stand.lehrstelle, stand.nischen, stand.werte.nischen_remote !== false);
     $("region-umkreis-feld").hidden = !stand.lehrstelle;
     $("region-umkreis").replaceChildren(...L.umkreisWahl(werte.umkreis_km).map(w => el("option", { value: String(w.wert) }, w.text)));
     $("region-umkreis").value = String(L.umkreisGewaehlt(werte.umkreis_km));
