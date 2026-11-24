@@ -182,6 +182,26 @@ test("a stored sorting by the entry date is kept", () => {
   }
 });
 
+// Sorting by the date of the last change of stage (#458, G135)
+
+const GEAENDERT = [["Mitte", "2026-11-10"], ["Alt", undefined], ["Neu", "2026-11-20"], ["Leer", ""], ["Frueh", "2026-10-02"]]
+  .map(([stelle, stand_geaendert_am]) => ({ bewerbung: { stelle, status: "Beworben", eingetragen_am: "2026-09-01", stand_geaendert_am },
+                                            schritt: { art: "warten" } }));
+
+test("the date of the change of stage sorts both ways, entries without one stay at the bottom", () => {
+  assert.deepEqual(stellen(logik.sortiert(GEAENDERT, { spalte: "geaendert", richtung: "ab" })), ["Neu", "Mitte", "Frueh", "Alt", "Leer"]);
+  assert.deepEqual(stellen(logik.sortiert(GEAENDERT, { spalte: "geaendert", richtung: "auf" })), ["Frueh", "Mitte", "Neu", "Alt", "Leer"]);
+});
+
+test("the newest change of stage comes first on the first click, and the choice is kept", () => {
+  const erster = logik.naechsteSortierung(null, "geaendert");
+  assert.deepEqual(erster, { spalte: "geaendert", richtung: "ab" });
+  assert.deepEqual(logik.naechsteSortierung(erster, "geaendert"), { spalte: "geaendert", richtung: "auf" });
+  for (const richtung of ["auf", "ab"]) {
+    assert.deepEqual(logik.gueltigeSortierung({ spalte: "geaendert", richtung }), { spalte: "geaendert", richtung });
+  }
+});
+
 // Changing the stage of several applications at once (#170, G29)
 
 const shownRows = ids => ids.map(id => ({ bewerbung: b(id, "Beworben"), schritt: { art: "warten" } }));

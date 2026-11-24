@@ -87,15 +87,16 @@
   function columnLabels() {
     const Texte = texts();
     return { stand: Texte.t("Stand"), note: Texte.t("Note"), schritt: Texte.t("Nächster Schritt"), bis: Texte.t("Bis wann"),
-             erfasst: Texte.t("Erfasst") };
+             erfasst: Texte.t("Erfasst"), geaendert: Texte.t("Stand geändert") };
   }
 
-  /** The texts of a row besides its title and grade: { stand, schritt, bis, erfasst } in the set `satz`. */
+  /** The texts of a row besides its title and grade: { stand, schritt, bis, erfasst, geaendert } in the set `satz`.
+   *  Entries from before G135 have no date of a change of stage: an empty cell, like Erfasst without a date. */
   function rowTexts(row, satz) {
     const Texte = texts();
     const step = L.schrittText(row.schritt, 1, (key, values) => Texte.text(key, satz, values));
     return { stand: Texte.statusName(row.bewerbung.status, satz), schritt: step.titel || NO_DATE, bis: dueText(row),
-             erfasst: L.datum(row.bewerbung.eingetragen_am) };
+             erfasst: L.datum(row.bewerbung.eingetragen_am), geaendert: L.datum(row.bewerbung.stand_geaendert_am) };
   }
 
   // Grade 1–6 as in the design: value, six bars, a word

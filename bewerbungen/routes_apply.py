@@ -178,7 +178,7 @@ def sent(k, parameter, body):
     wanted = _body_id(body)
     with k.sperre:
         result = versand.erfasse_versand(k.daten, wanted, k.heute(), k.versionierung, zusatz={"ausfuellen": SENT},
-                                         from_form=True)
+                                         from_form=True, today=k.heute)
     return json_antwort({"stand": SENT, "hinweise": result["hinweise"]})
 
 
