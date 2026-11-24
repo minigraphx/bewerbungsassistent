@@ -18,6 +18,7 @@ import letter_messages
 import sprachen_pruefen
 import translation_catalog
 import unterlagen
+import varianten
 from sample_folder import BRIEF_ID
 from test_app import post, server  # noqa: F401  (server is a fixture)
 from test_dossier_languages import letter_body, refused
@@ -114,8 +115,8 @@ def test_a_recipient_that_is_no_list_is_named_in_the_app_language(language):
 
     assert said(refusal(lambda: anschreiben.pruefe_brief(letter)), language) == {
         "de": "empfaenger muss eine Liste von Zeilen sein, z.B. [Firma AG, Strasse 1, 3000 Bern]",
-        "fr": f"empfaenger doit être une liste de lignes, p.{NBSP}ex. [Firma AG, Strasse 1, 3000 Bern]",
-        "en": "empfaenger must be a list of lines, e.g. [Firma AG, Strasse 1, 3000 Bern]",
+        "fr": f"empfaenger doit être une liste de lignes, p.{NBSP}ex. [Exemple SA, Rue Exemple 1, 1000 Lausanne]",
+        "en": "empfaenger must be a list of lines, e.g. [Example AG, Example Street 1, 3000 Bern]",
     }[language]
 
 
@@ -127,6 +128,18 @@ def test_an_unknown_letter_language_is_named_in_the_app_language(language):
         "de": "sprache muss eine von de, en, fr sein, nicht 'it'",
         "fr": "sprache doit être l'une des valeurs de, en, fr, et non 'it'",
         "en": "sprache must be one of de, en, fr, not 'it'",
+    }[language]
+
+
+@pytest.mark.parametrize("language", ["de", "fr", "en"])
+def test_an_unknown_variant_language_says_the_values_as_the_letter_check_does(language):
+    with pytest.raises(ValueError) as refused_:
+        varianten.pruefe_variante({"id": "beispiel", "sprache": "it"})
+
+    assert said(refused_.value.args[0], language) == {
+        "de": "sprache muss eine von de, en, fr sein",
+        "fr": "sprache doit être l'une des valeurs de, en, fr",
+        "en": "sprache must be one of de, en, fr",
     }[language]
 
 
@@ -212,7 +225,7 @@ def test_unterlagen_erstellen_names_the_letter_check_of_a_dossier_in_english(ser
     write_letter(server, valid_letter(empfaenger="Beispiel AG"))
 
     assert refused(server, "/api/unterlagen", {}, id=BRIEF_ID) == (
-        "empfaenger must be a list of lines, e.g. [Firma AG, Strasse 1, 3000 Bern]")
+        "empfaenger must be a list of lines, e.g. [Example AG, Example Street 1, 3000 Bern]")
 
 
 def test_unterlagen_erstellen_names_the_letter_check_in_german_with_the_preview_off(server, no_preview):  # noqa: F811

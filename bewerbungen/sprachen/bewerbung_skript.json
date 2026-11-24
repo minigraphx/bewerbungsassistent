@@ -434,7 +434,7 @@
     "fr": "{feld} doit être une liste de mots, par exemple [ki, fullstack]", "en": "{feld} must be a list of words, e.g. [ki, fullstack]"
   },
   "Variante muss eine Zuordnung sein": {"fr": "Une variante doit être une table d'association", "en": "A variant must be a mapping"},
-  "sprache muss eine von {sprachen} sein": {"fr": "sprache doit être l'une de {sprachen}", "en": "sprache must be one of {sprachen}"},
+  "sprache muss eine von {sprachen} sein": {"fr": "sprache doit être l'une des valeurs {sprachen}", "en": "sprache must be one of {sprachen}"},
   "Es braucht quelle (Zuschnitt), datei (PDF) oder extern (Hinweis)": {
     "fr": "Il faut quelle (adaptation), datei (PDF) ou extern (remarque)", "en": "It needs quelle (tailoring), datei (PDF) or extern (remark)"
   },
