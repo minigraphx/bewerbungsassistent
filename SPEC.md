@@ -134,6 +134,7 @@ Write each requirement as one row under its section, in this format. The fence k
 - G120 [draft, must] Sobald die Erweiterung in beiden Stores ohne Native Messaging auskommt, entfernt die App beim Start ihre Einträge für Native Messaging in allen Browsern. | gate: review
 - G121 [draft, must] Unter Linux funktioniert die Erweiterung auch in Chromium als Snap und in Browsern als Flatpak. | gate: review
 - G122 [draft, must] Das Paket für den Microsoft Store braucht keine eingeschränkte Fähigkeit. Nach dem Deinstallieren bleiben nur der Datenordner und, falls eingetragen, der Eintrag in Claude Desktop. | gate: review
+- G135 [approved, must] Ändert sich der Stand einer Bewerbung, merkt sich die App das Datum. Auf der Seite Bewerbungen lässt sich die Liste danach sortieren, damit man sieht, welche Änderungen im Job-Room noch nachzuführen sind. | gate: review
 
 ## K · Constraints
 
