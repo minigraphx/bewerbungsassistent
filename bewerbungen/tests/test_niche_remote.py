@@ -129,7 +129,12 @@ def test_a_line_with_another_value_is_replaced_in_place():
     text = profile().replace(f"{REMOTE_LINE}\n", f"{REMOTE_LINE}\n- Pendelgrenze: 45 Minuten\n- Nischen mit Remote ausserhalb der Region: behalten\n", 1)
     off = search_frame.with_values(text, {"nischen_remote": False})
     assert f"- Pendelgrenze: 45 Minuten\n{OFF_LINE}\n" in off
-    assert off.count("Nischen mit Remote") == 1
+    assert len(switch_lines(off)) == 1
+
+
+def switch_lines(text: str) -> list[str]:
+    """The profile lines of the switch; the template's prose names the line too, so plain text is no count."""
+    return [line for line in text.splitlines() if line.lstrip().startswith("- Nischen mit Remote")]
 
 
 def test_without_a_remote_line_the_line_goes_after_the_last_line_of_the_region():
@@ -186,7 +191,7 @@ def test_the_choice_survives_a_profile_from_meine_angaben_that_does_not_name_it(
 
 def test_a_profile_from_meine_angaben_without_the_line_stays_without_it():
     replaced, _ = search_terms.kept_on_replace(profile(), profile())
-    assert "Nischen mit Remote" not in replaced
+    assert switch_lines(replaced) == []
 
 
 # Through the routes
