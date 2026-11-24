@@ -130,17 +130,20 @@
     });
   }
 
+  function reportSwitchNotSaved(schalter, fehler) {
+    schalter.checked = !schalter.checked;  // back to what the profile still says
+    status($("nischen-remote-meldung"), window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler");
+  }
+
   /** G125: the line in the search profile, written through the card route; the page then reads its texts anew. */
   async function nischenRemote(event) {
     const schalter = event.target;
-    const zeile = $("nischen-remote-meldung");
     try {
       await senden("/api/suche/rahmen", { nischen_remote: schalter.checked });
-      status(zeile, window.Texte.t("Gespeichert. Gilt ab der nächsten Suche."), "ok");
+      status($("nischen-remote-meldung"), window.Texte.t("Gespeichert. Gilt ab der nächsten Suche."), "ok");
       document.dispatchEvent(new CustomEvent("suchprofil-geaendert"));
     } catch (fehler) {
-      schalter.checked = !schalter.checked;
-      status(zeile, window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler");
+      reportSwitchNotSaved(schalter, fehler);
     }
   }
 
