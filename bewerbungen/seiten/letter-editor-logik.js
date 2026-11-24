@@ -2,13 +2,13 @@
 // The letter editor without DOM (G94, #332): how many lines a paragraph takes, which one is longest, the goal line
 // while the check found the letter over one page, whether anything changed and what goes to the server. The number of
 // characters per line comes from the server (letter_edit.CHARS_PER_LINE); this file never owns it.
+// Texts in the app language through Texte (#429); the page's Texte is found when a text is made.
 (function (global) {
-  const EMPTY_HINT = "Leer: fällt beim Speichern weg.";
-  const OVER_PAGE = "Die Prüfung fand: Das Anschreiben ist länger als eine Seite.";
-  const REACHED = "ob es reicht, zeigt erst «Unterlagen erstellen».";
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
 
   const folded = text => String(text ?? "").trim().split(/\s+/).filter(Boolean).join(" ");
-  const lines = count => (count === 1 ? "1 Zeile" : `${count} Zeilen`);
+  const lines = count => (count === 1 ? Texte.t("1 Zeile") : Texte.t("{anzahl} Zeilen", { anzahl: count }));
 
   /** About how many lines the build needs for `text`; 0 for an empty field. */
   function lineCount(text, charsPerLine) {
@@ -18,7 +18,7 @@
 
   function lineHint(text, charsPerLine) {
     const count = lineCount(text, charsPerLine);
-    return count ? `etwa ${lines(count)}` : EMPTY_HINT;
+    return count ? Texte.t("etwa {zeilen}", { zeilen: lines(count) }) : Texte.t("Leer: fällt beim Speichern weg.");
   }
 
   /** The place of the longest paragraph by characters, the first on a tie; -1 without any. */
@@ -35,11 +35,14 @@
    */
   function goalLine(cut, baseline, now) {
     if (!cut) return "";
-    const found = cut.lines > 0 ? `Die Prüfung fand etwa ${lines(cut.lines)} zu viel.` : OVER_PAGE;
+    const found = cut.lines > 0 ? Texte.t("Die Prüfung fand etwa {zeilen} zu viel.", { zeilen: lines(cut.lines) })
+      : Texte.t("Die Prüfung fand: Das Anschreiben ist länger als eine Seite.");
     const saved = baseline - now;
     if (saved <= 0) return found;
-    const reached = cut.lines > 0 && saved >= cut.lines;
-    return `${found} Bisher etwa ${lines(saved)} weniger${reached ? `; ${REACHED}` : "."}`;
+    const values = { gefunden: found, zeilen: lines(saved) };
+    return cut.lines > 0 && saved >= cut.lines
+      ? Texte.t("{gefunden} Bisher etwa {zeilen} weniger; ob es reicht, zeigt erst «Unterlagen erstellen».", values)
+      : Texte.t("{gefunden} Bisher etwa {zeilen} weniger.", values);
   }
 
   /** The paragraphs as the build reads the fields: each line trimmed, split at blank lines, white space folded. */
@@ -68,7 +71,8 @@
   /** The field that takes the focus after the one at `place` was removed, `left` fields remaining. */
   const focusAfterRemove = (place, left) => Math.min(place, left - 1);
 
-  const refusedText = reason => `Nicht gespeichert: ${String(reason).replace(/\.\s*$/, "")}. Der Text bleibt hier.`;
+  const refusedText = reason => Texte.t("Nicht gespeichert: {grund}. Der Text bleibt hier.",
+                                        { grund: String(reason).replace(/\.\s*$/, "") });
 
   /** conflict: the file changed (409); unreachable: no answer at all; refused: the server named a reason. */
   function failure(error) {

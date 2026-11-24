@@ -427,7 +427,7 @@ test("lebenslauf-erstellen-logik.js names the error of no station, so the page k
 });
 
 test("zeichen.js passes the field of a refused value on to its message", () => {
-  const wiring = /meldung\(`Nicht gespeichert\. \$\{fehler\.message\}`, "fehler", \{ input: window\.Meldungen\.isInputRejection\(fehler\) \? feld : null \}\)/;
+  const wiring = /meldung\(nichtGespeichert\(fehler\), "fehler", \{ input: window\.Meldungen\.isInputRejection\(fehler\) \? feld : null \}\)/;
   assert.ok(wiring.test(source("zeichen.js")), `zeichen.js does not arm ${wiring}`);
 });
 

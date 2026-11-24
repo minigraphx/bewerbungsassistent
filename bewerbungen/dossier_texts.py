@@ -9,12 +9,14 @@ import yaml
 
 import unterlagen
 from dateien import schreibe_atomar
+from ui_message import T
 
 FIELDS = ("gruss", "dank")
 MAX_CHARS = 2000
-NOT_TEXT = "Begrüssung und Dank müssen Text sein."
-TOO_LONG = f"Begrüssung und Dank haben je höchstens {MAX_CHARS} Zeichen."
-UNREADABLE = f"{unterlagen.DOSSIER_PAGES} lässt sich nicht lesen. Bitte unter „Entwürfe“ einen früheren Stand holen."
+NOT_TEXT = T("Begrüssung und Dank müssen Text sein.")
+TOO_LONG = T("Begrüssung und Dank haben je höchstens {anzahl} Zeichen.", anzahl=MAX_CHARS)
+UNREADABLE = T("{datei} lässt sich nicht lesen. Bitte unter „Entwürfe“ einen früheren Stand holen.",
+               datei=unterlagen.DOSSIER_PAGES)
 
 
 def path(daten: pathlib.Path, entry_id: str) -> pathlib.Path:

@@ -14,6 +14,7 @@ import zipfile
 import yaml
 
 from dateien import schreibe_yaml
+from ui_message import T
 
 log = logging.getLogger(__name__)
 
@@ -52,7 +53,8 @@ def _pack(archive: zipfile.ZipFile, path: pathlib.Path, name: str) -> None:
         log.info("Beim Sichern nicht mehr vorhanden: %s", name)
     except OSError as error:
         log.warning("Nicht gesichert: %s (%s)", name, error)
-        raise ValueError(f"Die Datei {name} liess sich nicht lesen. Falls sie in einem Programm offen ist: dort schliessen und nochmals versuchen.") from error
+        raise ValueError(T("Die Datei {name} liess sich nicht lesen. Falls sie in einem Programm offen ist: dort "
+                           "schliessen und nochmals versuchen.", name=name)) from error
 
 
 def create(data_dir: pathlib.Path) -> bytes:

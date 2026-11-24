@@ -155,6 +155,7 @@ function fakePage({ textsChanged = false, failSave = false } = {}) {
       },
       status: (element, text) => { element.textContent = text; },
     },
+    Texte: require("../seiten/texte.js"),
     UnterlagenWahl: W,
     DossierDialogLogik: L,
     DossierTexte: {

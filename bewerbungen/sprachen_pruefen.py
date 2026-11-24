@@ -121,6 +121,16 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "routes_cv_creation.py", BASE / "cv_creation.py", BASE / "created_look.py", BASE / "cv_design.py",
     BASE / "routes_cv_preview.py", BASE / "cv_preview.py", BASE / "pdf_thumbnail.py", BASE / "routes_cv_suggestions.py",
     BASE / "ai/cv_suggestions.py", BASE / "routes_cuts.py", BASE / "cut_choice.py", BASE / "cv_cuts.py",
+    # The letter editor, greeting and thanks, the mark and the dialog «Dossier gestalten» (#429), the last scripts of
+    # the page Bewerbung, with every route module its scripts call and the modules behind them: the own letter, the
+    # drafts and the backup. routen_inhalte and proof_kinds, which serve other pages, follow with #430.
+    BASE / "seiten/finding-row.js", BASE / "seiten/letter-editor-logik.js", BASE / "seiten/letter-editor.js",
+    BASE / "seiten/dossier-texte.js", BASE / "seiten/zeichen-logik.js", BASE / "seiten/zeichen.js",
+    BASE / "seiten/dossier-dialog-logik.js", BASE / "seiten/dossier-dialog.js",
+    BASE / "routes_letter_edit.py", BASE / "letter_edit.py", BASE / "inhalte.py", BASE / "routes_dossier.py",
+    BASE / "dossier_texts.py", BASE / "ai/tasks.py", BASE / "routes_mark.py", BASE / "mark_settings.py",
+    BASE / "logo_file.py", BASE / "routes_own_files.py", BASE / "own_files.py", BASE / "routen_ablage.py",
+    BASE / "draft_groups.py", BASE / "routes_backup.py", BASE / "backup.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

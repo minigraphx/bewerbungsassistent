@@ -6,7 +6,7 @@
   const { el } = window.App;
   const { LONGEST_LABEL } = window.BewerbungLogik;
   const LONGEST_ID = "laengster-absatz";
-  const EDIT_LETTER = "Anschreiben ändern";
+  const EDIT_LETTER = window.Texte.t("Anschreiben ändern");  // in the app language (#429)
 
   /**
    * One finding as a list line: `b` from /api/pruefung, `zeile` from BewerbungLogik.befundZeile. A letter over one page

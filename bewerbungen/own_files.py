@@ -12,6 +12,7 @@ import unicodedata
 import certificates
 import proof_kinds
 from apply import REFERENCES_FOLDER
+from ui_message import T
 from unterlagen import OWN_CV
 
 CV_KIND = "lebenslauf"
@@ -32,16 +33,16 @@ PDF_MARKER = b"%PDF-"
 UNSAFE = re.compile(r'[\x00-\x1f\x7f<>:"|?*]')
 RESERVED = {"CON", "PRN", "AUX", "NUL", *(f"COM{n}" for n in range(1, 10)), *(f"LPT{n}" for n in range(1, 10))}
 
-UNKNOWN_KIND = "Unbekannte Art von Datei."
-BAD_NAME = "Dieser Dateiname geht nicht. Bitte die Datei umbenennen."
-CV_ONLY_PDF = "Der Lebenslauf muss ein PDF sein."
-LETTER_ONLY_PDF = "Das Anschreiben muss ein PDF sein."
-ONLY_THESE_TYPES = "Möglich sind PDF, JPG und PNG."
+UNKNOWN_KIND = T("Unbekannte Art von Datei.")
+BAD_NAME = T("Dieser Dateiname geht nicht. Bitte die Datei umbenennen.")
+CV_ONLY_PDF = T("Der Lebenslauf muss ein PDF sein.")
+LETTER_ONLY_PDF = T("Das Anschreiben muss ein PDF sein.")
+ONLY_THESE_TYPES = T("Möglich sind PDF, JPG und PNG.")
 NOT_WHAT_IT_SAYS = "Diese Datei ist kein echtes {typ}. Vielleicht wurde sie nur umbenannt."
 TOO_LARGE = "Die Datei ist zu gross, höchstens {mb} MB."
-NOT_THERE = "Diese Datei gibt es nicht (mehr)."
-CANNOT_SHOW = "Diese Datei lässt sich hier nicht anzeigen."
-SAME_NAME_THERE = "Dort gibt es schon eine Datei mit gleichen Namen. Bitte zuerst eine der beiden umbenennen."
+NOT_THERE = T("Diese Datei gibt es nicht (mehr).")
+CANNOT_SHOW = T("Diese Datei lässt sich hier nicht anzeigen.")
+SAME_NAME_THERE = T("Dort gibt es schon eine Datei mit gleichen Namen. Bitte zuerst eine der beiden umbenennen.")
 
 
 def clean_name(raw: object) -> str:
@@ -70,9 +71,9 @@ def _suffix(name: str) -> str:
 def _check_content(suffix: str, data: bytes) -> None:
     """What the file claims to be is compared with what it is."""
     if len(data) > MAX_FILE_BYTES:
-        raise ValueError(TOO_LARGE.format(mb=MAX_FILE_BYTES // 1_000_000))
+        raise ValueError(T(TOO_LARGE, mb=MAX_FILE_BYTES // 1_000_000))
     if not _is_type(TYPES[suffix], data):
-        raise ValueError(NOT_WHAT_IT_SAYS.format(typ=suffix[1:].upper()))
+        raise ValueError(T(NOT_WHAT_IT_SAYS, typ=suffix[1:].upper()))
 
 
 def check_upload(kind: object, name: str, data: bytes) -> None:

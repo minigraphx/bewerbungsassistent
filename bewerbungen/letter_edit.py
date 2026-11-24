@@ -10,6 +10,7 @@ import yaml
 
 import pfade  # noqa: F401  (makes the module lebenslauf importable)
 import anschreiben
+from ui_message import T
 
 # The body of a letter (themes/brief.typ): A4 less 2.5 cm left and 2 cm right, DM Sans at 10 pt. A line holds about
 # this many characters of German prose; measured on the example letter (tests/test_letter_edit.py).
@@ -23,10 +24,15 @@ CHARS_PER_LINE = int((PAGE_WIDTH_MM - sum(MARGINS_MM)) * POINTS_PER_MM / (FONT_P
 MAX_PARAGRAPHS = 40
 MAX_PARAGRAPH_CHARS = 4000
 MAX_FIELD_CHARS = 300
-FIELDS = {"betreff": "Betreff", "anrede": "Anrede", "gruss": "Gruss"}
+# What a field must be, one sentence per field, so French and English can name each in its own words
+NOT_TEXT = {"betreff": T("Betreff muss Text sein"), "anrede": T("Anrede muss Text sein"),
+            "gruss": T("Gruss muss Text sein")}
+TOO_LONG = {"betreff": T("Betreff hat mehr als {anzahl} Zeichen", anzahl=MAX_FIELD_CHARS),
+            "anrede": T("Anrede hat mehr als {anzahl} Zeichen", anzahl=MAX_FIELD_CHARS),
+            "gruss": T("Gruss hat mehr als {anzahl} Zeichen", anzahl=MAX_FIELD_CHARS)}
 
-NO_PARAGRAPH = "Das Anschreiben braucht mindestens einen Absatz mit Text."
-CHANGED = "Das Anschreiben hat sich inzwischen geändert."
+NO_PARAGRAPH = T("Das Anschreiben braucht mindestens einen Absatz mit Text.")
+CHANGED = T("Das Anschreiben hat sich inzwischen geändert.")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -45,9 +51,9 @@ class LetterChanged(Exception):
 def _field(body: dict, key: str) -> str:
     value = body.get(key)
     if not isinstance(value, str):
-        raise ValueError(f"{FIELDS[key]} muss Text sein")
+        raise ValueError(NOT_TEXT[key])
     if len(value) > MAX_FIELD_CHARS:
-        raise ValueError(f"{FIELDS[key]} hat mehr als {MAX_FIELD_CHARS} Zeichen")
+        raise ValueError(TOO_LONG[key])
     return value.strip()
 
 
@@ -59,11 +65,11 @@ def _cleaned(paragraph: str) -> str:
 def _paragraphs(body: dict) -> tuple[str, ...]:
     value = body.get("absaetze")
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise ValueError("absaetze muss eine Liste von Texten sein")
+        raise ValueError(T("absaetze muss eine Liste von Texten sein"))
     if len(value) > MAX_PARAGRAPHS:
-        raise ValueError(f"Höchstens {MAX_PARAGRAPHS} Absätze")
+        raise ValueError(T("Höchstens {anzahl} Absätze", anzahl=MAX_PARAGRAPHS))
     if any(len(item) > MAX_PARAGRAPH_CHARS for item in value):
-        raise ValueError(f"Ein Absatz hat mehr als {MAX_PARAGRAPH_CHARS} Zeichen")
+        raise ValueError(T("Ein Absatz hat mehr als {anzahl} Zeichen", anzahl=MAX_PARAGRAPH_CHARS))
     kept = tuple(_cleaned(item) for item in value if item.strip())
     if not kept:
         raise ValueError(NO_PARAGRAPH)
@@ -73,10 +79,10 @@ def _paragraphs(body: dict) -> tuple[str, ...]:
 def request_of(body) -> LetterEdit:
     """The edit from the page, checked at the boundary; empty paragraphs fall away."""
     if not isinstance(body, dict):
-        raise ValueError("Erwartet: betreff, anrede, absaetze, gruss und fingerabdruck")
+        raise ValueError(T("Erwartet: betreff, anrede, absaetze, gruss und fingerabdruck"))
     fingerprint = body.get("fingerabdruck")
     if not isinstance(fingerprint, str) or not fingerprint:
-        raise ValueError("fingerabdruck fehlt")
+        raise ValueError(T("fingerabdruck fehlt"))
     return LetterEdit(subject=_field(body, "betreff"), salutation=_field(body, "anrede"), paragraphs=_paragraphs(body),
                       closing=_field(body, "gruss"), fingerprint=fingerprint)
 
@@ -85,9 +91,9 @@ def _letter(text: str) -> dict:
     try:
         letter = yaml.safe_load(text)
     except yaml.YAMLError as error:
-        raise ValueError(f"Das Anschreiben ist kein lesbares YAML: {error}") from error
+        raise ValueError(T("Das Anschreiben ist kein lesbares YAML: {fehler}", fehler=error)) from error
     if not isinstance(letter, dict):
-        raise ValueError("Das Anschreiben muss eine YAML-Zuordnung sein")
+        raise ValueError(T("Das Anschreiben muss eine YAML-Zuordnung sein"))
     return letter
 
 

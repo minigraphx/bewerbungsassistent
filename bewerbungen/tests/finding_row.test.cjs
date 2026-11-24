@@ -35,6 +35,7 @@ function setup() {
   const doc = { activeElement: null };
   const lines = [];
   const window = {
+    Texte: require("../seiten/texte.js"),
     BewerbungLogik: logik,
     App: { el: (tag, attrs, ...kids) => { const e = new FakeElement(doc, tag, attrs || {}); e.append(...kids); return e; } },
     Meldungen: {
