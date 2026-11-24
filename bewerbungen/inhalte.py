@@ -15,6 +15,7 @@ import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
 import cv_design
+import letter_messages
 import photo_shown
 from dateien import relativ
 import textdokument
@@ -116,6 +117,17 @@ def _baue_lebenslauf(cv_pfad: pathlib.Path, job: pathlib.Path | None, build: pat
     return out
 
 
+def _baue_anschreiben(daten: pathlib.Path, wert: object, build: pathlib.Path) -> pathlib.Path:
+    brief = anschreiben_modul.pruefe_brief(wert)
+    probe = build / "inhalt-probe" / "anschreiben.yaml"
+    probe.parent.mkdir(parents=True, exist_ok=True)
+    probe.write_text(yaml.safe_dump({k: v for k, v in brief.items() if k != "lebenslauf"}, allow_unicode=True),
+                     encoding="utf-8")
+    out = build / "inhalt-probe" / "vorschau.pdf"
+    _probebau(anschreiben_modul.main, [str(probe), "--cv", str(daten / "cv.yaml"), "--build-dir", str(build), "-o", str(out)])
+    return out
+
+
 def pruefe_inhalt(daten: pathlib.Path, rel: str, text: str, build: pathlib.Path) -> pathlib.Path | None:
     """Text prüfen, ohne zu speichern. Liefert ein Vorschau-PDF, wenn der Dateityp eines hat; Fehler als ValueError."""
     daten = daten.resolve()
@@ -135,14 +147,8 @@ def pruefe_inhalt(daten: pathlib.Path, rel: str, text: str, build: pathlib.Path)
         job.write_text(text, encoding="utf-8")
         return _baue_lebenslauf(cv, job, build, cv_design.load(daten))
     if rel.endswith("anschreiben.yaml"):
-        brief = anschreiben_modul.pruefe_brief(wert)
-        probe = build / "inhalt-probe" / "anschreiben.yaml"
-        probe.parent.mkdir(parents=True, exist_ok=True)
-        probe.write_text(yaml.safe_dump({k: v for k, v in brief.items() if k != "lebenslauf"}, allow_unicode=True),
-                         encoding="utf-8")
-        out = build / "inhalt-probe" / "vorschau.pdf"
-        _probebau(anschreiben_modul.main, [str(probe), "--cv", str(daten / "cv.yaml"), "--build-dir", str(build), "-o", str(out)])
-        return out
+        with letter_messages.in_app_language():
+            return _baue_anschreiben(daten, wert, build)
     if rel in ("bewerbungen.yaml", "varianten.yaml"):
         if not isinstance(wert, list):
             raise ValueError(T("{datei} ist eine Liste von Einträgen", datei=rel))

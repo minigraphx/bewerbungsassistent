@@ -22,6 +22,7 @@ BASE = language_sources.BASE
 DESKTOP = BASE.parent / "desktop"
 ROOT = BASE.parent
 ONBOARDING = ROOT / "onboarding"
+LEBENSLAUF = ROOT / "lebenslauf"
 # Files whose every text is in the catalog in fr and en; each item of #95 adds the files of its page, the last one
 # replaces the list with every source (Andy, 23.11.2026: after the switch, every new text needs fr and en).
 # Entries as BASE / "seiten/heute.html".
@@ -159,6 +160,9 @@ FERTIG: tuple[pathlib.Path, ...] = (
         "archive.py", "basics_merge.py", "basics_read.py", "basics_slots.py", "convert.py", "cv_merge.py", "cv_read.py",
         "documents.py", "import_bundle.py", "import_documents.py", "known_tags.py", "markdown_files.py", "prefill.py",
         "prefill_estimate.py", "read_documents.py", "rejected.py", "text_diff.py", "validation.py", "values.py")),
+    # The checks of the letter (#453): lebenslauf/anschreiben.py refuses in German with template and values, and
+    # letter_messages makes them messages of the letter editor, Inhalte als Text and Unterlagen erstellen.
+    LEBENSLAUF / "anschreiben.py", BASE / "letter_messages.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
@@ -267,10 +271,11 @@ def orphans(catalog: translation_catalog.Catalog, items: Iterable[language_sourc
 def app_sources() -> tuple[pathlib.Path, ...]:
     """The pages, scripts and modules of bewerbungen, the routes the desktop app adds to them (#417), the folder
     check and system dialogs whose texts the setup routes pass on (#418), and the form and scripts Meine Angaben is
-    built from (#431), with the modules behind its routes (#433)."""
+    built from (#431), with the modules behind its routes (#433), and the letter checks of lebenslauf (#453)."""
     patterns = ((BASE, "seiten/*.html"), (BASE, "seiten/*.js"), (BASE, "*.py"), (BASE, "ai/*.py"),
                 (DESKTOP, "routes_*.py"), (DESKTOP, "setup.py"), (DESKTOP, "dialogs.py"),
-                (ONBOARDING, "form.json"), (ONBOARDING, "src/*.js"), (ONBOARDING, "*.py"))
+                (ONBOARDING, "form.json"), (ONBOARDING, "src/*.js"), (ONBOARDING, "*.py"),
+                (LEBENSLAUF, "anschreiben.py"))
     return tuple(path for folder, pattern in patterns for path in sorted(folder.glob(pattern)))
 
 

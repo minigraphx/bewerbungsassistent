@@ -37,6 +37,16 @@ PLACE_AND_DATE = {"de": "{ort}, {datum}", "en": "{ort}, {datum}", "fr": "{ort}, 
 DATE_ALONE = {"de": "{datum}", "en": "{datum}", "fr": "Le {datum}"}
 
 
+class LetterError(ValueError):
+    """A refusal of the letter, in German; with its template and values, so the app can say it in its own language
+    (#453). lebenslauf builds on its own and never imports the app, so the app turns them into its message."""
+
+    def __init__(self, template: str, **values: object) -> None:
+        super().__init__(template.format(**values))
+        self.template = template
+        self.values = values
+
+
 def formatiere_datum(datum: datetime.date | str, sprache: str) -> str:
     """24. Oktober 2026 (de), 24 October 2026 (en), 24 octobre 2026 or 1er octobre 2026 (fr)."""
     d = datum if isinstance(datum, datetime.date) else datetime.date.fromisoformat(str(datum))
@@ -50,18 +60,19 @@ def formatiere_datum(datum: datetime.date | str, sprache: str) -> str:
 def pruefe_brief(brief: dict) -> dict:
     """Pflichtfelder und Typen prüfen; liefert die Daten unverändert zurück."""
     if not isinstance(brief, dict):
-        raise ValueError("Das Anschreiben muss eine YAML-Zuordnung sein")
+        raise LetterError("Das Anschreiben muss eine YAML-Zuordnung sein")
     fehlend = [f for f in PFLICHTFELDER if not brief.get(f)]
     if fehlend:
-        raise ValueError(f"Im Anschreiben fehlen: {', '.join(fehlend)}")
+        raise LetterError("Im Anschreiben fehlen: {felder}", felder=", ".join(fehlend))
     empfaenger = brief["empfaenger"]
     if not isinstance(empfaenger, list) or not all(isinstance(z, str) and z for z in empfaenger):
-        raise ValueError("empfaenger muss eine Liste von Zeilen sein, z.B. [Firma AG, Strasse 1, 3000 Bern]")
+        raise LetterError("empfaenger muss eine Liste von Zeilen sein, z.B. [Firma AG, Strasse 1, 3000 Bern]")
     if brief.get("sprache", "de") not in SPRACHEN:
-        raise ValueError(f"sprache muss eine von {', '.join(SPRACHEN)} sein, nicht {brief['sprache']!r}")
+        raise LetterError("sprache muss eine von {sprachen} sein, nicht {wert}", sprachen=", ".join(SPRACHEN),
+                          wert=repr(brief["sprache"]))
     for feld in ("betreff", "anrede", "text", "gruss"):
         if not isinstance(brief[feld], str):
-            raise ValueError(f"{feld} muss Text sein")
+            raise LetterError("{feld} muss Text sein", feld=feld)
     return brief
 
 
@@ -90,7 +101,7 @@ def bereite_vor(brief: dict, cv: dict | None, heute: datetime.date) -> dict:
     elif cv is not None:
         absender = absender_aus_cv(cv)
     else:
-        raise ValueError("Kein absender im Anschreiben und kein Lebenslauf angegeben (lebenslauf: oder --cv)")
+        raise LetterError("Kein absender im Anschreiben und kein Lebenslauf angegeben (lebenslauf: oder --cv)")
     datum = formatiere_datum(brief.get("datum") or heute, sprache)
     ort = brief.get("ort")
     return {
@@ -111,7 +122,7 @@ def lade_cv(brief_pfad: pathlib.Path, brief: dict, cv_pfad: str | None) -> dict 
     if pfad is None:
         return None
     if not pfad.is_file():
-        raise ValueError(f"Lebenslauf nicht gefunden: {pfad}")
+        raise LetterError("Lebenslauf nicht gefunden: {pfad}", pfad=pfad)
     return yaml.safe_load(pfad.read_text(encoding="utf-8"))
 
 
@@ -141,7 +152,8 @@ def run(argv: list[str] | None = None) -> fill_record.Built:
 
     vorlage = ROOT / "themes" / args.theme / "anschreiben-main.typ"
     if not vorlage.is_file():
-        raise ValueError(f"Theme {args.theme!r} hat keine Vorlage für Anschreiben ({vorlage.name})")
+        # Only the command line names a theme; the app builds the letter in one that has its template
+        raise ValueError(f"Theme {args.theme!r} hat keine Vorlage für Anschreiben ({vorlage.name})")  # kein UI-Text
     out = pathlib.Path(args.out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
     eingang = str(wurzel.locate(vorlage))
