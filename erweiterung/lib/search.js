@@ -24,6 +24,12 @@ function changedText(portal, message) {
   return `Die Seite von ${portal} hat sich verändert (${message}). Die Suche dort braucht ein Update der Erweiterung.`;
 }
 
+/** G124: the portal's own search failed and a page came from its plainer one, which finds fewer ads. */
+function fallbackText(portal, reason) {
+  return `${portal}: Die Suche wie auf der Webseite ging nicht (${reason}). `
+    + 'Gesucht wurde mit der einfacheren Suche, die weniger Inserate findet.';
+}
+
 /** For portals that fill their list in the page: the tab goes to the list of this query, adapters loaded anew. */
 async function openResults(portal, plan, query, tab, deps) {
   const target = await deps.browser.run(tab, portal, 'searchUrl', [query]);
@@ -69,6 +75,7 @@ async function searchOne(portal, plan, query, tab, found, position, deps, log) {
   const where = place ? { ort: place } : {};
   const asked = { stichwort: query.keyword, ort: place };
   let listed = 0;
+  let fallback = '';
   const pages = pagesOf(query, plan);  // a jobscout24 region search reads more (G107)
   for (let page = 1; page <= pages; page += 1) {
     stopIfCancelled(deps);
@@ -81,10 +88,11 @@ async function searchOne(portal, plan, query, tab, found, position, deps, log) {
     }
     for (const hit of result.value.hits) found.set(hitKey(hit), withQuery(found.get(hitKey(hit)), hit, asked));
     listed += result.value.hits.length;
+    fallback = fallback || result.value.fallback || '';
     if (!result.value.more || pastLastRun(portal, query, result.value)) break;
   }
   log.push({ ...asked, treffer: listed });
-  return '';
+  return fallback ? fallbackText(portal, fallback) : '';
 }
 
 /**
@@ -113,7 +121,8 @@ async function listAll(portal, plan, tab, deps, log) {
       problems.push(await searchOne(portal, plan, query, tab, found, position, deps, log));
     }
   }
-  return { found, problem: problems.filter(Boolean).join(' ') };
+  // The same problem on every query, like a fallback for the whole run, is said once.
+  return { found, problem: [...new Set(problems.filter(Boolean))].join(' ') };
 }
 
 /**
