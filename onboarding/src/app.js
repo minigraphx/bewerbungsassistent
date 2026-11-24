@@ -6,48 +6,50 @@ const STORAGE_KEY = "bewerbungsassistent.einstieg.v1";
 const MAX_FILE_BYTES = 1000000;
 const ZIP_OVERHEAD_BYTES = 1000000;
 const AUTOSAVE_DELAY_MS = 400;
-const REQUIRED_NOTE = "Felder mit * müssen ausgefüllt sein.";
-const EXISTING_DOCUMENTS_NOTE = "Sie haben schon einen Lebenslauf, Zeugnisse oder frühere Anschreiben? "
-  + "Dann müssen Sie nichts abtippen: Im Schritt „Unterlagen“ laden Sie sie hoch. Die App übernimmt daraus Angaben, "
-  + "Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.";
-const UNSAVED_UPLOADS = "Hochgeladene Unterlagen sind noch nicht gespeichert.";
 const FOCUSABLE = "input, textarea, select, button";
 
+// The words of the last step per track. Functions, so that each is said when shown, in the app language (#432).
 const TEXT = {
   job: {
-    finishTitle: "Prüfen und speichern",
-    finishOk: "Alles Nötige ist ausgefüllt.",
-    finishErrors: "Diese Angaben fehlen noch oder passen nicht. Sie können trotzdem speichern und später weitermachen.",
-    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Die App ergänzt sie aus Ihren Unterlagen und fragt nach, was sie dort nicht findet.",
-    documents: (n) => `Mit ${n === 1 ? "einer Unterlage" : `${n} Unterlagen`}; die Datei wird eine ZIP-Datei.`,
-    next: "So geht es weiter: Schicken Sie die Datei an die Person, die Sie im Pilot begleitet, oder öffnen Sie sie später in der App. Mit „Datei laden“ auf der ersten Seite können Sie jederzeit weiterarbeiten.",
+    finishTitle: () => T("Prüfen und speichern"),
+    finishOk: () => T("Alles Nötige ist ausgefüllt."),
+    finishErrors: () => T("Diese Angaben fehlen noch oder passen nicht. Sie können trotzdem speichern und später weitermachen."),
+    finishFromDocuments: () => T("Einige Angaben fehlen noch. Das ist in Ordnung: Die App ergänzt sie aus Ihren Unterlagen und fragt nach, was sie dort nicht findet."),
+    documents: (n) => documentsLine(n),
+    next: () => T("So geht es weiter: Schicken Sie die Datei an die Person, die Sie im Pilot begleitet, oder öffnen Sie sie später in der App. Mit „Datei laden“ auf der ersten Seite können Sie jederzeit weiterarbeiten."),
   },
   apprenticeship: {
-    finishTitle: "Prüfen und speichern",
-    finishOk: "Alles Nötige ist ausgefüllt.",
-    finishErrors: "Diese Angaben fehlen noch oder passen nicht. Du kannst trotzdem speichern und später weitermachen.",
-    finishFromDocuments: "Einige Angaben fehlen noch. Das ist in Ordnung: Die App ergänzt sie aus deinen Unterlagen und fragt nach, was sie dort nicht findet.",
-    documents: (n) => `Mit ${n === 1 ? "einer Unterlage" : `${n} Unterlagen`}; die Datei wird eine ZIP-Datei.`,
-    next: "So geht es weiter: Schick die Datei an die Person, die dich begleitet, oder öffne sie später in der App. Mit „Datei laden“ auf der ersten Seite kannst du jederzeit weiterarbeiten.",
+    finishTitle: () => T("Prüfen und speichern"),
+    finishOk: () => T("Alles Nötige ist ausgefüllt."),
+    finishErrors: () => T("Diese Angaben fehlen noch oder passen nicht. Du kannst trotzdem speichern und später weitermachen."),
+    finishFromDocuments: () => T("Einige Angaben fehlen noch. Das ist in Ordnung: Die App ergänzt sie aus deinen Unterlagen und fragt nach, was sie dort nicht findet."),
+    documents: (n) => documentsLine(n),
+    next: () => T("So geht es weiter: Schick die Datei an die Person, die dich begleitet, oder öffne sie später in der App. Mit „Datei laden“ auf der ersten Seite kannst du jederzeit weiterarbeiten."),
   },
 };
 
+function documentsLine(count) {
+  return count === 1 ? T("Mit einer Unterlage; die Datei wird eine ZIP-Datei.")
+    : T("Mit {anzahl} Unterlagen; die Datei wird eine ZIP-Datei.", { anzahl: count });
+}
+
+// The space after a sentence joins it to the next one of the same line.
 const APP_TEXT = {
   job: {
-    finishErrors: "Diese Angaben fehlen noch oder passen nicht. Ihre Eingaben bleiben gespeichert; Sie können später weitermachen.",
-    done: "Ihre Angaben sind übernommen. ",
-    kept: (names) => `Aus Ihrer bisherigen Suche bleibt dabei: ${names}. Entfernen können Sie das unter „Suche“. `,
-    incomplete: "Ihre Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänzen Sie sie hier, wenn Sie so weit sind. ",
-    intro: "Prüfen Sie die Übersicht. Mit «Angaben übernehmen» erstellt die App daraus Ihren Lebenslauf, Ihr Suchprofil und Ihren Schreibstil.",
-    kept_versions: "Ihre bisherigen Angaben bleiben unter ",
+    finishErrors: () => T("Diese Angaben fehlen noch oder passen nicht. Ihre Eingaben bleiben gespeichert; Sie können später weitermachen."),
+    done: () => `${T("Ihre Angaben sind übernommen.")} `,
+    kept: (names) => `${T("Aus Ihrer bisherigen Suche bleibt dabei: {namen}. Entfernen können Sie das unter „Suche“.", { namen: names })} `,
+    incomplete: () => `${T("Ihre Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänzen Sie sie hier, wenn Sie so weit sind.")} `,
+    intro: () => T("Prüfen Sie die Übersicht. Mit «Angaben übernehmen» erstellt die App daraus Ihren Lebenslauf, Ihr Suchprofil und Ihren Schreibstil."),
+    keptVersions: () => T("Ihre bisherigen Angaben bleiben unter {link} erhalten.", keptSlots("link")),
   },
   apprenticeship: {
-    finishErrors: "Diese Angaben fehlen noch oder passen nicht. Deine Eingaben bleiben gespeichert; du kannst später weitermachen.",
-    done: "Deine Angaben sind übernommen. ",
-    kept: (names) => `Aus deiner bisherigen Suche bleibt dabei: ${names}. Entfernen kannst du das unter „Suche“. `,
-    incomplete: "Deine Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänze sie hier, wenn du so weit bist. ",
-    intro: "Prüf die Übersicht. Mit «Angaben übernehmen» erstellt die App daraus deinen Lebenslauf, dein Suchprofil und deinen Schreibstil.",
-    kept_versions: "Deine bisherigen Angaben bleiben unter ",
+    finishErrors: () => T("Diese Angaben fehlen noch oder passen nicht. Deine Eingaben bleiben gespeichert; du kannst später weitermachen."),
+    done: () => `${T("Deine Angaben sind übernommen.")} `,
+    kept: (names) => `${T("Aus deiner bisherigen Suche bleibt dabei: {namen}. Entfernen kannst du das unter „Suche“.", { namen: names })} `,
+    incomplete: () => `${T("Deine Unterlagen und Eingaben sind im Datenordner. Es fehlen noch Angaben, darum gibt es noch keinen Lebenslauf. Ergänze sie hier, wenn du so weit bist.")} `,
+    intro: () => T("Prüf die Übersicht. Mit «Angaben übernehmen» erstellt die App daraus deinen Lebenslauf, dein Suchprofil und deinen Schreibstil."),
+    keptVersions: () => T("Deine bisherigen Angaben bleiben unter {link} erhalten.", keptSlots("link")),
   },
 };
 
@@ -111,7 +113,7 @@ async function loadStored() {
     if (raw) applyStored(JSON.parse(raw));
   } catch (error) {
     if (backend) appProblem = error.message;
-    else setStatus("Gespeicherte Eingaben konnten nicht gelesen werden.");
+    else setStatus(T("Gespeicherte Eingaben konnten nicht gelesen werden."));
   }
 }
 
@@ -125,7 +127,7 @@ async function readBasicsAgain() {
   try {
     takeBasics((await backend.overview()).grundlagen);
   } catch (error) {
-    setStatus(`Suchprofil, Stilprofil und Bausteine liessen sich nicht neu lesen: ${error.message}`);
+    setStatus(T("Suchprofil, Stilprofil und Bausteine liessen sich nicht neu lesen: {fehler}", { fehler: error.message }));
     takeBasics(null); // without what is in the files, the next take-over asks per file again (G26)
   }
 }
@@ -133,18 +135,20 @@ async function readBasicsAgain() {
 function storeNow() {
   if (backend) {
     backend.keep({ track: state.track, data: state.data, suggested: state.suggested, step, offen: notTakenOver })
-      .then(() => setStatus(`Zwischengespeichert im Datenordner, ${new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}.`))
-      .catch((error) => setStatus(`Zwischenspeichern hat nicht geklappt: ${error.message}`));
+      .then(() => setStatus(T("Zwischengespeichert im Datenordner, {zeit}.", { zeit: timeNow() })))
+      .catch((error) => setStatus(T("Zwischenspeichern hat nicht geklappt: {fehler}", { fehler: error.message })));
     return;
   }
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ track: state.track, data: state.data, step }));
-    const time = new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
-    setStatus(`Zwischengespeichert auf diesem Gerät, ${time}.`);
+    setStatus(T("Zwischengespeichert auf diesem Gerät, {zeit}.", { zeit: timeNow() }));
   } catch (error) {
-    setStatus("Zwischenspeichern ist in diesem Browser nicht möglich. Bitte am Ende die Datei speichern.");
+    setStatus(T("Zwischenspeichern ist in diesem Browser nicht möglich. Bitte am Ende die Datei speichern."));
   }
 }
+
+/** The time as 14:05 in every language, as the app writes dates as 20.11.2026 in every language. */
+const timeNow = () => new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
 
 function scheduleStore() {
   window.clearTimeout(autosaveTimer);
@@ -169,7 +173,6 @@ function setStatus(message) {
 
 const TAKE_OVER_TARGET = "uebernehmen";
 const UPLOAD_TARGET = "unterlagen"; // the Übersicht leads here with a CV as PDF (#222): the upload on the start
-const WANTED_NOTE = "Hier ergänzen. Es zählt für die Suche, sobald es unter „Übernehmen“ abgeschlossen ist.";
 let notTakenOver = false;
 let profileHint = false;
 
@@ -259,20 +262,20 @@ function viewFor(current) {
 }
 
 function stepTitle(s) {
-  if (s.kind === "start") return "Start";
-  if (s.kind === "documents") return forTrack(form.documents.title, state.track);
-  if (s.kind === "finish") return backend ? "Übernehmen" : "Speichern";
+  if (s.kind === "start") return T("Start");
+  if (s.kind === "documents") return T(forTrack(form.documents.title, state.track));
+  if (s.kind === "finish") return backend ? T("Übernehmen") : T("Speichern");
   return s.group.title;
 }
 
 function stepMeta(s) {
-  if (s.kind === "start") return backend ? forTrack(form.documents.title, state.track) : "Stelle oder Lehrstelle";
-  if (s.kind === "documents") return "Lebenslauf, Zeugnisse";
+  if (s.kind === "start") return backend ? T(forTrack(form.documents.title, state.track)) : T("Stelle oder Lehrstelle");
+  if (s.kind === "documents") return T("Lebenslauf, Zeugnisse");
   if (s.kind === "group") return s.group.meta;
   return null;
 }
 
-const STEP_MARKS = { flagged: "Angaben fehlen", suggested: "Vorschläge prüfen" };
+const stepMark = (suggested) => (suggested ? T("Vorschläge prüfen") : T("Angaben fehlen"));
 
 function renderNav(all) {
   // Only where the person has been: on the first visit every step would say that something is missing.
@@ -281,7 +284,7 @@ function renderNav(all) {
     const sections = s.kind === "group" ? s.group.sections.map((x) => x.id) : [];
     const flagged = sections.some((id) => errorSections.has(id));
     const suggested = sections.some(sectionHasSuggestion);
-    const mark = suggested ? STEP_MARKS.suggested : flagged ? STEP_MARKS.flagged : null;
+    const mark = suggested || flagged ? stepMark(suggested) : null;
     const meta = stepMeta(s);
     const position = i === step ? "current" : i < step ? "done" : "todo";
     return el("li", { className: "step", dataset: { state: position, ...(mark ? { mark: suggested ? "suggested" : "flagged" } : {}) } }, el("button", {
@@ -299,9 +302,9 @@ function renderNav(all) {
 /** Changes count only after „Übernehmen“; easy to forget when the search is what one is after. */
 function notTakenOverNote(all) {
   if (!backend || !notTakenOver || all[step].kind === "finish") return [];
-  const text = state.track === "apprenticeship" ? "Deine Änderungen sind noch nicht übernommen." : "Ihre Änderungen sind noch nicht übernommen.";
+  const text = state.track === "apprenticeship" ? T("Deine Änderungen sind noch nicht übernommen.") : T("Ihre Änderungen sind noch nicht übernommen.");
   return [el("p", { className: "not-taken-over" }, [
-    `${text} `, el("button", { type: "button", className: "link", onclick: () => goTo(all.length - 1) }, "Zum Übernehmen"),
+    `${text} `, el("button", { type: "button", className: "link", onclick: () => goTo(all.length - 1) }, T("Zum Übernehmen")),
   ])];
 }
 
@@ -323,7 +326,7 @@ function openFromAddress() {
   const field = [...document.querySelectorAll("[data-path]")].find((f) => f.dataset.path === wanted);
   if (!field) return;
   field.classList.add("wanted");
-  field.prepend(el("p", { className: "wanted-note" }, WANTED_NOTE));
+  field.prepend(el("p", { className: "wanted-note" }, T("Hier ergänzen. Es zählt für die Suche, sobald es unter „Übernehmen“ abgeschlossen ist.")));
   field.scrollIntoView({ block: "center" });
   (field.querySelector("input, textarea, select") || field).focus();
 }
@@ -337,30 +340,36 @@ function openUploads() {
   button.focus();
 }
 
-const TRACK_WORDS = { job: "eine Stelle", apprenticeship: "eine Lehrstelle" };
-
 /** In the app the setup has chosen the track (MIN-369): the start shows the choice and the documents. */
 function startView() {
   return backend && choice ? appStartView() : sharedStartView();
 }
 
+// Whole sentences per track, so that each language words „eine Stelle“ in its own sentence (#432).
+const SEARCHED = { job: () => T("Gesucht wird: eine Stelle"), apprenticeship: () => T("Gesucht wird: eine Lehrstelle") };
+const ENTERED_FOR = {
+  job: () => T("Die Angaben auf dieser Seite sind für eine Stelle erfasst."),
+  apprenticeship: () => T("Die Angaben auf dieser Seite sind für eine Lehrstelle erfasst."),
+};
+const GO_ON_FOR = { job: () => T("Für eine Stelle weiterfahren"), apprenticeship: () => T("Für eine Lehrstelle weiterfahren") };
+
 function choiceCard() {
-  const parts = [`Gesucht wird: ${TRACK_WORDS[choice.track]}`];
-  if (choice.track === "job") parts.push(`Anrede: ${choice.anrede === "du" ? "du" : "Sie"}`);
-  parts.push(`RAV: ${choice.rav ? "ja" : "nein"}`);
+  const parts = [SEARCHED[choice.track]()];
+  if (choice.track === "job") parts.push(choice.anrede === "du" ? T("Anrede: du") : T("Anrede: Sie"));
+  parts.push(choice.rav ? T("RAV: ja") : T("RAV: nein"));
   const differs = state.track && state.track !== choice.track;
-  return el("section", { className: "card choice-card", "aria-label": "Wahl aus der Einrichtung" }, [
+  return el("section", { className: "card choice-card", "aria-label": T("Wahl aus der Einrichtung") }, [
     el("p", { className: "choice-card__line" }, [
       el("strong", {}, dotLine(parts)), " ",
-      el("a", { href: "/einrichtung#gesucht" }, "Ändern"),
+      el("a", { href: "/einrichtung#gesucht" }, T("Ändern")),
     ]),
     el("p", { className: "hint" }, choice.gewaehlt
-      ? "Gewählt in der Einrichtung. Eine Änderung passt die Texte und die Suche an."
-      : "Abgeleitet aus dem Suchprofil, noch nicht in der Einrichtung gewählt. Eine Änderung passt die Texte und die Suche an."),
+      ? T("Gewählt in der Einrichtung. Eine Änderung passt die Texte und die Suche an.")
+      : T("Abgeleitet aus dem Suchprofil, noch nicht in der Einrichtung gewählt. Eine Änderung passt die Texte und die Suche an.")),
     differs ? el("p", { className: "suggestion" }, [
-      `Die Angaben auf dieser Seite sind für ${TRACK_WORDS[state.track]} erfasst. `,
+      `${ENTERED_FOR[state.track]()} `,
       el("button", { type: "button", className: "link", onclick: () => update({ ...state, track: choice.track }, { rerender: true }) },
-        `Für ${TRACK_WORDS[choice.track]} weiterfahren`),
+        GO_ON_FOR[choice.track]()),
     ]) : null,
   ]);
 }
@@ -369,22 +378,41 @@ function loadFileLine() {
   const fileInput = el("input", { type: "file", accept: ".json,.zip,application/json,application/zip", className: "visually-hidden", tabIndex: -1, "aria-hidden": "true", onchange: loadFile });
   return [
     el("p", { className: "secondary" }, [
-      "Schon angefangen oder von Claude vorbereitet? ",
-      el("button", { type: "button", className: "link", onclick: () => fileInput.click() }, "Datei laden"),
+      `${T("Schon angefangen oder von Claude vorbereitet?")} `,
+      el("button", { type: "button", className: "link", onclick: () => fileInput.click() }, T("Datei laden")),
       fileInput,
     ]),
     el("p", { id: "load-message", role: "status" }),
   ];
 }
 
+/** „Inhalte als Text“ in the app, „Inhalte“ on the start shown without the setup's choice; a link either way. */
+const contentLink = (text) => ({ link: el("a", { href: "/inhalte" }, text) });
+
+function profileHintLine(linkText) {
+  return el("p", { className: "wanted-note" }, withNodes(
+    T("Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter {link}.", keptSlots("link")),
+    contentLink(linkText)));
+}
+
+function existingBasicsLine(linkText) {
+  return el("p", { className: "hint" }, withNodes(
+    T("Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter {link}.", keptSlots("link")),
+    contentLink(linkText)));
+}
+
+function appProblemLine() {
+  return el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, T("Zur Einrichtung"))]);
+}
+
 function appStartView() {
   return el("section", { className: "start start--app" }, [
-    el("h2", { className: "visually-hidden" }, "Start"),
-    profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
-    appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
+    el("h2", { className: "visually-hidden" }, T("Start")),
+    profileHint ? profileHintLine(T("Inhalte als Text")) : null,
+    appProblem ? appProblemLine() : null,
     choiceCard(),
     prefillCard(prefillCardContext()),
-    existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte als Text"), "."]) : null,
+    existingBasics.length ? existingBasicsLine(T("Inhalte als Text")) : null,
     ...loadFileLine(),
   ]);
 }
@@ -410,16 +438,18 @@ function sharedStartView() {
     "aria-pressed": String(state.track === track), onclick: () => choose(track),
   }, [el("strong", {}, title), el("span", {}, text)]);
   return el("section", { className: "start" }, [
-    el("h2", {}, "Worum geht es?"),
-    el("p", {}, `Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsbegleiter braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. ${backend ? "Am Schluss übernehmen Sie alles in die App." : "Am Schluss speichern Sie eine Datei."}`),
-    profileHint ? el("p", { className: "wanted-note" }, ["Das steht in Ihrem Suchprofil, Abschnitt „Region“. Am einfachsten ergänzen Sie es unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,
-    appProblem ? el("p", { className: "error", role: "alert" }, [`${appProblem} `, el("a", { href: "/einrichtung" }, "Zur Einrichtung")]) : null,
-    existingBasics.length ? el("p", { className: "hint" }, ["Ihre Grundlagen sind schon im Datenordner. Kleine Änderungen machen Sie am einfachsten unter ", el("a", { href: "/inhalte" }, "Inhalte"), "."]) : null,
+    el("h2", {}, T("Worum geht es?")),
+    el("p", {}, backend
+      ? T("Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsbegleiter braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. Am Schluss übernehmen Sie alles in die App.")
+      : T("Hier erfassen Sie Schritt für Schritt alles, was der Bewerbungsbegleiter braucht: Lebenslauf, Suche, Stärken und Ton der Anschreiben. Am Schluss speichern Sie eine Datei.")),
+    profileHint ? profileHintLine(T("Inhalte")) : null,
+    appProblem ? appProblemLine() : null,
+    existingBasics.length ? existingBasicsLine(T("Inhalte")) : null,
     el("div", { className: "tracks" }, [
-      trackButton("job", "Ich suche eine Stelle", "Lebenslauf, Anschreiben und Stellensuche"),
-      trackButton("apprenticeship", "Ich suche eine Lehrstelle", "Für Schülerinnen und Schüler: Schnupperlehren, Schule, Motivationsschreiben"),
+      trackButton("job", T("Ich suche eine Stelle"), T("Lebenslauf, Anschreiben und Stellensuche")),
+      trackButton("apprenticeship", T("Ich suche eine Lehrstelle"), T("Für Schülerinnen und Schüler: Schnupperlehren, Schule, Motivationsschreiben")),
     ]),
-    el("p", { className: "secondary" }, EXISTING_DOCUMENTS_NOTE),
+    el("p", { className: "secondary" }, T("Sie haben schon einen Lebenslauf, Zeugnisse oder frühere Anschreiben? Dann müssen Sie nichts abtippen: Im Schritt „Unterlagen“ laden Sie sie hoch. Die App übernimmt daraus Angaben, Belege und Ihre eigenen Formulierungen und fragt nur nach, was fehlt.")),
     ...loadFileLine(),
   ]);
 }
@@ -433,7 +463,7 @@ function documentsView() {
 
 // Suggestions from documents (page of the app)
 
-const sectionTitle = (id) => forTrack(form.sections.find((s) => s.id === id).title, state.track);
+const sectionTitle = (id) => T(forTrack(form.sections.find((s) => s.id === id).title, state.track));
 
 function sectionHasSuggestion(id) {
   return Object.keys(state.suggested || {}).some((key) => key.split(".")[0] === id);
@@ -531,7 +561,7 @@ async function sendDocuments(entries, messages) {
     try {
       list = (await backend.addDocument(state.track, entry.category, entry.name, entry.data)).unterlagen;
     } catch (error) {
-      problems.push(`${entry.name}: ${error.message}`);
+      problems.push(T("{datei}: {fehler}", { datei: entry.name, fehler: error.message }));
     }
   }
   setUploads(list, problems);
@@ -544,7 +574,7 @@ async function sendChosen(category, chosen) {
     read = await Promise.all(accepted.map(async ({ index, ...entry }) => (
       { ...entry, data: new Uint8Array(await chosen[index].arrayBuffer()) })));
   } catch (error) {
-    setUploads(uploads, [...messages, "Eine Datei liess sich nicht lesen. Bitte nochmals wählen."]);
+    setUploads(uploads, [...messages, T("Eine Datei liess sich nicht lesen. Bitte nochmals wählen.")]);
     return;
   }
   await sendDocuments(read, messages);
@@ -569,7 +599,7 @@ async function addUploads(category, fileList) {
       { ...entry, data: new Uint8Array(await chosen[index].arrayBuffer()) })));
     setUploads([...uploads, ...read], messages);
   } catch (error) {
-    setUploads(uploads, [...messages, "Eine Datei liess sich nicht lesen. Bitte nochmals wählen."]);
+    setUploads(uploads, [...messages, T("Eine Datei liess sich nicht lesen. Bitte nochmals wählen.")]);
   }
   focusFirst(`[data-category="${category}"]`);
 }
@@ -625,7 +655,7 @@ function groupView(group) {
   const single = group.sections.length === 1;
   return el("section", { className: "group" }, [
     el("h2", {}, group.title),
-    required ? el("p", { className: "hint" }, REQUIRED_NOTE) : null,
+    required ? el("p", { className: "hint" }, T("Felder mit * müssen ausgefüllt sein.")) : null,
     ...group.sections.map((s) => sectionView(s, single)),
   ]);
 }
@@ -644,7 +674,7 @@ function sectionView(section, single) {
   }
   const list = Array.isArray(state.data[section.id]) ? state.data[section.id] : [];
   const max = entryLimit(form, section); // the CV takes as many entries as cv.yaml may hold (G30)
-  const itemTitle = forTrack(section.itemTitle, track);
+  const itemTitle = T(forTrack(section.itemTitle, track));
   const items = list.map((item, index) => el("fieldset", { className: "item", dataset: { item: `${section.id}.${index}` } }, [
     el("legend", {}, `${itemTitle} ${index + 1}`),
     suggestionNote(`${section.id}.${index}`),
@@ -655,7 +685,7 @@ function sectionView(section, single) {
         update(removeItem(state, section.id, index), { rerender: true });
         focusFirst(`[data-item="${section.id}.${index}"]`, `[data-item="${section.id}.${index - 1}"]`, `[data-section="${section.id}"] .add`, "h2");
       },
-    }, `${itemTitle} ${index + 1} entfernen`),
+    }, T("{eintrag} {nummer} entfernen", { eintrag: itemTitle, nummer: index + 1 })),
   ]));
   const add = list.length < max
     ? el("button", {
@@ -664,8 +694,8 @@ function sectionView(section, single) {
         update(addItem(state, section.id), { rerender: true });
         focusFirst(`[data-item="${section.id}.${list.length}"]`);
       },
-    }, `+ ${itemTitle} hinzufügen`)
-    : el("p", { className: "hint" }, `Höchstens ${max} Einträge.`);
+    }, T("+ {eintrag} hinzufügen", { eintrag: itemTitle }))
+    : el("p", { className: "hint" }, T("Höchstens {anzahl} Einträge.", { anzahl: max }));
   return el("section", attrs, [...header, ...items, add, otherLinesView(section.id)]);
 }
 
@@ -673,20 +703,31 @@ function sectionView(section, single) {
 function otherLinesView(sectionId) {
   const groups = basicsLines.filter((group) => group.abschnitt === sectionId);
   if (!groups.length) return null;
-  const files = [...new Map(groups.map((group) => [group.datei, group.titel])).entries()];
+  const files = [...new Map(groups.map((group) => [group.datei, basicsTitle(group)])).entries()];
   const count = groups.reduce((sum, group) => sum + group.zeilen.length, 0);
+  const named = files.map(([, title]) => T("„{titel}“", { titel: title })).reduce((list, name) => T("{a} und {b}", { a: list, b: name }));
   return el("details", { className: "other-lines" }, [
-    el("summary", {}, `${count === 1 ? "Eine weitere Zeile" : `${count} weitere Zeilen`} aus ${files.map(([, title]) => `„${title}“`).join(" und ")}`),
-    el("p", { className: "hint" }, "Diese Zeilen kennt das Formular nicht. Beim Speichern bleiben sie, wie sie sind."),
+    el("summary", {}, count === 1 ? T("Eine weitere Zeile aus {dateien}", { dateien: named })
+      : T("{anzahl} weitere Zeilen aus {dateien}", { anzahl: count, dateien: named })),
+    el("p", { className: "hint" }, T("Diese Zeilen kennt das Formular nicht. Beim Speichern bleiben sie, wie sie sind.")),
+    // the heading is the file's own, in the German of the search profile, and stays as it is
     ...groups.map((group) => el("div", { className: "other-lines__group" }, [
-      el("p", { className: "other-lines__heading" }, `${group.titel}, ${group.ueberschrift}`),
+      el("p", { className: "other-lines__heading" }, `${basicsTitle(group)}, ${group.ueberschrift}`),
       el("pre", {}, group.zeilen.join("\n")),
     ])),
     el("p", {}, dotLine(files.map(([datei, title]) => el("a", {
       href: `/inhalte?${new URLSearchParams({ datei, ansicht: "text" })}`,
-    }, `${title} unter „Inhalte als Text“ ändern`)))),
+    }, T("{titel} unter „Inhalte als Text“ ändern", { titel: title }))))),
   ]);
 }
+
+// The basics by file, as basics_slots.TITLES names them; a file of a newer app keeps the title it came with.
+const BASICS_TITLES = {
+  "suchprofil.md": () => T("Suchprofil"),
+  "anschreiben/stil.md": () => T("Stilprofil"),
+  "anschreiben/bausteine.md": () => T("Bausteine"),
+};
+const basicsTitle = (group) => (Object.prototype.hasOwnProperty.call(BASICS_TITLES, group.datei) ? BASICS_TITLES[group.datei]() : group.titel);
 
 /** After a rerender: focus the first control inside the first selector that matches (headings get focus too). */
 function focusFirst(...selectors) {
@@ -716,13 +757,13 @@ function finishView() {
   const errors = currentErrors();
   const onlyMissing = uploads.length > 0 && errors.every((e) => e.code === "required");
   const summary = errors.length
-    ? el("p", {}, onlyMissing ? text.finishFromDocuments : (backend ? APP_TEXT[state.track].finishErrors : text.finishErrors))
-    : el("p", { className: "ok" }, text.finishOk);
+    ? el("p", {}, onlyMissing ? text.finishFromDocuments() : (backend ? APP_TEXT[state.track].finishErrors() : text.finishErrors()))
+    : el("p", { className: "ok" }, text.finishOk());
   const confirmBox = el("p", { className: "confirm", hidden: true }, [
-    backend ? "Alle Eingaben dieser Seite verwerfen? Hochgeladene Unterlagen und schon übernommene Angaben bleiben. " : "Alle Eingaben auf diesem Gerät löschen? ",
-    el("button", { type: "button", className: "danger", onclick: clearAll }, backend ? "Ja, verwerfen" : "Ja, löschen"),
+    `${backend ? T("Alle Eingaben dieser Seite verwerfen? Hochgeladene Unterlagen und schon übernommene Angaben bleiben.") : T("Alle Eingaben auf diesem Gerät löschen?")} `,
+    el("button", { type: "button", className: "danger", onclick: clearAll }, backend ? T("Ja, verwerfen") : T("Ja, löschen")),
     " ",
-    el("button", { type: "button", onclick: () => { confirmBox.hidden = true; } }, "Abbrechen"),
+    el("button", { type: "button", onclick: () => { confirmBox.hidden = true; } }, T("Abbrechen")),
   ]);
   const unchecked = uncheckedSuggestions(form, state);
   const finishing = backend ? [
@@ -730,25 +771,25 @@ function finishView() {
       track: state.track, sections: [...new Set(unchecked.map((key) => key.split(".")[0]))], count: unchecked.length, titleOf: sectionTitle,
       onGoTo: goToSection, onConfirmAll: () => update(confirmSuggestions(state, unchecked), { rerender: true }),
     }) : null,
-    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(null) }, "Angaben übernehmen"),
+    el("button", { type: "button", className: "primary", id: "take-over", disabled: unchecked.length > 0, onclick: () => takeOver(null) }, T("Angaben übernehmen")),
     el("p", { id: "save-message", role: "alert", className: "error" }),
     el("div", { id: "replace-choice", hidden: true }),
-    el("button", { type: "button", className: "primary", id: "replace", hidden: true, onclick: () => takeOver(chosenReplacements(replaceChoices)) }, "Mit dieser Wahl übernehmen"),
+    el("button", { type: "button", className: "primary", id: "replace", hidden: true, onclick: () => takeOver(chosenReplacements(replaceChoices)) }, T("Mit dieser Wahl übernehmen")),
     el("p", { id: "take-over-done", role: "status", className: "ok", hidden: true }),
-    el("p", { className: "hint" }, [APP_TEXT[state.track].kept_versions, el("a", { href: "/entwuerfe" }, "Entwürfe und Versionen"), " erhalten."]),
+    el("p", { className: "hint" }, withNodes(APP_TEXT[state.track].keptVersions(), { link: el("a", { href: "/entwuerfe" }, T("Entwürfe und Versionen")) })),
   ] : [
-    el("button", { type: "button", className: "primary", onclick: saveFile }, "Datei speichern"),
+    el("button", { type: "button", className: "primary", onclick: saveFile }, T("Datei speichern")),
     el("p", { id: "save-message", role: "alert", className: "error" }),
-    el("p", {}, text.next),
+    el("p", {}, text.next()),
   ];
   return el("section", {}, [
-    el("h2", {}, backend ? "Übernehmen" : text.finishTitle),
-    backend ? el("p", { className: "intro" }, APP_TEXT[state.track].intro) : null,
+    el("h2", {}, backend ? T("Übernehmen") : text.finishTitle()),
+    backend ? el("p", { className: "intro" }, APP_TEXT[state.track].intro()) : null,
     summary,
     reviewList(errors),
     uploads.length && !backend ? el("p", { className: "hint" }, text.documents(uploads.length)) : null,
     ...finishing,
-    el("p", { className: "secondary" }, el("button", { type: "button", className: "link", onclick: () => { confirmBox.hidden = false; } }, backend ? "Eingaben verwerfen" : "Alles löschen")),
+    el("p", { className: "secondary" }, el("button", { type: "button", className: "link", onclick: () => { confirmBox.hidden = false; } }, backend ? T("Eingaben verwerfen") : T("Alles löschen"))),
     confirmBox,
   ]);
 }
@@ -766,11 +807,11 @@ function reviewList(errors) {
             type: "button", className: "link", onclick: () => goTo(stepOf(e.path)),
           }, describe(form, state.track, e)))))
           : groupHasContent(s.group)
-            ? el("span", { className: "review__state" }, "Vollständig")
-            : el("span", { className: "review__state review__state--empty" }, "Nichts eingetragen, nicht nötig"),
+            ? el("span", { className: "review__state" }, T("Vollständig"))
+            : el("span", { className: "review__state review__state--empty" }, T("Nichts eingetragen, nicht nötig")),
       ]),
       el("button", { type: "button", className: "review__open", onclick: () => goTo(missing.length ? stepOf(missing[0].path) : index) },
-        missing.length ? "Ergänzen" : "Ansehen"),
+        missing.length ? T("Ergänzen") : T("Ansehen")),
     ]);
   }));
 }
@@ -796,9 +837,9 @@ function fieldPath(errorPath) {
 }
 
 function navButtons(all) {
-  const back = step > 0 ? el("button", { type: "button", onclick: () => goTo(step - 1) }, `Zurück: ${stepTitle(all[step - 1])}`) : null;
+  const back = step > 0 ? el("button", { type: "button", onclick: () => goTo(step - 1) }, T("Zurück: {schritt}", { schritt: stepTitle(all[step - 1]) })) : null;
   const forward = step > 0 && step < all.length - 1
-    ? el("button", { type: "button", className: "primary", onclick: () => { markStepTouched(all[step]); goTo(step + 1); } }, `Weiter: ${stepTitle(all[step + 1])}`)
+    ? el("button", { type: "button", className: "primary", onclick: () => { markStepTouched(all[step]); goTo(step + 1); } }, T("Weiter: {schritt}", { schritt: stepTitle(all[step + 1]) }))
     : null;
   return el("div", { className: "nav-buttons" }, [back, forward]);
 }
@@ -831,12 +872,12 @@ async function takeOver(replace) {
     done.hidden = false;
     done.replaceChildren(
       result.unvollstaendig
-        ? APP_TEXT[state.track].incomplete
-        : APP_TEXT[state.track].done,
+        ? APP_TEXT[state.track].incomplete()
+        : APP_TEXT[state.track].done(),
       (result.behalten || []).length ? APP_TEXT[state.track].kept(result.behalten.join(", ")) : "",
-      (result.nicht_ersetzt || []).length ? `Unverändert geblieben: ${result.nicht_ersetzt.join(", ")}. ` : "",
+      (result.nicht_ersetzt || []).length ? `${T("Unverändert geblieben: {dateien}.", { dateien: result.nicht_ersetzt.join(", ") })} ` : "",
       result.hinweis ? `${result.hinweis} ` : "",
-      ...dotLine([result.hinweis ? el("a", { href: "/inhalte" }, "Zu den Inhalten") : "", el("a", { href: "/" }, "Zu den Bewerbungen")]),
+      ...dotLine([result.hinweis ? el("a", { href: "/inhalte" }, T("Zu den Inhalten")) : "", el("a", { href: "/" }, T("Zu den Bewerbungen"))]),
     );
   } catch (error) {
     message.textContent = error.message;
@@ -872,7 +913,7 @@ async function saveFile() {
     download(new Blob([zip], { type: "application/zip" }), fileName("zip"));
     uploadsSaved = true;
   } catch (error) {
-    document.getElementById("save-message").textContent = "Speichern hat nicht geklappt. Bitte in einem aktuellen Browser nochmals versuchen.";
+    document.getElementById("save-message").textContent = T("Speichern hat nicht geklappt. Bitte in einem aktuellen Browser nochmals versuchen.");
   }
 }
 
@@ -898,7 +939,7 @@ async function loadFile(event) {
   const isZip = /\.zip$/i.test(file.name);
   const limit = isZip ? form.documents.maxTotalBytes + MAX_FILE_BYTES + ZIP_OVERHEAD_BYTES : MAX_FILE_BYTES;
   if (file.size > limit) {
-    message.textContent = "Die Datei ist zu gross für eine Einstiegsdatei.";
+    message.textContent = T("Die Datei ist zu gross für eine Einstiegsdatei.");
     return;
   }
   try {
@@ -921,7 +962,7 @@ async function loadFile(event) {
     else keepUploadsNow();
   } catch (error) {
     const known = error instanceof BundleError || error instanceof UploadError || error instanceof ZipError;
-    message.textContent = known ? error.message : "Die Datei ist keine gültige Einstiegsdatei.";
+    message.textContent = known ? error.message : T("Die Datei ist keine gültige Einstiegsdatei.");
   }
 }
 
@@ -929,7 +970,7 @@ async function readUploadZip(file) {
   const limits = { maxEntries: maxUploadEntries(form), maxTotalBytes: form.documents.maxTotalBytes + MAX_FILE_BYTES };
   const entries = await readZip(new Uint8Array(await file.arrayBuffer()), limits);
   const { bundle, uploads: found } = splitUploadZip(form, entries);
-  if (bundle.length > MAX_FILE_BYTES) throw new UploadError("Die Antworten in der Datei sind zu gross.");
+  if (bundle.length > MAX_FILE_BYTES) throw new UploadError(T("Die Antworten in der Datei sind zu gross."));
   return { bundle: new TextDecoder("utf-8", { fatal: true }).decode(bundle), uploads: found };
 }
 
@@ -950,13 +991,13 @@ function clearAll() {
   step = 0;
   render();
   document.getElementById("main").focus();
-  setStatus(backend ? "Die Eingaben dieser Seite wurden verworfen." : "Alle Eingaben auf diesem Gerät wurden gelöscht.");
+  setStatus(backend ? T("Die Eingaben dieser Seite wurden verworfen.") : T("Alle Eingaben auf diesem Gerät wurden gelöscht."));
 }
 
 window.addEventListener("beforeunload", (event) => {
   if (uploadsSaved) return;
   event.preventDefault();
-  event.returnValue = UNSAVED_UPLOADS; // older browsers show a dialog only with a value
+  event.returnValue = T("Hochgeladene Unterlagen sind noch nicht gespeichert."); // older browsers show a dialog only with a value
 });
 
 if (backend) {

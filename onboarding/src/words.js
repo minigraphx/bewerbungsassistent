@@ -11,6 +11,20 @@ function T(german, values = {}) {
   return german.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ""));
 }
 
+/** Values that keep their {name} in a T, for a sentence with a link in it: T("… {link} …", keptSlots("link")). */
+const keptSlots = (...names) => Object.fromEntries(names.map((name) => [name, `{${name}}`]));
+
+/**
+ * A sentence in the app language with nodes in it (#432): each {name} of `text` kept by keptSlots becomes the node
+ * `nodes[name]`, the rest stays text. The parts go to el or replaceChildren, so a link stays where the language puts it.
+ */
+function withNodes(text, nodes) {
+  return text.split(/(\{\w+\})/).filter((part) => part !== "").map((part) => {
+    const slot = /^\{(\w+)\}$/.exec(part);
+    return slot && Object.prototype.hasOwnProperty.call(nodes, slot[1]) ? nodes[slot[1]] : part;
+  });
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { T };
+  module.exports = { T, keptSlots, withNodes };
 }

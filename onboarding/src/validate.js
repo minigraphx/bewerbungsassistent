@@ -13,24 +13,31 @@ const SINGLE_LINE = new Set(["text", "list", "select", "choice", "tags"]);
 const TAGGED_LINE_KEYS = new Set(["text", "tags"]);
 const LEVELED_LINE_KEYS = new Set(["text", "level"]);
 const LEVELS = ["", "1", "2", "3", "4", "5", "6"];  // "" leaves a line without level (#123)
-const LINE = "Zeile";
-const TAG = "Tag";
-const TAGS_NAME = "Tags";
 const TOP_LEVEL_KEYS = new Set(["format", "version", "track", "data", "saved"]);
 const VALUE_LANGUAGES = ["de", "en"]; // of a two-language value, as lebenslauf/README.md writes it
 
+// On the page words.js comes first and T is its T; required alone (tests, tools), validate.js takes it from there and
+// stays German (#432). A var, because the pages inline every script into one, where a const would clash.
+var T = typeof module !== "undefined" && typeof require === "function" ? require("./words.js").T : T;
+
+// The names below a field and the messages, said when they are shown, so they follow the app language (#432). The
+// German words are those of validation.py, which says them for the import.
+const LINE = (number) => T("Zeile {nummer}", { nummer: number });
+const TAG = (number) => T("Tag {nummer}", { nummer: number });
+const TAGS_NAME = () => T("Tags");
+
 const MESSAGES = {
-  required: "Bitte ausfüllen.",
-  type: "Unerwarteter Wert, bitte neu eingeben.",
-  max: "Zu lang (höchstens {max} Zeichen).",
-  maxItems: "Zu viele Einträge (höchstens {maxItems}).",
-  format: "Ungültiges Format, zum Beispiel: {example}.",
-  option: "Bitte einen der vorgeschlagenen Werte wählen.",
-  notBefore: "Liegt vor dem Beginn.",
-  newline: "Bitte ohne Zeilenumbruch.",
-  unknown: "Gehört nicht zu dieser Vorlage.",
-  bundle: "Die Datei ist keine Einstiegsdatei dieser Version.",
-  track: "Unbekannte Art der Suche.",
+  required: () => T("Bitte ausfüllen."),
+  type: () => T("Unerwarteter Wert, bitte neu eingeben."),
+  max: (values) => T("Zu lang (höchstens {max} Zeichen).", values),
+  maxItems: (values) => T("Zu viele Einträge (höchstens {maxItems}).", values),
+  format: (values) => T("Ungültiges Format, zum Beispiel: {example}.", values),
+  option: () => T("Bitte einen der vorgeschlagenen Werte wählen."),
+  notBefore: () => T("Liegt vor dem Beginn."),
+  newline: () => T("Bitte ohne Zeilenumbruch."),
+  unknown: () => T("Gehört nicht zu dieser Vorlage."),
+  bundle: () => T("Die Datei ist keine Einstiegsdatei dieser Version."),
+  track: () => T("Unbekannte Art der Suche."),
 };
 
 const isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -300,15 +307,15 @@ function locate(form, track, path) {
   const parts = path ? path.split(".") : [];
   const section = form.sections.find((s) => parts.length && s.id === parts[0]);
   if (!section) return { where: "", field: null, section: null };
-  const names = [forTrack(section.title, track) || section.id];
+  const names = [T(forTrack(section.title, track)) || section.id];
   let rest = parts.slice(1);
   if (section.repeat && rest.length && /^\d+$/.test(rest[0])) {
-    names.push(`${forTrack(section.itemTitle, track)} ${Number(rest[0]) + 1}`);
+    names.push(`${T(forTrack(section.itemTitle, track))} ${Number(rest[0]) + 1}`);
     rest = rest.slice(1);
   }
   let field = section.fields.find((f) => rest.length && f.id === rest[0]) || null;
   if (field) {
-    names.push((forTrack(field.label, track) || field.id).split(" (")[0]);
+    names.push((T(forTrack(field.label, track)) || field.id).split(" (")[0]);
     const below = lineNames(rest.slice(1), field.type === "tags" ? TAG : LINE);
     names.push(...below.names);
     if (field.type === "tags" || below.inTags) field = tagRules(form);
@@ -319,9 +326,9 @@ function locate(form, track, path) {
 /** Names below a field, the line ("Zeile 2") and on a line its tags ("Tags, Tag 1"); inTags if it reaches tags. */
 function lineNames(rest, unit) {
   if (!rest.length || !/^\d+$/.test(rest[0])) return { names: [], inTags: false };
-  const line = `${unit} ${Number(rest[0]) + 1}`;
+  const line = unit(Number(rest[0]) + 1);
   if (rest.length < 2 || rest[1] !== "tags") return { names: [line], inTags: false };
-  return { names: [line, TAGS_NAME, ...lineNames(rest.slice(2, 3), TAG).names], inTags: true };
+  return { names: [line, TAGS_NAME(), ...lineNames(rest.slice(2, 3), TAG).names], inTags: true };
 }
 
 /** Message without location, for display next to the field. */
@@ -332,7 +339,7 @@ function messageText(form, track, error) {
 /** Message with location (section, item, field), for summaries. */
 function describe(form, track, error) {
   const { where, text } = describeParts(form, track, error);
-  return where ? `${where}: ${text}` : text;
+  return where ? T("{wo}: {meldung}", { wo: where, meldung: text }) : text;
 }
 
 function describeParts(form, track, error) {
@@ -341,12 +348,12 @@ function describeParts(form, track, error) {
   if (field) {
     params.max = textLimit(form, field);
     params.maxItems = field.maxItems ?? form.limits.listItems;
-    if (field.format) params.example = form.formats[field.format].example;
+    if (field.format) params.example = T(form.formats[field.format].example); // an example in words (… oder …)
   } else if (section) {
     params.maxItems = section.maxItems ?? form.limits.repeatItems;
   }
   const own = field && field.messages ? field.messages[error.code] : undefined; // in the search's own words (#291)
-  const text = own || (MESSAGES[error.code] || error.code).replace(/\{(\w+)\}/g, (_, k) => params[k]);
+  const text = own ? T(own) : MESSAGES[error.code] ? MESSAGES[error.code](params) : error.code;
   return { where, text };
 }
 
