@@ -140,6 +140,18 @@ def test_every_title_the_faq_names_is_followed_by_a_replaced_name(title):
     assert "Exemple" in {secret.value for secret in recipients}
 
 
+DOT_SENTENCE = ("Als Anrede gelten «Frau» und «Herr», auf Französisch «Madame», «Mademoiselle», «Monsieur», «Mme», "
+                "«Mlle» und «M.», auf Englisch «Mr», «Mrs», «Ms», «Mx» und «Miss», die französischen und englischen "
+                "Kurzformen auch mit Punkt wie «Mme.» oder «Mr.».")
+
+
+@pytest.mark.parametrize("short_form", ["Mme.", "Mlle.", "Mr.", "Mrs.", "Ms.", "Mx."])
+def test_the_short_forms_also_work_with_a_dot_as_the_faq_says(short_form):
+    assert DOT_SENTENCE in faq()
+    ad = f"Kontakt: {short_form} Claire Exemple, cheffe de projet"
+    assert "Exemple" not in person().extended(personal.secrets_found_in([ad])).mask(ad)
+
+
 @pytest.mark.parametrize("text", ["Madame, Monsieur,", "Monsieur le Directeur", "M. Sc."])
 def test_salutations_without_a_name_and_degrees_stay_as_the_faq_says(text):
     assert f"«{text}»" in faq()

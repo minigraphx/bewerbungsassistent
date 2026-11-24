@@ -37,7 +37,7 @@ Aus der Bewerbung und dem Anschreiben:
 Im Inserat und in anderen Texten, die zur KI gehen:
 
 - E-Mail-Adressen und Telefonnummern
-- Namen nach einer Anrede, etwa «Frau Petra Meier» oder «Madame Claire Exemple», auch mit «Dr» oder «Prof» dazwischen. Als Anrede gelten «Frau» und «Herr», auf Französisch «Madame», «Mademoiselle», «Monsieur», «Mme», «Mlle» und «M.», auf Englisch «Mr», «Mrs», «Ms», «Mx» und «Miss». Eine Anrede ohne Namen wie «Madame, Monsieur,» oder «Monsieur le Directeur» und Abschlüsse wie «M. Sc.» bleiben stehen.
+- Namen nach einer Anrede, etwa «Frau Petra Meier» oder «Madame Claire Exemple», auch mit «Dr» oder «Prof» dazwischen. Als Anrede gelten «Frau» und «Herr», auf Französisch «Madame», «Mademoiselle», «Monsieur», «Mme», «Mlle» und «M.», auf Englisch «Mr», «Mrs», «Ms», «Mx» und «Miss», die französischen und englischen Kurzformen auch mit Punkt wie «Mme.» oder «Mr.». Eine Anrede ohne Namen wie «Madame, Monsieur,» oder «Monsieur le Directeur» und Abschlüsse wie «M. Sc.» bleiben stehen.
 - Namen in einer persönlichen E-Mail-Adresse wie petra.meier@…, nicht aber Postfächer wie info@ oder jobs@
 
 Lesen Sie Ihre Angaben aus einer Datei ein, erkennt die App in diesen Dokumenten zusätzlich Strasse und Hausnummer, Postleitzahl mit Ort, Geburtsdatum, Heimatort, Zivilstand, Nationalität, AHV-Nummer und Links und ersetzt auch sie durch Platzhalter, bevor der Text zur KI geht.
