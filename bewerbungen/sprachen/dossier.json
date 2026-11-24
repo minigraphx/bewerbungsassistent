@@ -120,6 +120,13 @@
   "Das Anschreiben muss eine YAML-Zuordnung sein": {"fr": "La lettre de motivation doit être un mappage YAML", "en": "The cover letter must be a YAML mapping"},
   "Das Anschreiben hat sich inzwischen geändert.": {"fr": "La lettre de motivation a changé entre-temps.", "en": "The cover letter has changed in the meantime."},
 
+  "Im Anschreiben fehlen: {felder}": {"fr": "Il manque dans la lettre de motivation\u00a0: {felder}", "en": "Missing from the cover letter: {felder}"},
+  "empfaenger muss eine Liste von Zeilen sein, z.B. [Firma AG, Strasse 1, 3000 Bern]": {"fr": "empfaenger doit être une liste de lignes, p.\u00a0ex. [Exemple SA, Rue Exemple 1, 1000 Lausanne]", "en": "empfaenger must be a list of lines, e.g. [Example AG, Example Street 1, 3000 Bern]"},
+  "sprache muss eine von {sprachen} sein, nicht {wert}": {"fr": "sprache doit être l'une des valeurs {sprachen}, et non {wert}", "en": "sprache must be one of {sprachen}, not {wert}"},
+  "{feld} muss Text sein": {"fr": "{feld} doit être du texte", "en": "{feld} must be text"},
+  "Kein absender im Anschreiben und kein Lebenslauf angegeben (lebenslauf: oder --cv)": {"fr": "Ni absender dans la lettre de motivation, ni CV indiqué (lebenslauf: ou --cv)", "en": "No absender in the cover letter and no CV given (lebenslauf: or --cv)"},
+  "Lebenslauf nicht gefunden: {pfad}": {"fr": "CV introuvable\u00a0: {pfad}", "en": "CV not found: {pfad}"},
+
   "Datei {datei} ist nicht bearbeitbar": {"fr": "Le fichier {datei} n'est pas modifiable", "en": "File {datei} cannot be edited"},
   "Kein gültiges YAML: {fehler}": {"fr": "YAML non valide\u00a0: {fehler}", "en": "Not valid YAML: {fehler}"},
   "Der Lebenslauf braucht einen Abschnitt basics": {"fr": "Le CV doit avoir une section basics", "en": "The CV needs a basics section"},

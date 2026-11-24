@@ -16,6 +16,7 @@ import cuts
 import cv_cuts
 import cv_design
 import dossier as dossier_modul
+import letter_messages
 from dateien import im_ordner
 from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
 from tailor import tailor
@@ -260,7 +261,8 @@ def baue(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> dict[str,
     daten = daten.resolve()
     if wants_dossier(bewerbung):
         bewerbungsordner(daten, bewerbung["id"]).mkdir(parents=True, exist_ok=True)
-        return _baue_dossier(daten, bewerbung, build)
+        with letter_messages.in_app_language():
+            return _baue_dossier(daten, bewerbung, build)
     pfade_pdf = pdf_pfade(daten, bewerbung["id"])
     pfade_pdf["lebenslauf"].parent.mkdir(parents=True, exist_ok=True)
     eigener = eigener_lebenslauf(daten, bewerbung)
@@ -275,6 +277,7 @@ def baue(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> dict[str,
         argumente = [str(brief), "--build-dir", str(build), "-o", str(pfade_pdf["anschreiben"])]
         if (daten / "cv.yaml").is_file():
             argumente += ["--cv", str(daten / "cv.yaml")]
-        anschreiben_modul.main(argumente)
+        with letter_messages.in_app_language():
+            anschreiben_modul.main(argumente)
         gebaut["anschreiben"] = pfade_pdf["anschreiben"]
     return gebaut

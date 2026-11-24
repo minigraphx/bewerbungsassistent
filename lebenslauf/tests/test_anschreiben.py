@@ -92,6 +92,18 @@ def test_unbekannte_sprache():
         anschreiben.pruefe_brief(brief(sprache="it"))
 
 
+def test_a_refusal_is_german_and_carries_its_template_and_values():
+    daten = {k: v for k, v in brief().items() if k not in ("anrede", "gruss")}
+
+    with pytest.raises(ValueError) as refused:
+        anschreiben.pruefe_brief(daten)
+
+    assert str(refused.value) == "Im Anschreiben fehlen: anrede, gruss"
+    assert type(refused.value.args[0]) is str
+    assert refused.value.template == "Im Anschreiben fehlen: {felder}"
+    assert refused.value.values == {"felder": "anrede, gruss"}
+
+
 def test_ohne_absender_und_ohne_lebenslauf():
     daten = {k: v for k, v in brief().items() if k not in ("absender", "lebenslauf")}
 
