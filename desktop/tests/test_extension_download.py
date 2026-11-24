@@ -164,13 +164,42 @@ def test_the_guide_explains_the_download_in_its_own_part_outside_any_details():
     assert "aktualisiert sich nicht von selbst" in part
 
 
+def test_the_guide_says_who_needs_the_download_and_that_it_fits_the_newest_app():
+    """UI/UX ruling on #403: most people do not need it, and an older app is updated first."""
+    part = guide_part()
+
+    assert part.split("\n\n")[1] == (
+        "Meist brauchen Sie das nicht: Aus dem Store oder mit **Ohne Store laden** bleibt die Erweiterung von selbst "
+        "aktuell. Die ZIP-Datei ist für alle, die die Erweiterung lieber direkt von der Webseite laden. Es ist eine "
+        "Datei für Chrome und Edge; den Link finden Sie auf der Webseite auf der Seite **App laden**, unter den Knöpfen "
+        "für die Stores. Sie gehört zur neusten Version der App; ist Ihre App älter, aktualisieren Sie zuerst die App "
+        "(siehe [Updates](#updates)).")
+    assert "auf dem Mac mit Doppelklick, unter Linux im Dateimanager." in part
+    assert "„Die Erweiterung ist bereit“. Lassen Sie den Entwicklermodus eingeschaltet." in part
+
+
+def test_the_guide_renews_the_copy_by_loading_the_new_folder():
+    """Loading a newer unpacked copy with the same key replaces the old one and keeps its storage (tried on #403)."""
+    part = guide_part()
+
+    assert ("**Diese Kopie aktualisiert sich nicht von selbst**, weder über einen Store noch über die App. Kommt eine "
+            "neue Version der App, laden Sie die ZIP-Datei dieser Version, entpacken sie wie in Schritt 1 und wählen "
+            "auf der Erweiterungsseite **Entpackte Erweiterung laden** mit dem neuen Ordner. Er ersetzt den alten; "
+            "diesen können Sie danach löschen.") in part
+    assert "ersetzen die alten Dateien" not in part
+
+
 def test_the_updates_sentence_names_only_the_folder_the_app_opens():
     text = GUIDE.read_text(encoding="utf-8")
     updates = text[text.index("\n### Updates\n"):text.index("\n### Mehrere Personen\n")]
+    paragraph = next(line for line in updates.split("\n") if line.startswith("**Erweiterung:**"))
 
-    assert "Haben Sie sie von Hand geladen" not in updates
-    assert "Haben Sie den Ordner von Hand geladen, den die App öffnet, bringt die App die neue Version mit" in updates
-    assert "(#erweiterung-als-zip-datei-laden)" in updates
+    assert "Haben Sie sie von Hand geladen" not in paragraph
+    assert ("Haben Sie unter **Ohne Store laden** den Ordner der App geladen, bringt die App die neue Version mit"
+            in paragraph)
+    assert paragraph.endswith(
+        "Eine Kopie aus der ZIP-Datei aktualisiert sich nicht von selbst; wie Sie sie erneuern, steht unter "
+        "[Erweiterung als ZIP-Datei laden](#erweiterung-als-zip-datei-laden).")
 
 
 def test_the_command_line_fails_loudly(tmp_path, capsys, monkeypatch):

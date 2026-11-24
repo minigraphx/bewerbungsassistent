@@ -190,15 +190,15 @@ Die Erweiterung steht dann in der Liste, und in der App erscheint von selbst „
 
 #### Erweiterung als ZIP-Datei laden
 
-Die Erweiterung gibt es auch als ZIP-Datei zum Herunterladen, dieselbe für Chrome und Edge. Den Link finden Sie auf der Webseite auf der Seite **App laden**, unter den Knöpfen für die Stores. Nehmen Sie die ZIP-Datei in derselben Version wie Ihre App.
+Meist brauchen Sie das nicht: Aus dem Store oder mit **Ohne Store laden** bleibt die Erweiterung von selbst aktuell. Die ZIP-Datei ist für alle, die die Erweiterung lieber direkt von der Webseite laden. Es ist eine Datei für Chrome und Edge; den Link finden Sie auf der Webseite auf der Seite **App laden**, unter den Knöpfen für die Stores. Sie gehört zur neusten Version der App; ist Ihre App älter, aktualisieren Sie zuerst die App (siehe [Updates](#updates)).
 
-1. Die ZIP-Datei herunterladen und entpacken: unter Windows mit Rechtsklick und **Alle extrahieren**, auf dem Mac mit Doppelklick. Legen Sie den entpackten Ordner an einen festen Platz, zum Beispiel in Ihren Benutzerordner. Dort soll er bleiben: Der Browser lädt die Erweiterung bei jedem Start aus diesem Ordner.
+1. Die ZIP-Datei herunterladen und entpacken: unter Windows mit Rechtsklick und **Alle extrahieren**, auf dem Mac mit Doppelklick, unter Linux im Dateimanager. Legen Sie den entpackten Ordner an einen festen Platz, zum Beispiel in Ihren Benutzerordner. Dort soll er bleiben: Der Browser lädt die Erweiterung bei jedem Start aus diesem Ordner.
 2. Die Erweiterungsseite öffnen, in Chrome `chrome://extensions`, in Edge `edge://extensions`, und den **Entwicklermodus** einschalten: in Chrome oben rechts, in Edge links.
 3. **Entpackte Erweiterung laden** wählen und den entpackten Ordner auswählen.
 
-Die Erweiterung steht dann in der Liste, und in der App erscheint von selbst „Die Erweiterung ist bereit“.
+Die Erweiterung steht dann in der Liste, und in der App erscheint von selbst „Die Erweiterung ist bereit“. Lassen Sie den Entwicklermodus eingeschaltet.
 
-**Diese Kopie aktualisiert sich nicht von selbst**, weder über einen Store noch über die App. Kommt eine neue Version der App, laden Sie auch die ZIP-Datei dieser Version herunter, entpacken sie in denselben Ordner und ersetzen die alten Dateien. Klicken Sie danach auf der Erweiterungsseite bei der Erweiterung auf **Neu laden**.
+**Diese Kopie aktualisiert sich nicht von selbst**, weder über einen Store noch über die App. Kommt eine neue Version der App, laden Sie die ZIP-Datei dieser Version, entpacken sie wie in Schritt 1 und wählen auf der Erweiterungsseite **Entpackte Erweiterung laden** mit dem neuen Ordner. Er ersetzt den alten; diesen können Sie danach löschen.
 
 ### Am Ende der Einrichtung
 
@@ -366,7 +366,7 @@ Deine Bewerbung schickst immer du selbst ab.
 
 **Vorabversionen:** Neue Versionen gibt es manchmal zuerst zum Ausprobieren. Wer sie testen möchte, schaltet unter **Einstellungen**, **Erweitert**, **Vorabversionen** den Schalter **Vorabversionen als Update anbieten** ein. Vorabversionen können noch Fehler haben. Voreingestellt bekommen Sie nur veröffentlichte Versionen.
 
-**Erweiterung:** Aus dem Store hält der Browser die Erweiterung selbst aktuell. Haben Sie den Ordner von Hand geladen, den die App öffnet, bringt die App die neue Version mit, und die Erweiterung lädt sich von selbst neu, sobald die App läuft und keine Suche oder kein Formular offen ist. Sie müssen nichts tun. Der Entwicklermodus muss dafür eingeschaltet bleiben. Zeigt die Seite „Einrichtung“ trotzdem eine andere Version, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**. Das ist auch beim Wechsel auf die erste Version mit dieser Funktion einmal nötig. Eine Kopie aus der ZIP-Datei aktualisieren Sie selbst, wie unter [Erweiterung als ZIP-Datei laden](#erweiterung-als-zip-datei-laden) beschrieben.
+**Erweiterung:** Aus dem Store hält der Browser die Erweiterung selbst aktuell. Haben Sie unter **Ohne Store laden** den Ordner der App geladen, bringt die App die neue Version mit, und die Erweiterung lädt sich von selbst neu, sobald die App läuft und keine Suche oder kein Formular offen ist. Sie müssen nichts tun. Der Entwicklermodus muss dafür eingeschaltet bleiben. Zeigt die Seite „Einrichtung“ trotzdem eine andere Version, öffnen Sie `chrome://extensions` oder `edge://extensions` und klicken bei der Erweiterung auf **Neu laden**. Das ist auch beim Wechsel auf die erste Version mit dieser Funktion einmal nötig. Eine Kopie aus der ZIP-Datei aktualisiert sich nicht von selbst; wie Sie sie erneuern, steht unter [Erweiterung als ZIP-Datei laden](#erweiterung-als-zip-datei-laden).
 
 <details>
 <summary>Wechsel von Version 0.2.10 oder älter: wenn die App bei Ihnen noch Bewerbungsassistent heisst</summary>
