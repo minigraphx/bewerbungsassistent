@@ -5,12 +5,19 @@
 // changes are replayed after it, so undoing one recommendation brings back exactly its changes and keeps the rest
 // (tests/lebenslauf_vorschlaege.test.cjs).
 (function (global) {
+  // Texts in the app language through Texte (#428); the page's Texte is found when a text is made.
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
   // G61: the designs that build a CV alone (register.CV_DESIGNS); Siegel, Raster and Register stay the dossier's.
+  // Name and sentence are read when shown, so they follow the language of the page.
   const DESIGNS = [
-    { id: "zweispaltig", name: "Zweispaltig", text: "Foto und Kontakt im Kopf, zwei Spalten." },
-    { id: "einspaltig", name: "Einspaltig", text: "Schlicht, alles untereinander." },
+    { id: "zweispaltig", get name() { return Texte.t("Zweispaltig"); },
+      get text() { return Texte.t("Foto und Kontakt im Kopf, zwei Spalten."); } },
+    { id: "einspaltig", get name() { return Texte.t("Einspaltig"); },
+      get text() { return Texte.t("Schlicht, alles untereinander."); } },
   ];
-  const NOTHING_CHOSEN = "Bitte mindestens eine Station wählen.";
+  // The page ties this refusal to the stations; the server's refusal reads the same in each language (cv_creation.py).
+  const nothingChosen = () => Texte.t("Bitte mindestens eine Station wählen.");
   // Keys of texte.js: the box speaks Sie or du and names a Lehrstelle.
   const APPLIED_LINE = "lebenslauf.ki-angewendet";
   const OFFERS = {
@@ -138,16 +145,18 @@
 
   /** The announcement after a suggestion; `cost` is the server's charged text, empty for a repeat from its cache. */
   function suggestedText(count, cost = "") {
-    const said = count ? `Vorschlag der KI angewendet: ${count} ${count === 1 ? "Empfehlung" : "Empfehlungen"}.`
-      : "Die KI schlägt für diese Stelle nichts anderes vor.";
+    const said = count === 1 ? Texte.t("Vorschlag der KI angewendet: 1 Empfehlung.")
+      : count ? Texte.t("Vorschlag der KI angewendet: {anzahl} Empfehlungen.", { anzahl: count })
+        : Texte.t("Die KI schlägt für diese Stelle nichts anderes vor.");
     return cost ? `${said} ${cost}` : said;
   }
 
-  const recommendationText = (recommendation, on) => `${on ? "Wieder angewendet" : "Zurückgenommen"}: ${recommendation.was}.`;
+  const recommendationText = (recommendation, on) => (on ? Texte.t("Wieder angewendet: {was}.", { was: recommendation.was })
+    : Texte.t("Zurückgenommen: {was}.", { was: recommendation.was }));
 
   function choose(state, design) {
     if (!DESIGNS.some(choice => choice.id === design)) {
-      throw new Error(`Bitte ${DESIGNS.map(choice => choice.name).join(" oder ")} wählen.`);
+      throw new Error(Texte.t("Bitte {eins} oder {zwei} wählen.", { eins: DESIGNS[0].name, zwei: DESIGNS[1].name }));
     }
     return withOfferedColour({ ...state, design });
   }
@@ -198,13 +207,13 @@
   function setLook(state, change) {
     if ("zeichen" in change) {
       const found = markChoices(state).find(choice => choice.id === change.zeichen);
-      if (!found) throw new Error("Dieses Zeichen gibt es nicht.");
-      if (found.locked) throw new Error("Für dieses Zeichen fehlt noch etwas, etwa ein Logo.");
+      if (!found) throw new Error(Texte.t("Dieses Zeichen gibt es nicht."));
+      if (found.locked) throw new Error(Texte.t("Für dieses Zeichen fehlt noch etwas, etwa ein Logo."));
     }
     if ("akzent" in change && !accentChoices(state).some(choice => choice.id === change.akzent)) {
-      throw new Error("Diese Farbe steht nicht zur Wahl.");
+      throw new Error(Texte.t("Diese Farbe steht nicht zur Wahl."));
     }
-    if ("foto" in change && typeof change.foto !== "boolean") throw new Error("Bitte mit oder ohne Foto wählen.");
+    if ("foto" in change && typeof change.foto !== "boolean") throw new Error(Texte.t("Bitte mit oder ohne Foto wählen."));
     return { ...state, look: { ...state.look, ...change } };
   }
 
@@ -226,13 +235,14 @@
     const look = state.look || { zeichen: FITTING, akzent: FITTING };
     const markChoice = markChoices(state).find(choice => choice.id === look.zeichen) || markChoices(state)[0];
     const colour = accentChoices(state).find(choice => choice.id === look.akzent) || accentChoices(state)[0];
-    const markPart = markChoice.id === FITTING ? say(markChoice.name) : `Zeichen: ${say(markChoice.name)}`;
-    return [markPart, `Farbe: ${colour.id === FITTING ? say("lebenslauf.farbe-passend-zeile") : say(colour.name)}`];
+    const markPart = markChoice.id === FITTING ? say(markChoice.name) : Texte.t("Zeichen: {zeichen}", { zeichen: say(markChoice.name) });
+    const farbe = colour.id === FITTING ? say("lebenslauf.farbe-passend-zeile") : say(colour.name);
+    return [markPart, Texte.t("Farbe: {farbe}", { farbe })];
   }
 
   /** Body for POST /api/lebenslauf/erstellen; the texts come from the fields as they are when saving. */
   function request(state, { id, berufsbezeichnung, kurzprofil, bezeichnung }) {
-    if (!state.sections.some(section => section.chosen.length)) throw new Error(NOTHING_CHOSEN);
+    if (!state.sections.some(section => section.chosen.length)) throw new Error(nothingChosen());
     const stationen = Object.fromEntries(state.sections.map(section => [section.name, [...section.chosen]]));
     return { id, stand: state.stand, stationen, design: state.design, berufsbezeichnung, kurzprofil, bezeichnung,
              ...(state.look ? { aussehen: { ...state.look } } : {}) };
@@ -240,14 +250,14 @@
 
   function savedText({ variante, gebaut, hinweis }) {
     if (hinweis) return hinweis;
-    const name = `«${variante.beschreibung || variante.id}»`;
-    return gebaut ? `Gespeichert als ${name} und als PDF erstellt. Er gilt jetzt für diese Bewerbung.`
-      : `Gespeichert als ${name}. Er gilt jetzt für diese Bewerbung.`;
+    const name = variante.beschreibung || variante.id;
+    return gebaut ? Texte.t("Gespeichert als «{name}» und als PDF erstellt. Er gilt jetzt für diese Bewerbung.", { name })
+      : Texte.t("Gespeichert als «{name}». Er gilt jetzt für diese Bewerbung.", { name });
   }
 
-  const logic = { DESIGNS, NOTHING_CHOSEN, start, toggle, move, canMove, choose, request, savedText, suggest, setRecommendation, summary,
-                  autoSuggest, APPLIED_LINE, aiOffer, suggestedText, recommendationText,
-                  markChoices, accentChoices, setLook, photoChoice, lookParts };
+  const logic = { DESIGNS, get NOTHING_CHOSEN() { return nothingChosen(); }, start, toggle, move, canMove, choose, request,
+                  savedText, suggest, setRecommendation, summary, autoSuggest, APPLIED_LINE, aiOffer, suggestedText,
+                  recommendationText, markChoices, accentChoices, setLook, photoChoice, lookParts };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufErstellenLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -107,12 +107,12 @@
 
   /** One large page over its line «Seite wird geladen …», which goes once the page is there. */
   function largePage(page, pages) {
-    const waiting = el("p", { class: "cv-preview-dialog__loading", "aria-hidden": "true" }, "Seite wird geladen …");
+    const waiting = el("p", { class: "cv-preview-dialog__loading", "aria-hidden": "true" }, window.Texte.t("Seite wird geladen …"));
     // Page 1 is in view when the dialog opens; the others load as they scroll into view.
     const image = el("img", { class: "cv-preview-dialog__page", src: pageUrl(page, "gross"), alt: Logic.pageAlt(page, pages),
                               width: "1190", height: "1683", loading: page === 1 ? null : "lazy" });
     image.addEventListener("load", () => { waiting.hidden = true; });
-    image.addEventListener("error", () => { waiting.textContent = "Diese Seite lässt sich gerade nicht anzeigen."; });
+    image.addEventListener("error", () => { waiting.textContent = window.Texte.t("Diese Seite lässt sich gerade nicht anzeigen."); });
     return el("div", { class: "cv-preview-dialog__frame" }, image, waiting);
   }
 

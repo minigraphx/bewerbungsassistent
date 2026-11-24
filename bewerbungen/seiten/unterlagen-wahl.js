@@ -4,7 +4,10 @@
 (function (global) {
   const VOREINSTELLUNG = "einzeln";
   const WAHL = [VOREINSTELLUNG, "dossier"];
-  const NAMEN = { dossier: "Dossier", anschreiben: "Anschreiben", lebenslauf: "Lebenslauf" };
+  // Texts in the app language through Texte (#428); the page's Texte is found when a text is made.
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
+  const NAMEN = { dossier: () => Texte.t("Dossier"), anschreiben: () => Texte.t("Anschreiben"), lebenslauf: () => Texte.t("Lebenslauf") };
   const REIHENFOLGE = { dossier: ["dossier", "anschreiben", "lebenslauf"], einzeln: ["lebenslauf", "anschreiben"] };
 
   /** The choice that counts for an application: the stored one, otherwise the preset. */
@@ -12,19 +15,19 @@
 
   /** The body for POST /api/bewerbung, or null when the choice did not change. */
   function zuSpeichern(b, neu) {
-    if (!WAHL.includes(neu)) throw new Error("Bitte Dossier oder Anschreiben und Lebenslauf wählen");
+    if (!WAHL.includes(neu)) throw new Error(Texte.t("Bitte Dossier oder Anschreiben und Lebenslauf wählen"));
     return neu === gewaehlt(b) ? null : { id: b.id, unterlagen: neu };
   }
 
   /** The built PDFs to show as [art, name], in the order of the choice. */
-  const rahmen = (pdfs, wahl) => REIHENFOLGE[wahl].filter(art => pdfs[art]).map(art => [art, NAMEN[art]]);
+  const rahmen = (pdfs, wahl) => REIHENFOLGE[wahl].filter(art => pdfs[art]).map(art => [art, NAMEN[art]()]);
 
   // G39, G41: one design for all pages (Siegel without a choice), under «Design pro Seite» one per page
   const DESIGNS = ["siegel", "raster", "register"];
   const SEITEN = ["deckblatt", "anschreiben", "lebenslauf", "weitere"];
 
   function pruefeDesign(name) {
-    if (!DESIGNS.includes(name)) throw new Error("Bitte Siegel, Raster oder Register wählen");
+    if (!DESIGNS.includes(name)) throw new Error(Texte.t("Bitte Siegel, Raster oder Register wählen"));
   }
 
   const design = b => b.dossier_design || DESIGNS[0];
@@ -47,7 +50,7 @@
 
   function entwurfSeite(draft, seite, neu) {
     pruefeDesign(neu);
-    if (!SEITEN.includes(seite)) throw new Error(`Unbekannte Seite: ${seite}`);
+    if (!SEITEN.includes(seite)) throw new Error(Texte.t("Unbekannte Seite: {seite}", { seite }));
     return { design: draft.design, seiten: { ...draft.seiten, [seite]: neu } };
   }
 

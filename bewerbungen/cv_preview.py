@@ -20,7 +20,7 @@ from pypdf.errors import PdfReadError
 import cv_creation
 import pdf_thumbnail
 import unterlagen
-from server import ActionError
+from server import ActionError, message_of
 
 log = logging.getLogger("bewerbungsbegleiter")
 
@@ -66,7 +66,7 @@ def build(daten: pathlib.Path, entry: dict, cv: dict, choice: cv_creation.Choice
             unterlagen.build_cv_preview(daten, entry, job, choice.design, build_folder / "satz", target)
             pdf = target.read_bytes()
     except ValueError as error:
-        raise ActionError(str(error), CHECK_DATA) from error
+        raise ActionError(message_of(error), CHECK_DATA) from error
     except (TypeError, KeyError, OSError, yaml.YAMLError, typst.TypstError) as error:
         log.warning("preview of the CV for %s failed: %r", entry["id"], error)
         raise ActionError(BROKEN, CHECK_DATA) from error

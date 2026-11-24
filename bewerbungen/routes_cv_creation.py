@@ -6,10 +6,12 @@ import cv_creation
 import routes_cv_preview
 import routes_cv_suggestions
 import unterlagen
-from server import json_antwort, pflicht
+from server import json_antwort, message_of, pflicht
+from ui_texts import T
 
 ROUTE = "/api/lebenslauf/erstellen"
-DOSSIER_LATER = "Gespeichert. Das Dossier entsteht mit „Unterlagen erstellen“ neu, mit diesem Lebenslauf."
+# The answer's `hinweis` reaches the page through json_antwort, which says a T in the app language (#428).
+DOSSIER_LATER = T("Gespeichert. Das Dossier entsteht mit „Unterlagen erstellen“ neu, mit diesem Lebenslauf.")
 
 
 def _open_entry(k, entry_id: str) -> dict:
@@ -48,7 +50,7 @@ def _build(k, entry_id: str) -> tuple[bool, str | None]:
         try:
             unterlagen.build_cv(k.daten, entry, k.build)
         except ValueError as error:  # saved already; the person learns why there is no PDF yet
-            return False, f"Gespeichert, aber das PDF fehlt noch: {error}"
+            return False, T("Gespeichert, aber das PDF fehlt noch: {fehler}", fehler=message_of(error))
     return True, None
 
 

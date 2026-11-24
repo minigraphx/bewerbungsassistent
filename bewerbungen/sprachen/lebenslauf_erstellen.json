@@ -1,0 +1,208 @@
+{
+  "Zweispaltig": {"fr": "Deux colonnes", "en": "Two columns"},
+  "Einspaltig": {"fr": "Une colonne", "en": "One column"},
+  "Foto und Kontakt im Kopf, zwei Spalten.": {"fr": "Photo et coordonnées en en-tête, deux colonnes.", "en": "Photo and contact details in the header, two columns."},
+  "Schlicht, alles untereinander.": {"fr": "Sobre, tout à la suite.", "en": "Plain, everything one below the other."},
+  "Bitte mindestens eine Station wählen.": {"fr": "Merci de choisir au moins une entrée.", "en": "Please choose at least one entry."},
+  "Vorschlag der KI angewendet: 1 Empfehlung.": {"fr": "Proposition de l'IA appliquée\u00a0: 1 recommandation.", "en": "AI proposal applied: 1 recommendation."},
+  "Vorschlag der KI angewendet: {anzahl} Empfehlungen.": {"fr": "Proposition de l'IA appliquée\u00a0: {anzahl} recommandations.", "en": "AI proposal applied: {anzahl} recommendations."},
+  "Die KI schlägt für diese Stelle nichts anderes vor.": {"fr": "L'IA ne propose rien d'autre pour ce poste.", "en": "The AI suggests nothing different for this job."},
+  "Wieder angewendet: {was}.": {"fr": "Appliquée à nouveau\u00a0: {was}.", "en": "Applied again: {was}."},
+  "Zurückgenommen: {was}.": {"fr": "Retirée\u00a0: {was}.", "en": "Undone: {was}."},
+  "Bitte {eins} oder {zwei} wählen.": {"fr": "Merci de choisir {eins} ou {zwei}.", "en": "Please choose {eins} or {zwei}."},
+  "Dieses Zeichen gibt es nicht.": {"fr": "Cet emblème n'existe pas.", "en": "This mark does not exist."},
+  "Für dieses Zeichen fehlt noch etwas, etwa ein Logo.": {"fr": "Il manque encore quelque chose pour cet emblème, par exemple un logo.", "en": "Something is still missing for this mark, such as a logo."},
+  "Diese Farbe steht nicht zur Wahl.": {"fr": "Cette couleur n'est pas proposée.", "en": "This colour is not available."},
+  "Bitte mit oder ohne Foto wählen.": {"fr": "Merci de choisir avec ou sans photo.", "en": "Please choose with or without photo."},
+  "Zeichen: {zeichen}": {"fr": "Emblème\u00a0: {zeichen}", "en": "Mark: {zeichen}"},
+  "Farbe: {farbe}": {"fr": "Couleur\u00a0: {farbe}", "en": "Colour: {farbe}"},
+  "Gespeichert als «{name}» und als PDF erstellt. Er gilt jetzt für diese Bewerbung.": {"fr": "Enregistré sous «\u00a0{name}\u00a0» et créé en PDF. Il s'applique désormais à cette candidature.", "en": "Saved as “{name}” and created as PDF. It now applies to this application."},
+  "Gespeichert als «{name}». Er gilt jetzt für diese Bewerbung.": {"fr": "Enregistré sous «\u00a0{name}\u00a0». Il s'applique désormais à cette candidature.", "en": "Saved as “{name}”. It now applies to this application."},
+
+  "{station}: {richtung}": {"fr": "{station}\u00a0: {richtung}", "en": "{station}: {richtung}"},
+  "Lebenslauf erstellen geht gerade nicht: {grund}": {"fr": "Impossible de créer le CV pour l'instant\u00a0: {grund}", "en": "Creating the CV is not possible right now: {grund}"},
+  "Lebenslauf wird erstellt …": {"fr": "Création du CV…", "en": "Creating the CV…"},
+
+  "Die Vorschau lässt sich gerade nicht anzeigen. Bitte nochmals ändern oder die Seite neu laden.": {"fr": "L'aperçu ne peut pas s'afficher pour l'instant. Merci de modifier à nouveau ou de recharger la page.", "en": "The preview cannot be shown right now. Please change something again or reload the page."},
+  "Die Vorschau lässt sich gerade nicht erstellen: Die App antwortet nicht. Bitte nochmals ändern oder später versuchen.": {"fr": "L'aperçu ne peut pas être créé pour l'instant\u00a0: l'app ne répond pas. Merci de modifier à nouveau ou de réessayer plus tard.", "en": "The preview cannot be created right now: the app does not respond. Please change something again or try later."},
+  "Die Vorschau lässt sich nicht erstellen: In Meine Angaben steht etwas, das die App nicht lesen kann.": {"fr": "L'aperçu ne peut pas être créé\u00a0: Mes informations contiennent quelque chose que l'app ne peut pas lire.", "en": "The preview cannot be created: My details contain something the app cannot read."},
+  "Die Vorschau lässt sich nicht erstellen. {grund}": {"fr": "L'aperçu ne peut pas être créé. {grund}", "en": "The preview cannot be created. {grund}"},
+  "Noch keine Station angehakt. Die Vorschau erscheint, sobald mindestens eine angehakt ist.": {"fr": "Aucune entrée cochée pour l'instant. L'aperçu apparaît dès qu'au moins une est cochée.", "en": "No entry ticked yet. The preview appears as soon as at least one is ticked."},
+  "1 Seite": {"fr": "1 page", "en": "1 page"},
+  "{anzahl} Seiten": {"fr": "{anzahl} pages", "en": "{anzahl} pages"},
+  "Lebenslauf, Seite {seite} von {seiten}": {"fr": "CV, page {seite} sur {seiten}", "en": "CV, page {seite} of {seiten}"},
+  "Die Vorschau ist wieder da, {seiten}.": {"fr": "L'aperçu est de retour, {seiten}.", "en": "The preview is back, {seiten}."},
+  "Die Vorschau hat jetzt {seiten}.": {"fr": "L'aperçu compte maintenant {seiten}.", "en": "The preview now has {seiten}."},
+  "Seite wird geladen …": {"fr": "Chargement de la page…", "en": "Loading the page…"},
+  "Diese Seite lässt sich gerade nicht anzeigen.": {"fr": "Cette page ne peut pas s'afficher pour l'instant.", "en": "This page cannot be shown right now."},
+
+  "Bitte Dossier oder Anschreiben und Lebenslauf wählen": {"fr": "Merci de choisir Dossier ou Lettre de motivation et CV", "en": "Please choose Dossier or Cover letter and CV"},
+  "Bitte Siegel, Raster oder Register wählen": {"fr": "Merci de choisir Sceau, Trame ou Registre", "en": "Please choose Seal, Grid or Register"},
+  "Unbekannte Seite: {seite}": {"fr": "Page inconnue\u00a0: {seite}", "en": "Unknown page: {seite}"},
+
+  "Design Raster": {"fr": "Design Trame", "en": "Grid design"},
+  "Design Register": {"fr": "Design Registre", "en": "Register design"},
+  "Für diese Stelle anpassen": {"fr": "Adapter pour ce poste", "en": "Adapt for this job"},
+  "In Lebenslauf und Dateien ändern": {"fr": "Modifier dans CV et fichiers", "en": "Change in CV and files"},
+  "etwas enger gesetzt": {"fr": "mise en page un peu plus serrée", "en": "set slightly tighter"},
+  "enger gesetzt": {"fr": "mise en page plus serrée", "en": "set tighter"},
+  "so eng wie möglich": {"fr": "mise en page la plus serrée possible", "en": "set as tightly as possible"},
+  "etwas grosszügiger gesetzt": {"fr": "mise en page un peu plus aérée", "en": "set slightly more loosely"},
+  "Anschreiben {wie}": {"fr": "Lettre de motivation\u00a0: {wie}", "en": "Cover letter {wie}"},
+  "Lebenslauf {wie}": {"fr": "CV\u00a0: {wie}", "en": "CV {wie}"},
+  "{name}, Seite 1": {"fr": "{name}, page 1", "en": "{name}, page 1"},
+  "1 Prüfung in Ordnung": {"fr": "1 vérification réussie", "en": "1 check passed"},
+  "{anzahl} Prüfungen in Ordnung": {"fr": "{anzahl} vérifications réussies", "en": "{anzahl} checks passed"},
+  "Geprüft: {teile}.": {"fr": "Vérifié\u00a0: {teile}.", "en": "Checked: {teile}."},
+  "Geprüft.": {"fr": "Vérifié.", "en": "Checked."},
+  "Beilagen: noch keine Zertifikate hochgeladen.": {"fr": "Annexes\u00a0: aucun certificat téléversé pour l'instant.", "en": "Attachments: no certificates uploaded yet."},
+  "Beilagen: keine gewählt.": {"fr": "Annexes\u00a0: aucune choisie.", "en": "Attachments: none chosen."},
+  "Beilagen: {namen}": {"fr": "Annexes\u00a0: {namen}", "en": "Attachments: {namen}"},
+  "Beilagen: {namen} (Vorschlag, noch nicht gespeichert)": {"fr": "Annexes\u00a0: {namen} (proposition, pas encore enregistrée)", "en": "Attachments: {namen} (suggestion, not saved yet)"},
+  "Form: Anschreiben und Lebenslauf": {"fr": "Format\u00a0: lettre de motivation et CV", "en": "Format: cover letter and CV"},
+  "Form: Dossier, {design}": {"fr": "Format\u00a0: dossier, {design}", "en": "Format: dossier, {design}"},
+  "Begrüssung und Dank geschrieben": {"fr": "Accueil et remerciements rédigés", "en": "Welcome and thanks written"},
+  "Begrüssung geschrieben, ohne Dank": {"fr": "Accueil rédigé, sans remerciements", "en": "Welcome written, without thanks"},
+  "Dank geschrieben, ohne Begrüssung": {"fr": "Remerciements rédigés, sans accueil", "en": "Thanks written, without welcome"},
+  "Ohne Begrüssung und Dank": {"fr": "Sans accueil ni remerciements", "en": "Without welcome and thanks"},
+  "Die Prüfung hat einen Fehler gefunden. Er steht unter «{schritt}».": {"fr": "La vérification a trouvé une erreur. Elle figure sous «\u00a0{schritt}\u00a0».", "en": "The check found one error. It is listed under “{schritt}”."},
+  "Die Prüfung hat {anzahl} Fehler gefunden. Sie stehen unter «{schritt}».": {"fr": "La vérification a trouvé {anzahl} erreurs. Elles figurent sous «\u00a0{schritt}\u00a0».", "en": "The check found {anzahl} errors. They are listed under “{schritt}”."},
+  "Die App erstellt Lebenslauf und Anschreiben als PDF und prüft sie gleich. Danach stehen sie unter «{schritt}» zum Ansehen bereit.": {"fr": "L'app crée le CV et la lettre de motivation en PDF et les vérifie aussitôt. Ensuite, ils sont prêts à être consultés sous «\u00a0{schritt}\u00a0».", "en": "The app creates the CV and the cover letter as PDF and checks them right away. Then they are ready to view under “{schritt}”."},
+
+  "Für diese Bewerbung weglassen": {"fr": "Omettre pour cette candidature", "en": "Leave out for this application"},
+  "Gekürzt neu erstellen": {"fr": "Recréer en version raccourcie", "en": "Recreate shortened"},
+  "Drei Seiten erlauben": {"fr": "Autoriser trois pages", "en": "Allow three pages"},
+  "Lebenslauf kürzen": {"fr": "Raccourcir le CV", "en": "Shorten the CV"},
+  "Der Lebenslauf ist noch zu lang; die nächste Kürzung ist angehakt.": {"fr": "Le CV est encore trop long\u00a0; la coupe suivante est cochée.", "en": "The CV is still too long; the next cut is ticked."},
+  "Der Lebenslauf ist noch zu lang; weiter kürzen lässt sich mit «Lebenslauf erstellen» oder unter «Meine Angaben».": {"fr": "Le CV est encore trop long\u00a0; pour le raccourcir davantage, utiliser «\u00a0Créer le CV\u00a0» ou «\u00a0Mes informations\u00a0».", "en": "The CV is still too long; to shorten it further, use “Create CV” or “My details”."},
+  "Gekürzt und neu erstellt.": {"fr": "Raccourci et recréé.", "en": "Shortened and recreated."},
+  "Drei Seiten erlaubt und neu erstellt.": {"fr": "Trois pages autorisées et CV recréé.", "en": "Three pages allowed and CV recreated."},
+  "Zurückgeholt und neu erstellt.": {"fr": "Récupéré et recréé.", "en": "Restored and recreated."},
+  "Drei Seiten erlaubt, nur für diese Bewerbung.": {"fr": "Trois pages autorisées, seulement pour cette candidature.", "en": "Three pages allowed, only for this application."},
+  "Zurücknehmen": {"fr": "Revenir à deux pages", "en": "Back to two pages"},
+  "Gespeichert, aber nicht neu erstellt: {fehler}": {"fr": "Enregistré, mais pas recréé\u00a0: {fehler}", "en": "Saved, but not recreated: {fehler}"},
+  "Wird gekürzt und neu erstellt …": {"fr": "Le CV est raccourci et recréé…", "en": "Shortening and recreating…"},
+  "Drei Seiten erlaubt, wird neu erstellt …": {"fr": "Trois pages autorisées, le CV est recréé…", "en": "Three pages allowed, recreating…"},
+  "Bitte mindestens eine Kürzung anhaken oder drei Seiten erlauben.": {"fr": "Merci de cocher au moins une coupe ou d'autoriser trois pages.", "en": "Please tick at least one cut or allow three pages."},
+  "Wird zurückgeholt und neu erstellt …": {"fr": "Le CV est rétabli et recréé…", "en": "Restoring and recreating…"},
+  "{knopf}: {was}": {"fr": "{knopf}\u00a0: {was}", "en": "{knopf}: {was}"},
+  "Diese Kürzung gibt es nicht mehr. Bitte erneut prüfen.": {"fr": "Cette coupe n'existe plus. Merci de vérifier à nouveau.", "en": "This cut no longer exists. Please check again."},
+  "Weitere Projekte": {"fr": "Autres projets", "en": "More projects"},
+  "Interessen": {"fr": "Centres d'intérêt", "en": "Interests"},
+  "Engagement": {"fr": "Bénévolat", "en": "Volunteer work"},
+  "Auszeichnungen": {"fr": "Distinctions", "en": "Awards"},
+  "Abschnitt «{name}»": {"fr": "Section «\u00a0{name}\u00a0»", "en": "Section “{name}”"},
+  "1 Stichpunkt bei «{station}» ({von}–{bis})": {"fr": "1 point de «\u00a0{station}\u00a0» ({von}–{bis})", "en": "1 bullet point from “{station}” ({von}–{bis})"},
+  "{anzahl} Stichpunkte bei «{station}» ({von}–{bis})": {"fr": "{anzahl} points de «\u00a0{station}\u00a0» ({von}–{bis})", "en": "{anzahl} bullet points from “{station}” ({von}–{bis})"},
+  "1 Stichpunkt bei «{station}»": {"fr": "1 point de «\u00a0{station}\u00a0»", "en": "1 bullet point from “{station}”"},
+  "{anzahl} Stichpunkte bei «{station}»": {"fr": "{anzahl} points de «\u00a0{station}\u00a0»", "en": "{anzahl} bullet points from “{station}”"},
+  "id erwartet": {"fr": "id attendu", "en": "id expected"},
+
+  "Berufserfahrung": {"fr": "Expérience professionnelle", "en": "Work experience"},
+  "Bildung und Weiterbildung": {"fr": "Formation et perfectionnement", "en": "Education and training"},
+  "Lehre und Training": {"fr": "Enseignement et animation de formations", "en": "Teaching and training"},
+  "Projekte": {"fr": "Projets", "en": "Projects"},
+  "Freiwilligenarbeit": {"fr": "Bénévolat", "en": "Volunteer work"},
+  "Publikationen": {"fr": "Publications", "en": "Publications"},
+  "Noch keine Angaben. Bitte zuerst „Meine Angaben“ ausfüllen.": {"fr": "Pas encore d'informations. Merci de remplir d'abord «\u00a0Mes informations\u00a0».", "en": "No details yet. Please fill in “My details” first."},
+  "Meine Angaben lassen sich nicht lesen. Bitte unter „Meine Angaben“ prüfen.": {"fr": "Mes informations sont illisibles. Merci de vérifier sous «\u00a0Mes informations\u00a0».", "en": "My details cannot be read. Please check under “My details”."},
+  "Meine Angaben haben sich inzwischen geändert. Bitte «Lebenslauf erstellen» neu öffnen.": {"fr": "Mes informations ont changé entre-temps. Merci de rouvrir «\u00a0Créer le CV\u00a0».", "en": "My details have changed in the meantime. Please open “Create CV” again."},
+  "Diese Station gibt es in Meinen Angaben nicht. Bitte «Lebenslauf erstellen» neu öffnen.": {"fr": "Cette entrée n'existe pas dans Mes informations. Merci de rouvrir «\u00a0Créer le CV\u00a0».", "en": "This entry is not in My details. Please open “Create CV” again."},
+  "{von} – heute": {"fr": "{von} – aujourd'hui", "en": "{von} – today"},
+  "Eintrag {nummer}": {"fr": "Entrée {nummer}", "en": "Entry {nummer}"},
+  "{label} muss ein Text sein.": {"fr": "{label} doit être un texte.", "en": "{label} must be text."},
+  "{label} ist zu lang, höchstens {limit} Zeichen.": {"fr": "{label} est trop long, {limit} caractères au maximum.", "en": "{label} is too long, at most {limit} characters."},
+  "Die Berufsbezeichnung": {"fr": "Le titre professionnel", "en": "The job title"},
+  "Das Kurzprofil": {"fr": "Le profil en bref", "en": "The profile summary"},
+  "Der Name der Fassung": {"fr": "Le nom de la version", "en": "The name of the version"},
+  "Das Aussehen fehlt: Foto, Zeichen und Farbe.": {"fr": "L'apparence manque\u00a0: photo, emblème et couleur.", "en": "The appearance is missing: photo, mark and colour."},
+  "Bitte wählen: mit Foto oder ohne.": {"fr": "Merci de choisir\u00a0: avec ou sans photo.", "en": "Please choose: with photo or without."},
+  "Zuerst ein Logo wählen, unter «Dossier gestalten».": {"fr": "Choisir d'abord un logo, sous «\u00a0Concevoir le dossier\u00a0».", "en": "First choose a logo, under “Design the dossier”."},
+  "«Verschränkt» geht nur mit genau zwei Initialen.": {"fr": "«\u00a0Entrelacé\u00a0» ne fonctionne qu'avec exactement deux initiales.", "en": "“Interlaced” only works with exactly two initials."},
+  "Der Lebenslauf liess sich nicht setzen.": {"fr": "La mise en page du CV a échoué.", "en": "The CV could not be typeset."},
+  "Diese Vorschau gibt es nicht mehr. Bitte die Seite neu laden.": {"fr": "Cet aperçu n'existe plus. Merci de recharger la page.", "en": "This preview no longer exists. Please reload the page."},
+  "Bitte klein oder gross wählen.": {"fr": "Merci de choisir petit ou grand.", "en": "Please choose small or large."},
+  "Die Seite muss eine Zahl sein.": {"fr": "La page doit être un nombre.", "en": "The page must be a number."},
+  "Vorschau nicht möglich: Das PDF lässt sich nicht lesen. Es lässt sich trotzdem als PDF öffnen.": {"fr": "Aperçu impossible\u00a0: le PDF est illisible. Il peut tout de même être ouvert en PDF.", "en": "No preview: the PDF cannot be read. It can still be opened as a PDF."},
+  "Gespeichert. Das Dossier entsteht mit „Unterlagen erstellen“ neu, mit diesem Lebenslauf.": {"fr": "Enregistré. Le dossier sera recréé avec ce CV via «\u00a0Créer et vérifier les documents\u00a0».", "en": "Saved. The dossier is created anew with this CV through “Create and check documents”."},
+  "Gespeichert, aber das PDF fehlt noch: {fehler}": {"fr": "Enregistré, mais le PDF manque encore\u00a0: {fehler}", "en": "Saved, but the PDF is still missing: {fehler}"},
+  "Für Vorschläge der KI zuerst den Stellentext speichern.": {"fr": "Pour des propositions de l'IA, enregistrer d'abord le texte de l'annonce.", "en": "For AI proposals, save the job ad text first."},
+  "Kein Vorschlag der KI. {reason} {cost} Die Auswahl bleibt, wie sie ist.": {"fr": "Aucune proposition de l'IA. {reason} {cost} La sélection reste telle quelle.", "en": "No proposal from the AI. {reason} {cost} The selection stays as it is."},
+  "{names} weglassen": {"fr": "{names}\u00a0: omettre", "en": "{names}: leave out"},
+  "{names} nach vorne": {"fr": "{names}\u00a0: placer en tête", "en": "{names}: move to the front"},
+  "Kurzprofil gekürzt": {"fr": "Profil en bref raccourci", "en": "Profile summary shortened"},
+  "Kurzprofil umgestellt": {"fr": "Profil en bref réorganisé", "en": "Profile summary reordered"},
+
+  "texte:lebenslauf.ki-aus": {
+    "fr": {
+      "sie": "Avec l'IA, l'app propose pour ce poste des entrées, un ordre et un profil en bref.",
+      "du": "Avec l'IA, l'app propose pour ce poste des entrées, un ordre et un profil en bref.",
+      "lehrstelle": "Avec l'IA, l'app propose pour cette place d'apprentissage des entrées, un ordre et un profil en bref."
+    },
+    "en": {
+      "sie": "With AI, the app suggests entries, order and profile summary for this job.",
+      "lehrstelle": "With AI, the app suggests entries, order and profile summary for this apprenticeship."
+    }
+  },
+  "texte:lebenslauf.ki-ohne-inserat": {
+    "fr": {"sie": "Il manque encore le texte de l'annonce pour des propositions de l'IA.", "du": "Il manque encore le texte de l'annonce pour des propositions de l'IA."},
+    "en": {"sie": "The job ad text is still missing for AI proposals."}
+  },
+  "texte:lebenslauf.ki-bereit": {
+    "fr": {
+      "sie": "L'IA peut proposer pour ce poste des entrées, un ordre et un profil en bref. L'enregistrement se fait seulement avec «\u00a0Utiliser ce CV\u00a0».",
+      "du": "L'IA peut proposer pour ce poste des entrées, un ordre et un profil en bref. L'enregistrement se fait seulement avec «\u00a0Utiliser ce CV\u00a0».",
+      "lehrstelle": "L'IA peut proposer pour cette place d'apprentissage des entrées, un ordre et un profil en bref. L'enregistrement se fait seulement avec «\u00a0Utiliser ce CV\u00a0»."
+    },
+    "en": {
+      "sie": "The AI can suggest entries, order and profile summary for this job. It is saved only with “Use this CV”.",
+      "lehrstelle": "The AI can suggest entries, order and profile summary for this apprenticeship. It is saved only with “Use this CV”."
+    }
+  },
+  "texte:lebenslauf.ki-schaetzen": {"fr": {"sie": "Estimation du coût et de la durée…", "du": "Estimation du coût et de la durée…"}, "en": {"sie": "Estimating cost and time…"}},
+  "texte:lebenslauf.ki-gespeichert": {
+    "fr": {
+      "sie": "Votre sélection est enregistrée pour cette candidature. L'IA peut faire de nouvelles propositions\u00a0; l'enregistrement se fait seulement avec «\u00a0Utiliser ce CV\u00a0».",
+      "du": "Ta sélection est enregistrée pour cette candidature. L'IA peut faire de nouvelles propositions\u00a0; l'enregistrement se fait seulement avec «\u00a0Utiliser ce CV\u00a0»."
+    },
+    "en": {"sie": "Your selection is saved for this application. The AI can suggest anew; it is saved only with “Use this CV”."}
+  },
+  "texte:lebenslauf.ki-angewendet": {
+    "fr": {
+      "sie": "Déjà appliquée. Sans coche, une recommandation ne compte plus dans son ensemble.",
+      "du": "Déjà appliquée. Sans coche, une recommandation ne compte plus dans son ensemble."
+    },
+    "en": {"sie": "Already applied. Without a tick, a recommendation no longer counts as a whole."}
+  },
+  "texte:lebenslauf.ki-laeuft": {"fr": {"sie": "L'IA fait ses propositions…", "du": "L'IA fait ses propositions…"}, "en": {"sie": "The AI is making proposals…"}},
+  "texte:lebenslauf.ki-holen": {"fr": {"sie": "Obtenir des propositions", "du": "Obtenir des propositions"}, "en": {"sie": "Get proposals"}},
+  "texte:lebenslauf.ki-neu": {"fr": {"sie": "Demander de nouvelles propositions", "du": "Demander de nouvelles propositions"}, "en": {"sie": "Ask for new proposals"}},
+  "texte:lebenslauf.ki-nochmals": {"fr": {"sie": "Proposer à nouveau", "du": "Proposer à nouveau"}, "en": {"sie": "Suggest again"}},
+  "texte:lebenslauf.ki-einschalten": {"fr": {"sie": "Activer l'IA", "du": "Activer l'IA"}, "en": {"sie": "Turn on AI"}},
+  "texte:lebenslauf.vorschau-geaendert": {
+    "fr": {
+      "sie": "Mes informations ont changé entre-temps. Rouvrez «\u00a0Créer le CV\u00a0» pour que l'aperçu les montre.",
+      "du": "Mes informations ont changé entre-temps. Rouvre «\u00a0Créer le CV\u00a0» pour que l'aperçu les montre."
+    },
+    "en": {"sie": "My details have changed in the meantime. Open “Create CV” again so the preview shows them."}
+  },
+  "texte:lebenslauf.foto-fehlt": {
+    "fr": {
+      "sie": "Pas encore de photo. Vous ajoutez des photos sous «\u00a0CV et fichiers\u00a0».",
+      "du": "Pas encore de photo. Tu ajoutes des photos sous «\u00a0CV et fichiers\u00a0»."
+    },
+    "en": {"sie": "No photo yet. Photos are added under “CV and files”."}
+  },
+  "texte:lebenslauf.foto-einspaltig": {"fr": {"sie": "La mise en page Une colonne n'affiche pas de photo.", "du": "La mise en page Une colonne n'affiche pas de photo."}, "en": {"sie": "The one-column layout shows no photo."}},
+  "texte:lebenslauf.zeichen-ohne": {"fr": {"sie": "Sans emblème", "du": "Sans emblème"}, "en": {"sie": "No mark"}},
+  "texte:lebenslauf.zeichen-logo": {"fr": {"sie": "Votre logo", "du": "Ton logo"}, "en": {"sie": "Your logo"}},
+  "texte:lebenslauf.logo-fehlt": {
+    "fr": {
+      "sie": "Téléverser d'abord un logo, sous «\u00a0Concevoir le dossier\u00a0».",
+      "du": "Téléverser d'abord un logo, sous «\u00a0Concevoir le dossier\u00a0»."
+    },
+    "en": {"sie": "First upload a logo, under “Design the dossier”."}
+  },
+  "texte:lebenslauf.farbe-passend": {"fr": {"sie": "Assortie au design", "du": "Assortie au design"}, "en": {"sie": "Matching the design"}},
+  "texte:lebenslauf.farbe-passend-zeile": {"fr": {"sie": "assortie au design", "du": "assortie au design"}, "en": {"sie": "matching the design"}}
+}

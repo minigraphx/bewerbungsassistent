@@ -9,7 +9,7 @@ from collections.abc import Callable
 import cut_choice
 import cv_cuts
 import unterlagen
-from server import json_antwort, pflicht
+from server import json_antwort, message_of, pflicht
 
 PATH = "/api/kuerzungen"
 BACK_PATH = "/api/kuerzungen/zurueckholen"
@@ -35,7 +35,7 @@ def _store_and_build(k, entry_id: str, change: Callable[[dict], dict]):
             unterlagen.baue(k.daten, entry, k.build)
             built, problem = True, None
         except ValueError as error:  # stored all the same; the message says what keeps the build back
-            built, problem = False, str(error)
+            built, problem = False, message_of(error)
     return json_antwort({"neu_erstellt": built, "fehler": problem, "kuerzungen": cut_choice.state(k.daten, entry)})
 
 

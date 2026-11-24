@@ -11,6 +11,7 @@ import yaml
 
 import page_limit
 from register import ID_MUSTER
+from ui_message import T
 
 FILE = "kuerzungen.yaml"
 FOLDER = "bewerbungen"
@@ -19,7 +20,7 @@ THREE_PAGES = "drei_seiten"
 
 def path(daten: pathlib.Path, entry_id: str) -> pathlib.Path:
     if not ID_MUSTER.fullmatch(entry_id or ""):
-        raise ValueError(f"Ungültige Bewerbungs-id: {entry_id!r}")
+        raise ValueError(T("Ungültige Bewerbungs-id: {id}", id=repr(entry_id)))
     return daten.resolve() / FOLDER / entry_id / FILE
 
 

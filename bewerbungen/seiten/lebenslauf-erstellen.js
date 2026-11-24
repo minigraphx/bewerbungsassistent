@@ -44,9 +44,9 @@
   }
 
   function moveButton(section, station, step, allowed) {
-    const label = step < 0 ? "Nach oben" : "Nach unten";
+    const richtung = step < 0 ? window.Texte.t("Nach oben") : window.Texte.t("Nach unten");
     return el("button", { type: "button", class: "btn btn--sm", disabled: !allowed, "data-key": `${section.name}-${station.index}-${step}`,
-                          "aria-label": `${station.titel}: ${label}`,
+                          "aria-label": window.Texte.t("{station}: {richtung}", { station: station.titel, richtung }),
                           onclick: () => change(Logic.move(state, section.name, station.index, step)) },
       step < 0 ? "↑" : "↓");
   }
@@ -332,7 +332,7 @@
       startAi(answer);
     } catch (error) {
       setOpen(true);
-      message(`Lebenslauf erstellen geht gerade nicht: ${error.message}`, "fehler");
+      message(window.Texte.t("Lebenslauf erstellen geht gerade nicht: {grund}", { grund: error.message }), "fehler");
     }
   }
 
@@ -350,7 +350,7 @@
     $("cv-erstellen-speichern").disabled = true;
     try {
       const body = Logic.request(state, fields());
-      message("Lebenslauf wird erstellt …");
+      message(window.Texte.t("Lebenslauf wird erstellt …"));
       const answer = await senden(ROUTE, body);
       message(Logic.savedText(answer), answer.gebaut ? "ok" : "hinweis");
       $("cv-erstellen-pdf").href = url("/api/pdf", { id: ID, art: "lebenslauf" });

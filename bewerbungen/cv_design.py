@@ -13,13 +13,15 @@ import yaml
 
 from dateien import schreibe_atomar
 from register import CV_DESIGNS
+from ui_message import T
 
 FILE = "aussehen.yaml"
 KEY = "lebenslauf"
 PRESET = CV_DESIGNS[0]
-NAMES = {"zweispaltig": "Zweispaltig", "einspaltig": "Einspaltig"}
+NAMES = {"zweispaltig": T("Zweispaltig"), "einspaltig": T("Einspaltig")}
 HEADER = "# Aussehen des Lebenslaufs, gewählt unter „Lebenslauf und Dateien“. Geschrieben vom Bewerbungsbegleiter.\n"
-UNKNOWN = f"Bitte {' oder '.join(NAMES[name] for name in CV_DESIGNS)} wählen."
+# The refusal names the two designs register.CV_DESIGNS knows, in the app language (#428).
+UNKNOWN = T("Bitte {eins} oder {zwei} wählen.", eins=NAMES[CV_DESIGNS[0]], zwei=NAMES[CV_DESIGNS[1]])
 DRAFT = "Aussehen des Lebenslaufs"
 
 
