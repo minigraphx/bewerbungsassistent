@@ -123,7 +123,7 @@ CROP_REFUSALS = {
         "de": "basics.x-image: unbekannte Felder ['drehen', 'spiegeln']; erlaubt sind mirror, zoom, x, y",
         "fr": f"basics.x-image{NBSP}: champs inconnus ['drehen', 'spiegeln']{NBSP}; champs autorisés{NBSP}: "
               "mirror, zoom, x, y",
-        "en": "basics.x-image: unknown fields ['drehen', 'spiegeln']; allowed are mirror, zoom, x, y",
+        "en": "basics.x-image: unknown fields ['drehen', 'spiegeln']; allowed: mirror, zoom, x, y",
     }),
     "mirror no yes or no": (lambda: build.pruefe_foto_optionen({"mirror": "ja"}), {
         "de": "basics.x-image.mirror muss true oder false sein",
@@ -159,23 +159,23 @@ CROP_REFUSALS = {
     }),
     "headings no mapping": (lambda: build.pruefe_beschriftungen("Schule"), {
         "de": "x-beschriftungen muss eine Zuordnung sein, z.B. {erfahrung: Schnupperlehren & Erfahrungen}",
-        "fr": f"x-beschriftungen doit être un mappage, p.{NBSP}ex. {{erfahrung: Stages & expériences}}",
-        "en": "x-beschriftungen must be a mapping, e.g. {erfahrung: Taster placements & experience}",
+        "fr": f"x-beschriftungen doit être un mappage, p.{NBSP}ex. {{erfahrung: Stages d'orientation & expériences}}",
+        "en": "x-beschriftungen must be a mapping, e.g. {erfahrung: Trial apprenticeships & experience}",
     }),
     "headings of unknown sections": (lambda: build.pruefe_beschriftungen({"hobbys": "Freizeit"}), {
         "de": "x-beschriftungen: unbekannte Abschnitte ['hobbys']; erlaubt sind " + ", ".join(build.ABSCHNITTE),
         "fr": f"x-beschriftungen{NBSP}: sections inconnues ['hobbys']{NBSP}; sections autorisées{NBSP}: "
               + ", ".join(build.ABSCHNITTE),
-        "en": "x-beschriftungen: unknown sections ['hobbys']; allowed are " + ", ".join(build.ABSCHNITTE),
+        "en": "x-beschriftungen: unknown sections ['hobbys']; allowed: " + ", ".join(build.ABSCHNITTE),
     }),
     "heading empty": (lambda: build.pruefe_beschriftungen({"erfahrung": " "}), {
         "de": "x-beschriftungen.erfahrung muss ein nicht leerer Text sein",
         "fr": "x-beschriftungen.erfahrung doit être un texte non vide",
-        "en": "x-beschriftungen.erfahrung must be a text that is not empty",
+        "en": "x-beschriftungen.erfahrung must be non-empty text",
     }),
     "heading too long": (lambda: build.pruefe_beschriftungen({"erfahrung": "x" * (build.MAX_BESCHRIFTUNG + 1)}), {
         "de": f"x-beschriftungen.erfahrung darf höchstens {build.MAX_BESCHRIFTUNG} Zeichen haben",
-        "fr": f"x-beschriftungen.erfahrung peut compter au maximum {build.MAX_BESCHRIFTUNG} caractères",
+        "fr": f"x-beschriftungen.erfahrung ne doit pas dépasser {build.MAX_BESCHRIFTUNG} caractères",
         "en": f"x-beschriftungen.erfahrung may have at most {build.MAX_BESCHRIFTUNG} characters",
     }),
 }
@@ -292,7 +292,7 @@ def test_unterlagen_erstellen_names_a_bad_heading_of_a_dossier_in_english(server
     cv_with(server.kontext.daten, "x-beschriftungen: {erfahrung: ''}\n")
 
     assert refused(server, "/api/unterlagen", {}, id=BRIEF_ID) == (
-        "x-beschriftungen.erfahrung must be a text that is not empty")
+        "x-beschriftungen.erfahrung must be non-empty text")
 
 
 def test_unterlagen_erstellen_names_a_bad_crop_in_german_with_the_preview_off(server, no_preview):  # noqa: F811
