@@ -161,8 +161,11 @@ FERTIG: tuple[pathlib.Path, ...] = (
         "documents.py", "import_bundle.py", "import_documents.py", "known_tags.py", "markdown_files.py", "prefill.py",
         "prefill_estimate.py", "read_documents.py", "rejected.py", "text_diff.py", "validation.py", "values.py")),
     # The checks of the letter (#453): lebenslauf/anschreiben.py refuses in German with template and values, and
-    # letter_messages makes them messages of the letter editor, Inhalte als Text and Unterlagen erstellen.
-    LEBENSLAUF / "anschreiben.py", BASE / "letter_messages.py",
+    # refusal_messages makes them messages of the letter editor, Inhalte als Text and Unterlagen erstellen.
+    LEBENSLAUF / "anschreiben.py", BASE / "refusal_messages.py",
+    # The checks of the photo crop and the headings (#455): fotoausschnitt.py and build.py refuse the same way, said
+    # on the page Foto and wherever the app builds a CV.
+    LEBENSLAUF / "fotoausschnitt.py", LEBENSLAUF / "build.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
@@ -271,11 +274,12 @@ def orphans(catalog: translation_catalog.Catalog, items: Iterable[language_sourc
 def app_sources() -> tuple[pathlib.Path, ...]:
     """The pages, scripts and modules of bewerbungen, the routes the desktop app adds to them (#417), the folder
     check and system dialogs whose texts the setup routes pass on (#418), and the form and scripts Meine Angaben is
-    built from (#431), with the modules behind its routes (#433), and the letter checks of lebenslauf (#453)."""
+    built from (#431), with the modules behind its routes (#433), and the letter checks (#453) and the checks of
+    the photo crop and the headings (#455) of lebenslauf."""
     patterns = ((BASE, "seiten/*.html"), (BASE, "seiten/*.js"), (BASE, "*.py"), (BASE, "ai/*.py"),
                 (DESKTOP, "routes_*.py"), (DESKTOP, "setup.py"), (DESKTOP, "dialogs.py"),
                 (ONBOARDING, "form.json"), (ONBOARDING, "src/*.js"), (ONBOARDING, "*.py"),
-                (LEBENSLAUF, "anschreiben.py"))
+                (LEBENSLAUF, "anschreiben.py"), (LEBENSLAUF, "fotoausschnitt.py"), (LEBENSLAUF, "build.py"))
     return tuple(path for folder, pattern in patterns for path in sorted(folder.glob(pattern)))
 
 

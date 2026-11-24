@@ -39,6 +39,13 @@ FIRM_RUNNING = "Bei {firma} läuft schon eine Bewerbung: {stelle} ({status})"
 NOT_FROZEN = "Versand erfasst, aber nicht in Git eingefroren: {fehler}"
 
 
+def _error_message(error: Exception) -> object:
+    """The T a Git error of versionen.py carries, so its frame follows the app language inside NOT_FROZEN (#455);
+    what Git or the system wrote stays as it is."""
+    first = error.args[0] if error.args else None
+    return first if isinstance(first, T) else error
+
+
 def purpose(bewerbung: dict, datum: datetime.date) -> str:
     """What a sending is called on the drafts it used (`genutzt_fuer`) and in Git."""
     return f"Versand: {bewerbung['firma']} – {bewerbung['stelle']} ({datum:%d.%m.%Y})"
@@ -172,7 +179,7 @@ def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date
     except (RuntimeError, subprocess.CalledProcessError, OSError) as fehler:
         # Der Versand ist erfasst; eingefroren wird beim nächsten Versand mit (versendet/ und Register sind dabei)
         commit = None
-        hinweise.append(T(NOT_FROZEN, fehler=fehler))
+        hinweise.append(T(NOT_FROZEN, fehler=_error_message(fehler)))
     return {"bewerbung": neu, "commit": commit, "hinweise": hinweise}
 
 

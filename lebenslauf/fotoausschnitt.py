@@ -15,6 +15,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
 from build import ROOT, pruefe_foto_optionen
+from refusal import Refusal
 from typst_root import typst_root
 
 STANDARD = {"mirror": False, "zoom": 1, "x": 0.5, "y": 0.5}
@@ -35,15 +36,15 @@ def hat_foto(daten: pathlib.Path) -> bool:
 def lies_foto(daten: pathlib.Path) -> tuple[pathlib.Path, dict]:
     """Pfad des Fotos und die vollständigen Optionen (fehlende mit Standardwerten ergänzt)."""
     if not daten.is_file():
-        raise ValueError("Es gibt noch keinen Lebenslauf. Bitte zuerst die Angaben erfassen.")
+        raise Refusal("Es gibt noch keinen Lebenslauf. Bitte zuerst die Angaben erfassen.")
     cv = yaml.safe_load(daten.read_text(encoding="utf-8")) or {}
     basics = cv.get("basics") or {}
     bild = basics.get("image")
     if not bild:
-        raise ValueError(f"{daten}: basics.image fehlt, es gibt kein Foto zum Zuschneiden")
+        raise Refusal("{pfad}: basics.image fehlt, es gibt kein Foto zum Zuschneiden", pfad=daten)
     foto = (daten.parent / bild).resolve()
     if not foto.is_file():
-        raise ValueError(f"Foto nicht gefunden: {foto}")
+        raise Refusal("Foto nicht gefunden: {pfad}", pfad=foto)
     return foto, {**STANDARD, **pruefe_foto_optionen(basics.get("x-image") or {})}
 
 
@@ -51,15 +52,15 @@ def optionen_aus_anfrage(werte: dict[str, str]) -> dict:
     """Optionen aus Textwerten (z.B. URL-Parametern) lesen und prüfen; alle vier Werte sind Pflicht."""
     fehlend = [key for key in STANDARD if key not in werte]
     if fehlend:
-        raise ValueError(f"Es fehlen Werte: {', '.join(fehlend)}")
+        raise Refusal("Es fehlen Werte: {werte}", werte=", ".join(fehlend))
     if werte["mirror"] not in ("true", "false"):
-        raise ValueError("mirror muss true oder false sein")
+        raise Refusal("mirror muss true oder false sein")
     zahlen = {}
     for key in ("zoom", "x", "y"):
         try:
             zahlen[key] = float(werte[key])
         except ValueError:
-            raise ValueError(f"{key} muss eine Zahl sein, nicht {werte[key]!r}") from None
+            raise Refusal("{feld} muss eine Zahl sein, nicht {wert}", feld=key, wert=repr(werte[key])) from None
     return pruefe_foto_optionen({"mirror": werte["mirror"] == "true", **zahlen})
 
 

@@ -17,6 +17,7 @@ import fill_record
 import page_fill
 import type_area
 from build import ROOT
+from refusal import Refusal
 from typst_root import typst_root
 
 SPRACHEN = ("de", "en", "fr")
@@ -37,14 +38,9 @@ PLACE_AND_DATE = {"de": "{ort}, {datum}", "en": "{ort}, {datum}", "fr": "{ort}, 
 DATE_ALONE = {"de": "{datum}", "en": "{datum}", "fr": "Le {datum}"}
 
 
-class LetterError(ValueError):
+class LetterError(Refusal):
     """A refusal of the letter, in German; with its template and values, so the app can say it in its own language
     (#453). lebenslauf builds on its own and never imports the app, so the app turns them into its message."""
-
-    def __init__(self, template: str, **values: object) -> None:
-        super().__init__(template.format(**values))
-        self.template = template
-        self.values = values
 
 
 def formatiere_datum(datum: datetime.date | str, sprache: str) -> str:

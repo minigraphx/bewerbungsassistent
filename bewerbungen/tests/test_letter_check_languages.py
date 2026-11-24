@@ -14,7 +14,7 @@ import pytest
 import yaml
 
 import anschreiben
-import letter_messages
+import refusal_messages
 import sprachen_pruefen
 import translation_catalog
 import unterlagen
@@ -27,7 +27,7 @@ from test_today_languages import no_preview, preview, store_language  # noqa: F4
 NBSP = chr(0xA0)
 LETTER_ROUTE = "/api/bewerbung/anschreiben"
 LETTER_FILE = sprachen_pruefen.ROOT / "lebenslauf" / "anschreiben.py"
-MODULE_FILE = sprachen_pruefen.BASE / "letter_messages.py"
+MODULE_FILE = sprachen_pruefen.BASE / "refusal_messages.py"
 
 
 def catalog() -> translation_catalog.Catalog:
@@ -47,7 +47,7 @@ def valid_letter(**changes) -> dict:
 def refusal(call) -> str:
     """The message `call` is refused with once the app has said it: the first argument of its ValueError."""
     with pytest.raises(ValueError) as refused_:
-        with letter_messages.in_app_language():
+        with refusal_messages.in_app_language():
             call()
     return refused_.value.args[0]
 
@@ -178,7 +178,7 @@ def test_a_cv_that_is_not_there_is_named_in_the_app_language(language, tmp_path)
 
 def test_other_errors_pass_unchanged():
     with pytest.raises(KeyError, match="anders"):
-        with letter_messages.in_app_language():
+        with refusal_messages.in_app_language():
             raise KeyError("anders")
 
 

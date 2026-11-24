@@ -17,6 +17,7 @@ import fotoausschnitt
 import photo_file
 import photo_shown
 import photos
+import refusal_messages
 from server import Antwort, json_antwort
 from ui_message import T
 
@@ -30,8 +31,14 @@ def _cv(k):
     return k.daten / "cv.yaml"
 
 
+def _photo(k) -> tuple[pathlib.Path, dict]:
+    """The active photo and its crop; fotoausschnitt refuses in German, the page says it in the app language (#455)."""
+    with refusal_messages.in_app_language():
+        return fotoausschnitt.lies_foto(_cv(k))
+
+
 def _vorschau(k) -> fotoausschnitt.Vorschau:
-    foto, _ = fotoausschnitt.lies_foto(_cv(k))
+    foto, _ = _photo(k)
     schluessel = ("foto-vorschau", str(foto))
     if schluessel not in k.cache:
         k.cache[schluessel] = fotoausschnitt.Vorschau(foto, k.build)
@@ -43,7 +50,7 @@ def vorhanden(k, parameter, body):
 
 
 def optionen(k, parameter, body):
-    return json_antwort(fotoausschnitt.lies_foto(_cv(k))[1])
+    return json_antwort(_photo(k)[1])
 
 
 def liste(k, parameter, body):
@@ -56,19 +63,22 @@ def bild(k, parameter, body):
     if parameter.get("datei"):
         foto = k.daten / photos.listed(k.daten, parameter["datei"])["datei"]
     else:
-        foto, _ = fotoausschnitt.lies_foto(_cv(k))
+        foto, _ = _photo(k)
     return Antwort(200, mimetypes.guess_type(foto.name)[0] or "application/octet-stream", foto.read_bytes())
 
 
 def vorschau(k, parameter, body):
-    return Antwort(200, "image/png", _vorschau(k).png(fotoausschnitt.optionen_aus_anfrage(parameter)))
+    preview = _vorschau(k)
+    with refusal_messages.in_app_language():
+        return Antwort(200, "image/png", preview.png(fotoausschnitt.optionen_aus_anfrage(parameter)))
 
 
 def speichern(k, parameter, body):
     if not isinstance(body, dict):
         raise ValueError("Optionen erwartet")
-    k.mit_entwurf(_cv(k), "Fotoausschnitt geändert", lambda: fotoausschnitt.speichere_optionen(_cv(k), body))
-    return json_antwort(fotoausschnitt.lies_foto(_cv(k))[1])
+    with refusal_messages.in_app_language():
+        k.mit_entwurf(_cv(k), "Fotoausschnitt geändert", lambda: fotoausschnitt.speichere_optionen(_cv(k), body))
+    return json_antwort(_photo(k)[1])
 
 
 def _photo_bytes(body) -> bytes:
@@ -115,7 +125,7 @@ def hochladen(k, parameter, body):
     _check_decodes(k, pathlib.Path(name).name, clean)
     photos.add(k, name, clean)
     _forget_previews(k)
-    return json_antwort(fotoausschnitt.lies_foto(_cv(k))[1])
+    return json_antwort(_photo(k)[1])
 
 
 def aktiv(k, parameter, body):

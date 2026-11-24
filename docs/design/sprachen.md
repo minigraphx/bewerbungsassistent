@@ -76,7 +76,8 @@ Eine Meldung für die Person schreibt eine Route als `T("Abgabe bis {datum}", da
 - Ein Wert, der selbst ein `T` ist, kommt in derselben Sprache in die Vorlage.
 - Die Sprache kommt aus dem Datenordner des Servers, darum folgen auch die Antworten an die Erweiterung und an Claude über die App.
 - Wer eine Meldung ausserhalb einer Route zeigt (etwa `desktop/dialogs.py`), holt sie mit `ui_texts.uebersetze(text, sprache)`.
-- `lebenslauf/` importiert nichts aus der App und bleibt auf der Befehlszeile deutsch. Was die App von dort zeigt, trägt seine Teile als Daten: die Kürzungen in `cuts.py` (#428), die Ablehnungen des Anschreibens als `anschreiben.LetterError` mit Vorlage und Werten (#453). `bewerbungen/letter_messages.in_app_language()` macht daraus um jeden Bau des Anschreibens ein `T`.
+- `lebenslauf/` importiert nichts aus der App und bleibt auf der Befehlszeile deutsch. Was die App von dort zeigt, trägt seine Teile als Daten: die Kürzungen in `cuts.py` (#428), die Ablehnungen als `refusal.Refusal` mit Vorlage und Werten: die des Anschreibens (`anschreiben.LetterError`, #453), des Fotoausschnitts und der Überschriften (`fotoausschnitt.py`, `build.py`, #455). `bewerbungen/refusal_messages.in_app_language()` macht daraus um jeden Bau von Lebenslauf, Anschreiben und Dossier ein `T`, ebenso um jeden Aufruf von `fotoausschnitt` auf der Seite „Foto“.
+- Ein Git-Fehler von `versionen.py` ist ein `RuntimeError` mit einem `T`; der Versand gibt dieses `T` in den Hinweis „Versand erfasst, aber nicht in Git eingefroren“, damit auch sein Rahmen der Sprache folgt (#455). Was Git schreibt, bleibt, wie es ist.
 - Ist der Katalog kaputt, bleibt die Meldung deutsch, und die Konsole nennt die Datei.
 
 Eine Meldung mit Werten braucht `T`: Ein f-String ergibt einen Text, der nie im Katalog steht.
