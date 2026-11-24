@@ -63,7 +63,7 @@ test("a list row names its stage, next step, deadline and date in the app langua
     { stand: "Refus", schritt: "–", bis: "–", erfasst: "01.11.2026" });
   const waiting = row(b("w", "Beworben", { beworben_am: "2026-11-02" }));
   assert.deepEqual(inLanguage("en", () => A.rowTexts(waiting, "stelle-sie")),
-    { stand: "Applied", schritt: "Wait for the answer", bis: "follow up from 16.11.2026", erfasst: "01.11.2026" });
+    { stand: "Applied", schritt: "Wait for the reply", bis: "follow up from 16.11.2026", erfasst: "01.11.2026" });
   const interview = row(b("g", "Gespräch"));
   assert.equal(inLanguage("fr", () => A.rowTexts(interview, "stelle-sie").bis), "à définir");
   assert.equal(inLanguage("en", () => A.rowTexts(interview, "lehrstelle-du").stand), "Invitation");

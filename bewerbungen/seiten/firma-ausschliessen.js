@@ -29,7 +29,8 @@
       stand = (await holen("/api/firmen/ausgeschlossen", { firma })).firma;
     } catch (fehler) {
       stand = null;  // without the list the page still works, only without this button
-      meldung(`Ob ${firma} in der Suche gezeigt wird, liess sich nicht laden. ${fehler.message}`, "hinweis");
+      meldung(window.Texte.t("Ob {firma} in der Suche gezeigt wird, liess sich nicht laden. {fehler}", { firma, fehler: fehler.message }),
+        "hinweis");
     }
     zeige();
   }
@@ -51,7 +52,8 @@
   }
 
   window.App.textsatz().then(gewaehlt => { satz = gewaehlt; zeige(); })
-    .catch(fehler => meldung(`Texte für ${firma || "die Firma"}: ${fehler.message}`, "hinweis"));
+    .catch(fehler => meldung(window.Texte.t("Texte für {firma}: {fehler}",
+      { firma: firma || window.Texte.t("die Firma"), fehler: fehler.message }), "hinweis"));
   document.addEventListener("bewerbung-geladen", event => {
     const name = event.detail?.bewerbung?.firma || "";
     if (name !== firma) lade(name);

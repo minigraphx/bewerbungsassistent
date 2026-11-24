@@ -118,7 +118,9 @@ test("Einstellungen, the page „KI“ and „Alle prüfen“ draw their used-up
   assert.match(read("einstellungen.js"), /const USED_UP_ONCE = \$\("einladung-aufgebraucht"\)\.textContent;/);
   assert.match(read("einstellungen.js"),
     /\$\("einladung-aufgebraucht"\)\.replaceChildren\(\.\.\.\(monthly \? \[monthly\] : window\.Texte\.withCodeRequestLink\(USED_UP_ONCE, el\)\)\);/);
-  assert.match(read("ki.js"), /\$\("ki-status"\)\.replaceChildren\(\.\.\.window\.Texte\.withCodeRequestLink\(statusText\(s\), el\)/);
+  // since #427 the page keeps window.Texte in a constant
+  assert.match(read("ki.js"), /const Texte = window\.Texte;/);
+  assert.match(read("ki.js"), /\$\("ki-status"\)\.replaceChildren\(\.\.\.Texte\.withCodeRequestLink\(statusText\(s\), el\)/);
   const hits = read("treffer.js");
   // since #422 the page keeps window.Texte in a constant
   assert.match(hits, /const Texte = window\.Texte;/);

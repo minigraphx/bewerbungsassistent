@@ -22,6 +22,7 @@ from collections.abc import Iterable
 import pdf_boxes
 import pfade  # noqa: F401  (makes the module lebenslauf importable)
 import type_area
+from ui_message import T
 
 MIN_FILL = 1 / 3
 SAFE_MARGIN = 20.0  # pt, about 7 mm
@@ -45,7 +46,7 @@ HEADED_PARTS = ("lebenslauf", "dossier")
 class Breach:
     page: int
     rule: str  # fuellung | ueberschrift | rand | ueberlappung
-    reason: str
+    reason: str  # a T, said in the app language by the route
 
 
 def check(pdf: pathlib.Path, part: str, headings: Iterable[str] = ()) -> list[Breach]:
@@ -107,6 +108,34 @@ def _content(pages: list[pdf_boxes.Page]) -> list[pdf_boxes.Box]:
     return [box for box in boxes if id(box) not in recurring]
 
 
+# Why a rule is broken, as T (#427): German as before, said in the app language by the route; the text quoted from the
+# PDF stays as it is.
+
+
+def fill_reason(share: float) -> T:
+    return T("nur zu {prozent} % gefüllt, verlangt ist mindestens ein Drittel.", prozent=round(max(share, 0) * 100))
+
+
+def lone_heading_reason(text: str) -> T:
+    return T("Die Überschrift «{text}» steht allein am Ende der Seite.", text=_shown(text))
+
+
+def edge_reason(text: str) -> T:
+    return T("Text reicht bis an den Rand der Seite oder darüber hinaus («{text}»).", text=_shown(text))
+
+
+def margin_reason(text: str) -> T:
+    return T("Text ragt in den Rand des Designs hinein («{text}»).", text=_shown(text))
+
+
+def overlap_reason(first: str, second: str) -> T:
+    return T("Text liegt über anderem Text («{erster}» und «{zweiter}»).", erster=_shown(first), zweiter=_shown(second))
+
+
+def image_edge_reason(text: str) -> T:
+    return T("Text läuft über den Rand eines Bildes («{text}»).", text=_shown(text))
+
+
 def _fill(pages: list[pdf_boxes.Page]) -> list[Breach]:
     content = _content(pages)
     if not content:
@@ -121,7 +150,7 @@ def _fill(pages: list[pdf_boxes.Page]) -> list[Breach]:
     share = (on_last - top) / (bottom - top) if bottom > top else 1.0
     if share >= MIN_FILL:
         return []
-    return [Breach(last, "fuellung", f"nur zu {round(max(share, 0) * 100)} % gefüllt, verlangt ist mindestens ein Drittel.")]
+    return [Breach(last, "fuellung", fill_reason(share))]
 
 
 def _lone_headings(pages: list[pdf_boxes.Page], headings: set[str]) -> list[Breach]:
@@ -133,8 +162,7 @@ def _lone_headings(pages: list[pdf_boxes.Page], headings: set[str]) -> list[Brea
         below = [o for o in content if o.page == box.page and o.baseline > box.baseline + MIN_OVERLAP
                  and min(o.right, box.right) - max(o.left, box.left) > 0]
         if not below:
-            found.append(Breach(box.page, "ueberschrift",
-                                f"Die Überschrift «{_shown(box.text)}» steht allein am Ende der Seite."))
+            found.append(Breach(box.page, "ueberschrift", lone_heading_reason(box.text)))
     return found
 
 
@@ -142,11 +170,9 @@ def _outside(page: pdf_boxes.Page, area: dict | None) -> list[Breach]:
     found = []
     for box in page.text:
         if _at_edge(page, box):
-            found.append(Breach(page.number, "rand",
-                                f"Text reicht bis an den Rand der Seite oder darüber hinaus («{_shown(box.text)}»)."))
+            found.append(Breach(page.number, "rand", edge_reason(box.text)))
         elif area is not None and _in_margin(box, area):
-            found.append(Breach(page.number, "rand",
-                                f"Text ragt in den Rand des Designs hinein («{_shown(box.text)}»)."))
+            found.append(Breach(page.number, "rand", margin_reason(box.text)))
     return found
 
 
@@ -195,12 +221,10 @@ def _overlaps(page: pdf_boxes.Page) -> list[Breach]:
     for i, (a, core_a) in enumerate(text):
         for b, core_b in text[i + 1:]:
             if _overlap(core_a, core_b):
-                found.append(Breach(page.number, "ueberlappung",
-                                    f"Text liegt über anderem Text («{_shown(a.text)}» und «{_shown(b.text)}»)."))
+                found.append(Breach(page.number, "ueberlappung", overlap_reason(a.text, b.text)))
     for image in page.images:
         frame = _core(image)
         for box, core in text:
             if _overlap(core, frame) and not _inside(core, frame):
-                found.append(Breach(page.number, "ueberlappung",
-                                    f"Text läuft über den Rand eines Bildes («{_shown(box.text)}»)."))
+                found.append(Breach(page.number, "ueberlappung", image_edge_reason(box.text)))
     return found

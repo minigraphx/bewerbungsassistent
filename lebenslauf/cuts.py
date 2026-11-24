@@ -165,12 +165,17 @@ def longest_paragraph(text: str) -> int | None:
     return max(range(len(paragraphs)), key=lambda place: len(paragraphs[place])) if paragraphs else None
 
 
-def for_letter(text: str) -> list[str]:
-    """The candidate to cut from a letter: its longest paragraph, named by its first words."""
+def letter_opening(text: str) -> str | None:
+    """The first words of a letter's longest paragraph, as the letter has them; None without text. The check names
+    the paragraph by them in the app language (#427)."""
     paragraphs = _paragraphs(text)
     if not paragraphs:
-        return []
-    longest = paragraphs[longest_paragraph(text)]
-    words = longest.split()
-    opening = " ".join(words[:OPENING_WORDS]) + (" …" if len(words) > OPENING_WORDS else "")
-    return [f"der längste Absatz («{opening}»)"]
+        return None
+    words = paragraphs[longest_paragraph(text)].split()
+    return " ".join(words[:OPENING_WORDS]) + (" …" if len(words) > OPENING_WORDS else "")
+
+
+def for_letter(text: str) -> list[str]:
+    """The candidate to cut from a letter: its longest paragraph, named by its first words."""
+    opening = letter_opening(text)
+    return [f"der längste Absatz («{opening}»)"] if opening is not None else []

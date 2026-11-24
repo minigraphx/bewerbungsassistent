@@ -19,7 +19,9 @@ const LEFT_ALONE = {
   "sidebar-logic.js": [["narrow: warning ? `${short} · ${warning.short}`", 1], ["narrow: `${short} · ${none.short}`", 1],
                        ["low: `${short} · ${Texte.t(\"fast aufgebraucht\")}`", 1]],
   // Error and warning texts joined from reasons or suspicious lines: a message, not a line of parts.
-  "bewerbung.js": [["antwortDaten.abgelehnt.map(a => a.grund).join(\" · \")", 1], ["ergebnis.hinweise.join(\" · \")", 1]],
+  "bewerbung.js": [["antwortDaten.abgelehnt.map(a => a.grund).join(\" · \")", 1]],
+  // The remarks after recording the dispatch, worded since #427 with the page's other words.
+  "bewerbung-texte.js": [["{ hinweise: hinweise.join(\" · \") }", 1]],
   "dossier-texte.js": [["ergebnis.suspicious_lines.join(\" · \")", 1]],
   // Both runs (forms, Job-Room) show their refusals through this one helper since #419.
   "uebersicht.js": [["liste.map(a => Texte.t(\"{firma}: {grund}\", { firma: a.firma, grund: a.grund })).join(\" · \")", 1]],

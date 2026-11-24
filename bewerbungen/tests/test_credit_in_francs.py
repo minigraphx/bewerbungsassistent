@@ -231,8 +231,10 @@ def _ki_page_status(status: dict) -> str:
     """Runs `statusText` of the page „KI“ as written, with `money` from treffer-logik.js."""
     script = (PAGES / "ki.js").read_text(encoding="utf-8")
     function = re.search(r"\n  function statusText\(s\) \{.*?\n  \}\n", script, re.S)[0]
-    # var, not const: the page scripts read `typeof window` while they load, which a const would still block
+    # var, not const: the page scripts read `typeof window` while they load, which a const would still block; since
+    # #427 the page keeps window.Texte in the constant Texte
     code = (f"var window = {{ Texte: require(process.argv[3]) }}; const {{ money }} = require(process.argv[2]); "
+            f"const Texte = window.Texte; "
             f"const kosten = x => x; {function}; process.stdout.write(statusText(JSON.parse(process.argv[1])));")
     return subprocess.run(["node", "-e", code, json.dumps(status), str(PAGES / "treffer-logik.js"), str(PAGES / "texte.js")],
                           capture_output=True, text=True, timeout=60, check=True).stdout

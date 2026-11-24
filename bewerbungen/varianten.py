@@ -18,6 +18,7 @@ import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import build as lebenslauf_modul
 from dateien import im_ordner, lies_yaml, schreibe_yaml
 from register import ID_MUSTER
+from ui_message import T
 
 DATEI = "varianten.yaml"
 ARTEN = ("lebenslauf",)
@@ -29,33 +30,39 @@ def _liste(v, feld: str) -> list[str]:
     if v is None:
         return []
     if not isinstance(v, list) or not all(isinstance(x, str) and x.strip() for x in v):
-        raise ValueError(f"{feld} muss eine Liste von Wörtern sein, z.B. [ki, fullstack]")
+        raise ValueError(T("{feld} muss eine Liste von Wörtern sein, z.B. [ki, fullstack]", feld=feld))
     return [x.strip() for x in v]
+
+
+# The messages are T (#427); the field names and values of varianten.yaml stay as the file has them.
+def _check_fields(v: dict) -> None:
+    unbekannt = set(v) - set(FELDER)
+    if unbekannt:
+        raise ValueError(T("Unbekannte Felder: {felder}", felder=str(sorted(unbekannt))))
+    if not isinstance(v.get("id"), str) or not ID_MUSTER.fullmatch(v["id"]):
+        raise ValueError(T("id muss aus Kleinbuchstaben, Ziffern und Bindestrichen bestehen, nicht {id}",
+                           id=repr(v.get("id"))))
 
 
 def pruefe_variante(v: dict, ordner: pathlib.Path | None = None) -> dict:
     if not isinstance(v, dict):
         raise ValueError("Variante muss eine Zuordnung sein")
-    unbekannt = set(v) - set(FELDER)
-    if unbekannt:
-        raise ValueError(f"Unbekannte Felder: {sorted(unbekannt)}")
-    if not isinstance(v.get("id"), str) or not ID_MUSTER.fullmatch(v["id"]):
-        raise ValueError(f"id muss aus Kleinbuchstaben, Ziffern und Bindestrichen bestehen, nicht {v.get('id')!r}")
+    _check_fields(v)
     art = v.get("art") or "lebenslauf"
     if art not in ARTEN:
-        raise ValueError(f"art muss eine von {', '.join(ARTEN)} sein")
+        raise ValueError(T("art muss eine von {arten} sein", arten=", ".join(ARTEN)))
     if (v.get("sprache") or "de") not in lebenslauf_modul.SPRACHEN:
-        raise ValueError(f"sprache muss eine von {', '.join(lebenslauf_modul.SPRACHEN)} sein")
+        raise ValueError(T("sprache muss eine von {sprachen} sein", sprachen=", ".join(lebenslauf_modul.SPRACHEN)))
     quellen = [q for q in QUELLEN if v.get(q)]
     if not quellen:
         raise ValueError("Es braucht quelle (Zuschnitt), datei (PDF) oder extern (Hinweis)")
     if len(quellen) > 1:
-        raise ValueError(f"Bitte nur eine Quelle angeben, nicht {', '.join(quellen)}")
+        raise ValueError(T("Bitte nur eine Quelle angeben, nicht {quellen}", quellen=", ".join(quellen)))
     for q in ("quelle", "datei"):
         if v.get(q):
             pfad = str(v[q])
             if pfad.startswith("/") or ".." in pathlib.PurePosixPath(pfad).parts:
-                raise ValueError(f"{q} muss ein Pfad innerhalb des Datenordners sein: {pfad!r}")
+                raise ValueError(T("{feld} muss ein Pfad innerhalb des Datenordners sein: {pfad}", feld=q, pfad=repr(pfad)))
             if ordner is not None:
                 im_ordner(ordner, pfad)
     neu = {"id": v["id"], "art": art, quellen[0]: str(v[quellen[0]]).strip(),
@@ -78,7 +85,7 @@ class Varianten:
         for v in self.alle():
             if v["id"] == variante_id:
                 return v
-        raise KeyError(f"Variante {variante_id!r} nicht gefunden")
+        raise KeyError(T("Variante {variante} nicht gefunden", variante=repr(variante_id)))
 
     def speichere(self, variante: dict) -> dict:
         neu = pruefe_variante(variante, self.ordner)

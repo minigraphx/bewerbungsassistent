@@ -105,6 +105,13 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "seiten/bewerbung.html", BASE / "seiten/bewerbung-logik.js", BASE / "seiten/formular-logik.js",
     BASE / "seiten/bewerbung-wieder.js",
     BASE / "apply.py", BASE / "versand.py", BASE / "letter_approval.py", BASE / "form_copy.py",
+    # The main script of the page Bewerbung and its check (#427): bewerbung.js and its words, the AI step, the own
+    # letter, the folder of files and the exclusion of the company, and the modules behind the findings, the documents,
+    # the variants and the certificates.
+    BASE / "seiten/bewerbung.js", BASE / "seiten/bewerbung-texte.js", BASE / "seiten/ki.js", BASE / "seiten/firma-ausschliessen.js",
+    BASE / "seiten/eigenes-anschreiben.js", BASE / "seiten/dateien-ordner.js",
+    BASE / "pruefung.py", BASE / "layout_check.py", BASE / "layout_confirmed.py", BASE / "unterlagen.py",
+    BASE / "varianten.py", BASE / "certificates.py", BASE / "routes_certificates.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

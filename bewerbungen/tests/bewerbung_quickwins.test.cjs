@@ -125,7 +125,11 @@ test("Versand erfassen names neither the folder versendet/ nor eingefroren and s
   const code = lies("bewerbung.js");
   const nachVersand = code.slice(code.indexOf('bestaetigen($("versenden")'), code.indexOf('bestaetigen($("versenden")') + 700);
   assert.doesNotMatch(nachVersand, /eingefroren/);
-  assert.match(code, /Die verschickte Fassung bleibt gespeichert\./);
+  assert.match(nachVersand, /BT\.recorded\(ergebnis\.hinweise, t\)/);
+  // since #427 the message after recording stands with the page's other words in bewerbung-texte.js
+  const words = lies("bewerbung-texte.js");
+  assert.match(words, /Die verschickte Fassung bleibt gespeichert\./);
+  assert.doesNotMatch(words, /versendet\/|eingefroren/);
 });
 
 test("on the first start the CV upload leads to the upload in Meine Angaben (#260, A2)", () => {

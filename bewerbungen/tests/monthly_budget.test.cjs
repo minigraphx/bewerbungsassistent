@@ -230,7 +230,8 @@ test("the window and the page «KI» name the month and, once used up, the day t
   assert.equal(texte.budgetPart(STATUS), " KI-Budget im November: CHF\u00a01.20 von CHF\u00a05.00 verbraucht.");
   assert.equal(texte.budgetPart({ ...STATUS, verbraucht_chf: 5 }),
     ` KI-Budget im November: CHF\u00a05.00 von CHF\u00a05.00 verbraucht. Es ist aufgebraucht; die KI geht wieder ab ${RENEWS}.`);
-  assert.match(read("ki.js"), /window\.Texte\.budgetPart\(s\)/);
+  assert.match(read("ki.js"), /const Texte = window\.Texte;/);  // since #427
+  assert.match(read("ki.js"), /\$\{Texte\.budgetPart\(s\)\}/);
   assert.match(read("ki-fenster.js"), /window\.Texte\.budgetPart\(ki\)/);
 });
 

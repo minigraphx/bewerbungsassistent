@@ -19,6 +19,7 @@ import dossier as dossier_modul
 from dateien import im_ordner
 from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
 from tailor import tailor
+from ui_message import T
 from varianten import Varianten
 
 ORDNER = "bewerbungen"
@@ -28,7 +29,8 @@ NO_CV = "Noch kein Lebenslauf. Bitte unter „Meine Angaben“ erfassen oder unt
 OWN_CV = "dokumente/lebenslauf.pdf"  # uploaded on the page „Lebenslauf und Dateien“, see own_files.py
 OWN_LETTER = "eigenes-anschreiben.pdf"  # uploaded on the page of the application, see own_files.py
 LETTER_SOURCE = "anschreiben.yaml"
-SENT_STAYS = "Diese Bewerbung ist versendet. Was verschickt wurde, bleibt so."
+# A T, since other routes raise it through this module, where the server cannot match it as a plain message (#427)
+SENT_STAYS = T("Diese Bewerbung ist versendet. Was verschickt wurde, bleibt so.")
 DOSSIER = "dossier"
 DOSSIER_PAGES = "dossier.yaml"  # optional pages of the dossier (greeting, thanks, figures), written by Claude
 DOSSIER_OWN_FILE = ("Ein Dossier entsteht aus „Meine Angaben“ und dem Entwurf des Anschreibens, nicht aus einem "
@@ -38,7 +40,7 @@ DOSSIER_NO_LETTER = "Für das Dossier fehlt noch das Anschreiben. Bitte zuerst e
 
 def bewerbungsordner(daten: pathlib.Path, bewerbung_id: str) -> pathlib.Path:
     if not ID_MUSTER.fullmatch(bewerbung_id or ""):
-        raise ValueError(f"Ungültige Bewerbungs-id: {bewerbung_id!r}")
+        raise ValueError(T("Ungültige Bewerbungs-id: {id}", id=repr(bewerbung_id)))
     return daten.resolve() / ORDNER / bewerbung_id
 
 
@@ -189,10 +191,9 @@ def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, 
     elif variante.get("datei"):
         shutil.copyfile(im_ordner(daten, variante["datei"]), ziel)
     elif not ziel.is_file():
-        raise ValueError(
-            f"Variante {variante['id']!r} ist extern ({variante['extern']}): "
-            f"bitte das PDF als {ziel.relative_to(daten.resolve())} ablegen"
-        )
+        raise ValueError(T("Variante {variante} ist extern ({hinweis}): bitte das PDF als {pfad} ablegen",
+                           variante=repr(variante["id"]), hinweis=variante["extern"],
+                           pfad=str(ziel.relative_to(daten.resolve()))))
 
 
 def build_cv(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> pathlib.Path:

@@ -54,12 +54,12 @@ test("the next step for a CV over its limit names the choice, not «So lassen»"
     assert.equal(texte.text("bewerbung.kuerzen", satz), "Der Lebenslauf ist zu lang, auch so eng wie möglich gesetzt. "
       + "Wähle unter «Unterlagen erstellen und prüfen», was für diese Bewerbung wegfällt, oder erlaube drei Seiten.");
   }
-  assert.match(page("bewerbung.js"), /kuerzen: \[K\.NEXT_TITLE, t\("bewerbung\.kuerzen"\)/);
+  assert.match(page("bewerbung.js"), /kuerzen: \(\) => \[K\.NEXT_TITLE, t\("bewerbung\.kuerzen"\)/);
 });
 
 test("«Zur Prüfung» on the card scrolls to the check and puts the focus on the first finding", () => {
   const source = page("bewerbung.js");
-  assert.match(source, /kuerzen: \[K\.NEXT_TITLE, t\("bewerbung\.kuerzen"\), \[knopf\("Zur Prüfung", zuBefund\)\]\]/);
+  assert.match(source, /kuerzen: \(\) => \[K\.NEXT_TITLE, t\("bewerbung\.kuerzen"\), \[knopf\(Texte\.t\("Zur Prüfung"\), zuBefund\)\]\]/);
   assert.match(source, /const zuBefund = \(\) => \{\s*zuAbschnitt\("s-pruefen"\)\(\);\s*S\.focusFirstFinding\(\);/);
 });
 

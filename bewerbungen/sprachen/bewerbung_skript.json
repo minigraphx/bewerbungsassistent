@@ -1,0 +1,578 @@
+{
+  "Keine Bewerbung gewählt": {"fr": "Aucune candidature choisie", "en": "No application chosen"},
+  "Abgabe bis {datum}": {"fr": "À envoyer d'ici le {datum}", "en": "Due by {datum}"},
+  "Nächster Schritt": {"fr": "Prochaine étape", "en": "Next step"},
+  "Inseratstext einfügen": {"fr": "Coller le texte de l'annonce", "en": "Paste the ad text"},
+  "Zum Textfeld": {"fr": "Aller au champ de texte", "en": "Go to the text field"},
+  "Lebenslauf-Variante wählen": {"fr": "Choisir une variante du CV", "en": "Choose a CV variant"},
+  "Es gibt mehrere Varianten des Lebenslaufs. «Variante vorschlagen» vergleicht sie mit dem Inserat.": {
+    "fr": "Il existe plusieurs variantes du CV. «\u00a0Proposer une variante\u00a0» les compare avec l'annonce.",
+    "en": "There are several variants of the CV. “Suggest a variant” compares them with the ad."
+  },
+  "Anschreiben lesen und freigeben": {"fr": "Lire et valider la lettre de motivation", "en": "Read and approve the cover letter"},
+  "Anschreiben lesen": {"fr": "Lire la lettre de motivation", "en": "Read the cover letter"},
+  "Die KI entwirft das Anschreiben aus dem Inserat und den Angaben. Jede Aussage nennt ihren Beleg; was sich nicht belegen lässt, kommt nicht in den Brief.": {
+    "fr": "L'IA rédige la lettre de motivation à partir de l'annonce et des informations. Chaque affirmation cite son justificatif\u00a0; ce qui ne peut pas être justifié n'entre pas dans la lettre.",
+    "en": "The AI drafts the cover letter from the ad and the details. Each statement names its evidence; what cannot be supported stays out of the letter."
+  },
+  "Eigenes Anschreiben verwenden": {"fr": "Utiliser une lettre de motivation téléversée", "en": "Use an uploaded cover letter"},
+  "Anschreiben hinzufügen": {"fr": "Ajouter une lettre de motivation", "en": "Add a cover letter"},
+  "Eigenes Anschreiben hochladen": {"fr": "Téléverser une lettre de motivation", "en": "Upload a cover letter"},
+  "Die Prüfung läuft.": {"fr": "La vérification est en cours.", "en": "The check is running."},
+  "Zur Prüfung": {"fr": "Vers la vérification", "en": "To the check"},
+  "Unterlagen ansehen": {"fr": "Examiner les documents", "en": "Review the documents"},
+  "Die Prüfung meldet etwas am Satz der PDFs, mit Dokument und Seite. Erst nach «So lassen» öffnet sich ein Formular.": {
+    "fr": "La vérification signale un point de mise en page des PDF, avec document et page. Un formulaire ne s'ouvre qu'après «\u00a0Laisser ainsi\u00a0».",
+    "en": "The check reports something about the layout of the PDFs, with document and page. A form opens only after “Leave as is”."
+  },
+  "Formular bei {firma} ausfüllen": {"fr": "Remplir le formulaire chez {firma}", "en": "Fill in the form at {firma}"},
+  "Per E-Mail beworben? Versand erfassen": {
+    "fr": "Candidature envoyée par e-mail\u00a0? Enregistrer l'envoi", "en": "Applied by email? Record as sent"
+  },
+  "Abschicken und festhalten": {"fr": "Envoyer et consigner", "en": "Send and record"},
+  "Versand festhalten": {"fr": "Consigner l'envoi", "en": "Record what was sent"},
+  "Beworben am {datum}, aber der Versand ist noch nicht festgehalten. «Versand erfassen» legt die Fassung ab, die verschickt wurde.": {
+    "fr": "Candidature envoyée le {datum}, mais l'envoi n'est pas encore consigné. «\u00a0Enregistrer l'envoi\u00a0» conserve la version qui a été envoyée.",
+    "en": "Applied on {datum}, but what was sent is not recorded yet. “Record as sent” keeps the version that was sent."
+  },
+  "Antwort abwarten": {"fr": "Attendre la réponse", "en": "Wait for the reply"},
+  "Die Antwort lässt sich unten eintragen, sobald sie kommt.": {
+    "fr": "La réponse peut être saisie plus bas dès qu'elle arrive.", "en": "The reply can be entered below as soon as it comes."
+  },
+  "Zu den Bewerbungen": {"fr": "Vers les candidatures", "en": "To the applications"},
+  "Termin am {datum}. Inserat und Anschreiben stehen auf dieser Seite.": {
+    "fr": "Rendez-vous le {datum}. L'annonce et la lettre de motivation se trouvent sur cette page.",
+    "en": "Appointment on {datum}. The ad and the cover letter are on this page."
+  },
+  "Den Termin bei den Angaben eintragen, dann steht er hier und in der Übersicht.": {
+    "fr": "Saisir la date dans les informations\u00a0; elle apparaît alors ici et sur la page Aujourd'hui.",
+    "en": "Enter the date in the details; it then shows here and on the Today page."
+  },
+  "Inserat lesen": {"fr": "Lire l'annonce", "en": "Read the ad"},
+  "Absage erhalten": {"fr": "Refus reçu", "en": "Rejection received"},
+  "Zusage erhalten": {"fr": "Réponse positive reçue", "en": "Offer received"},
+  "Die Unterlagen dieser Bewerbung bleiben gespeichert.": {
+    "fr": "Les documents de cette candidature restent enregistrés.", "en": "The documents of this application stay saved."
+  },
+  "Kontakt": {"fr": "Contact", "en": "Contact"},
+  "Gefunden": {"fr": "Trouvé", "en": "Found"},
+  "noch keine Variante": {"fr": "pas encore de variante", "en": "no variant yet"},
+  "Zuweisung": {"fr": "Assignation", "en": "Assignment"},
+  "keine Zuweisung": {"fr": "pas d'assignation", "en": "no assignment"},
+  "Freigegeben am {datum}. Eine Änderung am Text hebt die Freigabe auf.": {
+    "fr": "Validée le {datum}. Une modification du texte annule la validation.",
+    "en": "Approved on {datum}. A change to the text cancels the approval."
+  },
+  "Noch nicht freigegeben. Erst mit der Freigabe öffnet die Erweiterung das Formular.": {
+    "fr": "Pas encore validée. L'extension n'ouvre le formulaire qu'une fois la lettre validée.",
+    "en": "Not approved yet. The extension opens the form only once the letter is approved."
+  },
+  "0 von 1 Anforderungen belegt": {"fr": "0 exigence justifiée sur 1", "en": "0 of 1 requirement supported"},
+  "1 von 1 Anforderungen belegt": {"fr": "1 exigence justifiée sur 1", "en": "1 of 1 requirement supported"},
+  "1 von {anzahl} Anforderungen belegt": {"fr": "1 exigence justifiée sur {anzahl}", "en": "1 of {anzahl} requirements supported"},
+  "{belegt} von {anzahl} Anforderungen belegt": {
+    "fr": "{belegt} exigences justifiées sur {anzahl}", "en": "{belegt} of {anzahl} requirements supported"
+  },
+  "1 Aussage ohne Beleg": {"fr": "1 affirmation sans justificatif", "en": "1 statement without evidence"},
+  "{anzahl} Aussagen ohne Beleg": {"fr": "{anzahl} affirmations sans justificatif", "en": "{anzahl} statements without evidence"},
+  "abgedeckt": {"fr": "couverte", "en": "covered"},
+  "fehlt": {"fr": "manquante", "en": "missing"},
+  "überdehnt": {"fr": "exagérée", "en": "overstated"},
+  "{anforderung}: {stand}": {"fr": "{anforderung}\u00a0: {stand}", "en": "{anforderung}: {stand}"},
+  "Kein Beleg gefunden. Streichen oder in Meine Angaben ergänzen.": {
+    "fr": "Aucun justificatif trouvé. Supprimer ou compléter dans Mes informations.",
+    "en": "No evidence found. Delete it or add it in My details."
+  },
+  "Prüfung der KI vom {datum}. Eine Einschätzung, kein Urteil: Die KI kann sich irren.": {
+    "fr": "Vérification de l'IA du {datum}. Une estimation, pas un jugement\u00a0: l'IA peut se tromper.",
+    "en": "AI review of {datum}. An estimate, not a verdict: the AI can be wrong."
+  },
+  "Für diese Bewerbung gilt das hochgeladene PDF.": {
+    "fr": "Pour cette candidature, c'est le PDF téléversé qui s'applique.", "en": "The uploaded PDF applies to this application."
+  },
+  "Das Anschreiben ist mit der Bewerbung versendet.": {
+    "fr": "La lettre de motivation a été envoyée avec la candidature.", "en": "The cover letter was sent with the application."
+  },
+  "Freigegebener Entwurf:": {"fr": "Brouillon validé\u00a0:", "en": "Approved draft:"},
+  "Entwurf, bitte lesen:": {"fr": "Brouillon, à lire\u00a0:", "en": "Draft, please read:"},
+  "Ein Anschreiben ist vorhanden.": {"fr": "Une lettre de motivation existe.", "en": "A cover letter exists."},
+  "Noch kein Anschreiben.": {"fr": "Pas encore de lettre de motivation.", "en": "No cover letter yet."},
+  "Anschreiben freigegeben": {"fr": "Lettre de motivation validée", "en": "Cover letter approved"},
+  "Nicht bewerben: Die Bewerbung bleibt mit dem Stand „Verworfen“ in der Liste.": {
+    "fr": "Ne pas postuler\u00a0: la candidature reste dans la liste avec le statut «\u00a0Écartée\u00a0».",
+    "en": "Do not apply: the application stays in the list with the status “Discarded”."
+  },
+  "Die Bewerbung nicht weiterverfolgen: Sie bleibt mit dem Stand „Zurückgezogen“ in der Liste.": {
+    "fr": "Ne pas poursuivre la candidature\u00a0: elle reste dans la liste avec le statut «\u00a0Retirée\u00a0».",
+    "en": "Stop pursuing the application: it stays in the list with the status “Withdrawn”."
+  },
+  "– eigener Lebenslauf –": {"fr": "– CV personnel –", "en": "– own CV –"},
+  "– keine –": {"fr": "– aucune –", "en": "– none –"},
+  "– ganzer Lebenslauf –": {"fr": "– CV complet –", "en": "– full CV –"},
+  "Datum": {"fr": "Date", "en": "Date"},
+  "Arbeitgeber": {"fr": "Employeur", "en": "Employer"},
+  "Art": {"fr": "Type", "en": "Type"},
+  "Ergebnis": {"fr": "Résultat", "en": "Result"},
+  "Zuweisung des RAV": {"fr": "Assignation de l'ORP", "en": "RAV assignment"},
+  "Im Job-Room eingetragen am {datum}.": {"fr": "Saisie dans Job-Room le {datum}.", "en": "Entered in Job-Room on {datum}."},
+  "Noch nicht im Job-Room eingetragen.": {"fr": "Pas encore saisie dans Job-Room.", "en": "Not entered in Job-Room yet."},
+  "Zurücksetzen": {"fr": "Réinitialiser", "en": "Reset"},
+  "Als eingetragen markieren": {"fr": "Marquer comme saisie", "en": "Mark as entered"},
+  "Kopiert: {inhalt}": {"fr": "Copié\u00a0: {inhalt}", "en": "Copied: {inhalt}"},
+  "Kopieren nicht möglich, bitte von Hand markieren": {
+    "fr": "Copie impossible, merci de sélectionner à la main", "en": "Copying not possible, please select by hand"
+  },
+  "Kopieren nicht möglich, bitte von Hand markieren.": {
+    "fr": "Copie impossible, merci de sélectionner à la main.", "en": "Copying not possible, please select by hand."
+  },
+  "Prüfung fehlgeschlagen: {fehler}": {"fr": "Échec de la vérification\u00a0: {fehler}", "en": "Check failed: {fehler}"},
+  "Meldung der Prüfung nicht bestätigt: {fehler}": {
+    "fr": "Message de la vérification non confirmé\u00a0: {fehler}", "en": "Message of the check not confirmed: {fehler}"
+  },
+  "Unterlagen (gemeinsames PDF)": {"fr": "Documents (PDF commun)", "en": "Documents (combined PDF)"},
+  "Nachweise (gemeinsames PDF)": {"fr": "Justificatifs (PDF commun)", "en": "Supporting documents (combined PDF)"},
+  "Das Formular im Browser hat eine andere Fassung bekommen: {dateien}. Ohne Häkchen wird die aktuelle festgehalten.": {
+    "fr": "Le formulaire dans le navigateur a reçu une autre version\u00a0: {dateien}. Sans coche, c'est la version actuelle qui est consignée.",
+    "en": "The form in the browser got a different version: {dateien}. Without the tick, the current one is recorded."
+  },
+  "Elektronisch": {"fr": "Électronique", "en": "Electronic"},
+  "Schriftlich": {"fr": "Par écrit", "en": "In writing"},
+  "Persönlich": {"fr": "En personne", "en": "In person"},
+  "Telefonisch": {"fr": "Par téléphone", "en": "By phone"},
+  "Beworben am {datum}": {"fr": "Candidature envoyée le {datum}", "en": "Applied on {datum}"},
+  "{art}. Diese Fassung ist fest gespeichert und ändert sich nicht mehr.": {
+    "fr": "{art}. Cette version est enregistrée définitivement et ne change plus.",
+    "en": "{art}. This version is saved for good and no longer changes."
+  },
+  "Versendete Fassung": {"fr": "Version envoyée", "en": "Version sent"},
+  "lebenslauf: {datei}": {"fr": "CV\u00a0: {datei}", "en": "CV: {datei}"},
+  "anschreiben: {datei}": {"fr": "Lettre de motivation\u00a0: {datei}", "en": "Cover letter: {datei}"},
+  "dossier: {datei}": {"fr": "Dossier\u00a0: {datei}", "en": "Dossier: {datei}"},
+  "zertifikate: {datei}": {"fr": "Certificats\u00a0: {datei}", "en": "Certificates: {datei}"},
+  "unterlagen: {datei}": {"fr": "Documents\u00a0: {datei}", "en": "Documents: {datei}"},
+  "nachweise: {datei}": {"fr": "Justificatifs\u00a0: {datei}", "en": "Supporting documents: {datei}"},
+  "Noch keine Zertifikate hochgeladen. Das geht unter ": {
+    "fr": "Aucun certificat téléversé pour l'instant. Cela se fait sous ", "en": "No certificates uploaded yet. You can do that under "
+  },
+  "Vorschlag, noch nicht gespeichert.": {"fr": "Proposition, pas encore enregistrée.", "en": "Suggestion, not saved yet."},
+  "Gespeichert: ohne Zertifikate.": {"fr": "Enregistré\u00a0: sans certificats.", "en": "Saved: without certificates."},
+  "Diese Bewerbung wurde inzwischen auch anderswo geändert. Die Eingaben bleiben stehen, und gespeichert werden nur die geänderten Felder.": {
+    "fr": "Cette candidature a entre-temps aussi été modifiée ailleurs. Les saisies restent en place, et seuls les champs modifiés sont enregistrés.",
+    "en": "This application has meanwhile been changed elsewhere too. The entries stay, and only the changed fields are saved."
+  },
+  "Speichern fehlgeschlagen: {fehler}": {"fr": "Échec de l'enregistrement\u00a0: {fehler}", "en": "Saving failed: {fehler}"},
+  "Variante {variante} gespeichert": {"fr": "Variante {variante} enregistrée", "en": "Variant {variante} saved"},
+  "Ohne Variante gespeichert": {"fr": "Enregistré sans variante", "en": "Saved without a variant"},
+  "Anschreiben wird entworfen … das kann bis zu einer Minute dauern.": {
+    "fr": "Rédaction de la lettre de motivation… cela peut prendre jusqu'à une minute.",
+    "en": "Drafting the cover letter… this can take up to a minute."
+  },
+  "Kein Anschreiben entworfen: {fehler}": {
+    "fr": "Aucune lettre de motivation rédigée\u00a0: {fehler}", "en": "No cover letter drafted: {fehler}"
+  },
+  "Stand: {stand}": {"fr": "Statut\u00a0: {stand}", "en": "Status: {stand}"},
+  "{stelle}, Stand {stand}.": {"fr": "{stelle}, statut {stand}.", "en": "{stelle}, status {stand}."},
+  "Passt: {liste}": {"fr": "Ce qui correspond\u00a0: {liste}", "en": "Matches: {liste}"},
+  "Fehlt in dieser Variante: {liste}": {"fr": "Manque dans cette variante\u00a0: {liste}", "en": "Missing in this variant: {liste}"},
+  "Keine passende Variante gefunden. Mit «Lebenslauf erstellen» entsteht eine für diese Stelle.": {
+    "fr": "Aucune variante adaptée trouvée. «\u00a0Créer le CV\u00a0» en crée une pour ce poste.",
+    "en": "No matching variant found. “Create CV” makes one for this job."
+  },
+  "Versand erfasst. Die verschickte Fassung bleibt gespeichert.": {
+    "fr": "Envoi enregistré. La version envoyée reste enregistrée.", "en": "Recorded as sent. The version sent stays saved."
+  },
+  "Angaben gespeichert": {"fr": "Informations enregistrées", "en": "Details saved"},
+  "Notiz gespeichert": {"fr": "Mémo enregistré", "en": "Note saved"},
+  "Wirklich verwerfen? Nochmals klicken": {"fr": "Vraiment écarter\u00a0? Cliquer encore une fois", "en": "Really discard? Click again"},
+  "Wirklich zurückziehen? Nochmals klicken": {
+    "fr": "Vraiment retirer\u00a0? Cliquer encore une fois", "en": "Really withdraw? Click again"
+  },
+  "Wirklich erfassen? Nochmals klicken": {
+    "fr": "Vraiment enregistrer l'envoi\u00a0? Cliquer encore une fois", "en": "Really record as sent? Click again"
+  },
+  "Stellentext gespeichert": {"fr": "Texte de l'annonce enregistré", "en": "Ad text saved"},
+  "Dossier gewählt": {"fr": "Dossier choisi", "en": "Dossier chosen"},
+  "Anschreiben und Lebenslauf gewählt": {"fr": "Lettre de motivation et CV choisis", "en": "Cover letter and CV chosen"},
+  "Unterlagen werden erstellt …": {"fr": "Création des documents…", "en": "Creating documents…"},
+  "Unterlagen erstellt. {offen}": {"fr": "Documents créés. {offen}", "en": "Documents created. {offen}"},
+  "Unterlagen erstellt": {"fr": "Documents créés", "en": "Documents created"},
+  "Erstellen fehlgeschlagen: {fehler}": {"fr": "Échec de la création\u00a0: {fehler}", "en": "Creating failed: {fehler}"},
+  "Versand nicht erfasst: {fehler}": {"fr": "Envoi non enregistré\u00a0: {fehler}", "en": "Not recorded as sent: {fehler}"},
+
+  "Jetzt „Unterlagen erstellen“ und das PDF lesen.": {
+    "fr": "Maintenant «\u00a0Créer les documents\u00a0» et lire le PDF.", "en": "Now “Create documents” and read the PDF."
+  },
+  "Das PDF steht unten; bitte lesen.": {"fr": "Le PDF se trouve plus bas\u00a0; merci de le lire.", "en": "The PDF is below; please read it."},
+  "Neue Lücken (erst nach Bestätigung in die Bausteine)": {
+    "fr": "Nouvelles lacunes (dans les modules de texte seulement après confirmation)",
+    "en": "New gaps (into the text blocks only once confirmed)"
+  },
+  "Kosten unbekannt": {"fr": "Coût inconnu", "en": "Cost unknown"},
+  "etwa {betrag}": {"fr": "environ {betrag}", "en": "about {betrag}"},
+  "Verdächtige Zeile im Text, nicht befolgt: {zeile}": {
+    "fr": "Ligne suspecte dans le texte, non suivie\u00a0: {zeile}", "en": "Suspicious line in the text, not followed: {zeile}"
+  },
+  "Modell {modell}": {"fr": "Modèle {modell}", "en": "Model {modell}"},
+  "Note übernommen": {"fr": "Note appliquée", "en": "Grade applied"},
+  "Note {note} gespeichert": {"fr": "Note {note} enregistrée", "en": "Grade {note} saved"},
+  "Note übernehmen": {"fr": "Appliquer la note", "en": "Apply the grade"},
+  "Passung: Note {note}": {"fr": "Adéquation\u00a0: note {note}", "en": "Fit: grade {note}"},
+  "Passt": {"fr": "Ce qui correspond", "en": "What fits"},
+  "Haken": {"fr": "Réserves", "en": "Drawbacks"},
+  "{aussage} – Beleg: {beleg}": {"fr": "{aussage} – justificatif\u00a0: {beleg}", "en": "{aussage} – evidence: {beleg}"},
+  "Anschreiben entworfen": {"fr": "Lettre de motivation rédigée", "en": "Cover letter drafted"},
+  "Gespeichert als anschreiben.yaml (ein früherer Stand liegt unter „Entwürfe“). {weiter}": {
+    "fr": "Enregistrée sous anschreiben.yaml (une version antérieure se trouve sous «\u00a0Brouillons\u00a0»). {weiter}",
+    "en": "Saved as anschreiben.yaml (an earlier version is under “Drafts”). {weiter}"
+  },
+  "Aussagen und Belege": {"fr": "Affirmations et justificatifs", "en": "Statements and evidence"},
+  "Offen benannte Lücken": {"fr": "Lacunes mentionnées ouvertement", "en": "Gaps stated openly"},
+  "„{text}“ – {problem}": {"fr": "«\u00a0{text}\u00a0» – {problem}", "en": "“{text}” – {problem}"},
+  "Inhaltliche Prüfung": {"fr": "Vérification du contenu", "en": "Content check"},
+  "Nicht belegt": {"fr": "Non justifié", "en": "Not supported"},
+  "Fertig": {"fr": "Terminé", "en": "Done"},
+  "Die KI ist noch aus: Vor der ersten Nutzung braucht es die Einwilligung.": {
+    "fr": "L'IA est encore désactivée\u00a0: le consentement est nécessaire avant la première utilisation.",
+    "en": "The AI is still off: it needs consent before its first use."
+  },
+  "Die KI ist noch nicht eingerichtet.": {"fr": "L'IA n'est pas encore configurée.", "en": "The AI is not set up yet."},
+  "KI eingerichtet (direkt, Entwicklung). Diesen Monat {kosten}.": {
+    "fr": "IA configurée (en direct, développement). Ce mois-ci\u00a0: {kosten}.", "en": "AI set up (direct, development). This month {kosten}."
+  },
+  "KI eingerichtet (über die Vermittlung).": {"fr": "IA configurée (via le service IA de l'app).", "en": "AI set up (through the app's AI service)."},
+  "KI-Status nicht lesbar: {fehler}": {"fr": "État de l'IA illisible\u00a0: {fehler}", "en": "AI status not readable: {fehler}"},
+  "Passung wird bewertet … das kann bis zu einer Minute dauern.": {
+    "fr": "Évaluation de l'adéquation… cela peut prendre jusqu'à une minute.", "en": "Rating the fit… this can take up to a minute."
+  },
+  "Vorhandenes Anschreiben ersetzen? Nochmals klicken": {
+    "fr": "Remplacer la lettre de motivation existante\u00a0? Cliquer encore une fois", "en": "Replace the existing cover letter? Click again"
+  },
+  "Inhalt wird geprüft … das kann bis zu einer Minute dauern.": {
+    "fr": "Vérification du contenu… cela peut prendre jusqu'à une minute.", "en": "Checking the content… this can take up to a minute."
+  },
+
+  "Ob {firma} in der Suche gezeigt wird, liess sich nicht laden. {fehler}": {
+    "fr": "Impossible de savoir si {firma} apparaît dans la recherche. {fehler}",
+    "en": "Whether {firma} shows in the search could not be loaded. {fehler}"
+  },
+  "Texte für {firma}: {fehler}": {"fr": "Textes pour {firma}\u00a0: {fehler}", "en": "Texts for {firma}: {fehler}"},
+  "die Firma": {"fr": "l'entreprise", "en": "the company"},
+  "Ein schon geöffnetes Formular hat noch eine andere Fassung. Wird es neu geladen, bekommt es die aktuelle. Sonst gilt bei „Abgeschickt? Ja“, was es bekommen hat.": {
+    "fr": "Un formulaire déjà ouvert a encore une autre version. S'il est rechargé, il reçoit la version actuelle. Sinon, avec «\u00a0Envoyé\u00a0? Oui\u00a0», c'est ce qu'il a reçu qui compte.",
+    "en": "A form that is already open still has another version. Reloaded, it gets the current one. Otherwise, with “Sent? Yes”, what it got counts."
+  },
+  "Wirklich entfernen?": {"fr": "Vraiment retirer\u00a0?", "en": "Really remove?"},
+  "Entfernt. Ein Entwurf gilt wieder, falls es einen gibt.": {
+    "fr": "Retirée. Un brouillon s'applique de nouveau, s'il y en a un.", "en": "Removed. A draft applies again, if there is one."
+  },
+  "Hochgeladenes Anschreiben": {"fr": "Lettre de motivation téléversée", "en": "Uploaded cover letter"},
+  "Noch nichts hochgeladen.": {"fr": "Rien n'est encore téléversé.", "en": "Nothing uploaded yet."},
+  "{datei} ist zu gross, höchstens {mb} MB.": {"fr": "{datei} est trop volumineux, {mb} Mo au maximum.", "en": "{datei} is too large, at most {mb} MB."},
+  "{datei} wird hochgeladen …": {"fr": "Téléversement de {datei}…", "en": "Uploading {datei}…"},
+  "Hochgeladen. Für diese Bewerbung gilt jetzt diese Datei.": {
+    "fr": "Téléversée. Pour cette candidature, c'est désormais ce fichier qui s'applique.", "en": "Uploaded. This file now applies to this application."
+  },
+  "Wird vorbereitet …": {"fr": "Préparation…", "en": "Preparing…"},
+  "1 Datei im Ordner.": {"fr": "1 fichier dans le dossier.", "en": "1 file in the folder."},
+  "{anzahl} Dateien im Ordner.": {"fr": "{anzahl} fichiers dans le dossier.", "en": "{anzahl} files in the folder."},
+  "Pfad kopiert.": {"fr": "Chemin copié.", "en": "Path copied."},
+
+  "Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeichen des Designs. Logo wählen unter «Erweitert».": {
+    "fr": "Le logo manque. Le dossier montre donc les initiales dans l'emblème du design. Choisir un logo sous «\u00a0Avancé\u00a0».",
+    "en": "The logo is missing, so the dossier shows the initials in the design's mark. Choose a logo under “Advanced”."
+  },
+  "Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter «Meine Angaben», für alle.": {
+    "fr": "On peut raccourcir davantage avec «\u00a0Créer le CV\u00a0», pour cette candidature seulement, ou sous «\u00a0Mes informations\u00a0», pour toutes.",
+    "en": "It can be shortened further with “Create CV”, for this application only, or under “My details”, for all of them."
+  },
+  "Eine fertige Datei setzt die App nicht neu; kürzer wird er mit einer anderen Variante unter «Lebenslauf» oder einer kürzeren Datei unter «Lebenslauf und Dateien».": {
+    "fr": "L'app ne remet pas en page un fichier terminé\u00a0; le CV devient plus court avec une autre variante sous «\u00a0CV\u00a0» ou un fichier plus court sous «\u00a0CV et fichiers\u00a0».",
+    "en": "The app does not reset a finished file; the CV gets shorter with another variant under “CV” or a shorter file under “CV and files”."
+  },
+  "Auch so eng wie möglich gesetzt sind es etwa 1 Zeile zu viel.": {
+    "fr": "Même avec la mise en page la plus serrée, il y a environ 1 ligne de trop.",
+    "en": "Even set as tightly as possible, it is about 1 line too long."
+  },
+  "Auch so eng wie möglich gesetzt sind es etwa {zeilen} Zeilen zu viel.": {
+    "fr": "Même avec la mise en page la plus serrée, il y a environ {zeilen} lignes de trop.",
+    "en": "Even set as tightly as possible, it is about {zeilen} lines too long."
+  },
+  "Auch so eng wie möglich gesetzt passt er nicht.": {
+    "fr": "Même avec la mise en page la plus serrée, il ne tient pas.", "en": "Even set as tightly as possible, it does not fit."
+  },
+  "Auch so eng wie möglich gesetzt passt es nicht.": {
+    "fr": "Même avec la mise en page la plus serrée, elle ne tient pas.", "en": "Even set as tightly as possible, it does not fit."
+  },
+  "{name}: {seiten} Seiten, erlaubt sind höchstens {limit}. {weiter}": {
+    "fr": "{name}\u00a0: {seiten} pages, {limit} au maximum autorisées. {weiter}",
+    "en": "{name}: {seiten} pages, at most {limit} allowed. {weiter}"
+  },
+  "Anschreiben: {seiten} Seiten, erlaubt ist eine. {eng}": {
+    "fr": "Lettre de motivation\u00a0: {seiten} pages, une seule est autorisée. {eng}",
+    "en": "Cover letter: {seiten} pages, one is allowed. {eng}"
+  },
+  "{text} Am meisten bringt der längste Absatz («{anfang}»).": {
+    "fr": "{text} Le plus efficace est de raccourcir le paragraphe le plus long («\u00a0{anfang}\u00a0»).",
+    "en": "{text} Shortening the longest paragraph (“{anfang}”) helps most."
+  },
+  "{name}: {seiten} Seiten, empfohlen höchstens 1 Seite(n)": {
+    "fr": "{name}\u00a0: {seiten} pages, 1 page au maximum recommandée", "en": "{name}: {seiten} pages, at most 1 page recommended"
+  },
+  "{name}: {seiten} Seiten, empfohlen höchstens {limit} Seite(n)": {
+    "fr": "{name}\u00a0: {seiten} pages, {limit} pages au maximum recommandées",
+    "en": "{name}: {seiten} pages, at most {limit} pages recommended"
+  },
+  "{name}: Der Satz der Seiten liess sich nicht messen ({fehler}). Bitte das PDF selbst ansehen.": {
+    "fr": "{name}\u00a0: la mise en page n'a pas pu être mesurée ({fehler}). Merci de regarder le PDF directement.",
+    "en": "{name}: the layout of the pages could not be measured ({fehler}). Please look at the PDF yourself."
+  },
+  "{name}, Seite {seite}: {grund}": {"fr": "{name}, page {seite}\u00a0: {grund}", "en": "{name}, page {seite}: {grund}"},
+  "{name}: PDF fehlt ({datei}). Zuerst die Unterlagen erstellen.": {
+    "fr": "{name}\u00a0: PDF manquant ({datei}). Créer d'abord les documents.",
+    "en": "{name}: PDF missing ({datei}). Create the documents first."
+  },
+  "{name}: PDF lässt sich nicht lesen ({fehler})": {
+    "fr": "{name}\u00a0: le PDF est illisible ({fehler})", "en": "{name}: the PDF cannot be read ({fehler})"
+  },
+  "{name}: kaum Text extrahierbar – Bewerbungssoftware (ATS) liest es nicht": {
+    "fr": "{name}\u00a0: presque pas de texte extractible – les logiciels de recrutement (ATS) ne le lisent pas",
+    "en": "{name}: hardly any extractable text – applicant tracking systems (ATS) cannot read it"
+  },
+  "{name}: Text extrahierbar (1 Seite)": {"fr": "{name}\u00a0: texte extractible (1 page)", "en": "{name}: text extractable (1 page)"},
+  "{name}: Text extrahierbar ({seiten} Seiten)": {
+    "fr": "{name}\u00a0: texte extractible ({seiten} pages)", "en": "{name}: text extractable ({seiten} pages)"
+  },
+  "{name}: Platzhalter gefunden ({fund})": {"fr": "{name}\u00a0: espace réservé trouvé ({fund})", "en": "{name}: placeholder found ({fund})"},
+  "Anschreiben: Firma „{firma}“ genannt": {
+    "fr": "Lettre de motivation\u00a0: entreprise «\u00a0{firma}\u00a0» nommée", "en": "Cover letter: company “{firma}” named"
+  },
+  "Anschreiben: Firma „{firma}“ kommt nicht vor – falsche Vorlage?": {
+    "fr": "Lettre de motivation\u00a0: l'entreprise «\u00a0{firma}\u00a0» n'apparaît pas – mauvais modèle\u00a0?",
+    "en": "Cover letter: company “{firma}” does not appear – wrong template?"
+  },
+  "Anschreiben: Stellentitel genannt": {"fr": "Lettre de motivation\u00a0: titre du poste mentionné", "en": "Cover letter: job title named"},
+  "Anschreiben: Stelle „{stelle}“ kaum erwähnt – Betreff prüfen": {
+    "fr": "Lettre de motivation\u00a0: poste «\u00a0{stelle}\u00a0» à peine mentionné – vérifier l'objet",
+    "en": "Cover letter: job “{stelle}” hardly mentioned – check the subject line"
+  },
+  "Anschreiben: kein Datum gefunden": {"fr": "Lettre de motivation\u00a0: aucune date trouvée", "en": "Cover letter: no date found"},
+  "Anschreiben: Datum {datum} ist nicht aktuell": {
+    "fr": "Lettre de motivation\u00a0: la date {datum} n'est pas actuelle", "en": "Cover letter: date {datum} is not current"
+  },
+  "Anschreiben: Datum {datum}": {"fr": "Lettre de motivation\u00a0: date {datum}", "en": "Cover letter: date {datum}"},
+  "Anschreiben: Anrede in Du-Form, im Text aber Sie/Ihnen/Ihre": {
+    "fr": "Lettre de motivation\u00a0: formule d'appel au tutoiement (du), mais le texte dit Sie/Ihnen/Ihre",
+    "en": "Cover letter: informal salutation (du), but the text says Sie/Ihnen/Ihre"
+  },
+  "Anschreiben: Anrede in Sie-Form, im Text aber euch/eure/ihr": {
+    "fr": "Lettre de motivation\u00a0: formule d'appel au vouvoiement (Sie), mais le texte dit euch/eure/ihr",
+    "en": "Cover letter: formal salutation (Sie), but the text says euch/eure/ihr"
+  },
+  "Anschreiben: In der Adresse steht {person}, in der Anrede „{anrede}“ nicht": {
+    "fr": "Lettre de motivation\u00a0: l'adresse nomme {person}, la formule d'appel «\u00a0{anrede}\u00a0» non",
+    "en": "Cover letter: the address names {person}, the salutation “{anrede}” does not"
+  },
+  "Anschreiben: Form der Anrede „{anrede}“ passt nicht zu {person}": {
+    "fr": "Lettre de motivation\u00a0: la forme de la formule d'appel «\u00a0{anrede}\u00a0» ne correspond pas à {person}",
+    "en": "Cover letter: the form of the salutation “{anrede}” does not fit {person}"
+  },
+  "Anschreiben: Anrede passt zu {person}": {
+    "fr": "Lettre de motivation\u00a0: la formule d'appel correspond à {person}", "en": "Cover letter: salutation fits {person}"
+  },
+  "Kein Anschreiben: weder ein Entwurf noch ein eigenes PDF": {
+    "fr": "Pas de lettre de motivation\u00a0: ni brouillon ni PDF téléversé", "en": "No cover letter: neither a draft nor an uploaded PDF"
+  },
+  "nur zu {prozent} % gefüllt, verlangt ist mindestens ein Drittel.": {
+    "fr": "remplie à {prozent}\u00a0% seulement, au moins un tiers est requis.", "en": "only {prozent}% full, at least a third is required."
+  },
+  "Die Überschrift «{text}» steht allein am Ende der Seite.": {
+    "fr": "Le titre «\u00a0{text}\u00a0» est seul en bas de la page.", "en": "The heading “{text}” stands alone at the foot of the page."
+  },
+  "Text reicht bis an den Rand der Seite oder darüber hinaus («{text}»).": {
+    "fr": "Du texte atteint le bord de la page ou le dépasse («\u00a0{text}\u00a0»).",
+    "en": "Text reaches the edge of the page or beyond (“{text}”)."
+  },
+  "Text ragt in den Rand des Designs hinein («{text}»).": {
+    "fr": "Du texte déborde dans la marge du design («\u00a0{text}\u00a0»).", "en": "Text reaches into the margin of the design (“{text}”)."
+  },
+  "Text liegt über anderem Text («{erster}» und «{zweiter}»).": {
+    "fr": "Du texte chevauche un autre texte («\u00a0{erster}\u00a0» et «\u00a0{zweiter}\u00a0»).",
+    "en": "Text lies over other text (“{erster}” and “{zweiter}”)."
+  },
+  "Text läuft über den Rand eines Bildes («{text}»).": {
+    "fr": "Du texte déborde sur le bord d'une image («\u00a0{text}\u00a0»).", "en": "Text runs across the edge of an image (“{text}”)."
+  },
+  "Diese Meldung gibt es nicht mehr. Bitte erneut prüfen.": {
+    "fr": "Ce message n'existe plus. Merci de vérifier à nouveau.", "en": "This message no longer exists. Please check again."
+  },
+  "Diese Bewerbung ist versendet. Was verschickt wurde, bleibt so.": {
+    "fr": "Cette candidature a été envoyée. Ce qui est parti reste tel quel.",
+    "en": "This application has been sent. What went out stays as it is."
+  },
+  "Ungültige Bewerbungs-id: {id}": {"fr": "Identifiant de candidature invalide\u00a0: {id}", "en": "Invalid application id: {id}"},
+  "Keine Lebenslauf-Variante gewählt. Bitte unter „Angaben“ eine wählen und speichern.": {
+    "fr": "Aucune variante du CV choisie. Merci d'en choisir une sous «\u00a0Informations\u00a0» et d'enregistrer.",
+    "en": "No CV variant chosen. Please choose one under “Details” and save."
+  },
+  "Noch kein Lebenslauf. Bitte unter „Meine Angaben“ erfassen oder unter „Lebenslauf und Dateien“ als PDF hochladen.": {
+    "fr": "Pas encore de CV. Merci de le saisir sous «\u00a0Mes informations\u00a0» ou de le téléverser en PDF sous «\u00a0CV et fichiers\u00a0».",
+    "en": "No CV yet. Please enter it under “My details” or upload it as a PDF under “CV and files”."
+  },
+  "Variante {variante} ist extern ({hinweis}): bitte das PDF als {pfad} ablegen": {
+    "fr": "La variante {variante} est externe ({hinweis})\u00a0: merci de déposer le PDF sous {pfad}",
+    "en": "Variant {variante} is external ({hinweis}): please put the PDF at {pfad}"
+  },
+  "Ein Dossier entsteht aus „Meine Angaben“ und dem Entwurf des Anschreibens, nicht aus einem fertigen PDF. Bitte „Anschreiben und Lebenslauf“ wählen oder das eigene PDF entfernen.": {
+    "fr": "Un dossier se crée à partir de «\u00a0Mes informations\u00a0» et du brouillon de la lettre de motivation, pas d'un PDF terminé. Merci de choisir «\u00a0Lettre de motivation et CV\u00a0» ou de retirer le PDF téléversé.",
+    "en": "A dossier is made from “My details” and the draft of the cover letter, not from a finished PDF. Please choose “Cover letter and CV” or remove the uploaded PDF."
+  },
+  "Für das Dossier fehlt noch das Anschreiben. Bitte zuerst eines entwerfen.": {
+    "fr": "Il manque encore la lettre de motivation pour le dossier. Merci d'en rédiger une d'abord.",
+    "en": "The dossier still lacks the cover letter. Please draft one first."
+  },
+  "{feld} muss eine Liste von Wörtern sein, z.B. [ki, fullstack]": {
+    "fr": "{feld} doit être une liste de mots, par exemple [ki, fullstack]", "en": "{feld} must be a list of words, e.g. [ki, fullstack]"
+  },
+  "Variante muss eine Zuordnung sein": {"fr": "Une variante doit être une table d'association", "en": "A variant must be a mapping"},
+  "sprache muss eine von {sprachen} sein": {"fr": "sprache doit être l'une de {sprachen}", "en": "sprache must be one of {sprachen}"},
+  "Es braucht quelle (Zuschnitt), datei (PDF) oder extern (Hinweis)": {
+    "fr": "Il faut quelle (adaptation), datei (PDF) ou extern (remarque)", "en": "It needs quelle (tailoring), datei (PDF) or extern (remark)"
+  },
+  "Bitte nur eine Quelle angeben, nicht {quellen}": {
+    "fr": "Merci d'indiquer une seule source, pas {quellen}", "en": "Please give only one source, not {quellen}"
+  },
+  "{feld} muss ein Pfad innerhalb des Datenordners sein: {pfad}": {
+    "fr": "{feld} doit être un chemin dans le dossier de données\u00a0: {pfad}", "en": "{feld} must be a path inside the data folder: {pfad}"
+  },
+  "Variante {variante} nicht gefunden": {"fr": "Variante {variante} introuvable", "en": "Variant {variante} not found"},
+  "{wort}: steht im Inserat": {"fr": "{wort}\u00a0: figure dans l'annonce", "en": "{wort}: in the ad"},
+  "Die Auswahl der Zertifikate hat eine unbekannte Form.": {
+    "fr": "Le choix des certificats a une forme inconnue.", "en": "The choice of certificates has an unknown form."
+  },
+  "Dieses Zertifikat gibt es nicht: {datei}": {"fr": "Ce certificat n'existe pas\u00a0: {datei}", "en": "This certificate does not exist: {datei}"},
+  "Prüfung: {befund}": {"fr": "Vérification\u00a0: {befund}", "en": "Check: {befund}"},
+  "Prüfung: {befund} {weiter}": {"fr": "Vérification\u00a0: {befund} {weiter}", "en": "Check: {befund} {weiter}"},
+  "Bitte zuerst unter «Unterlagen erstellen und prüfen» ansehen und mit «So lassen» bestätigen.": {
+    "fr": "Merci de regarder d'abord sous «\u00a0Créer et vérifier les documents\u00a0» et de confirmer avec «\u00a0Laisser ainsi\u00a0».",
+    "en": "Please look first under “Create and check documents” and confirm with “Leave as is”."
+  },
+  "Bitte zuerst unter «Unterlagen erstellen und prüfen» kürzen oder drei Seiten erlauben.": {
+    "fr": "Merci de raccourcir d'abord sous «\u00a0Créer et vérifier les documents\u00a0» ou d'autoriser trois pages.",
+    "en": "Please shorten first under “Create and check documents” or allow three pages."
+  },
+
+  "texte:bewerbung.inserat": {
+    "fr": {
+      "sie": "Sans le texte de l'annonce, la variante, la lettre de motivation et la vérification ne peuvent pas s'y référer. Copiez-le de l'annonce dans le champ.",
+      "du": "Sans le texte de l'annonce, la variante, la lettre de motivation et la vérification ne peuvent pas s'y référer. Copie-le de l'annonce dans le champ."
+    },
+    "en": {"sie": "Without the ad text, the variant, the cover letter and the check cannot refer to it. Copy it from the ad into the field."}
+  },
+  "texte:bewerbung.eigenes": {
+    "fr": {
+      "sie": "L'IA n'est pas configurée. Téléversez votre propre lettre de motivation en PDF. Tout le reste fonctionne aussi sans IA.",
+      "du": "L'IA n'est pas configurée. Téléverse ta propre lettre de motivation en PDF. Tout le reste fonctionne aussi sans IA."
+    },
+    "en": {"sie": "The AI is not set up. Upload your own cover letter as a PDF. Everything else works without AI too."}
+  },
+  "texte:bewerbung.versand": {
+    "fr": {
+      "sie": "Il n'y a pas de lien vers un formulaire. Envoyez vous-même les documents, par exemple par e-mail, puis enregistrez l'envoi.",
+      "du": "Il n'y a pas de lien vers un formulaire. Envoie toi-même les documents, par exemple par e-mail, puis enregistre l'envoi."
+    },
+    "en": {"sie": "There is no link to a form. Send the documents yourself, for example by email, and then record it as sent."}
+  },
+  "texte:bewerbung.jobroom": {
+    "fr": {
+      "sie": "L'extension remplit l'entrée dans Job-Room. Vous vous connectez et enregistrez vous-même. Ou copiez les informations une par une.",
+      "du": "L'extension remplit l'entrée dans Job-Room. Tu te connectes et enregistres toi-même. Ou copie les informations une par une."
+    },
+    "en": {"sie": "The extension fills in the entry in Job-Room. You sign in and save yourself. Or copy the details one by one."}
+  },
+  "texte:bewerbung.warten": {
+    "fr": {
+      "sie": "Sans réponse, la page Aujourd'hui vous rappellera de relancer le {datum}.",
+      "du": "Sans réponse, la page Aujourd'hui te rappellera de relancer le {datum}."
+    },
+    "en": {"sie": "Without a reply, the Today page reminds you to follow up on {datum}."}
+  },
+  "texte:bewerbung.absage": {
+    "fr": {
+      "sie": "Cela fait partie du processus. Vos documents pour ce poste restent enregistrés.",
+      "du": "Cela fait partie du processus. Tes documents pour ce poste restent enregistrés.",
+      "lehrstelle": "Cela fait partie du processus. Tes documents pour cette place d'apprentissage restent enregistrés."
+    },
+    "en": {
+      "sie": "That is part of it. Your documents for this job stay saved.",
+      "lehrstelle": "That is part of it. Your documents for this apprenticeship stay saved."
+    }
+  },
+  "texte:bewerbung.freigeben": {
+    "fr": {
+      "sie": "Le brouillon est prêt. Lisez-le avant qu'il parte à l'entreprise. L'extension n'ouvre le formulaire qu'une fois la lettre validée.",
+      "du": "Le brouillon est prêt. Lis-le avant qu'il parte à l'entreprise. L'extension n'ouvre le formulaire qu'une fois la lettre validée.",
+      "lehrstelle": "Le brouillon est prêt. Lis-le avant qu'il parte à l'entreprise formatrice. L'extension n'ouvre le formulaire qu'une fois la lettre validée."
+    },
+    "en": {
+      "sie": "The draft is ready. Read it before it goes to the company. The extension opens the form only once the letter is approved.",
+      "lehrstelle": "The draft is ready. Read it before it goes to the host company. The extension opens the form only once the letter is approved."
+    }
+  },
+  "texte:bewerbung.freigeben-offen-eins": {
+    "fr": {
+      "sie": "Le brouillon est prêt. Une affirmation n'a pas encore de justificatif dans vos informations\u00a0; elle est surlignée en jaune.",
+      "du": "Le brouillon est prêt. Une affirmation n'a pas encore de justificatif dans tes informations\u00a0; elle est surlignée en jaune."
+    },
+    "en": {"sie": "The draft is ready. One statement has no evidence in your details yet; it is marked in yellow."}
+  },
+  "texte:bewerbung.freigeben-offen": {
+    "fr": {
+      "sie": "Le brouillon est prêt. {anzahl} affirmations n'ont pas encore de justificatif dans vos informations\u00a0; elles sont surlignées en jaune.",
+      "du": "Le brouillon est prêt. {anzahl} affirmations n'ont pas encore de justificatif dans tes informations\u00a0; elles sont surlignées en jaune."
+    },
+    "en": {"sie": "The draft is ready. {anzahl} statements have no evidence in your details yet; they are marked in yellow."}
+  },
+  "texte:bewerbung.kuerzen": {
+    "fr": {
+      "sie": "Le CV est trop long, même avec la mise en page la plus serrée. Choisissez sous «\u00a0Créer et vérifier les documents\u00a0» ce qui est retiré pour cette candidature, ou autorisez trois pages.",
+      "du": "Le CV est trop long, même avec la mise en page la plus serrée. Choisis sous «\u00a0Créer et vérifier les documents\u00a0» ce qui est retiré pour cette candidature, ou autorise trois pages."
+    },
+    "en": {"sie": "The CV is too long, even set as tightly as possible. Choose under “Create and check documents” what is left out for this application, or allow three pages."}
+  },
+  "texte:kuerzen.hinweis": {
+    "fr": {
+      "sie": "Mes informations et les variantes restent telles quelles. Vous récupérez ce qui a été retiré à l'étape CV.",
+      "du": "Mes informations et les variantes restent telles quelles. Tu récupères ce qui a été retiré à l'étape CV."
+    },
+    "en": {"sie": "My details and the variants stay as they are. You bring back what was left out in the step CV."}
+  },
+  "texte:bewerbung.geoeffnet": {
+    "fr": {
+      "sie": "Le formulaire est ouvert dans un nouvel onglet. Rien n'est envoyé sans vous.",
+      "du": "Le formulaire est ouvert dans un nouvel onglet. Rien n'est envoyé sans toi."
+    },
+    "en": {"sie": "The form is open in a new tab. Nothing is sent without you."}
+  },
+  "texte:bewerbung.jobroom-offen": {
+    "fr": {"sie": "Job-Room est ouvert. Rien n'est enregistré sans vous.", "du": "Job-Room est ouvert. Rien n'est enregistré sans toi."},
+    "en": {"sie": "Job-Room is open. Nothing is saved without you."}
+  },
+  "texte:bewerbung.variante-waehlen": {
+    "fr": {"sie": "Choisir une variante", "du": "Choisir une variante"},
+    "en": {"sie": "Choose a variant"}
+  },
+  "texte:versand.erfasst-hinweis": {
+    "fr": {
+      "sie": "Envoi enregistré. La version envoyée reste enregistrée. Remarque\u00a0: {hinweise}",
+      "du": "Envoi enregistré. La version envoyée reste enregistrée. Remarque\u00a0: {hinweise}"
+    },
+    "en": {"sie": "Recorded as sent. The version sent stays saved. Remark: {hinweise}"}
+  },
+  "texte:versand.erfasst-hinweise": {
+    "fr": {
+      "sie": "Envoi enregistré. La version envoyée reste enregistrée. Remarques\u00a0: {hinweise}",
+      "du": "Envoi enregistré. La version envoyée reste enregistrée. Remarques\u00a0: {hinweise}"
+    },
+    "en": {"sie": "Recorded as sent. The version sent stays saved. Remarks: {hinweise}"}
+  }
+}
