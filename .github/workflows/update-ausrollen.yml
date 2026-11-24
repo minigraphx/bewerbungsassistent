@@ -81,9 +81,11 @@ jobs:
           password="${FTP_PASSWORD//\\/\\\\}"
           (umask 077; printf 'user = "%s:%s"\n' "$FTP_USER" "${password//\"/\\\"}" > "$config")
           upload() { curl --fail --silent --show-error --ssl-reqd --retry 3 --ftp-create-dirs --config "$config" "$@"; }
-          upload -T "pakete/Bewerbungsbegleiter-Setup-$version.exe" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
-          upload -T "pakete/Bewerbungsbegleiter-$version-macOS.zip" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
-          upload -T "pakete/Bewerbungsbegleiter-$version-x86_64.AppImage" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
+          # The app packages and the extension download (#403, G126); release_manifest.py names them all.
+          python3 desktop/release_manifest.py files "$TAG" > dateien.txt
+          for name in $(cat dateien.txt); do
+            upload -T "pakete/$name" "ftp://$FTP_HOST/$FTP_FOLDER/$version/"
+          done
           # Fehlt beta.json noch (vor der ersten Vorabversion), entsteht sie hier.
           curl -fsS "$UPDATE_URL/beta.json" -o beta-aktuell.json || rm -f beta-aktuell.json
           python3 desktop/release_manifest.py channels "$TAG" "$PRERELEASE" beta-aktuell.json > angekuendigt.txt
@@ -99,7 +101,7 @@ jobs:
           for name in $(cat angekuendigt.txt); do
             curl -fsS "$UPDATE_URL/$name" | cmp - announcement.json
           done
-          for name in "Bewerbungsbegleiter-Setup-$version.exe" "Bewerbungsbegleiter-$version-macOS.zip" "Bewerbungsbegleiter-$version-x86_64.AppImage"; do
+          for name in $(cat dateien.txt); do
             curl -fsS "$UPDATE_URL/$version/$name" | cmp - "pakete/$name"
           done
 
