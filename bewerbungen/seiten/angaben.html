@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-pAIl2s+W+6yS06HOnW4zfYKDQMbPqCLa4f8BDM7A+48='; style-src 'sha256-428qO27Hc5x9etrflalMP84bM3AuKI0Ftr+y3n9DZ6A='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-oB9EjDnkRw/08l285LCSsHLSW1bp00pceRq498bE9tw='; style-src 'sha256-428qO27Hc5x9etrflalMP84bM3AuKI0Ftr+y3n9DZ6A='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -386,7 +386,24 @@ button { font: inherit; cursor: pointer; }
 <script src="/sidebar.js"></script>
 <script src="/dateien-logik.js"></script>
 <script src="/treffer-logik.js"></script>
-<script>// Validation of onboarding bundles against form.json, for the browser.
+<script>// The words of the form in the app language (#431, G10, docs/design/sprachen.md). The German text is the key, so what
+// form.json and the scripts say stays the source and every stored value stays German. In the app the page loads
+// texte.js first, and T is Texte.t with the catalog the server hands the page; the file for sharing
+// (dist/einstieg.html) loads no texte.js, so T gives the German back and the file stays German (Andy, 23.11.2026).
+"use strict";
+
+/** A German text in the app language, with {name} filled from `values`; anything but a text passes as it is. */
+function T(german, values = {}) {
+  if (typeof german !== "string") return german;
+  if (typeof Texte !== "undefined") return Texte.t(german, values);
+  return german.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ""));
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { T };
+}
+
+// Validation of onboarding bundles against form.json, for the browser.
 // Mirrors validation.py; both run the shared cases in tests/cases.json. The limits of tags hold for typed tags only:
 // `known` names the tags already in the data folder (G24), which never block saving. In the same way `loaded`, the
 // answers the app read from cv.yaml (G23), never blocks saving: an entry, a value or a line the file holds at that place
@@ -1377,11 +1394,11 @@ function textInput(tag, attrs, ctx, field, name) {
  */
 function fieldView(field, ctx) {
   const id = nextId("f");
-  const hint = forTrack(field.hint, ctx.track);
+  const hint = T(forTrack(field.hint, ctx.track));
   const hintId = hint ? `${id}-hint` : null;
   const errorId = `${id}-error`;
   const describedBy = [hintId, errorId].filter(Boolean).join(" ");
-  const label = forTrack(field.label, ctx.track) + (field.required ? " *" : "");
+  const label = T(forTrack(field.label, ctx.track)) + (field.required ? " *" : "");
   const control = controlView(field, ctx, id, describedBy);
   const isCantons = field.control === "cantons";
   const isSwitches = field.control === SWITCHED_OFF;
@@ -1399,7 +1416,7 @@ function fieldView(field, ctx) {
 function controlView(field, ctx, id, describedBy) {
   if (field.control === "cantons" || field.control === SWITCHED_OFF) return null;
   const common = { id, "aria-describedby": describedBy, "aria-required": field.required ? "true" : null, onblur: () => ctx.onBlur() };
-  const name = forTrack(field.label, ctx.track).split(" (")[0];
+  const name = T(forTrack(field.label, ctx.track)).split(" (")[0];
   if (field.type === "textarea") return textInput("textarea", { ...common, rows: 4 }, ctx, field, name);
   if (field.type === "tags") {
     const onTags = (tags) => ctx.onChange(tags);
@@ -1416,17 +1433,19 @@ function controlView(field, ctx, id, describedBy) {
     });
   }
   if (field.type === "select") {
-    // a value from cv.yaml outside the options is shown as it is and stays until the person picks another (#167)
+    // a value from cv.yaml outside the options is shown as it is and stays until the person picks another (#167);
+    // an option says its label in the app language, its value stays German (#431)
     const own = typeof ctx.value === "string" && ctx.value !== "" && !field.options.includes(ctx.value) ? [ctx.value] : [];
+    const shown = [...field.options.map((o) => [o, T(field.optionLabels?.[o] ?? o)]), ...own.map((o) => [o, o])];
     const select = el("select", { ...common, onchange: (e) => ctx.onChange(e.target.value) }, [
-      el("option", { value: "" }, field.emptyLabel ?? "– bitte wählen –"),
-      ...[...field.options, ...own].map((o) => el("option", { value: o, selected: o === ctx.value }, field.optionLabels?.[o] ?? o)),
+      el("option", { value: "" }, T(field.emptyLabel) ?? "– bitte wählen –"),
+      ...shown.map(([o, text]) => el("option", { value: o, selected: o === ctx.value }, text)),
     ]);
     return select;
   }
   if (field.type === "choice") return null;
   const type = field.format === "email" ? "email" : field.format === "phone" ? "tel" : "text";
-  return textInput("input", { ...common, type, placeholder: field.placeholder || "", autocomplete: autocompleteFor(ctx.path) }, ctx, field, name);
+  return textInput("input", { ...common, type, placeholder: T(field.placeholder || ""), autocomplete: autocompleteFor(ctx.path) }, ctx, field, name);
 }
 
 /**
@@ -1495,7 +1514,7 @@ const PLAIN_LINES = {
 
 /** A list whose lines take something besides their text (tags, a level) or two languages: one row per line. */
 function linesView(field, ctx, id, describedBy, kind) {
-  const name = forTrack(field.label, ctx.track).split(" (")[0];
+  const name = T(forTrack(field.label, ctx.track)).split(" (")[0];
   const max = field.maxItems ?? DEFAULT_MAX_LINES;
   let lines = Array.isArray(ctx.value) && ctx.value.length ? ctx.value : [""];
   const rows = el("div", { className: "tagged-lines" });
@@ -1576,7 +1595,7 @@ function cantonsView(field, ctx, label, hint, hintId, errorId) {
         type: "checkbox", value: canton.code, checked: chosen.has(canton.code),
         onchange: changed, onblur: () => ctx.onBlur(),
       }),
-      el("span", {}, canton.name),
+      el("span", {}, T(canton.name)),
     ]))),
   ]);
 }
@@ -1598,7 +1617,7 @@ function switchedOffView(field, ctx, label, hint, hintId, errorId) {
     hint ? el("p", { className: "hint", id: hintId }, hint) : null,
     el("div", { className: "canton-list" }, field.options.map((option) => el("label", { className: "option" }, [
       el("input", { type: "checkbox", value: option, checked: !off.includes(option), onchange: changed, onblur: () => ctx.onBlur() }),
-      el("span", {}, field.optionLabels?.[option] ?? option),
+      el("span", {}, T(field.optionLabels?.[option] ?? option)),
     ]))),
   ]);
 }
@@ -1617,7 +1636,7 @@ function choiceView(field, ctx, id, label, hint, hintId, errorId) {
   });
   const radios = options.map((option) => el("label", { className: "option" }, [
     el("input", { type: "radio", name: id, value: option, checked: option === value, onchange: () => ctx.onChange(option), onblur: () => ctx.onBlur() }),
-    el("span", {}, option),
+    el("span", {}, T(option)), // the sentence in the app language, the value German as it is stored (#431)
   ]));
   return el("fieldset", {
     className: "choice", role: "radiogroup", "aria-required": field.required ? "true" : null,
@@ -3861,9 +3880,9 @@ function groupView(group) {
 
 function sectionView(section, single) {
   const track = state.track;
-  const intro = forTrack(section.intro, track);
+  const intro = T(forTrack(section.intro, track));
   const header = [
-    single ? null : el("h3", {}, forTrack(section.title, track)),
+    single ? null : el("h3", {}, T(forTrack(section.title, track))),
     intro ? el("p", { className: "intro" }, intro) : null,
   ];
   const attrs = { className: "part", dataset: { section: section.id } };

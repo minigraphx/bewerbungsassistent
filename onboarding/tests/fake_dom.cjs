@@ -6,6 +6,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const SRC = path.join(__dirname, "..", "src");
+const WORDS = "words.js";
 
 class FakeNode {
   constructor(tagName) {
@@ -53,10 +54,13 @@ function findAll(node, match) {
   return [...(match(node) ? [node] : []), ...node.children.flatMap((child) => findAll(child, match))];
 }
 
-/** The page scripts in one sandbox; `extra` adds globals such as a fake backend. Returns the sandbox. */
+/**
+ * The page scripts in one sandbox; `extra` adds globals such as a fake backend. Returns the sandbox. words.js comes
+ * first unless named, as in both built pages: every script says its words through its T (#431).
+ */
 function loadScripts(names, extra = {}) {
   const context = vm.createContext({ document: fakeDocument(), console, ...extra });
-  for (const name of names) {
+  for (const name of names.includes(WORDS) ? names : [WORDS, ...names]) {
     vm.runInContext(fs.readFileSync(path.join(SRC, name), "utf8"), context, { filename: name });
   }
   return context;

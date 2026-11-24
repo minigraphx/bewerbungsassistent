@@ -106,11 +106,11 @@ function textInput(tag, attrs, ctx, field, name) {
  */
 function fieldView(field, ctx) {
   const id = nextId("f");
-  const hint = forTrack(field.hint, ctx.track);
+  const hint = T(forTrack(field.hint, ctx.track));
   const hintId = hint ? `${id}-hint` : null;
   const errorId = `${id}-error`;
   const describedBy = [hintId, errorId].filter(Boolean).join(" ");
-  const label = forTrack(field.label, ctx.track) + (field.required ? " *" : "");
+  const label = T(forTrack(field.label, ctx.track)) + (field.required ? " *" : "");
   const control = controlView(field, ctx, id, describedBy);
   const isCantons = field.control === "cantons";
   const isSwitches = field.control === SWITCHED_OFF;
@@ -128,7 +128,7 @@ function fieldView(field, ctx) {
 function controlView(field, ctx, id, describedBy) {
   if (field.control === "cantons" || field.control === SWITCHED_OFF) return null;
   const common = { id, "aria-describedby": describedBy, "aria-required": field.required ? "true" : null, onblur: () => ctx.onBlur() };
-  const name = forTrack(field.label, ctx.track).split(" (")[0];
+  const name = T(forTrack(field.label, ctx.track)).split(" (")[0];
   if (field.type === "textarea") return textInput("textarea", { ...common, rows: 4 }, ctx, field, name);
   if (field.type === "tags") {
     const onTags = (tags) => ctx.onChange(tags);
@@ -145,17 +145,19 @@ function controlView(field, ctx, id, describedBy) {
     });
   }
   if (field.type === "select") {
-    // a value from cv.yaml outside the options is shown as it is and stays until the person picks another (#167)
+    // a value from cv.yaml outside the options is shown as it is and stays until the person picks another (#167);
+    // an option says its label in the app language, its value stays German (#431)
     const own = typeof ctx.value === "string" && ctx.value !== "" && !field.options.includes(ctx.value) ? [ctx.value] : [];
+    const shown = [...field.options.map((o) => [o, T(field.optionLabels?.[o] ?? o)]), ...own.map((o) => [o, o])];
     const select = el("select", { ...common, onchange: (e) => ctx.onChange(e.target.value) }, [
-      el("option", { value: "" }, field.emptyLabel ?? "– bitte wählen –"),
-      ...[...field.options, ...own].map((o) => el("option", { value: o, selected: o === ctx.value }, field.optionLabels?.[o] ?? o)),
+      el("option", { value: "" }, T(field.emptyLabel) ?? "– bitte wählen –"),
+      ...shown.map(([o, text]) => el("option", { value: o, selected: o === ctx.value }, text)),
     ]);
     return select;
   }
   if (field.type === "choice") return null;
   const type = field.format === "email" ? "email" : field.format === "phone" ? "tel" : "text";
-  return textInput("input", { ...common, type, placeholder: field.placeholder || "", autocomplete: autocompleteFor(ctx.path) }, ctx, field, name);
+  return textInput("input", { ...common, type, placeholder: T(field.placeholder || ""), autocomplete: autocompleteFor(ctx.path) }, ctx, field, name);
 }
 
 /**
@@ -224,7 +226,7 @@ const PLAIN_LINES = {
 
 /** A list whose lines take something besides their text (tags, a level) or two languages: one row per line. */
 function linesView(field, ctx, id, describedBy, kind) {
-  const name = forTrack(field.label, ctx.track).split(" (")[0];
+  const name = T(forTrack(field.label, ctx.track)).split(" (")[0];
   const max = field.maxItems ?? DEFAULT_MAX_LINES;
   let lines = Array.isArray(ctx.value) && ctx.value.length ? ctx.value : [""];
   const rows = el("div", { className: "tagged-lines" });
@@ -305,7 +307,7 @@ function cantonsView(field, ctx, label, hint, hintId, errorId) {
         type: "checkbox", value: canton.code, checked: chosen.has(canton.code),
         onchange: changed, onblur: () => ctx.onBlur(),
       }),
-      el("span", {}, canton.name),
+      el("span", {}, T(canton.name)),
     ]))),
   ]);
 }
@@ -327,7 +329,7 @@ function switchedOffView(field, ctx, label, hint, hintId, errorId) {
     hint ? el("p", { className: "hint", id: hintId }, hint) : null,
     el("div", { className: "canton-list" }, field.options.map((option) => el("label", { className: "option" }, [
       el("input", { type: "checkbox", value: option, checked: !off.includes(option), onchange: changed, onblur: () => ctx.onBlur() }),
-      el("span", {}, field.optionLabels?.[option] ?? option),
+      el("span", {}, T(field.optionLabels?.[option] ?? option)),
     ]))),
   ]);
 }
@@ -346,7 +348,7 @@ function choiceView(field, ctx, id, label, hint, hintId, errorId) {
   });
   const radios = options.map((option) => el("label", { className: "option" }, [
     el("input", { type: "radio", name: id, value: option, checked: option === value, onchange: () => ctx.onChange(option), onblur: () => ctx.onBlur() }),
-    el("span", {}, option),
+    el("span", {}, T(option)), // the sentence in the app language, the value German as it is stored (#431)
   ]));
   return el("fieldset", {
     className: "choice", role: "radiogroup", "aria-required": field.required ? "true" : null,

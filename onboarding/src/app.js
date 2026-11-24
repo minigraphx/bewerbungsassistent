@@ -632,9 +632,9 @@ function groupView(group) {
 
 function sectionView(section, single) {
   const track = state.track;
-  const intro = forTrack(section.intro, track);
+  const intro = T(forTrack(section.intro, track));
   const header = [
-    single ? null : el("h3", {}, forTrack(section.title, track)),
+    single ? null : el("h3", {}, T(forTrack(section.title, track))),
     intro ? el("p", { className: "intro" }, intro) : null,
   ];
   const attrs = { className: "part", dataset: { section: section.id } };
