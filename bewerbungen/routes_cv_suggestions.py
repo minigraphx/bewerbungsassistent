@@ -8,6 +8,7 @@ the chosen stations and the ad, so opening the panel again does not pay twice. `
 placeholders without sending it (G15). Neither the extension nor Claude reach the routes: they are not listed in
 desktop/native_host.py or desktop/mcp_tools.py.
 """
+import functools
 import hashlib
 
 import cv_creation
@@ -20,7 +21,9 @@ import unterlagen
 from ai import cv_suggestions, tasks
 from ai.connection import currency_now
 from ai.errors import SETUP_ACTION, AiError, SetupNeeded
-from server import ActionError, json_antwort, pflicht
+from server import ActionError, json_antwort, message_of, pflicht
+from ui_message import listing
+from ui_texts import T
 
 ROUTE = "/api/lebenslauf/erstellen"
 CACHE_KEY = "lebenslauf-vorschlaege"
@@ -28,8 +31,9 @@ KEPT = 10
 READY, NO_AD, OFF = "bereit", "ohne_inserat", "aus"
 AD_MISSING = "Für Vorschläge der KI zuerst den Stellentext speichern."
 FAILED = "Kein Vorschlag der KI. {reason} {cost} Die Auswahl bleibt, wie sie ist."
-LEFT_OUT, MOVED_UP = "{names} weglassen", "{names} nach vorne"
-SHORTER, REORDERED = "Kurzprofil gekürzt", "Kurzprofil umgestellt"
+LEFT_OUT = "{names} weglassen"
+MOVED_UP = "{names} nach vorne"
+SHORTER, REORDERED = T("Kurzprofil gekürzt"), T("Kurzprofil umgestellt")
 
 
 def _ad(k, entry_id: str) -> str:
@@ -73,23 +77,25 @@ def _material(k, entry: dict, stand: object) -> tuple[str, list[cv_suggestions.S
     return ad, _stations(cv, shown), cv_creation.summary_of(cv)
 
 
-def _names(refs: tuple, stations: dict) -> str:
-    names = [f"«{', '.join(part for part in (stations[ref].title, stations[ref].organization) if part)}»"
-             for ref in refs]
-    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} und {names[-1]}"
+def _names(refs: tuple, stations: dict) -> T:
+    """The stations as Meine Angaben names them, each quoted the way the app language quotes."""
+    return listing([T("«{wert}»", wert=", ".join(part for part in (stations[ref].title, stations[ref].organization) if part))
+                    for ref in refs])
 
 
-def what(recommendation: cv_suggestions.Recommendation, stations: dict, summary: str) -> str:
-    """Written by the app from the changes, so it names only stations of Meine Angaben."""
+def what(recommendation: cv_suggestions.Recommendation, stations: dict, summary: str) -> T | str:
+    """Written by the app from the changes, so it names only stations of Meine Angaben; in the app language (#428)."""
     parts = []
     if recommendation.leave_out:
-        parts.append(LEFT_OUT.format(names=_names(recommendation.leave_out, stations)))
+        parts.append(T(LEFT_OUT, names=_names(recommendation.leave_out, stations)))
     if recommendation.move_up:
-        parts.append(MOVED_UP.format(names=_names(recommendation.move_up, stations)))
+        parts.append(T(MOVED_UP, names=_names(recommendation.move_up, stations)))
     if recommendation.summary is not None:
         shorter = len(cv_suggestions.sentences(recommendation.summary)) < len(cv_suggestions.sentences(summary))
         parts.append(SHORTER if shorter else REORDERED)
-    return ", ".join(parts)
+    if not parts:
+        return ""
+    return functools.reduce(lambda joined, part: T("{a}, {b}", a=joined, b=part), parts[1:], parts[0])
 
 
 def _view(number: int, recommendation: cv_suggestions.Recommendation, stations: dict, summary: str) -> dict:
@@ -108,7 +114,7 @@ def _key(entry_id: str, ad: str, stations: list, summary: str) -> str:
 
 def _failed(error: AiError) -> ValueError:
     cost = getattr(error, "cost_usd", None)
-    message = FAILED.format(reason=error, cost=routes_terms.charged(cost) if cost else routes_terms.NOT_CHARGED)
+    message = T(FAILED, reason=message_of(error), cost=routes_terms.charged(cost) if cost else routes_terms.NOT_CHARGED)
     return ActionError(message, SETUP_ACTION) if isinstance(error, SetupNeeded) else ValueError(message)
 
 

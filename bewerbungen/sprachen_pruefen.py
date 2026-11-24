@@ -112,6 +112,15 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "seiten/eigenes-anschreiben.js", BASE / "seiten/dateien-ordner.js",
     BASE / "pruefung.py", BASE / "layout_check.py", BASE / "layout_confirmed.py", BASE / "unterlagen.py",
     BASE / "varianten.py", BASE / "certificates.py", BASE / "routes_certificates.py",
+    # Lebenslauf erstellen, its preview and the AI's suggestions, the documents step and the cuts (#428), with the
+    # routes and modules behind them.
+    BASE / "seiten/lebenslauf-erstellen-logik.js", BASE / "seiten/lebenslauf-erstellen.js",
+    BASE / "seiten/lebenslauf-vorschau-logik.js", BASE / "seiten/lebenslauf-vorschau.js",
+    BASE / "seiten/lebenslauf-anpassen.js", BASE / "seiten/unterlagen-wahl.js", BASE / "seiten/unterlagen-ergebnis.js",
+    BASE / "seiten/unterlagen-schritt.js", BASE / "seiten/kuerzen-logik.js", BASE / "seiten/kuerzen.js",
+    BASE / "routes_cv_creation.py", BASE / "cv_creation.py", BASE / "created_look.py", BASE / "cv_design.py",
+    BASE / "routes_cv_preview.py", BASE / "cv_preview.py", BASE / "pdf_thumbnail.py", BASE / "routes_cv_suggestions.py",
+    BASE / "ai/cv_suggestions.py", BASE / "routes_cuts.py", BASE / "cut_choice.py", BASE / "cv_cuts.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

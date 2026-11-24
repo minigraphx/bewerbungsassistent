@@ -7,23 +7,25 @@
   // Answers of the server that name a next step (cv_preview.py).
   const CHECK_DATA = "angaben-pruefen";
   const REOPEN = "neu-oeffnen";
+  // Texts in the app language through Texte (#428); the page's Texte is found when a text is made.
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
   // «gerade» only where trying again can help.
-  const NOT_SHOWN = "Die Vorschau lässt sich gerade nicht anzeigen. Bitte nochmals ändern oder die Seite neu laden.";
-  const UNREACHABLE = "Die Vorschau lässt sich gerade nicht erstellen: Die App antwortet nicht. Bitte nochmals ändern oder später versuchen.";
-  const UNREADABLE = "Die Vorschau lässt sich nicht erstellen: In Meine Angaben steht etwas, das die App nicht lesen kann.";
-  const REFUSED = "Die Vorschau lässt sich nicht erstellen.";
-  const EMPTY = "Noch keine Station angehakt. Die Vorschau erscheint, sobald mindestens eine angehakt ist.";
+  const notShown = () => Texte.t("Die Vorschau lässt sich gerade nicht anzeigen. Bitte nochmals ändern oder die Seite neu laden.");
+  const unreachable = () => Texte.t("Die Vorschau lässt sich gerade nicht erstellen: Die App antwortet nicht. Bitte nochmals ändern oder später versuchen.");
+  const unreadable = () => Texte.t("Die Vorschau lässt sich nicht erstellen: In Meine Angaben steht etwas, das die App nicht lesen kann.");
+  const empty = () => Texte.t("Noch keine Station angehakt. Die Vorschau erscheint, sobald mindestens eine angehakt ist.");
 
-  const pagesText = pages => `${pages} ${pages === 1 ? "Seite" : "Seiten"}`;
+  const pagesText = pages => (pages === 1 ? Texte.t("1 Seite") : Texte.t("{anzahl} Seiten", { anzahl: pages }));
 
   /** The heading over the preview: with the pages once there is one; the parts of a «·» line (#342). */
-  const title = pages => (pages ? ["Vorschau", pagesText(pages)] : ["Vorschau"]);
+  const title = pages => (pages ? [Texte.t("Vorschau"), pagesText(pages)] : [Texte.t("Vorschau")]);
 
   /**
    * What stands instead of the preview when a choice cannot be sent: {text}. No station ticked is a state, not a
    * failure; another reason from the page stands as it is.
    */
-  const ofDraft = ({ empty, reason }) => ({ text: empty ? EMPTY : String(reason) });
+  const ofDraft = ({ empty: none, reason }) => ({ text: none ? empty() : String(reason) });
 
   /**
    * What stands instead of the preview after a request failed (an Error as App.senden throws it): {text} and, where
@@ -32,13 +34,13 @@
    */
   function problem(error, say) {
     const action = error && error.daten ? error.daten.aktion : undefined;
-    if (action === CHECK_DATA) return { text: UNREADABLE, link: true, details: error.message };
+    if (action === CHECK_DATA) return { text: unreadable(), link: true, details: error.message };
     if (action === REOPEN) return { text: say("lebenslauf.vorschau-geaendert"), reload: true };
-    if (!error || !error.status || error.status >= 500) return { text: UNREACHABLE };
-    return { text: `${REFUSED} ${error.message}` };
+    if (!error || !error.status || error.status >= 500) return { text: unreachable() };
+    return { text: Texte.t("Die Vorschau lässt sich nicht erstellen. {grund}", { grund: error.message }) };
   }
 
-  const pageAlt = (page, pages) => `Lebenslauf, Seite ${page} von ${pages}`;
+  const pageAlt = (page, pages) => Texte.t("Lebenslauf, Seite {seite} von {seiten}", { seite: page, seiten: pages });
 
   /**
    * What the live region says when the preview goes from `before` to `after` ({pages} or {failed}). The picture
@@ -48,11 +50,12 @@
   function announcement(before, after) {
     if (after.failed) return before && before.failed === after.failed ? "" : after.failed;
     if (!before) return "";
-    if (before.failed) return `Die Vorschau ist wieder da, ${pagesText(after.pages)}.`;
-    return before.pages === after.pages ? "" : `Die Vorschau hat jetzt ${pagesText(after.pages)}.`;
+    if (before.failed) return Texte.t("Die Vorschau ist wieder da, {seiten}.", { seiten: pagesText(after.pages) });
+    return before.pages === after.pages ? "" : Texte.t("Die Vorschau hat jetzt {seiten}.", { seiten: pagesText(after.pages) });
   }
 
-  const logic = { DELAY_MS, CHECK_DATA, REOPEN, NOT_SHOWN, title, ofDraft, problem, pageAlt, announcement };
+  const logic = { DELAY_MS, CHECK_DATA, REOPEN, get NOT_SHOWN() { return notShown(); }, title, ofDraft, problem, pageAlt,
+                  announcement };
   if (typeof module !== "undefined") module.exports = logic;
   else global.LebenslaufVorschauLogik = logic;
 })(typeof window !== "undefined" ? window : globalThis);

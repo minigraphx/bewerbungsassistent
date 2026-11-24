@@ -4,29 +4,39 @@
 // apart, and the short lines for the dossier and the attachments (tests/unterlagen_ergebnis.test.cjs).
 (function (global) {
   const W = typeof module !== "undefined" ? require("./unterlagen-wahl.js") : global.UnterlagenWahl;
-  const STEP_TITLE = "Unterlagen erstellen und prüfen";
-  const DESIGN_NAMES = { siegel: "Siegel", raster: "Raster", register: "Register" };
-  const OPEN = "Als PDF öffnen";
+  // Texts in the app language through Texte (#428); the page's Texte is found when a text is made.
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
+  const stepTitle = () => Texte.t("Unterlagen erstellen und prüfen");
+  const DESIGN_NAMES = { siegel: () => Texte.t("Siegel"), raster: () => Texte.t("Raster"), register: () => Texte.t("Register") };
+  const DESIGN_LINES = {
+    siegel: () => Texte.t("Design Siegel"), raster: () => Texte.t("Design Raster"), register: () => Texte.t("Design Register"),
+  };
   // The CV is made apart and shared by several applications; the click leads to where it is chosen (Andy, 15.11.2026)
   const ADAPT = {
-    variant: { text: "Für diese Stelle anpassen", target: "variant" },
-    files: { text: "In Lebenslauf und Dateien ändern", target: "files", href: "/dateien" },
-    letter: { text: "Anschreiben ändern", target: "letter" },
-    dossier: { text: "Dossier gestalten", target: "dossier" },
+    variant: { get text() { return Texte.t("Für diese Stelle anpassen"); }, target: "variant" },
+    files: { get text() { return Texte.t("In Lebenslauf und Dateien ändern"); }, target: "files", href: "/dateien" },
+    letter: { get text() { return Texte.t("Anschreiben ändern"); }, target: "letter" },
+    dossier: { get text() { return Texte.t("Dossier gestalten"); }, target: "dossier" },
   };
   // How the page fill changed the setting (lebenslauf/page_fill.change); levels the server does not name stay silent
   const CHANGES = {
-    "slightly-tighter": "etwas enger gesetzt",
-    tighter: "enger gesetzt",
-    tightest: "so eng wie möglich",
-    wider: "etwas grosszügiger gesetzt",
+    "slightly-tighter": () => Texte.t("etwas enger gesetzt"),
+    tighter: () => Texte.t("enger gesetzt"),
+    tightest: () => Texte.t("so eng wie möglich"),
+    wider: () => Texte.t("etwas grosszügiger gesetzt"),
   };
   const PARTS = ["letter", "cv"];
-  const PART_NAMES = { letter: "Anschreiben", cv: "Lebenslauf" };
-  const NEXT_CREATE = `Die App erstellt Lebenslauf und Anschreiben als PDF und prüft sie gleich. Danach stehen sie unter «${STEP_TITLE}» zum Ansehen bereit.`;
+  // The dossier names the part before how it was set; each language joins the two in its own way.
+  const PART_CHANGES = {
+    letter: wie => Texte.t("Anschreiben {wie}", { wie }),
+    cv: wie => Texte.t("Lebenslauf {wie}", { wie }),
+  };
 
   const fileName = file => file.split("/").pop();
-  const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+  const pagesText = count => (count === 1 ? Texte.t("1 Seite") : Texte.t("{anzahl} Seiten", { anzahl: count }));
+  const passedText = count => (count === 1 ? Texte.t("1 Prüfung in Ordnung")
+    : Texte.t("{anzahl} Prüfungen in Ordnung", { anzahl: count }));
 
   function adaptFor(art, ownCv) {
     if (art === "lebenslauf") return ownCv ? ADAPT.files : ADAPT.variant;
@@ -41,15 +51,15 @@
     if (!info || !Number.isInteger(info.seiten)) return [];
     const changes = info.ausgleich || {};
     const words = PARTS.filter(part => CHANGES[changes[part]])
-      .map(part => (art === "dossier" ? `${PART_NAMES[part]} ${CHANGES[changes[part]]}` : CHANGES[changes[part]]));
-    return [plural(info.seiten, "Seite", "Seiten"), ...words];
+      .map(part => (art === "dossier" ? PART_CHANGES[part](CHANGES[changes[part]]()) : CHANGES[changes[part]]()));
+    return [pagesText(info.seiten), ...words];
   }
 
   /** One tile per built document in the order of the choice; nothing is adapted once the application is sent. */
   function tiles(pdfs, choice, { ownCv = false, sent = false, notes = {} } = {}) {
     return W.rahmen(pdfs, choice).map(([art, name]) => ({
-      art, name, alt: `${name}, Seite 1`, open: OPEN, adapt: sent ? null : adaptFor(art, ownCv),
-      note: pageNote(art, (notes || {})[art]),
+      art, name, alt: Texte.t("{name}, Seite 1", { name }), open: Texte.t("Als PDF öffnen"),
+      adapt: sent ? null : adaptFor(art, ownCv), note: pageNote(art, (notes || {})[art]),
     }));
   }
 
@@ -60,7 +70,7 @@
     return {
       shown: all.filter(f => !ok.includes(f)),
       ok,
-      okLabel: ok.length ? `${plural(ok.length, "Prüfung", "Prüfungen")} in Ordnung` : "",
+      okLabel: ok.length ? passedText(ok.length) : "",
     };
   }
 
@@ -68,38 +78,44 @@
   function announcement(findings) {
     if (!findings) return "";
     const count = level => findings.filter(f => f.stufe === level).length;
+    const errors = count("fehler");
+    const notes = count("hinweis");
     const parts = [
-      count("fehler") ? `${count("fehler")} Fehler` : "",
-      count("hinweis") ? plural(count("hinweis"), "Hinweis", "Hinweise") : "",
-      count("ok") ? `${plural(count("ok"), "Prüfung", "Prüfungen")} in Ordnung` : "",
+      errors === 1 ? Texte.t("1 Fehler") : errors ? Texte.t("{anzahl} Fehler", { anzahl: errors }) : "",
+      notes === 1 ? Texte.t("1 Hinweis") : notes ? Texte.t("{anzahl} Hinweise", { anzahl: notes }) : "",
+      count("ok") ? passedText(count("ok")) : "",
     ].filter(Boolean);
-    return parts.length ? `Geprüft: ${parts.join(", ")}.` : "Geprüft.";
+    return parts.length ? Texte.t("Geprüft: {teile}.", { teile: parts.join(", ") }) : Texte.t("Geprüft.");
   }
 
   /** The certificates that go along, as one line; without a saved choice the suggestion counts but is not saved. */
   function attachmentsLine(available, chosen, suggested) {
-    if (!available.length) return "Beilagen: noch keine Zertifikate hochgeladen.";
+    if (!available.length) return Texte.t("Beilagen: noch keine Zertifikate hochgeladen.");
     const files = chosen || suggested;
-    if (!files.length) return "Beilagen: keine gewählt.";
+    if (!files.length) return Texte.t("Beilagen: keine gewählt.");
     const names = files.map(fileName).join(", ");
-    return chosen ? `Beilagen: ${names}` : `Beilagen: ${names} (Vorschlag, noch nicht gespeichert)`;
+    return chosen ? Texte.t("Beilagen: {namen}", { namen: names })
+      : Texte.t("Beilagen: {namen} (Vorschlag, noch nicht gespeichert)", { namen: names });
   }
 
-  function designName(entry) {
+  /** The id of the one design of all pages, or null with a design per page. */
+  function designOf(entry) {
     const design = entry.dossier_design || "siegel";
     const own = Object.values(entry.dossier_seiten || {}).some(name => name && name !== design);
-    return own ? null : DESIGN_NAMES[design] || DESIGN_NAMES.siegel;
+    if (own) return null;
+    return DESIGN_NAMES[design] ? design : "siegel";
   }
 
   function designLine(entry) {
-    const name = designName(entry);
-    return name ? `Design ${name}` : "Design pro Seite";
+    const design = designOf(entry);
+    return design ? DESIGN_LINES[design]() : Texte.t("Design pro Seite");
   }
 
   /** After creating, the form tiles and the dossier line collapse into this one line (#322, board A3). */
   function formLine(entry) {
-    if (W.gewaehlt(entry) !== "dossier") return "Form: Anschreiben und Lebenslauf";
-    return `Form: Dossier, ${designName(entry) || "Design pro Seite"}`;
+    if (W.gewaehlt(entry) !== "dossier") return Texte.t("Form: Anschreiben und Lebenslauf");
+    const design = designOf(entry);
+    return Texte.t("Form: Dossier, {design}", { design: design ? DESIGN_NAMES[design]() : Texte.t("Design pro Seite") });
   }
 
   /** Whether the main file of the chosen form is there: the dossier itself, or one of the two files. */
@@ -109,19 +125,24 @@
   function textsState({ gruss = "", dank = "" }) {
     const greeting = Boolean(gruss.trim());
     const thanks = Boolean(dank.trim());
-    if (greeting && thanks) return "Begrüssung und Dank geschrieben";
-    if (greeting) return "Begrüssung geschrieben, ohne Dank";
-    if (thanks) return "Dank geschrieben, ohne Begrüssung";
-    return "Ohne Begrüssung und Dank";
+    if (greeting && thanks) return Texte.t("Begrüssung und Dank geschrieben");
+    if (greeting) return Texte.t("Begrüssung geschrieben, ohne Dank");
+    if (thanks) return Texte.t("Dank geschrieben, ohne Begrüssung");
+    return Texte.t("Ohne Begrüssung und Dank");
   }
 
   function nextClarify(errors) {
     return errors === 1
-      ? `Die Prüfung hat einen Fehler gefunden. Er steht unter «${STEP_TITLE}».`
-      : `Die Prüfung hat ${errors} Fehler gefunden. Sie stehen unter «${STEP_TITLE}».`;
+      ? Texte.t("Die Prüfung hat einen Fehler gefunden. Er steht unter «{schritt}».", { schritt: stepTitle() })
+      : Texte.t("Die Prüfung hat {anzahl} Fehler gefunden. Sie stehen unter «{schritt}».", { anzahl: errors, schritt: stepTitle() });
   }
 
-  const logic = { STEP_TITLE, OPEN, NEXT_CREATE, pageNote, tiles, findingGroups, announcement, attachmentsLine, designLine,
+  const nextCreate = () => Texte.t("Die App erstellt Lebenslauf und Anschreiben als PDF und prüft sie gleich. Danach stehen sie unter «{schritt}» zum Ansehen bereit.",
+    { schritt: stepTitle() });
+
+  // Read when shown, so they follow the language of the page.
+  const logic = { get STEP_TITLE() { return stepTitle(); }, get OPEN() { return Texte.t("Als PDF öffnen"); },
+    get NEXT_CREATE() { return nextCreate(); }, pageNote, tiles, findingGroups, announcement, attachmentsLine, designLine,
     formLine, built, textsState, nextClarify };
   if (typeof module !== "undefined") module.exports = logic;
   else global.UnterlagenErgebnis = logic;

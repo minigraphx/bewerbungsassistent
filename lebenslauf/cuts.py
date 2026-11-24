@@ -35,6 +35,11 @@ class Cut:
     station: dict | None = None  # the fields that find the station
     keep: int | None = None  # the points the station keeps
     section: str | None = None
+    # The parts of `text`, so the app can say it in its own language (#428): the points that go, the station's name
+    # and its years as (start, end), end "" until today; None without a start year.
+    count: int | None = None
+    name: str = ""
+    years: tuple[str, str] | None = None
 
 
 def _points(station: dict) -> int:
@@ -51,9 +56,20 @@ def _year(value) -> str:
     return str(value)[:4] if value else ""
 
 
+def _years_of(station: dict) -> tuple[str, str] | None:
+    """Start and end year; the end is "" while the station runs. None without a start year."""
+    start = _year(station.get("startDate"))
+    return (start, _year(station.get("endDate"))) if start else None
+
+
 def _years(station: dict) -> str:
-    start, end = _year(station.get("startDate")), _year(station.get("endDate")) or UNTIL_TODAY
-    return f" ({start}–{end})" if start else ""
+    years = _years_of(station)
+    return f" ({years[0]}–{years[1] or UNTIL_TODAY})" if years else ""
+
+
+def _points_cut(cut_id: str, count: int, station: dict, fields: dict, keep: int) -> Cut:
+    return Cut(cut_id, _points_text(count, station), fields, keep=keep, count=count, name=_station_name(station),
+               years=_years_of(station))
 
 
 def _fields(station: dict) -> dict:
@@ -80,8 +96,7 @@ def _station_cuts(cv: dict) -> list[Cut]:
     cuts = []
     for station in ordered:
         going = (_points(station) + 1) // 2
-        cuts.append(Cut(_station_id(station), _points_text(going, station), _fields(station),
-                        keep=_points(station) - going))
+        cuts.append(_points_cut(_station_id(station), going, station, _fields(station), _points(station) - going))
     return cuts
 
 
@@ -142,8 +157,8 @@ def left_out(cv: dict, stored) -> list[Cut]:
     for record in _records(stored):
         station = next((s for s in cv.get("work") or [] if same_station(s, record)), None)
         if station is not None and _points(station) > record[KEEP]:
-            found.append(Cut(_station_id(record), _points_text(_points(station) - record[KEEP], station),
-                             _fields(station), keep=record[KEEP]))
+            found.append(_points_cut(_station_id(record), _points(station) - record[KEEP], station, _fields(station),
+                                     record[KEEP]))
     return found + [_section_cut(key) for key in _sections(stored)]
 
 

@@ -7,8 +7,10 @@
   const { el, senden } = window.App;
   const K = window.KuerzenLogik;
   const $ = id => document.getElementById(id);
-  const BUSY = { kuerzen: "Wird gekürzt und neu erstellt …", [K.THREE_ID]: "Drei Seiten erlaubt, wird neu erstellt …" };
-  const NOTHING_TICKED = "Bitte mindestens eine Kürzung anhaken oder drei Seiten erlauben.";
+  // The page keeps one language while it is open, so its texts are read once (#428).
+  const { Texte } = window;
+  const BUSY = { kuerzen: Texte.t("Wird gekürzt und neu erstellt …"), [K.THREE_ID]: Texte.t("Drei Seiten erlaubt, wird neu erstellt …") };
+  const NOTHING_TICKED = Texte.t("Bitte mindestens eine Kürzung anhaken oder drei Seiten erlauben.");
 
   function row(option, name) {
     return el("label", { class: "cut-row" },
@@ -25,7 +27,7 @@
     const rows = K.rows(kuerzen);
     const status = el("p", { class: "status-line cut-choice__status", role: "status", "aria-live": "polite" });
     const fieldset = el("fieldset", { class: "cut-choice" },
-      el("legend", { class: "cut-choice__legend" }, rows.length ? K.LEGEND : "Für diese Bewerbung"),
+      el("legend", { class: "cut-choice__legend" }, rows.length ? K.LEGEND : Texte.t("Für diese Bewerbung")),
       ...rows.map(option => row(option, name)));
     const buttons = K.buttons(kuerzen).map(button => el("button", {
       type: "button", class: `btn${button.primary ? " btn--primary" : ""}`, "data-aktion": button.action,
@@ -62,7 +64,7 @@
     const rows = K.leftOut(kuerzungen);
     const three = K.threePages(kuerzungen);
     const takeBackButton = (entry, index) => sent ? null : el("button", {
-      type: "button", class: "btn btn--sm", "aria-label": `${entry.button}: ${entry.text}`,
+      type: "button", class: "btn btn--sm", "aria-label": Texte.t("{knopf}: {was}", { knopf: entry.button, was: entry.text }),
       onclick: event => takeBack(event.currentTarget, entry, index),
     }, entry.button);
     $("weggelassen").hidden = !rows.length;
@@ -74,7 +76,7 @@
 
     async function takeBack(button, entry, index) {
       button.disabled = true;
-      $("weggelassen-status").textContent = "Wird zurückgeholt und neu erstellt …";
+      $("weggelassen-status").textContent = Texte.t("Wird zurückgeholt und neu erstellt …");
       try {
         await after("zurueck", await senden("/api/kuerzungen/zurueckholen", { id: entryId, kuerzung: entry.id }));
         $("weggelassen-status").textContent = "";

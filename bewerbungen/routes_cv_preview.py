@@ -9,7 +9,7 @@ from http import HTTPStatus
 import cv_creation
 import cv_preview
 import unterlagen
-from server import ActionError, Antwort, json_antwort, pflicht
+from server import ActionError, Antwort, json_antwort, message_of, pflicht
 
 ROUTE = "/api/lebenslauf/erstellen/vorschau"
 WRONG_PAGE = "Die Seite muss eine Zahl sein."
@@ -37,7 +37,7 @@ def _choice(k, body: dict) -> tuple[dict, cv_creation.Choice]:
         action = _ACTIONS.get(str(error))
         if action is None:
             raise
-        raise ActionError(str(error), action) from error
+        raise ActionError(message_of(error), action) from error
 
 
 def create(k, parameter, body):

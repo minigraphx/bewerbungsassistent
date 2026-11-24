@@ -16,12 +16,14 @@ import created_look
 import cv_design
 from dateien import schreibe_yaml
 from register import CV_DESIGNS
+from ui_message import T
 from varianten import Varianten
 
-# The sections of a JSON Resume whose entries are stations, in the order the page shows them.
-SECTIONS = {"work": "Berufserfahrung", "education": "Bildung und Weiterbildung", "teaching": "Lehre und Training",
-            "projects": "Projekte", "volunteer": "Freiwilligenarbeit", "certificates": "Zertifikate",
-            "awards": "Auszeichnungen", "publications": "Publikationen"}
+# The sections of a JSON Resume whose entries are stations, in the order the page shows them. Each a T: the page
+# reads it in the app language (#428), the AI as the German text it always had.
+SECTIONS = {"work": T("Berufserfahrung"), "education": T("Bildung und Weiterbildung"),
+            "teaching": T("Lehre und Training"), "projects": T("Projekte"), "volunteer": T("Freiwilligenarbeit"),
+            "certificates": T("Zertifikate"), "awards": T("Auszeichnungen"), "publications": T("Publikationen")}
 IDENTITY = ("position", "name", "institution", "studyType", "area", "title", "organization", "issuer", "awarder",
             "publisher", "startDate", "endDate", "date")
 TITLE = ("position", "studyType", "title", "name")
@@ -104,7 +106,7 @@ def _time(entry: dict) -> str:
         return _text(entry["x-display"])
     start, end = _date(entry.get("startDate")), _date(entry.get("endDate"))
     if start:
-        return f"{start} – {end or 'heute'}"
+        return f"{start} – {end}" if end else T("{von} – heute", von=start)
     return _date(entry.get("date"))
 
 
@@ -125,7 +127,7 @@ def _chosen_indices(entries: list, wanted: object) -> list[int]:
 def _station_row(entries: list, index: int, chosen: bool) -> dict:
     """A station as the page names it: title, company or school, and time."""
     entry = entries[index] if isinstance(entries[index], dict) else {}
-    title = _title(entry) or f"Eintrag {index + 1}"
+    title = _title(entry) or T("Eintrag {nummer}", nummer=index + 1)
     return {"index": index, "titel": title, "zusatz": _subtitle(entry, title), "zeit": _time(entry), "gewaehlt": chosen}
 
 
@@ -212,12 +214,12 @@ def _indices(value: object, count: int) -> tuple[int, ...]:
     return tuple(value)
 
 
-def _string(body: dict, key: str, limit: int, label: str) -> str:
+def _string(body: dict, key: str, limit: int, label: T) -> str:
     value = body.get(key, "")
     if not isinstance(value, str):
-        raise ValueError(f"{label} muss ein Text sein.")
+        raise ValueError(T("{label} muss ein Text sein.", label=label))
     if len(value) > limit:
-        raise ValueError(f"{label} ist zu lang, höchstens {limit} Zeichen.")
+        raise ValueError(T("{label} ist zu lang, höchstens {limit} Zeichen.", label=label, limit=limit))
     return value.strip()
 
 
@@ -232,10 +234,10 @@ def parse(cv: dict, stand: str, body: dict, data_dir: pathlib.Path) -> Choice:
     stations = {name: _indices(value, len(present[name])) for name, value in wanted.items()}
     if not any(stations.values()):
         raise ValueError(NOTHING_CHOSEN)
-    return Choice(stations=stations, label=_string(body, "berufsbezeichnung", MAX_NAME, "Die Berufsbezeichnung"),
-                  summary=_string(body, "kurzprofil", MAX_TEXT, "Das Kurzprofil"),
+    return Choice(stations=stations, label=_string(body, "berufsbezeichnung", MAX_NAME, T("Die Berufsbezeichnung")),
+                  summary=_string(body, "kurzprofil", MAX_TEXT, T("Das Kurzprofil")),
                   design=cv_design.parse(body.get("design")),
-                  name=_string(body, "bezeichnung", MAX_NAME, "Der Name der Fassung"),
+                  name=_string(body, "bezeichnung", MAX_NAME, T("Der Name der Fassung")),
                   look=created_look.parse(body.get(created_look.KEY), cv, data_dir))
 
 

@@ -14,10 +14,30 @@ import cv_cuts
 import page_limit
 import unterlagen
 from dateien import schreibe_atomar
+from ui_message import T
 
 NONE_CHOSEN = "Bitte mindestens eine Kürzung anhaken oder drei Seiten erlauben."
 UNKNOWN = "Diese Kürzung gibt es nicht mehr. Bitte erneut prüfen."
 THREE_PAGES = "drei-seiten"  # the id of the allowed third page among what is left out
+# The sections of lebenslauf/cuts.py in the app language (#428); in German they read as cuts.SECTION_NAMES.
+SECTION_NAMES = {"more-projects": T("Weitere Projekte"), "interests": T("Interessen"), "volunteer": T("Engagement"),
+                 "awards": T("Auszeichnungen")}
+
+
+def cut_text(cut: cuts.Cut) -> T:
+    """What a cut takes away, in the app language; the station's name stays as Meine Angaben has it. In German it is
+    `cut.text` byte for byte."""
+    if cut.section:
+        return T("Abschnitt «{name}»", name=SECTION_NAMES[cut.section])
+    if cut.years:
+        start, end = cut.years
+        years = {"von": start, "bis": end or T("heute")}
+        if cut.count == 1:
+            return T("1 Stichpunkt bei «{station}» ({von}–{bis})", station=cut.name, **years)
+        return T("{anzahl} Stichpunkte bei «{station}» ({von}–{bis})", anzahl=cut.count, station=cut.name, **years)
+    if cut.count == 1:
+        return T("1 Stichpunkt bei «{station}»", station=cut.name)
+    return T("{anzahl} Stichpunkte bei «{station}»", anzahl=cut.count, station=cut.name)
 
 
 def options(daten: pathlib.Path, entry: dict) -> list[cuts.Cut]:
@@ -30,7 +50,7 @@ def options(daten: pathlib.Path, entry: dict) -> list[cuts.Cut]:
 def offer(daten: pathlib.Path, entry: dict, limit: int) -> dict:
     """What the finding of a CV over `limit` offers: the cuts, and three pages while fewer are allowed."""
     allowed = unterlagen.cuts_apply(daten, entry) and limit < page_limit.MOST
-    return {"optionen": [{"id": cut.id, "text": cut.text} for cut in options(daten, entry)], "drei_seiten": allowed}
+    return {"optionen": [{"id": cut.id, "text": cut_text(cut)} for cut in options(daten, entry)], "drei_seiten": allowed}
 
 
 def _picked(daten: pathlib.Path, entry: dict, ids) -> list[cuts.Cut]:
@@ -88,5 +108,5 @@ def _left_out(daten: pathlib.Path, entry: dict, stored: dict) -> list[cuts.Cut]:
 def state(daten: pathlib.Path, entry: dict) -> dict:
     """What this application leaves out, named as when it was offered, and whether it allows three pages."""
     stored = cv_cuts.load(daten, entry["id"])
-    return {"weggelassen": [{"id": cut.id, "text": cut.text} for cut in _left_out(daten, entry, stored)],
+    return {"weggelassen": [{"id": cut.id, "text": cut_text(cut)} for cut in _left_out(daten, entry, stored)],
             "drei_seiten": stored.get(cv_cuts.THREE_PAGES) is True}
