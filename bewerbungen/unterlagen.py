@@ -16,7 +16,7 @@ import cuts
 import cv_cuts
 import cv_design
 import dossier as dossier_modul
-import letter_messages
+import refusal_messages
 from dateien import im_ordner
 from register import DESIGN_PAGES, DOSSIER_DESIGNS, ID_MUSTER
 from tailor import tailor
@@ -170,16 +170,18 @@ def _baue_ganzen_lebenslauf(daten: pathlib.Path, design: list[str], options: lis
         raise ValueError(CHOOSE_VARIANT)
     if not (daten / "cv.yaml").is_file():
         raise ValueError(NO_CV)
-    lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *options, "--build-dir", str(build), "-o", str(ziel)])
+    with refusal_messages.in_app_language():
+        lebenslauf_modul.main([str(daten / "cv.yaml"), *design, *options, "--build-dir", str(build), "-o", str(ziel)])
 
 
 def _build_tailored(daten: pathlib.Path, bewerbung: dict, job: pathlib.Path, lang: str, design: list[str],
                     build: pathlib.Path, ziel: pathlib.Path) -> None:
     """A tailoring created in „Lebenslauf erstellen“ brings its photo, colour and mark along (G77)."""
     look = created_look.of_file(job)
-    lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(job), "--lang", lang, *design,
-                           *created_look.mark_arguments(look), *_cv_options(daten, bewerbung, look),
-                           "--build-dir", str(build), "-o", str(ziel)])
+    with refusal_messages.in_app_language():
+        lebenslauf_modul.main([str(daten / "cv.yaml"), "--job", str(job), "--lang", lang, *design,
+                               *created_look.mark_arguments(look), *_cv_options(daten, bewerbung, look),
+                               "--build-dir", str(build), "-o", str(ziel)])
 
 
 def _baue_lebenslauf(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path, ziel: pathlib.Path) -> None:
@@ -261,7 +263,7 @@ def baue(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> dict[str,
     daten = daten.resolve()
     if wants_dossier(bewerbung):
         bewerbungsordner(daten, bewerbung["id"]).mkdir(parents=True, exist_ok=True)
-        with letter_messages.in_app_language():
+        with refusal_messages.in_app_language():
             return _baue_dossier(daten, bewerbung, build)
     pfade_pdf = pdf_pfade(daten, bewerbung["id"])
     pfade_pdf["lebenslauf"].parent.mkdir(parents=True, exist_ok=True)
@@ -277,7 +279,7 @@ def baue(daten: pathlib.Path, bewerbung: dict, build: pathlib.Path) -> dict[str,
         argumente = [str(brief), "--build-dir", str(build), "-o", str(pfade_pdf["anschreiben"])]
         if (daten / "cv.yaml").is_file():
             argumente += ["--cv", str(daten / "cv.yaml")]
-        with letter_messages.in_app_language():
+        with refusal_messages.in_app_language():
             anschreiben_modul.main(argumente)
         gebaut["anschreiben"] = pfade_pdf["anschreiben"]
     return gebaut

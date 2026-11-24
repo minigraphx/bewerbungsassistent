@@ -19,6 +19,7 @@ import fill_record
 import mark
 import page_fill
 import type_area
+from refusal import Refusal
 from tailor import tailor
 from typst_root import typst_root
 
@@ -51,19 +52,21 @@ def waehle_sprache(wert, sprache: str):
 def pruefe_foto_optionen(optionen: dict) -> dict:
     """`basics.x-image` prüfen: mirror (ja/nein), zoom (1–4), x und y (0–1, Bildausschnitt)."""
     if not isinstance(optionen, dict):
-        raise ValueError("basics.x-image muss eine Zuordnung sein, z.B. {mirror: true, zoom: 1.3}")
+        raise Refusal("basics.x-image muss eine Zuordnung sein, z.B. {mirror: true, zoom: 1.3}")
     unbekannt = set(optionen) - {"mirror", "zoom", "x", "y"}
     if unbekannt:
-        raise ValueError(f"basics.x-image: unbekannte Felder {sorted(unbekannt)}; erlaubt sind mirror, zoom, x, y")
+        raise Refusal("basics.x-image: unbekannte Felder {felder}; erlaubt sind mirror, zoom, x, y",
+                      felder=sorted(unbekannt))
     if "mirror" in optionen and not isinstance(optionen["mirror"], bool):
-        raise ValueError("basics.x-image.mirror muss true oder false sein")
+        raise Refusal("basics.x-image.mirror muss true oder false sein")
     grenzen = {"zoom": (ZOOM_MIN, ZOOM_MAX), "x": (0, 1), "y": (0, 1)}
     for key, (unten, oben) in grenzen.items():
         wert = optionen.get(key)
         if wert is None:
             continue
         if isinstance(wert, bool) or not isinstance(wert, (int, float)) or not unten <= wert <= oben:
-            raise ValueError(f"basics.x-image.{key} muss eine Zahl von {unten} bis {oben} sein, nicht {wert!r}")
+            raise Refusal("basics.x-image.{feld} muss eine Zahl von {unten} bis {oben} sein, nicht {wert}",
+                          feld=key, unten=unten, oben=oben, wert=repr(wert))
     return dict(optionen)
 
 
@@ -71,7 +74,8 @@ def json_value(value) -> str:
     """A value JSON has no type for: a date YAML reads from 2022-06-01 without quotes goes to Typst as its text (#181)."""
     if isinstance(value, datetime.date):
         return value.isoformat()
-    raise TypeError(f"{type(value).__name__} lässt sich nicht als JSON schreiben")
+    # A Python type YAML gives only for tags such as !!binary; a fault of the file, not a message to word
+    raise TypeError(f"{type(value).__name__} lässt sich nicht als JSON schreiben")  # kein UI-Text
 
 
 PHOTO_FIELDS = ("image", "x-image")
@@ -94,15 +98,17 @@ def with_cuts(cv: dict, cuts_file: str | None) -> dict:
 def pruefe_beschriftungen(werte) -> dict:
     """`x-beschriftungen` prüfen: eigene Überschriften je Abschnitt, z.B. {erfahrung: Schnupperlehren}."""
     if not isinstance(werte, dict):
-        raise ValueError("x-beschriftungen muss eine Zuordnung sein, z.B. {erfahrung: Schnupperlehren & Erfahrungen}")
+        raise Refusal("x-beschriftungen muss eine Zuordnung sein, z.B. {erfahrung: Schnupperlehren & Erfahrungen}")
     unbekannt = set(werte) - set(ABSCHNITTE)
     if unbekannt:
-        raise ValueError(f"x-beschriftungen: unbekannte Abschnitte {sorted(unbekannt)}; erlaubt sind {', '.join(ABSCHNITTE)}")
+        raise Refusal("x-beschriftungen: unbekannte Abschnitte {abschnitte}; erlaubt sind {erlaubt}",
+                      abschnitte=sorted(unbekannt), erlaubt=", ".join(ABSCHNITTE))
     for key, text in werte.items():
         if not isinstance(text, str) or not text.strip():
-            raise ValueError(f"x-beschriftungen.{key} muss ein nicht leerer Text sein")
+            raise Refusal("x-beschriftungen.{feld} muss ein nicht leerer Text sein", feld=key)
         if len(text) > MAX_BESCHRIFTUNG:
-            raise ValueError(f"x-beschriftungen.{key} darf höchstens {MAX_BESCHRIFTUNG} Zeichen haben")
+            raise Refusal("x-beschriftungen.{feld} darf höchstens {zeichen} Zeichen haben", feld=key,
+                          zeichen=MAX_BESCHRIFTUNG)
     return {key: text.strip() for key, text in werte.items()}
 
 

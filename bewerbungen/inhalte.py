@@ -15,8 +15,8 @@ import pfade  # noqa: F401  (macht das Modul lebenslauf importierbar)
 import anschreiben as anschreiben_modul
 import build as lebenslauf_modul
 import cv_design
-import letter_messages
 import photo_shown
+import refusal_messages
 from dateien import relativ
 import textdokument
 from register import pruefe_bewerbung
@@ -113,7 +113,8 @@ def _baue_lebenslauf(cv_pfad: pathlib.Path, job: pathlib.Path | None, build: pat
     out = build / "inhalt-probe" / "vorschau.pdf"
     argumente = [str(cv_pfad), *cv_design.theme_arguments(design), "--build-dir", str(build), "-o", str(out)]
     argumente += ["--job", str(job)] if job else []
-    _probebau(lebenslauf_modul.main, argumente)
+    with refusal_messages.in_app_language():
+        _probebau(lebenslauf_modul.main, argumente)
     return out
 
 
@@ -147,7 +148,7 @@ def pruefe_inhalt(daten: pathlib.Path, rel: str, text: str, build: pathlib.Path)
         job.write_text(text, encoding="utf-8")
         return _baue_lebenslauf(cv, job, build, cv_design.load(daten))
     if rel.endswith("anschreiben.yaml"):
-        with letter_messages.in_app_language():
+        with refusal_messages.in_app_language():
             return _baue_anschreiben(daten, wert, build)
     if rel in ("bewerbungen.yaml", "varianten.yaml"):
         if not isinstance(wert, list):
