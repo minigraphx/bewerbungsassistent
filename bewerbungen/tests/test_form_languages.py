@@ -168,8 +168,10 @@ def test_french_says_vous_for_the_job_and_tu_for_the_apprenticeship():
 def test_the_glossary_holds_for_rav_efz_eba_and_ki():
     assert "ORP" in catalog().text("job-room (Stellen der RAV, alle Berufe)", "fr")
     assert "RAV" in catalog().text("job-room (Stellen der RAV, alle Berufe)", "en")
-    assert {"CFC", "AFP"} <= set(re.findall(r"[A-Z]{3}", catalog().text(
-        "Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "fr")))
+    # The search only takes German names of occupations today, so the label keeps EFZ and EBA and says so.
+    assert catalog().text("Berufe mit EFZ oder EBA (einer pro Zeile, der wichtigste zuerst)", "fr") \
+        == "Métiers avec EFZ ou EBA (nom allemand, un par ligne, le plus important d'abord)"
+    assert "EFZ" in catalog().text("z.B. Kaufmann EFZ – Buchhaltung und Administration", "en")
     hint = next(field["hint"] for section in form()["sections"] for field in section["fields"]
                 if field["id"] == "directions")
     assert "l'IA" in catalog().text(hint, "fr") and "the AI" in catalog().text(hint, "en")
@@ -241,3 +243,110 @@ def test_french_puts_a_no_break_space_before_a_colon_and_a_question_mark():
     assert catalog().text("Homeoffice erwünscht?", "fr").endswith(NBSP + "?")
     opening = catalog().text("Einstieg: Welcher Satz passt am besten?", "fr")
     assert NBSP + ":" in opening and opening.endswith(NBSP + "?")
+
+
+# The UI/UX ruling on #431
+
+
+def quoted(text: str) -> str:
+    return "«" + NBSP + text + NBSP + "»"
+
+
+RULED = {
+    "Diese Vorlage braucht JavaScript. Bitte in einem aktuellen Browser öffnen.": (
+        "Cette page a besoin de JavaScript. Merci de l'ouvrir dans un navigateur récent.",
+        "This page needs JavaScript. Please open it in an up-to-date browser."),
+    "Rahmen": ("Conditions", "Terms"),
+    "Stufe fürs Dossier (freiwillig)": ("Échelon pour le dossier (facultatif)", "Rating for the dossier (optional)"),
+    "ohne Stufe": ("sans échelon", "no rating"),
+    "Kenntnisse (eine pro Zeile, Stufe freiwillig)": ("Compétences (une par ligne, échelon facultatif)",
+                                                      "Skills (one per line, rating optional)"),
+    "Gruss (leer = „Freundliche Grüsse“)": ("Formule de politesse (vide = " + quoted("Freundliche Grüsse") + ")",
+                                           "Closing (empty = “Freundliche Grüsse”)"),
+    "Wie bist du auf diese Berufe gekommen? (freiwillig)": ("D'où vient ton intérêt pour ces métiers" + NBSP
+                                                            + "? (facultatif)", "What drew you to these occupations? (optional)"),
+    "Appenzell Ausserrhoden": ("Appenzell Rhodes-Extérieures", "Appenzell Ausserrhoden"),
+    "Appenzell Innerrhoden": ("Appenzell Rhodes-Intérieures", "Appenzell Innerrhoden"),
+    "Basel-Landschaft": ("Bâle-Campagne", "Basel-Landschaft"),
+    "Basel-Stadt": ("Bâle-Ville", "Basel-Stadt"),
+}
+RULED_EN = {
+    "Stichworte für die Suche (freiwillig, eins pro Zeile)": "Search terms (optional, one per line)",
+    "Danach sucht die App Stellen für Sie.": "The app uses this to search for jobs for you.",
+    "Was auf keinen Fall? (freiwillig, eins pro Zeile)": "What is out of the question? (optional, one per line)",
+    "Zeugnis oder Bericht": "School report or trial report",
+    "Eigene Webseite (freiwillig)": "Personal website (optional)",
+    "Eigener Text (freiwillig)": "Custom text (optional)",
+    "Eigene Formulierungen, die gut passen (freiwillig, eine pro Zeile)": "Your own phrases that fit well (optional, one per line)",
+    "daraus übernimmt die App Ton und eigene Formulierungen": "the app picks up tone and phrasing from them",
+    "Begleitperson (freiwillig, z.B. Mutter, liest mit)": "Person who helps you (optional, e.g. your mother, who reads along)",
+}
+
+
+def fields_with(word: str) -> list[str]:
+    return [text for section in form()["sections"] for field in section["fields"] for key in ("label", "hint", "intro")
+            for text in ((field.get(key) or {}).values() if isinstance(field.get(key), dict) else [field.get(key)])
+            if isinstance(text, str) and word in text]
+
+
+def test_the_ruled_texts_read_as_ruled():
+    wrong = {german: (catalog().text(german, "fr"), catalog().text(german, "en")) for german in RULED
+             if (catalog().text(german, "fr"), catalog().text(german, "en")) != RULED[german]}
+    wrong |= {german: catalog().text(german, "en") for german, english in RULED_EN.items()
+              if catalog().text(german, "en") != english}
+
+    assert wrong == {}
+
+
+def test_the_placeholders_are_substituts_in_french():
+    person = next(section for section in form()["sections"] if section["id"] == "person")
+
+    for intro in person["intro"].values():
+        assert "substituts" in catalog().text(intro, "fr") and "espaces réservés" not in catalog().text(intro, "fr")
+
+
+def test_stufe_is_a_rating_and_niveau_a_level():
+    hints = fields_with("Stufe") + fields_with("Stufen")
+
+    assert len(hints) >= 4
+    for german in hints:
+        french, english = catalog().text(german, "fr"), catalog().text(german, "en")
+        if "Schulstufe" in german:
+            continue
+        assert "niveau" not in french.lower(), german
+        assert "level" not in english.lower(), german
+    assert catalog().text("Schulstufe und Niveau (z.B. Sekundarschule, Niveau A)", "fr").startswith("Degré scolaire et niveau")
+
+
+def test_the_letters_rest_on_the_strengths():
+    strengths = next(section for section in form()["sections"] if section["id"] == "strengths")
+
+    for intro in strengths["intro"].values():
+        assert catalog().text(intro, "fr").endswith("s'appuient sur ces exemples.")
+
+
+def print_labels() -> dict[str, dict[str, str]]:
+    """The headings the CV PDF prints, per language, from lebenslauf/themes/common.typ."""
+    source = (sprachen_pruefen.ROOT / "lebenslauf" / "themes" / "common.typ").read_text(encoding="utf-8")
+    blocks = re.findall(r"\n  (\w\w): \((.*?)\n  \),", source, re.S)
+    return {language: dict(re.findall(r'([\w-]+): "([^"]*)"', body)) for language, body in blocks}
+
+
+def test_the_intros_quote_the_headings_the_cv_prints():
+    printed = print_labels()
+    sections = {section["id"]: section for section in form()["sections"]}
+    teaching, projects = sections["teaching"]["intro"]["job"], sections["projects"]["intro"]["job"]
+
+    assert quoted(printed["fr"]["lehre"]) in catalog().text(teaching, "fr")
+    assert "“" + printed["en"]["lehre"] + "”" in catalog().text(teaching, "en")
+    for key in ("projekte", "weitere-projekte"):
+        assert quoted(printed["fr"][key]) in catalog().text(projects, "fr")
+        assert "“" + printed["en"][key] + "”" in catalog().text(projects, "en")
+
+
+def test_the_app_names_the_cv_sections_as_the_cv_prints_them():
+    printed = print_labels()
+
+    assert catalog().text("Lehre und Training", "fr") == printed["fr"]["lehre"]
+    assert catalog().text("Weitere Projekte", "fr") == printed["fr"]["weitere-projekte"]
+    assert catalog().text("Weitere Projekte", "en") == printed["en"]["weitere-projekte"]

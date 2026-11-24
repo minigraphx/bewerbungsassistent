@@ -82,8 +82,9 @@ test("the empty label of a select from form.json speaks the app language", () =>
   const shown = inAll((page) => texts(byTag(view(page, "languages", "x-level", ""), "select")[0], "option"));
 
   assert.deepEqual(shown.de, ["ohne Stufe", "A1", "A2", "B1", "B2", "C1", "C2"]);
-  assert.deepEqual(shown.fr, ["sans niveau", "A1", "A2", "B1", "B2", "C1", "C2"]);
-  assert.deepEqual(shown.en, ["no level", "A1", "A2", "B1", "B2", "C1", "C2"]);
+  // Stufe is the rating the dossier draws, Niveau the level in words (UI/UX ruling on #431).
+  assert.deepEqual(shown.fr, ["sans échelon", "A1", "A2", "B1", "B2", "C1", "C2"]);
+  assert.deepEqual(shown.en, ["no rating", "A1", "A2", "B1", "B2", "C1", "C2"]);
 });
 
 test("a placeholder, a hint and a label per track follow the app language", () => {

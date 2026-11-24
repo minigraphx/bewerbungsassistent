@@ -87,7 +87,7 @@
   "Wird zurückgeholt und neu erstellt …": {"fr": "Le CV est rétabli et recréé…", "en": "Restoring and recreating…"},
   "{knopf}: {was}": {"fr": "{knopf}\u00a0: {was}", "en": "{knopf}: {was}"},
   "Diese Kürzung gibt es nicht mehr. Bitte erneut prüfen.": {"fr": "Cette coupe n'existe plus. Merci de vérifier à nouveau.", "en": "This cut no longer exists. Please check again."},
-  "Weitere Projekte": {"fr": "Autres projets", "en": "More projects"},
+  "Weitere Projekte": {"fr": "Autres projets", "en": "Further projects"},
   "Interessen": {"fr": "Centres d'intérêt", "en": "Interests"},
   "Engagement": {"fr": "Bénévolat", "en": "Volunteer work"},
   "Auszeichnungen": {"fr": "Distinctions", "en": "Awards"},
@@ -100,7 +100,7 @@
 
   "Berufserfahrung": {"fr": "Expérience professionnelle", "en": "Work experience"},
   "Bildung und Weiterbildung": {"fr": "Formation et perfectionnement", "en": "Education and training"},
-  "Lehre und Training": {"fr": "Enseignement et animation de formations", "en": "Teaching and training"},
+  "Lehre und Training": {"fr": "Enseignement et formation", "en": "Teaching and training"},
   "Projekte": {"fr": "Projets", "en": "Projects"},
   "Freiwilligenarbeit": {"fr": "Bénévolat", "en": "Volunteer work"},
   "Publikationen": {"fr": "Publications", "en": "Publications"},
