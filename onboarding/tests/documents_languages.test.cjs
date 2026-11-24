@@ -122,7 +122,18 @@ test("the privacy line names what is replaced and where the files go, with tu fo
   assert.match(job.fr, /^Le nom, l'adresse et les contacts sont remplacés avant que le texte parte à l'IA \(Anthropic\)\./);
   assert.match(job.fr, /restent sur votre ordinateur\. Les fichiers vont tout de suite dans votre dossier de données/);
   assert.match(apprenticeship, /restent sur ton ordinateur\. Les fichiers vont tout de suite dans ton dossier de données/);
-  assert.match(job.en, /only after “Frau” or “Herr”\. Images, scans and old Word files stay on your computer\./);
+  assert.match(job.en, /only after a title such as “Frau”, “Herr”, “Madame”, “Monsieur”, “Mr” or “Ms”\. Images, scans and old Word files stay on your computer\./);
+});
+
+test("the privacy line names the French and English titles the app recognises names after (#456)", () => {
+  const line = (page, track) => texts(card(page, { track }), "p").find((t) => t.includes("Anthropic"));
+  const job = inAll((page) => line(page, "job"));
+  const apprenticeship = line(app, "apprenticeship");
+
+  for (const german of [job.de, apprenticeship]) {
+    assert.ok(german.includes("nur nach einer Anrede wie „Frau“, „Herr“, „Madame“, „Monsieur“, „Mr“ oder „Ms“."), german);
+  }
+  assert.ok(job.fr.includes(fr("qu'après une civilité comme «~Frau~», «~Herr~», «~Madame~», «~Monsieur~», «~Mr~» ou «~Ms~».")), job.fr);
 });
 
 // Cost, time and what does not go to the AI

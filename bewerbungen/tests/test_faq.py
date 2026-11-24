@@ -127,6 +127,37 @@ def test_names_in_an_ad_are_found_after_frau_or_herr_and_in_personal_mailboxes()
     assert {"info", "jobs"} <= personal.GENERIC_MAILBOXES
 
 
+FAQ_TITLES = ["Frau", "Herr", "Madame", "Mademoiselle", "Monsieur", "Mme", "Mlle", "M.", "Mr", "Mrs", "Ms", "Mx", "Miss"]
+
+
+@pytest.mark.parametrize("title", FAQ_TITLES)
+def test_every_title_the_faq_names_is_followed_by_a_replaced_name(title):
+    """#456: the FAQ lists the titles names are found after; each of them works, in an ad and as a recipient."""
+    assert f"«{title}»" in faq()
+    ad = f"Kontakt: {title} Claire Exemple, cheffe de projet"
+    assert "Exemple" not in person().extended(personal.secrets_found_in([ad])).mask(ad)
+    recipients = personal.secrets_from_application({}, {"empfaenger": [f"{title} Claire Exemple"]})
+    assert "Exemple" in {secret.value for secret in recipients}
+
+
+DOT_SENTENCE = ("Als Anrede gelten «Frau» und «Herr», auf Französisch «Madame», «Mademoiselle», «Monsieur», «Mme», "
+                "«Mlle» und «M.», auf Englisch «Mr», «Mrs», «Ms», «Mx» und «Miss», die französischen und englischen "
+                "Kurzformen auch mit Punkt wie «Mme.» oder «Mr.».")
+
+
+@pytest.mark.parametrize("short_form", ["Mme.", "Mlle.", "Mr.", "Mrs.", "Ms.", "Mx."])
+def test_the_short_forms_also_work_with_a_dot_as_the_faq_says(short_form):
+    assert DOT_SENTENCE in faq()
+    ad = f"Kontakt: {short_form} Claire Exemple, cheffe de projet"
+    assert "Exemple" not in person().extended(personal.secrets_found_in([ad])).mask(ad)
+
+
+@pytest.mark.parametrize("text", ["Madame, Monsieur,", "Monsieur le Directeur", "M. Sc."])
+def test_salutations_without_a_name_and_degrees_stay_as_the_faq_says(text):
+    assert f"«{text}»" in faq()
+    assert person().extended(personal.secrets_found_in([text])).mask(text) == text
+
+
 @pytest.mark.parametrize("term", COMPUTING_TERMS)
 def test_terms_named_as_computing_switch_ictjobs_on(term):
     assert f"«{term}»" in faq()
