@@ -4,11 +4,10 @@
 
 const MAX_TAG_OPTIONS = 50;
 const DEFAULT_MAX_LINES = 20;
-const TAG_PLACEHOLDER = "z.B. daten, führung";
 const SWITCHED_OFF = "switchedOff"; // control of a list that names the options switched off (#291)
-const LANGUAGE_NAMES = { de: "Deutsch", en: "Englisch" }; // of a value in two languages, as cv.yaml writes it
-const ADD_ENGLISH = "+ Englisch";
-const DROP_ENGLISH = "Englisch entfernen";
+// The languages of a value in two languages, as cv.yaml writes it; named when drawn, in the app language (#432).
+const VALUE_LANGUAGE_CODES = ["de", "en"];
+const languageName = (language) => (language === "en" ? T("Englisch") : T("Deutsch"));
 
 /** Create an element; attrs are properties (on* handlers, dataset, aria via setAttribute). */
 function el(tag, attrs, children) {
@@ -49,17 +48,16 @@ const nextId = (prefix) => `${prefix}-${++idCounter}`;
 
 /** One input per language of a value { de, en }, each labelled with its language; onText(language, text). */
 function languageInputs(tag, attrs, name, value, onText) {
-  return Object.keys(LANGUAGE_NAMES).map((language, index) => el(tag, {
-    ...attrs, id: index === 0 ? attrs.id : null, value: value[language] || "", "aria-label": `${name}, ${LANGUAGE_NAMES[language]}`,
+  return VALUE_LANGUAGE_CODES.map((language, index) => el(tag, {
+    ...attrs, id: index === 0 ? attrs.id : null, value: value[language] || "", "aria-label": `${name}, ${languageName(language)}`,
     oninput: (e) => onText(language, e.target.value),
   }));
 }
 
 /** The inputs of languageInputs, each in a row with the name of its language. */
 function languageRows(inputs) {
-  const names = Object.values(LANGUAGE_NAMES);
   return inputs.map((input, index) => el("div", { className: "language-row" }, [
-    el("span", { className: "language-name", "aria-hidden": "true" }, names[index]), input,
+    el("span", { className: "language-name", "aria-hidden": "true" }, languageName(VALUE_LANGUAGE_CODES[index])), input,
   ]));
 }
 
@@ -80,18 +78,18 @@ function textInput(tag, attrs, ctx, field, name) {
     if (!isBilingual(value)) {
       const input = el(tag, { ...shared, value: typeof value === "string" ? value : "", oninput: (e) => change(e.target.value) });
       const add = field.bilingual === true ? el("button", {
-        type: "button", className: "language-toggle", "aria-label": `${name}: Englisch ergänzen`,
+        type: "button", className: "language-toggle", "aria-label": T("{name}: Englisch ergänzen", { name }),
         onclick: () => redraw({ de: typeof value === "string" ? value : "", en: "" }, 1),
-      }, ADD_ENGLISH) : null;
+      }, T("+ Englisch")) : null;
       view.replaceChildren(...[input, add, list].filter(Boolean));
       if (focus !== undefined) input.focus();
       return;
     }
     const inputs = languageInputs(tag, shared, name, value, (language, text) => change({ ...value, [language]: text }));
     const drop = el("button", {
-      type: "button", className: "language-toggle", "aria-label": `${name}: Englisch entfernen`,
+      type: "button", className: "language-toggle", "aria-label": T("{name}: Englisch entfernen", { name }),
       onclick: () => redraw(value.de || value.en || "", 0),
-    }, DROP_ENGLISH);
+    }, T("Englisch entfernen"));
     view.replaceChildren(...languageRows(inputs), ...[drop, list].filter(Boolean));
     if (focus !== undefined) inputs[focus].focus();
   }
@@ -132,7 +130,7 @@ function controlView(field, ctx, id, describedBy) {
   if (field.type === "textarea") return textInput("textarea", { ...common, rows: 4 }, ctx, field, name);
   if (field.type === "tags") {
     const onTags = (tags) => ctx.onChange(tags);
-    return el("div", { className: "tags-control" }, tagsInput({ ...common, placeholder: TAG_PLACEHOLDER }, ctx.value, ctx.tagSuggestions, onTags));
+    return el("div", { className: "tags-control" }, tagsInput({ ...common, placeholder: T("z.B. daten, führung") }, ctx.value, ctx.tagSuggestions, onTags));
   }
   if (field.type === "list" && field.tags === true) return linesView(field, ctx, id, describedBy, TAGGED_LINES);
   if (field.type === "list" && field.levels === true) return linesView(field, ctx, id, describedBy, LEVELED_LINES);
@@ -141,7 +139,7 @@ function controlView(field, ctx, id, describedBy) {
     const text = listToLines(ctx.value);
     return el("textarea", {
       ...common, rows: Math.max(3, text.split("\n").length + 1), value: text,
-      placeholder: "Eine Angabe pro Zeile", oninput: (e) => ctx.onChange(linesToList(e.target.value)),
+      placeholder: T("Eine Angabe pro Zeile"), oninput: (e) => ctx.onChange(linesToList(e.target.value)),
     });
   }
   if (field.type === "select") {
@@ -150,7 +148,7 @@ function controlView(field, ctx, id, describedBy) {
     const own = typeof ctx.value === "string" && ctx.value !== "" && !field.options.includes(ctx.value) ? [ctx.value] : [];
     const shown = [...field.options.map((o) => [o, T(field.optionLabels?.[o] ?? o)]), ...own.map((o) => [o, o])];
     const select = el("select", { ...common, onchange: (e) => ctx.onChange(e.target.value) }, [
-      el("option", { value: "" }, T(field.emptyLabel) ?? "– bitte wählen –"),
+      el("option", { value: "" }, T(field.emptyLabel) ?? T("– bitte wählen –")),
       ...shown.map(([o, text]) => el("option", { value: o, selected: o === ctx.value }, text)),
     ]);
     return select;
@@ -190,14 +188,16 @@ function tagsInput(attrs, tags, suggestions, onTags) {
 }
 
 const LEVEL_OPTIONS = ["1", "2", "3", "4", "5", "6"];
-const NO_LEVEL = "ohne Stufe";
 
 /** Lines with tags (highlights): the extra of a line is its tags, typed with commas. */
 const TAGGED_LINES = {
   extraOf: (line) => (line !== null && typeof line === "object" && Array.isArray(line.tags) ? line.tags : []),
   line: (text, tags) => taggedLine(text, tags),  // looked up on use: a test sandbox may load dom.js without model.js
   controls(extra, number, ctx, onExtra, disabled) {
-    const attrs = { className: "line-tags", placeholder: "Tags", "aria-label": `Tags zu Zeile ${number}`, onblur: () => ctx.onBlur(), disabled };
+    const attrs = {
+      className: "line-tags", placeholder: T("Tags"), "aria-label": T("Tags zu Zeile {nummer}", { nummer: number }),
+      onblur: () => ctx.onBlur(), disabled,
+    };
     return tagsInput(attrs, extra, ctx.tagSuggestions, onExtra);
   },
 };
@@ -208,10 +208,10 @@ const LEVELED_LINES = {
   line: (text, level) => ({ text, level }),
   controls(extra, number, ctx, onExtra, disabled) {
     return [el("select", {
-      className: "line-level", "aria-label": `Stufe zu Zeile ${number}`, onblur: () => ctx.onBlur(), disabled,
+      className: "line-level", "aria-label": T("Stufe zu Zeile {nummer}", { nummer: number }), onblur: () => ctx.onBlur(), disabled,
       onchange: (e) => onExtra(e.target.value),
     }, [
-      el("option", { value: "", selected: extra === "" }, NO_LEVEL),
+      el("option", { value: "", selected: extra === "" }, T("ohne Stufe")),
       ...LEVEL_OPTIONS.map((level) => el("option", { value: level, selected: level === extra }, level)),
     ])];
   },
@@ -240,7 +240,7 @@ function linesView(field, ctx, id, describedBy, kind) {
   const setLine = (index, text, extra) => change(lines.map((line, i) => (i === index ? kind.line(text, extra) : line)));
   const add = el("button", {
     type: "button", className: "add-line", onclick: () => change([...lines, ""], lines.length),
-  }, "+ Zeile hinzufügen");
+  }, T("+ Zeile hinzufügen"));
   const languages = field.bilingual === true;
   let firstInputs = [];
 
@@ -249,15 +249,16 @@ function linesView(field, ctx, id, describedBy, kind) {
     const number = index + 1;
     const both = bilingualOf(line);
     const attrs = { type: "text", id: index === 0 ? id : null, "aria-describedby": describedBy, onblur: () => ctx.onBlur() };
+    const lineName = T("{name}, Zeile {nummer}", { name, nummer: number });
     const inputs = both
-      ? languageInputs("input", attrs, `${name}, Zeile ${number}`, both,
+      ? languageInputs("input", attrs, lineName, both,
         (language, text) => setLine(index, { ...bilingualOf(lines[index]), [language]: text }, kind.extraOf(lines[index])))
-      : [el("input", { ...attrs, value: lineText(line), "aria-label": `${name}, Zeile ${number}`,
+      : [el("input", { ...attrs, value: lineText(line), "aria-label": lineName,
         oninput: (e) => setLine(index, e.target.value, kind.extraOf(lines[index])) })];
     const extras = kind.controls(kind.extraOf(line), number, ctx, (found) => setLine(index, valueOf(lines[index]), found), false);
     const toggle = languages ? el("button", {
       type: "button", className: "language-toggle",
-      "aria-label": both ? `Englisch aus Zeile ${number} entfernen` : `Zeile ${number} auf Englisch ergänzen`,
+      "aria-label": both ? T("Englisch aus Zeile {nummer} entfernen", { nummer: number }) : T("Zeile {nummer} auf Englisch ergänzen", { nummer: number }),
       onclick: () => {
         const current = lines[index];
         const text = both ? both.de || both.en || "" : { de: lineText(current), en: "" };
@@ -265,7 +266,7 @@ function linesView(field, ctx, id, describedBy, kind) {
       },
     }, both ? "− EN" : "+ EN") : null;
     const remove = el("button", {
-      type: "button", className: "remove-line", "aria-label": `Zeile ${number} entfernen`,
+      type: "button", className: "remove-line", "aria-label": T("Zeile {nummer} entfernen", { nummer: number }),
       onclick: () => change(lines.filter((_, i) => i !== index), Math.max(0, index - 1)),
     }, "×");
     firstInputs = [...firstInputs, inputs[both ? 1 : 0]];
@@ -339,7 +340,7 @@ function choiceView(field, ctx, id, label, hint, hintId, errorId) {
   const value = ctx.value || "";
   const isOwn = value !== "" && !options.includes(value);
   const ownInput = el("input", {
-    type: "text", value: isOwn ? value : "", className: "own", "aria-label": "Eigene Formulierung",
+    type: "text", value: isOwn ? value : "", className: "own", "aria-label": T("Eigene Formulierung"),
     oninput: (e) => { ownRadio.checked = true; ctx.onChange(e.target.value); }, onblur: () => ctx.onBlur(),
   });
   const ownRadio = el("input", {
@@ -357,7 +358,7 @@ function choiceView(field, ctx, id, label, hint, hintId, errorId) {
     el("legend", {}, label),
     hint ? el("p", { className: "hint", id: hintId }, hint) : null,
     ...radios,
-    field.allowOwn ? el("label", { className: "option own-option" }, [ownRadio, el("span", {}, "Eigene Formulierung:"), ownInput]) : null,
+    field.allowOwn ? el("label", { className: "option own-option" }, [ownRadio, el("span", {}, T("Eigene Formulierung:")), ownInput]) : null,
   ]);
 }
 

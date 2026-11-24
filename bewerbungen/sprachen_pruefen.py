@@ -143,10 +143,12 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "routes_chat.py", BASE / "ai/chat.py", BASE / "proof_kinds.py", BASE / "ablage.py", BASE / "versionen.py",
     BASE / "dateien.py",
     # Meine Angaben, the form (#431): the page around it, built from onboarding/src/template.html, the texts of
-    # form.json and the T the scripts say them through. The scripts with their own words, the steps and checks
-    # (app.js, steps.js, dom.js, validate.js), follow with #432, the documents and the prefill with #433.
+    # form.json and the T the scripts say them through; the steps and checks with their own words (#432). The
+    # documents and the prefill follow with #433.
     # Under ROOT, so that the guide's check of the data folder sees form.json as part of the app.
     BASE / "seiten/angaben.html", ROOT / "onboarding/form.json", ROOT / "onboarding/src/words.js",
+    ROOT / "onboarding/src/app.js", ROOT / "onboarding/src/steps.js", ROOT / "onboarding/src/dom.js",
+    ROOT / "onboarding/src/validate.js",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
