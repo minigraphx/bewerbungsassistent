@@ -19,6 +19,7 @@ from PIL import Image
 import ablage
 import app
 import dateien
+import draft_groups
 import proof_kinds
 import routen_foto
 import routes_chat
@@ -32,6 +33,7 @@ from sample_folder import BRIEF_ID
 from test_app import get, post, server  # noqa: F401  (server is a fixture)
 from test_draft_groups import drafts
 from test_today_languages import no_preview, preview, store_language  # noqa: F401  (fixtures)
+from unterlagen import OWN_CV
 
 NBSP = chr(0xA0)
 PAGES = {"/dateien": "seiten/dateien.html", "/foto": "seiten/foto.html", "/entwuerfe": "seiten/entwuerfe.html",
@@ -168,7 +170,7 @@ def test_lebenslauf_und_dateien_shows_its_cards_and_dialogs_in_french(server, pr
         "<title>CV et fichiers</title>", "Votre CV", "L'app le crée", "J'utilise mon propre PDF",
         f"Design{NBSP}: Deux colonnes", "Choisir l'apparence", "Certificats de travail, bulletins et certificats",
         "Glisser les fichiers ici", "Ajouter une photo", "Ajuster le cadrage", "Afficher dans le CV",
-        "Versions antérieures", f"Retirer le PDF personnel{NBSP}?", "Apparence du CV",
+        "Versions antérieures", f"Retirer le PDF téléversé{NBSP}?", "Apparence du CV",
         f"sous «{NBSP}Concevoir le dossier{NBSP}».",
     ) if text not in body] == []
     assert [text for text in ("Ihr Lebenslauf", "Zeugnisse und Zertifikate", "Foto hinzufügen", "Frühere Fassungen",
@@ -184,11 +186,31 @@ def test_the_photo_page_shows_its_editor_and_upload_in_english(server, preview):
     assert [text for text in (
         "<title>Photo crop</title>", "← CV and files", "The crop for the CV. The photo itself stays unchanged.",
         'aria-label="Preview of the photo crop"', 'alt="Preview at about print size"', "about print size (4.65 cm)",
-        "Mirror", "Crop horizontal (x)", "Default values", "Your photos", "Upload photo",
+        "Flip", "arrow keys move, + and − zoom, M flips.", "Crop horizontal (x)", "Default values", "Your photos",
+        "Upload photo",
         "A photo as JPG or PNG, at most", "MB. Camera, place and time details in the image are not saved.",
         'aria-label="Latest drafts of the CV"',
     ) if text not in body] == []
-    assert [text for text in ("Spiegeln", "Standardwerte", "Ihre Fotos", "Foto wählen") if text in body] == []
+    assert [text for text in ("Spiegeln", "Mirror", "Standardwerte", "Ihre Fotos", "Foto wählen") if text in body] == []
+
+
+def test_the_photo_page_writes_the_print_size_with_a_french_decimal_comma(server, preview):  # noqa: F811
+    store_language(server.kontext.daten, "fr")
+
+    body = page(server, "/foto")
+
+    assert [text for text in ("environ la taille d'impression (4,65 cm)", "Retourner", "M retourne l'image.")
+            if text not in body] == []
+    assert [text for text in ("4.65 cm", "Spiegeln", "Miroir") if text in body] == []
+
+
+def test_the_contents_page_names_its_experts_and_text_view_in_french(server, preview):  # noqa: F811
+    store_language(server.kontext.daten, "fr")
+
+    body = page(server, "/inhalte")
+
+    assert [text for text in ("Pour utilisateurs avancés", "Contenus en texte") if text not in body] == []
+    assert "Für Geübte" not in body
 
 
 def test_the_drafts_page_shows_its_parts_around_the_folder_name_in_french(server, preview):  # noqa: F811
@@ -199,7 +221,8 @@ def test_the_drafts_page_shows_its_parts_around_the_folder_name_in_french(server
     assert [text for text in (
         "<title>Brouillons et versions</title>", "← Retour", "Chaque enregistrement crée une version.",
         f"le PDF se trouve sous <code>versendet/</code> et ne change plus.", 'aria-label="Afficher les brouillons"',
-        "Seulement ceux utilisés", "Afficher tous les brouillons", "Pas encore de brouillons.", "Versions envoyées",
+        "Utilisés seulement", f"À l'envoi, le brouillon utilisé devient une version{NBSP}:",
+        "Afficher tous les brouillons", "Pas encore de brouillons.", "Versions envoyées",
     ) if text not in body] == []
     assert "Entwürfe und Versionen" not in body
 
@@ -210,7 +233,7 @@ def test_the_contents_page_shows_its_editor_in_english(server, preview):  # noqa
     body = page(server, "/inhalte")
 
     assert [text for text in (
-        "<title>Contents</title>", "For experienced users", "Contents as text",
+        "<title>Content</title>", "For experienced users", "Content as text",
         "Here you see what the app builds your documents from", 'aria-label="File"', 'title="PDF view"',
         "It is easier to edit under “Applications”.", "Check and preview", "Discard changes",
         'aria-label="Latest drafts of this file"',
@@ -326,13 +349,19 @@ def test_the_drafts_name_their_groups_and_documents_in_english(server, preview):
 
     groups = answer(server, "/api/entwuerfe")[1]["gruppen"]
 
-    assert [group["titel"] for group in groups] == ["CV", "Cover letter", "Style and building blocks", "Search profile",
+    assert [group["titel"] for group in groups] == ["CV", "Cover letter", "Style and text blocks", "Search profile",
                                                     "Other"]
     # the company comes from the register and stays as it is stored
     assert [document["titel"] for document in groups[1]["dokumente"]] == ["Cover letter Beispiel AG"]
     assert groups[2]["dokumente"][0]["titel"] == "Style profile"
     # the note of a draft is the person's or the app's record and stays as it was saved
     assert groups[0]["dokumente"][0]["fassungen"][0]["beschreibung"] == "Angaben erfasst"
+
+
+def test_the_uploaded_cv_is_named_as_uploaded_in_french_and_english():
+    title = draft_groups.TITLES[OWN_CV]
+
+    assert (said(title, "fr"), said(title, "en")) == ("CV téléversé (PDF)", "Uploaded CV (PDF)")
 
 
 def test_the_drafts_are_refused_and_compared_in_french(server, preview):  # noqa: F811
@@ -357,7 +386,7 @@ def test_the_hint_on_versions_sent_comes_in_english_and_stays_german_without_the
     monkeypatch.delenv(ui_texts.PREVIEW_ENV)
 
     assert hint == ("Versions sent are saved: the PDFs under versendet/, the data as used drafts. In addition, the local "
-                    "Git of the data folder records each dispatch (no automatic push).")
+                    "Git of the data folder records every application sent (no automatic push).")
     assert answer(server, "/api/versionen")[1]["hinweis"] == versionen.GitVersionen.hinweis
 
 

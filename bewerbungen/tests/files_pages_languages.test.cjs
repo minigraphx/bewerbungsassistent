@@ -380,8 +380,8 @@ test("the questions page speaks in the set and the app language, the AI's answer
     [["Du", "Was fehlt noch in meinen Angaben?"], ["KI", "Antwort der KI."]], "Heute noch 5 Fragen.", "Bitte zuerst die Frage schreiben."]);
   assert.deepEqual(shown.fr, [[fr("Que manque-t-il encore dans mes informations~?"), fr("Comment me préparer à un entretien d'embauche~?"),
     fr("Comment aborder une interruption de parcours dans la lettre de motivation~?")],
-    ["Pose ici tes questio", "Ta question", "Encore 1 question aujourd'hui."],
-    [["Toi", fr("Que manque-t-il encore dans mes informations~?")], ["IA", "Antwort der KI."]], "Encore 5 questions aujourd'hui.",
+    ["Pose ici tes questio", "Ta question", "Il reste 1 question aujourd'hui."],
+    [["Toi", fr("Que manque-t-il encore dans mes informations~?")], ["IA", "Antwort der KI."]], "Il reste 5 questions aujourd'hui.",
     "Merci d'écrire d'abord la question."]);
   assert.deepEqual(shown.en, [["What is still missing in my details?", "How do I prepare for a job interview?",
     "How do I handle a gap in my CV in the cover letter?"], ["Ask here about the j", "Your question", "1 question left today."],
@@ -445,4 +445,20 @@ test("the photo page names its list and says what it saved in the app language, 
   assert.deepEqual(shown.en, [["Active", "Photo b.png", ["Use", "Delete"]], "Not saved",
     "Save or reset the crop first.", "Saved. The earlier version is under Drafts.",
     "gross.jpg is too large, at most 10 MB.", "Really delete?"]);
+});
+
+test("the photo page says in the app language that a deleted photo stays under the drafts, the file name stays", async () => {
+  const shown = await inAll(async () => {
+    const confirmed = [];
+    const page = run(["foto.js"], { extra: { fetch: photoFetch() },
+      app: { bestaetigen: (button, question, action) => confirmed.push(action),
+             senden: async () => ({ fotos: [{ datei: "foto.png", aktiv: true }] }) },
+      routes: { "/api/foto/liste": { max_groesse: 10000000,
+                                     fotos: [{ datei: "foto.png", aktiv: true }, { datei: "fotos/b.png", aktiv: false }] } } });
+    await settle();
+    await confirmed[0]();
+    return page.$("status").textContent;
+  });
+  assert.deepEqual([shown.de, shown.fr, shown.en], ["b.png gelöscht. Es bleibt unter Entwürfe.",
+    "b.png supprimé. Le fichier reste sous Brouillons.", "b.png deleted. It stays under Drafts."]);
 });
