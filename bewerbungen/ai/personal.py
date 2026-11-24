@@ -2,7 +2,8 @@
 and found in free text such as a job ad (MIN-334). `ai.pseudonym` replaces them.
 
 Limits, on purpose: a postal code that looks like a year (1900–2099) is not replaced on its own, so years in
-the CV stay readable; names in an ad are only found after „Frau“/„Herr“ or in a personal e-mail address.
+the CV stay readable; names in an ad are only found after a title („Frau“, „Herr“, „Madame“, „Monsieur“, „Mme“,
+„Mlle“, „M.“, „Mr“, „Mrs“, „Ms“, „Mx“, „Miss“, #456) or in a personal e-mail address.
 Other names of contact persons belong into the field „Kontaktperson“ of the application. The same goes for names
 of other people in a reference (`secrets_in_own_documents`).
 """
@@ -12,13 +13,38 @@ from ai.pseudonym import EMAIL, PHONE, Secret, parse_date, phone_numbers, url_co
 
 MIN_TOKEN_CHARS = 3
 MIN_USERNAME_CHARS = 4
-TITLES = re.compile(r"^(?:(?:Frau|Herr|Dr|Prof|med|phil|iur|lic|dipl|Dipl)\.?\s+)+")
+# French and English titles (#456). „M.“ is not stripped from a name, where it may be an initial („M. Muster“).
+OTHER_TITLE_WORDS = r"Madame|Mademoiselle|Monsieur|Mme|Mlle|Miss|Mrs|Mr|Ms|Mx"
+TITLES = re.compile(rf"^(?:(?:Frau|Herr|{OTHER_TITLE_WORDS}|Dr|Prof|med|phil|iur|lic|dipl|Dipl)\.?\s+)+")
+OTHER_TITLE_START = re.compile(rf"^(?:(?:{OTHER_TITLE_WORDS})\.?\s|M\.\s)")
 SEVERAL_PEOPLE = re.compile(r"\s+(?:und|&)\s+|\s*[;/]\s*")
 BORN = re.compile(r"geboren(?:\s+am)?\s*[:,]?\s*(.+)", re.IGNORECASE)
 DATE_LIKE = re.compile(r"\d{1,2}\.\s?\d{1,2}\.\s?\d{2,4}|\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\.?\s+[A-Za-zäÄ]{3,}\.?\s+\d{4}")
 TITLE_NAME = re.compile(r"\b(?:Frau|Herr)\s+(?:(?:Dr|Prof)\.\s+)*([A-ZÄÖÜ][\w'-]+)(?:\s+([A-ZÄÖÜ][\w'-]+))?")
 NOT_NAMES = {"ihre", "ihr", "ihnen", "sie", "bewerbung", "bewerbungen", "unterlagen", "dr", "prof", "gerne",
              "freut", "steht", "bitte", "kontakt"}
+# The German pattern above stays as it was; French and English forms have their own, with capitals like „É“
+# and particles („Jean de Montexemple“, „d'Exemple“), which never become a secret of their own.
+_CAPITAL_WORD = r"[A-ZÀ-ÖØ-Þ][\w'’-]+"
+_PARTICLE = r"(?:(?:[dD]e|[dD]u|[dD]es|[vV]an|[vV]on|[dD]er|[dD]en|[dD]i|[dD]a|[dD]el|[dD]os|[lL]e|[lL]a)\s+|[dD]['’])"
+# Academic degrees written with a spaced „M.“ in German CVs („M. Sc.“, „M. Eng.“): no Monsieur.
+_DEGREE_AFTER_M = r"(?!(?:Sc|Sci|Eng|Ed|Phil|Mus|Arch|Litt|Des|Res|Jur|Iur|Th|Theol|Pharm|Med|Ing|Art|Adv|Comm)\.)"
+OTHER_TITLE_NAME = re.compile(
+    rf"(?<![\w.])(?:(?:{OTHER_TITLE_WORDS})\.?\s+|M\.\s+{_DEGREE_AFTER_M})"
+    rf"(?:(?:Dr|Prof|Pr)\.?\s+)*"
+    rf"((?:[dD]['’]|(?:[dD]e|[dD]u|[vV]an|[vV]on)\s+)?{_CAPITAL_WORD}(?:\s+{_PARTICLE}?{_CAPITAL_WORD})?)")
+PARTICLES = {"de", "du", "des", "van", "von", "der", "den", "di", "da", "del", "dos", "le", "la", "d'", "d’"}
+# Words that follow a title without being a name: sentence starts after a German „M.“ („Grösse M. Die …“),
+# titles of a salutation („Madame Monsieur,“) and functions („Monsieur Le Directeur“, „Mr President“).
+OTHER_NOT_NAMES = NOT_NAMES | PARTICLES | {
+    "der", "das", "dem", "des", "die", "ein", "eine", "einen", "einem", "einer", "wir", "er", "es", "ich", "du",
+    "unser", "unsere", "bei", "mit", "im", "am", "auf", "für", "von", "zu", "nach", "als", "und", "oder", "diese",
+    "les", "un", "une", "il", "elle", "nous", "vous", "je", "on", "ce", "cette", "ces", "notre", "votre",
+    "the", "a", "an", "we", "you", "he", "she", "it", "our", "your", "this", "that", "and", "or",
+    "madame", "mademoiselle", "monsieur", "messieurs", "mesdames", "mme", "mlle", "miss", "mrs", "mr", "ms", "mx",
+    "sir", "madam", "directeur", "directrice", "président", "présidente", "president", "maire", "juge",
+    "professeur", "professeure", "docteur", "docteure", "doyen", "doyenne", "recteur", "rectrice", "chair",
+    "principal", "director", "manager", "dean", "head", "officer", "secretary", "general", "mayor", "judge"}
 GENERIC_MAILBOXES = {"info", "jobs", "job", "hr", "career", "careers", "karriere", "bewerbung", "bewerbungen",
                      "kontakt", "contact", "recruiting", "personal", "team", "office", "mail", "admin", "hello"}
 YEAR_RANGE = range(1900, 2100)
@@ -126,7 +152,7 @@ def secrets_from_application(entry: dict, letter: dict | None = None) -> list[Se
         result.append(Secret("CONTACT_WAY", contact_way))
     recipients = (letter or {}).get("empfaenger") or []
     for index, line in enumerate(recipients, 1):
-        if isinstance(line, str) and TITLES.match(line.strip()):
+        if isinstance(line, str) and _is_recipient(line.strip()):
             result += people_secrets(f"RECIPIENT_{index}", line)
     return result
 
@@ -150,7 +176,8 @@ def _mailbox_names(email: str) -> list[Secret]:
 
 
 def secrets_found_in(texts: list[str]) -> list[Secret]:
-    """E-mail addresses, phone numbers and people („Frau Petra Meier“) in free text, e.g. a job ad."""
+    """E-mail addresses, phone numbers and people („Frau Petra Meier“, „Madame Claire Exemple“, „Mr John Sample“)
+    in free text, e.g. a job ad or a reference."""
     result = []
     for text in texts:
         for email in EMAIL.findall(text):
@@ -160,7 +187,29 @@ def secrets_found_in(texts: list[str]) -> list[Secret]:
             tokens = [t for t in match.groups() if t and t.lower() not in NOT_NAMES]
             if tokens:
                 result += name_secrets("FOUND_CONTACT", " ".join(tokens))
+        for match in OTHER_TITLE_NAME.finditer(text):
+            if name := _name_after_other_title(match.group(1)):
+                result += name_secrets("FOUND_CONTACT", name)
     return result
+
+
+def _name_after_other_title(written: str) -> str:
+    """„Jean de Montexemple“ → „Jean Montexemple“; empty when the first word is no name („Le Directeur“)."""
+    words = re.findall(_CAPITAL_WORD, written)
+    if not words or words[0].lower() in OTHER_NOT_NAMES:
+        return ""
+    return " ".join(word for word in words if word.lower() not in OTHER_NOT_NAMES)
+
+
+def _is_recipient(line: str) -> bool:
+    """A line of the letter's address that names a person: „Frau Petra Meier“, „Madame Claire Exemple“, „M. Exemple“.
+
+    A function instead of a name („Monsieur le Directeur“) is no person; German lines are taken as before.
+    """
+    if not OTHER_TITLE_START.match(line):
+        return bool(TITLES.match(line))
+    rest = re.sub(r"^M\.\s+", "", strip_titles(line)).split()
+    return bool(rest) and rest[0].lower() not in OTHER_NOT_NAMES
 
 
 def _birth_secrets_in(text: str) -> list[Secret]:
@@ -178,8 +227,8 @@ def secrets_in_own_documents(texts: list[str]) -> list[Secret]:
     """What a CV or a reference says about the person: street, town line, birth date, origin, AHV number, web links.
 
     Scanned before anything goes to the AI, also when the form has no address yet. Lines that start with a year
-    („2019 Beispiel AG“) are stations of a CV, not towns. Names of other people without „Frau“ or „Herr“ are not
-    recognized here.
+    („2019 Beispiel AG“) are stations of a CV, not towns. Names of other people are not recognized here; those
+    after a title („Frau“, „Monsieur“, „Mr“ …) are found by `secrets_found_in`, which the gateway runs on every text.
     """
     result = []
     for text in texts:

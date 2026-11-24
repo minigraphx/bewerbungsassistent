@@ -32,12 +32,12 @@ Aus Ihren Angaben unter Meine Angaben:
 Aus der Bewerbung und dem Anschreiben:
 
 - die Kontaktperson der Firma mit ihrer E-Mail und Telefonnummer
-- Empfänger im Anschreiben, die mit «Frau» oder «Herr» beginnen
+- Empfänger im Anschreiben, die mit einer Anrede wie «Frau», «Herr», «Madame», «Monsieur» oder «Mr» beginnen
 
 Im Inserat und in anderen Texten, die zur KI gehen:
 
 - E-Mail-Adressen und Telefonnummern
-- Namen nach «Frau» oder «Herr», etwa «Frau Petra Meier»
+- Namen nach einer Anrede, etwa «Frau Petra Meier» oder «Madame Claire Exemple», auch mit «Dr» oder «Prof» dazwischen. Als Anrede gelten «Frau» und «Herr», auf Französisch «Madame», «Mademoiselle», «Monsieur», «Mme», «Mlle» und «M.», auf Englisch «Mr», «Mrs», «Ms», «Mx» und «Miss». Eine Anrede ohne Namen wie «Madame, Monsieur,» oder «Monsieur le Directeur» und Abschlüsse wie «M. Sc.» bleiben stehen.
 - Namen in einer persönlichen E-Mail-Adresse wie petra.meier@…, nicht aber Postfächer wie info@ oder jobs@
 
 Lesen Sie Ihre Angaben aus einer Datei ein, erkennt die App in diesen Dokumenten zusätzlich Strasse und Hausnummer, Postleitzahl mit Ort, Geburtsdatum, Heimatort, Zivilstand, Nationalität, AHV-Nummer und Links und ersetzt auch sie durch Platzhalter, bevor der Text zur KI geht.
@@ -58,7 +58,7 @@ Lesen Sie Ihre Angaben aus einer Datei ein, erkennt die App in diesen Dokumenten
 - den Anfangsbuchstaben in «L. Müller-Brändli»: Der Nachname wird ersetzt, das «L.» bleibt stehen
 - Namensteile unter drei Buchstaben, wenn sie allein stehen, etwa «Li»; im ganzen Namen werden sie mit ersetzt
 - Datumsformen wie «03/03/1994» oder «März 1994»
-- Namen anderer Personen ohne «Frau» oder «Herr», etwa «Peter Meier» in einem Zeugnis. Tragen Sie die Kontaktperson einer Firma darum in das Feld Kontaktperson der Bewerbung ein.
+- Namen anderer Personen ohne Anrede, etwa «Peter Meier» in einem Zeugnis. Tragen Sie die Kontaktperson einer Firma darum in das Feld Kontaktperson der Bewerbung ein.
 
 Tipp: Tragen Sie Ihren Namen unter Meine Angaben genau so ein wie im Lebenslauf. Ersetzen kann die App nur, was dort richtig eingetragen ist.
 

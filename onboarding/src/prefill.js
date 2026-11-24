@@ -25,7 +25,7 @@ const PREFILL_TEXT = {
   job: {
     ...PREFILL_SHARED,
     title: () => T("Aus Ihren Unterlagen vorbefüllen"),
-    privacy: () => T("Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer."),
+    privacy: () => T("Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach einer Anrede wie „Frau“, „Herr“, „Madame“, „Monsieur“, „Mr“ oder „Ms“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer."),
     needsName: () => T("Tragen Sie zuerst Ihren Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI."),
     running: (minutes) => T("Die Unterlagen werden gelesen. Das dauert etwa {dauer}; Sie können in dieser Zeit weiterarbeiten.", { dauer: minutesText(minutes) }),
     noneReadable: () => T("Keine dieser Dateien geht an die KI. Bilder, Scans und alte Word-Dateien ergänzen Sie von Hand."),
@@ -36,7 +36,7 @@ const PREFILL_TEXT = {
   apprenticeship: {
     ...PREFILL_SHARED,
     title: () => T("Aus deinen Unterlagen vorbefüllen"),
-    privacy: () => T("Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer."),
+    privacy: () => T("Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach einer Anrede wie „Frau“, „Herr“, „Madame“, „Monsieur“, „Mr“ oder „Ms“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer."),
     needsName: () => T("Trag zuerst deinen Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI."),
     running: (minutes) => T("Die Unterlagen werden gelesen. Das dauert etwa {dauer}; du kannst in dieser Zeit weiterarbeiten.", { dauer: minutesText(minutes) }),
     noneReadable: () => T("Keine dieser Dateien geht an die KI. Bilder, Scans und alte Word-Dateien ergänzt du von Hand."),
