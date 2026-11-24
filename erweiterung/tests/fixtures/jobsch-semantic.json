@@ -1,0 +1,46 @@
+{
+  "rows": 20,
+  "numPages": 2,
+  "currentPage": 1,
+  "totalHits": 23,
+  "start": 0,
+  "documents": [
+    {
+      "id": "0f0e0d0c-0000-4000-8000-000000000001",
+      "title": "Logistiker/in EFZ",
+      "company": { "id": "900001", "name": "Muster Transporte AG", "slug": "900001-muster-transporte-ag" },
+      "place": "Musterstadt",
+      "locations": [{ "cantonCode": "ZZ", "city": "Musterstadt", "countryCode": "CH", "postalCode": "9999" }],
+      "initialPublicationDate": "2026-11-02T08:00:00+01:00",
+      "publicationDate": "2026-11-02T08:00:00+01:00",
+      "employmentGrades": [80, 100],
+      "isPaid": true,
+      "listingTags": []
+    },
+    {
+      "id": "0f0e0d0c-0000-4000-8000-000000000002",
+      "title": "Mitarbeiter/in Lager und Versand",
+      "company": { "id": "900002", "name": "Beispiel Lager GmbH", "slug": "900002-beispiel-lager-gmbh" },
+      "place": "",
+      "locations": [{ "cantonCode": "ZZ", "city": "Beispielhausen", "countryCode": "CH", "postalCode": "9998" }],
+      "initialPublicationDate": "2026-09-01T09:30:00+02:00",
+      "publicationDate": "2026-10-31T09:30:00+01:00",
+      "employmentGrades": [100],
+      "isPaid": false,
+      "listingTags": []
+    },
+    {
+      "id": "0f0e0d0c-0000-4000-8000-000000000003",
+      "title": "Disponent/in Strassentransport",
+      "company": { "id": "900003", "name": "Fiktiv Spedition SA", "slug": "900003-fiktiv-spedition-sa" },
+      "place": "Dorfikon",
+      "locations": [],
+      "initialPublicationDate": "2026-10-20T06:00:00+02:00",
+      "publicationDate": "2026-10-20T06:00:00+02:00",
+      "employmentGrades": [],
+      "isPaid": true,
+      "listingTags": []
+    }
+  ],
+  "hash": "invented-hash"
+}

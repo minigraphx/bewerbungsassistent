@@ -68,21 +68,31 @@ await fetch('/jobadservice/api/jobAdvertisements/_search?page=0&size=100&sort=da
 - Volltext: `GET /jobadservice/api/jobAdvertisements/{id}`, Beschreibung unter `jobContent.jobDescriptions[]` (deutsche Fassung bevorzugen).
 - Detailseite: `https://www.job-room.ch/job-search/<id>`.
 
-## 2b. Suche auf jobs.ch (öffentliche API im jobs.ch-Tab, kein Login nötig)
+## 2b. Suche auf jobs.ch (Suche der Webseite im jobs.ch-Tab, kein Login nötig)
+
+Zuerst dieselbe Suche, die die Webseite von jobs.ch verwendet. Sie findet einen Begriff auch in zusammengesetzten Wörtern und dieselbe Stelle unter anderem Titel, die öffentliche API dagegen nur das ganze Wort:
 
 ```js
-const r = await fetch('/api/v1/public/search?rows=20&page=1&query='
-  + encodeURIComponent('<Keyword>') + '&location=' + encodeURIComponent('<Ort>') + '&sort=date');
+const q = 'rows=20&page=1&query=' + encodeURIComponent('<Keyword>')
+  + '&location=' + encodeURIComponent('<Ort>') + '&sort=date';
+const r = await fetch('https://job-search-api.jobs.ch/search/semantic?' + q, { credentials: 'omit' });
+const j = await r.json(); // j.numPages, j.documents[]
+```
+
+Je Treffer: `id` (dieselbe Kennung wie `job_id` der API), `title`, `company.name`, `place` (leer: `locations[0].city`), `publicationDate` (Alter in Tagen daraus), `employmentGrades`. Diese Suche liefert auch zu einem unsinnigen Begriff Treffer; der Titel-Filter in 2e ist hier besonders wichtig. Antwortet sie nicht oder anders, dieselbe Anfrage an die öffentliche API stellen und das in der Ausgabe sagen:
+
+```js
+const r = await fetch('/api/v1/public/search?' + q);
 const j = await r.json(); // j.num_pages, j.documents[]
 ```
 
-- `rows` maximal 20 (grösser gibt 422). Seiten bis `num_pages` abfragen, pro Keyword×Ort höchstens 3 Seiten.
+- `rows` maximal 20 (grösser gibt 422). Seiten bis `numPages` bzw. `num_pages` abfragen, pro Keyword×Ort höchstens 3 Seiten.
 - `sort=date` liefert die neusten Inserate zuerst; ohne sortiert jobs.ch nach Relevanz, und bei einer breiten Suche stehen neue Inserate dann oft erst nach Seite 3.
 - Der Ort schliesst die Umgebung schon ein (Bern liefert z.B. Zollikofen, Ittigen, Langenthal); `radius` hat keine Wirkung, kleine Gemeinden liefern oft 0 Treffer. Darum die grösseren Orte der Region verwenden.
 - jobs.ch sucht zu einem Ort auch im ganzen Kanton; ein zweiter Ort im selben Kanton bringt kaum neue Inserate, kostet aber eine Suche pro Keyword. Pro Kanton genügt meist ein Ort; nur ein Ort pro Anfrage (`location` mehrfach gilt nur der letzte, eine Liste mit Komma liefert nichts).
 - Nischen-Keywords aus dem Suchprofil zusätzlich ohne `location` suchen und nur Orte in der Region oder "Remote/Homeoffice" behalten.
-- Felder je Treffer: `job_id`, `title`, `company_name`, `place`, `age` (Tage online), `employment_grades` (Pensum), `language_skills` (`[{language, level}]`, Level 1–4). Nach `job_id` in `window.__J` deduplizieren.
-- Vorfilter: `age` ≤ 45; `language_skills` gegen die Sprachen im Suchprofil prüfen (Level 3–4 = gut bis muttersprachlich); Titel-Filter wie in 2e. Sehr allgemeine Keywords ("KI", "Digitalisierung") bringen viel Rauschen.
+- Felder je Treffer der öffentlichen API: `job_id`, `title`, `company_name`, `place`, `age` (Tage online), `employment_grades` (Pensum), `language_skills` (`[{language, level}]`, Level 1–4). Nach der Kennung in `window.__J` deduplizieren.
+- Vorfilter: Alter ≤ 45 Tage; `language_skills` (aus dem Volltext, bei der Suche der Webseite nicht in der Liste) gegen die Sprachen im Suchprofil prüfen (Level 3–4 = gut bis muttersprachlich); Titel-Filter wie in 2e. Sehr allgemeine Keywords ("KI", "Digitalisierung") bringen viel Rauschen.
 - Volltext: `GET /api/v1/public/search/job/{job_id}` → `template_text` (HTML; Tags mit `replace(/<[^>]+>/g,' ')` entfernen). Abschnitt ab "Das bringst du mit" / "Ihr Profil" / "Your profile" ausgeben.
 - Detailseite: `https://www.jobs.ch/de/stellenangebote/detail/<job_id>/`.
 

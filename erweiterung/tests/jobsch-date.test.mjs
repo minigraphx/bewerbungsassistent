@@ -1,4 +1,5 @@
 // #395: the jobs.ch search asks for the newest ads first, so the 3 pages a query reads hold the ads since the last run.
+// Since G124 the pages come from the semantic search; the fake answers it as well as the classic API.
 // The portal is a stand-in for fetch with an invented answer of 5 pages; no request leaves the test.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -18,15 +19,25 @@ const ADS = Array.from({ length: ROWS * PAGES }, (_, age) => ({
 }));
 const BY_RELEVANCE = [...ADS.slice(10), ...ADS.slice(0, 10)];
 
-/** The invented portal: pages of 20, ordered by date only when the request asks for it. */
+/** An ad as the semantic search (G124) gives it: an id and a publication date an hour into its day of age. */
+function semanticDoc(ad) {
+  const publicationDate = new Date(Date.now() - ad.age * 24 * 60 * 60 * 1000 - 60 * 60 * 1000).toISOString();
+  return { id: ad.job_id, title: ad.title, company: { name: ad.company_name }, place: ad.place, publicationDate };
+}
+
+/** The invented portal: pages of 20, ordered by date only when the request asks for it, from either engine. */
 function fakePortal(requests) {
   return async (url) => {
-    const params = new URL(url, 'https://www.jobs.ch').searchParams;
+    const target = new URL(url, 'https://www.jobs.ch');
+    const params = target.searchParams;
     requests.push(params);
     const ordered = params.get('sort') === 'date' ? ADS : BY_RELEVANCE;
     const page = Number(params.get('page'));
     const documents = ordered.slice((page - 1) * ROWS, page * ROWS);
-    return { ok: true, status: 200, json: async () => ({ documents, num_pages: PAGES, total_hits: ADS.length }) };
+    const body = target.host === 'job-search-api.jobs.ch'
+      ? { documents: documents.map(semanticDoc), numPages: PAGES, totalHits: ADS.length }
+      : { documents, num_pages: PAGES, total_hits: ADS.length };
+    return { ok: true, status: 200, json: async () => body };
   };
 }
 
