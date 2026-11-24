@@ -1,10 +1,14 @@
 // Which searches run per portal: keyword × place from the plan of the app.
 
-/** Portal → its adapter file and the page the search tab opens. */
+/**
+ * Portal → its adapter file and the page the search tab opens.
+ * `dateSorted` (G123): the list comes newest first and each page reports its oldest regular ad, so a query may stop
+ * paging once that ad is older than the last run. job-room filters by age on the server already.
+ */
 export const ADAPTERS = {
   'job-room': { file: 'portals/jobroom.js', start: 'https://www.job-room.ch/home/job-seeker' },
-  'jobs.ch': { file: 'portals/jobsch.js', start: 'https://www.jobs.ch/de/' },
-  jobscout24: { file: 'portals/jobscout24.js', start: 'https://www.jobscout24.ch/de/jobs/' },
+  'jobs.ch': { file: 'portals/jobsch.js', start: 'https://www.jobs.ch/de/', dateSorted: true },
+  jobscout24: { file: 'portals/jobscout24.js', start: 'https://www.jobscout24.ch/de/jobs/', dateSorted: true },
   ictjobs: { file: 'portals/ictjobs.js', start: 'https://ictjobs.ch/' },
   // LENA fills its list in the page: each search opens its own address there (adapter method searchUrl).
   LENA: { file: 'portals/lena.js', start: 'https://www.berufsberatung.ch/de/suche/lehrstellen?mode=city', opensPages: true },
