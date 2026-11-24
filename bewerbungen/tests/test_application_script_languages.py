@@ -18,6 +18,7 @@ import layout_check
 import pruefung
 import sprachen_pruefen
 import translation_catalog
+import unterlagen
 import varianten
 from test_today_languages import no_preview, preview, request, store_language  # noqa: F401  (fixtures)
 
@@ -53,8 +54,8 @@ CV_MISSING = {
 }
 NO_LETTER = {
     "de": "Kein Anschreiben: weder ein Entwurf noch ein eigenes PDF",
-    "fr": f"Pas de lettre de motivation{NBSP}: ni brouillon ni PDF personnel",
-    "en": "No cover letter: neither a draft nor an own PDF",
+    "fr": f"Pas de lettre de motivation{NBSP}: ni brouillon ni PDF téléversé",
+    "en": "No cover letter: neither a draft nor an uploaded PDF",
 }
 NO_CV = {
     "fr": (f"Pas encore de CV. Merci de le saisir sous «{NBSP}Mes informations{NBSP}» ou de le téléverser en PDF sous "
@@ -179,8 +180,8 @@ def test_the_findings_in_the_letter_name_firm_job_and_date_as_they_are(language)
                f"Lettre de motivation{NBSP}: titre du poste mentionné",
                f"Lettre de motivation{NBSP}: date 18.11.2026",
                f"Lettre de motivation{NBSP}: formule d'appel au vouvoiement (Sie), mais le texte dit euch/eure/ihr",
-               f"Lettre de motivation{NBSP}: substitut trouvé (TODO)"],
-        "en": ["Cover letter: firm “Muster” named", "Cover letter: job title named",
+               f"Lettre de motivation{NBSP}: espace réservé trouvé (TODO)"],
+        "en": ["Cover letter: company “Muster” named","Cover letter: job title named",
                "Cover letter: date 18.11.2026", "Cover letter: formal salutation (Sie), but the text says euch/eure/ihr",
                "Cover letter: placeholder found (TODO)"],
     }[language]
@@ -196,7 +197,7 @@ def test_a_missing_firm_and_an_old_date_are_said_in_french_and_english():
     assert shown["de"][0] == "Anschreiben: Firma „Beispiel / ONE Agency“ kommt nicht vor – falsche Vorlage?"
     assert shown["fr"][0] == (f"Lettre de motivation{NBSP}: l'entreprise «{NBSP}Beispiel / ONE Agency{NBSP}» n'apparaît "
                               f"pas – mauvais modèle{NBSP}?")
-    assert shown["en"][0] == "Cover letter: firm “Beispiel / ONE Agency” does not appear – wrong template?"
+    assert shown["en"][0] == "Cover letter: company “Beispiel / ONE Agency” does not appear – wrong template?"
     assert shown["fr"][2] == f"Lettre de motivation{NBSP}: la date 01.10.2026 n'est pas actuelle"
     assert shown["en"][2] == "Cover letter: date 01.10.2026 is not current"
     assert shown["en"][3] == "Cover letter: informal salutation (du), but the text says Sie/Ihnen/Ihre"
@@ -361,6 +362,63 @@ REVIEWED = {
     "Notiz gespeichert": ("Mémo enregistré", "Note saved"),
     "Anschreiben freigegeben": ("Lettre de motivation validée", "Cover letter approved"),
 }
+# The UI/UX ruling on #427: Stand is a status, the uploaded letter is uploaded, the start page is Today, English names
+# what was sent rather than a dispatch, and French counts what is supported before the whole.
+RULED = {
+    "Stand: {stand}": (f"Statut{NBSP}: {{stand}}", "Status: {stand}"),
+    "{stelle}, Stand {stand}.": ("{stelle}, statut {stand}.", "{stelle}, status {stand}."),
+    "Nicht bewerben: Die Bewerbung bleibt mit dem Stand „Verworfen“ in der Liste.": (
+        f"Ne pas postuler{NBSP}: la candidature reste dans la liste avec le statut «{NBSP}Écartée{NBSP}».",
+        "Do not apply: the application stays in the list with the status “Discarded”."),
+    "Die Bewerbung nicht weiterverfolgen: Sie bleibt mit dem Stand „Zurückgezogen“ in der Liste.": (
+        f"Ne pas poursuivre la candidature{NBSP}: elle reste dans la liste avec le statut «{NBSP}Retirée{NBSP}».",
+        "Stop pursuing the application: it stays in the list with the status “Withdrawn”."),
+    "Versand festhalten": ("Consigner l'envoi", "Record what was sent"),
+    ("Beworben am {datum}, aber der Versand ist noch nicht festgehalten. «Versand erfassen» legt die Fassung ab, die "
+     "verschickt wurde."): (
+        (f"Candidature envoyée le {{datum}}, mais l'envoi n'est pas encore consigné. «{NBSP}Enregistrer l'envoi{NBSP}» "
+         "conserve la version qui a été envoyée."),
+        "Applied on {datum}, but what was sent is not recorded yet. “Record as sent” keeps the version that was sent."),
+    "Wirklich erfassen? Nochmals klicken": (
+        f"Vraiment enregistrer l'envoi{NBSP}? Cliquer encore une fois", "Really record as sent? Click again"),
+    "Passt": ("Ce qui correspond", "What fits"),
+    "Passt: {liste}": (f"Ce qui correspond{NBSP}: {{liste}}", "Matches: {liste}"),
+    "0 von 1 Anforderungen belegt": ("0 exigence justifiée sur 1", "0 of 1 requirement supported"),
+    "1 von 1 Anforderungen belegt": ("1 exigence justifiée sur 1", "1 of 1 requirement supported"),
+    "1 von {anzahl} Anforderungen belegt": ("1 exigence justifiée sur {anzahl}", "1 of {anzahl} requirements supported"),
+    "{belegt} von {anzahl} Anforderungen belegt": (
+        "{belegt} exigences justifiées sur {anzahl}", "{belegt} of {anzahl} requirements supported"),
+    "Abgabe bis {datum}": ("À envoyer d'ici le {datum}", "Due by {datum}"),
+    "Eigenes Anschreiben verwenden": ("Utiliser une lettre de motivation téléversée", "Use an uploaded cover letter"),
+    "Eigenes Anschreiben hochladen": ("Téléverser une lettre de motivation", "Upload a cover letter"),
+    unterlagen.DOSSIER_OWN_FILE: (
+        (f"Un dossier se crée à partir de «{NBSP}Mes informations{NBSP}» et du brouillon de la lettre de motivation, "
+         f"pas d'un PDF terminé. Merci de choisir «{NBSP}Lettre de motivation et CV{NBSP}» ou de retirer le PDF "
+         "téléversé."),
+        ("A dossier is made from “My details” and the draft of the cover letter, not from a finished PDF. Please "
+         "choose “Cover letter and CV” or remove the uploaded PDF.")),
+    "Den Termin bei den Angaben eintragen, dann steht er hier und in der Übersicht.": (
+        f"Saisir la date dans les informations{NBSP}; elle apparaît alors ici et sur la page Aujourd'hui.",
+        "Enter the date in the details; it then shows here and on the Today page."),
+    "Antwort abwarten": ("Attendre la réponse", "Wait for the reply"),
+    "Die Antwort lässt sich unten eintragen, sobald sie kommt.": (
+        "La réponse peut être saisie plus bas dès qu'elle arrive.", "The reply can be entered below as soon as it comes."),
+    "Unterlagen ansehen": ("Examiner les documents", "Review the documents"),
+    "Offen benannte Lücken": ("Lacunes mentionnées ouvertement", "Gaps stated openly"),
+}
+
+
+@pytest.mark.parametrize("german", RULED)
+def test_the_wording_of_the_ui_ux_ruling_is_in_the_catalog(german):
+    assert (catalog().text(german, "fr"), catalog().text(german, "en")) == RULED[german]
+
+
+def test_a_variant_without_a_source_names_the_remark_in_english():
+    with pytest.raises(ValueError) as raised:
+        varianten.pruefe_variante({"id": "kurs"})
+
+    assert str(raised.value) == "Es braucht quelle (Zuschnitt), datei (PDF) oder extern (Hinweis)"
+    assert catalog().text(str(raised.value), "en") == "It needs quelle (tailoring), datei (PDF) or extern (remark)"
 
 
 @pytest.mark.parametrize("german", REVIEWED)

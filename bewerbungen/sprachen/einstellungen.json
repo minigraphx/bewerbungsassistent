@@ -484,6 +484,6 @@
   },
   "Entscheiden": {"fr": "Décider", "en": "Decide"},
   "bewerben oder verwerfen": {"fr": "postuler ou écarter", "en": "apply or discard"},
-  "Antwort abwarten": {"fr": "Attendre la réponse", "en": "Wait for the answer"},
+  "Antwort abwarten": {"fr": "Attendre la réponse", "en": "Wait for the reply"},
   "nachfragen ab {datum}": {"fr": "relancer dès le {datum}", "en": "follow up from {datum}"}
 }

@@ -17,6 +17,13 @@
     lebenslauf: () => Texte.t("Lebenslauf"), anschreiben: () => Texte.t("Anschreiben"), zertifikate: () => Texte.t("Zertifikate"),
     unterlagen: () => Texte.t("Unterlagen (gemeinsames PDF)"), nachweise: () => Texte.t("Nachweise (gemeinsames PDF)"),
   };
+  // A file kept with the dispatch, by the part it went out as (versand.py). German has always shown the stored part,
+  // so each key is the line as German wrote it, and French and English name the part as form_copy.LABELS does.
+  const SENT_FILES = {
+    lebenslauf: datei => Texte.t("lebenslauf: {datei}", { datei }), anschreiben: datei => Texte.t("anschreiben: {datei}", { datei }),
+    dossier: datei => Texte.t("dossier: {datei}", { datei }), zertifikate: datei => Texte.t("zertifikate: {datei}", { datei }),
+    unterlagen: datei => Texte.t("unterlagen: {datei}", { datei }), nachweise: datei => Texte.t("nachweise: {datei}", { datei }),
+  };
   // The kinds of dispatch as stored (register.JOBROOM_ART), capitalised at the start of a sentence.
   const KIND_SENTENCE = {
     "elektronisch": () => Texte.t("Elektronisch"), "schriftlich": () => Texte.t("Schriftlich"),
@@ -139,6 +146,8 @@
     jobroomFields, gradeWord, cvFact, approvalState, reviewCount, reviewFoot, changedElsewhere, requirementLine, letterState, endingHint, withoutVariant,
     ravState, ravButton, formVersion, sentVersion, recorded,
     stepName: id => aus(STEP_NAMES, id),
+    // A part the page does not know shows as stored.
+    sentFile: (art, datei) => (SENT_FILES[art] ? SENT_FILES[art](datei) : `${art}: ${datei}`),
     card: (art, c) => CARDS[art](c),
   };
   if (typeof module !== "undefined") module.exports = texte;

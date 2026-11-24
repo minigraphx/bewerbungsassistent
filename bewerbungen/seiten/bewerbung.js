@@ -456,7 +456,7 @@
       return;
     }
     const links = Object.entries(v.dateien).map(([art, datei]) =>
-      el("li", {}, el("a", { href: url("/api/versendet", { datei }), target: "_blank", rel: "noopener" }, `${art}: ${datei.split("/").pop()}`)));
+      el("li", {}, el("a", { href: url("/api/versendet", { datei }), target: "_blank", rel: "noopener" }, BT.sentFile(art, datei.split("/").pop()))));
     $("versand-info").replaceChildren(
       el("div", { class: "notice notice--success" }, el("span", { class: "notice__title" }, Texte.t("Beworben am {datum}", { datum: datum(v.datum) })),
         el("p", { class: "notice__body" }, BT.sentVersion(v.art))),

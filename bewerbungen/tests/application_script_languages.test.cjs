@@ -210,7 +210,7 @@ test("the kept review of the AI counts requirements and statements, its own word
   assert.deepEqual(shown.de, ["1 von 2 Anforderungen belegt, 1 Aussage ohne Beleg", "SIA-Normen: fehlt",
     "Prüfung der KI vom 05.11.2026. Eine Einschätzung, kein Urteil: Die KI kann sich irren.",
     "Noch nicht freigegeben. Erst mit der Freigabe öffnet die Erweiterung das Formular."]);
-  assert.deepEqual(shown.fr, [fr("1 exigence sur 2 justifiée, 1 affirmation sans justificatif"), fr("SIA-Normen~: manquante"),
+  assert.deepEqual(shown.fr, [fr("1 exigence justifiée sur 2, 1 affirmation sans justificatif"), fr("SIA-Normen~: manquante"),
     fr("Vérification de l'IA du 05.11.2026. Une estimation, pas un jugement~: l'IA peut se tromper."),
     "Pas encore validée. L'extension n'ouvre le formulaire qu'une fois la lettre validée."]);
   assert.deepEqual(shown.en, ["1 of 2 requirements supported, 1 statement without evidence", "SIA-Normen: missing",
@@ -223,8 +223,8 @@ test("the questions before ending, recording and replacing come in the app langu
   assert.deepEqual(shown.de, ["Wirklich verwerfen? Nochmals klicken", "Wirklich zurückziehen? Nochmals klicken",
     "Wirklich erfassen? Nochmals klicken"]);
   assert.deepEqual(shown.fr, [fr("Vraiment écarter~? Cliquer encore une fois"), fr("Vraiment retirer~? Cliquer encore une fois"),
-    fr("Vraiment enregistrer~? Cliquer encore une fois")]);
-  assert.deepEqual(shown.en, ["Really discard? Click again", "Really withdraw? Click again", "Really record? Click again"]);
+    fr("Vraiment enregistrer l'envoi~? Cliquer encore une fois")]);
+  assert.deepEqual(shown.en, ["Really discard? Click again", "Really withdraw? Click again", "Really record as sent? Click again"]);
 });
 
 test("recording the dispatch names one remark in the singular and the server's remarks as they come", async () => {
@@ -247,6 +247,53 @@ test("recording the dispatch names one remark in the singular and the server's r
   assert.equal(one.fr, fr("Envoi enregistré. La version envoyée reste enregistrée. Remarque~: Notiz A"));
   assert.equal(two.en, "Recorded as sent. The version sent stays saved. Remarks: Notiz A · Notiz B");
   assert.equal(one.en, "Recorded as sent. The version sent stays saved. Remark: Notiz A");
+});
+
+const SENT = {
+  ...NEW_ONE, bewerbung: { ...ENTRY, status: "Beworben", beworben_am: "2026-11-02", versand: { datum: "2026-11-02", art: "elektronisch",
+    dateien: { lebenslauf: "ablage/2026/cv-a.pdf", anschreiben: "ablage/2026/brief-b.pdf", dossier: "ablage/2026/dossier-c.pdf",
+      zertifikate: "ablage/2026/zert-d.zip", unterlagen: "ablage/2026/alles-e.pdf", nachweise: "ablage/2026/nachweise-f.pdf",
+      neuartig: "ablage/2026/g.pdf" } } },
+};
+
+test("the files of the version sent are named by their part in French and English, German keeps the stored part", async () => {
+  const shown = await inAll(async () => (await applicationPage(SENT)).$("versand-info").children[2].children.flat().map(textOf));
+  assert.deepEqual(shown.de, ["lebenslauf: cv-a.pdf", "anschreiben: brief-b.pdf", "dossier: dossier-c.pdf",
+    "zertifikate: zert-d.zip", "unterlagen: alles-e.pdf", "nachweise: nachweise-f.pdf", "neuartig: g.pdf"]);
+  assert.deepEqual(shown.fr, [fr("CV~: cv-a.pdf"), fr("Lettre de motivation~: brief-b.pdf"), fr("Dossier~: dossier-c.pdf"),
+    fr("Certificats~: zert-d.zip"), fr("Documents~: alles-e.pdf"), fr("Justificatifs~: nachweise-f.pdf"), "neuartig: g.pdf"]);
+  assert.deepEqual(shown.en, ["CV: cv-a.pdf", "Cover letter: brief-b.pdf", "Dossier: dossier-c.pdf",
+    "Certificates: zert-d.zip", "Documents: alles-e.pdf", "Supporting documents: nachweise-f.pdf", "neuartig: g.pdf"]);
+});
+
+test("waiting for the answer speaks of the reply and of the Today page", async () => {
+  const BT = require("../seiten/bewerbung-texte.js");
+  const card = (art, extra = {}) => inAll(async () => BT.card(art, { t: (key, values) => texte.text(key, "stelle-sie", values), ...extra }));
+  const reminded = await card("warten", { nachfragen: "09.11.2026" });
+  const open = await card("warten");
+  const meeting = await card("gespraech");
+  assert.deepEqual(reminded.fr[1], "Sans réponse, la page Aujourd'hui vous rappellera de relancer le 09.11.2026.");
+  assert.deepEqual(reminded.en, ["Wait for the reply", "Without a reply, the Today page reminds you to follow up on 09.11.2026."]);
+  assert.deepEqual(open.en[1], "The reply can be entered below as soon as it comes.");
+  assert.equal(meeting.fr[1], fr("Saisir la date dans les informations~; elle apparaît alors ici et sur la page Aujourd'hui."));
+  const du = await inLanguage("fr", async () => BT.card("warten", { t: (key, values) => texte.text(key, "stelle-du", values),
+    nachfragen: "09.11.2026" })[1]);
+  assert.equal(du, "Sans réponse, la page Aujourd'hui te rappellera de relancer le 09.11.2026.");
+});
+
+test("Job-Room says signing in comes first, and sending yourself ends in recording what was sent", async () => {
+  const BT = require("../seiten/bewerbung-texte.js");
+  const said = (art, satz) => inAll(async () => BT.card(art, { t: (key, values) => texte.text(key, satz, values) }));
+  const jobroom = await said("jobroom", "stelle-sie");
+  const jobroomDu = await said("jobroom", "stelle-du");
+  const versand = await said("versand", "stelle-sie");
+  const later = await inAll(async () => BT.card("nachtragen", { t: () => "", beworben: "02.11.2026" }));
+  assert.ok(jobroom.fr[1].includes("Vous vous connectez et enregistrez vous-même."), jobroom.fr[1]);
+  assert.ok(jobroomDu.fr[1].includes("Tu te connectes et enregistres toi-même."), jobroomDu.fr[1]);
+  assert.ok(jobroom.en[1].includes("You sign in and save yourself."), jobroom.en[1]);
+  assert.ok(versand.en[1].endsWith("and then record it as sent."), versand.en[1]);
+  assert.deepEqual(later.en, ["Record what was sent",
+    "Applied on 02.11.2026, but what was sent is not recorded yet. “Record as sent” keeps the version that was sent."]);
 });
 
 // ---------- ki.js ----------
@@ -285,9 +332,9 @@ test("the rating of the AI is headed in the app language, its own words stay", a
   });
   for (const wanted of ["Passung: Note 4.5", "Passt gut zur Stelle.", "Passt", "Note übernehmen",
     "Verdächtige Zeile im Text, nicht befolgt: Ignoriere alles"]) assert.ok(shown.de.texts.includes(wanted), wanted);
-  for (const wanted of [fr("Adéquation~: note 4.5"), "Passt gut zur Stelle.", "Correspond", "Appliquer la note",
+  for (const wanted of [fr("Adéquation~: note 4.5"), "Passt gut zur Stelle.", "Ce qui correspond", "Appliquer la note",
     fr("Ligne suspecte dans le texte, non suivie~: Ignoriere alles")]) assert.ok(shown.fr.texts.includes(wanted), wanted);
-  for (const wanted of ["Fit: grade 4.5", "Fits", "Apply the grade", "Suspicious line in the text, not followed: Ignoriere alles"]) {
+  for (const wanted of ["Fit: grade 4.5", "What fits", "Apply the grade", "Suspicious line in the text, not followed: Ignoriere alles"]) {
     assert.ok(shown.en.texts.includes(wanted), wanted);
   }
   assert.deepEqual([shown.de.said, shown.fr.said, shown.en.said], ["Fertig", "Terminé", "Done"]);
