@@ -27,9 +27,10 @@ MUSTER = ("cv.yaml", "suchprofil.md", "varianten.yaml", "bewerbungen.yaml", "job
           "bewerbungen/*/anschreiben.yaml", "bewerbungen/*/stelle.md")
 
 NUR_TEXT = ("bewerbungen.yaml", "varianten.yaml")  # Datenlisten: bearbeiten in der Oberfläche, hier nur als Text
-TITEL = {"cv.yaml": "Lebenslauf", "suchprofil.md": "Suchprofil", "anschreiben/stil.md": "Anschreiben: Stilprofil",
-         "anschreiben/bausteine.md": "Anschreiben: Textbausteine",
-         "bewerbungen.yaml": "Bewerbungsregister (Daten)", "varianten.yaml": "Lebenslauf-Varianten (Daten)"}
+# Titles are messages (#430), so the page shows them in the app language; file and folder names stay
+TITEL = {"cv.yaml": T("Lebenslauf"), "suchprofil.md": T("Suchprofil"), "anschreiben/stil.md": T("Anschreiben: Stilprofil"),
+         "anschreiben/bausteine.md": T("Anschreiben: Textbausteine"),
+         "bewerbungen.yaml": T("Bewerbungsregister (Daten)"), "varianten.yaml": T("Lebenslauf-Varianten (Daten)")}
 
 
 def _bleibt_im_ordner(rel: str) -> bool:
@@ -51,12 +52,13 @@ def titel(rel: str) -> str:
         return TITEL[rel]
     teile = pathlib.PurePosixPath(rel)
     if teile.parts[0] == "jobs":
-        return f"Lebenslauf-Zuschnitt {teile.stem}"
+        return T("Lebenslauf-Zuschnitt {name}", name=teile.stem)
     if teile.parts[0] == "anschreiben":
-        return f"Anschreiben: {teile.stem}"
+        return T("Anschreiben: {name}", name=teile.stem)
     if teile.parts[0] == "bewerbungen" and len(teile.parts) == 3:
-        art = {"anschreiben.yaml": "Anschreiben", OWN_LETTER: "Eigenes Anschreiben"}.get(teile.name, "Stellenausschreibung")
-        return f"{art} {teile.parts[1]}"
+        art = {"anschreiben.yaml": T("Anschreiben"), OWN_LETTER: T("Eigenes Anschreiben")}.get(teile.name,
+                                                                                                 T("Stellenausschreibung"))
+        return T("{art} {ordner}", art=art, ordner=teile.parts[1])
     return rel
 
 

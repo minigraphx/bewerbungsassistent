@@ -1,4 +1,6 @@
 "use strict";
+// Page „Foto“: the crop of the photo for the CV and the choice between photos. Texts come in the app language (#430);
+// file names and what the server says stay as they come.
 const TOKEN = document.querySelector('meta[name="token"]').content;
 const MIN_ABSTAND_MS = 50;           // höchstens ein Vorschaubild pro 50 ms
 const STANDARD = { mirror: false, zoom: 1, x: 0.5, y: 0.5 };
@@ -46,7 +48,7 @@ function zeige() {
   el("zuruecksetzen").disabled = !ungespeichert;
   // Only a change of state touches the line, so a drag does not rebuild it (and its close button) on every move
   const hinweisDa = el("status").dataset.level === "warning";
-  if (ungespeichert && !hinweisDa) status("Nicht gespeichert", "hinweis");
+  if (ungespeichert && !hinweisDa) status(window.Texte.t("Nicht gespeichert"), "hinweis");
   else if (!ungespeichert && hinweisDa) status("");
 }
 
@@ -67,7 +69,7 @@ async function vorschauAnfordern() {
     if (letzteUrl) URL.revokeObjectURL(letzteUrl);
     letzteUrl = url;
   } catch (fehler) {
-    status("Vorschau fehlgeschlagen: " + fehler.message, "fehler");
+    status(window.Texte.t("Vorschau fehlgeschlagen: {fehler}", { fehler: fehler.message }), "fehler");
   }
   const rest = MIN_ABSTAND_MS - (performance.now() - start);
   if (rest > 0) await new Promise(r => setTimeout(r, rest));
@@ -133,11 +135,11 @@ el("speichern").addEventListener("click", async () => {
     if (!antwort.ok) throw new Error(daten.fehler);
     gespeichert = { ...daten };
     zeige();
-    status("Gespeichert. Der Stand davor liegt unter Entwürfe.", "ok");
+    status(window.Texte.t("Gespeichert. Der Stand davor liegt unter Entwürfe."), "ok");
     window.App.letzteEntwuerfe(el("verlauf"), CV);
   } catch (fehler) {
     zeige();
-    status("Speichern fehlgeschlagen: " + fehler.message, "fehler");
+    status(window.Texte.t("Speichern fehlgeschlagen: {fehler}", { fehler: fehler.message }), "fehler");
   }
 });
 window.addEventListener("beforeunload", e => { if (!gleich(stand, gespeichert)) e.preventDefault(); });
@@ -169,13 +171,15 @@ el("foto-datei").addEventListener("change", async e => {
   e.target.value = "";
   if (!datei) return;
   const melde = (text, art) => window.App.status(el("hochladen-status"), text, art);
-  if (datei.size > maxGroesse) return melde(`${datei.name} ist zu gross, höchstens ${maxGroesse / BYTES_PER_MB} MB.`, "fehler");
-  melde("Foto wird gespeichert …");
+  if (datei.size > maxGroesse) {
+    return melde(window.Texte.t("{datei} ist zu gross, höchstens {mb} MB.", { datei: datei.name, mb: maxGroesse / BYTES_PER_MB }), "fehler");
+  }
+  melde(window.Texte.t("Foto wird gespeichert …"));
   try {
     await window.App.senden("/api/foto/hochladen", { name: datei.name, daten: await window.App.alsBase64(datei) });
     melde("");
     await start();
-    status("Foto gespeichert. Den Ausschnitt hier einstellen.", "ok");
+    status(window.Texte.t("Foto gespeichert. Den Ausschnitt hier einstellen."), "ok");
     window.App.letzteEntwuerfe(el("verlauf"), CV);
   } catch (fehler) {
     melde(fehler.message, "fehler");
@@ -187,11 +191,11 @@ const fotosMelden = (text, art) => window.App.status(el("fotos-status"), text, a
 const fotoName = datei => datei.split("/").pop();
 
 async function verwenden(datei) {
-  if (!gleich(stand, gespeichert)) return fotosMelden("Zuerst den Ausschnitt speichern oder zurücksetzen.", "hinweis");
+  if (!gleich(stand, gespeichert)) return fotosMelden(window.Texte.t("Zuerst den Ausschnitt speichern oder zurücksetzen."), "hinweis");
   try {
     await window.App.senden("/api/foto/aktiv", { datei });
     await start();
-    fotosMelden(`${fotoName(datei)} ist jetzt das aktive Foto.`, "ok");
+    fotosMelden(window.Texte.t("{datei} ist jetzt das aktive Foto.", { datei: fotoName(datei) }), "ok");
     window.App.letzteEntwuerfe(el("verlauf"), CV);
   } catch (fehler) {
     fotosMelden(fehler.message, "fehler");
@@ -200,15 +204,17 @@ async function verwenden(datei) {
 
 function fotoZeile(foto) {
   const { el: neu, url } = window.App;
-  const bild = neu("img", { src: url("/api/foto/bild", { datei: foto.datei }), alt: `Foto ${fotoName(foto.datei)}` });
-  if (foto.aktiv) return neu("li", { "data-aktiv": "" }, bild, neu("span", { class: "foto-aktiv" }, "Aktiv"));
-  const nutzen = neu("button", { type: "button", class: "klein" }, "Verwenden");
+  const bild = neu("img", { src: url("/api/foto/bild", { datei: foto.datei }),
+                            alt: window.Texte.t("Foto {datei}", { datei: fotoName(foto.datei) }) });
+  if (foto.aktiv) return neu("li", { "data-aktiv": "" }, bild, neu("span", { class: "foto-aktiv" }, window.Texte.t("Aktiv")));
+  const nutzen = neu("button", { type: "button", class: "klein" }, window.Texte.t("Verwenden"));
   nutzen.addEventListener("click", () => verwenden(foto.datei));
-  const weg = neu("button", { type: "button", class: "klein" }, "Löschen");
-  window.App.bestaetigen(weg, "Wirklich löschen?", async () => {
+  const weg = neu("button", { type: "button", class: "klein" }, window.Texte.t("Löschen"));
+  window.App.bestaetigen(weg, window.Texte.t("Wirklich löschen?"), async () => {
     try {
       zeigeFotos((await window.App.senden("/api/foto/loeschen", { datei: foto.datei })).fotos);
-      status(`${fotoName(foto.datei)} gelöscht. Es bleibt unter Entwürfe.`, "ok");  // the list hides with one photo left
+      // the list hides with one photo left
+      status(window.Texte.t("{datei} gelöscht. Es bleibt unter Entwürfe.", { datei: fotoName(foto.datei) }), "ok");
     } catch (fehler) {
       fotosMelden(fehler.message, "fehler");
     }
@@ -245,7 +251,7 @@ async function start() {
     seitenverhaeltnis = bild.naturalHeight / bild.naturalWidth;
     setze(gespeichert);
   } catch (fehler) {
-    status("Laden fehlgeschlagen: " + fehler.message, "fehler");
+    status(window.Texte.t("Laden fehlgeschlagen: {fehler}", { fehler: fehler.message }), "fehler");
   }
 }
 start();

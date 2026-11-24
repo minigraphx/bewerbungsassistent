@@ -5,13 +5,15 @@ import tempfile
 
 import yaml
 
+from ui_message import T
+
 
 def relativ(pfad: pathlib.Path, ordner: pathlib.Path) -> str:
     """Pfad relativ zum Datenordner; ausserhalb davon ist ein Fehler (kein Zugriff auf fremde Dateien)."""
     try:
         return pfad.resolve().relative_to(ordner.resolve()).as_posix()
     except ValueError:
-        raise ValueError(f"{pfad} liegt nicht im Datenordner {ordner}") from None
+        raise ValueError(T("{pfad} liegt nicht im Datenordner {ordner}", pfad=pfad, ordner=ordner)) from None
 
 
 def im_ordner(ordner: pathlib.Path, rel: str) -> pathlib.Path:

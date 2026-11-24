@@ -18,6 +18,7 @@ import photo_file
 import photo_shown
 import photos
 from server import Antwort, json_antwort
+from ui_message import T
 
 MAX_PHOTO_BYTES = 10_000_000
 UPLOAD_ROUTE = "/api/foto/hochladen"
@@ -82,7 +83,7 @@ def _photo_bytes(body) -> bytes:
 
 def _check_size(data: bytes) -> None:
     if len(data) > MAX_PHOTO_BYTES:
-        raise ValueError(f"Das Foto ist zu gross: höchstens {MAX_PHOTO_BYTES / 1_000_000:g} MB.")
+        raise ValueError(T("Das Foto ist zu gross: höchstens {mb} MB.", mb=f"{MAX_PHOTO_BYTES / 1_000_000:g}"))
 
 
 def _check_decodes(k, name: str, data: bytes) -> None:

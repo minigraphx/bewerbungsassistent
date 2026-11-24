@@ -1,7 +1,10 @@
 "use strict";
 // What „Lebenslauf und Dateien“ shows (#264, A9), without DOM so it can be tested (tests/dateien_logik.test.cjs):
-// the choice of the CV, certificates and references in one list, the photos and whether the CV shows one.
+// the choice of the CV, certificates and references in one list, the photos and whether the CV shows one. Labels and
+// sentences come in the app language through Texte (#430), each read when used; the ids of kinds and designs stay.
 (function (global) {
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte) };
   const BYTES_PER_MB = 1000000;
   const BYTES_PER_KB = 1000;
   const CERTIFICATE = "zertifikat";
@@ -10,7 +13,10 @@
   // G63: the order of the spec; the ids stay those of the folders (own_files.py), only the labels are new. A school
   // report is a Zeugnis as much as a work reference, so the label names neither (#292).
   const KINDS = [REFERENCE, DIPLOMA, CERTIFICATE];
-  const KIND_LABELS = { [REFERENCE]: "Zeugnis", [DIPLOMA]: "Diplom", [CERTIFICATE]: "Zertifikat" };
+  const KIND_LABELS = {
+    get [REFERENCE]() { return Texte.t("Zeugnis"); }, get [DIPLOMA]() { return Texte.t("Diplom"); },
+    get [CERTIFICATE]() { return Texte.t("Zertifikat"); },
+  };
   // A Fähigkeitszeugnis or Maturitätszeugnis is a diploma, so the diploma is asked first. "Master" alone stays out:
   // a Scrum Master is a certificate. The person corrects the rest.
   const DIPLOMA_NAME = /diplom|f(?:ä|ae|a)higkeitszeugnis|(?:^|[^a-zäöü])matur|bachelor|master of|berufsattest|lizentiat|(?:^|[^a-z])(?:efz|eba)(?:[^a-z]|$)/i;
@@ -28,8 +34,8 @@
 
   function variantNote(count) {
     if (!count) return "";
-    return count === 1 ? "1 Bewerbung hat eine eigene Variante, dort gilt sie."
-      : `${count} Bewerbungen haben eine eigene Variante, dort gilt sie.`;
+    return count === 1 ? Texte.t("1 Bewerbung hat eine eigene Variante, dort gilt sie.")
+      : Texte.t("{anzahl} Bewerbungen haben eine eigene Variante, dort gilt sie.", { anzahl: count });
   }
 
   function guessKind(name) {
@@ -45,15 +51,20 @@
   }
 
   function sizeText(bytes) {
-    if (bytes >= BYTES_PER_MB) return `${(bytes / BYTES_PER_MB).toFixed(1)} MB`;
-    return `${Math.max(1, Math.round(bytes / BYTES_PER_KB))} KB`;
+    if (bytes >= BYTES_PER_MB) return Texte.t("{zahl} MB", { zahl: (bytes / BYTES_PER_MB).toFixed(1) });
+    return Texte.t("{zahl} KB", { zahl: Math.max(1, Math.round(bytes / BYTES_PER_KB)) });
   }
 
+  // Whole sentences per count, so each language words one photo and several in its own way
   function photoSummary(photos, shown = true) {
-    if (!photos.length) return "Noch kein Foto. Ein Foto ist freiwillig.";
-    const count = photos.length === 1 ? "1 Foto" : `${photos.length} Fotos`;
-    if (!shown) return `${count}. Neue Unterlagen entstehen ohne Foto.`;
-    return photos.length === 1 ? `${count}, es wird verwendet.` : `${count}, das umrandete wird verwendet.`;
+    if (!photos.length) return Texte.t("Noch kein Foto. Ein Foto ist freiwillig.");
+    const anzahl = photos.length;
+    if (!shown) {
+      return anzahl === 1 ? Texte.t("1 Foto. Neue Unterlagen entstehen ohne Foto.")
+        : Texte.t("{anzahl} Fotos. Neue Unterlagen entstehen ohne Foto.", { anzahl });
+    }
+    return anzahl === 1 ? Texte.t("1 Foto, es wird verwendet.")
+      : Texte.t("{anzahl} Fotos, das umrandete wird verwendet.", { anzahl });
   }
 
   /** „Im Lebenslauf zeigen“ (G62): there once a photo exists, on unless the person turned it off. */
@@ -64,8 +75,10 @@
   // G61: the designs that build a CV on their own, the preset first (register.CV_DESIGNS). Siegel, Raster and
   // Register stay the design of a dossier, chosen per application.
   const DESIGNS = [
-    { id: "zweispaltig", name: "Zweispaltig", text: "Foto und Kontakt im Kopf, zwei Spalten. Viel auf wenig Platz." },
-    { id: "einspaltig", name: "Einspaltig", text: "Schlicht, alles untereinander. Liest sich auch in Bewerbungsportalen gut." },
+    { id: "zweispaltig", get name() { return Texte.t("Zweispaltig"); },
+      get text() { return Texte.t("Foto und Kontakt im Kopf, zwei Spalten. Viel auf wenig Platz."); } },
+    { id: "einspaltig", get name() { return Texte.t("Einspaltig"); },
+      get text() { return Texte.t("Schlicht, alles untereinander. Liest sich auch in Bewerbungsportalen gut."); } },
   ];
   const PRESET_DESIGN = DESIGNS[0].id;
   const findDesign = id => DESIGNS.find(design => design.id === id) || DESIGNS[0];
@@ -74,13 +87,15 @@
   /** Body for POST /api/dateien/aussehen, or null when nothing changes. */
   function designToSave(current, chosen) {
     if (!DESIGNS.some(design => design.id === chosen)) {
-      throw new Error(`Bitte ${DESIGNS.map(design => design.name).join(" oder ")} wählen.`);
+      const [erstes, zweites] = DESIGNS.map(design => design.name);
+      throw new Error(Texte.t("Bitte {erstes} oder {zweites} wählen.", { erstes, zweites }));
     }
     return chosen === current ? null : { design: chosen };
   }
 
   function designSaved(id) {
-    return `Neue Unterlagen entstehen jetzt im Design ${designName(id)}. Was schon erstellt oder versendet ist, bleibt, wie es ist.`;
+    return Texte.t("Neue Unterlagen entstehen jetzt im Design {design}. Was schon erstellt oder versendet ist, bleibt, wie es ist.",
+                   { design: designName(id) });
   }
 
   // DIPLOMA_NAME and REFERENCE_NAME are also the guess on „Meine Angaben“ (G84, onboarding/src/kindguess.js).

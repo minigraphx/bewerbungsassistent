@@ -11,6 +11,7 @@ import subprocess
 from typing import Protocol
 
 from dateien import relativ
+from ui_message import T
 
 ERSATZ_AUTOR = "Bewerbungsbegleiter"
 ERSATZ_MAIL = "bewerbungsbegleiter@localhost"
@@ -25,8 +26,9 @@ class Versionierung(Protocol):
 
 
 class GitVersionen:
-    hinweis = ("Versendete Fassungen sind gesichert: die PDFs unter versendet/, die Daten als genutzte Entwürfe. "
-               "Zusätzlich hält das lokale Git des Datenordners jeden Versand fest (kein automatischer Push).")
+    # A message, not plain text, since GET /api/versionen hands it to the page as data (#430)
+    hinweis = T("Versendete Fassungen sind gesichert: die PDFs unter versendet/, die Daten als genutzte Entwürfe. "
+                "Zusätzlich hält das lokale Git des Datenordners jeden Versand fest (kein automatischer Push).")
 
     def __init__(self, ordner: pathlib.Path) -> None:
         self.ordner = ordner.resolve()
@@ -36,7 +38,7 @@ class GitVersionen:
         ergebnis = subprocess.run(["git", "--literal-pathspecs", "-C", str(self.ordner), *args], capture_output=True)
         if pruefen and ergebnis.returncode != 0:
             meldung = ergebnis.stderr.decode(errors="replace").strip()
-            raise RuntimeError(f"git {args[0]} fehlgeschlagen: {meldung}")
+            raise RuntimeError(T("git {befehl} fehlgeschlagen: {meldung}", befehl=args[0], meldung=meldung))
         return ergebnis
 
     def _sicherstellen(self) -> None:
@@ -60,7 +62,7 @@ class GitVersionen:
             capture_output=True, text=True,
         )
         if ergebnis.returncode != 0:
-            raise RuntimeError(f"Git-Commit fehlgeschlagen: {ergebnis.stderr.strip()}")
+            raise RuntimeError(T("Git-Commit fehlgeschlagen: {meldung}", meldung=ergebnis.stderr.strip()))
         return self._git("rev-parse", "HEAD").stdout.decode().strip()
 
     def verlauf(self, anzahl: int = 50) -> list[dict]:
@@ -83,7 +85,7 @@ class GitVersionen:
 
 
 class OhneGit:
-    hinweis = "Versendete Fassungen sind gesichert: die PDFs unter versendet/, die Daten als genutzte Entwürfe."
+    hinweis = T("Versendete Fassungen sind gesichert: die PDFs unter versendet/, die Daten als genutzte Entwürfe.")
 
     def __init__(self, ordner: pathlib.Path) -> None:
         self.ordner = ordner.resolve()

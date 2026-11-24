@@ -8,14 +8,16 @@ names its company and date (#240), so the page can show only the documents used.
 import pathlib
 
 import inhalte
+from ui_message import T
 from unterlagen import OWN_CV, OWN_LETTER
 
-GROUPS = (("lebenslauf", "Lebenslauf"), ("anschreiben", "Anschreiben"), ("stil", "Stil und Bausteine"),
-          ("suchprofil", "Suchprofil"), ("weitere", "Weitere"))
+# Titles are messages (#430), so the page shows them in the app language; companies and folders stay as they are
+GROUPS = (("lebenslauf", T("Lebenslauf")), ("anschreiben", T("Anschreiben")), ("stil", T("Stil und Bausteine")),
+          ("suchprofil", T("Suchprofil")), ("weitere", T("Weitere")))
 JOB_AD = "stelle.md"
-LETTERS = {"anschreiben.yaml": "Anschreiben", OWN_LETTER: "Eigenes Anschreiben"}
-TITLES = {"anschreiben/stil.md": "Stilprofil", "anschreiben/bausteine.md": "Textbausteine",
-          OWN_CV: "Eigener Lebenslauf (PDF)"}
+LETTERS = {"anschreiben.yaml": T("Anschreiben"), OWN_LETTER: T("Eigenes Anschreiben")}
+TITLES = {"anschreiben/stil.md": T("Stilprofil"), "anschreiben/bausteine.md": T("Textbausteine"),
+          OWN_CV: T("Eigener Lebenslauf (PDF)")}
 CV_FILES = ("cv.yaml", "varianten.yaml", OWN_CV)  # OWN_CV: uploaded on the page Lebenslauf und Dateien
 
 
@@ -50,7 +52,7 @@ def document_title(rel: str, companies: dict[str, str]) -> str:
     """Name of the document on the page; a letter carries its company, or its folder once the entry is gone."""
     if _is_letter(rel):
         _, entry_id, name = _parts(rel)
-        return f"{LETTERS[name]} {companies.get(entry_id) or entry_id}"
+        return T("{art} {firma}", art=LETTERS[name], firma=companies.get(entry_id) or entry_id)
     if rel in TITLES:
         return TITLES[rel]
     return inhalte.titel(rel)

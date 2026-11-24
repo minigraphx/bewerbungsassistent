@@ -5,9 +5,11 @@ import search_plan
 from ai import chat
 from ai.usage import UsageLog
 from server import json_antwort
+from ui_message import T
 
-USED_UP = "Für heute sind die Fragen aufgebraucht. Morgen geht es weiter."
-ADULTS_ONLY = "Der Chat steht nur ab 18 Jahren zur Verfügung und ist bei der Lehrstellensuche ausgeschaltet."
+USED_UP = T("Für heute sind die Fragen aufgebraucht. Morgen geht es weiter.")
+# A message, not plain text, since GET /api/fragen/stand hands it to the page as data (#430)
+ADULTS_ONLY = T("Der Chat steht nur ab 18 Jahren zur Verfügung und ist bei der Lehrstellensuche ausgeschaltet.")
 
 
 def _remaining(k) -> int:

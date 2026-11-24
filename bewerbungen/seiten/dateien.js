@@ -1,9 +1,11 @@
 "use strict";
 // Page „Lebenslauf und Dateien“ (#264, A9, G55): the choice between the CV of the app and an own PDF, certificates
 // and references in one list, the photos (G21) with „Im Lebenslauf zeigen“ (G62), the design of the CV (G61,
-// „Aussehen wählen“) and the way to earlier versions. What it shows: dateien-logik.js.
+// „Aussehen wählen“) and the way to earlier versions. What it shows: dateien-logik.js. Texts come in the app language
+// (#430); file names and what the server says stay as they come.
 (() => {
   const { holen, senden, el, status, url, bestaetigen, alsBase64 } = App;
+  const MB = 1000000;
   const Logic = window.DateienLogik;
   const $ = id => document.getElementById(id);
   let maxBytes = 0;
@@ -21,11 +23,11 @@
   }
 
   function removeButton(file, done) {
-    const remove = el("button", { type: "button", class: "btn btn--quiet btn--sm" }, "Entfernen");
-    bestaetigen(remove, "Wirklich entfernen?", async () => {
+    const remove = el("button", { type: "button", class: "btn btn--quiet btn--sm" }, window.Texte.t("Entfernen"));
+    bestaetigen(remove, window.Texte.t("Wirklich entfernen?"), async () => {
       try {
         showFiles(await senden("/api/dateien/entfernen", { datei: file.datei }));
-        done(`${file.name} entfernt.`, "ok");
+        done(window.Texte.t("{datei} entfernt.", { datei: file.name }), "ok");
       } catch (error) {
         done(error.message, "fehler");
       }
@@ -40,20 +42,21 @@
     $("cv-app").hidden = chosen !== "app";
     $("cv-eigen").hidden = chosen !== "eigen";
     $("cv-wie-es-ist").hidden = !own;
-    $("cv-waehlen").firstChild.textContent = own ? "Anderes PDF wählen" : "PDF wählen";
+    $("cv-waehlen").firstChild.textContent = own ? window.Texte.t("Anderes PDF wählen") : window.Texte.t("PDF wählen");
     const row = own ? el("li", {}, fileLink(own), el("span", { class: "leise" }, Logic.sizeText(own.groesse)),
                          removeButton(own, cvMessage))
-      : el("li", { class: "leer" }, "Noch kein PDF. Bis eines da ist, erstellt die App den Lebenslauf.");
+      : el("li", { class: "leer" }, window.Texte.t("Noch kein PDF. Bis eines da ist, erstellt die App den Lebenslauf."));
     $("cv-datei").replaceChildren(row);
   }
 
   function kindSelect(file) {
-    const select = el("select", { class: "input files__kind", "aria-label": `Art von ${file.name}` },
+    const select = el("select", { class: "input files__kind", "aria-label": window.Texte.t("Art von {datei}", { datei: file.name }) },
       Logic.KINDS.map(kind => el("option", { value: kind, selected: kind === file.art }, Logic.KIND_LABELS[kind])));
     select.addEventListener("change", async () => {
       try {
         showFiles(await senden("/api/dateien/art", { datei: file.datei, art: select.value }));
-        proofMessage(`${file.name} ist jetzt als ${Logic.KIND_LABELS[select.value]} eingeordnet.`, "ok");
+        proofMessage(window.Texte.t("{datei} ist jetzt als {art} eingeordnet.",
+                                    { datei: file.name, art: Logic.KIND_LABELS[select.value] }), "ok");
       } catch (error) {
         select.value = file.art;
         proofMessage(error.message, "fehler");
@@ -66,7 +69,7 @@
     const rows = Logic.oneList(found).map(file => el("li", {},
       el("span", { class: "files__name" }, fileLink(file), el("span", { class: "leise" }, Logic.sizeText(file.groesse))),
       el("span", { class: "files__actions" }, kindSelect(file), removeButton(file, proofMessage))));
-    $("nachweise").replaceChildren(...(rows.length ? rows : [el("li", { class: "leer" }, "Noch nichts hochgeladen.")]));
+    $("nachweise").replaceChildren(...(rows.length ? rows : [el("li", { class: "leer" }, window.Texte.t("Noch nichts hochgeladen."))]));
   }
 
   function showFiles(listing) {
@@ -76,7 +79,9 @@
   }
 
   async function uploadOne(kind, file) {
-    if (file.size > maxBytes) throw new Error(`${file.name} ist zu gross, höchstens ${maxBytes / 1000000} MB.`);
+    if (file.size > maxBytes) {
+      throw new Error(window.Texte.t("{datei} ist zu gross, höchstens {mb} MB.", { datei: file.name, mb: maxBytes / MB }));
+    }
     return senden("/api/dateien/hochladen", { art: kind, name: file.name, daten: await alsBase64(file) });
   }
 
@@ -85,16 +90,16 @@
     const problems = [];
     let done = 0;
     for (const file of files) {
-      message(`${file.name} wird hochgeladen …`);
+      message(window.Texte.t("{datei} wird hochgeladen …", { datei: file.name }));
       try {
         showFiles(await uploadOne(kindOf(file), file));
         done += 1;
       } catch (error) {
-        problems.push(`${file.name}: ${error.message}`);
+        problems.push(window.Texte.t("{datei}: {fehler}", { datei: file.name, fehler: error.message }));
       }
     }
     if (problems.length) message(problems.join(" "), "fehler");
-    else message(done === 1 ? "Hochgeladen." : `${done} Dateien hochgeladen.`, "ok");
+    else message(done === 1 ? window.Texte.t("Hochgeladen.") : window.Texte.t("{anzahl} Dateien hochgeladen.", { anzahl: done }), "ok");
   }
 
   const uploadProofs = files => upload(files, file => Logic.guessKind(file.name), proofMessage);
@@ -113,7 +118,7 @@
     try {
       wantsOwn = false;
       showFiles(await senden("/api/dateien/entfernen", { datei: found.lebenslauf[0].datei }));
-      cvMessage("Die App erstellt den Lebenslauf wieder.", "ok");
+      cvMessage(window.Texte.t("Die App erstellt den Lebenslauf wieder."), "ok");
     } catch (error) {
       cvMessage(error.message, "fehler");
     }
@@ -122,7 +127,8 @@
   function photoButton(photo) {
     const picture = el("img", { src: url("/api/foto/bild", { datei: photo.datei }), alt: "" });
     const button = el("button", { type: "button", class: "files__photo", "aria-pressed": String(photo.aktiv),
-                                  "aria-label": photo.aktiv ? "Aktives Foto" : "Dieses Foto verwenden" }, picture);
+                                  "aria-label": photo.aktiv ? window.Texte.t("Aktives Foto") : window.Texte.t("Dieses Foto verwenden") },
+                        picture);
     if (!photo.aktiv) button.addEventListener("click", () => usePhoto(photo.datei));
     return el("li", {}, button);
   }
@@ -148,10 +154,10 @@
     try {
       await senden("/api/foto/zeigen", { zeigen: shown });
       await loadPhotos();
-      photoMessage(shown ? "Neue Unterlagen zeigen das Foto. Was schon erstellt ist, bleibt, wie es ist."
-        : "Neue Unterlagen entstehen ohne Foto. Was schon erstellt ist, bleibt, wie es ist.", "ok");
+      photoMessage(shown ? window.Texte.t("Neue Unterlagen zeigen das Foto. Was schon erstellt ist, bleibt, wie es ist.")
+        : window.Texte.t("Neue Unterlagen entstehen ohne Foto. Was schon erstellt ist, bleibt, wie es ist."), "ok");
     } catch (error) {
-      photoMessage(`Foto im Lebenslauf nicht geändert: ${error.message}`, "fehler");
+      photoMessage(window.Texte.t("Foto im Lebenslauf nicht geändert: {fehler}", { fehler: error.message }), "fehler");
       $("foto-zeigen").checked = !shown;
     }
   }
@@ -160,7 +166,7 @@
     try {
       await senden("/api/foto/aktiv", { datei: file });
       await loadPhotos();
-      photoMessage("Neue Unterlagen nutzen jetzt dieses Foto. Was schon erstellt ist, behält seines.", "ok");
+      photoMessage(window.Texte.t("Neue Unterlagen nutzen jetzt dieses Foto. Was schon erstellt ist, behält seines."), "ok");
     } catch (error) {
       photoMessage(error.message, "fehler");
     }
@@ -168,18 +174,20 @@
 
   async function addPhoto(file) {
     try {
-      if (file.size > maxPhotoBytes) throw new Error(`Das Foto ist zu gross, höchstens ${maxPhotoBytes / 1000000} MB.`);
-      photoMessage(`${file.name} wird hochgeladen …`);
+      if (file.size > maxPhotoBytes) {
+        throw new Error(window.Texte.t("Das Foto ist zu gross, höchstens {mb} MB.", { mb: maxPhotoBytes / MB }));
+      }
+      photoMessage(window.Texte.t("{datei} wird hochgeladen …", { datei: file.name }));
       await senden("/api/foto/hochladen", { name: file.name, daten: await alsBase64(file) });
       await loadPhotos();
-      photoMessage("Hochgeladen. Es ist jetzt das aktive Foto.", "ok");
+      photoMessage(window.Texte.t("Hochgeladen. Es ist jetzt das aktive Foto."), "ok");
     } catch (error) {
       photoMessage(error.message, "fehler");
     }
   }
 
   function showDesign() {
-    $("cv-design").textContent = `Design: ${Logic.designName(design)}`;
+    $("cv-design").textContent = window.Texte.t("Design: {name}", { name: Logic.designName(design) });
   }
 
   function designTile(choice) {
@@ -207,7 +215,7 @@
       cvMessage(Logic.designSaved(design), "ok");
     } catch (error) {
       $("aussehen-dialog").close();
-      cvMessage(`Aussehen nicht gespeichert: ${error.message}`, "fehler");
+      cvMessage(window.Texte.t("Aussehen nicht gespeichert: {fehler}", { fehler: error.message }), "fehler");
     }
   }
 
@@ -258,7 +266,7 @@
     const listing = await holen("/api/dateien");
     maxBytes = listing.max_groesse;
     showFiles(listing);
-    await loadDesign().catch(error => cvMessage(`Aussehen nicht geladen: ${error.message}`, "fehler"));
+    await loadDesign().catch(error => cvMessage(window.Texte.t("Aussehen nicht geladen: {fehler}", { fehler: error.message }), "fehler"));
     await loadPhotos().catch(error => photoMessage(error.message, "fehler"));
   }
 

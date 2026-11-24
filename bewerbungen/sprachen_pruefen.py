@@ -123,7 +123,7 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "ai/cv_suggestions.py", BASE / "routes_cuts.py", BASE / "cut_choice.py", BASE / "cv_cuts.py",
     # The letter editor, greeting and thanks, the mark and the dialog «Dossier gestalten» (#429), the last scripts of
     # the page Bewerbung, with every route module its scripts call and the modules behind them: the own letter, the
-    # drafts and the backup. routen_inhalte and proof_kinds, which serve other pages, follow with #430.
+    # drafts and the backup. routen_inhalte and proof_kinds, which serve other pages, follow below with #430.
     BASE / "seiten/finding-row.js", BASE / "seiten/letter-editor-logik.js", BASE / "seiten/letter-editor.js",
     BASE / "seiten/dossier-texte.js", BASE / "seiten/zeichen-logik.js", BASE / "seiten/zeichen.js",
     BASE / "seiten/dossier-dialog-logik.js", BASE / "seiten/dossier-dialog.js",
@@ -131,6 +131,15 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "dossier_texts.py", BASE / "ai/tasks.py", BASE / "routes_mark.py", BASE / "mark_settings.py",
     BASE / "logo_file.py", BASE / "routes_own_files.py", BASE / "own_files.py", BASE / "routen_ablage.py",
     BASE / "draft_groups.py", BASE / "routes_backup.py", BASE / "backup.py",
+    # Lebenslauf und Dateien, Foto, Entwürfe, Inhalte and Fragen (#430): the five pages, their scripts, every route
+    # module they call and the modules behind them, the photos, the chat, the drafts, the versions and the data folder.
+    BASE / "seiten/dateien.html", BASE / "seiten/dateien-logik.js", BASE / "seiten/dateien.js",
+    BASE / "seiten/foto.html", BASE / "seiten/foto.js", BASE / "seiten/entwuerfe.html", BASE / "seiten/entwuerfe-logik.js",
+    BASE / "seiten/entwuerfe.js", BASE / "seiten/inhalte.html", BASE / "seiten/inhalte.js", BASE / "seiten/fragen.html",
+    BASE / "seiten/fragen.js",
+    BASE / "routen_foto.py", BASE / "photo_file.py", BASE / "photos.py", BASE / "photo_shown.py", BASE / "routen_inhalte.py",
+    BASE / "routes_chat.py", BASE / "ai/chat.py", BASE / "proof_kinds.py", BASE / "ablage.py", BASE / "versionen.py",
+    BASE / "dateien.py",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"

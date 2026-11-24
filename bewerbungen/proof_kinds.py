@@ -10,11 +10,13 @@ import pathlib
 import yaml
 
 from dateien import schreibe_atomar
+from ui_message import T
 
 FILE = "dokumente/arten.yaml"
 DIPLOMA = "diplom"
 RECORDED = (DIPLOMA,)  # kinds that share a folder with another one and so need an entry
-UNREADABLE = f"Die Liste der Dateiarten ({FILE}) lässt sich nicht lesen. Unter „Entwürfe und Versionen“ liegt der Stand davor."
+UNREADABLE = T("Die Liste der Dateiarten ({datei}) lässt sich nicht lesen. Unter „Entwürfe und Versionen“ liegt der Stand davor.",
+               datei=FILE)
 
 
 def load(data_dir: pathlib.Path) -> dict[str, str]:

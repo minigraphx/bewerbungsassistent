@@ -2,6 +2,7 @@
 import inhalte
 from dateien import schreibe_atomar
 from server import Antwort, datei_antwort, json_antwort, pflicht
+from ui_message import T
 
 VORSCHAU = "inhalt-probe/vorschau.pdf"
 
@@ -15,7 +16,7 @@ def pdf_aus_text(k, rel: str, text: str) -> Antwort:
     """Den Text als PDF bauen und direkt ausliefern (unter der Sperre gelesen, kein Wettlauf zwischen Tabs)."""
     if not inhalte.hat_pdf_ansicht(rel):
         inhalte.pruefe_datei(k.daten, rel)
-        raise ValueError(f"{inhalte.titel(rel)} hat keine PDF-Ansicht, nur als Text")
+        raise ValueError(T("{titel} hat keine PDF-Ansicht, nur als Text", titel=inhalte.titel(rel)))
     with k.sperre:
         pdf = inhalte.pruefe_inhalt(k.daten, rel, text, k.build)
         inhalt = pdf.read_bytes()
