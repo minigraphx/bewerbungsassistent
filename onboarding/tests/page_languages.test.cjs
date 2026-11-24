@@ -141,7 +141,7 @@ test("a step says its note, its entries and the buttons around it in the app lan
   assert.deepEqual(await shown(null), { note: "Felder mit * müssen ausgefüllt sein.", legend: "Station 1",
     buttons: ["Station 1 entfernen", "+ Station hinzufügen", "Zurück: Person und Kontakt", "Weiter: Können"] });
   assert.deepEqual(await shown("fr"), { note: "Les champs marqués d'un * sont obligatoires.", legend: "Entrée 1",
-    buttons: ["Retirer Entrée 1", "+ Ajouter Entrée", fr("Retour~: Personne et contact"), fr("Continuer~: Compétences")] });
+    buttons: [fr("Retirer~: Entrée 1"), fr("+ Ajouter~: Entrée"), fr("Retour~: Personne et contact"), fr("Continuer~: Compétences")] });
   assert.deepEqual(await shown("en"), { note: "Fields marked * are required.", legend: "Entry 1",
     buttons: ["Remove Entry 1", "+ Add Entry", "Back: Person and contact", "Next: Skills"] });
 });
@@ -187,10 +187,10 @@ test("the last step of the app and its result speak the app language", async () 
   assert.equal(french.heading, "Appliquer");
   assert.ok(french.buttons.includes("Appliquer les informations"), french.buttons.join(" | "));
   assert.ok(french.buttons.includes("Abandonner les saisies"), french.buttons.join(" | "));
-  assert.equal(french.done, fr("Vos informations sont appliquées. De votre recherche existante, il reste~: Data Engineer. Vous pouvez le retirer sous «~Recherche~». Inchangé~: suchprofil.md. Vers les candidatures"));
+  assert.equal(french.done, fr("Vos informations sont appliquées. De votre recherche précédente, il reste~: Data Engineer. Vous pouvez le retirer sous «~Recherche~». Sans changement~: suchprofil.md. Vers les candidatures"));
   const english = await shown("en");
   assert.ok(english.buttons.includes("Apply details"), english.buttons.join(" | "));
-  assert.equal(english.done, "Your details are applied. From your existing search this stays: Data Engineer. You can remove it under “Search”. Unchanged: suchprofil.md. To the applications");
+  assert.equal(english.done, "Your details are applied. From your previous search this stays: Data Engineer. You can remove it under “Search”. Unchanged: suchprofil.md. To the applications");
 });
 
 test("the file for sharing stays German on its start, its steps and its last step", async () => {

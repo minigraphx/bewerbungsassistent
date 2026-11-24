@@ -79,6 +79,24 @@ test("every code of validate.js has its message in French and English, with its 
   }
   assert.equal(shown.fr[2], "Trop long (200 caractères au maximum).");
   assert.equal(shown.en[4], "Invalid format, for example: firstname.lastname@example.ch.");
+  assert.equal(shown.en[0], "Please fill this in.");
+  assert.equal(shown.en[6], "Is before the start date.");
+});
+
+test("the wording the UI/UX review ruled for the steps holds in French and English", () => {
+  const say = (language, german, values) => inLanguage(language, (page) => page.Texte.t(german, values));
+  const kept = "Aus deiner bisherigen Suche bleibt dabei: {namen}. Entfernen kannst du das unter „Suche“.";
+  const existing = "Sie haben schon einen Lebenslauf, Zeugnisse oder frühere Anschreiben? Dann müssen Sie nichts abtippen: "
+    + "Im Schritt „Unterlagen“ laden Sie sie hoch. Die App übernimmt daraus Angaben, Belege und Ihre eigenen Formulierungen "
+    + "und fragt nur nach, was fehlt.";
+
+  assert.equal(say("fr", kept, { namen: "Data Engineer" }), fr("De ta recherche précédente, il reste~: Data Engineer. Tu peux le retirer sous «~Recherche~»."));
+  assert.equal(say("en", kept, { namen: "Data Engineer" }), "From your previous search this stays: Data Engineer. You can remove it under “Search”.");
+  assert.equal(say("fr", "Hier ergänzen. Es zählt für die Suche, sobald es unter „Übernehmen“ abgeschlossen ist."),
+    fr("À compléter ici. Cela compte pour la recherche dès que c'est terminé sous «~Appliquer~»."));
+  assert.ok(say("en", existing).startsWith("Do you already have a CV, references or earlier cover letters? Then you do not need"));
+  assert.equal(say("fr", "Angaben fehlen"), "Informations manquantes");
+  assert.equal(say("en", "Angaben fehlen"), "Details missing");
 });
 
 test("a field's own message from form.json follows the app language", () => {
@@ -146,7 +164,7 @@ test("a choice offers its own wording in the app language", () => {
   });
   assert.deepEqual(shown.de, { text: "Eigene Formulierung:", label: "Eigene Formulierung" });
   assert.deepEqual(shown.fr, { text: fr("Formulation personnelle~:"), label: "Formulation personnelle" });
-  assert.deepEqual(shown.en, { text: "Own wording:", label: "Own wording" });
+  assert.deepEqual(shown.en, { text: "Your own wording:", label: "Your own wording" });
 });
 
 test("the file for sharing keeps every word German", () => {
