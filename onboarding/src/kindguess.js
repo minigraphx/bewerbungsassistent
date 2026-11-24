@@ -42,19 +42,34 @@ function guessDocumentKind(form, name) {
   return rule ? { category: rule.category, sure: true } : { category: GUESS_CERTIFICATE, sure: false };
 }
 
-/** The singular name of a kind for a row, e.g. „Zeugnis“ (form.json kindLabel). */
+/** The singular name of a kind for a row in the app language, e.g. „Zeugnis“ (form.json kindLabel). */
 function kindLabel(form, track, category) {
-  return forTrack(documentCategories(form).get(category).kindLabel, track);
+  return T(forTrack(documentCategories(form).get(category).kindLabel, track));
 }
 
-/** The singular name inside a sentence: „als früheres Anschreiben“, while the list of kinds keeps the capital. */
+/**
+ * The singular name inside a sentence: „als früheres Anschreiben“, while the list of kinds keeps the capital. German
+ * nouns keep theirs; French and English start small, but an abbreviation such as „CV“ stays as it is (#433).
+ */
 function kindInSentence(form, track, category) {
-  return kindLabel(form, track, category).replace(/^Früheres\b/, "früheres");
+  const german = forTrack(documentCategories(form).get(category).kindLabel, track);
+  const label = T(german);
+  if (label === german) return label.replace(/^Früheres\b/, "früheres");
+  return /^\p{Lu}\p{Ll}/u.test(label) ? label.charAt(0).toLowerCase() + label.slice(1) : label;
 }
 
-/** The plural name of a kind for its limit, e.g. „Lebensläufe“ (form.json kindPlural). */
+/**
+ * The kind for „{datei} ist jetzt als {art} eingeordnet.“, whose French and English put it in quotes, as „Lebenslauf
+ * und Dateien“ says it: there the kind stands as the list shows it, in German as in a sentence.
+ */
+function kindInQuotes(form, track, category) {
+  const german = forTrack(documentCategories(form).get(category).kindLabel, track);
+  return T(german) === german ? kindInSentence(form, track, category) : T(german);
+}
+
+/** The plural name of a kind for its limit in the app language, e.g. „Lebensläufe“ (form.json kindPlural). */
 function kindPlural(form, track, category) {
-  return forTrack(documentCategories(form).get(category).kindPlural, track);
+  return T(forTrack(documentCategories(form).get(category).kindPlural, track));
 }
 
 /** The kinds a file may have by its type, in the order of form.json: [{ id, label }]. */

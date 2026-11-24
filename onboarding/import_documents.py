@@ -10,6 +10,7 @@ import pathlib
 import paths  # noqa: F401  (makes the module bewerbungen importable)
 from archive import DOCUMENTS_DIR, Document
 from dateien import im_ordner, lies_yaml, schreibe_atomar, schreibe_yaml, sichere_gitignore
+from ui_message import T
 
 PENDING = f"{DOCUMENTS_DIR}/neu.yaml"
 BUNDLE_COPY = f"{DOCUMENTS_DIR}/einstieg.json"
@@ -48,7 +49,7 @@ def _free_target(data_dir: pathlib.Path, document: Document) -> pathlib.Path | N
             return candidate
         if candidate.read_bytes() == document.data:
             return None
-    raise ValueError(f"Zu viele Dateien mit dem Namen {first.name}")
+    raise ValueError(T("Zu viele Dateien mit dem Namen {name}", name=first.name))
 
 
 def _add_pending(data_dir: pathlib.Path, new: list[str], today: datetime.date) -> None:
@@ -98,7 +99,7 @@ def move_pending(data_dir: pathlib.Path, rel: str, category: str, kind_name: str
     if moved == rel:
         return rel
     if target.exists():
-        raise ValueError(f"Unter {kind_name} liegt schon eine Datei namens {source.name}.")
+        raise ValueError(T("Unter {art} liegt schon eine Datei namens {name}.", art=kind_name, name=source.name))
     target.parent.mkdir(parents=True, exist_ok=True)
     source.rename(target)
     path = im_ordner(data_dir, PENDING)

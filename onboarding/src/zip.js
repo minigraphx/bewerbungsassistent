@@ -3,6 +3,10 @@
 // and CRCs and stops at the given limits. No encryption, no ZIP64, no multi-disk archives.
 "use strict";
 
+// On the page words.js comes first and T is its T; required alone (tests, tools), zip.js takes it from there and stays
+// German (#433). A var, because the pages inline every script into one, where a const would clash.
+var T = typeof module !== "undefined" && typeof require === "function" ? require("./words.js").T : T;
+
 const SIG_LOCAL = 0x04034b50;
 const SIG_CENTRAL = 0x02014b50;
 const SIG_END = 0x06054b50;
@@ -44,7 +48,7 @@ async function streamThrough(data, transform, limit) {
     length += value.length;
     if (limit !== undefined && length > limit) {
       await reader.cancel();
-      throw new ZipError("Die Datei ist beschädigt (ein Eintrag ist grösser als angegeben).");
+      throw new ZipError(T("Die Datei ist beschädigt (ein Eintrag ist grösser als angegeben)."));
     }
     chunks.push(value);
   }
@@ -121,15 +125,15 @@ function concat(parts) {
   return out;
 }
 
-/** Entries [{ name, data }] of a ZIP; throws ZipError (German message) if it is damaged or exceeds the limits. */
+/** Entries [{ name, data }] of a ZIP; throws ZipError (message in the app language) if it is damaged or too large. */
 async function readZip(bytes, { maxEntries, maxTotalBytes }) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const end = findEnd(bytes, view);
   const count = view.getUint16(end + 10, true);
   if (view.getUint16(end + 4, true) !== 0 || view.getUint16(end + 8, true) !== count) {
-    throw new ZipError("ZIP-Dateien über mehrere Teile gehen nicht.");
+    throw new ZipError(T("ZIP-Dateien über mehrere Teile gehen nicht."));
   }
-  if (count > maxEntries) throw new ZipError(`Die Datei enthält zu viele Einträge (höchstens ${maxEntries}).`);
+  if (count > maxEntries) throw new ZipError(T("Die Datei enthält zu viele Einträge (höchstens {anzahl}).", { anzahl: maxEntries }));
   const decoder = new TextDecoder("utf-8", { fatal: true });
   const entries = [];
   let total = 0;
@@ -139,7 +143,9 @@ async function readZip(bytes, { maxEntries, maxTotalBytes }) {
     position = entry.next;
     if (entry.name.endsWith("/")) continue;
     total += entry.size;
-    if (total > maxTotalBytes) throw new ZipError(`Der Inhalt ist zu gross (höchstens ${Math.floor(maxTotalBytes / 1000000)} MB).`);
+    if (total > maxTotalBytes) {
+      throw new ZipError(T("Der Inhalt ist zu gross (höchstens {mb} MB).", { mb: Math.floor(maxTotalBytes / 1000000) }));
+    }
     entries.push({ name: entry.name, data: await entryData(bytes, view, entry) });
   }
   return entries;
@@ -150,23 +156,23 @@ function findEnd(bytes, view) {
   for (let i = bytes.length - END_RECORD; i >= lowest; i--) {
     if (view.getUint32(i, true) === SIG_END) return i;
   }
-  throw new ZipError("Die Datei ist keine ZIP-Datei.");
+  throw new ZipError(T("Die Datei ist keine ZIP-Datei."));
 }
 
 function centralEntry(bytes, view, at, decoder) {
   if (at + CENTRAL_HEADER > bytes.length || view.getUint32(at, true) !== SIG_CENTRAL) {
-    throw new ZipError("Die Datei ist beschädigt (Inhaltsverzeichnis).");
+    throw new ZipError(T("Die Datei ist beschädigt (Inhaltsverzeichnis)."));
   }
   const flags = view.getUint16(at + 8, true);
-  if (flags & FLAG_ENCRYPTED) throw new ZipError("Verschlüsselte ZIP-Dateien gehen nicht.");
+  if (flags & FLAG_ENCRYPTED) throw new ZipError(T("Verschlüsselte ZIP-Dateien gehen nicht."));
   const nameLength = view.getUint16(at + 28, true);
   const next = at + CENTRAL_HEADER + nameLength + view.getUint16(at + 30, true) + view.getUint16(at + 32, true);
-  if (next > bytes.length) throw new ZipError("Die Datei ist beschädigt (Inhaltsverzeichnis).");
+  if (next > bytes.length) throw new ZipError(T("Die Datei ist beschädigt (Inhaltsverzeichnis)."));
   let name;
   try {
     name = decoder.decode(bytes.subarray(at + CENTRAL_HEADER, at + CENTRAL_HEADER + nameLength));
   } catch (error) {
-    throw new ZipError("Ein Dateiname in der ZIP-Datei ist ungültig.");
+    throw new ZipError(T("Ein Dateiname in der ZIP-Datei ist ungültig."));
   }
   return {
     name, next, method: view.getUint16(at + 10, true), crc: view.getUint32(at + 16, true),
@@ -177,10 +183,10 @@ function centralEntry(bytes, view, at, decoder) {
 async function entryData(bytes, view, entry) {
   const at = entry.offset;
   if (at + LOCAL_HEADER > bytes.length || view.getUint32(at, true) !== SIG_LOCAL) {
-    throw new ZipError("Die Datei ist beschädigt (Eintrag nicht gefunden).");
+    throw new ZipError(T("Die Datei ist beschädigt (Eintrag nicht gefunden)."));
   }
   const start = at + LOCAL_HEADER + view.getUint16(at + 26, true) + view.getUint16(at + 28, true);
-  if (start + entry.compressed > bytes.length) throw new ZipError("Die Datei ist beschädigt (Eintrag abgeschnitten).");
+  if (start + entry.compressed > bytes.length) throw new ZipError(T("Die Datei ist beschädigt (Eintrag abgeschnitten)."));
   const raw = bytes.subarray(start, start + entry.compressed);
   let data;
   if (entry.method === METHOD_STORED) data = raw.slice();
@@ -189,10 +195,12 @@ async function entryData(bytes, view, entry) {
       data = await streamThrough(raw, new DecompressionStream("deflate-raw"), entry.size);
     } catch (error) {
       if (error instanceof ZipError) throw error;
-      throw new ZipError(`Die Datei ist beschädigt (${entry.name}).`);
+      throw new ZipError(T("Die Datei ist beschädigt ({name}).", { name: entry.name }));
     }
-  } else throw new ZipError(`Diese Art der Komprimierung geht nicht (${entry.name}).`);
-  if (data.length !== entry.size || crc32(data) !== entry.crc) throw new ZipError(`Die Datei ist beschädigt (${entry.name}).`);
+  } else throw new ZipError(T("Diese Art der Komprimierung geht nicht ({name}).", { name: entry.name }));
+  if (data.length !== entry.size || crc32(data) !== entry.crc) {
+    throw new ZipError(T("Die Datei ist beschädigt ({name}).", { name: entry.name }));
+  }
   return data;
 }
 

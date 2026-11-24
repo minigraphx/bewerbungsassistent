@@ -13,7 +13,7 @@ const ROOT = path.join(__dirname, "..", "..");
 const PAGE = path.join(ROOT, "bewerbungen", "seiten", "angaben.html");
 const FONTS = path.join(ROOT, "lebenslauf", "fonts");
 const SCRIPTS = ["bewerbungen/seiten/dateien-logik.js", "bewerbungen/seiten/treffer-logik.js", "bewerbungen/seiten/texte.js",
-  ...["validate.js", "model.js", "dom.js", "documents.js", "uploads.js", "kindguess.js", "droparea.js", "prefill.js"]
+  ...["words.js", "validate.js", "model.js", "dom.js", "documents.js", "uploads.js", "kindguess.js", "droparea.js", "prefill.js"]
     .map((name) => `onboarding/src/${name}`)];
 // The line under „Vorbefüllen“ (G85, #271) at its longest: credit used up with the link, and a file left out.
 const ESTIMATES = {

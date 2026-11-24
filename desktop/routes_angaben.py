@@ -21,6 +21,7 @@ import threading
 
 import preferences
 from routes_setup import Setup, ready_data_dir, rejected_answer, replace_request
+from ui_message import T, joined
 
 log = logging.getLogger(__name__)
 
@@ -34,8 +35,8 @@ JSON_OVERHEAD_BYTES = 10_000
 DEFAULT_TRACK = "job"  # only for the wording of messages
 TRACKS = {preferences.JOB: "job", preferences.APPRENTICESHIP: "apprenticeship"}  # setup → form (form.json tracks)
 PREFILL_RUNNING = "Die Unterlagen werden schon gelesen. Bitte einen Moment warten."
-CV_KEPT = ("Der Lebenslauf (cv.yaml) bleibt, wie er war: Die Datei lässt sich nicht lesen, darum kommen die Angaben "
-           "nicht hinein. Ändern lässt er sich unter „Inhalte als Text“.")
+CV_KEPT = T("Der Lebenslauf (cv.yaml) bleibt, wie er war: Die Datei lässt sich nicht lesen, darum kommen die Angaben "
+            "nicht hinein. Ändern lässt er sich unter „Inhalte als Text“.")
 
 
 def _body(body) -> dict:
@@ -158,7 +159,7 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
         errors = documents.validate_documents(form, entries)
         if errors:
             track = _track(form, request.get("track"))
-            raise ValueError(" ".join(documents.describe(form, track, entries, e) for e in errors))
+            raise ValueError(joined([documents.describe(form, track, entries, e) for e in errors]))
         document = archive.Document(entry["category"], entry["name"], data)
         import_documents.store_documents(folder, (document,), state.today())
         return json_antwort({"unterlagen": import_documents.pending_documents(folder)})
@@ -186,9 +187,9 @@ def make_routes(state: Setup) -> tuple[dict, dict, dict]:
         track = _track(form, request.get("track"))
         errors = documents.validate_documents(form, entries)
         if errors:
-            raise ValueError(" ".join(documents.describe(form, track, entries, e) for e in errors))
+            raise ValueError(joined([documents.describe(form, track, entries, e) for e in errors]))
         recorded = proof_kinds.load(folder)  # an unreadable record stops the change before the file moves
-        kind_name = validation.for_track(documents.categories(form)[category]["kindPlural"], track)
+        kind_name = T(validation.for_track(documents.categories(form)[category]["kindPlural"], track))
         moved = import_documents.move_pending(folder, rel, category, kind_name)
         if moved != rel:
             _forget_recorded_kind(k, folder, recorded, rel)

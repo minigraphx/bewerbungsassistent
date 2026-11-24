@@ -5,17 +5,23 @@
 const BYTES_PER_MB = 1000000;
 const MAX_NAME_CHARS = 120;
 const FALLBACK_NAME = "unterlage";
+
+// On the page words.js comes first and T is its T; required alone (tests, tools), documents.js takes it from there and
+// stays German (#433). A var, because the pages inline every script into one, where a const would clash.
+var T = typeof module !== "undefined" && typeof require === "function" ? require("./words.js").T : T;
+
+// Said when they are shown, so they follow the app language (#433); the German words are those of documents.py.
 const DOCUMENT_MESSAGES = {
-  type: "Unerwarteter Eintrag.",
-  category: "Unbekannte Art von Unterlage.",
-  name: "Ungültiger Dateiname.",
-  extension: "Dieser Dateityp geht nicht. Erlaubt sind {allowed}.",
-  size: "Die Datei ist zu gross (höchstens {maxFileMB} MB).",
-  duplicate: "Diese Datei ist schon dabei.",
-  maxFiles: "Zu viele Dateien (höchstens {maxFiles}).",
-  leftOutOne: "{title}: höchstens {maxFiles} Dateien. Eine Datei wurde nicht hinzugefügt.",
-  leftOutMany: "{title}: höchstens {maxFiles} Dateien. {count} Dateien wurden nicht hinzugefügt.",
-  total: "Zusammen sind die Dateien zu gross (höchstens {maxTotalMB} MB).",
+  type: () => T("Unerwarteter Eintrag."),
+  category: () => T("Unbekannte Art von Unterlage."),
+  name: () => T("Ungültiger Dateiname."),
+  extension: (values) => T("Dieser Dateityp geht nicht. Erlaubt sind {allowed}.", values),
+  size: (values) => T("Die Datei ist zu gross (höchstens {maxFileMB} MB).", values),
+  duplicate: () => T("Diese Datei ist schon dabei."),
+  maxFiles: (values) => T("Zu viele Dateien (höchstens {maxFiles}).", values),
+  leftOutOne: (values) => T("{title}: höchstens {maxFiles} Dateien. Eine Datei wurde nicht hinzugefügt.", values),
+  leftOutMany: (values) => T("{title}: höchstens {maxFiles} Dateien. {count} Dateien wurden nicht hinzugefügt.", values),
+  total: (values) => T("Zusammen sind die Dateien zu gross (höchstens {maxTotalMB} MB).", values),
 };
 
 const titleForTrack = (value, track) => (value !== null && typeof value === "object" ? value[track] : value);
@@ -37,11 +43,24 @@ function allowedExtensions(form, category) {
   return category.fileTypes.flatMap((t) => types[t].extensions);
 }
 
-/** German list of the accepted file types, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“. */
+const KEEPS_CAPITAL = /^(?:PDF|Word)\b/;
+
+/**
+ * A label of a file type inside a sentence: French and English start it small („fichiers texte (.txt)“), PDF and
+ * Word keep their capital, and German keeps its nouns (#433, UI/UX ruling). The same rule as documents.py.
+ */
+function fileTypeInSentence(german) {
+  const label = T(german);
+  return label === german || KEEPS_CAPITAL.test(label) ? label : label.charAt(0).toLowerCase() + label.slice(1);
+}
+
+/** List of the accepted file types in the app language, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“. */
 function allowedText(form, category) {
   const types = form.documents.fileTypes;
-  const labels = category.fileTypes.flatMap((t) => types[t].labels);
-  return labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(", ")} und ${labels[labels.length - 1]}`;
+  const labels = category.fileTypes.flatMap((t) => types[t].labels).map(fileTypeInSentence);
+  if (labels.length === 1) return labels[0];
+  const head = labels.slice(1, -1).reduce((joined, label) => T("{a}, {b}", { a: joined, b: label }), labels[0]);
+  return T("{namen} und {letzter}", { namen: head, letzter: labels[labels.length - 1] });
 }
 
 function validateDocuments(form, entries) {
@@ -81,7 +100,7 @@ function documentEntryError(form, known, entry, seen) {
   return null;
 }
 
-/** German message: category and file name, then what is wrong. */
+/** Message in the app language: category and file name, then what is wrong. */
 function describeDocument(form, track, entries, error) {
   const rules = form.documents;
   const known = documentCategories(form);
@@ -96,18 +115,19 @@ function describeDocument(form, track, entries, error) {
   if (parts.length === 2 && known.has(parts[1])) {
     const category = known.get(parts[1]);
     params.maxFiles = category.maxFiles;
-    where = titleForTrack(category.title, track);
+    where = T(titleForTrack(category.title, track));
   } else if (parts.length === 2 && /^[0-9]+$/.test(parts[1]) && Number(parts[1]) < entries.length) {
     const entry = entries[Number(parts[1])];
     if (isDocumentObject(entry)) {
       const category = typeof entry.category === "string" ? known.get(entry.category) : undefined;
       if (category) params.allowed = allowedText(form, category);
-      where = [category ? titleForTrack(category.title, track) : "", entry.name]
+      where = [category ? T(titleForTrack(category.title, track)) : "", entry.name]
         .filter((n) => typeof n === "string" && n).join(", ");
     }
   }
-  const text = (DOCUMENT_MESSAGES[error.code] || error.code).replace(/\{(\w+)\}/g, (_, k) => params[k]);
-  return where ? `${where}: ${text}` : text;
+  const message = DOCUMENT_MESSAGES[error.code];
+  const text = message ? message(params) : error.code;
+  return where ? T("{wo}: {meldung}", { wo: where, meldung: text }) : text;
 }
 
 /** A file name from the person's computer, made safe: no folders, no special characters, at most 120 characters. */
@@ -158,9 +178,8 @@ function planUploads(form, track, current, category, chosen) {
 
 function leftOutMessage(form, track, category, count) {
   const rules = documentCategories(form).get(category);
-  const params = { title: titleForTrack(rules.title, track), maxFiles: rules.maxFiles, count };
-  const text = count === 1 ? DOCUMENT_MESSAGES.leftOutOne : DOCUMENT_MESSAGES.leftOutMany;
-  return text.replace(/\{(\w+)\}/g, (_, k) => params[k]);
+  const params = { title: T(titleForTrack(rules.title, track)), maxFiles: rules.maxFiles, count };
+  return count === 1 ? DOCUMENT_MESSAGES.leftOutOne(params) : DOCUMENT_MESSAGES.leftOutMany(params);
 }
 
 function isAbout(error, last, category) {
@@ -178,10 +197,12 @@ function uploadZipEntries(bundleBytes, uploads) {
 /** Split the entries of a loaded ZIP into the answers (bytes) and uploads; throws UploadError. */
 function splitUploadZip(form, entries) {
   const bundles = entries.filter((e) => e.name === UPLOAD_BUNDLE);
-  if (bundles.length !== 1) throw new UploadError(`Die Datei muss genau eine ${UPLOAD_BUNDLE} enthalten.`);
+  if (bundles.length !== 1) throw new UploadError(T("Die Datei muss genau eine {datei} enthalten.", { datei: UPLOAD_BUNDLE }));
   const uploads = entries.filter((e) => e.name !== UPLOAD_BUNDLE).map((e) => {
     const parts = e.name.split("/");
-    if (parts.length !== 3 || parts[0] !== UPLOAD_DIR) throw new UploadError(`Unerwarteter Inhalt in der Datei: ${e.name}`);
+    if (parts.length !== 3 || parts[0] !== UPLOAD_DIR) {
+      throw new UploadError(T("Unerwarteter Inhalt in der Datei: {name}", { name: e.name }));
+    }
     return { category: parts[1], name: parts[2], size: e.data.length, data: e.data };
   });
   const [error] = validateDocuments(form, uploads.map(({ category, name, size }) => ({ category, name, size })));
