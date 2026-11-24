@@ -34,6 +34,14 @@ export function stepText(step) {
   return text ? text(step) : '';
 }
 
+// G124: after a fallback the portal counts as not searched, so the next run reads back further. The app's page says so
+// with its own catch-up line (#208); the popup has none, so it says it here.
+const CATCH_UP = 'Die nächste Suche holt die übrigen Inserate nach.';
+
+function problemText(portal) {
+  return portal.rueckfall ? `${portal.problem} ${CATCH_UP}` : portal.problem;
+}
+
 /**
  * @param {{zustand: string, schritt?: object, ergebnis?: object, fehler?: string}} run
  * @returns {{step: string, portals: Array<{text: string, problem: boolean}>, hints: string[]}}
@@ -51,7 +59,7 @@ export function describeRun(run) {
   return {
     step: result.abgebrochen ? `Abgebrochen: ${fresh} neue Treffer bis dahin.` : `Fertig: ${fresh} neue Treffer.`,
     portals: entries.map(([name, p]) => ({
-      text: `${name}: ${p.treffer} gefunden, ${p.neu} neu${p.problem ? ` – ${p.problem}` : ''}`,
+      text: `${name}: ${p.treffer} gefunden, ${p.neu} neu${p.problem ? ` – ${problemText(p)}` : ''}`,
       problem: Boolean(p.problem),
     })),
     hints: result.hinweise || [],

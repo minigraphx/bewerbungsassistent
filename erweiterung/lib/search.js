@@ -24,10 +24,12 @@ function changedText(portal, message) {
   return `Die Seite von ${portal} hat sich verändert (${message}). Die Suche dort braucht ein Update der Erweiterung.`;
 }
 
-/** G124: the portal's own search failed and a page came from its plainer one, which finds fewer ads. */
-function fallbackText(portal, reason) {
-  return `${portal}: Die Suche wie auf der Webseite ging nicht (${reason}). `
-    + 'Gesucht wurde mit der einfacheren Suche, die weniger Inserate findet.';
+/**
+ * G124: the portal's own search failed and a page came from its plainer one, which finds fewer ads. The reason stays
+ * out of the line; support finds it in the log of the extension's service worker.
+ */
+function fallbackText(portal) {
+  return `${portal}: Die gründliche Suche ging diesmal nicht. Gefunden wurden nur Inserate, die den Suchbegriff genau so enthalten.`;
 }
 
 /** For portals that fill their list in the page: the tab goes to the list of this query, adapters loaded anew. */
@@ -88,11 +90,14 @@ async function searchOne(portal, plan, query, tab, found, position, deps, log) {
     }
     for (const hit of result.value.hits) found.set(hitKey(hit), withQuery(found.get(hitKey(hit)), hit, asked));
     listed += result.value.hits.length;
-    fallback = fallback || result.value.fallback || '';
+    if (result.value.fallback && !fallback) {
+      fallback = result.value.fallback;
+      console.warn(`${portal}: semantic search failed, page ${page} came from the classic API: ${fallback}`);
+    }
     if (!result.value.more || pastLastRun(portal, query, result.value)) break;
   }
   log.push({ ...asked, treffer: listed });
-  return fallback ? fallbackText(portal, fallback) : '';
+  return fallback ? fallbackText(portal) : '';
 }
 
 /**
@@ -122,7 +127,7 @@ async function listAll(portal, plan, tab, deps, log) {
     }
   }
   // The same problem on every query, like a fallback for the whole run, is said once.
-  return { found, problem: [...new Set(problems.filter(Boolean))].join(' ') };
+  return { found, problem: [...new Set(problems.filter(Boolean))].join(' '), fellBack: problems.includes(fallbackText(portal)) };
 }
 
 /**
@@ -169,7 +174,7 @@ export async function searchPortal(portal, plan, deps) {
   try {
     tab = await deps.browser.openTab(adapter.start, Boolean(plan.zuschauen));
     await loadPortal(portal, plan, tab, deps);
-    const { found, problem } = await listAll(portal, plan, tab, deps, log);
+    const { found, problem, fellBack } = await listAll(portal, plan, tab, deps, log);
     const wanted = await screen(found, deps.app);
     const limit = plan.max_texte || wanted.length;
     const later = Math.max(0, wanted.length - limit);
@@ -180,7 +185,9 @@ export async function searchPortal(portal, plan, deps) {
       missing ? `${missing} Inserate ohne lesbaren Text.` : '',
       failed ? `${failed} Inserate nicht geladen, sie kommen bei der nächsten Suche wieder.` : '',
     ];
-    return { ...summary, treffer: found.size, neu: added, problem: notes.filter(Boolean).join(' ') };
+    // `rueckfall` lets the popup say that the next run catches up; the app keeps only counts and problem.
+    const fallback = fellBack ? { rueckfall: true } : {};
+    return { ...summary, ...fallback, treffer: found.size, neu: added, problem: notes.filter(Boolean).join(' ') };
   } catch (error) {
     // Closing the tab is a way to cancel too: then the error is only about the tab being gone.
     if (error.cancelled || deps.cancelled?.()) return { ...summary, problem: `${portal}: ${CANCELLED}` };

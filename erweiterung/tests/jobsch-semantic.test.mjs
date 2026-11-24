@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { afterEach, test } from 'node:test';
 
+import { describeRun } from '../lib/progress.js';
 import { searchPortal } from '../lib/search.js';
 
 const require = createRequire(import.meta.url);
@@ -14,9 +15,11 @@ const SEMANTIC = JSON.parse(readFileSync(new URL('./fixtures/jobsch-semantic.jso
 const TODAY = new Date('2026-11-03T12:00:00Z');
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SEMANTIC_HOST = 'job-search-api.jobs.ch';
-const FALLBACK_503 = 'jobs.ch: Die Suche wie auf der Webseite ging nicht (Antwort 503). '
-  + 'Gesucht wurde mit der einfacheren Suche, die weniger Inserate findet.';
+const FALLBACK = 'jobs.ch: Die gründliche Suche ging diesmal nicht. '
+  + 'Gefunden wurden nur Inserate, die den Suchbegriff genau so enthalten.';
+const CATCH_UP = 'Die nächste Suche holt die übrigen Inserate nach.';
 const realFetch = globalThis.fetch;
+const realWarn = console.warn;
 
 const CLASSIC = {
   documents: [{ job_id: 'classic-1', title: 'Lagerist/in', company_name: 'Erfunden AG', place: 'Musterstadt', age: 2 }],
@@ -25,6 +28,7 @@ const CLASSIC = {
 
 afterEach(() => {
   globalThis.fetch = realFetch;
+  console.warn = realWarn;
 });
 
 function json(body, status = 200) {
@@ -148,17 +152,35 @@ async function run(plan) {
 
 test('a run whose semantic search fails names the fallback once and keeps the classic hits', async () => {
   globalThis.fetch = fakeJobsch(() => json({}, 503));
+  const warnings = [];
+  console.warn = (...args) => warnings.push(args.join(' '));
   const { summary } = await run(PLAN);
-  assert.equal(summary.problem, FALLBACK_503);
+  assert.equal(summary.problem, FALLBACK);
+  assert.equal(summary.rueckfall, true);
   assert.equal(summary.treffer, 1);
   assert.deepEqual(summary.abfragen.map((query) => query.treffer), [1, 1]);
+  // The reason is for support only: in the extension's log, never in the line the person reads.
+  assert.ok(warnings.length > 0 && warnings.every((line) => line.includes('Antwort 503')), warnings.join('\n'));
 });
 
 test('a run on the semantic search has no problem', async () => {
   globalThis.fetch = fakeJobsch(() => json(SEMANTIC));
   const { summary } = await run({ ...PLAN, stichworte: ['Logistik'], max_seiten: 1 });
   assert.equal(summary.problem, '');
+  assert.equal(summary.rueckfall, undefined);
   assert.equal(summary.treffer, SEMANTIC.documents.length);
+});
+
+test('the popup adds that the next search catches up, only to a fallback line', () => {
+  const portale = {
+    'jobs.ch': { treffer: 4, neu: 2, problem: FALLBACK, rueckfall: true },
+    jobscout24: { treffer: 0, neu: 0, problem: 'jobscout24: Antwort 500' },
+  };
+  const { portals } = describeRun({ zustand: 'fertig', ergebnis: { portale } });
+  assert.deepEqual(portals, [
+    { text: `jobs.ch: 4 gefunden, 2 neu – ${FALLBACK} ${CATCH_UP}`, problem: true },
+    { text: 'jobscout24: 0 gefunden, 0 neu – jobscout24: Antwort 500', problem: true },
+  ]);
 });
 
 test('the semantic search sorted by date stops paging past the last run (G123)', async () => {
