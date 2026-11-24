@@ -11,6 +11,7 @@ export const STAGE_SIZE = 30;
 export const STAGE_PAUSE_S = 60;
 const PAUSE_SLICE_S = 5; // G43: the progress line changes at least this often
 export const SEND_SIZE = 10;
+export const AGE_MARGIN_DAYS = 2; // G123: a date-sorted query reads this many days past the last run
 const COMMON = 'portals/common.js';
 
 /** The scripts of the portal, and with „Zuschauen“ the message that the browser is being steered (again after each page). */
@@ -30,6 +31,17 @@ async function openResults(portal, plan, query, tab, deps) {
   await deps.browser.navigate(tab, target.value);
   await loadPortal(portal, plan, tab, deps);
   return target;
+}
+
+/**
+ * Whether a date-sorted list has gone past the last run (G123): its oldest regular ad is older than the query's
+ * days plus a margin, so the pages after it hold only older ads. A page without an age, or a query without days,
+ * never stops. The margin covers ads dated a day late and a run that ended just before midnight.
+ */
+function pastLastRun(portal, query, page) {
+  if (!ADAPTERS[portal].dateSorted) return false;
+  if (!Number.isFinite(query.maxAge) || !Number.isFinite(page.oldest)) return false;
+  return page.oldest > query.maxAge + AGE_MARGIN_DAYS;
 }
 
 /** The hit with the query that found it (G103); a hit found by several queries keeps them all, each once. */
@@ -69,7 +81,7 @@ async function searchOne(portal, plan, query, tab, found, position, deps, log) {
     }
     for (const hit of result.value.hits) found.set(hitKey(hit), withQuery(found.get(hitKey(hit)), hit, asked));
     listed += result.value.hits.length;
-    if (!result.value.more) break;
+    if (!result.value.more || pastLastRun(portal, query, result.value)) break;
   }
   log.push({ ...asked, treffer: listed });
   return '';

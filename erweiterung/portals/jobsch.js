@@ -28,7 +28,10 @@
     if (!data || !Array.isArray(data.documents)) throw new common.PortalChanged('Die Suche liefert keine Liste mehr.');
     const hits = data.documents.map((doc) => toHit(doc)).filter(Boolean);
     if (data.documents.length && !hits.length) throw new common.PortalChanged('Die Treffer haben eine unbekannte Form.');
-    return { hits, more: page < (Number(data.num_pages) || 0) };
+    // G123: jobs.ch has no ads pinned above the date order, so every hit counts towards the oldest age of the page.
+    const ages = hits.map((hit) => hit.alter_tage).filter(Number.isInteger);
+    const oldest = ages.length ? Math.max(...ages) : null;
+    return { hits, more: page < (Number(data.num_pages) || 0), oldest };
   }
 
   async function list(query, page) {
