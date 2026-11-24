@@ -1,8 +1,11 @@
 "use strict";
 // Entwürfe und Versionen grouped by document (#120): which groups and documents the page shows, and how a
 // document's versions split into the newest one and the older ones to fold away. "Nur verwendete" (#240) keeps the
-// documents that went out with an application. No DOM (tests/entwuerfe_logik.test.cjs).
+// documents that went out with an application. No DOM (tests/entwuerfe_logik.test.cjs). Labels come in the app
+// language through Texte (#430); titles of groups, firms and purposes come from the server as they are.
 (function (global) {
+  const texts = () => (typeof module !== "undefined" ? require("./texte.js") : global.Texte);
+  const Texte = { t: (deutsch, werte) => texts().t(deutsch, werte), text: (key, satz) => texts().text(key, satz) };
   const ALLE = "alle";
 
   /** The documents of a group that count: all, or with `nurVerwendet` only those sent with an application. */
@@ -17,9 +20,10 @@
       .filter(g => g.dokumente.length > 0);
   }
 
-  /** The filter buttons: all, then each group with its number of documents. */
+  /** The filter buttons: all, then each group with its number of documents. „Alle“ is a set of its own: French
+   * counts the drafts (masculine), while the plain „Alle“ of the applications is feminine. */
   const filter = (gruppen, { nurVerwendet = false } = {}) => [
-    { art: ALLE, titel: "Alle", zahl: gruppen.reduce((n, g) => n + zaehlende(g, nurVerwendet).length, 0) },
+    { art: ALLE, titel: Texte.text("entwuerfe.alle"), zahl: gruppen.reduce((n, g) => n + zaehlende(g, nurVerwendet).length, 0) },
     ...gruppen.map(g => ({ art: g.art, titel: g.titel, zahl: zaehlende(g, nurVerwendet).length })),
   ];
 
@@ -33,7 +37,7 @@
     const gesendet = f => (f.versendet || []).length > 0;
     const gefaltet = dokument.fassungen.filter(f => !gesendet(f));
     return { oben: dokument.fassungen.filter(gesendet), gefaltet,
-      faltTitel: gefaltet.length ? `Nicht versendete Fassungen (${gefaltet.length})` : null };
+      faltTitel: gefaltet.length ? Texte.t("Nicht versendete Fassungen ({anzahl})", { anzahl: gefaltet.length }) : null };
   }
 
   const tag = iso => iso.split("-").reverse().join(".");
@@ -42,8 +46,10 @@
   function versandText(fassung) {
     const gesendet = fassung.versendet || [];
     if (!gesendet.length) return null;
-    const teile = gesendet.map(v => (v.firma && v.datum ? `an ${v.firma} am ${tag(v.datum)}` : `(${v.zweck})`));
-    return "versendet " + teile.join(" und ");
+    const teile = gesendet.map(v => (v.firma && v.datum ? Texte.t("an {firma} am {datum}", { firma: v.firma, datum: tag(v.datum) })
+      : `(${v.zweck})`));
+    const verbunden = teile.reduce((a, b) => Texte.t("{a} und {b}", { a, b }));
+    return Texte.t("versendet {teile}", { teile: verbunden });
   }
 
   /** The choice "Nur verwendete" as the page stores it, so it stays across reloads. */
@@ -57,7 +63,7 @@
   }
 
   /** Label of the folded part, or null when there is nothing older. */
-  const aeltereTitel = aeltere => (aeltere.length ? `Ältere Fassungen (${aeltere.length})` : null);
+  const aeltereTitel = aeltere => (aeltere.length ? Texte.t("Ältere Fassungen ({anzahl})", { anzahl: aeltere.length }) : null);
 
   const logik = { ALLE, sichtbar, filter, fassungen, aeltereTitel, ansicht, versandText, gespeichert, speicherwert };
   if (typeof module !== "undefined") module.exports = logik;

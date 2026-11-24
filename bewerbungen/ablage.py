@@ -13,6 +13,7 @@ import pathlib
 import threading
 
 from dateien import im_ordner, lies_yaml, relativ, schreibe_atomar, schreibe_yaml, sichere_gitignore
+from ui_message import T
 
 ORDNER = ".entwuerfe"
 
@@ -71,7 +72,7 @@ class Ablage:
         for e in self._eintraege():
             if e.id == entwurf_id:
                 return e
-        raise KeyError(f"Entwurf {entwurf_id!r} nicht gefunden")
+        raise KeyError(T("Entwurf {id} nicht gefunden", id=repr(entwurf_id)))
 
     def inhalt(self, entwurf_id: str) -> bytes:
         return (self._objekte / self.hole(entwurf_id).hash).read_bytes()
@@ -117,7 +118,8 @@ class Ablage:
         with self._sperre:
             entwurf = self.hole(entwurf_id)
             if entwurf.genutzt:
-                raise ValueError(f"Entwurf ist genutzt ({', '.join(entwurf.genutzt_fuer)}) und kann nicht gelöscht werden")
+                raise ValueError(T("Entwurf ist genutzt ({zwecke}) und kann nicht gelöscht werden",
+                                   zwecke=", ".join(entwurf.genutzt_fuer)))
             rest = [e for e in self._eintraege() if e.id != entwurf_id]
             self._schreibe(rest)
             if not any(e.hash == entwurf.hash for e in rest):
@@ -141,7 +143,7 @@ class Ablage:
 
     def vergleiche(self, id_a: str, id_b: str) -> str:
         a, b = self.hole(id_a), self.hole(id_b)
-        binaer = "Inhalt ist binär (z.B. PDF) und lässt sich nicht als Text vergleichen."
+        binaer = T("Inhalt ist binär (z.B. PDF) und lässt sich nicht als Text vergleichen.")
         roh_a, roh_b = self.inhalt(id_a), self.inhalt(id_b)
         if b"\x00" in roh_a or b"\x00" in roh_b:
             return binaer

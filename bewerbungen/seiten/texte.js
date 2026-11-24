@@ -31,6 +31,8 @@
       sie: "Jedes Speichern legt eine Fassung an. Sie können jede ansehen, mit einer anderen vergleichen und zurückholen.",
       du: "Jedes Speichern legt eine Fassung an. Du kannst jede ansehen, mit einer anderen vergleichen und zurückholen.",
     },
+    // The filter for all drafts (#430): its own key, since French words „Alle“ by what it counts
+    "entwuerfe.alle": { sie: "Alle", du: "Alle" },
     "inhalte.intro": {
       sie: "Hier sehen Sie, woraus die App Ihre Unterlagen baut, und können es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",
       du: "Hier siehst du, woraus die App deine Unterlagen baut, und kannst es direkt bearbeiten. Für das Übliche reichen Meine Angaben.",

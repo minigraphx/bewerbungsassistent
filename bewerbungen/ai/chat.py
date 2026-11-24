@@ -11,6 +11,7 @@ from ai import prompts, tasks
 from ai.errors import BAD_ANSWER, AnswerError
 from ai.gateway import Gateway, Request
 from ai.usage import UsageLog
+from ui_message import T
 
 TASK = "chat"
 MAX_QUESTION = 1000
@@ -19,7 +20,7 @@ MAX_TURNS = 12  # older turns stay on the page but do not go along
 MAX_PER_DAY = 30
 ROLES = ("person", "ki")
 NO_QUESTION = "Bitte eine Frage schreiben."
-TOO_LONG = f"Bitte höchstens {MAX_QUESTION} Zeichen."
+TOO_LONG = T("Bitte höchstens {anzahl} Zeichen.", anzahl=MAX_QUESTION)
 BAD_FORM = "Die Anfrage hat eine unbekannte Form."
 
 

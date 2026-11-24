@@ -1,4 +1,6 @@
 "use strict";
+// Page „Inhalte als Text“. Its texts come in the app language (#430); the files, their titles from the server and
+// their content stay as they are.
 (() => {
   const { holen, senden, el, status, pdfAdresse, letzteEntwuerfe } = window.App;
   const $ = id => document.getElementById(id);
@@ -15,7 +17,7 @@
   function geaendert() {
     $("speichern").disabled = !ungespeichert();
     $("verwerfen").disabled = !ungespeichert();
-    if (ungespeichert()) meldung("Nicht gespeichert", "hinweis");
+    if (ungespeichert()) meldung(window.Texte.t("Nicht gespeichert"), "hinweis");
   }
 
   function merken() {
@@ -25,17 +27,17 @@
   }
 
   async function zeigePdf() {
-    meldung("PDF wird erstellt …");
+    meldung(window.Texte.t("PDF wird erstellt …"));
     try {
       const gewaehlt = datei();
       const adresse = await pdfAdresse("/api/inhalt/pdf", { datei: gewaehlt }, "ansicht");
       if (gewaehlt !== datei()) return;  // inzwischen andere Datei gewählt
       $("pdf").src = adresse;
-      meldung(ungespeichert() ? "Die Ansicht zeigt den gespeicherten Stand; Änderungen im Text sind noch nicht gespeichert." : "",
+      meldung(ungespeichert() ? window.Texte.t("Die Ansicht zeigt den gespeicherten Stand; Änderungen im Text sind noch nicht gespeichert.") : "",
         ungespeichert() ? "hinweis" : "");
     } catch (fehler) {
       $("pdf").removeAttribute("src");
-      meldung("PDF nicht möglich: " + fehler.message + " – mit „Als Text“ prüfen und korrigieren.", "fehler");
+      meldung(window.Texte.t("PDF nicht möglich: {fehler} – mit „Als Text“ prüfen und korrigieren.", { fehler: fehler.message }), "fehler");
     }
   }
 
@@ -46,7 +48,7 @@
     $("ansicht-text").hidden = !text;
     $("hinweis").hidden = hatPdf();
     $("umschalten").hidden = !hatPdf();
-    $("umschalten").textContent = alsText ? "Als PDF" : "Als Text";
+    $("umschalten").textContent = alsText ? window.Texte.t("Als PDF") : window.Texte.t("Als Text");
     $("umschalten").setAttribute("aria-pressed", String(alsText));
     merken();
     if (!text) return zeigePdf();
@@ -55,7 +57,7 @@
 
   function zeigeVorschau(adresse) {
     $("vorschau").replaceChildren(...(adresse
-      ? [el("figure", {}, el("figcaption", {}, "Vorschau"), el("iframe", { src: adresse, title: "Vorschau" }))]
+      ? [el("figure", {}, el("figcaption", {}, window.Texte.t("Vorschau")), el("iframe", { src: adresse, title: window.Texte.t("Vorschau") }))]
       : []));
   }
 
@@ -70,7 +72,7 @@
       letzteEntwuerfe($("verlauf"), aktuelle);
       await ansicht();
     } catch (fehler) {
-      meldung("Laden fehlgeschlagen: " + fehler.message, "fehler");
+      meldung(window.Texte.t("Laden fehlgeschlagen: {fehler}", { fehler: fehler.message }), "fehler");
     }
   }
 
@@ -87,25 +89,25 @@
       $("datei").replaceChildren(...dateien.map(d => el("option", { value: d.datei, selected: d.datei === erste }, d.titel)));
       if (erste) await laden();
     } catch (fehler) {
-      meldung("Laden fehlgeschlagen: " + fehler.message, "fehler");
+      meldung(window.Texte.t("Laden fehlgeschlagen: {fehler}", { fehler: fehler.message }), "fehler");
     }
   }
 
   $("datei").addEventListener("change", () => {
     if (!ungespeichert()) return laden();
     $("datei").value = aktuelle;
-    meldung("Erst speichern oder „Änderungen verwerfen“, dann die Datei wechseln.", "hinweis");
+    meldung(window.Texte.t("Erst speichern oder „Änderungen verwerfen“, dann die Datei wechseln."), "hinweis");
   });
   $("umschalten").addEventListener("click", () => { alsText = !alsText; ansicht(); });
   $("text").addEventListener("input", geaendert);
   $("pruefen").addEventListener("click", async () => {
-    meldung("Wird geprüft …");
+    meldung(window.Texte.t("Wird geprüft …"));
     try {
       const r = await senden("/api/inhalt/pruefen", { text: $("text").value }, { datei: datei() });
       zeigeVorschau(r.vorschau ? await vorschauText() : null);
-      meldung("Gültig" + (r.vorschau ? " – Vorschau rechts" : ""), "ok");
+      meldung(r.vorschau ? window.Texte.t("Gültig – Vorschau rechts") : window.Texte.t("Gültig"), "ok");
     } catch (fehler) {
-      meldung("Ungültig: " + fehler.message, "fehler");
+      meldung(window.Texte.t("Ungültig: {fehler}", { fehler: fehler.message }), "fehler");
     }
   });
   $("speichern").addEventListener("click", async () => {
@@ -115,9 +117,9 @@
       geaendert();
       letzteEntwuerfe($("verlauf"), datei());
       zeigeVorschau(r.vorschau ? await vorschauText() : null);
-      meldung("Gespeichert. Der Stand davor liegt unter Entwürfe.", "ok");
+      meldung(window.Texte.t("Gespeichert. Der Stand davor liegt unter Entwürfe."), "ok");
     } catch (fehler) {
-      meldung("Nicht gespeichert: " + fehler.message, "fehler");
+      meldung(window.Texte.t("Nicht gespeichert: {grund}", { grund: fehler.message }), "fehler");
     }
   });
   $("verwerfen").addEventListener("click", laden);
