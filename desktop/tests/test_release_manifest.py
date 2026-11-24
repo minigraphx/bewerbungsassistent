@@ -1,21 +1,41 @@
 """The announcement built while publishing is exactly what the app accepts (MIN-403)."""
+import base64
 import hashlib
+import io
 import json
+import zipfile
 
 import pytest
 
 import release_manifest
 import signed_update
+import store_package
 import updates
 from signed_update import BASE, KEY
 
 EXE, ZIP, IMAGE = b"MZ" + b"x" * 500, b"PK" + b"z" * 500, b"\x7fELF" + b"a" * 500
 EXE_NAME, ZIP_NAME = "Bewerbungsbegleiter-Setup-9.2.0.exe", "Bewerbungsbegleiter-9.2.0-macOS.zip"
 IMAGE_NAME = "Bewerbungsbegleiter-9.2.0-x86_64.AppImage"
+EXTENSION_NAME, EXTENSION_SUMS = "Bewerbungsbegleiter-Erweiterung-9.2.0.zip", "SHA256SUMS-Erweiterung.txt"
+# The public key of the developer add-on: it decides the ID an unpacked copy gets.
+REAL_KEY = json.loads((store_package.EXTENSION / "manifest.json").read_text(encoding="utf-8"))["key"]
 
 
 def sum_line(data, name, star=""):
     return f"{hashlib.sha256(data).hexdigest()}  {star}{name}\n"
+
+
+def invented_extension(**manifest):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("manifest.json", json.dumps({"manifest_version": 3, "name": "Erfunden", **manifest}))
+        archive.writestr("background.js", "// erfunden")
+    return buffer.getvalue()
+
+
+def put_extension(folder, data):
+    (folder / EXTENSION_NAME).write_bytes(data)
+    (folder / EXTENSION_SUMS).write_text(sum_line(data, EXTENSION_NAME))
 
 
 @pytest.fixture
@@ -26,6 +46,7 @@ def folder(tmp_path):
     (tmp_path / "SHA256SUMS-macOS.txt").write_text(sum_line(ZIP, ZIP_NAME))
     (tmp_path / IMAGE_NAME).write_bytes(IMAGE)
     (tmp_path / "SHA256SUMS-Linux.txt").write_text(sum_line(IMAGE, IMAGE_NAME))
+    put_extension(tmp_path, invented_extension(version="9.2.0", key=REAL_KEY))
     return tmp_path
 
 
@@ -51,7 +72,48 @@ def test_binary_mode_marks_in_the_list_are_understood(folder):
     assert release_manifest.build_payload("v9.2.0", folder, "")
 
 
-@pytest.mark.parametrize("missing", [EXE_NAME, ZIP_NAME, IMAGE_NAME, "SHA256SUMS.txt", "SHA256SUMS-macOS.txt", "SHA256SUMS-Linux.txt"])
+def test_the_announcement_names_the_extension_download_with_its_sum(folder):
+    payload = json.loads(release_manifest.build_payload("v9.2.0", folder, ""))
+
+    data = (folder / EXTENSION_NAME).read_bytes()
+    assert payload["extension"] == {"file": EXTENSION_NAME, "sha256": hashlib.sha256(data).hexdigest()}
+    assert "extension" not in payload["packages"]  # the app never takes it for an update
+
+
+def test_the_app_still_reads_an_announcement_with_the_extension(folder):
+    payload = release_manifest.build_payload("v9.2.0", folder, "")
+
+    assert updates.latest(announced_by(payload), "win32").version == "9.2.0"
+
+
+@pytest.mark.parametrize("manifest, message", [
+    ({"version": "9.2.0"}, "key"),
+    ({"version": "9.1.0", "key": REAL_KEY}, "9.1.0"),
+    ({"version": "9.2.0", "key": base64.b64encode(b"erfunden").decode()}, "ID"),
+], ids=["without key", "other version", "other key"])
+def test_an_extension_download_that_would_not_work_is_not_announced(folder, manifest, message):
+    put_extension(folder, invented_extension(**manifest))
+
+    with pytest.raises(release_manifest.ReleaseError, match=message):
+        release_manifest.build_payload("v9.2.0", folder, "")
+
+
+def test_an_extension_download_that_differs_from_its_list_is_not_announced(folder):
+    (folder / EXTENSION_NAME).write_bytes(invented_extension(version="9.2.0", key=REAL_KEY, name="Anders"))
+
+    with pytest.raises(release_manifest.ReleaseError, match="Prüfsumme"):
+        release_manifest.build_payload("v9.2.0", folder, "")
+
+
+def test_the_command_line_lists_every_file_that_goes_on_the_server(capsys):
+    assert release_manifest.main(["files", "v9.2.0"]) == 0
+
+    assert capsys.readouterr().out.split() == [EXE_NAME, ZIP_NAME, IMAGE_NAME, EXTENSION_NAME]
+    assert release_manifest.main(["files", "main"]) == 1
+
+
+@pytest.mark.parametrize("missing", [EXE_NAME, ZIP_NAME, IMAGE_NAME, EXTENSION_NAME, "SHA256SUMS.txt", "SHA256SUMS-macOS.txt",
+                                     "SHA256SUMS-Linux.txt", EXTENSION_SUMS])
 def test_a_release_with_a_missing_file_is_not_announced(folder, missing):
     (folder / missing).unlink()
 

@@ -44,17 +44,22 @@ def _add(archive: zipfile.ZipFile, name: str, content: bytes) -> None:
     archive.writestr(info, content)
 
 
-def build(target_dir: pathlib.Path, source: pathlib.Path = EXTENSION) -> pathlib.Path:
-    """Writes the ZIP file and gives its path; the manifest lies at the top, as the stores ask."""
-    manifest = _store_manifest(source)
+def write_package(target: pathlib.Path, manifest: bytes, source: pathlib.Path) -> pathlib.Path:
+    """Writes the manifest at the top and the extension's files into one ZIP; also used for the download (#403)."""
     files = _packed_files(source)
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / f"bewerbungsbegleiter-erweiterung-{manifest['version']}.zip"
+    target.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(target, "w") as archive:
-        _add(archive, "manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
+        _add(archive, "manifest.json", manifest)
         for path in files:
             _add(archive, path.relative_to(source).as_posix(), path.read_bytes())
     return target
+
+
+def build(target_dir: pathlib.Path, source: pathlib.Path = EXTENSION) -> pathlib.Path:
+    """Writes the ZIP file and gives its path; the manifest lies at the top, as the stores ask."""
+    manifest = _store_manifest(source)
+    target = target_dir / f"bewerbungsbegleiter-erweiterung-{manifest['version']}.zip"
+    return write_package(target, json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"), source)
 
 
 def main(argv: list[str]) -> int:

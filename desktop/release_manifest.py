@@ -4,6 +4,9 @@ Step `payload` lists version, notes and the SHA-256 sums of the packages; openss
 step `envelope` joins payload and signature into the announcement, which `updates.py` reads.
 Step `channels` names where it goes (#212, G47): a pre-release only into beta.json, a release into latest.json and,
 unless a newer pre-release is announced there, into beta.json too.
+Step `files` names every file of the release that goes on the server.
+The payload also names the extension download under `extension`, beside `packages` (#403, G126): the website links it
+with its sum, the app never takes it for an update.
 Standard library only: the job with the signing key installs nothing of its own.
 """
 import base64
@@ -12,6 +15,8 @@ import json
 import pathlib
 import re
 import sys
+
+import extension_download
 
 TAG = re.compile(r"^v(\d+\.\d+\.\d+)$")
 STABLE, BETA = "latest.json", "beta.json"
@@ -22,8 +27,9 @@ PACKAGES = {
 }
 MAX_NOTES = 2000
 SIGNATURE_BYTES = 64
+EXTENSION = (extension_download.NAME, extension_download.SUMS)
 USAGE = ("usage: release_manifest.py payload <tag> <folder> <notes file> <out> | envelope <payload> <signature> <out>"
-         " | channels <tag> <prerelease true|false> <current beta announcement>")
+         " | channels <tag> <prerelease true|false> <current beta announcement> | files <tag>")
 
 
 class ReleaseError(Exception):
@@ -52,12 +58,28 @@ def _package_entry(folder: pathlib.Path, name: str, sums_name: str) -> dict:
     return {"file": name, "sha256": digest}
 
 
+def _extension_entry(folder: pathlib.Path, version: str) -> dict:
+    name, sums_name = EXTENSION
+    entry = _package_entry(folder, name.format(version), sums_name)
+    try:
+        extension_download.check_package(folder / entry["file"], version)
+    except ValueError as error:
+        raise ReleaseError(str(error)) from error
+    return entry
+
+
 def build_payload(tag: str, folder: pathlib.Path, notes: str) -> bytes:
     version = _version(tag)
     packages = {platform: _package_entry(folder, name.format(version), sums_name)
                 for platform, (name, sums_name) in PACKAGES.items()}
-    return json.dumps({"version": version, "notes": notes[:MAX_NOTES], "packages": packages},
-                      ensure_ascii=False, indent=1).encode("utf-8")
+    return json.dumps({"version": version, "notes": notes[:MAX_NOTES], "packages": packages,
+                       "extension": _extension_entry(folder, version)}, ensure_ascii=False, indent=1).encode("utf-8")
+
+
+def release_files(tag: str) -> list[str]:
+    """The files the rollout uploads into the version folder and checks on the server afterwards."""
+    version = _version(tag)
+    return [name.format(version) for name, _ in (*PACKAGES.values(), EXTENSION)]
 
 
 def build_envelope(payload: bytes, signature: bytes) -> bytes:
@@ -102,6 +124,8 @@ def main(args: list[str]) -> int:
                 pathlib.Path(out).write_bytes(build_envelope(pathlib.Path(payload).read_bytes(), pathlib.Path(signature).read_bytes()))
             case ["channels", tag, prerelease, current] if prerelease in ("true", "false"):
                 print("\n".join(announcements(tag, prerelease == "true", _read_if_there(current))))
+            case ["files", tag]:
+                print("\n".join(release_files(tag)))
             case _:
                 print(USAGE, file=sys.stderr)
                 return 2
