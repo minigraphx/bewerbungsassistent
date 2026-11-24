@@ -13,6 +13,7 @@ import zipfile
 import yaml
 
 from dateien import im_ordner, schreibe_atomar
+from ui_message import T
 from unterlagen import bewerbungsordner
 
 FOLDER = "dokumente/zertifikate"
@@ -49,7 +50,7 @@ def suggest(files: list[str], ad_text: str) -> list[dict]:
     for path in files:
         hit = next((word for word in _name_words(path) if word.lower() in ad_words), None)
         if hit:
-            found.append({"datei": path, "grund": f"{hit}: steht im Inserat"})
+            found.append({"datei": path, "grund": T("{wort}: steht im Inserat", wort=hit)})
     return found
 
 
@@ -60,7 +61,7 @@ def checked_choice(data_dir: pathlib.Path, choice: object) -> list[str]:
     known = set(available(data_dir))
     unknown = [path for path in choice if path not in known]
     if unknown:
-        raise ValueError(f"Dieses Zertifikat gibt es nicht: {pathlib.PurePosixPath(unknown[0]).name}")
+        raise ValueError(T("Dieses Zertifikat gibt es nicht: {datei}", datei=pathlib.PurePosixPath(unknown[0]).name))
     return sorted(set(choice))
 
 

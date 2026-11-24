@@ -26,6 +26,7 @@ import layout_confirmed
 import mark_settings
 import page_limit
 import unterlagen
+from ui_message import T
 
 PLATZHALTER = re.compile(r"TODO|XXX|\{\{|\}\}|\[\[|Lorem ipsum|<Firma>|<Stelle>|<Name>", re.IGNORECASE)
 RECHTSFORMEN = re.compile(r"\b(AG|GmbH|SA|Sàrl|Genossenschaft|Group|Schweiz|Switzerland)\b\.?", re.IGNORECASE)
@@ -33,16 +34,18 @@ MONATE = {m: i + 1 for i, m in enumerate(("Januar", "Februar", "März", "April",
                                            "September", "Oktober", "November", "Dezember"))}
 MONATE_EN = {m: i + 1 for i, m in enumerate(("January", "February", "March", "April", "May", "June", "July",
                                               "August", "September", "October", "November", "December"))}
-LOGO_MISSING = ("Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeichen des Designs. "
-                "Logo wählen unter «Erweitert».")
+# Findings are T (#427): the German text as before, said in the app language by the route. Data in them (firm, job,
+# dates, the words of a letter or a PDF, file names) stays as it is.
+LOGO_MISSING = T("Das Logo fehlt. Das Dossier zeigt darum die Initialen im Zeichen des Designs. "
+                 "Logo wählen unter «Erweitert».")
 # G51: the letter one page, the CV two unless three are allowed (page_limit); dossier: cover, letter, CV and more
 MAX_SEITEN = {"lebenslauf": page_limit.DEFAULT, "anschreiben": 1, "dossier": 8}
-ONLY_IN_BASICS = ("Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter "
-                  "«Meine Angaben», für alle.")
+ONLY_IN_BASICS = T("Weiter kürzen lässt sich mit «Lebenslauf erstellen», nur für diese Bewerbung, oder unter "
+                   "«Meine Angaben», für alle.")
 # the app copies a finished file as it is, so the finding names the way forward instead of a tightening (#349)
-FINISHED_FILE = ("Eine fertige Datei setzt die App nicht neu; kürzer wird er mit einer anderen Variante unter "
-                 "«Lebenslauf» oder einer kürzeren Datei unter «Lebenslauf und Dateien».")
-NAMEN = {"lebenslauf": "Lebenslauf", "anschreiben": "Anschreiben", "dossier": "Dossier"}
+FINISHED_FILE = T("Eine fertige Datei setzt die App nicht neu; kürzer wird er mit einer anderen Variante unter "
+                  "«Lebenslauf» oder einer kürzeren Datei unter «Lebenslauf und Dateien».")
+NAMEN = {"lebenslauf": T("Lebenslauf"), "anschreiben": T("Anschreiben"), "dossier": T("Dossier")}
 MAX_ALTER_TAGE = 14
 CARE_OF = re.compile(r"^(z\.?\s*H\.?(d\.?)?|zu Handen|c/o|Attn\.?:?)\s+", re.IGNORECASE)
 PERSON_LINE = re.compile(r"^(Frau|Herr)\s+((?:(?:Prof\.|Dr\.)\s+)*)(.+)$")
@@ -78,42 +81,61 @@ def _lines_over(pdf: pathlib.Path, limit: int) -> int:
         return 0  # the finding says it does not fit, without a number
 
 
+def _lines_too_many(lines: int) -> T:
+    """How many lines a CV or a letter set as tight as possible is over; one line has a key of its own for French and
+    English. Without a number, the caller says it does not fit."""
+    if lines == 1:
+        return T("Auch so eng wie möglich gesetzt sind es etwa 1 Zeile zu viel.")
+    return T("Auch so eng wie möglich gesetzt sind es etwa {zeilen} Zeilen zu viel.", zeilen=lines)
+
+
+def _not_allowed(name: T, pages: int, limit: int, then: T) -> T:
+    return T("{name}: {seiten} Seiten, erlaubt sind höchstens {limit}. {weiter}", name=name, seiten=pages, limit=limit,
+             weiter=then)
+
+
 def _cv_over_limit(pdf: pathlib.Path, pages: int, limit: int, key: str | None, offer: Callable[[int], dict]) -> Befund:
     """A built CV over its limit (G92), set as tight as possible (G96): how many lines are over, and the choice of
     cuts or three pages."""
     lines = _lines_over(pdf, limit)
-    tight = (f"Auch so eng wie möglich gesetzt sind es etwa {lines} {'Zeile' if lines == 1 else 'Zeilen'} zu viel."
-             if lines else "Auch so eng wie möglich gesetzt passt er nicht.")
-    text = f"Lebenslauf: {pages} Seiten, erlaubt sind höchstens {limit}. {tight}"
+    tight = _lines_too_many(lines) if lines else T("Auch so eng wie möglich gesetzt passt er nicht.")
+    text = _not_allowed(NAMEN["lebenslauf"], pages, limit, tight)
     choice = offer(limit)
     if not choice["optionen"] and not choice["drei_seiten"]:
         # a hint alone would let it go out unseen; with nothing left to offer, it waits on «So lassen» (#330)
-        return Befund("hinweis", f"{text} {ONLY_IN_BASICS}", schluessel=key, cv_over={"lines": lines, "pages": pages})
+        return Befund("hinweis", T("{text} {weiter}", text=text, weiter=ONLY_IN_BASICS), schluessel=key,
+                      cv_over={"lines": lines, "pages": pages})
     return Befund("hinweis", text, schluessel=key, kuerzen={"zeilen": lines, **choice})
+
+
+def over_letter_text(pages: int, lines: int, opening: str | None) -> T:
+    """A letter over its one page (G94): how many lines are over and, with a text, its longest paragraph by its first
+    words as the letter has them (cuts.letter_opening)."""
+    tight = _lines_too_many(lines) if lines else T("Auch so eng wie möglich gesetzt passt es nicht.")
+    text = T("Anschreiben: {seiten} Seiten, erlaubt ist eine. {eng}", seiten=pages, eng=tight)
+    if opening is None:
+        return text
+    return T("{text} Am meisten bringt der längste Absatz («{anfang}»).", text=text, anfang=opening)
 
 
 def _letter_over_limit(pdf: pathlib.Path, pages: int, key: str | None, letter: str) -> Befund:
     """A built letter over its one page (G94): set as tight as possible, so the finding names how many lines are
     over and its longest paragraph; the person cuts it in the letter or confirms it as it is."""
     lines = _lines_over(pdf, MAX_SEITEN["anschreiben"])
-    tight = (f"Auch so eng wie möglich gesetzt sind es etwa {lines} {'Zeile' if lines == 1 else 'Zeilen'} zu viel."
-             if lines else "Auch so eng wie möglich gesetzt passt es nicht.")
-    named = cuts.for_letter(letter)
-    text = f"Anschreiben: {pages} Seiten, erlaubt ist eine. {tight}"
-    if named:
-        text += f" Am meisten bringt {named[0]}."
-    return Befund("fehler", text, schluessel=key,
+    return Befund("fehler", over_letter_text(pages, lines, cuts.letter_opening(letter)), schluessel=key,
                   letter_cut={"lines": lines, "paragraph": cuts.longest_paragraph(letter), "pages": pages})
 
 
 def _over_limit(art: str, pages: int, limit: int, as_it_is: bool, key: str | None = None) -> Befund:
     """A document over its page limit (G51) that the app cannot cut: an own or sent file, the dossier as a whole, or
-    a CV variant that is a finished file."""
+    a CV variant that is a finished file. A limit of one page has a key of its own for French and English."""
     name = NAMEN[art]
     if as_it_is or art == "dossier":
-        return Befund("hinweis", f"{name}: {pages} Seiten, empfohlen höchstens {limit} Seite(n)")
-    return Befund("hinweis", f"{name}: {pages} Seiten, erlaubt sind höchstens {limit}. {FINISHED_FILE}",
-                  schluessel=key)
+        text = (T("{name}: {seiten} Seiten, empfohlen höchstens 1 Seite(n)", name=name, seiten=pages) if limit == 1
+                else T("{name}: {seiten} Seiten, empfohlen höchstens {limit} Seite(n)", name=name, seiten=pages,
+                       limit=limit))
+        return Befund("hinweis", text)
+    return Befund("hinweis", _not_allowed(name, pages, limit, FINISHED_FILE), schluessel=key)
 
 
 def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = (),
@@ -124,14 +146,19 @@ def layout_findings(pdf: pathlib.Path, art: str, headings: tuple[str, ...] = (),
     try:
         breaches = [b for b in layout_check.check(pdf, art, headings=headings) if b.rule not in skipped]
     except (PdfReadError, ValueError, OSError, KeyError, IndexError, TypeError) as fehler:
-        return [Befund("hinweis", f"{name}: Der Satz der Seiten liess sich nicht messen ({fehler}). Bitte das PDF "
-                                  "selbst ansehen.", schluessel=layout_confirmed.key(pdf, "messung", 1))]
+        text = T("{name}: Der Satz der Seiten liess sich nicht messen ({fehler}). Bitte das PDF selbst ansehen.",
+                 name=name, fehler=str(fehler))
+        return [Befund("hinweis", text, schluessel=layout_confirmed.key(pdf, "messung", 1))]
     found, seen = [], {}
     for breach in breaches:
         number = seen[(breach.rule, breach.page)] = seen.get((breach.rule, breach.page), -1) + 1
-        found.append(Befund("hinweis", f"{name}, Seite {breach.page}: {breach.reason}",
+        found.append(Befund("hinweis", T("{name}, Seite {seite}: {grund}", name=name, seite=breach.page, grund=breach.reason),
                             schluessel=layout_confirmed.key(pdf, breach.rule, breach.page, number)))
     return found
+
+
+def _placeholder_found(name: T, text: str) -> T:
+    return T("{name}: Platzhalter gefunden ({fund})", name=name, fund=PLATZHALTER.search(text).group(0))
 
 
 def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int | None = None,
@@ -144,17 +171,20 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int |
     name = NAMEN[art]
     content_stufe = "hinweis" if as_it_is else "fehler"
     if not pdf.is_file():
-        return [Befund("fehler", f"{name}: PDF fehlt ({pdf.name}). Zuerst die Unterlagen erstellen.")]
+        return [Befund("fehler", T("{name}: PDF fehlt ({datei}). Zuerst die Unterlagen erstellen.", name=name, datei=pdf.name))]
     try:
         seiten = _seiten(pdf)
     except (PdfReadError, ValueError, OSError) as fehler:
-        return [Befund("fehler", f"{name}: PDF lässt sich nicht lesen ({fehler})")]
+        return [Befund("fehler", T("{name}: PDF lässt sich nicht lesen ({fehler})", name=name, fehler=str(fehler)))]
     befunde = []
     text = "\n".join(seiten)
     if len(text.strip()) < 200:
-        befunde.append(Befund(content_stufe, f"{name}: kaum Text extrahierbar – Bewerbungssoftware (ATS) liest es nicht"))
+        befunde.append(Befund(content_stufe, T("{name}: kaum Text extrahierbar – Bewerbungssoftware (ATS) liest es nicht",
+                                               name=name)))
+    elif len(seiten) == 1:
+        befunde.append(Befund("ok", T("{name}: Text extrahierbar (1 Seite)", name=name)))
     else:
-        befunde.append(Befund("ok", f"{name}: Text extrahierbar ({len(seiten)} Seite{'n' if len(seiten) != 1 else ''})"))
+        befunde.append(Befund("ok", T("{name}: Text extrahierbar ({seiten} Seiten)", name=name, seiten=len(seiten))))
     limit = limit or MAX_SEITEN[art]
     skipped = frozenset()
     if len(seiten) > limit:
@@ -172,7 +202,7 @@ def pruefe_pdf(pdf: pathlib.Path, art: str, as_it_is: bool = False, limit: int |
         else:
             befunde.append(_over_limit(art, len(seiten), limit, as_it_is, key))
     if PLATZHALTER.search(text):
-        befunde.append(Befund(content_stufe, f"{name}: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
+        befunde.append(Befund(content_stufe, _placeholder_found(name, text)))
     if not as_it_is:
         befunde += layout_findings(pdf, art, headings, skipped)
     return befunde
@@ -201,31 +231,37 @@ def pruefe_anschreiben_text(text: str, bewerbung: dict, heute: datetime.date, as
     namen = firmennamen(bewerbung["firma"])
     genannt = next((n for n in namen if n.lower() in text.lower()), None)
     if genannt:
-        befunde.append(Befund("ok", f"Anschreiben: Firma „{genannt}“ genannt"))
+        befunde.append(Befund("ok", T("Anschreiben: Firma „{firma}“ genannt", firma=genannt)))
     else:
-        befunde.append(Befund(content_stufe, f"Anschreiben: Firma „{' / '.join(namen)}“ kommt nicht vor – falsche Vorlage?"))
-    woerter = [w for w in re.findall(r"\w{4,}", bewerbung["stelle"])]
-    gefunden = [w for w in woerter if w.lower() in text.lower()]
-    if not woerter or len(gefunden) * 2 >= len(woerter):
-        befunde.append(Befund("ok", "Anschreiben: Stellentitel genannt"))
-    else:
-        befunde.append(Befund("hinweis", f"Anschreiben: Stelle „{bewerbung['stelle']}“ kaum erwähnt – Betreff prüfen"))
-    datum = _datum_im_text(text)
-    if datum is None:
-        befunde.append(Befund("hinweis", "Anschreiben: kein Datum gefunden"))
-    elif datum > heute or (heute - datum).days > MAX_ALTER_TAGE:
-        befunde.append(Befund("hinweis", f"Anschreiben: Datum {datum:%d.%m.%Y} ist nicht aktuell"))
-    else:
-        befunde.append(Befund("ok", f"Anschreiben: Datum {datum:%d.%m.%Y}"))
+        befunde.append(Befund(content_stufe, T("Anschreiben: Firma „{firma}“ kommt nicht vor – falsche Vorlage?",
+                                               firma=" / ".join(namen))))
+    befunde.append(_job_named(text, bewerbung["stelle"]))
+    befunde.append(_date_finding(_datum_im_text(text), heute))
     du = re.search(r"\b(Liebe[rs]?|Hallo|Hoi)\b", text) is not None
     sie = re.search(r"\b(Sehr geehrte[rn]?)\b", text) is not None
     if du and re.search(r"\b(Sie|Ihnen|Ihre[rnms]?)\b", text):
-        befunde.append(Befund("hinweis", "Anschreiben: Anrede in Du-Form, im Text aber Sie/Ihnen/Ihre"))
+        befunde.append(Befund("hinweis", T("Anschreiben: Anrede in Du-Form, im Text aber Sie/Ihnen/Ihre")))
     elif sie and re.search(r"\b(euch|eure[rnms]?|ihr)\b", text):
-        befunde.append(Befund("hinweis", "Anschreiben: Anrede in Sie-Form, im Text aber euch/eure/ihr"))
+        befunde.append(Befund("hinweis", T("Anschreiben: Anrede in Sie-Form, im Text aber euch/eure/ihr")))
     if PLATZHALTER.search(text):
-        befunde.append(Befund(content_stufe, f"Anschreiben: Platzhalter gefunden ({PLATZHALTER.search(text).group(0)})"))
+        befunde.append(Befund(content_stufe, _placeholder_found(NAMEN["anschreiben"], text)))
     return befunde
+
+
+def _job_named(text: str, stelle: str) -> Befund:
+    woerter = re.findall(r"\w{4,}", stelle)
+    gefunden = [w for w in woerter if w.lower() in text.lower()]
+    if not woerter or len(gefunden) * 2 >= len(woerter):
+        return Befund("ok", T("Anschreiben: Stellentitel genannt"))
+    return Befund("hinweis", T("Anschreiben: Stelle „{stelle}“ kaum erwähnt – Betreff prüfen", stelle=stelle))
+
+
+def _date_finding(datum: datetime.date | None, heute: datetime.date) -> Befund:
+    if datum is None:
+        return Befund("hinweis", T("Anschreiben: kein Datum gefunden"))
+    if datum > heute or (heute - datum).days > MAX_ALTER_TAGE:
+        return Befund("hinweis", T("Anschreiben: Datum {datum} ist nicht aktuell", datum=f"{datum:%d.%m.%Y}"))
+    return Befund("ok", T("Anschreiben: Datum {datum}", datum=f"{datum:%d.%m.%Y}"))
 
 
 def _contact_person(address: object) -> dict | None:
@@ -254,10 +290,12 @@ def check_contact_person(address: object, salutation: object) -> list[Befund]:
     shown = f"{person['title']} {person['surname']}"
     named = _has_words(text, person["surname"]) or any(_has_words(text, first) for first in person["first"])
     if not named:
-        return [Befund("fehler", f"Anschreiben: In der Adresse steht {shown}, in der Anrede „{text}“ nicht")]
+        return [Befund("fehler", T("Anschreiben: In der Adresse steht {person}, in der Anrede „{anrede}“ nicht",
+                                   person=shown, anrede=text))]
     if any(_has_words(text, word) for word in WRONG_FORMS[person["title"]]):
-        return [Befund("fehler", f"Anschreiben: Form der Anrede „{text}“ passt nicht zu {shown}")]
-    return [Befund("ok", f"Anschreiben: Anrede passt zu {shown}")]
+        return [Befund("fehler", T("Anschreiben: Form der Anrede „{anrede}“ passt nicht zu {person}", anrede=text,
+                                   person=shown))]
+    return [Befund("ok", T("Anschreiben: Anrede passt zu {person}", person=shown))]
 
 
 def contact_person_findings(letter: pathlib.Path) -> list[Befund]:
@@ -321,7 +359,7 @@ def pruefe(daten: pathlib.Path, bewerbung: dict, heute: datetime.date) -> list[B
         if not letter_as_it_is:
             befunde += contact_person_findings(quelle)
     else:
-        befunde.append(Befund("hinweis", "Kein Anschreiben: weder ein Entwurf noch ein eigenes PDF"))
+        befunde.append(Befund("hinweis", T("Kein Anschreiben: weder ein Entwurf noch ein eigenes PDF")))
     dossier = unterlagen.dossier_file(daten, bewerbung)
     if dossier:  # G40: only while chosen or once sent, so the preset checks what it always did
         befunde += pruefe_pdf(dossier, "dossier", as_it_is=gesendet, headings=headings)

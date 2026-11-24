@@ -133,7 +133,7 @@ test("the application leads back to Bewerbungen by a path, not to the overview",
   assert.match(html, /<nav class="crumbs" aria-label="Pfad"><a href="\/bewerbungen">Bewerbungen<\/a> › <span id="pfad-stelle" aria-current="page">Bewerbung<\/span><\/nav>/);
   const code = read("bewerbung.js");
   assert.doesNotMatch(code, /Zur Übersicht/);
-  assert.match(code, /\$\("pfad-stelle"\)\.textContent = b\.stelle \|\| "Bewerbung";/);
+  assert.match(code, /\$\("pfad-stelle"\)\.textContent = b\.stelle \|\| Texte\.t\("Bewerbung"\);/);
 });
 
 test("every text the page speaks to the person with exists in all forms", () => {

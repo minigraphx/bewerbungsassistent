@@ -468,9 +468,25 @@
       sie: "Nicht gespeichert: Das Anschreiben hat sich inzwischen geändert, etwa durch einen neuen Entwurf. Kopieren Sie, was Sie behalten möchten, und laden Sie die Seite neu.",
       du: "Nicht gespeichert: Das Anschreiben hat sich inzwischen geändert, etwa durch einen neuen Entwurf. Kopier, was du behalten möchtest, und lade die Seite neu.",
     },
+    // One statement and more get sets of their own (#427), so French and English say the verb in the singular
+    "bewerbung.freigeben-offen-eins": {
+      sie: "Der Entwurf ist fertig. Eine Aussage hat noch keinen Beleg in Ihren Angaben; gelb markiert.",
+      du: "Der Entwurf ist fertig. Eine Aussage hat noch keinen Beleg in deinen Angaben; gelb markiert.",
+    },
     "bewerbung.freigeben-offen": {
-      sie: "Der Entwurf ist fertig. {aussagen} noch keinen Beleg in Ihren Angaben; gelb markiert.",
-      du: "Der Entwurf ist fertig. {aussagen} noch keinen Beleg in deinen Angaben; gelb markiert.",
+      sie: "Der Entwurf ist fertig. {anzahl} Aussagen haben noch keinen Beleg in Ihren Angaben; gelb markiert.",
+      du: "Der Entwurf ist fertig. {anzahl} Aussagen haben noch keinen Beleg in deinen Angaben; gelb markiert.",
+    },
+    // A button of its own: the plain text „Variante wählen“ is the short line under the step Lebenslauf (#427)
+    "bewerbung.variante-waehlen": { sie: "Variante wählen", du: "Variante wählen" },
+    // After recording the dispatch, one remark from the server and more (#427); German says „Hinweise“ for both
+    "versand.erfasst-hinweis": {
+      sie: "Versand erfasst. Die verschickte Fassung bleibt gespeichert. Hinweise: {hinweise}",
+      du: "Versand erfasst. Die verschickte Fassung bleibt gespeichert. Hinweise: {hinweise}",
+    },
+    "versand.erfasst-hinweise": {
+      sie: "Versand erfasst. Die verschickte Fassung bleibt gespeichert. Hinweise: {hinweise}",
+      du: "Versand erfasst. Die verschickte Fassung bleibt gespeichert. Hinweise: {hinweise}",
     },
     "bewerbung.geoeffnet": {
       sie: "Das Formular ist in einem neuen Tab offen. Abgeschickt wird erst durch Sie.",

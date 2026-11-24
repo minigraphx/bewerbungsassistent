@@ -54,11 +54,12 @@ def _problem(k, entry: dict) -> str | None:
     findings = pruefung.pruefe(k.daten, entry, k.heute())
     errors = [b.text for b in findings if b.stufe == "fehler"]
     if errors:
-        return f"Prüfung: {errors[0]}"
+        return T("Prüfung: {befund}", befund=errors[0])
     open_ = [b for b in findings if b.schluessel and not b.bestaetigt]
     if not open_:
         return None
-    return f"Prüfung: {open_[0].text} {CUT_FIRST if open_[0].kuerzen else CONFIRM_FIRST}"
+    then = T(CUT_FIRST) if open_[0].kuerzen else T(CONFIRM_FIRST)
+    return T("Prüfung: {befund} {weiter}", befund=open_[0].text, weiter=then)
 
 
 def _chosen_ids(body) -> list[str]:
