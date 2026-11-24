@@ -18,23 +18,27 @@ import fotoausschnitt
 import logo_file
 import mark
 from dateien import im_ordner, relativ, schreibe_atomar
+from ui_message import T
 
 CV = "cv.yaml"
 LOGO_FOLDER = "logos"
 HASH_DIGITS = 12
 
-NO_CV = "Es gibt noch keinen Lebenslauf. Bitte zuerst die Angaben erfassen."
-NO_LOGO = "Zuerst ein Logo wählen."
-BAD_INITIALS = "Initialen: 1 bis 3 Buchstaben."
+NO_CV = T("Es gibt noch keinen Lebenslauf. Bitte zuerst die Angaben erfassen.")
+NO_LOGO = T("Zuerst ein Logo wählen.")
+BAD_INITIALS = T("Initialen: 1 bis 3 Buchstaben.")
 SAVED = {
-    "zeichen": "Zeichen gespeichert. Mit «Unterlagen erstellen» entsteht das Dossier im neuen Zeichen.",
-    "akzent": "Akzentfarbe gespeichert. Mit «Unterlagen erstellen» entsteht das Dossier in der neuen Farbe.",
-    "initialen": "Initialen gespeichert. Mit «Unterlagen erstellen» entsteht das Dossier mit den neuen Initialen.",
-    "logo": "Logo gespeichert. Mit «Unterlagen erstellen» entsteht das Dossier mit dem Logo.",
+    "zeichen": T("Zeichen gespeichert. Mit «Unterlagen erstellen» entsteht das Dossier im neuen Zeichen."),
+    "akzent": T("Akzentfarbe gespeichert. Mit «Unterlagen erstellen» entsteht das Dossier in der neuen Farbe."),
+    "initialen": T("Initialen gespeichert. Mit «Unterlagen erstellen» entsteht das Dossier mit den neuen Initialen."),
+    "logo": T("Logo gespeichert. Mit «Unterlagen erstellen» entsteht das Dossier mit dem Logo."),
 }
-LOGO_REMOVED = "Logo entfernt. Das Dossier zeigt wieder die Initialen."
-RESET = "Zeichen und Farbe stehen wieder auf «Passend zum Design»."
-DRAFT = "Zeichen und Farbe des Dossiers"
+LOGO_REMOVED = T("Logo entfernt. Das Dossier zeigt wieder die Initialen.")
+RESET = T("Zeichen und Farbe stehen wieder auf «Passend zum Design».")
+NOT_A_CHOICE = T("Zeichen, Initialen oder Akzentfarbe erwartet")
+UNKNOWN_MARK = "Unbekanntes Zeichen: {wert}. Erlaubt: {erlaubt}"
+SUGGESTED = "{meldung} Vorschlag {farbe}."
+DRAFT = "Zeichen und Farbe des Dossiers"  # stored with the draft, stays German
 
 
 def _cv(k) -> pathlib.Path:
@@ -146,6 +150,23 @@ def state(k) -> dict:
     }
 
 
+def _chosen_variant(value: object) -> str:
+    """The variant asked for; the refusal of lebenslauf/mark.py said in the app language."""
+    try:
+        return mark.variant(value)
+    except ValueError as error:
+        raise ValueError(T(UNKNOWN_MARK, wert=repr(value), erlaubt=", ".join(mark.VARIANTS))) from error
+
+
+def _chosen_accent(value: object) -> str:
+    """The colour asked for; a colour that reads badly is refused with a darker one, as lebenslauf/mark.py says it."""
+    try:
+        return mark.stored_accent(value)
+    except ValueError as error:
+        check = mark.accent_check(value)  # raises the plain refusal of a value that is no colour at all
+        raise ValueError(T(SUGGESTED, meldung=T(check["meldung"]), farbe=check["vorschlag"])) from error
+
+
 def _checked(k, body: dict) -> dict:
     """The changes a body asks for, as cv.yaml keys; ValueError with the reason for the person."""
     found = basics(k.daten)
@@ -153,7 +174,7 @@ def _checked(k, body: dict) -> dict:
     if "initialen" in body:
         changes["x-monogramm"] = _initials(body["initialen"])
     if "zeichen" in body:
-        chosen = mark.variant(body["zeichen"])
+        chosen = _chosen_variant(body["zeichen"])
         if chosen == mark.LOGO and mark.logo_file(found, k.daten) is None:
             raise ValueError(NO_LOGO)
         initials = _monogram({**found, "x-monogramm": changes.get("x-monogramm", found.get("x-monogramm"))})
@@ -161,14 +182,14 @@ def _checked(k, body: dict) -> dict:
             raise ValueError(mark.NEEDS_TWO)
         changes["x-zeichen"] = None if chosen == mark.FITTING else chosen
     if "akzent" in body:
-        chosen = mark.stored_accent(body["akzent"])
+        chosen = _chosen_accent(body["akzent"])
         changes["x-akzent"] = None if chosen == mark.FITTING else chosen
     return changes
 
 
 def save(k, body) -> dict:
     if not isinstance(body, dict):
-        raise ValueError("Zeichen, Initialen oder Akzentfarbe erwartet")
+        raise ValueError(NOT_A_CHOICE)
     path = _cv(k)
     changes = _checked(k, body)
     if changes:

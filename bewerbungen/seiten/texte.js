@@ -363,6 +363,8 @@
     },
     "lebenslauf.zeichen-ohne": { sie: "Ohne Zeichen", du: "Ohne Zeichen" },
     "lebenslauf.zeichen-logo": { sie: "Ihr Logo", du: "Dein Logo" },
+    // The tile of the own logo in «Dossier gestalten» (zeichen.js, #429)
+    "dossier.logo-statt-initialen": { sie: "Ihr Logo statt der Initialen", du: "Dein Logo statt der Initialen" },
     "lebenslauf.logo-fehlt": {
       sie: "Zuerst ein Logo hochladen, unter «Dossier gestalten».",
       du: "Zuerst ein Logo hochladen, unter «Dossier gestalten».",

@@ -7,7 +7,8 @@
   const W = window.UnterlagenWahl;
   const $ = id => document.getElementById(id);
   const ID = new URLSearchParams(location.search).get("id");
-  const NACH_SPEICHERN = "Für das PDF „Unterlagen erstellen“.";
+  // Texts in the app language (#429); the AI's lines and the server's reasons stay as they come
+  const Texte = { t: (deutsch, werte) => window.Texte.t(deutsch, werte) };
   let geladen = null; // texts as last loaded or saved; null while no dossier is chosen
   let kiBereit = false;
 
@@ -31,7 +32,7 @@
       merke(await holen("/api/dossier/texte", { id: ID }));
       return true;
     } catch (fehler) {
-      meldung("Begrüssung und Dank nicht lesbar: " + fehler.message, "fehler");
+      meldung(Texte.t("Begrüssung und Dank nicht lesbar: {fehler}", { fehler: fehler.message }), "fehler");
       return false;
     }
   }
@@ -68,15 +69,17 @@
 
   async function entwerfen() {
     $("dossier-entwerfen").disabled = true;
-    meldung("Begrüssung und Dank werden entworfen … das kann bis zu einer Minute dauern.");
+    meldung(Texte.t("Begrüssung und Dank werden entworfen … das kann bis zu einer Minute dauern."));
     try {
       const ergebnis = await senden("/api/ki/dossier-texte", {}, { id: ID });
       merke(ergebnis);
       fuelle(ergebnis);
-      const verdaechtig = (ergebnis.suspicious_lines || []).length
-        ? ` Verdächtige Zeilen im Inserat, nicht befolgt: ${ergebnis.suspicious_lines.join(" · ")}` : "";
-      meldung(`Entworfen und gespeichert; ein früherer Stand liegt unter „Entwürfe“. Bitte lesen und anpassen. ${NACH_SPEICHERN}${verdaechtig}`,
-        verdaechtig ? "hinweis" : "ok");
+      const verdaechtig = (ergebnis.suspicious_lines || []).length > 0;
+      const zeilen = verdaechtig ? ergebnis.suspicious_lines.join(" · ") : "";
+      meldung(verdaechtig
+        ? Texte.t("Entworfen und gespeichert; ein früherer Stand liegt unter „Entwürfe“. Bitte lesen und anpassen. Für das PDF „Unterlagen erstellen“. Verdächtige Zeilen im Inserat, nicht befolgt: {zeilen}", { zeilen })
+        : Texte.t("Entworfen und gespeichert; ein früherer Stand liegt unter „Entwürfe“. Bitte lesen und anpassen. Für das PDF „Unterlagen erstellen“."),
+      verdaechtig ? "hinweis" : "ok");
     } catch (fehler) {
       meldung(fehler.message, "fehler");
     } finally {
@@ -99,6 +102,6 @@
   window.DossierTexte = { oeffnen, geaendert, speichern, verwerfen };
   if (!ID) return;
   document.addEventListener("bewerbung-geladen", folge);
-  bestaetigen($("dossier-entwerfen"), "Vorhandene Texte ersetzen? Nochmals klicken", entwerfen, () => hatText() || geaendert());
+  bestaetigen($("dossier-entwerfen"), Texte.t("Vorhandene Texte ersetzen? Nochmals klicken"), entwerfen, () => hatText() || geaendert());
   ladeKi();
 })();

@@ -16,6 +16,7 @@ import pfade  # noqa: F401  (makes the module lebenslauf importable)
 import mark
 import photo_file
 import svg_check
+from ui_message import T
 
 MAX_BYTES = 5_000_000
 GOOD_WIDTH = 1000  # pixels; below that a hint, no refusal
@@ -25,14 +26,23 @@ PROBE_PX = 64
 SATURATED = 0.25
 WHITE_LEVEL = 245
 
-FORMAT = "Diese Datei ist kein Bild in PNG, JPG oder SVG."
-TOO_LARGE = "Die Datei ist grösser als 5 MB. Bitte ein kleineres Bild wählen."
-UNREADABLE = "Das Bild liess sich nicht lesen. Bitte ein anderes Bild in PNG, JPG oder SVG wählen."
-VERY_WIDE = "Sehr breit: Auf dem Deckblatt wird das Logo nur etwa 7 mm hoch. Ein kompakteres Zeichen wirkt besser."
-VERY_HIGH = "Sehr hoch: Das Logo wird auf dem Deckblatt schmal und wirkt klein. Eine quere Fassung passt besser."
-FEW_PIXELS = ("Das Bild hat nur {w} × {h} Pixel und wird im Druck unscharf. Besser mindestens 1000 Pixel breit.")
-WHITE_BACKGROUND = ("Das Logo hat einen weissen Hintergrund. Auf dem Papier fällt das kaum auf; in Raster steht es "
-                    "ohnehin auf einer weissen Fläche.")
+FORMAT = T("Diese Datei ist kein Bild in PNG, JPG oder SVG.")
+TOO_LARGE = T("Die Datei ist grösser als 5 MB. Bitte ein kleineres Bild wählen.")
+UNREADABLE = T("Das Bild liess sich nicht lesen. Bitte ein anderes Bild in PNG, JPG oder SVG wählen.")
+VERY_WIDE = T("Sehr breit: Auf dem Deckblatt wird das Logo nur etwa 7 mm hoch. Ein kompakteres Zeichen wirkt besser.")
+VERY_HIGH = T("Sehr hoch: Das Logo wird auf dem Deckblatt schmal und wirkt klein. Eine quere Fassung passt besser.")
+FEW_PIXELS = "Das Bild hat nur {w} × {h} Pixel und wird im Druck unscharf. Besser mindestens 1000 Pixel breit."
+WHITE_BACKGROUND = T("Das Logo hat einen weissen Hintergrund. Auf dem Papier fällt das kaum auf; in Raster steht es "
+                     "ohnehin auf einer weissen Fläche.")
+# The refusals of lebenslauf/svg_check.py, said in the app language. Written out so the catalog check sees them; a
+# test holds each equal to svg_check's own words, which stay the German text
+SVG_PROBLEMS = {
+    svg_check.SCRIPT: T("Dieses SVG enthält ein Skript. Bitte das Logo als PNG speichern und nochmals wählen."),
+    svg_check.REMOTE: T("Dieses SVG lädt Inhalte aus dem Internet. Bitte das Logo als PNG speichern und nochmals "
+                        "wählen."),
+    svg_check.UNCHECKABLE: T("Dieses SVG lässt sich nicht sicher prüfen. Bitte das Logo als PNG speichern und "
+                             "nochmals wählen."),
+}
 
 
 def kind(data: bytes) -> str:
@@ -61,7 +71,7 @@ def cleaned(data: bytes) -> tuple[str, bytes]:
         text = svg_check.without_doctype(text)
         problem = mark.svg_problem(text)
         if problem:
-            raise ValueError(problem)
+            raise ValueError(SVG_PROBLEMS.get(problem, problem))
         return found, text.encode("utf-8")
     return photo_file.without_metadata(data)
 
@@ -159,7 +169,7 @@ def inspect(extension: str, data: bytes, build: pathlib.Path) -> dict:
     transparent = any(a < 128 for *_, a in rgba)
     white = not transparent and all(min(r, g, b) >= WHITE_LEVEL for r, g, b, _ in corners)
     hints = [*([VERY_WIDE] if width / height > WIDE else []), *([VERY_HIGH] if height / width > HIGH else []),
-             *([FEW_PIXELS.format(w=size[0], h=size[1])] if size and size[0] < GOOD_WIDTH else []),
+             *([T(FEW_PIXELS, w=size[0], h=size[1])] if size and size[0] < GOOD_WIDTH else []),
              *([WHITE_BACKGROUND] if white else [])]
     return {"breite": size[0] if size else None, "hoehe": size[1] if size else None, "vektor": size is None,
             "durchsichtig": transparent, "hinweise": hints, "farbe": strongest_colour(rgba)}

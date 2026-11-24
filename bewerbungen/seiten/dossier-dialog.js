@@ -80,7 +80,7 @@
       leave();
       if (message) document.dispatchEvent(new CustomEvent("dossier-uebernommen", { detail: { meldung: message } }));
     } catch (error) {
-      status($("dossier-dialog-status"), `Nicht übernommen: ${error.message}`, "fehler");
+      status($("dossier-dialog-status"), window.Texte.t("Nicht übernommen: {fehler}", { fehler: error.message }), "fehler");
       // a saved design shows on the page even if the texts failed
       if (designSaved) document.dispatchEvent(new CustomEvent("dossier-uebernommen", { detail: { meldung: "" } }));
     } finally {

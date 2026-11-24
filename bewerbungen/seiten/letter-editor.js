@@ -10,13 +10,15 @@
   const ID = new URLSearchParams(location.search).get("id");
   const READ_VIEW = ["anschreiben-text", "ki-pruefung-teil", "freigabe-zeile", "freigabe-status"];
   const LOCKED = ["ki-entwerfen", "ki-pruefen", "erstellen", "pruefen"];
-  const SAVE = "Speichern";
-  const SAVING = "Wird gespeichert …";
-  const REBUILD = "Unterlagen neu erstellen";
-  const RELOAD = "Neu laden";
-  const LONGEST = "Längster Absatz";
-  const REMOVE = "Entfernen";
-  const NO_TEXT = "Das Anschreiben braucht mindestens einen Absatz mit Text.";
+  // In the app language (#429); the page's Texte has its language before any script runs
+  const Texte = { t: (deutsch, werte) => window.Texte.t(deutsch, werte) };
+  const SAVE = Texte.t("Speichern");
+  const SAVING = Texte.t("Wird gespeichert …");
+  const REBUILD = Texte.t("Unterlagen neu erstellen");
+  const RELOAD = Texte.t("Neu laden");
+  const LONGEST = Texte.t("Längster Absatz");
+  const REMOVE = Texte.t("Entfernen");
+  const NO_TEXT = Texte.t("Das Anschreiben braucht mindestens einen Absatz mit Text.");
   const MAX_PARAGRAPH_CHARS = 4000;  // letter_edit.MAX_PARAGRAPH_CHARS
 
   let data = null;        // what the page drew last: letter, cut (letter_cut while open), approved, shown
@@ -84,7 +86,8 @@
   }
 
   function labelParts(place, longest) {
-    return [`Absatz ${place + 1}`, ...(longest ? [" ", el("span", { class: "letter-editor__longest" }, LONGEST)] : [])];
+    return [Texte.t("Absatz {nummer}", { nummer: place + 1 }),
+      ...(longest ? [" ", el("span", { class: "letter-editor__longest" }, LONGEST)] : [])];
   }
 
   function block(text, place) {
@@ -94,7 +97,7 @@
     field.value = text;
     field.addEventListener("input", () => changed(place, field));
     const remove = paragraphs.length > 1 ? el("button", { type: "button", class: "btn btn--quiet btn--sm letter-editor__remove",
-      "aria-label": `Absatz ${place + 1} entfernen`, onclick: () => removeAt(place) }, REMOVE) : null;
+      "aria-label": Texte.t("Absatz {nummer} entfernen", { nummer: place + 1 }), onclick: () => removeAt(place) }, REMOVE) : null;
     return el("div", { class: "letter-editor__paragraph" },
       el("label", { class: "field__label letter-editor__label", for: id }, ...labelParts(place, false)), field,
       el("div", { class: "letter-editor__meta" },

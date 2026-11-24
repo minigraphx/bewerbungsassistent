@@ -21,6 +21,7 @@ import language_settings
 import preferences
 from dateien import im_ordner
 from dossier_data import with_written_monogram
+from ui_message import T
 
 FILES = {"cv": "cv.yaml", "profile": "suchprofil.md", "style": "anschreiben/stil.md",
          "blocks": "anschreiben/bausteine.md"}
@@ -46,6 +47,7 @@ PACKAGE_SIZE = 10
 MAX_PACKAGE_AD_CHARS = 12_000  # ten long ads must not cost as much as a book; ads are rarely longer
 LABEL_BYTES = 2
 MISSING = "Für die KI fehlt noch {name}. Zuerst Meine Angaben abschliessen."
+CV_UNREADABLE = T("cv.yaml lässt sich nicht lesen.")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -81,14 +83,14 @@ def load_material(data_dir: pathlib.Path, partial: bool = False) -> Material:
     paths = {key: im_ordner(data_dir, rel) for key, rel in FILES.items()}
     missing = tuple(FILES[key] for key, path in paths.items() if not path.is_file())
     if missing and not partial:
-        raise AiError(MISSING.format(name=missing[0]))
+        raise AiError(T(MISSING, name=missing[0]))
     texts = {key: path.read_text(encoding="utf-8") if path.is_file() else "" for key, path in paths.items()}
     try:
         cv = yaml.safe_load(texts["cv"]) or {}
     except yaml.YAMLError as error:
-        raise AiError("cv.yaml lässt sich nicht lesen.") from error
+        raise AiError(CV_UNREADABLE) from error
     if not isinstance(cv, dict):
-        raise AiError("cv.yaml lässt sich nicht lesen.")
+        raise AiError(CV_UNREADABLE)
     return Material(with_written_monogram(cv, texts["cv"]), texts["cv"], texts["profile"], texts["style"], texts["blocks"], missing,
                     preferences.load(data_dir).address,
                     preferences.strictest_kind(data_dir) == preferences.APPRENTICESHIP,
@@ -106,9 +108,9 @@ def make_gateway(data_dir: pathlib.Path, material: Material, client, entry: dict
 def _ad(ad_text: str) -> str:
     text = (ad_text or "").strip()
     if not text:
-        raise AiError("Der Text des Inserats fehlt.")
+        raise AiError(T("Der Text des Inserats fehlt."))
     if len(text) > MAX_AD_CHARS:
-        raise AiError(f"Das Inserat ist zu lang (höchstens {MAX_AD_CHARS} Zeichen).")
+        raise AiError(T("Das Inserat ist zu lang (höchstens {anzahl} Zeichen).", anzahl=MAX_AD_CHARS))
     return text
 
 
@@ -169,7 +171,7 @@ def rate_package(gateway: Gateway, material: Material, ads: list[tuple[str, str]
     """Rate several ads in one call; ads are (id, text). The label of an ad is new for every call, so a text cannot
     aim at another ad, and a rating belongs to an id only through its label. Ids without a usable answer are `missing`."""
     if not 1 <= len(ads) <= PACKAGE_SIZE:
-        raise ValueError(f"Ein Paket hat 1 bis {PACKAGE_SIZE} Inserate.")
+        raise ValueError(T("Ein Paket hat 1 bis {anzahl} Inserate.", anzahl=PACKAGE_SIZE))
     labels = [f"T{number}-{secrets.token_hex(LABEL_BYTES)}" for number in range(1, len(ads) + 1)]
     by_label = {label: ad_id for label, (ad_id, _) in zip(labels, ads)}
     texts = [(label, _ad(text[:MAX_PACKAGE_AD_CHARS])) for label, (_, text) in zip(labels, ads)]

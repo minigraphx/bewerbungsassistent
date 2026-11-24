@@ -11,6 +11,7 @@ import unterlagen
 import versand
 from dateien import schreibe_atomar
 from server import datei_antwort, json_antwort, pflicht
+from ui_message import T
 
 BASE64_OVERHEAD = 4 / 3
 JSON_OVERHEAD_BYTES = 10_000
@@ -19,14 +20,15 @@ LETTER_ROUTE = "/api/dateien/anschreiben"
 BODY_LIMITS = {route: int(own_files.MAX_FILE_BYTES * BASE64_OVERHEAD) + JSON_OVERHEAD_BYTES
                for route in (UPLOAD_ROUTE, LETTER_ROUTE)}
 KIND_NAMES = {own_files.CERTIFICATE_KIND: "Zertifikat", own_files.DIPLOMA_KIND: "Diplom",
-              own_files.REFERENCE_KIND: "Zeugnis"}
-UNREADABLE = "Die Datei liess sich nicht lesen. Bitte nochmals versuchen."
-NO_APPLICATION = "Bewerbung mit id erwartet."
+              own_files.REFERENCE_KIND: "Zeugnis"}  # in the description of a draft, which stays German
+UNREADABLE = T("Die Datei liess sich nicht lesen. Bitte nochmals versuchen.")
+NO_APPLICATION = T("Bewerbung mit id erwartet.")
+UNKNOWN_FORM = T("Die Anfrage hat eine unbekannte Form.")
 
 
 def _body(body: object) -> dict:
     if not isinstance(body, dict):
-        raise ValueError("Die Anfrage hat eine unbekannte Form.")
+        raise ValueError(UNKNOWN_FORM)
     return body
 
 

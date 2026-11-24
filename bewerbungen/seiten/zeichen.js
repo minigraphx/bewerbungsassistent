@@ -23,8 +23,12 @@
   let entwurf = null; // the page designs drafted in the dialog, null while it is closed
   let seiten = gespeichert;
   let du = false;
+  // Texts in the app language (#429)
+  const Texte = { t: (deutsch, werte) => window.Texte.t(deutsch, werte) };
+  const satz = () => (du ? "stelle-du" : "stelle-sie");
 
   const meldung = (text, art, optionen = {}) => status($("d-zeichen-status"), text, art, optionen);
+  const nichtGespeichert = fehler => Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message });
 
   function s(tag, attribute = {}, ...kinder) {
     const e = document.createElementNS(NS, tag);
@@ -47,7 +51,7 @@
     const schrift = mono || DUNKEL;
     const klein = [...initialen].length >= 3 ? 0.8 : 1;
     const text = (x, groesse, attribute = {}) => s("text", { x, y: 24, "font-size": groesse, "font-weight": 700,
-      "dominant-baseline": "central", "font-family": "DM Sans, sans-serif", ...attribute }, initialen);
+      "dominant-baseline": "central", "font-family": "DM Sans, sans-serif", ...attribute }, initialen);  // kein UI-Text
     const teile = {
       ring: () => [s("circle", { cx: 32, cy: 24, r: 20, fill: mono ? "none" : "#ffffff", stroke: tinte, "stroke-width": 2.4 }),
         text(32, 14 * klein, { "text-anchor": "middle", fill: schrift })],
@@ -124,9 +128,9 @@
     const kacheln = Z.VARIANTEN.map(v => kachel(v.name, v.wert, v.wert === Z.PASSEND ? Z.passendSatz(seiten.deckblatt) : v.satz,
       zeichenSvg(v.wert === Z.PASSEND ? Z.gezeichnet({ ...zustand, zeichen: Z.PASSEND }, seiten.deckblatt) : v.wert, initialen, f),
       Z.gesperrt(v.wert, initialen)));
-    const logoSatz = du ? "Dein Logo statt der Initialen" : "Ihr Logo statt der Initialen";
-    kacheln.push(kachel("Eigenes Logo", MIT_LOGO, logoSatz, zustand.logo ? zeichenSvg(MIT_LOGO, initialen, f) : null,
-      zustand.logo ? "" : "Zuerst ein Logo wählen."));
+    const logoSatz = window.Texte.text("dossier.logo-statt-initialen", satz());
+    kacheln.push(kachel(Texte.t("Eigenes Logo"), MIT_LOGO, logoSatz, zustand.logo ? zeichenSvg(MIT_LOGO, initialen, f) : null,
+      zustand.logo ? "" : Texte.t("Zuerst ein Logo wählen.")));
     $("d-zeichen-liste").replaceChildren(...kacheln);
   }
 
@@ -143,10 +147,13 @@
 
   function zeigeFarben() {
     const haupt = Z.hauptfarbe(seiten.deckblatt);
-    const felder = [farbfeld("Passend zum Design", Z.PASSEND, haupt.farbe, `${haupt.name}, Farbe von ${Z.designName(seiten.deckblatt)}`),
+    const passend = Texte.t("{farbe}, Farbe von {design}", { farbe: haupt.name, design: Z.designName(seiten.deckblatt) });
+    const felder = [farbfeld(Texte.t("Passend zum Design"), Z.PASSEND, haupt.farbe, passend),
       ...Z.FARBEN.map(f => farbfeld(f.name, f.farbe, f.farbe))];
-    if (zustand.logo && zustand.logo.farbe) felder.push(farbfeld("Aus dem Logo", zustand.logo.farbe, zustand.logo.farbe, zustand.logo.farbe));
-    felder.push(farbfeld("Eigene Farbe", EIGENE, null));
+    if (zustand.logo && zustand.logo.farbe) {
+      felder.push(farbfeld(Texte.t("Aus dem Logo"), zustand.logo.farbe, zustand.logo.farbe, zustand.logo.farbe));
+    }
+    felder.push(farbfeld(Texte.t("Eigene Farbe"), EIGENE, null));
     $("d-akzent-liste").replaceChildren(...felder);
     if (Z.wirksameFarbe(zustand, seiten.deckblatt).quelle === "eigen") {
       $("d-eigene-farbe-teil").hidden = false;
@@ -158,11 +165,12 @@
     const logo = zustand.logo;
     $("d-logo-aktuell").hidden = !logo;
     $("d-logo-entfernen").hidden = !logo;
-    $("d-logo-waehlen").textContent = logo ? "Anderes Logo wählen" : "Logo wählen";
+    $("d-logo-waehlen").textContent = logo ? Texte.t("Anderes Logo wählen") : Texte.t("Logo wählen");
     if (logo) {
       $("d-logo-bild").src = logoAdresse();
-      const groesse = logo.vektor ? "Vektorgrafik" : `${logo.breite} × ${logo.hoehe} Pixel`;
-      $("d-logo-info").replaceChildren(...dotLine([du ? "Dein Logo" : "Ihr Logo", `${groesse}${logo.durchsichtig ? ", durchsichtig" : ""}`]));
+      const groesse = logo.vektor ? Texte.t("Vektorgrafik") : Texte.t("{breite} × {hoehe} Pixel", { breite: logo.breite, hoehe: logo.hoehe });
+      const art = logo.durchsichtig ? Texte.t("{groesse}, durchsichtig", { groesse }) : groesse;
+      $("d-logo-info").replaceChildren(...dotLine([window.Texte.text("lebenslauf.zeichen-logo", satz()), art]));
     }
     $("d-logo-hinweise").replaceChildren(...(logo ? logo.hinweise : []).map(h => el("li", {}, h)));
   }
@@ -171,7 +179,9 @@
     const design = seiten.deckblatt;
     $("d-vorschau").replaceChildren(vorschauSvg(design));
     $("d-vorschau").setAttribute("aria-label", Z.vorschauLabel(zustand, design, du));
-    $("d-vorschau-text").textContent = `Deckblatt und Folgeseite in ${Z.designName(design)}. Vereinfacht; das PDF entsteht mit «Unterlagen erstellen».`;
+    $("d-vorschau-text").textContent = Texte.t(
+      "Deckblatt und Folgeseite in {design}. Vereinfacht; das PDF entsteht mit «Unterlagen erstellen».",
+      { design: Z.designName(design) });
     const mini = vorschauSvg(design);
     mini.setAttribute("viewBox", "0 0 107 150");
     $("d-zeichen-mini").replaceChildren(mini);
@@ -194,14 +204,15 @@
       zeigeAlles();
       meldung(zustand.meldung, "ok");
     } catch (fehler) {
-      meldung(`Nicht gespeichert. ${fehler.message}`, "fehler", { input: window.Meldungen.isInputRejection(fehler) ? feld : null });
+      meldung(nichtGespeichert(fehler), "fehler", { input: window.Meldungen.isInputRejection(fehler) ? feld : null });
       zeigeAlles();
     }
   }
 
   function zeigePruefung(wert) {
     const pruefung = Z.pruefeFarbe(wert);
-    $("d-eigene-farbe-pruefung").textContent = pruefung.meldung + (pruefung.vorschlag ? ` Vorschlag ${pruefung.vorschlag}` : "");
+    $("d-eigene-farbe-pruefung").textContent = pruefung.vorschlag
+      ? Texte.t("{meldung} Vorschlag {farbe}", { meldung: pruefung.meldung, farbe: pruefung.vorschlag }) : pruefung.meldung;
     $("d-vorschlag").hidden = !pruefung.vorschlag;
     $("d-vorschlag").dataset.farbe = pruefung.vorschlag || "";
     $("d-eigene-farbe-speichern").disabled = !pruefung.ok;
@@ -233,7 +244,7 @@
     try {
       await speichere("/api/dossier/logo", { daten: await alsBase64(datei) });
     } catch (fehler) {
-      meldung(`Nicht gespeichert. ${fehler.message}`, "fehler");
+      meldung(nichtGespeichert(fehler), "fehler");
     }
   });
   $("d-logo-entfernen").addEventListener("click", () => speichere("/api/dossier/logo-entfernen", {}));
@@ -252,7 +263,7 @@
       try {
         zustand = await holen("/api/dossier/zeichen");
       } catch (fehler) {
-        meldung(`Zeichen und Farbe nicht lesbar: ${fehler.message}`, "fehler");
+        meldung(Texte.t("Zeichen und Farbe nicht lesbar: {fehler}", { fehler: fehler.message }), "fehler");
         return;
       }
     }

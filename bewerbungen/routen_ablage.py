@@ -8,6 +8,7 @@ from dateien import im_ordner
 import routes_own_files
 from routen_inhalte import pdf_aus_text
 from server import Antwort, json_antwort, pflicht
+from ui_message import T
 
 MAX_DRAFTS = 1000
 
@@ -23,7 +24,7 @@ def _limit(parameter) -> int | None:
     if value is None:
         return None
     if not value.isascii() or not value.isdigit() or not 1 <= int(value) <= MAX_DRAFTS:
-        raise ValueError(f"anzahl muss eine Zahl von 1 bis {MAX_DRAFTS} sein")
+        raise ValueError(T("anzahl muss eine Zahl von 1 bis {hoechstens} sein", hoechstens=MAX_DRAFTS))
     return int(value)
 
 
@@ -83,7 +84,7 @@ def entwurf_pdf(k, parameter, body):
     try:
         text = k.ablage.inhalt(e.id).decode("utf-8")
     except UnicodeDecodeError:
-        raise ValueError("Entwurf ist keine Textdatei") from None
+        raise ValueError(T("Entwurf ist keine Textdatei")) from None
     return pdf_aus_text(k, e.datei, text)
 
 

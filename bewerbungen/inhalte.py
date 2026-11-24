@@ -19,6 +19,7 @@ import photo_shown
 from dateien import relativ
 import textdokument
 from register import pruefe_bewerbung
+from ui_message import T
 from unterlagen import OWN_LETTER
 from varianten import pruefe_variante
 
@@ -68,7 +69,7 @@ def bearbeitbare_dateien(daten: pathlib.Path) -> list[str]:
 def pruefe_datei(daten: pathlib.Path, rel: str) -> pathlib.Path:
     """Nur Dateien nach MUSTER, nur innerhalb des Datenordners."""
     if not isinstance(rel, str) or rel.startswith("/") or not _erlaubt(rel):
-        raise ValueError(f"Datei {rel!r} ist nicht bearbeitbar")
+        raise ValueError(T("Datei {datei} ist nicht bearbeitbar", datei=repr(rel)))
     pfad = (daten / rel).resolve()
     relativ(pfad, daten)
     return pfad
@@ -78,13 +79,13 @@ def _yaml(text: str):
     try:
         return yaml.safe_load(text)
     except yaml.YAMLError as fehler:
-        raise ValueError(f"Kein gültiges YAML: {fehler}") from None
+        raise ValueError(T("Kein gültiges YAML: {fehler}", fehler=fehler)) from None
 
 
 def _lebenslauf_fuer_probebau(daten: pathlib.Path, cv: dict, build: pathlib.Path) -> pathlib.Path:
     """Lebenslauf in den Build-Ordner schreiben; das Foto mit absolutem Pfad, damit es gefunden wird."""
     if not isinstance(cv, dict) or not isinstance(cv.get("basics"), dict):
-        raise ValueError("Der Lebenslauf braucht einen Abschnitt basics")
+        raise ValueError(T("Der Lebenslauf braucht einen Abschnitt basics"))
     if not photo_shown.load(daten):
         cv = lebenslauf_modul.without_photo(cv)  # the preview as new documents will be (G62)
     bild = cv["basics"].get("image")
@@ -102,7 +103,7 @@ def _probebau(funktion, argumente: list[str]) -> None:
     except ValueError:
         raise
     except (typst.TypstError, KeyError, TypeError, AttributeError, IndexError) as fehler:
-        raise ValueError(f"Probebau fehlgeschlagen: {fehler}") from None
+        raise ValueError(T("Probebau fehlgeschlagen: {fehler}", fehler=fehler)) from None
 
 
 def _baue_lebenslauf(cv_pfad: pathlib.Path, job: pathlib.Path | None, build: pathlib.Path, design: str) -> pathlib.Path:
@@ -126,7 +127,7 @@ def pruefe_inhalt(daten: pathlib.Path, rel: str, text: str, build: pathlib.Path)
         return _baue_lebenslauf(_lebenslauf_fuer_probebau(daten, wert, build), None, build, cv_design.load(daten))
     if rel.startswith("jobs/"):
         if not isinstance(wert, dict):
-            raise ValueError("Ein Zuschnitt ist eine Zuordnung (tags, basics, …)")
+            raise ValueError(T("Ein Zuschnitt ist eine Zuordnung (tags, basics, …)"))
         job = build / "inhalt-probe" / "job.yaml"
         cv = _lebenslauf_fuer_probebau(daten, _yaml((daten / "cv.yaml").read_text(encoding="utf-8")), build)
         job.write_text(text, encoding="utf-8")
@@ -142,11 +143,11 @@ def pruefe_inhalt(daten: pathlib.Path, rel: str, text: str, build: pathlib.Path)
         return out
     if rel in ("bewerbungen.yaml", "varianten.yaml"):
         if not isinstance(wert, list):
-            raise ValueError(f"{rel} ist eine Liste von Einträgen")
+            raise ValueError(T("{datei} ist eine Liste von Einträgen", datei=rel))
         pruefen = pruefe_bewerbung if rel == "bewerbungen.yaml" else (lambda v: pruefe_variante(v, daten))
         ids = [pruefen(e)["id"] for e in wert]
         doppelt = sorted({i for i in ids if ids.count(i) > 1})
         if doppelt:
-            raise ValueError(f"IDs doppelt: {', '.join(doppelt)}")
+            raise ValueError(T("IDs doppelt: {ids}", ids=", ".join(doppelt)))
         return None
     return None
