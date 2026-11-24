@@ -20,6 +20,8 @@ from translation_catalog import FALLBACK, LANGUAGES, SET_PREFIX
 
 BASE = language_sources.BASE
 DESKTOP = BASE.parent / "desktop"
+ROOT = BASE.parent
+ONBOARDING = ROOT / "onboarding"
 # Files whose every text is in the catalog in fr and en; each item of #95 adds the files of its page, the last one
 # replaces the list with every source (Andy, 23.11.2026: after the switch, every new text needs fr and en).
 # Entries as BASE / "seiten/heute.html".
@@ -140,6 +142,11 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "routen_foto.py", BASE / "photo_file.py", BASE / "photos.py", BASE / "photo_shown.py", BASE / "routen_inhalte.py",
     BASE / "routes_chat.py", BASE / "ai/chat.py", BASE / "proof_kinds.py", BASE / "ablage.py", BASE / "versionen.py",
     BASE / "dateien.py",
+    # Meine Angaben, the form (#431): the page around it, built from onboarding/src/template.html, the texts of
+    # form.json and the T the scripts say them through. The scripts with their own words, the steps and checks
+    # (app.js, steps.js, dom.js, validate.js), follow with #432, the documents and the prefill with #433.
+    # Under ROOT, so that the guide's check of the data folder sees form.json as part of the app.
+    BASE / "seiten/angaben.html", ROOT / "onboarding/form.json", ROOT / "onboarding/src/words.js",
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
@@ -246,10 +253,12 @@ def orphans(catalog: translation_catalog.Catalog, items: Iterable[language_sourc
 
 
 def app_sources() -> tuple[pathlib.Path, ...]:
-    """The pages, scripts and modules of bewerbungen, the routes the desktop app adds to them (#417), and the folder
-    check and system dialogs whose texts the setup routes pass on (#418)."""
+    """The pages, scripts and modules of bewerbungen, the routes the desktop app adds to them (#417), the folder
+    check and system dialogs whose texts the setup routes pass on (#418), and the form and scripts Meine Angaben is
+    built from (#431)."""
     patterns = ((BASE, "seiten/*.html"), (BASE, "seiten/*.js"), (BASE, "*.py"), (BASE, "ai/*.py"),
-                (DESKTOP, "routes_*.py"), (DESKTOP, "setup.py"), (DESKTOP, "dialogs.py"))
+                (DESKTOP, "routes_*.py"), (DESKTOP, "setup.py"), (DESKTOP, "dialogs.py"),
+                (ONBOARDING, "form.json"), (ONBOARDING, "src/*.js"))
     return tuple(path for folder, pattern in patterns for path in sorted(folder.glob(pattern)))
 
 
