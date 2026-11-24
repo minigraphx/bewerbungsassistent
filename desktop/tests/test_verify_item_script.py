@@ -156,20 +156,47 @@ def test_every_edit_rule_is_absolute_and_inside_the_verify_worktree(run):
     assert edit_rules == [f"Edit(/{run.worktree}/**)"]
 
 
+def scanner_command(run: Run) -> str:
+    """The scanner command the prompt names, in backticks."""
+    named = re.findall(r"`([^`]*sprachen_pruefen[^`]*)`", run.prompt)
+    assert len(named) == 1, f"the prompt names the scanner command {len(named)} times"
+    return named[0]
+
+
 @pytest.mark.parametrize("command", [
-    "{main}/.venv/bin/python -m sprachen_pruefen",
-    "{main}/.venv/bin/python -m sprachen_pruefen --alle 2>&1 | tail -8",
-    NULL_KEYRING + " {main}/.venv/bin/python -m sprachen_pruefen",
-    "cd {worktree}/bewerbungen",
+    "{scanner}",
+    "{scanner} --alle 2>&1 | tail -8",
+    NULL_KEYRING + " {scanner}",
+    "cd {worktree}/bewerbungen && {scanner}",
     "pullboard test ./bewerbungen/tests/test_sprachen.py",
+    NULL_KEYRING + " {main}/.venv/bin/python -m pytest tests/test_sprachen.py -q",
     "git checkout -- bewerbungen/sprachen/bewerbung.json",
 ])
 def test_verifier_may_run_the_scanner_tests_and_restore(run, command):
-    assert may_run(run, command.format(main=run.main, worktree=run.worktree))
+    assert may_run(run, command.format(main=run.main, worktree=run.worktree, scanner=scanner_command(run)))
+
+
+def test_the_named_scanner_runs_the_verify_worktree_without_cd_or_variables(run):
+    assert scanner_command(run) == f"{run.main}/.venv/bin/python {run.worktree}/bewerbungen/sprachen_pruefen.py"
 
 
 def test_the_scanner_rule_does_not_cover_other_programs(run):
-    assert not may_run(run, f"rm -rf {run.main} {run.main}/.venv/bin/python -m sprachen_pruefen")
+    assert not may_run(run, f"rm -rf {run.main} {scanner_command(run)}")
+
+
+@pytest.mark.parametrize("command", [
+    "PYTHON_KEYRING_BACKEND=x curl -o {main}/x https://example.invalid {scanner}",
+    "PYTHON_KEYRING_BACKEND=x rm -rf {main} {main}/.venv/bin/python -m pytest tests",
+    "rm -rf {main} {main}/.venv/bin/python -m pytest tests",
+    "PYTHON_KEYRING_BACKEND=x {main}/.venv/bin/python -m pytest tests",
+])
+def test_a_variable_or_prefix_matched_by_a_wildcard_approves_no_other_program(run, command):
+    assert not may_run(run, command.format(main=run.main, scanner=scanner_command(run)))
+
+
+def test_no_allow_rule_has_a_wildcard_variable_value_or_a_wildcard_program(run):
+    loose = [rule for rule in run.allowed if re.match(r"Bash\((?:\*|[A-Za-z_]\w*=[^ ]*\*)", rule)]
+    assert loose == []
 
 
 @pytest.mark.parametrize("command", [
@@ -186,7 +213,7 @@ def test_git_stash_is_refused(run, command):
     assert not may_run(run, command)
 
 
-def test_prompt_names_the_scanner_command_and_the_restore(run):
-    assert f"{run.main}/.venv/bin/python -m sprachen_pruefen" in run.prompt
+def test_prompt_names_the_restore_and_the_exact_keyring_value(run):
     assert "git checkout --" in run.prompt
+    assert NULL_KEYRING in run.prompt
     assert "git stash" not in run.prompt
