@@ -17,6 +17,9 @@
     $("nischen-titel").hidden = !nischen;
     $("nischen-text").hidden = !nischen;
     $("nischen-text").textContent = nischen;
+    // G125: the switch under Erweitert only where the niches are bound to the cantons
+    $("nischen-remote").hidden = !anzeige.nischenSchalter(daten.region, lehrstelle);
+    $("nischen-remote-schalter").checked = !daten.region || daten.region.nischen_remote !== false;
     $("pensum-titel").hidden = lehrstelle;
     $("pensum-text").hidden = lehrstelle;
     $("pensum-text").textContent = rahmen.pensum || nichts();
@@ -127,6 +130,20 @@
     });
   }
 
+  /** G125: the line in the search profile, written through the card route; the page then reads its texts anew. */
+  async function nischenRemote(event) {
+    const schalter = event.target;
+    const zeile = $("nischen-remote-meldung");
+    try {
+      await senden("/api/suche/rahmen", { nischen_remote: schalter.checked });
+      status(zeile, window.Texte.t("Gespeichert. Gilt ab der nächsten Suche."), "ok");
+      document.dispatchEvent(new CustomEvent("suchprofil-geaendert"));
+    } catch (fehler) {
+      schalter.checked = !schalter.checked;
+      status(zeile, window.Texte.t("Nicht gespeichert. {fehler}", { fehler: fehler.message }), "fehler");
+    }
+  }
+
   async function textAnsehen() {
     try {
       const { text } = await holen("/api/suchbegriffe/text");
@@ -149,6 +166,7 @@
   });
   schalter("auto-bewerten", "auto_bewerten");
   schalter("zuschauen", "zuschauen");
+  $("nischen-remote-schalter").addEventListener("change", nischenRemote);
   $("ki-text-ansehen").addEventListener("click", textAnsehen);
   $("ki-text-schliessen").addEventListener("click", () => $("ki-text").close());
   document.addEventListener("suchprofil-geaendert", lade);

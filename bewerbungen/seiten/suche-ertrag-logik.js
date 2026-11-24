@@ -73,28 +73,37 @@
       : Texte.t("„{begriff}“: {anzahl} Treffer", werte);
   }
 
-  /** What outside the region means, in the person's form of address (G111). */
-  const ausserhalbSatz = (satz, du) => (du
-    ? Texte.t("{satz} „Ausserhalb der Region“: Die Stelle liegt ausserhalb deiner Kantone und Orte, und das Inserat nennt kein Remote.", { satz })
-    : Texte.t("{satz} „Ausserhalb der Region“: Die Stelle liegt ausserhalb Ihrer Kantone und Orte, und das Inserat nennt kein Remote.", { satz }));
+  /** What outside the region means, in the person's form of address (G111); without remote work when a remote mention
+   * does not keep a niche hit (G125, `remote` false). */
+  function ausserhalbSatz(satz, du, remote) {
+    if (!remote) {
+      return du ? Texte.t("{satz} „Ausserhalb der Region“: Die Stelle liegt ausserhalb deiner Kantone und Orte.", { satz })
+        : Texte.t("{satz} „Ausserhalb der Region“: Die Stelle liegt ausserhalb Ihrer Kantone und Orte.", { satz });
+    }
+    return du
+      ? Texte.t("{satz} „Ausserhalb der Region“: Die Stelle liegt ausserhalb deiner Kantone und Orte, und das Inserat nennt kein Remote.", { satz })
+      : Texte.t("{satz} „Ausserhalb der Region“: Die Stelle liegt ausserhalb Ihrer Kantone und Orte, und das Inserat nennt kein Remote.", { satz });
+  }
 
   /** The first line of «Was die Orte bringen»: where the numbers come from and what a place-less search is; with
-   * `ausserhalb` (a niche hit lay outside the region, G111) also what that means. */
-  function ortHinweis(laeufe, ausserhalb = false, du = false) {
+   * `ausserhalb` (a niche hit lay outside the region, G111) also what that means, after `remote` (G125). */
+  function ortHinweis(laeufe, ausserhalb = false, du = false, remote = true) {
     const satz = laeufe === 1
       ? Texte.t("Aus dem letzten Suchlauf, gezählt wie bei den Suchbegriffen. „Ohne Ort“ sind Suchen ohne Ortsangabe, etwa für die Nischen.")
       : Texte.t("Aus den letzten {anzahl} Suchläufen, gezählt wie bei den Suchbegriffen. „Ohne Ort“ sind Suchen ohne Ortsangabe, etwa für die Nischen.", { anzahl: laeufe });
-    return ausserhalb ? ausserhalbSatz(satz, du) : satz;
+    return ausserhalb ? ausserhalbSatz(satz, du, remote) : satz;
   }
 
   const MAX_ORTE_AUSSERHALB = 3;
 
-  /** The caption under the niche row (G111): where its hits outside the region lay, at most three places; '' without. */
-  function ausserhalbOrte(eintrag) {
+  /** The caption under the niche row (G111): where its hits outside the region lay, at most three places; '' without.
+   * `remote` false (G125): a remote mention did not keep them, so the caption does not speak of it. */
+  function ausserhalbOrte(eintrag, remote = true) {
     const orte = ((eintrag && eintrag.ausserhalb_orte) || []).slice(0, MAX_ORTE_AUSSERHALB).map(o => `${o.ort} ${o.anzahl}`);
     if (!orte.length) return "";
     const rest = eintrag.ausserhalb_andere > 0 ? [andere(eintrag.ausserhalb_andere)] : [];
-    return Texte.t("Ausserhalb der Region, ohne Remote: {orte}", { orte: [...orte, ...rest].join(", ") });
+    const werte = { orte: [...orte, ...rest].join(", ") };
+    return remote ? Texte.t("Ausserhalb der Region, ohne Remote: {orte}", werte) : Texte.t("Ausserhalb der Region: {orte}", werte);
   }
 
   /** Hits from runs before the app kept the query; '' when there are none. */

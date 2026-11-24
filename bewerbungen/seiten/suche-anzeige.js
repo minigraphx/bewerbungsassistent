@@ -42,19 +42,30 @@
     return orte.length ? Texte.t("ganze Schweiz, nahe {ort} zuerst", { ort: orte[0] }) : Texte.t("ganze Schweiz");
   }
 
+  /** Whether the niches are bound to chosen cantons: a job search with niches and cantons (G111). */
+  const nischenInRegion = (region, lehrstelle) => Boolean(!lehrstelle && region && region.nischen
+    && Array.isArray(region.kantone) && region.kantone.length && !region.schweizweit);
+
   /**
    * The row «Nischen» of the region card (G111, #387): niches run without a place, and with chosen cantons only hits in
-   * them, at the person's places or with remote work stay. "" without niches or for an apprenticeship: no row.
+   * them, at the person's places or with remote work stay; without remote work when the switch under Erweitert is off
+   * (G125, `region.nischen_remote` false). "" without niches or for an apprenticeship: no row.
    */
   function nischenText(region, lehrstelle, du = false) {
     if (lehrstelle || !region || !region.nischen) return "";
     const Texte = texts();
-    const kantone = Array.isArray(region.kantone) ? region.kantone : [];
-    if (!kantone.length || region.schweizweit) return Texte.t("Ohne Ort gesucht, in der ganzen Schweiz.");
-    const werte = { kantone: aufzaehlung(kantone) };
+    if (!nischenInRegion(region, lehrstelle)) return Texte.t("Ohne Ort gesucht, in der ganzen Schweiz.");
+    const werte = { kantone: aufzaehlung(region.kantone) };
+    if (region.nischen_remote === false) {
+      return du ? Texte.t("Ohne Ort gesucht. Behalten werden Stellen in {kantone} und an deinen Orten.", werte)
+        : Texte.t("Ohne Ort gesucht. Behalten werden Stellen in {kantone} und an Ihren Orten.", werte);
+    }
     return du ? Texte.t("Ohne Ort gesucht. Behalten werden Stellen in {kantone}, an deinen Orten oder mit Remote.", werte)
       : Texte.t("Ohne Ort gesucht. Behalten werden Stellen in {kantone}, an Ihren Orten oder mit Remote.", werte);
   }
+
+  /** G125: the switch for remote niche hits shows where the Nischen row speaks of the cantons. */
+  const nischenSchalter = (region, lehrstelle) => nischenInRegion(region, lehrstelle);
 
   /** „1 Portal“ or „3 Portale“. */
   const portaleText = anzahl => (anzahl === 1 ? Texte.t("1 Portal") : Texte.t("{anzahl} Portale", { anzahl }));
@@ -145,7 +156,7 @@
 
   // OHNE_ERWEITERUNG and NOCH_NICHT are read when they are shown, so they follow the app language.
   const anzeige = { get OHNE_ERWEITERUNG() { return ohneErweiterung(); }, get NOCH_NICHT() { return nochNicht(); },
-    zusammenfassung, regionText, nischenText, sperrgrund, leer, letzteSuche, trefferZahl, problemZeile, zeitfensterWahl, portalStand };
+    zusammenfassung, regionText, nischenText, nischenSchalter, sperrgrund, leer, letzteSuche, trefferZahl, problemZeile, zeitfensterWahl, portalStand };
   if (typeof module !== "undefined") module.exports = anzeige;
   else global.SucheAnzeige = anzeige;
 })(typeof window !== "undefined" ? window : globalThis);

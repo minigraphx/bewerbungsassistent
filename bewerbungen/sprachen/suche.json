@@ -163,6 +163,14 @@
     "fr": "Recherche sans lieu. Sont conservées les offres dans {kantone}, dans tes localités ou en télétravail.",
     "en": "Searched without a place. Jobs in {kantone}, in your places or with remote work are kept."
   },
+  "Ohne Ort gesucht. Behalten werden Stellen in {kantone} und an Ihren Orten.": {
+    "fr": "Recherche sans lieu. Sont conservées les offres dans {kantone} et dans vos localités.",
+    "en": "Searched without a place. Jobs in {kantone} and in your places are kept."
+  },
+  "Ohne Ort gesucht. Behalten werden Stellen in {kantone} und an deinen Orten.": {
+    "fr": "Recherche sans lieu. Sont conservées les offres dans {kantone} et dans tes localités.",
+    "en": "Searched without a place. Jobs in {kantone} and in your places are kept."
+  },
   "1 Portal": {"fr": "1 portail", "en": "1 portal"},
   "{anzahl} Portale": {"fr": "{anzahl} portails", "en": "{anzahl} portals"},
   "Keine neuen Treffer": {"fr": "Aucun nouveau résultat", "en": "No new results"},

@@ -92,7 +92,7 @@ def _note_screened(log: QueryLog, hit: dict, reason: str) -> None:
     are counted apart."""
     if reason == required_words.REASON:
         log.note_unrelated(hit.get(QUERIES, []), hit["stelle"])
-    elif reason == niche_region.REASON:
+    elif reason in niche_region.REASONS:  # G125: with the remote switch off or on
         log.note_outside(hit.get(QUERIES, []), hit.get("ort", ""))
     else:
         log.note_screened(hit.get(QUERIES, []), hit["stelle"], reason)
@@ -256,7 +256,8 @@ def with_suspects(hit: dict, stages: dict[str, str | None]) -> dict:
 def _region(profile: search_plan.SearchPlan) -> dict:
     """Where the search looks, for the one line that sums up the settings (#220)."""
     return {"kantone": list(profile.cantons), "orte": list(profile.places), "umkreis_km": profile.radius_km,
-            "schweizweit": profile.nationwide, "nischen": len(profile.niche_keywords)}  # G111: the card says what niches keep
+            # G111, G125: the card says what niches keep, and whether a remote mention counts
+            "schweizweit": profile.nationwide, "nischen": len(profile.niche_keywords), "nischen_remote": profile.niche_remote_kept}
 
 
 def text(k, parameter, body):

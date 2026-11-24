@@ -91,6 +91,15 @@
     "en": "Rate new results automatically after the search"
   },
   "Im sichtbaren Tab suchen": {"fr": "Chercher dans l'onglet visible", "en": "Search in the visible tab"},
+  "Nischen mit Remote": {"fr": "Niches en télétravail", "en": "Remote niches"},
+  "Nischen-Treffer ausserhalb der Region behalten, wenn das Inserat Remote nennt": {
+    "fr": "Garder les résultats de niche hors région quand l'annonce mentionne le télétravail",
+    "en": "Keep niche hits outside the region when the ad mentions remote work"
+  },
+  "Gilt auch, wenn das Suchprofil Remote ausschliesst. Ist der Schalter aus, sortiert die App sie aus wie andere Treffer ausserhalb der Region.": {
+    "fr": "S'applique aussi quand le profil de recherche exclut le télétravail. Désactivé, l'app les écarte comme les autres résultats hors région.",
+    "en": "Applies even when the search profile rules out remote work. When off, the app sorts them out like other hits outside the region."
+  },
   "Text an die KI": {"fr": "Texte envoyé à l'IA", "en": "Text sent to the AI"},
   "So geht der Text an die KI. Platzhalter wie {{NAME}} setzt die App erst wieder ein, wenn die Antwort zurückkommt.": {
     "fr": "Voici le texte tel qu'il est envoyé à l'IA. L'app ne remet les substituts comme {{NAME}} en place qu'au retour de la réponse.",
@@ -413,6 +422,11 @@
   "Nichts zu ändern.": {"fr": "Rien à modifier.", "en": "Nothing to change."},
   "Bitte {name} angeben.": {"fr": "Merci d'indiquer {name}.", "en": "Please give {name}."},
   "{name}: bitte als Liste senden.": {"fr": "{name}\u00a0: merci d'envoyer une liste.", "en": "{name}: please send as a list."},
+  "{name}: bitte ein- oder ausschalten.": {"fr": "{name}\u00a0: merci d'activer ou de d\u00e9sactiver.", "en": "{name}: please switch on or off."},
+  "Ohne Auswahl sucht die App in der ganzen Schweiz, Stellen nahe dem Wohnort zuerst. Nischen sucht die App ohne Ort; Stellen ausserhalb dieser Kantone beh\u00e4lt sie nicht.": {
+    "fr": "Sans choix, l'app cherche dans toute la Suisse, les offres proches du domicile en premier. L'app cherche les niches sans lieu\u00a0; elle ne garde pas les offres hors de ces cantons.",
+    "en": "Without a choice the app searches all of Switzerland, jobs near the place of residence first. The app searches niches without a place; it does not keep jobs outside these cantons."
+  },
   "Unbekannter Kanton: {value}.": {"fr": "Canton inconnu\u00a0: {value}.", "en": "Unknown canton: {value}."},
   "{name}: höchstens {limit} Begriffe.": {"fr": "{name}\u00a0: {limit} termes au plus.", "en": "{name}: at most {limit} terms."},
   "Umkreis: erlaubt sind {min} bis {max} km.": {"fr": "Rayon\u00a0: {min} à {max} km sont possibles.", "en": "Radius: {min} to {max} km are allowed."},
