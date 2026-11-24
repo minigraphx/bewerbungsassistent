@@ -39,6 +39,7 @@ from dateien import im_ordner, schreibe_atomar
 from entwurf import sichere
 from rejected import ExistingFiles, ImportRejected
 from text_diff import line_diff
+from ui_message import T
 
 __all__ = ["ExistingFiles", "ImportRejected", "ImportResult", "MarkdownChoice", "import_answers", "import_file",
            "main", "read_bundle"]
@@ -46,10 +47,10 @@ __all__ = ["ExistingFiles", "ImportRejected", "ImportResult", "MarkdownChoice", 
 MAX_BYTES = 1_000_000
 DRAFT_BEFORE = "Vor dem Import der Einstiegsdatei"
 DRAFT_AFTER = "Import der Einstiegsdatei"
-NOT_A_BUNDLE = "Die Datei ist keine gültige Einstiegsdatei (JSON)."
+NOT_A_BUNDLE = T("Die Datei ist keine gültige Einstiegsdatei (JSON).")
 CV = "cv.yaml"
-MARKDOWN_TITLES = {"suchprofil.md": "Suchprofil", "anschreiben/stil.md": "Stilprofil",
-                   "anschreiben/bausteine.md": "Bausteine"}
+MARKDOWN_TITLES = {"suchprofil.md": T("Suchprofil"), "anschreiben/stil.md": T("Stilprofil"),
+                   "anschreiben/bausteine.md": T("Bausteine")}
 MARKDOWN = tuple(rel for rel in convert.BASICS if rel != CV)
 CHOOSE_PER_FILE = ("Diese Dateien gibt es schon: {files}. Pro Datei wählen, ob sie bleibt oder ersetzt wird; "
                    "der alte Stand bleibt als Entwurf erhalten.")
@@ -76,9 +77,10 @@ def read_bundle(path: pathlib.Path) -> object:
     try:
         size = path.stat().st_size
     except OSError as exc:
-        raise ImportRejected([f"Die Datei {path} lässt sich nicht lesen ({exc.strerror})."]) from exc
+        raise ImportRejected([T("Die Datei {pfad} lässt sich nicht lesen ({grund}).", pfad=path,
+                                grund=exc.strerror)]) from exc
     if size > MAX_BYTES:
-        raise ImportRejected([f"Die Datei ist zu gross (höchstens {MAX_BYTES // 1000} KB)."])
+        raise ImportRejected([T("Die Datei ist zu gross (höchstens {kb} KB).", kb=MAX_BYTES // 1000)])
     return _parse(path.read_bytes())
 
 
@@ -111,7 +113,7 @@ def import_answers(data_dir: pathlib.Path, bundle: object, today: datetime.date,
     `base` is what the page read back from the Markdown files; with it they merge instead of being replaced."""
     raw = json.dumps(bundle, ensure_ascii=False, indent=2).encode("utf-8", "surrogatepass")
     if len(raw) > MAX_BYTES:
-        raise ImportRejected([f"Die Angaben sind zu gross (höchstens {MAX_BYTES // 1000} KB)."])
+        raise ImportRejected([T("Die Angaben sind zu gross (höchstens {kb} KB).", kb=MAX_BYTES // 1000)])
     has_documents = bool(import_documents.pending_documents(data_dir.resolve()))
     return _import(validation.load_form(), bundle, raw, (), has_documents, data_dir, today, force, choice, base)
 
@@ -190,8 +192,8 @@ def _write_basics(form: dict, bundle: dict, data_dir: pathlib.Path, today: datet
         existing = [rel for rel in existing if rel not in not_replaced]
         kept = kept if search_plan.PROFILE in encoded else ()
     elif existing and not force:
-        raise ImportRejected([f"Diese Dateien gibt es schon: {', '.join(existing)}. "
-                              "Zum Ersetzen mit --force aufrufen; der alte Stand bleibt als Entwurf erhalten."])
+        raise ImportRejected([T("Diese Dateien gibt es schon: {files}. Zum Ersetzen mit --force aufrufen; der alte "
+                                "Stand bleibt als Entwurf erhalten.", files=", ".join(existing))])
     else:
         not_replaced = ()
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -208,7 +210,7 @@ def _not_replaced(choice: MarkdownChoice, existing: list[str], merged: dict[str,
     """The existing Markdown files that stay as they are; without a choice they are refused with their diffs."""
     present = [rel for rel in existing if rel in MARKDOWN]
     if choice.replace is None and present:
-        raise ExistingFiles([CHOOSE_PER_FILE.format(files=", ".join(present))],
+        raise ExistingFiles([T(CHOOSE_PER_FILE, files=", ".join(present))],
                             [_file_diff(rel, merged[rel], data_dir) for rel in present])
     return tuple(rel for rel in present if rel not in (choice.replace or frozenset()))
 
@@ -223,7 +225,7 @@ def _encode(files: dict[str, str]) -> dict[str, bytes]:
     try:
         return {rel: content.encode("utf-8") for rel, content in files.items()}
     except UnicodeEncodeError as exc:
-        raise ImportRejected(["Die Datei enthält ungültige Zeichen (z.B. aus einer Bearbeitung von Hand)."]) from exc
+        raise ImportRejected([T("Die Datei enthält ungültige Zeichen (z.B. aus einer Bearbeitung von Hand).")]) from exc
 
 
 def main(argv: list[str] | None = None) -> int:

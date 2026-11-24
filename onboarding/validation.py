@@ -21,6 +21,9 @@ import math
 import pathlib
 import re
 
+import paths  # noqa: F401  (makes the module bewerbungen importable)
+from ui_message import Label, T, joined
+
 ASCII_INDEX = re.compile(r"[0-9]+")
 FORM_PATH = pathlib.Path(__file__).resolve().parent / "form.json"
 FIELD_TYPES = frozenset({"text", "textarea", "list", "select", "choice", "tags"})
@@ -345,7 +348,7 @@ def _is_before(end, start) -> bool:
     return end[:common] < start[:common]
 
 
-LINE, TAG, TAGS_NAME = "Zeile", "Tag", "Tags"
+LINE, TAG, TAGS_NAME = "Zeile {nummer}", "Tag {nummer}", "Tags"
 
 MESSAGES = {
     "required": "Bitte ausfüllen.",
@@ -363,21 +366,22 @@ MESSAGES = {
 
 
 def describe(form: dict, track: str, error: ValidationError) -> str:
-    """German message for people: where (section, item, field) and what is wrong."""
+    """Message for people: where (section, item, field) and what is wrong; German, and a T for the app language."""
     where, field = _locate(form, track, error.path)
     params = {"max": "?", "maxItems": "?", "example": "?"}
     if field:
         params["max"] = field.get("max", form["limits"]["textarea" if field["type"] == "textarea" else "text"])
         params["maxItems"] = field.get("maxItems", form["limits"]["listItems"])
         if field.get("format"):
-            params["example"] = form["formats"][field["format"]]["example"]
+            params["example"] = T(form["formats"][field["format"]]["example"])  # an example in words (… oder …)
     elif where:
         section = next((s for s in form["sections"] if s["id"] == error.path.split(".")[0]), None)
         if section:
             params["maxItems"] = section.get("maxItems", form["limits"]["repeatItems"])
     own = (field or {}).get("messages", {})  # a field may say it in its own words, as the search does (#291)
-    text = own.get(error.code) or MESSAGES.get(error.code, error.code).format(**params)
-    return f"{where}: {text}" if where else text
+    text = T(own[error.code]) if own.get(error.code) else (
+        T(MESSAGES[error.code], **params) if error.code in MESSAGES else error.code)
+    return T("{wo}: {meldung}", wo=where, meldung=text) if where else text
 
 
 def _locate(form: dict, track: str, path: str) -> tuple[str, dict | None]:
@@ -386,28 +390,29 @@ def _locate(form: dict, track: str, path: str) -> tuple[str, dict | None]:
     section = next((s for s in form["sections"] if parts and s["id"] == parts[0]), None)
     if section is None:
         return "", None
-    names = [for_track(section["title"], track) or section["id"]]
+    title = for_track(section["title"], track)
+    names = [T(title) if title else section["id"]]
     rest = parts[1:]
     if section.get("repeat") and rest and ASCII_INDEX.fullmatch(rest[0]):
-        names.append(f"{for_track(section['itemTitle'], track)} {int(rest[0]) + 1}")
+        names.append(T("{titel} {nummer}", titel=T(for_track(section["itemTitle"], track)), nummer=int(rest[0]) + 1))
         rest = rest[1:]
     field = next((f for f in section["fields"] if rest and f["id"] == rest[0]), None)
     if field:
-        label = for_track(field["label"], track) or field["id"]
-        names.append(label.split(" (")[0])
+        label = for_track(field["label"], track)
+        names.append(Label(label) if label else field["id"])
         below, in_tags = _line_names(rest[1:], TAG if field["type"] == "tags" else LINE)
         names += below
         if field["type"] == "tags" or in_tags:
             field = tag_rules(form)
-    return ", ".join(names), field
+    return joined(names, ", "), field
 
 
 def _line_names(rest: list[str], unit: str) -> tuple[list[str], bool]:
     """Names below a field, the line ("Zeile 2") and on a line its tags ("Tags, Tag 1"); True if it reaches tags."""
     if not rest or not ASCII_INDEX.fullmatch(rest[0]):
         return [], False
-    line = f"{unit} {int(rest[0]) + 1}"
+    line = T(unit, nummer=int(rest[0]) + 1)
     if len(rest) < 2 or rest[1] != "tags":
         return [line], False
     tag, _ = _line_names(rest[2:3], TAG)
-    return [line, TAGS_NAME, *tag], True
+    return [line, T(TAGS_NAME), *tag], True

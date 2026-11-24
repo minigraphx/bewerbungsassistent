@@ -10,7 +10,10 @@ function load(fetchStub) {
     document: { querySelector: () => ({ content: "geheim" }) },
     fetch: fetchStub, btoa, URLSearchParams, Error, String, JSON,
   });
-  vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/appbackend.js"), "utf8"), context);
+  // words.js comes first, as in the built page: appbackend.js says its message through T (#433).
+  for (const name of ["words.js", "appbackend.js"]) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "../src", name), "utf8"), context);
+  }
   return context;
 }
 

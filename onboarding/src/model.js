@@ -16,7 +16,11 @@
 // level { text: { de, en }, level }.
 "use strict";
 
-/** A loaded file that is no bundle of this form; the message is German and shown as is. */
+// On the page words.js comes first and T is its T; required alone (tests, tools), model.js takes it from there and
+// stays German (#433). A var, because the pages inline every script into one, where a const would clash.
+var T = typeof module !== "undefined" && typeof require === "function" ? require("./words.js").T : T;
+
+/** A loaded file that is no bundle of this form; the message is in the app language and shown as is. */
 class BundleError extends Error {}
 
 const isPlainObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -199,11 +203,11 @@ function isBlankItem(item) {
   return Object.values(item).every((v) => (Array.isArray(v) ? !v.some(hasContent) : !hasContent(v)));
 }
 
-/** State from a loaded file; throws an Error with a German message if it is no bundle of this form. */
+/** State from a loaded file; throws a BundleError if it is no bundle of this form. */
 function stateFromBundle(form, bundle) {
   const ok = isPlainObject(bundle) && bundle.format === form.format && bundle.version === form.version
     && typeof bundle.track === "string" && Object.prototype.hasOwnProperty.call(form.tracks, bundle.track);
-  if (!ok) throw new BundleError("Die Datei ist keine Einstiegsdatei dieser Vorlage.");
+  if (!ok) throw new BundleError(T("Die Datei ist keine Einstiegsdatei dieser Vorlage."));
   return { track: bundle.track, data: cleanData(form, bundle.track, bundle.data, false) };
 }
 

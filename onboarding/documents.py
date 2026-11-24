@@ -6,6 +6,8 @@ only a file name (no folders), the category is one of the folders under `dokumen
 """
 import re
 
+import paths  # noqa: F401  (makes the module bewerbungen importable)
+from ui_message import T, joined, listing
 from validation import ValidationError, for_track
 
 CATEGORY_ID = re.compile(r"[a-z0-9-]+")
@@ -37,10 +39,9 @@ def allowed_extensions(form: dict, category: dict) -> list[str]:
 
 
 def allowed_text(form: dict, category: dict) -> str:
-    """German list of the accepted file types, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“."""
+    """List of the accepted file types, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“, a T for the app."""
     types = form["documents"]["fileTypes"]
-    labels = [label for t in category["fileTypes"] for label in types[t]["labels"]]
-    return labels[0] if len(labels) == 1 else f"{', '.join(labels[:-1])} und {labels[-1]}"
+    return listing([T(label) for t in category["fileTypes"] for label in types[t]["labels"]])
 
 
 def validate_documents(form: dict, entries) -> list[ValidationError]:
@@ -89,7 +90,7 @@ def _entry_error(form: dict, known: dict, entry, seen: set) -> str | None:
 
 
 def describe(form: dict, track: str, entries: list, error: ValidationError) -> str:
-    """German message: category and file name, then what is wrong."""
+    """Message: category and file name, then what is wrong; German, and a T for the app language."""
     rules = form["documents"]
     known = categories(form)
     parts = error.path.split(".")
@@ -99,14 +100,14 @@ def describe(form: dict, track: str, entries: list, error: ValidationError) -> s
     if len(parts) == 2 and parts[1] in known:
         category = known[parts[1]]
         params["maxFiles"] = category["maxFiles"]
-        where = for_track(category["title"], track)
+        where = T(for_track(category["title"], track))
     elif len(parts) == 2 and parts[1].isascii() and parts[1].isdigit() and int(parts[1]) < len(entries):
         entry = entries[int(parts[1])]
         if isinstance(entry, dict):
             category = known.get(entry.get("category")) if isinstance(entry.get("category"), str) else None
             if category:
                 params["allowed"] = allowed_text(form, category)
-            names = [for_track(category["title"], track) if category else "", entry.get("name")]
-            where = ", ".join(str(n) for n in names if isinstance(n, str) and n)
-    text = MESSAGES.get(error.code, error.code).format(**params)
-    return f"{where}: {text}" if where else text
+            names = [T(for_track(category["title"], track)) if category else "", entry.get("name")]
+            where = joined([n for n in names if isinstance(n, str) and n], ", ")
+    text = T(MESSAGES[error.code], **params) if error.code in MESSAGES else error.code
+    return T("{wo}: {meldung}", wo=where, meldung=text) if where else text

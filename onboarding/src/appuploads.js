@@ -58,7 +58,7 @@ async function sendDropped(chosen) {
     try {
       data = new Uint8Array(await chosen[entry.index].arrayBuffer());
     } catch (error) {
-      problems.push(`${entry.name}: ${DROP_WORDS.unreadable}`);
+      problems.push(fileMessage(entry.name, DROP_WORDS.unreadable()));
       continue;
     }
     try {
@@ -70,7 +70,7 @@ async function sendDropped(chosen) {
         added.push(stored);
       }
     } catch (error) {
-      problems.push(`${entry.name}: ${error.message}`);
+      problems.push(fileMessage(entry.name, error.message));
     }
   }
   setUploads(list, problems);

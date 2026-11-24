@@ -5,13 +5,14 @@
 
 const KEEP = "keep";
 const REPLACE = "replace";
+// Said when they are shown, so they follow the app language (#433).
 const REPLACE_TEXT = {
-  intro: "Pro Datei wählen, ob sie bleibt oder durch die neuen Angaben ersetzt wird. Der Lebenslauf (cv.yaml) nimmt die Angaben in jedem Fall auf.",
-  keep: "Behalten",
-  replace: "Ersetzen",
-  diff: "Unterschiede zum bisherigen Stand: Zeilen mit − fallen weg, Zeilen mit + kommen dazu.",
-  same: "Kein Unterschied zum bisherigen Stand.",
-  gap: "…",
+  intro: () => T("Pro Datei wählen, ob sie bleibt oder durch die neuen Angaben ersetzt wird. Der Lebenslauf (cv.yaml) nimmt die Angaben in jedem Fall auf."),
+  keep: () => T("Behalten"),
+  replace: () => T("Ersetzen"),
+  diff: () => T("Unterschiede zum bisherigen Stand: Zeilen mit − fallen weg, Zeilen mit + kommen dazu."),
+  same: () => T("Kein Unterschied zum bisherigen Stand."),
+  gap: () => "…",
 };
 const DIFF_MARKS = { gleich: "  ", weg: "− ", neu: "+ " };
 
@@ -29,7 +30,7 @@ function chosenReplacements(choices) {
  * differences in place, so the focus stays on the option. */
 function replaceChoiceView({ changes, choices, onChoose }) {
   return el("div", { className: "replace-choice" }, [
-    el("p", { className: "hint" }, REPLACE_TEXT.intro),
+    el("p", { className: "hint" }, REPLACE_TEXT.intro()),
     ...changes.map((change, index) => fileChoiceView(change, choices[change.datei] || KEEP, index, onChoose)),
   ]);
 }
@@ -43,7 +44,7 @@ function fileChoiceView(change, chosen, index, onChoose) {
   };
   const option = (value) => el("label", { className: "option" }, [
     el("input", { type: "radio", name, value, checked: chosen === value, onchange: () => pick(value) }),
-    ` ${REPLACE_TEXT[value]}`,
+    ` ${REPLACE_TEXT[value]()}`,
   ]);
   return el("fieldset", { className: "replace-choice__file" }, [
     el("legend", {}, `${change.titel} (${change.datei})`),
@@ -53,15 +54,15 @@ function fileChoiceView(change, chosen, index, onChoose) {
 }
 
 function diffView(change) {
-  if (!change.zeilen.length) return el("p", { className: "hint" }, REPLACE_TEXT.same);
+  if (!change.zeilen.length) return el("p", { className: "hint" }, REPLACE_TEXT.same());
   return el("div", { className: "diff" }, [
-    el("p", { className: "hint" }, REPLACE_TEXT.diff),
+    el("p", { className: "hint" }, REPLACE_TEXT.diff()),
     el("pre", { className: "diff__lines" }, change.zeilen.map(diffLine)),
   ]);
 }
 
 function diffLine(line) {
-  if (line.art === "luecke") return el("span", { className: "diff__line diff__line--gap" }, `${REPLACE_TEXT.gap}\n`);
+  if (line.art === "luecke") return el("span", { className: "diff__line diff__line--gap" }, `${REPLACE_TEXT.gap()}\n`);
   const tag = line.art === "weg" ? "del" : line.art === "neu" ? "ins" : "span";
   return el("span", { className: `diff__line diff__line--${line.art}` }, [
     DIFF_MARKS[line.art] || "  ",

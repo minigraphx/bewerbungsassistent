@@ -530,7 +530,7 @@ async function runPrefill() {
   const onStatus = document.activeElement?.id === STATUS_ID;
   renderKeepingFocus();
   if (onStatus) document.getElementById(STATUS_ID)?.focus(); // drawn anew, the line keeps the focus it was given
-  if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished);
+  if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished());
 }
 
 function confirmSuggestion(key) {

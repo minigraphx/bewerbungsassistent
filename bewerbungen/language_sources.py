@@ -201,16 +201,21 @@ def _text_or_leftover(node: ast.expr, constants: dict[str, ast.expr]) -> tuple[s
     return (("leftover" if isinstance(_resolved(node, constants), ast.JoinedStr) else "text"), text) if text else None
 
 
-def _message(node: ast.AST, constants: dict[str, ast.expr]) -> tuple[str, str] | None:
-    """(kind, text) of a message: "text" for the catalog, "leftover" for a formatted one that only T can translate,
-    since the server matches a plain message as a whole and the filled-in values are never in the catalog."""
+def _messages(node: ast.AST, constants: dict[str, ast.expr]) -> Iterator[tuple[ast.AST, tuple[str, str] | None]]:
+    """Each (node, (kind, text)) of a message: "text" for the catalog, "leftover" for a formatted one that only T can
+    translate, since the server matches a plain message as a whole and the filled-in values are never in the catalog.
+    A raise with a list, as ImportRejected takes one message per problem (#433), gives each of its messages; a T in
+    the list is found as a call of its own."""
     if isinstance(node, ast.Call) and node.args:
         callee = node.func.id if isinstance(node.func, ast.Name) else getattr(node.func, "attr", "")
         if callee == "T":
-            return _text_or_leftover(node.args[0], constants)
+            yield node, _text_or_leftover(node.args[0], constants)
     if isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call) and node.exc.args:
-        return _text_or_leftover(node.exc.args[0], constants)
-    return None
+        first = node.exc.args[0]
+        if isinstance(first, ast.List):
+            yield from ((element, _text_or_leftover(element, constants)) for element in first.elts)
+        else:
+            yield node, _text_or_leftover(first, constants)
 
 
 def _python_items(path: pathlib.Path, source: str) -> Iterator[Item]:
@@ -218,10 +223,10 @@ def _python_items(path: pathlib.Path, source: str) -> Iterator[Item]:
     constants = _module_constants(tree)
     marked = _marked_lines(source)
     for node in ast.walk(tree):
-        message = _message(node, constants)
-        lines = range(getattr(node, "lineno", 0), getattr(node, "end_lineno", 0) + 1)
-        if message and needs_translation(message[1]) and not marked.intersection(lines):
-            yield Item(path, node.lineno, message[1], message[0])
+        for place, message in _messages(node, constants):
+            lines = range(getattr(place, "lineno", 0), getattr(place, "end_lineno", 0) + 1)
+            if message and needs_translation(message[1]) and not marked.intersection(lines):
+                yield Item(path, place.lineno, message[1], message[0])
 
 
 # onboarding/form.json (#431): the keys whose strings Meine Angaben shows. Options show only without labels of their

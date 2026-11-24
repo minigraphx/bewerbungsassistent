@@ -166,10 +166,11 @@ def replace_request(value: object) -> tuple[bool, "import_bundle.MarkdownChoice 
 def rejected_answer(rejected, json_antwort):
     """Existing Markdown files become a question (409, the page offers a choice per file), anything else an error."""
     from rejected import ExistingFiles  # onboarding/
+    from ui_message import joined  # each message keeps the app language (#433)
     if isinstance(rejected, ExistingFiles):
-        return json_antwort({"fehler": " ".join(rejected.messages), "vorhanden": True, "wahl": rejected.choice},
+        return json_antwort({"fehler": joined(rejected.messages), "vorhanden": True, "wahl": rejected.choice},
                             HTTPStatus.CONFLICT)
-    raise ValueError(" ".join(rejected.messages)) from rejected
+    raise ValueError(joined(rejected.messages)) from rejected
 
 
 def _import(state: Setup, k, body, json_antwort):

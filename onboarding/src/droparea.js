@@ -3,38 +3,40 @@
 // Depends on dom.js, documents.js, uploads.js and kindguess.js (inlined before this file by build_template.py).
 "use strict";
 
+// Said when they are shown, so they follow the app language (#433).
 const DROP_TEXT = {
   job: {
-    intro: "Lebenslauf, Zeugnisse, Zertifikate und frühere Anschreiben, alles zusammen. Die KI liest sie und füllt nur leere Felder. Sie prüfen jeden Abschnitt.",
-    hint: "PDF, Word, Text oder Bild. Die App ordnet jede Datei selbst ein, Sie können das ändern.",
-    image: "Bild: bleibt auf Ihrem Computer, die KI liest es nicht.",
-    firstRemove: "Entfernen Sie zuerst eine.",
+    intro: () => T("Lebenslauf, Zeugnisse, Zertifikate und frühere Anschreiben, alles zusammen. Die KI liest sie und füllt nur leere Felder. Sie prüfen jeden Abschnitt."),
+    hint: () => T("PDF, Word, Text oder Bild. Die App ordnet jede Datei selbst ein, Sie können das ändern."),
+    image: () => T("Bild: bleibt auf Ihrem Computer, die KI liest es nicht."),
+    full: (values) => T("{title}: höchstens {maxFiles} Dateien. Entfernen Sie zuerst eine.", values),
   },
   apprenticeship: {
-    intro: "Lebenslauf, Zeugnisse, Zertifikate und frühere Motivationsschreiben, alles zusammen. Die KI liest sie und füllt nur leere Felder. Du prüfst jeden Abschnitt.",
-    hint: "PDF, Word, Text oder Bild. Die App ordnet jede Datei selbst ein, du kannst das ändern.",
-    image: "Bild: bleibt auf deinem Computer, die KI liest es nicht.",
-    firstRemove: "Entferne zuerst eine.",
+    intro: () => T("Lebenslauf, Zeugnisse, Zertifikate und frühere Motivationsschreiben, alles zusammen. Die KI liest sie und füllt nur leere Felder. Du prüfst jeden Abschnitt."),
+    hint: () => T("PDF, Word, Text oder Bild. Die App ordnet jede Datei selbst ein, du kannst das ändern."),
+    image: () => T("Bild: bleibt auf deinem Computer, die KI liest es nicht."),
+    full: (values) => T("{title}: höchstens {maxFiles} Dateien. Entferne zuerst eine.", values),
   },
 };
 const DROP_WORDS = {
-  area: "Dateien hierher ziehen",
-  choose: "Dateien wählen",
-  remove: "Entfernen",
-  sure: "Am Namen erkannt",
-  unsure: "Nicht sicher erkannt, bitte prüfen",
-  oldWord: "Altes Word-Format: die KI liest es nicht. Als PDF speichern und neu hochladen.",
-  unreadable: "Die Datei liess sich nicht lesen. Bitte nochmals wählen.",
+  area: () => T("Dateien hierher ziehen"),
+  choose: () => T("Dateien wählen"),
+  remove: () => T("Entfernen"),
+  sure: () => T("Am Namen erkannt"),
+  unsure: () => T("Nicht sicher erkannt, bitte prüfen"),
+  oldWord: () => T("Altes Word-Format: die KI liest es nicht. Als PDF speichern und neu hochladen."),
+  unreadable: () => T("Die Datei liess sich nicht lesen. Bitte nochmals wählen."),
 };
 const OLD_WORD_EXTENSION = "doc";
 const DROP_CARD = ".prefill-card";
 const CHOOSE_ID = "drop-choose";
 
-const fillIn = (template, params) => template.replace(/\{(\w+)\}/g, (_, key) => params[key]);
+/** A file named with what is wrong with it: „programm.exe: Dieser Dateityp geht nicht. …“. */
+const fileMessage = (name, problem) => T("{datei}: {fehler}", { datei: name, fehler: problem });
 
 /** Every file type of the area, e.g. „PDF, Word (.docx, .doc), Textdateien (.txt), Bilder (.jpg, .png)“. */
 function allTypesText(form) {
-  return Object.values(form.documents.fileTypes).flatMap((type) => type.labels).join(", ");
+  return Object.values(form.documents.fileTypes).flatMap((type) => type.labels).map((label) => T(label)).join(", ");
 }
 
 function allExtensions(form) {
@@ -44,10 +46,11 @@ function allExtensions(form) {
 /** Today's message for a rule (DOCUMENT_MESSAGES), without the kind in front. */
 function documentText(form, code) {
   const rules = form.documents;
-  return fillIn(DOCUMENT_MESSAGES[code] || code, {
+  const message = DOCUMENT_MESSAGES[code];
+  return message ? message({
     maxFileMB: Math.floor(rules.maxFileBytes / BYTES_PER_MB), maxTotalMB: Math.floor(rules.maxTotalBytes / BYTES_PER_MB),
     allowed: allTypesText(form),
-  });
+  }) : code;
 }
 
 /** Why a file cannot come in whatever its kind; null if it may. */
@@ -72,13 +75,13 @@ function planDrop(form, track, current, chosen) {
   chosen.forEach((file, index) => {
     const name = safeDocumentName(file.name);
     const problem = fileProblem(form, [...current, ...accepted], { name, size: file.size });
-    if (problem) return messages.push(`${name}: ${problem}`);
+    if (problem) return messages.push(fileMessage(name, problem));
     const { category, sure } = guessDocumentKind(form, name);
     const entries = [...current, ...accepted, { category, name, size: file.size }]
       .map(({ category: c, name: n, size }) => ({ category: c, name: n, size }));
     const [error] = validateDocuments(form, entries).filter((e) => isAbout(e, entries.length - 1, category));
     if (error && error.code === "maxFiles") return leftOut.set(category, (leftOut.get(category) || 0) + 1);
-    if (error) return messages.push(`${name}: ${documentText(form, error.code)}`);
+    if (error) return messages.push(fileMessage(name, documentText(form, error.code)));
     accepted.push({ index, category, name, size: file.size, sure });
     return null;
   });
@@ -86,41 +89,43 @@ function planDrop(form, track, current, chosen) {
   return { accepted, messages: [...messages, ...limits] };
 }
 
-/** „Lebensläufe: höchstens 10 Dateien.“: the kind in the plural, not the title of a section of the saved file. */
+/** „Lebensläufe“ and „10“ for „Lebensläufe: höchstens 10 Dateien. …“: the kind in the plural, not a section title. */
 function kindLimit(form, track, category) {
-  return `${kindPlural(form, track, category)}: höchstens ${documentCategories(form).get(category).maxFiles} Dateien.`;
+  return { title: kindPlural(form, track, category), maxFiles: documentCategories(form).get(category).maxFiles };
 }
 
 function dropLeftOut(form, track, category, count) {
-  return `${kindLimit(form, track, category)} ${count === 1 ? "Eine Datei wurde" : `${count} Dateien wurden`} nicht hinzugefügt.`;
+  const values = { ...kindLimit(form, track, category), count };
+  return count === 1 ? DOCUMENT_MESSAGES.leftOutOne(values) : DOCUMENT_MESSAGES.leftOutMany(values);
 }
 
 function kindFailed(reason) {
-  return `Die Art liess sich nicht ändern: ${reason}`;
+  return T("Die Art liess sich nicht ändern: {grund}", { grund: reason });
 }
 
 /** Why a file cannot change to a kind, before anything moves; null if it can. */
 function kindChangeProblem(form, track, uploads, upload, category) {
   const target = documentCategories(form).get(category);
-  if (!target) return kindFailed(DOCUMENT_MESSAGES.category);
+  if (!target) return kindFailed(DOCUMENT_MESSAGES.category());
   if (!allowedExtensions(form, target).includes(documentExtension(upload.name))) {
-    return kindFailed(fillIn(DOCUMENT_MESSAGES.extension, { allowed: allowedText(form, target) }));
+    return kindFailed(DOCUMENT_MESSAGES.extension({ allowed: allowedText(form, target) }));
   }
   const { count, maxFiles } = categoryRoom(form, uploads, category);
   if (count < maxFiles) return null;
-  return `${kindLimit(form, track, category)} ${DROP_TEXT[track].firstRemove}`;
+  return DROP_TEXT[track].full(kindLimit(form, track, category));
 }
 
 function addedStatus(form, track, added) {
-  return `Hinzugefügt: ${added.map((u) => `${u.name} als ${kindInSentence(form, track, u.category)}`).join(", ")}.`;
+  const files = added.map((u) => T("{datei} als {art}", { datei: u.name, art: kindInSentence(form, track, u.category) }));
+  return T("Hinzugefügt: {dateien}.", { dateien: files.join(", ") });
 }
 
 function changedStatus(form, track, name, category) {
-  return `${name} ist jetzt als ${kindInSentence(form, track, category)} eingeordnet.`;
+  return T("{datei} ist jetzt als {art} eingeordnet.", { datei: name, art: kindInQuotes(form, track, category) });
 }
 
 function removedStatus(name) {
-  return `${name} entfernt.`;
+  return T("{datei} entfernt.", { datei: name });
 }
 
 /** The select of a row, to give it the focus again after the page is drawn anew. */
@@ -135,8 +140,8 @@ function dropAreaView(ctx) {
     onchange: (e) => ctx.onAddFiles(e.target.files),
   });
   return el("div", { className: "drop-area" }, [
-    el("p", { className: "drop-area__text" }, DROP_WORDS.area),
-    el("button", { type: "button", id: CHOOSE_ID, className: "drop-area__choose", onclick: () => input.click() }, DROP_WORDS.choose),
+    el("p", { className: "drop-area__text" }, DROP_WORDS.area()),
+    el("button", { type: "button", id: CHOOSE_ID, className: "drop-area__choose", onclick: () => input.click() }, DROP_WORDS.choose()),
     input,
   ]);
 }
@@ -180,9 +185,9 @@ function rowNotes(ctx, upload) {
   const guess = ctx.notes[upload.datei];
   const ext = documentExtension(upload.name);
   return [
-    guess === undefined ? null : el("p", { className: "drop-file__note" }, guess ? DROP_WORDS.sure : DROP_WORDS.unsure),
-    isImageName(ctx.form, upload.name) ? el("p", { className: "drop-file__note" }, DROP_TEXT[ctx.track].image) : null,
-    ext === OLD_WORD_EXTENSION ? el("p", { className: "drop-file__note" }, DROP_WORDS.oldWord) : null,
+    guess === undefined ? null : el("p", { className: "drop-file__note" }, guess ? DROP_WORDS.sure() : DROP_WORDS.unsure()),
+    isImageName(ctx.form, upload.name) ? el("p", { className: "drop-file__note" }, DROP_TEXT[ctx.track].image()) : null,
+    ext === OLD_WORD_EXTENSION ? el("p", { className: "drop-file__note" }, DROP_WORDS.oldWord()) : null,
   ];
 }
 
@@ -191,7 +196,7 @@ function kindSelect(ctx, upload) {
     value: option.id, selected: option.id === upload.category,
   }, option.label));
   return el("select", {
-    className: "drop-file__kind", "aria-label": `Art von ${upload.name}`, dataset: { datei: upload.datei },
+    className: "drop-file__kind", "aria-label": T("Art von {datei}", { datei: upload.name }), dataset: { datei: upload.datei },
     onchange: (e) => ctx.onChangeKind(upload, e.target.value), onblur: () => ctx.onLeaveKind(upload),
   }, options);
 }
@@ -212,8 +217,9 @@ function fileRowView(ctx, upload, index) {
     el("div", { className: "drop-file__actions" }, [
       kindSelect(ctx, upload),
       el("button", {
-        type: "button", className: "remove", "aria-label": `${upload.name} entfernen`, onclick: () => ctx.onRemove(index),
-      }, DROP_WORDS.remove),
+        type: "button", className: "remove", "aria-label": T("{name} entfernen", { name: upload.name }),
+        onclick: () => ctx.onRemove(index),
+      }, DROP_WORDS.remove()),
     ]),
   ]);
 }

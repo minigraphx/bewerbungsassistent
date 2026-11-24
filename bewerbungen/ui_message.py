@@ -61,3 +61,30 @@ def listing(items: Sequence[Any]) -> Any:
         return items[0]
     head = functools.reduce(lambda joined, item: T("{a}, {b}", a=joined, b=item), items[1:-1], items[0])
     return T("{namen} und {letzter}", namen=head, letzter=items[-1])
+
+
+def joined(parts: Sequence[Any], separator: str = " ") -> Any:
+    """Parts one after the other, as `separator.join` would, but each part a T keeps its own language (#433).
+
+    One part is itself, none is the empty text; „{a} {b}“ and „{a}, {b}“ say the same in every language."""
+    if not parts:
+        return ""
+    template = "{a}" + separator + "{b}"
+    return functools.reduce(lambda done, part: T(template, a=done, b=part), parts[1:], parts[0])
+
+
+class Label(T):
+    """The label of a field up to its bracket, in every language: „Geburtsdatum (freiwillig)“ names „Geburtsdatum“.
+
+    The catalog holds the whole label, so the cut follows the translation, as `locate` in validate.js does."""
+
+    BRACKET = " ("
+
+    def __new__(cls, template: str) -> "Label":
+        message = str.__new__(cls, template.split(cls.BRACKET)[0])
+        message.template = template
+        message._pairs = ()
+        return message
+
+    def in_language(self, catalog: translation_catalog.Catalog, language: str) -> str:
+        return super().in_language(catalog, language).split(self.BRACKET)[0]

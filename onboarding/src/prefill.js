@@ -2,52 +2,47 @@
 // File names and everything from the AI are only ever set as text.
 "use strict";
 
+// The words of the card, said when they are shown, so they follow the app language (#433). One sentence per number:
+// French and English do not build „Angabe passte“ and „Angaben passten“ from the same parts.
+const PREFILL_SHARED = {
+  run: () => T("Vorbefüllen"),
+  byHand: () => T("Lieber von Hand ausfüllen"),
+  goToPerson: () => T("Zu „Person und Kontakt“"),
+  busy: () => T("Wird gelesen …"),
+  finished: () => T("Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert."),
+  nothing: () => T("In den Unterlagen wurden keine passenden Angaben gefunden."),
+  skipped: () => T("Nicht gelesen:"),
+  shortened: (files) => T("Nur der Anfang wurde gelesen, die Datei ist zu lang: {dateien}.", { dateien: files }),
+  dropped: (n) => (n === 1 ? T("Eine Angabe passte nicht ins Formular und wurde weggelassen.")
+    : T("{anzahl} Angaben passten nicht ins Formular und wurden weggelassen.", { anzahl: n })),
+  mark: (source) => T("Vorschlag aus {quelle}. Bitte prüfen.", { quelle: source }),
+  confirm: () => T("Stimmt so"),
+  unchecked: (n) => (n === 1 ? T("Ein Vorschlag aus den Unterlagen ist noch nicht geprüft. Erst danach lässt sich alles übernehmen.")
+    : T("{anzahl} Vorschläge aus den Unterlagen sind noch nicht geprüft. Erst danach lässt sich alles übernehmen.", { anzahl: n })),
+  confirmAll: () => T("Ich habe alle geprüft"),
+};
 const PREFILL_TEXT = {
   job: {
-    title: "Aus Ihren Unterlagen vorbefüllen",
-    run: "Vorbefüllen",
-    byHand: "Lieber von Hand ausfüllen",
-    privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer.",
-    needsName: "Tragen Sie zuerst Ihren Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI.",
-    goToPerson: "Zu „Person und Kontakt“",
-    running: (minutes) => `Die Unterlagen werden gelesen. Das dauert etwa ${minutesText(minutes)}; Sie können in dieser Zeit weiterarbeiten.`,
-    busy: "Wird gelesen …",
-    noneReadable: "Keine dieser Dateien geht an die KI. Bilder, Scans und alte Word-Dateien ergänzen Sie von Hand.",
-    finished: "Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert.",
-    filled: "Vorschläge stehen bereit. Bitte prüfen Sie jeden Eintrag:",
-    nothing: "In den Unterlagen wurden keine passenden Angaben gefunden.",
-    kept: "Hier haben Sie schon etwas eingetragen, das bleibt unverändert:",
-    skipped: "Nicht gelesen:",
-    shortened: "Nur der Anfang wurde gelesen, die Datei ist zu lang:",
-    dropped: (n) => `${n === 1 ? "Eine Angabe passte" : `${n} Angaben passten`} nicht ins Formular und ${n === 1 ? "wurde" : "wurden"} weggelassen.`,
-    suspicious: "Diese Zeilen in den Unterlagen richten sich an eine KI. Sie wurden nicht befolgt, schauen Sie sie sich an:",
-    mark: (source) => `Vorschlag aus ${source}. Bitte prüfen.`,
-    confirm: "Stimmt so",
-    unchecked: (n) => `${n === 1 ? "Ein Vorschlag" : `${n} Vorschläge`} aus den Unterlagen ${n === 1 ? "ist" : "sind"} noch nicht geprüft. Erst danach lässt sich alles übernehmen.`,
-    confirmAll: "Ich habe alle geprüft",
+    ...PREFILL_SHARED,
+    title: () => T("Aus Ihren Unterlagen vorbefüllen"),
+    privacy: () => T("Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf Ihrem Computer."),
+    needsName: () => T("Tragen Sie zuerst Ihren Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI."),
+    running: (minutes) => T("Die Unterlagen werden gelesen. Das dauert etwa {dauer}; Sie können in dieser Zeit weiterarbeiten.", { dauer: minutesText(minutes) }),
+    noneReadable: () => T("Keine dieser Dateien geht an die KI. Bilder, Scans und alte Word-Dateien ergänzen Sie von Hand."),
+    filled: () => T("Vorschläge stehen bereit. Bitte prüfen Sie jeden Eintrag:"),
+    kept: (sections) => T("Hier haben Sie schon etwas eingetragen, das bleibt unverändert: {abschnitte}.", { abschnitte: sections }),
+    suspicious: () => T("Diese Zeilen in den Unterlagen richten sich an eine KI. Sie wurden nicht befolgt, schauen Sie sie sich an:"),
   },
   apprenticeship: {
-    title: "Aus deinen Unterlagen vorbefüllen",
-    run: "Vorbefüllen",
-    byHand: "Lieber von Hand ausfüllen",
-    privacy: "Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer.",
-    needsName: "Trag zuerst deinen Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI.",
-    goToPerson: "Zu „Person und Kontakt“",
-    running: (minutes) => `Die Unterlagen werden gelesen. Das dauert etwa ${minutesText(minutes)}; du kannst in dieser Zeit weiterarbeiten.`,
-    busy: "Wird gelesen …",
-    noneReadable: "Keine dieser Dateien geht an die KI. Bilder, Scans und alte Word-Dateien ergänzt du von Hand.",
-    finished: "Die Vorschläge aus den Unterlagen sind da. Sie sind im Formular markiert.",
-    filled: "Vorschläge stehen bereit. Bitte prüf jeden Eintrag:",
-    nothing: "In den Unterlagen wurden keine passenden Angaben gefunden.",
-    kept: "Hier hast du schon etwas eingetragen, das bleibt unverändert:",
-    skipped: "Nicht gelesen:",
-    shortened: "Nur der Anfang wurde gelesen, die Datei ist zu lang:",
-    dropped: (n) => `${n === 1 ? "Eine Angabe passte" : `${n} Angaben passten`} nicht ins Formular und ${n === 1 ? "wurde" : "wurden"} weggelassen.`,
-    suspicious: "Diese Zeilen in den Unterlagen richten sich an eine KI. Sie wurden nicht befolgt, schau sie dir an:",
-    mark: (source) => `Vorschlag aus ${source}. Bitte prüfen.`,
-    confirm: "Stimmt so",
-    unchecked: (n) => `${n === 1 ? "Ein Vorschlag" : `${n} Vorschläge`} aus den Unterlagen ${n === 1 ? "ist" : "sind"} noch nicht geprüft. Erst danach lässt sich alles übernehmen.`,
-    confirmAll: "Ich habe alle geprüft",
+    ...PREFILL_SHARED,
+    title: () => T("Aus deinen Unterlagen vorbefüllen"),
+    privacy: () => T("Name, Adresse und Kontakte werden ersetzt, bevor der Text zur KI (Anthropic) geht. Namen anderer Personen, etwa auf Zeugnissen, erkennt die App nur nach „Frau“ oder „Herr“. Bilder, Scans und alte Word-Dateien bleiben auf deinem Computer."),
+    needsName: () => T("Trag zuerst deinen Namen ein: So erkennt die App ihn in den Unterlagen und schickt ihn nicht an die KI."),
+    running: (minutes) => T("Die Unterlagen werden gelesen. Das dauert etwa {dauer}; du kannst in dieser Zeit weiterarbeiten.", { dauer: minutesText(minutes) }),
+    noneReadable: () => T("Keine dieser Dateien geht an die KI. Bilder, Scans und alte Word-Dateien ergänzt du von Hand."),
+    filled: () => T("Vorschläge stehen bereit. Bitte prüf jeden Eintrag:"),
+    kept: (sections) => T("Hier hast du schon etwas eingetragen, das bleibt unverändert: {abschnitte}.", { abschnitte: sections }),
+    suspicious: () => T("Diese Zeilen in den Unterlagen richten sich an eine KI. Sie wurden nicht befolgt, schau sie dir an:"),
   },
 };
 
@@ -55,14 +50,15 @@ const PREFILL_TEXT = {
 // with the budget of the mediation's month (G46, G98), or its one-time credit when it names no renewal (G80). One text
 // for Sie and du.
 const ESTIMATE_WORDS = {
-  files: (n) => (n === 1 ? "1 Datei geht an die KI." : `${n} Dateien gehen an die KI.`),
-  uploading: "Die Dateien werden noch hochgeladen. Danach nennt die App Kosten und Dauer.",
-  estimating: "Kosten und Dauer werden geschätzt …",
-  over: (money, monthly) => `Im ${monthly ? "Budget" : "Guthaben"} sind noch ${money}, das reicht vielleicht nicht.`,
-  notRead: "Geht nicht an die KI:",
-  shortened: "Nur der Anfang geht an die KI, die Datei ist zu lang:",
-  failed: (reason) => `Die Schätzung fehlt: ${reason}`,
-  retry: "Neu schätzen",
+  files: (n) => (n === 1 ? T("1 Datei geht an die KI.") : T("{anzahl} Dateien gehen an die KI.", { anzahl: n })),
+  uploading: () => T("Die Dateien werden noch hochgeladen. Danach nennt die App Kosten und Dauer."),
+  estimating: () => T("Kosten und Dauer werden geschätzt …"),
+  over: (money, monthly) => (monthly ? T("Im Budget sind noch {betrag}, das reicht vielleicht nicht.", { betrag: money })
+    : T("Im Guthaben sind noch {betrag}, das reicht vielleicht nicht.", { betrag: money })),
+  notRead: () => T("Geht nicht an die KI:"),
+  shortened: () => T("Nur der Anfang geht an die KI, die Datei ist zu lang:"),
+  failed: (reason) => T("Die Schätzung fehlt: {grund}", { grund: reason }),
+  retry: () => T("Neu schätzen"),
 };
 const ESTIMATE_NONE = { phase: "none", answer: null, problem: null };
 const STATUS_ID = "prefill-status";
@@ -71,7 +67,8 @@ const RETRY_ID = "prefill-retry";
 
 // Number and unit never part at the end of a line (#336), as in treffer-logik.js; read aloud as a space.
 const NBSP = "\u00a0";
-const minutesText = (n) => `${n}${NBSP}${n === 1 ? "Minute" : "Minuten"}`;
+const minutesText = (n) => (n === 1 ? T("{anzahl}{nbsp}Minute", { anzahl: n, nbsp: NBSP })
+  : T("{anzahl}{nbsp}Minuten", { anzahl: n, nbsp: NBSP }));
 const moneyText = (amount, currency) => `${currency || "USD"}${NBSP}${Number(amount).toFixed(2)}`;
 const withCredit = (answer) => typeof answer.guthaben === "number";
 const creditUsedUp = (answer) => withCredit(answer) && answer.guthaben <= 0;
@@ -114,28 +111,28 @@ function namedList(title, lines) {
 function readyLines(answer, text) {
   return answer.anzahl
     ? [el("p", {}, `${ESTIMATE_WORDS.files(answer.anzahl)} ${TrefferLogik.estimateLine({ ...answer, guthaben: null })}`), creditLine(answer)]
-    : [el("p", {}, text.noneReadable)];
+    : [el("p", {}, text.noneReadable())];
 }
 
 /** What stands under the button: the running text, else the estimate in its state. */
 function estimateLines(ctx, text) {
   if (ctx.run.running) return [el("p", {}, text.running(ctx.run.minutes))];
   const estimate = shownEstimate(ctx.estimate);
-  if (estimate.phase === "uploading") return [el("p", {}, ESTIMATE_WORDS.uploading)];
+  if (estimate.phase === "uploading") return [el("p", {}, ESTIMATE_WORDS.uploading())];
   if (estimate.phase === "failed") {
     return [el("p", { className: "error" }, ESTIMATE_WORDS.failed(estimate.problem)),
-      el("button", { type: "button", id: RETRY_ID, className: "link", onclick: ctx.onEstimate }, ESTIMATE_WORDS.retry)];
+      el("button", { type: "button", id: RETRY_ID, className: "link", onclick: ctx.onEstimate }, ESTIMATE_WORDS.retry())];
   }
   if (estimate.phase === "ready") return readyLines(estimate.answer, text);
-  return estimate.quiet ? [] : [el("p", {}, ESTIMATE_WORDS.estimating)];
+  return estimate.quiet ? [] : [el("p", {}, ESTIMATE_WORDS.estimating())];
 }
 
 /** The files left out or shortened, beside the status: read when the button is, not again at every change. */
 function filesView(ctx) {
   const answer = ctx.run.running ? null : readyAnswer(shownEstimate(ctx.estimate));
   return el("div", { id: FILES_ID, className: "prefill-card__left-out" }, answer ? [
-    ...namedList(ESTIMATE_WORDS.notRead, (answer.nicht_gelesen || []).map((s) => `${s.name}: ${s.grund}`)),
-    ...namedList(ESTIMATE_WORDS.shortened, answer.gekuerzt || []),
+    ...namedList(ESTIMATE_WORDS.notRead(), (answer.nicht_gelesen || []).map((s) => fileMessage(s.name, s.grund))),
+    ...namedList(ESTIMATE_WORDS.shortened(), answer.gekuerzt || []),
   ] : []);
 }
 
@@ -152,15 +149,15 @@ const sectionLinks = (ids, ctx) => el("ul", {}, ids.map((id) => el("li", {}, el(
 
 function reportView(report, ctx, text) {
   return el("div", { role: "status" }, [
-    report.filled.length ? el("p", {}, text.filled) : null,
+    report.filled.length ? el("p", {}, text.filled()) : null,
     report.filled.length ? sectionLinks(report.filled, ctx) : null,
-    report.read.length && !report.filled.length && !report.kept.length ? el("p", {}, text.nothing) : null,
-    report.kept.length ? el("p", {}, `${text.kept} ${report.kept.map(ctx.titleOf).join(", ")}.`) : null,
+    report.read.length && !report.filled.length && !report.kept.length ? el("p", {}, text.nothing()) : null,
+    report.kept.length ? el("p", {}, text.kept(report.kept.map(ctx.titleOf).join(", "))) : null,
     report.dropped ? el("p", { className: "hint" }, text.dropped(report.dropped)) : null,
-    report.shortened.length ? el("p", { className: "hint" }, `${text.shortened} ${report.shortened.join(", ")}.`) : null,
-    report.skipped.length ? el("p", {}, text.skipped) : null,
-    report.skipped.length ? el("ul", {}, report.skipped.map((s) => el("li", {}, `${s.name}: ${s.reason}`))) : null,
-    report.suspicious.length ? el("p", { className: "error" }, text.suspicious) : null,
+    report.shortened.length ? el("p", { className: "hint" }, text.shortened(report.shortened.join(", "))) : null,
+    report.skipped.length ? el("p", {}, text.skipped()) : null,
+    report.skipped.length ? el("ul", {}, report.skipped.map((s) => el("li", {}, fileMessage(s.name, s.reason)))) : null,
+    report.suspicious.length ? el("p", { className: "error" }, text.suspicious()) : null,
     report.suspicious.length ? el("ul", {}, report.suspicious.map((line) => el("li", {}, line))) : null,
   ]);
 }
@@ -179,19 +176,19 @@ function prefillCard(ctx) {
   const uploadText = UPLOAD_TEXT[ctx.track];
   const hasFiles = ctx.uploads.length > 0;
   return el("section", { className: "card prefill-card", "aria-labelledby": "prefill-title", ...dropHandlers(ctx) }, [
-    el("h2", { id: "prefill-title" }, text.title),
-    el("p", {}, DROP_TEXT[ctx.track].intro),
+    el("h2", { id: "prefill-title" }, text.title()),
+    el("p", {}, DROP_TEXT[ctx.track].intro()),
     dropAreaView(ctx),
-    el("p", { className: "hint" }, DROP_TEXT[ctx.track].hint),
+    el("p", { className: "hint" }, DROP_TEXT[ctx.track].hint()),
     el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
     dropFilesView(ctx),
     el("p", { id: "upload-status", className: "drop-status", role: "status" }, ctx.announcement || ""),
     hasFiles && !ctx.hasName
-      ? el("p", {}, [text.needsName, " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson)])
+      ? el("p", {}, [text.needsName(), " ", el("button", { type: "button", className: "link", onclick: () => ctx.onGoTo("person") }, text.goToPerson())])
       : null,
     prefillRunArea(ctx),
     ctx.run.report ? reportView(ctx.run.report, ctx, text) : null,
-    hasFiles ? el("p", { className: "hint" }, `${text.privacy} ${uploadText.app}`) : null,
+    hasFiles ? el("p", { className: "hint" }, `${text.privacy()} ${uploadText.app()}`) : null,
   ]);
 }
 
@@ -211,8 +208,8 @@ function prefillRunArea(ctx) {
       canRun ? el("button", {
         type: "button", className: `primary${ctx.run.running ? " busy" : ""}`, id: "prefill", disabled: !runAllowed(ctx),
         "aria-busy": ctx.run.running ? "true" : null, "aria-describedby": `${STATUS_ID} ${FILES_ID}`, onclick: ctx.onRun,
-      }, ctx.run.running ? text.busy : text.run) : null,
-      el("button", { type: "button", id: "prefill-by-hand", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand),
+      }, ctx.run.running ? text.busy() : text.run()) : null,
+      el("button", { type: "button", id: "prefill-by-hand", className: canRun ? "link" : "primary", onclick: ctx.onByHand }, text.byHand()),
     ]),
     ctx.run.problem ? el("p", { id: "prefill-problem", className: "error", role: "alert" }, ctx.run.problem) : null,
     withLine ? el("div", {
@@ -247,7 +244,7 @@ function suggestionMark(key, source, onConfirm) {
   const where = source.place ? `${source.file}, ${source.place}` : source.file;
   return el("p", { className: "suggestion", dataset: { suggestion: key } }, [
     text.mark(where), " ",
-    el("button", { type: "button", className: "link", onclick: () => onConfirm(key) }, text.confirm),
+    el("button", { type: "button", className: "link", onclick: () => onConfirm(key) }, text.confirm()),
   ]);
 }
 
@@ -257,6 +254,6 @@ function uncheckedView(ctx) {
   return el("div", { className: "summary", id: "unchecked" }, [
     el("p", {}, text.unchecked(ctx.count)),
     sectionLinks(ctx.sections, ctx),
-    el("button", { type: "button", id: "confirm-all", onclick: ctx.onConfirmAll }, text.confirmAll),
+    el("button", { type: "button", id: "confirm-all", onclick: ctx.onConfirmAll }, text.confirmAll()),
   ]);
 }

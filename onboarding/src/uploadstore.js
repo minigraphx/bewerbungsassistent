@@ -12,14 +12,14 @@ const UPLOAD_DB_KEY = "current";
 function openUploadDb() {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined") {
-      reject(new Error("IndexedDB not available"));
+      reject(new Error("IndexedDB not available")); // kein UI-Text: the page says the store is gone in its own words
       return;
     }
     const request = indexedDB.open(UPLOAD_DB_NAME, UPLOAD_DB_VERSION);
     request.onupgradeneeded = () => request.result.createObjectStore(UPLOAD_DB_STORE);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
-    request.onblocked = () => reject(new Error("IndexedDB blocked"));
+    request.onblocked = () => reject(new Error("IndexedDB blocked")); // kein UI-Text
   });
 }
 
@@ -32,7 +32,7 @@ async function withUploadStore(mode, makeRequest) {
       const request = makeRequest(transaction.objectStore(UPLOAD_DB_STORE));
       transaction.oncomplete = () => resolve(request.result);
       transaction.onerror = () => reject(transaction.error);
-      transaction.onabort = () => reject(transaction.error || new Error("IndexedDB aborted"));
+      transaction.onabort = () => reject(transaction.error || new Error("IndexedDB aborted")); // kein UI-Text
     });
   } finally {
     db.close();

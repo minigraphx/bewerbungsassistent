@@ -12,12 +12,13 @@ import zlib
 
 import documents
 from rejected import ImportRejected
+from ui_message import T
 
 BUNDLE_NAME = "einstieg.json"
 DOCUMENTS_DIR = "dokumente"
 ZIP_MAGIC = b"PK\x03\x04"
 FLAG_ENCRYPTED = 0x1
-NOT_A_ZIP = "Die Datei ist keine gültige Einstiegsdatei (ZIP)."
+NOT_A_ZIP = T("Die Datei ist keine gültige Einstiegsdatei (ZIP).")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -62,18 +63,18 @@ def _check_limits(form: dict, infos: list[zipfile.ZipInfo], max_bundle_bytes: in
     rules = form["documents"]
     max_entries = 1 + sum(c["maxFiles"] for c in rules["categories"])
     if len(infos) > max_entries:
-        raise ImportRejected([f"Die Datei enthält zu viele Einträge (höchstens {max_entries})."])
+        raise ImportRejected([T("Die Datei enthält zu viele Einträge (höchstens {anzahl}).", anzahl=max_entries)])
     limit = rules["maxTotalBytes"] + max_bundle_bytes
     if sum(i.file_size for i in infos) > limit:
-        raise ImportRejected([f"Der Inhalt ist zu gross (höchstens {limit // documents.BYTES_PER_MB} MB)."])
+        raise ImportRejected([T("Der Inhalt ist zu gross (höchstens {mb} MB).", mb=limit // documents.BYTES_PER_MB)])
     if any(i.flag_bits & FLAG_ENCRYPTED for i in infos):
-        raise ImportRejected(["Verschlüsselte ZIP-Dateien gehen nicht."])
+        raise ImportRejected([T("Verschlüsselte ZIP-Dateien gehen nicht.")])
 
 
 def _split(name: str) -> tuple[str, str]:
     parts = name.split("/")
     if len(parts) != 3 or parts[0] != DOCUMENTS_DIR:
-        raise ImportRejected([f"Unerwarteter Inhalt in der Datei: {name}"])
+        raise ImportRejected([T("Unerwarteter Inhalt in der Datei: {name}", name=name)])
     return parts[1], parts[2]
 
 
@@ -81,9 +82,10 @@ def _sort_entries(form: dict, infos: list[zipfile.ZipInfo],
                   max_bundle_bytes: int) -> tuple[zipfile.ZipInfo, list[zipfile.ZipInfo]]:
     bundles = [i for i in infos if i.filename == BUNDLE_NAME]
     if len(bundles) != 1:
-        raise ImportRejected([f"Die Datei muss genau eine {BUNDLE_NAME} enthalten."])
+        raise ImportRejected([T("Die Datei muss genau eine {datei} enthalten.", datei=BUNDLE_NAME)])
     if bundles[0].file_size > max_bundle_bytes:
-        raise ImportRejected([f"Die {BUNDLE_NAME} ist zu gross (höchstens {max_bundle_bytes // 1000} KB)."])
+        raise ImportRejected([T("Die {datei} ist zu gross (höchstens {kb} KB).", datei=BUNDLE_NAME,
+                                kb=max_bundle_bytes // 1000)])
     others = [i for i in infos if i.filename != BUNDLE_NAME]
     entries = []
     for info in others:
@@ -99,5 +101,5 @@ def _read(zf: zipfile.ZipFile, info: zipfile.ZipInfo) -> bytes:
     with zf.open(info) as handle:
         data = handle.read(info.file_size + 1)
     if len(data) != info.file_size:
-        raise ImportRejected([f"Die Datei ist beschädigt ({info.filename})."])
+        raise ImportRejected([T("Die Datei ist beschädigt ({name}).", name=info.filename)])
     return data

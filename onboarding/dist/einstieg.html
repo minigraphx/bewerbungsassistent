@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-0ITa2qPV+KdSt0lPoHcAjLKJlk8R3mAb1r/KE826frY='; style-src 'sha256-G+bvFfrHv4rACZ4VtF7v/JVl0fYWCj1QgNW6tsup34s='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-kT+Me4owrBJ/DSPYYoe56IOxVmYmW5+n8+CTWd0YYGU='; style-src 'sha256-G+bvFfrHv4rACZ4VtF7v/JVl0fYWCj1QgNW6tsup34s='; font-src 'none'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 
 <title>Einstieg – Bewerbungsbegleiter</title>
@@ -669,7 +669,11 @@ if (typeof module !== "undefined") {
 // level { text: { de, en }, level }.
 "use strict";
 
-/** A loaded file that is no bundle of this form; the message is German and shown as is. */
+// On the page words.js comes first and T is its T; required alone (tests, tools), model.js takes it from there and
+// stays German (#433). A var, because the pages inline every script into one, where a const would clash.
+var T = typeof module !== "undefined" && typeof require === "function" ? require("./words.js").T : T;
+
+/** A loaded file that is no bundle of this form; the message is in the app language and shown as is. */
 class BundleError extends Error {}
 
 const isPlainObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -852,11 +856,11 @@ function isBlankItem(item) {
   return Object.values(item).every((v) => (Array.isArray(v) ? !v.some(hasContent) : !hasContent(v)));
 }
 
-/** State from a loaded file; throws an Error with a German message if it is no bundle of this form. */
+/** State from a loaded file; throws a BundleError if it is no bundle of this form. */
 function stateFromBundle(form, bundle) {
   const ok = isPlainObject(bundle) && bundle.format === form.format && bundle.version === form.version
     && typeof bundle.track === "string" && Object.prototype.hasOwnProperty.call(form.tracks, bundle.track);
-  if (!ok) throw new BundleError("Die Datei ist keine Einstiegsdatei dieser Vorlage.");
+  if (!ok) throw new BundleError(T("Die Datei ist keine Einstiegsdatei dieser Vorlage."));
   return { track: bundle.track, data: cleanData(form, bundle.track, bundle.data, false) };
 }
 
@@ -1577,17 +1581,23 @@ if (typeof module !== "undefined") {
 const BYTES_PER_MB = 1000000;
 const MAX_NAME_CHARS = 120;
 const FALLBACK_NAME = "unterlage";
+
+// On the page words.js comes first and T is its T; required alone (tests, tools), documents.js takes it from there and
+// stays German (#433). A var, because the pages inline every script into one, where a const would clash.
+var T = typeof module !== "undefined" && typeof require === "function" ? require("./words.js").T : T;
+
+// Said when they are shown, so they follow the app language (#433); the German words are those of documents.py.
 const DOCUMENT_MESSAGES = {
-  type: "Unerwarteter Eintrag.",
-  category: "Unbekannte Art von Unterlage.",
-  name: "Ungültiger Dateiname.",
-  extension: "Dieser Dateityp geht nicht. Erlaubt sind {allowed}.",
-  size: "Die Datei ist zu gross (höchstens {maxFileMB} MB).",
-  duplicate: "Diese Datei ist schon dabei.",
-  maxFiles: "Zu viele Dateien (höchstens {maxFiles}).",
-  leftOutOne: "{title}: höchstens {maxFiles} Dateien. Eine Datei wurde nicht hinzugefügt.",
-  leftOutMany: "{title}: höchstens {maxFiles} Dateien. {count} Dateien wurden nicht hinzugefügt.",
-  total: "Zusammen sind die Dateien zu gross (höchstens {maxTotalMB} MB).",
+  type: () => T("Unerwarteter Eintrag."),
+  category: () => T("Unbekannte Art von Unterlage."),
+  name: () => T("Ungültiger Dateiname."),
+  extension: (values) => T("Dieser Dateityp geht nicht. Erlaubt sind {allowed}.", values),
+  size: (values) => T("Die Datei ist zu gross (höchstens {maxFileMB} MB).", values),
+  duplicate: () => T("Diese Datei ist schon dabei."),
+  maxFiles: (values) => T("Zu viele Dateien (höchstens {maxFiles}).", values),
+  leftOutOne: (values) => T("{title}: höchstens {maxFiles} Dateien. Eine Datei wurde nicht hinzugefügt.", values),
+  leftOutMany: (values) => T("{title}: höchstens {maxFiles} Dateien. {count} Dateien wurden nicht hinzugefügt.", values),
+  total: (values) => T("Zusammen sind die Dateien zu gross (höchstens {maxTotalMB} MB).", values),
 };
 
 const titleForTrack = (value, track) => (value !== null && typeof value === "object" ? value[track] : value);
@@ -1609,11 +1619,13 @@ function allowedExtensions(form, category) {
   return category.fileTypes.flatMap((t) => types[t].extensions);
 }
 
-/** German list of the accepted file types, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“. */
+/** List of the accepted file types in the app language, e.g. „PDF, Word (.docx, .doc) und Textdateien (.txt)“. */
 function allowedText(form, category) {
   const types = form.documents.fileTypes;
-  const labels = category.fileTypes.flatMap((t) => types[t].labels);
-  return labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(", ")} und ${labels[labels.length - 1]}`;
+  const labels = category.fileTypes.flatMap((t) => types[t].labels).map((label) => T(label));
+  if (labels.length === 1) return labels[0];
+  const head = labels.slice(1, -1).reduce((joined, label) => T("{a}, {b}", { a: joined, b: label }), labels[0]);
+  return T("{namen} und {letzter}", { namen: head, letzter: labels[labels.length - 1] });
 }
 
 function validateDocuments(form, entries) {
@@ -1653,7 +1665,7 @@ function documentEntryError(form, known, entry, seen) {
   return null;
 }
 
-/** German message: category and file name, then what is wrong. */
+/** Message in the app language: category and file name, then what is wrong. */
 function describeDocument(form, track, entries, error) {
   const rules = form.documents;
   const known = documentCategories(form);
@@ -1668,18 +1680,19 @@ function describeDocument(form, track, entries, error) {
   if (parts.length === 2 && known.has(parts[1])) {
     const category = known.get(parts[1]);
     params.maxFiles = category.maxFiles;
-    where = titleForTrack(category.title, track);
+    where = T(titleForTrack(category.title, track));
   } else if (parts.length === 2 && /^[0-9]+$/.test(parts[1]) && Number(parts[1]) < entries.length) {
     const entry = entries[Number(parts[1])];
     if (isDocumentObject(entry)) {
       const category = typeof entry.category === "string" ? known.get(entry.category) : undefined;
       if (category) params.allowed = allowedText(form, category);
-      where = [category ? titleForTrack(category.title, track) : "", entry.name]
+      where = [category ? T(titleForTrack(category.title, track)) : "", entry.name]
         .filter((n) => typeof n === "string" && n).join(", ");
     }
   }
-  const text = (DOCUMENT_MESSAGES[error.code] || error.code).replace(/\{(\w+)\}/g, (_, k) => params[k]);
-  return where ? `${where}: ${text}` : text;
+  const message = DOCUMENT_MESSAGES[error.code];
+  const text = message ? message(params) : error.code;
+  return where ? T("{wo}: {meldung}", { wo: where, meldung: text }) : text;
 }
 
 /** A file name from the person's computer, made safe: no folders, no special characters, at most 120 characters. */
@@ -1730,9 +1743,8 @@ function planUploads(form, track, current, category, chosen) {
 
 function leftOutMessage(form, track, category, count) {
   const rules = documentCategories(form).get(category);
-  const params = { title: titleForTrack(rules.title, track), maxFiles: rules.maxFiles, count };
-  const text = count === 1 ? DOCUMENT_MESSAGES.leftOutOne : DOCUMENT_MESSAGES.leftOutMany;
-  return text.replace(/\{(\w+)\}/g, (_, k) => params[k]);
+  const params = { title: T(titleForTrack(rules.title, track)), maxFiles: rules.maxFiles, count };
+  return count === 1 ? DOCUMENT_MESSAGES.leftOutOne(params) : DOCUMENT_MESSAGES.leftOutMany(params);
 }
 
 function isAbout(error, last, category) {
@@ -1750,10 +1762,12 @@ function uploadZipEntries(bundleBytes, uploads) {
 /** Split the entries of a loaded ZIP into the answers (bytes) and uploads; throws UploadError. */
 function splitUploadZip(form, entries) {
   const bundles = entries.filter((e) => e.name === UPLOAD_BUNDLE);
-  if (bundles.length !== 1) throw new UploadError(`Die Datei muss genau eine ${UPLOAD_BUNDLE} enthalten.`);
+  if (bundles.length !== 1) throw new UploadError(T("Die Datei muss genau eine {datei} enthalten.", { datei: UPLOAD_BUNDLE }));
   const uploads = entries.filter((e) => e.name !== UPLOAD_BUNDLE).map((e) => {
     const parts = e.name.split("/");
-    if (parts.length !== 3 || parts[0] !== UPLOAD_DIR) throw new UploadError(`Unerwarteter Inhalt in der Datei: ${e.name}`);
+    if (parts.length !== 3 || parts[0] !== UPLOAD_DIR) {
+      throw new UploadError(T("Unerwarteter Inhalt in der Datei: {name}", { name: e.name }));
+    }
     return { category: parts[1], name: parts[2], size: e.data.length, data: e.data };
   });
   const [error] = validateDocuments(form, uploads.map(({ category, name, size }) => ({ category, name, size })));
@@ -1777,6 +1791,10 @@ if (typeof module !== "undefined") {
 // Writes stored or deflated entries with UTF-8 names; reads stored and deflated entries, checks sizes
 // and CRCs and stops at the given limits. No encryption, no ZIP64, no multi-disk archives.
 "use strict";
+
+// On the page words.js comes first and T is its T; required alone (tests, tools), zip.js takes it from there and stays
+// German (#433). A var, because the pages inline every script into one, where a const would clash.
+var T = typeof module !== "undefined" && typeof require === "function" ? require("./words.js").T : T;
 
 const SIG_LOCAL = 0x04034b50;
 const SIG_CENTRAL = 0x02014b50;
@@ -1819,7 +1837,7 @@ async function streamThrough(data, transform, limit) {
     length += value.length;
     if (limit !== undefined && length > limit) {
       await reader.cancel();
-      throw new ZipError("Die Datei ist beschädigt (ein Eintrag ist grösser als angegeben).");
+      throw new ZipError(T("Die Datei ist beschädigt (ein Eintrag ist grösser als angegeben)."));
     }
     chunks.push(value);
   }
@@ -1896,15 +1914,15 @@ function concat(parts) {
   return out;
 }
 
-/** Entries [{ name, data }] of a ZIP; throws ZipError (German message) if it is damaged or exceeds the limits. */
+/** Entries [{ name, data }] of a ZIP; throws ZipError (message in the app language) if it is damaged or too large. */
 async function readZip(bytes, { maxEntries, maxTotalBytes }) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const end = findEnd(bytes, view);
   const count = view.getUint16(end + 10, true);
   if (view.getUint16(end + 4, true) !== 0 || view.getUint16(end + 8, true) !== count) {
-    throw new ZipError("ZIP-Dateien über mehrere Teile gehen nicht.");
+    throw new ZipError(T("ZIP-Dateien über mehrere Teile gehen nicht."));
   }
-  if (count > maxEntries) throw new ZipError(`Die Datei enthält zu viele Einträge (höchstens ${maxEntries}).`);
+  if (count > maxEntries) throw new ZipError(T("Die Datei enthält zu viele Einträge (höchstens {anzahl}).", { anzahl: maxEntries }));
   const decoder = new TextDecoder("utf-8", { fatal: true });
   const entries = [];
   let total = 0;
@@ -1914,7 +1932,9 @@ async function readZip(bytes, { maxEntries, maxTotalBytes }) {
     position = entry.next;
     if (entry.name.endsWith("/")) continue;
     total += entry.size;
-    if (total > maxTotalBytes) throw new ZipError(`Der Inhalt ist zu gross (höchstens ${Math.floor(maxTotalBytes / 1000000)} MB).`);
+    if (total > maxTotalBytes) {
+      throw new ZipError(T("Der Inhalt ist zu gross (höchstens {mb} MB).", { mb: Math.floor(maxTotalBytes / 1000000) }));
+    }
     entries.push({ name: entry.name, data: await entryData(bytes, view, entry) });
   }
   return entries;
@@ -1925,23 +1945,23 @@ function findEnd(bytes, view) {
   for (let i = bytes.length - END_RECORD; i >= lowest; i--) {
     if (view.getUint32(i, true) === SIG_END) return i;
   }
-  throw new ZipError("Die Datei ist keine ZIP-Datei.");
+  throw new ZipError(T("Die Datei ist keine ZIP-Datei."));
 }
 
 function centralEntry(bytes, view, at, decoder) {
   if (at + CENTRAL_HEADER > bytes.length || view.getUint32(at, true) !== SIG_CENTRAL) {
-    throw new ZipError("Die Datei ist beschädigt (Inhaltsverzeichnis).");
+    throw new ZipError(T("Die Datei ist beschädigt (Inhaltsverzeichnis)."));
   }
   const flags = view.getUint16(at + 8, true);
-  if (flags & FLAG_ENCRYPTED) throw new ZipError("Verschlüsselte ZIP-Dateien gehen nicht.");
+  if (flags & FLAG_ENCRYPTED) throw new ZipError(T("Verschlüsselte ZIP-Dateien gehen nicht."));
   const nameLength = view.getUint16(at + 28, true);
   const next = at + CENTRAL_HEADER + nameLength + view.getUint16(at + 30, true) + view.getUint16(at + 32, true);
-  if (next > bytes.length) throw new ZipError("Die Datei ist beschädigt (Inhaltsverzeichnis).");
+  if (next > bytes.length) throw new ZipError(T("Die Datei ist beschädigt (Inhaltsverzeichnis)."));
   let name;
   try {
     name = decoder.decode(bytes.subarray(at + CENTRAL_HEADER, at + CENTRAL_HEADER + nameLength));
   } catch (error) {
-    throw new ZipError("Ein Dateiname in der ZIP-Datei ist ungültig.");
+    throw new ZipError(T("Ein Dateiname in der ZIP-Datei ist ungültig."));
   }
   return {
     name, next, method: view.getUint16(at + 10, true), crc: view.getUint32(at + 16, true),
@@ -1952,10 +1972,10 @@ function centralEntry(bytes, view, at, decoder) {
 async function entryData(bytes, view, entry) {
   const at = entry.offset;
   if (at + LOCAL_HEADER > bytes.length || view.getUint32(at, true) !== SIG_LOCAL) {
-    throw new ZipError("Die Datei ist beschädigt (Eintrag nicht gefunden).");
+    throw new ZipError(T("Die Datei ist beschädigt (Eintrag nicht gefunden)."));
   }
   const start = at + LOCAL_HEADER + view.getUint16(at + 26, true) + view.getUint16(at + 28, true);
-  if (start + entry.compressed > bytes.length) throw new ZipError("Die Datei ist beschädigt (Eintrag abgeschnitten).");
+  if (start + entry.compressed > bytes.length) throw new ZipError(T("Die Datei ist beschädigt (Eintrag abgeschnitten)."));
   const raw = bytes.subarray(start, start + entry.compressed);
   let data;
   if (entry.method === METHOD_STORED) data = raw.slice();
@@ -1964,10 +1984,12 @@ async function entryData(bytes, view, entry) {
       data = await streamThrough(raw, new DecompressionStream("deflate-raw"), entry.size);
     } catch (error) {
       if (error instanceof ZipError) throw error;
-      throw new ZipError(`Die Datei ist beschädigt (${entry.name}).`);
+      throw new ZipError(T("Die Datei ist beschädigt ({name}).", { name: entry.name }));
     }
-  } else throw new ZipError(`Diese Art der Komprimierung geht nicht (${entry.name}).`);
-  if (data.length !== entry.size || crc32(data) !== entry.crc) throw new ZipError(`Die Datei ist beschädigt (${entry.name}).`);
+  } else throw new ZipError(T("Diese Art der Komprimierung geht nicht ({name}).", { name: entry.name }));
+  if (data.length !== entry.size || crc32(data) !== entry.crc) {
+    throw new ZipError(T("Die Datei ist beschädigt ({name}).", { name: entry.name }));
+  }
   return data;
 }
 
@@ -1989,14 +2011,14 @@ const UPLOAD_DB_KEY = "current";
 function openUploadDb() {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined") {
-      reject(new Error("IndexedDB not available"));
+      reject(new Error("IndexedDB not available")); // kein UI-Text: the page says the store is gone in its own words
       return;
     }
     const request = indexedDB.open(UPLOAD_DB_NAME, UPLOAD_DB_VERSION);
     request.onupgradeneeded = () => request.result.createObjectStore(UPLOAD_DB_STORE);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
-    request.onblocked = () => reject(new Error("IndexedDB blocked"));
+    request.onblocked = () => reject(new Error("IndexedDB blocked")); // kein UI-Text
   });
 }
 
@@ -2009,7 +2031,7 @@ async function withUploadStore(mode, makeRequest) {
       const request = makeRequest(transaction.objectStore(UPLOAD_DB_STORE));
       transaction.oncomplete = () => resolve(request.result);
       transaction.onerror = () => reject(transaction.error);
-      transaction.onabort = () => reject(transaction.error || new Error("IndexedDB aborted"));
+      transaction.onabort = () => reject(transaction.error || new Error("IndexedDB aborted")); // kein UI-Text
     });
   } finally {
     db.close();
@@ -2047,24 +2069,25 @@ function isKeptUpload(u) {
 // Depends on dom.js, model.js and documents.js (inlined before this file by build_template.py).
 "use strict";
 
+// Said when they are shown, so they follow the app language (#433); the file for sharing stays German.
 const UPLOAD_TEXT = {
   job: {
-    kept: "Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen, und kommen mit in die gespeicherte Datei. „Alles löschen“ im letzten Schritt entfernt sie.",
-    memory: "Dieser Browser kann die Dateien nicht aufbewahren (z.B. im privaten Fenster). Speichern Sie am Schluss die Datei, sonst müssen Sie sie nach dem Schliessen neu wählen.",
-    choose: "Dateien wählen",
-    skip: "Weiter zum Speichern",
-    app: "Die Dateien kommen sofort in Ihren Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer.",
-    skipHint: "Mit Unterlagen können Sie die übrigen Schritte auslassen oder nur ausfüllen, was Sie gerade wissen.",
-    full: (max) => `Höchstens ${max} Dateien. Entfernen Sie eine, wenn Sie eine andere wählen möchten.`,
+    kept: () => T("Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen, und kommen mit in die gespeicherte Datei. „Alles löschen“ im letzten Schritt entfernt sie."),
+    memory: () => T("Dieser Browser kann die Dateien nicht aufbewahren (z.B. im privaten Fenster). Speichern Sie am Schluss die Datei, sonst müssen Sie sie nach dem Schliessen neu wählen."),
+    choose: () => T("Dateien wählen"),
+    skip: () => T("Weiter zum Speichern"),
+    app: () => T("Die Dateien kommen sofort in Ihren Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer."),
+    skipHint: () => T("Mit Unterlagen können Sie die übrigen Schritte auslassen oder nur ausfüllen, was Sie gerade wissen."),
+    full: (max) => T("Höchstens {max} Dateien. Entfernen Sie eine, wenn Sie eine andere wählen möchten.", { max }),
   },
   apprenticeship: {
-    kept: "Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen, und kommen mit in die gespeicherte Datei. „Alles löschen“ im letzten Schritt entfernt sie.",
-    memory: "Dieser Browser kann die Dateien nicht aufbewahren (z.B. im privaten Fenster). Speichere am Schluss die Datei, sonst musst du sie nach dem Schliessen neu wählen.",
-    choose: "Dateien wählen",
-    skip: "Weiter zum Speichern",
-    app: "Die Dateien kommen sofort in deinen Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer.",
-    skipHint: "Mit Unterlagen kannst du die übrigen Schritte auslassen oder nur ausfüllen, was du gerade weisst.",
-    full: (max) => `Höchstens ${max} Dateien. Entferne eine, wenn du eine andere wählen möchtest.`,
+    kept: () => T("Die Dateien bleiben in diesem Browser auf diesem Gerät, auch nach dem Schliessen, und kommen mit in die gespeicherte Datei. „Alles löschen“ im letzten Schritt entfernt sie."),
+    memory: () => T("Dieser Browser kann die Dateien nicht aufbewahren (z.B. im privaten Fenster). Speichere am Schluss die Datei, sonst musst du sie nach dem Schliessen neu wählen."),
+    choose: () => T("Dateien wählen"),
+    skip: () => T("Weiter zum Speichern"),
+    app: () => T("Die Dateien kommen sofort in deinen Datenordner (Ordner „dokumente“) und bleiben auf diesem Computer."),
+    skipHint: () => T("Mit Unterlagen kannst du die übrigen Schritte auslassen oder nur ausfüllen, was du gerade weisst."),
+    full: (max) => T("Höchstens {max} Dateien. Entferne eine, wenn du eine andere wählen möchtest.", { max }),
   },
 };
 const BYTES_PER_KB = 1000;
@@ -2072,8 +2095,8 @@ const BYTES_PER_KB = 1000;
 const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
 function formatSize(bytes) {
-  if (bytes < BYTES_PER_KB * BYTES_PER_KB) return `${Math.max(1, Math.round(bytes / BYTES_PER_KB))} KB`;
-  return `${(bytes / (BYTES_PER_KB * BYTES_PER_KB)).toLocaleString("de-CH", { maximumFractionDigits: 1 })} MB`;
+  if (bytes < BYTES_PER_KB * BYTES_PER_KB) return T("{zahl} KB", { zahl: Math.max(1, Math.round(bytes / BYTES_PER_KB)) });
+  return T("{zahl} MB", { zahl: (bytes / (BYTES_PER_KB * BYTES_PER_KB)).toLocaleString("de-CH", { maximumFractionDigits: 1 }) });
 }
 
 /**
@@ -2086,14 +2109,14 @@ function uploadsView(ctx) {
   const text = UPLOAD_TEXT[track];
   const rules = form.documents;
   return el("section", { className: "uploads" }, [
-    el("h2", {}, forTrack(rules.title, track)),
-    el("p", { className: "intro" }, forTrack(rules.intro, track)),
-    el("p", { className: "hint" }, ctx.kept ? text.kept : text.memory),
+    el("h2", {}, T(forTrack(rules.title, track))),
+    el("p", { className: "intro" }, T(forTrack(rules.intro, track))),
+    el("p", { className: "hint" }, ctx.kept ? text.kept() : text.memory()),
     el("div", { id: "upload-messages", className: "error", role: "alert" }, ctx.messages.map((m) => el("p", {}, m))),
     ...rules.categories.map((category) => categoryView(ctx, category, text)),
     uploads.length ? el("p", { className: "secondary" }, [
-      text.skipHint, " ",
-      el("button", { type: "button", className: "link", onclick: ctx.onSkip }, text.skip),
+      text.skipHint(), " ",
+      el("button", { type: "button", className: "link", onclick: ctx.onSkip }, text.skip()),
     ]) : null,
   ]);
 }
@@ -2112,18 +2135,21 @@ function categoryView(ctx, category, text) {
     .map(({ upload, index }) => el("li", {}, [
       el("span", { className: "file-name" }, upload.name),
       el("span", { className: "file-size" }, formatSize(upload.size)),
-      el("button", { type: "button", className: "remove", "aria-label": `${upload.name} entfernen`, onclick: () => ctx.onRemove(index) }, "Entfernen"),
+      el("button", { type: "button", className: "remove", "aria-label": T("{name} entfernen", { name: upload.name }),
+        onclick: () => ctx.onRemove(index) }, T("Entfernen")),
     ]));
   const { count, maxFiles } = categoryRoom(form, uploads, category.id);
   const full = count >= maxFiles; // the file dialog cannot be told how many files it may take
+  const hint = T("{hinweis}. Erlaubt: {dateitypen}.",
+    { hinweis: capitalize(T(forTrack(category.hint, track))), dateitypen: allowedText(form, category) });
   return el("fieldset", { className: "item upload-category", "aria-describedby": `${id}-hint` }, [
-    el("legend", {}, forTrack(category.title, track)),
-    el("p", { className: "hint", id: `${id}-hint` }, `${capitalize(forTrack(category.hint, track))}. Erlaubt: ${allowedText(form, category)}.`),
+    el("legend", {}, T(forTrack(category.title, track))),
+    el("p", { className: "hint", id: `${id}-hint` }, hint),
     files.length ? el("ul", { className: "files" }, files) : null,
     el("button", {
       type: "button", className: "add", dataset: { category: category.id }, disabled: full,
       "aria-describedby": full ? `${id}-full` : null, onclick: () => input.click(),
-    }, `+ ${text.choose}`),
+    }, `+ ${text.choose()}`),
     full ? el("p", { className: "hint limit-note", id: `${id}-full` }, text.full(maxFiles)) : null,
     input,
   ]);
@@ -2661,7 +2687,7 @@ async function runPrefill() {
   const onStatus = document.activeElement?.id === STATUS_ID;
   renderKeepingFocus();
   if (onStatus) document.getElementById(STATUS_ID)?.focus(); // drawn anew, the line keeps the focus it was given
-  if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished);
+  if (steps()[step].kind !== "start") setStatus(finished.problem || PREFILL_TEXT[track].finished());
 }
 
 function confirmSuggestion(key) {

@@ -18,6 +18,7 @@ from pypdf import PdfReader
 import paths  # noqa: F401  (makes the module bewerbungen importable)
 from dateien import im_ordner
 from documents import extension
+from ui_message import T
 
 log = logging.getLogger(__name__)
 
@@ -33,18 +34,19 @@ FORBIDDEN_XML = ("<!DOCTYPE", "<!ENTITY")
 UTF16_MARKS = (b"\xff\xfe", b"\xfe\xff")
 KEPT_CONTROLS = "\n\t"
 
-OLD_WORD = "Altes Word-Format: als PDF speichern und neu hochladen, oder die Angaben von Hand ergänzen."
-IMAGE = "Bild: Darin lässt sich nichts unkenntlich machen, darum geht es nicht an die KI. Angaben von Hand ergänzen."
-SCAN = "Enthält keinen lesbaren Text, vermutlich ein Scan. Angaben von Hand ergänzen."
-ENCRYPTED = "Die Datei ist mit einem Passwort geschützt. Ohne Schutz speichern und neu hochladen."
-BROKEN = "Die Datei liess sich nicht lesen. Als PDF speichern und neu hochladen, oder die Angaben von Hand ergänzen."
-TOO_LARGE = "Die Datei ist ausgepackt zu gross. Als PDF speichern und neu hochladen."
-UNKNOWN_TYPE = "Dieser Dateityp lässt sich nicht lesen."
-TOO_MUCH = "Nicht gelesen: Zusammen sind die Unterlagen zu lang. Die wichtigsten zuerst hochladen oder diese Angaben von Hand ergänzen."
+OLD_WORD = T("Altes Word-Format: als PDF speichern und neu hochladen, oder die Angaben von Hand ergänzen.")
+IMAGE = T("Bild: Darin lässt sich nichts unkenntlich machen, darum geht es nicht an die KI. Angaben von Hand ergänzen.")
+SCAN = T("Enthält keinen lesbaren Text, vermutlich ein Scan. Angaben von Hand ergänzen.")
+ENCRYPTED = T("Die Datei ist mit einem Passwort geschützt. Ohne Schutz speichern und neu hochladen.")
+BROKEN = T("Die Datei liess sich nicht lesen. Als PDF speichern und neu hochladen, oder die Angaben von Hand ergänzen.")
+TOO_LARGE = T("Die Datei ist ausgepackt zu gross. Als PDF speichern und neu hochladen.")
+UNKNOWN_TYPE = T("Dieser Dateityp lässt sich nicht lesen.")
+TOO_MUCH = T("Nicht gelesen: Zusammen sind die Unterlagen zu lang. Die wichtigsten zuerst hochladen oder diese Angaben "
+             "von Hand ergänzen.")
 
 
 class NotReadable(Exception):
-    """The document cannot be read; the message says why and what to do, in German."""
+    """The document cannot be read; the message (a T) says why and what to do."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -180,7 +182,7 @@ def collect_texts(data_dir: pathlib.Path, documents: list[dict]) -> Reading:
         try:
             text = read_text(im_ordner(data_dir, document["datei"])).strip()
         except NotReadable as reason:
-            skipped.append(SkippedDocument(name, str(reason)))
+            skipped.append(SkippedDocument(name, reason.args[0]))  # the T itself, said in the app language
             continue
         except Exception as error:  # noqa: BLE001  (one strange file must not stop the others)
             log.warning("Unterlage nicht lesbar: %s", type(error).__name__)

@@ -143,12 +143,22 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "routes_chat.py", BASE / "ai/chat.py", BASE / "proof_kinds.py", BASE / "ablage.py", BASE / "versionen.py",
     BASE / "dateien.py",
     # Meine Angaben, the form (#431): the page around it, built from onboarding/src/template.html, the texts of
-    # form.json and the T the scripts say them through; the steps and checks with their own words (#432). The
-    # documents and the prefill follow with #433.
+    # form.json and the T the scripts say them through; the steps and checks with their own words (#432).
     # Under ROOT, so that the guide's check of the data folder sees form.json as part of the app.
     BASE / "seiten/angaben.html", ROOT / "onboarding/form.json", ROOT / "onboarding/src/words.js",
     ROOT / "onboarding/src/app.js", ROOT / "onboarding/src/steps.js", ROOT / "onboarding/src/dom.js",
     ROOT / "onboarding/src/validate.js",
+    # Meine Angaben, the documents and the prefill (#433): every other script the page runs, its routes and the
+    # onboarding modules behind them. The skill einstieg and the import scripts keep their German, since T is German.
+    ROOT / "onboarding/src/model.js", ROOT / "onboarding/src/presets.js", ROOT / "onboarding/src/documents.js",
+    ROOT / "onboarding/src/zip.js", ROOT / "onboarding/src/uploadstore.js", ROOT / "onboarding/src/uploads.js",
+    ROOT / "onboarding/src/appbackend.js", ROOT / "onboarding/src/kindguess.js", ROOT / "onboarding/src/droparea.js",
+    ROOT / "onboarding/src/appuploads.js", ROOT / "onboarding/src/appestimate.js", ROOT / "onboarding/src/prefill.js",
+    ROOT / "onboarding/src/replacechoice.js", DESKTOP / "routes_angaben.py",
+    *(ROOT / "onboarding" / name for name in (
+        "archive.py", "basics_merge.py", "basics_read.py", "basics_slots.py", "convert.py", "cv_merge.py", "cv_read.py",
+        "documents.py", "import_bundle.py", "import_documents.py", "known_tags.py", "markdown_files.py", "prefill.py",
+        "prefill_estimate.py", "read_documents.py", "rejected.py", "text_diff.py", "validation.py", "values.py")),
 )
 LEFTOVER = "Texte.t"
 PYTHON_LEFTOVER = "T"
@@ -257,10 +267,10 @@ def orphans(catalog: translation_catalog.Catalog, items: Iterable[language_sourc
 def app_sources() -> tuple[pathlib.Path, ...]:
     """The pages, scripts and modules of bewerbungen, the routes the desktop app adds to them (#417), the folder
     check and system dialogs whose texts the setup routes pass on (#418), and the form and scripts Meine Angaben is
-    built from (#431)."""
+    built from (#431), with the modules behind its routes (#433)."""
     patterns = ((BASE, "seiten/*.html"), (BASE, "seiten/*.js"), (BASE, "*.py"), (BASE, "ai/*.py"),
                 (DESKTOP, "routes_*.py"), (DESKTOP, "setup.py"), (DESKTOP, "dialogs.py"),
-                (ONBOARDING, "form.json"), (ONBOARDING, "src/*.js"))
+                (ONBOARDING, "form.json"), (ONBOARDING, "src/*.js"), (ONBOARDING, "*.py"))
     return tuple(path for folder, pattern in patterns for path in sorted(folder.glob(pattern)))
 
 
