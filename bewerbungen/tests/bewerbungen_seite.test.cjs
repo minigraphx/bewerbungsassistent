@@ -44,8 +44,10 @@ test("the page is laid out as A5: title, Stelle selbst erfassen, the four views 
   for (const view of views) assert.match(html, new RegExp(`data-zahl="${view}"`));
   assert.match(html, /<label class="applications__search-label" for="suche">Suchen<\/label>/);
   const heads = [...html.matchAll(/<th[^>]*data-spalte="(\w+)"/g)].map(m => m[1]);
-  assert.deepEqual(heads, ["stelle", "stand", "note", "schritt", "frist", "erfasst"]);
+  assert.deepEqual(heads, ["stelle", "stand", "note", "schritt", "frist", "erfasst", "geaendert"]);
   assert.match(html, /data-spalte="frist"><button type="button" class="table__sort">Bis wann<\/button>/);
+  assert.match(html, /<th class="num" data-spalte="geaendert"><button type="button" class="table__sort">Stand geändert<\/button>/);
+  assert.match(read("bewerbungen.js"), /el\("td", \{ "data-label": kopf\.geaendert, class: "num" \}, texte\.geaendert\)/);
   assert.match(html, /<dialog class="dialog" id="neu-dialog"/);
   assert.match(html, /<dialog class="dialog pass" id="pass-dialog"/);
   const scripts = scriptsOf(html);

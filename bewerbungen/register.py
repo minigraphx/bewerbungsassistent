@@ -14,6 +14,7 @@ import re
 import sys
 import threading
 import unicodedata
+from typing import Callable
 
 import reposts
 from dateien import lies_yaml, schreibe_yaml
@@ -27,7 +28,8 @@ DESIGN_PAGES = ("deckblatt", "anschreiben", "lebenslauf", "weitere")  # pages wi
 CV_DESIGNS = ("zweispaltig", "einspaltig")  # G61, the themes in lebenslauf/themes that build a CV alone; preset first
 TEXTFELDER = ("art", "formular_link", "firma_schluessel", "firma", "stelle", "ort", "pensum", "vermittler", "portal", "link", "notiz", "variante",
               "adresse", "kontaktperson", "kontakt")
-DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am", "rav_eingetragen_am")
+STAGE_CHANGED = "stand_geaendert_am"  # G135: set by the app on every real change of stage, never by a form
+DATUMSFELDER = ("eingetragen_am", "beworben_am", "frist", "absage_am", "gespraech_am", "rav_eingetragen_am", STAGE_CHANGED)
 FORMULA_STARTS = ("=", "+", "-", "@")
 JOBROOM_ART = ("elektronisch", "schriftlich", "persönlich", "telefonisch")
 # Früher gespeichertes Feld `jobroom`: diese Werte wandern in die Bewerbung, der Rest wird abgeleitet
@@ -229,9 +231,17 @@ def jobroom_angaben(b: dict) -> dict:
     return {k: v for k, v in angaben.items() if v not in (None, "")}
 
 
+def stage_dated(before: dict | None, after: dict, today: datetime.date) -> dict:
+    """`after` with today as the date of the last change of stage when its stage differs from `before` (G135).
+    A new entry has no change yet; the same stage again keeps the date it had."""
+    if before is None or (before.get("status") or "Gemerkt") == (after.get("status") or "Gemerkt"):
+        return after
+    return {**after, STAGE_CHANGED: today.isoformat()}
+
+
 def with_stage(entry: dict, stage: str, today: datetime.date) -> dict:
     """A copy at the new stage; a rejection without a date gets today's, as on the application's page."""
-    changed = {**entry, "status": stage}
+    changed = stage_dated(entry, {**entry, "status": stage}, today)
     if stage == "Absage" and not entry.get("absage_am"):
         return {**changed, "absage_am": today.isoformat()}
     return changed
@@ -241,10 +251,11 @@ def with_stage(entry: dict, stage: str, today: datetime.date) -> dict:
 
 
 class Register:
-    def __init__(self, ordner: pathlib.Path) -> None:
+    def __init__(self, ordner: pathlib.Path, today: Callable[[], datetime.date] = datetime.date.today) -> None:
         self.ordner = ordner.resolve()
         self.pfad = self.ordner / DATEI
         self._sperre = threading.Lock()
+        self._today = today  # the day a change of stage is recorded with (G135); the app passes its own
 
     def alle(self) -> list[dict]:
         return [pruefe_bewerbung(b) for b in lies_yaml(self.pfad, [])]
@@ -264,6 +275,8 @@ class Register:
         neu = pruefe_bewerbung(bewerbung)
         with self._sperre:
             alle = self.alle()
+            # compared under the lock with what is stored, so every way of saving records a change of stage
+            neu = stage_dated(next((b for b in alle if b["id"] == neu["id"]), None), neu, self._today())
             ids = [b["id"] for b in alle]
             liste = [neu if b["id"] == neu["id"] else b for b in alle] if neu["id"] in ids else alle + [neu]
             self._schreibe(liste)

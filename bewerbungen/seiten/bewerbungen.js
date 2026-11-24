@@ -82,7 +82,8 @@
       el("td", { "data-label": kopf.note }, note(b)),
       el("td", { "data-label": kopf.schritt, class: "table__next" }, texte.schritt),
       el("td", { "data-label": kopf.bis }, texte.bis),
-      el("td", { "data-label": kopf.erfasst, class: "num" }, texte.erfasst));
+      el("td", { "data-label": kopf.erfasst, class: "num" }, texte.erfasst),
+      el("td", { "data-label": kopf.geaendert, class: "num" }, texte.geaendert));
   }
 
   const gezeigteZeilen = () => L.sortiert(L.gefiltert(zeilen, ansicht, $("suche").value), sortierung);

@@ -14,6 +14,7 @@ import hashlib
 import pathlib
 import shutil
 import subprocess
+from typing import Callable
 
 import yaml
 
@@ -145,12 +146,14 @@ def _hinweise_fassungen(daten: pathlib.Path, bewerbung: dict, aus_formular: dict
 
 
 def erfasse_versand(daten: pathlib.Path, bewerbung_id: str, datum: datetime.date, versionierung: Versionierung,
-                    art: str = "elektronisch", zusatz: dict | None = None, from_form: bool = False) -> dict:
-    """`from_form`: the person sent it from the form, so what the form got is what went out."""
+                    art: str = "elektronisch", zusatz: dict | None = None, from_form: bool = False,
+                    today: Callable[[], datetime.date] = datetime.date.today) -> dict:
+    """`from_form`: the person sent it from the form, so what the form got is what went out. `today` dates the change
+    of stage (G135); `datum` is the day the person names as sent, which may lie in the past."""
     daten = daten.resolve()
     if art not in JOBROOM_ART:
         raise ValueError(T(UNKNOWN_KIND, arten=", ".join(JOBROOM_ART)))  # the stored kinds, German in every language
-    register = Register(daten)
+    register = Register(daten, today=today)
     bewerbung = register.hole(bewerbung_id)
     if bewerbung.get("versand"):
         raise ValueError(T(ALREADY_SENT, datum=bewerbung["versand"]["datum"]))

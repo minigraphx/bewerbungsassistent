@@ -46,6 +46,7 @@
   "Note": {"fr": "Note", "en": "Grade"},
   "Bis wann": {"fr": "Échéance", "en": "Due"},
   "Erfasst": {"fr": "Ajoutée", "en": "Added"},
+  "Stand geändert": {"fr": "Statut modifié", "en": "Status changed"},
   "Angehakte Bewerbungen": {"fr": "Candidatures cochées", "en": "Ticked applications"},
   "Angehakte verwerfen": {"fr": "Écarter les cochées", "en": "Discard ticked"},
   "Zuerst Bewerbungen anhaken.": {"fr": "Cocher d'abord des candidatures.", "en": "Tick applications first."},

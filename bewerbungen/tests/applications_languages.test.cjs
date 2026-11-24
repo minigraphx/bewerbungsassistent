@@ -60,10 +60,10 @@ test("every stored stage has a name in French and English, in the singular", () 
 test("a list row names its stage, next step, deadline and date in the app language", () => {
   const rejected = row(b("r", "Absage", { passung: 4.5 }));
   assert.deepEqual(inLanguage("fr", () => A.rowTexts(rejected, "stelle-sie")),
-    { stand: "Refus", schritt: "–", bis: "–", erfasst: "01.11.2026" });
-  const waiting = row(b("w", "Beworben", { beworben_am: "2026-11-02" }));
+    { stand: "Refus", schritt: "–", bis: "–", erfasst: "01.11.2026", geaendert: "" });
+  const waiting = row(b("w", "Beworben", { beworben_am: "2026-11-02", stand_geaendert_am: "2026-11-02" }));
   assert.deepEqual(inLanguage("en", () => A.rowTexts(waiting, "stelle-sie")),
-    { stand: "Applied", schritt: "Wait for the reply", bis: "follow up from 16.11.2026", erfasst: "01.11.2026" });
+    { stand: "Applied", schritt: "Wait for the reply", bis: "follow up from 16.11.2026", erfasst: "01.11.2026", geaendert: "02.11.2026" });
   const interview = row(b("g", "Gespräch"));
   assert.equal(inLanguage("fr", () => A.rowTexts(interview, "stelle-sie").bis), "à définir");
   assert.equal(inLanguage("en", () => A.rowTexts(interview, "lehrstelle-du").stand), "Invitation");
@@ -71,9 +71,9 @@ test("a list row names its stage, next step, deadline and date in the app langua
 
 test("the column labels and the grade of a row come in the app language", () => {
   assert.deepEqual(inLanguage("fr", () => A.columnLabels()),
-    { stand: "Statut", note: "Note", schritt: "Prochaine étape", bis: "Échéance", erfasst: "Ajoutée" });
+    { stand: "Statut", note: "Note", schritt: "Prochaine étape", bis: "Échéance", erfasst: "Ajoutée", geaendert: "Statut modifié" });
   assert.deepEqual(inLanguage("en", () => A.columnLabels()),
-    { stand: "Status", note: "Grade", schritt: "Next step", bis: "Due", erfasst: "Added" });
+    { stand: "Status", note: "Grade", schritt: "Next step", bis: "Due", erfasst: "Added", geaendert: "Status changed" });
   assert.equal(inLanguage("fr", () => A.gradeLabel(4.5)), "Note 4.5 sur 6, correspond bien");
   assert.equal(inLanguage("en", () => A.gradeLabel(6)), "Grade 6 of 6, fits very well");
   assert.deepEqual(inLanguage("en", () => [A.gradeWord(4), A.gradeWord(3), A.noGrade()]), ["barely fits", "fits poorly", "no grade"]);
@@ -136,7 +136,8 @@ test("the Stellen parts of a known job are worded in the app language", () => {
 test("German stays as it was", () => {
   assert.deepEqual(STAGES.map(stage => texte.statusName(stage, "stelle-sie")), STAGES);
   assert.deepEqual(A.rowTexts(row(b("g", "Gespräch")), "stelle-sie"), { stand: "Gespräch", schritt: "Termin fürs Gespräch eintragen",
-    bis: "offen", erfasst: "01.11.2026" });
+    bis: "offen", erfasst: "01.11.2026", geaendert: "" });
+  assert.equal(A.columnLabels().geaendert, "Stand geändert");
   assert.equal(A.discardQuestion(PLAN), "3 Bewerbungen verwerfen?");
   assert.deepEqual(A.discardNotes(PLAN), ["1 schon verschickte wird zurückgezogen.", "1 abgeschlossene bleibt, wie sie ist."]);
   assert.equal(A.discardDone(PLAN), "2 Bewerbungen verworfen, 1 zurückgezogen.");

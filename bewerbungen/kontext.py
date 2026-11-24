@@ -24,7 +24,7 @@ class Kontext:
     cache: dict = dataclasses.field(default_factory=dict)  # z.B. die Foto-Vorschau (teurer Typst-Compiler)
 
     def register(self) -> Register:
-        return Register(self.daten)
+        return Register(self.daten, today=self.heute)
 
     def varianten(self) -> Varianten:
         return Varianten(self.daten)

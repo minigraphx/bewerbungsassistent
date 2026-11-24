@@ -20,12 +20,13 @@ import unterlagen
 import versand
 from dateien import im_ordner, schreibe_atomar
 from own_files import MAX_FILE_BYTES
-from register import STATUS, jobroom_angaben
+from register import STAGE_CHANGED, STATUS, jobroom_angaben
 from server import Antwort, NichtGefunden, datei_antwort, json_antwort, pflicht
 from ui_texts import T
 from varianten import vorschlagen
 
-EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen", "rav_eingetragen_am", "wieder_ausgeschrieben")  # the last only by the search (G109)
+EIGENE_ROUTEN = ("versand", "zertifikate", "ausfuellen", "rav_eingetragen_am", "wieder_ausgeschrieben",  # this one only by the search (G109)
+                 STAGE_CHANGED)  # only the register sets it, on a change of stage (G135)
 STATUS_REIHENFOLGE = {s: i for i, s in enumerate(("Bewerben", "Gespräch", "Beworben", "Gemerkt", "Zusage",
                                                    "Absage", "Verworfen", "Zurückgezogen"))}
 
@@ -238,7 +239,7 @@ def versenden(k, parameter, body):
     with k.sperre:
         ergebnis = versand.erfasse_versand(k.daten, pflicht(parameter, "id"), datum, k.versionierung,
                                            art=body.get("art") or "elektronisch",
-                                           from_form=body.get("fassung_formular") is True)
+                                           from_form=body.get("fassung_formular") is True, today=k.heute)
     return json_antwort(ergebnis)
 
 

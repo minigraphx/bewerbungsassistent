@@ -112,8 +112,9 @@
     schritt: z => RANG[z.schritt.art] ?? null,
     frist: z => z.schritt.frist || null,
     erfasst: z => z.bewerbung.eingetragen_am || null,  // ISO, so the alphabet is the calendar (#168)
+    geaendert: z => z.bewerbung.stand_geaendert_am || null,  // older entries have none (G135)
   };
-  const ZUERST_ABSTEIGEND = ["note", "erfasst"];  // the best grade and the newest entry first
+  const ZUERST_ABSTEIGEND = ["note", "erfasst", "geaendert"];  // the best grade and the newest date first
   const GEGENTEIL = { auf: "ab", ab: "auf" };
 
   function vergleicheWerte(a, b) {
