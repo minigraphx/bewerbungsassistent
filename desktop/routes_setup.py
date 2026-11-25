@@ -3,15 +3,18 @@
 The step for the einstieg file only shows when such a file lies in Downloads (#219); the overview names the newest.
 
 The app starts on a placeholder folder until a data folder is chosen; then `switch` gives the running
-server the new folder, without a restart. The AI invitation uses the existing routes under /api/ki/.
+server the new folder, without a restart, and hands back its state. An app language chosen on the placeholder goes
+along into that folder unless the folder has its own (#435); the overview names what became of it as `sprache`.
+The AI invitation uses the existing routes under /api/ki/.
 """
 import dataclasses
 import datetime
+import logging
 import pathlib
 import re
 import sys
 from http import HTTPStatus
-from typing import Callable
+from typing import Any, Callable
 
 import dialogs
 import extension
@@ -23,12 +26,13 @@ UNKNOWN_CHOICE = "Die Wahl der Dateien hat eine unbekannte Form."
 # einstieg.zip or einstieg.json, also as browsers name a second download: „einstieg (1).zip“, „einstieg-1.zip“
 # The template names its download einstieg-<name of the person>; browsers add " (1)" to a second one.
 EINSTIEG_FILE = re.compile(r"einstieg(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?(?: ?\(\d+\))?\.(?:zip|json)", re.IGNORECASE)
+log = logging.getLogger("bewerbungsbegleiter")
 
 
 @dataclasses.dataclass
 class Setup:
     paths: settings.Paths
-    switch: Callable[[pathlib.Path], None]
+    switch: Callable[[pathlib.Path], Any]  # gives the server the folder; returns its new state (Kontext)
     suggestion: pathlib.Path
     forbidden: tuple[pathlib.Path, ...] = ()
     # kind, start folder and the app language, which titles the system's dialog (#418)
@@ -54,13 +58,30 @@ def einstieg_file(downloads: pathlib.Path) -> pathlib.Path | None:
     return max(found, key=lambda entry: entry.stat().st_mtime, default=None)
 
 
-def _sync(state: Setup, k) -> bool:
-    """Use the chosen folder when the server still runs on another one (e.g. a USB stick plugged in later)."""
+def _switch(state: Setup, k, folder: pathlib.Path) -> dict | None:
+    """Give the running app `folder`; coming from the placeholder, the app language chosen there goes along (#435).
+    What became of it, or None; a language that cannot be carried keeps the folder as chosen and is logged."""
+    placeholder = setup.placeholder_dir(state.paths).resolve()
+    from_placeholder = pathlib.Path(k.daten).resolve() == placeholder
+    new = state.switch(folder)
+    if not from_placeholder or new is None:
+        return None
+    import language_settings
+    try:
+        carried = language_settings.carry_app_language(placeholder, new)
+    except (OSError, ValueError) as error:
+        log.warning("Sprache der App nicht in den Datenordner übernommen: %s", error)
+        return None
+    return carried.as_dict() if carried else None
+
+
+def _sync(state: Setup, k) -> tuple[bool, dict | None]:
+    """Use the chosen folder when the server still runs on another one (e.g. a USB stick plugged in later): whether it
+    switched, and what became of the app language chosen meanwhile."""
     chosen = state.data_dir()
     if chosen is None or not chosen.is_dir() or k.daten == chosen.resolve():
-        return False
-    state.switch(chosen)
-    return True
+        return False, None
+    return True, _switch(state, k, chosen)
 
 
 def _path(body) -> str:
@@ -74,15 +95,17 @@ def make_routes(state: Setup) -> tuple[dict, dict]:
     from server import json_antwort
     from ui_texts import sprache
 
-    def overview(k, parameter, body, switched: bool | None = None):
-        switched = _sync(state, k) if switched is None else switched
+    def overview(k, parameter, body, switched: bool | None = None, language: dict | None = None):
+        if switched is None:
+            switched, language = _sync(state, k)
         chosen = state.data_dir()
         has_cv = chosen is not None and (chosen / "cv.yaml").is_file()
         found = einstieg_file(state.downloads)
         return json_antwort({"eingerichtet": chosen is not None, "datenordner": str(chosen) if chosen else None,
                              "fehlt": chosen is not None and not chosen.is_dir(), "gewechselt": switched,
                              "vorschlag": str(state.suggestion), "lebenslauf": has_cv,
-                             "erweiterung": _extension(state), "einstieg_datei": str(found) if found else None})
+                             "erweiterung": _extension(state), "einstieg_datei": str(found) if found else None,
+                             "sprache": language})
 
     def check(k, parameter, body):
         found = setup.check_folder(_path(body), state.forbidden)
@@ -91,9 +114,9 @@ def make_routes(state: Setup) -> tuple[dict, dict]:
     def choose_data_dir(k, parameter, body):
         found = setup.check_folder(_path(body), state.forbidden)
         folder = setup.prepare(found)
-        state.switch(folder)
+        language = _switch(state, k, folder)
         settings.remember_data_dir(state.paths, folder)
-        return overview(k, parameter, body, switched=False)
+        return overview(k, parameter, body, switched=False, language=language)
 
     def dialog(k, parameter, body):
         kind = body.get("art") if isinstance(body, dict) else None

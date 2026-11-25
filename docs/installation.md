@@ -44,7 +44,7 @@ So kommen Sie von der Installation zur ersten Bewerbung. Jeder Schritt verweist 
 
 1. **App installieren und einrichten.** Laden Sie die App auf der Seite [App laden](laden.html) und starten Sie sie. Die Seite **Einrichtung** fragt, was Sie suchen und ob Sie beim RAV gemeldet sind. Die KI ist kein Schritt der Einrichtung: Mit **KI einrichten** lösen Sie, falls Sie einen haben, Ihren Einladungscode für die KI ein, mit einem Budget von CHF 5 pro Monat. Das geht auch später, wann Sie sie brauchen. Mehr unter [App installieren](#app-installieren) und [App einrichten](#app-einrichten).
 
-   ![Seite Einrichtung mit den zwei Schritten Gesucht und Erweiterung, der Wahl zwischen Stelle und Lehrstelle, dem Link KI einrichten und der Zeile mit dem Datenordner; links die Seitenleiste der App](bilder/einrichtung-start.jpg)
+   ![Seite Einrichtung mit den zwei Schritten Gesucht und Erweiterung, der Wahl zwischen Stelle und Lehrstelle, dem Link KI einrichten und der Zeile mit dem Datenordner; links die Seitenleiste der App; oben rechts die Sprachwahl Deutsch, Français, English](bilder/einrichtung-start.jpg)
 
 2. **Browser-Erweiterung hinzufügen.** Klicken Sie in der Einrichtung auf den Knopf für den Store Ihres Browsers und dort auf **Hinzufügen** oder **Abrufen**. Danach geht es in der App von selbst weiter. Mehr unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen).
 
@@ -105,13 +105,13 @@ Die App öffnet sich in Ihrem Browser mit der Seite „Einrichtung“.
 
 ### App einrichten
 
-Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Links steht die Seitenleiste mit **Heute**, **Stellen** und **Bewerbungen**, darunter unter **Meine Unterlagen** die Seiten **Meine Angaben** und **Lebenslauf und Dateien** und ganz unten **Einstellungen**. Sie beenden die App unter **Einstellungen**, **Über die App**, mit **Beenden**. Schliessen Sie den letzten Tab der App, beendet sie sich nach einer Minute von selbst. Läuft gerade eine Suche oder eine Aufgabe der KI, wartet sie, bis diese fertig ist.
+Die App läuft in Ihrem Browser, aber nur auf Ihrem Computer. Links steht die Seitenleiste mit **Heute**, **Stellen** und **Bewerbungen**, darunter unter **Meine Unterlagen** die Seiten **Meine Angaben** und **Lebenslauf und Dateien** und ganz unten **Einstellungen**. Ganz unten wechseln Sie die Sprache der App: **Deutsch**, **Français** oder **English**; im schmalen Fenster steht die Wahl unter **Menü**. Sie beenden die App unter **Einstellungen**, **Über die App**, mit **Beenden**. Schliessen Sie den letzten Tab der App, beendet sie sich nach einer Minute von selbst. Läuft gerade eine Suche oder eine Aufgabe der KI, wartet sie, bis diese fertig ist.
 
 Die Einrichtung hat zwei kurze Schritte und dauert zusammen etwa drei Minuten. Schritt 1 steht hier, Schritt 2 unter [Browser-Erweiterung hinzufügen](#browser-erweiterung-hinzufügen). Die KI ist kein Schritt: Sie richten sie mit **KI einrichten** ein, wann Sie wollen (siehe [KI einrichten](#ki-einrichten)). Jeden Schritt können Sie später ändern; Sie finden die Seite unter **Einstellungen**, **Daten und Sicherung**, mit dem Link **Einrichtung: Datenordner, Erweiterung und KI**.
 
 #### Schritt 1: Was wird gesucht?
 
-![Seite Einrichtung mit den zwei Schritten Gesucht und Erweiterung, der Wahl zwischen Stelle und Lehrstelle, dem Link KI einrichten und der Zeile mit dem Datenordner; links die Seitenleiste der App](bilder/einrichtung-start.jpg)
+![Seite Einrichtung mit den zwei Schritten Gesucht und Erweiterung, der Wahl zwischen Stelle und Lehrstelle, dem Link KI einrichten und der Zeile mit dem Datenordner; links die Seitenleiste der App; oben rechts die Sprachwahl Deutsch, Français, English](bilder/einrichtung-start.jpg)
 
 Wählen Sie **Eine Stelle** oder **Eine Lehrstelle**, wie die App Sie ansprechen soll und ob Sie beim RAV gemeldet sind. Vorgewählt ist **Nein**; mit **Ja** hilft die App beim Eintragen der Arbeitsbemühungen im Job-Room.
 
@@ -218,7 +218,7 @@ Unter **Meine Angaben** erfassen Sie Lebenslauf und Suchprofil, in etwa 20 Minut
 
 **Stufen** für Kenntnisse und Sprachen sind ebenfalls freiwillig und gelten nur fürs Dossier: Bei einer Kenntnis wählen Sie 1 bis 6, bei einer Sprache A1 bis C2, mit **ohne Stufe** entfernen Sie sie wieder. Hat ein Eintrag eines Bereichs eine Stufe, zeigt das Dossier dort eine Grafik, und Einträge ohne Stufe erscheinen darin neutral. Ganz ohne Stufen gibt es keine Grafik.
 
-**Sprachen:** Unter **Einstellungen**, **KI, Budget und Sprache**, wählen Sie bei **Sprache** die **Sprache der App** und unter **Ich bewerbe mich auf** die Sprachen, in denen Sie sich bewerben. Solange Sie nichts gewählt haben, schlägt die App die Sprachen vor, die Ihr Lebenslauf mit fliessend oder besser nennt, sonst Deutsch. Der Vorschlag gilt, bis Sie ein Häkchen ändern. Die App selbst gibt es vorerst nur auf Deutsch; Französisch und Englisch folgen.
+**Sprachen:** Unter **Einstellungen**, **KI, Budget und Sprache**, wählen Sie bei **Sprache** die **Sprache der App**, oder unten in der Seitenleiste und oben auf der Seite **Einrichtung**, und unter **Ich bewerbe mich auf** die Sprachen, in denen Sie sich bewerben. Solange Sie nichts gewählt haben, schlägt die App die Sprachen vor, die Ihr Lebenslauf mit fliessend oder besser nennt, sonst Deutsch. Der Vorschlag gilt, bis Sie ein Häkchen ändern. Die App selbst gibt es vorerst nur auf Deutsch; Französisch und Englisch folgen.
 
 Für die Stellensuche gibt es ausserdem die Abschnitte **Projekte** sowie **Lehre und Training** und ein Feld für Ihre eigene Webseite. Bei Ausbildungen und Zertifikaten können Sie unter **Eigener Text** einen fertigen Satz schreiben; er steht im Lebenslauf anstelle der einzelnen Angaben.
 
@@ -526,7 +526,7 @@ Alles, was Sie in der App erfassen, liegt als gewöhnliche Datei im [Datenordner
 - `anschreiben/stil.md` – Ihr Stilprofil: wie Ihre Anschreiben klingen sollen. `anschreiben/bausteine.md` – Ihre Bausteine: Sätze und Beispiele, die die KI in Anschreiben verwenden darf. Beide entstehen unter **Meine Angaben** und lassen sich unter **Inhalte als Text** ändern.
 - `jobs/<name>.yaml` und `varianten.yaml` – Varianten des Lebenslaufs für bestimmte Stellen und ihre Tags. Sie entstehen mit **Lebenslauf erstellen** bei einer Bewerbung (siehe [Lebenslauf für eine Stelle erstellen](#lebenslauf-für-eine-stelle-erstellen)) oder mit Claude; ändern lassen sie sich unter **Inhalte als Text**.
 - `einrichtung.yaml` – Ihre Wahl aus dem ersten Schritt der Einrichtung: Stelle oder Lehrstelle, Sie oder du, RAV.
-- `sprachen.yaml` – die Sprache der App und die Sprachen, in denen Sie sich bewerben, gewählt unter **Einstellungen**, **KI, Budget und Sprache**, bei **Sprache**. Fehlt die Datei, gilt Deutsch und der Vorschlag aus Ihrem Lebenslauf.
+- `sprachen.yaml` – die Sprache der App und die Sprachen, in denen Sie sich bewerben, gewählt unter **Einstellungen**, **KI, Budget und Sprache**, bei **Sprache** oder mit der Sprachwahl in der Seitenleiste. Fehlt die Datei, gilt Deutsch und der Vorschlag aus Ihrem Lebenslauf.
 - `aussehen.yaml` – das Design Ihres Lebenslaufs, gewählt auf der Seite **Lebenslauf und Dateien** mit **Aussehen wählen**: Zweispaltig (Vorgabe) oder Einspaltig. Neue Lebensläufe entstehen in diesem Design; was schon erstellt oder verschickt ist, bleibt, wie es ist. Ein Dossier hat sein eigenes Design, gewählt in der Bewerbung unter **Dossier gestalten**.
 - `unterlagen.yaml` – ob Ihr Lebenslauf drei statt zwei Seiten haben darf, wenn Sie unter **Einstellungen**, **Erweitert** **Drei Seiten für den Lebenslauf erlauben** einschalten, und ob er Ihr Foto zeigt, wenn Sie unter **Lebenslauf und Dateien** beim Foto **Im Lebenslauf zeigen** ausschalten. Ausgeschaltet entstehen neue Lebensläufe und Dossiers ohne Foto; was schon erstellt oder verschickt ist, behält sein Foto.
 - `einwilligung.json` – wann Sie der Nutzung der KI zugestimmt haben und welcher Fassung des Textes.

@@ -26,6 +26,8 @@ const LEFT_ALONE = {
   // Both runs (forms, Job-Room) show their refusals through this one helper since #419.
   "uebersicht.js": [["liste.map(a => Texte.t(\"{firma}: {grund}\", { firma: a.firma, grund: a.grund })).join(\" · \")", 1]],
   "treffer.js": [["b.auffaellig.join(\" · \")", 1]],
+  // The language switch's group label (#435): one aria-label in three languages, heard as a whole, never shown.
+  "sprache-logik.js": [["const SWITCH_LABEL = \"Sprache · Langue · Language\";", 1]],
 };
 
 const isComment = line => /^\s*(\/\/|\/\*|\*)/.test(line);

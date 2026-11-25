@@ -577,6 +577,17 @@ th[aria-sort="descending"] .table__sort::after { content: "↓"; }
   .app-nav__more .app-nav__head:first-child { margin-top: var(--space-4); }
   .app-nav__more > .app-nav__list .app-nav__head { margin-top: var(--space-4); }
 }
+/* The language switch (#435): the last block of the sidebar (inside «Menü» below 900 px), and beside the heading of
+   Einrichtung. Text buttons that wrap as whole names rather than shrink; the current one is marked, not disabled. */
+.app-nav__language { margin: var(--space-4) 0 0; padding: 0 0 0 var(--space-2); }
+.language-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); }
+.language-switch__icon { flex: none; margin-right: var(--space-1); color: var(--text-muted); }
+.language-switch__option { flex: none; min-height: 44px; padding: 0 var(--space-1); border: 0; border-radius: var(--radius-md); background: none; color: var(--text); font: 400 14px/20px var(--font-sans); white-space: nowrap; cursor: pointer; }
+.language-switch__option:hover, .language-switch__option:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+.language-switch__option[aria-pressed="true"] { color: var(--text-strong); font-weight: 500; text-decoration: none; cursor: default; }
+.language-switch__option:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.language-switch__status { margin: var(--space-1) 0 0; padding: 0 var(--space-2); font-size: 13px; line-height: 18px; }
+.language-switch__status:empty { display: none; }
 /* Über die App under Einstellungen: the logo in one colour, as the file brings it */
 .about { display: flex; align-items: flex-start; gap: var(--space-3); }
 .about p { margin: 0; }
@@ -681,6 +692,10 @@ label.check input { margin-top: 3px; }
 /* ---------- Setup ---------- */
 .setup { display: flex; flex-direction: column; gap: var(--space-5); }
 .setup__head h1 { margin: 0 0 var(--space-1); font-size: 28px; line-height: 34px; }
+/* The heading and the language switch on one line, the switch on its own line under it below 600 px (#435) */
+.setup__title { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0 var(--space-4); justify-content: space-between; }
+.setup__language { display: flex; flex-direction: column; align-items: flex-end; }
+@media (max-width: 599px) { .setup__title { flex-direction: column; align-items: flex-start; } .setup__language { align-items: flex-start; margin-left: calc(-1 * var(--space-2)); } }
 .setup__head p, .setup > .notice { margin: 0; }
 .setup__path { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .setup__path .input { flex: 1 1 280px; min-width: 0; }

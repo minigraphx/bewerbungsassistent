@@ -175,6 +175,7 @@ SEITEN = {
     "/vorabversionen.js": "vorabversionen.js",
     "/seitengrenze.js": "seitengrenze.js",
     "/sprache-logik.js": "sprache-logik.js",
+    "/sprachwahl.js": "sprachwahl.js",
     "/sprache.js": "sprache.js",
     "/browser-wahl.js": "browser-wahl.js",
     "/browser-wahl-logik.js": "browser-wahl-logik.js",

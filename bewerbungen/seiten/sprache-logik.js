@@ -67,8 +67,34 @@
     return APPLICATION_VALUES.filter(value => on.has(value));
   }
 
+  // The switch in the sidebar and on Einrichtung (#435): one label in the three languages, whatever the app speaks, so
+  // a person who does not read German hears what the group is.
+  const SWITCH_LABEL = "Sprache · Langue · Language";  // kein UI-Text: the same in every language of the app
+
+  /**
+   * The switch from GET /api/sprachen: the three languages, the stored one pressed, and, while the translation is off
+   * (`uebersetzung`, #434), the line that says it is coming, as the card shows it.
+   */
+  function switchView(state) {
+    const current = state || {};
+    const app = knownApp(current.app);
+    const translated = current.uebersetzung === true;
+    return { app, translated, options: APP_LANGUAGES.map(option => ({ ...option, pressed: option.value === app })),
+             pending: translated ? null : PENDING_TRANSLATION[app] || null };
+  }
+
+  /** The note on Einrichtung when the chosen data folder kept its own app language (`sprache` of the setup's answer). */
+  function folderNote(carried) {
+    const own = carried && carried.ergebnis === "eigene" && APP_LANGUAGES.find(option => option.value === carried.app);
+    if (!own) return null;
+    const Texte = texts();
+    return Texte.t("In diesem Ordner war schon eine Sprache der App gespeichert: {sprache}. Sie gilt jetzt.",
+                   { sprache: own.label });
+  }
+
   const logic = {
     APP_LANGUAGES, get APPLICATION_LANGUAGES() { return applicationLanguages(); }, PENDING_TRANSLATION, view, checkedValues,
+    SWITCH_LABEL, switchView, folderNote,
   };
   if (typeof module !== "undefined") module.exports = logic;
   else global.SpracheLogik = logic;

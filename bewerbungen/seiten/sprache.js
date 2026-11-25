@@ -8,6 +8,7 @@
   const $ = id => document.getElementById(id);
   const NAME = "bewerbungssprache";
   const noteId = value => `sprache-hinweis-${value}`;
+  const SAVED_EVENT = "sprache-gespeichert";  // the language switch in the sidebar shows the same setting (#435)
 
   let queue = Promise.resolve();
   let drawn = false;
@@ -63,7 +64,9 @@
   function save(body, done, field) {
     queue = queue.then(async () => {
       try {
-        draw(await senden("/api/sprachen", body()));
+        const state = await senden("/api/sprachen", body());
+        draw(state);
+        document.dispatchEvent(new CustomEvent(SAVED_EVENT, { detail: state }));
         window.Meldungen.clearInputError($("sprache-meldung"));
         status($("sprache-meldung"), done, "ok");
       } catch (fehler) {
@@ -84,5 +87,6 @@
     save(() => ({ app }), window.Texte.t("Sprache der App gespeichert."), $("sprache-app"));
   });
 
+  document.addEventListener(SAVED_EVENT, event => { if (event.detail && event.detail !== stored) draw(event.detail); });
   holen("/api/sprachen").then(draw, fehler => status($("sprache-meldung"), fehler.message, "fehler"));
 })();

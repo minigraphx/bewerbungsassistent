@@ -6,7 +6,9 @@ language, and the application languages stay a suggestion until the person confi
 
 Without a choice the app speaks German. The application languages are suggested from `languages` in cv.yaml: every
 language the app offers that the CV names at C1 or better. A missing CV, or one that names none of them at that
-level, suggests German. Translating the pages is #95; this module only keeps the setting.
+level, suggests German. Translating the pages is #95; this module only keeps the setting. A language chosen on the
+first start, before a data folder exists, is kept on the placeholder folder and goes along into the chosen folder
+(`carry_app_language`, #435).
 """
 import dataclasses
 import pathlib
@@ -179,3 +181,31 @@ def save(k, values) -> Settings:
 
     k.mit_entwurf(path, _description(changes), write)
     return load(k.daten)
+
+
+# What became of the app language chosen before a data folder existed (#435), for the note of Einrichtung.
+CARRIED = "uebernommen"
+OWN = "eigene"
+
+
+@dataclasses.dataclass(frozen=True)
+class Carried:
+    result: str  # CARRIED or OWN
+    app: str  # the app language that now counts in the data folder
+
+    def as_dict(self) -> dict:
+        return {"ergebnis": self.result, "app": self.app}
+
+
+def carry_app_language(source: pathlib.Path, k) -> Carried | None:
+    """The app language chosen in `source` (the placeholder folder of the first start) into the data folder of `k`,
+    with drafts, when that folder has none of its own (Andy, 25.11.2026). A folder with its own keeps it; that is
+    said only when it differs. None when there is nothing to tell."""
+    chosen = _stored(source).get(APP_KEY)
+    if chosen is None or pathlib.Path(source).resolve() == pathlib.Path(k.daten).resolve():
+        return None
+    own = _stored(k.daten).get(APP_KEY)
+    if own is None:
+        save(k, {APP_KEY: chosen})
+        return Carried(CARRIED, chosen)
+    return None if own == chosen else Carried(OWN, own)
