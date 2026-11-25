@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-FPEhyYGHEDv8NcI/xnocMsGxYKaYrr7BJfxMgGMJkec='; style-src 'sha256-428qO27Hc5x9etrflalMP84bM3AuKI0Ftr+y3n9DZ6A='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-FPEhyYGHEDv8NcI/xnocMsGxYKaYrr7BJfxMgGMJkec='; style-src 'sha256-i8KH2jxf45bf8v9QTF2GzyburM6fDJs5uy8Owhe14Vs='; font-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="token" content="__TOKEN__">
 <meta name="bewerbungsbegleiter" content="app">
@@ -309,11 +309,23 @@ button { font: inherit; cursor: pointer; }
   .app-nav__more .app-nav__head:first-child { margin-top: 16px; }
   .app-nav__more > .app-nav__list .app-nav__head { margin-top: 16px; }
 }
+/* The language switch (#435), as in stil.css */
+.app-nav__language { margin: 16px 0 0; padding: 0 0 0 8px; }
+.language-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; }
+.language-switch__icon { flex: none; margin-right: 4px; color: var(--muted); }
+.language-switch__option { flex: none; min-height: 44px; padding: 0 4px; border: 0; border-radius: var(--radius-control); background: none; color: var(--text); font: inherit; font-size: 14px; line-height: 20px; font-weight: 400; white-space: nowrap; cursor: pointer; }
+.language-switch__option:hover, .language-switch__option:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+.language-switch__option[aria-pressed="true"] { color: var(--text-strong); font-weight: 500; text-decoration: none; cursor: default; }
+.language-switch__option:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.language-switch__status:empty { display: none; }
 /* Messages of app.js (new version, backup) above the page */
 .banner, .status { grid-column: 1 / -1; margin: 0; padding: 12px 16px; border-radius: var(--radius-control); background: var(--accent-soft); color: var(--text-strong); }
 .banner button, .banner a, .status button { margin-left: 8px; }
 .status.fehler { background: var(--danger-soft); }
 .status.ok { background: var(--success-soft); }
+/* The line under the language switch is a quiet line like the other pages', not a message above the page */
+.app-nav .status.language-switch__status, .setup__language .status.language-switch__status { margin: 4px 0 0; padding: 0 8px; border-radius: 0; background: none; color: var(--muted); font-size: 13px; line-height: 18px; }
+.app-nav .status.language-switch__status.fehler { color: var(--danger); font-weight: 500; }
 /* Dialog of app.js for a new version (#32), as .dialog and .btn in bewerbungen/seiten/stil.css */
 .dialog { width: min(520px, calc(100% - 32px)); padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18); }
 .dialog::backdrop { background: rgba(22, 25, 29, 0.45); }
@@ -367,7 +379,7 @@ button { font: inherit; cursor: pointer; }
 </style>
 </head>
 <body>
-<nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/bewerbungen" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span><span class="num" id="nav-budget-detail"></span><strong class="app-nav__budget-warning" id="nav-budget-warning" hidden></strong></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div></div></nav>
+<nav class="app-nav" aria-label="Hauptnavigation"><div class="app-nav__top"><a class="app-nav__brand" href="/">Bewerbungsbegleiter</a><span class="app-nav__budget-short" id="nav-budget-short" hidden></span><button type="button" class="app-nav__menu" id="nav-menu" aria-expanded="false" aria-controls="nav-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"></path></svg>Menü</button></div><ul class="app-nav__list"><li><a class="app-nav__link" href="/" data-target="heute"><span>Heute</span><span class="app-nav__count" id="badge-heute" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/treffer" data-target="stellen"><span data-text="nav.stellen">Stellen</span><span class="app-nav__count" id="badge-stellen" hidden><span class="app-nav__count-long"></span><span class="app-nav__count-short"></span></span></a></li><li><a class="app-nav__link" href="/bewerbungen" data-target="bewerbungen">Bewerbungen</a></li><li class="app-nav__head">Meine Unterlagen</li><li><a class="app-nav__link" href="/angaben" data-target="angaben">Meine Angaben</a></li></ul><div class="app-nav__more" id="nav-more"><ul class="app-nav__list"><li><a class="app-nav__link" href="/dateien" data-target="dateien">Lebenslauf und Dateien</a></li><li class="app-nav__head">Hilfe</li><li><a class="app-nav__link" href="/fragen" data-target="fragen">Fragen an die KI</a></li><li><a class="app-nav__link" href="/einstellungen" data-target="einstellungen">Einstellungen</a></li></ul><div class="app-nav__status"><div class="app-nav__budget" id="nav-budget" hidden><span class="app-nav__budget-title" id="nav-budget-title"></span><div class="app-nav__bar" id="nav-budget-bar" role="img"><div class="app-nav__bar-fill" id="nav-budget-fill"></div></div><span class="num" id="nav-budget-text"></span><span class="num" id="nav-budget-detail"></span><strong class="app-nav__budget-warning" id="nav-budget-warning" hidden></strong></div><p class="app-nav__extension" id="nav-extension" hidden><span class="app-nav__dot" aria-hidden="true"></span><span id="nav-extension-text"></span> <a href="/einrichtung#erweiterung" id="nav-extension-setup" hidden>Einrichten</a></p></div><div class="app-nav__language language-switch" id="nav-language" role="group" hidden><svg class="language-switch__icon" aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="7"></circle><path d="M2 9h14M9 2c-2.4 2.6-2.4 11.4 0 14M9 2c2.4 2.6 2.4 11.4 0 14"></path></svg></div><div class="status language-switch__status" id="nav-language-status" role="status" aria-live="polite"></div></div></nav>
 <main class="layout">
   <div class="side">
     <h1>Meine Angaben</h1>
@@ -384,6 +396,8 @@ button { font: inherit; cursor: pointer; }
 <script src="/uebersicht-logik.js"></script>
 <script src="/sidebar-logic.js"></script>
 <script src="/sidebar.js"></script>
+<script src="/sprache-logik.js"></script>
+<script src="/sprachwahl.js"></script>
 <script src="/dateien-logik.js"></script>
 <script src="/treffer-logik.js"></script>
 <script>// The words of the form in the app language (#431, G10, docs/design/sprachen.md). The German text is the key, so what

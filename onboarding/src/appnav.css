@@ -58,11 +58,23 @@
   .app-nav__more .app-nav__head:first-child { margin-top: 16px; }
   .app-nav__more > .app-nav__list .app-nav__head { margin-top: 16px; }
 }
+/* The language switch (#435), as in stil.css */
+.app-nav__language { margin: 16px 0 0; padding: 0 0 0 8px; }
+.language-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; }
+.language-switch__icon { flex: none; margin-right: 4px; color: var(--muted); }
+.language-switch__option { flex: none; min-height: 44px; padding: 0 4px; border: 0; border-radius: var(--radius-control); background: none; color: var(--text); font: inherit; font-size: 14px; line-height: 20px; font-weight: 400; white-space: nowrap; cursor: pointer; }
+.language-switch__option:hover, .language-switch__option:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+.language-switch__option[aria-pressed="true"] { color: var(--text-strong); font-weight: 500; text-decoration: none; cursor: default; }
+.language-switch__option:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.language-switch__status:empty { display: none; }
 /* Messages of app.js (new version, backup) above the page */
 .banner, .status { grid-column: 1 / -1; margin: 0; padding: 12px 16px; border-radius: var(--radius-control); background: var(--accent-soft); color: var(--text-strong); }
 .banner button, .banner a, .status button { margin-left: 8px; }
 .status.fehler { background: var(--danger-soft); }
 .status.ok { background: var(--success-soft); }
+/* The line under the language switch is a quiet line like the other pages', not a message above the page */
+.app-nav .status.language-switch__status, .setup__language .status.language-switch__status { margin: 4px 0 0; padding: 0 8px; border-radius: 0; background: none; color: var(--muted); font-size: 13px; line-height: 18px; }
+.app-nav .status.language-switch__status.fehler { color: var(--danger); font-weight: 500; }
 /* Dialog of app.js for a new version (#32), as .dialog and .btn in bewerbungen/seiten/stil.css */
 .dialog { width: min(520px, calc(100% - 32px)); padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18); }
 .dialog::backdrop { background: rgba(22, 25, 29, 0.45); }

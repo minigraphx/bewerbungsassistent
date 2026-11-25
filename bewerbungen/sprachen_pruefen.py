@@ -39,7 +39,7 @@ FERTIG: tuple[pathlib.Path, ...] = (
     BASE / "seiten/uebersicht-logik.js", BASE / "seiten/einstellungen-logik.js", BASE / "seiten/einstellungen.js",
     BASE / "seiten/claude-abo.js", BASE / "seiten/vorabversionen.js", BASE / "seiten/browser-wahl-logik.js",
     BASE / "seiten/browser-wahl.js", BASE / "seiten/seitengrenze.js", BASE / "seiten/sprache-logik.js",
-    BASE / "seiten/sprache.js",
+    BASE / "seiten/sprache.js", BASE / "seiten/sprachwahl.js",  # the language switch on every page (#435)
     BASE / "routes_own_key.py", BASE / "ai/own_key.py", BASE / "routes_language_settings.py",
     BASE / "language_settings.py", BASE / "routes_preferences.py", BASE / "preferences.py",
     BASE / "routes_page_limit.py", BASE / "page_limit.py", BASE / "ai/connection.py",

@@ -79,6 +79,9 @@ function setup(answers) {
     createTextNode: text => new FakeText(text),
     getElementById: id => root.querySelector(`#${id}`),
     querySelectorAll: selector => root.querySelectorAll(selector),
+    listeners: {},
+    addEventListener(type, handler) { (this.listeners[type] ||= []).push(handler); },
+    dispatchEvent(event) { for (const handler of this.listeners[event.type] || []) handler(event); return true; },
   };
   const calls = { holen: 0, senden: [], failures: [], statuses: [] };
   function el(tag, attributes = {}, ...children) {
@@ -106,11 +109,12 @@ function setup(answers) {
     DotLine: require("../seiten/dot-line.js"),
     Texte: require("../seiten/texte.js"),  // loaded first on the page, as in einstellungen.html
   };
-  const context = { window, document: doc, console };
+  class CustomEvent { constructor(type, init = {}) { this.type = type; this.detail = init.detail; } }
+  const context = { window, document: doc, console, CustomEvent };
   vm.createContext(context);
   vm.runInContext(fs.readFileSync(path.join(SEITEN, "sprache-logik.js"), "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(SEITEN, "sprache.js"), "utf8"), context);
-  return { root, calls, boxes: () => root.querySelectorAll('input[name="bewerbungssprache"]') };
+  return { root, doc, calls, boxes: () => root.querySelectorAll('input[name="bewerbungssprache"]') };
 }
 
 const settle = async () => { for (let i = 0; i < 10; i += 1) await new Promise(resolve => setImmediate(resolve)); };
@@ -189,4 +193,22 @@ test("the translation line speaks the chosen language and carries its lang, Germ
   assert.equal(line.hidden, true);
   assert.equal(line.textContent, "");
   assert.equal(line.getAttribute("lang"), null);
+});
+
+test("the card tells the language switch what it saved and follows a choice made there (#435)", async () => {
+  const french = { ...SUGGESTED, app: "fr", app_gewaehlt: true };
+  const page = setup({ holen: [SUGGESTED], senden: [french] });
+  const told = [];
+  page.doc.addEventListener("sprache-gespeichert", event => told.push(event.detail.app));
+  await settle();
+
+  const select = page.root.querySelector("#sprache-app");
+  select.value = "fr";
+  select.dispatch("change");
+  await settle();
+  assert.deepEqual(told, ["fr"]);
+
+  page.doc.dispatchEvent({ type: "sprache-gespeichert", detail: { ...SUGGESTED, app: "en", app_gewaehlt: true } });
+  assert.equal(select.value, "en");
+  assert.equal(page.root.querySelector("#sprache-folgt").getAttribute("lang"), "en");
 });

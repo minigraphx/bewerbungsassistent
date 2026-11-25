@@ -317,5 +317,9 @@
   "{name} wurde nicht gefunden. Ist der Browser installiert?": {
     "fr": "{name} est introuvable. Le navigateur est-il installé\u00a0?",
     "en": "{name} was not found. Is the browser installed?"
+  },
+  "In diesem Ordner war schon eine Sprache der App gespeichert: {sprache}. Sie gilt jetzt.": {
+    "fr": "Une langue de l'app était déjà enregistrée dans ce dossier\u00a0: {sprache}. Elle s'applique maintenant.",
+    "en": "An app language was already saved in this folder: {sprache}. It now applies."
   }
 }

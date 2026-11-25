@@ -10,6 +10,7 @@ import logging
 import os
 import pathlib
 import sys
+from typing import TYPE_CHECKING, Callable
 
 import app_browser
 import extension
@@ -25,6 +26,9 @@ import settings
 import setup
 import updates_macos
 import urlscheme
+
+if TYPE_CHECKING:
+    from kontext import Kontext  # bewerbungen/, on the path once the app runs
 
 log = logging.getLogger("bewerbungsbegleiter")
 
@@ -207,6 +211,22 @@ def register_link(platform: str = sys.platform) -> None:
         linux_desktop.register_quietly(executable, bundle_dir() / "erweiterung" / "icons" / "icon128.png")
 
 
+def folder_switch(holder: dict) -> Callable[[pathlib.Path], "Kontext"]:
+    """Gives the running server the state of another data folder, without a restart, and hands it back, so the setup
+    can carry the first start's app language into it (#435)."""
+    import app
+    import routes_ai
+
+    def switch(folder: pathlib.Path) -> "Kontext":
+        new_context = app.erstelle_kontext(folder)
+        routes_ai.hand_over_waiting_code(holder["server"].kontext, new_context)
+        holder["server"].kontext = new_context
+        log.info("Datenordner gewechselt: %s", folder)
+        return new_context
+
+    return switch
+
+
 def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) -> int:
     import app  # the existing interface (bewerbungen/app.py)
     register_link()
@@ -215,19 +235,12 @@ def serve(paths: settings.Paths, code: str | None, open_browser: bool = True) ->
     import routes_angaben
     import routes_browser
     import routes_claude
-    import routes_ai
     import routes_setup
     data = start_folder(paths)
     holder: dict = {}
     controls = routes_app.Controls(stop=lambda: holder["server"].shutdown(), failed_note=paths.app_dir / FAILED_UPDATE_NOTE,
                                    paths=paths)
-
-    def switch(folder: pathlib.Path) -> None:
-        new_context = app.erstelle_kontext(folder)
-        routes_ai.hand_over_waiting_code(holder["server"].kontext, new_context)
-        holder["server"].kontext = new_context
-        log.info("Datenordner gewechselt: %s", folder)
-
+    switch = folder_switch(holder)
     state = routes_setup.Setup(paths=paths, switch=switch, suggestion=settings.documents_dir() / settings.SUGGESTED_DATA_FOLDER,
                                forbidden=(paths.app_dir, _install_dir()), extension_dir=prepare_extension(paths))
     app_get, app_post = routes_app.make_routes(controls)

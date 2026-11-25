@@ -195,7 +195,7 @@
     if (!wahl) return;
     setzeGesucht(wahl.gesucht);
     document.querySelector(`input[name=anrede][value=${wahl.anrede === "du" ? "du" : "sie"}]`).checked = true;
-    if (wahl.gewaehlt || sitzung.bestaetigt) {
+    if (wahl.gewaehlt || sitzung.bestaetigt || ravBeruehrt) {
       ravBeruehrt = true;
       document.querySelector(`input[name=rav][value=${wahl.rav ? "ja" : "nein"}]`).checked = true;
     }
@@ -238,6 +238,25 @@
   for (const karte of document.querySelectorAll(".choice-card")) karte.addEventListener("click", () => setzeGesucht(karte.dataset.gesucht));
   for (const knopf of document.querySelectorAll("input[name=rav]")) knopf.addEventListener("change", () => { ravBeruehrt = true; });
   $("gesucht-weiter").addEventListener("click", bestaetigeWahl);
+
+  // The language switch reloads the page (#435): what the first step shows but has not saved comes back afterwards.
+  document.addEventListener("sprachwahl-neuladen", () => {
+    sitzung.entwurf = { ...gewaehlteWahl(), ravBeruehrt, ordner: ordnerAngezeigt ? ordnerPfad() : null };
+    merke();
+  });
+
+  function nimmEntwurf() {
+    if (!sitzung.entwurf) return;
+    const kept = L.keptChoice(wahl, sitzung.entwurf);
+    wahl = kept.wahl;
+    ravBeruehrt = kept.ravBeruehrt;
+    if (info && kept.ordner) {
+      $("ordner").value = kept.ordner;
+      ordnerAngezeigt = true;
+    }
+    delete sitzung.entwurf;
+    merke();
+  }
 
   // The data folder, a line of the first step (#219): the proposal fits nearly everyone
 
@@ -293,6 +312,7 @@
   async function wechsleOrdner() {
     const vorher = bereit() ? info.datenordner : null;
     info = await senden("/api/app/datenordner", { pfad: ordnerPfad() });
+    window.Sprachwahl?.refresh(info.sprache);  // the folder's own language, or the one carried into it (#435)
     if (!vorher) return false;
     const dort = await holen("/api/einrichtung/wahl");
     if (!dort.gewaehlt) return false;
@@ -565,6 +585,8 @@
       try { wahl = await holen("/api/einrichtung/wahl"); } catch { wahl = null; }
     }
     if (!wahl) wahl = { gesucht: "stelle", anrede: "sie", rav: false, gewaehlt: false };
+    nimmEntwurf();
+    if (info?.sprache) window.Sprachwahl?.refresh(info.sprache);
     if (info) await ladeKi();
     setzeSaetze();
     richteStoreEin();

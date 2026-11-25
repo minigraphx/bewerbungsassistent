@@ -80,8 +80,21 @@
     return ZEICHEN[art] || "  ";
   }
 
+  // A reload for the new language (#435) keeps the first step's unsaved choice in the session; each value is checked,
+  // because what comes back from the browser's storage is not trusted.
+  const KEPT_VALUES = { gesucht: ["stelle", "lehrstelle"], anrede: ["sie", "du"] };
+
+  function keptChoice(wahl, entwurf) {
+    const kept = entwurf && typeof entwurf === "object" ? entwurf : {};
+    const valid = {};
+    for (const [key, allowed] of Object.entries(KEPT_VALUES)) if (allowed.includes(kept[key])) valid[key] = kept[key];
+    if (typeof kept.rav === "boolean") valid.rav = kept.rav;
+    return { wahl: { ...wahl, ...valid }, ravBeruehrt: kept.ravBeruehrt === true,
+             ordner: typeof kept.ordner === "string" ? kept.ordner : null };
+  }
+
   const logik = { erweiterungZustand, startWahl, zuErsetzen, zeilenZeichen, schritte, browserVon, storeKnoepfe, offenePunkte,
-                  abschlussTitel, zusammenfassung };
+                  abschlussTitel, zusammenfassung, keptChoice };
   if (typeof module !== "undefined") module.exports = logik;
   else global.EinrichtungLogik = logik;
 })(typeof window !== "undefined" ? window : globalThis);
