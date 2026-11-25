@@ -79,10 +79,16 @@ test("on Einrichtung the switch stands right of the heading and wraps under it b
 
 test("the guide names the switch in the sidebar, in Einrichtung and for sprachen.yaml", () => {
   const guide = fs.readFileSync(path.join(ROOT, "docs", "installation.md"), "utf8");
-  assert.ok(guide.includes("Ganz unten wechseln Sie die Sprache der App: **Deutsch**, **Français** oder **English**; im schmalen Fenster steht die Wahl unter **Menü**."));
-  assert.ok(guide.includes("wählen Sie bei **Sprache** die **Sprache der App**, oder unten in der Seitenleiste und oben auf der Seite **Einrichtung**, und unter"));
+  assert.ok(guide.includes("ganz unten **Einstellungen**. Darunter wechseln Sie die Sprache der App: **Deutsch**, **Français** oder **English**; im schmalen Fenster steht die Wahl unter **Menü**."));
+  assert.ok(guide.includes("**Sprachen:** Die **Sprache der App** wählen Sie unten in der Seitenleiste, oben auf der Seite **Einrichtung** oder unter **Einstellungen**, **KI, Budget und Sprache**, bei **Sprache**. Dort wählen Sie unter **Ich bewerbe mich auf** auch die Sprachen, in denen Sie sich bewerben."));
+  assert.ok(guide.includes("Wählen Sie die Sprache in der Einrichtung, bevor der Datenordner feststeht, übernimmt die App sie in diesen Ordner; ist dort schon eine Sprache der App gespeichert, gilt diese, und die Einrichtung sagt es. Solange Sie nichts gewählt haben"));
   assert.ok(guide.includes("Die App selbst gibt es vorerst nur auf Deutsch; Französisch und Englisch folgen."));
-  assert.ok(guide.includes("bei **Sprache** oder mit der Sprachwahl in der Seitenleiste."));
+  assert.ok(guide.includes("bei **Sprache**, oder mit der Sprachwahl in der Seitenleiste oder auf der Seite **Einrichtung**."));
   assert.equal(guide.split("oben rechts die Sprachwahl Deutsch, Français, English](bilder/einrichtung-start.jpg)").length, 3,
                "both pictures of Einrichtung name the switch");
+});
+
+test("the README picture of Heute names the switch below the budget", () => {
+  const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+  assert.ok(readme.includes("; links die Seitenleiste mit dem KI-Budget des Monats und darunter der Sprachwahl Deutsch, Français, English](docs/bilder/uebersicht.jpg)"));
 });

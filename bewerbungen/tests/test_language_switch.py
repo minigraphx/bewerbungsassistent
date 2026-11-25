@@ -47,4 +47,7 @@ def test_the_label_and_the_names_are_no_ui_text():
 def test_the_note_on_a_folder_with_its_own_language_is_in_french_and_english():
     catalog = translation_catalog.load(translation_catalog.CATALOG_DIR)
     entry = catalog.entries["In diesem Ordner war schon eine Sprache der App gespeichert: {sprache}. Sie gilt jetzt."]
-    assert "{sprache}" in entry["fr"] and "{sprache}" in entry["en"]
+    # The wording of the UI/UX review (#435); French keeps its no-break space before the colon.
+    assert entry["fr"] == ("Une langue de l'app était déjà enregistrée dans ce dossier\N{NO-BREAK SPACE}: {sprache}. "
+                           "Elle s'applique maintenant.")
+    assert entry["en"] == "An app language was already saved in this folder: {sprache}. It now applies."
